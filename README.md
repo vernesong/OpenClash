@@ -1,2 +1,1 @@
-# removed
 # Clash-For-Openwrt
