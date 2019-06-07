@@ -39,7 +39,7 @@
 </p>
 
 * Rules
-<p align="center">v
+<p align="center">
     <img src="https://github.com/vernesong/OpenClash/raw/master/img/rules.png">
 </p>
 
