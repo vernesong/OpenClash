@@ -20,7 +20,7 @@
 
 * State
 <p align="center">
-    <img src="https://github.com/vernesong/OpenClash/raw/master/img/status.png">
+    <img src="https://github.com/vernesong/OpenClash/raw/master/img/state.png">
 </p>
 
 * Config
