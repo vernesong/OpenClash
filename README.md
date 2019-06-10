@@ -5,7 +5,7 @@
 </h1>
 
 <p align="center">
-	A Clash Client For OpenWrt Based on <a href="https://github.com/Dreamacro/clash" target="_blank">Clash</a>、 <a href="https://github.com/frainzy1477/clash" target="_blank">Clash Client</a>.
+	A Clash Client For OpenWrt Based on <a href="https://github.com/Dreamacro/clash" target="_blank">Clash</a>、 <a href="https://github.com/frainzy1477/clash" target="_blank">Clash For Openwrt</a>.
   </p>
   <p align="center">
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.14.0">
