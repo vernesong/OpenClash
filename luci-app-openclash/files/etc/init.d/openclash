@@ -1,0 +1,326 @@
+#!/bin/sh /etc/rc.common
+# Copyright (c) 2011-2015 OpenWrt.org
+
+START=99
+STOP=15
+
+
+CLASH="/etc/openclash/clash"
+CLASH_CONFIG="/etc/openclash"
+CRON_FILE="/etc/crontabs/root"
+CONFIG_FILE="/etc/openclash/config.yml"
+LOG_FILE="/tmp/openclash.log"
+START_LOG="/tmp/openclash_start.log"
+BACKPACK_FILE="/etc/openclash/config.bak"
+CHANGE_FILE="/tmp/yml_change.yml"
+RULE_FILE="/tmp/yml_rules.yml"
+DNS_FILE="/tmp/yml_dns.yml"
+
+
+add_cron()
+{
+  [ -z "`grep "openclash.log" "$CRON_FILE"`" ] && {
+     echo '0 0 * * 0 echo "" > /tmp/openclash.log' >> $CRON_FILE
+  }
+  [ -z "`grep "openclash.sh" "$CRON_FILE"`" ] && {
+     [ "$(uci get openclash.config.auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.auto_update_time 2>/dev/null) * * * /usr/share/openclash/openclash.sh" >> $CRON_FILE
+  }
+  [ -z "`grep "openclash_rule.sh" "$CRON_FILE"`" ] && {
+  [ "$(uci get openclash.config.other_rule_auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.other_rule_update_day_time 2>/dev/null) * * $(uci get openclash.config.other_rule_update_week_time 2>/dev/null) /usr/share/openclash/openclash_rule.sh" >> $CRON_FILE
+  }
+  crontab $CRON_FILE
+  nohup /usr/share/openclash/openclash_watchdog.sh &
+}
+
+del_cron()
+{
+   sed -i '/openclash.sh/d' $CRON_FILE 2>/dev/null
+   sed -i '/openclash_rule.sh/d' $CRON_FILE 2>/dev/null
+   /etc/init.d/cron restart
+}
+
+yml_check()
+{
+   if [ ! -f "$4" ]; then
+    	cp "$3" "$4"
+   fi
+
+   if [ "$(grep -c '^##Custom DNS##' "$CONFIG_FILE")" -gt 0 ] && [ "$2" = 0 ]; then
+      cp "$4" "$3"
+   fi
+    
+   if [ "$1" = 0 ]; then
+      if [ -f "$4" ]; then
+         [ ! -z "`grep "OpenClash-General" "$CONFIG_FILE"`" ] && {
+            cp "$4" "$3"
+         }
+      else
+          [ -z "`grep "OpenClash-General" "$CONFIG_FILE"`" ] && {
+          cp "$3" "$4"
+         }
+      fi
+   fi
+   sed -i '/OpenClash-General/d' "$3" 2>/dev/null
+   sed -i '/^Proxy:/i\#===================== OpenClash-General-Settings =====================#' "$3" 2>/dev/null
+}
+
+yml_dns_check()
+{
+   if [ "$1" -eq 53 ]; then
+      sed -i "/^  listen:/c\  listen: 0.0.0.0:7874" "$2"
+      dns_port=7874
+   fi
+   
+   [ -z "`grep "^dns:" $CONFIG_FILE`" ] && {
+   	 sed -i -e "/^Proxy:$/i\dns:"\
+            -e "/^dns:/a\  enable: true"\
+            -e "/enable: true/a\  listen: 0.0.0.0:${1}"\
+            -e "/listen:/a\  enhanced-mode: redir-host"\
+            -e "/enhanced-mode:/a\  nameserver:"\
+            -e "/nameserver:/a\  - 114.114.114.114"\
+            -e "/114.114.114.114/a\  - 119.29.29.29"\
+            -e "/119.29.29.29/a\  - 223.5.5.5"\
+            -e "/223.5.5.5/a\  fallback:"\
+            -e "/fallback:/a\  - tls://dns.rubyfish.cn:853"\
+            -e "/dns.rubyfish.cn:853/a\- tcp://1.1.1.1:53"\
+            -e "/1.1.1.1:53/a\  - tcp://208.67.222.222:443"\
+            -e "/208.67.222.222:443/a\  - tls://dns.google" "$2"
+  }
+  
+}
+
+yml_cut()
+{
+	 cp "$5" "$2"
+    if [ "$1" = 0 ]; then
+       sed -i '/^Rule:$/,$d' "$2"
+       sed -n '/^Rule:$/,$p' "$5" >"$3"
+    else
+       sed -i '/^Rule:$/,$d' "$2"
+       sed -n '/nameserver:$/,$p' "$2" >"$4"
+       sed -i '/nameserver:$/,$d' "$2"
+       sed -n '/^Rule:$/,$p' "$5" >"$3"
+    fi
+}
+
+yml_dns_get()
+{
+
+   local section="$1"
+   local dns_type=""
+   local dns_address=""
+   config_get "port" "$section" "port" ""
+   config_get "type" "$section" "type" ""
+   config_get "ip" "$section" "ip" ""
+   config_get "group" "$section" "group" ""
+
+	
+   if [ -z "$ip" ]; then
+      return
+   fi
+
+   if [ "$type" = "tcp" ]; then
+      dns_type="- tcp://"
+   elif [ "$type" = "tls" ]; then
+      dns_type="- tls://"
+   elif [ "$type" = "udp" ]; then
+      dns_type="- "
+   fi
+
+   if [ ! -z "$port" ] && [ ! -z "$ip" ]; then
+      dns_address="$ip:$port"
+   elif [ -z "$port" ] && [ ! -z "$ip" ]; then
+      dns_address="$ip"
+   else
+      return
+   fi
+
+   if [ ! -z "$group" ]; then
+      if [ "$group" = "nameserver" ]; then
+         echo "  $dns_type$dns_address" >>/etc/openclash/config.namedns
+      else
+         grep "fallback:$" /etc/openclash/config.falldns 1>/dev/null
+         if [ "$?" -ne "0" ]; then
+            echo "  fallback:" >/etc/openclash/config.falldns
+         fi
+         echo "  $dns_type$dns_address" >>/etc/openclash/config.falldns
+      fi
+   else
+      return
+   fi
+
+}
+
+yml_dns_custom()
+{
+	[ "$1" = 1 ] && {
+	 echo "  nameserver:" >/etc/openclash/config.namedns
+   config_load "openclash"
+   config_foreach yml_dns_get "dns_servers"
+   sed -i '/nameserver:$/i\##Custom DNS##' "$2" 2>/dev/null
+   sed -i '/OpenClash-General-Settings/i\Custom DNS End' "$2" 2>/dev/null
+   sed -i '/nameserver:$/,/^Custom DNS End$/d' "$2" 2>/dev/null
+   sed -i '/^##Custom DNS##$/r/etc/openclash/config.falldns' "$2" 2>/dev/null
+   sed -i '/^##Custom DNS##$/r/etc/openclash/config.namedns' "$2" 2>/dev/null
+   rm -rf /etc/openclash/config.namedns 2>/dev/null
+   rm -rf /etc/openclash/config.falldns 2>/dev/null
+   }
+}
+   
+start()
+{
+echo "OpenClash 开始启动..." >$START_LOG
+enable=$(uci get openclash.config.enable 2>/dev/null)
+LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")  
+if [ ! -f $CONFIG_FILE ] && [ -f $BACKPACK_FILE ]; then
+   cp $BACKPACK_FILE $CONFIG_FILE
+fi
+if [ "$enable" -eq 1 ] && [ -f $CONFIG_FILE ]; then
+    echo "第一步: 获取配置中..." >$START_LOG
+    en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
+    enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
+    rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
+    enable_custom_clash_rules=$(uci get openclash.config.enable_custom_clash_rules 2>/dev/null) 
+    da_password=$(uci get openclash.config.dashboard_password 2>/dev/null)
+    cn_port=$(uci get openclash.config.cn_port 2>/dev/null)
+    proxy_port=$(uci get openclash.config.proxy_port 2>/dev/null)
+    echo "第二步: 配置文件检查..." >$START_LOG
+    yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKPACK_FILE"
+    current_mode=$(grep "enhanced-mode:" $CONFIG_FILE |awk -F ' ' '{print $2}' 2>/dev/null)
+    dns_port=`grep listen: $CONFIG_FILE |awk -F ':' '{print $3}' |tr -cd "[0-9]"`
+    yml_dns_check "$dns_port" "$CONFIG_FILE"
+    echo "第三步: 修改配置文件..." >$START_LOG
+    yml_cut "$enable_custom_dns" "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE"
+    yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
+    sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$current_mode" "$CHANGE_FILE" &
+    sh /usr/share/openclash/yml_rules_change.sh "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" &
+    wait
+    cat $CHANGE_FILE $DNS_FILE $RULE_FILE > $CONFIG_FILE 2>/dev/null
+    rm -rf /tmp/yml_* 2>/dev/null
+    echo "第四步: 配置文件完整性检查..." >$START_LOG
+    grep "^redir-port:" $CONFIG_FILE 1>/dev/null && grep "^Proxy Group:$" $CONFIG_FILE 1>/dev/null && grep "^Rule:$" $CONFIG_FILE 1>/dev/null && grep "^- GEOIP" $CONFIG_FILE 1>/dev/null && grep "nameserver:$" $CONFIG_FILE 1>/dev/null
+    if [ "$?" -ne "0" ]; then
+       echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请对照模板格式检查修改配置文件..." >$START_LOG
+       cp $BACKPACK_FILE $CONFIG_FILE
+       echo "${LOGTIME} OpenClash Config Error,Please Check And Try Again" >>$LOG_FILE
+       sleep 20
+       echo "" >$START_LOG
+    elif [ ! -z "`sed -n '/nameserver:/{n;p}' $CONFIG_FILE |grep 'fallback:'`" ]; then
+       echo "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已自动还原配置文件，请修改好后再重新启动..." >$START_LOG
+       echo "${LOGTIME} Nameserver Must Be Set, Please Change Your Configrations In Config.yml" >>$LOG_FILE
+       cp $BACKPACK_FILE $CONFIG_FILE
+       sleep 20
+       echo "" >$START_LOG
+    else
+       echo "第五步: 启动 Clash 主程序..." >$START_LOG
+       nohup $CLASH -d "$CLASH_CONFIG" > $LOG_FILE 2>&1 &
+
+       echo "第六步: 设置 OpenClash 防火墙规则..." >$START_LOG
+       ln -s /usr/share/openclash/web /www/openclash 2>/dev/null
+
+       uci set firewall.@defaults[0].flow_offloading=1
+       uci commit firewall	
+       /etc/init.d/firewall restart >/dev/null 2>&1
+       lan_ip=$(uci get network.lan.ipaddr)
+		
+       iptables -t nat -N openclash
+       iptables -t nat -N openclash_dns
+       iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
+       iptables -t nat -A openclash -d 10.0.0.0/8 -j RETURN
+       iptables -t nat -A openclash -d 127.0.0.0/8 -j RETURN
+       iptables -t nat -A openclash -d 169.254.0.0/16 -j RETURN
+       iptables -t nat -A openclash -d 172.16.0.0/12 -j RETURN
+       iptables -t nat -A openclash -d 192.168.0.0/16 -j RETURN
+       iptables -t nat -A openclash -d 224.0.0.0/4 -j RETURN
+       iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
+       iptables -t nat -A openclash_dns -p udp -j REDIRECT --to-ports "$dns_port"
+       iptables -t nat -A openclash_dns -p tcp -j REDIRECT --to-ports "$dns_port"
+       iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
+       iptables -t nat -I PREROUTING 1 -p tcp --dport 53 -j openclash_dns
+       iptables -t nat -I PREROUTING 1 -p udp --dport 53 -j openclash_dns
+       iptables -t nat -A PREROUTING -p tcp -j openclash
+
+       echo "第七步: 重启 Dnsmasq 程序..." >$START_LOG
+       /etc/init.d/dnsmasq restart >/dev/null 2>&1
+       if pidof clash >/dev/null; then
+          echo "第八步: 添加 OpenClash 计划任务,启动进程守护程序..." >$START_LOG
+          add_cron
+          echo "OpenClash 启动成功，请等待服务器上线！" >$START_LOG
+          echo "${LOGTIME} OpenClash Start Successfully" >> $LOG_FILE
+          sleep 5
+          echo "" >$START_LOG
+       else
+          echo "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！" >$START_LOG
+          echo "${LOGTIME} OpenClash Can Not Start, Please Check The Error Info And Try Again" >> $LOG_FILE
+          sleep 20
+          echo "" >$START_LOG
+          stop
+       fi
+    fi
+else
+   echo "错误: OpenClash 缺少配置文件，请上传或更新配置文件！" >$START_LOG
+   echo "${LOGTIME} config.yml Missing Or Clash Not Enable" >> $LOG_FILE
+   sleep 5
+   echo "" >$START_LOG
+fi
+}
+
+
+stop()
+{
+    echo "OpenClash 开始关闭..." >$START_LOG
+    echo "第一步: 删除 OpenClash 防火墙规则..." >$START_LOG
+    iptables -t nat -F openclash >/dev/null 2>&1
+    iptables -t nat -F openclash_dns >/dev/null 2>&1
+	
+    nat_clashs=$(iptables -nvL PREROUTING -t nat | sed 1,2d | sed -n '/openclash/=' | sort -r)
+    for nat_clash in $nat_clashs; do
+        iptables -t nat -D PREROUTING "$nat_clash" >/dev/null 2>&1
+    done
+
+    iptables -t nat -X openclash >/dev/null 2>&1
+    iptables -t nat -X openclash_dns >/dev/null 2>&1
+
+    uci set firewall.@defaults[0].flow_offloading=1
+    uci commit firewall	
+    /etc/init.d/firewall restart >/dev/null 2>&1
+    
+    echo "第二步: 关闭 OpenClash 守护程序..." >$START_LOG
+    kill -9 "$(ps |grep openclash_watchdog.sh |grep -v grep |awk '{print $1}')" >/dev/null 2>&1
+    
+    echo "第三步: 关闭 Clash 主程序..." >$START_LOG
+    kill -9 "$(pidof clash|sed 's/$//g')" 2>/dev/null
+    
+    echo "第四步: 删除 OpenClash 计划任务..." >$START_LOG
+    del_cron
+    
+    echo "第五步: 重启 Dnsmasq 程序..." >$START_LOG
+    /etc/init.d/dnsmasq restart >/dev/null 2>&1
+
+   echo "第六步: 删除 OpenClash 残留文件..." >$START_LOG
+    rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
+    if [ "$rule_source" != 0 ]; then
+       rm -rf /tmp/clash_rule.yml >/dev/null 2>&1
+       rm -rf /tmp/Proxy_Group >/dev/null 2>&1
+    fi
+    enable=$(uci get openclash.config.enable 2>/dev/null)
+    if [ "$enable" -eq 0 ]; then
+       rm -rf $LOG_FILE
+       rm -rf /www/openclash 2> /dev/null
+       rm -rf /tmp/openclash_last_version 2> /dev/null
+       sed -i '/openclash.log/d' $CRON_FILE
+       echo "OpenClash 关闭成功！" >$START_LOG
+	     rm -rf $START_LOG
+	  else
+	     echo "OpenClash 关闭成功！" >$START_LOG
+    fi
+
+    echo "CLASH STOP"
+}
+
+
+restart()
+{
+  stop
+  start
+}

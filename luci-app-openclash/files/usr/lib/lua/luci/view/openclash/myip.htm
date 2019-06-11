@@ -1,0 +1,28 @@
+
+
+<fieldset class="cbi-section">
+	<table>
+     <tr><td align="left"><input type="button" class="cbi-button cbi-button-reload" value="<%:刷新%>" onclick="refreshFrame(200)"/></td></tr>
+	</table>
+	<table>
+     <tr><td><iframe id="myip" name="myip" src="https://ip.skk.moe/simple/" scrolling="no" onerror="return refreshFrame(5000)" onload="iFrameHeight()" frameborder="0" style="padding: 0px; width:100%; height:120%; float:left; margin:0; padding:0;"></iframe></td></tr>
+	</table>
+</fieldset>
+
+
+
+<script type="text/javascript">//<![CDATA[
+function iFrameHeight() {
+    var ifm = document.getElementById("myip");
+    var subWeb = document.frames ? document.frames["myip"].document : ifm.contentDocument;
+    if (ifm != null && subWeb != null) {
+        ifm.height = subWeb.body.scrollHeight;
+        ifm.width = subWeb.body.scrollWidth;
+    }
+}
+function refreshFrame(delay)
+		{
+			setTimeout(function(){ document.getElementById('myip').src="https://ip.skk.moe/simple/"; }, delay);
+		}
+
+//]]></script>
