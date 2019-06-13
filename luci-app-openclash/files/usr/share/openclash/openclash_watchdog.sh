@@ -10,7 +10,7 @@ do
 if [ "$enable" -eq 1 ]; then
 	if ! pidof clash >/dev/null; then
      LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
-	   echo "${LOGTIME} Watchdog: OpenClash Pronlem, Restart " >>/tmp/openclash.log
+	   echo "${LOGTIME} Watchdog: OpenClash Problem, Restart " >>/tmp/openclash.log
 	   /etc/init.d/openclash restart
   fi
 fi
