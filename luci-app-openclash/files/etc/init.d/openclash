@@ -198,7 +198,7 @@ if [ "$enable" -eq 1 ] && [ -f $CONFIG_FILE ]; then
     cat $CHANGE_FILE $DNS_FILE $RULE_FILE > $CONFIG_FILE 2>/dev/null
     rm -rf /tmp/yml_* 2>/dev/null
     echo "第四步: 配置文件完整性检查..." >$START_LOG
-    grep "^redir-port:" $CONFIG_FILE 1>/dev/null && grep "^Proxy Group:$" $CONFIG_FILE 1>/dev/null && grep "^Rule:$" $CONFIG_FILE 1>/dev/null && grep "^- GEOIP" $CONFIG_FILE 1>/dev/null && grep "nameserver:$" $CONFIG_FILE 1>/dev/null
+    grep "^Proxy Group:$" $CONFIG_FILE 1>/dev/null && grep "^Rule:$" $CONFIG_FILE 1>/dev/null && grep "^- GEOIP" $CONFIG_FILE 1>/dev/null && grep "nameserver:$" $CONFIG_FILE 1>/dev/null
     if [ "$?" -ne "0" ]; then
        echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请对照模板格式检查修改配置文件..." >$START_LOG
        cp $BACKPACK_FILE $CONFIG_FILE
