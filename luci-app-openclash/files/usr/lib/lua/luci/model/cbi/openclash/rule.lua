@@ -10,6 +10,7 @@ s = m:section(TypedSection, "openclash")
 s.anonymous = true
 
 o = s:option(ListValue, "enable_custom_clash_rules", translate("Custom Clash Rules"))
+o.description = translate("Use Custom Rules")
 o:value("0", translate("Disable Custom Clash Rules"))
 o:value("1", translate("Enable Custom Clash Rules"))
 o.default = 0

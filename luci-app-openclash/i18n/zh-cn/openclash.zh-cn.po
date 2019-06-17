@@ -79,8 +79,14 @@ msgstr "使用配置文件设定的模式"
 msgid "Custom DNS Setting"
 msgstr "自定义DNS服务器"
 
+msgid "Use Custom Rules"
+msgstr "添加并启用自定义规则"
+
 msgid "Add Custom DNS Servers"
 msgstr "添加自定义DNS服务器"
+
+msgid "Set OpenClash Upstream DNS Resolve Server"
+msgstr "自定义DNS上游服务器，将替换配置文件内的DNS服务器设置"
 
 msgid "Disable Custom DNS Setting"
 msgstr "不使用自定义DNS服务器"
@@ -185,7 +191,7 @@ msgid "Enable Other Rules"
 msgstr "第三方规则"
 
 msgid "Use Other Rules"
-msgstr "选择并启用第三方规则"
+msgstr "选择并启用第三方规则，将替换配置文件内的所有规则"
 
 msgid "Disable Other Rules"
 msgstr "不使用第三方规则"

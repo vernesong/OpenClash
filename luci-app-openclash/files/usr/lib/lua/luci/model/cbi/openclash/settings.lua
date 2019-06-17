@@ -43,6 +43,7 @@ o:value("fake-ip", translate("fake-ip"))
 o.default = 0
 
 o = s:option(ListValue, "enable_custom_dns", translate("Custom DNS Setting"))
+o.description = translate("Set OpenClash Upstream DNS Resolve Server")
 o:value("0", translate("Disable Custom DNS Setting"))
 o:value("1", translate("Enable Custom DNS Setting"))
 o.default = 0

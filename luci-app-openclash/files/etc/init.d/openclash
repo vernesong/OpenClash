@@ -153,8 +153,8 @@ yml_dns_get()
 
 yml_dns_custom()
 {
-	[ "$1" = 1 ] && {
-	 echo "  nameserver:" >/etc/openclash/config.namedns
+   [ "$1" = 1 ] && {
+   echo "  nameserver:" >/etc/openclash/config.namedns
    config_load "openclash"
    config_foreach yml_dns_get "dns_servers"
    sed -i '/nameserver:$/i\##Custom DNS##' "$2" 2>/dev/null
