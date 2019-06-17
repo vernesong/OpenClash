@@ -36,7 +36,7 @@ local function is_watchdog()
 end
 
 local function config_check()
-	return luci.sys.call("grep '^redir-port:' /etc/openclash/config.yml 1>/dev/null && grep '^Proxy Group:$' /etc/openclash/config.yml 1>/dev/null && grep '^Rule:$' /etc/openclash/config.yml 1>/dev/null && grep '^- GEOIP' /etc/openclash/config.yml 1>/dev/null && grep '  nameserver:$' /etc/openclash/config.yml 1>/dev/null") == 0
+	return luci.sys.call("grep '^Proxy Group:$' /etc/openclash/config.yml 1>/dev/null && grep '^Rule:$' /etc/openclash/config.yml 1>/dev/null && grep '^- GEOIP' /etc/openclash/config.yml 1>/dev/null && grep '  nameserver:$' /etc/openclash/config.yml 1>/dev/null") == 0
 end
 
 local function cn_port()
