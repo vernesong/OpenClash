@@ -9,6 +9,9 @@ CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
 CONFIG_FILE="/etc/openclash/config.yml"
+if [ ! -f $CONFIG_FILE ] && [ -f "/etc/openclash/config.yaml" ]; then
+ mv "/etc/openclash/config.yaml" "$CONFIG_FILE"
+fi
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
 BACKPACK_FILE="/etc/openclash/config.bak"
