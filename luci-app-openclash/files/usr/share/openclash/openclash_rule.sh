@@ -1,6 +1,7 @@
 #!/bin/sh
    START_LOG="/tmp/openclash_start.log"
    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+   LOG_FILE="/tmp/openclash.log"
    echo "开始获取使用中的第三方规则名称..." >$START_LOG
    rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
    echo "开始下载使用中的第三方规则..." >$START_LOG
@@ -24,18 +25,18 @@
          sed -i '/^Rule:$/a\##updated' /etc/openclash/"$rule_source".yml >/dev/null 2>&1
          echo "替换成功，重新加载 OpenClash 应用新规则..." >$START_LOG
          /etc/init.d/openclash reload 2>/dev/null
-         echo "${LOGTIME} Other Rules Update Successful" >>/tmp/openclash.log
+         echo "${LOGTIME} Other Rules Update Successful" >>$LOG_FILE
       else
          echo "检测到下载的规则文件没有更新，停止继续操作..." >$START_LOG
          rm -rf /tmp/rules.yml >/dev/null 2>&1
-         echo "${LOGTIME} Updated Other Rules No Change, Do Nothing" >>/tmp/openclash.log
+         echo "${LOGTIME} Updated Other Rules No Change, Do Nothing" >>$LOG_FILE
          sleep 10
          echo "" >$START_LOG
       fi
    else
       echo "第三方规则下载失败，请检查网络或稍后再试！" >$START_LOG
       rm -rf /tmp/rules.yml >/dev/null 2>&1
-      echo "${LOGTIME} Other Rules Update Error" >>/tmp/openclash.log
+      echo "${LOGTIME} Other Rules Update Error" >>$LOG_FILE
       sleep 10
       echo "" >$START_LOG
    fi

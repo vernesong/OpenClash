@@ -1,6 +1,7 @@
 #!/bin/sh
    START_LOG="/tmp/openclash_start.log"
    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+   LOG_FILE="/tmp/openclash.log"
    echo "开始下载 GEOIP 数据库..." >$START_LOG
    wget-ssl --no-check-certificate https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz -O /tmp/ipdb.tar.gz
    if [ "$?" -eq "0" ]; then
@@ -16,12 +17,12 @@
             && echo "删除下载缓存..." >$START_LOG\
             && rm -rf /tmp/GeoLite2-Country_* >/dev/null 2>&1
             echo "GEOIP 数据库更新成功！" >$START_LOG
-            echo "${LOGTIME} GEOIP Database Update Successful" >>/tmp/openclash.log
+            echo "${LOGTIME} GEOIP Database Update Successful" >>$LOG_FILE
             sleep 10
             echo "" >$START_LOG
          else
             echo "数据库版本没有更新，停止继续操作..." >$START_LOG
-            echo "${LOGTIME} Updated GEOIP Database No Change, Do Nothing" >>/tmp/openclash.log
+            echo "${LOGTIME} Updated GEOIP Database No Change, Do Nothing" >>$LOG_FILE
             rm -rf /tmp/GeoLite2-Country_* >/dev/null 2>&1
             sleep 5
             echo "" >$START_LOG
@@ -29,7 +30,7 @@
    else
       echo "GEOIP 数据库下载失败，请检查网络或稍后再试！" >$START_LOG
       rm -rf /tmp/ipdb.tar.gz >/dev/null 2>&1
-      echo "${LOGTIME} GEOIP Database Update Error" >>/tmp/openclash.log
+      echo "${LOGTIME} GEOIP Database Update Error" >>$LOG_FILE
       sleep 10
       echo "" >$START_LOG
    fi
