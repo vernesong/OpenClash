@@ -8,7 +8,7 @@ local UTIL = require "luci.util"
 
 local http = luci.http
 
-ful = SimpleForm("upload", translate("Server Configuration"), nil)
+ful = SimpleForm("upload", nil)
 ful.reset = false
 ful.submit = false
 
@@ -53,22 +53,48 @@ if luci.http.formvalue("upload") then
 	end
 end
 
-m = Map("openclash")
+m = Map("openclash", translate("Server Configuration"))
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
 s.addremove=false
 
 
 local conf = "/etc/openclash/config.yml"
-sev = s:option(TextValue, "conf")
-sev.readonly=true
-sev.description = translate("Changes to config file must be made from source")
+sev = s:option(Value, "sev")
+sev.template = "cbi/tvalue"
+sev.description = translate("You Can Modify config file Here")
 sev.rows = 20
 sev.wrap = "off"
 sev.cfgvalue = function(self, section)
 	return NXFS.readfile(conf) or ""
 end
 sev.write = function(self, section, value)
+    value = value:gsub("\r\n", "\n")
+		NXFS.writefile("/etc/openclash/config.yml", value)
 end
 
-return ful , m
+local t = {
+    {Commit, Apply}
+}
+
+a = SimpleForm("apply")
+a.reset = false
+a.submit = false
+s = a:section(Table, t)
+
+o = s:option(Button, "Commit") 
+o.inputtitle = translate("Commit Configurations")
+o.inputstyle = "apply"
+o.write = function()
+  os.execute("uci commit openclash")
+end
+
+o = s:option(Button, "Apply")
+o.inputtitle = translate("Apply Configurations")
+o.inputstyle = "apply"
+o.write = function()
+  os.execute("uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+end
+
+return m , a , ful
