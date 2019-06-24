@@ -157,11 +157,8 @@ msgstr "自动更新服务器订阅"
 msgid "Daily Server subscription update time"
 msgstr "每日服务器订阅更新时间"
 
-msgid "Under Server Config You Can Manually Upload Configuration From PC"
-msgstr "或在配置文件页面手动上载配置"
-
-msgid "Changes to config file must be made from source"
-msgstr "必须从源文件更改配置文件"
+msgid "You Can Modify config file Here"
+msgstr "您可以在这里直接修改配置文件"
 
 msgid "Dashboard Secret"
 msgstr "管理页面登录密码"
@@ -210,6 +207,9 @@ msgstr "启用第三方规则自动更新"
 
 msgid "Update Time (Every Week)"
 msgstr "更新时间(每周)"
+
+msgid "Every Day"
+msgstr "每天"
 
 msgid "Every Monday"
 msgstr "每周一"
