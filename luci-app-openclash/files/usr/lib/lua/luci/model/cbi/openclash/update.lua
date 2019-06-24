@@ -80,7 +80,7 @@ o.write = function()
 end
 
 local t = {
-    {Commit}
+    {Commit, Apply}
 }
 
 a = SimpleForm("apply")
@@ -93,6 +93,14 @@ o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
   os.execute("uci commit openclash")
+end
+
+o = s:option(Button, "Apply")
+o.inputtitle = translate("Apply Configurations")
+o.inputstyle = "apply"
+o.write = function()
+  os.execute("uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 return m , a
