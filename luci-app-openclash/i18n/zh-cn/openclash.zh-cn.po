@@ -263,7 +263,7 @@ msgid "Choose Proxy Group, Base On Your Servers Group in config.yml"
 msgstr "指定流量(策略)的代理方式，服务器组信息来源于您的config.yml"
 
 msgid "Custom Clash Rules"
-msgstr "自定义规则"
+msgstr "自定义规则(访问控制)"
 
 msgid "Custom Clash Rules Here"
 msgstr "设置自定义规则"
