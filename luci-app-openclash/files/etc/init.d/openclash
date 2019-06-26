@@ -48,17 +48,21 @@ yml_check()
     	cp "$3" "$4"
    fi
 
-   if [ "$(grep -c '^##Custom DNS##' "$CONFIG_FILE")" -gt 0 ] && [ "$2" = 0 ]; then
-      cp "$4" "$3"
+   if [ "$(grep -c '^##Custom DNS##' '$3')" -gt 0 ] && [ "$2" = 0 ] && [ -f "$4" ]; then
+      awk '/  nameserver:/,/Proxy:/{print}' "$4" | sed '/^Proxy:$/d' >/tmp/bakdns.config 2>/dev/null
+      sed -i '/OpenClash-General-Settings/i\Custom DNS End' "$3" 2>/dev/null
+      sed -i '/nameserver:$/,/^Custom DNS End$/d' "$3" 2>/dev/null
+      sed -i '/^##Custom DNS##$/r/tmp/bakdns.config' "$3" 2>/dev/null
+      rm -rf /tmp/bakdns.config 2>/dev/null
    fi
-    
+
    if [ "$1" = 0 ]; then
       if [ -f "$4" ]; then
-         [ ! -z "`grep "OpenClash-General" "$CONFIG_FILE"`" ] && {
-            cp "$4" "$3"
+         [ ! -z "`grep "OpenClash-General" "$3"`" ] && {
+            sed -i "/enhanced-mode:/c\  enhanced-mode: ${5}" "$3" 2>/dev/null
          }
       else
-          [ -z "`grep "OpenClash-General" "$CONFIG_FILE"`" ] && {
+          [ -z "`grep "OpenClash-General" "$3"`" ] && {
           cp "$3" "$4"
          }
       fi
@@ -74,7 +78,7 @@ yml_dns_check()
       dns_port=7874
    fi
    
-   [ -z "`grep "^dns:" $CONFIG_FILE`" ] && {
+   [ -z "`grep '^dns:' '$2'`" ] && {
    	 sed -i -e "/^Proxy:$/i\dns:"\
             -e "/^dns:/a\  enable: true"\
             -e "/enable: true/a\  listen: 0.0.0.0:${1}"\
@@ -94,7 +98,7 @@ yml_dns_check()
 
 yml_cut()
 {
-	 cp "$5" "$2"
+    cp "$5" "$2"
     if [ "$1" = 0 ]; then
        sed -i '/^Rule:$/,$d' "$2"
        sed -n '/^Rule:$/,$p' "$5" >"$3"
@@ -187,8 +191,9 @@ if [ "$enable" -eq 1 ] && [ -f $CONFIG_FILE ]; then
     da_password=$(uci get openclash.config.dashboard_password 2>/dev/null)
     cn_port=$(uci get openclash.config.cn_port 2>/dev/null)
     proxy_port=$(uci get openclash.config.proxy_port 2>/dev/null)
+    back_mode=$(grep "enhanced-mode:" $BACKPACK_FILE |awk -F ' ' '{print $2}' 2>/dev/null)
     echo "第二步: 配置文件检查..." >$START_LOG
-    yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKPACK_FILE"
+    yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKPACK_FILE"  "$back_mode"
     current_mode=$(grep "enhanced-mode:" $CONFIG_FILE |awk -F ' ' '{print $2}' 2>/dev/null)
     dns_port=`grep listen: $CONFIG_FILE |awk -F ':' '{print $3}' |tr -cd "[0-9]"`
     yml_dns_check "$dns_port" "$CONFIG_FILE"
