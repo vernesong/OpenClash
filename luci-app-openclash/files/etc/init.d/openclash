@@ -48,7 +48,7 @@ yml_check()
     	cp "$3" "$4"
    fi
 
-   if [ "$(grep -c '^##Custom DNS##' '$3')" -gt 0 ] && [ "$2" = 0 ] && [ -f "$4" ]; then
+   if [ "$(grep -c '^##Custom DNS##' "$3")" -gt 0 ] && [ "$2" = 0 ] && [ -f "$4" ]; then
       awk '/  nameserver:/,/Proxy:/{print}' "$4" | sed '/^Proxy:$/d' >/tmp/bakdns.config 2>/dev/null
       sed -i '/OpenClash-General-Settings/i\Custom DNS End' "$3" 2>/dev/null
       sed -i '/nameserver:$/,/^Custom DNS End$/d' "$3" 2>/dev/null
@@ -78,7 +78,7 @@ yml_dns_check()
       dns_port=7874
    fi
    
-   [ -z "`grep '^dns:' '$2'`" ] && {
+   [ -z "`grep "^dns:" $2`" ] && {
    	 sed -i -e "/^Proxy:$/i\dns:"\
             -e "/^dns:/a\  enable: true"\
             -e "/enable: true/a\  listen: 0.0.0.0:${1}"\
