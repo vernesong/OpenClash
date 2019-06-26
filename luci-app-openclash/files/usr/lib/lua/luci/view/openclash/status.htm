@@ -5,26 +5,38 @@
 	<table>
 	  <tr><td colspan="4" width="100%" align="center" id="_clashversion"><b><%:Collecting data...%></b></td></tr>
 	  <tr><td width="100%" colspan="4" align="center" id="_clashstart"><b> OpenClash 成功启动后请耐心等待运行，然后刷新下方网站访问检查等待连接正常后再使用</b></td></tr>
-		<tr><td width="25%"> OpenClash 主程序 </td><td  width="25%" align="left" id="_clash"><%:Collecting data...%></td><td width="25%"> OpenClash 守护程序 </td><td width="25%" align="left" id="_watchdog"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"> 控制面板登录IP </td><td  width="25%" align="left" id="_daip"><%:Collecting data...%></td><td width="25%"> 控制面板登录密码 </td><td width="25%" align="left" id="_dase"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"> Yacd 控制面板 </td><td  width="25%" align="left" id="_web"><%:Collecting data...%></td><td width="25%"> Dashboard 控制面板 </td><td width="25%" align="left" id="_webo"><%:Collecting data...%></td></tr>
+		<tr><td width="25%"> OpenClash 主程序 </td><td  width="25%" align="left" id="_clash"><%:Collecting data...%></td><td width="25%"> 控制面板登录IP </td><td width="25%" align="left" id="_daip"><%:Collecting data...%></td></tr>
+		<tr><td width="25%"> OpenClash 守护程序 </td><td width="25%" align="left" id="_watchdog"><%:Collecting data...%></td><td width="25%"> 控制面板登录端口 </td><td width="25%" align="left" id="_dapo"><%:Collecting data...%></td></tr>
+		<tr><td width="25%"> OpenClash 运行模式 </td><td  width="25%" align="left" id="_mode"><%:Collecting data...%></td><td width="25%"> 控制面板登录密匙 </td><td width="25%" align="left" id="_dase"><%:Collecting data...%></td></tr>
+		<tr><td width="25%"> Yacd 控制面板 </td><td width="25%" align="left" id="_web"><%:Collecting data...%></td><td width="25%"> Dashboard 控制面板 </td><td width="25%" align="left" id="_webo"><%:Collecting data...%></td></tr>
 	</table>
 </fieldset>
 
 <script type="text/javascript">//<![CDATA[
 	var clash = document.getElementById('_clash');
+	var mode = document.getElementById('_mode');
 	var web = document.getElementById('_web');
 	var webo = document.getElementById('_webo');
 	var watchdog = document.getElementById('_watchdog');
 	var daip = document.getElementById('_daip');
 	var dase = document.getElementById('_dase');
+	var dapo = document.getElementById('_dapo');
 	var clashversion = document.getElementById('_clashversion');
 	XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
 			clash.innerHTML = status.clash ? '<b><font color=green><%:RUNNING%></font></b>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			if ( status.mode == "fake-ip\n" )
+      {
+			   mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP 模式%></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			}
+			else
+			{
+			   mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host 模式%></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			}
 			watchdog.innerHTML = status.watchdog ? '<b><font color=green><%:RUNNING%></font> </b>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			dase.innerHTML = status.dase ? "<b><font color=green>"+status.dase+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			web.innerHTML = status.web ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:打开控制面板%>" onclick="return ycad_dashboard(this)"/>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			webo.innerHTML = status.web ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:打开控制面板%>" onclick="return net_dashboard(this)"/>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
 		}
@@ -82,12 +94,52 @@ function go_update()
     }
     
 	var startlog = document.getElementById('_clashstart');
-	XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
+	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
 	  if ( x && x.status == 200 ) {
 		   if ( status.startlog == "\n" || status.startlog == "" ) {
-		      startlog.innerHTML = '<b><font><%: OpenClash 成功启动后请耐心等待运行，然后刷新下方网站访问检查等待连接正常后再使用 %></font></b>';
+          var rdmdl=Math.floor(Math.random()*9)+1;
+          if(rdmdl==1)
+          {
+             startlog.innerHTML = '<b><font><%: Tip: 您可以在配置文件页面直接修改配置文件 %></font></b>';
+          }
+          if(rdmdl==2)
+          {
+             startlog.innerHTML = '<b><font><%: Tip: 点击上方版本号可以检查版本更新 %></font></b>';
+          }
+          if(rdmdl==3)
+          {
+             startlog.innerHTML = '<b><font><%: Tip: 切换 Fake-IP 模式无需更改客户端的DNS服务器 %></font></b>';
+          }
+          if(rdmdl==4)
+          {
+             startlog.innerHTML = '<b><font><%: Tip: 某些网站链接出现异常? 试试切换模式或者使用其他第三方规则 %></font></b>';
+          }
+          if(rdmdl==5)
+          {
+             startlog.innerHTML = '<b><font><%: Tip: 使用 Fake-IP 模式可以获得更加快速的访问体验 %></font></b>';
+          }
+          if(rdmdl==6)
+          {
+             startlog.innerHTML = '<b><font><%: Tip: 使用 TLS 或者 TCP 方式查询DNS可以获得更好的抗污染效果 %></font></b>';
+          }
+          if(rdmdl==7)
+          {
+             startlog.innerHTML = '<b><font><%: Tip: OpenClash 启动时会检查配置文件完整性以确保能够正常工作 %></font></b>';
+          }
+          if(rdmdl==8)
+          {
+             startlog.innerHTML = '<b><font><%: Tip: 使用自定义DNS上游服务器时Nameserver组必须设置至少一个服务器 %></font></b>';
+          }
+          if(rdmdl==9)
+          {
+             startlog.innerHTML = '<b><font><%: Tip: 网站访问检查展示的是当前登录LUCI页面设备的连接情况 %></font></b>';
+          }
        }
-	     else {
+	  }
+	});
+	XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
+	  if ( x && x.status == 200 ) {
+		   if ( status.startlog != "\n" && status.startlog != "" ) {
 	     startlog.innerHTML = '<b><font color="green">'+status.startlog+'</font></b>';
 	     }
 	  }

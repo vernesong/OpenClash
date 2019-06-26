@@ -36,11 +36,15 @@ local function is_watchdog()
 end
 
 local function config_check()
-	return luci.sys.call("grep '^Proxy Group:$' /etc/openclash/config.yml 1>/dev/null && grep '^Rule:$' /etc/openclash/config.yml 1>/dev/null && grep '^- GEOIP' /etc/openclash/config.yml 1>/dev/null && grep '  nameserver:$' /etc/openclash/config.yml 1>/dev/null") == 0
+	return luci.sys.call("grep '^Proxy Group:$' /etc/openclash/config.yml 1>/dev/null && grep '^Rule:$' /etc/openclash/config.yml 1>/dev/null && grep '  nameserver:$' /etc/openclash/config.yml 1>/dev/null") == 0
 end
 
 local function cn_port()
 	return luci.sys.exec("uci get openclash.config.cn_port 2>/dev/null")
+end
+
+local function mode()
+	return luci.sys.exec("grep 'enhanced-mode:' /etc/openclash/config.yml |awk -F ' ' '{print $2}' 2>/dev/null")
 end
 
 local function config()
@@ -91,7 +95,8 @@ function action_status()
 		daip = daip(),
 		dase = dase(),
 		web = is_web(),
-		cn_port = cn_port();
+		cn_port = cn_port(),
+		mode = mode();
 	})
 end
 function action_state()
