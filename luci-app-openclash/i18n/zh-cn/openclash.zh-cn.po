@@ -115,6 +115,15 @@ msgstr "配置文件"
 msgid "Upload Clash Configuration"
 msgstr "上传配置文件"
 
+msgid "File saved to"
+msgstr "文件已成功上传到"
+
+msgid "upload file error."
+msgstr "文件上传失败"
+
+msgid "No specify upload file."
+msgstr "未指定上传文件"
+
 msgid ""
 "NB: Rename your config file to config.yml before upload. file will save to /"
 "etc/openclash"
