@@ -5,24 +5,19 @@ local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
 
-
-local http = luci.http
-
 ful = SimpleForm("upload", nil)
 ful.reset = false
 ful.submit = false
 
-sul =ful:section(SimpleSection, "", translate(""))
+sul =ful:section(SimpleSection, "")
 o = sul:option(FileUpload, "")
-o.title = translate("Upload Clash Configuration")
 o.template = "openclash/clash_upload"
-o.description = translate("NB: Rename your config file to config.yml before upload. file will save to /etc/openclash")
 um = sul:option(DummyValue, "", nil)
 um.template = "openclash/clash_dvalue"
 
 local dir, fd
 dir = "/etc/openclash/"
-http.setfilehandler(
+HTTP.setfilehandler(
 	function(meta, chunk, eof)
 		if not fd then
 			if not meta then return end
@@ -46,11 +41,32 @@ http.setfilehandler(
 	end
 )
 
-if luci.http.formvalue("upload") then
-	local f = luci.http.formvalue("ulfile")
+if HTTP.formvalue("upload") then
+	local f = HTTP.formvalue("ulfile")
 	if #f <= 0 then
 		um.value = translate("No specify upload file.")
 	end
+end
+
+local t = {
+    {Commit, Apply}
+}
+
+s = ful:section(Table, t)
+
+o = s:option(Button, "Commit") 
+o.inputtitle = translate("Commit Configurations")
+o.inputstyle = "apply"
+o.write = function()
+  os.execute("uci commit openclash")
+end
+
+o = s:option(Button, "Apply")
+o.inputtitle = translate("Apply Configurations")
+o.inputstyle = "apply"
+o.write = function()
+  os.execute("uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 m = Map("openclash", translate("Server Configuration"))
@@ -73,28 +89,4 @@ sev.write = function(self, section, value)
 		NXFS.writefile("/etc/openclash/config.yml", value)
 end
 
-local t = {
-    {Commit, Apply}
-}
-
-a = SimpleForm("apply")
-a.reset = false
-a.submit = false
-s = a:section(Table, t)
-
-o = s:option(Button, "Commit") 
-o.inputtitle = translate("Commit Configurations")
-o.inputstyle = "apply"
-o.write = function()
-  os.execute("uci commit openclash")
-end
-
-o = s:option(Button, "Apply")
-o.inputtitle = translate("Apply Configurations")
-o.inputstyle = "apply"
-o.write = function()
-  os.execute("uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
-end
-
-return m , a , ful
+return m , ful
