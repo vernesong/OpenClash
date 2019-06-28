@@ -36,7 +36,7 @@ local function is_watchdog()
 end
 
 local function config_check()
-	return luci.sys.call("grep '^Proxy Group:$' /etc/openclash/config.yml 1>/dev/null && grep '^Rule:$' /etc/openclash/config.yml 1>/dev/null && grep '  nameserver:$' /etc/openclash/config.yml 1>/dev/null") == 0
+	return luci.sys.call("grep '^Proxy Group:$' /etc/openclash/config.yaml 1>/dev/null && grep '^Rule:$' /etc/openclash/config.yaml 1>/dev/null && grep '  nameserver:$' /etc/openclash/config.yaml 1>/dev/null") == 0
 end
 
 local function cn_port()
@@ -44,7 +44,7 @@ local function cn_port()
 end
 
 local function mode()
-	return luci.sys.exec("grep 'enhanced-mode:' /etc/openclash/config.yml |awk -F ' ' '{print $2}' 2>/dev/null")
+	return luci.sys.exec("grep 'enhanced-mode:' /etc/openclash/config.yaml |awk -F ' ' '{print $2}' 2>/dev/null")
 end
 
 local function config()
@@ -56,15 +56,15 @@ local function ipdb()
 end
 
 local function lhie1()
-	return luci.sys.exec("ls -l --full-time /etc/openclash/lhie1.yml|awk '{print $6,$7;}' 2>/dev/null")
+	return luci.sys.exec("ls -l --full-time /etc/openclash/lhie1.yaml|awk '{print $6,$7;}' 2>/dev/null")
 end
 
 local function ConnersHua()
-	return luci.sys.exec("ls -l --full-time /etc/openclash/ConnersHua.yml|awk '{print $6,$7;}' 2>/dev/null")
+	return luci.sys.exec("ls -l --full-time /etc/openclash/ConnersHua.yaml|awk '{print $6,$7;}' 2>/dev/null")
 end
 
 local function ConnersHua_return()
-	return luci.sys.exec("ls -l --full-time /etc/openclash/ConnersHua_return.yml|awk '{print $6,$7;}' 2>/dev/null")
+	return luci.sys.exec("ls -l --full-time /etc/openclash/ConnersHua_return.yaml|awk '{print $6,$7;}' 2>/dev/null")
 end
 
 local function daip()

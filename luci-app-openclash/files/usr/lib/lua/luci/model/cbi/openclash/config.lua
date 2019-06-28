@@ -12,7 +12,7 @@ s.anonymous = true
 s.addremove=false
 
 
-local conf = "/etc/openclash/config.yml"
+local conf = "/etc/openclash/config.yaml"
 sev = s:option(Value, "sev")
 sev.template = "cbi/tvalue"
 sev.description = translate("You Can Modify config file Here")
@@ -24,7 +24,7 @@ end
 sev.write = function(self, section, value)
 if (CHIF == "0") then
     value = value:gsub("\r\n", "\n")
-		NXFS.writefile("/etc/openclash/config.yml", value)
+		NXFS.writefile("/etc/openclash/config.yaml", value)
 end
 end
 
@@ -58,12 +58,13 @@ HTTP.setfilehandler(
 		if eof and fd then
 			fd:close()
 			fd = nil
-			um.value = translate("File saved to") .. ' "/etc/openclash/' .. meta.file .. '"'
 			if (meta.file == "config.yml") then
 			   SYS.exec("cp /etc/openclash/config.yml /etc/openclash/config.bak")
+			   SYS.exec("mv /etc/openclash/config.yml /etc/openclash/config.yaml")
 			elseif (meta.file == "config.yaml") then
 			   SYS.exec("cp /etc/openclash/config.yaml /etc/openclash/config.bak")
 			end
+			um.value = translate("File saved to") .. ' "/etc/openclash"'
 			CHIF = "1"
 		end
 	end
