@@ -35,19 +35,42 @@ endef
 define Build/Compile
 endef
 
+define Package/$(PKG_NAME)/preinst
+#!/bin/sh
+if [ -f "/etc/config/openclash" ]; then
+	uci set openclash.config.enable=0 && uci commit openclash
+	cp "/etc/config/openclash" "/tmp/openclash.bak" 2>/dev/null
+	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" 2>/dev/null
+fi
+endef
+
 define Package/$(PKG_NAME)/postinst
 #!/bin/sh
 if [ -f "/tmp/openclash.bak" ]; then
 	mv "/tmp/openclash.bak" "/etc/config/openclash" 2>/dev/null
 	mv "/tmp/openclash_custom_rules.list.bak" "/etc/config/openclash_custom_rules.list" 2>/dev/null
 fi
+if [ -f "/tmp/config.yml" ]; then
+	mv "/tmp/config.yml" "/etc/openclash/config.yml" 2>/dev/null
+fi
 endef
 
 define Package/$(PKG_NAME)/prerm
 #!/bin/sh
+	uci set openclash.config.enable=0 && uci commit openclash
 	cp "/etc/config/openclash" "/tmp/openclash.bak" 2>/dev/null
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" 2>/dev/null
-	uci set openclash.config.enable=0 && uci commit openclash
+endef
+
+define Package/$(PKG_NAME)/postrm
+#!/bin/sh
+if [ -f "/etc/openclash/config.bak" ]; then
+	mv "/etc/openclash/config.bak" "/tmp/config.yml"
+fi
+	rm -rf /etc/openclash 2>/dev/null
+	rm -rf /tmp/openclash.log 2>/dev/null
+	rm -rf /tmp/openclash_start.log 2>/dev/null
+	rm -rf /tmp/Proxy_Group 2>/dev/null
 endef
 
 define Package/$(PKG_NAME)/install
