@@ -4,6 +4,29 @@ local SYS  = require "luci.sys"
 local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
+local CHIF = "0"
+
+m = Map("openclash", translate("Server Configuration"))
+s = m:section(TypedSection, "openclash")
+s.anonymous = true
+s.addremove=false
+
+
+local conf = "/etc/openclash/config.yml"
+sev = s:option(Value, "sev")
+sev.template = "cbi/tvalue"
+sev.description = translate("You Can Modify config file Here")
+sev.rows = 20
+sev.wrap = "off"
+sev.cfgvalue = function(self, section)
+	return NXFS.readfile(conf) or ""
+end
+sev.write = function(self, section, value)
+if (CHIF == "0") then
+    value = value:gsub("\r\n", "\n")
+		NXFS.writefile("/etc/openclash/config.yml", value)
+end
+end
 
 ful = SimpleForm("upload", nil)
 ful.reset = false
@@ -41,6 +64,7 @@ HTTP.setfilehandler(
 			elseif (meta.file == "config.yaml") then
 			   SYS.exec("cp /etc/openclash/config.yaml /etc/openclash/config.bak")
 			end
+			CHIF = "1"
 		end
 	end
 )
@@ -73,24 +97,5 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-m = Map("openclash", translate("Server Configuration"))
-s = m:section(TypedSection, "openclash")
-s.anonymous = true
-s.addremove=false
-
-
-local conf = "/etc/openclash/config.yml"
-sev = s:option(Value, "sev")
-sev.template = "cbi/tvalue"
-sev.description = translate("You Can Modify config file Here")
-sev.rows = 20
-sev.wrap = "off"
-sev.cfgvalue = function(self, section)
-	return NXFS.readfile(conf) or ""
-end
-sev.write = function(self, section, value)
-    value = value:gsub("\r\n", "\n")
-		NXFS.writefile("/etc/openclash/config.yml", value)
-end
 
 return m , ful

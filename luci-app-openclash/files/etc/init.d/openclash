@@ -318,11 +318,10 @@ stop()
        rm -rf /tmp/openclash_last_version 2> /dev/null
        sed -i '/openclash.log/d' $CRON_FILE
        echo "OpenClash 关闭成功！" >$START_LOG
-	     rm -rf $START_LOG
 	  else
 	     echo "OpenClash 关闭成功！" >$START_LOG
     fi
-
+    rm -rf $START_LOG
     echo "CLASH STOP"
 }
 
