@@ -178,7 +178,7 @@ start()
 echo "OpenClash 开始启动..." >$START_LOG
 enable=$(uci get openclash.config.enable 2>/dev/null)
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
-if [ ! -f "$CONFIG_FILE" ] && [ "`ls -l /etc/openclash/config.yml |awk '{print int($5/1024)}'`" -gt 0 ]; then
+if [ ! -f "$CONFIG_FILE" ] && [ "`ls -l /etc/openclash/config.yml 2>/dev/null |awk '{print int($5/1024)}'`" -gt 0 ]; then
    mv "/etc/openclash/config.yml" "$CONFIG_FILE"
 fi
 if [ ! -f "$CONFIG_FILE" ] && [ -f "$BACKPACK_FILE" ]; then
@@ -208,7 +208,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     cat $CHANGE_FILE $DNS_FILE $RULE_FILE > $CONFIG_FILE 2>/dev/null
     rm -rf /tmp/yaml_* 2>/dev/null
     echo "第四步: 配置文件完整性检查..." >$START_LOG
-    grep "^Proxy Group:$" $CONFIG_FILE 1>/dev/null && grep "^Rule:$" $CONFIG_FILE 1>/dev/null && grep "nameserver:$" $CONFIG_FILE 1>/dev/null
+    grep "^Proxy Group:$" $CONFIG_FILE >/dev/null 2>&1 && grep "^Rule:$" $CONFIG_FILE >/dev/null 2>&1 && grep "nameserver:$" $CONFIG_FILE >/dev/null 2>&1
     if [ "$?" -ne "0" ]; then
        echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请对照模板格式检查修改配置文件..." >$START_LOG
        cp $BACKPACK_FILE $CONFIG_FILE

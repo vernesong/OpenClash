@@ -36,7 +36,7 @@ local function is_watchdog()
 end
 
 local function config_check()
-	return luci.sys.call("grep '^Proxy Group:$' /etc/openclash/config.yaml 1>/dev/null && grep '^Rule:$' /etc/openclash/config.yaml 1>/dev/null && grep '  nameserver:$' /etc/openclash/config.yaml 1>/dev/null") == 0
+	return luci.sys.call("grep '^Proxy Group:$' /etc/openclash/config.yaml >/dev/null 2>&1 && grep '^Rule:$' /etc/openclash/config.yaml >/dev/null 2>&1 && grep '  nameserver:$' /etc/openclash/config.yaml >/dev/null 2>&1") == 0
 end
 
 local function cn_port()
@@ -44,27 +44,31 @@ local function cn_port()
 end
 
 local function mode()
-	return luci.sys.exec("grep 'enhanced-mode:' /etc/openclash/config.yaml |awk -F ' ' '{print $2}' 2>/dev/null")
+	return luci.sys.exec("uci get openclash.config.en_mode 2>/dev/null")
+end
+
+local function cmode()
+	return luci.sys.exec("grep 'enhanced-mode:' /etc/openclash/config.yaml 2>/dev/null |awk -F ' ' '{print $2}'")
 end
 
 local function config()
-	return luci.sys.exec("ls -l --full-time /etc/openclash/config.bak|awk '{print $6,$7;}' 2>/dev/null")
+	return luci.sys.exec("ls -l --full-time /etc/openclash/config.bak 2>/dev/null |awk '{print $6,$7;}'")
 end
 
 local function ipdb()
-	return luci.sys.exec("ls -l --full-time /etc/openclash/Country.mmdb|awk '{print $6,$7;}' 2>/dev/null")
+	return luci.sys.exec("ls -l --full-time /etc/openclash/Country.mmdb 2>/dev/null |awk '{print $6,$7;}'")
 end
 
 local function lhie1()
-	return luci.sys.exec("ls -l --full-time /etc/openclash/lhie1.yaml|awk '{print $6,$7;}' 2>/dev/null")
+	return luci.sys.exec("ls -l --full-time /etc/openclash/lhie1.yaml 2>/dev/null |awk '{print $6,$7;}'")
 end
 
 local function ConnersHua()
-	return luci.sys.exec("ls -l --full-time /etc/openclash/ConnersHua.yaml|awk '{print $6,$7;}' 2>/dev/null")
+	return luci.sys.exec("ls -l --full-time /etc/openclash/ConnersHua.yaml 2>/dev/null |awk '{print $6,$7;}'")
 end
 
 local function ConnersHua_return()
-	return luci.sys.exec("ls -l --full-time /etc/openclash/ConnersHua_return.yaml|awk '{print $6,$7;}' 2>/dev/null")
+	return luci.sys.exec("ls -l --full-time /etc/openclash/ConnersHua_return.yaml 2>/dev/null |awk '{print $6,$7;}'")
 end
 
 local function daip()
@@ -96,6 +100,7 @@ function action_status()
 		dase = dase(),
 		web = is_web(),
 		cn_port = cn_port(),
+		cmode = cmode(),
 		mode = mode();
 	})
 end
