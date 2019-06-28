@@ -46,6 +46,7 @@ endef
 
 define Package/$(PKG_NAME)/postinst
 #!/bin/sh
+rm -rf /tmp/luci*
 if [ -f "/tmp/openclash.bak" ]; then
 	mv "/tmp/openclash.bak" "/etc/config/openclash" 2>/dev/null
 	mv "/tmp/openclash_custom_rules.list.bak" "/etc/config/openclash_custom_rules.list" 2>/dev/null
