@@ -27,11 +27,15 @@
 			clash.innerHTML = status.clash ? '<b><font color=green><%:RUNNING%></font></b>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			if ( status.mode == "fake-ip\n" )
       {
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP 模式%></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			   mode.innerHTML = status.clash ? "<b><font color=green><%:( 接管 ) fake-ip 模式%></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			}
+			else if ( status.mode == "redir-host\n" )
+			{
+			   mode.innerHTML = status.clash ? "<b><font color=green><%:( 接管 ) redir-host 模式%></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			}
 			else
 			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host 模式%></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			   mode.innerHTML = status.clash ? "<b><font color=green><%:( 配置文件 ) %>"+status.cmode+"<%: 模式%></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			}
 			watchdog.innerHTML = status.watchdog ? '<b><font color=green><%:RUNNING%></font> </b>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
@@ -94,7 +98,7 @@ function go_update()
     }
     
 	var startlog = document.getElementById('_clashstart');
-	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
+	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
 	  if ( x && x.status == 200 ) {
 		   if ( status.startlog == "\n" || status.startlog == "" ) {
           var rdmdl=Math.floor(Math.random()*9)+1;
@@ -124,7 +128,7 @@ function go_update()
           }
           if(rdmdl==7)
           {
-             startlog.innerHTML = '<b><font><%: Tip: OpenClash 启动时会检查配置文件完整性以确保能够正常工作 %></font></b>';
+             startlog.innerHTML = '<b><font><%: Tip: OpenClash 启动时会检查配置文件是否包含（服务器策略组、规则、DNS设置）以确保能够正常工作 %></font></b>';
           }
           if(rdmdl==8)
           {
