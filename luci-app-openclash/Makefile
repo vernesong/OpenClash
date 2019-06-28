@@ -67,7 +67,11 @@ define Package/$(PKG_NAME)/postrm
 if [ -f "/etc/openclash/config.bak" ]; then
 	mv "/etc/openclash/config.bak" "/tmp/config.yml"
 fi
+if [ -f "/etc/openclash/clash" ]; then
+	rm -rf /etc/openclash/config.* 2>/dev/null
+else
 	rm -rf /etc/openclash 2>/dev/null
+fi
 	rm -rf /tmp/openclash.log 2>/dev/null
 	rm -rf /tmp/openclash_start.log 2>/dev/null
 	rm -rf /tmp/Proxy_Group 2>/dev/null
