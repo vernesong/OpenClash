@@ -78,27 +78,28 @@ s.rmempty = false
 
 ---- group
 o = s:option(ListValue, "group", translate("DNS Server Group"))
-o:value("nameserver", translate("Nameserver"))
-o:value("fallback", translate("Fallback"))
-o.default     = "udp"
+o:value("nameserver", translate("NameServer"))
+o:value("fallback", translate("FallBack"))
+o.default     = "nameserver"
 o.rempty      = false
 
 ---- IP address
-o = s:option(Value, "ip", translate("DNS Server IP"))
+o = s:option(Value, "ip", translate("DNS Server Address(No Type)"))
 o.datatype = "or(host, string)"
 o.rmempty = false
 
 ---- port
 o = s:option(Value, "port", translate("DNS Server Port"))
-o.placeholder = "53"
+o.placeholder = translate("Require When Use Non-Standard Port")
 o.datatype    = "port"
 o.rempty      = false
 
 ---- type
 o = s:option(ListValue, "type", translate("DNS Server Type"))
-o:value("udp", translate("udp"))
-o:value("tcp", translate("tcp"))
-o:value("tls", translate("tls"))
+o:value("udp", translate("UDP"))
+o:value("tcp", translate("TCP"))
+o:value("tls", translate("TLS"))
+o:value("https", translate("HTTPS"))
 o.default     = "udp"
 o.rempty      = false
 

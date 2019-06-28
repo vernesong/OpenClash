@@ -94,11 +94,14 @@ msgstr "不使用自定义DNS服务器"
 msgid "DNS Server Group"
 msgstr "上游DNS服务器分组"
 
-msgid "DNS Server IP"
-msgstr "DNS服务器IP"
+msgid "DNS Server Address(No Type)"
+msgstr "DNS服务器地址(请勿添加类型前缀)"
 
 msgid "DNS Server Port"
 msgstr "DNS服务器端口"
+
+msgid "Require When Use Non-Standard Port"
+msgstr "使用非标准端口时必须填写"
 
 msgid "DNS Server Type"
 msgstr "DNS服务器类型"
