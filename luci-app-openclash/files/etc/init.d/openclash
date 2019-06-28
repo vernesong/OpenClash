@@ -9,9 +9,6 @@ CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
 CONFIG_FILE="/etc/openclash/config.yml"
-if [ ! -f $CONFIG_FILE ] && [ -f "/etc/openclash/config.yaml" ]; then
- mv "/etc/openclash/config.yaml" "$CONFIG_FILE"
-fi
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
 BACKPACK_FILE="/etc/openclash/config.bak"
@@ -178,7 +175,10 @@ start()
 {
 echo "OpenClash 开始启动..." >$START_LOG
 enable=$(uci get openclash.config.enable 2>/dev/null)
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")  
+LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+if [ ! -f "$CONFIG_FILE" ] && [ "`ls -l /etc/openclash/config.yaml |awk '{print int($5/1024)}'`" -gt 0 ]; then
+   mv "/etc/openclash/config.yaml" "$CONFIG_FILE"
+fi
 if [ ! -f $CONFIG_FILE ] && [ -f $BACKPACK_FILE ]; then
    cp $BACKPACK_FILE $CONFIG_FILE
 fi

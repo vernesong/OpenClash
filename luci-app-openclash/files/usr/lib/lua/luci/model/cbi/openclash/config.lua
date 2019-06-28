@@ -36,7 +36,11 @@ HTTP.setfilehandler(
 			fd:close()
 			fd = nil
 			um.value = translate("File saved to") .. ' "/etc/openclash/' .. meta.file .. '"'
-			SYS.exec("cp /etc/openclash/config.yml /etc/openclash/config.bak")
+			if (meta.file == "config.yml") then
+			   SYS.exec("cp /etc/openclash/config.yml /etc/openclash/config.bak")
+			elseif (meta.file == "config.yaml") then
+			   SYS.exec("cp /etc/openclash/config.yaml /etc/openclash/config.bak")
+			end
 		end
 	end
 )
