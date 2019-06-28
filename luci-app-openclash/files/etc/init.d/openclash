@@ -129,6 +129,8 @@ yml_dns_get()
       dns_type="- tls://"
    elif [ "$type" = "udp" ]; then
       dns_type="- "
+   elif [ "$type" = "https" ]; then
+      dns_type="- https://"
    fi
 
    if [ ! -z "$port" ] && [ ! -z "$ip" ]; then
