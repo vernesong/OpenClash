@@ -8,13 +8,13 @@ STOP=15
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
-CONFIG_FILE="/etc/openclash/config.yml"
+CONFIG_FILE="/etc/openclash/config.yaml"
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
 BACKPACK_FILE="/etc/openclash/config.bak"
-CHANGE_FILE="/tmp/yml_change.yml"
-RULE_FILE="/tmp/yml_rules.yml"
-DNS_FILE="/tmp/yml_dns.yml"
+CHANGE_FILE="/tmp/yaml_change.yaml"
+RULE_FILE="/tmp/yaml_rules.yaml"
+DNS_FILE="/tmp/yaml_dns.yaml"
 
 
 add_cron()
@@ -178,13 +178,13 @@ start()
 echo "OpenClash 开始启动..." >$START_LOG
 enable=$(uci get openclash.config.enable 2>/dev/null)
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
-if [ ! -f "$CONFIG_FILE" ] && [ "`ls -l /etc/openclash/config.yaml |awk '{print int($5/1024)}'`" -gt 0 ]; then
-   mv "/etc/openclash/config.yaml" "$CONFIG_FILE"
+if [ ! -f "$CONFIG_FILE" ] && [ "`ls -l /etc/openclash/config.yml |awk '{print int($5/1024)}'`" -gt 0 ]; then
+   mv "/etc/openclash/config.yml" "$CONFIG_FILE"
 fi
-if [ ! -f $CONFIG_FILE ] && [ -f $BACKPACK_FILE ]; then
+if [ ! -f "$CONFIG_FILE" ] && [ -f "$BACKPACK_FILE" ]; then
    cp $BACKPACK_FILE $CONFIG_FILE
 fi
-if [ "$enable" -eq 1 ] && [ -f $CONFIG_FILE ]; then
+if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     echo "第一步: 获取配置中..." >$START_LOG
     en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
     enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
@@ -206,7 +206,7 @@ if [ "$enable" -eq 1 ] && [ -f $CONFIG_FILE ]; then
     sh /usr/share/openclash/yml_rules_change.sh "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" &
     wait
     cat $CHANGE_FILE $DNS_FILE $RULE_FILE > $CONFIG_FILE 2>/dev/null
-    rm -rf /tmp/yml_* 2>/dev/null
+    rm -rf /tmp/yaml_* 2>/dev/null
     echo "第四步: 配置文件完整性检查..." >$START_LOG
     grep "^Proxy Group:$" $CONFIG_FILE 1>/dev/null && grep "^Rule:$" $CONFIG_FILE 1>/dev/null && grep "nameserver:$" $CONFIG_FILE 1>/dev/null
     if [ "$?" -ne "0" ]; then
@@ -217,7 +217,7 @@ if [ "$enable" -eq 1 ] && [ -f $CONFIG_FILE ]; then
        echo "" >$START_LOG
     elif [ ! -z "`sed -n '/nameserver:/{n;p}' $CONFIG_FILE |grep 'fallback:'`" ]; then
        echo "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已自动还原配置文件，请修改好后再重新启动..." >$START_LOG
-       echo "${LOGTIME} Nameserver Must Be Set, Please Change Your Configrations In Config.yml" >>$LOG_FILE
+       echo "${LOGTIME} Nameserver Must Be Set, Please Change Your Configrations In Config.yaml" >>$LOG_FILE
        cp $BACKPACK_FILE $CONFIG_FILE
        sleep 20
        echo "" >$START_LOG
@@ -269,7 +269,7 @@ if [ "$enable" -eq 1 ] && [ -f $CONFIG_FILE ]; then
     fi
 else
    echo "错误: OpenClash 缺少配置文件，请上传或更新配置文件！" >$START_LOG
-   echo "${LOGTIME} config.yml Missing Or Clash Not Enable" >> $LOG_FILE
+   echo "${LOGTIME} config.yaml Missing Or Clash Not Enable" >> $LOG_FILE
    sleep 5
    echo "" >$START_LOG
 fi
@@ -310,14 +310,13 @@ stop()
    echo "第六步: 删除 OpenClash 残留文件..." >$START_LOG
     rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
     if [ "$rule_source" != 0 ]; then
-       rm -rf /tmp/clash_rule.yml >/dev/null 2>&1
        rm -rf /tmp/Proxy_Group >/dev/null 2>&1
     fi
     enable=$(uci get openclash.config.enable 2>/dev/null)
     if [ "$enable" -eq 0 ]; then
        rm -rf $LOG_FILE
-       rm -rf /www/openclash 2> /dev/null
-       rm -rf /tmp/openclash_last_version 2> /dev/null
+       rm -rf /www/openclash 2>/dev/null
+       rm -rf /tmp/openclash_last_version 2>/dev/null
        sed -i '/openclash.log/d' $CRON_FILE
        echo "OpenClash 关闭成功！" >$START_LOG
 	  else

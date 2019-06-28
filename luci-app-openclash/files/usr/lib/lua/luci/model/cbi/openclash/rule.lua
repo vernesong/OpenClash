@@ -22,7 +22,7 @@ o:value("lhie1", translate("lhie1 Rules"))
 o:value("ConnersHua", translate("ConnersHua Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
-os.execute("awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yml |grep ^-  |grep name: |sed 's/,.*//' |awk -F 'name: ' '{print $2}' |sed 's/\"//g' >/tmp/Proxy_Group 2>&1")
+os.execute("awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml |grep ^-  |grep name: |sed 's/,.*//' |awk -F 'name: ' '{print $2}' |sed 's/\"//g' >/tmp/Proxy_Group 2>&1")
 os.execute("echo 'DIRECT' >>/tmp/Proxy_Group")
 os.execute("echo 'REJECT' >>/tmp/Proxy_Group")
 file = io.open("/tmp/Proxy_Group", "r"); 
@@ -74,7 +74,7 @@ o = s:option(ListValue, "Others", translate("Others"))
 o:depends("rule_source", "lhie1")
 o:depends("rule_source", "ConnersHua")
 o:depends("rule_source", "ConnersHua_return")
-o.description = translate("Choose Proxy Group, Base On Your Servers Group in config.yml")
+o.description = translate("Choose Proxy Group, Base On Your Servers Group in config.yaml")
  for l in file:lines() do
    o:value(l)
    end
