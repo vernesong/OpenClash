@@ -31,7 +31,7 @@ o.title = translate("Update Subcription")
 o.inputtitle = translate("Update Configuration")
 o.inputstyle = "reload"
 o.write = function()
-  SYS.call("uci commit openclash && sh /usr/share/openclash/openclash.sh >/dev/null 2>&1 &")
+  SYS.call("uci set openclash.config.enable=1 && uci commit openclash && sh /usr/share/openclash/openclash.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
@@ -64,7 +64,7 @@ o.title = translate("Update Other Rules")
 o.inputtitle = translate("Start Update Other Rules")
 o.inputstyle = "reload"
 o.write = function()
-  SYS.call("uci commit openclash && sh /usr/share/openclash/openclash_rule.sh >/dev/null 2>&1 &")
+  SYS.call("uci set openclash.config.enable=1 && uci commit openclash && sh /usr/share/openclash/openclash_rule.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
@@ -75,7 +75,7 @@ o.title = translate("Update GEOIP Database")
 o.inputtitle = translate("Start Update GEOIP Database")
 o.inputstyle = "reload"
 o.write = function()
-  SYS.call("sh /usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
+  SYS.call("uci set openclash.config.enable=1 && uci commit openclash && sh /usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
@@ -99,7 +99,7 @@ o = s:option(Button, "Apply")
 o.inputtitle = translate("Apply Configurations")
 o.inputstyle = "apply"
 o.write = function()
-  os.execute("uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  os.execute("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 

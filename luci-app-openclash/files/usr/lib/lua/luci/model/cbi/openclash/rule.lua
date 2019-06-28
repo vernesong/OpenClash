@@ -116,7 +116,7 @@ o = s:option(Button, "Apply")
 o.inputtitle = translate("Apply Configurations")
 o.inputstyle = "apply"
 o.write = function()
-  os.execute("uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  os.execute("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
