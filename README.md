@@ -5,14 +5,15 @@
 </h1>
 
 <p align="center">
-	A Clash Client For OpenWrt Based on <a href="https://github.com/Dreamacro/clash" target="_blank">Clash</a>、 <a href="https://github.com/frainzy1477/clash" target="_blank">Clash For Openwrt</a>.
+	A Clash Client For OpenWrt Based on <a href="https://github.com/Dreamacro/clash" target="_blank">Clash</a>
+	Codes Based on <a href="https://github.com/frainzy1477/clash" target="_blank">Clash For OpenWrt</a>
   </p>
   <p align="center">
-	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.14.0">
-    <img src="https://img.shields.io/badge/Clash-v0.14.0-orange.svg">
+	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.15.0">
+    <img src="https://img.shields.io/badge/Clash-v0.15.0-orange.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.30.0">
-    <img src="https://img.shields.io/badge/OpenClash-v0.30.2-blue.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.30.3">
+    <img src="https://img.shields.io/badge/OpenClash-v0.30.3-blue.svg">
   </a>
   </p>
   
