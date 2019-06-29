@@ -109,6 +109,12 @@ msgstr "DNS服务器类型"
 msgid "Enable Custom DNS Setting"
 msgstr "使用自定义DNS服务器"
 
+msgid "Enable ipv6 Resolve"
+msgstr "启用ipv6解析"
+
+msgid "Force Enable to Resolve ipv6 DNS Requests"
+msgstr "允许解析ipv6类型的DNS请求"
+
 msgid "Rules Setting"
 msgstr "规则设置"
 
@@ -169,8 +175,8 @@ msgstr "自动更新服务器订阅"
 msgid "Daily Server subscription update time"
 msgstr "每日服务器订阅更新时间"
 
-msgid "You Can Modify config file Here"
-msgstr "您可以在这里直接修改配置文件"
+msgid "You Can Modify config file Here, Except The Settings That Were Taken Over"
+msgstr "您可以在这里直接修改配置文件, 仅针对未被接管的设置"
 
 msgid "Dashboard Secret"
 msgstr "管理页面登录密码"

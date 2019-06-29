@@ -48,6 +48,11 @@ o:value("0", translate("Disable Custom DNS Setting"))
 o:value("1", translate("Enable Custom DNS Setting"))
 o.default = 0
 
+o = s:option(Flag, "ipv6_enable", translate("Enable ipv6 Resolve"))
+o.description = translate("Force Enable to Resolve ipv6 DNS Requests")
+o.default=0
+o.rmempty = false
+
 o = s:option(Value, "proxy_port")
 o.title = translate("Clash config redir-port")
 o.default = 7892

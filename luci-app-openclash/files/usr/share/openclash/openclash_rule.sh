@@ -8,10 +8,10 @@
       if [ "$rule_source" = "lhie1" ]; then
          wget-ssl --no-check-certificate https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yml -O /tmp/rules.yaml
       elif [ "$rule_source" = "ConnersHua" ]; then
-         wget-ssl --no-check-certificate https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/Pro.yml -O /tmp/rules.yaml
+         wget-ssl --no-check-certificate https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/Pro.yaml -O /tmp/rules.yaml
          sed -i -n '/^Rule:$/,$p' /tmp/rules.yaml
       elif [ "$rule_source" = "ConnersHua_return" ]; then
-         wget-ssl --no-check-certificate https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/BacktoCN.yml -O /tmp/rules.yaml
+         wget-ssl --no-check-certificate https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/BacktoCN.yaml -O /tmp/rules.yaml
          sed -i -n '/^Rule:$/,$p' /tmp/rules.yaml
       fi
    if [ "$?" -eq "0" ] && [ "$rule_source" != 0 ]; then

@@ -13,13 +13,14 @@ s = m:section(SimpleSection, "")
 
 
 local conf = "/etc/openclash/config.yaml"
+local yconf = "/etc/openclash/config.yml"
 sev = s:option(Value, "sev")
 sev.template = "cbi/tvalue"
-sev.description = translate("You Can Modify config file Here")
+sev.description = translate("You Can Modify config file Here, Except The Settings That Were Taken Over")
 sev.rows = 20
 sev.wrap = "off"
 sev.cfgvalue = function(self, section)
-	return NXFS.readfile(conf) or ""
+	return NXFS.readfile(conf) or NXFS.readfile(yconf) or ""
 end
 sev.write = function(self, section, value)
 if (CHIF == "0") then

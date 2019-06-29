@@ -46,3 +46,16 @@
     else
        sed -i '3i\external-ui: "/usr/share/openclash/dashboard"' "$8"
     fi
+    if [ "$9" -eq 1 ]; then
+       if [ ! -z "`grep "^  ipv6:" "$8"`" ]; then
+          sed -i "/^  ipv6:/c\  ipv6: true" "$8"
+       else
+          sed -i "/^  enable: true$/i\  ipv6: true" "$8"
+       fi
+    else
+       if [ ! -z "`grep "^  ipv6:" "$8"`" ]; then
+          sed -i "/^  ipv6:/c\  ipv6: false" "$8"
+       else
+          sed -i "/^  enable: true$/i\  ipv6: false" "$8"
+       fi
+    fi
