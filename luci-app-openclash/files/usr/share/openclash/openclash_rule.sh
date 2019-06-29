@@ -33,6 +33,12 @@
          sleep 10
          echo "" >$START_LOG
       fi
+   elif [ "$rule_source" = 0 ]; then
+      echo "未启用第三方规则，更新程序终止！" >$START_LOG
+      rm -rf /tmp/rules.yaml >/dev/null 2>&1
+      echo "${LOGTIME} Other Rules Not Enable, Update Stop" >>$LOG_FILE
+      sleep 10
+      echo "" >$START_LOG
    else
       echo "第三方规则下载失败，请检查网络或稍后再试！" >$START_LOG
       rm -rf /tmp/rules.yaml >/dev/null 2>&1

@@ -6,10 +6,10 @@ local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
 local CHIF = "0"
 
-m = Map("openclash", translate("Server Configuration"))
-s = m:section(TypedSection, "openclash")
-s.anonymous = true
-s.addremove=false
+m = SimpleForm("openclash")
+m.reset = false
+m.submit = false
+s = m:section(SimpleSection, "")
 
 
 local conf = "/etc/openclash/config.yaml"
@@ -28,7 +28,28 @@ if (CHIF == "0") then
 end
 end
 
-ful = SimpleForm("upload", nil)
+local t = {
+    {Commit, Apply}
+}
+
+a = m:section(Table, t)
+
+o = a:option(Button, "Commit") 
+o.inputtitle = translate("Commit Configurations")
+o.inputstyle = "apply"
+o.write = function()
+  os.execute("uci commit openclash")
+end
+
+o = a:option(Button, "Apply")
+o.inputtitle = translate("Apply Configurations")
+o.inputstyle = "apply"
+o.write = function()
+  os.execute("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+end
+
+ful = SimpleForm("upload", translate("Server Configuration"), nil)
 ful.reset = false
 ful.submit = false
 
@@ -77,26 +98,5 @@ if HTTP.formvalue("upload") then
 	end
 end
 
-local t = {
-    {Commit, Apply}
-}
 
-s = ful:section(Table, t)
-
-o = s:option(Button, "Commit") 
-o.inputtitle = translate("Commit Configurations")
-o.inputstyle = "apply"
-o.write = function()
-  os.execute("uci commit openclash")
-end
-
-o = s:option(Button, "Apply")
-o.inputtitle = translate("Apply Configurations")
-o.inputstyle = "apply"
-o.write = function()
-  os.execute("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
-end
-
-
-return m , ful
+return ful , m

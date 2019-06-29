@@ -7,17 +7,17 @@ function index()
 
 
 	entry({"admin", "services", "openclash"},alias("admin", "services", "openclash", "client"), _("OpenClash"), 50).dependent = true
-	entry({"admin", "services", "openclash", "client"},cbi("openclash/client"),_("Clash Global State"), 20).leaf = true
+	entry({"admin", "services", "openclash", "client"},form("openclash/client"),_("Clash Global State"), 20).leaf = true
 	entry({"admin", "services", "openclash", "status"},call("action_status")).leaf=true
 	entry({"admin", "services", "openclash", "state"},call("action_state")).leaf=true
 	entry({"admin", "services", "openclash", "startlog"},call("action_start")).leaf=true
 	entry({"admin", "services", "openclash", "currentversion"},call("action_currentversion"))
 	entry({"admin", "services", "openclash", "lastversion"},call("action_lastversion"))
-	entry({"admin", "services", "openclash", "config"},cbi("openclash/config"),_("Server Config"), 30).leaf = true
+	entry({"admin", "services", "openclash", "config"},form("openclash/config"),_("Server Config"), 30).leaf = true
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Clash Settings"), 40).leaf = true
 	entry({"admin", "services", "openclash", "update"},cbi("openclash/update"),_("Update Setting"), 50).leaf = true
 	entry({"admin", "services", "openclash", "rule"},cbi("openclash/rule"),_("Rules Setting"), 60).leaf = true
-	entry({"admin", "services", "openclash", "log"},cbi("openclash/log"),_("Logs"), 70).leaf = true
+	entry({"admin", "services", "openclash", "log"},form("openclash/log"),_("Logs"), 70).leaf = true
 
 	
 end
