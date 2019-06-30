@@ -1,7 +1,11 @@
 #!/bin/sh
 
     if [ -z "$7" ]; then
-       sed -i "/^dns:$/a\  enhanced-mode: ${2}" "$8"
+       if [ "$2" -ne 0 ]; then
+          sed -i "/^dns:$/a\  enhanced-mode: ${2}" "$8"
+       else
+          sed -i "/^dns:$/a\  enhanced-mode: redir-host" "$8"
+       fi
     elif [ "$7" != "$2" ] && [ "$2" != "0" ]; then
        sed -i "s/${7}$/${2}/" "$8"
     fi
