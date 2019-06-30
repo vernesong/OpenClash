@@ -10,8 +10,8 @@
       && rm -rf /tmp/ipdb.tar.gz >/dev/null 2>&1
       cmp -s /tmp/GeoLite2-Country_*/GeoLite2-Country.mmdb /etc/openclash/Country.mmdb
          if [ "$?" -ne "0" ]; then
-            echo "数据库版本有更新，开始替换数据库版本..." >$START_LOG
             /etc/init.d/openclash stop\
+            echo "数据库版本有更新，开始替换数据库版本..." >$START_LOG
             && mv /tmp/GeoLite2-Country_*/GeoLite2-Country.mmdb /etc/openclash/Country.mmdb >/dev/null 2>&1\
             && /etc/init.d/openclash start\
             && echo "删除下载缓存..." >$START_LOG\

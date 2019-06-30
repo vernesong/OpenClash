@@ -9,7 +9,10 @@ if [ "$?" -eq "0" ] && [ "`ls -l /tmp/openclash_last_version |awk '{print int($5
       echo "对比版本信息..." >$START_LOG
       if [ "$(sed -n 1p /etc/openclash/openclash_version)" = "$(sed -n 1p /tmp/openclash_last_version)" ]; then
          echo "" >/tmp/openclash_last_version
-         echo "本地已安装最新版本！" >$START_LOG
+         echo "本地 OpenClash 已为最新版本！" >$START_LOG
+         sleep 10
+      else
+         echo "检测到版本更新，点击上方图标前往下载！" >$START_LOG
          sleep 10
       fi
    fi

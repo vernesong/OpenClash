@@ -23,7 +23,7 @@ msgid "Config Normal"
 msgstr "配置文件正常"
 
 msgid "Config Abnormal"
-msgstr "配置文件（异常/不存在）"
+msgstr "配置文件(异常/不存在)"
 
 msgid "File Not Exist"
 msgstr "文件不存在"
@@ -32,7 +32,7 @@ msgid "Not Set"
 msgstr "未设置"
 
 msgid "File No Update"
-msgstr "原始/不存在（配置文件）"
+msgstr "配置文件(原始/不存在)"
 
 msgid "Server Configuration"
 msgstr "配置文件"
@@ -62,52 +62,55 @@ msgid "Apply Configurations"
 msgstr "应用配置"
 
 msgid "Select Mode"
-msgstr "运行模式"
+msgstr "OpenClash 运行模式"
 
 msgid "redir-host"
-msgstr "Redir-Host模式"
+msgstr "Redir-Host 模式"
 
 msgid "fake-ip"
-msgstr "Fake-IP模式"
+msgstr "Fake-IP 模式"
 
 msgid "Will to Take Over Your General Settings, Network Error Try Flush DNS Cache"
 msgstr "启用将接管配置文件的模式设置，如客户端的网络无法连接请尝试清除DNS缓存"
 
-msgid "Disable Mode Control"
-msgstr "使用配置文件设定的模式"
+msgid "Disable Mode Control (Use Redir-Host Default If Not Set)"
+msgstr "使用配置文件设定的模式 (如未设置则默认使用 Redir-Host 模式)"
 
 msgid "Custom DNS Setting"
-msgstr "自定义DNS服务器"
+msgstr "自定义上游DNS服务器"
 
 msgid "Use Custom Rules"
-msgstr "添加并启用自定义规则"
+msgstr "启用后将把自定义规则增加到配置文件并优先匹配"
 
 msgid "Add Custom DNS Servers"
-msgstr "添加自定义DNS服务器"
+msgstr "设置自定义上游DNS服务器"
 
 msgid "Set OpenClash Upstream DNS Resolve Server"
-msgstr "自定义DNS上游服务器，将替换配置文件内的DNS服务器设置"
-
-msgid "Disable Custom DNS Setting"
-msgstr "不使用自定义DNS服务器"
+msgstr "启用将覆盖配置文件内的设置，请先在下方配置好服务器"
 
 msgid "DNS Server Group"
-msgstr "上游DNS服务器分组"
+msgstr "服务器分组"
 
-msgid "DNS Server Address(No Type)"
-msgstr "DNS服务器地址(请勿添加类型前缀)"
+msgid "(NameServer Group Must Be Set)"
+msgstr "(NameServer 组必须设置)"
+
+msgid "DNS Server Address"
+msgstr "服务器地址"
+
+msgid "(Do Not Add Type Ahead)"
+msgstr "(请勿添加类型前缀)"
 
 msgid "DNS Server Port"
-msgstr "DNS服务器端口"
+msgstr "服务器端口"
 
-msgid "Require When Use Non-Standard Port"
-msgstr "使用非标准端口时必须填写"
+msgid "(Require When Use Non-Standard Port)"
+msgstr "(使用非标准端口时必须填写)"
 
 msgid "DNS Server Type"
-msgstr "DNS服务器类型"
+msgstr "服务器类型"
 
-msgid "Enable Custom DNS Setting"
-msgstr "使用自定义DNS服务器"
+msgid "(Communication protocol)"
+msgstr "(通讯协议)"
 
 msgid "Enable ipv6 Resolve"
 msgstr "启用ipv6解析"
@@ -139,8 +142,8 @@ msgid ""
 msgstr ""
 "注意：上传之前，请将配置文件重命名为 config.yaml 或者 config.yml ，文件将保存到 /etc/openclash 文件夹"
 
-msgid "Clash Redir Port, Please Make Sure Ports Available"
-msgstr "OpenClash转发端口，请确保端口可用"
+msgid "Please Make Sure Ports Available"
+msgstr "请确保端口可用"
 
 msgid "Subscription Update"
 msgstr "配置文件"
@@ -163,8 +166,8 @@ msgstr "自动更新"
 msgid "After clash start running, wait a moment for servers to resolve,enjoy"
 msgstr "运行后，请等待服务器上线"
 
-msgid "Clash config redir-port"
-msgstr "转发端口"
+msgid "OpenClash Redir Port"
+msgstr "OpenClash 转发端口"
 
 msgid "Server Subscription Address"
 msgstr "服务器订阅地址"
@@ -179,13 +182,13 @@ msgid "You Can Modify config file Here, Except The Settings That Were Taken Over
 msgstr "您可以在这里直接修改配置文件, 仅针对未被接管的设置"
 
 msgid "Dashboard Secret"
-msgstr "管理页面登录密码"
+msgstr "管理页面登录密钥"
 
 msgid "Set Dashboard Secret"
-msgstr "设置您的管理页面登录密码"
+msgstr "设置您的管理页面登录密钥"
 
-msgid "Dashboard hostname is Your Router IP. Dashboard:192.168.1.1/openclash"
-msgstr "登录主机名是您的路由器IP, 管理页面地址示例:192.168.1.1/openclash、192.168.1.1:9090/ui"
+msgid "Dashboard Address Example: 192.168.1.1/openclash、192.168.1.1:9090/ui"
+msgstr "管理页面地址示例: 192.168.1.1/openclash、192.168.1.1:9090/ui"
 
 msgid "Dashboard Port"
 msgstr "管理页面端口"
@@ -206,7 +209,7 @@ msgid "Enable Other Rules"
 msgstr "第三方规则"
 
 msgid "Use Other Rules"
-msgstr "选择并启用第三方规则，将替换配置文件内的所有规则"
+msgstr "选择并启用第三方规则后将覆盖配置文件内的所有规则 (不包括自定义规则)"
 
 msgid "Disable Other Rules"
 msgstr "不使用第三方规则"

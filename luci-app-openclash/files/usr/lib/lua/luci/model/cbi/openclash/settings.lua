@@ -37,16 +37,15 @@ s.anonymous = true
 
 o = s:option(ListValue, "en_mode", translate("Select Mode"))
 o.description = translate("Will to Take Over Your General Settings, Network Error Try Flush DNS Cache")
-o:value("0", translate("Disable Mode Control"))
+o:value("0", translate("Disable Mode Control (Use Redir-Host Default If Not Set)"))
 o:value("redir-host", translate("redir-host"))
 o:value("fake-ip", translate("fake-ip"))
 o.default = 0
 
-o = s:option(ListValue, "enable_custom_dns", translate("Custom DNS Setting"))
+o = s:option(Flag, "enable_custom_dns", translate("Custom DNS Setting"))
 o.description = translate("Set OpenClash Upstream DNS Resolve Server")
-o:value("0", translate("Disable Custom DNS Setting"))
-o:value("1", translate("Enable Custom DNS Setting"))
 o.default = 0
+o.rmempty = false
 
 o = s:option(Flag, "ipv6_enable", translate("Enable ipv6 Resolve"))
 o.description = translate("Force Enable to Resolve ipv6 DNS Requests")
@@ -54,18 +53,18 @@ o.default=0
 o.rmempty = false
 
 o = s:option(Value, "proxy_port")
-o.title = translate("Clash config redir-port")
+o.title = translate("OpenClash Redir Port")
 o.default = 7892
 o.datatype = "port"
 o.rmempty = false
-o.description = translate("Clash Redir Port, Please Make Sure Ports Available")
+o.description = translate("Please Make Sure Ports Available")
 
 o = s:option(Value, "cn_port")
 o.title = translate("Dashboard Port")
 o.default = 9090
 o.datatype = "port"
 o.rmempty = false
-o.description = translate("Dashboard hostname is Your Router IP. Dashboard:192.168.1.1/openclash")
+o.description = translate("Dashboard Address Example: 192.168.1.1/openclash、192.168.1.1:9090/ui")
 
 o = s:option(Value, "dashboard_password")
 o.title = translate("Dashboard Secret")
@@ -83,24 +82,27 @@ s.rmempty = false
 
 ---- group
 o = s:option(ListValue, "group", translate("DNS Server Group"))
+o.description = translate("(NameServer Group Must Be Set)")
 o:value("nameserver", translate("NameServer"))
 o:value("fallback", translate("FallBack"))
 o.default     = "nameserver"
 o.rempty      = false
 
 ---- IP address
-o = s:option(Value, "ip", translate("DNS Server Address(No Type)"))
+o = s:option(Value, "ip", translate("DNS Server Address"))
+o.description = translate("(Do Not Add Type Ahead)")
 o.datatype = "or(host, string)"
 o.rmempty = false
 
 ---- port
 o = s:option(Value, "port", translate("DNS Server Port"))
-o.placeholder = translate("Require When Use Non-Standard Port")
+o.description = translate("(Require When Use Non-Standard Port)")
 o.datatype    = "port"
 o.rempty      = false
 
 ---- type
 o = s:option(ListValue, "type", translate("DNS Server Type"))
+o.description = translate("(Communication protocol)")
 o:value("udp", translate("UDP"))
 o:value("tcp", translate("TCP"))
 o:value("tls", translate("TLS"))
