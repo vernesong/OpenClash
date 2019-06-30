@@ -14,7 +14,7 @@
          wget-ssl --no-check-certificate https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/BacktoCN.yaml -O /tmp/rules.yaml
          sed -i -n '/^Rule:$/,$p' /tmp/rules.yaml
       fi
-   if [ "$?" -eq "0" ] && [ "$rule_source" != 0 ]; then
+   if [ "$?" -eq "0" ] && [ "$rule_source" != 0 ] && [ "`ls -l /tmp/rules.yaml |awk '{print int($5/1024)}'`" -ne 0 ]; then
       echo "下载成功，开始预处理规则文件..." >$START_LOG
       sed -i "/^Rule:$/a\##source:${rule_source}" /tmp/rules.yaml >/dev/null 2>&1
       echo "检查下载的规则文件是否有更新..." >$START_LOG
