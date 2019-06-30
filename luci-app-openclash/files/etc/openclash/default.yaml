@@ -1,0 +1,121 @@
+# Default Config Without Proxy-Servers Settings #
+
+port: 7890
+secret: '123456'
+redir-port: 7892
+socks-port: 7891
+allow-lan: true
+mode: Rule
+log-level: silent
+external-ui: "/usr/share/openclash/dashboard"
+external-controller: 0.0.0.0:9090
+dns:
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  enable: true
+  ipv6: false
+  listen: 0.0.0.0:7874
+  nameserver:
+  - 117.50.10.10
+  - 119.29.29.29
+  - 223.5.5.5
+  - tls://dns.rubyfish.cn:853
+  fallback:
+  - tls://1.1.1.1:853
+  - tls://1.0.0.1:853
+  - tls://dns.google:853
+#===================== OpenClash-General-Settings =====================#
+Proxy:
+
+# shadowsocks
+# The types of cipher are consistent with go-shadowsocks2
+# support AEAD_AES_128_GCM AEAD_AES_192_GCM AEAD_AES_256_GCM AEAD_CHACHA20_POLY1305 AES-128-CTR AES-192-CTR AES-256-CTR AES-128-CFB AES-192-CFB AES-256-CFB CHACHA20-IETF XCHACHA20
+# In addition to what go-shadowsocks2 supports, it also supports chacha20 rc4-md5 xchacha20-ietf-poly1305
+- { name: "ss1", type: ss, server: server, port: 443, cipher: AEAD_CHACHA20_POLY1305, password: "password", udp: true }
+
+# old obfs configuration remove after prerelease
+- name: "ss2"
+  type: ss
+  server: server
+  port: 443
+  cipher: AEAD_CHACHA20_POLY1305
+  password: "password"
+  plugin: obfs
+  plugin-opts:
+    mode: tls # or http
+    # host: bing.com
+
+- name: "ss3"
+  type: ss
+  server: server
+  port: 443
+  cipher: AEAD_CHACHA20_POLY1305
+  password: "password"
+  plugin: v2ray-plugin
+  plugin-opts:
+    mode: websocket # no QUIC now
+    # tls: true # wss
+    # skip-cert-verify: true
+    # host: bing.com
+    # path: "/"
+    # headers:
+    #   custom: value
+
+# vmess
+# cipher support auto/aes-128-gcm/chacha20-poly1305/none
+- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto }
+# with tls
+- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto, tls: true }
+# with tls and skip-cert-verify
+- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto, tls: true, skip-cert-verify: true }
+# with ws-path and ws-headers
+- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto, network: ws, ws-path: /path, ws-headers: { Host: v2ray.com } }
+# with ws + tls
+- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto, network: ws, ws-path: /path, tls: true }
+
+# socks5
+- { name: "socks", type: socks5, server: server, port: 443 }
+# socks5 with authentication
+- { name: "socks", type: socks5, server: server, port: 443, username: "username", password: "password" }
+# with tls
+- { name: "socks", type: socks5, server: server, port: 443, tls: true }
+# with tls and skip-cert-verify
+- { name: "socks", type: socks5, server: server, port: 443, tls: true, skip-cert-verify: true }
+
+# http
+- { name: "http", type: http, server: server, port: 443 }
+# http with authentication
+- { name: "http", type: http, server: server, port: 443, username: "username", password: "password" }
+# with tls (https)
+- { name: "http", type: http, server: server, port: 443, tls: true }
+# with tls (https) and skip-cert-verify
+- { name: "http", type: http, server: server, port: 443, tls: true, skip-cert-verify: true }
+
+Proxy Group:
+# url-test select which proxy will be used by benchmarking speed to a URL.
+- { name: "auto", type: url-test, proxies: ["ss1", "ss2", "vmess1"], url: "http://www.gstatic.com/generate_204", interval: 300 }
+
+# fallback select an available policy by priority. The availability is tested by accessing an URL, just like an auto url-test group.
+- { name: "fallback-auto", type: fallback, proxies: ["ss1", "ss2", "vmess1"], url: "http://www.gstatic.com/generate_204", interval: 300 }
+
+# load-balance: The request of the same eTLD will be dial on the same proxy.
+- { name: "load-balance", type: load-balance, proxies: ["ss1", "ss2", "vmess1"], url: "http://www.gstatic.com/generate_204", interval: 300 }
+
+# select is used for selecting proxy or proxy group
+# you can use RESTful API to switch proxy, is recommended for use in GUI.
+- { name: "Proxy", type: select, proxies: ["ss1", "ss2", "vmess1", "auto"] }
+
+Rule:
+- DOMAIN-SUFFIX,google.com,auto
+- DOMAIN-KEYWORD,google,auto
+- DOMAIN,google.com,auto
+- DOMAIN-SUFFIX,ad.com,REJECT
+- IP-CIDR,127.0.0.0/8,DIRECT
+# rename SOURCE-IP-CIDR and would remove after prerelease
+- SRC-IP-CIDR,192.168.1.201/32,DIRECT
+- GEOIP,CN,DIRECT
+- DST-PORT,80,DIRECT
+- SRC-PORT,7777,DIRECT
+# FINAL would remove after prerelease
+# you also can use `FINAL,Proxy` or `FINAL,,Proxy` now
+- MATCH,auto
