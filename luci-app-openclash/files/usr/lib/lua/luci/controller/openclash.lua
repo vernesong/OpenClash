@@ -48,7 +48,7 @@ local function mode()
 end
 
 local function cmode()
-	return luci.sys.exec("grep 'enhanced-mode:' /etc/openclash/config.yaml 2>/dev/null |awk -F ' ' '{print $2}'")
+	return luci.sys.exec("grep 'enhanced-mode:' /etc/openclash/config.yaml 2>/dev/null |grep -v '#' 2>/dev/null |awk -F ' ' '{print $2}'")
 end
 
 local function config()
