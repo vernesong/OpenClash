@@ -268,10 +268,17 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        fi
     fi
 else
-   echo "错误: OpenClash 缺少配置文件，请上传或更新配置文件！" >$START_LOG
-   echo "${LOGTIME} config.yaml Missing Or OpenClash Not Enable" >> $LOG_FILE
-   sleep 5
-   echo "" >$START_LOG
+   if [ ! -f "$CONFIG_FILE" ]; then
+      echo "错误: OpenClash 缺少配置文件，请上传或更新配置文件！" >$START_LOG
+      echo "${LOGTIME} config Not Found" >> $LOG_FILE
+      sleep 5
+      echo "" >$START_LOG
+   else
+      echo "错误: 请从 OpenClash 客户端界面启动程序！" >$START_LOG
+      echo "${LOGTIME} OpenClash Must Be Start From The Luci Page" >> $LOG_FILE
+      sleep 5
+      echo "" >$START_LOG
+   fi
 fi
 }
 
