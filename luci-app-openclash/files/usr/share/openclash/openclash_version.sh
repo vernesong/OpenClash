@@ -3,7 +3,7 @@ START_LOG="/tmp/openclash_start.log"
 version_url="https://github.com/vernesong/OpenClash/raw/master/version"
 echo "开始获取最新版本..." >$START_LOG
 wget-ssl --no-check-certificate --timeout=3 --tries=2 "$version_url" -O /tmp/openclash_last_version
-if [ "$?" -eq "0" ]; then
+if [ "$?" -eq "0" ] && [ "`ls -l /tmp/openclash_last_version |awk '{print int($5/1024)}'`" -ne 0 ]; then
    echo "版本获取成功..." >$START_LOG
    if [ -f "/etc/openclash/openclash_version" ]; then
       echo "对比版本信息..." >$START_LOG
