@@ -2,8 +2,8 @@
 
 check_def=0	
 if [ "$2" != 0 ]; then
-   if [ ! -f '/etc/openclash/"$2".yaml' ]; then
-      echo "${1} /etc/openclash/"$2".yaml Not Exist, Will Use Self Rules, Please Update and Try Again" >>/tmp/clash.log
+   if [ ! -f /etc/openclash/"$2".yaml ]; then
+      echo "${1} /etc/openclash/"$2".yaml Not Exist, Will Use Self Rules, Please Update and Try Again" >>/tmp/openclash.log
       exit 0
    else
     rulesource=$(grep '##source:' "$4" |awk -F ':' '{print $2}')
@@ -54,7 +54,7 @@ if [ "$2" != 0 ]; then
        Domestic=$(uci get openclash.config.Domestic 2>/dev/null)
        Others=$(uci get openclash.config.Others 2>/dev/null)
        if [ "$2" = "lhie1" ]; then
-            sed -i '/^Rule:$/,$d' "$4"
+            sed -i '/^Rule:/,$d' "$4"
             cat /etc/openclash/lhie1.yaml >> "$4"
             sed -i -e "s/,GlobalTV$/,${GlobalTV}#d/g" -e "/Rule:/a\##GlobalTV:${GlobalTV}"\
             -e "s/,AsianTV$/,${AsianTV}#d/g" -e "/Rule:/a\##AsianTV:${AsianTV}"\
@@ -65,7 +65,7 @@ if [ "$2" != 0 ]; then
             -e "s/,Others$/,${Others}#d/g" -e "/Rule:/a\##Others:${Others}"\
             -e "s/#d$//g" "$4"
        elif [ "$2" = "ConnersHua" ]; then
-            sed -i '/^Rule:$/,$d' "$4"
+            sed -i '/^Rule:/,$d' "$4"
             cat /etc/openclash/ConnersHua.yaml >> "$4"
             sed -i -e "s/,ForeignMedia$/,${GlobalTV}#d/g" -e "/Rule:/a\##GlobalTV:${GlobalTV}"\
             -e "s/,DomesticMedia$/,${AsianTV}#d/g" -e "/Rule:/a\##AsianTV:${AsianTV}"\
@@ -76,7 +76,7 @@ if [ "$2" != 0 ]; then
             -e "s/,Final$/,${Others}#d/g" -e "/Rule:/a\##Others:${Others}"\
             -e "s/#d$//g" "$4"
        else
-            sed -i '/^Rule:$/,$d' "$4"
+            sed -i '/^Rule:/,$d' "$4"
             cat /etc/openclash/ConnersHua_return.yaml >> "$4"
             sed -i -e "s/,PROXY$/,${Proxy}#d/g" -e "/Rule:/a\##Proxy:${Proxy}"\
             -e "s/,DIRECT$/,${Others}#d/g" -e "/Rule:/a\##Others:${Others}"\
@@ -85,12 +85,12 @@ if [ "$2" != 0 ]; then
        fi
 		fi
 elif [ "$2" = 0 ]; then
-   [ -f "/etc/openclash/config.bak" ] && {
+   [ -f /etc/openclash/config.bak ] && {
       grep '##source:' "$4" 1>/dev/null
       if [ "$?" -eq "0" ]; then
       cp /etc/openclash/config.bak /etc/openclash/configrules.bak
-      sed -i -n '/^Rule:$/,$p' /etc/openclash/configrules.bak
-      sed -i '/^Rule:$/,$d' "$4"
+      sed -i -n '/^Rule:/,$p' /etc/openclash/configrules.bak
+      sed -i '/^Rule:/,$d' "$4"
       cat /etc/openclash/configrules.bak >> "$4"
       rm -rf /etc/openclash/configrules.bak
     fi
@@ -101,7 +101,7 @@ fi
       sed -i '/^##Custom Rules$/d' "$4" 2>/dev/null
       sed -i '/^##Custom Rules End$/d' "$4" 2>/dev/null
       [ "$3" = 1 ] && {
-      sed -i '/^Rule:$/a\##Custom Rules End' "$4" 2>/dev/null
-      sed -i '/^Rule:$/a\##Custom Rules' "$4" 2>/dev/null
+      sed -i '/^Rule:/a\##Custom Rules End' "$4" 2>/dev/null
+      sed -i '/^Rule:/a\##Custom Rules' "$4" 2>/dev/null
       sed -i '/^##Custom Rules$/r/etc/config/openclash_custom_rules.list' "$4" 2>/dev/null
     }

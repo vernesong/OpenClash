@@ -23,7 +23,7 @@ add_cron()
      echo '*/5 * * * * echo "" > /tmp/openclash.log' >> $CRON_FILE
   }
   [ -z "`grep "openclash.sh" "$CRON_FILE"`" ] && {
-     [ "$(uci get openclash.config.auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.auto_update_time 2>/dev/null) * * * /usr/share/openclash/openclash.sh" >> $CRON_FILE
+     [ "$(uci get openclash.config.auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.auto_update_time 2>/dev/null) * * $(uci get openclash.config.config_update_week_time 2>/dev/null) /usr/share/openclash/openclash.sh" >> $CRON_FILE
   }
   [ -z "`grep "openclash_rule.sh" "$CRON_FILE"`" ] && {
   [ "$(uci get openclash.config.other_rule_auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.other_rule_update_day_time 2>/dev/null) * * $(uci get openclash.config.other_rule_update_week_time 2>/dev/null) /usr/share/openclash/openclash_rule.sh" >> $CRON_FILE
@@ -46,9 +46,9 @@ yml_check()
    fi
 
    if [ "$(grep -c '^##Custom DNS##' "$3")" -gt 0 ] && [ "$2" = 0 ] && [ -f "$4" ]; then
-      awk '/  nameserver:/,/Proxy:/{print}' "$4" | sed '/^Proxy:$/d' >/tmp/bakdns.config 2>/dev/null
+      awk '/  nameserver:/,/Proxy:/{print}' "$4" | sed '/^Proxy:/d' >/tmp/bakdns.config 2>/dev/null
       sed -i '/OpenClash-General-Settings/i\Custom DNS End' "$3" 2>/dev/null
-      sed -i '/nameserver:$/,/^Custom DNS End$/d' "$3" 2>/dev/null
+      sed -i '/^  nameserver:/,/^Custom DNS End$/d' "$3" 2>/dev/null
       sed -i '/^##Custom DNS##$/r/tmp/bakdns.config' "$3" 2>/dev/null
       rm -rf /tmp/bakdns.config 2>/dev/null
    fi
@@ -56,7 +56,7 @@ yml_check()
    if [ "$1" = 0 ]; then
       if [ -f "$4" ]; then
          [ ! -z "`grep "OpenClash-General" "$3"`" ] && {
-            sed -i "/enhanced-mode:/c\  enhanced-mode: ${5}" "$3" 2>/dev/null
+            sed -i "/^  enhanced-mode:/c\  enhanced-mode: ${5}" "$3" 2>/dev/null
          }
       else
           [ -z "`grep "OpenClash-General" "$3"`" ] && {
@@ -76,7 +76,7 @@ yml_dns_check()
    fi
    
    [ -z "`grep "^dns:" $2`" ] && {
-   	 sed -i -e "/^Proxy:$/i\dns:"\
+   	 sed -i -e "/^Proxy:/i\dns:"\
             -e "/^dns:/a\  enable: true"\
             -e "/enable: true/a\  listen: 0.0.0.0:${1}"\
             -e "/listen:/a\  enhanced-mode: redir-host"\
@@ -97,13 +97,13 @@ yml_cut()
 {
     cp "$5" "$2"
     if [ "$1" = 0 ]; then
-       sed -i '/^Rule:$/,$d' "$2"
-       sed -n '/^Rule:$/,$p' "$5" >"$3"
+       sed -i '/^Rule:/,$d' "$2"
+       sed -n '/^Rule:/,$p' "$5" >"$3"
     else
-       sed -i '/^Rule:$/,$d' "$2"
-       sed -n '/nameserver:$/,$p' "$2" >"$4"
-       sed -i '/nameserver:$/,$d' "$2"
-       sed -n '/^Rule:$/,$p' "$5" >"$3"
+       sed -i '/^Rule:/,$d' "$2"
+       sed -n '/^  nameserver:/,$p' "$2" >"$4"
+       sed -i '/^  nameserver:/,$d' "$2"
+       sed -n '/^Rule:/,$p' "$5" >"$3"
     fi
 }
 
@@ -163,9 +163,9 @@ yml_dns_custom()
    echo "  nameserver:" >/etc/openclash/config.namedns
    config_load "openclash"
    config_foreach yml_dns_get "dns_servers"
-   sed -i '/nameserver:$/i\##Custom DNS##' "$2" 2>/dev/null
+   sed -i '/^  nameserver:/i\##Custom DNS##' "$2" 2>/dev/null
    sed -i '/OpenClash-General-Settings/i\Custom DNS End' "$2" 2>/dev/null
-   sed -i '/nameserver:$/,/^Custom DNS End$/d' "$2" 2>/dev/null
+   sed -i '/^  nameserver:/,/^Custom DNS End$/d' "$2" 2>/dev/null
    sed -i '/^##Custom DNS##$/r/etc/openclash/config.falldns' "$2" 2>/dev/null
    sed -i '/^##Custom DNS##$/r/etc/openclash/config.namedns' "$2" 2>/dev/null
    rm -rf /etc/openclash/config.namedns 2>/dev/null
@@ -194,11 +194,11 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     cn_port=$(uci get openclash.config.cn_port 2>/dev/null)
     proxy_port=$(uci get openclash.config.proxy_port 2>/dev/null)
     ipv6_enable=$(uci get openclash.config.ipv6_enable 2>/dev/null)
-    back_mode=$(grep "enhanced-mode:" $BACKPACK_FILE |grep -v '#' |awk -F ' ' '{print $2}' 2>/dev/null)
+    back_mode=$(grep "^  enhanced-mode:" $BACKPACK_FILE |awk -F ' ' '{print $2}' 2>/dev/null)
     echo "第二步: 配置文件检查..." >$START_LOG
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKPACK_FILE"  "$back_mode"
-    current_mode=$(grep "enhanced-mode:" $CONFIG_FILE |grep -v '#' |awk -F ' ' '{print $2}' 2>/dev/null)
-    dns_port=`grep listen: $CONFIG_FILE |awk -F ':' '{print $3}' |tr -cd "[0-9]"`
+    current_mode=$(grep "^  enhanced-mode:" $CONFIG_FILE |awk -F ' ' '{print $2}' 2>/dev/null)
+    dns_port=`grep "^  listen:" $CONFIG_FILE |awk -F ':' '{print $3}' |tr -cd "[0-9]"`
     yml_dns_check "$dns_port" "$CONFIG_FILE"
     echo "第三步: 修改配置文件..." >$START_LOG
     yml_cut "$enable_custom_dns" "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE"
@@ -209,14 +209,14 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     cat $CHANGE_FILE $DNS_FILE $RULE_FILE > $CONFIG_FILE 2>/dev/null
     rm -rf /tmp/yaml_* 2>/dev/null
     echo "第四步: 配置文件完整性检查..." >$START_LOG
-    grep "^  nameserver:$" $CONFIG_FILE >/dev/null 2>&1 && grep "^Proxy:$" $CONFIG_FILE >/dev/null 2>&1 && grep "^Proxy Group:$" $CONFIG_FILE >/dev/null 2>&1 && grep "^Rule:$" $CONFIG_FILE >/dev/null 2>&1
+    grep "^  nameserver:" $CONFIG_FILE >/dev/null 2>&1 && grep "^Proxy:" $CONFIG_FILE >/dev/null 2>&1 && grep "^Proxy Group:" $CONFIG_FILE >/dev/null 2>&1 && grep "^Rule:" $CONFIG_FILE >/dev/null 2>&1
     if [ "$?" -ne "0" ]; then
        echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请对照模板格式检查修改配置文件！" >$START_LOG
        cp $BACKPACK_FILE $CONFIG_FILE
        echo "${LOGTIME} OpenClash Config Error,Please Check And Try Again" >>$LOG_FILE
        sleep 20
        echo "" >$START_LOG
-    elif [ ! -z "`sed -n '/nameserver:/{n;p}' $CONFIG_FILE |grep 'fallback:'`" ]; then
+    elif [ ! -z "`sed -n '/^  nameserver:/{n;p}' $CONFIG_FILE |grep '^  fallback:'`" ]; then
        echo "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已自动还原配置文件，请修改好后再重新启动！" >$START_LOG
        echo "${LOGTIME} Nameserver Must Be Set, Please Change Your Configrations In Config.yaml" >>$LOG_FILE
        cp $BACKPACK_FILE $CONFIG_FILE

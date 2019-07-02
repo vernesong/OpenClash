@@ -20,19 +20,13 @@ msgid "Clash Settings"
 msgstr "全局设置"
 
 msgid "Config Normal"
-msgstr "配置文件正常"
-
-msgid "Config Abnormal"
-msgstr "配置文件(异常/不存在)"
+msgstr " 检查通过"
 
 msgid "File Not Exist"
 msgstr "文件不存在"
 
 msgid "Not Set"
 msgstr "未设置"
-
-msgid "File No Update"
-msgstr "配置文件(原始/不存在)"
 
 msgid "Server Configuration"
 msgstr "配置文件"

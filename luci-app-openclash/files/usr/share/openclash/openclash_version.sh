@@ -1,25 +1,27 @@
 #!/bin/sh
-START_LOG="/tmp/openclash_start.log"
+CKTIME=$(date "+%Y%m%d")
+LAST_OPVER="/tmp/openclash_last_version"
 version_url="https://github.com/vernesong/OpenClash/raw/master/version"
-echo "开始获取最新版本..." >$START_LOG
-wget-ssl --no-check-certificate --timeout=3 --tries=2 "$version_url" -O /tmp/openclash_last_version
-if [ "$?" -eq "0" ] && [ "`ls -l /tmp/openclash_last_version |awk '{print int($5/1024)}'`" -ne 0 ]; then
-   echo "版本获取成功..." >$START_LOG
-   if [ -f "/etc/openclash/openclash_version" ]; then
-      echo "对比版本信息..." >$START_LOG
-      if [ "$(sed -n 1p /etc/openclash/openclash_version)" = "$(sed -n 1p /tmp/openclash_last_version)" ]; then
-         echo "" >/tmp/openclash_last_version
-         echo "本地 OpenClash 已为最新版本！" >$START_LOG
-         sleep 10
+if [ "$CKTIME" != "`grep 'ChekTime' $LAST_OPVER  2>/dev/null |awk -F ':' '{print $2}'`" ] || [ ! -f "$LAST_OPVER" ]; then
+wget-ssl --no-check-certificate --timeout=3 --tries=2 "$version_url" -O $LAST_OPVER
+if [ "$?" -eq "0" ] && [ "`ls -l $LAST_OPVER  2>/dev/null |awk '{print int($5/1024)}'`" -gt 3 ]; then
+   if [ -f "$LAST_OPVER" ]; then
+      if [ "$(sed -n 1p /etc/openclash/openclash_version 2>/dev/null)" = "$(sed -n 1p $LAST_OPVER 2>/dev/null)" ]; then
+         echo "ChekTime:$CKTIME" >$LAST_OPVER
       else
-         echo "检测到版本更新，点击上方图标前往下载！" >$START_LOG
-         sleep 10
+         sed -i "/^data:image/i\ChekTime:${CKTIME}" "$LAST_OPVER" 2>/dev/null
       fi
    fi
-   echo "" >$START_LOG
 else
-   echo "" >/tmp/openclash_last_version
-   echo "版本获取失败，请稍后再试！" >$START_LOG
-   sleep 10
-   echo "" >$START_LOG
+   echo "ChekTime:$CKTIME" >$LAST_OPVER
+fi
+else
+if [ "`ls -l $LAST_OPVER |awk '{print int($5/1024)}'`" -gt 3 ]; then
+   if [ "$(sed -n 1p /etc/openclash/openclash_version)" = "$(sed -n 1p $LAST_OPVER)" ]; then
+      echo "ChekTime:$CKTIME" >$LAST_OPVER
+   else
+      sed -i '/^ChekTime:/d' "$LAST_OPVER" 2>/dev/null
+      sed -i "/^data/i\ChekTime:${CKTIME}" "$LAST_OPVER" 2>/dev/null
+   fi
+fi
 fi
