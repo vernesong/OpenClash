@@ -36,7 +36,47 @@ local function is_watchdog()
 end
 
 local function config_check()
-	return luci.sys.call("grep '^  nameserver:$' /etc/openclash/config.yaml >/dev/null 2>&1 && grep '^Proxy:$' /etc/openclash/config.yaml >/dev/null 2>&1 && grep '^Proxy Group:$' /etc/openclash/config.yaml >/dev/null 2>&1 && grep '^Rule:$' /etc/openclash/config.yaml >/dev/null 2>&1") == 0
+  local yaml = luci.sys.call("ls -l /etc/openclash/config.yaml >/dev/null 2>&1")
+  local nameserver,proxy,group,rule
+  if (yaml == 0) then
+     nameserver = luci.sys.call("grep '^  nameserver:' /etc/openclash/config.yaml >/dev/null 2>&1")
+     proxy = luci.sys.call("grep '^Proxy:' /etc/openclash/config.yaml >/dev/null 2>&1")
+     group = luci.sys.call("grep '^Proxy Group:' /etc/openclash/config.yaml >/dev/null 2>&1")
+     rule = luci.sys.call("grep '^Rule:' /etc/openclash/config.yaml >/dev/null 2>&1")
+  else
+     local yml = luci.sys.call("ls -l /etc/openclash/config.yml >/dev/null 2>&1")
+     if (yml == 0) then
+        nameserver = luci.sys.call("grep '^  nameserver:' /etc/openclash/config.yml >/dev/null 2>&1")
+        proxy = luci.sys.call("grep '^Proxy:' /etc/openclash/config.yml >/dev/null 2>&1")
+        group = luci.sys.call("grep '^Proxy Group:' /etc/openclash/config.yml >/dev/null 2>&1")
+        rule = luci.sys.call("grep '^Rule:' /etc/openclash/config.yml >/dev/null 2>&1")
+     end
+  end
+  if (yaml == 0) or (yml == 0) then
+     if (nameserver == 0) then
+        nameserver = ""
+     else
+        nameserver = " - DNS服务器"
+     end
+     if (proxy == 0) then
+        proxy = ""
+     else
+        proxy = " - 代理服务器"
+     end
+     if (group == 0) then
+        group = ""
+     else
+        group = " - 策略组"
+     end
+     if (rule == 0) then
+        rule = ""
+     else
+        rule = " - 规则"
+     end
+	   return nameserver..proxy..group..rule
+	elseif (yaml ~= 0) and (yml ~= 0) then
+	   return "1"
+	end
 end
 
 local function cn_port()
@@ -52,7 +92,22 @@ local function cmode()
 end
 
 local function config()
-	return luci.sys.exec("ls -l --full-time /etc/openclash/config.bak 2>/dev/null |awk '{print $6,$7;}'")
+   local config_update = luci.sys.exec("ls -l --full-time /etc/openclash/config.bak 2>/dev/null |awk '{print $6,$7;}'")
+   if (config_update ~= "") then
+      return config_update
+   else
+      local yaml = luci.sys.call("ls -l /etc/openclash/config.yaml >/dev/null 2>&1")
+      if (yaml == 0) then
+         return "0"
+      else
+         local yml = luci.sys.call("ls -l /etc/openclash/config.yml >/dev/null 2>&1")
+         if (yml == 0) then
+            return "0"
+         else
+            return "1"
+         end
+      end
+   end
 end
 
 local function ipdb()
