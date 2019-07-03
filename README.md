@@ -26,24 +26,14 @@
     <img src="https://github.com/vernesong/OpenClash/raw/master/img/state.png">
 </p>
 
-* Config
-<p align="center">
-    <img src="https://github.com/vernesong/OpenClash/raw/master/img/config.png">
-</p>
-
 * Settings
 <p align="center">
     <img src="https://github.com/vernesong/OpenClash/raw/master/img/settings.png">
 </p>
 
-* Updates
+* Config
 <p align="center">
-    <img src="https://github.com/vernesong/OpenClash/raw/master/img/update.png">
-</p>
-
-* Rules
-<p align="center">
-    <img src="https://github.com/vernesong/OpenClash/raw/master/img/rules.png">
+    <img src="https://github.com/vernesong/OpenClash/raw/master/img/config.png">
 </p>
 
 * Log
