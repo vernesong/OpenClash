@@ -28,6 +28,9 @@ add_cron()
   [ -z "`grep "openclash_rule.sh" "$CRON_FILE"`" ] && {
   [ "$(uci get openclash.config.other_rule_auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.other_rule_update_day_time 2>/dev/null) * * $(uci get openclash.config.other_rule_update_week_time 2>/dev/null) /usr/share/openclash/openclash_rule.sh" >> $CRON_FILE
   }
+  [ -z "`grep "openclash_ipdb.sh" "$CRON_FILE"`" ] && {
+  [ "$(uci get openclash.config.geo_auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.geo_update_day_time 2>/dev/null) * * $(uci get openclash.config.geo_update_week_time 2>/dev/null) /usr/share/openclash/openclash_ipdb.sh" >> $CRON_FILE
+  }
   crontab $CRON_FILE
   nohup /usr/share/openclash/openclash_watchdog.sh &
 }
@@ -36,6 +39,7 @@ del_cron()
 {
    sed -i '/openclash.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_rule.sh/d' $CRON_FILE 2>/dev/null
+   sed -i '/openclash_ipdb.sh/d' $CRON_FILE 2>/dev/null
    /etc/init.d/cron restart
 }
 
@@ -113,11 +117,15 @@ yml_dns_get()
    local section="$1"
    local dns_type=""
    local dns_address=""
+   config_get_bool "enabled" "$section" "enabled" "1"
    config_get "port" "$section" "port" ""
    config_get "type" "$section" "type" ""
    config_get "ip" "$section" "ip" ""
    config_get "group" "$section" "group" ""
 
+   if [ "$enabled" = "0" ]; then
+      return
+   fi
 	
    if [ -z "$ip" ]; then
       return
@@ -172,6 +180,37 @@ yml_dns_custom()
    rm -rf /etc/openclash/config.falldns 2>/dev/null
    }
 }
+
+yml_auth_get()
+{
+   local section="$1"
+   config_get_bool "enabled" "$section" "enabled" "1"
+   config_get "username" "$section" "username" ""
+   config_get "password" "$section" "password" ""
+
+   if [ "$enabled" = "0" ]; then
+      return
+   fi
+
+   if [ -z "$username" ] || [ -z "$password" ]; then
+      return
+   else
+      echo "  - $username:$password" >>/etc/openclash/config.auth
+   fi
+}
+
+yml_auth_custom()
+{
+   if [ ! -z "`grep "^authentication:" "$1"`" ]; then
+      sed -i '/^dns:/i\#authentication' "$1" 2>/dev/null
+      sed -i '/^authentication:/,/^#authentication/d' "$1" 2>/dev/null
+   fi
+   [ -f /etc/openclash/config.auth ] && {
+      sed -i '/^dns:/i\authentication:' "$1" 2>/dev/null
+      sed -i '/^authentication:/r/etc/openclash/config.auth' "$1" 2>/dev/null
+      rm -rf /etc/openclash/config.auth 2>/dev/null
+   }
+}
    
 start()
 {
@@ -201,6 +240,9 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     dns_port=`grep "^  listen:" $CONFIG_FILE |awk -F ':' '{print $3}' |tr -cd "[0-9]"`
     yml_dns_check "$dns_port" "$CONFIG_FILE"
     echo "第三步: 修改配置文件..." >$START_LOG
+    config_load "openclash"
+    config_foreach yml_auth_get "authentication"
+    yml_auth_custom "$CONFIG_FILE"
     yml_cut "$enable_custom_dns" "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE"
     yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
     sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$current_mode" "$CHANGE_FILE" "$ipv6_enable" &
@@ -216,7 +258,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        echo "${LOGTIME} OpenClash Config Error,Please Check And Try Again" >>$LOG_FILE
        sleep 20
        echo "" >$START_LOG
-    elif [ ! -z "`sed -n '/^  nameserver:/{n;p}' $CONFIG_FILE |grep '^  fallback:'`" ]; then
+    elif [ ! -z "`sed -n '/^  nameserver:/{n;p}' $CONFIG_FILE |grep '^  fallback:'`" ] || [ ! -z "`sed -n '/^  nameserver:/{n;p}' $CONFIG_FILE |grep 'OpenClash-General'`" ]; then
        echo "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已自动还原配置文件，请修改好后再重新启动！" >$START_LOG
        echo "${LOGTIME} Nameserver Must Be Set, Please Change Your Configrations In Config.yaml" >>$LOG_FILE
        cp $BACKPACK_FILE $CONFIG_FILE
@@ -264,7 +306,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           echo "${LOGTIME} OpenClash Can Not Start, Please Check The Error Info And Try Again" >> $LOG_FILE
           sleep 20
           echo "" >$START_LOG
-          stop
+          stop && echo "" >$START_LOG
        fi
     fi
 else
@@ -311,7 +353,7 @@ stop()
     echo "第四步: 重启 Dnsmasq 程序..." >$START_LOG
     /etc/init.d/dnsmasq restart >/dev/null 2>&1
 
-   echo "第五步: 删除 OpenClash 残留文件..." >$START_LOG
+    echo "第五步：删除 OpenClash 残留文件..." >$START_LOG
     rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
     if [ "$rule_source" != 0 ]; then
        rm -rf /tmp/Proxy_Group >/dev/null 2>&1

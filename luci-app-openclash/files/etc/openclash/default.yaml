@@ -1,30 +1,55 @@
-# Default Config Without Proxy-Servers Settings #
+# Copyright (c) 2018 Dreamacro
 
+# port of HTTP
 port: 7890
-secret: '123456'
-redir-port: 7892
+
+# port of SOCKS5
 socks-port: 7891
-allow-lan: true
+
+# redir port for Linux and macOS
+redir-port: 7892
+
+allow-lan: false
+
+# Rule / Global/ Direct (default is Rule)
 mode: Rule
-log-level: silent
-external-ui: "/usr/share/openclash/dashboard"
+
+# set log level to stdout (default is info)
+# info / warning / error / debug / silent
+log-level: info
+
+# A RESTful API for clash
 external-controller: 0.0.0.0:9090
+
+# you can put the static web resource (such as clash-dashboard) to a directory, and clash would serve in `${API}/ui`
+# input is a relative path to the configuration directory or an absolute path
+external-ui: "/usr/share/openclash/dashboard"
+
+# Secret for RESTful API (Optional)
+secret: '123456'
+
+# experimental feature
+experimental:
+  ignore-resolve-fail: true # ignore dns resolve fail, default value is true
+
+# authentication of local SOCKS5/HTTP(S) server
+authentication:
+  - "user1:pass1"
+  - "user2:pass2"
+
 dns:
-  enhanced-mode: fake-ip
-  fake-ip-range: 198.18.0.1/16
-  enable: true
-  ipv6: false
-  listen: 0.0.0.0:7874
+  enable: true # set true to enable dns (default is false)
+  ipv6: false # default is false
+  listen: 0.0.0.0:53
+  enhanced-mode: redir-host # or fake-ip
+  fake-ip-range: 198.18.0.1/16 # if you don't know what it is, don't change it
   nameserver:
-  - 117.50.10.10
-  - 119.29.29.29
-  - 223.5.5.5
-  - tls://dns.rubyfish.cn:853
-  fallback:
-  - tls://1.1.1.1:853
-  - tls://1.0.0.1:853
-  - tls://dns.google:853
-#===================== OpenClash-General-Settings =====================#
+  - 114.114.114.114
+  - tls://dns.rubyfish.cn:853 # dns over tls
+  - https://1.1.1.1/dns-query # dns over https
+  fallback: # concurrent request with nameserver, fallback used when GEOIP country isn't CN
+  - tcp://1.1.1.1
+  
 Proxy:
 
 # shadowsocks
