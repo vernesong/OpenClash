@@ -1,9 +1,9 @@
 <%+cbi/valueheader%>
-<div style="text-align: center; margin:0 auto;">
-<div style="transform:translateY(100%);">
+<div style="text-align: center; margin:0 auto; display: block; width: 100%; text-overflow: ellipsis;">
+<div>
 <%:NB: Rename your config file to config.yaml or config.yml before upload. file will save to /etc/openclash%>
 </div>
-<div style="color: green; transform:translateY(200%);">
+<div style="color: green; transform:translateY(80%);">
 <%
 	local val = self:cfgvalue(section) or self.default or ""
 	write(pcdata(val))

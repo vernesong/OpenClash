@@ -14,8 +14,8 @@
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.15.0">
     <img src="https://img.shields.io/badge/Clash-v0.15.0-orange.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.31.1">
-    <img src="https://img.shields.io/badge/OpenClash-v0.31.1-blue.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.32.0">
+    <img src="https://img.shields.io/badge/OpenClash-v0.32.0-blue.svg">
   </a>
   </p>
   
