@@ -238,11 +238,11 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     ipv6_enable=$(uci get openclash.config.ipv6_enable 2>/dev/null)
     http_port=$(uci get openclash.config.http_port 2>/dev/null)
     socks_port=$(uci get openclash.config.socks_port 2>/dev/null)
-    back_mode=$(grep "^  enhanced-mode:" $BACKPACK_FILE |awk -F ' ' '{print $2}' 2>/dev/null)
+    back_mode=$(grep "^  enhanced-mode:" $BACKPACK_FILE |awk -F ' ' '{print $2}' |awk -F '#' '{print $1}' 2>/dev/null)
     echo "第二步: 配置文件检查..." >$START_LOG
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKPACK_FILE" "$back_mode" "$START_BACKPACK"
-    current_mode=$(grep "^  enhanced-mode:" $CONFIG_FILE |awk -F ' ' '{print $2}' 2>/dev/null)
-    dns_port=`grep "^  listen:" $CONFIG_FILE |awk -F ':' '{print $3}' |tr -cd "[0-9]"`
+    current_mode=$(grep "^  enhanced-mode:" $CONFIG_FILE |awk -F ' ' '{print $2}' |awk -F '#' '{print $1}' 2>/dev/null)
+    dns_port=$(grep "^  listen:" $CONFIG_FILE |awk -F ':' '{print $3}' |awk -F '#' '{print $1}' |tr -cd "[0-9]" 2>/dev/null)
     yml_dns_check "$dns_port" "$CONFIG_FILE"
     echo "第三步: 修改配置文件..." >$START_LOG
     config_load "openclash"

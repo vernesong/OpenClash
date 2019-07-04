@@ -7,7 +7,7 @@
           sed -i "/^dns:/a\  enhanced-mode: redir-host" "$8"
        fi
     elif [ "$7" != "$2" ] && [ "$2" != "0" ]; then
-       sed -i "s/${7}$/${2}/" "$8"
+       sed -i "/^  enhanced-mode:/c\  enhanced-mode: ${2}" "$8"
     fi
     if [ "$2" = "fake-ip" ]; then
        if [ ! -z "`grep "^  fake-ip-range:" "$8"`" ]; then
