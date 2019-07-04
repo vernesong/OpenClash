@@ -191,7 +191,7 @@ msgid "HTTP(S) Port"
 msgstr "HTTP(S) 代理端口"
 
 msgid "Set Authentication of SOCKS5/HTTP(S)"
-msgstr "设置 SOCKS5/HTTP(S) 认证信息"
+msgstr "设置SOCKS5/HTTP(S)认证信息"
 
 msgid "Not Null"
 msgstr "空值无效"
@@ -209,7 +209,7 @@ msgid "You Can Modify config file Here, Except The Settings That Were Taken Over
 msgstr "您可以在下方直接修改配置文件, 仅支持未被接管的设置"
 
 msgid "Default Config File With Correct General-Settings"
-msgstr "默认配置文件，方便您查询各项参数注释和正确的设置、顺序"
+msgstr "参考配置文件，方便您查询各项参数注释和正确的设置、顺序"
 
 msgid "Dashboard Secret"
 msgstr "管理页面登录密钥"

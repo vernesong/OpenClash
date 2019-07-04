@@ -12,6 +12,7 @@ CONFIG_FILE="/etc/openclash/config.yaml"
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
 BACKPACK_FILE="/etc/openclash/config.bak"
+START_BACKPACK="/tmp/config.sbak"
 CHANGE_FILE="/tmp/yaml_change.yaml"
 RULE_FILE="/tmp/yaml_rules.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
@@ -45,6 +46,8 @@ del_cron()
 
 yml_check()
 {
+	 cp "$3" "$6"
+	 
    if [ ! -f "$4" ]; then
     	cp "$3" "$4"
    fi
@@ -233,9 +236,11 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     cn_port=$(uci get openclash.config.cn_port 2>/dev/null)
     proxy_port=$(uci get openclash.config.proxy_port 2>/dev/null)
     ipv6_enable=$(uci get openclash.config.ipv6_enable 2>/dev/null)
+    http_port=$(uci get openclash.config.http_port 2>/dev/null)
+    socks_port=$(uci get openclash.config.socks_port 2>/dev/null)
     back_mode=$(grep "^  enhanced-mode:" $BACKPACK_FILE |awk -F ' ' '{print $2}' 2>/dev/null)
     echo "第二步: 配置文件检查..." >$START_LOG
-    yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKPACK_FILE"  "$back_mode"
+    yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKPACK_FILE" "$back_mode" "$START_BACKPACK"
     current_mode=$(grep "^  enhanced-mode:" $CONFIG_FILE |awk -F ' ' '{print $2}' 2>/dev/null)
     dns_port=`grep "^  listen:" $CONFIG_FILE |awk -F ':' '{print $3}' |tr -cd "[0-9]"`
     yml_dns_check "$dns_port" "$CONFIG_FILE"
@@ -245,7 +250,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     yml_auth_custom "$CONFIG_FILE"
     yml_cut "$enable_custom_dns" "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE"
     yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
-    sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$current_mode" "$CHANGE_FILE" "$ipv6_enable" &
+    sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$current_mode" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" &
     sh /usr/share/openclash/yml_rules_change.sh "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" &
     wait
     cat $CHANGE_FILE $DNS_FILE $RULE_FILE > $CONFIG_FILE 2>/dev/null
@@ -254,14 +259,14 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     grep "^  nameserver:" $CONFIG_FILE >/dev/null 2>&1 && grep "^Proxy:" $CONFIG_FILE >/dev/null 2>&1 && grep "^Proxy Group:" $CONFIG_FILE >/dev/null 2>&1 && grep "^Rule:" $CONFIG_FILE >/dev/null 2>&1
     if [ "$?" -ne "0" ]; then
        echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请对照模板格式检查修改配置文件！" >$START_LOG
-       cp $BACKPACK_FILE $CONFIG_FILE
+       mv $START_BACKPACK $CONFIG_FILE
        echo "${LOGTIME} OpenClash Config Error,Please Check And Try Again" >>$LOG_FILE
        sleep 20
        echo "" >$START_LOG
     elif [ ! -z "`sed -n '/^  nameserver:/{n;p}' $CONFIG_FILE |grep '^  fallback:'`" ] || [ ! -z "`sed -n '/^  nameserver:/{n;p}' $CONFIG_FILE |grep 'OpenClash-General'`" ]; then
        echo "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已自动还原配置文件，请修改好后再重新启动！" >$START_LOG
        echo "${LOGTIME} Nameserver Must Be Set, Please Change Your Configrations In Config.yaml" >>$LOG_FILE
-       cp $BACKPACK_FILE $CONFIG_FILE
+       mv $START_BACKPACK $CONFIG_FILE
        sleep 20
        echo "" >$START_LOG
     else
@@ -309,6 +314,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           stop && echo "" >$START_LOG
        fi
     fi
+    rm -rf $START_BACKPACK 2>/dev/null
 else
    if [ ! -f "$CONFIG_FILE" ]; then
       echo "错误: OpenClash 缺少配置文件，请上传或更新配置文件！" >$START_LOG
@@ -323,7 +329,6 @@ else
    fi
 fi
 }
-
 
 stop()
 {
@@ -360,7 +365,7 @@ stop()
     fi
     enable=$(uci get openclash.config.enable 2>/dev/null)
     if [ "$enable" -eq 0 ]; then
-       rm -rf $LOG_FILE
+       rm -rf $LOG_FILE 2>/dev/null
        rm -rf /www/openclash 2>/dev/null
        rm -rf /tmp/openclash_last_version 2>/dev/null
        sed -i '/openclash.log/d' $CRON_FILE
@@ -372,7 +377,7 @@ stop()
        del_cron
     fi
 
-    echo "Clash Already Stop"
+    echo "OpenClash Already Stop"
 }
 
 
