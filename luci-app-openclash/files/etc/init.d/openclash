@@ -244,6 +244,14 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     current_mode=$(grep "^  enhanced-mode:" $CONFIG_FILE |awk -F ' ' '{print $2}' |awk -F '#' '{print $1}' 2>/dev/null)
     dns_port=$(grep "^  listen:" $CONFIG_FILE |awk -F ':' '{print $3}' |awk -F '#' '{print $1}' |tr -cd "[0-9]" 2>/dev/null)
     yml_dns_check "$dns_port" "$CONFIG_FILE"
+    grep "^  nameserver:" $CONFIG_FILE >/dev/null 2>&1 && grep "^Proxy:" $CONFIG_FILE >/dev/null 2>&1 && grep "^Proxy Group:" $CONFIG_FILE >/dev/null 2>&1 && grep "^Rule:" $CONFIG_FILE >/dev/null 2>&1
+    if [ "$?" -ne "0" ]; then
+       nohup $CLASH -d "$CLASH_CONFIG" > $LOG_FILE 2>&1
+       echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请根据日志信息对照模板格式检查修改配置文件！" >$START_LOG
+       mv $START_BACKPACK $CONFIG_FILE
+       sleep 10
+       echo "" >$START_LOG
+    else
     echo "第三步: 修改配置文件..." >$START_LOG
     config_load "openclash"
     config_foreach yml_auth_get "authentication"
@@ -255,19 +263,12 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     wait
     cat $CHANGE_FILE $DNS_FILE $RULE_FILE > $CONFIG_FILE 2>/dev/null
     rm -rf /tmp/yaml_* 2>/dev/null
-    echo "第四步: 配置文件完整性检查..." >$START_LOG
-    grep "^  nameserver:" $CONFIG_FILE >/dev/null 2>&1 && grep "^Proxy:" $CONFIG_FILE >/dev/null 2>&1 && grep "^Proxy Group:" $CONFIG_FILE >/dev/null 2>&1 && grep "^Rule:" $CONFIG_FILE >/dev/null 2>&1
-    if [ "$?" -ne "0" ]; then
-       echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请对照模板格式检查修改配置文件！" >$START_LOG
-       mv $START_BACKPACK $CONFIG_FILE
-       echo "${LOGTIME} OpenClash Config Error,Please Check And Try Again" >>$LOG_FILE
-       sleep 20
-       echo "" >$START_LOG
-    elif [ ! -z "`sed -n '/^  nameserver:/{n;p}' $CONFIG_FILE |grep '^  fallback:'`" ] || [ ! -z "`sed -n '/^  nameserver:/{n;p}' $CONFIG_FILE |grep 'OpenClash-General'`" ]; then
-       echo "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已自动还原配置文件，请修改好后再重新启动！" >$START_LOG
+    echo "第四步: DNS设置检查..." >$START_LOG
+    if [ ! -z "`sed -n '/^  nameserver:/{n;p}' $CONFIG_FILE |grep '^  fallback:'`" ] || [ ! -z "`sed -n '/^  nameserver:/{n;p}' $CONFIG_FILE |grep 'OpenClash-General'`" ]; then
+       echo "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已自动还原配置文件，请重新设置！" >$START_LOG
        echo "${LOGTIME} Nameserver Must Be Set, Please Change Your Configrations In Config.yaml" >>$LOG_FILE
        mv $START_BACKPACK $CONFIG_FILE
-       sleep 20
+       sleep 10
        echo "" >$START_LOG
     else
        echo "第五步: 启动 Clash 主程序..." >$START_LOG
@@ -309,12 +310,13 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        else
           echo "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！" >$START_LOG
           echo "${LOGTIME} OpenClash Can Not Start, Please Check The Error Info And Try Again" >> $LOG_FILE
-          sleep 20
+          sleep 10
           echo "" >$START_LOG
           stop && echo "" >$START_LOG
        fi
     fi
     rm -rf $START_BACKPACK 2>/dev/null
+    fi
 else
    if [ ! -f "$CONFIG_FILE" ]; then
       echo "错误: OpenClash 缺少配置文件，请上传或更新配置文件！" >$START_LOG
