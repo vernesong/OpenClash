@@ -28,6 +28,19 @@
             font-weight: bold;
             color: #444;
             font-size:15px;
+            display: inline-block;
+            width: 25%;
+            vertical-align:bottom;
+        }
+        
+        .ip-state_title {
+            font-weight: bold;
+            color: #444;
+            font-size:15px;
+            display: inline-block;
+            width: 52%;
+            vertical-align:bottom;
+            transform:translateY(10%);
         }
         
         .ip-result {
@@ -35,10 +48,11 @@
             font-size:16px;
             white-space: nowrap;  /*强制span不换行*/
             display: inline-block;  /*将span当做块级元素对待*/
-            width: 25%;  /*限制宽度*/
+            width: 29%;  /*限制宽度*/
             overflow: hidden;  /*超出宽度部分隐藏*/
             text-overflow: ellipsis;  /*超出部分以点号代替*/
             vertical-align:bottom;
+            transform:translateY(8%);
         }
         
         .ip-geo {
@@ -50,21 +64,45 @@
             overflow: hidden;  /*超出宽度部分隐藏*/
             text-overflow: ellipsis;  /*超出部分以点号代替*/
             vertical-align:bottom;
+            transform:translateY(2%);
         }
         
         .ip-checking {
             color: #444;
             font-size:15px;
+            display: inline-block;
+            vertical-align:bottom;
+            width: 29%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transform:translateY(10%);
         }
 
         .sk-text-success {
             color: #32b643;
             font-size:15px;
+            display: inline-block;
+            vertical-align:bottom;
+            width: 48%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+            transform:translateY(10%);
         }
 
         .sk-text-error {
             color: #e85600;
             font-size:15px;
+            display: inline-block;
+            vertical-align:bottom;
+            width: 48%;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+            transform:translateY(10%);
         }
 
         h3 {
@@ -87,45 +125,45 @@
      <tr><td width="100%">
 <body onLoad="myip_Load()">
     <div style="display: flex;">
-        <div style="width: 61.8%">
+        <div style="width: 51%">
             <h3>IP 地址</h3>
             <p>
-                <span class="ip-title">IP&nbsp;登录设备</span>&nbsp;:&nbsp;<span class="ip-result" id="ip-webrtc"></span> <span class="ip-geo" id="ip-webrtc-cz88"></span>
+                <span class="ip-title">IP&nbsp;登录设备:</span><span class="ip-result" id="ip-webrtc"></span> <span class="ip-geo" id="ip-webrtc-cz88"></span>
             </p>
             <p>
-                <span class="ip-title">IPIP&nbsp;&nbsp;&nbsp;&nbsp;国内</span>&nbsp;:&nbsp;<span class="ip-result" id="ip-ipipnet"></span> <span class="ip-geo" id="ip-ipipnet-geo"></span>
+                <span class="ip-title">IPIP&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-ipipnet"></span> <span class="ip-geo" id="ip-ipipnet-geo"></span>
             </p>
             <p>
-                <span class="ip-title">淘宝&nbsp;&nbsp;&nbsp;&nbsp;国内</span>&nbsp;:&nbsp;<span class="ip-result" id="ip-taobao"></span> <span class="ip-geo" id="ip-taobao-ipip"></span>
+                <span class="ip-title">淘宝&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-taobao"></span> <span class="ip-geo" id="ip-taobao-ipip"></span>
             </p>
             <p>
-                <span class="ip-title">IP.SB&nbsp;&nbsp;海外</span>&nbsp;:&nbsp;<span class="ip-result" id="ip-ipsb"></span> <span class="ip-geo" id="ip-ipsb-geo"></span>
+                <span class="ip-title">IP.SB&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipsb"></span> <span class="ip-geo" id="ip-ipsb-geo"></span>
             </p>
             <p>
-                <span class="ip-title">IPAPI&nbsp;&nbsp;海外</span>&nbsp;:&nbsp;<span class="ip-result" id="ip-ipapi"></span> <span class="ip-geo" id="ip-ipapi-geo"></span>
+                <span class="ip-title">IPAPI&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipapi"></span> <span class="ip-geo" id="ip-ipapi-geo"></span>
             </p>
         </div>
-        <div style="width: 38.2%">
+        <div style="width: 49%">
             <h3>网站访问检查</h3>
             <p>
-                <span class="ip-title">百度搜索</span>&nbsp;:&nbsp;<span id="http-baidu"></span>
+                <span class="ip-state_title">百度搜索:</span><span id="http-baidu"></span>
             </p>
             <p>
-                <span class="ip-title">网易云音乐</span>&nbsp;:&nbsp;<span id="http-163"></span>
+                <span class="ip-state_title">网易云音乐:</span><span id="http-163"></span>
             </p>
             <p>
-                <span class="ip-title">GitHub</span>&nbsp;:&nbsp;<span id="http-github"></span>
+                <span class="ip-state_title">GitHub:</span><span id="http-github"></span>
             </p>
             <p>
-                <span class="ip-title">Facebook</span>&nbsp;:&nbsp;<span id="http-facebook"></span>
+                <span class="ip-state_title">Facebook:</span><span id="http-facebook"></span>
             </p>
             <p>
-                <span class="ip-title">YouTube</span>&nbsp;:&nbsp;<span id="http-youtube"></span>
+                <span class="ip-state_title">YouTube:</span><span id="http-youtube"></span>
             </p>
         </div>
     </div>
     <div>
-        <p style="float: right; margin-top: 6px; font-size:15px; padding-right: 10px">Powered by <a onclick="return ip_skk()" href="javascript:void(0);">ip.skk.moe</a></p>
+        <p style="float: right; margin-top: 3px; font-size:15px; padding-right: 10px">Powered by <a onclick="return ip_skk()" href="javascript:void(0);">ip.skk.moe</a></p>
     </div>
     </td></tr>
 	</table>
