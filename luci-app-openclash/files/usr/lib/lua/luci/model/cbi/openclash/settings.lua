@@ -6,7 +6,7 @@ local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
 
 m = Map("openclash", translate("Takeover Settings"))
-
+m.pageaction = false
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
 
@@ -332,15 +332,25 @@ o = s:option(Value, "password", translate("Password"))
 o.placeholder = translate("Not Null")
 o.rmempty = true
 
-local apply = HTTP.formvalue("cbi.apply")
-if apply then
-	SYS.call("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+local t = {
+    {Commit, Apply}
+}
+
+a = m:section(Table, t)
+
+o = a:option(Button, "Commit") 
+o.inputtitle = translate("Commit Configurations")
+o.inputstyle = "apply"
+o.write = function()
+  os.execute("uci commit openclash")
 end
 
-local commit = HTTP.formvalue("cbi.submit")
-if commit then
-	SYS.call("uci commit openclash")
+o = a:option(Button, "Apply")
+o.inputtitle = translate("Apply Configurations")
+o.inputstyle = "apply"
+o.write = function()
+  os.execute("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 return m
