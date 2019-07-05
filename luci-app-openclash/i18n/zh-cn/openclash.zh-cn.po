@@ -11,7 +11,7 @@ msgid "A Clash Client For OpenWrt"
 msgstr "一个运行在OpenWrt上的Clash客户端"
 
 msgid "Will Modify The Config File Or Subscribe According To The Settings On This Page"
-msgstr "将按照以下内容自动修改配置文件和获取订阅"
+msgstr "将按照以下内容本地化配置文件和获取订阅"
 
 msgid "Technical Support"
 msgstr "技术支持"

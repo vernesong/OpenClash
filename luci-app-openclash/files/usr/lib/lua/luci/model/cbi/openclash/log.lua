@@ -22,7 +22,6 @@ log.cfgvalue = function(self, section)
 	return NXFS.readfile(clog) or ""
 end
 log.write = function(self, section, value)
-	NXFS.writefile(clog, value:gsub("\r\n", "\n"))
 end
 
 return m

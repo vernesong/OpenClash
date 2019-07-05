@@ -37,17 +37,17 @@ local function config_check()
   local yaml = luci.sys.call("ls -l /etc/openclash/config.yaml >/dev/null 2>&1")
   local nameserver,proxy,group,rule
   if (yaml == 0) then
-     nameserver = luci.sys.call("grep '^  nameserver:' /etc/openclash/config.yaml >/dev/null 2>&1")
-     proxy = luci.sys.call("grep '^Proxy:' /etc/openclash/config.yaml >/dev/null 2>&1")
-     group = luci.sys.call("grep '^Proxy Group:' /etc/openclash/config.yaml >/dev/null 2>&1")
-     rule = luci.sys.call("grep '^Rule:' /etc/openclash/config.yaml >/dev/null 2>&1")
+     nameserver = luci.sys.call("egrep '^ {0,}nameserver:' /etc/openclash/config.yaml >/dev/null 2>&1")
+     proxy = luci.sys.call("egrep '^ {0,}Proxy:' /etc/openclash/config.yaml >/dev/null 2>&1")
+     group = luci.sys.call("egrep '^ {0,}Proxy Group:' /etc/openclash/config.yaml >/dev/null 2>&1")
+     rule = luci.sys.call("egrep '^ {0,}Rule:' /etc/openclash/config.yaml >/dev/null 2>&1")
   else
      local yml = luci.sys.call("ls -l /etc/openclash/config.yml >/dev/null 2>&1")
      if (yml == 0) then
-        nameserver = luci.sys.call("grep '^  nameserver:' /etc/openclash/config.yml >/dev/null 2>&1")
-        proxy = luci.sys.call("grep '^Proxy:' /etc/openclash/config.yml >/dev/null 2>&1")
-        group = luci.sys.call("grep '^Proxy Group:' /etc/openclash/config.yml >/dev/null 2>&1")
-        rule = luci.sys.call("grep '^Rule:' /etc/openclash/config.yml >/dev/null 2>&1")
+        nameserver = luci.sys.call("egrep '^ {0,}nameserver:' /etc/openclash/config.yml >/dev/null 2>&1")
+        proxy = luci.sys.call("egrep '^ {0,}Proxy:' /etc/openclash/config.yml >/dev/null 2>&1")
+        group = luci.sys.call("egrep '^ {0,}Proxy Group:' /etc/openclash/config.yml >/dev/null 2>&1")
+        rule = luci.sys.call("egrep '^ {0,}Rule:' /etc/openclash/config.yml >/dev/null 2>&1")
      end
   end
   if (yaml == 0) or (yml == 0) then
@@ -86,7 +86,7 @@ local function mode()
 end
 
 local function cmode()
-	return luci.sys.exec("grep 'enhanced-mode:' /etc/openclash/config.yaml 2>/dev/null |grep -v '#' 2>/dev/null |awk -F ' ' '{print $2}'")
+	return luci.sys.exec("grep '^ \{1,\}enhanced-mode:' /etc/openclash/config.yaml 2>/dev/null |awk -F ' ' '{print $2}' |awk -F '#' '{print $1}' 2>/dev/null")
 end
 
 local function config()
@@ -133,11 +133,11 @@ local function dase()
 end
 
 local function check_lastversion()
-	return luci.sys.exec("sh /usr/share/openclash/openclash_version.sh && sed -n '/^data:/,$p' /tmp/openclash_last_version 2>/dev/null")
+	return luci.sys.exec("sh /usr/share/openclash/openclash_version.sh && sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
 end
 
 local function check_currentversion()
-	return luci.sys.exec("sed -n '/^data:/,$p' /etc/openclash/openclash_version 2>/dev/null")
+	return luci.sys.exec("sed -n '/^https:/,$p' /etc/openclash/openclash_version 2>/dev/null")
 end
 
 local function startlog()
