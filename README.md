@@ -15,7 +15,7 @@
     <img src="https://img.shields.io/badge/Clash-v0.15.0-blue.svg">
   </a>
   <a target="_blank" href="https://github.com/vernesong/OpenClash/releases">
-    <img src="https://img.shields.io/badge/OpenClash-v0.32.2-blue.svg">
+    <img src="https://img.shields.io/badge/source code-v0.32.2-green.svg">
   </a>
   <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.32.2">
     <img src="https://img.shields.io/badge/NewVersion-v0.32.2-orange.svg">
