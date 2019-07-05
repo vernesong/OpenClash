@@ -8,7 +8,7 @@ local UTIL = require "luci.util"
 m = Map("openclash", translate("Takeover Settings"))
 m.pageaction = false
 s = m:section(TypedSection, "openclash")
-s.title = translate("Will Modify The Config File According To The Settings On This Page")
+s.title = translate("Will Modify The Config File Or Subscribe According To The Settings On This Page")
 s.anonymous = true
 
 s:tab("settings", translate("General Settings"))
