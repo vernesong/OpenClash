@@ -137,7 +137,7 @@ local function check_lastversion()
 end
 
 local function check_currentversion()
-	return luci.sys.exec("sed -n '/^https:/,$p' /etc/openclash/openclash_version 2>/dev/null")
+	return luci.sys.exec("sed -n '/^data:image/,$p' /etc/openclash/openclash_version 2>/dev/null")
 end
 
 local function startlog()
