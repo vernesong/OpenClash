@@ -12,10 +12,15 @@
   </p>
   <p align="center">
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.15.0">
-    <img src="https://img.shields.io/badge/Clash-v0.15.0-orange.svg">
+    <img src="https://img.shields.io/badge/Clash-v0.15.0-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.32.1">
-    <img src="https://img.shields.io/badge/OpenClash-v0.32.1-blue.svg">
+  </p>
+  <p align="center">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases">
+    <img src="https://img.shields.io/badge/OpnecClash-v0.32.2-blue.svg">
+  </a>
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.32.2">
+    <img src="https://img.shields.io/badge/NewVersion-v0.32.2-orange.svg">
   </a>
   </p>
   

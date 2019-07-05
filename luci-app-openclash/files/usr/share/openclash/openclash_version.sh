@@ -9,7 +9,7 @@ if [ "$?" -eq "0" ] && [ "`ls -l $LAST_OPVER  2>/dev/null |awk '{print int($5/10
       if [ "$(sed -n 1p /etc/openclash/openclash_version 2>/dev/null)" = "$(sed -n 1p $LAST_OPVER 2>/dev/null)" ]; then
          echo "ChekTime:$CKTIME" >$LAST_OPVER
       else
-         sed -i "/^data:image/i\ChekTime:${CKTIME}" "$LAST_OPVER" 2>/dev/null
+         sed -i "/^https:/i\ChekTime:${CKTIME}" "$LAST_OPVER" 2>/dev/null
       fi
    fi
 else
@@ -21,7 +21,7 @@ if [ "`ls -l $LAST_OPVER |awk '{print int($5/1024)}'`" -gt 3 ]; then
       echo "ChekTime:$CKTIME" >$LAST_OPVER
    else
       sed -i '/^ChekTime:/d' "$LAST_OPVER" 2>/dev/null
-      sed -i "/^data/i\ChekTime:${CKTIME}" "$LAST_OPVER" 2>/dev/null
+      sed -i "/^https:/i\ChekTime:${CKTIME}" "$LAST_OPVER" 2>/dev/null
    fi
 fi
 fi

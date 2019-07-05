@@ -114,7 +114,7 @@ function clashversion_check()
        if ( x && x.status == 200 ) {
           if ( status.lastversion != "\n" && status.lastversion != "" )
           {
-             clashversion.innerHTML = '<img id="lastver" src="'+status.lastversion+'" alt="lastversion" width="150" height="20" onclick="return go_update()">';
+             clashversion.innerHTML = '<img id="lastver" src="'+status.lastversion+'" alt="lastversion" onclick="return go_update()">';
           }
        }
         });
