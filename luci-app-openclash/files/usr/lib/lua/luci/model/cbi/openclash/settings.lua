@@ -71,9 +71,9 @@ o:value("lhie1", translate("lhie1 Rules"))
 o:value("ConnersHua", translate("ConnersHua Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
-os.execute("awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml |grep ^-  |grep name: |sed 's/,.*//' |awk -F 'name: ' '{print $2}' |sed 's/\"//g' >/tmp/Proxy_Group 2>&1")
-os.execute("echo 'DIRECT' >>/tmp/Proxy_Group")
-os.execute("echo 'REJECT' >>/tmp/Proxy_Group")
+SYS.exec("awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml |grep ^-  |grep name: |sed 's/,.*//' |awk -F 'name: ' '{print $2}' |sed 's/\"//g' >/tmp/Proxy_Group 2>&1")
+SYS.exec("echo 'DIRECT' >>/tmp/Proxy_Group")
+SYS.exec("echo 'REJECT' >>/tmp/Proxy_Group")
 file = io.open("/tmp/Proxy_Group", "r"); 
 
 o = s:taboption("rules", ListValue, "GlobalTV", translate("GlobalTV"))
@@ -179,7 +179,7 @@ o.title = translate("Update Subcription")
 o.inputtitle = translate("Update Configuration")
 o.inputstyle = "reload"
 o.write = function()
-  SYS.call("uci set openclash.config.enable=1 && uci commit openclash && sh /usr/share/openclash/openclash.sh >/dev/null 2>&1 &")
+  SYS.exec("uci set openclash.config.enable=1 && uci commit openclash && sh /usr/share/openclash/openclash.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
@@ -211,7 +211,7 @@ o.inputtitle = translate("Start Update Other Rules")
 o.description = translate("Other Rules Update(Only in Use)")
 o.inputstyle = "reload"
 o.write = function()
-  SYS.call("uci set openclash.config.enable=1 && uci commit openclash && sh /usr/share/openclash/openclash_rule.sh >/dev/null 2>&1 &")
+  SYS.exec("uci set openclash.config.enable=1 && uci commit openclash && sh /usr/share/openclash/openclash_rule.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
@@ -242,7 +242,7 @@ o.title = translate("Update GEOIP Database")
 o.inputtitle = translate("Start Update GEOIP Database")
 o.inputstyle = "reload"
 o.write = function()
-  SYS.call("uci set openclash.config.enable=1 && uci commit openclash && sh /usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
+  SYS.exec("uci set openclash.config.enable=1 && uci commit openclash && sh /usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
@@ -343,14 +343,14 @@ o = a:option(Button, "Commit")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
-  os.execute("uci commit openclash")
+  SYS.exec("uci commit openclash")
 end
 
 o = a:option(Button, "Apply")
 o.inputtitle = translate("Apply Configurations")
 o.inputstyle = "apply"
 o.write = function()
-  os.execute("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  SYS.exec("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
