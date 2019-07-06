@@ -14,7 +14,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=Luci
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
-	DEPENDS:=+coreutils-nohup +bash +wget
+	DEPENDS:=+coreutils-nohup +bash +wget +luci-lib-fs
 endef
 
 define Package/$(PKG_NAME)/description

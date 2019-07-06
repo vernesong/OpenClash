@@ -18,14 +18,14 @@ o = s:option(Button, "enable")
 o.inputtitle = translate("Enable Clash")
 o.inputstyle = "apply"
 o.write = function()
-  os.execute("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  SYS.exec("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
 end
 
 o = s:option(Button, "disable")
 o.inputtitle = translate("Disable Clash")
 o.inputstyle = "reset"
 o.write = function()
-  os.execute("uci set openclash.config.enable=0 && uci commit openclash && /etc/init.d/openclash stop >/dev/null 2>&1 &")
+  SYS.exec("uci set openclash.config.enable=0 && uci commit openclash && /etc/init.d/openclash stop >/dev/null 2>&1 &")
 end
 
 m = Map("openclash")
