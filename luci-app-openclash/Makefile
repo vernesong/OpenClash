@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.32.2
+PKG_VERSION:=0.32.3
 PKG_RELEASE:=0
 PKG_MAINTAINER:=frainzy1477&vernesong <https://github.com/vernesong/OpenClash>
 
@@ -14,7 +14,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=Luci
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
-	DEPENDS:=+luci +luci-lib-nixio +uci +coreutils +coreutils-nohup +bash +wget
+	DEPENDS:=+luci +luci-base +iptables +coreutils +coreutils-nohup +bash +wget
 endef
 
 define Package/$(PKG_NAME)/description
