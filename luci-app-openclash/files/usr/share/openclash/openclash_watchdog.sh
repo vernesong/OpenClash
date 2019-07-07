@@ -1,6 +1,6 @@
 #!/bin/sh
 
-status=`ps|grep -c openclash_watchdog.sh`
+status=$(ps|grep -c openclash_watchdog.sh)
 [ "$status" -gt "3" ] && echo "another clash_watchdog.sh is running,exit "
 [ "$status" -gt "3" ] && exit 0
 

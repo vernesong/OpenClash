@@ -4,7 +4,7 @@ local SYS  = require "luci.sys"
 local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
-local fs = require "luci.fs"
+local fs = require "luci.openclash"
 local CHIF = "0"
 
 m = SimpleForm("openclash")
@@ -60,14 +60,14 @@ o = a:option(Button, "Commit")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
-  SYS.exec("uci commit openclash")
+  SYS.call("uci commit openclash")
 end
 
 o = a:option(Button, "Apply")
 o.inputtitle = translate("Apply Configurations")
 o.inputstyle = "apply"
 o.write = function()
-  SYS.exec("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  SYS.call("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
@@ -77,7 +77,7 @@ o.inputstyle = "apply"
 o.write = function ()
 	local sPath, sFile, fd, block
 	sPath = "/etc/openclash/config.yaml"
-	sFile = nixio.fs.basename(sPath)
+	sFile = NXFS.basename(sPath)
 	if luci.fs.isdirectory(sPath) then
 		fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
 		sFile = sFile .. ".tar.gz"
@@ -132,10 +132,10 @@ HTTP.setfilehandler(
 			fd:close()
 			fd = nil
 			if (meta.file == "config.yml") then
-			   SYS.exec("cp /etc/openclash/config.yml /etc/openclash/config.bak")
-			   SYS.exec("mv /etc/openclash/config.yml /etc/openclash/config.yaml")
+			   SYS.call("cp /etc/openclash/config.yml /etc/openclash/config.bak")
+			   SYS.call("mv /etc/openclash/config.yml /etc/openclash/config.yaml")
 			elseif (meta.file == "config.yaml") then
-			   SYS.exec("cp /etc/openclash/config.yaml /etc/openclash/config.bak")
+			   SYS.call("cp /etc/openclash/config.yaml /etc/openclash/config.bak")
 			end
 			um.value = translate("File saved to") .. ' "/etc/openclash"'
 			CHIF = "1"

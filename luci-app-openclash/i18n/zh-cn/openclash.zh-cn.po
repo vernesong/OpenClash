@@ -1,9 +1,6 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\n"
 
-msgid "clash"
-msgstr "clash"
-
 msgid "OpenClash"
 msgstr "OpenClash"
 
@@ -39,6 +36,12 @@ msgstr "外部控制"
 
 msgid "Enable"
 msgstr "启用"
+
+msgid "RUNNING"
+msgstr "运行中"
+
+msgid "NOT RUNNING"
+msgstr "未运行"
 
 msgid "(Enable or Disable)"
 msgstr "(仅添加选中的设置)"
