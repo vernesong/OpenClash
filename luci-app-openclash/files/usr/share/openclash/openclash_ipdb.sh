@@ -3,7 +3,7 @@
    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
    LOG_FILE="/tmp/openclash.log"
    echo "开始下载 GEOIP 数据库..." >$START_LOG
-   wget-ssl --no-check-certificate https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz -O /tmp/ipdb.tar.gz
+   wget-ssl --no-check-certificate --quiet --timeout=3 --tries=2 https://geolite.maxmind.com/download/geoip/database/GeoLite2-Country.tar.gz -O /tmp/ipdb.tar.gz
    if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/ipdb.tar.gz |awk '{print int($5/1024)}')" -ne 0 ]; then
       echo "GEOIP 数据库下载成功，检查数据库版本是否更新..." >$START_LOG
       tar zxvf /tmp/ipdb.tar.gz -C /tmp >/dev/null 2>&1\

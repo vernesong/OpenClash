@@ -6,12 +6,12 @@
    rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
    echo "开始下载使用中的第三方规则..." >$START_LOG
       if [ "$rule_source" = "lhie1" ]; then
-         wget-ssl --no-check-certificate https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yml -O /tmp/rules.yaml
+         wget-ssl --no-check-certificate --quiet --timeout=3 --tries=2 https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yml -O /tmp/rules.yaml
       elif [ "$rule_source" = "ConnersHua" ]; then
-         wget-ssl --no-check-certificate https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/Pro.yaml -O /tmp/rules.yaml
+         wget-ssl --no-check-certificate --quiet --timeout=3 --tries=2 https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/Pro.yaml -O /tmp/rules.yaml
          sed -i -n '/^Rule:/,$p' /tmp/rules.yaml
       elif [ "$rule_source" = "ConnersHua_return" ]; then
-         wget-ssl --no-check-certificate https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/BacktoCN.yaml -O /tmp/rules.yaml
+         wget-ssl --no-check-certificate --quiet --timeout=3 --tries=2 https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/BacktoCN.yaml -O /tmp/rules.yaml
          sed -i -n '/^Rule:/,$p' /tmp/rules.yaml
       fi
    if [ "$?" -eq "0" ] && [ "$rule_source" != 0 ] && [ "$(ls -l /tmp/rules.yaml |awk '{print int($5/1024)}')" -ne 0 ]; then

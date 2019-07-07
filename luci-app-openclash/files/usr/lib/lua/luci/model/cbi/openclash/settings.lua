@@ -7,7 +7,7 @@ local UTIL = require "luci.util"
 local uci = require("luci.model.uci").cursor()
 
 m = Map("openclash", translate("Takeover Settings"))
-
+m.pageaction = false
 s = m:section(TypedSection, "openclash")
 s.title = translate("Will Modify The Config File Or Subscribe According To The Settings On This Page")
 s.anonymous = true
