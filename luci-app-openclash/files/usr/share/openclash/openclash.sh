@@ -7,7 +7,7 @@ BACKPACK_FILE="/etc/openclash/config.bak"
 echo "开始下载配置文件..." >$START_LOG
 subscribe_url=$(uci get openclash.config.subscribe_url 2>/dev/null)
 wget-ssl --no-check-certificate "$subscribe_url" -O /tmp/config.yaml
-if [ "$?" -eq "0" ] && [ "`ls -l /tmp/config.yaml |awk '{print int($5/1024)}'`" -ne 0 ]; then
+if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')" -ne 0 ]; then
    echo "配置文件下载成功，检查是否有更新..." >$START_LOG
    if [ -f "$CONFIG_FILE" ]; then
       cmp -s "$BACKPACK_FILE" /tmp/config.yaml
