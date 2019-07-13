@@ -18,6 +18,7 @@ s:tab("dashboard", translate("Dashboard Settings"))
 s:tab("config_update", translate("Config Update"))
 s:tab("rules_update", translate("Rules Update"))
 s:tab("geo_update", translate("GEOIP Update"))
+s:tab("version_update", translate("Version Update"))
 
 ---- General Settings
 o = s:taboption("settings", ListValue, "en_mode", translate("Select Mode"))
@@ -177,7 +178,7 @@ o.rmempty = true
 
 o = s:taboption("config_update", Button, translate("Config File Update")) 
 o.title = translate("Update Subcription")
-o.inputtitle = translate("Update Configuration")
+o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
   uci:set("openclash", "config", "enable", 1)
@@ -210,7 +211,7 @@ o.default=0
 
 o = s:taboption("rules_update", Button, translate("Other Rules Update")) 
 o.title = translate("Update Other Rules")
-o.inputtitle = translate("Start Update Other Rules")
+o.inputtitle = translate("Check And Update")
 o.description = translate("Other Rules Update(Only in Use)")
 o.inputstyle = "reload"
 o.write = function()
@@ -244,7 +245,7 @@ o.default=0
 
 o = s:taboption("geo_update", Button, translate("GEOIP Update")) 
 o.title = translate("Update GEOIP Database")
-o.inputtitle = translate("Start Update GEOIP Database")
+o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
   uci:set("openclash", "config", "enable", 1)
@@ -266,6 +267,98 @@ o.title = translate("Dashboard Secret")
 o.default = 123456
 o.rmempty = false
 o.description = translate("Set Dashboard Secret")
+
+---- version update
+local cpu_model = SYS.exec("cat /proc/cpuinfo |grep 'cpu model' |awk -F ': ' '{print $2}'")
+if not cpu_model or cpu_model == "" then
+     clash = translate("Model Not Found")
+end
+core_update = s:taboption("version_update", DummyValue, "", nil)
+core_update.template = "openclash/cvalue"
+core_update.title = translate("CPU Model")
+core_update.value = cpu_model
+
+local clash_file = "/etc/openclash/clash"
+local clash
+if not NXFS.access(clash_file) then
+ clash = translate("File Not Exist")
+else
+ clash = SYS.exec("/etc/openclash/clash -v 2>/dev/null |awk -F ' ' '{print $2}'")
+if not clash or clash == "" then
+     clash = translate("Unknown")
+end
+end
+clash_version = s:taboption("version_update", DummyValue, "", nil)
+clash_version.template = "openclash/cvalue"
+clash_version.title = translate("Current Core Version")
+clash_version.value = clash
+
+local last_clash = SYS.exec("sed -n 1p /tmp/clash_last_version")
+if not last_clash or last_clash == "" then
+     clash = translate("Unknown")
+end
+last_clash_version = s:taboption("version_update", DummyValue, "", nil)
+last_clash_version.template = "openclash/cvalue"
+last_clash_version.title = translate("Last Core Version")
+last_clash_version.value = last_clash
+
+local cu_openclash = SYS.exec("sed -n 1p /etc/openclash/openclash_version")
+if not cu_openclash or cu_openclash == "" then
+     cu_openclash = translate("Unknown")
+end
+cu_openclash_version = s:taboption("version_update", DummyValue, "", nil)
+cu_openclash_version.template = "openclash/cvalue"
+cu_openclash_version.title = translate("Current OpenClash Version")
+cu_openclash_version.value = cu_openclash
+
+local last_openclash = SYS.exec("sed -n 1p /tmp/openclash_last_version")
+if not last_openclash or last_openclash == "" then
+     last_openclash = translate("Unknown")
+end
+last_openclash_version = s:taboption("version_update", DummyValue, "", nil)
+last_openclash_version.template = "openclash/cvalue"
+last_openclash_version.title = translate("Last OpenClash Version")
+last_openclash_version.value = last_openclash
+
+o = s:taboption("version_update", ListValue, "core_version", translate("Chose to Download"))
+o.description = translate("Wrong Version Will Not Work Well")
+o:value("linux-386")
+o:value("linux-amd64")
+o:value("linux-armv5")
+o:value("linux-armv6")
+o:value("linux-armv7")
+o:value("linux-armv8")
+o:value("linux-mips-hardfloat")
+o:value("linux-mips-softfloat")
+o:value("linux-mips64")
+o:value("linux-mipsle")
+o:value("linux-mipsle")
+o:value("0", translate("Not Set"))
+o.default=0
+
+o = s:taboption("version_update", Button, translate("Core Update")) 
+o.title = translate("Update Core File")
+o.inputtitle = translate("Check And Update")
+o.description = translate("Download Form https://github.com/vernesong/OpenClash/releases/tag/Clash If Fail")
+o.inputstyle = "reload"
+o.write = function()
+  uci:set("openclash", "config", "enable", 1)
+  uci:commit("openclash")
+  SYS.call("sh /usr/share/openclash/openclash_core.sh >/dev/null 2>&1 &")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+end
+
+o = s:taboption("version_update", Button, translate("OpenClash Update")) 
+o.title = translate("Update OpenClash")
+o.inputtitle = translate("Check And Update")
+o.description = translate("Only For IPK Install Type Or Not Release Memory")
+o.inputstyle = "reload"
+o.write = function()
+  uci:set("openclash", "config", "update", 1)
+  uci:commit("openclash")
+  SYS.call("sh /usr/share/openclash/openclash_update.sh >/dev/null 2>&1 &")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+end
 
 -- [[ Edit Server ]] --
 s = m:section(TypedSection, "dns_servers", translate("Add Custom DNS Servers"))

@@ -134,13 +134,13 @@
                 <span class="ip-title">IPIP&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-ipipnet"></span> <span class="ip-geo" id="ip-ipipnet-geo"></span>
             </p>
             <p>
-                <span class="ip-title">淘宝&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-taobao"></span> <span class="ip-geo" id="ip-taobao-ipip"></span>
+                <span class="ip-title">搜狐&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-sohu"></span> <span class="ip-geo" id="ip-sohu-ipip"></span>
             </p>
             <p>
                 <span class="ip-title">IP.SB&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipsb"></span> <span class="ip-geo" id="ip-ipsb-geo"></span>
             </p>
             <p>
-                <span class="ip-title">IPAPI&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipapi"></span> <span class="ip-geo" id="ip-ipapi-geo"></span>
+                <span class="ip-title">IPIFY&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipify"></span> <span class="ip-geo" id="ip-ipify-ipip"></span>
             </p>
         </div>
         <div style="width: 49%">
@@ -168,6 +168,7 @@
     </td></tr>
 	</table>
 </fieldset>
+    <script src="https://pv.sohu.com/cityjson?ie=utf-8"></script>
     <script>
         function ip_skk()
        {
@@ -176,8 +177,8 @@
        }
         const $$ = document;
         $$.getElementById('ip-webrtc').innerHTML = '查询中...';
-        $$.getElementById('ip-taobao').innerHTML = '查询中...';
-        $$.getElementById('ip-ipapi').innerHTML = '查询中...';
+        $$.getElementById('ip-sohu').innerHTML = '查询中...';
+        $$.getElementById('ip-ipify').innerHTML = '查询中...';
         $$.getElementById('ip-ipipnet').innerHTML = '查询中...';
         $$.getElementById('ip-ipsb').innerHTML = '查询中...';
         let random = parseInt(Math.random() * 100000000);
@@ -241,24 +242,26 @@
                         $$.getElementById('ip-ipipnet-geo').innerHTML = `${data[1]}`;
                     });
             },
-            getTaobaoIP: (data) => {
-                $$.getElementById('ip-taobao').innerHTML = data.ip;
-                IP.parseIPIpip(data.ip, 'ip-taobao-ipip');
+            getSohuIP: (data) => {
+                $$.getElementById('ip-sohu').innerHTML = returnCitySN.cip;
+                IP.parseIPIpip(returnCitySN.cip, 'ip-sohu-ipip');
             },
             getIpsbIP: (data) => {
                 $$.getElementById('ip-ipsb').innerHTML = data.address;
                 $$.getElementById('ip-ipsb-geo').innerHTML = `${data.country} ${data.province} ${data.city} ${data.isp.name}`
             },
-            getIPApiIP: () => {
-                IP.get(`https://ipapi.co/json?z=${random}`, 'json')
-                    .then(resp => {
-                        $$.getElementById('ip-ipapi').innerHTML = resp.data.ip;
-                        IP.parseIPIpip(resp.data.ip, 'ip-ipapi-geo');
-                    })
+            getIpifyIP: () => {
+                IP.get(`https://api.ipify.org/?format=json&z=${random}`, 'json')
+                .then(resp => {
+                $$.getElementById('ip-ipify').innerHTML = resp.data.ip;
+                return resp.data.ip;
+                })
+                .then(ip => {
+                IP.parseIPIpip(ip, 'ip-ipify-ipip');
+                })
             }
         };
 
-        window.ipCallback = (data) => IP.getTaobaoIP(data);
         $$.getElementById('http-baidu').innerHTML = '<span class="ip-checking">检测中...</span>';
         $$.getElementById('http-163').innerHTML =  '<span class="ip-checking">检测中...</span>';
         $$.getElementById('http-github').innerHTML = '<span class="ip-checking">检测中...</span>';
@@ -296,25 +299,26 @@
 	      function myip_Load()
 	      {
 
-	         var tbip = document.getElementsByTagName('HEAD').item(0);
-	         var tbipScript= document.createElement("script");
-	         tbipScript.defer = "defer";
-	         tbipScript.src='https://www.taobao.com/help/getip.php';
-	         tbip.appendChild( tbipScript);
-
 	         var sbip = document.getElementsByTagName('HEAD').item(0);
 	         var sbipScript= document.createElement("script");
 	         sbipScript.defer = "defer";
 	         sbipScript.src='https://ipv4.ip.sb/addrinfo?callback=IP.getIpsbIP';
 	         sbip.appendChild( sbipScript);
+	         
+	         var ship = document.getElementsByTagName('HEAD').item(0);
+	         var shipScript= document.createElement("script");
+	         shipScript.defer = "defer";
+	         shipScript.src='https://pv.sohu.com/cityjson?ie=utf-8';
+	         ship.appendChild( shipScript);
 
 	         const $$ = document;
 	         random = parseInt(Math.random() * 100000000);
-	         window.ipCallback = (data) => IP.getTaobaoIP(data);
-		       IP.getIpipnetIP();
-		       IP.getIPApiIP();
-		       IP.getWebrtcIP();
+
 		       HTTP.runcheck();
+		       IP.getIpipnetIP();
+		       IP.getSohuIP();
+		       IP.getIpifyIP();
+		       IP.getWebrtcIP();
        	   setTimeout("myip_Load()",1000*8);
 		   }
 

@@ -133,6 +133,7 @@ local function dase()
 end
 
 local function check_lastversion()
+  luci.sys.exec("sh /usr/share/openclash/clash_version.sh 2>/dev/null")
 	return luci.sys.exec("sh /usr/share/openclash/openclash_version.sh && sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
 end
 
