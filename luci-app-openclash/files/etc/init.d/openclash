@@ -377,7 +377,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           echo "第八步: 添加 OpenClash 计划任务,启动进程守护程序..." >$START_LOG
           add_cron
           echo "OpenClash 启动成功，请等待服务器上线！" >$START_LOG
-          echo "${LOGTIME} OpenClash Start Successfully" >> $LOG_FILE
+          echo "${LOGTIME} OpenClash Start Successful" >> $LOG_FILE
           sleep 5
           echo "" >$START_LOG
        else
