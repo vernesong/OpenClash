@@ -344,7 +344,7 @@ msgid "CPU Model"
 msgstr "处理器架构"
 
 msgid "Model Not Found"
-msgstr "处理器版本识别失败"
+msgstr "处理器架构识别失败"
 
 msgid "Current Core Version"
 msgstr "当前内核版本"
