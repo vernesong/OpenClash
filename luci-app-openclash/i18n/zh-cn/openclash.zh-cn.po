@@ -1,5 +1,15 @@
 msgid ""
-msgstr "Content-Type: text/plain; charset=UTF-8\n"
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Project-Id-Version: \n"
+"POT-Creation-Date: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: zh_CN\n"
+"X-Generator: Poedit 2.2\n"
 
 msgid "OpenClash"
 msgstr "OpenClash"
@@ -63,9 +73,6 @@ msgstr "服务器日志"
 
 msgid "Logs"
 msgstr "服务器日志"
-
-msgid "General Settings"
-msgstr "全局设置"
 
 msgid "Enable Clash"
 msgstr "启动 OpenClash"
@@ -137,7 +144,8 @@ msgid "Enable ipv6 Resolve"
 msgstr "启用ipv6解析"
 
 msgid "Force Enable to Resolve ipv6 DNS Requests"
-msgstr "允许解析ipv6类型的DNS请求"
+msgstr ""
+"允许解析ipv6类型的DNS请求,如果您没有公网IPV6地址但开启了IPV6的DHCP服务,连接可能会出现异常"
 
 msgid "Rules Setting"
 msgstr "规则设置(访问控制)"
@@ -161,10 +169,8 @@ msgid "No specify upload file."
 msgstr "未指定上传文件"
 
 msgid ""
-"NB: Rename your config file to config.yaml or config.yml before upload. file will save to /"
-"etc/openclash"
-msgstr ""
-"注意：上传之前，请将配置文件重命名为 config.yaml 或者 config.yml ，文件将保存到 /etc/openclash 文件夹"
+"Rename your config file to config.yaml before upload what would be save to /etc/openclash"
+msgstr "注意：上传之前请将配置文件重命名为 config.yaml ，文件将被保存到 /etc/openclash"
 
 msgid "Please Make Sure Ports Available"
 msgstr "请确保端口可用"
@@ -175,14 +181,14 @@ msgstr "订阅URL"
 msgid "Update Subcription"
 msgstr "更新订阅配置"
 
-msgid "Update Configuration"
-msgstr "点击更新配置文件"
-
 msgid "Update time (every day)"
 msgstr "更新时间(每天)"
 
 msgid "Auto Update"
 msgstr "自动更新"
+
+msgid "Check And Update"
+msgstr "检查并更新"
 
 msgid "After clash start running, wait a moment for servers to resolve,enjoy"
 msgstr "运行后，请等待服务器上线"
@@ -238,9 +244,6 @@ msgstr "自动更新GEOIP数据库"
 msgid "Update GEOIP Database"
 msgstr "更新GEOIP数据库"
 
-msgid "Start Update GEOIP Database"
-msgstr "点击更新GEOIP数据库"
-
 msgid "Other Rules Update(Only in Use)"
 msgstr "正在使用第三方规则时才能更新"
 
@@ -295,9 +298,6 @@ msgstr "每周日"
 msgid "Update Other Rules"
 msgstr "更新第三方规则"
 
-msgid "Start Update Other Rules"
-msgstr "点击更新第三方规则"
-
 msgid "GlobalTV"
 msgstr "国际流媒体流量"
 
@@ -336,3 +336,47 @@ msgstr "设置自定义规则"
 
 msgid "For More Go Github:https://github.com/Dreamacro/clash"
 msgstr "更多规则信息请前往Github( https://github.com/Dreamacro/clash )查询"
+
+msgid "Version Update"
+msgstr "版本更新"
+
+msgid "CPU Model"
+msgstr "处理器架构"
+
+msgid "Model Not Found"
+msgstr "处理器版本识别失败"
+
+msgid "Current Core Version"
+msgstr "当前内核版本"
+
+msgid "Last Core Version"
+msgstr "最新内核版本"
+
+msgid "Unknown"
+msgstr "查询失败"
+
+msgid "Chose to Download"
+msgstr "选择内核编译版本"
+
+msgid "Wrong Version Will Not Work Well"
+msgstr "错误的版本将不能正常工作"
+
+msgid "Update Core File"
+msgstr "更新内核"
+
+msgid "Download Form https://github.com/vernesong/OpenClash/releases/tag/Clash If Fail"
+msgstr ""
+"如下载失败可前往 https://github.com/vernesong/OpenClash/releases/tag/Clash 手动下载并上传"
+
+msgid "Last OpenClash Version"
+msgstr "最新客户端版本"
+
+msgid "Current OpenClash Version"
+msgstr "当前客户端版本"
+
+msgid "Update OpenClash"
+msgstr "更新客户端"
+
+msgid "Only For IPK Install Type Or Not Release Memory"
+msgstr ""
+"只支持通过IPK安装的版本进行更新，因为随系统编译的版本更新后不会释放旧版本的闪存空间"

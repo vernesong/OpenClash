@@ -1,0 +1,13 @@
+#!/bin/sh
+CKTIME=$(date "+%Y-%m-%d-%H")
+LAST_OPVER="/tmp/clash_last_version"
+version_url="https://github.com/vernesong/OpenClash/raw/master/core_version"
+if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{print $2}')" ]; then
+   wget-ssl --no-check-certificate --quiet --timeout=5 --tries=2 "$version_url" -O $LAST_OPVER
+   if [ "$?" -eq "0" ] && [ "$(ls -l $LAST_OPVER 2>/dev/null |awk '{print int($5)}')" -gt 0 ]; then
+      echo "CheckTime:$CKTIME" >>$LAST_OPVER
+   else
+      echo "版本检查失败，请稍后再试！" >$LAST_OPVER
+      echo "CheckTime:$CKTIME" >>$LAST_OPVER
+   fi
+fi

@@ -7,6 +7,59 @@ local UTIL = require "luci.util"
 local fs = require "luci.openclash"
 local CHIF = "0"
 
+ful = SimpleForm("upload", translate("Server Configuration"), nil)
+ful.reset = false
+ful.submit = false
+
+sul =ful:section(SimpleSection, "")
+o = sul:option(FileUpload, "")
+o.template = "openclash/upload"
+um = sul:option(DummyValue, "", nil)
+um.template = "openclash/dvalue"
+
+local dir, fd, clash
+clash = "/etc/openclash/clash"
+dir = "/etc/openclash/"
+HTTP.setfilehandler(
+	function(meta, chunk, eof)
+		if not fd then
+			if not meta then return end
+
+			if	meta and chunk then fd = nixio.open(dir .. meta.file, "w") end
+
+			if not fd then
+				um.value = translate("upload file error.")
+				return
+			end
+		end
+		if chunk and fd then
+			fd:write(chunk)
+		end
+		if eof and fd then
+			fd:close()
+			fd = nil
+			if (meta.file == "config.yml") then
+			   SYS.call("cp /etc/openclash/config.yml /etc/openclash/config.bak")
+			   SYS.call("mv /etc/openclash/config.yml /etc/openclash/config.yaml")
+			elseif (meta.file == "config.yaml") then
+			   SYS.call("cp /etc/openclash/config.yaml /etc/openclash/config.bak")
+			end
+			if (meta.file == "clash") then
+			   NXFS.chmod(clash, 755)
+			end
+			um.value = translate("File saved to") .. ' "/etc/openclash"'
+			CHIF = "1"
+		end
+	end
+)
+
+if HTTP.formvalue("upload") then
+	local f = HTTP.formvalue("ulfile")
+	if #f <= 0 then
+		um.value = translate("No specify upload file.")
+	end
+end
+
 m = SimpleForm("openclash")
 m.reset = false
 m.submit = false
@@ -100,55 +153,5 @@ o.write = function ()
 	fd:close()
 	HTTP.close()
 end
-
-ful = SimpleForm("upload", translate("Server Configuration"), nil)
-ful.reset = false
-ful.submit = false
-
-sul =ful:section(SimpleSection, "")
-o = sul:option(FileUpload, "")
-o.template = "openclash/upload"
-um = sul:option(DummyValue, "", nil)
-um.template = "openclash/dvalue"
-
-local dir, fd
-dir = "/etc/openclash/"
-HTTP.setfilehandler(
-	function(meta, chunk, eof)
-		if not fd then
-			if not meta then return end
-
-			if	meta and chunk then fd = nixio.open(dir .. meta.file, "w") end
-
-			if not fd then
-				um.value = translate("upload file error.")
-				return
-			end
-		end
-		if chunk and fd then
-			fd:write(chunk)
-		end
-		if eof and fd then
-			fd:close()
-			fd = nil
-			if (meta.file == "config.yml") then
-			   SYS.call("cp /etc/openclash/config.yml /etc/openclash/config.bak")
-			   SYS.call("mv /etc/openclash/config.yml /etc/openclash/config.yaml")
-			elseif (meta.file == "config.yaml") then
-			   SYS.call("cp /etc/openclash/config.yaml /etc/openclash/config.bak")
-			end
-			um.value = translate("File saved to") .. ' "/etc/openclash"'
-			CHIF = "1"
-		end
-	end
-)
-
-if HTTP.formvalue("upload") then
-	local f = HTTP.formvalue("ulfile")
-	if #f <= 0 then
-		um.value = translate("No specify upload file.")
-	end
-end
-
 
 return ful , m

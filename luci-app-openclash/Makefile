@@ -1,20 +1,21 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.32.3
-PKG_RELEASE:=0
-PKG_MAINTAINER:=frainzy1477&vernesong <https://github.com/vernesong/OpenClash>
+PKG_VERSION:=0.33.0
+PKG_RELEASE:=beta
+PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
 
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)
-	CATEGORY:=Utilities
-	SUBMENU:=Luci
+	CATEGORY:=LuCI
+	SUBMENU:=3. Applications
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
 	DEPENDS:=+luci +luci-base +iptables +coreutils +coreutils-nohup +bash +wget
+	MAINTAINER:=vernesong
 endef
 
 define Package/$(PKG_NAME)/description
@@ -60,7 +61,13 @@ endef
 
 define Package/$(PKG_NAME)/prerm
 #!/bin/sh
+update=$(uci get openclash.config.update 2>/dev/null)
+if [ "$update" != 1 ]; then
+	rm -rf /etc/openclash/clash 2>/dev/null
 	uci set openclash.config.enable=0 && uci commit openclash
+else
+	uci set openclash.config.enable=1 && uci commit openclash
+fi
 	cp "/etc/config/openclash" "/tmp/openclash.bak" 2>/dev/null
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" 2>/dev/null
 endef
@@ -78,6 +85,8 @@ fi
 	rm -rf /tmp/openclash.log 2>/dev/null
 	rm -rf /tmp/openclash_start.log 2>/dev/null
 	rm -rf /tmp/Proxy_Group 2>/dev/null
+	rm -rf /tmp/openclash_last_version 2>/dev/null
+	rm -rf /tmp/clash_last_version 2>/dev/null
 endef
 
 define Package/$(PKG_NAME)/install

@@ -270,16 +270,23 @@ start()
 status=$(ps|grep -c /etc/init.d/openclash)
 [ "$status" -gt "3" ] && exit 0
 
-echo "OpenClash 开始启动..." >$START_LOG
-enable=$(uci get openclash.config.enable 2>/dev/null)
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 if [ ! -f "$CONFIG_FILE" ] && [ "$(ls -l /etc/openclash/config.yml 2>/dev/null |awk '{print int($5/1024)}')" -gt 0 ]; then
    mv "/etc/openclash/config.yml" "$CONFIG_FILE"
 fi
 if [ ! -f "$CONFIG_FILE" ] && [ -f "$BACKPACK_FILE" ]; then
    cp $BACKPACK_FILE $CONFIG_FILE
 fi
+
+echo "OpenClash 开始启动..." >$START_LOG
+enable=$(uci get openclash.config.enable 2>/dev/null)
+LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
+#检查是否存在核心文件
+[ ! -f "$CLASH" ] && {
+   echo "OpenClash 核心文件不存在，开始下载..." >$START_LOG
+   nohup /usr/share/openclash/openclash_core.sh &
+   exit 0
+}
     echo "第一步: 获取配置..." >$START_LOG
     en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
     enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
@@ -345,6 +352,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        iptables -t nat -A openclash -d 192.168.0.0/16 -j RETURN
        iptables -t nat -A openclash -d 224.0.0.0/4 -j RETURN
        iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
+       iptables -t nat -A openclash -p tcp --dport 22 -j ACCEPT
        iptables -t nat -A openclash_dns -p udp -j REDIRECT --to-ports "$dns_port"
        iptables -t nat -A openclash_dns -p tcp -j REDIRECT --to-ports "$dns_port"
        iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
@@ -416,7 +424,7 @@ stop()
     ip6tables -t nat -F openclash >/dev/null 2>&1
     ip6tables -t nat -F openclash_dns >/dev/null 2>&1
 	
-    nat6_clashs=$(ip6tables -nvL PREROUTING -t nat | sed 1,2d | sed -n '/openclash/=' | sort -r)
+    nat6_clashs=$(ip6tables -nvL PREROUTING -t nat 2>/dev/null | sed 1,2d | sed -n '/openclash/=' | sort -r)
     for nat6_clash in $nat6_clashs; do
         ip6tables -t nat -D PREROUTING "$nat6_clash" >/dev/null 2>&1
     done
@@ -447,6 +455,7 @@ stop()
        rm -rf $LOG_FILE 2>/dev/null
        rm -rf /www/openclash 2>/dev/null
        rm -rf /tmp/openclash_last_version 2>/dev/null
+       rm -rf /tmp/clash_last_version 2>/dev/null
        echo "OpenClash 关闭成功！" >$START_LOG
        sleep 5
        rm -rf $START_LOG

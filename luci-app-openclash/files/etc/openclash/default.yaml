@@ -1,15 +1,15 @@
 # Copyright (c) 2018 Dreamacro
 
 # port of HTTP
-port: 7890
+port: 7890 # 此项将被接管
 
 # port of SOCKS5
-socks-port: 7891
+socks-port: 7891 # 此项将被接管
 
 # redir port for Linux and macOS
-redir-port: 7892
+redir-port: 7892 # 此项将被接管
 
-allow-lan: false
+allow-lan: true # 此项将被接管为true
 
 # Rule / Global/ Direct (default is Rule)
 mode: Rule
@@ -19,38 +19,41 @@ mode: Rule
 log-level: info
 
 # A RESTful API for clash
-external-controller: 0.0.0.0:9090
+external-controller: 0.0.0.0:9090 # 此项将被接管
 
 # you can put the static web resource (such as clash-dashboard) to a directory, and clash would serve in `${API}/ui`
 # input is a relative path to the configuration directory or an absolute path
-external-ui: "/usr/share/openclash/dashboard"
+external-ui: "/usr/share/openclash/dashboard" # 此项将被接管
 
 # Secret for RESTful API (Optional)
-secret: '123456'
+secret: '123456' # 此项将被接管
 
 # experimental feature
 experimental:
   ignore-resolve-fail: true # ignore dns resolve fail, default value is true
 
 # authentication of local SOCKS5/HTTP(S) server
-authentication:
+authentication: # 此项将被接管
   - "user1:pass1"
   - "user2:pass2"
 
-dns:
-  enable: true # set true to enable dns (default is false)
-  ipv6: false # default is false
-  listen: 0.0.0.0:53
-  enhanced-mode: redir-host # or fake-ip
-  fake-ip-range: 198.18.0.1/16 # if you don't know what it is, don't change it
-  nameserver:
+dns:  # 此参数必须保留,不能删除,如订阅配置无包括此项的所有DNS设置，OpenClash将自动添加
+  enable: true # set true to enable dns (default is false) # 此项将被接管为true
+  ipv6: false # default is false # 此项将被接管
+  listen: 0.0.0.0:53 # 端口为53时将被接管为7874
+  enhanced-mode: redir-host # or fake-ip # 此项可被接管
+  fake-ip-range: 198.18.0.1/16 # if you don't know what it is, don't change it # 此项将被接管
+  nameserver:  # 此参数必须保留,不能删除
   - 114.114.114.114
   - tls://dns.rubyfish.cn:853 # dns over tls
   - https://1.1.1.1/dns-query # dns over https
   fallback: # concurrent request with nameserver, fallback used when GEOIP country isn't CN
   - tcp://1.1.1.1
   
-Proxy:
+# 以上设置您可直接覆盖到配置文件,无需更改
+# Openclash 不会对下方服务器设置进行任何更改，请确保设置正确
+
+Proxy: # 此参数必须保留,不能删除
 
 # shadowsocks
 # The types of cipher are consistent with go-shadowsocks2
@@ -116,7 +119,10 @@ Proxy:
 # with tls (https) and skip-cert-verify
 - { name: "http", type: http, server: server, port: 443, tls: true, skip-cert-verify: true }
 
-Proxy Group:
+# Openclash 不会对下方策略组设置进行任何更改，请确保设置正确
+
+Proxy Group: # 此参数必须保留,不能删除
+
 # url-test select which proxy will be used by benchmarking speed to a URL.
 - { name: "auto", type: url-test, proxies: ["ss1", "ss2", "vmess1"], url: "http://www.gstatic.com/generate_204", interval: 300 }
 
@@ -130,7 +136,8 @@ Proxy Group:
 # you can use RESTful API to switch proxy, is recommended for use in GUI.
 - { name: "Proxy", type: select, proxies: ["ss1", "ss2", "vmess1", "auto"] }
 
-Rule:
+Rule: # 此参数必须保留,不能删除
+# 如果您将一直使用第三方规则，下方可以留空。
 - DOMAIN-SUFFIX,google.com,auto
 - DOMAIN-KEYWORD,google,auto
 - DOMAIN,google.com,auto

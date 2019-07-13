@@ -2,6 +2,7 @@
 config openclash 'config'
 	option proxy_port '7892'
 	option enable '0'
+	option update '0'
 	option en_mode '0'
 	option auto_update '0'
 	option auto_update_time '0'
