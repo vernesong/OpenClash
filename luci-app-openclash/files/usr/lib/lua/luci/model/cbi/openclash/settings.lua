@@ -271,7 +271,7 @@ o.description = translate("Set Dashboard Secret")
 ---- version update
 local cpu_model = SYS.exec("cat /proc/cpuinfo |grep 'cpu model' |awk -F ': ' '{print $2}'")
 if not cpu_model or cpu_model == "" then
-     clash = translate("Model Not Found")
+     cpu_model = translate("Model Not Found")
 end
 core_update = s:taboption("version_update", DummyValue, "", nil)
 core_update.template = "openclash/cvalue"
@@ -295,7 +295,7 @@ clash_version.value = clash
 
 local last_clash = SYS.exec("sed -n 1p /tmp/clash_last_version")
 if not last_clash or last_clash == "" then
-     clash = translate("Unknown")
+     last_clash = translate("Unknown")
 end
 last_clash_version = s:taboption("version_update", DummyValue, "", nil)
 last_clash_version.template = "openclash/cvalue"
