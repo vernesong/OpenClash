@@ -271,7 +271,10 @@ o.description = translate("Set Dashboard Secret")
 ---- version update
 local cpu_model = SYS.exec("cat /proc/cpuinfo |grep 'cpu model' |awk -F ': ' '{print $2}'")
 if not cpu_model or cpu_model == "" then
+   cpu_model = SYS.exec("opkg status libc |grep 'Architecture' |awk -F ': ' '{print $2}'")
+   if not cpu_model or cpu_model == "" then
      cpu_model = translate("Model Not Found")
+   end
 end
 core_update = s:taboption("version_update", DummyValue, "", nil)
 core_update.template = "openclash/cvalue"
