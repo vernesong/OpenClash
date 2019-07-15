@@ -134,7 +134,7 @@
                 <span class="ip-title">IPIP&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-ipipnet"></span> <span class="ip-geo" id="ip-ipipnet-geo"></span>
             </p>
             <p>
-                <span class="ip-title">搜狐&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-sohu"></span> <span class="ip-geo" id="ip-sohu-ipip"></span>
+                <span class="ip-title">淘宝&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-taobao"></span> <span class="ip-geo" id="ip-taobao-ipip"></span>
             </p>
             <p>
                 <span class="ip-title">IP.SB&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipsb"></span> <span class="ip-geo" id="ip-ipsb-geo"></span>
@@ -168,7 +168,6 @@
     </td></tr>
 	</table>
 </fieldset>
-    <script defer="defer" src="https://pv.sohu.com/cityjson?ie=utf-8"></script>
     <script>
         function ip_skk()
        {
@@ -177,7 +176,7 @@
        }
         const $$ = document;
         $$.getElementById('ip-webrtc').innerHTML = '查询中...';
-        $$.getElementById('ip-sohu').innerHTML = '查询中...';
+        $$.getElementById('ip-taobao').innerHTML = '查询中...';
         $$.getElementById('ip-ipify').innerHTML = '查询中...';
         $$.getElementById('ip-ipipnet').innerHTML = '查询中...';
         $$.getElementById('ip-ipsb').innerHTML = '查询中...';
@@ -242,9 +241,9 @@
                         $$.getElementById('ip-ipipnet-geo').innerHTML = `${data[1]}`;
                     });
             },
-            getSohuIP: (data) => {
-                $$.getElementById('ip-sohu').innerHTML = returnCitySN.cip;
-                IP.parseIPIpip(returnCitySN.cip, 'ip-sohu-ipip');
+            getTaobaoIP: (data) => {
+                $$.getElementById('ip-taobao').innerHTML = data.ip;
+                IP.parseIPIpip(data.ip, 'ip-taobao-ipip');
             },
             getIpsbIP: (data) => {
                 $$.getElementById('ip-ipsb').innerHTML = data.address;
@@ -262,6 +261,7 @@
             }
         };
 
+        window.ipCallback = (data) => IP.getTaobaoIP(data);
         $$.getElementById('http-baidu').innerHTML = '<span class="ip-checking">检测中...</span>';
         $$.getElementById('http-163').innerHTML =  '<span class="ip-checking">检测中...</span>';
         $$.getElementById('http-github').innerHTML = '<span class="ip-checking">检测中...</span>';
@@ -299,35 +299,30 @@
 	      function myip_Load()
 	      {
 
+	         var tbip = document.getElementsByTagName('HEAD').item(0);
+	         var tbipScript= document.createElement("script");
+	         tbipScript.defer = "defer";
+	         tbipScript.src='https://www.taobao.com/help/getip.php';
+	         tbip.appendChild( tbipScript);
+
 	         var sbip = document.getElementsByTagName('HEAD').item(0);
 	         var sbipScript= document.createElement("script");
 	         sbipScript.defer = "defer";
 	         sbipScript.src='https://ipv4.ip.sb/addrinfo?callback=IP.getIpsbIP';
 	         sbip.appendChild( sbipScript);
-	         
-	         var ship = document.getElementsByTagName('HEAD').item(0);
-	         var shipScript= document.createElement("script");
-	         shipScript.defer = "defer";
-	         shipScript.src='https://pv.sohu.com/cityjson?ie=utf-8';
-	         ship.appendChild( shipScript);
 
 	         const $$ = document;
 	         random = parseInt(Math.random() * 100000000);
-
+	         window.ipCallback = (data) => IP.getTaobaoIP(data);
 		       HTTP.runcheck();
 		       IP.getIpipnetIP();
-		       IP.getSohuIP();
 		       IP.getIpifyIP();
 		       IP.getWebrtcIP();
        	   setTimeout("myip_Load()",1000*8);
 		   }
 
     </script>
-    <script>
-        window.ga_tid = "UA-122669675-5";
-        window.ga_url = "https://ga.giuem.com";
-    </script>
-    <script defer="defer" src="https://cdn.jsdelivr.net/npm/@giuem/ga-proxy" async></script>
+
 </body>
 
 </html>
