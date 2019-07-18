@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.33.0
+PKG_VERSION:=0.33.1
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
@@ -42,6 +42,7 @@ if [ -f "/etc/config/openclash" ]; then
 	uci set openclash.config.enable=0 && uci commit openclash
 	cp "/etc/config/openclash" "/tmp/openclash.bak" 2>/dev/null
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" 2>/dev/null
+	cp "/etc/config/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" 2>/dev/null
 fi
 endef
 
@@ -51,6 +52,7 @@ rm -rf /tmp/luci*
 if [ -f "/tmp/openclash.bak" ]; then
 	mv "/tmp/openclash.bak" "/etc/config/openclash" 2>/dev/null
 	mv "/tmp/openclash_custom_rules.list.bak" "/etc/config/openclash_custom_rules.list" 2>/dev/null
+	mv "/tmp/openclash_custom_hosts.list.bak" "/etc/config/openclash_custom_hosts.list" 2>/dev/null
 fi
 if [ -f "/tmp/config.yaml" ]; then
 	mv "/tmp/config.yaml" "/etc/openclash/config.yaml" 2>/dev/null
@@ -70,6 +72,7 @@ else
 fi
 	cp "/etc/config/openclash" "/tmp/openclash.bak" 2>/dev/null
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" 2>/dev/null
+	cp "/etc/config/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" 2>/dev/null
 endef
 
 define Package/$(PKG_NAME)/postrm

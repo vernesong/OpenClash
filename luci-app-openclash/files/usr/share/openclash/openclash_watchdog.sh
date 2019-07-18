@@ -14,5 +14,11 @@ if [ "$enable" -eq 1 ]; then
 	   /etc/init.d/openclash restart
   fi
 fi
+## Log File Size Manage:
+    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+    LOGSIZE=`ls -l /tmp/openclash.log |awk '{print int($5/1024)}'`
+    if [ "$LOGSIZE" -gt 30 ]; then 
+       echo "[$LOGTIME] Watchdog: Size Limit, Clean Up All Log Records." > /tmp/openclash.log
+    fi
    sleep 60
 done 2>/dev/null

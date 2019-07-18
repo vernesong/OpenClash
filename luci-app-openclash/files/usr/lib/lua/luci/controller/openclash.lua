@@ -85,10 +85,6 @@ local function mode()
 	return luci.sys.exec("uci get openclash.config.en_mode 2>/dev/null")
 end
 
-local function cmode()
-	return luci.sys.exec("egrep '^ {2,}enhanced-mode:' /etc/openclash/config.yaml 2>/dev/null |awk -F ' ' '{print $2}' |awk -F '#' '{print $1}' 2>/dev/null")
-end
-
 local function config()
    local config_update = luci.sys.exec("ls -l --full-time /etc/openclash/config.bak 2>/dev/null |awk '{print $6,$7;}'")
    if (config_update ~= "") then
@@ -154,7 +150,6 @@ function action_status()
 		dase = dase(),
 		web = is_web(),
 		cn_port = cn_port(),
-		cmode = cmode(),
 		mode = mode();
 	})
 end
