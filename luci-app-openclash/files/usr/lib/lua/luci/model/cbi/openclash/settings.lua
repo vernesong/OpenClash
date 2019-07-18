@@ -22,11 +22,10 @@ s:tab("version_update", translate("Version Update"))
 
 ---- General Settings
 o = s:taboption("settings", ListValue, "en_mode", translate("Select Mode"))
-o.description = translate("Will to Take Over Your General Settings, Network Error Try Flush DNS Cache")
-o:value("0", translate("Disable Mode Control (Use Redir-Host Default If Not Set)"))
+o.description = translate("Select Mode For OpenClash Work, Network Error Try Flush DNS Cache")
 o:value("redir-host", translate("redir-host"))
 o:value("fake-ip", translate("fake-ip"))
-o.default = 0
+o.default = "redir-host"
 
 o = s:taboption("settings", Flag, "enable_custom_dns", translate("Custom DNS Setting"))
 o.description = translate("Set OpenClash Upstream DNS Resolve Server")
@@ -62,8 +61,8 @@ o.description = translate("Please Make Sure Ports Available")
 ---- Rules Settings
 o = s:taboption("rules", ListValue, "enable_custom_clash_rules", translate("Custom Clash Rules"))
 o.description = translate("Use Custom Rules")
-o:value("0", translate("Disable Custom Clash Rules"))
-o:value("1", translate("Enable Custom Clash Rules"))
+o:value("0", translate("Disable Custom Rules"))
+o:value("1", translate("Enable Custom Rules"))
 o.default = 0
 
 o = s:taboption("rules", ListValue, "rule_source", translate("Enable Other Rules"))
@@ -130,22 +129,6 @@ o.description = translate("Choose Proxy Group, Base On Your Servers Group in con
    o:value(l)
    end
    file:close()
-
-custom_rules = s:taboption("rules", Value, "custom_rules", translate("Custom Clash Rules Here"), translate("For More Go Github:https://github.com/Dreamacro/clash"))
-custom_rules.template = "cbi/tvalue"
-custom_rules.rows = 20
-custom_rules.wrap = "off"
-custom_rules:depends("enable_custom_clash_rules", 1)
-
-function custom_rules.cfgvalue(self, section)
-	return NXFS.readfile("/etc/config/openclash_custom_rules.list") or ""
-end
-function custom_rules.write(self, section, value)
-	if value then
-		value = value:gsub("\r\n", "\n")
-		NXFS.writefile("/etc/config/openclash_custom_rules.list", value)
-	end
-end
 
 ---- update Settings
 o = s:taboption("config_update", Flag, "auto_update", translate("Auto Update"))
@@ -303,7 +286,11 @@ end
 last_clash_version = s:taboption("version_update", DummyValue, "", nil)
 last_clash_version.template = "openclash/cvalue"
 last_clash_version.title = translate("Last Core Version")
-last_clash_version.value = last_clash
+if last_clash ~= clash and clash ~= translate("Unknown") then
+  last_clash_version.value = last_clash .. translate("New!")
+else
+  last_clash_version.value = last_clash
+end
 
 local cu_openclash = SYS.exec("sed -n 1p /etc/openclash/openclash_version")
 if not cu_openclash or cu_openclash == "" then
@@ -321,7 +308,11 @@ end
 last_openclash_version = s:taboption("version_update", DummyValue, "", nil)
 last_openclash_version.template = "openclash/cvalue"
 last_openclash_version.title = translate("Last OpenClash Version")
-last_openclash_version.value = last_openclash
+if last_openclash ~= cu_openclash and cu_openclash ~= translate("Unknown") then
+   last_openclash_version.value = last_openclash .. translate("New!")
+else
+   last_openclash_version.value = last_openclash
+end
 
 o = s:taboption("version_update", ListValue, "core_version", translate("Chose to Download"))
 o.description = translate("Wrong Version Will Not Work Well")
@@ -435,6 +426,45 @@ o.rempty      = true
 o = s:option(Value, "password", translate("Password"))
 o.placeholder = translate("Not Null")
 o.rmempty = true
+
+s = m:section(TypedSection, "openclash", translate("Set Custom Rules, Will Add When Flag Turn on"))
+s.anonymous = true
+
+custom_rules = s:option(Value, "custom_rules")
+custom_rules.template = "cbi/tvalue"
+custom_rules.description = translate("Custom Rules Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md")
+custom_rules.rows = 20
+custom_rules.wrap = "off"
+
+function custom_rules.cfgvalue(self, section)
+	return NXFS.readfile("/etc/config/openclash_custom_rules.list") or ""
+end
+function custom_rules.write(self, section, value)
+
+	if value then
+		value = value:gsub("\r\n", "\n")
+		NXFS.writefile("/etc/config/openclash_custom_rules.list", value)
+	end
+end
+
+s = m:section(TypedSection, "openclash", translate("Set Custom Hosts, Only Work with Redir-Host Mode"))
+s.anonymous = true
+
+custom_hosts = s:option(Value, "custom_hosts")
+custom_hosts.template = "cbi/tvalue"
+custom_hosts.description = translate("Custom Hosts Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md")
+custom_hosts.rows = 20
+custom_hosts.wrap = "off"
+
+function custom_hosts.cfgvalue(self, section)
+	return NXFS.readfile("/etc/config/openclash_custom_hosts.list") or ""
+end
+function custom_hosts.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n", "\n")
+		NXFS.writefile("/etc/config/openclash_custom_hosts.list", value)
+	end
+end
 
 local t = {
     {Commit, Apply}

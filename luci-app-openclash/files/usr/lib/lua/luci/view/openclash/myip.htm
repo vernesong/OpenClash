@@ -301,13 +301,13 @@
 
 	         var tbip = document.getElementsByTagName('HEAD').item(0);
 	         var tbipScript= document.createElement("script");
-	         tbipScript.defer = "defer";
+	         tbipScript.async = "async";
 	         tbipScript.src='https://www.taobao.com/help/getip.php';
 	         tbip.appendChild( tbipScript);
 
 	         var sbip = document.getElementsByTagName('HEAD').item(0);
 	         var sbipScript= document.createElement("script");
-	         sbipScript.defer = "defer";
+	         sbipScript.async = "async";
 	         sbipScript.src='https://ipv4.ip.sb/addrinfo?callback=IP.getIpsbIP';
 	         sbip.appendChild( sbipScript);
 

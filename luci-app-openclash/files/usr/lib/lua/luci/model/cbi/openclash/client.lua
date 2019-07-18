@@ -4,6 +4,7 @@ local SYS  = require "luci.sys"
 local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
+local uci = require("luci.model.uci").cursor()
 
 local t = {
     {enable, disable}
@@ -18,14 +19,18 @@ o = s:option(Button, "enable")
 o.inputtitle = translate("Enable Clash")
 o.inputstyle = "apply"
 o.write = function()
-  SYS.call("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  uci:set("openclash", "config", "enable", 1)
+  uci:commit("openclash")
+  SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 end
 
 o = s:option(Button, "disable")
 o.inputtitle = translate("Disable Clash")
 o.inputstyle = "reset"
 o.write = function()
-  SYS.call("uci set openclash.config.enable=0 && uci commit openclash && /etc/init.d/openclash stop >/dev/null 2>&1 &")
+  uci:set("openclash", "config", "enable", 0)
+  uci:commit("openclash")
+  SYS.call("/etc/init.d/openclash stop >/dev/null 2>&1 &")
 end
 
 m = Map("openclash")
