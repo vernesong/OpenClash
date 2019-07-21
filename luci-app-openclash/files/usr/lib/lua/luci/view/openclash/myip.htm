@@ -123,7 +123,7 @@
 <fieldset class="cbi-section">
 	<table>
      <tr><td width="100%">
-<body onLoad="myip_Load()">
+<body>
     <div style="display: flex;">
         <div style="width: 51%">
             <h3>IP 地址</h3>
@@ -296,9 +296,15 @@
             }
         };
         
+	      HTTP.runcheck();
+	      IP.getIpipnetIP();
+	      IP.getIpifyIP();
+	      IP.getWebrtcIP();
+
+	      window.onload=myip_Load();
+	      
 	      function myip_Load()
 	      {
-
 	         var tbip = document.getElementsByTagName('HEAD').item(0);
 	         var tbipScript= document.createElement("script");
 	         tbipScript.async = "async";
@@ -322,7 +328,8 @@
 		   }
 
     </script>
-
+    <script async="async" src="https://www.taobao.com/help/getip.php"></script>
+    <script async="async" src="https://ipv4.ip.sb/addrinfo?callback=IP.getIpsbIP"></script>
 </body>
 
 </html>

@@ -13,6 +13,9 @@ function index()
 	entry({"admin", "services", "openclash", "startlog"},call("action_start")).leaf=true
 	entry({"admin", "services", "openclash", "currentversion"},call("action_currentversion"))
 	entry({"admin", "services", "openclash", "lastversion"},call("action_lastversion"))
+	entry({"admin", "services", "openclash", "update"},call("action_update"))
+	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
+	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Takeover Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "config"},form("openclash/config"),_("Server Config"), 40).leaf = true
 	entry({"admin", "services", "openclash", "log"},form("openclash/log"),_("Logs"), 50).leaf = true
@@ -129,7 +132,6 @@ local function dase()
 end
 
 local function check_lastversion()
-  luci.sys.exec("sh /usr/share/openclash/clash_version.sh 2>/dev/null")
 	return luci.sys.exec("sh /usr/share/openclash/openclash_version.sh && sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
 end
 
@@ -140,6 +142,43 @@ end
 local function startlog()
 	return luci.sys.exec("sed -n '$p' /tmp/openclash_start.log 2>/dev/null")
 end
+
+local function coremodel()
+	return luci.sys.exec("cat /proc/cpuinfo |grep 'cpu model'  2>/dev/null |awk -F ': ' '{print $2}' 2>/dev/null")
+end
+
+local function coremodel2()
+	return luci.sys.exec("opkg status libc |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
+end
+
+local function corecv()
+if not nixio.fs.access("/etc/openclash/clash") then
+  return "0"
+else
+	return luci.sys.exec("/etc/openclash/clash -v 2>/dev/null 2>/dev/null |awk -F ' ' '{print $2}'")
+end
+end
+
+local function corelv()
+	return luci.sys.exec("sh /usr/share/openclash/clash_version.sh && sed -n 1p /tmp/clash_last_version 2>/dev/null")
+end
+
+local function opcv()
+	return luci.sys.exec("sed -n 1p /etc/openclash/openclash_version 2>/dev/null")
+end
+
+local function oplv()
+   return luci.sys.exec("sh /usr/share/openclash/openclash_version.sh && sed -n 1p /tmp/openclash_last_version 2>/dev/null")
+end
+
+local function opup()
+   return luci.sys.exec("uci set openclash.config.update=1 && uci commit openclash && sh /usr/share/openclash/openclash_update.sh >/dev/null 2>&1 &")
+end
+
+local function coreup()
+   return luci.sys.exec("uci set openclash.config.enable=1 && uci commit openclash && sh /usr/share/openclash/openclash_core.sh >/dev/null 2>&1 &")
+end
+
 
 function action_status()
 	luci.http.prepare_content("application/json")
@@ -183,5 +222,31 @@ function action_start()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 			startlog = startlog();
+	})
+end
+
+function action_update()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+			coremodel = coremodel(),
+			coremodel2 = coremodel2(),
+			corecv = corecv(),
+			corelv = corelv(),
+			opcv = opcv(),
+			oplv = oplv();
+	})
+end
+
+function action_opupdate()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+			opup = opup();
+	})
+end
+
+function action_coreupdate()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+			coreup = coreup();
 	})
 end

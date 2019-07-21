@@ -45,19 +45,11 @@
 			clash.innerHTML = status.clash ? '<b><font color=green><%:RUNNING%></font></b>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			if ( status.mode == "fake-ip\n" )
       {
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:( 接管 ) fake-ip 模式%></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			   mode.innerHTML = status.clash ? "<b><font color=green><%: Fake-IP 模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			}
 			else if ( status.mode == "redir-host\n" )
 			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:( 接管 ) redir-host 模式%></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
-			}
-			else if ( status.cmode != "" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:( 配置文件 ) %>"+status.cmode+"<%: 模式%></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
-			}
-			else
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=red><%:( 配置文件 ) 未设置%></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			   mode.innerHTML = status.clash ? "<b><font color=green><%: Redir-Host 模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			}
 			watchdog.innerHTML = status.watchdog ? '<b><font color=green><%:RUNNING%></font> </b>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
