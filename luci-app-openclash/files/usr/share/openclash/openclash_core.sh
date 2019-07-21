@@ -28,7 +28,7 @@ if [ "$(/etc/openclash/clash -v 2>/dev/null |awk -F ' ' '{print $2}')" != "$(sed
          sleep 5
          echo "" >$START_LOG
       else
-         echo "核心程序更新失败，请确认设备闪存空间足够后重试！" >$START_LOG
+         echo "核心程序更新失败，请确认设备闪存空间足够后再试！" >$START_LOG
          echo "${LOGTIME} OpenClash Core Update Error" >>$LOG_FILE
          sleep 5
          echo "" >$START_LOG
@@ -41,12 +41,12 @@ if [ "$(/etc/openclash/clash -v 2>/dev/null |awk -F ' ' '{print $2}')" != "$(sed
       echo "" >$START_LOG
    fi
    else
-      echo "未选择编译版本，停止继续操作！" >$START_LOG
+      echo "未选择编译版本，请到全局设置中选择后再试！" >$START_LOG
       sleep 10
       echo "" >$START_LOG
    fi
 else
-      echo "核心程序没有更新，停止继续操作..." >$START_LOG
+      echo "核心程序没有更新，停止继续操作！" >$START_LOG
       echo "${LOGTIME} OpenClash Core No Change, Do Nothing" >>$LOG_FILE
       rm -rf /tmp/clash >/dev/null 2>&1
       sleep 5

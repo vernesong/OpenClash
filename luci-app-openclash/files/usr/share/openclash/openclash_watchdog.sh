@@ -17,7 +17,7 @@ fi
 ## Log File Size Manage:
     LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
     LOGSIZE=`ls -l /tmp/openclash.log |awk '{print int($5/1024)}'`
-    if [ "$LOGSIZE" -gt 30 ]; then 
+    if [ "$LOGSIZE" -gt 90 ]; then 
        echo "[$LOGTIME] Watchdog: Size Limit, Clean Up All Log Records." > /tmp/openclash.log
     fi
    sleep 60

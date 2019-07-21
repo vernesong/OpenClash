@@ -21,21 +21,39 @@ s:tab("geo_update", translate("GEOIP Update"))
 s:tab("version_update", translate("Version Update"))
 
 ---- General Settings
+o = s:taboption("settings", ListValue, "core_version", translate("Chose to Download"))
+o.description = translate("For Core Update, Wrong Version Will Not Work")
+o:value("linux-386")
+o:value("linux-amd64", translate("linux-amd64(x86-64)"))
+o:value("linux-armv5")
+o:value("linux-armv6")
+o:value("linux-armv7")
+o:value("linux-armv8")
+o:value("linux-mips-hardfloat")
+o:value("linux-mips-softfloat")
+o:value("linux-mips64")
+o:value("linux-mips64le")
+o:value("linux-mipsle")
+o:value("0", translate("Not Set"))
+o.default=0
+
 o = s:taboption("settings", ListValue, "en_mode", translate("Select Mode"))
 o.description = translate("Select Mode For OpenClash Work, Network Error Try Flush DNS Cache")
 o:value("redir-host", translate("redir-host"))
 o:value("fake-ip", translate("fake-ip"))
 o.default = "redir-host"
 
-o = s:taboption("settings", Flag, "enable_custom_dns", translate("Custom DNS Setting"))
+o = s:taboption("settings", ListValue, "enable_custom_dns", translate("Custom DNS Setting"))
 o.description = translate("Set OpenClash Upstream DNS Resolve Server")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
 o.default = 0
-o.rmempty = false
 
-o = s:taboption("settings", Flag, "ipv6_enable", translate("Enable ipv6 Resolve"))
+o = s:taboption("settings", ListValue, "ipv6_enable", translate("Enable ipv6 Resolve"))
 o.description = translate("Force Enable to Resolve ipv6 DNS Requests")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
 o.default=0
-o.rmempty = false
 
 o = s:taboption("settings", Value, "proxy_port")
 o.title = translate("Redir Port")
@@ -61,8 +79,8 @@ o.description = translate("Please Make Sure Ports Available")
 ---- Rules Settings
 o = s:taboption("rules", ListValue, "enable_custom_clash_rules", translate("Custom Clash Rules"))
 o.description = translate("Use Custom Rules")
-o:value("0", translate("Disable Custom Rules"))
-o:value("1", translate("Enable Custom Rules"))
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
 o.default = 0
 
 o = s:taboption("rules", ListValue, "rule_source", translate("Enable Other Rules"))
@@ -131,10 +149,11 @@ o.description = translate("Choose Proxy Group, Base On Your Servers Group in con
    file:close()
 
 ---- update Settings
-o = s:taboption("config_update", Flag, "auto_update", translate("Auto Update"))
+o = s:taboption("config_update", ListValue, "auto_update", translate("Auto Update"))
 o.description = translate("Auto Update Server subscription")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
 o.default=0
-o.rmempty = false
 
 o = s:taboption("config_update", ListValue, "config_update_week_time", translate("Update Time (Every Week)"))
 o:value("*", translate("Every Day"))
@@ -170,10 +189,11 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-o = s:taboption("rules_update", Flag, "other_rule_auto_update", translate("Auto Update"))
+o = s:taboption("rules_update", ListValue, "other_rule_auto_update", translate("Auto Update"))
 o.description = translate("Auto Update Other Rules")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
 o.default=0
-o.rmempty = false
 
 o = s:taboption("rules_update", ListValue, "other_rule_update_week_time", translate("Update Time (Every Week)"))
 o:value("*", translate("Every Day"))
@@ -204,10 +224,11 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-o = s:taboption("geo_update", Flag, "geo_auto_update", translate("Auto Update"))
+o = s:taboption("geo_update", ListValue, "geo_auto_update", translate("Auto Update"))
 o.description = translate("Auto Update GEOIP Database")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
 o.default=0
-o.rmempty = false
 
 o = s:taboption("geo_update", ListValue, "geo_update_week_time", translate("Update Time (Every Week)"))
 o:value("*", translate("Every Day"))
@@ -252,107 +273,8 @@ o.rmempty = false
 o.description = translate("Set Dashboard Secret")
 
 ---- version update
-local cpu_model = SYS.exec("cat /proc/cpuinfo |grep 'cpu model' |awk -F ': ' '{print $2}'")
-if not cpu_model or cpu_model == "" then
-   cpu_model = SYS.exec("opkg status libc |grep 'Architecture' |awk -F ': ' '{print $2}'")
-   if not cpu_model or cpu_model == "" then
-     cpu_model = translate("Model Not Found")
-   end
-end
 core_update = s:taboption("version_update", DummyValue, "", nil)
-core_update.template = "openclash/cvalue"
-core_update.title = translate("CPU Model")
-core_update.value = cpu_model
-
-local clash_file = "/etc/openclash/clash"
-local clash
-if not NXFS.access(clash_file) then
- clash = translate("File Not Exist")
-else
- clash = SYS.exec("/etc/openclash/clash -v 2>/dev/null |awk -F ' ' '{print $2}'")
-if not clash or clash == "" then
-     clash = translate("Unknown")
-end
-end
-clash_version = s:taboption("version_update", DummyValue, "", nil)
-clash_version.template = "openclash/cvalue"
-clash_version.title = translate("Current Core Version")
-clash_version.value = clash
-
-local last_clash = SYS.exec("sed -n 1p /tmp/clash_last_version")
-if not last_clash or last_clash == "" then
-     last_clash = translate("Unknown")
-end
-last_clash_version = s:taboption("version_update", DummyValue, "", nil)
-last_clash_version.template = "openclash/cvalue"
-last_clash_version.title = translate("Last Core Version")
-if last_clash ~= clash and clash ~= translate("Unknown") then
-  last_clash_version.value = last_clash .. translate("New!")
-else
-  last_clash_version.value = last_clash
-end
-
-local cu_openclash = SYS.exec("sed -n 1p /etc/openclash/openclash_version")
-if not cu_openclash or cu_openclash == "" then
-     cu_openclash = translate("Unknown")
-end
-cu_openclash_version = s:taboption("version_update", DummyValue, "", nil)
-cu_openclash_version.template = "openclash/cvalue"
-cu_openclash_version.title = translate("Current OpenClash Version")
-cu_openclash_version.value = cu_openclash
-
-local last_openclash = SYS.exec("sed -n 1p /tmp/openclash_last_version")
-if not last_openclash or last_openclash == "" then
-     last_openclash = translate("Unknown")
-end
-last_openclash_version = s:taboption("version_update", DummyValue, "", nil)
-last_openclash_version.template = "openclash/cvalue"
-last_openclash_version.title = translate("Last OpenClash Version")
-if last_openclash ~= cu_openclash and cu_openclash ~= translate("Unknown") then
-   last_openclash_version.value = last_openclash .. translate("New!")
-else
-   last_openclash_version.value = last_openclash
-end
-
-o = s:taboption("version_update", ListValue, "core_version", translate("Chose to Download"))
-o.description = translate("Wrong Version Will Not Work Well")
-o:value("linux-386")
-o:value("linux-amd64")
-o:value("linux-armv5")
-o:value("linux-armv6")
-o:value("linux-armv7")
-o:value("linux-armv8")
-o:value("linux-mips-hardfloat")
-o:value("linux-mips-softfloat")
-o:value("linux-mips64")
-o:value("linux-mipsle")
-o:value("linux-mipsle")
-o:value("0", translate("Not Set"))
-o.default=0
-
-o = s:taboption("version_update", Button, translate("Core Update")) 
-o.title = translate("Update Core File")
-o.inputtitle = translate("Check And Update")
-o.description = translate("Download Form https://github.com/vernesong/OpenClash/releases/tag/Clash If Fail")
-o.inputstyle = "reload"
-o.write = function()
-  uci:set("openclash", "config", "enable", 1)
-  uci:commit("openclash")
-  SYS.call("sh /usr/share/openclash/openclash_core.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
-end
-
-o = s:taboption("version_update", Button, translate("OpenClash Update")) 
-o.title = translate("Update OpenClash")
-o.inputtitle = translate("Check And Update")
-o.description = translate("Only For IPK Install Type Or Not Release Memory")
-o.inputstyle = "reload"
-o.write = function()
-  uci:set("openclash", "config", "update", 1)
-  uci:commit("openclash")
-  SYS.call("sh /usr/share/openclash/openclash_update.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
-end
+core_update.template = "openclash/update"
 
 -- [[ Edit Server ]] --
 s = m:section(TypedSection, "dns_servers", translate("Add Custom DNS Servers"))

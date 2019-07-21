@@ -1,21 +1,12 @@
-msgid ""
-msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
-"Project-Id-Version: \n"
-"POT-Creation-Date: \n"
-"PO-Revision-Date: \n"
-"Last-Translator: \n"
-"Language-Team: \n"
-"MIME-Version: 1.0\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: zh_CN\n"
-"X-Generator: Poedit 2.2\n"
 
 msgid "OpenClash"
 msgstr "OpenClash"
 
 msgid "A Clash Client For OpenWrt"
-msgstr "一个运行在OpenWrt上的Clash客户端"
+msgstr "一个运行在OpenWrt上的Clash客户端，兼容Shadowsocks、Vmess等协议，根据灵活的规则配置实现策略代理"
 
 msgid "Will Modify The Config File Or Subscribe According To The Settings On This Page"
 msgstr "将按照以下设置本地化配置文件和获取订阅"
@@ -46,6 +37,9 @@ msgstr "外部控制"
 
 msgid "Enable"
 msgstr "启用"
+
+msgid "Disable"
+msgstr "停用"
 
 msgid "RUNNING"
 msgstr "运行中"
@@ -138,7 +132,7 @@ msgid "(Communication protocol)"
 msgstr "(通讯协议)"
 
 msgid "Enable ipv6 Resolve"
-msgstr "启用ipv6解析"
+msgstr "ipv6类型DNS解析"
 
 msgid "Force Enable to Resolve ipv6 DNS Requests"
 msgstr ""
@@ -322,12 +316,6 @@ msgstr "指定流量(策略)的代理方式，只支持选择（服务器组）�
 msgid "Custom Clash Rules"
 msgstr "自定义规则(访问控制)"
 
-msgid "Disable Custom Rules"
-msgstr "关闭"
-
-msgid "Enable Custom Rules"
-msgstr "启用"
-
 msgid "Custom Rules Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md"
 msgstr "设置自定义规则，详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询"
 
@@ -338,7 +326,7 @@ msgid "Set Custom Rules, Will Add When Flag Turn on"
 msgstr "设置自定义规则，在上方规则设置中启用本功能后生效"
 
 msgid "Set Custom Hosts, Only Work with Redir-Host Mode"
-msgstr "设置自定义Hosts，仅在Redir-host模式下生效"
+msgstr "设置自定义Hosts，仅在Redir-Host模式下生效（不会覆盖配置文件设置）"
 
 msgid "Version Update"
 msgstr "版本更新"
@@ -358,14 +346,14 @@ msgstr "最新内核版本"
 msgid "Unknown"
 msgstr "查询失败"
 
-msgid "New!"
-msgstr "可更新！"
+msgid "<New>"
+msgstr "<可更新>"
 
 msgid "Chose to Download"
 msgstr "选择内核编译版本"
 
-msgid "Wrong Version Will Not Work Well"
-msgstr "错误的版本将不能正常工作"
+msgid "For Core Update, Wrong Version Will Not Work"
+msgstr "下载、更新内核前须设置，错误的版本将不能正常运行"
 
 msgid "Update Core File"
 msgstr "更新内核"

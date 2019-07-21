@@ -21,9 +21,6 @@ HOSTS_FILE="/etc/config/openclash_custom_hosts.list"
 
 add_cron()
 {
-  [ -z "$(grep "openclash.log" "$CRON_FILE")" ] && [ -z "$(grep "^log-level: silent" "$CONFIG_FILE")" ] && {
-     echo '*/5 * * * * echo "" > /tmp/openclash.log' >> $CRON_FILE
-  }
   [ -z "$(grep "openclash.sh" "$CRON_FILE")" ] && {
      [ "$(uci get openclash.config.auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.auto_update_time 2>/dev/null) * * $(uci get openclash.config.config_update_week_time 2>/dev/null) /usr/share/openclash/openclash.sh" >> $CRON_FILE
   }
@@ -39,7 +36,6 @@ add_cron()
 
 del_cron()
 {
-   sed -i '/openclash.log/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_rule.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_ipdb.sh/d' $CRON_FILE 2>/dev/null
@@ -315,11 +311,11 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKPACK_FILE" "$START_BACKPACK"
     grep "^ \{0,\}nameserver:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Proxy:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Proxy Group:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Rule:" $CONFIG_FILE >/dev/null 2>&1
     if [ "$?" -ne "0" ]; then
-       nohup $CLASH -d "$CLASH_CONFIG" > $LOG_FILE 2>&1 &
+       nohup $CLASH -d "$CLASH_CONFIG" >> $LOG_FILE 2>&1 &
        echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请根据日志信息对照模板格式检查修改配置文件！" >$START_LOG
        mv $START_BACKPACK $CONFIG_FILE
-       sleep 5
        stop
+       sleep 5
        echo "" >$START_LOG
     else
     echo "第三步: 修改配置文件..." >$START_LOG
@@ -343,15 +339,15 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        echo "" >$START_LOG
     else
        echo "第五步: 启动 Clash 主程序..." >$START_LOG
-       nohup $CLASH -d "$CLASH_CONFIG" > $LOG_FILE 2>&1 &
+       nohup $CLASH -d "$CLASH_CONFIG" >> $LOG_FILE 2>&1 &
 
        echo "第六步: 设置 OpenClash 防火墙规则..." >$START_LOG
-       ln -s /usr/share/openclash/web /www/openclash 2>/dev/null
+       ln -s /usr/share/openclash/yacd /www/openclash 2>/dev/null
 
        uci set firewall.@defaults[0].flow_offloading=1
        uci commit firewall
        /etc/init.d/firewall restart >/dev/null 2>&1
-		
+
        iptables -t nat -N openclash
        iptables -t nat -N openclash_dns
        iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
