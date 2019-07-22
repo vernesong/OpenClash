@@ -38,6 +38,7 @@ end
 
 local function config_check()
   local yaml = luci.sys.call("ls -l /etc/openclash/config.yaml >/dev/null 2>&1")
+  local yml = luci.sys.call("ls -l /etc/openclash/config.yml >/dev/null 2>&1")
   local nameserver,proxy,group,rule
   if (yaml == 0) then
      nameserver = luci.sys.call("egrep '^ {0,}nameserver:' /etc/openclash/config.yaml >/dev/null 2>&1")
@@ -45,7 +46,6 @@ local function config_check()
      group = luci.sys.call("egrep '^ {0,}Proxy Group:' /etc/openclash/config.yaml >/dev/null 2>&1")
      rule = luci.sys.call("egrep '^ {0,}Rule:' /etc/openclash/config.yaml >/dev/null 2>&1")
   else
-     local yml = luci.sys.call("ls -l /etc/openclash/config.yml >/dev/null 2>&1")
      if (yml == 0) then
         nameserver = luci.sys.call("egrep '^ {0,}nameserver:' /etc/openclash/config.yml >/dev/null 2>&1")
         proxy = luci.sys.call("egrep '^ {0,}Proxy:' /etc/openclash/config.yml >/dev/null 2>&1")

@@ -85,7 +85,7 @@ sev.cfgvalue = function(self, section)
 end
 sev.write = function(self, section, value)
 if (CHIF == "0") then
-    value = value:gsub("\r\n", "\n")
+    value = value:gsub("\r\n?", "\n")
 		NXFS.writefile("/etc/openclash/config.yaml", value)
 end
 end

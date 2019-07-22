@@ -33,6 +33,8 @@ if [ "$?" -eq "0" ]; then
 else
    echo "OpenClash 更新失败，文件保存在/tmp/openclash.ipk，请尝试手动更新！" >$START_LOG
    echo "${LOGTIME} OpenClash Update Fail" >>$LOG_FILE
+   uci set openclash.config.update=0
+   uci commit openclash
    sleep 10
    echo "" >$START_LOG
 fi
@@ -43,17 +45,23 @@ EOF
       echo "OpenClash-$LAST_VER 下载失败，请检查网络或稍后再试！" >$START_LOG
       rm -rf /tmp/openclash.ipk >/dev/null 2>&1
       echo "${LOGTIME} OpenClash Update Error" >>$LOG_FILE
+      uci set openclash.config.update=0
+      uci commit openclash
       sleep 10
       echo "" >$START_LOG
    fi
 elif [ ! -f "$LAST_OPVER" ]; then
-      echo "获取版本信息失败，请尝试刷新运行状态页面后重试..." >$START_LOG
-      echo "${LOGTIME} OpenClash Version Check Error, Please Refresh Overview Page And Try Again After A few seconds" >>$LOG_FILE
+      echo "获取版本信息失败，请稍后再试..." >$START_LOG
+      echo "${LOGTIME} OpenClash Version Check Error, Please Try Again After A few seconds" >>$LOG_FILE
+      uci set openclash.config.update=0
+      uci commit openclash
       sleep 5
       echo "" >$START_LOG
 else
-      echo "OpenClash 没有更新，停止继续操作..." >$START_LOG
+      echo "OpenClash 没有更新，停止继续操作！" >$START_LOG
       echo "${LOGTIME} OpenClash Version No Change, Do Nothing" >>$LOG_FILE
+      uci set openclash.config.update=0
+      uci commit openclash
       sleep 5
       echo "" >$START_LOG
 fi

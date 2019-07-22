@@ -90,7 +90,7 @@ o:value("lhie1", translate("lhie1 Rules"))
 o:value("ConnersHua", translate("ConnersHua Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
-SYS.call("awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |grep ^-  |grep name: |sed 's/,.*//' |awk -F 'name: ' '{print $2}' |sed 's/\"//g' >/tmp/Proxy_Group 2>&1")
+SYS.call("awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |egrep '^ {0,}-' |grep name: |sed 's/,.*//' |awk -F 'name: ' '{print $2}' |sed 's/\"//g' >/tmp/Proxy_Group 2>&1")
 SYS.call("echo 'DIRECT' >>/tmp/Proxy_Group")
 SYS.call("echo 'REJECT' >>/tmp/Proxy_Group")
 file = io.open("/tmp/Proxy_Group", "r"); 
@@ -364,7 +364,7 @@ end
 function custom_rules.write(self, section, value)
 
 	if value then
-		value = value:gsub("\r\n", "\n")
+		value = value:gsub("\r\n?", "\n")
 		NXFS.writefile("/etc/config/openclash_custom_rules.list", value)
 	end
 end
@@ -383,7 +383,7 @@ function custom_hosts.cfgvalue(self, section)
 end
 function custom_hosts.write(self, section, value)
 	if value then
-		value = value:gsub("\r\n", "\n")
+		value = value:gsub("\r\n?", "\n")
 		NXFS.writefile("/etc/config/openclash_custom_hosts.list", value)
 	end
 end
