@@ -132,11 +132,11 @@ msgid "(Communication protocol)"
 msgstr "(通讯协议)"
 
 msgid "Enable ipv6 Resolve"
-msgstr "ipv6类型DNS解析"
+msgstr "IPV6类型DNS解析"
 
 msgid "Force Enable to Resolve ipv6 DNS Requests"
 msgstr ""
-"允许解析ipv6类型的DNS请求，如果您没有公网IPV6地址但开启了IPV6的DHCP服务，客户端连接可能会出现异常"
+"允许解析IPV6类型的DNS请求，如果您没有公网IPV6地址但开启了IPV6的DHCP服务，客户端连接可能会出现异常"
 
 msgid "Rules Setting"
 msgstr "规则设置(访问控制)"
@@ -167,7 +167,13 @@ msgid "Please Make Sure Ports Available"
 msgstr "请确保端口可用"
 
 msgid "Subcription Url"
-msgstr "订阅URL"
+msgstr "订阅地址"
+
+msgid "Update Url Type"
+msgstr "订阅地址类型"
+
+msgid "Power By fndroid，Use Other Rules If V2ray Subcription"
+msgstr "格式转换API提供：fndroid，V2ray订阅请配合第三方规则使用"
 
 msgid "Update Subcription"
 msgstr "更新订阅配置"

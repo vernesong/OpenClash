@@ -29,7 +29,7 @@ local fs	= require "nixio.fs"
 local type  = type
 
 --- LuCI filesystem library.
-module "luci.fs"
+module "luci.openclash"
 
 --- Checks wheather the given path exists and points to a directory.
 -- @param dirname	String containing the path of the directory to test

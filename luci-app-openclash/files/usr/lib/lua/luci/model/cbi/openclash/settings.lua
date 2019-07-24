@@ -173,6 +173,13 @@ end
 o.default=0
 o.rmempty = false
 
+o = s:taboption("config_update", ListValue, "config_update_url_type", translate("Update Url Type"))
+o:value("clash", translate("Clash"))
+o:value("v2ray", translate("V2ray"))
+o:value("surge", translate("Surge"))
+o.description = translate("Power By fndroid，Use Other Rules If V2ray Subcription")
+o.default="clash"
+
 o = s:taboption("config_update", Value, "subscribe_url")
 o.title = translate("Subcription Url")
 o.description = translate("Server Subscription Address")
