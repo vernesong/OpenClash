@@ -7,7 +7,6 @@ if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{prin
    if [ "$?" -eq "0" ] && [ "$(ls -l $LAST_OPVER 2>/dev/null |awk '{print int($5)}')" -gt 0 ]; then
       echo "CheckTime:$CKTIME" >>$LAST_OPVER
    else
-      echo "版本检查失败，请稍后再试！" >$LAST_OPVER
-      echo "CheckTime:$CKTIME" >>$LAST_OPVER
+      rm -rf $LAST_OPVER
    fi
 fi

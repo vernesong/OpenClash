@@ -148,7 +148,7 @@ local function coremodel()
 end
 
 local function coremodel2()
-	return luci.sys.exec("opkg status libc |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
+	return luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
 end
 
 local function corecv()
@@ -168,15 +168,34 @@ local function opcv()
 end
 
 local function oplv()
-   return luci.sys.exec("sh /usr/share/openclash/openclash_version.sh && sed -n 1p /tmp/openclash_last_version 2>/dev/null")
+   return luci.sys.exec("sh /usr/share/openclash/openclash_version.sh && sed -n 1p /tmp/openclash_last_version 2>/dev/null |sed 's/^v//g' 2>/dev/null")
 end
 
 local function opup()
-   return luci.sys.exec("uci set openclash.config.update=1 && uci commit openclash && sh /usr/share/openclash/openclash_update.sh >/dev/null 2>&1 &")
+   return luci.sys.exec("uci set openclash.config.update=1 && uci commit openclash && rm -rf /tmp/openclash_last_version 2>/dev/null && sh /usr/share/openclash/openclash_version.sh && sh /usr/share/openclash/openclash_update.sh 2>/dev/null")
 end
 
 local function coreup()
-   return luci.sys.exec("uci set openclash.config.enable=1 && uci commit openclash && sh /usr/share/openclash/openclash_core.sh >/dev/null 2>&1 &")
+   return luci.sys.exec("uci set openclash.config.enable=1 && uci commit openclash && rm -rf /tmp/clash_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh && sh /usr/share/openclash/openclash_core.sh 2>/dev/null")
+end
+
+local function corever()
+   return luci.sys.exec("uci get openclash.config.core_version 2>/dev/null")
+end
+
+local function upchecktime()
+   local corecheck = luci.sys.exec("ls -l --full-time /tmp/clash_last_version 2>/dev/null |awk '{print $6,$7;}'")
+   local opcheck
+   if not corecheck or corecheck == "" then
+      opcheck = luci.sys.exec("ls -l --full-time /tmp/openclash_last_version 2>/dev/null |awk '{print $6,$7;}'")
+      if not opcheck or opcheck == "" then
+         return "1"
+      else
+         return opcheck
+      end
+   else
+      return corecheck
+   end
 end
 
 
@@ -233,6 +252,8 @@ function action_update()
 			corecv = corecv(),
 			corelv = corelv(),
 			opcv = opcv(),
+			corever = corever(),
+			upchecktime = upchecktime(),
 			oplv = oplv();
 	})
 end

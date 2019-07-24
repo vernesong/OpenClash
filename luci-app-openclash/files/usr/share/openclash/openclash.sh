@@ -4,9 +4,20 @@ LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 CONFIG_FILE="/etc/openclash/config.yaml"
 LOG_FILE="/tmp/openclash.log"
 BACKPACK_FILE="/etc/openclash/config.bak"
-echo "开始下载配置文件..." >$START_LOG
+URL_TYPE=$(uci get openclash.config.config_update_url_type 2>/dev/null)
 subscribe_url=$(uci get openclash.config.subscribe_url 2>/dev/null)
-wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 "$subscribe_url" -O /tmp/config.yaml
+if [ "$URL_TYPE" == "V2ray" ]; then
+   echo "开始下载v2ray配置文件..." >$START_LOG
+   subscribe_url=`echo $subscribe_url |sed 's/{/%7B/g;s/}/%7D/g;s/:/%3A/g;s/\"/%22/g;s/,/%2C/g;s/?/%3F/g;s/=/%3D/g;s/&/%26/g;s/\//%2F/g'`
+   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 https://tgbot.lbyczf.com/v2rayn2clash?url="$subscribe_url" -O /tmp/config.yaml
+elif [ "$URL_TYPE" == "surge" ]; then
+   echo "开始下载Surge配置文件..." >$START_LOG
+   subscribe_url=`echo $subscribe_url |sed 's/{/%7B/g;s/}/%7D/g;s/:/%3A/g;s/\"/%22/g;s/,/%2C/g;s/?/%3F/g;s/=/%3D/g;s/&/%26/g;s/\//%2F/g'`
+   wget-ssl --no-check-certificate --timeout=10 --debug --tries=2 https://tgbot.lbyczf.com/surge2clash?url="$subscribe_url" -O /tmp/config.yaml
+else
+   echo "开始下载Clash配置文件..." >$START_LOG
+   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 "$subscribe_url" -O /tmp/config.yaml
+fi
 if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')" -ne 0 ]; then
    echo "配置文件下载成功，检查是否有更新..." >$START_LOG
    if [ -f "$CONFIG_FILE" ]; then
@@ -36,7 +47,7 @@ if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')"
 else
    echo "配置文件下载失败，请检查网络或稍后再试！" >$START_LOG
    echo "${LOGTIME} Config Update Error" >>$LOG_FILE
-   rm -rf /tmp/config.yaml 2>/dev/null
+   #rm -rf /tmp/config.yaml 2>/dev/null
    sleep 10
    echo "" >$START_LOG
 fi
