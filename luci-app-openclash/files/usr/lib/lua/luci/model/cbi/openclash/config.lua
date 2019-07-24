@@ -131,7 +131,7 @@ o.write = function ()
 	local sPath, sFile, fd, block
 	sPath = "/etc/openclash/config.yaml"
 	sFile = NXFS.basename(sPath)
-	if luci.fs.isdirectory(sPath) then
+	if fs.isdirectory(sPath) then
 		fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
 		sFile = sFile .. ".tar.gz"
 	else
