@@ -14,6 +14,7 @@ function index()
 	entry({"admin", "services", "openclash", "currentversion"},call("action_currentversion"))
 	entry({"admin", "services", "openclash", "lastversion"},call("action_lastversion"))
 	entry({"admin", "services", "openclash", "update"},call("action_update"))
+	entry({"admin", "services", "openclash", "update_ma"},call("action_update_ma"))
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Takeover Settings"), 30).leaf = true
@@ -255,6 +256,14 @@ function action_update()
 			corever = corever(),
 			upchecktime = upchecktime(),
 			oplv = oplv();
+	})
+end
+
+function action_update_ma()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+			oplv = oplv(),
+			corever = corever();
 	})
 end
 

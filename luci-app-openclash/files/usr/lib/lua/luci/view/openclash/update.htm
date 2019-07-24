@@ -29,13 +29,13 @@
 	var ma_op_up  = document.getElementById('ma_op_up');
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
-		  if ( status.corever != "0\n" ) {
+		  if ( status.corever != "0\n" && status.corever != "" ) {
 		     core_version.innerHTML = "<b><font color=green>"+status.corever+"</font></b>";
 		  }
 		  else {
 		     core_version.innerHTML = "<b><font color=red><%:未选择编译版本，请到全局设置中配置%></font></b>";
 		  }
-		  if ( status.upchecktime != "" ) {
+		  if ( status.upchecktime != "1" ) {
 		     checktime.innerHTML = "<b><font color=green>"+status.upchecktime+"</font></b>";
 		  }
 		  else {
@@ -76,13 +76,13 @@
   
 	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
-		  if ( status.corever != "0\n" ) {
+		  if ( status.corever != "0\n" && status.corever != "" ) {
 		     core_version.innerHTML = "<b><font color=green>"+status.corever+"</font></b>";
 		  }
 		  else {
 		     core_version.innerHTML = "<b><font color=red><%:未选择编译版本，请到全局设置中配置%></font></b>";
 		  }
-		  if ( status.upchecktime != "" ) {
+		  if ( status.upchecktime != "1" ) {
 		     checktime.innerHTML = "<b><font color=green>"+status.upchecktime+"</font></b>";
 		  }
 		  else {
@@ -156,7 +156,7 @@
     {
         btn.value    = '<%:下载到本地%>';
         btn.disabled = false;
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', status.corever, function(x, status) {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.corever, function(x, status) {
         if ( x && x.status == 200 ) {
            if ( status.corever != "0\n" ) {
               url1='https://github.com/vernesong/OpenClash/releases/download/Clash/clash-'+status.corever+'.tar.gz';
@@ -174,7 +174,7 @@
     {
         btn.value    = '<%:下载到本地%>';
         btn.disabled = false;
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', status.oplv, function(x, status) {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.oplv, function(x, status) {
         if ( x && x.status == 200 ) {
            if ( status.oplv != "" && status.oplv != "\n" ) {
               url2='https://github.com/vernesong/OpenClash/releases/download/v'+status.oplv+'/luci-app-openclash_'+status.oplv+'_all.ipk';

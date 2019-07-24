@@ -173,7 +173,7 @@ msgid "Update Url Type"
 msgstr "订阅地址类型"
 
 msgid "Power By fndroid，Use Other Rules If V2ray Subcription"
-msgstr "格式转换API提供：fndroid，V2ray订阅请配合第三方规则使用"
+msgstr "API提供：Fndroid，V2ray类型的订阅可配合第三方规则使用"
 
 msgid "Update Subcription"
 msgstr "更新订阅配置"
@@ -206,13 +206,10 @@ msgid "Not Null"
 msgstr "空值无效"
 
 msgid "Server Subscription Address"
-msgstr "服务器订阅地址"
+msgstr "配置文件订阅地址"
 
 msgid "Auto Update Server subscription"
-msgstr "自动更新服务器订阅"
-
-msgid "Daily Server subscription update time"
-msgstr "每日服务器订阅更新时间"
+msgstr "自动更新配置文件"
 
 msgid "You Can Modify config file Here, Except The Settings That Were Taken Over"
 msgstr "您可以在下方直接修改配置文件, 仅支持未被接管的设置"
