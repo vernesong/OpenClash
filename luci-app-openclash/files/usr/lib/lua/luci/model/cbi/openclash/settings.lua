@@ -275,8 +275,7 @@ o.description = translate("Dashboard Address Example: 192.168.1.1/openclash、19
 
 o = s:taboption("dashboard", Value, "dashboard_password")
 o.title = translate("Dashboard Secret")
-o.default = 123456
-o.rmempty = false
+o.rmempty = true
 o.description = translate("Set Dashboard Secret")
 
 ---- version update
