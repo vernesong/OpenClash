@@ -344,9 +344,6 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        echo "第六步: 设置 OpenClash 防火墙规则..." >$START_LOG
        ln -s /usr/share/openclash/yacd /www/openclash 2>/dev/null
 
-       uci set firewall.@defaults[0].flow_offloading=1
-       uci commit firewall
-       /etc/init.d/firewall restart >/dev/null 2>&1
 
        iptables -t nat -N openclash
        iptables -t nat -N openclash_dns
@@ -438,9 +435,6 @@ stop()
     ip6tables -t nat -X openclash >/dev/null 2>&1
     ip6tables -t nat -X openclash_dns >/dev/null 2>&1
 
-    uci set firewall.@defaults[0].flow_offloading=1
-    uci commit firewall	
-    /etc/init.d/firewall restart >/dev/null 2>&1
     
     echo "第二步: 关闭 OpenClash 守护程序..." >$START_LOG
     kill -9 "$(ps |grep openclash_watchdog.sh |grep -v grep |awk '{print $1}')" >/dev/null 2>&1
