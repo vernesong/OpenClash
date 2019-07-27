@@ -41,7 +41,7 @@
 		  else {
 		     checktime.innerHTML = "<b><font color=red><%:查询更新失败%></font></b>";
 		  }
-		  cpu_model.innerHTML = status.coremodel ? "<b><font color=green>+status.coremodel+</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
+		  cpu_model.innerHTML = status.coremodel ? "<b><font color=green>"+status.coremodel+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
       cpu_model2.innerHTML = status.coremodel2 ? "<b><font color=green>"+status.coremodel2+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
       if ( status.corecv == "0" ) {
          core_cv.innerHTML = "<b><font color=red><%:File Not Exist%></font></b>";
@@ -52,7 +52,7 @@
       else {
          core_cv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
       }
-			if ( status.corelv != "" && status.corelv != status.corecv && status.corecv != "" && status.corelv != "\n" ) {
+			if ( status.corelv != "" && status.corelv != status.corecv && status.corecv != "" && status.corecv != "0" && status.corelv != "\n" ) {
 			   core_lv.innerHTML = "<b><font color=green>"+status.corelv+"<%:<New>%></font></b>";
 			}
 			else if (status.corelv != "" && status.corelv != "\n" ) {
@@ -88,7 +88,7 @@
 		  else {
 		     checktime.innerHTML = "<b><font color=red><%:查询更新失败%></font></b>";
 		  }
-		  cpu_model.innerHTML = status.coremodel ? "<b><font color=green>+status.coremodel+</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
+		  cpu_model.innerHTML = status.coremodel ? "<b><font color=green>"+status.coremodel+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
       cpu_model2.innerHTML = status.coremodel2 ? "<b><font color=green>"+status.coremodel2+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
       if ( status.corecv == "0" ) {
          core_cv.innerHTML = "<b><font color=red><%:File Not Exist%></font></b>";
@@ -99,7 +99,7 @@
       else {
          core_cv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
       }
-			if ( status.corelv != "" && status.corelv != status.corecv && status.corecv != "" && status.corelv != "\n" ) {
+			if ( status.corelv != "" && status.corelv != status.corecv && status.corecv != "" && status.corecv != "0" && status.corelv != "\n" ) {
 			   core_lv.innerHTML = "<b><font color=green>"+status.corelv+"<%:<New>%></font></b>";
 			}
 			else if (status.corelv != "" && status.corelv != "\n" ) {
