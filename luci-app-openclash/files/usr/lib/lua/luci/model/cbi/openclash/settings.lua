@@ -33,7 +33,8 @@ o:value("linux-mips-hardfloat")
 o:value("linux-mips-softfloat")
 o:value("linux-mips64")
 o:value("linux-mips64le")
-o:value("linux-mipsle")
+o:value("linux-mipsle-softfloat")
+o:value("linux-mipsle-hardfloat")
 o:value("0", translate("Not Set"))
 o.default=0
 
