@@ -13,7 +13,7 @@ if [ "$URL_TYPE" == "V2ray" ]; then
 elif [ "$URL_TYPE" == "surge" ]; then
    echo "开始下载Surge配置文件..." >$START_LOG
    subscribe_url=`echo $subscribe_url |sed 's/{/%7B/g;s/}/%7D/g;s/:/%3A/g;s/\"/%22/g;s/,/%2C/g;s/?/%3F/g;s/=/%3D/g;s/&/%26/g;s/\//%2F/g'`
-   wget-ssl --no-check-certificate --timeout=10 --debug --tries=2 https://tgbot.lbyczf.com/surge2clash?url="$subscribe_url" -O /tmp/config.yaml
+   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 https://tgbot.lbyczf.com/surge2clash?url="$subscribe_url" -O /tmp/config.yaml
 else
    echo "开始下载Clash配置文件..." >$START_LOG
    wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 "$subscribe_url" -O /tmp/config.yaml
@@ -47,7 +47,7 @@ if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')"
 else
    echo "配置文件下载失败，请检查网络或稍后再试！" >$START_LOG
    echo "${LOGTIME} Config Update Error" >>$LOG_FILE
-   #rm -rf /tmp/config.yaml 2>/dev/null
+   rm -rf /tmp/config.yaml 2>/dev/null
    sleep 10
    echo "" >$START_LOG
 fi
