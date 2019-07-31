@@ -394,7 +394,12 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     rm -rf $START_BACKPACK 2>/dev/null
     fi
 else
-   if [ ! -f "$CONFIG_FILE" ]; then
+   subscribe_url=$(uci get openclash.config.subscribe_url 2>/dev/null)
+   if [ ! -f "$CONFIG_FILE" ] && [ ! -z "$subscribe_url" ]; then
+      echo "OpenClash 配置文件不存在，开始下载..." >$START_LOG
+      nohup /usr/share/openclash/openclash.sh &
+      exit 0
+   elif [ ! -f "$CONFIG_FILE" ]; then
       echo "错误: OpenClash 缺少配置文件，请上传或更新配置文件！" >$START_LOG
       echo "${LOGTIME} Config Not Found" >> $LOG_FILE
       sleep 5
