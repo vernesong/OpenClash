@@ -4,12 +4,6 @@
 
 </h1>
 
-<p align="center">
-	A Clash Client For OpenWrt Based on <a href="https://github.com/Dreamacro/clash" target="_blank">Clash</a>
-  </p>
-<p align="center">
-	Codes Based on <a href="https://github.com/frainzy1477/luci-app-clash" target="_blank">Luci For Clash - OpenWrt</a> By frainzy1477
-  </p>
   <p align="center">
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.15.0">
     <img src="https://img.shields.io/badge/Clash-v0.15.0-blue.svg">
@@ -25,9 +19,12 @@
 简介
 ---
 
-本软件包是一个可运行在 OpenWrt 上的 [Clash](https://github.com/Dreamacro/clash) 客户端，兼容Shadowsocks、Vmess等协议，根据灵活的规则配置实现策略代理
-
-* 如果您的设备固件为 `Koolshare OpenWrt/LEDE x86_64` 请使用 [KoolClash](https://github.com/SukkaW/Koolshare-Clash) .
+<p align="center">
+本软件包是一个可运行在 OpenWrt 上的<a href="https://github.com/Dreamacro/clash" target="_blank"> Clash </a>客户端
+</p>
+<p align="center">
+兼容 Shadowsocks、Vmess 等协议，根据灵活的规则配置实现策略代理
+</p>
 
 
 下载地址
@@ -99,14 +96,14 @@ make package/luci-app-openclash/luci-app-openclash/compile V=99
 
 * [MIT License](https://github.com/vernesong/OpenClash/blob/master/LICENSE)
 * [clash](https://github.com/Dreamacro/clash) by [Dreamacro](https://github.com/Dreamacro)
+* Codes Based on [Luci For Clash](https://github.com/frainzy1477/luci-app-clash) by [frainzy1477](https://github.com/frainzy1477)
 * [GeoLite2](https://dev.maxmind.com/geoip/geoip2/geolite2/) by [MaxMind](https://www.maxmind.com)
 * [MyIP](https://github.com/SukkaW/MyIP) by [SukkaW](https://github.com/SukkaW)
-* [Luci For Clash](https://github.com/frainzy1477/luci-app-clash) by [frainzy1477](https://github.com/frainzy1477)
 * [clash-dashboard](https://github.com/Dreamacro/clash-dashboard) by [Dreamacro](https://github.com/Dreamacro)
 * [yacd](https://github.com/haishanh/yacd) by [haishanh](https://github.com/haishanh)
 
 
-预览截图
+预览
 ---
 
 
