@@ -42,24 +42,17 @@ local function config_check()
   local yml = luci.sys.call("ls -l /etc/openclash/config.yml >/dev/null 2>&1")
   local nameserver,proxy,group,rule
   if (yaml == 0) then
-     nameserver = luci.sys.call("egrep '^ {0,}nameserver:' /etc/openclash/config.yaml >/dev/null 2>&1")
      proxy = luci.sys.call("egrep '^ {0,}Proxy:' /etc/openclash/config.yaml >/dev/null 2>&1")
      group = luci.sys.call("egrep '^ {0,}Proxy Group:' /etc/openclash/config.yaml >/dev/null 2>&1")
      rule = luci.sys.call("egrep '^ {0,}Rule:' /etc/openclash/config.yaml >/dev/null 2>&1")
   else
      if (yml == 0) then
-        nameserver = luci.sys.call("egrep '^ {0,}nameserver:' /etc/openclash/config.yml >/dev/null 2>&1")
         proxy = luci.sys.call("egrep '^ {0,}Proxy:' /etc/openclash/config.yml >/dev/null 2>&1")
         group = luci.sys.call("egrep '^ {0,}Proxy Group:' /etc/openclash/config.yml >/dev/null 2>&1")
         rule = luci.sys.call("egrep '^ {0,}Rule:' /etc/openclash/config.yml >/dev/null 2>&1")
      end
   end
   if (yaml == 0) or (yml == 0) then
-     if (nameserver == 0) then
-        nameserver = ""
-     else
-        nameserver = " - DNS服务器"
-     end
      if (proxy == 0) then
         proxy = ""
      else
@@ -75,7 +68,7 @@ local function config_check()
      else
         rule = " - 规则"
      end
-	   return nameserver..proxy..group..rule
+	   return proxy..group..rule
 	elseif (yaml ~= 0) and (yml ~= 0) then
 	   return "1"
 	end
