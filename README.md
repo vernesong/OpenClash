@@ -16,8 +16,6 @@
   </a>
   </p>
   
-简介
----
 
 <p align="center">
 本软件包是一个可运行在 OpenWrt 上的<a href="https://github.com/Dreamacro/clash" target="_blank"> Clash </a>客户端
