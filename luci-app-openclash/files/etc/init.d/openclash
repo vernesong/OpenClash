@@ -1,5 +1,5 @@
 #!/bin/sh /etc/rc.common
-# Copyright (c) 2011-2015 OpenWrt.org
+# Copyright (c) 2019 vernesong
 
 START=99
 STOP=15
@@ -11,8 +11,8 @@ CRON_FILE="/etc/crontabs/root"
 CONFIG_FILE="/etc/openclash/config.yaml"
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
-BACKPACK_FILE="/etc/openclash/config.bak"
-START_BACKPACK="/tmp/config.sbak"
+BACKUP_FILE="/etc/openclash/config.bak"
+START_BACKUP="/tmp/config.sbak"
 CHANGE_FILE="/tmp/yaml_change.yaml"
 RULE_FILE="/tmp/yaml_rules.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
@@ -282,8 +282,8 @@ status=$(ps|grep -c /etc/init.d/openclash)
 if [ ! -f "$CONFIG_FILE" ] && [ "$(ls -l /etc/openclash/config.yml 2>/dev/null |awk '{print int($5/1024)}')" -gt 0 ]; then
    mv "/etc/openclash/config.yml" "$CONFIG_FILE"
 fi
-if [ ! -f "$CONFIG_FILE" ] && [ -f "$BACKPACK_FILE" ]; then
-   cp $BACKPACK_FILE $CONFIG_FILE
+if [ ! -f "$CONFIG_FILE" ] && [ -f "$BACKUP_FILE" ]; then
+   cp $BACKUP_FILE $CONFIG_FILE
 fi
 
 echo "OpenClash 开始启动..." >$START_LOG
@@ -308,12 +308,12 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     http_port=$(uci get openclash.config.http_port 2>/dev/null)
     socks_port=$(uci get openclash.config.socks_port 2>/dev/null)
     echo "第二步: 配置文件检查..." >$START_LOG
-    yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKPACK_FILE" "$START_BACKPACK"
+    yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKUP_FILE" "$START_BACKUP"
     grep "^ \{0,\}nameserver:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Proxy:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Proxy Group:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Rule:" $CONFIG_FILE >/dev/null 2>&1
     if [ "$?" -ne "0" ]; then
        nohup $CLASH -d "$CLASH_CONFIG" >> $LOG_FILE 2>&1 &
        echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请根据日志信息对照模板格式检查修改配置文件！" >$START_LOG
-       mv $START_BACKPACK $CONFIG_FILE
+       mv $START_BACKUP $CONFIG_FILE
        stop
        sleep 5
        echo "" >$START_LOG
@@ -334,7 +334,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     if [ ! -z "$(sed -n '/^ \{0,\}nameserver:/{n;p}' $CONFIG_FILE |grep '^ \{0,\}fallback:')" ] || [ ! -z "$(sed -n '/^ \{0,\}nameserver:/{n;p}' $CONFIG_FILE |grep 'OpenClash-General')" ]; then
        echo "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已自动还原配置文件，请重新设置！" >$START_LOG
        echo "${LOGTIME} Nameserver Must Be Set, Please Change Your Configrations In Config.yaml" >>$LOG_FILE
-       mv $START_BACKPACK $CONFIG_FILE
+       mv $START_BACKUP $CONFIG_FILE
        sleep 10
        echo "" >$START_LOG
     else
@@ -384,14 +384,38 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           sleep 5
           echo "" >$START_LOG
        else
-          echo "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！" >$START_LOG
-          echo "${LOGTIME} OpenClash Can Not Start, Please Check The Error Info And Try Again" >> $LOG_FILE
-          sleep 10
-          echo "" >$START_LOG
-          stop && echo "" >$START_LOG
+          if [ "$rule_source" != 0 ]; then
+             echo "错误: OpenClash 启动失败，尝试还原规则并重新启动 Clash 主程序..." >$START_LOG
+             echo "${LOGTIME} OpenClash Can Not Start, Try Use Backup Rules Start Again" >> $LOG_FILE
+             mv "$BACKUP_FILE" /etc/openclash/configrules.bak
+             sed -i -n '/^Rule:/,$p' /etc/openclash/configrules.bak
+             sed -i '/^Rule:/,$d' "$CONFIG_FILE"
+             cat /etc/openclash/configrules.bak >> "$CONFIG_FILE"
+             rm -rf /etc/openclash/configrules.bak
+             nohup $CLASH -d "$CLASH_CONFIG" >> $LOG_FILE 2>&1 &
+             if pidof clash >/dev/null; then
+                add_cron
+                echo "OpenClash 使用备份规则启动成功，请更新、检查第三方规则后重试！" >$START_LOG
+                echo "${LOGTIME} OpenClash Start Successful With Backup Rules Config, Please Check Or Update Other Rules And Retry" >> $LOG_FILE
+                sleep 5
+                echo "" >$START_LOG
+             else
+                echo "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！" >$START_LOG
+                echo "${LOGTIME} OpenClash Can Not Start, Please Check The Error Info And Try Again" >> $LOG_FILE
+                sleep 10
+                echo "" >$START_LOG
+                stop && echo "" >$START_LOG
+             fi
+          else
+             echo "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！" >$START_LOG
+             echo "${LOGTIME} OpenClash Can Not Start, Please Check The Error Info And Try Again" >> $LOG_FILE
+             sleep 10
+             echo "" >$START_LOG
+             stop && echo "" >$START_LOG
+          fi
        fi
     fi
-    rm -rf $START_BACKPACK 2>/dev/null
+    rm -rf $START_BACKUP 2>/dev/null
     fi
 else
    subscribe_url=$(uci get openclash.config.subscribe_url 2>/dev/null)
