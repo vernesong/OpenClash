@@ -37,19 +37,19 @@ authentication: # 此项将被接管
   - "user1:pass1"
   - "user2:pass2"
 
-dns:  # 此参数必须保留,不能删除,如订阅配置无包括此项的所有DNS设置，OpenClash将自动添加
+dns:  # 如订阅配置无包括此项的所有DNS设置，OpenClash将自动添加
   enable: true # set true to enable dns (default is false) # 此项将被接管为true
   ipv6: false # default is false # 此项将被接管
   listen: 0.0.0.0:53 # 端口为53时将被接管为7874
-  enhanced-mode: redir-host # or fake-ip # 此项可被接管
+  enhanced-mode: redir-host # or fake-ip # 此项将被接管
   fake-ip-range: 198.18.0.1/16 # if you don't know what it is, don't change it # 此项将被接管
 #  experimental hosts, support wildcard (e.g. *.clash.dev Even *.foo.*.example.com)
 #  static domain has a higher priority than wildcard domain (foo.example.com > *.example.com)
 #  NOTE: hosts don't work with `fake-ip`
-#  hosts:
+#  hosts: # 此项将被接管
 #  '*.clash.dev': 127.0.0.1
 #  'alpha.clash.dev': '::1'
-  nameserver:  # 此参数必须保留,不能删除
+  nameserver:
   - 114.114.114.114
   - tls://dns.rubyfish.cn:853 # dns over tls
   - https://1.1.1.1/dns-query # dns over https
