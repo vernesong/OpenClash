@@ -102,7 +102,7 @@ yml_dns_check()
    }
    
    [ -z "$(grep '^ \{0,\}nameserver:' $CONFIG_FILE)" ] && {
-      sed -i -e '/^Proxy:/i\  nameserver:' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^Proxy:/i\  nameserver:' "$CONFIG_FILE" 2>/dev/null
       sed -i "/nameserver:/a\  - tls://8.8.8.8:853" "$CONFIG_FILE" 2>/dev/null
       sed -i "/nameserver:/a\  - 114.114.114.114" "$CONFIG_FILE" 2>/dev/null
    }
@@ -231,7 +231,7 @@ yml_hosts_custom()
 	   sed -i '/##Custom HOSTS END##/d' "$2" 2>/dev/null
 	else
 	    sed -i '/^ *$/d' "$1" 2>/dev/null
-	    lastl = `sed -n -e '/hosts:/=' "$1" 2>/dev/null`
+	    lastl = `sed -n '/hosts:/=' "$1" 2>/dev/null`
 	    lasthl = `sed -n '$=' "$1" 2>/dev/null`
 	   if [ "$lastl" = "$lasthl" ]; then
 	      sed -i '/^ \{0,\}hosts:/d' "$1" 2>/dev/null 
@@ -344,36 +344,50 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        echo "第六步: 设置 OpenClash 防火墙规则..." >$START_LOG
        ln -s /usr/share/openclash/yacd /www/openclash 2>/dev/null
 
-
-       iptables -t nat -N openclash
-       iptables -t nat -N openclash_dns
-       iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
-       iptables -t nat -A openclash -d 10.0.0.0/8 -j RETURN
-       iptables -t nat -A openclash -d 127.0.0.0/8 -j RETURN
-       iptables -t nat -A openclash -d 169.254.0.0/16 -j RETURN
-       iptables -t nat -A openclash -d 172.16.0.0/12 -j RETURN
-       iptables -t nat -A openclash -d 192.168.0.0/16 -j RETURN
-       iptables -t nat -A openclash -d 224.0.0.0/4 -j RETURN
-       iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
-       iptables -t nat -A openclash -p tcp --dport 22 -j ACCEPT
-       iptables -t nat -A openclash_dns -p udp -j REDIRECT --to-ports "$dns_port"
-       iptables -t nat -A openclash_dns -p tcp -j REDIRECT --to-ports "$dns_port"
-       iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-       iptables -t nat -I PREROUTING 1 -p tcp --dport 53 -j openclash_dns
-       iptables -t nat -I PREROUTING 1 -p udp --dport 53 -j openclash_dns
-       iptables -t nat -A PREROUTING -p tcp -j openclash
-
-       if [ "$ipv6_enable" -eq 1 ]; then
-       ip6tables -t nat -N openclash
-       ip6tables -t nat -N openclash_dns
-       ip6tables -t nat -A openclash_dns -p udp -j REDIRECT --to-ports "$dns_port"
-       ip6tables -t nat -A openclash_dns -p tcp -j REDIRECT --to-ports "$dns_port"
-       ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-       ip6tables -t nat -I PREROUTING 1 -p tcp --dport 53 -j openclash_dns
-       ip6tables -t nat -I PREROUTING 1 -p udp --dport 53 -j openclash_dns
-       ip6tables -t nat -A PREROUTING -p tcp -j openclash
+       pre_line=`iptables  -t  nat -nL PREROUTING --line-number |grep dpt:53 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1`
+       
+       if [ -z "$pre_line" ] || [ "$pre_line" -lt 1 ]; then
+       	pre_line=`expr $(iptables  -t  nat -nL PREROUTING --line-number |grep zone_lan_prerouting 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1) + 1 2>/dev/null`
+       fi
+       
+       if [ -z "$pre_line" ]; then
+       	pre_line=1
        fi
 
+       mkdir -p /var/etc
+       cat > "/var/etc/openclash.include" <<-EOF
+iptables -t nat -N openclash
+iptables -t nat -N openclash_dns
+iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
+iptables -t nat -A openclash -d 10.0.0.0/8 -j RETURN
+iptables -t nat -A openclash -d 127.0.0.0/8 -j RETURN
+iptables -t nat -A openclash -d 169.254.0.0/16 -j RETURN
+iptables -t nat -A openclash -d 172.16.0.0/12 -j RETURN
+iptables -t nat -A openclash -d 192.168.0.0/16 -j RETURN
+iptables -t nat -A openclash -d 224.0.0.0/4 -j RETURN
+iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
+iptables -t nat -A openclash -p tcp --dport 22 -j ACCEPT
+iptables -t nat -A openclash_dns -p udp -j REDIRECT --to-ports "$dns_port"
+iptables -t nat -A openclash_dns -p tcp -j REDIRECT --to-ports "$dns_port"
+iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
+iptables -t nat -I PREROUTING "$pre_line" -p tcp --dport 53 -j openclash_dns
+iptables -t nat -I PREROUTING "$pre_line" -p udp --dport 53 -j openclash_dns
+iptables -t nat -A PREROUTING -p tcp -j openclash
+EOF
+if [ "$ipv6_enable" -eq 1 ]; then
+   cat >> "/var/etc/openclash.include" <<-EOF
+ip6tables -t nat -N openclash
+ip6tables -t nat -N openclash_dns
+ip6tables -t nat -A openclash_dns -p udp -j REDIRECT --to-ports "$dns_port"
+ip6tables -t nat -A openclash_dns -p tcp -j REDIRECT --to-ports "$dns_port"
+ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
+ip6tables -t nat -I PREROUTING "$pre_line" -p tcp --dport 53 -j openclash_dns
+ip6tables -t nat -I PREROUTING "$pre_line" -p udp --dport 53 -j openclash_dns
+ip6tables -t nat -A PREROUTING -p tcp -j openclash
+EOF
+fi
+
+       /etc/init.d/firewall restart >/dev/null 2>&1
        echo "第七步: 重启 Dnsmasq 程序..." >$START_LOG
        /etc/init.d/dnsmasq restart >/dev/null 2>&1
        if pidof clash >/dev/null; then
@@ -441,28 +455,8 @@ stop()
 {
     echo "OpenClash 开始关闭..." >$START_LOG
     echo "第一步: 删除 OpenClash 防火墙规则..." >$START_LOG
-#ipv4
-    iptables -t nat -F openclash >/dev/null 2>&1
-    iptables -t nat -F openclash_dns >/dev/null 2>&1
-	
-    nat_clashs=$(iptables -nvL PREROUTING -t nat | sed 1,2d | sed -n '/openclash/=' | sort -r)
-    for nat_clash in $nat_clashs; do
-        iptables -t nat -D PREROUTING "$nat_clash" >/dev/null 2>&1
-    done
-
-    iptables -t nat -X openclash >/dev/null 2>&1
-    iptables -t nat -X openclash_dns >/dev/null 2>&1
-#ipv6
-    ip6tables -t nat -F openclash >/dev/null 2>&1
-    ip6tables -t nat -F openclash_dns >/dev/null 2>&1
-	
-    nat6_clashs=$(ip6tables -nvL PREROUTING -t nat 2>/dev/null | sed 1,2d | sed -n '/openclash/=' | sort -r)
-    for nat6_clash in $nat6_clashs; do
-        ip6tables -t nat -D PREROUTING "$nat6_clash" >/dev/null 2>&1
-    done
-
-    ip6tables -t nat -X openclash >/dev/null 2>&1
-    ip6tables -t nat -X openclash_dns >/dev/null 2>&1
+    rm -rf /var/etc/openclash.include 2>/dev/null
+    /etc/init.d/firewall restart >/dev/null 2>&1
 
     
     echo "第二步: 关闭 OpenClash 守护程序..." >$START_LOG
