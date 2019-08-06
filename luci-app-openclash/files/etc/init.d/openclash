@@ -43,13 +43,13 @@ del_cron()
 }
 
 change_dns(){
-   uci del dhcp.@dnsmasq[-1].queryport
+   uci del dhcp.@dnsmasq[-1].queryport 2>/dev/null
    uci set dhcp.@dnsmasq[0].queryport=7882
    uci commit dhcp
 }
 
 revert_dns() {
-   uci del dhcp.@dnsmasq[-1].queryport
+   uci del dhcp.@dnsmasq[-1].queryport 2>/dev/null
    uci commit dhcp
 }
 
