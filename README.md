@@ -8,11 +8,11 @@
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.15.0">
     <img src="https://img.shields.io/badge/Clash-v0.15.0-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.33.3-beta">
-    <img src="https://img.shields.io/badge/source code-v0.33.3--beta-green.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.33.4-beta">
+    <img src="https://img.shields.io/badge/source code-v0.33.4--beta-green.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.33.3-beta">
-    <img src="https://img.shields.io/badge/NewRelease-v0.33.3--beta-orange.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.33.4-beta">
+    <img src="https://img.shields.io/badge/NewRelease-v0.33.4--beta-orange.svg">
   </a>
   </p>
   
@@ -38,6 +38,7 @@
 * luci
 * luci-base
 * iptables
+* dnsmasq-full
 * coreutils
 * coreutils-nohup
 * bash
@@ -48,9 +49,9 @@
 ---
 
 
-* 安装后先在设置页面选择`内核编译版本`
-* 上传或订阅配置文件
-* 启动客户端
+* 安装后先在设置页面选择`内核编译版本`，或前往接管设置页面的版本升级标签下载内核，解压后放在/etc/openclash目录下，并给权限
+* 上传或订阅配置文件（接管设置页面订阅、配置文件页面上传）
+* 启动客户端（如没有内核文件则根据选择的内核编译版本自动下载内核）
 
 
 编译
@@ -78,13 +79,13 @@ pushd package/luci-app-openclash/luci-app-openclash/tools/po2lmo
 make && sudo make install
 popd
 
-# 您也可以直接拷贝 `luci-app-openclash` 文件夹至 `OpenWrt` 项目的 `Package` 目录下
-
 # 选择要编译的包 LuCI -> Applications -> luci-app-openclash
 make menuconfig
 
 # 开始编译
 make package/luci-app-openclash/luci-app-openclash/compile V=99
+
+# 您也可以直接拷贝 `luci-app-openclash` 文件夹至 `OpenWrt` 项目的 `Package` 目录下
 ```
 
 
@@ -93,12 +94,12 @@ make package/luci-app-openclash/luci-app-openclash/compile V=99
 
 
 * [MIT License](https://github.com/vernesong/OpenClash/blob/master/LICENSE)
-* [clash](https://github.com/Dreamacro/clash) by [Dreamacro](https://github.com/Dreamacro)
-* Codes Based on [Luci For Clash](https://github.com/frainzy1477/luci-app-clash) by [frainzy1477](https://github.com/frainzy1477)
-* [GeoLite2](https://dev.maxmind.com/geoip/geoip2/geolite2/) by [MaxMind](https://www.maxmind.com)
-* [MyIP](https://github.com/SukkaW/MyIP) by [SukkaW](https://github.com/SukkaW)
-* [clash-dashboard](https://github.com/Dreamacro/clash-dashboard) by [Dreamacro](https://github.com/Dreamacro)
-* [yacd](https://github.com/haishanh/yacd) by [haishanh](https://github.com/haishanh)
+* 内核 [clash](https://github.com/Dreamacro/clash) by [Dreamacro](https://github.com/Dreamacro)
+* 本项目代码基于 [Luci For Clash](https://github.com/frainzy1477/luci-app-clash) by [frainzy1477](https://github.com/frainzy1477)
+* GEOIP数据库 [GeoLite2](https://dev.maxmind.com/geoip/geoip2/geolite2/) by [MaxMind](https://www.maxmind.com)
+* IP检查 [MyIP](https://github.com/SukkaW/MyIP) by [SukkaW](https://github.com/SukkaW)
+* 控制面板 [clash-dashboard](https://github.com/Dreamacro/clash-dashboard) by [Dreamacro](https://github.com/Dreamacro)
+* 控制面板 [yacd](https://github.com/haishanh/yacd) by [haishanh](https://github.com/haishanh)
 
 
 预览
