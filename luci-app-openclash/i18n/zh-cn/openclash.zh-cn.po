@@ -87,13 +87,13 @@ msgid "Select Mode"
 msgstr "OpenClash 运行模式"
 
 msgid "redir-host"
-msgstr "Redir-Host 模式"
+msgstr "Redir-Host（兼容）模式"
 
 msgid "fake-ip"
-msgstr "Fake-IP 模式"
+msgstr "Fake-IP（增强）模式"
 
 msgid "Select Mode For OpenClash Work, Network Error Try Flush DNS Cache"
-msgstr "选择运行模式，如客户端的网络无法连接请尝试清除DNS缓存"
+msgstr "选择运行模式，在兼容模式下无法代理路由器自身流量，如客户端的网络无法连接请尝试清除DNS缓存"
 
 msgid "Custom DNS Setting"
 msgstr "自定义上游DNS服务器"

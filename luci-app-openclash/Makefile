@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.33.3
+PKG_VERSION:=0.33.4
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
@@ -51,7 +51,7 @@ define Package/$(PKG_NAME)/postinst
 rm -rf /tmp/luci*
 if [ -f "/tmp/openclash.bak" ]; then
 	mv "/tmp/openclash.bak" "/etc/config/openclash" 2>/dev/null
-	mv "/tmp/openclash_custom_rules.list.bak" "/etc/config/openclash_custom_rules.list" 2>/dev/null
+	#mv "/tmp/openclash_custom_rules.list.bak" "/etc/config/openclash_custom_rules.list" 2>/dev/null
 	mv "/tmp/openclash_custom_hosts.list.bak" "/etc/config/openclash_custom_hosts.list" 2>/dev/null
 fi
 if [ -f "/tmp/config.yaml" ]; then
