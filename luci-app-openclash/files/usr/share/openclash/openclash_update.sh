@@ -18,16 +18,16 @@ if [ "$(sed -n 1p /etc/openclash/openclash_version 2>/dev/null)" != "$(sed -n 1p
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 START_LOG="/tmp/openclash_start.log"
 LOG_FILE="/tmp/openclash.log"
-echo "正在卸载旧版本，更新过程请不要刷新页面和进行其他操作... ..." >$START_LOG
-opkg remove luci-app-openclash\
- && echo "正在安装新版本，更新过程请不要刷新页面和进行其他操作 ..." >$START_LOG\
- && opkg install /tmp/openclash.ipk
+echo "正在卸载旧版本，更新过程请不要刷新页面和进行其他操作 ..." >$START_LOG
+opkg remove luci-app-openclash
+echo "正在安装新版本，更新过程请不要刷新页面和进行其他操作 ..." >$START_LOG
+opkg install /tmp/openclash.ipk
 if [ "$?" -eq "0" ]; then
-   echo "OpenClash 更新成功！" >$START_LOG
-   echo "${LOGTIME} OpenClash Update Successful" >>$LOG_FILE
    rm -rf /tmp/openclash.ipk >/dev/null 2>&1
    uci set openclash.config.update=0
    uci commit openclash
+   echo "OpenClash 更新成功！" >$START_LOG
+   echo "${LOGTIME} OpenClash Update Successful" >>$LOG_FILE
    sleep 10
    echo "" >$START_LOG
 else

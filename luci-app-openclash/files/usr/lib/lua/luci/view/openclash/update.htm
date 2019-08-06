@@ -128,28 +128,23 @@
 	
 	function core_update(btn)
     {
-        btn.disabled = true;
-        btn.value    = '<%:运行中...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "coreupdate")%>', status.coreup, function(x, status) {
-        if ( x && x.status == 200 ) {
+    
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "coreupdate")%>', null, function(x, status) {
         btn.value    = '<%:检查并更新%>';
         btn.disabled = false;
-        }
-        });
         return false; 
+        });
+
     }
 	
 	function op_update(btn)
     {
-        btn.disabled = true;
-        btn.value    = '<%:运行中...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', status.opup, function(x, status) {
-        if ( x && x.status == 200 ) {
+
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', null, function(x, status) {
         btn.value    = '<%:检查并更新%>';
         btn.disabled = false;
-        }
+        return false;
         });
-        return false; 
     }
     
     function ma_core_update(btn)
