@@ -319,8 +319,8 @@ msgstr "指定流量(策略)的代理方式，只支持选择（服务器组）�
 msgid "Custom Clash Rules"
 msgstr "自定义规则(访问控制)"
 
-msgid "Custom Rules Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md"
-msgstr "设置自定义规则，详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询"
+msgid "Custom Rules Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md, IP To CIDR: http://ip2cidr.com"
+msgstr "设置自定义规则，详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询，在线IP段转CIDR地址：http://ip2cidr.com"
 
 msgid "Custom Hosts Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md"
 msgstr "设置自定义Hosts，详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询"

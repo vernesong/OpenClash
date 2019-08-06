@@ -361,7 +361,7 @@ s.anonymous = true
 
 custom_rules = s:option(Value, "custom_rules")
 custom_rules.template = "cbi/tvalue"
-custom_rules.description = translate("Custom Rules Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md")
+custom_rules.description = translate("Custom Rules Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md, IP To CIDR: http://ip2cidr.com")
 custom_rules.rows = 20
 custom_rules.wrap = "off"
 
