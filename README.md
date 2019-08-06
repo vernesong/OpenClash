@@ -85,7 +85,7 @@ make menuconfig
 # 开始编译
 make package/luci-app-openclash/luci-app-openclash/compile V=99
 
-# 您也可以直接拷贝 `luci-app-openclash` 文件夹至 `OpenWrt` 项目的 `Package` 目录下
+# 您也可以直接拷贝 `luci-app-openclash` 文件夹至其他 `OpenWrt` 项目的 `Package` 目录下随固件编译
 ```
 
 
