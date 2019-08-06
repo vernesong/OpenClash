@@ -90,10 +90,10 @@ fi
 	rm -rf /tmp/Proxy_Group 2>/dev/null
 	rm -rf /tmp/openclash_last_version 2>/dev/null
 	rm -rf /tmp/clash_last_version 2>/dev/null
-	uci delete firewall.openclash
-	uci commit firewall
-	uci delete ucitrack.@openclash[-1]
-	uci commit ucitrack
+	uci delete firewall.openclash 2>/dev/null
+	uci commit firewall 2>/dev/null
+	uci delete ucitrack.@openclash[-1] 2>/dev/null
+	uci commit ucitrack 2>/dev/null
 endef
 
 define Package/$(PKG_NAME)/install
