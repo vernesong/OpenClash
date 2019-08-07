@@ -2,7 +2,7 @@
 # Copyright (c) 2019 vernesong
 
 START=99
-STOP=15
+STOP=25
 
 
 CLASH="/etc/openclash/clash"
@@ -43,13 +43,17 @@ del_cron()
 }
 
 change_dns(){
-   uci del dhcp.@dnsmasq[-1].queryport 2>/dev/null
-   uci set dhcp.@dnsmasq[0].queryport=7882
+   uci del dhcp.@dnsmasq[-1].server
+   uci add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
+   uci delete dhcp.@dnsmasq[0].resolvfile
+   uci set dhcp.@dnsmasq[0].noresolv=1
    uci commit dhcp
 }
 
 revert_dns() {
-   uci del dhcp.@dnsmasq[-1].queryport 2>/dev/null
+   uci del dhcp.@dnsmasq[-1].server
+   uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
+   uci set dhcp.@dnsmasq[0].noresolv=0
    uci commit dhcp
 }
 
@@ -380,8 +384,6 @@ iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
 iptables -t nat -A openclash -p tcp --dport 22 -j ACCEPT
 iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
 iptables -t nat -A PREROUTING -p tcp -j openclash
-iptables -t nat -A OUTPUT -p udp --sport 7882 -s "$lan_ip" -j REDIRECT --to-ports "$dns_port"
-iptables -t nat -A OUTPUT -p tcp --sport 7882 -s "$lan_ip" -j REDIRECT --to-ports "$dns_port"
 iptables -t nat -A OUTPUT -p tcp -d 198.18.0.1/16 -j REDIRECT --to-ports "$proxy_port"
 EOF
 
@@ -391,14 +393,12 @@ if [ "$ipv6_enable" -eq 1 ]; then
 ip6tables -t nat -N openclash
 ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
 ip6tables -t nat -A PREROUTING -p tcp -j openclash
-iptables -t nat -A OUTPUT -p udp --sport 7882 -s "$lan_ip6" -j REDIRECT --to-ports "$dns_port"
-iptables -t nat -A OUTPUT -p tcp --sport 7882 -s "$lan_ip6" -j REDIRECT --to-ports "$dns_port"
 EOF
 fi
 
        /etc/init.d/firewall restart >/dev/null 2>&1
        echo "第七步: 重启 Dnsmasq 程序..." >$START_LOG
-       if [ ! -z "$(uci get dhcp.@dnsmasq[0].server 2>/dev/null)" ] || [ "$(iptables -t nat -nL PREROUTING --line-number |grep dpt:53 |wc -l)" -gt 2 ]; then
+       if [ "$(iptables -t nat -nL PREROUTING --line-number |grep dpt:53 |wc -l)" -gt 2 ]; then
           echo "发现Dnsmasq被占用，请将OpenClash设置为占用Dnsmas程序的上游DNS服务器！" >$START_LOG
           echo "${LOGTIME} Warring: OpenClash May Can Not Take Over DNS, Please Use OpenClash for Upstream DNS Resolve Server" >> $LOG_FILE
        	  sleep 5
