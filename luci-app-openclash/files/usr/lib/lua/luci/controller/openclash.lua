@@ -166,7 +166,7 @@ local function oplv()
 end
 
 local function opup()
-   return luci.sys.exec("uci set openclash.config.update=1 && uci commit openclash && rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/openclash_version.sh && sh /usr/share/openclash/openclash_update.sh >/dev/null 2>&1 &")
+   return luci.sys.exec("rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/openclash_version.sh && sh /usr/share/openclash/openclash_update.sh >/dev/null 2>&1 &")
 end
 
 local function coreup()

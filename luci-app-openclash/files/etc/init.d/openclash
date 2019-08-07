@@ -485,16 +485,13 @@ stop()
     /etc/init.d/dnsmasq restart >/dev/null 2>&1
 
     echo "第五步：删除 OpenClash 残留文件..." >$START_LOG
-    rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
-    if [ "$rule_source" != 0 ]; then
-       rm -rf /tmp/Proxy_Group >/dev/null 2>&1
-    fi
     enable=$(uci get openclash.config.enable 2>/dev/null)
     if [ "$enable" -eq 0 ]; then
        rm -rf $LOG_FILE 2>/dev/null
        rm -rf /www/openclash 2>/dev/null
        rm -rf /tmp/openclash_last_version 2>/dev/null
        rm -rf /tmp/clash_last_version 2>/dev/null
+       rm -rf /tmp/Proxy_Group 2>/dev/null
        echo "OpenClash 关闭成功！" >$START_LOG
        sleep 5
        rm -rf $START_LOG
