@@ -14,13 +14,13 @@ msgstr "将按照以下设置本地化配置文件和获取订阅"
 msgid "Technical Support"
 msgstr "技术支持"
 
-msgid "Overview"
+msgid "Overviews"
 msgstr "运行状态"
 
 msgid "Takeover Settings"
 msgstr "接管设置"
 
-msgid "General Settings"
+msgid "General-Settings"
 msgstr "全局设置"
 
 msgid "Config Update"
@@ -94,6 +94,12 @@ msgstr "Fake-IP（增强）模式"
 
 msgid "Select Mode For OpenClash Work, Network Error Try Flush DNS Cache"
 msgstr "选择运行模式，在兼容模式下无法代理路由器自身流量，如客户端的网络无法连接请尝试清除DNS缓存"
+
+msgid "Redirect Local DNS Setting"
+msgstr "本地DNS劫持"
+
+msgid "Set Local DNS Redirect"
+msgstr "默认启用，将自动设置Dnsmasq的上游服务器，如和其他插件冲突可停用，但须将OpenClash作为冲突插件的唯一上游服务器"
 
 msgid "Custom DNS Setting"
 msgstr "自定义上游DNS服务器"
