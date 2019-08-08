@@ -15,7 +15,7 @@ allow-lan: true # 此项将被接管为true
 # "*": bind all IP addresses
 # 192.168.122.11: bind a single IPv4 address
 # "[aaaa::a8aa:ff:fe09:57d8]": bind a single IPv6 address
-bind-address: "*" # HTTP(S)\SOCKS5 监听地址范围，将被接管为路由器地址
+bind-address: "*" # HTTP(S)\SOCKS5 监听地址，此项将被接管为all
 
 # Rule / Global/ Direct (default is Rule)
 mode: Rule

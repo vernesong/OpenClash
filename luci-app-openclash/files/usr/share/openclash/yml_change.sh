@@ -78,7 +78,7 @@
     fi
     
     sed -i '/bind-address:/d' "$7" 2>/dev/null
-    sed -i "/^allow-lan:/a\bind-address: \"${11}\"" "$7"
+    sed -i "/^allow-lan:/a\bind-address: \"*\"" "$7"
     
     if [ -z "$(grep '^external-ui: "/usr/share/openclash/dashboard"' "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}external-ui:" "$7")" ]; then
