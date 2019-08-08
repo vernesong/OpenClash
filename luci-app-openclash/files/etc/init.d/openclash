@@ -48,6 +48,7 @@ change_dns(){
    uci delete dhcp.@dnsmasq[0].resolvfile
    uci set dhcp.@dnsmasq[0].noresolv=1
    uci commit dhcp
+   ipset flush
 }
 
 revert_dns() {
@@ -359,17 +360,6 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        echo "第六步: 设置 OpenClash 防火墙规则..." >$START_LOG
        ln -s /usr/share/openclash/yacd /www/openclash 2>/dev/null
 
-       pre_line=`iptables  -t  nat -nL PREROUTING --line-number |grep dpt:53 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1`
-       
-       if [ -z "$pre_line" ] || [ "$pre_line" -lt 1 ]; then
-       	pre_line=`expr $(iptables  -t  nat -nL PREROUTING --line-number |grep zone_lan_prerouting 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1) + 1 2>/dev/null`
-       fi
-       
-       if [ -z "$pre_line" ]; then
-       	pre_line=1
-       fi
-
-       lan_ip=$(uci get network.lan.ipaddr 2>/dev/null)
        mkdir -p /var/etc
        cat > "/var/etc/openclash.include" <<-EOF
 iptables -t nat -N openclash
@@ -387,7 +377,6 @@ iptables -t nat -A PREROUTING -p tcp -j openclash
 iptables -t nat -A OUTPUT -p tcp -d 198.18.0.1/16 -j REDIRECT --to-ports "$proxy_port"
 EOF
 
-lan_ip6=$(uci get network.lan.ip6addr 2>/dev/null)
 if [ "$ipv6_enable" -eq 1 ]; then
    cat >> "/var/etc/openclash.include" <<-EOF
 ip6tables -t nat -N openclash
@@ -397,6 +386,7 @@ EOF
 fi
 
        /etc/init.d/firewall restart >/dev/null 2>&1
+       
        echo "第七步: 重启 Dnsmasq 程序..." >$START_LOG
        if [ "$(iptables -t nat -nL PREROUTING --line-number |grep dpt:53 |wc -l)" -gt 2 ]; then
           echo "发现Dnsmasq被占用，请将OpenClash设置为占用Dnsmas程序的上游DNS服务器！" >$START_LOG
