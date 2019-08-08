@@ -2,7 +2,7 @@
 # Copyright (c) 2019 vernesong
 
 START=99
-STOP=25
+STOP=15
 
 
 CLASH="/etc/openclash/clash"
@@ -42,17 +42,16 @@ del_cron()
    /etc/init.d/cron restart
 }
 
-change_dns(){
-   uci del dhcp.@dnsmasq[-1].server
+change_dns() {
    uci add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
    uci delete dhcp.@dnsmasq[0].resolvfile
    uci set dhcp.@dnsmasq[0].noresolv=1
    uci commit dhcp
-   ipset flush
 }
 
 revert_dns() {
-   uci del dhcp.@dnsmasq[-1].server
+	 dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
+   uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port" >/dev/null 2>&1
    uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
    uci set dhcp.@dnsmasq[0].noresolv=0
    uci commit dhcp
@@ -133,6 +132,8 @@ yml_dns_check()
    else
       sed -i "/^dns:/a\  listen: 0.0.0.0:${dns_port}" "$CONFIG_FILE" 2>/dev/null
    fi
+   
+   uci set openclash.config.dns_port="$dns_port" && uci commit openclash
 
 }
 
@@ -323,6 +324,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     ipv6_enable=$(uci get openclash.config.ipv6_enable 2>/dev/null)
     http_port=$(uci get openclash.config.http_port 2>/dev/null)
     socks_port=$(uci get openclash.config.socks_port 2>/dev/null)
+    enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
     echo "第二步: 配置文件检查..." >$START_LOG
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKUP_FILE" "$START_BACKUP"
     grep "^ \{0,\}Proxy:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Proxy Group:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Rule:" $CONFIG_FILE >/dev/null 2>&1
@@ -389,11 +391,14 @@ fi
        
        echo "第七步: 重启 Dnsmasq 程序..." >$START_LOG
        if [ "$(iptables -t nat -nL PREROUTING --line-number |grep dpt:53 |wc -l)" -gt 2 ]; then
-          echo "发现Dnsmasq被占用，请将OpenClash设置为占用Dnsmas程序的上游DNS服务器！" >$START_LOG
+          echo "发现53端口被劫持，请将OpenClash设置为劫持53端口程序的上游DNS服务器！" >$START_LOG
           echo "${LOGTIME} Warring: OpenClash May Can Not Take Over DNS, Please Use OpenClash for Upstream DNS Resolve Server" >> $LOG_FILE
        	  sleep 5
        fi
-       change_dns
+       ipset flush music 2>/dev/null
+       [ "$enable_redirect_dns" != "0" ] && {
+       	change_dns
+       }
        /etc/init.d/dnsmasq restart >/dev/null 2>&1
        if pidof clash >/dev/null; then
           echo "第八步: 添加 OpenClash 计划任务,启动进程守护程序..." >$START_LOG
@@ -412,6 +417,7 @@ fi
              cat /etc/openclash/configrules.bak >> "$CONFIG_FILE"
              rm -rf /etc/openclash/configrules.bak
              nohup $CLASH -d "$CLASH_CONFIG" >> $LOG_FILE 2>&1 &
+             sleep 3
              if pidof clash >/dev/null; then
                 add_cron
                 echo "OpenClash 使用备份规则启动成功，请更新、检查变动的规则后重试！" >$START_LOG
@@ -477,6 +483,7 @@ stop()
     echo "第五步：删除 OpenClash 残留文件..." >$START_LOG
     enable=$(uci get openclash.config.enable 2>/dev/null)
     if [ "$enable" -eq 0 ]; then
+       ipset flush music 2>/dev/null
        rm -rf $LOG_FILE 2>/dev/null
        rm -rf /www/openclash 2>/dev/null
        rm -rf /tmp/openclash_last_version 2>/dev/null

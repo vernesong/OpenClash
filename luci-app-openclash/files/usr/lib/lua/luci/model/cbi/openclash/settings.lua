@@ -12,7 +12,7 @@ s = m:section(TypedSection, "openclash")
 s.title = translate("Will Modify The Config File Or Subscribe According To The Settings On This Page")
 s.anonymous = true
 
-s:tab("settings", translate("General Settings"))
+s:tab("settings", translate("General-Settings"))
 s:tab("rules", translate("Rules Setting"))
 s:tab("dashboard", translate("Dashboard Settings"))
 s:tab("config_update", translate("Config Update"))
@@ -43,6 +43,12 @@ o.description = translate("Select Mode For OpenClash Work, Network Error Try Flu
 o:value("redir-host", translate("redir-host"))
 o:value("fake-ip", translate("fake-ip"))
 o.default = "redir-host"
+
+o = s:taboption("settings", ListValue, "enable_redirect_dns", translate("Redirect Local DNS Setting"))
+o.description = translate("Set Local DNS Redirect")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default = 1
 
 o = s:taboption("settings", ListValue, "enable_custom_dns", translate("Custom DNS Setting"))
 o.description = translate("Set OpenClash Upstream DNS Resolve Server")
