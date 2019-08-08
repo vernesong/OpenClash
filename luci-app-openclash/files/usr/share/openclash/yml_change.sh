@@ -1,8 +1,8 @@
 #!/bin/sh
     
     if [ -z "$(grep '^  enhanced-mode: $2' "$7")" ]; then
-       if [ ! -z "$(grep "^  enhanced-mode:" "$7")" ]; then
-          sed -i "/^  enhanced-mode:/c\  enhanced-mode: ${2}" "$7"
+       if [ ! -z "$(grep "^ \{0,\}enhanced-mode:" "$7")" ]; then
+          sed -i "/^ \{0,\}enhanced-mode:/c\  enhanced-mode: ${2}" "$7"
        else
           sed -i "/^dns:/a\  enhanced-mode: ${2}" "$7"
        fi
@@ -15,49 +15,49 @@
           sed -i "/enhanced-mode:/a\  fake-ip-range: 198.18.0.1/16" "$7"
        fi
     else
-       sed -i '/^ \{0,\}fake-ip-range:/d' "$7"  2>/dev/null
+       sed -i '/^ \{0,\}fake-ip-range:/d' "$7" 2>/dev/null
     fi
     
     sed -i '/##Custom DNS##/d' "$7" 2>/dev/null
 
 
     if [ -z "$(grep '^redir-port: $6' "$7")" ]; then
-       if [ ! -z "$(grep "^redir-port:" "$7")" ]; then
-          sed -i "/^redir-port:/c\redir-port: ${6}" "$7"
+       if [ ! -z "$(grep "^ \{0,\}redir-port:" "$7")" ]; then
+          sed -i "/^ \{0,\}redir-port:/c\redir-port: ${6}" "$7"
        else
           sed -i "3i\redir-port: ${6}" "$7"
        fi
     fi
     
     if [ -z "$(grep '^port: $9' "$7")" ]; then
-       if [ ! -z "$(grep "^port:" "$7")" ]; then
-          sed -i "/^port:/c\port: ${9}" "$7"
+       if [ ! -z "$(grep "^ \{0,\}port:" "$7")" ]; then
+          sed -i "/^ \{0,\}port:/c\port: ${9}" "$7"
        else
           sed -i "3i\port: ${9}" "$7"
        fi
     fi
     
     if [ -z "$(grep '^socks-port: $10' "$7")" ]; then
-       if [ ! -z "$(grep "^socks-port:" "$7")" ]; then
-          sed -i "/^socks-port:/c\socks-port: ${10}" "$7"
+       if [ ! -z "$(grep "^ \{0,\}socks-port:" "$7")" ]; then
+          sed -i "/^ \{0,\}socks-port:/c\socks-port: ${10}" "$7"
        else
           sed -i "3i\socks-port: ${10}" "$7"
        fi
     fi
     
     if [ -z "$(grep '^external-controller: 0.0.0.0:$5' "$7")" ]; then
-       if [ ! -z "$(grep "^external-controller:" "$7")" ]; then
-          sed -i "/^external-controller:/c\external-controller: 0.0.0.0:${5}" "$7"
+       if [ ! -z "$(grep "^ \{0,\}external-controller:" "$7")" ]; then
+          sed -i "/^ \{0,\}external-controller:/c\external-controller: 0.0.0.0:${5}" "$7"
        else
           sed -i "3i\external-controller: 0.0.0.0:${5}" "$7"
        fi
     fi
     
     if [ -z "$(grep '^secret: $4' "$7")" ]; then
-       if [ ! -z "$(grep "^secret:" "$7")" ]; then
-          sed -i "/^secret:/c\secret: '${4}'" "$7"
+       if [ ! -z "$(grep "^ \{0,\}secret:" "$7")" ]; then
+          sed -i "/^ \{0,\}secret:/c\secret: \"${4}\"" "$7"
        else
-          sed -i "3i\secret: '${4}'" "$7"
+          sed -i "3i\secret: \"${4}\"" "$7"
        fi
     fi
 
@@ -70,16 +70,19 @@
     fi
     
     if [ -z "$(grep "^allow-lan: true" "$7")" ]; then
-       if [ ! -z "$(grep "^allow-lan:" "$7")" ]; then
-          sed -i "/^allow-lan:/c\allow-lan: true" "$7"
+       if [ ! -z "$(grep "^ \{0,\}allow-lan:" "$7")" ]; then
+          sed -i "/^ \{0,\}allow-lan:/c\allow-lan: true" "$7"
        else
           sed -i "3i\allow-lan: true" "$7"
        fi
     fi
     
+    sed -i '/bind-address:/d' "$7" 2>/dev/null
+    sed -i "/^allow-lan:/a\bind-address: \"${11}\"" "$7"
+    
     if [ -z "$(grep '^external-ui: "/usr/share/openclash/dashboard"' "$7")" ]; then
-       if [ ! -z "$(grep "^external-ui:" "$7")" ]; then
-          sed -i '/^external-ui:/c\external-ui: "/usr/share/openclash/dashboard"' "$7"
+       if [ ! -z "$(grep "^ \{0,\}external-ui:" "$7")" ]; then
+          sed -i '/^ \{0,\}external-ui:/c\external-ui: "/usr/share/openclash/dashboard"' "$7"
        else
           sed -i '3i\external-ui: "/usr/share/openclash/dashboard"' "$7"
        fi
