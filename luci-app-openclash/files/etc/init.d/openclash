@@ -55,6 +55,19 @@ revert_dns() {
    uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
    uci set dhcp.@dnsmasq[0].noresolv=0
    uci commit dhcp
+   rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
+}
+
+fake_block() {
+   if [ "$1" = "fake-ip" ]; then
+      if [ ! -f /etc/openclash/dnsmasq_fake_block.conf ]; then
+	       sh /usr/share/openclash/openclash_fake_block.sh
+	    elif [ "$(awk -F '/' '{print $3}' /etc/openclash/dnsmasq_fake_block.conf |head -1)" != "$2" ] && [ ! -z "$2" ]; then
+	       sh /usr/share/openclash/openclash_fake_block.sh
+      fi
+	    mkdir -p /tmp/dnsmasq.d
+      ln -s /etc/openclash/dnsmasq_fake_block.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf
+   fi
 }
 
 yml_check()
@@ -326,6 +339,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     socks_port=$(uci get openclash.config.socks_port 2>/dev/null)
     enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
     lan_ip=$(uci get network.lan.ipaddr 2>/dev/null)
+    direct_dns=$(uci get openclash.config.direct_dns 2>/dev/null)
     echo "第二步: 配置文件检查..." >$START_LOG
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKUP_FILE" "$START_BACKUP"
     grep "^ \{0,\}Proxy:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Proxy Group:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Rule:" $CONFIG_FILE >/dev/null 2>&1
@@ -396,10 +410,10 @@ fi
           echo "${LOGTIME} Warring: OpenClash May Can Not Take Over DNS, Please Use OpenClash for Upstream DNS Resolve Server" >> $LOG_FILE
        	  sleep 5
        fi
-       ipset flush music 2>/dev/null
        [ "$enable_redirect_dns" != "0" ] && {
        	change_dns
        }
+       fake_block "$en_mode" "$direct_dns"
        /etc/init.d/dnsmasq restart >/dev/null 2>&1
        if pidof clash >/dev/null; then
           echo "第八步: 添加 OpenClash 计划任务,启动进程守护程序..." >$START_LOG
@@ -484,7 +498,6 @@ stop()
     echo "第五步：删除 OpenClash 残留文件..." >$START_LOG
     enable=$(uci get openclash.config.enable 2>/dev/null)
     if [ "$enable" -eq 0 ]; then
-       ipset flush music 2>/dev/null
        rm -rf $LOG_FILE 2>/dev/null
        rm -rf /www/openclash 2>/dev/null
        rm -rf /tmp/openclash_last_version 2>/dev/null

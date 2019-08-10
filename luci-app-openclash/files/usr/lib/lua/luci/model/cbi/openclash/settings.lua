@@ -13,6 +13,7 @@ s.title = translate("Will Modify The Config File Or Subscribe According To The S
 s.anonymous = true
 
 s:tab("settings", translate("General-Settings"))
+s:tab("dns", translate("DNS Setting"))
 s:tab("rules", translate("Rules Setting"))
 s:tab("dashboard", translate("Dashboard Settings"))
 s:tab("config_update", translate("Config Update"))
@@ -44,24 +45,6 @@ o:value("redir-host", translate("redir-host"))
 o:value("fake-ip", translate("fake-ip"))
 o.default = "redir-host"
 
-o = s:taboption("settings", ListValue, "enable_redirect_dns", translate("Redirect Local DNS Setting"))
-o.description = translate("Set Local DNS Redirect")
-o:value("0", translate("Disable"))
-o:value("1", translate("Enable"))
-o.default = 1
-
-o = s:taboption("settings", ListValue, "enable_custom_dns", translate("Custom DNS Setting"))
-o.description = translate("Set OpenClash Upstream DNS Resolve Server")
-o:value("0", translate("Disable"))
-o:value("1", translate("Enable"))
-o.default = 0
-
-o = s:taboption("settings", ListValue, "ipv6_enable", translate("Enable ipv6 Resolve"))
-o.description = translate("Force Enable to Resolve ipv6 DNS Requests")
-o:value("0", translate("Disable"))
-o:value("1", translate("Enable"))
-o.default=0
-
 o = s:taboption("settings", Value, "proxy_port")
 o.title = translate("Redir Port")
 o.default = 7892
@@ -82,6 +65,67 @@ o.default = 7891
 o.datatype = "port"
 o.rmempty = false
 o.description = translate("Please Make Sure Ports Available")
+
+---- DNS Settings
+o = s:taboption("dns", ListValue, "enable_redirect_dns", translate("Redirect Local DNS Setting"))
+o.description = translate("Set Local DNS Redirect")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default = 1
+
+o = s:taboption("dns", ListValue, "enable_custom_dns", translate("Custom DNS Setting"))
+o.description = translate("Set OpenClash Upstream DNS Resolve Server")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default = 0
+
+o = s:taboption("dns", ListValue, "ipv6_enable", translate("Enable ipv6 Resolve"))
+o.description = translate("Force Enable to Resolve ipv6 DNS Requests")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default=0
+
+o = s:taboption("dns", ListValue, "dns_advanced_setting", translate("Advanced Setting"))
+o.description = translate("DNS Advanced Settings")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default=0
+
+o = s:taboption("dns", Value, "direct_dns", translate("Specify DNS Server"))
+o.description = translate("Specify DNS Server For List, Only One IP Server Address Support")
+o.default="114.114.114.114"
+o.placeholder = translate("114.114.114.114 or 127.0.0.1#5300")
+o:depends("dns_advanced_setting", "1")
+
+o = s:taboption("dns", Button, translate("Fake-IP Block List Update")) 
+o.title = translate("Fake-IP Block List Update")
+o:depends("dns_advanced_setting", "1")
+o.inputtitle = translate("Check And Update")
+o.inputstyle = "reload"
+o.write = function()
+  uci:set("openclash", "config", "enable", 1)
+  uci:commit("openclash")
+  SYS.call("sh /usr/share/openclash/openclash_fake_block.sh && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+end
+
+custom_fake_black = s:taboption("dns", Value, "custom_fake_black")
+custom_fake_black.template = "cbi/tvalue"
+custom_fake_black.description = translate("Domain Names In The List Do Not Return Fake-IP, One rule per line")
+custom_fake_black.rows = 20
+custom_fake_black.wrap = "off"
+custom_fake_black:depends("dns_advanced_setting", "1")
+
+function custom_fake_black.cfgvalue(self, section)
+	return NXFS.readfile("/etc/config/openclash_custom_fake_black.conf") or ""
+end
+function custom_fake_black.write(self, section, value)
+
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		NXFS.writefile("/etc/config/openclash_custom_fake_black.conf", value)
+	end
+end
 
 ---- Rules Settings
 o = s:taboption("rules", ListValue, "enable_custom_clash_rules", translate("Custom Clash Rules"))
