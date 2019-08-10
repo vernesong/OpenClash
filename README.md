@@ -8,22 +8,24 @@
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.15.0">
     <img src="https://img.shields.io/badge/Clash-v0.15.0-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.33.6-beta">
-    <img src="https://img.shields.io/badge/source code-v0.33.6--beta-green.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.33.7-beta">
+    <img src="https://img.shields.io/badge/source code-v0.33.7--beta-green.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.33.6-beta">
-    <img src="https://img.shields.io/badge/NewRelease-v0.33.6--beta-orange.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.33.7-beta">
+    <img src="https://img.shields.io/badge/NewRelease-v0.33.7--beta-orange.svg">
   </a>
   </p>
   
 
 <p align="center">
-本软件包是一个可运行在 OpenWrt 上的<a href="https://github.com/Dreamacro/clash" target="_blank"> Clash </a>客户端
+本插件是一个可运行在 OpenWrt 上的<a href="https://github.com/Dreamacro/clash" target="_blank"> Clash </a>客户端
 </p>
 <p align="center">
 兼容 Shadowsocks、Vmess 等协议，根据灵活的规则配置实现策略代理
 </p>
-
+<p align="center">
+特别感谢<a href="https://github.com/frainzy1477" target="_blank"> frainzy1477 </a>，本插件基于<a href="https://github.com/frainzy1477/luci-app-clash" target="_blank"> Luci For Clash </a>进行二次开发
+</p>
 
 下载地址
 ---
@@ -100,6 +102,15 @@ make package/luci-app-openclash/luci-app-openclash/compile V=99
 * IP检查 [MyIP](https://github.com/SukkaW/MyIP) by [SukkaW](https://github.com/SukkaW)
 * 控制面板 [clash-dashboard](https://github.com/Dreamacro/clash-dashboard) by [Dreamacro](https://github.com/Dreamacro)
 * 控制面板 [yacd](https://github.com/haishanh/yacd) by [haishanh](https://github.com/haishanh)
+
+
+请作者喝杯咖啡
+---
+
+
+<p align="center">
+    <img src="https://github.com/vernesong/OpenClash/raw/master/img/BTC-Wallet.png"><img src="https://github.com/vernesong/OpenClash/raw/master/img/ETH-Wallet.png">
+</p>
 
 
 预览
