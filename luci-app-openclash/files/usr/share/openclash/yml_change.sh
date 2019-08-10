@@ -9,10 +9,12 @@
     fi
     
     if [ "$2" = "fake-ip" ]; then
-       if [ ! -z "$(grep "^ \{0,\}fake-ip-range:" "$7")" ]; then
-          sed -i "/^ \{0,\}fake-ip-range:/c\  fake-ip-range: 198.18.0.1/16" "$7"
-       else
-          sed -i "/enhanced-mode:/a\  fake-ip-range: 198.18.0.1/16" "$7"
+       if [ -z "$(grep "^ \{0,\}fake-ip-range: 198.18.0.1/16" "$7")" ]; then
+          if [ ! -z "$(grep "^ \{0,\}fake-ip-range:" "$7")" ]; then
+             sed -i "/^ \{0,\}fake-ip-range:/c\  fake-ip-range: 198.18.0.1/16" "$7"
+          else
+             sed -i "/enhanced-mode:/a\  fake-ip-range: 198.18.0.1/16" "$7"
+          fi
        fi
     else
        sed -i '/^ \{0,\}fake-ip-range:/d' "$7" 2>/dev/null

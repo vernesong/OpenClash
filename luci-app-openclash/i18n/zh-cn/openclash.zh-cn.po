@@ -9,7 +9,7 @@ msgid "A Clash Client For OpenWrt"
 msgstr "一个运行在OpenWrt上的Clash客户端，兼容Shadowsocks、Vmess等协议，根据灵活的规则配置实现策略代理"
 
 msgid "Will Modify The Config File Or Subscribe According To The Settings On This Page"
-msgstr "将按照以下设置本地化配置文件和获取订阅"
+msgstr "将按照本页设置本地化配置文件和获取订阅"
 
 msgid "Technical Support"
 msgstr "技术支持"
@@ -22,6 +22,9 @@ msgstr "接管设置"
 
 msgid "General-Settings"
 msgstr "全局设置"
+
+msgid "DNS Setting"
+msgstr "DNS设置"
 
 msgid "Config Update"
 msgstr "配置文件订阅"
@@ -108,7 +111,25 @@ msgid "Use Custom Rules"
 msgstr "启用后将把自定义规则增加到配置文件并优先匹配，规则请到下方文本框编辑"
 
 msgid "Add Custom DNS Servers"
-msgstr "设置自定义上游DNS服务器，在上方全局设置中启用本功能后生效"
+msgstr "设置自定义上游DNS服务器，在上方DNS设置中启用本功能后生效"
+
+msgid "Advanced Setting"
+msgstr "高级设置"
+
+msgid "DNS Advanced Settings"
+msgstr "DNS高级设置，如您不知道选项有何用，请不要随意修改"
+
+msgid "Specify DNS Server"
+msgstr "（Fake-IP模式）黑名单DNS服务器"
+
+msgid "Specify DNS Server For List, Only One IP Server Address Support"
+msgstr "指定下方列表中域名的DNS服务器，只支持填写一个IP地址，更改后点击下方按钮生效"
+
+msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line"
+msgstr "每行请只填写一个域名，列表中的域名在（Fake-IP模式）下查询DNS时将返回真实IP地址，更改后点击上方按钮生效"
+
+msgid "Fake-IP Block List Update"
+msgstr "更新Fake-IP域名黑名单"
 
 msgid "Set OpenClash Upstream DNS Resolve Server"
 msgstr "启用将覆盖配置文件内的设置，请先在下方配置好服务器"
@@ -145,7 +166,7 @@ msgstr ""
 "允许解析IPV6类型的DNS请求，如果您没有公网IPV6地址但开启了IPV6的DHCP服务，客户端连接可能会出现异常"
 
 msgid "Rules Setting"
-msgstr "规则设置(访问控制)"
+msgstr "规则设置（访问控制）"
 
 msgid "Server Config"
 msgstr "配置文件"

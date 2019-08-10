@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.33.6
+PKG_VERSION:=0.33.7
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
@@ -42,6 +42,7 @@ if [ -f "/etc/config/openclash" ]; then
 	cp "/etc/config/openclash" "/tmp/openclash.bak" 2>/dev/null
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" 2>/dev/null
 	cp "/etc/config/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" 2>/dev/null
+	cp "/etc/config/openclash_custom_fake_black.conf" "/tmp/openclash_custom_fake_black.conf.bak" 2>/dev/null
 fi
 endef
 
@@ -59,8 +60,9 @@ uci set firewall.openclash.reload=1 >/dev/null 2>&1
 uci commit firewall >/dev/null 2>&1
 if [ -f "/tmp/openclash.bak" ]; then
 	mv "/tmp/openclash.bak" "/etc/config/openclash" 2>/dev/null
-	#mv "/tmp/openclash_custom_rules.list.bak" "/etc/config/openclash_custom_rules.list" 2>/dev/null
+	mv "/tmp/openclash_custom_rules.list.bak" "/etc/config/openclash_custom_rules.list" 2>/dev/null
 	mv "/tmp/openclash_custom_hosts.list.bak" "/etc/config/openclash_custom_hosts.list" 2>/dev/null
+	mv "/tmp/openclash_custom_fake_black.conf.bak" "/etc/config/openclash_custom_fake_black.conf" 2>/dev/null
 fi
 if [ -f "/tmp/config.yaml" ]; then
 	mv "/tmp/config.yaml" "/etc/openclash/config.yaml" 2>/dev/null
@@ -79,6 +81,7 @@ fi
 	cp "/etc/config/openclash" "/tmp/openclash.bak" 2>/dev/null
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" 2>/dev/null
 	cp "/etc/config/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" 2>/dev/null
+	cp "/etc/config/openclash_custom_fake_black.conf" "/tmp/openclash_custom_fake_black.conf.bak" 2>/dev/null
 endef
 
 define Package/$(PKG_NAME)/postrm
@@ -96,6 +99,7 @@ fi
 	rm -rf /tmp/Proxy_Group 2>/dev/null
 	rm -rf /tmp/openclash_last_version 2>/dev/null
 	rm -rf /tmp/clash_last_version 2>/dev/null
+	rm -rf /etc/openclash/dnsmasq_fake_block.conf 2>/dev/null
 	uci delete firewall.openclash >/dev/null 2>&1
 	uci commit firewall >/dev/null 2>&1
 	uci delete ucitrack.@openclash[-1] >/dev/null 2>&1
