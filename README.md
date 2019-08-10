@@ -107,9 +107,14 @@ make package/luci-app-openclash/luci-app-openclash/compile V=99
 请作者喝杯咖啡
 ---
 
+* 比特币-BTC
+<p align="left">
+    <img width="300" src="https://github.com/vernesong/OpenClash/raw/master/img/BTC-Wallet.png">
+</p>
 
-<p align="center">
-    <img src="https://github.com/vernesong/OpenClash/raw/master/img/BTC-Wallet.png"><img src="https://github.com/vernesong/OpenClash/raw/master/img/ETH-Wallet.png">
+* 以太币-ETH
+<p align="left">
+    <img width="300" src="https://github.com/vernesong/OpenClash/raw/master/img/ETH-Wallet.png">
 </p>
 
 
