@@ -65,7 +65,7 @@ fake_block() {
 	    elif [ "$(awk -F '/' '{print $3}' /etc/openclash/dnsmasq_fake_block.conf |head -1)" != "$2" ] && [ ! -z "$2" ]; then
 	       sh /usr/share/openclash/openclash_fake_block.sh
       fi
-	    mkdir -p /tmp/dnsmasq.d
+      mkdir -p /tmp/dnsmasq.d
       ln -s /etc/openclash/dnsmasq_fake_block.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf
    fi
 }
