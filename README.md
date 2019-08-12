@@ -24,8 +24,15 @@
 兼容 Shadowsocks、Vmess 等协议，根据灵活的规则配置实现策略代理
 </p>
 <p align="center">
-特别感谢<a href="https://github.com/frainzy1477" target="_blank"> frainzy1477 </a>，本插件基于<a href="https://github.com/frainzy1477/luci-app-clash" target="_blank"> Luci For Clash </a>进行二次开发
+- 感谢<a href="https://github.com/frainzy1477" target="_blank"> frainzy1477 </a>，本插件基于<a href="https://github.com/frainzy1477/luci-app-clash" target="_blank"> Luci For Clash </a>进行二次开发 -
 </p>
+
+使用手册
+---
+
+
+* [Wiki](https://github.com/vernesong/OpenClash/wiki)
+
 
 下载地址
 ---
@@ -45,15 +52,6 @@
 * coreutils-nohup
 * bash
 * wget
-
-
-配置
----
-
-
-* 安装后先在设置页面选择`内核编译版本`，或前往接管设置页面的版本升级标签下载内核，解压后放在/etc/openclash目录下，并给权限
-* 上传或订阅配置文件（接管设置页面订阅、配置文件页面上传）
-* 启动客户端（如没有内核文件则根据选择的内核编译版本自动下载内核）
 
 
 编译
