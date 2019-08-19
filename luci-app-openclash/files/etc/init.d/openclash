@@ -50,7 +50,7 @@ change_dns() {
 }
 
 revert_dns() {
-	 dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
+   dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
    uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port" >/dev/null 2>&1
    uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
    uci set dhcp.@dnsmasq[0].noresolv=0
@@ -61,9 +61,9 @@ revert_dns() {
 fake_block() {
    if [ "$1" = "fake-ip" ]; then
       if [ ! -f /etc/openclash/dnsmasq_fake_block.conf ]; then
-	       sh /usr/share/openclash/openclash_fake_block.sh
-	    elif [ "$(awk -F '/' '{print $3}' /etc/openclash/dnsmasq_fake_block.conf |head -1)" != "$2" ] && [ ! -z "$2" ]; then
-	       sh /usr/share/openclash/openclash_fake_block.sh
+         sh /usr/share/openclash/openclash_fake_block.sh
+      elif [ "$(awk -F '/' '{print $3}' /etc/openclash/dnsmasq_fake_block.conf |head -1)" != "$2" ] && [ ! -z "$2" ]; then
+         sh /usr/share/openclash/openclash_fake_block.sh
       fi
       mkdir -p /tmp/dnsmasq.d
       ln -s /etc/openclash/dnsmasq_fake_block.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf
@@ -236,7 +236,7 @@ yml_dns_custom()
       sed -i "/^ \{0,\}fallback:/c\  fallback:" "$2" 2>/dev/null
       if [ ! -z "$(grep "^ \{0,1\}- " $2)" ]; then
 	       sed -i "s/^ \{0,\}- /  - /" "$2" 2>/dev/null #添加参数空格
-	    fi
+      fi
    fi
    
 }
@@ -423,7 +423,7 @@ fi
           sleep 5
           echo "" >$START_LOG
        else
-          if [ "$rule_source" != 0 ]; then
+          if [ "$rule_source" != 0 ] || [ "$enable_custom_clash_rules" != 0 ]; then
              echo "错误: OpenClash 启动失败，尝试还原规则并重新启动 Clash 主程序..." >$START_LOG
              echo "${LOGTIME} OpenClash Can Not Start, Try Use Backup Rules Start Again" >> $LOG_FILE
              mv "$BACKUP_FILE" /etc/openclash/configrules.bak

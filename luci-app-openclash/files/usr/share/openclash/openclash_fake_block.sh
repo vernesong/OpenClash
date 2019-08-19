@@ -1,5 +1,5 @@
 #! /bin/sh
-echo "ÉèÖÃFake-IPºÚÃûµ¥..." >$START_LOG
+echo "è®¾ç½®Fake-IPé»‘åå•..." >$START_LOG
 direct_dns=$(uci get openclash.config.direct_dns 2>/dev/null)
 [ -z "$direct_dns" ] && {
 	direct_dns="114.114.114.114"
