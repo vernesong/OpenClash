@@ -46,6 +46,7 @@
         .ip-result {
             color: #444;
             font-size:16px;
+            margin:0px 0px 0px 30px;
             white-space: nowrap;  /*强制span不换行*/
             display: inline-block;  /*将span当做块级元素对待*/
             width: 29%;  /*限制宽度*/
@@ -61,7 +62,7 @@
             line-height:20px;
             white-space: nowrap;  /*强制span不换行*/
             display: inline-block;  /*将span当做块级元素对待*/
-            width: 40%;  /*限制宽度*/
+            width: 30%;  /*限制宽度*/
             overflow: hidden;  /*超出宽度部分隐藏*/
             text-overflow: ellipsis;  /*超出部分以点号代替*/
             vertical-align:bottom;
@@ -141,7 +142,7 @@
                 <span class="ip-title">淘宝&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-taobao"></span> <span class="ip-geo" id="ip-taobao-ipip"></span>
             </p>
             <p>
-                <span class="ip-title">IP.SB&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipsb"></span> <span class="ip-geo" id="ip-ipsb-geo"></span>
+                <span class="ip-title">IPAPI&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipapi"></span> <span class="ip-geo" id="ip-ipapi-geo"></span>
             </p>
             <p>
                 <span class="ip-title">IPIFY&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipify"></span> <span class="ip-geo" id="ip-ipify-ipip"></span>
@@ -183,7 +184,7 @@
         $$.getElementById('ip-taobao').innerHTML = '查询中...';
         $$.getElementById('ip-ipify').innerHTML = '查询中...';
         $$.getElementById('ip-ipipnet').innerHTML = '查询中...';
-        $$.getElementById('ip-ipsb').innerHTML = '查询中...';
+        $$.getElementById('ip-ipapi').innerHTML = '查询中...';
         let random = parseInt(Math.random() * 100000000);
         let IP = {
             get: (url, type) =>
@@ -249,9 +250,12 @@
                 $$.getElementById('ip-taobao').innerHTML = data.ip;
                 IP.parseIPIpip(data.ip, 'ip-taobao-ipip');
             },
-            getIpsbIP: (data) => {
-                $$.getElementById('ip-ipsb').innerHTML = data.address;
-                $$.getElementById('ip-ipsb-geo').innerHTML = `${data.country} ${data.province} ${data.city} ${data.isp.name}`
+            getIPApiIP: () => {
+                IP.get(`https://ipapi.co/json?z=${random}`, 'json')
+                    .then(resp => {
+                        $$.getElementById('ip-ipapi').innerHTML = resp.data.ip;
+                        IP.parseIPIpip(resp.data.ip, 'ip-ipapi-geo');
+                    })
             },
             getIpifyIP: () => {
                 IP.get(`https://api.ipify.org/?format=json&z=${random}`, 'json')
@@ -303,6 +307,7 @@
 	      HTTP.runcheck();
 	      IP.getIpipnetIP();
 	      IP.getIpifyIP();
+	      IP.getIPApiIP();
 	      IP.getWebrtcIP();
 
 	      window.onload=myip_Load();
@@ -315,25 +320,19 @@
 	         tbipScript.src='https://www.taobao.com/help/getip.php';
 	         tbip.appendChild( tbipScript);
 
-	         var sbip = document.getElementsByTagName('HEAD').item(0);
-	         var sbipScript= document.createElement("script");
-	         sbipScript.async = "async";
-	         sbipScript.src='https://ipv4.ip.sb/addrinfo?callback=IP.getIpsbIP';
-	         sbip.appendChild( sbipScript);
-
 	         const $$ = document;
 	         random = parseInt(Math.random() * 100000000);
 	         window.ipCallback = (data) => IP.getTaobaoIP(data);
 		       HTTP.runcheck();
 		       IP.getIpipnetIP();
 		       IP.getIpifyIP();
+		       IP.getIPApiIP();
 		       IP.getWebrtcIP();
        	   setTimeout("myip_Load()",1000*8);
 		   }
 
     </script>
     <script async="async" src="https://www.taobao.com/help/getip.php"></script>
-    <script async="async" src="https://ipv4.ip.sb/addrinfo?callback=IP.getIpsbIP"></script>
 </body>
 
 </html>
