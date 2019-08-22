@@ -403,6 +403,7 @@ EOF
 fi
 
        /etc/init.d/firewall restart >/dev/null 2>&1
+       /etc/init.d/miniupnpd restart >/dev/null 2>&1
        
        echo "第七步: 重启 Dnsmasq 程序..." >$START_LOG
        if [ "$(iptables -t nat -nL PREROUTING --line-number |grep dpt:53 |wc -l)" -gt 2 ]; then
@@ -483,6 +484,7 @@ stop()
     echo "第一步: 删除 OpenClash 防火墙规则..." >$START_LOG
     rm -rf /var/etc/openclash.include 2>/dev/null
     /etc/init.d/firewall restart >/dev/null 2>&1
+    /etc/init.d/miniupnpd restart >/dev/null 2>&1
 
     
     echo "第二步: 关闭 OpenClash 守护程序..." >$START_LOG
