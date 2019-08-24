@@ -138,7 +138,12 @@ local function startlog()
 end
 
 local function coremodel()
-	return luci.sys.exec("cat /proc/cpuinfo |grep 'cpu model'  2>/dev/null |awk -F ': ' '{print $2}' 2>/dev/null")
+  local coremodel = luci.sys.exec("cat /proc/cpuinfo |grep 'cpu model'  2>/dev/null |awk -F ': ' '{print $2}' 2>/dev/null")
+  if (coremodel ~= "") then
+      return coremodel
+  else
+     return luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
+  end
 end
 
 local function coremodel2()
