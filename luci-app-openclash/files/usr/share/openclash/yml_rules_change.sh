@@ -59,8 +59,6 @@ if [ "$2" != 0 ]; then
             sed -i -e "s/,GlobalTV$/,${GlobalTV}#d/g" -e "/Rule:/a\##GlobalTV:${GlobalTV}"\
             -e "s/,AsianTV$/,${AsianTV}#d/g" -e "/Rule:/a\##AsianTV:${AsianTV}"\
             -e "s/,Proxy$/,${Proxy}#d/g" -e "/Rule:/a\##Proxy:${Proxy}"\
-            -e "s/,Apple$/,${Apple}#d/g" -e "/Rule:/a\##Apple:${Apple}"\
-            -e "s/,AdBlock$/,${AdBlock}#d/g" -e "/Rule:/a\##AdBlock:${AdBlock}"\
             -e "s/,Domestic$/,${Domestic}#d/g" -e "/Rule:/a\##Domestic:${Domestic}"\
             -e "s/,Others$/,${Others}#d/g" -e "/Rule:/a\##Others:${Others}"\
             -e "s/#d$//g" "$4"

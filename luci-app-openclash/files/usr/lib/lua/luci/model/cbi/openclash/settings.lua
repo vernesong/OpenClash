@@ -169,14 +169,14 @@ o:depends("rule_source", "ConnersHua_return")
    end
    file:seek("set")
 o = s:taboption("rules", ListValue, "Apple", translate("Apple"))
-o:depends("rule_source", "lhie1")
+---- o:depends("rule_source", "lhie1")
 o:depends("rule_source", "ConnersHua")
  for l in file:lines() do
    o:value(l)
    end
    file:seek("set")
 o = s:taboption("rules", ListValue, "AdBlock", translate("AdBlock"))
-o:depends("rule_source", "lhie1")
+---- o:depends("rule_source", "lhie1")
 o:depends("rule_source", "ConnersHua")
  for l in file:lines() do
    o:value(l)
