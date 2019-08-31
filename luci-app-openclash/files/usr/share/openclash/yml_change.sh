@@ -27,7 +27,7 @@
        if [ ! -z "$(grep "^ \{0,\}redir-port:" "$7")" ]; then
           sed -i "/^ \{0,\}redir-port:/c\redir-port: ${6}" "$7"
        else
-          sed -i "3i\redir-port: ${6}" "$7"
+          sed -i "/^dns:/i\redir-port: ${6}" "$7"
        fi
     fi
     
@@ -35,7 +35,7 @@
        if [ ! -z "$(grep "^ \{0,\}port:" "$7")" ]; then
           sed -i "/^ \{0,\}port:/c\port: ${9}" "$7"
        else
-          sed -i "3i\port: ${9}" "$7"
+          sed -i "/^dns:/i\port: ${9}" "$7"
        fi
     fi
     
@@ -43,7 +43,23 @@
        if [ ! -z "$(grep "^ \{0,\}socks-port:" "$7")" ]; then
           sed -i "/^ \{0,\}socks-port:/c\socks-port: ${10}" "$7"
        else
-          sed -i "3i\socks-port: ${10}" "$7"
+          sed -i "/^dns:/i\socks-port: ${10}" "$7"
+       fi
+    fi
+    
+    if [ -z "$(grep '^mode:' "$7")" ]; then
+       if [ ! -z "$(grep "^ \{0,\}mode:" "$7")" ]; then
+          sed -i "s/^ \{0,\}mode:/mode:/" "$7"
+       else
+          sed -i "/^dns:/i\mode: Rule" "$7"
+       fi
+    fi
+    
+    if [ -z "$(grep '^log-level:' "$7")" ]; then
+       if [ ! -z "$(grep "^ \{0,\}log-level:" "$7")" ]; then
+          sed -i "s/^ \{0,\}log-level:/log-level:/" "$7"
+       else
+          sed -i "/^dns:/i\log-level: silent" "$7"
        fi
     fi
     
@@ -51,7 +67,7 @@
        if [ ! -z "$(grep "^ \{0,\}external-controller:" "$7")" ]; then
           sed -i "/^ \{0,\}external-controller:/c\external-controller: 0.0.0.0:${5}" "$7"
        else
-          sed -i "3i\external-controller: 0.0.0.0:${5}" "$7"
+          sed -i "/^dns:/i\external-controller: 0.0.0.0:${5}" "$7"
        fi
     fi
     
@@ -59,7 +75,7 @@
        if [ ! -z "$(grep "^ \{0,\}secret:" "$7")" ]; then
           sed -i "/^ \{0,\}secret:/c\secret: \"${4}\"" "$7"
        else
-          sed -i "3i\secret: \"${4}\"" "$7"
+          sed -i "/^dns:/i\secret: \"${4}\"" "$7"
        fi
     fi
 
@@ -75,7 +91,7 @@
        if [ ! -z "$(grep "^ \{0,\}allow-lan:" "$7")" ]; then
           sed -i "/^ \{0,\}allow-lan:/c\allow-lan: true" "$7"
        else
-          sed -i "3i\allow-lan: true" "$7"
+          sed -i "/^dns:/i\allow-lan: true" "$7"
        fi
     fi
     
@@ -86,7 +102,7 @@
        if [ ! -z "$(grep "^ \{0,\}external-ui:" "$7")" ]; then
           sed -i '/^ \{0,\}external-ui:/c\external-ui: "/usr/share/openclash/dashboard"' "$7"
        else
-          sed -i '3i\external-ui: "/usr/share/openclash/dashboard"' "$7"
+          sed -i '/^dns:/i\external-ui: "/usr/share/openclash/dashboard"' "$7"
        fi
     fi
 
