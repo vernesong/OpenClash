@@ -69,10 +69,10 @@ yml_servers_set()
       custom=", ws-headers: { Host: $custom }"
    fi
    
-   if [ ! -z "$tls" ] && [ "$type" != "ss" ]; then
+   if [ ! -z "$tls" ] && [ "$type" != "ss" ] && [ "$tls" = "true" ]; then
       tls=", tls: true"
-   elif [ ! -z "$tls" ]; then
-      tls="tls: $tls"
+   elif [ ! -z "$tls" ] && [ "$tls" = "true" ]; then
+      tls="tls: true"
    fi
    
    if [ ! -z "$path" ]; then
@@ -83,10 +83,10 @@ yml_servers_set()
       fi
    fi
    
-   if [ ! -z "$skip_cert_verify" ] && [ "$type" != "ss" ]; then
-      skip_cert_verify=", skip-cert-verify: $skip_cert_verify"
-   elif [ ! -z "$skip_cert_verify" ]; then
-      skip_cert_verify="skip-cert-verify: $skip_cert_verify"
+   if [ ! -z "$skip_cert_verify" ] && [ "$type" != "ss" ] && [ "$skip_cert_verify" ="true" ]; then
+      skip_cert_verify=", skip-cert-verify: true"
+   elif [ ! -z "$skip_cert_verify" ] && [ "$skip_cert_verify" ="true" ]; then
+      skip_cert_verify="skip-cert-verify: true"
    fi
 
    if [ "$type" = "ss" ] && [ "$obfs" = "none" ]; then
