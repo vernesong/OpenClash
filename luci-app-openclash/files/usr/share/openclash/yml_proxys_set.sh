@@ -19,6 +19,7 @@ yml_servers_set()
    config_get "securitys" "$section" "securitys" ""
    config_get "udp" "$section" "udp" ""
    config_get "obfs" "$section" "obfs" ""
+   config_get "obfs_vmess" "$section" "obfs_vmess" ""
    config_get "host" "$section" "host" ""
    config_get "custom" "$section" "custom" ""
    config_get "tls" "$section" "securitys" ""
@@ -56,10 +57,18 @@ yml_servers_set()
       else
          obfss="plugin: obfs"
       fi
-      if [ "$type" = "vmess" ]; then
-         obfs=", network: ws"
+   else
+      obfs=""
+   fi
+   
+   if [ "$obfs_vmess" != "none" ]; then
+      if [ "$type" = "vmess" ] && [ "$obfs" = "websocket" ]; then
+         obfs_vmess=", network: ws"
+      else
+         obfs_vmess=""
       fi
    fi
+   
    
    if [ ! -z "$host" ]; then
       host="host: $host"
@@ -69,10 +78,10 @@ yml_servers_set()
       custom=", ws-headers: { Host: $custom }"
    fi
    
-   if [ ! -z "$tls" ] && [ "$type" != "ss" ] && [ "$tls" = "true" ]; then
-      tls=", tls: true"
-   elif [ ! -z "$tls" ] && [ "$tls" = "true" ]; then
-      tls="tls: true"
+   if [ ! -z "$tls" ] && [ "$type" != "ss" ]; then
+      tls=", tls: $tls"
+   elif [ ! -z "$tls" ]; then
+      tls="tls: $tls"
    fi
    
    if [ ! -z "$path" ]; then
@@ -83,10 +92,10 @@ yml_servers_set()
       fi
    fi
    
-   if [ ! -z "$skip_cert_verify" ] && [ "$type" != "ss" ] && [ "$skip_cert_verify" ="true" ]; then
-      skip_cert_verify=", skip-cert-verify: true"
-   elif [ ! -z "$skip_cert_verify" ] && [ "$skip_cert_verify" ="true" ]; then
-      skip_cert_verify="skip-cert-verify: true"
+   if [ ! -z "$skip_cert_verify" ] && [ "$type" != "ss" ]; then
+      skip_cert_verify=", skip-cert-verify: $skip_cert_verify"
+   elif [ ! -z "$skip_cert_verify" ]; then
+      skip_cert_verify="skip-cert-verify: $skip_cert_verify"
    fi
 
    if [ "$type" = "ss" ] && [ "$obfs" = "none" ]; then
@@ -127,7 +136,7 @@ EOF
    fi
    
    if [ "$type" = "vmess" ]; then
-      echo "- { name: \"$name\", type: $type, server: $server, port: $port, uuid: $uuid, alterId: $alterId, cipher: $securitys$skip_cert_verify$obfs$path$custom$tls }" >>$SERVER_FILE
+      echo "- { name: \"$name\", type: $type, server: $server, port: $port, uuid: $uuid, alterId: $alterId, cipher: $securitys$skip_cert_verify$obfs_vmess$path$custom$tls }" >>$SERVER_FILE
    fi
    
    if [ "$type" = "socks5" ] || [ "$type" = "http" ]; then
@@ -150,7 +159,7 @@ sed -i 's/\\/#d#/g' /etc/openclash/config.yaml 2>/dev/null
 if [ "$Server" != "$Servers" ] && [ ! -z "$Servers" ]; then
    sed -i "s/${Servers}/${Server}/g" /etc/openclash/config.yaml 2>/dev/null
 elif [ -z "$Servers" ]; then
-   space_num=$(grep "$last_server" /etc/openclash/config.yaml |sed -n '$p' |awk -F '-' '{print $1}' |sed 's/ /#spas#/g')
+   space_num=$(grep "$last_server" /etc/openclash/config.yaml |sed -n '$p' |awk -F '-' '{print $1}' |sed 's/ /#spas#/g' 2>/dev/null |sed 's/\t/#tab#/g' 2>/dev/null)
    sed -i "/${last_server}/a${space_num}- \"${Server}\"" /etc/openclash/config.yaml 2>/dev/null
 fi
 last_server="$Server"
@@ -167,6 +176,7 @@ done
 fi
 sed -i 's/#d#/\\/g' /etc/openclash/config.yaml 2>/dev/null
 sed -i 's/#spas#/ /g' /etc/openclash/config.yaml 2>/dev/null
+sed -i 's/#tab#/	/g' /etc/openclash/config.yaml 2>/dev/null
 }
 
 #创建配置文件

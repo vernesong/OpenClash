@@ -106,6 +106,12 @@ o:value("tls")
 o:value("http")
 o:value("websocket", translate("websocket (ws)"))
 o:depends("type", "ss")
+
+o = s:option(ListValue, "obfs_vmess", translate("obfs-mode"))
+o.rmempty = false
+o.default = "none"
+o:value("none")
+o:value("websocket", translate("websocket (ws)"))
 o:depends("type", "vmess")
 
 o = s:option(Value, "host", translate("obfs-hosts"))
@@ -117,6 +123,7 @@ o:depends("obfs", "http")
 o = s:option(Value, "custom", translate("ws-headers"))
 o.rmempty = true
 o:depends("obfs", "websocket")
+o:depends("obfs_vmess", "websocket")
 
 -- [[ WS部分 ]]--
 
@@ -124,6 +131,7 @@ o:depends("obfs", "websocket")
 o = s:option(Value, "path", translate("ws-Path"))
 o.rmempty = true
 o:depends("obfs", "websocket")
+o:depends("obfs_vmess", "websocket")
 
 -- AlterId
 o = s:option(Value, "alterId", translate("AlterId"))

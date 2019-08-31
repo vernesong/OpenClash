@@ -102,4 +102,6 @@ fi
       sed -i '/^Rule:/a\##Custom Rules End' "$4" 2>/dev/null
       sed -i '/^Rule:/a\##Custom Rules' "$4" 2>/dev/null
       sed -i '/^##Custom Rules$/r/etc/config/openclash_custom_rules.list' "$4" 2>/dev/null
-    }
+      sed -i "s/^ \{0,\}- /- /" "$4" 2>/dev/null #修改参数空格
+      sed -i "s/^\t\{0,\}- /- /" "$4" 2>/dev/null #修改参数tab
+      }
