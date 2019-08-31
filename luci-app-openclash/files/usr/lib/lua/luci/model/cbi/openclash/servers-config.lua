@@ -93,7 +93,7 @@ o:depends("type", "vmess")
 
 o = s:option(ListValue, "udp", translate("UDP Enable"))
 o.rmempty = false
-o.default = "true"
+o.default = "false"
 o:value("true")
 o:value("false")
 o:depends("type", "ss")
@@ -151,17 +151,21 @@ o:depends("type", "http")
 o.rmempty = true
 
 -- [[ skip-cert-verify ]]--
-o = s:option(Flag, "skip_cert_verify", translate("Skip Cert Verify"))
+o = s:option(ListValue, "skip_cert_verify", translate("Skip Cert Verify"))
 o.rmempty = true
-o:depends("obfs-mode", "websocket")
+o.default = "false"
+o:value("true")
+o:value("false")
 o:depends("type", "vmess")
 o:depends("type", "socks5")
 o:depends("type", "http")
 
 -- [[ TLS ]]--
-o = s:option(Flag, "tls", translate("TLS"))
+o = s:option(ListValue, "tls", translate("TLS"))
 o.rmempty = true
-o.default = "0"
+o.default = "false"
+o:value("true")
+o:value("false")
 o:depends("type", "vmess")
 o:depends("type", "socks5")
 o:depends("type", "http")

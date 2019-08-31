@@ -469,7 +469,7 @@ msgid "Auth Password"
 msgstr "登录密码"
 
 msgid "Skip Cert Verify"
-msgstr "忽略许可验证"
+msgstr "忽略许可验证（skip-cert-verify）"
 
 msgid "None"
 msgstr "未配置"
