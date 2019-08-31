@@ -87,12 +87,12 @@ end
 
 o = s:option(DummyValue, "server", translate("Server Address"))
 function o.cfgvalue(...)
-	return Value.cfgvalue(...) or "None"
+	return Value.cfgvalue(...) or translate("None")
 end
 
 o = s:option(DummyValue, "port", translate("Server Port"))
 function o.cfgvalue(...)
-	return Value.cfgvalue(...) or "None"
+	return Value.cfgvalue(...) or translate("None")
 end
 
 
