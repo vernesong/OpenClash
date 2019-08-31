@@ -404,3 +404,86 @@ msgstr "更新客户端"
 msgid "Only For IPK Install Type Or Not Release Memory"
 msgstr ""
 "只支持通过IPK安装的版本进行更新，因为随系统编译的版本更新后不会释放旧版本的闪存空间"
+
+msgid "Severs Nodes"
+msgstr "服务器节点"
+
+msgid "Load Config Severs"
+msgstr "读取节点"
+
+msgid "Delete severs"
+msgstr "清空节点"
+
+msgid "Servers manage and Config create"
+msgstr "服务器节点管理（支持配置文件一键生成）"
+
+msgid "Choose Template For Create Config"
+msgstr "选择配置文件模板"
+
+msgid "Use Other Rules To Create Config"
+msgstr "使用第三方规则快速创建配置文件（创建后可在接管设置页面调整参数）"
+
+msgid "Disable Create Config"
+msgstr "只更新配置文件服务器节点信息"
+
+msgid "Type"
+msgstr "节点类型"
+
+msgid "Alias"
+msgstr "节点别名"
+
+msgid "Server Address"
+msgstr "服务器地址"
+
+msgid "Server Port"
+msgstr "服务器端口"
+
+msgid "Edit Server"
+msgstr "编辑服务器配置"
+
+msgid "Server Node Type"
+msgstr "服务器节点类型"
+
+msgid "Using incorrect encryption mothod may causes service fail to start"
+msgstr "输入不正确的参数组合可能会导致服务无法启动"
+
+msgid "Password"
+msgstr "密码"
+
+msgid "Encrypt Method"
+msgstr "加密方式"
+
+msgid "UDP Enable"
+msgstr "UDP支持"
+
+msgid "obfs-mode"
+msgstr "传输协议"
+
+msgid "obfs-hosts"
+msgstr "混淆参数"
+
+msgid "Auth Username"
+msgstr "登录用户名"
+
+msgid "Auth Password"
+msgstr "登录密码"
+
+msgid "Skip Cert Verify"
+msgstr "忽略许可验证"
+
+msgid "None"
+msgstr "未配置"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
