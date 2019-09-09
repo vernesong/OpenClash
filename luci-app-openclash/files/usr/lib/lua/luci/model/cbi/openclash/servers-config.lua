@@ -4,14 +4,10 @@
 local m, s, o
 local openclash = "openclash"
 local uci = luci.model.uci.cursor()
-local ipkg = require("luci.model.ipkg")
 local fs = require "nixio.fs"
 local sys = require "luci.sys"
 local sid = arg[1]
 local uuid = luci.sys.exec("cat /proc/sys/kernel/random/uuid")
-
-
-local server_table = {}
 
 local encrypt_methods_ss = {
 	-- aead
@@ -45,13 +41,15 @@ local securitys = {
 }
 
 m = Map(openclash, translate("Edit Server"))
+m.pageaction = false
 m.redirect = luci.dispatcher.build_url("admin/services/openclash/servers")
+
 if m.uci:get(openclash, sid) ~= "servers" then
-	luci.http.redirect(m.redirect) 
+	luci.http.redirect(m.redirect)
 	return
 end
 
--- [[ Servers Setting ]]--
+-- [[ Servers Setting ]] --
 s = m:section(NamedSection, sid, "servers")
 s.anonymous = true
 s.addremove   = false
@@ -65,7 +63,7 @@ o:value("http", translate("HTTP(S)"))
 o.description = translate("Using incorrect encryption mothod may causes service fail to start")
 
 o = s:option(Value, "name", translate("Alias"))
-o.default = "Server"
+o.default = "Server Name"
 o.rmempty = false
 
 o = s:option(Value, "server", translate("Server Address"))
@@ -177,5 +175,34 @@ o:value("false")
 o:depends("type", "vmess")
 o:depends("type", "socks5")
 o:depends("type", "http")
+
+o = s:option(DynamicList, "groups", translate("Proxy Group"))
+o.description = translate("No Need Set when Config Create, The added Proxy Groups Must Exist")
+o.rmempty = true
+uci:foreach("openclash", "groups",
+		function(s)
+			o:value(s.name)
+		end)
+
+local t = {
+    {Commit, Back}
+}
+a = m:section(Table, t)
+
+o = a:option(Button,"Commit")
+o.inputtitle = translate("Commit Configurations")
+o.inputstyle = "apply"
+o.write = function()
+   uci:commit(openclash, sid)
+   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
+end
+
+o = a:option(Button,"Back")
+o.inputtitle = translate("Back Configurations")
+o.inputstyle = "reset"
+o.write = function()
+   uci:revert(openclash, sid)
+   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
+end
 
 return m

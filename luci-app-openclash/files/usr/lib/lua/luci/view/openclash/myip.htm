@@ -6,20 +6,20 @@
     <meta charset="utf-8">
     <meta http-equiv="x-dns-prefetch-control" content="on">
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-    <link rel="dns-prefetch" href="//www.taobao.com">
+    <link rel="dns-prefetch" href="//whois.pconline.com.cn">
     <link rel="dns-prefetch" href="//ipv4.ip.sb">
     <link rel="dns-prefetch" href="//myip.ipip.net">
     <link rel="dns-prefetch" href="//api.ipify.org">
     <link rel="dns-prefetch" href="//api.ttt.sh">
     <link rel="dns-prefetch" href="//api.skk.moe">
-    <link rel="dns-prefetch" href="//dt.skk.moe">
-    <link rel="preconnect" href="https://www.taobao.com">
+    <link rel="dns-prefetch" href="//d.skk.moe">
+    <link rel="preconnect" href="https://whois.pconline.com.cn">
     <link rel="preconnect" href="https://ipv4.ip.sb">
     <link rel="preconnect" href="https://myip.ipip.net">
     <link rel="preconnect" href="https://api.ipify.org">
     <link rel="preconnect" href="https://api.ttt.sh">
     <link rel="preconnect" href="https://api.skk.moe">
-    <link rel="preconnect" href="https://dt.skk.moe">
+    <link rel="preconnect" href="https://d.skk.moe">
     <link rel="shortcut icon" type="image/ico" href="https://cdn.jsdelivr.net/npm/skx@0.0.1">
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,minimal-ui">
     <title>IP 地址查询</title>
@@ -133,19 +133,19 @@
         <div style="width: 51%">
             <h3>IP 地址</h3>
             <p>
-                <span class="ip-title">IP&nbsp;登录设备:</span><span class="ip-result" id="ip-webrtc"></span> <span class="ip-geo" id="ip-webrtc-cz88"></span>
+                <span class="ip-title">IP&nbsp;&nbsp;&nbsp;登录设备:</span><span class="ip-result" id="ip-webrtc"></span> <span class="ip-geo" id="ip-webrtc-cz88"></span>
             </p>
             <p>
-                <span class="ip-title">IPIP&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-ipipnet"></span> <span class="ip-geo" id="ip-ipipnet-geo"></span>
+                <span class="ip-title">IPIP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-ipipnet"></span> <span class="ip-geo" id="ip-ipipnet-geo"></span>
             </p>
             <p>
-                <span class="ip-title">淘宝&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-taobao"></span> <span class="ip-geo" id="ip-taobao-ipip"></span>
+                <span class="ip-title">太平洋&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-pcol"></span> <span class="ip-geo" id="ip-pcol-ipip"></span>
             </p>
             <p>
-                <span class="ip-title">IPAPI&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipapi"></span> <span class="ip-geo" id="ip-ipapi-geo"></span>
+                <span class="ip-title">IPAPI&nbsp;&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipapi"></span> <span class="ip-geo" id="ip-ipapi-geo"></span>
             </p>
             <p>
-                <span class="ip-title">IPIFY&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipify"></span> <span class="ip-geo" id="ip-ipify-ipip"></span>
+                <span class="ip-title">IPIFY&nbsp;&nbsp;&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipify"></span> <span class="ip-geo" id="ip-ipify-ipip"></span>
             </p>
         </div>
         <div style="width: 49%">
@@ -181,7 +181,7 @@
        }
         const $$ = document;
         $$.getElementById('ip-webrtc').innerHTML = '查询中...';
-        $$.getElementById('ip-taobao').innerHTML = '查询中...';
+        $$.getElementById('ip-pcol').innerHTML = '查询中...';
         $$.getElementById('ip-ipify').innerHTML = '查询中...';
         $$.getElementById('ip-ipipnet').innerHTML = '查询中...';
         $$.getElementById('ip-ipapi').innerHTML = '查询中...';
@@ -246,10 +246,7 @@
                         $$.getElementById('ip-ipipnet-geo').innerHTML = `${data[1]}`;
                     });
             },
-            getTaobaoIP: (data) => {
-                $$.getElementById('ip-taobao').innerHTML = data.ip;
-                IP.parseIPIpip(data.ip, 'ip-taobao-ipip');
-            },
+            
             getIPApiIP: () => {
                 IP.get(`https://ipapi.co/json?z=${random}`, 'json')
                     .then(resp => {
@@ -268,8 +265,7 @@
                 })
             }
         };
-
-        window.ipCallback = (data) => IP.getTaobaoIP(data);
+        
         $$.getElementById('http-baidu').innerHTML = '<span class="ip-checking">检测中...</span>';
         $$.getElementById('http-163').innerHTML =  '<span class="ip-checking">检测中...</span>';
         $$.getElementById('http-github').innerHTML = '<span class="ip-checking">检测中...</span>';
@@ -303,36 +299,41 @@
                 HTTP.checker('www.youtube.com', 'http-youtube');
             }
         };
-        
+
 	      HTTP.runcheck();
 	      IP.getIpipnetIP();
 	      IP.getIpifyIP();
 	      IP.getIPApiIP();
 	      IP.getWebrtcIP();
+	      
+	      function getPcolIP(data){
+                $$.getElementById('ip-pcol').innerHTML = data.ip;
+                IP.parseIPIpip(data.ip, 'ip-pcol-ipip');
+        };
 
 	      window.onload=myip_Load();
 	      
 	      function myip_Load()
 	      {
-	         var tbip = document.getElementsByTagName('HEAD').item(0);
-	         var tbipScript= document.createElement("script");
-	         tbipScript.async = "async";
-	         tbipScript.src='https://www.taobao.com/help/getip.php';
-	         tbip.appendChild( tbipScript);
-
+	         var pcip = document.getElementsByTagName('HEAD').item(0);
+	         var pcipScript= document.createElement("script");
+	         pcipScript.defer = "defer";
+	         pcipScript.src='https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP';
+	         pcip.appendChild(pcipScript);
+	         
 	         const $$ = document;
 	         random = parseInt(Math.random() * 100000000);
-	         window.ipCallback = (data) => IP.getTaobaoIP(data);
 		       HTTP.runcheck();
 		       IP.getIpipnetIP();
 		       IP.getIpifyIP();
 		       IP.getIPApiIP();
 		       IP.getWebrtcIP();
+
        	   setTimeout("myip_Load()",1000*8);
 		   }
 
     </script>
-    <script async="async" src="https://www.taobao.com/help/getip.php"></script>
+    <script defer="defer" src="https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP"></script>
 </body>
 
 </html>

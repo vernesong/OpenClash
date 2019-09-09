@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.34.0
+PKG_VERSION:=0.34.1
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
@@ -70,6 +70,9 @@ elif [ -f "/tmp/config.yml" ]; then
 	mv "/tmp/config.yml" "/etc/openclash/config.yaml" 2>/dev/null
 fi
 uci set openclash.config.enable=0 && uci commit openclash
+chmod 0755 /etc/init.d/openclash
+chmod -R 0755 /usr/share/openclash/
+chmod -R 0755 /usr/lib/lua/luci/model/cbi/openclash/
 rm -rf /tmp/luci*
 endef
 

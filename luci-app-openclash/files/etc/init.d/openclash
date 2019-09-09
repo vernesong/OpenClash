@@ -374,9 +374,22 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        echo "第五步: 启动 Clash 主程序..." >$START_LOG
        nohup $CLASH -d "$CLASH_CONFIG" >> $LOG_FILE 2>&1 &
 
-       echo "第六步: 设置 OpenClash 防火墙规则..." >$START_LOG
+       echo "第六步: 设置控制面板..." >$START_LOG
        ln -s /usr/share/openclash/yacd /www/openclash 2>/dev/null
-
+       
+       echo "第七步: 设置 OpenClash 防火墙规则..." >$START_LOG
+       if [ -z "$(uci get firewall.openclash)" ] || [ -z "$(uci get ucitrack.@openclash[-1].init)" ]; then
+          uci delete ucitrack.@openclash[-1] >/dev/null 2>&1
+          uci add ucitrack openclash >/dev/null 2>&1
+          uci set ucitrack.@openclash[-1].init=openclash >/dev/null 2>&1
+          uci commit ucitrack >/dev/null 2>&1
+          uci delete firewall.openclash >/dev/null 2>&1
+          uci set firewall.openclash=include >/dev/null 2>&1
+          uci set firewall.openclash.type=script >/dev/null 2>&1
+          uci set firewall.openclash.path=/var/etc/openclash.include >/dev/null 2>&1
+          uci set firewall.openclash.reload=1 >/dev/null 2>&1
+          uci commit firewall >/dev/null 2>&1
+       fi
        mkdir -p /var/etc
        cat > "/var/etc/openclash.include" <<-EOF
 iptables -t nat -N openclash
@@ -405,7 +418,7 @@ fi
        /etc/init.d/firewall restart >/dev/null 2>&1
        /etc/init.d/miniupnpd restart >/dev/null 2>&1
        
-       echo "第七步: 重启 Dnsmasq 程序..." >$START_LOG
+       echo "第八步: 重启 Dnsmasq 程序..." >$START_LOG
        if [ "$(iptables -t nat -nL PREROUTING --line-number |grep dpt:53 |wc -l)" -gt 2 ]; then
           echo "发现53端口被劫持，请将OpenClash设置为劫持53端口程序的上游DNS服务器！" >$START_LOG
           echo "${LOGTIME} Warring: OpenClash May Can Not Take Over DNS, Please Use OpenClash for Upstream DNS Resolve Server" >> $LOG_FILE
@@ -417,7 +430,7 @@ fi
        fake_block "$en_mode" "$direct_dns"
        /etc/init.d/dnsmasq restart >/dev/null 2>&1
        if pidof clash >/dev/null; then
-          echo "第八步: 添加 OpenClash 计划任务,启动进程守护程序..." >$START_LOG
+          echo "第九步: 添加 OpenClash 计划任务,启动进程守护程序..." >$START_LOG
           add_cron
           echo "OpenClash 启动成功，请等待服务器上线！" >$START_LOG
           echo "${LOGTIME} OpenClash Start Successful" >> $LOG_FILE

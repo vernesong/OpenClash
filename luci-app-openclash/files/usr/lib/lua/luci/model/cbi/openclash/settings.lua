@@ -6,13 +6,12 @@ local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
 local uci = require("luci.model.uci").cursor()
 
-m = Map("openclash", translate("Takeover Settings"))
+m = Map("openclash", translate("Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"))
 m.pageaction = false
 s = m:section(TypedSection, "openclash")
-s.title = translate("Will Modify The Config File Or Subscribe According To The Settings On This Page")
 s.anonymous = true
 
-s:tab("settings", translate("General-Settings"))
+s:tab("settings", translate("General Settings"))
 s:tab("dns", translate("DNS Setting"))
 s:tab("rules", translate("Rules Setting"))
 s:tab("dashboard", translate("Dashboard Settings"))
