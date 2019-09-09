@@ -37,4 +37,3 @@ module "luci.openclash"
 function isdirectory(dirname)
 	return fs.stat(dirname, "type") == "dir"
 end
-

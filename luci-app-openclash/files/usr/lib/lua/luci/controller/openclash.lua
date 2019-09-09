@@ -17,8 +17,10 @@ function index()
 	entry({"admin", "services", "openclash", "update_ma"},call("action_update_ma"))
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
-	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Takeover Settings"), 30).leaf = true
-	entry({"admin", "services", "openclash", "servers"}, arcombine(cbi("openclash/servers"), cbi("openclash/servers-config")),_("Severs Nodes"), 40).leaf = true
+	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
+	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Severs&Groups"), 40).leaf = true
+  entry({"admin", "services", "openclash", "servers-config"},cbi("openclash/servers-config"), nil).leaf = true
+  entry({"admin", "services", "openclash", "groups-config"},cbi("openclash/groups-config"), nil).leaf = true
 	entry({"admin", "services", "openclash", "config"},form("openclash/config"),_("Server Config"), 50).leaf = true
 	entry({"admin", "services", "openclash", "log"},form("openclash/log"),_("Logs"), 60).leaf = true
 

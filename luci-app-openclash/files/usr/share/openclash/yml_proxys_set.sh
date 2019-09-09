@@ -5,6 +5,7 @@ status=$(ps|grep -c /usr/share/openclash/yml_proxys_set.sh)
 START_LOG="/tmp/openclash_start.log"
 SERVER_FILE="/tmp/yaml_servers.yaml"
 
+
 #写入服务器节点到配置文件
 yml_servers_set()
 {
@@ -29,8 +30,8 @@ yml_servers_set()
    config_get "uuid" "$section" "uuid" ""
    config_get "auth_name" "$section" "auth_name" ""
    config_get "auth_pass" "$section" "auth_pass" ""
-   
-	
+
+
    if [ -z "$type" ]; then
       return
    fi
@@ -39,9 +40,6 @@ yml_servers_set()
       return
    fi
    
-   if [ -z "$name" ]; then
-      name="Server"
-   fi
    
    if [ -z "$port" ]; then
       return
@@ -145,57 +143,18 @@ EOF
 
 }
 
-yml_servers_change()
-{
-num=$(grep -c "^ \{0,\}" /tmp/Proxy_Server)
-nums=$(grep -c "^ \{0,\}" /tmp/Proxy_Servers)
-count=1
-while [ "$count" -le "$num" ]
-do
-Server=$(sed -n "${count}p" /tmp/Proxy_Server |sed 's/\\/#d#/g' 2>/dev/null)
-Servers=$(sed -n "${count}p" /tmp/Proxy_Servers |sed 's/\\/#d#/g' 2>/dev/null)
-sed -i 's/\\/#d#/g' /etc/openclash/config.yaml 2>/dev/null 
-
-if [ "$Server" != "$Servers" ] && [ ! -z "$Servers" ]; then
-   sed -i "s/${Servers}/${Server}/g" /etc/openclash/config.yaml 2>/dev/null
-elif [ -z "$Servers" ]; then
-   space_num=$(grep "$last_server" /etc/openclash/config.yaml |sed -n '$p' |awk -F '-' '{print $1}' |sed 's/ /#spas#/g' 2>/dev/null |sed 's/\t/#tab#/g' 2>/dev/null)
-   sed -i "/${last_server}/a${space_num}- \"${Server}\"" /etc/openclash/config.yaml 2>/dev/null
-fi
-last_server="$Server"
-count=$(expr "$count" + 1)
-done
-
-if [ "$num" -lt "$nums" ]; then
-while [ "$count" -le "$nums" ]
-do
-   Servers=$(sed -n "${count}p" /tmp/Proxy_Servers |sed 's/\\/#d#/g' 2>/dev/null)
-   sed -i "/${Servers}/d" "/etc/openclash/config.yaml" 2>/dev/null
-   count=$(expr "$count" + 1)
-done
-fi
-sed -i 's/#d#/\\/g' /etc/openclash/config.yaml 2>/dev/null
-sed -i 's/#spas#/ /g' /etc/openclash/config.yaml 2>/dev/null
-sed -i 's/#tab#/	/g' /etc/openclash/config.yaml 2>/dev/null
-}
 
 #创建配置文件
-echo "开始更新配置文件..." >$START_LOG
+echo "开始更新配置文件节点..." >$START_LOG
 echo "Proxy:" >$SERVER_FILE
 config_load "openclash"
 config_foreach yml_servers_set "servers"
 echo "Proxy Group:" >>$SERVER_FILE
 rule_sources=$(uci get openclash.config.rule_sources 2>/dev/null)
+create_config=$(uci get openclash.config.create_config 2>/dev/null)
 egrep '^ {0,}-' $SERVER_FILE |grep name: |awk -F 'name: ' '{print $2}' |sed 's/,.*//' >/tmp/Proxy_Server 2>&1
 sed -i "s/^ \{0,\}/  - /" /tmp/Proxy_Server 2>/dev/null #添加参数
 
-if [ -z "$(grep "^ \{0,\}Proxy:" /etc/openclash/config.yaml)" ] || [ -z "$(grep "^ \{0,\}Proxy Group:" /etc/openclash/config.yaml)" ]; then
-   echo "未找到配置文件，开始使用ConnersHua规则创建..." >$START_LOG
-   uci set openclash.config.rule_sources="ConnersHua"
-   uci set openclash.config.rule_source="ConnersHua"
-   uci commit openclash
-   rule_sources="ConnersHua"
-fi
 
 if [ "$rule_sources" = "ConnersHua" ]; then
 echo "使用ConnersHua规则创建中..." >$START_LOG
@@ -338,25 +297,21 @@ EOF
 uci set openclash.config.Proxy="Proxy"
 uci set openclash.config.Others="Others"
 fi
-if [ "$rule_sources" != "0" ]; then
+if [ "$create_config" != "0" ]; then
    echo "Rule:" >>$SERVER_FILE
    uci commit openclash
    cat $SERVER_FILE > "/etc/openclash/config.yaml" 2>/dev/null
 else
    echo "正在更新配置文件服务器节点信息..." >$START_LOG
-   awk '/Proxy:/,/Proxy Group:/{print}' /etc/openclash/config.yaml 2>/dev/null |egrep '^ {0,}-' |grep name: |awk -F 'name: ' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' >/tmp/Proxy_Servers 2>&1
-   sed -i 's/\"//g' /tmp/Proxy_Server |sed 's/^ \{0,\}- //g' 2>/dev/null
-   
+   /usr/share/openclash/yml_groups_set.sh
    sed -i '/^ \{0,\}Proxy:/i\#change server#' "/etc/openclash/config.yaml" 2>/dev/null
-   sed -i '/^ \{0,\}Proxy:/,/^ \{0,\}Proxy Group:/d' "/etc/openclash/config.yaml" 2>/dev/null
-   
-   yml_servers_change
-   
+   sed -i '/^ \{0,\}Proxy:/,/^ \{0,\}Rule:/d' "/etc/openclash/config.yaml" 2>/dev/null
    sed -i '/#change server#/r/tmp/yaml_servers.yaml' "/etc/openclash/config.yaml" 2>/dev/null
+   sed -i '/Proxy Group:/r/tmp/yaml_groups.yaml' "/etc/openclash/config.yaml" 2>/dev/null
    sed -i '/#change server#/d' "/etc/openclash/config.yaml" 2>/dev/null
 fi
 echo "配置文件更新完成！" >$START_LOG
 rm -rf $SERVER_FILE 2>/dev/null
 rm -rf /tmp/Proxy_Server 2>/dev/null
-rm -rf /tmp/Proxy_Servers 2>/dev/null
+rm -rf /tmp/yaml_groups.yaml 2>/dev/null
 /etc/init.d/openclash restart >/dev/null 2>&1 &

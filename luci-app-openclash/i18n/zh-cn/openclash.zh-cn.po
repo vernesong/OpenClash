@@ -8,8 +8,8 @@ msgstr "OpenClash"
 msgid "A Clash Client For OpenWrt"
 msgstr "一个运行在OpenWrt上的Clash客户端，兼容Shadowsocks、Vmess等协议，根据灵活的规则配置实现策略代理"
 
-msgid "Will Modify The Config File Or Subscribe According To The Settings On This Page"
-msgstr "将按照本页设置本地化配置文件和获取订阅"
+msgid "Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"
+msgstr "全局设置（将按照本页设置自动修改配置文件和获取订阅）"
 
 msgid "Technical Support"
 msgstr "技术支持"
@@ -17,11 +17,11 @@ msgstr "技术支持"
 msgid "Overviews"
 msgstr "运行状态"
 
-msgid "Takeover Settings"
-msgstr "接管设置"
-
-msgid "General-Settings"
+msgid "Global Settings"
 msgstr "全局设置"
+
+msgid "General Settings"
+msgstr "基本设置"
 
 msgid "DNS Setting"
 msgstr "DNS设置"
@@ -405,23 +405,29 @@ msgid "Only For IPK Install Type Or Not Release Memory"
 msgstr ""
 "只支持通过IPK安装的版本进行更新，因为随系统编译的版本更新后不会释放旧版本的闪存空间"
 
-msgid "Severs Nodes"
-msgstr "服务器节点"
+msgid "Severs&Groups"
+msgstr "服务器&策略组"
 
-msgid "Load Config Severs"
-msgstr "读取节点"
+msgid "Load Config"
+msgstr "读取配置文件"
 
-msgid "Delete severs"
-msgstr "清空节点"
+msgid "Delete Severs"
+msgstr "清空服务器配置"
+
+msgid "Delete Groups"
+msgstr "清空策略组配置"
+
+msgid "Back Configurations"
+msgstr "返回概览"
 
 msgid "Servers manage and Config create"
-msgstr "服务器节点管理（支持配置文件一键生成）"
+msgstr "服务器&策略组管理（支持配置文件一键生成）"
 
 msgid "Choose Template For Create Config"
 msgstr "选择配置文件模板"
 
 msgid "Use Other Rules To Create Config"
-msgstr "使用第三方规则快速创建配置文件（创建后可在接管设置页面调整参数）"
+msgstr "使用第三方规则快速创建配置文件（创建后可在全局设置页面调整参数）"
 
 msgid "Disable Create Config"
 msgstr "只更新配置文件服务器节点信息"
@@ -430,7 +436,7 @@ msgid "Type"
 msgstr "节点类型"
 
 msgid "Alias"
-msgstr "节点别名"
+msgstr "节点别名（请勿重名）"
 
 msgid "Server Address"
 msgstr "服务器地址"
@@ -474,13 +480,59 @@ msgstr "忽略许可验证（skip-cert-verify）"
 msgid "None"
 msgstr "未配置"
 
+msgid "Create Config"
+msgstr "一键生成配置文件"
 
+msgid "Create Config By One-Click Only Need Proxys"
+msgstr "一键生成配置文件功能只需要配置服务器节点信息"
 
+msgid "Proxy Groups(No Need Set when Config Create)"
+msgstr "策略组配置（使用一键生成配置文件功能时无需设置）"
 
+msgid "Proxys"
+msgstr "服务器节点配置"
 
+msgid "Edit Group"
+msgstr "编辑策略组配置"
 
+msgid "Group Type"
+msgstr "策略组类型"
 
+msgid "Choose The Operation Mode"
+msgstr "设置策略组挑选服务器节点的工作方式"
 
+msgid "Group Name"
+msgstr "策略组别名（请勿重名）"
+
+msgid "Test URL"
+msgstr "检测地址（URL）"
+
+msgid "Test Interval(s)"
+msgstr "检测频率（秒）"
+
+msgid "Select"
+msgstr "手动选择"
+
+msgid "URL-Test"
+msgstr "最低延迟"
+
+msgid "Fallback"
+msgstr "故障切换"
+
+msgid "Load-Balance"
+msgstr "负载均衡"
+
+msgid "Other Group"
+msgstr "包含其他策略组"
+
+msgid "The added Proxy Groups Must Exist"
+msgstr "添加的策略组必须已创建"
+
+msgid "Proxy Group"
+msgstr "添加到策略组"
+
+msgid "No Need Set when Config Create, The added Proxy Groups Must Exist"
+msgstr "使用一键生成配置文件功能时无需设置，填写的策略组必须已创建"
 
 
 

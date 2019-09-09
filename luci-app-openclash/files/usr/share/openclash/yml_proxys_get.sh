@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 status=$(ps|grep -c /usr/share/openclash/yml_proxys_get.sh)
 [ "$status" -gt "3" ] && exit 0
 
@@ -9,11 +9,14 @@ elif [ ! -f "/etc/openclash/config.yaml" ] && [ "$(ls -l /etc/openclash/config.y
 fi
 
 awk '/^ {0,}Proxy:/,/^ {0,}Proxy Group:/{print}' /etc/openclash/config.yaml 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
+
 server_file="/tmp/yaml_proxy.yaml"
 single_server="/tmp/servers.yaml"
+group_num=$(grep -c "name:" /tmp/yaml_group.yaml)
 count=1
 line=$(sed -n '/^ \{0,\}-/=' $server_file)
 num=$(grep -c "^ \{0,\}-" $server_file)
+
 
 for n in $line
 do
@@ -83,6 +86,8 @@ do
    uci_name_tmp=$(uci add $name servers)
 
     uci_set="uci -q set $name.$uci_name_tmp."
+    uci_add="uci -q add_list $name.$uci_name_tmp."
+    
     ${uci_set}name="$server_name"
     ${uci_set}type="$server_type"
     ${uci_set}server="$server"
@@ -118,8 +123,21 @@ do
      ${uci_set}password="$password"
 	fi
 	
+	server_name_change=$(echo "$server_name" |sed 's/\\/#d#/g' 2>/dev/null |sed 's/ /#spas#/g' |sed 's/\t/#tab#/g' 2>/dev/null) #替换斜杠和空格
+	for ((i=1;i<=$group_num;i++)) #循环加入策略组
+	do
+	   single_group="/tmp/group_$i.yaml"
+	   sed -i -e 's/\\/#d#/g' -e 's/ /#spas#/g' -e 's/\t/#tab#/g' "$single_group" 2>/dev/null #替换斜杠和空格
+     if [ ! -z "$(grep "$server_name_change" "$single_group")" ]; then
+        group_name=$(grep "name:" $single_group |sed 's/#d#/\\/g' |sed 's/#spas#/ /g' |sed 's/#tab#/	/g' |awk -F 'name: ' '{print $2}' |sed 's/,.*//' 2>/dev/null |sed 's/\"//g' 2>/dev/null)
+        ${uci_add}groups="$group_name"
+     fi
+	done
+
 done
 
 uci commit openclash
-rm -rf /tmp/servers.yaml
-rm -rf /tmp/yaml_proxy.yaml
+rm -rf /tmp/servers.yaml 2>/dev/null
+rm -rf /tmp/yaml_proxy.yaml 2>/dev/null
+rm -rf /tmp/group_*.yaml 2>/dev/null
+rm -rf /tmp/yaml_group.yaml 2>/dev/null
