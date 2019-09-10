@@ -23,7 +23,7 @@ yml_servers_set()
    config_get "obfs_vmess" "$section" "obfs_vmess" ""
    config_get "host" "$section" "host" ""
    config_get "custom" "$section" "custom" ""
-   config_get "tls" "$section" "securitys" ""
+   config_get "tls" "$section" "tls" ""
    config_get "skip_cert_verify" "$section" "skip_cert_verify" ""
    config_get "path" "$section" "path" ""
    config_get "alterId" "$section" "alterId" ""
@@ -86,7 +86,7 @@ yml_servers_set()
       if [ "$type" != "vmess" ]; then
          path="path: '$path'"
       else
-         path="ws-path: /$path"
+         path=", ws-path: $path"
       fi
    fi
    
@@ -212,6 +212,7 @@ cat >> "$SERVER_FILE" <<-EOF
   - DIRECT
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+uci set openclash.config.rule_source="ConnersHua"
 uci set openclash.config.GlobalTV="GlobalTV"
 uci set openclash.config.AsianTV="AsianTV"
 uci set openclash.config.Proxy="Proxy"
@@ -264,6 +265,7 @@ cat >> "$SERVER_FILE" <<-EOF
   - DIRECT
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+uci set openclash.config.rule_source="lhie1"
 uci set openclash.config.GlobalTV="GlobalTV"
 uci set openclash.config.AsianTV="AsianTV"
 uci set openclash.config.Proxy="Proxy"
@@ -294,6 +296,7 @@ cat >> "$SERVER_FILE" <<-EOF
   - Proxy
   - DIRECT
 EOF
+uci set openclash.config.rule_source="ConnersHua_return"
 uci set openclash.config.Proxy="Proxy"
 uci set openclash.config.Others="Others"
 fi
