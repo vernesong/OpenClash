@@ -31,7 +31,6 @@ o:value("fallback", translate("Fallback"))
 o:value("load-balance", translate("Load-Balance"))
 
 o = s:option(Value, "name", translate("Group Name"))
-o.default = "Group Name"
 o.rmempty = false
 
 o = s:option(Value, "test_url", translate("Test URL"))

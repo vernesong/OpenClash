@@ -63,7 +63,6 @@ o:value("http", translate("HTTP(S)"))
 o.description = translate("Using incorrect encryption mothod may causes service fail to start")
 
 o = s:option(Value, "name", translate("Alias"))
-o.default = "Server Name"
 o.rmempty = false
 
 o = s:option(Value, "server", translate("Server Address"))
