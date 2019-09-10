@@ -81,6 +81,7 @@ if [ "$create_config" = "0" ]; then
 
    if [ -z "$(grep "^ \{0,\}Proxy:" /etc/openclash/config.yaml)" ] || [ -z "$(grep "^ \{0,\}Proxy Group:" /etc/openclash/config.yaml)" ]; then
       echo "未找到配置文件，开始使用ConnersHua规则创建..." >$START_LOG
+      uci set openclash.config.create_config=1
       uci set openclash.config.rule_sources="ConnersHua"
       uci set openclash.config.rule_source="ConnersHua"
       uci commit openclash
