@@ -88,6 +88,7 @@ do
                if [ ! -z "$(grep "$group_name2" $match_group_file)" ] && [ "$group_name2" != "$group_name" ]; then
                   ${uci_add}other_group=$(echo "$group_name2" |awk -F '#,#' '{print $group_nums}')
                fi
+               group_nums=$(expr "$group_nums" + 1)
             done
          fi
       fi
