@@ -62,7 +62,7 @@ o:value("http", translate("HTTP(S)"))
 
 o.description = translate("Using incorrect encryption mothod may causes service fail to start")
 
-o = s:option(Value, "name", translate("Alias"))
+o = s:option(Value, "name", translate("Server Alias"))
 o.rmempty = false
 
 o = s:option(Value, "server", translate("Server Address"))
@@ -116,6 +116,7 @@ o.datatype = "host"
 o.rmempty = true
 o:depends("obfs", "tls")
 o:depends("obfs", "http")
+o:depends("obfs", "websocket")
 
 o = s:option(Value, "custom", translate("ws-headers"))
 o.rmempty = true
@@ -125,7 +126,7 @@ o:depends("obfs_vmess", "websocket")
 -- [[ WS部分 ]]--
 
 -- WS路径
-o = s:option(Value, "path", translate("ws-Path"))
+o = s:option(Value, "path", translate("ws-path"))
 o.rmempty = true
 o:depends("obfs", "websocket")
 o:depends("obfs_vmess", "websocket")
@@ -161,6 +162,7 @@ o.rmempty = true
 o.default = "false"
 o:value("true")
 o:value("false")
+o:depends("obfs", "websocket")
 o:depends("type", "vmess")
 o:depends("type", "socks5")
 o:depends("type", "http")
@@ -171,6 +173,7 @@ o.rmempty = true
 o.default = "false"
 o:value("true")
 o:value("false")
+o:depends("obfs", "websocket")
 o:depends("type", "vmess")
 o:depends("type", "socks5")
 o:depends("type", "http")
