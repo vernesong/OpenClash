@@ -41,7 +41,15 @@ o.inputstyle = "apply"
 o.write = function()
   uci:set("openclash", "config", "enable", 1)
   uci:commit("openclash")
-  luci.sys.call("/usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1 &")
+  local refresh_config = uci:get("openclash", "config", "create_config")
+  if (refresh_config == "1") then
+     luci.sys.call("/usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1")
+     uci:delete_all("openclash", "servers", function(s) return true end)
+     uci:delete_all("openclash", "groups", function(s) return true end)
+     luci.sys.call("sh /usr/share/openclash/yml_groups_get.sh >/dev/null 2>&1 &")
+  else
+     luci.sys.call("/usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1 &")
+  end
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end
 
@@ -56,7 +64,7 @@ o.inputstyle = "apply"
 o.write = function()
   uci:delete_all("openclash", "servers", function(s) return true end)
   uci:delete_all("openclash", "groups", function(s) return true end)
-  luci.sys.call("sh /usr/share/openclash/yml_groups_get.sh 2>/dev/null") 
+  luci.sys.call("sh /usr/share/openclash/yml_groups_get.sh 2>/dev/null")
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
 end
 
@@ -123,7 +131,7 @@ function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
 end
 
-o = s:option(DummyValue, "name", translate("Alias"))
+o = s:option(DummyValue, "name", translate("Server Alias"))
 function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
 end

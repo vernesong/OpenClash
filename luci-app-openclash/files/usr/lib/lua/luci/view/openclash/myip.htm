@@ -14,7 +14,7 @@
     <link rel="dns-prefetch" href="//api.skk.moe">
     <link rel="dns-prefetch" href="//d.skk.moe">
     <link rel="preconnect" href="https://whois.pconline.com.cn">
-    <link rel="preconnect" href="https://ipv4.ip.sb">
+    <link rel="preconnect" href="https://ip.sb">
     <link rel="preconnect" href="https://myip.ipip.net">
     <link rel="preconnect" href="https://api.ipify.org">
     <link rel="preconnect" href="https://api.ttt.sh">
@@ -142,7 +142,7 @@
                 <span class="ip-title">太平洋&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-pcol"></span> <span class="ip-geo" id="ip-pcol-ipip"></span>
             </p>
             <p>
-                <span class="ip-title">IPAPI&nbsp;&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipapi"></span> <span class="ip-geo" id="ip-ipapi-geo"></span>
+                <span class="ip-title">IP.SB&nbsp;&nbsp;&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipsb"></span> <span class="ip-geo" id="ip-ipsb-geo"></span>
             </p>
             <p>
                 <span class="ip-title">IPIFY&nbsp;&nbsp;&nbsp;&nbsp;海外:</span><span class="ip-result" id="ip-ipify"></span> <span class="ip-geo" id="ip-ipify-ipip"></span>
@@ -184,7 +184,7 @@
         $$.getElementById('ip-pcol').innerHTML = '查询中...';
         $$.getElementById('ip-ipify').innerHTML = '查询中...';
         $$.getElementById('ip-ipipnet').innerHTML = '查询中...';
-        $$.getElementById('ip-ipapi').innerHTML = '查询中...';
+        $$.getElementById('ip-ipsb').innerHTML = '查询中...';
         let random = parseInt(Math.random() * 100000000);
         let IP = {
             get: (url, type) =>
@@ -246,7 +246,6 @@
                         $$.getElementById('ip-ipipnet-geo').innerHTML = `${data[1]}`;
                     });
             },
-            
             getIPApiIP: () => {
                 IP.get(`https://ipapi.co/json?z=${random}`, 'json')
                     .then(resp => {
@@ -303,12 +302,15 @@
 	      HTTP.runcheck();
 	      IP.getIpipnetIP();
 	      IP.getIpifyIP();
-	      IP.getIPApiIP();
 	      IP.getWebrtcIP();
 	      
 	      function getPcolIP(data){
                 $$.getElementById('ip-pcol').innerHTML = data.ip;
                 IP.parseIPIpip(data.ip, 'ip-pcol-ipip');
+        };
+        function getIpsbIP(data){
+                $$.getElementById('ip-ipsb').innerHTML = data.address;
+                $$.getElementById('ip-ipsb-geo').innerHTML = `${data.country} ${data.province} ${data.city} ${data.isp.name}`
         };
 
 	      window.onload=myip_Load();
@@ -321,19 +323,25 @@
 	         pcipScript.src='https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP';
 	         pcip.appendChild(pcipScript);
 	         
+	         var sbip = document.getElementsByTagName('HEAD').item(0);
+	         var sbipScript= document.createElement("script");
+	         sbipScript.defer = "defer";
+	         sbipScript.src='https://ip.sb/addrinfo?callback=getIpsbIP';
+	         sbip.appendChild(sbipScript);
+	         
 	         const $$ = document;
 	         random = parseInt(Math.random() * 100000000);
 		       HTTP.runcheck();
 		       IP.getIpipnetIP();
 		       IP.getIpifyIP();
-		       IP.getIPApiIP();
 		       IP.getWebrtcIP();
 
-       	   setTimeout("myip_Load()",1000*8);
+       	   setTimeout("myip_Load()",1000*20);
 		   }
 
     </script>
     <script defer="defer" src="https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP"></script>
+    <script defer="defer" src="https://ip.sb/addrinfo?callback=getIpsbIP"></script>
 </body>
 
 </html>

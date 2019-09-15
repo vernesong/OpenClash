@@ -120,6 +120,16 @@ cat >> "$SERVER_FILE" <<-EOF
     $host
 EOF
   fi
+  if [ ! -z "$tls" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    $tls
+EOF
+  fi
+  if [ ! -z "$skip_cert_verify" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    $skip_cert_verify
+EOF
+  fi
   if [ ! -z "$path" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     $path

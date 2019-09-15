@@ -21,8 +21,9 @@ s:tab("geo_update", translate("GEOIP Update"))
 s:tab("version_update", translate("Version Update"))
 
 ---- General Settings
+local cpu_model=SYS.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
 o = s:taboption("settings", ListValue, "core_version", translate("Chose to Download"))
-o.description = translate("For Core Update, Wrong Version Will Not Work")
+o.description = translate("CPU Model")..': '..cpu_model..', '..translate("Select Based On Your CPU Model For Core Update, Wrong Version Will Not Work")
 o:value("linux-386")
 o:value("linux-amd64", translate("linux-amd64(x86-64)"))
 o:value("linux-armv5")

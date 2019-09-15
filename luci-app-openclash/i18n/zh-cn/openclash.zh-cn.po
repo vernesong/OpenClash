@@ -21,7 +21,7 @@ msgid "Global Settings"
 msgstr "全局设置"
 
 msgid "General Settings"
-msgstr "基本设置"
+msgstr "常规设置"
 
 msgid "DNS Setting"
 msgstr "DNS设置"
@@ -382,8 +382,8 @@ msgstr "<可更新>"
 msgid "Chose to Download"
 msgstr "选择内核编译版本"
 
-msgid "For Core Update, Wrong Version Will Not Work"
-msgstr "下载、更新内核前须设置，错误的版本将不能正常运行"
+msgid "Select Based On Your CPU Model For Core Update, Wrong Version Will Not Work"
+msgstr "请根据CPU架构选择以便下载、更新对应内核，错误的版本将不能正常运行"
 
 msgid "Update Core File"
 msgstr "更新内核"
@@ -435,7 +435,7 @@ msgstr "只更新配置文件服务器节点信息"
 msgid "Type"
 msgstr "节点类型"
 
-msgid "Alias"
+msgid "Server Alias"
 msgstr "节点别名（请勿重名）"
 
 msgid "Server Address"
@@ -466,7 +466,7 @@ msgid "obfs-mode"
 msgstr "传输协议"
 
 msgid "obfs-hosts"
-msgstr "混淆参数"
+msgstr "混淆参数（HOST）"
 
 msgid "Auth Username"
 msgstr "登录用户名"
@@ -502,7 +502,7 @@ msgid "Choose The Operation Mode"
 msgstr "设置策略组挑选服务器节点的工作方式"
 
 msgid "Group Name"
-msgstr "策略组别名（请勿重名）"
+msgstr "别名（请勿重名）"
 
 msgid "Test URL"
 msgstr "检测地址（URL）"
@@ -511,28 +511,28 @@ msgid "Test Interval(s)"
 msgstr "检测频率（秒）"
 
 msgid "Select"
-msgstr "手动选择"
+msgstr "手动选择（Select）"
 
 msgid "URL-Test"
-msgstr "最低延迟"
+msgstr "最低延迟（URL-Test）"
 
 msgid "Fallback"
-msgstr "故障切换"
+msgstr "故障切换（Fallback）"
 
 msgid "Load-Balance"
-msgstr "负载均衡"
+msgstr "负载均衡（Load-Balance）"
 
 msgid "Other Group"
-msgstr "包含其他策略组"
+msgstr "包含其他策略组（请勿重复添加）"
 
 msgid "The added Proxy Groups Must Exist"
-msgstr "添加的策略组必须已创建"
+msgstr "注意：修改配置文件前添加的策略组必须已创建"
 
 msgid "Proxy Group"
-msgstr "添加到策略组"
+msgstr "添加到策略组（请勿重复添加）"
 
 msgid "No Need Set when Config Create, The added Proxy Groups Must Exist"
-msgstr "使用一键生成配置文件功能时无需设置，填写的策略组必须已创建"
+msgstr "注意：使用一键生成配置文件功能时无需设置此项，修改配置文件前添加的策略组必须已创建"
 
 
 
