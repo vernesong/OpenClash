@@ -13,7 +13,7 @@
  */
 @font-face {
   font-family: "clash-iconfont";
-  src: url("//at.alicdn.com/t/font_841708_6gtmjlak9k2.ttf?t=1551607902712") format("truetype");
+  src: url("//at.alicdn.com/t/font_841708_z4foe3sarr8.ttf?t=1567008313882") format("truetype");
 }
 .clash-iconfont {
   font-family: "clash-iconfont" !important;
@@ -78,6 +78,18 @@
 
 .icon-hide::before {
   content: "";
+}
+
+.icon-sort::before {
+  content: "";
+}
+
+.icon-sort-descending::before {
+  content: "";
+}
+
+.icon-sort-ascending::before {
+  content: "";
 }
 
 html {
@@ -4726,6 +4738,10 @@ body ::-webkit-scrollbar-thumb {
 
 .proxies-group-card {
   margin: 20px 0;
+}
+
+.proxies-container .proxies-action-icon {
+  margin-left: 10px;
 }
 
 .proxies-speed-test {
