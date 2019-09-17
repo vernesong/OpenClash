@@ -46,9 +46,11 @@ o.write = function()
      luci.sys.call("/usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1")
      uci:delete_all("openclash", "servers", function(s) return true end)
      uci:delete_all("openclash", "groups", function(s) return true end)
-     luci.sys.call("sh /usr/share/openclash/yml_groups_get.sh >/dev/null 2>&1 &")
+     luci.sys.call("/usr/share/openclash/yml_groups_get.sh >/dev/null 2>&1")
+     luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
   else
-     luci.sys.call("/usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1 &")
+     luci.sys.call("/usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1")
+     luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
   end
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end

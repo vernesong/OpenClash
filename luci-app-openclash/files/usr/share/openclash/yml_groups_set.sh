@@ -53,6 +53,10 @@ yml_groups_set()
       return
    fi
    
+   if [ -z "$test_url" ] || [ -z "$test_interval" ] && [ "$type" != "select" ]; then
+      return
+   fi
+   
    echo "- name: $name" >>$GROUP_FILE
    echo "  type: $type" >>$GROUP_FILE
    echo "  proxies:" >>$GROUP_FILE

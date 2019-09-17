@@ -35,14 +35,14 @@ o.rmempty = false
 
 o = s:option(Value, "test_url", translate("Test URL"))
 o.default = "http://www.gstatic.com/generate_204"
-o.rmempty = true
+o.rmempty = false
 o:depends("type", "url-test")
 o:depends("type", "fallback")
 o:depends("type", "load-balance")
 
 o = s:option(Value, "test_interval", translate("Test Interval(s)"))
 o.default = "300"
-o.rmempty = true
+o.rmempty = false
 o:depends("type", "url-test")
 o:depends("type", "fallback")
 o:depends("type", "load-balance")

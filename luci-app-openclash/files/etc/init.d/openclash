@@ -261,40 +261,6 @@ yml_dns_custom()
    fi
 }
 
-#添加自定义Hosts设置
-yml_hosts_custom()
-{
-	if [ "$en_mode" = "redir-host" ]; then
-	   if [ -z "$(grep '^ \{0,\}hosts:' $1)" ]; then
-	      sed -i '/^dns:/i\hosts:' "$1" 2>/dev/null
-   	 else
-	      if [ ! -z "$(grep '^ \{1,\}hosts:' $1)" ]; then
-	         sed -i '/^ \{1,\}hosts:/d' "$1" 2>/dev/null
-	         sed -i '/^dns:/i\hosts:' "$1" 2>/dev/null
-	      fi
-	   fi
-	   sed -i "s/^ \{0,\}/  /" "$2" 2>/dev/null #修改参数空格
-	   sed -i "1i\##Custom HOSTS##" "$2" 2>/dev/null
-	   echo "##Custom HOSTS END##" >>"$2" 2>/dev/null
-	   sed -i '/##Custom HOSTS##/,/##Custom HOSTS END##/d' "$1" 2>/dev/null
-	   sed -i '/^hosts:/r/etc/config/openclash_custom_hosts.list' "$1" 2>/dev/null
-	   sed -i '/##Custom HOSTS##/d' "$2" 2>/dev/null
-	   sed -i '/##Custom HOSTS END##/d' "$2" 2>/dev/null
-	else
-	   sed -i '/##Custom HOSTS##/,/##Custom HOSTS END##/d' "$1" 2>/dev/null
-	   sed -i '/^ *$/d' "$1" 2>/dev/null #删除空行
-	   hostlen=$(sed -n '/hosts:/=' "$1" 2>/dev/null)
-	   lasthlen=$(sed -n '$=' "$1" 2>/dev/null)
-	   dnslen=$(sed -n '/dns:/=' "$1" 2>/dev/null)
-	   if [ "$hostlen" = "$lasthlen" ] && [ ! -z "$hostlen" ]; then
-	      sed -i '/^ \{0,\}hosts:/d' "$1" 2>/dev/null
-	   fi
-	   if [ "$hostlen" = "$(expr $dnslen - 1)" ] && [ ! -z "$hostlen" ]; then
-	      sed -i '/^ \{0,\}hosts:/d' "$1" 2>/dev/null
-	   fi
-	fi
-}
-
 #获取认证信息
 yml_auth_get()
 {
@@ -382,8 +348,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        yml_auth_custom "$CONFIG_FILE"
        yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE"
        yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
-       yml_hosts_custom "$CHANGE_FILE" "$HOSTS_FILE"
-       sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" &
+       sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$HOSTS_FILE" &
        sh /usr/share/openclash/yml_rules_change.sh "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" &
        wait
        cat $CHANGE_FILE $DNS_FILE $PROXY_FILE $RULE_FILE > $CONFIG_FILE 2>/dev/null

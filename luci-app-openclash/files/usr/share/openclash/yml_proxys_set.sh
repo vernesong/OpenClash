@@ -40,13 +40,12 @@ yml_servers_set()
       return
    fi
    
-   
    if [ -z "$port" ]; then
       return
    fi
    
-   if [ ! -z "$udp" ] && [ -z "$obfs" ]; then
-      udp=", udp: $udp"
+   if [ -z "$password" ] && [ "$type" = "ss" ]; then
+      return
    fi
    
    if [ "$obfs" != "none" ]; then
@@ -55,18 +54,15 @@ yml_servers_set()
       else
          obfss="plugin: obfs"
       fi
-   else
-      obfs=""
+   fi
+   
+   if [ ! -z "$udp" ] && [ "$obfs" = "none" ]; then
+      udp=", udp: $udp"
    fi
    
    if [ "$obfs_vmess" != "none" ]; then
-      if [ "$type" = "vmess" ] && [ "$obfs" = "websocket" ]; then
          obfs_vmess=", network: ws"
-      else
-         obfs_vmess=""
-      fi
    fi
-   
    
    if [ ! -z "$host" ]; then
       host="host: $host"
@@ -112,7 +108,7 @@ cat >> "$SERVER_FILE" <<-EOF
   udp: $udp
 EOF
   fi
-  if [ ! -z "$obfss" ]; then
+if [ ! -z "$obfss" ] && [ ! -z "$host" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   $obfss
   plugin-opts:
@@ -313,7 +309,7 @@ fi
 if [ "$create_config" != "0" ]; then
    echo "Rule:" >>$SERVER_FILE
    uci commit openclash
-   cat $SERVER_FILE > "/etc/openclash/config.yaml" 2>/dev/null
+   cat "$SERVER_FILE" > "/etc/openclash/config.yaml" 2>/dev/null
 else
    echo "正在更新配置文件服务器节点信息..." >$START_LOG
    /usr/share/openclash/yml_groups_set.sh
@@ -327,4 +323,3 @@ echo "配置文件更新完成！" >$START_LOG
 rm -rf $SERVER_FILE 2>/dev/null
 rm -rf /tmp/Proxy_Server 2>/dev/null
 rm -rf /tmp/yaml_groups.yaml 2>/dev/null
-/etc/init.d/openclash restart >/dev/null 2>&1 &
