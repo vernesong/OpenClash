@@ -44,11 +44,11 @@ do
    #port
    port=$(grep "port:" $single_server |awk -F 'port:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
    #cipher
-   cipher=$(grep "cipher:" $single_server |awk -F 'cipher:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   cipher=$(grep "cipher:" $single_server |awk -F 'cipher:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
    #password
-   password=$(grep "password:" $single_server |awk -F 'password:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   password=$(grep "password:" $single_server |awk -F 'password:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
    #udp
-   udp=$(grep "udp:" $single_server |awk -F 'udp:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   udp=$(grep "udp:" $single_server |awk -F 'udp:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
    #plugin:
    plugin=$(grep "plugin:" $single_server |awk -F 'plugin:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
    #plugin-opts:
@@ -60,9 +60,9 @@ do
    #mode:
    mode=$(grep "mode:" $single_server |awk -F 'mode:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
    #tls:
-   tls=$(grep "tls:" $single_server |sed 's/,.*//' |awk -F 'tls:' '{print $2}' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   tls=$(grep "tls:" $single_server |awk -F 'tls:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
    #skip-cert-verify:
-   verify=$(grep "skip-cert-verify:" $single_server |awk -F 'skip-cert-verify:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   verify=$(grep "skip-cert-verify:" $single_server |awk -F 'skip-cert-verify:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
    #host:
    host=$(grep "host:" $single_server |awk -F 'host:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
    #Host:
@@ -70,15 +70,15 @@ do
    #path:
    path=$(grep "path:" $single_server |awk -F 'path:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
    #ws-path:
-   ws_path=$(grep "ws-path:" $single_server |awk -F 'ws-path:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   ws_path=$(grep "ws-path:" $single_server |awk -F 'ws-path:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
    #headers_custom:
-   headers=$(grep "custom:" $single_server |awk -F 'custom:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   headers=$(grep "custom:" $single_server |awk -F 'custom:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
    #uuid:
    uuid=$(grep "uuid:" $single_server |awk -F 'uuid:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
    #alterId:
    alterId=$(grep "alterId:" $single_server |awk -F 'alterId:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
    #network
-   network=$(grep "network:" $single_server |awk -F 'network:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   network=$(grep "network:" $single_server |awk -F 'network:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
    #username
    username=$(grep "username:" $single_server |awk -F 'username:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
    
