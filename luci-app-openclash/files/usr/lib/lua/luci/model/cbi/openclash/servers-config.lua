@@ -10,11 +10,6 @@ local sid = arg[1]
 local uuid = luci.sys.exec("cat /proc/sys/kernel/random/uuid")
 
 local encrypt_methods_ss = {
-	-- aead
-	"AEAD_AES_128_GCM",
-	"AEAD_AES_192_GCM",
-	"AEAD_AES_256_GCM",
-	"AEAD_CHACHA20_POLY1305",
 	
 	-- stream
 	"rc4-md5",
@@ -29,6 +24,7 @@ local encrypt_methods_ss = {
 	"aes-256-gcm",
 	"chacha20",
 	"chacha20-ietf",
+	"xchacha20",
 	"chacha20-ietf-poly1305",
 	"xchacha20-ietf-poly1305",
 }

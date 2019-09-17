@@ -436,7 +436,7 @@ msgid "Type"
 msgstr "节点类型"
 
 msgid "Server Alias"
-msgstr "节点别名（请勿重名）"
+msgstr "别名（请勿重名）"
 
 msgid "Server Address"
 msgstr "服务器地址"
