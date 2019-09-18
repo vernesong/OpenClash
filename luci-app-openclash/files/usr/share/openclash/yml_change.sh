@@ -124,7 +124,7 @@
        fi
     fi
 
-#Ìí¼Ó×Ô¶¨ÒåHostsÉèÖÃ
+#æ·»åŠ è‡ªå®šä¹‰Hostsè®¾ç½®
 
 	if [ "$2" = "redir-host" ]; then
 	   if [ -z "$(grep '^ \{0,\}hosts:' $7)" ]; then
@@ -135,7 +135,7 @@
 	         sed -i '/^dns:/i\hosts:' "$7" 2>/dev/null
 	      fi
 	   fi
-	   sed -i "s/^ \{0,\}/  /" "$12" 2>/dev/null #ÐÞ¸Ä²ÎÊý¿Õ¸ñ
+	   sed -i "s/^ \{0,\}/  /" "$12" 2>/dev/null #ä¿®æ”¹å‚æ•°ç©ºæ ¼
 	   sed -i "1i\##Custom HOSTS##" "$12" 2>/dev/null
 	   echo "##Custom HOSTS END##" >>"$12" 2>/dev/null
 	   sed -i '/##Custom HOSTS##/,/##Custom HOSTS END##/d' "$7" 2>/dev/null
@@ -144,9 +144,9 @@
 	   sed -i '/##Custom HOSTS END##/d' "$12" 2>/dev/null
 	else
 	   sed -i '/##Custom HOSTS##/,/##Custom HOSTS END##/d' "$7" 2>/dev/null
-	   sed -i '/^ *$/d' "$7" 2>/dev/null #É¾³ý¿ÕÐÐ
+	   sed -i '/^ *$/d' "$7" 2>/dev/null #åˆ é™¤ç©ºè¡Œ
 	   hostlen=$(sed -n '/hosts:/=' "$7" 2>/dev/null)
-	   lasthlen=$(sed -n '$=' "$7" 2>/dev/null) #¼æÈÝ¾É°æ±¾
+	   lasthlen=$(sed -n '$=' "$7" 2>/dev/null) #å…¼å®¹æ—§ç‰ˆæœ¬
 	   dnslen=$(sed -n '/dns:/=' "$7" 2>/dev/null)
 	   if [ "$hostlen" = "$lasthlen" ] && [ ! -z "$hostlen" ]; then
 	      sed -i '/^ \{0,\}hosts:/d' "$7" 2>/dev/null
@@ -155,4 +155,3 @@
 	      sed -i '/^ \{0,\}hosts:/d' "$7" 2>/dev/null
 	   fi
 	fi
-
