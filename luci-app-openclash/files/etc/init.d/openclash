@@ -236,29 +236,42 @@ yml_dns_custom()
       sed -i "/^ \{0,\}fallback:/c\  fallback:" "$2" 2>/dev/null
    fi
    
-   if [ -z "$(grep '^ \{0,\}fallback-filter:' $2)" ]; then
-      sed -i '/OpenClash-General-Settings/i\  fallback-filter:' "$2" 2>/dev/null
-      sed -i '/OpenClash-General-Settings/i\    geoip: true' "$2" 2>/dev/null
-      sed -i '/OpenClash-General-Settings/i\    ipcidr:' "$2" 2>/dev/null
-      sed -i '/OpenClash-General-Settings/i\      - 240.0.0.0/4' "$2" 2>/dev/null
-   else
-      if [ -z "$(grep '^  fallback-filter:' $2)" ]; then
-         sed -i "/fallback-filter:/c\  fallback-filter:" "$2" 2>/dev/null
+#fallback-filter
+   if [ ! -z "$(grep '^ \{0,\}fallback:' $2)" ]; then
+      if [ -z "$(grep '^ \{0,\}fallback-filter:' $2)" ]; then
+         sed -i '/OpenClash-General-Settings/i\  fallback-filter:' "$2" 2>/dev/null
+         sed -i '/OpenClash-General-Settings/i\    geoip: true' "$2" 2>/dev/null
+         sed -i '/OpenClash-General-Settings/i\    ipcidr:' "$2" 2>/dev/null
+         sed -i '/OpenClash-General-Settings/i\      - 240.0.0.0/4' "$2" 2>/dev/null
+      else
+         if [ -z "$(grep '^  fallback-filter:' $2)" ]; then
+            sed -i "/fallback-filter:/c\  fallback-filter:" "$2" 2>/dev/null
+         fi
+         if [ -z "$(grep '^    geoip: true' $2)" ]; then
+            sed -i "/geoip: true/c\    geoip: true" "$2" 2>/dev/null
+         fi
+         if [ -z "$(grep '^    ipcidr:' $2)" ]; then
+            sed -i "/ipcidr:/c\    ipcidr:" "$2" 2>/dev/null
+         fi
       fi
-      if [ -z "$(grep '^    geoip: true' $2)" ]; then
-         sed -i "/geoip: true/c\    geoip: true" "$2" 2>/dev/null
+      if [ -z "$(grep "^  - " $2)" ]; then
+         sed -i '/^ \{0,\}nameserver:/,/^ \{0,\}fallback-filter:/ {s/^ \{0,\}- /  - /}' "$2" 2>/dev/null #修改参数空格
       fi
-      if [ -z "$(grep '^    ipcidr:' $2)" ]; then
-         sed -i "/ipcidr:/c\    ipcidr:" "$2" 2>/dev/null
+      if [ -z "$(grep "^      - " $2)" ]; then
+         sed -i '/^ \{0,\}ipcidr:/,/OpenClash-General-Settings/ {s/^ \{0,\}- /      - /}' "$2" 2>/dev/null #修改参数空格
       fi
+   else #删除fallback-filter
+      if [ ! -z "$(grep '^ \{0,\}ipcidr:' $2)" ]; then
+         sed -i '/^ \{0,\}ipcidr:/,/OpenClash-General-Settings/ {/^ \{0,\}-/d}' "$2" 2>/dev/null
+      fi
+      if [ ! -z "$(grep "^ \{0,1\}- " $2)" ]; then
+	       sed -i "s/^ \{0,\}- /  - /" "$2" 2>/dev/null #添加参数空格
+      fi
+      sed -i '/fallback-filter:/d' "$2" 2>/dev/null
+      sed -i '/geoip:/d' "$2" 2>/dev/null
+      sed -i '/ipcidr:/d' "$2" 2>/dev/null
    fi
-   
-   if [ -z "$(grep "^  - " $2)" ]; then
-      sed -i '/^ \{0,\}nameserver:/,/^ \{0,\}fallback-filter:/ {s/^ \{0,\}- /  - /}' "$2" 2>/dev/null #修改参数空格
-   fi
-   if [ -z "$(grep "^      - " $2)" ]; then
-      sed -i '/^ \{0,\}ipcidr:/,/OpenClash-General-Settings/ {s/^ \{0,\}- /      - /}' "$2" 2>/dev/null #修改参数空格
-   fi
+
 }
 
 #获取认证信息
