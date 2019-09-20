@@ -42,9 +42,9 @@ do
    #name
    group_name=$(grep "name:" $single_group |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
    #test_url
-   group_test_url=$(grep "url:" $single_group |awk -F 'url:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   group_test_url=$(grep "url:" $single_group |awk -F 'url:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
    #test_interval
-   group_test_interval=$(grep "interval:" $single_group |awk -F 'interval:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   group_test_interval=$(grep "interval:" $single_group |awk -F 'interval:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
 
    
    
