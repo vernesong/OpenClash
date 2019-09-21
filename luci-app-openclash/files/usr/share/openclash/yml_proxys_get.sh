@@ -17,6 +17,16 @@ count=1
 line=$(sed -n '/^ \{0,\}-/=' $server_file)
 num=$(grep -c "^ \{0,\}-" $server_file)
 
+cfg_get()
+{
+	echo "$(grep "$1" $single_server |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}$//g' 2>/dev/null)"
+	
+}
+
+cfg_get_host()
+{
+	echo "$(grep "$1" $single_server |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' |sed 's/}.*//' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}$//g')"
+}
 
 for n in $line
 do
@@ -36,80 +46,80 @@ do
    startLine=$(expr "$endLine" + 1)
    
    #type
-   server_type=$(grep "type:" $single_server |awk -F 'type:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   server_type="$(cfg_get "type:")"
    #name
-   server_name=$(grep "name:" $single_server |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   server_name="$(cfg_get "name:")"
    #server
-   server=$(grep "server:" $single_server |awk -F 'server:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   server="$(cfg_get "server:")"
    #port
-   port=$(grep "port:" $single_server |awk -F 'port:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   port="$(cfg_get "port:")"
    #cipher
-   cipher=$(grep "cipher:" $single_server |awk -F 'cipher:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
+   cipher="$(cfg_get "cipher:")"
    #password
-   password=$(grep "password:" $single_server |awk -F 'password:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
+   password="$(cfg_get "password:")"
    #udp
-   udp=$(grep "udp:" $single_server |awk -F 'udp:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
+   udp="$(cfg_get "udp:")"
    #plugin:
-   plugin=$(grep "plugin:" $single_server |awk -F 'plugin:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   plugin="$(cfg_get "plugin:")"
    #plugin-opts:
-   plugin_opts=$(grep "plugin-opts:" $single_server |awk -F 'plugin-opts:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   plugin_opts="$(cfg_get "plugin-opts:")"
    #obfs:
-   obfs=$(grep "obfs:" $single_server |awk -F 'obfs:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   obfs="$(cfg_get "obfs:")"
    #obfs-host:
-   obfs_host=$(grep "obfs-host:" $single_server |awk -F 'obfs-host:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   obfs_host="$(cfg_get "obfs-host:")"
    #mode:
-   mode=$(grep "mode:" $single_server |awk -F 'mode:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   mode="$(cfg_get "mode:")"
    #tls:
-   tls=$(grep "tls:" $single_server |awk -F 'tls:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
+   tls="$(cfg_get "tls:")"
    #skip-cert-verify:
-   verify=$(grep "skip-cert-verify:" $single_server |awk -F 'skip-cert-verify:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
+   verify="$(cfg_get "skip-cert-verify:")"
    #host:
-   host=$(grep "host:" $single_server |awk -F 'host:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   host="$(cfg_get "host:")"
    #Host:
-   Host=$(grep "Host:" $single_server |awk -F 'Host:' '{print $2}' |sed 's/}.*//' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}$//g')
+   Host="$(cfg_get_host "Host:")"
    #path:
-   path=$(grep "path:" $single_server |awk -F 'path:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   path="$(cfg_get "path:")"
    #ws-path:
-   ws_path=$(grep "ws-path:" $single_server |awk -F 'ws-path:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
+   ws_path="$(cfg_get "ws-path:")"
    #headers_custom:
-   headers=$(grep "custom:" $single_server |awk -F 'custom:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
+   headers="$(cfg_get "custom:")"
    #uuid:
-   uuid=$(grep "uuid:" $single_server |awk -F 'uuid:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   uuid="$(cfg_get "uuid:")"
    #alterId:
-   alterId=$(grep "alterId:" $single_server |awk -F 'alterId:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   alterId="$(cfg_get "alterId:")"
    #network
-   network=$(grep "network:" $single_server |awk -F 'network:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
+   network="$(cfg_get "network:")"
    #username
-   username=$(grep "username:" $single_server |awk -F 'username:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
+   username="$(cfg_get "username:")"
    
    name=openclash
    uci_name_tmp=$(uci add $name servers)
 
-    uci_set="uci -q set $name.$uci_name_tmp."
-    uci_add="uci -q add_list $name.$uci_name_tmp."
+   uci_set="uci -q set $name.$uci_name_tmp."
+   uci_add="uci -q add_list $name.$uci_name_tmp."
     
-    ${uci_set}name="$server_name"
-    ${uci_set}type="$server_type"
-    ${uci_set}server="$server"
-    ${uci_set}port="$port"
-    if [ "$server_type" = "vmess" ]; then
-       ${uci_set}securitys="$cipher"
-    else
-       ${uci_set}cipher="$cipher"
-    fi
-    ${uci_set}udp="$udp"
-    ${uci_set}obfs="$obfs"
-    ${uci_set}host="$obfs_host"
-    [ -z "$obfs" ] && ${uci_set}obfs="$mode"
-    [ -z "$mode" ] && [ ! -z "$network" ] && ${uci_set}obfs_vmess="websocket"
-    [ -z "$mode" ] && [ -z "$network" ] && ${uci_set}obfs_vmess="none"
-    [ -z "$obfs_host" ] && ${uci_set}host="$host"
-    ${uci_set}tls="$tls"
-    ${uci_set}skip_cert_verify="$verify"
-    ${uci_set}path="$path"
-    [ -z "$path" ] && ${uci_set}path="$ws_path"
-    ${uci_set}custom="$headers"
-    [ -z "$headers" ] && ${uci_set}custom="$Host"
+   ${uci_set}name="$server_name"
+   ${uci_set}type="$server_type"
+   ${uci_set}server="$server"
+   ${uci_set}port="$port"
+   if [ "$server_type" = "vmess" ]; then
+      ${uci_set}securitys="$cipher"
+   else
+      ${uci_set}cipher="$cipher"
+   fi
+   ${uci_set}udp="$udp"
+   ${uci_set}obfs="$obfs"
+   ${uci_set}host="$obfs_host"
+   [ -z "$obfs" ] && ${uci_set}obfs="$mode"
+   [ -z "$mode" ] && [ ! -z "$network" ] && ${uci_set}obfs_vmess="websocket"
+   [ -z "$mode" ] && [ -z "$network" ] && ${uci_set}obfs_vmess="none"
+   [ -z "$obfs_host" ] && ${uci_set}host="$host"
+   ${uci_set}tls="$tls"
+   ${uci_set}skip_cert_verify="$verify"
+   ${uci_set}path="$path"
+   [ -z "$path" ] && ${uci_set}path="$ws_path"
+   ${uci_set}custom="$headers"
+   [ -z "$headers" ] && ${uci_set}custom="$Host"
     
 	if [ "$server_type" = "vmess" ]; then
     #v2ray

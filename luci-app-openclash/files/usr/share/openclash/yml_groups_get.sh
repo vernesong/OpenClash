@@ -86,7 +86,6 @@ do
             while [[ "$group_nums" -le "$group_num" ]]
             do
                other_group_name=$(echo "$group_name2" |awk -v t="${group_nums}" -F '#,#' '{print $t}' 2>/dev/null)
-               echo "$other_group_name"
                if [ ! -z "$(grep "$other_group_name" $match_group_file)" ] && [ "$other_group_name" != "$group_name" ]; then
                   ${uci_add}other_group="$other_group_name"
                fi
