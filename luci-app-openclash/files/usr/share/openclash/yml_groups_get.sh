@@ -42,9 +42,9 @@ do
    #name
    group_name=$(grep "name:" $single_group |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g')
    #test_url
-   group_test_url=$(grep "url:" $single_group |awk -F 'url:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
+   group_test_url=$(grep "url:" $single_group |awk -F 'url:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}$//g' 2>/dev/null)
    #test_interval
-   group_test_interval=$(grep "interval:" $single_group |awk -F 'interval:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}\}$//g' 2>/dev/null)
+   group_test_interval=$(grep "interval:" $single_group |awk -F 'interval:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}$//g'  2>/dev/null |sed 's/ \{0,\}\}$//g' 2>/dev/null)
 
    
    
@@ -67,7 +67,7 @@ do
       fi
       
       group_name1=$(echo "$line" |grep "^ \{0,\}-" 2>/dev/null |awk -F '^ \{0,\}- ' '{print $2}' 2>/dev/null |grep -v "name:" 2>/dev/null |sed 's/\"//g')
-      group_name2=$(echo "$line" |awk -F 'proxies:  [' '{print $2}' 2>/dev/null |sed 's/], .*//' 2>/dev/null  |sed 's/^ \{0,\}//' 2>/dev/null  |sed 's/\{0,\} $//' 2>/dev/null |sed 's/", /#,#/g' 2>/dev/null |sed 's/",\t/#,#/g' 2>/dev/null |sed 's/\"//g')
+      group_name2=$(echo "$line" |awk -F 'proxies: \\[' '{print $2}' 2>/dev/null |sed 's/].*//' 2>/dev/null  |sed 's/^ \{0,\}//' 2>/dev/null  |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}, \{0,\}/#,#/g' 2>/dev/null |sed 's/,\t/#,#/g' 2>/dev/null |sed 's/\"//g' 2>/dev/null)
 
       if [ -z "$group_name1" ] && [ -z "$group_name2" ]; then
          continue
@@ -85,8 +85,10 @@ do
             group_nums=1
             while [[ "$group_nums" -le "$group_num" ]]
             do
-               if [ ! -z "$(grep "$group_name2" $match_group_file)" ] && [ "$group_name2" != "$group_name" ]; then
-                  ${uci_add}other_group=$(echo "$group_name2" |awk -F '#,#' '{print $group_nums}')
+               other_group_name=$(echo "$group_name2" |awk -v t="${group_nums}" -F '#,#' '{print $t}' 2>/dev/null)
+               echo "$other_group_name"
+               if [ ! -z "$(grep "$other_group_name" $match_group_file)" ] && [ "$other_group_name" != "$group_name" ]; then
+                  ${uci_add}other_group="$other_group_name"
                fi
                group_nums=$(expr "$group_nums" + 1)
             done

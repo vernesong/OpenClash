@@ -61,7 +61,9 @@ yml_servers_set()
    fi
    
    if [ "$obfs_vmess" != "none" ]; then
-         obfs_vmess=", network: ws"
+      obfs_vmess=", network: ws"
+   else
+      obfs_vmess=""
    fi
    
    if [ ! -z "$host" ]; then
