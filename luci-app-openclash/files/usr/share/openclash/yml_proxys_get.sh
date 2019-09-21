@@ -102,6 +102,7 @@ do
     ${uci_set}host="$obfs_host"
     [ -z "$obfs" ] && ${uci_set}obfs="$mode"
     [ -z "$mode" ] && [ ! -z "$network" ] && ${uci_set}obfs_vmess="websocket"
+    [ -z "$mode" ] && [ -z "$network" ] && ${uci_set}obfs_vmess="none"
     [ -z "$obfs_host" ] && ${uci_set}host="$host"
     ${uci_set}tls="$tls"
     ${uci_set}skip_cert_verify="$verify"
