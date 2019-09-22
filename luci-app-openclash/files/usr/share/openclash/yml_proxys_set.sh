@@ -4,7 +4,6 @@ status=$(ps|grep -c /usr/share/openclash/yml_proxys_set.sh)
 
 START_LOG="/tmp/openclash_start.log"
 SERVER_FILE="/tmp/yaml_servers.yaml"
-CFG_FILE="/etc/config/openclash"
 
 #写入服务器节点到配置文件
 yml_servers_set()
@@ -323,12 +322,6 @@ fi
 if [ "$create_config" != "0" ]; then
    echo "Rule:" >>$SERVER_FILE
    echo "服务器节点写入配置文件完成，开始更新配置文件..." >$START_LOG
-   while ( [ ! -z "$(grep "config groups" "$CFG_FILE")" ] || [ ! -z "$(grep "config servers" "$CFG_FILE")" ] )
-   do
-      uci delete openclash.@groups[0] 2>/dev/null
-      uci delete openclash.@servers[0] 2>/dev/null
-      uci commit openclash
-   done
    cat "$SERVER_FILE" > "/etc/openclash/config.yaml" 2>/dev/null
    /usr/share/openclash/yml_groups_get.sh >/dev/null 2>&1
 else

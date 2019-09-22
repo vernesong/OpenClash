@@ -78,7 +78,7 @@ o.rmempty = true
 o:depends("type", "ss")
 
 o = s:option(ListValue, "securitys", translate("Encrypt Method"))
-for _, v in ipairs(securitys) do o:value(v, v:upper()) end
+for _, v in ipairs(securitys) do o:value(v) end
 o.rmempty = true
 o:depends("type", "vmess")
 

@@ -54,8 +54,6 @@ o = b:option(Button,"Load_Config")
 o.inputtitle = translate("Load Config")
 o.inputstyle = "apply"
 o.write = function()
-  uci:delete_all("openclash", "servers", function(s) return true end)
-  uci:delete_all("openclash", "groups", function(s) return true end)
   luci.sys.call("sh /usr/share/openclash/yml_groups_get.sh 2>/dev/null &")
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end
