@@ -142,10 +142,10 @@ end
 
 local function coremodel()
   local coremodel = luci.sys.exec("cat /proc/cpuinfo |grep 'cpu model'  2>/dev/null |awk -F ': ' '{print $2}' 2>/dev/null")
-  if (coremodel ~= "") then
-      return coremodel
+  if not coremodel or coremodel == "" then
+      return luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
   else
-     return luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
+     return coremodel
   end
 end
 
@@ -252,10 +252,10 @@ function action_update()
 			coremodel = coremodel(),
 			coremodel2 = coremodel2(),
 			corecv = corecv(),
-			corelv = corelv(),
 			opcv = opcv(),
 			corever = corever(),
 			upchecktime = upchecktime(),
+			corelv = corelv(),
 			oplv = oplv();
 	})
 end

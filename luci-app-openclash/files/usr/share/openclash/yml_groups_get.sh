@@ -2,12 +2,14 @@
 status=$(ps|grep -c /usr/share/openclash/yml_groups_get.sh)
 [ "$status" -gt "3" ] && exit 0
 
+START_LOG="/tmp/openclash_start.log"
+
 if [ ! -f "/etc/openclash/config.yml" ] && [ ! -f "/etc/openclash/config.yaml" ]; then
   exit 0
 elif [ ! -f "/etc/openclash/config.yaml" ] && [ "$(ls -l /etc/openclash/config.yml 2>/dev/null |awk '{print int($5/1024)}')" -gt 0 ]; then
    mv "/etc/openclash/config.yml" "/etc/openclash/config.yaml"
 fi
-
+echo "开始更新策略组配置..." >$START_LOG
 awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null >/tmp/yaml_group.yaml 2>&1
 awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |egrep '^ {0,}-' |grep name: |awk -F 'name: ' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' >/tmp/Proxy_Group 2>&1
 echo "DIRECT" >>/tmp/Proxy_Group
@@ -46,7 +48,7 @@ do
    #test_interval
    group_test_interval=$(grep "interval:" $single_group |awk -F 'interval:' '{print $2}' |sed 's/,.*//' |sed 's/\"//g' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}$//g'  2>/dev/null |sed 's/ \{0,\}\}$//g' 2>/dev/null)
 
-   
+   echo "正在读取【$group_type】-【$group_name】策略组配置..." >$START_LOG
    
    name=openclash
    uci_name_tmp=$(uci add $name groups)

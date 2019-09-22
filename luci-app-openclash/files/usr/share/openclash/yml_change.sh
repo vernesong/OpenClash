@@ -1,5 +1,18 @@
 #!/bin/sh
-    
+    #删除旧hosts配置
+    hostlen=$(sed -n '/hosts:/=' "$7" 2>/dev/null)
+    dnslen=$(sed -n '/dns:/=' "$7" 2>/dev/null)
+    dnsheadlen=$(expr "$dnslen" - 1)
+    if [ "$hostlen" -gt "$dnslen" ] && [ ! -z "$hostlen" ]; then
+       sed -i '/^ \{0,\}hosts:/,$d' "$7" 2>/dev/null
+	  elif [ ! -z "$hostlen" ]; then
+       sed -i '/##Custom HOSTS##/,/##Custom HOSTS END##/d' "$7" 2>/dev/null
+       if [ -z "$(awk '/^ {0,}hosts:/,/^dns:/{print}' "$7" 2>/dev/null |awk -F ':' '{print $2}' 2>/dev/null)" ]; then
+          sed -i "/${hostlen}p/,/${dnsheadlen}p/d" "$7" 2>/dev/null
+          sed -i '/^ \{0,\}hosts:/d' "$7" 2>/dev/null
+       fi
+	  fi
+	   
     if [ -z "$(grep '^  enhanced-mode: $2' "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}enhanced-mode:" "$7")" ]; then
           sed -i "/^ \{0,\}enhanced-mode:/c\  enhanced-mode: ${2}" "$7"
@@ -125,33 +138,17 @@
     fi
 
 #添加自定义Hosts设置
-
-	if [ "$2" = "redir-host" ]; then
-	   if [ -z "$(grep '^ \{0,\}hosts:' $7)" ]; then
-	      sed -i '/^dns:/i\hosts:' "$7" 2>/dev/null
-   	 else
-	      if [ ! -z "$(grep '^ \{1,\}hosts:' $7)" ]; then
-	         sed -i '/^ \{1,\}hosts:/d' "$7" 2>/dev/null
-	         sed -i '/^dns:/i\hosts:' "$7" 2>/dev/null
-	      fi
-	   fi
-	   sed -i "s/^ \{0,\}/  /" "$12" 2>/dev/null #修改参数空格
-	   sed -i "1i\##Custom HOSTS##" "$12" 2>/dev/null
-	   echo "##Custom HOSTS END##" >>"$12" 2>/dev/null
-	   sed -i '/##Custom HOSTS##/,/##Custom HOSTS END##/d' "$7" 2>/dev/null
-	   sed -i '/^hosts:/r/etc/config/openclash_custom_hosts.list' "$7" 2>/dev/null
-	   sed -i '/##Custom HOSTS##/d' "$12" 2>/dev/null
-	   sed -i '/##Custom HOSTS END##/d' "$12" 2>/dev/null
-	else
-	   sed -i '/##Custom HOSTS##/,/##Custom HOSTS END##/d' "$7" 2>/dev/null
-	   sed -i '/^ *$/d' "$7" 2>/dev/null #删除空行
-	   hostlen=$(sed -n '/hosts:/=' "$7" 2>/dev/null)
-	   lasthlen=$(sed -n '$=' "$7" 2>/dev/null) #兼容旧版本
-	   dnslen=$(sed -n '/dns:/=' "$7" 2>/dev/null)
-	   if [ "$hostlen" = "$lasthlen" ] && [ ! -z "$hostlen" ]; then
-	      sed -i '/^ \{0,\}hosts:/d' "$7" 2>/dev/null
-	   fi
-	   if [ "$hostlen" = "$(expr $dnslen - 1)" ] && [ ! -z "$hostlen" ]; then
-	      sed -i '/^ \{0,\}hosts:/d' "$7" 2>/dev/null
-	   fi
-	fi
+	   
+    if [ "$2" = "redir-host" ]; then
+	     if [ -z "$(grep '^ \{0,\}hosts:' $7)" ]; then
+	        sed -i '/^dns:/i\hosts:' "$7" 2>/dev/null
+   	   else
+	        if [ ! -z "$(grep '^ \{1,\}hosts:' $7)" ]; then
+	           sed -i "/^ \{0,\}hosts:/c\hosts:" "$7"
+	        fi
+	     fi
+       sed -i '/^hosts:/a\##Custom HOSTS END##' "$7" 2>/dev/null
+       sed -i '/^hosts:/a\##Custom HOSTS##' "$7" 2>/dev/null
+	     sed -i '/##Custom HOSTS##/r/etc/config/openclash_custom_hosts.list' "$7" 2>/dev/null
+	     sed -i "/^hosts:/,/^dns:/ {s/^ \{0,\}'/  '/}" "$7" 2>/dev/null #修改参数空格
+	  fi

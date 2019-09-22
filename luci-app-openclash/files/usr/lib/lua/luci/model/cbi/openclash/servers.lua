@@ -41,17 +41,7 @@ o.inputstyle = "apply"
 o.write = function()
   uci:set("openclash", "config", "enable", 1)
   uci:commit("openclash")
-  local refresh_config = uci:get("openclash", "config", "create_config")
-  if (refresh_config == "1") then
-     luci.sys.call("/usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1")
-     uci:delete_all("openclash", "servers", function(s) return true end)
-     uci:delete_all("openclash", "groups", function(s) return true end)
-     luci.sys.call("/usr/share/openclash/yml_groups_get.sh >/dev/null 2>&1")
-     luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-  else
-     luci.sys.call("/usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1")
-     luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-  end
+  luci.sys.call("/usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1 &")
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end
 
@@ -66,8 +56,8 @@ o.inputstyle = "apply"
 o.write = function()
   uci:delete_all("openclash", "servers", function(s) return true end)
   uci:delete_all("openclash", "groups", function(s) return true end)
-  luci.sys.call("sh /usr/share/openclash/yml_groups_get.sh 2>/dev/null")
-  luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
+  luci.sys.call("sh /usr/share/openclash/yml_groups_get.sh 2>/dev/null &")
+  luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end
 
 o = b:option(Button,"Delete_Severs")

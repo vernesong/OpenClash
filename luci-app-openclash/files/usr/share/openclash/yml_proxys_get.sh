@@ -2,11 +2,15 @@
 status=$(ps|grep -c /usr/share/openclash/yml_proxys_get.sh)
 [ "$status" -gt "3" ] && exit 0
 
+START_LOG="/tmp/openclash_start.log"
+
 if [ ! -f "/etc/openclash/config.yml" ] && [ ! -f "/etc/openclash/config.yaml" ]; then
   exit 0
 elif [ ! -f "/etc/openclash/config.yaml" ] && [ "$(ls -l /etc/openclash/config.yml 2>/dev/null |awk '{print int($5/1024)}')" -gt 0 ]; then
    mv "/etc/openclash/config.yml" "/etc/openclash/config.yaml"
 fi
+
+echo "开始更新服务器节点配置..." >$START_LOG
 
 awk '/^ {0,}Proxy:/,/^ {0,}Proxy Group:/{print}' /etc/openclash/config.yaml 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
 
@@ -73,6 +77,8 @@ do
    tls="$(cfg_get "tls:")"
    #skip-cert-verify:
    verify="$(cfg_get "skip-cert-verify:")"
+   #mux:
+   mux="$(cfg_get "mux:")"
    #host:
    host="$(cfg_get "host:")"
    #Host:
@@ -91,6 +97,8 @@ do
    network="$(cfg_get "network:")"
    #username
    username="$(cfg_get "username:")"
+   
+   echo "正在读取【$server_type】-【$server_name】服务器节点配置..." >$START_LOG
    
    name=openclash
    uci_name_tmp=$(uci add $name servers)
@@ -118,6 +126,7 @@ do
    ${uci_set}skip_cert_verify="$verify"
    ${uci_set}path="$path"
    [ -z "$path" ] && ${uci_set}path="$ws_path"
+   ${uci_set}mux="$mux"
    ${uci_set}custom="$headers"
    [ -z "$headers" ] && ${uci_set}custom="$Host"
     
@@ -146,7 +155,9 @@ do
 	done
 
 done
-
+echo "配置文件读取完成！" >$START_LOG
+sleep 3
+echo "" >$START_LOG
 uci commit openclash
 rm -rf /tmp/servers.yaml 2>/dev/null
 rm -rf /tmp/yaml_proxy.yaml 2>/dev/null
