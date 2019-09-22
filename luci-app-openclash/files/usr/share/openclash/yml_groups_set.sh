@@ -57,6 +57,8 @@ yml_groups_set()
       return
    fi
    
+   echo "正在写入【$type】-【$name】策略组到配置文件..." >$START_LOG
+   
    echo "- name: $name" >>$GROUP_FILE
    echo "  type: $type" >>$GROUP_FILE
    echo "  proxies:" >>$GROUP_FILE
@@ -98,4 +100,4 @@ if [ "$create_config" = "0" ]; then
    fi
 
 fi
-echo "配置文件策略组创建完成！" >$START_LOG
+echo "配置文件策略组写入完成！" >$START_LOG

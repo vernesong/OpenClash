@@ -1,5 +1,3 @@
--- Copyright (C) 2017 yushi studio <ywb94@qq.com> github.com/ywb94
--- Licensed to the public under the GNU General Public License v3.
 
 local m, s, o
 local openclash = "openclash"
@@ -10,7 +8,7 @@ local sid = arg[1]
 local uuid = luci.sys.exec("cat /proc/sys/kernel/random/uuid")
 
 local encrypt_methods_ss = {
-	
+
 	-- stream
 	"rc4-md5",
 	"aes-128-cfb",
@@ -152,8 +150,16 @@ o:depends("type", "socks5")
 o:depends("type", "http")
 o.rmempty = true
 
+-- [[ MUX ]]--
+o = s:option(ListValue, "mux", translate("mux"))
+o.rmempty = true
+o.default = "false"
+o:value("true")
+o:value("false")
+o:depends("obfs", "websocket")
+
 -- [[ skip-cert-verify ]]--
-o = s:option(ListValue, "skip_cert_verify", translate("Skip Cert Verify"))
+o = s:option(ListValue, "skip_cert_verify", translate("Skip-Cert-Verify"))
 o.rmempty = true
 o.default = "false"
 o:value("true")

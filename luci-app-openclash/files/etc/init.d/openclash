@@ -361,7 +361,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        yml_auth_custom "$CONFIG_FILE"
        yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE"
        yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
-       sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$HOSTS_FILE" &
+       sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" &
        sh /usr/share/openclash/yml_rules_change.sh "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" &
        wait
        cat $CHANGE_FILE $DNS_FILE $PROXY_FILE $RULE_FILE > $CONFIG_FILE 2>/dev/null

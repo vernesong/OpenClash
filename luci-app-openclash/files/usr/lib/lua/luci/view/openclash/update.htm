@@ -29,6 +29,8 @@
 	var ma_op_up  = document.getElementById('ma_op_up');
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
+		  cpu_model.innerHTML = status.coremodel ? "<b><font color=green>"+status.coremodel+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
+      cpu_model2.innerHTML = status.coremodel2 ? "<b><font color=green>"+status.coremodel2+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
 		  if ( status.corever != "0\n" && status.corever != "" ) {
 		     core_version.innerHTML = "<b><font color=green>"+status.corever+"</font></b>";
 		  }
@@ -41,8 +43,6 @@
 		  else {
 		     checktime.innerHTML = "<b><font color=red><%:查询更新失败%></font></b>";
 		  }
-		  cpu_model.innerHTML = status.coremodel ? "<b><font color=green>"+status.coremodel+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
-      cpu_model2.innerHTML = status.coremodel2 ? "<b><font color=green>"+status.coremodel2+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
       if ( status.corecv == "0" ) {
          core_cv.innerHTML = "<b><font color=red><%:File Not Exist%></font></b>";
       }
@@ -74,8 +74,10 @@
 		}
 	});
   
-	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
+	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
+		  cpu_model.innerHTML = status.coremodel ? "<b><font color=green>"+status.coremodel+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
+      cpu_model2.innerHTML = status.coremodel2 ? "<b><font color=green>"+status.coremodel2+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
 		  if ( status.corever != "0\n" && status.corever != "" ) {
 		     core_version.innerHTML = "<b><font color=green>"+status.corever+"</font></b>";
 		  }
@@ -88,8 +90,6 @@
 		  else {
 		     checktime.innerHTML = "<b><font color=red><%:查询更新失败%></font></b>";
 		  }
-		  cpu_model.innerHTML = status.coremodel ? "<b><font color=green>"+status.coremodel+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
-      cpu_model2.innerHTML = status.coremodel2 ? "<b><font color=green>"+status.coremodel2+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
       if ( status.corecv == "0" ) {
          core_cv.innerHTML = "<b><font color=red><%:File Not Exist%></font></b>";
       }

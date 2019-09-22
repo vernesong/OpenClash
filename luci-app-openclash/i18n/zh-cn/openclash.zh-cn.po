@@ -163,7 +163,7 @@ msgstr "IPV6类型DNS解析"
 
 msgid "Force Enable to Resolve ipv6 DNS Requests"
 msgstr ""
-"允许解析IPV6类型的DNS请求，如果您没有公网IPV6地址但开启了IPV6的DHCP服务，客户端连接可能会出现异常"
+"固件须配置好IPV6的NAT，如果您没有公网IPV6地址但开启了IPV6的DHCP服务，客户端连接可能会出现异常"
 
 msgid "Rules Setting"
 msgstr "规则设置（访问控制）"
@@ -383,7 +383,7 @@ msgid "Chose to Download"
 msgstr "选择内核编译版本"
 
 msgid "Select Based On Your CPU Model For Core Update, Wrong Version Will Not Work"
-msgstr "请根据CPU架构选择以便下载、更新对应内核，错误的版本将不能正常运行"
+msgstr "请根据处理器架构选择以便下载、更新对应内核，错误的版本将不能正常运行"
 
 msgid "Update Core File"
 msgstr "更新内核"
@@ -473,9 +473,6 @@ msgstr "登录用户名"
 
 msgid "Auth Password"
 msgstr "登录密码"
-
-msgid "Skip Cert Verify"
-msgstr "忽略许可验证（skip-cert-verify）"
 
 msgid "None"
 msgstr "未配置"
