@@ -5,6 +5,7 @@ local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
 local fs = require "luci.openclash"
+local uci = require("luci.model.uci").cursor()
 local CHIF = "0"
 
 ful = SimpleForm("upload", translate("Server Configuration"), nil)
@@ -113,14 +114,16 @@ o = a:option(Button, "Commit")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
-  SYS.call("uci commit openclash")
+  uci:commit("openclash")
 end
 
 o = a:option(Button, "Apply")
 o.inputtitle = translate("Apply Configurations")
 o.inputstyle = "apply"
 o.write = function()
-  SYS.call("uci set openclash.config.enable=1 && uci commit openclash && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  uci:set("openclash", "config", "enable", 1)
+  uci:commit("openclash")
+  SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 

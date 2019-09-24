@@ -12,7 +12,7 @@ fi
 
 echo "开始更新服务器节点配置..." >$START_LOG
 
-awk '/^ {0,}Proxy:/,/^ {0,}Proxy Group:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' |sed "s/\'//g" |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
+awk '/^ {0,}Proxy:/,/^ {0,}Proxy Group:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
 
 server_file="/tmp/yaml_proxy.yaml"
 single_server="/tmp/servers.yaml"
@@ -23,7 +23,7 @@ num=$(grep -c "^ \{0,\}-" $server_file)
 
 cfg_get()
 {
-	echo "$(grep "$1" $single_server |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' |sed 's/,.*//' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)"
+	echo "$(grep "$1" $single_server 2>/dev/null |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)"
 }
 
 for n in $line
@@ -141,7 +141,7 @@ do
 	do
 	   single_group="/tmp/group_$i.yaml"
      if [ ! -z "$(grep -F "$server_name" "$single_group")" ]; then
-        group_name=$(grep "name:" $single_group |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}$//g' 2>/dev/null)
+        group_name=$(grep "name:" $single_group 2>/dev/null |awk -F 'name:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)
         ${uci_add}groups="$group_name"
      fi
 	done

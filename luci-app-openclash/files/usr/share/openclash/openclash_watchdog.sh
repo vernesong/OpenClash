@@ -1,7 +1,7 @@
 #!/bin/sh
 
 status=$(ps|grep -c openclash_watchdog.sh)
-[ "$status" -gt "3" ] && echo "another clash_watchdog.sh is running,exit "
+[ "$status" -gt "3" ] && echo "another OpenClash_watchdog.sh is running, exit "
 [ "$status" -gt "3" ] && exit 0
 
 while :;
@@ -25,9 +25,8 @@ fi
    zone_line=`iptables -t nat -nL PREROUTING --line-number |grep "zone" 2>/dev/null |awk '{print $1}' 2>/dev/null |awk 'END {print}'`
    op_line=`iptables -t nat -nL PREROUTING --line-number |grep "openclash" 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1`
    if [ "$zone_line" -gt "$op_line" ]; then
-      /etc/init.d/firewall restart >/dev/null 2>&1
-      /etc/init.d/miniupnpd restart >/dev/null 2>&1
-      echo "[$LOGTIME] Watchdog: Restart Firewall For Enable Redirect." > /tmp/openclash.log
+      /etc/init.d/openclash restart
+      echo "[$LOGTIME] Watchdog: Restart For Enable Firewall Redirect." > /tmp/openclash.log
    fi
    sleep 60
 done 2>/dev/null

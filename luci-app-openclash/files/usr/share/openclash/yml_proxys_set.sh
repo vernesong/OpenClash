@@ -171,7 +171,7 @@ config_foreach yml_servers_set "servers"
 echo "Proxy Group:" >>$SERVER_FILE
 rule_sources=$(uci get openclash.config.rule_sources 2>/dev/null)
 create_config=$(uci get openclash.config.create_config 2>/dev/null)
-egrep '^ {0,}-' $SERVER_FILE |grep name: |awk -F 'name: ' '{print $2}' |sed 's/,.*//' >/tmp/Proxy_Server 2>&1
+egrep '^ {0,}-' $SERVER_FILE |grep name: |awk -F 'name: ' '{print $2}' |sed 's/,.*//' 2>/dev/null >/tmp/Proxy_Server 2>&1
 sed -i "s/^ \{0,\}/  - /" /tmp/Proxy_Server 2>/dev/null #添加参数
 
 
@@ -337,4 +337,5 @@ echo "配置文件服务器节点写入完成！" >$START_LOG
 rm -rf $SERVER_FILE 2>/dev/null
 rm -rf /tmp/Proxy_Server 2>/dev/null
 rm -rf /tmp/yaml_groups.yaml 2>/dev/null
+uci set openclash.config.enable=1 2>/dev/null
 /etc/init.d/openclash restart >/dev/null 2>&1

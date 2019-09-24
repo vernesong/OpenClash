@@ -32,6 +32,7 @@ o = a:option(Button, "Commit")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
+  uci:set("openclash", "config", "enable", 0)
   uci:commit("openclash")
 end
 
@@ -39,7 +40,7 @@ o = a:option(Button, "Apply")
 o.inputtitle = translate("Apply Configurations")
 o.inputstyle = "apply"
 o.write = function()
-  uci:set("openclash", "config", "enable", 1)
+  uci:set("openclash", "config", "enable", 0)
   uci:commit("openclash")
   luci.sys.call("/usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1 &")
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
@@ -54,6 +55,8 @@ o = b:option(Button,"Load_Config")
 o.inputtitle = translate("Load Config")
 o.inputstyle = "apply"
 o.write = function()
+  uci:set("openclash", "config", "enable", 0)
+  uci:commit("openclash")
   luci.sys.call("sh /usr/share/openclash/yml_groups_get.sh 2>/dev/null &")
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end
@@ -62,8 +65,9 @@ o = b:option(Button,"Delete_Severs")
 o.inputtitle = translate("Delete Severs")
 o.inputstyle = "reset"
 o.write = function()
+  uci:set("openclash", "config", "enable", 0)
   uci:delete_all("openclash", "servers", function(s) return true end)
-  luci.sys.call("uci commit openclash") 
+  uci:commit("openclash")
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
 end
 
@@ -71,8 +75,9 @@ o = b:option(Button,"Delete_Groups")
 o.inputtitle = translate("Delete Groups")
 o.inputstyle = "reset"
 o.write = function()
+  uci:set("openclash", "config", "enable", 0)
   uci:delete_all("openclash", "groups", function(s) return true end)
-  luci.sys.call("uci commit openclash") 
+  uci:commit("openclash")
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
 end
 

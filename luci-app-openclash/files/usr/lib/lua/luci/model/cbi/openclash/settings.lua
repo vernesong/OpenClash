@@ -141,10 +141,8 @@ o:value("lhie1", translate("lhie1 Rules"))
 o:value("ConnersHua", translate("ConnersHua Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
-SYS.call("awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' |sed s#\'##g |sed 's/\t/ /g' 2>/dev/null |grep name: |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null >/tmp/Proxy_Group 2>&1")
-SYS.call("echo 'DIRECT' >>/tmp/Proxy_Group")
-SYS.call("echo 'REJECT' >>/tmp/Proxy_Group")
-file = io.open("/tmp/Proxy_Group", "r"); 
+SYS.call("/usr/share/openclash/yml_groups_name_get.sh 2>/dev/null")
+file = io.open("/tmp/Proxy_Group", "r");
 
 o = s:taboption("rules", ListValue, "GlobalTV", translate("GlobalTV"))
 o:depends("rule_source", "lhie1")
