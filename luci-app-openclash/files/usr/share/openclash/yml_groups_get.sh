@@ -17,8 +17,8 @@ while ( [ ! -z "$(grep "config groups" "$CFG_FILE")" ] || [ ! -z "$(grep "config
       uci delete openclash.@servers[0] 2>/dev/null
       uci commit openclash
 done
-awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' |sed "s/\'//g" |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
-awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' |sed "s/\'//g" |sed 's/\t/ /g' 2>/dev/null |grep name: |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null >/tmp/Proxy_Group 2>&1
+awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
+awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null |grep name: 2>/dev/null |awk -F 'name:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null >/tmp/Proxy_Group 2>&1
 echo "DIRECT" >>/tmp/Proxy_Group
 echo "REJECT" >>/tmp/Proxy_Group
 count=1
@@ -30,7 +30,7 @@ num=$(grep -c "name:" $group_file)
    
 cfg_get()
 {
-	echo "$(grep "$1" "$2" |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' |sed 's/,.*//' |sed 's/^ \{0,\}//g' |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)"
+	echo "$(grep "$1" "$2" 2>/dev/null |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)"
 }
 
 for n in $line
@@ -80,7 +80,7 @@ do
         continue
       fi
       
-      group_name1=$(echo "$line" |grep -v "name:" 2>/dev/null |grep "^ \{0,\}-" 2>/dev/null |awk -F '^ \{0,\}-' '{print $2}' 2>/dev/null |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//')
+      group_name1=$(echo "$line" |grep -v "name:" 2>/dev/null |grep "^ \{0,\}-" 2>/dev/null |awk -F '^ \{0,\}-' '{print $2}' 2>/dev/null |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null)
       group_name2=$(echo "$line" |awk -F 'proxies: \\[' '{print $2}' 2>/dev/null |sed 's/].*//' 2>/dev/null |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}, \{0,\}/#,#/g' 2>/dev/null)
 
       if [ -z "$group_name1" ] && [ -z "$group_name2" ]; then
@@ -100,7 +100,7 @@ do
             while [[ "$group_nums" -le "$group_num" ]]
             do
                other_group_name=$(echo "$group_name2" |awk -v t="${group_nums}" -F '#,#' '{print $t}' 2>/dev/null)
-               if [ ! -z "$(grep -F "$other_group_name" $match_group_file)" ] && [ "$other_group_name" != "$group_name" ]; then
+               if [ ! -z "$(grep -F "$other_group_name" $match_group_file 2>/dev/null)" ] && [ "$other_group_name" != "$group_name" ]; then
                   ${uci_add}other_group="$other_group_name"
                fi
                group_nums=$(expr "$group_nums" + 1)
