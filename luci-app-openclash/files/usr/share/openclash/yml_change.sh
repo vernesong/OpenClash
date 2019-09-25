@@ -3,7 +3,7 @@
     hostlen=$(sed -n '/hosts:/=' "$7" 2>/dev/null)
     dnslen=$(sed -n '/dns:/=' "$7" 2>/dev/null)
     dnsheadlen=$(expr "$dnslen" - 1)
-    if [ "$hostlen" -gt "$dnslen" ] && [ ! -z "$hostlen" ]; then
+    if [ ! -z "$hostlen" ] && [ "$hostlen" -gt "$dnslen" ]; then
        sed -i '/^ \{0,\}hosts:/,$d' "$7" 2>/dev/null
 	  elif [ ! -z "$hostlen" ]; then
        sed -i '/##Custom HOSTS##/,/##Custom HOSTS END##/d' "$7" 2>/dev/null

@@ -37,7 +37,7 @@ local function is_web()
 end
 
 local function is_watchdog()
-	return luci.sys.exec("ps |grep openclash_watchdog.sh |grep -v grep 2>/dev/null")
+	return luci.sys.exec("ps |grep openclash_watchdog.sh |grep -v grep 2>/dev/null |sed -n 1p")
 end
 
 local function config_check()
