@@ -11,7 +11,8 @@ if [ "$enable" -eq 1 ]; then
 	if ! pidof clash >/dev/null; then
      LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 	   echo "${LOGTIME} Watchdog: OpenClash Problem, Restart " >>/tmp/openclash.log
-	   /etc/init.d/openclash restart
+	   nohup /etc/init.d/openclash restart &
+	   exit 0
   fi
 fi
 ## Log File Size Manage:
@@ -25,8 +26,9 @@ fi
    zone_line=`iptables -t nat -nL PREROUTING --line-number |grep "zone" 2>/dev/null |awk '{print $1}' 2>/dev/null |awk 'END {print}'`
    op_line=`iptables -t nat -nL PREROUTING --line-number |grep "openclash" 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1`
    if [ "$zone_line" -gt "$op_line" ]; then
-      /etc/init.d/openclash restart
+      nohup /etc/init.d/openclash restart &
       echo "[$LOGTIME] Watchdog: Restart For Enable Firewall Redirect." > /tmp/openclash.log
+      exit 0
    fi
    sleep 60
 done 2>/dev/null
