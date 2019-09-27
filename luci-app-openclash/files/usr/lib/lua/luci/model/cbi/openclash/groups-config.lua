@@ -67,7 +67,7 @@ o = a:option(Button,"Commit")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
-   uci:commit(openclash, sid)
+   m.uci:commit(openclash)
    sys.call("/usr/share/openclash/yml_groups_name_ch.sh start")
    luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
 end
@@ -76,7 +76,7 @@ o = a:option(Button,"Back")
 o.inputtitle = translate("Back Configurations")
 o.inputstyle = "reset"
 o.write = function()
-   uci:revert(openclash, sid)
+   m.uci:revert(openclash)
    luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
 end
 

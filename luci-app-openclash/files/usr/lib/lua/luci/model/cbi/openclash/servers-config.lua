@@ -183,7 +183,7 @@ o:depends("type", "http")
 o = s:option(DynamicList, "groups", translate("Proxy Group"))
 o.description = translate("No Need Set when Config Create, The added Proxy Groups Must Exist")
 o.rmempty = true
-uci:foreach("openclash", "groups",
+m.uci:foreach("openclash", "groups",
 		function(s)
 			o:value(s.name)
 		end)
@@ -197,16 +197,16 @@ o = a:option(Button,"Commit")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
-   uci:commit(openclash, sid)
-   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
+   m.uci:commit(openclash)
+   luci.http.redirect(m.redirect)
 end
 
 o = a:option(Button,"Back")
 o.inputtitle = translate("Back Configurations")
 o.inputstyle = "reset"
 o.write = function()
-   uci:revert(openclash, sid)
-   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
+   m.uci:revert(openclash)
+   luci.http.redirect(m.redirect)
 end
 
 return m

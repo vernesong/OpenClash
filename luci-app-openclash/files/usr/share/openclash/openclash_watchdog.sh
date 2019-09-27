@@ -6,17 +6,17 @@ status=$(ps|grep -c openclash_watchdog.sh)
 
 while :;
 do
+   LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
    enable=$(uci get openclash.config.enable)
 if [ "$enable" -eq 1 ]; then
 	if ! pidof clash >/dev/null; then
-     LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 	   echo "${LOGTIME} Watchdog: OpenClash Problem, Restart " >>/tmp/openclash.log
 	   nohup /etc/init.d/openclash restart &
 	   exit 0
   fi
 fi
 ## Log File Size Manage:
-    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+    
     LOGSIZE=`ls -l /tmp/openclash.log |awk '{print int($5/1024)}'`
     if [ "$LOGSIZE" -gt 90 ]; then 
        echo "[$LOGTIME] Watchdog: Size Limit, Clean Up All Log Records." > /tmp/openclash.log
