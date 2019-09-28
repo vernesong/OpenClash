@@ -1,4 +1,7 @@
-#!/bin/sh
+#!/bin/bash
+status=$(ps|grep -c /usr/share/openclash/openclash.sh)
+[ "$status" -gt "3" ] && exit 0
+
 START_LOG="/tmp/openclash_start.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 CONFIG_FILE="/etc/openclash/config.yaml"
@@ -6,6 +9,10 @@ LOG_FILE="/tmp/openclash.log"
 BACKPACK_FILE="/etc/openclash/config.bak"
 URL_TYPE=$(uci get openclash.config.config_update_url_type 2>/dev/null)
 subscribe_url=$(uci get openclash.config.subscribe_url 2>/dev/null)
+en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
+
+config_dawnload()
+{
 if [ "$URL_TYPE" == "V2ray" ]; then
    echo "开始下载v2ray配置文件..." >$START_LOG
    subscribe_url=`echo $subscribe_url |sed 's/{/%7B/g;s/}/%7D/g;s/:/%3A/g;s/\"/%22/g;s/,/%2C/g;s/?/%3F/g;s/=/%3D/g;s/&/%26/g;s/\//%2F/g'`
@@ -18,7 +25,10 @@ else
    echo "开始下载Clash配置文件..." >$START_LOG
    wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 "$subscribe_url" -O /tmp/config.yaml
 fi
-if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')" -ne 0 ] && [ "$(awk '/Proxy Group:/,/Rule:/{print}' /tmp/config.yaml 2>/dev/null |egrep '^ {0,}-' |grep name: |sed 's/,.*//' |awk -F 'name: ' '{print $2}' |sed 's/\"//g' |wc -l)" -gt 0 ]; then
+}
+
+config_su_check()
+{
    echo "配置文件下载成功，检查是否有更新..." >$START_LOG
    if [ -f "$CONFIG_FILE" ]; then
       cmp -s "$BACKPACK_FILE" /tmp/config.yaml
@@ -44,10 +54,46 @@ if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')"
       && echo "${LOGTIME} Config Update Successful" >>$LOG_FILE\
       && /etc/init.d/openclash restart 2>/dev/null
    fi
-else
+}
+
+config_error()
+{
    echo "配置文件下载失败，请检查网络或稍后再试！" >$START_LOG
    echo "${LOGTIME} Config Update Error" >>$LOG_FILE
    rm -rf /tmp/config.yaml 2>/dev/null
-   sleep 10
+   sleep 5
    echo "" >$START_LOG
+}
+
+config_dawnload
+
+if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')" -ne 0 ]; then
+   config_su_check
+else
+   if pidof clash >/dev/null; then
+      echo "配置文件下载失败，尝试不使用代理下载配置文件..." >$START_LOG
+      if [ "$en_mode" = "fake-ip"]; then
+         resolve_sub_ips=$(nslookup "$subscribe_url" 114.114.114.114 |grep Address |awk -F ': ' '{print $2}')
+      else
+         resolve_sub_ips=$(nslookup "$subscribe_url" 127.0.0.1 |grep Address |awk -F ': ' '{print $2}')
+      fi
+      
+      for resolve_sub_ip in $resolve_sub_ips; do
+        iptables -t nat -I openclash -d "$resolve_sub_ip" -j RETURN >/dev/null 2>&1
+      done
+      
+      config_dawnload
+      
+      if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')" -ne 0 ]; then
+         config_su_check
+      else
+         config_error
+      fi
+      
+      for resolve_sub_ip in $resolve_sub_ips; do
+        iptables -t nat -D openclash -d "$resolve_sub_ip" -j RETURN >/dev/null 2>&1
+      done
+   else
+      config_error
+   fi
 fi
