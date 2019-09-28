@@ -1,8 +1,8 @@
 #!/bin/sh
 
 status=$(ps |grep "openclash_watchdog" |grep -v grep |awk '{print $1}' |awk 'END{print NR}')
-[ "$status" -gt "1" ] && echo "another OpenClash_watchdog.sh is running, exit"
-[ "$status" -gt "1" ] && exit 0
+[ "$status" -gt "2" ] && echo "another OpenClash_watchdog.sh is running, exit"
+[ "$status" -gt "2" ] && exit 0
 
 while :;
 do
