@@ -43,6 +43,7 @@ del_cron()
 }
 
 change_dns() {
+   uci del dhcp.@dnsmasq[-1].server >/dev/null 2>&1
    uci add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
    uci delete dhcp.@dnsmasq[0].resolvfile
    uci set dhcp.@dnsmasq[0].noresolv=1
@@ -51,8 +52,7 @@ change_dns() {
 }
 
 revert_dns() {
-   dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
-   uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port" >/dev/null 2>&1
+   uci del dhcp.@dnsmasq[-1].server >/dev/null 2>&1
    uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
    uci set dhcp.@dnsmasq[0].noresolv=0
    uci delete dhcp.@dnsmasq[0].cachesize
