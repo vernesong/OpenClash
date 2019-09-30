@@ -43,12 +43,16 @@ del_cron()
 }
 
 change_dns() {
-   uci del dhcp.@dnsmasq[-1].server >/dev/null 2>&1
-   uci add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
-   uci delete dhcp.@dnsmasq[0].resolvfile
-   uci set dhcp.@dnsmasq[0].noresolv=1
-   uci set dhcp.@dnsmasq[0].cachesize=0
-   uci commit dhcp
+   if [ "$1" -ne "0" ]; then
+      uci del dhcp.@dnsmasq[-1].server >/dev/null 2>&1
+      uci add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
+      uci delete dhcp.@dnsmasq[0].resolvfile
+      uci set dhcp.@dnsmasq[0].noresolv=1
+      [ "$2" -eq "1" ] && {
+         uci set dhcp.@dnsmasq[0].cachesize=0
+      }
+      uci commit dhcp
+   fi
 }
 
 revert_dns() {
@@ -353,6 +357,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
     lan_ip=$(uci get network.lan.ipaddr 2>/dev/null)
     direct_dns=$(uci get openclash.config.direct_dns 2>/dev/null)
+    disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
     echo "第二步: 配置文件检查..." >$START_LOG
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKUP_FILE" "$START_BACKUP"
     grep "^ \{0,\}Proxy:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Proxy Group:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Rule:" $CONFIG_FILE >/dev/null 2>&1
@@ -433,9 +438,7 @@ EOF
              echo "${LOGTIME} Warring: OpenClash May Can Not Take Over DNS, Please Use OpenClash for Upstream DNS Resolve Server" >> $LOG_FILE
              sleep 5
           fi
-          [ "$enable_redirect_dns" != "0" ] && {
-             change_dns
-          }
+          change_dns "$enable_redirect_dns" "$disable_masq_cache"
           fake_block "$en_mode" "$direct_dns"
           /etc/init.d/dnsmasq restart >/dev/null 2>&1
           if pidof clash >/dev/null; then
