@@ -85,6 +85,12 @@ o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
 
+o = s:taboption("dns", ListValue, "disable_masq_cache", translate("Disable Dnsmasq's DNS Cache"))
+o.description = translate("Recommended Enabled For Avoiding Some Connection Errors")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default=0
+
 o = s:taboption("dns", ListValue, "dns_advanced_setting", translate("Advanced Setting"))
 o.description = translate("DNS Advanced Settings")
 o:value("0", translate("Disable"))

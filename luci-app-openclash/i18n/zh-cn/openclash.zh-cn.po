@@ -104,6 +104,12 @@ msgstr "本地DNS劫持"
 msgid "Set Local DNS Redirect"
 msgstr "默认启用，将自动设置Dnsmasq的上游服务器，如和其他插件冲突可停用，但须将OpenClash作为冲突插件的唯一上游服务器"
 
+msgid "Disable Dnsmasq's DNS Cache"
+msgstr "禁止Dnsmasq缓存DNS"
+
+msgid "Recommended Enabled For Avoiding Some Connection Errors"
+msgstr "推荐启用，防止因缓存造成连接错误（部分固件可能不兼容）"
+
 msgid "Custom DNS Setting"
 msgstr "自定义上游DNS服务器"
 
