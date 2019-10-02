@@ -164,7 +164,7 @@ EOF
 
 
 #创建配置文件
-echo "开始更新配置文件节点..." >$START_LOG
+echo "开始更新配置文件服务器节点信息..." >$START_LOG
 echo "Proxy:" >$SERVER_FILE
 config_load "openclash"
 config_foreach yml_servers_set "servers"
@@ -321,19 +321,18 @@ uci set openclash.config.Others="Others"
 fi
 if [ "$create_config" != "0" ]; then
    echo "Rule:" >>$SERVER_FILE
-   echo "服务器节点写入配置文件完成，开始更新配置文件..." >$START_LOG
+   echo "配置文件创建完成，正在更新服务器、策略组信息..." >$START_LOG
    cat "$SERVER_FILE" > "/etc/openclash/config.yaml" 2>/dev/null
    /usr/share/openclash/yml_groups_get.sh >/dev/null 2>&1
 else
-   echo "正在更新配置文件..." >$START_LOG
-   /usr/share/openclash/yml_groups_set.sh >/dev/null 2>&1
+   echo "服务器、策略组信息修改完成，正在更新配置文件..." >$START_LOG
    sed -i '/^ \{0,\}Proxy:/i\#change server#' "/etc/openclash/config.yaml" 2>/dev/null
    sed -i '/^ \{0,\}Proxy:/,/^ \{0,\}Rule:/d' "/etc/openclash/config.yaml" 2>/dev/null
    sed -i '/#change server#/r/tmp/yaml_servers.yaml' "/etc/openclash/config.yaml" 2>/dev/null
    sed -i '/Proxy Group:/r/tmp/yaml_groups.yaml' "/etc/openclash/config.yaml" 2>/dev/null
    sed -i '/#change server#/d' "/etc/openclash/config.yaml" 2>/dev/null
 fi
-echo "配置文件服务器节点写入完成！" >$START_LOG
+echo "配置文件更新完成！" >$START_LOG
 rm -rf $SERVER_FILE 2>/dev/null
 rm -rf /tmp/Proxy_Server 2>/dev/null
 rm -rf /tmp/yaml_groups.yaml 2>/dev/null

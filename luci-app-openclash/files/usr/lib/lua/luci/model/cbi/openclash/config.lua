@@ -40,8 +40,8 @@ HTTP.setfilehandler(
 			fd:close()
 			fd = nil
 			if (meta.file == "config.yml") then
-			   SYS.call("cp /etc/openclash/config.yml /etc/openclash/config.bak")
 			   SYS.call("mv /etc/openclash/config.yml /etc/openclash/config.yaml")
+			   SYS.call("cp /etc/openclash/config.yaml /etc/openclash/config.bak")
 			elseif (meta.file == "config.yaml") then
 			   SYS.call("cp /etc/openclash/config.yaml /etc/openclash/config.bak")
 			end

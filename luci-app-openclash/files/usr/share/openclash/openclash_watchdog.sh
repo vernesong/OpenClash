@@ -15,8 +15,6 @@ if [ "$enable" -eq 1 ]; then
 	   nohup /etc/init.d/openclash restart &
 	   exit 0
   fi
-else
-   exit 0
 fi
 ## Log File Size Manage:
     
