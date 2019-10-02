@@ -56,29 +56,29 @@ if [ "$2" != 0 ]; then
        if [ "$2" = "lhie1" ]; then
             sed -i '/^Rule:/,$d' "$4"
             cat /etc/openclash/lhie1.yaml >> "$4"
-            sed -i -e "s/,GlobalTV$/,${GlobalTV}#d/g" -e "/Rule:/a\##GlobalTV:${GlobalTV}"\
-            -e "s/,AsianTV$/,${AsianTV}#d/g" -e "/Rule:/a\##AsianTV:${AsianTV}"\
-            -e "s/,Proxy$/,${Proxy}#d/g" -e "/Rule:/a\##Proxy:${Proxy}"\
-            -e "s/,Domestic$/,${Domestic}#d/g" -e "/Rule:/a\##Domestic:${Domestic}"\
-            -e "s/,Others$/,${Others}#d/g" -e "/Rule:/a\##Others:${Others}"\
-            -e "s/#d$//g" "$4"
+            sed -i -e "s/,GlobalTV/,${GlobalTV}#d/g" -e "/Rule:/a\##GlobalTV:${GlobalTV}"\
+            -e "s/,AsianTV/,${AsianTV}#d/g" -e "/Rule:/a\##AsianTV:${AsianTV}"\
+            -e "s/,Proxy/,${Proxy}#d/g" -e "/Rule:/a\##Proxy:${Proxy}"\
+            -e "s/,Domestic/,${Domestic}#d/g" -e "/Rule:/a\##Domestic:${Domestic}"\
+            -e "s/,Others/,${Others}#d/g" -e "/Rule:/a\##Others:${Others}"\
+            -e "s/#d//g" "$4"
        elif [ "$2" = "ConnersHua" ]; then
             sed -i '/^Rule:/,$d' "$4"
             cat /etc/openclash/ConnersHua.yaml >> "$4"
-            sed -i -e "s/,ForeignMedia$/,${GlobalTV}#d/g" -e "/Rule:/a\##GlobalTV:${GlobalTV}"\
-            -e "s/,DomesticMedia$/,${AsianTV}#d/g" -e "/Rule:/a\##AsianTV:${AsianTV}"\
-            -e "s/,PROXY$/,${Proxy}#d/g" -e "/Rule:/a\##Proxy:${Proxy}"\
-            -e "s/,Apple$/,${Apple}#d/g" -e "/Rule:/a\##Apple:${Apple}"\
-            -e "s/,Hijacking$/,${AdBlock}#d/g" -e "/Rule:/a\##AdBlock:${AdBlock}"\
-            -e "s/,DIRECT$/,${Domestic}#d/g" -e "/Rule:/a\##Domestic:${Domestic}"\
-            -e "s/,Final$/,${Others}#d/g" -e "/Rule:/a\##Others:${Others}"\
-            -e "s/#d$//g" "$4"
+            sed -i -e "s/,ForeignMedia/,${GlobalTV}#d/g" -e "/Rule:/a\##GlobalTV:${GlobalTV}"\
+            -e "s/,DomesticMedia/,${AsianTV}#d/g" -e "/Rule:/a\##AsianTV:${AsianTV}"\
+            -e "s/,PROXY/,${Proxy}#d/g" -e "/Rule:/a\##Proxy:${Proxy}"\
+            -e "s/,Apple/,${Apple}#d/g" -e "/Rule:/a\##Apple:${Apple}"\
+            -e "s/,Hijacking/,${AdBlock}#d/g" -e "/Rule:/a\##AdBlock:${AdBlock}"\
+            -e "s/,DIRECT/,${Domestic}#d/g" -e "/Rule:/a\##Domestic:${Domestic}"\
+            -e "s/,Final/,${Others}#d/g" -e "/Rule:/a\##Others:${Others}"\
+            -e "s/#d//g" "$4"
        else
             sed -i '/^Rule:/,$d' "$4"
             cat /etc/openclash/ConnersHua_return.yaml >> "$4"
-            sed -i -e "s/,PROXY$/,${Proxy}#d/g" -e "/Rule:/a\##Proxy:${Proxy}"\
-            -e "s/,DIRECT$/,${Others}#d/g" -e "/Rule:/a\##Others:${Others}"\
-            -e "s/#d$//g" "$4"
+            sed -i -e "s/,PROXY/,${Proxy}#d/g" -e "/Rule:/a\##Proxy:${Proxy}"\
+            -e "s/,DIRECT/,${Others}#d/g" -e "/Rule:/a\##Others:${Others}"\
+            -e "s/#d//g" "$4"
        fi
        fi
 		fi

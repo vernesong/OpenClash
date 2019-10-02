@@ -94,7 +94,7 @@ if [ "$create_config" = "0" ]; then
       echo "开始更新配置文件策略组信息..." >$START_LOG
       config_load "openclash"
       config_foreach yml_groups_set "groups"
-      sed -i "s/#d$//g" $CONFIG_FILE 2>/dev/null
+      sed -i "s/#d//g" $CONFIG_FILE 2>/dev/null
       echo "Rule:" >>$GROUP_FILE
       echo "配置文件策略组更新完成！" >$START_LOG
    fi
