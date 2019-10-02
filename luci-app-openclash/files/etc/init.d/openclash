@@ -100,24 +100,45 @@ yml_check()
    
    yml_dns_check
     
-   #检查行首空格避免后续操作出错
-	 [ ! -z "$(grep "^ \{1,\}Proxy:" $3)" ] && {
+   #检查关键字避免后续操作出错
+   
+	 [ ! -z "$(grep "^ \{0,\}'Proxy':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}"Proxy":' "$3")" ] && {
+	    sed -i "/^ \{0,\}\'Proxy\'/c\Proxy:" "$3"
+	    sed -i '/^ \{0,\}\"Proxy\":/c\Proxy:' "$3"
+	 }
+	 
+	 [ ! -z "$(grep "^ \{0,\}'Proxy Group':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}"Proxy Group":' "$3")" ] && {
+	    sed -i "/^ \{0,\}\'Proxy Group\'/c\Proxy Group:" "$3"
+	    sed -i '/^ \{0,\}\"Proxy Group\":/c\Proxy Group:' "$3"
+	 }
+	 
+	 [ ! -z "$(grep "^ \{0,\}'Rule':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}"Rule":' "$3")" ] && {
+	    sed -i "/^ \{0,\}\'Rule\'/c\Rule:" "$3"
+	    sed -i '/^ \{0,\}\"Rule\":/c\Rule:' "$3"
+	 }
+	 
+	 [ ! -z "$(grep "^ \{0,\}'dns':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}"dns":' "$3")" ] && {
+	    sed -i "/^ \{0,\}\'dns\'/c\dns:" "$3"
+	    sed -i '/^ \{0,\}\"dns\":/c\dns:' "$3"
+	 }
+	 
+	 [ ! -z "$(grep "^ \{1,\}Proxy:" "$3")" ] && {
 	    sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$3"
 	 }
 	    
-	 [ ! -z "$(grep "^ \{1,\}Proxy Group:" $3)" ] && {
+	 [ ! -z "$(grep "^ \{1,\}Proxy Group:" "$3")" ] && {
 	    sed -i "/^ \{1,\}Proxy Group:/c\Proxy Group:" "$3"
 	 }
 	 
-	 [ ! -z "$(grep "^ \{1,\}Rule:" $3)" ] && {
+	 [ ! -z "$(grep "^ \{1,\}Rule:" "$3")" ] && {
 	    sed -i "/^ \{1,\}Rule:/c\Rule:" "$3"
 	 }
 	 
-	 [ ! -z "$(grep "^ \{1,\}dns:" $3)" ] && {
+	 [ ! -z "$(grep "^ \{1,\}dns:" "$3")" ] && {
 	    	sed -i "/^ \{1,\}dns:/c\dns:" "$3"
 	 }
 	 
-	 if [ ! -z "$(grep "^ \{1,\}port:" $3)" ] || [ ! -z "$(grep "^ \{1,\}mode:" $3)" ] || [ ! -z "$(grep "^ \{1,\}log-level:" $3)" ]; then
+	 if [ ! -z "$(grep "^ \{1,\}port:" "$3")" ] || [ ! -z "$(grep "^ \{1,\}mode:" "$3")" ] || [ ! -z "$(grep "^ \{1,\}log-level:" "$3")" ]; then
 	    cp "$3" /tmp/config.check 2>/dev/null
 	    sed -i '/^dns:/,$d' /tmp/config.check 2>/dev/null
 	    sed -i 's/^[ \t]*//' /tmp/config.check 2>/dev/null

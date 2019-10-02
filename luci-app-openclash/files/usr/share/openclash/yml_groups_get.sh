@@ -11,16 +11,24 @@ elif [ ! -f "/etc/openclash/config.yaml" ] && [ "$(ls -l /etc/openclash/config.y
    mv "/etc/openclash/config.yml" "/etc/openclash/config.yaml"
 fi
 echo "开始更新策略组配置..." >$START_LOG
+
+/usr/share/openclash/yml_groups_name_get.sh
+[ ! -z "$(grep "读取错误" /tmp/Proxy_Group)"] && {
+	echo "读取错误，配置文件异常！" >$START_LOG
+	sleep 5
+	echo "" >$START_LOG
+	exit 0
+}
+awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
+
+#删除旧配置
 while ( [ ! -z "$(grep "config groups" "$CFG_FILE")" ] || [ ! -z "$(grep "config servers" "$CFG_FILE")" ] )
    do
       uci delete openclash.@groups[0] 2>/dev/null
       uci delete openclash.@servers[0] 2>/dev/null
       uci commit openclash
 done
-awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
-awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null |grep name: 2>/dev/null |awk -F 'name:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null >/tmp/Proxy_Group 2>&1
-echo "DIRECT" >>/tmp/Proxy_Group
-echo "REJECT" >>/tmp/Proxy_Group
+
 count=1
 file_count=1
 match_group_file="/tmp/Proxy_Group"
