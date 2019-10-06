@@ -161,8 +161,8 @@ yml_dns_check()
    
    [ -z "$(grep '^ \{0,\}nameserver:' $CONFIG_FILE)" ] && {
       sed -i '/^Proxy:/i\  nameserver:' "$CONFIG_FILE" 2>/dev/null
-      sed -i "/nameserver:/a\  - tls://8.8.8.8:853" "$CONFIG_FILE" 2>/dev/null
-      sed -i "/nameserver:/a\  - 114.114.114.114" "$CONFIG_FILE" 2>/dev/null
+      sed -i "/^ \{0,\}nameserver:/a\  - tls://8.8.8.8:853" "$CONFIG_FILE" 2>/dev/null
+      sed -i "/^ \{0,\}nameserver:/a\  - 114.114.114.114" "$CONFIG_FILE" 2>/dev/null
    }
 
    dns_port=$(grep "^ \{0,\}listen:" $CONFIG_FILE |awk -F ':' '{print $3}' |awk -F '#' '{print $1}' |tr -cd "[0-9]" 2>/dev/null)

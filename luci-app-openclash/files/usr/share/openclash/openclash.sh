@@ -10,6 +10,8 @@ BACKPACK_FILE="/etc/openclash/config.bak"
 URL_TYPE=$(uci get openclash.config.config_update_url_type 2>/dev/null)
 subscribe_url=$(uci get openclash.config.subscribe_url 2>/dev/null)
 en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
+servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
+servers_update_keyword=$(uci get openclash.config.servers_update_keyword 2>/dev/null)
 
 config_dawnload()
 {
@@ -27,6 +29,23 @@ else
 fi
 }
 
+config_cus_up()
+{
+	if [ "$servers_update" -eq "1" ] || [ ! -z "$servers_update_keyword" ]; then
+	   echo "配置文件替换成功，开始挑选节点..." >$START_LOG
+	   uci set openclash.config.servers_if_update=1
+	   uci commit openclash
+	   /usr/share/openclash/yml_groups_get.sh
+	   uci set openclash.config.servers_if_update=1
+	   uci commit openclash
+	   /usr/share/openclash/yml_groups_set.sh
+	else
+	   echo "配置文件替换成功，开始启动 OpenClash ..." >$START_LOG
+     echo "${LOGTIME} Config Update Successful" >>$LOG_FILE
+     /etc/init.d/openclash restart 2>/dev/null
+  fi
+}
+
 config_su_check()
 {
    echo "配置文件下载成功，检查是否有更新..." >$START_LOG
@@ -34,11 +53,9 @@ config_su_check()
       cmp -s "$BACKPACK_FILE" /tmp/config.yaml
          if [ "$?" -ne "0" ]; then
             echo "配置文件有更新，开始替换..." >$START_LOG
-            mv /tmp/config.yaml "$CONFIG_FILE" 2>/dev/null\
-            && cp "$CONFIG_FILE" "$BACKPACK_FILE"\
-            && echo "配置文件替换成功，开始启动 OpenClash ..." >$START_LOG\
-            && echo "${LOGTIME} Config Update Successful" >>$LOG_FILE\
-            && /etc/init.d/openclash restart 2>/dev/null
+            mv /tmp/config.yaml "$CONFIG_FILE" 2>/dev/null
+            cp "$CONFIG_FILE" "$BACKPACK_FILE"
+            config_cus_up
          else
             echo "配置文件没有任何更新，停止继续操作..." >$START_LOG
             rm -rf /tmp/config.yaml
@@ -48,11 +65,9 @@ config_su_check()
          fi
    else
       echo "配置文件下载成功，本地没有配置文件，开始创建 ..." >$START_LOG
-      mv /tmp/config.yaml "$CONFIG_FILE" 2>/dev/null\
-      && cp "$CONFIG_FILE" "$BACKPACK_FILE"\
-      && echo "配置文件创建成功，开始启动 OpenClash ..." >$START_LOG\
-      && echo "${LOGTIME} Config Update Successful" >>$LOG_FILE\
-      && /etc/init.d/openclash restart 2>/dev/null
+      mv /tmp/config.yaml "$CONFIG_FILE" 2>/dev/null
+      cp "$CONFIG_FILE" "$BACKPACK_FILE"
+      config_cus_up
    fi
 }
 

@@ -17,6 +17,9 @@ config openclash 'config'
 	option en_mode 'redir-host'
 	option enable_redirect_dns '1'
 	option dns_advanced_setting '0'
+	option servers_if_update '0'
+	option disable_masq_cache '0'
+	option servers_update '0'
 	
 config dns_servers
 	option group 'nameserver'

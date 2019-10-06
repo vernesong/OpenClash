@@ -108,7 +108,10 @@ msgid "Disable Dnsmasq's DNS Cache"
 msgstr "禁止Dnsmasq缓存DNS"
 
 msgid "Recommended Enabled For Avoiding Some Connection Errors"
-msgstr "推荐启用，防止因缓存造成连接错误（部分固件可能不兼容）"
+msgstr "推荐启用，防止因缓存造成连接错误"
+
+msgid "(Maybe Incompatible For Your Firmware)"
+msgstr "（部分固件可能不兼容）"
 
 msgid "Custom DNS Setting"
 msgstr "自定义上游DNS服务器"
@@ -117,13 +120,19 @@ msgid "Use Custom Rules"
 msgstr "启用后将把自定义规则增加到配置文件并优先匹配，规则请到下方文本框编辑"
 
 msgid "Add Custom DNS Servers"
-msgstr "设置自定义上游DNS服务器，在上方DNS设置中启用本功能后生效"
+msgstr "设置自定义上游DNS服务器"
+
+msgid "(Take Effect After Choose Above)"
+msgstr "（在上方DNS设置中启用本功能后生效）"
 
 msgid "Advanced Setting"
 msgstr "高级设置"
 
 msgid "DNS Advanced Settings"
-msgstr "DNS高级设置，如您不知道选项有何用，请不要随意修改"
+msgstr "DNS高级设置"
+
+msgid "(Please Don't Modify it at Will)"
+msgstr "（如您不知道选项有何用，请不要随意修改）"
 
 msgid "Specify DNS Server"
 msgstr "（Fake-IP模式）黑名单DNS服务器"
@@ -196,6 +205,12 @@ msgid ""
 "Rename your config file to config.yaml before upload what would be save to /etc/openclash"
 msgstr "注意：上传之前请将配置文件重命名为 config.yaml ，文件将被保存到 /etc/openclash"
 
+msgid "Keyword Matching Setting"
+msgstr "节点匹配关键字"
+
+msgid "Only Keep Servers which Matching Keywords, eg: hk or tw&bgp"
+msgstr "仅选取名字与以上任意关键字匹配的节点，不区分大小写。格式示例：香港、台湾&bgp"
+
 msgid "Please Make Sure Ports Available"
 msgstr "请确保端口可用"
 
@@ -256,8 +271,8 @@ msgstr "管理页面登录密钥"
 msgid "Set Dashboard Secret"
 msgstr "设置您的管理页面登录密钥"
 
-msgid "Dashboard Address Example: 192.168.1.1/openclash、192.168.1.1:9090/ui"
-msgstr "管理页面地址示例: 192.168.1.1/openclash、192.168.1.1:9090/ui"
+msgid "Dashboard Address Example: "
+msgstr "管理页面地址示例: "
 
 msgid "Dashboard Port"
 msgstr "管理页面端口"
@@ -358,8 +373,11 @@ msgstr "设置自定义规则，详细信息请前往Github( https://github.com/
 msgid "Custom Hosts Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md"
 msgstr "设置自定义Hosts，详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询"
 
-msgid "Set Custom Rules, Will Add When Flag Turn on"
-msgstr "设置自定义规则，在上方规则设置中启用本功能后生效"
+msgid "Set Custom Rules"
+msgstr "设置自定义规则"
+
+msgid "(Take Effect After Choose Above)"
+msgstr "（在上方规则设置中启用本功能后生效）"
 
 msgid "Set Custom Hosts, Only Work with Redir-Host Mode"
 msgstr "设置自定义Hosts，仅在Redir-Host模式下生效（不会覆盖配置文件设置）"
@@ -428,6 +446,12 @@ msgstr "返回概览"
 
 msgid "Servers manage and Config create"
 msgstr "服务器&策略组管理（支持配置文件一键生成）"
+
+msgid "Keep Settings"
+msgstr "保留配置"
+
+msgid "Only Update Servers Below When Subscription"
+msgstr "订阅时仅更新下方节点，保留下方策略组设置和前后顺序"
 
 msgid "Choose Template For Create Config"
 msgstr "选择配置文件模板"

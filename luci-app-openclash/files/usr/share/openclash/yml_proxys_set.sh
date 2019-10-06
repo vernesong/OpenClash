@@ -4,12 +4,14 @@ status=$(ps|grep -c /usr/share/openclash/yml_proxys_set.sh)
 
 START_LOG="/tmp/openclash_start.log"
 SERVER_FILE="/tmp/yaml_servers.yaml"
+servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 
 #写入服务器节点到配置文件
 yml_servers_set()
 {
 
    local section="$1"
+   config_get_bool "enabled" "$section" "enabled" "1"
    config_get "type" "$section" "type" ""
    config_get "name" "$section" "name" ""
    config_get "server" "$section" "server" ""
@@ -30,7 +32,10 @@ yml_servers_set()
    config_get "uuid" "$section" "uuid" ""
    config_get "auth_name" "$section" "auth_name" ""
    config_get "auth_pass" "$section" "auth_pass" ""
-
+   
+   if [ "$enabled" = "0" ]; then
+      return
+   fi
 
    if [ -z "$type" ]; then
       return
@@ -164,7 +169,7 @@ EOF
 
 
 #创建配置文件
-echo "开始更新配置文件服务器节点信息..." >$START_LOG
+echo "开始写入配置文件服务器节点信息..." >$START_LOG
 echo "Proxy:" >$SERVER_FILE
 config_load "openclash"
 config_foreach yml_servers_set "servers"
@@ -175,7 +180,7 @@ egrep '^ {0,}-' $SERVER_FILE |grep name: |awk -F 'name: ' '{print $2}' |sed 's/,
 sed -i "s/^ \{0,\}/  - /" /tmp/Proxy_Server 2>/dev/null #添加参数
 
 
-if [ "$rule_sources" = "ConnersHua" ]; then
+if [ "$rule_sources" = "ConnersHua" ] && [ "$servers_if_update" != "1" ]; then
 echo "使用ConnersHua规则创建中..." >$START_LOG
 cat >> "$SERVER_FILE" <<-EOF
 - name: Auto - UrlTest
@@ -239,7 +244,7 @@ uci set openclash.config.Apple="Apple"
 uci set openclash.config.AdBlock="AdBlock"
 uci set openclash.config.Domestic="Domestic"
 uci set openclash.config.Others="Others"
-elif [ "$rule_sources" = "lhie1" ]; then
+elif [ "$rule_sources" = "lhie1" ] && [ "$servers_if_update" != "1" ]; then
 echo "使用lhie1规则创建中..." >$START_LOG
 cat >> "$SERVER_FILE" <<-EOF
 - name: Auto - UrlTest
@@ -290,7 +295,7 @@ uci set openclash.config.AsianTV="AsianTV"
 uci set openclash.config.Proxy="Proxy"
 uci set openclash.config.Domestic="Domestic"
 uci set openclash.config.Others="Others"
-elif [ "$rule_sources" = "ConnersHua_return" ]; then
+elif [ "$rule_sources" = "ConnersHua_return" ] && [ "$servers_if_update" != "1" ]; then
 echo "使用ConnersHua回国规则创建中..." >$START_LOG
 cat >> "$SERVER_FILE" <<-EOF
 - name: Auto - UrlTest
@@ -319,7 +324,7 @@ uci set openclash.config.rule_source="ConnersHua_return"
 uci set openclash.config.Proxy="Proxy"
 uci set openclash.config.Others="Others"
 fi
-if [ "$create_config" != "0" ]; then
+if [ "$create_config" != "0" ] && [ "$servers_if_update" != "1" ]; then
    echo "Rule:" >>$SERVER_FILE
    echo "配置文件创建完成，正在更新服务器、策略组信息..." >$START_LOG
    cat "$SERVER_FILE" > "/etc/openclash/config.yaml" 2>/dev/null
@@ -332,9 +337,11 @@ else
    sed -i '/Proxy Group:/r/tmp/yaml_groups.yaml' "/etc/openclash/config.yaml" 2>/dev/null
    sed -i '/#change server#/d' "/etc/openclash/config.yaml" 2>/dev/null
 fi
-echo "配置文件更新完成！" >$START_LOG
+echo "配置文件写入完成！" >$START_LOG
 rm -rf $SERVER_FILE 2>/dev/null
 rm -rf /tmp/Proxy_Server 2>/dev/null
 rm -rf /tmp/yaml_groups.yaml 2>/dev/null
 uci set openclash.config.enable=1 2>/dev/null
+uci set openclash.config.servers_if_update=0
+uci commit openclash
 /etc/init.d/openclash restart >/dev/null 2>&1

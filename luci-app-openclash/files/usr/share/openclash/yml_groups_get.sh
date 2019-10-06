@@ -4,6 +4,9 @@ status=$(ps|grep -c /usr/share/openclash/yml_groups_get.sh)
 
 START_LOG="/tmp/openclash_start.log"
 CFG_FILE="/etc/config/openclash"
+servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
+servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
+rulesource=$(uci get openclash.config.rule_source 2>/dev/null)
 
 if [ ! -f "/etc/openclash/config.yml" ] && [ ! -f "/etc/openclash/config.yaml" ]; then
   exit 0
@@ -15,19 +18,25 @@ echo "开始更新策略组配置..." >$START_LOG
 /usr/share/openclash/yml_groups_name_get.sh
 [ ! -z "$(grep "读取错误" /tmp/Proxy_Group)"] && {
 	echo "读取错误，配置文件异常！" >$START_LOG
+	uci commit openclash
 	sleep 5
 	echo "" >$START_LOG
 	exit 0
 }
 awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
-
 #删除旧配置
-while ( [ ! -z "$(grep "config groups" "$CFG_FILE")" ] || [ ! -z "$(grep "config servers" "$CFG_FILE")" ] )
+echo "正在删除旧节点..." >$START_LOG
+if [ "$servers_update" -ne "1" ] || [ "$servers_if_update" != "1" ] || [ -z "$(grep "config groups" "$CFG_FILE")" ]; then
+   while ( [ ! -z "$(grep "config groups" "$CFG_FILE")" ] || [ ! -z "$(grep "config servers" "$CFG_FILE")" ] )
    do
       uci delete openclash.@groups[0] 2>/dev/null
       uci delete openclash.@servers[0] 2>/dev/null
       uci commit openclash
-done
+   done
+else
+   /usr/share/openclash/yml_proxys_get.sh
+   exit 0
+fi
 
 count=1
 file_count=1
