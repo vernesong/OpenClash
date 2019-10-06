@@ -6,6 +6,12 @@ local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
 local uci = require "luci.model.uci".cursor()
 
+font_green = [[<font color="green">]]
+font_red = [[<font color="red">]]
+font_off = [[</font>]]
+bold_on  = [[<strong>]]
+bold_off = [[</strong>]]
+
 m = Map("openclash", translate("Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"))
 m.pageaction = false
 s = m:section(TypedSection, "openclash")
@@ -23,7 +29,7 @@ s:tab("version_update", translate("Version Update"))
 ---- General Settings
 local cpu_model=SYS.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
 o = s:taboption("settings", ListValue, "core_version", translate("Chose to Download"))
-o.description = translate("CPU Model")..': '..cpu_model..', '..translate("Select Based On Your CPU Model For Core Update, Wrong Version Will Not Work")
+o.description = translate("CPU Model")..': '..font_green..bold_on..cpu_model..bold_off..font_off..', '..translate("Select Based On Your CPU Model For Core Update, Wrong Version Will Not Work")
 o:value("linux-386")
 o:value("linux-amd64", translate("linux-amd64(x86-64)"))
 o:value("linux-armv5")
@@ -74,25 +80,25 @@ o:value("1", translate("Enable"))
 o.default = 1
 
 o = s:taboption("dns", ListValue, "enable_custom_dns", translate("Custom DNS Setting"))
-o.description = translate("Set OpenClash Upstream DNS Resolve Server")
+o.description = font_red..bold_on..translate("Set OpenClash Upstream DNS Resolve Server")..bold_off..font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default = 0
 
 o = s:taboption("dns", ListValue, "ipv6_enable", translate("Enable ipv6 Resolve"))
-o.description = translate("Force Enable to Resolve ipv6 DNS Requests")
+o.description = font_red..bold_on..translate("Force Enable to Resolve ipv6 DNS Requests")..bold_off..font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
 
 o = s:taboption("dns", ListValue, "disable_masq_cache", translate("Disable Dnsmasq's DNS Cache"))
-o.description = translate("Recommended Enabled For Avoiding Some Connection Errors")
+o.description = translate("Recommended Enabled For Avoiding Some Connection Errors")..font_red..bold_on..translate("(Maybe Incompatible For Your Firmware)")..bold_off..font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
 
 o = s:taboption("dns", ListValue, "dns_advanced_setting", translate("Advanced Setting"))
-o.description = translate("DNS Advanced Settings")
+o.description = translate("DNS Advanced Settings")..font_red..bold_on..translate("(Please Don't Modify it at Will)")..bold_off..font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
@@ -210,6 +216,9 @@ o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
 
+o = s:taboption("config_update", DynamicList, "servers_update_keyword", translate("Keyword Matching Setting"))
+o.description = font_red..bold_on..translate("Only Keep Servers which Matching Keywords, eg: hk or tw&bgp")..bold_off..font_off
+
 o = s:taboption("config_update", ListValue, "config_update_week_time", translate("Update Time (Every Week)"))
 o:value("*", translate("Every Day"))
 o:value("1", translate("Every Monday"))
@@ -253,7 +262,7 @@ o.write = function()
 end
 
 o = s:taboption("rules_update", ListValue, "other_rule_auto_update", translate("Auto Update"))
-o.description = translate("Auto Update Other Rules")
+o.description = font_red..bold_on..translate("Auto Update Other Rules")..bold_off..font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
@@ -322,12 +331,13 @@ o.write = function()
 end
 
 ---- Dashboard Settings
+local lan_ip=SYS.exec("uci get network.lan.ipaddr 2>/dev/null |tr -d '\n'")
 o = s:taboption("dashboard", Value, "cn_port")
 o.title = translate("Dashboard Port")
 o.default = 9090
 o.datatype = "port"
 o.rmempty = false
-o.description = translate("Dashboard Address Example: 192.168.1.1/openclash、192.168.1.1:9090/ui")
+o.description = translate("Dashboard Address Example: ")..font_green..bold_on..lan_ip.."/openclash、"..lan_ip..':9090/ui'..bold_off..font_off
 
 o = s:taboption("dashboard", Value, "dashboard_password")
 o.title = translate("Dashboard Secret")
@@ -339,7 +349,7 @@ core_update = s:taboption("version_update", DummyValue, "", nil)
 core_update.template = "openclash/update"
 
 -- [[ Edit Server ]] --
-s = m:section(TypedSection, "dns_servers", translate("Add Custom DNS Servers"))
+s = m:section(TypedSection, "dns_servers", translate("Add Custom DNS Servers")..translate("(Take Effect After Choose Above)"))
 s.anonymous = true
 s.addremove = true
 s.sortable = false
@@ -347,7 +357,7 @@ s.template = "cbi/tblsection"
 s.rmempty = false
 
 ---- enable flag
-o = s:option(Flag, "enabled", translate("Enable"), translate("(Enable or Disable)"))
+o = s:option(Flag, "enabled", translate("Enable"), font_red..bold_on..translate("(Enable or Disable)")..bold_off..font_off)
 o.rmempty     = false
 o.default     = o.enabled
 o.cfgvalue    = function(...)
@@ -356,7 +366,7 @@ end
 
 ---- group
 o = s:option(ListValue, "group", translate("DNS Server Group"))
-o.description = translate("(NameServer Group Must Be Set)")
+o.description = font_red..bold_on..translate("(NameServer Group Must Be Set)")..bold_off..font_off
 o:value("nameserver", translate("NameServer"))
 o:value("fallback", translate("FallBack"))
 o.default     = "nameserver"
@@ -364,20 +374,20 @@ o.rempty      = false
 
 ---- IP address
 o = s:option(Value, "ip", translate("DNS Server Address"))
-o.description = translate("(Do Not Add Type Ahead)")
+o.description = font_red..bold_on..translate("(Do Not Add Type Ahead)")..bold_off..font_off
 o.placeholder = translate("Not Null")
 o.datatype = "or(host, string)"
 o.rmempty = true
 
 ---- port
 o = s:option(Value, "port", translate("DNS Server Port"))
-o.description = translate("(Require When Use Non-Standard Port)")
+o.description = font_red..bold_on..translate("(Require When Use Non-Standard Port)")..bold_off..font_off
 o.datatype    = "port"
 o.rempty      = true
 
 ---- type
 o = s:option(ListValue, "type", translate("DNS Server Type"))
-o.description = translate("(Communication protocol)")
+o.description = font_red..bold_on..translate("(Communication protocol)")..bold_off..font_off
 o:value("udp", translate("UDP"))
 o:value("tcp", translate("TCP"))
 o:value("tls", translate("TLS"))
@@ -411,7 +421,7 @@ o = s:option(Value, "password", translate("Password"))
 o.placeholder = translate("Not Null")
 o.rmempty = true
 
-s = m:section(TypedSection, "openclash", translate("Set Custom Rules, Will Add When Flag Turn on"))
+s = m:section(TypedSection, "openclash", translate("Set Custom Rules"))
 s.anonymous = true
 
 custom_rules = s:option(Value, "custom_rules")
@@ -424,7 +434,6 @@ function custom_rules.cfgvalue(self, section)
 	return NXFS.readfile("/etc/config/openclash_custom_rules.list") or ""
 end
 function custom_rules.write(self, section, value)
-
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		NXFS.writefile("/etc/config/openclash_custom_rules.list", value)

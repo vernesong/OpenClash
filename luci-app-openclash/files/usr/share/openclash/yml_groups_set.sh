@@ -12,8 +12,13 @@ yml_servers_add()
 {
 	
 	local section="$1"
-	config_get "name" "$section" "name" ""
-	config_list_foreach "$section" "groups" set_groups "$name" "$2"
+	config_get_bool "enabled" "$section" "enabled" "1"
+	if [ "$enabled" = "0" ]; then
+      return
+  else
+	   config_get "name" "$section" "name" ""
+	   config_list_foreach "$section" "groups" set_groups "$name" "$2"
+	fi
 	
 }
 
@@ -66,7 +71,7 @@ yml_groups_set()
    #名字变化时处理规则部分
    if [ "$name" != "$old_name" ]; then
       sed -i "s/,${old_name}/,${name}#d/g" $CONFIG_FILE 2>/dev/null
-      sed -i "s/:${old_name}$/:${name}#d/g" $CONFIG_FILE 2>/dev/null #修改自定义规则分组对应标签
+      sed -i "s/:${old_name}$/:${name}#d/g" $CONFIG_FILE 2>/dev/null #修改第三方规则分组对应标签
       sed -i "s/\'${old_name}\'/\'${name}\'/g" $CFG_FILE 2>/dev/null
       config_load "openclash"
    fi
@@ -83,20 +88,22 @@ yml_groups_set()
 }
 
 create_config=$(uci get openclash.config.create_config 2>/dev/null)
-if [ "$create_config" = "0" ]; then
+servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
+if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ]; then
    /usr/share/openclash/yml_groups_name_get.sh
    if [ -z "$(grep "^ \{0,\}Proxy:" /etc/openclash/config.yaml)" ] || [ -z "$(grep "^ \{0,\}Rule:" /etc/openclash/config.yaml)" ]; then
       echo "配置文件信息读取失败，无法进行修改，请选择一键创建配置文件..." >$START_LOG
+      uci commit openclash
       sleep 5
       echo "" >$START_LOG
       exit 0
    else
-      echo "开始更新配置文件策略组信息..." >$START_LOG
+      echo "开始写入配置文件策略组信息..." >$START_LOG
       config_load "openclash"
       config_foreach yml_groups_set "groups"
       sed -i "s/#d//g" $CONFIG_FILE 2>/dev/null
       echo "Rule:" >>$GROUP_FILE
-      echo "配置文件策略组更新完成！" >$START_LOG
+      echo "配置文件策略组写入完成！" >$START_LOG
    fi
 fi
 /usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1

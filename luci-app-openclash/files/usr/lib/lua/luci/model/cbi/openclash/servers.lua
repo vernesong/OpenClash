@@ -4,6 +4,10 @@ local m, s, o
 local openclash = "openclash"
 local uci = luci.model.uci.cursor()
 
+font_red = [[<font color="red">]]
+font_off = [[</font>]]
+bold_on  = [[<strong>]]
+bold_off = [[</strong>]]
 
 m = Map(openclash,  translate("Servers manage and Config create"))
 m.pageaction = false
@@ -11,9 +15,17 @@ m.pageaction = false
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
 
-o = s:option(Flag, "create_config", translate("Create Config"))
+o = s:option(ListValue, "servers_update", translate("Keep Settings"))
+o.description = font_red .. bold_on .. translate("Only Update Servers Below When Subscription").. bold_off .. font_off
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default=0
+
+o = s:option(ListValue, "create_config", translate("Create Config"))
 o.description = translate("Create Config By One-Click Only Need Proxys")
-o.default = 0
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default=0
 
 o = s:option(ListValue, "rule_sources", translate("Choose Template For Create Config"))
 o.description = translate("Use Other Rules To Create Config")
@@ -119,6 +131,14 @@ function s.create(...)
 		luci.http.redirect(s.extedit % sid)
 		return
 	end
+end
+
+---- enable flag
+o = s:option(Flag, "enabled", translate("Enable"))
+o.rmempty     = false
+o.default     = o.enabled
+o.cfgvalue    = function(...)
+    return Flag.cfgvalue(...) or "1"
 end
 
 o = s:option(DummyValue, "type", translate("Type"))

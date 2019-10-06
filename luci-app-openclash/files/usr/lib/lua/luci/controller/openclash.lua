@@ -78,7 +78,7 @@ local function config_check()
 end
 
 local function cn_port()
-	return luci.sys.exec("uci get openclash.config.cn_port 2>/dev/null")
+	return luci.sys.exec("uci get openclash.config.cn_port 2>/dev/null |tr -d '\n'")
 end
 
 local function mode()
@@ -121,7 +121,7 @@ local function ConnersHua_return()
 end
 
 local function daip()
-	return luci.sys.exec("uci get network.lan.ipaddr")
+	return luci.sys.exec("uci get network.lan.ipaddr 2>/dev/null |tr -d '\n'")
 end
 
 local function dase()
