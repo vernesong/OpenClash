@@ -24,4 +24,27 @@ end
 log.write = function(self, section, value)
 end
 
-return m
+local t = {
+    {refresh, clean}
+}
+
+a = SimpleForm("apply")
+a.reset = false
+a.submit = false
+s = a:section(Table, t)
+
+o = s:option(Button, "refresh") 
+o.inputtitle = translate("Refresh Log")
+o.inputstyle = "apply"
+o.write = function()
+  HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "log"))
+end
+
+o = s:option(Button, "clean")
+o.inputtitle = translate("Clean Log")
+o.inputstyle = "apply"
+o.write = function()
+  SYS.call("echo '' >/tmp/openclash.log")
+end
+
+return m, a

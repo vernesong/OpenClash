@@ -34,30 +34,6 @@ o:value("lhie1", translate("lhie1 Rules"))
 o:value("ConnersHua", translate("ConnersHua Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
-local t = {
-    {Commit, Apply}
-}
-
-a = m:section(Table, t)
-
-o = a:option(Button, "Commit") 
-o.inputtitle = translate("Commit Configurations")
-o.inputstyle = "apply"
-o.write = function()
-  m.uci:set("openclash", "config", "enable", 0)
-  m.uci:commit("openclash")
-end
-
-o = a:option(Button, "Apply")
-o.inputtitle = translate("Apply Configurations")
-o.inputstyle = "apply"
-o.write = function()
-  m.uci:set("openclash", "config", "enable", 0)
-  m.uci:commit("openclash")
-  luci.sys.call("/usr/share/openclash/yml_groups_set.sh >/dev/null 2>&1 &")
-  luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
-end
-
 local tt = {
     {Load_Config, Delete_Severs, Delete_Groups}
 }
@@ -159,6 +135,30 @@ end
 o = s:option(DummyValue, "port", translate("Server Port"))
 function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
+end
+
+local t = {
+    {Commit, Apply}
+}
+
+a = m:section(Table, t)
+
+o = a:option(Button, "Commit") 
+o.inputtitle = translate("Commit Configurations")
+o.inputstyle = "apply"
+o.write = function()
+  m.uci:set("openclash", "config", "enable", 0)
+  m.uci:commit("openclash")
+end
+
+o = a:option(Button, "Apply")
+o.inputtitle = translate("Apply Configurations")
+o.inputstyle = "apply"
+o.write = function()
+  m.uci:set("openclash", "config", "enable", 0)
+  m.uci:commit("openclash")
+  luci.sys.call("/usr/share/openclash/yml_groups_set.sh >/dev/null 2>&1 &")
+  luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end
 
 return m

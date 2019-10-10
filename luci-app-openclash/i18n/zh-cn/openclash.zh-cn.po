@@ -98,6 +98,12 @@ msgstr "Fake-IP（增强）模式"
 msgid "Select Mode For OpenClash Work, Network Error Try Flush DNS Cache"
 msgstr "选择运行模式，在兼容模式下无法代理路由器自身流量，如客户端的网络无法连接请尝试清除DNS缓存"
 
+msgid "Log Level"
+msgstr "日志等级"
+
+msgid "Select Core's Log Level"
+msgstr "设置内核的日志输出模式"
+
 msgid "Redirect Local DNS Setting"
 msgstr "本地DNS劫持"
 
@@ -374,10 +380,7 @@ msgid "Custom Hosts Here, For More Go Github:https://github.com/Dreamacro/clash/
 msgstr "设置自定义Hosts，详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询"
 
 msgid "Set Custom Rules"
-msgstr "设置自定义规则"
-
-msgid "(Take Effect After Choose Above)"
-msgstr "（在上方规则设置中启用本功能后生效）"
+msgstr "设置自定义规则（在上方规则设置中启用本功能后生效）"
 
 msgid "Set Custom Hosts, Only Work with Redir-Host Mode"
 msgstr "设置自定义Hosts，仅在Redir-Host模式下生效（不会覆盖配置文件设置）"
@@ -451,7 +454,7 @@ msgid "Keep Settings"
 msgstr "保留配置"
 
 msgid "Only Update Servers Below When Subscription"
-msgstr "订阅时仅更新下方节点，保留下方策略组设置和前后顺序"
+msgstr "订阅时仅更新节点，保留下方策略组设置和前后顺序"
 
 msgid "Choose Template For Create Config"
 msgstr "选择配置文件模板"
@@ -561,7 +564,11 @@ msgstr "添加到策略组（请勿重复添加）"
 msgid "No Need Set when Config Create, The added Proxy Groups Must Exist"
 msgstr "注意：使用一键生成配置文件功能时无需设置此项，修改配置文件前添加的策略组必须已创建"
 
+msgid "Clean Log"
+msgstr "清空日志"
 
+msgid "Refresh Log"
+msgstr "刷新日志"
 
 
 

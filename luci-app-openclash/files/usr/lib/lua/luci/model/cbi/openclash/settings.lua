@@ -51,6 +51,15 @@ o:value("redir-host", translate("redir-host"))
 o:value("fake-ip", translate("fake-ip"))
 o.default = "redir-host"
 
+o = s:taboption("settings", ListValue, "log_level", translate("Log Level"))
+o.description = translate("Select Core's Log Level")
+o:value("info")
+o:value("warning")
+o:value("error")
+o:value("debug")
+o:value("silent")
+o.default = "silent"
+
 o = s:taboption("settings", Value, "proxy_port")
 o.title = translate("Redir Port")
 o.default = 7892
