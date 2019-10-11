@@ -21,15 +21,8 @@ match_servers="/tmp/match_servers.list"
 group_num=$(grep -c "name:" /tmp/yaml_group.yaml)
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 servers_update_keyword=$(uci get openclash.config.servers_update_keyword 2>/dev/null)
-rulesource=$(uci get openclash.config.rule_source 2>/dev/null)
-GlobalTV=$(uci get openclash.config.GlobalTV 2>/dev/null)
-AsianTV=$(uci get openclash.config.AsianTV 2>/dev/null)
-Proxy=$(uci get openclash.config.Proxy 2>/dev/null)
-Apple=$(uci get openclash.config.Apple 2>/dev/null)
-AdBlock=$(uci get openclash.config.AdBlock 2>/dev/null)
-Domestic=$(uci get openclash.config.Domestic 2>/dev/null)
-Others=$(uci get openclash.config.Others 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
+new_servers_group=$(uci get openclash.config.new_servers_group 2>/dev/null)
 
 count=1
 line=$(sed -n '/^ \{0,\}-/=' $server_file)
@@ -81,21 +74,13 @@ server_key_match()
 	fi
 }
 
-yml_groups_no_select_get()
+cfg_new_servers_groups_get()
 {
-   local section="$1"
-   config_get "type" "$section" "type" ""
-   config_get "name" "$section" "name" ""
-   if [ "$type" != "select" ]; then
-      ${uci_add}groups="$name"
+	 if [ -z "$1" ]; then
+      return
    fi
-}
-
-yml_groups_all_name_get()
-{
-	 local section="$1"
-   config_get "name" "$section" "name" ""
-   ${uci_add}groups="$name"
+   
+   ${uci_add}groups="${1}"
 }
 
 if [ "$servers_update" -eq "1" ] && [ "$servers_if_update" = "1" ]; then
@@ -197,7 +182,8 @@ do
    if [ "$servers_update" -eq "1" ] && [ ! -z "$server_num" ]; then
 #更新已有节点
       uci_set="uci -q set openclash.@servers["$server_num"]."
-   
+      
+      ${uci_set}manual="0"
       ${uci_set}type="$server_type" 2>/dev/null
       ${uci_set}server="$server"
       ${uci_set}port="$port"
@@ -245,7 +231,16 @@ do
       uci_set="uci -q set $name.$uci_name_tmp."
       uci_add="uci -q add_list $name.$uci_name_tmp."
 
-      ${uci_set}enabled="1"
+      if [ -z "$new_servers_group" ] && [ "$servers_if_update" = "1" ]; then
+         ${uci_set}enabled="0"
+      else
+         ${uci_set}enabled="1"
+      fi
+      if [ "$servers_if_update" = "1" ]; then
+         ${uci_set}manual="0"
+      else
+         ${uci_set}manual="1"
+      fi
       ${uci_set}name="$server_name"
       ${uci_set}type="$server_type"
       ${uci_set}server="$server"
@@ -285,24 +280,10 @@ do
 	   fi
 
 #加入策略组
-     if [ "$servers_if_update" = "1" ] && [ "$rulesource" != "0" ] && [ "$servers_update" -eq "1" ] && [ ! -z "$(grep "config groups" "$CFG_FILE")" ]; then
-#新节点且启用第三方规则时匹配规则策略组
+     if [ "$servers_if_update" = "1" ] && [ "$servers_update" -eq "1" ]  && [ ! -z "$new_servers_group" ] && [ ! -z "$(grep "config groups" "$CFG_FILE")" ]; then
+#新节点且设置默认策略组时加入指定策略组
         config_load "openclash"
-        config_foreach yml_groups_no_select_get "groups"
-        if [ "$rulesource" = "lhie1" ]; then
-           ${uci_add}groups="$Proxy"
-           ${uci_add}groups="$AsianTV"
-           ${uci_add}groups="$GlobalTV"
-        elif [ "$rulesource" = "ConnersHua" ]; then
-           ${uci_add}groups="$Proxy"
-           ${uci_add}groups="$AsianTV"
-           ${uci_add}groups="$GlobalTV"
-        elif [ "$rulesource" = "ConnersHua" ]; then
-           ${uci_add}groups="$Proxy"
-        fi
-     elif [ "$servers_if_update" = "1" ] && [ "$servers_update" -eq "1" ] && [ ! -z "$(grep "config groups" "$CFG_FILE")" ]; then
-        config_load "openclash"
-        config_foreach yml_groups_all_name_get "groups"
+        config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_get
      else
 	      for ((i=1;i<=$group_num;i++))
 	      do
@@ -314,6 +295,8 @@ do
 	      done
      fi
    fi
+   
+   uci commit openclash
 done
 
 #删除订阅中已不存在的节点
@@ -326,7 +309,9 @@ if [ "$servers_update" -eq "1" ] && [ "$servers_if_update" = "1" ]; then
            continue
         fi
         server_num=$(echo "$line" |awk -F '.' '{print $1}')
-        uci delete openclash.@servers["$server_num"] 2>/dev/null
+        if [ "$(uci get openclash.@servers["$server_num"].manual)" = "0" ]; then
+           uci delete openclash.@servers["$server_num"] 2>/dev/null
+        fi
      done
 fi
 

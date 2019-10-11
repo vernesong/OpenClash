@@ -234,6 +234,7 @@ o.default=0
 
 o = s:taboption("config_update", DynamicList, "servers_update_keyword", translate("Keyword Matching Setting"))
 o.description = font_red..bold_on..translate("Only Keep Servers which Matching Keywords, eg: hk or tw&bgp")..bold_off..font_off
+o.rmempty = true
 
 o = s:taboption("config_update", ListValue, "config_update_week_time", translate("Update Time (Every Week)"))
 o:value("*", translate("Every Day"))
