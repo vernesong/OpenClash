@@ -32,6 +32,8 @@ yml_servers_set()
    config_get "uuid" "$section" "uuid" ""
    config_get "auth_name" "$section" "auth_name" ""
    config_get "auth_pass" "$section" "auth_pass" ""
+   config_get "psk" "$section" "psk" ""
+   config_get "obfs_snell" "$section" "obfs_snell" ""
    
    if [ "$enabled" = "0" ]; then
       return
@@ -69,6 +71,10 @@ yml_servers_set()
    
    if [ ! -z "$udp" ] && [ "$obfs" = "none" ]; then
       udp=", udp: $udp"
+   fi
+   
+   if [ "$obfs_snell" = "none" ]; then
+      obfs_snell=""
    fi
    
    if [ "$obfs_vmess" != "none" ]; then
@@ -163,6 +169,23 @@ EOF
    
    if [ "$type" = "socks5" ] || [ "$type" = "http" ]; then
       echo "- { name: \"$name\", type: $type, server: $server, port: $port, username: $auth_name, password: $auth_pass$skip_cert_verify$tls }" >>$SERVER_FILE
+   fi
+   
+   if [ "$type" = "snell" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+- name: "$name"
+  type: $type
+  server: $server
+  port: $port
+  psk: $psk
+EOF
+  if [ ! -z "$obfs_snell" ] && [ ! -z "$host" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  obfs-opts:
+    mode: $obfs_snell
+    $host
+EOF
+  fi
    fi
 
 }

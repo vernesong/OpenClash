@@ -161,6 +161,8 @@ do
    plugin_opts="$(cfg_get "plugin-opts:" "$single_server")"
    #obfs:
    obfs="$(cfg_get "obfs:" "$single_server")"
+   #psk:
+   obfs="$(cfg_get "psk:" "$single_server")"
    #obfs-host:
    obfs_host="$(cfg_get "obfs-host:" "$single_server")"
    #mode:
@@ -207,11 +209,14 @@ do
       ${uci_set}udp="$udp"
       ${uci_set}obfs="$obfs"
       ${uci_set}host="$obfs_host"
-      [ -z "$obfs" ] && ${uci_set}obfs="$mode"
-      [ -z "$mode" ] && ${uci_set}obfs="none"
+      ${uci_set}obfs_snell="$mode"
+      [ -z "$obfs" ] && [ "$server_type" != "snell" ] && ${uci_set}obfs="$mode"
+      [ -z "$mode" ] && [ "$server_type" != "snell" ] && ${uci_set}obfs="none"
+      [ -z "$mode" ] && ${uci_set}obfs_snell="none"
       [ -z "$mode" ] && [ ! -z "$network" ] && ${uci_set}obfs_vmess="websocket"
       [ -z "$mode" ] && [ -z "$network" ] && ${uci_set}obfs_vmess="none"
       [ -z "$obfs_host" ] && ${uci_set}host="$host"
+      ${uci_set}psk="$psk"
       ${uci_set}tls="$tls"
       ${uci_set}skip_cert_verify="$verify"
       ${uci_set}path="$path"
