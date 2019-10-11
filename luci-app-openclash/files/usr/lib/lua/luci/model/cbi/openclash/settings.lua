@@ -51,6 +51,13 @@ o:value("redir-host", translate("redir-host"))
 o:value("fake-ip", translate("fake-ip"))
 o.default = "redir-host"
 
+o = s:taboption("settings", ListValue, "proxy_mode", translate("Proxy Mode"))
+o.description = translate("Select Proxy Mode")
+o:value("Rule", translate("Rule"))
+o:value("Global", translate("Global"))
+o:value("Direct", translate("Direct"))
+o.default = "Rule"
+
 o = s:taboption("settings", ListValue, "log_level", translate("Log Level"))
 o.description = translate("Select Core's Log Level")
 o:value("info")

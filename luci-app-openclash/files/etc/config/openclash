@@ -20,6 +20,8 @@ config openclash 'config'
 	option servers_if_update '0'
 	option disable_masq_cache '0'
 	option servers_update '0'
+	option log_level 'silent'
+	option proxy_mode 'Rule'
 	
 config dns_servers
 	option group 'nameserver'
