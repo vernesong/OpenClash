@@ -104,13 +104,13 @@ msgstr "代理模式"
 msgid "Select Proxy Mode"
 msgstr "选择默认代理模式"
 
-msgid "Rule"
+msgid "Rule Mode"
 msgstr "Rule【策略代理】"
 
-msgid "Global"
+msgid "Global Mode"
 msgstr "Global【全局代理（需前往控制面板手动指定节点）】"
 
-msgid "Direct"
+msgid "Direct Mode"
 msgstr "Direct【全局直连】"
 
 msgid "Log Level"
