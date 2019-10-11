@@ -138,6 +138,16 @@ Proxy: # 此参数必须保留,不能删除
 # with tls (https) and skip-cert-verify
 - { name: "http", type: http, server: server, port: 443, tls: true, skip-cert-verify: true }
 
+# snell
+- name: "snell"
+  type: snell
+  server: server
+  port: 44046
+  psk: yourpsk
+  # obfs-opts:
+    # mode: http # or tls
+    # host: bing.com
+
 # Openclash 不会对下方策略组设置进行任何更改，请确保设置正确
 
 Proxy Group: # 此参数必须保留,不能删除

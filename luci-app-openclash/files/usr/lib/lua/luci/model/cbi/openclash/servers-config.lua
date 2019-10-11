@@ -51,6 +51,7 @@ s.addremove   = false
 o = s:option(ListValue, "type", translate("Server Node Type"))
 o:value("ss", translate("Shadowsocks"))
 o:value("vmess", translate("Vmess"))
+o:value("snell", translate("Snell"))
 o:value("socks5", translate("Socks5"))
 o:value("http", translate("HTTP(S)"))
 
@@ -71,6 +72,10 @@ o = s:option(Value, "password", translate("Password"))
 o.password = true
 o.rmempty = false
 o:depends("type", "ss")
+
+o = s:option(Value, "psk", translate("Psk"))
+o.rmempty = true
+o:depends("type", "snell")
 
 o = s:option(ListValue, "cipher", translate("Encrypt Method"))
 for _, v in ipairs(encrypt_methods_ss) do o:value(v) end
@@ -98,6 +103,14 @@ o:value("http")
 o:value("websocket", translate("websocket (ws)"))
 o:depends("type", "ss")
 
+o = s:option(ListValue, "obfs_snell", translate("obfs-mode"))
+o.rmempty = true
+o.default = "none"
+o:value("none")
+o:value("tls")
+o:value("http")
+o:depends("type", "snell")
+
 o = s:option(ListValue, "obfs_vmess", translate("obfs-mode"))
 o.rmempty = true
 o.default = "none"
@@ -111,6 +124,8 @@ o.rmempty = true
 o:depends("obfs", "tls")
 o:depends("obfs", "http")
 o:depends("obfs", "websocket")
+o:depends("obfs_snell", "tls")
+o:depends("obfs_snell", "http")
 
 o = s:option(Value, "custom", translate("ws-headers"))
 o.rmempty = true
