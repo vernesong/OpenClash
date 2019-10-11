@@ -5,6 +5,7 @@ status=$(ps|grep -c /usr/share/openclash/yml_proxys_set.sh)
 START_LOG="/tmp/openclash_start.log"
 SERVER_FILE="/tmp/yaml_servers.yaml"
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
+config_auto_update=$(uci get openclash.config.auto_update 2>/dev/null)
 
 #写入服务器节点到配置文件
 yml_servers_set()
@@ -267,6 +268,13 @@ uci set openclash.config.Apple="Apple"
 uci set openclash.config.AdBlock="AdBlock"
 uci set openclash.config.Domestic="Domestic"
 uci set openclash.config.Others="Others"
+[ "$config_auto_update" -eq 1 ] && {
+	uci set openclash.config.servers_update="1"
+	uci add_list openclash.config.new_servers_group="Auto - UrlTest"
+	uci add_list openclash.config.new_servers_group="Proxy"
+ 	uci add_list openclash.config.new_servers_group="AsianTV"
+	uci add_list openclash.config.new_servers_group="GlobalTV"
+}
 elif [ "$rule_sources" = "lhie1" ] && [ "$servers_if_update" != "1" ]; then
 echo "使用lhie1规则创建中..." >$START_LOG
 cat >> "$SERVER_FILE" <<-EOF
@@ -318,6 +326,13 @@ uci set openclash.config.AsianTV="AsianTV"
 uci set openclash.config.Proxy="Proxy"
 uci set openclash.config.Domestic="Domestic"
 uci set openclash.config.Others="Others"
+[ "$config_auto_update" -eq 1 ] && {
+	uci set openclash.config.servers_update="1"
+	uci add_list openclash.config.new_servers_group="Auto - UrlTest"
+	uci add_list openclash.config.new_servers_group="Proxy"
+ 	uci add_list openclash.config.new_servers_group="AsianTV"
+	uci add_list openclash.config.new_servers_group="GlobalTV"
+}
 elif [ "$rule_sources" = "ConnersHua_return" ] && [ "$servers_if_update" != "1" ]; then
 echo "使用ConnersHua回国规则创建中..." >$START_LOG
 cat >> "$SERVER_FILE" <<-EOF
@@ -346,6 +361,11 @@ EOF
 uci set openclash.config.rule_source="ConnersHua_return"
 uci set openclash.config.Proxy="Proxy"
 uci set openclash.config.Others="Others"
+[ "$config_auto_update" -eq 1 ] && {
+	uci set openclash.config.servers_update="1"
+	uci add_list openclash.config.new_servers_group="Auto - UrlTest"
+	uci add_list openclash.config.new_servers_group="Proxy"
+}
 fi
 if [ "$create_config" != "0" ] && [ "$servers_if_update" != "1" ]; then
    echo "Rule:" >>$SERVER_FILE

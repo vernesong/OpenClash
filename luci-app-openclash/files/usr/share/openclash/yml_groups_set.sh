@@ -24,6 +24,9 @@ yml_servers_add()
 
 set_groups()
 {
+  if [ -z "$1" ]; then
+     return
+  fi
 
 	if [ "$1" = "$3" ]; then
 	   echo "  - \"${2}\"" >>$GROUP_FILE
@@ -33,7 +36,10 @@ set_groups()
 
 set_other_groups()
 {
-
+   if [ -z "$1" ]; then
+      return
+   fi
+   
    echo "  - ${1}" >>$GROUP_FILE
 
 }

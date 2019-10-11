@@ -105,13 +105,13 @@ msgid "Select Proxy Mode"
 msgstr "选择默认代理模式"
 
 msgid "Rule"
-msgstr "策略代理"
+msgstr "Rule【策略代理】"
 
 msgid "Global"
-msgstr "全局代理（控制面板手动指定节点）"
+msgstr "Global【全局代理（需前往控制面板手动指定节点）】"
 
 msgid "Direct"
-msgstr "全局直连"
+msgstr "Direct【全局直连】"
 
 msgid "Log Level"
 msgstr "日志等级"
@@ -451,7 +451,10 @@ msgid "Severs&Groups"
 msgstr "服务器&策略组"
 
 msgid "Load Config"
-msgstr "读取配置文件"
+msgstr "读取配置"
+
+msgid "Delete Unused Servers"
+msgstr "删除未选中节点"
 
 msgid "Delete Severs"
 msgstr "清空服务器配置"
@@ -469,7 +472,13 @@ msgid "Keep Settings"
 msgstr "保留配置"
 
 msgid "Only Update Servers Below When Subscription"
-msgstr "订阅时仅更新节点，保留下方策略组设置和前后顺序"
+msgstr "订阅时仅更新节点，保留下方策略组设置，不修改顺序"
+
+msgid "New Servers Group"
+msgstr "新节点默认策略组"
+
+msgid "Set The New Subscribe Server's Default Proxy Groups"
+msgstr "选择符合订阅要求的新节点的默认策略组"
 
 msgid "Choose Template For Create Config"
 msgstr "选择配置文件模板"
