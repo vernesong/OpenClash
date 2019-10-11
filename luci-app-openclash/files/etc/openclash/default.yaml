@@ -1,4 +1,5 @@
 # Copyright (c) 2018 Dreamacro
+# 接管：不支持在此页面直接修改，请到全局设置页面进行修改
 
 # port of HTTP
 port: 7890 # 此项将被接管
@@ -18,11 +19,11 @@ allow-lan: true # 此项将被接管为true
 bind-address: "*" # HTTP(S)\SOCKS5 监听地址，此项将被接管为all
 
 # Rule / Global/ Direct (default is Rule)
-mode: Rule
+mode: Rule # 此项将被接管
 
 # set log level to stdout (default is info)
 # info / warning / error / debug / silent
-log-level: info
+log-level: info # 此项将被接管
 
 # A RESTful API for clash
 external-controller: 0.0.0.0:9090 # 此项将被接管

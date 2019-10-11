@@ -87,7 +87,7 @@ msgid "Download Configurations"
 msgstr "下载配置"
 
 msgid "Select Mode"
-msgstr "OpenClash 运行模式"
+msgstr "运行模式"
 
 msgid "redir-host"
 msgstr "Redir-Host（兼容）模式"
@@ -98,11 +98,26 @@ msgstr "Fake-IP（增强）模式"
 msgid "Select Mode For OpenClash Work, Network Error Try Flush DNS Cache"
 msgstr "选择运行模式，在兼容模式下无法代理路由器自身流量，如客户端的网络无法连接请尝试清除DNS缓存"
 
+msgid "Proxy Mode"
+msgstr "代理模式"
+
+msgid "Select Proxy Mode"
+msgstr "选择默认代理模式"
+
+msgid "Rule"
+msgstr "策略代理"
+
+msgid "Global"
+msgstr "全局代理（控制面板手动指定节点）"
+
+msgid "Direct"
+msgstr "全局直连"
+
 msgid "Log Level"
 msgstr "日志等级"
 
 msgid "Select Core's Log Level"
-msgstr "设置内核的日志输出模式"
+msgstr "选择内核日志的默认输出模式"
 
 msgid "Redirect Local DNS Setting"
 msgstr "本地DNS劫持"
@@ -212,10 +227,10 @@ msgid ""
 msgstr "注意：上传之前请将配置文件重命名为 config.yaml ，文件将被保存到 /etc/openclash"
 
 msgid "Keyword Matching Setting"
-msgstr "节点匹配关键字"
+msgstr "筛选节点"
 
 msgid "Only Keep Servers which Matching Keywords, eg: hk or tw&bgp"
-msgstr "仅选取名字与以上任意关键字匹配的节点，不区分大小写。格式示例：香港、台湾&bgp"
+msgstr "仅订阅名字与以上任意关键字匹配的节点，不区分大小写。格式示例：香港、台湾&bgp"
 
 msgid "Please Make Sure Ports Available"
 msgstr "请确保端口可用"
@@ -565,7 +580,7 @@ msgid "No Need Set when Config Create, The added Proxy Groups Must Exist"
 msgstr "注意：使用一键生成配置文件功能时无需设置此项，修改配置文件前添加的策略组必须已创建"
 
 msgid "Clean Log"
-msgstr "清空日志"
+msgstr "清理日志"
 
 msgid "Refresh Log"
 msgstr "刷新日志"
