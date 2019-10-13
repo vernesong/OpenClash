@@ -241,8 +241,8 @@ msgstr "订阅地址"
 msgid "Update Url Type"
 msgstr "订阅地址类型"
 
-msgid "Power By fndroid，Use Other Rules If V2ray Subcription"
-msgstr "API提供：Fndroid，V2ray类型的订阅可配合第三方规则使用"
+msgid "Power By fndroid，Use Other Rules If V2rayN Subcription"
+msgstr "API提供：Fndroid，V2rayN类型的订阅可配合第三方规则使用"
 
 msgid "Update Subcription"
 msgstr "更新订阅配置"
