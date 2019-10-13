@@ -5,14 +5,14 @@
 </h1>
 
   <p align="center">
-	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.15.0">
-    <img src="https://img.shields.io/badge/Clash-v0.15.0-blue.svg">
+	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.16.0">
+    <img src="https://img.shields.io/badge/Clash-v0.16.0-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.34.7-beta">
-    <img src="https://img.shields.io/badge/source code-v0.34.7--beta-green.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.35.0-beta">
+    <img src="https://img.shields.io/badge/source code-v0.35.0--beta-green.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.34.7-beta">
-    <img src="https://img.shields.io/badge/New Release-v0.34.7--beta-orange.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.35.0-beta">
+    <img src="https://img.shields.io/badge/New Release-v0.35.0--beta-orange.svg">
   </a>
   </p>
   
@@ -21,7 +21,7 @@
 本插件是一个可运行在 OpenWrt 上的<a href="https://github.com/Dreamacro/clash" target="_blank"> Clash </a>客户端
 </p>
 <p align="center">
-兼容 Shadowsocks、Vmess 等协议，根据灵活的规则配置实现策略代理
+兼容 Shadowsocks、Vmess、Snell 等协议，根据灵活的规则配置实现策略代理
 </p>
 <p align="center">
 - 感谢<a href="https://github.com/frainzy1477" target="_blank"> frainzy1477 </a>，本插件基于<a href="https://github.com/frainzy1477/luci-app-clash" target="_blank"> Luci For Clash </a>进行二次开发 -
@@ -125,9 +125,14 @@ make package/luci-app-openclash/luci-app-openclash/compile V=99
     <img src="https://github.com/vernesong/OpenClash/raw/master/img/state.png">
 </p>
 
-* 接管设置
+* 全局设置
 <p align="center">
     <img src="https://github.com/vernesong/OpenClash/raw/master/img/settings.png">
+</p>
+
+* 服务器&策略组
+<p align="center">
+    <img src="https://github.com/vernesong/OpenClash/raw/master/img/servers.png">
 </p>
 
 * 配置文件

@@ -17,6 +17,7 @@ function index()
 	entry({"admin", "services", "openclash", "update_ma"},call("action_update_ma"))
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
+	entry({"admin", "services", "openclash", "ping"}, call("act_ping"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Severs&Groups"), 40).leaf = true
   entry({"admin", "services", "openclash", "servers-config"},cbi("openclash/servers-config"), nil).leaf = true
@@ -280,4 +281,12 @@ function action_coreupdate()
 	luci.http.write_json({
 			coreup = coreup();
 	})
+end
+
+function act_ping()
+	local e={}
+	e.index=luci.http.formvalue("index")
+	e.ping=luci.sys.exec("ping -c 1 -W 1 %q 2>&1 | grep -o 'time=[0-9]*.[0-9]' | awk -F '=' '{print$2}'"%luci.http.formvalue("domain"))
+	luci.http.prepare_content("application/json")
+	luci.http.write_json(e)
 end

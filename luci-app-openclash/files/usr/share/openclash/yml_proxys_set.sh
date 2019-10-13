@@ -270,6 +270,7 @@ uci set openclash.config.Domestic="Domestic"
 uci set openclash.config.Others="Others"
 [ "$config_auto_update" -eq 1 ] && {
 	uci set openclash.config.servers_update="1"
+	uci del openclash.config.new_servers_group >/dev/null 2>&1
 	uci add_list openclash.config.new_servers_group="Auto - UrlTest"
 	uci add_list openclash.config.new_servers_group="Proxy"
  	uci add_list openclash.config.new_servers_group="AsianTV"
@@ -328,6 +329,7 @@ uci set openclash.config.Domestic="Domestic"
 uci set openclash.config.Others="Others"
 [ "$config_auto_update" -eq 1 ] && {
 	uci set openclash.config.servers_update="1"
+	uci del openclash.config.new_servers_group >/dev/null 2>&1
 	uci add_list openclash.config.new_servers_group="Auto - UrlTest"
 	uci add_list openclash.config.new_servers_group="Proxy"
  	uci add_list openclash.config.new_servers_group="AsianTV"
@@ -363,6 +365,7 @@ uci set openclash.config.Proxy="Proxy"
 uci set openclash.config.Others="Others"
 [ "$config_auto_update" -eq 1 ] && {
 	uci set openclash.config.servers_update="1"
+	uci del openclash.config.new_servers_group >/dev/null 2>&1
 	uci add_list openclash.config.new_servers_group="Auto - UrlTest"
 	uci add_list openclash.config.new_servers_group="Proxy"
 }

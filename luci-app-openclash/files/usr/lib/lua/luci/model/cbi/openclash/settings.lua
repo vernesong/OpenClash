@@ -28,7 +28,7 @@ s:tab("version_update", translate("Version Update"))
 
 ---- General Settings
 local cpu_model=SYS.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
-o = s:taboption("settings", ListValue, "core_version", translate("Chose to Download"))
+o = s:taboption("settings", ListValue, "core_version", font_red..bold_on..translate("Chose to Download")..bold_off..font_off)
 o.description = translate("CPU Model")..': '..font_green..bold_on..cpu_model..bold_off..font_off..', '..translate("Select Based On Your CPU Model For Core Update, Wrong Version Will Not Work")
 o:value("linux-386")
 o:value("linux-amd64", translate("linux-amd64(x86-64)"))
@@ -45,13 +45,13 @@ o:value("linux-mipsle-hardfloat")
 o:value("0", translate("Not Set"))
 o.default=0
 
-o = s:taboption("settings", ListValue, "en_mode", translate("Select Mode"))
+o = s:taboption("settings", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
 o.description = translate("Select Mode For OpenClash Work, Network Error Try Flush DNS Cache")
 o:value("redir-host", translate("redir-host"))
 o:value("fake-ip", translate("fake-ip"))
 o.default = "redir-host"
 
-o = s:taboption("settings", ListValue, "proxy_mode", translate("Proxy Mode"))
+o = s:taboption("settings", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
 o.description = translate("Select Proxy Mode")
 o:value("Rule", translate("Rule Mode"))
 o:value("Global", translate("Global Mode"))
@@ -60,11 +60,11 @@ o.default = "Rule"
 
 o = s:taboption("settings", ListValue, "log_level", translate("Log Level"))
 o.description = translate("Select Core's Log Level")
-o:value("info")
-o:value("warning")
-o:value("error")
-o:value("debug")
-o:value("silent")
+o:value("info", translate("Info"))
+o:value("warning", translate("Warning"))
+o:value("error", translate("Error"))
+o:value("debug", translate("Debug"))
+o:value("silent", translate("Silent"))
 o.default = "silent"
 
 o = s:taboption("settings", Value, "proxy_port")
@@ -89,13 +89,13 @@ o.rmempty = false
 o.description = translate("Please Make Sure Ports Available")
 
 ---- DNS Settings
-o = s:taboption("dns", ListValue, "enable_redirect_dns", translate("Redirect Local DNS Setting"))
+o = s:taboption("dns", ListValue, "enable_redirect_dns", font_red..bold_on..translate("Redirect Local DNS Setting")..bold_off..font_off)
 o.description = translate("Set Local DNS Redirect")
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default = 1
 
-o = s:taboption("dns", ListValue, "enable_custom_dns", translate("Custom DNS Setting"))
+o = s:taboption("dns", ListValue, "enable_custom_dns", font_red..bold_on..translate("Custom DNS Setting")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Set OpenClash Upstream DNS Resolve Server")..bold_off..font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
@@ -156,7 +156,7 @@ function custom_fake_black.write(self, section, value)
 end
 
 ---- Rules Settings
-o = s:taboption("rules", ListValue, "enable_custom_clash_rules", translate("Custom Clash Rules"))
+o = s:taboption("rules", ListValue, "enable_custom_clash_rules", font_red..bold_on..translate("Custom Clash Rules")..bold_off..font_off)
 o.description = translate("Use Custom Rules")
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
@@ -232,7 +232,7 @@ o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
 
-o = s:taboption("config_update", DynamicList, "servers_update_keyword", translate("Keyword Matching Setting"))
+o = s:taboption("config_update", DynamicList, "servers_update_keyword", font_red..bold_on..translate("Keyword Matching Setting")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Only Keep Servers which Matching Keywords, eg: hk or tw&bgp")..bold_off..font_off
 o.rmempty = true
 
@@ -256,9 +256,9 @@ o.rmempty = false
 
 o = s:taboption("config_update", ListValue, "config_update_url_type", translate("Update Url Type"))
 o:value("clash", translate("Clash"))
-o:value("v2ray", translate("V2ray"))
+o:value("v2rayn", translate("V2rayN"))
 o:value("surge", translate("Surge"))
-o.description = translate("Power By fndroid，Use Other Rules If V2ray Subcription")
+o.description = translate("Power By fndroid，Use Other Rules If V2rayN Subcription")
 o.default="clash"
 
 o = s:taboption("config_update", Value, "subscribe_url")

@@ -315,11 +315,12 @@ if [ "$servers_update" -eq "1" ] && [ "$servers_if_update" = "1" ]; then
      done
 fi
 
+uci set openclash.config.servers_if_update=0
+uci commit openclash
+/usr/share/openclash/cfg_servers_address_fake_block.sh
 echo "配置文件读取完成！" >$START_LOG
 sleep 3
 echo "" >$START_LOG
-uci set openclash.config.servers_if_update=0
-uci commit openclash
 rm -rf /tmp/servers.yaml 2>/dev/null
 rm -rf /tmp/yaml_proxy.yaml 2>/dev/null
 rm -rf /tmp/group_*.yaml 2>/dev/null
