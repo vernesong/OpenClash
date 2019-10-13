@@ -61,10 +61,10 @@
     fi
     
     if [ -z "$(grep '^mode: $13' "$7")" ]; then
-       if [ ! -z "$(grep "^ \{0,\}^mode:" "$7")" ]; then
-          sed -i "/^ \{0,\}^mode:/c\^mode: ${13}" "$7"
+       if [ ! -z "$(grep "^ \{0,\}mode:" "$7")" ]; then
+          sed -i "/^ \{0,\}mode:/c\mode: ${13}" "$7"
        else
-          sed -i "/^dns:/i\^mode: ${13}" "$7"
+          sed -i "/^dns:/i\mode: ${13}" "$7"
        fi
     fi
     
