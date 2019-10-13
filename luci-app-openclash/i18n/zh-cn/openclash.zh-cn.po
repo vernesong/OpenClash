@@ -116,6 +116,21 @@ msgstr "Direct【全局直连】"
 msgid "Log Level"
 msgstr "日志等级"
 
+msgid "Info Mode"
+msgstr "Info【信息】"
+
+msgid "Warning Mode"
+msgstr "Warning【警告】"
+
+msgid "Error Mode"
+msgstr "Error【错误】"
+
+msgid "Debug Mode"
+msgstr "Debug【调试】"
+
+msgid "Silent Mode"
+msgstr "Silent【静默】"
+
 msgid "Select Core's Log Level"
 msgstr "选择内核日志的默认输出模式"
 

@@ -60,11 +60,11 @@ o.default = "Rule"
 
 o = s:taboption("settings", ListValue, "log_level", translate("Log Level"))
 o.description = translate("Select Core's Log Level")
-o:value("info", translate("Info"))
-o:value("warning", translate("Warning"))
-o:value("error", translate("Error"))
-o:value("debug", translate("Debug"))
-o:value("silent", translate("Silent"))
+o:value("info", translate("Info Mode"))
+o:value("warning", translate("Warning Mode"))
+o:value("error", translate("Error Mode"))
+o:value("debug", translate("Debug Mode"))
+o:value("silent", translate("Silent Mode"))
 o.default = "silent"
 
 o = s:taboption("settings", Value, "proxy_port")
