@@ -231,7 +231,7 @@ do
       uci_set="uci -q set $name.$uci_name_tmp."
       uci_add="uci -q add_list $name.$uci_name_tmp."
 
-      if [ -z "$new_servers_group" ] && [ "$servers_if_update" = "1" ]; then
+      if [ -z "$new_servers_group" ] && [ "$servers_if_update" = "1" ] && [ "$servers_update" -eq "1" ]; then
          ${uci_set}enabled="0"
       else
          ${uci_set}enabled="1"
