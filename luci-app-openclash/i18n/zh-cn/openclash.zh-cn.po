@@ -6,7 +6,7 @@ msgid "OpenClash"
 msgstr "OpenClash"
 
 msgid "A Clash Client For OpenWrt"
-msgstr "一个运行在OpenWrt上的Clash客户端，兼容Shadowsocks、Vmess等协议，根据灵活的规则配置实现策略代理"
+msgstr "一个运行在OpenWrt上的Clash客户端，兼容Shadowsocks、Vmess、Snell等协议，根据灵活的规则配置实现策略代理"
 
 msgid "Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"
 msgstr "全局设置（将按照本页设置自动修改配置文件和获取订阅）"
@@ -87,7 +87,7 @@ msgid "Download Configurations"
 msgstr "下载配置"
 
 msgid "Select Mode"
-msgstr "运行模式"
+msgstr "*运行模式"
 
 msgid "redir-host"
 msgstr "Redir-Host（兼容）模式"
@@ -99,7 +99,7 @@ msgid "Select Mode For OpenClash Work, Network Error Try Flush DNS Cache"
 msgstr "选择运行模式，在兼容模式下无法代理路由器自身流量，如客户端的网络无法连接请尝试清除DNS缓存"
 
 msgid "Proxy Mode"
-msgstr "代理模式"
+msgstr "*代理模式"
 
 msgid "Select Proxy Mode"
 msgstr "选择默认代理模式"
@@ -120,7 +120,7 @@ msgid "Select Core's Log Level"
 msgstr "选择内核日志的默认输出模式"
 
 msgid "Redirect Local DNS Setting"
-msgstr "本地DNS劫持"
+msgstr "*本地DNS劫持"
 
 msgid "Set Local DNS Redirect"
 msgstr "默认启用，将自动设置Dnsmasq的上游服务器，如和其他插件冲突可停用，但须将OpenClash作为冲突插件的唯一上游服务器"
@@ -199,7 +199,7 @@ msgstr "IPV6类型DNS解析"
 
 msgid "Force Enable to Resolve ipv6 DNS Requests"
 msgstr ""
-"固件须配置好IPV6的NAT，如果您没有公网IPV6地址但开启了IPV6的DHCP服务，客户端连接可能会出现异常"
+"固件须配置好IPV6的NAT，如你不使用IPV6请关闭固件的相关服务，避免客户端连接出现异常"
 
 msgid "Rules Setting"
 msgstr "规则设置（访问控制）"
@@ -422,7 +422,7 @@ msgid "<New>"
 msgstr "<可更新>"
 
 msgid "Chose to Download"
-msgstr "选择内核编译版本"
+msgstr "*选择内核编译版本"
 
 msgid "Select Based On Your CPU Model For Core Update, Wrong Version Will Not Work"
 msgstr "请根据处理器架构选择以便下载、更新对应内核，错误的版本将不能正常运行"
@@ -478,7 +478,7 @@ msgid "New Servers Group"
 msgstr "新节点默认策略组"
 
 msgid "Set The New Subscribe Server's Default Proxy Groups"
-msgstr "选择符合订阅要求的新节点的默认策略组"
+msgstr "选择符合订阅要求的新节点的默认策略组（请勿重复添加）"
 
 msgid "Choose Template For Create Config"
 msgstr "选择配置文件模板"
@@ -500,6 +500,9 @@ msgstr "服务器地址"
 
 msgid "Server Port"
 msgstr "服务器端口"
+
+msgid "Ping Latency"
+msgstr "服务器延迟"
 
 msgid "Edit Server"
 msgstr "编辑服务器配置"

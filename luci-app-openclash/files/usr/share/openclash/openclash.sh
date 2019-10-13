@@ -15,8 +15,8 @@ servers_update_keyword=$(uci get openclash.config.servers_update_keyword 2>/dev/
 
 config_dawnload()
 {
-if [ "$URL_TYPE" == "V2ray" ]; then
-   echo "开始下载v2ray配置文件..." >$START_LOG
+if [ "$URL_TYPE" == "v2rayn" ]; then
+   echo "开始下载V2rayN配置文件..." >$START_LOG
    subscribe_url=`echo $subscribe_url |sed 's/{/%7B/g;s/}/%7D/g;s/:/%3A/g;s/\"/%22/g;s/,/%2C/g;s/?/%3F/g;s/=/%3D/g;s/&/%26/g;s/\//%2F/g'`
    wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 https://tgbot.lbyczf.com/v2rayn2clash?url="$subscribe_url" -O /tmp/config.yaml
 elif [ "$URL_TYPE" == "surge" ]; then

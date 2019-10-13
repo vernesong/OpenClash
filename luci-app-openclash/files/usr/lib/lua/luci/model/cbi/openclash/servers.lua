@@ -15,7 +15,7 @@ s = m:section(TypedSection, "openclash")
 s.anonymous = true
 
 o = s:option(ListValue, "create_config", translate("Create Config"))
-o.description = translate("Create Config By One-Click Only Need Proxys")
+o.description = font_red .. bold_on .. translate("Create Config By One-Click Only Need Proxys") .. bold_off .. font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
@@ -28,7 +28,7 @@ o:value("ConnersHua", translate("ConnersHua Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
 o = s:option(ListValue, "servers_update", translate("Keep Settings"))
-o.description = font_red .. bold_on .. translate("Only Update Servers Below When Subscription").. bold_off .. font_off
+o.description = font_red .. bold_on .. translate("Only Update Servers Below When Subscription") .. bold_off .. font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
@@ -110,6 +110,10 @@ function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
 end
 
+o = s:option(DummyValue,"server",translate("Ping Latency"))
+o.template="openclash/ping"
+o.width="10%"
+
 local tt = {
     {Delete_Unused_Servers, Delete_Severs, Delete_Groups}
 }
@@ -180,4 +184,5 @@ o.write = function()
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end
 
+m:append(Template("openclash/server_list"))
 return m
