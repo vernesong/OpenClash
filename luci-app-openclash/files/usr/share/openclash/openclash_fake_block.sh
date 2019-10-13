@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 . /lib/functions.sh
 
 direct_dns=$(uci get openclash.config.direct_dns 2>/dev/null)
