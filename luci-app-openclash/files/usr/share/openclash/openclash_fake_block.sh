@@ -32,7 +32,7 @@ noip="true"
 echo "#Server Nodes" >>/etc/openclash/dnsmasq_fake_block.conf
 config_load "openclash"
 config_foreach cfg_server_address "servers"
-[ "noip" = "true" ] && {
+[ "$noip" = "true" ] && {
    sed -i '/#Server Nodes/d' /etc/openclash/dnsmasq_fake_block.conf 2>/dev/null
 }
 

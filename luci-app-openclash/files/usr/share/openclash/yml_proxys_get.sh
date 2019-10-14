@@ -112,9 +112,9 @@ do
 
    #节点存在时获取节点编号
    if [ "$servers_if_update" = "1" ]; then
-      server_num=$(grep "$server_name$" "$match_servers" |awk -F '.' '{print $1}')
+      server_num=$(grep -Fw "$server_name" "$match_servers" |awk -F '.' '{print $1}')
       if [ "$servers_update" -eq "1" ] && [ ! -z "$server_num" ]; then
-         sed -i "/${server_name}$/c\#match#" "$match_servers" 2>/dev/null
+         sed -i "/^${server_num}\./c\#match#" "$match_servers" 2>/dev/null
       elif [ ! -z "$servers_update_keyword" ]; then #匹配关键字订阅节点
          match="false"
          config_load "openclash"
@@ -123,9 +123,6 @@ do
             echo "跳过【$server_name】服务器节点..." >$START_LOG
             continue
          fi
-      elif [ "$servers_update" -eq "1" ]; then
-         echo "跳过【$server_name】服务器节点..." >$START_LOG
-         continue
       fi
    fi
    #type
@@ -147,7 +144,7 @@ do
    #obfs:
    obfs="$(cfg_get "obfs:" "$single_server")"
    #psk:
-   obfs="$(cfg_get "psk:" "$single_server")"
+   psk="$(cfg_get "psk:" "$single_server")"
    #obfs-host:
    obfs_host="$(cfg_get "obfs-host:" "$single_server")"
    #mode:
@@ -196,8 +193,8 @@ do
       ${uci_set}obfs="$obfs"
       ${uci_set}host="$obfs_host"
       ${uci_set}obfs_snell="$mode"
-      [ -z "$obfs" ] && [ "$server_type" != "snell" ] && ${uci_set}obfs="$mode"
-      [ -z "$mode" ] && [ "$server_type" != "snell" ] && ${uci_set}obfs="none"
+      [ -z "$obfs" ] && ${uci_set}obfs="$mode"
+      [ -z "$obfs" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
       [ -z "$mode" ] && ${uci_set}obfs_snell="none"
       [ -z "$mode" ] && [ ! -z "$network" ] && ${uci_set}obfs_vmess="websocket"
       [ -z "$mode" ] && [ -z "$network" ] && ${uci_set}obfs_vmess="none"
@@ -253,11 +250,14 @@ do
       ${uci_set}udp="$udp"
       ${uci_set}obfs="$obfs"
       ${uci_set}host="$obfs_host"
+      ${uci_set}obfs_snell="$mode"
       [ -z "$obfs" ] && ${uci_set}obfs="$mode"
-      [ -z "$mode" ] && ${uci_set}obfs="none"
+      [ -z "$obfs" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
+      [ -z "$mode" ] && ${uci_set}obfs_snell="none"
       [ -z "$mode" ] && [ ! -z "$network" ] && ${uci_set}obfs_vmess="websocket"
       [ -z "$mode" ] && [ -z "$network" ] && ${uci_set}obfs_vmess="none"
       [ -z "$obfs_host" ] && ${uci_set}host="$host"
+      ${uci_set}psk="$psk"
       ${uci_set}tls="$tls"
       ${uci_set}skip_cert_verify="$verify"
       ${uci_set}path="$path"
@@ -295,7 +295,6 @@ do
 	      done
      fi
    fi
-   
    uci commit openclash
 done
 
@@ -303,14 +302,13 @@ done
 if [ "$servers_update" -eq "1" ] && [ "$servers_if_update" = "1" ]; then
      echo "删除订阅中已不存在的节点..." >$START_LOG
      sed -i '/#match#/d' "$match_servers" 2>/dev/null
-     cat $match_servers |sort -r |while read line
-     do 
-        if [ -z "$(echo "$line")" ]; then
+     cat $match_servers |awk -F '.' '{print $1}' |sort -rn |while read line
+     do
+        if [ -z "$line" ]; then
            continue
         fi
-        server_num=$(echo "$line" |awk -F '.' '{print $1}')
-        if [ "$(uci get openclash.@servers["$server_num"].manual)" = "0" ]; then
-           uci delete openclash.@servers["$server_num"] 2>/dev/null
+        if [ "$(uci get openclash.@servers["$line"].manual)" = "0" ]; then
+           uci delete openclash.@servers["$line"] 2>/dev/null
         fi
      done
 fi
