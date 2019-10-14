@@ -98,13 +98,6 @@ else
       uci commit dhcp
       /etc/init.d/dnsmasq restart >/dev/null 2>&1
       
-      nslook_url=$(echo "$subscribe_url" |awk -F'[/:]' '{print $4}')
-      resolve_sub_ips=$(nslookup "$nslook_url" |grep Address |awk -F ': ' '{print $2}')
-      
-      for resolve_sub_ip in $resolve_sub_ips; do
-        iptables -t nat -I openclash -d "$resolve_sub_ip" -j RETURN >/dev/null 2>&1
-      done
-      
       config_dawnload
       
       if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')" -ne 0 ]; then
@@ -123,10 +116,6 @@ else
          fi
          config_error
       fi
-
-      for resolve_sub_ip in $resolve_sub_ips; do
-        iptables -t nat -D openclash -d "$resolve_sub_ip" -j RETURN >/dev/null 2>&1
-      done
    else
       config_error
    fi
