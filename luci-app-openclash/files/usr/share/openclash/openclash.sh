@@ -33,6 +33,7 @@ config_cus_up()
 {
 	if [ "$servers_update" -eq "1" ] || [ ! -z "$servers_update_keyword" ]; then
 	   echo "配置文件替换成功，开始挑选节点..." >$START_LOG
+	   echo "${LOGTIME} Config Update Successful" >>$LOG_FILE
 	   uci set openclash.config.servers_if_update=1
 	   uci commit openclash
 	   /usr/share/openclash/yml_groups_get.sh
@@ -87,11 +88,18 @@ if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')"
 else
    if pidof clash >/dev/null; then
       echo "配置文件下载失败，尝试不使用代理下载配置文件..." >$START_LOG
-      if [ "$en_mode" = "fake-ip"]; then
-         resolve_sub_ips=$(nslookup "$subscribe_url" 114.114.114.114 |grep Address |awk -F ': ' '{print $2}')
-      else
-         resolve_sub_ips=$(nslookup "$subscribe_url" 127.0.0.1 |grep Address |awk -F ': ' '{print $2}')
-      fi
+      dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
+      enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
+      disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
+      uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port" >/dev/null 2>&1
+      uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
+      uci set dhcp.@dnsmasq[0].noresolv=0
+      uci delete dhcp.@dnsmasq[0].cachesize
+      uci commit dhcp
+      /etc/init.d/dnsmasq restart >/dev/null 2>&1
+      
+      nslook_url=$(echo "$subscribe_url" |awk -F'[/:]' '{print $4}')
+      resolve_sub_ips=$(nslookup "$nslook_url" |grep Address |awk -F ': ' '{print $2}')
       
       for resolve_sub_ip in $resolve_sub_ips; do
         iptables -t nat -I openclash -d "$resolve_sub_ip" -j RETURN >/dev/null 2>&1
@@ -102,9 +110,20 @@ else
       if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')" -ne 0 ]; then
          config_su_check
       else
+         if [ "$enable_redirect_dns" -ne "0" ]; then
+            uci del dhcp.@dnsmasq[-1].server >/dev/null 2>&1
+            uci add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
+            uci delete dhcp.@dnsmasq[0].resolvfile
+            uci set dhcp.@dnsmasq[0].noresolv=1
+            [ "$disable_masq_cache" -eq "1" ] && {
+               uci set dhcp.@dnsmasq[0].cachesize=0
+            }
+            uci commit dhcp
+            /etc/init.d/dnsmasq restart >/dev/null 2>&1
+         fi
          config_error
       fi
-      
+
       for resolve_sub_ip in $resolve_sub_ips; do
         iptables -t nat -D openclash -d "$resolve_sub_ip" -j RETURN >/dev/null 2>&1
       done
