@@ -133,8 +133,7 @@ o.inputstyle = "reload"
 o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
-  SYS.call("bash /usr/share/openclash/openclash_fake_block.sh >/dev/null 2>&1")
-  SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+  SYS.call("/usr/share/openclash/openclash_fake_block.sh >/dev/null 2>&1 && /etc/init.d/openclash restart >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
