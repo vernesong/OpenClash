@@ -1,5 +1,8 @@
 #!/bin/bash /etc/rc.common
 
+START_LOG="/tmp/openclash_start.log"
+echo "正在设置Fake-IP黑名单..." >$START_LOG
+
 direct_dns=$(uci get openclash.config.direct_dns 2>/dev/null)
 [ -z "$direct_dns" ] && {
 	direct_dns="114.114.114.114"
@@ -34,4 +37,4 @@ config_foreach cfg_server_address "servers"
 [ "$noip" = "true" ] && {
    sed -i '/#Server Nodes/d' /etc/openclash/dnsmasq_fake_block.conf 2>/dev/null
 }
-
+echo "" >$START_LOG

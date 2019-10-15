@@ -53,9 +53,9 @@ o.default = "redir-host"
 
 o = s:taboption("settings", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
 o.description = translate("Select Proxy Mode")
-o:value("Rule", translate("Rule Mode"))
-o:value("Global", translate("Global Mode"))
-o:value("Direct", translate("Direct Mode"))
+o:value("Rule", translate("Rule Proxy Mode"))
+o:value("Global", translate("Global Proxy Mode"))
+o:value("Direct", translate("Direct Proxy Mode"))
 o.default = "Rule"
 
 o = s:taboption("settings", ListValue, "log_level", translate("Log Level"))

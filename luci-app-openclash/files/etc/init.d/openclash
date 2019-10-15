@@ -68,11 +68,13 @@ revert_dns() {
 fake_block() {
    if [ "$1" = "fake-ip" ]; then
       if [ ! -f /etc/openclash/dnsmasq_fake_block.conf ]; then
-         sh /usr/share/openclash/openclash_fake_block.sh
+         /usr/share/openclash/openclash_fake_block.sh
+      elif [ "$(awk -F '/' '{print $3}' /etc/openclash/dnsmasq_fake_block.conf |head -1)" != "114.114.114.114" ] && [ -z "$2" ]; then
+         /usr/share/openclash/openclash_fake_block.sh
       elif [ "$(awk -F '/' '{print $3}' /etc/openclash/dnsmasq_fake_block.conf |head -1)" != "$2" ] && [ ! -z "$2" ]; then
-         sh /usr/share/openclash/openclash_fake_block.sh
+         /usr/share/openclash/openclash_fake_block.sh
       elif [ ! -z "$(grep "config servers" /etc/config/openclash)" ] && [ -z "$(grep -F '#Server Nodes' /etc/openclash/dnsmasq_fake_block.conf)" ]; then
-         sh /usr/share/openclash/openclash_fake_block.sh
+         /usr/share/openclash/openclash_fake_block.sh
       fi
       mkdir -p /tmp/dnsmasq.d
       ln -s /etc/openclash/dnsmasq_fake_block.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf
