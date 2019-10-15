@@ -469,7 +469,7 @@ msgid "Load Config"
 msgstr "读取配置"
 
 msgid "Delete Unused Servers"
-msgstr "删除未选中节点"
+msgstr "删除未启用节点"
 
 msgid "Delete Severs"
 msgstr "清空服务器配置"
