@@ -104,13 +104,13 @@ msgstr "*代理模式"
 msgid "Select Proxy Mode"
 msgstr "选择默认代理模式"
 
-msgid "Rule Mode"
+msgid "Rule Proxy Mode"
 msgstr "Rule【策略代理】"
 
-msgid "Global Mode"
+msgid "Global Proxy Mode"
 msgstr "Global【全局代理（需前往控制面板手动指定节点）】"
 
-msgid "Direct Mode"
+msgid "Direct Proxy Mode"
 msgstr "Direct【全局直连】"
 
 msgid "Log Level"
@@ -174,7 +174,7 @@ msgid "Specify DNS Server"
 msgstr "（Fake-IP模式）黑名单DNS服务器"
 
 msgid "Specify DNS Server For List, Only One IP Server Address Support"
-msgstr "指定下方列表中域名的DNS服务器，只支持填写一个IP地址，更改后点击下方按钮生效"
+msgstr "指定下方列表中域名的DNS服务器，只支持填写一个IP地址"
 
 msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line"
 msgstr "每行请只填写一个域名，列表中的域名在（Fake-IP模式）下查询DNS时将返回真实IP地址，更改后点击上方按钮生效"
@@ -245,7 +245,7 @@ msgid "Keyword Matching Setting"
 msgstr "筛选节点"
 
 msgid "Only Keep Servers which Matching Keywords, eg: hk or tw&bgp"
-msgstr "仅订阅名字与以上任意关键字匹配的节点，不区分大小写。格式示例：香港、台湾&bgp"
+msgstr "仅订阅名字与以上任意一行关键字匹配的节点，不区分大小写，条件且请用（&）表示。格式示例：香港、台湾&bgp"
 
 msgid "Please Make Sure Ports Available"
 msgstr "请确保端口可用"
