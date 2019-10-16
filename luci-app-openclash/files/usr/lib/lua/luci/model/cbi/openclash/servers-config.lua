@@ -7,6 +7,11 @@ local sys = require "luci.sys"
 local sid = arg[1]
 local uuid = luci.sys.exec("cat /proc/sys/kernel/random/uuid")
 
+font_red = [[<font color="red">]]
+font_off = [[</font>]]
+bold_on  = [[<strong>]]
+bold_off = [[</strong>]]
+
 local encrypt_methods_ss = {
 
 	-- stream
@@ -196,7 +201,7 @@ o:depends("type", "socks5")
 o:depends("type", "http")
 
 o = s:option(DynamicList, "groups", translate("Proxy Group"))
-o.description = translate("No Need Set when Config Create, The added Proxy Groups Must Exist")
+o.description = font_red..bold_on..translate("No Need Set when Config Create, The added Proxy Groups Must Exist")..bold_off..font_off
 o.rmempty = true
 m.uci:foreach("openclash", "groups",
 		function(s)

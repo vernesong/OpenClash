@@ -597,8 +597,8 @@ msgstr "负载均衡（Load-Balance）"
 msgid "Other Group"
 msgstr "包含其他策略组（请勿重复添加）"
 
-msgid "The added Proxy Groups Must Exist"
-msgstr "注意：修改配置文件前添加的策略组必须已创建"
+msgid "The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT'"
+msgstr "注意：除'DIRECT'和'REJECT'外，修改配置文件前添加的其他策略组必须已创建"
 
 msgid "Proxy Group"
 msgstr "添加到策略组（请勿重复添加）"

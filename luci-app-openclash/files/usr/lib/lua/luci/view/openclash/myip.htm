@@ -222,9 +222,8 @@
             },
             getWebrtcIP: () => {
                 window.RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
-                        let pc = new RTCPeerConnection({ iceServers: [] }),
+                let pc = new RTCPeerConnection({ iceServers: [] }),
                 noop = () => { };
-
                 pc.createDataChannel('');
                 pc.createOffer(pc.setLocalDescription.bind(pc), noop);
                 pc.onicecandidate = (ice) => {
