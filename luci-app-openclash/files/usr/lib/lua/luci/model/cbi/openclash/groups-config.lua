@@ -6,6 +6,10 @@ local fs = require "nixio.fs"
 local sys = require "luci.sys"
 local sid = arg[1]
 
+font_red = [[<font color="red">]]
+font_off = [[</font>]]
+bold_on  = [[<strong>]]
+bold_off = [[</strong>]]
 
 m = Map(openclash, translate("Edit Group"))
 m.pageaction = false
@@ -46,7 +50,7 @@ o:depends("type", "fallback")
 o:depends("type", "load-balance")
 
 o = s:option(DynamicList, "other_group", translate("Other Group"))
-o.description = translate("The added Proxy Groups Must Exist")
+o.description = font_red..bold_on..translate("The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT'")..bold_off..font_off
 uci:foreach("openclash", "groups",
 		function(s)
 		  if s.name ~= "" and s.name ~= nil and s.name ~= m.uci:get(openclash, sid, "name") then
