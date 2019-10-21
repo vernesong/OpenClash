@@ -307,8 +307,8 @@ msgstr "管理页面登录密钥"
 msgid "Set Dashboard Secret"
 msgstr "设置您的管理页面登录密钥"
 
-msgid "Dashboard Address Example: "
-msgstr "管理页面地址示例: "
+msgid "Dashboard Address Example:"
+msgstr "管理页面地址示例:"
 
 msgid "Dashboard Port"
 msgstr "管理页面端口"
