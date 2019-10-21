@@ -65,8 +65,8 @@ if [ "$2" != 0 ]; then
        elif [ "$2" = "ConnersHua" ]; then
             sed -i '/^Rule:/,$d' "$4"
             cat /etc/openclash/ConnersHua.yaml >> "$4"
-            sed -i -e "s/,ForeignMedia/,${GlobalTV}#d/g" -e "/Rule:/a\##GlobalTV:${GlobalTV}"\
-            -e "s/,DomesticMedia/,${AsianTV}#d/g" -e "/Rule:/a\##AsianTV:${AsianTV}"\
+            sed -i -e "s/,GlobalMedia/,${GlobalTV}#d/g" -e "/Rule:/a\##GlobalTV:${GlobalTV}"\
+            -e "s/,HKMTMedia/,${AsianTV}#d/g" -e "/Rule:/a\##AsianTV:${AsianTV}"\
             -e "s/,PROXY/,${Proxy}#d/g" -e "/Rule:/a\##Proxy:${Proxy}"\
             -e "s/,Apple/,${Apple}#d/g" -e "/Rule:/a\##Apple:${Apple}"\
             -e "s/,Hijacking/,${AdBlock}#d/g" -e "/Rule:/a\##AdBlock:${AdBlock}"\
