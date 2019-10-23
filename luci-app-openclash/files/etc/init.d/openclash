@@ -176,9 +176,9 @@ yml_dns_check()
    fi
   
    if [ ! -z "$(grep "^ \{0,\}listen:" "$CONFIG_FILE")" ]; then
-      sed -i "/^ \{0,\}listen:/c\  listen: 0.0.0.0:${dns_port}" "$CONFIG_FILE" 2>/dev/null
+      sed -i "/^ \{0,\}listen:/c\  listen: 127.0.0.1:${dns_port}" "$CONFIG_FILE" 2>/dev/null
    else
-      sed -i "/^dns:/a\  listen: 0.0.0.0:${dns_port}" "$CONFIG_FILE" 2>/dev/null
+      sed -i "/^dns:/a\  listen: 127.0.0.1:${dns_port}" "$CONFIG_FILE" 2>/dev/null
    fi
    
    uci set openclash.config.dns_port="$dns_port" && uci commit openclash
