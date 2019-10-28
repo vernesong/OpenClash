@@ -1,5 +1,6 @@
 #!/bin/sh
 CLASH="/etc/openclash/clash"
+CLASH_CONFIG="/etc/openclash"
 LOG_FILE="/tmp/openclash.log"
 enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
 dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
