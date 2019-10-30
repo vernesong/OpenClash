@@ -43,24 +43,34 @@ del_cron()
 }
 
 change_dns() {
-   [ "$1" -ne "0" ] && {
+   if [ "$1" -ne "0" ]; then
       uci del dhcp.@dnsmasq[-1].server >/dev/null 2>&1
       uci add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
       uci delete dhcp.@dnsmasq[0].resolvfile
       uci set dhcp.@dnsmasq[0].noresolv=1
-   }
-   [ "$2" -eq "1" ] && {
+      uci set openclash.config.redirect_dns=1
+   else
+      uci delete openclash.config.redirect_dns
+   fi
+   if [ "$2" -eq "1" ]; then
       uci set dhcp.@dnsmasq[0].cachesize=0
-   }
+      uci set openclash.config.masq_cache=1
+   else
+      uci delete openclash.config.masq_cache
+   fi
    uci commit dhcp
+   uci commit openclash
 }
 
 revert_dns() {
-   dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
-   uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port" >/dev/null 2>&1
-   uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
-   uci set dhcp.@dnsmasq[0].noresolv=0
-   uci delete dhcp.@dnsmasq[0].cachesize
+   uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$3" >/dev/null 2>&1
+   [ "$1" = "1" ] && {
+      uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
+      uci set dhcp.@dnsmasq[0].noresolv=0
+   }
+   [ "$2" = "1" ] && {
+      uci delete dhcp.@dnsmasq[0].cachesize
+   }
    uci commit dhcp
    rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
 }
@@ -381,11 +391,12 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     http_port=$(uci get openclash.config.http_port 2>/dev/null)
     socks_port=$(uci get openclash.config.socks_port 2>/dev/null)
     enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
-    lan_ip=$(uci get network.lan.ipaddr 2>/dev/null)
+    lan_ip=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null)
     direct_dns=$(uci get openclash.config.direct_dns 2>/dev/null)
     disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
     log_level=$(uci get openclash.config.log_level 2>/dev/null)
     proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
+    intranet_allowed=$(uci get openclash.config.intranet_allowed 2>/dev/null)
     echo "第二步: 配置文件检查..." >$START_LOG
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKUP_FILE" "$START_BACKUP"
     grep "^ \{0,\}Proxy:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Proxy Group:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Rule:" $CONFIG_FILE >/dev/null 2>&1
@@ -403,7 +414,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        yml_auth_custom "$CONFIG_FILE"
        yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE"
        yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
-       sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" &
+       sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" &
        sh /usr/share/openclash/yml_rules_change.sh "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" &
        wait
        cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_FILE" "$RULE_FILE" >$CONFIG_FILE 2>/dev/null
@@ -585,7 +596,10 @@ stop()
     kill -9 "$(pidof clash|sed 's/$//g')" 2>/dev/null
     
     echo "第四步: 重启 Dnsmasq 程序..." >$START_LOG
-    revert_dns
+    dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
+    redirect_dns=$(uci get openclash.config.redirect_dns 2>/dev/null)
+    masq_cache=$(uci get openclash.config.masq_cache 2>/dev/null)
+    revert_dns "$redirect_dns" "$masq_cache" "$dns_port"
     /etc/init.d/dnsmasq restart >/dev/null 2>&1
 
     echo "第五步：删除 OpenClash 残留文件..." >$START_LOG

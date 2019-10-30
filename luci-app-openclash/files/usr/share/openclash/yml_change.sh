@@ -76,11 +76,19 @@
        fi
     fi
     
-    if [ -z "$(grep '^external-controller: $11:$5' "$7")" ]; then
+    if [ "$14" -ne 1 ]; then
+       controller_address="0.0.0.0"
+       bind_address="*"
+    else
+       controller_address="$11"
+       bind_address="$11"
+    fi
+    
+    if [ -z "$(grep '^external-controller: $controller_address:$5' "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}external-controller:" "$7")" ]; then
-          sed -i "/^ \{0,\}external-controller:/c\external-controller: ${11}:${5}" "$7"
+          sed -i "/^ \{0,\}external-controller:/c\external-controller: ${controller_address}:${5}" "$7"
        else
-          sed -i "/^dns:/i\external-controller: ${11}:${5}" "$7"
+          sed -i "/^dns:/i\external-controller: ${controller_address}:${5}" "$7"
        fi
     fi
     
@@ -109,7 +117,7 @@
     fi
     
     sed -i '/bind-address:/d' "$7" 2>/dev/null
-    sed -i "/^allow-lan:/a\bind-address: \"${11}\"" "$7"
+    sed -i "/^allow-lan:/a\bind-address: \"${bind_address}\"" "$7"
     
     if [ -z "$(grep '^external-ui: "/usr/share/openclash/dashboard"' "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}external-ui:" "$7")" ]; then
