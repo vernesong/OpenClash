@@ -13,12 +13,12 @@ do
    
 if [ "$enable" -eq 1 ]; then
 	if ! pidof clash >/dev/null; then
-	   echo "${LOGTIME} Watchdog: OpenClash Problem, Restart " >>$LOG_FILE
+	   echo "${LOGTIME} Watchdog: Clash Core Problem, Restart." >>$LOG_FILE
 	   nohup $CLASH -d "$CLASH_CONFIG" >> $LOG_FILE 2>&1 &
   fi
 fi
+
 ## Log File Size Manage:
-    
     LOGSIZE=`ls -l /tmp/openclash.log |awk '{print int($5/1024)}'`
     if [ "$LOGSIZE" -gt 90 ]; then 
        echo "$LOGTIME Watchdog: Size Limit, Clean Up All Log Records." >$LOG_FILE
@@ -30,7 +30,7 @@ fi
    if [ "$last_line" -ne "$op_line" ]; then
       iptables -t nat -D PREROUTING -p tcp -j openclash
       iptables -t nat -A PREROUTING -p tcp -j openclash
-      echo "$LOGTIME Watchdog: Restart For Enable Firewall Redirect." >>$LOG_FILE
+      echo "$LOGTIME Watchdog: Reset Firewall For Enabling Redirect." >>$LOG_FILE
    fi
    
 ## DNS转发劫持

@@ -67,6 +67,12 @@ o:value("debug", translate("Debug Mode"))
 o:value("silent", translate("Silent Mode"))
 o.default = "silent"
 
+o = s:taboption("settings", ListValue, "intranet_allowed", translate("Only intranet allowed"))
+o.description = translate("When enabled, the control panel and the connection broker port will not be accessible from the public network")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default = 0
+
 o = s:taboption("settings", Value, "proxy_port")
 o.title = translate("Redir Port")
 o.default = 7892
@@ -348,7 +354,7 @@ o.write = function()
 end
 
 ---- Dashboard Settings
-local lan_ip=SYS.exec("uci get network.lan.ipaddr 2>/dev/null |tr -d '\n'")
+local lan_ip=SYS.exec("uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
 o = s:taboption("dashboard", Value, "cn_port")
 o.title = translate("Dashboard Port")
 o.default = 9090

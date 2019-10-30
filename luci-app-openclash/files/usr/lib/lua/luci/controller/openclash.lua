@@ -122,7 +122,7 @@ local function ConnersHua_return()
 end
 
 local function daip()
-	return luci.sys.exec("uci get network.lan.ipaddr 2>/dev/null |tr -d '\n'")
+	return luci.sys.exec("uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
 end
 
 local function dase()
