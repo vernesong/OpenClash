@@ -23,16 +23,27 @@ echo "开始更新策略组配置..." >$START_LOG
 	echo "" >$START_LOG
 	exit 0
 }
+
 awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
-#删除旧配置
+
 echo "正在删除旧节点..." >$START_LOG
 if [ "$servers_update" -ne "1" ] || [ "$servers_if_update" != "1" ] || [ -z "$(grep "config groups" "$CFG_FILE")" ]; then
-   while ( [ ! -z "$(grep "config groups" "$CFG_FILE")" ] || [ ! -z "$(grep "config servers" "$CFG_FILE")" ] )
+#删除策略组
+   while [[ ! -z "$(grep "config groups" "$CFG_FILE")" ]]
    do
       uci delete openclash.@groups[0] 2>/dev/null
-      uci delete openclash.@servers[0] 2>/dev/null
       uci commit openclash
    done
+#删除启用节点
+   server_num=$(grep "config servers" "$CFG_FILE" |wc -l)
+   for ((i=$server_num;i>=0;i--))
+	 do
+	    echo $(uci get openclash.@servers["$i"].enabled)
+	    if [ "$(uci get openclash.@servers["$i"].enabled)" = "1" ]; then
+	       uci delete openclash.@servers["$i"] 2>/dev/null
+	       uci commit openclash
+	    fi
+	 done
 else
    /usr/share/openclash/yml_proxys_get.sh
    exit 0
