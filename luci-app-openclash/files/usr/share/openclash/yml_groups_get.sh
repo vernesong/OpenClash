@@ -26,8 +26,8 @@ echo "开始更新策略组配置..." >$START_LOG
 
 awk '/Proxy Group:/,/Rule:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
 
-echo "正在删除旧节点..." >$START_LOG
 if [ "$servers_update" -ne "1" ] || [ "$servers_if_update" != "1" ] || [ -z "$(grep "config groups" "$CFG_FILE")" ]; then
+echo "正在删除旧配置..." >$START_LOG
 #删除策略组
    while [[ ! -z "$(grep "config groups" "$CFG_FILE")" ]]
    do
