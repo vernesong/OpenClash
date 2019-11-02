@@ -180,13 +180,13 @@ cat >> "$SERVER_FILE" <<-EOF
   port: $port
   psk: $psk
 EOF
-  if [ ! -z "$obfs_snell" ] && [ ! -z "$host" ]; then
+   if [ "$obfs_snell" != "none" ] && [ ! -z "$host" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   obfs-opts:
     mode: $obfs_snell
     $host
 EOF
-  fi
+   fi
    fi
 
 }
