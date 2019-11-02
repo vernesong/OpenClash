@@ -79,7 +79,7 @@ o.rmempty = false
 o:depends("type", "ss")
 
 o = s:option(Value, "psk", translate("Psk"))
-o.rmempty = true
+o.rmempty = false
 o:depends("type", "snell")
 
 o = s:option(ListValue, "cipher", translate("Encrypt Method"))
