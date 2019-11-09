@@ -162,7 +162,7 @@ o.inputstyle = "apply"
 o.write = function()
   m.uci:set("openclash", "config", "enable", 0)
   m.uci:commit("openclash")
-  luci.sys.call("sh /usr/share/openclash/yml_groups_get.sh 2>/dev/null &")
+  luci.sys.call("/usr/share/openclash/yml_groups_get.sh 2>/dev/null &")
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end
 
