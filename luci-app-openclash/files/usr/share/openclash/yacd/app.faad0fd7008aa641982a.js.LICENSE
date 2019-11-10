@@ -1,4 +1,4 @@
-/** @license React v0.15.0
+/** @license React v0.0.0-experimental-f6b8d31a7
  * scheduler.production.min.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
@@ -46,7 +46,7 @@ object-assign
  * http://api.jqueryui.com/category/ui-core/
  */
 
-/** @license React v16.9.0
+/** @license React v16.11.0
  * react-is.production.min.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
