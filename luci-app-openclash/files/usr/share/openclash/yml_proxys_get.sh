@@ -1,6 +1,8 @@
 #!/bin/bash /etc/rc.common
-status=$(ps|grep -c /usr/share/openclash/yml_proxys_get.sh)
-[ "$status" -gt "3" ] && exit 0
+
+#禁止多个实例
+exec 9>"/tmp/${1##*/}.lock"
+flock -x -n 9 || exit 0
 
 START_LOG="/tmp/openclash_start.log"
 
@@ -317,10 +319,12 @@ uci set openclash.config.servers_if_update=0
 uci commit openclash
 /usr/share/openclash/cfg_servers_address_fake_block.sh
 echo "配置文件读取完成！" >$START_LOG
-sleep 3
+sleep 3 9>&-
 echo "" >$START_LOG
 rm -rf /tmp/servers.yaml 2>/dev/null
 rm -rf /tmp/yaml_proxy.yaml 2>/dev/null
 rm -rf /tmp/group_*.yaml 2>/dev/null
 rm -rf /tmp/yaml_group.yaml 2>/dev/null
 rm -rf /tmp/match_servers.list 2>/dev/null
+
+flock -u 9

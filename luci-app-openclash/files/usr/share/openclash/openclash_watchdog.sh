@@ -1,4 +1,9 @@
 #!/bin/sh
+
+#禁止多个实例
+exec 9>"/tmp/${0##*/}.lock"
+flock -x -n 9 || exit 0
+
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 LOG_FILE="/tmp/openclash.log"
@@ -14,7 +19,11 @@ do
 if [ "$enable" -eq 1 ]; then
 	if ! pidof clash >/dev/null; then
 	   echo "${LOGTIME} Watchdog: Clash Core Problem, Restart." >>$LOG_FILE
-	   nohup $CLASH -d "$CLASH_CONFIG" >> $LOG_FILE 2>&1 &
+      (
+         #禁止多个实例
+         flock -x -n 9 || exit 0
+         exec $CLASH -d "$CLASH_CONFIG" >> $LOG_FILE 2>&1
+      ) 9>"/tmp/${CLASH##*/}.lock" &
   fi
 fi
 
@@ -45,9 +54,11 @@ fi
          	uci set dhcp.@dnsmasq[0].cachesize=0
          }
          uci commit dhcp
-         /etc/init.d/dnsmasq restart >/dev/null 2>&1
+         /etc/init.d/dnsmasq restart >/dev/null 2>&1 9>&-
       fi
    fi
 
-   sleep 60
+   sleep 60 9>&-
 done 2>/dev/null
+
+flock -u 9

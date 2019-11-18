@@ -1,6 +1,8 @@
 #!/bin/sh /etc/rc.common
-status=$(ps|grep -c /usr/share/openclash/yml_groups_set.sh)
-[ "$status" -gt "3" ] && exit 0
+
+#禁止多个实例
+exec 9>"/tmp/${1##*/}.lock"
+flock -x -n 9 || exit 0
 
 START_LOG="/tmp/openclash_start.log"
 GROUP_FILE="/tmp/yaml_groups.yaml"
@@ -96,11 +98,11 @@ yml_groups_set()
 create_config=$(uci get openclash.config.create_config 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ]; then
-   /usr/share/openclash/yml_groups_name_get.sh
+   ( /usr/share/openclash/yml_groups_name_get.sh ) 9>&-
    if [ -z "$(grep "^ \{0,\}Proxy:" /etc/openclash/config.yaml)" ] || [ -z "$(grep "^ \{0,\}Rule:" /etc/openclash/config.yaml)" ]; then
       echo "配置文件信息读取失败，无法进行修改，请选择一键创建配置文件..." >$START_LOG
       uci commit openclash
-      sleep 5
+      sleep 5 9>&-
       echo "" >$START_LOG
       exit 0
    else
@@ -112,4 +114,6 @@ if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ]; then
       echo "配置文件策略组写入完成！" >$START_LOG
    fi
 fi
-/usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1
+/usr/share/openclash/yml_proxys_set.sh >/dev/null 2>&1 9>&-
+
+flock -u 9

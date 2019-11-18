@@ -33,9 +33,13 @@ cfg_groups_set()
 }
 
 start(){
-status=$(ps|grep -c /usr/share/openclash/yml_groups_name_ch.sh)
-[ "$status" -gt "3" ] && exit 0
+   (
+      #禁止多个实例
+      flock -x -n 9 || exit 0
 
-   config_load "openclash"
-   config_foreach cfg_groups_set "groups"
+      config_load "openclash"
+      config_foreach cfg_groups_set "groups"
+      
+      flock -u 9
+   ) 9>"/tmp/${1##*/}.lock"
 }

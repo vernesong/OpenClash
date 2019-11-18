@@ -1,6 +1,8 @@
 #!/bin/bash
-status=$(ps|grep -c /usr/share/openclash/yml_groups_get.sh)
-[ "$status" -gt "3" ] && exit 0
+
+#禁止多个实例
+exec 9>"/tmp/${0##*/}.lock"
+flock -x -n 9 || exit 0
 
 START_LOG="/tmp/openclash_start.log"
 CFG_FILE="/etc/config/openclash"
@@ -19,7 +21,7 @@ echo "开始更新策略组配置..." >$START_LOG
 [ ! -z "$(grep "读取错误" /tmp/Proxy_Group)"] && {
 	echo "读取错误，配置文件异常！" >$START_LOG
 	uci commit openclash
-	sleep 5
+	sleep 5 9>&-
 	echo "" >$START_LOG
 	exit 0
 }
@@ -45,7 +47,7 @@ echo "正在删除旧配置..." >$START_LOG
 	    fi
 	 done
 else
-   /usr/share/openclash/yml_proxys_get.sh
+   /usr/share/openclash/yml_proxys_get.sh 9>&-
    exit 0
 fi
 
@@ -143,4 +145,6 @@ do
 done
 
 uci commit openclash
-/usr/share/openclash/yml_proxys_get.sh
+/usr/share/openclash/yml_proxys_get.sh 9>&-
+
+flock -u 9

@@ -1,6 +1,8 @@
 #!/bin/bash
-status=$(ps|grep -c /usr/share/openclash/openclash.sh)
-[ "$status" -gt "3" ] && exit 0
+
+#禁止多个实例
+exec 9>"/tmp/${0##*/}.lock"
+flock -x -n 9 || exit 0
 
 START_LOG="/tmp/openclash_start.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
@@ -15,20 +17,21 @@ servers_update_keyword=$(uci get openclash.config.servers_update_keyword 2>/dev/
 dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
 enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
 disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
-      
+WATCHDOG="/usr/share/openclash/openclash_watchdog.sh"
+
 config_download()
 {
 if [ "$URL_TYPE" == "v2rayn" ]; then
    echo "开始下载V2rayN配置文件..." >$START_LOG
    subscribe_url=`echo $subscribe_url |sed 's/{/%7B/g;s/}/%7D/g;s/:/%3A/g;s/\"/%22/g;s/,/%2C/g;s/?/%3F/g;s/=/%3D/g;s/&/%26/g;s/\//%2F/g'`
-   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 https://tgbot.lbyczf.com/v2rayn2clash?url="$subscribe_url" -O /tmp/config.yaml
+   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 https://tgbot.lbyczf.com/v2rayn2clash?url="$subscribe_url" -O /tmp/config.yaml 9>&-
 elif [ "$URL_TYPE" == "surge" ]; then
    echo "开始下载Surge配置文件..." >$START_LOG
    subscribe_url=`echo $subscribe_url |sed 's/{/%7B/g;s/}/%7D/g;s/:/%3A/g;s/\"/%22/g;s/,/%2C/g;s/?/%3F/g;s/=/%3D/g;s/&/%26/g;s/\//%2F/g'`
-   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 https://tgbot.lbyczf.com/surge2clash?url="$subscribe_url" -O /tmp/config.yaml
+   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 https://tgbot.lbyczf.com/surge2clash?url="$subscribe_url" -O /tmp/config.yaml 9>&-
 else
    echo "开始下载Clash配置文件..." >$START_LOG
-   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 "$subscribe_url" -O /tmp/config.yaml
+   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 "$subscribe_url" -O /tmp/config.yaml 9>&-
 fi
 }
 
@@ -39,14 +42,14 @@ config_cus_up()
 	   echo "${LOGTIME} Config Update Successful" >>$LOG_FILE
 	   uci set openclash.config.servers_if_update=1
 	   uci commit openclash
-	   /usr/share/openclash/yml_groups_get.sh
+	   /usr/share/openclash/yml_groups_get.sh 9>&-
 	   uci set openclash.config.servers_if_update=1
 	   uci commit openclash
-	   /usr/share/openclash/yml_groups_set.sh
+	   /usr/share/openclash/yml_groups_set.sh 9>&-
 	else
 	   echo "配置文件替换成功，开始启动 OpenClash ..." >$START_LOG
      echo "${LOGTIME} Config Update Successful" >>$LOG_FILE
-     /etc/init.d/openclash restart 2>/dev/null
+     /etc/init.d/openclash restart 2>/dev/null 9>&-
   fi
 }
 
@@ -65,7 +68,7 @@ config_su_check()
             rm -rf /tmp/config.yaml
             change_dns
             echo "${LOGTIME} Updated Config No Change, Do Nothing" >>$LOG_FILE
-            sleep 5
+            sleep 5 9>&-
             echo "" >$START_LOG
          fi
    else
@@ -81,7 +84,7 @@ config_error()
    echo "配置文件下载失败，请检查网络或稍后再试！" >$START_LOG
    echo "${LOGTIME} Config Update Error" >>$LOG_FILE
    rm -rf /tmp/config.yaml 2>/dev/null
-   sleep 5
+   sleep 5 9>&-
    echo "" >$START_LOG
 }
 
@@ -97,9 +100,9 @@ change_dns()
             uci set dhcp.@dnsmasq[0].cachesize=0
          }
          uci commit dhcp
-         /etc/init.d/dnsmasq restart >/dev/null 2>&1
+         /etc/init.d/dnsmasq restart >/dev/null 2>&1 9>&-
       fi
-      nohup /usr/share/openclash/openclash_watchdog.sh &
+      nohup /usr/share/openclash/openclash_watchdog.sh 9>&- &
    fi
 }
 
@@ -111,18 +114,15 @@ else
    if pidof clash >/dev/null; then
       echo "配置文件下载失败，尝试不使用代理下载配置文件..." >$START_LOG
       
-      watchdog_pids=$(ps |grep openclash_watchdog.sh |grep -v grep |awk '{print $1}' 2>/dev/null)
-      for watchdog_pid in $watchdog_pids; do
-         kill -9 "$watchdog_pid" >/dev/null 2>&1
-      done
+      fuser -s -k "/tmp/${WATCHDOG##*/}.lock" 2>/dev/null
 
       uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port" >/dev/null 2>&1
       uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
       uci set dhcp.@dnsmasq[0].noresolv=0
       uci delete dhcp.@dnsmasq[0].cachesize
       uci commit dhcp
-      /etc/init.d/dnsmasq restart >/dev/null 2>&1
-      sleep 3
+      /etc/init.d/dnsmasq restart >/dev/null 2>&1 9>&-
+      sleep 3 9>&-
       
       config_download
       
@@ -136,3 +136,5 @@ else
       config_error
    fi
 fi
+
+flock -u 9

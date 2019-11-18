@@ -38,7 +38,7 @@ local function is_web()
 end
 
 local function is_watchdog()
-	return luci.sys.exec("ps |grep openclash_watchdog.sh |grep -v grep 2>/dev/null |sed -n 1p")
+	return luci.sys.exec("fuser '/tmp/openclash_watchdog.sh.lock' 2>/dev/null")
 end
 
 local function config_check()
@@ -205,7 +205,7 @@ end
 function action_status()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-	  clash = is_running(),
+	  	clash = is_running(),
 		watchdog = is_watchdog(),
 		daip = daip(),
 		dase = dase(),

@@ -1,6 +1,8 @@
 #!/bin/sh /etc/rc.common
-status=$(ps|grep -c /usr/share/openclash/yml_proxys_set.sh)
-[ "$status" -gt "3" ] && exit 0
+
+#禁止多个实例
+exec 9>"/tmp/${1##*/}.lock"
+flock -x -n 9 || exit 0
 
 START_LOG="/tmp/openclash_start.log"
 SERVER_FILE="/tmp/yaml_servers.yaml"
@@ -390,4 +392,6 @@ rm -rf /tmp/yaml_groups.yaml 2>/dev/null
 uci set openclash.config.enable=1 2>/dev/null
 uci set openclash.config.servers_if_update=0
 uci commit openclash
-/etc/init.d/openclash restart >/dev/null 2>&1
+/etc/init.d/openclash restart >/dev/null 2>&1 9>&-
+
+flock -u 9
