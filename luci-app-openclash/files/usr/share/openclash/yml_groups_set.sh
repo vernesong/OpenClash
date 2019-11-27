@@ -75,7 +75,7 @@ yml_groups_set()
    echo "  proxies:" >>$GROUP_FILE
    
    #名字变化时处理规则部分
-   if [ "$name" != "$old_name" ]; then
+   if [ "$name" != "$old_name" ] && [ ! -z "$old_name" ]; then
       sed -i "s/,${old_name}/,${name}#d/g" $CONFIG_FILE 2>/dev/null
       sed -i "s/:${old_name}$/:${name}#d/g" $CONFIG_FILE 2>/dev/null #修改第三方规则分组对应标签
       sed -i "s/\'${old_name}\'/\'${name}\'/g" $CFG_FILE 2>/dev/null
