@@ -113,7 +113,7 @@ yml_servers_set()
    fi
 
    if [ "$type" = "ss" ] && [ "$obfs" = "none" ]; then
-      echo "- { name: \"$name\", type: $type, server: $server, port: $port, cipher: $cipher, password: "$password"$udp }" >>$SERVER_FILE
+      echo "- { name: \"$name\", type: $type, server: $server, port: $port, cipher: $cipher, password: \"$password\"$udp }" >>$SERVER_FILE
    elif [ "$type" = "ss" ] && [ "$obfs" != "none" ]; then
 cat >> "$SERVER_FILE" <<-EOF
 - name: "$name"
