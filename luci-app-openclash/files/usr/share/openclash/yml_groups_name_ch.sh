@@ -13,6 +13,15 @@ cfg_groups_set()
       return
    fi
    
+   if [ -z "$old_name_cfg" ]; then
+      uci set openclash."$section".old_name_cfg="$name"
+      uci commit openclash
+   fi
+   
+   if [ -z "$old_name" ]; then
+      uci set openclash."$section".old_name="$name"
+      uci commit openclash
+   fi
    
    #名字变化时处理配置文件
    if [ "$name" != "$old_name_cfg" ]; then

@@ -462,13 +462,13 @@ EOF
           iptables -t nat -A openclash -d 224.0.0.0/4 -j RETURN
           iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
           iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-          iptables -t nat -A PREROUTING -p tcp -j openclash
+          iptables -t nat -A PREROUTING -i br-lan -p tcp -j openclash
           iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
 
          if [ "$ipv6_enable" -eq 1 ]; then
             ip6tables -t nat -N openclash
             ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-            ip6tables -t nat -A PREROUTING -p tcp -j openclash
+            ip6tables -t nat -A PREROUTING -i br-lan -p tcp -j openclash
          fi
         
           echo "第八步: 重启 Dnsmasq 程序..." >$START_LOG
