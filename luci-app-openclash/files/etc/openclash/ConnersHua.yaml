@@ -6,7 +6,7 @@ Rule:
 - DOMAIN,dl.google.com,DIRECT
 - DOMAIN,mtalk.google.com,DIRECT
 
-# Internet Service Provider Hijacking 运营商劫持
+# Internet Service Providers Hijacking 运营商劫持
 - DOMAIN-SUFFIX,17gouwuba.com,Hijacking
 - DOMAIN-SUFFIX,186078.com,Hijacking
 - DOMAIN-SUFFIX,189zj.cn,Hijacking
@@ -59,6 +59,8 @@ Rule:
 - DOMAIN-SUFFIX,ishop789.com,Hijacking
 - DOMAIN-SUFFIX,jdkic.com,Hijacking
 - DOMAIN-SUFFIX,jiubuhua.com,Hijacking
+- DOMAIN-SUFFIX,jsncke.com,Hijacking
+- DOMAIN-SUFFIX,junkucm.com,Hijacking
 - DOMAIN-SUFFIX,jwg365.cn,Hijacking
 - DOMAIN-SUFFIX,kawo77.com,Hijacking
 - DOMAIN-SUFFIX,kualianyingxiao.cn,Hijacking
@@ -100,10 +102,12 @@ Rule:
 - DOMAIN-SUFFIX,tuipenguin.com,Hijacking
 - DOMAIN-SUFFIX,tuitiger.com,Hijacking
 - DOMAIN-SUFFIX,websd8.com,Hijacking
+- DOMAIN-SUFFIX,wsgblw.com,Hijacking
 - DOMAIN-SUFFIX,wx16999.com,Hijacking
+- DOMAIN-SUFFIX,xchmai.com,Hijacking
 - DOMAIN-SUFFIX,xiaohuau.xyz,Hijacking
+- DOMAIN-SUFFIX,ygyzx.cn,Hijacking
 - DOMAIN-SUFFIX,yinmong.com,Hijacking
-- DOMAIN-SUFFIX,yiqifa.com,Hijacking
 - DOMAIN-SUFFIX,yitaopt.com,Hijacking
 - DOMAIN-SUFFIX,yjqiqi.com,Hijacking
 - DOMAIN-SUFFIX,yukhj.com,Hijacking
@@ -113,17 +117,25 @@ Rule:
 - DOMAIN-SUFFIX,zunmi.cn,Hijacking
 - DOMAIN-SUFFIX,zzd6.com,Hijacking
 
-# Infamous 声名狼藉
+# Malware 恶意网站
+# > 快压
+# https://zhuanlan.zhihu.com/p/39534279
 - DOMAIN-SUFFIX,kuaizip.com,Hijacking
+# > MacKeeper
+# https://www.lizhi.io/blog/40002904
 - DOMAIN-SUFFIX,mackeeper.com,Hijacking
-# > Adobe 奥多比
+- DOMAIN-SUFFIX,zryydi.com,Hijacking
+# > Adobe Flash China Special Edition
+# https://www.zhihu.com/question/281163698/answer/441388130
 - DOMAIN-SUFFIX,flash.cn,Hijacking
 - DOMAIN,geo2.adobe.com,Hijacking
-# > CJ Marketing 思杰马克丁软件
+# > C&J Marketing 思杰马克丁软件
+# https://www.zhihu.com/question/46746200
 - DOMAIN-SUFFIX,4009997658.com,Hijacking
 - DOMAIN-SUFFIX,abbyychina.com,Hijacking
 - DOMAIN-SUFFIX,bartender.cc,Hijacking
 - DOMAIN-SUFFIX,betterzip.net,Hijacking
+- DOMAIN-SUFFIX,betterzipcn.com,Hijacking
 - DOMAIN-SUFFIX,beyondcompare.cc,Hijacking
 - DOMAIN-SUFFIX,bingdianhuanyuan.cn,Hijacking
 - DOMAIN-SUFFIX,chemdraw.com.cn,Hijacking
@@ -194,6 +206,11 @@ Rule:
 # > Pandora
 # USER-AGENT,Pandora*,GlobalMedia
 - DOMAIN-SUFFIX,pandora.com,GlobalMedia
+# > SoundCloud
+# USER-AGENT,SoundCloud*,GlobalMedia
+- DOMAIN-SUFFIX,p-cdn.us,GlobalMedia
+- DOMAIN-SUFFIX,sndcdn.com,GlobalMedia
+- DOMAIN-SUFFIX,soundcloud.com,GlobalMedia
 # > Spotify
 # USER-AGENT,Spotify*,GlobalMedia
 - DOMAIN-SUFFIX,pscdn.co,GlobalMedia
@@ -203,7 +220,7 @@ Rule:
 # > TIDAL
 # USER-AGENT,TIDAL*,GlobalMedia
 - DOMAIN-SUFFIX,tidal.com,GlobalMedia
-# > YoutubeMusic
+# > YouTubeMusic
 # USER-AGENT,com.google.ios.youtubemusic*,GlobalMedia
 # USER-AGENT,YouTubeMusic*,GlobalMedia
 # (Video)
@@ -214,8 +231,8 @@ Rule:
 # > AbemaTV
 # USER-AGENT,AbemaTV*,GlobalMedia
 - DOMAIN-SUFFIX,abema.io,GlobalMedia
-- DOMAIN-SUFFIX,abema.tv,GlobalMedia
 - DOMAIN-SUFFIX,ameba.jp,GlobalMedia
+- DOMAIN-SUFFIX,abema.tv,GlobalMedia
 - DOMAIN-SUFFIX,hayabusa.io,GlobalMedia
 - DOMAIN,abematv.akamaized.net,GlobalMedia
 - DOMAIN,ds-linear-abematv.akamaized.net,GlobalMedia
@@ -227,7 +244,6 @@ Rule:
 - DOMAIN-SUFFIX,aiv-cdn.net,GlobalMedia
 - DOMAIN-SUFFIX,aiv-delivery.net,GlobalMedia
 - DOMAIN-SUFFIX,amazonvideo.com,GlobalMedia
-- DOMAIN-SUFFIX,llnwd.net,GlobalMedia
 - DOMAIN-SUFFIX,media-amazon.com,GlobalMedia
 - DOMAIN-SUFFIX,primevideo.com,GlobalMedia
 # > Bahamut
@@ -245,35 +261,47 @@ Rule:
 # > DAZN
 # USER-AGENT,DAZN*,GlobalMedia
 - DOMAIN-SUFFIX,dazn.com,GlobalMedia
+- DOMAIN-SUFFIX,dazn-api.com,GlobalMedia
+- DOMAIN,d151l6v8er5bdm.cloudfront.net,GlobalMedia
+- DOMAIN-KEYWORD,voddazn,GlobalMedia
+# > Disney+
+# USER-AGENT,Disney+*,GlobalMedia
+- DOMAIN-SUFFIX,bamgrid.com,GlobalMedia
+- DOMAIN-SUFFIX,disney-plus.net,GlobalMedia
+- DOMAIN-SUFFIX,disneyplus.com,GlobalMedia
+- DOMAIN-SUFFIX,dssott.com,GlobalMedia
+- DOMAIN,cdn.registerdisney.go.com,GlobalMedia
 # > encoreTVB
 # USER-AGENT,encoreTVB*,GlobalMedia
 - DOMAIN-SUFFIX,encoretvb.com,GlobalMedia
 - DOMAIN,edge.api.brightcove.com,GlobalMedia
 - DOMAIN,bcbolt446c5271-a.akamaihd.net,GlobalMedia
-# > Fox+ & Fox Now
+# > FOX NOW
 # USER-AGENT,FOX%20NOW*,GlobalMedia
-# USER-AGENT,FOXPlus*,GlobalMedia
-- DOMAIN-SUFFIX,dashasiafox.akamaized.net,GlobalMedia
 - DOMAIN-SUFFIX,fox.com,GlobalMedia
 - DOMAIN-SUFFIX,foxdcg.com,GlobalMedia
-- DOMAIN-SUFFIX,foxplus.com,GlobalMedia
-- DOMAIN-SUFFIX,staticasiafox.akamaized.net,GlobalMedia
 - DOMAIN-SUFFIX,theplatform.com,GlobalMedia
 - DOMAIN-SUFFIX,uplynk.com,GlobalMedia
-# > HBO Now & HBO GO
+# > HBO NOW
 # USER-AGENT,HBO%20NOW*,GlobalMedia
-# USER-AGENT,HBO%20GO*,GlobalMedia
-# USER-AGENT,HBOAsia*,GlobalMedia
 - DOMAIN-SUFFIX,hbo.com,GlobalMedia
 - DOMAIN-SUFFIX,hbogo.com,GlobalMedia
-- DOMAIN-SUFFIX,hboasia.com,GlobalMedia
-- DOMAIN-SUFFIX,hbogo.com,GlobalMedia
+- DOMAIN-SUFFIX,hbonow.com,GlobalMedia
+# > HBO GO HKG
+# USER-AGENT,HBO%20GO%20PROD%20HKG*,GlobalMedia
+- DOMAIN-SUFFIX,hbogoasia.com,GlobalMedia
 - DOMAIN-SUFFIX,hbogoasia.hk,GlobalMedia
-- DOMAIN,44wilhpljf.execute-api.ap-southeast-1.amazonaws.com,GlobalMedia
 - DOMAIN,bcbolthboa-a.akamaihd.net,GlobalMedia
-- DOMAIN,cf-images.ap-southeast-1.prod.boltdns.net,GlobalMedia
-- DOMAIN,manifest.prod.boltdns.net,GlobalMedia
+- DOMAIN,players.brightcove.net,GlobalMedia
 - DOMAIN,s3-ap-southeast-1.amazonaws.com,GlobalMedia
+- DOMAIN,dai3fd1oh325y.cloudfront.net,GlobalMedia
+- DOMAIN,44wilhpljf.execute-api.ap-southeast-1.amazonaws.com,GlobalMedia
+- DOMAIN,hboasia1-i.akamaihd.net,GlobalMedia
+- DOMAIN,hboasia2-i.akamaihd.net,GlobalMedia
+- DOMAIN,hboasia3-i.akamaihd.net,GlobalMedia
+- DOMAIN,hboasia4-i.akamaihd.net,GlobalMedia
+- DOMAIN,hboasia5-i.akamaihd.net,GlobalMedia
+- DOMAIN,cf-images.ap-southeast-1.prod.boltdns.net,GlobalMedia
 # > 华文电视
 # USER-AGENT,HWTVMobile*,GlobalMedia
 - DOMAIN-SUFFIX,5itv.tv,GlobalMedia
@@ -308,7 +336,7 @@ Rule:
 - DOMAIN-SUFFIX,channel5.com,GlobalMedia
 - DOMAIN-SUFFIX,my5.tv,GlobalMedia
 - DOMAIN,d349g9zuie06uo.cloudfront.net,GlobalMedia
-# > myTV_SUPER
+# > myTV SUPER
 # USER-AGENT,mytv*,GlobalMedia
 - DOMAIN-SUFFIX,mytvsuper.com,GlobalMedia
 - DOMAIN-SUFFIX,tvb.com,GlobalMedia
@@ -321,6 +349,22 @@ Rule:
 - DOMAIN-SUFFIX,nflximg.net,GlobalMedia
 - DOMAIN-SUFFIX,nflxso.net,GlobalMedia
 - DOMAIN-SUFFIX,nflxvideo.net,GlobalMedia
+- DOMAIN-SUFFIX,netflixdnstest0.com,GlobalMedia
+- DOMAIN-SUFFIX,netflixdnstest1.com,GlobalMedia
+- DOMAIN-SUFFIX,netflixdnstest2.com,GlobalMedia
+- DOMAIN-SUFFIX,netflixdnstest3.com,GlobalMedia
+- DOMAIN-SUFFIX,netflixdnstest4.com,GlobalMedia
+- DOMAIN-SUFFIX,netflixdnstest5.com,GlobalMedia
+- DOMAIN-SUFFIX,netflixdnstest6.com,GlobalMedia
+- DOMAIN-SUFFIX,netflixdnstest7.com,GlobalMedia
+- DOMAIN-SUFFIX,netflixdnstest8.com,GlobalMedia
+- DOMAIN-SUFFIX,netflixdnstest9.com,GlobalMedia
+# > niconico
+# USER-AGENT,Niconico*,GlobalMedia
+- DOMAIN-SUFFIX,dmc.nico,GlobalMedia
+- DOMAIN-SUFFIX,nicovideo.jp,GlobalMedia
+- DOMAIN-SUFFIX,nimg.jp,GlobalMedia
+- DOMAIN-SUFFIX,socdm.com,GlobalMedia
 # > PBS
 # USER-AGENT,PBS*,GlobalMedia
 - DOMAIN-SUFFIX,pbs.org,GlobalMedia
@@ -336,6 +380,7 @@ Rule:
 - DOMAIN-SUFFIX,twitch.tv,GlobalMedia
 - DOMAIN-SUFFIX,twitchcdn.net,GlobalMedia
 - DOMAIN-SUFFIX,ttvnw.net,GlobalMedia
+- DOMAIN-SUFFIX,jtvnw.net,GlobalMedia
 # > ViuTV
 # USER-AGENT,Viu*,GlobalMedia
 # USER-AGENT,ViuTV*,GlobalMedia
@@ -345,7 +390,7 @@ Rule:
 - DOMAIN,d1k2us671qcoau.cloudfront.net,GlobalMedia
 - DOMAIN,d2anahhhmp1ffz.cloudfront.net,GlobalMedia
 - DOMAIN,dfp6rglgjqszk.cloudfront.net,GlobalMedia
-# > Youtube
+# > YouTube
 # USER-AGENT,com.google.ios.youtube*,GlobalMedia
 # USER-AGENT,YouTube*,GlobalMedia
 - DOMAIN-SUFFIX,googlevideo.com,GlobalMedia
@@ -647,7 +692,6 @@ Rule:
 - DOMAIN-SUFFIX,shopee.tw,PROXY
 - DOMAIN-SUFFIX,slideshare.net,PROXY
 - DOMAIN-SUFFIX,softfamous.com,PROXY
-- DOMAIN-SUFFIX,soundcloud.com,PROXY
 - DOMAIN-SUFFIX,ssrcloud.org,PROXY
 - DOMAIN-SUFFIX,startpage.com,PROXY
 - DOMAIN-SUFFIX,steamcommunity.com,PROXY
@@ -880,7 +924,6 @@ Rule:
 - DOMAIN-SUFFIX,iphone4hongkong.com,PROXY
 - DOMAIN-SUFFIX,iphonetaiwan.org,PROXY
 - DOMAIN-SUFFIX,iptvbin.com,PROXY
-- DOMAIN-SUFFIX,jtvnw.net,PROXY
 - DOMAIN-SUFFIX,linksalpha.com,PROXY
 - DOMAIN-SUFFIX,manyvids.com,PROXY
 - DOMAIN-SUFFIX,myactimes.com,PROXY
@@ -1223,6 +1266,7 @@ Rule:
 - DOMAIN-SUFFIX,aaplimg.com,Apple
 - DOMAIN-SUFFIX,apple.co,Apple
 - DOMAIN-SUFFIX,apple.com,Apple
+- DOMAIN-SUFFIX,apple-cloudkit.com,Apple
 - DOMAIN-SUFFIX,appstore.com,Apple
 - DOMAIN-SUFFIX,cdn-apple.com,Apple
 - DOMAIN-SUFFIX,crashlytics.com,Apple
@@ -1360,6 +1404,8 @@ Rule:
 - IP-CIDR,198.38.96.0/19,GlobalMedia
 - IP-CIDR,198.45.48.0/20,GlobalMedia
 
+# DNSPod Public DNS+
+- IP-CIDR,119.28.28.28/32,DIRECT
 # GeoIP China
 - GEOIP,CN,DIRECT
 
