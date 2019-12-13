@@ -25,7 +25,6 @@ local encrypt_methods_ss = {
 	"aes-128-gcm",
 	"aes-192-gcm",
 	"aes-256-gcm",
-	"chacha20",
 	"chacha20-ietf",
 	"xchacha20",
 	"chacha20-ietf-poly1305",
