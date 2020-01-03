@@ -21,7 +21,6 @@ s:tab("settings", translate("General Settings"))
 s:tab("dns", translate("DNS Setting"))
 s:tab("rules", translate("Rules Setting"))
 s:tab("dashboard", translate("Dashboard Settings"))
-s:tab("config_update", translate("Config Update"))
 s:tab("rules_update", translate("Rules Update"))
 s:tab("geo_update", translate("GEOIP Update"))
 s:tab("version_update", translate("Version Update"))
@@ -151,13 +150,13 @@ custom_fake_black.wrap = "off"
 custom_fake_black:depends("dns_advanced_setting", "1")
 
 function custom_fake_black.cfgvalue(self, section)
-	return NXFS.readfile("/etc/config/openclash_custom_fake_black.conf") or ""
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_black.conf") or ""
 end
 function custom_fake_black.write(self, section, value)
 
 	if value then
 		value = value:gsub("\r\n?", "\n")
-		NXFS.writefile("/etc/config/openclash_custom_fake_black.conf", value)
+		NXFS.writefile("/etc/openclash/custom/openclash_custom_fake_black.conf", value)
 	end
 end
 
@@ -232,58 +231,6 @@ o.description = translate("Choose Proxy Group, Base On Your Servers Group in con
    file:close()
 
 ---- update Settings
-o = s:taboption("config_update", ListValue, "auto_update", translate("Auto Update"))
-o.description = translate("Auto Update Server subscription")
-o:value("0", translate("Disable"))
-o:value("1", translate("Enable"))
-o.default=0
-
-o = s:taboption("config_update", DynamicList, "servers_update_keyword", font_red..bold_on..translate("Keyword Matching Setting")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Only Keep Servers which Matching Keywords, eg: hk or tw&bgp")..bold_off..font_off
-o.rmempty = true
-
-o = s:taboption("config_update", ListValue, "config_update_week_time", translate("Update Time (Every Week)"))
-o:value("*", translate("Every Day"))
-o:value("1", translate("Every Monday"))
-o:value("2", translate("Every Tuesday"))
-o:value("3", translate("Every Wednesday"))
-o:value("4", translate("Every Thursday"))
-o:value("5", translate("Every Friday"))
-o:value("6", translate("Every Saturday"))
-o:value("0", translate("Every Sunday"))
-o.default=1
-
-o = s:taboption("config_update", ListValue, "auto_update_time", translate("Update time (every day)"))
-for t = 0,23 do
-o:value(t, t..":00")
-end
-o.default=0
-o.rmempty = false
-
-o = s:taboption("config_update", ListValue, "config_update_url_type", translate("Update Url Type"))
-o:value("clash", translate("Clash"))
-o:value("v2rayn", translate("V2rayN"))
-o:value("surge", translate("Surge"))
-o.description = translate("Power By fndroid，Use Other Rules If V2rayN Subcription")
-o.default="clash"
-
-o = s:taboption("config_update", Value, "subscribe_url")
-o.title = translate("Subcription Url")
-o.description = translate("Server Subscription Address")
-o.rmempty = true
-
-o = s:taboption("config_update", Button, translate("Config File Update")) 
-o.title = translate("Update Subcription")
-o.inputtitle = translate("Check And Update")
-o.inputstyle = "reload"
-o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("rm -rf /etc/openclash/config.bak 2>/dev/null")
-  SYS.call("/usr/share/openclash/openclash.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
-end
-
 o = s:taboption("rules_update", ListValue, "other_rule_auto_update", translate("Auto Update"))
 o.description = font_red..bold_on..translate("Auto Update Other Rules")..bold_off..font_off
 o:value("0", translate("Disable"))
@@ -455,12 +402,12 @@ custom_rules.rows = 20
 custom_rules.wrap = "off"
 
 function custom_rules.cfgvalue(self, section)
-	return NXFS.readfile("/etc/config/openclash_custom_rules.list") or ""
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_rules.list") or ""
 end
 function custom_rules.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
-		NXFS.writefile("/etc/config/openclash_custom_rules.list", value)
+		NXFS.writefile("/etc/openclash/custom/openclash_custom_rules.list", value)
 	end
 end
 
@@ -474,12 +421,12 @@ custom_hosts.rows = 20
 custom_hosts.wrap = "off"
 
 function custom_hosts.cfgvalue(self, section)
-	return NXFS.readfile("/etc/config/openclash_custom_hosts.list") or ""
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_hosts.list") or ""
 end
 function custom_hosts.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
-		NXFS.writefile("/etc/config/openclash_custom_hosts.list", value)
+		NXFS.writefile("/etc/openclash/custom/openclash_custom_hosts.list", value)
 	end
 end
 

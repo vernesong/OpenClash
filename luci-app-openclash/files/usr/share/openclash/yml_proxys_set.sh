@@ -6,6 +6,20 @@ START_LOG="/tmp/openclash_start.log"
 SERVER_FILE="/tmp/yaml_servers.yaml"
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 config_auto_update=$(uci get openclash.config.auto_update 2>/dev/null)
+CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
+CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
+UPDATE_CONFIG_NAME=$(echo $UPDATE_CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+
+if [ -z "$CONFIG_FILE" ]; then
+	CONFIG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
+fi
+
+if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
+   CONFIG_FILE="$UPDATE_CONFIG_FILE"
+   CONFIG_NAME="$UPDATE_CONFIG_NAME"
+fi
+
 
 #写入服务器节点到配置文件
 yml_servers_set()
@@ -13,6 +27,7 @@ yml_servers_set()
 
    local section="$1"
    config_get_bool "enabled" "$section" "enabled" "1"
+   config_get "config" "$section" "config" ""
    config_get "type" "$section" "type" ""
    config_get "name" "$section" "name" ""
    config_get "server" "$section" "server" ""
@@ -35,6 +50,10 @@ yml_servers_set()
    config_get "auth_pass" "$section" "auth_pass" ""
    config_get "psk" "$section" "psk" ""
    config_get "obfs_snell" "$section" "obfs_snell" ""
+   
+   if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ]; then
+      return
+   fi
    
    if [ "$enabled" = "0" ]; then
       return
@@ -373,21 +392,24 @@ fi
 if [ "$create_config" != "0" ] && [ "$servers_if_update" != "1" ]; then
    echo "Rule:" >>$SERVER_FILE
    echo "配置文件创建完成，正在更新服务器、策略组信息..." >$START_LOG
-   cat "$SERVER_FILE" > "/etc/openclash/config.yaml" 2>/dev/null
+   cat "$SERVER_FILE" > "$CONFIG_FILE" 2>/dev/null
    /usr/share/openclash/yml_groups_get.sh >/dev/null 2>&1
 else
    echo "服务器、策略组信息修改完成，正在更新配置文件..." >$START_LOG
-   sed -i '/^ \{0,\}Proxy:/i\#change server#' "/etc/openclash/config.yaml" 2>/dev/null
-   sed -i '/^ \{0,\}Proxy:/,/^ \{0,\}Rule:/d' "/etc/openclash/config.yaml" 2>/dev/null
-   sed -i '/#change server#/r/tmp/yaml_servers.yaml' "/etc/openclash/config.yaml" 2>/dev/null
-   sed -i '/Proxy Group:/r/tmp/yaml_groups.yaml' "/etc/openclash/config.yaml" 2>/dev/null
-   sed -i '/#change server#/d' "/etc/openclash/config.yaml" 2>/dev/null
+   sed -i '/^ \{0,\}Proxy:/i\#change server#' "$CONFIG_FILE" 2>/dev/null
+   sed -i '/^ \{0,\}Proxy:/,/^ \{0,\}Rule:/d' "$CONFIG_FILE" 2>/dev/null
+   sed -i '/#change server#/r/tmp/yaml_servers.yaml' "$CONFIG_FILE" 2>/dev/null
+   sed -i '/Proxy Group:/r/tmp/yaml_groups.yaml' "$CONFIG_FILE" 2>/dev/null
+   sed -i '/#change server#/d' "$CONFIG_FILE" 2>/dev/null
 fi
 echo "配置文件写入完成！" >$START_LOG
+sleep 3
+echo "" >$START_LOG
 rm -rf $SERVER_FILE 2>/dev/null
 rm -rf /tmp/Proxy_Server 2>/dev/null
 rm -rf /tmp/yaml_groups.yaml 2>/dev/null
 uci set openclash.config.enable=1 2>/dev/null
+[ "$(uci get openclash.config.servers_if_update)" == "0" ] && /etc/init.d/openclash restart >/dev/null 2>&1
 uci set openclash.config.servers_if_update=0
 uci commit openclash
-/etc/init.d/openclash restart >/dev/null 2>&1
+

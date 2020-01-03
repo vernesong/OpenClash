@@ -7,14 +7,14 @@
     <meta http-equiv="x-dns-prefetch-control" content="on">
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="//whois.pconline.com.cn">
-    <link rel="dns-prefetch" href="//ipv4.ip.sb">
+    <link rel="dns-prefetch" href="//api-ipv4.ip.sb">
     <link rel="dns-prefetch" href="//myip.ipip.net">
     <link rel="dns-prefetch" href="//api.ipify.org">
     <link rel="dns-prefetch" href="//api.ttt.sh">
     <link rel="dns-prefetch" href="//api.skk.moe">
     <link rel="dns-prefetch" href="//d.skk.moe">
     <link rel="preconnect" href="https://whois.pconline.com.cn">
-    <link rel="preconnect" href="https://ip.sb">
+    <link rel="preconnect" href="https://api-ipv4.ip.sb">
     <link rel="preconnect" href="https://myip.ipip.net">
     <link rel="preconnect" href="https://api.ipify.org">
     <link rel="preconnect" href="https://api.ttt.sh">
@@ -309,8 +309,8 @@
                 $$.getElementById('ip-pcol-ipip').innerHTML = `${data.pro} ${data.city} ${data.region} ${pcisp[1]}`;
         };
         function getIpsbIP(data){
-                $$.getElementById('ip-ipsb').innerHTML = data.address;
-                $$.getElementById('ip-ipsb-geo').innerHTML = `${data.country} ${data.province} ${data.city} ${data.isp.name}`
+                $$.getElementById('ip-ipsb').innerHTML = data.ip;
+                IP.parseIPIpip(data.ip, 'ip-ipsb-geo');
         };
 
 	      window.onload=myip_Load();
@@ -326,7 +326,7 @@
 	         var sbip = document.getElementsByTagName('HEAD').item(0);
 	         var sbipScript= document.createElement("script");
 	         sbipScript.defer = "defer";
-	         sbipScript.src='https://ip.sb/addrinfo?callback=getIpsbIP';
+	         sbipScript.src='https://api-ipv4.ip.sb/jsonip?callback=getIpsbIP';
 	         sbip.appendChild(sbipScript);
 	         
 	         const $$ = document;
@@ -342,8 +342,8 @@
                 $$.getElementById('ip-pcol-ipip').innerHTML = `${data.pro} ${data.city} ${data.region} ${pcisp[1]}`;
 		       };
 		       function getIpsbIP(data){
-                $$.getElementById('ip-ipsb').innerHTML = data.address;
-                $$.getElementById('ip-ipsb-geo').innerHTML = `${data.country} ${data.province} ${data.city} ${data.isp.name}`
+                $$.getElementById('ip-ipsb').innerHTML = data.ip;
+                IP.parseIPIpip(data.ip, 'ip-ipsb-geo');
 		       };
 
        	   setTimeout("myip_Load()",1000*10);
@@ -351,7 +351,7 @@
 
     </script>
     <script defer="defer" src="https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP"></script>
-    <script defer="defer" src="https://ip.sb/addrinfo?callback=getIpsbIP"></script>
+    <script defer="defer" src="https://api-ipv4.ip.sb/jsonip?callback=getIpsbIP"></script>
 </body>
 
 </html>

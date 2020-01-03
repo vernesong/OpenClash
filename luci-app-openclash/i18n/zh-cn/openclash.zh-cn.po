@@ -63,13 +63,13 @@ msgid "Not Set"
 msgstr "未设置"
 
 msgid "Server Configuration"
-msgstr "配置文件"
+msgstr "配置文件管理"
 
 msgid "Server logs"
-msgstr "服务器日志"
+msgstr "运行日志"
 
 msgid "Logs"
-msgstr "服务器日志"
+msgstr "运行日志"
 
 msgid "Enable Clash"
 msgstr "启动 OpenClash"
@@ -244,26 +244,11 @@ msgid "No specify upload file."
 msgstr "未指定上传文件"
 
 msgid ""
-"Rename your config file to config.yaml before upload what would be save to /etc/openclash"
-msgstr "注意：上传之前请将配置文件重命名为 config.yaml ，文件将被保存到 /etc/openclash"
-
-msgid "Keyword Matching Setting"
-msgstr "筛选节点"
-
-msgid "Only Keep Servers which Matching Keywords, eg: hk or tw&bgp"
-msgstr "仅订阅名字与以上任意一行关键字匹配的节点，不区分大小写，条件且请用（&）表示。格式示例：香港、台湾&bgp"
+"Only Support yaml what would be save to /etc/openclash/config/"
+msgstr "注意：只支持【yaml】后缀文件，文件将被保存到 /etc/openclash/config/"
 
 msgid "Please Make Sure Ports Available"
 msgstr "请确保端口可用"
-
-msgid "Subcription Url"
-msgstr "订阅地址"
-
-msgid "Update Url Type"
-msgstr "订阅地址类型"
-
-msgid "Power By fndroid，Use Other Rules If V2rayN Subcription"
-msgstr "API提供：Fndroid，V2rayN类型的订阅可配合第三方规则使用"
 
 msgid "Update Subcription"
 msgstr "更新订阅配置"
@@ -468,8 +453,8 @@ msgid "Only For IPK Install Type Or Not Release Memory"
 msgstr ""
 "只支持通过IPK安装的版本进行更新，因为随系统编译的版本更新后不会释放旧版本的闪存空间"
 
-msgid "Severs&Groups"
-msgstr "服务器&策略组"
+msgid "Severs and Groups"
+msgstr "服务器与策略组管理"
 
 msgid "Load Config"
 msgstr "读取配置"
@@ -618,6 +603,53 @@ msgstr "清理日志"
 msgid "Refresh Log"
 msgstr "刷新日志"
 
+msgid "Config File"
+msgstr "配置文件"
 
+msgid "State"
+msgstr "状态"
 
+msgid "Update Time"
+msgstr "更新时间"
 
+msgid "File Name"
+msgstr "文件名"
+
+msgid "Switch Config"
+msgstr "切换"
+
+msgid "Size"
+msgstr "文件大小"
+
+msgid "Remove"
+msgstr "移除"
+
+msgid "(Enable or Disable Subscribe)"
+msgstr "（启用或禁用更新）"
+
+msgid "Config Alias"
+msgstr "配置文件名"
+
+msgid "(Name For Distinguishing)"
+msgstr "（用于区分，请勿重名）"
+
+msgid "Subscribe Address"
+msgstr "订阅地址"
+
+msgid "Subscribe Type"
+msgstr "订阅地址类型"
+
+msgid "(Power By fndroid)"
+msgstr "（API提供：Fndroid）"
+
+msgid "(Not Null)"
+msgstr "（空值无效）"
+
+msgid "Keyword Match"
+msgstr "筛选节点"
+
+msgid "(eg: hk or tw&bgp)"
+msgstr "（格式示例：香港、台湾&bgp）"
+
+msgid "Config File List"
+msgstr "配置文件列表"

@@ -57,6 +57,11 @@ function s.create(...)
 	end
 end
 
+o = s:option(DummyValue, "config", translate("Config File"))
+function o.cfgvalue(...)
+	return Value.cfgvalue(...) or translate("all")
+end
+
 o = s:option(DummyValue, "type", translate("Group Type"))
 function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
@@ -88,6 +93,11 @@ o.rmempty     = false
 o.default     = o.enabled
 o.cfgvalue    = function(...)
     return Flag.cfgvalue(...) or "1"
+end
+
+o = s:option(DummyValue, "config", translate("Config File"))
+function o.cfgvalue(...)
+	return Value.cfgvalue(...) or translate("None")
 end
 
 o = s:option(DummyValue, "type", translate("Type"))
