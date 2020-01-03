@@ -8,16 +8,16 @@ STOP=15
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
-CONFIG_FILE="/etc/openclash/config.yaml"
+CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
-BACKUP_FILE="/etc/openclash/config.bak"
+BACKUP_FILE="/etc/openclash/backup/$(uci get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 START_BACKUP="/tmp/config.sbak"
 CHANGE_FILE="/tmp/yaml_change.yaml"
 RULE_FILE="/tmp/yaml_rules.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
 PROXY_FILE="/tmp/yaml_proxy.yaml"
-HOSTS_FILE="/etc/config/openclash_custom_hosts.list"
+HOSTS_FILE="/etc/openclash/custom/openclash_custom_hosts.list"
 
 add_cron()
 {
@@ -362,11 +362,27 @@ start()
 status=$(ps|grep -c /etc/init.d/openclash)
 [ "$status" -gt "3" ] && exit 0
 
-if [ ! -f "$CONFIG_FILE" ] && [ "$(ls -l /etc/openclash/config.yml 2>/dev/null |awk '{print int($5/1024)}')" -gt 0 ]; then
-   mv "/etc/openclash/config.yml" "$CONFIG_FILE"
-fi
-if [ ! -f "$CONFIG_FILE" ] && [ -f "$BACKUP_FILE" ]; then
+if [ -z "$CONFIG_FILE" ]; then
+   CONFIG_NAME=$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')
+   if [ ! -z "$CONFIG_NAME" ]; then
+      uci set openclash.config.config_path="/etc/openclash/config/$CONFIG_NAME"
+      uci commit openclash
+      CONFIG_FILE="/etc/openclash/config/$CONFIG_NAME"
+   elif [ -f "/etc/openclash/config.yaml" ]; then
+      mv "/etc/openclash/config.yaml" "/etc/openclash/config/config.yaml"
+      uci set openclash.config.config_path="/etc/openclash/config/config.yaml"
+      uci commit openclash
+      CONFIG_FILE="/etc/openclash/config/config.yaml"
+   elif [ -f "/etc/openclash/config.yml" ]; then
+      mv "/etc/openclash/config.yml" "/etc/openclash/config/config.yaml"
+      uci set openclash.config.config_path="/etc/openclash/config/config.yaml"
+      uci commit openclash
+      CONFIG_FILE="/etc/openclash/config/config.yaml"
+   fi
+else
+   if [ ! -f "$CONFIG_FILE" ] && [ -f "$BACKUP_FILE" ]; then
    cp $BACKUP_FILE $CONFIG_FILE
+   fi
 fi
 
 enable=$(uci get openclash.config.enable 2>/dev/null)
@@ -401,7 +417,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKUP_FILE" "$START_BACKUP"
     grep "^ \{0,\}Proxy:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Proxy Group:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Rule:" $CONFIG_FILE >/dev/null 2>&1
     if [ "$?" -ne "0" ]; then
-       nohup $CLASH -d "$CLASH_CONFIG" >> $LOG_FILE 2>&1 &
+       nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
        echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请根据日志信息对照模板格式检查修改配置文件！" >$START_LOG
        mv $START_BACKUP $CONFIG_FILE
        stop
@@ -428,7 +444,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           echo "" >$START_LOG
        else
           echo "第五步: 启动 Clash 主程序..." >$START_LOG
-          nohup $CLASH -d "$CLASH_CONFIG" >> $LOG_FILE 2>&1 &
+          nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
 
           echo "第六步: 设置控制面板..." >$START_LOG
           ln -s /usr/share/openclash/yacd /www/openclash 2>/dev/null
@@ -444,8 +460,10 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              uci set firewall.openclash.type=script >/dev/null 2>&1
              uci set firewall.openclash.path=/var/etc/openclash.include >/dev/null 2>&1
              uci set firewall.openclash.reload=1 >/dev/null 2>&1
-             uci commit firewall >/dev/null 2>&1
           fi
+          
+#          uci set firewall.@defaults[0].forward=ACCEPT >/dev/null 2>&1
+#          uci commit firewall >/dev/null 2>&1
 
 mkdir -p /var/etc
 cat > "/var/etc/openclash.include" <<-EOF
@@ -453,6 +471,7 @@ cat > "/var/etc/openclash.include" <<-EOF
 EOF
           
           iptables -t nat -N openclash
+#          iptables -t nat -A openclash -d 198.18.0.0/16 -j RETURN
           iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
           iptables -t nat -A openclash -d 10.0.0.0/8 -j RETURN
           iptables -t nat -A openclash -d 127.0.0.0/8 -j RETURN
@@ -462,15 +481,15 @@ EOF
           iptables -t nat -A openclash -d 224.0.0.0/4 -j RETURN
           iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
           iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-          iptables -t nat -A PREROUTING -i br-lan -p tcp -j openclash
+          iptables -t nat -A zone_lan_prerouting -p tcp -j openclash
           iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
 
          if [ "$ipv6_enable" -eq 1 ]; then
             ip6tables -t nat -N openclash
             ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-            ip6tables -t nat -A PREROUTING -i br-lan -p tcp -j openclash
+            ip6tables -t nat -A zone_lan_prerouting -p tcp -j openclash
          fi
-        
+
           echo "第八步: 重启 Dnsmasq 程序..." >$START_LOG
           if [ "$(iptables -t nat -nL PREROUTING --line-number |grep dpt:53 |wc -l)" -gt 2 ]; then
              echo "发现53端口被劫持，如连接异常请将OpenClash设置为劫持53端口程序的上游DNS服务器！" >$START_LOG
@@ -502,7 +521,7 @@ EOF
                 sed -i '/^Rule:/,$d' "$CONFIG_FILE"
                 cat /etc/openclash/configrules.bak >> "$CONFIG_FILE"
                 rm -rf /etc/openclash/configrules.bak
-                nohup $CLASH -d "$CLASH_CONFIG" >> $LOG_FILE 2>&1 &
+                nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
                 sleep 3
                 if pidof clash >/dev/null; then
                    add_cron
@@ -564,9 +583,9 @@ stop()
 #ipv4
     iptables -t nat -F openclash >/dev/null 2>&1
 
-    nat_clashs=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/openclash/=' |sort -rn)
+    nat_clashs=$(iptables -nvL zone_lan_prerouting -t nat |sed 1,2d |sed -n '/openclash/=' |sort -rn)
     for nat_clash in $nat_clashs; do
-        iptables -t nat -D PREROUTING "$nat_clash" >/dev/null 2>&1
+        iptables -t nat -D zone_lan_prerouting "$nat_clash" >/dev/null 2>&1
     done
 
     iptables -t nat -X openclash >/dev/null 2>&1
@@ -579,9 +598,9 @@ stop()
 #ipv6
     ip6tables -t nat -F openclash >/dev/null 2>&1
 
-    nat6_clashs=$(ip6tables -nvL PREROUTING -t nat 2>/dev/null | sed 1,2d | sed -n '/openclash/=' |sort -r)
+    nat6_clashs=$(ip6tables -nvL zone_lan_prerouting -t nat 2>/dev/null | sed 1,2d | sed -n '/openclash/=' |sort -r)
     for nat6_clash in $nat6_clashs; do
-        ip6tables -t nat -D PREROUTING "$nat6_clash" >/dev/null 2>&1
+        ip6tables -t nat -D zone_lan_prerouting "$nat6_clash" >/dev/null 2>&1
     done
 
     ip6tables -t nat -X openclash >/dev/null 2>&1

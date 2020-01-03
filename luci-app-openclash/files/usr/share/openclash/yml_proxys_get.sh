@@ -3,24 +3,37 @@ status=$(ps|grep -c /usr/share/openclash/yml_proxys_get.sh)
 [ "$status" -gt "3" ] && exit 0
 
 START_LOG="/tmp/openclash_start.log"
+CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
+CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
+UPDATE_CONFIG_NAME=$(echo $UPDATE_CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
 
-if [ ! -f "/etc/openclash/config.yml" ] && [ ! -f "/etc/openclash/config.yaml" ]; then
-  exit 0
-elif [ ! -f "/etc/openclash/config.yaml" ] && [ "$(ls -l /etc/openclash/config.yml 2>/dev/null |awk '{print int($5/1024)}')" -gt 0 ]; then
-   mv "/etc/openclash/config.yml" "/etc/openclash/config.yaml"
+if [ -z "$CONFIG_FILE" ]; then
+	CONFIG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
+fi
+
+if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
+   CONFIG_FILE="$UPDATE_CONFIG_FILE"
+   CONFIG_NAME="$UPDATE_CONFIG_NAME"
+fi
+
+BACKUP_FILE="/etc/openclash/backup/$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)"
+
+if [ ! -s $CONFIG_FILE ] && [ ! -s $BACKUP_FILE ]; then
+   exit 0
+elif [ ! -s $CONFIG_FILE ] && [ -s $BACKUP_FILE ]; then
+   mv $BACKUP_FILE $CONFIG_FILE
 fi
 
 echo "开始更新服务器节点配置..." >$START_LOG
-awk '/^ {0,}Proxy:/,/^ {0,}Proxy Group:/{print}' /etc/openclash/config.yaml 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
+awk '/^ {0,}Proxy:/,/^ {0,}Proxy Group:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
 
-CONFIG_FILE="/etc/openclash/config.yaml"
 CFG_FILE="/etc/config/openclash"
 server_file="/tmp/yaml_proxy.yaml"
 single_server="/tmp/servers.yaml"
 match_servers="/tmp/match_servers.list"
 group_num=$(grep -c "name:" /tmp/yaml_group.yaml)
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
-servers_update_keyword=$(uci get openclash.config.servers_update_keyword 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 new_servers_group=$(uci get openclash.config.new_servers_group 2>/dev/null)
 
@@ -41,8 +54,32 @@ yml_servers_name_get()
    server_num=$(( $server_num + 1 ))
 }
 
+server_key_get()
+{
+   local section="$1"
+   config_get_bool "enabled" "$section" "enabled" "1"
+
+   if [ "$enabled" = "0" ]; then
+      return
+   fi
+   
+   config_get "name" "$section" "name" ""
+   config_get "keyword" "$section" "keyword" ""
+   
+   if [ -z "$name" ]; then
+      name="config"
+   fi
+   
+   if [ ! -z "$keyword" ] && [ "$name.yaml" == "$CONFIG_NAME" ]; then
+      config_keyword="$keyword"
+      key_section="$1"
+   fi
+
+}
+
 server_key_match()
 {
+
 	if [ "$match" = "true" ] || [ ! -z "$(echo "$1" |grep "^ \{0,\}$")" ] || [ ! -z "$(echo "$1" |grep "^\t\{0,\}$")" ]; then
 	   return
 	fi
@@ -84,10 +121,10 @@ cfg_new_servers_groups_get()
 }
 
 if [ "$servers_update" -eq "1" ] && [ "$servers_if_update" = "1" ]; then
-	echo "" >"$match_servers"
-	server_num=0
-	config_load "openclash"
-  config_foreach yml_servers_name_get "servers"
+   echo "" >"$match_servers"
+   server_num=0
+   config_load "openclash"
+   config_foreach yml_servers_name_get "servers"
 fi
 
 for n in $line
@@ -110,15 +147,19 @@ do
    #name
    server_name="$(cfg_get "name:" "$single_server")"
 
-   #节点存在时获取节点编号
+   config_load "openclash"
+   config_foreach server_key_get "config_subscribe"
+   
+#节点存在时获取节点编号
    if [ "$servers_if_update" = "1" ]; then
       server_num=$(grep -Fw "$server_name" "$match_servers" |awk -F '.' '{print $1}')
       if [ "$servers_update" -eq "1" ] && [ ! -z "$server_num" ]; then
          sed -i "/^${server_num}\./c\#match#" "$match_servers" 2>/dev/null
-      elif [ ! -z "$servers_update_keyword" ]; then #匹配关键字订阅节点
+#匹配关键字订阅节点
+      elif [ ! -z "$config_keyword" ]; then
          match="false"
-         config_load "openclash"
-         config_list_foreach "config" "servers_update_keyword" server_key_match "$server_name" 
+         config_list_foreach "$key_section" "keyword" server_key_match "$server_name"
+
          if [ "$match" = "false" ]; then
             echo "跳过【$server_name】服务器节点..." >$START_LOG
             continue
@@ -181,6 +222,7 @@ do
       uci_set="uci -q set openclash.@servers["$server_num"]."
       
       ${uci_set}manual="0"
+      ${uci_set}config="$CONFIG_NAME"
       ${uci_set}type="$server_type" 2>/dev/null
       ${uci_set}server="$server"
       ${uci_set}port="$port"
@@ -238,6 +280,7 @@ do
       else
          ${uci_set}manual="1"
       fi
+      ${uci_set}config="$CONFIG_NAME"
       ${uci_set}name="$server_name"
       ${uci_set}type="$server_type"
       ${uci_set}server="$server"
@@ -307,7 +350,7 @@ if [ "$servers_update" -eq "1" ] && [ "$servers_if_update" = "1" ]; then
         if [ -z "$line" ]; then
            continue
         fi
-        if [ "$(uci get openclash.@servers["$line"].manual)" = "0" ]; then
+        if [ "$(uci get openclash.@servers["$line"].manual)" = "0" ] && [ "$(uci get openclash.@servers["$line"].config)" = "$CONFIG_NAME" ]; then
            uci delete openclash.@servers["$line"] 2>/dev/null
         fi
      done
