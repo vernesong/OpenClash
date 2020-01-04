@@ -397,6 +397,10 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     echo "OpenClash 开始启动..." >$START_LOG
     echo "第一步: 获取配置..." >$START_LOG
     en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
+    if [ "$en_mode" = "fake-ip-tun" ]; then
+       en_mode_tun="1"
+       en_mode="fake-ip"
+    fi
     enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
     rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
     enable_custom_clash_rules=$(uci get openclash.config.enable_custom_clash_rules 2>/dev/null) 
@@ -430,7 +434,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        yml_auth_custom "$CONFIG_FILE"
        yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE"
        yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
-       sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" &
+       sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" &
        sh /usr/share/openclash/yml_rules_change.sh "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" &
        wait
        cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_FILE" "$RULE_FILE" >$CONFIG_FILE 2>/dev/null
@@ -462,16 +466,23 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              uci set firewall.openclash.reload=1 >/dev/null 2>&1
           fi
           
-#          uci set firewall.@defaults[0].forward=ACCEPT >/dev/null 2>&1
-#          uci commit firewall >/dev/null 2>&1
-
+          if [ "$en_mode_tun" = "1" ] && [ "$(uci get firewall.@defaults[0].forward)" != "ACCEPT" ]; then
+             uci set firewall.@defaults[0].forward=ACCEPT >/dev/null 2>&1
+             uci commit firewall >/dev/null 2>&1
+             /etc/init.d/firewall reload >/dev/null 2>&1
+          fi
+          
 mkdir -p /var/etc
 cat > "/var/etc/openclash.include" <<-EOF
 /etc/init.d/openclash restart
 EOF
           
           iptables -t nat -N openclash
-#          iptables -t nat -A openclash -d 198.18.0.0/16 -j RETURN
+          
+          if [ "$en_mode_tun" = "1" ]; then
+             iptables -t nat -A openclash -d 198.18.0.0/16 -j RETURN
+          fi
+          
           iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
           iptables -t nat -A openclash -d 10.0.0.0/8 -j RETURN
           iptables -t nat -A openclash -d 127.0.0.0/8 -j RETURN
@@ -482,13 +493,16 @@ EOF
           iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
           iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
           iptables -t nat -A zone_lan_prerouting -p tcp -j openclash
-          iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
-
-         if [ "$ipv6_enable" -eq 1 ]; then
-            ip6tables -t nat -N openclash
-            ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-            ip6tables -t nat -A zone_lan_prerouting -p tcp -j openclash
-         fi
+          
+          if [ "$en_mode_tun" != "1" ]; then
+             iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+          fi
+          
+          if [ "$ipv6_enable" -eq 1 ]; then
+             ip6tables -t nat -N openclash
+             ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
+             ip6tables -t nat -A zone_lan_prerouting -p tcp -j openclash
+          fi
 
           echo "第八步: 重启 Dnsmasq 程序..." >$START_LOG
           if [ "$(iptables -t nat -nL PREROUTING --line-number |grep dpt:53 |wc -l)" -gt 2 ]; then
