@@ -30,6 +30,8 @@ define Build/Prepare
 		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
 	chmod 0755 ${CURDIR}/files/etc/init.d/openclash
 	chmod -R 0755 ${CURDIR}/files/usr/share/openclash/
+	mkdir -p ${CURDIR}/files/etc/openclash/config >/dev/null 2>&1
+	mkdir -p ${CURDIR}/files/etc/openclash/backup >/dev/null 2>&1
 endef
 
 define Build/Configure
