@@ -62,9 +62,6 @@ msgstr "文件不存在"
 msgid "Not Set"
 msgstr "未设置"
 
-msgid "Server Configuration"
-msgstr "配置文件管理"
-
 msgid "Server logs"
 msgstr "运行日志"
 
@@ -226,7 +223,7 @@ msgid "Rules Setting"
 msgstr "规则设置（访问控制）"
 
 msgid "Server Config"
-msgstr "配置文件"
+msgstr "配置文件管理"
 
 msgid "Upload Config"
 msgstr "上传配置文件"
@@ -245,7 +242,7 @@ msgstr "未指定上传文件"
 
 msgid ""
 "Only Support yaml what would be save to /etc/openclash/config/"
-msgstr "注意：只支持【yaml】后缀文件，文件将被保存到 /etc/openclash/config/"
+msgstr "注意：只支持【yaml】后缀的配置文件，文件将被保存到 /etc/openclash/config/"
 
 msgid "Please Make Sure Ports Available"
 msgstr "请确保端口可用"
@@ -378,6 +375,15 @@ msgstr "必须代理的流量"
 
 msgid "Apple"
 msgstr "苹果服务流量"
+
+msgid "Netease Music"
+msgstr "网易云音乐流量"
+
+msgid "Speedtest"
+msgstr "测速流量"
+
+msgid "Telegram"
+msgstr "Telegram流量"
 
 msgid "AdBlock"
 msgstr "广告流量"

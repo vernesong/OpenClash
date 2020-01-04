@@ -8,7 +8,7 @@ local fs = require "luci.openclash"
 local uci = require("luci.model.uci").cursor()
 local CHIF = "0"
 
-ful = SimpleForm("upload", translate("Server Configuration"), nil)
+ful = SimpleForm("upload", translate("Server Config"), nil)
 ful.reset = false
 ful.submit = false
 
@@ -96,7 +96,7 @@ e[t].enable=false
 end
 end
 
-form=SimpleForm("filelist",translate("Config File List"),nil)
+form=SimpleForm("filelist")
 form.reset=false
 form.submit=false
 tb=form:section(Table,e)

@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.35.7
+PKG_VERSION:=0.35.6
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
@@ -65,6 +65,8 @@ uci set firewall.openclash.type=script >/dev/null 2>&1
 uci set firewall.openclash.path=/var/etc/openclash.include >/dev/null 2>&1
 uci set firewall.openclash.reload=1 >/dev/null 2>&1
 uci commit firewall >/dev/null 2>&1
+mkdir -p /etc/openclash/config >/dev/null 2>&1
+mkdir -p /etc/openclash/backup >/dev/null 2>&1
 if [ -f "/tmp/openclash.bak" ]; then
 	mv "/tmp/openclash.bak" "/etc/config/openclash" >/dev/null 2>&1
 	mv "/tmp/openclash_custom_rules.list.bak" "/etc/openclash/custom/openclash_custom_rules.list" >/dev/null 2>&1
@@ -76,9 +78,10 @@ if [ -f "/tmp/config.yaml" ]; then
 elif [ -f "/tmp/config.yml" ]; then
 	mv "/tmp/config.yml" "/etc/openclash/config/config.yaml" >/dev/null 2>&1
 elif [ -d "/tmp/config/" ]; then
-  mv "/tmp/config" "/etc/openclash/config"
+  rm -rf "/etc/openclash/config" >/dev/null 2>&1
+  mv "/tmp/openclash_config" "/etc/openclash/config" >/dev/null 2>&1
 fi
-mkdir -p /lib/upgrade/keep.d
+mkdir -p /lib/upgrade/keep.d >/dev/null 2>&1
 cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
 /etc/openclash/custom/
 EOF
@@ -94,6 +97,7 @@ define Package/$(PKG_NAME)/prerm
 if [ ! -f "/tmp/openclash_update.sh" ]; then
 	rm -rf /etc/openclash/clash >/dev/null 2>&1
 fi
+  mv "/etc/openclash/config" "/tmp/openclash_config" >/dev/null 2>&1
 	cp "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" >/dev/null 2>&1
@@ -105,15 +109,13 @@ endef
 
 define Package/$(PKG_NAME)/postrm
 #!/bin/sh
-if [ "$(ls -ld "/etc/openclash/config/" | awk '{print int($5)}')" -gt 0 ]; then
-	mv "/etc/openclash/config" "/tmp/config"
-fi
 if [ -f "/etc/openclash/clash" ]; then
 	rm -rf /etc/openclash/config >/dev/null 2>&1
 	rm -rf /etc/openclash/backup >/dev/null 2>&1
 else
 	rm -rf /etc/openclash >/dev/null 2>&1
 fi
+	rm -rf /lib/upgrade/keep.d/luci-app-openclash >/dev/null 2>&1
 	rm -rf /tmp/openclash.log >/dev/null 2>&1
 	rm -rf /tmp/openclash_start.log >/dev/null 2>&1
 	rm -rf /tmp/Proxy_Group >/dev/null 2>&1

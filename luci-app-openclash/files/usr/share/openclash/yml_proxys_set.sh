@@ -340,10 +340,37 @@ cat >> "$SERVER_FILE" <<-EOF
   - DIRECT
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
+- name: Speedtest
+  type: select
+  proxies:
+  - Proxy
+  - DIRECT
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
+- name: Telegram
+  type: select
+  proxies:
+  - Proxy
+  - DIRECT
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
+- name: Netease Music
+  type: select
+  proxies:
+  - DIRECT
+  - Proxy
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
 uci set openclash.config.rule_source="lhie1"
 uci set openclash.config.GlobalTV="GlobalTV"
 uci set openclash.config.AsianTV="AsianTV"
 uci set openclash.config.Proxy="Proxy"
+uci set openclash.config.Netease_Music="Netease Music"
+uci set openclash.config.Speedtest="Speedtest"
+uci set openclash.config.Telegram="Telegram"
 uci set openclash.config.Domestic="Domestic"
 uci set openclash.config.Others="Others"
 [ "$config_auto_update" -eq 1 ] && {
@@ -353,6 +380,9 @@ uci set openclash.config.Others="Others"
 	uci add_list openclash.config.new_servers_group="Proxy"
  	uci add_list openclash.config.new_servers_group="AsianTV"
 	uci add_list openclash.config.new_servers_group="GlobalTV"
+	uci add_list openclash.config.new_servers_group="Telegram"
+	uci add_list openclash.config.new_servers_group="Speedtest"
+	uci add_list openclash.config.new_servers_group="Netease Music"
 }
 elif [ "$rule_sources" = "ConnersHua_return" ] && [ "$servers_if_update" != "1" ]; then
 echo "使用ConnersHua回国规则创建中..." >$START_LOG
