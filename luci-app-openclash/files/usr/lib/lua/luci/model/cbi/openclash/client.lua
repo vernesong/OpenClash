@@ -49,7 +49,7 @@ return e==".yaml"
 end
 
 btnis=tb:option(Button,"switch",translate("Switch Config"))
-btnis.template="cbi/other_button"
+btnis.template="openclash/other_button"
 btnis.render=function(o,t,a)
 if not e[t]then return false end
 if IsYamlFile(e[t].name)then
