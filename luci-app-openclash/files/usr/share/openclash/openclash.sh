@@ -6,7 +6,6 @@ START_LOG="/tmp/openclash_start.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 LOG_FILE="/tmp/openclash.log"
 CONFIG_PATH=$(uci get openclash.config.config_path 2>/dev/null)
-en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
 enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)

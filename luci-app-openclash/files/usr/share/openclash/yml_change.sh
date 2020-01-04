@@ -99,6 +99,8 @@
           sed -i "/^dns:/i\secret: \"${4}\"" "$7"
        fi
     fi
+    
+    sed -i '/^ \{0,\}tun:/,/^ \{0,\}enable:/d' "$7" 2>/dev/null
 
     if [ -z "$(grep "^   enable: true" "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}enable:" "$7")" ]; then
@@ -143,6 +145,11 @@
              sed -i "/^ \{0,\}enable: true/a\  ipv6: false" "$7"
           fi
        fi
+    fi
+    
+    if [ "$15" -eq 1 ]; then
+       sed -i "/^dns:/i\tun:" "$7"
+       sed -i "/^dns:/i\  enable: true" "$7"
     fi
 
 #添加自定义Hosts设置

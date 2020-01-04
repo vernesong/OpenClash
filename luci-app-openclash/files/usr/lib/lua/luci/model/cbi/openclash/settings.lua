@@ -48,6 +48,7 @@ o = s:taboption("settings", ListValue, "en_mode", font_red..bold_on..translate("
 o.description = translate("Select Mode For OpenClash Work, Network Error Try Flush DNS Cache")
 o:value("redir-host", translate("redir-host"))
 o:value("fake-ip", translate("fake-ip"))
+o:value("fake-ip-tun", translate("fake-ip(tun mode)"))
 o.default = "redir-host"
 
 o = s:taboption("settings", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
