@@ -30,10 +30,12 @@ end
 local fs = require "luci.openclash"
 CONFIG_FILE=string.sub(luci.sys.exec("uci get openclash.config.config_path"), 1, -2)
 
-if CONFIG_FILE == "" then
+if CONFIG_FILE == "" or not fs.isfile(CONFIG_FILE) then
    CONFIG_FILE_FIRST=luci.sys.exec("ls -lt '/etc/openclash/config/' | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}'")
    if CONFIG_FILE_FIRST ~= "" then
       CONFIG_FILE="/etc/openclash/config/" .. string.sub(CONFIG_FILE_FIRST, 1, -2)
+   else
+      CONFIG_FILE = ""
    end
 end
 
