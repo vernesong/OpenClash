@@ -120,7 +120,7 @@ cfg_new_servers_groups_get()
    ${uci_add}groups="${1}"
 }
 
-if [ "$servers_update" -eq "1" ] && [ "$servers_if_update" = "1" ]; then
+if [ "$servers_update" -eq "1" ]; then
    echo "" >"$match_servers"
    server_num=0
    config_load "openclash"
@@ -151,12 +151,13 @@ do
    config_foreach server_key_get "config_subscribe"
    
 #节点存在时获取节点编号
-   if [ "$servers_if_update" = "1" ]; then
-      server_num=$(grep -Fw "$server_name" "$match_servers" |awk -F '.' '{print $1}')
-      if [ "$servers_update" -eq "1" ] && [ ! -z "$server_num" ]; then
-         sed -i "/^${server_num}\./c\#match#" "$match_servers" 2>/dev/null
+   server_num=$(grep -Fw "$server_name" "$match_servers" |awk -F '.' '{print $1}')
+   if [ "$servers_update" -eq "1" ] && [ ! -z "$server_num" ]; then
+      sed -i "/^${server_num}\./c\#match#" "$match_servers" 2>/dev/null
+   fi
 #匹配关键字订阅节点
-      elif [ ! -z "$config_keyword" ]; then
+   if [ "$servers_if_update" = "1" ]; then
+      if [ ! -z "$config_keyword" ]; then
          match="false"
          config_list_foreach "$key_section" "keyword" server_key_match "$server_name"
 
