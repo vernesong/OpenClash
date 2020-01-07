@@ -18,6 +18,9 @@ fi
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
    CONFIG_NAME="$UPDATE_CONFIG_NAME"
+else
+   CONFIG_FILE="/etc/openclash/config/config.yaml"
+   CONFIG_NAME="config.yaml"
 fi
 
 
