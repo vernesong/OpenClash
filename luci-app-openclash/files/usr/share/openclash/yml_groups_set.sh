@@ -18,7 +18,9 @@ fi
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
    CONFIG_NAME="$UPDATE_CONFIG_NAME"
-else
+fi
+
+if [ -z "$CONFIG_FILE" ]; then
    CONFIG_FILE="/etc/openclash/config/config.yaml"
    CONFIG_NAME="config.yaml"
 fi
@@ -51,22 +53,54 @@ set_groups()
   fi
 
 	if [ "$1" = "$3" ]; then
+	   set_group=1
 	   echo "  - \"${2}\"" >>$GROUP_FILE
 	fi
 
 }
 
+#加入其它策略组
 set_other_groups()
 {
    if [ -z "$1" ]; then
       return
    fi
-   
+   set_group=1
    echo "  - ${1}" >>$GROUP_FILE
 
 }
 
+#加入代理集
+set_proxy_provider()
+{
+	local section="$1"
+	config_get_bool "enabled" "$section" "enabled" "1"
+	config_get "config" "$section" "config" ""
+	
+	if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ]; then
+      return
+  fi
+  
+	if [ "$enabled" = "0" ]; then
+      return
+  else
+	   config_get "name" "$section" "name" ""
+	   config_list_foreach "$section" "groups" set_provider_groups "$name" "$2"
+	fi
+}
 
+set_provider_groups()
+{
+  if [ -z "$1" ]; then
+     return
+  fi
+
+	if [ "$1" = "$3" ]; then
+	   set_proxy_provider=1
+	   echo "  - ${2}" >>$GROUP_FILE
+	fi
+
+}
 #创建策略组
 yml_groups_set()
 {
@@ -99,11 +133,12 @@ yml_groups_set()
       return
    fi
    
-   echo "正在写入【$type】-【$name】策略组到配置文件..." >$START_LOG
+   echo "正在写入【$type】-【$name】策略组到配置文件【$CONFIG_NAME】..." >$START_LOG
    
    echo "- name: $name" >>$GROUP_FILE
    echo "  type: $type" >>$GROUP_FILE
-   echo "  proxies:" >>$GROUP_FILE
+   group_name="$name"
+   echo "  proxies: $group_name" >>$GROUP_FILE
    
    #名字变化时处理规则部分
    if [ "$name" != "$old_name" ] && [ ! -z "$old_name" ]; then
@@ -113,8 +148,27 @@ yml_groups_set()
       config_load "openclash"
    fi
    
+   set_group=0
+   set_proxy_provider=0
+
    config_list_foreach "$section" "other_group" set_other_groups #加入其他策略组
    config_foreach yml_servers_add "servers" "$name" #加入服务器节点
+
+   echo "  use: $group_name" >>$GROUP_FILE
+   
+   config_foreach set_proxy_provider "proxy-provider" "$group_name" #加入代理集
+
+   if [ "$set_group" -eq 1 ]; then
+      sed -i "/^ \{0,\}proxies: ${group_name}/c\  proxies:" $GROUP_FILE
+   else
+      sed -i "/proxies: ${group_name}/d" $GROUP_FILE 2>/dev/null
+   fi
+   
+   if [ "$set_proxy_provider" -eq 1 ]; then
+      sed -i "/^ \{0,\}use: ${group_name}/c\  use:" $GROUP_FILE
+   else
+      sed -i "/use: ${group_name}/d" $GROUP_FILE 2>/dev/null
+   fi
    
    [ ! -z "$test_url" ] && {
    	echo "  url: $test_url" >>$GROUP_FILE
@@ -128,19 +182,19 @@ create_config=$(uci get openclash.config.create_config 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ]; then
    /usr/share/openclash/yml_groups_name_get.sh
-   if [ -z "$(grep "^ \{0,\}Proxy:" "$CONFIG_FILE")" ] || [ -z "$(grep "^ \{0,\}Rule:" "$CONFIG_FILE")" ]; then
-      echo "配置文件信息读取失败，无法进行修改，请选择一键创建配置文件..." >$START_LOG
+   if [ ! -z "$(grep "读取错误" /tmp/Proxy_Group)"]; then
+      echo "配置文件【$CONFIG_NAME】的信息读取失败，无法进行修改，请选择一键创建配置文件..." >$START_LOG
       uci commit openclash
       sleep 5
       echo "" >$START_LOG
       exit 0
    else
-      echo "开始写入配置文件策略组信息..." >$START_LOG
+      echo "开始写入配置文件【$CONFIG_NAME】的策略组信息..." >$START_LOG
+      echo "Proxy Group:" >$GROUP_FILE
       config_load "openclash"
       config_foreach yml_groups_set "groups"
       sed -i "s/#d//g" $CONFIG_FILE 2>/dev/null
-      echo "Rule:" >>$GROUP_FILE
-      echo "配置文件策略组写入完成！" >$START_LOG
+      echo "配置文件【$CONFIG_NAME】的策略组写入完成！" >$START_LOG
    fi
 fi
 /usr/share/openclash/yml_proxys_set.sh

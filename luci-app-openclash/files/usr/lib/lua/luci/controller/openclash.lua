@@ -23,6 +23,7 @@ function index()
 	entry({"admin", "services", "openclash", "config-subscribe"},cbi("openclash/config-subscribe"),_("Config Update"), 50).leaf = true
   entry({"admin", "services", "openclash", "servers-config"},cbi("openclash/servers-config"), nil).leaf = true
   entry({"admin", "services", "openclash", "groups-config"},cbi("openclash/groups-config"), nil).leaf = true
+  entry({"admin", "services", "openclash", "proxy-provider-config"},cbi("openclash/proxy-provider-config"), nil).leaf = true
 	entry({"admin", "services", "openclash", "config"},form("openclash/config"),_("Server Config"), 60).leaf = true
 	entry({"admin", "services", "openclash", "log"},form("openclash/log"),_("Logs"), 70).leaf = true
 
@@ -55,6 +56,7 @@ local function config_check()
   local yaml = fs.isfile(CONFIG_FILE)
   local proxy,group,rule
   if yaml then
+  	 proxy_provier = luci.sys.call(string.format('egrep "^ {0,}proxy-provider:" "%s" >/dev/null 2>&1',CONFIG_FILE))
      proxy = luci.sys.call(string.format('egrep "^ {0,}Proxy:" "%s" >/dev/null 2>&1',CONFIG_FILE))
      group = luci.sys.call(string.format('egrep "^ {0,}Proxy Group:" "%s" >/dev/null 2>&1',CONFIG_FILE))
      rule = luci.sys.call(string.format('egrep "^ {0,}Rule:" "%s" >/dev/null 2>&1',CONFIG_FILE))
@@ -63,7 +65,11 @@ local function config_check()
      if (proxy == 0) then
         proxy = ""
      else
-        proxy = " - 代理服务器"
+        if (proxy_provier == 0) then
+           proxy = ""
+        else
+           proxy = " - 代理服务器"
+        end
      end
      if (group == 0) then
         group = ""

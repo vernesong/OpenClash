@@ -18,6 +18,11 @@ if [ -f "$CFG_FILE" ]; then
 	    sed -i '/^ \{0,\}\"Proxy\":/c\Proxy:' "$CFG_FILE"
 	 }
 	 
+	 [ ! -z "$(grep "^ \{0,\}'proxy-provider':" "$CFG_FILE")" ] || [ ! -z "$(grep '^ \{0,\}"proxy-provider":' "$CFG_FILE")" ] && {
+	    sed -i "/^ \{0,\}\'proxy-provider\:'/c\proxy-provider:" "$3"
+	    sed -i '/^ \{0,\}\"proxy-provider\":/c\proxy-provider:' "$3"
+	 }
+	 
 	 [ ! -z "$(grep "^ \{0,\}'Proxy Group':" "$CFG_FILE")" ] || [ ! -z "$(grep '^ \{0,\}"Proxy Group":' "$CFG_FILE")" ] && {
 	    sed -i "/^ \{0,\}\'Proxy Group\':/c\Proxy Group:" "$CFG_FILE"
 	    sed -i '/^ \{0,\}\"Proxy Group\":/c\Proxy Group:' "$CFG_FILE"
@@ -33,7 +38,15 @@ if [ -f "$CFG_FILE" ]; then
 	    sed -i '/^ \{0,\}\"dns\":/c\dns:' "$CFG_FILE"
 	 }
 	 
-   awk '/Proxy Group:/,/Rule:/{print}' "$CFG_FILE" 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed 's/\t/ /g' 2>/dev/null |grep name: |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null >/tmp/Proxy_Group 2>&1
+#判断各个区位置
+   group_len=$(sed -n '/^ \{0,\}Proxy Group:/=' "$CONFIG_FILE" 2>/dev/null)
+   provider_len=$(sed -n '/^ \{0,\}proxy-provider:/=' "$CONFIG_FILE" 2>/dev/null)
+   if [ "$provider_len" -ge "$group_len" ]; then
+       awk '/Proxy Group:/,/proxy-provider:/{print}' "$CFG_FILE" 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed 's/\t/ /g' 2>/dev/null |grep name: |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null >/tmp/Proxy_Group 2>&1
+   else
+       awk '/Proxy Group:/,/Rule:/{print}' "$CFG_FILE" 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed 's/\t/ /g' 2>/dev/null |grep name: |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null >/tmp/Proxy_Group 2>&1
+   fi
+
    if [ "$?" -eq "0" ]; then
       echo 'DIRECT' >>/tmp/Proxy_Group
       echo 'REJECT' >>/tmp/Proxy_Group
