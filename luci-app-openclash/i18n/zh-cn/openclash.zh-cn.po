@@ -474,6 +474,9 @@ msgstr "删除未启用节点"
 msgid "Delete Severs"
 msgstr "清空服务器配置"
 
+msgid "Delete Proxy Provider"
+msgstr "清空节点集配置"
+
 msgid "Delete Groups"
 msgstr "清空策略组配置"
 
@@ -487,7 +490,7 @@ msgid "Keep Settings"
 msgstr "保留配置"
 
 msgid "Only Update Servers Below When Subscription"
-msgstr "订阅时仅更新节点，保留下方策略组设置，不修改顺序"
+msgstr "订阅时仅更新节点和代理集，保留下方策略组设置，不修改顺序"
 
 msgid "New Servers Group"
 msgstr "新节点默认策略组"
@@ -556,7 +559,7 @@ msgid "Create Config"
 msgstr "一键生成配置文件"
 
 msgid "Create Config By One-Click Only Need Proxys"
-msgstr "一键生成配置文件功能只需要配置服务器节点信息"
+msgstr "一键生成配置文件功能只需要配置服务器节点信息或代理集信息"
 
 msgid "Proxy Groups(No Need Set when Config Create)"
 msgstr "策略组配置（使用一键生成配置文件功能时无需设置）"
@@ -599,6 +602,9 @@ msgstr "包含其他策略组（请勿重复添加）"
 
 msgid "The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT'"
 msgstr "注意：除'DIRECT'和'REJECT'外，修改配置文件前添加的其他策略组必须已创建"
+
+msgid "The Added Proxy Provider Must Exist"
+msgstr "修改配置文件前添加的代理集必须已创建"
 
 msgid "Proxy Group"
 msgstr "添加到策略组（请勿重复添加）"
@@ -662,3 +668,40 @@ msgstr "（格式示例：香港、台湾&bgp）"
 
 msgid "Config File List"
 msgstr "配置文件列表"
+
+msgid "Proxy-Provider"
+msgstr "代理集管理"
+
+msgid "Edit Proxy-Provider"
+msgstr "编辑代理集配置"
+
+msgid "Provider Type"
+msgstr "代理集类型
+
+msgid "Choose The Provider Type"
+msgstr "选择代理集的类型"
+
+msgid "Provider Name"
+msgstr "代理集别名（请勿重名）"
+
+msgid "Provider Path"
+msgstr "代理集路径（Path）"
+
+msgid "【HTTP Type】./hk.yaml or 【File Type】/etc/openclash/config/hk.yaml"
+msgstr "【HTTP 类型示例】./hk.yaml，【文件类型示例】/etc/openclash/config/hk.yaml"
+
+msgid "Provider URL"
+msgstr "代理集URL"
+
+msgid "Provider Interval(s)"
+msgstr "代理集更新间隔（s）"
+
+msgid "Provider Health Check"
+msgstr "代理集状态检查"
+
+msgid "Health Check URL"
+msgstr "状态检查URL"
+
+msgid "Health Check Interval(s)"
+msgstr "状态检查间隔（s）"
+

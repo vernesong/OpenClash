@@ -72,6 +72,43 @@ function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
 end
 
+-- [[ Proxy-Provider Manage ]]--
+s = m:section(TypedSection, "proxy-provider", translate("Proxy-Provider"))
+s.anonymous = true
+s.addremove = true
+s.sortable = true
+s.template = "cbi/tblsection"
+s.extedit = luci.dispatcher.build_url("admin/services/openclash/proxy-provider-config/%s")
+function s.create(...)
+	local sid = TypedSection.create(...)
+	if sid then
+		luci.http.redirect(s.extedit % sid)
+		return
+	end
+end
+
+o = s:option(Flag, "enabled", translate("Enable"))
+o.rmempty     = false
+o.default     = o.enabled
+o.cfgvalue    = function(...)
+    return Flag.cfgvalue(...) or "1"
+end
+
+o = s:option(DummyValue, "config", translate("Config File"))
+function o.cfgvalue(...)
+	return Value.cfgvalue(...) or translate("all")
+end
+
+o = s:option(DummyValue, "type", translate("Provider Type"))
+function o.cfgvalue(...)
+	return Value.cfgvalue(...) or translate("None")
+end
+
+o = s:option(DummyValue, "name", translate("Provider Name"))
+function o.cfgvalue(...)
+	return Value.cfgvalue(...) or translate("None")
+end
+
 -- [[ Servers Manage ]]--
 s = m:section(TypedSection, "servers", translate("Proxys"))
 s.anonymous = true
@@ -97,7 +134,7 @@ end
 
 o = s:option(DummyValue, "config", translate("Config File"))
 function o.cfgvalue(...)
-	return Value.cfgvalue(...) or translate("None")
+	return Value.cfgvalue(...) or translate("all")
 end
 
 o = s:option(DummyValue, "type", translate("Type"))
@@ -125,7 +162,7 @@ o.template="openclash/ping"
 o.width="10%"
 
 local tt = {
-    {Delete_Unused_Servers, Delete_Severs, Delete_Groups}
+    {Delete_Unused_Servers, Delete_Severs, Delete_Proxy_Provider, Delete_Groups}
 }
 
 b = m:section(Table, tt)
@@ -146,6 +183,16 @@ o.inputstyle = "reset"
 o.write = function()
   m.uci:set("openclash", "config", "enable", 0)
   m.uci:delete_all("openclash", "servers", function(s) return true end)
+  m.uci:commit("openclash")
+  luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
+end
+
+o = b:option(Button,"Delete_Proxy_Provider")
+o.inputtitle = translate("Delete Proxy Provider")
+o.inputstyle = "reset"
+o.write = function()
+  m.uci:set("openclash", "config", "enable", 0)
+  m.uci:delete_all("openclash", "proxy-provider", function(s) return true end)
   m.uci:commit("openclash")
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
 end

@@ -63,6 +63,7 @@ end
 btnis.write=function(a,t)
 luci.sys.exec(string.format('uci set openclash.config.config_path="/etc/openclash/config/%s"',e[t].name))
 uci:commit("openclash")
+HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "client"))
 end
 
 s = Map("openclash")
