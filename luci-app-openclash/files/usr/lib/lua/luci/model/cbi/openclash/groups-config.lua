@@ -2,7 +2,7 @@
 local m, s, o
 local openclash = "openclash"
 local uci = luci.model.uci.cursor()
-local fs = require "nixio.fs"
+local fs = require "luci.openclash"
 local sys = require "luci.sys"
 local sid = arg[1]
 
@@ -23,6 +23,18 @@ end
 s = m:section(NamedSection, sid, "groups")
 s.anonymous = true
 s.addremove   = false
+
+o = s:option(ListValue, "config", translate("Config File"))
+o:value("all", translate("Use For All Config File"))
+local e,a={}
+for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
+	a=fs.stat(f)
+	if a then
+    e[t]={}
+    e[t].name=fs.basename(f)
+    o:value(e[t].name)
+  end
+end
 
 o = s:option(ListValue, "type", translate("Group Type"))
 o.rmempty = true
