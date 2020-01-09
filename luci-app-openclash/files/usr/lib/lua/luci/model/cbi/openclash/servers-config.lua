@@ -2,7 +2,7 @@
 local m, s, o
 local openclash = "openclash"
 local uci = luci.model.uci.cursor()
-local fs = require "nixio.fs"
+local fs = require "luci.openclash"
 local sys = require "luci.sys"
 local sid = arg[1]
 local uuid = luci.sys.exec("cat /proc/sys/kernel/random/uuid")
@@ -52,13 +52,24 @@ s = m:section(NamedSection, sid, "servers")
 s.anonymous = true
 s.addremove   = false
 
+o = s:option(ListValue, "config", translate("Config File"))
+o:value("all", translate("Use For All Config File"))
+local e,a={}
+for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
+	a=fs.stat(f)
+	if a then
+    e[t]={}
+    e[t].name=fs.basename(f)
+    o:value(e[t].name)
+  end
+end
+
 o = s:option(ListValue, "type", translate("Server Node Type"))
 o:value("ss", translate("Shadowsocks"))
 o:value("vmess", translate("Vmess"))
 o:value("snell", translate("Snell"))
 o:value("socks5", translate("Socks5"))
 o:value("http", translate("HTTP(S)"))
-
 o.description = translate("Using incorrect encryption mothod may causes service fail to start")
 
 o = s:option(Value, "name", translate("Server Alias"))
