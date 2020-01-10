@@ -8,16 +8,17 @@ CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
 UPDATE_CONFIG_NAME=$(echo $UPDATE_CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
 
-if [ -z "$CONFIG_FILE" ]; then
-	CONFIG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
-fi
-
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
    CONFIG_NAME="$UPDATE_CONFIG_NAME"
 fi
 
 if [ -z "$CONFIG_FILE" ]; then
+	CONFIG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
+	CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+fi
+
+if [ -z "$CONFIG_NAME" ]; then
    CONFIG_FILE="/etc/openclash/config/config.yaml"
    CONFIG_NAME="config.yaml"
 fi
@@ -160,7 +161,6 @@ do
       sed -i "/^${provider_nums}\./c\#match#" "$match_servers" 2>/dev/null
       uci_set="uci -q set openclash.@proxy-provider["$provider_nums"]."
       ${uci_set}manual="0"
-      ${uci_set}config="$CONFIG_NAME"
       ${uci_set}name="$provider_name"
       ${uci_set}type="$provider_type"
       ${uci_set}path="$provider_path"
@@ -427,7 +427,6 @@ do
       uci_set="uci -q set openclash.@servers["$server_num"]."
       
       ${uci_set}manual="0"
-      ${uci_set}config="$CONFIG_NAME"
       ${uci_set}type="$server_type"
       ${uci_set}server="$server"
       ${uci_set}port="$port"

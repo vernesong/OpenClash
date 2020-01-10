@@ -12,16 +12,17 @@ CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
 UPDATE_CONFIG_NAME=$(echo $UPDATE_CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
 
-if [ -z "$CONFIG_FILE" ]; then
-	CONFIG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
-fi
-
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
    CONFIG_NAME="$UPDATE_CONFIG_NAME"
 fi
 
 if [ -z "$CONFIG_FILE" ]; then
+	CONFIG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
+	CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+fi
+
+if [ -z "$CONFIG_NAME" ]; then
    CONFIG_FILE="/etc/openclash/config/config.yaml"
    CONFIG_NAME="config.yaml"
 fi
@@ -41,7 +42,7 @@ yml_proxy_provider_set()
    config_get "health_check_url" "$section" "health_check_url" ""
    config_get "health_check_interval" "$section" "health_check_interval" ""
    
-   if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ]; then
+   if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
       return
    fi
    
@@ -118,7 +119,7 @@ yml_servers_set()
    config_get "psk" "$section" "psk" ""
    config_get "obfs_snell" "$section" "obfs_snell" ""
    
-   if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ]; then
+   if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
       return
    fi
    
