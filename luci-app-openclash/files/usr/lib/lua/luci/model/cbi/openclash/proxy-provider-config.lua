@@ -11,6 +11,17 @@ font_off = [[</font>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
+function IsYamlFile(e)
+   e=e or""
+   local e=string.lower(string.sub(e,-5,-1))
+   return e == ".yaml"
+end
+function IsYmlFile(e)
+   e=e or""
+   local e=string.lower(string.sub(e,-4,-1))
+   return e == ".yml"
+end
+
 m = Map(openclash, translate("Edit Proxy-Provider"))
 m.pageaction = false
 m.redirect = luci.dispatcher.build_url("admin/services/openclash/servers")
@@ -32,7 +43,9 @@ for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
 	if a then
     e[t]={}
     e[t].name=fs.basename(f)
-    o:value(e[t].name)
+    if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+       o:value(e[t].name)
+    end
   end
 end
 
@@ -45,9 +58,21 @@ o:value("file")
 o = s:option(Value, "name", translate("Provider Name"))
 o.rmempty = false
 
-o = s:option(Value, "path", translate("Provider Path"))
-o.description = translate("【HTTP Type】./hk.yaml or 【File Type】/etc/openclash/config/hk.yaml")
+o = s:option(ListValue, "path", translate("Provider Path"))
+o.description = translate("Update Your Proxy Provider File From Config Luci Page")
+local p,h={}
+for t,f in ipairs(fs.glob("/etc/openclash/proxy_provider/*"))do
+	h=fs.stat(f)
+	if h then
+    p[t]={}
+    p[t].name=fs.basename(f)
+    if IsYamlFile(p[t].name) or IsYmlFile(p[t].name) then
+       o:value("./proxy_provider/"..p[t].name)
+    end
+  end
+end
 o.rmempty = false
+o:depends("type", "file")
 
 o = s:option(Value, "provider_url", translate("Provider URL"))
 o.rmempty = false

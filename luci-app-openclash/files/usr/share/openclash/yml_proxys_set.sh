@@ -58,7 +58,9 @@ yml_proxy_provider_set()
       return
    fi
    
-   if [ -z "$path" ]; then
+   if [ "$path" != "./proxy_provider/$name.yaml" ] && [ "$type" = "http" ]; then
+      path="./proxy_provider/$name.yaml"
+   elif [ -z "$path" ]; then
       return
    fi
    

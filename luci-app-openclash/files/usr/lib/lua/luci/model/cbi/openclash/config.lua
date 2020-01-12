@@ -8,6 +8,17 @@ local fs = require "luci.openclash"
 local uci = require("luci.model.uci").cursor()
 local CHIF = "0"
 
+function IsYamlFile(e)
+   e=e or""
+   local e=string.lower(string.sub(e,-5,-1))
+   return e == ".yaml"
+end
+function IsYmlFile(e)
+   e=e or""
+   local e=string.lower(string.sub(e,-4,-1))
+   return e == ".yml"
+end
+    
 ful = SimpleForm("upload", translate("Server Config"), nil)
 ful.reset = false
 ful.submit = false
@@ -22,13 +33,22 @@ local dir, fd, clash
 clash = "/etc/openclash/clash"
 dir = "/etc/openclash/config/"
 bakck_dir="/etc/openclash/backup"
+proxy_pro_dir="/etc/openclash/proxy_provider/"
 create_bakck_dir=fs.mkdir(bakck_dir)
+create_proxy_pro_dir=fs.mkdir(proxy_pro_dir)
+
+
 HTTP.setfilehandler(
 	function(meta, chunk, eof)
+		local fp = HTTP.formvalue("file_type")
 		if not fd then
 			if not meta then return end
-
-			if meta and chunk then fd = nixio.open(dir .. meta.file, "w") end
+			
+			if fp == "config" then
+			   if meta and chunk then fd = nixio.open(dir .. meta.file, "w") end
+			elseif fp == "proxy-provider" then
+			   if meta and chunk then fd = nixio.open(proxy_pro_dir .. meta.file, "w") end
+			end
 
 			if not fd then
 				um.value = translate("upload file error.")
@@ -41,31 +61,22 @@ HTTP.setfilehandler(
 		if eof and fd then
 			fd:close()
 			fd = nil
-			function IsYamlFile(e)
-         e=e or""
-         local e=string.lower(string.sub(e,-5,-1))
-         return e==".yaml"
-      end
-      function IsYmlFile(e)
-         e=e or""
-         local e=string.lower(string.sub(e,-4,-1))
-         return e==".yml"
-      end
-      if IsYamlFile(meta.file)then
+      if IsYamlFile(meta.file) and fp ~= "proxy-provider" then
          local yamlbackup="/etc/openclash/backup/" .. meta.file
          local c=fs.copy(dir .. meta.file,yamlbackup)
       end
-      if IsYmlFile(meta.file)then
+      if IsYmlFile(meta.file) and fp ~= "proxy-provider" then
       	 local ymlname=string.lower(string.sub(meta.file,0,-5))
          local ymlbackup="/etc/openclash/backup/".. ymlname .. ".yaml"
          local c=fs.rename(dir .. meta.file,"/etc/openclash/config/".. ymlname .. ".yaml")
          local c=fs.copy("/etc/openclash/config/".. ymlname .. ".yaml",ymlbackup)
       end
-			if (meta.file == "clash") then
-			   NXFS.chmod(clash, 755)
+			if fp ~= "proxy-provider" then
+			   um.value = translate("File saved to") .. ' "/etc/openclash/config/"'
+			   CHIF = "1"
+			else
+				 um.value = translate("File saved to") .. ' "/etc/openclash/proxy_provider/"'
 			end
-			um.value = translate("File saved to") .. ' "/etc/openclash"'
-			CHIF = "1"
 		end
 	end
 )
@@ -96,7 +107,18 @@ e[t].enable=false
 end
 end
 
-form=SimpleForm("filelist")
+function IsYamlFile(e)
+   e=e or""
+   local e=string.lower(string.sub(e,-5,-1))
+   return e == ".yaml"
+end
+function IsYmlFile(e)
+   e=e or""
+   local e=string.lower(string.sub(e,-4,-1))
+   return e == ".yml"
+end
+    
+form=SimpleForm("config_file_list",translate("Config File List"))
 form.reset=false
 form.submit=false
 tb=form:section(Table,e)
@@ -104,17 +126,12 @@ st=tb:option(DummyValue,"state",translate("State"))
 nm=tb:option(DummyValue,"name",translate("File Name"))
 mt=tb:option(DummyValue,"mtime",translate("Update Time"))
 sz=tb:option(DummyValue,"size",translate("Size"))
-function IsYamlFile(e)
-e=e or""
-local e=string.lower(string.sub(e,-5,-1))
-return e==".yaml"
-end
 
 btnis=tb:option(Button,"switch",translate("Switch Config"))
 btnis.template="openclash/other_button"
 btnis.render=function(o,t,a)
-if not e[t]then return false end
-if IsYamlFile(e[t].name)then
+if not e[t] then return false end
+if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
 a.display=""
 else
 a.display="none"
@@ -130,15 +147,9 @@ end
 
 btndl = tb:option(Button,"download",translate("Download Configurations")) 
 btndl.template="openclash/other_button"
-btndl.render=function(o,t,a)
-if not e[t]then return false end
-if IsYamlFile(e[t].name)then
-a.display=""
-else
-a.display="none"
-end
-o.inputstyle="remove"
-Button.render(o,t,a)
+btndl.render=function(e,t,a)
+e.inputstyle="remove"
+Button.render(e,t,a)
 end
 btndl.write = function (a,t)
 	local sPath, sFile, fd, block
@@ -177,6 +188,71 @@ local a=fs.unlink("/etc/openclash/config/"..luci.openclash.basename(e[t].name))
 local db=fs.unlink("/etc/openclash/backup/"..luci.openclash.basename(e[t].name))
 if a then table.remove(e,t)end
 return a
+end
+
+local p,r={}
+for x,y in ipairs(fs.glob("/etc/openclash/proxy_provider/*"))do
+r=fs.stat(y)
+if r then
+p[x]={}
+p[x].name=fs.basename(y)
+p[x].mtime=os.date("%Y-%m-%d %H:%M:%S",r.mtime)
+p[x].size=tostring(r.size)
+p[x].remove=0
+p[x].enable=false
+end
+end
+
+proxy_form=SimpleForm("proxy_provider_file_list",translate("Proxy Provider File List"))
+proxy_form.reset=false
+proxy_form.submit=false
+tb1=proxy_form:section(Table,p)
+nm1=tb1:option(DummyValue,"name",translate("File Name"))
+mt1=tb1:option(DummyValue,"mtime",translate("Update Time"))
+sz1=tb1:option(DummyValue,"size",translate("Size"))
+
+btndl1 = tb1:option(Button,"download1",translate("Download Configurations")) 
+btndl1.template="openclash/other_button"
+btndl1.render=function(y,x,r)
+y.inputstyle="remove"
+Button.render(y,x,r)
+end
+btndl1.write = function (r,x)
+	local sPath, sFile, fd, block
+	sPath = "/etc/openclash/proxy_provider/"..p[x].name
+	sFile = NXFS.basename(sPath)
+	if fs.isdirectory(sPath) then
+		fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+		sFile = sFile .. ".tar.gz"
+	else
+		fd = nixio.open(sPath, "r")
+	end
+	if not fd then
+		return
+	end
+	HTTP.header('Content-Disposition', 'attachment; filename="%s"' % {sFile})
+	HTTP.prepare_content("application/octet-stream")
+	while true do
+		block = fd:read(nixio.const.buffersize)
+		if (not block) or (#block ==0) then
+			break
+		else
+			HTTP.write(block)
+		end
+	end
+	fd:close()
+	HTTP.close()
+end
+
+btnrm1=tb1:option(Button,"remove1",translate("Remove"))
+btnrm1.render=function(p,x,r)
+p.inputstyle="reset"
+Button.render(p,x,r)
+end
+btnrm1.write=function(r,x)
+local r=fs.unlink("/etc/openclash/proxy_provider/"..luci.openclash.basename(p[x].name))
+if r then table.remove(p,x)end
+return r
 end
 
 m = SimpleForm("openclash")
@@ -243,4 +319,4 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-return ful , form , m
+return ful , form , proxy_form , m
