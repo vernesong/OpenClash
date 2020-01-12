@@ -49,6 +49,8 @@ o.description = translate("Select Mode For OpenClash Work, Network Error Try Flu
 o:value("redir-host", translate("redir-host"))
 o:value("fake-ip", translate("fake-ip"))
 o:value("fake-ip-tun", translate("fake-ip(tun mode)"))
+o:value("redir-host-vpn", translate("redir-host-vpn(game mode)"))
+o:value("fake-ip-vpn", translate("fake-ip-vpn(game mode)"))
 o.default = "redir-host"
 
 o = s:taboption("settings", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)

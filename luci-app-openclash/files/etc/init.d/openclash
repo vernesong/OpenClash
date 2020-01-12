@@ -18,6 +18,8 @@ RULE_FILE="/tmp/yaml_rules.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
 PROXY_FILE="/tmp/yaml_proxy.yaml"
 HOSTS_FILE="/etc/openclash/custom/openclash_custom_hosts.list"
+PROXY_FWMARK="0x162"
+PROXY_ROUTE_TABLE="0x162"
 
 add_cron()
 {
@@ -464,6 +466,14 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        en_mode_tun="1"
        en_mode="fake-ip"
     fi
+    if [ "$en_mode" = "redir-host-vpn" ]; then
+       en_mode_tun="2"
+       en_mode="redir-host"
+    fi
+    if [ "$en_mode" = "fake-ip-vpn" ]; then
+       en_mode_tun="2"
+       en_mode="fake-ip"
+    fi
     enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
     rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
     enable_custom_clash_rules=$(uci get openclash.config.enable_custom_clash_rules 2>/dev/null) 
@@ -475,6 +485,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     socks_port=$(uci get openclash.config.socks_port 2>/dev/null)
     enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
     lan_ip=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null)
+    lan_ip6=$(uci get network.lan.ip6addr 2>/dev/null)
     direct_dns=$(uci get openclash.config.direct_dns 2>/dev/null)
     disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
     log_level=$(uci get openclash.config.log_level 2>/dev/null)
@@ -531,7 +542,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
                 uci set firewall.openclash.reload=1 >/dev/null 2>&1
              fi
           
-             if [ "$en_mode_tun" = "1" ] && [ "$(uci get firewall.@defaults[0].forward)" != "ACCEPT" ]; then
+             if [ ! -z "$en_mode_tun" ] && [ "$(uci get firewall.@defaults[0].forward)" != "ACCEPT" ]; then
                 uci set firewall.@defaults[0].forward=ACCEPT >/dev/null 2>&1
                 uci commit firewall >/dev/null 2>&1
                 /etc/init.d/firewall reload >/dev/null 2>&1
@@ -541,32 +552,57 @@ mkdir -p /var/etc
 cat > "/var/etc/openclash.include" <<-EOF
 /etc/init.d/openclash restart
 EOF
+             if [ "$en_mode_tun" != "2" ]; then
+                iptables -t nat -N openclash
           
-             iptables -t nat -N openclash
+                if [ "$en_mode_tun" = "1" ]; then
+                   iptables -t nat -A openclash -d 198.18.0.0/16 -j RETURN
+                fi
+
+                iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
+                iptables -t nat -A openclash -d 10.0.0.0/8 -j RETURN
+                iptables -t nat -A openclash -d 127.0.0.0/8 -j RETURN
+                iptables -t nat -A openclash -d 169.254.0.0/16 -j RETURN
+                iptables -t nat -A openclash -d 172.16.0.0/12 -j RETURN
+                iptables -t nat -A openclash -d 192.168.0.0/16 -j RETURN
+                iptables -t nat -A openclash -d 224.0.0.0/4 -j RETURN
+                iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
+                iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
+                iptables -t nat -A zone_lan_prerouting -p tcp -j openclash
+
+                if [ "$en_mode_tun" != 1 ]; then
+                   iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+                fi
           
-             if [ "$en_mode_tun" = "1" ]; then
-                iptables -t nat -A openclash -d 198.18.0.0/16 -j RETURN
-             fi
-          
-             iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
-             iptables -t nat -A openclash -d 10.0.0.0/8 -j RETURN
-             iptables -t nat -A openclash -d 127.0.0.0/8 -j RETURN
-             iptables -t nat -A openclash -d 169.254.0.0/16 -j RETURN
-             iptables -t nat -A openclash -d 172.16.0.0/12 -j RETURN
-             iptables -t nat -A openclash -d 192.168.0.0/16 -j RETURN
-             iptables -t nat -A openclash -d 224.0.0.0/4 -j RETURN
-             iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
-             iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-             iptables -t nat -A zone_lan_prerouting -p tcp -j openclash
-          
-             if [ "$en_mode_tun" != "1" ]; then
-                iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
-             fi
-          
-             if [ "$ipv6_enable" -eq 1 ]; then
-                ip6tables -t nat -N openclash
-                ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-                ip6tables -t nat -A zone_lan_prerouting -p tcp -j openclash
+                if [ "$ipv6_enable" -eq 1 ]; then
+                   ip6tables -t nat -N openclash
+                   ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
+                   ip6tables -t nat -A zone_lan_prerouting -p tcp -j openclash
+                fi
+             else
+             #TUN2模式
+                ipset create localnetwork hash:net
+                ipset add localnetwork 127.0.0.0/8
+                ipset add localnetwork 10.0.0.0/8
+                ipset add localnetwork 169.254.0.0/16
+                ipset add localnetwork 192.168.0.0/16
+                ipset add localnetwork 224.0.0.0/4
+                ipset add localnetwork 240.0.0.0/4
+                ipset add localnetwork 172.16.0.0/12
+             #启动TUN
+                ip tuntap add user root mode tun clash0
+                ip link set clash0 up
+                ip route replace default dev clash0 table "$PROXY_ROUTE_TABLE"
+                ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+             #设置防火墙
+                iptables -t mangle -N openclash
+                iptables -t mangle -F openclash
+                iptables -t mangle -A openclash -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
+                iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
+                iptables -t mangle -I OUTPUT -j openclash
+                iptables -t mangle -I PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
+             #ipv6
+                ip6tables -t mangle -I PREROUTING -j MARK --set-mark "$PROXY_FWMARK"
              fi
 
              echo "第八步: 重启 Dnsmasq 程序..." >$START_LOG
@@ -691,6 +727,18 @@ stop()
     done
 
     ip6tables -t nat -X openclash >/dev/null 2>&1
+#TUN
+    ip link set dev clash0 down >/dev/null 2>&1
+    ip tuntap del clash0 mode tun >/dev/null 2>&1
+    ip route del default dev clash0 table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+
+    iptables -t mangle -D OUTPUT -j openclash >/dev/null 2>&1
+    iptables -t mangle -D PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
+    ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
+    iptables -t mangle -F openclash >/dev/null 2>&1
+    iptables -t mangle -X openclash >/dev/null 2>&1
+    ipset destroy localnetwork >/dev/null 2>&1
     
     echo "第二步: 关闭 OpenClash 守护程序..." >$START_LOG
     watchdog_pids=$(ps |grep openclash_watchdog.sh |grep -v grep |awk '{print $1}' 2>/dev/null)

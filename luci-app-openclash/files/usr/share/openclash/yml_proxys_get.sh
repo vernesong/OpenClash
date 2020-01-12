@@ -45,6 +45,8 @@ elif [ "$provider_len" -le "$proxy_len" ]; then
 elif [ "$provider_len" -ge "$group_len" ]; then
 	 awk '/^ {0,}Proxy:/,/^ {0,}Proxy Group:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
    awk '/^ {0,}proxy-provider:/,/^ {0,}Rule:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_provider.yaml 2>&1
+elif [ "$provider_len" -le "$group_len" ]; then
+   awk '/^ {0,}proxy-provider:/,/^ {0,}Proxy Group:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_provider.yaml 2>&1
 else
    awk '/^ {0,}Proxy:/,/^ {0,}Proxy Group:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
 fi
@@ -163,7 +165,11 @@ do
       ${uci_set}manual="0"
       ${uci_set}name="$provider_name"
       ${uci_set}type="$provider_type"
-      ${uci_set}path="$provider_path"
+      if [ "$provider_type" = "http" ]; then
+         ${uci_set}path="./proxy_provider/$provider_name.yaml"
+      elif [ "$provider_type" = "file" ]; then
+         ${uci_set}path="$provider_path"
+      fi
       ${uci_set}provider_url="$provider_gen_url"
       ${uci_set}provider_interval="$provider_gen_interval"
       ${uci_set}health_check="$provider_che_enable"
@@ -189,7 +195,11 @@ do
       ${uci_set}config="$CONFIG_NAME"
       ${uci_set}name="$provider_name"
       ${uci_set}type="$provider_type"
-      ${uci_set}path="$provider_path"
+      if [ "$provider_type" = "http" ]; then
+         ${uci_set}path="./proxy_provider/$provider_name.yaml"
+      elif [ "$provider_type" = "file" ]; then
+         ${uci_set}path="$provider_path"
+      fi
       ${uci_set}provider_url="$provider_gen_url"
       ${uci_set}provider_interval="$provider_gen_interval"
       ${uci_set}health_check="$provider_che_enable"

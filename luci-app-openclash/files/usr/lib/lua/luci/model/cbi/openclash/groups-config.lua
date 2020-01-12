@@ -11,6 +11,17 @@ font_off = [[</font>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
+function IsYamlFile(e)
+   e=e or""
+   local e=string.lower(string.sub(e,-5,-1))
+   return e == ".yaml"
+end
+function IsYmlFile(e)
+   e=e or""
+   local e=string.lower(string.sub(e,-4,-1))
+   return e == ".yml"
+end
+
 m = Map(openclash, translate("Edit Group"))
 m.pageaction = false
 m.redirect = luci.dispatcher.build_url("admin/services/openclash/servers")
@@ -32,7 +43,9 @@ for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
 	if a then
     e[t]={}
     e[t].name=fs.basename(f)
-    o:value(e[t].name)
+    if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+       o:value(e[t].name)
+    end
   end
 end
 
