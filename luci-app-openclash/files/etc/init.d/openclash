@@ -17,6 +17,7 @@ CHANGE_FILE="/tmp/yaml_change.yaml"
 RULE_FILE="/tmp/yaml_rules.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
 PROXY_FILE="/tmp/yaml_proxy.yaml"
+PROXY_PROVIDER_FILE="/tmp/yaml_proxy_provider.yaml"
 HOSTS_FILE="/etc/openclash/custom/openclash_custom_hosts.list"
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
@@ -164,15 +165,19 @@ yml_check()
          sed -i '/^proxy-provider:/,/proxy-provider-tag/d' "$3" 2>/dev/null
          sed -i '/^Rule:/i\proxy-provider:' "$3" 2>/dev/null
          sed -i '/^proxy-provider:/d' /tmp/backprovider.yaml 2>/dev/null
-         sed -i '/proxy-provider:/r/tmp/bakprovider.yaml' "$3" 2>/dev/null
+         sed -i '/proxy-provider:/r/tmp/backprovider.yaml' "$3" 2>/dev/null
          rm -rf /tmp/backprovider.yaml 2>/dev/null
       elif [ "$provider_len" -ge "$group_len" ]; then
       	 awk '/^proxy-provider:/,/^Rule:/{print}' "$3" | sed '/^Rule:/d' >/tmp/backprovider.yaml 2>/dev/null
-         sed -i '/^Rule:/i\proxy-provider-tag' "$3" 2>/dev/null 
+         sed -i '/^Rule:/i\proxy-provider-tag' "$3" 2>/dev/null
          sed -i '/^proxy-provider:/,/proxy-provider-tag/d' "$3" 2>/dev/null
-         sed -i '/^Rule:/i\proxy-provider:' "$3" 2>/dev/null
+         if [ ! -z "$proxy_len" ]; then
+            sed -i '/^Proxy:/i\proxy-provider:' "$3" 2>/dev/null
+         else
+            sed -i '/^Proxy Group:/i\proxy-provider:' "$3" 2>/dev/null
+         fi
          sed -i '/^proxy-provider:/d' /tmp/backprovider.yaml 2>/dev/null
-         sed -i '/proxy-provider:/r/tmp/bakprovider.yaml' "$3" 2>/dev/null
+         sed -i '/proxy-provider:/r/tmp/backprovider.yaml' "$3" 2>/dev/null
          rm -rf /tmp/backprovider.yaml 2>/dev/null
       fi
    fi
@@ -251,24 +256,65 @@ yml_dns_check()
 
 }
 
+#检查代理集文件防止启动失败
+yml_proxy_provider_check()
+{
+
+while ( [ ! -z "$(pidof clash)" ] && [ "$proxy_provider_path_exist" != 1 ] )
+do
+   if [ "$proxy_provider_mode" = 1 ]; then
+      proxy_provider_path_line=$(sed -n '/^ \{0,\}path:/=' "$1" 2>/dev/null)
+      proxy_provider_path_exist=1
+      for n in $proxy_provider_path_line
+      do
+         provider_path=$(sed -n "${n}p" $1 |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
+         if [ "$(echo ${provider_path:0:1})" = "." ]; then
+            provider_path_check="/etc/openclash/$(echo ${provider_path:2})"
+            if [ -f "$provider_path_check" ]; then
+               if [ -z "$(grep "'proxies:':" "$provider_path_check")" ] && [ -z "$(grep '"proxies:":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
+                  proxy_provider_path_exist=0
+               fi
+            else
+               proxy_provider_path_exist=0
+            fi
+         else
+            provider_path_check="$provider_path"
+            if [ -f "$provider_path_check" ]; then
+               if [ -z "$(grep "'proxies:':" "$provider_path_check")" ] && [ -z "$(grep '"proxies:":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
+                  proxy_provider_path_exist=0
+               fi
+            else
+               proxy_provider_path_exist=0
+            fi
+         fi
+      done
+   else
+      proxy_provider_path_exist=1
+   fi
+   
+done
+}
+
 #切割配置文件以分开处理
 yml_cut()
 {
     cp "$4" "$1"
-    sed -i '/^Rule:/,$d' "$1"
-    sed -n '/^ \{0,\}nameserver:/,$p' "$1" >"$3"
+    sed -i '/^Rule:/,$d' "$1" 2>/dev/null
+    sed -n '/^ \{0,\}nameserver:/,$p' "$1" >"$3" 2>/dev/null
     if [ "$proxy_provider_mode" -eq 1 ]; then
-       sed -n '/^ \{0,\}proxy-provider:/,$p' "$3" >"$5"
+    	 sed -n '/^ \{0,\}Proxy:/,$p' "$3" >"$5" 2>/dev/null
+       sed -n '/^ \{0,\}proxy-provider:/,$p' "$3" >"$6" 2>/dev/null
+       sed -i '/^ \{0,\}Proxy:/,$d' "$6" 2>/dev/null
     else
-       sed -n '/^ \{0,\}Proxy:/,$p' "$3" >"$5"
+       sed -n '/^ \{0,\}Proxy:/,$p' "$3" >"$5" 2>/dev/null
     fi
-    sed -i '/^ \{0,\}nameserver:/,$d' "$1"
+    sed -i '/^ \{0,\}nameserver:/,$d' "$1" 2>/dev/null
     if [ "$proxy_provider_mode" -eq 1 ]; then
-       sed -i '/^ \{0,\}proxy-provider:/,$d' "$3"
+       sed -i '/^ \{0,\}proxy-provider:/,$d' "$3" 2>/dev/null
     else
-       sed -i '/^ \{0,\}Proxy:/,$d' "$3"
+       sed -i '/^ \{0,\}Proxy:/,$d' "$3" 2>/dev/null
     fi
-    sed -n '/^Rule:/,$p' "$4" >"$2"
+    sed -n '/^Rule:/,$p' "$4" >"$2" 2>/dev/null
 }
 
 #获取自定义DNS设置
@@ -508,13 +554,12 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           config_load "openclash"
           config_foreach yml_auth_get "authentication"
           yml_auth_custom "$CONFIG_FILE"
-          yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE"
+          yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE" "$PROXY_PROVIDER_FILE"
           yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
           sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" &
           sh /usr/share/openclash/yml_rules_change.sh "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" &
           wait
-          cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_FILE" "$RULE_FILE" >$CONFIG_FILE 2>/dev/null
-          rm -rf /tmp/yaml_* 2>/dev/null
+          cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_PROVIDER_FILE" "$PROXY_FILE" "$RULE_FILE" >$CONFIG_FILE 2>/dev/null
           echo "第四步: DNS设置检查..." >$START_LOG
           if [ ! -z "$(sed -n '/^ \{0,\}nameserver:/{n;p}' $CONFIG_FILE |grep '^ \{0,\}fallback:')" ] || [ ! -z "$(sed -n '/^ \{0,\}nameserver:/{n;p}' $CONFIG_FILE |grep 'OpenClash-General')" ]; then
              echo "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已自动还原配置文件，请重新设置！" >$START_LOG
@@ -525,6 +570,9 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           else
              echo "第五步: 启动 Clash 主程序..." >$START_LOG
              nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+#检测proxy_provider配置文件状态
+             yml_proxy_provider_check "$PROXY_PROVIDER_FILE"
+             rm -rf /tmp/yaml_* 2>/dev/null
 
              echo "第六步: 设置控制面板..." >$START_LOG
              ln -s /usr/share/openclash/yacd /www/openclash 2>/dev/null
@@ -696,10 +744,6 @@ fi
 
 stop()
 {
-    #禁止多个实例
-    status=$(ps|grep -c /etc/init.d/openclash)
-    [ "$status" -gt "3" ] && exit 0
-
     echo "OpenClash 开始关闭..." >$START_LOG
     echo "第一步: 删除 OpenClash 防火墙规则..." >$START_LOG
     rm -rf /var/etc/openclash.include 2>/dev/null
