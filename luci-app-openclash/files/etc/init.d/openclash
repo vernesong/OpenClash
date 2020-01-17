@@ -617,6 +617,7 @@ EOF
                 iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
                 iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
                 iptables -t nat -A zone_lan_prerouting -p tcp -j openclash
+                iptables -t nat -A PREROUTING -p tcp -j openclash
 
                 if [ "$en_mode_tun" != 1 ]; then
                    iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
@@ -626,6 +627,7 @@ EOF
                    ip6tables -t nat -N openclash
                    ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
                    ip6tables -t nat -A zone_lan_prerouting -p tcp -j openclash
+		   ip6tables -t nat -A PREROUTING -p tcp -j openclash
                 fi
              else
              #TUN2模式
@@ -640,6 +642,7 @@ EOF
              #启动TUN
                 ip tuntap add user root mode tun clash0
                 ip link set clash0 up
+		ip address replace 10.40.0.1/24 dev "$PROXY_TUN_DEVICE_NAME" #from https://github.com/Kr328/kr328-clash-setup-scripts/blob/master/setup-clash-tun.sh#L25 
                 ip route replace default dev clash0 table "$PROXY_ROUTE_TABLE"
                 ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
              #设置防火墙
