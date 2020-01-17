@@ -116,6 +116,51 @@ Rule:
 - DOMAIN-SUFFIX,zlne800.com,Hijacking
 - DOMAIN-SUFFIX,zunmi.cn,Hijacking
 - DOMAIN-SUFFIX,zzd6.com,Hijacking
+- IP-CIDR,39.107.15.115/32,Hijacking,no-resolve
+- IP-CIDR,47.89.59.182/32,Hijacking,no-resolve
+- IP-CIDR,103.49.209.27/32,Hijacking,no-resolve
+- IP-CIDR,123.56.152.96/32,Hijacking,no-resolve
+# > ChinaTelecom
+- IP-CIDR,61.160.200.223/32,Hijacking,no-resolve
+- IP-CIDR,61.160.200.242/32,Hijacking,no-resolve
+- IP-CIDR,61.160.200.252/32,Hijacking,no-resolve
+- IP-CIDR,61.174.50.214/32,Hijacking,no-resolve
+- IP-CIDR,111.175.220.163/32,Hijacking,no-resolve
+- IP-CIDR,111.175.220.164/32,Hijacking,no-resolve
+- IP-CIDR,122.229.8.47/32,Hijacking,no-resolve
+- IP-CIDR,122.229.29.89/32,Hijacking,no-resolve
+- IP-CIDR,124.232.160.178/32,Hijacking,no-resolve
+- IP-CIDR,175.6.223.15/32,Hijacking,no-resolve
+- IP-CIDR,183.59.53.237/32,Hijacking,no-resolve
+- IP-CIDR,218.93.127.37/32,Hijacking,no-resolve
+- IP-CIDR,221.228.17.152/32,Hijacking,no-resolve
+- IP-CIDR,221.231.6.79/32,Hijacking,no-resolve
+- IP-CIDR,222.186.61.91/32,Hijacking,no-resolve
+- IP-CIDR,222.186.61.95/32,Hijacking,no-resolve
+- IP-CIDR,222.186.61.96/32,Hijacking,no-resolve
+- IP-CIDR,222.186.61.97/32,Hijacking,no-resolve
+# > ChinaUnicom
+- IP-CIDR,106.75.231.48/32,Hijacking,no-resolve
+- IP-CIDR,119.4.249.166/32,Hijacking,no-resolve
+- IP-CIDR,220.196.52.141/32,Hijacking,no-resolve
+- IP-CIDR,221.6.4.148/32,Hijacking,no-resolve
+# > ChinaMobile
+- IP-CIDR,114.247.28.96/32,Hijacking,no-resolve
+- IP-CIDR,221.179.131.72/32,Hijacking,no-resolve
+- IP-CIDR,221.179.140.145/32,Hijacking,no-resolve
+# > Dr.Peng
+# - IP-CIDR,10.72.25.0/24,Hijacking,no-resolve
+- IP-CIDR,115.182.16.79/32,Hijacking,no-resolve
+- IP-CIDR,118.144.88.126/32,Hijacking,no-resolve
+- IP-CIDR,118.144.88.215/32,Hijacking,no-resolve
+- IP-CIDR,118.144.88.216/32,Hijacking,no-resolve
+- IP-CIDR,120.76.189.132/32,Hijacking,no-resolve
+- IP-CIDR,124.14.21.147/32,Hijacking,no-resolve
+- IP-CIDR,124.14.21.151/32,Hijacking,no-resolve
+- IP-CIDR,180.166.52.24/32,Hijacking,no-resolve
+- IP-CIDR,211.161.101.106/32,Hijacking,no-resolve
+- IP-CIDR,220.115.251.25/32,Hijacking,no-resolve
+- IP-CIDR,222.73.156.235/32,Hijacking,no-resolve
 
 # Malware 恶意网站
 # > 快压
@@ -217,6 +262,8 @@ Rule:
 - DOMAIN-SUFFIX,scdn.co,GlobalMedia
 - DOMAIN-SUFFIX,spotify.com,GlobalMedia
 - DOMAIN-SUFFIX,spoti.fi,GlobalMedia
+- DOMAIN-KEYWORD,spotify.com,GlobalMedia
+- DOMAIN-KEYWORD,-spotify-com,GlobalMedia
 # > TIDAL
 # USER-AGENT,TIDAL*,GlobalMedia
 - DOMAIN-SUFFIX,tidal.com,GlobalMedia
@@ -244,8 +291,13 @@ Rule:
 - DOMAIN-SUFFIX,aiv-cdn.net,GlobalMedia
 - DOMAIN-SUFFIX,aiv-delivery.net,GlobalMedia
 - DOMAIN-SUFFIX,amazonvideo.com,GlobalMedia
-- DOMAIN-SUFFIX,media-amazon.com,GlobalMedia
 - DOMAIN-SUFFIX,primevideo.com,GlobalMedia
+- DOMAIN,avodmp4s3ww-a.akamaihd.net,GlobalMedia
+- DOMAIN,d25xi40x97liuc.cloudfront.net,GlobalMedia
+- DOMAIN,dmqdd6hw24ucf.cloudfront.net,GlobalMedia
+- DOMAIN,d22qjgkvxw22r6.cloudfront.net,GlobalMedia
+- DOMAIN,d1v5ir2lpwr8os.cloudfront.net,GlobalMedia
+- DOMAIN-KEYWORD,avoddashs,GlobalMedia
 # > Bahamut
 # USER-AGENT,Anime*,GlobalMedia
 - DOMAIN-SUFFIX,bahamut.com.tw,GlobalMedia
@@ -359,6 +411,15 @@ Rule:
 - DOMAIN-SUFFIX,netflixdnstest7.com,GlobalMedia
 - DOMAIN-SUFFIX,netflixdnstest8.com,GlobalMedia
 - DOMAIN-SUFFIX,netflixdnstest9.com,GlobalMedia
+- IP-CIDR,23.246.0.0/18,GlobalMedia,no-resolve
+- IP-CIDR,37.77.184.0/21,GlobalMedia,no-resolve
+- IP-CIDR,45.57.0.0/17,GlobalMedia,no-resolve
+- IP-CIDR,64.120.128.0/17,GlobalMedia,no-resolve
+- IP-CIDR,66.197.128.0/17,GlobalMedia,no-resolve
+- IP-CIDR,108.175.32.0/20,GlobalMedia,no-resolve
+- IP-CIDR,192.173.64.0/18,GlobalMedia,no-resolve
+- IP-CIDR,198.38.96.0/19,GlobalMedia,no-resolve
+- IP-CIDR,198.45.48.0/20,GlobalMedia,no-resolve
 # > niconico
 # USER-AGENT,Niconico*,GlobalMedia
 - DOMAIN-SUFFIX,dmc.nico,GlobalMedia
@@ -407,6 +468,7 @@ Rule:
 
 # (DNS Cache Pollution Protection)
 # > Google
+- DOMAIN-SUFFIX,ampproject.org,PROXY
 - DOMAIN-SUFFIX,appspot.com,PROXY
 - DOMAIN-SUFFIX,blogger.com,PROXY
 - DOMAIN-SUFFIX,getoutline.org,PROXY
@@ -436,6 +498,15 @@ Rule:
 - DOMAIN-SUFFIX,whatsapp.com,PROXY
 - DOMAIN-SUFFIX,whatsapp.net,PROXY
 - DOMAIN-KEYWORD,facebook,PROXY
+- IP-CIDR,3.123.36.126/32,PROXY,no-resolve
+- IP-CIDR,35.157.215.84/32,PROXY,no-resolve
+- IP-CIDR,35.157.217.255/32,PROXY,no-resolve
+- IP-CIDR,52.58.209.134/32,PROXY,no-resolve
+- IP-CIDR,54.93.124.31/32,PROXY,no-resolve
+- IP-CIDR,54.162.243.80/32,PROXY,no-resolve
+- IP-CIDR,54.173.34.141/32,PROXY,no-resolve
+- IP-CIDR,54.235.23.242/32,PROXY,no-resolve
+- IP-CIDR,169.45.248.118/32,PROXY,no-resolve
 # > Twitter
 - DOMAIN-SUFFIX,pscp.tv,PROXY
 - DOMAIN-SUFFIX,periscope.tv,PROXY
@@ -451,11 +522,21 @@ Rule:
 - DOMAIN-SUFFIX,telegra.ph,PROXY
 - DOMAIN-SUFFIX,telegram.me,PROXY
 - DOMAIN-SUFFIX,telegram.org,PROXY
+- IP-CIDR,91.108.4.0/22,PROXY,no-resolve
+- IP-CIDR,91.108.8.0/22,PROXY,no-resolve
+- IP-CIDR,91.108.12.0/22,PROXY,no-resolve
+- IP-CIDR,91.108.16.0/22,PROXY,no-resolve
+- IP-CIDR,91.108.56.0/22,PROXY,no-resolve
+- IP-CIDR,149.154.160.0/20,PROXY,no-resolve
 # > Line
 - DOMAIN-SUFFIX,line.me,PROXY
 - DOMAIN-SUFFIX,line-apps.com,PROXY
 - DOMAIN-SUFFIX,line-scdn.net,PROXY
 - DOMAIN-SUFFIX,naver.jp,PROXY
+- IP-CIDR,103.2.30.0/23,PROXY,no-resolve
+- IP-CIDR,125.209.208.0/20,PROXY,no-resolve
+- IP-CIDR,147.92.128.0/17,PROXY,no-resolve
+- IP-CIDR,203.104.144.0/21,PROXY,no-resolve
 # > Other
 - DOMAIN-SUFFIX,4shared.com,PROXY
 - DOMAIN-SUFFIX,520cc.cc,PROXY
@@ -692,6 +773,7 @@ Rule:
 - DOMAIN-SUFFIX,shopee.tw,PROXY
 - DOMAIN-SUFFIX,slideshare.net,PROXY
 - DOMAIN-SUFFIX,softfamous.com,PROXY
+- DOMAIN-SUFFIX,soundcloud.com,PROXY
 - DOMAIN-SUFFIX,ssrcloud.org,PROXY
 - DOMAIN-SUFFIX,startpage.com,PROXY
 - DOMAIN-SUFFIX,steamcommunity.com,PROXY
@@ -1135,8 +1217,10 @@ Rule:
 - DOMAIN-SUFFIX,gazellegames.net,DIRECT
 - DOMAIN-SUFFIX,hdchina.org,DIRECT
 - DOMAIN-SUFFIX,hdsky.me,DIRECT
+- DOMAIN-SUFFIX,icetorrent.org,DIRECT
 - DOMAIN-SUFFIX,jpopsuki.eu,DIRECT
 - DOMAIN-SUFFIX,keepfrds.com,DIRECT
+- DOMAIN-SUFFIX,madsrevolution.net,DIRECT
 - DOMAIN-SUFFIX,m-team.cc,DIRECT
 - DOMAIN-SUFFIX,nanyangpt.com,DIRECT
 - DOMAIN-SUFFIX,ncore.cc,DIRECT
@@ -1148,6 +1232,63 @@ Rule:
 - DOMAIN-SUFFIX,springsunday.net,DIRECT
 - DOMAIN-SUFFIX,tjupt.org,DIRECT
 - DOMAIN-SUFFIX,totheglory.im,DIRECT
+# > Scholar
+- DOMAIN-SUFFIX,acm.org,DIRECT
+- DOMAIN-SUFFIX,acs.org,DIRECT
+- DOMAIN-SUFFIX,aip.org,DIRECT
+- DOMAIN-SUFFIX,ams.org,DIRECT
+- DOMAIN-SUFFIX,annualreviews.org,DIRECT
+- DOMAIN-SUFFIX,aps.org,DIRECT
+- DOMAIN-SUFFIX,ascelibrary.org,DIRECT
+- DOMAIN-SUFFIX,asm.org,DIRECT
+- DOMAIN-SUFFIX,asme.org,DIRECT
+- DOMAIN-SUFFIX,astm.org,DIRECT
+- DOMAIN-SUFFIX,bmj.com,DIRECT
+- DOMAIN-SUFFIX,cambridge.org,DIRECT
+- DOMAIN-SUFFIX,cas.org,DIRECT
+- DOMAIN-SUFFIX,clarivate.com,DIRECT
+- DOMAIN-SUFFIX,ebscohost.com,DIRECT
+- DOMAIN-SUFFIX,emerald.com,DIRECT
+- DOMAIN-SUFFIX,engineeringvillage.com,DIRECT
+- DOMAIN-SUFFIX,icevirtuallibrary.com,DIRECT
+- DOMAIN-SUFFIX,ieee.org,DIRECT
+- DOMAIN-SUFFIX,imf.org,DIRECT
+- DOMAIN-SUFFIX,iop.org,DIRECT
+- DOMAIN-SUFFIX,jamanetwork.com,DIRECT
+- DOMAIN-SUFFIX,jhu.edu,DIRECT
+- DOMAIN-SUFFIX,jstor.org,DIRECT
+- DOMAIN-SUFFIX,karger.com,DIRECT
+- DOMAIN-SUFFIX,libguides.com,DIRECT
+- DOMAIN-SUFFIX,madsrevolution.net,DIRECT
+- DOMAIN-SUFFIX,mpg.de,DIRECT
+- DOMAIN-SUFFIX,myilibrary.com,DIRECT
+- DOMAIN-SUFFIX,nature.com,DIRECT
+- DOMAIN-SUFFIX,oecd-ilibrary.org,DIRECT
+- DOMAIN-SUFFIX,osapublishing.org,DIRECT
+- DOMAIN-SUFFIX,oup.com,DIRECT
+- DOMAIN-SUFFIX,ovid.com,DIRECT
+- DOMAIN-SUFFIX,oxfordartonline.com,DIRECT
+- DOMAIN-SUFFIX,oxfordbibliographies.com,DIRECT
+- DOMAIN-SUFFIX,oxfordmusiconline.com,DIRECT
+- DOMAIN-SUFFIX,pnas.org,DIRECT
+- DOMAIN-SUFFIX,proquest.com,DIRECT
+- DOMAIN-SUFFIX,rsc.org,DIRECT
+- DOMAIN-SUFFIX,sagepub.com,DIRECT
+- DOMAIN-SUFFIX,sciencedirect.com,DIRECT
+- DOMAIN-SUFFIX,sciencemag.org,DIRECT
+- DOMAIN-SUFFIX,scopus.com,DIRECT
+- DOMAIN-SUFFIX,siam.org,DIRECT
+- DOMAIN-SUFFIX,spiedigitallibrary.org,DIRECT
+- DOMAIN-SUFFIX,springer.com,DIRECT
+- DOMAIN-SUFFIX,springerlink.com,DIRECT
+- DOMAIN-SUFFIX,tandfonline.com,DIRECT
+- DOMAIN-SUFFIX,un.org,DIRECT
+- DOMAIN-SUFFIX,uni-bielefeld.de,DIRECT
+- DOMAIN-SUFFIX,webofknowledge.com,DIRECT
+- DOMAIN-SUFFIX,westlaw.com,DIRECT
+- DOMAIN-SUFFIX,wiley.com,DIRECT
+- DOMAIN-SUFFIX,worldbank.org,DIRECT
+- DOMAIN-SUFFIX,worldscientific.com,DIRECT
 # > Other
 - DOMAIN-SUFFIX,cn,DIRECT
 - DOMAIN-SUFFIX,360in.com,DIRECT
@@ -1275,7 +1416,7 @@ Rule:
 - DOMAIN-SUFFIX,me.com,Apple
 - DOMAIN-SUFFIX,mzstatic.com,Apple
 - DOMAIN,www-cdn.icloud.com.akadns.net,Apple
-- IP-CIDR,17.0.0.0/8,Apple
+- IP-CIDR,17.0.0.0/8,Apple,no-resolve
 
 # Local Area Network
 - IP-CIDR,192.168.0.0/16,DIRECT
@@ -1284,128 +1425,8 @@ Rule:
 - IP-CIDR,127.0.0.0/8,DIRECT
 - IP-CIDR,100.64.0.0/10,DIRECT
 
-# Internet Service Provider Hijacking 运营商劫持
-- IP-CIDR,39.107.15.115/32,Hijacking
-- IP-CIDR,47.89.59.182/32,Hijacking
-- IP-CIDR,103.49.209.27/32,Hijacking
-- IP-CIDR,123.56.152.96/32,Hijacking
-# > ChinaNet
-- IP-CIDR,61.160.200.223/32,Hijacking
-- IP-CIDR,61.160.200.242/32,Hijacking
-- IP-CIDR,61.160.200.252/32,Hijacking
-- IP-CIDR,61.174.50.214/32,Hijacking
-- IP-CIDR,111.175.220.163/32,Hijacking
-- IP-CIDR,111.175.220.164/32,Hijacking
-- IP-CIDR,124.232.160.178/32,Hijacking
-- IP-CIDR,175.6.223.15/32,Hijacking
-- IP-CIDR,183.59.53.237/32,Hijacking
-- IP-CIDR,218.93.127.37/32,Hijacking
-- IP-CIDR,221.228.17.152/32,Hijacking
-- IP-CIDR,221.231.6.79/32,Hijacking
-- IP-CIDR,222.186.61.91/32,Hijacking
-- IP-CIDR,222.186.61.95/32,Hijacking
-- IP-CIDR,222.186.61.96/32,Hijacking
-- IP-CIDR,222.186.61.97/32,Hijacking
-# > ChinaUnicom
-- IP-CIDR,106.75.231.48/32,Hijacking
-- IP-CIDR,119.4.249.166/32,Hijacking
-- IP-CIDR,220.196.52.141/32,Hijacking
-- IP-CIDR,221.6.4.148/32,Hijacking
-# > ChinaMobile
-- IP-CIDR,114.247.28.96/32,Hijacking
-- IP-CIDR,221.179.131.72/32,Hijacking
-- IP-CIDR,221.179.140.145/32,Hijacking
-# > Dr.Peng
-- IP-CIDR,10.72.25.0/24,Hijacking
-- IP-CIDR,115.182.16.79/32,Hijacking
-- IP-CIDR,118.144.88.126/32,Hijacking
-- IP-CIDR,118.144.88.215/32,Hijacking
-- IP-CIDR,118.144.88.216/32,Hijacking
-- IP-CIDR,120.76.189.132/32,Hijacking
-- IP-CIDR,124.14.21.147/32,Hijacking
-- IP-CIDR,124.14.21.151/32,Hijacking
-- IP-CIDR,180.166.52.24/32,Hijacking
-- IP-CIDR,211.161.101.106/32,Hijacking
-- IP-CIDR,220.115.251.25/32,Hijacking
-- IP-CIDR,222.73.156.235/32,Hijacking
-
-# (Extra IP-CIRD)
-# > Google
-- IP-CIDR,35.190.247.0/24,PROXY
-- IP-CIDR,64.233.160.0/19,PROXY
-- IP-CIDR,66.102.0.0/20,PROXY
-- IP-CIDR,66.249.80.0/20,PROXY
-- IP-CIDR,72.14.192.0/18,PROXY
-- IP-CIDR,74.125.0.0/16,PROXY
-- IP-CIDR,108.177.8.0/21,PROXY
-- IP-CIDR,172.217.0.0/16,PROXY
-- IP-CIDR,173.194.0.0/16,PROXY
-- IP-CIDR,209.85.128.0/17,PROXY
-- IP-CIDR,216.58.192.0/19,PROXY
-- IP-CIDR,216.239.32.0/19,PROXY
-# > Facebook
-- IP-CIDR,31.13.24.0/21,PROXY
-- IP-CIDR,31.13.64.0/18,PROXY
-- IP-CIDR,45.64.40.0/22,PROXY
-- IP-CIDR,66.220.144.0/20,PROXY
-- IP-CIDR,69.63.176.0/20,PROXY
-- IP-CIDR,69.171.224.0/19,PROXY
-- IP-CIDR,74.119.76.0/22,PROXY
-- IP-CIDR,103.4.96.0/22,PROXY
-- IP-CIDR,129.134.0.0/17,PROXY
-- IP-CIDR,157.240.0.0/17,PROXY
-- IP-CIDR,173.252.64.0/19,PROXY
-- IP-CIDR,173.252.96.0/19,PROXY
-- IP-CIDR,179.60.192.0/22,PROXY
-- IP-CIDR,185.60.216.0/22,PROXY
-- IP-CIDR,204.15.20.0/22,PROXY
-# > WhatsApp
-- IP-CIDR,3.123.36.126/32,PROXY
-- IP-CIDR,35.157.215.84/32,PROXY
-- IP-CIDR,35.157.217.255/32,PROXY
-- IP-CIDR,52.58.209.134/32,PROXY
-- IP-CIDR,54.93.124.31/32,PROXY
-- IP-CIDR,54.162.243.80/32,PROXY
-- IP-CIDR,54.173.34.141/32,PROXY
-- IP-CIDR,54.235.23.242/32,PROXY
-- IP-CIDR,169.45.248.118/32,PROXY
-# > Twitter
-- IP-CIDR,69.195.160.0/19,PROXY
-- IP-CIDR,104.244.42.0/21,PROXY
-- IP-CIDR,192.133.76.0/22,PROXY
-- IP-CIDR,199.16.156.0/22,PROXY
-- IP-CIDR,199.59.148.0/22,PROXY
-- IP-CIDR,199.96.56.0/21,PROXY
-- IP-CIDR,202.160.128.0/22,PROXY
-- IP-CIDR,209.237.192.0/19,PROXY
-# > Telegram
-- IP-CIDR,67.198.55.0/24,PROXY
-- IP-CIDR,91.108.4.0/22,PROXY
-- IP-CIDR,91.108.8.0/22,PROXY
-- IP-CIDR,91.108.12.0/22,PROXY
-- IP-CIDR,91.108.16.0/22,PROXY
-- IP-CIDR,91.108.56.0/22,PROXY
-- IP-CIDR,109.239.140.0/24,PROXY
-- IP-CIDR,149.154.160.0/20,PROXY
-- IP-CIDR,205.172.60.0/22,PROXY
-# > Line
-- IP-CIDR,103.2.30.0/23,PROXY
-- IP-CIDR,125.209.208.0/20,PROXY
-- IP-CIDR,147.92.128.0/17,PROXY
-- IP-CIDR,203.104.144.0/21,PROXY
-# > Netflix
-- IP-CIDR,23.246.0.0/18,GlobalMedia
-- IP-CIDR,37.77.184.0/21,GlobalMedia
-- IP-CIDR,45.57.0.0/17,GlobalMedia
-- IP-CIDR,64.120.128.0/17,GlobalMedia
-- IP-CIDR,66.197.128.0/17,GlobalMedia
-- IP-CIDR,108.175.32.0/20,GlobalMedia
-- IP-CIDR,192.173.64.0/18,GlobalMedia
-- IP-CIDR,198.38.96.0/19,GlobalMedia
-- IP-CIDR,198.45.48.0/20,GlobalMedia
-
 # DNSPod Public DNS+
-- IP-CIDR,119.28.28.28/32,DIRECT
+- IP-CIDR,119.28.28.28/32,DIRECT,no-resolve
 # GeoIP China
 - GEOIP,CN,DIRECT
 

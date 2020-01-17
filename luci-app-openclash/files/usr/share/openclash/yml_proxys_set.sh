@@ -457,6 +457,17 @@ cat >> "$SERVER_FILE" <<-EOF
   - Proxy
   - DIRECT
   - Domestic
+- name: Apple
+  type: select
+  proxies:
+  - DIRECT
+  - Proxy
+- name: AdBlock
+  type: select
+  proxies:
+  - REJECT
+  - DIRECT
+  - Proxy
 - name: AsianTV
   type: select
   proxies:
@@ -530,6 +541,8 @@ uci set openclash.config.rule_source="lhie1"
 uci set openclash.config.GlobalTV="GlobalTV"
 uci set openclash.config.AsianTV="AsianTV"
 uci set openclash.config.Proxy="Proxy"
+uci set openclash.config.Apple="Apple"
+uci set openclash.config.AdBlock="AdBlock"
 uci set openclash.config.Netease_Music="Netease Music"
 uci set openclash.config.Speedtest="Speedtest"
 uci set openclash.config.Telegram="Telegram"
