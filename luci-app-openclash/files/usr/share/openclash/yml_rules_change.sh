@@ -49,6 +49,8 @@ if [ "$2" != 0 ]; then
        if [ "$(uci get openclash.config.GlobalTV)" != "$GlobalTV" ]\
 	 || [ "$(uci get openclash.config.AsianTV)" != "$AsianTV" ]\
 	 || [ "$(uci get openclash.config.Proxy)" != "$Proxy" ]\
+	 || [ "$(uci get openclash.config.Apple)" != "$Apple" ]\
+	 || [ "$(uci get openclash.config.AdBlock)" != "$AdBlock" ]\
 	 || [ "$(uci get openclash.config.Netease_Music)" != "$Netease_Music" ]\
 	 || [ "$(uci get openclash.config.Speedtest)" != "$Speedtest" ]\
    || [ "$(uci get openclash.config.Telegram)" != "$Telegram" ]\
@@ -76,6 +78,8 @@ if [ "$2" != 0 ]; then
             sed -i -e "s/,GlobalTV/,${GlobalTV}#d/g" -e "/Rule:/a\##GlobalTV:${GlobalTV}"\
             -e "s/,AsianTV/,${AsianTV}#d/g" -e "/Rule:/a\##AsianTV:${AsianTV}"\
             -e "s/,Proxy/,${Proxy}#d/g" -e "/Rule:/a\##Proxy:${Proxy}"\
+            -e "s/,Apple/,${Apple}#d/g" -e "/Rule:/a\##Apple:${Apple}"\
+            -e "s/,AdBlock/,${AdBlock}#d/g" -e "/Rule:/a\##AdBlock:${AdBlock}"\
             -e "s/,Netease Music/,${Netease_Music}#d/g" -e "/Rule:/a\##Netease_Music:${Netease_Music}"\
             -e "s/,Speedtest/,${Speedtest}#d/g" -e "/Rule:/a\##Speedtest:${Speedtest}"\
             -e "s/,Telegram/,${Telegram}#d/g" -e "/Rule:/a\##Telegram:${Telegram}"\
