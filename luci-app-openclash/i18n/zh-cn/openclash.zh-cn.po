@@ -20,6 +20,9 @@ msgstr "运行状态"
 msgid "Global Settings"
 msgstr "全局设置"
 
+msgid "Game Rules and Groups"
+msgstr "游戏规则与策略组管理"
+
 msgid "General Settings"
 msgstr "常规设置"
 
@@ -253,8 +256,8 @@ msgid "No specify upload file."
 msgstr "未指定上传文件"
 
 msgid ""
-"Only Support yaml what would be save to /etc/openclash/config/"
-msgstr "注意：只支持【yaml】后缀的文件，文件将被保存到 /etc/openclash/config/"
+"Only Support yaml what would be save to /etc/openclash/"
+msgstr "注意：只支持【yaml】后缀的文件，文件将被保存到 /etc/openclash/"
 
 msgid "Proxy Provider File List"
 msgstr "代理集文件列表"
@@ -685,7 +688,7 @@ msgid "Use For All Config File"
 msgstr "添加到所有配置文件"
 
 msgid "Proxy-Provider"
-msgstr "代理集管理"
+msgstr "代理集配置"
 
 msgid "Edit Proxy-Provider"
 msgstr "编辑代理集配置"
@@ -719,4 +722,31 @@ msgstr "状态检查URL"
 
 msgid "Health Check Interval(s)"
 msgstr "状态检查间隔（s）"
+
+msgid "Game Rule's Name"
+msgstr "选择游戏规则"
+
+msgid "Select Proxy Group"
+msgstr "选择策略组"
+
+msgid "Game Rules List"
+msgstr "游戏规则列表"
+
+msgid "Rule Name"
+msgstr "规则名称"
+
+msgid "Download Rule"
+msgstr "下载规则"
+
+msgid "Exist"
+msgstr "已下载"
+
+msgid "Not Exist"
+msgstr "未下载"
+
+msgid "Order Number"
+msgstr "序号"
+
+
+
 

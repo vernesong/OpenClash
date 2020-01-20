@@ -55,9 +55,17 @@
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%: Redir-Host（兼容）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			}
-			else
+			else if ( status.mode == "fake-ip-tun\n" )
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%: Fake-IP（TUN）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			}
+			else if ( status.mode == "redir-host-vpn\n" )
+			{
+			   mode.innerHTML = status.clash ? "<b><font color=green><%: Redir-Host（游戏）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			}
+			else if ( status.mode == "fake-ip-vpn\n" )
+			{
+			   mode.innerHTML = status.clash ? "<b><font color=green><%: Fake-IP（游戏）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			}
 			watchdog.innerHTML = status.watchdog ? '<b><font color=green><%:RUNNING%></font> </b>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
@@ -78,9 +86,17 @@
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%: Redir-Host（兼容）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			}
-			else
+			else if ( status.mode == "fake-ip-tun\n" )
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%: Fake-IP（TUN）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			}
+			else if ( status.mode == "redir-host-vpn\n" )
+			{
+			   mode.innerHTML = status.clash ? "<b><font color=green><%: Redir-Host（游戏）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			}
+			else if ( status.mode == "fake-ip-vpn\n" )
+			{
+			   mode.innerHTML = status.clash ? "<b><font color=green><%: Fake-IP（游戏）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			}
 			watchdog.innerHTML = status.watchdog ? '<b><font color=green><%:RUNNING%></font> </b>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
@@ -165,7 +181,7 @@
     function imgerrorfuns(imgobj,imgSrc){
     	setTimeout(function(){
         imgobj.src=imgSrc;
-      },1000*5);
+      },1000*10);
      }
      
     function go_update()

@@ -43,16 +43,21 @@ nm=tb:option(DummyValue,"name",translate("File Name"))
 mt=tb:option(DummyValue,"mtime",translate("Update Time"))
 
 function IsYamlFile(e)
-e=e or""
-local e=string.lower(string.sub(e,-5,-1))
-return e==".yaml"
+   e=e or""
+   local e=string.lower(string.sub(e,-5,-1))
+   return e == ".yaml"
+end
+function IsYmlFile(e)
+   e=e or""
+   local e=string.lower(string.sub(e,-4,-1))
+   return e == ".yml"
 end
 
 btnis=tb:option(Button,"switch",translate("Switch Config"))
 btnis.template="openclash/other_button"
 btnis.render=function(o,t,a)
-if not e[t]then return false end
-if IsYamlFile(e[t].name)then
+if not e[t] then return false end
+if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
 a.display=""
 else
 a.display="none"
