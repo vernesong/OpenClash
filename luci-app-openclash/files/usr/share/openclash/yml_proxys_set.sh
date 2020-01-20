@@ -1,4 +1,6 @@
-#!/bin/sh /etc/rc.common
+#!/bin/sh
+. /lib/functions.sh
+
 status=$(ps|grep -c /usr/share/openclash/yml_proxys_set.sh)
 [ "$status" -gt "3" ] && exit 0
 
@@ -41,6 +43,10 @@ yml_proxy_provider_set()
    config_get "health_check" "$section" "health_check" ""
    config_get "health_check_url" "$section" "health_check_url" ""
    config_get "health_check_interval" "$section" "health_check_interval" ""
+   
+   if [ ! -z "$if_game_proxy" ] && [ "$if_game_proxy" != "$name" ] && [ "$if_game_proxy_type" = "proxy-provider" ]; then
+      return
+   fi
    
    if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
       return
@@ -120,6 +126,10 @@ yml_servers_set()
    config_get "auth_pass" "$section" "auth_pass" ""
    config_get "psk" "$section" "psk" ""
    config_get "obfs_snell" "$section" "obfs_snell" ""
+   
+   if [ ! -z "$if_game_proxy" ] && [ "$if_game_proxy" != "$name" ] && [ "$if_game_proxy_type" = "proxy" ]; then
+      return
+   fi
    
    if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
       return
@@ -282,6 +292,8 @@ EOF
 
 
 #创建配置文件
+if_game_proxy="$1"
+if_game_proxy_type="$2"
 #proxy-provider
 echo "开始写入配置文件【$CONFIG_NAME】的代理集信息..." >$START_LOG
 echo "proxy-provider:" >$PROXY_PROVIDER_FILE
@@ -309,7 +321,7 @@ else
 fi
 
 #一键创建配置文件
-if [ "$rule_sources" = "ConnersHua" ] && [ "$servers_if_update" != "1" ]; then
+if [ "$rule_sources" = "ConnersHua" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
 echo "使用ConnersHua规则创建中..." >$START_LOG
 echo "Proxy Group:" >>$SERVER_FILE
 cat >> "$SERVER_FILE" <<-EOF
@@ -410,7 +422,7 @@ uci set openclash.config.Others="Others"
  	uci add_list openclash.config.new_servers_group="AsianTV"
 	uci add_list openclash.config.new_servers_group="GlobalTV"
 }
-elif [ "$rule_sources" = "lhie1" ] && [ "$servers_if_update" != "1" ]; then
+elif [ "$rule_sources" = "lhie1" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
 echo "使用lhie1规则创建中..." >$START_LOG
 echo "Proxy Group:" >>$SERVER_FILE
 cat >> "$SERVER_FILE" <<-EOF
@@ -559,7 +571,7 @@ uci set openclash.config.Others="Others"
 	uci add_list openclash.config.new_servers_group="Speedtest"
 	uci add_list openclash.config.new_servers_group="Netease Music"
 }
-elif [ "$rule_sources" = "ConnersHua_return" ] && [ "$servers_if_update" != "1" ]; then
+elif [ "$rule_sources" = "ConnersHua_return" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
 echo "使用ConnersHua回国规则创建中..." >$START_LOG
 echo "Proxy Group:" >>$SERVER_FILE
 cat >> "$SERVER_FILE" <<-EOF
@@ -612,13 +624,13 @@ uci set openclash.config.Others="Others"
 }
 fi
 
-if [ "$create_config" != "0" ] && [ "$servers_if_update" != "1" ]; then
+if [ "$create_config" != "0" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
    echo "Rule:" >>$SERVER_FILE
    echo "配置文件【$CONFIG_NAME】创建完成，正在更新服务器、代理集、策略组信息..." >$START_LOG
    cat "$PROXY_PROVIDER_FILE" > "$CONFIG_FILE" 2>/dev/null
    cat "$SERVER_FILE" >> "$CONFIG_FILE" 2>/dev/null
    /usr/share/openclash/yml_groups_get.sh >/dev/null 2>&1
-else
+elif [ -z "$if_game_proxy" ]; then
    echo "服务器、代理集、策略组信息修改完成，正在更新配置文件【$CONFIG_NAME】..." >$START_LOG
    #判断各个区位置
    proxy_len=$(sed -n '/^Proxy:/=' "$CONFIG_FILE" 2>/dev/null)
@@ -650,13 +662,15 @@ fi
 echo "配置文件【$CONFIG_NAME】写入完成！" >$START_LOG
 sleep 3
 echo "" >$START_LOG
-rm -rf $SERVER_FILE 2>/dev/null
+if [ -z "$if_game_proxy" ]; then
+   rm -rf $SERVER_FILE 2>/dev/null
+   rm -rf $PROXY_PROVIDER_FILE 2>/dev/null
+fi
 rm -rf /tmp/Proxy_Server 2>/dev/null
 rm -rf /tmp/yaml_groups.yaml 2>/dev/null
-rm -rf $PROXY_PROVIDER_FILE 2>/dev/null
 rm -rf /tmp/Proxy_Provider 2>/dev/null
 uci set openclash.config.enable=1 2>/dev/null
-[ "$(uci get openclash.config.servers_if_update)" == "0" ] && /etc/init.d/openclash restart >/dev/null 2>&1
+[ "$(uci get openclash.config.servers_if_update)" == "0" ] && [ -z "$if_game_proxy" ] && /etc/init.d/openclash restart >/dev/null 2>&1
 uci set openclash.config.servers_if_update=0
 uci commit openclash
 

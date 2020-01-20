@@ -18,14 +18,16 @@ function index()
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
 	entry({"admin", "services", "openclash", "ping"}, call("act_ping"))
+	entry({"admin", "services", "openclash", "download_game_rule"}, call("action_download_rule"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Severs and Groups"), 40).leaf = true
-	entry({"admin", "services", "openclash", "config-subscribe"},cbi("openclash/config-subscribe"),_("Config Update"), 50).leaf = true
+	entry({"admin", "services", "openclash", "game-settings"},cbi("openclash/game-settings"),_("Game Rules and Groups"), 50).leaf = true
+	entry({"admin", "services", "openclash", "config-subscribe"},cbi("openclash/config-subscribe"),_("Config Update"), 60).leaf = true
   entry({"admin", "services", "openclash", "servers-config"},cbi("openclash/servers-config"), nil).leaf = true
   entry({"admin", "services", "openclash", "groups-config"},cbi("openclash/groups-config"), nil).leaf = true
   entry({"admin", "services", "openclash", "proxy-provider-config"},cbi("openclash/proxy-provider-config"), nil).leaf = true
-	entry({"admin", "services", "openclash", "config"},form("openclash/config"),_("Server Config"), 60).leaf = true
-	entry({"admin", "services", "openclash", "log"},form("openclash/log"),_("Logs"), 70).leaf = true
+	entry({"admin", "services", "openclash", "config"},form("openclash/config"),_("Server Config"), 70).leaf = true
+	entry({"admin", "services", "openclash", "log"},form("openclash/log"),_("Logs"), 80).leaf = true
 
 end
 local fs = require "luci.openclash"
@@ -199,6 +201,16 @@ local function upchecktime()
    end
 end
 
+function download_rule()
+	local filename = luci.http.formvalue("filename")
+	local rule_file_dir="/etc/openclash/game_rules/" .. filename
+  luci.sys.call(string.format('/usr/share/openclash/openclash_game_rule.sh "%s" >/dev/null 2>&1',filename))
+	if not fs.isfile(rule_file_dir) then
+		return "0"
+	else
+		return "1"
+	end
+end
 
 function action_status()
 	luci.http.prepare_content("application/json")
@@ -287,4 +299,11 @@ function act_ping()
 	e.ping=luci.sys.exec("ping -c 1 -W 1 %q 2>&1 | grep -o 'time=[0-9]*.[0-9]' | awk -F '=' '{print$2}'"%luci.http.formvalue("domain"))
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(e)
+end
+
+function action_download_rule()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		game_rule_download_status = download_rule();
+	})
 end

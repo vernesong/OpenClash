@@ -1,4 +1,6 @@
-#!/bin/sh /etc/rc.common
+#!/bin/sh
+. /lib/functions.sh
+
 status=$(ps|grep -c /usr/share/openclash/yml_groups_set.sh)
 [ "$status" -gt "3" ] && exit 0
 
@@ -34,7 +36,7 @@ yml_servers_add()
 	config_get_bool "enabled" "$section" "enabled" "1"
 	config_get "config" "$section" "config" ""
 	
-	if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ]; then
+	if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
       return
   fi
   
@@ -43,6 +45,10 @@ yml_servers_add()
   else
 	   config_get "name" "$section" "name" ""
 	   config_list_foreach "$section" "groups" set_groups "$name" "$2"
+	   
+	   if [ ! -z "$if_game_group" ] && [ -z "$(grep -F $name /tmp/yaml_proxy.yaml)" ]; then
+	      /usr/share/openclash/yml_proxys_set.sh "$name" "proxy"
+	   fi
 	fi
 	
 }
@@ -78,7 +84,7 @@ set_proxy_provider()
 	config_get_bool "enabled" "$section" "enabled" "1"
 	config_get "config" "$section" "config" ""
 	
-	if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ]; then
+	if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
       return
   fi
   
@@ -87,6 +93,10 @@ set_proxy_provider()
   else
 	   config_get "name" "$section" "name" ""
 	   config_list_foreach "$section" "groups" set_provider_groups "$name" "$2"
+	   
+	   if [ ! -z "$if_game_group" ] && [ -z "$(grep "^ \{0,\}$name" /tmp/yaml_proxy_provider.yaml)" ]; then
+	      /usr/share/openclash/yml_proxys_set.sh "$name" "proxy-provider"
+	   fi
 	fi
 }
 
@@ -114,7 +124,9 @@ yml_groups_set()
    config_get "test_url" "$section" "test_url" ""
    config_get "test_interval" "$section" "test_interval" ""
    
-   if [ "$servers_update" -eq "1" ] && [ "$config" != "all" ]; then
+   if [ ! -z "$if_game_group" ] && [ "$if_game_group" != "$name" ]; then
+      return
+   elif [ "$servers_update" -eq "1" ] && [ "$config" != "all" ]; then
       return
    fi
 
@@ -181,7 +193,8 @@ yml_groups_set()
 
 create_config=$(uci get openclash.config.create_config 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
-if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ]; then
+if_game_group="$1"
+if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ ! -z "$if_game_group" ]; then
    /usr/share/openclash/yml_groups_name_get.sh
    if [ ! -z "$(grep "读取错误" /tmp/Proxy_Group)"]; then
       echo "配置文件【$CONFIG_NAME】的信息读取失败，无法进行修改，请选择一键创建配置文件..." >$START_LOG
@@ -190,12 +203,18 @@ if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ]; then
       echo "" >$START_LOG
       exit 0
    else
-      echo "开始写入配置文件【$CONFIG_NAME】的策略组信息..." >$START_LOG
-      echo "Proxy Group:" >$GROUP_FILE
+      if [ -z "$if_game_group" ]; then
+         echo "开始写入配置文件【$CONFIG_NAME】的策略组信息..." >$START_LOG
+         echo "Proxy Group:" >$GROUP_FILE
+      else
+         echo "开始加入游戏策略组【$if_game_group】的信息..." >$START_LOG
+      fi
       config_load "openclash"
       config_foreach yml_groups_set "groups"
       sed -i "s/#d//g" $CONFIG_FILE 2>/dev/null
       echo "配置文件【$CONFIG_NAME】的策略组写入完成！" >$START_LOG
    fi
 fi
-/usr/share/openclash/yml_proxys_set.sh
+if [ -z "$if_game_group" ]; then
+   /usr/share/openclash/yml_proxys_set.sh
+fi

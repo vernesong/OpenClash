@@ -8,11 +8,11 @@
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.17.0">
     <img src="https://img.shields.io/badge/Clash-v0.17.0-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.36.1-beta">
-    <img src="https://img.shields.io/badge/source code-v0.36.1--beta-green.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.36.2-beta">
+    <img src="https://img.shields.io/badge/source code-v0.36.2--beta-green.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.36.1-beta">
-    <img src="https://img.shields.io/badge/New Release-v0.36.1--beta-orange.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.36.2-beta">
+    <img src="https://img.shields.io/badge/New Release-v0.36.2--beta-orange.svg">
   </a>
   </p>
   
@@ -53,6 +53,7 @@
 * bash
 * wget
 * kmod-tun(TUN模式)
+* luci-compat(Luci-19.X)
 
 
 编译
