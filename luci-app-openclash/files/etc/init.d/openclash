@@ -294,8 +294,17 @@ do
    else
       proxy_provider_path_exist=1
    fi
-   
 done
+
+if [ -z "$(pidof clash)" ] && [ "$proxy_provider_mode" = 1 ]; then
+   echo "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！" >$START_LOG
+   echo "${LOGTIME} OpenClash Can Not Start, Please Check The Error Info And Try Again" >> $LOG_FILE
+   sleep 10
+   echo "" >$START_LOG
+   stop && echo "" >$START_LOG
+   exit 0
+fi
+
 }
 
 #切割配置文件以分开处理

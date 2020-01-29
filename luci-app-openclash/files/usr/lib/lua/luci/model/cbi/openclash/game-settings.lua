@@ -119,18 +119,15 @@ e.inputstyle="reset"
 Button.render(e,t,a)
 end
 btnrm.write=function(a,t)
-local a=fs.unlink("/etc/openclash/game_rules/"..e[t].filename)
-HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "game-settings"))
+fs.unlink("/etc/openclash/game_rules/"..e[t].filename)
+HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-settings"))
 end
 
 local t = {
     {Commit, Apply}
 }
 
-ap = SimpleForm("apply")
-ap.reset = false
-ap.submit = false
-ss = ap:section(Table, t)
+ss = m:section(Table, t)
 
 o = ss:option(Button, "Commit") 
 o.inputtitle = translate("Commit Configurations")
@@ -149,4 +146,4 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-return m, ap, form
+return m, form
