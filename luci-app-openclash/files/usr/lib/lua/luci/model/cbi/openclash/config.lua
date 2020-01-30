@@ -123,7 +123,7 @@ form.reset=false
 form.submit=false
 tb=form:section(Table,e)
 st=tb:option(DummyValue,"state",translate("State"))
-nm=tb:option(DummyValue,"name",translate("File Name"))
+nm=tb:option(DummyValue,"name",translate("Config Alias"))
 mt=tb:option(DummyValue,"mtime",translate("Update Time"))
 sz=tb:option(DummyValue,"size",translate("Size"))
 
