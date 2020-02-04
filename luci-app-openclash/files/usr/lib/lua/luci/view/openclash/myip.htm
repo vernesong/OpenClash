@@ -133,9 +133,6 @@
         <div style="width: 51%">
             <h3>IP 地址</h3>
             <p>
-                <span class="ip-title">IP&nbsp;&nbsp;&nbsp;登录设备:</span><span class="ip-result" id="ip-webrtc"></span> <span class="ip-geo" id="ip-webrtc-cz88"></span>
-            </p>
-            <p>
                 <span class="ip-title">IPIP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;国内:</span><span class="ip-result" id="ip-ipipnet"></span> <span class="ip-geo" id="ip-ipipnet-geo"></span>
             </p>
             <p>
@@ -160,9 +157,6 @@
                 <span class="ip-state_title">GitHub:</span><span id="http-github"></span>
             </p>
             <p>
-                <span class="ip-state_title">Facebook:</span><span id="http-facebook"></span>
-            </p>
-            <p>
                 <span class="ip-state_title">YouTube:</span><span id="http-youtube"></span>
             </p>
         </div>
@@ -180,7 +174,6 @@
         window.open(url2);
        }
         const $$ = document;
-        $$.getElementById('ip-webrtc').innerHTML = '查询中...';
         $$.getElementById('ip-pcol').innerHTML = '查询中...';
         $$.getElementById('ip-ipify').innerHTML = '查询中...';
         $$.getElementById('ip-ipipnet').innerHTML = '查询中...';
@@ -220,23 +213,6 @@
                         //$$.getElementById(elID).innerHTML = `${resp.data.country} ${resp.data.regionName} ${resp.data.city} ${resp.data.isp}`;
                     })
             },
-            getWebrtcIP: () => {
-                window.RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
-                let pc = new RTCPeerConnection({ iceServers: [] }),
-                noop = () => { };
-                pc.createDataChannel('');
-                pc.createOffer(pc.setLocalDescription.bind(pc), noop);
-                pc.onicecandidate = (ice) => {
-                if (!ice || !ice.candidate || !ice.candidate.candidate) {
-                        $$.getElementById('ip-webrtc').innerHTML = '没有查询到 IP';
-                return;
-            }
-            let ip = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(ice.candidate.candidate)[1];
-            $$.getElementById('ip-webrtc').innerHTML = ip;
-            IP.parseIPIpip(ip, 'ip-webrtc-cz88');
-            pc.onicecandidate = noop;
-              };
-           },
             getIpipnetIP: () => {
                 IP.get(`https://myip.ipip.net/?z=${random}`, 'text')
                     .then((resp) => {
@@ -267,7 +243,6 @@
         $$.getElementById('http-baidu').innerHTML = '<span class="ip-checking">检测中...</span>';
         $$.getElementById('http-163').innerHTML =  '<span class="ip-checking">检测中...</span>';
         $$.getElementById('http-github').innerHTML = '<span class="ip-checking">检测中...</span>';
-        $$.getElementById('http-facebook').innerHTML = '<span class="ip-checking">检测中...</span>';
         $$.getElementById('http-youtube').innerHTML = '<span class="ip-checking">检测中...</span>';
         let HTTP = {
             checker: (domain, cbElID) => {
@@ -293,7 +268,6 @@
                 HTTP.checker('www.baidu.com', 'http-baidu');
                 HTTP.checker('s1.music.126.net/style', 'http-163');
                 HTTP.checker('github.com', 'http-github');
-                HTTP.checker('www.facebook.com', 'http-facebook');
                 HTTP.checker('www.youtube.com', 'http-youtube');
             }
         };
@@ -301,7 +275,6 @@
 	      HTTP.runcheck();
 	      IP.getIpipnetIP();
 	      IP.getIpifyIP();
-	      IP.getWebrtcIP();
 	      
 	      function getPcolIP(data){
                 let pcisp = data.addr.split(' ');
@@ -334,7 +307,6 @@
 		       HTTP.runcheck();
 		       IP.getIpipnetIP();
 		       IP.getIpifyIP();
-		       IP.getWebrtcIP();
 		       
 		       function getPcolIP(data){
 		            let pcisp = data.addr.split(' ');

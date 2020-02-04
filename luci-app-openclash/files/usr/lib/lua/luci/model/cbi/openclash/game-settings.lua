@@ -20,7 +20,9 @@ local e=string.lower(string.sub(e,-6,-1))
 return e==".rules"
 end
 
-SYS.call("awk -F ',' '{print $1}' /etc/openclash/game_rules.list > /tmp/rules_name 2>/dev/null")
+if not NXFS.access("/tmp/rules_name") then
+   SYS.call("awk -F ',' '{print $1}' /etc/openclash/game_rules.list > /tmp/rules_name 2>/dev/null")
+end
 file = io.open("/tmp/rules_name", "r");
 
 -- [[ Edit Game Rule ]] --
@@ -69,9 +71,8 @@ o:value("REJECT")
 o.rmempty = true
 
 ---- Rules List
-local e={},a,o,t
-a=nixio.fs.access("/tmp/rules_name")
-if a then
+local e={},o,t
+if NXFS.access("/tmp/rules_name") then
 for o in file:lines() do
 table.insert(e,o)
 end
