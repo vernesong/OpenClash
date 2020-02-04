@@ -48,6 +48,7 @@ o = s:taboption("settings", ListValue, "en_mode", font_red..bold_on..translate("
 o.description = translate("Select Mode For OpenClash Work, Network Error Try Flush DNS Cache")
 o:value("redir-host", translate("redir-host"))
 o:value("fake-ip", translate("fake-ip"))
+o:value("redir-host-tun", translate("redir-host(tun mode)"))
 o:value("fake-ip-tun", translate("fake-ip(tun mode)"))
 o:value("redir-host-vpn", translate("redir-host-vpn(game mode)"))
 o:value("fake-ip-vpn", translate("fake-ip-vpn(game mode)"))

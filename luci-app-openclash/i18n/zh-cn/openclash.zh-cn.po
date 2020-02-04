@@ -95,6 +95,9 @@ msgstr "Redir-Host（兼容）模式"
 msgid "fake-ip"
 msgstr "Fake-IP（增强）模式"
 
+msgid "redir-host(tun mode)"
+msgstr "Redir-Host（TUN）模式【依赖kmod-tun】"
+
 msgid "fake-ip(tun mode)"
 msgstr "Fake-IP（TUN）模式【依赖kmod-tun】"
 

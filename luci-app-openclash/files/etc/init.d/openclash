@@ -626,6 +626,10 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
        en_mode_tun="1"
        en_mode="fake-ip"
     fi
+    if [ "$en_mode" = "redir-host-tun" ]; then
+       en_mode_tun="1"
+       en_mode="redir-host"
+    fi
     if [ "$en_mode" = "redir-host-vpn" ]; then
        en_mode_tun="2"
        en_mode="redir-host"
@@ -716,13 +720,8 @@ mkdir -p /var/etc
 cat > "/var/etc/openclash.include" <<-EOF
 /etc/init.d/openclash restart
 EOF
-             if [ "$en_mode_tun" != "2" ]; then
+             if [ -z "$en_mode_tun" ]; then
                 iptables -t nat -N openclash
-          
-                if [ "$en_mode_tun" = "1" ]; then
-                   iptables -t nat -A openclash -d 198.18.0.0/16 -j RETURN
-                fi
-
                 iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
                 iptables -t nat -A openclash -d 10.0.0.0/8 -j RETURN
                 iptables -t nat -A openclash -d 127.0.0.0/8 -j RETURN
@@ -736,10 +735,8 @@ EOF
                 fi
                 iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
                 iptables -t nat -A PREROUTING -p tcp -j openclash
+                iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
 
-                if [ "$en_mode_tun" != 1 ]; then
-                   iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
-                fi
           
                 if [ "$ipv6_enable" -eq 1 ]; then
                    ip6tables -t nat -N openclash
@@ -747,7 +744,7 @@ EOF
                    ip6tables -t nat -A PREROUTING -p tcp -j openclash
                 fi
              else
-             #TUN2模式
+             #TUN模式
                 ipset create localnetwork hash:net
                 ipset add localnetwork 127.0.0.0/8
                 ipset add localnetwork 10.0.0.0/8
@@ -757,9 +754,13 @@ EOF
                 ipset add localnetwork 240.0.0.0/4
                 ipset add localnetwork 172.16.0.0/12
              #启动TUN
+             if [ "$en_mode_tun" = "2" ]; then
                 ip tuntap add user root mode tun clash0
                 ip link set clash0 up
                 ip route replace default dev clash0 table "$PROXY_ROUTE_TABLE"
+             elif [ "$en_mode_tun" = "1" ]; then
+                ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
+             fi
                 ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
              #设置防火墙
                 iptables -t mangle -N openclash
@@ -887,6 +888,7 @@ stop()
     ip link set dev clash0 down >/dev/null 2>&1
     ip tuntap del clash0 mode tun >/dev/null 2>&1
     ip route del default dev clash0 table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+    ip route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
     ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 
     iptables -t mangle -D OUTPUT -j openclash >/dev/null 2>&1
