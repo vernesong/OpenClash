@@ -301,7 +301,7 @@ rm -rf /tmp/Proxy_Provider
 config_load "openclash"
 config_foreach yml_proxy_provider_set "proxy-provider"
 sed -i "s/^ \{0,\}/  - /" /tmp/Proxy_Provider 2>/dev/null #添加参数
-if [ "$(grep "-" /tmp/Proxy_Provider |wc -l)" -eq 0 ]; then
+if [ "$(grep "-" /tmp/Proxy_Provider 2>/dev/null |wc -l)" -eq 0 ]; then
    rm -rf $PROXY_PROVIDER_FILE
    rm -rf /tmp/Proxy_Provider
 fi
@@ -665,9 +665,9 @@ echo "" >$START_LOG
 if [ -z "$if_game_proxy" ]; then
    rm -rf $SERVER_FILE 2>/dev/null
    rm -rf $PROXY_PROVIDER_FILE 2>/dev/null
+   rm -rf /tmp/yaml_groups.yaml 2>/dev/null
 fi
 rm -rf /tmp/Proxy_Server 2>/dev/null
-rm -rf /tmp/yaml_groups.yaml 2>/dev/null
 rm -rf /tmp/Proxy_Provider 2>/dev/null
 uci set openclash.config.enable=1 2>/dev/null
 [ "$(uci get openclash.config.servers_if_update)" == "0" ] && [ -z "$if_game_proxy" ] && /etc/init.d/openclash restart >/dev/null 2>&1
