@@ -11,7 +11,14 @@ local uci = require "luci.model.uci".cursor()
 
 m = Map(openclash,  translate("Game Rules and Groups"))
 m.pageaction = false
-m.description=translate("注意事项：<br/>游戏模式为测试功能，不保证可用性。使用的内核由comzyh修改<br/>项目地址：https://github.com/comzyh/clash <br/>使用步骤：<br/>1、在《服务器与策略组管理》页面创建您准备使用的游戏策略组和游戏节点（节点添加时必须选择要加入的策略组），策略组类型建议:FallBack，游戏节点必须支持UDP<br/>2、在此页面的游戏规则列表下载您要使用的游戏规则<br/>3、在此页面上方设置您已下载的游戏规则的对应策略组并保存设置<br/>4、替换内核，下载地址：（https://github.com/vernesong/OpenClash/releases/tag/TUN）<br/>5、在《全局设置》-《常规设置》-《运行模式》中选择游戏模式并启动")
+m.description=translate("注意事项：<br/>游戏代理为测试功能，不保证可用性。其中游戏模式使用的内核由comzyh修改 \
+<br/>项目地址：https://github.com/comzyh/clash <br/>使用步骤： \
+<br/>1、在《服务器与策略组管理》页面创建您准备使用的游戏策略组和游戏节点（节点添加时必须选择要加入的策略组），策略组类型建议:FallBack，游戏节点必须支持UDP \
+<br/>2、在此页面的游戏规则列表下载您要使用的游戏规则 \
+<br/>3、在此页面上方设置您已下载的游戏规则的对应策略组并保存设置 \
+<br/>4、替换内核一，下载地址：https://github.com/Dreamacro/clash/releases/tag/TUN \
+<br/>或替换内核二，下载地址：https://github.com/vernesong/OpenClash/releases/tag/TUN \
+<br/>5、在《全局设置》-《常规设置》-《运行模式》中选择TUN模式（内核一）或者游戏模式（内核二）并启动")
 
 
 function IsRuleFile(e)

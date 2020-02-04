@@ -55,6 +55,10 @@
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%: Redir-Host（兼容）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			}
+			else if ( status.mode == "redir-host-tun\n" )
+			{
+			   mode.innerHTML = status.clash ? "<b><font color=green><%: Redir-Host（TUN）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			}
 			else if ( status.mode == "fake-ip-tun\n" )
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%: Fake-IP（TUN）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
@@ -85,6 +89,10 @@
 			else if ( status.mode == "redir-host\n" )
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%: Redir-Host（兼容）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
+			}
+			else if ( status.mode == "redir-host-tun\n" )
+			{
+			   mode.innerHTML = status.clash ? "<b><font color=green><%: Redir-Host（TUN）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
 			}
 			else if ( status.mode == "fake-ip-tun\n" )
 			{
