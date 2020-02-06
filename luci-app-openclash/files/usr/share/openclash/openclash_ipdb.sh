@@ -3,7 +3,7 @@
    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
    LOG_FILE="/tmp/openclash.log"
    echo "开始下载 GEOIP 数据库..." >$START_LOG
-   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 https://static.clash.to/GeoIP2/GeoIP2-Country.mmdb -O /tmp/Country.mmdb
+   curl -sL -m 10 --retry 2 https://static.clash.to/GeoIP2/GeoIP2-Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
    if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/Country.mmdb |awk '{print int($5/1024)}')" -ne 0 ]; then
       echo "GEOIP 数据库下载成功，检查数据库版本是否更新..." >$START_LOG
       cmp -s /tmp/Country.mmdb /etc/openclash/Country.mmdb

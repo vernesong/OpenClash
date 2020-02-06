@@ -460,8 +460,7 @@ Rule:
 
 # (HKMTMedia)
 # > 愛奇藝台灣站
-- DOMAIN-SUFFIX,iqiyi.com,HKMTMedia
-- DOMAIN-SUFFIX,71.am,HKMTMedia
+- DOMAIN,cache.video.iqiyi.com,HKMTMedia
 # > bilibili
 - DOMAIN-SUFFIX,bilibili.com,HKMTMedia
 - DOMAIN,upos-hz-mirrorakam.akamaized.net,HKMTMedia

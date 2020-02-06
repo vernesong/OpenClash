@@ -27,6 +27,18 @@ local e=string.lower(string.sub(e,-6,-1))
 return e==".rules"
 end
 
+function IsYamlFile(e)
+   e=e or""
+   local e=string.lower(string.sub(e,-5,-1))
+   return e == ".yaml"
+end
+
+function IsYmlFile(e)
+   e=e or""
+   local e=string.lower(string.sub(e,-4,-1))
+   return e == ".yml"
+end
+
 if not NXFS.access("/tmp/rules_name") then
    SYS.call("awk -F ',' '{print $1}' /etc/openclash/game_rules.list > /tmp/rules_name 2>/dev/null")
 end
@@ -46,6 +58,21 @@ o.rmempty     = false
 o.default     = o.enabled
 o.cfgvalue    = function(...)
     return Flag.cfgvalue(...) or "1"
+end
+
+---- config
+o = s:option(ListValue, "config", translate("Config File"))
+o:value("all", translate("Use For All Config File"))
+local e,a={}
+for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
+	a=fs.stat(f)
+	if a then
+    e[t]={}
+    e[t].name=fs.basename(f)
+    if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+       o:value(e[t].name)
+    end
+  end
 end
 
 ---- rule name

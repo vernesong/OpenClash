@@ -10,7 +10,7 @@ LAST_OPVER="/tmp/openclash_last_version"
 LAST_VER=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |sed "s/^v//g")
 if [ "$(sed -n 1p /etc/openclash/openclash_version 2>/dev/null)" != "$(sed -n 1p $LAST_OPVER 2>/dev/null)" ] && [ -f "$LAST_OPVER" ]; then
    echo "开始下载 OpenClash-$LAST_VER ..." >$START_LOG
-   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=5 https://github.com/vernesong/OpenClash/releases/download/v"$LAST_VER"/luci-app-openclash_"$LAST_VER"_all.ipk -O /tmp/openclash.ipk
+   curl -sL -m 10 --retry 5 https://github.com/vernesong/OpenClash/releases/download/v"$LAST_VER"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
    if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/openclash.ipk |awk '{print int($5/1024)}')" -ne 0 ]; then
       echo "OpenClash-$LAST_VER 下载成功，开始更新，更新过程请不要刷新页面和进行其他操作..." >$START_LOG
       cat > /tmp/openclash_update.sh <<"EOF"

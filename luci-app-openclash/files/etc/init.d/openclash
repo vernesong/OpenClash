@@ -165,7 +165,7 @@ yml_check()
          awk '/^proxy-provider:/,/^Proxy Group:/{print}' "$3" | sed '/^Proxy Group:/d' >/tmp/backprovider.yaml 2>/dev/null
          sed -i '/^Proxy Group:/i\proxy-provider-tag' "$3" 2>/dev/null
          sed -i '/^proxy-provider:/,/proxy-provider-tag/d' "$3" 2>/dev/null
-         sed -i '/^Rule:/i\proxy-provider:' "$3" 2>/dev/null
+         sed -i '/^Proxy:/i\proxy-provider:' "$3" 2>/dev/null
          sed -i '/^proxy-provider:/d' /tmp/backprovider.yaml 2>/dev/null
          sed -i '/proxy-provider:/r/tmp/backprovider.yaml' "$3" 2>/dev/null
          rm -rf /tmp/backprovider.yaml 2>/dev/null
@@ -506,8 +506,13 @@ yml_game_rule_get()
    local section="$1"
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "group" "$section" "group" ""
+   config_get "config" "$section" "config" ""
 
    if [ "$enabled" = "0" ]; then
+      return
+   fi
+   
+   if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
       return
    fi
    
@@ -523,8 +528,13 @@ yml_game_group_get()
 	 local section="$1"
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "group" "$section" "group" ""
+   config_get "config" "$section" "config" ""
 
    if [ "$enabled" = "0" ]; then
+      return
+   fi
+   
+   if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
       return
    fi
    
@@ -609,6 +619,7 @@ else
    cp $BACKUP_FILE $CONFIG_FILE
    fi
 fi
+CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
 
 enable=$(uci get openclash.config.enable 2>/dev/null)
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
@@ -691,13 +702,14 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
              
              #检测proxy_provider配置文件状态
+             echo "第六步: 等待主程序下载代理集..." >$START_LOG
              yml_proxy_provider_check "$PROXY_PROVIDER_FILE"
              rm -rf /tmp/yaml_* 2>/dev/null
 
-             echo "第六步: 设置控制面板..." >$START_LOG
+             echo "第七步: 设置控制面板..." >$START_LOG
              ln -s /usr/share/openclash/yacd /www/openclash 2>/dev/null
        
-             echo "第七步: 设置 OpenClash 防火墙规则..." >$START_LOG
+             echo "第八步: 设置 OpenClash 防火墙规则..." >$START_LOG
              if [ -z "$(uci get firewall.openclash 2>/dev/null)" ] || [ -z "$(uci get ucitrack.@openclash[-1].init 2>/dev/null)" ]; then
                 uci delete ucitrack.@openclash[-1] >/dev/null 2>&1
                 uci add ucitrack openclash >/dev/null 2>&1
@@ -753,6 +765,7 @@ EOF
                 ipset add localnetwork 224.0.0.0/4
                 ipset add localnetwork 240.0.0.0/4
                 ipset add localnetwork 172.16.0.0/12
+                ipset add localnetwork "$wan_ip4"
              #启动TUN
              if [ "$en_mode_tun" = "2" ]; then
                 ip tuntap add user root mode tun clash0
@@ -775,7 +788,7 @@ EOF
                 fi
              fi
 
-             echo "第八步: 重启 Dnsmasq 程序..." >$START_LOG
+             echo "第九步: 重启 Dnsmasq 程序..." >$START_LOG
              if [ "$(iptables -t nat -nL PREROUTING --line-number |grep dpt:53 |wc -l)" -gt 2 ]; then
                 echo "发现53端口被劫持，如连接异常请将OpenClash设置为劫持53端口程序的上游DNS服务器！" >$START_LOG
                 echo "${LOGTIME} Warring: OpenClash May Can Not Take Over DNS, Please Use OpenClash for Upstream DNS Resolve Server" >> $LOG_FILE
@@ -785,15 +798,17 @@ EOF
              fake_block "$en_mode" "$direct_dns"
              /etc/init.d/dnsmasq restart >/dev/null 2>&1
              if pidof clash >/dev/null; then
-                echo "第九步: 添加 OpenClash 计划任务,启动进程守护程序..." >$START_LOG
+                echo "第十步: 添加 OpenClash 计划任务,启动进程守护程序..." >$START_LOG
                 add_cron
                 if [ -z "$(uci get dhcp.lan.dhcpv6 2>/dev/null)" ]; then
                    echo "OpenClash 启动成功，请等待服务器上线！" >$START_LOG
                    echo "${LOGTIME} OpenClash Start Successful" >> $LOG_FILE
+                   /usr/share/openclash/openclash_history_set.sh
                    sleep 5
                 else
                    echo "OpenClash 启动成功，检测到您启用了IPV6的DHCP服务，可能会造成连接异常！" >$START_LOG
                    echo "${LOGTIME} OpenClash Start Successful, Please Note That Network May Abnormal With IPV6's DHCP Server" >> $LOG_FILE
+                   /usr/share/openclash/openclash_history_set.sh
                    sleep 10
                 fi
                 echo "" >$START_LOG
@@ -813,12 +828,14 @@ EOF
                       if [ -z "$(uci get dhcp.lan.dhcpv6 2>/dev/null)" ]; then
                          echo "OpenClash 使用备份规则启动成功，请更新、检查变动的规则后重试！" >$START_LOG
                          echo "${LOGTIME} OpenClash Start Successful With Backup Rules Config, Please Check Or Update Other Rules And Retry" >> $LOG_FILE
+                         /usr/share/openclash/openclash_history_set.sh
                          sleep 10
                       else
                          echo "OpenClash 使用备份规则启动成功，请更新、检查变动的规则后重试！" >$START_LOG
                          echo "${LOGTIME} OpenClash Start Successful With Backup Rules Config, Please Check Or Update Other Rules And Retry" >> $LOG_FILE
-                         sleep 10
-                         echo "OpenClash 启动成功，检测到您启用了IPV6的DHCP服务，可能会造成连接异常！" >$START_LOG
+                         /usr/share/openclash/openclash_history_set.sh
+                         sleep 5
+                         echo "检测到您启用了IPV6的DHCP服务，可能会造成连接异常！" >$START_LOG
                          echo "${LOGTIME} OpenClash Start Successful, Please Note That Network May Abnormal With IPV6's DHCP Server" >> $LOG_FILE
                          sleep 10
                       fi
@@ -867,7 +884,10 @@ fi
 stop()
 {
     echo "OpenClash 开始关闭..." >$START_LOG
-    echo "第一步: 删除 OpenClash 防火墙规则..." >$START_LOG
+    echo "第一步: 备份当前节点状态..." >$START_LOG
+    /usr/share/openclash/openclash_history_get.sh
+    
+    echo "第二步: 删除 OpenClash 防火墙规则..." >$START_LOG
     rm -rf /var/etc/openclash.include 2>/dev/null
 #ipv4
     iptables -t nat -F openclash >/dev/null 2>&1
@@ -898,23 +918,23 @@ stop()
     iptables -t mangle -X openclash >/dev/null 2>&1
     ipset destroy localnetwork >/dev/null 2>&1
     
-    echo "第二步: 关闭 OpenClash 守护程序..." >$START_LOG
+    echo "第三步: 关闭 OpenClash 守护程序..." >$START_LOG
     watchdog_pids=$(ps |grep openclash_watchdog.sh |grep -v grep |awk '{print $1}' 2>/dev/null)
     for watchdog_pid in $watchdog_pids; do
         kill -9 "$watchdog_pid" >/dev/null 2>&1
     done
 
-    echo "第三步: 关闭 Clash 主程序..." >$START_LOG
+    echo "第四步: 关闭 Clash 主程序..." >$START_LOG
     kill -9 "$(pidof clash|sed 's/$//g')" 2>/dev/null
     
-    echo "第四步: 重启 Dnsmasq 程序..." >$START_LOG
+    echo "第五步: 重启 Dnsmasq 程序..." >$START_LOG
     dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
     redirect_dns=$(uci get openclash.config.redirect_dns 2>/dev/null)
     masq_cache=$(uci get openclash.config.masq_cache 2>/dev/null)
     revert_dns "$redirect_dns" "$masq_cache" "$dns_port"
     /etc/init.d/dnsmasq restart >/dev/null 2>&1
 
-    echo "第五步：删除 OpenClash 残留文件..." >$START_LOG
+    echo "第六步：删除 OpenClash 残留文件..." >$START_LOG
     enable=$(uci get openclash.config.enable 2>/dev/null)
     if [ "$enable" -eq 0 ]; then
        rm -rf $LOG_FILE 2>/dev/null
