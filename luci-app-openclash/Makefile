@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.36.3
+PKG_VERSION:=0.36.4
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
@@ -14,7 +14,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
-	DEPENDS:=+iptables +dnsmasq-full +coreutils +coreutils-nohup +bash +wget
+	DEPENDS:=+iptables +dnsmasq-full +coreutils +coreutils-nohup +bash +curl +jsonfilter +ca-certificates
 	MAINTAINER:=vernesong
 endef
 
@@ -48,6 +48,7 @@ if [ -f "/etc/config/openclash" ]; then
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_fake_black.conf" "/tmp/openclash_custom_fake_black.conf.bak" >/dev/null 2>&1
+	cp "/etc/openclash/history" "/tmp/openclash_history.bak" >/dev/null 2>&1
 fi
 if [ -f "/etc/openclash/custom/openclash_custom_rules.list" ]; then
 	cp "/etc/openclash/custom/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" >/dev/null 2>&1
@@ -76,6 +77,7 @@ if [ -f "/tmp/openclash.bak" ]; then
 	mv "/tmp/openclash_custom_rules.list.bak" "/etc/openclash/custom/openclash_custom_rules.list" >/dev/null 2>&1
 	mv "/tmp/openclash_custom_hosts.list.bak" "/etc/openclash/custom/openclash_custom_hosts.list" >/dev/null 2>&1
 	mv "/tmp/openclash_custom_fake_black.conf.bak" "/etc/openclash/custom/openclash_custom_fake_black.conf" >/dev/null 2>&1
+	mv "/tmp/openclash_history.bak" "/etc/openclash/history" >/dev/null 2>&1
 fi
 if [ -f "/tmp/config.yaml" ]; then
 	mv "/tmp/config.yaml" "/etc/openclash/config/config.yaml" >/dev/null 2>&1
@@ -113,6 +115,7 @@ fi
 	mv "/etc/openclash/config" "/tmp/openclash_config" >/dev/null 2>&1
 	mv "/etc/openclash/proxy_provider" "/tmp/openclash_proxy_provider" >/dev/null 2>&1
 	mv "/etc/openclash/game_rules" "/tmp/openclash_game_rules" >/dev/null 2>&1
+	mv "/etc/openclash/history" "/tmp/openclash_history.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" >/dev/null 2>&1
@@ -129,6 +132,7 @@ if [ -f "/etc/openclash/clash" ]; then
 	rm -rf /etc/openclash/backup >/dev/null 2>&1
 	rm -rf /etc/openclash/proxy_provider >/dev/null 2>&1
 	rm -rf /etc/openclash/game_rules >/dev/null 2>&1
+	rm -rf /etc/openclash/history >/dev/null 2>&1
 else
 	rm -rf /etc/openclash >/dev/null 2>&1
 fi

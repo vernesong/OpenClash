@@ -16,12 +16,12 @@ config_download()
 {
 if [ "$URL_TYPE" == "v2rayn" ]; then
    subscribe_url=`echo $subscribe_url |sed 's/{/%7B/g;s/}/%7D/g;s/:/%3A/g;s/\"/%22/g;s/,/%2C/g;s/?/%3F/g;s/=/%3D/g;s/&/%26/g;s/\//%2F/g'`
-   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 https://tgbot.lbyczf.com/v2rayn2clash?url="$subscribe_url" -O /tmp/config.yaml
+   curl -sL -m 10 --retry 2 https://tgbot.lbyczf.com/v2rayn2clash?url="$subscribe_url" -o /tmp/config.yaml >/dev/null 2>&1
 elif [ "$URL_TYPE" == "surge" ]; then
    subscribe_url=`echo $subscribe_url |sed 's/{/%7B/g;s/}/%7D/g;s/:/%3A/g;s/\"/%22/g;s/,/%2C/g;s/?/%3F/g;s/=/%3D/g;s/&/%26/g;s/\//%2F/g'`
-   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 https://tgbot.lbyczf.com/surge2clash?url="$subscribe_url" -O /tmp/config.yaml
+   curl -sL -m 10 --retry 2 https://tgbot.lbyczf.com/surge2clash?url="$subscribe_url" -o /tmp/config.yaml >/dev/null 2>&1
 else
-   wget-ssl --no-check-certificate --quiet --timeout=10 --tries=2 "$subscribe_url" -O /tmp/config.yaml
+   curl -sL -m 10 --retry 2 "$subscribe_url" -o /tmp/config.yaml >/dev/null 2>&1
 fi
 }
 

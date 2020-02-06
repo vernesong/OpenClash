@@ -19,6 +19,8 @@ if [ "$enable" -eq 1 ]; then
 	      CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
 	      echo "${LOGTIME} Watchdog: Clash Core Problem, Restart." >> $LOG_FILE
 	      nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+	      sleep 3
+	      /usr/share/openclash/openclash_history_set.sh
 	   else
 	      echo "${LOGTIME} Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit." >> $LOG_FILE
 	      exit 0
@@ -27,6 +29,9 @@ if [ "$enable" -eq 1 ]; then
 	   CRASH_NUM=0
   fi
 fi
+
+## Porxy history
+    /usr/share/openclash/openclash_history_get.sh
 
 ## Log File Size Manage:
     LOGSIZE=`ls -l /tmp/openclash.log |awk '{print int($5/1024)}'`
