@@ -225,7 +225,7 @@ yml_check()
 yml_dns_check()
 {
 
-   if [ -z "$(grep '^dns:' $CONFIG_FILE)" ]; then
+   if [ -z "$(grep '^dns:' "$CONFIG_FILE")" ]; then
       if [ "$proxy_provider_mode" -eq 1 ]; then
       	 sed -i '/^proxy-provider:/i\dns:' "$CONFIG_FILE" 2>/dev/null
       else
@@ -233,7 +233,7 @@ yml_dns_check()
       fi
    fi
    
-   if [ -z "$(grep '^ \{0,\}nameserver:' $CONFIG_FILE)" ]; then
+   if [ -z "$(grep '^ \{0,\}nameserver:' "$CONFIG_FILE")" ]; then
       if [ "$proxy_provider_mode" -eq 1 ]; then
          sed -i '/^proxy-provider:/i\  nameserver:' "$CONFIG_FILE" 2>/dev/null
       else
@@ -244,7 +244,7 @@ yml_dns_check()
       sed -i "/^ \{0,\}nameserver:/a\  - 114.114.114.114" "$CONFIG_FILE" 2>/dev/null
    fi
 
-   dns_port=$(grep "^ \{0,\}listen:" $CONFIG_FILE |awk -F ':' '{print $3}' |awk -F '#' '{print $1}' |tr -cd "[0-9]" 2>/dev/null)
+   dns_port=$(grep "^ \{0,\}listen:" "$CONFIG_FILE" |awk -F ':' '{print $3}' |awk -F '#' '{print $1}' |tr -cd "[0-9]" 2>/dev/null)
    if [ -z "$dns_port" ] || [ "$dns_port" -eq 53 ]; then
       dns_port=7874
    fi
@@ -569,7 +569,7 @@ sed -i '/OpenClash-Game-Rules-End/d' "$RULE_FILE" 2>/dev/null
 }
 
 #合并文件
-cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_PROVIDER_FILE" "$PROXY_FILE" "$GROUP_FILE" "$RULE_FILE" > $CONFIG_FILE 2>/dev/null
+cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_PROVIDER_FILE" "$PROXY_FILE" "$GROUP_FILE" "$RULE_FILE" > "$CONFIG_FILE" 2>/dev/null
 
 #处理游戏节点与策略组
 config_load "openclash"
@@ -577,13 +577,13 @@ config_foreach yml_game_group_get "game_config"
 sed -i '/^ \{0,\}Proxy Group:/r/tmp/yaml_groups.yaml' "$CONFIG_FILE" 2>/dev/null
 sed -i '/^ \{0,\}Proxy:/d' /tmp/yaml_servers.yaml 2>/dev/null
 sed -i '/^ \{0,\}proxy-provider:/d' /tmp/yaml_provider.yaml 2>/dev/null
-if [ -z "$(grep "^ \{0,\}Proxy:" $CONFIG_FILE 2>/dev/null)" ] && [ -f "/tmp/yaml_servers.yaml" ]; then
+if [ -z "$(grep "^ \{0,\}Proxy:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -f "/tmp/yaml_servers.yaml" ]; then
    sed -i '/^ \{0,\}Proxy Group:/i\Proxy:' "$CONFIG_FILE" 2>/dev/null
    sed -i '/^ \{0,\}Proxy:/r/tmp/yaml_servers.yaml' "$CONFIG_FILE" 2>/dev/null
 elif [ -f "/tmp/yaml_servers.yaml" ]; then
    sed -i '/^ \{0,\}Proxy:/r/tmp/yaml_servers.yaml' "$CONFIG_FILE" 2>/dev/null
 fi
-if [ -z "$(grep "^ \{0,\}proxy-provider:" $CONFIG_FILE 2>/dev/null)" ] && [ -f "/tmp/yaml_provider.yaml" ]; then
+if [ -z "$(grep "^ \{0,\}proxy-provider:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -f "/tmp/yaml_provider.yaml" ]; then
    sed -i '/OpenClash-General-Settings/a\proxy-provider:' "$CONFIG_FILE" 2>/dev/null
    sed -i '/^ \{0,\}proxy-provider:/r/tmp/yaml_provider.yaml' "$CONFIG_FILE" 2>/dev/null
 elif [ -f "/tmp/yaml_servers.yaml" ]; then
@@ -616,10 +616,10 @@ if [ -z "$CONFIG_FILE" ]; then
    fi
 else
    if [ ! -f "$CONFIG_FILE" ] && [ -f "$BACKUP_FILE" ]; then
-   cp $BACKUP_FILE $CONFIG_FILE
+   cp "$BACKUP_FILE" "$CONFIG_FILE"
    fi
 fi
-CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 
 enable=$(uci get openclash.config.enable 2>/dev/null)
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
@@ -669,13 +669,13 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     intranet_allowed=$(uci get openclash.config.intranet_allowed 2>/dev/null)
     echo "第二步: 配置文件检查..." >$START_LOG
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKUP_FILE" "$START_BACKUP"
-    grep "^ \{0,\}Proxy Group:" $CONFIG_FILE >/dev/null 2>&1 && grep "^ \{0,\}Rule:" $CONFIG_FILE >/dev/null 2>&1
+    grep "^ \{0,\}Proxy Group:" "$CONFIG_FILE" >/dev/null 2>&1 && grep "^ \{0,\}Rule:" "$CONFIG_FILE" >/dev/null 2>&1
     if [ "$?" -eq "0" ]; then
-       grep "^ \{0,\}Proxy:" $CONFIG_FILE >/dev/null 2>&1 || grep "^ \{0,\}proxy-provider:" $CONFIG_FILE >/dev/null 2>&1
+       grep "^ \{0,\}Proxy:" "$CONFIG_FILE" >/dev/null 2>&1 || grep "^ \{0,\}proxy-provider:" "$CONFIG_FILE" >/dev/null 2>&1
        if [ "$?" -ne "0" ]; then
           nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
           echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请根据日志信息对照模板格式检查修改配置文件！" >$START_LOG
-          mv $START_BACKUP $CONFIG_FILE
+          mv "$START_BACKUP" "$CONFIG_FILE"
           stop
           sleep 5
           echo "" >$START_LOG
@@ -691,10 +691,10 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           wait
           yml_game_custom
           echo "第四步: DNS设置检查..." >$START_LOG
-          if [ ! -z "$(sed -n '/^ \{0,\}nameserver:/{n;p}' $CONFIG_FILE |grep '^ \{0,\}fallback:')" ] || [ ! -z "$(sed -n '/^ \{0,\}nameserver:/{n;p}' $CONFIG_FILE |grep 'OpenClash-General')" ]; then
+          if [ ! -z "$(sed -n '/^ \{0,\}nameserver:/{n;p}' "$CONFIG_FILE" |grep '^ \{0,\}fallback:')" ] || [ ! -z "$(sed -n '/^ \{0,\}nameserver:/{n;p}' "$CONFIG_FILE" |grep 'OpenClash-General')" ]; then
              echo "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已自动还原配置文件，请重新设置！" >$START_LOG
              echo "${LOGTIME} Nameserver Must Be Set, Please Change Your Configrations In Config.yaml" >>$LOG_FILE
-             mv $START_BACKUP $CONFIG_FILE
+             mv "$START_BACKUP" "$CONFIG_FILE"
              sleep 10
              echo "" >$START_LOG
           else
@@ -860,7 +860,7 @@ EOF
     else
        nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
        echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请根据日志信息对照模板格式检查修改配置文件！" >$START_LOG
-       mv $START_BACKUP $CONFIG_FILE
+       mv "$START_BACKUP" "$CONFIG_FILE"
        stop
        sleep 5
        echo "" >$START_LOG

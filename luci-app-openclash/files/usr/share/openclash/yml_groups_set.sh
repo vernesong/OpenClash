@@ -10,9 +10,9 @@ CONFIG_GROUP_FILE="/tmp/yaml_group.yaml"
 CFG_FILE="/etc/config/openclash"
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
-CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
-UPDATE_CONFIG_NAME=$(echo $UPDATE_CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
@@ -21,7 +21,7 @@ fi
 
 if [ -z "$CONFIG_FILE" ]; then
 	CONFIG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
-	CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+	CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 fi
 
 if [ -z "$CONFIG_NAME" ]; then
@@ -167,9 +167,9 @@ yml_groups_set()
    
    #名字变化时处理规则部分
    if [ "$name" != "$old_name" ] && [ ! -z "$old_name" ]; then
-      sed -i "s/,${old_name}/,${name}#d/g" $CONFIG_FILE 2>/dev/null
-      sed -i "s/:${old_name}$/:${name}#d/g" $CONFIG_FILE 2>/dev/null #修改第三方规则分组对应标签
-      sed -i "s/\'${old_name}\'/\'${name}\'/g" $CFG_FILE 2>/dev/null
+      sed -i "s/,${old_name}/,${name}#d/g" "$CONFIG_FILE" 2>/dev/null
+      sed -i "s/:${old_name}$/:${name}#d/g" "$CONFIG_FILE" 2>/dev/null #修改第三方规则分组对应标签
+      sed -i "s/\'${old_name}\'/\'${name}\'/g" "$CFG_FILE" 2>/dev/null
       config_load "openclash"
    fi
    
@@ -223,7 +223,7 @@ if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ ! -z "$if_g
       fi
       config_load "openclash"
       config_foreach yml_groups_set "groups"
-      sed -i "s/#d//g" $CONFIG_FILE 2>/dev/null
+      sed -i "s/#d//g" "$CONFIG_FILE" 2>/dev/null
       echo "配置文件【$CONFIG_NAME】的策略组写入完成！" >$START_LOG
    fi
 fi

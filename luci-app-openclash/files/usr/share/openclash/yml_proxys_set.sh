@@ -10,9 +10,9 @@ PROXY_PROVIDER_FILE="/tmp/yaml_provider.yaml"
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 config_auto_update=$(uci get openclash.config.auto_update 2>/dev/null)
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
-CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
-UPDATE_CONFIG_NAME=$(echo $UPDATE_CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
@@ -21,7 +21,7 @@ fi
 
 if [ -z "$CONFIG_FILE" ]; then
 	CONFIG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
-	CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+	CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 fi
 
 if [ -z "$CONFIG_NAME" ]; then
