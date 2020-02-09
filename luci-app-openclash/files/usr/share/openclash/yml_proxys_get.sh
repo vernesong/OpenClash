@@ -4,9 +4,9 @@ status=$(ps|grep -c /usr/share/openclash/yml_proxys_get.sh)
 
 START_LOG="/tmp/openclash_start.log"
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
-CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
-UPDATE_CONFIG_NAME=$(echo $UPDATE_CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
@@ -15,7 +15,7 @@ fi
 
 if [ -z "$CONFIG_FILE" ]; then
 	CONFIG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
-	CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+	CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 fi
 
 if [ -z "$CONFIG_NAME" ]; then
@@ -23,12 +23,12 @@ if [ -z "$CONFIG_NAME" ]; then
    CONFIG_NAME="config.yaml"
 fi
 
-BACKUP_FILE="/etc/openclash/backup/$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)"
+BACKUP_FILE="/etc/openclash/backup/$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)"
 
-if [ ! -s $CONFIG_FILE ] && [ ! -s $BACKUP_FILE ]; then
+if [ ! -s "$CONFIG_FILE" ] && [ ! -s "$BACKUP_FILE" ]; then
    exit 0
-elif [ ! -s $CONFIG_FILE ] && [ -s $BACKUP_FILE ]; then
-   mv $BACKUP_FILE $CONFIG_FILE
+elif [ ! -s "$CONFIG_FILE" ] && [ -s "$BACKUP_FILE" ]; then
+   mv "$BACKUP_FILE" "$CONFIG_FILE"
 fi
 
 #判断各个区位置
