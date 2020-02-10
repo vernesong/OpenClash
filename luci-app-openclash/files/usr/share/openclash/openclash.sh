@@ -145,7 +145,7 @@ sub_info_get()
 
    config_download
 
-   if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')" -ne 0 ]; then
+   if [ "$?" -eq "0" ] && [ -s "/tmp/config.yaml" ]; then
       config_su_check
    else
       if pidof clash >/dev/null; then
@@ -166,7 +166,7 @@ sub_info_get()
 
          config_download
       
-         if [ "$?" -eq "0" ] && [ "$(ls -l /tmp/config.yaml |awk '{print int($5/1024)}')" -ne 0 ]; then
+         if [ "$?" -eq "0" ] && [ -s "/tmp/config.yaml" ]; then
             config_su_check
          else
             change_dns

@@ -605,8 +605,6 @@ proxy_router()
    echo "ipset=/.google.com.hk/router" >> /tmp/openclash_pr_list.conf
    echo "server=/.google.com.jp/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
    echo "ipset=/.google.com.jp/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.clash.to/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.clash.to/router" >> /tmp/openclash_pr_list.conf
    echo "server=/.github.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
    echo "ipset=/.github.com/router" >> /tmp/openclash_pr_list.conf
    echo "server=/.github.io/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
