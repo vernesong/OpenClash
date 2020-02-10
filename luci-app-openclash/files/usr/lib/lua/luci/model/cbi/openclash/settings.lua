@@ -330,7 +330,7 @@ o.title = translate("Dashboard Port")
 o.default = 9090
 o.datatype = "port"
 o.rmempty = false
-o.description = translate("Dashboard Address Example:").." "..font_green..bold_on..lan_ip.."/openclash、"..lan_ip..':'..cn_port..'/ui'..bold_off..font_off
+o.description = translate("Dashboard Address Example:").." "..font_green..bold_on..lan_ip.."/luci-static/openclash、"..lan_ip..':'..cn_port..'/ui'..bold_off..font_off
 
 o = s:taboption("dashboard", Value, "dashboard_password")
 o.title = translate("Dashboard Secret")

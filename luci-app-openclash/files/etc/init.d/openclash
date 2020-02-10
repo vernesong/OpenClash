@@ -707,7 +707,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              rm -rf /tmp/yaml_* 2>/dev/null
 
              echo "第七步: 设置控制面板..." >$START_LOG
-             ln -s /usr/share/openclash/yacd /www/openclash 2>/dev/null
+             ln -s /usr/share/openclash/yacd /www/luci-static/openclash 2>/dev/null
        
              echo "第八步: 设置 OpenClash 防火墙规则..." >$START_LOG
              if [ -z "$(uci get firewall.openclash 2>/dev/null)" ] || [ -z "$(uci get ucitrack.@openclash[-1].init 2>/dev/null)" ]; then
@@ -938,7 +938,7 @@ stop()
     enable=$(uci get openclash.config.enable 2>/dev/null)
     if [ "$enable" -eq 0 ]; then
        rm -rf $LOG_FILE 2>/dev/null
-       rm -rf /www/openclash 2>/dev/null
+       rm -rf /www/luci-static/openclash 2>/dev/null
        rm -rf /tmp/openclash_last_version 2>/dev/null
        rm -rf /tmp/clash_last_version 2>/dev/null
        rm -rf /tmp/Proxy_Group 2>/dev/null
