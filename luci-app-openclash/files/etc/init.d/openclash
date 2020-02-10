@@ -799,16 +799,15 @@ EOF
              /etc/init.d/dnsmasq restart >/dev/null 2>&1
              if pidof clash >/dev/null; then
                 echo "第十步: 添加 OpenClash 计划任务,启动进程守护程序..." >$START_LOG
+                /usr/share/openclash/openclash_history_set.sh
                 add_cron
                 if [ -z "$(uci get dhcp.lan.dhcpv6 2>/dev/null)" ]; then
                    echo "OpenClash 启动成功，请等待服务器上线！" >$START_LOG
                    echo "${LOGTIME} OpenClash Start Successful" >> $LOG_FILE
-                   /usr/share/openclash/openclash_history_set.sh
                    sleep 5
                 else
                    echo "OpenClash 启动成功，检测到您启用了IPV6的DHCP服务，可能会造成连接异常！" >$START_LOG
                    echo "${LOGTIME} OpenClash Start Successful, Please Note That Network May Abnormal With IPV6's DHCP Server" >> $LOG_FILE
-                   /usr/share/openclash/openclash_history_set.sh
                    sleep 10
                 fi
                 echo "" >$START_LOG
@@ -824,16 +823,15 @@ EOF
                    nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
                    sleep 3
                    if pidof clash >/dev/null; then
+                   	  /usr/share/openclash/openclash_history_set.sh
                       add_cron
                       if [ -z "$(uci get dhcp.lan.dhcpv6 2>/dev/null)" ]; then
                          echo "OpenClash 使用备份规则启动成功，请更新、检查变动的规则后重试！" >$START_LOG
                          echo "${LOGTIME} OpenClash Start Successful With Backup Rules Config, Please Check Or Update Other Rules And Retry" >> $LOG_FILE
-                         /usr/share/openclash/openclash_history_set.sh
                          sleep 10
                       else
                          echo "OpenClash 使用备份规则启动成功，请更新、检查变动的规则后重试！" >$START_LOG
                          echo "${LOGTIME} OpenClash Start Successful With Backup Rules Config, Please Check Or Update Other Rules And Retry" >> $LOG_FILE
-                         /usr/share/openclash/openclash_history_set.sh
                          sleep 5
                          echo "检测到您启用了IPV6的DHCP服务，可能会造成连接异常！" >$START_LOG
                          echo "${LOGTIME} OpenClash Start Successful, Please Note That Network May Abnormal With IPV6's DHCP Server" >> $LOG_FILE
@@ -885,8 +883,8 @@ stop()
 {
     echo "OpenClash 开始关闭..." >$START_LOG
     echo "第一步: 备份当前节点状态..." >$START_LOG
-    /usr/share/openclash/openclash_history_get.sh
-    
+    /usr/share/openclash/openclash_history_get.sh &
+    wait
     echo "第二步: 删除 OpenClash 防火墙规则..." >$START_LOG
     rm -rf /var/etc/openclash.include 2>/dev/null
 #ipv4
