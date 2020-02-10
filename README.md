@@ -55,7 +55,7 @@
 * jsonfilter
 * ca-certificates
 * kmod-tun(TUN模式)
-* luci-compat(Luci-19.X)
+* luci-compat(Luci-19.07)
 
 
 编译
