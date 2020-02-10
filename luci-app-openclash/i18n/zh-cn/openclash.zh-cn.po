@@ -107,8 +107,8 @@ msgstr "Redir-Host（游戏）模式【依赖kmod-tun】"
 msgid "fake-ip-vpn(game mode)"
 msgstr "Fake-IP（游戏）模式【依赖kmod-tun】"
 
-msgid "Select Mode For OpenClash Work, Network Error Try Flush DNS Cache"
-msgstr "选择运行模式，在兼容模式下无法代理路由器自身流量，如客户端的网络无法连接请尝试清除DNS缓存"
+msgid "Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error"
+msgstr "选择运行模式，如客户端的网络异常请尝试清除DNS缓存"
 
 msgid "Proxy Mode"
 msgstr "*代理模式"
