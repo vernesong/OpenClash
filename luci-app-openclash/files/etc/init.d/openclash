@@ -591,6 +591,39 @@ elif [ -f "/tmp/yaml_servers.yaml" ]; then
 fi
 }
 
+proxy_router()
+{
+   ipset -! create router nethash && ipset flush router
+   rm -rf /tmp/openclash_pr_list.conf >/dev/null 2>&1
+   # github and some other site need to go proxy with redir-host mode
+   echo "#for router itself" >> /tmp/openclash_pr_list.conf
+   echo "server=/.google.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.google.com/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.google.com.tw/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.google.com.tw/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.google.com.hk/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.google.com.hk/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.google.com.jp/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.google.com.jp/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.clash.to/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.clash.to/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.github.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.github.com/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.github.io/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.github.io/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.raw.githubusercontent.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.raw.githubusercontent.com/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.s3.amazonaws.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.s3.amazonaws.com/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.openwrt.org/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.openwrt.org/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.s3-ap-northeast-1.amazonaws.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.s3-ap-northeast-1.amazonaws.com/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.s3-ap-southeast-2.amazonaws.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.s3-ap-southeast-2.amazonaws.com/router" >> /tmp/openclash_pr_list.conf
+   mv /tmp/openclash_pr_list.conf /tmp/dnsmasq.d/openclash_pr_list.conf
+}
+
 start()
 {
 #禁止多个实例
@@ -732,6 +765,7 @@ mkdir -p /var/etc
 cat > "/var/etc/openclash.include" <<-EOF
 /etc/init.d/openclash restart
 EOF
+             
              if [ -z "$en_mode_tun" ]; then
                 iptables -t nat -N openclash
                 iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
@@ -745,15 +779,24 @@ EOF
                 if [ ! -z "$wan_ip4" ]; then
                 	iptables -t nat -A openclash -d "$wan_ip4" -j RETURN
                 fi
+                
                 iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
                 iptables -t nat -A PREROUTING -p tcp -j openclash
-                iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+                
+                if [ "$en_mode" = "redir-host" ]; then
+                   proxy_router
+                   iptables -t nat -A OUTPUT -p tcp -m set --match-set router dst -j REDIRECT --to-ports "$proxy_port" >/dev/null 2>&1
+                else
+                   iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+                fi
 
-          
                 if [ "$ipv6_enable" -eq 1 ]; then
                    ip6tables -t nat -N openclash
                    ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
                    ip6tables -t nat -A PREROUTING -p tcp -j openclash
+                   if [ "$en_mode" = "redir-host" ]; then
+                      ip6tables -t nat -A OUTPUT -p tcp -m set --match-set router dst -j REDIRECT --to-ports "$proxy_port" >/dev/null 2>&1
+                   fi
                 fi
              else
              #TUN模式
@@ -765,7 +808,7 @@ EOF
                 ipset add localnetwork 224.0.0.0/4
                 ipset add localnetwork 240.0.0.0/4
                 ipset add localnetwork 172.16.0.0/12
-                ipset add localnetwork "$wan_ip4"
+                ipset add localnetwork "$wan_ip4" 
              #启动TUN
              if [ "$en_mode_tun" = "2" ]; then
                 ip tuntap add user root mode tun clash0
@@ -778,13 +821,21 @@ EOF
              #设置防火墙
                 iptables -t mangle -N openclash
                 iptables -t mangle -F openclash
-                iptables -t mangle -A openclash -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
+                if [ "$en_mode" = "redir-host" ]; then
+                   proxy_router
+                   iptables -t mangle -A openclash -p tcp -m set --match-set router dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
+                else
+                   iptables -t mangle -A openclash -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
+                fi
                 iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
                 iptables -t mangle -I OUTPUT -j openclash
                 iptables -t mangle -I PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
              #ipv6
                 if [ "$ipv6_enable" -eq 1 ]; then
                    ip6tables -t mangle -I PREROUTING -j MARK --set-mark "$PROXY_FWMARK"
+                   if [ "$en_mode" = "redir-host" ]; then
+                   	   ip6tables -t mangle -A OUTPUT -p tcp -m set --match-set router dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
+                   fi
                 fi
              fi
 
@@ -887,6 +938,8 @@ stop()
     wait
     echo "第二步: 删除 OpenClash 防火墙规则..." >$START_LOG
     rm -rf /var/etc/openclash.include 2>/dev/null
+    ipset -F router >/dev/null 2>&1 && ipset -X router >/dev/null 2>&1
+    rm -rf /tmp/dnsmasq.d/openclash_pr_list.conf
 #ipv4
     iptables -t nat -F openclash >/dev/null 2>&1
     iptables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
@@ -896,11 +949,21 @@ stop()
     for out_line in $out_lines; do
         iptables -t nat -D OUTPUT "$out_line" >/dev/null 2>&1
     done
+    
+    out_lines=$(iptables -nvL OUTPUT -t nat |sed 1,2d |sed -n '/router/=' 2>/dev/null |sort -rn)
+    for out_line in $out_lines; do
+        iptables -t nat -D OUTPUT "$out_line" >/dev/null 2>&1
+    done
 
 #ipv6
     ip6tables -t nat -F openclash >/dev/null 2>&1
     ip6tables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
     ip6tables -t nat -X openclash >/dev/null 2>&1
+    
+    out_lines=$(ip6tables -nvL OUTPUT -t nat |sed 1,2d |sed -n '/router/=' 2>/dev/null |sort -rn)
+    for out_line in $out_lines; do
+        ip6tables -t nat -D OUTPUT "$out_line" >/dev/null 2>&1
+    done
     
 #TUN
     ip link set dev clash0 down >/dev/null 2>&1
@@ -912,6 +975,7 @@ stop()
     iptables -t mangle -D OUTPUT -j openclash >/dev/null 2>&1
     iptables -t mangle -D PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
     ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
+    ip6tables -t mangle -D OUTPUT -p tcp -m set --match-set router dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
     iptables -t mangle -F openclash >/dev/null 2>&1
     iptables -t mangle -X openclash >/dev/null 2>&1
     ipset destroy localnetwork >/dev/null 2>&1
