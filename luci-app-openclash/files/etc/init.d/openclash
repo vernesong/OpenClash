@@ -156,10 +156,35 @@ yml_check()
 	    	sed -i "/^ \{1,\}dns:/c\dns:" "$3"
 	 }
 	 
-   #处理provider位置
+   #位置检查
    proxy_len=$(sed -n '/^Proxy:/=' "$3" 2>/dev/null)
    group_len=$(sed -n '/^ \{0,\}Proxy Group:/=' "$3" 2>/dev/null)
    provider_len=$(sed -n '/^proxy-provider:/=' "$3" 2>/dev/null)
+   dns_len=$(sed -n '/^ \{0,\}dns:/=' "$3" 2>/dev/null)
+   rule_len=$(sed -n '/^Rule:/=' "$3" 2>/dev/null)
+   
+   if [ "$dns_len" -ge "$proxy_len" ] || [ "$dns_len" -ge "$rule_len" ] || [ "$dns_len" -ge "$group_len" ]; then
+   	  echo "错误: 不支持的配置文件， General 设置部分应位于开头，请根据模板修改后重试！" > $START_LOG
+   	  echo "${LOGTIME} Unsupported Config, Please Check The General Setting's location And Try-again!" >> $LOG_FILE
+      mv "$START_BACKUP" "$CONFIG_FILE"
+      exit 0
+   fi
+   	
+   if [ "$proxy_len" -ge "$rule_len" ] || [ "$provider_len" -ge "$rule_len" ]; then
+   	  echo "错误: 不支持的配置文件，服务器节点设置部分应位于规则之前，请根据模板修改后重试！" > $START_LOG
+   	  echo "${LOGTIME} Unsupported Config, Please Check The Proxy Setting's location And Try-again!" >> $LOG_FILE
+      mv "$START_BACKUP" "$CONFIG_FILE"
+      exit 0
+   fi
+   
+   if [ "$group_len" -ge "$rule_len" ] || [ "$proxy_len" -ge "$group_len" ]; then
+   	  echo "错误: 不支持的配置文件，策略组设置部分应位于规则之前、节点之后，请根据模板修改后重试！" > $START_LOG
+   	  echo "${LOGTIME} Unsupported Config, Please Check The Group Setting's location And Try-again!" >> $LOG_FILE
+      mv "$START_BACKUP" "$CONFIG_FILE"
+      exit 0
+   fi
+   
+   #处理provider位置
    if [ ! -z "$provider_len" ]; then
       if [ "$provider_len" -ge "$proxy_len" ] && [ "$provider_len" -le "$group_len" ]; then
          awk '/^proxy-provider:/,/^Proxy Group:/{print}' "$3" | sed '/^Proxy Group:/d' >/tmp/backprovider.yaml 2>/dev/null
@@ -609,8 +634,12 @@ proxy_router()
    echo "ipset=/.github.com/router" >> /tmp/openclash_pr_list.conf
    echo "server=/.github.io/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
    echo "ipset=/.github.io/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.raw.githubusercontent.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.raw.githubusercontent.com/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.githubusercontent.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.githubusercontent.com/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.shields.io/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.shields.io/router" >> /tmp/openclash_pr_list.conf
+   echo "server=/.shields.io/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
+   echo "ipset=/.shields.io/router" >> /tmp/openclash_pr_list.conf
    echo "server=/.s3.amazonaws.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
    echo "ipset=/.s3.amazonaws.com/router" >> /tmp/openclash_pr_list.conf
    echo "server=/.openwrt.org/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
