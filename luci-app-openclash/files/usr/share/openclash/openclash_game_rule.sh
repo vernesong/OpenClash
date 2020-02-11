@@ -12,7 +12,7 @@
    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
    LOG_FILE="/tmp/openclash.log"
    echo "开始下载【$RULE_FILE_NAME】规则..." >$START_LOG
-   curl -sL -m 10 --retry 2 https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+   curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
    if [ "$?" -eq "0" ] && [ "$(ls -l $TMP_RULE_DIR |awk '{print $5}')" -ne 0 ]; then
       echo "【$RULE_FILE_NAME】规则下载成功，检查规则版本是否更新..." >$START_LOG
       cmp -s $TMP_RULE_DIR $RULE_FILE_DIR
