@@ -56,6 +56,9 @@ dns:  # 如订阅配置无包括此项的所有DNS设置，OpenClash将自动添
   listen: 0.0.0.0:53 # 端口为53时将被接管为7874
   enhanced-mode: redir-host # or fake-ip # 此项将被接管
   fake-ip-range: 198.18.0.1/16 # if you don't know what it is, don't change it # 此项将被接管
+#  fake-ip-filter: # fake ip white domain list
+#  - '*.lan'
+#  - localhost.ptlogin2.qq.com
   nameserver:
   - 114.114.114.114
   - https://1.1.1.1/dns-query # dns over https
@@ -69,7 +72,25 @@ dns:  # 如订阅配置无包括此项的所有DNS设置，OpenClash将自动添
 # 以上设置您可直接覆盖到配置文件,无需更改
 # Openclash 不会对下方服务器设置进行任何更改，请确保设置正确
 
-Proxy: # 此参数必须保留,不能删除
+proxy-provider: # 代理集设置，此部分与Proxy两者不能同时删除
+  pro:
+    type: http
+    path: ./proxy_provider/pro.yaml
+    url: https://xxx
+    interval: 3600
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
+  iplc:
+    type: file
+    path: ./proxy_provider/iplc.yaml
+    health-check:
+      enable: true
+      url: http://www.gstatic.com/generate_204
+      interval: 300
+      
+Proxy: # 节点设置，此部分与proxy-provider两者不能同时删除
 
 # shadowsocks
 # The supported ciphers(encrypt methods):
