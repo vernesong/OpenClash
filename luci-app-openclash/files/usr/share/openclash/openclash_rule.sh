@@ -6,13 +6,13 @@
    rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
    echo "开始下载使用中的第三方规则..." >$START_LOG
       if [ "$rule_source" = "lhie1" ]; then
-         curl -sL -m 10 --retry 2 https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yml -o /tmp/rules.yaml >/dev/null 2>&1
+         curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yml -o /tmp/rules.yaml >/dev/null 2>&1
          sed -i '1i Rule:' /tmp/rules.yaml
       elif [ "$rule_source" = "ConnersHua" ]; then
-         curl -sL -m 10 --retry 2 https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/Pro.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/Pro.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          sed -i -n '/^Rule:/,$p' /tmp/rules.yaml
       elif [ "$rule_source" = "ConnersHua_return" ]; then
-         curl -sL -m 10 --retry 2 https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/BacktoCN.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/BacktoCN.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          sed -i -n '/^Rule:/,$p' /tmp/rules.yaml
       fi
    if [ "$?" -eq "0" ] && [ "$rule_source" != 0 ] && [ -s "/tmp/rules.yaml" ]; then
