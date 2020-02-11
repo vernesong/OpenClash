@@ -88,6 +88,16 @@ if HTTP.formvalue("upload") then
 	end
 end
 
+local function i(e)
+local t=0
+local a={' KB',' MB',' GB',' TB'}
+repeat
+e=e/1024
+t=t+1
+until(e<=1024)
+return string.format("%.1f",e)..a[t]
+end
+
 local e,a={}
 for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
 a=fs.stat(o)
@@ -101,7 +111,7 @@ if string.sub(luci.sys.exec("uci get openclash.config.config_path"), 23, -2) == 
 else
    e[t].state=translate("Disable")
 end
-e[t].size=tostring(a.size)
+e[t].size=i(a.size)
 e[t].remove=0
 e[t].enable=false
 end
@@ -197,7 +207,7 @@ if r then
 p[x]={}
 p[x].name=fs.basename(y)
 p[x].mtime=os.date("%Y-%m-%d %H:%M:%S",r.mtime)
-p[x].size=tostring(r.size)
+p[x].size=i(r.size)
 p[x].remove=0
 p[x].enable=false
 end
@@ -271,7 +281,7 @@ local dconf = "/etc/openclash/default.yaml"
 sev = s:option(Value, "user")
 sev.template = "cbi/tvalue"
 sev.description = translate("You Can Modify config file Here, Except The Settings That Were Taken Over")
-sev.rows = 20
+sev.rows = 40
 sev.wrap = "off"
 sev.cfgvalue = function(self, section)
 	return NXFS.readfile(conf) or NXFS.readfile(dconf) or ""
@@ -286,7 +296,7 @@ end
 def = s:option(Value, "default")
 def.template = "cbi/tvalue"
 def.description = translate("Default Config File With Correct General-Settings")
-def.rows = 20
+def.rows = 40
 def.wrap = "off"
 def.readonly = true
 def.cfgvalue = function(self, section)
