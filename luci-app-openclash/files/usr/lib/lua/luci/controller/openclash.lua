@@ -22,10 +22,11 @@ function index()
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Severs and Groups"), 40).leaf = true
 	entry({"admin", "services", "openclash", "game-settings"},cbi("openclash/game-settings"),_("Game Rules and Groups"), 50).leaf = true
+	entry({"admin", "services", "openclash", "game-rules-manage"},form("openclash/game-rules-manage"), nil).leaf = true
 	entry({"admin", "services", "openclash", "config-subscribe"},cbi("openclash/config-subscribe"),_("Config Update"), 60).leaf = true
-  entry({"admin", "services", "openclash", "servers-config"},cbi("openclash/servers-config"), nil).leaf = true
-  entry({"admin", "services", "openclash", "groups-config"},cbi("openclash/groups-config"), nil).leaf = true
-  entry({"admin", "services", "openclash", "proxy-provider-config"},cbi("openclash/proxy-provider-config"), nil).leaf = true
+	entry({"admin", "services", "openclash", "servers-config"},cbi("openclash/servers-config"), nil).leaf = true
+	entry({"admin", "services", "openclash", "groups-config"},cbi("openclash/groups-config"), nil).leaf = true
+	entry({"admin", "services", "openclash", "proxy-provider-config"},cbi("openclash/proxy-provider-config"), nil).leaf = true
 	entry({"admin", "services", "openclash", "config"},form("openclash/config"),_("Server Config"), 70).leaf = true
 	entry({"admin", "services", "openclash", "log"},form("openclash/log"),_("Logs"), 80).leaf = true
 
@@ -52,41 +53,6 @@ end
 
 local function is_watchdog()
 	return luci.sys.exec("ps |grep openclash_watchdog.sh |grep -v grep 2>/dev/null |sed -n 1p")
-end
-
-local function config_check()
-  local yaml = fs.isfile(CONFIG_FILE)
-  local proxy,group,rule
-  if yaml then
-  	 proxy_provier = luci.sys.call(string.format('egrep "^ {0,}proxy-provider:" "%s" >/dev/null 2>&1',CONFIG_FILE))
-     proxy = luci.sys.call(string.format('egrep "^ {0,}Proxy:" "%s" >/dev/null 2>&1',CONFIG_FILE))
-     group = luci.sys.call(string.format('egrep "^ {0,}Proxy Group:" "%s" >/dev/null 2>&1',CONFIG_FILE))
-     rule = luci.sys.call(string.format('egrep "^ {0,}Rule:" "%s" >/dev/null 2>&1',CONFIG_FILE))
-  end
-  if yaml then
-     if (proxy == 0) then
-        proxy = ""
-     else
-        if (proxy_provier == 0) then
-           proxy = ""
-        else
-           proxy = " - 代理服务器"
-        end
-     end
-     if (group == 0) then
-        group = ""
-     else
-        group = " - 策略组"
-     end
-     if (rule == 0) then
-        rule = ""
-     else
-        rule = " - 规则"
-     end
-	   return proxy..group..rule
-	elseif (yaml ~= 0) then
-	   return "1"
-	end
 end
 
 local function cn_port()
@@ -158,12 +124,14 @@ local function corecv()
 if not nixio.fs.access("/etc/openclash/clash") then
   return "0"
 else
-	return luci.sys.exec("/etc/openclash/clash -v 2>/dev/null 2>/dev/null |awk -F ' ' '{print $2}'")
+	return luci.sys.exec("/etc/openclash/clash -v 2>/dev/null |awk -F ' ' '{print $2}'")
 end
 end
 
 local function corelv()
-	return luci.sys.exec("sh /usr/share/openclash/clash_version.sh && sed -n 1p /tmp/clash_last_version 2>/dev/null")
+	local new = luci.sys.exec("sh /usr/share/openclash/clash_version.sh")
+	local core_lv = luci.sys.exec("sed -n 1p /tmp/clash_last_version 2>/dev/null")
+	return core_lv..","..new
 end
 
 local function opcv()
@@ -204,12 +172,8 @@ end
 function download_rule()
 	local filename = luci.http.formvalue("filename")
 	local rule_file_dir="/etc/openclash/game_rules/" .. filename
-  luci.sys.call(string.format('/usr/share/openclash/openclash_game_rule.sh "%s" >/dev/null 2>&1',filename))
-	if not fs.isfile(rule_file_dir) then
-		return "0"
-	else
-		return "1"
-	end
+  local state = luci.sys.call(string.format('/usr/share/openclash/openclash_game_rule.sh "%s" >/dev/null 2>&1',filename))
+  return state
 end
 
 function action_status()
@@ -227,7 +191,6 @@ end
 function action_state()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		config_check = config_check(),
 		config = config(),
 		lhie1 = lhie1(),
 		ConnersHua = ConnersHua(),

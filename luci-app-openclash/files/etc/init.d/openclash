@@ -4,7 +4,6 @@
 START=99
 STOP=15
 
-
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
@@ -155,7 +154,7 @@ yml_check()
 	 [ ! -z "$(grep "^ \{1,\}dns:" "$3")" ] && {
 	    	sed -i "/^ \{1,\}dns:/c\dns:" "$3"
 	 }
-	 
+
    #位置检查
    proxy_len=$(sed -n '/^Proxy:/=' "$3" 2>/dev/null)
    group_len=$(sed -n '/^ \{0,\}Proxy Group:/=' "$3" 2>/dev/null)
@@ -168,22 +167,22 @@ yml_check()
    	  echo "${LOGTIME} Unsupported Config, Please Check The General Setting's location And Try-again!" >> $LOG_FILE
       mv "$START_BACKUP" "$CONFIG_FILE"
       exit 0
-   fi
+   fi 2>/dev/null
    	
    if [ "$proxy_len" -ge "$rule_len" ] || [ "$provider_len" -ge "$rule_len" ]; then
    	  echo "错误: 不支持的配置文件，服务器节点设置部分应位于规则之前，请根据模板修改后重试！" > $START_LOG
    	  echo "${LOGTIME} Unsupported Config, Please Check The Proxy Setting's location And Try-again!" >> $LOG_FILE
       mv "$START_BACKUP" "$CONFIG_FILE"
       exit 0
-   fi
+   fi 2>/dev/null
    
    if [ "$group_len" -ge "$rule_len" ] || [ "$proxy_len" -ge "$group_len" ]; then
    	  echo "错误: 不支持的配置文件，策略组设置部分应位于规则之前、节点之后，请根据模板修改后重试！" > $START_LOG
    	  echo "${LOGTIME} Unsupported Config, Please Check The Group Setting's location And Try-again!" >> $LOG_FILE
       mv "$START_BACKUP" "$CONFIG_FILE"
       exit 0
-   fi
-   
+   fi 2>/dev/null
+
    #处理provider位置
    if [ ! -z "$provider_len" ]; then
       if [ "$provider_len" -ge "$proxy_len" ] && [ "$provider_len" -le "$group_len" ]; then
@@ -206,7 +205,7 @@ yml_check()
          sed -i '/^proxy-provider:/d' /tmp/backprovider.yaml 2>/dev/null
          sed -i '/proxy-provider:/r/tmp/backprovider.yaml' "$3" 2>/dev/null
          rm -rf /tmp/backprovider.yaml 2>/dev/null
-      fi
+      fi 2>/dev/null
    fi
    
    
@@ -616,41 +615,6 @@ elif [ -f "/tmp/yaml_servers.yaml" ]; then
 fi
 }
 
-proxy_router()
-{
-   ipset -! create router nethash && ipset flush router
-   rm -rf /tmp/openclash_pr_list.conf >/dev/null 2>&1
-   # github and some other site need to go proxy with redir-host mode
-   echo "#for router itself" >> /tmp/openclash_pr_list.conf
-   echo "server=/.google.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.google.com/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.google.com.tw/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.google.com.tw/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.google.com.hk/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.google.com.hk/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.google.com.jp/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.google.com.jp/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.github.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.github.com/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.github.io/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.github.io/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.githubusercontent.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.githubusercontent.com/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.shields.io/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.shields.io/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.shields.io/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.shields.io/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.s3.amazonaws.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.s3.amazonaws.com/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.openwrt.org/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.openwrt.org/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.s3-ap-northeast-1.amazonaws.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.s3-ap-northeast-1.amazonaws.com/router" >> /tmp/openclash_pr_list.conf
-   echo "server=/.s3-ap-southeast-2.amazonaws.com/127.0.0.1#$dns_port" >> /tmp/openclash_pr_list.conf
-   echo "ipset=/.s3-ap-southeast-2.amazonaws.com/router" >> /tmp/openclash_pr_list.conf
-   mv /tmp/openclash_pr_list.conf /tmp/dnsmasq.d/openclash_pr_list.conf
-}
-
 start()
 {
 #禁止多个实例
@@ -727,13 +691,14 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     log_level=$(uci get openclash.config.log_level 2>/dev/null)
     proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
     intranet_allowed=$(uci get openclash.config.intranet_allowed 2>/dev/null)
+
     echo "第二步: 配置文件检查..." >$START_LOG
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKUP_FILE" "$START_BACKUP"
     grep "^ \{0,\}Proxy Group:" "$CONFIG_FILE" >/dev/null 2>&1 && grep "^ \{0,\}Rule:" "$CONFIG_FILE" >/dev/null 2>&1
     if [ "$?" -eq "0" ]; then
        grep "^ \{0,\}Proxy:" "$CONFIG_FILE" >/dev/null 2>&1 || grep "^ \{0,\}proxy-provider:" "$CONFIG_FILE" >/dev/null 2>&1
        if [ "$?" -ne "0" ]; then
-          nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+          nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
           echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请根据日志信息对照模板格式检查修改配置文件！" >$START_LOG
           mv "$START_BACKUP" "$CONFIG_FILE"
           stop
@@ -746,8 +711,8 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           yml_auth_custom "$CONFIG_FILE"
           yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE" "$PROXY_PROVIDER_FILE" "$GROUP_FILE"
           yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
-          sh /usr/share/openclash/yml_change.sh "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" &
-          sh /usr/share/openclash/yml_rules_change.sh "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" &
+          sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1 "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" &
+          sh /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" &
           wait
           yml_game_custom
           echo "第四步: DNS设置检查..." >$START_LOG
@@ -759,12 +724,11 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              echo "" >$START_LOG
           else
              echo "第五步: 启动 Clash 主程序..." >$START_LOG
-             nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+             nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
              
              #检测proxy_provider配置文件状态
              echo "第六步: 等待主程序下载代理集..." >$START_LOG
              yml_proxy_provider_check "$PROXY_PROVIDER_FILE"
-             rm -rf /tmp/yaml_* 2>/dev/null
 
              echo "第七步: 设置控制面板..." >$START_LOG
              ln -s /usr/share/openclash/yacd /www/luci-static/openclash 2>/dev/null
@@ -809,11 +773,7 @@ EOF
                 
                 iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
                 iptables -t nat -A PREROUTING -p tcp -j openclash
-                
-                if [ "$en_mode" = "redir-host" ]; then
-                   proxy_router
-                   iptables -t nat -A OUTPUT -p tcp -m set --match-set router dst -j REDIRECT --to-ports "$proxy_port" >/dev/null 2>&1
-                else
+                if [ "$en_mode" = "fake-ip" ]; then
                    iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
                 fi
 
@@ -821,9 +781,6 @@ EOF
                    ip6tables -t nat -N openclash
                    ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
                    ip6tables -t nat -A PREROUTING -p tcp -j openclash
-                   if [ "$en_mode" = "redir-host" ]; then
-                      ip6tables -t nat -A OUTPUT -p tcp -m set --match-set router dst -j REDIRECT --to-ports "$proxy_port" >/dev/null 2>&1
-                   fi
                 fi
              else
              #TUN模式
@@ -835,7 +792,7 @@ EOF
                 ipset add localnetwork 224.0.0.0/4
                 ipset add localnetwork 240.0.0.0/4
                 ipset add localnetwork 172.16.0.0/12
-                ipset add localnetwork "$wan_ip4" 
+                ipset add localnetwork "$wan_ip4"
              #启动TUN
              if [ "$en_mode_tun" = "2" ]; then
                 ip tuntap add user root mode tun clash0
@@ -848,21 +805,15 @@ EOF
              #设置防火墙
                 iptables -t mangle -N openclash
                 iptables -t mangle -F openclash
-                if [ "$en_mode" = "redir-host" ]; then
-                   proxy_router
-                   iptables -t mangle -A openclash -p tcp -m set --match-set router dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
-                else
+                iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
+                if [ "$en_mode" = "fake-ip" ]; then
                    iptables -t mangle -A openclash -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
                 fi
-                iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
                 iptables -t mangle -I OUTPUT -j openclash
                 iptables -t mangle -I PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
              #ipv6
                 if [ "$ipv6_enable" -eq 1 ]; then
                    ip6tables -t mangle -I PREROUTING -j MARK --set-mark "$PROXY_FWMARK"
-                   if [ "$en_mode" = "redir-host" ]; then
-                   	   ip6tables -t mangle -A OUTPUT -p tcp -m set --match-set router dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
-                   fi
                 fi
              fi
 
@@ -898,7 +849,7 @@ EOF
                    sed -i '/^Rule:/,$d' "$CONFIG_FILE"
                    cat /etc/openclash/configrules.bak >> "$CONFIG_FILE"
                    rm -rf /etc/openclash/configrules.bak
-                   nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+                   nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
                    sleep 3
                    if pidof clash >/dev/null; then
                    	  /usr/share/openclash/openclash_history_set.sh
@@ -934,7 +885,7 @@ EOF
           fi
        fi
     else
-       nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+       nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
        echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请根据日志信息对照模板格式检查修改配置文件！" >$START_LOG
        mv "$START_BACKUP" "$CONFIG_FILE"
        stop
@@ -942,6 +893,7 @@ EOF
        echo "" >$START_LOG
     fi
     rm -rf $START_BACKUP 2>/dev/null
+    rm -rf /tmp/yaml_* 2>/dev/null
 else
    subscribe_url=$(uci get openclash.config.subscribe_url 2>/dev/null)
    if [ ! -f "$CONFIG_FILE" ] && [ ! -z "$subscribe_url" ]; then
@@ -965,8 +917,7 @@ stop()
     wait
     echo "第二步: 删除 OpenClash 防火墙规则..." >$START_LOG
     rm -rf /var/etc/openclash.include 2>/dev/null
-    ipset -F router >/dev/null 2>&1 && ipset -X router >/dev/null 2>&1
-    rm -rf /tmp/dnsmasq.d/openclash_pr_list.conf
+    
 #ipv4
     iptables -t nat -F openclash >/dev/null 2>&1
     iptables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
@@ -977,20 +928,10 @@ stop()
         iptables -t nat -D OUTPUT "$out_line" >/dev/null 2>&1
     done
     
-    out_lines=$(iptables -nvL OUTPUT -t nat |sed 1,2d |sed -n '/router/=' 2>/dev/null |sort -rn)
-    for out_line in $out_lines; do
-        iptables -t nat -D OUTPUT "$out_line" >/dev/null 2>&1
-    done
-
 #ipv6
     ip6tables -t nat -F openclash >/dev/null 2>&1
     ip6tables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
     ip6tables -t nat -X openclash >/dev/null 2>&1
-    
-    out_lines=$(ip6tables -nvL OUTPUT -t nat |sed 1,2d |sed -n '/router/=' 2>/dev/null |sort -rn)
-    for out_line in $out_lines; do
-        ip6tables -t nat -D OUTPUT "$out_line" >/dev/null 2>&1
-    done
     
 #TUN
     ip link set dev clash0 down >/dev/null 2>&1
@@ -1002,7 +943,6 @@ stop()
     iptables -t mangle -D OUTPUT -j openclash >/dev/null 2>&1
     iptables -t mangle -D PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
     ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
-    ip6tables -t mangle -D OUTPUT -p tcp -m set --match-set router dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
     iptables -t mangle -F openclash >/dev/null 2>&1
     iptables -t mangle -X openclash >/dev/null 2>&1
     ipset destroy localnetwork >/dev/null 2>&1

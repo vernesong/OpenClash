@@ -18,7 +18,7 @@ if [ "$enable" -eq 1 ]; then
 		 if [ "$CRASH_NUM" -le 3 ]; then
 	      CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
 	      echo "${LOGTIME} Watchdog: Clash Core Problem, Restart." >> $LOG_FILE
-	      nohup $CLASH -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+	      nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
 	      sleep 3
 	      /usr/share/openclash/openclash_history_set.sh
 	   else

@@ -14,7 +14,7 @@ m.pageaction = false
 m.description=translate("注意事项：<br/>游戏代理为测试功能，不保证可用性。其中游戏模式使用的内核由comzyh修改 \
 <br/>项目地址：https://github.com/comzyh/clash <br/>使用步骤： \
 <br/>1、在《服务器与策略组管理》页面创建您准备使用的游戏策略组和游戏节点（节点添加时必须选择要加入的策略组），策略组类型建议:FallBack，游戏节点必须支持UDP \
-<br/>2、在此页面的游戏规则列表下载您要使用的游戏规则 \
+<br/>2、点击《游戏规则管理》按钮进入游戏规则列表下载您要使用的游戏规则 \
 <br/>3、在此页面上方设置您已下载的游戏规则的对应策略组并保存设置 \
 <br/>4、替换内核一，下载地址：https://github.com/Dreamacro/clash/releases/tag/TUN \
 <br/>或替换内核二，下载地址：https://github.com/vernesong/OpenClash/releases/tag/TUN \
@@ -38,11 +38,6 @@ function IsYmlFile(e)
    local e=string.lower(string.sub(e,-4,-1))
    return e == ".yml"
 end
-
-if not NXFS.access("/tmp/rules_name") then
-   SYS.call("awk -F ',' '{print $1}' /etc/openclash/game_rules.list > /tmp/rules_name 2>/dev/null")
-end
-file = io.open("/tmp/rules_name", "r");
 
 -- [[ Edit Game Rule ]] --
 s = m:section(TypedSection, "game_config")
@@ -104,58 +99,17 @@ o:value("DIRECT")
 o:value("REJECT")
 o.rmempty = true
 
----- Rules List
-local e={},o,t
-if NXFS.access("/tmp/rules_name") then
-for o in file:lines() do
-table.insert(e,o)
-end
-for t,o in ipairs(e) do
-e[t]={}
-e[t].num=string.format(t)
-e[t].name=o
-e[t].filename=string.sub(luci.sys.exec(string.format("grep -F '%s,' /etc/openclash/game_rules.list |awk -F ',' '{print $3}' 2>/dev/null",e[t].name)),1,-2)
-if e[t].filename == "" then
-e[t].filename=string.sub(luci.sys.exec(string.format("grep -F '%s,' /etc/openclash/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null",e[t].name)),1,-2)
-end
-RULE_FILE="/etc/openclash/game_rules/".. e[t].filename
-if fs.mtime(RULE_FILE) then
-e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",fs.mtime(RULE_FILE))
-else
-e[t].mtime="/"
-end
-if fs.isfile(RULE_FILE) then
-   e[t].exist=translate("Exist")
-else
-   e[t].exist=translate("Not Exist")
-end
-e[t].remove=0
-end
-end
-file:close()
+local rm = {
+    {rule_mg}
+}
 
-form=SimpleForm("filelist",  translate("Game Rules List"))
-form.description=translate("规则项目: SSTap-Rule ( https://github.com/FQrabbit/SSTap-Rule )<br/>")
-form.reset=false
-form.submit=false
-tb=form:section(Table,e)
-nu=tb:option(DummyValue,"num",translate("Order Number"))
-st=tb:option(DummyValue,"exist",translate("State"))
-nm=tb:option(DummyValue,"name",translate("Rule Name"))
-fm=tb:option(DummyValue,"filename",translate("File Name"))
-mt=tb:option(DummyValue,"mtime",translate("Update Time"))
+rmg = m:section(Table, rm)
 
-btnis=tb:option(DummyValue,"filename",translate("Download Rule"))
-btnis.template="openclash/download_game_rule"
-
-btnrm=tb:option(Button,"remove",translate("Remove"))
-btnrm.render=function(e,t,a)
-e.inputstyle="reset"
-Button.render(e,t,a)
-end
-btnrm.write=function(a,t)
-fs.unlink("/etc/openclash/game_rules/"..e[t].filename)
-HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-settings"))
+o = rmg:option(Button, "rule_mg")
+o.inputtitle = translate("Game Rules Manage")
+o.inputstyle = "reload"
+o.write = function()
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-manage"))
 end
 
 local t = {
@@ -181,4 +135,4 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-return m, form
+return m

@@ -1,5 +1,5 @@
-/** @license React v0.0.0-experimental-f42431abe
- * react.production.min.js
+/** @license React v0.0.0-experimental-241c4467e
+ * react-dom.production.min.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -7,8 +7,8 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-/** @license React v0.0.0-experimental-f42431abe
- * react-dom.production.min.js
+/** @license React v0.0.0-experimental-241c4467e
+ * react.production.min.js
  *
  * Copyright (c) Facebook, Inc. and its affiliates.
  *

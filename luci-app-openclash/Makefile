@@ -98,6 +98,9 @@ fi
 mkdir -p /lib/upgrade/keep.d >/dev/null 2>&1
 cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
 /etc/openclash/custom/
+/etc/openclash/config/
+/etc/openclash/game_rules/
+/etc/openclash/proxy_provider/
 EOF
 uci set openclash.config.enable=0 >/dev/null 2>&1
 uci commit openclash >/dev/null 2>&1
