@@ -288,7 +288,7 @@ if not conf_name then conf_name = "config.yaml" end
 
 sev = s:option(Value, "user")
 sev.template = "cbi/tvalue"
-sev.description = translate("Modify Your Config file: ")..font_green..bold_on..conf_name..bold_off..font_off..translate(" Here, Except The Settings That Were Taken Over")
+sev.description = translate("Modify Your Config file:").." "..font_green..bold_on..conf_name..bold_off..font_off.." "..translate("Here, Except The Settings That Were Taken Over")
 sev.rows = 40
 sev.wrap = "off"
 sev.cfgvalue = function(self, section)
