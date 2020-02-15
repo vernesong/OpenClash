@@ -30,6 +30,7 @@ if [ "$2" != 0 ]; then
     Netease_Music=$(grep '##Netease_Music:' "$4" |awk -F ':' '{print $2}')
     Speedtest=$(grep '##Speedtest:' "$4" |awk -F ':' '{print $2}')
     Telegram=$(grep '##Telegram:' "$4" |awk -F ':' '{print $2}')
+
     if [ "$2" = "ConnersHua_return" ]; then
 	if [ "$(uci get openclash.config.Proxy)" != "$Proxy" ]\
 	 || [ "$(uci get openclash.config.Others)" != "$Others" ];then
@@ -60,7 +61,7 @@ if [ "$2" != 0 ]; then
        fi
     fi
     }
-	  
+
        if [ "$check_def" -eq 1 ]; then
        GlobalTV=$(uci get openclash.config.GlobalTV 2>/dev/null)
        AsianTV=$(uci get openclash.config.AsianTV 2>/dev/null)
@@ -118,14 +119,25 @@ elif [ "$2" = 0 ]; then
       fi
     	}
 fi
-      
+
       sed -i '/^##Custom Rules/,/^##Custom Rules End/d' "$4" 2>/dev/null
       sed -i '/^##Custom Rules/d' "$4" 2>/dev/null
       sed -i '/^##Custom Rules End/d' "$4" 2>/dev/null
-      [ "$3" = 1 ] && {
-      sed -i '/^Rule:/a\##Custom Rules End##' "$4" 2>/dev/null
-      sed -i '/^Rule:/a\##Custom Rules##' "$4" 2>/dev/null
-      sed -i '/^##Custom Rules##/r/etc/openclash/custom/openclash_custom_rules.list' "$4" 2>/dev/null
-      sed -i "s/^ \{0,\}-/-/" "$4" 2>/dev/null #修改参数空格
-      sed -i "s/^\t\{0,\}-/-/" "$4" 2>/dev/null #修改参数tab
-      }
+      if [ "$3" = 1 ]; then
+         sed -i '/^Rule:/a\##Custom Rules End##' "$4" 2>/dev/null
+         sed -i '/^Rule:/a\##Custom Rules##' "$4" 2>/dev/null
+         sed -i '/^##Custom Rules##/r/etc/openclash/custom/openclash_custom_rules.list' "$4" 2>/dev/null
+      fi
+      
+      if [ "$5" = 1 ] || [ "$3" = 1 ] || [ -z "$(grep '- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
+         sed -i "s/^ \{0,\}-/-/" "$4" 2>/dev/null #修改参数空格
+         sed -i "s/^\t\{0,\}-/-/" "$4" 2>/dev/null #修改参数tab
+      fi
+      
+      if [ -z "$(grep '- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ] && [ "$6" = "fake-ip" ]; then
+         if [ ! -z "$(grep "^ \{0,\}- IP-CIDR,198.18.0.1/16" "$4")" ]; then
+            sed -i "/^ \{0,\}- IP-CIDR,198.18.0.1\/16/c\- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve" "$4"
+         else
+            sed -i "/^ \{0,\}- GEOIP/i\- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve" "$4"
+         fi
+      fi

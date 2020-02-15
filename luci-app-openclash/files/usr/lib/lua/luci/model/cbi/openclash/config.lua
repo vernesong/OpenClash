@@ -8,6 +8,11 @@ local fs = require "luci.openclash"
 local uci = require("luci.model.uci").cursor()
 local CHIF = "0"
 
+font_green = [[<font color="green">]]
+font_off = [[</font>]]
+bold_on  = [[<strong>]]
+bold_off = [[</strong>]]
+
 function IsYamlFile(e)
    e=e or""
    local e=string.lower(string.sub(e,-5,-1))
@@ -133,6 +138,7 @@ form.reset=false
 form.submit=false
 tb=form:section(Table,e)
 st=tb:option(DummyValue,"state",translate("State"))
+st.template="openclash/cfg_check"
 nm=tb:option(DummyValue,"name",translate("Config Alias"))
 mt=tb:option(DummyValue,"mtime",translate("Update Time"))
 sz=tb:option(DummyValue,"size",translate("Size"))
@@ -277,10 +283,12 @@ s = m:section(Table, tab)
 
 local conf = string.sub(luci.sys.exec("uci get openclash.config.config_path"), 1, -2)
 local dconf = "/etc/openclash/default.yaml"
+local conf_name = fs.basename(conf)
+if not conf_name then conf_name = "config.yaml" end
 
 sev = s:option(Value, "user")
 sev.template = "cbi/tvalue"
-sev.description = translate("You Can Modify config file Here, Except The Settings That Were Taken Over")
+sev.description = translate("Modify Your Config file: ")..font_green..bold_on..conf_name..bold_off..font_off..translate(" Here, Except The Settings That Were Taken Over")
 sev.rows = 40
 sev.wrap = "off"
 sev.cfgvalue = function(self, section)
@@ -289,7 +297,7 @@ end
 sev.write = function(self, section, value)
 if (CHIF == "0") then
     value = value:gsub("\r\n?", "\n")
-		NXFS.writefile(conf, value)
+    NXFS.writefile(conf, value)
 end
 end
 

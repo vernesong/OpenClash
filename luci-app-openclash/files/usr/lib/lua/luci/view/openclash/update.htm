@@ -56,11 +56,15 @@
       else {
          core_cv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
       }
-			if ( status.corelv != "" && status.corelv != status.corecv && status.corecv != "" && status.corecv != "0" && status.corelv != "\n" ) {
-			   core_lv.innerHTML = "<b><font color=green>"+status.corelv+"<%:<New>%></font></b>";
+      var corelv = status.corelv;
+      var arr_core = corelv.split(",");
+      var corelvis = arr_core[0];
+      var new_ch = arr_core[1];
+			if ( corelvis != "" && new_ch == "2" && status.corecv != "" && status.corecv != "0" && corelvis != "\n" ) {
+			   core_lv.innerHTML = "<b><font color=green>"+corelvis+"<%:<New>%></font></b>";
 			}
-			else if (status.corelv != "" && status.corelv != "\n" ) {
-			   core_lv.innerHTML = "<b><font color=green>"+status.corelv+"</font></b>";
+			else if (corelvis != "" && corelvis != "\n" ) {
+			   core_lv.innerHTML = "<b><font color=green>"+corelvis+"</font></b>";
 			}
 			else {
 			   core_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
@@ -103,11 +107,15 @@
       else {
          core_cv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
       }
-			if ( status.corelv != "" && status.corelv != status.corecv && status.corecv != "" && status.corecv != "0" && status.corelv != "\n" ) {
-			   core_lv.innerHTML = "<b><font color=green>"+status.corelv+"<%:<New>%></font></b>";
+      var corelv = status.corelv;
+      var arr_core = corelv.split(",");
+      var corelvis = arr_core[0];
+      var new_ch = arr_core[1];
+			if ( corelvis != "" && new_ch == "2" && status.corecv != "" && status.corecv != "0" && corelvis != "\n" ) {
+			   core_lv.innerHTML = "<b><font color=green>"+corelvis+"<%:<New>%></font></b>";
 			}
-			else if (status.corelv != "" && status.corelv != "\n" ) {
-			   core_lv.innerHTML = "<b><font color=green>"+status.corelv+"</font></b>";
+			else if (corelvis != "" && corelvis != "\n" ) {
+			   core_lv.innerHTML = "<b><font color=green>"+corelvis+"</font></b>";
 			}
 			else {
 			   core_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
