@@ -37,28 +37,28 @@ function config_check(CONFIG_FILE)
   end
   if yaml then
      if (proxy == 0) then
-        proxy = 0
+        proxy = ""
      else
         if (proxy_provier == 0) then
-           proxy = 0
+           proxy = ""
         else
            proxy = " - 代理服务器"
         end
      end
      if (group == 0) then
-        group = 0
+        group = ""
      else
         group = " - 策略组"
      end
      if (rule == 0) then
-        rule = 0
+        rule = ""
      else
         rule = " - 规则"
      end
-     if proxy and group and rule then
+     if (proxy=="") and (group=="") and (rule=="") then
         return "Config Normal"
      else
-	      return proxy..group..rule.."部分异常"
+	      return proxy..group..rule.." - 部分异常"
 	   end
 	elseif (yaml ~= 0) then
 	   return "配置文件不存在"
