@@ -129,7 +129,7 @@ end
 end
 
 local function corelv()
-	local new = luci.sys.exec("sh /usr/share/openclash/clash_version.sh")
+	local new = luci.sys.call(string.format("sh /usr/share/openclash/clash_version.sh"))
 	local core_lv = luci.sys.exec("sed -n 1p /tmp/clash_last_version 2>/dev/null")
 	return core_lv..","..new
 end
