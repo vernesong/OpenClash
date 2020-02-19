@@ -274,6 +274,18 @@ msgstr "更新订阅配置"
 msgid "Update time (every day)"
 msgstr "更新时间(每天)"
 
+msgid "Update Interval(min)"
+msgstr "更新间隔(分钟)"
+
+msgid "Update Mode"
+msgstr "更新模式"
+
+msgid "Appointment Mode"
+msgstr "预约"
+
+msgid "Loop Mode"
+msgstr "循环"
+
 msgid "Auto Update"
 msgstr "自动更新"
 

@@ -2,6 +2,8 @@
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 LOG_FILE="/tmp/openclash.log"
+PROXY_FWMARK="0x162"
+PROXY_ROUTE_TABLE="0x162"
 enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
 dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
 disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
@@ -20,6 +22,8 @@ if [ "$enable" -eq 1 ]; then
 	      echo "${LOGTIME} Watchdog: Clash Core Problem, Restart." >> $LOG_FILE
 	      nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
 	      sleep 3
+	      ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
+	      ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	      /usr/share/openclash/openclash_history_set.sh
 	   else
 	      echo "${LOGTIME} Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit." >> $LOG_FILE

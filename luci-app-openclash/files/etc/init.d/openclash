@@ -26,7 +26,10 @@ PROXY_ROUTE_TABLE="0x162"
 add_cron()
 {
   [ -z "$(grep "openclash.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-     [ "$(uci get openclash.config.auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.auto_update_time 2>/dev/null) * * $(uci get openclash.config.config_update_week_time 2>/dev/null) /usr/share/openclash/openclash.sh" >> $CRON_FILE
+     [ "$(uci get openclash.config.auto_update 2>/dev/null)" -eq 1 ] && [ "$(uci get openclash.config.config_auto_update_mode 2>/dev/null)" -ne 1 ] && echo "0 $(uci get openclash.config.auto_update_time 2>/dev/null) * * $(uci get openclash.config.config_update_week_time 2>/dev/null) /usr/share/openclash/openclash.sh" >> $CRON_FILE
+  }
+  [ -z "$(grep "openclash.sh" "$CRON_FILE" 2>/dev/null)" ] && {
+     [ "$(uci get openclash.config.auto_update 2>/dev/null)" -eq 1 ] && [ "$(uci get openclash.config.config_auto_update_mode 2>/dev/null)" -eq 1 ] && echo "*/$(uci get openclash.config.config_update_interval 2>/dev/null) * * * * /usr/share/openclash/openclash.sh" >> $CRON_FILE
   }
   [ -z "$(grep "openclash_rule.sh" "$CRON_FILE" 2>/dev/null)" ] && {
   [ "$(uci get openclash.config.other_rule_auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.other_rule_update_day_time 2>/dev/null) * * $(uci get openclash.config.other_rule_update_week_time 2>/dev/null) /usr/share/openclash/openclash_rule.sh" >> $CRON_FILE
@@ -621,7 +624,7 @@ start()
 status=$(ps|grep -c /etc/init.d/openclash)
 [ "$status" -gt "3" ] && exit 0
 
-if [ -z "$CONFIG_FILE" ]; then
+if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
    CONFIG_NAME=$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')
    if [ ! -z "$CONFIG_NAME" ]; then
       uci set openclash.config.config_path="/etc/openclash/config/$CONFIG_NAME"
@@ -799,6 +802,12 @@ EOF
                 ip link set clash0 up
                 ip route replace default dev clash0 table "$PROXY_ROUTE_TABLE"
              elif [ "$en_mode_tun" = "1" ]; then
+             	  TUN_WAIT=0
+             	  while ( [ ! -z "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 3 ] )
+             	  do
+             	  	 TUN_WAIT=$(expr "$TUN_WAIT" + 1)
+                   sleep 2
+                done
                 ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
              fi
                 ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
@@ -839,6 +848,7 @@ EOF
                    echo "${LOGTIME} OpenClash Start Successful, Please Note That Network May Abnormal With IPV6's DHCP Server" >> $LOG_FILE
                    sleep 10
                 fi
+                echo "OpenClash Already Start"
                 echo "" >$START_LOG
              else
                 if [ "$rule_source" != 0 ] || [ "$enable_custom_clash_rules" != 0 ]; then
@@ -866,6 +876,7 @@ EOF
                          echo "${LOGTIME} OpenClash Start Successful, Please Note That Network May Abnormal With IPV6's DHCP Server" >> $LOG_FILE
                          sleep 10
                       fi
+                      echo "OpenClash Already Start"
                       echo "" >$START_LOG
                    else
                       echo "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！" >$START_LOG
