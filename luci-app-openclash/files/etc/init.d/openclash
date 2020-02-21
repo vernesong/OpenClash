@@ -438,6 +438,8 @@ yml_dns_custom()
    if [ ! -z "$(grep '^ \{0,\}fallback:' $2)" ]; then
       if [ -z "$(grep '^ \{0,\}fallback-filter:' $2)" ]; then
          awk '/^ {0,}fallback:/,/OpenClash-General-Settings/{print}' "$2" |sed '1d' |sed '$d' >/tmp/fallback.cache 2>/dev/null
+         sed -i '/cfw-bypass:/,$d' /tmp/fallback.cache 2>/dev/null
+         sed -i '/cfw-latency-timeout:/,$d' /tmp/fallback.cache 2>/dev/null
          sed -i '/fallback:/,$d' "$2" 2>/dev/null
          echo "  fallback:" >>"$2"
          sed -i '/  fallback:/a\      - 240.0.0.0/4' "$2" 2>/dev/null
