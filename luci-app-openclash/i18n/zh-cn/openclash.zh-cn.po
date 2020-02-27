@@ -237,7 +237,7 @@ msgstr ""
 msgid "Rules Setting"
 msgstr "规则设置（访问控制）"
 
-msgid "Server Config"
+msgid "Config Manage"
 msgstr "配置文件管理"
 
 msgid "Upload File Type"

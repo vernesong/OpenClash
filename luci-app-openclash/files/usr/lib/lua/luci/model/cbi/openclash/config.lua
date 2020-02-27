@@ -24,7 +24,7 @@ function IsYmlFile(e)
    return e == ".yml"
 end
     
-ful = SimpleForm("upload", translate("Server Config"), nil)
+ful = SimpleForm("upload", translate("Config Manage"), nil)
 ful.reset = false
 ful.submit = false
 
