@@ -113,6 +113,11 @@ make package/luci-app-openclash/luci-app-openclash/compile V=99
 请作者喝杯咖啡
 ---
 
+* PayPal
+<p align="left">
+    <a href="https://ko-fi.com/vernesong"><img width="300" src="https://www.ko-fi.com/img/githubbutton_sm.svg"> </a>
+</p>
+
 * 比特币-BTC
 <p align="left">
     <img width="300" src="https://github.com/vernesong/OpenClash/raw/master/img/BTC-Wallet.png">
