@@ -26,13 +26,14 @@ define Package/$(PKG_NAME)/postinst
 endef
 
 define Build/Prepare
+	$(CP) $(CURDIR)/files $(PKG_BUILD_DIR)
 	$(foreach po,$(wildcard ${CURDIR}/i18n/zh-cn/*.po), \
 		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
-	chmod 0755 ${CURDIR}/files/etc/init.d/openclash
-	chmod -R 0755 ${CURDIR}/files/usr/share/openclash/
-	mkdir -p ${CURDIR}/files/etc/openclash/config >/dev/null 2>&1
-	mkdir -p ${CURDIR}/files/etc/openclash/proxy_provider >/dev/null 2>&1
-	mkdir -p ${CURDIR}/files/etc/openclash/backup >/dev/null 2>&1
+	chmod 0755 $(PKG_BUILD_DIR)/files/etc/init.d/openclash
+	chmod -R 0755 $(PKG_BUILD_DIR)/files/usr/share/openclash/
+	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/config >/dev/null 2>&1
+	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/proxy_provider >/dev/null 2>&1
+	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/backup >/dev/null 2>&1
 endef
 
 define Build/Configure
@@ -157,7 +158,7 @@ endef
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/*.*.lmo $(1)/usr/lib/lua/luci/i18n/
-	$(CP) ./files/* $(1)/
+	$(CP) $(PKG_BUILD_DIR)/files/* $(1)/
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
