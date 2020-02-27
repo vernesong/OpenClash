@@ -21,7 +21,7 @@ elif [ "$URL_TYPE" == "surge" ]; then
    subscribe_url=`echo $subscribe_url |sed 's/{/%7B/g;s/}/%7D/g;s/:/%3A/g;s/\"/%22/g;s/,/%2C/g;s/?/%3F/g;s/=/%3D/g;s/&/%26/g;s/\//%2F/g'`
    curl -sL --connect-timeout 10 --retry 2 https://tgbot.lbyczf.com/surge2clash?url="$subscribe_url" -o /tmp/config.yaml >/dev/null 2>&1
 else
-   curl -sL --connect-timeout 10 --retry 2 "$subscribe_url" -o /tmp/config.yaml >/dev/null 2>&1
+   curl -sL --connect-timeout 10 --retry 2 --user-agent "clash" "$subscribe_url" -o /tmp/config.yaml >/dev/null 2>&1
 fi
 }
 
