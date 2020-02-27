@@ -27,7 +27,7 @@ function index()
 	entry({"admin", "services", "openclash", "servers-config"},cbi("openclash/servers-config"), nil).leaf = true
 	entry({"admin", "services", "openclash", "groups-config"},cbi("openclash/groups-config"), nil).leaf = true
 	entry({"admin", "services", "openclash", "proxy-provider-config"},cbi("openclash/proxy-provider-config"), nil).leaf = true
-	entry({"admin", "services", "openclash", "config"},form("openclash/config"),_("Server Config"), 70).leaf = true
+	entry({"admin", "services", "openclash", "config"},form("openclash/config"),_("Config Manage"), 70).leaf = true
 	entry({"admin", "services", "openclash", "log"},form("openclash/log"),_("Logs"), 80).leaf = true
 
 end
