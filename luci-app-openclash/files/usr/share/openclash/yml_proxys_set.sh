@@ -474,6 +474,48 @@ cat >> "$SERVER_FILE" <<-EOF
   proxies:
   - DIRECT
   - Proxy
+- name: Netflix
+  type: select
+  proxies:
+  - GlobalTV
+  - DIRECT
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+if [ -f "/tmp/Proxy_Provider" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  use:
+EOF
+fi
+cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
+- name: Spotify
+  type: select
+  proxies:
+  - GlobalTV
+  - DIRECT
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+if [ -f "/tmp/Proxy_Provider" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  use:
+EOF
+fi
+cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
+- name: Steam
+  type: select
+  proxies:
+  - Proxy
+  - DIRECT
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+if [ -f "/tmp/Proxy_Provider" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  use:
+EOF
+fi
+cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
 - name: AdBlock
   type: select
   proxies:
@@ -554,6 +596,9 @@ uci set openclash.config.GlobalTV="GlobalTV"
 uci set openclash.config.AsianTV="AsianTV"
 uci set openclash.config.Proxy="Proxy"
 uci set openclash.config.Apple="Apple"
+uci set openclash.config.Netflix="Netflix"
+uci set openclash.config.Spotify="Spotify"
+uci set openclash.config.Steam="Steam"
 uci set openclash.config.AdBlock="AdBlock"
 uci set openclash.config.Netease_Music="Netease Music"
 uci set openclash.config.Speedtest="Speedtest"
@@ -567,6 +612,9 @@ uci set openclash.config.Others="Others"
 	uci add_list openclash.config.new_servers_group="Proxy"
  	uci add_list openclash.config.new_servers_group="AsianTV"
 	uci add_list openclash.config.new_servers_group="GlobalTV"
+	uci add_list openclash.config.new_servers_group="Netflix"
+	uci add_list openclash.config.new_servers_group="Spotify"
+	uci add_list openclash.config.new_servers_group="Steam"
 	uci add_list openclash.config.new_servers_group="Telegram"
 	uci add_list openclash.config.new_servers_group="Speedtest"
 	uci add_list openclash.config.new_servers_group="Netease Music"

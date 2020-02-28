@@ -24,6 +24,9 @@ if [ "$2" != 0 ]; then
     AsianTV=$(grep '##AsianTV:' "$4" |awk -F ':' '{print $2}')
     Proxy=$(grep '##Proxy:' "$4" |awk -F ':' '{print $2}')
     Apple=$(grep '##Apple:' "$4" |awk -F ':' '{print $2}')
+    Netflix=$(grep '##Netflix:' "$4" |awk -F ':' '{print $2}')
+    Spotify=$(grep '##Spotify:' "$4" |awk -F ':' '{print $2}')
+    Steam=$(grep '##Steam:' "$4" |awk -F ':' '{print $2}')
     AdBlock=$(grep '##AdBlock:' "$4" |awk -F ':' '{print $2}')
     Others=$(grep '##Others:' "$4" |awk -F ':' '{print $2}')
     Domestic=$(grep '##Domestic:' "$4" |awk -F ':' '{print $2}')
@@ -51,6 +54,9 @@ if [ "$2" != 0 ]; then
 	 || [ "$(uci get openclash.config.AsianTV)" != "$AsianTV" ]\
 	 || [ "$(uci get openclash.config.Proxy)" != "$Proxy" ]\
 	 || [ "$(uci get openclash.config.Apple)" != "$Apple" ]\
+	 || [ "$(uci get openclash.config.Netflix)" != "$Netflix" ]\
+	 || [ "$(uci get openclash.config.Spotify)" != "$Spotify" ]\
+	 || [ "$(uci get openclash.config.Steam)" != "$Steam" ]\
 	 || [ "$(uci get openclash.config.AdBlock)" != "$AdBlock" ]\
 	 || [ "$(uci get openclash.config.Netease_Music)" != "$Netease_Music" ]\
 	 || [ "$(uci get openclash.config.Speedtest)" != "$Speedtest" ]\
@@ -67,6 +73,9 @@ if [ "$2" != 0 ]; then
        AsianTV=$(uci get openclash.config.AsianTV 2>/dev/null)
        Proxy=$(uci get openclash.config.Proxy 2>/dev/null)
        Apple=$(uci get openclash.config.Apple 2>/dev/null)
+       Netflix=$(uci get openclash.config.Netflix 2>/dev/null)
+       Spotify=$(uci get openclash.config.Spotify 2>/dev/null)
+       Steam=$(uci get openclash.config.Steam 2>/dev/null)
        AdBlock=$(uci get openclash.config.AdBlock 2>/dev/null)
        Netease_Music=$(uci get openclash.config.Netease_Music 2>/dev/null)
        Speedtest=$(uci get openclash.config.Speedtest 2>/dev/null)
@@ -80,6 +89,9 @@ if [ "$2" != 0 ]; then
             -e "s/,AsianTV/,${AsianTV}#d/g" -e "/Rule:/a\##AsianTV:${AsianTV}"\
             -e "s/,Proxy/,${Proxy}#d/g" -e "/Rule:/a\##Proxy:${Proxy}"\
             -e "s/,Apple/,${Apple}#d/g" -e "/Rule:/a\##Apple:${Apple}"\
+            -e "s/,Netflix/,${Netflix}#d/g" -e "/Rule:/a\##Netflix:${Netflix}"\
+            -e "s/,Spotify/,${Spotify}#d/g" -e "/Rule:/a\##Spotify:${Spotify}"\
+            -e "s/,Steam/,${Steam}#d/g" -e "/Rule:/a\##Steam:${Steam}"\
             -e "s/,AdBlock/,${AdBlock}#d/g" -e "/Rule:/a\##AdBlock:${AdBlock}"\
             -e "s/,Netease Music/,${Netease_Music}#d/g" -e "/Rule:/a\##Netease_Music:${Netease_Music}"\
             -e "s/,Speedtest/,${Speedtest}#d/g" -e "/Rule:/a\##Speedtest:${Speedtest}"\
