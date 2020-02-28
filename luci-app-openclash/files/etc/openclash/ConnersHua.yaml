@@ -1288,6 +1288,8 @@ Rule:
 - DOMAIN-SUFFIX,wiley.com,DIRECT
 - DOMAIN-SUFFIX,worldbank.org,DIRECT
 - DOMAIN-SUFFIX,worldscientific.com,DIRECT
+# > Plex Media Server
+- DOMAIN-SUFFIX,plex.tv,DIRECT
 # > Other
 - DOMAIN-SUFFIX,cn,DIRECT
 - DOMAIN-SUFFIX,360in.com,DIRECT
