@@ -156,8 +156,7 @@
        sed -i "/^dns:/i\tun:" "$7"
        sed -i "/^dns:/i\  enable: true" "$7"
        sed -i "/^dns:/i\  device-url: dev://clash0" "$7"
-       dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
-       sed -i "/^dns:/i\  dns-listen: 0.0.0.0:${dns_port}" "$7"
+       sed -i "/^dns:/i\  dns-listen: 0.0.0.0:53" "$7"
     fi
 
 #添加自定义Hosts设置
