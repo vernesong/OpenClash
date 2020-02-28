@@ -412,6 +412,15 @@ msgstr "必须代理的流量"
 msgid "Apple"
 msgstr "苹果服务流量"
 
+msgid "Netflix"
+msgstr "Netflix流量"
+
+msgid "Spotify"
+msgstr "Spotify流量"
+
+msgid "Steam"
+msgstr "Steam流量（非下载流量）"
+
 msgid "Netease Music"
 msgstr "网易云音乐流量"
 
