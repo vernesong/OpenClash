@@ -27,10 +27,10 @@ if [ "$enable" -eq 1 ]; then
 	         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	      elif [ "$en_mode" = "redir-host-vpn" ] || [ "$en_mode" = "fake-ip-vpn" ]; then
-	         ip tuntap add user root mode tun clash0
-           ip link set clash0 up
-           ip route replace default dev clash0 table "$PROXY_ROUTE_TABLE"
-           ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+	         ip tuntap add user root mode tun clash0 2>/dev/null
+           ip link set clash0 up 2>/dev/null
+           ip route replace default dev clash0 table "$PROXY_ROUTE_TABLE" 2>/dev/null
+           ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	      fi
 	      /usr/share/openclash/openclash_history_set.sh
 	   else
