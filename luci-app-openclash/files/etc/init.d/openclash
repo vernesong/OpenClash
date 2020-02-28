@@ -761,7 +761,7 @@ mkdir -p /var/etc
 cat > "/var/etc/openclash.include" <<-EOF
 /etc/init.d/openclash restart
 EOF
-             
+             iptables -t nat -I PREROUTING -p tcp --dport 53 -j ACCEPT
              if [ -z "$en_mode_tun" ]; then
                 iptables -t nat -N openclash
                 iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
@@ -829,7 +829,7 @@ EOF
              fi
 
              echo "第九步: 重启 Dnsmasq 程序..." >$START_LOG
-             if [ "$(iptables -t nat -nL PREROUTING --line-number |grep dpt:53 |wc -l)" -gt 2 ]; then
+             if [ "$(iptables -t nat -nL PREROUTING --line-number |grep "udp dpt:53" |wc -l)" -gt 1 ]; then
                 echo "发现53端口被劫持，如连接异常请将OpenClash设置为劫持53端口程序的上游DNS服务器！" >$START_LOG
                 echo "${LOGTIME} Warring: OpenClash May Can Not Take Over DNS, Please Use OpenClash for Upstream DNS Resolve Server" >> $LOG_FILE
                 sleep 5
@@ -954,6 +954,7 @@ stop()
     ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 
     iptables -t mangle -D OUTPUT -j openclash >/dev/null 2>&1
+    iptables -t nat -D PREROUTING -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1
     iptables -t mangle -D PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
     ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
     iptables -t mangle -F openclash >/dev/null 2>&1
