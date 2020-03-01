@@ -13,7 +13,7 @@ proxy_addr="127.0.0.1"
 
 if [ "$(sed -n 1p /etc/openclash/openclash_version 2>/dev/null)" != "$(sed -n 1p $LAST_OPVER 2>/dev/null)" ] && [ -f "$LAST_OPVER" ]; then
    echo "开始下载 OpenClash-$LAST_VER ..." >$START_LOG
-   if [$(pidof clash|sed 's/$//g') -ne "0"]; then
+   if [ ! -z "$(pidof clash|sed 's/$//g')" ]; then
       curl -sL --connect-timeout 10 --retry 5 -x http://$proxy_addr:$http_port https://github.com/vernesong/OpenClash/releases/download/v"$LAST_VER"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
    else
       curl -sL --connect-timeout 10 --retry 5 https://github.com/vernesong/OpenClash/releases/download/v"$LAST_VER"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
