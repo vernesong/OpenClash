@@ -13,7 +13,7 @@ proxy_addr="127.0.0.1"
 if [ "$(/etc/openclash/clash -v 2>/dev/null |awk -F ' ' '{print $2}')" != "$(sed -n 1p /tmp/clash_last_version 2>/dev/null)" ] || [ -z "$(/etc/openclash/clash -v 2>/dev/null |awk -F ' ' '{print $2}')" ] || [ ! -f /etc/openclash/clash ]; then
    if [ "$CPU_MODEL" != 0 ]; then
    echo "开始下载 OpenClash 内核..." >$START_LOG
-   if [$(pidof clash|sed 's/$//g') -ne "0"]; then
+   if [ ! -z "$(pidof clash|sed 's/$//g')" ]; then
       curl -sL --connect-timeout 10 --retry 2 -x http://$proxy_addr:$http_port https://github.com/vernesong/OpenClash/releases/download/Clash/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
    else
       curl -sL --connect-timeout 10 --retry 2 https://github.com/vernesong/OpenClash/releases/download/Clash/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
