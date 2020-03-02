@@ -72,11 +72,11 @@ change_dns() {
 revert_dns() {
    uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$3" >/dev/null 2>&1
    [ "$1" = "1" ] && {
-      uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
-      uci set dhcp.@dnsmasq[0].noresolv=0
+      uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto >/dev/null 2>&1
+      uci set dhcp.@dnsmasq[0].noresolv=0 >/dev/null 2>&1
    }
    [ "$2" = "1" ] && {
-      uci delete dhcp.@dnsmasq[0].cachesize
+      uci delete dhcp.@dnsmasq[0].cachesize >/dev/null 2>&1
    }
    uci commit dhcp
    rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
@@ -327,7 +327,6 @@ if [ -z "$(pidof clash)" ] && [ "$proxy_provider_mode" = 1 ]; then
    echo "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！" >$START_LOG
    echo "${LOGTIME} OpenClash Can Not Start, Please Check The Error Info And Try Again" >> $LOG_FILE
    sleep 10
-   echo "" >$START_LOG
    stop && echo "" >$START_LOG
    exit 0
 fi
