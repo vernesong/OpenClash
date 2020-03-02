@@ -117,11 +117,13 @@
 
 	  function ycad_dashboard(btn)
     {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', status.cn_port, function(x, status) {
         btn.disabled = true;
         btn.value    = '<%:打开控制面板%>';
-        url1='<%="http://'+window.location.hostname+'/luci-static/openclash"%>';
+        url1='<%="http://'+window.location.hostname+'/luci-static/openclash?hostname='+ status.daip + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
         window.open(url1);
         return false;
+        });
     }
     function net_dashboard(btn)
     {
