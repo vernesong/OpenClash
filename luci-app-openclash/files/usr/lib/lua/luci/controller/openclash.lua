@@ -269,3 +269,4 @@ function action_download_rule()
 	luci.http.write_json({
 		game_rule_download_status = download_rule();
 	})
+end
