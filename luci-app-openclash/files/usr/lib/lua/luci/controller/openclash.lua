@@ -88,7 +88,7 @@ local function ConnersHua_return()
 end
 
 local function daip()
-	return luci.sys.exec("uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
+        return luci.sys.exec("ifstatus lan 2>/dev/null |jsonfilter -e '@[\"ipv4-address\"][0].address' 2>/dev/null")
 end
 
 local function dase()
@@ -269,4 +269,3 @@ function action_download_rule()
 	luci.http.write_json({
 		game_rule_download_status = download_rule();
 	})
-end
