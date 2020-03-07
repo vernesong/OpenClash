@@ -8,13 +8,13 @@ LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 LOG_FILE="/tmp/openclash.log"
 LAST_OPVER="/tmp/openclash_last_version"
 LAST_VER=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |sed "s/^v//g")
-http_port=$(uci get openclash.config.http_port 2>/dev/null)
-proxy_addr="127.0.0.1"
+HTTP_PORT=$(uci get openclash.config.http_port 2>/dev/null)
+PROXY_ADDR="127.0.0.1"
 
 if [ "$(sed -n 1p /etc/openclash/openclash_version 2>/dev/null)" != "$(sed -n 1p $LAST_OPVER 2>/dev/null)" ] && [ -f "$LAST_OPVER" ]; then
    echo "开始下载 OpenClash-$LAST_VER ..." >$START_LOG
-   if [ ! -z "$(pidof clash|sed 's/$//g')" ]; then
-      curl -sL --connect-timeout 10 --retry 5 -x http://$proxy_addr:$http_port https://github.com/vernesong/OpenClash/releases/download/v"$LAST_VER"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
+   if pidof clash >/dev/null; then
+      curl -sL --connect-timeout 10 --retry 5 -x http://$PROXY_ADDR:$HTTP_PORT https://github.com/vernesong/OpenClash/releases/download/v"$LAST_VER"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
    else
       curl -sL --connect-timeout 10 --retry 5 https://github.com/vernesong/OpenClash/releases/download/v"$LAST_VER"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
    fi
