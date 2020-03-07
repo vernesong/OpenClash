@@ -10,7 +10,13 @@
    TMP_RULE_DIR="/tmp/$RULE_FILE_NAME"
    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
    LOG_FILE="/tmp/openclash.log"
-   curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+   HTTP_PORT=$(uci get openclash.config.http_port 2>/dev/null)
+   PROXY_ADDR="127.0.0.1"
+   if pidof clash >/dev/null; then
+   	  curl -sL --connect-timeout 10 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+   else
+      curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+   fi
    if [ "$?" -eq "0" ] && [ "$(ls -l $TMP_RULE_DIR |awk '{print $5}')" -ne 0 ]; then
       cmp -s $TMP_RULE_DIR $RULE_FILE_DIR
          if [ "$?" -ne "0" ]; then
