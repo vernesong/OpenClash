@@ -23,6 +23,45 @@ function IsYmlFile(e)
    local e=string.lower(string.sub(e,-4,-1))
    return e == ".yml"
 end
+
+function config_check(CONFIG_FILE)
+  local yaml = fs.isfile(CONFIG_FILE)
+  local proxy,group,rule
+  if yaml then
+  	 proxy_provier = luci.sys.call(string.format('egrep "^ {0,}proxy-provider:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+     proxy = luci.sys.call(string.format('egrep "^ {0,}Proxy:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+     group = luci.sys.call(string.format('egrep "^ {0,}Proxy Group:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+     rule = luci.sys.call(string.format('egrep "^ {0,}Rule:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+  end
+  if yaml then
+     if (proxy == 0) then
+        proxy = ""
+     else
+        if (proxy_provier == 0) then
+           proxy = ""
+        else
+           proxy = " - 代理服务器"
+        end
+     end
+     if (group == 0) then
+        group = ""
+     else
+        group = " - 策略组"
+     end
+     if (rule == 0) then
+        rule = ""
+     else
+        rule = " - 规则"
+     end
+     if (proxy=="") and (group=="") and (rule=="") then
+        return "Config Normal"
+     else
+	      return proxy..group..rule.." - 部分异常"
+	   end
+	elseif (yaml ~= 0) then
+	   return "配置文件不存在"
+	end
+end
     
 ful = SimpleForm("upload", translate("Config Manage"), nil)
 ful.reset = false
@@ -110,6 +149,7 @@ if a then
 e[t]={}
 e[t].name=fs.basename(o)
 BACKUP_FILE="/etc/openclash/backup/".. e[t].name
+CONFIG_FILE="/etc/openclash/config/".. e[t].name
 e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",fs.mtime(BACKUP_FILE)) or os.date("%Y-%m-%d %H:%M:%S",a.mtime)
 if string.sub(luci.sys.exec("uci get openclash.config.config_path"), 23, -2) == e[t].name then
    e[t].state=translate("Enable")
@@ -117,20 +157,9 @@ else
    e[t].state=translate("Disable")
 end
 e[t].size=i(a.size)
+e[t].check=translate(config_check(CONFIG_FILE))
 e[t].remove=0
-e[t].enable=false
 end
-end
-
-function IsYamlFile(e)
-   e=e or""
-   local e=string.lower(string.sub(e,-5,-1))
-   return e == ".yaml"
-end
-function IsYmlFile(e)
-   e=e or""
-   local e=string.lower(string.sub(e,-4,-1))
-   return e == ".yml"
 end
     
 form=SimpleForm("config_file_list",translate("Config File List"))
@@ -142,6 +171,8 @@ st.template="openclash/cfg_check"
 nm=tb:option(DummyValue,"name",translate("Config Alias"))
 mt=tb:option(DummyValue,"mtime",translate("Update Time"))
 sz=tb:option(DummyValue,"size",translate("Size"))
+ck=tb:option(DummyValue,"check",translate("启动参数检查"))
+ck.template="openclash/cfg_check"
 
 btnis=tb:option(Button,"switch",translate("Switch Config"))
 btnis.template="openclash/other_button"
