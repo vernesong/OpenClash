@@ -80,7 +80,6 @@ if string.sub(luci.sys.exec("uci get openclash.config.config_path"), 23, -2) == 
 else
    e[t].state=translate("Disable")
 end
-e[t].size=tostring(a.size)
 e[t].check=translate(config_check(CONFIG_FILE))
 end
 end
