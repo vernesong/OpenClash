@@ -688,8 +688,8 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     socks_port=$(uci get openclash.config.socks_port 2>/dev/null)
     enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
     lan_ip=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null)
-    wan_ip4=$(ubus call network.interface.wan status 2>/dev/null | grep \"address\" | grep -oE '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' 2>/dev/null)
-    lan_ip6=$(uci get network.lan.ip6addr 2>/dev/null)
+    wan_ip4=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 2>/dev/null)
+    lan_ip6=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
     direct_dns=$(uci get openclash.config.direct_dns 2>/dev/null)
     disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
     log_level=$(uci get openclash.config.log_level 2>/dev/null)
@@ -772,7 +772,9 @@ EOF
                 iptables -t nat -A openclash -d 224.0.0.0/4 -j RETURN
                 iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
                 if [ ! -z "$wan_ip4" ]; then
-                	iptables -t nat -A openclash -d "$wan_ip4" -j RETURN
+                   for wan_ip4s in $wan_ip4; do
+                      iptables -t nat -A openclash -d "$wan_ip4s" -j RETURN 2>/dev/null
+                   done
                 fi
                 
                 iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
@@ -783,6 +785,11 @@ EOF
 
                 if [ "$ipv6_enable" -eq 1 ]; then
                    ip6tables -t nat -N openclash
+                   if [ ! -z "$lan_ip6" ]; then
+                      for lan_ip6s in $lan_ip6; do
+                         ip6tables -t nat -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
+                      done
+                   fi
                    ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
                    ip6tables -t nat -A PREROUTING -p tcp -j openclash
                 fi
@@ -796,7 +803,11 @@ EOF
                 ipset add localnetwork 224.0.0.0/4
                 ipset add localnetwork 240.0.0.0/4
                 ipset add localnetwork 172.16.0.0/12
-                ipset add localnetwork "$wan_ip4"
+                if [ ! -z "$wan_ip4" ]; then
+                   for wan_ip4s in $wan_ip4; do
+                      ipset add localnetwork "$wan_ip4s" 2>/dev/null
+                   done
+                fi
              #启动TUN
              if [ "$en_mode_tun" = "2" ]; then
                 ip tuntap add user root mode tun clash0
@@ -822,9 +833,9 @@ EOF
                 iptables -t mangle -I OUTPUT -j openclash
                 iptables -t mangle -I PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
              #ipv6
-                if [ "$ipv6_enable" -eq 1 ]; then
-                   ip6tables -t mangle -I PREROUTING -j MARK --set-mark "$PROXY_FWMARK"
-                fi
+                #if [ "$ipv6_enable" -eq 1 ]; then
+                   #ip6tables -t mangle -I PREROUTING -j MARK --set-mark "$PROXY_FWMARK"
+                #fi
              fi
 
              echo "第九步: 重启 Dnsmasq 程序..." >$START_LOG
