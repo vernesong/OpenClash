@@ -100,63 +100,55 @@ fake_block() {
 
 yml_check()
 {
-   #创建启动备份
+   #替换tab
+   sed -i 's/\t/ /g' "$3" 2>/dev/null
+   
+   #检查关键字避免后续操作出错
+   #proxies
+   sed -i "/^ \{0,\}\'Proxy\':/c\Proxy:" "$3" 2>/dev/null
+   sed -i '/^ \{0,\}\"Proxy\":/c\Proxy:' "$3" 2>/dev/null
+   sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$3" 2>/dev/null
+   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
+   sed -i "s/^\'proxies\':/Proxy:/" "$CFG_FILE" 2>/dev/null
+   sed -i 's/^\"proxies\":/Proxy:/' "$CFG_FILE" 2>/dev/null
+   sed -i "s/^proxies:/Proxy:/" "$CFG_FILE" 2>/dev/null
+   }
+
+	 #proxy-providers
+   sed -i "/^ \{0,\}\'proxy-provider\':/c\proxy-provider:" "$3" 2>/dev/null
+   sed -i '/^ \{0,\}\"proxy-provider\":/c\proxy-provider:' "$3" 2>/dev/null
+   sed -i "/^ \{1,\}proxy-provider:/c\proxy-provider:" "$3" 2>/dev/null
+   sed -i "/^ \{0,\}\'proxy-providers\':/c\proxy-provider:" "$3" 2>/dev/null
+   sed -i '/^ \{0,\}\"proxy-providers\":/c\proxy-provider:' "$3" 2>/dev/null
+   sed -i "/^ \{0,\}proxy-providers:/c\proxy-provider:" "$3" 2>/dev/null
+
+   #proxy-groups
+   sed -i "/^ \{0,\}\'Proxy Group\':/c\Proxy Group:" "$3" 2>/dev/null
+   sed -i '/^ \{0,\}\"Proxy Group\":/c\Proxy Group:' "$3" 2>/dev/null
+   sed -i "/^ \{1,\}Proxy Group:/c\Proxy Group:" "$3" 2>/dev/null
+   sed -i "/^ \{0,\}\'proxy-groups\':/c\Proxy Group:" "$3" 2>/dev/null
+   sed -i '/^ \{0,\}\"proxy-groups\":/c\Proxy Group:' "$3" 2>/dev/null
+   sed -i "/^ \{0,\}proxy-groups:/c\Proxy Group:" "$3" 2>/dev/null
+
+   #rules
+   sed -i "/^ \{0,\}\'Rule\':/c\Rule:" "$3" 2>/dev/null
+   sed -i '/^ \{0,\}\"Rule\":/c\Rule:' "$3" 2>/dev/null
+   sed -i "/^ \{1,\}Rule:/c\Rule:" "$3" 2>/dev/null
+   sed -i "/^ \{0,\}\'rules\':/c\Rule:" "$3" 2>/dev/null
+   sed -i '/^ \{0,\}\"rules\":/c\Rule:' "$3" 2>/dev/null
+   sed -i "/^ \{0,\}rules:/c\Rule:" "$3" 2>/dev/null
+
+   sed -i "/^ \{0,\}\'dns\':/c\dns:" "$3" 2>/dev/null
+   sed -i '/^ \{0,\}\"dns\":/c\dns:' "$3" 2>/dev/null
+   sed -i "/^ \{1,\}dns:/c\dns:" "$3" 2>/dev/null
+	 
+	 #创建启动备份
    cp "$3" "$5"
 	 
    #创建原始备份
    if [ ! -f "$4" ]; then
       cp "$3" "$4"
    fi
-   
-   #替换tab
-   sed -i 's/\t/ /g' "$3" 2>/dev/null
-   
-   #检查关键字避免后续操作出错
-   
-	 [ ! -z "$(grep "^ \{0,\}'Proxy':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}"Proxy":' "$3")" ] && {
-	    sed -i "/^ \{0,\}\'Proxy\'/c\Proxy:" "$3"
-	    sed -i '/^ \{0,\}\"Proxy\":/c\Proxy:' "$3"
-	 }
-	 
-	 [ ! -z "$(grep "^ \{0,\}'proxy-provider':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}"proxy-provider":' "$3")" ] && {
-	    sed -i "/^ \{0,\}\'proxy-provider\'/c\proxy-provider:" "$3"
-	    sed -i '/^ \{0,\}\"proxy-provider\":/c\proxy-provider:' "$3"
-	 }
-	 
-	 [ ! -z "$(grep "^ \{0,\}'Proxy Group':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}"Proxy Group":' "$3")" ] && {
-	    sed -i "/^ \{0,\}\'Proxy Group\'/c\Proxy Group:" "$3"
-	    sed -i '/^ \{0,\}\"Proxy Group\":/c\Proxy Group:' "$3"
-	 }
-	 
-	 [ ! -z "$(grep "^ \{0,\}'Rule':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}"Rule":' "$3")" ] && {
-	    sed -i "/^ \{0,\}\'Rule\'/c\Rule:" "$3"
-	    sed -i '/^ \{0,\}\"Rule\":/c\Rule:' "$3"
-	 }
-	 
-	 [ ! -z "$(grep "^ \{0,\}'dns':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}"dns":' "$3")" ] && {
-	    sed -i "/^ \{0,\}\'dns\'/c\dns:" "$3"
-	    sed -i '/^ \{0,\}\"dns\":/c\dns:' "$3"
-	 }
-	 
-	 [ ! -z "$(grep "^ \{1,\}Proxy:" "$3")" ] && {
-	    sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$3"
-	 }
-	 
-	 [ ! -z "$(grep "^ \{1,\}proxy-provider:" "$3")" ] && {
-	    sed -i "/^ \{1,\}proxy-provider:/c\proxy-provider:" "$3"
-	 }
-	 
-	 [ ! -z "$(grep "^ \{1,\}Proxy Group:" "$3")" ] && {
-	    sed -i "/^ \{1,\}Proxy Group:/c\Proxy Group:" "$3"
-	 }
-	 
-	 [ ! -z "$(grep "^ \{1,\}Rule:" "$3")" ] && {
-	    sed -i "/^ \{1,\}Rule:/c\Rule:" "$3"
-	 }
-	 
-	 [ ! -z "$(grep "^ \{1,\}dns:" "$3")" ] && {
-	    	sed -i "/^ \{1,\}dns:/c\dns:" "$3"
-	 }
 
    #位置检查
    proxy_len=$(sed -n '/^Proxy:/=' "$3" 2>/dev/null)
@@ -762,6 +754,8 @@ cat > "/var/etc/openclash.include" <<-EOF
 EOF
              iptables -t nat -I PREROUTING -p tcp --dport 53 -j ACCEPT
              if [ -z "$en_mode_tun" ]; then
+             	
+             	  #tcp
                 iptables -t nat -N openclash
                 iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
                 iptables -t nat -A openclash -d 10.0.0.0/8 -j RETURN
@@ -776,22 +770,49 @@ EOF
                       iptables -t nat -A openclash -d "$wan_ip4s" -j RETURN 2>/dev/null
                    done
                 fi
-                
                 iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
                 iptables -t nat -A PREROUTING -p tcp -j openclash
+                
+                #udp
+                ip rule add fwmark 1 table 100
+                ip route add local default dev lo table 100
+                iptables -t mangle -N openclash
+                iptables -t mangle -A openclash -d 0.0.0.0/8 -j RETURN
+                iptables -t mangle -A openclash -d 10.0.0.0/8 -j RETURN
+                iptables -t mangle -A openclash -d 127.0.0.0/8 -j RETURN
+                iptables -t mangle -A openclash -d 169.254.0.0/16 -j RETURN
+                iptables -t mangle -A openclash -d 172.16.0.0/12 -j RETURN
+                iptables -t mangle -A openclash -d 192.168.0.0/16 -j RETURN
+                iptables -t mangle -A openclash -d 224.0.0.0/4 -j RETURN
+                iptables -t mangle -A openclash -d 240.0.0.0/4 -j RETURN
+                if [ ! -z "$wan_ip4" ]; then
+                   for wan_ip4s in $wan_ip4; do
+                      iptables -t mangle -A openclash -d "$wan_ip4s" -j RETURN 2>/dev/null
+                   done
+                fi
+                
+                iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark 1
+                iptables -t mangle -A PREROUTING -p udp -j openclash
+                
                 if [ "$en_mode" = "fake-ip" ]; then
                    iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+                   iptables -t mangle -A OUTPUT -p udp -d 198.18.0.0/16 -j MARK --set-mark 1
                 fi
 
                 if [ "$ipv6_enable" -eq 1 ]; then
                    ip6tables -t nat -N openclash
+                   ip6tables -t mangle -N openclash
                    if [ ! -z "$lan_ip6" ]; then
                       for lan_ip6s in $lan_ip6; do
                          ip6tables -t nat -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
+                         ip6tables -t mangle -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
                       done
                    fi
                    ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
                    ip6tables -t nat -A PREROUTING -p tcp -j openclash
+                   
+                   ip6tables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark 1
+                   ip6tables -t mangle -A PREROUTING -p udp -j openclash
                 fi
              else
              #TUN模式
@@ -942,9 +963,22 @@ stop()
     rm -rf /var/etc/openclash.include 2>/dev/null
     
 #ipv4
+
+    ip rule del fwmark 1 table 100 >/dev/null 2>&1
+    ip route del local default dev lo table 100 >/dev/null 2>&1
+
+    iptables -t mangle -F openclash >/dev/null 2>&1
+    iptables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
+    iptables -t mangle -X openclash >/dev/null 2>&1
+    
     iptables -t nat -F openclash >/dev/null 2>&1
     iptables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
     iptables -t nat -X openclash >/dev/null 2>&1
+    
+    out_lines=$(iptables -nvL OUTPUT -t mangle |sed 1,2d |sed -n '/198.18.0.0\/16/=' 2>/dev/null |sort -rn)
+    for out_line in $out_lines; do
+        iptables -t mangle -D OUTPUT "$out_line" >/dev/null 2>&1
+    done
     
     out_lines=$(iptables -nvL OUTPUT -t nat |sed 1,2d |sed -n '/198.18.0.0\/16/=' 2>/dev/null |sort -rn)
     for out_line in $out_lines; do
@@ -952,6 +986,10 @@ stop()
     done
     
 #ipv6
+    ip6tables -t mangle -F openclash >/dev/null 2>&1
+    ip6tables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
+    ip6tables -t mangle -X openclash >/dev/null 2>&1
+    
     ip6tables -t nat -F openclash >/dev/null 2>&1
     ip6tables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
     ip6tables -t nat -X openclash >/dev/null 2>&1

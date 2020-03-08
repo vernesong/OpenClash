@@ -394,6 +394,7 @@ Rule:
 - DOMAIN-SUFFIX,tvb.com,GlobalMedia
 # > Netflix
 # USER-AGENT,Argo*,GlobalMedia
+- DOMAIN-SUFFIX,fast.com,GlobalMedia
 - DOMAIN-SUFFIX,netflix.com,GlobalMedia
 - DOMAIN-SUFFIX,netflix.net,GlobalMedia
 - DOMAIN-SUFFIX,nflxext.com,GlobalMedia
@@ -1171,14 +1172,18 @@ Rule:
 # > Tencent
 # USER-AGENT,MicroMessenger%20Client,DIRECT
 # USER-AGENT,WeChat*,DIRECT
+# USER-AGENT,%E4%BC%81%E4%B8%9A%E5%BE%AE%E4%BF%A1*,DIRECT
 - DOMAIN-SUFFIX,gtimg.com,DIRECT
 - DOMAIN-SUFFIX,idqqimg.com,DIRECT
 - DOMAIN-SUFFIX,igamecj.com,DIRECT
 - DOMAIN-SUFFIX,myapp.com,DIRECT
 - DOMAIN-SUFFIX,myqcloud.com,DIRECT
 - DOMAIN-SUFFIX,qq.com,DIRECT
+- DOMAIN-SUFFIX,servicewechat.com,DIRECT
 - DOMAIN-SUFFIX,tencent.com,DIRECT
 - DOMAIN-SUFFIX,tencent-cloud.net,DIRECT
+- DOMAIN-SUFFIX,tenpay.com,DIRECT
+- DOMAIN,file-igamecj.akamaized.net,DIRECT
 # > YYeTs
 # USER-AGENT,YYeTs*,DIRECT
 - DOMAIN-SUFFIX,jstucdn.com,DIRECT
