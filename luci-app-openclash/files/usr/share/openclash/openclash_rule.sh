@@ -9,9 +9,9 @@
    echo "开始下载使用中的第三方规则..." >$START_LOG
       if [ "$RUlE_SOURCE" = "lhie1" ]; then
       	 if pidof clash >/dev/null; then
-      	 	  curl -sL --connect-timeout 10 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yml -o /tmp/rules.yaml >/dev/null 2>&1
+      	 	  curl -sL --connect-timeout 10 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
       	 else
-            curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yml -o /tmp/rules.yaml >/dev/null 2>&1
+            curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          fi
          sed -i '1i Rule:' /tmp/rules.yaml
       elif [ "$RUlE_SOURCE" = "ConnersHua" ]; then
