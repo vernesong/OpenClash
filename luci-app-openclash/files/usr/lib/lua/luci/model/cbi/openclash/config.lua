@@ -29,9 +29,21 @@ function config_check(CONFIG_FILE)
   local proxy,group,rule
   if yaml then
   	 proxy_provier = luci.sys.call(string.format('egrep "^ {0,}proxy-provider:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+  	 if (proxy_provier ~= 0) then
+  	    proxy_provier = luci.sys.call(string.format('egrep "^ {0,}proxy-providers:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+  	 end
      proxy = luci.sys.call(string.format('egrep "^ {0,}Proxy:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+     if (proxy ~= 0) then
+        proxy = luci.sys.call(string.format('egrep "^ {0,}proxies:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+     end
      group = luci.sys.call(string.format('egrep "^ {0,}Proxy Group:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+     if (group ~= 0) then
+     	  group = luci.sys.call(string.format('egrep "^ {0,}proxy-groups:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+     end
      rule = luci.sys.call(string.format('egrep "^ {0,}Rule:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+     if (rule ~= 0) then
+        rule = luci.sys.call(string.format('egrep "^ {0,}rules:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+     end
   end
   if yaml then
      if (proxy == 0) then
