@@ -11,15 +11,15 @@
 	   </td></tr>
 	   <tr><td colspan="4" width="100%">
      	  <p align="center">
-    	     <img id="wiki" src="https://img.shields.io/badge/Tutorials--lightgrey?logo=Wikipedia&style=social" alt="Wiki" onerror="return imgerrorfuns(this,this.src)" onclick="return wikipage()" />
+    	     <img id="wiki" src="https://img.shields.io/badge/Tutorials--lightgrey?logo=Wikipedia&style=social" loading="lazy" alt="Wiki" width="75px" height="20px" onerror="return imgerrorfuns(this,this.src)" onclick="return wikipage()" />
     	     &nbsp;&nbsp;&nbsp;
-    	     <img id="star" src="https://img.shields.io/badge/Star--lightgrey?logo=github&style=social" alt="star" onerror="return imgerrorfuns(this,this.src)" onclick="return homepage()" />
+    	     <img id="star" src="https://img.shields.io/badge/Star--lightgrey?logo=github&style=social" loading="lazy" alt="star" width="50px" height="20px" onerror="return imgerrorfuns(this,this.src)" onclick="return homepage()" />
     	     &nbsp;&nbsp;&nbsp;
     	     <!--
-    	     <img id="telegram" src="https://img.shields.io/badge/Telegram--lightgrey?logo=Telegram&style=social" alt="Telegram" onerror="return imgerrorfuns(this,this.src)" onclick="return telegrampage()" />
+    	     <img id="telegram" src="https://img.shields.io/badge/Telegram--lightgrey?logo=Telegram&style=social" loading="lazy" alt="Telegram" onerror="return imgerrorfuns(this,this.src)" onclick="return telegrampage()" />
     	     &nbsp;&nbsp;&nbsp;
     	     -->
-    	     <img id="sponsor" src="https://img.shields.io/badge/Sponsor--lightgrey?logo=ko-fi&style=social" alt="Sponsor" onerror="return imgerrorfuns(this,this.src)" onclick="return sponsorpage()" />
+    	     <img id="sponsor" src="https://img.shields.io/badge/Sponsor--lightgrey?logo=ko-fi&style=social" loading="lazy" alt="Sponsor" width="73px" height="20px" onerror="return imgerrorfuns(this,this.src)" onclick="return sponsorpage()" />
         </p>
      </td></tr>
 	  <tr><td width="100%" colspan="4">
@@ -163,7 +163,7 @@
 
 	  XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "currentversion")%>', status.currentversion, function(x, status) {
 	     if ( x && x.status == 200 ) {
-	        clashversion.innerHTML = '<img id="currenntver" src="'+status.currentversion+'" alt="currentversion" width="181px" onload="return clashversion_check()" onclick="return go_update()">';
+	        clashversion.innerHTML = '<img id="currenntver" src="'+status.currentversion+'" loading="lazy" alt="currentversion" width="181px" onload="return clashversion_check()" onclick="return go_update()">';
 	     }
 	  });
 
@@ -173,7 +173,7 @@
        if ( x && x.status == 200 ) {
           if ( status.lastversion != "\n" && status.lastversion != "" )
           {
-             clashversion.innerHTML = '<img id="lastver" src="'+status.lastversion+'" alt="lastversion" onerror="return clashversion_error()" onclick="return go_update()">';
+             clashversion.innerHTML = '<img id="lastver" src="'+status.lastversion+'" loading="lazy" alt="lastversion" width="161px" onerror="return clashversion_error()" onclick="return go_update()">';
           }
        }
         });
@@ -183,7 +183,7 @@
     {
        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "currentversion")%>', status.currentversion, function(x, status) {
 	        if ( x && x.status == 200 ) {
-             clashversion.innerHTML = '<img id="currenntver" src="'+status.currentversion+'" alt="currentversion" width="181px" onclick="return go_update()">';
+             clashversion.innerHTML = '<img id="currenntver" src="'+status.currentversion+'" loading="lazy" alt="currentversion" width="181px" onclick="return go_update()">';
 	        }
 	     });
     }

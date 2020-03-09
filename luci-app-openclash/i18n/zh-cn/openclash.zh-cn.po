@@ -777,7 +777,7 @@ msgstr "序号"
 msgid "Game Rules Manage"
 msgstr "管理游戏规则"
 
-msgid "*Proxy UDP Traffics"
+msgid "Proxy UDP Traffics"
 msgstr "*代理UDP流量"
 
 msgid "Select Mode For UDP Traffics, The Servers Must Support UDP while Choose Proxy"
