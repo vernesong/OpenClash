@@ -60,22 +60,22 @@ single_provider_gen="/tmp/provider_gen.yaml"
 single_provider_che="/tmp/provider_che.yaml"
 match_servers="/tmp/match_servers.list"
 match_provider="/tmp/match_provider.list"
-group_num=$(grep -c "name:" /tmp/yaml_group.yaml)
+group_num=$(grep -c "name:" /tmp/yaml_group.yaml 2>/dev/null)
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 new_servers_group=$(uci get openclash.config.new_servers_group 2>/dev/null)
 
 #proxy
-line=$(sed -n '/^ \{0,\}-/=' $server_file)
-num=$(grep -c "^ \{0,\}-" $server_file)
+line=$(sed -n '/^ \{0,\}-/=' $server_file 2>/dev/null)
+num=$(grep -c "^ \{0,\}-" $server_file 2>/dev/null)
 count=1
 
 #provider
 sed -i '/^ *$/d' $provider_file 2>/dev/null
 sed -i '/^ \{0,\}#/d' $provider_file 2>/dev/null
 sed -i 's/\t/ /g' $provider_file 2>/dev/null
-provider_line=$(awk '{print $0"#*#"FNR}' $provider_file |grep -v '^ \{0,\}proxy-provider:\|^ \{0,\}Proxy:\|^ \{0,\}Proxy Group:\|^ \{0,\}Rule:\|^ \{0,\}type:\|^ \{0,\}path:\|^ \{0,\}url:\|^ \{0,\}interval:\|^ \{0,\}health-check:\|^ \{0,\}enable:' |awk -F '#*#' '{print $3}')
-provider_num=$(grep -c "^ \{0,\}type:" $provider_file)
+provider_line=$(awk '{print $0"#*#"FNR}' $provider_file 2>/dev/null |grep -v '^ \{0,\}proxy-provider:\|^ \{0,\}Proxy:\|^ \{0,\}Proxy Group:\|^ \{0,\}Rule:\|^ \{0,\}type:\|^ \{0,\}path:\|^ \{0,\}url:\|^ \{0,\}interval:\|^ \{0,\}health-check:\|^ \{0,\}enable:' |awk -F '#*#' '{print $3}')
+provider_num=$(grep -c "^ \{0,\}type:" $provider_file 2>/dev/null)
 provider_count=1
 
 cfg_get()

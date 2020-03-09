@@ -105,42 +105,58 @@ yml_check()
    
    #检查关键字避免后续操作出错
    #proxies
-   sed -i "/^ \{0,\}\'Proxy\':/c\Proxy:" "$3" 2>/dev/null
-   sed -i '/^ \{0,\}\"Proxy\":/c\Proxy:' "$3" 2>/dev/null
-   sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$3" 2>/dev/null
-   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
-   sed -i "s/^\'proxies\':/Proxy:/" "$3" 2>/dev/null
-   sed -i 's/^\"proxies\":/Proxy:/' "$3" 2>/dev/null
-   sed -i "s/^proxies:/Proxy:/" "$3" 2>/dev/null
+   [ ! -z "$(grep "^ \{0,\}\'Proxy\':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}\"Proxy\":' "$3")" ] || [ ! -z "$(grep '^ \{1,\}Proxy:' "$3")" ] && {
+      sed -i "/^ \{0,\}\'Proxy\':/c\Proxy:" "$3" 2>/dev/null
+      sed -i '/^ \{0,\}\"Proxy\":/c\Proxy:' "$3" 2>/dev/null
+      sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$3" 2>/dev/null
+   }
+   [ -z "$(grep "^Proxy:" "$3")" ] && {
+      sed -i "s/^\'proxies\':/Proxy:/" "$3" 2>/dev/null
+      sed -i 's/^\"proxies\":/Proxy:/' "$3" 2>/dev/null
+      sed -i "s/^proxies:/Proxy:/" "$3" 2>/dev/null
    }
 
 	 #proxy-providers
-   sed -i "/^ \{0,\}\'proxy-provider\':/c\proxy-provider:" "$3" 2>/dev/null
-   sed -i '/^ \{0,\}\"proxy-provider\":/c\proxy-provider:' "$3" 2>/dev/null
-   sed -i "/^ \{1,\}proxy-provider:/c\proxy-provider:" "$3" 2>/dev/null
-   sed -i "/^ \{0,\}\'proxy-providers\':/c\proxy-provider:" "$3" 2>/dev/null
-   sed -i '/^ \{0,\}\"proxy-providers\":/c\proxy-provider:' "$3" 2>/dev/null
-   sed -i "/^ \{0,\}proxy-providers:/c\proxy-provider:" "$3" 2>/dev/null
-
+	 [ ! -z "$(grep "^ \{0,\}\'proxy-provider\':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}\"proxy-provider\":' "$3")" ] || [ ! -z "$(grep '^ \{1,\}proxy-provider:' "$3")" ] && {
+      sed -i "/^ \{0,\}\'proxy-provider\':/c\proxy-provider:" "$3" 2>/dev/null
+      sed -i '/^ \{0,\}\"proxy-provider\":/c\proxy-provider:' "$3" 2>/dev/null
+      sed -i "/^ \{1,\}proxy-provider:/c\proxy-provider:" "$3" 2>/dev/null
+   }
+   [ -z "$(grep "^proxy-provider:" "$3")" ] && {
+      sed -i "/^ \{0,\}\'proxy-providers\':/c\proxy-provider:" "$3" 2>/dev/null
+      sed -i '/^ \{0,\}\"proxy-providers\":/c\proxy-provider:' "$3" 2>/dev/null
+      sed -i "/^ \{0,\}proxy-providers:/c\proxy-provider:" "$3" 2>/dev/null
+   }
    #proxy-groups
-   sed -i "/^ \{0,\}\'Proxy Group\':/c\Proxy Group:" "$3" 2>/dev/null
-   sed -i '/^ \{0,\}\"Proxy Group\":/c\Proxy Group:' "$3" 2>/dev/null
-   sed -i "/^ \{1,\}Proxy Group:/c\Proxy Group:" "$3" 2>/dev/null
-   sed -i "/^ \{0,\}\'proxy-groups\':/c\Proxy Group:" "$3" 2>/dev/null
-   sed -i '/^ \{0,\}\"proxy-groups\":/c\Proxy Group:' "$3" 2>/dev/null
-   sed -i "/^ \{0,\}proxy-groups:/c\Proxy Group:" "$3" 2>/dev/null
-
+   [ ! -z "$(grep "^ \{0,\}\'Proxy Group\':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}\"Proxy Group\":' "$3")" ] || [ ! -z "$(grep '^ \{1,\}Proxy Group:' "$3")" ] && {
+      sed -i "/^ \{0,\}\'Proxy Group\':/c\Proxy Group:" "$3" 2>/dev/null
+      sed -i '/^ \{0,\}\"Proxy Group\":/c\Proxy Group:' "$3" 2>/dev/null
+      sed -i "/^ \{1,\}Proxy Group:/c\Proxy Group:" "$3" 2>/dev/null
+   }
+   [ -z "$(grep "^Proxy Group:" "$3")" ] && {
+      sed -i "/^ \{0,\}\'proxy-groups\':/c\Proxy Group:" "$3" 2>/dev/null
+      sed -i '/^ \{0,\}\"proxy-groups\":/c\Proxy Group:' "$3" 2>/dev/null
+      sed -i "/^ \{0,\}proxy-groups:/c\Proxy Group:" "$3" 2>/dev/null
+   }
+   
    #rules
-   sed -i "/^ \{0,\}\'Rule\':/c\Rule:" "$3" 2>/dev/null
-   sed -i '/^ \{0,\}\"Rule\":/c\Rule:' "$3" 2>/dev/null
-   sed -i "/^ \{1,\}Rule:/c\Rule:" "$3" 2>/dev/null
-   sed -i "/^ \{0,\}\'rules\':/c\Rule:" "$3" 2>/dev/null
-   sed -i '/^ \{0,\}\"rules\":/c\Rule:' "$3" 2>/dev/null
-   sed -i "/^ \{0,\}rules:/c\Rule:" "$3" 2>/dev/null
-
-   sed -i "/^ \{0,\}\'dns\':/c\dns:" "$3" 2>/dev/null
-   sed -i '/^ \{0,\}\"dns\":/c\dns:' "$3" 2>/dev/null
-   sed -i "/^ \{1,\}dns:/c\dns:" "$3" 2>/dev/null
+   [ ! -z "$(grep "^ \{0,\}\'Rule\':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}\"Rule\":' "$3")" ] || [ ! -z "$(grep '^ \{1,\}Rule:' "$3")" ] && {
+      sed -i "/^ \{0,\}\'Rule\':/c\Rule:" "$3" 2>/dev/null
+      sed -i '/^ \{0,\}\"Rule\":/c\Rule:' "$3" 2>/dev/null
+      sed -i "/^ \{1,\}Rule:/c\Rule:" "$3" 2>/dev/null
+   }
+   [ -z "$(grep "^Rule:" "$3")" ] && {
+      sed -i "/^ \{0,\}\'rules\':/c\Rule:" "$3" 2>/dev/null
+      sed -i '/^ \{0,\}\"rules\":/c\Rule:' "$3" 2>/dev/null
+      sed -i "/^ \{0,\}rules:/c\Rule:" "$3" 2>/dev/null
+   }
+   
+   #dns
+   [ ! -z "$(grep "^ \{0,\}\'dns\':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}\"dns\":' "$3")" ] || [ ! -z "$(grep '^ \{1,\}dns:' "$3")" ] && {
+      sed -i "/^ \{0,\}\'dns\':/c\dns:" "$3" 2>/dev/null
+      sed -i '/^ \{0,\}\"dns\":/c\dns:' "$3" 2>/dev/null
+      sed -i "/^ \{1,\}dns:/c\dns:" "$3" 2>/dev/null
+   }
 	 
 	 #创建启动备份
    cp "$3" "$5"
