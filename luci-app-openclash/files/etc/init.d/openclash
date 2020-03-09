@@ -866,7 +866,6 @@ EOF
                 ip tuntap add user root mode tun clash0
                 ip link set clash0 up
                 ip route replace default dev clash0 table "$PROXY_ROUTE_TABLE"
-                iptables -t nat -I PREROUTING -p tcp --dport 53 -j ACCEPT
              elif [ "$en_mode_tun" = "1" ]; then
              	  TUN_WAIT=0
              	  while ( [ ! -z "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 3 ] )
@@ -875,8 +874,6 @@ EOF
                    sleep 2
                 done
                 ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
-                iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 -j REDIRECT --to-ports "$proxy_port"
-                iptables -t nat -I PREROUTING -p tcp -d 8.8.4.4 -j REDIRECT --to-ports "$proxy_port"
              fi
                 ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
              #设置防火墙
@@ -888,7 +885,7 @@ EOF
                 fi
                 iptables -t mangle -I OUTPUT -j openclash
                 iptables -t mangle -I PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
-                
+                iptables -t nat -I PREROUTING -p tcp --dport 53 -j ACCEPT
              #ipv6
                 #if [ "$ipv6_enable" -eq 1 ]; then
                    #ip6tables -t mangle -I PREROUTING -j MARK --set-mark "$PROXY_FWMARK"
