@@ -109,9 +109,9 @@ yml_check()
    sed -i '/^ \{0,\}\"Proxy\":/c\Proxy:' "$3" 2>/dev/null
    sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$3" 2>/dev/null
    [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
-   sed -i "s/^\'proxies\':/Proxy:/" "$CFG_FILE" 2>/dev/null
-   sed -i 's/^\"proxies\":/Proxy:/' "$CFG_FILE" 2>/dev/null
-   sed -i "s/^proxies:/Proxy:/" "$CFG_FILE" 2>/dev/null
+   sed -i "s/^\'proxies\':/Proxy:/" "$3" 2>/dev/null
+   sed -i 's/^\"proxies\":/Proxy:/' "$3" 2>/dev/null
+   sed -i "s/^proxies:/Proxy:/" "$3" 2>/dev/null
    }
 
 	 #proxy-providers
@@ -687,6 +687,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     log_level=$(uci get openclash.config.log_level 2>/dev/null)
     proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
     intranet_allowed=$(uci get openclash.config.intranet_allowed 2>/dev/null)
+    enable_udp_proxy=$(uci get openclash.config.enable_udp_proxy 2>/dev/null)
 
     echo "第二步: 配置文件检查..." >$START_LOG
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKUP_FILE" "$START_BACKUP"
@@ -752,7 +753,6 @@ mkdir -p /var/etc
 cat > "/var/etc/openclash.include" <<-EOF
 /etc/init.d/openclash restart
 EOF
-             iptables -t nat -I PREROUTING -p tcp --dport 53 -j ACCEPT
              if [ -z "$en_mode_tun" ]; then
              	
              	  #tcp
@@ -771,9 +771,12 @@ EOF
                    done
                 fi
                 iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
+                iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 -j REDIRECT --to-ports "$proxy_port"
+                iptables -t nat -I PREROUTING -p tcp -d 8.8.4.4 -j REDIRECT --to-ports "$proxy_port"
                 iptables -t nat -A PREROUTING -p tcp -j openclash
                 
                 #udp
+                if [ "$enable_udp_proxy" -eq 1 ]; then
                 ip rule add fwmark 1 table 100
                 ip route add local default dev lo table 100
                 iptables -t mangle -N openclash
@@ -793,26 +796,39 @@ EOF
                 
                 iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark 1
                 iptables -t mangle -A PREROUTING -p udp -j openclash
+                fi
                 
                 if [ "$en_mode" = "fake-ip" ]; then
                    iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
-                   iptables -t mangle -A OUTPUT -p udp -d 198.18.0.0/16 -j MARK --set-mark 1
+                   if [ "$enable_udp_proxy" -eq 1 ]; then
+                      iptables -t mangle -A OUTPUT -p udp -d 198.18.0.0/16 -j MARK --set-mark 1
+                   fi
                 fi
-
+                
                 if [ "$ipv6_enable" -eq 1 ]; then
+                	 #tcp
                    ip6tables -t nat -N openclash
-                   ip6tables -t mangle -N openclash
                    if [ ! -z "$lan_ip6" ]; then
                       for lan_ip6s in $lan_ip6; do
                          ip6tables -t nat -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
-                         ip6tables -t mangle -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
                       done
                    fi
                    ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
                    ip6tables -t nat -A PREROUTING -p tcp -j openclash
                    
-                   ip6tables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark 1
-                   ip6tables -t mangle -A PREROUTING -p udp -j openclash
+                   #udp
+                   if [ "$enable_udp_proxy" -eq 1 ]; then
+                      ip6tables -t mangle -N openclash
+                      if [ ! -z "$lan_ip6" ]; then
+                         for lan_ip6s in $lan_ip6; do
+                            if [ "$enable_udp_proxy" -eq 1 ]; then
+                               ip6tables -t mangle -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
+                            fi
+                         done
+                      fi
+                      ip6tables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark 1
+                      ip6tables -t mangle -A PREROUTING -p udp -j openclash
+                   fi
                 fi
              else
              #TUN模式
@@ -853,6 +869,7 @@ EOF
                 fi
                 iptables -t mangle -I OUTPUT -j openclash
                 iptables -t mangle -I PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
+                iptables -t nat -I PREROUTING -p tcp --dport 53 -j ACCEPT
              #ipv6
                 #if [ "$ipv6_enable" -eq 1 ]; then
                    #ip6tables -t mangle -I PREROUTING -j MARK --set-mark "$PROXY_FWMARK"
@@ -966,6 +983,8 @@ stop()
 
     ip rule del fwmark 1 table 100 >/dev/null 2>&1
     ip route del local default dev lo table 100 >/dev/null 2>&1
+    
+    iptables -t nat -D PREROUTING -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1
 
     iptables -t mangle -F openclash >/dev/null 2>&1
     iptables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
@@ -985,6 +1004,11 @@ stop()
         iptables -t nat -D OUTPUT "$out_line" >/dev/null 2>&1
     done
     
+    out_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/8.8./=' 2>/dev/null |sort -rn)
+    for out_line in $out_lines; do
+        iptables -t nat -D PREROUTING "$out_line" >/dev/null 2>&1
+    done
+    
 #ipv6
     ip6tables -t mangle -F openclash >/dev/null 2>&1
     ip6tables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
@@ -1002,7 +1026,6 @@ stop()
     ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 
     iptables -t mangle -D OUTPUT -j openclash >/dev/null 2>&1
-    iptables -t nat -D PREROUTING -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1
     iptables -t mangle -D PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
     ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
     iptables -t mangle -F openclash >/dev/null 2>&1

@@ -22,7 +22,7 @@ if [ -f "$CFG_FILE" ]; then
    sed -i 's/^\"proxies\":/Proxy:/' "$CFG_FILE" 2>/dev/null
    sed -i "s/^proxies:/Proxy:/" "$CFG_FILE" 2>/dev/null
    }
-	 
+
 	 #proxy-providers
    sed -i "/^ \{0,\}\'proxy-provider\':/c\proxy-provider:" "$CFG_FILE" 2>/dev/null
    sed -i '/^ \{0,\}\"proxy-provider\":/c\proxy-provider:' "$CFG_FILE" 2>/dev/null
