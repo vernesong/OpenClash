@@ -87,7 +87,7 @@ e[t].name=fs.basename(o)
 BACKUP_FILE="/etc/openclash/backup/".. e[t].name
 CONFIG_FILE="/etc/openclash/config/".. e[t].name
 e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",fs.mtime(BACKUP_FILE)) or os.date("%Y-%m-%d %H:%M:%S",a.mtime)
-if string.sub(luci.sys.exec("uci get openclash.config.config_path"), 23, -2) == e[t].name then
+if string.sub(luci.sys.exec("uci get openclash.config.config_path 2>/dev/null"), 23, -2) == e[t].name then
    e[t].state=translate("Enable")
 else
    e[t].state=translate("Disable")

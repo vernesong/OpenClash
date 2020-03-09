@@ -32,16 +32,6 @@ function index()
 
 end
 local fs = require "luci.openclash"
-CONFIG_FILE=string.sub(luci.sys.exec("uci get openclash.config.config_path"), 1, -2)
-
-if CONFIG_FILE == "" or not fs.isfile(CONFIG_FILE) then
-   CONFIG_FILE_FIRST=luci.sys.exec("ls -lt '/etc/openclash/config/' | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}'")
-   if CONFIG_FILE_FIRST ~= "" then
-      CONFIG_FILE="/etc/openclash/config/" .. string.sub(CONFIG_FILE_FIRST, 1, -2)
-   else
-      CONFIG_FILE = ""
-   end
-end
 
 local function is_running()
 	return luci.sys.call("pidof clash >/dev/null") == 0
@@ -61,14 +51,6 @@ end
 
 local function mode()
 	return luci.sys.exec("uci get openclash.config.en_mode 2>/dev/null")
-end
-
-local function config()
-   if CONFIG_FILE ~= "" then
-      return string.sub(CONFIG_FILE, 23, -1)
-   else
-      return "1"
-   end
 end
 
 local function ipdb()
@@ -191,7 +173,6 @@ end
 function action_state()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		config = config(),
 		lhie1 = lhie1(),
 		ConnersHua = ConnersHua(),
 		ConnersHua_return = ConnersHua_return(),
