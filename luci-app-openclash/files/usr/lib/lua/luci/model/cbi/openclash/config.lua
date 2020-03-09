@@ -34,7 +34,7 @@ function config_check(CONFIG_FILE)
   	 end
      proxy = luci.sys.call(string.format('egrep "^ {0,}Proxy:" "%s" >/dev/null 2>&1',CONFIG_FILE))
      if (proxy ~= 0) then
-        proxy = luci.sys.call(string.format('egrep "^ {0,}proxies:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+        proxy = luci.sys.call(string.format('egrep "^proxies:" "%s" >/dev/null 2>&1',CONFIG_FILE))
      end
      group = luci.sys.call(string.format('egrep "^ {0,}Proxy Group:" "%s" >/dev/null 2>&1',CONFIG_FILE))
      if (group ~= 0) then
