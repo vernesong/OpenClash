@@ -38,7 +38,7 @@ fi
 echo "开始更新【$CONFIG_NAME】的策略组配置..." >$START_LOG
 
 /usr/share/openclash/yml_groups_name_get.sh
-[ ! -z "$(grep "读取错误" /tmp/Proxy_Group)"] && {
+[ ! -z "$(grep "读取错误" /tmp/Proxy_Group)" ] && {
 	echo "读取错误，配置文件【$CONFIG_NAME】异常！" >$START_LOG
 	uci commit openclash
 	sleep 5
@@ -46,9 +46,14 @@ echo "开始更新【$CONFIG_NAME】的策略组配置..." >$START_LOG
 	exit 0
 }
 
-cp /tmp/Proxy_Group /tmp/yaml_group.yaml
-sed -i '/DIRECT/d' /tmp/yaml_group.yaml 2>/dev/null
-sed -i '/REJECT/d' /tmp/yaml_group.yaml 2>/dev/null
+#判断各个区位置
+group_len=$(sed -n '/^ \{0,\}Proxy Group:/=' "$CONFIG_FILE" 2>/dev/null)
+provider_len=$(sed -n '/^ \{0,\}proxy-provider:/=' "$CONFIG_FILE" 2>/dev/null)
+if [ "$provider_len" -ge "$group_len" ]; then
+   awk '/Proxy Group:/,/proxy-provider:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
+else
+   awk '/Proxy Group:/,/Rule:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
+fi
 
 if [ "$servers_update" -ne "1" ] || [ "$servers_if_update" != "1" ] || [ -z "$(grep "config groups" "$CFG_FILE")" ]; then
 echo "正在删除旧配置..." >$START_LOG
