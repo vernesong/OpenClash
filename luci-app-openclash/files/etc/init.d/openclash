@@ -1075,11 +1075,10 @@ stop()
        rm -rf /tmp/rules_name 2>/dev/null
        echo "OpenClash 关闭成功！" >$START_LOG
        sleep 5
-       rm -rf $START_LOG
     fi
     
+    rm -rf $START_LOG
     del_cron
-
     echo "OpenClash Already Stop"
 }
 
