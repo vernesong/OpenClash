@@ -103,6 +103,11 @@ o = s:option(DynamicList, "keyword", font_red..bold_on..translate("Keyword Match
 o.description = font_red..bold_on..translate("(eg: hk or tw&bgp)")..bold_off..font_off
 o.rmempty = true
 
+---- exkey
+o = s:option(DynamicList, "ex_keyword", font_red..bold_on..translate("Exclude Keyword Match")..bold_off..font_off)
+o.description = font_red..bold_on..translate("(eg: hk or tw&bgp)")..bold_off..font_off
+o.rmempty = true
+
 local t = {
     {Commit, Apply}
 }

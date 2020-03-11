@@ -705,6 +705,9 @@ msgstr "（空值无效）"
 msgid "Keyword Match"
 msgstr "筛选节点"
 
+msgid "Exclude Keyword Match"
+msgstr "排除节点"
+
 msgid "(eg: hk or tw&bgp)"
 msgstr "（格式示例：香港、台湾&bgp）"
 
