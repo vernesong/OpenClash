@@ -459,6 +459,22 @@ function custom_rules.write(self, section, value)
 	end
 end
 
+custom_rules_2 = s:option(Value, "custom_rules_2")
+custom_rules_2.template = "cbi/tvalue"
+custom_rules_2.description = translate("Custom Rules 2 Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md, IP To CIDR: http://ip2cidr.com")
+custom_rules_2.rows = 20
+custom_rules_2.wrap = "off"
+
+function custom_rules_2.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_rules_2.list") or ""
+end
+function custom_rules_2.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		NXFS.writefile("/etc/openclash/custom/openclash_custom_rules_2.list", value)
+	end
+end
+
 s = m:section(TypedSection, "openclash", translate("Set Custom Hosts, Only Work with Redir-Host Mode"))
 s.anonymous = true
 
