@@ -277,6 +277,7 @@ server_key_get()
    
    config_get "name" "$section" "name" ""
    config_get "keyword" "$section" "keyword" ""
+   config_get "ex_keyword" "$section" "ex_keyword" ""
    
    if [ -z "$name" ]; then
       name="config"
@@ -284,6 +285,11 @@ server_key_get()
    
    if [ ! -z "$keyword" ] && [ "$name.yaml" == "$CONFIG_NAME" ]; then
       config_keyword="$keyword"
+      key_section="$1"
+   fi
+   
+   if [ ! -z "$ex_keyword" ] && [ "$name.yaml" == "$CONFIG_NAME" ]; then
+      config_ex_keyword="$ex_keyword"
       key_section="$1"
    fi
 
@@ -319,6 +325,40 @@ server_key_match()
 	else
 	   if [ ! -z "$(echo "$2" |grep -i "$1")" ]; then
 	      match="true"
+	   fi
+	fi
+}
+
+server_key_exmatch()
+{
+
+	if [ "$match" = "false" ] || [ ! -z "$(echo "$1" |grep "^ \{0,\}$")" ] || [ ! -z "$(echo "$1" |grep "^\t\{0,\}$")" ]; then
+	   return
+	fi
+	
+	if [ ! -z "$(echo "$1" |grep "&")" ]; then
+	   key_word=$(echo "$1" |sed 's/&/ /g')
+	   match=0
+	   matchs=0
+	   for k in $key_word
+	   do
+	      if [ -z "$k" ]; then
+	         continue
+	      fi
+	      
+	      if [ ! -z "$(echo "$2" |grep -i "$k")" ]; then
+	         match=$(( $match + 1 ))
+	      fi
+	      matchs=$(( $matchs + 1 ))
+	   done
+	   if [ "$match" = "$matchs" ]; then
+	   	  match="false"
+	   else
+	      match="true"
+	   fi
+	else
+	   if [ ! -z "$(echo "$2" |grep -i "$1")" ]; then
+	      match="false"
 	   fi
 	fi
 }
@@ -371,9 +411,18 @@ do
    fi
 #匹配关键字订阅节点
    if [ "$servers_if_update" = "1" ]; then
-      if [ ! -z "$config_keyword" ]; then
-         match="false"
-         config_list_foreach "$key_section" "keyword" server_key_match "$server_name"
+      if [ ! -z "$config_keyword" ] || [ ! -z "$config_ex_keyword" ]; then
+         if [ ! -z "$config_keyword" ] && [ -z "$config_ex_keyword" ]; then
+            match="false"
+            config_list_foreach "$key_section" "keyword" server_key_match "$server_name"
+         elif [ -z "$config_keyword" ] && [ ! -z "$config_ex_keyword" ]; then
+         	  match="true"
+            config_list_foreach "$key_section" "ex_keyword" server_key_exmatch "$server_name"
+         elif [ ! -z "$config_keyword" ] && [ ! -z "$config_ex_keyword" ]; then
+            match="false"
+            config_list_foreach "$key_section" "keyword" server_key_match "$server_name"
+            config_list_foreach "$key_section" "ex_keyword" server_key_exmatch "$server_name"
+         fi
 
          if [ "$match" = "false" ]; then
             echo "跳过【$server_name】服务器节点..." >$START_LOG
