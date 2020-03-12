@@ -24,6 +24,9 @@ config openclash 'config'
 	option proxy_mode 'Rule'
 	option intranet_allowed '0'
 	option enable_udp_proxy '0'
+	option lan_ac_mode '0'
+	option operation_mode 'redir-host'
+	option enable_rule_proxy '0'
 	
 config dns_servers
 	option group 'nameserver'
