@@ -138,6 +138,8 @@ fi
       sed -i '/^##Custom Rules 2##/,/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
       sed -i '/^##Custom Rules 2##/d' "$4" 2>/dev/null
       sed -i '/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,tracker,DIRECT/d' "$4" 2>/dev/null
+      
       if [ "$3" = 1 ]; then
          sed -i '/^Rule:/a\##Custom Rules End##' "$4" 2>/dev/null
          sed -i '/^Rule:/a\##Custom Rules##' "$4" 2>/dev/null
@@ -147,7 +149,7 @@ fi
          sed -i '/^##Custom Rules 2##/r/etc/openclash/custom/openclash_custom_rules_2.list' "$4" 2>/dev/null
       fi
       
-      if [ "$5" = 1 ] || [ "$3" = 1 ] || [ -z "$(grep '- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
+      if [ "$5" = 1 ] || [ "$3" = 1 ] || [ "$7" = 1 ] || [ -z "$(grep '- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
          sed -i "s/^ \{0,\}-/-/" "$4" 2>/dev/null #修改参数空格
          sed -i "s/^\t\{0,\}-/-/" "$4" 2>/dev/null #修改参数tab
       fi
@@ -156,6 +158,23 @@ fi
          if [ ! -z "$(grep "^ \{0,\}- IP-CIDR,198.18.0.1/16" "$4")" ]; then
             sed -i "/^ \{0,\}- IP-CIDR,198.18.0.1\/16/c\- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve" "$4"
          else
-            sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4"
+            sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4"\
+            || sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4"\
+            || sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4"
+         fi
+      fi
+      
+      if [ "$7" = 1 ]; then
+         sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4"
+         if [ -z "$(grep "###- MATCH," "$4")" ] && [ -z "$(grep "###- FINAL," "$4")" ]; then
+            sed -i 's/- MATCH,/###&/' "$4" 2>/dev/null
+            sed -i 's/- FINAL,/###&/' "$4" 2>/dev/null
+            echo "- MATCH,DIRECT" >> "$4" 2>/dev/null
+         fi
+      else
+         if [ ! -z "$(grep "###- MATCH," "$4")" ] || [ ! -z "$(grep "###- FINAL," "$4")" ]; then
+            sed -i '/^- MATCH,DIRECT/d' "$4" 2>/dev/null
+            sed -i "s/###- MATCH,/- MATCH,/" "$4" 2>/dev/null
+            sed -i "s/###- FINAL,/- FINAL,/" "$4" 2>/dev/null
          fi
       fi

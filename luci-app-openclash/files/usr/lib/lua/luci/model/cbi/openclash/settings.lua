@@ -12,18 +12,56 @@ font_off = [[</font>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
+local op_mode = string.sub(luci.sys.exec('uci get openclash.config.operation_mode 2>/dev/null'),0,-2)
+if not op_mode then op_mode = "redir-host" end
+
 m = Map("openclash", translate("Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"))
 m.pageaction = false
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
 
+s:tab("op_mode", translate("Operation Mode"))
 s:tab("settings", translate("General Settings"))
 s:tab("dns", translate("DNS Setting"))
+s:tab("lan_ac", translate("Access Control"))
+if op_mode == "fake-ip" then
+s:tab("rules", translate("Rules Setting(Access Control)"))
+else
 s:tab("rules", translate("Rules Setting"))
+end
 s:tab("dashboard", translate("Dashboard Settings"))
 s:tab("rules_update", translate("Rules Update"))
 s:tab("geo_update", translate("GEOIP Update"))
 s:tab("version_update", translate("Version Update"))
+
+---- Operation Mode
+o = s:taboption("op_mode", ListValue, "operation_mode", font_red..bold_on..translate("Select Operation Mode")..bold_off..font_off)
+o:value("redir-host", translate("redir-host mode"))
+o:value("fake-ip", translate("fake-ip mode"))
+o.default = "redir-host"
+
+o = s:taboption("op_mode", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
+o.description = translate("Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error")
+if op_mode == "redir-host" then
+o:value("redir-host", translate("redir-host"))
+o:value("redir-host-tun", translate("redir-host(tun mode)"))
+o:value("redir-host-vpn", translate("redir-host-vpn(game mode)"))
+o.default = "redir-host"
+else
+o:value("fake-ip", translate("fake-ip"))
+o:value("fake-ip-tun", translate("fake-ip(tun mode)"))
+o:value("fake-ip-vpn", translate("fake-ip-vpn(game mode)"))
+o.default = "fake-ip"
+end
+
+o = s:taboption("op_mode", Button, translate("Switch Operation Mode")) 
+o.title = translate("Switch Operation Mode")
+o.inputtitle = translate("Switch Mode")
+o.inputstyle = "reload"
+o.write = function()
+	m.uci:commit("openclash")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "settings"))
+end
 
 ---- General Settings
 local cpu_model=SYS.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
@@ -44,16 +82,6 @@ o:value("linux-mipsle-hardfloat")
 o:value("0", translate("Not Set"))
 o.default=0
 
-o = s:taboption("settings", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
-o.description = translate("Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error")
-o:value("redir-host", translate("redir-host"))
-o:value("fake-ip", translate("fake-ip"))
-o:value("redir-host-tun", translate("redir-host(tun mode)"))
-o:value("fake-ip-tun", translate("fake-ip(tun mode)"))
-o:value("redir-host-vpn", translate("redir-host-vpn(game mode)"))
-o:value("fake-ip-vpn", translate("fake-ip-vpn(game mode)"))
-o.default = "redir-host"
-
 o = s:taboption("settings", ListValue, "enable_udp_proxy", font_red..bold_on..translate("Proxy UDP Traffics")..bold_off..font_off)
 o.description = translate("Select Mode For UDP Traffics, The Servers Must Support UDP while Choose Proxy")
 o:depends("en_mode", "redir-host")
@@ -61,6 +89,12 @@ o:depends("en_mode", "fake-ip")
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default = "0"
+
+o = s:taboption("settings", ListValue, "enable_rule_proxy", font_red..bold_on..translate("Rule Match Proxy Mode")..bold_off..font_off)
+o.description = translate("Only Proxy Rules Match, Prevent BT Passing")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default=0
 
 o = s:taboption("settings", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
 o.description = translate("Select Proxy Mode")
@@ -130,6 +164,7 @@ o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
 
+if op_mode == "fake-ip" then
 o = s:taboption("dns", ListValue, "dns_advanced_setting", translate("Advanced Setting"))
 o.description = translate("DNS Advanced Settings")..font_red..bold_on..translate("(Please Don't Modify it at Will)")..bold_off..font_off
 o:value("0", translate("Disable"))
@@ -171,9 +206,40 @@ function custom_fake_black.write(self, section, value)
 		NXFS.writefile("/etc/openclash/custom/openclash_custom_fake_black.conf", value)
 	end
 end
+end
+
+---- Access Control
+if op_mode == "redir-host" then
+o = s:taboption("lan_ac", ListValue, "lan_ac_mode", translate("Access Control Mode"))
+o:value("0", translate("Black List Mode"))
+o:value("1", translate("White List Mode"))
+o.default=0
+
+o = s:taboption("lan_ac", DynamicList, "lan_ac_black_ips", translate("LAN Bypassed Host List"))
+o:depends("lan_ac_mode", "0")
+o.datatype = "ipaddr"
+luci.ip.neighbors({ family = 4 }, function(entry)
+		if entry.reachable then
+			o:value(entry.dest:string())
+		end
+end)
+
+o = s:taboption("lan_ac", DynamicList, "lan_ac_white_ips", translate("LAN Proxied Host List"))
+o:depends("lan_ac_mode", "1")
+o.datatype = "ipaddr"
+luci.ip.neighbors({ family = 4 }, function(entry)
+		if entry.reachable then
+			o:value(entry.dest:string())
+		end
+end)
+end
 
 ---- Rules Settings
+if op_mode == "fake-ip" then
+o = s:taboption("rules", ListValue, "enable_custom_clash_rules", font_red..bold_on..translate("Custom Clash Rules(Access Control)")..bold_off..font_off)
+else
 o = s:taboption("rules", ListValue, "enable_custom_clash_rules", font_red..bold_on..translate("Custom Clash Rules")..bold_off..font_off)
+end
 o.description = translate("Use Custom Rules")
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
@@ -475,6 +541,7 @@ function custom_rules_2.write(self, section, value)
 	end
 end
 
+if op_mode == "redir-host" then
 s = m:section(TypedSection, "openclash", translate("Set Custom Hosts, Only Work with Redir-Host Mode"))
 s.anonymous = true
 
@@ -492,6 +559,7 @@ function custom_hosts.write(self, section, value)
 		value = value:gsub("\r\n?", "\n")
 		NXFS.writefile("/etc/openclash/custom/openclash_custom_hosts.list", value)
 	end
+end
 end
 
 local t = {
