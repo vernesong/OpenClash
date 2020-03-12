@@ -578,6 +578,20 @@ EOF
 fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
 cat >> "$SERVER_FILE" <<-EOF
+- name: PayPal
+  type: select
+  proxies:
+  - DIRECT
+  - Proxy
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+if [ -f "/tmp/Proxy_Provider" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  use:
+EOF
+fi
+cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
 - name: Netease Music
   type: select
   proxies:
@@ -603,6 +617,7 @@ uci set openclash.config.AdBlock="AdBlock"
 uci set openclash.config.Netease_Music="Netease Music"
 uci set openclash.config.Speedtest="Speedtest"
 uci set openclash.config.Telegram="Telegram"
+uci set openclash.config.PayPal="PayPal"
 uci set openclash.config.Domestic="Domestic"
 uci set openclash.config.Others="Others"
 [ "$config_auto_update" -eq 1 ] && {
@@ -616,6 +631,7 @@ uci set openclash.config.Others="Others"
 	uci add_list openclash.config.new_servers_group="Spotify"
 	uci add_list openclash.config.new_servers_group="Steam"
 	uci add_list openclash.config.new_servers_group="Telegram"
+	uci add_list openclash.config.new_servers_group="PayPal"
 	uci add_list openclash.config.new_servers_group="Speedtest"
 	uci add_list openclash.config.new_servers_group="Netease Music"
 }

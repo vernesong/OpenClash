@@ -314,6 +314,12 @@ o:depends("rule_source", "lhie1")
    o:value(l)
    end
    file:seek("set")
+o = s:taboption("rules", ListValue, "PayPal", translate("PayPal"))
+o:depends("rule_source", "lhie1")
+ for l in file:lines() do
+   o:value(l)
+   end
+   file:seek("set")
 o = s:taboption("rules", ListValue, "Netease_Music", translate("Netease Music"))
 o:depends("rule_source", "lhie1")
  for l in file:lines() do

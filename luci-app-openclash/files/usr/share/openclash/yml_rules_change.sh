@@ -33,6 +33,7 @@ if [ "$2" != 0 ]; then
     Netease_Music=$(grep '##Netease_Music:' "$4" |awk -F ':' '{print $2}')
     Speedtest=$(grep '##Speedtest:' "$4" |awk -F ':' '{print $2}')
     Telegram=$(grep '##Telegram:' "$4" |awk -F ':' '{print $2}')
+    PayPal=$(grep '##PayPal:' "$4" |awk -F ':' '{print $2}')
 
     if [ "$2" = "ConnersHua_return" ]; then
 	if [ "$(uci get openclash.config.Proxy)" != "$Proxy" ]\
@@ -61,6 +62,7 @@ if [ "$2" != 0 ]; then
 	 || [ "$(uci get openclash.config.Netease_Music)" != "$Netease_Music" ]\
 	 || [ "$(uci get openclash.config.Speedtest)" != "$Speedtest" ]\
    || [ "$(uci get openclash.config.Telegram)" != "$Telegram" ]\
+   || [ "$(uci get openclash.config.PayPal)" != "$PayPal" ]\
 	 || [ "$(uci get openclash.config.Others)" != "$Others" ]\
 	 || [ "$(uci get openclash.config.Domestic)" != "$Domestic" ]; then
          check_def=1
@@ -80,6 +82,7 @@ if [ "$2" != 0 ]; then
        Netease_Music=$(uci get openclash.config.Netease_Music 2>/dev/null)
        Speedtest=$(uci get openclash.config.Speedtest 2>/dev/null)
        Telegram=$(uci get openclash.config.Telegram 2>/dev/null)
+       PayPal=$(uci get openclash.config.PayPal 2>/dev/null)
        Domestic=$(uci get openclash.config.Domestic 2>/dev/null)
        Others=$(uci get openclash.config.Others 2>/dev/null)
        if [ "$2" = "lhie1" ]; then
@@ -96,6 +99,7 @@ if [ "$2" != 0 ]; then
             -e "s/,Netease Music/,${Netease_Music}#d/g" -e "/Rule:/a\##Netease_Music:${Netease_Music}"\
             -e "s/,Speedtest/,${Speedtest}#d/g" -e "/Rule:/a\##Speedtest:${Speedtest}"\
             -e "s/,Telegram/,${Telegram}#d/g" -e "/Rule:/a\##Telegram:${Telegram}"\
+            -e "s/,PayPal/,${PayPal}#d/g" -e "/Rule:/a\##PayPal:${PayPal}"\
             -e "s/,Domestic/,${Domestic}#d/g" -e "/Rule:/a\##Domestic:${Domestic}"\
             -e "s/,Others/,${Others}#d/g" -e "/Rule:/a\##Others:${Others}"\
             -e "s/#d//g" "$4"
