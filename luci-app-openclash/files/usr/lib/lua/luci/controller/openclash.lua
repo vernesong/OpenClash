@@ -42,7 +42,7 @@ local function is_web()
 end
 
 local function is_watchdog()
-	return luci.sys.exec("ps |grep openclash_watchdog.sh |grep -v grep 2>/dev/null |sed -n 1p")
+	return luci.sys.call("ps |grep openclash_watchdog.sh |grep -v grep >/dev/null") == 0
 end
 
 local function cn_port()
