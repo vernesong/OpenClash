@@ -132,13 +132,19 @@ elif [ "$2" = 0 ]; then
     	}
 fi
 
-      sed -i '/^##Custom Rules/,/^##Custom Rules End/d' "$4" 2>/dev/null
-      sed -i '/^##Custom Rules/d' "$4" 2>/dev/null
-      sed -i '/^##Custom Rules End/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules##/,/^##Custom Rules End##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules End##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules 2##/,/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules 2##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
       if [ "$3" = 1 ]; then
          sed -i '/^Rule:/a\##Custom Rules End##' "$4" 2>/dev/null
          sed -i '/^Rule:/a\##Custom Rules##' "$4" 2>/dev/null
          sed -i '/^##Custom Rules##/r/etc/openclash/custom/openclash_custom_rules.list' "$4" 2>/dev/null
+         sed -i '/^ \{0,\}- MATCH,/i\##Custom Rules 2##' "$4" 2>/dev/null
+         sed -i '/^##Custom Rules 2##/a\##Custom Rules 2 End##' "$4" 2>/dev/null
+         sed -i '/^##Custom Rules 2##/r/etc/openclash/custom/openclash_custom_rules_2.list' "$4" 2>/dev/null
       fi
       
       if [ "$5" = 1 ] || [ "$3" = 1 ] || [ -z "$(grep '- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
