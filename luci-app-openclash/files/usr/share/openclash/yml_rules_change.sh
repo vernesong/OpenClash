@@ -132,9 +132,12 @@ elif [ "$2" = 0 ]; then
     	}
 fi
 
-      sed -i '/^##Custom Rules/,/^##Custom Rules End/d' "$4" 2>/dev/null
-      sed -i '/^##Custom Rules/d' "$4" 2>/dev/null
-      sed -i '/^##Custom Rules End/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules##/,/^##Custom Rules End##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules End##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules 2##/,/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules 2##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
       if [ "$3" = 1 ]; then
          sed -i '/^Rule:/a\##Custom Rules End##' "$4" 2>/dev/null
          sed -i '/^Rule:/a\##Custom Rules##' "$4" 2>/dev/null
