@@ -513,11 +513,13 @@ yml_auth_custom()
       sed -i '/^dns:/i\#authentication' "$1" 2>/dev/null
       sed -i '/^authentication:/,/^#authentication/d' "$1" 2>/dev/null
    fi
-   [ -f /etc/openclash/config.auth ] && {
+   if [ -f /etc/openclash/config.auth ]; then
       sed -i '/^dns:/i\authentication:' "$1" 2>/dev/null
       sed -i '/^authentication:/r/etc/openclash/config.auth' "$1" 2>/dev/null
-      rm -rf /etc/openclash/config.auth 2>/dev/null
-   }
+      mv /etc/openclash/config.auth /tmp/openclash.auth 2>/dev/null
+   else
+      rm -rf /tmp/openclash.auth 2>/dev/null
+   fi
 }
 
 get_rule_file()
