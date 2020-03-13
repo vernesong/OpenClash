@@ -5,7 +5,8 @@
    echo "开始获取使用中的第三方规则名称..." >$START_LOG
    RUlE_SOURCE=$(uci get openclash.config.rule_source 2>/dev/null)
    HTTP_PORT=$(uci get openclash.config.http_port 2>/dev/null)
-   PROXY_ADDR="127.0.0.1"
+   PROXY_ADDR=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null)
+
    if [ -s "/tmp/openclash.auth" ]; then
 	    PROXY_AUTH=$(cat /tmp/openclash.auth |awk -F '- ' '{print $2}' |sed -n '1p' 2>/dev/null)
    fi
