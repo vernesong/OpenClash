@@ -33,8 +33,12 @@
 	var ma_op_up  = document.getElementById('ma_op_up');
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
-		  cpu_model.innerHTML = status.coremodel ? "<b><font color=green>"+status.coremodel+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
-      cpu_model2.innerHTML = status.coremodel2 ? "<b><font color=green>"+status.coremodel2+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
+			var cpu_models = status.coremodel;
+			var arr_model = cpu_models.split(",");
+      var cpu_model1 = arr_model[0];
+      var cpu_model22 = arr_model[1];
+		  cpu_model.innerHTML = cpu_model1 ? "<b><font color=green>"+cpu_model1+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
+      cpu_model2.innerHTML = cpu_model22 ? "<b><font color=green>"+cpu_model22+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
 		  if ( status.corever != "0\n" && status.corever != "" ) {
 		     core_version.innerHTML = "<b><font color=green>"+status.corever+"</font></b>";
 		  }
@@ -69,12 +73,16 @@
 			else {
 			   core_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
 			}
+			var oplv = status.oplv;
+      var arr_op = oplv.split(",");
+      var oplvis = arr_op[0];
+      var new_op = arr_op[1];
 			op_cv.innerHTML = status.opcv ? "<b><font color=green>"+status.opcv+"</font></b>" : "<b><font color=red><%:Unknown%></font></b>";
-			if ( status.oplv != "" && status.oplv != "\n" && "v"+status.oplv != status.opcv && status.opcv != "" ) {
-			   op_lv.innerHTML = "<b><font color=green>v"+status.oplv+"<%:<New>%></font></b>";
+			if ( status.oplv != "" && status.oplv != "\n" && new_op == "2" && status.opcv != "" ) {
+			   op_lv.innerHTML = "<b><font color=green>"+oplvis+"<%:<New>%></font></b>";
 			}
 			else if (status.oplv != "" && status.oplv != "\n") {
-			   op_lv.innerHTML = "<b><font color=green>v"+status.oplv+"</font></b>";
+			   op_lv.innerHTML = "<b><font color=green>"+oplvis+"</font></b>";
 			}
 			else {
 			   op_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
@@ -84,8 +92,12 @@
   
 	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
-		  cpu_model.innerHTML = status.coremodel ? "<b><font color=green>"+status.coremodel+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
-      cpu_model2.innerHTML = status.coremodel2 ? "<b><font color=green>"+status.coremodel2+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
+		  var cpu_models = status.coremodel;
+			var arr_model = cpu_models.split(",");
+      var cpu_model1 = arr_model[0];
+      var cpu_model22 = arr_model[1];
+		  cpu_model.innerHTML = cpu_model1 ? "<b><font color=green>"+cpu_model1+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
+      cpu_model2.innerHTML = cpu_model22 ? "<b><font color=green>"+cpu_model22+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
 		  if ( status.corever != "0\n" && status.corever != "" ) {
 		     core_version.innerHTML = "<b><font color=green>"+status.corever+"</font></b>";
 		  }
@@ -120,12 +132,16 @@
 			else {
 			   core_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
 			}
+			var oplv = status.oplv;
+      var arr_op = oplv.split(",");
+      var oplvis = arr_op[0];
+      var new_op = arr_op[1];
 			op_cv.innerHTML = status.opcv ? "<b><font color=green>"+status.opcv+"</font></b>" : "<b><font color=red><%:Unknown%></font></b>";
-			if ( status.oplv != "" && status.oplv != "\n" && "v"+status.oplv != status.opcv && status.opcv != "" ) {
-			   op_lv.innerHTML = "<b><font color=green>v"+status.oplv+"<%:<New>%></font></b>";
+			if ( status.oplv != "" && status.oplv != "\n" && new_op == "2" && status.opcv != "" ) {
+			   op_lv.innerHTML = "<b><font color=green>"+oplvis+"<%:<New>%></font></b>";
 			}
 			else if (status.oplv != "" && status.oplv != "\n") {
-			   op_lv.innerHTML = "<b><font color=green>v"+status.oplv+"</font></b>";
+			   op_lv.innerHTML = "<b><font color=green>"+oplvis+"</font></b>";
 			}
 			else {
 			   op_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";

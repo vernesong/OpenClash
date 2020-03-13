@@ -9,7 +9,7 @@ LOG_FILE="/tmp/openclash.log"
 LAST_OPVER="/tmp/openclash_last_version"
 LAST_VER=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |sed "s/^v//g")
 HTTP_PORT=$(uci get openclash.config.http_port 2>/dev/null)
-lan_ip=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null)
+PROXY_ADDR=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null)
 if [ -s "/tmp/openclash.auth" ]; then
    PROXY_AUTH=$(cat /tmp/openclash.auth |awk -F '- ' '{print $2}' |sed -n '1p' 2>/dev/null)
 fi
@@ -17,7 +17,7 @@ fi
 if [ "$(sed -n 1p /etc/openclash/openclash_version 2>/dev/null)" != "$(sed -n 1p $LAST_OPVER 2>/dev/null)" ] && [ -f "$LAST_OPVER" ]; then
    echo "开始下载 OpenClash-$LAST_VER ..." >$START_LOG
    if pidof clash >/dev/null; then
-      curl -sL --connect-timeout 10 --retry 5 -x http://$lan_ip:$HTTP_PORT -U "$PROXY_AUTH" https://github.com/vernesong/OpenClash/releases/download/v"$LAST_VER"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
+      curl -sL --connect-timeout 10 --retry 5 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" https://github.com/vernesong/OpenClash/releases/download/v"$LAST_VER"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
    else
       curl -sL --connect-timeout 10 --retry 5 https://github.com/vernesong/OpenClash/releases/download/v"$LAST_VER"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
    fi
