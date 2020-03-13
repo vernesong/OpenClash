@@ -119,6 +119,7 @@ o.inputstyle="apply"
 Button.render(o,t,a)
 end
 btnis.write=function(a,t)
+fs.unlink("/tmp/Proxy_Group")
 luci.sys.exec(string.format('uci set openclash.config.config_path="/etc/openclash/config/%s"',e[t].name))
 uci:set("openclash", "config", "enable", 1)
 uci:commit("openclash")

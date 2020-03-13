@@ -433,6 +433,9 @@ msgstr "测速流量"
 msgid "Telegram"
 msgstr "Telegram流量"
 
+msgid "PayPal"
+msgstr "PayPal流量"
+
 msgid "AdBlock"
 msgstr "广告流量"
 
@@ -796,10 +799,13 @@ msgid "Select Mode For UDP Traffics, The Servers Must Support UDP while Choose P
 msgstr "启用时服务器必须支持UDP转发"
 
 msgid "Operation Mode"
-msgstr "操作模式"
+msgstr "模式设置"
 
 msgid "Select Operation Mode"
 msgstr "*页面操作模式"
+
+msgid "Select Mode For Page Settings, Switch By Click the Button Bellow"
+msgstr "选择全局设置的操作模式，单击下面的按钮进行切换"
 
 msgid "redir-host mode"
 msgstr "Redir-Host 模式"
@@ -811,7 +817,7 @@ msgid "Switch Operation Mode"
 msgstr "切换操作模式"
 
 msgid "Switch Mode"
-msgstr "切换模式"
+msgstr "切换"
 
 msgid "Access Control"
 msgstr "访问控制"
