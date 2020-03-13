@@ -105,7 +105,7 @@ yml_check()
    
    #检查关键字避免后续操作出错
    #proxies
-   [ ! -z "$(grep "^ \{0,\}\'Proxy\':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}\"Proxy\":' "$3")" ] || [ ! -z "$(grep '^ \{1,\}Proxy:' "$3")" ] && {
+   [ -z "$(grep "^Proxy:" "$3")" ] && {
       sed -i "/^ \{0,\}\'Proxy\':/c\Proxy:" "$3" 2>/dev/null
       sed -i '/^ \{0,\}\"Proxy\":/c\Proxy:' "$3" 2>/dev/null
       sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$3" 2>/dev/null
@@ -117,7 +117,7 @@ yml_check()
    }
 
 	 #proxy-providers
-	 [ ! -z "$(grep "^ \{0,\}\'proxy-provider\':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}\"proxy-provider\":' "$3")" ] || [ ! -z "$(grep '^ \{1,\}proxy-provider:' "$3")" ] && {
+	 [ -z "$(grep "^proxy-provider:" "$3")" ] && {
       sed -i "/^ \{0,\}\'proxy-provider\':/c\proxy-provider:" "$3" 2>/dev/null
       sed -i '/^ \{0,\}\"proxy-provider\":/c\proxy-provider:' "$3" 2>/dev/null
       sed -i "/^ \{1,\}proxy-provider:/c\proxy-provider:" "$3" 2>/dev/null
@@ -128,7 +128,7 @@ yml_check()
       sed -i "/^ \{0,\}proxy-providers:/c\proxy-provider:" "$3" 2>/dev/null
    }
    #proxy-groups
-   [ ! -z "$(grep "^ \{0,\}\'Proxy Group\':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}\"Proxy Group\":' "$3")" ] || [ ! -z "$(grep '^ \{1,\}Proxy Group:' "$3")" ] && {
+   [ -z "$(grep "^Proxy Group:" "$3")" ] && {
       sed -i "/^ \{0,\}\'Proxy Group\':/c\Proxy Group:" "$3" 2>/dev/null
       sed -i '/^ \{0,\}\"Proxy Group\":/c\Proxy Group:' "$3" 2>/dev/null
       sed -i "/^ \{1,\}Proxy Group:/c\Proxy Group:" "$3" 2>/dev/null
@@ -140,7 +140,7 @@ yml_check()
    }
    
    #rules
-   [ ! -z "$(grep "^ \{0,\}\'Rule\':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}\"Rule\":' "$3")" ] || [ ! -z "$(grep '^ \{1,\}Rule:' "$3")" ] && {
+   [ -z "$(grep "^Rule:" "$3")" ] && {
       sed -i "/^ \{0,\}\'Rule\':/c\Rule:" "$3" 2>/dev/null
       sed -i '/^ \{0,\}\"Rule\":/c\Rule:' "$3" 2>/dev/null
       sed -i "/^ \{1,\}Rule:/c\Rule:" "$3" 2>/dev/null
@@ -152,7 +152,7 @@ yml_check()
    }
    
    #dns
-   [ ! -z "$(grep "^ \{0,\}\'dns\':" "$3")" ] || [ ! -z "$(grep '^ \{0,\}\"dns\":' "$3")" ] || [ ! -z "$(grep '^ \{1,\}dns:' "$3")" ] && {
+   [ -z "$(grep "^dns:" "$3")" ] && {
       sed -i "/^ \{0,\}\'dns\':/c\dns:" "$3" 2>/dev/null
       sed -i '/^ \{0,\}\"dns\":/c\dns:' "$3" 2>/dev/null
       sed -i "/^ \{1,\}dns:/c\dns:" "$3" 2>/dev/null
@@ -740,7 +740,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE" "$PROXY_PROVIDER_FILE" "$GROUP_FILE"
           yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
           sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1 "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" &
-          sh /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" &
+          sh /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$BACKUP_FILE" &
           wait
           yml_game_custom
           echo "第四步: DNS设置检查..." >$START_LOG

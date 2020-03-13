@@ -6,6 +6,7 @@ local SYS  = require "luci.sys"
 local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
+local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 
 font_red = [[<font color="red">]]
@@ -118,6 +119,7 @@ o = a:option(Button, "Commit")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
+	fs.unlink("/tmp/Proxy_Group")
   m.uci:commit("openclash")
 end
 
@@ -125,6 +127,7 @@ o = a:option(Button, "Apply")
 o.inputtitle = translate("Apply Configurations")
 o.inputstyle = "apply"
 o.write = function()
+	fs.unlink("/tmp/Proxy_Group")
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
   SYS.call("rm -rf /etc/openclash/backup/* 2>/dev/null")
