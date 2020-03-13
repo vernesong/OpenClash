@@ -133,6 +133,7 @@ HTTP.setfilehandler(
 			else
 				 um.value = translate("File saved to") .. ' "/etc/openclash/proxy_provider/"'
 			end
+			fs.unlink("/tmp/Proxy_Group")
 		end
 	end
 )
@@ -199,6 +200,7 @@ o.inputstyle="apply"
 Button.render(o,t,a)
 end
 btnis.write=function(a,t)
+fs.unlink("/tmp/Proxy_Group")
 luci.sys.exec(string.format('uci set openclash.config.config_path="/etc/openclash/config/%s"',e[t].name))
 uci:commit("openclash")
 HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
@@ -367,6 +369,7 @@ o = a:option(Button, "Commit")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
+	fs.unlink("/tmp/Proxy_Group")
   uci:commit("openclash")
 end
 
@@ -374,6 +377,7 @@ o = a:option(Button, "Apply")
 o.inputtitle = translate("Apply Configurations")
 o.inputstyle = "apply"
 o.write = function()
+	fs.unlink("/tmp/Proxy_Group")
   uci:set("openclash", "config", "enable", 1)
   uci:commit("openclash")
   SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")

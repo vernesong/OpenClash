@@ -4,6 +4,7 @@ local SYS  = require "luci.sys"
 local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
+local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 
 font_green = [[<font color="green">]]
@@ -36,6 +37,7 @@ s:tab("version_update", translate("Version Update"))
 
 ---- Operation Mode
 o = s:taboption("op_mode", ListValue, "operation_mode", font_red..bold_on..translate("Select Operation Mode")..bold_off..font_off)
+o.description = translate("Select Mode For Page Settings, Switch By Click the Button Bellow")
 o:value("redir-host", translate("redir-host mode"))
 o:value("fake-ip", translate("fake-ip mode"))
 o.default = "redir-host"
@@ -53,6 +55,21 @@ o:value("fake-ip-tun", translate("fake-ip(tun mode)"))
 o:value("fake-ip-vpn", translate("fake-ip-vpn(game mode)"))
 o.default = "fake-ip"
 end
+
+o = s:taboption("op_mode", ListValue, "enable_udp_proxy", font_red..bold_on..translate("Proxy UDP Traffics")..bold_off..font_off)
+o.description = translate("Select Mode For UDP Traffics, The Servers Must Support UDP while Choose Proxy")
+o:depends("en_mode", "redir-host")
+o:depends("en_mode", "fake-ip")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default = "0"
+
+o = s:taboption("op_mode", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
+o.description = translate("Select Proxy Mode")
+o:value("Rule", translate("Rule Proxy Mode"))
+o:value("Global", translate("Global Proxy Mode"))
+o:value("Direct", translate("Direct Proxy Mode"))
+o.default = "Rule"
 
 o = s:taboption("op_mode", Button, translate("Switch Operation Mode")) 
 o.title = translate("Switch Operation Mode")
@@ -82,26 +99,11 @@ o:value("linux-mipsle-hardfloat")
 o:value("0", translate("Not Set"))
 o.default=0
 
-o = s:taboption("settings", ListValue, "enable_udp_proxy", font_red..bold_on..translate("Proxy UDP Traffics")..bold_off..font_off)
-o.description = translate("Select Mode For UDP Traffics, The Servers Must Support UDP while Choose Proxy")
-o:depends("en_mode", "redir-host")
-o:depends("en_mode", "fake-ip")
-o:value("0", translate("Disable"))
-o:value("1", translate("Enable"))
-o.default = "0"
-
 o = s:taboption("settings", ListValue, "enable_rule_proxy", font_red..bold_on..translate("Rule Match Proxy Mode")..bold_off..font_off)
 o.description = translate("Only Proxy Rules Match, Prevent BT Passing")
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
-
-o = s:taboption("settings", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
-o.description = translate("Select Proxy Mode")
-o:value("Rule", translate("Rule Proxy Mode"))
-o:value("Global", translate("Global Proxy Mode"))
-o:value("Direct", translate("Direct Proxy Mode"))
-o.default = "Rule"
 
 o = s:taboption("settings", ListValue, "log_level", translate("Log Level"))
 o.description = translate("Select Core's Log Level")
@@ -252,7 +254,9 @@ o:value("lhie1", translate("lhie1 Rules"))
 o:value("ConnersHua", translate("ConnersHua Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
+if not fs.isfile("/tmp/Proxy_Group") then
 SYS.call("/usr/share/openclash/yml_groups_name_get.sh 2>/dev/null")
+end
 file = io.open("/tmp/Proxy_Group", "r");
 
 o = s:taboption("rules", ListValue, "GlobalTV", translate("GlobalTV"))
