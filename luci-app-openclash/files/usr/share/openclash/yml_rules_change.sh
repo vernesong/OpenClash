@@ -124,10 +124,10 @@ if [ "$2" != 0 ]; then
        fi
 		fi
 elif [ "$2" = 0 ]; then
-   [ -f /etc/openclash/config.bak ] && {
+   [ -f "$8" ] && {
       grep '##source:' "$4" 1>/dev/null
       if [ "$?" -eq "0" ]; then
-         cp /etc/openclash/config.bak /etc/openclash/configrules.bak
+         cp "$8" /etc/openclash/configrules.bak
          sed -i -n '/^Rule:/,$p' /etc/openclash/configrules.bak
          sed -i '/^Rule:/,$d' "$4"
          cat /etc/openclash/configrules.bak >> "$4"

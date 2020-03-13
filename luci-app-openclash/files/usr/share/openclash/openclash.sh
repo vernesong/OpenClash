@@ -87,7 +87,7 @@ config_su_check()
 config_encode()
 {
 	#proxies
-   [ ! -z "$(grep "^ \{0,\}\'Proxy\':" "$CFG_FILE")" ] || [ ! -z "$(grep '^ \{0,\}\"Proxy\":' "$CFG_FILE")" ] || [ ! -z "$(grep '^ \{1,\}Proxy:' "$CFG_FILE")" ] && {
+   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
       sed -i "/^ \{0,\}\'Proxy\':/c\Proxy:" "$CFG_FILE" 2>/dev/null
       sed -i '/^ \{0,\}\"Proxy\":/c\Proxy:' "$CFG_FILE" 2>/dev/null
       sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$CFG_FILE" 2>/dev/null
@@ -99,7 +99,7 @@ config_encode()
    }
 
 	 #proxy-providers
-	 [ ! -z "$(grep "^ \{0,\}\'proxy-provider\':" "$CFG_FILE")" ] || [ ! -z "$(grep '^ \{0,\}\"proxy-provider\":' "$CFG_FILE")" ] || [ ! -z "$(grep '^ \{1,\}proxy-provider:' "$CFG_FILE")" ] && {
+	 [ -z "$(grep "^proxy-provider:" "$CFG_FILE")" ] && {
       sed -i "/^ \{0,\}\'proxy-provider\':/c\proxy-provider:" "$CFG_FILE" 2>/dev/null
       sed -i '/^ \{0,\}\"proxy-provider\":/c\proxy-provider:' "$CFG_FILE" 2>/dev/null
       sed -i "/^ \{1,\}proxy-provider:/c\proxy-provider:" "$CFG_FILE" 2>/dev/null
@@ -110,7 +110,7 @@ config_encode()
       sed -i "/^ \{0,\}proxy-providers:/c\proxy-provider:" "$CFG_FILE" 2>/dev/null
    }
    #proxy-groups
-   [ ! -z "$(grep "^ \{0,\}\'Proxy Group\':" "$CFG_FILE")" ] || [ ! -z "$(grep '^ \{0,\}\"Proxy Group\":' "$CFG_FILE")" ] || [ ! -z "$(grep '^ \{1,\}Proxy Group:' "$CFG_FILE")" ] && {
+   [ -z "$(grep "^Proxy Group:" "$CFG_FILE")" ] && {
       sed -i "/^ \{0,\}\'Proxy Group\':/c\Proxy Group:" "$CFG_FILE" 2>/dev/null
       sed -i '/^ \{0,\}\"Proxy Group\":/c\Proxy Group:' "$CFG_FILE" 2>/dev/null
       sed -i "/^ \{1,\}Proxy Group:/c\Proxy Group:" "$CFG_FILE" 2>/dev/null
@@ -122,7 +122,7 @@ config_encode()
    }
    
    #rules
-   [ ! -z "$(grep "^ \{0,\}\'Rule\':" "$CFG_FILE")" ] || [ ! -z "$(grep '^ \{0,\}\"Rule\":' "$CFG_FILE")" ] || [ ! -z "$(grep '^ \{1,\}Rule:' "$CFG_FILE")" ] && {
+   [ -z "$(grep "^Rule:" "$CFG_FILE")" ] && {
       sed -i "/^ \{0,\}\'Rule\':/c\Rule:" "$CFG_FILE" 2>/dev/null
       sed -i '/^ \{0,\}\"Rule\":/c\Rule:' "$CFG_FILE" 2>/dev/null
       sed -i "/^ \{1,\}Rule:/c\Rule:" "$CFG_FILE" 2>/dev/null
