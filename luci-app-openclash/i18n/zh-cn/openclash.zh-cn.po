@@ -235,6 +235,9 @@ msgstr ""
 "固件须配置好IPV6的NAT，如你不使用IPV6请关闭固件的相关服务，避免客户端连接出现异常"
 
 msgid "Rules Setting"
+msgstr "规则设置"
+
+msgid "Rules Setting(Access Control)"
 msgstr "规则设置（访问控制）"
 
 msgid "Config Manage"
@@ -430,6 +433,9 @@ msgstr "测速流量"
 msgid "Telegram"
 msgstr "Telegram流量"
 
+msgid "PayPal"
+msgstr "PayPal流量"
+
 msgid "AdBlock"
 msgstr "广告流量"
 
@@ -443,10 +449,16 @@ msgid "Choose Proxy Group, Base On Your Servers Group in config.yaml"
 msgstr "指定流量(策略)的代理方式，只支持选择（服务器组），信息来源于您的配置文件"
 
 msgid "Custom Clash Rules"
+msgstr "自定义规则"
+
+msgid "Custom Clash Rules(Access Control)"
 msgstr "自定义规则(访问控制)"
 
 msgid "Custom Rules Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md, IP To CIDR: http://ip2cidr.com"
-msgstr "设置自定义规则，详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询，在线IP段转CIDR地址：http://ip2cidr.com"
+msgstr "设置自定义规则（顶部），详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询，在线IP段转CIDR地址：http://ip2cidr.com"
+
+msgid "Custom Rules 2 Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md, IP To CIDR: http://ip2cidr.com"
+msgstr "设置自定义规则（底部），详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询，在线IP段转CIDR地址：http://ip2cidr.com"
 
 msgid "Custom Hosts Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md"
 msgstr "设置自定义Hosts，详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询"
@@ -705,6 +717,9 @@ msgstr "（空值无效）"
 msgid "Keyword Match"
 msgstr "筛选节点"
 
+msgid "Exclude Keyword Match"
+msgstr "排除节点"
+
 msgid "(eg: hk or tw&bgp)"
 msgstr "（格式示例：香港、台湾&bgp）"
 
@@ -782,3 +797,48 @@ msgstr "*代理UDP流量"
 
 msgid "Select Mode For UDP Traffics, The Servers Must Support UDP while Choose Proxy"
 msgstr "启用时服务器必须支持UDP转发"
+
+msgid "Operation Mode"
+msgstr "模式设置"
+
+msgid "Select Operation Mode"
+msgstr "*页面操作模式"
+
+msgid "Select Mode For Page Settings, Switch By Click the Button Bellow"
+msgstr "选择全局设置的操作模式，单击下面的按钮进行切换"
+
+msgid "redir-host mode"
+msgstr "Redir-Host 模式"
+
+msgid "fake-ip mode"
+msgstr "Fake-IP 模式"
+
+msgid "Switch Operation Mode"
+msgstr "切换操作模式"
+
+msgid "Switch Mode"
+msgstr "切换"
+
+msgid "Access Control"
+msgstr "访问控制"
+
+msgid "Access Control Mode"
+msgstr "访问控制模式"
+
+msgid "Black List Mode"
+msgstr "黑名单模式"
+
+msgid "White List Mode"
+msgstr "白名单模式"
+
+msgid "LAN Bypassed Host List"
+msgstr "不走代理的局域网LAN IP"
+
+msgid "LAN Proxied Host List"
+msgstr "走代理的局域网LAN IP"
+
+msgid "Rule Match Proxy Mode"
+msgstr "*仅代理命中规则流量"
+
+msgid "Only Proxy Rules Match, Prevent BT Passing"
+msgstr "仅允许代理命中规则的流量，防止BT下载流量经过代理"

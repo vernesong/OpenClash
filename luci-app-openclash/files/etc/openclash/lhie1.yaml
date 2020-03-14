@@ -8668,7 +8668,15 @@ Rule:
 
 
 
-# > NeteaseMusic
+# > PayPal
+# - USER-AGENT,PayPal*,PayPal
+- DOMAIN-KEYWORD,paypal,PayPal
+- DOMAIN-SUFFIX,paypal.com,PayPal
+- DOMAIN-SUFFIX,paypalobjects.com,PayPal
+
+
+
+# > Netease Music
 # - USER-AGENT,%E7%BD%91%E6%98%93%E4%BA%91%E9%9F%B3%E4%B9%90,Netease Music
 # - USER-AGENT,NeteaseMusic*,Netease Music
 - DOMAIN-SUFFIX,music.126.net,Netease Music
@@ -8740,6 +8748,13 @@ Rule:
 - DOMAIN-SUFFIX,office.com,Proxy
 - DOMAIN-SUFFIX,office.net,Proxy
 - DOMAIN-SUFFIX,skype.com,Proxy
+
+# > Sony
+- DOMAIN-SUFFIX,playstation.com,Proxy
+- DOMAIN-SUFFIX,playstation.net,Proxy
+- DOMAIN-SUFFIX,playstationnetwork.com,Proxy
+- DOMAIN-SUFFIX,sony.com,Proxy
+- DOMAIN-SUFFIX,sonyentertainmentnetwork.com,Proxy
 
 # > Spark
 - DOMAIN-SUFFIX,api.amplitude.com,Proxy
@@ -9488,13 +9503,6 @@ Rule:
 - DOMAIN-SUFFIX,alphassl.com,Domestic
 - DOMAIN-SUFFIX,edu.cn,Domestic
 
-# > Sony
-- DOMAIN-SUFFIX,playstation.com,Domestic
-- DOMAIN-SUFFIX,playstation.net,Domestic
-- DOMAIN-SUFFIX,playstationnetwork.com,Domestic
-- DOMAIN-SUFFIX,sony.com,Domestic
-- DOMAIN-SUFFIX,sonyentertainmentnetwork.com,Domestic
-
 # > TeamViewer
 - IP-CIDR,185.188.32.0/24,Domestic
 - IP-CIDR,185.188.33.0/24,Domestic
@@ -9648,8 +9656,6 @@ Rule:
 - DOMAIN-SUFFIX,ourbits.club,Domestic
 - DOMAIN-SUFFIX,ourdvs.com,Domestic
 - DOMAIN-SUFFIX,passthepopcorn.me,Domestic
-- DOMAIN-SUFFIX,paypal.com,Domestic
-- DOMAIN-SUFFIX,paypalobjects.com,Domestic
 - DOMAIN-SUFFIX,pgyer.com,Domestic
 - DOMAIN-SUFFIX,pniao.com,Domestic
 - DOMAIN-SUFFIX,privatehd.to,Domestic

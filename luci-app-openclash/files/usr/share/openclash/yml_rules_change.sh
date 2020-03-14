@@ -33,6 +33,7 @@ if [ "$2" != 0 ]; then
     Netease_Music=$(grep '##Netease_Music:' "$4" |awk -F ':' '{print $2}')
     Speedtest=$(grep '##Speedtest:' "$4" |awk -F ':' '{print $2}')
     Telegram=$(grep '##Telegram:' "$4" |awk -F ':' '{print $2}')
+    PayPal=$(grep '##PayPal:' "$4" |awk -F ':' '{print $2}')
 
     if [ "$2" = "ConnersHua_return" ]; then
 	if [ "$(uci get openclash.config.Proxy)" != "$Proxy" ]\
@@ -61,6 +62,7 @@ if [ "$2" != 0 ]; then
 	 || [ "$(uci get openclash.config.Netease_Music)" != "$Netease_Music" ]\
 	 || [ "$(uci get openclash.config.Speedtest)" != "$Speedtest" ]\
    || [ "$(uci get openclash.config.Telegram)" != "$Telegram" ]\
+   || [ "$(uci get openclash.config.PayPal)" != "$PayPal" ]\
 	 || [ "$(uci get openclash.config.Others)" != "$Others" ]\
 	 || [ "$(uci get openclash.config.Domestic)" != "$Domestic" ]; then
          check_def=1
@@ -80,6 +82,7 @@ if [ "$2" != 0 ]; then
        Netease_Music=$(uci get openclash.config.Netease_Music 2>/dev/null)
        Speedtest=$(uci get openclash.config.Speedtest 2>/dev/null)
        Telegram=$(uci get openclash.config.Telegram 2>/dev/null)
+       PayPal=$(uci get openclash.config.PayPal 2>/dev/null)
        Domestic=$(uci get openclash.config.Domestic 2>/dev/null)
        Others=$(uci get openclash.config.Others 2>/dev/null)
        if [ "$2" = "lhie1" ]; then
@@ -96,6 +99,7 @@ if [ "$2" != 0 ]; then
             -e "s/,Netease Music/,${Netease_Music}#d/g" -e "/Rule:/a\##Netease_Music:${Netease_Music}"\
             -e "s/,Speedtest/,${Speedtest}#d/g" -e "/Rule:/a\##Speedtest:${Speedtest}"\
             -e "s/,Telegram/,${Telegram}#d/g" -e "/Rule:/a\##Telegram:${Telegram}"\
+            -e "s/,PayPal/,${PayPal}#d/g" -e "/Rule:/a\##PayPal:${PayPal}"\
             -e "s/,Domestic/,${Domestic}#d/g" -e "/Rule:/a\##Domestic:${Domestic}"\
             -e "s/,Others/,${Others}#d/g" -e "/Rule:/a\##Others:${Others}"\
             -e "s/#d//g" "$4"
@@ -120,10 +124,10 @@ if [ "$2" != 0 ]; then
        fi
 		fi
 elif [ "$2" = 0 ]; then
-   [ -f /etc/openclash/config.bak ] && {
+   [ -f "$8" ] && {
       grep '##source:' "$4" 1>/dev/null
       if [ "$?" -eq "0" ]; then
-         cp /etc/openclash/config.bak /etc/openclash/configrules.bak
+         cp "$8" /etc/openclash/configrules.bak
          sed -i -n '/^Rule:/,$p' /etc/openclash/configrules.bak
          sed -i '/^Rule:/,$d' "$4"
          cat /etc/openclash/configrules.bak >> "$4"
@@ -132,16 +136,24 @@ elif [ "$2" = 0 ]; then
     	}
 fi
 
-      sed -i '/^##Custom Rules/,/^##Custom Rules End/d' "$4" 2>/dev/null
-      sed -i '/^##Custom Rules/d' "$4" 2>/dev/null
-      sed -i '/^##Custom Rules End/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules##/,/^##Custom Rules End##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules End##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules 2##/,/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules 2##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,tracker,DIRECT/d' "$4" 2>/dev/null
+      
       if [ "$3" = 1 ]; then
          sed -i '/^Rule:/a\##Custom Rules End##' "$4" 2>/dev/null
          sed -i '/^Rule:/a\##Custom Rules##' "$4" 2>/dev/null
          sed -i '/^##Custom Rules##/r/etc/openclash/custom/openclash_custom_rules.list' "$4" 2>/dev/null
+         sed -i '/^ \{0,\}- MATCH,/i\##Custom Rules 2##' "$4" 2>/dev/null
+         sed -i '/^##Custom Rules 2##/a\##Custom Rules 2 End##' "$4" 2>/dev/null
+         sed -i '/^##Custom Rules 2##/r/etc/openclash/custom/openclash_custom_rules_2.list' "$4" 2>/dev/null
       fi
       
-      if [ "$5" = 1 ] || [ "$3" = 1 ] || [ -z "$(grep '- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
+      if [ "$5" = 1 ] || [ "$3" = 1 ] || [ "$7" = 1 ] || [ -z "$(grep '- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
          sed -i "s/^ \{0,\}-/-/" "$4" 2>/dev/null #修改参数空格
          sed -i "s/^\t\{0,\}-/-/" "$4" 2>/dev/null #修改参数tab
       fi
@@ -150,6 +162,23 @@ fi
          if [ ! -z "$(grep "^ \{0,\}- IP-CIDR,198.18.0.1/16" "$4")" ]; then
             sed -i "/^ \{0,\}- IP-CIDR,198.18.0.1\/16/c\- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve" "$4"
          else
-            sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4"
+            sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4"\
+            || sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4"\
+            || sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4"
+         fi
+      fi
+      
+      if [ "$7" = 1 ]; then
+         sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4"
+         if [ -z "$(grep "###- MATCH," "$4")" ] && [ -z "$(grep "###- FINAL," "$4")" ]; then
+            sed -i 's/- MATCH,/###&/' "$4" 2>/dev/null
+            sed -i 's/- FINAL,/###&/' "$4" 2>/dev/null
+            echo "- MATCH,DIRECT" >> "$4" 2>/dev/null
+         fi
+      else
+         if [ ! -z "$(grep "###- MATCH," "$4")" ] || [ ! -z "$(grep "###- FINAL," "$4")" ]; then
+            sed -i '/^- MATCH,DIRECT/d' "$4" 2>/dev/null
+            sed -i "s/###- MATCH,/- MATCH,/" "$4" 2>/dev/null
+            sed -i "s/###- FINAL,/- FINAL,/" "$4" 2>/dev/null
          fi
       fi
