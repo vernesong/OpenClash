@@ -199,8 +199,10 @@
         btn.disabled = false;
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.oplv, function(x, status) {
         if ( x && x.status == 200 ) {
-           if ( status.oplv != "" && status.oplv != "\n" ) {
-              url2='https://github.com/vernesong/OpenClash/releases/download/v'+status.oplv+'/luci-app-openclash_'+status.oplv+'_all.ipk';
+           var oplv = status.oplv;
+           var oplvis = oplv.substring(oplv.indexOf("v") + 1,oplv.indexOf(","));
+           if ( oplvis != "" && oplvis != "\n" ) {
+              url2='https://github.com/vernesong/OpenClash/releases/download/v'+oplvis+'/luci-app-openclash_'+oplvis+'_all.ipk';
               window.open(url2);
            }
            else {

@@ -21,7 +21,7 @@ if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{prin
       if [ "$OP_CV" -ge "$OP_LV" ]; then
          sed -i "/^https:/i\CheckTime:${CKTIME}" "$LAST_OPVER" 2>/dev/null
          sed -i '/^https:/,$d' $LAST_OPVER
-      else
+      elif [ "$OP_CV" -lt "$OP_LV" ]; then
          sed -i "/^https:/i\CheckTime:${CKTIME}" "$LAST_OPVER" 2>/dev/null
          return 2
       fi
@@ -30,7 +30,7 @@ if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{prin
    fi
 elif [ "$OP_CV" -ge "$OP_LV" ]; then
    sed -i '/^CheckTime:/,$d' $LAST_OPVER
-   echo "CheckTime:$CKTIME" >>$LAST_OPVER
+   echo "CheckTime:$CKTIME" >> $LAST_OPVER
 elif [ "$OP_CV" -lt "$OP_LV" ]; then
    return 2
 fi
