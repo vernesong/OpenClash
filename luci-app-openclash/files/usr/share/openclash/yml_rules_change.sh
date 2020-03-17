@@ -143,6 +143,8 @@ fi
       sed -i '/^##Custom Rules 2##/d' "$4" 2>/dev/null
       sed -i '/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
       sed -i '/- DOMAIN-KEYWORD,tracker,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,announce,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,tracker,tracker/d' "$4" 2>/dev/null
       
       if [ "$3" = 1 ]; then
          sed -i '/^Rule:/a\##Custom Rules End##' "$4" 2>/dev/null
@@ -169,7 +171,9 @@ fi
       fi
       
       if [ "$7" = 1 ]; then
-         sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4"
+         sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,announce,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,torrent,DIRECT" "$4" 2>/dev/null
          if [ -z "$(grep "###- MATCH," "$4")" ] && [ -z "$(grep "###- FINAL," "$4")" ]; then
             sed -i 's/- MATCH,/###&/' "$4" 2>/dev/null
             sed -i 's/- FINAL,/###&/' "$4" 2>/dev/null
