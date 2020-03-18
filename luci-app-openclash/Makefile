@@ -98,6 +98,7 @@ if [ -d "/tmp/openclash_game_rules/" ]; then
 fi
 mkdir -p /lib/upgrade/keep.d >/dev/null 2>&1
 cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
+/etc/openclash/clash
 /etc/openclash/custom/
 /etc/openclash/config/
 /etc/openclash/game_rules/
