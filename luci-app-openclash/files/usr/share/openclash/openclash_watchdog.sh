@@ -35,6 +35,7 @@ if [ "$enable" -eq 1 ]; then
 	      /usr/share/openclash/openclash_history_set.sh
 	   else
 	      echo "${LOGTIME} Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit." >> $LOG_FILE
+	      /etc/init.d/openclash stop
 	      exit 0
 	   fi
 	else
