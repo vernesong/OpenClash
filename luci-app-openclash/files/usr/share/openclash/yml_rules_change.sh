@@ -5,6 +5,9 @@ if [ "$2" != 0 ]; then
    if [ ! -f /etc/openclash/"$2".yaml ]; then
       echo "${1} /etc/openclash/"$2".yaml Not Exist, Will Use Self Rules, Please Update and Try Again" >>/tmp/openclash.log
       exit 0
+   elif [ "$(uci get openclash.config.Proxy)" = "读取错误，配置文件异常！" ]; then
+      echo "${1} Warning: Can not Get The Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
+      exit 0
    else
     rulesource=$(grep '##source:' "$4" |awk -F ':' '{print $2}')
     [ "$rulesource" != "$2" ] && {

@@ -72,7 +72,12 @@ change_dns() {
 revert_dns() {
    uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$3" >/dev/null 2>&1
    [ "$1" = "1" ] && {
+   	  [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ] && {
+      uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.d/resolv.conf.auto >/dev/null 2>&1
+      }
+   	  [ -s "/tmp/resolv.conf.auto" ] && {
       uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto >/dev/null 2>&1
+      }
       uci set dhcp.@dnsmasq[0].noresolv=0 >/dev/null 2>&1
    }
    [ "$2" = "1" ] && {
@@ -762,6 +767,16 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              ln -s /usr/share/openclash/yacd /www/luci-static/openclash 2>/dev/null
        
              echo "第八步: 设置 OpenClash 防火墙规则..." >$START_LOG
+             if [ "$(iptables -t nat -nL PREROUTING --line-number |grep "udp dpt:53" |wc -l)" -gt 1 ] && [ "$enable_redirect_dns" -eq "1" ]; then
+                echo "发现53端口被劫持，清理防火墙规则..." >$START_LOG
+                pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/udp dpt:53/=' 2>/dev/null |sort -rn)
+                for pre_line in $pre_lines; do
+                   iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
+                done
+                iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53 >/dev/null 2>&1
+                sleep 2
+             fi
+             
              if [ -z "$(uci get firewall.openclash 2>/dev/null)" ] || [ -z "$(uci get ucitrack.@openclash[-1].init 2>/dev/null)" ]; then
                 uci delete ucitrack.@openclash[-1] >/dev/null 2>&1
                 uci add ucitrack openclash >/dev/null 2>&1
@@ -927,11 +942,6 @@ EOF
              fi
 
              echo "第九步: 重启 Dnsmasq 程序..." >$START_LOG
-             if [ "$(iptables -t nat -nL PREROUTING --line-number |grep "udp dpt:53" |wc -l)" -gt 1 ]; then
-                echo "发现53端口被劫持，如连接异常请将OpenClash设置为劫持53端口程序的上游DNS服务器！" >$START_LOG
-                echo "${LOGTIME} Warring: OpenClash May Can Not Take Over DNS, Please Use OpenClash for Upstream DNS Resolve Server" >> $LOG_FILE
-                sleep 5
-             fi
              change_dns "$enable_redirect_dns" "$disable_masq_cache"
              fake_block "$en_mode" "$direct_dns"
              /etc/init.d/dnsmasq restart >/dev/null 2>&1
@@ -1057,9 +1067,9 @@ stop()
         iptables -t nat -D OUTPUT "$out_line" >/dev/null 2>&1
     done
     
-    out_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/8.8./=' 2>/dev/null |sort -rn)
-    for out_line in $out_lines; do
-        iptables -t nat -D PREROUTING "$out_line" >/dev/null 2>&1
+    pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/8.8./=' 2>/dev/null |sort -rn)
+    for pre_line in $pre_lines; do
+        iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
     done
     
 #ipv6
