@@ -183,7 +183,7 @@ yml_servers_set()
       fi
    fi
    
-   if [ ! -z "$udp" ] && [ "$obfs" = "none" ]; then
+   if [ ! -z "$udp" ] && [ "$obfs" = "none" ] && [ "$type" != "trojan" ]; then
       udp=", udp: $udp"
    fi
    
@@ -219,7 +219,7 @@ yml_servers_set()
       fi
    fi
    
-   if [ ! -z "$skip_cert_verify" ] && [ "$type" != "ss" ]; then
+   if [ ! -z "$skip_cert_verify" ] && [ "$type" != "ss" ] && [ "$type" != "trojan" ]; then
       skip_cert_verify=", skip-cert-verify: $skip_cert_verify"
    elif [ ! -z "$skip_cert_verify" ]; then
       skip_cert_verify="skip-cert-verify: $skip_cert_verify"
@@ -311,7 +311,7 @@ EOF
    fi
    if [ ! -z "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    $skip_cert_verify
+  $skip_cert_verify
 EOF
    fi
    fi
