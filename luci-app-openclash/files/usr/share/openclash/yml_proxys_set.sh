@@ -183,7 +183,11 @@ yml_servers_set()
       fi
    fi
    
-   if [ ! -z "$udp" ] && [ "$obfs" = "none" ] && [ "$type" != "trojan" ]; then
+   if [ ! -z "$udp" ] && [ "$obfs" = "none" ] && [ "$type" = "ss" ]; then
+      udp=", udp: $udp"
+   fi
+   
+   if [ ! -z "$udp" ] && [ "$type" != "trojan" ] && [ "$type" != "ss" ]; then
       udp=", udp: $udp"
    fi
    
