@@ -103,7 +103,7 @@ set_alpn()
       return
    fi
 cat >> "$SERVER_FILE" <<-EOF
-    - "$1"
+    - $1
 EOF
 }
 

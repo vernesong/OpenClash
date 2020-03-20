@@ -85,7 +85,7 @@ cfg_get()
 
 cfg_get_alpn()
 {
-	echo "$(grep "$1" "$2" 2>/dev/null |grep -v "^ \{0,\}- name:" |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)"
+	echo "$(grep "^ \{0,\}$1" "$2" 2>/dev/null |grep -v "^ \{0,\}- name:" |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)"
 }
 
 echo "开始更新【$CONFIG_NAME】的代理集配置..." >$START_LOG
