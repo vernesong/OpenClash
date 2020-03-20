@@ -18,6 +18,7 @@ if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{prin
    else
       curl -sL --connect-timeout 10 --retry 2 "$VERSION_URL" -o $LAST_OPVER >/dev/null 2>&1
    fi
+   LAST_VER=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |awk -F '-' '{print $1$2}' 2>/dev/null |awk -F '.' '{print $2$3}' 2>/dev/null)
    if [ "$?" -eq "0" ] && [ -s "$LAST_OPVER" ]; then
       echo "CheckTime:$CKTIME" >>$LAST_OPVER
    else
