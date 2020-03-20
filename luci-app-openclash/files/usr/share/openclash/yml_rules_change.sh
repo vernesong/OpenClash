@@ -147,7 +147,7 @@ fi
       sed -i '/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
       sed -i '/- DOMAIN-KEYWORD,tracker,DIRECT/d' "$4" 2>/dev/null
       sed -i '/- DOMAIN-KEYWORD,announce,DIRECT/d' "$4" 2>/dev/null
-      sed -i '/- DOMAIN-KEYWORD,tracker,tracker/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,torrent,DIRECT/d' "$4" 2>/dev/null
       
       if [ "$3" = 1 ]; then
          sed -i '/^Rule:/a\##Custom Rules End##' "$4" 2>/dev/null

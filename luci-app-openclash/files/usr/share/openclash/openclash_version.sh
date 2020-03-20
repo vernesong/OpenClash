@@ -18,6 +18,7 @@ if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{prin
       curl -sL --connect-timeout 10 --retry 2 "$VERSION_URL" -o $LAST_OPVER >/dev/null 2>&1
    fi
    if [ "$?" -eq "0" ] && [ -s "$LAST_OPVER" ]; then
+   	  OP_LV=$(sed -n 1p $LAST_OPVER 2>/dev/null |awk -F '-' '{print $1}' |awk -F '.' '{print $2$3}')
       if [ "$OP_CV" -ge "$OP_LV" ]; then
          sed -i "/^https:/i\CheckTime:${CKTIME}" "$LAST_OPVER" 2>/dev/null
          sed -i '/^https:/,$d' $LAST_OPVER
