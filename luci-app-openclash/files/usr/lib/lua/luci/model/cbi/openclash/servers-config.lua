@@ -80,6 +80,7 @@ end
 o = s:option(ListValue, "type", translate("Server Node Type"))
 o:value("ss", translate("Shadowsocks"))
 o:value("vmess", translate("Vmess"))
+o:value("trojan", translate("trojan"))
 o:value("snell", translate("Snell"))
 o:value("socks5", translate("Socks5"))
 o:value("http", translate("HTTP(S)"))
@@ -100,6 +101,7 @@ o = s:option(Value, "password", translate("Password"))
 o.password = true
 o.rmempty = false
 o:depends("type", "ss")
+o:depends("type", "trojan")
 
 o = s:option(Value, "psk", translate("Psk"))
 o.rmempty = false
@@ -121,6 +123,9 @@ o.default = "false"
 o:value("true")
 o:value("false")
 o:depends("type", "ss")
+o:depends("type", "vmess")
+o:depends("type", "socks5")
+o:depends("type", "trojan")
 
 o = s:option(ListValue, "obfs", translate("obfs-mode"))
 o.rmempty = true
@@ -201,6 +206,20 @@ o:value("true")
 o:value("false")
 o:depends("obfs", "websocket")
 
+-- [[ sni ]]--
+o = s:option(Value, "sni", translate("sni"))
+o.datatype = "host"
+o.placeholder = translate("example.com")
+o.rmempty = true
+o:depends("type", "trojan")
+
+-- [[ alpn ]]--
+o = s:option(DynamicList, "alpn", translate("alpn"))
+o.rmempty = true
+o:value("h2")
+o:value("http/1.1")
+o:depends("type", "trojan")
+
 -- [[ skip-cert-verify ]]--
 o = s:option(ListValue, "skip_cert_verify", translate("Skip-Cert-Verify"))
 o.rmempty = true
@@ -212,6 +231,7 @@ o:depends("obfs_vmess", "none")
 o:depends("obfs_vmess", "websocket")
 o:depends("type", "socks5")
 o:depends("type", "http")
+o:depends("type", "trojan")
 
 -- [[ TLS ]]--
 o = s:option(ListValue, "tls", translate("TLS"))

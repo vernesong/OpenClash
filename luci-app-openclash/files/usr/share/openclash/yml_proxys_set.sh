@@ -97,6 +97,16 @@ EOF
 
 }
 
+set_alpn()
+{
+   if [ -z "$1" ]; then
+      return
+   fi
+cat >> "$SERVER_FILE" <<-EOF
+    - $1
+EOF
+}
+
 #写入服务器节点到配置文件
 yml_servers_set()
 {
@@ -126,6 +136,8 @@ yml_servers_set()
    config_get "auth_pass" "$section" "auth_pass" ""
    config_get "psk" "$section" "psk" ""
    config_get "obfs_snell" "$section" "obfs_snell" ""
+   config_get "sni" "$section" "sni" ""
+   config_get "alpn" "$section" "alpn" ""
    
    if [ ! -z "$if_game_proxy" ] && [ "$if_game_proxy" != "$name" ] && [ "$if_game_proxy_type" = "proxy" ]; then
       return
@@ -155,8 +167,10 @@ yml_servers_set()
       return
    fi
    
-   if [ -z "$password" ] && [ "$type" = "ss" ]; then
-      return
+   if [ -z "$password" ]; then
+   	 if [ "$type" = "ss" ] || [ "$type" = "trojan" ]; then
+        return
+     fi
    fi
    
    echo "正在写入【$type】-【$name】节点到配置文件【$CONFIG_NAME】..." >$START_LOG
@@ -169,7 +183,11 @@ yml_servers_set()
       fi
    fi
    
-   if [ ! -z "$udp" ] && [ "$obfs" = "none" ]; then
+   if [ ! -z "$udp" ] && [ "$obfs" = "none" ] && [ "$type" = "ss" ]; then
+      udp=", udp: $udp"
+   fi
+   
+   if [ ! -z "$udp" ] && [ "$type" != "trojan" ] && [ "$type" != "ss" ]; then
       udp=", udp: $udp"
    fi
    
@@ -205,7 +223,7 @@ yml_servers_set()
       fi
    fi
    
-   if [ ! -z "$skip_cert_verify" ] && [ "$type" != "ss" ]; then
+   if [ ! -z "$skip_cert_verify" ] && [ "$type" != "ss" ] && [ "$type" != "trojan" ]; then
       skip_cert_verify=", skip-cert-verify: $skip_cert_verify"
    elif [ ! -z "$skip_cert_verify" ]; then
       skip_cert_verify="skip-cert-verify: $skip_cert_verify"
@@ -264,11 +282,42 @@ EOF
    fi
    
    if [ "$type" = "vmess" ]; then
-      echo "- { name: \"$name\", type: $type, server: $server, port: $port, uuid: $uuid, alterId: $alterId, cipher: $securitys$skip_cert_verify$obfs_vmess$path$custom$tls }" >>$SERVER_FILE
+      echo "- { name: \"$name\", type: $type, server: $server, port: $port, uuid: $uuid, alterId: $alterId, cipher: $securitys$udp$skip_cert_verify$obfs_vmess$path$custom$tls }" >>$SERVER_FILE
    fi
    
    if [ "$type" = "socks5" ] || [ "$type" = "http" ]; then
-      echo "- { name: \"$name\", type: $type, server: $server, port: $port, username: $auth_name, password: $auth_pass$skip_cert_verify$tls }" >>$SERVER_FILE
+      echo "- { name: \"$name\", type: $type, server: $server, port: $port, username: $auth_name, password: $auth_pass$udp$skip_cert_verify$tls }" >>$SERVER_FILE
+   fi
+   
+   if [ "$type" = "trojan" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+- name: "$name"
+  type: $type
+  server: $server
+  port: $port
+  password: "$password"
+EOF
+   if [ ! -z "$udp" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  udp: $udp
+EOF
+   fi
+   if [ ! -z "$sni" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  sni: $sni
+EOF
+   fi
+   if [ ! -z "$alpn" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  alpn:
+EOF
+      config_list_foreach "$section" "alpn" set_alpn
+   fi
+   if [ ! -z "$skip_cert_verify" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  $skip_cert_verify
+EOF
+   fi
    fi
    
    if [ "$type" = "snell" ]; then

@@ -169,6 +169,19 @@ Proxy: # 节点设置，此部分与proxy-provider两者不能同时删除
     # mode: http # or tls
     # host: bing.com
 
+# trojan
+- name: "trojan"
+  type: trojan
+  server: server
+  port: 443
+  password: yourpsk
+  # udp: true
+  # sni: example.com # aka server name
+  # alpn:
+  #   - h2
+  #   - http/1.1
+  # skip-cert-verify: true
+    
 # Openclash 不会对下方策略组设置进行任何更改，请确保设置正确
 
 Proxy Group: # 此参数必须保留,不能删除

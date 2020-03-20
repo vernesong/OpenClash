@@ -432,6 +432,7 @@ Rule:
 - DOMAIN-SUFFIX,pbs.org,GlobalMedia
 # > Pornhub
 - DOMAIN-SUFFIX,phncdn.com,GlobalMedia
+- DOMAIN-SUFFIX,phprcdn.com,GlobalMedia
 - DOMAIN-SUFFIX,pornhub.com,GlobalMedia
 - DOMAIN-SUFFIX,pornhubpremium.com,GlobalMedia
 # > 台湾好
@@ -814,6 +815,7 @@ Rule:
 - DOMAIN-SUFFIX,wattpad.com,PROXY
 - DOMAIN-SUFFIX,whoer.net,PROXY
 - DOMAIN-SUFFIX,wikimapia.org,PROXY
+- DOMAIN-SUFFIX,wikimedia.org,PROXY
 - DOMAIN-SUFFIX,wikipedia.org,PROXY
 - DOMAIN-SUFFIX,wikiquote.org,PROXY
 - DOMAIN-SUFFIX,wikiwand.com,PROXY

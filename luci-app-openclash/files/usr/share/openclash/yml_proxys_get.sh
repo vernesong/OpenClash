@@ -66,8 +66,8 @@ servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 new_servers_group=$(uci get openclash.config.new_servers_group 2>/dev/null)
 
 #proxy
-line=$(sed -n '/^ \{0,\}-/=' $server_file 2>/dev/null)
-num=$(grep -c "^ \{0,\}-" $server_file 2>/dev/null)
+line=$(sed -n '/^ \{0,\}- name:/=' $server_file 2>/dev/null)
+num=$(grep -c "^ \{0,\}- name:" $server_file 2>/dev/null)
 count=1
 
 #provider
@@ -81,6 +81,11 @@ provider_count=1
 cfg_get()
 {
 	echo "$(grep "$1" "$2" 2>/dev/null |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)"
+}
+
+cfg_get_alpn()
+{
+	echo "$(grep "^ \{0,\}$1" "$2" 2>/dev/null |grep -v "^ \{0,\}- name:" |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)"
 }
 
 echo "开始更新【$CONFIG_NAME】的代理集配置..." >$START_LOG
@@ -474,10 +479,14 @@ do
    uuid="$(cfg_get "uuid:" "$single_server")"
    #alterId:
    alterId="$(cfg_get "alterId:" "$single_server")"
-   #network
+   #network:
    network="$(cfg_get "network:" "$single_server")"
-   #username
+   #username:
    username="$(cfg_get "username:" "$single_server")"
+   #sni:
+   sni="$(cfg_get "sni:" "$single_server")"
+   #alpn:
+   alpns="$(cfg_get_alpn "-" "$single_server")"
    
    echo "正在读取【$CONFIG_NAME】-【$server_type】-【$server_name】服务器节点配置..." >$START_LOG
    
@@ -524,6 +533,14 @@ do
         ${uci_set}auth_pass="$password"
      else
         ${uci_set}password="$password"
+	   fi
+	   
+	   if [ "$server_type" = "trojan" ]; then
+       #trojan
+       ${uci_set}sni="$sni"
+       for alpn in $alpns; do
+        ${uci_add}alpn="$alpn" >/dev/null 2>&1
+       done
 	   fi
    else
 #添加新节点
@@ -583,6 +600,14 @@ do
         ${uci_set}auth_pass="$password"
      else
         ${uci_set}password="$password"
+	   fi
+	   
+	   if [ "$server_type" = "trojan" ]; then
+       #trojan
+       ${uci_set}sni="$sni"
+       for alpn in $alpns; do
+        ${uci_add}alpn="$alpn" >/dev/null 2>&1
+       done
 	   fi
 
 #加入策略组
