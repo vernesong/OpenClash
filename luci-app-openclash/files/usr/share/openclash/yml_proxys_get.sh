@@ -165,7 +165,7 @@ do
    #代理集存在时获取代理集编号
    provider_nums=$(grep -Fw "$provider_name" "$match_provider" |awk -F '.' '{print $1}')
    if [ "$servers_update" -eq "1" ] && [ ! -z "$provider_nums" ]; then
-      sed -i "/^${provider_nums}\./c\#match#" "$match_servers" 2>/dev/null
+      sed -i "/^${provider_nums}\./c\#match#" "$match_provider" 2>/dev/null
       uci_set="uci -q set openclash.@proxy-provider["$provider_nums"]."
       ${uci_set}manual="0"
       ${uci_set}name="$provider_name"
@@ -409,11 +409,6 @@ do
    config_load "openclash"
    config_foreach server_key_get "config_subscribe"
    
-#节点存在时获取节点编号
-   server_num=$(grep -Fw "$server_name" "$match_servers" |awk -F '.' '{print $1}')
-   if [ "$servers_update" -eq "1" ] && [ ! -z "$server_num" ]; then
-      sed -i "/^${server_num}\./c\#match#" "$match_servers" 2>/dev/null
-   fi
 #匹配关键字订阅节点
    if [ "$servers_if_update" = "1" ]; then
       if [ ! -z "$config_keyword" ] || [ ! -z "$config_ex_keyword" ]; then
@@ -435,6 +430,13 @@ do
          fi
       fi
    fi
+   
+#节点存在时获取节点编号
+   server_num=$(grep -Fw "$server_name" "$match_servers" |awk -F '.' '{print $1}')
+   if [ "$servers_update" -eq "1" ] && [ ! -z "$server_num" ]; then
+      sed -i "/^${server_num}\./c\#match#" "$match_servers" 2>/dev/null
+   fi
+   
    #type
    server_type="$(cfg_get "type:" "$single_server")"
    #server
@@ -493,6 +495,8 @@ do
    if [ "$servers_update" -eq "1" ] && [ ! -z "$server_num" ]; then
 #更新已有节点
       uci_set="uci -q set openclash.@servers["$server_num"]."
+      uci_add="uci -q add_list $name.$uci_name_tmp."
+      uci_del="uci -q del_list $name.$uci_name_tmp."
       
       ${uci_set}manual="0"
       ${uci_set}type="$server_type"
@@ -506,12 +510,12 @@ do
       ${uci_set}udp="$udp"
       ${uci_set}obfs="$obfs"
       ${uci_set}host="$obfs_host"
-      ${uci_set}obfs_snell="$mode"
-      [ -z "$obfs" ] && ${uci_set}obfs="$mode"
-      [ -z "$obfs" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
-      [ -z "$mode" ] && ${uci_set}obfs_snell="none"
-      [ -z "$mode" ] && [ ! -z "$network" ] && ${uci_set}obfs_vmess="websocket"
-      [ -z "$mode" ] && [ -z "$network" ] && ${uci_set}obfs_vmess="none"
+      [ -z "$mode" ] && [ "$server_type" = "snell" ] && ${uci_set}obfs_snell="$mode"
+      [ -z "$obfs" ] && [ "$server_type" = "ss" ] && ${uci_set}obfs="$mode"
+      [ -z "$obfs" ] && [ "$server_type" = "ss" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
+      [ -z "$mode" ] && [ "$server_type" = "snell" ] &&  ${uci_set}obfs_snell="none"
+      [ -z "$mode" ] && [ ! -z "$network" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="websocket"
+      [ -z "$mode" ] && [ -z "$network" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="none"
       [ -z "$obfs_host" ] && ${uci_set}host="$host"
       ${uci_set}psk="$psk"
       ${uci_set}tls="$tls"
@@ -538,6 +542,7 @@ do
 	   if [ "$server_type" = "trojan" ]; then
        #trojan
        ${uci_set}sni="$sni"
+       ${uci_del}alpn >/dev/null 2>&1
        for alpn in $alpns; do
         ${uci_add}alpn="$alpn" >/dev/null 2>&1
        done
@@ -573,12 +578,12 @@ do
       ${uci_set}udp="$udp"
       ${uci_set}obfs="$obfs"
       ${uci_set}host="$obfs_host"
-      ${uci_set}obfs_snell="$mode"
-      [ -z "$obfs" ] && ${uci_set}obfs="$mode"
-      [ -z "$obfs" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
-      [ -z "$mode" ] && ${uci_set}obfs_snell="none"
-      [ -z "$mode" ] && [ ! -z "$network" ] && ${uci_set}obfs_vmess="websocket"
-      [ -z "$mode" ] && [ -z "$network" ] && ${uci_set}obfs_vmess="none"
+      [ -z "$mode" ] && [ "$server_type" = "snell" ] && ${uci_set}obfs_snell="$mode"
+      [ -z "$obfs" ] && [ "$server_type" = "ss" ] && ${uci_set}obfs="$mode"
+      [ -z "$obfs" ] && [ "$server_type" = "ss" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
+      [ -z "$mode" ] && [ "$server_type" = "snell" ] &&  ${uci_set}obfs_snell="none"
+      [ -z "$mode" ] && [ ! -z "$network" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="websocket"
+      [ -z "$mode" ] && [ -z "$network" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="none"
       [ -z "$obfs_host" ] && ${uci_set}host="$host"
       ${uci_set}psk="$psk"
       ${uci_set}tls="$tls"

@@ -221,7 +221,7 @@ o:value("http/1.1")
 o:depends("type", "trojan")
 
 -- [[ skip-cert-verify ]]--
-o = s:option(ListValue, "skip_cert_verify", translate("Skip-Cert-Verify"))
+o = s:option(ListValue, "skip_cert_verify", translate("skip-cert-verify"))
 o.rmempty = true
 o.default = "false"
 o:value("true")
