@@ -228,6 +228,14 @@ yml_servers_set()
    elif [ ! -z "$skip_cert_verify" ]; then
       skip_cert_verify="skip-cert-verify: $skip_cert_verify"
    fi
+   
+   if [ ! -z "$auth_name" ]; then
+      auth_name=", username: $auth_name"
+   fi
+   
+   if [ ! -z "$auth_pass" ]; then
+      auth_pass=", password: $auth_pass"
+   fi
 
    if [ "$type" = "ss" ] && [ "$obfs" = "none" ]; then
       echo "- { name: \"$name\", type: $type, server: $server, port: $port, cipher: $cipher, password: \"$password\"$udp }" >>$SERVER_FILE
@@ -285,8 +293,12 @@ EOF
       echo "- { name: \"$name\", type: $type, server: $server, port: $port, uuid: $uuid, alterId: $alterId, cipher: $securitys$udp$skip_cert_verify$obfs_vmess$path$custom$tls }" >>$SERVER_FILE
    fi
    
-   if [ "$type" = "socks5" ] || [ "$type" = "http" ]; then
-      echo "- { name: \"$name\", type: $type, server: $server, port: $port, username: $auth_name, password: $auth_pass$udp$skip_cert_verify$tls }" >>$SERVER_FILE
+   if [ "$type" = "socks5" ]; then
+      echo "- { name: \"$name\", type: $type, server: $server, port: $port$auth_name$auth_pass$udp$skip_cert_verify$tls }" >>$SERVER_FILE
+   fi
+   
+   if [ "$type" = "http" ]; then
+      echo "- { name: \"$name\", type: $type, server: $server, port: $port$auth_name$auth_pass$skip_cert_verify$tls }" >>$SERVER_FILE
    fi
    
    if [ "$type" = "trojan" ]; then
