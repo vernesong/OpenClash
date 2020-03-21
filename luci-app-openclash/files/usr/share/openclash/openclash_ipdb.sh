@@ -2,8 +2,17 @@
    START_LOG="/tmp/openclash_start.log"
    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
    LOG_FILE="/tmp/openclash.log"
+   HTTP_PORT=$(uci get openclash.config.http_port 2>/dev/null)
+   PROXY_ADDR=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null)
+   if [ -s "/tmp/openclash.auth" ]; then
+      PROXY_AUTH=$(cat /tmp/openclash.auth |awk -F '- ' '{print $2}' |sed -n '1p' 2>/dev/null)
+   fi
    echo "开始下载 GEOIP 数据库..." >$START_LOG
-   curl -sL --connect-timeout 10 --retry 2 https://static.clash.to/GeoIP2/GeoIP2-Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
+   if pidof clash >/dev/null; then
+      curl -sL --connect-timeout 10 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" https://geolite.clash.dev/Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
+   else
+      curl -sL --connect-timeout 10 --retry 2 https://geolite.clash.dev/Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
+   fi
    if [ "$?" -eq "0" ] && [ -s "/tmp/Country.mmdb" ]; then
       echo "GEOIP 数据库下载成功，检查数据库版本是否更新..." >$START_LOG
       cmp -s /tmp/Country.mmdb /etc/openclash/Country.mmdb
