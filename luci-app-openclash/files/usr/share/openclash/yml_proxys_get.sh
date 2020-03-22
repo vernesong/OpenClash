@@ -4,6 +4,7 @@ status=$(ps|grep -c /usr/share/openclash/yml_proxys_get.sh)
 
 START_LOG="/tmp/openclash_start.log"
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
+SERVER_RELAY="/tmp/relay_server"
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
@@ -80,29 +81,22 @@ provider_count=1
 
 cfg_get()
 {
-	echo "$(grep "$1" "$2" 2>/dev/null |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)"
+	echo "$(grep "$1" "$2" 2>/dev/null |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed "s/^\'//g" 2>/dev/null |sed "s/\'$//g" 2>/dev/null)"
 }
 
 cfg_get_alpn()
 {
-	echo "$(grep "^ \{0,\}$1" "$2" 2>/dev/null |grep -v "^ \{0,\}- name:" |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)"
+	echo "$(grep "^ \{0,\}$1" "$2" 2>/dev/null |grep -v "^ \{0,\}- name:" |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed "s/^\'//g" 2>/dev/null |sed "s/\'$//g" 2>/dev/null)"
 }
 
 echo "开始更新【$CONFIG_NAME】的代理集配置..." >$START_LOG
-
-[ "$servers_update" -eq "1" ] && {
-echo "" >"$match_provider"
-provider_nums=0
-config_load "openclash"
-config_foreach yml_provider_name_get "proxy-provider"
-}
 
 yml_provider_name_get()
 {
    local section="$1"
    config_get "name" "$section" "name" ""
    [ ! -z "$name" ] && {
-      echo "$provider_nums"."$name" >>"$match_provider"
+      echo "$provider_nums.$name" >>"$match_provider"
    }
    provider_nums=$(( $provider_nums + 1 ))
 }
@@ -114,6 +108,13 @@ cfg_new_provider_groups_get()
    fi
    
    ${uci_add}groups="${1}"
+}
+
+[ "$servers_update" -eq "1" ] && {
+echo "" >"$match_provider"
+provider_nums=0
+config_load "openclash"
+config_foreach yml_provider_name_get "proxy-provider"
 }
 
 for n in $provider_line
@@ -225,20 +226,20 @@ do
             proxies_line=$(sed -n '/^ \{0,\}proxies:/=' $single_group)
             if [ "$use_line" -le "$proxies_line" ]; then
                if [ ! -z "$(sed -n "${use_line},${proxies_line}p" "$single_group" |grep -F "$provider_name")" ]; then
-                  group_name=$(grep "name:" $single_group 2>/dev/null |awk -F 'name:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)
+                  group_name=$(cfg_get "name:" "$single_group")
                   ${uci_add}groups="$group_name"
                fi
             elif [ "$use_line" -ge "$proxies_line" ]; then
                if [ ! -z "$(sed -n "${use_line},\$p" "$single_group" |grep -F "$provider_name")" ]; then
-                  group_name=$(grep "name:" $single_group 2>/dev/null |awk -F 'name:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)
+                  group_name=$(cfg_get "name:" "$single_group")
                   ${uci_add}groups="$group_name"
                fi
             elif [ ! -z "$use_line" ] && [ -z "$proxies_line" ]; then
          	     if [ ! -z "$(grep -F "$provider_name" $single_group)" ]; then
-                  group_name=$(grep "name:" $single_group 2>/dev/null |awk -F 'name:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)
+                  group_name=$(cfg_get "name:" "$single_group")
                   ${uci_add}groups="$group_name"
                fi
-            fi
+            fi 2>/dev/null
 	       done
 	    fi
    fi
@@ -266,7 +267,7 @@ yml_servers_name_get()
 	 local section="$1"
    config_get "name" "$section" "name" ""
    [ ! -z "$name" ] && {
-      echo "$server_num"."$name" >>"$match_servers"
+      echo "$server_num.$name" >>"$match_servers"
    }
    server_num=$(( $server_num + 1 ))
 }
@@ -624,8 +625,22 @@ do
 	      for ((i=1;i<=$group_num;i++))
 	      do
 	         single_group="/tmp/group_$i.yaml"
-           if [ ! -z "$(grep -F "$server_name" "$single_group")" ]; then
-              group_name=$(grep "name:" $single_group 2>/dev/null |awk -F 'name:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)
+	         group_type="$(cfg_get "type:" "$single_group")"
+	         if [ ! -z "$(grep -F "$server_name" "$single_group")" ] && [ "$group_type" = "relay" ]; then
+	         	  group_name=$(cfg_get "name:" "$single_group")
+	            grep "^ \{0,\}-" "$single_group" 2>/dev/null |grep -v "^ \{0,\}- name:" 2>/dev/null > $SERVER_RELAY
+	            s=1
+	            cat $SERVER_RELAY |while read -r line
+	            do
+	               if [ ! -z "$(echo "$line" |grep -F "$server_name" 2>/dev/null)" ]; then
+                    ${uci_add}groups="$group_name"
+                    ${uci_add}relay_groups="$group_name#relay#$s"
+                 else
+                    s=$(expr "$s" + 1)
+                 fi
+              done
+           elif [ ! -z "$(grep -F "$server_name" "$single_group")" ]; then
+              group_name=$(cfg_get "name:" "$single_group")
               ${uci_add}groups="$group_name"
            fi
 	      done
@@ -643,7 +658,7 @@ if [ "$servers_if_update" = "1" ]; then
         if [ -z "$line" ]; then
            continue
         fi
-        if [ "$(uci get openclash.@servers["$line"].manual)" = "0" ] && [ "$(uci get openclash.@servers["$line"].config)" = "$CONFIG_NAME" ]; then
+        if [ "$(uci get openclash.@servers["$line"].manual 2>/dev/null)" = "0" ] && [ "$(uci get openclash.@servers["$line"].config 2>/dev/null)" = "$CONFIG_NAME" ]; then
            uci delete openclash.@servers["$line"] 2>/dev/null
         fi
      done
@@ -665,3 +680,4 @@ rm -rf /tmp/provider.yaml 2>/dev/null
 rm -rf /tmp/provider_gen.yaml 2>/dev/null
 rm -rf /tmp/provider_che.yaml 2>/dev/null
 rm -rf /tmp/match_provider.list 2>/dev/null
+rm -rf /tmp/relay_server 2>/dev/null

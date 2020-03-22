@@ -29,33 +29,6 @@ if [ -z "$CONFIG_NAME" ]; then
    CONFIG_NAME="config.yaml"
 fi
 
-#加入节点
-yml_servers_add()
-{
-	
-	local section="$1"
-	config_get_bool "enabled" "$section" "enabled" "1"
-	config_get "config" "$section" "config" ""
-	config_get "name" "$section" "name" ""
-	
-	if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
-      return
-  fi
-  
-	if [ "$enabled" = "0" ]; then
-      return
-  else
-     if [ -z "$3" ]; then
-	      config_list_foreach "$section" "groups" set_groups "$name" "$2"
-     fi
-	   
-	   if [ ! -z "$if_game_group" ] && [ -z "$(grep -F $name /tmp/yaml_proxy.yaml)" ]; then
-	      /usr/share/openclash/yml_proxys_set.sh "$name" "proxy"
-	   fi
-	fi
-	
-}
-
 set_groups()
 {
   if [ -z "$1" ]; then
@@ -67,6 +40,53 @@ set_groups()
 	   echo "  - \"${2}\"" >>$GROUP_FILE
 	fi
 
+}
+
+set_relay_groups()
+{
+  if [ -z "$1" ]; then
+     return
+  fi
+  
+  if [ ! -z "$(echo "$1" |grep "#relay#")" ]; then
+     server_relay_num=$(echo "$1" |awk -F '#relay#' '{print $2}')
+     server_group_name=$(echo "$1" |awk -F '#relay#' '{print $1}')
+  fi
+
+  if [ ! -z "$server_relay_num" ] && [ "$server_group_name" = "$3" ]; then
+     set_group=1
+     echo "$server_relay_num #  - \"${2}\"" >>/tmp/relay_server
+	fi
+}
+
+#加入节点
+yml_servers_add()
+{
+	
+	local section="$1"
+	config_get_bool "enabled" "$section" "enabled" "1"
+	config_get "config" "$section" "config" ""
+	config_get "name" "$section" "name" ""
+	config_get "relay_groups" "$section" "relay_groups" ""
+	
+	if [ ! -z "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
+      return
+  fi
+  
+	if [ "$enabled" = "0" ]; then
+      return
+  else
+     if [ -z "$4" ] && [ "$3" = "relay" ] && [ ! -z "$relay_groups" ]; then
+	      config_list_foreach "$section" "relay_groups" set_relay_groups "$name" "$2"
+	   elif [ -z "$4" ]; then
+	      config_list_foreach "$section" "groups" set_groups "$name" "$2"
+     fi
+	   
+	   if [ ! -z "$if_game_group" ] && [ -z "$(grep -F $name /tmp/yaml_proxy.yaml)" ]; then
+	      /usr/share/openclash/yml_proxys_set.sh "$name" "proxy"
+	   fi
+	fi
+	
 }
 
 #加入其它策略组
@@ -117,6 +137,7 @@ set_provider_groups()
 	fi
 
 }
+
 #创建策略组
 yml_groups_set()
 {
@@ -130,8 +151,6 @@ yml_groups_set()
    config_get "test_interval" "$section" "test_interval" ""
    
    if [ ! -z "$if_game_group" ] && [ "$if_game_group" != "$name" ]; then
-      return
-   elif [ "$servers_update" -eq "1" ] && [ "$config" != "all" ]; then
       return
    fi
 
@@ -147,13 +166,13 @@ yml_groups_set()
       return
    fi
    
-   if [ -z "$test_url" ] || [ -z "$test_interval" ] && [ "$type" != "select" ]; then
+   if [ -z "$test_url" ] || [ -z "$test_interval" ] && [ "$type" != "select" ] && [ "$type" != "relay" ]; then
       return
    fi
    
    #游戏策略组存在时判断节点是否存在
    if [ ! -z "$if_game_group" ] && [ ! -z "$(grep "^ \{0,\}- name: $if_game_group" "$CONFIG_GROUP_FILE")" ]; then
-      config_foreach yml_servers_add "servers" "$name" "check" #加入服务器节点
+      config_foreach yml_servers_add "servers" "$name" "$type" "check" #加入服务器节点
       config_foreach set_proxy_provider "proxy-provider" "$group_name" "check" #加入代理集
       return
    fi
@@ -169,19 +188,31 @@ yml_groups_set()
    if [ "$name" != "$old_name" ] && [ ! -z "$old_name" ]; then
       sed -i "s/,${old_name}/,${name}#d/g" "$CONFIG_FILE" 2>/dev/null
       sed -i "s/:${old_name}$/:${name}#d/g" "$CONFIG_FILE" 2>/dev/null #修改第三方规则分组对应标签
-      sed -i "s/\'${old_name}\'/\'${name}\'/g" "$CFG_FILE" 2>/dev/null
+      sed -i "s/old_name \'${old_name}/old_name \'${name}/g" "$CFG_FILE" 2>/dev/null
       config_load "openclash"
    fi
    
    set_group=0
    set_proxy_provider=0
-
-   config_list_foreach "$section" "other_group" set_other_groups #加入其他策略组
-   config_foreach yml_servers_add "servers" "$name" #加入服务器节点
+   
+   if [ "$type" = "select" ]; then
+      config_list_foreach "$section" "other_group" set_other_groups #加入其他策略组
+   fi
+   
+   config_foreach yml_servers_add "servers" "$name" "$type" #加入服务器节点
+   
+   if [ "$type" = "relay" ] && [ -s "/tmp/relay_server" ]; then
+	    cat /tmp/relay_server |sort -k 1 |awk -F '#' '{print $2}' > /tmp/relay_server.list 2>/dev/null
+	    sed -i "/^ \{0,\}proxies: ${group_name}/r/tmp/relay_server.list" "$GROUP_FILE" 2>/dev/null
+	    rm -rf /tmp/relay_server 2>/dev/null
+	 fi
 
    echo "  use: $group_name" >>$GROUP_FILE
-   config_foreach set_proxy_provider "proxy-provider" "$group_name" #加入代理集
    
+   if [ "$type" != "relay" ]; then
+      config_foreach set_proxy_provider "proxy-provider" "$group_name" #加入代理集
+   fi
+
    if [ "$set_group" -eq 1 ]; then
       sed -i "/^ \{0,\}proxies: ${group_name}/c\  proxies:" $GROUP_FILE
    else
@@ -224,6 +255,7 @@ if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ ! -z "$if_g
       config_load "openclash"
       config_foreach yml_groups_set "groups"
       sed -i "s/#d//g" "$CONFIG_FILE" 2>/dev/null
+      rm -rf /tmp/relay_server.list 2>/dev/null
       echo "配置文件【$CONFIG_NAME】的策略组写入完成！" >$START_LOG
    fi
 fi

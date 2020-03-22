@@ -183,63 +183,24 @@ yml_servers_set()
       fi
    fi
    
-   if [ ! -z "$udp" ] && [ "$obfs" = "none" ] && [ "$type" = "ss" ]; then
-      udp=", udp: $udp"
-   fi
-   
-   if [ ! -z "$udp" ] && [ "$type" != "trojan" ] && [ "$type" != "ss" ]; then
-      udp=", udp: $udp"
-   fi
-   
-   if [ "$obfs_snell" = "none" ]; then
-      obfs_snell=""
-   fi
-   
    if [ "$obfs_vmess" != "none" ]; then
-      obfs_vmess=", network: ws"
-   else
-      obfs_vmess=""
-   fi
-   
-   if [ ! -z "$host" ]; then
-      host="host: $host"
+      obfs_vmess="network: ws"
    fi
    
    if [ ! -z "$custom" ] && [ "$type" = "vmess" ]; then
-      custom=", ws-headers: { Host: $custom }"
-   fi
-   
-   if [ ! -z "$tls" ] && [ "$type" != "ss" ]; then
-      tls=", tls: $tls"
-   elif [ ! -z "$tls" ]; then
-      tls="tls: $tls"
+      custom="Host: $custom"
    fi
    
    if [ ! -z "$path" ]; then
       if [ "$type" != "vmess" ]; then
          path="path: '$path'"
       else
-         path=", ws-path: $path"
+         path="ws-path: $path"
       fi
    fi
-   
-   if [ ! -z "$skip_cert_verify" ] && [ "$type" != "ss" ] && [ "$type" != "trojan" ]; then
-      skip_cert_verify=", skip-cert-verify: $skip_cert_verify"
-   elif [ ! -z "$skip_cert_verify" ]; then
-      skip_cert_verify="skip-cert-verify: $skip_cert_verify"
-   fi
-   
-   if [ ! -z "$auth_name" ]; then
-      auth_name=", username: $auth_name"
-   fi
-   
-   if [ ! -z "$auth_pass" ]; then
-      auth_pass=", password: $auth_pass"
-   fi
 
-   if [ "$type" = "ss" ] && [ "$obfs" = "none" ]; then
-      echo "- { name: \"$name\", type: $type, server: $server, port: $port, cipher: $cipher, password: \"$password\"$udp }" >>$SERVER_FILE
-   elif [ "$type" = "ss" ] && [ "$obfs" != "none" ]; then
+#ss
+   if [ "$type" = "ss" ]; then
 cat >> "$SERVER_FILE" <<-EOF
 - name: "$name"
   type: $type
@@ -248,59 +209,159 @@ cat >> "$SERVER_FILE" <<-EOF
   cipher: $cipher
   password: "$password"
 EOF
-  if [ ! -z "$udp" ]; then
+      if [ ! -z "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   udp: $udp
 EOF
-  fi
-if [ ! -z "$obfss" ] && [ ! -z "$host" ]; then
+     fi
+     if [ ! -z "$obfss" ] && [ ! -z "$host" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   $obfss
   plugin-opts:
     mode: $obfs
-    $host
+    host: $host
 EOF
-  fi
-  if [ ! -z "$tls" ]; then
+        if [  "$obfss" = "plugin: v2ray-plugin" ]; then
+           if [ ! -z "$tls" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    $tls
+    tls: $tls
 EOF
-  fi
-  if [ ! -z "$skip_cert_verify" ]; then
+           fi
+           if [ ! -z "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    $skip_cert_verify
+    skip-cert-verify: $skip_cert_verify
 EOF
-  fi
-  if [ ! -z "$path" ]; then
+           fi
+           if [ ! -z "$path" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     $path
 EOF
-  fi
-  if [ ! -z "$mux" ]; then
+           fi
+           if [ ! -z "$mux" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     mux: $mux
 EOF
-  fi
-  if [ ! -z "$custom" ]; then
+           fi
+           if [ ! -z "$custom" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     headers:
       custom: $custom
 EOF
-  fi
+           fi
+        fi
+     fi
    fi
-   
+
+#vmess
    if [ "$type" = "vmess" ]; then
-      echo "- { name: \"$name\", type: $type, server: $server, port: $port, uuid: $uuid, alterId: $alterId, cipher: $securitys$udp$skip_cert_verify$obfs_vmess$path$custom$tls }" >>$SERVER_FILE
+cat >> "$SERVER_FILE" <<-EOF
+- name: "$name"
+  type: $type
+  server: $server
+  port: $port
+  uuid: $uuid
+  alterId: $alterId
+  cipher: $securitys
+EOF
+      if [ ! -z "$udp" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  udp: $udp
+EOF
+      fi
+      if [ ! -z "$tls" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  tls: $tls
+EOF
+      fi
+      if [ ! -z "$skip_cert_verify" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  skip-cert-verify: $skip_cert_verify
+EOF
+      fi
+      if [ "$obfs_vmess" != "none" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  $obfs_vmess
+EOF
+         if [ ! -z "$path" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  $path
+EOF
+         fi
+         if [ ! -z "$custom" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  ws-headers:
+    $custom
+EOF
+         fi
+      fi
    fi
-   
+
+#socks5
    if [ "$type" = "socks5" ]; then
-      echo "- { name: \"$name\", type: $type, server: $server, port: $port$auth_name$auth_pass$udp$skip_cert_verify$tls }" >>$SERVER_FILE
+cat >> "$SERVER_FILE" <<-EOF
+- name: "$name"
+  type: $type
+  server: $server
+  port: $port
+EOF
+      if [ ! -z "$auth_name" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  username: $auth_name
+EOF
+      fi
+      if [ ! -z "$auth_pass" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  password: $auth_pass
+EOF
+      fi
+      if [ ! -z "$udp" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  udp: $udp
+EOF
+      fi
+      if [ ! -z "$skip_cert_verify" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  skip-cert-verify: $skip_cert_verify
+EOF
+      fi
+      if [ ! -z "$tls" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  tls: $tls
+EOF
+      fi
    fi
-   
+
+#http
    if [ "$type" = "http" ]; then
-      echo "- { name: \"$name\", type: $type, server: $server, port: $port$auth_name$auth_pass$skip_cert_verify$tls }" >>$SERVER_FILE
+cat >> "$SERVER_FILE" <<-EOF
+- name: "$name"
+  type: $type
+  server: $server
+  port: $port
+EOF
+      if [ ! -z "$auth_name" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  username: $auth_name
+EOF
+      fi
+      if [ ! -z "$auth_pass" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  password: $auth_pass
+EOF
+      fi
+      if [ ! -z "$skip_cert_verify" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  skip-cert-verify: $skip_cert_verify
+EOF
+      fi
+      if [ ! -z "$tls" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  tls: $tls
+EOF
+      fi
    fi
-   
+
+#trojan
    if [ "$type" = "trojan" ]; then
 cat >> "$SERVER_FILE" <<-EOF
 - name: "$name"
@@ -327,11 +388,12 @@ EOF
    fi
    if [ ! -z "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-  $skip_cert_verify
+  skip-cert-verify: $skip_cert_verify
 EOF
    fi
    fi
-   
+
+#snell
    if [ "$type" = "snell" ]; then
 cat >> "$SERVER_FILE" <<-EOF
 - name: "$name"
@@ -344,7 +406,7 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
   obfs-opts:
     mode: $obfs_snell
-    $host
+    host: $host
 EOF
    fi
    fi

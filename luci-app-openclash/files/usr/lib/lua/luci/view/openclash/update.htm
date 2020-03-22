@@ -64,7 +64,7 @@
       var arr_core = corelv.split(",");
       var corelvis = arr_core[0];
       var new_ch = arr_core[1];
-			if ( corelvis != "" && new_ch == "2" && status.corecv != "" && status.corecv != "0" && corelvis != "\n" ) {
+			if ( new_ch == "2" ) {
 			   core_lv.innerHTML = "<b><font color=green>"+corelvis+"<%:<New>%></font></b>";
 			}
 			else if (corelvis != "" && corelvis != "\n" ) {
@@ -78,10 +78,10 @@
       var oplvis = arr_op[0];
       var new_op = arr_op[1];
 			op_cv.innerHTML = status.opcv ? "<b><font color=green>"+status.opcv+"</font></b>" : "<b><font color=red><%:Unknown%></font></b>";
-			if ( status.oplv != "" && status.oplv != "\n" && new_op == "2" && status.opcv != "" ) {
+			if ( new_op == "2" ) {
 			   op_lv.innerHTML = "<b><font color=green>"+oplvis+"<%:<New>%></font></b>";
 			}
-			else if (status.oplv != "" && status.oplv != "\n") {
+			else if (oplvis != "" && oplvis != "\n") {
 			   op_lv.innerHTML = "<b><font color=green>"+oplvis+"</font></b>";
 			}
 			else {
@@ -123,7 +123,7 @@
       var arr_core = corelv.split(",");
       var corelvis = arr_core[0];
       var new_ch = arr_core[1];
-			if ( corelvis != "" && new_ch == "2" && status.corecv != "" && status.corecv != "0" && corelvis != "\n" ) {
+			if ( new_ch == "2" ) {
 			   core_lv.innerHTML = "<b><font color=green>"+corelvis+"<%:<New>%></font></b>";
 			}
 			else if (corelvis != "" && corelvis != "\n" ) {
@@ -137,10 +137,10 @@
       var oplvis = arr_op[0];
       var new_op = arr_op[1];
 			op_cv.innerHTML = status.opcv ? "<b><font color=green>"+status.opcv+"</font></b>" : "<b><font color=red><%:Unknown%></font></b>";
-			if ( status.oplv != "" && status.oplv != "\n" && new_op == "2" && status.opcv != "" ) {
+			if ( new_op == "2" ) {
 			   op_lv.innerHTML = "<b><font color=green>"+oplvis+"<%:<New>%></font></b>";
 			}
-			else if (status.oplv != "" && status.oplv != "\n") {
+			else if (oplvis != "" && oplvis != "\n") {
 			   op_lv.innerHTML = "<b><font color=green>"+oplvis+"</font></b>";
 			}
 			else {
