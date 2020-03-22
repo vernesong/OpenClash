@@ -56,6 +56,7 @@ o:value("select", translate("Select"))
 o:value("url-test", translate("URL-Test"))
 o:value("fallback", translate("Fallback"))
 o:value("load-balance", translate("Load-Balance"))
+o:value("relay", translate("Relay Traffic"))
 
 o = s:option(Value, "name", translate("Group Name"))
 o.rmempty = false
