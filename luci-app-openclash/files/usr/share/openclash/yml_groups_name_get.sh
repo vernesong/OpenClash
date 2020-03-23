@@ -15,25 +15,17 @@ if [ -f "$CFG_FILE" ]; then
    #检查关键字避免后续操作出错
    #proxies
    [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
-      sed -i "s/^ \{0,\}\'Proxy\':/Proxy:/" "$CFG_FILE" 2>/dev/null
-      sed -i 's/^ \{0,\}\"Proxy\":/Proxy:/' "$CFG_FILE" 2>/dev/null
       sed -i "s/^ \{1,\}Proxy:/c\Proxy:/" "$CFG_FILE" 2>/dev/null
    }
    [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
-      sed -i "s/^\'proxies\':/Proxy:/" "$CFG_FILE" 2>/dev/null
-      sed -i 's/^\"proxies\":/Proxy:/' "$CFG_FILE" 2>/dev/null
       sed -i "s/^proxies:/Proxy:/" "$CFG_FILE" 2>/dev/null
    }
 
 	 #proxy-providers
 	 [ -z "$(grep "^proxy-provider:" "$CFG_FILE")" ] && {
-      sed -i "s/^ \{0,\}\'proxy-provider\':/proxy-provider:/" "$CFG_FILE" 2>/dev/null
-      sed -i 's/^ \{0,\}\"proxy-provider\":/proxy-provider:/' "$CFG_FILE" 2>/dev/null
       sed -i "s/^ \{1,\}proxy-provider:/proxy-provider:/" "$CFG_FILE" 2>/dev/null
    }
    [ -z "$(grep "^proxy-provider:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{0,\}\'proxy-providers\':/c\proxy-provider:" "$CFG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}\"proxy-providers\":/c\proxy-provider:' "$CFG_FILE" 2>/dev/null
       sed -i "/^ \{0,\}proxy-providers:/c\proxy-provider:" "$CFG_FILE" 2>/dev/null
    }
    #proxy-groups
@@ -43,27 +35,19 @@ if [ -f "$CFG_FILE" ]; then
       sed -i "s/^ \{1,\}Proxy Group:/Proxy Group:/" "$CFG_FILE" 2>/dev/null
    }
    [ -z "$(grep "^Proxy Group:" "$CFG_FILE")" ] && {
-      sed -i "s/^ \{0,\}\'proxy-groups\':/Proxy Group:/" "$CFG_FILE" 2>/dev/null
-      sed -i 's/^ \{0,\}\"proxy-groups\":/Proxy Group:/' "$CFG_FILE" 2>/dev/null
       sed -i "s/^ \{0,\}proxy-groups:/Proxy Group:/" "$CFG_FILE" 2>/dev/null
    }
    
    #rules
    [ -z "$(grep "^Rule:" "$CFG_FILE")" ] && {
-      sed -i "s/^ \{0,\}\'Rule\':/Rule:/" "$CFG_FILE" 2>/dev/null
-      sed -i 's/^ \{0,\}\"Rule\":/Rule:/' "$CFG_FILE" 2>/dev/null
       sed -i "s/^ \{1,\}Rule:/Rule:/" "$CFG_FILE" 2>/dev/null
    }
    [ -z "$(grep "^Rule:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{0,\}\'rules\':/c\Rule:" "$CFG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}\"rules\":/c\Rule:' "$CFG_FILE" 2>/dev/null
       sed -i "/^ \{0,\}rules:/c\Rule:" "$CFG_FILE" 2>/dev/null
    }
    
    #dns
    [ -z "$(grep "^dns:" "$CFG_FILE")" ] && {
-      sed -i "s/^ \{0,\}\'dns\':/dns:/" "$CFG_FILE" 2>/dev/null
-      sed -i 's/^ \{0,\}\"dns\":/dns:/' "$CFG_FILE" 2>/dev/null
       sed -i "s/^ \{1,\}dns:/dns:/" "$CFG_FILE" 2>/dev/null
    }
    
