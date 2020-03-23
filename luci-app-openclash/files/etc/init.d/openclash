@@ -111,25 +111,17 @@ yml_check()
    #检查关键字避免后续操作出错
    #proxies
    [ -z "$(grep "^Proxy:" "$3")" ] && {
-      sed -i "/^ \{0,\}\'Proxy\':/c\Proxy:" "$3" 2>/dev/null
-      sed -i '/^ \{0,\}\"Proxy\":/c\Proxy:' "$3" 2>/dev/null
       sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$3" 2>/dev/null
    }
    [ -z "$(grep "^Proxy:" "$3")" ] && {
-      sed -i "s/^\'proxies\':/Proxy:/" "$3" 2>/dev/null
-      sed -i 's/^\"proxies\":/Proxy:/' "$3" 2>/dev/null
       sed -i "s/^proxies:/Proxy:/" "$3" 2>/dev/null
    }
 
 	 #proxy-providers
 	 [ -z "$(grep "^proxy-provider:" "$3")" ] && {
-      sed -i "/^ \{0,\}\'proxy-provider\':/c\proxy-provider:" "$3" 2>/dev/null
-      sed -i '/^ \{0,\}\"proxy-provider\":/c\proxy-provider:' "$3" 2>/dev/null
       sed -i "/^ \{1,\}proxy-provider:/c\proxy-provider:" "$3" 2>/dev/null
    }
    [ -z "$(grep "^proxy-provider:" "$3")" ] && {
-      sed -i "/^ \{0,\}\'proxy-providers\':/c\proxy-provider:" "$3" 2>/dev/null
-      sed -i '/^ \{0,\}\"proxy-providers\":/c\proxy-provider:' "$3" 2>/dev/null
       sed -i "/^ \{0,\}proxy-providers:/c\proxy-provider:" "$3" 2>/dev/null
    }
    #proxy-groups
@@ -139,27 +131,19 @@ yml_check()
       sed -i "/^ \{1,\}Proxy Group:/c\Proxy Group:" "$3" 2>/dev/null
    }
    [ -z "$(grep "^Proxy Group:" "$3")" ] && {
-      sed -i "/^ \{0,\}\'proxy-groups\':/c\Proxy Group:" "$3" 2>/dev/null
-      sed -i '/^ \{0,\}\"proxy-groups\":/c\Proxy Group:' "$3" 2>/dev/null
       sed -i "/^ \{0,\}proxy-groups:/c\Proxy Group:" "$3" 2>/dev/null
    }
    
    #rules
    [ -z "$(grep "^Rule:" "$3")" ] && {
-      sed -i "/^ \{0,\}\'Rule\':/c\Rule:" "$3" 2>/dev/null
-      sed -i '/^ \{0,\}\"Rule\":/c\Rule:' "$3" 2>/dev/null
       sed -i "/^ \{1,\}Rule:/c\Rule:" "$3" 2>/dev/null
    }
    [ -z "$(grep "^Rule:" "$3")" ] && {
-      sed -i "/^ \{0,\}\'rules\':/c\Rule:" "$3" 2>/dev/null
-      sed -i '/^ \{0,\}\"rules\":/c\Rule:' "$3" 2>/dev/null
       sed -i "/^ \{0,\}rules:/c\Rule:" "$3" 2>/dev/null
    }
    
    #dns
    [ -z "$(grep "^dns:" "$3")" ] && {
-      sed -i "/^ \{0,\}\'dns\':/c\dns:" "$3" 2>/dev/null
-      sed -i '/^ \{0,\}\"dns\":/c\dns:' "$3" 2>/dev/null
       sed -i "/^ \{1,\}dns:/c\dns:" "$3" 2>/dev/null
    }
 	 
