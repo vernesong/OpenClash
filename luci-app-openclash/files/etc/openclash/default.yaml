@@ -97,9 +97,15 @@ Proxy: # 节点设置，此部分与proxy-provider两者不能同时删除
 #   aes-128-gcm aes-192-gcm aes-256-gcm
 #   aes-128-cfb aes-192-cfb aes-256-cfb
 #   aes-128-ctr aes-192-ctr aes-256-ctr
-#   rc4-md5 chacha20 chacha20-ietf xchacha20
+#   rc4-md5 chacha20-ietf xchacha20
 #   chacha20-ietf-poly1305 xchacha20-ietf-poly1305
-- { name: "ss1", type: ss, server: server, port: 443, cipher: chacha20-ietf-poly1305, password: "password", udp: true }
+- name: "ss1"
+  type: ss
+  server: server
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: "password"
+ # udp: true
 
 # old obfs configuration remove after prerelease
 - name: "ss2"
@@ -111,7 +117,7 @@ Proxy: # 节点设置，此部分与proxy-provider两者不能同时删除
   plugin: obfs
   plugin-opts:
     mode: tls # or http
-    # host: bing.com
+    #  host: bing.com
 
 - name: "ss3"
   type: ss
@@ -122,42 +128,49 @@ Proxy: # 节点设置，此部分与proxy-provider两者不能同时删除
   plugin: v2ray-plugin
   plugin-opts:
     mode: websocket # no QUIC now
-    # tls: true # wss
-    # skip-cert-verify: true
-    # host: bing.com
-    # path: "/"
-    # headers:
-    #   custom: value
+   # tls: true # wss
+   # skip-cert-verify: true
+   # host: bing.com
+   # path: "/"
+   # headers:
+   #    custom: value
 
 # vmess
 # cipher support auto/aes-128-gcm/chacha20-poly1305/none
-- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto }
-# with tls
-- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto, tls: true }
-# with tls and skip-cert-verify
-- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto, tls: true, skip-cert-verify: true }
-# with ws-path and ws-headers
-- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto, network: ws, ws-path: /path, ws-headers: { Host: v2ray.com } }
-# with ws + tls
-- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto, network: ws, ws-path: /path, tls: true }
+- name: "vmess"
+  type: vmess
+  server: server
+  port: 443
+  uuid: uuid
+  alterId: 32
+  cipher: auto
+ # udp: true
+ # tls: true
+ # skip-cert-verify: true
+ # network: ws
+ # ws-path: /path
+ # ws-headers:
+ #    Host: v2ray.com
 
 # socks5
-- { name: "socks", type: socks5, server: server, port: 443 }
-# socks5 with authentication
-- { name: "socks", type: socks5, server: server, port: 443, username: "username", password: "password" }
-# with tls
-- { name: "socks", type: socks5, server: server, port: 443, tls: true }
-# with tls and skip-cert-verify
-- { name: "socks", type: socks5, server: server, port: 443, tls: true, skip-cert-verify: true }
-
+- name: "socks"
+  type: socks5
+  server: server
+  port: 443
+ # username: username
+ # password: password
+ # tls: true
+ # skip-cert-verify: true
+ # udp: true
 # http
-- { name: "http", type: http, server: server, port: 443 }
-# http with authentication
-- { name: "http", type: http, server: server, port: 443, username: "username", password: "password" }
-# with tls (https)
-- { name: "http", type: http, server: server, port: 443, tls: true }
-# with tls (https) and skip-cert-verify
-- { name: "http", type: http, server: server, port: 443, tls: true, skip-cert-verify: true }
+- name: "http"
+  type: http
+  server: server
+  port: 443
+ # username: username
+ # password: password
+ # tls: true # https
+ # skip-cert-verify: true
 
 # snell
 - name: "snell"
@@ -165,9 +178,9 @@ Proxy: # 节点设置，此部分与proxy-provider两者不能同时删除
   server: server
   port: 44046
   psk: yourpsk
-  # obfs-opts:
-    # mode: http # or tls
-    # host: bing.com
+ # obfs-opts:
+ #    mode: http # or tls
+ #    host: bing.com
 
 # trojan
 - name: "trojan"
@@ -175,12 +188,12 @@ Proxy: # 节点设置，此部分与proxy-provider两者不能同时删除
   server: server
   port: 443
   password: yourpsk
-  # udp: true
-  # sni: example.com # aka server name
-  # alpn:
-  #   - h2
-  #   - http/1.1
-  # skip-cert-verify: true
+ # udp: true
+ # sni: example.com # aka server name
+ # alpn:
+ #    - h2
+ #    - http/1.1
+ # skip-cert-verify: true
     
 # Openclash 不会对下方策略组设置进行任何更改，请确保设置正确
 

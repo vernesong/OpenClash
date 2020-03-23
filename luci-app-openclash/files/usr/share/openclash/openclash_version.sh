@@ -34,4 +34,4 @@ elif [ "$(expr "$OP_CV" \>= "$OP_LV")" -eq 1 ]; then
    echo "CheckTime:$CKTIME" >> $LAST_OPVER
 elif [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 ]; then
    return 2
-fi
+fi 2>/dev/null
