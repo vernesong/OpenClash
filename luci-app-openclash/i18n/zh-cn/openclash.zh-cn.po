@@ -651,6 +651,9 @@ msgstr "Fallback【故障切换】"
 msgid "Load-Balance"
 msgstr "Load-Balance【负载均衡】"
 
+msgid "Relay Traffic"
+msgstr "Relay【嵌套中转】"
+
 msgid "Other Group"
 msgstr "包含其他策略组（请勿重复添加）"
 

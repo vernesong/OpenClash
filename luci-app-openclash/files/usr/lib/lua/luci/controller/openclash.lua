@@ -82,7 +82,8 @@ local function dase()
 end
 
 local function check_lastversion()
-	return luci.sys.exec("sh /usr/share/openclash/openclash_version.sh && sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
+	luci.sys.exec("sh /usr/share/openclash/openclash_version.sh 2>/dev/null")
+	return luci.sys.exec("sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
 end
 
 local function check_currentversion()
@@ -128,11 +129,13 @@ local function oplv()
 end
 
 local function opup()
-   return luci.sys.exec("rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/openclash_version.sh && sh /usr/share/openclash/openclash_update.sh >/dev/null 2>&1 &")
+   luci.sys.call("rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/openclash_version.sh >/dev/null 2>&1")
+   return luci.sys.call("sh /usr/share/openclash/openclash_update.sh >/dev/null 2>&1 &")
 end
 
 local function coreup()
-   return luci.sys.exec("uci set openclash.config.enable=1 && uci commit openclash && rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh && sh /usr/share/openclash/openclash_core.sh >/dev/null 2>&1 &")
+   luci.sys.call("uci set openclash.config.enable=1 && uci commit openclash && rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
+   return luci.sys.call("sh /usr/share/openclash/openclash_core.sh >/dev/null 2>&1 &")
 end
 
 local function corever()
