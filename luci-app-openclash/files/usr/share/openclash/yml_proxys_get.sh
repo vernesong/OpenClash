@@ -67,8 +67,8 @@ servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 new_servers_group=$(uci get openclash.config.new_servers_group 2>/dev/null)
 
 #proxy
-line=$(sed -n '/^ \{0,\}- name:/=' $server_file 2>/dev/null)
-num=$(grep -c "^ \{0,\}- name:" $server_file 2>/dev/null)
+line=$(sed -n '/name:/=' $server_file 2>/dev/null)
+num=$(grep -c "name:" $server_file 2>/dev/null)
 count=1
 
 #provider

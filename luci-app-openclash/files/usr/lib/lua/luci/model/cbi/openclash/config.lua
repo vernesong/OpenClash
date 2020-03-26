@@ -36,7 +36,7 @@ function config_check(CONFIG_FILE)
      if (proxy ~= 0) then
         proxy = luci.sys.call(string.format('egrep "^proxies:" "%s" >/dev/null 2>&1',CONFIG_FILE))
      end
-     group = luci.sys.call(string.format('egrep "^ {0,}Proxy Group:" "%s" >/dev/null 2>&1',CONFIG_FILE))
+     group = luci.sys.call(string.format('egrep " {0,}Proxy Group" "%s" >/dev/null 2>&1',CONFIG_FILE))
      if (group ~= 0) then
      	  group = luci.sys.call(string.format('egrep "^ {0,}proxy-groups:" "%s" >/dev/null 2>&1',CONFIG_FILE))
      end
@@ -245,8 +245,9 @@ e.inputstyle="reset"
 Button.render(e,t,a)
 end
 btnrm.write=function(a,t)
-local a=fs.unlink("/etc/openclash/config/"..luci.openclash.basename(e[t].name))
-local db=fs.unlink("/etc/openclash/backup/"..luci.openclash.basename(e[t].name))
+	fs.unlink("/tmp/Proxy_Group")
+	fs.unlink("/etc/openclash/backup/"..luci.openclash.basename(e[t].name))
+	local a=fs.unlink("/etc/openclash/config/"..luci.openclash.basename(e[t].name))
 if a then table.remove(e,t)end
 return a
 end
