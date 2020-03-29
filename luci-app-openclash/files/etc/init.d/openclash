@@ -822,8 +822,8 @@ EOF
                 
                 #udp
                 if [ "$enable_udp_proxy" -eq 1 ]; then
-                ip rule add fwmark 1 table 100
-                ip route add local default dev lo table 100
+                ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 789
+                ip route add local default dev lo table "$PROXY_ROUTE_TABLE"
                 iptables -t mangle -N openclash
                 iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
                 iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
@@ -841,14 +841,14 @@ EOF
                    done
                 fi
                 
-                iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark 1
+                iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
                 iptables -t mangle -A PREROUTING -p udp -j openclash
                 fi
                 
                 if [ "$en_mode" = "fake-ip" ]; then
                    iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
                    if [ "$enable_udp_proxy" -eq 1 ]; then
-                      iptables -t mangle -A OUTPUT -p udp -d 198.18.0.0/16 -j MARK --set-mark 1
+                      iptables -t mangle -A OUTPUT -p udp -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
                    fi
                 fi
                 
@@ -873,7 +873,7 @@ EOF
                             fi
                          done
                       fi
-                      ip6tables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark 1
+                      ip6tables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
                       ip6tables -t mangle -A PREROUTING -p udp -j openclash
                    fi
                 fi
@@ -906,7 +906,7 @@ EOF
                 done
                 ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
              fi
-                ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+                ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 789
              #设置防火墙
                 iptables -t mangle -N openclash
                 iptables -t mangle -F openclash
@@ -1025,8 +1025,8 @@ stop()
     
 #ipv4
 
-    ip rule del fwmark 1 table 100 >/dev/null 2>&1
-    ip route del local default dev lo table 100 >/dev/null 2>&1
+    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 789 >/dev/null 2>&1
+    ip route del local default dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
     
     iptables -t nat -D PREROUTING -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1
 
@@ -1070,7 +1070,7 @@ stop()
     ip tuntap del clash0 mode tun >/dev/null 2>&1
     ip route del default dev clash0 table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
     ip route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 789 >/dev/null 2>&1
 
     iptables -t mangle -D OUTPUT -j openclash >/dev/null 2>&1
     iptables -t mangle -D PREROUTING -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
