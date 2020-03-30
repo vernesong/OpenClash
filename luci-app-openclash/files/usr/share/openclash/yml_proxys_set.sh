@@ -597,6 +597,11 @@ cat >> "$SERVER_FILE" <<-EOF
   proxies:
   - DIRECT
   - Proxy
+- name: Microsoft
+  type: select
+  proxies:
+  - DIRECT
+  - Proxy
 - name: Netflix
   type: select
   proxies:
@@ -733,6 +738,7 @@ uci set openclash.config.GlobalTV="GlobalTV"
 uci set openclash.config.AsianTV="AsianTV"
 uci set openclash.config.Proxy="Proxy"
 uci set openclash.config.Apple="Apple"
+uci set openclash.config.Microsoft="Microsoft"
 uci set openclash.config.Netflix="Netflix"
 uci set openclash.config.Spotify="Spotify"
 uci set openclash.config.Steam="Steam"
