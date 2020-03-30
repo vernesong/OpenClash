@@ -48,6 +48,7 @@ config_cus_up()
 	   echo "${LOGTIME} Config 【$name】 Update Successful" >>$LOG_FILE
 	   echo "配置文件【$name】更新成功！" >$START_LOG
 	   sleep 3
+	   echo "" >$START_LOG
 	elif [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
      echo "${LOGTIME} Config 【$name】 Update Successful" >>$LOG_FILE
      echo "配置文件【$name】更新成功！" >$START_LOG
