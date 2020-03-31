@@ -415,6 +415,9 @@ msgstr "必须代理的流量"
 msgid "Apple"
 msgstr "苹果服务流量"
 
+msgid "Microsoft"
+msgstr "微软服务流量"
+
 msgid "Netflix"
 msgstr "Netflix流量"
 
