@@ -35,7 +35,6 @@ config_cus_up()
 	fi
 	if [ "$servers_update" -eq "1" ] || [ ! -z "$keyword" ]; then
 	   echo "配置文件【$name】替换成功，开始挑选节点..." >$START_LOG
-	   echo "${LOGTIME} Config 【$name】 Update Successful" >>$LOG_FILE
 	   uci set openclash.config.config_update_path="/etc/openclash/config/$name.yaml"
 	   uci set openclash.config.servers_if_update=1
 	   uci commit openclash
@@ -46,13 +45,17 @@ config_cus_up()
 	   if [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
 	      if_restart=1
 	   fi
+	   echo "${LOGTIME} Config 【$name】 Update Successful" >>$LOG_FILE
+	   echo "配置文件【$name】更新成功！" >$START_LOG
+	   sleep 3
+	   echo "" >$START_LOG
 	elif [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
-	   echo "配置文件【$name】替换成功 ..." >$START_LOG
      echo "${LOGTIME} Config 【$name】 Update Successful" >>$LOG_FILE
+     echo "配置文件【$name】更新成功！" >$START_LOG
      sleep 3
      if_restart=1
   else
-     echo "配置文件【$name】替换成功 ..." >$START_LOG
+     echo "配置文件【$name】更新成功！" >$START_LOG
      echo "${LOGTIME} Config 【$name】 Update Successful" >>$LOG_FILE
      sleep 3
      echo "" >$START_LOG
