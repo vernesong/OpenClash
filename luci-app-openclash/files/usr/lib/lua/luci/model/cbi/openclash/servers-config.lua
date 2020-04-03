@@ -96,6 +96,7 @@ o.rmempty = false
 o = s:option(Value, "port", translate("Server Port"))
 o.datatype = "port"
 o.rmempty = false
+o.default = 443
 
 o = s:option(Value, "password", translate("Password"))
 o.password = true
@@ -115,6 +116,19 @@ o:depends("type", "ss")
 o = s:option(ListValue, "securitys", translate("Encrypt Method"))
 for _, v in ipairs(securitys) do o:value(v) end
 o.rmempty = true
+o:depends("type", "vmess")
+
+-- AlterId
+o = s:option(Value, "alterId", translate("AlterId"))
+o.datatype = "port"
+o.default = 32
+o.rmempty = true
+o:depends("type", "vmess")
+
+-- VmessId
+o = s:option(Value, "uuid", translate("VmessId (UUID)"))
+o.rmempty = true
+o.default = uuid
 o:depends("type", "vmess")
 
 o = s:option(ListValue, "udp", translate("UDP Enable"))
@@ -149,7 +163,34 @@ o.rmempty = true
 o.default = "none"
 o:value("none")
 o:value("websocket", translate("websocket (ws)"))
+o:value("http", translate("http"))
 o:depends("type", "vmess")
+
+-- [[ skip-cert-verify ]]--
+o = s:option(ListValue, "skip_cert_verify", translate("skip-cert-verify"))
+o.rmempty = true
+o.default = "false"
+o:value("true")
+o:value("false")
+o:depends("obfs", "websocket")
+o:depends("obfs_vmess", "none")
+o:depends("obfs_vmess", "websocket")
+o:depends("type", "socks5")
+o:depends("type", "http")
+o:depends("type", "trojan")
+
+-- [[ TLS ]]--
+o = s:option(ListValue, "tls", translate("TLS"))
+o.rmempty = true
+o.default = "false"
+o:value("true")
+o:value("false")
+o:depends("obfs", "websocket")
+o:depends("obfs_vmess", "none")
+o:depends("obfs_vmess", "websocket")
+o:depends("obfs_vmess", "http")
+o:depends("type", "socks5")
+o:depends("type", "http")
 
 o = s:option(Value, "host", translate("obfs-hosts"))
 o.datatype = "host"
@@ -160,31 +201,29 @@ o:depends("obfs", "websocket")
 o:depends("obfs_snell", "tls")
 o:depends("obfs_snell", "http")
 
-o = s:option(Value, "custom", translate("ws-headers"))
+-- vmess路径
+o = s:option(Value, "path", translate("path"))
 o.rmempty = true
 o:depends("obfs", "websocket")
 o:depends("obfs_vmess", "websocket")
 
--- [[ WS部分 ]]--
+o = s:option(DynamicList, "http_path", translate("path"))
+o.rmempty = true
+o:value("/")
+o:value("/video")
+o:depends("obfs_vmess", "http")
 
--- WS路径
-o = s:option(Value, "path", translate("ws-path"))
+o = s:option(Value, "custom", translate("headers"))
 o.rmempty = true
 o:depends("obfs", "websocket")
 o:depends("obfs_vmess", "websocket")
 
--- AlterId
-o = s:option(Value, "alterId", translate("AlterId"))
-o.datatype = "port"
-o.default = 16
+o = s:option(Value, "keep_alive", translate("keep-alive"))
 o.rmempty = true
-o:depends("type", "vmess")
-
--- VmessId
-o = s:option(Value, "uuid", translate("VmessId (UUID)"))
-o.rmempty = true
-o.default = uuid
-o:depends("type", "vmess")
+o.default = "true"
+o:value("true")
+o:value("false")
+o:depends("obfs_vmess", "http")
 
 -- 验证用户名
 o = s:option(Value, "auth_name", translate("Auth Username"))
@@ -219,31 +258,6 @@ o.rmempty = true
 o:value("h2")
 o:value("http/1.1")
 o:depends("type", "trojan")
-
--- [[ skip-cert-verify ]]--
-o = s:option(ListValue, "skip_cert_verify", translate("skip-cert-verify"))
-o.rmempty = true
-o.default = "false"
-o:value("true")
-o:value("false")
-o:depends("obfs", "websocket")
-o:depends("obfs_vmess", "none")
-o:depends("obfs_vmess", "websocket")
-o:depends("type", "socks5")
-o:depends("type", "http")
-o:depends("type", "trojan")
-
--- [[ TLS ]]--
-o = s:option(ListValue, "tls", translate("TLS"))
-o.rmempty = true
-o.default = "false"
-o:value("true")
-o:value("false")
-o:depends("obfs", "websocket")
-o:depends("obfs_vmess", "none")
-o:depends("obfs_vmess", "websocket")
-o:depends("type", "socks5")
-o:depends("type", "http")
 
 o = s:option(DynamicList, "groups", translate("Proxy Group"))
 o.description = font_red..bold_on..translate("No Need Set when Config Create, The added Proxy Groups Must Exist")..bold_off..font_off

@@ -928,9 +928,9 @@ EOF
                 iptables -t mangle -I PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
                 iptables -t nat -I PREROUTING -p tcp --dport 53 -j ACCEPT
              #ipv6
-                #if [ "$ipv6_enable" -eq 1 ]; then
-                   #ip6tables -t mangle -I PREROUTING -j MARK --set-mark "$PROXY_FWMARK"
-                #fi
+             #    if [ "$ipv6_enable" -eq 1 ]; then
+             #        ip6tables -t mangle -I PREROUTING -j MARK --set-mark "$PROXY_FWMARK"
+             #    fi
              fi
 
              echo "第九步: 重启 Dnsmasq 程序..." >$START_LOG
@@ -956,7 +956,7 @@ EOF
                 if [ "$rule_source" != 0 ] || [ "$enable_custom_clash_rules" != 0 ]; then
                    echo "错误: OpenClash 启动失败，尝试还原规则并重新启动 Clash 主程序..." >$START_LOG
                    echo "${LOGTIME} OpenClash Can Not Start, Try Use Backup Rules Start Again" >> $LOG_FILE
-                   mv "$BACKUP_FILE" /etc/openclash/configrules.bak
+                   mv "$START_BACKUP" /etc/openclash/configrules.bak
                    sed -i -n '/^Rule:/,$p' /etc/openclash/configrules.bak
                    sed -i '/^Rule:/,$d' "$CONFIG_FILE"
                    cat /etc/openclash/configrules.bak >> "$CONFIG_FILE"
