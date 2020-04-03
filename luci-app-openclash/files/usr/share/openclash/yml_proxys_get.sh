@@ -88,9 +88,9 @@ cfg_get()
 	echo "$(grep "$1" "$2" 2>/dev/null |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)"
 }
 
-cfg_get_alpn()
+cfg_get_dynamic()
 {
-	echo "$(grep "^ \{0,\}$1" "$2" 2>/dev/null |grep -v "^ \{0,\}- name:" |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)"
+	echo "$(grep "^ \{0,\}$1" "$2" 2>/dev/null |grep -v "^ \{0,\}- name:"  |grep -v "^ \{0,\}- keep-alive" |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)"
 }
 
 echo "开始更新【$CONFIG_NAME】的代理集配置..." >$START_LOG
@@ -493,7 +493,9 @@ do
    #sni:
    sni="$(cfg_get "sni:" "$single_server")"
    #alpn:
-   alpns="$(cfg_get_alpn "-" "$single_server")"
+   alpns="$(cfg_get_dynamic "-" "$single_server")"
+   #http_paths:
+   http_paths="$(cfg_get_dynamic "-" "$single_server")"
    
    echo "正在读取【$CONFIG_NAME】-【$server_type】-【$server_name】服务器节点配置..." >$START_LOG
    
@@ -519,22 +521,32 @@ do
       [ -z "$obfs" ] && [ "$server_type" = "ss" ] && ${uci_set}obfs="$mode"
       [ -z "$obfs" ] && [ "$server_type" = "ss" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
       [ -z "$mode" ] && [ "$server_type" = "snell" ] &&  ${uci_set}obfs_snell="none"
-      [ -z "$mode" ] && [ ! -z "$network" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="websocket"
+      [ -z "$mode" ] && [ "$network" = "ws" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="websocket"
+      [ -z "$mode" ] && [ "$network" = "http" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="http"
       [ -z "$mode" ] && [ -z "$network" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="none"
       [ -z "$obfs_host" ] && ${uci_set}host="$host"
       ${uci_set}psk="$psk"
       ${uci_set}tls="$tls"
       ${uci_set}skip_cert_verify="$verify"
       ${uci_set}path="$path"
-      [ -z "$path" ] && ${uci_set}path="$ws_path"
+      [ -z "$path" ] && [ "$network" = "ws" ] && ${uci_set}path="$ws_path"
       ${uci_set}mux="$mux"
       ${uci_set}custom="$headers"
-      [ -z "$headers" ] && ${uci_set}custom="$Host"
+      [ -z "$headers" ] && [ "$network" = "ws" ] && ${uci_set}custom="$Host"
     
 	   if [ "$server_type" = "vmess" ]; then
        #v2ray
        ${uci_set}alterId="$alterId"
        ${uci_set}uuid="$uuid"
+       ${uci_del}http_path >/dev/null 2>&1
+       for http_path in $http_paths; do
+          ${uci_add}http_path="$http_path" >/dev/null 2>&1
+       done
+       if [ ! -z "$(grep "^ \{0,\}- keep-alive" "$single_server")" ]; then
+          ${uci_set}keep_alive="true"
+       else
+          ${uci_set}keep_alive="false"
+       fi
 	   fi
 	
 	   if [ "$server_type" = "socks5" ] || [ "$server_type" = "http" ]; then
@@ -549,7 +561,7 @@ do
        ${uci_set}sni="$sni"
        ${uci_del}alpn >/dev/null 2>&1
        for alpn in $alpns; do
-        ${uci_add}alpn="$alpn" >/dev/null 2>&1
+          ${uci_add}alpn="$alpn" >/dev/null 2>&1
        done
 	   fi
    else
@@ -587,22 +599,32 @@ do
       [ -z "$obfs" ] && [ "$server_type" = "ss" ] && ${uci_set}obfs="$mode"
       [ -z "$obfs" ] && [ "$server_type" = "ss" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
       [ -z "$mode" ] && [ "$server_type" = "snell" ] &&  ${uci_set}obfs_snell="none"
-      [ -z "$mode" ] && [ ! -z "$network" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="websocket"
+      [ -z "$mode" ] && [ "$network" = "ws" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="websocket"
+      [ -z "$mode" ] && [ "$network" = "http" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="http"
       [ -z "$mode" ] && [ -z "$network" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="none"
       [ -z "$obfs_host" ] && ${uci_set}host="$host"
       ${uci_set}psk="$psk"
       ${uci_set}tls="$tls"
       ${uci_set}skip_cert_verify="$verify"
       ${uci_set}path="$path"
-      [ -z "$path" ] && ${uci_set}path="$ws_path"
+      [ -z "$path" ] && [ "$network" = "ws" ] && ${uci_set}path="$ws_path"
       ${uci_set}mux="$mux"
       ${uci_set}custom="$headers"
-      [ -z "$headers" ] && ${uci_set}custom="$Host"
+      [ -z "$headers" ] && [ "$network" = "ws" ] && ${uci_set}custom="$Host"
     
 	   if [ "$server_type" = "vmess" ]; then
        #v2ray
        ${uci_set}alterId="$alterId"
        ${uci_set}uuid="$uuid"
+       ${uci_del}http_path >/dev/null 2>&1
+       for http_path in $http_paths; do
+          ${uci_add}http_path="$http_path" >/dev/null 2>&1
+       done
+       if [ ! -z "$(grep "^ \{0,\}- keep-alive" "$single_server")" ]; then
+          ${uci_set}keep_alive="true"
+       else
+          ${uci_set}keep_alive="false"
+       fi
 	   fi
 	
 	   if [ "$server_type" = "socks5" ] || [ "$server_type" = "http" ]; then
