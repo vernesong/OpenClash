@@ -107,6 +107,17 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
 }
 
+set_http_path()
+{
+   if [ -z "$1" ]; then
+      return
+   fi
+cat >> "$SERVER_FILE" <<-EOF
+      - '$1'
+EOF
+}
+
+
 #写入服务器节点到配置文件
 yml_servers_set()
 {
@@ -138,6 +149,8 @@ yml_servers_set()
    config_get "obfs_snell" "$section" "obfs_snell" ""
    config_get "sni" "$section" "sni" ""
    config_get "alpn" "$section" "alpn" ""
+   config_get "http_path" "$section" "http_path" ""
+   config_get "keep_alive" "$section" "keep_alive" ""
    
    if [ ! -z "$if_game_proxy" ] && [ "$if_game_proxy" != "$name" ] && [ "$if_game_proxy_type" = "proxy" ]; then
       return
@@ -183,8 +196,12 @@ yml_servers_set()
       fi
    fi
    
-   if [ "$obfs_vmess" != "none" ]; then
+   if [ "$obfs_vmess" = "websocket" ]; then
       obfs_vmess="network: ws"
+   fi
+   
+   if [ "$obfs_vmess" = "http" ]; then
+      obfs_vmess="network: http"
    fi
    
    if [ ! -z "$custom" ] && [ "$type" = "vmess" ]; then
@@ -194,7 +211,7 @@ yml_servers_set()
    if [ ! -z "$path" ]; then
       if [ "$type" != "vmess" ]; then
          path="path: '$path'"
-      else
+      elif [ "$obfs_vmess" = "network: ws" ]; then
          path="ws-path: $path"
       fi
    fi
@@ -282,15 +299,30 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
   $obfs_vmess
 EOF
-         if [ ! -z "$path" ]; then
+         if [ ! -z "$path" ] && [ "$obfs_vmess" = "network: ws" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   $path
 EOF
          fi
-         if [ ! -z "$custom" ]; then
+         if [ ! -z "$custom" ] && [ "$obfs_vmess" = "network: ws" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   ws-headers:
     $custom
+EOF
+         fi
+         if [ ! -z "$http_path" ] && [ "$obfs_vmess" = "network: http" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  http-opts:
+    method: "GET"
+    path:
+EOF
+            config_list_foreach "$section" "http_path" set_http_path
+         fi
+         if [ "$keep_alive" = "true" ] && [ "$obfs_vmess" = "network: http" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    headers:
+      Connection:
+        - keep-alive
 EOF
          fi
       fi
