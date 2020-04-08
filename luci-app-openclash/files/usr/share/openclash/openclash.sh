@@ -60,6 +60,7 @@ config_cus_up()
      sleep 3
      echo "" >$START_LOG
   fi
+  rm -rf /tmp/Proxy_Group 2>/dev/null
 }
 
 config_su_check()
