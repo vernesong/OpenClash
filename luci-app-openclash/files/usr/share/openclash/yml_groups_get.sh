@@ -55,8 +55,28 @@ else
    awk '/Proxy Group:/,/Rule:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
 fi 2>/dev/null
 
-if [ "$servers_update" -ne "1" ] || [ "$servers_if_update" != "1" ] || [ -z "$(grep "config groups" "$CFG_FILE" 2>/dev/null)" ]; then
-echo "正在删除旧配置..." >$START_LOG
+#判断当前配置文件是否已经有策略组信息
+cfg_group_name()
+{
+   local section="$1"
+   config_get "config" "$section" "config" ""
+
+   if [ -z "$config" ]; then
+      return
+   fi
+   
+   [ "$config" = "$CONFIG_NAME" ] && {
+      config_group_exist="1"
+   }
+}
+
+config_load "openclash"
+config_foreach cfg_group_name "groups"
+
+#删除不必要的配置
+cfg_delete()
+{
+   echo "正在删除旧配置..." >$START_LOG
 #删除策略组
    group_num=$(grep "config groups" "$CFG_FILE" |wc -l)
    for ((i=$group_num;i>=0;i--))
@@ -66,7 +86,7 @@ echo "正在删除旧配置..." >$START_LOG
 	       uci commit openclash
 	    fi
 	 done
-#删除启用节点
+#删除启用的节点
    server_num=$(grep "config servers" "$CFG_FILE" |wc -l)
    for ((i=$server_num;i>=0;i--))
 	 do
@@ -77,7 +97,7 @@ echo "正在删除旧配置..." >$START_LOG
 	       fi
 	    fi
 	 done
-#删除启用代理集
+#删除启用的代理集
    provider_num=$(grep "config proxy-provider" "$CFG_FILE" 2>/dev/null |wc -l)
    for ((i=$provider_num;i>=0;i--))
 	 do
@@ -88,6 +108,10 @@ echo "正在删除旧配置..." >$START_LOG
 	       fi
 	    fi
 	 done
+}
+
+if [ "$servers_update" -ne "1" ] || [ "$servers_if_update" != "1" ] || [ -z "$config_group_exist" ]; then
+   cfg_delete
 else
    /usr/share/openclash/yml_proxys_get.sh
    exit 0
