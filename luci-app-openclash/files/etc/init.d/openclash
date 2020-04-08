@@ -954,7 +954,7 @@ EOF
                 echo "" >$START_LOG
              else
                 if [ "$rule_source" != 0 ] || [ "$enable_custom_clash_rules" != 0 ]; then
-                   echo "错误: OpenClash 启动失败，尝试还原规则并重新启动 Clash 主程序..." >$START_LOG
+                   echo "错误: OpenClash 启动失败，尝试还原第三方规则并重新启动 Clash 主程序..." >$START_LOG
                    echo "${LOGTIME} OpenClash Can Not Start, Try Use Backup Rules Start Again" >> $LOG_FILE
                    mv "$START_BACKUP" /etc/openclash/configrules.bak
                    sed -i -n '/^Rule:/,$p' /etc/openclash/configrules.bak
