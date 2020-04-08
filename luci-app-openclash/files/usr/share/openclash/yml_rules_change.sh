@@ -157,20 +157,6 @@ fi
       sed -i '/- DOMAIN-KEYWORD,announce,DIRECT/d' "$4" 2>/dev/null
       sed -i '/- DOMAIN-KEYWORD,torrent,DIRECT/d' "$4" 2>/dev/null
       
-      if [ "$3" = 1 ]; then
-         sed -i '/^Rule:/a\##Custom Rules End##' "$4" 2>/dev/null
-         sed -i '/^Rule:/a\##Custom Rules##' "$4" 2>/dev/null
-         sed -i '/^##Custom Rules##/r/etc/openclash/custom/openclash_custom_rules.list' "$4" 2>/dev/null
-         sed -i '/^ \{0,\}- MATCH,/i\##Custom Rules 2##' "$4" 2>/dev/null
-         sed -i '/^##Custom Rules 2##/a\##Custom Rules 2 End##' "$4" 2>/dev/null
-         sed -i '/^##Custom Rules 2##/r/etc/openclash/custom/openclash_custom_rules_2.list' "$4" 2>/dev/null
-      fi
-      
-      if [ "$5" = 1 ] || [ "$3" = 1 ] || [ "$7" = 1 ] || [ -z "$(grep '- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
-         sed -i "s/^ \{0,\}-/-/" "$4" 2>/dev/null #修改参数空格
-         sed -i "s/^\t\{0,\}-/-/" "$4" 2>/dev/null #修改参数tab
-      fi
-      
       if [ -z "$(grep '- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ] && [ "$6" = "fake-ip" ]; then
          if [ ! -z "$(grep "^ \{0,\}- IP-CIDR,198.18.0.1/16" "$4")" ]; then
             sed -i "/^ \{0,\}- IP-CIDR,198.18.0.1\/16/c\- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve" "$4"
@@ -196,4 +182,18 @@ fi
             sed -i "s/###- MATCH,/- MATCH,/" "$4" 2>/dev/null
             sed -i "s/###- FINAL,/- FINAL,/" "$4" 2>/dev/null
          fi
+      fi
+      
+      if [ "$3" = 1 ]; then
+         sed -i '/^Rule:/a\##Custom Rules End##' "$4" 2>/dev/null
+         sed -i '/^Rule:/a\##Custom Rules##' "$4" 2>/dev/null
+         sed -i '/^##Custom Rules##/r/etc/openclash/custom/openclash_custom_rules.list' "$4" 2>/dev/null
+         sed -i '/^ \{0,\}- MATCH,/i\##Custom Rules 2##' "$4" 2>/dev/null
+         sed -i '/^##Custom Rules 2##/a\##Custom Rules 2 End##' "$4" 2>/dev/null
+         sed -i '/^##Custom Rules 2##/r/etc/openclash/custom/openclash_custom_rules_2.list' "$4" 2>/dev/null
+      fi
+      
+      if [ "$5" = 1 ] || [ "$3" = 1 ] || [ "$7" = 1 ] || [ -z "$(grep '- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
+         sed -i "s/^ \{0,\}-/-/" "$4" 2>/dev/null #修改参数空格
+         sed -i "s/^\t\{0,\}-/-/" "$4" 2>/dev/null #修改参数tab
       fi
