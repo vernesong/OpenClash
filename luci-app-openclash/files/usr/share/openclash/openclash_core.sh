@@ -15,7 +15,7 @@ fi
 
 if [ "$(/etc/openclash/clash -v 2>/dev/null |awk -F ' ' '{print $2}')" != "$(sed -n 1p /tmp/clash_last_version 2>/dev/null)" ] || [ -z "$(/etc/openclash/clash -v 2>/dev/null |awk -F ' ' '{print $2}')" ] || [ ! -f /etc/openclash/clash ]; then
    if [ "$CPU_MODEL" != 0 ]; then
-   echo "开始下载 OpenClash 内核..." >$START_LOG
+   echo "开始下载 OpenClash 内核，如等待时间过长请尝试手动下载并上传..." >$START_LOG
    if pidof clash >/dev/null; then
       curl -sL --connect-timeout 10 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" https://github.com/vernesong/OpenClash/releases/download/Clash/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
    else
