@@ -748,7 +748,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              sleep 10
              echo "" >$START_LOG
           else
-             echo "第五步: 启动 Clash 主程序..." >$START_LOG
+             echo "第五步: 启动主程序..." >$START_LOG
              nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
              
              #检测proxy_provider配置文件状态
@@ -758,7 +758,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              echo "第七步: 设置控制面板..." >$START_LOG
              ln -s /usr/share/openclash/yacd /www/luci-static/openclash 2>/dev/null
        
-             echo "第八步: 设置 OpenClash 防火墙规则..." >$START_LOG
+             echo "第八步: 设置防火墙规则..." >$START_LOG
              if [ "$(iptables -t nat -nL PREROUTING --line-number |grep "udp dpt:53" |wc -l)" -gt 1 ] && [ "$enable_redirect_dns" -eq "1" ]; then
                 echo "发现53端口被劫持，清理防火墙规则..." >$START_LOG
                 pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/udp dpt:53/=' 2>/dev/null |sort -rn)
@@ -938,8 +938,9 @@ EOF
              fake_block "$en_mode" "$direct_dns"
              /etc/init.d/dnsmasq restart >/dev/null 2>&1
              if pidof clash >/dev/null; then
-                echo "第十步: 添加 OpenClash 计划任务,启动进程守护程序..." >$START_LOG
+                echo "第十步: 还原策略组节点状态..." >$START_LOG
                 /usr/share/openclash/openclash_history_set.sh
+                echo "第十一步: 添加计划任务,启动进程守护程序..." >$START_LOG
                 add_cron
                 if [ -z "$(uci get dhcp.lan.dhcpv6 2>/dev/null)" ]; then
                    echo "OpenClash 启动成功，请等待服务器上线！" >$START_LOG
