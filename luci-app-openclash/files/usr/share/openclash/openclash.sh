@@ -13,15 +13,26 @@ enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
 disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
 if_restart=0
 
+urlencode() {
+    local data
+    if [ "$#" -eq "1" ]; then
+       data=$(curl -s -o /dev/null -w %{url_effective} --get --data-urlencode "$1" "")
+       if [ ! -z "$data" ]; then
+           echo "${data##/?}"
+       fi
+    fi
+}
+
 config_download()
 {
 if [ "$URL_TYPE" == "v2rayn" ]; then
-   subscribe_url=`echo $subscribe_url |sed 's/{/%7B/g;s/}/%7D/g;s/:/%3A/g;s/\"/%22/g;s/,/%2C/g;s/?/%3F/g;s/=/%3D/g;s/&/%26/g;s/\//%2F/g'`
+   subscribe_url=$(urlencode "$subscribe_url")
    curl -sL --connect-timeout 10 --retry 2 https://tgbot.lbyczf.com/v2rayn2clash?url="$subscribe_url" -o "$CFG_FILE" >/dev/null 2>&1
 elif [ "$URL_TYPE" == "surge" ]; then
-   subscribe_url=`echo $subscribe_url |sed 's/{/%7B/g;s/}/%7D/g;s/:/%3A/g;s/\"/%22/g;s/,/%2C/g;s/?/%3F/g;s/=/%3D/g;s/&/%26/g;s/\//%2F/g'`
+   subscribe_url=$(urlencode "$subscribe_url")
    curl -sL --connect-timeout 10 --retry 2 https://tgbot.lbyczf.com/surge2clash?url="$subscribe_url" -o "$CFG_FILE" >/dev/null 2>&1
 else
+   subscribe_url=$(urlencode "$subscribe_url")
    curl -sL --connect-timeout 10 --retry 2 --user-agent "clash" "$subscribe_url" -o "$CFG_FILE" >/dev/null 2>&1
 fi
 }

@@ -1,4 +1,5 @@
 #!/bin/sh
+
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 LOG_FILE="/tmp/openclash.log"
@@ -7,8 +8,16 @@ PROXY_ROUTE_TABLE="0x162"
 enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
 dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
 disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
-en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
 CRASH_NUM=0
+en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
+
+if [ "$en_mode" = "fake-ip-tun" ] || [ "$en_mode" = "redir-host-tun" ]; then
+   core_type="Tun"
+fi
+
+if [ "$en_mode" = "redir-host-vpn" ] || [ "$en_mode" = "fake-ip-vpn" ]; then
+   core_type="Game"
+fi
 
 while :;
 do
@@ -23,10 +32,10 @@ if [ "$enable" -eq 1 ]; then
 	      echo "${LOGTIME} Watchdog: Clash Core Problem, Restart." >> $LOG_FILE
 	      nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
 	      sleep 3
-	      if [ "$en_mode" = "fake-ip-tun" ] || [ "$en_mode" = "redir-host-tun" ]; then
+	      if [ "$core_type" = "Tun" ]; then
 	         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
-	      elif [ "$en_mode" = "redir-host-vpn" ] || [ "$en_mode" = "fake-ip-vpn" ]; then
+	      elif [ "$core_type" = "Game" ]; then
 	         ip tuntap add user root mode tun clash0 2>/dev/null
            ip link set clash0 up 2>/dev/null
            ip route replace default dev clash0 table "$PROXY_ROUTE_TABLE" 2>/dev/null

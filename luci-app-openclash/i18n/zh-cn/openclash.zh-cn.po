@@ -799,7 +799,7 @@ msgid "Game Rules Manage"
 msgstr "管理游戏规则"
 
 msgid "Proxy UDP Traffics"
-msgstr "*代理UDP流量"
+msgstr "*UDP流量转发"
 
 msgid "Select Mode For UDP Traffics, The Servers Must Support UDP while Choose Proxy"
 msgstr "启用时服务器必须支持UDP转发"
