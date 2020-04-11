@@ -166,32 +166,6 @@ o:value("websocket", translate("websocket (ws)"))
 o:value("http", translate("http"))
 o:depends("type", "vmess")
 
--- [[ skip-cert-verify ]]--
-o = s:option(ListValue, "skip_cert_verify", translate("skip-cert-verify"))
-o.rmempty = true
-o.default = "false"
-o:value("true")
-o:value("false")
-o:depends("obfs", "websocket")
-o:depends("obfs_vmess", "none")
-o:depends("obfs_vmess", "websocket")
-o:depends("type", "socks5")
-o:depends("type", "http")
-o:depends("type", "trojan")
-
--- [[ TLS ]]--
-o = s:option(ListValue, "tls", translate("TLS"))
-o.rmempty = true
-o.default = "false"
-o:value("true")
-o:value("false")
-o:depends("obfs", "websocket")
-o:depends("obfs_vmess", "none")
-o:depends("obfs_vmess", "websocket")
-o:depends("obfs_vmess", "http")
-o:depends("type", "socks5")
-o:depends("type", "http")
-
 o = s:option(Value, "host", translate("obfs-hosts"))
 o.datatype = "host"
 o.rmempty = true
@@ -217,6 +191,32 @@ o = s:option(Value, "custom", translate("headers"))
 o.rmempty = true
 o:depends("obfs", "websocket")
 o:depends("obfs_vmess", "websocket")
+
+-- [[ skip-cert-verify ]]--
+o = s:option(ListValue, "skip_cert_verify", translate("skip-cert-verify"))
+o.rmempty = true
+o.default = "false"
+o:value("true")
+o:value("false")
+o:depends("obfs", "websocket")
+o:depends("obfs_vmess", "none")
+o:depends("obfs_vmess", "websocket")
+o:depends("type", "socks5")
+o:depends("type", "http")
+o:depends("type", "trojan")
+
+-- [[ TLS ]]--
+o = s:option(ListValue, "tls", translate("TLS"))
+o.rmempty = true
+o.default = "false"
+o:value("true")
+o:value("false")
+o:depends("obfs", "websocket")
+o:depends("obfs_vmess", "none")
+o:depends("obfs_vmess", "websocket")
+o:depends("obfs_vmess", "http")
+o:depends("type", "socks5")
+o:depends("type", "http")
 
 o = s:option(Value, "keep_alive", translate("keep-alive"))
 o.rmempty = true

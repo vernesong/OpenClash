@@ -68,6 +68,7 @@ form.submit=false
 tb=form:section(Table,e)
 nu=tb:option(DummyValue,"num",translate("Order Number"))
 st=tb:option(DummyValue,"exist",translate("State"))
+st.template="openclash/cfg_check"
 nm=tb:option(DummyValue,"name",translate("Rule Name"))
 fm=tb:option(DummyValue,"filename",translate("File Name"))
 mt=tb:option(DummyValue,"mtime",translate("Update Time"))

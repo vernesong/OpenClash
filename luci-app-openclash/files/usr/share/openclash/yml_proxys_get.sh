@@ -93,6 +93,43 @@ cfg_get_dynamic()
 	echo "$(grep "^ \{0,\}$1" "$2" 2>/dev/null |grep -v "^ \{0,\}- name:"  |grep -v "^ \{0,\}- keep-alive" |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)"
 }
 
+cfg_new_servers_groups_check()
+{
+   if [ -z "$1" ]; then
+      return
+   fi
+   
+   [ "$1" = "$2" ] && {
+	    config_group_exist="1"
+	 }
+}
+
+cfg_group_name()
+{
+   local section="$1"
+   config_get "name" "$section" "name" ""
+   config_get "config" "$section" "config" ""
+
+   if [ -z "$config" ]; then
+      return
+   fi
+   
+   if [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
+      return
+   fi
+
+   if [ -z "$name" ]; then
+	    return
+   fi
+
+   config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_check "$name"
+
+}
+
+#判断当前配置文件策略组信息是否包含指定策略组
+config_load "openclash"
+config_foreach cfg_group_name "groups"
+
 echo "开始更新【$CONFIG_NAME】的代理集配置..." >$START_LOG
 
 yml_provider_name_get()
@@ -218,7 +255,7 @@ do
 
 
 #加入策略组
-      if [ "$servers_if_update" = "1" ] && [ ! -z "$new_servers_group" ] && [ ! -z "$(grep "config groups" "$CFG_FILE")" ]; then
+      if [ "$servers_if_update" = "1" ] && [ ! -z "$new_servers_group" ] && [ ! -z "$config_group_exist" ]; then
 #新代理集且设置默认策略组时加入指定策略组
          config_load "openclash"
          config_list_foreach "config" "new_servers_group" cfg_new_provider_groups_get
@@ -381,7 +418,7 @@ cfg_new_servers_groups_get()
    
    ${uci_add}groups="${1}"
 }
-
+	   
 echo "开始更新【$CONFIG_NAME】的服务器节点配置..." >$START_LOG
 
 [ "$servers_update" -eq "1" ] && {
@@ -643,7 +680,7 @@ do
 	   fi
 
 #加入策略组
-     if [ "$servers_if_update" = "1" ] && [ ! -z "$new_servers_group" ] && [ ! -z "$(grep "config groups" "$CFG_FILE")" ]; then
+     if [ "$servers_if_update" = "1" ] && [ ! -z "$new_servers_group" ] && [ ! -z "$config_group_exist" ]; then
 #新节点且设置默认策略组时加入指定策略组
         config_load "openclash"
         config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_get
