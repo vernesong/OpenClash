@@ -34,7 +34,9 @@ if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{prin
 fi
 
 if [ "$(expr "$LAST_VER" \> "$CLASH_VER")" -eq 1 ] && [ "$(expr "$LAST_TUN_VER" \> "$CLASH_TUN_VER")" -eq 1 ]; then
-   return 3
+   return 4
 elif [ "$(expr "$LAST_VER" \> "$CLASH_VER")" -eq 1 ]; then
    return 2
+elif [ "$(expr "$LAST_TUN_VER" \> "$CLASH_TUN_VER")" -eq 1 ]; then
+   return 3
 fi 2>/dev/null
