@@ -17,6 +17,8 @@ function index()
 	entry({"admin", "services", "openclash", "update_ma"},call("action_update_ma"))
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
+	entry({"admin", "services", "openclash", "coretunupdate"},call("action_core_tun_update"))
+	entry({"admin", "services", "openclash", "coregameupdate"},call("action_core_game_update"))
 	entry({"admin", "services", "openclash", "ping"}, call("act_ping"))
 	entry({"admin", "services", "openclash", "download_game_rule"}, call("action_download_rule"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
@@ -105,17 +107,35 @@ local function coremodel()
 end
 
 local function corecv()
-if not nixio.fs.access("/etc/openclash/clash") then
+if not nixio.fs.access("/etc/openclash/core/clash") and not nixio.fs.access("/etc/openclash/clash") then
   return "0"
 else
-	return luci.sys.exec("/etc/openclash/clash -v 2>/dev/null |awk -F ' ' '{print $2}'")
+	return luci.sys.exec("/etc/openclash/core/clash -v 2>/dev/null |awk -F ' ' '{print $2}'")
+end
+end
+
+local function coretuncv()
+if not nixio.fs.access("/etc/openclash/core/clash_tun") then
+  return "0"
+else
+	return luci.sys.exec("/etc/openclash/core/clash_tun -v 2>/dev/null |awk -F ' ' '{print $2}'")
+end
+end
+
+local function coregamecv()
+if not nixio.fs.access("/etc/openclash/core/clash_game") then
+  return "0"
+else
+	return luci.sys.exec("/etc/openclash/core/clash_game -v 2>/dev/null |awk -F ' ' '{print $2}'")
 end
 end
 
 local function corelv()
 	local new = luci.sys.call(string.format("sh /usr/share/openclash/clash_version.sh"))
 	local core_lv = luci.sys.exec("sed -n 1p /tmp/clash_last_version 2>/dev/null")
-	return core_lv .. "," .. new
+	local core_tun_lv = luci.sys.exec("sed -n 2p /tmp/clash_last_version 2>/dev/null")
+	local core_game_lv = luci.sys.exec("sed -n 3p /tmp/clash_last_version 2>/dev/null")
+	return core_lv .. "," .. core_tun_lv .. "," .. core_game_lv .. "," .. new
 end
 
 local function opcv()
@@ -135,7 +155,17 @@ end
 
 local function coreup()
    luci.sys.call("uci set openclash.config.enable=1 && uci commit openclash && rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
-   return luci.sys.call("sh /usr/share/openclash/openclash_core.sh >/dev/null 2>&1 &")
+   return luci.sys.call("/usr/share/openclash/openclash_core.sh >/dev/null 2>&1 &")
+end
+
+local function coretunup()
+   luci.sys.call("uci set openclash.config.enable=1 && uci commit openclash && rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
+   return luci.sys.call("/usr/share/openclash/openclash_core.sh 'Tun' >/dev/null 2>&1 &")
+end
+
+local function coregameup()
+   luci.sys.call("uci set openclash.config.enable=1 && uci commit openclash && rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
+   return luci.sys.call("/usr/share/openclash/openclash_core.sh 'Game' >/dev/null 2>&1 &")
 end
 
 local function corever()
@@ -212,6 +242,8 @@ function action_update()
 	luci.http.write_json({
 			coremodel = coremodel(),
 			corecv = corecv(),
+			coretuncv = coretuncv(),
+			coregamecv = coregamecv(),
 			opcv = opcv(),
 			corever = corever(),
 			upchecktime = upchecktime(),
@@ -224,6 +256,7 @@ function action_update_ma()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 			oplv = oplv(),
+			corelv = corelv(),
 			corever = corever();
 	})
 end
@@ -239,6 +272,20 @@ function action_coreupdate()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 			coreup = coreup();
+	})
+end
+
+function action_core_tun_update()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+			coretunup = coretunup();
+	})
+end
+
+function action_core_game_update()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+			coregameup = coregameup();
 	})
 end
 

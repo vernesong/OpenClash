@@ -636,12 +636,9 @@ lan_ac()
   
 }
 
-start()
+#配置文件选择
+config_choose()
 {
-#禁止多个实例
-status=$(ps|grep -c /etc/init.d/openclash)
-[ "$status" -gt "3" ] && exit 0
-
 if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
    CONFIG_NAME=$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')
    if [ ! -z "$CONFIG_NAME" ]; then
@@ -661,39 +658,81 @@ if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
    fi
 else
    if [ ! -f "$CONFIG_FILE" ] && [ -f "$BACKUP_FILE" ]; then
-   cp "$BACKUP_FILE" "$CONFIG_FILE"
+      cp "$BACKUP_FILE" "$CONFIG_FILE"
    fi
 fi
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
+}
+
+#运行模式处理
+do_run_mode()
+{
+    en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
+    
+    if [ ! -h "/etc/openclash/clash" ] && [ -s "/etc/openclash/clash" ] && [ ! -s "/etc/openclash/core/clash" ]; then
+       mv "/etc/openclash/clash" "/etc/openclash/core/clash" 2>/dev/null
+    fi
+    
+    rm -rf "/etc/openclash/clash" 2>/dev/null
+    
+    if [ "$en_mode" = "fake-ip-tun" ]; then
+       en_mode_tun="1"
+       en_mode="fake-ip"
+       ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
+       core_type="Tun"
+    fi
+    
+    if [ "$en_mode" = "redir-host-tun" ]; then
+       en_mode_tun="1"
+       en_mode="redir-host"
+       ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
+       core_type="Tun"
+    fi
+    
+    if [ "$en_mode" = "redir-host-vpn" ]; then
+       en_mode_tun="2"
+       en_mode="redir-host"
+       ln -s /etc/openclash/core/clash_game /etc/openclash/clash 2>/dev/null
+       core_type="Game"
+    fi
+    
+    if [ "$en_mode" = "fake-ip-vpn" ]; then
+       en_mode_tun="2"
+       en_mode="fake-ip"
+       ln -s /etc/openclash/core/clash_game /etc/openclash/clash 2>/dev/null
+       core_type="Game"
+    fi
+    
+    if [ ! -f "/etc/openclash/clash" ] && [ -f "/etc/openclash/core/clash" ]; then
+    	ln -s /etc/openclash/core/clash /etc/openclash/clash 2>/dev/null
+    fi
+
+#权限检查
+    [ ! -x "/etc/openclash/core/clash_tun" ] && chmod 4755 /etc/openclash/core/clash_tun 2>/dev/null
+    [ ! -x "/etc/openclash/core/clash_game" ] && chmod 4755 /etc/openclash/core/clash_game 2>/dev/null
+    [ ! -x "/etc/openclash/core/clash" ] && chmod 4755 /etc/openclash/core/clash 2>/dev/null
+}
+
+start()
+{
+#禁止多个实例
+status=$(ps|grep -c /etc/init.d/openclash)
+[ "$status" -gt "3" ] && exit 0
+
+config_choose
 
 enable=$(uci get openclash.config.enable 2>/dev/null)
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
 #检查是否存在核心文件
-[ ! -f "$CLASH" ] && {
-   echo "OpenClash 核心文件不存在，开始下载..." >$START_LOG
-   nohup /usr/share/openclash/openclash_core.sh &
-   exit 0
-}
+   do_run_mode
+   [ ! -f "$CLASH" ] && {
+      echo "内核文件不存在，开始下载..." >$START_LOG
+      nohup /usr/share/openclash/openclash_core.sh "$core_type" &
+      exit 0
+   }
     echo "OpenClash 开始启动..." >$START_LOG
     echo "第一步: 获取配置..." >$START_LOG
-    en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
-    if [ "$en_mode" = "fake-ip-tun" ]; then
-       en_mode_tun="1"
-       en_mode="fake-ip"
-    fi
-    if [ "$en_mode" = "redir-host-tun" ]; then
-       en_mode_tun="1"
-       en_mode="redir-host"
-    fi
-    if [ "$en_mode" = "redir-host-vpn" ]; then
-       en_mode_tun="2"
-       en_mode="redir-host"
-    fi
-    if [ "$en_mode" = "fake-ip-vpn" ]; then
-       en_mode_tun="2"
-       en_mode="fake-ip"
-    fi
     enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
     rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
     enable_custom_clash_rules=$(uci get openclash.config.enable_custom_clash_rules 2>/dev/null) 
@@ -1119,7 +1158,7 @@ stop()
        sleep 5
     fi
     
-    rm -rf $START_LOG
+    rm -rf $START_LOG 2>/dev/null
     del_cron
     echo "OpenClash Already Stop"
 }

@@ -11,20 +11,18 @@ local uci = require "luci.model.uci".cursor()
 
 m = Map(openclash,  translate("Game Rules and Groups"))
 m.pageaction = false
-m.description=translate("注意事项：<br/>游戏代理为测试功能，不保证可用性。 \
+m.description=translate("注意事项：<br/>游戏代理为测试功能，不保证可用性 \
 <br/>准备步骤：\
 <br/>1、在《服务器与策略组管理》页面创建您准备使用的游戏策略组和游戏节点，并应用配置（节点添加时必须选择要加入的策略组），策略组类型建议:FallBack，游戏节点必须支持UDP \
 <br/>2、点击《游戏规则管理》按钮进入游戏规则列表下载您要使用的游戏规则 \
 <br/>3、在此页面上方设置您已下载的游戏规则的对应策略组并保存设置 \
 <br/> \
 <br/>在普通模式下使用： \
-<br/>1、在《全局设置》-《模式设置》-《运行模式》中选择普通模式并启用UDP流量代理，然后重新启动。 \
+<br/>1、在《全局设置》-《模式设置》-《运行模式》中选择普通模式并启用UDP流量代理，然后重新启动 \
 <br/> \
 <br/>在TUN模式下使用： \
-<br/>1、替换内核一，下载地址：https://github.com/Dreamacro/clash/releases/tag/TUN \
-<br/>2、或替换内核二，下载地址：https://github.com/vernesong/OpenClash/releases/tag/TUN \
-<br/>3、项目地址：https://github.com/comzyh/clash \
-<br/>4、在《全局设置》-《模式设置》-《运行模式》中选择TUN模式（内核一）或者游戏模式（内核二）并重新启动")
+<br/>1、在全局设置-版本更新标签先下载对应模式内核 \
+<br/>2、在《全局设置》-《模式设置》-《运行模式》中选择TUN模式或者游戏模式并重新启动")
 
 
 function IsRuleFile(e)
