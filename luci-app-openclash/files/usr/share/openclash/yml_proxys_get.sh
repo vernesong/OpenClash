@@ -100,7 +100,7 @@ cfg_new_servers_groups_check()
    fi
    
    [ "$1" = "$2" ] && {
-	    config_group_exist="1"
+	    config_group_exist=$(( $config_group_exist + 1 ))
 	 }
 }
 
@@ -123,12 +123,20 @@ cfg_group_name()
    fi
 
    config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_check "$name"
-
+   config_group_exists=$(( $config_group_exists + 1 ))
 }
 
 #判断当前配置文件策略组信息是否包含指定策略组
+config_group_exist=0
+config_group_exists=0
 config_load "openclash"
 config_foreach cfg_group_name "groups"
+
+if [ "$config_group_exists" -eq "$config_group_exist" ]; then
+   config_group_exist=1
+else
+   config_group_exist=0
+fi
 
 echo "开始更新【$CONFIG_NAME】的代理集配置..." >$START_LOG
 
@@ -255,7 +263,7 @@ do
 
 
 #加入策略组
-      if [ "$servers_if_update" = "1" ] && [ ! -z "$new_servers_group" ] && [ ! -z "$config_group_exist" ]; then
+      if [ "$servers_if_update" = "1" ] && [ ! -z "$new_servers_group" ] && [ "$config_group_exist" -eq 1 ]; then
 #新代理集且设置默认策略组时加入指定策略组
          config_load "openclash"
          config_list_foreach "config" "new_servers_group" cfg_new_provider_groups_get
@@ -715,7 +723,7 @@ do
 	    fi
 
 #加入策略组
-     if [ "$servers_if_update" = "1" ] && [ ! -z "$new_servers_group" ] && [ ! -z "$config_group_exist" ]; then
+     if [ "$servers_if_update" = "1" ] && [ ! -z "$new_servers_group" ] && [ "$config_group_exist" -eq 1 ]; then
 #新节点且设置默认策略组时加入指定策略组
         config_load "openclash"
         config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_get
