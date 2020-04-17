@@ -34,6 +34,7 @@ define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/config >/dev/null 2>&1
 	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/proxy_provider >/dev/null 2>&1
 	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/backup >/dev/null 2>&1
+	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/core >/dev/null 2>&1
 endef
 
 define Build/Configure
