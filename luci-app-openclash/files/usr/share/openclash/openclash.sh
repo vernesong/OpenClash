@@ -100,14 +100,6 @@ config_su_check()
 
 config_encode()
 {
-	#proxies
-   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$CFG_FILE" 2>/dev/null
-   }
-   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
-      sed -i "s/^proxies:/Proxy:/" "$CFG_FILE" 2>/dev/null
-   }
-
 	 #proxy-providers
 	 [ -z "$(grep "^proxy-provider:" "$CFG_FILE")" ] && {
       sed -i "/^ \{1,\}proxy-provider:/c\proxy-provider:" "$CFG_FILE" 2>/dev/null
@@ -123,6 +115,21 @@ config_encode()
    }
    [ -z "$(grep "^Proxy Group:" "$CFG_FILE")" ] && {
       sed -i "/^ \{0,\}proxy-groups:/c\Proxy Group:" "$CFG_FILE" 2>/dev/null
+   }
+   
+   #proxies
+   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
+      sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$CFG_FILE" 2>/dev/null
+   }
+   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
+      sed -i "/^proxies:/c\Proxy:" "$CFG_FILE" 2>/dev/null
+   }
+   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
+   	  group_len=$(sed -n '/^Proxy Group:/=' "$CFG_FILE" 2>/dev/null)
+   	  proxies_len=$(sed -n '/proxies:/=' "$CFG_FILE" 2>/dev/null |sed -n 1p)
+      if [ "$proxies_len" -lt "$group_len" ]; then
+         sed -i "${proxies_len}c\Proxy:" "$CFG_FILE" 2>/dev/null
+      fi 2>/dev/null
    }
    
    #rules
