@@ -1,6 +1,5 @@
 
 <fieldset class="cbi-section">
-
 	<table>
 	  <tr><td width="100%" colspan="4">
 	    <p align="center" id="update_tip">
@@ -43,6 +42,11 @@
 	  <tr><td width="25%"> 更新客户端 </td><td width="25%" align="left" id="op_up"><%:Collecting data...%></td><td width="25%"> 下载最新版本客户端 </td><td width="25%" align="left" id="ma_op_up"><%:Collecting data...%></td></tr>
 	</table>
 </fieldset>
+<fieldset class="cbi-section">
+	<table>
+	  <tr><td width="100%" colspan="4" align="center" id="restore"><%:Collecting data...%></td></tr>
+	</table>
+</fieldset>
 
 <script type="text/javascript">//<![CDATA[
   var core_version = document.getElementById('CORE_VERSION');
@@ -66,6 +70,7 @@
 	var ma_core_tun_up  = document.getElementById('ma_core_tun_up');
 	var ma_core_game_up  = document.getElementById('ma_core_game_up');
 	var ma_op_up  = document.getElementById('ma_op_up');
+	var restore  = document.getElementById('restore');
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
 			var cpu_models = status.coremodel;
@@ -262,6 +267,7 @@
 	ma_core_tun_up.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:下载到本地%>" onclick="return ma_core_tun_update(this)"/>';
 	ma_core_game_up.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:下载到本地%>" onclick="return ma_core_game_update(this)"/>';
 	ma_op_up.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:下载到本地%>" onclick="return ma_op_update(this)"/>';
+	restore.innerHTML = '<input type="button" class="cbi-button cbi-button-reset" value="<%:还原默认配置%>" onclick="return restore_config(this)"/>';
 	
 	function core_update(btn)
     {
@@ -383,6 +389,26 @@
            }
         }
         });
+        return false; 
+    }
+    
+    function  restore_config(btn)
+    {
+        btn.value    = '<%:还原默认配置%>';
+        btn.disabled = true;
+        var r = confirm("确定要还原默认配置吗？")
+        if (r == true) {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "restore")%>', null, function(x, status) {
+        	if ( x && x.status == 200 ) {
+        		alert('还原默认配置成功！')
+        	}
+          else {
+            alert('还原默认配置失败！')
+           }
+        });
+        } else {
+        }
+        btn.disabled = false;
         return false; 
     }
     
