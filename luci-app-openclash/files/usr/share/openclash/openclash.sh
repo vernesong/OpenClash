@@ -32,7 +32,6 @@ elif [ "$URL_TYPE" == "surge" ]; then
    subscribe_url=$(urlencode "$subscribe_url")
    curl -sL --connect-timeout 10 --retry 2 https://tgbot.lbyczf.com/surge2clash?url="$subscribe_url" -o "$CFG_FILE" >/dev/null 2>&1
 else
-   subscribe_url=$(urlencode "$subscribe_url")
    curl -sL --connect-timeout 10 --retry 2 --user-agent "clash" "$subscribe_url" -o "$CFG_FILE" >/dev/null 2>&1
 fi
 }

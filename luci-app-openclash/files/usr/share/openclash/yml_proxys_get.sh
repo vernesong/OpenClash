@@ -100,7 +100,7 @@ cfg_new_servers_groups_check()
    fi
    
    [ "$1" = "$2" ] && {
-	    config_group_exist="1"
+	    config_group_exist=$(( $config_group_exist + 1 ))
 	 }
 }
 
@@ -123,12 +123,20 @@ cfg_group_name()
    fi
 
    config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_check "$name"
-
+   config_group_exists=$(( $config_group_exists + 1 ))
 }
 
 #判断当前配置文件策略组信息是否包含指定策略组
+config_group_exist=0
+config_group_exists=0
 config_load "openclash"
 config_foreach cfg_group_name "groups"
+
+if [ "$config_group_exists" -eq "$config_group_exist" ]; then
+   config_group_exist=1
+else
+   config_group_exist=0
+fi
 
 echo "开始更新【$CONFIG_NAME】的代理集配置..." >$START_LOG
 
@@ -255,7 +263,7 @@ do
 
 
 #加入策略组
-      if [ "$servers_if_update" = "1" ] && [ ! -z "$new_servers_group" ] && [ ! -z "$config_group_exist" ]; then
+      if [ "$servers_if_update" = "1" ] && [ ! -z "$new_servers_group" ] && [ "$config_group_exist" -eq 1 ]; then
 #新代理集且设置默认策略组时加入指定策略组
          config_load "openclash"
          config_list_foreach "config" "new_servers_group" cfg_new_provider_groups_get
@@ -485,54 +493,78 @@ do
    server="$(cfg_get "server:" "$single_server")"
    #port
    port="$(cfg_get "port:" "$single_server")"
-   #cipher
-   cipher="$(cfg_get "cipher:" "$single_server")"
-   #password
-   password="$(cfg_get "password:" "$single_server")"
+   
+   if [ "$server_type" = "ss" ]; then
+      #cipher
+      cipher="$(cfg_get "cipher:" "$single_server")"
+      #password
+      password="$(cfg_get "password:" "$single_server")"
+      #plugin:
+      plugin="$(cfg_get "plugin:" "$single_server")"
+      #path:
+      path="$(cfg_get "path:" "$single_server")"
+      #mode:
+      mode="$(cfg_get "mode:" "$single_server")"
+      #host:
+      host="$(cfg_get "host:" "$single_server")"
+      #mux:
+      mux="$(cfg_get "mux:" "$single_server")"
+      #headers_custom:
+      headers="$(cfg_get "custom:" "$single_server")"
+      #obfs:
+      obfs="$(cfg_get "obfs:" "$single_server")"
+      #obfs-host:
+      obfs_host="$(cfg_get "obfs-host:" "$single_server")"
+   fi
+   
+   if [ "$server_type" = "vmess" ]; then
+      #uuid:
+      uuid="$(cfg_get "uuid:" "$single_server")"
+      #alterId:
+      alterId="$(cfg_get "alterId:" "$single_server")"
+      #cipher
+      cipher="$(cfg_get "cipher:" "$single_server")"
+      #network:
+      network="$(cfg_get "network:" "$single_server")"
+      #ws-path:
+      ws_path="$(cfg_get "ws-path:" "$single_server")"
+      #Host:
+      Host="$(cfg_get "Host:" "$single_server")"
+      #http_paths:
+      http_paths="$(cfg_get_dynamic "-" "$single_server")"
+   fi
+   
+   if [ "$server_type" = "socks5" ] || [ "$server_type" = "http" ]; then
+      #username:
+      username="$(cfg_get "username:" "$single_server")"
+      #password
+      password="$(cfg_get "password:" "$single_server")"
+   fi
+   
+   if [ "$server_type" = "snell" ]; then
+      #psk:
+      psk="$(cfg_get "psk:" "$single_server")"
+      #mode:
+      mode="$(cfg_get "mode:" "$single_server")"
+      #host:
+      host="$(cfg_get "host:" "$single_server")"
+   fi
+   
+   if [ "$server_type" = "trojan" ]; then
+      #password
+      password="$(cfg_get "password:" "$single_server")"
+      #sni:
+      sni="$(cfg_get "sni:" "$single_server")"
+      #alpn:
+      alpns="$(cfg_get_dynamic "-" "$single_server")"
+   fi
+   
    #udp
    udp="$(cfg_get "udp:" "$single_server")"
-   #plugin:
-   plugin="$(cfg_get "plugin:" "$single_server")"
-   #plugin-opts:
-   plugin_opts="$(cfg_get "plugin-opts:" "$single_server")"
-   #obfs:
-   obfs="$(cfg_get "obfs:" "$single_server")"
-   #psk:
-   psk="$(cfg_get "psk:" "$single_server")"
-   #obfs-host:
-   obfs_host="$(cfg_get "obfs-host:" "$single_server")"
-   #mode:
-   mode="$(cfg_get "mode:" "$single_server")"
    #tls:
    tls="$(cfg_get "tls:" "$single_server")"
    #skip-cert-verify:
    verify="$(cfg_get "skip-cert-verify:" "$single_server")"
-   #mux:
-   mux="$(cfg_get "mux:" "$single_server")"
-   #host:
-   host="$(cfg_get "host:" "$single_server")"
-   #Host:
-   Host="$(cfg_get "Host:" "$single_server")"
-   #path:
-   path="$(cfg_get "path:" "$single_server")"
-   #ws-path:
-   ws_path="$(cfg_get "ws-path:" "$single_server")"
-   #headers_custom:
-   headers="$(cfg_get "custom:" "$single_server")"
-   #uuid:
-   uuid="$(cfg_get "uuid:" "$single_server")"
-   #alterId:
-   alterId="$(cfg_get "alterId:" "$single_server")"
-   #network:
-   network="$(cfg_get "network:" "$single_server")"
-   #username:
-   username="$(cfg_get "username:" "$single_server")"
-   #sni:
-   sni="$(cfg_get "sni:" "$single_server")"
-   #alpn:
-   alpns="$(cfg_get_dynamic "-" "$single_server")"
-   #http_paths:
-   http_paths="$(cfg_get_dynamic "-" "$single_server")"
    
    echo "正在读取【$CONFIG_NAME】-【$server_type】-【$server_name】服务器节点配置..." >$START_LOG
    
@@ -546,61 +578,66 @@ do
       ${uci_set}type="$server_type"
       ${uci_set}server="$server"
       ${uci_set}port="$port"
-      if [ "$server_type" = "vmess" ]; then
-         ${uci_set}securitys="$cipher"
-      else
-         ${uci_set}cipher="$cipher"
-      fi
       ${uci_set}udp="$udp"
-      ${uci_set}obfs="$obfs"
-      ${uci_set}host="$obfs_host"
-      [ -z "$mode" ] && [ "$server_type" = "snell" ] && ${uci_set}obfs_snell="$mode"
-      [ -z "$obfs" ] && [ "$server_type" = "ss" ] && ${uci_set}obfs="$mode"
-      [ -z "$obfs" ] && [ "$server_type" = "ss" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
-      [ -z "$mode" ] && [ "$server_type" = "snell" ] &&  ${uci_set}obfs_snell="none"
-      [ -z "$mode" ] && [ "$network" = "ws" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="websocket"
-      [ -z "$mode" ] && [ "$network" = "http" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="http"
-      [ -z "$mode" ] && [ -z "$network" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="none"
-      [ -z "$obfs_host" ] && ${uci_set}host="$host"
-      ${uci_set}psk="$psk"
       ${uci_set}tls="$tls"
       ${uci_set}skip_cert_verify="$verify"
-      ${uci_set}path="$path"
-      [ -z "$path" ] && [ "$network" = "ws" ] && ${uci_set}path="$ws_path"
-      ${uci_set}mux="$mux"
-      ${uci_set}custom="$headers"
-      [ -z "$headers" ] && [ "$network" = "ws" ] && ${uci_set}custom="$Host"
-    
-	   if [ "$server_type" = "vmess" ]; then
-       #v2ray
-       ${uci_set}alterId="$alterId"
-       ${uci_set}uuid="$uuid"
-       ${uci_del}http_path >/dev/null 2>&1
-       for http_path in $http_paths; do
-          ${uci_add}http_path="$http_path" >/dev/null 2>&1
-       done
-       if [ ! -z "$(grep "^ \{0,\}- keep-alive" "$single_server")" ]; then
-          ${uci_set}keep_alive="true"
-       else
-          ${uci_set}keep_alive="false"
-       fi
-	   fi
-	
-	   if [ "$server_type" = "socks5" ] || [ "$server_type" = "http" ]; then
-        ${uci_set}auth_name="$username"
-        ${uci_set}auth_pass="$password"
-     else
-        ${uci_set}password="$password"
-	   fi
+      
+      if [ "$server_type" = "ss" ]; then
+      	 ${uci_set}cipher="$cipher"
+         ${uci_set}obfs="$obfs"
+         ${uci_set}host="$obfs_host"
+         ${uci_set}path="$path"
+         ${uci_set}mux="$mux"
+         ${uci_set}custom="$headers"
+         [ -z "$obfs" ] && ${uci_set}obfs="$mode"
+         [ -z "$obfs" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
+      fi
+      [ -z "$obfs_host" ] && ${uci_set}host="$host"
+      
+      if [ "$server_type" = "snell" ]; then
+      	 ${uci_set}obfs_snell="$mode"
+         [ -z "$mode" ] && ${uci_set}obfs_snell="none"
+         ${uci_set}psk="$psk"
+      fi
+
+      if [ "$server_type" = "vmess" ]; then
+         ${uci_set}securitys="$cipher"
+         ${uci_set}alterId="$alterId"
+         ${uci_set}uuid="$uuid"
+         if [ "$network" = "ws" ]; then
+            ${uci_set}obfs_vmess="websocket"
+            ${uci_set}path="$ws_path"
+            ${uci_set}custom="$Host"
+         elif [ "$network" = "http" ]; then
+            ${uci_set}obfs_vmess="http"
+            ${uci_del}http_path >/dev/null 2>&1
+            for http_path in $http_paths; do
+               ${uci_add}http_path="$http_path" >/dev/null 2>&1
+            done
+            if [ ! -z "$(grep "^ \{0,\}- keep-alive" "$single_server")" ]; then
+               ${uci_set}keep_alive="true"
+            else
+               ${uci_set}keep_alive="false"
+            fi
+         else
+            ${uci_set}obfs_vmess="none"
+         fi
+      fi
+      
+	    if [ "$server_type" = "socks5" ] || [ "$server_type" = "http" ]; then
+         ${uci_set}auth_name="$username"
+         ${uci_set}auth_pass="$password"
+      else
+         ${uci_set}password="$password"
+	    fi
 	   
-	   if [ "$server_type" = "trojan" ]; then
-       #trojan
-       ${uci_set}sni="$sni"
-       ${uci_del}alpn >/dev/null 2>&1
-       for alpn in $alpns; do
-          ${uci_add}alpn="$alpn" >/dev/null 2>&1
-       done
-	   fi
+	    if [ "$server_type" = "trojan" ]; then
+        ${uci_set}sni="$sni"
+        ${uci_del}alpn >/dev/null 2>&1
+        for alpn in $alpns; do
+           ${uci_add}alpn="$alpn" >/dev/null 2>&1
+        done
+	    fi
    else
 #添加新节点
       name=openclash
@@ -624,63 +661,69 @@ do
       ${uci_set}type="$server_type"
       ${uci_set}server="$server"
       ${uci_set}port="$port"
-      if [ "$server_type" = "vmess" ]; then
-         ${uci_set}securitys="$cipher"
-      else
-         ${uci_set}cipher="$cipher"
-      fi
       ${uci_set}udp="$udp"
-      ${uci_set}obfs="$obfs"
-      ${uci_set}host="$obfs_host"
-      [ -z "$mode" ] && [ "$server_type" = "snell" ] && ${uci_set}obfs_snell="$mode"
-      [ -z "$obfs" ] && [ "$server_type" = "ss" ] && ${uci_set}obfs="$mode"
-      [ -z "$obfs" ] && [ "$server_type" = "ss" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
-      [ -z "$mode" ] && [ "$server_type" = "snell" ] &&  ${uci_set}obfs_snell="none"
-      [ -z "$mode" ] && [ "$network" = "ws" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="websocket"
-      [ -z "$mode" ] && [ "$network" = "http" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="http"
-      [ -z "$mode" ] && [ -z "$network" ] && [ "$server_type" = "vmess" ] && ${uci_set}obfs_vmess="none"
-      [ -z "$obfs_host" ] && ${uci_set}host="$host"
-      ${uci_set}psk="$psk"
       ${uci_set}tls="$tls"
       ${uci_set}skip_cert_verify="$verify"
-      ${uci_set}path="$path"
-      [ -z "$path" ] && [ "$network" = "ws" ] && ${uci_set}path="$ws_path"
-      ${uci_set}mux="$mux"
-      ${uci_set}custom="$headers"
-      [ -z "$headers" ] && [ "$network" = "ws" ] && ${uci_set}custom="$Host"
-    
-	   if [ "$server_type" = "vmess" ]; then
-       #v2ray
-       ${uci_set}alterId="$alterId"
-       ${uci_set}uuid="$uuid"
-       ${uci_del}http_path >/dev/null 2>&1
-       for http_path in $http_paths; do
-          ${uci_add}http_path="$http_path" >/dev/null 2>&1
-       done
-       if [ ! -z "$(grep "^ \{0,\}- keep-alive" "$single_server")" ]; then
-          ${uci_set}keep_alive="true"
-       else
-          ${uci_set}keep_alive="false"
-       fi
-	   fi
-	
-	   if [ "$server_type" = "socks5" ] || [ "$server_type" = "http" ]; then
-        ${uci_set}auth_name="$username"
-        ${uci_set}auth_pass="$password"
-     else
-        ${uci_set}password="$password"
-	   fi
+      
+      if [ "$server_type" = "ss" ]; then
+      	 ${uci_set}cipher="$cipher"
+         ${uci_set}obfs="$obfs"
+         ${uci_set}host="$obfs_host"
+         ${uci_set}path="$path"
+         ${uci_set}mux="$mux"
+         ${uci_set}custom="$headers"
+         [ -z "$obfs" ] && ${uci_set}obfs="$mode"
+         [ -z "$obfs" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
+      fi
+      [ -z "$obfs_host" ] && ${uci_set}host="$host"
+      
+      if [ "$server_type" = "snell" ]; then
+      	 ${uci_set}obfs_snell="$mode"
+         [ -z "$mode" ] && ${uci_set}obfs_snell="none"
+         ${uci_set}psk="$psk"
+      fi
+
+      if [ "$server_type" = "vmess" ]; then
+         ${uci_set}securitys="$cipher"
+         ${uci_set}alterId="$alterId"
+         ${uci_set}uuid="$uuid"
+         if [ "$network" = "ws" ]; then
+            ${uci_set}obfs_vmess="websocket"
+            ${uci_set}path="$ws_path"
+            ${uci_set}custom="$Host"
+         elif [ "$network" = "http" ]; then
+            ${uci_set}obfs_vmess="http"
+            ${uci_del}http_path >/dev/null 2>&1
+            for http_path in $http_paths; do
+               ${uci_add}http_path="$http_path" >/dev/null 2>&1
+            done
+            if [ ! -z "$(grep "^ \{0,\}- keep-alive" "$single_server")" ]; then
+               ${uci_set}keep_alive="true"
+            else
+               ${uci_set}keep_alive="false"
+            fi
+         else
+            ${uci_set}obfs_vmess="none"
+         fi
+      fi
+      
+	    if [ "$server_type" = "socks5" ] || [ "$server_type" = "http" ]; then
+         ${uci_set}auth_name="$username"
+         ${uci_set}auth_pass="$password"
+      else
+         ${uci_set}password="$password"
+	    fi
 	   
-	   if [ "$server_type" = "trojan" ]; then
-       #trojan
-       ${uci_set}sni="$sni"
-       for alpn in $alpns; do
-        ${uci_add}alpn="$alpn" >/dev/null 2>&1
-       done
-	   fi
+	    if [ "$server_type" = "trojan" ]; then
+         ${uci_set}sni="$sni"
+         ${uci_del}alpn >/dev/null 2>&1
+         for alpn in $alpns; do
+            ${uci_add}alpn="$alpn" >/dev/null 2>&1
+         done
+	    fi
 
 #加入策略组
-     if [ "$servers_if_update" = "1" ] && [ ! -z "$new_servers_group" ] && [ ! -z "$config_group_exist" ]; then
+     if [ "$servers_if_update" = "1" ] && [ ! -z "$new_servers_group" ] && [ "$config_group_exist" -eq 1 ]; then
 #新节点且设置默认策略组时加入指定策略组
         config_load "openclash"
         config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_get

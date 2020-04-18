@@ -130,7 +130,15 @@ o.write = function()
 	fs.unlink("/tmp/Proxy_Group")
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
-  SYS.call("rm -rf /etc/openclash/backup/* 2>/dev/null")
+  uci:foreach("openclash", "config_subscribe",
+		function(s)
+		  if s.name ~= "" and s.name ~= nil and s.enabled == "1" then
+			   local back_cfg_path_yaml="/etc/openclash/backup/" .. s.name .. ".yaml"
+			   local back_cfg_path_yml="/etc/openclash/backup/" .. s.name .. ".yaml"
+			   fs.unlink(back_cfg_path_yaml)
+			   fs.unlink(back_cfg_path_yml)
+			end
+		end)
   SYS.call("/usr/share/openclash/openclash.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
