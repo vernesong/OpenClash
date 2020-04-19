@@ -110,14 +110,6 @@ yml_check()
    sed -i "s/- \{2,\}/- /g" "$3" 2>/dev/null
 
    #检查关键字避免后续操作出错
-   #proxies
-   [ -z "$(grep "^Proxy:" "$3")" ] && {
-      sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$3" 2>/dev/null
-   }
-   [ -z "$(grep "^Proxy:" "$3")" ] && {
-      sed -i "s/^proxies:/Proxy:/" "$3" 2>/dev/null
-   }
-
 	 #proxy-providers
 	 [ -z "$(grep "^proxy-provider:" "$3")" ] && {
       sed -i "/^ \{1,\}proxy-provider:/c\proxy-provider:" "$3" 2>/dev/null
@@ -133,6 +125,21 @@ yml_check()
    }
    [ -z "$(grep "^Proxy Group:" "$3")" ] && {
       sed -i "/^ \{0,\}proxy-groups:/c\Proxy Group:" "$3" 2>/dev/null
+   }
+   
+   #proxies
+   [ -z "$(grep "^Proxy:" "$3")" ] && {
+      sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$3" 2>/dev/null
+   }
+   [ -z "$(grep "^Proxy:" "$3")" ] && {
+      sed -i "/^proxies:/c\Proxy:" "$3" 2>/dev/null
+   }
+   [ -z "$(grep "^Proxy:" "$3")" ] && {
+   	  group_len=$(sed -n '/^Proxy Group:/=' "$3" 2>/dev/null)
+   	  proxies_len=$(sed -n '/proxies:/=' "$3" 2>/dev/null |sed -n 1p)
+      if [ "$proxies_len" -lt "$group_len" ]; then
+         sed -i "${proxies_len}c\Proxy:" "$3" 2>/dev/null
+      fi 2>/dev/null
    }
    
    #rules
@@ -158,9 +165,8 @@ yml_check()
 
    #位置检查
    proxy_len=$(sed -n '/^Proxy:/=' "$3" 2>/dev/null)
-   group_len=$(sed -n '/^ \{0,\}Proxy Group:/=' "$3" 2>/dev/null)
    provider_len=$(sed -n '/^proxy-provider:/=' "$3" 2>/dev/null)
-   dns_len=$(sed -n '/^ \{0,\}dns:/=' "$3" 2>/dev/null)
+   dns_len=$(sed -n '/^dns:/=' "$3" 2>/dev/null)
    rule_len=$(sed -n '/^Rule:/=' "$3" 2>/dev/null)
    
    if [ "$dns_len" -ge "$proxy_len" ] || [ "$dns_len" -ge "$rule_len" ] || [ "$dns_len" -ge "$group_len" ]; then
