@@ -298,42 +298,60 @@ yml_dns_check()
 
 }
 
+#修改代理集路径
+yml_provider_path()
+{
+   sed -i "s/\'//g" "$1" 2>/dev/null
+   sed -i 's/\"//g' "$1" 2>/dev/null
+   proxy_provider_path_line=$(sed -n '/^ \{0,\}path:/=' "$1" 2>/dev/null)
+   if [ ! -z "$proxy_provider_path_line" ]; then
+	    for n in $proxy_provider_path_line
+      do
+         provider_path=$(sed -n "${n}p" "$1" |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
+         if [ -z "$(echo "$provider_path" |grep "proxy_provider")" ]; then
+            provider_name=$(echo "$provider_path" |awk -F '/' '{print $NF}')
+            sed -i "s#${provider_path}#./proxy_provider/${provider_name}#" "$1" 2>/dev/null
+         fi
+      done
+   fi
+}
+
 #检查代理集文件防止启动失败
 yml_proxy_provider_check()
 {
-
-while ( [ ! -z "$(pidof clash)" ] && [ "$proxy_provider_path_exist" != 1 ] )
-do
-   if [ "$proxy_provider_mode" = 1 ]; then
-      proxy_provider_path_line=$(sed -n '/^ \{0,\}path:/=' "$1" 2>/dev/null)
-      proxy_provider_path_exist=1
-      for n in $proxy_provider_path_line
-      do
-         provider_path=$(sed -n "${n}p" $1 |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
-         if [ "$(echo ${provider_path:0:1})" = "." ]; then
-            provider_path_check="/etc/openclash/$(echo ${provider_path:2})"
-            if [ -f "$provider_path_check" ]; then
-               if [ -z "$(grep "'proxies:':" "$provider_path_check")" ] && [ -z "$(grep '"proxies:":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
+if [ ! -z "$proxy_provider_path_line" ]; then
+   while ( [ ! -z "$(pidof clash)" ] && [ "$proxy_provider_path_exist" != 1 ] )
+   do
+      if [ "$proxy_provider_mode" = 1 ]; then
+         proxy_provider_path_exist=1
+         for n in $proxy_provider_path_line
+         do
+            provider_path=$(sed -n "${n}p" "$1" |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
+            if [ "$(echo ${provider_path:0:1})" = "." ]; then
+               provider_path_check="/etc/openclash/$(echo ${provider_path:2})"
+               if [ -f "$provider_path_check" ]; then
+                  if [ -z "$(grep "'proxies:':" "$provider_path_check")" ] && [ -z "$(grep '"proxies:":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
+                     proxy_provider_path_exist=0
+                  fi
+               else
                   proxy_provider_path_exist=0
                fi
             else
-               proxy_provider_path_exist=0
-            fi
-         else
-            provider_path_check="$provider_path"
-            if [ -f "$provider_path_check" ]; then
-               if [ -z "$(grep "'proxies:':" "$provider_path_check")" ] && [ -z "$(grep '"proxies:":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
+               provider_path_check="$provider_path"
+               if [ -f "$provider_path_check" ]; then
+                  if [ -z "$(grep "'proxies:':" "$provider_path_check")" ] && [ -z "$(grep '"proxies:":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
+                     proxy_provider_path_exist=0
+                  fi
+               else
                   proxy_provider_path_exist=0
                fi
-            else
-               proxy_provider_path_exist=0
             fi
-         fi
-      done
-   else
-      proxy_provider_path_exist=1
-   fi
-done
+         done
+      else
+         proxy_provider_path_exist=1
+      fi
+   done
+fi
 
 if [ -z "$(pidof clash)" ] && [ "$proxy_provider_mode" = 1 ]; then
    echo "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！" >$START_LOG
@@ -782,6 +800,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           yml_auth_custom "$CONFIG_FILE"
           yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE" "$PROXY_PROVIDER_FILE" "$GROUP_FILE"
           yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
+          yml_provider_path "$PROXY_PROVIDER_FILE"
           sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1 "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" &
           sh /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$BACKUP_FILE" &
           wait
