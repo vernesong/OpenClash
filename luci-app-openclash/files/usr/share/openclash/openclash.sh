@@ -43,7 +43,7 @@ config_cus_up()
 	    uci set openclash.config.config_path="$CONFIG_PATH"
       uci commit openclash
 	fi
-	if [ "$servers_update" -eq "1" ] || [ ! -z "$keyword" ]; then
+	if [ "$servers_update" -eq 1 ] || [ ! -z "$keyword" ]; then
 	   echo "配置文件【$name】替换成功，开始挑选节点..." >$START_LOG
 	   uci set openclash.config.config_update_path="/etc/openclash/config/$name.yaml"
 	   uci set openclash.config.servers_if_update=1
