@@ -100,45 +100,7 @@ config_su_check()
 
 config_encode()
 {
-	 #proxy-providers
-	 [ -z "$(grep "^proxy-provider:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{1,\}proxy-provider:/c\proxy-provider:" "$CFG_FILE" 2>/dev/null
-   }
-   [ -z "$(grep "^proxy-provider:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{0,\}proxy-providers:/c\proxy-provider:" "$CFG_FILE" 2>/dev/null
-   }
-   #proxy-groups
-   [ -z "$(grep "^Proxy Group:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{0,\}\'Proxy Group\':/c\Proxy Group:" "$CFG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}\"Proxy Group\":/c\Proxy Group:' "$CFG_FILE" 2>/dev/null
-      sed -i "/^ \{1,\}Proxy Group:/c\Proxy Group:" "$CFG_FILE" 2>/dev/null
-   }
-   [ -z "$(grep "^Proxy Group:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{0,\}proxy-groups:/c\Proxy Group:" "$CFG_FILE" 2>/dev/null
-   }
-   
-   #proxies
-   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$CFG_FILE" 2>/dev/null
-   }
-   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
-      sed -i "/^proxies:/c\Proxy:" "$CFG_FILE" 2>/dev/null
-   }
-   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
-   	  group_len=$(sed -n '/^Proxy Group:/=' "$CFG_FILE" 2>/dev/null)
-   	  proxies_len=$(sed -n '/proxies:/=' "$CFG_FILE" 2>/dev/null |sed -n 1p)
-      if [ "$proxies_len" -lt "$group_len" ]; then
-         sed -i "${proxies_len}c\Proxy:" "$CFG_FILE" 2>/dev/null
-      fi 2>/dev/null
-   }
-   
-   #rules
-   [ -z "$(grep "^Rule:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{1,\}Rule:/c\Rule:" "$CFG_FILE" 2>/dev/null
-   }
-   [ -z "$(grep "^Rule:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{0,\}rules:/c\Rule:" "$CFG_FILE" 2>/dev/null
-   }
+   /usr/share/openclash/yml_field_name_ch.sh "$CFG_FILE"
 }
 
 config_error()
