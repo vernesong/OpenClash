@@ -164,7 +164,7 @@ yml_check()
          sed -i '/^ *$/d' /tmp/backprovider.yaml 2>/dev/null
          sed -i '/proxy-provider:/r/tmp/backprovider.yaml' "$3" 2>/dev/null
          rm -rf /tmp/backprovider.yaml 2>/dev/null
-      elif [ "$provider_len" -ge "$group_len" ] && [ "$provider_len" -le "$rule_len" ]; then; then
+      elif [ "$provider_len" -ge "$group_len" ] && [ "$provider_len" -le "$rule_len" ]; then
       	 awk '/^proxy-provider:/,/^Rule:/{print}' "$3" | sed '/^Rule:/d' >/tmp/backprovider.yaml 2>/dev/null
          sed -i '/^Rule:/i\proxy-provider-tag' "$3" 2>/dev/null
          sed -i '/^proxy-provider:/,/proxy-provider-tag/d' "$3" 2>/dev/null
