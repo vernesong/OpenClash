@@ -16,20 +16,16 @@ urlencode() {
 }
 
 if [ -s "$HISTORY_PATH" ]; then
-   for ((i=1;i<=3;i++))
+   cat $HISTORY_PATH |while read line
    do
-      cat $HISTORY_PATH |while read line
-      do
-         if [ -z "$(echo $line |grep "#*#")" ]; then
-            continue
-         else
-            GROUP_NAME=$(urlencode "$(echo $line |awk -F '#*#' '{print $1}')")
-            NOW_NAME=$(echo $line |awk -F '#*#' '{print $3}')
-            [ ! -z "$GROUP_NAME" ] && {
-               curl -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X PUT -d '{"name":"'"$NOW_NAME"'"}' http://"$LAN_IP":"$PORT"/proxies/"$GROUP_NAME" >/dev/null 2>&1
-            }
-         fi
-      done >/dev/null 2>&1
-      sleep 1
+      if [ -z "$(echo $line |grep "#*#")" ]; then
+         continue
+      else
+         GROUP_NAME=$(urlencode "$(echo $line |awk -F '#*#' '{print $1}')")
+         NOW_NAME=$(echo $line |awk -F '#*#' '{print $3}')
+         [ ! -z "$GROUP_NAME" ] && {
+            curl -m 5 --retry 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X PUT -d '{"name":"'"$NOW_NAME"'"}' http://"$LAN_IP":"$PORT"/proxies/"$GROUP_NAME" >/dev/null 2>&1
+         }
+      fi
    done >/dev/null 2>&1
 fi
