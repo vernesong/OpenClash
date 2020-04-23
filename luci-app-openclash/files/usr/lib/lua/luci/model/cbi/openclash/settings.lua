@@ -158,6 +158,7 @@ o = s:taboption("dns", ListValue, "ipv6_enable", translate("Enable ipv6 Resolve"
 o.description = font_red..bold_on..translate("Force Enable to Resolve ipv6 DNS Requests")..bold_off..font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
+o:depends("en_mode", "redir-host")
 o.default=0
 
 o = s:taboption("dns", ListValue, "disable_masq_cache", translate("Disable Dnsmasq's DNS Cache"))

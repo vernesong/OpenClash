@@ -234,13 +234,17 @@ cat >> "$SERVER_FILE" <<-EOF
   udp: $udp
 EOF
      fi
-     if [ ! -z "$obfss" ] && [ ! -z "$host" ]; then
+     if [ ! -z "$obfss" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   $obfss
   plugin-opts:
     mode: $obfs
+EOF
+        if [ ! -z "$host" ]; then
+cat >> "$SERVER_FILE" <<-EOF
     host: $host
 EOF
+        fi
         if [  "$obfss" = "plugin: v2ray-plugin" ]; then
            if [ ! -z "$tls" ]; then
 cat >> "$SERVER_FILE" <<-EOF
