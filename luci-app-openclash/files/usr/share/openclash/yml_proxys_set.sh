@@ -191,12 +191,14 @@ yml_servers_set()
    
    echo "正在写入【$type】-【$name】节点到配置文件【$CONFIG_NAME】..." >$START_LOG
    
-   if [ "$obfs" != "none" ]; then
+   if [ "$obfs" != "none" ] && [ -n "$obfs" ]; then
       if [ "$obfs" = "websocket" ]; then
          obfss="plugin: v2ray-plugin"
       else
          obfss="plugin: obfs"
       fi
+   else
+      obfss=""
    fi
    
    if [ "$obfs_vmess" = "websocket" ]; then
