@@ -81,6 +81,13 @@ local function daip()
 	return daip
 end
 
+local function uh_port()
+	local uh_port = luci.sys.exec("uci get uhttpd.main.listen_http |awk -F ':' '{print $NF}'")
+	if uh_port ~= "80" then
+		return ":" .. uh_port
+	end
+end
+
 local function dase()
 	return luci.sys.exec("uci get openclash.config.dashboard_password 2>/dev/null")
 end
@@ -212,6 +219,7 @@ function action_status()
 		watchdog = is_watchdog(),
 		daip = daip(),
 		dase = dase(),
+		uh_port = uh_port(),
 		web = is_web(),
 		cn_port = cn_port(),
 		mode = mode();
