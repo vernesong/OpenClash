@@ -29,7 +29,7 @@ if [ -s "$HISTORY_PATH" ]; then
          GROUP_NAME=$(urlencode "$GROUP_NAME")
          NOW_NAME=$(echo $line |awk -F '#*#' '{print $3}')
          GROUP_STATE=$(GROUP_STATE "$GROUP_NAME")
-         while [[ "$GROUP_STATE" != "200" ]]
+         while ( [ ! -z "$(pidof clash)" ] && [ "$GROUP_STATE" != "200" ] )
          do
             sleep 3
             GROUP_STATE=$(GROUP_STATE "$GROUP_NAME")
