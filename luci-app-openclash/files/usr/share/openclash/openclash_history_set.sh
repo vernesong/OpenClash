@@ -15,17 +15,26 @@ urlencode() {
     fi
 }
 
+GROUP_STATE() {
+   echo "$(curl -m 5 -w %{http_code}"\n" -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X GET http://"$LAN_IP":"$PORT"/proxies/"$1" 2>/dev/null |sed -n '$p')"
+}
+
 if [ -s "$HISTORY_PATH" ]; then
    cat $HISTORY_PATH |while read line
    do
-      if [ -z "$(echo $line |grep "#*#")" ]; then
+      GROUP_NAME=$(echo $line |awk -F '#*#' '{print $1}')
+      if [ -z "$(echo $line |grep "#*#")" ] || [ -z "$(grep "$GROUP_NAME" /tmp/Proxy_Group)" ]; then
          continue
       else
-         GROUP_NAME=$(urlencode "$(echo $line |awk -F '#*#' '{print $1}')")
+         GROUP_NAME=$(urlencode "$GROUP_NAME")
          NOW_NAME=$(echo $line |awk -F '#*#' '{print $3}')
-         [ ! -z "$GROUP_NAME" ] && {
-            curl -m 5 --retry 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X PUT -d '{"name":"'"$NOW_NAME"'"}' http://"$LAN_IP":"$PORT"/proxies/"$GROUP_NAME" >/dev/null 2>&1
-         }
+         GROUP_STATE=$(GROUP_STATE "$GROUP_NAME")
+         while [[ "$GROUP_STATE" != "200" ]]
+         do
+            sleep 3
+            GROUP_STATE=$(GROUP_STATE "$GROUP_NAME")
+         done
+         curl -m 5 --retry 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X PUT -d '{"name":"'"$NOW_NAME"'"}' http://"$LAN_IP":"$PORT"/proxies/"$GROUP_NAME" >/dev/null 2>&1
       fi
    done >/dev/null 2>&1
 fi
