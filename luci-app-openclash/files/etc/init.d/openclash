@@ -257,13 +257,13 @@ yml_dns_check()
    fi
 
    if [ ! -z "$(grep "^ \{0,\}listen:" "$CONFIG_FILE")" ]; then
-      if [ "$ipv6_enable" -ne 1 ]; then
+      if [ "$ipv6_enable" != "1" ]; then
          sed -i "/^ \{0,\}listen:/c\  listen: 127.0.0.1:${dns_port}" "$CONFIG_FILE" 2>/dev/null
       else
          sed -i "/^ \{0,\}listen:/c\  listen: 0.0.0.0:${dns_port}" "$CONFIG_FILE" 2>/dev/null
       fi
    else
-      if [ "$ipv6_enable" -ne 1 ]; then
+      if [ "$ipv6_enable" != "1" ]; then
          sed -i "/^dns:/a\  listen: 127.0.0.1:${dns_port}" "$CONFIG_FILE" 2>/dev/null
       else
          sed -i "/^dns:/a\  listen: 0.0.0.0:${dns_port}" "$CONFIG_FILE" 2>/dev/null
@@ -1170,6 +1170,7 @@ stop()
    enable=$(uci get openclash.config.enable 2>/dev/null)
    if [ "$enable" -eq 0 ]; then
       rm -rf $LOG_FILE 2>/dev/null
+      rm -rf /tmp/openclash_debug.log 2>/dev/null
       rm -rf /www/luci-static/openclash 2>/dev/null
       rm -rf /tmp/openclash_last_version 2>/dev/null
       rm -rf /tmp/clash_last_version 2>/dev/null
@@ -1201,5 +1202,6 @@ reload()
    get_config 2>/dev/null
    nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
    set_firewall 2>/dev/null
+   /usr/share/openclash/openclash_history_set.sh
    echo "${LOGTIME} OpenClash Reload After Firewall Restart" >> $LOG_FILE
 }
