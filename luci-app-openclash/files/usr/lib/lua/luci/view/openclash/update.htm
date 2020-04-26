@@ -7,7 +7,7 @@
 	  	</p>
 	  </td></tr>
 	  <tr><td width="25%"> 已选择编译版本 </td><td width="25%" align="left" id="CORE_VERSION"><%:Collecting data...%></td><td width="25%"> 上次检查更新时间 </td><td width="25%" align="left" id="CHECKTIME"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"> 处理器架构（PROC） </td><td width="25%" align="left" id="CPU_MODEL"><%:Collecting data...%></td><td width="25%"> 处理器架构（OPKG） </td><td width="25%" align="left" id="CPU_MODEL2"><%:Collecting data...%></td></tr>
+		<tr><td width="25%"> 处理器架构（OS） </td><td width="25%" align="left" id="CPU_MODEL"><%:Collecting data...%></td><td width="25%"> 处理器架构（OPKG） </td><td width="25%" align="left" id="CPU_MODEL2"><%:Collecting data...%></td></tr>
 	  <tr><td width="100%" colspan="4">
 	    <p align="center">
 	  		<b> 内核路径：/etc/openclash/core/clash </b>
@@ -71,99 +71,6 @@
 	var ma_core_game_up  = document.getElementById('ma_core_game_up');
 	var ma_op_up  = document.getElementById('ma_op_up');
 	var restore  = document.getElementById('restore');
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
-		if ( x && x.status == 200 ) {
-			var cpu_models = status.coremodel;
-			var arr_model = cpu_models.split(",");
-      var cpu_model1 = arr_model[0];
-      var cpu_model22 = arr_model[1];
-		  cpu_model.innerHTML = cpu_model1 ? "<b><font color=green>"+cpu_model1+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
-      cpu_model2.innerHTML = cpu_model22 ? "<b><font color=green>"+cpu_model22+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
-		  if ( status.corever != "0\n" && status.corever != "" ) {
-		     core_version.innerHTML = "<b><font color=green>"+status.corever+"</font></b>";
-		  }
-		  else {
-		     core_version.innerHTML = "<b><font color=red><%:未选择编译版本，请到常规设置标签中配置%></font></b>";
-		  }
-		  if ( status.upchecktime != "1" ) {
-		     checktime.innerHTML = "<b><font color=green>"+status.upchecktime+"</font></b>";
-		  }
-		  else {
-		     checktime.innerHTML = "<b><font color=red><%:查询更新失败%></font></b>";
-		  }
-      if ( status.corecv == "0" ) {
-         core_cv.innerHTML = "<b><font color=red><%:File Not Exist%></font></b>";
-      }
-      else if (status.corecv != "") {
-         core_cv.innerHTML = "<b><font color=green>"+status.corecv+"</font></b>";
-      }
-      else {
-         core_cv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
-      }
-      if ( status.coretuncv == "0" ) {
-         core_tun_cv.innerHTML = "<b><font color=red><%:File Not Exist%></font></b>";
-      }
-      else if (status.coretuncv != "") {
-         core_tun_cv.innerHTML = "<b><font color=green>"+status.coretuncv+"</font></b>";
-      }
-      else {
-         core_tun_cv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
-      }
-      if ( status.coregamecv == "0" ) {
-         core_game_cv.innerHTML = "<b><font color=red><%:File Not Exist%></font></b>";
-      }
-      else if (status.coregamecv != "") {
-         core_game_cv.innerHTML = "<b><font color=green>"+status.coregamecv+"</font></b>";
-      }
-      else {
-         core_game_cv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
-      }
-      var corelv = status.corelv;
-      var arr_core = corelv.split(",");
-      var corelvis = arr_core[0];
-      var coretunlvis = arr_core[1];
-      var coregamelvis = arr_core[2];
-      var new_ch = arr_core[3];
-			if ( new_ch == "2" || new_ch == "4" ) {
-			   core_lv.innerHTML = "<b><font color=green>"+corelvis+"<%:<New>%></font></b>";
-			}
-			else if (corelvis != "" && corelvis != "\n" ) {
-			   core_lv.innerHTML = "<b><font color=green>"+corelvis+"</font></b>";
-			}
-			else {
-			   core_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
-			}
-			if ( new_ch == "3" || new_ch == "4" ) {
-			   core_tun_lv.innerHTML = "<b><font color=green>"+coretunlvis+"<%:<New>%></font></b>";
-			}
-			else if (coretunlvis != "" && coretunlvis != "\n" ) {
-			   core_tun_lv.innerHTML = "<b><font color=green>"+coretunlvis+"</font></b>";
-			}
-			else {
-			   core_tun_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
-			}
-			if (coregamelvis != "" && coregamelvis != "\n" ) {
-			   core_game_lv.innerHTML = "<b><font color=green>"+coregamelvis+"</font></b>";
-			}
-			else {
-			   core_game_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
-			}
-			var oplv = status.oplv;
-      var arr_op = oplv.split(",");
-      var oplvis = arr_op[0];
-      var new_op = arr_op[1];
-			op_cv.innerHTML = status.opcv ? "<b><font color=green>"+status.opcv+"</font></b>" : "<b><font color=red><%:Unknown%></font></b>";
-			if ( new_op == "2" ) {
-			   op_lv.innerHTML = "<b><font color=green>"+oplvis+"<%:<New>%></font></b>";
-			}
-			else if (oplvis != "" && oplvis != "\n") {
-			   op_lv.innerHTML = "<b><font color=green>"+oplvis+"</font></b>";
-			}
-			else {
-			   op_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
-			}
-		}
-	});
   
 	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {

@@ -34,6 +34,7 @@ s:tab("dashboard", translate("Dashboard Settings"))
 s:tab("rules_update", translate("Rules Update"))
 s:tab("geo_update", translate("GEOIP Update"))
 s:tab("version_update", translate("Version Update"))
+s:tab("debug", translate("Debug Logs"))
 
 ---- Operation Mode
 o = s:taboption("op_mode", ListValue, "operation_mode", font_red..bold_on..translate("Select Operation Mode")..bold_off..font_off)
@@ -62,7 +63,7 @@ o:depends("en_mode", "redir-host")
 o:depends("en_mode", "fake-ip")
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
-o.default = "0"
+o.default = "1"
 
 o = s:taboption("op_mode", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
 o.description = translate("Select Proxy Mode")
@@ -449,6 +450,24 @@ o.description = translate("Set Dashboard Secret")
 ---- version update
 core_update = s:taboption("version_update", DummyValue, "", nil)
 core_update.template = "openclash/update"
+
+---- debug
+debug_log = s:taboption("debug", Value, "debug_log")
+debug_log.template = "cbi/tvalue"
+debug_log.readonly=true
+debug_log.rows = 30
+debug_log.wrap = "off"
+function debug_log.cfgvalue(self, section)
+  return NXFS.readfile("/tmp/openclash_debug.log") or ""
+end
+  
+o = s:taboption("debug", Button, translate("Generate Logs")) 
+o.title = translate("Generate Logs")
+o.inputtitle = translate("Click to Generate")
+o.inputstyle = "reload"
+o.write = function()
+  SYS.call("/usr/share/openclash/openclash_debug.sh")
+end
 
 -- [[ Edit Server ]] --
 s = m:section(TypedSection, "dns_servers", translate("Add Custom DNS Servers")..translate("(Take Effect After Choose Above)"))
