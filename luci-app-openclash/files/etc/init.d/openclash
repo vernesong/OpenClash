@@ -4,6 +4,7 @@
 START=99
 STOP=15
 
+LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
@@ -989,7 +990,7 @@ status=$(ps|grep -c /etc/init.d/openclash)
 config_choose
 
 enable=$(uci get openclash.config.enable 2>/dev/null)
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+
 if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
 #检查是否存在核心文件
    do_run_mode
@@ -1194,7 +1195,6 @@ restart()
 
 reload()
 {
-   LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
    kill -9 "$(pidof clash|sed 's/$//g')" 2>/dev/null
    revert_firewall 2>/dev/null
    config_choose 2>/dev/null

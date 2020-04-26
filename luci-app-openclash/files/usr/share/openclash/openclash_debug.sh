@@ -275,7 +275,12 @@ cat >> "$DEBUG_LOG" <<-EOF
 
 #===================== 路由表状态 =====================#
 EOF
+echo "#route -n" >> "$DEBUG_LOG"
+route -n >> "$DEBUG_LOG" 2>/dev/null
+echo "#ip route list" >> "$DEBUG_LOG"
 ip route list >> "$DEBUG_LOG" 2>/dev/null
+echo "#ip rule show" >> "$DEBUG_LOG"
+ip rule show >> "$DEBUG_LOG" 2>/dev/null
 
 if [ "$en_mode" != "fake-ip" ] && [ "$en_mode" != "redir-host" ]; then
 cat >> "$DEBUG_LOG" <<-EOF

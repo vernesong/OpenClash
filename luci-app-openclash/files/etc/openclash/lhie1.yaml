@@ -4052,7 +4052,6 @@ Rule:
 - DOMAIN-SUFFIX,iflyad.bj.openstorage.cn,AdBlock
 - DOMAIN-SUFFIX,iframe.travel.yahoo.com,AdBlock
 - DOMAIN-SUFFIX,ig.nukefans.net,AdBlock
-- DOMAIN-SUFFIX,igexin.com,AdBlock
 - DOMAIN-SUFFIX,igj5y.yongchanghengyuan.com,AdBlock
 - DOMAIN-SUFFIX,ih.adscale.de,AdBlock
 - DOMAIN-SUFFIX,ihualun.com,AdBlock
@@ -6143,7 +6142,6 @@ Rule:
 - DOMAIN-SUFFIX,pv.focus.cn,AdBlock
 - DOMAIN-SUFFIX,pv.ra.icast.cn,AdBlock
 - DOMAIN-SUFFIX,pv.sogou.com,AdBlock
-- DOMAIN-SUFFIX,pv.sohu.com,AdBlock
 - DOMAIN-SUFFIX,pv.xcar.com.cn,AdBlock
 - DOMAIN-SUFFIX,pv.zdnet.com.cn,AdBlock
 - DOMAIN-SUFFIX,pv.zol.com.cn,AdBlock
@@ -8507,15 +8505,16 @@ Rule:
 # > BBC iPlayer
 # - USER-AGENT,BBCiPlayer*,GlobalTV
 - DOMAIN-KEYWORD,bbcfmt,GlobalTV
-- DOMAIN-SUFFIX,bbc.com,GlobalTV
-- DOMAIN-SUFFIX,bbc.co,GlobalTV
-- DOMAIN-SUFFIX,bbc.co.uk,GlobalTV
-- DOMAIN-SUFFIX,bbci.co,GlobalTV
-- DOMAIN-SUFFIX,bbci.co.uk,GlobalTV
+- DOMAIN,aod-dash-uk-live.akamaized.net,GlobalTV
+- DOMAIN,aod-hls-uk-live.akamaized.net,GlobalTV
 - DOMAIN,vod-dash-uk-live.akamaized.net,GlobalTV
 - DOMAIN,vod-thumb-uk-live.akamaized.net,GlobalTV
-- DOMAIN,vod-dash-uk-live.bbcfmt.hs.llnwd.net,GlobalTV
-- DOMAIN,vod-thumb-uk-live.bbcfmt.hs.llnwd.net,GlobalTV
+- DOMAIN-SUFFIX,bbc.co,GlobalTV
+- DOMAIN-SUFFIX,bbc.co.uk,GlobalTV
+- DOMAIN-SUFFIX,bbc.com,GlobalTV
+- DOMAIN-SUFFIX,bbcfmt.hs.llnwd.net,GlobalTV
+- DOMAIN-SUFFIX,bbci.co,GlobalTV
+- DOMAIN-SUFFIX,bbci.co.uk,GlobalTV
 
 # > DAZN
 - DOMAIN-SUFFIX,d151l6v8er5bdm.cloudfront.net,GlobalTV
@@ -9590,16 +9589,51 @@ Rule:
 - DOMAIN-SUFFIX,telegra.ph,Telegram
 - DOMAIN-SUFFIX,telegram.me,Telegram
 - DOMAIN-SUFFIX,telegram.org,Telegram
-- IP-CIDR,91.108.4.0/22,Telegram
-- IP-CIDR,91.108.56.0/22,Telegram
-- IP-CIDR,109.239.140.0/24,Telegram
+- IP-CIDR,149.154.167.99/32,Telegram
+- IP-CIDR,149.154.175.10/32,Telegram
+- IP-CIDR,149.154.167.40/32,Telegram
+- IP-CIDR,149.154.167.42/32,Telegram
+- IP-CIDR,149.154.175.117/32,Telegram
+- IP-CIDR,149.154.175.50/32,Telegram
+- IP-CIDR,149.154.167.50/32,Telegram
+- IP-CIDR,149.154.167.51/32,Telegram
+- IP-CIDR,149.154.175.100/32,Telegram
+- IP-CIDR,149.154.167.91/32,Telegram
+- IP-CIDR,149.154.167.90/32,Telegram
+- IP-CIDR,149.154.165.120/32,Telegram
+- IP-CIDR,149.154.166.120/32,Telegram
+- IP-CIDR,149.154.164.250/32,Telegram
+- IP-CIDR,149.154.167.117/32,Telegram
+- IP-CIDR,149.154.167.118/32,Telegram
+- IP-CIDR,149.154.167.192/27,Telegram
+- IP-CIDR,149.154.164.8/29 ,Telegram
+- IP-CIDR,91.108.8.0/27,Telegram
+- IP-CIDR,91.108.12.0/27,Telegram
+- IP-CIDR,91.108.16.0/27,Telegram
+- IP-CIDR,91.108.56.0/24,Telegram
+- IP-CIDR,91.108.4.0/24,Telegram
 - IP-CIDR,149.154.160.0/22,Telegram
 - IP-CIDR,149.154.164.0/22,Telegram
 - IP-CIDR,149.154.168.0/22,Telegram
 - IP-CIDR,149.154.172.0/22,Telegram
-- IP-CIDR6,2001:67c:4e8::/48,Telegram
+- IP-CIDR,91.108.56.0/22,Telegram
+- IP-CIDR,91.108.4.0/22,Telegram
+- IP-CIDR,91.108.8.0/22,Telegram
+- IP-CIDR,91.108.16.0/22,Telegram
+- IP-CIDR,91.108.12.0/22,Telegram
+- IP-CIDR,149.154.160.0/20,Telegram
+- IP-CIDR6,2001:b28:f23d:f001::e/128,Telegram
+- IP-CIDR6,2001:67c:4e8:f002::e/128,Telegram
+- IP-CIDR6,2001:b28:f23d:f003::e/128,Telegram
+- IP-CIDR6,2001:b28:f23d:f001::a/128,Telegram
+- IP-CIDR6,2001:67c:4e8:f002::a/128,Telegram
+- IP-CIDR6,2001:b28:f23d:f003::a/128,Telegram
+- IP-CIDR6,2001:67c:4e8:f004::a/128,Telegram
+- IP-CIDR6,2001:b28:f23f:f005::a/128,Telegram
+- IP-CIDR6,2001:67c:4e8:fa60::/64,Telegram
 - IP-CIDR6,2001:b28:f23d::/48,Telegram
 - IP-CIDR6,2001:b28:f23f::/48,Telegram
+- IP-CIDR6,2001:67c:4e8::/48,Telegram
 
 
 
