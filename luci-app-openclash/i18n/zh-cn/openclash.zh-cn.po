@@ -65,11 +65,17 @@ msgstr "文件不存在"
 msgid "Not Set"
 msgstr "未设置"
 
-msgid "Server logs"
+msgid "Server Logs"
 msgstr "运行日志"
 
-msgid "Logs"
-msgstr "运行日志"
+msgid "Debug Logs"
+msgstr "调试日志"
+
+msgid "Generate Logs"
+msgstr "生成日志"
+
+msgid "Click to Generate"
+msgstr "点击生成"
 
 msgid "Enable Clash"
 msgstr "启动 OpenClash"
