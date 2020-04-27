@@ -43,7 +43,7 @@
          mv /tmp/rules.yaml /etc/openclash/"$RUlE_SOURCE".yaml >/dev/null 2>&1
          sed -i '/^Rule:/a\##updated' /etc/openclash/"$RUlE_SOURCE".yaml >/dev/null 2>&1
          echo "替换成功，重新加载 OpenClash 应用新规则..." >$START_LOG
-         /etc/init.d/openclash reload 2>/dev/null
+         /etc/init.d/openclash restart 2>/dev/null
          echo "${LOGTIME} Other Rules 【$RUlE_SOURCE】 Update Successful" >>$LOG_FILE
       else
          echo "检测到下载的规则文件没有更新，停止继续操作..." >$START_LOG

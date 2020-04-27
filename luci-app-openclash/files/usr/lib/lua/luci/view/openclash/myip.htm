@@ -125,7 +125,7 @@
     </style>
 </head>
 <fieldset class="cbi-section">
-	<table>
+	<table width="100%">
      <tr><td width="100%">
 <body>
     <div style="display: flex;">
@@ -202,13 +202,9 @@
                     throw error;
                 }),
             parseIPIpip: (ip, elID) => {
-                IP.get(`https://api.skk.moe/network/parseIp/ipip/v3/${ip}`, 'json')
+                IP.get(`https://qqwry.api.skk.moe/${ip}`, 'json')
                     .then(resp => {
-                        let x = '';
-                        for (let i of resp.data) {
-                            x += (i !== '') ? `${i} ` : '';
-                        }
-                        $$.getElementById(elID).innerHTML = x;
+                        $$.getElementById(elID).innerHTML = resp.data.geo;
                         //$$.getElementById(elID).innerHTML = `${resp.data.country} ${resp.data.regionName} ${resp.data.city} ${resp.data.isp}`;
                     })
             },

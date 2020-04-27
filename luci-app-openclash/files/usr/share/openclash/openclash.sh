@@ -43,7 +43,7 @@ config_cus_up()
 	    uci set openclash.config.config_path="$CONFIG_PATH"
       uci commit openclash
 	fi
-	if [ "$servers_update" -eq "1" ] || [ ! -z "$keyword" ]; then
+	if [ "$servers_update" -eq 1 ] || [ ! -z "$keyword" ]; then
 	   echo "配置文件【$name】替换成功，开始挑选节点..." >$START_LOG
 	   uci set openclash.config.config_update_path="/etc/openclash/config/$name.yaml"
 	   uci set openclash.config.servers_if_update=1
@@ -100,38 +100,7 @@ config_su_check()
 
 config_encode()
 {
-	#proxies
-   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{1,\}Proxy:/c\Proxy:" "$CFG_FILE" 2>/dev/null
-   }
-   [ -z "$(grep "^Proxy:" "$CFG_FILE")" ] && {
-      sed -i "s/^proxies:/Proxy:/" "$CFG_FILE" 2>/dev/null
-   }
-
-	 #proxy-providers
-	 [ -z "$(grep "^proxy-provider:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{1,\}proxy-provider:/c\proxy-provider:" "$CFG_FILE" 2>/dev/null
-   }
-   [ -z "$(grep "^proxy-provider:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{0,\}proxy-providers:/c\proxy-provider:" "$CFG_FILE" 2>/dev/null
-   }
-   #proxy-groups
-   [ -z "$(grep "^Proxy Group:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{0,\}\'Proxy Group\':/c\Proxy Group:" "$CFG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}\"Proxy Group\":/c\Proxy Group:' "$CFG_FILE" 2>/dev/null
-      sed -i "/^ \{1,\}Proxy Group:/c\Proxy Group:" "$CFG_FILE" 2>/dev/null
-   }
-   [ -z "$(grep "^Proxy Group:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{0,\}proxy-groups:/c\Proxy Group:" "$CFG_FILE" 2>/dev/null
-   }
-   
-   #rules
-   [ -z "$(grep "^Rule:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{1,\}Rule:/c\Rule:" "$CFG_FILE" 2>/dev/null
-   }
-   [ -z "$(grep "^Rule:" "$CFG_FILE")" ] && {
-      sed -i "/^ \{0,\}rules:/c\Rule:" "$CFG_FILE" 2>/dev/null
-   }
+   /usr/share/openclash/yml_field_name_ch.sh "$CFG_FILE"
 }
 
 config_error()
@@ -230,9 +199,9 @@ sub_info_get()
    if [ "$?" -eq "0" ] && [ -s "$CFG_FILE" ]; then
    	  config_encode
    	  grep "^ \{0,\}Proxy Group:" "$CFG_FILE" >/dev/null 2>&1 && grep "^ \{0,\}Rule:" "$CFG_FILE" >/dev/null 2>&1
-      if [ "$?" -eq "0" ]; then
+      if [ "$?" -eq 0 ]; then
          grep "^ \{0,\}Proxy:" "$CFG_FILE" >/dev/null 2>&1 || grep "^ \{0,\}proxy-provider:" "$CFG_FILE" >/dev/null 2>&1
-         if [ "$?" -eq "0" ]; then
+         if [ "$?" -eq 0 ]; then
             config_su_check
          else
             config_download_direct

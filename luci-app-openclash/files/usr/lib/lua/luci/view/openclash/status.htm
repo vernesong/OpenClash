@@ -1,5 +1,5 @@
 <fieldset class="cbi-section">
-	<table>
+	<table width="100%">
 	   <tr>
 	  	<td colspan="4" width="100%">
 	  		<p align="center">
@@ -44,41 +44,7 @@
 	var dase = document.getElementById('_dase');
 	var dapo = document.getElementById('_dapo');
 	var clashversion = document.getElementById('_clashversion');
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
-		if ( x && x.status == 200 ) {
-			clash.innerHTML = status.clash ? '<b><font color=green><%:RUNNING%></font></b>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
-			if ( status.mode == "fake-ip\n" )
-      {
-			   mode.innerHTML = status.clash ? "<b><font color=green><%: Fake-IP（增强）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
-			}
-			else if ( status.mode == "redir-host\n" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%: Redir-Host（兼容）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
-			}
-			else if ( status.mode == "redir-host-tun\n" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%: Redir-Host（TUN）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
-			}
-			else if ( status.mode == "fake-ip-tun\n" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%: Fake-IP（TUN）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
-			}
-			else if ( status.mode == "redir-host-vpn\n" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%: Redir-Host（游戏）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
-			}
-			else if ( status.mode == "fake-ip-vpn\n" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%: Fake-IP（游戏）模式 %></font></b>" : '<b><font color=red><%:NOT RUNNING%></font></b>';
-			}
-			watchdog.innerHTML = status.watchdog ? '<b><font color=green><%:RUNNING%></font> </b>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
-			daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			dase.innerHTML = status.dase ? "<b><font color=green>"+status.dase+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			web.innerHTML = status.web ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:打开控制面板%>" onclick="return ycad_dashboard(this)"/>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
-			webo.innerHTML = status.web ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:打开控制面板%>" onclick="return net_dashboard(this)"/>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
-		}
-	});
+
 	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
 			clash.innerHTML = status.clash ? '<b><font color=green><%:RUNNING%></font></b>' : '<b><font color=red><%:NOT RUNNING%></font></b>';
@@ -115,13 +81,21 @@
 		}
 	});
 
+	  function winOpen(url)
+	  {
+	  	var winOpen = window.open(url);
+      if(winOpen == null || typeof(winOpen) == 'undefined'){
+         window.location.href=url;
+      }
+	  }
+	  
 	  function ycad_dashboard(btn)
     {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', status.cn_port, function(x, status) {
         btn.disabled = true;
         btn.value    = '<%:打开控制面板%>';
-        url1='<%="http://'+window.location.hostname+'/luci-static/openclash?hostname='+ status.daip + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
-        window.open(url1);
+        url1='<%="http://'+window.location.hostname+status.uh_port+'/luci-static/openclash?hostname='+ status.daip + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+        winOpen(url1);
         return false;
         });
     }
@@ -131,7 +105,7 @@
         btn.disabled = true;
         btn.value    = '<%:打开控制面板%>';
         url2='http://'+window.location.hostname+':'+status.cn_port+'/ui';
-        window.open(url2);
+        winOpen(url2);
         return false;
         });
     }
@@ -139,25 +113,25 @@
     function homepage()
     {
         url3='https://github.com/vernesong/OpenClash';
-        window.open(url3);
+        winOpen(url3);
     }
     
     function wikipage()
     {
         url5='https://github.com/vernesong/OpenClash/wiki';
-        window.open(url5);
+        winOpen(url5);
     }
     
     function telegrampage()
     {
         url6='https://t.me/joinchat/D4mVX0n-n5mOK6YO_W3_Og';
-        window.open(url6);
+        winOpen(url6);
     }
     
     function sponsorpage()
     {
         url7='https://ko-fi.com/vernesong';
-        window.open(url7);
+        winOpen(url7);
     }
     
 
@@ -197,7 +171,7 @@
     function go_update()
     {
        url4='https://github.com/vernesong/OpenClash/releases';
-       window.open(url4);
+       winOpen(url4);
     }
     
 	var startlog = document.getElementById('_clashstart');
