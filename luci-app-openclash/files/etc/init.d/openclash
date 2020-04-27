@@ -739,7 +739,7 @@ if [ -z "$(uci get firewall.openclash 2>/dev/null)" ] || [ -z "$(uci get ucitrac
    uci set firewall.openclash.reload=1 >/dev/null 2>&1
 fi
           
-if [ "$(uci get firewall.@defaults\[0\].forward)" != "ACCEPT" ]; then
+if [ "$(uci get firewall.@defaults[0].forward)" != "ACCEPT" ]; then
    uci set firewall.@defaults[0].forward=ACCEPT >/dev/null 2>&1
    uci commit firewall >/dev/null 2>&1
    /etc/init.d/firewall reload >/dev/null 2>&1
