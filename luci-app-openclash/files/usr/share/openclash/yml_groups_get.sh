@@ -1,12 +1,11 @@
 #!/bin/bash
+. /lib/functions.sh
 status=$(ps|grep -c /usr/share/openclash/yml_groups_get.sh)
 [ "$status" -gt "3" ] && exit 0
 
 START_LOG="/tmp/openclash_start.log"
 CFG_FILE="/etc/config/openclash"
-servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
-rulesource=$(uci get openclash.config.rule_source 2>/dev/null)
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
@@ -55,7 +54,7 @@ else
    awk '/Proxy Group:/,/Rule:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
 fi 2>/dev/null
 
-#判断当前配置文件是否已经有策略组信息
+#判断当前配置文件是否有策略组信息
 cfg_group_name()
 {
    local section="$1"
@@ -64,14 +63,11 @@ cfg_group_name()
    if [ -z "$config" ]; then
       return
    fi
-   
+
    [ "$config" = "$CONFIG_NAME" ] && {
-      config_group_exist="1"
+      config_group_exist=1
    }
 }
-
-config_load "openclash"
-config_foreach cfg_group_name "groups"
 
 #删除不必要的配置
 cfg_delete()
@@ -110,11 +106,14 @@ cfg_delete()
 	 done
 }
 
-if [ "$servers_update" -ne "1" ] || [ "$servers_if_update" != "1" ] || [ -z "$config_group_exist" ]; then
-   cfg_delete
-else
+config_load "openclash"
+config_foreach cfg_group_name "groups"
+
+if [ "$servers_if_update" -eq 1 ] && [ "$config_group_exist" -eq 1 ]; then
    /usr/share/openclash/yml_proxys_get.sh
    exit 0
+else
+   cfg_delete
 fi
 
 count=1

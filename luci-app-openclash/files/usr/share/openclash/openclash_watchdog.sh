@@ -64,7 +64,7 @@ fi
 ## 端口转发重启
    last_line=$(iptables -t nat -nL PREROUTING --line-number |awk '{print $1}' 2>/dev/null |awk 'END {print}' |sed -n '$p')
    op_line=$(iptables -t nat -nL PREROUTING --line-number |grep "openclash" 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1)
-   if [ "$last_line" -ne "$op_line" ]; then
+   if [ "$last_line" != "$op_line" ] && [ -z "$core_type" ]; then
       iptables -t nat -D PREROUTING -p tcp -j openclash
       iptables -t nat -A PREROUTING -p tcp -j openclash
       echo "$LOGTIME Watchdog: Reset Firewall For Enabling Redirect." >>$LOG_FILE
