@@ -109,7 +109,7 @@ local function coremodel()
   local coremodel = luci.sys.exec("cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_ARCH 2>/dev/null |awk -F '\"' '{print $2}' 2>/dev/null")
   local coremodel2 = luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
   if not coremodel or coremodel == "" then
-     return coremode2 .. "," .. coremodel2
+     return coremodel2 .. "," .. coremodel2
   else
      return coremodel .. "," .. coremodel2
   end
