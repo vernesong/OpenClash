@@ -979,7 +979,6 @@ get_config()
    operation_mode=$(uci get openclash.config.operation_mode 2>/dev/null)
    lan_ac_mode=$(uci get openclash.config.lan_ac_mode 2>/dev/null)
    enable_rule_proxy=$(uci get openclash.config.enable_rule_proxy 2>/dev/null)
-   config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
 }
 
 start()
@@ -1036,6 +1035,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              echo "" >$START_LOG
           else
              echo "第五步: 启动主程序..." >$START_LOG
+             config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
              if [ -n "$(pidof clash)" ] && [ "$en_mode_tun" != "1" ] && [ "$config_reload" != "0" ]; then
                 curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
              else
