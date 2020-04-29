@@ -101,8 +101,18 @@
        fi
        uci set openclash.config.config_reload=0
     fi
-    uci commit openclash
     
+    if [ -z "$(grep "^ \{0,\}device-url:" "$7")" ] && [ "$15" -eq 2 ]; then
+       uci set openclash.config.config_reload=0
+    elif [ -z "$(grep "^ \{0,\}tun:" "$7")" ] && [ -n "$15" ]; then
+       uci set openclash.config.config_reload=0
+    elif [ -n "$(grep "^ \{0,\}tun:" "$7")" ] && [ -z "$15" ]; then
+       uci set openclash.config.config_reload=0
+    elif [ -n "$(grep "^ \{0,\}device-url:" "$7")" ] && [ "$15" -eq 1 ]; then
+       uci set openclash.config.config_reload=0
+    fi
+    
+    uci commit openclash
     sed -i '/^ \{0,\}tun:/,/^ \{0,\}enable:/d' "$7" 2>/dev/null
     sed -i '/^ \{0,\}device-url:/d' "$7" 2>/dev/null
     sed -i '/^ \{0,\}dns-listen:/d' "$7" 2>/dev/null

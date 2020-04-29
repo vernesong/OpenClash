@@ -31,6 +31,8 @@ LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 START_LOG="/tmp/openclash_start.log"
 LOG_FILE="/tmp/openclash.log"
 echo "正在卸载旧版本，更新过程请不要刷新页面和进行其他操作 ..." >$START_LOG
+uci set openclash.config.enable=0
+uci commit openclash
 opkg remove luci-app-openclash
 echo "正在安装新版本，更新过程请不要刷新页面和进行其他操作 ..." >$START_LOG
 opkg install /tmp/openclash.ipk
