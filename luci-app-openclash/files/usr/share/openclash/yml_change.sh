@@ -90,15 +90,18 @@
        else
           sed -i "/^dns:/i\external-controller: ${controller_address}:${5}" "$7"
        fi
+       uci set openclash.config.config_reload=0
     fi
     
-    if [ -z "$(grep '^secret: $4' "$7")" ]; then
+    if [ -z "$(grep '^secret: \"$4\"' "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}secret:" "$7")" ]; then
           sed -i "/^ \{0,\}secret:/c\secret: \"${4}\"" "$7"
        else
           sed -i "/^dns:/i\secret: \"${4}\"" "$7"
        fi
+       uci set openclash.config.config_reload=0
     fi
+    uci commit openclash
     
     sed -i '/^ \{0,\}tun:/,/^ \{0,\}enable:/d' "$7" 2>/dev/null
     sed -i '/^ \{0,\}device-url:/d' "$7" 2>/dev/null
