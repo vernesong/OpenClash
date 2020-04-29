@@ -630,11 +630,11 @@ fi
 
 lan_ac()
 {
-	if [ -z "$1" ]; then
+   if [ -z "$1" ]; then
       return
-  fi
+   fi
   
-  ipset add "$2" "$1" 2>/dev/null
+   ipset add "$2" "$1" 2>/dev/null
   
 }
 
@@ -911,9 +911,6 @@ revert_firewall()
    iptables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
    iptables -t nat -X openclash >/dev/null 2>&1
     
-   ipset destroy lan_ac_white_ips >/dev/null 2>&1
-   ipset destroy lan_ac_black_ips >/dev/null 2>&1
-    
    out_lines=$(iptables -nvL OUTPUT -t mangle |sed 1,2d |sed -n '/198.18.0.0\/16/=' 2>/dev/null |sort -rn)
    for out_line in $out_lines; do
       iptables -t mangle -D OUTPUT "$out_line" >/dev/null 2>&1
@@ -939,12 +936,12 @@ revert_firewall()
    ip6tables -t nat -X openclash >/dev/null 2>&1
     
    #TUN
-   ip link set dev clash0 down >/dev/null 2>&1
-   ip tuntap del clash0 mode tun >/dev/null 2>&1
    ip route del default dev clash0 table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 789 >/dev/null 2>&1
-
+   ip link set dev clash0 down >/dev/null 2>&1
+   ip tuntap del clash0 mode tun >/dev/null 2>&1
+   
    iptables -t mangle -D OUTPUT -j openclash >/dev/null 2>&1
    iptables -t mangle -D PREROUTING -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
    iptables -t mangle -D PREROUTING -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
@@ -952,7 +949,10 @@ revert_firewall()
    ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
    iptables -t mangle -F openclash >/dev/null 2>&1
    iptables -t mangle -X openclash >/dev/null 2>&1
+   
    ipset destroy localnetwork >/dev/null 2>&1
+   ipset destroy lan_ac_white_ips >/dev/null 2>&1
+   ipset destroy lan_ac_black_ips >/dev/null 2>&1
 }
 
 get_config()
@@ -979,6 +979,7 @@ get_config()
    operation_mode=$(uci get openclash.config.operation_mode 2>/dev/null)
    lan_ac_mode=$(uci get openclash.config.lan_ac_mode 2>/dev/null)
    enable_rule_proxy=$(uci get openclash.config.enable_rule_proxy 2>/dev/null)
+   config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
 }
 
 start()
@@ -1035,7 +1036,14 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              echo "" >$START_LOG
           else
              echo "第五步: 启动主程序..." >$START_LOG
-             nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+             if [ -n "$(pidof clash)" ] && [ "$en_mode_tun" != "1" ] && [ "$config_reload" != "0" ]; then
+                curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
+             else
+                kill -9 "$(pidof clash|sed 's/$//g')" 2>/dev/null
+                nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+             fi
+             uci set openclash.config.config_reload=1
+             uci commit openclash
              
              #检测proxy_provider配置文件状态
              echo "第六步: 等待主程序下载代理集..." >$START_LOG
@@ -1142,6 +1150,8 @@ stop()
    #禁止多个实例
    status=$(ps|grep -c /etc/init.d/openclash)
    [ "$status" -gt "3" ] && exit 0
+   
+   enable=$(uci get openclash.config.enable 2>/dev/null)
 
    echo "OpenClash 开始关闭..." >$START_LOG
    echo "第一步: 备份当前节点状态..." >$START_LOG
@@ -1158,7 +1168,9 @@ stop()
    done
 
    echo "第四步: 关闭 Clash 主程序..." >$START_LOG
-   kill -9 "$(pidof clash|sed 's/$//g')" 2>/dev/null
+   if [ "$enable" -eq 0 ]; then
+      kill -9 "$(pidof clash|sed 's/$//g')" 2>/dev/null
+   fi
     
    echo "第五步: 重启 Dnsmasq 程序..." >$START_LOG
    dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
@@ -1168,7 +1180,6 @@ stop()
    /etc/init.d/dnsmasq restart >/dev/null 2>&1
 
    echo "第六步：删除 OpenClash 残留文件..." >$START_LOG
-   enable=$(uci get openclash.config.enable 2>/dev/null)
    if [ "$enable" -eq 0 ]; then
       rm -rf $LOG_FILE 2>/dev/null
       rm -rf /tmp/openclash_debug.log 2>/dev/null
@@ -1195,12 +1206,10 @@ restart()
 
 reload()
 {
-   kill -9 "$(pidof clash|sed 's/$//g')" 2>/dev/null
    revert_firewall 2>/dev/null
    config_choose 2>/dev/null
    do_run_mode 2>/dev/null
    get_config 2>/dev/null
-   nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
    set_firewall 2>/dev/null
    /usr/share/openclash/openclash_history_set.sh
    echo "${LOGTIME} OpenClash Reload After Firewall Restart" >> $LOG_FILE
