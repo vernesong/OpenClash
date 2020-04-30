@@ -98,7 +98,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
       rm -rf /tmp/clash.tar.gz >/dev/null 2>&1
       rm -rf /tmp/clash.gz >/dev/null 2>&1
       mkdir -p /etc/openclash/core
-      [ "$if_restart" -eq 1 ] && /etc/init.d/openclash stop
+      [ "$if_restart" -eq 1 ] && kill -9 "$(pidof clash|sed 's/$//g')" 2>/dev/null && /etc/init.d/openclash stop
       echo "【"$CORE_TYPE"】版本内核下载成功，开始更新..." >$START_LOG
 			case $CORE_TYPE in
       	"Tun")
