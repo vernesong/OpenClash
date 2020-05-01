@@ -237,6 +237,7 @@ cat >> "$DEBUG_LOG" <<-EOF
 EOF
 fi
 
+if [ "$enable_custom_clash_rules" -eq 1 ]; then
 cat >> "$DEBUG_LOG" <<-EOF
 
 #===================== 自定义规则 一 =====================#
@@ -248,6 +249,7 @@ cat >> "$DEBUG_LOG" <<-EOF
 #===================== 自定义规则 二 =====================#
 EOF
 cat /etc/openclash/custom/openclash_custom_rules_2.list >> "$DEBUG_LOG"
+fi
 
 cat >> "$DEBUG_LOG" <<-EOF
 
@@ -334,22 +336,44 @@ cat >> "$DEBUG_LOG" <<-EOF
 #===================== 测试本机DNS查询 =====================#
 EOF
 nslookup www.baidu.com >> "$DEBUG_LOG" 2>/dev/null
+
+if [ -s "/tmp/resolv.conf.auto" ]; then
 cat >> "$DEBUG_LOG" <<-EOF
 
 #===================== resolv.conf.auto =====================#
 EOF
 cat /tmp/resolv.conf.auto >> "$DEBUG_LOG"
+fi
+
+if [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ]; then
 cat >> "$DEBUG_LOG" <<-EOF
 
 #===================== resolv.conf.d =====================#
 EOF
 cat /tmp/resolv.conf.d/resolv.conf.auto >> "$DEBUG_LOG"
+fi
 
 cat >> "$DEBUG_LOG" <<-EOF
 
 #===================== 测试本机网络连接 =====================#
 EOF
 curl -I -m 5 www.baidu.com >> "$DEBUG_LOG" 2>/dev/null
+
+cat >> "$DEBUG_LOG" <<-EOF
+
+#===================== 测试本机网络下载 =====================#
+EOF
+VERSION_URL="https://raw.githubusercontent.com/vernesong/OpenClash/master/version"
+if pidof clash >/dev/null; then
+   HTTP_PORT=$(uci get openclash.config.http_port 2>/dev/null)
+   PROXY_ADDR=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null)
+   if [ -s "/tmp/openclash.auth" ]; then
+      PROXY_AUTH=$(cat /tmp/openclash.auth |awk -F '- ' '{print $2}' |sed -n '1p' 2>/dev/null)
+   fi
+   curl -IL -m 3 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" "$VERSION_URL" >> "$DEBUG_LOG"
+else
+   curl -IL -m 3 --retry 2 "$VERSION_URL" >> "$DEBUG_LOG"
+fi
 
 cat >> "$DEBUG_LOG" <<-EOF
 
