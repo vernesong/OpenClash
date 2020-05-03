@@ -210,10 +210,45 @@ cat >> "$DEBUG_LOG" <<-EOF
 #启动异常时建议关闭此项后重试
 第三方规则: $rule_source
 EOF
+cat >> "$DEBUG_LOG" <<-EOF
+第三方规则策略组设置:
+GlobalTV: $(uci get openclash.config.GlobalTV 2>/dev/null)
+AsianTV: $(uci get openclash.config.AsianTV 2>/dev/null)
+Proxy: $(uci get openclash.config.Proxy 2>/dev/null)
+Apple: $(uci get openclash.config.Apple 2>/dev/null)
+Netflix: $(uci get openclash.config.Netflix 2>/dev/null)
+Spotify: $(uci get openclash.config.Spotify 2>/dev/null)
+Steam: $(uci get openclash.config.Steam 2>/dev/null)
+AdBlock: $(uci get openclash.config.AdBlock 2>/dev/null)
+Netease Music: $(uci get openclash.config.Netease_Music 2>/dev/null)
+Speedtest: $(uci get openclash.config.Speedtest 2>/dev/null)
+Telegram: $(uci get openclash.config.Telegram 2>/dev/null)
+Microsoft: $(uci get openclash.config.Microsoft 2>/dev/null)
+PayPal: $(uci get openclash.config.PayPal 2>/dev/null)
+Domestic: $(uci get openclash.config.Domestic 2>/dev/null)
+Others: $(uci get openclash.config.Others 2>/dev/null)
+
+读取的配置文件策略组:
+EOF
+cat /tmp/Proxy_Group  >> "$DEBUG_LOG"
 else
 cat >> "$DEBUG_LOG" <<-EOF
 第三方规则: 停用
 EOF
+fi
+
+if [ "$enable_custom_clash_rules" -eq 1 ]; then
+cat >> "$DEBUG_LOG" <<-EOF
+
+#===================== 自定义规则 一 =====================#
+EOF
+cat /etc/openclash/custom/openclash_custom_rules.list >> "$DEBUG_LOG"
+
+cat >> "$DEBUG_LOG" <<-EOF
+
+#===================== 自定义规则 二 =====================#
+EOF
+cat /etc/openclash/custom/openclash_custom_rules_2.list >> "$DEBUG_LOG"
 fi
 
 cat >> "$DEBUG_LOG" <<-EOF
@@ -292,9 +327,31 @@ fi
 
 cat >> "$DEBUG_LOG" <<-EOF
 
-#===================== 端口监听状态 =====================#
+#===================== 端口占用状态 =====================#
 EOF
 netstat -nlp |grep clash >> "$DEBUG_LOG" 2>/dev/null
+
+cat >> "$DEBUG_LOG" <<-EOF
+
+#===================== 测试本机DNS查询 =====================#
+EOF
+nslookup www.baidu.com >> "$DEBUG_LOG" 2>/dev/null
+
+if [ -s "/tmp/resolv.conf.auto" ]; then
+cat >> "$DEBUG_LOG" <<-EOF
+
+#===================== resolv.conf.auto =====================#
+EOF
+cat /tmp/resolv.conf.auto >> "$DEBUG_LOG"
+fi
+
+if [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ]; then
+cat >> "$DEBUG_LOG" <<-EOF
+
+#===================== resolv.conf.d =====================#
+EOF
+cat /tmp/resolv.conf.d/resolv.conf.auto >> "$DEBUG_LOG"
+fi
 
 cat >> "$DEBUG_LOG" <<-EOF
 
@@ -304,12 +361,22 @@ curl -I -m 5 www.baidu.com >> "$DEBUG_LOG" 2>/dev/null
 
 cat >> "$DEBUG_LOG" <<-EOF
 
-#===================== 测试本机DNS查询 =====================#
+#===================== 测试本机网络下载 =====================#
 EOF
-nslookup www.baidu.com >> "$DEBUG_LOG" 2>/dev/null
+VERSION_URL="https://raw.githubusercontent.com/vernesong/OpenClash/master/version"
+if pidof clash >/dev/null; then
+   HTTP_PORT=$(uci get openclash.config.http_port 2>/dev/null)
+   PROXY_ADDR=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null)
+   if [ -s "/tmp/openclash.auth" ]; then
+      PROXY_AUTH=$(cat /tmp/openclash.auth |awk -F '- ' '{print $2}' |sed -n '1p' 2>/dev/null)
+   fi
+   curl -IL -m 3 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" "$VERSION_URL" >> "$DEBUG_LOG"
+else
+   curl -IL -m 3 --retry 2 "$VERSION_URL" >> "$DEBUG_LOG"
+fi
 
 cat >> "$DEBUG_LOG" <<-EOF
 
 #===================== 最近运行日志 =====================#
 EOF
-tail -n 20 "/tmp/openclash.log" >> "$DEBUG_LOG" 2>/dev/null
+tail -n 30 "/tmp/openclash.log" >> "$DEBUG_LOG" 2>/dev/null
