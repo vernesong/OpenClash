@@ -40,7 +40,7 @@ define Build/Prepare
 	cp "$(PKG_BUILD_DIR)/files/etc/openclash/custom/openclash_custom_rules.list" "$(PKG_BUILD_DIR)/files/usr/share/openclash/backup/openclash_custom_rules.list" >/dev/null 2>&1
 	cp "$(PKG_BUILD_DIR)/files/etc/openclash/custom/openclash_custom_rules_2.list" "$(PKG_BUILD_DIR)/files/usr/share/openclash/backup/openclash_custom_rules_2.list" >/dev/null 2>&1
 	cp "$(PKG_BUILD_DIR)/files/etc/openclash/custom/openclash_custom_hosts.list" "$(PKG_BUILD_DIR)/files/usr/share/openclash/backup/openclash_custom_hosts.list" >/dev/null 2>&1
-	cp "$(PKG_BUILD_DIR)/files/etc/openclash/custom/openclash_custom_fake_black.conf" "$(PKG_BUILD_DIR)/files/usr/share/openclash/backup/openclash_custom_fake_black.conf" >/dev/null 2>&1
+	cp "$(PKG_BUILD_DIR)/files/etc/openclash/custom/openclash_custom_fake_filter.list" "$(PKG_BUILD_DIR)/files/usr/share/openclash/backup/openclash_custom_fake_filter.list" >/dev/null 2>&1
 endef
 
 define Build/Configure
@@ -56,14 +56,14 @@ if [ -f "/etc/config/openclash" ]; then
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_rules_2.list" "/tmp/openclash_custom_rules_2.list.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" >/dev/null 2>&1
-	cp "/etc/config/openclash_custom_fake_black.conf" "/tmp/openclash_custom_fake_black.conf.bak" >/dev/null 2>&1
+	cp "/etc/config/openclash_custom_fake_filter.list" "/tmp/openclash_custom_fake_filter.list.bak" >/dev/null 2>&1
 	cp "/etc/openclash/history" "/tmp/openclash_history.bak" >/dev/null 2>&1
 fi
 if [ -f "/etc/openclash/custom/openclash_custom_rules.list" ]; then
 	cp "/etc/openclash/custom/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" >/dev/null 2>&1
 	cp "/etc/openclash/custom/openclash_custom_rules_2.list" "/tmp/openclash_custom_rules_2.list.bak" >/dev/null 2>&1
 	cp "/etc/openclash/custom/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" >/dev/null 2>&1
-	cp "/etc/openclash/custom/openclash_custom_fake_black.conf" "/tmp/openclash_custom_fake_black.conf.bak" >/dev/null 2>&1
+	cp "/etc/openclash/custom/openclash_custom_fake_filter.list" "/tmp/openclash_custom_fake_filter.list.bak" >/dev/null 2>&1
 fi
 endef
 
@@ -89,14 +89,14 @@ cp "/etc/config/openclash" "/usr/share/openclash/backup/openclash" >/dev/null 2>
 cp "/etc/openclash/custom/openclash_custom_rules.list" "/usr/share/openclash/backup/openclash_custom_rules.list" >/dev/null 2>&1
 cp "/etc/openclash/custom/openclash_custom_rules_2.list" "/usr/share/openclash/backup/openclash_custom_rules_2.list" >/dev/null 2>&1
 cp "/etc/openclash/custom/openclash_custom_hosts.list" "/usr/share/openclash/backup/openclash_custom_hosts.list" >/dev/null 2>&1
-cp "/etc/openclash/custom/openclash_custom_fake_black.conf" "/usr/share/openclash/backup/openclash_custom_fake_black.conf" >/dev/null 2>&1
+cp "/etc/openclash/custom/openclash_custom_fake_filter.list" "/usr/share/openclash/backup/openclash_custom_fake_filter.list" >/dev/null 2>&1
 
 if [ -f "/tmp/openclash.bak" ]; then
 	mv "/tmp/openclash.bak" "/etc/config/openclash" >/dev/null 2>&1
 	mv "/tmp/openclash_custom_rules.list.bak" "/etc/openclash/custom/openclash_custom_rules.list" >/dev/null 2>&1
 	mv "/tmp/openclash_custom_rules_2.list.bak" "/etc/openclash/custom/openclash_custom_rules_2.list" >/dev/null 2>&1
 	mv "/tmp/openclash_custom_hosts.list.bak" "/etc/openclash/custom/openclash_custom_hosts.list" >/dev/null 2>&1
-	mv "/tmp/openclash_custom_fake_black.conf.bak" "/etc/openclash/custom/openclash_custom_fake_black.conf" >/dev/null 2>&1
+	mv "/tmp/openclash_custom_fake_filter.list.bak" "/etc/openclash/custom/openclash_custom_fake_filter.list" >/dev/null 2>&1
 	mv "/tmp/openclash_history.bak" "/etc/openclash/history" >/dev/null 2>&1
 fi
 if [ -f "/tmp/config.yaml" ]; then
@@ -151,11 +151,11 @@ define Package/$(PKG_NAME)/prerm
 	cp "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" >/dev/null 2>&1
-	cp "/etc/config/openclash_custom_fake_black.conf" "/tmp/openclash_custom_fake_black.conf.bak" >/dev/null 2>&1
+	cp "/etc/config/openclash_custom_fake_filter.list" "/tmp/openclash_custom_fake_filter.list.bak" >/dev/null 2>&1
 	cp "/etc/openclash/custom/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" >/dev/null 2>&1
 	cp "/etc/openclash/custom/openclash_custom_rules_2.list" "/tmp/openclash_custom_rules_2.list.bak" >/dev/null 2>&1
 	cp "/etc/openclash/custom/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" >/dev/null 2>&1
-	cp "/etc/openclash/custom/openclash_custom_fake_black.conf" "/tmp/openclash_custom_fake_black.conf.bak" >/dev/null 2>&1
+	cp "/etc/openclash/custom/openclash_custom_fake_filter.list" "/tmp/openclash_custom_fake_filter.list.bak" >/dev/null 2>&1
 endef
 
 define Package/$(PKG_NAME)/postrm

@@ -159,7 +159,7 @@ cfg_new_provider_groups_get()
    ${uci_add}groups="${1}"
 }
 
-[ "$servers_update" -eq "1" ] && {
+[ "$servers_update" -eq 1 ] && {
 echo "" >"$match_provider"
 provider_nums=0
 config_load "openclash"
@@ -214,7 +214,7 @@ do
    
    #代理集存在时获取代理集编号
    provider_nums=$(grep -Fw "$provider_name" "$match_provider" |awk -F '.' '{print $1}')
-   if [ "$servers_update" -eq "1" ] && [ ! -z "$provider_nums" ]; then
+   if [ "$servers_update" -eq 1 ] && [ ! -z "$provider_nums" ]; then
       sed -i "/^${provider_nums}\./c\#match#" "$match_provider" 2>/dev/null
       uci_set="uci -q set openclash.@proxy-provider["$provider_nums"]."
       ${uci_set}manual="0"
@@ -237,7 +237,7 @@ do
       uci_set="uci -q set $name.$uci_name_tmp."
       uci_add="uci -q add_list $name.$uci_name_tmp."
    
-      if [ -z "$new_servers_group" ] && [ "$servers_if_update" = "1" ] && [ "$servers_update" -eq "1" ]; then
+      if [ -z "$new_servers_group" ] && [ "$servers_if_update" = "1" ] && [ "$servers_update" -eq 1 ]; then
          ${uci_set}enabled="0"
       else
          ${uci_set}enabled="1"
@@ -429,7 +429,7 @@ cfg_new_servers_groups_get()
 	   
 echo "开始更新【$CONFIG_NAME】的服务器节点配置..." >$START_LOG
 
-[ "$servers_update" -eq "1" ] && {
+[ "$servers_update" -eq 1 ] && {
 echo "" >"$match_servers"
 server_num=0
 config_load "openclash"
@@ -483,7 +483,7 @@ do
    
 #节点存在时获取节点编号
    server_num=$(grep -Fw "$server_name" "$match_servers" |awk -F '.' '{print $1}')
-   if [ "$servers_update" -eq "1" ] && [ ! -z "$server_num" ]; then
+   if [ "$servers_update" -eq 1 ] && [ ! -z "$server_num" ]; then
       sed -i "/^${server_num}\./c\#match#" "$match_servers" 2>/dev/null
    fi
    
@@ -568,7 +568,7 @@ do
    
    echo "正在读取【$CONFIG_NAME】-【$server_type】-【$server_name】服务器节点配置..." >$START_LOG
    
-   if [ "$servers_update" -eq "1" ] && [ ! -z "$server_num" ]; then
+   if [ "$servers_update" -eq 1 ] && [ ! -z "$server_num" ]; then
 #更新已有节点
       uci_set="uci -q set openclash.@servers["$server_num"]."
       uci_add="uci -q add_list $name.$uci_name_tmp."
@@ -646,7 +646,7 @@ do
       uci_set="uci -q set $name.$uci_name_tmp."
       uci_add="uci -q add_list $name.$uci_name_tmp."
 
-      if [ -z "$new_servers_group" ] && [ "$servers_if_update" = "1" ] && [ "$servers_update" -eq "1" ]; then
+      if [ -z "$new_servers_group" ] && [ "$servers_if_update" = "1" ] && [ "$servers_update" -eq 1 ]; then
          ${uci_set}enabled="0"
       else
          ${uci_set}enabled="1"
@@ -772,7 +772,7 @@ fi
 
 uci set openclash.config.servers_if_update=0
 uci commit openclash
-/usr/share/openclash/cfg_servers_address_fake_block.sh
+/usr/share/openclash/cfg_servers_address_fake_filter.sh
 echo "配置文件【$CONFIG_NAME】读取完成！" >$START_LOG
 sleep 3
 echo "" >$START_LOG

@@ -175,25 +175,19 @@ o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
 
-o = s:taboption("dns", Value, "direct_dns", translate("Specify DNS Server"))
-o.description = translate("Specify DNS Server For List, Only One IP Server Address Support")
-o.default="114.114.114.114"
-o.placeholder = translate("114.114.114.114 or 127.0.0.1#5300")
-o:depends("dns_advanced_setting", "1")
-
-o = s:taboption("dns", Button, translate("Fake-IP Block List Update")) 
-o.title = translate("Fake-IP Block List Update")
+o = s:taboption("dns", Button, translate("Fake-IP-Filter List Update")) 
+o.title = translate("Fake-IP-Filter List Update")
 o:depends("dns_advanced_setting", "1")
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
-  SYS.call("/usr/share/openclash/openclash_fake_block.sh >/dev/null 2>&1 && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  SYS.call("/usr/share/openclash/openclash_fake_filter.sh >/dev/null 2>&1 && /etc/init.d/openclash restart >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-custom_fake_black = s:taboption("dns", Value, "custom_fake_black")
+custom_fake_black = s:taboption("dns", Value, "custom_fake_filter")
 custom_fake_black.template = "cbi/tvalue"
 custom_fake_black.description = translate("Domain Names In The List Do Not Return Fake-IP, One rule per line")
 custom_fake_black.rows = 20
@@ -201,13 +195,13 @@ custom_fake_black.wrap = "off"
 custom_fake_black:depends("dns_advanced_setting", "1")
 
 function custom_fake_black.cfgvalue(self, section)
-	return NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_black.conf") or ""
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_filter.list") or ""
 end
 function custom_fake_black.write(self, section, value)
 
 	if value then
 		value = value:gsub("\r\n?", "\n")
-		NXFS.writefile("/etc/openclash/custom/openclash_custom_fake_black.conf", value)
+		NXFS.writefile("/etc/openclash/custom/openclash_custom_fake_filter.list", value)
 	end
 end
 end

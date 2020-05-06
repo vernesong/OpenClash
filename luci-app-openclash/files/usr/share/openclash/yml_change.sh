@@ -1,4 +1,5 @@
 #!/bin/sh
+
     #删除旧hosts配置
     hostlen=$(sed -n '/hosts:/=' "$7" 2>/dev/null)
     dnslen=$(sed -n '/dns:/=' "$7" 2>/dev/null)
@@ -187,3 +188,29 @@
 	     sed -i '/##Custom HOSTS##/r/etc/openclash/custom/openclash_custom_hosts.list' "$7" 2>/dev/null
 	     sed -i "/^hosts:/,/^dns:/ {s/^ \{0,\}'/  '/}" "$7" 2>/dev/null #修改参数空格
 	  fi
+	  
+	  sed -i "s/^ \{0,\}- /  - /" "$7" 2>/dev/null
+	  if [ ! -z "$(grep "^ \{0,\}default-nameserver:" "$7")" ]; then
+       sed -i "/^ \{0,\}default-nameserver:/c\  default-nameserver:" "$7"
+    fi
+    
+#fake-ip-filter
+    sed -i '/##Custom fake-ip-filter##/,/##Custom fake-ip-filter END##/d' "$7" 2>/dev/null    
+	  if [ "$2" = "fake-ip" ]; then
+      if [ ! -f "/etc/openclash/fake_filter.list" ] || [ ! -z "$(grep "config servers" /etc/config/openclash)" ]; then
+         /usr/share/openclash/openclash_fake_filter.sh
+      fi
+      if [ -s "/etc/openclash/servers_fake_filter.conf" ]; then
+         mkdir -p /tmp/dnsmasq.d
+         ln -s /etc/openclash/servers_fake_filter.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf
+      fi
+      if [ -s "/etc/openclash/fake_filter.list" ]; then
+      	if [ ! -z "$(grep "^ \{0,\}fake-ip-filter:" "$7")" ]; then
+      	   sed -i "/^ \{0,\}fake-ip-filter:/c\  fake-ip-filter:" "$7"
+      	   sed -i '/fake-ip-filter:/r/etc/openclash/fake_filter.list' "$7" 2>/dev/null
+      	else
+      	   echo "  fake-ip-filter:" >> "$7"
+      	   sed -i '/fake-ip-filter:/r/etc/openclash/fake_filter.list' "$7" 2>/dev/null
+        fi
+      fi
+   fi
