@@ -334,7 +334,7 @@ s = m:section(Table, tab)
 local conf = string.sub(luci.sys.exec("uci get openclash.config.config_path 2>/dev/null"), 1, -2)
 local dconf = "/etc/openclash/default.yaml"
 local conf_name = fs.basename(conf)
-if not conf_name then conf_name = "config.yaml" end
+if not conf_name or conf == "" then conf_name = "config.yaml" end
 
 sev = s:option(Value, "user")
 sev.template = "cbi/tvalue"

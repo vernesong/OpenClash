@@ -6,6 +6,7 @@ status=$(ps|grep -c /usr/share/openclash/openclash_debug.sh)
 
 DEBUG_LOG="/tmp/openclash_debug.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+uci commit openclash
 
 enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
 rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
@@ -109,6 +110,9 @@ else
 cat >> "$DEBUG_LOG" <<-EOF
 运行状态: 未运行
 EOF
+fi
+if [ "$core_type" = "0" ]; then
+   core_type="未选择架构"
 fi
 cat >> "$DEBUG_LOG" <<-EOF
 已选择的架构: $core_type
