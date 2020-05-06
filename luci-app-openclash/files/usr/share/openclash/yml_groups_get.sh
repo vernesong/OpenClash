@@ -5,6 +5,7 @@ status=$(ps|grep -c /usr/share/openclash/yml_groups_get.sh)
 
 START_LOG="/tmp/openclash_start.log"
 CFG_FILE="/etc/config/openclash"
+servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
@@ -109,7 +110,7 @@ cfg_delete()
 config_load "openclash"
 config_foreach cfg_group_name "groups"
 
-if [ "$servers_if_update" -eq 1 ] && [ "$config_group_exist" -eq 1 ]; then
+if [ "$servers_if_update" -eq 1 ] && [ "$servers_update" -eq 1 ] && [ "$config_group_exist" -eq 1 ]; then
    /usr/share/openclash/yml_proxys_get.sh
    exit 0
 else

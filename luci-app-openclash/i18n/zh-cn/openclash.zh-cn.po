@@ -203,7 +203,7 @@ msgstr "指定下方列表中域名的DNS服务器，只支持填写一个IP地�
 msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line"
 msgstr "每行请只填写一个域名，列表中的域名在（Fake-IP模式）下查询DNS时将返回真实IP地址，更改后点击上方按钮生效"
 
-msgid "Fake-IP Block List Update"
+msgid "Fake-IP-Filter List Update"
 msgstr "更新Fake-IP域名黑名单"
 
 msgid "Set OpenClash Upstream DNS Resolve Server"
