@@ -35,6 +35,12 @@ define Build/Prepare
 	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/proxy_provider >/dev/null 2>&1
 	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/backup >/dev/null 2>&1
 	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/core >/dev/null 2>&1
+	mkdir -p $(PKG_BUILD_DIR)/files/usr/share/openclash/backup >/dev/null 2>&1
+	cp "$(PKG_BUILD_DIR)/files/etc/config/openclash" "$(PKG_BUILD_DIR)/files/usr/share/openclash/backup/openclash" >/dev/null 2>&1
+	cp "$(PKG_BUILD_DIR)/files/etc/openclash/custom/openclash_custom_rules.list" "$(PKG_BUILD_DIR)/files/usr/share/openclash/backup/openclash_custom_rules.list" >/dev/null 2>&1
+	cp "$(PKG_BUILD_DIR)/files/etc/openclash/custom/openclash_custom_rules_2.list" "$(PKG_BUILD_DIR)/files/usr/share/openclash/backup/openclash_custom_rules_2.list" >/dev/null 2>&1
+	cp "$(PKG_BUILD_DIR)/files/etc/openclash/custom/openclash_custom_hosts.list" "$(PKG_BUILD_DIR)/files/usr/share/openclash/backup/openclash_custom_hosts.list" >/dev/null 2>&1
+	cp "$(PKG_BUILD_DIR)/files/etc/openclash/custom/openclash_custom_fake_black.conf" "$(PKG_BUILD_DIR)/files/usr/share/openclash/backup/openclash_custom_fake_black.conf" >/dev/null 2>&1
 endef
 
 define Build/Configure
