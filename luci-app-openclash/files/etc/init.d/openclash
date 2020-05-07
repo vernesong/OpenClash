@@ -745,87 +745,10 @@ if [ "$operation_mode" = "redir-host" ] && [ "$en_mode" = "redir-host" ]; then
       config_list_foreach "config" "lan_ac_white_ips" lan_ac "lan_ac_white_ips"
    fi
 fi
-             
-if [ -z "$en_mode_tun" ]; then
-   #tcp
-   iptables -t nat -N openclash
-   iptables -t nat -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
-   iptables -t nat -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
-   iptables -t nat -A openclash -d 0.0.0.0/8 -j RETURN
-   iptables -t nat -A openclash -d 10.0.0.0/8 -j RETURN
-   iptables -t nat -A openclash -d 127.0.0.0/8 -j RETURN
-   iptables -t nat -A openclash -d 169.254.0.0/16 -j RETURN
-   iptables -t nat -A openclash -d 172.16.0.0/12 -j RETURN
-   iptables -t nat -A openclash -d 192.168.0.0/16 -j RETURN
-   iptables -t nat -A openclash -d 224.0.0.0/4 -j RETURN
-   iptables -t nat -A openclash -d 240.0.0.0/4 -j RETURN
-   if [ ! -z "$wan_ip4" ]; then
-      for wan_ip4s in $wan_ip4; do
-         iptables -t nat -A openclash -d "$wan_ip4s" -j RETURN 2>/dev/null
-      done
-   fi
-   iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-   iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 -j REDIRECT --to-ports "$proxy_port"
-   iptables -t nat -I PREROUTING -p tcp -d 8.8.4.4 -j REDIRECT --to-ports "$proxy_port"
-   iptables -t nat -A PREROUTING -p tcp -j openclash
-                
-   #udp
-   if [ "$enable_udp_proxy" -eq 1 ]; then
-      ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
-      ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
-      iptables -t mangle -N openclash
-      iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
-      iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
-      iptables -t mangle -A openclash -d 0.0.0.0/8 -j RETURN
-      iptables -t mangle -A openclash -d 10.0.0.0/8 -j RETURN
-      iptables -t mangle -A openclash -d 127.0.0.0/8 -j RETURN
-      iptables -t mangle -A openclash -d 169.254.0.0/16 -j RETURN
-      iptables -t mangle -A openclash -d 172.16.0.0/12 -j RETURN
-      iptables -t mangle -A openclash -d 192.168.0.0/16 -j RETURN
-      iptables -t mangle -A openclash -d 224.0.0.0/4 -j RETURN
-      iptables -t mangle -A openclash -d 240.0.0.0/4 -j RETURN
-      if [ ! -z "$wan_ip4" ]; then
-         for wan_ip4s in $wan_ip4; do
-            iptables -t mangle -A openclash -d "$wan_ip4s" -j RETURN 2>/dev/null
-         done
-      fi
-                
-      iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --on-ip 0.0.0.0 --tproxy-mark "$PROXY_FWMARK"
-      iptables -t mangle -A PREROUTING -p udp -j openclash
-   fi
-                
-   if [ "$en_mode" = "fake-ip" ]; then
-      iptables -t nat -A OUTPUT -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
-   fi
-                
-   if [ "$ipv6_enable" -eq 1 ]; then
-      #tcp
-      ip6tables -t nat -N openclash
-      if [ ! -z "$lan_ip6" ]; then
-         for lan_ip6s in $lan_ip6; do
-            ip6tables -t nat -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
-         done
-      fi
-      ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-      ip6tables -t nat -A PREROUTING -p tcp -j openclash
-                   
-      #udp
-      if [ "$enable_udp_proxy" -eq 1 ]; then
-         ip6tables -t mangle -N openclash
-         if [ ! -z "$lan_ip6" ]; then
-            for lan_ip6s in $lan_ip6; do
-               if [ "$enable_udp_proxy" -eq 1 ]; then
-                  ip6tables -t mangle -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
-               fi
-            done
-         fi
-         ip6tables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --on-ip 0.0.0.0 --tproxy-mark "$PROXY_FWMARK"
-         ip6tables -t mangle -A PREROUTING -p udp -j openclash
-      fi
-   fi
-else
-   #TUN模式
+
+#local
    ipset create localnetwork hash:net
+   ipset add localnetwork 0.0.0.0/8
    ipset add localnetwork 127.0.0.0/8
    ipset add localnetwork 10.0.0.0/8
    ipset add localnetwork 169.254.0.0/16
@@ -839,6 +762,66 @@ else
          ipset add localnetwork "$wan_ip4s" 2>/dev/null
       done
    fi
+
+if [ -z "$en_mode_tun" ]; then
+   #tcp
+   iptables -t nat -N openclash
+   iptables -t nat -F openclash
+   iptables -t nat -A openclash -m set --match-set localnetwork dst -j RETURN
+   iptables -t nat -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
+   iptables -t nat -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+   iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
+   iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 -j REDIRECT --to-ports "$proxy_port"
+   iptables -t nat -I PREROUTING -p tcp -d 8.8.4.4 -j REDIRECT --to-ports "$proxy_port"
+   iptables -t nat -A PREROUTING -p tcp -j openclash
+
+   #udp
+   if [ "$enable_udp_proxy" -eq 1 ]; then
+      ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+      ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+      iptables -t mangle -N openclash
+      iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
+      iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
+      iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+      iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --on-ip 0.0.0.0 --tproxy-mark "$PROXY_FWMARK"
+      iptables -t mangle -A PREROUTING -p udp -j openclash
+   fi
+
+   if [ "$en_mode" = "fake-ip" ]; then
+   	  iptables -t nat -N openclash_output
+      iptables -t nat -F openclash_output
+   	  iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
+      iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+      iptables -t nat -A OUTPUT -p tcp -j openclash_output
+   fi
+
+   if [ "$ipv6_enable" -eq 1 ]; then
+      #tcp
+      ip6tables -t nat -N openclash
+      if [ ! -z "$lan_ip6" ]; then
+         for lan_ip6s in $lan_ip6; do
+            ip6tables -t nat -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
+         done
+      fi
+      ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
+      ip6tables -t nat -A PREROUTING -p tcp -j openclash
+
+      #udp
+      #if [ "$enable_udp_proxy" -eq 1 ]; then
+      #   ip6tables -t mangle -N openclash
+      #   if [ ! -z "$lan_ip6" ]; then
+      #      for lan_ip6s in $lan_ip6; do
+      #         if [ "$enable_udp_proxy" -eq 1 ]; then
+      #            ip6tables -t mangle -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
+      #         fi
+      #      done
+      #   fi
+      #   ip6tables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
+      #   ip6tables -t mangle -A PREROUTING -p udp -j openclash
+      #fi
+   fi
+else
+   #TUN模式
    #启动TUN
    if [ "$en_mode_tun" = "2" ]; then
       ip tuntap add user root mode tun clash0
@@ -862,9 +845,9 @@ else
       iptables -t mangle -A openclash -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
    fi
    iptables -t mangle -I OUTPUT -j openclash
+   iptables -t mangle -I PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
    iptables -t mangle -I PREROUTING -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
    iptables -t mangle -I PREROUTING -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
-   iptables -t mangle -I PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
    iptables -t nat -I PREROUTING -p tcp --dport 53 -j ACCEPT
    #ipv6
    #    if [ "$ipv6_enable" -eq 1 ]; then
@@ -876,69 +859,67 @@ fi
 revert_firewall()
 {
    rm -rf /var/etc/openclash.include 2>/dev/null
-    
+
    #ipv4
 
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip route del local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-    
+
    iptables -t nat -D PREROUTING -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1
 
    iptables -t mangle -F openclash >/dev/null 2>&1
    iptables -t mangle -X openclash >/dev/null 2>&1
-    
+
    iptables -t nat -F openclash >/dev/null 2>&1
    iptables -t nat -X openclash >/dev/null 2>&1
-    
-   out_lines=$(iptables -nvL OUTPUT -t mangle |sed 1,2d |sed -n '/198.18.0.0\/16/=' 2>/dev/null |sort -rn)
-   for out_line in $out_lines; do
-      iptables -t mangle -D OUTPUT "$out_line" >/dev/null 2>&1
-   done
-    
-   out_lines=$(iptables -nvL OUTPUT -t nat |sed 1,2d |sed -n '/198.18.0.0\/16/=' 2>/dev/null |sort -rn)
+
+   iptables -t nat -F openclash_output >/dev/null 2>&1
+   iptables -t nat -X openclash_output >/dev/null 2>&1
+
+   out_lines=$(iptables -nvL OUTPUT -t nat |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
    for out_line in $out_lines; do
       iptables -t nat -D OUTPUT "$out_line" >/dev/null 2>&1
    done
-    
+
    pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/8\.8\./=' 2>/dev/null |sort -rn)
    for pre_line in $pre_lines; do
       iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
    done
-   
+
    pre_lines=$(iptables -nvL PREROUTING -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
    for pre_line in $pre_lines; do
       iptables -t mangle -D PREROUTING "$pre_line" >/dev/null 2>&1
    done
-   
+
    pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
    for pre_line in $pre_lines; do
       iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
    done
-    
+
    #ipv6
-   ip6tables -t mangle -F openclash >/dev/null 2>&1
-   ip6tables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
-   ip6tables -t mangle -X openclash >/dev/null 2>&1
-    
+   #ip6tables -t mangle -F openclash >/dev/null 2>&1
+   #ip6tables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
+   #ip6tables -t mangle -X openclash >/dev/null 2>&1
+
    ip6tables -t nat -F openclash >/dev/null 2>&1
    ip6tables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
    ip6tables -t nat -X openclash >/dev/null 2>&1
-    
+
    #TUN
    ip route del default dev clash0 table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip link set dev clash0 down >/dev/null 2>&1
    ip tuntap del clash0 mode tun >/dev/null 2>&1
-   
+
    iptables -t mangle -D OUTPUT -j openclash >/dev/null 2>&1
    iptables -t mangle -D PREROUTING -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
    iptables -t mangle -D PREROUTING -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
    iptables -t mangle -D PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
-   ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
    iptables -t mangle -F openclash >/dev/null 2>&1
    iptables -t mangle -X openclash >/dev/null 2>&1
-   
+   #ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
+
    ipset destroy localnetwork >/dev/null 2>&1
    ipset destroy lan_ac_white_ips >/dev/null 2>&1
    ipset destroy lan_ac_black_ips >/dev/null 2>&1
