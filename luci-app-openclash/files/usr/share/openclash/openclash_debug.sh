@@ -6,13 +6,13 @@ status=$(ps|grep -c /usr/share/openclash/openclash_debug.sh)
 
 DEBUG_LOG="/tmp/openclash_debug.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+uci commit openclash
 
 enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
 rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
 enable_custom_clash_rules=$(uci get openclash.config.enable_custom_clash_rules 2>/dev/null) 
 ipv6_enable=$(uci get openclash.config.ipv6_enable 2>/dev/null)
 enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
-direct_dns=$(uci get openclash.config.direct_dns 2>/dev/null)
 disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
 proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
 intranet_allowed=$(uci get openclash.config.intranet_allowed 2>/dev/null)
@@ -110,6 +110,9 @@ cat >> "$DEBUG_LOG" <<-EOF
 运行状态: 未运行
 EOF
 fi
+if [ "$core_type" = "0" ]; then
+   core_type="未选择架构"
+fi
 cat >> "$DEBUG_LOG" <<-EOF
 已选择的架构: $core_type
 
@@ -195,7 +198,6 @@ UDP流量转发: $(ts_cf "$enable_udp_proxy")
 DNS劫持: $(ts_cf "$enable_redirect_dns")
 自定义DNS: $(ts_cf "$enable_custom_dns")
 IPV6-DNS解析: $(ts_cf "$ipv6_enable")
-Real-IP-DNS地址: $direct_dns
 禁用Dnsmasq缓存: $(ts_cf "$disable_masq_cache")
 自定义规则: $(ts_cf "$enable_custom_clash_rules")
 仅允许内网: $(ts_cf "$intranet_allowed")
