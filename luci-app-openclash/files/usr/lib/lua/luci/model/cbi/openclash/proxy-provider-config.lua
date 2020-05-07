@@ -101,7 +101,7 @@ o.description = font_red..bold_on..translate("No Need Set when Config Create, Th
 o.rmempty = true
 m.uci:foreach("openclash", "groups",
 		function(s)
-			if s.name ~= "" and s.name ~= nil and s.type ~= "relay" then
+			if s.name ~= "" and s.name ~= nil then
 			   o:value(s.name)
 			end
 		end)

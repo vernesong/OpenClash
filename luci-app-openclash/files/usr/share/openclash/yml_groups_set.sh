@@ -195,7 +195,7 @@ yml_groups_set()
    set_group=0
    set_proxy_provider=0
    
-   if [ "$type" = "select" ]; then
+   if [ "$type" = "select" ] || [ "$type" = "relay" ]; then
       config_list_foreach "$section" "other_group" set_other_groups #加入其他策略组
    fi
    
@@ -209,9 +209,7 @@ yml_groups_set()
 
    echo "  use: $group_name" >>$GROUP_FILE
    
-   if [ "$type" != "relay" ]; then
-      config_foreach set_proxy_provider "proxy-provider" "$group_name" #加入代理集
-   fi
+   config_foreach set_proxy_provider "proxy-provider" "$group_name" #加入代理集
 
    if [ "$set_group" -eq 1 ]; then
       sed -i "/^ \{0,\}proxies: ${group_name}/c\  proxies:" $GROUP_FILE
