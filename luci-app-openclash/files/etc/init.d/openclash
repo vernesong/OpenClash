@@ -29,9 +29,6 @@ add_cron()
   [ -z "$(grep "openclash.sh" "$CRON_FILE" 2>/dev/null)" ] && {
      [ "$(uci get openclash.config.auto_update 2>/dev/null)" -eq 1 ] && [ "$(uci get openclash.config.config_auto_update_mode 2>/dev/null)" -ne 1 ] && echo "0 $(uci get openclash.config.auto_update_time 2>/dev/null) * * $(uci get openclash.config.config_update_week_time 2>/dev/null) /usr/share/openclash/openclash.sh" >> $CRON_FILE
   }
-  [ -z "$(grep "openclash.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-     [ "$(uci get openclash.config.auto_update 2>/dev/null)" -eq 1 ] && [ "$(uci get openclash.config.config_auto_update_mode 2>/dev/null)" -eq 1 ] && echo "*/$(uci get openclash.config.config_update_interval 2>/dev/null) * * * * /usr/share/openclash/openclash.sh" >> $CRON_FILE
-  }
   [ -z "$(grep "openclash_rule.sh" "$CRON_FILE" 2>/dev/null)" ] && {
   [ "$(uci get openclash.config.other_rule_auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.other_rule_update_day_time 2>/dev/null) * * $(uci get openclash.config.other_rule_update_week_time 2>/dev/null) /usr/share/openclash/openclash_rule.sh" >> $CRON_FILE
   }
