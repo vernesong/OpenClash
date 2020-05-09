@@ -86,6 +86,7 @@ uci:foreach("openclash", "groups",
 o:value("DIRECT")
 o:value("REJECT")
 o:depends("type", "select")
+o:depends("type", "relay")
 o.rmempty = true
 
 local t = {
