@@ -10,7 +10,7 @@ echo "正在设置Fake-IP黑名单..." >$START_LOG
 
 rm -rf "$FAKE_FILTER_FILE" 2>/dev/null
 if [ -s "$CUSTOM_FILE" ]; then
-   cat "$CUSTOM_FILE" |while read -r line
+   cat "$CUSTOM_FILE" |while read -r line || [[ -n ${line} ]];
    do
       if [ -z "$(echo $line |grep '^ \{0,\}#' 2>/dev/null)" ]; then
          echo "  - '$line'" >> "$FAKE_FILTER_FILE"
