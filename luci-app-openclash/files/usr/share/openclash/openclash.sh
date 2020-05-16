@@ -1,6 +1,8 @@
 #!/bin/bash /etc/rc.common
 status=$(ps|grep -c /usr/share/openclash/openclash.sh)
 [ "$status" -gt "3" ] && exit 0
+status=$(ps|grep -c /etc/init.d/openclash)
+[ "$status" -gt "1" ] && sleep 5
 
 START_LOG="/tmp/openclash_start.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
@@ -203,9 +205,9 @@ sub_info_get()
 
    if [ "$?" -eq 0 ] && [ -s "$CFG_FILE" ]; then
    	  config_encode
-   	  grep "^ \{0,\}Proxy Group:" "$CFG_FILE" >/dev/null 2>&1 && grep "^ \{0,\}Rule:" "$CFG_FILE" >/dev/null 2>&1
+   	  grep "^ \{0,\}proxy-groups:" "$CFG_FILE" >/dev/null 2>&1 && grep "^ \{0,\}rules:" "$CFG_FILE" >/dev/null 2>&1
       if [ "$?" -eq 0 ]; then
-         grep "^ \{0,\}Proxy:" "$CFG_FILE" >/dev/null 2>&1 || grep "^ \{0,\}proxy-provider:" "$CFG_FILE" >/dev/null 2>&1
+         grep "^ \{0,\}Proxy:" "$CFG_FILE" >/dev/null 2>&1 || grep "^ \{0,\}proxy-providers:" "$CFG_FILE" >/dev/null 2>&1
          if [ "$?" -eq 0 ]; then
             config_su_check
          else
