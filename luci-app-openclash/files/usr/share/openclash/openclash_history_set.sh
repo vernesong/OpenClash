@@ -23,7 +23,7 @@ if [ -s "$HISTORY_PATH" ]; then
    cat $HISTORY_PATH |while read line
    do
       GROUP_NAME=$(echo $line |awk -F '#*#' '{print $1}')
-      if [ -z "$(echo $line |grep "#*#")" ] || [ -z "$(grep "^$GROUP_NAME$" /tmp/Proxy_Group)" ]; then
+      if [ -z "$(echo $line |grep "#*#")" ] || [ -z "$(grep "^$GROUP_NAME$" /tmp/Proxy_Group)" ] && [ "$GROUP_NAME" != "GLOBAL" ]; then
          continue
       else
          GROUP_NAME=$(urlencode "$GROUP_NAME")
