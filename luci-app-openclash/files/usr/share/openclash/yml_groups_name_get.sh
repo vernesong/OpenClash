@@ -16,12 +16,12 @@ if [ -f "$CFG_FILE" ]; then
 	 /usr/share/openclash/yml_field_name_ch.sh "$CFG_FILE"
    
 #判断各个区位置
-   group_len=$(sed -n '/^Proxy Group:/=' "$CFG_FILE" 2>/dev/null)
-   provider_len=$(sed -n '/proxy-provider:/=' "$CONFIG_FILE" 2>/dev/null)
+   group_len=$(sed -n '/^proxy-groups:/=' "$CFG_FILE" 2>/dev/null)
+   provider_len=$(sed -n '/proxy-providers:/=' "$CONFIG_FILE" 2>/dev/null)
    if [ "$provider_len" -ge "$group_len" ]; then
-       awk '/Proxy Group:/,/proxy-provider:/{print}' "$CFG_FILE" 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed 's/\t/ /g' 2>/dev/null |grep name: |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null >/tmp/Proxy_Group 2>&1
+       awk '/proxy-groups:/,/proxy-providers:/{print}' "$CFG_FILE" 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed 's/\t/ /g' 2>/dev/null |grep name: |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null >/tmp/Proxy_Group 2>&1
    else
-       awk '/Proxy Group:/,/Rule:/{print}' "$CFG_FILE" 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed 's/\t/ /g' 2>/dev/null |grep name: |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null >/tmp/Proxy_Group 2>&1
+       awk '/proxy-groups:/,/rules:/{print}' "$CFG_FILE" 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed 's/\t/ /g' 2>/dev/null |grep name: |awk -F 'name:' '{print $2}' |sed 's/,.*//' |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null >/tmp/Proxy_Group 2>&1
    fi
 
    if [ "$?" -eq "0" ]; then
