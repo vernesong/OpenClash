@@ -262,10 +262,10 @@ if [ -n "$(grep OpenClash-General-Settings "$CONFIG_FILE")" ]; then
 else
    /usr/share/openclash/yml_field_name_ch.sh "$CONFIG_FILE" 2>/dev/null
    proxy_len=$(sed -n '/^Proxy:/=' "$CONFIG_FILE" 2>/dev/null)
-   provider_len=$(sed -n '/^proxy-provider:/=' "$CONFIG_FILE" 2>/dev/null)
-   group_len=$(sed -n '/^Proxy Group:/=' "$CONFIG_FILE" 2>/dev/null)
+   provider_len=$(sed -n '/^proxy-providers:/=' "$CONFIG_FILE" 2>/dev/null)
+   group_len=$(sed -n '/^proxy-groups:/=' "$CONFIG_FILE" 2>/dev/null)
    dns_len=$(sed -n '/^dns:/=' "$CONFIG_FILE" 2>/dev/null)
-   rule_len=$(sed -n '/^Rule:/=' "$CONFIG_FILE" 2>/dev/null)
+   rule_len=$(sed -n '/^rules:/=' "$CONFIG_FILE" 2>/dev/null)
    if [ "$dns_len" -ge "$proxy_len" ] || [ "$dns_len" -ge "$rule_len" ] || [ "$dns_len" -ge "$group_len" ]; then
    	  echo "错误: 不支持的配置文件， General 设置部分应位于开头，请根据模板修改后重试！" >> "$DEBUG_LOG"
    fi 2>/dev/null
@@ -281,11 +281,11 @@ else
    if [ "$proxy_len" -le "$provider_len" ]; then
       sed '/^ \{0,\}Proxy:/,$d' "$CONFIG_FILE" >> "$DEBUG_LOG" 2>/dev/null
    elif [ "$proxy_len" -ge "$provider_len" ]; then
-      sed '/^ \{0,\}proxy-provider:/,$d' "$CONFIG_FILE" >> "$DEBUG_LOG" 2>/dev/null
+      sed '/^ \{0,\}proxy-providers:/,$d' "$CONFIG_FILE" >> "$DEBUG_LOG" 2>/dev/null
    elif [ -n "$proxy_len" ] && [ -z "$provider_len" ]; then
       sed '/^ \{0,\}Proxy:/,$d' "$CONFIG_FILE" >> "$DEBUG_LOG" 2>/dev/null
    elif [ -z "$proxy_len" ] && [ -n "$provider_len" ]; then
-      sed '/^ \{0,\}proxy-provider:/,$d' "$CONFIG_FILE" >> "$DEBUG_LOG" 2>/dev/null
+      sed '/^ \{0,\}proxy-providers:/,$d' "$CONFIG_FILE" >> "$DEBUG_LOG" 2>/dev/null
    fi 2>/dev/null
 fi
 
