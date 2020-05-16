@@ -41,3 +41,13 @@ YML_FILE="$1"
    [ -z "$(grep "^rules:" "$YML_FILE")" ] && {
       sed -i "s/^ \{0,\}Rule:/rules:/g" "$YML_FILE" 2>/dev/null
    }
+   
+   #rule-providers:
+   [ -z "$(grep "^rule-providers:" "$YML_FILE")" ] && {
+      sed -i "s/^ \{1,\}rule-providers:/rule-providers:/g" "$YML_FILE" 2>/dev/null
+   }
+   
+   #script:
+   [ -z "$(grep "^script:" "$YML_FILE")" ] && {
+      sed -i "s/^ \{1,\}script:/script:/g" "$YML_FILE" 2>/dev/null
+   }
