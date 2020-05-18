@@ -88,9 +88,8 @@ revert_dns() {
 
 field_cut()
 {
-   local i
-   local line
-   local first_line=$(expr "$1" + 1)
+   local i line first_line end_line field_match
+   first_line=$(expr "$1" + 1)
    for ((i=$first_line;i<=$(sed -n '$=' "$3");i++))
    do
       line=$(sed -n "${i}p" "$3")
@@ -99,9 +98,13 @@ field_cut()
       || [ -n "$(echo "$line" |grep "^ \{0,\}proxy-groups:")" ] \
       || [ -n "$(echo "$line" |grep "^ \{0,\}rules:")" ] \
       || [ -n "$(echo "$line" |grep "^ \{0,\}rule-providers:")" ] \
-      || [ -n "$(echo "$line" |grep "^ \{0,\}script:")" ] && break
+      || [ -n "$(echo "$line" |grep "^ \{0,\}script:")" ] && field_match="ture" && break
    done
-   local end_line=$(expr "$i" - 1)
+   if [ "$i" -eq "$(sed -n '$=' "$3")" ] && [ -z "$field_match" ]; then
+      end_line="$i"
+   else
+      end_line=$(expr "$i" - 1)
+   fi
    sed -n "${1},${end_line}p" "$3" > "$2" 2>/dev/null
    sed -i "${1},${end_line}d" "$3" 2>/dev/null
 }
@@ -142,7 +145,7 @@ yml_check()
       exit 0
    fi 2>/dev/null
    	
-   if [ "$proxy_len" -ge "$rule_len" ] || [ "$provider_len" -ge "$rule_len" ]; then
+   if [ "$proxy_len" -ge "$rule_len" ]; then
    	  echo "错误: 不支持的配置文件，服务器节点设置部分应位于规则之前，请根据模板修改后重试！" > $START_LOG
    	  echo "${LOGTIME} Unsupported Config, Please Check The Proxy Setting's location And Try-again!" >> $LOG_FILE
       mv "$START_BACKUP" "$CONFIG_FILE"
