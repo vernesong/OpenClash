@@ -245,7 +245,7 @@ if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ ! -z "$if_g
    else
       if [ -z "$if_game_group" ]; then
          echo "开始写入配置文件【$CONFIG_NAME】的策略组信息..." >$START_LOG
-         echo "Proxy Group:" >$GROUP_FILE
+         echo "proxy-groups:" >$GROUP_FILE
       else
          echo "开始加入游戏策略组【$if_game_group】的信息..." >$START_LOG
          rm -rf $GROUP_FILE

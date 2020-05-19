@@ -876,7 +876,7 @@ ${UCI_SET}Others="Others"
 fi
 
 if [ "$create_config" != "0" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
-   echo "rules" >>$SERVER_FILE
+   echo "rules:" >>$SERVER_FILE
    echo "配置文件【$CONFIG_NAME】创建完成，正在更新服务器、代理集、策略组信息..." >$START_LOG
    cat "$PROXY_PROVIDER_FILE" > "$CONFIG_FILE" 2>/dev/null
    cat "$SERVER_FILE" >> "$CONFIG_FILE" 2>/dev/null
@@ -889,19 +889,19 @@ elif [ -z "$if_game_proxy" ]; then
    provider_len=$(sed -n '/^proxy-providers:/=' "$CONFIG_FILE" 2>/dev/null)
    if [ "$provider_len" -le "$proxy_len" ]; then
       sed -i '/^ \{0,\}proxy-providers:/i\#change server#' "$CONFIG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}rules/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^ \{0,\}rules:/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
       sed -i '/^ \{0,\}proxy-providers:/,/#change server end#/d' "$CONFIG_FILE" 2>/dev/null
    elif [ "$provider_len" -le "$group_len" ] && [ -z "$proxy_len" ]; then
       sed -i '/^ \{0,\}proxy-providers:/i\#change server#' "$CONFIG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}rules/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^ \{0,\}rules:/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
       sed -i '/^ \{0,\}proxy-providers:/,/#change server end#/d' "$CONFIG_FILE" 2>/dev/null
    elif [ "$provider_len" -ge "$group_len" ] && [ -z "$proxy_len" ]; then
       sed -i '/^ \{0,\}proxy-groups:/i\#change server#' "$CONFIG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}rules/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^ \{0,\}rules:/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
       sed -i '/^ \{0,\}proxy-groups:/,/#change server end#/d' "$CONFIG_FILE" 2>/dev/null
    else
       sed -i '/^ \{0,\}Proxy:/i\#change server#' "$CONFIG_FILE" 2>/dev/null
-   	  sed -i '/^ \{0,\}rules/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
+   	  sed -i '/^ \{0,\}rules:/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
       sed -i '/^ \{0,\}Proxy:/,/#change server end#/d' "$CONFIG_FILE" 2>/dev/null
    fi
 
