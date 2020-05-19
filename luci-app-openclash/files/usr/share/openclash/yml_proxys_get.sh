@@ -45,7 +45,7 @@ elif [ "$provider_len" -le "$proxy_len" ]; then
    awk '/^ {0,}proxy-providers:/,/^ {0,}Proxy:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_provider.yaml 2>&1
 elif [ "$provider_len" -ge "$group_len" ]; then
 	 awk '/^ {0,}Proxy:/,/^ {0,}proxy-groups:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
-   awk '/^ {0,}proxy-providers:/,/^ {0,}rules/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_provider.yaml 2>&1
+   awk '/^ {0,}proxy-providers:/,/^ {0,}rules:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_provider.yaml 2>&1
 elif [ "$provider_len" -le "$group_len" ]; then
    awk '/^ {0,}proxy-providers:/,/^ {0,}proxy-groups:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_provider.yaml 2>&1
 else
@@ -79,8 +79,8 @@ sed -i 's/\"//g' $provider_file 2>/dev/null
 sed -i '/^ *$/d' $provider_file 2>/dev/null
 sed -i '/^ \{0,\}#/d' $provider_file 2>/dev/null
 sed -i 's/\t/ /g' $provider_file 2>/dev/null
-provider_line=$(awk '{print $0"#*#"FNR}' $provider_file 2>/dev/null |grep -v '^ \{0,\}proxy-providers:\|^ \{0,\}Proxy:\|^ \{0,\}proxy-groups:\|^ \{0,\}rules\|^ \{0,\}type:\|^ \{0,\}path:\|^ \{0,\}url:\|^ \{0,\}interval:\|^ \{0,\}health-check:\|^ \{0,\}enable:' |awk -F '#*#' '{print $3}')
-provider_num=$(grep -c "^ \{0,\}type:" $provider_file 2>/dev/null)
+provider_line=$(awk '{print $0"#*#"FNR}' $provider_file 2>/dev/null |grep -v '^ \{0,\}proxy-providers:\|^ \{0,\}Proxy:\|^ \{0,\}proxy-groups:\|^ \{0,\}rules:\|^ \{0,\}type:\|^ \{0,\}path:\|^ \{0,\}url:\|^ \{0,\}interval:\|^ \{0,\}health-check:\|^ \{0,\}enable:' |awk -F '#*#' '{print $3}')
+provider_num=$(grep -c "type:" $provider_file 2>/dev/null)
 provider_count=1
 
 cfg_get()
