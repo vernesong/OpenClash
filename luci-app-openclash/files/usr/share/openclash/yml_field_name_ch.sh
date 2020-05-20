@@ -3,20 +3,20 @@
 YML_FILE="$1"
 
    #proxy-providers
-	 [ -z "$(grep "^proxy-provider:" "$YML_FILE")" ] && {
-      sed -i "s/^ \{1,\}proxy-provider:/proxy-provider:/g" "$YML_FILE" 2>/dev/null
+	 [ -z "$(grep "^proxy-providers:" "$YML_FILE")" ] && {
+      sed -i "s/^ \{1,\}proxy-providers:/proxy-providers:/g" "$YML_FILE" 2>/dev/null
    }
-   [ -z "$(grep "^proxy-provider:" "$YML_FILE")" ] && {
-      sed -i "s/^ \{0,\}proxy-providers:/proxy-provider:/g" "$YML_FILE" 2>/dev/null
+   [ -z "$(grep "^proxy-providers:" "$YML_FILE")" ] && {
+      sed -i "s/^ \{0,\}proxy-provider:/proxy-providers:/g" "$YML_FILE" 2>/dev/null
    }
    #proxy-groups
-   [ -z "$(grep "^Proxy Group:" "$YML_FILE")" ] && {
-      sed -i "s/^ \{0,\}\'Proxy Group\':/Proxy Group:/g" "$YML_FILE" 2>/dev/null
-      sed -i 's/^ \{0,\}\"Proxy Group\":/Proxy Group:/g' "$YML_FILE" 2>/dev/null
-      sed -i "s/^ \{1,\}Proxy Group:/Proxy Group:/g" "$YML_FILE" 2>/dev/null
+   [ -z "$(grep "^proxy-groups:" "$YML_FILE")" ] && {
+      sed -i "s/^ \{0,\}\'Proxy Group\':/proxy-groups:/g" "$YML_FILE" 2>/dev/null
+      sed -i 's/^ \{0,\}\"Proxy Group\":/proxy-groups:/g' "$YML_FILE" 2>/dev/null
+      sed -i "s/^ \{1,\}proxy-groups:/proxy-groups:/g" "$YML_FILE" 2>/dev/null
    }
-   [ -z "$(grep "^Proxy Group:" "$YML_FILE")" ] && {
-      sed -i "s/^ \{0,\}proxy-groups:/Proxy Group:/g" "$YML_FILE" 2>/dev/null
+   [ -z "$(grep "^proxy-groups:" "$YML_FILE")" ] && {
+      sed -i "s/^ \{0,\}Proxy Group:/proxy-groups:/g" "$YML_FILE" 2>/dev/null
    }
    
    #proxies
@@ -30,14 +30,24 @@ YML_FILE="$1"
    	  group_len=$(sed -n '/^Proxy Group:/=' "$YML_FILE" 2>/dev/null)
    	  proxies_len=$(sed -n '/proxies:/=' "$YML_FILE" 2>/dev/null |sed -n 1p)
       if [ "$proxies_len" -lt "$group_len" ]; then
-         sed -i "${proxies_len}s/proxies:/Proxy:/" "$YML_FILE" 2>/dev/null
+         sed -i "${proxies_len}s/ \{0,\}proxies:/Proxy:/" "$YML_FILE" 2>/dev/null
       fi 2>/dev/null
    }
    
    #rules
-   [ -z "$(grep "^Rule:" "$YML_FILE")" ] && {
-      sed -i "s/^ \{1,\}Rule:/Rule:/g" "$YML_FILE" 2>/dev/null
+   [ -z "$(grep "^rules:" "$YML_FILE")" ] && {
+      sed -i "s/^ \{1,\}rules:/rules:/g" "$YML_FILE" 2>/dev/null
    }
-   [ -z "$(grep "^Rule:" "$YML_FILE")" ] && {
-      sed -i "s/^ \{0,\}rules:/Rule:/g" "$YML_FILE" 2>/dev/null
+   [ -z "$(grep "^rules:" "$YML_FILE")" ] && {
+      sed -i "s/^ \{0,\}Rule:/rules:/g" "$YML_FILE" 2>/dev/null
+   }
+   
+   #rule-providers:
+   [ -z "$(grep "^rule-providers:" "$YML_FILE")" ] && {
+      sed -i "s/^ \{1,\}rule-providers:/rule-providers:/g" "$YML_FILE" 2>/dev/null
+   }
+   
+   #script:
+   [ -z "$(grep "^script:" "$YML_FILE")" ] && {
+      sed -i "s/^ \{1,\}script:/script:/g" "$YML_FILE" 2>/dev/null
    }

@@ -481,7 +481,7 @@ config_load "openclash"
 config_foreach new_servers_group_set "config_subscribe"
 #proxy-provider
 echo "开始写入配置文件【$CONFIG_NAME】的代理集信息..." >$START_LOG
-echo "proxy-provider:" >$PROXY_PROVIDER_FILE
+echo "proxy-providers:" >$PROXY_PROVIDER_FILE
 rm -rf /tmp/Proxy_Provider
 config_foreach yml_proxy_provider_set "proxy-provider"
 sed -i "s/^ \{0,\}/  - /" /tmp/Proxy_Provider 2>/dev/null #添加参数
@@ -507,7 +507,7 @@ fi
 #一键创建配置文件
 if [ "$rule_sources" = "ConnersHua" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
 echo "使用ConnersHua规则创建中..." >$START_LOG
-echo "Proxy Group:" >>$SERVER_FILE
+echo "proxy-groups:" >>$SERVER_FILE
 cat >> "$SERVER_FILE" <<-EOF
 - name: Auto - UrlTest
   type: url-test
@@ -607,7 +607,7 @@ ${UCI_SET}Others="Others"
 }
 elif [ "$rule_sources" = "lhie1" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
 echo "使用lhie1规则创建中..." >$START_LOG
-echo "Proxy Group:" >>$SERVER_FILE
+echo "proxy-groups:" >>$SERVER_FILE
 cat >> "$SERVER_FILE" <<-EOF
 - name: Auto - UrlTest
   type: url-test
@@ -825,7 +825,7 @@ ${UCI_SET}Others="Others"
 }
 elif [ "$rule_sources" = "ConnersHua_return" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
 echo "使用ConnersHua回国规则创建中..." >$START_LOG
-echo "Proxy Group:" >>$SERVER_FILE
+echo "proxy-groups:" >>$SERVER_FILE
 cat >> "$SERVER_FILE" <<-EOF
 - name: Auto - UrlTest
   type: url-test
@@ -876,7 +876,7 @@ ${UCI_SET}Others="Others"
 fi
 
 if [ "$create_config" != "0" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
-   echo "Rule:" >>$SERVER_FILE
+   echo "rules:" >>$SERVER_FILE
    echo "配置文件【$CONFIG_NAME】创建完成，正在更新服务器、代理集、策略组信息..." >$START_LOG
    cat "$PROXY_PROVIDER_FILE" > "$CONFIG_FILE" 2>/dev/null
    cat "$SERVER_FILE" >> "$CONFIG_FILE" 2>/dev/null
@@ -885,23 +885,23 @@ elif [ -z "$if_game_proxy" ]; then
    echo "服务器、代理集、策略组信息修改完成，正在更新配置文件【$CONFIG_NAME】..." >$START_LOG
    #判断各个区位置
    proxy_len=$(sed -n '/^Proxy:/=' "$CONFIG_FILE" 2>/dev/null)
-   group_len=$(sed -n '/^ \{0,\}Proxy Group:/=' "$CONFIG_FILE" 2>/dev/null)
-   provider_len=$(sed -n '/^proxy-provider:/=' "$CONFIG_FILE" 2>/dev/null)
+   group_len=$(sed -n '/^ \{0,\}proxy-groups:/=' "$CONFIG_FILE" 2>/dev/null)
+   provider_len=$(sed -n '/^proxy-providers:/=' "$CONFIG_FILE" 2>/dev/null)
    if [ "$provider_len" -le "$proxy_len" ]; then
-      sed -i '/^ \{0,\}proxy-provider:/i\#change server#' "$CONFIG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}Rule:/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}proxy-provider:/,/#change server end#/d' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^ \{0,\}proxy-providers:/i\#change server#' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^ \{0,\}rules:/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^ \{0,\}proxy-providers:/,/#change server end#/d' "$CONFIG_FILE" 2>/dev/null
    elif [ "$provider_len" -le "$group_len" ] && [ -z "$proxy_len" ]; then
-      sed -i '/^ \{0,\}proxy-provider:/i\#change server#' "$CONFIG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}Rule:/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}proxy-provider:/,/#change server end#/d' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^ \{0,\}proxy-providers:/i\#change server#' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^ \{0,\}rules:/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^ \{0,\}proxy-providers:/,/#change server end#/d' "$CONFIG_FILE" 2>/dev/null
    elif [ "$provider_len" -ge "$group_len" ] && [ -z "$proxy_len" ]; then
-      sed -i '/^ \{0,\}Proxy Group:/i\#change server#' "$CONFIG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}Rule:/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
-      sed -i '/^ \{0,\}Proxy Group:/,/#change server end#/d' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^ \{0,\}proxy-groups:/i\#change server#' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^ \{0,\}rules:/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
+      sed -i '/^ \{0,\}proxy-groups:/,/#change server end#/d' "$CONFIG_FILE" 2>/dev/null
    else
       sed -i '/^ \{0,\}Proxy:/i\#change server#' "$CONFIG_FILE" 2>/dev/null
-   	  sed -i '/^ \{0,\}Rule:/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
+   	  sed -i '/^ \{0,\}rules:/i\#change server end#' "$CONFIG_FILE" 2>/dev/null
       sed -i '/^ \{0,\}Proxy:/,/#change server end#/d' "$CONFIG_FILE" 2>/dev/null
    fi
 

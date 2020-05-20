@@ -1,4 +1,7 @@
 #!/bin/sh
+   status=$(ps|grep -c /etc/init.d/openclash)
+   [ "$status" -gt "1" ] && sleep 5
+   
    START_LOG="/tmp/openclash_start.log"
    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
    LOG_FILE="/tmp/openclash.log"
@@ -17,31 +20,31 @@
       	 else
             curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          fi
-         sed -i '1i Rule:' /tmp/rules.yaml
+         sed -i '1i rules:' /tmp/rules.yaml
       elif [ "$RUlE_SOURCE" = "ConnersHua" ]; then
       	 if pidof clash >/dev/null; then
             curl -sL --connect-timeout 10 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/Pro.yaml -o /tmp/rules.yaml >/dev/null 2>&1
       	 else
             curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/Pro.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          fi
-         sed -i "/^rules:/c\^Rule:" /tmp/rules.yaml 2>/dev/null && sed -i -n '/^Rule:/,$p' /tmp/rules.yaml 2>/dev/null
+         sed -i "/^Rule:/c\^rules:" /tmp/rules.yaml 2>/dev/null && sed -i -n '/^rules:/,$p' /tmp/rules.yaml 2>/dev/null
       elif [ "$RUlE_SOURCE" = "ConnersHua_return" ]; then
       	 if pidof clash >/dev/null; then
             curl -sL --connect-timeout 10 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/BacktoCN.yaml -o /tmp/rules.yaml >/dev/null 2>&1
       	 else
             curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/ConnersHua/Profiles/master/Clash/BacktoCN.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          fi
-         sed -i "/^rules:/c\^Rule:" /tmp/rules.yaml 2>/dev/null && sed -i -n '/^Rule:/,$p' /tmp/rules.yaml 2>/dev/null
+         sed -i "/^Rule:/c\^rules:" /tmp/rules.yaml 2>/dev/null && sed -i -n '/^rules:/,$p' /tmp/rules.yaml 2>/dev/null
       fi
    if [ "$?" -eq "0" ] && [ "$RUlE_SOURCE" != 0 ] && [ -s "/tmp/rules.yaml" ]; then
       echo "下载成功，开始预处理规则文件..." >$START_LOG
-      sed -i "/^Rule:/a\##source:${RUlE_SOURCE}" /tmp/rules.yaml >/dev/null 2>&1
+      sed -i "/^rules:/a\##source:${RUlE_SOURCE}" /tmp/rules.yaml >/dev/null 2>&1
       echo "检查下载的规则文件是否有更新..." >$START_LOG
       cmp -s /etc/openclash/"$RUlE_SOURCE".yaml /tmp/rules.yaml
       if [ "$?" -ne "0" ]; then
          echo "检测到下载的规则文件有更新，开始替换..." >$START_LOG
          mv /tmp/rules.yaml /etc/openclash/"$RUlE_SOURCE".yaml >/dev/null 2>&1
-         sed -i '/^Rule:/a\##updated' /etc/openclash/"$RUlE_SOURCE".yaml >/dev/null 2>&1
+         sed -i '/^rules:/a\##updated' /etc/openclash/"$RUlE_SOURCE".yaml >/dev/null 2>&1
          echo "替换成功，重新加载 OpenClash 应用新规则..." >$START_LOG
          /etc/init.d/openclash restart 2>/dev/null
          echo "${LOGTIME} Other Rules 【$RUlE_SOURCE】 Update Successful" >>$LOG_FILE

@@ -1,4 +1,4 @@
-#!/bin/sh /etc/rc.common
+#!/bin/bash /etc/rc.common
 # Copyright (c) 2019 vernesong
 
 START=99
@@ -14,6 +14,8 @@ START_LOG="/tmp/openclash_start.log"
 BACKUP_FILE="/etc/openclash/backup/$(uci get openclash.config.config_path 2>/dev/null |awk -F '/' '{print $5}' 2>/dev/null)"
 START_BACKUP="/tmp/config.sbak"
 CHANGE_FILE="/tmp/yaml_change.yaml"
+SCRIPT_FILE="/tmp/yaml_script.yaml"
+RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
 RULE_FILE="/tmp/yaml_rules.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
 PROXY_FILE="/tmp/yaml_proxy.yaml"
@@ -84,6 +86,29 @@ revert_dns() {
    rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
 }
 
+field_cut()
+{
+   local i line first_line end_line field_match
+   first_line=$(expr "$1" + 1)
+   for ((i=$first_line;i<=$(sed -n '$=' "$3");i++))
+   do
+      line=$(sed -n "${i}p" "$3")
+      [ -n "$(echo "$line" |grep "^ \{0,\}Proxy:")" ] \
+      || [ -n "$(echo "$line" |grep "^ \{0,\}proxy-providers:")" ] \
+      || [ -n "$(echo "$line" |grep "^ \{0,\}proxy-groups:")" ] \
+      || [ -n "$(echo "$line" |grep "^ \{0,\}rules:")" ] \
+      || [ -n "$(echo "$line" |grep "^ \{0,\}rule-providers:")" ] \
+      || [ -n "$(echo "$line" |grep "^ \{0,\}script:")" ] && field_match="ture" && break
+   done
+   if [ "$i" -eq "$(sed -n '$=' "$3")" ] && [ -z "$field_match" ]; then
+      end_line="$i"
+   else
+      end_line=$(expr "$i" - 1)
+   fi
+   sed -n "${1},${end_line}p" "$3" > "$2" 2>/dev/null
+   sed -i "${1},${end_line}d" "$3" 2>/dev/null
+}
+
 yml_check()
 {
    #格式替换
@@ -107,11 +132,11 @@ yml_check()
    fi
 
    #位置检查
-   proxy_len=$(sed -n '/^Proxy:/=' "$3" 2>/dev/null)
-   provider_len=$(sed -n '/^proxy-provider:/=' "$3" 2>/dev/null)
-   group_len=$(sed -n '/^Proxy Group:/=' "$3" 2>/dev/null)
+   proxy_len=$(sed -n '/^Proxy:/=' "$3" 2>/dev/null |sed -n 1p)
+   provider_len=$(sed -n '/^proxy-providers:/=' "$3" 2>/dev/null)
+   group_len=$(sed -n '/^proxy-groups:/=' "$3" 2>/dev/null)
    dns_len=$(sed -n '/^dns:/=' "$3" 2>/dev/null)
-   rule_len=$(sed -n '/^Rule:/=' "$3" 2>/dev/null)
+   rule_len=$(sed -n '/^rules:/=' "$3" 2>/dev/null)
 
    if [ "$dns_len" -ge "$proxy_len" ] || [ "$dns_len" -ge "$rule_len" ] || [ "$dns_len" -ge "$group_len" ]; then
    	  echo "错误: 不支持的配置文件， General 设置部分应位于开头，请根据模板修改后重试！" > $START_LOG
@@ -120,7 +145,7 @@ yml_check()
       exit 0
    fi 2>/dev/null
    	
-   if [ "$proxy_len" -ge "$rule_len" ] || [ "$provider_len" -ge "$rule_len" ]; then
+   if [ "$proxy_len" -ge "$rule_len" ]; then
    	  echo "错误: 不支持的配置文件，服务器节点设置部分应位于规则之前，请根据模板修改后重试！" > $START_LOG
    	  echo "${LOGTIME} Unsupported Config, Please Check The Proxy Setting's location And Try-again!" >> $LOG_FILE
       mv "$START_BACKUP" "$CONFIG_FILE"
@@ -134,45 +159,32 @@ yml_check()
       exit 0
    fi 2>/dev/null
 
-   #处理provider位置
-   if [ ! -z "$provider_len" ]; then
-      if [ "$provider_len" -ge "$proxy_len" ] && [ "$provider_len" -le "$group_len" ]; then
-         awk '/^proxy-provider:/,/^Proxy Group:/{print}' "$3" | sed '/^Proxy Group:/d' >/tmp/backprovider.yaml 2>/dev/null
-         sed -i '/^Proxy Group:/i\proxy-provider-tag' "$3" 2>/dev/null
-         sed -i '/^proxy-provider:/,/proxy-provider-tag/d' "$3" 2>/dev/null
-         sed -i '/^Proxy:/i\proxy-provider:' "$3" 2>/dev/null
-         sed -i 's/^proxy-provider://g' /tmp/backprovider.yaml 2>/dev/null
-         sed -i '/^ *$/d' /tmp/backprovider.yaml 2>/dev/null
-         sed -i '/proxy-provider:/r/tmp/backprovider.yaml' "$3" 2>/dev/null
-         rm -rf /tmp/backprovider.yaml 2>/dev/null
-      elif [ "$provider_len" -ge "$group_len" ] && [ "$provider_len" -le "$rule_len" ]; then
-      	 awk '/^proxy-provider:/,/^Rule:/{print}' "$3" | sed '/^Rule:/d' >/tmp/backprovider.yaml 2>/dev/null
-         sed -i '/^Rule:/i\proxy-provider-tag' "$3" 2>/dev/null
-         sed -i '/^proxy-provider:/,/proxy-provider-tag/d' "$3" 2>/dev/null
-         if [ ! -z "$proxy_len" ]; then
-            sed -i '/^Proxy:/i\proxy-provider:' "$3" 2>/dev/null
-         else
-            sed -i '/^Proxy Group:/i\proxy-provider:' "$3" 2>/dev/null
-         fi
-         sed -i 's/^proxy-provider://g' /tmp/backprovider.yaml 2>/dev/null
-         sed -i '/^ *$/d' /tmp/backprovider.yaml 2>/dev/null
-         sed -i '/proxy-provider:/r/tmp/backprovider.yaml' "$3" 2>/dev/null
-         rm -rf /tmp/backprovider.yaml 2>/dev/null
-      elif [ "$provider_len" -ge "$rule_len" ]; then
-         sed -n '/^ \{0,\}proxy-provider:/,$p' "$3" >/tmp/backprovider.yaml 2>/dev/null
-         sed -i '/^ \{0,\}proxy-provider:/,$d' "$3" 2>/dev/null
-      	 if [ ! -z "$proxy_len" ]; then
-            sed -i '/^Proxy:/i\proxy-provider:' "$3" 2>/dev/null
-         else
-            sed -i '/^Proxy Group:/i\proxy-provider:' "$3" 2>/dev/null
-         fi
-         sed -i 's/^proxy-provider://g' /tmp/backprovider.yaml 2>/dev/null
-         sed -i '/^ *$/d' /tmp/backprovider.yaml 2>/dev/null
-         sed -i '/proxy-provider:/r/tmp/backprovider.yaml' "$3" 2>/dev/null
-         rm -rf /tmp/backprovider.yaml 2>/dev/null
-      fi 2>/dev/null
-   fi
+   #处理proxy_provider位置
+   if [ "$provider_len" -ge "$proxy_len" ] || [ "$provider_len" -ge "$group_len" ]; then
+      field_cut "$provider_len" "$PROXY_PROVIDER_FILE" "$3"
+      if [ -n "$proxy_len" ]; then
+         sed -i '/^Proxy:/i\proxy-provider-tag' "$3" 2>/dev/null
+         sed -i '/proxy-provider-tag/r/tmp/yaml_proxy_provider.yaml' "$3" 2>/dev/null
+         sed -i '/proxy-provider-tag/d' "$3" 2>/dev/null
+      elif [ -n "$group_len" ]; then
+         sed -i '/^proxy-groups:/i\proxy-provider-tag' "$3" 2>/dev/null
+         sed -i '/proxy-provider-tag/r/tmp/yaml_proxy_provider.yaml' "$3" 2>/dev/null
+         sed -i '/proxy-provider-tag/d' "$3" 2>/dev/null
+      fi
+   fi 2>/dev/null
    
+   #处理rule_provider位置
+   rule_provider_len=$(sed -n '/^rule-providers:/=' "$3" 2>/dev/null)
+   if [ -n "$rule_provider_len" ]; then
+   	  field_cut "$rule_provider_len" "$RULE_PROVIDER_FILE" "$3"
+   fi 2>/dev/null
+   
+   #处理script位置
+   script_len=$(sed -n '/^script:/=' "$3" 2>/dev/null)
+   if [ -n "$script_len" ]; then
+   	  field_cut "$script_len" "$SCRIPT_FILE" "$3"
+   fi 2>/dev/null
+
    if [ ! -z "$provider_len" ]; then
       proxy_provider_mode=1
    fi
@@ -180,7 +192,7 @@ yml_check()
    #自定义DNS还原
    if [ "$(grep -c '##Custom DNS##' "$3")" -gt 0 ] && [ "$2" = 0 ] && [ -f "$4" ]; then
       if [ "$proxy_provider_mode" -eq 1 ]; then
-         awk '/^ {0,}nameserver:/,/proxy-provider:/{print}' "$4" | sed '/^proxy-provider:/d' >/tmp/backdns.config 2>/dev/null
+         awk '/^ {0,}nameserver:/,/proxy-providers:/{print}' "$4" | sed '/^proxy-providers:/d' >/tmp/backdns.config 2>/dev/null
       else
          awk '/^ {0,}nameserver:/,/Proxy:/{print}' "$4" | sed '/^Proxy:/d' >/tmp/backdns.config 2>/dev/null
       fi
@@ -203,7 +215,7 @@ yml_check()
    #添加标识
    sed -i '/OpenClash-General/d' "$3" 2>/dev/null
    if [ "$proxy_provider_mode" -eq 1 ]; then
-      sed -i '/^proxy-provider:/i\#===================== OpenClash-General-Settings =====================#' "$3" 2>/dev/null
+      sed -i '/^proxy-providers:/i\#===================== OpenClash-General-Settings =====================#' "$3" 2>/dev/null
    else
       sed -i '/^Proxy:/i\#===================== OpenClash-General-Settings =====================#' "$3" 2>/dev/null
    fi
@@ -215,7 +227,7 @@ yml_dns_check()
 
    if [ -z "$(grep '^dns:' "$CONFIG_FILE")" ]; then
       if [ "$proxy_provider_mode" -eq 1 ]; then
-      	 sed -i '/^proxy-provider:/i\dns:' "$CONFIG_FILE" 2>/dev/null
+      	 sed -i '/^proxy-providers:/i\dns:' "$CONFIG_FILE" 2>/dev/null
       else
          sed -i '/^Proxy:/i\dns:' "$CONFIG_FILE" 2>/dev/null
       fi
@@ -223,7 +235,7 @@ yml_dns_check()
 
    if [ -z "$(grep '^ \{0,\}nameserver:' "$CONFIG_FILE")" ]; then
       if [ "$proxy_provider_mode" -eq 1 ]; then
-         sed -i '/^proxy-provider:/i\  nameserver:' "$CONFIG_FILE" 2>/dev/null
+         sed -i '/^proxy-providers:/i\  nameserver:' "$CONFIG_FILE" 2>/dev/null
       else
          sed -i '/^Proxy:/i\  nameserver:' "$CONFIG_FILE" 2>/dev/null
       fi
@@ -324,27 +336,27 @@ fi
 yml_cut()
 {
     cp "$4" "$1"
-    sed -i '/^Rule:/,$d' "$1" 2>/dev/null
+    sed -i '/^rules:/,$d' "$1" 2>/dev/null
     sed -n '/^ \{0,\}nameserver:/,$p' "$1" >"$3" 2>/dev/null
     if [ "$proxy_provider_mode" -eq 1 ]; then
-    	 sed -n '/^ \{0,\}Proxy Group:/,$p' "$3" >"$7" 2>/dev/null
+    	 sed -n '/^ \{0,\}proxy-groups:/,$p' "$3" >"$7" 2>/dev/null
     	 sed -n '/^ \{0,\}Proxy:/,$p' "$3" >"$5" 2>/dev/null
-       sed -n '/^ \{0,\}proxy-provider:/,$p' "$3" >"$6" 2>/dev/null
-       sed -i '/^ \{0,\}Proxy Group:/,$d' "$5" 2>/dev/null
+       sed -n '/^ \{0,\}proxy-providers:/,$p' "$3" >"$6" 2>/dev/null
+       sed -i '/^ \{0,\}proxy-groups:/,$d' "$5" 2>/dev/null
        sed -i '/^ \{0,\}Proxy:/,$d' "$6" 2>/dev/null
-       sed -i '/^ \{0,\}Proxy Group:/,$d' "$6" 2>/dev/null
+       sed -i '/^ \{0,\}proxy-groups:/,$d' "$6" 2>/dev/null
     else
-       sed -n '/^ \{0,\}Proxy Group:/,$p' "$3" >"$7" 2>/dev/null
+       sed -n '/^ \{0,\}proxy-groups:/,$p' "$3" >"$7" 2>/dev/null
        sed -n '/^ \{0,\}Proxy:/,$p' "$3" >"$5" 2>/dev/null
-       sed -i '/^ \{0,\}Proxy Group:/,$d' "$5" 2>/dev/null
+       sed -i '/^ \{0,\}proxy-groups:/,$d' "$5" 2>/dev/null
     fi
     sed -i '/^ \{0,\}nameserver:/,$d' "$1" 2>/dev/null
     if [ "$proxy_provider_mode" -eq 1 ]; then
-       sed -i '/^ \{0,\}proxy-provider:/,$d' "$3" 2>/dev/null
+       sed -i '/^ \{0,\}proxy-providers:/,$d' "$3" 2>/dev/null
     else
        sed -i '/^ \{0,\}Proxy:/,$d' "$3" 2>/dev/null
     fi
-    sed -n '/^Rule:/,$p' "$4" >"$2" 2>/dev/null
+    sed -n '/^rules:/,$p' "$4" >"$2" 2>/dev/null
 }
 
 #获取自定义DNS设置
@@ -586,25 +598,25 @@ sed -i '/OpenClash-Game-Rules-End/d' "$RULE_FILE" 2>/dev/null
 }
 
 #合并文件
-cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_PROVIDER_FILE" "$PROXY_FILE" "$GROUP_FILE" "$RULE_FILE" > "$CONFIG_FILE" 2>/dev/null
+cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_PROVIDER_FILE" "$PROXY_FILE" "$GROUP_FILE" "$RULE_PROVIDER_FILE" "$SCRIPT_FILE" "$RULE_FILE" > "$CONFIG_FILE" 2>/dev/null
 
 #处理游戏节点与策略组
 config_load "openclash"
 config_foreach yml_game_group_get "game_config"
-sed -i '/^ \{0,\}Proxy Group:/r/tmp/yaml_groups.yaml' "$CONFIG_FILE" 2>/dev/null
+sed -i '/^ \{0,\}proxy-groups:/r/tmp/yaml_groups.yaml' "$CONFIG_FILE" 2>/dev/null
 sed -i '/^ \{0,\}Proxy:/d' /tmp/yaml_servers.yaml 2>/dev/null
-sed -i '/^ \{0,\}proxy-provider:/d' /tmp/yaml_provider.yaml 2>/dev/null
+sed -i '/^ \{0,\}proxy-providers:/d' /tmp/yaml_provider.yaml 2>/dev/null
 if [ -z "$(grep "^ \{0,\}Proxy:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -f "/tmp/yaml_servers.yaml" ]; then
-   sed -i '/^ \{0,\}Proxy Group:/i\Proxy:' "$CONFIG_FILE" 2>/dev/null
+   sed -i '/^ \{0,\}proxy-groups:/i\Proxy:' "$CONFIG_FILE" 2>/dev/null
    sed -i '/^ \{0,\}Proxy:/r/tmp/yaml_servers.yaml' "$CONFIG_FILE" 2>/dev/null
 elif [ -f "/tmp/yaml_servers.yaml" ]; then
    sed -i '/^ \{0,\}Proxy:/r/tmp/yaml_servers.yaml' "$CONFIG_FILE" 2>/dev/null
 fi
-if [ -z "$(grep "^ \{0,\}proxy-provider:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -f "/tmp/yaml_provider.yaml" ]; then
-   sed -i '/OpenClash-General-Settings/a\proxy-provider:' "$CONFIG_FILE" 2>/dev/null
-   sed -i '/^ \{0,\}proxy-provider:/r/tmp/yaml_provider.yaml' "$CONFIG_FILE" 2>/dev/null
+if [ -z "$(grep "^ \{0,\}proxy-providers:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -f "/tmp/yaml_provider.yaml" ]; then
+   sed -i '/OpenClash-General-Settings/a\proxy-providers:' "$CONFIG_FILE" 2>/dev/null
+   sed -i '/^ \{0,\}proxy-providers:/r/tmp/yaml_provider.yaml' "$CONFIG_FILE" 2>/dev/null
 elif [ -f "/tmp/yaml_servers.yaml" ]; then
-   sed -i '/^ \{0,\}proxy-provider:r/tmp/yaml_provider.yaml' "$CONFIG_FILE" 2>/dev/null
+   sed -i '/^ \{0,\}proxy-providers:r/tmp/yaml_provider.yaml' "$CONFIG_FILE" 2>/dev/null
 fi
 }
 
@@ -970,9 +982,9 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     get_config
     echo "第二步: 配置文件检查..." >$START_LOG
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKUP_FILE" "$START_BACKUP"
-    grep "^ \{0,\}Proxy Group:" "$CONFIG_FILE" >/dev/null 2>&1 && grep "^ \{0,\}Rule:" "$CONFIG_FILE" >/dev/null 2>&1
+    grep "^ \{0,\}proxy-groups:" "$CONFIG_FILE" >/dev/null 2>&1 && grep "^ \{0,\}rules:" "$CONFIG_FILE" >/dev/null 2>&1
     if [ "$?" -eq "0" ]; then
-       grep "^ \{0,\}Proxy:" "$CONFIG_FILE" >/dev/null 2>&1 || grep "^ \{0,\}proxy-provider:" "$CONFIG_FILE" >/dev/null 2>&1
+       grep "^ \{0,\}Proxy:" "$CONFIG_FILE" >/dev/null 2>&1 || grep "^ \{0,\}proxy-providers:" "$CONFIG_FILE" >/dev/null 2>&1
        if [ "$?" -ne "0" ]; then
           nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
           echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请根据日志信息对照模板格式检查修改配置文件！" >$START_LOG
@@ -1001,6 +1013,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              echo "" >$START_LOG
           else
              echo "第五步: 启动主程序..." >$START_LOG
+             sed -i "s/^ \{1,\}Proxy:/proxies:/g" "$CONFIG_FILE" 2>/dev/null
              ulimit -SHn 65535 2>/dev/null
              config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
              if [ -n "$(pidof clash)" ] && [ "$en_mode_tun" != "1" ] && [ "$config_reload" != "0" ]; then
@@ -1046,8 +1059,8 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
                    echo "错误: OpenClash 启动失败，尝试还原第三方规则并重新启动 Clash 主程序..." >$START_LOG
                    echo "${LOGTIME} OpenClash Can Not Start, Try Use Backup Rules Start Again" >> $LOG_FILE
                    mv "$START_BACKUP" /etc/openclash/configrules.bak
-                   sed -i -n '/^Rule:/,$p' /etc/openclash/configrules.bak
-                   sed -i '/^Rule:/,$d' "$CONFIG_FILE"
+                   sed -i -n '/^rules:/,$p' /etc/openclash/configrules.bak
+                   sed -i '/^rules:/,$d' "$CONFIG_FILE"
                    cat /etc/openclash/configrules.bak >> "$CONFIG_FILE"
                    rm -rf /etc/openclash/configrules.bak
                    nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &

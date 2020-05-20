@@ -1,4 +1,7 @@
 #!/bin/sh
+   status=$(ps|grep -c /etc/init.d/openclash)
+   [ "$status" -gt "1" ] && sleep 5
+
    START_LOG="/tmp/openclash_start.log"
    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
    LOG_FILE="/tmp/openclash.log"
