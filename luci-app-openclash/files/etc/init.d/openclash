@@ -671,6 +671,7 @@ CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 do_run_mode()
 {
     en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
+    proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
     
     if [ ! -h "/etc/openclash/clash" ] && [ -s "/etc/openclash/clash" ] && [ ! -s "/etc/openclash/core/clash" ]; then
        mv "/etc/openclash/clash" "/etc/openclash/core/clash" 2>/dev/null
@@ -704,6 +705,11 @@ do_run_mode()
        en_mode="fake-ip"
        ln -s /etc/openclash/core/clash_game /etc/openclash/clash 2>/dev/null
        core_type="Game"
+    fi
+    
+    if [ "$proxy_mode" = "Script" ] || [ -s "$RULE_PROVIDER_FILE" ]; then
+       ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
+       core_type="Tun"
     fi
     
     if [ ! -f "/etc/openclash/clash" ] && [ -f "/etc/openclash/core/clash" ]; then
@@ -960,7 +966,6 @@ get_config()
    lan_ip6=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
    disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
    log_level=$(uci get openclash.config.log_level 2>/dev/null)
-   proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
    intranet_allowed=$(uci get openclash.config.intranet_allowed 2>/dev/null)
    enable_udp_proxy=$(uci get openclash.config.enable_udp_proxy 2>/dev/null)
    operation_mode=$(uci get openclash.config.operation_mode 2>/dev/null)
