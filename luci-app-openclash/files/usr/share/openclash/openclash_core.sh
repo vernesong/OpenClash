@@ -50,7 +50,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			case $CORE_TYPE in
       	"Tun")
       	echo "正在下载【Tun】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
-				curl -sL -m 30 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" https://github.com/Dreamacro/clash/releases/download/TUN/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash.gz >/dev/null 2>&1
+				curl -sL -m 30 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" https://github.com/vernesong/OpenClash/releases/download/TUN-Premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash.gz >/dev/null 2>&1
 				;;
 				"Game")
 				echo "正在下载【Game】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG

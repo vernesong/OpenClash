@@ -128,26 +128,28 @@
       var corelvis = arr_core[0];
       var coretunlvis = arr_core[1];
       var coregamelvis = arr_core[2];
-      var new_ch = arr_core[3];
-			if ( new_ch == "2" || new_ch == "4" ) {
+			if (corelvis != status.corecv && corelvis != "" && corelvis != "\n") {
 			   core_lv.innerHTML = "<b><font color=green>"+corelvis+"<%:<New>%></font></b>";
 			}
-			else if (corelvis != "" && corelvis != "\n" ) {
+			else if (corelvis != "" && corelvis != "\n" && corelvis == status.corecv) {
 			   core_lv.innerHTML = "<b><font color=green>"+corelvis+"</font></b>";
 			}
 			else {
 			   core_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
 			}
-			if ( new_ch == "3" || new_ch == "4" ) {
+			if (coretunlvis != status.coretuncv && coretunlvis != "" && coretunlvis != "\n") {
 			   core_tun_lv.innerHTML = "<b><font color=green>"+coretunlvis+"<%:<New>%></font></b>";
 			}
-			else if (coretunlvis != "" && coretunlvis != "\n" ) {
+			else if (coretunlvis != "" && coretunlvis != "\n" && coretunlvis == status.coretuncv) {
 			   core_tun_lv.innerHTML = "<b><font color=green>"+coretunlvis+"</font></b>";
 			}
 			else {
 			   core_tun_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
 			}
-			if (coregamelvis != "" && coregamelvis != "\n" ) {
+			if (coregamelvis != status.coregamecv && coregamelvis != "" && coregamelvis != "\n") {
+			   core_game_lv.innerHTML = "<b><font color=green>"+coregamelvis+"<%:<New>%></font></b>";
+			}
+			else if (coregamelvis != "" && coregamelvis != "\n" && coregamelvis == status.coregamecv) {
 			   core_game_lv.innerHTML = "<b><font color=green>"+coregamelvis+"</font></b>";
 			}
 			else {

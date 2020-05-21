@@ -275,6 +275,29 @@ proxy-groups: # 此参数必须保留,不能删除
     - Proxy
     - DIRECT
 
+# https://lancellc.gitbook.io/clash/clash-config-file/rule-provider
+#rule-providers:
+#  name: # name of the provider
+#    type: http # type of the provider, it can be a HTTP or a File
+#    behavior: ipcidr # or domain
+#    path: # where is the file, ./ relative to clash home
+#    url: # only available when type is HTTP, where to download a file. You don't need to create a new file in local space.
+#    interval: # auto-update interval, only available when type is HTTP
+
+# https://lancellc.gitbook.io/clash/clash-config-file/script
+#script:
+#  code: |
+#    def main(ctx, metadata):
+#      ip = metadata["dst_ip"] = ctx.resolve_ip(metadata["host"])
+#      if ip == "":
+#        return "DIRECT"
+#        
+#      code = ctx.geoip(ip)
+#      if code == "LAN" or code == "CN":
+#        return "DIRECT"
+#      
+#      return "Proxy" # default policy for requests which are not matched by any other script
+      
 rules: # 此参数必须保留,不能删除
 # 如果您将一直使用第三方规则，下方可以留空。
 - DOMAIN-SUFFIX,google.com,auto
@@ -287,6 +310,8 @@ rules: # 此参数必须保留,不能删除
 - GEOIP,CN,DIRECT
 - DST-PORT,80,DIRECT
 - SRC-PORT,7777,DIRECT
+# or use rule with provider
+- RULE-SET,name,Proxy
 # FINAL would remove after prerelease
 # you also can use `FINAL,Proxy` or `FINAL,,Proxy` now
 - MATCH,auto

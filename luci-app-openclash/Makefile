@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.38.1
+PKG_VERSION:=0.38.2
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
@@ -57,7 +57,7 @@ if [ -f "/etc/config/openclash" ]; then
 	cp "/etc/config/openclash_custom_rules_2.list" "/tmp/openclash_custom_rules_2.list.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_fake_filter.list" "/tmp/openclash_custom_fake_filter.list.bak" >/dev/null 2>&1
-	cp "/etc/openclash/history" "/tmp/openclash_history.bak" >/dev/null 2>&1
+	cp -r "/etc/openclash/history" "/tmp/openclash_history" >/dev/null 2>&1
 fi
 if [ -f "/etc/openclash/custom/openclash_custom_rules.list" ]; then
 	cp "/etc/openclash/custom/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" >/dev/null 2>&1
@@ -83,6 +83,7 @@ mkdir -p /etc/openclash/config >/dev/null 2>&1
 mkdir -p /etc/openclash/proxy_provider >/dev/null 2>&1
 mkdir -p /etc/openclash/backup >/dev/null 2>&1
 mkdir -p /etc/openclash/core >/dev/null 2>&1
+mkdir -p /etc/openclash/history >/dev/null 2>&1
 mkdir -p /usr/share/openclash/backup >/dev/null 2>&1
 
 cp "/etc/config/openclash" "/usr/share/openclash/backup/openclash" >/dev/null 2>&1
@@ -97,7 +98,10 @@ if [ -f "/tmp/openclash.bak" ]; then
 	mv "/tmp/openclash_custom_rules_2.list.bak" "/etc/openclash/custom/openclash_custom_rules_2.list" >/dev/null 2>&1
 	mv "/tmp/openclash_custom_hosts.list.bak" "/etc/openclash/custom/openclash_custom_hosts.list" >/dev/null 2>&1
 	mv "/tmp/openclash_custom_fake_filter.list.bak" "/etc/openclash/custom/openclash_custom_fake_filter.list" >/dev/null 2>&1
-	mv "/tmp/openclash_history.bak" "/etc/openclash/history" >/dev/null 2>&1
+	if [ -d "/tmp/openclash_history/" ]; then
+		rm -rf "/etc/openclash/history" >/dev/null 2>&1
+		mv "/tmp/openclash_history" "/etc/openclash/history" >/dev/null 2>&1
+	fi
 fi
 if [ -f "/tmp/config.yaml" ]; then
 	mv "/tmp/config.yaml" "/etc/openclash/config/config.yaml" >/dev/null 2>&1
@@ -142,12 +146,14 @@ endef
 
 define Package/$(PKG_NAME)/prerm
 #!/bin/sh
+	uci set openclash.config.enable=0 >/dev/null 2>&1
+	uci commit openclash >/dev/null 2>&1
 	mv "/etc/openclash/core" "/tmp/openclash_core" >/dev/null 2>&1
 	mv "/etc/openclash/config.yaml" "/tmp/config.yaml" >/dev/null 2>&1
 	mv "/etc/openclash/config" "/tmp/openclash_config" >/dev/null 2>&1
 	mv "/etc/openclash/proxy_provider" "/tmp/openclash_proxy_provider" >/dev/null 2>&1
 	mv "/etc/openclash/game_rules" "/tmp/openclash_game_rules" >/dev/null 2>&1
-	mv "/etc/openclash/history" "/tmp/openclash_history.bak" >/dev/null 2>&1
+	mv "/etc/openclash/history" "/tmp/openclash_history" >/dev/null 2>&1
 	cp "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_rules.list" "/tmp/openclash_custom_rules.list.bak" >/dev/null 2>&1
 	cp "/etc/config/openclash_custom_hosts.list" "/tmp/openclash_custom_hosts.list.bak" >/dev/null 2>&1

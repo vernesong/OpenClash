@@ -131,6 +131,15 @@ msgstr "Global【全局代理（需前往控制面板手动指定节点）】"
 msgid "Direct Proxy Mode"
 msgstr "Direct【全局直连】"
 
+msgid "Script Proxy Mode - Only Tun Mode"
+msgstr "Script【脚本模式 - 仅Tun模式】"
+
+msgid "Select Stack Type"
+msgstr "网络栈类型"
+
+msgid "Select Stack Type For Tun Mode, According To The Running Speed on Your Machine"
+msgstr "请自行根据运行速度为Tun模式选择合适的网络栈"
+
 msgid "Log Level"
 msgstr "日志等级"
 
@@ -234,9 +243,9 @@ msgid "(Communication protocol)"
 msgstr "(通讯协议)"
 
 msgid "Enable ipv6 Resolve"
-msgstr "IPV6类型DNS解析"
+msgstr "允许IPV6类型DNS解析"
 
-msgid "Force Enable to Resolve ipv6 DNS Requests"
+msgid "Enable Clash to Resolve ipv6 DNS Requests"
 msgstr ""
 "固件须配置好IPV6的NAT，如你不使用IPV6请关闭固件的相关服务，避免客户端连接出现异常"
 
