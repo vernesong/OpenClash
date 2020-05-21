@@ -86,6 +86,15 @@ revert_dns() {
    rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
 }
 
+kill_clash()
+{
+   clash_pids=$(pidof clash|sed 's/$//g')
+   for clash_pid in $clash_pids; do
+      kill -9 "$clash_pid" 2>/dev/null
+   done
+   sleep 1
+}
+
 field_cut()
 {
    local i line first_line end_line field_match
@@ -957,6 +966,7 @@ get_config()
    operation_mode=$(uci get openclash.config.operation_mode 2>/dev/null)
    lan_ac_mode=$(uci get openclash.config.lan_ac_mode 2>/dev/null)
    enable_rule_proxy=$(uci get openclash.config.enable_rule_proxy 2>/dev/null)
+   stack_type=$(uci get openclash.config.stack_type 2>/dev/null)
 }
 
 start()
@@ -1000,7 +1010,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE" "$PROXY_PROVIDER_FILE" "$GROUP_FILE"
           yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
           yml_provider_path "$PROXY_PROVIDER_FILE"
-          sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1 "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" &
+          sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1 "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" &
           sh /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$BACKUP_FILE" &
           wait
           yml_game_custom
@@ -1013,13 +1023,13 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              echo "" >$START_LOG
           else
              echo "第五步: 启动主程序..." >$START_LOG
-             sed -i "s/^ \{1,\}Proxy:/proxies:/g" "$CONFIG_FILE" 2>/dev/null
+             sed -i "s/^ \{0,\}Proxy:/proxies:/g" "$CONFIG_FILE" 2>/dev/null
              ulimit -SHn 65535 2>/dev/null
              config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
              if [ -n "$(pidof clash)" ] && [ "$en_mode_tun" != "1" ] && [ "$config_reload" != "0" ]; then
                 curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
              else
-                kill -9 "$(pidof clash|sed 's/$//g')" 2>/dev/null
+                kill_clash
                 nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
              fi
              uci set openclash.config.config_reload=1
@@ -1134,7 +1144,7 @@ stop()
 
    echo "OpenClash 开始关闭..." >$START_LOG
    echo "第一步: 备份当前节点状态..." >$START_LOG
-   /usr/share/openclash/openclash_history_get.sh &
+   /usr/share/openclash/openclash_history_get.sh 2>/dev/null &
    wait
     
    echo "第二步: 删除 OpenClash 防火墙规则..." >$START_LOG
@@ -1148,7 +1158,7 @@ stop()
 
    echo "第四步: 关闭 Clash 主程序..." >$START_LOG
    if [ "$enable" -eq 0 ]; then
-      kill -9 "$(pidof clash|sed 's/$//g')" 2>/dev/null
+      kill_clash
    fi
     
    echo "第五步: 重启 Dnsmasq 程序..." >$START_LOG

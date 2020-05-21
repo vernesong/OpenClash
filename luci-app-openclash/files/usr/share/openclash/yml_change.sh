@@ -115,6 +115,8 @@
     
     uci commit openclash
     sed -i '/^ \{0,\}tun:/,/^ \{0,\}enable:/d' "$7" 2>/dev/null
+    sed -i '/^ \{0,\}dns-hijack:/,/^ \{0,\}- tcp:\/\/8.8.4.4:53/d' "$7" 2>/dev/null
+    sed -i '/^ \{0,\}stack:/d' "$7" 2>/dev/null
     sed -i '/^ \{0,\}device-url:/d' "$7" 2>/dev/null
     sed -i '/^ \{0,\}dns-listen:/d' "$7" 2>/dev/null
 
@@ -166,6 +168,16 @@
     if [ "$15" -eq 1 ]; then
        sed -i "/^dns:/i\tun:" "$7"
        sed -i "/^dns:/i\  enable: true" "$7"
+       if [ -n "$16" ]; then
+          sed -i "/^dns:/i\  stack: ${16}" "$7"
+       else
+          sed -i "/^dns:/i\  stack: system" "$7"
+       fi
+       sed -i "/^dns:/i\  dns-hijack:" "$7"
+#       sed -i "/^dns:/i\  - 8.8.8.8:53" "$7"
+       sed -i "/^dns:/i\  - tcp://8.8.8.8:53" "$7"
+#       sed -i "/^dns:/i\  - 8.8.4.4:53" "$7"
+       sed -i "/^dns:/i\  - tcp://8.8.4.4:53" "$7"
     elif [ ! -z "$15" ]; then
        sed -i "/^dns:/i\tun:" "$7"
        sed -i "/^dns:/i\  enable: true" "$7"
