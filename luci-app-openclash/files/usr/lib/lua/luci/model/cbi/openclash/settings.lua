@@ -65,11 +65,20 @@ o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default = "1"
 
+o = s:taboption("op_mode", ListValue, "stack_type", font_red..bold_on..translate("Select Stack Type")..bold_off..font_off)
+o.description = translate("Select Stack Type For Tun Mode, According To The Running Speed on Your Machine")
+o:depends("en_mode", "redir-host-tun")
+o:depends("en_mode", "fake-ip-tun")
+o:value("system", translate("System　"))
+o:value("gvisor", translate("Gvisor"))
+o.default = "system"
+
 o = s:taboption("op_mode", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
 o.description = translate("Select Proxy Mode")
 o:value("Rule", translate("Rule Proxy Mode"))
 o:value("Global", translate("Global Proxy Mode"))
 o:value("Direct", translate("Direct Proxy Mode"))
+o:value("Script", translate("Script Proxy Mode (Tun Mode Only)"))
 o.default = "Rule"
 
 o = s:taboption("op_mode", Button, translate("Switch Operation Mode")) 
@@ -156,7 +165,7 @@ o:value("1", translate("Enable"))
 o.default = 0
 
 o = s:taboption("dns", ListValue, "ipv6_enable", translate("Enable ipv6 Resolve"))
-o.description = font_red..bold_on..translate("Force Enable to Resolve ipv6 DNS Requests")..bold_off..font_off
+o.description = font_red..bold_on..translate("Enable Clash to Resolve ipv6 DNS Requests")..bold_off..font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o:depends("en_mode", "redir-host")

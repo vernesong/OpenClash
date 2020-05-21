@@ -251,6 +251,7 @@ end
 btnrm.write=function(a,t)
 	fs.unlink("/tmp/Proxy_Group")
 	fs.unlink("/etc/openclash/backup/"..luci.openclash.basename(e[t].name))
+	fs.unlink("/etc/openclash/history/"..luci.openclash.basename(e[t].name))
 	local a=fs.unlink("/etc/openclash/config/"..luci.openclash.basename(e[t].name))
 if a then table.remove(e,t)end
 return a
