@@ -131,8 +131,8 @@ msgstr "Global【全局代理（需前往控制面板手动指定节点）】"
 msgid "Direct Proxy Mode"
 msgstr "Direct【全局直连】"
 
-msgid "Script Proxy Mode - Only Tun Mode"
-msgstr "Script【脚本模式 - 仅Tun模式】"
+msgid "Script Proxy Mode (Tun Core Only)"
+msgstr "Script【脚本模式 - 仅Tun内核】"
 
 msgid "Select Stack Type"
 msgstr "网络栈类型"
