@@ -78,7 +78,7 @@ o.description = translate("Select Proxy Mode")
 o:value("Rule", translate("Rule Proxy Mode"))
 o:value("Global", translate("Global Proxy Mode"))
 o:value("Direct", translate("Direct Proxy Mode"))
-o:value("Script", translate("Script Proxy Mode (Tun Mode Only)"))
+o:value("Script", translate("Script Proxy Mode (Tun Core Only)"))
 o.default = "Rule"
 
 o = s:taboption("op_mode", Button, translate("Switch Operation Mode")) 
