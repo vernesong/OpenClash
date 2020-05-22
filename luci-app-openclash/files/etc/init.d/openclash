@@ -707,7 +707,7 @@ do_run_mode()
        core_type="Game"
     fi
     
-    if [ "$proxy_mode" = "Script" ] || [ -s "$RULE_PROVIDER_FILE" ]; then
+    if [ "$proxy_mode" = "Script" ] || [ -n "$(grep "^ \{0,\}rule-providers:" "$CONFIG_FILE" 2>/dev/null)" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
     fi
