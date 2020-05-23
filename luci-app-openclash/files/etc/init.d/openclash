@@ -227,7 +227,7 @@ yml_check()
       sed -i '/^proxy-providers:/i\#===================== OpenClash-General-Settings =====================#' "$3" 2>/dev/null
    else
       sed -i '/^Proxy:/i\#===================== OpenClash-General-Settings =====================#' "$3" 2>/dev/null
-   fi
+   fi 2>/dev/null
 }
 
 #检查DNS设置
@@ -239,7 +239,7 @@ yml_dns_check()
       	 sed -i '/^proxy-providers:/i\dns:' "$CONFIG_FILE" 2>/dev/null
       else
          sed -i '/^Proxy:/i\dns:' "$CONFIG_FILE" 2>/dev/null
-      fi
+      fi 2>/dev/null
    fi
 
    if [ -z "$(grep '^ \{0,\}nameserver:' "$CONFIG_FILE")" ]; then
@@ -247,7 +247,7 @@ yml_dns_check()
          sed -i '/^proxy-providers:/i\  nameserver:' "$CONFIG_FILE" 2>/dev/null
       else
          sed -i '/^Proxy:/i\  nameserver:' "$CONFIG_FILE" 2>/dev/null
-      fi
+      fi 2>/dev/null
       sed -i "/^ \{0,\}nameserver:/a\  - tls://8.8.8.8:853" "$CONFIG_FILE" 2>/dev/null
       sed -i "/^ \{0,\}nameserver:/a\  fallback:" "$CONFIG_FILE" 2>/dev/null
       sed -i "/^ \{0,\}nameserver:/a\  - 114.114.114.114" "$CONFIG_FILE" 2>/dev/null
@@ -327,7 +327,7 @@ if [ ! -z "$proxy_provider_path_line" ]; then
          done
       else
          proxy_provider_path_exist=1
-      fi
+      fi 2>/dev/null
    done
 fi
 
@@ -358,13 +358,13 @@ yml_cut()
        sed -n '/^ \{0,\}proxy-groups:/,$p' "$3" >"$7" 2>/dev/null
        sed -n '/^ \{0,\}Proxy:/,$p' "$3" >"$5" 2>/dev/null
        sed -i '/^ \{0,\}proxy-groups:/,$d' "$5" 2>/dev/null
-    fi
+    fi 2>/dev/null
     sed -i '/^ \{0,\}nameserver:/,$d' "$1" 2>/dev/null
     if [ "$proxy_provider_mode" -eq 1 ]; then
        sed -i '/^ \{0,\}proxy-providers:/,$d' "$3" 2>/dev/null
     else
        sed -i '/^ \{0,\}Proxy:/,$d' "$3" 2>/dev/null
-    fi
+    fi 2>/dev/null
     sed -n '/^rules:/,$p' "$4" >"$2" 2>/dev/null
 }
 
@@ -843,7 +843,7 @@ if [ -z "$en_mode_tun" ]; then
       #   ip6tables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
       #   ip6tables -t mangle -A PREROUTING -p udp -j openclash
       #fi
-   fi
+   fi 2>/dev/null
 else
    #TUN模式
    #启动TUN
