@@ -264,6 +264,9 @@ msgstr "上传文件类型"
 msgid "Proxy Provider File"
 msgstr "代理集文件"
 
+msgid "Rule Provider File"
+msgstr "规则集文件"
+
 msgid "Upload"
 msgstr "上传"
 
