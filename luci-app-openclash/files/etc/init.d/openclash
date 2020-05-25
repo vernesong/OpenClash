@@ -361,7 +361,7 @@ if [ -n "$provider_path_line" ]; then
    done
 fi
 
-if [ -z "$(pidof clash)" ]; then
+if [ -z "$(pidof clash)" ] && [ "$provider_path_exist" = 0 ]; then
 	 kill_clash
 	 stop
 	 if [ "$2" = "proxy_provider" ]; then
