@@ -90,8 +90,10 @@ clash = "/etc/openclash/clash"
 dir = "/etc/openclash/config/"
 bakck_dir="/etc/openclash/backup"
 proxy_pro_dir="/etc/openclash/proxy_provider/"
+rule_pro_dir="/etc/openclash/rule_provider/"
 create_bakck_dir=fs.mkdir(bakck_dir)
 create_proxy_pro_dir=fs.mkdir(proxy_pro_dir)
+create_rule_pro_dir=fs.mkdir(rule_pro_dir)
 
 
 HTTP.setfilehandler(
@@ -104,6 +106,8 @@ HTTP.setfilehandler(
 			   if meta and chunk then fd = nixio.open(dir .. meta.file, "w") end
 			elseif fp == "proxy-provider" then
 			   if meta and chunk then fd = nixio.open(proxy_pro_dir .. meta.file, "w") end
+			elseif fp == "rule-provider" then
+			   if meta and chunk then fd = nixio.open(rule_pro_dir .. meta.file, "w") end
 			end
 
 			if not fd then
@@ -117,21 +121,23 @@ HTTP.setfilehandler(
 		if eof and fd then
 			fd:close()
 			fd = nil
-      if IsYamlFile(meta.file) and fp ~= "proxy-provider" then
+      if IsYamlFile(meta.file) and fp == "config" then
          local yamlbackup="/etc/openclash/backup/" .. meta.file
          local c=fs.copy(dir .. meta.file,yamlbackup)
       end
-      if IsYmlFile(meta.file) and fp ~= "proxy-provider" then
+      if IsYmlFile(meta.file) and fp == "config" then
       	 local ymlname=string.lower(string.sub(meta.file,0,-5))
          local ymlbackup="/etc/openclash/backup/".. ymlname .. ".yaml"
          local c=fs.rename(dir .. meta.file,"/etc/openclash/config/".. ymlname .. ".yaml")
          local c=fs.copy("/etc/openclash/config/".. ymlname .. ".yaml",ymlbackup)
       end
-			if fp ~= "proxy-provider" then
+			if fp == "config" then
 			   um.value = translate("File saved to") .. ' "/etc/openclash/config/"'
 			   CHIF = "1"
-			else
+			elseif fp == "proxy-provider" then
 				 um.value = translate("File saved to") .. ' "/etc/openclash/proxy_provider/"'
+			elseif fp == "rule-provider" then
+				 um.value = translate("File saved to") .. ' "/etc/openclash/rule_provider/"'
 			end
 			fs.unlink("/tmp/Proxy_Group")
 		end
@@ -251,6 +257,7 @@ end
 btnrm.write=function(a,t)
 	fs.unlink("/tmp/Proxy_Group")
 	fs.unlink("/etc/openclash/backup/"..luci.openclash.basename(e[t].name))
+	fs.unlink("/etc/openclash/history/"..luci.openclash.basename(e[t].name))
 	local a=fs.unlink("/etc/openclash/config/"..luci.openclash.basename(e[t].name))
 if a then table.remove(e,t)end
 return a

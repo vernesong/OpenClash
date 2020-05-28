@@ -14,7 +14,7 @@
        fi
 	  fi
 	   
-    if [ -z "$(grep '^  enhanced-mode: $2' "$7")" ]; then
+    if [ -z "$(grep "^  enhanced-mode: $2" "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}enhanced-mode:" "$7")" ]; then
           sed -i "/^ \{0,\}enhanced-mode:/c\  enhanced-mode: ${2}" "$7"
        else
@@ -37,7 +37,7 @@
     sed -i '/##Custom DNS##/d' "$7" 2>/dev/null
 
 
-    if [ -z "$(grep '^redir-port: $6' "$7")" ]; then
+    if [ -z "$(grep "^redir-port: $6" "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}redir-port:" "$7")" ]; then
           sed -i "/^ \{0,\}redir-port:/c\redir-port: ${6}" "$7"
        else
@@ -45,7 +45,7 @@
        fi
     fi
     
-    if [ -z "$(grep '^port: $9' "$7")" ]; then
+    if [ -z "$(grep "^port: $9" "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}port:" "$7")" ]; then
           sed -i "/^ \{0,\}port:/c\port: ${9}" "$7"
        else
@@ -53,7 +53,7 @@
        fi
     fi
     
-    if [ -z "$(grep '^socks-port: $10' "$7")" ]; then
+    if [ -z "$(grep "^socks-port: $10" "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}socks-port:" "$7")" ]; then
           sed -i "/^ \{0,\}socks-port:/c\socks-port: ${10}" "$7"
        else
@@ -61,7 +61,7 @@
        fi
     fi
     
-    if [ -z "$(grep '^mode: $13' "$7")" ]; then
+    if [ -z "$(grep "^mode: $13" "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}mode:" "$7")" ]; then
           sed -i "/^ \{0,\}mode:/c\mode: ${13}" "$7"
        else
@@ -69,7 +69,7 @@
        fi
     fi
     
-    if [ -z "$(grep '^log-level: $12' "$7")" ]; then
+    if [ -z "$(grep "^log-level: $12" "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}log-level:" "$7")" ]; then
           sed -i "/^ \{0,\}log-level:/c\log-level: ${12}" "$7"
        else
@@ -81,11 +81,11 @@
        controller_address="0.0.0.0"
        bind_address="*"
     else
-       controller_address="$11"
-       bind_address="$11"
+       controller_address=$11
+       bind_address=$11
     fi
     
-    if [ -z "$(grep '^external-controller: $controller_address:$5' "$7")" ]; then
+    if [ -z "$(grep "^external-controller: $controller_address:$5" "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}external-controller:" "$7")" ]; then
           sed -i "/^ \{0,\}external-controller:/c\external-controller: ${controller_address}:${5}" "$7"
        else
@@ -94,7 +94,7 @@
        uci set openclash.config.config_reload=0
     fi
     
-    if [ -z "$(grep '^secret: \"$4\"' "$7")" ]; then
+    if [ -z "$(grep "^secret: \"$4\"" "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}secret:" "$7")" ]; then
           sed -i "/^ \{0,\}secret:/c\secret: \"${4}\"" "$7"
        else
@@ -114,7 +114,21 @@
     fi
     
     uci commit openclash
+    
+    dns_hijack_len=$(sed -n '/dns-hijack:/=' "$7" 2>/dev/null)
+    if [ -n "$dns_hijack_len" ]; then
+       dns_hijack_end_len=$dns_hijack_len
+       while ( [ -n "$(echo "$hijack_line" |grep "^ \{0,\}-")" ] || [ -n "$(echo "$hijack_line" |grep "^ \{0,\}$")" ] || [ -z "$hijack_line" ] )
+       do
+    	   dns_hijack_end_len=$(expr "$dns_hijack_end_len" + 1)
+    	   hijack_line=$(sed -n "${dns_hijack_end_len}p" "$7")
+       done 2>/dev/null
+       dns_hijack_end_len=$(expr "$dns_hijack_end_len" - 1)
+       sed -i "${dns_hijack_len},${dns_hijack_end_len}d" "$7" 2>/dev/null
+    fi
     sed -i '/^ \{0,\}tun:/,/^ \{0,\}enable:/d' "$7" 2>/dev/null
+    sed -i '/^ \{0,\}dns-hijack:/d' "$7" 2>/dev/null
+    sed -i '/^ \{0,\}stack:/d' "$7" 2>/dev/null
     sed -i '/^ \{0,\}device-url:/d' "$7" 2>/dev/null
     sed -i '/^ \{0,\}dns-listen:/d' "$7" 2>/dev/null
 
@@ -166,7 +180,17 @@
     if [ "$15" -eq 1 ]; then
        sed -i "/^dns:/i\tun:" "$7"
        sed -i "/^dns:/i\  enable: true" "$7"
-    elif [ ! -z "$15" ]; then
+       if [ -n "$16" ]; then
+          sed -i "/^dns:/i\  stack: ${16}" "$7"
+       else
+          sed -i "/^dns:/i\  stack: system" "$7"
+       fi
+       sed -i "/^dns:/i\  dns-hijack:" "$7"
+#       sed -i "/^dns:/i\  - 8.8.8.8:53" "$7"
+       sed -i "/^dns:/i\  - tcp://8.8.8.8:53" "$7"
+#       sed -i "/^dns:/i\  - 8.8.4.4:53" "$7"
+       sed -i "/^dns:/i\  - tcp://8.8.4.4:53" "$7"
+    elif [ "$15" -eq 2 ]; then
        sed -i "/^dns:/i\tun:" "$7"
        sed -i "/^dns:/i\  enable: true" "$7"
        sed -i "/^dns:/i\  device-url: dev://clash0" "$7"
@@ -176,10 +200,10 @@
 #添加自定义Hosts设置
 	   
     if [ "$2" = "redir-host" ]; then
-	     if [ -z "$(grep '^ \{0,\}hosts:' $7)" ]; then
+	     if [ -z "$(grep "^ \{0,\}hosts:" $7)" ]; then
 	        sed -i '/^dns:/i\hosts:' "$7" 2>/dev/null
    	   else
-	        if [ ! -z "$(grep '^ \{1,\}hosts:' $7)" ]; then
+	        if [ ! -z "$(grep "^ \{1,\}hosts:" $7)" ]; then
 	           sed -i "/^ \{0,\}hosts:/c\hosts:" "$7"
 	        fi
 	     fi
