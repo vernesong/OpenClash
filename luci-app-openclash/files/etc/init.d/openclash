@@ -1,4 +1,4 @@
-#!/bin/bash /etc/rc.common
+#!/bin/sh /etc/rc.common
 # Copyright (c) 2019 vernesong
 
 START=99
@@ -106,8 +106,7 @@ field_cut()
    script_len=$(sed -n '/^script:/=' "$3" 2>/dev/null)
    lines="$proxy_len $provider_len $group_len $rule_len $rule_provider_len $script_len"
    
-   for i in $lines
-   do
+   for i in $lines; do
       if [ -z "$1" ]; then
          break
       fi
@@ -301,8 +300,7 @@ yml_provider_path()
    sed -i 's/\"//g' "$1" 2>/dev/null
    provider_path_line=$(sed -n '/^ \{0,\}path:/=' "$1" 2>/dev/null)
    if [ -n "$provider_path_line" ]; then
-	    for n in $provider_path_line
-      do
+	    for n in $provider_path_line; do
          provider_path=$(sed -n "${n}p" "$1" |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
          if [ -z "$(echo "$provider_path" |grep "$2")" ]; then
             provider_name=$(echo "$provider_path" |awk -F '/' '{print $NF}')
@@ -321,10 +319,9 @@ if [ -n "$provider_path_line" ]; then
    while ( [ -n "$(pidof clash)" ] && [ "$provider_path_exist" != 1 ] )
    do
       provider_path_exist=1
-      for n in $provider_path_line
-      do
+      for n in $provider_path_line; do
          provider_path=$(sed -n "${n}p" "$1" |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
-         if [ "$(echo ${provider_path:0:1})" = "." ]; then
+         if [ "$(echo "${provider_path:0:1}")" = "." ]; then
             provider_path_check="/etc/openclash/$(echo ${provider_path:2})"
             if [ -f "$provider_path_check" ] && [ "$2" = "proxy_provider" ]; then
                if [ -z "$(grep "'proxies:':" "$provider_path_check")" ] && [ -z "$(grep '"proxies:":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
@@ -479,8 +476,8 @@ yml_dns_custom()
    fi
 
 #fallback-filter
-   if [ -n "$(grep '^ \{0,\}fallback:' $2)" ]; then
-      if [ -z "$(grep '^ \{0,\}fallback-filter:' $2)" ]; then
+   if [ -n "$(grep "^ \{0,\}fallback:" "$2")" ]; then
+      if [ -z "$(grep "^ \{0,\}fallback-filter:" "$2")" ]; then
          awk '/^ {0,}fallback:/,/OpenClash-General-Settings/{print}' "$2" |sed '1d' |sed '$d' >/tmp/fallback.cache 2>/dev/null
          sed -i '/cfw-bypass:/,$d' /tmp/fallback.cache 2>/dev/null
          sed -i '/cfw-latency-timeout:/,$d' /tmp/fallback.cache 2>/dev/null
@@ -494,29 +491,29 @@ yml_dns_custom()
          rm -rf /tmp/fallback.cache 2>/dev/null
          echo "#===================== OpenClash-General-Settings =====================#" >>"$2"
       else
-         if [ -z "$(grep '^  fallback-filter:' $2)" ]; then
+         if [ -z "$(grep "^  fallback-filter:" "$2")" ]; then
             sed -i "/fallback-filter:/c\  fallback-filter:" "$2" 2>/dev/null
          fi
-         if [ -z "$(grep '^    geoip: true' $2)" ]; then
+         if [ -z "$(grep "^    geoip: true" "$2")" ]; then
             sed -i "/geoip: true/c\    geoip: true" "$2" 2>/dev/null
          fi
-         if [ -z "$(grep '^    ipcidr:' $2)" ]; then
+         if [ -z "$(grep "^    ipcidr:" "$2")" ]; then
             sed -i "/ipcidr:/c\    ipcidr:" "$2" 2>/dev/null
          fi
       fi
-      if [ -z "$(grep "^  - " $2)" ]; then
+      if [ -z "$(grep "^  - " "$2")" ]; then
          sed -i '/^ \{0,\}nameserver:/,/^ \{0,\}fallback-filter:/ {s/^ \{0,\}- /  - /}' "$2" 2>/dev/null #修改参数空格
       fi
-      if [ -z "$(grep "^      - " $2)" ]; then
+      if [ -z "$(grep "^      - " "$2")" ]; then
          sed -i '/^ \{0,\}ipcidr:/,/OpenClash-General-Settings/ {s/^ \{0,\}- /      - /}' "$2" 2>/dev/null #修改参数空格
       fi
 #删除fallback-filter
    else
-      if [ -n "$(grep '^ \{0,\}fallback-filter:' $2)" ]; then
+      if [ -n "$(grep "^ \{0,\}fallback-filter:" "$2")" ]; then
          sed -i '/fallback-filter:/,$d' "$2" 2>/dev/null
          echo "#===================== OpenClash-General-Settings =====================#" >>"$2"
       fi
-      if [ -n "$(grep "^ \{0,1\}- " $2)" ]; then
+      if [ -n "$(grep "^ \{0,1\}- " "$2")" ]; then
  #添加参数空格
 	       sed -i "s/^ \{0,\}- /  - /" "$2" 2>/dev/null
       fi
@@ -565,14 +562,14 @@ get_rule_file()
       return
    fi
    
-   GAME_RULE_FILE_NAME=$(grep -F $1 /etc/openclash/game_rules.list |awk -F ',' '{print $3}' 2>/dev/null)
+   GAME_RULE_FILE_NAME=$(grep -F "$1" /etc/openclash/game_rules.list |awk -F ',' '{print $3}' 2>/dev/null)
 
    if [ -z "$GAME_RULE_FILE_NAME" ]; then
-      GAME_RULE_FILE_NAME=$(grep -F $1 /etc/openclash/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null)
+      GAME_RULE_FILE_NAME=$(grep -F "$1" /etc/openclash/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null)
    fi
    
    GAME_RULE_PATH="/etc/openclash/game_rules/$GAME_RULE_FILE_NAME"
-   sed '/^#/d' $GAME_RULE_PATH 2>/dev/null |sed '/^ *$/d' |awk '{print "- IP-CIDR,"$0}' |awk -v tag="$2" '{print $0","'tag'""}' >> $GAME_RULE_FILE 2>/dev/null
+   sed '/^#/d' "$GAME_RULE_PATH" 2>/dev/null |sed '/^ *$/d' |awk '{print "- IP-CIDR,"$0}' |awk -v tag="$2" '{print $0","'tag'""}' >> $GAME_RULE_FILE 2>/dev/null
    set_rule_file=1
 }
 
@@ -1190,9 +1187,6 @@ fi
 
 stop()
 {
-   #禁止多个实例
-   status=$(ps|grep -c /etc/init.d/openclash)
-   [ "$status" -gt "3" ] && exit 0
    
    enable=$(uci get openclash.config.enable 2>/dev/null)
 
@@ -1249,9 +1243,11 @@ restart()
 
 reload()
 {
-   revert_firewall 2>/dev/null
-   do_run_mode 2>/dev/null
-   get_config 2>/dev/null
-   set_firewall 2>/dev/null
-   echo "${LOGTIME} OpenClash Reload After Firewall Restart" >> $LOG_FILE
+   if pidof clash >/dev/null; then
+      revert_firewall 2>/dev/null
+      do_run_mode 2>/dev/null
+      get_config 2>/dev/null
+      set_firewall 2>/dev/null
+      echo "${LOGTIME} OpenClash Reload After Firewall Restart" >> $LOG_FILE
+   fi
 }
