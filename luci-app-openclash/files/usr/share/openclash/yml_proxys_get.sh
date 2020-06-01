@@ -1,4 +1,5 @@
-#!/bin/bash /etc/rc.common
+#!/bin/bash
+. /lib/functions.sh
 status=$(ps|grep -c /usr/share/openclash/yml_proxys_get.sh)
 [ "$status" -gt "3" ] && exit 0
 
@@ -32,25 +33,45 @@ elif [ ! -s "$CONFIG_FILE" ] && [ -s "$BACKUP_FILE" ]; then
    mv "$BACKUP_FILE" "$CONFIG_FILE"
 fi
 
+field_cut()
+{
+   local i lines end_len
+   proxy_len=$(sed -n '/^Proxy:/=' "$3" 2>/dev/null |sed -n 1p)
+   provider_len=$(sed -n '/^proxy-providers:/=' "$3" 2>/dev/null)
+   group_len=$(sed -n '/^proxy-groups:/=' "$3" 2>/dev/null)
+   rule_len=$(sed -n '/^rules:/=' "$3" 2>/dev/null)
+   rule_provider_len=$(sed -n '/^rule-providers:/=' "$3" 2>/dev/null)
+   script_len=$(sed -n '/^script:/=' "$3" 2>/dev/null)
+   lines="$proxy_len $provider_len $group_len $rule_len $rule_provider_len $script_len"
+   
+   for i in $lines; do
+      if [ -z "$1" ]; then
+         break
+      fi
+      
+      if [ "$1" -ge "$i" ]; then
+         continue
+      fi
+	    
+      if [ "$end_len" -gt "$i" ] || [ -z "$end_len" ]; then
+	       end_len="$i"
+      fi
+   done 2>/dev/null
+   
+   if [ -n "$1" ] && [ -z "$end_len" ]; then
+      end_len=$(sed -n '$=' "$3")
+   elif [ -n "$end_len" ]; then
+      end_len=$(expr "$end_len" - 1)
+   fi
+   sed -n "${1},${end_len}p" "$3" |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null > "$2" 2>/dev/null
+}
+
 #判断各个区位置
 proxy_len=$(sed -n '/^ \{0,\}Proxy:/=' "$CONFIG_FILE" 2>/dev/null)
-group_len=$(sed -n '/^ \{0,\}proxy-groups:/=' "$CONFIG_FILE" 2>/dev/null)
+field_cut "$proxy_len" "/tmp/yaml_proxy.yaml" "$CONFIG_FILE"
 provider_len=$(sed -n '/^ \{0,\}proxy-providers:/=' "$CONFIG_FILE" 2>/dev/null)
+field_cut "$provider_len" "/tmp/yaml_provider.yaml" "$CONFIG_FILE"
 
-if [ "$provider_len" -ge "$proxy_len" ] && [ "$provider_len" -le "$group_len" ]; then
-   awk '/^ {0,}Proxy:/,/^ {0,}proxy-providers:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
-   awk '/^ {0,}proxy-providers:/,/^ {0,}proxy-groups:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_provider.yaml 2>&1
-elif [ "$provider_len" -le "$proxy_len" ]; then
-   awk '/^ {0,}Proxy:/,/^ {0,}proxy-groups:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
-   awk '/^ {0,}proxy-providers:/,/^ {0,}Proxy:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_provider.yaml 2>&1
-elif [ "$provider_len" -ge "$group_len" ]; then
-	 awk '/^ {0,}Proxy:/,/^ {0,}proxy-groups:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
-   awk '/^ {0,}proxy-providers:/,/^ {0,}rules:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_provider.yaml 2>&1
-elif [ "$provider_len" -le "$group_len" ]; then
-   awk '/^ {0,}proxy-providers:/,/^ {0,}proxy-groups:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_provider.yaml 2>&1
-else
-   awk '/^ {0,}Proxy:/,/^ {0,}proxy-groups:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_proxy.yaml 2>&1
-fi
 
 CFG_FILE="/etc/config/openclash"
 server_file="/tmp/yaml_proxy.yaml"
