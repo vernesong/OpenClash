@@ -131,43 +131,63 @@ if [ "$2" != 0 ]; then
        if [ "$2" = "lhie1" ]; then
             sed -i '/^rules:/,$d' "$4"
             cat /etc/openclash/lhie1.yaml >> "$4"
-            sed -i -e "s/,GlobalTV$/,${GlobalTV}#d/g" -e "/rules:/a\##GlobalTV:${GlobalTV}"\
-            -e "s/,AsianTV$/,${AsianTV}#d/g" -e "/rules:/a\##AsianTV:${AsianTV}"\
-            -e "s/,Proxy$/,${Proxy}#d/g" -e "/rules:/a\##Proxy:${Proxy}"\
+            sed -i -e "s/,GlobalTV$/,${GlobalTV}#d/g"\
+            -e "s/,GlobalTV,no-resolve$/,${GlobalTV},no-resolve#d/g" -e "/rules:/a\##GlobalTV:${GlobalTV}"\
+            -e "s/,AsianTV$/,${AsianTV}#d/g"\
+            -e "s/,AsianTV,no-resolve$/,${AsianTV},no-resolve#d/g" -e "/rules:/a\##AsianTV:${AsianTV}"\
+            -e "s/,Proxy$/,${Proxy}#d/g"\
+            -e "s/,Proxy,no-resolve$/,${Proxy},no-resolve#d/g" -e "/rules:/a\##Proxy:${Proxy}"\
             -e "s/,Apple$/,${Apple}#d/g"\
             -e "s/,Apple,no-resolve$/,${Apple},no-resolve#d/g" -e "/rules:/a\##Apple:${Apple}"\
-            -e "s/,Netflix$/,${Netflix}#d/g" -e "/rules:/a\##Netflix:${Netflix}"\
-            -e "s/,Spotify$/,${Spotify}#d/g" -e "/rules:/a\##Spotify:${Spotify}"\
-            -e "s/,Steam$/,${Steam}#d/g" -e "/rules:/a\##Steam:${Steam}"\
-            -e "s/,AdBlock$/,${AdBlock}#d/g" -e "/rules:/a\##AdBlock:${AdBlock}"\
-            -e "s/,Netease Music$/,${Netease_Music}#d/g" -e "/rules:/a\##Netease_Music:${Netease_Music}"\
-            -e "s/,Speedtest$/,${Speedtest}#d/g" -e "/rules:/a\##Speedtest:${Speedtest}"\
-            -e "s/,Telegram$/,${Telegram}#d/g" -e "/rules:/a\##Telegram:${Telegram}"\
-            -e "s/,Microsoft$/,${Microsoft}#d/g" -e "/rules:/a\##Microsoft:${Microsoft}"\
-            -e "s/,PayPal$/,${PayPal}#d/g" -e "/rules:/a\##PayPal:${PayPal}"\
-            -e "s/,Domestic$/,${Domestic}#d/g" -e "/rules:/a\##Domestic:${Domestic}"\
-            -e "s/,Others$/,${Others}#d/g" -e "/rules:/a\##Others:${Others}"\
-            -e "s/#d//g" "$4"
+            -e "s/,Netflix$/,${Netflix}#d/g"\
+            -e "s/,Netflix,no-resolve$/,${Netflix},no-resolve#d/g" -e "/rules:/a\##Netflix:${Netflix}"\
+            -e "s/,Spotify$/,${Spotify}#d/g"\
+            -e "s/,Spotify,no-resolve$/,${Spotify},no-resolve#d/g" -e "/rules:/a\##Spotify:${Spotify}"\
+            -e "s/,Steam$/,${Steam}#d/g"\
+            -e "s/,Steam,no-resolve$/,${Steam},no-resolve#d/g" -e "/rules:/a\##Steam:${Steam}"\
+            -e "s/,AdBlock$/,${AdBlock}#d/g"\
+            -e "s/,AdBlock,no-resolve$/,${AdBlock},no-resolve#d/g" -e "/rules:/a\##AdBlock:${AdBlock}"\
+            -e "s/,Netease Music$/,${Netease_Music}#d/g"\
+            -e "s/,Netease Music$/,${Netease Music},no-resolve#d/g" -e "/rules:/a\##Netease_Music:${Netease_Music}"\
+            -e "s/,Speedtest$/,${Speedtest}#d/g"\
+            -e "s/,Speedtest$/,${Speedtest},no-resolve#d/g" -e "/rules:/a\##Speedtest:${Speedtest}"\
+            -e "s/,Telegram$/,${Telegram}#d/g"\
+            -e "s/,Telegram$/,${Telegram},no-resolve#d/g" -e "/rules:/a\##Telegram:${Telegram}"\
+            -e "s/,Microsoft$/,${Microsoft}#d/g"\
+            -e "s/,Microsoft$/,${Microsoft},no-resolve#d/g" -e "/rules:/a\##Microsoft:${Microsoft}"\
+            -e "s/,PayPal$/,${PayPal}#d/g"\
+            -e "s/,PayPal$/,${PayPal},no-resolve#d/g" -e "/rules:/a\##PayPal:${PayPal}"\
+            -e "s/,Domestic$/,${Domestic}#d/g"\
+            -e "s/,Domestic$/,${Domestic},no-resolve#d/g" -e "/rules:/a\##Domestic:${Domestic}"\
+            -e "s/,Others$/,${Others}#d/g"\
+            -e "s/,Others$/,${Others},no-resolve#d/g" -e "/rules:/a\##Others:${Others}"\
+            -e "s/#d//g" "$4" 2>/dev/null
        elif [ "$2" = "ConnersHua" ]; then
             sed -i '/^rules:/,$d' "$4"
             cat /etc/openclash/ConnersHua.yaml >> "$4"
             sed -i -e "s/,GlobalMedia$/,${GlobalTV}#d/g"\
             -e "s/,GlobalMedia,no-resolve$/,${GlobalTV},no-resolve#d/g" -e "/rules:/a\##GlobalTV:${GlobalTV}"\
-            -e "s/,HKMTMedia$/,${AsianTV}#d/g" -e "/rules:/a\##AsianTV:${AsianTV}"\
+            -e "s/,HKMTMedia$/,${AsianTV}#d/g"\
+            -e "s/,HKMTMedia,no-resolve$/,${AsianTV},no-resolve#d/g" -e "/rules:/a\##AsianTV:${AsianTV}"\
             -e "s/,PROXY$/,${Proxy}#d/g"\
             -e "s/,PROXY,no-resolve$/,${Proxy},no-resolve#d/g" -e "/rules:/a\##Proxy:${Proxy}"\
-            -e "s/,Apple$/,${Apple}#d/g" -e "/rules:/a\##Apple:${Apple}"\
+            -e "s/,Apple$/,${Apple}#d/g"\
+            -e "s/,Apple,no-resolve$/,${Apple},no-resolve#d/g" -e "/rules:/a\##Apple:${Apple}"\
             -e "s/,Hijacking,no-resolve$/,${AdBlock},no-resolve#d/g"\
             -e "s/,Hijacking$/,${AdBlock}#d/g" -e "/rules:/a\##AdBlock:${AdBlock}"\
-            -e "s/,DIRECT$/,${Domestic}#d/g" -e "/rules:/a\##Domestic:${Domestic}"\
-            -e "s/,Final$/,${Others}#d/g" -e "/rules:/a\##Others:${Others}"\
-            -e "s/#d//g" "$4"
+            -e "s/,DIRECT$/,${Domestic}#d/g"\
+            -e "s/,DIRECT,no-resolve$/,${Domestic},no-resolve#d/g" -e "/rules:/a\##Domestic:${Domestic}"\
+            -e "s/,Final$/,${Others}#d/g"\
+            -e "s/,Final,no-resolve$/,${Others},no-resolve#d/g" -e "/rules:/a\##Others:${Others}"\
+            -e "s/#d//g" "$4" 2>/dev/null
        else
             sed -i '/^rules:/,$d' "$4"
             cat /etc/openclash/ConnersHua_return.yaml >> "$4"
-            sed -i -e "s/,PROXY$/,${Proxy}#d/g" -e "/rules:/a\##Proxy:${Proxy}"\
-            -e "s/,DIRECT$/,${Others}#d/g" -e "/rules:/a\##Others:${Others}"\
-            -e "s/#d//g" "$4"
+            sed -i -e "s/,PROXY$/,${Proxy}#d/g"\
+            -e "s/,PROXY,no-resolve$/,${Proxy},no-resolve#d/g" -e "/rules:/a\##Proxy:${Proxy}"\
+            -e "s/,DIRECT$/,${Others}#d/g"\
+            -e "s/,DIRECT,no-resolve$/,${Others},no-resolve#d/g" -e "/rules:/a\##Others:${Others}"\
+            -e "s/#d//g" "$4" 2>/dev/null
        fi
     fi
    fi

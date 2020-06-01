@@ -1,4 +1,4 @@
-Rule:
+rules:
 ##source:ConnersHua
 # Unbreak
 # > Google
@@ -6,232 +6,232 @@ Rule:
 - DOMAIN,dl.google.com,DIRECT
 - DOMAIN,mtalk.google.com,DIRECT
 
-# Internet Service Providers Hijacking 运营商劫持
-- DOMAIN-SUFFIX,17gouwuba.com,Hijacking
-- DOMAIN-SUFFIX,186078.com,Hijacking
-- DOMAIN-SUFFIX,189zj.cn,Hijacking
-- DOMAIN-SUFFIX,285680.com,Hijacking
-- DOMAIN-SUFFIX,3721zh.com,Hijacking
-- DOMAIN-SUFFIX,4336wang.cn,Hijacking
-- DOMAIN-SUFFIX,51chumoping.com,Hijacking
-- DOMAIN-SUFFIX,51mld.cn,Hijacking
-- DOMAIN-SUFFIX,51mypc.cn,Hijacking
-- DOMAIN-SUFFIX,58mingri.cn,Hijacking
-- DOMAIN-SUFFIX,58mingtian.cn,Hijacking
-- DOMAIN-SUFFIX,5vl58stm.com,Hijacking
-- DOMAIN-SUFFIX,6d63d3.com,Hijacking
-- DOMAIN-SUFFIX,7gg.cc,Hijacking
-- DOMAIN-SUFFIX,91veg.com,Hijacking
-- DOMAIN-SUFFIX,9s6q.cn,Hijacking
-- DOMAIN-SUFFIX,adsame.com,Hijacking
-- DOMAIN-SUFFIX,aiclk.com,Hijacking
-- DOMAIN-SUFFIX,akuai.top,Hijacking
-- DOMAIN-SUFFIX,atplay.cn,Hijacking
-- DOMAIN-SUFFIX,baiwanchuangyi.com,Hijacking
-- DOMAIN-SUFFIX,beerto.cn,Hijacking
-- DOMAIN-SUFFIX,beilamusi.com,Hijacking
-- DOMAIN-SUFFIX,benshiw.net,Hijacking
-- DOMAIN-SUFFIX,bianxianmao.com,Hijacking
-- DOMAIN-SUFFIX,bryonypie.com,Hijacking
-- DOMAIN-SUFFIX,cishantao.com,Hijacking
-- DOMAIN-SUFFIX,cszlks.com,Hijacking
-- DOMAIN-SUFFIX,cudaojia.com,Hijacking
-- DOMAIN-SUFFIX,dafapromo.com,Hijacking
-- DOMAIN-SUFFIX,daitdai.com,Hijacking
-- DOMAIN-SUFFIX,dsaeerf.com,Hijacking
-- DOMAIN-SUFFIX,dugesheying.com,Hijacking
-- DOMAIN-SUFFIX,dv8c1t.cn,Hijacking
-- DOMAIN-SUFFIX,echatu.com,Hijacking
-- DOMAIN-SUFFIX,erdoscs.com,Hijacking
-- DOMAIN-SUFFIX,fan-yong.com,Hijacking
-- DOMAIN-SUFFIX,feih.com.cn,Hijacking
-- DOMAIN-SUFFIX,fjlqqc.com,Hijacking
-- DOMAIN-SUFFIX,fkku194.com,Hijacking
-- DOMAIN-SUFFIX,freedrive.cn,Hijacking
-- DOMAIN-SUFFIX,gclick.cn,Hijacking
-- DOMAIN-SUFFIX,goufanli100.com,Hijacking
-- DOMAIN-SUFFIX,goupaoerdai.com,Hijacking
-- DOMAIN-SUFFIX,gouwubang.com,Hijacking
-- DOMAIN-SUFFIX,gzxnlk.com,Hijacking
-- DOMAIN-SUFFIX,haoshengtoys.com,Hijacking
-- DOMAIN-SUFFIX,hyunke.com,Hijacking
-- DOMAIN-SUFFIX,ichaosheng.com,Hijacking
-- DOMAIN-SUFFIX,ishop789.com,Hijacking
-- DOMAIN-SUFFIX,jdkic.com,Hijacking
-- DOMAIN-SUFFIX,jiubuhua.com,Hijacking
-- DOMAIN-SUFFIX,jsncke.com,Hijacking
-- DOMAIN-SUFFIX,junkucm.com,Hijacking
-- DOMAIN-SUFFIX,jwg365.cn,Hijacking
-- DOMAIN-SUFFIX,kawo77.com,Hijacking
-- DOMAIN-SUFFIX,kualianyingxiao.cn,Hijacking
-- DOMAIN-SUFFIX,kumihua.com,Hijacking
-- DOMAIN-SUFFIX,ltheanine.cn,Hijacking
-- DOMAIN-SUFFIX,maipinshangmao.com,Hijacking
-- DOMAIN-SUFFIX,minisplat.cn,Hijacking
-- DOMAIN-SUFFIX,mkitgfs.com,Hijacking
-- DOMAIN-SUFFIX,mlnbike.com,Hijacking
-- DOMAIN-SUFFIX,mobjump.com,Hijacking
-- DOMAIN-SUFFIX,nbkbgd.cn,Hijacking
-- DOMAIN-SUFFIX,newapi.com,Hijacking
-- DOMAIN-SUFFIX,pinzhitmall.com,Hijacking
-- DOMAIN-SUFFIX,poppyta.com,Hijacking
-- DOMAIN-SUFFIX,qianchuanghr.com,Hijacking
-- DOMAIN-SUFFIX,qichexin.com,Hijacking
-- DOMAIN-SUFFIX,qinchugudao.com,Hijacking
-- DOMAIN-SUFFIX,quanliyouxi.cn,Hijacking
-- DOMAIN-SUFFIX,qutaobi.com,Hijacking
-- DOMAIN-SUFFIX,ry51w.cn,Hijacking
-- DOMAIN-SUFFIX,sg536.cn,Hijacking
-- DOMAIN-SUFFIX,sifubo.cn,Hijacking
-- DOMAIN-SUFFIX,sifuce.cn,Hijacking
-- DOMAIN-SUFFIX,sifuda.cn,Hijacking
-- DOMAIN-SUFFIX,sifufu.cn,Hijacking
-- DOMAIN-SUFFIX,sifuge.cn,Hijacking
-- DOMAIN-SUFFIX,sifugu.cn,Hijacking
-- DOMAIN-SUFFIX,sifuhe.cn,Hijacking
-- DOMAIN-SUFFIX,sifuhu.cn,Hijacking
-- DOMAIN-SUFFIX,sifuji.cn,Hijacking
-- DOMAIN-SUFFIX,sifuka.cn,Hijacking
-- DOMAIN-SUFFIX,smgru.net,Hijacking
-- DOMAIN-SUFFIX,taoggou.com,Hijacking
-- DOMAIN-SUFFIX,tcxshop.com,Hijacking
-- DOMAIN-SUFFIX,tjqonline.cn,Hijacking
-- DOMAIN-SUFFIX,topitme.com,Hijacking
-- DOMAIN-SUFFIX,tt3sm4.cn,Hijacking
-- DOMAIN-SUFFIX,tuia.cn,Hijacking
-- DOMAIN-SUFFIX,tuipenguin.com,Hijacking
-- DOMAIN-SUFFIX,tuitiger.com,Hijacking
-- DOMAIN-SUFFIX,websd8.com,Hijacking
-- DOMAIN-SUFFIX,wsgblw.com,Hijacking
-- DOMAIN-SUFFIX,wx16999.com,Hijacking
-- DOMAIN-SUFFIX,xchmai.com,Hijacking
-- DOMAIN-SUFFIX,xiaohuau.xyz,Hijacking
-- DOMAIN-SUFFIX,ygyzx.cn,Hijacking
-- DOMAIN-SUFFIX,yinmong.com,Hijacking
-- DOMAIN-SUFFIX,yitaopt.com,Hijacking
-- DOMAIN-SUFFIX,yjqiqi.com,Hijacking
-- DOMAIN-SUFFIX,yukhj.com,Hijacking
-- DOMAIN-SUFFIX,zhaozecheng.cn,Hijacking
-- DOMAIN-SUFFIX,zhenxinet.com,Hijacking
-- DOMAIN-SUFFIX,zlne800.com,Hijacking
-- DOMAIN-SUFFIX,zunmi.cn,Hijacking
-- DOMAIN-SUFFIX,zzd6.com,Hijacking
-- IP-CIDR,39.107.15.115/32,Hijacking,no-resolve
-- IP-CIDR,47.89.59.182/32,Hijacking,no-resolve
-- IP-CIDR,103.49.209.27/32,Hijacking,no-resolve
-- IP-CIDR,123.56.152.96/32,Hijacking,no-resolve
+# Internet Service Providers Hijacking 运营商劫�?
+- DOMAIN-SUFFIX,17gouwuba.com,REJECT
+- DOMAIN-SUFFIX,186078.com,REJECT
+- DOMAIN-SUFFIX,189zj.cn,REJECT
+- DOMAIN-SUFFIX,285680.com,REJECT
+- DOMAIN-SUFFIX,3721zh.com,REJECT
+- DOMAIN-SUFFIX,4336wang.cn,REJECT
+- DOMAIN-SUFFIX,51chumoping.com,REJECT
+- DOMAIN-SUFFIX,51mld.cn,REJECT
+- DOMAIN-SUFFIX,51mypc.cn,REJECT
+- DOMAIN-SUFFIX,58mingri.cn,REJECT
+- DOMAIN-SUFFIX,58mingtian.cn,REJECT
+- DOMAIN-SUFFIX,5vl58stm.com,REJECT
+- DOMAIN-SUFFIX,6d63d3.com,REJECT
+- DOMAIN-SUFFIX,7gg.cc,REJECT
+- DOMAIN-SUFFIX,91veg.com,REJECT
+- DOMAIN-SUFFIX,9s6q.cn,REJECT
+- DOMAIN-SUFFIX,adsame.com,REJECT
+- DOMAIN-SUFFIX,aiclk.com,REJECT
+- DOMAIN-SUFFIX,akuai.top,REJECT
+- DOMAIN-SUFFIX,atplay.cn,REJECT
+- DOMAIN-SUFFIX,baiwanchuangyi.com,REJECT
+- DOMAIN-SUFFIX,beerto.cn,REJECT
+- DOMAIN-SUFFIX,beilamusi.com,REJECT
+- DOMAIN-SUFFIX,benshiw.net,REJECT
+- DOMAIN-SUFFIX,bianxianmao.com,REJECT
+- DOMAIN-SUFFIX,bryonypie.com,REJECT
+- DOMAIN-SUFFIX,cishantao.com,REJECT
+- DOMAIN-SUFFIX,cszlks.com,REJECT
+- DOMAIN-SUFFIX,cudaojia.com,REJECT
+- DOMAIN-SUFFIX,dafapromo.com,REJECT
+- DOMAIN-SUFFIX,daitdai.com,REJECT
+- DOMAIN-SUFFIX,dsaeerf.com,REJECT
+- DOMAIN-SUFFIX,dugesheying.com,REJECT
+- DOMAIN-SUFFIX,dv8c1t.cn,REJECT
+- DOMAIN-SUFFIX,echatu.com,REJECT
+- DOMAIN-SUFFIX,erdoscs.com,REJECT
+- DOMAIN-SUFFIX,fan-yong.com,REJECT
+- DOMAIN-SUFFIX,feih.com.cn,REJECT
+- DOMAIN-SUFFIX,fjlqqc.com,REJECT
+- DOMAIN-SUFFIX,fkku194.com,REJECT
+- DOMAIN-SUFFIX,freedrive.cn,REJECT
+- DOMAIN-SUFFIX,gclick.cn,REJECT
+- DOMAIN-SUFFIX,goufanli100.com,REJECT
+- DOMAIN-SUFFIX,goupaoerdai.com,REJECT
+- DOMAIN-SUFFIX,gouwubang.com,REJECT
+- DOMAIN-SUFFIX,gzxnlk.com,REJECT
+- DOMAIN-SUFFIX,haoshengtoys.com,REJECT
+- DOMAIN-SUFFIX,hyunke.com,REJECT
+- DOMAIN-SUFFIX,ichaosheng.com,REJECT
+- DOMAIN-SUFFIX,ishop789.com,REJECT
+- DOMAIN-SUFFIX,jdkic.com,REJECT
+- DOMAIN-SUFFIX,jiubuhua.com,REJECT
+- DOMAIN-SUFFIX,jsncke.com,REJECT
+- DOMAIN-SUFFIX,junkucm.com,REJECT
+- DOMAIN-SUFFIX,jwg365.cn,REJECT
+- DOMAIN-SUFFIX,kawo77.com,REJECT
+- DOMAIN-SUFFIX,kualianyingxiao.cn,REJECT
+- DOMAIN-SUFFIX,kumihua.com,REJECT
+- DOMAIN-SUFFIX,ltheanine.cn,REJECT
+- DOMAIN-SUFFIX,maipinshangmao.com,REJECT
+- DOMAIN-SUFFIX,minisplat.cn,REJECT
+- DOMAIN-SUFFIX,mkitgfs.com,REJECT
+- DOMAIN-SUFFIX,mlnbike.com,REJECT
+- DOMAIN-SUFFIX,mobjump.com,REJECT
+- DOMAIN-SUFFIX,nbkbgd.cn,REJECT
+- DOMAIN-SUFFIX,newapi.com,REJECT
+- DOMAIN-SUFFIX,pinzhitmall.com,REJECT
+- DOMAIN-SUFFIX,poppyta.com,REJECT
+- DOMAIN-SUFFIX,qianchuanghr.com,REJECT
+- DOMAIN-SUFFIX,qichexin.com,REJECT
+- DOMAIN-SUFFIX,qinchugudao.com,REJECT
+- DOMAIN-SUFFIX,quanliyouxi.cn,REJECT
+- DOMAIN-SUFFIX,qutaobi.com,REJECT
+- DOMAIN-SUFFIX,ry51w.cn,REJECT
+- DOMAIN-SUFFIX,sg536.cn,REJECT
+- DOMAIN-SUFFIX,sifubo.cn,REJECT
+- DOMAIN-SUFFIX,sifuce.cn,REJECT
+- DOMAIN-SUFFIX,sifuda.cn,REJECT
+- DOMAIN-SUFFIX,sifufu.cn,REJECT
+- DOMAIN-SUFFIX,sifuge.cn,REJECT
+- DOMAIN-SUFFIX,sifugu.cn,REJECT
+- DOMAIN-SUFFIX,sifuhe.cn,REJECT
+- DOMAIN-SUFFIX,sifuhu.cn,REJECT
+- DOMAIN-SUFFIX,sifuji.cn,REJECT
+- DOMAIN-SUFFIX,sifuka.cn,REJECT
+- DOMAIN-SUFFIX,smgru.net,REJECT
+- DOMAIN-SUFFIX,taoggou.com,REJECT
+- DOMAIN-SUFFIX,tcxshop.com,REJECT
+- DOMAIN-SUFFIX,tjqonline.cn,REJECT
+- DOMAIN-SUFFIX,topitme.com,REJECT
+- DOMAIN-SUFFIX,tt3sm4.cn,REJECT
+- DOMAIN-SUFFIX,tuia.cn,REJECT
+- DOMAIN-SUFFIX,tuipenguin.com,REJECT
+- DOMAIN-SUFFIX,tuitiger.com,REJECT
+- DOMAIN-SUFFIX,websd8.com,REJECT
+- DOMAIN-SUFFIX,wsgblw.com,REJECT
+- DOMAIN-SUFFIX,wx16999.com,REJECT
+- DOMAIN-SUFFIX,xchmai.com,REJECT
+- DOMAIN-SUFFIX,xiaohuau.xyz,REJECT
+- DOMAIN-SUFFIX,ygyzx.cn,REJECT
+- DOMAIN-SUFFIX,yinmong.com,REJECT
+- DOMAIN-SUFFIX,yitaopt.com,REJECT
+- DOMAIN-SUFFIX,yjqiqi.com,REJECT
+- DOMAIN-SUFFIX,yukhj.com,REJECT
+- DOMAIN-SUFFIX,zhaozecheng.cn,REJECT
+- DOMAIN-SUFFIX,zhenxinet.com,REJECT
+- DOMAIN-SUFFIX,zlne800.com,REJECT
+- DOMAIN-SUFFIX,zunmi.cn,REJECT
+- DOMAIN-SUFFIX,zzd6.com,REJECT
+- IP-CIDR,39.107.15.115/32,REJECT,no-resolve
+- IP-CIDR,47.89.59.182/32,REJECT,no-resolve
+- IP-CIDR,103.49.209.27/32,REJECT,no-resolve
+- IP-CIDR,123.56.152.96/32,REJECT,no-resolve
 # > ChinaTelecom
-- IP-CIDR,61.160.200.223/32,Hijacking,no-resolve
-- IP-CIDR,61.160.200.242/32,Hijacking,no-resolve
-- IP-CIDR,61.160.200.252/32,Hijacking,no-resolve
-- IP-CIDR,61.174.50.214/32,Hijacking,no-resolve
-- IP-CIDR,111.175.220.163/32,Hijacking,no-resolve
-- IP-CIDR,111.175.220.164/32,Hijacking,no-resolve
-- IP-CIDR,122.229.8.47/32,Hijacking,no-resolve
-- IP-CIDR,122.229.29.89/32,Hijacking,no-resolve
-- IP-CIDR,124.232.160.178/32,Hijacking,no-resolve
-- IP-CIDR,175.6.223.15/32,Hijacking,no-resolve
-- IP-CIDR,183.59.53.237/32,Hijacking,no-resolve
-- IP-CIDR,218.93.127.37/32,Hijacking,no-resolve
-- IP-CIDR,221.228.17.152/32,Hijacking,no-resolve
-- IP-CIDR,221.231.6.79/32,Hijacking,no-resolve
-- IP-CIDR,222.186.61.91/32,Hijacking,no-resolve
-- IP-CIDR,222.186.61.95/32,Hijacking,no-resolve
-- IP-CIDR,222.186.61.96/32,Hijacking,no-resolve
-- IP-CIDR,222.186.61.97/32,Hijacking,no-resolve
+- IP-CIDR,61.160.200.223/32,REJECT,no-resolve
+- IP-CIDR,61.160.200.242/32,REJECT,no-resolve
+- IP-CIDR,61.160.200.252/32,REJECT,no-resolve
+- IP-CIDR,61.174.50.214/32,REJECT,no-resolve
+- IP-CIDR,111.175.220.163/32,REJECT,no-resolve
+- IP-CIDR,111.175.220.164/32,REJECT,no-resolve
+- IP-CIDR,122.229.8.47/32,REJECT,no-resolve
+- IP-CIDR,122.229.29.89/32,REJECT,no-resolve
+- IP-CIDR,124.232.160.178/32,REJECT,no-resolve
+- IP-CIDR,175.6.223.15/32,REJECT,no-resolve
+- IP-CIDR,183.59.53.237/32,REJECT,no-resolve
+- IP-CIDR,218.93.127.37/32,REJECT,no-resolve
+- IP-CIDR,221.228.17.152/32,REJECT,no-resolve
+- IP-CIDR,221.231.6.79/32,REJECT,no-resolve
+- IP-CIDR,222.186.61.91/32,REJECT,no-resolve
+- IP-CIDR,222.186.61.95/32,REJECT,no-resolve
+- IP-CIDR,222.186.61.96/32,REJECT,no-resolve
+- IP-CIDR,222.186.61.97/32,REJECT,no-resolve
 # > ChinaUnicom
-- IP-CIDR,106.75.231.48/32,Hijacking,no-resolve
-- IP-CIDR,119.4.249.166/32,Hijacking,no-resolve
-- IP-CIDR,220.196.52.141/32,Hijacking,no-resolve
-- IP-CIDR,221.6.4.148/32,Hijacking,no-resolve
+- IP-CIDR,106.75.231.48/32,REJECT,no-resolve
+- IP-CIDR,119.4.249.166/32,REJECT,no-resolve
+- IP-CIDR,220.196.52.141/32,REJECT,no-resolve
+- IP-CIDR,221.6.4.148/32,REJECT,no-resolve
 # > ChinaMobile
-- IP-CIDR,114.247.28.96/32,Hijacking,no-resolve
-- IP-CIDR,221.179.131.72/32,Hijacking,no-resolve
-- IP-CIDR,221.179.140.145/32,Hijacking,no-resolve
+- IP-CIDR,114.247.28.96/32,REJECT,no-resolve
+- IP-CIDR,221.179.131.72/32,REJECT,no-resolve
+- IP-CIDR,221.179.140.145/32,REJECT,no-resolve
 # > Dr.Peng
-# - IP-CIDR,10.72.25.0/24,Hijacking,no-resolve
-- IP-CIDR,115.182.16.79/32,Hijacking,no-resolve
-- IP-CIDR,118.144.88.126/32,Hijacking,no-resolve
-- IP-CIDR,118.144.88.215/32,Hijacking,no-resolve
-- IP-CIDR,118.144.88.216/32,Hijacking,no-resolve
-- IP-CIDR,120.76.189.132/32,Hijacking,no-resolve
-- IP-CIDR,124.14.21.147/32,Hijacking,no-resolve
-- IP-CIDR,124.14.21.151/32,Hijacking,no-resolve
-- IP-CIDR,180.166.52.24/32,Hijacking,no-resolve
-- IP-CIDR,211.161.101.106/32,Hijacking,no-resolve
-- IP-CIDR,220.115.251.25/32,Hijacking,no-resolve
-- IP-CIDR,222.73.156.235/32,Hijacking,no-resolve
+# - IP-CIDR,10.72.25.0/24,REJECT,no-resolve
+- IP-CIDR,115.182.16.79/32,REJECT,no-resolve
+- IP-CIDR,118.144.88.126/32,REJECT,no-resolve
+- IP-CIDR,118.144.88.215/32,REJECT,no-resolve
+- IP-CIDR,118.144.88.216/32,REJECT,no-resolve
+- IP-CIDR,120.76.189.132/32,REJECT,no-resolve
+- IP-CIDR,124.14.21.147/32,REJECT,no-resolve
+- IP-CIDR,124.14.21.151/32,REJECT,no-resolve
+- IP-CIDR,180.166.52.24/32,REJECT,no-resolve
+- IP-CIDR,211.161.101.106/32,REJECT,no-resolve
+- IP-CIDR,220.115.251.25/32,REJECT,no-resolve
+- IP-CIDR,222.73.156.235/32,REJECT,no-resolve
 
 # Malware 恶意网站
 # > 快压
 # https://zhuanlan.zhihu.com/p/39534279
-- DOMAIN-SUFFIX,kuaizip.com,Hijacking
+- DOMAIN-SUFFIX,kuaizip.com,REJECT
 # > MacKeeper
 # https://www.lizhi.io/blog/40002904
-- DOMAIN-SUFFIX,mackeeper.com,Hijacking
-- DOMAIN-SUFFIX,zryydi.com,Hijacking
+- DOMAIN-SUFFIX,mackeeper.com,REJECT
+- DOMAIN-SUFFIX,zryydi.com,REJECT
 # > Adobe Flash China Special Edition
 # https://www.zhihu.com/question/281163698/answer/441388130
-- DOMAIN-SUFFIX,flash.cn,Hijacking
-- DOMAIN,geo2.adobe.com,Hijacking
-# > C&J Marketing 思杰马克丁软件
+- DOMAIN-SUFFIX,flash.cn,REJECT
+- DOMAIN,geo2.adobe.com,REJECT
+# > C&J Marketing 思杰马克丁软�?
 # https://www.zhihu.com/question/46746200
-- DOMAIN-SUFFIX,4009997658.com,Hijacking
-- DOMAIN-SUFFIX,abbyychina.com,Hijacking
-- DOMAIN-SUFFIX,bartender.cc,Hijacking
-- DOMAIN-SUFFIX,betterzip.net,Hijacking
-- DOMAIN-SUFFIX,betterzipcn.com,Hijacking
-- DOMAIN-SUFFIX,beyondcompare.cc,Hijacking
-- DOMAIN-SUFFIX,bingdianhuanyuan.cn,Hijacking
-- DOMAIN-SUFFIX,chemdraw.com.cn,Hijacking
-- DOMAIN-SUFFIX,cjmakeding.com,Hijacking
-- DOMAIN-SUFFIX,cjmkt.com,Hijacking
-- DOMAIN-SUFFIX,codesoftchina.com,Hijacking
-- DOMAIN-SUFFIX,coreldrawchina.com,Hijacking
-- DOMAIN-SUFFIX,crossoverchina.com,Hijacking
-- DOMAIN-SUFFIX,dongmansoft.com,Hijacking
-- DOMAIN-SUFFIX,earmasterchina.cn,Hijacking
-- DOMAIN-SUFFIX,easyrecoverychina.com,Hijacking
-- DOMAIN-SUFFIX,ediuschina.com,Hijacking
-- DOMAIN-SUFFIX,flstudiochina.com,Hijacking
-- DOMAIN-SUFFIX,formysql.com,Hijacking
-- DOMAIN-SUFFIX,guitarpro.cc,Hijacking
-- DOMAIN-SUFFIX,huishenghuiying.com.cn,Hijacking
-- DOMAIN-SUFFIX,hypersnap.net,Hijacking
-- DOMAIN-SUFFIX,iconworkshop.cn,Hijacking
-- DOMAIN-SUFFIX,imindmap.cc,Hijacking
-- DOMAIN-SUFFIX,jihehuaban.com.cn,Hijacking
-- DOMAIN-SUFFIX,keyshot.cc,Hijacking
-- DOMAIN-SUFFIX,kingdeecn.cn,Hijacking
-- DOMAIN-SUFFIX,logoshejishi.com,Hijacking
-- DOMAIN-SUFFIX,luping.net.cn,Hijacking
-- DOMAIN-SUFFIX,mairuan.cn,Hijacking
-- DOMAIN-SUFFIX,mairuan.com,Hijacking
-- DOMAIN-SUFFIX,mairuan.com.cn,Hijacking
-- DOMAIN-SUFFIX,mairuan.net,Hijacking
-- DOMAIN-SUFFIX,mairuanwang.com,Hijacking
-- DOMAIN-SUFFIX,makeding.com,Hijacking
-- DOMAIN-SUFFIX,mathtype.cn,Hijacking
-- DOMAIN-SUFFIX,mindmanager.cc,Hijacking
-- DOMAIN-SUFFIX,mindmanager.cn,Hijacking
-- DOMAIN-SUFFIX,mindmapper.cc,Hijacking
-- DOMAIN-SUFFIX,mycleanmymac.com,Hijacking
-- DOMAIN-SUFFIX,nicelabel.cc,Hijacking
-- DOMAIN-SUFFIX,ntfsformac.cc,Hijacking
-- DOMAIN-SUFFIX,ntfsformac.cn,Hijacking
-- DOMAIN-SUFFIX,overturechina.com,Hijacking
-- DOMAIN-SUFFIX,passwordrecovery.cn,Hijacking
-- DOMAIN-SUFFIX,pdfexpert.cc,Hijacking
-- DOMAIN-SUFFIX,photozoomchina.com,Hijacking
-- DOMAIN-SUFFIX,shankejingling.com,Hijacking
-- DOMAIN-SUFFIX,ultraiso.net,Hijacking
-- DOMAIN-SUFFIX,vegaschina.cn,Hijacking
-- DOMAIN-SUFFIX,xmindchina.net,Hijacking
-- DOMAIN-SUFFIX,xshellcn.com,Hijacking
-- DOMAIN-SUFFIX,yihuifu.cn,Hijacking
-- DOMAIN-SUFFIX,yuanchengxiezuo.com,Hijacking
-- DOMAIN-SUFFIX,zbrushcn.com,Hijacking
-- DOMAIN-SUFFIX,zhzzx.com,Hijacking
+- DOMAIN-SUFFIX,4009997658.com,REJECT
+- DOMAIN-SUFFIX,abbyychina.com,REJECT
+- DOMAIN-SUFFIX,bartender.cc,REJECT
+- DOMAIN-SUFFIX,betterzip.net,REJECT
+- DOMAIN-SUFFIX,betterzipcn.com,REJECT
+- DOMAIN-SUFFIX,beyondcompare.cc,REJECT
+- DOMAIN-SUFFIX,bingdianhuanyuan.cn,REJECT
+- DOMAIN-SUFFIX,chemdraw.com.cn,REJECT
+- DOMAIN-SUFFIX,cjmakeding.com,REJECT
+- DOMAIN-SUFFIX,cjmkt.com,REJECT
+- DOMAIN-SUFFIX,codesoftchina.com,REJECT
+- DOMAIN-SUFFIX,coreldrawchina.com,REJECT
+- DOMAIN-SUFFIX,crossoverchina.com,REJECT
+- DOMAIN-SUFFIX,dongmansoft.com,REJECT
+- DOMAIN-SUFFIX,earmasterchina.cn,REJECT
+- DOMAIN-SUFFIX,easyrecoverychina.com,REJECT
+- DOMAIN-SUFFIX,ediuschina.com,REJECT
+- DOMAIN-SUFFIX,flstudiochina.com,REJECT
+- DOMAIN-SUFFIX,formysql.com,REJECT
+- DOMAIN-SUFFIX,guitarpro.cc,REJECT
+- DOMAIN-SUFFIX,huishenghuiying.com.cn,REJECT
+- DOMAIN-SUFFIX,hypersnap.net,REJECT
+- DOMAIN-SUFFIX,iconworkshop.cn,REJECT
+- DOMAIN-SUFFIX,imindmap.cc,REJECT
+- DOMAIN-SUFFIX,jihehuaban.com.cn,REJECT
+- DOMAIN-SUFFIX,keyshot.cc,REJECT
+- DOMAIN-SUFFIX,kingdeecn.cn,REJECT
+- DOMAIN-SUFFIX,logoshejishi.com,REJECT
+- DOMAIN-SUFFIX,luping.net.cn,REJECT
+- DOMAIN-SUFFIX,mairuan.cn,REJECT
+- DOMAIN-SUFFIX,mairuan.com,REJECT
+- DOMAIN-SUFFIX,mairuan.com.cn,REJECT
+- DOMAIN-SUFFIX,mairuan.net,REJECT
+- DOMAIN-SUFFIX,mairuanwang.com,REJECT
+- DOMAIN-SUFFIX,makeding.com,REJECT
+- DOMAIN-SUFFIX,mathtype.cn,REJECT
+- DOMAIN-SUFFIX,mindmanager.cc,REJECT
+- DOMAIN-SUFFIX,mindmanager.cn,REJECT
+- DOMAIN-SUFFIX,mindmapper.cc,REJECT
+- DOMAIN-SUFFIX,mycleanmymac.com,REJECT
+- DOMAIN-SUFFIX,nicelabel.cc,REJECT
+- DOMAIN-SUFFIX,ntfsformac.cc,REJECT
+- DOMAIN-SUFFIX,ntfsformac.cn,REJECT
+- DOMAIN-SUFFIX,overturechina.com,REJECT
+- DOMAIN-SUFFIX,passwordrecovery.cn,REJECT
+- DOMAIN-SUFFIX,pdfexpert.cc,REJECT
+- DOMAIN-SUFFIX,photozoomchina.com,REJECT
+- DOMAIN-SUFFIX,shankejingling.com,REJECT
+- DOMAIN-SUFFIX,ultraiso.net,REJECT
+- DOMAIN-SUFFIX,vegaschina.cn,REJECT
+- DOMAIN-SUFFIX,xmindchina.net,REJECT
+- DOMAIN-SUFFIX,xshellcn.com,REJECT
+- DOMAIN-SUFFIX,yihuifu.cn,REJECT
+- DOMAIN-SUFFIX,yuanchengxiezuo.com,REJECT
+- DOMAIN-SUFFIX,zbrushcn.com,REJECT
+- DOMAIN-SUFFIX,zhzzx.com,REJECT
 
 # Global Area Network
 # (GlobalMedia)
@@ -435,7 +435,7 @@ Rule:
 - DOMAIN-SUFFIX,phprcdn.com,GlobalMedia
 - DOMAIN-SUFFIX,pornhub.com,GlobalMedia
 - DOMAIN-SUFFIX,pornhubpremium.com,GlobalMedia
-# > 台湾好
+# > 台湾�?
 # USER-AGENT,TaiwanGood*,GlobalMedia
 - DOMAIN-SUFFIX,skyking.com.tw,GlobalMedia
 - DOMAIN,hamifans.emome.net,GlobalMedia
@@ -523,12 +523,16 @@ Rule:
 - DOMAIN-SUFFIX,telegra.ph,PROXY
 - DOMAIN-SUFFIX,telegram.me,PROXY
 - DOMAIN-SUFFIX,telegram.org,PROXY
+- DOMAIN-SUFFIX,telesco.pe,PROXY
 - IP-CIDR,91.108.4.0/22,PROXY,no-resolve
 - IP-CIDR,91.108.8.0/22,PROXY,no-resolve
 - IP-CIDR,91.108.12.0/22,PROXY,no-resolve
 - IP-CIDR,91.108.16.0/22,PROXY,no-resolve
 - IP-CIDR,91.108.56.0/22,PROXY,no-resolve
 - IP-CIDR,149.154.160.0/20,PROXY,no-resolve
+- IP-CIDR,2001:b28:f23d::/48,PROXY,no-resolve
+- IP-CIDR,2001:b28:f23f::/48,PROXY,no-resolve
+- IP-CIDR,2001:67c:4e8::/48,PROXY,no-resolve
 # > Line
 - DOMAIN-SUFFIX,line.me,PROXY
 - DOMAIN-SUFFIX,line-apps.com,PROXY
@@ -761,6 +765,7 @@ Rule:
 - DOMAIN-SUFFIX,redbubble.com,PROXY
 - DOMAIN-SUFFIX,reddit.com,PROXY
 - DOMAIN-SUFFIX,redditmedia.com,PROXY
+- DOMAIN-SUFFIX,redditstatic.com,PROXY
 - DOMAIN-SUFFIX,resilio.com,PROXY
 - DOMAIN-SUFFIX,reuters.com,PROXY
 - DOMAIN-SUFFIX,reutersmedia.net,PROXY
@@ -949,6 +954,7 @@ Rule:
 - DOMAIN-SUFFIX,recaptcha.net,PROXY
 - DOMAIN-SUFFIX,shattered.io,PROXY
 - DOMAIN-SUFFIX,synergyse.com,PROXY
+- DOMAIN-SUFFIX,telephony.goog,PROXY
 - DOMAIN-SUFFIX,tensorflow.org,PROXY
 - DOMAIN-SUFFIX,tfhub.dev,PROXY
 - DOMAIN-SUFFIX,tiltbrush.com,PROXY
@@ -1093,7 +1099,7 @@ Rule:
 - DOMAIN-SUFFIX,didialift.com,DIRECT
 - DOMAIN-SUFFIX,didiglobal.com,DIRECT
 - DOMAIN-SUFFIX,udache.com,DIRECT
-# > 蛋蛋赞
+# > 蛋蛋�?
 - DOMAIN-SUFFIX,343480.com,DIRECT
 - DOMAIN-SUFFIX,baduziyuan.com,DIRECT
 - DOMAIN-SUFFIX,com-hs-hkdy.com,DIRECT
@@ -1186,6 +1192,9 @@ Rule:
 - DOMAIN-SUFFIX,tencent-cloud.net,DIRECT
 - DOMAIN-SUFFIX,tenpay.com,DIRECT
 - DOMAIN,file-igamecj.akamaized.net,DIRECT
+- IP-CIDR,182.254.116.0/24,DIRECT
+- IP-CIDR,203.205.252.0/23,DIRECT
+- IP-CIDR,203.205.254.0/23,DIRECT
 # > YYeTs
 # USER-AGENT,YYeTs*,DIRECT
 - DOMAIN-SUFFIX,jstucdn.com,DIRECT
@@ -1410,16 +1419,19 @@ Rule:
 - DOMAIN-SUFFIX,zhuihd.com,DIRECT
 - DOMAIN,download.jetbrains.com,DIRECT
 - DOMAIN,images-cn.ssl-images-amazon.com,DIRECT
+- DOMAIN,cdn.angruo.com,DIRECT
 
 # > Apple
 - DOMAIN-SUFFIX,aaplimg.com,Apple
 - DOMAIN-SUFFIX,apple.co,Apple
 - DOMAIN-SUFFIX,apple.com,Apple
+- DOMAIN-SUFFIX,apple.com.cn,Apple
 - DOMAIN-SUFFIX,apple-cloudkit.com,Apple
 - DOMAIN-SUFFIX,appstore.com,Apple
 - DOMAIN-SUFFIX,cdn-apple.com,Apple
 - DOMAIN-SUFFIX,crashlytics.com,Apple
 - DOMAIN-SUFFIX,icloud.com,Apple
+- DOMAIN-SUFFIX,icloud.com.cn,Apple
 - DOMAIN-SUFFIX,icloud-content.com,Apple
 - DOMAIN-SUFFIX,me.com,Apple
 - DOMAIN-SUFFIX,mzstatic.com,Apple
@@ -1439,3 +1451,31 @@ Rule:
 - GEOIP,CN,DIRECT
 
 - MATCH,Final
+
+# Clash for Windows
+cfw-bypass:
+  - qq.com
+  - music.163.com
+  - '*.music.126.net'
+  - localhost
+  - 127.*
+  - 10.*
+  - 172.16.*
+  - 172.17.*
+  - 172.18.*
+  - 172.19.*
+  - 172.20.*
+  - 172.21.*
+  - 172.22.*
+  - 172.23.*
+  - 172.24.*
+  - 172.25.*
+  - 172.26.*
+  - 172.27.*
+  - 172.28.*
+  - 172.29.*
+  - 172.30.*
+  - 172.31.*
+  - 192.168.*
+  - <local>
+cfw-latency-timeout: 5000
