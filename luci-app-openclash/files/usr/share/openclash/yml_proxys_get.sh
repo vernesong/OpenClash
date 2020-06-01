@@ -545,6 +545,8 @@ do
       alterId="$(cfg_get "alterId:" "$single_server")"
       #cipher
       cipher="$(cfg_get "cipher:" "$single_server")"
+      #servername
+      servername="$(cfg_get "servername:" "$single_server")"
       #network:
       network="$(cfg_get "network:" "$single_server")"
       #ws-path:
@@ -625,6 +627,7 @@ do
          ${uci_set}securitys="$cipher"
          ${uci_set}alterId="$alterId"
          ${uci_set}uuid="$uuid"
+         ${uci_set}servername="$servername"
          if [ "$network" = "ws" ]; then
             ${uci_set}obfs_vmess="websocket"
             ${uci_set}path="$ws_path"
@@ -708,6 +711,7 @@ do
          ${uci_set}securitys="$cipher"
          ${uci_set}alterId="$alterId"
          ${uci_set}uuid="$uuid"
+         ${uci_set}servername="$servername"
          if [ "$network" = "ws" ]; then
             ${uci_set}obfs_vmess="websocket"
             ${uci_set}path="$ws_path"

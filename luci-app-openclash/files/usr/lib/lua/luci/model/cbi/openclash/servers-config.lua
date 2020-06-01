@@ -218,6 +218,11 @@ o:depends("obfs_vmess", "http")
 o:depends("type", "socks5")
 o:depends("type", "http")
 
+o = s:option(Value, "servername", translate("TLS Custom Server"))
+o.rmempty = true
+o.placeholder = translate("example.com")
+o:depends("obfs_vmess", "websocket")
+
 o = s:option(Value, "keep_alive", translate("keep-alive"))
 o.rmempty = true
 o.default = "true"

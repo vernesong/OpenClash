@@ -44,11 +44,14 @@ authentication: # 此项将被接管
   - "user1:pass1"
   - "user2:pass2"
 
-# # experimental hosts, support wildcard (e.g. *.clash.dev Even *.foo.*.example.com)
-# # static domain has a higher priority than wildcard domain (foo.example.com > *.example.com)
-#hosts:
-#'*.clash.dev': 127.0.0.1
-#'alpha.clash.dev': '::1'
+# # hosts, support wildcard (e.g. *.clash.dev Even *.foo.*.example.com)
+# # static domain has a higher priority than wildcard domain (foo.example.com > *.example.com > .example.com)
+# # +.foo.com equal .foo.com and foo.com
+# hosts:
+#   '*.clash.dev': 127.0.0.1
+#   '.dev': 127.0.0.1
+#   'alpha.clash.dev': '::1'
+#   '+.foo.dev': 127.0.0.1
 
 dns:  # 如订阅配置无包括此项的所有DNS设置，OpenClash将自动添加
   enable: true # set true to enable dns (default is false) # 此项将被接管为true
@@ -147,6 +150,7 @@ proxies: # 节点设置，此部分与proxy-provider两者不能同时删除
  # udp: true
  # tls: true
  # skip-cert-verify: true
+ # servername: example.com # priority over wss host
  # network: ws
  # ws-path: /path
  # ws-headers:
