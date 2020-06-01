@@ -328,6 +328,71 @@ if r then table.remove(p,x)end
 return r
 end
 
+local g,h={}
+for n,m in ipairs(fs.glob("/etc/openclash/rule_provider/*"))do
+h=fs.stat(m)
+if h then
+g[n]={}
+g[n].name=fs.basename(m)
+g[n].mtime=os.date("%Y-%m-%d %H:%M:%S",h.mtime)
+g[n].size=i(h.size)
+g[n].remove=0
+g[n].enable=false
+end
+end
+
+rule_form=SimpleForm("rule_provider_file_list",translate("Rule Provider File List"))
+rule_form.reset=false
+rule_form.submit=false
+tb2=rule_form:section(Table,g)
+nm2=tb2:option(DummyValue,"name",translate("File Name"))
+mt2=tb2:option(DummyValue,"mtime",translate("Update Time"))
+sz2=tb2:option(DummyValue,"size",translate("Size"))
+
+btndl2 = tb2:option(Button,"download2",translate("Download Configurations")) 
+btndl2.template="openclash/other_button"
+btndl2.render=function(m,n,h)
+m.inputstyle="remove"
+Button.render(m,n,h)
+end
+btndl2.write = function (h,n)
+	local sPath, sFile, fd, block
+	sPath = "/etc/openclash/rule_provider/"..g[n].name
+	sFile = NXFS.basename(sPath)
+	if fs.isdirectory(sPath) then
+		fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+		sFile = sFile .. ".tar.gz"
+	else
+		fd = nixio.open(sPath, "r")
+	end
+	if not fd then
+		return
+	end
+	HTTP.header('Content-Disposition', 'attachment; filename="%s"' % {sFile})
+	HTTP.prepare_content("application/octet-stream")
+	while true do
+		block = fd:read(nixio.const.buffersize)
+		if (not block) or (#block ==0) then
+			break
+		else
+			HTTP.write(block)
+		end
+	end
+	fd:close()
+	HTTP.close()
+end
+
+btnrm2=tb2:option(Button,"remove2",translate("Remove"))
+btnrm2.render=function(g,n,h)
+g.inputstyle="reset"
+Button.render(g,n,h)
+end
+btnrm2.write=function(h,n)
+local h=fs.unlink("/etc/openclash/rule_provider/"..luci.openclash.basename(g[n].name))
+if h then table.remove(g,n)end
+return h
+end
+
 m = SimpleForm("openclash")
 m.reset = false
 m.submit = false
@@ -396,4 +461,4 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-return ful , form , proxy_form , m
+return ful , form , proxy_form , rule_form , m

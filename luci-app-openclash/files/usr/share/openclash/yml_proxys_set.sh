@@ -154,6 +154,7 @@ yml_servers_set()
    config_get "alpn" "$section" "alpn" ""
    config_get "http_path" "$section" "http_path" ""
    config_get "keep_alive" "$section" "keep_alive" ""
+   config_get "servername" "$section" "servername" ""
    
    if [ ! -z "$if_game_proxy" ] && [ "$if_game_proxy" != "$name" ] && [ "$if_game_proxy_type" = "proxy" ]; then
       return
@@ -294,14 +295,19 @@ cat >> "$SERVER_FILE" <<-EOF
   udp: $udp
 EOF
       fi
+      if [ ! -z "$skip_cert_verify" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  skip-cert-verify: $skip_cert_verify
+EOF
+      fi
       if [ ! -z "$tls" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   tls: $tls
 EOF
       fi
-      if [ ! -z "$skip_cert_verify" ]; then
+      if [ ! -z "$servername" ] && [ "$tls" = "true" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-  skip-cert-verify: $skip_cert_verify
+  servername: $servername
 EOF
       fi
       if [ "$obfs_vmess" != "none" ]; then
