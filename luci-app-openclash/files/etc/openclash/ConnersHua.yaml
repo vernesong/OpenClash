@@ -6,7 +6,7 @@ rules:
 - DOMAIN,dl.google.com,DIRECT
 - DOMAIN,mtalk.google.com,DIRECT
 
-# Internet Service Providers Hijacking 运营商劫�?
+# Internet Service Providers Hijacking 运营商劫持
 - DOMAIN-SUFFIX,17gouwuba.com,REJECT
 - DOMAIN-SUFFIX,186078.com,REJECT
 - DOMAIN-SUFFIX,189zj.cn,REJECT
@@ -174,7 +174,7 @@ rules:
 # https://www.zhihu.com/question/281163698/answer/441388130
 - DOMAIN-SUFFIX,flash.cn,REJECT
 - DOMAIN,geo2.adobe.com,REJECT
-# > C&J Marketing 思杰马克丁软�?
+# > C&J Marketing 思杰马克丁软件
 # https://www.zhihu.com/question/46746200
 - DOMAIN-SUFFIX,4009997658.com,REJECT
 - DOMAIN-SUFFIX,abbyychina.com,REJECT
@@ -435,7 +435,7 @@ rules:
 - DOMAIN-SUFFIX,phprcdn.com,GlobalMedia
 - DOMAIN-SUFFIX,pornhub.com,GlobalMedia
 - DOMAIN-SUFFIX,pornhubpremium.com,GlobalMedia
-# > 台湾�?
+# > 台湾好
 # USER-AGENT,TaiwanGood*,GlobalMedia
 - DOMAIN-SUFFIX,skyking.com.tw,GlobalMedia
 - DOMAIN,hamifans.emome.net,GlobalMedia
@@ -1099,7 +1099,7 @@ rules:
 - DOMAIN-SUFFIX,didialift.com,DIRECT
 - DOMAIN-SUFFIX,didiglobal.com,DIRECT
 - DOMAIN-SUFFIX,udache.com,DIRECT
-# > 蛋蛋�?
+# > 蛋蛋赞
 - DOMAIN-SUFFIX,343480.com,DIRECT
 - DOMAIN-SUFFIX,baduziyuan.com,DIRECT
 - DOMAIN-SUFFIX,com-hs-hkdy.com,DIRECT
@@ -1452,30 +1452,3 @@ rules:
 
 - MATCH,Final
 
-# Clash for Windows
-cfw-bypass:
-  - qq.com
-  - music.163.com
-  - '*.music.126.net'
-  - localhost
-  - 127.*
-  - 10.*
-  - 172.16.*
-  - 172.17.*
-  - 172.18.*
-  - 172.19.*
-  - 172.20.*
-  - 172.21.*
-  - 172.22.*
-  - 172.23.*
-  - 172.24.*
-  - 172.25.*
-  - 172.26.*
-  - 172.27.*
-  - 172.28.*
-  - 172.29.*
-  - 172.30.*
-  - 172.31.*
-  - 192.168.*
-  - <local>
-cfw-latency-timeout: 5000
