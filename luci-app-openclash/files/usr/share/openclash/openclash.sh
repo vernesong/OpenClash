@@ -1,8 +1,14 @@
-#!/bin/bash /etc/rc.common
+#!/bin/bash
+. /lib/functions.sh
+
 status=$(ps|grep -c /usr/share/openclash/openclash.sh)
-[ "$status" -gt "3" ] && exit 0
+[ "$status" -gt 3 ] && exit 0
 status=$(ps|grep -c /etc/init.d/openclash)
-[ "$status" -gt "1" ] && sleep 5
+   while ( [ "$status" -gt 1 ] )
+   do
+      sleep 5
+      status=$(ps|grep -c /etc/init.d/openclash)
+   done
 
 START_LOG="/tmp/openclash_start.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
@@ -53,7 +59,7 @@ config_cus_up()
 	    uci set openclash.config.config_path="$CONFIG_PATH"
       uci commit openclash
 	fi
-	if [ "$servers_update" -eq 1 ] || [ ! -z "$keyword" ]; then
+	if [ "$servers_update" -eq 1 ] || [ ! -z "$keyword" ] || [ ! -z "$ex_keyword" ]; then
 	   echo "配置文件【$name】替换成功，开始挑选节点..." >$START_LOG
 	   uci set openclash.config.config_update_path="/etc/openclash/config/$name.yaml"
 	   uci set openclash.config.servers_if_update=1
@@ -177,6 +183,7 @@ sub_info_get()
    config_get "type" "$section" "type" ""
    config_get "address" "$section" "address" ""
    config_get "keyword" "$section" "keyword" ""
+   config_get "ex_keyword" "$section" "ex_keyword" ""
 
    if [ "$enabled" -eq 0 ]; then
       return
