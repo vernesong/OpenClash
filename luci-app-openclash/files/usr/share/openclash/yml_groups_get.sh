@@ -205,7 +205,7 @@ do
    if [ "$group_type" = "select" ]; then
    cat $single_group |while read -r line
    do 
-      if [ -z "$(echo "$line" |grep "^ \{0,\}-")" ]; then
+      if [ -z "$line" ]; then
         continue
       fi
       

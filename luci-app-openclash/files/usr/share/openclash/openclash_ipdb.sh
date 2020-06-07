@@ -1,12 +1,6 @@
 #!/bin/sh
    status=$(ps|grep -c /usr/share/openclash/openclash_ipdb.sh)
    [ "$status" -gt 3 ] && exit 0
-   status=$(ps|grep -c /etc/init.d/openclash)
-   while ( [ "$status" -gt 1 ] )
-   do
-      sleep 5
-      status=$(ps|grep -c /etc/init.d/openclash)
-   done
 
    START_LOG="/tmp/openclash_start.log"
    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
@@ -26,6 +20,12 @@
       echo "GEOIP 数据库下载成功，检查数据库版本是否更新..." >$START_LOG
       cmp -s /tmp/Country.mmdb /etc/openclash/Country.mmdb
          if [ "$?" -ne "0" ]; then
+         	  status=$(ps |grep -v openclash_watchdog |grep -c openclash.sh)
+            while ( [ "$status" -gt 1 ] )
+            do
+               sleep 5
+               status=$(ps |grep -v openclash_watchdog |grep -c openclash.sh)
+            done
             /etc/init.d/openclash stop
             echo "数据库版本有更新，开始替换数据库版本..." >$START_LOG\
             && mv /tmp/Country.mmdb /etc/openclash/Country.mmdb >/dev/null 2>&1\
