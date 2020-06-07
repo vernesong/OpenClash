@@ -90,6 +90,7 @@ new_servers_group=$(uci get openclash.config.new_servers_group 2>/dev/null)
 #proxy
 sed -i "s/\'//g" $server_file 2>/dev/null
 sed -i 's/\"//g' $server_file 2>/dev/null
+sed -i 's/servername:/servername#/g' $server_file 2>/dev/null
 line=$(sed -n '/name:/=' $server_file 2>/dev/null)
 num=$(grep -c "name:" $server_file 2>/dev/null)
 count=1
@@ -100,7 +101,7 @@ sed -i 's/\"//g' $provider_file 2>/dev/null
 sed -i '/^ *$/d' $provider_file 2>/dev/null
 sed -i '/^ \{0,\}#/d' $provider_file 2>/dev/null
 sed -i 's/\t/ /g' $provider_file 2>/dev/null
-provider_line=$(awk '{print $0"#*#"FNR}' $provider_file 2>/dev/null |grep -v '^ \{0,\}proxy-providers:\|^ \{0,\}Proxy:\|^ \{0,\}proxy-groups:\|^ \{0,\}rules:\|^ \{0,\}type:\|^ \{0,\}path:\|^ \{0,\}url:\|^ \{0,\}interval:\|^ \{0,\}health-check:\|^ \{0,\}enable:' |awk -F '#*#' '{print $3}')
+provider_line=$(awk '{print $0"#*#"FNR}' $provider_file 2>/dev/null |grep -v '^ \{0,\}proxy-providers:\|^ \{0,\}Proxy:\|^ \{0,\}proxy-groups:\|^ \{0,\}rules:\|^ \{0,\}rule-providers:\|^ \{0,\}script:\|^ \{0,\}type:\|^ \{0,\}path:\|^ \{0,\}url:\|^ \{0,\}interval:\|^ \{0,\}health-check:\|^ \{0,\}enable:' |awk -F '#*#' '{print $3}')
 provider_num=$(grep -c "type:" $provider_file 2>/dev/null)
 provider_count=1
 
@@ -546,7 +547,7 @@ do
       #cipher
       cipher="$(cfg_get "cipher:" "$single_server")"
       #servername
-      servername="$(cfg_get "servername:" "$single_server")"
+      servername="$(cfg_get "servername#" "$single_server")"
       #network:
       network="$(cfg_get "network:" "$single_server")"
       #ws-path:
