@@ -3,12 +3,6 @@
 
 status=$(ps|grep -c /usr/share/openclash/openclash.sh)
 [ "$status" -gt 3 ] && exit 0
-status=$(ps|grep -c /etc/init.d/openclash)
-   while ( [ "$status" -gt 1 ] )
-   do
-      sleep 5
-      status=$(ps|grep -c /etc/init.d/openclash)
-   done
 
 START_LOG="/tmp/openclash_start.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
