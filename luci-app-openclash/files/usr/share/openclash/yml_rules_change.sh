@@ -243,17 +243,27 @@ fi
          if [ ! -z "$(grep "^ \{0,\}- IP-CIDR,198.18.0.1/16" "$4")" ]; then
             sed -i "/^ \{0,\}- IP-CIDR,198.18.0.1\/16/c\- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve" "$4" 2>/dev/null
          else
-            sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null\
-            || sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null\
-            || sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null
+            sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null
+            if [ -z "$(grep '^- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
+               sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null
+            fi
+            if [ -z "$(grep '^- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
+               sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null
+            fi
          fi
       fi
       
       if [ "$7" = 1 ]; then
-         sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null\
-         || sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null\
-         || sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null\
-         || echo "- DOMAIN-KEYWORD,tracker,DIRECT" >> "$4" 2>/dev/null
+         sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
+         if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
+            sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
+         fi
+         if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
+            sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
+         fi
+         if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
+            echo "- DOMAIN-KEYWORD,tracker,DIRECT" >> "$4" 2>/dev/null
+         fi
          sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,announce,DIRECT" "$4" 2>/dev/null
          sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,torrent,DIRECT" "$4" 2>/dev/null
          if [ -z "$(grep "###- MATCH," "$4")" ] && [ -z "$(grep "###- FINAL," "$4")" ]; then
@@ -273,9 +283,13 @@ fi
          sed -i '/^rules:/a\##Custom Rules End##' "$4" 2>/dev/null
          sed -i '/^rules:/a\##Custom Rules##' "$4" 2>/dev/null
          sed -i '/^##Custom Rules##/r/etc/openclash/custom/openclash_custom_rules.list' "$4" 2>/dev/null
-         sed -i '/^ \{0,\}- MATCH,/i\##Custom Rules 2##' "$4" 2>/dev/null\
-         || sed -i '/^ \{0,\}- FINAL,/i\##Custom Rules 2##' "$4" 2>/dev/null\
-         || echo "##Custom Rules 2##" >> "$4" 2>/dev/null
+         sed -i '/^ \{0,\}- MATCH,/i\##Custom Rules 2##' "$4" 2>/dev/null
+         if [ -z "$(grep '^##Custom Rules 2##' "$4")" ]; then
+            sed -i '/^ \{0,\}- FINAL,/i\##Custom Rules 2##' "$4" 2>/dev/null
+         fi
+         if [ -z "$(grep '^##Custom Rules 2##' "$4")" ]; then
+            echo "##Custom Rules 2##" >> "$4" 2>/dev/null
+         fi
          sed -i '/^##Custom Rules 2##/a\##Custom Rules 2 End##' "$4" 2>/dev/null
          sed -i '/^##Custom Rules 2##/r/etc/openclash/custom/openclash_custom_rules_2.list' "$4" 2>/dev/null
       fi
