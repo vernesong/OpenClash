@@ -296,15 +296,18 @@ yml_dns_check()
 #修改集路径
 yml_provider_path()
 {
-   sed -i "s/\'//g" "$1" 2>/dev/null
-   sed -i 's/\"//g' "$1" 2>/dev/null
-   provider_path_line=$(sed -n '/^ \{0,\}path:/=' "$1" 2>/dev/null)
+   provider_path_line=$(sed -n '/ \{0,\}path/=' "$1" 2>/dev/null)
    if [ -n "$provider_path_line" ]; then
 	    for n in $provider_path_line; do
-         provider_path=$(sed -n "${n}p" "$1" |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
+         provider_path=$(sed -n "${n}p" "$1" |sed "s/\'//g" |sed 's/\"//g' |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
          if [ -z "$(echo "$provider_path" |grep "$2")" ]; then
             provider_name=$(echo "$provider_path" |awk -F '/' '{print $NF}')
             sed -i "s#${provider_path}#./${2}/${provider_name}#" "$1" 2>/dev/null
+            provider_path="/etc/openclash/$2/$provider_name"
+         fi
+         if [ ! -f "$provider_path" ]; then
+            uci set openclash.config.config_reload=0 2>/dev/null
+            uci commit openclash
          fi
       done
    fi 2>/dev/null
@@ -313,14 +316,14 @@ yml_provider_path()
 #检查集文件防止启动失败
 yml_provider_check()
 {
-provider_path_line=$(sed -n '/^ \{0,\}path:/=' "$1" 2>/dev/null)
+provider_path_line=$(sed -n '/ \{0,\}path/=' "$1" 2>/dev/null)
 local provider_path_exist
 if [ -n "$provider_path_line" ]; then
    while ( [ -n "$(pidof clash)" ] && [ "$provider_path_exist" != 1 ] )
    do
       provider_path_exist=1
       for n in $provider_path_line; do
-         provider_path=$(sed -n "${n}p" "$1" |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
+         provider_path=$(sed -n "${n}p" "$1" |sed "s/\'//g" |sed 's/\"//g' |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
          if [ "$(echo "${provider_path:0:1}")" = "." ]; then
             provider_path_check="/etc/openclash/$(echo ${provider_path:2})"
             if [ -f "$provider_path_check" ] && [ "$2" = "proxy_provider" ]; then
@@ -1075,7 +1078,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
                 kill_clash
                 nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
              fi
-             uci set openclash.config.config_reload=1
+             uci set openclash.config.config_reload=1 2>/dev/null
              uci commit openclash
              
              #检测proxy_provider配置文件状态
