@@ -158,6 +158,11 @@ function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
 end
 
+o = s:option(DummyValue, "udp", translate("UDP Support"))
+function o.cfgvalue(...)
+	return Value.cfgvalue(...) or translate("None")
+end
+
 o = s:option(DummyValue,"server",translate("Ping Latency"))
 o.template="openclash/ping"
 o.width="10%"
