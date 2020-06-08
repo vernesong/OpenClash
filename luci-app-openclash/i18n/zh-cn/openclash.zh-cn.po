@@ -597,6 +597,9 @@ msgstr "服务器地址"
 msgid "Server Port"
 msgstr "服务器端口"
 
+msgid "UDP Support"
+msgstr "UDP支持"
+
 msgid "Ping Latency"
 msgstr "服务器延迟"
 
