@@ -1,7 +1,82 @@
-#!/bin/sh
+#!/bin/bash
 
 check_def=0
 /usr/share/openclash/yml_groups_name_get.sh
+
+yml_other_set()
+{
+      sed -i "s/'//g" "$4" 2>/dev/null
+      sed -i '/^##Custom Rules##/,/^##Custom Rules End##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules End##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules 2##/,/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules 2##/d' "$4" 2>/dev/null
+      sed -i '/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,tracker,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,announce,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,torrent,DIRECT/d' "$4" 2>/dev/null
+      
+      if [ -z "$(grep '^ \{0,\}- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ] && [ "$6" = "fake-ip" ]; then
+         if [ ! -z "$(grep "^ \{0,\}- IP-CIDR,198.18.0.1/16" "$4")" ]; then
+            sed -i "/^ \{0,\}- IP-CIDR,198.18.0.1\/16/c\- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve" "$4" 2>/dev/null
+         else
+            sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null
+            if [ -z "$(grep '^- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
+               sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null
+            fi
+            if [ -z "$(grep '^- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
+               sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null
+            fi
+         fi
+      fi
+      
+      if [ "$7" = 1 ]; then
+         sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
+         if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
+            sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
+         fi
+         if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
+            sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
+         fi
+         if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
+            echo "- DOMAIN-KEYWORD,tracker,DIRECT" >> "$4" 2>/dev/null
+         fi
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,announce,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,torrent,DIRECT" "$4" 2>/dev/null
+         if [ -z "$(grep "###- MATCH," "$4")" ] && [ -z "$(grep "###- FINAL," "$4")" ]; then
+            sed -i 's/- MATCH,/###&/' "$4" 2>/dev/null
+            sed -i 's/- FINAL,/###&/' "$4" 2>/dev/null
+            echo "- MATCH,DIRECT" >> "$4" 2>/dev/null
+         fi
+      else
+         if [ ! -z "$(grep "###- MATCH," "$4")" ] || [ ! -z "$(grep "###- FINAL," "$4")" ]; then
+            sed -i '/^- MATCH,DIRECT/d' "$4" 2>/dev/null
+            sed -i "s/###- MATCH,/- MATCH,/" "$4" 2>/dev/null
+            sed -i "s/###- FINAL,/- FINAL,/" "$4" 2>/dev/null
+         fi
+      fi
+      
+      if [ "$3" = 1 ]; then
+         sed -i '/^rules:/a\##Custom Rules End##' "$4" 2>/dev/null
+         sed -i '/^rules:/a\##Custom Rules##' "$4" 2>/dev/null
+         sed -i '/^##Custom Rules##/r/etc/openclash/custom/openclash_custom_rules.list' "$4" 2>/dev/null
+         sed -i '/^ \{0,\}- MATCH,/i\##Custom Rules 2##' "$4" 2>/dev/null
+         if [ -z "$(grep '^##Custom Rules 2##' "$4")" ]; then
+            sed -i '/^ \{0,\}- FINAL,/i\##Custom Rules 2##' "$4" 2>/dev/null
+         fi
+         if [ -z "$(grep '^##Custom Rules 2##' "$4")" ]; then
+            echo "##Custom Rules 2##" >> "$4" 2>/dev/null
+         fi
+         sed -i '/^##Custom Rules 2##/a\##Custom Rules 2 End##' "$4" 2>/dev/null
+         sed -i '/^##Custom Rules 2##/r/etc/openclash/custom/openclash_custom_rules_2.list' "$4" 2>/dev/null
+      fi
+      
+      if [ "$5" = 1 ] || [ "$3" = 1 ] || [ "$7" = 1 ] || [ -z "$(grep '- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
+         sed -i "s/^ \{0,\}-/-/" "$4" 2>/dev/null #修改参数空格
+         sed -i "s/^\t\{0,\}-/-/" "$4" 2>/dev/null #修改参数tab
+      fi
+}
+
 
 if [ "$2" != 0 ]; then
    #判断策略组是否存在
@@ -24,6 +99,7 @@ if [ "$2" != 0 ]; then
 	    if [ -z "$(grep "$Proxy" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Others" /tmp/Proxy_Group)" ];then
          echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
          exit 0
 	    fi
    elif [ "$2" = "ConnersHua" ]; then
@@ -35,6 +111,7 @@ if [ "$2" != 0 ]; then
 	 || [ -z "$(grep "$Others" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Domestic" /tmp/Proxy_Group)" ]; then
          echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
          exit 0
        fi
    elif [ "$2" = "lhie1" ]; then
@@ -54,11 +131,13 @@ if [ "$2" != 0 ]; then
 	 || [ -z "$(grep "$Others" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Domestic" /tmp/Proxy_Group)" ]; then
          echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
          exit 0
        fi
    fi
    if [ "$Proxy" = "读取错误，配置文件异常！" ]; then
       echo "${1} Warning: Can not Get The Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
       exit 0
    else
     rulesource=$(grep '##source:' "$4" |awk -F ':' '{print $2}')
@@ -228,73 +307,4 @@ elif [ "$2" = 0 ]; then
     	}
 fi
 
-      sed -i "s/'//g" "$4" 2>/dev/null
-      sed -i '/^##Custom Rules##/,/^##Custom Rules End##/d' "$4" 2>/dev/null
-      sed -i '/^##Custom Rules##/d' "$4" 2>/dev/null
-      sed -i '/^##Custom Rules End##/d' "$4" 2>/dev/null
-      sed -i '/^##Custom Rules 2##/,/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
-      sed -i '/^##Custom Rules 2##/d' "$4" 2>/dev/null
-      sed -i '/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
-      sed -i '/- DOMAIN-KEYWORD,tracker,DIRECT/d' "$4" 2>/dev/null
-      sed -i '/- DOMAIN-KEYWORD,announce,DIRECT/d' "$4" 2>/dev/null
-      sed -i '/- DOMAIN-KEYWORD,torrent,DIRECT/d' "$4" 2>/dev/null
-      
-      if [ -z "$(grep '^ \{0,\}- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ] && [ "$6" = "fake-ip" ]; then
-         if [ ! -z "$(grep "^ \{0,\}- IP-CIDR,198.18.0.1/16" "$4")" ]; then
-            sed -i "/^ \{0,\}- IP-CIDR,198.18.0.1\/16/c\- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve" "$4" 2>/dev/null
-         else
-            sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null
-            if [ -z "$(grep '^- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
-               sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null
-            fi
-            if [ -z "$(grep '^- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
-               sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- IP-CIDR,198.18.0.1\/16,REJECT,no-resolve\n&/}' "$4" 2>/dev/null
-            fi
-         fi
-      fi
-      
-      if [ "$7" = 1 ]; then
-         sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
-         if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
-            sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
-         fi
-         if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
-            sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
-         fi
-         if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
-            echo "- DOMAIN-KEYWORD,tracker,DIRECT" >> "$4" 2>/dev/null
-         fi
-         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,announce,DIRECT" "$4" 2>/dev/null
-         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,torrent,DIRECT" "$4" 2>/dev/null
-         if [ -z "$(grep "###- MATCH," "$4")" ] && [ -z "$(grep "###- FINAL," "$4")" ]; then
-            sed -i 's/- MATCH,/###&/' "$4" 2>/dev/null
-            sed -i 's/- FINAL,/###&/' "$4" 2>/dev/null
-            echo "- MATCH,DIRECT" >> "$4" 2>/dev/null
-         fi
-      else
-         if [ ! -z "$(grep "###- MATCH," "$4")" ] || [ ! -z "$(grep "###- FINAL," "$4")" ]; then
-            sed -i '/^- MATCH,DIRECT/d' "$4" 2>/dev/null
-            sed -i "s/###- MATCH,/- MATCH,/" "$4" 2>/dev/null
-            sed -i "s/###- FINAL,/- FINAL,/" "$4" 2>/dev/null
-         fi
-      fi
-      
-      if [ "$3" = 1 ]; then
-         sed -i '/^rules:/a\##Custom Rules End##' "$4" 2>/dev/null
-         sed -i '/^rules:/a\##Custom Rules##' "$4" 2>/dev/null
-         sed -i '/^##Custom Rules##/r/etc/openclash/custom/openclash_custom_rules.list' "$4" 2>/dev/null
-         sed -i '/^ \{0,\}- MATCH,/i\##Custom Rules 2##' "$4" 2>/dev/null
-         if [ -z "$(grep '^##Custom Rules 2##' "$4")" ]; then
-            sed -i '/^ \{0,\}- FINAL,/i\##Custom Rules 2##' "$4" 2>/dev/null
-         fi
-         if [ -z "$(grep '^##Custom Rules 2##' "$4")" ]; then
-            echo "##Custom Rules 2##" >> "$4" 2>/dev/null
-         fi
-         sed -i '/^##Custom Rules 2##/a\##Custom Rules 2 End##' "$4" 2>/dev/null
-         sed -i '/^##Custom Rules 2##/r/etc/openclash/custom/openclash_custom_rules_2.list' "$4" 2>/dev/null
-      fi
-      
-      if [ "$5" = 1 ] || [ "$3" = 1 ] || [ "$7" = 1 ] || [ -z "$(grep '- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ]; then
-         sed -i "s/^ \{0,\}-/-/" "$4" 2>/dev/null #修改参数空格
-         sed -i "s/^\t\{0,\}-/-/" "$4" 2>/dev/null #修改参数tab
-      fi
+yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
