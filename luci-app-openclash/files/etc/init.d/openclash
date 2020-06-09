@@ -327,14 +327,14 @@ if [ -n "$provider_path_line" ]; then
          if [ "$(echo "${provider_path:0:1}")" = "." ]; then
             provider_path_check="/etc/openclash/$(echo ${provider_path:2})"
             if [ -f "$provider_path_check" ] && [ "$2" = "proxy_provider" ]; then
-               if [ -z "$(grep "'proxies:':" "$provider_path_check")" ] && [ -z "$(grep '"proxies:":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
+               if [ -z "$(grep "'proxies':" "$provider_path_check")" ] && [ -z "$(grep '"proxies":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
                   provider_path_exist=0
                fi
             elif [ "$2" = "proxy_provider" ]; then
                provider_path_exist=0
             fi
             if [ -f "$provider_path_check" ] && [ "$2" = "rule_provider" ]; then
-               if [ -z "$(grep "'payload:':" "$provider_path_check")" ] && [ -z "$(grep '"payload:":' "$provider_path_check")" ] && [ -z "$(grep 'payload:' "$provider_path_check")" ]; then
+               if [ -z "$(grep "'payload':" "$provider_path_check")" ] && [ -z "$(grep '"payload":' "$provider_path_check")" ] && [ -z "$(grep 'payload:' "$provider_path_check")" ]; then
                   provider_path_exist=0
                fi
             elif [ "$2" = "rule_provider" ]; then
@@ -343,14 +343,14 @@ if [ -n "$provider_path_line" ]; then
          else
             provider_path_check="$provider_path"
             if [ -f "$provider_path_check" ] && [ "$2" = "proxy_provider" ]; then
-               if [ -z "$(grep "'proxies:':" "$provider_path_check")" ] && [ -z "$(grep '"proxies:":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
+               if [ -z "$(grep "'proxies':" "$provider_path_check")" ] && [ -z "$(grep '"proxies":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
                   provider_path_exist=0
                fi
             elif [ "$2" = "proxy_provider" ]; then
                provider_path_exist=0
             fi
             if [ -f "$provider_path_check" ] && [ "$2" = "rule_provider" ]; then
-               if [ -z "$(grep "'payload:':" "$provider_path_check")" ] && [ -z "$(grep '"payload:":' "$provider_path_check")" ] && [ -z "$(grep 'payload:' "$provider_path_check")" ]; then
+               if [ -z "$(grep "'payload':" "$provider_path_check")" ] && [ -z "$(grep '"payload":' "$provider_path_check")" ] && [ -z "$(grep 'payload:' "$provider_path_check")" ]; then
                   provider_path_exist=0
                fi
             elif [ "$2" = "rule_provider" ]; then
