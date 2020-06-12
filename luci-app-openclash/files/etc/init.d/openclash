@@ -1037,10 +1037,16 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     get_config
     echo "第二步: 配置文件检查..." >$START_LOG
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKUP_FILE" "$START_BACKUP"
-    grep "^ \{0,\}proxy-groups:" "$CONFIG_FILE" >/dev/null 2>&1 && grep "^ \{0,\}rules:" "$CONFIG_FILE" >/dev/null 2>&1
-    if [ "$?" -eq "0" ]; then
-       grep "^ \{0,\}Proxy:" "$CONFIG_FILE" >/dev/null 2>&1 || grep "^ \{0,\}proxy-providers:" "$CONFIG_FILE" >/dev/null 2>&1
-       if [ "$?" -ne "0" ]; then
+    if [ -n "$(grep "^ \{0,\}proxy-groups:" "$CONFIG_FILE")" ]; then
+       if [ -z "$(grep "^ \{0,\}Proxy:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -z "$(grep "^ \{0,\}proxy-providers:" "$CONFIG_FILE" 2>/dev/null)" ]; then
+          nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+          kill_clash
+          stop
+          echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请根据日志信息对照模板格式检查修改配置文件！" >$START_LOG
+          mv "$START_BACKUP" "$CONFIG_FILE"
+          sleep 5
+          echo "" >$START_LOG
+       elif [ -z "$(grep "^ \{0,\}rules:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -z "$(grep "^ \{0,\}script:" "$CONFIG_FILE" 2>/dev/null)" ]; then
           nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
           kill_clash
           stop
