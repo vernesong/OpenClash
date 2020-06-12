@@ -206,11 +206,13 @@ sub_info_get()
 
    if [ "$?" -eq 0 ] && [ -s "$CFG_FILE" ]; then
    	  config_encode
-   	  grep "^ \{0,\}proxy-groups:" "$CFG_FILE" >/dev/null 2>&1 && grep "^ \{0,\}rules:" "$CFG_FILE" >/dev/null 2>&1
-      if [ "$?" -eq 0 ]; then
-         grep "^ \{0,\}Proxy:" "$CFG_FILE" >/dev/null 2>&1 || grep "^ \{0,\}proxy-providers:" "$CFG_FILE" >/dev/null 2>&1
-         if [ "$?" -eq 0 ]; then
-            config_su_check
+   	  if [ -n "$(grep "^ \{0,\}proxy-groups:" "$CFG_FILE")" ]; then
+         if [ -n "$(grep "^ \{0,\}Proxy:" "$CFG_FILE" 2>/dev/null)" ] || [ -n "$(grep "^ \{0,\}proxy-providers:" "$CFG_FILE" 2>/dev/null)" ]; then
+            if [ -n "$(grep "^ \{0,\}rules:" "$CFG_FILE" 2>/dev/null)" ] || [ -n "$(grep "^ \{0,\}script:" "$CFG_FILE" 2>/dev/null)" ]; then
+               config_su_check
+            else
+               config_download_direct
+            fi
          else
             config_download_direct
          fi

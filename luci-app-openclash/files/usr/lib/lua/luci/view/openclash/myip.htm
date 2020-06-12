@@ -20,6 +20,7 @@
     <link rel="preconnect" href="https://api.ttt.sh">
     <link rel="preconnect" href="https://api.skk.moe">
     <link rel="preconnect" href="https://d.skk.moe">
+    <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,minimal-ui">
     <title>IP 地址查询</title>
     <style>
@@ -202,14 +203,24 @@
                     throw error;
                 }),
             parseIPIpip: (ip, elID) => {
+            	  var meta = document.createElement('meta');
+            	  meta.name = "referrer";
+            	  meta.content = "no-referrer-when-downgrade";
+            	  document.getElementsByTagName('head')[0].appendChild(meta);
+            	  
                 IP.get(`https://qqwry.api.skk.moe/${ip}`, 'json')
                     .then(resp => {
                         $$.getElementById(elID).innerHTML = resp.data.geo;
                         //$$.getElementById(elID).innerHTML = `${resp.data.country} ${resp.data.regionName} ${resp.data.city} ${resp.data.isp}`;
                     })
+                    
+                var meta = document.createElement('meta');
+            	  meta.name = "referrer";
+            	  meta.content = "no-referrer";
+            	  document.getElementsByTagName('head')[0].appendChild(meta); 
             },
             getIpipnetIP: () => {
-                IP.get(`http://myip.ipip.net/?z=${random}`, 'text')
+                IP.get(`https://myip.ipip.net/?z=${random}`, 'text')
                     .then((resp) => {
                         let data = resp.data.replace('当前 IP：', '').split(' 来自于：');
                         $$.getElementById('ip-ipipnet').innerHTML = `${data[0]}`;
@@ -276,6 +287,7 @@
                 $$.getElementById('ip-pcol').innerHTML = data.ip;
                 $$.getElementById('ip-pcol-ipip').innerHTML = `${data.pro} ${data.city} ${data.region} ${pcisp[1]}`;
         };
+
         function getIpsbIP(data){
                 $$.getElementById('ip-ipsb').innerHTML = data.ip;
                 IP.parseIPIpip(data.ip, 'ip-ipsb-geo');
@@ -303,11 +315,12 @@
 		       IP.getIpipnetIP();
 		       IP.getIpifyIP();
 		       
-		       function getPcolIP(data){
-		            let pcisp = data.addr.split(' ');
+           function getPcolIP(data){
+                let pcisp = data.addr.split(' ');
                 $$.getElementById('ip-pcol').innerHTML = data.ip;
                 $$.getElementById('ip-pcol-ipip').innerHTML = `${data.pro} ${data.city} ${data.region} ${pcisp[1]}`;
-		       };
+           };
+
 		       function getIpsbIP(data){
                 $$.getElementById('ip-ipsb').innerHTML = data.ip;
                 IP.parseIPIpip(data.ip, 'ip-ipsb-geo');
