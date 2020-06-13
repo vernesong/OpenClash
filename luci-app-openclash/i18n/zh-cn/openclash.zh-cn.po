@@ -388,6 +388,9 @@ msgstr "lhie1 规则"
 msgid "ConnersHua Rules"
 msgstr "ConnersHua 规则"
 
+msgid "ConnersHua(Provider-type) Rules"
+msgstr "ConnersHua(规则集) 规则"
+
 msgid "ConnersHua Return Rules"
 msgstr "ConnersHua 回国规则"
 
