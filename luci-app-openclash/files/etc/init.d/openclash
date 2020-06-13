@@ -1130,12 +1130,12 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
                 if [ "$rule_source" != 0 ] || [ "$enable_custom_clash_rules" != 0 ]; then
                    echo "错误: OpenClash 启动失败，尝试还原第三方规则并重新启动 Clash 主程序..." >$START_LOG
                    echo "${LOGTIME} OpenClash Can Not Start, Try Use Backup Rules Start Again" >> $LOG_FILE
-                   #mv "$START_BACKUP" /tmp/configrules.bak
-                   #sed -i -n '/^rules:/,$p' /tmp/configrules.bak
-                   #sed -i '/^rules:/,$d' "$CONFIG_FILE" 2>/dev/null
-                   #sed -i '/##Other-rule-providers##/,/##Other-rule-providers-end##/d' "$CONFIG_FILE" 2>/dev/null
-                   #cat /tmp/configrules.bak >> "$CONFIG_FILE"
-                   #rm -rf /tmp/configrules.bak
+                   mv "$START_BACKUP" /tmp/configrules.bak
+                   sed -i -n '/^rules:/,$p' /tmp/configrules.bak
+                   sed -i '/^rules:/,$d' "$CONFIG_FILE" 2>/dev/null
+                   sed -i '/##Other-rule-providers##/,/##Other-rule-providers-end##/d' "$CONFIG_FILE" 2>/dev/null
+                   cat /tmp/configrules.bak >> "$CONFIG_FILE"
+                   rm -rf /tmp/configrules.bak
                    nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
                    sleep 3
                    if pidof clash >/dev/null; then
@@ -1186,8 +1186,8 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     rm -rf $START_BACKUP 2>/dev/null
     rm -rf /tmp/yaml_* 2>/dev/null
 else
-   subscribe_url=$(uci get openclash.config.subscribe_url 2>/dev/null)
-   if [ ! -f "$CONFIG_FILE" ] && [ -n "$subscribe_url" ]; then
+   subscribe_info=$(uci get openclash.@config_subscribe[0].address 2>/dev/null)
+   if [ ! -f "$CONFIG_FILE" ] && [ -n "$subscribe_info" ]; then
       kill_clash
       stop
       echo "OpenClash 配置文件不存在，开始下载..." >$START_LOG
