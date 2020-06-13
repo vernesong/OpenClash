@@ -257,6 +257,7 @@ o.description = translate("Use Other Rules")
 o:value("0", translate("Disable Other Rules"))
 o:value("lhie1", translate("lhie1 Rules"))
 o:value("ConnersHua", translate("ConnersHua Rules"))
+o:value("ConnersHua_provider", translate("ConnersHua(Provider-type) Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
 if not fs.isfile("/tmp/Proxy_Group") then
@@ -267,6 +268,7 @@ file = io.open("/tmp/Proxy_Group", "r");
 o = s:taboption("rules", ListValue, "GlobalTV", translate("GlobalTV"))
 o:depends("rule_source", "lhie1")
 o:depends("rule_source", "ConnersHua")
+o:depends("rule_source", "ConnersHua_provider")
  for l in file:lines() do
    o:value(l)
    end
@@ -274,6 +276,7 @@ o:depends("rule_source", "ConnersHua")
 o = s:taboption("rules", ListValue, "AsianTV", translate("AsianTV"))
 o:depends("rule_source", "lhie1")
 o:depends("rule_source", "ConnersHua")
+o:depends("rule_source", "ConnersHua_provider")
  for l in file:lines() do
    o:value(l)
    end
@@ -281,6 +284,7 @@ o:depends("rule_source", "ConnersHua")
 o = s:taboption("rules", ListValue, "Proxy", translate("Proxy"))
 o:depends("rule_source", "lhie1")
 o:depends("rule_source", "ConnersHua")
+o:depends("rule_source", "ConnersHua_provider")
 o:depends("rule_source", "ConnersHua_return")
  for l in file:lines() do
    o:value(l)
@@ -288,7 +292,6 @@ o:depends("rule_source", "ConnersHua_return")
    file:seek("set")
 o = s:taboption("rules", ListValue, "Apple", translate("Apple"))
 o:depends("rule_source", "lhie1")
-o:depends("rule_source", "ConnersHua")
  for l in file:lines() do
    o:value(l)
    end
@@ -343,7 +346,7 @@ o:depends("rule_source", "lhie1")
    file:seek("set")
 o = s:taboption("rules", ListValue, "AdBlock", translate("AdBlock"))
 o:depends("rule_source", "lhie1")
-o:depends("rule_source", "ConnersHua")
+o:depends("rule_source", "ConnersHua_provider")
  for l in file:lines() do
    o:value(l)
    end
@@ -351,6 +354,7 @@ o:depends("rule_source", "ConnersHua")
 o = s:taboption("rules", ListValue, "Domestic", translate("Domestic"))
 o:depends("rule_source", "lhie1")
 o:depends("rule_source", "ConnersHua")
+o:depends("rule_source", "ConnersHua_provider")
  for l in file:lines() do
    o:value(l)
    end
@@ -358,6 +362,7 @@ o:depends("rule_source", "ConnersHua")
 o = s:taboption("rules", ListValue, "Others", translate("Others"))
 o:depends("rule_source", "lhie1")
 o:depends("rule_source", "ConnersHua")
+o:depends("rule_source", "ConnersHua_provider")
 o:depends("rule_source", "ConnersHua_return")
 o.description = translate("Choose Proxy Group, Base On Your Servers Group in config.yaml")
  for l in file:lines() do

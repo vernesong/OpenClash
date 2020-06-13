@@ -219,7 +219,7 @@
     fi
     
 #fake-ip-filter
-    sed -i '/##Custom fake-ip-filter##/,/##Custom fake-ip-filter END##/d' "$7" 2>/dev/null    
+    sed -i '/##Custom fake-ip-filter##/,/##Custom fake-ip-filter END##/d' "$7" 2>/dev/null
 	  if [ "$2" = "fake-ip" ]; then
       if [ ! -f "/etc/openclash/fake_filter.list" ] || [ ! -z "$(grep "config servers" /etc/config/openclash)" ]; then
          /usr/share/openclash/openclash_fake_filter.sh

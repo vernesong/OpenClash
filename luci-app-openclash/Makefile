@@ -32,7 +32,6 @@ define Build/Prepare
 	chmod 0755 $(PKG_BUILD_DIR)/files/etc/init.d/openclash
 	chmod -R 0755 $(PKG_BUILD_DIR)/files/usr/share/openclash/
 	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/config >/dev/null 2>&1
-	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/proxy_provider >/dev/null 2>&1
 	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/rule_provider >/dev/null 2>&1
 	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/backup >/dev/null 2>&1
 	mkdir -p $(PKG_BUILD_DIR)/files/etc/openclash/core >/dev/null 2>&1
@@ -82,7 +81,6 @@ uci set firewall.openclash.reload=1 >/dev/null 2>&1
 uci commit firewall >/dev/null 2>&1
 mkdir -p /etc/openclash/config >/dev/null 2>&1
 mkdir -p /etc/openclash/proxy_provider >/dev/null 2>&1
-mkdir -p /etc/openclash/rule_provider >/dev/null 2>&1
 mkdir -p /etc/openclash/backup >/dev/null 2>&1
 mkdir -p /etc/openclash/core >/dev/null 2>&1
 mkdir -p /etc/openclash/history >/dev/null 2>&1
@@ -118,7 +116,6 @@ if [ -d "/tmp/openclash_proxy_provider/" ]; then
 	mv "/tmp/openclash_proxy_provider" "/etc/openclash/proxy_provider" >/dev/null 2>&1
 fi
 if [ -d "/tmp/openclash_rule_provider/" ]; then
-	rm -rf "/etc/openclash/rule_provider" >/dev/null 2>&1
 	mv "/tmp/openclash_rule_provider" "/etc/openclash/rule_provider" >/dev/null 2>&1
 fi
 if [ -d "/tmp/openclash_game_rules/" ]; then
