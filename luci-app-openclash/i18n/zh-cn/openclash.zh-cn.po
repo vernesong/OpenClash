@@ -295,6 +295,9 @@ msgstr "注意：只支持【yaml】后缀的文件，文件将被保存到 /etc
 msgid "Proxy Provider File List"
 msgstr "代理集文件列表"
 
+msgid "Rule Providers File List"
+msgstr "规则集文件列表"
+
 msgid "Please Make Sure Ports Available"
 msgstr "请确保端口可用"
 

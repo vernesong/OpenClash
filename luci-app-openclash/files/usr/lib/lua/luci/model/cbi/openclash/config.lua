@@ -341,7 +341,7 @@ g[n].enable=false
 end
 end
 
-rule_form=SimpleForm("rule_provider_file_list",translate("Rule Provider File List"))
+rule_form=SimpleForm("rule_provider_file_list",translate("Rule Providers File List"))
 rule_form.reset=false
 rule_form.submit=false
 tb2=rule_form:section(Table,g)
