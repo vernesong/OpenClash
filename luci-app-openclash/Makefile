@@ -116,7 +116,8 @@ if [ -d "/tmp/openclash_proxy_provider/" ]; then
 	mv "/tmp/openclash_proxy_provider" "/etc/openclash/proxy_provider" >/dev/null 2>&1
 fi
 if [ -d "/tmp/openclash_rule_provider/" ]; then
-	mv "/tmp/openclash_rule_provider" "/etc/openclash/rule_provider" >/dev/null 2>&1
+	mv "/tmp/openclash_rule_provider/*" "/etc/openclash/rule_provider" >/dev/null 2>&1
+	rm -rf "/tmp/openclash_rule_provider" >/dev/null 2>&1
 fi
 if [ -d "/tmp/openclash_game_rules/" ]; then
 	rm -rf "/etc/openclash/game_rules" >/dev/null 2>&1

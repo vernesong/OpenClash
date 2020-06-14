@@ -598,7 +598,7 @@ ${UCI_SET}Others="Others"
 	${UCI_DEL_LIST}="AsianTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="AsianTV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="GlobalTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="GlobalTV" >/dev/null 2>&1
 }
-if [ "$rule_sources" = "ConnersHua_provider" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
+elif [ "$rule_sources" = "ConnersHua_provider" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
 echo "使用ConnersHua(规则集)规则创建中..." >$START_LOG
 echo "proxy-groups:" >>$SERVER_FILE
 cat >> "$SERVER_FILE" <<-EOF
@@ -678,7 +678,7 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
 fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-${UCI_SET}rule_source="ConnersHua"
+${UCI_SET}rule_source="ConnersHua_provider"
 ${UCI_SET}GlobalTV="GlobalTV"
 ${UCI_SET}AsianTV="AsianTV"
 ${UCI_SET}Proxy="Proxy"
