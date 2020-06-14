@@ -24,7 +24,7 @@ m.description=translate("注意事项：<br/>游戏代理为测试功能，不�
 <br/>1、在全局设置-版本更新标签先下载对应模式内核 \
 <br/>2、在《全局设置》-《模式设置》-《运行模式》中选择TUN模式或者游戏模式并重新启动 \
 <br/> \
-<br/>本页设置时如策略组为空，请先到《服务器与策略组管理》页面进行添加
+<br/>本页设置时如策略组为空，请先到《服务器与策略组管理》页面进行添加 \
 <br/> \
 <br/>规则集使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/rule-provider")
 
