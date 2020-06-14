@@ -308,6 +308,18 @@ if [ "$2" != 0 ]; then
                sed -i "/^rule-providers:/c\rule-providers: ##Other-rule-providers##" /tmp/other_rule_provider.yaml 2>/dev/null
                cat /tmp/other_rule_provider.yaml >> "$9" 2>/dev/null
             else
+            #处理缩进
+               sed -i '/^ *$/d' "$9" 2>/dev/null
+               sed -i 's/\t/ /g' "$9" 2>/dev/null
+               sed -i '/^ \{0,\}#/d' "$9" 2>/dev/null
+               sed -i 's/^ \{1,\}/  /g' "$9" 2>/dev/null
+               sed -i 's/^ \{1,\}type:/    type:/g' "$9" 2>/dev/null
+               sed -i 's/^ \{1,\}behavior:/    behavior:/g' "$9" 2>/dev/null
+               sed -i 's/^ \{1,\}path:/    path:/g' "$9" 2>/dev/null
+               sed -i 's/^ \{1,\}url:/    url:/g' "$9" 2>/dev/null
+               sed -i 's/^ \{1,\}interval:/    interval:/g' "$9" 2>/dev/null
+               sed -i 's/^ \{1,\}rule-providers:/rule-providers:/g' "$9" 2>/dev/null
+               
                sed -i '/^ \{0,\}rule-providers:/a\##Other-rule-providers##' /tmp/other_rule_provider.yaml 2>/dev/null
                sed -i '/^ \{0,\}rule-providers:/d' "/tmp/other_rule_provider.yaml" 2>/dev/null
                sed -i '/rule-providers:/r/tmp/other_rule_provider.yaml' "$9" 2>/dev/null
