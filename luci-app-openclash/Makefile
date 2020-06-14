@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.38.8
+PKG_VERSION:=0.38.9
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
@@ -116,7 +116,7 @@ if [ -d "/tmp/openclash_proxy_provider/" ]; then
 	mv "/tmp/openclash_proxy_provider" "/etc/openclash/proxy_provider" >/dev/null 2>&1
 fi
 if [ -d "/tmp/openclash_rule_provider/" ]; then
-	mv "/tmp/openclash_rule_provider/*" "/etc/openclash/rule_provider" >/dev/null 2>&1
+	cp -a "/tmp/openclash_rule_provider/." "/etc/openclash/rule_provider" >/dev/null 2>&1
 	rm -rf "/tmp/openclash_rule_provider" >/dev/null 2>&1
 fi
 if [ -d "/tmp/openclash_game_rules/" ]; then
