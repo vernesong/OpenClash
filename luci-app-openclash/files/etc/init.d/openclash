@@ -933,6 +933,31 @@ CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 #运行模式处理
 do_run_mode()
 {
+	  en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
+	  
+    if [ "$en_mode" = "fake-ip-tun" ]; then
+       en_mode_tun="1"
+       en_mode="fake-ip"
+    fi
+    
+    if [ "$en_mode" = "redir-host-tun" ]; then
+       en_mode_tun="1"
+       en_mode="redir-host"
+    fi
+    
+    if [ "$en_mode" = "redir-host-vpn" ]; then
+       en_mode_tun="2"
+       en_mode="redir-host"
+    fi
+    
+    if [ "$en_mode" = "fake-ip-vpn" ]; then
+       en_mode_tun="2"
+       en_mode="fake-ip"
+    fi
+}
+
+do_run_core()
+{
 
     if [ ! -h "/etc/openclash/clash" ] && [ -s "/etc/openclash/clash" ] && [ ! -s "/etc/openclash/core/clash" ]; then
        mv "/etc/openclash/clash" "/etc/openclash/core/clash" 2>/dev/null
@@ -940,30 +965,22 @@ do_run_mode()
     
     rm -rf "/etc/openclash/clash" 2>/dev/null
     
-    if [ "$en_mode" = "fake-ip-tun" ]; then
-       en_mode_tun="1"
-       en_mode="fake-ip"
+    if [ "$en_mode_tun" = "1" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
     fi
     
-    if [ "$en_mode" = "redir-host-tun" ]; then
-       en_mode_tun="1"
-       en_mode="redir-host"
+    if [ "$en_mode_tun" = "1" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
     fi
     
-    if [ "$en_mode" = "redir-host-vpn" ]; then
-       en_mode_tun="2"
-       en_mode="redir-host"
+    if [ "$en_mode_tun" = "2" ]; then
        ln -s /etc/openclash/core/clash_game /etc/openclash/clash 2>/dev/null
        core_type="Game"
     fi
     
-    if [ "$en_mode" = "fake-ip-vpn" ]; then
-       en_mode_tun="2"
-       en_mode="fake-ip"
+    if [ "$en_mode_tun" = "2" ]; then
        ln -s /etc/openclash/core/clash_game /etc/openclash/clash 2>/dev/null
        core_type="Game"
     fi
@@ -1213,7 +1230,6 @@ revert_firewall()
 
 get_config()
 {
-   en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
    proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
    rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
    enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
@@ -1249,6 +1265,7 @@ config_choose
 enable=$(uci get openclash.config.enable 2>/dev/null)
 
 if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
+	  do_run_mode
     echo "OpenClash 开始启动..." >$START_LOG
     echo "第一步: 获取配置..." >$START_LOG
     get_config
@@ -1295,7 +1312,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           else
              echo "第五步: 启动主程序..." >$START_LOG
              #检查是否存在核心文件
-             do_run_mode
+             do_run_core
              [ ! -f "$CLASH" ] && {
                 kill_clash
                 stop
