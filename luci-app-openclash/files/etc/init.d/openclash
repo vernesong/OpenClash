@@ -346,7 +346,7 @@ if [ -n "$provider_path_line" ]; then
             elif [ "$2" = "rule_provider" ]; then
                provider_path_exist=0
             fi
-         else
+         elif [ "$(echo "${provider_path:0:1}")" = "/" ]; then
             provider_path_check="$provider_path"
             if [ -f "$provider_path_check" ] && [ "$2" = "proxy_provider" ]; then
                if [ -z "$(grep "'proxies':" "$provider_path_check")" ] && [ -z "$(grep '"proxies":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
@@ -367,7 +367,7 @@ if [ -n "$provider_path_line" ]; then
    done
 fi
 
-if [ -z "$(pidof clash)" ] && [ "$provider_path_exist" != 1 ]; then
+if [ -z "$(pidof clash)" ] && [ "$provider_path_exist" = 0 ]; then
 	 kill_clash
 	 stop
 	 if [ "$2" = "proxy_provider" ]; then
