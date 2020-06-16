@@ -26,6 +26,7 @@ o.description = translate("Use Other Rules To Create Config")
 o:depends("create_config", 1)
 o:value("lhie1", translate("lhie1 Rules"))
 o:value("ConnersHua", translate("ConnersHua Rules"))
+o:value("ConnersHua_provider", translate("ConnersHua(Provider-type) Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
 o = s:option(ListValue, "servers_update", translate("Keep Settings"))
@@ -154,6 +155,11 @@ function o.cfgvalue(...)
 end
 
 o = s:option(DummyValue, "port", translate("Server Port"))
+function o.cfgvalue(...)
+	return Value.cfgvalue(...) or translate("None")
+end
+
+o = s:option(DummyValue, "udp", translate("UDP Support"))
 function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
 end
