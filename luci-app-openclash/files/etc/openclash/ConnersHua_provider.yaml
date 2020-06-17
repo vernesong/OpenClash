@@ -57,7 +57,7 @@ rule-providers:
 
 # 规则
 rules:
-##source:ConnersHua
+##source:ConnersHua_provider
   # Unbreak
   - RULE-SET,Unbreak,DIRECT
 
