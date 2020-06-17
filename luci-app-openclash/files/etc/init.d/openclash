@@ -305,10 +305,9 @@ yml_provider_path()
          provider_path=$(sed -n "${n}p" "$1" |sed "s/\'//g" |sed 's/\"//g' |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
          if [ -z "$(echo "$provider_path" |grep "$2")" ]; then
             provider_name=$(echo "$provider_path" |awk -F '/' '{print $NF}')
-            sed -i "s#${provider_path}#./${2}/${provider_name}#" "$1" 2>/dev/null
-            provider_path="/etc/openclash/$2/$provider_name"
-         fi
-         if [ ! -f "$provider_path" ]; then
+            sed -i "s#path: ${provider_path}#path: ./${2}/${provider_name}#" "$1" 2>/dev/null
+            sed -i "s#\"${provider_path}#\"./${2}/${provider_name}#" "$1" 2>/dev/null
+            sed -i "s#\'${provider_path}#\'./${2}/${provider_name}#" "$1" 2>/dev/null
             uci set openclash.config.config_reload=0 2>/dev/null
             uci commit openclash
          fi
@@ -743,7 +742,7 @@ EOF
 yml_get_rule_provider()
 {
 	local section="$1"
-	local enabled group config interval
+	local enabled group config interval position
 	config_get_bool "enabled" "$section" "enabled" "1"
 	config_get "group" "$section" "group" ""
 	config_get "config" "$section" "config" ""
