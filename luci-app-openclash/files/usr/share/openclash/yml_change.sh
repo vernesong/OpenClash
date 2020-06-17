@@ -160,7 +160,7 @@
     fi
 
     if [ "$8" -eq 1 ]; then
-       if [ -z "$(grep "  ipv6: true" "$7")" ]; then
+       if [ -z "$(grep "^  ipv6: true" "$7")" ]; then
           if [ ! -z "$(grep "^ \{0,\}ipv6:" "$7")" ]; then
              sed -i "/^ \{0,\}ipv6:/c\  ipv6: true" "$7"
           else
@@ -168,7 +168,7 @@
           fi
        fi
     else
-       if [ -z "$(grep "  ipv6: false" "$7")" ]; then
+       if [ -z "$(grep "^  ipv6: false" "$7")" ]; then
           if [ ! -z "$(grep "^ \{0,\}ipv6:" "$7")" ]; then
              sed -i "/^ \{0,\}ipv6:/c\  ipv6: false" "$7"
           else
