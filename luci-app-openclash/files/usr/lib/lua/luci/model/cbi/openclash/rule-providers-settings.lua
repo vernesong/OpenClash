@@ -9,7 +9,7 @@ local UTIL = require "luci.util"
 local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 
-m = Map(openclash,  translate("Rules and Groups"))
+m = Map(openclash,  translate("Rule Providers and Groups"))
 m.pageaction = false
 m.description=translate("注意事项：<br/>游戏代理为测试功能，不保证可用性 \
 <br/>准备步骤：\
@@ -51,7 +51,7 @@ end
 s = m:section(TypedSection, "game_config", translate("Game Rules and Groups"))
 s.anonymous = true
 s.addremove = true
-s.sortable = false
+s.sortable = true
 s.template = "cbi/tblsection"
 s.rmempty = false
 
@@ -111,7 +111,7 @@ o.rmempty = true
 s = m:section(TypedSection, "rule_provider_config", translate("Other Rule Providers and Groups"))
 s.anonymous = true
 s.addremove = true
-s.sortable = false
+s.sortable = true
 s.template = "cbi/tblsection"
 s.rmempty = false
 
@@ -173,6 +173,12 @@ o = s:option(Value, "interval", translate("Rule Providers Interval(s)"))
 o.default = "86400"
 o.rmempty = false
 
+---- position
+o = s:option(ListValue, "position", translate("Append Position"))
+o.rmempty     = false
+o:value("0", translate("Priority Match"))
+o:value("1", translate("Extended Match"))
+
 -- [[ Edit Custom Rule Provider ]] --
 s = m:section(TypedSection, "rule_providers", translate("Custom Rule Providers and Groups"))
 s.anonymous = true
@@ -201,15 +207,15 @@ function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("all")
 end
 
-o = s:option(DummyValue, "type", translate("Rule Providers Type"))
-function o.cfgvalue(...)
-	return Value.cfgvalue(...) or translate("None")
-end
-
 o = s:option(DummyValue, "name", translate("Rule Providers Name"))
 function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
 end
+
+o = s:option(ListValue, "position", translate("Append Position"))
+o.rmempty     = false
+o:value("0", translate("Priority Match"))
+o:value("1", translate("Extended Match"))
 
 local rm = {
     {rule_mg, pro_mg}

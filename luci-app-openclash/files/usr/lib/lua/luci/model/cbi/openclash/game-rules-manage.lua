@@ -31,7 +31,7 @@ o = a:option(Button, "Apply")
 o.inputtitle = translate("Back Configurations")
 o.inputstyle = "reset"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-settings"))
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-settings"))
 end
 
 if not NXFS.access("/tmp/rules_name") then
