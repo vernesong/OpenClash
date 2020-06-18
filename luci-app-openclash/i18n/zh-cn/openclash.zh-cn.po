@@ -20,8 +20,8 @@ msgstr "运行状态"
 msgid "Global Settings"
 msgstr "全局设置"
 
-msgid "Rules and Groups"
-msgstr "规则与策略组管理"
+msgid "Rule Providers and Groups"
+msgstr "规则集与策略组管理"
 
 msgid "Game Rules and Groups"
 msgstr "游戏规则与策略组管理"
@@ -671,6 +671,15 @@ msgstr "规则集类型"
 
 msgid "Choose The Rule Providers Type"
 msgstr "选择规则集类型"
+
+msgid "Append Position"
+msgstr "规则集匹配顺序"
+
+msgid "Priority Match"
+msgstr "优先（覆盖）"
+
+msgid "Extended Match"
+msgstr "扩展（补充）"
 
 msgid "Rule Providers Name"
 msgstr "别名（请勿重名）"
