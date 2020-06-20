@@ -160,22 +160,15 @@
     fi
 
     if [ "$8" -eq 1 ]; then
-       if [ -z "$(grep "^  ipv6: true" "$7")" ]; then
-          if [ ! -z "$(grep "^ \{0,\}ipv6:" "$7")" ]; then
-             sed -i "/^ \{0,\}ipv6:/c\  ipv6: true" "$7"
-          else
-             sed -i "/^ \{0,\}enable: true/i\  ipv6: true" "$7"
-          fi
-       fi
+       sed -i '/^ \{0,\}ipv6:/d' "$7" 2>/dev/null
+       sed -i "/^ \{0,\}enable: true/a\  ipv6: true" "$7"
+       sed -i "/^ \{0,\}mode:/i\ipv6: true" "$7"
     else
-       if [ -z "$(grep "^  ipv6: false" "$7")" ]; then
-          if [ ! -z "$(grep "^ \{0,\}ipv6:" "$7")" ]; then
-             sed -i "/^ \{0,\}ipv6:/c\  ipv6: false" "$7"
-          else
-             sed -i "/^ \{0,\}enable: true/a\  ipv6: false" "$7"
-          fi
-       fi
+       sed -i '/^ \{0,\}ipv6:/d' "$7" 2>/dev/null
+       sed -i "/^ \{0,\}enable: true/a\  ipv6: false" "$7"
+       sed -i "/^ \{0,\}mode:/i\ipv6: false" "$7"
     fi
+
 #TUN
     if [ "$15" -eq 1 ]; then
        sed -i "/^dns:/i\tun:" "$7"
