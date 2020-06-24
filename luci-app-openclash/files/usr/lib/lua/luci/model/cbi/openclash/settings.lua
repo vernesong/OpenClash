@@ -346,7 +346,7 @@ o:depends("rule_source", "lhie1")
    file:seek("set")
 o = s:taboption("rules", ListValue, "AdBlock", translate("AdBlock"))
 o:depends("rule_source", "lhie1")
-o:depends("rule_source", "ConnersHua_provider")
+--o:depends("rule_source", "ConnersHua_provider")
  for l in file:lines() do
    o:value(l)
    end
