@@ -998,13 +998,18 @@ do_run_core()
        core_type="Game"
     fi
     
-    if [ "$proxy_mode" = "Script" ] || [ -n "$(grep "^ \{0,\}rule-providers:" "$CONFIG_FILE" 2>/dev/null)" ] || [ "$rule_source" = "ConnersHua_provider" ]; then
+    if [ "$proxy_mode" = "Script" ] || [ "$rule_source" = "ConnersHua_provider" ]; then
+       ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
+       core_type="Tun"
+    fi
+    
+    if [ -n "$(grep "^ \{0,\}rule-providers:" "$RULE_PROVIDER_FILE" 2>/dev/null)" ] && [ -n "$(grep "^ \{0,\}behavior" "$RULE_PROVIDER_FILE" 2>/dev/null |grep -v "^ \{0,\}#")" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
     fi
     
     if [ ! -f "/etc/openclash/clash" ] && [ -f "/etc/openclash/core/clash" ] && [ -z "$core_type" ]; then
-    	ln -s /etc/openclash/core/clash /etc/openclash/clash 2>/dev/null
+       ln -s /etc/openclash/core/clash /etc/openclash/clash 2>/dev/null
     fi
 
 #权限检查
