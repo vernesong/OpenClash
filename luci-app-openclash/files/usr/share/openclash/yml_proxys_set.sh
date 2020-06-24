@@ -645,12 +645,6 @@ cat >> "$SERVER_FILE" <<-EOF
   - Proxy
   - DIRECT
   - Domestic
-- name: AdBlock
-  type: select
-  proxies:
-  - REJECT
-  - DIRECT
-  - Proxy
 - name: AsianTV
   type: select
   proxies:
