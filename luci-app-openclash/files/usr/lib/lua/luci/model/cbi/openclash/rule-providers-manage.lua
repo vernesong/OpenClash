@@ -31,13 +31,23 @@ o = a:option(Button, "Apply")
 o.inputtitle = translate("Back Configurations")
 o.inputstyle = "reset"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-settings"))
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-settings"))
 end
 
 if not NXFS.access("/tmp/rule_providers_name") then
    SYS.call("awk -F ',' '{print $5}' /etc/openclash/rule_providers.list > /tmp/rule_providers_name 2>/dev/null")
 end
 file = io.open("/tmp/rule_providers_name", "r");
+
+local function i(e)
+local t=0
+local a={' KB',' MB',' GB',' TB'}
+repeat
+e=e/1024
+t=t+1
+until(e<=1024)
+return string.format("%.1f",e)..a[t]
+end
 
 ---- Rules List
 local e={},o,t
@@ -57,8 +67,10 @@ e[t].author=string.sub(luci.sys.exec(string.format("grep -F ',%s' /etc/openclash
 e[t].rule_type=string.sub(luci.sys.exec(string.format("grep -F ',%s' /etc/openclash/rule_providers.list |awk -F ',' '{print $3}' 2>/dev/null",o)),1,-2)
 RULE_FILE="/etc/openclash/rule_provider/".. e[t].filename
 if fs.mtime(RULE_FILE) then
+e[t].size=i(fs.stat(RULE_FILE).size)
 e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",fs.mtime(RULE_FILE))
 else
+e[t].size="/"
 e[t].mtime="/"
 end
 if fs.isfile(RULE_FILE) then
@@ -82,6 +94,7 @@ tp=tb:option(DummyValue,"rule_type",translate("Rule Type"))
 nm=tb:option(DummyValue,"name",translate("Rule Name"))
 au=tb:option(DummyValue,"author",translate("Rule Author"))
 fm=tb:option(DummyValue,"filename",translate("File Name"))
+sz=tb:option(DummyValue,"size",translate("Size"))
 mt=tb:option(DummyValue,"mtime",translate("Update Time"))
 
 btnis=tb:option(DummyValue,"filename",translate("Download Rule"))
