@@ -299,13 +299,16 @@ yml_provider_path()
    provider_path_line=$(sed -n '/ \{0,\}path/=' "$1" 2>/dev/null)
    if [ -n "$provider_path_line" ]; then
 	    for n in $provider_path_line; do
+	    	 if [ -n "$(sed -n "${n}p" "$1" |grep "^ \{0,\}#")" ]; then
+      	    continue
+      	 fi
          provider_path=$(sed -n "${n}p" "$1" |sed "s/\'//g" |sed 's/\"//g' |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
          if [ -z "$(echo "$provider_path" |grep "$2")" ]; then
             provider_name=$(echo "$provider_path" |awk -F '/' '{print $NF}')
-            sed -i "s#${provider_path}#./${2}/${provider_name}#" "$1" 2>/dev/null
-            provider_path="/etc/openclash/$2/$provider_name"
-         fi
-         if [ ! -f "$provider_path" ]; then
+            sed -i "s#path: ${provider_path}#path: ./${2}/${provider_name}#" "$1" 2>/dev/null
+            sed -i "s#\"${provider_path}#\"./${2}/${provider_name}#" "$1" 2>/dev/null
+            sed -i "s#\'${provider_path}#\'./${2}/${provider_name}#" "$1" 2>/dev/null
+            sed -i "s#\:${provider_path}#\:./${2}/${provider_name}#" "$1" 2>/dev/null
             uci set openclash.config.config_reload=0 2>/dev/null
             uci commit openclash
          fi
@@ -323,6 +326,9 @@ if [ -n "$provider_path_line" ]; then
    do
       provider_path_exist=1
       for n in $provider_path_line; do
+      	 if [ -n "$(sed -n "${n}p" "$1" |grep "^ \{0,\}#")" ]; then
+      	    continue
+      	 fi
          provider_path=$(sed -n "${n}p" "$1" |sed "s/\'//g" |sed 's/\"//g' |awk -F 'path:' '{print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)
          if [ "$(echo "${provider_path:0:1}")" = "." ]; then
             provider_path_check="/etc/openclash/$(echo ${provider_path:2})"
@@ -340,7 +346,7 @@ if [ -n "$provider_path_line" ]; then
             elif [ "$2" = "rule_provider" ]; then
                provider_path_exist=0
             fi
-         else
+         elif [ "$(echo "${provider_path:0:1}")" = "/" ]; then
             provider_path_check="$provider_path"
             if [ -f "$provider_path_check" ] && [ "$2" = "proxy_provider" ]; then
                if [ -z "$(grep "'proxies':" "$provider_path_check")" ] && [ -z "$(grep '"proxies":' "$provider_path_check")" ] && [ -z "$(grep 'proxies:' "$provider_path_check")" ]; then
@@ -410,8 +416,7 @@ yml_dns_get()
 {
 
    local section="$1"
-   local dns_type=""
-   local dns_address=""
+   local enabled port type ip group dns_type dns_address
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "port" "$section" "port" ""
    config_get "type" "$section" "type" ""
@@ -528,6 +533,7 @@ yml_dns_custom()
 yml_auth_get()
 {
    local section="$1"
+   local enabled username password
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "username" "$section" "username" ""
    config_get "password" "$section" "password" ""
@@ -565,13 +571,14 @@ get_rule_file()
       return
    fi
    
-   GAME_RULE_FILE_NAME=$(grep -F "$1" /etc/openclash/game_rules.list |awk -F ',' '{print $3}' 2>/dev/null)
+   GAME_RULE_FILE_NAME=$(grep "^$1," /etc/openclash/game_rules.list |awk -F ',' '{print $3}' 2>/dev/null)
 
    if [ -z "$GAME_RULE_FILE_NAME" ]; then
-      GAME_RULE_FILE_NAME=$(grep -F "$1" /etc/openclash/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null)
+      GAME_RULE_FILE_NAME=$(grep "^$1," /etc/openclash/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null)
    fi
    
    GAME_RULE_PATH="/etc/openclash/game_rules/$GAME_RULE_FILE_NAME"
+   
    sed '/^#/d' "$GAME_RULE_PATH" 2>/dev/null |sed '/^ *$/d' |awk '{print "- IP-CIDR,"$0}' |awk -v tag="$2" '{print $0","'tag'""}' >> $GAME_RULE_FILE 2>/dev/null
    set_rule_file=1
 }
@@ -579,6 +586,7 @@ get_rule_file()
 yml_game_rule_get()
 {
    local section="$1"
+   local enabled group config
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "group" "$section" "group" ""
    config_get "config" "$section" "config" ""
@@ -598,9 +606,10 @@ yml_game_rule_get()
    config_list_foreach "$section" "rule_name" get_rule_file "$group"
 }
 
-yml_game_group_get()
+yml_rule_group_get()
 {
 	 local section="$1"
+	 local enabled group config
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "group" "$section" "group" ""
    config_get "config" "$section" "config" ""
@@ -632,10 +641,14 @@ fi
 sed -i '/OpenClash-Game-Rules/d' "$RULE_FILE" 2>/dev/null
 sed -i '/OpenClash-Game-Rules-End/d' "$RULE_FILE" 2>/dev/null
 [ "$set_rule_file" = 1 ] && {
-   if [ -n "$(grep "^ \{0,\}- GEOIP" "$RULE_FILE")" ]; then
+	 if [ -n "$(grep "##Custom Rules 2##" "$RULE_FILE")" ]; then
+      sed -i "/##Custom Rules 2##/i\#===================== OpenClash-Game-Rules =====================#" "$RULE_FILE" 2>/dev/null
+   elif [ -n "$(grep "^ \{0,\}- GEOIP" "$RULE_FILE")" ]; then
       sed -i '1,/^ \{0,\}- GEOIP,/{/^ \{0,\}- GEOIP,/s/^ \{0,\}- GEOIP,/#===================== OpenClash-Game-Rules =====================#\n&/}' "$RULE_FILE" 2>/dev/null
    elif [ -n "$(grep "^ \{0,\}- MATCH," "$RULE_FILE")" ]; then
       sed -i '1,/^ \{0,\}- MATCH,/{/^ \{0,\}- MATCH,/s/^ \{0,\}- MATCH,/#===================== OpenClash-Game-Rules =====================#\n&/}' "$RULE_FILE" 2>/dev/null
+   elif [ -n "$(grep "^ \{0,\}- FINAL," "$RULE_FILE")" ]; then
+      sed -i '1,/^ \{0,\}- FINAL,/{/^ \{0,\}- FINAL,/s/^ \{0,\}- FINAL,/#===================== OpenClash-Game-Rules =====================#\n&/}' "$RULE_FILE" 2>/dev/null
    else
       echo "#===================== OpenClash-Game-Rules =====================#" >> "$RULE_FILE" 2>/dev/null
    fi
@@ -648,7 +661,8 @@ cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_PROVIDER_FILE" "$PROXY_FILE" "$GROUP_FILE
 
 #处理游戏节点与策略组
 config_load "openclash"
-config_foreach yml_game_group_get "game_config"
+config_foreach yml_rule_group_get "rule_provider_config"
+config_foreach yml_rule_group_get "game_config"
 sed -i '/^ \{0,\}proxy-groups:/r/tmp/yaml_groups.yaml' "$CONFIG_FILE" 2>/dev/null
 sed -i '/^ \{0,\}Proxy:/d' /tmp/yaml_servers.yaml 2>/dev/null
 sed -i '/^ \{0,\}proxy-providers:/d' /tmp/yaml_provider.yaml 2>/dev/null
@@ -664,6 +678,231 @@ if [ -z "$(grep "^ \{0,\}proxy-providers:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -
 elif [ -f "/tmp/yaml_servers.yaml" ]; then
    sed -i '/^ \{0,\}proxy-providers:r/tmp/yaml_provider.yaml' "$CONFIG_FILE" 2>/dev/null
 fi
+}
+
+yml_rule_set_add()
+{
+	if [ -z "$(grep "rules:" "$RULE_FILE" 2>/dev/null)" ]; then
+		echo "rules:" > "$RULE_FILE"
+	fi
+  if [ "$3" -eq 1 ]; then
+     if [ -z "$(grep "OpenClash-Rule-Set-Extended-End" "$RULE_FILE" 2>/dev/null)" ]; then
+     	 if [ -n "$(grep "##Custom Rules 2##" "$RULE_FILE")" ]; then
+          sed -i "/##Custom Rules 2##/i\#===================== OpenClash-Rule-Set-Extended-End =====================#" "$RULE_FILE" 2>/dev/null
+          sed -i "/OpenClash-Rule-Set-Extended-End/i\#===================== OpenClash-Rule-Set-Extended =====================#" "$RULE_FILE" 2>/dev/null
+  	   elif [ -n "$(grep "^ \{0,\}- GEOIP" "$RULE_FILE")" ]; then
+          sed -i '1,/^ \{0,\}- GEOIP,/{/^ \{0,\}- GEOIP,/s/^ \{0,\}- GEOIP,/#===================== OpenClash-Rule-Set-Extended-End =====================#\n&/}' "$RULE_FILE" 2>/dev/null
+          sed -i "/OpenClash-Rule-Set-Extended-End/i\#===================== OpenClash-Rule-Set-Extended =====================#" "$RULE_FILE" 2>/dev/null
+  	   elif [ -n "$(grep "^ \{0,\}- MATCH," "$RULE_FILE")" ]; then
+          sed -i '1,/^ \{0,\}- MATCH,/{/^ \{0,\}- MATCH,/s/^ \{0,\}- MATCH,/#===================== OpenClash-Rule-Set-Extended-End =====================#\n&/}' "$RULE_FILE" 2>/dev/null
+          sed -i "/OpenClash-Rule-Set-Extended-End/i\#===================== OpenClash-Rule-Set-Extended =====================#" "$RULE_FILE" 2>/dev/null
+       elif [ -n "$(grep "^ \{0,\}- FINAL," "$RULE_FILE")" ]; then
+          sed -i '1,/^ \{0,\}- FINAL,/{/^ \{0,\}- FINAL,/s/^ \{0,\}- FINAL,/#===================== OpenClash-Rule-Set-Extended-End =====================#\n&/}' "$RULE_FILE" 2>/dev/null
+          sed -i "/OpenClash-Rule-Set-Extended-End/i\#===================== OpenClash-Rule-Set-Extended =====================#" "$RULE_FILE" 2>/dev/null
+  	   else
+          echo "#===================== OpenClash-Rule-Set-Extended =====================#" >> "$RULE_FILE" 2>/dev/null
+          echo "#===================== OpenClash-Rule-Set-Extended-End =====================#" >> "$RULE_FILE" 2>/dev/null
+  	   fi
+	   fi
+	   sed -i "/OpenClash-Rule-Set-Extended-End/i\- RULE-SET,${1},${2}" "$RULE_FILE" 2>/dev/null
+  elif [ "$3" -eq 0 ]; then
+     if [ -z "$(grep "OpenClash-Rule-Set-Priority-End" "$RULE_FILE" 2>/dev/null)" ]; then
+        if [ -n "$(grep "##Custom Rules##" "$RULE_FILE" 2>/dev/null)" ]; then
+           sed -i "/##Custom Rules End##/a\#===================== OpenClash-Rule-Set-Priority-End =====================#" "$RULE_FILE" 2>/dev/null
+           sed -i "/##Custom Rules End##/a\#===================== OpenClash-Rule-Set-Priority =====================#" "$RULE_FILE" 2>/dev/null
+        else
+           sed -i "/^rules:/a\#===================== OpenClash-Rule-Set-Priority-End =====================#" "$RULE_FILE" 2>/dev/null
+           sed -i "/^rules:/a\#===================== OpenClash-Rule-Set-Priority =====================#" "$RULE_FILE" 2>/dev/null
+        fi
+     fi
+     sed -i "/OpenClash-Rule-Set-Priority-End/i\- RULE-SET,${1},${2}" "$RULE_FILE" 2>/dev/null
+  fi
+}
+
+yml_gen_rule_provider_file()
+{
+	if [ -z "$1" ]; then
+		return
+	fi
+   
+	RULE_PROVIDER_FILE_NAME=$(grep "^$1," /etc/openclash/rule_providers.list |awk -F ',' '{print $6}' 2>/dev/null)
+	if [ -z "$RULE_PROVIDER_FILE_NAME" ]; then
+		RULE_PROVIDER_FILE_NAME=$(grep "^$1," /etc/openclash/rule_providers.list |awk -F ',' '{print $5}' 2>/dev/null)
+	fi
+	RULE_PROVIDER_FILE_BEHAVIOR=$(grep -F "$RULE_PROVIDER_FILE_NAME" /etc/openclash/rule_providers.list |awk -F ',' '{print $3}' 2>/dev/null)
+	RULE_PROVIDER_FILE_PATH="/etc/openclash/rule_provider/$RULE_PROVIDER_FILE_NAME"
+	RULE_PROVIDER_FILE_URL="https://raw.githubusercontent.com/$(grep -F "$RULE_PROVIDER_FILE_NAME" /etc/openclash/rule_providers.list |awk -F ',' '{print $4$5}' 2>/dev/null)"
+
+	if [ -n "$(grep "$RULE_PROVIDER_FILE_URL" $RULE_PROVIDER_FILE)" ]; then
+		return
+	fi
+	
+	if [ -z "$(grep "rule-providers:" $RULE_PROVIDER_FILE 2>/dev/null)" ]; then
+		echo "rule-providers:" > "$RULE_PROVIDER_FILE"
+	fi
+	
+	if [ -z "$(grep "OpenClash-Rule-Providers-Set" $RULE_PROVIDER_FILE 2>/dev/null)" ]; then
+		echo "#===================== OpenClash-Rule-Providers-Set =====================#" >> "$RULE_PROVIDER_FILE"
+	fi
+	
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
+  $1:
+    type: http
+    behavior: $RULE_PROVIDER_FILE_BEHAVIOR
+    path: $RULE_PROVIDER_FILE_PATH
+    url: $RULE_PROVIDER_FILE_URL
+EOF
+	if [ -z "$3" ]; then
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
+		interval=86400
+EOF
+	else
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
+    interval: $3
+EOF
+	fi
+	yml_rule_set_add "$1" "$2" "$4"
+}
+
+yml_get_rule_provider()
+{
+	local section="$1"
+	local enabled group config interval position
+	config_get_bool "enabled" "$section" "enabled" "1"
+	config_get "group" "$section" "group" ""
+	config_get "config" "$section" "config" ""
+	config_get "interval" "$section" "interval" ""
+	config_get "position" "$section" "position" ""
+
+	if [ "$enabled" = "0" ]; then
+		return
+	fi
+   
+	if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
+		return
+	fi
+   
+	if [ -z "$group" ]; then
+		return
+	fi
+   
+   config_list_foreach "$section" "rule_name" yml_gen_rule_provider_file "$group" "$interval" "$position"
+}
+
+#处理自定义规则集
+yml_set_custom_rule_provider()
+{
+	local section="$1"
+	local enabled name config type behavior path url interval group position
+	config_get_bool "enabled" "$section" "enabled" "1"
+	config_get "name" "$section" "name" ""
+	config_get "config" "$section" "config" ""
+	config_get "type" "$section" "type" ""
+	config_get "behavior" "$section" "behavior" ""
+	config_get "path" "$section" "path" ""
+	config_get "url" "$section" "url" ""
+	config_get "interval" "$section" "interval" ""
+	config_get "group" "$section" "group" ""
+	config_get "position" "$section" "position" ""
+
+	if [ "$enabled" = "0" ]; then
+		return
+	fi
+	
+	if [ -n "$(grep "$url" "$RULE_PROVIDER_FILE")" ] && [ -n "$url" ]; then
+		return
+	fi
+   
+	if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
+		return
+	fi
+   
+	if [ -z "$name" ] || [ -z "$type" ] || [ -z "$behavior" ]; then
+		return
+	fi
+	
+	if [ "$type" = "http" ] && [ -z "$url" ]; then
+		return
+	fi
+	
+	if [ "$path" != "./rule_provider/$name.yaml" ] && [ "$type" = "http" ]; then
+      path="./rule_provider/$name.yaml"
+  elif [ -z "$path" ]; then
+      return
+  fi
+  
+  if [ -n "$(grep "$path" "$RULE_PROVIDER_FILE")" ]; then
+		return
+	fi
+	
+	if [ -z "$interval" ] && [ "$type" = "http" ]; then
+		interval=86400
+	fi
+	
+	if [ -z "$(grep "rule-providers:" "$RULE_PROVIDER_FILE" 2>/dev/null)" ]; then
+		echo "rule-providers:" > "$RULE_PROVIDER_FILE"
+	fi
+	
+	if [ -z "$(grep "OpenClash-Rule-Providers-Set" "$RULE_PROVIDER_FILE" 2>/dev/null)" ]; then
+		echo "#===================== OpenClash-Rule-Providers-Set =====================#" >> "$RULE_PROVIDER_FILE"
+	fi
+
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
+  $name:
+    type: $type
+    behavior: $behavior
+    path: $path
+EOF
+    if [ "$type" = "http" ]; then
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
+    url: $url
+    interval: $interval
+EOF
+    fi
+
+	yml_rule_set_add "$name" "$group" "$position"
+}
+
+#处理规则集
+yml_custom_rule_provider()
+{
+	
+	if [ -n "$(grep "OpenClash-Rule-Set-Extended-End" "$RULE_FILE")" ]; then
+		sed -i '/OpenClash-Rule-Set-Extended/,/OpenClash-Rule-Set-Extended-End/d' "$RULE_FILE" 2>/dev/null
+	fi
+	
+	if [ -n "$(grep "OpenClash-Rule-Set-Priority-End" "$RULE_FILE")" ]; then
+		sed -i '/OpenClash-Rule-Set-Priority/,/OpenClash-Rule-Set-Priority-End/d' "$RULE_FILE" 2>/dev/null
+	fi
+	
+	if [ -n "$(grep "OpenClash-Rule-Providers-Set" "$RULE_PROVIDER_FILE")" ]; then
+		sed -i '/OpenClash-Rule-Providers-Set/,/OpenClash-Rule-Providers-Set-End/d' "$RULE_PROVIDER_FILE" 2>/dev/null
+	fi
+	
+	sed -i '/OpenClash-Rule-Set/d' "$RULE_FILE" 2>/dev/null
+	sed -i '/OpenClash-Rule-Providers/d' "$RULE_PROVIDER_FILE" 2>/dev/null
+	
+	if [ -z "$(grep "^    type:" $RULE_PROVIDER_FILE 2>/dev/null)" ]; then
+		#处理缩进
+  	sed -i '/^ *$/d' "$RULE_PROVIDER_FILE" 2>/dev/null
+  	sed -i 's/\t/ /g' "$RULE_PROVIDER_FILE" 2>/dev/null
+  	sed -i 's/^ \{1,\}/  /g' "$RULE_PROVIDER_FILE" 2>/dev/null
+		sed -i 's/^ \{1,\}type:/    type:/g' "$RULE_PROVIDER_FILE" 2>/dev/null
+		sed -i 's/^ \{1,\}behavior:/    behavior:/g' "$RULE_PROVIDER_FILE" 2>/dev/null
+		sed -i 's/^ \{1,\}path:/    path:/g' "$RULE_PROVIDER_FILE" 2>/dev/null
+		sed -i 's/^ \{1,\}url:/    url:/g' "$RULE_PROVIDER_FILE" 2>/dev/null
+		sed -i 's/^ \{1,\}interval:/    interval:/g' "$RULE_PROVIDER_FILE" 2>/dev/null
+		sed -i 's/^ \{1,\}rule-providers:/rule-providers:/g' "$RULE_PROVIDER_FILE" 2>/dev/null
+	fi
+	
+	config_load "openclash"
+	config_foreach yml_get_rule_provider "rule_provider_config"
+	config_foreach yml_set_custom_rule_provider "rule_providers"
+	
+	if [ -n "$(grep "OpenClash-Rule-Providers-Set" $RULE_PROVIDER_FILE 2>/dev/null)" ]; then
+		echo "#===================== OpenClash-Rule-Providers-Set-End =====================#" >> "$RULE_PROVIDER_FILE"
+	fi
+	
 }
 
 lan_ac()
@@ -707,50 +946,70 @@ CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 #运行模式处理
 do_run_mode()
 {
-    en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
-    proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
+	  en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
+	  
+    if [ "$en_mode" = "fake-ip-tun" ]; then
+       en_mode_tun="1"
+       en_mode="fake-ip"
+    fi
     
+    if [ "$en_mode" = "redir-host-tun" ]; then
+       en_mode_tun="1"
+       en_mode="redir-host"
+    fi
+    
+    if [ "$en_mode" = "redir-host-vpn" ]; then
+       en_mode_tun="2"
+       en_mode="redir-host"
+    fi
+    
+    if [ "$en_mode" = "fake-ip-vpn" ]; then
+       en_mode_tun="2"
+       en_mode="fake-ip"
+    fi
+}
+
+do_run_core()
+{
+
     if [ ! -h "/etc/openclash/clash" ] && [ -s "/etc/openclash/clash" ] && [ ! -s "/etc/openclash/core/clash" ]; then
        mv "/etc/openclash/clash" "/etc/openclash/core/clash" 2>/dev/null
     fi
     
     rm -rf "/etc/openclash/clash" 2>/dev/null
     
-    if [ "$en_mode" = "fake-ip-tun" ]; then
-       en_mode_tun="1"
-       en_mode="fake-ip"
+    if [ "$en_mode_tun" = "1" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
     fi
     
-    if [ "$en_mode" = "redir-host-tun" ]; then
-       en_mode_tun="1"
-       en_mode="redir-host"
+    if [ "$en_mode_tun" = "1" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
     fi
     
-    if [ "$en_mode" = "redir-host-vpn" ]; then
-       en_mode_tun="2"
-       en_mode="redir-host"
+    if [ "$en_mode_tun" = "2" ]; then
        ln -s /etc/openclash/core/clash_game /etc/openclash/clash 2>/dev/null
        core_type="Game"
     fi
     
-    if [ "$en_mode" = "fake-ip-vpn" ]; then
-       en_mode_tun="2"
-       en_mode="fake-ip"
+    if [ "$en_mode_tun" = "2" ]; then
        ln -s /etc/openclash/core/clash_game /etc/openclash/clash 2>/dev/null
        core_type="Game"
     fi
     
-    if [ "$proxy_mode" = "Script" ] || [ -n "$(grep "^ \{0,\}rule-providers:" "$CONFIG_FILE" 2>/dev/null)" ]; then
+    if [ "$proxy_mode" = "Script" ] || [ "$rule_source" = "ConnersHua_provider" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
     fi
     
-    if [ ! -f "/etc/openclash/clash" ] && [ -f "/etc/openclash/core/clash" ]; then
-    	ln -s /etc/openclash/core/clash /etc/openclash/clash 2>/dev/null
+    if [ -n "$(grep "^ \{0,\}rule-providers:" "$RULE_PROVIDER_FILE" 2>/dev/null)" ] && [ -n "$(grep "^ \{0,\}behavior" "$RULE_PROVIDER_FILE" 2>/dev/null |grep -v "^ \{0,\}#")" ]; then
+       ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
+       core_type="Tun"
+    fi
+    
+    if [ ! -f "/etc/openclash/clash" ] && [ -f "/etc/openclash/core/clash" ] && [ -z "$core_type" ]; then
+       ln -s /etc/openclash/core/clash /etc/openclash/clash 2>/dev/null
     fi
 
 #权限检查
@@ -770,7 +1029,7 @@ if [ "$(iptables -t nat -nL PREROUTING --line-number |grep "udp dpt:53" |grep "0
    iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53 >/dev/null 2>&1
    sleep 2
 fi
-             
+
 if [ -z "$(uci get firewall.openclash 2>/dev/null)" ] || [ -z "$(uci get ucitrack.@openclash[-1].init 2>/dev/null)" ]; then
    uci delete ucitrack.@openclash[-1] >/dev/null 2>&1
    uci add ucitrack openclash >/dev/null 2>&1
@@ -989,8 +1248,9 @@ revert_firewall()
 
 get_config()
 {
-   enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
+   proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
    rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
+   enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
    enable_custom_clash_rules=$(uci get openclash.config.enable_custom_clash_rules 2>/dev/null) 
    da_password=$(uci get openclash.config.dashboard_password 2>/dev/null)
    cn_port=$(uci get openclash.config.cn_port 2>/dev/null)
@@ -1023,28 +1283,24 @@ config_choose
 enable=$(uci get openclash.config.enable 2>/dev/null)
 
 if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
-#检查是否存在核心文件
-   do_run_mode
-   [ ! -f "$CLASH" ] && {
-   	  kill_clash
-   	  stop
-      echo "内核文件不存在，开始下载..." >$START_LOG
-      nohup /usr/share/openclash/openclash_core.sh "$core_type" &
-      exit 0
-   }
+	  do_run_mode
     echo "OpenClash 开始启动..." >$START_LOG
     echo "第一步: 获取配置..." >$START_LOG
     get_config
     echo "第二步: 配置文件检查..." >$START_LOG
     yml_check "$en_mode" "$enable_custom_dns" "$CONFIG_FILE" "$BACKUP_FILE" "$START_BACKUP"
-    grep "^ \{0,\}proxy-groups:" "$CONFIG_FILE" >/dev/null 2>&1 && grep "^ \{0,\}rules:" "$CONFIG_FILE" >/dev/null 2>&1
-    if [ "$?" -eq "0" ]; then
-       grep "^ \{0,\}Proxy:" "$CONFIG_FILE" >/dev/null 2>&1 || grep "^ \{0,\}proxy-providers:" "$CONFIG_FILE" >/dev/null 2>&1
-       if [ "$?" -ne "0" ]; then
-          nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+    if [ -n "$(grep "^ \{0,\}proxy-groups:" "$CONFIG_FILE")" ]; then
+       if [ -z "$(grep "^ \{0,\}Proxy:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -z "$(grep "^ \{0,\}proxy-providers:" "$CONFIG_FILE" 2>/dev/null)" ]; then
           kill_clash
           stop
-          echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请根据日志信息对照模板格式检查修改配置文件！" >$START_LOG
+          echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请对照模板格式检查修改配置文件！" >$START_LOG
+          mv "$START_BACKUP" "$CONFIG_FILE"
+          sleep 5
+          echo "" >$START_LOG
+       elif [ -z "$(grep "^ \{0,\}rules:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -z "$(grep "^ \{0,\}script:" "$CONFIG_FILE" 2>/dev/null)" ]; then
+          kill_clash
+          stop
+          echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请对照模板格式检查修改配置文件！" >$START_LOG
           mv "$START_BACKUP" "$CONFIG_FILE"
           sleep 5
           echo "" >$START_LOG
@@ -1055,11 +1311,12 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           yml_auth_custom "$CONFIG_FILE"
           yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE" "$PROXY_PROVIDER_FILE" "$GROUP_FILE"
           yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
+          sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1 "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" &
+          sh /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$BACKUP_FILE" "$RULE_PROVIDER_FILE" &
+          wait
           yml_provider_path "$PROXY_PROVIDER_FILE" "proxy_provider"
           yml_provider_path "$RULE_PROVIDER_FILE" "rule_provider"
-          sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1 "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" &
-          sh /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$BACKUP_FILE" &
-          wait
+          yml_custom_rule_provider
           yml_game_custom
           echo "第四步: DNS设置检查..." >$START_LOG
           if [ -n "$(sed -n '/^ \{0,\}nameserver:/{n;p}' "$CONFIG_FILE" |grep '^ \{0,\}fallback:')" ] || [ -n "$(sed -n '/^ \{0,\}nameserver:/{n;p}' "$CONFIG_FILE" |grep 'OpenClash-General')" ]; then
@@ -1072,6 +1329,15 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
              echo "" >$START_LOG
           else
              echo "第五步: 启动主程序..." >$START_LOG
+             #检查是否存在核心文件
+             do_run_core
+             [ ! -f "$CLASH" ] && {
+                kill_clash
+                stop
+                echo "内核文件不存在，开始下载..." >$START_LOG
+                nohup /usr/share/openclash/openclash_core.sh "$core_type" &
+                exit 0
+             }
              sed -i "s/^ \{0,\}Proxy:/proxies:/g" "$CONFIG_FILE" 2>/dev/null
              ulimit -SHn 65535 2>/dev/null
              config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
@@ -1118,11 +1384,12 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
                 if [ "$rule_source" != 0 ] || [ "$enable_custom_clash_rules" != 0 ]; then
                    echo "错误: OpenClash 启动失败，尝试还原第三方规则并重新启动 Clash 主程序..." >$START_LOG
                    echo "${LOGTIME} OpenClash Can Not Start, Try Use Backup Rules Start Again" >> $LOG_FILE
-                   mv "$START_BACKUP" /etc/openclash/configrules.bak
-                   sed -i -n '/^rules:/,$p' /etc/openclash/configrules.bak
-                   sed -i '/^rules:/,$d' "$CONFIG_FILE"
-                   cat /etc/openclash/configrules.bak >> "$CONFIG_FILE"
-                   rm -rf /etc/openclash/configrules.bak
+                   mv "$START_BACKUP" /tmp/configrules.bak
+                   sed -i -n '/^rules:/,$p' /tmp/configrules.bak
+                   sed -i '/^rules:/,$d' "$CONFIG_FILE" 2>/dev/null
+                   sed -i '/##Other-rule-providers##/,/##Other-rule-providers-end##/d' "$CONFIG_FILE" 2>/dev/null
+                   cat /tmp/configrules.bak >> "$CONFIG_FILE"
+                   rm -rf /tmp/configrules.bak
                    nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
                    sleep 3
                    if pidof clash >/dev/null; then
@@ -1173,8 +1440,8 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
     rm -rf $START_BACKUP 2>/dev/null
     rm -rf /tmp/yaml_* 2>/dev/null
 else
-   subscribe_url=$(uci get openclash.config.subscribe_url 2>/dev/null)
-   if [ ! -f "$CONFIG_FILE" ] && [ -n "$subscribe_url" ]; then
+   subscribe_info=$(uci get openclash.@config_subscribe[0].address 2>/dev/null)
+   if [ ! -f "$CONFIG_FILE" ] && [ -n "$subscribe_info" ]; then
       kill_clash
       stop
       echo "OpenClash 配置文件不存在，开始下载..." >$START_LOG
