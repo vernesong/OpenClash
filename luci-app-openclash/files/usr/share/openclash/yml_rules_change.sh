@@ -36,23 +36,18 @@ yml_other_set()
             sed -i '1,/^ \{0,\}- MATCH/{/^ \{0,\}- MATCH/s/^ \{0,\}- MATCH/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
          fi
          if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
-            sed -i '1,/^ \{0,\}- FINAL/{/^ \{0,\}- FINAL/s/^ \{0,\}- FINAL/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
-         fi
-         if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
             echo "- DOMAIN-KEYWORD,tracker,DIRECT" >> "$4" 2>/dev/null
          fi
          sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,announce,DIRECT" "$4" 2>/dev/null
          sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,torrent,DIRECT" "$4" 2>/dev/null
          if [ -z "$(grep "###- MATCH," "$4")" ] && [ -z "$(grep "###- FINAL," "$4")" ]; then
             sed -i 's/- MATCH,/###&/' "$4" 2>/dev/null
-            sed -i 's/- FINAL,/###&/' "$4" 2>/dev/null
             echo "- MATCH,DIRECT" >> "$4" 2>/dev/null
          fi
       else
          if [ ! -z "$(grep "###- MATCH," "$4")" ] || [ ! -z "$(grep "###- FINAL," "$4")" ]; then
             sed -i '/^- MATCH,DIRECT/d' "$4" 2>/dev/null
             sed -i "s/###- MATCH,/- MATCH,/" "$4" 2>/dev/null
-            sed -i "s/###- FINAL,/- FINAL,/" "$4" 2>/dev/null
          fi
       fi
       
@@ -61,9 +56,6 @@ yml_other_set()
          sed -i '/^rules:/a\##Custom Rules##' "$4" 2>/dev/null
          sed -i '/^##Custom Rules##/r/etc/openclash/custom/openclash_custom_rules.list' "$4" 2>/dev/null
          sed -i '/^ \{0,\}- MATCH,/i\##Custom Rules 2##' "$4" 2>/dev/null
-         if [ -z "$(grep '^##Custom Rules 2##' "$4")" ]; then
-            sed -i '/^ \{0,\}- FINAL,/i\##Custom Rules 2##' "$4" 2>/dev/null
-         fi
          if [ -z "$(grep '^##Custom Rules 2##' "$4")" ]; then
             echo "##Custom Rules 2##" >> "$4" 2>/dev/null
          fi
@@ -102,21 +94,11 @@ if [ "$2" != 0 ]; then
          yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
          exit 0
 	    fi
-   elif [ "$2" = "ConnersHua_provider" ]; then
-       if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$AsianTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Proxy" /tmp/Proxy_Group)" ]\
-#	 || [ -z "$(grep "$AdBlock" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Others" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Domestic" /tmp/Proxy_Group)" ]; then
-         echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
-         exit 0
-       fi
    elif [ "$2" = "ConnersHua" ]; then
        if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$AsianTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Proxy" /tmp/Proxy_Group)" ]\
+#	 || [ -z "$(grep "$AdBlock" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Others" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Domestic" /tmp/Proxy_Group)" ]; then
          echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
@@ -184,19 +166,11 @@ if [ "$2" != 0 ]; then
 	 || [ "$Others" != "$Others_YAML" ];then
          check_def=1
 	     fi
-    elif [ "$2" = "ConnersHua_provider" ]; then
-       if [ "$GlobalTV" != "$GlobalTV_YAML" ]\
-	 || [ "$AsianTV" != "$AsianTV_YAML" ]\
-	 || [ "$Proxy" != "$Proxy_YAML" ]\
-#	 || [ "$AdBlock" != "$AdBlock_YAML" ]\
-	 || [ "$Others" != "$Others_YAML" ]\
-	 || [ "$Domestic" != "$Domestic_YAML" ]; then
-         check_def=1
-       fi
     elif [ "$2" = "ConnersHua" ]; then
        if [ "$GlobalTV" != "$GlobalTV_YAML" ]\
 	 || [ "$AsianTV" != "$AsianTV_YAML" ]\
 	 || [ "$Proxy" != "$Proxy_YAML" ]\
+#	 || [ "$AdBlock" != "$AdBlock_YAML" ]\
 	 || [ "$Others" != "$Others_YAML" ]\
 	 || [ "$Domestic" != "$Domestic_YAML" ]; then
          check_def=1
@@ -273,8 +247,8 @@ if [ "$2" != 0 ]; then
             sed -i "s/,Others$/,${Others},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "/rules:/a\##Others:${Others}" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "s/#d//g" "/tmp/other_rule.yaml" 2>/dev/null
-       elif [ "$2" = "ConnersHua_provider" ]; then
-            cp /etc/openclash/ConnersHua_provider.yaml /tmp/other_rule_provider.yaml
+       elif [ "$2" = "ConnersHua" ]; then
+            cp /etc/openclash/ConnersHua.yaml /tmp/other_rule_provider.yaml
             sed -n '/^rules:/,$p' /tmp/other_rule_provider.yaml > /tmp/other_rule.yaml 2>/dev/null
             sed -i '/^rules:/,$d' /tmp/other_rule_provider.yaml 2>/dev/null
             sed -i "/^ \{0,\}rule-providers:/c\rule-providers:" /tmp/other_rule_provider.yaml 2>/dev/null
@@ -324,24 +298,6 @@ if [ "$2" != 0 ]; then
                sed -i '/^ \{0,\}rule-providers:/d' "/tmp/other_rule_provider.yaml" 2>/dev/null
                sed -i '/rule-providers:/r/tmp/other_rule_provider.yaml' "$9" 2>/dev/null
             fi
-       elif [ "$2" = "ConnersHua" ]; then
-       	    cp /etc/openclash/ConnersHua.yaml /tmp/other_rule.yaml
-            sed -i "s/,GlobalMedia$/,${GlobalTV}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,GlobalMedia,no-resolve$/,${GlobalTV},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "/rules:/a\##GlobalTV:${GlobalTV}" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,HKMTMedia$/,${AsianTV}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,HKMTMedia,no-resolve$/,${AsianTV},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "/rules:/a\##AsianTV:${AsianTV}" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,PROXY$/,${Proxy}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,PROXY,no-resolve$/,${Proxy},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "/rules:/a\##Proxy:${Proxy}" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,DIRECT$/,${Domestic}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,DIRECT,no-resolve$/,${Domestic},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "/rules:/a\##Domestic:${Domestic}" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,MATCH$/,${Others}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/,MATCH,no-resolve$/,${Others},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "/rules:/a\##Others:${Others}" "/tmp/other_rule.yaml" 2>/dev/null
-            sed -i "s/#d//g" "/tmp/other_rule.yaml" 2>/dev/null
        else
             cp /etc/openclash/ConnersHua_return.yaml /tmp/other_rule.yaml
             sed -i "s/,PROXY$/,${Proxy}#d/g" "/tmp/other_rule.yaml" 2>/dev/null

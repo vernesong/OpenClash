@@ -25,8 +25,7 @@ o = s:option(ListValue, "rule_sources", translate("Choose Template For Create Co
 o.description = translate("Use Other Rules To Create Config")
 o:depends("create_config", 1)
 o:value("lhie1", translate("lhie1 Rules"))
-o:value("ConnersHua", translate("ConnersHua Rules"))
-o:value("ConnersHua_provider", translate("ConnersHua(Provider-type) Rules"))
+o:value("ConnersHua", translate("ConnersHua(Provider-type) Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
 o = s:option(ListValue, "servers_update", translate("Keep Settings"))
