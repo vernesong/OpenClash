@@ -31,7 +31,7 @@
 ---
 
 
-* [Wiki](https://github.com/vernesong/OpenClash/wiki)
+* [Wiki](https://github.com/vernesong/OpenClash/wiki)1
 
 
 下载地址
