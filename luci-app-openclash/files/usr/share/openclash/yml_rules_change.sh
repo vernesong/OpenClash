@@ -98,7 +98,6 @@ if [ "$2" != 0 ]; then
        if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$AsianTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Proxy" /tmp/Proxy_Group)" ]\
-#	 || [ -z "$(grep "$AdBlock" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Others" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Domestic" /tmp/Proxy_Group)" ]; then
          echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
@@ -170,7 +169,6 @@ if [ "$2" != 0 ]; then
        if [ "$GlobalTV" != "$GlobalTV_YAML" ]\
 	 || [ "$AsianTV" != "$AsianTV_YAML" ]\
 	 || [ "$Proxy" != "$Proxy_YAML" ]\
-#	 || [ "$AdBlock" != "$AdBlock_YAML" ]\
 	 || [ "$Others" != "$Others_YAML" ]\
 	 || [ "$Domestic" != "$Domestic_YAML" ]; then
          check_def=1
@@ -272,9 +270,6 @@ if [ "$2" != 0 ]; then
                sed -i "s/,CN,DIRECT$/,China,${Domestic}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
                sed -i "s/,CN,DIRECT,no-resolve$/,China,${Domestic},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
                sed -i "/rules:/a\##Domestic:${Domestic}" "/tmp/other_rule.yaml" 2>/dev/null
-               #sed -i "s/,Unbreak,DIRECT$/,Unbreak,${AdBlock}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-               #sed -i "s/,Unbreak,DIRECT,no-resolve$/,Unbreak,${AdBlock},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
-               #sed -i "/rules:/a\##AdBlock:${AdBlock}" "/tmp/other_rule.yaml" 2>/dev/null
                sed -i "s/,MATCH$/,${Others}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
                sed -i "s/,MATCH,no-resolve$/,${Others},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
                sed -i "/rules:/a\##Others:${Others}" "/tmp/other_rule.yaml" 2>/dev/null
