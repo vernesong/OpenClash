@@ -935,8 +935,8 @@ firewall_redirect_exclude()
    if [ -z "$en_mode_tun" ]; then
       iptables -t mangle -A openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
    else
-      iptables -t mangle -A openclash_exclude -p tcp --dport "$src_dport" -j RETURN >/dev/null 2>&1
-      iptables -t mangle -A openclash_exclude -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
+      iptables -t mangle -A openclash -p tcp --dport "$src_dport" -j RETURN >/dev/null 2>&1
+      iptables -t mangle -A openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
    fi
 }
 
@@ -1187,23 +1187,23 @@ else
    fi
    ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    #设置防火墙
+   iptables -t mangle -N openclash_output
+   iptables -t mangle -F openclash_output
+   iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
+   if [ "$en_mode" = "fake-ip" ]; then
+      iptables -t mangle -A openclash_output -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
+   fi
+   iptables -t mangle -I OUTPUT -j openclash_output
    iptables -t mangle -N openclash
    iptables -t mangle -F openclash
-   iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
-   if [ "$en_mode" = "fake-ip" ]; then
-      iptables -t mangle -A openclash -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
-   fi
-   iptables -t mangle -I OUTPUT -j openclash
-   iptables -t mangle -N openclash_exclude
-   iptables -t mangle -F openclash_exclude
    #端口转发
    config_load "firewall"
    config_foreach firewall_redirect_exclude "redirect"
    #其他流量
-   iptables -t mangle -A openclash_exclude -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
-   iptables -t mangle -A openclash_exclude -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
-   iptables -t mangle -I PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
-   iptables -t mangle -I PREROUTING -j openclash_exclude
+   iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
+   iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+   iptables -t mangle -A openclash -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
+   iptables -t mangle -I PREROUTING -j openclash
    iptables -t nat -I PREROUTING -p tcp --dport 53 -j ACCEPT
 
    #ipv6
@@ -1269,13 +1269,12 @@ revert_firewall()
    ip link set dev clash0 down >/dev/null 2>&1
    ip tuntap del clash0 mode tun >/dev/null 2>&1
 
-   iptables -t mangle -D OUTPUT -j openclash >/dev/null 2>&1
-   iptables -t mangle -D PREROUTING -j openclash_exclude
-   iptables -t mangle -D PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
+   iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
+   iptables -t mangle -D PREROUTING -j openclash
    iptables -t mangle -F openclash >/dev/null 2>&1
    iptables -t mangle -X openclash >/dev/null 2>&1
-   iptables -t mangle -F openclash_exclude >/dev/null 2>&1
-   iptables -t mangle -X openclash_exclude >/dev/null 2>&1
+   iptables -t mangle -F openclash_output >/dev/null 2>&1
+   iptables -t mangle -X openclash_output >/dev/null 2>&1
 
    #ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
 
