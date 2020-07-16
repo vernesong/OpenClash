@@ -53,17 +53,14 @@ change_dns() {
    if [ "$1" -eq "1" ]; then
       uci del dhcp.@dnsmasq[-1].server >/dev/null 2>&1
       uci add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
-      uci delete dhcp.@dnsmasq[0].resolvfile
-      uci set dhcp.@dnsmasq[0].noresolv=1
+      uci delete dhcp.@dnsmasq[0].resolvfile 2>/dev/null
+      uci set dhcp.@dnsmasq[0].noresolv=1 2>/dev/null
       uci set openclash.config.redirect_dns=1
    else
-      uci delete openclash.config.redirect_dns
+      uci delete openclash.config.redirect_dns 2>/dev/null
    fi
    if [ "$2" -eq "1" ]; then
-      uci set dhcp.@dnsmasq[0].cachesize=0
-      uci set openclash.config.masq_cache=1
-   else
-      uci delete openclash.config.masq_cache
+      uci set dhcp.@dnsmasq[0].cachesize=0 2>/dev/null
    fi
    uci commit dhcp
    uci commit openclash
@@ -86,9 +83,11 @@ revert_dns() {
    	  uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$3" >/dev/null 2>&1
    	  uci set openclash.config.dns_revert=0 2>/dev/null
    }
-   [ "$2" -eq "1" ] && {
+
+   [ "$(uci get dhcp.@dnsmasq[0].cachesize 2>/dev/null)" -eq "0" ] && {
       uci delete dhcp.@dnsmasq[0].cachesize >/dev/null 2>&1
-   }
+   } 2>/dev/null
+   
    uci commit dhcp
    uci commit openclash
    rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
@@ -923,6 +922,24 @@ lan_ac()
   
 }
 
+firewall_redirect_exclude()
+{
+   local section="$1"
+   local src_dport
+   config_get "src_dport" "$section" "src_dport" ""
+   
+   if [ -z "$src_dport" ]; then
+      return
+   fi
+   
+   if [ -z "$en_mode_tun" ]; then
+      iptables -t mangle -A openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
+   else
+      iptables -t mangle -A openclash_exclude -p tcp --dport "$src_dport" -j RETURN >/dev/null 2>&1
+      iptables -t mangle -A openclash_exclude -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
+   fi
+}
+
 #配置文件选择
 config_choose()
 {
@@ -1111,6 +1128,10 @@ if [ -z "$en_mode_tun" ]; then
       iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
       iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+      iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
+      #端口转发
+      config_load "firewall"
+      config_foreach firewall_redirect_exclude "redirect"
       iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --on-ip 0.0.0.0 --tproxy-mark "$PROXY_FWMARK"
       iptables -t mangle -A PREROUTING -p udp -j openclash
    fi
@@ -1173,10 +1194,18 @@ else
       iptables -t mangle -A openclash -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
    fi
    iptables -t mangle -I OUTPUT -j openclash
+   iptables -t mangle -N openclash_exclude
+   iptables -t mangle -F openclash_exclude
+   #端口转发
+   config_load "firewall"
+   config_foreach firewall_redirect_exclude "redirect"
+   #其他流量
+   iptables -t mangle -A openclash_exclude -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
+   iptables -t mangle -A openclash_exclude -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
    iptables -t mangle -I PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
-   iptables -t mangle -I PREROUTING -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
-   iptables -t mangle -I PREROUTING -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+   iptables -t mangle -I PREROUTING -j openclash_exclude
    iptables -t nat -I PREROUTING -p tcp --dport 53 -j ACCEPT
+
    #ipv6
    #    if [ "$ipv6_enable" -eq 1 ]; then
    #        ip6tables -t mangle -I PREROUTING -j MARK --set-mark "$PROXY_FWMARK"
@@ -1241,11 +1270,12 @@ revert_firewall()
    ip tuntap del clash0 mode tun >/dev/null 2>&1
 
    iptables -t mangle -D OUTPUT -j openclash >/dev/null 2>&1
-   iptables -t mangle -D PREROUTING -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
-   iptables -t mangle -D PREROUTING -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+   iptables -t mangle -D PREROUTING -j openclash_exclude
    iptables -t mangle -D PREROUTING -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
    iptables -t mangle -F openclash >/dev/null 2>&1
    iptables -t mangle -X openclash >/dev/null 2>&1
+   iptables -t mangle -F openclash_exclude >/dev/null 2>&1
+   iptables -t mangle -X openclash_exclude >/dev/null 2>&1
 
    #ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
 
@@ -1319,8 +1349,8 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           yml_auth_custom "$CONFIG_FILE"
           yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE" "$PROXY_PROVIDER_FILE" "$GROUP_FILE"
           yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
-          sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1 "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" &
-          sh /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$BACKUP_FILE" "$RULE_PROVIDER_FILE" &
+          /usr/share/openclash/yml_change.sh >/dev/null 2>&1 "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" &
+          /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$BACKUP_FILE" "$RULE_PROVIDER_FILE" &
           wait
           yml_provider_path "$PROXY_PROVIDER_FILE" "proxy_provider"
           yml_provider_path "$RULE_PROVIDER_FILE" "rule_provider"
