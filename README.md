@@ -5,14 +5,14 @@
 </h1>
 
   <p align="center">
-	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.17.0">
-    <img src="https://img.shields.io/badge/Clash-v0.17.0-blue.svg">
+	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.0.0">
+    <img src="https://img.shields.io/badge/Clash-v1.0.0-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.36.1-beta">
-    <img src="https://img.shields.io/badge/source code-v0.36.1--beta-green.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.39.4-beta">
+    <img src="https://img.shields.io/badge/source code-v0.39.4--beta-green.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.36.1-beta">
-    <img src="https://img.shields.io/badge/New Release-v0.36.1--beta-orange.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.39.4-beta">
+    <img src="https://img.shields.io/badge/New Release-v0.39.4--beta-orange.svg">
   </a>
   </p>
   
@@ -21,7 +21,7 @@
 本插件是一个可运行在 OpenWrt 上的<a href="https://github.com/Dreamacro/clash" target="_blank"> Clash </a>客户端
 </p>
 <p align="center">
-兼容 Shadowsocks、Vmess、Snell 等协议，根据灵活的规则配置实现策略代理
+兼容 Shadowsocks、Vmess、Trojan、Snell 等协议，根据灵活的规则配置实现策略代理
 </p>
 <p align="center">
 - 感谢<a href="https://github.com/frainzy1477" target="_blank"> frainzy1477 </a>，本插件基于<a href="https://github.com/frainzy1477/luci-app-clash" target="_blank"> Luci For Clash </a>进行二次开发 -
@@ -51,8 +51,14 @@
 * coreutils
 * coreutils-nohup
 * bash
-* wget
+* curl
+* jsonfilter
+* ca-certificates
+* ipset
+* ip-full
+* iptables-mod-tproxy
 * kmod-tun(TUN模式)
+* luci-compat(Luci-19.07)
 
 
 编译
@@ -101,10 +107,19 @@ make package/luci-app-openclash/luci-app-openclash/compile V=99
 * IP检查 [MyIP](https://github.com/SukkaW/MyIP) by [SukkaW](https://github.com/SukkaW)
 * 控制面板 [clash-dashboard](https://github.com/Dreamacro/clash-dashboard) by [Dreamacro](https://github.com/Dreamacro)
 * 控制面板 [yacd](https://github.com/haishanh/yacd) by [haishanh](https://github.com/haishanh)
+* lhie1规则 [lhie1-Rules](https://github.com/lhie1/Rules) by [lhie1](https://github.com/lhie1)
+* ConnersHua规则 [ConnersHua-Rules](https://github.com/ConnersHua/Profiles/tree/master) by [ConnersHua](https://github.com/ConnersHua)
+* 游戏规则 [SSTap-Rule](https://github.com/FQrabbit/SSTap-Rule) by [FQrabbit](https://github.com/FQrabbit)
+* 订阅转换API [Api_Constructor](https://fndroid.github.io/api_constructor/) by [Fndroid](https://github.com/Fndroid)
 
 
 请作者喝杯咖啡
 ---
+
+* PayPal
+<p align="left">
+    <a href="https://ko-fi.com/vernesong"><img width="300" src="https://www.ko-fi.com/img/githubbutton_sm.svg"> </a>
+</p>
 
 * 比特币-BTC
 <p align="left">
@@ -136,7 +151,17 @@ make package/luci-app-openclash/luci-app-openclash/compile V=99
     <img src="https://github.com/vernesong/OpenClash/raw/master/img/servers.png">
 </p>
 
-* 配置文件
+* 游戏规则&策略组
+<p align="center">
+    <img src="https://github.com/vernesong/OpenClash/raw/master/img/game-settings.png">
+</p>
+
+* 配置文件订阅
+<p align="center">
+    <img src="https://github.com/vernesong/OpenClash/raw/master/img/config-subscribe.png">
+</p>
+
+* 配置文件管理
 <p align="center">
     <img src="https://github.com/vernesong/OpenClash/raw/master/img/config.png">
 </p>

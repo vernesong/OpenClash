@@ -56,6 +56,7 @@ o:value("select", translate("Select"))
 o:value("url-test", translate("URL-Test"))
 o:value("fallback", translate("Fallback"))
 o:value("load-balance", translate("Load-Balance"))
+o:value("relay", translate("Relay Traffic"))
 
 o = s:option(Value, "name", translate("Group Name"))
 o.rmempty = false
@@ -85,6 +86,7 @@ uci:foreach("openclash", "groups",
 o:value("DIRECT")
 o:value("REJECT")
 o:depends("type", "select")
+o:depends("type", "relay")
 o.rmempty = true
 
 local t = {

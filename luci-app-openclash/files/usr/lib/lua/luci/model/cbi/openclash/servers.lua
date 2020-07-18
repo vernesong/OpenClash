@@ -2,6 +2,7 @@
 local m, s, o
 local openclash = "openclash"
 local uci = luci.model.uci.cursor()
+local fs = require "luci.openclash"
 
 font_red = [[<font color="red">]]
 font_off = [[</font>]]
@@ -24,7 +25,7 @@ o = s:option(ListValue, "rule_sources", translate("Choose Template For Create Co
 o.description = translate("Use Other Rules To Create Config")
 o:depends("create_config", 1)
 o:value("lhie1", translate("lhie1 Rules"))
-o:value("ConnersHua", translate("ConnersHua Rules"))
+o:value("ConnersHua", translate("ConnersHua(Provider-type) Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
 o = s:option(ListValue, "servers_update", translate("Keep Settings"))
@@ -157,6 +158,11 @@ function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
 end
 
+o = s:option(DummyValue, "udp", translate("UDP Support"))
+function o.cfgvalue(...)
+	return Value.cfgvalue(...) or translate("None")
+end
+
 o = s:option(DummyValue,"server",translate("Ping Latency"))
 o.template="openclash/ping"
 o.width="10%"
@@ -227,6 +233,7 @@ o = a:option(Button, "Commit")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
+	fs.unlink("/tmp/Proxy_Group")
   m.uci:set("openclash", "config", "enable", 0)
   m.uci:commit("openclash")
 end
@@ -235,6 +242,7 @@ o = a:option(Button, "Apply")
 o.inputtitle = translate("Apply Configurations")
 o.inputstyle = "apply"
 o.write = function()
+	fs.unlink("/tmp/Proxy_Group")
   m.uci:set("openclash", "config", "enable", 0)
   m.uci:commit("openclash")
   luci.sys.call("/usr/share/openclash/yml_groups_set.sh >/dev/null 2>&1 &")

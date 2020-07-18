@@ -18,8 +18,8 @@ allow-lan: true # 此项将被接管为true
 # "[aaaa::a8aa:ff:fe09:57d8]": bind a single IPv6 address
 bind-address: "*" # HTTP(S)\SOCKS5 监听地址，此项将被接管为all
 
-# Rule / Global/ Direct (default is Rule)
-mode: Rule # 此项将被接管
+# rule / global / direct (default is rule)
+mode: rule # 此项将被接管
 
 # set log level to stdout (default is info)
 # info / warning / error / debug / silent
@@ -35,20 +35,19 @@ external-ui: "/usr/share/openclash/dashboard" # 此项将被接管
 # Secret for RESTful API (Optional)
 secret: '123456' # 此项将被接管
 
-# experimental feature
-experimental:
-  ignore-resolve-fail: true # ignore dns resolve fail, default value is true
-
 # authentication of local SOCKS5/HTTP(S) server
 authentication: # 此项将被接管
   - "user1:pass1"
   - "user2:pass2"
 
-# # experimental hosts, support wildcard (e.g. *.clash.dev Even *.foo.*.example.com)
-# # static domain has a higher priority than wildcard domain (foo.example.com > *.example.com)
-#hosts:
-#'*.clash.dev': 127.0.0.1
-#'alpha.clash.dev': '::1'
+# # hosts, support wildcard (e.g. *.clash.dev Even *.foo.*.example.com)
+# # static domain has a higher priority than wildcard domain (foo.example.com > *.example.com > .example.com)
+# # +.foo.com equal .foo.com and foo.com
+# hosts:
+#   '*.clash.dev': 127.0.0.1
+#   '.dev': 127.0.0.1
+#   'alpha.clash.dev': '::1'
+#   '+.foo.dev': 127.0.0.1
 
 dns:  # 如订阅配置无包括此项的所有DNS设置，OpenClash将自动添加
   enable: true # set true to enable dns (default is false) # 此项将被接管为true
@@ -56,6 +55,9 @@ dns:  # 如订阅配置无包括此项的所有DNS设置，OpenClash将自动添
   listen: 0.0.0.0:53 # 端口为53时将被接管为7874
   enhanced-mode: redir-host # or fake-ip # 此项将被接管
   fake-ip-range: 198.18.0.1/16 # if you don't know what it is, don't change it # 此项将被接管
+#  fake-ip-filter: # fake ip white domain list
+#  - '*.lan'
+#  - localhost.ptlogin2.qq.com
   nameserver:
   - 114.114.114.114
   - https://1.1.1.1/dns-query # dns over https
@@ -69,16 +71,40 @@ dns:  # 如订阅配置无包括此项的所有DNS设置，OpenClash将自动添
 # 以上设置您可直接覆盖到配置文件,无需更改
 # Openclash 不会对下方服务器设置进行任何更改，请确保设置正确
 
-Proxy: # 此参数必须保留,不能删除
+#proxy-providers: # 代理集设置，此部分与Proxy两者不能同时删除
+#  pro:
+#    type: http
+#    path: ./proxy_provider/pro.yaml
+#    url: https://xxx
+#    interval: 3600
+#    health-check:
+#      enable: true
+#      url: http://www.gstatic.com/generate_204
+#      interval: 300
+#  iplc:
+#    type: file
+#    path: ./proxy_provider/iplc.yaml
+#    health-check:
+#      enable: true
+#      url: http://www.gstatic.com/generate_204
+#      interval: 300
+      
+proxies: # 节点设置，此部分与proxy-provider两者不能同时删除
 
 # shadowsocks
 # The supported ciphers(encrypt methods):
 #   aes-128-gcm aes-192-gcm aes-256-gcm
 #   aes-128-cfb aes-192-cfb aes-256-cfb
 #   aes-128-ctr aes-192-ctr aes-256-ctr
-#   rc4-md5 chacha20 chacha20-ietf xchacha20
+#   rc4-md5 chacha20-ietf xchacha20
 #   chacha20-ietf-poly1305 xchacha20-ietf-poly1305
-- { name: "ss1", type: ss, server: server, port: 443, cipher: chacha20-ietf-poly1305, password: "password", udp: true }
+- name: "ss1"
+  type: ss
+  server: server
+  port: 443
+  cipher: chacha20-ietf-poly1305
+  password: "password"
+ # udp: true
 
 # old obfs configuration remove after prerelease
 - name: "ss2"
@@ -90,7 +116,7 @@ Proxy: # 此参数必须保留,不能删除
   plugin: obfs
   plugin-opts:
     mode: tls # or http
-    # host: bing.com
+    #  host: bing.com
 
 - name: "ss3"
   type: ss
@@ -101,42 +127,68 @@ Proxy: # 此参数必须保留,不能删除
   plugin: v2ray-plugin
   plugin-opts:
     mode: websocket # no QUIC now
-    # tls: true # wss
-    # skip-cert-verify: true
-    # host: bing.com
-    # path: "/"
-    # headers:
-    #   custom: value
+   # tls: true # wss
+   # skip-cert-verify: true
+   # host: bing.com
+   # path: "/"
+   # headers:
+   #    custom: value
 
 # vmess
 # cipher support auto/aes-128-gcm/chacha20-poly1305/none
-- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto }
-# with tls
-- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto, tls: true }
-# with tls and skip-cert-verify
-- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto, tls: true, skip-cert-verify: true }
-# with ws-path and ws-headers
-- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto, network: ws, ws-path: /path, ws-headers: { Host: v2ray.com } }
-# with ws + tls
-- { name: "vmess", type: vmess, server: server, port: 443, uuid: uuid, alterId: 32, cipher: auto, network: ws, ws-path: /path, tls: true }
+- name: "vmess"
+  type: vmess
+  server: server
+  port: 443
+  uuid: uuid
+  alterId: 32
+  cipher: auto
+ # udp: true
+ # tls: true
+ # skip-cert-verify: true
+ # servername: example.com # priority over wss host
+ # network: ws
+ # ws-path: /path
+ # ws-headers:
+ #    Host: v2ray.com
 
+- name: "vmess-http"
+  type: vmess
+  server: server
+  port: 443
+  uuid: uuid
+  alterId: 32
+  cipher: auto
+ # udp: true
+ # network: http
+ # http-opts:
+ #  # method: "GET"
+ #  # path:
+ #   #  - '/'
+ #   #  - '/video'
+ #  # headers:
+ #   #  Connection:
+ #    #   - keep-alive
+    
 # socks5
-- { name: "socks", type: socks5, server: server, port: 443 }
-# socks5 with authentication
-- { name: "socks", type: socks5, server: server, port: 443, username: "username", password: "password" }
-# with tls
-- { name: "socks", type: socks5, server: server, port: 443, tls: true }
-# with tls and skip-cert-verify
-- { name: "socks", type: socks5, server: server, port: 443, tls: true, skip-cert-verify: true }
-
+- name: "socks"
+  type: socks5
+  server: server
+  port: 443
+ # username: username
+ # password: password
+ # tls: true
+ # skip-cert-verify: true
+ # udp: true
 # http
-- { name: "http", type: http, server: server, port: 443 }
-# http with authentication
-- { name: "http", type: http, server: server, port: 443, username: "username", password: "password" }
-# with tls (https)
-- { name: "http", type: http, server: server, port: 443, tls: true }
-# with tls (https) and skip-cert-verify
-- { name: "http", type: http, server: server, port: 443, tls: true, skip-cert-verify: true }
+- name: "http"
+  type: http
+  server: server
+  port: 443
+ # username: username
+ # password: password
+ # tls: true # https
+ # skip-cert-verify: true
 
 # snell
 - name: "snell"
@@ -144,28 +196,109 @@ Proxy: # 此参数必须保留,不能删除
   server: server
   port: 44046
   psk: yourpsk
-  # obfs-opts:
-    # mode: http # or tls
-    # host: bing.com
+ # obfs-opts:
+ #    mode: http # or tls
+ #    host: bing.com
 
+# trojan
+- name: "trojan"
+  type: trojan
+  server: server
+  port: 443
+  password: yourpsk
+ # udp: true
+ # sni: example.com # aka server name
+ # alpn:
+ #    - h2
+ #    - http/1.1
+ # skip-cert-verify: true
+    
 # Openclash 不会对下方策略组设置进行任何更改，请确保设置正确
 
-Proxy Group: # 此参数必须保留,不能删除
+proxy-groups: # 此参数必须保留,不能删除
+
+# relay chains the proxies. proxies shall not contain a proxy-group. No UDP support.
+# Traffic: clash <-> http <-> vmess <-> ss1 <-> ss2 <-> Internet
+- name: "relay"
+  type: relay
+  proxies:
+    - http
+    - vmess
+    - ss1
+    - ss2
 
 # url-test select which proxy will be used by benchmarking speed to a URL.
-- { name: "auto", type: url-test, proxies: ["ss1", "ss2", "vmess1"], url: "http://www.gstatic.com/generate_204", interval: 300 }
+- name: "auto"
+  type: url-test
+  proxies:
+    - ss1
+    - ss2
+    - vmess1
+  url: 'http://www.gstatic.com/generate_204'
+  interval: 300
 
 # fallback select an available policy by priority. The availability is tested by accessing an URL, just like an auto url-test group.
-- { name: "fallback-auto", type: fallback, proxies: ["ss1", "ss2", "vmess1"], url: "http://www.gstatic.com/generate_204", interval: 300 }
+- name: "fallback-auto"
+  type: fallback
+  proxies:
+    - ss1
+    - ss2
+    - vmess1
+  url: 'http://www.gstatic.com/generate_204'
+  interval: 300
 
 # load-balance: The request of the same eTLD will be dial on the same proxy.
-- { name: "load-balance", type: load-balance, proxies: ["ss1", "ss2", "vmess1"], url: "http://www.gstatic.com/generate_204", interval: 300 }
+- name: "load-balance"
+  type: load-balance
+  proxies:
+    - ss1
+    - ss2
+    - vmess1
+  url: 'http://www.gstatic.com/generate_204'
+  interval: 300
 
 # select is used for selecting proxy or proxy group
 # you can use RESTful API to switch proxy, is recommended for use in GUI.
-- { name: "Proxy", type: select, proxies: ["ss1", "ss2", "vmess1", "auto"] }
+- name: Proxy
+  type: select
+  proxies:
+    - ss1
+    - ss2
+    - vmess1
+    - auto
+  
+- name: UseProvider
+  type: select
+  use:
+    - provider1
+  proxies:
+    - Proxy
+    - DIRECT
 
-Rule: # 此参数必须保留,不能删除
+# https://lancellc.gitbook.io/clash/clash-config-file/rule-provider
+#rule-providers:
+#  name: # name of the provider
+#    type: http # type of the provider, it can be a HTTP or a File
+#    behavior: classical # or ipcidr、domain
+#    path: # where is the file, ./ relative to clash home
+#    url: # only available when type is HTTP, where to download a file. You don't need to create a new file in local space.
+#    interval: # auto-update interval, only available when type is HTTP
+
+# https://lancellc.gitbook.io/clash/clash-config-file/script
+#script:
+#  code: |
+#    def main(ctx, metadata):
+#      ip = metadata["dst_ip"] = ctx.resolve_ip(metadata["host"])
+#      if ip == "":
+#        return "DIRECT"
+#        
+#      code = ctx.geoip(ip)
+#      if code == "LAN" or code == "CN":
+#        return "DIRECT"
+#      
+#      return "Proxy" # default policy for requests which are not matched by any other script
+      
+rules: # 此参数必须保留,不能删除
 # 如果您将一直使用第三方规则，下方可以留空。
 - DOMAIN-SUFFIX,google.com,auto
 - DOMAIN-KEYWORD,google,auto
@@ -177,6 +310,6 @@ Rule: # 此参数必须保留,不能删除
 - GEOIP,CN,DIRECT
 - DST-PORT,80,DIRECT
 - SRC-PORT,7777,DIRECT
-# FINAL would remove after prerelease
-# you also can use `FINAL,Proxy` or `FINAL,,Proxy` now
+# or use rule with provider
+- RULE-SET,name,Proxy
 - MATCH,auto

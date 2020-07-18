@@ -1,4 +1,5 @@
 #!/bin/bash
+. /lib/functions.sh
 status=$(ps|grep -c /usr/share/openclash/yml_groups_get.sh)
 [ "$status" -gt "3" ] && exit 0
 
@@ -6,11 +7,10 @@ START_LOG="/tmp/openclash_start.log"
 CFG_FILE="/etc/config/openclash"
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
-rulesource=$(uci get openclash.config.rule_source 2>/dev/null)
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
-CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
-UPDATE_CONFIG_NAME=$(echo $UPDATE_CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
@@ -19,7 +19,7 @@ fi
 
 if [ -z "$CONFIG_FILE" ]; then
 	CONFIG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
-	CONFIG_NAME=$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)
+	CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 fi
 
 if [ -z "$CONFIG_NAME" ]; then
@@ -27,18 +27,18 @@ if [ -z "$CONFIG_NAME" ]; then
    CONFIG_NAME="config.yaml"
 fi
 
-BACKUP_FILE="/etc/openclash/backup/$(echo $CONFIG_FILE |awk -F '/' '{print $5}' 2>/dev/null)"
+BACKUP_FILE="/etc/openclash/backup/$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)"
 
-if [ ! -s $CONFIG_FILE ] && [ ! -s $BACKUP_FILE ]; then
+if [ ! -s "$CONFIG_FILE" ] && [ ! -s "$BACKUP_FILE" ]; then
    exit 0
-elif [ ! -s $CONFIG_FILE ] && [ -s $BACKUP_FILE ]; then
-   mv $BACKUP_FILE $CONFIG_FILE
+elif [ ! -s "$CONFIG_FILE" ] && [ -s "$BACKUP_FILE" ]; then
+   mv "$BACKUP_FILE" "$CONFIG_FILE"
 fi
 
 echo "开始更新【$CONFIG_NAME】的策略组配置..." >$START_LOG
 
 /usr/share/openclash/yml_groups_name_get.sh
-[ ! -z "$(grep "读取错误" /tmp/Proxy_Group)"] && {
+[ ! -z "$(grep "读取错误" /tmp/Proxy_Group)" ] && {
 	echo "读取错误，配置文件【$CONFIG_NAME】异常！" >$START_LOG
 	uci commit openclash
 	sleep 5
@@ -46,63 +46,117 @@ echo "开始更新【$CONFIG_NAME】的策略组配置..." >$START_LOG
 	exit 0
 }
 
-#判断各个区位置
-group_len=$(sed -n '/^ \{0,\}Proxy Group:/=' "$CONFIG_FILE" 2>/dev/null)
-provider_len=$(sed -n '/^ \{0,\}proxy-provider:/=' "$CONFIG_FILE" 2>/dev/null)
-if [ "$provider_len" -ge "$group_len" ]; then
-   awk '/Proxy Group:/,/proxy-provider:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
-else
-   awk '/Proxy Group:/,/Rule:/{print}' "$CONFIG_FILE" 2>/dev/null |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null >/tmp/yaml_group.yaml 2>&1
-fi
+field_cut()
+{
+   local i lines end_len
+   proxy_len=$(sed -n '/^Proxy:/=' "$3" 2>/dev/null |sed -n 1p)
+   provider_len=$(sed -n '/^proxy-providers:/=' "$3" 2>/dev/null)
+   group_len=$(sed -n '/^proxy-groups:/=' "$3" 2>/dev/null)
+   rule_len=$(sed -n '/^rules:/=' "$3" 2>/dev/null)
+   rule_provider_len=$(sed -n '/^rule-providers:/=' "$3" 2>/dev/null)
+   script_len=$(sed -n '/^script:/=' "$3" 2>/dev/null)
+   lines="$proxy_len $provider_len $group_len $rule_len $rule_provider_len $script_len"
+   
+   for i in $lines; do
+      if [ -z "$1" ]; then
+         break
+      fi
+      
+      if [ "$1" -ge "$i" ]; then
+         continue
+      fi
+	    
+      if [ "$end_len" -gt "$i" ] || [ -z "$end_len" ]; then
+	       end_len="$i"
+      fi
+   done 2>/dev/null
+   
+   if [ -n "$1" ] && [ -z "$end_len" ]; then
+      end_len=$(sed -n '$=' "$3")
+   elif [ -n "$end_len" ]; then
+      end_len=$(expr "$end_len" - 1)
+   fi
+   sed -n "${1},${end_len}p" "$3" |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null > "$2" 2>/dev/null
+}
 
-if [ "$servers_update" -ne "1" ] || [ "$servers_if_update" != "1" ] || [ -z "$(grep "config groups" "$CFG_FILE")" ]; then
-echo "正在删除旧配置..." >$START_LOG
+#判断各个区位置
+group_len=$(sed -n '/^ \{0,\}proxy-groups:/=' "$CONFIG_FILE" 2>/dev/null)
+field_cut "$group_len" "/tmp/yaml_group.yaml" "$CONFIG_FILE"
+
+#判断当前配置文件是否有策略组信息
+cfg_group_name()
+{
+   local section="$1"
+   config_get "config" "$section" "config" ""
+
+   if [ -z "$config" ]; then
+      return
+   fi
+
+   [ "$config" = "$CONFIG_NAME" ] && {
+      config_group_exist=1
+   }
+}
+
+#删除不必要的配置
+cfg_delete()
+{
+   echo "正在删除旧配置..." >$START_LOG
 #删除策略组
    group_num=$(grep "config groups" "$CFG_FILE" |wc -l)
    for ((i=$group_num;i>=0;i--))
 	 do
-	    if [ "$(uci get openclash.@groups["$i"].config)" = "$CONFIG_NAME" ] || [ "$(uci get openclash.@groups["$i"].config)" = "all" ]; then
+	    if [ "$(uci get openclash.@groups["$i"].config 2>/dev/null)" = "$CONFIG_NAME" ] || [ "$(uci get openclash.@groups["$i"].config 2>/dev/null)" = "all" ]; then
 	       uci delete openclash.@groups["$i"] 2>/dev/null
 	       uci commit openclash
 	    fi
 	 done
-#删除启用节点
+#删除启用的节点
    server_num=$(grep "config servers" "$CFG_FILE" |wc -l)
    for ((i=$server_num;i>=0;i--))
 	 do
-	    if [ "$(uci get openclash.@servers["$i"].config)" = "$CONFIG_NAME" ] || [ "$(uci get openclash.@servers["$i"].config)" = "all" ]; then
-	    	 if [ "$(uci get openclash.@servers["$i"].enabled)" = "1" ]; then
+	    if [ "$(uci get openclash.@servers["$i"].config 2>/dev/null)" = "$CONFIG_NAME" ] || [ "$(uci get openclash.@servers["$i"].config 2>/dev/null)" = "all" ]; then
+	    	 if [ "$(uci get openclash.@servers["$i"].enabled 2>/dev/null)" = "1" ]; then
 	          uci delete openclash.@servers["$i"] 2>/dev/null
 	          uci commit openclash
 	       fi
 	    fi
 	 done
-#删除启用代理集
-   provider_num=$(grep "config proxy-provider" "$CFG_FILE" |wc -l)
+#删除启用的代理集
+   provider_num=$(grep "config proxy-provider" "$CFG_FILE" 2>/dev/null |wc -l)
    for ((i=$provider_num;i>=0;i--))
 	 do
-	    if [ "$(uci get openclash.@proxy-provider["$i"].config)" = "$CONFIG_NAME" ] || [ "$(uci get openclash.@proxy-provider["$i"].config)" = "all" ]; then
+	    if [ "$(uci get openclash.@proxy-provider["$i"].config 2>/dev/null)" = "$CONFIG_NAME" ] || [ "$(uci get openclash.@proxy-provider["$i"].config 2>/dev/null)" = "all" ]; then
 	       if [ "$(uci get openclash.@proxy-provider["$i"].enabled)" = "1" ]; then
 	          uci delete openclash.@proxy-provider["$i"] 2>/dev/null
 	          uci commit openclash
 	       fi
 	    fi
 	 done
-else
+}
+
+config_load "openclash"
+config_foreach cfg_group_name "groups"
+
+if [ "$servers_if_update" -eq 1 ] && [ "$servers_update" -eq 1 ] && [ "$config_group_exist" -eq 1 ]; then
    /usr/share/openclash/yml_proxys_get.sh
    exit 0
+else
+   cfg_delete
 fi
 
 count=1
 file_count=1
 match_group_file="/tmp/Proxy_Group"
 group_file="/tmp/yaml_group.yaml"
-line=$(sed -n '/name:/=' $group_file)
-num=$(grep -c "name:" $group_file)
+sed -i "s/\'//g" $group_file 2>/dev/null
+sed -i 's/\"//g' $group_file 2>/dev/null
+line=$(sed -n '/name:/=' $group_file 2>/dev/null)
+num=$(grep -c "name:" $group_file 2>/dev/null)
    
 cfg_get()
 {
-	echo "$(grep "$1" "$2" 2>/dev/null |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed 's/ \{0,\}\}\{0,\}$//g' 2>/dev/null)"
+	echo "$(grep "$1" "$2" 2>/dev/null |awk -v tag=$1 'BEGIN{FS=tag} {print $2}' 2>/dev/null |sed 's/,.*//' 2>/dev/null |sed 's/\}.*//' 2>/dev/null |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null)"
 }
 
 for n in $line
@@ -138,11 +192,8 @@ do
    uci_name_tmp=$(uci add $name groups)
    uci_set="uci -q set $name.$uci_name_tmp."
    uci_add="uci -q add_list $name.$uci_name_tmp."
-   if [ "$servers_update" -eq "1" ]; then
-      ${uci_set}config="all"
-   else
-      ${uci_set}config="$CONFIG_NAME"
-   fi
+
+   ${uci_set}config="$CONFIG_NAME"
    ${uci_set}name="$group_name"
    ${uci_set}old_name="$group_name"
    ${uci_set}old_name_cfg="$group_name"
@@ -151,14 +202,15 @@ do
    ${uci_set}test_interval="$group_test_interval"
    
    #other_group
-   cat $single_group |while read line
+   if [ "$group_type" = "select" ]; then
+   cat $single_group |while read -r line
    do 
-      if [ -z "$(echo "$line" |grep "^ \{0,\}-")" ]; then
+      if [ -z "$line" ]; then
         continue
       fi
       
-      group_name1=$(echo "$line" |grep -v "name:" 2>/dev/null |grep "^ \{0,\}-" 2>/dev/null |awk -F '^ \{0,\}-' '{print $2}' 2>/dev/null |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null)
-      group_name2=$(echo "$line" |awk -F 'proxies: \\[' '{print $2}' 2>/dev/null |sed 's/].*//' 2>/dev/null |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed 's/ \{0,\}, \{0,\}/#,#/g' 2>/dev/null)
+      group_name1=$(echo "$line" |grep -v "name:" 2>/dev/null |grep "^ \{0,\}-" 2>/dev/null |awk -F '^ \{0,\}-' '{print $2}' 2>/dev/null |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed "s/^\'//g" 2>/dev/null |sed "s/\'$//g" 2>/dev/null)
+      group_name2=$(echo "$line" |awk -F 'proxies: \\[' '{print $2}' 2>/dev/null |sed 's/].*//' 2>/dev/null |sed 's/^ \{0,\}//' 2>/dev/null |sed 's/ \{0,\}$//' 2>/dev/null |sed "s/^\'//g" 2>/dev/null |sed "s/\'$//g" 2>/dev/null |sed 's/ \{0,\}, \{0,\}/#,#/g' 2>/dev/null)
       proxies_len=$(sed -n '/proxies:/=' $single_group 2>/dev/null)
       use_len=$(sed -n '/use:/=' $single_group 2>/dev/null)
       name1_len=$(sed -n "/${group_name1}/=" $single_group 2>/dev/null)
@@ -177,7 +229,7 @@ do
             if [ "$name1_len" -ge "$proxies_len" ] && [ ! -z "$(grep -F "$group_name1" $match_group_file)" ] && [ "$group_name1" != "$group_name" ]; then
                ${uci_add}other_group="$group_name1"
             fi
-         fi
+         fi 2>/dev/null
       elif [ -z "$group_name1" ] && [ ! -z "$group_name2" ]; then
          group_num=$(expr $(echo "$group_name2" |grep -c "#,#") + 1)
          if [ "$group_num" -le 1 ]; then
@@ -198,7 +250,7 @@ do
       fi
       
    done
-   
+   fi
    file_count=$(expr "$file_count" + 1)
     
 done

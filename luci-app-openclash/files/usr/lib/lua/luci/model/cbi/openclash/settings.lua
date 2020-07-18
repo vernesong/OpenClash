@@ -4,6 +4,7 @@ local SYS  = require "luci.sys"
 local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
+local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 
 font_green = [[<font color="green">]]
@@ -12,18 +13,82 @@ font_off = [[</font>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
+local op_mode = string.sub(luci.sys.exec('uci get openclash.config.operation_mode 2>/dev/null'),0,-2)
+if not op_mode then op_mode = "redir-host" end
+
 m = Map("openclash", translate("Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"))
 m.pageaction = false
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
 
+s:tab("op_mode", translate("Operation Mode"))
 s:tab("settings", translate("General Settings"))
 s:tab("dns", translate("DNS Setting"))
+s:tab("lan_ac", translate("Access Control"))
+if op_mode == "fake-ip" then
+s:tab("rules", translate("Rules Setting(Access Control)"))
+else
 s:tab("rules", translate("Rules Setting"))
+end
 s:tab("dashboard", translate("Dashboard Settings"))
 s:tab("rules_update", translate("Rules Update"))
 s:tab("geo_update", translate("GEOIP Update"))
 s:tab("version_update", translate("Version Update"))
+s:tab("debug", translate("Debug Logs"))
+
+---- Operation Mode
+o = s:taboption("op_mode", ListValue, "operation_mode", font_red..bold_on..translate("Select Operation Mode")..bold_off..font_off)
+o.description = translate("Select Mode For Page Settings, Switch By Click the Button Bellow")
+o:value("redir-host", translate("redir-host mode"))
+o:value("fake-ip", translate("fake-ip mode"))
+o.default = "redir-host"
+
+o = s:taboption("op_mode", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
+o.description = translate("Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error")
+if op_mode == "redir-host" then
+o:value("redir-host", translate("redir-host"))
+o:value("redir-host-tun", translate("redir-host(tun mode)"))
+o:value("redir-host-vpn", translate("redir-host-vpn(game mode)"))
+o.default = "redir-host"
+else
+o:value("fake-ip", translate("fake-ip"))
+o:value("fake-ip-tun", translate("fake-ip(tun mode)"))
+o:value("fake-ip-vpn", translate("fake-ip-vpn(game mode)"))
+o.default = "fake-ip"
+end
+
+o = s:taboption("op_mode", ListValue, "enable_udp_proxy", font_red..bold_on..translate("Proxy UDP Traffics")..bold_off..font_off)
+o.description = translate("Select Mode For UDP Traffics, The Servers Must Support UDP while Choose Proxy")
+o:depends("en_mode", "redir-host")
+o:depends("en_mode", "fake-ip")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default = "1"
+
+o = s:taboption("op_mode", ListValue, "stack_type", font_red..bold_on..translate("Select Stack Type")..bold_off..font_off)
+o.description = translate("Select Stack Type For Tun Mode, According To The Running Speed on Your Machine")
+o:depends("en_mode", "redir-host-tun")
+o:depends("en_mode", "fake-ip-tun")
+o:value("system", translate("System　"))
+o:value("gvisor", translate("Gvisor"))
+o.default = "system"
+
+o = s:taboption("op_mode", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
+o.description = translate("Select Proxy Mode")
+o:value("rule", translate("Rule Proxy Mode"))
+o:value("global", translate("Global Proxy Mode"))
+o:value("direct", translate("Direct Proxy Mode"))
+o:value("script", translate("Script Proxy Mode (Tun Core Only)"))
+o.default = "rule"
+
+o = s:taboption("op_mode", Button, translate("Switch Operation Mode")) 
+o.title = translate("Switch Operation Mode")
+o.inputtitle = translate("Switch Mode")
+o.inputstyle = "reload"
+o.write = function()
+	m.uci:commit("openclash")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "settings"))
+end
 
 ---- General Settings
 local cpu_model=SYS.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
@@ -44,21 +109,11 @@ o:value("linux-mipsle-hardfloat")
 o:value("0", translate("Not Set"))
 o.default=0
 
-o = s:taboption("settings", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
-o.description = translate("Select Mode For OpenClash Work, Network Error Try Flush DNS Cache")
-o:value("redir-host", translate("redir-host"))
-o:value("fake-ip", translate("fake-ip"))
-o:value("fake-ip-tun", translate("fake-ip(tun mode)"))
-o:value("redir-host-vpn", translate("redir-host-vpn(game mode)"))
-o:value("fake-ip-vpn", translate("fake-ip-vpn(game mode)"))
-o.default = "redir-host"
-
-o = s:taboption("settings", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
-o.description = translate("Select Proxy Mode")
-o:value("Rule", translate("Rule Proxy Mode"))
-o:value("Global", translate("Global Proxy Mode"))
-o:value("Direct", translate("Direct Proxy Mode"))
-o.default = "Rule"
+o = s:taboption("settings", ListValue, "enable_rule_proxy", font_red..bold_on..translate("Rule Match Proxy Mode")..bold_off..font_off)
+o.description = translate("Only Proxy Rules Match, Prevent BT Passing")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default=0
 
 o = s:taboption("settings", ListValue, "log_level", translate("Log Level"))
 o.description = translate("Select Core's Log Level")
@@ -110,9 +165,10 @@ o:value("1", translate("Enable"))
 o.default = 0
 
 o = s:taboption("dns", ListValue, "ipv6_enable", translate("Enable ipv6 Resolve"))
-o.description = font_red..bold_on..translate("Force Enable to Resolve ipv6 DNS Requests")..bold_off..font_off
+o.description = font_red..bold_on..translate("Enable Clash to Resolve ipv6 DNS Requests")..bold_off..font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
+o:depends("en_mode", "redir-host")
 o.default=0
 
 o = s:taboption("dns", ListValue, "disable_masq_cache", translate("Disable Dnsmasq's DNS Cache"))
@@ -121,31 +177,26 @@ o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
 
+if op_mode == "fake-ip" then
 o = s:taboption("dns", ListValue, "dns_advanced_setting", translate("Advanced Setting"))
 o.description = translate("DNS Advanced Settings")..font_red..bold_on..translate("(Please Don't Modify it at Will)")..bold_off..font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
 
-o = s:taboption("dns", Value, "direct_dns", translate("Specify DNS Server"))
-o.description = translate("Specify DNS Server For List, Only One IP Server Address Support")
-o.default="114.114.114.114"
-o.placeholder = translate("114.114.114.114 or 127.0.0.1#5300")
-o:depends("dns_advanced_setting", "1")
-
-o = s:taboption("dns", Button, translate("Fake-IP Block List Update")) 
-o.title = translate("Fake-IP Block List Update")
+o = s:taboption("dns", Button, translate("Fake-IP-Filter List Update")) 
+o.title = translate("Fake-IP-Filter List Update")
 o:depends("dns_advanced_setting", "1")
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
-  SYS.call("/usr/share/openclash/openclash_fake_block.sh >/dev/null 2>&1 && /etc/init.d/openclash restart >/dev/null 2>&1 &")
+  SYS.call("/usr/share/openclash/openclash_fake_filter.sh >/dev/null 2>&1 && /etc/init.d/openclash restart >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-custom_fake_black = s:taboption("dns", Value, "custom_fake_black")
+custom_fake_black = s:taboption("dns", Value, "custom_fake_filter")
 custom_fake_black.template = "cbi/tvalue"
 custom_fake_black.description = translate("Domain Names In The List Do Not Return Fake-IP, One rule per line")
 custom_fake_black.rows = 20
@@ -153,18 +204,49 @@ custom_fake_black.wrap = "off"
 custom_fake_black:depends("dns_advanced_setting", "1")
 
 function custom_fake_black.cfgvalue(self, section)
-	return NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_black.conf") or ""
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_filter.list") or ""
 end
 function custom_fake_black.write(self, section, value)
 
 	if value then
 		value = value:gsub("\r\n?", "\n")
-		NXFS.writefile("/etc/openclash/custom/openclash_custom_fake_black.conf", value)
+		NXFS.writefile("/etc/openclash/custom/openclash_custom_fake_filter.list", value)
 	end
+end
+end
+
+---- Access Control
+if op_mode == "redir-host" then
+o = s:taboption("lan_ac", ListValue, "lan_ac_mode", translate("Access Control Mode"))
+o:value("0", translate("Black List Mode"))
+o:value("1", translate("White List Mode"))
+o.default=0
+
+o = s:taboption("lan_ac", DynamicList, "lan_ac_black_ips", translate("LAN Bypassed Host List"))
+o:depends("lan_ac_mode", "0")
+o.datatype = "ipaddr"
+luci.ip.neighbors({ family = 4 }, function(entry)
+		if entry.reachable then
+			o:value(entry.dest:string())
+		end
+end)
+
+o = s:taboption("lan_ac", DynamicList, "lan_ac_white_ips", translate("LAN Proxied Host List"))
+o:depends("lan_ac_mode", "1")
+o.datatype = "ipaddr"
+luci.ip.neighbors({ family = 4 }, function(entry)
+		if entry.reachable then
+			o:value(entry.dest:string())
+		end
+end)
 end
 
 ---- Rules Settings
+if op_mode == "fake-ip" then
+o = s:taboption("rules", ListValue, "enable_custom_clash_rules", font_red..bold_on..translate("Custom Clash Rules(Access Control)")..bold_off..font_off)
+else
 o = s:taboption("rules", ListValue, "enable_custom_clash_rules", font_red..bold_on..translate("Custom Clash Rules")..bold_off..font_off)
+end
 o.description = translate("Use Custom Rules")
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
@@ -174,10 +256,12 @@ o = s:taboption("rules", ListValue, "rule_source", translate("Enable Other Rules
 o.description = translate("Use Other Rules")
 o:value("0", translate("Disable Other Rules"))
 o:value("lhie1", translate("lhie1 Rules"))
-o:value("ConnersHua", translate("ConnersHua Rules"))
+o:value("ConnersHua", translate("ConnersHua(Provider-type) Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
+if not fs.isfile("/tmp/Proxy_Group") then
 SYS.call("/usr/share/openclash/yml_groups_name_get.sh 2>/dev/null")
+end
 file = io.open("/tmp/Proxy_Group", "r");
 
 o = s:taboption("rules", ListValue, "GlobalTV", translate("GlobalTV"))
@@ -203,13 +287,30 @@ o:depends("rule_source", "ConnersHua_return")
    end
    file:seek("set")
 o = s:taboption("rules", ListValue, "Apple", translate("Apple"))
----- o:depends("rule_source", "lhie1")
-o:depends("rule_source", "ConnersHua")
+o:depends("rule_source", "lhie1")
  for l in file:lines() do
    o:value(l)
    end
    file:seek("set")
-o = s:taboption("rules", ListValue, "Netease_Music", translate("Netease Music"))
+o = s:taboption("rules", ListValue, "Microsoft", translate("Microsoft"))
+o:depends("rule_source", "lhie1")
+ for l in file:lines() do
+   o:value(l)
+   end
+   file:seek("set")
+o = s:taboption("rules", ListValue, "Netflix", translate("Netflix"))
+o:depends("rule_source", "lhie1")
+ for l in file:lines() do
+   o:value(l)
+   end
+   file:seek("set")
+o = s:taboption("rules", ListValue, "Spotify", translate("Spotify"))
+o:depends("rule_source", "lhie1")
+ for l in file:lines() do
+   o:value(l)
+   end
+   file:seek("set")
+o = s:taboption("rules", ListValue, "Steam", translate("Steam"))
 o:depends("rule_source", "lhie1")
  for l in file:lines() do
    o:value(l)
@@ -227,9 +328,20 @@ o:depends("rule_source", "lhie1")
    o:value(l)
    end
    file:seek("set")
+o = s:taboption("rules", ListValue, "PayPal", translate("PayPal"))
+o:depends("rule_source", "lhie1")
+ for l in file:lines() do
+   o:value(l)
+   end
+   file:seek("set")
+o = s:taboption("rules", ListValue, "Netease_Music", translate("Netease Music"))
+o:depends("rule_source", "lhie1")
+ for l in file:lines() do
+   o:value(l)
+   end
+   file:seek("set")
 o = s:taboption("rules", ListValue, "AdBlock", translate("AdBlock"))
----- o:depends("rule_source", "lhie1")
-o:depends("rule_source", "ConnersHua")
+o:depends("rule_source", "lhie1")
  for l in file:lines() do
    o:value(l)
    end
@@ -283,7 +395,7 @@ o.inputstyle = "reload"
 o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
-  SYS.call("sh /usr/share/openclash/openclash_rule.sh >/dev/null 2>&1 &")
+  SYS.call("/usr/share/openclash/openclash_rule.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
@@ -317,7 +429,7 @@ o.inputstyle = "reload"
 o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
-  SYS.call("sh /usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
+  SYS.call("/usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
@@ -329,7 +441,7 @@ o.title = translate("Dashboard Port")
 o.default = 9090
 o.datatype = "port"
 o.rmempty = false
-o.description = translate("Dashboard Address Example:").." "..font_green..bold_on..lan_ip.."/openclash、"..lan_ip..':'..cn_port..'/ui'..bold_off..font_off
+o.description = translate("Dashboard Address Example:").." "..font_green..bold_on..lan_ip.."/luci-static/openclash、"..lan_ip..':'..cn_port..'/ui'..bold_off..font_off
 
 o = s:taboption("dashboard", Value, "dashboard_password")
 o.title = translate("Dashboard Secret")
@@ -339,6 +451,24 @@ o.description = translate("Set Dashboard Secret")
 ---- version update
 core_update = s:taboption("version_update", DummyValue, "", nil)
 core_update.template = "openclash/update"
+
+---- debug
+debug_log = s:taboption("debug", Value, "debug_log")
+debug_log.template = "cbi/tvalue"
+debug_log.readonly=true
+debug_log.rows = 30
+debug_log.wrap = "off"
+function debug_log.cfgvalue(self, section)
+  return NXFS.readfile("/tmp/openclash_debug.log") or ""
+end
+  
+o = s:taboption("debug", Button, translate("Generate Logs")) 
+o.title = translate("Generate Logs")
+o.inputtitle = translate("Click to Generate")
+o.inputstyle = "reload"
+o.write = function()
+  SYS.call("/usr/share/openclash/openclash_debug.sh")
+end
 
 -- [[ Edit Server ]] --
 s = m:section(TypedSection, "dns_servers", translate("Add Custom DNS Servers")..translate("(Take Effect After Choose Above)"))
@@ -432,6 +562,23 @@ function custom_rules.write(self, section, value)
 	end
 end
 
+custom_rules_2 = s:option(Value, "custom_rules_2")
+custom_rules_2.template = "cbi/tvalue"
+custom_rules_2.description = translate("Custom Rules 2 Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md, IP To CIDR: http://ip2cidr.com")
+custom_rules_2.rows = 20
+custom_rules_2.wrap = "off"
+
+function custom_rules_2.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_rules_2.list") or ""
+end
+function custom_rules_2.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		NXFS.writefile("/etc/openclash/custom/openclash_custom_rules_2.list", value)
+	end
+end
+
+if op_mode == "redir-host" then
 s = m:section(TypedSection, "openclash", translate("Set Custom Hosts, Only Work with Redir-Host Mode"))
 s.anonymous = true
 
@@ -449,6 +596,7 @@ function custom_hosts.write(self, section, value)
 		value = value:gsub("\r\n?", "\n")
 		NXFS.writefile("/etc/openclash/custom/openclash_custom_hosts.list", value)
 	end
+end
 end
 
 local t = {
