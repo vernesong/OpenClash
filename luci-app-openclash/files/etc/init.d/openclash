@@ -275,7 +275,9 @@ yml_dns_check()
          sed -i '/^Proxy:/i\  nameserver:' "$CONFIG_FILE" 2>/dev/null
       fi 2>/dev/null
       sed -i "/^ \{0,\}nameserver:/a\  - tls://8.8.8.8:853" "$CONFIG_FILE" 2>/dev/null
+      sed -i "/^ \{0,\}nameserver:/a\  - https://doh.rixcloud.dev/dns-query" "$CONFIG_FILE" 2>/dev/null
       sed -i "/^ \{0,\}nameserver:/a\  fallback:" "$CONFIG_FILE" 2>/dev/null
+      sed -i "/^ \{0,\}nameserver:/a\  - 223.5.5.5" "$CONFIG_FILE" 2>/dev/null
       sed -i "/^ \{0,\}nameserver:/a\  - 114.114.114.114" "$CONFIG_FILE" 2>/dev/null
    fi
 
@@ -656,8 +658,6 @@ sed -i '/OpenClash-Game-Rules-End/d' "$RULE_FILE" 2>/dev/null
       sed -i '1,/^ \{0,\}- GEOIP,/{/^ \{0,\}- GEOIP,/s/^ \{0,\}- GEOIP,/#===================== OpenClash-Game-Rules =====================#\n&/}' "$RULE_FILE" 2>/dev/null
    elif [ -n "$(grep "^ \{0,\}- MATCH," "$RULE_FILE")" ]; then
       sed -i '1,/^ \{0,\}- MATCH,/{/^ \{0,\}- MATCH,/s/^ \{0,\}- MATCH,/#===================== OpenClash-Game-Rules =====================#\n&/}' "$RULE_FILE" 2>/dev/null
-   elif [ -n "$(grep "^ \{0,\}- FINAL," "$RULE_FILE")" ]; then
-      sed -i '1,/^ \{0,\}- FINAL,/{/^ \{0,\}- FINAL,/s/^ \{0,\}- FINAL,/#===================== OpenClash-Game-Rules =====================#\n&/}' "$RULE_FILE" 2>/dev/null
    else
       echo "#===================== OpenClash-Game-Rules =====================#" >> "$RULE_FILE" 2>/dev/null
    fi
@@ -704,9 +704,6 @@ yml_rule_set_add()
           sed -i "/OpenClash-Rule-Set-Extended-End/i\#===================== OpenClash-Rule-Set-Extended =====================#" "$RULE_FILE" 2>/dev/null
   	   elif [ -n "$(grep "^ \{0,\}- MATCH," "$RULE_FILE")" ]; then
           sed -i '1,/^ \{0,\}- MATCH,/{/^ \{0,\}- MATCH,/s/^ \{0,\}- MATCH,/#===================== OpenClash-Rule-Set-Extended-End =====================#\n&/}' "$RULE_FILE" 2>/dev/null
-          sed -i "/OpenClash-Rule-Set-Extended-End/i\#===================== OpenClash-Rule-Set-Extended =====================#" "$RULE_FILE" 2>/dev/null
-       elif [ -n "$(grep "^ \{0,\}- FINAL," "$RULE_FILE")" ]; then
-          sed -i '1,/^ \{0,\}- FINAL,/{/^ \{0,\}- FINAL,/s/^ \{0,\}- FINAL,/#===================== OpenClash-Rule-Set-Extended-End =====================#\n&/}' "$RULE_FILE" 2>/dev/null
           sed -i "/OpenClash-Rule-Set-Extended-End/i\#===================== OpenClash-Rule-Set-Extended =====================#" "$RULE_FILE" 2>/dev/null
   	   else
           echo "#===================== OpenClash-Rule-Set-Extended =====================#" >> "$RULE_FILE" 2>/dev/null
