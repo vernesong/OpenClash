@@ -59,3 +59,9 @@ config dns_servers
 	option type 'tls'
 	option enabled '0'
 	option group 'fallback'
+
+config dns_servers
+	option ip 'doh.rixcloud.dev/dns-query'
+	option type 'https'
+	option enabled '0'
+	option group 'fallback'
