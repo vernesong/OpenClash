@@ -214,6 +214,7 @@ function action_restore_config()
 	luci.sys.call("cp '/usr/share/openclash/backup/openclash_custom_rules_2.list' '/etc/openclash/custom/openclash_custom_rules_2.list' >/dev/null 2>&1 &")
 	luci.sys.call("cp '/usr/share/openclash/backup/openclash_custom_fake_black.conf' '/etc/openclash/custom/openclash_custom_fake_black.conf' >/dev/null 2>&1 &")
 	luci.sys.call("cp '/usr/share/openclash/backup/openclash_custom_hosts.list' '/etc/openclash/custom/openclash_custom_hosts.list' >/dev/null 2>&1 &")
+	luci.sys.call("cp '/usr/share/openclash/backup/openclash_custom_domain_dns.list' '/etc/openclash/custom/openclash_custom_domain_dns.list' >/dev/null 2>&1 &")
 end
 
 function action_switch_mode()

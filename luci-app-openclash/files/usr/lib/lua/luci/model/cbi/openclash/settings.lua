@@ -74,6 +74,16 @@ o:value("direct", translate("Direct Proxy Mode"))
 o:value("script", translate("Script Proxy Mode (Tun Core Only)"))
 o.default = "rule"
 
+o = s:taboption("op_mode", ListValue, "china_ip_route", font_red..bold_on..translate("China IP Route")..bold_off..font_off)
+o.description = translate("Bypass The China Network Flows, Improve Performance")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default = "0"
+o:depends("en_mode", "redir-host")
+o:depends("en_mode", "redir-host-tun")
+o:depends("en_mode", "redir-host-vpn")
+
+
 ---- Operation Mode
 switch_mode = s:taboption("op_mode", DummyValue, "", nil)
 switch_mode.template = "openclash/switch_mode"
