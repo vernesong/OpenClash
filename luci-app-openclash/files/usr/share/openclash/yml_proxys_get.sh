@@ -539,6 +539,21 @@ do
       obfs_host="$(cfg_get "obfs-host:" "$single_server")"
    fi
    
+   if [ "$server_type" = "ssr" ]; then
+      #cipher
+      cipher="$(cfg_get "cipher:" "$single_server")"
+      #password
+      password="$(cfg_get "password:" "$single_server")"
+      #obfs:
+      obfs="$(cfg_get "obfs:" "$single_server")"
+      #protocol:
+      protocol="$(cfg_get "protocol:" "$single_server")"
+      #obfs-param:
+      obfs_param="$(cfg_get "obfs-param:" "$single_server")"
+      #protocol-param:
+      protocol_param="$(cfg_get "protocol-param:" "$single_server")"
+   fi
+   
    if [ "$server_type" = "vmess" ]; then
       #uuid:
       uuid="$(cfg_get "uuid:" "$single_server")"
@@ -608,6 +623,7 @@ do
       
       if [ "$server_type" = "ss" ]; then
       	 ${uci_set}cipher="$cipher"
+      	 ${uci_set}password="$password"
          ${uci_set}obfs="$obfs"
          ${uci_set}host="$obfs_host"
          ${uci_set}path="$path"
@@ -617,6 +633,16 @@ do
          [ -z "$obfs" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
       fi
       [ -z "$obfs_host" ] && ${uci_set}host="$host"
+      
+      if [ "$server_type" = "ssr" ]; then
+      	 ${uci_set}cipher_ssr="$cipher"
+      	 ${uci_set}password="$password"
+         ${uci_set}obfs_ssr="$obfs"
+         ${uci_set}obfs_param="$obfs_param"
+         ${uci_set}protocol="$protocol"
+         ${uci_set}protocol_param="$protocol_param"
+
+      fi
       
       if [ "$server_type" = "snell" ]; then
       	 ${uci_set}obfs_snell="$mode"
@@ -692,6 +718,7 @@ do
       
       if [ "$server_type" = "ss" ]; then
       	 ${uci_set}cipher="$cipher"
+      	 ${uci_set}password="$password"
          ${uci_set}obfs="$obfs"
          ${uci_set}host="$obfs_host"
          ${uci_set}path="$path"
@@ -701,6 +728,16 @@ do
          [ -z "$obfs" ] && [ -z "$mode" ] && ${uci_set}obfs="none"
       fi
       [ -z "$obfs_host" ] && ${uci_set}host="$host"
+      
+      if [ "$server_type" = "ssr" ]; then
+      	 ${uci_set}cipher_ssr="$cipher"
+      	 ${uci_set}password="$password"
+         ${uci_set}obfs_ssr="$obfs"
+         ${uci_set}obfs_param="$obfs_param"
+         ${uci_set}protocol="$protocol"
+         ${uci_set}protocol_param="$protocol_param"
+
+      fi
       
       if [ "$server_type" = "snell" ]; then
       	 ${uci_set}obfs_snell="$mode"

@@ -133,11 +133,16 @@ yml_servers_set()
    config_get "server" "$section" "server" ""
    config_get "port" "$section" "port" ""
    config_get "cipher" "$section" "cipher" ""
+   config_get "cipher_ssr" "$section" "cipher_ssr" ""
    config_get "password" "$section" "password" ""
    config_get "securitys" "$section" "securitys" ""
    config_get "udp" "$section" "udp" ""
    config_get "obfs" "$section" "obfs" ""
+   config_get "obfs_ssr" "$section" "obfs_ssr" ""
+   config_get "obfs_param" "$section" "obfs_param" ""
    config_get "obfs_vmess" "$section" "obfs_vmess" ""
+   config_get "protocol" "$section" "protocol" ""
+   config_get "protocol_param" "$section" "protocol_param" ""
    config_get "host" "$section" "host" ""
    config_get "mux" "$section" "mux" ""
    config_get "custom" "$section" "custom" ""
@@ -185,7 +190,7 @@ yml_servers_set()
    fi
    
    if [ -z "$password" ]; then
-   	 if [ "$type" = "ss" ] || [ "$type" = "trojan" ]; then
+   	 if [ "$type" = "ss" ] || [ "$type" = "trojan" ] || [ "$type" = "ssr" ]; then
         return
      fi
    fi
@@ -278,6 +283,35 @@ EOF
         fi
      fi
    fi
+   
+#ssr
+if [ "$type" = "ssr" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+- name: "$name"
+  type: $type
+  server: $server
+  port: $port
+  cipher: $cipher_ssr
+  password: "$password"
+  obfs: "$obfs_ssr"
+  protocol: "$protocol"
+EOF
+   if [ ! -z "$obfs_param" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  obfs-param: $obfs_param
+EOF
+   fi
+   if [ ! -z "$protocol_param" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  protocol-param: $protocol_param
+EOF
+   fi
+   if [ ! -z "$udp" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  udp: $udp
+EOF
+   fi
+fi
 
 #vmess
    if [ "$type" = "vmess" ]; then
