@@ -213,13 +213,16 @@ msgid "(Please Don't Modify it at Will)"
 msgstr "（如您不知道选项有何用，请不要随意修改）"
 
 msgid "Specify DNS Server"
-msgstr "（Fake-IP模式）黑名单DNS服务器"
+msgstr "指定（第二）DNS服务器"
 
 msgid "Specify DNS Server For List, Only One IP Server Address Support"
 msgstr "指定下方列表中域名的DNS服务器，只支持填写一个IP地址"
 
 msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line"
 msgstr "每行请只填写一个域名，列表中的域名在（Fake-IP模式）下查询DNS时将返回真实IP地址，更改后点击上方按钮生效"
+
+msgid "Domain Names In The List Use The Custom DNS Server, One rule per line"
+msgstr "每行请只填写一个域名，列表中的域名将使用上方指定的DNS进行查询"
 
 msgid "Fake-IP-Filter List Update"
 msgstr "更新Fake-IP域名黑名单"

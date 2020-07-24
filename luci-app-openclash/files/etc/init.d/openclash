@@ -62,8 +62,11 @@ change_dns() {
    if [ "$2" -eq "1" ]; then
       uci set dhcp.@dnsmasq[0].cachesize=0 2>/dev/null
    fi
+   
    uci commit dhcp
    uci commit openclash
+   
+   /usr/share/openclash/openclash_custom_domain_dns.sh
 }
 
 revert_dns() {
@@ -93,6 +96,7 @@ revert_dns() {
    uci commit dhcp
    uci commit openclash
    rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
+   rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
 }
 
 kill_clash()
@@ -1114,6 +1118,9 @@ if [ -z "$en_mode_tun" ]; then
    iptables -t nat -A openclash -m set --match-set localnetwork dst -j RETURN
    iptables -t nat -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
    iptables -t nat -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+   if [ "$en_mode" = "redir-host" ]; then
+      iptables -t nat -A openclash -m set --match-set china dst -j RETURN
+   fi
    iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
    iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 -j REDIRECT --to-ports "$proxy_port"
    iptables -t nat -I PREROUTING -p tcp -d 8.8.4.4 -j REDIRECT --to-ports "$proxy_port"
@@ -1127,6 +1134,9 @@ if [ -z "$en_mode_tun" ]; then
       iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
       iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+      if [ "$en_mode" = "redir-host" ]; then
+   	     iptables -t mangle -A openclash -m set --match-set china dst -j RETURN
+      fi
       iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
       #端口转发
       config_load "firewall"

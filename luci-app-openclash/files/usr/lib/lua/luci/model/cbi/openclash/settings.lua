@@ -36,13 +36,6 @@ s:tab("geo_update", translate("GEOIP Update"))
 s:tab("version_update", translate("Version Update"))
 s:tab("debug", translate("Debug Logs"))
 
----- Operation Mode
-o = s:taboption("op_mode", ListValue, "operation_mode", font_red..bold_on..translate("Select Operation Mode")..bold_off..font_off)
-o.description = translate("Select Mode For Page Settings, Switch By Click the Button Bellow")
-o:value("redir-host", translate("redir-host mode"))
-o:value("fake-ip", translate("fake-ip mode"))
-o.default = "redir-host"
-
 o = s:taboption("op_mode", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
 o.description = translate("Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error")
 if op_mode == "redir-host" then
@@ -81,14 +74,9 @@ o:value("direct", translate("Direct Proxy Mode"))
 o:value("script", translate("Script Proxy Mode (Tun Core Only)"))
 o.default = "rule"
 
-o = s:taboption("op_mode", Button, translate("Switch Operation Mode")) 
-o.title = translate("Switch Operation Mode")
-o.inputtitle = translate("Switch Mode")
-o.inputstyle = "reload"
-o.write = function()
-	m.uci:commit("openclash")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "settings"))
-end
+---- Operation Mode
+switch_mode = s:taboption("op_mode", DummyValue, "", nil)
+switch_mode.template = "openclash/switch_mode"
 
 ---- General Settings
 local cpu_model=SYS.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
@@ -177,13 +165,13 @@ o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
 
-if op_mode == "fake-ip" then
 o = s:taboption("dns", ListValue, "dns_advanced_setting", translate("Advanced Setting"))
 o.description = translate("DNS Advanced Settings")..font_red..bold_on..translate("(Please Don't Modify it at Will)")..bold_off..font_off
 o:value("0", translate("Disable"))
 o:value("1", translate("Enable"))
 o.default=0
 
+if op_mode == "fake-ip" then
 o = s:taboption("dns", Button, translate("Fake-IP-Filter List Update")) 
 o.title = translate("Fake-IP-Filter List Update")
 o:depends("dns_advanced_setting", "1")
@@ -213,6 +201,30 @@ function custom_fake_black.write(self, section, value)
 		NXFS.writefile("/etc/openclash/custom/openclash_custom_fake_filter.list", value)
 	end
 end
+end
+
+o = s:taboption("dns", Value, "custom_domain_dns_server", translate("Specify DNS Server"))
+o.description = translate("Specify DNS Server For List, Only One IP Server Address Support")
+o.default="114.114.114.114"
+o.placeholder = translate("114.114.114.114 or 127.0.0.1#5300")
+o:depends("dns_advanced_setting", "1")
+
+custom_domain_dns = s:taboption("dns", Value, "custom_domain_dns")
+custom_domain_dns.template = "cbi/tvalue"
+custom_domain_dns.description = translate("Domain Names In The List Use The Custom DNS Server, One rule per line")
+custom_domain_dns.rows = 20
+custom_domain_dns.wrap = "off"
+custom_domain_dns:depends("dns_advanced_setting", "1")
+
+function custom_domain_dns.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_domain_dns.list") or ""
+end
+function custom_domain_dns.write(self, section, value)
+
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		NXFS.writefile("/etc/openclash/custom/openclash_custom_domain_dns.list", value)
+	end
 end
 
 ---- Access Control
