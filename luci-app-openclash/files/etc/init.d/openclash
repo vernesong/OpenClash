@@ -1081,6 +1081,21 @@ cat > "/var/etc/openclash.include" <<-EOF
 /etc/init.d/openclash reload >/dev/null 2>&1
 EOF
 
+if [ "$china_ip_route" -eq 1 ]; then
+   if [ ! -f "/etc/openclash/china_ip_route.list" ]; then
+      cp /etc/openclash/rule_provider/ChinaIP.yaml /etc/openclash/china_ip_route.list 2>/dev/null
+      sed -i "s/'//g" /etc/openclash/china_ip_route.list 2>/dev/null
+      sed -i "s/^ \{0,\}- //g" /etc/openclash/china_ip_route.list 2>/dev/null
+      sed -i '/payload:/d' /etc/openclash/china_ip_route.list 2>/dev/null
+      sed -i '/^ \{0,\}#/d' /etc/openclash/china_ip_route.list 2>/dev/null
+      echo "create china_ip_route hash:net family inet hashsize 1024 maxelem 65536" >/tmp/china_ip_route.ipset
+      awk '!/^$/&&!/^#/{printf("add china_ip_route %s'" "'\n",$0)}' /etc/openclash/china_ip_route.list >>/tmp/china_ip_route.ipset
+      mv /tmp/china_ip_route.ipset /etc/openclash/china_ip_route.list 2>/dev/null
+   fi
+   ipset -! flush china_ip_route
+   ipset -! restore </etc/openclash/china_ip_route.list 2>/dev/null
+fi
+
 #lan_ac
 if [ "$operation_mode" = "redir-host" ] && [ "$en_mode" = "redir-host" ]; then
    if [ "$lan_ac_mode" = "0" ] && [ -n "$(uci get openclash.config.lan_ac_black_ips 2>/dev/null)" ]; then
@@ -1119,7 +1134,7 @@ if [ -z "$en_mode_tun" ]; then
    iptables -t nat -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
    iptables -t nat -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
    if [ "$en_mode" = "redir-host" ]; then
-      iptables -t nat -A openclash -m set --match-set china dst -j RETURN
+      iptables -t nat -A openclash -m set --match-set china_ip_route dst -j RETURN
    fi
    iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
    iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 -j REDIRECT --to-ports "$proxy_port"
@@ -1135,7 +1150,7 @@ if [ -z "$en_mode_tun" ]; then
       iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
       if [ "$en_mode" = "redir-host" ]; then
-   	     iptables -t mangle -A openclash -m set --match-set china dst -j RETURN
+   	     iptables -t mangle -A openclash -m set --match-set china_ip_route dst -j RETURN
       fi
       iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
       #端口转发
@@ -1211,6 +1226,7 @@ else
    #其他流量
    iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
    iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+   iptables -t mangle -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
    iptables -t mangle -A openclash -m set ! --match-set localnetwork dst -j MARK --set-mark "$PROXY_FWMARK"
    iptables -t mangle -I PREROUTING -j openclash
    iptables -t nat -I PREROUTING -p tcp --dport 53 -j ACCEPT
@@ -1288,6 +1304,7 @@ revert_firewall()
    #ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
 
    ipset destroy localnetwork >/dev/null 2>&1
+   ipset destroy china_ip_route >/dev/null 2>&1
    ipset destroy lan_ac_white_ips >/dev/null 2>&1
    ipset destroy lan_ac_black_ips >/dev/null 2>&1
 }
@@ -1316,6 +1333,7 @@ get_config()
    lan_ac_mode=$(uci get openclash.config.lan_ac_mode 2>/dev/null)
    enable_rule_proxy=$(uci get openclash.config.enable_rule_proxy 2>/dev/null)
    stack_type=$(uci get openclash.config.stack_type 2>/dev/null)
+   china_ip_route=$(uci get openclash.config.china_ip_route 2>/dev/null)
 }
 
 start()

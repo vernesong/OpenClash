@@ -149,6 +149,12 @@ msgstr "网络栈类型"
 msgid "Select Stack Type For Tun Mode, According To The Running Speed on Your Machine"
 msgstr "请自行根据运行速度为Tun模式选择合适的网络栈"
 
+msgid "China IP Route"
+msgstr "实验性：绕过中国大陆IP"
+
+msgid "Bypass The China Network Flows, Improve Performance"
+msgstr "启用后中国大陆流量将不再经过内核，提升系统性能"
+
 msgid "Log Level"
 msgstr "日志等级"
 
