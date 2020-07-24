@@ -42,11 +42,42 @@ local encrypt_methods_ss = {
 	"xchacha20-ietf-poly1305",
 }
 
+local encrypt_methods_ssr = {
+
+	"rc4-md5",
+	"aes-128-cfb",
+	"aes-192-cfb",
+	"aes-256-cfb",
+	"aes-128-ctr",
+	"aes-192-ctr",
+	"aes-256-ctr",
+	"chacha20-ietf",
+	"xchacha20",
+}
+
 local securitys = {
-    "auto",
-    "none",
-    "aes-128-gcm",
-    "chacha20-poly1305"
+	"auto",
+	"none",
+	"aes-128-gcm",
+	"chacha20-poly1305"
+}
+
+local protocols = {
+	"origin",
+	"auth_sha1_v4",
+	"auth_aes128_md5",
+	"auth_aes128_sha1",
+	"auth_chain_a",
+	"auth_chain_b",
+}
+
+local obfs = {
+	"plain",
+	"http_simple",
+	"http_post",
+	"random_head",
+	"tls1.2_ticket_auth",
+	"tls1.2_ticket_fastauth",
 }
 
 m = Map(openclash, translate("Edit Server"))
@@ -79,6 +110,7 @@ end
 
 o = s:option(ListValue, "type", translate("Server Node Type"))
 o:value("ss", translate("Shadowsocks"))
+o:value("ssr", translate("ShadowsocksR"))
 o:value("vmess", translate("Vmess"))
 o:value("trojan", translate("trojan"))
 o:value("snell", translate("Snell"))
@@ -102,6 +134,7 @@ o = s:option(Value, "password", translate("Password"))
 o.password = true
 o.rmempty = false
 o:depends("type", "ss")
+o:depends("type", "ssr")
 o:depends("type", "trojan")
 
 o = s:option(Value, "psk", translate("Psk"))
@@ -113,10 +146,31 @@ for _, v in ipairs(encrypt_methods_ss) do o:value(v) end
 o.rmempty = true
 o:depends("type", "ss")
 
+o = s:option(ListValue, "cipher_ssr", translate("Encrypt Method"))
+for _, v in ipairs(encrypt_methods_ssr) do o:value(v) end
+o.rmempty = true
+o:depends("type", "ssr")
+
+o = s:option(ListValue, "protocol", translate("Protocol"))
+for _, v in ipairs(protocols) do o:value(v) end
+o.rmempty = true
+o:depends("type", "ssr")
+
+o = s:option(Value, "protocol_param", translate("Protocol param(optional)"))
+o:depends("type", "ssr")
+
 o = s:option(ListValue, "securitys", translate("Encrypt Method"))
 for _, v in ipairs(securitys) do o:value(v) end
 o.rmempty = true
 o:depends("type", "vmess")
+
+o = s:option(ListValue, "obfs_ssr", translate("Obfs"))
+for _, v in ipairs(obfs) do o:value(v) end
+o.rmempty = true
+o:depends("type", "ssr")
+
+o = s:option(Value, "obfs_param", translate("Obfs param(optional)"))
+o:depends("type", "ssr")
 
 -- AlterId
 o = s:option(Value, "alterId", translate("AlterId"))
@@ -137,6 +191,7 @@ o.default = "false"
 o:value("true")
 o:value("false")
 o:depends("type", "ss")
+o:depends("type", "ssr")
 o:depends("type", "vmess")
 o:depends("type", "socks5")
 o:depends("type", "trojan")
