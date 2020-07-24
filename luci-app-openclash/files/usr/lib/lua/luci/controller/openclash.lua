@@ -25,6 +25,7 @@ function index()
 	entry({"admin", "services", "openclash", "ping"}, call("act_ping"))
 	entry({"admin", "services", "openclash", "download_rule"}, call("action_download_rule"))
 	entry({"admin", "services", "openclash", "restore"}, call("action_restore_config"))
+	entry({"admin", "services", "openclash", "switch_mode"}, call("action_switch_mode"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Severs and Groups"), 40).leaf = true
 	entry({"admin", "services", "openclash", "rule-providers-settings"},cbi("openclash/rule-providers-settings"),_("Rule Providers and Groups"), 50).leaf = true
@@ -213,6 +214,21 @@ function action_restore_config()
 	luci.sys.call("cp '/usr/share/openclash/backup/openclash_custom_rules_2.list' '/etc/openclash/custom/openclash_custom_rules_2.list' >/dev/null 2>&1 &")
 	luci.sys.call("cp '/usr/share/openclash/backup/openclash_custom_fake_black.conf' '/etc/openclash/custom/openclash_custom_fake_black.conf' >/dev/null 2>&1 &")
 	luci.sys.call("cp '/usr/share/openclash/backup/openclash_custom_hosts.list' '/etc/openclash/custom/openclash_custom_hosts.list' >/dev/null 2>&1 &")
+end
+
+function action_switch_mode()
+	local switch_mode = luci.sys.exec("uci get openclash.config.operation_mode 2>/dev/null")
+	if switch_mode == "redir-host\n" then
+		 switch_mode = "redir-host"
+	   luci.sys.call("uci set openclash.config.operation_mode=fake-ip >/dev/null 2>&1 && uci commit openclash")
+	else
+		 switch_mode = "fake-ip"
+	   luci.sys.call("uci set openclash.config.operation_mode=redir-host >/dev/null 2>&1 && uci commit openclash")
+	end
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+	  switch_mode = switch_mode;
+	})
 end
 
 function action_status()
