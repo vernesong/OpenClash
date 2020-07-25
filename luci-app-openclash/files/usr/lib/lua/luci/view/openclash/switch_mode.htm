@@ -12,9 +12,9 @@
 <script type="text/javascript">//<![CDATA[
 	var switch_mode  = document.getElementById('switch_mode');
   
-	switch_mode.innerHTML = '<input type="button" class="cbi-button cbi-button-reset" value="<%:Redir-Host/Fake-IP模式切换%>" onclick="return switch_mode(this)"/>';
+	switch_mode.innerHTML = '<input type="button" class="cbi-button cbi-button-reset" value="<%:Redir-Host/Fake-IP模式切换%>" onclick="return switch_modes(this)"/>';
     
-  function  switch_mode(btn)
+  function switch_modes(btn)
   {
       btn.value    = '<%:Redir-Host/Fake-IP模式切换%>';
       btn.disabled = true;
