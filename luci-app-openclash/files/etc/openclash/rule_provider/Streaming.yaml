@@ -10,8 +10,8 @@ payload:
   - DOMAIN-SUFFIX,deezer.com
   - DOMAIN-SUFFIX,dzcdn.net
   # > JOOX
-  # USER-AGENT,WeMusic*
   # USER-AGENT,JOOX*
+  # USER-AGENT,WeMusic*
   - DOMAIN-SUFFIX,joox.com
   - DOMAIN-KEYWORD,jooxweb-api
   # > KKBOX
@@ -96,6 +96,10 @@ payload:
   - DOMAIN-SUFFIX,dssott.com
   - DOMAIN,cdn.registerdisney.go.com
   - DOMAIN,global.edge.bamgrid.com
+  # > DMM
+  - DOMAIN-SUFFIX,dmm.co.jp
+  - DOMAIN-SUFFIX,dmm.com
+  - DOMAIN-SUFFIX,dmm-extension.com
   # > encoreTVB
   # USER-AGENT,encoreTVB*
   - DOMAIN-SUFFIX,encoretvb.com
@@ -148,6 +152,7 @@ payload:
   - DOMAIN-SUFFIX,hulustream.com
   # > Hulu / フールー
   - DOMAIN-SUFFIX,happyon.jp
+  - DOMAIN-SUFFIX,hjholdings.jp
   - DOMAIN-SUFFIX,hulu.jp
   # > ITV
   # USER-AGENT,ITV_Player*
@@ -229,16 +234,18 @@ payload:
   # USER-AGENT,TikTok*
   - DOMAIN-SUFFIX,byteoversea.com
   - DOMAIN-SUFFIX,ibytedtos.com
+  - DOMAIN-SUFFIX,ipstatp.com
   - DOMAIN-SUFFIX,muscdn.com
   - DOMAIN-SUFFIX,musical.ly
+  - DOMAIN-SUFFIX,tiktok.com
   - DOMAIN-SUFFIX,tiktokcdn.com
   - DOMAIN-SUFFIX,tiktokv.com
   - DOMAIN-KEYWORD,-tiktokcdn-com
   # > Twitch
+  - DOMAIN-SUFFIX,jtvnw.net
+  - DOMAIN-SUFFIX,ttvnw.net
   - DOMAIN-SUFFIX,twitch.tv
   - DOMAIN-SUFFIX,twitchcdn.net
-  - DOMAIN-SUFFIX,ttvnw.net
-  - DOMAIN-SUFFIX,jtvnw.net
   # > ViuTV
   # USER-AGENT,Viu*
   - DOMAIN-SUFFIX,viu.com

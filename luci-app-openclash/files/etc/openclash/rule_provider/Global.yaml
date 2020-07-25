@@ -16,6 +16,8 @@ payload:
   - DOMAIN,az668014.vo.msecnd.net
   # > Facebook
   - DOMAIN-SUFFIX,cdninstagram.com
+  - DOMAIN-SUFFIX,facebook.com
+  - DOMAIN-SUFFIX,facebook.net
   - DOMAIN-SUFFIX,fb.com
   - DOMAIN-SUFFIX,fb.me
   - DOMAIN-SUFFIX,fbaddins.com
@@ -30,7 +32,6 @@ payload:
   - DOMAIN-SUFFIX,rocksdb.org
   - DOMAIN-SUFFIX,whatsapp.com
   - DOMAIN-SUFFIX,whatsapp.net
-  - DOMAIN-KEYWORD,facebook
   # > Twitter
   - DOMAIN-SUFFIX,pscp.tv
   - DOMAIN-SUFFIX,periscope.tv
@@ -38,8 +39,8 @@ payload:
   - DOMAIN-SUFFIX,twimg.co
   - DOMAIN-SUFFIX,twimg.com
   - DOMAIN-SUFFIX,twitpic.com
+  - DOMAIN-SUFFIX,twitter.com
   - DOMAIN-SUFFIX,vine.co
-  - DOMAIN-KEYWORD,twitter
   # > Telegram
   - DOMAIN-SUFFIX,telegra.ph
   - DOMAIN-SUFFIX,telegram.org
@@ -74,6 +75,7 @@ payload:
   - DOMAIN-SUFFIX,abc.net.au
   - DOMAIN-SUFFIX,abebooks.com
   - DOMAIN-SUFFIX,amazon.co.jp
+  - DOMAIN-SUFFIX,ao3.org
   - DOMAIN-SUFFIX,apigee.com
   - DOMAIN-SUFFIX,apkcombo.com
   - DOMAIN-SUFFIX,apk-dl.com
@@ -84,6 +86,7 @@ payload:
   - DOMAIN-SUFFIX,aptoide.com
   - DOMAIN-SUFFIX,archive.is
   - DOMAIN-SUFFIX,archive.org
+  - DOMAIN-SUFFIX,archiveofourown.com
   - DOMAIN-SUFFIX,archiveofourown.org
   - DOMAIN-SUFFIX,arte.tv
   - DOMAIN-SUFFIX,artstation.com
@@ -99,6 +102,7 @@ payload:
   - DOMAIN-SUFFIX,bibox.com
   - DOMAIN-SUFFIX,biggo.com.tw
   - DOMAIN-SUFFIX,binance.com
+  - DOMAIN-SUFFIX,bit.ly
   - DOMAIN-SUFFIX,bitcointalk.org
   - DOMAIN-SUFFIX,bitfinex.com
   - DOMAIN-SUFFIX,bitmex.com
@@ -187,6 +191,9 @@ payload:
   - DOMAIN-SUFFIX,gate.io
   - DOMAIN-SUFFIX,getlantern.org
   - DOMAIN-SUFFIX,getsync.com
+  - DOMAIN-SUFFIX,github.com
+  - DOMAIN-SUFFIX,github.io
+  - DOMAIN-SUFFIX,githubusercontent.com
   - DOMAIN-SUFFIX,globalvoices.org
   - DOMAIN-SUFFIX,goo.ne.jp
   - DOMAIN-SUFFIX,goodreads.com
@@ -204,12 +211,14 @@ payload:
   - DOMAIN-SUFFIX,hket.com
   - DOMAIN-SUFFIX,hootsuite.com
   - DOMAIN-SUFFIX,hudson.org
+  - DOMAIN-SUFFIX,huffpost.com
   - DOMAIN-SUFFIX,hyread.com.tw
   - DOMAIN-SUFFIX,ibtimes.com
   - DOMAIN-SUFFIX,i-cable.com
   - DOMAIN-SUFFIX,icij.org
   - DOMAIN-SUFFIX,icoco.com
   - DOMAIN-SUFFIX,imgur.com
+  - DOMAIN-SUFFIX,independent.co.uk
   - DOMAIN-SUFFIX,initiummall.com
   - DOMAIN-SUFFIX,inoreader.com
   - DOMAIN-SUFFIX,insecam.org
@@ -228,6 +237,7 @@ payload:
   - DOMAIN-SUFFIX,kakaocorp.com
   - DOMAIN-SUFFIX,kik.com
   - DOMAIN-SUFFIX,kingkong.com.tw
+  - DOMAIN-SUFFIX,knowyourmeme.com
   - DOMAIN-SUFFIX,kobo.com
   - DOMAIN-SUFFIX,kobobooks.com
   - DOMAIN-SUFFIX,kodingen.com
@@ -257,12 +267,15 @@ payload:
   - DOMAIN-SUFFIX,nanyang.com
   - DOMAIN-SUFFIX,nationalinterest.org
   - DOMAIN-SUFFIX,naver.com
+  - DOMAIN-SUFFIX,nbcnews.com
+  - DOMAIN-SUFFIX,ndr.de
   - DOMAIN-SUFFIX,neowin.net
   - DOMAIN-SUFFIX,newstapa.org
   - DOMAIN-SUFFIX,nexitally.com
   - DOMAIN-SUFFIX,nhk.or.jp
   - DOMAIN-SUFFIX,nii.ac.jp
   - DOMAIN-SUFFIX,nikkei.com
+  - DOMAIN-SUFFIX,nitter.net
   - DOMAIN-SUFFIX,nofile.io
   - DOMAIN-SUFFIX,notion.so
   - DOMAIN-SUFFIX,now.com
@@ -308,6 +321,7 @@ payload:
   - DOMAIN-SUFFIX,quora.com
   - DOMAIN-SUFFIX,quoracdn.net
   - DOMAIN-SUFFIX,qz.com
+  - DOMAIN-SUFFIX,radio.garden
   - DOMAIN-SUFFIX,rakuten.co.jp
   - DOMAIN-SUFFIX,rarbgprx.org
   - DOMAIN-SUFFIX,readingtimes.com.tw
@@ -329,8 +343,10 @@ payload:
   - DOMAIN-SUFFIX,shadowsocks.org
   - DOMAIN-SUFFIX,shindanmaker.com
   - DOMAIN-SUFFIX,shopee.tw
+  - DOMAIN-SUFFIX,sina.com.hk
   - DOMAIN-SUFFIX,slideshare.net
   - DOMAIN-SUFFIX,softfamous.com
+  - DOMAIN-SUFFIX,spiegel.de
   - DOMAIN-SUFFIX,ssrcloud.org
   - DOMAIN-SUFFIX,startpage.com
   - DOMAIN-SUFFIX,steamcommunity.com
@@ -348,6 +364,7 @@ payload:
   - DOMAIN-SUFFIX,theinitium.com
   - DOMAIN-SUFFIX,themoviedb.org
   - DOMAIN-SUFFIX,thetvdb.com
+  - DOMAIN-SUFFIX,time.com
   - DOMAIN-SUFFIX,tineye.com
   - DOMAIN-SUFFIX,tiny.cc
   - DOMAIN-SUFFIX,tinyurl.com
@@ -414,8 +431,8 @@ payload:
   - DOMAIN,s3-ap-northeast-1.amazonaws.com
   - DOMAIN,s3-ap-southeast-2.amazonaws.com
   - DOMAIN,search.avira.com
+  - DOMAIN,us.weibo.com
 
-  - DOMAIN-KEYWORD,github
   - DOMAIN-KEYWORD,jav
   - DOMAIN-KEYWORD,pinterest
   - DOMAIN-KEYWORD,porn
@@ -476,10 +493,19 @@ payload:
   - DOMAIN-SUFFIX,tdesktop.com
   - DOMAIN-SUFFIX,telegram.me
   - DOMAIN-SUFFIX,telesco.pe
+  # > Facebook
+  - DOMAIN-SUFFIX,facebook.br
+  - DOMAIN-SUFFIX,facebook.design
+  - DOMAIN-SUFFIX,facebook.hu
+  - DOMAIN-SUFFIX,facebook.in
+  - DOMAIN-SUFFIX,facebook.nl
+  - DOMAIN-SUFFIX,facebook.se
+  - DOMAIN-SUFFIX,facebookmail.com
   # > Others
   - DOMAIN-SUFFIX,noxinfluencer.com
   - DOMAIN-SUFFIX,smartmailcloud.com
   - DOMAIN-SUFFIX,weebly.com
+  - DOMAIN-SUFFIX,twitter.jp
 
   # (Region-Restricted Access Denied)
   # ---(Apple)---
@@ -508,7 +534,7 @@ payload:
   # (Network Jitter)
   # > Fix download or update is stuck in App Store,and when change the Apple ID region,the payment information can be selected by none.
   - DOMAIN-KEYWORD,buy.itunes.apple.com
-  # - DOMAIN-SUFFIX,evernote.com
+  - DOMAIN-SUFFIX,cloudcone.com.cn
   - DOMAIN-SUFFIX,inkbunny.net
   - DOMAIN-SUFFIX,metapix.net
   - DOMAIN-SUFFIX,s3.amazonaws.com
