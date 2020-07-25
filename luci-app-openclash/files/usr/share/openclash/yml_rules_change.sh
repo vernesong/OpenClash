@@ -13,8 +13,14 @@ yml_other_set()
       sed -i '/^##Custom Rules 2##/d' "$4" 2>/dev/null
       sed -i '/^##Custom Rules 2 End##/d' "$4" 2>/dev/null
       sed -i '/- DOMAIN-KEYWORD,tracker,DIRECT/d' "$4" 2>/dev/null
-      sed -i '/- DOMAIN-KEYWORD,announce,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,announce.php?passkey=,DIRECT/d' "$4" 2>/dev/null
       sed -i '/- DOMAIN-KEYWORD,torrent,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,peer_id=,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,info_hash,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,get_peers,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,find_node,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,BitTorrent,DIRECT/d' "$4" 2>/dev/null
+      sed -i '/- DOMAIN-KEYWORD,announce_peer,DIRECT/d' "$4" 2>/dev/null
       
       if [ -z "$(grep '^ \{0,\}- IP-CIDR,198.18.0.1/16,REJECT,no-resolve' "$4")" ] && [ "$6" = "fake-ip" ]; then
          if [ ! -z "$(grep "^ \{0,\}- IP-CIDR,198.18.0.1/16" "$4")" ]; then
@@ -26,7 +32,7 @@ yml_other_set()
             fi
          fi
       fi
-      
+
       if [ "$7" = 1 ]; then
          sed -i '1,/^ \{0,\}- GEOIP/{/^ \{0,\}- GEOIP/s/^ \{0,\}- GEOIP/- DOMAIN-KEYWORD,tracker,DIRECT\n&/}' "$4" 2>/dev/null
          if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
@@ -35,8 +41,14 @@ yml_other_set()
          if [ -z "$(grep '^- DOMAIN-KEYWORD,tracker,DIRECT' "$4")" ]; then
             echo "- DOMAIN-KEYWORD,tracker,DIRECT" >> "$4" 2>/dev/null
          fi
-         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,announce,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,announce.php?passkey=,DIRECT" "$4" 2>/dev/null
          sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,torrent,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,peer_id=,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,info_hash,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,get_peers,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,find_node,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,BitTorrent,DIRECT" "$4" 2>/dev/null
+         sed -i "/- DOMAIN-KEYWORD,tracker,DIRECT/a\- DOMAIN-KEYWORD,announce_peer,DIRECT" "$4" 2>/dev/null
          if [ -z "$(grep "###- MATCH," "$4")" ] && [ -z "$(grep "###- FINAL," "$4")" ]; then
             sed -i 's/- MATCH,/###&/' "$4" 2>/dev/null
             echo "- MATCH,DIRECT" >> "$4" 2>/dev/null
@@ -47,7 +59,7 @@ yml_other_set()
             sed -i "s/###- MATCH,/- MATCH,/" "$4" 2>/dev/null
          fi
       fi
-      
+
       if [ "$3" = 1 ]; then
          sed -i '/^rules:/a\##Custom Rules End##' "$4" 2>/dev/null
          sed -i '/^rules:/a\##Custom Rules##' "$4" 2>/dev/null

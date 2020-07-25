@@ -1026,7 +1026,7 @@ do_run_core()
        core_type="Game"
     fi
     
-    if [ "$proxy_mode" = "Script" ] || [ "$rule_source" = "ConnersHua" ]; then
+    if [ "$proxy_mode" = "script" ] || [ "$rule_source" = "ConnersHua" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
     fi
@@ -1082,18 +1082,18 @@ cat > "/var/etc/openclash.include" <<-EOF
 EOF
 
 if [ "$china_ip_route" -eq 1 ]; then
-   if [ ! -f "/etc/openclash/china_ip_route.list" ]; then
-      cp /etc/openclash/rule_provider/ChinaIP.yaml /etc/openclash/china_ip_route.list 2>/dev/null
-      sed -i "s/'//g" /etc/openclash/china_ip_route.list 2>/dev/null
-      sed -i "s/^ \{0,\}- //g" /etc/openclash/china_ip_route.list 2>/dev/null
-      sed -i '/payload:/d' /etc/openclash/china_ip_route.list 2>/dev/null
-      sed -i '/^ \{0,\}#/d' /etc/openclash/china_ip_route.list 2>/dev/null
+   if [ ! -f "/tmp/china_ip_route.ipset" ]; then
+      cp /etc/openclash/rule_provider/ChinaIP.yaml /tmp/china_ip_route.list 2>/dev/null
+      sed -i "s/'//g" /tmp/china_ip_route.list 2>/dev/null
+      sed -i "s/^ \{0,\}- //g" /tmp/china_ip_route.list 2>/dev/null
+      sed -i '/payload:/d' /tmp/china_ip_route.list 2>/dev/null
+      sed -i '/^ \{0,\}#/d' /tmp/china_ip_route.list 2>/dev/null
       echo "create china_ip_route hash:net family inet hashsize 1024 maxelem 65536" >/tmp/china_ip_route.ipset
-      awk '!/^$/&&!/^#/{printf("add china_ip_route %s'" "'\n",$0)}' /etc/openclash/china_ip_route.list >>/tmp/china_ip_route.ipset
-      mv /tmp/china_ip_route.ipset /etc/openclash/china_ip_route.list 2>/dev/null
+      awk '!/^$/&&!/^#/{printf("add china_ip_route %s'" "'\n",$0)}' /tmp/china_ip_route.list >>/tmp/china_ip_route.ipset
+      rm -rf /tmp/china_ip_route.list 2>/dev/null
    fi
-   ipset -! flush china_ip_route
-   ipset -! restore </etc/openclash/china_ip_route.list 2>/dev/null
+   ipset -! flush china_ip_route 2>/dev/null
+   ipset -! restore </tmp/china_ip_route.ipset 2>/dev/null
 fi
 
 #lan_ac
@@ -1134,7 +1134,7 @@ if [ -z "$en_mode_tun" ]; then
    iptables -t nat -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
    iptables -t nat -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
    if [ "$en_mode" = "redir-host" ]; then
-      iptables -t nat -A openclash -m set --match-set china_ip_route dst -j RETURN
+      iptables -t nat -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
    fi
    iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
    iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 -j REDIRECT --to-ports "$proxy_port"
@@ -1150,7 +1150,7 @@ if [ -z "$en_mode_tun" ]; then
       iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
       if [ "$en_mode" = "redir-host" ]; then
-   	     iptables -t mangle -A openclash -m set --match-set china_ip_route dst -j RETURN
+   	     iptables -t mangle -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
       fi
       iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
       #端口转发
@@ -1451,7 +1451,9 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
                    mv "$START_BACKUP" /tmp/configrules.bak
                    sed -i -n '/^rules:/,$p' /tmp/configrules.bak
                    sed -i '/^rules:/,$d' "$CONFIG_FILE" 2>/dev/null
-                   sed -i '/##Other-rule-providers##/,/##Other-rule-providers-end##/d' "$CONFIG_FILE" 2>/dev/null
+                   if [ -z "$(grep "##source:" /tmp/configrules.bak 2>/dev/null)" ]; then
+                      sed -i '/##Other-rule-providers##/,/##Other-rule-providers-end##/d' "$CONFIG_FILE" 2>/dev/null
+                   fi
                    cat /tmp/configrules.bak >> "$CONFIG_FILE"
                    rm -rf /tmp/configrules.bak
                    nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
