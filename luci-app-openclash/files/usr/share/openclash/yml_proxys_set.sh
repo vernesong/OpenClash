@@ -839,7 +839,6 @@ ${UCI_SET}rule_source="lhie1"
 ${UCI_SET}GlobalTV="GlobalTV"
 ${UCI_SET}AsianTV="AsianTV"
 ${UCI_SET}Proxy="Proxy"
-${UCI_SET}Apple="Youtube"
 ${UCI_SET}Apple="Apple"
 ${UCI_SET}Microsoft="Microsoft"
 ${UCI_SET}Netflix="Netflix"
@@ -856,7 +855,6 @@ ${UCI_SET}Others="Others"
 	${UCI_SET}servers_update="1"
 	${UCI_DEL_LIST}="Auto - UrlTest" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Auto - UrlTest" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Proxy" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Proxy" >/dev/null 2>&1
-	${UCI_DEL_LIST}="Youtube" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Youtube" >/dev/null 2>&1
 	${UCI_DEL_LIST}="AsianTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="AsianTV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="GlobalTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="GlobalTV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Netflix" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Netflix" >/dev/null 2>&1
