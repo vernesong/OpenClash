@@ -5211,7 +5211,6 @@ rules:
 - DOMAIN-SUFFIX,m.xxkio.com,AdBlock
 - DOMAIN-SUFFIX,m.yalayi.com,AdBlock
 - DOMAIN-SUFFIX,m.yangjingbang.net,AdBlock
-- DOMAIN-SUFFIX,m.yap.yahoo.com,AdBlock
 - DOMAIN-SUFFIX,m.yicang8.com,AdBlock
 - DOMAIN-SUFFIX,m.yingchengtou.com,AdBlock
 - DOMAIN-SUFFIX,m.ynnke.com,AdBlock
@@ -8489,6 +8488,7 @@ rules:
 - DOMAIN-SUFFIX,bilivideo.com,AsianTV
 - DOMAIN-SUFFIX,hdslb.com,AsianTV
 - DOMAIN-SUFFIX,im9.com,AsianTV
+- DOMAIN-SUFFIX,smtcdns.net,AsianTV
 
 # > IQIYI
 - DOMAIN-KEYWORD,qiyi,AsianTV
@@ -8533,11 +8533,12 @@ rules:
 - DOMAIN-SUFFIX,amazonaws.com,GlobalTV
 - DOMAIN-SUFFIX,amazonvideo.com,GlobalTV
 - DOMAIN-SUFFIX,llnwd.net,GlobalTV
+- DOMAIN-SUFFIX,primevideo.com,GlobalTV
 
 # > Apple News and Apple Map TOMTOM Version
 # - USER-AGENT,AppleNews*,GlobalTV
 # - USER-AGENT,com.apple.news*,GlobalTV
-- DOMAIN,gspe1-ssl.ls.apple.com,GlobalTV
+# - DOMAIN,gspe1-ssl.ls.apple.com,GlobalTV
 # - USER-AGENT,News*,GlobalTV
 # - DOMAIN,apple.comscoreresearch.com,GlobalTV
 # - DOMAIN,gateway.icloud.com,GlobalTV
@@ -8701,20 +8702,6 @@ rules:
 - DOMAIN-SUFFIX,viu.tv,GlobalTV
 - DOMAIN-SUFFIX,viu.now.com,GlobalTV
 
-# > Youtube Music
-# - USER-AGENT,*YouTubeMusic*,GlobalTV
-# - USER-AGENT,*com.google.ios.youtubemusic*,GlobalTV
-
-# > Youtube
-# - USER-AGENT,*youtube*,GlobalTV
-# - USER-AGENT,YouTube*,GlobalTV
-- DOMAIN-KEYWORD,youtube,GlobalTV
-- DOMAIN,yt3.ggpht.com,GlobalTV
-- DOMAIN-SUFFIX,googlevideo.com,GlobalTV
-- DOMAIN-SUFFIX,gvt2.com,GlobalTV
-- DOMAIN-SUFFIX,youtu.be,GlobalTV
-- DOMAIN-SUFFIX,ytimg.com,GlobalTV
-
 
 
 # > Netflix
@@ -8789,22 +8776,13 @@ rules:
 - IP-CIDR,170.249.179.114/32,Netflix
 - IP-CIDR,170.52.52.130/32,Netflix
 - IP-CIDR,172.56.128.126/32,Netflix
-- IP-CIDR,172.56.128.126/32,Netflix
-- IP-CIDR,172.56.132.126/32,Netflix
 - IP-CIDR,172.56.132.126/32,Netflix
 - IP-CIDR,172.56.133.126/32,Netflix
-- IP-CIDR,172.56.133.126/32,Netflix
-- IP-CIDR,172.56.138.126/32,Netflix
 - IP-CIDR,172.56.138.126/32,Netflix
 - IP-CIDR,172.56.139.126/32,Netflix
-- IP-CIDR,172.56.139.126/32,Netflix
-- IP-CIDR,172.56.140.126/32,Netflix
 - IP-CIDR,172.56.140.126/32,Netflix
 - IP-CIDR,172.56.141.126/32,Netflix
-- IP-CIDR,172.56.141.126/32,Netflix
 - IP-CIDR,172.56.143.126/32,Netflix
-- IP-CIDR,172.56.143.126/32,Netflix
-- IP-CIDR,172.56.145.66/32,Netflix
 - IP-CIDR,172.56.145.66/32,Netflix
 - IP-CIDR,173.219.132.226/32,Netflix
 - IP-CIDR,173.219.132.229/32,Netflix
@@ -8971,11 +8949,9 @@ rules:
 - IP-CIDR,184.150.15.99/32,Netflix
 - IP-CIDR,184.175.190.38/32,Netflix
 - IP-CIDR,185.43.181.232/32,Netflix
-- IP-CIDR,185.43.181.232/32,Netflix
 - IP-CIDR,185.43.181.234/32,Netflix
 - IP-CIDR,185.43.181.236/32,Netflix
 - IP-CIDR,185.43.181.238/32,Netflix
-- IP-CIDR,185.43.181.240/32,Netflix
 - IP-CIDR,185.43.181.240/32,Netflix
 - IP-CIDR,185.43.181.246/32,Netflix
 - IP-CIDR,185.97.110.36/32,Netflix
@@ -8996,7 +8972,6 @@ rules:
 - IP-CIDR,188.47.196.252/32,Netflix
 - IP-CIDR,188.47.196.253/32,Netflix
 - IP-CIDR,188.47.208.242/32,Netflix
-- IP-CIDR,188.47.208.242/32,Netflix
 - IP-CIDR,189.194.232.193/32,Netflix
 - IP-CIDR,189.194.232.194/32,Netflix
 - IP-CIDR,189.194.232.195/32,Netflix
@@ -9013,10 +8988,7 @@ rules:
 - IP-CIDR,190.98.134.144/32,Netflix
 - IP-CIDR,190.98.134.146/32,Netflix
 - IP-CIDR,190.98.156.141/32,Netflix
-- IP-CIDR,190.98.156.141/32,Netflix
 - IP-CIDR,190.98.156.149/32,Netflix
-- IP-CIDR,190.98.156.149/32,Netflix
-- IP-CIDR,190.98.156.183/32,Netflix
 - IP-CIDR,190.98.156.183/32,Netflix
 - IP-CIDR,192.148.237.10/32,Netflix
 - IP-CIDR,192.148.237.130/32,Netflix
@@ -9037,14 +9009,10 @@ rules:
 - IP-CIDR,193.212.179.82/32,Netflix
 - IP-CIDR,193.212.179.98/32,Netflix
 - IP-CIDR,193.247.193.100/32,Netflix
-- IP-CIDR,193.247.193.100/32,Netflix
 - IP-CIDR,193.247.193.38/32,Netflix
 - IP-CIDR,193.247.193.72/32,Netflix
 - IP-CIDR,193.247.193.74/32,Netflix
-- IP-CIDR,193.247.193.74/32,Netflix
 - IP-CIDR,193.247.193.99/32,Netflix
-- IP-CIDR,193.247.193.99/32,Netflix
-- IP-CIDR,194.228.248.66/32,Netflix
 - IP-CIDR,194.228.248.66/32,Netflix
 - IP-CIDR,195.121.126.132/32,Netflix
 - IP-CIDR,195.121.126.139/32,Netflix
@@ -9110,26 +9078,19 @@ rules:
 - IP-CIDR,203.116.200.130/32,Netflix
 - IP-CIDR,203.116.200.131/32,Netflix
 - IP-CIDR,203.116.200.134/32,Netflix
-- IP-CIDR,203.116.200.134/32,Netflix
 - IP-CIDR,203.116.200.135/32,Netflix
-- IP-CIDR,203.116.200.136/32,Netflix
 - IP-CIDR,203.116.200.136/32,Netflix
 - IP-CIDR,203.116.200.137/32,Netflix
 - IP-CIDR,203.116.210.132/32,Netflix
-- IP-CIDR,203.116.210.133/32,Netflix
 - IP-CIDR,203.116.210.133/32,Netflix
 - IP-CIDR,203.116.210.134/32,Netflix
 - IP-CIDR,203.116.210.135/32,Netflix
 - IP-CIDR,203.116.210.136/32,Netflix
 - IP-CIDR,203.116.210.137/32,Netflix
 - IP-CIDR,203.116.210.196/32,Netflix
-- IP-CIDR,203.116.210.196/32,Netflix
 - IP-CIDR,203.116.210.197/32,Netflix
 - IP-CIDR,203.116.210.198/32,Netflix
-- IP-CIDR,203.116.210.198/32,Netflix
 - IP-CIDR,203.116.210.199/32,Netflix
-- IP-CIDR,203.116.210.199/32,Netflix
-- IP-CIDR,203.116.210.200/32,Netflix
 - IP-CIDR,203.116.210.200/32,Netflix
 - IP-CIDR,203.116.210.201/32,Netflix
 - IP-CIDR,203.177.54.2/32,Netflix
@@ -9178,17 +9139,11 @@ rules:
 - IP-CIDR,208.180.59.229/32,Netflix
 - IP-CIDR,208.54.16.65/32,Netflix
 - IP-CIDR,208.54.2.3/32,Netflix
-- IP-CIDR,208.54.2.3/32,Netflix
-- IP-CIDR,208.54.37.30/32,Netflix
 - IP-CIDR,208.54.37.30/32,Netflix
 - IP-CIDR,208.54.66.30/32,Netflix
 - IP-CIDR,208.54.67.30/32,Netflix
-- IP-CIDR,208.54.67.30/32,Netflix
-- IP-CIDR,208.54.70.30/32,Netflix
 - IP-CIDR,208.54.70.30/32,Netflix
 - IP-CIDR,208.54.80.30/32,Netflix
-- IP-CIDR,208.54.80.30/32,Netflix
-- IP-CIDR,208.54.85.30/32,Netflix
 - IP-CIDR,208.54.85.30/32,Netflix
 - IP-CIDR,208.76.186.5/32,Netflix
 - IP-CIDR,208.76.186.50/32,Netflix
@@ -9274,12 +9229,9 @@ rules:
 - IP-CIDR,40.133.138.47/32,Netflix
 - IP-CIDR,40.133.138.57/32,Netflix
 - IP-CIDR,43.245.105.1/32,Netflix
-- IP-CIDR,43.245.105.1/32,Netflix
-- IP-CIDR,43.245.105.11/32,Netflix
 - IP-CIDR,43.245.105.11/32,Netflix
 - IP-CIDR,43.245.105.129/32,Netflix
 - IP-CIDR,43.245.105.13/32,Netflix
-- IP-CIDR,43.245.105.9/32,Netflix
 - IP-CIDR,43.245.105.9/32,Netflix
 - IP-CIDR,45.121.219.34/32,Netflix
 - IP-CIDR,45.57.56.130/32,Netflix
@@ -9294,7 +9246,6 @@ rules:
 - IP-CIDR,51.148.80.18/32,Netflix
 - IP-CIDR,51.148.80.22/32,Netflix
 - IP-CIDR,51.148.80.6/32,Netflix
-- IP-CIDR,58.27.11.201/32,Netflix
 - IP-CIDR,58.27.11.201/32,Netflix
 - IP-CIDR,58.27.38.199/32,Netflix
 - IP-CIDR,62.127.102.10/32,Netflix
@@ -9637,9 +9588,26 @@ rules:
 
 # > Spotify
 # - USER-AGENT,*Spotify*,Spotify
-- DOMAIN-KEYWORD,spotify,Spotify
+- DOMAIN-SUFFIX,pscdn.co,Spotify
 - DOMAIN-SUFFIX,scdn.co,Spotify
 - DOMAIN-SUFFIX,spoti.fi,Spotify
+- DOMAIN-SUFFIX,spotify.com,Spotify
+- DOMAIN-SUFFIX,spotifycdn.net,Spotify
+
+# > Youtube Music
+# - USER-AGENT,*YouTubeMusic*,Youtube
+# - USER-AGENT,*com.google.ios.youtubemusic*,Youtube
+
+# > Youtube
+# - USER-AGENT,*youtube*,Youtube
+# - USER-AGENT,YouTube*,Youtube
+- DOMAIN-KEYWORD,youtube,Youtube
+- DOMAIN,yt3.ggpht.com,Youtube
+- DOMAIN-SUFFIX,googlevideo.com,Youtube
+- DOMAIN-SUFFIX,gvt2.com,Youtube
+- DOMAIN-SUFFIX,youtu.be,Youtube
+- DOMAIN-SUFFIX,ytimg.com,Youtube
+
 
 
 # > Telegram
@@ -9970,7 +9938,7 @@ rules:
 - DOMAIN-SUFFIX,gvt0.com,Proxy
 - DOMAIN-SUFFIX,gvt1.com,Proxy
 - DOMAIN-SUFFIX,helpshift.com,Proxy
-- DOMAIN-SUFFIX,hinet.net,Proxy
+- DOMAIN-SUFFIX,hitun.io,Proxy
 - DOMAIN-SUFFIX,hockeyapp.net,Proxy
 - DOMAIN-SUFFIX,homedepot.com,Proxy
 - DOMAIN-SUFFIX,hootsuite.com,Proxy
@@ -10031,6 +9999,7 @@ rules:
 - DOMAIN-SUFFIX,macid.co,Proxy
 - DOMAIN-SUFFIX,macromedia.com,Proxy
 - DOMAIN-SUFFIX,macrumors.com,Proxy
+- DOMAIN-SUFFIX,mangaup.jp,Proxy
 - DOMAIN-SUFFIX,manhuaren.com,Proxy
 - DOMAIN-SUFFIX,marketwatch.com,Proxy
 - DOMAIN-SUFFIX,mashable.com,Proxy
@@ -10056,7 +10025,9 @@ rules:
 - DOMAIN-SUFFIX,netdna-cdn.com,Proxy
 - DOMAIN-SUFFIX,newipnow.com,Proxy
 - DOMAIN-SUFFIX,nextmedia.com,Proxy
+- DOMAIN-SUFFIX,nicovideo.jp,Proxy
 - DOMAIN-SUFFIX,nih.gov,Proxy
+- DOMAIN-SUFFIX,nimg.jp,Proxy
 - DOMAIN-SUFFIX,nintendo.com,Proxy
 - DOMAIN-SUFFIX,nintendo.net,Proxy
 - DOMAIN-SUFFIX,notion.so,Proxy
@@ -10383,7 +10354,6 @@ rules:
 - DOMAIN-SUFFIX,gcr.io,Proxy
 - DOMAIN-SUFFIX,gmail.com,Proxy
 - DOMAIN-SUFFIX,gosetsuden.jp,Proxy
-- DOMAIN-SUFFIX,gvt1.com,Proxy
 - DOMAIN-SUFFIX,gwtproject.org,Proxy
 - DOMAIN-SUFFIX,heroku.com,Proxy
 - DOMAIN-SUFFIX,html5rocks.com,Proxy
@@ -10548,7 +10518,6 @@ rules:
 - DOMAIN-SUFFIX,bababian.com,Domestic
 - DOMAIN-SUFFIX,baidu.com,Domestic
 - DOMAIN-SUFFIX,baidupcs.com,Domestic
-- DOMAIN-SUFFIX,battle.net,Domestic
 - DOMAIN-SUFFIX,bdimg.com,Domestic
 - DOMAIN-SUFFIX,bdstatic.com,Domestic
 - DOMAIN-SUFFIX,beatsbydre.com,Domestic
@@ -10639,6 +10608,8 @@ rules:
 - DOMAIN-SUFFIX,lxdns.com,Domestic
 - DOMAIN-SUFFIX,mai.tn,Domestic
 - DOMAIN-SUFFIX,meizu.com,Domestic
+- DOMAIN-SUFFIX,metatrader4.com,Domestic
+- DOMAIN-SUFFIX,metatrader5.com,Domestic
 - DOMAIN-SUFFIX,mi.com,Domestic
 - DOMAIN-SUFFIX,miaopai.com,Domestic
 - DOMAIN-SUFFIX,miui.com,Domestic
