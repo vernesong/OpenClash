@@ -84,6 +84,7 @@ if [ "$2" != 0 ]; then
    GlobalTV=$(uci get openclash.config.GlobalTV 2>/dev/null)
    AsianTV=$(uci get openclash.config.AsianTV 2>/dev/null)
    Proxy=$(uci get openclash.config.Proxy 2>/dev/null)
+   Youtube=$(uci get openclash.config.Youtube 2>/dev/null)
    Apple=$(uci get openclash.config.Apple 2>/dev/null)
    Netflix=$(uci get openclash.config.Netflix 2>/dev/null)
    Spotify=$(uci get openclash.config.Spotify 2>/dev/null)
@@ -117,6 +118,7 @@ if [ "$2" != 0 ]; then
        if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$AsianTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Proxy" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep "$Youtube" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Apple" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Netflix" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep "$Spotify" /tmp/Proxy_Group)" ]\
@@ -156,6 +158,7 @@ if [ "$2" != 0 ]; then
     GlobalTV_YAML=$(grep '##GlobalTV:' "$4" |awk -F ':' '{print $2}')
     AsianTV_YAML=$(grep '##AsianTV:' "$4" |awk -F ':' '{print $2}')
     Proxy_YAML=$(grep '##Proxy:' "$4" |awk -F ':' '{print $2}')
+    Youtube_YAML=$(grep '##Youtube:' "$4" |awk -F ':' '{print $2}')
     Apple_YAML=$(grep '##Apple:' "$4" |awk -F ':' '{print $2}')
     Netflix_YAML=$(grep '##Netflix:' "$4" |awk -F ':' '{print $2}')
     Spotify_YAML=$(grep '##Spotify:' "$4" |awk -F ':' '{print $2}')
@@ -186,6 +189,7 @@ if [ "$2" != 0 ]; then
        if [ "$GlobalTV" != "$GlobalTV_YAML" ]\
 	 || [ "$AsianTV" != "$AsianTV_YAML" ]\
 	 || [ "$Proxy" != "$Proxy_YAML" ]\
+	 || [ "$Youtube" != "$Youtube_YAML" ]\
 	 || [ "$Apple" != "$Apple_YAML" ]\
 	 || [ "$Netflix" != "$Netflix_YAML" ]\
 	 || [ "$Spotify" != "$Spotify_YAML" ]\
@@ -217,6 +221,9 @@ if [ "$2" != 0 ]; then
             sed -i "s/,Proxy$/,${Proxy}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "s/,Proxy,no-resolve$/,${Proxy},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "/rules:/a\##Proxy:${Proxy}" "/tmp/other_rule.yaml" 2>/dev/null
+            sed -i "s/,Youtube$/,${Youtube}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
+            sed -i "s/,Youtube,no-resolve$/,${Youtube},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
+            sed -i "/rules:/a\##Youtube:${Youtube}" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "s/,Apple$/,${Apple}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "s/,Apple,no-resolve$/,${Apple},no-resolve#d/g" "/tmp/other_rule.yaml" 2>/dev/null
             sed -i "/rules:/a\##Apple:${Apple}" "/tmp/other_rule.yaml" 2>/dev/null
