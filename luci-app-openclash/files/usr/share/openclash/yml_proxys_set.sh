@@ -64,8 +64,6 @@ yml_proxy_provider_set()
       elif [ "$(grep -Fw "$name" "$proxy_provider_name" |wc -l 2>/dev/null)" -ge 2 ] && [ -z "$(grep -w "path: $path" "$PROXY_PROVIDER_FILE" 2>/dev/null)" ]; then
       	 sed -i "1,/${name}/{//d}" "$proxy_provider_name" 2>/dev/null
          return
-      elif [ "$(grep -Fw "$name" "$proxy_provider_name" |wc -l 2>/dev/null)" -eq 1 ] && [ -z "$(grep -w "path: $path" "$PROXY_PROVIDER_FILE" 2>/dev/null)" ]; then
-         return
       fi
    fi
    
@@ -194,8 +192,6 @@ yml_servers_set()
          return
       elif [ "$(grep -Fw "$name" "$servers_name" |wc -l 2>/dev/null)" -ge 2 ] && [ -z "$(grep -w "name: \"$name\"" "$SERVER_FILE" 2>/dev/null)" ]; then
       	 sed -i "1,/${name}/{//d}" "$servers_name" 2>/dev/null
-         return
-      elif [ "$(grep -Fw "$name" "$servers_name" |wc -l 2>/dev/null)" -ge 1 ] && [ -z "$(grep -w "name: \"$name\"" "$SERVER_FILE" 2>/dev/null)" ]; then
          return
       fi
    fi
