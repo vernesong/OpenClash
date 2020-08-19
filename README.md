@@ -73,16 +73,18 @@ cd OpenWrt-SDK-ar71xx-*
 
 # Clone 项目
 mkdir package/luci-app-openclash
-cd package/luci-app-openclash
+pushd package/luci-app-openclash
 git init
 git remote add -f origin https://github.com/vernesong/OpenClash.git
 git config core.sparsecheckout true
 echo "luci-app-openclash" >> .git/info/sparse-checkout
 git pull origin master
 git branch --set-upstream-to=origin/master master
+cp -r luci-app-openclash/* . # 编译要求 package 源码要在 package/luci-app-openclash 下
+popd
 
 # 编译 po2lmo (如果有po2lmo可跳过)
-pushd package/luci-app-openclash/luci-app-openclash/tools/po2lmo
+pushd package/luci-app-openclash/tools/po2lmo
 make && sudo make install
 popd
 
@@ -90,7 +92,7 @@ popd
 make menuconfig
 
 # 开始编译
-make package/luci-app-openclash/luci-app-openclash/compile V=99
+make package/luci-app-openclash/compile V=99
 
 # 您也可以直接拷贝 `luci-app-openclash` 文件夹至其他 `OpenWrt` 项目的 `Package` 目录下随固件编译
 ```
