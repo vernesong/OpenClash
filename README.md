@@ -56,6 +56,7 @@
 * ca-certificates
 * ipset
 * ip-full
+* subversion
 * iptables-mod-tproxy
 * kmod-tun(TUN模式)
 * luci-compat(Luci-19.07)
