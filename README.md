@@ -8,11 +8,11 @@
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.0.0">
     <img src="https://img.shields.io/badge/Clash-v1.0.0-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.39.7-beta">
-    <img src="https://img.shields.io/badge/source code-v0.39.7--beta-green.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.39.8-beta">
+    <img src="https://img.shields.io/badge/source code-v0.39.8--beta-green.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.39.7-beta">
-    <img src="https://img.shields.io/badge/New Release-v0.39.7--beta-orange.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.39.8-beta">
+    <img src="https://img.shields.io/badge/New Release-v0.39.8--beta-orange.svg">
   </a>
   </p>
   
@@ -82,17 +82,30 @@ git pull origin master
 git branch --set-upstream-to=origin/master master
 
 # 编译 po2lmo (如果有po2lmo可跳过)
-pushd package/luci-app-openclash/luci-app-openclash/tools/po2lmo
+pushd luci-app-openclash/tools/po2lmo
 make && sudo make install
 popd
 
-# 选择要编译的包 LuCI -> Applications -> luci-app-openclash
-make menuconfig
-
 # 开始编译
+
+# 先回退到SDK主目录
+cd ../..
 make package/luci-app-openclash/luci-app-openclash/compile V=99
 
+# IPK文件位置
+./bin/ar71xx/packages/base/luci-app-openclash_0.39.7-beta_all.ipk
+```
+
+```bash
+# 同步源码
+cd package/luci-app-openclash/luci-app-openclash
+git pull
+
 # 您也可以直接拷贝 `luci-app-openclash` 文件夹至其他 `OpenWrt` 项目的 `Package` 目录下随固件编译
+
+make menuconfig
+# 选择要编译的包 LuCI -> Applications -> luci-app-openclash
+
 ```
 
 
