@@ -5,8 +5,8 @@
 </h1>
 
   <p align="center">
-	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.0.0">
-    <img src="https://img.shields.io/badge/Clash-v1.0.0-blue.svg">
+	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.1.0">
+    <img src="https://img.shields.io/badge/Clash-v1.1.0-blue.svg">
   </a>
   <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.39.8-beta">
     <img src="https://img.shields.io/badge/source code-v0.39.8--beta-green.svg">
@@ -59,6 +59,7 @@
 * iptables-mod-tproxy
 * kmod-tun(TUN模式)
 * luci-compat(Luci-19.07)
+* ip6tables-mod-nat(ipv6)
 
 
 编译
