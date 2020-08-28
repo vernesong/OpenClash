@@ -165,7 +165,7 @@ make menuconfig
     <img src="https://github.com/vernesong/OpenClash/raw/master/img/servers.png">
 </p>
 
-* 游戏规则&策略组
+* 规则&策略组
 <p align="center">
     <img src="https://github.com/vernesong/OpenClash/raw/master/img/game-settings.png">
 </p>
