@@ -394,6 +394,15 @@ msgstr "自动更新GEOIP数据库"
 msgid "Update GEOIP Database"
 msgstr "更新GEOIP数据库"
 
+msgid "Auto Update Chnroute Lists"
+msgstr "自动更新大陆白名单"
+
+msgid "Update Chnroute Lists"
+msgstr "更新大陆白名单"
+
+msgid "Chnroute Update"
+msgstr "大陆白名单订阅"
+
 msgid "Other Rules Update(Only in Use)"
 msgstr "正在使用第三方规则时才能更新"
 
