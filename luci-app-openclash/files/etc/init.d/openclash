@@ -151,6 +151,7 @@ yml_check()
    #格式替换
    sed -i 's/\t/ /g' "$3" 2>/dev/null
    sed -i "s/- \{2,\}/- /g" "$3" 2>/dev/null
+   sed -i "s/^...$//g" "$3" 2>/dev/null
 
    #检查关键字避免后续操作出错
    /usr/share/openclash/yml_field_name_ch.sh "$3" 2>/dev/null
@@ -1001,6 +1002,7 @@ CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 do_run_mode()
 {
 	  en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
+	  proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
 	  
     if [ "$en_mode" = "fake-ip-tun" ]; then
        en_mode_tun="1"
@@ -1030,6 +1032,11 @@ do_run_mode()
     if [ "$en_mode" = "fake-ip-mix" ]; then
        en_mode_tun="3"
        en_mode="fake-ip"
+    fi
+    
+    if [ -n "$(grep "^ \{0,\}mode: script" "$CONFIG_FILE" 2>/dev/null)" ] && [ "$proxy_mode" != "script" ]; then
+    	uci set openclash.config.proxy_mode=script 2>/dev/null
+    	uci commit openclash
     fi
 }
 
@@ -1371,7 +1378,6 @@ revert_firewall()
 
 get_config()
 {
-   proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
    rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
    enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
    enable_custom_clash_rules=$(uci get openclash.config.enable_custom_clash_rules 2>/dev/null) 
