@@ -1,7 +1,7 @@
 #!/bin/sh
 . /lib/functions.sh
 
-status=$(ps|grep -c /usr/share/openclash/yml_groups_set.sh)
+status=$(ps -ef |grep -c /usr/share/openclash/yml_groups_set.sh)
 [ "$status" -gt "3" ] && exit 0
 
 START_LOG="/tmp/openclash_start.log"

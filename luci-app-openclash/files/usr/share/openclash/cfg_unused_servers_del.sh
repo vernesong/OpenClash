@@ -15,7 +15,7 @@ cfg_unused_servers_del()
    uci delete openclash."$section" 2>/dev/null
 }
 
-status=$(ps|grep -c /usr/share/openclash/cfg_unused_servers_del.sh)
+status=$(ps -ef |grep -c /usr/share/openclash/cfg_unused_servers_del.sh)
 [ "$status" -gt "3" ] && exit 0
    config_load "openclash"
    config_foreach cfg_unused_servers_del "servers"

@@ -1,5 +1,5 @@
 #!/bin/sh
-   status=$(ps|grep -c /usr/share/openclash/openclash_rule.sh)
+   status=$(ps -ef |grep -c /usr/share/openclash/openclash_rule.sh)
    [ "$status" -gt 3 ] && exit 0
    
    START_LOG="/tmp/openclash_start.log"
@@ -20,7 +20,6 @@
       	 else
             curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          fi
-         sed -i '1i rules:' /tmp/rules.yaml
       elif [ "$RUlE_SOURCE" = "ConnersHua" ]; then
       	 if pidof clash >/dev/null; then
             curl -sL --connect-timeout 10 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Global.yaml -o /tmp/rules.yaml >/dev/null 2>&1
@@ -48,11 +47,11 @@
          mv /tmp/rules.yaml /etc/openclash/"$RUlE_SOURCE".yaml >/dev/null 2>&1
          sed -i '/^rules:/a\##updated' /etc/openclash/"$RUlE_SOURCE".yaml >/dev/null 2>&1
          echo "替换成功，重新加载 OpenClash 应用新规则..." >$START_LOG
-         status=$(ps |grep -v openclash_watchdog |grep -c openclash.sh)
+         status=$(ps -ef |grep -v openclash_watchdog |grep -c openclash.sh)
          while ( [ "$status" -gt 1 ] )
          do
             sleep 5
-            status=$(ps |grep -v openclash_watchdog |grep -c openclash.sh)
+            status=$(ps -ef |grep -v openclash_watchdog |grep -c openclash.sh)
          done
          /etc/init.d/openclash restart 2>/dev/null
          echo "${LOGTIME} Other Rules 【$RUlE_SOURCE】 Update Successful" >>$LOG_FILE
@@ -66,7 +65,7 @@
    elif [ "$RUlE_SOURCE" = 0 ]; then
       echo "未启用第三方规则，更新程序终止！" >$START_LOG
       rm -rf /tmp/rules.yaml >/dev/null 2>&1
-      echo "${LOGTIME} Other Rules 【$RUlE_SOURCE】 Not Enable, Update Stop" >>$LOG_FILE
+      echo "${LOGTIME} Other Rules Not Enable, Update Stop" >>$LOG_FILE
       sleep 10
       echo "" >$START_LOG
    else

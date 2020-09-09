@@ -32,7 +32,7 @@ cfg_server_address()
    config_get "server" "$section" "server" ""
    
    IFIP=$(echo $server |grep -E "^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$")
-   if [ -z "$IFIP" ] && [ ! -z "$server" ]; then
+   if [ -z "$IFIP" ] && [ ! -z "$server" ] && [ -z "$(grep "/$server/" "$SER_FAKE_FILTER_FILE" 2>/dev/null)" ]; then
       echo "server=/$server/114.114.114.114" >> "$SER_FAKE_FILTER_FILE"
    else
       return
