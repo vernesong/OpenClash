@@ -27,10 +27,14 @@ urlencode() {
 }
 
 kill_watchdog() {
-   watchdog_pids=$(ps -ef |grep openclash_watchdog.sh |grep -v grep |awk '{print $1}' 2>/dev/null)
-      for watchdog_pid in $watchdog_pids; do
-         kill -9 "$watchdog_pid" >/dev/null 2>&1
-      done
+   if [ "$(ps --version |grep -c procps-ng)" -eq 1 ];then
+      watchdog_pids=$(ps -ef |grep openclash_watchdog.sh |grep -v grep |awk '{print $2}' 2>/dev/null)
+   else
+      watchdog_pids=$(ps -ef |grep openclash_watchdog.sh |grep -v grep |awk '{print $1}' 2>/dev/null)
+   fi
+   for watchdog_pid in $watchdog_pids; do
+      kill -9 "$watchdog_pid" >/dev/null 2>&1
+   done
 }
 
 config_download()
