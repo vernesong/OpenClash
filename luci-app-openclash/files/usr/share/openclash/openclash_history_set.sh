@@ -41,7 +41,7 @@ close_all_conection() {
 }
 
 if [ -s "$HISTORY_PATH" ]; then
-   cat $HISTORY_PATH |while read line
+   cat "$HISTORY_PATH" |while read line
    do
       GROUP_NAME=$(echo $line |awk -F '#*#' '{print $1}')
       if [ "$GROUP_NAME" != "GLOBAL" ]; then
