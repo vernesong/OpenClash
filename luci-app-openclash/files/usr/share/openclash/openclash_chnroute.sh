@@ -1,5 +1,7 @@
 #!/bin/sh
-   status=$(ps -ef |grep -c /usr/share/openclash/openclash_chnroute.sh)
+. /usr/share/openclash/openclash_ps.sh
+
+   status=$(unify_ps_status "openclash_chnroute.sh")
    [ "$status" -gt 3 ] && exit 0
 
    START_LOG="/tmp/openclash_start.log"
@@ -20,11 +22,11 @@
       echo "大陆IP白名单下载成功，检查版本是否更新..." >$START_LOG
       cmp -s /tmp/ChinaIP.yaml /etc/openclash/rule_provider/ChinaIP.yaml
          if [ "$?" -ne "0" ]; then
-         	  status=$(ps -ef |grep -v openclash_watchdog |grep -c openclash.sh)
+         	  status=$(unify_ps_prevent)
             while ( [ "$status" -gt 1 ] )
             do
                sleep 5
-               status=$(ps -ef |grep -v openclash_watchdog |grep -c openclash.sh)
+               status=$(unify_ps_prevent)
             done
             /etc/init.d/openclash stop
             echo "大陆IP白名单有更新，开始替换旧版本..." >$START_LOG\

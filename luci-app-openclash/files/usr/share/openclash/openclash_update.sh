@@ -1,6 +1,8 @@
 #!/bin/sh
+. /usr/share/openclash/openclash_ps.sh
+
 #禁止多个实例
-status=$(ps -ef |grep -c /usr/share/openclash/openclash_update.sh)
+status=$(unify_ps_status "openclash_update.sh")
 [ "$status" -gt "3" ] && exit 0
 
 START_LOG="/tmp/openclash_start.log"
