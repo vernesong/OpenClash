@@ -1,7 +1,7 @@
 #!/bin/bash
 . /lib/functions.sh
 
-status=$(ps|grep -c /usr/share/openclash/openclash.sh)
+status=$(ps -ef |grep -c /usr/share/openclash/openclash.sh)
 [ "$status" -gt 3 ] && exit 0
 
 START_LOG="/tmp/openclash_start.log"
@@ -27,7 +27,7 @@ urlencode() {
 }
 
 kill_watchdog() {
-   watchdog_pids=$(ps |grep openclash_watchdog.sh |grep -v grep |awk '{print $1}' 2>/dev/null)
+   watchdog_pids=$(ps -ef |grep openclash_watchdog.sh |grep -v grep |awk '{print $1}' 2>/dev/null)
       for watchdog_pid in $watchdog_pids; do
          kill -9 "$watchdog_pid" >/dev/null 2>&1
       done

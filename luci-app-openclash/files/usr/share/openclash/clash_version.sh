@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #禁止多个实例
-status=$(ps|grep -c /usr/share/openclash/clash_version.sh)
+status=$(ps -ef |grep -c /usr/share/openclash/clash_version.sh)
 [ "$status" -gt "3" ] && exit 0
 
 CKTIME=$(date "+%Y-%m-%d-%H")
