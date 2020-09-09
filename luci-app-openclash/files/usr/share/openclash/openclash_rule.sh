@@ -1,5 +1,7 @@
 #!/bin/sh
-   status=$(ps -ef |grep -c /usr/share/openclash/openclash_rule.sh)
+. /usr/share/openclash/openclash_ps.sh
+
+   status=$(unify_ps_status "openclash_rule.sh")
    [ "$status" -gt 3 ] && exit 0
    
    START_LOG="/tmp/openclash_start.log"
@@ -47,11 +49,11 @@
          mv /tmp/rules.yaml /etc/openclash/"$RUlE_SOURCE".yaml >/dev/null 2>&1
          sed -i '/^rules:/a\##updated' /etc/openclash/"$RUlE_SOURCE".yaml >/dev/null 2>&1
          echo "替换成功，重新加载 OpenClash 应用新规则..." >$START_LOG
-         status=$(ps -ef |grep -v openclash_watchdog |grep -c openclash.sh)
+         status=$(unify_ps_prevent)
          while ( [ "$status" -gt 1 ] )
          do
             sleep 5
-            status=$(ps -ef |grep -v openclash_watchdog |grep -c openclash.sh)
+            status=$(unify_ps_prevent)
          done
          /etc/init.d/openclash restart 2>/dev/null
          echo "${LOGTIME} Other Rules 【$RUlE_SOURCE】 Update Successful" >>$LOG_FILE
