@@ -15,7 +15,9 @@ BACKUP_FILE="/etc/openclash/backup/$(uci get openclash.config.config_path 2>/dev
 START_BACKUP="/tmp/config.sbak"
 CHANGE_FILE="/tmp/yaml_change.yaml"
 SCRIPT_FILE="/tmp/yaml_script.yaml"
+SCRIPT_BAK_FILE="/tmp/yaml_script_bak.yaml"
 RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
+RULE_PROVIDER_BAK_FILE="/tmp/yaml_rule_provider_bak.yaml"
 RULE_FILE="/tmp/yaml_rules.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
 PROXY_FILE="/tmp/yaml_proxy.yaml"
@@ -223,10 +225,22 @@ yml_check()
    	  field_cut "$rule_provider_len" "$RULE_PROVIDER_FILE" "$3"
    fi 2>/dev/null
    
+   #处理备份rule_provider位置
+   rule_provider_bak_len=$(sed -n '/^rule-providers:/=' "$4" 2>/dev/null)
+   if [ -n "$rule_provider_bak_len" ]; then
+   	  field_cut "$rule_provider_bak_len" "$RULE_PROVIDER_BAK_FILE" "$4"
+   fi 2>/dev/null
+   
    #处理script位置
    script_len=$(sed -n '/^script:/=' "$3" 2>/dev/null)
    if [ -n "$script_len" ]; then
    	  field_cut "$script_len" "$SCRIPT_FILE" "$3"
+   fi 2>/dev/null
+   
+   #处理备份script位置
+   script_bak_len=$(sed -n '/^script:/=' "$4" 2>/dev/null)
+   if [ -n "$script_bak_len" ]; then
+   	  field_cut "$script_bak_len" "$SCRIPT_BAK_FILE" "$4"
    fi 2>/dev/null
 
    if [ -n "$provider_len" ]; then
@@ -1033,11 +1047,6 @@ do_run_mode()
        en_mode_tun="3"
        en_mode="fake-ip"
     fi
-    
-    if [ -n "$(grep "^ \{0,\}mode: script" "$CONFIG_FILE" 2>/dev/null)" ] && [ "$proxy_mode" != "script" ]; then
-    	uci set openclash.config.proxy_mode=script 2>/dev/null
-    	uci commit openclash
-    fi
 }
 
 do_run_core()
@@ -1059,7 +1068,7 @@ do_run_core()
        core_type="Game"
     fi
     
-    if [ "$proxy_mode" = "script" ] || [ "$rule_source" = "ConnersHua" ]; then
+    if [ "$proxy_mode" = "script" ] || [ "$rule_source" = "ConnersHua" ] || [ "$rule_source" = "lhie1" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
     fi
@@ -1405,7 +1414,7 @@ get_config()
 start()
 {
 #禁止多个实例
-status=$(ps|grep -c /etc/init.d/openclash)
+status=$(ps -ef |grep -c /etc/init.d/openclash)
 [ "$status" -gt "3" ] && exit 0
 
 config_choose
@@ -1442,7 +1451,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE" "$PROXY_PROVIDER_FILE" "$GROUP_FILE"
           yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
           /usr/share/openclash/yml_change.sh >/dev/null 2>&1 "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" &
-          /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$BACKUP_FILE" "$RULE_PROVIDER_FILE" &
+          /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$BACKUP_FILE" "$RULE_PROVIDER_FILE" "$SCRIPT_BAK_FILE" "$RULE_PROVIDER_BAK_FILE" &
           wait
           yml_provider_path "$PROXY_PROVIDER_FILE" "proxy_provider"
           yml_provider_path "$RULE_PROVIDER_FILE" "rule_provider"
@@ -1603,7 +1612,7 @@ stop()
    revert_firewall
 
    echo "第三步: 关闭 OpenClash 守护程序..." >$START_LOG
-   watchdog_pids=$(ps |grep openclash_watchdog.sh |grep -v grep |awk '{print $1}' 2>/dev/null)
+   watchdog_pids=$(ps -ef |grep openclash_watchdog.sh |grep -v grep |awk '{print $1}' 2>/dev/null)
    for watchdog_pid in $watchdog_pids; do
       kill -9 "$watchdog_pid" >/dev/null 2>&1
    done
