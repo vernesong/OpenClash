@@ -147,7 +147,7 @@ if [ "$2" != 0 ]; then
     
     [ "$check_def" -ne 1 ] && {
     	grep "^##updated$" /etc/openclash/"$2".yaml 1>/dev/null
-    	[ "$?" -eq "0" ] && {
+    	[ "$?" -eq 0 ] && {
     	sed -i '/^##updated$/d' /etc/openclash/"$2".yaml
         check_def=1
         }
@@ -366,15 +366,12 @@ elif [ "$2" = 0 ]; then
    [ -f "$8" ] && {
       grep '##source:' "$4" 1>/dev/null
       if [ "$?" -eq "0" ]; then
-         cp "$8" /tmp/configrules.bak 2>/dev/null
-         sed -i -n '/^rules:/,$p' /tmp/configrules.bak 2>/dev/null
          sed -i '/^rules:/,$d' "$4" 2>/dev/null
          rm -rf /tmp/yaml_rule_provider.yaml 2>/dev/null
          rm -rf /tmp/yaml_script.yaml 2>/dev/null
-         cat "$11" >> "$4" 2>/dev/null
-         cat "$10" >> "$4" 2>/dev/null
-         cat /tmp/configrules.bak >> "$4" 2>/dev/null
-         rm -rf /tmp/configrules.bak 2>/dev/null
+         cat "/tmp/yaml_rule_provider_bak.yaml" >> "$4" 2>/dev/null
+         cat "/tmp/yaml_script_bak.yaml" >> "$4" 2>/dev/null
+         cat "/tmp/yaml_rules_bak.yaml" >> "$4" 2>/dev/null
       fi
     	}
 fi

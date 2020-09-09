@@ -22,6 +22,7 @@
       	 else
             curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          fi
+         sed -i '1i rules:' /tmp/rules.yaml
       elif [ "$RUlE_SOURCE" = "ConnersHua" ]; then
       	 if pidof clash >/dev/null; then
             curl -sL --connect-timeout 10 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Global.yaml -o /tmp/rules.yaml >/dev/null 2>&1
