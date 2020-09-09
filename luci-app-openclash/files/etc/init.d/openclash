@@ -20,6 +20,7 @@ SCRIPT_BAK_FILE="/tmp/yaml_script_bak.yaml"
 RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
 RULE_PROVIDER_BAK_FILE="/tmp/yaml_rule_provider_bak.yaml"
 RULE_FILE="/tmp/yaml_rules.yaml"
+RULE_BAK_FILE="/tmp/yaml_rules_bak.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
 PROXY_FILE="/tmp/yaml_proxy.yaml"
 PROXY_PROVIDER_FILE="/tmp/yaml_proxy_provider.yaml"
@@ -145,8 +146,24 @@ field_cut()
    elif [ -n "$end_len" ]; then
       end_len=$(expr "$end_len" - 1)
    fi
+   
    sed -n "${1},${end_len}p" "$3" > "$2" 2>/dev/null
-   sed -i "${1},${end_len}d" "$3" 2>/dev/null
+   
+   if [ -z "$4" ]; then
+      sed -i "${1},${end_len}d" "$3" 2>/dev/null
+   fi
+}
+
+yml_merge()
+{
+#合并文件
+cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_PROVIDER_FILE" "$PROXY_FILE" "$GROUP_FILE" "$RULE_PROVIDER_FILE" "$SCRIPT_FILE" "$RULE_FILE" > "$CONFIG_FILE" 2>/dev/null
+}
+
+yml_rule_bak_merge()
+{
+#合并文件
+cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_PROVIDER_FILE" "$PROXY_FILE" "$GROUP_FILE" "$RULE_PROVIDER_BAK_FILE" "$SCRIPT_BAK_FILE" "$RULE_BAK_FILE" > "$CONFIG_FILE" 2>/dev/null
 }
 
 yml_check()
@@ -229,7 +246,7 @@ yml_check()
    #处理备份rule_provider位置
    rule_provider_bak_len=$(sed -n '/^rule-providers:/=' "$4" 2>/dev/null)
    if [ -n "$rule_provider_bak_len" ]; then
-   	  field_cut "$rule_provider_bak_len" "$RULE_PROVIDER_BAK_FILE" "$4"
+   	  field_cut "$rule_provider_bak_len" "$RULE_PROVIDER_BAK_FILE" "$4" "backups"
    fi 2>/dev/null
    
    #处理script位置
@@ -241,7 +258,13 @@ yml_check()
    #处理备份script位置
    script_bak_len=$(sed -n '/^script:/=' "$4" 2>/dev/null)
    if [ -n "$script_bak_len" ]; then
-   	  field_cut "$script_bak_len" "$SCRIPT_BAK_FILE" "$4"
+   	  field_cut "$script_bak_len" "$SCRIPT_BAK_FILE" "$4" "backups"
+   fi 2>/dev/null
+   
+   #处理备份rule位置
+   rule_bak_len=$(sed -n '/^rules:/=' "$4" 2>/dev/null)
+   if [ -n "$rule_bak_len" ]; then
+   	  field_cut "$rule_bak_len" "$RULE_BAK_FILE" "$4" "backups"
    fi 2>/dev/null
 
    if [ -n "$provider_len" ]; then
@@ -709,8 +732,7 @@ sed -i '/OpenClash-Game-Rules-End/d' "$RULE_FILE" 2>/dev/null
    sed -i '/OpenClash-Game-Rules/r/tmp/yaml_game_rule_group.yaml' "$RULE_FILE" 2>/dev/null
 }
 
-#合并文件
-cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_PROVIDER_FILE" "$PROXY_FILE" "$GROUP_FILE" "$RULE_PROVIDER_FILE" "$SCRIPT_FILE" "$RULE_FILE" > "$CONFIG_FILE" 2>/dev/null
+yml_merge
 
 #处理游戏节点与策略组
 config_load "openclash"
@@ -1437,7 +1459,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           mv "$START_BACKUP" "$CONFIG_FILE"
           sleep 5
           echo "" >$START_LOG
-       elif [ -z "$(grep "^ \{0,\}rules:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -z "$(grep "^ \{0,\}script:" "$CONFIG_FILE" 2>/dev/null)" ]; then
+       elif [ -z "$(grep "^ \{0,\}rules:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -z "$(grep "^ \{0,\}script:" "$SCRIPT_FILE" 2>/dev/null)" ]; then
           kill_clash
           stop
           echo "错误: 配置文件完整性检查不通过，已自动还原配置文件，请对照模板格式检查修改配置文件！" >$START_LOG
@@ -1452,7 +1474,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
           yml_cut "$CHANGE_FILE" "$RULE_FILE" "$DNS_FILE" "$CONFIG_FILE" "$PROXY_FILE" "$PROXY_PROVIDER_FILE" "$GROUP_FILE"
           yml_dns_custom "$enable_custom_dns" "$DNS_FILE"
           /usr/share/openclash/yml_change.sh >/dev/null 2>&1 "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" &
-          /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$BACKUP_FILE" "$RULE_PROVIDER_FILE" "$SCRIPT_BAK_FILE" "$RULE_PROVIDER_BAK_FILE" &
+          /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$BACKUP_FILE" "$RULE_PROVIDER_FILE" &
           wait
           yml_provider_path "$PROXY_PROVIDER_FILE" "proxy_provider"
           yml_provider_path "$RULE_PROVIDER_FILE" "rule_provider"
@@ -1524,14 +1546,7 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
                 if [ "$rule_source" != 0 ] || [ "$enable_custom_clash_rules" != 0 ]; then
                    echo "错误: OpenClash 启动失败，尝试还原第三方规则并重新启动 Clash 主程序..." >$START_LOG
                    echo "${LOGTIME} OpenClash Can Not Start, Try Use Backup Rules Start Again" >> $LOG_FILE
-                   mv "$START_BACKUP" /tmp/configrules.bak
-                   sed -i -n '/^rules:/,$p' /tmp/configrules.bak
-                   sed -i '/^rules:/,$d' "$CONFIG_FILE" 2>/dev/null
-                   if [ -z "$(grep "##source:" /tmp/configrules.bak 2>/dev/null)" ]; then
-                      sed -i '/##Other-rule-providers##/,/##Other-rule-providers-end##/d' "$CONFIG_FILE" 2>/dev/null
-                   fi
-                   cat /tmp/configrules.bak >> "$CONFIG_FILE"
-                   rm -rf /tmp/configrules.bak
+                   yml_rule_bak_merge
                    nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
                    sleep 3
                    if pidof clash >/dev/null; then
