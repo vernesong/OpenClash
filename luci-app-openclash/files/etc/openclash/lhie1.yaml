@@ -1,61 +1,62 @@
 rules:
+##updated
 ##source:lhie1
-  - RULE-SET,Reject,AdBlock
-  - RULE-SET,Special,DIRECT
+- RULE-SET,Reject,AdBlock
+- RULE-SET,Special,DIRECT
 
-  - RULE-SET,Netflix,Netflix
-  - RULE-SET,Spotify,Spotify
+- RULE-SET,Netflix,Netflix
+- RULE-SET,Spotify,Spotify
 
-  # - RULE-SET,YouTube Music,YouTube
-  - RULE-SET,YouTube,YouTube
+# - RULE-SET,YouTube Music,YouTube
+- RULE-SET,YouTube,YouTube
 
-  - RULE-SET,Bilibili,AsianTV
-  - RULE-SET,iQiyi,AsianTV
-  - RULE-SET,Letv,AsianTV
-  # - RULE-SET,MOO,AsianTV
-  - RULE-SET,Netease Music,AsianTV
-  - RULE-SET,Tencent Video,AsianTV
-  - RULE-SET,Youku,AsianTV
+- RULE-SET,Bilibili,AsianTV
+- RULE-SET,iQiyi,AsianTV
+- RULE-SET,Letv,AsianTV
+# - RULE-SET,MOO,AsianTV
+- RULE-SET,Netease Music,AsianTV
+- RULE-SET,Tencent Video,AsianTV
+- RULE-SET,Youku,AsianTV
 
-  - RULE-SET,ABC,GlobalTV
-  - RULE-SET,Abema TV,GlobalTV
-  - RULE-SET,Amazon,GlobalTV
-  - RULE-SET,Apple News,GlobalTV
-  - RULE-SET,Apple TV,GlobalTV
-  - RULE-SET,Bahamut,GlobalTV
-  - RULE-SET,BBC iPlayer,GlobalTV
-  - RULE-SET,DAZN,GlobalTV
-  - RULE-SET,Disney Plus,GlobalTV
-  - RULE-SET,encoreTVB,GlobalTV
-  - RULE-SET,Fox Now,GlobalTV
-  - RULE-SET,Fox+,GlobalTV
-  - RULE-SET,HBO,GlobalTV
-  - RULE-SET,Hulu Japan,GlobalTV
-  - RULE-SET,Hulu,GlobalTV
-  - RULE-SET,Japonx,GlobalTV
-  - RULE-SET,JOOX,GlobalTV
-  - RULE-SET,KKBOX,GlobalTV
-  - RULE-SET,KKTV,GlobalTV
-  - RULE-SET,Line TV,GlobalTV
-  - RULE-SET,myTV SUPER,GlobalTV
-  - RULE-SET,Pandora,GlobalTV
-  - RULE-SET,PBS,GlobalTV
-  - RULE-SET,Pornhub,GlobalTV
-  - RULE-SET,Soundcloud,GlobalTV
-  - RULE-SET,ViuTV,GlobalTV
+- RULE-SET,ABC,GlobalTV
+- RULE-SET,Abema TV,GlobalTV
+- RULE-SET,Amazon,GlobalTV
+- RULE-SET,Apple News,GlobalTV
+- RULE-SET,Apple TV,GlobalTV
+- RULE-SET,Bahamut,GlobalTV
+- RULE-SET,BBC iPlayer,GlobalTV
+- RULE-SET,DAZN,GlobalTV
+- RULE-SET,Disney Plus,GlobalTV
+- RULE-SET,encoreTVB,GlobalTV
+- RULE-SET,Fox Now,GlobalTV
+- RULE-SET,Fox+,GlobalTV
+- RULE-SET,HBO,GlobalTV
+- RULE-SET,Hulu Japan,GlobalTV
+- RULE-SET,Hulu,GlobalTV
+- RULE-SET,Japonx,GlobalTV
+- RULE-SET,JOOX,GlobalTV
+- RULE-SET,KKBOX,GlobalTV
+- RULE-SET,KKTV,GlobalTV
+- RULE-SET,Line TV,GlobalTV
+- RULE-SET,myTV SUPER,GlobalTV
+- RULE-SET,Pandora,GlobalTV
+- RULE-SET,PBS,GlobalTV
+- RULE-SET,Pornhub,GlobalTV
+- RULE-SET,Soundcloud,GlobalTV
+- RULE-SET,ViuTV,GlobalTV
 
-  - RULE-SET,Telegram,Telegram
-  - RULE-SET,Steam,Steam
-  - RULE-SET,Speedtest,Speedtest
-  - RULE-SET,PayPal,PayPal
-  - RULE-SET,Microsoft,Microsoft
+- RULE-SET,Telegram,Telegram
+- RULE-SET,Steam,Steam
+- RULE-SET,Speedtest,Speedtest
+- RULE-SET,PayPal,PayPal
+- RULE-SET,Microsoft,Microsoft
 
-  - RULE-SET,PROXY,Proxy
-  - RULE-SET,Domestic,Domestic
-  - RULE-SET,Apple,Apple
+- RULE-SET,PROXY,Proxy
+- RULE-SET,Domestic,Domestic
+- RULE-SET,Apple,Apple
 
-  - GEOIP,CN,Domestic
-  - MATCH,Others
+- GEOIP,CN,Domestic
+- MATCH,Others
 
 script:
   code: |

@@ -219,7 +219,7 @@ end
 end
 
 o = s:taboption("dns", Value, "custom_domain_dns_server", translate("Specify DNS Server"))
-o.description = translate("Specify DNS Server For List, Only One IP Server Address Support")
+o.description = translate("Specify DNS Server For List and Server Nodes, Only One IP Server Address Support")
 o.default="114.114.114.114"
 o.placeholder = translate("114.114.114.114 or 127.0.0.1#5300")
 o:depends("dns_advanced_setting", "1")
