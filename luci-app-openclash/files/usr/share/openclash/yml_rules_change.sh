@@ -210,12 +210,14 @@ if [ "$2" != 0 ]; then
        if [ "$2" = "lhie1" ]; then
        	    #删除原有的script部分，防止冲突
        	    rm -rf /tmp/yaml_script.yaml 2>/dev/null
-       	    cp /etc/openclash/lhie1.yaml /tmp/other_rule.yaml
-       	    sed -n '/^ \{0,\}rule-providers:/,$p' /tmp/other_rule.yaml > /tmp/other_rule_provider.yaml 2>/dev/null
-            sed -i '/^ \{0,\}rule-providers:/,$d' /tmp/other_rule.yaml 2>/dev/null
-            sed -i "/^ \{0,\}script:/c\script:" /tmp/other_rule.yaml 2>/dev/null
-            sed -i "/^ \{0,\}rules:/c\rules:" /tmp/other_rule.yaml 2>/dev/null
-            sed -i "/^ \{0,\}rule-providers:/c\rule-providers:" /tmp/other_rule_provider.yaml 2>/dev/null
+       	    cp /etc/openclash/lhie1.yaml /tmp/other_rule_provider.yaml
+       	    sed -n '/^ \{0,\}rules:/,$p' /tmp/other_rule_provider.yaml > /tmp/other_rule.yaml 2>/dev/null
+       	    sed -i '/^ \{0,\}rules:/,$d' /tmp/other_rule_provider.yaml 2>/dev/null
+       	    sed -n '/^ \{0,\}script:/,$p' /tmp/other_rule_provider.yaml > /tmp/yaml_script.yaml 2>/dev/null
+       	    sed -i '/^ \{0,\}script:/,$d' /tmp/other_rule_provider.yaml 2>/dev/null
+       	    sed -i "/^ \{0,\}script:/c\script:" /tmp/other_rule.yaml 2>/dev/null
+       	    sed -i "/^ \{0,\}rules:/c\rules:" /tmp/other_rule.yaml 2>/dev/null
+       	    sed -i "/^ \{0,\}rule-providers:/c\rule-providers:" /tmp/other_rule_provider.yaml 2>/dev/null
             echo "##Other-rule-providers-end##" >> /tmp/other_rule_provider.yaml
             if [ -z "$(sed -n '/^ \{0,\}rule-providers:/=' "$9" 2>/dev/null)" ]; then
                sed -i "s/,GlobalTV$/,${GlobalTV}#d/g" "/tmp/other_rule.yaml" 2>/dev/null
