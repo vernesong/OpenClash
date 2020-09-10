@@ -54,7 +54,7 @@ local function is_web()
 end
 
 local function is_watchdog()
-	local ps_version = luci.sys.exec("ps --version 2>&1 |grep -c procps-ng")
+	local ps_version = luci.sys.exec("ps --version 2>&1 |grep -c procps-ng |tr -d '\n'")
 	if ps_version == "0" then
 		return luci.sys.call("ps |grep openclash_watchdog.sh |grep -v grep >/dev/null") == 0
 	else
