@@ -172,6 +172,7 @@ yml_check()
    sed -i 's/\t/ /g' "$3" 2>/dev/null
    sed -i "s/- \{2,\}/- /g" "$3" 2>/dev/null
    sed -i "s/^...$//g" "$3" 2>/dev/null
+   sed -i "s/^---$//g" "$3" 2>/dev/null
 
    #检查关键字避免后续操作出错
    /usr/share/openclash/yml_field_name_ch.sh "$3" 2>/dev/null
