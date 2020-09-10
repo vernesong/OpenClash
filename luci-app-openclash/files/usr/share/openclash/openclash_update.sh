@@ -43,6 +43,8 @@ if [ "$?" -eq "0" ]; then
    echo "OpenClash 更新成功，即将进行重启！" >$START_LOG
    echo "${LOGTIME} OpenClash Update Successful" >>$LOG_FILE
    sleep 3
+   uci set openclash.config.enable=1
+   uci commit openclash
    /etc/init.d/openclash restart 2>/dev/null
 else
    echo "OpenClash 更新失败，文件保存在/tmp/openclash.ipk，请尝试手动更新！" >$START_LOG
