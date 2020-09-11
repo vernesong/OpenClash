@@ -998,3 +998,6 @@ msgstr "代理（规则）集文件管理"
 
 msgid "Config File Edit"
 msgstr "配置文件编辑"
+
+msgid "Delete All File"
+msgstr "删除所有文件"
