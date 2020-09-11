@@ -1156,18 +1156,18 @@ cat > "/var/etc/openclash.include" <<-EOF
 EOF
 
 if [ "$china_ip_route" -eq 1 ]; then
-   if [ ! -f "/tmp/china_ip_route.ipset" ]; then
+   if [ ! -f "/etc/openclash/china_ip_route.ipset" ]; then
       cp /etc/openclash/rule_provider/ChinaIP.yaml /tmp/china_ip_route.list 2>/dev/null
       sed -i "s/'//g" /tmp/china_ip_route.list 2>/dev/null
       sed -i "s/^ \{0,\}- //g" /tmp/china_ip_route.list 2>/dev/null
       sed -i '/payload:/d' /tmp/china_ip_route.list 2>/dev/null
       sed -i '/^ \{0,\}#/d' /tmp/china_ip_route.list 2>/dev/null
-      echo "create china_ip_route hash:net family inet hashsize 1024 maxelem 65536" >/tmp/china_ip_route.ipset
-      awk '!/^$/&&!/^#/{printf("add china_ip_route %s'" "'\n",$0)}' /tmp/china_ip_route.list >>/tmp/china_ip_route.ipset
+      echo "create china_ip_route hash:net family inet hashsize 1024 maxelem 65536" >/etc/openclash/china_ip_route.ipset
+      awk '!/^$/&&!/^#/{printf("add china_ip_route %s'" "'\n",$0)}' /tmp/china_ip_route.list >>/etc/openclash/china_ip_route.ipset
       rm -rf /tmp/china_ip_route.list 2>/dev/null
    fi
    ipset -! flush china_ip_route 2>/dev/null
-   ipset -! restore </tmp/china_ip_route.ipset 2>/dev/null
+   ipset -! restore </etc/openclash/china_ip_route.ipset 2>/dev/null
 fi
 
 #lan_ac
@@ -1245,16 +1245,16 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
       iptables -t nat -A OUTPUT -p tcp -j openclash_output
    fi
 
-   if [ "$ipv6_enable" -eq 1 ]; then
-      #tcp
-      ip6tables -t nat -N openclash
-      if [ -n "$lan_ip6" ]; then
-         for lan_ip6s in $lan_ip6; do
-            ip6tables -t nat -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
-         done
-      fi
-      ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-      ip6tables -t nat -A PREROUTING -p tcp -j openclash
+   #if [ "$ipv6_enable" -eq 1 ]; then
+   #   #tcp
+   #   ip6tables -t nat -N openclash
+   #   if [ -n "$lan_ip6" ]; then
+   #      for lan_ip6s in $lan_ip6; do
+   #         ip6tables -t nat -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
+   #      done
+   #   fi
+   #   ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
+   #   ip6tables -t nat -A PREROUTING -p tcp -j openclash
 
       #udp
       #if [ "$enable_udp_proxy" -eq 1 ]; then
@@ -1269,7 +1269,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
       #   ip6tables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
       #   ip6tables -t mangle -A PREROUTING -p udp -j openclash
       #fi
-   fi 2>/dev/null
+   #fi 2>/dev/null
 fi
 if [ -n "$en_mode_tun" ]; then
    #TUN模式

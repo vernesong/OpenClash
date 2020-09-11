@@ -992,3 +992,9 @@ msgstr "*仅代理命中规则流量"
 
 msgid "Only Proxy Rules Match, Prevent BT Passing"
 msgstr "仅允许代理命中规则的流量，防止BT下载流量经过代理"
+
+msgid "Provider File Manage"
+msgstr "代理（规则）集文件管理"
+
+msgid "Config File Edit"
+msgstr "配置文件编辑"
