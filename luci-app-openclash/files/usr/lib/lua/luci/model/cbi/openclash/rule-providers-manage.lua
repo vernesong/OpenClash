@@ -107,7 +107,7 @@ e.inputstyle="reset"
 Button.render(e,t,a)
 end
 btnrm.write=function(a,t)
-fs.unlink("/etc/openclash/rule_provider/"..e[t].filename)
+fs.unlink("/etc/openclash/rule_provider/"..e[t].lfilename)
 HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-manage"))
 end
 
