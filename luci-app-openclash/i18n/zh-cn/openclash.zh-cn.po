@@ -134,8 +134,8 @@ msgstr "选择运行模式，Redir-Host模式下无法代理路由器自身流�
 msgid "Proxy Mode"
 msgstr "*代理模式"
 
-msgid "Select Proxy Mode"
-msgstr "选择默认代理模式"
+msgid "Select Proxy Mode, Use Script Mode Could Prevent Proxy BT traffics If Rules Support, eg.lhie1's"
+msgstr "选择默认代理模式，如果规则支持，使用脚本模式可以阻止代理BT流量，比如lhie1规则"
 
 msgid "Rule Proxy Mode"
 msgstr "Rule【策略代理】"
@@ -972,8 +972,8 @@ msgstr "切换"
 msgid "Access Control"
 msgstr "访问控制"
 
-msgid "Access Control Mode"
-msgstr "访问控制模式"
+msgid "LAN Access Control Mode"
+msgstr "局域网访问控制模式"
 
 msgid "Black List Mode"
 msgstr "黑名单模式"
@@ -986,6 +986,12 @@ msgstr "不走代理的局域网LAN IP"
 
 msgid "LAN Proxied Host List"
 msgstr "走代理的局域网LAN IP"
+
+msgid "WAN Bypassed Host List"
+msgstr "不走代理的WAN IP"
+
+msgid "In The Fake-IP Mode, Only Pure IP Requests Are Supported"
+msgstr "在Fake-IP模式下，只支持过滤纯IP类型的请求"
 
 msgid "Rule Match Proxy Mode"
 msgstr "*仅代理命中规则流量"
