@@ -934,7 +934,7 @@ msgid "Order Number"
 msgstr "序号"
 
 msgid "Game Rules Manage"
-msgstr "管理游戏规则"
+msgstr "管理第三方游戏规则"
 
 msgid "Other Rule Provider Manage"
 msgstr "管理第三方规则集"
