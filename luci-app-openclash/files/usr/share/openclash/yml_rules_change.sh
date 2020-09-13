@@ -1,8 +1,12 @@
 #!/bin/bash
 
 SCRIPT_FILE="/tmp/yaml_script.yaml"
+RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
 OTHER_RULE_PROVIDER_FILE="/tmp/other_rule_provider.yaml"
 OTHER_RULE_FILE="/tmp/other_rule.yaml"
+RULE_PROVIDER_BAK_FILE="/tmp/yaml_rule_provider_bak.yaml"
+RULE_BAK_FILE="/tmp/yaml_rules_bak.yaml"
+SCRIPT_BAK_FILE="/tmp/yaml_script_bak.yaml"
 check_def=0
 
 /usr/share/openclash/yml_groups_name_get.sh
@@ -373,12 +377,9 @@ elif [ "$2" = 0 ]; then
    [ -f "$8" ] && {
       grep '##source:' "$4" 1>/dev/null
       if [ "$?" -eq "0" ]; then
-         sed -i '/^rules:/,$d' "$4" 2>/dev/null
-         rm -rf /tmp/yaml_rule_provider.yaml 2>/dev/null
-         rm -rf "$SCRIPT_FILE" 2>/dev/null
-         cat "/tmp/yaml_rule_provider_bak.yaml" >> "$4" 2>/dev/null
-         cat "/tmp/yaml_script_bak.yaml" >> "$4" 2>/dev/null
-         cat "/tmp/yaml_rules_bak.yaml" >> "$4" 2>/dev/null
+         cp -f "$RULE_PROVIDER_BAK_FILE" "$RULE_PROVIDER_FILE" 2>/dev/null
+         cp -f "SCRIPT_BAK_FILE" "$SCRIPT_FILE" 2>/dev/null
+         cp -f "$RULE_BAK_FILE" "$4" 2>/dev/null
       fi
     	}
 fi
