@@ -382,11 +382,12 @@ yml_provider_path()
 yml_provider_check()
 {
 provider_path_line=$(sed -n '/ \{0,\}path/=' "$1" 2>/dev/null)
-local provider_path_exist
+local provider_path_exist provider_path_check_num
 if [ -n "$provider_path_line" ]; then
-   while ( [ -n "$(pidof clash)" ] && [ "$provider_path_exist" != 1 ] )
+   while ( [ -n "$(pidof clash)" ] && [ "$provider_path_exist" != 1 ] && [ "$provider_path_check_num" -le 5 ] )
    do
       provider_path_exist=1
+      provider_path_check_num=1
       for n in $provider_path_line; do
       	 if [ -n "$(sed -n "${n}p" "$1" |grep "^ \{0,\}#")" ]; then
       	    continue
@@ -426,6 +427,8 @@ if [ -n "$provider_path_line" ]; then
             fi
          fi
       done
+      provider_path_check_num=$(expr "$provider_path_check_num" + 1)
+      [ "$provider_path_exist" = 0 ] && sleep 2
    done
 fi
 
@@ -442,6 +445,9 @@ if [ -z "$(pidof clash)" ] && [ "$provider_path_exist" = 0 ]; then
    sleep 10
    echo "" >$START_LOG
    exit 0
+elif [ "$provider_path_exist" -gt 5 ]; then
+   echo "警告: 代理集文件检查超时，如启动失败请到日志页面查看详细信息！" >$START_LOG
+   sleep 2
 fi
 
 }
@@ -1095,46 +1101,46 @@ do_run_core()
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
        echo "检测到配置了【Tun】内核专属功能，调用【Tun】内核启动..." >$START_LOG
-       sleep 2
+       sleep 1
     fi
     
     if [ "$en_mode_tun" = "2" ]; then
        ln -s /etc/openclash/core/clash_game /etc/openclash/clash 2>/dev/null
        core_type="Game"
        echo "检测到配置了【Game】内核专属功能，调用【Game】内核启动..." >$START_LOG
-       sleep 2
+       sleep 1
     fi
     
     if [ "$proxy_mode" = "script" ] || [ "$rule_source" = "ConnersHua" ] || [ "$rule_source" = "lhie1" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
        echo "检测到配置了【Tun】内核专属功能，调用【Tun】内核启动..." >$START_LOG
-       sleep 2
+       sleep 1
     fi
     
     if [ -n "$(grep "^ \{0,\}rule-providers:" "$RULE_PROVIDER_FILE" 2>/dev/null)" ] && [ -n "$(grep "^ \{0,\}behavior" "$RULE_PROVIDER_FILE" 2>/dev/null |grep -v "^ \{0,\}#")" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
        echo "检测到配置了【Tun】内核专属功能，调用【Tun】内核启动..." >$START_LOG
-       sleep 2
+       sleep 1
     fi
     
     if [ ! -f "/etc/openclash/clash" ] && [ -f "/etc/openclash/core/clash" ] && [ -z "$core_type" ]; then
        ln -s /etc/openclash/core/clash /etc/openclash/clash 2>/dev/null
        echo "未检测到特殊配置，调用【Dev】内核启动..." >$START_LOG
-       sleep 2
+       sleep 1
     fi
     
     if [ ! -f "/etc/openclash/clash" ] && [ -f "/etc/openclash/core/clash_tun" ] && [ "$core_type" != "Game" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        echo "检测到【Dev】内核未安装，调用【Tun】内核启动..." >$START_LOG
-       sleep 2
+       sleep 1
     fi
     
     if [ ! -f "/etc/openclash/clash" ] && [ -f "/etc/openclash/core/clash_game" ] && [ "$core_type" != "Tun" ]; then
        ln -s /etc/openclash/core/clash_game /etc/openclash/clash 2>/dev/null
        echo "检测到【Dev】内核未安装，调用【Game】内核启动..." >$START_LOG
-       sleep 2
+       sleep 1
     fi
 
 #权限检查
@@ -1249,6 +1255,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
    if [ -z "$en_mode_tun" ]; then
       #udp
       if [ "$enable_udp_proxy" -eq 1 ]; then
+         modprobe xt_TPROXY >/dev/null 2>&1
          ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
          ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
          iptables -t mangle -N openclash
