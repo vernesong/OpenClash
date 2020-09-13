@@ -383,11 +383,11 @@ yml_provider_check()
 {
 provider_path_line=$(sed -n '/ \{0,\}path/=' "$1" 2>/dev/null)
 local provider_path_exist provider_path_check_num
+provider_path_check_num=1
 if [ -n "$provider_path_line" ]; then
    while ( [ -n "$(pidof clash)" ] && [ "$provider_path_exist" != 1 ] && [ "$provider_path_check_num" -le 5 ] )
    do
       provider_path_exist=1
-      provider_path_check_num=1
       for n in $provider_path_line; do
       	 if [ -n "$(sed -n "${n}p" "$1" |grep "^ \{0,\}#")" ]; then
       	    continue
@@ -445,9 +445,9 @@ if [ -z "$(pidof clash)" ] && [ "$provider_path_exist" = 0 ]; then
    sleep 10
    echo "" >$START_LOG
    exit 0
-elif [ "$provider_path_exist" -gt 5 ]; then
+elif [ "$provider_path_check_num" -gt 5 ]; then
    echo "警告: 代理集文件检查超时，如启动失败请到日志页面查看详细信息！" >$START_LOG
-   sleep 2
+   sleep 3
 fi
 
 }
@@ -1117,7 +1117,7 @@ do_run_core()
        echo "检测到配置了【Tun】内核专属功能，调用【Tun】内核启动..." >$START_LOG
        sleep 1
     fi
-    
+
     if [ -n "$(grep "^ \{0,\}rule-providers:" "$RULE_PROVIDER_FILE" 2>/dev/null)" ] && [ -n "$(grep "^ \{0,\}behavior" "$RULE_PROVIDER_FILE" 2>/dev/null |grep -v "^ \{0,\}#")" ]; then
        ln -s /etc/openclash/core/clash_tun /etc/openclash/clash 2>/dev/null
        core_type="Tun"
@@ -1588,6 +1588,21 @@ if [ "$enable" -eq 1 ] && [ -f "$CONFIG_FILE" ]; then
                 if [ "$rule_source" != 0 ] || [ "$enable_custom_clash_rules" != 0 ]; then
                    echo "错误: OpenClash 启动失败，尝试还原第三方规则并重新启动 Clash 主程序..." >$START_LOG
                    echo "${LOGTIME} OpenClash Can Not Start, Try Use Backup Rules Start Again" >> $LOG_FILE
+                   #获取备份rule_provider
+                   rule_provider_bak_len=$(sed -n '/^rule-providers:/=' "$START_BACKUP" 2>/dev/null)
+                   if [ -n "$rule_provider_bak_len" ]; then
+                      field_cut "$rule_provider_bak_len" "$RULE_PROVIDER_BAK_FILE" "$START_BACKUP" "backups"
+                   fi 2>/dev/null
+                   #获取备份script
+                   script_bak_len=$(sed -n '/^script:/=' "$START_BACKUP" 2>/dev/null)
+                   if [ -n "$script_bak_len" ]; then
+                      field_cut "$script_bak_len" "$SCRIPT_BAK_FILE" "$START_BACKUP" "backups"
+                   fi 2>/dev/null
+                   #获取备份rule
+                   rule_bak_len=$(sed -n '/^rules:/=' "$START_BACKUP" 2>/dev/null)
+                   if [ -n "$rule_bak_len" ]; then
+                      field_cut "$rule_bak_len" "$RULE_BAK_FILE" "$START_BACKUP" "backups"
+                   fi 2>/dev/null
                    yml_rule_bak_merge
                    nohup "$CLASH" -d "$CLASH_CONFIG" -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
                    sleep 3
