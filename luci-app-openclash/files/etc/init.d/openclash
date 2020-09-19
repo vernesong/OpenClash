@@ -277,7 +277,6 @@ yml_dns_check()
    	cat >> "$DNS_FILE" <<-EOF
   - 114.114.114.114
   - 119.29.29.29
-  - https://doh.rixcloud.dev/dns-query
   fallback:
   - https://cloudflare-dns.com/dns-query
   - https://dns.google/dns-query
