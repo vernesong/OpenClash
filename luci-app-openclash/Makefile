@@ -53,14 +53,13 @@ endef
 
 define Package/$(PKG_NAME)/preinst
 #!/bin/sh
+if [ -f "/etc/config/openclash" ]; then
 	cp "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
 	cp -r "/etc/openclash" "/tmp/openclash" >/dev/null 2>&1
+fi
 endef
 
 define Package/$(PKG_NAME)/postinst
-#!/bin/sh
-	uci set openclash.config.enable=0 >/dev/null 2>&1
-	uci commit openclash >/dev/null 2>&1
 endef
 
 define Package/$(PKG_NAME)/prerm
