@@ -14,7 +14,14 @@ bold_off = [[</strong>]]
 
 m = Map(openclash, translate("Config Subscribe Edit"))
 m.pageaction = false
-m.description=translate("Convert Subscribe function of Online is Supported By subconverter Written By tindy2013")
+m.description=translate("Convert Subscribe function of Online is Supported By subconverter Written By tindy X") .. translate("<br/> \
+<br/>API By tindy X & lhie1 \
+<br/> \
+<br/>subconverter 外部配置(订阅转换模板)说明：https://github.com/tindy2013/subconverter#external-configuration-file \
+<br/> \
+<br/>如需自定义外部配置文件(订阅转换模板)，请按照说明编写后上传至外部网络可访问的位置，并在使用时正确填写地址 \
+<br/> \
+<br/>如您有值得推荐的外部配置文件(订阅转换模板)，可以按照 /usr/share/openclash/res/sub_ini.list 的文件格式修改后提交PR")
 m.redirect = luci.dispatcher.build_url("admin/services/openclash/config-subscribe")
 if m.uci:get(openclash, sid) ~= "config_subscribe" then
 	luci.http.redirect(m.redirect)
@@ -53,7 +60,7 @@ o:depends("sub_convert", "1")
 file = io.open("/usr/share/openclash/res/sub_ini.list", "r");
 for l in file:lines() do
 	if l ~= "" and l ~= nil then
-		o:value(string.format(luci.sys.exec(string.format("echo '%s' |awk -F ',' '{print $1}' 2>/dev/null",l))))
+		o:value(string.sub(luci.sys.exec(string.format("echo '%s' |awk -F ',' '{print $1}' 2>/dev/null",l)),1,-2))
 	end
 end
 file:close()

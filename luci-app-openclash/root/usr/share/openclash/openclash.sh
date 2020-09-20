@@ -119,6 +119,7 @@ config_cus_up()
 config_su_check()
 {
    echo "配置文件下载成功，检查是否有更新..." >$START_LOG
+   sed -i 's/!<str> //g' "$CFG_FILE" >/dev/null 2>&1
    if [ -f "$CONFIG_FILE" ]; then
       cmp -s "$BACKPACK_FILE" "$CFG_FILE"
       if [ "$?" -ne 0 ]; then
@@ -280,7 +281,7 @@ sub_info_get()
       subscribe_url="$address"
    elif [ "$sub_convert" -eq 1 ] && [ -n "$template" ]; then
       subscribe_url=$(rawurlencode "$address")
-      if [ "$template" -ne 0 ]; then
+      if [ "$template" != "0" ]; then
          template_path=$(grep "^$template," /usr/share/openclash/res/sub_ini.list |awk -F ',' '{print $3}' 2>/dev/null)
       else
          template_path=$custom_template_url

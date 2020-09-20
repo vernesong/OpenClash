@@ -843,9 +843,6 @@ msgstr "（用于区分，请勿重名）"
 msgid "Subscribe Address"
 msgstr "订阅地址"
 
-msgid "Subscribe Type"
-msgstr "订阅地址类型"
-
 msgid "(Not Null)"
 msgstr "（空值无效）"
 
@@ -1035,5 +1032,5 @@ msgstr "插入节点类型"
 msgid "Convert Subscribe Online With Template, Mix Proxies and Keep Settings options Will Not Effect"
 msgstr "根据模板在线转换配置文件，混合节点和保留配置功能将不可用"
 
-msgid "Convert Subscribe function of Online is Supported By subconverter Written By tindy2013"
-msgstr "在线订阅转换功能由tindy2013通过subconverter提供支持"
+msgid "Convert Subscribe function of Online is Supported By subconverter Written By tindy X"
+msgstr "在线订阅转换功能由tindy X通过subconverter提供支持"
