@@ -53,7 +53,7 @@ o:depends("sub_convert", "1")
 file = io.open("/usr/share/openclash/res/sub_ini.list", "r");
 for l in file:lines() do
 	if l ~= "" and l ~= nil then
-		o:value(luci.sys.exec(string.format("echo '%s' |awk -F ',' '{print $1}' 2>/dev/null",l)))
+		o:value(string.format(luci.sys.exec(string.format("echo '%s' |awk -F ',' '{print $1}' 2>/dev/null",l))))
 	end
 end
 file:close()
