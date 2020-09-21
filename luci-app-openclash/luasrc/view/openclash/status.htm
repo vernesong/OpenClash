@@ -85,16 +85,15 @@
     <tr><td width="25%"> 保存策略组节点选择 </td><td width="25%" align="cente" id="_get_history"><%:Collecting data...%></td><td width="25%"> 还原策略组节点选择 </td><td width="25%" align="left" id="_restore_history"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"> 重置所有链接 </td><td width="25%" align="left" id="_close_all_connection"><%:Collecting data...%></td><td width="25%"> 重置防火墙规则 </td><td width="25%" align="left" id="_reload_firewall"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"> 配置文件检查更新 </td><td width="25%" align="left" id="_update_subscribe"><%:Collecting data...%></td><td width="25%"> 内核&插件检查更新 </td><td width="25%" align="left" id="_one_key_update"><%:Collecting data...%></td></tr>
-
 </table>
 </fieldset>
 <fieldset id="state" class="cbi-section">
 	<table>
-	  <tr><td width="100%" colspan="4">
-	  	<p align="center">
-	  		<b> 组件的状态显示，运行前请确保各项目显示正常，需要更新请到全局设置页面操作 </b>
-	  	</p>
-	  </td></tr>
+		<tr><td width="100%" colspan="4">
+			<p align="center">
+				<b> 组件的状态显示，运行前请确保各项目显示正常，需要更新请到全局设置页面操作 </b>
+			</p>
+		</td></tr>
 		<tr><td width="25%"> 策略组节点选择 备份日期 </td><td width="25%" align="left" id="_historychecktime"><%:Collecting data...%></td><td width="25%"> lhie1 规则更新日期 </td><td width="25%" align="left" id="_lhie1"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"> ConnersHua 规则更新日期 </td><td width="25%" align="left" id="_ConnersHua"><%:Collecting data...%></td><td width="25%"> ConnersHua 回国规则更新日期 </td><td width="25%" align="left" id="_ConnersHua_return"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"> 大陆IP白名单 更新日期 </td><td width="25%" align="left" id="_chnroute"><%:Collecting data...%></td><td width="25%"> GEOIP（By MaxMind）数据库日期 </td><td width="25%" align="left" id="_ipdb"><%:Collecting data...%></td></tr>
@@ -122,26 +121,30 @@
 	var ConnersHua_return = document.getElementById('_ConnersHua_return');
 	var chnroute = document.getElementById('_chnroute');
 	var historychecktime = document.getElementById('_historychecktime');
+	var tools = document.getElementById("tools");
+	var state = document.getElementById("state");
+	var hid_btn = document.getElementById("hid_btn");
 	var hid_btn_if = true;
 	var arrow="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAF0AAABoCAMAAACkGAzvAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ4IDc5LjE2NDAzNiwgMjAxOS8wOC8xMy0wMTowNjo1NyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkYzOTBCNjQ4RkMyMTExRUE4QzgwOUMwRjlGNTNBMzY3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkYzOTBCNjQ5RkMyMTExRUE4QzgwOUMwRjlGNTNBMzY3Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6RjM5MEI2NDZGQzIxMTFFQThDODA5QzBGOUY1M0EzNjciIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6RjM5MEI2NDdGQzIxMTFFQThDODA5QzBGOUY1M0EzNjciLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7+mRMLAAAAaVBMVEUQEBDv7+/Pz88wMDBQUFAgICC/v79wcHBgYGBAQECfn5+Pj49/f3/f39+vr6/s7Ox9fX2ysrLT09NbW1v09PQ6OjonJyd8fHwRERHk5OSenp4WFhZOTk4BAQHh4eGMjIwDAwMAAAD///+EZwwxAAAAI3RSTlP/////////////////////////////////////////////AGYpg5YAAAKoSURBVHja7Fppd5tADNQCC+ZskzZHz1T+/z+yNvjAhkWaBaXte9XHRDvPHoOkGS3tLYPeBd1VGTFzWuQrwNo6S5nKK8YJvT5CD1Emsdi7C4bPx+jXvx+jjgLvaIzRXNFvwQ8f38HY7h6jOKN3fB+Esp+kE4xuQHfE02gg8GoGwg/oFc8FwM6ElSGqHj2b/R9TF89KH1mPThyIQgVeh877Hp2DkbYyK1n4uIAus5N4jkeX2KkXz/bo5WJKmkSxcjzZoxeLOUxVDCvD1z6gtyzEzuGsHCIZKsFOypthx5XSoexUZ5yXMifs5CQececamYi5nN2w04j5lFzru0vFdJ8ArJyzSf1pLk1FZuXyHJCeyRM7Claq6Uyg+b75vpWzRk8YQb8VF3pWJvOMgh3s2SWkcshxV7MJfb+hikpobYK6AaF1FepkFFP91H2GkC6/xEqun7DdDgQPTD8ETFfhaFB1ALATnjoJnd+gmZDUEznKiqibWqip4KqsgBoirPmW2ZE0kKgoF9jxon5T6NUmjhWtGp5tKsEBENbaMy03ValapZJvVKNltE+Qe5QVyIUYNRUdK6DHUUNiDXZQHp+Zf3x7sPJnPr99+vjh73N//qOvQ//6/eWLFfrPp1/Mr50N+rmRWLxNoxFBYX2A6DfjzdZV7H4027ICzwzd23WPWcGwVeerIesDQ1+QIusnjtxyWmoMJz29mRGBrpPedRx6YagOWktl0xmqMlcYKkpTNVyRnZKHdTbiQpg6KJbuz3rnKgmjr2BFdt0sHUNdQYx0O02d2m1d5uzGZTZ1yE3dfZvNRLtfsVUR37vTVsV2I2S7zbLdxNluEf/UBnSL7e3KzXO1vHm23ZrbbvxtbysY3bTI3+WWiPENF+PbOdvdLCrZT28W/ZPe0m8BBgDHY8G52E6VGwAAAABJRU5ErkJggg=="
-	document.getElementById("tools").style.display="none";
-  document.getElementById("state").style.display="none";
-  document.getElementById("hid_btn").src=arrow;
+
+	tools.style.display="none";
+  state.style.display="none";
+  hid_btn.src=arrow;
 
 	function hid_btn_action() {
 		if (hid_btn_if) {
-			tools.style = "";
-			state.style = "";
-			document.getElementById("hid_btn").className="rotate";
+			tools.style.display = "block";
+			state.style.display = "block";
+			hid_btn.className="rotate";
 			hid_btn_if = false;
 		} else {
 			tools.style.display = "none";
 			state.style.display = "none";
-			document.getElementById("hid_btn").className="rotate1";
+			hid_btn.className="rotate1";
 			hid_btn_if = true;
 		}
-		if (document.getElementById("hid_btn").className == "rotate1"){
-			setTimeout('document.getElementById("hid_btn").className="rotate2"',200);
+		if (hid_btn.className == "rotate1"){
+			setTimeout('hid_btn.className="rotate2"',200);
 		}
 	}
 	
