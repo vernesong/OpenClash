@@ -1109,6 +1109,7 @@ do_run_core()
     
     [ ! -f "$CLASH" ] && {
       echo "内核文件不存在，开始下载..." >$START_LOG
+      rm -rf "/tmp/clash_last_version" 2>/dev/null
       nohup /usr/share/openclash/openclash_core.sh "$core_type" &
       start_fail
     }
