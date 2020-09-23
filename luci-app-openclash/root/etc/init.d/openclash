@@ -129,7 +129,11 @@ start_fail()
 yml_merge()
 {
 #合并文件
-sed -i "s/^ \{0,\}Proxy:/proxies:/g" "$PROXY_FILE" 2>/dev/null
+if [ -z "$(grep "^Proxy:#d" "$PROXY_FILE")" ]; then
+   sed -i "s/^Proxy:/proxies:/g" "$PROXY_FILE" 2>/dev/null
+else
+   sed -i "s/^Proxy:#d/proxies:/g" "$PROXY_FILE" 2>/dev/null
+fi
 cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_PROVIDER_FILE" "$PROXY_FILE" "$GROUP_FILE" "$RULE_PROVIDER_FILE" "$SCRIPT_FILE" "$RULE_FILE" > "$CONFIG_FILE" 2>/dev/null
 }
 
@@ -169,10 +173,17 @@ yml_check()
    fi 2>/dev/null
    
    #取出proxy部分
-   proxy_len=$(sed -n '/^Proxy:/=' "$3" 2>/dev/null)
-   if [ -n "$proxy_len" ]; then
-   	  /usr/share/openclash/yml_field_cut.sh "$proxy_len" "$PROXY_FILE" "$3"
-   fi 2>/dev/null
+   proxy_lens=$(sed -n '/^Proxy:/=' "$3" 2>/dev/null)
+   proxy_len_num=1
+   for proxy_len in $proxy_lens; do
+      if [ -n "$proxy_len" ]; then
+   	     /usr/share/openclash/yml_field_cut.sh "$proxy_len" "/tmp/yaml_proxy_$proxy_len_num.yaml" "$3"
+      fi 2>/dev/null
+      proxy_len_num=$(expr "$proxy_len_num" + 1)
+   done 2>/dev/null
+   for i in $(seq "$proxy_len_num"); do
+      cat "/tmp/yaml_proxy_$i.yaml" >> $PROXY_FILE
+   done 2>/dev/null
    
    #取出proxy-providers部分
    provider_len=$(sed -n '/^proxy-providers:/=' "$3" 2>/dev/null)
@@ -969,11 +980,13 @@ CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 if [ ! -f "$CONFIG_FILE" ]; then
    subscribe_info=$(uci get openclash.@config_subscribe[0].address 2>/dev/null)
    if [ ! -f "$CONFIG_FILE" ] && [ -n "$subscribe_info" ]; then
-      echo "OpenClash 配置文件不存在，开始下载..." >$START_LOG
+      echo "配置文件不存在，您已设置订阅信息，准备开始下载..." >$START_LOG
+      sleep 3
+      kill_clash
+      stop
       nohup /usr/share/openclash/openclash.sh &
-      start_fail
    elif [ ! -f "$CONFIG_FILE" ]; then
-      echo "错误: OpenClash 缺少配置文件，请上传或更新配置文件！" >$START_LOG
+      echo "错误: 缺少配置文件，请上传或更新配置文件！" >$START_LOG
       echo "${LOGTIME} Config Not Found" >> $LOG_FILE
       sleep 5
       start_fail
@@ -1078,10 +1091,12 @@ do_run_core()
     [ ! -x "/etc/openclash/core/clash" ] && chmod 4755 /etc/openclash/core/clash 2>/dev/null
     
     [ ! -f "$CLASH" ] && {
-      echo "内核文件不存在，开始下载..." >$START_LOG
+      echo "检测到内核文件不存在，准备开始下载..." >$START_LOG
+      sleep 3
       rm -rf "/tmp/clash_last_version" 2>/dev/null
+      kill_clash
+      stop
       nohup /usr/share/openclash/openclash_core.sh "$core_type" &
-      start_fail
     }
     ulimit -SHn 65535 2>/dev/null
     config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
@@ -1540,6 +1555,7 @@ start()
    if ! pidof clash >/dev/null; then
       echo "错误: OpenClash 启动失败，尝试还原第三方规则并重新启动 Clash 主程序..." >$START_LOG
       echo "${LOGTIME} OpenClash Can Not Start, Try Use Backup Rules Start Again" >> $LOG_FILE
+      rm -rf /tmp/yaml_general 2>/dev/null
       #获取备份rule_provider
       rule_provider_bak_len=$(sed -n '/^rule-providers:/=' "$START_BACKUP" 2>/dev/null)
       if [ -n "$rule_provider_bak_len" ]; then
