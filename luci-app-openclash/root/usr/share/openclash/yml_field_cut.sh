@@ -40,11 +40,14 @@ field_cut()
    elif [ -n "$end_len" ]; then
       end_len=$(expr "$end_len" - 1)
    fi
-   
-   if [ "$4" != "yaml_get" ]; then
-      sed -n "${1},${end_len}p" "$3" > "$2" 2>/dev/null
-   else
+      
+   if [ "$4" = "yaml_get" ]; then
       sed -n "${1},${end_len}p" "$3" |sed 's/\"//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed 's/\t/ /g' 2>/dev/null > "$2" 2>/dev/null
+   elif [ "$4" = "dns" ]; then
+   	  sed -n "${1},${end_len}p" "$3" > "$2" 2>/dev/null
+   	  sed -i "${1},${end_len}d" "$3" 2>/dev/null
+   else
+      sed -n "${1},${end_len}p" "$3" > "$2" 2>/dev/null
    fi
 
 }
