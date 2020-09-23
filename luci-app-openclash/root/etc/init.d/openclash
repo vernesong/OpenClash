@@ -61,7 +61,7 @@ del_cron()
 }
 
 change_dns() {
-   if [ "$1" -eq "1" ]; then
+   if [ "$1" -eq 1 ]; then
       uci del dhcp.@dnsmasq[-1].server >/dev/null 2>&1
       uci add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
       uci delete dhcp.@dnsmasq[0].resolvfile 2>/dev/null
@@ -70,7 +70,7 @@ change_dns() {
    else
       uci delete openclash.config.redirect_dns 2>/dev/null
    fi
-   if [ "$2" -eq "1" ]; then
+   if [ "$2" -eq 1 ]; then
       uci set dhcp.@dnsmasq[0].cachesize=0 2>/dev/null
    fi
    
@@ -81,14 +81,14 @@ change_dns() {
 }
 
 revert_dns() {
-   [ "$1" -eq "0" ] && {
+   [ "$1" -eq 0 ] && {
       if [ "$(uci get openclash.config.dns_revert 2>/dev/null)" != "1" ]; then
          uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$3" >/dev/null 2>&1
          uci set openclash.config.dns_revert=1 2>/dev/null
       fi
    }
    
-   [ "$1" -eq "1" ] && {
+   [ "$1" -eq 1 ] && {
    	  uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$3" >/dev/null 2>&1
    	  uci set openclash.config.dns_revert=0 2>/dev/null
    }
@@ -112,10 +112,10 @@ revert_dns() {
 
 kill_clash()
 {
-   clash_pids=$(pidof clash|sed 's/$//g')
+   clash_pids=$(pidof clash |sed 's/$//g')
    for clash_pid in $clash_pids; do
       kill -9 "$clash_pid" 2>/dev/null
-   done
+   done >/dev/null 2>&1
    sleep 1
 }
 
@@ -1618,7 +1618,7 @@ stop()
    watchdog_pids=$(unify_ps_pids "openclash_watchdog.sh")
    for watchdog_pid in $watchdog_pids; do
       kill -9 "$watchdog_pid" >/dev/null 2>&1
-   done
+   done >/dev/null 2>&1
 
    echo "第四步: 关闭 Clash 主程序..." >$START_LOG
    if [ "$enable" != "1" ]; then
@@ -1627,7 +1627,7 @@ stop()
 
    echo "第五步: 重启 Dnsmasq 程序..." >$START_LOG
    dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
-   redirect_dns=$(uci get openclash.config.redirect_dns 2>/dev/null)
+   redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
    masq_cache=$(uci get openclash.config.masq_cache 2>/dev/null)
    revert_dns "$redirect_dns" "$masq_cache" "$dns_port"
    /etc/init.d/dnsmasq restart >/dev/null 2>&1
