@@ -1,0 +1,89 @@
+From 436c0a70d7fd4628f30b860f9f2f18f65982d72d Mon Sep 17 00:00:00 2001
+From: CN_SZTL <cnsztl@project-openwrt.eu.org>
+Date: Wed, 12 Aug 2020 08:31:27 +0000
+Subject: [PATCH] Makefile: use Node.js tool to generate files
+
+---
+ Makefile | 34 +++++++++++++++++-----------------
+ 1 file changed, 17 insertions(+), 17 deletions(-)
+
+diff --git a/Makefile b/Makefile
+index 92ec2110..9eba5234 100644
+--- a/Makefile
++++ b/Makefile
+@@ -283,55 +283,55 @@ prep:
+ 	@mkdir -p prep
+ prep/nondebug: prep
+ 	@rm -rf ./prep/nondebug
+-	$(PYTHON) tools/configure.py --output-directory ./prep/nondebug --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/nondebug --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG) --line-directives
+ prep/nondebug-scanbuild: prep
+ 	@rm -rf ./prep/nondebug-scanbuild
+-	$(PYTHON) tools/configure.py --output-directory ./prep/nondebug-scanbuild --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_SCANBUILD) --separate-sources --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/nondebug-scanbuild --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_SCANBUILD) --separate-sources --line-directives
+ prep/nondebug-perf: prep
+ 	@rm -rf ./prep/nondebug-perf
+-	$(PYTHON) tools/configure.py --output-directory ./prep/nondebug-perf --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_PERF) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/nondebug-perf --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_PERF) --line-directives
+ prep/nondebug-size: prep
+ 	@rm -rf ./prep/nondebug-size
+-	$(PYTHON) tools/configure.py --output-directory ./prep/nondebug-size --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_SIZE) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/nondebug-size --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_SIZE) --line-directives
+ prep/nondebug-rom: prep
+ 	@rm -rf ./prep/nondebug-rom
+-	$(PYTHON) tools/configure.py --output-directory ./prep/nondebug-rom --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_ROM) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/nondebug-rom --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_ROM) --line-directives
+ prep/debug: prep
+ 	@rm -rf ./prep/debug
+-	$(PYTHON) tools/configure.py --output-directory ./prep/debug --source-directory src-input --config-metadata config $(CONFIGOPTS_DEBUG) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/debug --source-directory src-input --config-metadata config $(CONFIGOPTS_DEBUG) --line-directives
+ prep/fuzz: prep
+ 	@rm -rf ./prep/fuzz
+-	$(PYTHON) tools/configure.py --output-directory ./prep/fuzz --source-directory src-input --config-metadata config $(CONFIGOPTS_FUZZ) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/fuzz --source-directory src-input --config-metadata config $(CONFIGOPTS_FUZZ) --line-directives
+ prep/debug-scanbuild: prep
+ 	@rm -rf ./prep/debug-scanbuild
+-	$(PYTHON) tools/configure.py --output-directory ./prep/debug-scanbuild --source-directory src-input --config-metadata config $(CONFIGOPTS_DEBUG_SCANBUILD) --separate-sources --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/debug-scanbuild --source-directory src-input --config-metadata config $(CONFIGOPTS_DEBUG_SCANBUILD) --separate-sources --line-directives
+ prep/debug-rom: prep
+ 	@rm -rf ./prep/debug-rom
+-	$(PYTHON) tools/configure.py --output-directory ./prep/debug-rom --source-directory src-input --config-metadata config $(CONFIGOPTS_DEBUG_ROM) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/debug-rom --source-directory src-input --config-metadata config $(CONFIGOPTS_DEBUG_ROM) --line-directives
+ prep/emduk: prep
+ 	@rm -rf ./prep/emduk
+-	$(PYTHON) tools/configure.py --output-directory ./prep/emduk --source-directory src-input --config-metadata config $(CONFIGOPTS_EMDUK) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/emduk --source-directory src-input --config-metadata config $(CONFIGOPTS_EMDUK) --line-directives
+ prep/dukweb: prep
+ 	@rm -rf ./prep/dukweb
+-	$(PYTHON) tools/configure.py --output-directory ./prep/dukweb --source-directory src-input --config-metadata config $(CONFIGOPTS_DUKWEB) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/dukweb --source-directory src-input --config-metadata config $(CONFIGOPTS_DUKWEB) --line-directives
+ prep/duklow-nondebug: prep
+ 	@rm -rf ./prep/duklow-nondebug
+-	$(PYTHON) tools/configure.py --output-directory ./prep/duklow-nondebug --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_DUKLOW) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/duklow-nondebug --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_DUKLOW) --line-directives
+ prep/duklow-debug: prep
+ 	@rm -rf ./prep/duklow-debug
+-	$(PYTHON) tools/configure.py --output-directory ./prep/duklow-debug --source-directory src-input --config-metadata config $(CONFIGOPTS_DEBUG_DUKLOW) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/duklow-debug --source-directory src-input --config-metadata config $(CONFIGOPTS_DEBUG_DUKLOW) --line-directives
+ prep/duklow-nondebug-rom: prep
+ 	@rm -rf ./prep/duklow-nondebug-rom
+-	$(PYTHON) tools/configure.py --output-directory ./prep/duklow-nondebug-rom --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_DUKLOW_ROM) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/duklow-nondebug-rom --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_DUKLOW_ROM) --line-directives
+ prep/duklow-debug-rom: prep
+ 	@rm -rf ./prep/duklow-debug-rom
+-	$(PYTHON) tools/configure.py --output-directory ./prep/duklow-debug-rom --source-directory src-input --config-metadata config $(CONFIGOPTS_DEBUG_DUKLOW_ROM) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/duklow-debug-rom --source-directory src-input --config-metadata config $(CONFIGOPTS_DEBUG_DUKLOW_ROM) --line-directives
+ prep/duklow-nondebug-norefc: prep
+ 	@rm -rf ./prep/duklow-nondebug-norefc
+-	$(PYTHON) tools/configure.py --output-directory ./prep/duklow-nondebug-norefc --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_DUKLOW_NOREFC) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/duklow-nondebug-norefc --source-directory src-input --config-metadata config $(CONFIGOPTS_NONDEBUG_DUKLOW_NOREFC) --line-directives
+ prep/duklow-debug-norefc: prep
+ 	@rm -rf ./prep/duklow-debug-norefc
+-	$(PYTHON) tools/configure.py --output-directory ./prep/duklow-debug-norefc --source-directory src-input --config-metadata config $(CONFIGOPTS_DEBUG_DUKLOW_NOREFC) --line-directives
++	$(NODE) src-tools/index.js configure --output-directory ./prep/duklow-debug-norefc --source-directory src-input --config-metadata config $(CONFIGOPTS_DEBUG_DUKLOW_NOREFC) --line-directives
+ 
+ # Library targets.
+ build/libduktape.so.1.0.0: prep/nondebug | build
+-- 
+2.17.1
+

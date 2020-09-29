@@ -14,7 +14,7 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
-	DEPENDS:=+iptables +dnsmasq-full +coreutils +coreutils-nohup +bash +curl +jsonfilter +ca-certificates +ipset +ip-full +iptables-mod-tproxy
+	DEPENDS:=+iptables +dnsmasq-full +coreutils +coreutils-nohup +bash +curl +jsonfilter +ca-certificates +ipset +ip-full +iptables-mod-tproxy +subconverter
 	MAINTAINER:=vernesong
 endef
 

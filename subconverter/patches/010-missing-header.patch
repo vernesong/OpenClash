@@ -1,0 +1,12 @@
+diff --git a/src/misc.h b/src/misc.h
+index b98cdc9..484c1e1 100644
+--- a/src/misc.h
++++ b/src/misc.h
+@@ -7,6 +7,7 @@
+ #include <algorithm>
+ #include <sys/types.h>
+ #include <dirent.h>
++#include <string.h>
+ 
+ #include <yaml-cpp/yaml.h>
+ 
