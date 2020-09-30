@@ -126,11 +126,6 @@ start_fail()
 yml_merge()
 {
 #合并文件
-if [ -z "$(grep "^Proxy:#d" "$PROXY_FILE")" ]; then
-   sed -i "s/^Proxy:/proxies:/g" "$PROXY_FILE" 2>/dev/null
-else
-   sed -i "s/^Proxy:#d/proxies:/g" "$PROXY_FILE" 2>/dev/null
-fi
 cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_PROVIDER_FILE" "$PROXY_FILE" "$GROUP_FILE" "$RULE_PROVIDER_FILE" "$SCRIPT_FILE" "$RULE_FILE" > "$CONFIG_FILE" 2>/dev/null
 }
 
@@ -667,14 +662,23 @@ sed -i '/^ \{0,\}proxy-providers:/d' /tmp/yaml_provider.yaml 2>/dev/null
 if [ -z "$(grep "^ \{0,\}Proxy:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -f "/tmp/yaml_servers.yaml" ]; then
    sed -i '/^ \{0,\}proxy-groups:/i\Proxy:' "$CONFIG_FILE" 2>/dev/null
    sed -i '/^ \{0,\}Proxy:/r/tmp/yaml_servers.yaml' "$CONFIG_FILE" 2>/dev/null
-elif [ -f "/tmp/yaml_servers.yaml" ]; then
+elif [ -f "/tmp/yaml_servers.yaml" ] && [ -z "$(grep "^Proxy:#d" "$PROXY_FILE")" ]; then
    sed -i '/^ \{0,\}Proxy:/r/tmp/yaml_servers.yaml' "$CONFIG_FILE" 2>/dev/null
+elif [ -f "/tmp/yaml_servers.yaml" ] && [ -n "$(grep "^Proxy:#d" "$PROXY_FILE")" ]; then
+   sed -i '/^ \{0,\}Proxy:#d/r/tmp/yaml_servers.yaml' "$CONFIG_FILE" 2>/dev/null
 fi
 if [ -z "$(grep "^ \{0,\}proxy-providers:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -f "/tmp/yaml_provider.yaml" ]; then
    sed -i '/OpenClash-General-Settings/a\proxy-providers:' "$CONFIG_FILE" 2>/dev/null
    sed -i '/^ \{0,\}proxy-providers:/r/tmp/yaml_provider.yaml' "$CONFIG_FILE" 2>/dev/null
 elif [ -f "/tmp/yaml_servers.yaml" ]; then
    sed -i '/^ \{0,\}proxy-providers:r/tmp/yaml_provider.yaml' "$CONFIG_FILE" 2>/dev/null
+fi
+
+#关键字还原
+if [ -z "$(grep "^Proxy:#d" "$PROXY_FILE")" ]; then
+   sed -i "s/^Proxy:/proxies:/g" "$PROXY_FILE" 2>/dev/null
+else
+   sed -i "s/^Proxy:#d/proxies:/g" "$PROXY_FILE" 2>/dev/null
 fi
 }
 
