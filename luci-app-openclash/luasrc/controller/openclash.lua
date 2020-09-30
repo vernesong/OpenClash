@@ -55,6 +55,17 @@ function index()
 end
 local fs = require "luci.openclash"
 
+local core_path_mode = luci.sys.exec("uci get openclash.config.small_flash_memory 2>/dev/null |tr -d '\n'")
+if core_path_mode ~= "1" then
+	dev_core_path="/etc/openclash/core/clash"
+	tun_core_path="/etc/openclash/core/clash_tun"
+	game_core_path="/etc/openclash/core/clash_game"
+else
+	dev_core_path="/tmp/etc/openclash/core/clash"
+	tun_core_path="/tmp/etc/openclash/core/clash_tun"
+	game_core_path="/tmp/etc/openclash/core/clash_game"
+end
+
 local function is_running()
 	return luci.sys.call("pidof clash >/dev/null") == 0
 end
@@ -143,26 +154,26 @@ local function coremodel()
 end
 
 local function corecv()
-if not nixio.fs.access("/etc/openclash/core/clash") and not nixio.fs.access("/etc/openclash/clash") then
+if not nixio.fs.access(dev_core_path) then
   return "0"
 else
-	return luci.sys.exec("/etc/openclash/core/clash -v 2>/dev/null |awk -F ' ' '{print $2}'")
+	return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $2}'",dev_core_path))
 end
 end
 
 local function coretuncv()
-if not nixio.fs.access("/etc/openclash/core/clash_tun") then
+if not nixio.fs.access(tun_core_path) then
   return "0"
 else
-	return luci.sys.exec("/etc/openclash/core/clash_tun -v 2>/dev/null |awk -F ' ' '{print $2}'")
+	return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $2}'",tun_core_path))
 end
 end
 
 local function coregamecv()
-if not nixio.fs.access("/etc/openclash/core/clash_game") then
+if not nixio.fs.access(game_core_path) then
   return "0"
 else
-	return luci.sys.exec("/etc/openclash/core/clash_game -v 2>/dev/null |awk -F ' ' '{print $2}'")
+	return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $2}'",game_core_path))
 end
 end
 
