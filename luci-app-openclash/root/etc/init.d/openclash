@@ -1103,8 +1103,21 @@ raw_config_start()
    proxy_port=$(grep "^ \{0,\}redir-port:" "$CONFIG_FILE" |awk -F ': ' '{print $2}' |awk -F '#' '{print $1}' 2>/dev/null |tr -cd "[0-9]")
    
    if [ -z "$dns_port" ] || [ -z "$en_mode" ] || [ -z "$proxy_port" ]; then
-      echo "错误: 无法获取General部分的必要设置, OpenClash 使用原始配置文件启动失败" >$START_LOG
-      echo "${LOGTIME} Incomplete Config, OpenClash Can Not Start With Raw Config File" >> $LOG_FILE
+      if [ -z "$dns_port" ]; then
+         echo "错误: 无法获取DNS部分的监听端口设置, OpenClash 使用原始配置文件启动失败" >$START_LOG
+         echo "${LOGTIME} Get DNS 'listen' Option Error, OpenClash Can Not Start With Raw Config File" >> $LOG_FILE
+         sleep 3
+      fi
+      if [ -z "$en_mode" ]; then
+         echo "错误: 无法获取DNS部分的运行模式设置, OpenClash 使用原始配置文件启动失败" >$START_LOG
+         echo "${LOGTIME} Get DNS 'enhanced-mode' Option Error, OpenClash Can Not Start With Raw Config File" >> $LOG_FILE
+         sleep 3
+      fi
+      if [ -z "$proxy_port" ]; then
+         echo "错误: 无法获取General部分的转发端口设置, OpenClash 使用原始配置文件启动失败" >$START_LOG
+         echo "${LOGTIME} Get General 'redir-port' Option Error, OpenClash Can Not Start With Raw Config File" >> $LOG_FILE
+         sleep 3
+      fi
       start_fail
    fi
    
@@ -1114,6 +1127,7 @@ raw_config_start()
    if ! pidof clash >/dev/null; then
       echo "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！" >$START_LOG
       echo "${LOGTIME} OpenClash Can Not Start, Please Check The Error Info And Try Again" >> $LOG_FILE
+      sleep 5
       start_fail
    fi
    
