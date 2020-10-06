@@ -30,12 +30,6 @@
       echo "GEOIP 数据库下载成功，检查数据库版本是否更新..." >$START_LOG
       cmp -s /tmp/Country.mmdb "$geoip_path"
          if [ "$?" -ne "0" ]; then
-         	  status=$(unify_ps_prevent)
-            while ( [ "$status" -gt 1 ] )
-            do
-               sleep 5
-               status=$(unify_ps_prevent)
-            done
             echo "数据库版本有更新，开始替换数据库版本..." >$START_LOG
             mv /tmp/Country.mmdb "$geoip_path" >/dev/null 2>&1
             echo "删除下载缓存..." >$START_LOG
@@ -43,7 +37,7 @@
             echo "GEOIP 数据库更新成功！" >$START_LOG
             echo "${LOGTIME} GEOIP Database Update Successful" >>$LOG_FILE
             sleep 5
-            /etc/init.d/openclash restart
+            [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart
             echo "" >$START_LOG
          else
             echo "数据库版本没有更新，停止继续操作..." >$START_LOG
