@@ -74,6 +74,10 @@ local function is_web()
 	return luci.sys.call("pidof clash >/dev/null") == 0
 end
 
+local function restricted_mode()
+	return luci.sys.exec("uci get openclash.config.restricted_mode 2>/dev/null |tr -d '\n'")
+end
+
 local function is_watchdog()
 	local ps_version = luci.sys.exec("ps --version 2>&1 |grep -c procps-ng |tr -d '\n'")
 	if ps_version == "0" then
@@ -306,6 +310,7 @@ function action_status()
 		uh_port = uh_port(),
 		web = is_web(),
 		cn_port = cn_port(),
+		restricted_mode = restricted_mode(),
 		mode = mode();
 	})
 end
