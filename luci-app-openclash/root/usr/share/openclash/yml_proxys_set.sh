@@ -469,6 +469,11 @@ cat >> "$SERVER_FILE" <<-EOF
   tls: $tls
 EOF
       fi
+      if [ ! -z "$sni" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  sni: $sni
+EOF
+      fi
    fi
 
 #trojan
