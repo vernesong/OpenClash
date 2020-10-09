@@ -60,6 +60,8 @@
 * kmod-tun(TUN模式)
 * luci-compat(Luci-19.07)
 * ip6tables-mod-nat(ipv6)
+* curl
+* libwolfssl
 
 
 编译
