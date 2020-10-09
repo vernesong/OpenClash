@@ -1,5 +1,6 @@
 #!/bin/sh
 . /lib/functions.sh
+. /usr/share/openclash/openclash_ps.sh
 
 START_LOG="/tmp/openclash_start.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
@@ -170,7 +171,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
          	 uci set openclash.config.config_reload=0
          	 uci commit openclash
          fi
-         [ "$if_restart" -eq 1 ] && /etc/init.d/openclash restart
+         [ "$if_restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart
          echo "" >$START_LOG
       else
          echo "【"$CORE_TYPE"】版本内核更新失败，请确认设备闪存空间足够后再试！" >$START_LOG
