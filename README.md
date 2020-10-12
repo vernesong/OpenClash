@@ -57,6 +57,7 @@
 * ipset
 * ip-full
 * iptables-mod-tproxy
+* iptables-mod-extra
 * libcap
 * libcap-bin
 * kmod-tun(TUN模式)
