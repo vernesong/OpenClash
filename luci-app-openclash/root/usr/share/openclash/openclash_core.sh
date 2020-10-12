@@ -10,8 +10,7 @@ CORE_TYPE="$1"
 en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
 small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
 CPU_MODEL=$(uci get openclash.config.core_version 2>/dev/null)
-HTTP_PORT=$(uci get openclash.config.http_port 2>/dev/null)
-PROXY_ADDR=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null)
+
 [ ! -f "/tmp/clash_last_version" ] && /usr/share/openclash/clash_version.sh 2>/dev/null
 if [ "$small_flash_memory" != "1" ]; then
    dev_core_path="/etc/openclash/core/clash"
@@ -24,11 +23,6 @@ else
    game_core_path="/tmp/etc/openclash/core/clash_game"
    mkdir -p /tmp/etc/openclash/core
 fi
-
-
-[ -s "/tmp/openclash.auth" ] && {
-   PROXY_AUTH=$(cat /tmp/openclash.auth |awk -F '- ' '{print $2}' |sed -n '1p' 2>/dev/null)
-}
 
 case $CORE_TYPE in
 	"Tun")
@@ -69,15 +63,15 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			case $CORE_TYPE in
       	"Tun")
       	echo "正在下载【Tun】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
-				curl -sL -m 30 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" https://github.com/vernesong/OpenClash/releases/download/TUN-Premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+				curl -sL -m 30 --retry 2 https://github.com/vernesong/OpenClash/releases/download/TUN-Premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
 				;;
 				"Game")
 				echo "正在下载【Game】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
-				curl -sL -m 30 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" https://github.com/vernesong/OpenClash/releases/download/TUN/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_game.tar.gz >/dev/null 2>&1
+				curl -sL -m 30 --retry 2 https://github.com/vernesong/OpenClash/releases/download/TUN/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_game.tar.gz >/dev/null 2>&1
 				;;
 				*)
 				echo "正在下载【Dev】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
-				curl -sL -m 30 --retry 2 -x http://$PROXY_ADDR:$HTTP_PORT -U "$PROXY_AUTH" https://github.com/vernesong/OpenClash/releases/download/Clash/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
+				curl -sL -m 30 --retry 2 https://github.com/vernesong/OpenClash/releases/download/Clash/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
 			esac
    else
 			case $CORE_TYPE in
