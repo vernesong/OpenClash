@@ -136,6 +136,20 @@
     sed -i '/bind-address:/d' "$7" 2>/dev/null
     sed -i "/^allow-lan:/a\bind-address: \"${bind_address}\"" "$7"
     
+    if [ -n "$(grep "^ \{0,\}listen:" "$7")" ]; then
+       if [ "$8" != "1" ]; then
+          sed -i "/^ \{0,\}listen:/c\  listen: 127.0.0.1:${17}" "$7" 2>/dev/null
+       else
+          sed -i "/^ \{0,\}listen:/c\  listen: 0.0.0.0:${17}" "$7" 2>/dev/null
+       fi
+    else
+       if [ "$8" != "1" ]; then
+          sed -i "/^dns:/a\  listen: 127.0.0.1:${17}" "$7" 2>/dev/null
+       else
+          sed -i "/^dns:/a\  listen: 0.0.0.0:${17}" "$7" 2>/dev/null
+       fi
+    fi 2>/dev/null
+    
     if [ -z "$(grep '^external-ui: "/usr/share/openclash/dashboard"' "$7")" ]; then
        if [ ! -z "$(grep "^ \{0,\}external-ui:" "$7")" ]; then
           sed -i '/^ \{0,\}external-ui:/c\external-ui: "/usr/share/openclash/dashboard"' "$7"
@@ -165,9 +179,9 @@
        fi
        sed -i "/^dns:/i\  dns-hijack:" "$7"
 #       sed -i "/^dns:/i\  - 8.8.8.8:53" "$7"
-       sed -i "/^dns:/i\  - tcp://8.8.8.8:53" "$7"
+       sed -i "/^dns:/i\    - tcp://8.8.8.8:53" "$7"
 #       sed -i "/^dns:/i\  - 8.8.4.4:53" "$7"
-       sed -i "/^dns:/i\  - tcp://8.8.4.4:53" "$7"
+       sed -i "/^dns:/i\    - tcp://8.8.4.4:53" "$7"
     elif [ "$15" -eq 2 ]; then
        sed -i "/^dns:/i\tun:" "$7"
        sed -i "/^dns:/i\  enable: true" "$7"
