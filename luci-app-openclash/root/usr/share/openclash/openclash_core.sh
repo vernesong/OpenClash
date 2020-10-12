@@ -37,7 +37,7 @@ case $CORE_TYPE in
    echo $CORE_CV >>/tmp/1
    if [ -z "$CORE_LV" ]; then
       echo "获取【Tun】内核最新版本信息失败，请稍后再试..." >$START_LOG
-      echo "${LOGTIME} 【Tun】Core Version Check Error, Please Try Again After A few seconds" >>$LOG_FILE
+      echo "${LOGTIME} Error: 【Tun】Core Version Check Error, Please Try Again After A few Seconds" >>$LOG_FILE
       sleep 5
       echo "" >$START_LOG
       exit 0
@@ -132,7 +132,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
       
       if [ "$?" -ne "0" ]; then
       	echo "【"$CORE_TYPE"】版本内核更新失败，请检查网络或稍后再试！" >$START_LOG
-        echo "${LOGTIME} OpenClash 【"$CORE_TYPE"】 Core Update Error" >>$LOG_FILE
+        echo "${LOGTIME} Error: OpenClash 【"$CORE_TYPE"】 Core Update Error" >>$LOG_FILE
         case $CORE_TYPE in
             "Tun")
 				    rm -rf /tmp/clash_tun >/dev/null 2>&1
@@ -175,7 +175,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
          echo "" >$START_LOG
       else
          echo "【"$CORE_TYPE"】版本内核更新失败，请确认设备闪存空间足够后再试！" >$START_LOG
-         echo "${LOGTIME} OpenClash 【"$CORE_TYPE"】 Core Update Error" >>$LOG_FILE
+         echo "${LOGTIME} Error: OpenClash 【"$CORE_TYPE"】 Core Update Error" >>$LOG_FILE
          case $CORE_TYPE in
             "Tun")
 				    rm -rf /tmp/clash_tun >/dev/null 2>&1
@@ -190,7 +190,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
       fi
    else
       echo "【"$CORE_TYPE"】版本内核下载失败，请检查网络或稍后再试！" >$START_LOG
-      echo "${LOGTIME} OpenClash 【"$CORE_TYPE"】 Core Update Error" >>$LOG_FILE
+      echo "${LOGTIME} Error: OpenClash 【"$CORE_TYPE"】 Core Update Error" >>$LOG_FILE
       case $CORE_TYPE in
          "Tun")
 			   rm -rf /tmp/clash_tun >/dev/null 2>&1
