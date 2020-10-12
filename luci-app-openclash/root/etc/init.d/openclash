@@ -556,9 +556,7 @@ yml_auth_custom()
    if [ -f /tmp/config.auth ]; then
       sed -i '/^dns:/i\authentication:' "$1" 2>/dev/null
       sed -i '/^authentication:/r/tmp/config.auth' "$1" 2>/dev/null
-      mv /tmp/config.auth /tmp/openclash.auth 2>/dev/null
-   else
-      rm -rf /tmp/openclash.auth 2>/dev/null
+      rm -rf /tmp/config.auth 2>/dev/null
    fi
 }
 
