@@ -145,6 +145,7 @@ yml_check()
    sed -i "s/^\.\.\.$//g" "$3" 2>/dev/null
    sed -i "s/^---$//g" "$3" 2>/dev/null
    sed -i "s/^ \{1,\}dns:/dns:/g" "$3" 2>/dev/null
+   sed -i '/OpenClash-General/d' "$3" 2>/dev/null
 
    #检查关键字避免后续操作出错
    /usr/share/openclash/yml_field_name_ch.sh "$3" 2>/dev/null
@@ -303,8 +304,6 @@ EOF
    uci set openclash.config.dns_port="$dns_port" && uci commit openclash
    
    #添加标识
-   sed -i '/OpenClash-General/d' "$DNS_FILE" 2>/dev/null
-   sed -i '/OpenClash-General/d' "$FALLBACK_FILTER_FILE" 2>/dev/null
    echo '#===================== OpenClash-General-Settings =====================#' >> "$FALLBACK_FILTER_FILE" 2>/dev/null
 }
 
@@ -1064,6 +1063,17 @@ do_run_file()
      nohup /usr/share/openclash/openclash_core.sh "$core_type" &
      exit 0
    }
+   
+   if ! capsh --is-uid=0 >/dev/null; then
+     echo "错误：Capsh异常，请尝试重新安装依赖【libcap】和相应的Capsh库，终止启动..." >$START_LOG
+     echo "${LOGTIME} Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well" >> $LOG_FILE
+     echo "${LOGTIME} Tip: You Could Download And Re-Install The libcap & libcap-bin Library From The Address Below:" >> $LOG_FILE
+     echo "" >> $LOG_FILE
+     echo "---------- https://mirrors.cloud.tencent.com/lede/snapshots/packages/ ----------" >> $LOG_FILE
+     echo "" >> $LOG_FILE
+     sleep 5
+     start_fail
+   fi
 
 }
 
@@ -1079,7 +1089,7 @@ start_run_core()
       kill_clash
       #使用nobody启动内核方便代理路由自身流量
       capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin"
-      capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f $CONFIG_FILE >> $LOG_FILE 2>&1 &'"
+      capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f $CONFIG_FILE >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
    fi
    uci set openclash.config.config_reload=1 2>/dev/null
    uci commit openclash
@@ -1088,9 +1098,9 @@ start_run_core()
 check_core_status()
 {
    check_time=1
-   while ( [ "$check_time" -le 3 ] && [ -z "$(pidof clash)" ] )
+   while ( [ "$check_time" -le 3 ] && [ -n "$(pidof clash)" ] )
    do
-      sleep 2
+      sleep 1
       check_time=$(expr "$check_time" + 1)
    done
 }
