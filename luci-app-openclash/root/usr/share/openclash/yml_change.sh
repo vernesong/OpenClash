@@ -214,7 +214,7 @@
 	  
 	  if [ ! -z "$(grep "^ \{0,\}default-nameserver:" "$7")" ]; then
        sed -i "/^ \{0,\}default-nameserver:/c\  default-nameserver:" "$7"
-       sed -i "/^ \{0,\}default-nameserver:/,/$/ {s/^ \{0,\}- /  - /}" "$7" 2>/dev/null #修改参数空格
+       sed -i "/^ \{0,\}default-nameserver:/,/,$/ {s/^ \{0,\}- /  - /g}" "$7" 2>/dev/null #修改参数空格
     fi
     
 #fake-ip-filter
@@ -230,7 +230,7 @@
       if [ -s "/etc/openclash/fake_filter.list" ]; then
       	if [ ! -z "$(grep "^ \{0,\}fake-ip-filter:" "$7")" ]; then
       	   sed -i "/^ \{0,\}fake-ip-filter:/c\  fake-ip-filter:" "$7"
-      	   sed -i "/^ \{0,\}fake-ip-filter:/,/$/ {s/^ \{0,\}- /    - /}" "$7" 2>/dev/null #修改参数空格
+      	   sed -i "/^ \{0,\}fake-ip-filter:/,/,$/ {s/^ \{0,\}- /    - /g}" "$7" 2>/dev/null #修改参数空格
       	   sed -i '/^ \{0,\}fake-ip-filter:/r/etc/openclash/fake_filter.list' "$7" 2>/dev/null
       	else
       	   echo "  fake-ip-filter:" >> "$7"
