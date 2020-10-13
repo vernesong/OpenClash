@@ -28,7 +28,6 @@ case $CORE_TYPE in
 	"Tun")
    CORE_CV=$($tun_core_path -v 2>/dev/null |awk -F ' ' '{print $2}')
    CORE_LV=$(sed -n 2p /tmp/clash_last_version 2>/dev/null)
-   echo $CORE_CV >>/tmp/1
    if [ -z "$CORE_LV" ]; then
       echo "获取【Tun】内核最新版本信息失败，请稍后再试..." >$START_LOG
       echo "${LOGTIME} Error: 【Tun】Core Version Check Error, Please Try Again After A few Seconds" >>$LOG_FILE
