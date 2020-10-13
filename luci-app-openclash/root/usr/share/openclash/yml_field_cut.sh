@@ -114,6 +114,8 @@ fi
    fi
    sed -i '/^ \{0,\}tun:/,/^ \{0,\}enable:/d' "$2" 2>/dev/null
    sed -i '/^ \{0,\}dns-hijack:/d' "$2" 2>/dev/null
+   sed -i '/^ \{0,\}macOS-auto-route:/d' "$2" 2>/dev/null
+   sed -i '/^ \{0,\}macOS-auto-detect-interface:/d' "$2" 2>/dev/null
    sed -i '/^ \{0,\}stack:/d' "$2" 2>/dev/null
    sed -i '/^ \{0,\}device-url:/d' "$2" 2>/dev/null
    sed -i '/^ \{0,\}dns-listen:/d' "$2" 2>/dev/null
