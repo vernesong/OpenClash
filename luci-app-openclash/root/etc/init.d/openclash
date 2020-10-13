@@ -139,6 +139,15 @@ cat "$CHANGE_FILE" "$DNS_FILE" "$PROXY_PROVIDER_FILE" "$PROXY_FILE" "$GROUP_FILE
 
 yml_check()
 {
+	
+   #创建启动备份
+   cp "$3" "$5"
+   
+   #创建原始备份
+   if [ ! -f "$4" ]; then
+      cp "$3" "$4"
+   fi
+   
    #格式替换
    sed -i 's/\t/ /g' "$3" 2>/dev/null
    sed -i "s/- \{2,\}/- /g" "$3" 2>/dev/null
@@ -149,14 +158,6 @@ yml_check()
 
    #检查关键字避免后续操作出错
    /usr/share/openclash/yml_field_name_ch.sh "$3" 2>/dev/null
-
-   #创建启动备份
-   cp "$3" "$5"
-   
-   #创建原始备份
-   if [ ! -f "$4" ]; then
-      cp "$3" "$4"
-   fi
 
    #取出general部分
    /usr/share/openclash/yml_field_cut.sh "general" "$CHANGE_FILE" "$3"
