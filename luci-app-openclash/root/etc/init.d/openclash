@@ -1243,15 +1243,18 @@ firewall_redirect_exclude()
    if [ -z "$src_dport" ]; then
       return
    fi
-   
-   if [ -z "$en_mode_tun" ]; then
-      iptables -t mangle -A openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
+
+   if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
+   	  iptables -t nat -I openclash_output -p tcp --sport "$src_dport" -j RETURN >/dev/null 2>&1
+   	  iptables -t mangle -I openclash_output -p udp --sport "$src_dport" -j RETURN >/dev/null 2>&1
+      iptables -t mangle -I openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
    elif [ "$en_mode_tun" -ne 3 ]; then
-      iptables -t mangle -A openclash -p tcp --dport "$src_dport" -j RETURN >/dev/null 2>&1
-      iptables -t mangle -A openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
-   else
-      iptables -t mangle -A openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
+   	  iptables -t mangle -I openclash_output -p tcp --sport "$src_dport" -j RETURN >/dev/null 2>&1
+   	  iptables -t mangle -I openclash_output -p udp --sport "$src_dport" -j RETURN >/dev/null 2>&1
+      iptables -t mangle -I openclash -p tcp --dport "$src_dport" -j RETURN >/dev/null 2>&1
+      iptables -t mangle -I openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
    fi
+
 }
 
 set_firewall()
@@ -1392,9 +1395,6 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
             iptables -t mangle -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
          fi
          iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
-         #端口转发
-         config_load "firewall"
-         config_foreach firewall_redirect_exclude "redirect"
          iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --on-ip 0.0.0.0 --tproxy-mark "$PROXY_FWMARK"
          iptables -t mangle -A PREROUTING -p udp -j openclash
       fi
@@ -1468,9 +1468,6 @@ if [ -n "$en_mode_tun" ]; then
    iptables -t mangle -F openclash
    iptables -t mangle -N openclash_dns_hijack
    iptables -t mangle -F openclash_dns_hijack
-   #端口转发
-   config_load "firewall"
-   config_foreach firewall_redirect_exclude "redirect"
    #其他流量
    iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN >/dev/null 2>&1
    iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
@@ -1500,6 +1497,10 @@ if [ -n "$en_mode_tun" ]; then
    #        ip6tables -t mangle -I PREROUTING -j MARK --set-mark "$PROXY_FWMARK"
    #    fi
 fi
+
+#端口转发
+config_load "firewall"
+config_foreach firewall_redirect_exclude "redirect"
 }
 
 revert_firewall()
