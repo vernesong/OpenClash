@@ -519,7 +519,7 @@ EOF
          sed -i "/ipcidr:/c\    ipcidr:" "$3" 2>/dev/null
       fi
       if [ -z "$(grep "^      - " "$3")" ]; then
-         sed -i '/^ \{0,\}ipcidr:/,/OpenClash-General-Settings/ {s/^ \{0,\}- /      - /}' "$3" 2>/dev/null #修改参数空格
+         sed -i '/^ \{0,\}ipcidr:/,/,$/ {s/^ \{0,\}- /      - /g}' "$3" 2>/dev/null #修改参数空格
       fi
    fi
 
