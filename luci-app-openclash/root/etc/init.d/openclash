@@ -166,9 +166,11 @@ yml_check()
    nameserver_len=$(sed -n '/^ \{0,\}nameserver:/=' "$3" 2>/dev/null)
    if [ -n "$nameserver_len" ]; then
       /usr/share/openclash/yml_field_cut.sh "$nameserver_len" "$DNS_FILE" "$3"
-   elif [ -n "$fallback_len" ]; then
+   else
       fallback_len=$(sed -n '/^ \{0,\}fallback:/=' "$3" 2>/dev/null)
-   	  /usr/share/openclash/yml_field_cut.sh "$fallback_len" "$DNS_FILE" "$3"
+      if [ -n "$fallback_len" ]; then
+   	     /usr/share/openclash/yml_field_cut.sh "$fallback_len" "$DNS_FILE" "$3"
+   	  fi
    fi 2>/dev/null
    
    #取出proxy部分
@@ -270,19 +272,24 @@ yml_check()
          #取出dns备份
          nameserver_len=$(sed -n '/^ \{0,\}nameserver:/=' "$4" 2>/dev/null)
          if [ -n "$nameserver_len" ]; then
-            /usr/share/openclash/yml_field_cut.sh "$nameserver_len" "/tmp/backdns.config" "$4" "dns"
+            /usr/share/openclash/yml_field_cut.sh "$nameserver_len" "/tmp/backdns.config" "$4"
+         else
+            fallback_len=$(sed -n '/^ \{0,\}fallback:/=' "$3" 2>/dev/null)
+            if [ -n "$fallback_len" ]; then
+               /usr/share/openclash/yml_field_cut.sh "$fallback_len" "/tmp/backdns.config" "$4"
+            fi
          fi 2>/dev/null
-         sed -i '/^ \{0,\}nameserver:/,$d' "$DNS_FILE" 2>/dev/null
+         rm -rf "$DNS_FILE" 2>/dev/null
+         rm -rf "$FALLBACK_FILTER_FILE" 2>/dev/null
          sed -i '/##Custom DNS##/d' "$CHANGE_FILE" 2>/dev/null
-         cat "/tmp/backdns.config" >> "$DNS_FILE"
+         cat "/tmp/backdns.config" >> "$DNS_FILE" 2>/dev/null
          rm -rf /tmp/backdns.config 2>/dev/null
       fi
    fi 2>/dev/null
-   
    #检查DNS服务
    if [ -z "$(grep '^ \{0,\}nameserver:' "$DNS_FILE")" ] || [ -z "$(sed '/^ \{0,\}fallback/,$d' "$DNS_FILE" 2>/dev/null |grep '^ \{0,\}- ')" ]; then
-      echo "错误: 检测到DNS选项下的Nameserver未设置服务器，开始补全..." >$START_LOG
-      echo "${LOGTIME} Error: Nameserver Option Must Be Setted, Auto Completing" >>$LOG_FILE
+      echo "检测到DNS选项下的Nameserver未设置服务器，开始补全..." >$START_LOG
+      echo "${LOGTIME} Nameserver Option Must Be Setted, Auto Completed" >>$LOG_FILE
       echo "  nameserver:" > "$DNS_FILE" 2>/dev/null
       cat >> "$DNS_FILE" <<-EOF
     - 114.114.114.114
