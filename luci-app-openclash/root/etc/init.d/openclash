@@ -987,14 +987,14 @@ do_run_file()
 
    if [ "$small_flash_memory" != "1" ]; then
       dev_core_path="/etc/openclash/core/clash"
-   	  tun_core_path="/etc/openclash/core/clash_tun"
-   	  game_core_path="/etc/openclash/core/clash_game"
-   	  geoip_path="/etc/openclash/Country.mmdb"
+      tun_core_path="/etc/openclash/core/clash_tun"
+      game_core_path="/etc/openclash/core/clash_game"
+      geoip_path="/etc/openclash/Country.mmdb"
    else
       dev_core_path="/tmp/etc/openclash/core/clash"
-   	  tun_core_path="/tmp/etc/openclash/core/clash_tun"
-   	  game_core_path="/tmp/etc/openclash/core/clash_game"
-   	  geoip_path="/tmp/etc/openclash/Country.mmdb"
+      tun_core_path="/tmp/etc/openclash/core/clash_tun"
+      game_core_path="/tmp/etc/openclash/core/clash_game"
+      geoip_path="/tmp/etc/openclash/Country.mmdb"
    fi
     
    rm -rf "/etc/openclash/clash" 2>/dev/null
@@ -1044,7 +1044,7 @@ do_run_file()
    [ ! -x "$dev_core_path" ] && chmod 4755 "$dev_core_path" 2>/dev/null
    
    [ -f "$geoip_path" ] && [ "$small_flash_memory" = "1" ] && {
-   	  rm -rf "/etc/openclash/Country.mmdb" 2>/dev/null
+      rm -rf "/etc/openclash/Country.mmdb" 2>/dev/null
       ln -s "$geoip_path" /etc/openclash/Country.mmdb 2>/dev/null
    }
    
@@ -1174,10 +1174,10 @@ raw_config_start()
    fi
    
    dase=$(grep "^ \{0,\}Secret:" "$CONFIG_FILE" |awk -F ': ' '{print $2}' |awk -F '#' '{print $1}' |sed 's/^ \{0,\}//g' 2>/dev/null |sed 's/ \{0,\}$//g' 2>/dev/null |sed "s/\'//g" 2>/dev/null |sed "s/\'//g" 2>/dev/null)
-   uci set openclash.config.dashboard_password=dase 2>/dev/null
+   uci set openclash.config.dashboard_password="$dase" 2>/dev/null
    
    cn_port=$(grep "^ \{0,\}external-controller:" "$CONFIG_FILE" |awk -F ':' '{print $3}' |awk -F '#' '{print $1}' |tr -cd "[0-9]" 2>/dev/null)
-   uci set openclash.config.dashboard_password=cn_port 2>/dev/null
+   uci set openclash.config.dashboard_password="$cn_port" 2>/dev/null
    
    uci set openclash.config.restricted_mode=1
    
@@ -1406,7 +1406,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
       iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
       #iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
       iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j REDIRECT --to-ports "$proxy_port"
-      iptables -t nat -A OUTPUT -j openclash_output
+      iptables -t nat -I OUTPUT -j openclash_output
    #fi
 
    #if [ "$ipv6_enable" -eq 1 ]; then
@@ -1457,12 +1457,12 @@ if [ -n "$en_mode_tun" ]; then
    iptables -t mangle -N openclash_output
    iptables -t mangle -F openclash_output
    iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
-   iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -j MARK --set-mark "$PROXY_FWMARK"
    if [ "$en_mode_tun" -ne 3 ]; then
-      iptables -t mangle -I OUTPUT -j openclash_output
+      iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -j MARK --set-mark "$PROXY_FWMARK"
    else
-      iptables -t mangle -I OUTPUT -p udp -j openclash_output
+      iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -j MARK --set-mark "$PROXY_FWMARK"
    fi
+   iptables -t mangle -I OUTPUT -j openclash_output
    
    iptables -t mangle -N openclash
    iptables -t mangle -F openclash
@@ -1565,7 +1565,6 @@ revert_firewall()
    ip tuntap del clash0 mode tun >/dev/null 2>&1
 
    iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
-   iptables -t mangle -D OUTPUT -p udp -j openclash_output >/dev/null 2>&1
    iptables -t mangle -D PREROUTING -j openclash >/dev/null 2>&1
    iptables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
    iptables -t mangle -D PREROUTING -p tcp --dport 53 -j openclash_dns_hijack >/dev/null 2>&1
