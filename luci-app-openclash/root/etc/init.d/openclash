@@ -1024,7 +1024,7 @@ do_run_file()
       core_start_log="检测到配置了【Tun】内核专属功能，调用【Tun】内核启动..."
    fi
 
-   if [ -n "$(grep "^ \{0,\}rule-providers:" "$CONFIG_FILE" 2>/dev/null)" ] && [ -n "$(grep "^ \{0,\}behavior" "$CONFIG_FILE" 2>/dev/null |grep -v "^ \{0,\}#")" ]; then
+   if [ -n "$(grep "^ \{0,\}- RULE-SET," "$CONFIG_FILE" 2>/dev/null)" ]; then
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
       core_type="Tun"
       core_start_log="检测到配置了【Tun】内核专属功能，调用【Tun】内核启动..."
@@ -1095,9 +1095,11 @@ start_run_core()
       curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
    else
       kill_clash
-      #使用nobody启动内核方便代理路由自身流量
+      #防止赋权失败
       chmod -R o+w /etc/openclash/ 2>/dev/null
       chmod o+w /tmp/openclash.log 2>/dev/null
+      chown root:root /etc/openclash/core/* 2>/dev/null
+      #使用nobody启动内核方便代理路由自身流量
       capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin"
       capsh --keep=1 --caps="all+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'"
    fi
