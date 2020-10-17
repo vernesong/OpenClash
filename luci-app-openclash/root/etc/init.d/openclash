@@ -1088,7 +1088,7 @@ do_run_file()
 start_run_core()
 {
    echo "$core_start_log" >$START_LOG
-   sleep 1
+   sleep 2
    ulimit -SHn 65535 2>/dev/null
    config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "Tun" ] && [ "$config_reload" != "0" ]; then
@@ -1098,7 +1098,7 @@ start_run_core()
       #防止赋权失败
       chmod -R o+w /etc/openclash/ 2>/dev/null
       chmod o+w /tmp/openclash.log 2>/dev/null
-      chown root:root /etc/openclash/core/* 2>/dev/null
+      chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
       #使用nobody启动内核方便代理路由自身流量
       capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin"
       capsh --keep=1 --caps="all+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'"
@@ -1666,7 +1666,6 @@ start()
    yml_merge
    
    echo "第五步: 启动主程序..." >$START_LOG
-   sleep 1
    start_run_core
              
    #检测proxy_provider配置文件状态
