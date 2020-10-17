@@ -91,6 +91,7 @@ START_LOG="/tmp/openclash_start.log"
        echo "警告: 在TUN模式下启用仅允许内网会导致路由器无法联网，已忽略此项修改！" >$START_LOG
        controller_address="0.0.0.0"
        bind_address="*"
+       sleep 3
     fi
     
     if [ -z "$(grep "^external-controller: $controller_address:$5" "$7")" ]; then

@@ -45,7 +45,7 @@ if [ "$enable" -eq 1 ]; then
 	      echo "${LOGTIME} Watchdog: Clash Core Problem, Restart." >> $LOG_FILE
 	      chmod -R o+w /etc/openclash/ 2>/dev/null
 	      chmod o+w /tmp/openclash.log 2>/dev/null
-	      chown root:root /etc/openclash/core/* 2>/dev/null
+	      chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
 	      capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin"
         capsh --keep=1 --caps="all+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'"
 	      sleep 3
