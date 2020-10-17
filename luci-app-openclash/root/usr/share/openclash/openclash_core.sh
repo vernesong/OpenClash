@@ -96,7 +96,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 					rm -rf /tmp/clash_tun.gz >/dev/null 2>&1
 					rm -rf "$tun_core_path" >/dev/null 2>&1
 					chmod 4755 /tmp/clash_tun >/dev/null 2>&1
-					chown root:root /tmp/clash_tun >/dev/null 2>&1
+					chown nobody:nogroup /tmp/clash_tun >/dev/null 2>&1
 				}
 				;;
 				"Game")
@@ -106,7 +106,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
           rm -rf /tmp/clash_game.tar.gz >/dev/null 2>&1
 					rm -rf "$game_core_path" >/dev/null 2>&1
 					chmod 4755 /tmp/clash_game >/dev/null 2>&1
-					chown root:root /tmp/clash_game >/dev/null 2>&1
+					chown nobody:nogroup /tmp/clash_game >/dev/null 2>&1
 				}
 				;;
 				*)
@@ -119,7 +119,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 				  fi
 					rm -rf /tmp/clash.tar.gz >/dev/null 2>&1
 					chmod 4755 "$dev_core_path" >/dev/null 2>&1
-					chown root:root "$dev_core_path" >/dev/null 2>&1
+					chown nobody:nogroup "$dev_core_path" >/dev/null 2>&1
 				}
 			esac
       
