@@ -1090,6 +1090,7 @@ start_run_core()
    echo "$core_start_log" >$START_LOG
    sleep 2
    ulimit -SHn 65535 2>/dev/null
+   ulimit -v unlimited 2>/dev/null
    config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "Tun" ] && [ "$config_reload" != "0" ]; then
       curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
