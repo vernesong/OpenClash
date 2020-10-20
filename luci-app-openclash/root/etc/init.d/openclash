@@ -1246,6 +1246,57 @@ ac_add()
    ipset add "$2" "$1" 2>/dev/null
 }
 
+firewall_rule_exclude()
+{
+   local section="$1"
+   local name src src_port dest dest_port proto target enabled
+
+   config_get "name" "$section" "name" ""
+   config_get "src" "$section" "src" ""
+   config_get "src_port" "$section" "src_port" ""
+   config_get "dest" "$section" "dest" ""
+   config_get "dest_port" "$section" "dest_port" ""
+   config_get "proto" "$section" "proto" ""
+   config_get "target" "$section" "target" ""
+   config_get "enabled" "$section" "enabled" ""
+
+   if [ a"$target" != aACCEPT  ] || [ a"$enabled" == a0 ]; then
+      return
+   fi
+
+   local e_udp=false
+   local e_tcp=false
+   for p in $proto; do
+       if [ $p == tcp ]; then e_tcp=true; fi
+       if [ $p == udp ]; then e_udp=true; fi
+   done
+
+   if ! $e_udp && ! $e_tcp ; then
+       return
+   fi
+
+   echo "#$name #$src #$src_port #$dest #$dest_port #$proto #$target #$enabled" $e_udp $e_tcp
+
+   if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
+      if $e_tcp ; then
+          iptables -t nat -I openclash_output -p tcp --sport "$dest_port" -j RETURN >/dev/null 2>&1
+      fi
+      if $e_udp ; then
+          iptables -t mangle -I openclash_output -p udp --sport "$dest_port" -j RETURN >/dev/null 2>&1
+          iptables -t mangle -I openclash -p udp --dport "$dest_port" -j RETURN >/dev/null 2>&1
+      fi
+   elif [ "$en_mode_tun" -ne 3 ]; then
+      if $e_tcp ; then
+          iptables -t mangle -I openclash_output -p tcp --sport "$dest_port" -j RETURN >/dev/null 2>&1
+          iptables -t mangle -I openclash -p tcp --dport "$dest_port" -j RETURN >/dev/null 2>&1
+      fi
+      if $e_udp ; then
+          iptables -t mangle -I openclash_output -p udp --sport "$dest_port" -j RETURN >/dev/null 2>&1
+          iptables -t mangle -I openclash -p udp --dport "$dest_port" -j RETURN >/dev/null 2>&1
+      fi
+   fi
+}
+
 firewall_redirect_exclude()
 {
    local section="$1"
@@ -1513,6 +1564,7 @@ fi
 #端口转发
 config_load "firewall"
 config_foreach firewall_redirect_exclude "redirect"
+config_foreach firewall_rule_exclude "rule"
 }
 
 revert_firewall()
