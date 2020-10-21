@@ -1417,7 +1417,8 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
       iptables -t nat -F openclash_output
       iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
       #iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
-      iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j REDIRECT --to-ports "$proxy_port"
+      iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -m multiport --dport 80,443 -j REDIRECT --to-ports "$proxy_port"
+      iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
       iptables -t nat -I OUTPUT -j openclash_output
    #fi
 
@@ -1470,9 +1471,10 @@ if [ -n "$en_mode_tun" ]; then
    iptables -t mangle -F openclash_output
    iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
    if [ "$en_mode_tun" -ne 3 ]; then
-      iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -j MARK --set-mark "$PROXY_FWMARK"
+      iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p tcp -m multiport --dport 80,443 -j MARK --set-mark "$PROXY_FWMARK"
+      iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
    else
-      iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -j MARK --set-mark "$PROXY_FWMARK"
+      iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
    fi
    iptables -t mangle -I OUTPUT -j openclash_output
    
