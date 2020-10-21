@@ -1276,8 +1276,6 @@ firewall_rule_exclude()
        return
    fi
 
-   echo "#$name #$src #$src_port #$dest #$dest_port #$proto #$target #$enabled" $e_udp $e_tcp
-
    if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
       if $e_tcp ; then
           iptables -t nat -I openclash_output -p tcp --sport "$dest_port" -j RETURN >/dev/null 2>&1
@@ -1350,13 +1348,13 @@ if [ "$(uci get firewall.@defaults[0].forward)" != "ACCEPT" ]; then
    uci commit firewall >/dev/null 2>&1
    /etc/init.d/firewall reload >/dev/null 2>&1
 fi
-          
+
 mkdir -p /var/etc
 cat > "/var/etc/openclash.include" <<-EOF
 /etc/init.d/openclash reload >/dev/null 2>&1
 EOF
 
-if [ "$china_ip_route" -eq 1 ]; then
+if [ "$china_ip_route" = "1" ]; then
    if [ ! -f "/usr/share/openclash/res/china_ip_route.ipset" ]; then
       cp /etc/openclash/rule_provider/ChinaIP.yaml /tmp/china_ip_route.list 2>/dev/null
       sed -i "s/'//g" /tmp/china_ip_route.list 2>/dev/null
@@ -1713,24 +1711,26 @@ start()
    /usr/share/openclash/yml_change.sh >/dev/null 2>&1 "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CHANGE_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" "$dns_port" "$core_type" &
    /usr/share/openclash/yml_rules_change.sh >/dev/null 2>&1 "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$RULE_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$BACKUP_FILE" "$RULE_PROVIDER_FILE" &
    wait
+
    yml_provider_path "$PROXY_PROVIDER_FILE" "proxy_provider"
    yml_provider_path "$RULE_PROVIDER_FILE" "rule_provider"
    yml_custom_rule_provider
    yml_game_custom
-   
+
    echo "第四步: 合并配置文件修改..." >$START_LOG
    yml_merge
    
    echo "第五步: 启动主程序..." >$START_LOG
    start_run_core
-             
+   
+   echo "第六步: 检查内核启动状态..." >$START_LOG
+   check_core_status
+
    #检测proxy_provider配置文件状态
-   echo "第六步: 等待主程序下载外部文件..." >$START_LOG
+   echo "第七步: 等待主程序下载外部文件..." >$START_LOG
    yml_provider_check "$PROXY_PROVIDER_FILE" "proxy_provider"
    yml_provider_check "$RULE_PROVIDER_FILE" "rule_provider"
-   
-   echo "第七步: 检查内核启动状态..." >$START_LOG
-   check_core_status
+
    try_restore_start
    
    echo "第八步: 设置控制面板..." >$START_LOG
