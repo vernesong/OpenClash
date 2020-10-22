@@ -77,7 +77,7 @@ change_dns() {
    uci commit dhcp
    uci commit openclash
    
-   /usr/share/openclash/openclash_custom_domain_dns.sh
+   /usr/share/openclash/openclash_custom_domain_dns.sh >/dev/null 2>&1
 }
 
 revert_dns() {
@@ -628,7 +628,7 @@ yml_rule_group_get()
       return
    fi
    
-   /usr/share/openclash/yml_groups_set.sh "$group"
+   /usr/share/openclash/yml_groups_set.sh >/dev/null 2>&1 "$group"
 }
 
 yml_game_custom()
