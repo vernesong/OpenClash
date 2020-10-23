@@ -1552,7 +1552,6 @@ if [ -n "$en_mode_tun" ]; then
    iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
    if [ "$en_mode" = "redir-host" ]; then
       iptables -t mangle -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
-      iptables -t mangle -A openclash -d 198.18.0.0/16 -j DROP >/dev/null 2>&1
    fi
    iptables -t mangle -A openclash -j MARK --set-mark "$PROXY_FWMARK"
    
