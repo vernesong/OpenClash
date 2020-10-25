@@ -1085,6 +1085,19 @@ do_run_file()
 
 }
 
+#绑定interface防止回环
+check_interface_name()
+{
+	interface_name=$(ip route |grep "default" |awk '{print $5}' 2>/dev/null)
+	if [ -z "$(grep "^interface-name: $interface_name" "$CONFIG_FILE" 2>/dev/null)" ] && [ -n "$interface_name" ]; then
+    if [ ! -z "$(grep "^ \{0,\}interface-name:" "$CONFIG_FILE" 2>/dev/null)" ]; then
+       sed -i "/^ \{0,\}interface-name:/c\interface-name: ${interface_name}" "$CONFIG_FILE" 2>/dev/null
+    else
+       sed -i "/^redir-port:/a\interface-name: ${interface_name}" "$CONFIG_FILE" 2>/dev/null
+    fi
+  fi
+}
+
 start_run_core()
 {
    echo "$core_start_log" >$START_LOG
@@ -1092,6 +1105,7 @@ start_run_core()
    ulimit -SHn 65535 2>/dev/null
    ulimit -v unlimited 2>/dev/null
    modprobe tun >/dev/null 2>&1
+   check_interface_name
    config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "Tun" ] && [ "$config_reload" != "0" ]; then
       curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
