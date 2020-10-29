@@ -314,7 +314,7 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-file-manage"))
 end
 
-m = SimpleForm("config_file_edit",translate("Config File Edit"))
+m = SimpleForm("openclash",translate("Config File Edit"))
 m.reset = false
 m.submit = false
 
@@ -323,14 +323,15 @@ local tab = {
 }
 
 s = m:section(Table, tab)
+s.anonymous=true
+s.addremove=false
 
 local conf = string.sub(luci.sys.exec("uci get openclash.config.config_path 2>/dev/null"), 1, -2)
 local dconf = "/usr/share/openclash/res/default.yaml"
 local conf_name = fs.basename(conf)
 if not conf_name or conf == "" then conf_name = "config.yaml" end
 
-sev = s:option(Value, "user")
-sev.template = "cbi/tvalue"
+sev = s:option(TextValue, "user")
 sev.description = translate("Modify Your Config file:").." "..font_green..bold_on..conf_name..bold_off..font_off.." "..translate("Here, Except The Settings That Were Taken Over")
 sev.rows = 40
 sev.wrap = "off"
@@ -344,8 +345,7 @@ if (CHIF == "0") then
 end
 end
 
-def = s:option(Value, "default")
-def.template = "cbi/tvalue"
+def = s:option(TextValue, "default")
 def.description = translate("Default Config File With Correct General-Settings")
 def.rows = 40
 def.wrap = "off"
@@ -356,6 +356,9 @@ end
 def.write = function(self, section, value)
 end
 
+o = s:option(DummyValue, "")
+o.anonymous=true
+o.template = "openclash/config_editor"
 
 local t = {
     {Commit, Apply}
