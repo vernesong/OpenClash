@@ -461,6 +461,6 @@ function action_refresh_log()
 end
 
 function action_del_log()
-	local logfile="/tmp/openclash.log"
-	fs.unlink(logfile)
+	luci.sys.exec("echo '' > /tmp/openclash.log")
+	return
 end
