@@ -11,15 +11,20 @@
 <link rel="stylesheet" href="/luci-static/resources/openclash/theme/material.css"/>
 <link rel="stylesheet" href="/luci-static/resources/openclash/addon/fold/foldgutter.css"/>
 <link rel="stylesheet" href="/luci-static/resources/openclash/addon/lint/lint.css">
+<link rel="stylesheet" href="/luci-static/resources/openclash/addon/display/fullscreen.css">
 <script src="/luci-static/resources/openclash/lib/codemirror.js"></script>
 <script src="/luci-static/resources/openclash/mode/yaml/yaml.js"></script>
 <script src="/luci-static/resources/openclash/addon/fold/foldcode.js"></script>
 <script src="/luci-static/resources/openclash/addon/fold/foldgutter.js"></script>
 <script src="/luci-static/resources/openclash/addon/fold/indent-fold.js"></script>
-<script src="/luci-static/resources/openclash/addon/fold/brace-fold.js"></script>
-<script src="/luci-static/resources/openclash/addon/fold/comment-fold.js"></script>
 <script src="/luci-static/resources/openclash/addon/edit/matchbrackets.js"></script>
 <script src="/luci-static/resources/openclash/addon/selection/active-line.js"></script>
+<script src="https://unpkg.com/jsonlint@1.6.3/web/jsonlint.js"></script>
+<script src="/luci-static/resources/openclash/addon/lint/lint.js"></script>
+<script src="/luci-static/resources/openclash/addon/lint/json-lint.js"></script>
+<script src="/luci-static/resources/openclash/addon/lint/yaml-lint.js"></script>
+<script src="/luci-static/resources/openclash/addon/lint/js-yaml.min.js"></script>
+<script src="/luci-static/resources/openclash/addon/display/fullscreen.js"></script>
 
 <script type="text/javascript">//<![CDATA[
 function editor(id,wid,readOnly)
@@ -32,7 +37,16 @@ function editor(id,wid,readOnly)
 	lineWrapping: true,
 	matchBrackets: true,
 	foldGutter: true,
-	gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+	lint: true,
+	gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "CodeMirror-lint-markers"],
+	extraKeys: {
+        "F11": function(cm) {
+          cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+        },
+        "Esc": function(cm) {
+          if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+        }
+      }
 	});
 	
 	if (readOnly == "true") {
