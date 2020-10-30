@@ -807,8 +807,11 @@ msgstr "注意：使用一键生成配置文件功能时无需设置此项，修
 msgid "Clean Log"
 msgstr "清理日志"
 
-msgid "Refresh Log"
-msgstr "刷新日志"
+msgid "Stop Refresh Log"
+msgstr "停止刷新"
+
+msgid "Start Refresh Log"
+msgstr "开始刷新"
 
 msgid "Config File"
 msgstr "配置文件"
