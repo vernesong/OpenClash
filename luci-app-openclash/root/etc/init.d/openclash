@@ -1019,13 +1019,8 @@ do_run_file()
       core_start_log="检测到配置了【Game】内核专属功能，调用【Game】内核启动..."
    fi
 
-   if [ "$proxy_mode" = "script" ] || [ "$rule_source" = "ConnersHua" ] || [ "$rule_source" = "lhie1" ]; then
-      ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
-      core_type="Tun"
-      core_start_log="检测到配置了【Tun】内核专属功能，调用【Tun】内核启动..."
-   fi
-
-   if [ -n "$(grep "^ \{0,\}- RULE-SET," "$CONFIG_FILE" 2>/dev/null)" ]; then
+   if [ "$proxy_mode" = "script" ] || [ "$rule_source" = "ConnersHua" ] || [ "$rule_source" = "lhie1" ] || [ -n "$(grep "^ \{0,\}- RULE-SET," "$CONFIG_FILE" 2>/dev/null)" ]; then
+      rm -rf "/etc/openclash/clash" 2>/dev/null
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
       core_type="Tun"
       core_start_log="检测到配置了【Tun】内核专属功能，调用【Tun】内核启动..."
@@ -1038,11 +1033,13 @@ do_run_file()
     
    if [ ! -f "/etc/openclash/clash" ] && [ -f "$tun_core_path" ] && [ "$core_type" != "Game" ]; then
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
+      core_type="Tun"
       core_start_log="检测到【Dev】内核未安装，调用【Tun】内核启动..."
    fi
     
    if [ ! -f "/etc/openclash/clash" ] && [ -f "$game_core_path" ] && [ "$core_type" != "Tun" ]; then
       ln -s "$game_core_path" /etc/openclash/clash 2>/dev/null
+      core_type="Game"
       core_start_log="检测到【Dev】内核未安装，调用【Game】内核启动..."
    fi
 
