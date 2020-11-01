@@ -12,6 +12,8 @@ font_green = [[<font color="green">]]
 font_off = [[</font>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
+align_mid = [[<p align="center">]]
+align_mid_off = [[</p>]]
 
 function IsYamlFile(e)
    e=e or""
@@ -220,7 +222,7 @@ st.template="openclash/cfg_check"
 nm=tb:option(DummyValue,"name",translate("Config Alias"))
 mt=tb:option(DummyValue,"mtime",translate("Update Time"))
 sz=tb:option(DummyValue,"size",translate("Size"))
-ck=tb:option(DummyValue,"check",translate("启动参数检查"))
+ck=tb:option(DummyValue,"check",translate("Parameter Check"))
 ck.template="openclash/cfg_check"
 
 btnis=tb:option(Button,"switch",translate("Switch Config"))
@@ -323,8 +325,9 @@ local tab = {
 }
 
 s = m:section(Table, tab)
-s.anonymous=true
-s.addremove=false
+s.description = align_mid..translate("Support syntax check, press").." "..font_green..bold_on.."F11"..bold_off..font_off.." "..translate("to enter full screen editing mode")..align_mid_off
+s.anonymous = true
+s.addremove = false
 
 local conf = string.sub(luci.sys.exec("uci get openclash.config.config_path 2>/dev/null"), 1, -2)
 local dconf = "/usr/share/openclash/res/default.yaml"
