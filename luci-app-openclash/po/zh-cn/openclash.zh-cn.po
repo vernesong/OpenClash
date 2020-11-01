@@ -1074,7 +1074,10 @@ msgstr "OpenClash 主程序"
 msgid "Core Daemons"
 msgstr "OpenClash 守护程序"
 
-msgid "Core Running Mode"
+msgid "Operation Mode"
+msgstr "OpenClash 运行模式"
+
+msgid "Operation Mode"
 msgstr "OpenClash 运行模式"
 
 msgid "Yacd Control Panel"
@@ -1089,11 +1092,8 @@ msgstr "控制面板登录IP"
 msgid "Control Panel Login Port"
 msgstr "控制面板登录端口"
 
-msgid "Control Panel Login Secret"
-msgstr "控制面板登录密钥"
-
 msgid "Dashboard Control Panel"
-msgstr "Dashboard 控制面板"
+msgstr "控制面板登录密钥"
 
 msgid "Quick Operation"
 msgstr "常用操作快捷按钮"
@@ -1319,48 +1319,3 @@ msgstr "支持语法检查，按下"
 
 msgid "to enter full screen editing mode"
 msgstr "进入全屏编辑模式"
-
-msgid "Switch page to Fake-IP mode"
-msgstr "切换页面到 Fake-IP 模式"
-
-msgid "Switch page to Redir-Host mode"
-msgstr "切换页面到 Redir-Host 模式"
-
-msgid "Page has been switched to Fake-IP mode!"
-msgstr "页面已切换为Fake-IP模式！"
-
-msgid "Page has been switched to Redir-Host mode!"
-msgstr "页面已切换为Redir-Host模式！"
-
-msgid "IP Address"
-msgstr "IP 地址"
-
-msgid "Mainland"
-msgstr "国内"
-
-msgid "Abroad"
-msgstr "国内"
-
-msgid "Website Access Check"
-msgstr "网站访问检查"
-
-msgid "Baidu Search"
-msgstr "百度搜索"
-
-msgid "NetEase Music"
-msgstr "网易云音乐"
-
-msgid "Querying..."
-msgstr "查询中..."
-
-msgid "Testing..."
-msgstr "检测中..."
-
-msgid "Access Timed Out"
-msgstr "连接超时"
-
-msgid "Access Normal"
-msgstr "连接正常"
-
-msgid "Access Denied"
-msgstr "无法访问"
