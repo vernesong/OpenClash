@@ -1204,7 +1204,7 @@ raw_config_start()
    uci set openclash.config.dashboard_password="$dase" 2>/dev/null
    
    cn_port=$(grep "^ \{0,\}external-controller:" "$CONFIG_FILE" |awk -F ':' '{print $3}' |awk -F '#' '{print $1}' |tr -cd "[0-9]" 2>/dev/null)
-   uci set openclash.config.dashboard_password="$cn_port" 2>/dev/null
+   uci set openclash.config.cn_port="$cn_port" 2>/dev/null
    
    uci set openclash.config.proxy_port="$proxy_port"
    uci set openclash.config.restricted_mode=1
