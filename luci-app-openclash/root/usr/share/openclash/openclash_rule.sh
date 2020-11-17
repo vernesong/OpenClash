@@ -1,6 +1,7 @@
 #!/bin/sh
 . /usr/share/openclash/openclash_ps.sh
 . /lib/functions.sh
+. /usr/share/openclash/ruby.sh
 
    status=$(unify_ps_status "openclash_rule.sh")
    [ "$status" -gt 3 ] && exit 0
@@ -44,27 +45,16 @@
       fi
    if [ "$?" -eq "0" ] && [ "$RUlE_SOURCE" != 0 ] && [ -s "/tmp/rules.yaml" ]; then
       echo "下载成功，开始预处理规则文件..." >$START_LOG
-      sed -i "/^rules:/a\##source:${RUlE_SOURCE}" /tmp/rules.yaml >/dev/null 2>&1
       
       #处理rule_provider位置
-      rule_provider_len=$(sed -n '/^ \{0,\}rule-providers:/=' "/tmp/rules.yaml" 2>/dev/null)
-      if [ -n "$rule_provider_len" ]; then
-   	     /usr/share/openclash/yml_field_cut.sh "$rule_provider_len" "$OTHER_RULE_PROVIDER_FILE" "/tmp/rules.yaml"
-      fi 2>/dev/null
+      ruby_read "YAML.load_file('/tmp/rules.yaml')" ".select {|x| 'rule-providers' == x}.to_yaml" > "$OTHER_RULE_PROVIDER_FILE"
       #处理script位置
-      script_len=$(sed -n '/^ \{0,\}script:/=' "/tmp/rules.yaml" 2>/dev/null)
-      if [ -n "$script_len" ]; then
-   	     /usr/share/openclash/yml_field_cut.sh "$script_len" "$OTHER_SCRIPT_FILE" "/tmp/rules.yaml"
-      fi 2>/dev/null
+      ruby_read "YAML.load_file('/tmp/rules.yaml')" ".select {|x| 'script' == x}.to_yaml" > "$OTHER_SCRIPT_FILE"
       #处理备份rule位置
-      rule_bak_len=$(sed -n '/^ \{0,\}rules:/=' "/tmp/rules.yaml" 2>/dev/null)
-      if [ -n "$rule_bak_len" ]; then
-   	     /usr/share/openclash/yml_field_cut.sh "$rule_bak_len" "$OTHER_RULE_FILE" "/tmp/rules.yaml"
-      fi 2>/dev/null
+      ruby_read "YAML.load_file('/tmp/rules.yaml')" ".select {|x| 'rules' == x}.to_yaml" > "$OTHER_RULE_FILE"
       #合并
       cat "$OTHER_RULE_PROVIDER_FILE" "$OTHER_SCRIPT_FILE" "$OTHER_RULE_FILE" > "/tmp/rules.yaml" 2>/dev/null
       rm -rf /tmp/other_rule* 2>/dev/null
-      rm -rf /tmp/yaml_general 2>/dev/null
       
       echo "检查下载的规则文件是否有更新..." >$START_LOG
       cmp -s /usr/share/openclash/res/"$RUlE_SOURCE".yaml /tmp/rules.yaml
