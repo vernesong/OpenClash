@@ -157,6 +157,11 @@ do
    #che_interval
    provider_che_interval=$(ruby_read "$proxy_hash" "['proxy-providers'].values[$provider_count]['health-check']['interval']")
    
+   if [ -z "$provider_name" ] || [ -z "$provider_type" ]; then
+      let provider_count++
+      continue
+   fi
+   
    echo "正在读取【$CONFIG_NAME】-【$provider_name】代理集配置..." >$START_LOG
    
    #代理集存在时获取代理集编号
@@ -373,6 +378,11 @@ while [ "$count" -lt "$num" ]
 do
    #name
    server_name=$(ruby_read "$proxy_hash" "['proxies'][$count]['name']")
+   
+   if [ -z "$server_name" ]; then
+      let count++
+      continue
+   fi
    
    config_load "openclash"
    config_foreach server_key_get "config_subscribe"

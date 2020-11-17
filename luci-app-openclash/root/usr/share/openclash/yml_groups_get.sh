@@ -124,7 +124,7 @@ if [ -z "$num" ]; then
    exit 0
 fi
 
-while [ $count -lt "$num" ]
+while [ "$count" -lt "$num" ]
 do
 	
    #type
@@ -141,6 +141,11 @@ do
    group_test_interval=$(ruby_read "$group_hash" "['proxy-groups'][$count]['interval']")
    #test_tolerance
    group_test_tolerance=$(ruby_read "$group_hash" "['proxy-groups'][$count]['tolerance']")
+   
+   if [ -z "$group_type" ] || [ -z "$group_name" ]; then
+      let count++
+      continue
+   fi
 
    echo "正在读取【$CONFIG_NAME】-【$group_type】-【$group_name】策略组配置..." > $START_LOG
    
