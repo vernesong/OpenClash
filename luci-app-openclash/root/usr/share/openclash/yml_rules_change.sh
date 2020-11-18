@@ -2,59 +2,78 @@
 . /lib/functions.sh
 . /usr/share/openclash/ruby.sh
 
-SCRIPT_FILE="/tmp/yaml_script.yaml"
-APPEND_RULE_FILE="/tmp/yaml_append_rule.yaml"
-OTHER_RULE_FILE="/tmp/yaml_other_rule.yaml"
-
 /usr/share/openclash/yml_groups_name_get.sh
 
 yml_other_set()
 {
-	 CONFIG_HASH=$4
-	 if [ "$3" = 1 ]; then
-   	  if [ -n "$(ruby_read "$CONFIG_HASH" "['rules']")" ]; then
-   	  	 if [ -n "$(ruby_read "YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')" ".to_yaml")" ]; then
-            CONFIG_HASH=$(ruby_arr_add_file "$CONFIG_HASH" "['rules']" "0" "/etc/openclash/custom/openclash_custom_rules.list")
-         fi
-         if [ -n "$(ruby_read "YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list')" ".to_yaml")" ]; then
-            ruby_add_index=$(ruby_read "$CONFIG_HASH" "['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)")
-            [ -z "$ruby_add_index" ] && ruby_add_index="-1"
-            CONFIG_HASH=$(ruby_arr_add_file "$CONFIG_HASH" "['rules']" "$ruby_add_index" "/etc/openclash/custom/openclash_custom_rules_2.list")
-         fi
+   ruby -ryaml -E UTF-8 -e "Value = $4;
+   if $3 == 1 then
+      if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+         if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
+            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
+            if Value_1 != false then
+               Value_2 = Value_1.reverse!
+               Value_2.each{|x| Value['rules'].insert(0,x)}
+               Value['rules']=Value['rules'].uniq
+            end
+         end
+         if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
+            Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list')
+            if Value_3 != false then
+               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
+               ruby_add_index ||= -1
+               Value_4 = Value_3.reverse!
+               Value_4.each{|x| Value['rules'].insert(ruby_add_index,x)}
+               Value['rules']=Value['rules'].uniq
+            end
+         end
       else
-         CONFIG_HASH=$(ruby_cover "$CONFIG_HASH" "['rules']" "/etc/openclash/custom/openclash_custom_rules.list")
-         CONFIG_HASH=$(ruby_cover "$CONFIG_HASH" "['rules']" "/etc/openclash/custom/openclash_custom_rules_2.list")
-      fi
-   fi
-
-   if [ "$7" = 1 ] && [ -n "$(ruby_read "$CONFIG_HASH" "['rules']")" ]; then
-      cat >> "$APPEND_RULE_FILE" <<-EOF
-- DOMAIN-KEYWORD,tracker,DIRECT
-- DOMAIN-KEYWORD,announce.php?passkey=,DIRECT
-- DOMAIN-KEYWORD,torrent,DIRECT
-- DOMAIN-KEYWORD,peer_id=,DIRECT
-- DOMAIN-KEYWORD,info_hash,DIRECT
-- DOMAIN-KEYWORD,get_peers,DIRECT
-- DOMAIN-KEYWORD,find_node,DIRECT
-- DOMAIN-KEYWORD,BitTorrent,DIRECT
-- DOMAIN-KEYWORD,announce_peer,DIRECT
-EOF
-      ruby_add_index=$(ruby_read "$CONFIG_HASH" "['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)")
-      [ -z "$ruby_add_index" ] && ruby_add_index="-1"
-      CONFIG_HASH=$(ruby_arr_add_file "$CONFIG_HASH" "['rules']" "$ruby_add_index" "$APPEND_RULE_FILE")
-      CONFIG_HASH=$(ruby_edit "$CONFIG_HASH" "['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}")
-   fi
-
-	 if [ -n "$(ruby_read "$CONFIG_HASH" "['rules']")" ]; then
-      if [ -z "$(ruby_read "$CONFIG_HASH" "['rules'].grep(/(?=.*198.18)(?=.*REJECT)/)")" ]; then
-         ruby_add_index=$(ruby_read "$CONFIG_HASH" "['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)")
-         [ -z "$ruby_add_index" ] && ruby_add_index="-1"
-         CONFIG_HASH=$(ruby_arr_insert "$CONFIG_HASH" "['rules']" "$ruby_add_index" "IP-CIDR,198.18.0.1/16,REJECT,no-resolve")
-      fi
-   fi
-
-   ruby -ryaml -E UTF-8 -e "Value = $CONFIG_HASH; File.open('$8','w') {|f| YAML.dump(Value, f)}" 2>/dev/null
-
+         if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
+            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
+            if Value_1 != false then
+               Value['rules']=Value_1
+               Value['rules']=Value['rules'].uniq
+            end
+         end
+         if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
+            Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list')
+            if Value_2 != false then
+               if Value['rules'].to_a.empty? then
+                  Value['rules']=Value_2
+               else
+                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
+                  ruby_add_index ||= -1
+                  Value_3 = Value_2.reverse!
+                  Value_3.each{|x| Value['rules'].insert(ruby_add_index,x)}
+               end
+               Value['rules']=Value['rules'].uniq
+            end
+         end
+      end
+   end;
+   if $7 == 1 and Value.has_key?('rules') then
+      ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
+      ruby_add_index ||= -1
+      Value['rules']=Value['rules'].to_a.insert(ruby_add_index,
+      'DOMAIN-KEYWORD,tracker,DIRECT',
+      'DOMAIN-KEYWORD,announce.php?passkey=,DIRECT',
+      'DOMAIN-KEYWORD,torrent,DIRECT',
+      'DOMAIN-KEYWORD,peer_id=,DIRECT',
+      'DOMAIN-KEYWORD,info_hash,DIRECT',
+      'DOMAIN-KEYWORD,get_peers,DIRECT',
+      'DOMAIN-KEYWORD,find_node,DIRECT',
+      'DOMAIN-KEYWORD,BitTorrent,DIRECT',
+      'DOMAIN-KEYWORD,announce_peer,DIRECT'
+      )
+      Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
+   end;
+   if Value.has_key?('rules') and Value['rules'].to_a.grep(/(?=.*198.18)(?=.*REJECT)/).empty? then
+      ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
+      ruby_add_index ||= -1
+      Value['rules']=Value['rules'].to_a.insert(ruby_add_index,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve')
+   end;
+   File.open('$8','w') {|f| YAML.dump(Value, f)}
+   " 2>/dev/null || ruby -ryaml -E UTF-8 -e "Value = $4; File.open('$8','w') {|f| YAML.dump(Value, f)}"
 }
 
 if [ "$2" != 0 ]; then
@@ -127,18 +146,15 @@ if [ "$2" != 0 ]; then
           CONFIG_HASH=$(ruby_edit "$CONFIG_HASH" "['rules'].clear")
        fi
        if [ "$2" = "lhie1" ]; then
-       	    cp /usr/share/openclash/res/lhie1.yaml "$9"
-       	    sed -n '/^ \{0,\}script:/,$p' "$9" > "$OTHER_RULE_FILE" 2>/dev/null
-       	    sed -i '/^ \{0,\}script:/,$d' "$9" 2>/dev/null
-       	    if [ -n "$(ruby_read "YAML.load_file('$9')" "['proxy-providers']")" ]; then
-               if [ -z "$(ruby_read "$CONFIG_HASH" "['proxy-providers']")" ]; then
-                  CONFIG_HASH=$(ruby_cover "$CONFIG_HASH" "['proxy-providers']" "$9" "['proxy-providers']")
-               else
-                  CONFIG_HASH=$(ruby_merge "$CONFIG_HASH" "['proxy-providers']" "$9" "['proxy-providers']")
-               fi
-            fi
        	    CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "Value = $CONFIG_HASH;
-       	    Value_1 = YAML.load_file('$OTHER_RULE_FILE');
+       	    Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
+       	    if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
+       	       if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+                  Value['rule-providers'].merge!(Value_1['rule-providers'])
+       	       else
+                  Value['rule-providers']=Value_1['rule-providers']
+       	       end
+       	    end;
        	    Value['script']=Value_1['script'];
        	    Value['rules']=Value_1['rules'];
        	    Value['rules'].to_a.collect!{|x|
@@ -178,18 +194,15 @@ if [ "$2" != 0 ]; then
        	    .gsub!(/#d/, '');
        	    puts Value" 2>/dev/null || echo $CONFIG_HASH)
        elif [ "$2" = "ConnersHua" ]; then
-            cp /usr/share/openclash/res/ConnersHua.yaml "$9"
-            sed -n '/^rules:/,$p' "$9" > "$OTHER_RULE_FILE" 2>/dev/null
-            sed -i '/^rules:/,$d' "$9" 2>/dev/null
-            if [ -n "$(ruby_read "YAML.load_file('$9')" "['proxy-providers']")" ]; then
-               if [ -z "$(ruby_read "$CONFIG_HASH" "['proxy-providers']")" ]; then
-                  CONFIG_HASH=$(ruby_cover "$CONFIG_HASH" "['proxy-providers']" "$9" "['proxy-providers']")
-               else
-                  CONFIG_HASH=$(ruby_merge "$CONFIG_HASH" "['proxy-providers']" "$9" "['proxy-providers']")
-               fi
-            fi
             CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "Value = $CONFIG_HASH;
-       	    Value_1 = YAML.load_file('$OTHER_RULE_FILE');
+            Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua.yaml');
+       	    if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
+       	       if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+                  Value['rule-providers'].merge!(Value_1['rule-providers'])
+       	       else
+                  Value['rule-providers']=Value_1['rule-providers']
+       	       end
+       	    end;
        	    Value['rules']=Value_1['rules'];
        	    Value['rules'].to_a.collect!{|x|
        	    x.to_s.gsub(/,Streaming$/, ',$GlobalTV#d')
@@ -214,6 +227,8 @@ if [ "$2" != 0 ]; then
        	    puts Value" 2>/dev/null || echo $CONFIG_HASH)
        fi
    fi
+   yml_other_set "$1" "$2" "$3" "$CONFIG_HASH" "$5" "$6" "$7" "$10"
+else
+   yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$10"
 fi
 
-yml_other_set "$1" "$2" "$3" "$CONFIG_HASH" "$5" "$6" "$7" "$10"
