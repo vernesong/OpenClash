@@ -41,7 +41,17 @@ if [ "$(ruby_read "$7" "['secret']")" != "$4" ]; then
 fi
 uci commit openclash
 
-CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "Value = $7;
+if [ "$2" = "fake-ip" ]; then
+   if [ ! -f "/tmp/openclash_fake_filter.list" ] || [ ! -z "$(grep "config servers" /etc/config/openclash 2>/dev/null)" ]; then
+      /usr/share/openclash/openclash_fake_filter.sh
+   fi
+   if [ -s "/tmp/openclash_servers_fake_filter.conf" ]; then
+      mkdir -p /tmp/dnsmasq.d
+      ln -s /tmp/openclash_servers_fake_filter.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf
+   fi
+fi
+
+ruby -ryaml -E UTF-8 -e "Value = $7;
 Value['dns']['enhanced-mode']='$2';
 if '$2' == 'fake-ip' then
    Value['dns']['fake-ip-range']='198.18.0.1/16'
@@ -79,42 +89,42 @@ if $15 == 1 or $15 == 3 then
    else
       Value['tun']['stack']='system'
    end
-   Value_2={'dns-hijack'=>['tcp://8.8.8.8:53','tcp://8.8.4.4:53']};
+   Value_2={'dns-hijack'=>['tcp://8.8.8.8:53','tcp://8.8.4.4:53']}
    Value['tun'].merge!(Value_2)
 elsif $15 == 2
    Value['tun']=Value_1['tun']
    Value['tun']['device-url']='dev://clash0'
    Value['tun']['dns-listen']='0.0.0.0:53'
 end;
-puts Value")
-
 #添加自定义Hosts设置
-	  #hash
-    if [ "$2" = "redir-host" ] && [ -n "$(ruby_read "YAML.load_file('/etc/openclash/custom/openclash_custom_hosts.list')" ".to_yaml")" ]; then
-	     CONFIG_HASH=$(ruby_edit "$CONFIG_HASH" "['dns']['use-hosts']=true")
-	     if [ -n "$(ruby_read "$CONFIG_HASH" "['hosts']")" ];then
-	        CONFIG_HASH=$(ruby_merge "$CONFIG_HASH" "['hosts']" "/etc/openclash/custom/openclash_custom_hosts.list")
-	     else
-	        CONFIG_HASH=$(ruby_cover "$CONFIG_HASH" "['hosts']" "/etc/openclash/custom/openclash_custom_hosts.list")
-	     fi
-	  fi
+if '$2' == 'redir-host' then
+   if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
+      Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_hosts.list')
+      if Value_3 != false then
+         Value['dns']['use-hosts']=true
+         if Value.has_key?('hosts') and not Value['hosts'].to_a.empty? then
+            Value['hosts'].merge!(Value_3)
+            Value['hosts'].uniq
+         else
+            Value['hosts']=Value_3
+         end
+      end
+   end
+end
 
 #fake-ip-filter
-	  if [ "$2" = "fake-ip" ]; then
-      if [ ! -f "/tmp/openclash_fake_filter.list" ] || [ ! -z "$(grep "config servers" /etc/config/openclash 2>/dev/null)" ]; then
-         /usr/share/openclash/openclash_fake_filter.sh
-      fi
-      if [ -s "/tmp/openclash_servers_fake_filter.conf" ]; then
-         mkdir -p /tmp/dnsmasq.d
-         ln -s /tmp/openclash_servers_fake_filter.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf
-      fi
-      if [ -n "$(ruby_read "YAML.load_file('/tmp/openclash_fake_filter.list')" ".to_yaml")" ]; then
-         if [ -n "$(ruby_read "$CONFIG_HASH" "['dns']['fake-ip-filter']")" ];then
-            CONFIG_HASH=$(ruby_arr_add_file "$CONFIG_HASH" "['dns']['fake-ip-filter']" "-1" "/tmp/openclash_fake_filter.list" "['fake-ip-filter']")
-         else
-            CONFIG_HASH=$(ruby_cover "$CONFIG_HASH" "['dns']['fake-ip-filter']" "/tmp/openclash_fake_filter.list" "['fake-ip-filter']")
-         fi
-      fi
-   fi
-   
-  ruby -ryaml -E UTF-8 -e "Value = $CONFIG_HASH; File.open('$19','w') {|f| YAML.dump(Value, f)}" 2>/dev/null
+if '$2' == 'fake-ip' then
+   if File::exist?('/tmp/openclash_fake_filter.list') then
+     Value_4 = YAML.load_file('/tmp/openclash_fake_filter.list')
+     if Value_4 != false then
+        if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+           Value_5 = Value_4.reverse!
+           Value_5['fake-ip-filter'].each{|x| Value['dns']['fake-ip-filter'].insert(-1,x)}
+           Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq
+        else
+           Value['dns']['fake-ip-filter']=Value_4['fake-ip-filter']
+        end
+     end
+  end
+end;
+File.open('$19','w') {|f| YAML.dump(Value, f)}" 2>/dev/null || ruby -ryaml -E UTF-8 -e "Value = $7; File.open('$19','w') {|f| YAML.dump(Value, f)}"
