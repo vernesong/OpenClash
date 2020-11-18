@@ -404,6 +404,7 @@ do
 
          if [ "$match" = "false" ]; then
             echo "跳过【$server_name】服务器节点..." >$START_LOG
+            let count++
             continue
          fi
       fi
