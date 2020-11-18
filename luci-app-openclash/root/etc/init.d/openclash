@@ -15,10 +15,7 @@ BACKUP_FILE="/etc/openclash/backup/$(uci get openclash.config.config_path 2>/dev
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
 CONFIG_FILE="/etc/openclash/$(uci get openclash.config.config_path 2>/dev/null |awk -F '/' '{print $5}' 2>/dev/null)"
-SCRIPT_BAK_FILE="/tmp/yaml_script_bak.yaml"
 RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
-RULE_PROVIDER_BAK_FILE="/tmp/yaml_rule_provider_bak.yaml"
-RULE_BAK_FILE="/tmp/yaml_rules_bak.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
 GAME_RULE_FILE="/tmp/yaml_game_rule.yaml"
 FALLBACK_FILTER_FILE="/tmp/yaml_fallback_filter_file.yaml"
@@ -192,68 +189,50 @@ yml_provider_path()
 yml_provider_check()
 {
 CONFIG_HASH=$(yml_load "$1")
-provider_path_line=$(ruby_read "$CONFIG_HASH" "['$2'].count")
-local provider_path_exist provider_path_check_num=0 i=0
-if [ -n "$provider_path_line" ]; then
-   while ( [ -n "$(pidof clash)" ] && [ "$provider_path_exist" != 1 ] && [ "$provider_path_check_num" -le 5 ] )
+provider_path_line=$(ruby_read "$CONFIG_HASH" ".key?('$2')")
+local provider_path_check provider_path_check_num=0
+if "$provider_path_line"; then
+   while ( [ -n "$(pidof clash)" ] && [ "$provider_path_check_num" -le 5 ] )
    do
-      provider_path_exist=1
-      while [ "$i" -lt "$provider_path_line" ]
-      do
-      	 provider_path=$(ruby_read "$CONFIG_HASH" "['$2'].values[$i]['path']")
-         if [ -z "$provider_path" ]; then
-         	  let i++
-            continue
-         fi
-         if [ "$(echo "${provider_path:0:1}")" = "." ]; then
-            provider_path_check="/etc/openclash/$(echo ${provider_path:2})"
-            if [ -f "$provider_path_check" ] && [ "$3" = "proxy_provider" ]; then
-               if [ -z "$(ruby_read "YAML.load_file('$provider_path_check')" "['proxies']")" ];then
-                  provider_path_exist=0
-               fi
-            elif [ "$3" = "proxy_provider" ]; then
-               provider_path_exist=0
-            fi
-            if [ -f "$provider_path_check" ] && [ "$3" = "rule_provider" ]; then
-               if [ -z "$(ruby_read "YAML.load_file('$provider_path_check')" "['payload']")" ];then
-                  provider_path_exist=0
-               fi
-            elif [ "$3" = "rule_provider" ]; then
-               provider_path_exist=0
-            fi
-         elif [ "$(echo "${provider_path:0:1}")" = "/" ]; then
-            provider_path_check="$provider_path"
-            if [ -f "$provider_path_check" ] && [ "$3" = "proxy_provider" ]; then
-               if [ -z "$(ruby_read "YAML.load_file('$provider_path_check')" "['proxies']")" ];then
-                  provider_path_exist=0
-               fi
-            elif [ "$3" = "proxy_provider" ]; then
-               provider_path_exist=0
-            fi
-            if [ -f "$provider_path_check" ] && [ "$3" = "rule_provider" ]; then
-               if [ -z "$(ruby_read "YAML.load_file('$provider_path_check')" "['payload']")" ];then
-                  provider_path_exist=0
-               fi
-            elif [ "$3" = "rule_provider" ]; then
-               provider_path_exist=0
-            fi
-         fi
-         let i++
-      done
-      let provider_path_check_num++
-      [ "$provider_path_exist" = 0 ] && sleep 2
+      provider_path_check=$(ruby -ryaml -E UTF-8 -e "
+      Value = $CONFIG_HASH;
+      Value['$2'].values.each{|x,v|
+      if not x['path'].empty? then
+         if x['path'].split('/')[0] == '.' then
+            v = '/etc/openclash/'+x['path'].split('./')[1]
+         else
+            v = x['path']
+         end
+      end;
+      if File::exist?(v) then
+         if not YAML.load_file(v).key?('$3') then
+            puts false
+            break
+         end
+      else
+         puts false
+         break
+      end
+      }
+      " 2>/dev/null)
+      if [ "$provider_path_check" = "false" ]; then
+         let provider_path_check_num++
+         sleep 2
+      else
+         break
+      fi
    done
 fi
 
-if [ -z "$(pidof clash)" ] && [ "$provider_path_exist" = 0 ]; then
-   if [ "$2" = "proxy_provider" ]; then
+if [ -z "$(pidof clash)" ] && [ -n "$provider_path_check" ]; then
+   if [ "$2" = "proxy-providers" ]; then
       echo "错误: 代理集文件下载失败，请到日志页面查看详细错误信息！" >$START_LOG
       echo "${LOGTIME} Error: Faild to Download Proxy-Provider File, Please Check The Error Info And Try Again" >> $LOG_FILE
    else
       echo "错误: 规则集文件下载失败，请到日志页面查看详细错误信息！" >$START_LOG
       echo "${LOGTIME} Error: Faild to Download Rule-Provider File, Please Check The Error Info And Try Again" >> $LOG_FILE
    fi
-   sleep 10
+   sleep 5
    start_fail
 elif [ "$provider_path_check_num" -gt 5 ]; then
    echo "警告: 代理集文件检查超时，如启动失败请到日志页面查看详细信息！" >$START_LOG
@@ -1527,8 +1506,8 @@ start()
 
    #检测proxy_provider配置文件状态
    echo "第七步: 等待主程序下载外部文件..." >$START_LOG
-   yml_provider_check "$CONFIG_FILE" "proxy-providers" "proxy_provider"
-   yml_provider_check "$CONFIG_FILE" "rule-providers" "rule_provider"
+   yml_provider_check "$CONFIG_FILE" "proxy-providers" "proxies"
+   yml_provider_check "$CONFIG_FILE" "rule-providers" "payload"
    try_restore_start
 
    echo "第八步: 设置控制面板..." >$START_LOG
