@@ -1456,6 +1456,7 @@ get_config()
    stack_type=$(uci get openclash.config.stack_type 2>/dev/null)
    china_ip_route=$(uci get openclash.config.china_ip_route 2>/dev/null)
    small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
+   mixed_port=$(uci get openclash.config.mixed_port 2>/dev/null)
    uci set openclash.config.restricted_mode=0 && uci commit openclash
 }
 
@@ -1486,7 +1487,7 @@ start()
    config_foreach yml_auth_get "authentication"
    yml_auth_custom "$CONFIG_HASH"
    yml_dns_custom "$enable_custom_dns" "$CONFIG_HASH" "$FALLBACK_FILTER_FILE"
-   /usr/share/openclash/yml_change.sh 2>/dev/null "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_HASH" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" "$dns_port" "$core_type" "$CONFIG_FILE"
+   /usr/share/openclash/yml_change.sh 2>/dev/null "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_HASH" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" "$dns_port" "$core_type" "$CONFIG_FILE" "$mixed_port"
    CONFIG_HASH=$(yml_load "$CONFIG_FILE")
    /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$CONFIG_HASH" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$RAW_CONFIG_FILE" "$RULE_PROVIDER_FILE" "$CONFIG_FILE"
    CONFIG_HASH=$(yml_load "$CONFIG_FILE")
