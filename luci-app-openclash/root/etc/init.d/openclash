@@ -777,7 +777,7 @@ do_run_file()
       core_start_log="检测到配置了【Game】内核专属功能，调用【Game】内核启动..."
    fi
 
-   if [ "$proxy_mode" = "script" ] || [ "$rule_source" = "ConnersHua" ] || [ "$rule_source" = "lhie1" ] || [ -n "$(ruby_read "$CONFIG_HASH" "Value['rules'].grep(/RULE-SET/)")" ]; then
+   if [ "$proxy_mode" = "script" ] || [ "$rule_source" = "ConnersHua" ] || [ "$rule_source" = "lhie1" ] || [ -n "$(ruby_read "$CONFIG_HASH" "['rules'].grep(/RULE-SET/)")" ]; then
       rm -rf "/etc/openclash/clash" 2>/dev/null
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
       core_type="Tun"
