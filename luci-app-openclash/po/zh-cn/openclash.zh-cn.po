@@ -358,6 +358,9 @@ msgstr "SOCKS5 代理端口"
 msgid "HTTP(S) Port"
 msgstr "HTTP(S) 代理端口"
 
+msgid "Mixed Port"
+msgstr "HTTP(S)&SOCKS5 混合代理端口"
+
 msgid "Set Authentication of SOCKS5/HTTP(S)"
 msgstr "设置SOCKS5/HTTP(S)认证信息"
 

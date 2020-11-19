@@ -164,6 +164,13 @@ o.datatype = "port"
 o.rmempty = false
 o.description = translate("Please Make Sure Ports Available")
 
+o = s:taboption("settings", Value, "mixed_port")
+o.title = translate("Mixed Port")
+o.default = 7893
+o.datatype = "port"
+o.rmempty = false
+o.description = translate("Please Make Sure Ports Available")
+
 ---- DNS Settings
 o = s:taboption("dns", ListValue, "enable_redirect_dns", font_red..bold_on..translate("Redirect Local DNS Setting")..bold_off..font_off)
 o.description = translate("Set Local DNS Redirect")
