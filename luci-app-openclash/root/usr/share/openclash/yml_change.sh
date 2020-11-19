@@ -61,6 +61,7 @@ end;
 Value['redir-port']=$6;
 Value['port']=$9;
 Value['socks-port']=$10;
+Value['mixed-port']=$20;
 Value['mode']='$13';
 Value['log-level']='$12';
 Value['allow-lan']=true;
@@ -118,8 +119,8 @@ if '$2' == 'fake-ip' then
      Value_4 = YAML.load_file('/tmp/openclash_fake_filter.list')
      if Value_4 != false then
         if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-           Value_5 = Value_4.reverse!
-           Value_5['fake-ip-filter'].each{|x| Value['dns']['fake-ip-filter'].insert(-1,x)}
+           Value_5 = Value_4['fake-ip-filter'].reverse!
+           Value_5.each{|x| Value['dns']['fake-ip-filter'].insert(-1,x)}
            Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq
         else
            Value['dns']['fake-ip-filter']=Value_4['fake-ip-filter']
