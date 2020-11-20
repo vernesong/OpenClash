@@ -971,11 +971,15 @@ if [ "$create_config" != "0" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_g
    /usr/share/openclash/yml_groups_get.sh >/dev/null 2>&1
 elif [ -z "$if_game_proxy" ]; then
    echo "服务器、代理集、策略组信息修改完成，正在更新配置文件【$CONFIG_NAME】..." >$START_LOG
-   config_hash=$(ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$CONFIG_FILE'); Value['proxies'].clear; Value['proxy-providers'].clear; Value['proxy-groups'].clear; puts Value")
-   config_hash=$(ruby_merge "$config_hash" "['proxies']" "$SERVER_FILE" "['proxies']")
-   config_hash=$(ruby_merge "$config_hash" "['proxy-providers']" "$PROXY_PROVIDER_FILE" "['proxy-providers']")
-   config_hash=$(ruby_merge "$config_hash" "['proxy-groups']" "/tmp/yaml_groups.yaml" "['proxy-groups']")
-   ruby -ryaml -E UTF-8 -e "Value = $config_hash; File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}" 2>/dev/null
+   config_hash=$(ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$CONFIG_FILE'); puts Value" 2>/dev/null)
+   if [ "$config_hash" != "false" ] && [ -n "$config_hash" ]; then
+      config_hash=$(ruby_cover "$config_hash" "['proxies']" "$SERVER_FILE" "['proxies']")
+      config_hash=$(ruby_cover "$config_hash" "['proxy-providers']" "$PROXY_PROVIDER_FILE" "['proxy-providers']")
+      config_hash=$(ruby_cover "$config_hash" "['proxy-groups']" "/tmp/yaml_groups.yaml" "['proxy-groups']")
+      ruby -ryaml -E UTF-8 -e "Value = $config_hash; File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}" 2>/dev/null
+   else
+      cat "$SERVER_FILE" "$PROXY_PROVIDER_FILE" "/tmp/yaml_groups.yaml" > "$CONFIG_FILE" 2>/dev/null
+   fi
 fi
 
 if [ -z "$if_game_proxy" ]; then

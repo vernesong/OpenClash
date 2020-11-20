@@ -7,7 +7,6 @@ status=$(unify_ps_status "yml_groups_set.sh")
 
 START_LOG="/tmp/openclash_start.log"
 GROUP_FILE="/tmp/yaml_groups.yaml"
-CONFIG_GROUP_FILE="/tmp/yaml_group.yaml"
 CFG_FILE="/etc/config/openclash"
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
