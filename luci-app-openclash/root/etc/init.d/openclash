@@ -704,7 +704,7 @@ fi
 #rm -rf "/etc/openclash/*.y*" 2>/dev/null
 cp "$RAW_CONFIG_FILE" "$CONFIG_FILE"
 CONFIG_HASH=$(yml_load "$CONFIG_FILE")
-if [ -z "$CONFIG_HASH" ]; then
+if [ -z "$CONFIG_HASH" ] || [ "$CONFIG_HASH" = "false" ]; then
    echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
    echo "${LOGTIME} Error: Unable To Parse Config File, Please Check And Try Again!" >> $LOG_FILE
    sleep 3
