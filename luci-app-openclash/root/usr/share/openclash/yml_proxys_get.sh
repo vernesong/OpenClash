@@ -417,7 +417,7 @@ do
    fi
    
    #type
-   server_type=$(ruby_read_hashv "$proxy_hash" "['proxies'][$count]['type']")
+   server_type=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['type']")
    #server
    server=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['server']")
    #port
