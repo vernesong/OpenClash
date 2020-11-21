@@ -117,6 +117,7 @@ match_group_file="/tmp/Proxy_Group"
 #提取策略组部分
 group_hash=$(ruby_read "$CONFIG_FILE" ".select {|x| 'proxy-groups' == x}")
 num=$(ruby_read_hash "$group_hash" "['proxy-groups'].count")
+
 if [ -z "$num" ]; then
    echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
    echo "${LOGTIME} Error: Unable To Parse Config File, Please Check And Try Again!" >> $LOG_FILE
@@ -126,7 +127,7 @@ fi
 
 while [ "$count" -lt "$num" ]
 do
-	
+
    #type
    group_type=$(ruby_read_hash "$group_hash" "['proxy-groups'][$count]['type']")
    #strategy
@@ -141,7 +142,7 @@ do
    group_test_interval=$(ruby_read_hash "$group_hash" "['proxy-groups'][$count]['interval']")
    #test_tolerance
    group_test_tolerance=$(ruby_read_hash "$group_hash" "['proxy-groups'][$count]['tolerance']")
-   
+
    if [ -z "$group_type" ] || [ -z "$group_name" ]; then
       let count++
       continue
@@ -166,26 +167,14 @@ do
    ${uci_set}tolerance="$group_test_tolerance"
 	 
 	 #other_group
-	 ruby_read_hash "$group_hash" "['proxy-groups'][$count]['proxies']" > $other_group_file
+	 ruby -ryaml -E UTF-8 -e "Value = $group_hash; Value_1=YAML.load_file('/tmp/Proxy_Group'); if Value['proxy-groups'][$count].key?('proxies') then Value['proxy-groups'][$count]['proxies'].each{|x| if Value_1.include?(x) then puts x end} end" 2>/dev/null > $other_group_file
 	 
 	 cat $other_group_file |while read -r line
    do
-      if [ -z "$line" ]; then
-         continue
-      fi
-      
-      if [ "$group_type" != "select" ] && [ "$group_type" != "relay" ]; then
-         if [ "$line" != "DIRECT" ] && [ "$line" != "REJECT" ]; then
-            continue
-         fi
-      fi
-      
-      if [ -n "$(grep -F "$line" "$match_group_file")" ]; then
-         if [ "$group_type" = "select" ] || [ "$group_type" = "relay" ]; then
-            ${uci_add}other_group="$line"
-         elif [ "$line" = "DIRECT" ] || [ "$line" = "REJECT" ]; then
-            ${uci_add}other_group_dr="$line"
-         fi
+      if [ "$group_type" = "select" ] || [ "$group_type" = "relay" ]; then
+         ${uci_add}other_group="$line"
+      elif [ "$line" = "DIRECT" ] || [ "$line" = "REJECT" ]; then
+         ${uci_add}other_group_dr="$line"
       fi
 	 done
    let count++

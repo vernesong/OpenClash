@@ -44,6 +44,8 @@ match_provider="/tmp/match_provider.list"
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 new_servers_group=$(uci get openclash.config.new_servers_group 2>/dev/null)
+group_names="/tmp/yaml_group_names"
+server_relays="/tmp/yaml_server_relays"
 
 #proxy
 num=$(ruby_read_hash "$proxy_hash" "['proxies'].count")
@@ -55,7 +57,6 @@ provider_count=0
 
 #group
 group_hash=$(ruby_read "$CONFIG_FILE" ".select {|x| 'proxy-groups' == x}")
-group_count=$(ruby_read_hash "$group_hash" "['proxy-groups'].count")
 
 if [ -z "$num" ] && [ -z "$provider_num" ]; then
    echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
@@ -156,7 +157,7 @@ do
    provider_che_url=$(ruby_read_hash "$proxy_hash" "['proxy-providers'].values[$provider_count]['health-check']['url']")
    #che_interval
    provider_che_interval=$(ruby_read_hash "$proxy_hash" "['proxy-providers'].values[$provider_count]['health-check']['interval']")
-   
+
    if [ -z "$provider_name" ] || [ -z "$provider_type" ]; then
       let provider_count++
       continue
@@ -220,12 +221,11 @@ do
          config_load "openclash"
          config_list_foreach "config" "new_servers_group" cfg_new_provider_groups_get
       else
-         for ((i=0;i<$group_count;i++))
+         ruby -ryaml -E UTF-8 -e "Value = $group_hash; Value['proxy-groups'].each{|x| if x.key?('use') then if x['use'].include?('$provider_name') then puts x['name'] end end}" 2>/dev/null > $group_names
+         cat $group_names | while read -r line
          do
-            if "$(ruby_read_hash "$group_hash" "['proxy-groups'][$i]['use'].include?('$provider_name')")"; then
-               ${uci_add}groups="$(ruby_read_hash "$group_hash" "['proxy-groups'][$i]['name']")"
-            fi
-	       done 2>/dev/null
+            ${uci_add}groups="$line"
+         done 2>/dev/null
 	    fi
    fi
    uci commit openclash
@@ -378,7 +378,7 @@ while [ "$count" -lt "$num" ]
 do
    #name
    server_name=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['name']")
-   
+
    if [ -z "$server_name" ]; then
       let count++
       continue
@@ -529,7 +529,7 @@ do
    fi
 
    echo "正在读取【$CONFIG_NAME】-【$server_type】-【$server_name】服务器节点配置..." > "$START_LOG"
-   
+
    if [ "$servers_update" -eq 1 ] && [ ! -z "$server_num" ]; then
 #更新已有节点
       uci_set="uci -q set openclash.@servers["$server_num"]."
@@ -722,27 +722,17 @@ do
         config_load "openclash"
         config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_get
      else
-        for ((i=0;i<$group_count;i++))
+        ruby -ryaml -E UTF-8 -e "Value = $group_hash; Value['proxy-groups'].each{|x| if x.key?('proxies') then if x['proxies'].include?('$server_name') then puts x['name'] end end}" 2>/dev/null > $group_names
+        ruby -ryaml -E UTF-8 -e "Value = $group_hash; Value['proxy-groups'].each{|x| if x['type']=='relay' then if x['proxies'].include?('$server_name') then print x['name']; print '#relay#'; puts x['proxies'].index('$server_name') end end}" 2>/dev/null > $server_relays
+        cat $group_names | while read -r line
         do
-           group_type=$(ruby_read_hash "$group_hash" "['proxy-groups'][$i]['type']")
-           proxies=$(ruby_read_hash "$group_hash" "['proxy-groups'][$i]['proxies']")
-           if "$(ruby_read_hash "$group_hash" "['proxy-groups'][$i]['proxies'].include?('$server_name')")"; then
-           	  group_name=$(ruby_read_hash "$group_hash" "['proxy-groups'][$i]['name']")
-              if [ "$group_type" = "relay" ]; then
-                 s=1
-                 for server_relay in $proxies; do
-                    if [ "$server_relay" = "$server_name" ]; then
-                       ${uci_add}groups="$group_name"
-                       ${uci_add}relay_groups="$group_name#relay#$s"
-                    else
-                       let s++
-                    fi
-                 done 2>/dev/null
-              else
-                 ${uci_add}groups="$group_name"
-              fi
-           fi
-	      done 2>/dev/null
+           ${uci_add}groups="$line"
+        done 2>/dev/null
+        
+        cat $server_relays | while read -r line
+        do
+           ${uci_add}relay_groups="$server_relay"
+        done 2>/dev/null
      fi
    fi
    uci commit openclash
@@ -753,7 +743,7 @@ done 2>/dev/null
 if [ "$servers_if_update" = "1" ]; then
      echo "删除【$CONFIG_NAME】订阅中已不存在的节点..." >$START_LOG
      sed -i '/#match#/d' "$match_servers" 2>/dev/null
-     cat $match_servers |awk -F '.' '{print $1}' |sort -rn |while read line
+     cat $match_servers |awk -F '.' '{print $1}' |sort -rn |while read -r line
      do
         if [ -z "$line" ]; then
            continue
@@ -773,3 +763,5 @@ echo "" >$START_LOG
 rm -rf /tmp/match_servers.list 2>/dev/null
 rm -rf /tmp/match_provider.list 2>/dev/null
 rm -rf /tmp/yaml_other_group.yaml 2>/dev/null
+rm -rf $group_names
+rm -rf $server_relays
