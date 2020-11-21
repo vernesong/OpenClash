@@ -290,7 +290,7 @@ sub_info_get()
 
    config_download
 
-   if [ "$?" -eq 0 ] && [ -s "$CFG_FILE" ] && [ -n "$(ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$CFG_FILE'); puts Value")" ]; then
+   if [ "$?" -eq 0 ] && [ -s "$CFG_FILE" ] && [ -n "$(ruby_read "$CFG_FILE" "['proxy-groups']")" ]; then
    	  config_su_check
    else
       config_download_direct

@@ -51,7 +51,7 @@ if [ "$2" = "fake-ip" ]; then
    fi
 fi
 
-ruby -ryaml -E UTF-8 -e "Value = $7;
+ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$7');
 Value['dns']['enhanced-mode']='$2';
 if '$2' == 'fake-ip' then
    Value['dns']['fake-ip-range']='198.18.0.1/16'
@@ -61,7 +61,7 @@ end;
 Value['redir-port']=$6;
 Value['port']=$9;
 Value['socks-port']=$10;
-Value['mixed-port']=$20;
+Value['mixed-port']=$19;
 Value['mode']='$13';
 Value['log-level']='$12';
 Value['allow-lan']=true;
@@ -128,4 +128,4 @@ if '$2' == 'fake-ip' then
      end
   end
 end;
-File.open('$19','w') {|f| YAML.dump(Value, f)}" 2>/dev/null || ruby -ryaml -E UTF-8 -e "Value = $7; File.open('$19','w') {|f| YAML.dump(Value, f)}"
+File.open('$7','w') {|f| YAML.dump(Value, f)}" 2>/dev/null

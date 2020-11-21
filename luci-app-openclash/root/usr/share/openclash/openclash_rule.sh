@@ -43,7 +43,7 @@
       echo "下载成功，开始预处理规则文件..." >$START_LOG
       
       #取出规则部分
-      ruby_read "YAML.load_file('/tmp/rules.yaml')" ".select {|x| 'rule-providers' == x or 'script' == x or 'rules' == x }.to_yaml" > "$OTHER_RULE_FILE"
+      ruby_read "/tmp/rules.yaml" ".select {|x| 'rule-providers' == x or 'script' == x or 'rules' == x }.to_yaml" > "$OTHER_RULE_FILE"
       #合并
       cat "$OTHER_RULE_FILE" > "/tmp/rules.yaml" 2>/dev/null
       rm -rf /tmp/other_rule* 2>/dev/null
