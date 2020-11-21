@@ -115,8 +115,8 @@ fi
 count=0
 match_group_file="/tmp/Proxy_Group"
 #提取策略组部分
-group_hash=$(ruby_read "YAML.load_file('$CONFIG_FILE')" ".select {|x| 'proxy-groups' == x}")
-num=$(ruby_read "$group_hash" "['proxy-groups'].count")
+group_hash=$(ruby_read "$CONFIG_FILE" ".select {|x| 'proxy-groups' == x}")
+num=$(ruby_read_hash "$group_hash" "['proxy-groups'].count")
 if [ -z "$num" ]; then
    echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
    echo "${LOGTIME} Error: Unable To Parse Config File, Please Check And Try Again!" >> $LOG_FILE
@@ -128,19 +128,19 @@ while [ "$count" -lt "$num" ]
 do
 	
    #type
-   group_type=$(ruby_read "$group_hash" "['proxy-groups'][$count]['type']")
+   group_type=$(ruby_read_hash "$group_hash" "['proxy-groups'][$count]['type']")
    #strategy
-   group_strategy=$(ruby_read "$group_hash" "['proxy-groups'][$count]['strategy']")
+   group_strategy=$(ruby_read_hash "$group_hash" "['proxy-groups'][$count]['strategy']")
    #name
-   group_name=$(ruby_read "$group_hash" "['proxy-groups'][$count]['name']")
+   group_name=$(ruby_read_hash "$group_hash" "['proxy-groups'][$count]['name']")
    #disable-udp
-   group_disable_udp=$(ruby_read "$group_hash" "['proxy-groups'][$count]['disable-udp']")
+   group_disable_udp=$(ruby_read_hash "$group_hash" "['proxy-groups'][$count]['disable-udp']")
    #test_url
-   group_test_url=$(ruby_read "$group_hash" "['proxy-groups'][$count]['url']")
+   group_test_url=$(ruby_read_hash "$group_hash" "['proxy-groups'][$count]['url']")
    #test_interval
-   group_test_interval=$(ruby_read "$group_hash" "['proxy-groups'][$count]['interval']")
+   group_test_interval=$(ruby_read_hash "$group_hash" "['proxy-groups'][$count]['interval']")
    #test_tolerance
-   group_test_tolerance=$(ruby_read "$group_hash" "['proxy-groups'][$count]['tolerance']")
+   group_test_tolerance=$(ruby_read_hash "$group_hash" "['proxy-groups'][$count]['tolerance']")
    
    if [ -z "$group_type" ] || [ -z "$group_name" ]; then
       let count++
@@ -166,7 +166,7 @@ do
    ${uci_set}tolerance="$group_test_tolerance"
 	 
 	 #other_group
-	 ruby_read "$group_hash" "['proxy-groups'][$count]['proxies']" > $other_group_file
+	 ruby_read_hash "$group_hash" "['proxy-groups'][$count]['proxies']" > $other_group_file
 	 
 	 cat $other_group_file |while read -r line
    do
