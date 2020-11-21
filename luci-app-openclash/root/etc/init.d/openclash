@@ -182,7 +182,8 @@ yml_provider_path()
    CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "Value = $1;
    Value['$2'].values.each{|x,v|
    unless x['path'].include? '$3'
-   then v=File.basename(x['path']); x['path']='./$3/'+v; end}; puts Value" 2>/dev/null || echo $1)
+   then v=File.basename(x['path']); x['path']='./$3/'+v; end}; puts Value
+   " 2>/dev/null || echo "$1")
 }
 
 #检查集文件防止启动失败
@@ -463,7 +464,7 @@ else
    Value['rules'] = Value_1
 end;
 puts Value
-" 2>/dev/null || echo $CONFIG_HASH)
+" 2>/dev/null || echo "$CONFIG_HASH")
 }
 
 #处理游戏节点与策略组
@@ -500,7 +501,7 @@ if File::exist?('/tmp/yaml_provider.yaml') then
    end
 end;
 puts Value
-" 2>/dev/null || echo $CONFIG_HASH)
+" 2>/dev/null || echo "$CONFIG_HASH")
 }
 
 yml_rule_set_add()
@@ -520,7 +521,7 @@ else
    Value.merge!(Value_1);
 end;
 puts Value
-" 2>/dev/null || echo $CONFIG_HASH)
+" 2>/dev/null || echo "$CONFIG_HASH")
 }
 
 yml_gen_rule_provider_file()
@@ -667,7 +668,7 @@ yml_custom_rule_provider()
          Value['rule-providers']=Value_1
       end;
       puts Value
-      " 2>/dev/null || echo $CONFIG_HASH)
+      " 2>/dev/null || echo "$CONFIG_HASH")
    fi
 }
 
@@ -1495,7 +1496,7 @@ start()
    yml_game_custom
    yml_provider_path "$CONFIG_HASH" "proxy-providers" "proxy_provider"
    yml_provider_path "$CONFIG_HASH" "rule-providers" "rule_provider"
-
+   
    echo "第四步: 应用配置文件修改..." >$START_LOG
    yml_trans "$CONFIG_HASH"
 
