@@ -192,7 +192,7 @@ if [ "$2" != 0 ]; then
        	    .gsub!(/return \"Domestic\"$/, 'return \"$Domestic#d\"')
        	    .gsub!(/return \"Others\"$/, 'return \"$Others#d\"')
        	    .gsub!(/#d/, '');
-       	    puts Value" 2>/dev/null || echo $CONFIG_HASH)
+       	    puts Value" 2>/dev/null || echo "$CONFIG_HASH")
        elif [ "$2" = "ConnersHua" ]; then
             CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "Value = $CONFIG_HASH;
             Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua.yaml');
@@ -214,7 +214,7 @@ if [ "$2" != 0 ]; then
        	    .gsub(/,MATCH$/, ',$Others#d')
        	    .gsub(/#d/, '')
        	    };
-       	    puts Value" 2>/dev/null || echo $CONFIG_HASH)
+       	    puts Value" 2>/dev/null || echo "$CONFIG_HASH")
        else
             CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "Value = $CONFIG_HASH;
        	    Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua_return.yaml');
@@ -224,7 +224,7 @@ if [ "$2" != 0 ]; then
        	    .gsub(/MATCH,DIRECT$/, 'MATCH,$Others#d')
        	    .gsub(/#d/, '')
        	    };
-       	    puts Value" 2>/dev/null || echo $CONFIG_HASH)
+       	    puts Value" 2>/dev/null || echo "$CONFIG_HASH")
        fi
    fi
    yml_other_set "$1" "$2" "$3" "$CONFIG_HASH" "$5" "$6" "$7" "$10"
