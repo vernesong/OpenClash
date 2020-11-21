@@ -36,7 +36,7 @@ elif [ ! -s "$CONFIG_FILE" ] && [ -s "$BACKUP_FILE" ]; then
 fi
 
 #提取节点部分
-proxy_hash=$(ruby_read "YAML.load_file('$CONFIG_FILE')" ".select {|x| 'proxies' == x or 'proxy-providers' == x}")
+proxy_hash=$(ruby_read "$CONFIG_FILE" ".select {|x| 'proxies' == x or 'proxy-providers' == x}")
 
 CFG_FILE="/etc/config/openclash"
 match_servers="/tmp/match_servers.list"
@@ -46,16 +46,16 @@ servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
 new_servers_group=$(uci get openclash.config.new_servers_group 2>/dev/null)
 
 #proxy
-num=$(ruby_read "$proxy_hash" "['proxies'].count")
+num=$(ruby_read_hash "$proxy_hash" "['proxies'].count")
 count=0
 
 #provider
-provider_num=$(ruby_read "$proxy_hash" "['proxy-providers'].count")
+provider_num=$(ruby_read_hash "$proxy_hash" "['proxy-providers'].count")
 provider_count=0
 
 #group
-group_hash=$(ruby_read "YAML.load_file('$CONFIG_FILE')" ".select {|x| 'proxy-groups' == x}")
-group_count=$(ruby_read "$group_hash" "['proxy-groups'].count")
+group_hash=$(ruby_read "$CONFIG_FILE" ".select {|x| 'proxy-groups' == x}")
+group_count=$(ruby_read_hash "$group_hash" "['proxy-groups'].count")
 
 if [ -z "$num" ] && [ -z "$provider_num" ]; then
    echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
@@ -141,21 +141,21 @@ config_foreach yml_provider_name_get "proxy-provider"
 while [ "$provider_count" -lt "$provider_num" ]
 do
    #name
-   provider_name=$(ruby_read "$proxy_hash" "['proxy-providers'].keys[$provider_count]")
+   provider_name=$(ruby_read_hash "$proxy_hash" "['proxy-providers'].keys[$provider_count]")
    #type
-   provider_type=$(ruby_read "$proxy_hash" "['proxy-providers'].values[$provider_count]['type']")
+   provider_type=$(ruby_read_hash "$proxy_hash" "['proxy-providers'].values[$provider_count]['type']")
    #path
-   provider_path=$(ruby_read "$proxy_hash" "['proxy-providers'].values[$provider_count]['path']")
+   provider_path=$(ruby_read_hash "$proxy_hash" "['proxy-providers'].values[$provider_count]['path']")
    #gen_url
-   provider_gen_url=$(ruby_read "$proxy_hash" "['proxy-providers'].values[$provider_count]['url']")
+   provider_gen_url=$(ruby_read_hash "$proxy_hash" "['proxy-providers'].values[$provider_count]['url']")
    #gen_interval
-   provider_gen_interval=$(ruby_read "$proxy_hash" "['proxy-providers'].values[$provider_count]['interval']")
+   provider_gen_interval=$(ruby_read_hash "$proxy_hash" "['proxy-providers'].values[$provider_count]['interval']")
    #che_enable
-   provider_che_enable=$(ruby_read "$proxy_hash" "['proxy-providers'].values[$provider_count]['health-check']['enable']")
+   provider_che_enable=$(ruby_read_hash "$proxy_hash" "['proxy-providers'].values[$provider_count]['health-check']['enable']")
    #che_url
-   provider_che_url=$(ruby_read "$proxy_hash" "['proxy-providers'].values[$provider_count]['health-check']['url']")
+   provider_che_url=$(ruby_read_hash "$proxy_hash" "['proxy-providers'].values[$provider_count]['health-check']['url']")
    #che_interval
-   provider_che_interval=$(ruby_read "$proxy_hash" "['proxy-providers'].values[$provider_count]['health-check']['interval']")
+   provider_che_interval=$(ruby_read_hash "$proxy_hash" "['proxy-providers'].values[$provider_count]['health-check']['interval']")
    
    if [ -z "$provider_name" ] || [ -z "$provider_type" ]; then
       let provider_count++
@@ -222,8 +222,8 @@ do
       else
          for ((i=0;i<$group_count;i++))
          do
-            if "$(ruby_read "$group_hash" "['proxy-groups'][$i]['use'].include?('$provider_name')")"; then
-               ${uci_add}groups="$(ruby_read "$group_hash" "['proxy-groups'][$i]['name']")"
+            if "$(ruby_read_hash "$group_hash" "['proxy-groups'][$i]['use'].include?('$provider_name')")"; then
+               ${uci_add}groups="$(ruby_read_hash "$group_hash" "['proxy-groups'][$i]['name']")"
             fi
 	       done 2>/dev/null
 	    fi
@@ -377,7 +377,7 @@ config_foreach yml_servers_name_get "servers"
 while [ "$count" -lt "$num" ]
 do
    #name
-   server_name=$(ruby_read "$proxy_hash" "['proxies'][$count]['name']")
+   server_name=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['name']")
    
    if [ -z "$server_name" ]; then
       let count++
@@ -417,115 +417,115 @@ do
    fi
    
    #type
-   server_type=$(ruby_read "$proxy_hash" "['proxies'][$count]['type']")
+   server_type=$(ruby_read_hashv "$proxy_hash" "['proxies'][$count]['type']")
    #server
-   server=$(ruby_read "$proxy_hash" "['proxies'][$count]['server']")
+   server=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['server']")
    #port
-   port=$(ruby_read "$proxy_hash" "['proxies'][$count]['port']")
+   port=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['port']")
    #udp
-   udp=$(ruby_read "$proxy_hash" "['proxies'][$count]['udp']")
+   udp=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['udp']")
    
    if [ "$server_type" = "ss" ]; then
       #cipher
-      cipher=$(ruby_read "$proxy_hash" "['proxies'][$count]['cipher']")
+      cipher=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['cipher']")
       #password
-      password=$(ruby_read "$proxy_hash" "['proxies'][$count]['password']")
+      password=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['password']")
       #plugin:
-      plugin=$(ruby_read "$proxy_hash" "['proxies'][$count]['plugin']")
+      plugin=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['plugin']")
       #path:
-      path=$(ruby_read "$proxy_hash" "['proxies'][$count]['plugin-opts']['path']")
+      path=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['plugin-opts']['path']")
       #mode:
-      mode=$(ruby_read "$proxy_hash" "['proxies'][$count]['plugin-opts']['mode']")
+      mode=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['plugin-opts']['mode']")
       #host:
-      host=$(ruby_read "$proxy_hash" "['proxies'][$count]['plugin-opts']['host']")
+      host=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['plugin-opts']['host']")
       #mux:
-      mux=$(ruby_read "$proxy_hash" "['proxies'][$count]['plugin-opts']['mux']")
+      mux=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['plugin-opts']['mux']")
       #headers_custom:
-      headers=$(ruby_read "$proxy_hash" "['proxies'][$count]['plugin-opts']['headers']['custom']")
+      headers=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['plugin-opts']['headers']['custom']")
       #obfs:
-      obfs=$(ruby_read "$proxy_hash" "['proxies'][$count]['obfs']")
+      obfs=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['obfs']")
       #obfs-host:
-      obfs_host=$(ruby_read "$proxy_hash" "['proxies'][$count]['obfs-host']")
+      obfs_host=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['obfs-host']")
       #tls:
-      tls=$(ruby_read "$proxy_hash" "['proxies'][$count]['plugin-opts']['tls']")
+      tls=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['plugin-opts']['tls']")
       #skip-cert-verify:
-      verify=$(ruby_read "$proxy_hash" "['proxies'][$count]['plugin-opts']['skip-cert-verify']")
+      verify=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['plugin-opts']['skip-cert-verify']")
    fi
    
    if [ "$server_type" = "ssr" ]; then
       #cipher
-      cipher=$(ruby_read "$proxy_hash" "['proxies'][$count]['cipher']")
+      cipher=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['cipher']")
       #password
-      password=$(ruby_read "$proxy_hash" "['proxies'][$count]['password']")
+      password=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['password']")
       #obfs:
-      obfs=$(ruby_read "$proxy_hash" "['proxies'][$count]['obfs']")
+      obfs=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['obfs']")
       #protocol:
-      protocol=$(ruby_read "$proxy_hash" "['proxies'][$count]['protocol']")
+      protocol=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['protocol']")
       #obfs-param:
-      obfs_param=$(ruby_read "$proxy_hash" "['proxies'][$count]['obfs-param']")
+      obfs_param=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['obfs-param']")
       #protocol-param:
-      protocol_param=$(ruby_read "$proxy_hash" "['proxies'][$count]['protocol-param']")
+      protocol_param=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['protocol-param']")
    fi
    
    if [ "$server_type" = "vmess" ]; then
       #uuid:
-      uuid=$(ruby_read "$proxy_hash" "['proxies'][$count]['uuid']")
+      uuid=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['uuid']")
       #alterId:
-      alterId=$(ruby_read "$proxy_hash" "['proxies'][$count]['alterId']")
+      alterId=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['alterId']")
       #cipher
-      cipher=$(ruby_read "$proxy_hash" "['proxies'][$count]['cipher']")
+      cipher=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['cipher']")
       #servername
-      servername=$(ruby_read "$proxy_hash" "['proxies'][$count]['servername']")
+      servername=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['servername']")
       #network:
-      network=$(ruby_read "$proxy_hash" "['proxies'][$count]['network']")
+      network=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['network']")
       #ws-path:
-      ws_path=$(ruby_read "$proxy_hash" "['proxies'][$count]['ws-path']")
+      ws_path=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['ws-path']")
       #Host:
-      Host=$(ruby_read "$proxy_hash" "['proxies'][$count]['ws-headers']['Host']")
+      Host=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['ws-headers']['Host']")
       #http_paths:
-      http_paths=$(ruby_read "$proxy_hash" "['proxies'][$count]['http-opts']['path']")
+      http_paths=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['http-opts']['path']")
       #tls:
-      tls=$(ruby_read "$proxy_hash" "['proxies'][$count]['tls']")
+      tls=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['tls']")
       #skip-cert-verify:
-      verify=$(ruby_read "$proxy_hash" "['proxies'][$count]['skip-cert-verify']")
+      verify=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['skip-cert-verify']")
       #keep-alive
-      keep_alive=$(ruby_read "$proxy_hash" "['proxies'][$count]['http-opts']['headers']['Connection']")
+      keep_alive=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['http-opts']['headers']['Connection']")
    fi
    
    if [ "$server_type" = "socks5" ] || [ "$server_type" = "http" ]; then
       #username:
-      username=$(ruby_read "$proxy_hash" "['proxies'][$count]['username']")
+      username=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['username']")
       #password
-      password=$(ruby_read "$proxy_hash" "['proxies'][$count]['password']")
+      password=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['password']")
       #tls:
-      tls=$(ruby_read "$proxy_hash" "['proxies'][$count]['tls']")
+      tls=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['tls']")
       #skip-cert-verify:
-      verify=$(ruby_read "$proxy_hash" "['proxies'][$count]['skip-cert-verify']")
+      verify=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['skip-cert-verify']")
    fi
    
    if [ "$server_type" = "http" ]; then
       #sni:
-      sni=$(ruby_read "$proxy_hash" "['proxies'][$count]['sni']")
+      sni=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['sni']")
    fi
    
    if [ "$server_type" = "snell" ]; then
       #psk:
-      psk=$(ruby_read "$proxy_hash" "['proxies'][$count]['psk']")
+      psk=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['psk']")
       #mode:
-      mode=$(ruby_read "$proxy_hash" "['proxies'][$count]['obfs-opts']['mode']")
+      mode=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['obfs-opts']['mode']")
       #host:
-      host=$(ruby_read "$proxy_hash" "['proxies'][$count]['obfs-opts']['host']")
+      host=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['obfs-opts']['host']")
    fi
    
    if [ "$server_type" = "trojan" ]; then
       #password
-      password=$(ruby_read "$proxy_hash" "['proxies'][$count]['password']")
+      password=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['password']")
       #sni:
-      sni=$(ruby_read "$proxy_hash" "['proxies'][$count]['sni']")
+      sni=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['sni']")
       #alpn:
-      alpns=$(ruby_read "$proxy_hash" "['proxies'][$count]['alpn']")
+      alpns=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['alpn']")
       #skip-cert-verify:
-      verify=$(ruby_read "$proxy_hash" "['proxies'][$count]['skip-cert-verify']")
+      verify=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['skip-cert-verify']")
    fi
 
    echo "正在读取【$CONFIG_NAME】-【$server_type】-【$server_name】服务器节点配置..." > "$START_LOG"
@@ -724,10 +724,10 @@ do
      else
         for ((i=0;i<$group_count;i++))
         do
-           group_type=$(ruby_read "$group_hash" "['proxy-groups'][$i]['type']")
-           proxies=$(ruby_read "$group_hash" "['proxy-groups'][$i]['proxies']")
-           if "$(ruby_read "$group_hash" "['proxy-groups'][$i]['proxies'].include?('$server_name')")"; then
-           	  group_name=$(ruby_read "$group_hash" "['proxy-groups'][$i]['name']")
+           group_type=$(ruby_read_hash "$group_hash" "['proxy-groups'][$i]['type']")
+           proxies=$(ruby_read_hash "$group_hash" "['proxy-groups'][$i]['proxies']")
+           if "$(ruby_read_hash "$group_hash" "['proxy-groups'][$i]['proxies'].include?('$server_name')")"; then
+           	  group_name=$(ruby_read_hash "$group_hash" "['proxy-groups'][$i]['name']")
               if [ "$group_type" = "relay" ]; then
                  s=1
                  for server_relay in $proxies; do

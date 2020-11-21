@@ -6,7 +6,7 @@
 
 yml_other_set()
 {
-   ruby -ryaml -E UTF-8 -e "Value = $4;
+   ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$4');
    if $3 == 1 then
       if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
          if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
@@ -72,8 +72,8 @@ yml_other_set()
       ruby_add_index ||= -1
       Value['rules']=Value['rules'].to_a.insert(ruby_add_index,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve')
    end;
-   File.open('$8','w') {|f| YAML.dump(Value, f)}
-   " 2>/dev/null || ruby -ryaml -E UTF-8 -e "Value = $4; File.open('$8','w') {|f| YAML.dump(Value, f)}"
+   File.open('$4','w') {|f| YAML.dump(Value, f)}
+   " 2>/dev/null
 }
 
 if [ "$2" != 0 ]; then
@@ -95,58 +95,57 @@ if [ "$2" != 0 ]; then
    Domestic=$(uci get openclash.config.Domestic 2>/dev/null)
    Others=$(uci get openclash.config.Others 2>/dev/null)
    if [ "$2" = "ConnersHua_return" ]; then
-	    if [ -z "$(grep "$Proxy" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Others" /tmp/Proxy_Group)" ];then
+	    if [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ];then
          echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$10"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
          exit 0
 	    fi
    elif [ "$2" = "ConnersHua" ]; then
        if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$AsianTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Proxy" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Others" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Domestic" /tmp/Proxy_Group)" ]; then
+	 || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$10"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
          exit 0
        fi
    elif [ "$2" = "lhie1" ]; then
-       if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$AsianTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Proxy" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Youtube" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Apple" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Netflix" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Spotify" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Steam" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$AdBlock" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Speedtest" /tmp/Proxy_Group)" ]\
-   || [ -z "$(grep "$Telegram" /tmp/Proxy_Group)" ]\
-   || [ -z "$(grep "$Microsoft" /tmp/Proxy_Group)" ]\
-   || [ -z "$(grep "$PayPal" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Others" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep "$Domestic" /tmp/Proxy_Group)" ]; then
+       if [ -z "$(grep -F "$GlobalTV" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Youtube" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Apple" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Netflix" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Spotify" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Steam" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$AdBlock" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Speedtest" /tmp/Proxy_Group)" ]\
+   || [ -z "$(grep -F "$Telegram" /tmp/Proxy_Group)" ]\
+   || [ -z "$(grep -F "$Microsoft" /tmp/Proxy_Group)" ]\
+   || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$10"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
          exit 0
        fi
    fi
    if [ "$Proxy" = "读取错误，配置文件异常！" ]; then
       echo "${1} Warning: Can not Get The Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
-      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$10"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
       exit 0
    else
        #删除原有的部分，防止冲突
-       CONFIG_HASH=$4
-       if [ -n "$(ruby_read "$CONFIG_HASH" "['script']")" ]; then
-          CONFIG_HASH=$(ruby_edit "$CONFIG_HASH" "['script'].clear")
+       if [ -n "$(ruby_read "$4" "['script']")" ]; then
+          ruby_edit "$4" "['script'].clear"
        fi
-       if [ -n "$(ruby_read "$CONFIG_HASH" "['rules']")" ]; then
-          CONFIG_HASH=$(ruby_edit "$CONFIG_HASH" "['rules'].clear")
+       if [ -n "$(ruby_read "$4" "['rules']")" ]; then
+          ruby_edit "$4" "['rules'].clear"
        fi
        if [ "$2" = "lhie1" ]; then
-       	    CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "Value = $CONFIG_HASH;
+       	    ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$4');
        	    Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
        	    if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
        	       if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
@@ -175,7 +174,7 @@ if [ "$2" != 0 ]; then
        	    .gsub(/,Others$/, ',$Others#d')
        	    .gsub(/#d/, '')
        	    };
-       	    Value['script']['code'].gsub!(/: \"GlobalTV\"/,': \"$GlobalTV#d\"')
+       	    Value['script']['code'].to_s.gsub!(/: \"GlobalTV\"/,': \"$GlobalTV#d\"')
        	    .gsub!(/: \"AsianTV\"/,': \"$AsianTV#d\"')
        	    .gsub!(/: \"Proxy\"/,': \"$Proxy#d\"')
        	    .gsub!(/: \"YouTube\"/,': \"$Youtube#d\"')
@@ -192,9 +191,10 @@ if [ "$2" != 0 ]; then
        	    .gsub!(/return \"Domestic\"$/, 'return \"$Domestic#d\"')
        	    .gsub!(/return \"Others\"$/, 'return \"$Others#d\"')
        	    .gsub!(/#d/, '');
-       	    puts Value" 2>/dev/null || echo "$CONFIG_HASH")
+       	    File.open('$4','w') {|f| YAML.dump(Value, f)}
+       	    " 2>/dev/null
        elif [ "$2" = "ConnersHua" ]; then
-            CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "Value = $CONFIG_HASH;
+            ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$4');
             Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua.yaml');
        	    if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
        	       if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
@@ -214,9 +214,10 @@ if [ "$2" != 0 ]; then
        	    .gsub(/,MATCH$/, ',$Others#d')
        	    .gsub(/#d/, '')
        	    };
-       	    puts Value" 2>/dev/null || echo "$CONFIG_HASH")
+       	    File.open('$4','w') {|f| YAML.dump(Value, f)}
+       	    " 2>/dev/null
        else
-            CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "Value = $CONFIG_HASH;
+            ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$4');
        	    Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua_return.yaml');
        	    Value['rules']=Value_1['rules'];
        	    Value['rules'].to_a.collect!{|x|
@@ -224,11 +225,10 @@ if [ "$2" != 0 ]; then
        	    .gsub(/MATCH,DIRECT$/, 'MATCH,$Others#d')
        	    .gsub(/#d/, '')
        	    };
-       	    puts Value" 2>/dev/null || echo "$CONFIG_HASH")
+       	    File.open('$4','w') {|f| YAML.dump(Value, f)}
+       	    " 2>/dev/null
        fi
    fi
-   yml_other_set "$1" "$2" "$3" "$CONFIG_HASH" "$5" "$6" "$7" "$10"
-else
-   yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$10"
 fi
 
+yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
