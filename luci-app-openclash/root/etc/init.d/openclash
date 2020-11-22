@@ -123,6 +123,9 @@ yml_check()
    cp "$RAW_CONFIG_FILE" "$CONFIG_FILE"
    CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "puts YAML.load_file('$CONFIG_FILE')" 2>/dev/null)
    if [ -z "$CONFIG_HASH" ] || [ "$CONFIG_HASH" = "false" ]; then
+      if [ -z "$CONFIG_HASH" ]; then
+      	ruby -ryaml -E UTF-8 -e "puts YAML.load_file('$CONFIG_FILE')" >> $LOG_FILE
+      fi
       echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
       echo "${LOGTIME} Error: Unable To Parse Config File, Please Check And Try Again!" >> $LOG_FILE
       sleep 3
