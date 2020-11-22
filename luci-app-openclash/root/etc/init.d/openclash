@@ -115,18 +115,13 @@ start_fail()
    exit 0
 }
 
-yml_load()
-{
-	ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$1'); puts Value" 2>/dev/null
-}
-
 yml_check()
 {
    
    #创建启动配置
    #rm -rf "/etc/openclash/*.y*" 2>/dev/null
    cp "$RAW_CONFIG_FILE" "$CONFIG_FILE"
-   CONFIG_HASH=$(yml_load "$CONFIG_FILE")
+   CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "puts YAML.load_file('$CONFIG_FILE')" 2>/dev/null)
    if [ -z "$CONFIG_HASH" ] || [ "$CONFIG_HASH" = "false" ]; then
       echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
       echo "${LOGTIME} Error: Unable To Parse Config File, Please Check And Try Again!" >> $LOG_FILE
