@@ -3,6 +3,7 @@
 
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
+LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 
 if [ "$14" != "1" ]; then
    controller_address="0.0.0.0"
@@ -51,7 +52,14 @@ if [ "$2" = "fake-ip" ]; then
    fi
 fi
 
-ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$7');
+ruby -ryaml -E UTF-8 -e "
+begin
+   Value = YAML.load_file('$7');
+rescue Exception => e
+print '${LOGTIME} Load File Error: '
+puts e.message
+end
+begin
 Value['dns']['enhanced-mode']='$2';
 if '$2' == 'fake-ip' then
    Value['dns']['fake-ip-range']='198.18.0.1/16'
@@ -97,6 +105,11 @@ elsif $15 == 2
    Value['tun']['device-url']='dev://clash0'
    Value['tun']['dns-listen']='0.0.0.0:53'
 end;
+rescue Exception => e
+print '${LOGTIME} Set General Error: '
+puts e.message
+end
+begin
 #添加自定义Hosts设置
 if '$2' == 'redir-host' then
    if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
@@ -111,8 +124,12 @@ if '$2' == 'redir-host' then
          end
       end
    end
+end;
+rescue Exception => e
+print '${LOGTIME} Set Hosts Rules Error: '
+puts e.message
 end
-
+begin
 #fake-ip-filter
 if '$2' == 'fake-ip' then
    if File::exist?('/tmp/openclash_fake_filter.list') then
@@ -128,4 +145,9 @@ if '$2' == 'fake-ip' then
      end
   end
 end;
-File.open('$7','w') {|f| YAML.dump(Value, f)}" 2>/dev/null
+rescue Exception => e
+print '${LOGTIME} Set Fake IP Filter Error: '
+puts e.message
+ensure
+File.open('$7','w') {|f| YAML.dump(Value, f)}
+end" 2>/dev/null >> $LOG_FILE
