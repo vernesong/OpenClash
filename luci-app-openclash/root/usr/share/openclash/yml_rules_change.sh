@@ -3,13 +3,22 @@
 . /usr/share/openclash/ruby.sh
 
 /usr/share/openclash/yml_groups_name_get.sh
+LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+LOG_FILE="/tmp/openclash.log"
 
 yml_other_set()
 {
-   ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$4');
+   ruby -ryaml -E UTF-8 -e "
+   begin
+   Value = YAML.load_file('$4');
+   rescue Exception => e
+   print '${LOGTIME} Load File Error: '
+   puts e.message
+   end
+   begin
    if $3 == 1 then
       if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-         if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
+         if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
             Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
             if Value_1 != false then
                Value_2 = Value_1.reverse!
@@ -28,7 +37,7 @@ yml_other_set()
             end
          end
       else
-         if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
+         if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
             Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
             if Value_1 != false then
                Value['rules']=Value_1
@@ -51,6 +60,11 @@ yml_other_set()
          end
       end
    end;
+   rescue Exception => e
+   print '${LOGTIME} Set Custom Rules Error: '
+   puts e.message
+   end
+   begin
    if $7 == 1 and Value.has_key?('rules') then
       ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
       ruby_add_index ||= -1
@@ -67,13 +81,22 @@ yml_other_set()
       )
       Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
    end;
+   rescue Exception => e
+   print '${LOGTIME} Set Bt DIRECT Rules Error: '
+   puts e.message
+   end
+   begin
    if Value.has_key?('rules') and Value['rules'].to_a.grep(/(?=.*198.18)(?=.*REJECT)/).empty? then
       ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
       ruby_add_index ||= -1
       Value['rules']=Value['rules'].to_a.insert(ruby_add_index,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve')
    end;
+   rescue Exception => e
+   print '${LOGTIME} Set 198.18.0.1/16 REJECT Rule Error: '
+   puts e.message
+   ensure
    File.open('$4','w') {|f| YAML.dump(Value, f)}
-   " 2>/dev/null
+   end" 2>/dev/null >> $LOG_FILE
 }
 
 if [ "$2" != 0 ]; then
@@ -145,7 +168,9 @@ if [ "$2" != 0 ]; then
           ruby_edit "$4" "['rules'].clear"
        fi
        if [ "$2" = "lhie1" ]; then
-       	    ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$4');
+       	    ruby -ryaml -E UTF-8 -e "
+       	    begin
+       	    Value = YAML.load_file('$4');
        	    Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
        	    if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
        	       if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
@@ -191,10 +216,15 @@ if [ "$2" != 0 ]; then
        	    .gsub!(/return \"Domestic\"$/, 'return \"$Domestic#d\"')
        	    .gsub!(/return \"Others\"$/, 'return \"$Others#d\"')
        	    .gsub!(/#d/, '');
-       	    File.open('$4','w') {|f| YAML.dump(Value, f)}
-       	    " 2>/dev/null
+       	    File.open('$4','w') {|f| YAML.dump(Value, f)};
+       	    rescue Exception => e
+       	    print '${LOGTIME} Set lhie1 Rules Error: '
+       	    puts e.message
+       	    end" 2>/dev/null >> $LOG_FILE
        elif [ "$2" = "ConnersHua" ]; then
-            ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$4');
+            ruby -ryaml -E UTF-8 -e "
+            begin
+       	    Value = YAML.load_file('$4');
             Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua.yaml');
        	    if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
        	       if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
@@ -214,10 +244,15 @@ if [ "$2" != 0 ]; then
        	    .gsub(/,MATCH$/, ',$Others#d')
        	    .gsub(/#d/, '')
        	    };
-       	    File.open('$4','w') {|f| YAML.dump(Value, f)}
-       	    " 2>/dev/null
+       	    File.open('$4','w') {|f| YAML.dump(Value, f)};
+       	    rescue Exception => e
+       	    print '${LOGTIME} Set lhie1 Rules Error: '
+       	    puts e.message
+       	    end" 2>/dev/null >> $LOG_FILE
        else
-            ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$4');
+            ruby -ryaml -E UTF-8 -e "
+            begin
+       	    Value = YAML.load_file('$4');
        	    Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua_return.yaml');
        	    Value['rules']=Value_1['rules'];
        	    Value['rules'].to_a.collect!{|x|
@@ -225,8 +260,11 @@ if [ "$2" != 0 ]; then
        	    .gsub(/MATCH,DIRECT$/, 'MATCH,$Others#d')
        	    .gsub(/#d/, '')
        	    };
-       	    File.open('$4','w') {|f| YAML.dump(Value, f)}
-       	    " 2>/dev/null
+       	    File.open('$4','w') {|f| YAML.dump(Value, f)};
+       	    rescue Exception => e
+       	    print '${LOGTIME} Set lhie1 Rules Error: '
+       	    puts e.message
+       	    end" 2>/dev/null >> $LOG_FILE
        fi
    fi
 fi
