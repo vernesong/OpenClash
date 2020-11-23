@@ -32,7 +32,7 @@ restore_history() {
    GROUP_STATE_NUM=0
    while ( [ "$GROUP_STATE" != "200" ] && [ "$GROUP_STATE_NUM" -le 3 ] )
    do
-      sleep 3
+      sleep 1
       GROUP_STATE_NUM=$(expr "$GROUP_STATE_NUM" + 1)
       GROUP_STATE=$(GROUP_STATE "$GROUP_NAME")
    done
