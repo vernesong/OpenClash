@@ -8,11 +8,11 @@
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.2.0">
     <img src="https://img.shields.io/badge/Clash-v1.2.0-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.41.03-beta">
-    <img src="https://img.shields.io/badge/source code-v0.41.03--beta-green.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.41.04-beta">
+    <img src="https://img.shields.io/badge/source code-v0.41.04--beta-green.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.41.03-beta">
-    <img src="https://img.shields.io/badge/New Release-v0.41.03--beta-orange.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.41.04-beta">
+    <img src="https://img.shields.io/badge/New Release-v0.41.04--beta-orange.svg">
   </a>
   </p>
   
@@ -60,6 +60,8 @@
 * iptables-mod-extra
 * libcap
 * libcap-bin
+* ruby
+* ruby-yaml
 * kmod-tun(TUN模式)
 * luci-compat(Luci-19.07)
 * ip6tables-mod-nat(ipv6)
