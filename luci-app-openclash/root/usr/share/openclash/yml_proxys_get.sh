@@ -314,7 +314,8 @@ do
          `config_load 'openclash'`
          `config_list_foreach 'config' 'new_servers_group' cfg_new_provider_groups_get`
       else
-         Value['proxy-groups'].each{
+         Value_1 = $group_hash
+         Value_1['proxy-groups'].each{
          |x|
          if x.key?('use') then
             if x['use'].include?('$provider_name') then
