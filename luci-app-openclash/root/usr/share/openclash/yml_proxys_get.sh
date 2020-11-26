@@ -224,7 +224,7 @@ do
       print '${LOGTIME} Resolve Proxy-provider【${CONFIG_NAME} - ${provider_name}】 Error: '
       puts e.message
       end
-      " 2>/dev/null >> $LOG_FILE
+      " 2>/dev/null >> $LOG_FILE &
    else
    #代理集不存在时添加新代理集
       name=openclash
@@ -330,7 +330,7 @@ do
       print '${LOGTIME} Resolve Proxy-provider【${CONFIG_NAME} - ${provider_name}】 Error: '
       puts e.message
       end
-      " 2>/dev/null >> $LOG_FILE
+      " 2>/dev/null >> $LOG_FILE &
    fi
    uci commit openclash
    let provider_count++
