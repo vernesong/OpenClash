@@ -82,7 +82,7 @@ yml_servers_add()
 	      config_list_foreach "$section" "groups" set_groups "$name" "$2"
      fi
 	   
-	   if [ ! -z "$if_game_group" ]&& [ -z "$(ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$CONFIG_FILE'); Value['proxies'].each{|x| if x['name'].eql?('$name') then puts x['name'] end}" 2>/dev/null)" ]; then
+	   if [ ! -z "$if_game_group" ] && [ -z "$(ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$CONFIG_FILE'); Value['proxies'].each{|x| if x['name'].eql?('$name') then puts x['name'] end}" 2>/dev/null)" ]; then
 	      /usr/share/openclash/yml_proxys_set.sh "$name" "proxy"
 	   fi
 	fi
