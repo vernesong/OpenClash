@@ -1,1 +1,0 @@
-(self.webpackChunkyacd=self.webpackChunkyacd||[]).push([[545],{},0,[[67294,935,486,623],[73935,935,486,623]]]);
