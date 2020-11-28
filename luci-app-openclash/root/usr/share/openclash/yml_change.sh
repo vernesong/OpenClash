@@ -67,8 +67,7 @@ ruby -ryaml -E UTF-8 -e "
 begin
    Value = YAML.load_file('$7');
 rescue Exception => e
-print '${LOGTIME} Load File Error: '
-puts e.message
+puts '${LOGTIME} Load File Error: ' + e.message
 end
 begin
 Value['redir-port']=$6;
@@ -81,7 +80,20 @@ Value['allow-lan']=true;
 Value['external-controller']='$controller_address:$5';
 Value['secret']='$4';
 Value['bind-address']='$bind_address';
-Value['dns']['enable']=true;
+Value['external-ui']='/usr/share/openclash/dashboard';
+if $8 == 1 then
+   Value['dns']['ipv6']=true
+   Value['ipv6']=true
+else
+   Value['dns']['ipv6']=false
+   Value['ipv6']=false
+end;
+if not Value.key?('dns') then
+   Value_1={'dns'=>{'enable'=>true}}
+   Value['dns']=Value_1['dns']
+else
+   Value['dns']['enable']=true;
+end;
 Value['dns']['enhanced-mode']='$2';
 if '$2' == 'fake-ip' then
    Value['dns']['fake-ip-range']='198.18.0.1/16'
@@ -93,22 +105,14 @@ if $8 != 1 then
 else
    Value['dns']['listen']='0.0.0.0:$17'
 end;
-Value['external-ui']='/usr/share/openclash/dashboard';
-if $8 == 1 then
-   Value['dns']['ipv6']=true
-   Value['ipv6']=true
-else
-   Value['dns']['ipv6']=false
-   Value['ipv6']=false
-end;
-Value_1={'tun'=>{'enable'=>true}};
+Value_2={'tun'=>{'enable'=>true}};
 if $en_mode_tun == 1 or $en_mode_tun == 3 then
-   Value['tun']=Value_1['tun']
+   Value['tun']=Value_2['tun']
    Value['tun']['stack']='$stack_type'
    Value_2={'dns-hijack'=>['tcp://8.8.8.8:53','tcp://8.8.4.4:53']}
    Value['tun'].merge!(Value_2)
 elsif $en_mode_tun == 2
-   Value['tun']=Value_1['tun']
+   Value['tun']=Value_2['tun']
    Value['tun']['device-url']='dev://clash0'
    Value['tun']['dns-listen']='0.0.0.0:53'
 elsif $en_mode_tun == 0
@@ -117,8 +121,7 @@ elsif $en_mode_tun == 0
    end
 end;
 rescue Exception => e
-print '${LOGTIME} Set General Error: '
-puts e.message
+puts '${LOGTIME} Set General Error: ' + e.message
 end
 begin
 #添加自定义Hosts设置
@@ -137,8 +140,7 @@ if '$2' == 'redir-host' then
    end
 end;
 rescue Exception => e
-print '${LOGTIME} Set Hosts Rules Error: '
-puts e.message
+puts '${LOGTIME} Set Hosts Rules Error: ' + e.message
 end
 begin
 #fake-ip-filter
@@ -157,8 +159,7 @@ if '$2' == 'fake-ip' then
   end
 end;
 rescue Exception => e
-print '${LOGTIME} Set Fake IP Filter Error: '
-puts e.message
+puts '${LOGTIME} Set Fake IP Filter Error: ' + e.message
 ensure
 File.open('$7','w') {|f| YAML.dump(Value, f)}
 end" 2>/dev/null >> $LOG_FILE

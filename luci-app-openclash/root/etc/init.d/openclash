@@ -137,7 +137,19 @@ yml_check()
       cp "$1" "$2"
    fi
    
-   #检查DNS服务
+   dns_port="$(ruby_read "$1" "['dns']['listen'].split(':')[1]")"
+   if [ -z "$dns_port" ] || [ "$dns_port" -eq 53 ]; then
+      dns_port=7874
+   fi
+
+   #保存DNS端口方便后续调用
+   uci set openclash.config.dns_port="$dns_port" && uci commit openclash
+
+}
+
+yml_dns_check()
+{
+	#检查DNS服务
    if [ -z "$(ruby_read "$1" "['dns']['nameserver']")" ]; then
       echo "检测到DNS选项下的Nameserver未设置服务器，开始补全..." >$START_LOG
       echo "  nameserver:" > "$DNS_FILE" 2>/dev/null
@@ -156,15 +168,32 @@ EOF
          ruby_merge "$1" "['dns']" "$DNS_FILE"
       fi
    fi
-
-   dns_port="$(ruby_read "$1" "['dns']['listen'].split(':')[1]")"
-   if [ -z "$dns_port" ] || [ "$dns_port" -eq 53 ]; then
-      dns_port=7874
+   
+   #fallback-filter
+   if [ -n "$(ruby_read "$CONFIG_FILE" "['dns']['fallback']")" ] && [ -z "$(ruby_read "$CONFIG_FILE" "['dns']['fallback-filter']")" ]; then
+cat >> "$2" <<-EOF
+  fallback-filter:
+    geoip: true
+    ipcidr:
+      - 0.0.0.0/8
+      - 10.0.0.0/8
+      - 100.64.0.0/10
+      - 127.0.0.0/8
+      - 169.254.0.0/16
+      - 172.16.0.0/12
+      - 192.0.0.0/24
+      - 192.0.2.0/24
+      - 192.88.99.0/24
+      - 192.168.0.0/16
+      - 198.18.0.0/15
+      - 198.51.100.0/24
+      - 203.0.113.0/24
+      - 224.0.0.0/4
+      - 240.0.0.0/4
+      - 255.255.255.255/32
+EOF
    fi
-
-   #保存DNS端口方便后续调用
-   uci set openclash.config.dns_port="$dns_port" && uci commit openclash
-
+   ruby_merge "$CONFIG_FILE" "['dns']" "$2"
 }
 
 #修改集路径
@@ -195,8 +224,7 @@ yml_provider_path()
          File.open('$1','w') {|f| YAML.dump(Value, f)}
    end
    rescue Exception => e
-   print '${LOGTIME} Edit Provider Path Error: '
-   puts e.message
+   puts '${LOGTIME} Edit Provider Path Error: ' + e.message
    end
    " 2>/dev/null >> $LOG_FILE
 }
@@ -318,42 +346,21 @@ yml_dns_custom()
       config_load "openclash"
       config_foreach yml_dns_get "dns_servers"
       if [ -f "/tmp/yaml_config.namedns.yaml" ]; then
-         ruby_edit "$CONFIG_FILE" "['dns']['nameserver'].clear"
-      	 ruby_edit "$CONFIG_FILE" "['dns']['fallback'].clear"
-         ruby_merge "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.namedns.yaml"
-         ruby_merge "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.falldns.yaml"
+         if [ -z "$(ruby_read "$CONFIG_FILE" "['dns']")" ]; then
+            ruby_cover "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.namedns.yaml"
+            ruby_merge "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.falldns.yaml"
+         else
+            ruby_edit "$CONFIG_FILE" "['dns']['nameserver'].clear"
+      	    ruby_edit "$CONFIG_FILE" "['dns']['fallback'].clear"
+            ruby_merge "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.namedns.yaml"
+            ruby_merge "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.falldns.yaml"
+         fi
       else
          echo "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已停止设置自定义DNS服务器！" >$START_LOG
          echo "${LOGTIME} Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers" >>$LOG_FILE
-         sleep 3
+         sleep 2
       fi
    fi
-
-#fallback-filter
-   if [ -n "$(ruby_read "$CONFIG_FILE" "['dns']['fallback']")" ] && [ -z "$(ruby_read "$CONFIG_FILE" "['dns']['fallback-filter']")" ]; then
-cat >> "$3" <<-EOF
-  fallback-filter:
-    geoip: true
-    ipcidr:
-      - 0.0.0.0/8
-      - 10.0.0.0/8
-      - 100.64.0.0/10
-      - 127.0.0.0/8
-      - 169.254.0.0/16
-      - 172.16.0.0/12
-      - 192.0.0.0/24
-      - 192.0.2.0/24
-      - 192.88.99.0/24
-      - 192.168.0.0/16
-      - 198.18.0.0/15
-      - 198.51.100.0/24
-      - 203.0.113.0/24
-      - 224.0.0.0/4
-      - 240.0.0.0/4
-      - 255.255.255.255/32
-EOF
-   fi
-   ruby_merge "$CONFIG_FILE" "['dns']" "$3"
 }
 
 #获取认证信息
@@ -474,8 +481,7 @@ else
 end;
 File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
-print '${LOGTIME} Game Rule Merge Error: '
-puts e.message
+puts '${LOGTIME} Game Rule Merge Error: ' + e.message
 end
 " 2>/dev/null >> $LOG_FILE
 }
@@ -516,8 +522,7 @@ if File::exist?('/tmp/yaml_provider.yaml') then
 end;
 File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
-print '${LOGTIME} Game Proxy Merge Error: '
-puts e.message
+puts '${LOGTIME} Game Proxy Merge Error: ' + e.message
 end" 2>/dev/null >> $LOG_FILE
 }
 
@@ -540,8 +545,7 @@ else
 end;
 File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
-print '${LOGTIME} Rule Set Add Error: '
-puts e.message
+puts '${LOGTIME} Rule Set Add Error: ' + e.message
 end
 " 2>/dev/null >> $LOG_FILE
 }
@@ -692,8 +696,7 @@ yml_custom_rule_provider()
       end;
       File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
       rescue Exception => e
-      print '${LOGTIME} Custom Rule Provider Merge Error: '
-      puts e.message
+      puts '${LOGTIME} Custom Rule Provider Merge Error: ' + e.message
       end
       " 2>/dev/null >> $LOG_FILE
    fi
@@ -1013,8 +1016,7 @@ try_restore_start()
          end;
          File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value_1, f)}
          rescue Exception => e
-         print '${LOGTIME} Restore Backup Rules Error: '
-         puts e.message
+         puts '${LOGTIME} Restore Backup Rules Error: ' + e.message
          end
          " 2>/dev/null >> $LOG_FILE
          start_run_core
@@ -1507,13 +1509,14 @@ start()
    config_load "openclash"
    config_foreach yml_auth_get "authentication"
    yml_auth_custom "$CONFIG_FILE"
-   yml_dns_custom "$enable_custom_dns" "$CONFIG_FILE" "$FALLBACK_FILTER_FILE"
+   yml_dns_custom "$enable_custom_dns" "$CONFIG_FILE"
    /usr/share/openclash/yml_change.sh 2>/dev/null "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" "$dns_port" "$core_type" "$mixed_port"
    /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$CONFIG_FILE" "$set_rule_file" "$en_mode" "$enable_rule_proxy" "$RAW_CONFIG_FILE" "$RULE_PROVIDER_FILE"
    yml_custom_rule_provider
    yml_game_custom
    yml_provider_path "$CONFIG_FILE" "proxy-providers" "proxy_provider"
    yml_provider_path "$CONFIG_FILE" "rule-providers" "rule_provider"
+   yml_dns_check "$CONFIG_FILE"  "$FALLBACK_FILTER_FILE"
 
    echo "第四步: 启动主程序..." >$START_LOG
    start_run_core

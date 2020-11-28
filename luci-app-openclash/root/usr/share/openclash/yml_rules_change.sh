@@ -12,8 +12,7 @@ yml_other_set()
    begin
    Value = YAML.load_file('$4');
    rescue Exception => e
-   print '${LOGTIME} Load File Error: '
-   puts e.message
+   puts '${LOGTIME} Load File Error: ' + e.message
    end
    begin
    if $3 == 1 then
@@ -61,8 +60,7 @@ yml_other_set()
       end
    end;
    rescue Exception => e
-   print '${LOGTIME} Set Custom Rules Error: '
-   puts e.message
+   puts '${LOGTIME} Set Custom Rules Error: ' + e.message
    end
    begin
    if $7 == 1 and Value.has_key?('rules') then
@@ -82,8 +80,7 @@ yml_other_set()
       Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
    end;
    rescue Exception => e
-   print '${LOGTIME} Set Bt DIRECT Rules Error: '
-   puts e.message
+   puts '${LOGTIME} Set Bt DIRECT Rules Error: ' + e.message
    end
    begin
    if Value.has_key?('rules') and Value['rules'].to_a.grep(/(?=.*198.18)(?=.*REJECT)/).empty? then
@@ -92,8 +89,7 @@ yml_other_set()
       Value['rules']=Value['rules'].to_a.insert(ruby_add_index,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve')
    end;
    rescue Exception => e
-   print '${LOGTIME} Set 198.18.0.1/16 REJECT Rule Error: '
-   puts e.message
+   puts '${LOGTIME} Set 198.18.0.1/16 REJECT Rule Error: ' + e.message
    ensure
    File.open('$4','w') {|f| YAML.dump(Value, f)}
    end" 2>/dev/null >> $LOG_FILE
@@ -218,8 +214,7 @@ if [ "$2" != 0 ]; then
        	    .gsub!(/#d/, '');
        	    File.open('$4','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    print '${LOGTIME} Set lhie1 Rules Error: '
-       	    puts e.message
+       	    puts '${LOGTIME} Set lhie1 Rules Error: ' + e.message
        	    end" 2>/dev/null >> $LOG_FILE
        elif [ "$2" = "ConnersHua" ]; then
             ruby -ryaml -E UTF-8 -e "
@@ -246,8 +241,7 @@ if [ "$2" != 0 ]; then
        	    };
        	    File.open('$4','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    print '${LOGTIME} Set lhie1 Rules Error: '
-       	    puts e.message
+       	    puts '${LOGTIME} Set lhie1 Rules Error: ' + e.message
        	    end" 2>/dev/null >> $LOG_FILE
        else
             ruby -ryaml -E UTF-8 -e "
@@ -262,8 +256,7 @@ if [ "$2" != 0 ]; then
        	    };
        	    File.open('$4','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    print '${LOGTIME} Set lhie1 Rules Error: '
-       	    puts e.message
+       	    puts '${LOGTIME} Set lhie1 Rules Error: ' + e.message
        	    end" 2>/dev/null >> $LOG_FILE
        fi
    fi
