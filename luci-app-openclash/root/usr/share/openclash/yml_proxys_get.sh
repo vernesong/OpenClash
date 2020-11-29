@@ -45,7 +45,6 @@ match_servers="/tmp/match_servers.list"
 match_provider="/tmp/match_provider.list"
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
-new_servers_group=$(uci get openclash.config.new_servers_group 2>/dev/null |sed "s/'//g")
 
 #proxy
 num=$(ruby_read_hash "$proxy_hash" "['proxies'].count")
@@ -67,13 +66,13 @@ fi
 
 cfg_new_servers_groups_check()
 {
+   config_group_exist=$(( $config_group_exist + 1 ))
+   
    if [ -z "$1" ]; then
       return
    fi
    
-   [ "$1" = "$2" ] && {
-	    config_group_exist=$(( $config_group_exist + 1 ))
-	 }
+   config_foreach cfg_group_name "groups" "$1"
 }
 
 cfg_group_name()
@@ -94,17 +93,18 @@ cfg_group_name()
 	    return
    fi
 
-   config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_check "$name"
-   config_group_exists=$(( $config_group_exists + 1 ))
+   if [ "$name" = "$2" ]; then
+      config_group_exists=$(( $config_group_exists + 1 ))
+   fi
 }
 
 #判断当前配置文件策略组信息是否包含指定策略组
 config_group_exist=0
 config_group_exists=0
 config_load "openclash"
-config_foreach cfg_group_name "groups"
+config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_check
 
-if [ "$config_group_exists" -eq "$config_group_exist" ]; then
+if [ "$config_group_exists" -eq "$config_group_exist" ] && [ "$config_group_exist" -ne 0 ]; then
    config_group_exist=1
 else
    config_group_exist=0
@@ -167,7 +167,7 @@ do
       uci_set="uci -q set $name.$uci_name_tmp."
       uci_add="uci -q add_list $name.$uci_name_tmp."
    
-      if [ -z "$new_servers_group" ] && [ "$servers_if_update" = "1" ] && [ "$servers_update" -eq 1 ]; then
+      if [ "$config_group_exist" -eq 0 ] && [ "$servers_if_update" = "1" ] && [ "$servers_update" -eq 1 ]; then
          ${uci_set}enabled="0"
       else
          ${uci_set}enabled="1"
@@ -182,76 +182,83 @@ do
       ${uci_set}type="$provider_type"
    fi
    ruby -ryaml -E UTF-8 -e "
-      begin
-      Value = $proxy_hash;
-      Thread.new{
-      #path
-      if Value['proxy-providers'].values[$provider_count].key?('path') then
-         if '$provider_type' == 'http' then
-            provider_path = '${uci_set}path=./proxy_provider/${provider_name}.yaml'
-         else
-            provider_path = '${uci_set}path=' + Value['proxy-providers'].values[$provider_count]['path'].to_s
-         end
-         system(provider_path)
+   begin
+   Value = $proxy_hash;
+   Thread.new{
+   #path
+   if Value['proxy-providers'].values[$provider_count].key?('path') then
+      if '$provider_type' == 'http' then
+         provider_path = '${uci_set}path=./proxy_provider/${provider_name}.yaml'
+      else
+         provider_path = '${uci_set}path=' + Value['proxy-providers'].values[$provider_count]['path'].to_s
       end
-      }.join;
+      system(provider_path)
+   end
+   }.join;
    
-      Thread.new{
-      #gen_url
-      if Value['proxy-providers'].values[$provider_count].key?('url') then
-         provider_gen_url = '${uci_set}provider_url=' + Value['proxy-providers'].values[$provider_count]['url'].to_s
-         system(provider_gen_url)
-      end
-      }.join;
+   Thread.new{
+   #gen_url
+   if Value['proxy-providers'].values[$provider_count].key?('url') then
+      provider_gen_url = '${uci_set}provider_url=' + Value['proxy-providers'].values[$provider_count]['url'].to_s
+      system(provider_gen_url)
+   end
+   }.join;
    
-      Thread.new{
-      #gen_interval
-      if Value['proxy-providers'].values[$provider_count].key?('interval') then
-         provider_gen_interval = '${uci_set}provider_interval=' + Value['proxy-providers'].values[$provider_count]['interval'].to_s
-         system(provider_gen_interval)
-      end
-      }.join;
+   Thread.new{
+   #gen_interval
+   if Value['proxy-providers'].values[$provider_count].key?('interval') then
+      provider_gen_interval = '${uci_set}provider_interval=' + Value['proxy-providers'].values[$provider_count]['interval'].to_s
+      system(provider_gen_interval)
+   end
+   }.join;
    
-      Thread.new{
-      #che_enable
-      if Value['proxy-providers'].values[$provider_count].key?('health-check') then
-         if Value['proxy-providers'].values[$provider_count]['health-check'].key?('enable') then
-            provider_che_enable = '${uci_set}health_check=' + Value['proxy-providers'].values[$provider_count]['health-check']['enable'].to_s
-            system(provider_che_enable)
-         end
+   Thread.new{
+   #che_enable
+   if Value['proxy-providers'].values[$provider_count].key?('health-check') then
+      if Value['proxy-providers'].values[$provider_count]['health-check'].key?('enable') then
+         provider_che_enable = '${uci_set}health_check=' + Value['proxy-providers'].values[$provider_count]['health-check']['enable'].to_s
+         system(provider_che_enable)
       end
-      }.join;
+   end
+   }.join;
    
-      Thread.new{
-      #che_url
-      if Value['proxy-providers'].values[$provider_count].key?('health-check') then
-         if Value['proxy-providers'].values[$provider_count]['health-check'].key?('url') then
-            provider_che_url = '${uci_set}health_check_url=' + Value['proxy-providers'].values[$provider_count]['health-check']['url'].to_s
-            system(provider_che_url)
-         end
+   Thread.new{
+   #che_url
+   if Value['proxy-providers'].values[$provider_count].key?('health-check') then
+      if Value['proxy-providers'].values[$provider_count]['health-check'].key?('url') then
+         provider_che_url = '${uci_set}health_check_url=' + Value['proxy-providers'].values[$provider_count]['health-check']['url'].to_s
+         system(provider_che_url)
       end
-      }.join;
+   end
+   }.join;
    
-      Thread.new{
-      #che_interval
-      if Value['proxy-providers'].values[$provider_count].key?('health-check') then
-         if Value['proxy-providers'].values[$provider_count]['health-check'].key?('interval') then
-            provider_che_interval = '${uci_set}health_check_interval=' + Value['proxy-providers'].values[$provider_count]['health-check']['interval'].to_s
-            system(provider_che_interval)
-         end
+   Thread.new{
+   #che_interval
+   if Value['proxy-providers'].values[$provider_count].key?('health-check') then
+      if Value['proxy-providers'].values[$provider_count]['health-check'].key?('interval') then
+         provider_che_interval = '${uci_set}health_check_interval=' + Value['proxy-providers'].values[$provider_count]['health-check']['interval'].to_s
+         system(provider_che_interval)
       end
-      }.join;
+   end
+   }.join;
       
-      Thread.new{
-      if '$servers_update' != 1 or '$provider_nums'.empty? then
-         #加入策略组
-         if '$servers_if_update' == 1 and not '$new_servers_group'.empty? and '$config_group_exist' == 1 then
-            #新代理集且设置默认策略组时加入指定策略组
-            `config_load 'openclash'`
-            `config_list_foreach 'config' 'new_servers_group' cfg_new_provider_groups_get`
-         else
-            Value_1 = $group_hash
-            Value_1['proxy-groups'].each{
+   rescue Exception => e
+   puts '${LOGTIME} Resolve Proxy-provider【${CONFIG_NAME} - ${provider_name}】 Error: ' + e.message
+   end
+   " 2>/dev/null >> $LOG_FILE &
+      
+   if [ "$servers_update" != 1 ] || [ -z "$provider_nums" ]; then
+      #加入策略组
+      if [ "$servers_if_update" == 1 ] && [ "$config_group_exist" == 1 ]; then
+         #新代理集且设置默认策略组时加入指定策略组
+         config_load "openclash"
+         config_list_foreach "config" "new_servers_group" cfg_new_provider_groups_get
+      else
+         ruby -ryaml -E UTF-8 -e "
+         Thread.new{
+         begin
+            Value = $group_hash
+            Value['proxy-groups'].each{
             |x|
             if x.key?('use') then
                if x['use'].include?('$provider_name') then
@@ -260,14 +267,13 @@ do
                end
             end
             }
+         rescue Exception => e
+         puts '${LOGTIME} Resolve Proxy-provider【${CONFIG_NAME} - ${provider_name}】 Error: ' + e.message
          end
-      end
-      }.join;
-      
-      rescue Exception => e
-      puts '${LOGTIME} Resolve Proxy-provider【${CONFIG_NAME} - ${provider_name}】 Error: ' + e.message
-      end
-      " 2>/dev/null >> $LOG_FILE &
+         }.join;
+         " 2>/dev/null >> $LOG_FILE &
+      fi
+   fi
    let provider_count++
 done 2>/dev/null
 
@@ -400,7 +406,7 @@ cfg_new_servers_groups_get()
 	 if [ -z "$1" ]; then
       return
    fi
-   
+   echo "${1}" >> $LOG_FILE
    ${uci_add}groups="${1}"
 }
 	   
@@ -477,7 +483,7 @@ do
       uci_set="uci -q set $name.$uci_name_tmp."
       uci_add="uci -q add_list $name.$uci_name_tmp."
 
-      if [ -z "$new_servers_group" ] && [ "$servers_if_update" = "1" ] && [ "$servers_update" -eq 1 ]; then
+      if [ "$config_group_exist" -eq 0 ] && [ "$servers_if_update" = "1" ] && [ "$servers_update" -eq 1 ]; then
          ${uci_set}enabled="0"
       else
          ${uci_set}enabled="1"
@@ -491,6 +497,7 @@ do
       ${uci_set}name="$server_name"
       ${uci_set}type="$server_type"
    fi
+
    ruby -ryaml -E UTF-8 -e "
    begin
    Value = $proxy_hash;
@@ -669,7 +676,7 @@ do
       #network:
       if Value['proxies'][$count].key?('network') then
          if Value['proxies'][$count]['network'].to_s == 'ws'
-            `${uci_set}obfs_vmess=websocket`
+            system '${uci_set}obfs_vmess=websocket'
             #ws-path:
             if Value['proxies'][$count].key?('ws-path') then
                path = '${uci_set}path=' + Value['proxies'][$count]['ws-path'].to_s
@@ -682,16 +689,16 @@ do
                   system(custom)
                end
             end
-         elsif Value['proxies'][$count]['network'].to_s == 'http'
-            `${uci_set}obfs_vmess=http`
-            if Value['proxies'][$count].key?('http-opts') then
-               if Value['proxies'][$count]['http-opts'].key?('path') then
-                  `${uci_del}http_path >/dev/null 2>&1`
-                  Value['proxies'][$count]['http-opts']['path'].each{
-                  |x|
-                  http_path = '${uci_add}http_path=' + x.to_s
-                  system(http_path)
-                  }
+      elsif Value['proxies'][$count]['network'].to_s == 'http'
+         system '${uci_set}obfs_vmess=http'
+         if Value['proxies'][$count].key?('http-opts') then
+            if Value['proxies'][$count]['http-opts'].key?('path') then
+               system '${uci_del}http_path >/dev/null 2>&1'
+               Value['proxies'][$count]['http-opts']['path'].each{
+               |x|
+               http_path = '${uci_add}http_path=' + x.to_s
+               system(http_path)
+               }
                end
                if Value['proxies'][$count]['http-opts'].key?('headers') then
                   if Value['proxies'][$count]['http-opts']['headers'].key?('Connection') then
@@ -704,9 +711,9 @@ do
                   end
                end
             end
-         else
-            `${uci_set}obfs_vmess=none`
-         end
+      else
+         system '${uci_set}obfs_vmess=none'
+      end
       end
       }.join
    end;
@@ -717,7 +724,7 @@ do
             mode = '${uci_set}obfs_snell=' + Value['proxies'][$count]['obfs-opts']['mode'].to_s
             system(mode)
          else
-            `${uci_set}obfs_snell=none`
+            system '${uci_set}obfs_snell=none'
          end
          if Value['proxies'][$count]['obfs-opts'].key?('host') then
             host = '${uci_set}host=' + Value['proxies'][$count]['obfs-opts']['host'].to_s
@@ -783,7 +790,7 @@ do
       Thread.new{
       #alpn
       if Value['proxies'][$count].key?('alpn') then
-      `${uci_del}alpn >/dev/null 2>&1`
+      system '${uci_del}alpn >/dev/null 2>&1'
       Value['proxies'][$count]['alpn'].each{
       |x|
       alpn = '${uci_add}alpn=' + x.to_s
@@ -801,43 +808,49 @@ do
       }.join
    end;
    
-   Thread.new{
-   if '$servers_update' != 1 or '$server_num'.empty? then
-      #加入策略组
-      if '$servers_if_update' == 1 and not '$new_servers_group'.empty? and '$config_group_exist' == 1 then
-         #新代理集且设置默认策略组时加入指定策略组
-         `config_load 'openclash'`
-         `config_list_foreach 'config' 'new_servers_group' cfg_new_servers_groups_get`
-      else
-         Value_1 = $group_hash
-         #proxy
-         Value_1['proxy-groups'].each{
-         |x|
-         if x.key?('proxies') then
-            if x['proxies'].include?('$server_name') then
-               uci_proxy = '${uci_add}groups=\"' + x['name'] + '\"'
-               system(uci_proxy)
-            end
-         end
-         }
-         #relay
-         Value_1['proxy-groups'].each{
-         |x|
-         if x['type']=='relay' then
-            if x['proxies'].include?('$server_name') then
-               uci_relay = '${uci_add}relay_groups=\"' + x['name'] + '#relay#' + x['proxies'].index('$server_name') + '\"'
-               system(uci_relay)
-            end
-         end
-         }
-      end
-   end
-   }.join;
-   
    rescue Exception => e
    puts '${LOGTIME} Resolve Proxy【${CONFIG_NAME} - ${server_type} - ${server_name}】 Error: ' + e.message
    end
    " 2>/dev/null >> $LOG_FILE &
+   
+   if [ "$servers_update" != 1 ] || [ -z "$server_num" ]; then
+      #加入策略组
+      if [ "$servers_if_update" = 1 ] && [ "$config_group_exist" = 1 ]; then
+         #新代理且设置默认策略组时加入指定策略组
+         config_load "openclash"
+         config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_get
+      else
+         ruby -ryaml -E UTF-8 -e "
+         Thread.new{
+         begin
+            Value = $group_hash
+            #proxy
+            Value['proxy-groups'].each{
+            |x|
+            if x.key?('proxies') then
+               if x['proxies'].include?('$server_name') then
+                  uci_proxy = '${uci_add}groups=\"' + x['name'] + '\"'
+                  system(uci_proxy)
+               end
+            end
+            }
+            #relay
+            Value['proxy-groups'].each{
+            |x|
+            if x['type'] == 'relay' then
+               if x['proxies'].include?('$server_name') then
+                  uci_relay = '${uci_add}relay_groups=\"' + x['name'] + '#relay#' + x['proxies'].index('$server_name') + '\"'
+                  system(uci_relay)
+               end
+            end
+            }
+         rescue Exception => e
+         puts '${LOGTIME} Resolve Proxy【${CONFIG_NAME} - ${server_type} - ${server_name}】 Error: ' + e.message
+         end
+         }.join;
+         " 2>/dev/null >> $LOG_FILE &
+      fi
+   fi
    let count++
 done 2>/dev/null
 
