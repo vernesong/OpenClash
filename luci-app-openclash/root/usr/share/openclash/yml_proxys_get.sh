@@ -406,7 +406,7 @@ cfg_new_servers_groups_get()
 	 if [ -z "$1" ]; then
       return
    fi
-   echo "${1}" >> $LOG_FILE
+
    ${uci_add}groups="${1}"
 }
 	   
