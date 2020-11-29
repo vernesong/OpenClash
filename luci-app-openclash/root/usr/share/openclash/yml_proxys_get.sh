@@ -45,7 +45,7 @@ match_servers="/tmp/match_servers.list"
 match_provider="/tmp/match_provider.list"
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
-new_servers_group=$(uci get openclash.config.new_servers_group 2>/dev/null)
+new_servers_group=$(uci get openclash.config.new_servers_group 2>/dev/null |sed "s/'//g")
 
 #proxy
 num=$(ruby_read_hash "$proxy_hash" "['proxies'].count")
@@ -245,7 +245,7 @@ do
       Thread.new{
       if '$servers_update' != 1 or '$provider_nums'.empty? then
          #加入策略组
-         if $servers_if_update == 1 and not '$new_servers_group'.empty? and $config_group_exist == 1 then
+         if '$servers_if_update' == 1 and not '$new_servers_group'.empty? and '$config_group_exist' == 1 then
             #新代理集且设置默认策略组时加入指定策略组
             `config_load 'openclash'`
             `config_list_foreach 'config' 'new_servers_group' cfg_new_provider_groups_get`
@@ -465,13 +465,10 @@ do
       uci_set="uci -q set openclash.@servers["$server_num"]."
       uci_add="uci -q add_list $name.$uci_name_tmp."
       uci_del="uci -q del_list $name.$uci_name_tmp."
-      
+
       ${uci_set}manual="0"
       ${uci_set}name="$server_name"
       ${uci_set}type="$server_type"
-      ${uci_set}server="$server"
-      ${uci_set}port="$port"
-      ${uci_set}udp="$udp"
    else
 #添加新节点
       name=openclash
@@ -493,9 +490,6 @@ do
       ${uci_set}config="$CONFIG_NAME"
       ${uci_set}name="$server_name"
       ${uci_set}type="$server_type"
-      ${uci_set}server="$server"
-      ${uci_set}port="$port"
-      ${uci_set}udp="$udp"
    fi
    ruby -ryaml -E UTF-8 -e "
    begin
@@ -810,7 +804,7 @@ do
    Thread.new{
    if '$servers_update' != 1 or '$server_num'.empty? then
       #加入策略组
-      if $servers_if_update == 1 and not '$new_servers_group'.empty? and $config_group_exist == 1 then
+      if '$servers_if_update' == 1 and not '$new_servers_group'.empty? and '$config_group_exist' == 1 then
          #新代理集且设置默认策略组时加入指定策略组
          `config_load 'openclash'`
          `config_list_foreach 'config' 'new_servers_group' cfg_new_servers_groups_get`
