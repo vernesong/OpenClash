@@ -864,13 +864,14 @@ do_run_file()
 #绑定interface防止回环
 check_interface_name()
 {
-	interface_name=$(ip route |grep "default" |awk '{print $5}' 2>/dev/null)
-	if [ -z "$(grep "^interface-name: $interface_name" "$CONFIG_FILE" 2>/dev/null)" ] && [ -n "$interface_name" ]; then
-    if [ ! -z "$(grep "^ \{0,\}interface-name:" "$CONFIG_FILE" 2>/dev/null)" ]; then
-       sed -i "/^ \{0,\}interface-name:/c\interface-name: ${interface_name}" "$CONFIG_FILE" 2>/dev/null
-    else
-       sed -i "/^redir-port:/a\interface-name: ${interface_name}" "$CONFIG_FILE" 2>/dev/null
-    fi
+	if [ -n "$interface_name" ] && [ "$interface_name" -ne 0 ]; then
+	   if [ -z "$(grep "^interface-name: $interface_name" "$CONFIG_FILE" 2>/dev/null)" ]; then
+        if [ -n "$(grep "^ \{0,\}interface-name:" "$CONFIG_FILE" 2>/dev/null)" ]; then
+           sed -i "/^ \{0,\}interface-name:/c\interface-name: ${interface_name}" "$CONFIG_FILE" 2>/dev/null
+        else
+           sed -i "/^redir-port:/a\interface-name: ${interface_name}" "$CONFIG_FILE" 2>/dev/null
+        fi
+     fi
   fi
 }
 
@@ -1482,6 +1483,7 @@ get_config()
    china_ip_route=$(uci get openclash.config.china_ip_route 2>/dev/null)
    small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
    mixed_port=$(uci get openclash.config.mixed_port 2>/dev/null)
+   interface_name=$(uci get openclash.config.interface_name 2>/dev/null)
    uci set openclash.config.restricted_mode=0 && uci commit openclash
 }
 
