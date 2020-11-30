@@ -126,7 +126,7 @@ o.default=0
 
 o = s:taboption("settings", ListValue, "interface_name", font_red..bold_on..translate("Bind Network Interface")..bold_off..font_off)
 local de_int = SYS.exec("ip route |grep 'default' |awk '{print $5}' 2>/dev/null")
-o.description = translate("Default Interface Name: ")..font_green..bold_on..de_int..bold_off..font_off..translate(",Try Enable If Network Loopback")
+o.description = translate("Default Interface Name:").." "..font_green..bold_on..de_int..bold_off..font_off..translate(",Try Enable If Network Loopback")
 local interfaces = SYS.exec("ls -l /sys/class/net/ 2>/dev/null |awk '{print $9}' 2>/dev/null")
 for interface in string.gmatch(interfaces, "%S+") do
    o:value(interface)

@@ -81,18 +81,18 @@ Value['external-controller']='$controller_address:$5';
 Value['secret']='$4';
 Value['bind-address']='$bind_address';
 Value['external-ui']='/usr/share/openclash/dashboard';
+if not Value.key?('dns') then
+   Value_1={'dns'=>{'enable'=>true}}
+   Value['dns']=Value_1['dns']
+else
+   Value['dns']['enable']=true;
+end;
 if $8 == 1 then
    Value['dns']['ipv6']=true
    Value['ipv6']=true
 else
    Value['dns']['ipv6']=false
    Value['ipv6']=false
-end;
-if not Value.key?('dns') then
-   Value_1={'dns'=>{'enable'=>true}}
-   Value['dns']=Value_1['dns']
-else
-   Value['dns']['enable']=true;
 end;
 Value['dns']['enhanced-mode']='$2';
 if '$2' == 'fake-ip' then

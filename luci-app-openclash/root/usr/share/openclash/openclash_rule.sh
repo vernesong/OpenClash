@@ -55,7 +55,7 @@
          mv /tmp/rules.yaml /usr/share/openclash/res/"$RUlE_SOURCE".yaml >/dev/null 2>&1
          echo "替换成功，重新加载 OpenClash 应用新规则..." >$START_LOG
          echo "${LOGTIME} Other Rules 【$RUlE_SOURCE】 Update Successful" >>$LOG_FILE
-         [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart
+         [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
       else
          echo "检测到下载的规则文件没有更新，停止继续操作..." >$START_LOG
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
