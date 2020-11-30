@@ -765,6 +765,7 @@ cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
 cat >> "$SERVER_FILE" <<-EOF
   - name: Youtube
     type: select
+    disable-udp: true
     proxies:
       - GlobalTV
       - DIRECT

@@ -85,7 +85,7 @@ if not Value.key?('dns') then
    Value_1={'dns'=>{'enable'=>true}}
    Value['dns']=Value_1['dns']
 else
-   Value['dns']['enable']=true;
+   Value['dns']['enable']=true
 end;
 if $8 == 1 then
    Value['dns']['ipv6']=true
