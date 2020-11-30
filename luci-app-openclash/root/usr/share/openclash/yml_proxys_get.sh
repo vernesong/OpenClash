@@ -702,12 +702,12 @@ do
                end
                if Value['proxies'][$count]['http-opts'].key?('headers') then
                   if Value['proxies'][$count]['http-opts']['headers'].key?('Connection') then
-                     if Value['proxies'][$count]['http-opts']['headers']['Connection'].to_s == 'keep-alive' then
-                        keep_alive = '${uci_add}keep_alive=true'
+                     if Value['proxies'][$count]['http-opts']['headers']['Connection'].include?('keep-alive') then
+                        keep_alive = '${uci_set}keep_alive=true'
                      else
-                        keep_alive = '${uci_add}keep_alive=false'
+                        keep_alive = '${uci_set}keep_alive=false'
                      end
-                     system(http_path)
+                     system(keep_alive)
                   end
                end
             end
