@@ -864,14 +864,10 @@ do_run_file()
 #绑定interface防止回环
 check_interface_name()
 {
-	if [ -n "$interface_name" ] && [ "$interface_name" -ne 0 ]; then
-	   if [ -z "$(grep "^interface-name: $interface_name" "$CONFIG_FILE" 2>/dev/null)" ]; then
-        if [ -n "$(grep "^ \{0,\}interface-name:" "$CONFIG_FILE" 2>/dev/null)" ]; then
-           sed -i "/^ \{0,\}interface-name:/c\interface-name: ${interface_name}" "$CONFIG_FILE" 2>/dev/null
-        else
-           sed -i "/^redir-port:/a\interface-name: ${interface_name}" "$CONFIG_FILE" 2>/dev/null
-        fi
-     fi
+	if [ -n "$interface_name" ] && [ "$interface_name" != "0" ]; then
+	   ruby_edit "$CONFIG_FILE" "['interface-name']='$interface_name'"
+  else
+     sed -i "/^interface-name:/d" "$CONFIG_FILE" 2>/dev/null
   fi
 }
 
