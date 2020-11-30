@@ -19,8 +19,19 @@ RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
 GAME_RULE_FILE="/tmp/yaml_game_rule.yaml"
 FALLBACK_FILTER_FILE="/tmp/yaml_fallback_filter_file.yaml"
+LOCK_FILE=/tmp/lock/openclash.lock
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
+
+set_lock() {
+	exec 888>"$LOCK_FILE" 2>/dev/null
+	flock -x 888 2>/dev/null
+}
+
+del_lock() {
+	flock -u 888 2>/dev/null
+	rm -rf "$LOCK_FILE" 2>/dev/null
+}
 
 add_cron()
 {
@@ -112,26 +123,13 @@ start_fail()
 {
    kill_clash
    stop
+   del_lock
    exit 0
 }
 
 yml_check()
 {
    
-   #创建启动配置
-   #rm -rf "/etc/openclash/*.y*" 2>/dev/null
-   cp "$RAW_CONFIG_FILE" "$CONFIG_FILE"
-   CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "puts YAML.load_file('$CONFIG_FILE')" 2>/dev/null)
-   if [ -z "$CONFIG_HASH" ] || [ "$CONFIG_HASH" = "false" ]; then
-      if [ -z "$CONFIG_HASH" ]; then
-      	ruby -ryaml -E UTF-8 -e "puts YAML.load_file('$CONFIG_FILE')" >> $LOG_FILE
-      fi
-      echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
-      echo "${LOGTIME} Error: Unable To Parse Config File, Please Check And Try Again!" >> $LOG_FILE
-      sleep 3
-      start_fail
-   fi
-
    #创建原始备份
    if [ ! -f "$2" ]; then
       cp "$1" "$2"
@@ -711,6 +709,7 @@ if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
       uci set openclash.config.config_path="/etc/openclash/config/$CONFIG_NAME"
       uci commit openclash
       RAW_CONFIG_FILE="/etc/openclash/config/$CONFIG_NAME"
+      CONFIG_FILE="/etc/openclash/$CONFIG_NAME"
    fi
 fi 2>/dev/null
 CONFIG_NAME=$(echo "$RAW_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
@@ -722,13 +721,30 @@ if [ ! -f "$RAW_CONFIG_FILE" ]; then
       sleep 3
       kill_clash
       nohup /usr/share/openclash/openclash.sh &
+      del_lock
       exit 0
    else
       echo "错误: 缺少配置文件，请上传或更新配置文件！" >$START_LOG
       echo "${LOGTIME} Error: Config Not Found" >> $LOG_FILE
       sleep 5
+      del_lock
       exit 0
    fi
+fi
+
+#创建启动配置
+#rm -rf "/etc/openclash/*.y*" 2>/dev/null
+cp "$RAW_CONFIG_FILE" "$CONFIG_FILE"
+CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "puts YAML.load_file('$CONFIG_FILE')" 2>/dev/null)
+if [ -z "$CONFIG_HASH" ] || [ "$CONFIG_HASH" = "false" ]; then
+   if [ -z "$CONFIG_HASH" ]; then
+      ruby -ryaml -E UTF-8 -e "puts YAML.load_file('$CONFIG_FILE')" >> $LOG_FILE
+   fi
+   echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
+   echo "${LOGTIME} Error: Unable To Parse Config File, Please Check And Try Again!" >> $LOG_FILE
+   rm -rf $CONFIG_FILE 2>/dev/null
+   sleep 3
+   start_fail
 fi
 }
 
@@ -836,6 +852,7 @@ do_run_file()
      sleep 3
      kill_clash
      nohup /usr/share/openclash/openclash_ipdb.sh &
+     del_lock
      exit 0
    }
    
@@ -845,6 +862,7 @@ do_run_file()
      rm -rf "/tmp/clash_last_version" 2>/dev/null
      kill_clash
      nohup /usr/share/openclash/openclash_core.sh "$core_type" &
+     del_lock
      exit 0
    }
    
@@ -1487,7 +1505,7 @@ start()
 {
 
    enable=$(uci get openclash.config.enable 2>/dev/null)
-   [ "$enable" != "1" ] && echo "${LOGTIME} Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." >> $LOG_FILE && exit 0
+   [ "$enable" != "1" ] && echo "${LOGTIME} Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." >> $LOG_FILE && del_lock && exit 0
 
    config_choose
 
@@ -1604,24 +1622,27 @@ stop()
       rm -rf /tmp/rule_providers_name 2>/dev/null
       rm -rf /tmp/openclash_fake_filter.list 2>/dev/null
       rm -rf /tmp/openclash_servers_fake_filter.conf 2>/dev/null
+      del_lock
       echo "OpenClash 关闭成功！" >$START_LOG
       sleep 5
    fi
-
-   rm -rf /tmp/yaml_* 2>/dev/null
+   
    del_cron
-   echo "" >$START_LOG
+   rm -rf /tmp/yaml_* 2>/dev/null
+   rm -rf $START_LOG 2>/dev/null
    echo "OpenClash Already Stop"
 }
 
 
 restart()
 {
-   status=$(unify_ps_status "/etc/init.d/openclash")
-   [ "$status" -gt "3" ] && echo "${LOGTIME} Warning: Multiple Restart Scripts Running, Exit..." >> $LOG_FILE && exit 0
-   
+   [ -f "$LOCK_FILE" ] && echo "${LOGTIME} Warning: Multiple Restart Scripts Running, Exit..." >> $LOG_FILE && exit 0
+   mkdir -p /tmp/lock
+   touch $LOCK_FILE
+	 set_lock
    stop
    start
+   del_lock
 }
 
 reload()
