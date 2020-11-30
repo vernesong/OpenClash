@@ -310,7 +310,7 @@ uci delete openclash.config.config_update_path >/dev/null 2>&1
 uci commit openclash
 
 if [ "$if_restart" -eq 1 ]; then
-   /etc/init.d/openclash restart >/dev/null 2>&1
+   /etc/init.d/openclash restart >/dev/null 2>&1 &
 else
    sed -i '/openclash.sh/d' $CRON_FILE 2>/dev/null
    [ "$(uci get openclash.config.auto_update 2>/dev/null)" -eq 1 ] && [ "$(uci get openclash.config.config_auto_update_mode 2>/dev/null)" -ne 1 ] && echo "0 $(uci get openclash.config.auto_update_time 2>/dev/null) * * $(uci get openclash.config.config_update_week_time 2>/dev/null) /usr/share/openclash/openclash.sh" >> $CRON_FILE
