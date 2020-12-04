@@ -1275,12 +1275,21 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
       iptables -t nat -N openclash_output
       iptables -t nat -F openclash_output
       iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
-      #iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
-      iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -m multiport --dport 80,443 -j REDIRECT --to-ports "$proxy_port"
       if [ "$en_mode" = "fake-ip" ]; then
-         iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+         if [ "$intranet_allowed" -eq 1 ] ; then
+            iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j DNAT --to-destination "$lan_ip:$proxy_port"
+         else
+            iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+         fi
+      fi
+      #iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+      if [ "$intranet_allowed" -eq 1 ] ; then
+         iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -m multiport --dport 80,443 -j DNAT --to-destination "$lan_ip:$proxy_port"
+      else
+         iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -m multiport --dport 80,443 -j REDIRECT --to-ports "$proxy_port"
       fi
       iptables -t nat -I OUTPUT -j openclash_output
+
    #fi
 
    #if [ "$ipv6_enable" -eq 1 ]; then
@@ -1379,6 +1388,14 @@ if [ -n "$en_mode_tun" ]; then
    #    if [ "$ipv6_enable" -eq 1 ]; then
    #        ip6tables -t mangle -I PREROUTING -j MARK --set-mark "$PROXY_FWMARK"
    #    fi
+   
+   #snat routerself for tun while bindaddress enable
+   if [ "$en_mode_tun" -ne 3 ] && [ "$intranet_allowed" -eq 1 ]; then
+      iptables -t nat -N openclash_post
+      iptables -t nat -F openclash_post
+      iptables -t nat -A openclash_post -m owner ! --uid-owner 65534 -i lo -d 127.0.0.1 -j SNAT --to-source "$lan_ip"
+      iptables -t nat -A POSTROUTING -j openclash_post
+   fi
 fi
 
 #端口转发
@@ -1436,6 +1453,10 @@ revert_firewall()
    
    iptables -t nat -F openclash_output >/dev/null 2>&1
    iptables -t nat -X openclash_output >/dev/null 2>&1
+   
+   iptables -t nat -F openclash_post >/dev/null 2>&1
+   iptables -t nat -X openclash_post >/dev/null 2>&1
+   iptables -t nat -D POSTROUTING -j openclash_post
 
    ip6tables -t nat -F openclash >/dev/null 2>&1
    ip6tables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
