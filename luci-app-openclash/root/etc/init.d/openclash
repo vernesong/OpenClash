@@ -737,11 +737,8 @@ fi
 cp "$RAW_CONFIG_FILE" "$CONFIG_FILE"
 CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "puts YAML.load_file('$CONFIG_FILE')" 2>/dev/null)
 if [ -z "$CONFIG_HASH" ] || [ "$CONFIG_HASH" = "false" ]; then
-   if [ -z "$CONFIG_HASH" ]; then
-      ruby -ryaml -E UTF-8 -e "puts YAML.load_file('$CONFIG_FILE')" >> $LOG_FILE
-   fi
-   echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
-   echo "${LOGTIME} Error: Unable To Parse Config File, Please Check And Try Again!" >> $LOG_FILE
+   echo "配置文件校验失败，请检查配置文件或者确认ruby依赖工作正常后重试！" >$START_LOG
+   echo "${LOGTIME} Error: Unable To Parse Config File, Please Check The Config File or Ruby Library Depends And Try Again!" >> $LOG_FILE
    rm -rf $CONFIG_FILE 2>/dev/null
    sleep 3
    start_fail
@@ -1130,7 +1127,7 @@ firewall_redirect_exclude()
 
 set_firewall()
 {
-if [ "$(iptables -t nat -nL PREROUTING --line-number |grep "udp dpt:53" |grep "0.0.0.0/0 \{0,\}0.0.0.0/0" |wc -l)" -gt 1 ] && [ "$enable_redirect_dns" -eq "1" ]; then
+if [ "$(iptables -t nat -nL PREROUTING --line-number |grep "udp dpt:53" |grep "0.0.0.0/0 \{0,\}0.0.0.0/0" |wc -l)" -gt 1 ] && [ "$enable_redirect_dns" -eq 1 ]; then
    echo "发现53端口被劫持，清理防火墙规则..." >$START_LOG
    pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/0.0.0.0\/0 \{0,\}0.0.0.0\/0 \{0,\}udp dpt:53/=' 2>/dev/null |sort -rn)
    for pre_line in $pre_lines; do
@@ -1138,6 +1135,9 @@ if [ "$(iptables -t nat -nL PREROUTING --line-number |grep "udp dpt:53" |grep "0
    done
    iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53 >/dev/null 2>&1
    sleep 2
+elif [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(iptables -t nat -nL PREROUTING --line-number |grep "redir ports 53$")"]; then
+   iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53
+   iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53
 fi
 
 if [ -z "$(uci get firewall.openclash 2>/dev/null)" ] || [ -z "$(uci get ucitrack.@openclash[-1].init 2>/dev/null)" ]; then
