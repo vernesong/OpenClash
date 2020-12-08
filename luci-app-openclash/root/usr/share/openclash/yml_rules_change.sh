@@ -64,9 +64,7 @@ yml_other_set()
    end
    begin
    if $7 == 1 and Value.has_key?('rules') then
-      ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
-      ruby_add_index ||= -1
-      Value['rules']=Value['rules'].to_a.insert(ruby_add_index,
+      Value['rules']=Value['rules'].to_a.insert(0,
       'DOMAIN-KEYWORD,tracker,DIRECT',
       'DOMAIN-KEYWORD,announce.php?passkey=,DIRECT',
       'DOMAIN-KEYWORD,torrent,DIRECT',
