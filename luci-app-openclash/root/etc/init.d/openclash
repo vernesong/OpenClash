@@ -735,11 +735,21 @@ fi
 #创建启动配置
 #rm -rf "/etc/openclash/*.y*" 2>/dev/null
 cp "$RAW_CONFIG_FILE" "$CONFIG_FILE"
-CONFIG_HASH=$(ruby -ryaml -E UTF-8 -e "puts YAML.load_file('$CONFIG_FILE')" 2>/dev/null)
-if [ -z "$CONFIG_HASH" ] || [ "$CONFIG_HASH" = "false" ]; then
-   echo "配置文件校验失败，请检查配置文件或者确认ruby依赖工作正常后重试！" >$START_LOG
-   echo "${LOGTIME} Error: Unable To Parse Config File, Please Check The Config File or Ruby Library Depends And Try Again!" >> $LOG_FILE
-   rm -rf $CONFIG_FILE 2>/dev/null
+ruby -ryaml -E UTF-8 -e "
+begin
+YAML.load_file('$RAW_CONFIG_FILE');
+rescue Exception => e
+puts '${LOGTIME} Error: Unable To Parse Config File ' + e.message
+system 'rm -rf ${CONFIG_FILE} 2>/dev/null'
+end
+" 2>/dev/null >> $LOG_FILE
+if [ $? -ne 0 ]; then
+   echo "${LOGTIME} Error: Ruby Works Abnormally, Please Check The Ruby Library Depends And Try Again!" >> $LOG_FILE
+   echo "Ruby依赖异常，请确认ruby依赖工作正常后重试！" > $START_LOG
+   sleep 3
+   start_fail
+elif [ ! -f "$CONFIG_FILE" ] || [ ! -s "$CONFIG_FILE" ]; then
+   echo "配置文件校验失败，请检查配置文件后重试！" > $START_LOG
    sleep 3
    start_fail
 fi
