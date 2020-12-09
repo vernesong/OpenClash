@@ -79,6 +79,22 @@ o:value("direct", translate("Direct Proxy Mode"))
 o:value("script", translate("Script Proxy Mode (Tun Core Only)"))
 o.default = "rule"
 
+o = s:taboption("op_mode", ListValue, "enable_rule_proxy", font_red..bold_on..translate("Rule Match Proxy Mode")..bold_off..font_off)
+o.description = translate("Only Proxy Rules Match, Prevent BT/P2P Passing")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default=0
+
+o = s:taboption("op_mode", ListValue, "common_ports", font_red..bold_on..translate("Common Ports Proxy Mode")..bold_off..font_off)
+o.description = translate("Only Common Ports, Prevent BT/P2P Passing")
+o:value("0", translate("Disable"))
+o:value("1", translate("Enable"))
+o.default = "0"
+o:depends("en_mode", "redir-host")
+o:depends("en_mode", "redir-host-tun")
+o:depends("en_mode", "redir-host-vpn")
+o:depends("en_mode", "redir-host-mix")
+
 o = s:taboption("op_mode", ListValue, "china_ip_route", font_red..bold_on..translate("China IP Route")..bold_off..font_off)
 o.description = translate("Bypass The China Network Flows, Improve Performance")
 o:value("0", translate("Disable"))
@@ -116,12 +132,6 @@ o:value("linux-mips64le")
 o:value("linux-mipsle-softfloat")
 o:value("linux-mipsle-hardfloat")
 o:value("0", translate("Not Set"))
-o.default=0
-
-o = s:taboption("settings", ListValue, "enable_rule_proxy", font_red..bold_on..translate("Rule Match Proxy Mode")..bold_off..font_off)
-o.description = translate("Only Proxy Rules Match, Prevent BT Passing")
-o:value("0", translate("Disable"))
-o:value("1", translate("Enable"))
 o.default=0
 
 o = s:taboption("settings", ListValue, "interface_name", font_red..bold_on..translate("Bind Network Interface")..bold_off..font_off)
