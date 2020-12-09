@@ -291,12 +291,26 @@ sub_info_get()
    config_download
 
    if [ "$?" -eq 0 ] && [ -s "$CFG_FILE" ]; then
-      if [ -n "$(ruby_read "$CFG_FILE" "['proxy-groups']")" ]; then
-   	     config_su_check
-   	  else
-         echo "${LOGTIME} Config 【$name】 Grammar Check Faild" >>$LOG_FILE
+   	  ruby -ryaml -E UTF-8 -e "
+      begin
+      YAML.load_file('$CFG_FILE');
+      rescue Exception => e
+      puts '${LOGTIME} Error: Unable To Parse Config File ' + e.message
+      system 'rm -rf ${CFG_FILE} 2>/dev/null'
+      end
+      " 2>/dev/null >> $LOG_FILE
+      if [ $? -ne 0 ]; then
+         echo "${LOGTIME} Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!" >> $LOG_FILE
+         echo "Ruby依赖异常，无法校验配置文件，请确认ruby依赖工作正常后重试！" > $START_LOG
+         sleep 3
+         config_su_check
+      elif [ ! -f "$CFG_FILE" ]; then
+         echo "配置文件校验失败，请检查配置文件后重试！" > $START_LOG
+         sleep 3
          config_download_direct
-   	  fi
+      else
+         config_su_check
+      fi
    else
       echo "${LOGTIME} Config 【$name】 Download Faild" >>$LOG_FILE
       config_download_direct
