@@ -1391,3 +1391,22 @@ msgstr "当前系统默认接口:"
 
 msgid ",Try Enable If Network Loopback"
 msgstr ", 如发生回环死机请尝试启用"
+
+msgid "Custom GEOIP URL"
+msgstr "GEOIP数据库更新URL"
+
+msgid "Custom Chnroute Lists URL"
+msgstr "大陆IP段更新URL"
+
+msgid "Custom GEOIP Data URL, Click Button Below To Refresh After Edit"
+msgstr "自定义GEOIP数据库的更新来源，编辑后请点击下方按钮刷新"
+
+msgid "(Default)"
+msgstr "(默认)"
+
+msgid "(Only CN)"
+msgstr "(仅中国数据)"
+
+msgid "(Large Size)"
+msgstr "(18MB大文件，请确保足够的剩余空间)"
+
