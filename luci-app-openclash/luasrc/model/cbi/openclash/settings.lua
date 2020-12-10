@@ -504,8 +504,8 @@ o = s:taboption("geo_update", Value, "geo_custom_url")
 o.title = translate("Custom GEOIP URL")
 o.rmempty = false
 o.description = translate("Custom GEOIP Data URL, Click Button Below To Refresh After Edit")
-o:value("http://www.ideame.top/mmdb/Country.mmdb", translate("Alecthw-version")..translate("(Default)"))
-o:value("https://cdn.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/Country.mmdb", translate("Hackl0us-version")..translate("(Only CN)"))
+o:value("http://www.ideame.top/mmdb/Country.mmdb", translate("Alecthw-Version")..translate("(Default)"))
+o:value("https://cdn.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/Country.mmdb", translate("Hackl0us-Version")..translate("(Only CN)"))
 o:value("https://static.clash.to/GeoIP2/GeoIP2-Country.mmdb", translate("Static.clash.to"))
 o:value("https://geolite.clash.dev/Country.mmdb", translate("Geolite.clash.dev"))
 o.default = "http://www.ideame.top/mmdb/Country.mmdb"
