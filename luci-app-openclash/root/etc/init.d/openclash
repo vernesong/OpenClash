@@ -799,11 +799,17 @@ do_run_file()
       tun_core_path="/etc/openclash/core/clash_tun"
       game_core_path="/etc/openclash/core/clash_game"
       geoip_path="/etc/openclash/Country.mmdb"
+      chnr_path="/etc/openclash/china_ip_route.ipset"
+      rm -rf "/tmp/etc/openclash" 2>/dev/null
    else
       dev_core_path="/tmp/etc/openclash/core/clash"
       tun_core_path="/tmp/etc/openclash/core/clash_tun"
       game_core_path="/tmp/etc/openclash/core/clash_game"
       geoip_path="/tmp/etc/openclash/Country.mmdb"
+      chnr_path="/tmp/etc/openclash/china_ip_route.ipset"
+      rm -rf "/etc/openclash/Country.mmdb" 2>/dev/null
+      rm -rf "/etc/openclash/china_ip_route.ipset" 2>/dev/null
+      rm -rf "/etc/openclash/core" 2>/dev/null
    fi
     
    rm -rf "/etc/openclash/clash" 2>/dev/null
@@ -848,30 +854,44 @@ do_run_file()
    [ ! -x "$tun_core_path" ] && chmod 4755 "$tun_core_path" 2>/dev/null
    [ ! -x "$game_core_path" ] && chmod 4755 "$game_core_path" 2>/dev/null
    [ ! -x "$dev_core_path" ] && chmod 4755 "$dev_core_path" 2>/dev/null
-   
+
+#文件检查
    [ -f "$geoip_path" ] && [ "$small_flash_memory" = "1" ] && {
-      rm -rf "/etc/openclash/Country.mmdb" 2>/dev/null
       ln -s "$geoip_path" /etc/openclash/Country.mmdb 2>/dev/null
+   }
+
+   [ -f "$chnr_path" ] && [ "$small_flash_memory" = "1" ] && {
+      ln -s "$chnr_path" /etc/openclash/china_ip_route.ipset 2>/dev/null
    }
    
    [ ! -f "$geoip_path" ] && {
      echo "检测到GEOIP数据库文件不存在，准备开始下载..." >$START_LOG
-     sleep 3
-     kill_clash
+     nofile=1
      nohup /usr/share/openclash/openclash_ipdb.sh &
-     del_lock
-     exit 0
    }
    
    [ ! -f "$CLASH" ] && {
      echo "检测到内核文件不存在，准备开始下载..." >$START_LOG
-     sleep 3
+     nofile=1
      rm -rf "/tmp/clash_last_version" 2>/dev/null
-     kill_clash
      nohup /usr/share/openclash/openclash_core.sh "$core_type" &
-     del_lock
-     exit 0
    }
+   
+   if [ "$china_ip_route" = "1" ]; then
+      if [ ! -f "$chnr_path" ]; then
+         echo "检测到大陆白名单列表不存在，准备开始下载..." >$START_LOG
+         nofile=1
+         nohup /usr/share/openclash/openclash_chnroute.sh &
+      else
+         ipset -! flush china_ip_route 2>/dev/null
+         ipset -! restore </etc/openclash/china_ip_route.ipset 2>/dev/null
+      fi
+   fi
+   
+   if [ "$nofile" = "1" ]; then
+      del_lock
+      exit 0
+   fi
    
    if ! capsh --is-uid=0 >/dev/null || ! capsh --has-ambient >/dev/null; then
      echo "错误：Capsh异常，请尝试重新安装依赖【libcap】和相应的Capsh库，终止启动..." >$START_LOG
@@ -1172,21 +1192,6 @@ mkdir -p /var/etc
 cat > "/var/etc/openclash.include" <<-EOF
 /etc/init.d/openclash reload >/dev/null 2>&1
 EOF
-
-if [ "$china_ip_route" = "1" ]; then
-   if [ ! -f "/usr/share/openclash/res/china_ip_route.ipset" ]; then
-      cp /etc/openclash/rule_provider/ChinaIP.yaml /tmp/china_ip_route.list 2>/dev/null
-      sed -i "s/'//g" /tmp/china_ip_route.list 2>/dev/null
-      sed -i "s/^ \{0,\}- //g" /tmp/china_ip_route.list 2>/dev/null
-      sed -i '/payload:/d' /tmp/china_ip_route.list 2>/dev/null
-      sed -i '/^ \{0,\}#/d' /tmp/china_ip_route.list 2>/dev/null
-      echo "create china_ip_route hash:net family inet hashsize 1024 maxelem 65536" >/usr/share/openclash/res/china_ip_route.ipset
-      awk '!/^$/&&!/^#/{printf("add china_ip_route %s'" "'\n",$0)}' /tmp/china_ip_route.list >>/usr/share/openclash/res/china_ip_route.ipset
-      rm -rf /tmp/china_ip_route.list 2>/dev/null
-   fi
-   ipset -! flush china_ip_route 2>/dev/null
-   ipset -! restore </usr/share/openclash/res/china_ip_route.ipset 2>/dev/null
-fi
 
 #lan_ac
 if [ "$operation_mode" = "redir-host" ] && [ "$en_mode" = "redir-host" ]; then
