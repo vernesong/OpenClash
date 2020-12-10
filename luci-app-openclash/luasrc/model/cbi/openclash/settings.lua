@@ -500,6 +500,16 @@ o:value(t, t..":00")
 end
 o.default=0
 
+o = s:taboption("geo_update", Value, "geo_custom_url")
+o.title = translate("Custom GEOIP URL")
+o.rmempty = false
+o.description = translate("Custom GEOIP Data URL, Click Button Below To Refresh After Edit")
+o:value("http://www.ideame.top/mmdb/Country.mmdb", translate("Alecthw-version")..translate("(Default)"))
+o:value("https://cdn.jsdelivr.net/gh/Hackl0us/GeoIP-CN@master/artifacts/Country.mmdb", translate("Hackl0us-version")..translate("(Only CN)"))
+o:value("https://static.clash.to/GeoIP2/GeoIP2-Country.mmdb", translate("Static.clash.to"))
+o:value("https://geolite.clash.dev/Country.mmdb", translate("Geolite.clash.dev"))
+o.default = "http://www.ideame.top/mmdb/Country.mmdb"
+
 o = s:taboption("geo_update", Button, translate("GEOIP Update")) 
 o.title = translate("Update GEOIP Database")
 o.inputtitle = translate("Check And Update")
@@ -534,6 +544,15 @@ for t = 0,23 do
 o:value(t, t..":00")
 end
 o.default=0
+
+o = s:taboption("chnr_update", Value, "chnr_custom_url")
+o.title = translate("Custom Chnroute Lists URL")
+o.rmempty = false
+o.description = translate("Custom Chnroute Lists URL, Click Button Below To Refresh After Edit")
+o:value("https://ispip.clang.cn/all_cn.txt", translate("Clang-CN")..translate("(Default)"))
+o:value("https://ispip.clang.cn/all_cn_cidr.txt", translate("Clang-CN-CIDR"))
+o:value("https://cdn.jsdelivr.net/gh/Hackl0us/GeoIP-CN@master/artifacts/geoip-cn.txt", translate("Hackl0us-IP-CIDR")..translate("(Large Size)"))
+o.default = "https://ispip.clang.cn/all_cn.txt"
 
 o = s:taboption("chnr_update", Button, translate("Chnroute Lists Update")) 
 o.title = translate("Update Chnroute Lists")
