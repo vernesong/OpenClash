@@ -63,7 +63,7 @@ yml_other_set()
    puts '${LOGTIME} Set Custom Rules Error: ' + e.message
    end
    begin
-   if $7 == 1 and Value.has_key?('rules') then
+   if $7 == 1 then
       Value['rules']=Value['rules'].to_a.insert(0,
       'DOMAIN-KEYWORD,tracker,DIRECT',
       'DOMAIN-KEYWORD,announce.php?passkey=,DIRECT',
@@ -102,6 +102,8 @@ yml_other_set()
       ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
       ruby_add_index ||= -1
       Value['rules']=Value['rules'].to_a.insert(ruby_add_index,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve')
+   elsif not Value.has_key?('rules') then
+      Value['rules']='IP-CIDR,198.18.0.1/16,REJECT,no-resolve'
    end;
    rescue Exception => e
    puts '${LOGTIME} Set 198.18.0.1/16 REJECT Rule Error: ' + e.message
