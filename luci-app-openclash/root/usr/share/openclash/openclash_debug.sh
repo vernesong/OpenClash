@@ -29,8 +29,10 @@ core_version=$(/etc/openclash/core/clash -v 2>/dev/null |awk -F ' ' '{print $2}'
 core_tun_version=$(/etc/openclash/core/clash_tun -v 2>/dev/null |awk -F ' ' '{print $2}' 2>/dev/null)
 core_game_version=$(/etc/openclash/core/clash_game -v 2>/dev/null |awk -F ' ' '{print $2}' 2>/dev/null)
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
+mix_proxies=$(uci get openclash.config.mix_proxies 2>/dev/null)
 op_version=$(sed -n 1p /usr/share/openclash/res/openclash_version 2>/dev/null)
 china_ip_route=$(uci get openclash.config.china_ip_route 2>/dev/null)
+common_ports=$(uci get openclash.config.common_ports 2>/dev/null)
 
 if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
 	CONFIG_NAME=$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')
@@ -211,7 +213,7 @@ cat >> "$DEBUG_LOG" <<-EOF
 启动配置文件: $CONFIG_FILE
 运行模式: $en_mode
 默认代理模式: $proxy_mode
-UDP流量转发: $(ts_cf "$enable_udp_proxy")
+UDP流量转发(tproxy): $(ts_cf "$enable_udp_proxy")
 DNS劫持: $(ts_cf "$enable_redirect_dns")
 自定义DNS: $(ts_cf "$enable_custom_dns")
 IPV6-DNS解析: $(ts_cf "$ipv6_enable")
@@ -219,9 +221,11 @@ IPV6-DNS解析: $(ts_cf "$ipv6_enable")
 自定义规则: $(ts_cf "$enable_custom_clash_rules")
 仅允许内网: $(ts_cf "$intranet_allowed")
 仅代理命中规则流量: $(ts_cf "$enable_rule_proxy")
+仅允许常用端口流量: $(ts_cf "$common_ports")
 绕过中国大陆IP: $(ts_cf "$china_ip_route")
 
 #启动异常时建议关闭此项后重试
+混合节点: $(ts_cf "$mix_proxies")
 保留配置: $(ts_cf "$servers_update")
 EOF
 if [ "$rule_source" != "0" ]; then
