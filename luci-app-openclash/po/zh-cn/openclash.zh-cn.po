@@ -1399,7 +1399,10 @@ msgid "Custom Chnroute Lists URL"
 msgstr "大陆IP段更新URL"
 
 msgid "Custom GEOIP Data URL, Click Button Below To Refresh After Edit"
-msgstr "自定义GEOIP数据库的更新来源，编辑后请点击下方按钮刷新"
+msgstr "自定义GEOIP数据库的更新来源，编辑后点击下方按钮生效"
+
+msgid "Custom Chnroute Lists URL, Click Button Below To Refresh After Edit"
+msgstr "自定义大陆IP段的更新来源，编辑后点击下方按钮生效"
 
 msgid "(Default)"
 msgstr "(默认)"
