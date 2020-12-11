@@ -1269,8 +1269,8 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
    fi
    iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
    if [ -z "$en_mode_tun" ]; then
-      iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 -j REDIRECT --to-ports "$proxy_port"
-      iptables -t nat -I PREROUTING -p tcp -d 8.8.4.4 -j REDIRECT --to-ports "$proxy_port"
+      iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 --dport 53 -j REDIRECT --to-ports "$proxy_port"
+      iptables -t nat -I PREROUTING -p tcp -d 8.8.4.4 --dport 53 -j REDIRECT --to-ports "$proxy_port"
    fi
    iptables -t nat -A PREROUTING -p tcp -j openclash
    if [ -z "$en_mode_tun" ]; then
@@ -1414,8 +1414,8 @@ if [ -n "$en_mode_tun" ]; then
       iptables -t mangle -A openclash_dns_hijack -d 8.8.8.8 -j MARK --set-mark "$PROXY_FWMARK"
       iptables -t mangle -A openclash_dns_hijack -d 8.8.4.4 -j MARK --set-mark "$PROXY_FWMARK"
       iptables -t mangle -I PREROUTING -p udp -j openclash
-      iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 -j ACCEPT
-      iptables -t nat -I PREROUTING -p tcp -d 8.8.4.4 -j ACCEPT
+      iptables -t nat -I PREROUTING -p tcp --dport 53 -d 8.8.8.8 -j ACCEPT
+      iptables -t nat -I PREROUTING -p tcp --dport 53 -d 8.8.4.4 -j ACCEPT
    fi
    
    #ipv6
