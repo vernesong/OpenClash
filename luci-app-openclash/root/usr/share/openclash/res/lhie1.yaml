@@ -354,10 +354,10 @@ script:
           return "DIRECT"
 
         code = ctx.geoip(ip)
-        
+
         if code == "CN":
           return "Domestic"
-          
+
         return "Others"
 
 rules:
