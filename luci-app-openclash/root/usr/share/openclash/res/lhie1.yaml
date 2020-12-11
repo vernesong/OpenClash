@@ -336,7 +336,8 @@ script:
             "PROXY": "Proxy",
             "Apple": "Apple",
             "Domestic": "Domestic",
-            "Domestic IPs": "Domestic"
+            "Domestic IPs": "Domestic",
+            "LAN": "DIRECT"
             }
         port = int(metadata["dst_port"])
 
@@ -353,12 +354,10 @@ script:
           return "DIRECT"
 
         code = ctx.geoip(ip)
-        if code == "LAN":
-          return "DIRECT"
-
+        
         if code == "CN":
           return "Domestic"
-
+          
         return "Others"
 
 rules:
