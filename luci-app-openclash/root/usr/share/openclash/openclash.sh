@@ -176,7 +176,11 @@ config_download_direct()
       kill_watchdog
 
       uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port" >/dev/null 2>&1
-      uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto >/dev/null 2>&1
+      if [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ]; then
+         uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.d/resolv.conf.auto >/dev/null 2>&1
+      elif [ -s "/tmp/resolv.conf.auto" ]; then
+         uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto >/dev/null 2>&1
+      fi
       uci set dhcp.@dnsmasq[0].noresolv=0 >/dev/null 2>&1
       uci delete dhcp.@dnsmasq[0].cachesize >/dev/null 2>&1
       uci commit dhcp
