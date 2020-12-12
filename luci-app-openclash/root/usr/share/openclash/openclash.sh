@@ -205,11 +205,12 @@ config_download_direct()
             change_dns
             config_su_check
          elif [ ! -f "$CFG_FILE" ]; then
-            echo "配置文件格式校验失败，尝试不使用代理下载配置文件..." > $START_LOG
+            echo "配置文件格式校验失败..." > $START_LOG
             sleep 3
             config_error
-         elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ]; then
-            echo "配置文件节点部分校验失败，尝试不使用代理下载配置文件..." > $START_LOG
+         elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
+            echo "${LOGTIME} Error: Updated Config 【$name】 Has No Proxy Field, Update Exit..." >> $LOG_FILE
+            echo "配置文件节点部分校验失败..." > $START_LOG
             sleep 3
             config_error
          else

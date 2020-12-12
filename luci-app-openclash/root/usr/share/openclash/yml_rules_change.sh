@@ -258,7 +258,7 @@ if [ "$2" != 0 ]; then
        	    };
        	    File.open('$4','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    puts '${LOGTIME} Set lhie1 Rules Error: ' + e.message
+       	    puts '${LOGTIME} Set ConnersHua Rules Error: ' + e.message
        	    end" 2>/dev/null >> $LOG_FILE
        else
             ruby -ryaml -E UTF-8 -e "
@@ -273,7 +273,7 @@ if [ "$2" != 0 ]; then
        	    };
        	    File.open('$4','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    puts '${LOGTIME} Set lhie1 Rules Error: ' + e.message
+       	    puts '${LOGTIME} Set ConnersHua Return Rules Error: ' + e.message
        	    end" 2>/dev/null >> $LOG_FILE
        fi
    fi
