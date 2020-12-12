@@ -52,15 +52,18 @@
       if [ $? -ne 0 ]; then
          echo "${LOGTIME} Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!" >> $LOG_FILE
          echo "Ruby依赖异常，无法校验配置文件，请确认ruby依赖工作正常后重试！" > $START_LOG
+         rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
          exit 0
       elif [ ! -f "/tmp/rules.yaml" ]; then
          echo "$RUlE_SOURCE 规则文件格式校验失败，请稍后再试..." > $START_LOG
+         rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
          exit 0
       elif ! "$(ruby_read "/tmp/rules.yaml" ".key?('rules')")" ; then
          echo "${LOGTIME} Error: Updated Others Rules 【$RUlE_SOURCE】 Has No Rules Field, Update Exit..." >> $LOG_FILE
          echo "$RUlE_SOURCE 规则文件规则部分校验失败，请稍后再试..." > $START_LOG
+         rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
          exit 0
       fi
@@ -80,19 +83,17 @@
          [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
       else
          echo "检测到下载的规则文件没有更新，停止继续操作..." >$START_LOG
-         rm -rf /tmp/rules.yaml >/dev/null 2>&1
          echo "${LOGTIME} Updated Other Rules 【$RUlE_SOURCE】 No Change, Do Nothing" >>$LOG_FILE
          sleep 5
       fi
    elif [ "$RUlE_SOURCE" = 0 ]; then
       echo "未启用第三方规则，更新程序终止！" >$START_LOG
-      rm -rf /tmp/rules.yaml >/dev/null 2>&1
       echo "${LOGTIME} Other Rules Not Enable, Update Stop" >>$LOG_FILE
       sleep 5
    else
       echo "第三方规则下载失败，请检查网络或稍后再试！" >$START_LOG
-      rm -rf /tmp/rules.yaml >/dev/null 2>&1
       echo "${LOGTIME} Other Rules 【$RUlE_SOURCE】 Update Error" >>$LOG_FILE
       sleep 5
    fi
+   rm -rf /tmp/rules.yaml >/dev/null 2>&1
    echo "" >$START_LOG
