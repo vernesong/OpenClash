@@ -78,7 +78,7 @@ yml_other_set()
       begin
       match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0]
       if not match_group.empty? and not match_group.nil? then
-         common_port_group=match_group.split(',')[1]
+         common_port_group=match_group.split(',')[2] or common_port_group=match_group.split(',')[1]
          if not common_port_group.empty? and not common_port_group.nil? then
             ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first)
             ruby_add_index ||= -1
