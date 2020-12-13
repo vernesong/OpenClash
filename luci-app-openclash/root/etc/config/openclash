@@ -62,12 +62,6 @@ config dns_servers
 	option enabled '1'
 
 config dns_servers
-	option enabled '1'
-	option group 'nameserver'
-	option ip 'doh.rixcloud.dev/dns-query'
-	option type 'https'
-
-config dns_servers
 	option type 'https'
 	option group 'fallback'
 	option enabled '1'
