@@ -228,38 +228,13 @@ IPV6-DNS解析: $(ts_cf "$ipv6_enable")
 混合节点: $(ts_cf "$mix_proxies")
 保留配置: $(ts_cf "$servers_update")
 EOF
-if [ "$rule_source" != "0" ]; then
+
 cat >> "$DEBUG_LOG" <<-EOF
 
 #启动异常时建议关闭此项后重试
-第三方规则: $rule_source
+第三方规则: $(ts_cf "$rule_source")
 EOF
-cat >> "$DEBUG_LOG" <<-EOF
-第三方规则策略组设置:
-GlobalTV: $(uci get openclash.config.GlobalTV 2>/dev/null)
-AsianTV: $(uci get openclash.config.AsianTV 2>/dev/null)
-Proxy: $(uci get openclash.config.Proxy 2>/dev/null)
-Apple: $(uci get openclash.config.Apple 2>/dev/null)
-Netflix: $(uci get openclash.config.Netflix 2>/dev/null)
-Spotify: $(uci get openclash.config.Spotify 2>/dev/null)
-Steam: $(uci get openclash.config.Steam 2>/dev/null)
-AdBlock: $(uci get openclash.config.AdBlock 2>/dev/null)
-Netease Music: $(uci get openclash.config.Netease_Music 2>/dev/null)
-Speedtest: $(uci get openclash.config.Speedtest 2>/dev/null)
-Telegram: $(uci get openclash.config.Telegram 2>/dev/null)
-Microsoft: $(uci get openclash.config.Microsoft 2>/dev/null)
-PayPal: $(uci get openclash.config.PayPal 2>/dev/null)
-Domestic: $(uci get openclash.config.Domestic 2>/dev/null)
-Others: $(uci get openclash.config.Others 2>/dev/null)
 
-读取的配置文件策略组:
-EOF
-cat /tmp/Proxy_Group  >> "$DEBUG_LOG"
-else
-cat >> "$DEBUG_LOG" <<-EOF
-第三方规则: 停用
-EOF
-fi
 
 if [ "$enable_custom_clash_rules" -eq 1 ]; then
 cat >> "$DEBUG_LOG" <<-EOF
