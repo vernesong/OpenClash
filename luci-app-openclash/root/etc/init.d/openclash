@@ -180,7 +180,7 @@ EOF
    if [ -n "$(ruby_read "$CONFIG_FILE" "['dns']['fallback']")" ] && [ -z "$(ruby_read "$CONFIG_FILE" "['dns']['fallback-filter']")" ]; then
 cat >> "$2" <<-EOF
   fallback-filter:
-    geoip: true
+    geoip: false
     ipcidr:
       - 0.0.0.0/8
       - 10.0.0.0/8
@@ -198,6 +198,11 @@ cat >> "$2" <<-EOF
       - 224.0.0.0/4
       - 240.0.0.0/4
       - 255.255.255.255/32
+    domain:
+      - '+.google.com'
+      - '+.facebook.com'
+      - '+.youtube.com'
+      - '+.githubusercontent.com'
 EOF
    ruby_merge "$CONFIG_FILE" "['dns']" "$2"
    fi
