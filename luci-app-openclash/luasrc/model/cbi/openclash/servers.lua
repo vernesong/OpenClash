@@ -175,7 +175,7 @@ o.template="openclash/ping"
 o.width="10%"
 
 local tt = {
-    {Delete_Unused_Servers, Delete_Severs, Delete_Proxy_Provider, Delete_Groups}
+    {Delete_Unused_Servers, Delete_Servers, Delete_Proxy_Provider, Delete_Groups}
 }
 
 b = m:section(Table, tt)
@@ -190,8 +190,8 @@ o.write = function()
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
 end
 
-o = b:option(Button,"Delete_Severs")
-o.inputtitle = translate("Delete Severs")
+o = b:option(Button,"Delete_Servers")
+o.inputtitle = translate("Delete Servers")
 o.inputstyle = "reset"
 o.write = function()
   m.uci:set("openclash", "config", "enable", 0)
