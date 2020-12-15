@@ -15,10 +15,8 @@ m.pageaction = false
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
 
-o = s:option(ListValue, "create_config", translate("Create Config"))
+o = s:option(Flag, "create_config", translate("Create Config"))
 o.description = font_red .. bold_on .. translate("Create Config By One-Click Only Need Proxys") .. bold_off .. font_off
-o:value("0", translate("Disable"))
-o:value("1", translate("Enable"))
 o.default=0
 
 o = s:option(ListValue, "rule_sources", translate("Choose Template For Create Config"))
@@ -28,17 +26,13 @@ o:value("lhie1", translate("lhie1 Rules"))
 o:value("ConnersHua", translate("ConnersHua(Provider-type) Rules"))
 o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
-o = s:option(ListValue, "mix_proxies", translate("Mix Proxies"))
+o = s:option(Flag, "mix_proxies", translate("Mix Proxies"))
 o.description = font_red .. bold_on .. translate("Mix This Page's Proxies") .. bold_off .. font_off
 o:depends("create_config", 1)
-o:value("0", translate("Disable"))
-o:value("1", translate("Enable"))
 o.default=0
 
-o = s:option(ListValue, "servers_update", translate("Keep Settings"))
+o = s:option(Flag, "servers_update", translate("Keep Settings"))
 o.description = font_red .. bold_on .. translate("Only Update Servers Below When Subscription") .. bold_off .. font_off
-o:value("0", translate("Disable"))
-o:value("1", translate("Enable"))
 o.default=0
 
 o = s:option(DynamicList, "new_servers_group", translate("New Servers Group"))
