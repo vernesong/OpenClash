@@ -175,7 +175,7 @@ do
    Thread.new{
    #test_url
    if Value['proxy-groups'][$count].key?('url') then
-      group_test_url = '${uci_set}test_url=' + Value['proxy-groups'][$count]['url'].to_s
+      group_test_url = '${uci_set}test_url=\"' + Value['proxy-groups'][$count]['url'].to_s + '\"'
       system(group_test_url)
    end
    }.join;
