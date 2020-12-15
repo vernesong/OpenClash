@@ -689,16 +689,16 @@ do
                   system(custom)
                end
             end
-      elsif Value['proxies'][$count]['network'].to_s == 'http'
-         system '${uci_set}obfs_vmess=http'
-         if Value['proxies'][$count].key?('http-opts') then
-            if Value['proxies'][$count]['http-opts'].key?('path') then
-               system '${uci_del}http_path >/dev/null 2>&1'
-               Value['proxies'][$count]['http-opts']['path'].each{
-               |x|
-               http_path = '${uci_add}http_path=\"' + x.to_s + '\"'
-               system(http_path)
-               }
+         elsif Value['proxies'][$count]['network'].to_s == 'http'
+            system '${uci_set}obfs_vmess=http'
+            if Value['proxies'][$count].key?('http-opts') then
+               if Value['proxies'][$count]['http-opts'].key?('path') then
+                  system '${uci_del}http_path >/dev/null 2>&1'
+                  Value['proxies'][$count]['http-opts']['path'].each{
+                  |x|
+                  http_path = '${uci_add}http_path=\"' + x.to_s + '\"'
+                  system(http_path)
+                  }
                end
                if Value['proxies'][$count]['http-opts'].key?('headers') then
                   if Value['proxies'][$count]['http-opts']['headers'].key?('Connection') then
@@ -711,9 +711,25 @@ do
                   end
                end
             end
-      else
-         system '${uci_set}obfs_vmess=none'
-      end
+         elsif Value['proxies'][$count]['network'].to_s == 'h2'
+            system '${uci_set}obfs_vmess=h2'
+            if Value['proxies'][$count].key?('h2-opts') then
+               if Value['proxies'][$count]['h2-opts'].key?('host') then
+                  system '${uci_del}h2_host >/dev/null 2>&1'
+                  Value['proxies'][$count]['h2-opts']['host'].each{
+                  |x|
+                  h2_host = '${uci_add}h2_host=\"' + x.to_s + '\"'
+                  system(h2_host)
+                  }
+               end
+               if Value['proxies'][$count]['h2-opts'].key?('path') then
+                  h2_path = '${uci_set}h2_path=\"' + Value['proxies'][$count]['h2-opts']['host'].to_s + '\"'
+                  system(h2_path)
+               end
+            end
+         else
+            system '${uci_set}obfs_vmess=none'
+         end
       end
       }.join
    end;

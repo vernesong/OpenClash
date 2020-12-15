@@ -135,6 +135,15 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
 }
 
+set_h2_host()
+{
+   if [ -z "$1" ]; then
+      return
+   fi
+cat >> "$SERVER_FILE" <<-EOF
+        - '$1'
+EOF
+}
 
 #写入服务器节点到配置文件
 yml_servers_set()
@@ -175,6 +184,8 @@ yml_servers_set()
    config_get "http_path" "$section" "http_path" ""
    config_get "keep_alive" "$section" "keep_alive" ""
    config_get "servername" "$section" "servername" ""
+   config_get "h2_path" "$section" "h2_path" ""
+   config_get "h2_host" "$section" "h2_host" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -243,6 +254,10 @@ yml_servers_set()
    
    if [ "$obfs_vmess" = "http" ]; then
       obfs_vmess="network: http"
+   fi
+   
+   if [ "$obfs_vmess" = "h2" ]; then
+      obfs_vmess="network: h2"
    fi
    
    if [ ! -z "$custom" ] && [ "$type" = "vmess" ]; then
@@ -402,6 +417,20 @@ cat >> "$SERVER_FILE" <<-EOF
       headers:
         Connection:
           - keep-alive
+EOF
+         fi
+         
+         #h2
+         if [ ! -z "$h2_host" ] && [ "$obfs_vmess" = "network: h2" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    h2-opts:
+      host:
+EOF
+            config_list_foreach "$section" "h2_host" set_h2_host
+         fi
+         if [ ! -z "$h2_path" ] && [ "$obfs_vmess" = "network: h2" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+      path: $h2_path
 EOF
          fi
       fi
