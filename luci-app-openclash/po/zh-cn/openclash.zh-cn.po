@@ -594,7 +594,7 @@ msgid "Only For IPK Install Type Or Not Release Memory"
 msgstr ""
 "只支持通过IPK安装的版本进行更新，因为随系统编译的版本更新后不会释放旧版本的闪存空间"
 
-msgid "Severs and Groups"
+msgid "Servers and Groups"
 msgstr "服务器与策略组管理"
 
 msgid "Load Config"
@@ -603,7 +603,7 @@ msgstr "读取配置"
 msgid "Delete Unused Servers"
 msgstr "删除未启用节点"
 
-msgid "Delete Severs"
+msgid "Delete Servers"
 msgstr "清空服务器配置"
 
 msgid "Delete Proxy Provider"
