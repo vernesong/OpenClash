@@ -84,6 +84,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "AsianTV", translate("AsianTV"))
 o:depends("rule_name", "lhie1")
@@ -94,6 +96,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "Proxy", translate("Proxy"))
 o:depends("rule_name", "lhie1")
@@ -105,6 +109,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "Youtube", translate("Youtube"))
 o:depends("rule_name", "lhie1")
@@ -114,6 +120,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "Apple", translate("Apple"))
 o:depends("rule_name", "lhie1")
@@ -123,6 +131,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "Microsoft", translate("Microsoft"))
 o:depends("rule_name", "lhie1")
@@ -132,6 +142,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "Netflix", translate("Netflix"))
 o:depends("rule_name", "lhie1")
@@ -141,6 +153,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "Spotify", translate("Spotify"))
 o:depends("rule_name", "lhie1")
@@ -150,6 +164,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "Steam", translate("Steam"))
 o:depends("rule_name", "lhie1")
@@ -159,6 +175,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "Speedtest", translate("Speedtest"))
 o:depends("rule_name", "lhie1")
@@ -168,6 +186,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "Telegram", translate("Telegram"))
 o:depends("rule_name", "lhie1")
@@ -177,6 +197,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "PayPal", translate("PayPal"))
 o:depends("rule_name", "lhie1")
@@ -186,6 +208,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "AdBlock", translate("AdBlock"))
 o:depends("rule_name", "lhie1")
@@ -195,6 +219,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "Domestic", translate("Domestic"))
 o:depends("rule_name", "lhie1")
@@ -205,6 +231,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 o = s:option(ListValue, "Others", translate("Others"))
 o:depends("rule_name", "lhie1")
@@ -217,6 +245,8 @@ for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
     o:value(groupname)
   end
 end
+o:value("DIRECT")
+o:value("REJECT")
 
 end
 

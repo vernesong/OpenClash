@@ -213,7 +213,7 @@ msgid "Custom DNS Setting"
 msgstr "自定义上游DNS服务器"
 
 msgid "Use Custom Rules"
-msgstr "启用后将把自定义规则增加到配置文件并优先匹配，规则请到下方文本框编辑"
+msgstr "启用后将把自定义规则增加到配置文件，规则请到下方文本框编辑"
 
 msgid "Add Custom DNS Servers"
 msgstr "设置自定义上游DNS服务器"
@@ -422,7 +422,7 @@ msgid "Enable Other Rules"
 msgstr "第三方规则"
 
 msgid "Use Other Rules"
-msgstr "启用第三方规则后将覆盖配置文件内的所有规则 (不包括自定义规则)，请在页面下方设置"
+msgstr "将覆盖配置文件内的所有规则 (不包括自定义规则)，启用前请先在此页面下方创建配置"
 
 msgid "Disable Other Rules"
 msgstr "不使用第三方规则"
