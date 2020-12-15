@@ -129,7 +129,7 @@ o.write = function()
 		function(s)
 		  if s.name ~= "" and s.name ~= nil and s.enabled == "1" then
 			   local back_cfg_path_yaml="/etc/openclash/backup/" .. s.name .. ".yaml"
-			   local back_cfg_path_yml="/etc/openclash/backup/" .. s.name .. ".yaml"
+			   local back_cfg_path_yml="/etc/openclash/backup/" .. s.name .. ".yml"
 			   fs.unlink(back_cfg_path_yaml)
 			   fs.unlink(back_cfg_path_yml)
 			end
