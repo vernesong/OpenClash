@@ -219,7 +219,7 @@ msgid "Add Custom DNS Servers"
 msgstr "设置自定义上游DNS服务器"
 
 msgid "(Take Effect After Choose Above)"
-msgstr "（在上方DNS设置中启用本功能后生效）"
+msgstr "（在上方设置中启用本功能后生效）"
 
 msgid "Advanced Setting"
 msgstr "高级设置"
@@ -422,7 +422,7 @@ msgid "Enable Other Rules"
 msgstr "第三方规则"
 
 msgid "Use Other Rules"
-msgstr "选择并启用第三方规则后将覆盖配置文件内的所有规则 (不包括自定义规则)"
+msgstr "启用第三方规则后将覆盖配置文件内的所有规则 (不包括自定义规则)，请在页面下方设置"
 
 msgid "Disable Other Rules"
 msgstr "不使用第三方规则"
@@ -520,8 +520,8 @@ msgstr "国内流量"
 msgid "Others"
 msgstr "未匹配到规则的流量"
 
-msgid "Choose Proxy Group, Base On Your Servers Group in config.yaml"
-msgstr "指定流量(策略)的代理方式，只支持选择（服务器组），信息来源于您的配置文件"
+msgid "Choose Proxy Groups, Base On Your Config File"
+msgstr "指定流量(策略)的代理方式，只支持选择（策略组），信息来源于您的配置文件"
 
 msgid "Custom Clash Rules"
 msgstr "自定义规则"
@@ -1413,3 +1413,17 @@ msgstr "(仅中国数据)"
 msgid "(Large Size)"
 msgstr "(18MB大文件，请确保足够的剩余空间)"
 
+msgid "Other Rules Edit"
+msgstr "设置第三方规则"
+
+msgid "Get Group Names"
+msgstr "获取策略组"
+
+msgid "Get Group Names After Select Config File"
+msgstr "选择配置文件后请点击以获取对应的策略组"
+
+msgid "Set Proxy Groups"
+msgstr "设置策略组（请注意：策略组信息必须与您选择的配置文件相匹配）"
+
+msgid "Other Rules Name"
+msgstr "第三方规则"

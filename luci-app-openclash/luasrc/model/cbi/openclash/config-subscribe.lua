@@ -21,10 +21,8 @@ s = m:section(TypedSection, "openclash")
 s.anonymous = true
 
 ---- update Settings
-o = s:option(ListValue, "auto_update", translate("Auto Update"))
+o = s:option(Flag, "auto_update", translate("Auto Update"))
 o.description = translate("Auto Update Server subscription")
-o:value("0", translate("Disable"))
-o:value("1", translate("Enable"))
 o.default=0
 
 o = s:option(ListValue, "config_auto_update_mode", translate("Update Mode"))

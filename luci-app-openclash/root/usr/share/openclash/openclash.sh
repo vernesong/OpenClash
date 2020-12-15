@@ -176,9 +176,18 @@ config_download_direct()
       kill_watchdog
 
       uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port" >/dev/null 2>&1
-      if [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ]; then
+      if [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.d/resolv.conf.auto)" ]; then
          uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.d/resolv.conf.auto >/dev/null 2>&1
-      elif [ -s "/tmp/resolv.conf.auto" ]; then
+      elif [ -s "/tmp/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.auto)" ]; then
+         uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto >/dev/null 2>&1
+      else
+         rm -rf /tmp/resolv.conf.auto 2>/dev/null
+         touch /tmp/resolv.conf.auto 2>/dev/null
+         cat >> "/tmp/resolv.conf.auto" <<-EOF
+# Interface lan
+nameserver 114.114.114.114
+nameserver 119.29.29.29
+EOF
          uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto >/dev/null 2>&1
       fi
       uci set dhcp.@dnsmasq[0].noresolv=0 >/dev/null 2>&1

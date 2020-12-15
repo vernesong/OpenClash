@@ -63,7 +63,7 @@ yml_other_set()
    puts '${LOGTIME} Set Custom Rules Error: ' + e.message
    end
    begin
-   if $7 == 1 then
+   if $5 == 1 then
       Value['rules']=Value['rules'].to_a.insert(0,
       'DOMAIN-KEYWORD,tracker,DIRECT',
       'DOMAIN-KEYWORD,announce.php?passkey=,DIRECT',
@@ -112,42 +112,66 @@ yml_other_set()
    end" 2>/dev/null >> $LOG_FILE
 }
 
+yml_other_rules_get()
+{
+   local section="$1"
+   local enabled config
+   config_get_bool "enabled" "$section" "enabled" "1"
+   config_get "config" "$section" "config" ""
+   
+   if [ "$enabled" = "0" ] || [ "$config" != "$2" ]; then
+      return
+   fi
+   
+   if [ -n "$rule_name" ]; then
+      echo "${1} Warrning: Multiple Other-Rules-Configurations Enabled, Ignore..." >> $LOG_FILE
+      return
+   fi
+   
+   config_get "rule_name" "$section" "rule_name" ""
+   config_get "GlobalTV" "$section" "GlobalTV" ""
+   config_get "AsianTV" "$section" "AsianTV" ""
+   config_get "Proxy" "$section" "Proxy" ""
+   config_get "Youtube" "$section" "Youtube" ""
+   config_get "Apple" "$section" "Apple" ""
+   config_get "Netflix" "$section" "Netflix" ""
+   config_get "Spotify" "$section" "Spotify" ""
+   config_get "Steam" "$section" "Steam" ""
+   config_get "AdBlock" "$section" "AdBlock" ""
+   config_get "Netease_Music" "$section" "Netease_Music" ""
+   config_get "Speedtest" "$section" "Speedtest" ""
+   config_get "Telegram" "$section" "Telegram" ""
+   config_get "Microsoft" "$section" "Microsoft" ""
+   config_get "PayPal" "$section" "PayPal" ""
+   config_get "Domestic" "$section" "Domestic" ""
+   config_get "Others" "$section" "Others" ""
+}
+
 if [ "$2" != 0 ]; then
+   config_load "openclash"
+   config_foreach yml_other_rules_get "other_rules" "$6"
+   if [ -z "$rule_name" ]; then
+      yml_other_set "$1" "$2" "$3" "$4" "$5"
+      exit 0
    #判断策略组是否存在
-   GlobalTV=$(uci get openclash.config.GlobalTV 2>/dev/null)
-   AsianTV=$(uci get openclash.config.AsianTV 2>/dev/null)
-   Proxy=$(uci get openclash.config.Proxy 2>/dev/null)
-   Youtube=$(uci get openclash.config.Youtube 2>/dev/null)
-   Apple=$(uci get openclash.config.Apple 2>/dev/null)
-   Netflix=$(uci get openclash.config.Netflix 2>/dev/null)
-   Spotify=$(uci get openclash.config.Spotify 2>/dev/null)
-   Steam=$(uci get openclash.config.Steam 2>/dev/null)
-   AdBlock=$(uci get openclash.config.AdBlock 2>/dev/null)
-   Netease_Music=$(uci get openclash.config.Netease_Music 2>/dev/null)
-   Speedtest=$(uci get openclash.config.Speedtest 2>/dev/null)
-   Telegram=$(uci get openclash.config.Telegram 2>/dev/null)
-   Microsoft=$(uci get openclash.config.Microsoft 2>/dev/null)
-   PayPal=$(uci get openclash.config.PayPal 2>/dev/null)
-   Domestic=$(uci get openclash.config.Domestic 2>/dev/null)
-   Others=$(uci get openclash.config.Others 2>/dev/null)
-   if [ "$2" = "ConnersHua_return" ]; then
+   elif [ "$rule_name" = "ConnersHua_return" ]; then
 	    if [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ];then
-         echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+         echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >> $LOG_FILE
+         yml_other_set "$1" "$2" "$3" "$4" "$5"
          exit 0
 	    fi
-   elif [ "$2" = "ConnersHua" ]; then
+   elif [ "$rule_name" = "ConnersHua" ]; then
        if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
-         echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+         echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >> $LOG_FILE
+         yml_other_set "$1" "$2" "$3" "$4" "$5"
          exit 0
        fi
-   elif [ "$2" = "lhie1" ]; then
+   elif [ "$rule_name" = "lhie1" ]; then
        if [ -z "$(grep -F "$GlobalTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
@@ -163,14 +187,14 @@ if [ "$2" != 0 ]; then
    || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
-         echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+         echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >> $LOG_FILE
+         yml_other_set "$1" "$2" "$3" "$4" "$5"
          exit 0
        fi
    fi
-   if [ "$Proxy" = "读取错误，配置文件异常！" ]; then
-      echo "${1} Warning: Can not Get The Porxy-Group's Name, Stop Setting The Other Rules!" >>/tmp/openclash.log
-      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+   if [ -z "$Proxy" ]; then
+      echo "${1} Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!" >> $LOG_FILE
+      yml_other_set "$1" "$2" "$3" "$4" "$5"
       exit 0
    else
        #删除原有的部分，防止冲突
@@ -180,7 +204,7 @@ if [ "$2" != 0 ]; then
        if [ -n "$(ruby_read "$4" "['rules']")" ]; then
           ruby_edit "$4" "['rules'].clear"
        fi
-       if [ "$2" = "lhie1" ]; then
+       if [ "$rule_name" = "lhie1" ]; then
        	    ruby -ryaml -E UTF-8 -e "
        	    begin
        	    Value = YAML.load_file('$4');
@@ -233,7 +257,7 @@ if [ "$2" != 0 ]; then
        	    rescue Exception => e
        	    puts '${LOGTIME} Set lhie1 Rules Error: ' + e.message
        	    end" 2>/dev/null >> $LOG_FILE
-       elif [ "$2" = "ConnersHua" ]; then
+       elif [ "$rule_name" = "ConnersHua" ]; then
             ruby -ryaml -E UTF-8 -e "
             begin
        	    Value = YAML.load_file('$4');
@@ -279,4 +303,4 @@ if [ "$2" != 0 ]; then
    fi
 fi
 
-yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+yml_other_set "$1" "$2" "$3" "$4" "$5"
