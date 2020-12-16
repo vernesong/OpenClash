@@ -18,8 +18,6 @@ UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/
 UCI_DEL_LIST="uci del_list openclash.config.new_servers_group"
 UCI_ADD_LIST="uci add_list openclash.config.new_servers_group"
 UCI_SET="uci set openclash.config."
-uci_name_tmp=$(uci add openclash other_rules)
-uci_set="uci -q set openclash.$uci_name_tmp."
 MIX_PROXY=$(uci get openclash.config.mix_proxies 2>/dev/null)
 servers_name="/tmp/servers_name.list"
 proxy_provider_name="/tmp/provider_name.list"
@@ -724,6 +722,8 @@ fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
 config_load "openclash"
 config_foreach yml_other_rules_del "other_rules" "$CONFIG_NAME" "ConnersHua"
+uci_name_tmp=$(uci add openclash other_rules)
+uci_set="uci -q set openclash.$uci_name_tmp."
 ${UCI_SET}rule_source="1"
 ${uci_set}enable="1"
 ${uci_set}rule_name="ConnersHua"
@@ -934,6 +934,8 @@ fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
 config_load "openclash"
 config_foreach yml_other_rules_del "other_rules" "$CONFIG_NAME" "lhie1"
+uci_name_tmp=$(uci add openclash other_rules)
+uci_set="uci -q set openclash.$uci_name_tmp."
 ${UCI_SET}rule_source="1"
 ${uci_set}enable="1"
 ${uci_set}rule_name="lhie1"
@@ -1013,6 +1015,8 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
 config_load "openclash"
 config_foreach yml_other_rules_del "other_rules" "$CONFIG_NAME" "ConnersHua_return"
+uci_name_tmp=$(uci add openclash other_rules)
+uci_set="uci -q set openclash.$uci_name_tmp."
 ${UCI_SET}rule_source="1"
 ${uci_set}enable="1"
 ${uci_set}rule_name="ConnersHua_return"

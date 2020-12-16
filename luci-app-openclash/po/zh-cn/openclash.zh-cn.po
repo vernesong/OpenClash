@@ -424,9 +424,6 @@ msgstr "第三方规则"
 msgid "Use Other Rules"
 msgstr "将覆盖配置文件内的所有规则 (不包括自定义规则)，启用前请先在此页面下方创建配置"
 
-msgid "Disable Other Rules"
-msgstr "不使用第三方规则"
-
 msgid "lhie1 Rules"
 msgstr "lhie1 规则"
 
@@ -1421,9 +1418,6 @@ msgstr "获取策略组"
 
 msgid "Get Group Names After Select Config File"
 msgstr "选择配置文件后请点击以获取对应的策略组"
-
-msgid "Set Proxy Groups"
-msgstr "设置策略组（请注意：策略组信息必须与您选择的配置文件相匹配）"
 
 msgid "Other Rules Name"
 msgstr "第三方规则"

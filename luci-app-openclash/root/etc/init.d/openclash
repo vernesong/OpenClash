@@ -776,6 +776,24 @@ elif [ ! -f "$CONFIG_FILE" ] || [ ! -s "$CONFIG_FILE" ]; then
 fi
 }
 
+yml_other_rules_get()
+{
+   local section="$1"
+   local enabled config
+   config_get_bool "enabled" "$section" "enabled" "1"
+   config_get "config" "$section" "config" ""
+   
+   if [ "$enabled" = "0" ] || [ "$config" != "$2" ]; then
+      return
+   fi
+   
+   if [ -n "$rule_name" ]; then
+      return
+   fi
+   
+   config_get "rule_name" "$section" "rule_name" ""
+}
+
 #运行模式处理
 do_run_mode()
 {
@@ -846,8 +864,11 @@ do_run_file()
       core_type="Game"
       core_start_log="检测到配置了【Game】内核专属功能，调用【Game】内核启动..."
    fi
+   
+   config_load "openclash"
+   config_foreach yml_other_rules_get "other_rules" "$CONFIG_NAME"
 
-   if [ "$proxy_mode" = "script" ] || [ "$rule_source" = "ConnersHua" ] || [ "$rule_source" = "lhie1" ] || [ -n "$(ruby_read "$CONFIG_FILE" "['rules'].grep(/^RULE-SET,/)")" ]; then
+   if [ "$proxy_mode" = "script" ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$CONFIG_FILE" "['rules'].grep(/^RULE-SET,/)")" ]; then
       if [ "$en_mode_tun" != "2" ]; then
          rm -rf "/etc/openclash/clash" 2>/dev/null
          ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
