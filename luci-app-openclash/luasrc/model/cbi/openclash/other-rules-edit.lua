@@ -65,9 +65,10 @@ o.write = function()
 end
 
 if groupnames ~= nil and filename ~= nil then
-s = m:section(TypedSection, "openclash")
+s = m:section(NamedSection, sid, "other_rules")
 s.title = translate("Set Proxy Groups")
 s.anonymous = true
+s.addremove   = false
 
 o = s:option(ListValue, "rule_name", translate("Other Rules Name"))
 o.rmempty = true
@@ -249,7 +250,6 @@ o:value("DIRECT")
 o:value("REJECT")
 
 end
-
 
 local t = {
     {Commit, Back}
