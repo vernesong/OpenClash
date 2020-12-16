@@ -618,7 +618,7 @@ do
       Thread.new{
       #protocol-param
       if Value['proxies'][$count].key?('protocol-param') then
-         protocol_param = '${uci_set}protocol_param=\"' + Value['proxies'][$count]['protocol-param'].to_s +'\"'
+         protocol_param = '${uci_set}protocol_param=\"' + Value['proxies'][$count]['protocol-param'].to_s + '\"'
          system(protocol_param)
       end
       }.join
