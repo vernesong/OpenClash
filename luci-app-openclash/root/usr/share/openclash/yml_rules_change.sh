@@ -124,7 +124,7 @@ yml_other_rules_get()
    fi
    
    if [ -n "$rule_name" ]; then
-      echo "${1} Warrning: Multiple Other-Rules-Configurations Enabled, Ignore..." >> $LOG_FILE
+      echo "${LOGTIME} Warrning: Multiple Other-Rules-Configurations Enabled, Ignore..." >> $LOG_FILE
       return
    fi
    
