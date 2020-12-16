@@ -56,7 +56,7 @@
       begin
       YAML.load_file('/tmp/rules.yaml');
       rescue Exception => e
-      puts '${LOGTIME} Error: Unable To Parse Updated ${RUlE_SOURCE} Rules File ' + e.message
+      puts '${LOGTIME} Error: Unable To Parse Updated ${rule_name} Rules File ' + e.message
       system 'rm -rf /tmp/rules.yaml 2>/dev/null'
       end
       " 2>/dev/null >> $LOG_FILE
