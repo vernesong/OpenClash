@@ -149,7 +149,7 @@ yml_other_rules_get()
    config_get "Others" "$section" "Others" ""
 }
 
-if [ "$2" != 0 ]; then
+if [ "$2" != "0" ]; then
    config_load "openclash"
    config_foreach yml_other_rules_get "other_rules" "$6"
    if [ -z "$rule_name" ]; then
