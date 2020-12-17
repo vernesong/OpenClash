@@ -740,7 +740,6 @@ if [ ! -f "$RAW_CONFIG_FILE" ]; then
    if [ -n "$subscribe_info" ]; then
       echo "配置文件不存在，您已设置订阅信息，准备开始下载..." >$START_LOG
       sleep 3
-      kill_clash
       nohup /usr/share/openclash/openclash.sh &
       del_lock
       exit 0
@@ -865,8 +864,10 @@ do_run_file()
       core_start_log="检测到配置了【Game】内核专属功能，调用【Game】内核启动..."
    fi
    
-   config_load "openclash"
-   config_foreach yml_other_rules_get "other_rules" "$CONFIG_NAME"
+   if [ "$rule_source" != "0" ]; then
+      config_load "openclash"
+      config_foreach yml_other_rules_get "other_rules" "$CONFIG_NAME"
+   fi
 
    if [ "$proxy_mode" = "script" ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$CONFIG_FILE" "['rules'].grep(/^RULE-SET,/)")" ]; then
       if [ "$en_mode_tun" != "2" ]; then

@@ -108,7 +108,7 @@
    LOG_FILE="/tmp/openclash.log"
    RUlE_SOURCE=$(uci get openclash.config.rule_source 2>/dev/null)
    
-   if [ "$RUlE_SOURCE" = 0 ]; then
+   if [ "$RUlE_SOURCE" = "0" ]; then
       echo "未启用第三方规则，更新程序终止！" >$START_LOG
       echo "${LOGTIME} Other Rules Not Enable, Update Stop" >>$LOG_FILE
       sleep 5
