@@ -1356,7 +1356,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
    fi
    iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
    if [ "$en_mode" = "redir-host" ]; then
-      iptables -t mangle -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
+      iptables -t nat -A openclash_output -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
    fi
    if [ "$intranet_allowed" -eq 1 ]; then
       iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j DNAT --to-destination "$lan_ip:$proxy_port"
