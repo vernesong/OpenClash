@@ -194,8 +194,8 @@ rule-providers:
   WeTV:
     type: http
     behavior: classical
-    url: 'https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Media/WeTV.yaml'
-    path: ./Rules/Media/WeTV
+    url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Media/WeTV.yaml
+    path: "./Rules/Media/WeTV"
     interval: 86400
   ABC:
     type: http
@@ -248,8 +248,8 @@ rule-providers:
   Discovery Plus:
     type: http
     behavior: classical
-    url: 'https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Media/Discovery%20Plus.yaml'
-    path: ./Rules/Media/Discovery_Plus
+    url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Media/Discovery%20Plus.yaml
+    path: "./Rules/Media/Discovery_Plus"
     interval: 86400
   Disney Plus:
     type: http
