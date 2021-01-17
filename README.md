@@ -5,14 +5,14 @@
 </h1>
 
   <p align="center">
-	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v0.20.0">
-    <img src="https://img.shields.io/badge/Clash-v0.20.0-blue.svg">
+	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.3.5">
+    <img src="https://img.shields.io/badge/Clash-v1.3.5-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.38.1-beta">
-    <img src="https://img.shields.io/badge/source code-v0.38.1--beta-green.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.41.14-beta">
+    <img src="https://img.shields.io/badge/source code-v0.41.14--beta-green.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.38.1-beta">
-    <img src="https://img.shields.io/badge/New Release-v0.38.1--beta-orange.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.41.14-beta">
+    <img src="https://img.shields.io/badge/New Release-v0.41.14--beta-orange.svg">
   </a>
   </p>
   
@@ -21,7 +21,7 @@
 本插件是一个可运行在 OpenWrt 上的<a href="https://github.com/Dreamacro/clash" target="_blank"> Clash </a>客户端
 </p>
 <p align="center">
-兼容 Shadowsocks、Vmess、Trojan、Snell 等协议，根据灵活的规则配置实现策略代理
+兼容 Shadowsocks、ShadowsocksR、Vmess、Trojan、Snell 等协议，根据灵活的规则配置实现策略代理
 </p>
 <p align="center">
 - 感谢<a href="https://github.com/frainzy1477" target="_blank"> frainzy1477 </a>，本插件基于<a href="https://github.com/frainzy1477/luci-app-clash" target="_blank"> Luci For Clash </a>进行二次开发 -
@@ -57,8 +57,14 @@
 * ipset
 * ip-full
 * iptables-mod-tproxy
+* iptables-mod-extra
+* libcap
+* libcap-bin
+* ruby
+* ruby-yaml
 * kmod-tun(TUN模式)
 * luci-compat(Luci-19.07)
+* ip6tables-mod-nat(ipv6)
 
 
 编译
@@ -82,17 +88,30 @@ git pull origin master
 git branch --set-upstream-to=origin/master master
 
 # 编译 po2lmo (如果有po2lmo可跳过)
-pushd package/luci-app-openclash/luci-app-openclash/tools/po2lmo
+pushd luci-app-openclash/tools/po2lmo
 make && sudo make install
 popd
 
-# 选择要编译的包 LuCI -> Applications -> luci-app-openclash
-make menuconfig
-
 # 开始编译
+
+# 先回退到SDK主目录
+cd ../..
 make package/luci-app-openclash/luci-app-openclash/compile V=99
 
+# IPK文件位置
+./bin/ar71xx/packages/base/luci-app-openclash_0.39.7-beta_all.ipk
+```
+
+```bash
+# 同步源码
+cd package/luci-app-openclash/luci-app-openclash
+git pull
+
 # 您也可以直接拷贝 `luci-app-openclash` 文件夹至其他 `OpenWrt` 项目的 `Package` 目录下随固件编译
+
+make menuconfig
+# 选择要编译的包 LuCI -> Applications -> luci-app-openclash
+
 ```
 
 
@@ -151,7 +170,7 @@ make package/luci-app-openclash/luci-app-openclash/compile V=99
     <img src="https://github.com/vernesong/OpenClash/raw/master/img/servers.png">
 </p>
 
-* 游戏规则&策略组
+* 规则&策略组
 <p align="center">
     <img src="https://github.com/vernesong/OpenClash/raw/master/img/game-settings.png">
 </p>
