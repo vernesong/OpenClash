@@ -139,24 +139,6 @@ start_fail()
    exit 0
 }
 
-yml_check()
-{
-   
-   #创建原始备份
-   if [ ! -f "$2" ]; then
-      cp "$1" "$2"
-   fi
-   
-   dns_port="$(ruby_read "$1" "['dns']['listen'].split(':')[1]")"
-   if [ -z "$dns_port" ] || [ "$dns_port" -eq 53 ]; then
-      dns_port=7874
-   fi
-
-   #保存DNS端口方便后续调用
-   uci set openclash.config.dns_port="$dns_port" && uci commit openclash
-
-}
-
 yml_dns_check()
 {
 	#检查DNS服务
@@ -946,6 +928,11 @@ do_run_file()
      sleep 5
      start_fail
    fi
+   
+   #创建原始备份
+   if [ ! -f "$2" ]; then
+      cp "$1" "$2"
+   fi
 
 }
 
@@ -1599,6 +1586,7 @@ get_config()
    mixed_port=$(uci get openclash.config.mixed_port 2>/dev/null)
    interface_name=$(uci get openclash.config.interface_name 2>/dev/null)
    common_ports=$(uci get openclash.config.common_ports 2>/dev/null)
+   dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
    uci set openclash.config.restricted_mode=0 && uci commit openclash
 }
 
@@ -1616,11 +1604,9 @@ start()
    echo "第一步: 获取配置..." >$START_LOG
    get_config
    
+   echo "第二步: 组件运行前检查..." >$START_LOG
    #检查文件是否存在
-   do_run_file
-
-   echo "第二步: 配置文件检查..." >$START_LOG
-   yml_check "$CONFIG_FILE" "$BACKUP_FILE"
+   do_run_file "$CONFIG_FILE" "$BACKUP_FILE"
 
    echo "第三步: 修改配置文件..." >$START_LOG
    config_load "openclash"
