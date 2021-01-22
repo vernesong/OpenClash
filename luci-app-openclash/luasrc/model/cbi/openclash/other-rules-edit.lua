@@ -36,6 +36,10 @@ s = m:section(NamedSection, sid, "other_rules")
 s.anonymous = true
 s.addremove   = false
 
+o = s:option(Value, "Note", translate("Note"))
+o.default = "default"
+o.rmempty = false
+
 o = s:option(ListValue, "config", translate("Config File"))
 local e,a={}
 local groupnames,filename
