@@ -34,6 +34,7 @@ s:tab("dashboard", translate("Dashboard Settings"))
 s:tab("rules_update", translate("Rules Update"))
 s:tab("geo_update", translate("GEOIP Update"))
 s:tab("chnr_update", translate("Chnroute Update"))
+s:tab("auto_restart", translate("Auto Restart"))
 s:tab("version_update", translate("Version Update"))
 s:tab("debug", translate("Debug Logs"))
 
@@ -469,6 +470,27 @@ o.write = function()
 end
 end
 
+o = s:taboption("auto_restart", Flag, "auto_restart", translate("Auto Restart"))
+o.description = translate("Auto Restart OpenClash")
+o.default=0
+
+o = s:taboption("auto_restart", ListValue, "auto_restart_week_time", translate("Restart Time (Every Week)"))
+o:value("*", translate("Every Day"))
+o:value("1", translate("Every Monday"))
+o:value("2", translate("Every Tuesday"))
+o:value("3", translate("Every Wednesday"))
+o:value("4", translate("Every Thursday"))
+o:value("5", translate("Every Friday"))
+o:value("6", translate("Every Saturday"))
+o:value("0", translate("Every Sunday"))
+o.default=1
+
+o = s:taboption("auto_restart", ListValue, "auto_restart_day_time", translate("Restart time (every day)"))
+for t = 0,23 do
+o:value(t, t..":00")
+end
+o.default=0
+
 ---- Dashboard Settings
 local lan_ip=SYS.exec("uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
 local cn_port=SYS.exec("uci get openclash.config.cn_port 2>/dev/null |tr -d '\n'")
@@ -591,6 +613,11 @@ function o.cfgvalue(...)
 	else
 		return translate("None")
 	end
+end
+
+o = ss:option(DummyValue, "Note", translate("Note"))
+function o.cfgvalue(...)
+	return Value.cfgvalue(...) or translate("None")
 end
 
 -- [[ Edit Authentication ]] --

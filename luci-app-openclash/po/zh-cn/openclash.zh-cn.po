@@ -1424,3 +1424,18 @@ msgstr "选择配置文件后请点击以获取对应的策略组"
 
 msgid "Other Rules Name"
 msgstr "第三方规则"
+
+msgid "Note"
+msgstr "备注"
+
+msgid "Auto Restart"
+msgstr "定时重启"
+
+msgid "Auto Restart OpenClash"
+msgstr "定时重启插件"
+
+msgid "Restart Time (Every Week)"
+msgstr "重启时间(每周)"
+
+msgid "Restart time (every day)"
+msgstr "重启时间(每天)"

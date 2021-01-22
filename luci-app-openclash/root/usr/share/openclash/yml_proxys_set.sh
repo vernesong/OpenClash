@@ -48,7 +48,7 @@ yml_other_rules_del()
    if [ "$enabled" = "0" ] || [ "$config" != "$2" ] || [ "$rule_name" != "$3" ]; then
       return
    else
-      uci delete openclash."$section" 2>/dev/null
+      uci set openclash."$section".enabled=0 2>/dev/null
    fi
 }
 #写入代理集到配置文件

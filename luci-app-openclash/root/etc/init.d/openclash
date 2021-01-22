@@ -48,6 +48,9 @@ add_cron()
    [ -z "$(grep "openclash_chnroute.sh" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci get openclash.config.chnr_auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.chnr_update_day_time 2>/dev/null) * * $(uci get openclash.config.chnr_update_week_time 2>/dev/null) /usr/share/openclash/openclash_chnroute.sh" >> $CRON_FILE
    }
+   [ -z "$(grep "/etc/init.d/openclash" "$CRON_FILE" 2>/dev/null)" ] && {
+      [ "$(uci get openclash.config.auto_restart 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.auto_restart_day_time 2>/dev/null) * * $(uci get openclash.config.auto_restart_week_time 2>/dev/null) /etc/init.d/openclash restart 2>/dev/null" >> $CRON_FILE
+   }
    crontab $CRON_FILE
    nohup /usr/share/openclash/openclash_watchdog.sh &
 }
@@ -1291,11 +1294,13 @@ fi
    fi
 
 #common ports
-common_port="21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 5222 5228 5229 5230 8080 8443 8880 8888 8889"
-ipset create common_ports bitmap:port range 0-65535
-for i in $common_port; do
-   ipset add common_ports $i
-done
+if [ "$common_ports" = "1" ]; then
+   common_port="21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 5222 5228 5229 5230 8080 8443 8880 8888 8889"
+   ipset create common_ports bitmap:port range 0-65535
+   for i in $common_port; do
+      ipset add common_ports $i
+   done
+fi
 
 if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
    #tcp
@@ -1308,9 +1313,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
    iptables -t nat -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
    iptables -t nat -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
    if [ "$en_mode" = "redir-host" ]; then
-      if [ "$common_ports" = "1" ]; then
-         iptables -t nat -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
-      fi
+      iptables -t nat -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
       iptables -t nat -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
    fi
    iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
@@ -1333,9 +1336,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
          iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
          iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
          if [ "$en_mode" = "redir-host" ]; then
-            if [ "$common_ports" = "1" ]; then
-               iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
-            fi
+            iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
             iptables -t mangle -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
          fi
          iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
@@ -1444,9 +1445,7 @@ if [ -n "$en_mode_tun" ]; then
    iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
    iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
    if [ "$en_mode" = "redir-host" ]; then
-      if [ "$common_ports" = "1" ]; then
-         iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
-      fi
+      iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
    fi
    iptables -t mangle -A openclash -j MARK --set-mark "$PROXY_FWMARK"
