@@ -1587,6 +1587,7 @@ get_config()
    interface_name=$(uci get openclash.config.interface_name 2>/dev/null)
    common_ports=$(uci get openclash.config.common_ports 2>/dev/null)
    dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
+   [ -z "$dns_port" ] && dns_port=7874 && uci set openclash.config.dns_port=7874 2>/dev/null
    uci set openclash.config.restricted_mode=0 && uci commit openclash
 }
 
