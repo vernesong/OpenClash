@@ -144,6 +144,10 @@ o:value("debug", translate("Debug Mode"))
 o:value("silent", translate("Silent Mode"))
 o.default = "silent"
 
+o = s:taboption("settings", Value, "log_size", translate("Log Size (KB)"))
+o.description = translate("Set Log File Size (KB)")
+o.default=1024
+
 o = s:taboption("settings", Flag, "intranet_allowed", translate("Only intranet allowed"))
 o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network")
 o.default=0

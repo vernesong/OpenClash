@@ -3,14 +3,17 @@
 <fieldset class="cbi-section">
 	<table width="100%">
 		<tr>
-			<td width="33%" align="center">
+			<td width="25%" align="center">
 				<input type="button" class="cbi-button cbi-button-apply" id="stop_refresh_button" value="<%:Stop Refresh Log%>" onclick=" return stop_refresh() "/>
 			</td>
-			<td width="33%" align="center">
+			<td width="25%" align="center">
 				<input type="button" class="cbi-button cbi-button-apply" id="start_refresh_button" value="<%:Start Refresh Log%>" onclick=" return start_refresh() "/>
 			</td>
-			<td width="33%" align="center">
-				<input type="button" class="cbi-button cbi-button-apply" id="del_log_button" value="<%:Clean Log%>" style=" display:inline;" onclick=" return del_log()" />
+			<td width="25%" align="center">
+				<input type="button" class="cbi-button cbi-button-apply" id="del_log_button" value="<%:Clean Log%>" style=" display:inline;" onclick=" return del_log() " />
+			</td>
+			<td width="25%" align="center">
+				<input type="button" class="cbi-button cbi-button-apply" id="down_log_button" value="<%:Download Log%>" style=" display:inline;" onclick=" return download_log() " />
 			</td>
 		</tr>
 	</table>
@@ -27,6 +30,22 @@ function stop_refresh() {
 function start_refresh() {
 	clearTimeout(r);
 	r=setTimeout("poll_log()",1000*2);
+	return
+}
+
+function createAndDownloadFile(fileName, content) {
+    var aTag = document.createElement('a');
+    var blob = new Blob([content]);
+    aTag.download = fileName;
+    aTag.href = URL.createObjectURL(blob);
+    aTag.click();
+    URL.revokeObjectURL(blob);
+}
+function download_log(){
+	var lv = document.getElementById('cbid.openclash.config.clog');
+	var dt = new Date();
+	var timestamp = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getDate()+"-"+dt.getHours()+"-"+dt.getMinutes()+"-"+dt.getSeconds();
+	createAndDownloadFile("OpenClash-"+timestamp+".log",lv.innerHTML)
 	return
 }
 
