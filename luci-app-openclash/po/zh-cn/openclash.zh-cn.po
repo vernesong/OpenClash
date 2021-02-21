@@ -1442,3 +1442,12 @@ msgstr "重启时间(每天)"
 
 msgid "DNS Port"
 msgstr "DNS监听端口"
+
+msgid "Log Size (KB)"
+msgstr "日志大小（KB）"
+
+msgid "Set Log File Size (KB)"
+msgstr "设置日志文件大小（KB）"
+
+msgid "Download Log"
+msgstr "下载日志"

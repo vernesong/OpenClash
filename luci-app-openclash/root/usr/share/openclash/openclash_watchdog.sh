@@ -10,6 +10,7 @@ dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
 disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
 en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
 cfg_update_interval=$(uci get openclash.config.config_update_interval 2>/dev/null)
+log_size=$(uci get openclash.config.log_size 2>/dev/null || 1024)
 CRASH_NUM=0
 CFG_UPDATE_INT=0
 
@@ -77,8 +78,8 @@ fi
 
 ## Log File Size Manage:
     LOGSIZE=`ls -l /tmp/openclash.log |awk '{print int($5/1024)}'`
-    if [ "$LOGSIZE" -gt 90 ]; then 
-       echo "$LOGTIME Watchdog: Size Limit, Clean Up All Log Records." > $LOG_FILE
+    if [ "$LOGSIZE" -gt "$log_size" ]; then
+       echo "$LOGTIME Watchdog: Log Size Limit, Clean Up All Log Records." > $LOG_FILE
     fi
 
 ## 端口转发重启
