@@ -35,6 +35,7 @@ config openclash 'config'
 	option small_flash_memory '0'
 	option interface_name '0'
 	option common_ports '0'
+	option log_size '1024'
 	option geo_custom_url 'http://www.ideame.top/mmdb/Country.mmdb'
 	option chnr_custom_url 'https://ispip.clang.cn/all_cn.txt'
 	
