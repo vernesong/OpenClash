@@ -115,6 +115,12 @@ elsif $en_mode_tun == 0
       Value['tun'].clear
    end
 end;
+if not Value.key?('profile') then
+   Value_3={'profile'=>{'store-selected'=>true}}
+   Value['profile']=Value_3['profile']
+else
+   Value['profile']['store-selected']=true
+end;
 rescue Exception => e
 puts '${LOGTIME} Set General Error: ' + e.message
 end

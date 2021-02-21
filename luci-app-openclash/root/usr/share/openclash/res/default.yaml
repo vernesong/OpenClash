@@ -89,6 +89,14 @@ hosts:
   # '*.clash.dev': 127.0.0.1
   # '.dev': 127.0.0.1
   # 'alpha.clash.dev': '::1'
+  
+profile:
+  # store the `select` results in $HOME/.config/clash/.cache
+  # when two different configurations have groups with the same name, the selected values are shared
+  # set false if you don't want this behavior
+  store-selected: true
+  # open tracing exporter API
+  tracing: true
 
 # DNS server settings
 # This section is optional. When not present, the DNS server will be disabled.
