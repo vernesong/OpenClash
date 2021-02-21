@@ -22,7 +22,7 @@ urlencode() {
 }
 
 GROUP_STATE() {
-   echo "$(curl -m 5 -w %{http_code}"\n" -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X GET http://"$LAN_IP":"$PORT"/proxies/"$1" 2>/dev/null |sed -n '$p' 2>/dev/null)"
+   echo "$(curl -m 2 -w %{http_code}"\n" -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X GET http://"$LAN_IP":"$PORT"/proxies/"$1" 2>/dev/null |sed -n '$p' 2>/dev/null)"
 }
 
 restore_history() {
@@ -36,11 +36,11 @@ restore_history() {
       GROUP_STATE_NUM=$(expr "$GROUP_STATE_NUM" + 1)
       GROUP_STATE=$(GROUP_STATE "$GROUP_NAME")
    done
-   curl -m 5 --retry 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X PUT -d '{"name":"'"$NOW_NAME"'"}' http://"$LAN_IP":"$PORT"/proxies/"$GROUP_NAME" >> "$LOG_FILE"
+   curl -m 2 --retry 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X PUT -d '{"name":"'"$NOW_NAME"'"}' http://"$LAN_IP":"$PORT"/proxies/"$GROUP_NAME" >> "$LOG_FILE"
 }
 
 close_all_conection() {
-	curl -m 5 --retry 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X DELETE http://"$LAN_IP":"$PORT"/connections >/dev/null 2>&1
+	curl -m 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X DELETE http://"$LAN_IP":"$PORT"/connections >/dev/null 2>&1
 }
 
 if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
