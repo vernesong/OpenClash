@@ -24,13 +24,13 @@ PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
 
 set_lock() {
-	exec 888>"$LOCK_FILE" 2>/dev/null
-	flock -x 888 2>/dev/null
+   exec 888>"$LOCK_FILE" 2>/dev/null
+   flock -x 888 2>/dev/null
 }
 
 del_lock() {
-	flock -u 888 2>/dev/null
-	rm -rf "$LOCK_FILE" 2>/dev/null
+   flock -u 888 2>/dev/null
+   rm -rf "$LOCK_FILE" 2>/dev/null
 }
 
 add_cron()
@@ -141,7 +141,7 @@ start_fail()
 
 yml_dns_check()
 {
-	#检查DNS服务
+   #检查DNS服务
    if [ -z "$(ruby_read "$1" "['dns']['nameserver']")" ]; then
       echo "检测到DNS选项下的Nameserver未设置服务器，开始补全..." >$START_LOG
       echo "  nameserver:" > "$DNS_FILE" 2>/dev/null
@@ -939,11 +939,11 @@ do_run_file()
 #绑定interface防止回环
 check_interface_name()
 {
-	if [ -n "$interface_name" ] && [ "$interface_name" != "0" ]; then
-	   ruby_edit "$CONFIG_FILE" "['interface-name']='$interface_name'"
-  else
-     sed -i "/^interface-name:/d" "$CONFIG_FILE" 2>/dev/null
-  fi
+   if [ -n "$interface_name" ] && [ "$interface_name" != "0" ]; then
+      ruby_edit "$CONFIG_FILE" "['interface-name']='$interface_name'"
+   else
+      sed -i "/^interface-name:/d" "$CONFIG_FILE" 2>/dev/null
+   fi
 }
 
 start_run_core()
@@ -1328,7 +1328,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
             iptables -t mangle -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
          fi
          iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
-         iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --on-ip 0.0.0.0 --tproxy-mark "$PROXY_FWMARK"
+         iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
          iptables -t mangle -A PREROUTING -p udp -j openclash
       fi
    fi
@@ -1733,7 +1733,7 @@ restart()
    [ -f "$LOCK_FILE" ] && echo "${LOGTIME} Warning: Multiple Restart Scripts Running, Exit..." >> $LOG_FILE && exit 0
    mkdir -p /tmp/lock
    touch $LOCK_FILE
-	 set_lock
+   set_lock
    stop
    start
    del_lock
