@@ -706,6 +706,41 @@ yml_custom_rule_provider()
    fi
 }
 
+#获取订阅配置
+sub_info_get()
+{
+   local section="$1" address enabled name
+   config_get_bool "enabled" "$section" "enabled" "1"
+   config_get "address" "$section" "address" ""
+   config_get "name" "$section" "name" ""
+   
+   if [ "$subscribe_enable" = "1" ]; then
+      return
+   fi
+
+   if [ "$enabled" -eq 0 ]; then
+      return
+   fi
+   
+   if [ -z "$address" ]; then
+      return
+   fi
+   
+   if [ -z "$name" ]; then
+   	  CONFIG_NAME="config"
+      RAW_CONFIG_FILE="/etc/openclash/config/config.yaml"
+      CONFIG_FILE="/etc/openclash/config.yaml"
+   else
+      CONFIG_NAME="$name"
+      RAW_CONFIG_FILE="/etc/openclash/config/$name.yaml"
+      CONFIG_FILE="/etc/openclash/$name.yaml"
+   fi
+   
+   uci set openclash.config.config_path="$RAW_CONFIG_FILE"
+   uci commit openclash
+   subscribe_enable=1
+}
+
 #配置文件选择
 config_choose()
 {
@@ -721,8 +756,10 @@ fi 2>/dev/null
 CONFIG_NAME=$(echo "$RAW_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 
 if [ ! -f "$RAW_CONFIG_FILE" ]; then
-   subscribe_info=$(uci get openclash.@config_subscribe[0].address 2>/dev/null)
-   if [ -n "$subscribe_info" ]; then
+   config_load "openclash"
+   config_foreach sub_info_get "config_subscribe"
+   subscribe_auto_update=$(uci get openclash.config.auto_update 2>/dev/null)
+   if [ "$subscribe_enable" = "1" ] && [ "$subscribe_auto_update" -eq 1 ]; then
       echo "配置文件不存在，您已设置订阅信息，准备开始下载..." >$START_LOG
       sleep 3
       nohup /usr/share/openclash/openclash.sh &
