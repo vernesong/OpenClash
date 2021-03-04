@@ -874,7 +874,7 @@ msgid "Exclude Keyword Match"
 msgstr "排除节点"
 
 msgid "(eg: hk or tw&bgp)"
-msgstr "（格式示例：香港、台湾&bgp）"
+msgstr "（格式示例：香港 或 台湾&bgp 或 新加坡&bgp&奈飞）"
 
 msgid "Config File List"
 msgstr "配置文件列表"
