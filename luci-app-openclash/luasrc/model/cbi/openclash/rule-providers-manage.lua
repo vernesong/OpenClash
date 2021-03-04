@@ -10,7 +10,8 @@ local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 
 m = SimpleForm("openclash", translate("Other Rule Providers List"))
-m.description=translate("规则项目: Profiles ( https://github.com/DivineEngine/Profiles )<br/>")
+m.description=translate("规则项目: ConnersHua ( https://github.com/DivineEngine/Profiles ) \
+<br/>规则项目: lhie1 ( https://github.com/lhie1/Rules )")
 m.reset = false
 m.submit = false
 
