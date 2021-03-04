@@ -67,17 +67,31 @@
          sleep 3
          exit 0
       elif [ ! -f "/tmp/rules.yaml" ]; then
-         echo "$rule_name 规则文件格式校验失败，请稍后再试..." > $START_LOG
+         echo "错误：$rule_name 规则文件格式校验失败，请稍后再试..." > $START_LOG
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
          exit 0
       elif ! "$(ruby_read "/tmp/rules.yaml" ".key?('rules')")" ; then
          echo "${LOGTIME} Error: Updated Others Rules 【$rule_name】 Has No Rules Field, Update Exit..." >> $LOG_FILE
-         echo "$rule_name 规则文件规则部分校验失败，请稍后再试..." > $START_LOG
+         echo "错误：$rule_name 规则文件规则部分校验失败，请稍后再试..." > $START_LOG
+         rm -rf /tmp/rules.yaml >/dev/null 2>&1
+         sleep 3
+         exit 0
+      #校验是否含有新策略组
+      elif ! "$(ruby -ryaml -E UTF-8 -e "
+         Value = YAML.load_file('/usr/share/openclash/res/${rule_name}.yaml');
+         Value_1 = YAML.load_file('/tmp/rules.yaml');
+         OLD_GROUP = Value['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;
+         NEW_GROUP = Value_1['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;
+         puts (OLD_GROUP | NEW_GROUP).eql?(OLD_GROUP)
+         ")" ; then
+         echo "${LOGTIME} Error: Updated Others Rules 【$rule_name】 Has Incompatible Proxy-Group, Update Exit, Please Wait For OpenClash Update To Adapt..." >> $LOG_FILE
+         echo "错误：$rule_name 规则文件含有未支持的新策略组，更新停止，请等待OpenClash版本更新适配..." > $START_LOG
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
          exit 0
       fi
+      
       #取出规则部分
       ruby_read "/tmp/rules.yaml" ".select {|x| 'rule-providers' == x or 'script' == x or 'rules' == x }.to_yaml" > "$OTHER_RULE_FILE"
       #合并
