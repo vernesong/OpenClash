@@ -50,6 +50,41 @@ if [ -f "/tmp/openclash.bak" ]; then
 	rm -rf /tmp/openclash* >/dev/null 2>&1
 fi
 
+source "/etc/openwrt_release"
+case "${DISTRIB_ARCH}" in
+	aarch64_*)
+		CORE_ARCH="linux-armv8"
+		;;
+	arm_*_neon-vfp*)
+		CORE_ARCH="linux-armv7"
+		;;
+	arm_*_neon|arm_*_vfp*)
+		CORE_ARCH="linux-armv6"
+		;;
+	arm*)
+		CORE_ARCH="linux-armv5"
+		;;
+	i386_*)
+		CORE_ARCH="linux-386"
+		;;
+	mips64_*)
+		CORE_ARCH="linux-mips64"
+		;;
+	mips_*)
+		CORE_ARCH="linux-mips-softfloat"
+		;;
+	mipsel_*)
+		CORE_ARCH="linux-mipsle-softfloat"
+		;;
+	x86_64)
+		CORE_ARCH="linux-amd64"
+		;;
+	*)
+		CORE_ARCH=""
+		;;
+esac
+uci set openclash.config.core_version="${CORE_ARCH}" >/dev/null 2>&1
+
 uci set openclash.config.enable=0 >/dev/null 2>&1
 uci commit openclash >/dev/null 2>&1
 
