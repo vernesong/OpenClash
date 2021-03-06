@@ -80,7 +80,7 @@ case "${DISTRIB_ARCH}" in
 		CORE_ARCH="linux-amd64"
 		;;
 	*)
-		CORE_ARCH=""
+		CORE_ARCH="0"
 		;;
 esac
 uci -q set openclash.config.core_version="${CORE_ARCH}"
