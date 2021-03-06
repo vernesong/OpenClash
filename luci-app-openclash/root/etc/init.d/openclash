@@ -10,11 +10,11 @@ LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
-RAW_CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
-BACKUP_FILE="/etc/openclash/backup/$(uci get openclash.config.config_path 2>/dev/null |awk -F '/' '{print $5}' 2>/dev/null)"
+RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
+BACKUP_FILE="/etc/openclash/backup/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
-CONFIG_FILE="/etc/openclash/$(uci get openclash.config.config_path 2>/dev/null |awk -F '/' '{print $5}' 2>/dev/null)"
+CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
 GAME_RULE_FILE="/tmp/yaml_game_rule.yaml"
@@ -30,26 +30,26 @@ set_lock() {
 
 del_lock() {
    flock -u 888 2>/dev/null
-   rm -rf "$LOCK_FILE" 2>/dev/null
+   rm -rf "$LOCK_FILE"
 }
 
 add_cron()
 {
    [ "$(tail -n1 /etc/crontabs/root | wc -l)" -eq 0 ] && [ -n "$(cat /etc/crontabs/root 2>/dev/null)" ] && echo >> /etc/crontabs/root
    [ -z "$(grep "openclash.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci get openclash.config.auto_update 2>/dev/null)" -eq 1 ] && [ "$(uci get openclash.config.config_auto_update_mode 2>/dev/null)" -ne 1 ] && echo "0 $(uci get openclash.config.auto_update_time 2>/dev/null) * * $(uci get openclash.config.config_update_week_time 2>/dev/null) /usr/share/openclash/openclash.sh" >> $CRON_FILE
+      [ "$(uci -q get openclash.config.auto_update)" -eq 1 ] && [ "$(uci -q get openclash.config.config_auto_update_mode)" -ne 1 ] && echo "0 $(uci -q get openclash.config.auto_update_time) * * $(uci -q get openclash.config.config_update_week_time) /usr/share/openclash/openclash.sh" >> $CRON_FILE
    }
    [ -z "$(grep "openclash_rule.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci get openclash.config.other_rule_auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.other_rule_update_day_time 2>/dev/null) * * $(uci get openclash.config.other_rule_update_week_time 2>/dev/null) /usr/share/openclash/openclash_rule.sh" >> $CRON_FILE
+      [ "$(uci -q get openclash.config.other_rule_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.other_rule_update_day_time) * * $(uci -q get openclash.config.other_rule_update_week_time) /usr/share/openclash/openclash_rule.sh" >> $CRON_FILE
    }
    [ -z "$(grep "openclash_ipdb.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci get openclash.config.geo_auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.geo_update_day_time 2>/dev/null) * * $(uci get openclash.config.geo_update_week_time 2>/dev/null) /usr/share/openclash/openclash_ipdb.sh" >> $CRON_FILE
+      [ "$(uci -q get openclash.config.geo_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geo_update_day_time) * * $(uci -q get openclash.config.geo_update_week_time) /usr/share/openclash/openclash_ipdb.sh" >> $CRON_FILE
    }
    [ -z "$(grep "openclash_chnroute.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci get openclash.config.chnr_auto_update 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.chnr_update_day_time 2>/dev/null) * * $(uci get openclash.config.chnr_update_week_time 2>/dev/null) /usr/share/openclash/openclash_chnroute.sh" >> $CRON_FILE
+      [ "$(uci -q get openclash.config.chnr_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.chnr_update_day_time) * * $(uci -q get openclash.config.chnr_update_week_time) /usr/share/openclash/openclash_chnroute.sh" >> $CRON_FILE
    }
    [ -z "$(grep "/etc/init.d/openclash" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci get openclash.config.auto_restart 2>/dev/null)" -eq 1 ] && echo "0 $(uci get openclash.config.auto_restart_day_time 2>/dev/null) * * $(uci get openclash.config.auto_restart_week_time 2>/dev/null) /etc/init.d/openclash restart 2>/dev/null" >> $CRON_FILE
+      [ "$(uci -q get openclash.config.auto_restart)" -eq 1 ] && echo "0 $(uci -q get openclash.config.auto_restart_day_time) * * $(uci -q get openclash.config.auto_restart_week_time) /etc/init.d/openclash restart 2>/dev/null" >> $CRON_FILE
    }
    crontab $CRON_FILE
    nohup /usr/share/openclash/openclash_watchdog.sh &
@@ -66,20 +66,20 @@ del_cron()
 
 change_dns() {
    if [ "$1" -eq 1 ]; then
-      uci del dhcp.@dnsmasq[-1].server >/dev/null 2>&1
-      uci add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
-      uci delete dhcp.@dnsmasq[0].resolvfile 2>/dev/null
-      uci set dhcp.@dnsmasq[0].noresolv=1 2>/dev/null
-      uci set openclash.config.redirect_dns=1
+      uci -q del dhcp.@dnsmasq[-1].server
+      uci -q add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
+      uci -q delete dhcp.@dnsmasq[0].resolvfile
+      uci -q set dhcp.@dnsmasq[0].noresolv=1
+      uci -q set openclash.config.redirect_dns=1
    else
-      uci set openclash.config.redirect_dns=0 2>/dev/null
+      uci -q set openclash.config.redirect_dns=0
    fi
    if [ "$2" -eq 1 ]; then
-      uci set dhcp.@dnsmasq[0].cachesize=0 2>/dev/null
+      uci -q set dhcp.@dnsmasq[0].cachesize=0
    fi
    
-   uci commit dhcp
-   uci commit openclash
+   uci -q commit dhcp
+   uci -q commit openclash
    
    /usr/share/openclash/openclash_custom_domain_dns.sh >/dev/null 2>&1
 }
@@ -87,39 +87,39 @@ change_dns() {
 revert_dns() {
 
    [ "$1" -eq 1 ] && {
-      uci del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$3" >/dev/null 2>&1
+      uci -q del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$3"
    }
    
    [ "$1" -eq 1 ] && [ "$4" -eq 0 ] && {
-      uci set openclash.config.redirect_dns=0 2>/dev/nulls
+      uci -q set openclash.config.redirect_dns=0
    }
 
-   [ "$(uci get dhcp.@dnsmasq[0].cachesize 2>/dev/null)" = "0" ] && {
-      uci delete dhcp.@dnsmasq[0].cachesize >/dev/null 2>&1
+   [ "$(uci -q get dhcp.@dnsmasq[0].cachesize)" = "0" ] && {
+      uci -q delete dhcp.@dnsmasq[0].cachesize
    }
    
    [ "$1" -eq 1 ] && {
       if [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.d/resolv.conf.auto)" ]; then
-         uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.d/resolv.conf.auto >/dev/null 2>&1
+         uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.d/resolv.conf.auto
       elif [ -s "/tmp/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.auto)" ]; then
-         uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto >/dev/null 2>&1
+         uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
       else
-         rm -rf /tmp/resolv.conf.auto 2>/dev/null
+         rm -rf /tmp/resolv.conf.auto
          touch /tmp/resolv.conf.auto 2>/dev/null
          cat >> "/tmp/resolv.conf.auto" <<-EOF
 # Interface lan
 nameserver 114.114.114.114
 nameserver 119.29.29.29
 EOF
-         uci set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto >/dev/null 2>&1
+         uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
       fi
-      uci set dhcp.@dnsmasq[0].noresolv=0 >/dev/null 2>&1
+      uci -q set dhcp.@dnsmasq[0].noresolv=0
    }
    
-   uci commit dhcp
-   uci commit openclash
-   rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
-   rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
+   uci -q commit dhcp
+   uci -q commit openclash
+   rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf
+   rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf
 }
 
 kill_clash()
@@ -736,8 +736,8 @@ sub_info_get()
       CONFIG_FILE="/etc/openclash/$name.yaml"
    fi
    
-   uci set openclash.config.config_path="$RAW_CONFIG_FILE"
-   uci commit openclash
+   uci -q set openclash.config.config_path="$RAW_CONFIG_FILE"
+   uci -q commit openclash
    subscribe_enable=1
 }
 
@@ -747,8 +747,8 @@ config_choose()
 if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
    CONFIG_NAME=$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')
    if [ -n "$CONFIG_NAME" ]; then
-      uci set openclash.config.config_path="/etc/openclash/config/$CONFIG_NAME"
-      uci commit openclash
+      uci -q set openclash.config.config_path="/etc/openclash/config/$CONFIG_NAME"
+      uci -q commit openclash
       RAW_CONFIG_FILE="/etc/openclash/config/$CONFIG_NAME"
       CONFIG_FILE="/etc/openclash/$CONFIG_NAME"
    fi
@@ -782,7 +782,7 @@ begin
 YAML.load_file('$RAW_CONFIG_FILE');
 rescue Exception => e
 puts '${LOGTIME} Error: Unable To Parse Config File ' + e.message
-system 'rm -rf ${CONFIG_FILE} 2>/dev/null'
+system 'rm -rf ${CONFIG_FILE}'
 end
 " 2>/dev/null >> $LOG_FILE
 if [ $? -ne 0 ]; then
@@ -818,7 +818,7 @@ yml_other_rules_get()
 #运行模式处理
 do_run_mode()
 {
-   en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
+   en_mode=$(uci -q get openclash.config.en_mode)
   
    if [ "$en_mode" = "fake-ip-tun" ]; then
       en_mode_tun="1"
@@ -860,16 +860,16 @@ do_run_file()
       game_core_path="/etc/openclash/core/clash_game"
       geoip_path="/etc/openclash/Country.mmdb"
       chnr_path="/etc/openclash/china_ip_route.ipset"
-      rm -rf "/tmp/etc/openclash" 2>/dev/null
+      rm -rf "/tmp/etc/openclash"
    else
       dev_core_path="/tmp/etc/openclash/core/clash"
       tun_core_path="/tmp/etc/openclash/core/clash_tun"
       game_core_path="/tmp/etc/openclash/core/clash_game"
       geoip_path="/tmp/etc/openclash/Country.mmdb"
       chnr_path="/tmp/etc/openclash/china_ip_route.ipset"
-      rm -rf "/etc/openclash/Country.mmdb" 2>/dev/null
-      rm -rf "/etc/openclash/china_ip_route.ipset" 2>/dev/null
-      rm -rf "/etc/openclash/core" 2>/dev/null
+      rm -rf "/etc/openclash/Country.mmdb"
+      rm -rf "/etc/openclash/china_ip_route.ipset"
+      rm -rf "/etc/openclash/core"
    fi
     
    rm -rf "/etc/openclash/clash" 2>/dev/null
@@ -893,7 +893,7 @@ do_run_file()
 
    if [ "$proxy_mode" = "script" ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$CONFIG_FILE" "['rules'].grep(/^RULE-SET,/)")" ]; then
       if [ "$en_mode_tun" != "2" ]; then
-         rm -rf "/etc/openclash/clash" 2>/dev/null
+         rm -rf "/etc/openclash/clash"
          ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
          core_type="Tun"
          core_start_log="检测到配置了【Tun】内核专属功能，调用【Tun】内核启动..."
@@ -940,7 +940,7 @@ do_run_file()
    [ ! -f "$CLASH" ] && {
      echo "检测到内核文件不存在，准备开始下载..." >$START_LOG
      nofile=1
-     rm -rf "/tmp/clash_last_version" 2>/dev/null
+     rm -rf "/tmp/clash_last_version"
      nohup /usr/share/openclash/openclash_core.sh "$core_type" &
    }
    
@@ -1006,8 +1006,8 @@ start_run_core()
       capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin"
       capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
    fi
-   uci set openclash.config.config_reload=1 2>/dev/null
-   uci commit openclash
+   uci -q set openclash.config.config_reload=1
+   uci -q commit openclash
 }
 
 check_core_status()
@@ -1060,41 +1060,41 @@ raw_config_start()
    if [ "$en_mode" = "redir-host" ]; then
       case $en_mode_tun in
       "1")
-         uci set openclash.config.en_mode=redir-host-tun
+         uci -q set openclash.config.en_mode=redir-host-tun
       ;;
       "2")
-         uci set openclash.config.en_mode=redir-host-vpn
+         uci -q set openclash.config.en_mode=redir-host-vpn
       ;;
       "3")
-         uci set openclash.config.en_mode=redir-host-mix
+         uci -q set openclash.config.en_mode=redir-host-mix
       ;;
       *)
-         uci set openclash.config.en_mode=redir-host
+         uci -q set openclash.config.en_mode=redir-host
       esac
    elif [ "$en_mode" = "fake-ip" ]; then
    	  case $en_mode_tun in
       "1")
-         uci set openclash.config.en_mode=fake-ip-tun
+         uci -q set openclash.config.en_mode=fake-ip-tun
       ;;
       "2")
-         uci set openclash.config.en_mode=fake-ip-vpn
+         uci -q set openclash.config.en_mode=fake-ip-vpn
       ;;
       "3")
-         uci set openclash.config.en_mode=fake-ip-mix
+         uci -q set openclash.config.en_mode=fake-ip-mix
       ;;
       *)
-         uci set openclash.config.en_mode=fake-ip
+         uci -q set openclash.config.en_mode=fake-ip
       esac
    fi
    
    dase=$(ruby_read "$CONFIG_FILE" "['secret']")
-   uci set openclash.config.dashboard_password="$dase" 2>/dev/null
+   uci -q set openclash.config.dashboard_password="$dase"
    
    cn_port=$(ruby_read "$CONFIG_FILE" "['external-controller'].split(':')[1]")
-   uci set openclash.config.cn_port="$cn_port" 2>/dev/null
+   uci -q set openclash.config.cn_port="$cn_port"
    
-   uci set openclash.config.proxy_port="$proxy_port"
-   uci set openclash.config.restricted_mode=1
+   uci -q set openclash.config.proxy_port="$proxy_port"
+   uci -q set openclash.config.restricted_mode=1
    
    uci commit openclash
 }
@@ -1239,21 +1239,21 @@ if [ "$(iptables -t nat -nL PREROUTING --line-number | grep "redir port $DNSPORT
    done
 fi
 
-if [ -z "$(uci get firewall.openclash 2>/dev/null)" ] || [ -z "$(uci get ucitrack.@openclash[-1].init 2>/dev/null)" ]; then
-   uci delete ucitrack.@openclash[-1] >/dev/null 2>&1
-   uci add ucitrack openclash >/dev/null 2>&1
-   uci set ucitrack.@openclash[-1].init=openclash >/dev/null 2>&1
-   uci commit ucitrack >/dev/null 2>&1
-   uci delete firewall.openclash >/dev/null 2>&1
-   uci set firewall.openclash=include >/dev/null 2>&1
-   uci set firewall.openclash.type=script >/dev/null 2>&1
-   uci set firewall.openclash.path=/var/etc/openclash.include >/dev/null 2>&1
-   uci set firewall.openclash.reload=1 >/dev/null 2>&1
+if [ -z "$(uci -q get firewall.openclash)" ] || [ -z "$(uci -q get ucitrack.@openclash[-1].init)" ]; then
+   uci -q delete ucitrack.@openclash[-1]
+   uci -q add ucitrack openclash
+   uci -q set ucitrack.@openclash[-1].init=openclash
+   uci -q commit ucitrack
+   uci -q delete firewall.openclash
+   uci -q set firewall.openclash=include
+   uci -q set firewall.openclash.type=script
+   uci -q set firewall.openclash.path=/var/etc/openclash.include
+   uci -q set firewall.openclash.reload=1
 fi
           
-if [ "$(uci get firewall.@defaults[0].forward)" != "ACCEPT" ]; then
-   uci set firewall.@defaults[0].forward=ACCEPT >/dev/null 2>&1
-   uci commit firewall >/dev/null 2>&1
+if [ "$(uci -q get firewall.@defaults[0].forward)" != "ACCEPT" ]; then
+   uci -q set firewall.@defaults[0].forward=ACCEPT
+   uci -q commit firewall
    /etc/init.d/firewall reload >/dev/null 2>&1
 fi
 
@@ -1270,23 +1270,23 @@ fi
 #lan_ac
 if [ "$operation_mode" = "redir-host" ] && [ "$en_mode" = "redir-host" ]; then
    if [ "$lan_ac_mode" = "0" ]; then
-      if [ -n "$(uci get openclash.config.lan_ac_black_ips 2>/dev/null)" ]; then
+      if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
          ipset create lan_ac_black_ips hash:net
          config_load "openclash"
          config_list_foreach "config" "lan_ac_black_ips" ac_add "lan_ac_black_ips"
       fi
-      if [ -n "$(uci get openclash.config.lan_ac_black_macs 2>/dev/null)" ]; then
+      if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
          ipset create lan_ac_black_macs hash:mac
          config_load "openclash"
          config_list_foreach "config" "lan_ac_black_macs" ac_add "lan_ac_black_macs"
       fi
    elif [ "$lan_ac_mode" = "1" ]; then
-      if [ -n "$(uci get openclash.config.lan_ac_white_ips 2>/dev/null)" ]; then
+      if [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ]; then
          ipset create lan_ac_white_ips hash:net
          config_load "openclash"
          config_list_foreach "config" "lan_ac_white_ips" ac_add "lan_ac_white_ips"
       fi
-      if [ -n "$(uci get openclash.config.lan_ac_white_macs 2>/dev/null)" ]; then
+      if [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
          ipset create lan_ac_white_macs hash:mac
          config_load "openclash"
          config_list_foreach "config" "lan_ac_white_macs" ac_add "lan_ac_white_macs"
@@ -1295,7 +1295,7 @@ if [ "$operation_mode" = "redir-host" ] && [ "$en_mode" = "redir-host" ]; then
 fi
 
 #wan ac
-if [ -n "$(uci get openclash.config.wan_ac_black_ips 2>/dev/null)" ]; then
+if [ -n "$(uci -q get openclash.config.wan_ac_black_ips)" ]; then
    ipset create wan_ac_black_ips hash:net
    config_load "openclash"
    config_list_foreach "config" "wan_ac_black_ips" ac_add "wan_ac_black_ips"
@@ -1509,7 +1509,7 @@ config_foreach firewall_rule_exclude "rule"
 
 revert_firewall()
 {
-   rm -rf /var/etc/openclash.include 2>/dev/null
+   rm -rf /var/etc/openclash.include
 
    #ipv4
 
@@ -1602,42 +1602,42 @@ revert_firewall()
 
 get_config()
 {
-   rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
-   enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
-   enable_custom_clash_rules=$(uci get openclash.config.enable_custom_clash_rules 2>/dev/null) 
-   da_password=$(uci get openclash.config.dashboard_password 2>/dev/null)
-   cn_port=$(uci get openclash.config.cn_port 2>/dev/null)
-   proxy_port=$(uci get openclash.config.proxy_port 2>/dev/null)
-   proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
-   ipv6_enable=$(uci get openclash.config.ipv6_enable 2>/dev/null)
-   http_port=$(uci get openclash.config.http_port 2>/dev/null)
-   socks_port=$(uci get openclash.config.socks_port 2>/dev/null)
-   enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
-   lan_ip=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null)
+   rule_source=$(uci -q get openclash.config.rule_source)
+   enable_custom_dns=$(uci -q get openclash.config.enable_custom_dns)
+   enable_custom_clash_rules=$(uci -q get openclash.config.enable_custom_clash_rules) 
+   da_password=$(uci -q get openclash.config.dashboard_password)
+   cn_port=$(uci -q get openclash.config.cn_port)
+   proxy_port=$(uci -q get openclash.config.proxy_port)
+   proxy_mode=$(uci -q get openclash.config.proxy_mode)
+   ipv6_enable=$(uci -q get openclash.config.ipv6_enable)
+   http_port=$(uci -q get openclash.config.http_port)
+   socks_port=$(uci -q get openclash.config.socks_port)
+   enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
+   lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null)
    wan_ip4=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 2>/dev/null)
    lan_ip6=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
-   disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
-   log_level=$(uci get openclash.config.log_level 2>/dev/null)
-   intranet_allowed=$(uci get openclash.config.intranet_allowed 2>/dev/null)
-   enable_udp_proxy=$(uci get openclash.config.enable_udp_proxy 2>/dev/null)
-   operation_mode=$(uci get openclash.config.operation_mode 2>/dev/null)
-   lan_ac_mode=$(uci get openclash.config.lan_ac_mode 2>/dev/null)
-   enable_rule_proxy=$(uci get openclash.config.enable_rule_proxy 2>/dev/null)
-   stack_type=$(uci get openclash.config.stack_type 2>/dev/null)
-   china_ip_route=$(uci get openclash.config.china_ip_route 2>/dev/null)
-   small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
-   mixed_port=$(uci get openclash.config.mixed_port 2>/dev/null)
-   interface_name=$(uci get openclash.config.interface_name 2>/dev/null)
-   common_ports=$(uci get openclash.config.common_ports 2>/dev/null)
-   dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
-   [ -z "$dns_port" ] && dns_port=7874 && uci set openclash.config.dns_port=7874 2>/dev/null
-   uci set openclash.config.restricted_mode=0 && uci commit openclash
+   disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
+   log_level=$(uci -q get openclash.config.log_level)
+   intranet_allowed=$(uci -q get openclash.config.intranet_allowed)
+   enable_udp_proxy=$(uci -q get openclash.config.enable_udp_proxy)
+   operation_mode=$(uci -q get openclash.config.operation_mode)
+   lan_ac_mode=$(uci -q get openclash.config.lan_ac_mode)
+   enable_rule_proxy=$(uci -q get openclash.config.enable_rule_proxy)
+   stack_type=$(uci -q get openclash.config.stack_type)
+   china_ip_route=$(uci -q get openclash.config.china_ip_route)
+   small_flash_memory=$(uci -q get openclash.config.small_flash_memory)
+   mixed_port=$(uci -q get openclash.config.mixed_port)
+   interface_name=$(uci -q get openclash.config.interface_name)
+   common_ports=$(uci -q get openclash.config.common_ports)
+   dns_port=$(uci -q get openclash.config.dns_port)
+   [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
+   uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
 }
 
 start()
 {
 
-   enable=$(uci get openclash.config.enable 2>/dev/null)
+   enable=$(uci -q get openclash.config.enable)
    [ "$enable" != "1" ] && echo "${LOGTIME} Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." >> $LOG_FILE && del_lock && exit 0
 
    config_choose
@@ -1692,29 +1692,29 @@ start()
    
    echo "第十一步: 添加计划任务,启动进程守护程序..." >$START_LOG
    add_cron
-   if [ -z "$(uci get dhcp.lan.dhcpv6 2>/dev/null)" ] && [ "$(uci get openclash.config.restricted_mode 2>/dev/null)" != "1" ]; then
+   if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] && [ "$(uci -q get openclash.config.restricted_mode)" != "1" ]; then
       echo "OpenClash 启动成功，请等待服务器上线！" >$START_LOG
       echo "${LOGTIME} OpenClash Start Successful" >> $LOG_FILE
       sleep 5
-   elif [ -n "$(uci get dhcp.lan.dhcpv6 2>/dev/null)" ]; then
+   elif [ -n "$(uci -q get dhcp.lan.dhcpv6)" ]; then
       echo "OpenClash 启动成功，检测到您启用了IPV6的DHCP服务，可能会造成连接异常！" >$START_LOG
       echo "${LOGTIME} Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPV6's DHCP Server" >> $LOG_FILE
       sleep 5
    fi
-   if [ "$(uci get openclash.config.restricted_mode 2>/dev/null)" = "1" ]; then
+   if [ "$(uci -q get openclash.config.restricted_mode)" = "1" ]; then
       echo "OpenClash 使用原始配置文件启动成功，部分设置可能未生效！" >$START_LOG
       echo "${LOGTIME} Warning: OpenClash Start Successful With Raw Config File, Please Note That It's Restricted Mode Now" >> $LOG_FILE
       sleep 5
    fi
    echo "OpenClash Already Start"
    echo "" >$START_LOG
-   rm -rf /tmp/yaml_* 2>/dev/null
+   rm -rf /tmp/yaml_*
 }
 
 stop()
 {
 
-   enable=$(uci get openclash.config.enable 2>/dev/null)
+   enable=$(uci -q get openclash.config.enable)
 
    echo "OpenClash 开始关闭..." >$START_LOG
    echo "第一步: 备份当前节点状态..." >$START_LOG
@@ -1735,32 +1735,32 @@ stop()
    fi
 
    echo "第五步: 重启 Dnsmasq 程序..." >$START_LOG
-   dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
-   redirect_dns=$(uci get openclash.config.redirect_dns 2>/dev/null)
-   masq_cache=$(uci get openclash.config.masq_cache 2>/dev/null)
+   dns_port=$(uci -q get openclash.config.dns_port)
+   redirect_dns=$(uci -q get openclash.config.redirect_dns)
+   masq_cache=$(uci -q get openclash.config.masq_cache)
    revert_dns "$redirect_dns" "$masq_cache" "$dns_port" "$enable"
    /etc/init.d/dnsmasq restart >/dev/null 2>&1
 
    echo "第六步：删除 OpenClash 残留文件..." >$START_LOG
    if [ "$enable" != "1" ]; then
-      rm -rf $LOG_FILE 2>/dev/null
-      rm -rf /tmp/openclash_debug.log 2>/dev/null
-      rm -rf /www/luci-static/openclash 2>/dev/null
-      rm -rf /tmp/openclash_last_version 2>/dev/null
-      rm -rf /tmp/clash_last_version 2>/dev/null
-      rm -rf /tmp/Proxy_Group 2>/dev/null
-      rm -rf /tmp/rules_name 2>/dev/null
-      rm -rf /tmp/rule_providers_name 2>/dev/null
-      rm -rf /tmp/openclash_fake_filter.list 2>/dev/null
-      rm -rf /tmp/openclash_servers_fake_filter.conf 2>/dev/null
+      rm -rf $LOG_FILE
+      rm -rf /tmp/openclash_debug.log
+      rm -rf /www/luci-static/openclash
+      rm -rf /tmp/openclash_last_version
+      rm -rf /tmp/clash_last_version
+      rm -rf /tmp/Proxy_Group
+      rm -rf /tmp/rules_name
+      rm -rf /tmp/rule_providers_name
+      rm -rf /tmp/openclash_fake_filter.list
+      rm -rf /tmp/openclash_servers_fake_filter.conf
       del_lock
       echo "OpenClash 关闭成功！" >$START_LOG
       sleep 5
    fi
    
    del_cron
-   rm -rf /tmp/yaml_* 2>/dev/null
-   rm -rf $START_LOG 2>/dev/null
+   rm -rf /tmp/yaml_*
+   rm -rf $START_LOG
    echo "OpenClash Already Stop"
 }
 
