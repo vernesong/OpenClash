@@ -1,10 +1,16 @@
 #!/bin/bash
 . /lib/functions.sh
-. /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/ruby.sh
 
-status=$(unify_ps_status "openclash.sh")
-[ "$status" -gt 3 ] && exit 0
+set_lock() {
+   exec 889>"/tmp/lock/openclash_subs.lock" 2>/dev/null
+   flock -x 889 2>/dev/null
+}
+
+del_lock() {
+   flock -u 889 2>/dev/null
+   rm -rf "/tmp/lock/openclash_subs.lock"
+}
 
 START_LOG="/tmp/openclash_start.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
@@ -18,6 +24,7 @@ enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
 disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
 if_restart=0
 only_download=0
+set_lock
 
 urlencode() {
    local data
@@ -391,3 +398,4 @@ else
    [ "$(uci get openclash.config.auto_update 2>/dev/null)" -eq 1 ] && [ "$(uci get openclash.config.config_auto_update_mode 2>/dev/null)" -ne 1 ] && echo "0 $(uci get openclash.config.auto_update_time 2>/dev/null) * * $(uci get openclash.config.config_update_week_time 2>/dev/null) /usr/share/openclash/openclash.sh" >> $CRON_FILE
    /etc/init.d/cron restart
 fi
+del_lock

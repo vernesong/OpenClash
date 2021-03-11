@@ -65,17 +65,20 @@
          echo "Ruby依赖异常，无法校验配置文件，请确认ruby依赖工作正常后重试！" > $START_LOG
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
+         echo "" >$START_LOG
          exit 0
       elif [ ! -f "/tmp/rules.yaml" ]; then
          echo "错误：$rule_name 规则文件格式校验失败，请稍后再试..." > $START_LOG
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
+         echo "" >$START_LOG
          exit 0
       elif ! "$(ruby_read "/tmp/rules.yaml" ".key?('rules')")" ; then
          echo "${LOGTIME} Error: Updated Others Rules 【$rule_name】 Has No Rules Field, Update Exit..." >> $LOG_FILE
          echo "错误：$rule_name 规则文件规则部分校验失败，请稍后再试..." > $START_LOG
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
+         echo "" >$START_LOG
          exit 0
       #校验是否含有新策略组
       elif ! "$(ruby -ryaml -E UTF-8 -e "
@@ -89,6 +92,7 @@
          echo "错误：$rule_name 规则文件含有未支持的新策略组，更新停止，请等待OpenClash版本更新适配..." > $START_LOG
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
+         echo "" >$START_LOG
          exit 0
       fi
       
