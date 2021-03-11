@@ -55,13 +55,13 @@ config dns_servers
 	option group 'nameserver'
 	option type 'udp'
 	option ip '119.28.28.28'
-	option enabled '1'
+	option enabled '0'
 
 config dns_servers
 	option group 'nameserver'
 	option type 'udp'
 	option ip '223.5.5.5'
-	option enabled '1'
+	option enabled '0'
 
 config dns_servers
 	option type 'https'
@@ -76,7 +76,7 @@ config dns_servers
 	option type 'https'
 
 config dns_servers
-	option enabled '1'
+	option enabled '0'
 	option group 'fallback'
 	option ip 'dns.google'
 	option port '853'
@@ -89,7 +89,7 @@ config dns_servers
 	option ip '1.1.1.1/dns-query'
 
 config dns_servers
-	option enabled '1'
+	option enabled '0'
 	option group 'fallback'
 	option ip '1.1.1.1'
 	option port '853'

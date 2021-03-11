@@ -104,8 +104,11 @@ msgstr "保存配置"
 msgid "Apply Configurations"
 msgstr "应用配置"
 
-msgid "Download Configurations"
+msgid "Download Config"
 msgstr "下载配置"
+
+msgid "Download Running Config"
+msgstr "下载运行配置"
 
 msgid "Select Mode"
 msgstr "*运行模式"
@@ -484,6 +487,9 @@ msgstr "Youtube流量"
 msgid "Apple"
 msgstr "苹果服务流量"
 
+msgid "Scholar"
+msgstr "学术网站流量"
+
 msgid "Microsoft"
 msgstr "微软服务流量"
 
@@ -786,7 +792,7 @@ msgstr "检测频率（秒）"
 msgid "Tolerance(ms)"
 msgstr "节点切换容忍值（毫秒）"
 
-msgid "Select　"
+msgid "Manual-Select"
 msgstr "Select【手动选择】"
 
 msgid "URL-Test"
@@ -798,7 +804,7 @@ msgstr "Fallback【故障切换】"
 msgid "Load-Balance"
 msgstr "Load-Balance【负载均衡】"
 
-msgid "Relay Traffic"
+msgid "Relay-Traffic"
 msgstr "Relay【嵌套中转】"
 
 msgid "Other Group"

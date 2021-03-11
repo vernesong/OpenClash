@@ -40,7 +40,7 @@ nm2=tb2:option(DummyValue,"name",translate("File Name"))
 mt2=tb2:option(DummyValue,"mtime",translate("Update Time"))
 sz2=tb2:option(DummyValue,"size",translate("Size"))
 
-btndl2 = tb2:option(Button,"download2",translate("Download Configurations")) 
+btndl2 = tb2:option(Button,"download2",translate("Download Config")) 
 btndl2.template="openclash/other_button"
 btndl2.render=function(m,n,h)
 m.inputstyle="remove"
