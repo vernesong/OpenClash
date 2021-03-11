@@ -1,10 +1,17 @@
 #!/bin/sh
 . /lib/functions.sh
-. /usr/share/openclash/openclash_ps.sh
 
-status=$(unify_ps_status "yml_groups_set.sh")
-[ "$status" -gt "3" ] && exit 0
+set_lock() {
+   exec 887>"/tmp/lock/openclash_groups_set.lock" 2>/dev/null
+   flock -x 887 2>/dev/null
+}
 
+del_lock() {
+   flock -u 887 2>/dev/null
+   rm -rf "/tmp/lock/openclash_groups_set.lock"
+}
+
+set_lock
 START_LOG="/tmp/openclash_start.log"
 GROUP_FILE="/tmp/yaml_groups.yaml"
 CFG_FILE="/etc/config/openclash"
@@ -251,6 +258,7 @@ if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ ! -z "$if_g
       uci commit openclash
       sleep 5
       echo "" >$START_LOG
+      del_lock
       exit 0
    else
       if [ -z "$if_game_group" ]; then
@@ -269,3 +277,4 @@ fi
 if [ -z "$if_game_group" ]; then
    /usr/share/openclash/yml_proxys_set.sh
 fi
+del_lock

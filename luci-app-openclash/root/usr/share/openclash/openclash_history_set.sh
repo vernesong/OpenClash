@@ -64,7 +64,7 @@ if [ -s "$HISTORY_PATH" ] && [ ! -z "$(pidof clash)" ]; then
       fi
    done >/dev/null 2>&1
    close_all_conection
-   echo "${LOGTIME} History:【${CONFIG_NAME}】 Restore Successful" >> $LOG_FILE
+   echo "${LOGTIME} Groups History:【${CONFIG_NAME}】 Restore Successful" >> $LOG_FILE
 else
-   echo "${LOGTIME} History:【${CONFIG_NAME}】 Restore Faild" >> $LOG_FILE
+   echo "${LOGTIME} Groups History:【${CONFIG_NAME}】 Restore Faild" >> $LOG_FILE
 fi

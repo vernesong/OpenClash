@@ -204,7 +204,7 @@ uci:commit("openclash")
 HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
 end
 
-btndl = tb:option(Button,"download",translate("Download Configurations")) 
+btndl = tb:option(Button,"download",translate("Download Config")) 
 btndl.template="openclash/other_button"
 btndl.render=function(e,t,a)
 e.inputstyle="remove"
@@ -213,6 +213,44 @@ end
 btndl.write = function (a,t)
 	local sPath, sFile, fd, block
 	sPath = "/etc/openclash/config/"..e[t].name
+	sFile = NXFS.basename(sPath)
+	if fs.isdirectory(sPath) then
+		fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+		sFile = sFile .. ".tar.gz"
+	else
+		fd = nixio.open(sPath, "r")
+	end
+	if not fd then
+		return
+	end
+	HTTP.header('Content-Disposition', 'attachment; filename="%s"' % {sFile})
+	HTTP.prepare_content("application/octet-stream")
+	while true do
+		block = fd:read(nixio.const.buffersize)
+		if (not block) or (#block ==0) then
+			break
+		else
+			HTTP.write(block)
+		end
+	end
+	fd:close()
+	HTTP.close()
+end
+
+btndlr = tb:option(Button,"download_run",translate("Download Running Config")) 
+btndlr.template="openclash/other_button"
+btndlr.render=function(c,t,a)
+	if string.sub(SYS.exec("uci get openclash.config.config_path 2>/dev/null"), 23, -2) == e[t].name then
+		a.display=""
+	else
+		a.display="none"
+	end
+c.inputstyle="remove"
+Button.render(c,t,a)
+end
+btndlr.write = function (a,t)
+	local sPath, sFile, fd, block
+	sPath = "/etc/openclash/"..e[t].name
 	sFile = NXFS.basename(sPath)
 	if fs.isdirectory(sPath) then
 		fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")

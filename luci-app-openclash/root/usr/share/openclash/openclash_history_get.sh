@@ -30,10 +30,10 @@ if [ -n "$(pidof clash)" ] && [ -f "$CONFIG_FILE" ]; then
       cmp -s "$HISTORY_TMP" "$HISTORY_PATH"
       if [ "$?" -ne "0" ] && [ -s "$HISTORY_TMP" ]; then
          mv "$HISTORY_TMP" "$HISTORY_PATH" 2>/dev/null
-         echo "${LOGTIME} History:【${CONFIG_NAME}】 Update Successful" >> $LOG_FILE
+         echo "${LOGTIME} Groups History:【${CONFIG_NAME}】 Update Successful" >> $LOG_FILE
       fi
    else
-      echo "${LOGTIME} History:【${CONFIG_NAME}】 Update Faild" >> $LOG_FILE
+      echo "${LOGTIME} Groups History:【${CONFIG_NAME}】 Update Faild" >> $LOG_FILE
    fi
 fi
 rm -rf /tmp/openclash_history_*  2>/dev/null

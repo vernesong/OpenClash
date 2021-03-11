@@ -790,16 +790,41 @@ cat >> "$SERVER_FILE" <<-EOF
       - Proxy
       - DIRECT
       - Domestic
-  - name: Apple
-    type: select
-    proxies:
-      - DIRECT
-      - Proxy
   - name: Microsoft
     type: select
     proxies:
       - DIRECT
       - Proxy
+EOF
+cat >> "$SERVER_FILE" <<-EOF
+  - name: Apple
+    type: select
+    proxies:
+      - DIRECT
+      - Proxy
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+if [ -f "/tmp/Proxy_Provider" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    use:
+EOF
+fi
+cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
+  - name: Scholar
+    type: select
+    proxies:
+      - Proxy
+      - DIRECT
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+if [ -f "/tmp/Proxy_Provider" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    use:
+EOF
+fi
+cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
   - name: Netflix
     type: select
     proxies:
@@ -959,6 +984,7 @@ ${uci_set}AsianTV="AsianTV"
 ${uci_set}Proxy="Proxy"
 ${uci_set}Youtube="Youtube"
 ${uci_set}Apple="Apple"
+${uci_set}Scholar="Scholar"
 ${uci_set}Microsoft="Microsoft"
 ${uci_set}Netflix="Netflix"
 ${uci_set}Disney="Disney"
@@ -979,6 +1005,8 @@ ${uci_set}Others="Others"
 	${UCI_DEL_LIST}="AsianTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="AsianTV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="GlobalTV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="GlobalTV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Netflix" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Netflix" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Apple" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Apple" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Scholar" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Scholar" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Disney" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Disney" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Spotify" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Spotify" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Steam" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Steam" >/dev/null 2>&1
