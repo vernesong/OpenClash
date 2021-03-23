@@ -1,9 +1,14 @@
 #!/bin/sh
-. /usr/share/openclash/openclash_ps.sh
 
-#禁止多个实例
-status=$(unify_ps_status "openclash_update.sh")
-[ "$status" -gt "3" ] && exit 0
+set_lock() {
+   exec 878>"/tmp/lock/openclash_update.lock" 2>/dev/null
+   flock -x 878 2>/dev/null
+}
+
+del_lock() {
+   flock -u 878 2>/dev/null
+   rm -rf "/tmp/lock/openclash_update.lock"
+}
 
 #一键更新
 if [ "$1" = "one_key_update" ]; then
@@ -22,6 +27,7 @@ LAST_OPVER="/tmp/openclash_last_version"
 LAST_VER=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |sed "s/^v//g")
 OP_CV=$(sed -n 1p /usr/share/openclash/res/openclash_version 2>/dev/null |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 OP_LV=$(sed -n 1p $LAST_OPVER 2>/dev/null |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
+set_lock
 
 if [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 ] && [ -f "$LAST_OPVER" ]; then
    echo "开始下载 OpenClash-v$LAST_VER ..." >$START_LOG
@@ -39,6 +45,7 @@ if [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 ] && [ -f "$LAST_OPVER" ]; then
          echo "${LOGTIME} OpenClash-v$LAST_VER Update Test Fail" >>$LOG_FILE
          sleep 10
          echo "" >$START_LOG
+         del_lock
          exit 0
       fi
       echo "OpenClash-$LAST_VER 更新前测试通过，准备开始更新，更新过程请不要刷新页面和进行其他操作 ..." >$START_LOG
@@ -102,3 +109,4 @@ else
       /etc/init.d/openclash restart 2>/dev/null
    fi
 fi
+del_lock

@@ -1,14 +1,22 @@
 #!/bin/sh
 . /usr/share/openclash/openclash_ps.sh
 
-   status=$(unify_ps_status "openclash_ipdb.sh")
-   [ "$status" -gt 3 ] && exit 0
+   set_lock() {
+      exec 880>"/tmp/lock/openclash_ipdb.lock" 2>/dev/null
+      flock -x 880 2>/dev/null
+   }
+
+   del_lock() {
+      flock -u 880 2>/dev/null
+      rm -rf "/tmp/lock/openclash_ipdb.lock"
+   }
 
    START_LOG="/tmp/openclash_start.log"
    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
    LOG_FILE="/tmp/openclash.log"
    small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
    GEOIP_CUSTOM_URL=$(uci get openclash.config.geo_custom_url 2>/dev/null)
+   set_lock
    
    if [ "$small_flash_memory" != "1" ]; then
    	  geoip_path="/etc/openclash/Country.mmdb"
@@ -50,3 +58,4 @@
    fi
    rm -rf /tmp/Country.mmdb >/dev/null 2>&1
    echo "" >$START_LOG
+   del_lock
