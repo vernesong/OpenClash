@@ -1,6 +1,16 @@
 #!/bin/sh
 . /usr/share/openclash/openclash_ps.sh
 
+set_lock() {
+   exec 881>"/tmp/lock/openclash_history_get.lock" 2>/dev/null
+   flock -x 881 2>/dev/null
+}
+
+del_lock() {
+   flock -u 881 2>/dev/null
+   rm -rf "/tmp/lock/openclash_history_get.lock"
+}
+
 CURL_GROUP_CACHE="/tmp/openclash_history_gorup.json"
 CURL_NOW_CACHE="/tmp/openclash_history_now.json"
 CURL_CACHE="/tmp/openclash_history_curl.json"
@@ -13,6 +23,7 @@ LAN_IP=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/
 PORT=$(uci get openclash.config.cn_port 2>/dev/null)
 LOG_FILE="/tmp/openclash.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+set_lock
 
 if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
    CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
@@ -37,3 +48,4 @@ if [ -n "$(pidof clash)" ] && [ -f "$CONFIG_FILE" ]; then
    fi
 fi
 rm -rf /tmp/openclash_history_*  2>/dev/null
+del_lock

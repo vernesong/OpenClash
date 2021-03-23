@@ -1,11 +1,17 @@
 #!/bin/bash
 . /lib/functions.sh
-. /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/ruby.sh
 
-status=$(unify_ps_status "yml_groups_get.sh")
-[ "$status" -gt "3" ] && exit 0
+set_lock() {
+   exec 876>"/tmp/lock/openclash_groups_get.lock" 2>/dev/null
+   flock -x 876 2>/dev/null
+}
 
+del_lock() {
+   flock -u 876 2>/dev/null
+   rm -rf "/tmp/lock/openclash_groups_get.lock"
+}
+   
 START_LOG="/tmp/openclash_start.log"
 CFG_FILE="/etc/config/openclash"
 other_group_file="/tmp/yaml_other_group.yaml"
@@ -17,6 +23,7 @@ UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 LOG_FILE="/tmp/openclash.log"
+set_lock
 
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
@@ -36,6 +43,7 @@ fi
 BACKUP_FILE="/etc/openclash/backup/$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)"
 
 if [ ! -s "$CONFIG_FILE" ] && [ ! -s "$BACKUP_FILE" ]; then
+   del_lock
    exit 0
 elif [ ! -s "$CONFIG_FILE" ] && [ -s "$BACKUP_FILE" ]; then
    mv "$BACKUP_FILE" "$CONFIG_FILE"
@@ -49,6 +57,7 @@ echo "开始更新【$CONFIG_NAME】的策略组配置..." >$START_LOG
 	uci commit openclash
 	sleep 5
 	echo "" >$START_LOG
+	del_lock
 	exit 0
 }
 
@@ -109,6 +118,7 @@ config_foreach cfg_group_name "groups"
 
 if [ "$servers_if_update" -eq 1 ] && [ "$servers_update" -eq 1 ] && [ "$config_group_exist" -eq 1 ]; then
    /usr/share/openclash/yml_proxys_get.sh
+   del_lock
    exit 0
 else
    cfg_delete
@@ -124,6 +134,7 @@ if [ -z "$num" ]; then
    echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
    echo "${LOGTIME} Error: Unable To Parse Config File, Please Check And Try Again!" >> $LOG_FILE
    sleep 3
+   del_lock
    exit 0
 fi
 
@@ -220,3 +231,4 @@ done
 wait
 uci commit openclash
 /usr/share/openclash/yml_proxys_get.sh
+del_lock

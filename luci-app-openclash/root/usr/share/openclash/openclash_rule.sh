@@ -3,8 +3,15 @@
 . /lib/functions.sh
 . /usr/share/openclash/ruby.sh
 
-   status=$(unify_ps_status "openclash_rule.sh")
-   [ "$status" -gt 3 ] && exit 0
+   set_lock() {
+      exec 877>"/tmp/lock/openclash_rule.lock" 2>/dev/null
+      flock -x 877 2>/dev/null
+   }
+
+   del_lock() {
+      flock -u 877 2>/dev/null
+      rm -rf "/tmp/lock/openclash_rule.lock"
+   }
 
    yml_other_rules_dl()
    {
@@ -66,12 +73,14 @@
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
          echo "" >$START_LOG
+         del_lock
          exit 0
       elif [ ! -f "/tmp/rules.yaml" ]; then
          echo "错误：$rule_name 规则文件格式校验失败，请稍后再试..." > $START_LOG
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
          echo "" >$START_LOG
+         del_lock
          exit 0
       elif ! "$(ruby_read "/tmp/rules.yaml" ".key?('rules')")" ; then
          echo "${LOGTIME} Error: Updated Others Rules 【$rule_name】 Has No Rules Field, Update Exit..." >> $LOG_FILE
@@ -79,6 +88,7 @@
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
          echo "" >$START_LOG
+         del_lock
          exit 0
       #校验是否含有新策略组
       elif ! "$(ruby -ryaml -E UTF-8 -e "
@@ -93,6 +103,7 @@
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
          echo "" >$START_LOG
+         del_lock
          exit 0
       fi
       
@@ -125,6 +136,7 @@
    LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
    LOG_FILE="/tmp/openclash.log"
    RUlE_SOURCE=$(uci get openclash.config.rule_source 2>/dev/null)
+   set_lock
    
    if [ "$RUlE_SOURCE" = "0" ]; then
       echo "未启用第三方规则，更新程序终止！" >$START_LOG
@@ -159,3 +171,4 @@
    fi
    rm -rf /tmp/rules.yaml >/dev/null 2>&1
    echo "" >$START_LOG
+   del_lock

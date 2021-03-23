@@ -1,9 +1,15 @@
 #!/bin/bash
 . /lib/functions.sh
-. /usr/share/openclash/openclash_ps.sh
 
-status=$(unify_ps_status "yml_groups_name_ch.sh")
-[ "$status" -gt "3" ] && exit 0
+set_lock() {
+   exec 882>"/tmp/lock/openclash_name_ch.lock" 2>/dev/null
+   flock -x 882 2>/dev/null
+}
+
+del_lock() {
+   flock -u 882 2>/dev/null
+   rm -rf "/tmp/lock/openclash_name_ch.lock"
+}
 
 cfg_groups_set()
 {
@@ -48,5 +54,7 @@ cfg_groups_set()
 
 }
 
+set_lock
 config_load "openclash"
 config_foreach cfg_groups_set "groups"
+del_lock
