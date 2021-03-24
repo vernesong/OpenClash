@@ -207,6 +207,7 @@ yml_servers_set()
    config_get "servername" "$section" "servername" ""
    config_get "h2_path" "$section" "h2_path" ""
    config_get "h2_host" "$section" "h2_host" ""
+   config_get "grpc_service_name" "$section" "grpc_service_name" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -279,6 +280,10 @@ yml_servers_set()
    
    if [ "$obfs_vmess" = "h2" ]; then
       obfs_vmess="network: h2"
+   fi
+   
+   if [ "$obfs_vmess" = "grpc" ]; then
+      obfs_vmess="network: grpc"
    fi
    
    if [ ! -z "$custom" ] && [ "$type" = "vmess" ]; then
@@ -454,6 +459,12 @@ cat >> "$SERVER_FILE" <<-EOF
       path: $h2_path
 EOF
          fi
+         if [ ! -z "$grpc_service_name" ] && [ "$obfs_vmess" = "network: grpc" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    grpc-opts:
+      grpc-service-name: "$grpc_service_name"
+EOF
+         fi
       fi
    fi
 
@@ -555,6 +566,12 @@ EOF
    if [ ! -z "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     skip-cert-verify: $skip_cert_verify
+EOF
+   fi
+   if [ ! -z "$grpc_service_name" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    grpc-opts:
+      grpc-service-name: "$grpc_service_name"
 EOF
    fi
    fi
