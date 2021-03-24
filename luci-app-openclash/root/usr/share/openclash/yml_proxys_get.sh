@@ -736,6 +736,15 @@ do
                   system(h2_path)
                end
             end
+         elsif Value['proxies'][$count]['network'].to_s == 'grpc'
+            #grpc-service-name
+            system '${uci_set}obfs_vmess=grpc'
+            if Value['proxies'][$count].key?('grpc-opts') then
+               if Value['proxies'][$count]['grpc-opts'].key?('grpc-service-name') then
+                  grpc_service_name = '${uci_set}grpc_service_name=\"' + Value['proxies'][$count]['grpc-opts']['grpc-service-name'].to_s + '\"'
+                  system(grpc_service_name)
+               end
+            end
          else
             system '${uci_set}obfs_vmess=none'
          end
@@ -821,6 +830,16 @@ do
       alpn = '${uci_add}alpn=\"' + x.to_s + '\"'
       system(alpn)
       }
+      end
+      }.join
+      
+      Thread.new{
+      #grpc-service-name
+      if Value['proxies'][$count].key?('grpc-opts') then
+         if Value['proxies'][$count]['grpc-opts'].key?('grpc-service-name') then
+            grpc_service_name = '${uci_set}grpc_service_name=\"' + Value['proxies'][$count]['grpc-opts']['grpc-service-name'].to_s + '\"'
+            system(grpc_service_name)
+         end
       end
       }.join
       
