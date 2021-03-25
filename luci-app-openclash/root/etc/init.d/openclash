@@ -33,6 +33,20 @@ del_lock() {
    rm -rf "$LOCK_FILE"
 }
 
+factor() {
+	if [ -z "$1" ] || [ -z "$2" ]; then
+		echo ""
+	elif [ "$1" == "1:65535" ]; then
+		echo ""
+	else
+		echo "$2 $1"
+	fi
+}
+
+dst() {
+	echo "-m set $2 --match-set $1 dst"
+}
+
 add_cron()
 {
    [ "$(tail -n1 /etc/crontabs/root | wc -l)" -eq 0 ] && [ -n "$(cat /etc/crontabs/root 2>/dev/null)" ] && echo >> /etc/crontabs/root
@@ -860,6 +874,7 @@ do_run_file()
       game_core_path="/etc/openclash/core/clash_game"
       geoip_path="/etc/openclash/Country.mmdb"
       chnr_path="/etc/openclash/china_ip_route.ipset"
+      chnr6_path="/tmp/etc/openclash/china_ip6_route.ipset"
       rm -rf "/tmp/etc/openclash"
    else
       dev_core_path="/tmp/etc/openclash/core/clash"
@@ -867,8 +882,10 @@ do_run_file()
       game_core_path="/tmp/etc/openclash/core/clash_game"
       geoip_path="/tmp/etc/openclash/Country.mmdb"
       chnr_path="/tmp/etc/openclash/china_ip_route.ipset"
+      chnr6_path="/tmp/etc/openclash/china_ip6_route.ipset"
       rm -rf "/etc/openclash/Country.mmdb"
       rm -rf "/etc/openclash/china_ip_route.ipset"
+      rm -rf "/etc/openclash/china_ip6_route.ipset"
       rm -rf "/etc/openclash/core"
    fi
     
@@ -948,6 +965,12 @@ do_run_file()
       echo "检测到大陆白名单列表不存在，准备开始下载..." >$START_LOG
       nofile=1
       nohup /usr/share/openclash/openclash_chnroute.sh &
+   fi
+
+   if [ "$china_ip_route" = "1" ] && [ ! -f "$chnr6_path" ]; then
+      echo "检测到 IPv6 大陆白名单列表不存在，准备开始下载..." >$START_LOG
+      nofile=1
+      nohup /usr/share/openclash/openclash_chnroute6.sh &
    fi
    
    if [ "$nofile" = "1" ]; then
@@ -1267,6 +1290,12 @@ if [ "$china_ip_route" = "1" ] && [ -f "/etc/openclash/china_ip_route.ipset" ]; 
    ipset -! restore </etc/openclash/china_ip_route.ipset 2>/dev/null
 fi
 
+# if [ "$china_ip_route" = "1" ] && [ -f "/etc/openclash/china_ip6_route.ipset" ]; then
+# fi
+
+   ipset -! flush china_ip6_route 2>/dev/null
+   ipset -! restore </etc/openclash/china_ip6_route.ipset 2>/dev/null
+
 #lan_ac
 if [ "$operation_mode" = "redir-host" ] && [ "$en_mode" = "redir-host" ]; then
    if [ "$lan_ac_mode" = "0" ]; then
@@ -1312,9 +1341,57 @@ fi
    ipset add localnetwork 240.0.0.0/4
    ipset add localnetwork 172.16.0.0/12
 
+   ipset create blacklist hash:net
+
+   ipset add blacklist 91.108.4.0/22
+   ipset add blacklist 149.112.112.112
+   ipset add blacklist 9.9.9.9
+   ipset add blacklist 52.74.223.119
+   ipset add blacklist 1.1.1.1
+   ipset add blacklist 140.82.113.26
+   ipset add blacklist 140.82.114.25
+   ipset add blacklist 1.0.0.1
+   ipset add blacklist 149.154.160.0/20
+   ipset add blacklist 13.250.168.23
+   ipset add blacklist 208.67.222.222
+   ipset add blacklist 185.199.111.153
+   ipset add blacklist 8.8.8.8
+   ipset add blacklist 13.229.188.59
+   ipset add blacklist 52.6.49.248
+   ipset add blacklist 67.198.55.0/24
+   ipset add blacklist 8.8.4.4
+   ipset add blacklist 172.67.3.188
+   ipset add blacklist 91.108.56.0/24
+   ipset add blacklist 109.239.140.0/24
+   ipset add blacklist 140.82.112.25
+   ipset add blacklist 208.67.220.220
+   ipset add blacklist 13.250.177.223
+   ipset add blacklist 54.169.195.247
+
    if [ -n "$wan_ip4" ]; then
       for wan_ip4s in $wan_ip4; do
          ipset add localnetwork "$wan_ip4s" 2>/dev/null
+      done
+   fi
+
+   ipset create localnetwork6 hash:net family inet6
+   ipset add localnetwork6 ::/128
+   ipset add localnetwork6 ::1/128
+   ipset add localnetwork6 ::ffff:0:0/96
+   ipset add localnetwork6 ::ffff:0:0:0/96
+   ipset add localnetwork6 64:ff9b::/96
+   ipset add localnetwork6 100::/64
+   ipset add localnetwork6 2001::/32
+   ipset add localnetwork6 2001:20::/28
+   ipset add localnetwork6 2001:db8::/32
+   ipset add localnetwork6 2002::/16
+   ipset add localnetwork6 fc00::/7
+   ipset add localnetwork6 fe80::/10
+   ipset add localnetwork6 ff00::/8
+
+   if [ -n "$wan_ip6" ]; then
+      for wan_ip6s in $wan_ip6; do
+         ipset add localnetwork6 "$wan_ip6s" 2>/dev/null
       done
    fi
 
@@ -1327,6 +1404,7 @@ if [ "$common_ports" = "1" ]; then
    done
 fi
 
+# redir 模式
 if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
    #tcp
    iptables -t nat -N openclash
@@ -1345,8 +1423,8 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
    iptables -t nat -A PREROUTING -p tcp -j openclash
    if [ -z "$en_mode_tun" ]; then
       #Google dns
-      iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 --dport 53 -j REDIRECT --to-ports "$proxy_port"
-      iptables -t nat -I PREROUTING -p tcp -d 8.8.4.4 --dport 53 -j REDIRECT --to-ports "$proxy_port"
+      iptables -t nat -I PREROUTING -p tcp -m set --match-set blacklist dst -j REDIRECT --to-ports "$proxy_port"
+      # iptables -t nat -I PREROUTING -p tcp -d 8.8.4.4 --dport 53 -j REDIRECT --to-ports "$proxy_port"
       #udp
       if [ "$enable_udp_proxy" -eq 1 ]; then
          modprobe xt_TPROXY >/dev/null 2>&1
@@ -1370,6 +1448,9 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
       fi
    fi
 
+   iptables -t mangle -A openclash -p tcp -m comment --comment "\'默认\'" -m set --match-set blacklist dst -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
+   iptables -t mangle -A openclash -p udp -m comment --comment "\'默认\'" -m set --match-set blacklist dst -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
+
    iptables -t nat -N openclash_output
    iptables -t nat -F openclash_output
    iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
@@ -1389,33 +1470,51 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
    else
       iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j REDIRECT --to-ports "$proxy_port"
    fi
+   iptables -t nat -A openclash_output -p tcp -m set --match-set blacklist dst -j REDIRECT --to-ports "$proxy_port"
+
+   # iptables -t mangle -A openclash_output -p tcp -m set --match-set blacklist dst -j MARK --set-xmark "$PROXY_FWMARK"
+   # iptables -t mangle -A openclash_output -p udp -m set --match-set blacklist dst -j MARK --set-xmark "$PROXY_FWMARK"
+
    iptables -t nat -I OUTPUT -j openclash_output
 
-   #if [ "$ipv6_enable" -eq 1 ]; then
-   #   #tcp
-   #   ip6tables -t nat -N openclash
-   #   if [ -n "$lan_ip6" ]; then
-   #      for lan_ip6s in $lan_ip6; do
-   #         ip6tables -t nat -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
-   #      done
-   #   fi
-   #   ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-   #   ip6tables -t nat -A PREROUTING -p tcp -j openclash
+   echo "是否开启 IPv6？"
+   ipv6_enable=1
+   if [ "$ipv6_enable" -eq 1 ]; then
+      echo "开启 66666"
 
-      #udp
-      #if [ "$enable_udp_proxy" -eq 1 ]; then
-      #   ip6tables -t mangle -N openclash
-      #   if [ -n "$lan_ip6" ]; then
-      #      for lan_ip6s in $lan_ip6; do
-      #         if [ "$enable_udp_proxy" -eq 1 ]; then
-      #            ip6tables -t mangle -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
-      #         fi
-      #      done
-      #   fi
-      #   ip6tables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
-      #   ip6tables -t mangle -A PREROUTING -p udp -j openclash
-      #fi
-   #fi 2>/dev/null
+      $ip6t_m -N openclash_divert
+      $ip6t_m -F openclash_divert
+      $ip6t_m -A openclash_divert -j ACCEPT
+      $ip6t_m -A PREROUTING -p tcp -m socket -j openclash_divert
+
+      $ip6t_m -N openclash
+      $ip6t_m -F openclash
+      $ip6t_m -A openclash $(dst localnetwork6) -j RETURN
+      $ip6t_m -A PREROUTING -j openclash
+
+      $ip6t_m -N openclash_output
+      $ip6t_m -F openclash_output
+      $ip6t_m -A openclash_output $(dst localnetwork6) -j RETURN
+      $ip6t_m -A OUTPUT -j openclash_output
+
+      ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+      ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
+
+
+      # $ip6t_m -A PSW_OUTPUT -p tcp -m set --match-set blacklist6 dst -j MARK --set-xmark "$PROXY_FWMARK"
+      $ip6t_m -A openclash_output -p tcp -m set ! --match-set china_ip6_route dst -j MARK --set-xmark "$PROXY_FWMARK"
+      # $ip6t_m -A PSW_OUTPUT -p udp -m set --match-set blacklist6 dst -j MARK --set-xmark "$PROXY_FWMARK"
+      $ip6t_m -A openclash_output -p udp -m set ! --match-set china_ip6_route dst -j MARK --set-xmark "$PROXY_FWMARK"
+
+
+      $ip6t_m -A openclash -p tcp -m comment --comment "\'默认\'" -m set ! --match-set china_ip6_route dst -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
+# -A PSW -p tcp -m comment --comment "\'默认\'" -m set --match-set blacklist6 dst -j TPROXY --on-port 1041 --on-ip :: --tproxy-mark "$PROXY_FWMARK"
+
+      $ip6t_m -A openclash -p tcp -m comment --comment "\'默认\'" -j RETURN
+      $ip6t_m -A openclash -p udp -m comment --comment "\'默认\'" -m set ! --match-set china_ip6_route dst -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
+# -A PSW -p udp -m comment --comment "\'默认\'" -m set --match-set blacklist6 dst -j TPROXY --on-port 1051 --on-ip :: --tproxy-mark "$PROXY_FWMARK"
+      $ip6t_m -A openclash -p udp -m comment --comment "\'默认\'" -j RETURN
+   fi 
 fi
 if [ -n "$en_mode_tun" ]; then
    #TUN模式
@@ -1511,64 +1610,25 @@ revert_firewall()
 {
    rm -rf /var/etc/openclash.include
 
-   #ipv4
+	for ipt in "ip6tables -t nat" "iptables -t mangle" "ip6tables -t nat" "ip6tables -t mangle"; do
+		for chain in "PREROUTING" "OUTPUT"; do
+			for i in $(seq 1 $($ipt -nL $chain | grep -c openclash)); do
+				local index=$($ipt --line-number -nL $chain | grep openclash | head -1 | awk '{print $1}')
+				$ipt -D $chain $index 2>/dev/null
+			done
+		done
+		for chain in "openclash_output" "openclash_dns_hijack" "openclash" "openclash_post"; do
+			$ipt -F $chain 2>/dev/null
+			$ipt -X $chain 2>/dev/null
+		done
+	done
+
 
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip route del local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 
-   iptables -t nat -D PREROUTING -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1
-
-   out_lines=$(iptables -nvL OUTPUT -t nat |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
-   for out_line in $out_lines; do
-      iptables -t nat -D OUTPUT "$out_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-   iptables -t nat -D OUTPUT -j openclash_output >/dev/null 2>&1
-   
-   out_lines=$(iptables -nvL OUTPUT -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
-   for out_line in $out_lines; do
-      iptables -t mangle -D OUTPUT "$out_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-   iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
-
-   pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/8\.8\./=' 2>/dev/null |sort -rn)
-   for pre_line in $pre_lines; do
-      iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-
-   pre_lines=$(iptables -nvL PREROUTING -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
-   for pre_line in $pre_lines; do
-      iptables -t mangle -D PREROUTING "$pre_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-
-   pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
-   for pre_line in $pre_lines; do
-      iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-   iptables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
-
-   pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/dns_hijack/=' 2>/dev/null |sort -rn)
-   for pre_line in $pre_lines; do
-      iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-
-   #ipv6
-   #ip6tables -t mangle -F openclash >/dev/null 2>&1
-   #ip6tables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
-   #ip6tables -t mangle -X openclash >/dev/null 2>&1
-
-   iptables -t nat -F openclash >/dev/null 2>&1
-   iptables -t nat -X openclash >/dev/null 2>&1
-   
-   iptables -t nat -F openclash_output >/dev/null 2>&1
-   iptables -t nat -X openclash_output >/dev/null 2>&1
-   
-   iptables -t nat -F openclash_post >/dev/null 2>&1
-   iptables -t nat -X openclash_post >/dev/null 2>&1
-   iptables -t nat -D POSTROUTING -j openclash_post >/dev/null 2>&1
-
-   ip6tables -t nat -F openclash >/dev/null 2>&1
-   ip6tables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
-   ip6tables -t nat -X openclash >/dev/null 2>&1
+   ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+   ip -6 route del local ::/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 
    #TUN
    ip route del default dev clash0 table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
@@ -1577,21 +1637,11 @@ revert_firewall()
    ip link set dev clash0 down >/dev/null 2>&1
    ip tuntap del clash0 mode tun >/dev/null 2>&1
 
-   iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
-   iptables -t mangle -D PREROUTING -j openclash >/dev/null 2>&1
-   iptables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
-   iptables -t mangle -D PREROUTING -p tcp --dport 53 -j openclash_dns_hijack >/dev/null 2>&1
-   iptables -t mangle -F openclash >/dev/null 2>&1
-   iptables -t mangle -X openclash >/dev/null 2>&1
-   iptables -t mangle -F openclash_dns_hijack >/dev/null 2>&1
-   iptables -t mangle -X openclash_dns_hijack >/dev/null 2>&1
-   iptables -t mangle -F openclash_output >/dev/null 2>&1
-   iptables -t mangle -X openclash_output >/dev/null 2>&1
-
    #ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
 
    ipset destroy localnetwork >/dev/null 2>&1
    ipset destroy china_ip_route >/dev/null 2>&1
+   ipset destroy china_ip6_route >/dev/null 2>&1
    ipset destroy lan_ac_white_ips >/dev/null 2>&1
    ipset destroy lan_ac_black_ips >/dev/null 2>&1
    ipset destroy lan_ac_white_macs >/dev/null 2>&1
@@ -1615,6 +1665,7 @@ get_config()
    enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
    lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null)
    wan_ip4=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 2>/dev/null)
+   wan_ip6=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
    lan_ip6=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
    disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
    log_level=$(uci -q get openclash.config.log_level)

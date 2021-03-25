@@ -21,6 +21,7 @@ enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
 rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
 enable_custom_clash_rules=$(uci get openclash.config.enable_custom_clash_rules 2>/dev/null) 
 ipv6_enable=$(uci get openclash.config.ipv6_enable 2>/dev/null)
+ip6t_m="ip6tables -t mangle"
 enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
 disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
 proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
