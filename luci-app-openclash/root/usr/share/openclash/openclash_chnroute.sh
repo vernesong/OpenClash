@@ -41,7 +41,7 @@
    if [ "$?" -eq "0" ] && [ -s "/tmp/china_ip_route.txt" ]; then
       echo "大陆IP白名单下载成功，检查版本是否更新..." >$START_LOG
       #预处理
-      echo "create china_ip_route hash:net family inet hashsize 1024 maxelem 65536" >/tmp/china_ip_route.list
+      echo "create china_ip_route hash:net family inet hashsize 1024 maxelem 1000000" >/tmp/china_ip_route.list
       awk '!/^$/&&!/^#/{printf("add china_ip_route %s'" "'\n",$0)}' /tmp/china_ip_route.txt >>/tmp/china_ip_route.list
       cmp -s /tmp/china_ip_route.list "$chnr_path"
       if [ "$?" -ne "0" ]; then
