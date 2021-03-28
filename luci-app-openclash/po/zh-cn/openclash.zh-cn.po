@@ -358,7 +358,7 @@ msgstr "运行后，请等待服务器上线"
 msgid "Redir Port"
 msgstr "流量转发端口"
 
-msgid "TPorxy Port"
+msgid "TProxy Port"
 msgstr "TProxy 端口"
 
 msgid "SOCKS5 Port"
