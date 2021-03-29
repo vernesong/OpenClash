@@ -1495,18 +1495,14 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
       ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
       ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
 
-      ip6tables -t mangle -A openclash_output -p tcp -j MARK --set-xmark "$PROXY_FWMARK"
-      ip6tables -t mangle -A openclash_output -p udp -j MARK --set-xmark "$PROXY_FWMARK"
+      # 防止出现死循环
+      ip6tables -t mangle -A openclash_output -p tcp -m owner ! --uid-owner 65534 -j MARK --set-xmark "$PROXY_FWMARK"
+      ip6tables -t mangle -A openclash_output -p udp -m owner ! --uid-owner 65534 -j MARK --set-xmark "$PROXY_FWMARK"
 
 
       ip6tables -t mangle -A openclash -p tcp -m comment --comment "\'默认\'" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
 
       ip6tables -t mangle -A openclash -p udp -m comment --comment "\'默认\'" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
-
-      # 防止出现死循环
-      ip6tables -t mangle -I openclash -p udp --dport "$tproxy_port" -j RETURN
-      ip6tables -t mangle -I openclash -p tcp --dport "$tproxy_port" -j RETURN
-
    fi 2>/dev/null
 fi
 if [ -n "$en_mode_tun" ]; then
