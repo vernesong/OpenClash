@@ -1662,21 +1662,6 @@ revert_firewall()
       iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
    done >/dev/null 2>&1
 
-   pre_lines=$(ip6tables -nvL PREROUTING -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
-   for pre_line in $pre_lines; do
-      ip6tables -t mangle -D PREROUTING "$pre_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-
-   out_lines=$(ip6tables -nvL OUTPUT -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
-   for out_line in $out_lines; do
-      ip6tables -t mangle -D OUTPUT "$out_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-
-   #ipv6
-   #ip6tables -t mangle -F openclash >/dev/null 2>&1
-   #ip6tables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
-   #ip6tables -t mangle -X openclash >/dev/null 2>&1
-
    iptables -t nat -F openclash >/dev/null 2>&1
    iptables -t nat -X openclash >/dev/null 2>&1
    
@@ -1686,10 +1671,6 @@ revert_firewall()
    iptables -t nat -F openclash_post >/dev/null 2>&1
    iptables -t nat -X openclash_post >/dev/null 2>&1
    iptables -t nat -D POSTROUTING -j openclash_post >/dev/null 2>&1
-
-   ip6tables -t nat -F openclash >/dev/null 2>&1
-   ip6tables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
-   ip6tables -t nat -X openclash >/dev/null 2>&1
 
    #TUN
    ip route del default dev clash0 table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
@@ -1710,13 +1691,6 @@ revert_firewall()
    iptables -t mangle -F openclash_output >/dev/null 2>&1
    iptables -t mangle -X openclash_output >/dev/null 2>&1
 
-   ip6tables -t mangle -F openclash >/dev/null 2>&1
-   ip6tables -t mangle -X openclash >/dev/null 2>&1
-   ip6tables -t mangle -F openclash_output >/dev/null 2>&1
-   ip6tables -t mangle -X openclash_output >/dev/null 2>&1
-
-   #ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
-
    ipset destroy localnetwork >/dev/null 2>&1
    ipset destroy china_ip_route >/dev/null 2>&1
    ipset destroy lan_ac_white_ips >/dev/null 2>&1
@@ -1725,6 +1699,24 @@ revert_firewall()
    ipset destroy lan_ac_black_macs >/dev/null 2>&1
    ipset destroy wan_ac_black_ips >/dev/null 2>&1
    ipset destroy common_ports >/dev/null 2>&1
+
+   #Revert IPv6 rules
+
+   pre_lines=$(ip6tables -nvL PREROUTING -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
+   for pre_line in $pre_lines; do
+      ip6tables -t mangle -D PREROUTING "$pre_line" >/dev/null 2>&1
+   done >/dev/null 2>&1
+
+   out_lines=$(ip6tables -nvL OUTPUT -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
+   for out_line in $out_lines; do
+      ip6tables -t mangle -D OUTPUT "$out_line" >/dev/null 2>&1
+   done >/dev/null 2>&1
+
+   ip6tables -t mangle -F openclash >/dev/null 2>&1
+   ip6tables -t mangle -X openclash >/dev/null 2>&1
+   ip6tables -t mangle -F openclash_output >/dev/null 2>&1
+   ip6tables -t mangle -X openclash_output >/dev/null 2>&1
+
    ipset destroy localnetwork6 >/dev/null 2>&1
 }
 
