@@ -1729,6 +1729,9 @@ get_config()
    cn_port=$(uci -q get openclash.config.cn_port)
    proxy_port=$(uci -q get openclash.config.proxy_port)
    tproxy_port=$(uci -q get openclash.config.tproxy_port)
+   if [ -z "$tproxy_port" ];then
+        tproxy_port=7895
+   else
    proxy_mode=$(uci -q get openclash.config.proxy_mode)
    ipv6_enable=$(uci -q get openclash.config.ipv6_enable)
    http_port=$(uci -q get openclash.config.http_port)
