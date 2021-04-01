@@ -491,6 +491,7 @@ end
 #处理游戏节点与策略组
 config_load "openclash"
 config_foreach yml_rule_group_get "rule_provider_config"
+config_foreach yml_rule_group_get "rule_providers"
 config_foreach yml_rule_group_get "game_config"
 if [ -f "/tmp/yaml_groups.yaml" ] || [ -f "/tmp/yaml_servers.yaml" ] || [ -f "/tmp/yaml_provider.yaml" ]; then
 ruby -ryaml -E UTF-8 -e "
