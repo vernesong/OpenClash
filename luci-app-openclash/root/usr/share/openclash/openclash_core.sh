@@ -6,8 +6,8 @@ START_LOG="/tmp/openclash_start.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 LOG_FILE="/tmp/openclash.log"
 CORE_TYPE="$1"
+C_CORE_TYPE=$(uci get openclash.config.core_type 2>/dev/null)
 [ -z "$CORE_TYPE" ] || [ "$1" = "one_key_update" ] && CORE_TYPE="Dev"
-en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
 small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
 CPU_MODEL=$(uci get openclash.config.core_version 2>/dev/null)
 
@@ -25,43 +25,35 @@ else
 fi
 
 case $CORE_TYPE in
-	"Tun")
+	"TUN")
    CORE_CV=$($tun_core_path -v 2>/dev/null |awk -F ' ' '{print $2}')
    CORE_LV=$(sed -n 2p /tmp/clash_last_version 2>/dev/null)
    if [ -z "$CORE_LV" ]; then
-      echo "获取【Tun】内核最新版本信息失败，请稍后再试..." >$START_LOG
-      echo "${LOGTIME} Error: 【Tun】Core Version Check Error, Please Try Again After A few Seconds" >>$LOG_FILE
+      echo "获取【"$CORE_TYPE"】内核最新版本信息失败，请稍后再试..." >$START_LOG
+      echo "${LOGTIME} Error: 【"$CORE_TYPE"】Core Version Check Error, Please Try Again After A few Seconds" >>$LOG_FILE
       sleep 5
       echo "" >$START_LOG
       exit 0
-   fi
-   if [ "$en_mode" = "fake-ip-tun" ] || [ "$en_mode" = "redir-host-tun" ] || [ "$en_mode" = "redir-host-mix" ] || [ "$en_mode" = "fake-ip-mix" ]; then
-      if_restart=1
    fi
    ;;
 	"Game")
    CORE_CV=$($game_core_path -v 2>/dev/null |awk -F ' ' '{print $2}')
    CORE_LV=$(sed -n 3p /tmp/clash_last_version 2>/dev/null)
-   if [ "$en_mode" = "fake-ip-vpn" ] || [ "$en_mode" = "redir-host-vpn" ]; then
-      if_restart=1
-   fi
    ;;
    *)
    CORE_CV=$($dev_core_path -v 2>/dev/null |awk -F ' ' '{print $2}')
    CORE_LV=$(sed -n 1p /tmp/clash_last_version 2>/dev/null)
-   if [ "$en_mode" = "fake-ip" ] || [ "$en_mode" = "redir-host" ]; then
-      if_restart=1
-   fi
 esac
-
+   
+[ "$C_CORE_TYPE" = "$CORE_TYPE" ] || [ -z "$C_CORE_TYPE" ] && if_restart=1
 [ -n "$2" ] || [ "$1" = "one_key_update" ] && if_restart=0
 
 if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
    if [ "$CPU_MODEL" != 0 ]; then
    if pidof clash >/dev/null; then
 			case $CORE_TYPE in
-      	"Tun")
-      	echo "正在下载【Tun】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
+      	"TUN")
+      	echo "正在下载【TUN】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
 				curl -sL -m 10 --retry 2 https://github.com/vernesong/OpenClash/releases/download/TUN-Premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
 				;;
 				"Game")
@@ -75,8 +67,8 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
    fi
    if [ "$?" -ne "0" ] || ! pidof clash >/dev/null; then
 			case $CORE_TYPE in
-      	"Tun")
-      	echo "正在下载【Tun】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
+      	"TUN")
+      	echo "正在下载【TUN】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
 				curl -sL -m 10 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@master/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
 				;;
 				"Game")
@@ -91,7 +83,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
    if [ "$?" -eq "0" ]; then
    	  echo "【"$CORE_TYPE"】版本内核下载成功，开始更新..." >$START_LOG
 			case $CORE_TYPE in
-      	"Tun")
+      	"TUN")
 				[ -s "/tmp/clash_tun.gz" ] && {
 					gzip -d /tmp/clash_tun.gz >/dev/null 2>&1
 					rm -rf /tmp/clash_tun.gz >/dev/null 2>&1
@@ -125,7 +117,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
       	echo "【"$CORE_TYPE"】版本内核更新失败，请检查网络或稍后再试！" >$START_LOG
         echo "${LOGTIME} Error: OpenClash 【"$CORE_TYPE"】 Core Update Error" >>$LOG_FILE
         case $CORE_TYPE in
-            "Tun")
+            "TUN")
 				    rm -rf /tmp/clash_tun >/dev/null 2>&1
 				    ;;
 				    "Game")
@@ -146,7 +138,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
       fi
       
 			case $CORE_TYPE in
-      	"Tun")
+      	"TUN")
 				mv /tmp/clash_tun "$tun_core_path" >/dev/null 2>&1
 				;;
 				"Game")
@@ -168,7 +160,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
          echo "【"$CORE_TYPE"】版本内核更新失败，请确认设备闪存空间足够后再试！" >$START_LOG
          echo "${LOGTIME} Error: OpenClash 【"$CORE_TYPE"】 Core Update Error" >>$LOG_FILE
          case $CORE_TYPE in
-            "Tun")
+            "TUN")
 				    rm -rf /tmp/clash_tun >/dev/null 2>&1
 				    ;;
 				    "Game")
@@ -183,7 +175,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
       echo "【"$CORE_TYPE"】版本内核下载失败，请检查网络或稍后再试！" >$START_LOG
       echo "${LOGTIME} Error: OpenClash 【"$CORE_TYPE"】 Core Update Error" >>$LOG_FILE
       case $CORE_TYPE in
-         "Tun")
+         "TUN")
 			   rm -rf /tmp/clash_tun >/dev/null 2>&1
 			   ;;
 			   "Game")
