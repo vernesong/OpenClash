@@ -26,11 +26,11 @@ msgstr "规则集与策略组管理"
 msgid "Game Rules and Groups"
 msgstr "游戏规则与策略组管理"
 
-msgid "Other Rule Providers and Groups"
-msgstr "第三方规则集与策略组管理"
+msgid "Other Rule Providers and Groups (Only TUN Core Support)"
+msgstr "第三方规则集与策略组管理（仅TUN内核）"
 
-msgid "Custom Rule Providers and Groups"
-msgstr "自定义规则集与策略组管理"
+msgid "Custom Rule Providers and Groups (Only TUN Core Support)"
+msgstr "自定义规则集与策略组管理（仅TUN内核）"
 
 msgid "General Settings"
 msgstr "常规设置"
@@ -156,13 +156,13 @@ msgid "Direct Proxy Mode"
 msgstr "Direct【全局直连】"
 
 msgid "Script Proxy Mode (Tun Core Only)"
-msgstr "Script【脚本模式 - 仅Tun内核】"
+msgstr "Script【脚本模式 - 仅TUN内核】"
 
 msgid "Select Stack Type"
 msgstr "网络栈类型"
 
-msgid "Select Stack Type For Tun Mode, According To The Running Speed on Your Machine"
-msgstr "请自行根据运行速度为Tun模式选择合适的网络栈"
+msgid "Select Stack Type For TUN Mode, According To The Running Speed on Your Machine"
+msgstr "请自行根据运行速度为TUN模式选择合适的网络栈"
 
 msgid "China IP Route"
 msgstr "实验性：绕过中国大陆IP"
@@ -969,8 +969,11 @@ msgstr "第三方规则集列表"
 msgid "Proxy UDP Traffics"
 msgstr "*UDP流量转发"
 
-msgid "Select Mode For UDP Traffics, The Servers Must Support UDP while Choose Proxy"
+msgid "The Servers Must Support UDP forwarding"
 msgstr "启用时服务器必须支持UDP转发"
+
+msgid "If Docker is Installed, UDP May Not Forward Normally"
+msgstr "安装了Docker的固件可能无法正常转发UDP"
 
 msgid "Operation Mode"
 msgstr "模式设置"

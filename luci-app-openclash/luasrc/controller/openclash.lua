@@ -214,7 +214,7 @@ end
 
 local function coretunup()
    luci.sys.call("uci set openclash.config.enable=1 && uci commit openclash && rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
-   return luci.sys.call("/usr/share/openclash/openclash_core.sh 'Tun' >/dev/null 2>&1 &")
+   return luci.sys.call("/usr/share/openclash/openclash_core.sh 'TUN' >/dev/null 2>&1 &")
 end
 
 local function coregameup()
