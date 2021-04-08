@@ -110,7 +110,7 @@ o:value("REJECT")
 o.rmempty = true
 
 -- [[ Edit Other Rule Provider ]] --
-s = m:section(TypedSection, "rule_provider_config", translate("Other Rule Providers and Groups"))
+s = m:section(TypedSection, "rule_provider_config", translate("Other Rule Providers and Groups (Only TUN Core Support)"))
 s.anonymous = true
 s.addremove = true
 s.sortable = true
@@ -182,7 +182,7 @@ o:value("0", translate("Priority Match"))
 o:value("1", translate("Extended Match"))
 
 -- [[ Edit Custom Rule Provider ]] --
-s = m:section(TypedSection, "rule_providers", translate("Custom Rule Providers and Groups"))
+s = m:section(TypedSection, "rule_providers", translate("Custom Rule Providers and Groups (Only TUN Core Support)"))
 s.anonymous = true
 s.addremove = true
 s.sortable = true

@@ -877,8 +877,8 @@ do_run_file()
     
    if [ "$en_mode_tun" = "1" ] || [ "$en_mode_tun" = "3" ]; then
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
-      core_type="Tun"
-      core_start_log="检测到配置了【Tun】内核专属功能，调用【Tun】内核启动..."
+      core_type="TUN"
+      core_start_log="检测到配置了【TUN】内核专属功能，调用【TUN】内核启动..."
    fi
     
    if [ "$en_mode_tun" = "2" ]; then
@@ -896,8 +896,8 @@ do_run_file()
       if [ "$en_mode_tun" != "2" ]; then
          rm -rf "/etc/openclash/clash"
          ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
-         core_type="Tun"
-         core_start_log="检测到配置了【Tun】内核专属功能，调用【Tun】内核启动..."
+         core_type="TUN"
+         core_start_log="检测到配置了【TUN】内核专属功能，调用【TUN】内核启动..."
       fi
    fi
     
@@ -908,11 +908,11 @@ do_run_file()
     
    if [ ! -f "/etc/openclash/clash" ] && [ -f "$tun_core_path" ] && [ "$core_type" != "Game" ]; then
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
-      core_type="Tun"
-      core_start_log="检测到【Dev】内核未安装，调用【Tun】内核启动..."
+      core_type="TUN"
+      core_start_log="检测到【Dev】内核未安装，调用【TUN】内核启动..."
    fi
     
-   if [ ! -f "/etc/openclash/clash" ] && [ -f "$game_core_path" ] && [ "$core_type" != "Tun" ]; then
+   if [ ! -f "/etc/openclash/clash" ] && [ -f "$game_core_path" ] && [ "$core_type" != "TUN" ]; then
       ln -s "$game_core_path" /etc/openclash/clash 2>/dev/null
       core_type="Game"
       core_start_log="检测到【Dev】内核未安装，调用【Game】内核启动..."
@@ -971,6 +971,10 @@ do_run_file()
    if [ ! -f "$2" ]; then
       cp "$1" "$2"
    fi
+   
+   #保存启动内核类型
+   uci -q set openclash.config.core_type="$core_type"
+   uci -q commit openclash
 
 }
 
@@ -993,7 +997,7 @@ start_run_core()
    modprobe tun >/dev/null 2>&1
    check_interface_name
    config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
-   if [ -n "$(pidof clash)" ] && [ "$core_type" != "Tun" ] && [ "$config_reload" != "0" ]; then
+   if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$config_reload" != "0" ]; then
       curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
    else
       kill_clash
@@ -1760,6 +1764,8 @@ stop()
    fi
    
    del_cron
+   uci -q delete openclash.config.core_type
+   uci -q commit openclash
    rm -rf /tmp/yaml_*
    rm -rf $START_LOG
    echo "OpenClash Already Stop"
