@@ -268,6 +268,7 @@ if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ ! -z "$if_g
          echo "开始加入游戏&规则集策略组【$if_game_group】的信息..." >$START_LOG
          rm -rf $GROUP_FILE
       fi
+      del_lock
       config_load "openclash"
       config_foreach yml_groups_set "groups"
       sed -i "s/#d//g" "$CONFIG_FILE" 2>/dev/null
