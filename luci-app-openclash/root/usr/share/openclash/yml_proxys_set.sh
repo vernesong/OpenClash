@@ -1126,9 +1126,8 @@ if [ -z "$if_game_proxy" ]; then
 fi
 rm -rf /tmp/Proxy_Server 2>/dev/null
 rm -rf /tmp/Proxy_Provider 2>/dev/null
+del_lock
 ${UCI_SET}enable=1 2>/dev/null
 [ "$(uci get openclash.config.servers_if_update)" == "0" ] && [ -z "$if_game_proxy" ] && /etc/init.d/openclash restart >/dev/null 2>&1
 ${UCI_SET}servers_if_update=0
 uci commit openclash
-del_lock
-

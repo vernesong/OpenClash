@@ -47,9 +47,13 @@ kill_watchdog() {
 config_download()
 {
 if [ -n "$subscribe_url_param" ]; then
-   curl -sL --connect-timeout 10 --retry 2 https://api.dler.io/sub"$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
-   if [ "$?" -ne 0 ]; then
-      curl -sL --connect-timeout 10 --retry 2 https://subcon.dlj.tf/sub"$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
+   if [ -n "$c_address" ]; then
+      curl -sL --connect-timeout 10 --retry 2 "$c_address""$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
+   else
+      curl -sL --connect-timeout 10 --retry 2 https://api.dler.io/sub"$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
+      if [ "$?" -ne 0 ]; then
+         curl -sL --connect-timeout 10 --retry 2 https://subcon.dlj.tf/sub"$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
+      fi
    fi
 else
    curl -sL --connect-timeout 10 --retry 2 --user-agent "clash" "$subscribe_url" -o "$CFG_FILE" >/dev/null 2>&1
@@ -231,11 +235,40 @@ EOF
             change_dns
             config_error
          elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
-            echo "${LOGTIME} Error: Updated Config 【$name】 Has No Proxy Field, Update Exit..." >> $LOG_FILE
-            echo "配置文件节点部分校验失败..." > $START_LOG
-            sleep 3
-            change_dns
-            config_error
+            #检查field名称（不兼容旧写法）
+            ruby -ryaml -E UTF-8 -e "
+               Value = YAML.load_file('$CFG_FILE');
+               if Value.key?('Proxy') or Value.key?('Proxy Group') or Value.key?('Rule') or Value.key?('rule-provider') then
+                  if Value.key?('Proxy') then
+                     Value['proxies'] = Value['Proxy']
+                     Value.delete('Proxy')
+                     puts '${LOGTIME} Warning: Proxy is no longer used. Auto replaced by proxies.'
+                  elsif Value.key?('Proxy Group') then
+                     Value['proxy-groups'] = Value['Proxy Group']
+                     Value.delete('Proxy Group')
+                     puts '${LOGTIME} Warning: Proxy Group is no longer used. Auto replaced by proxy-groups.'
+                  elsif Value.key?('Rule') then
+                     Value['rules'] = Value['Rule']
+                     Value.delete('Rule')
+                     puts '${LOGTIME} Warning: Rule is no longer used. Auto replaced by rules.'
+                  elsif Value.key?('rule-provider') then
+                     Value['rule-providers'] = Value['rule-provider']
+                     Value.delete('rule-provider')
+                     puts '${LOGTIME} Warning: rule-provider is no longer used. Auto replaced by rule-providers.'
+                  end;
+                  File.open('$CFG_FILE','w') {|f| YAML.dump(Value, f)};
+               end;
+               " 2>/dev/null >> $LOG_FILE
+            if ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
+               echo "${LOGTIME} Error: Updated Config 【$name】 Has No Proxy Field, Update Exit..." >> $LOG_FILE
+               echo "配置文件节点部分校验失败..." > $START_LOG
+               sleep 3
+               change_dns
+               config_error
+            else
+               change_dns
+               config_su_check
+            fi
          else
             change_dns
             config_su_check
@@ -291,7 +324,7 @@ server_key_match()
 
 sub_info_get()
 {
-   local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param
+   local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "name" "$section" "name" ""
    config_get "sub_convert" "$section" "sub_convert" ""
@@ -302,6 +335,7 @@ sub_info_get()
    config_get "udp" "$section" "udp" ""
    config_get "skip_cert_verify" "$section" "skip_cert_verify" ""
    config_get "sort" "$section" "sort" ""
+   config_get "convert_address" "$section" "convert_address" ""
    config_get "template" "$section" "template" ""
    config_get "node_type" "$section" "node_type" ""
    config_get "custom_template_url" "$section" "custom_template_url" ""
@@ -341,6 +375,7 @@ sub_info_get()
       	   [ -n "$key_ex_match_param" ] && key_ex_match_param=$(urlencode "$key_ex_match_param")
          fi
          subscribe_url_param="?target=clash&new_name=true&url=$subscribe_url&config=$template_path_encode&include=$key_match_param&exclude=$key_ex_match_param&emoji=$emoji&list=false&sort=$sort&udp=$udp&scv=$skip_cert_verify&append_type=$node_type&fdn=true"
+         c_address="$convert_address"
       else
          subscribe_url=$address
       fi
