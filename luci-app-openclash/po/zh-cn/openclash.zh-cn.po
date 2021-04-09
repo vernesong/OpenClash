@@ -864,14 +864,11 @@ msgstr "（启用或禁用更新）"
 msgid "Config Alias"
 msgstr "配置文件名"
 
-msgid "(Name For Distinguishing)"
-msgstr "（用于区分，请勿重名）"
+msgid "Name For Distinguishing"
+msgstr "用于区分，请勿重名"
 
 msgid "Subscribe Address"
 msgstr "订阅地址"
-
-msgid "(Not Null)"
-msgstr "（空值无效）"
 
 msgid "Keyword Match"
 msgstr "筛选节点"
@@ -879,8 +876,8 @@ msgstr "筛选节点"
 msgid "Exclude Keyword Match"
 msgstr "排除节点"
 
-msgid "(eg: hk or tw&bgp)"
-msgstr "（格式示例：香港 或 台湾&bgp 或 新加坡&bgp&奈飞）"
+msgid "eg: hk or tw&bgp"
+msgstr "格式示例：香港 或 台湾&bgp 或 新加坡&bgp&奈飞"
 
 msgid "Config File List"
 msgstr "配置文件列表"
@@ -1460,3 +1457,10 @@ msgstr "设置日志文件大小（KB）"
 
 msgid "Download Log"
 msgstr "下载日志"
+
+msgid "Convert Address"
+msgstr "订阅转换服务地址"
+
+msgid "Note: There is A Risk of Privacy Leakage in Online Convert"
+msgstr "注意：在线订阅转换存在隐私泄露风险"
+

@@ -274,7 +274,8 @@ if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ ! -z "$if_g
       rm -rf /tmp/relay_server.list 2>/dev/null
    fi
 fi
+
+del_lock
 if [ -z "$if_game_group" ]; then
    /usr/share/openclash/yml_proxys_set.sh
 fi
-del_lock
