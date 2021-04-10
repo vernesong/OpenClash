@@ -1377,6 +1377,9 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
       #Google dns
       iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 --dport 53 -j REDIRECT --to-ports "$proxy_port"
       iptables -t nat -I PREROUTING -p tcp -d 8.8.4.4 --dport 53 -j REDIRECT --to-ports "$proxy_port"
+      #quic
+      if [ "$disable_udp_quic" -eq 1 ]; then
+      iptables -I INPUT -p udp --dport 443 -j REJECT 
       #udp
       if [ "$enable_udp_proxy" -eq 1 ]; then
          modprobe xt_TPROXY >/dev/null 2>&1
@@ -1650,6 +1653,7 @@ get_config()
    log_level=$(uci -q get openclash.config.log_level)
    intranet_allowed=$(uci -q get openclash.config.intranet_allowed)
    enable_udp_proxy=$(uci -q get openclash.config.enable_udp_proxy)
+   disable_udp_quic=$(uci -q get openclash.config.disable_udp_quic)
    operation_mode=$(uci -q get openclash.config.operation_mode)
    lan_ac_mode=$(uci -q get openclash.config.lan_ac_mode)
    enable_rule_proxy=$(uci -q get openclash.config.enable_rule_proxy)
