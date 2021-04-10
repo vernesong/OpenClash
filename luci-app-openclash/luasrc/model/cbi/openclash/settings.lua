@@ -62,8 +62,6 @@ o.default=1
 
 o = s:taboption("op_mode", Flag, "disable_udp_quic", font_red..bold_on..translate("Disable quic")..bold_off..font_off)
 o.description = translate("Disable yt fb ig use quic")
-o:depends("en_mode", "redir-host")
-o:depends("en_mode", "fake-ip")
 o.default=1
 
 o = s:taboption("op_mode", ListValue, "stack_type", translate("Select Stack Type"))
