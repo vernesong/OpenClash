@@ -1533,6 +1533,10 @@ if [ -n "$en_mode_tun" ]; then
       iptables -t nat -A openclash_post -m owner ! --uid-owner 65534 -i lo -d 127.0.0.1 -j SNAT --to-source "$lan_ip"
       iptables -t nat -A POSTROUTING -j openclash_post
    fi
+   #quic
+   if [ "$disable_udp_quic" -eq 1 ]; then
+      iptables -I FORWARD -p udp --dport 443 -j REJECT 
+   fi
 fi
 
 #端口转发
@@ -1551,6 +1555,9 @@ revert_firewall()
    ip route del local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 
    iptables -t nat -D PREROUTING -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1
+   
+   iptables -D FORWARD -p udp --dport 443 -j REJECT >/dev/null 2>&1
+   iptables -D INPUT -p udp --dport 443 -j REJECT >/dev/null 2>&1
 
    out_lines=$(iptables -nvL OUTPUT -t nat |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
    for out_line in $out_lines; do
