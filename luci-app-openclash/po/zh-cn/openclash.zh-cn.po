@@ -976,7 +976,10 @@ msgid "Disable quic"
 msgstr "*禁用quic"
 
 msgid "Disable yt fb ig use quic"
-msgstr "改善yt fb等走quic水土不服问题"
+msgstr "改善yt fb等走quic速度慢场景"
+
+msgid "REJECT PORT 443 UDP"
+msgstr "禁用443端口udp流量"
 
 msgid "Operation Mode"
 msgstr "模式设置"
