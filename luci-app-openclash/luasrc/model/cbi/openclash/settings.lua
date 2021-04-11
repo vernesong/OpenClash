@@ -60,6 +60,10 @@ o:depends("en_mode", "redir-host")
 o:depends("en_mode", "fake-ip")
 o.default=1
 
+o = s:taboption("op_mode", Flag, "disable_udp_quic", font_red..bold_on..translate("Disable quic")..bold_off..font_off)
+o.description = translate("Disable yt fb ig use quic")..", "..font_red..bold_on..translate("REJECT PORT 443 UDP")..bold_off..font_off
+o.default=1
+
 o = s:taboption("op_mode", ListValue, "stack_type", translate("Select Stack Type"))
 o.description = translate("Select Stack Type For TUN Mode, According To The Running Speed on Your Machine")
 o:depends("en_mode", "redir-host-tun")
