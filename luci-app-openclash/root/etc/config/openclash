@@ -28,6 +28,7 @@ config openclash 'config'
 	option proxy_mode 'rule'
 	option intranet_allowed '0'
 	option enable_udp_proxy '1'
+	option disable_udp_quic '1'
 	option lan_ac_mode '0'
 	option operation_mode 'redir-host'
 	option enable_rule_proxy '0'
@@ -72,7 +73,7 @@ config dns_servers
 config dns_servers
 	option group 'fallback'
 	option enabled '1'
-	option ip 'dns.google/dns-query'
+	option ip 'dns.rubyfish.cn/dns-query'
 	option type 'https'
 
 config dns_servers
