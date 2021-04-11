@@ -972,6 +972,15 @@ msgstr "启用时服务器必须支持UDP转发"
 msgid "If Docker is Installed, UDP May Not Forward Normally"
 msgstr "安装了Docker的固件可能无法正常转发UDP"
 
+msgid "Disable quic"
+msgstr "*禁用quic"
+
+msgid "Disable yt fb ig use quic"
+msgstr "改善yt fb等走quic速度慢场景"
+
+msgid "REJECT PORT 443 UDP"
+msgstr "禁用443端口udp流量"
+
 msgid "Operation Mode"
 msgstr "模式设置"
 
