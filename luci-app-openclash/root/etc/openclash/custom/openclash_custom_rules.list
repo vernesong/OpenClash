@@ -33,14 +33,14 @@
 ##- SRC-IP-CIDR,198.18.0.1/32,DIRECT
 
 ##DDNS
-##-DOMAIN-SUFFIX,checkip.dyndns.org,DIRECT
-##-DOMAIN-SUFFIX,checkipv6.dyndns.org,DIRECT
-##-DOMAIN-SUFFIX,checkip.synology.com,DIRECT
-##-DOMAIN-SUFFIX,ifconfig.co,DIRECT
-##-DOMAIN-SUFFIX,api.myip.com,DIRECT
-##-DOMAIN-SUFFIX,ip-api.com,DIRECT
-##-DOMAIN-SUFFIX,ipapi.co,DIRECT
-##-DOMAIN-SUFFIX,ip6.seeip.org,DIRECT
-##-DOMAIN-SUFFIX,members.3322.org,DIRECT
+##- DOMAIN-SUFFIX,checkip.dyndns.org,DIRECT
+##- DOMAIN-SUFFIX,checkipv6.dyndns.org,DIRECT
+##- DOMAIN-SUFFIX,checkip.synology.com,DIRECT
+##- DOMAIN-SUFFIX,ifconfig.co,DIRECT
+##- DOMAIN-SUFFIX,api.myip.com,DIRECT
+##- DOMAIN-SUFFIX,ip-api.com,DIRECT
+##- DOMAIN-SUFFIX,ipapi.co,DIRECT
+##- DOMAIN-SUFFIX,ip6.seeip.org,DIRECT
+##- DOMAIN-SUFFIX,members.3322.org,DIRECT
 
 ##在线IP段转CIDR地址：http://ip2cidr.com
