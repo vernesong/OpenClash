@@ -110,7 +110,7 @@ local t = {
 
 a = m:section(Table, t)
 
-o = a:option(Button, "Commit") 
+o = a:option(Button, "Commit", " ")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
@@ -118,7 +118,7 @@ o.write = function()
   m.uci:commit("openclash")
 end
 
-o = a:option(Button, "Apply")
+o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Apply Configurations")
 o.inputstyle = "apply"
 o.write = function()

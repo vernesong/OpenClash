@@ -58,7 +58,7 @@ for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
   end
 end
 
-o = s:option(Button, translate("Get Group Names")) 
+o = s:option(Button, translate("Get Group Names"))
 o.title = translate("Get Group Names")
 o.inputtitle = translate("Get Group Names")
 o.description = translate("Get Group Names After Select Config File")
@@ -277,7 +277,7 @@ local t = {
 }
 a = m:section(Table, t)
 
-o = a:option(Button,"Commit")
+o = a:option(Button,"Commit", " ")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
@@ -285,7 +285,7 @@ o.write = function()
    --luci.http.redirect(m.redirect)
 end
 
-o = a:option(Button,"Back")
+o = a:option(Button,"Back", " ")
 o.inputtitle = translate("Back Configurations")
 o.inputstyle = "reset"
 o.write = function()
