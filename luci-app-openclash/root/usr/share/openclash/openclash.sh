@@ -120,8 +120,25 @@ config_su_check()
       cmp -s "$BACKPACK_FILE" "$CFG_FILE"
       if [ "$?" -ne 0 ]; then
          echo "配置文件【$name】有更新，开始替换..." > $START_LOG
+         cp "$CFG_FILE" "$BACKPACK_FILE"
+         #保留规则部分
+         if [ "$servers_update" -eq 1 ]; then
+   	        ruby -ryaml -E UTF-8 -e "
+               Value = YAML.load_file('$CONFIG_FILE');
+               Value_1 = YAML.load_file('$CFG_FILE');
+               if Value.key?('rules') or Value.key?('script') or Value.key?('rule-providers') then
+                  if Value.key?('rules') then
+                     Value_1['rules'] = Value['rules']
+                  elsif Value.key?('script') then
+                     Value_1['script'] = Value['script']
+                  elsif Value.key?('rule-providers') then
+                     Value_1['rule-providers'] = Value['rule-providers']
+                  end;
+                  File.open('$CFG_FILE','w') {|f| YAML.dump(Value_1, f)};
+               end;
+            " 2>/dev/null
+         fi
          mv "$CFG_FILE" "$CONFIG_FILE" 2>/dev/null
-         cp "$CONFIG_FILE" "$BACKPACK_FILE"
          if [ "$only_download" -eq 0 ]; then
             config_cus_up
          else
@@ -181,6 +198,34 @@ change_dns()
    fi
 }
 
+field_name_check()
+{
+   #检查field名称（不兼容旧写法）
+   ruby -ryaml -E UTF-8 -e "
+      Value = YAML.load_file('$CFG_FILE');
+      if Value.key?('Proxy') or Value.key?('Proxy Group') or Value.key?('Rule') or Value.key?('rule-provider') then
+         if Value.key?('Proxy') then
+            Value['proxies'] = Value['Proxy']
+            Value.delete('Proxy')
+            puts '${LOGTIME} Warning: Proxy is no longer used. Auto replaced by proxies.'
+         elsif Value.key?('Proxy Group') then
+            Value['proxy-groups'] = Value['Proxy Group']
+            Value.delete('Proxy Group')
+            puts '${LOGTIME} Warning: Proxy Group is no longer used. Auto replaced by proxy-groups.'
+         elsif Value.key?('Rule') then
+            Value['rules'] = Value['Rule']
+            Value.delete('Rule')
+            puts '${LOGTIME} Warning: Rule is no longer used. Auto replaced by rules.'
+         elsif Value.key?('rule-provider') then
+            Value['rule-providers'] = Value['rule-provider']
+            Value.delete('rule-provider')
+             puts '${LOGTIME} Warning: rule-provider is no longer used. Auto replaced by rule-providers.'
+         end;
+         File.open('$CFG_FILE','w') {|f| YAML.dump(Value, f)};
+      end;
+   " 2>/dev/null >> $LOG_FILE
+}
+
 config_download_direct()
 {
    if pidof clash >/dev/null; then
@@ -235,30 +280,7 @@ EOF
             change_dns
             config_error
          elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
-            #检查field名称（不兼容旧写法）
-            ruby -ryaml -E UTF-8 -e "
-               Value = YAML.load_file('$CFG_FILE');
-               if Value.key?('Proxy') or Value.key?('Proxy Group') or Value.key?('Rule') or Value.key?('rule-provider') then
-                  if Value.key?('Proxy') then
-                     Value['proxies'] = Value['Proxy']
-                     Value.delete('Proxy')
-                     puts '${LOGTIME} Warning: Proxy is no longer used. Auto replaced by proxies.'
-                  elsif Value.key?('Proxy Group') then
-                     Value['proxy-groups'] = Value['Proxy Group']
-                     Value.delete('Proxy Group')
-                     puts '${LOGTIME} Warning: Proxy Group is no longer used. Auto replaced by proxy-groups.'
-                  elsif Value.key?('Rule') then
-                     Value['rules'] = Value['Rule']
-                     Value.delete('Rule')
-                     puts '${LOGTIME} Warning: Rule is no longer used. Auto replaced by rules.'
-                  elsif Value.key?('rule-provider') then
-                     Value['rule-providers'] = Value['rule-provider']
-                     Value.delete('rule-provider')
-                     puts '${LOGTIME} Warning: rule-provider is no longer used. Auto replaced by rule-providers.'
-                  end;
-                  File.open('$CFG_FILE','w') {|f| YAML.dump(Value, f)};
-               end;
-               " 2>/dev/null >> $LOG_FILE
+            field_name_check
             if ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
                echo "${LOGTIME} Error: Updated Config 【$name】 Has No Proxy Field, Update Exit..." >> $LOG_FILE
                echo "配置文件节点部分校验失败..." > $START_LOG
@@ -407,10 +429,15 @@ sub_info_get()
          sleep 3
          config_download_direct
       elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
-         echo "${LOGTIME} Error: Updated Config 【$name】 Has No Proxy Field" >> $LOG_FILE
-         echo "配置文件节点部分校验失败，尝试不使用代理下载配置文件..." > $START_LOG
-         sleep 3
-         config_download_direct
+         field_name_check
+         if ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
+            echo "${LOGTIME} Error: Updated Config 【$name】 Has No Proxy Field" >> $LOG_FILE
+            echo "配置文件节点部分校验失败，尝试不使用代理下载配置文件..." > $START_LOG
+            sleep 3
+            config_download_direct
+         else
+            config_su_check
+         fi
       else
          config_su_check
       fi
