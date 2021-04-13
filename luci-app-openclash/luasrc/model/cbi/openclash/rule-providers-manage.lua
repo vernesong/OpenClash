@@ -21,14 +21,14 @@ local t = {
 
 a = m:section(Table, t)
 
-o = a:option(Button, "Refresh")
+o = a:option(Button, "Refresh", " ")
 o.inputtitle = translate("Refresh Page")
 o.inputstyle = "apply"
 o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-manage"))
 end
 
-o = a:option(Button, "Apply")
+o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Back Configurations")
 o.inputstyle = "reset"
 o.write = function()

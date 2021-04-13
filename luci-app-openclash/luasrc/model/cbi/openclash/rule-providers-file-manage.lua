@@ -40,7 +40,7 @@ nm2=tb2:option(DummyValue,"name",translate("File Name"))
 mt2=tb2:option(DummyValue,"mtime",translate("Update Time"))
 sz2=tb2:option(DummyValue,"size",translate("Size"))
 
-btndl2 = tb2:option(Button,"download2",translate("Download Config")) 
+btndl2 = tb2:option(Button,"download2",translate("Download Config"))
 btndl2.template="openclash/other_button"
 btndl2.render=function(m,n,h)
 m.inputstyle="remove"
@@ -90,14 +90,14 @@ local t = {
 
 a = rule_form:section(Table, t)
 
-o = a:option(Button, "Refresh")
+o = a:option(Button, "Refresh", " ")
 o.inputtitle = translate("Refresh Page")
 o.inputstyle = "apply"
 o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-file-manage"))
 end
 
-o = a:option(Button, "Delete_all")
+o = a:option(Button, "Delete_all", " ")
 o.inputtitle = translate("Delete All File")
 o.inputstyle = "remove"
 o.write = function()
@@ -105,7 +105,7 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-file-manage"))
 end
 
-o = a:option(Button, "Apply")
+o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Back Configurations")
 o.inputstyle = "reset"
 o.write = function()

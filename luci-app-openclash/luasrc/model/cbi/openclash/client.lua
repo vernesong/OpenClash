@@ -106,7 +106,7 @@ ap.pageaction = false
 
 ss = ap:section(Table, t)
 
-o = ss:option(Button, "enable") 
+o = ss:option(Button, "enable", " ")
 o.inputtitle = translate("Enable Clash")
 o.inputstyle = "apply"
 o.write = function()
@@ -115,7 +115,7 @@ o.write = function()
   SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 end
 
-o = ss:option(Button, "disable")
+o = ss:option(Button, "disable", " ")
 o.inputtitle = translate("Disable Clash")
 o.inputstyle = "reset"
 o.write = function()

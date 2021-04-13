@@ -111,7 +111,7 @@ local t = {
 }
 a = m:section(Table, t)
 
-o = a:option(Button,"Commit")
+o = a:option(Button,"Commit", " ")
 o.inputtitle = translate("Commit Configurations")
 o.inputstyle = "apply"
 o.write = function()
@@ -120,7 +120,7 @@ o.write = function()
    luci.http.redirect(m.redirect)
 end
 
-o = a:option(Button,"Back")
+o = a:option(Button,"Back", " ")
 o.inputtitle = translate("Back Configurations")
 o.inputstyle = "reset"
 o.write = function()
