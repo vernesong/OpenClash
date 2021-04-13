@@ -11,6 +11,7 @@ disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
 en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
 cfg_update_interval=$(uci get openclash.config.config_update_interval 2>/dev/null)
 log_size=$(uci get openclash.config.log_size 2>/dev/null || 1024)
+_koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
 CRASH_NUM=0
 CFG_UPDATE_INT=0
 
@@ -45,13 +46,17 @@ if [ "$enable" -eq 1 ]; then
 	      RAW_CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
 	      CONFIG_FILE="/etc/openclash/$(uci get openclash.config.config_path 2>/dev/null |awk -F '/' '{print $5}' 2>/dev/null)"
 	      echo "${LOGTIME} Watchdog: Clash Core Problem, Restart." >> $LOG_FILE
-	      touch /tmp/openclash.log 2>/dev/null
-        chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
-        chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
-        chmod o+w /tmp/openclash.log 2>/dev/null
-        chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
-        capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin"
-        capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
+	      if [ -z "$_koolshare" ]; then
+	         touch /tmp/openclash.log 2>/dev/null
+           chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
+           chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
+           chmod o+w /tmp/openclash.log 2>/dev/null
+           chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
+           capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin"
+           capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
+        else
+           nohup $CLASH -d $CLASH_CONFIG -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+        fi
 	      sleep 3
 	      if [ "$core_type" = "Tun" ]; then
 	         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
