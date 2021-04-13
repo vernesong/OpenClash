@@ -981,15 +981,17 @@ do_run_file()
       exit 0
    fi
    
-   if ! capsh --is-uid=0 >/dev/null || ! capsh --has-ambient >/dev/null; then
-     echo "错误：Capsh异常，请尝试重新安装依赖【libcap】和相应的Capsh库，终止启动..." >$START_LOG
-     echo "${LOGTIME} Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well" >> $LOG_FILE
-     echo "${LOGTIME} Tip: You Could Download And Re-Install The libcap & libcap-bin Library From The Address Below:" >> $LOG_FILE
-     echo "" >> $LOG_FILE
-     echo "---------- https://mirrors.cloud.tencent.com/lede/snapshots/packages/ ----------" >> $LOG_FILE
-     echo "" >> $LOG_FILE
-     sleep 5
-     start_fail
+   if [ -z "$_koolshare" ]; then
+      if ! capsh --is-uid=0 >/dev/null || ! capsh --has-ambient >/dev/null; then
+        echo "错误：Capsh异常，请尝试重新安装依赖【libcap】和相应的Capsh库，终止启动..." >$START_LOG
+        echo "${LOGTIME} Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well" >> $LOG_FILE
+        echo "${LOGTIME} Tip: You Could Download And Re-Install The libcap & libcap-bin Library From The Address Below:" >> $LOG_FILE
+        echo "" >> $LOG_FILE
+        echo "---------- https://mirrors.cloud.tencent.com/lede/snapshots/packages/ ----------" >> $LOG_FILE
+        echo "" >> $LOG_FILE
+        sleep 5
+        start_fail
+      fi
    fi
    
    #创建原始备份
@@ -1025,16 +1027,20 @@ start_run_core()
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$config_reload" != "0" ]; then
       curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
    else
-      kill_clash
-      #防止赋权失败
-      touch /tmp/openclash.log 2>/dev/null
-      chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
-      chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
-      chmod o+w /tmp/openclash.log 2>/dev/null
-      chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
-      #使用nobody启动内核方便代理路由自身流量
-      capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin"
-      capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
+      if [ -z "$_koolshare" ]; then
+         kill_clash
+         #防止赋权失败
+         touch /tmp/openclash.log 2>/dev/null
+         chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
+         chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
+         chmod o+w /tmp/openclash.log 2>/dev/null
+         chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
+         #使用nobody启动内核方便代理路由自身流量
+         capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin"
+         capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
+      else
+         nohup $CLASH -d $CLASH_CONFIG -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+      fi
    fi
    uci -q set openclash.config.config_reload=1
    uci -q commit openclash
@@ -1403,28 +1409,41 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
          iptables -t mangle -A PREROUTING -p udp -j openclash
       fi
    fi
-
-   iptables -t nat -N openclash_output
-   iptables -t nat -F openclash_output
-   iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
-   if [ "$en_mode" = "fake-ip" ]; then
+   
+   if [ -z "$_koolshare" ]; then
+      iptables -t nat -N openclash_output
+      iptables -t nat -F openclash_output
+      iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
+      if [ "$en_mode" = "fake-ip" ]; then
+         if [ "$intranet_allowed" -eq 1 ]; then
+            iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j DNAT --to-destination "$lan_ip:$proxy_port"
+         else
+            iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+         fi
+      fi
+      iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
+      if [ "$en_mode" = "redir-host" ]; then
+         iptables -t nat -A openclash_output -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
+      fi
       if [ "$intranet_allowed" -eq 1 ]; then
-         iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j DNAT --to-destination "$lan_ip:$proxy_port"
+         iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j DNAT --to-destination "$lan_ip:$proxy_port"
       else
-         iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+         iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j REDIRECT --to-ports "$proxy_port"
+      fi
+      iptables -t nat -I OUTPUT -j openclash_output
+   else
+      if [ "$en_mode" = "fake-ip" ]; then
+         iptables -t nat -N openclash_output
+         iptables -t nat -F openclash_output
+         iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
+         if [ "$intranet_allowed" -eq 1 ]; then
+            iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j DNAT --to-destination "$lan_ip:$proxy_port"
+         else
+            iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+         fi
+         
       fi
    fi
-   iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
-   if [ "$en_mode" = "redir-host" ]; then
-      iptables -t nat -A openclash_output -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
-   fi
-   if [ "$intranet_allowed" -eq 1 ]; then
-      iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j DNAT --to-destination "$lan_ip:$proxy_port"
-   else
-      iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j REDIRECT --to-ports "$proxy_port"
-   fi
-   iptables -t nat -I OUTPUT -j openclash_output
-
    #if [ "$ipv6_enable" -eq 1 ]; then
    #   #tcp
    #   ip6tables -t nat -N openclash
@@ -1475,14 +1494,18 @@ if [ -n "$en_mode_tun" ]; then
       iptables -t mangle -F openclash_output
       iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
       if [ "$en_mode_tun" -ne 3 ]; then
-         iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
-         iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
-         iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j MARK --set-mark "$PROXY_FWMARK"
-      else
+         if [ -z "$_koolshare" ]; then
+            iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
+            iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
+            iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j MARK --set-mark "$PROXY_FWMARK"
+         else
+            iptables -t mangle -A openclash_output -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
+         fi
+      elif [ -z "$_koolshare" ]; then
          iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
       fi
       iptables -t mangle -I OUTPUT -j openclash_output
-   elif [ "$en_mode" = "redir-host" ] && [ "$en_mode_tun" -ne 3 ]; then
+   elif [ -z "$_koolshare" ] && [ "$en_mode" = "redir-host" ] && [ "$en_mode_tun" -ne 3 ]; then
       iptables -t mangle -N openclash_output
       iptables -t mangle -F openclash_output
       iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
@@ -1528,10 +1551,17 @@ if [ -n "$en_mode_tun" ]; then
    
    #snat routerself for tun while bindaddress enable
    if [ "$en_mode_tun" -ne 3 ] && [ "$intranet_allowed" -eq 1 ]; then
-      iptables -t nat -N openclash_post
-      iptables -t nat -F openclash_post
-      iptables -t nat -A openclash_post -m owner ! --uid-owner 65534 -i lo -d 127.0.0.1 -j SNAT --to-source "$lan_ip"
-      iptables -t nat -A POSTROUTING -j openclash_post
+      if [ -z "$_koolshare" ]; then
+         iptables -t nat -N openclash_post
+         iptables -t nat -F openclash_post
+         iptables -t nat -A openclash_post -m owner ! --uid-owner 65534 -i lo -d 127.0.0.1 -j SNAT --to-source "$lan_ip"
+         iptables -t nat -A POSTROUTING -j openclash_post
+      elif [ "$en_mode" = "fake-ip" ]; then
+         iptables -t nat -N openclash_post
+         iptables -t nat -F openclash_post
+         iptables -t nat -A openclash_post -i lo -d 127.0.0.1 -j SNAT --to-source "$lan_ip"
+         iptables -t nat -A POSTROUTING -j openclash_post
+      fi
    fi
    #quic
    if [ "$disable_udp_quic" -eq 1 ]; then
@@ -1672,6 +1702,7 @@ get_config()
    interface_name=$(uci -q get openclash.config.interface_name)
    common_ports=$(uci -q get openclash.config.common_ports)
    dns_port=$(uci -q get openclash.config.dns_port)
+   _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
 }
