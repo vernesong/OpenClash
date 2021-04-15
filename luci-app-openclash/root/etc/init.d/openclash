@@ -1341,6 +1341,7 @@ fi
    ipset add localnetwork 224.0.0.0/4
    ipset add localnetwork 240.0.0.0/4
    ipset add localnetwork 172.16.0.0/12
+   ipset add localnetwork 100.64.0.0/10
 
    if [ -n "$wan_ip4" ]; then
       for wan_ip4s in $wan_ip4; do
