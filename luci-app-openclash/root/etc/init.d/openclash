@@ -1232,11 +1232,25 @@ firewall_rule_exclude()
 firewall_redirect_exclude()
 {
    local section="$1"
-   local src_dport
+   local src_dport dest_port dest_ip proto enabled
    config_get "src_dport" "$section" "src_dport" ""
-   
-   if [ -z "$src_dport" ]; then
+   config_get "dest_port" "$section" "dest_port" ""
+   config_get "dest_ip" "$section" "dest_ip" ""
+   config_get "proto" "$section" "proto" ""
+   config_get "enabled" "$section" "enabled" ""
+
+   if [ -z "$src_dport" ] || [ a"$enabled" == a0 ]; then
       return
+   fi
+   local e_udp=false
+   local e_tcp=false
+   for p in $proto; do
+       if [ $p == tcp ]; then e_tcp=true; fi
+       if [ $p == udp ]; then e_udp=true; fi
+   done
+
+   if ! $e_udp && ! $e_tcp ; then
+       return
    fi
 
    if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
@@ -1248,6 +1262,12 @@ firewall_redirect_exclude()
    	  iptables -t mangle -I openclash_output -p udp --sport "$src_dport" -j RETURN >/dev/null 2>&1
       iptables -t mangle -I openclash -p tcp --dport "$src_dport" -j RETURN >/dev/null 2>&1
       iptables -t mangle -I openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
+      if $e_tcp ; then
+         iptables -t mangle -I openclash -p tcp -s "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+      fi
+      if $e_udp ; then
+         iptables -t mangle -I openclash -p udp -s "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+      fi
    fi
 
 }
@@ -1341,6 +1361,7 @@ fi
    ipset add localnetwork 224.0.0.0/4
    ipset add localnetwork 240.0.0.0/4
    ipset add localnetwork 172.16.0.0/12
+   ipset add localnetwork 100.64.0.0/10
 
    if [ -n "$wan_ip4" ]; then
       for wan_ip4s in $wan_ip4; do
