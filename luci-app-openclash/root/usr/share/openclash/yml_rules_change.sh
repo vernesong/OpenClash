@@ -205,10 +205,10 @@ if [ "$2" != "0" ]; then
    else
        #删除原有的部分，防止冲突
        if [ -n "$(ruby_read "$4" "['script']")" ]; then
-          ruby_edit "$4" "['script'].clear"
+          ruby_edit "$4" ".delete('script')"
        fi
        if [ -n "$(ruby_read "$4" "['rules']")" ]; then
-          ruby_edit "$4" "['rules'].clear"
+          ruby_edit "$4" ".delete('rules')"
        fi
        if [ "$rule_name" = "lhie1" ]; then
        	    ruby -ryaml -E UTF-8 -e "

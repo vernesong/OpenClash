@@ -353,8 +353,8 @@ yml_dns_custom()
             ruby_cover "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.namedns.yaml"
             ruby_merge "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.falldns.yaml"
          else
-            ruby_edit "$CONFIG_FILE" "['dns']['nameserver'].clear"
-      	    ruby_edit "$CONFIG_FILE" "['dns']['fallback'].clear"
+            ruby_edit "$CONFIG_FILE" "['dns'].delete('nameserver')"
+      	    ruby_edit "$CONFIG_FILE" "['dns'].delete('fallback')"
             ruby_merge "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.namedns.yaml"
             ruby_merge "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.falldns.yaml"
          fi
@@ -390,7 +390,7 @@ yml_auth_get()
 yml_auth_custom()
 {
    if [ -n "$(ruby_read "$1" "['authentication']")" ]; then
-      ruby_edit "$1" "['authentication'].clear"
+      ruby_edit "$1" ".delete('authentication')"
    fi
    if [ -f /tmp/config.auth ]; then
       sed -i '/^dns:/i\authentication:' "$1" 2>/dev/null
