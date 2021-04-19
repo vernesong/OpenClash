@@ -112,7 +112,7 @@ elsif $en_mode_tun == 2
    Value['tun']['dns-listen']='0.0.0.0:53'
 elsif $en_mode_tun == 0
    if Value.key?('tun') then
-      Value['tun'].clear
+      Value.delete('tun')
    end
 end;
 if not Value.key?('profile') then
