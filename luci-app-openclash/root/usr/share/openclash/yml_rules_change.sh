@@ -65,15 +65,32 @@ yml_other_set()
    begin
    if $5 == 1 then
       Value['rules']=Value['rules'].to_a.insert(0,
-      'DOMAIN-KEYWORD,tracker,DIRECT',
-      'DOMAIN-KEYWORD,announce.php?passkey=,DIRECT',
-      'DOMAIN-KEYWORD,torrent,DIRECT',
-      'DOMAIN-KEYWORD,peer_id=,DIRECT',
-      'DOMAIN-KEYWORD,info_hash,DIRECT',
-      'DOMAIN-KEYWORD,get_peers,DIRECT',
-      'DOMAIN-KEYWORD,find_node,DIRECT',
-      'DOMAIN-KEYWORD,BitTorrent,DIRECT',
-      'DOMAIN-KEYWORD,announce_peer,DIRECT'
+      'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
+      'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
+      'DOMAIN-SUFFIX,chdbits.co,DIRECT',
+      'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
+      'DOMAIN-SUFFIX,empornium.me,DIRECT',
+      'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
+      'DOMAIN-SUFFIX,hdchina.org,DIRECT',
+      'DOMAIN-SUFFIX,hdsky.me,DIRECT',
+      'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
+      'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
+      'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
+      'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
+      'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
+      'DOMAIN-SUFFIX,m-team.cc,DIRECT',
+      'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
+      'DOMAIN-SUFFIX,ncore.cc,DIRECT',
+      'DOMAIN-SUFFIX,open.cd,DIRECT',
+      'DOMAIN-SUFFIX,ourbits.club,DIRECT',
+      'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
+      'DOMAIN-SUFFIX,privatehd.to,DIRECT',
+      'DOMAIN-SUFFIX,redacted.ch,DIRECT',
+      'DOMAIN-SUFFIX,springsunday.net,DIRECT',
+      'DOMAIN-SUFFIX,tjupt.org,DIRECT',
+      'DOMAIN-SUFFIX,totheglory.im,DIRECT',
+      'DOMAIN-KEYWORD,announce,DIRECT',
+      'DOMAIN-KEYWORD,torrent,DIRECT'
       )
       begin
       match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0]
