@@ -44,16 +44,23 @@
 </fieldset>
 <fieldset class="cbi-section">
 	<table width="100%">
-	  <tr><td width="50%" colspan="2">
-	  	<p align="center" id="restore">
-	  		<%:Collecting data...%>
-	  	</p>
+	  <tr>
+	  	<td width="33%" colspan="2">
+	  	   <p align="center" id="restore">
+	  		   <%:Collecting data...%>
+	  	   </p>
 	  	</td>
-	  <td width="50%" colspan="2">
-	  	<p align="center" id="one_key_update">
-	  		<%:Collecting data...%>
-	  	</p>
-	  </td></tr>
+	  	<td width="33%" colspan="2">
+	  	   <p align="center" id="remove_core">
+	  		   <%:Collecting data...%>
+	  	   </p>
+	  	</td>
+	    <td width="33%" colspan="2">
+	  	   <p align="center" id="one_key_update">
+	  		   <%:Collecting data...%>
+	  	   </p>
+	    </td>
+	  </tr>
 	</table>
 </fieldset>
 
@@ -81,6 +88,7 @@
 	var ma_op_up  = document.getElementById('ma_op_up');
 	var restore  = document.getElementById('restore');
 	var one_key_update  = document.getElementById('one_key_update');
+	var remove_core  = document.getElementById('remove_core');
   
 	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
@@ -186,8 +194,9 @@
 	ma_core_tun_up.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_tun_update(this)"/>';
 	ma_core_game_up.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_game_update(this)"/>';
 	ma_op_up.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_op_update(this)"/>';
-	restore.innerHTML = '<input type="button" class="cbi-button cbi-button-reset" value="<%:Restore Default Configuration%>" onclick="return restore_config(this)"/>';
+	restore.innerHTML = '<input type="button" class="cbi-button cbi-button-reset" value="<%:Restore Default Config%>" onclick="return restore_config(this)"/>';
 	one_key_update.innerHTML = '<input type="button" class="cbi-button cbi-button-reset" value="<%:One Click Check Update%>" onclick="return all_one_key_update(this)"/>';
+	remove_core.innerHTML = '<input type="button" class="cbi-button cbi-button-remove" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
 	
 	function winOpen(url)
 	  {
@@ -314,11 +323,33 @@
         return false; 
     }
     
+    function remove_all_core(btn)
+    {
+        btn.value    = '<%:Remove Core%>';
+        btn.disabled = true;
+        var r = confirm("<%:Are you sure want to remove all core files?%>")
+        if (r == true) {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "remove_all_core")%>', null, function(x, status) {
+        	if ( x && x.status == 200 ) {
+        		alert('<%:Remove succeeded!%>')
+        		window.location.href='<%="settings"%>';
+        	}
+          else {
+            alert('<%:Remove failed!%>')
+            window.location.href='<%="settings"%>';
+           }
+        });
+        } else {
+        }
+        btn.disabled = false;
+        return false; 
+    }
+    
     function restore_config(btn)
     {
-        btn.value    = '<%:Restore Default Configuration%>';
+        btn.value    = '<%:Restore Default Config%>';
         btn.disabled = true;
-        var r = confirm("<%:Are you sure want to restore the default configuration?%>")
+        var r = confirm("<%:Are you sure want to restore the default config?%>")
         if (r == true) {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "restore")%>', null, function(x, status) {
         	if ( x && x.status == 200 ) {
