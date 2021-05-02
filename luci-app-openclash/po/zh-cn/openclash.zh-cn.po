@@ -970,16 +970,16 @@ msgid "The Servers Must Support UDP forwarding"
 msgstr "启用时服务器必须支持UDP转发"
 
 msgid "If Docker is Installed, UDP May Not Forward Normally"
-msgstr "安装了Docker的固件可能无法正常转发UDP"
+msgstr "安装了Docker的固件请使用TUN模式，否则可能无法正常转发UDP，造成游戏异常"
 
-msgid "Disable quic"
-msgstr "*禁用quic"
+msgid "Disable QUIC"
+msgstr "*禁用QUIC"
 
-msgid "Disable yt fb ig use quic"
-msgstr "改善yt fb等走quic速度慢场景"
+msgid "Prevent YouTube and Others To Use QUIC Transmission"
+msgstr "防止YouTube等使用QUIC导致速度不佳"
 
-msgid "REJECT PORT 443 UDP"
-msgstr "禁用443端口udp流量"
+msgid "REJECT UDP Traffic On Port 443"
+msgstr "禁用443端口UDP流量"
 
 msgid "Operation Mode"
 msgstr "模式设置"
@@ -1329,7 +1329,7 @@ msgstr "下载最新版本客户端"
 msgid "Download"
 msgstr "下载到本地"
 
-msgid "Restore Default Configuration"
+msgid "Restore Default Config"
 msgstr "还原默认配置"
 
 msgid "One Click Check Update"
@@ -1338,7 +1338,7 @@ msgstr "一键检查更新"
 msgid "Failed to get the latest version. Please try again later!"
 msgstr "最新版本获取失败，请稍后再试！"
 
-msgid "Are you sure want to restore the default configuration?"
+msgid "Are you sure want to restore the default config?"
 msgstr "确定要还原默认配置吗？"
 
 msgid "Restore succeeded!"
@@ -1473,3 +1473,14 @@ msgstr "订阅转换服务地址"
 msgid "Note: There is A Risk of Privacy Leakage in Online Convert"
 msgstr "注意：在线订阅转换存在隐私泄露风险"
 
+msgid "Remove Core"
+msgstr "删除内核"
+
+msgid "Are you sure want to remove all core files?"
+msgstr "确定要删除所有内核文件吗？"
+
+msgid "Remove succeeded!"
+msgstr "删除成功！"
+
+msgid "Remove failed!"
+msgstr "删除失败！"
