@@ -34,6 +34,7 @@ function index()
 	entry({"admin", "services", "openclash", "ping"}, call("act_ping"))
 	entry({"admin", "services", "openclash", "download_rule"}, call("action_download_rule"))
 	entry({"admin", "services", "openclash", "restore"}, call("action_restore_config"))
+	entry({"admin", "services", "openclash", "remove_all_core"}, call("action_remove_all_core"))
 	entry({"admin", "services", "openclash", "one_key_update"}, call("action_one_key_update"))
 	entry({"admin", "services", "openclash", "one_key_update_check"}, call("action_one_key_update_check"))
 	entry({"admin", "services", "openclash", "switch_mode"}, call("action_switch_mode"))
@@ -266,6 +267,10 @@ function action_restore_config()
 	luci.sys.call("cp '/usr/share/openclash/backup/openclash_custom_fake_black.conf' '/etc/openclash/custom/openclash_custom_fake_black.conf' >/dev/null 2>&1 &")
 	luci.sys.call("cp '/usr/share/openclash/backup/openclash_custom_hosts.list' '/etc/openclash/custom/openclash_custom_hosts.list' >/dev/null 2>&1 &")
 	luci.sys.call("cp '/usr/share/openclash/backup/openclash_custom_domain_dns.list' '/etc/openclash/custom/openclash_custom_domain_dns.list' >/dev/null 2>&1 &")
+end
+
+function action_remove_all_core()
+	luci.sys.call("rm -rf /etc/openclash/core/* >/dev/null 2>&1")
 end
 
 function action_one_key_update()
