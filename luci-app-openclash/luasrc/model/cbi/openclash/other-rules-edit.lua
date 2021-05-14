@@ -123,6 +123,50 @@ end
 o:value("DIRECT")
 o:value("REJECT")
 
+o = s:option(ListValue, "Bilibili", translate("Bilibili"))
+o:depends("rule_name", "lhie1")
+o.rmempty = true
+for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
+  if groupname ~= nil and groupname ~= "" then
+    o:value(groupname)
+  end
+end
+o:value("DIRECT")
+o:value("REJECT")
+
+o = s:option(ListValue, "Bahamut", translate("Bahamut"))
+o:depends("rule_name", "lhie1")
+o.rmempty = true
+for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
+  if groupname ~= nil and groupname ~= "" then
+    o:value(groupname)
+  end
+end
+o:value("DIRECT")
+o:value("REJECT")
+
+o = s:option(ListValue, "HBO", translate("HBO"))
+o:depends("rule_name", "lhie1")
+o.rmempty = true
+for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
+  if groupname ~= nil and groupname ~= "" then
+    o:value(groupname)
+  end
+end
+o:value("DIRECT")
+o:value("REJECT")
+
+o = s:option(ListValue, "Pornhub", translate("Pornhub"))
+o:depends("rule_name", "lhie1")
+o.rmempty = true
+for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
+  if groupname ~= nil and groupname ~= "" then
+    o:value(groupname)
+  end
+end
+o:value("DIRECT")
+o:value("REJECT")
+
 o = s:option(ListValue, "Apple", translate("Apple"))
 o:depends("rule_name", "lhie1")
 o.rmempty = true
