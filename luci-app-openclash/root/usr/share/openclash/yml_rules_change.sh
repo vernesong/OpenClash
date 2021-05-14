@@ -152,6 +152,10 @@ yml_other_rules_get()
    config_get "AsianTV" "$section" "AsianTV" ""
    config_get "Proxy" "$section" "Proxy" ""
    config_get "Youtube" "$section" "Youtube" ""
+   config_get "Bilibili" "$section" "Bilibili" ""
+   config_get "Bahamut" "$section" "Bahamut" ""
+   config_get "HBO" "$section" "HBO" ""
+   config_get "Pornhub" "$section" "Pornhub" ""
    config_get "Apple" "$section" "Apple" ""
    config_get "Scholar" "$section" "Scholar" ""
    config_get "Netflix" "$section" "Netflix" ""
@@ -197,6 +201,10 @@ if [ "$2" != "0" ]; then
 	 || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Youtube" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Bilibili" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Bahamut" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$HBO" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Pornhub" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Apple" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Scholar" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Netflix" /tmp/Proxy_Group)" ]\
@@ -242,7 +250,11 @@ if [ "$2" != "0" ]; then
        	    Value['script']=Value_1['script'];
        	    Value['rules']=Value_1['rules'];
        	    Value['rules'].to_a.collect!{|x|
-       	    x.to_s.gsub(/,GlobalTV$/, ',$GlobalTV#d')
+       	    x.to_s.gsub(/,Bilibili,AsianTV$/, ',Bilibili,$Bilibili#d')
+       	    .gsub(/,Bahamut,GlobalTV$/, ',Bahamut,$Bahamut#d')
+       	    .gsub(/,HBO,GlobalTV$/, ',HBO,$HBO#d')
+       	    .gsub(/,Pornhub,GlobalTV$/, ',Pornhub,$Pornhub#d')
+       	    .gsub(/,GlobalTV$/, ',$GlobalTV#d')
        	    .gsub(/,AsianTV$/, ',$AsianTV#d')
        	    .gsub(/,Proxy$/, ',$Proxy#d')
        	    .gsub(/,YouTube$/, ',$Youtube#d')
@@ -261,7 +273,11 @@ if [ "$2" != "0" ]; then
        	    .gsub(/,Others$/, ',$Others#d')
        	    .gsub(/#d/, '')
        	    };
-       	    Value['script']['code'].to_s.gsub!(/: \"GlobalTV\"/,': \"$GlobalTV#d\"')
+       	    Value['script']['code'].to_s.gsub!(/\"Bilibili\": \"AsianTV\"/,'\"Bilibili\": \"$Bilibili#d\"')
+       	    .gsub!(/\"Bahamut\": \"GlobalTV\"/,'\"Bahamut\": \"$Bahamut#d\"')
+       	    .gsub!(/\"HBO\": \"GlobalTV\"/,'\"HBO\": \"$HBO#d\"')
+       	    .gsub!(/\"Pornhub\": \"GlobalTV\"/,'\"Pornhub\": \"$Pornhub#d\"')
+       	    .gsub!(/: \"GlobalTV\"/,': \"$GlobalTV#d\"')
        	    .gsub!(/: \"AsianTV\"/,': \"$AsianTV#d\"')
        	    .gsub!(/: \"Proxy\"/,': \"$Proxy#d\"')
        	    .gsub!(/: \"YouTube\"/,': \"$Youtube#d\"')

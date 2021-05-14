@@ -473,52 +473,46 @@ msgid "Update Other Rules"
 msgstr "更新第三方规则"
 
 msgid "GlobalTV"
-msgstr "国际流媒体流量"
+msgstr "国际流媒体"
 
 msgid "AsianTV"
-msgstr "亚洲流媒体流量"
+msgstr "亚洲流媒体"
 
 msgid "Proxy"
 msgstr "必须代理的流量"
 
-msgid "Youtube"
-msgstr "Youtube流量"
-
 msgid "Apple"
-msgstr "苹果服务流量"
+msgstr "苹果服务（Apple）"
 
 msgid "Scholar"
-msgstr "学术网站流量"
+msgstr "学术网站（Scholar）"
 
 msgid "Microsoft"
-msgstr "微软服务流量"
+msgstr "微软服务（Microsoft）"
 
 msgid "Netflix"
-msgstr "Netflix流量"
+msgstr "奈飞（Netflix）"
 
 msgid "Disney"
-msgstr "Disney流量"
+msgstr "迪士尼（Disney）"
 
-msgid "Spotify"
-msgstr "Spotify流量"
+msgid "Bilibili"
+msgstr "哔哩哔哩（Bilibili）"
+
+msgid "Bahamut"
+msgstr "巴哈姆特（Bahamut）"
 
 msgid "Steam"
-msgstr "Steam流量（非下载流量）"
+msgstr "Steam（非下载流量）"
 
 msgid "Netease Music"
-msgstr "网易云音乐流量"
+msgstr "网易云音乐"
 
 msgid "Speedtest"
-msgstr "测速流量"
-
-msgid "Telegram"
-msgstr "Telegram流量"
-
-msgid "PayPal"
-msgstr "PayPal流量"
+msgstr "测速流量（Speedtest）"
 
 msgid "AdBlock"
-msgstr "广告流量"
+msgstr "广告（AdBlock）"
 
 msgid "Domestic"
 msgstr "国内流量"
