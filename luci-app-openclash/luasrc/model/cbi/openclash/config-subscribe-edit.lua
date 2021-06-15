@@ -52,7 +52,7 @@ o.description = translate("Convert Subscribe Online With Template, Mix Proxies a
 o.default=0
 
 ---- Convert Address
-o = s:option(ListValue, "convert_address", translate("Convert Address"))
+o = s:option(Value, "convert_address", translate("Convert Address"))
 o.rmempty     = true
 o.description = font_red..bold_on..translate("Note: There is A Risk of Privacy Leakage in Online Convert")..bold_off..font_off
 o:depends("sub_convert", "1")
