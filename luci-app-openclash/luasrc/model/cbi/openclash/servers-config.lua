@@ -94,6 +94,11 @@ s = m:section(NamedSection, sid, "servers")
 s.anonymous = true
 s.addremove   = false
 
+o = s:option(DummyValue, "server_url", "SS/SSR/VMESS/TROJAN URL")
+o.rawhtml = true
+o.template = "openclash/server_url"
+o.value = sid
+
 o = s:option(ListValue, "config", translate("Config File"))
 o:value("all", translate("Use For All Config File"))
 local e,a={}
