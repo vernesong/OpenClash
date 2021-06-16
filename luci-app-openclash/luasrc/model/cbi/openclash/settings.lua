@@ -236,7 +236,6 @@ function custom_fake_black.cfgvalue(self, section)
 	return NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_filter.list") or ""
 end
 function custom_fake_black.write(self, section, value)
-
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_filter.list")
@@ -264,12 +263,31 @@ function custom_domain_dns.cfgvalue(self, section)
 	return NXFS.readfile("/etc/openclash/custom/openclash_custom_domain_dns.list") or ""
 end
 function custom_domain_dns.write(self, section, value)
-
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_domain_dns.list")
 	  if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_domain_dns.list", value)
+		end
+	end
+end
+
+custom_domain_dns_policy = s:taboption("dns", Value, "custom_domain_dns_core")
+custom_domain_dns_policy.template = "cbi/tvalue"
+custom_domain_dns_policy.description = translate("Domain Names In The List Use The Custom DNS Server, But Still Return Fake-IP Results, One rule per line")
+custom_domain_dns_policy.rows = 20
+custom_domain_dns_policy.wrap = "off"
+custom_domain_dns_policy:depends("dns_advanced_setting", "1")
+
+function custom_domain_dns_policy.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_domain_dns_policy.list") or ""
+end
+function custom_domain_dns_policy.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_domain_dns_policy.list")
+	  if value ~= old_value then
+			NXFS.writefile("/etc/openclash/custom/openclash_custom_domain_dns_policy.list", value)
 		end
 	end
 end

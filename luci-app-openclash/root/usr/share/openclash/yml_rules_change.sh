@@ -63,7 +63,7 @@ yml_other_set()
    puts '${LOGTIME} Set Custom Rules Error: ' + e.message
    end
    begin
-   if $5 == 1 then
+   if $5 == 1 and Value.has_key?('rules') and not Value['rules'].to_a.empty? then
       Value['rules']=Value['rules'].to_a.insert(0,
       'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
       'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
@@ -110,6 +110,8 @@ yml_other_set()
       puts '${LOGTIME} Set BT/P2P Common Port Rules Error: ' + e.message
       end
       Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
+   else
+      puts '${LOGTIME} Because of No Rules Field, Stop Setting BT/P2P DIRECT Rules!'
    end;
    rescue Exception => e
    puts '${LOGTIME} Set BT/P2P DIRECT Rules Error: ' + e.message
