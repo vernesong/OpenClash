@@ -245,6 +245,10 @@ msgstr "每行请只填写一个域名，列表中的域名在（Fake-IP模式�
 msgid "Domain Names In The List Use The Custom DNS Server, One rule per line"
 msgstr "每行请只填写一个域名，列表中的域名将使用上方指定的DNS进行查询"
 
+
+msgid "Domain Names In The List Use The Custom DNS Server, But Still Return Fake-IP Results, One rule per line"
+msgstr "每行请只填写一个规则，列表中的域名将使用指定的DNS进行查询，但Fake-IP模式下仍将返回保留地址"
+
 msgid "Fake-IP-Filter List Update"
 msgstr "更新Fake-IP域名黑名单"
 
