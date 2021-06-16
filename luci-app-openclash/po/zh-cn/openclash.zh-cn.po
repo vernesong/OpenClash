@@ -1482,3 +1482,27 @@ msgstr "删除成功！"
 
 msgid "Remove failed!"
 msgstr "删除失败！"
+
+msgid "Import"
+msgstr "导入配置信息"
+
+msgid "Export SSR"
+msgstr "导出ssr配置信息"
+
+msgid "Import configuration information successfully."
+msgstr "导入配置信息成功。"
+
+msgid "Invalid format."
+msgstr "无效的格式。"
+
+msgid "User cancelled."
+msgstr "用户已取消。"
+
+msgid "Paste sharing link here"
+msgstr "在此处粘贴分享链接"
+
+msgid "Unable to copy SSR to clipboard."
+msgstr "无法复制SSR网址到剪贴板。"
+
+msgid "Copy SSR to clipboard successfully."
+msgstr "成功复制SSR网址到剪贴板。"

@@ -110,17 +110,28 @@ function import_ssr_url(btn, urlname, sid) {
 				var serverInfo = temp[0].split(":");
 				var server = serverInfo[0];
 				var port = serverInfo[1];
-				var method, password, plugin, pluginOpts, pluginObfs, pluginObfsHost;
+				var method, password, plugin, pluginOpts, pluginObfs, pluginObfsHost, pluginObfsPath, pluginObfsHeaders;
 				if (temp[1]) {
 					var pluginInfo = decodeURIComponent(temp[1]);
 					var pluginIndex = pluginInfo.indexOf(";");
 					var pluginNameInfo = pluginInfo.substr(0, pluginIndex);
 					plugin = pluginNameInfo.substr(pluginNameInfo.indexOf("=") + 1);
 					pluginOpts = pluginInfo.substr(pluginIndex + 1);
-					pluginObfs = pluginOpts.split("obfs=")[1].split(";")[0];
-					pluginObfsHost = pluginOpts.split("obfs-host=")[1].split("&group=")[0] || pluginOpts.split("obfs-host=")[1].split(";")[0];
-					pluginObfsPath = pluginOpts.split("path=")[1].split(";")[0];
-					pluginObfsHeaders = pluginOpts.split("headers=")[1].split(";")[0];
+					if (pluginOpts.indexOf("obfs=") != -1) {
+						pluginObfs = pluginOpts.split("obfs=")[1].split(";")[0];
+						if (pluginObfs == "ws") {
+							   pluginObfs = "websocket"
+							}
+						if (pluginOpts.indexOf("obfs-host=") != -1) {
+							pluginObfsHost = pluginOpts.split("obfs-host=")[1].split("&group=")[0] || pluginOpts.split("obfs-host=")[1].split(";")[0];
+							}
+						if (pluginOpts.indexOf("path=") != -1) {
+							pluginObfsPath = pluginOpts.split("path=")[1].split(";")[0];
+							}
+						if (pluginOpts.indexOf("headers=") != -1) {
+							pluginObfsHeaders = pluginOpts.split("headers=")[1].split(";")[0];
+							}
+					}
 				}
 				var userInfoSplitIndex = userInfo.indexOf(":");
 				if (userInfoSplitIndex != -1) {
@@ -136,9 +147,11 @@ function import_ssr_url(btn, urlname, sid) {
 				document.getElementsByName('cbid.openclash.' + sid + '.obfs')[0].value = pluginObfs || "none";
 				document.getElementsByName('cbid.openclash.' + sid + '.obfs')[0].dispatchEvent(event);
 				if (plugin != undefined) {
-				document.getElementsByName('cbid.openclash.' + sid + '.host')[0].value = pluginObfsHost || "";
-				document.getElementsByName('cbid.openclash.' + sid + '.custom')[0].value = pluginObfsHeaders || "";
-				document.getElementsByName('cbid.openclash.' + sid + '.path')[0].value = pluginObfsPath || "";
+					document.getElementsByName('cbid.openclash.' + sid + '.host')[0].value = pluginObfsHost || "";
+					if (pluginObfs == "websocket") {
+						document.getElementsByName('cbid.openclash.' + sid + '.custom')[0].value = pluginObfsHeaders || "";
+						document.getElementsByName('cbid.openclash.' + sid + '.path')[0].value = pluginObfsPath || "";
+					}
 				}
 				if (param != undefined) {
 					document.getElementsByName('cbid.openclash.' + sid + '.name')[0].value = decodeURI(param);
