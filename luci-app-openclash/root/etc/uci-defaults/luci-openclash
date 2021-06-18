@@ -24,6 +24,7 @@ cp -f "/etc/openclash/custom/openclash_custom_rules_2.list" "/usr/share/openclas
 cp -f "/etc/openclash/custom/openclash_custom_hosts.list" "/usr/share/openclash/backup/openclash_custom_hosts.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_fake_filter.list" "/usr/share/openclash/backup/openclash_custom_fake_filter.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_domain_dns.list" "/usr/share/openclash/backup/openclash_custom_domain_dns.list" >/dev/null 2>&1
+cp -f "/etc/openclash/custom/openclash_custom_domain_dns_policy.list" "/usr/share/openclash/backup/openclash_custom_domain_dns_policy.list" >/dev/null 2>&1
 
 mkdir -p /lib/upgrade/keep.d
 cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
