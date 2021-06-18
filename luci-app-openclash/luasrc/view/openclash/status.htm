@@ -215,16 +215,16 @@
 			daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			dase.innerHTML = status.dase ? "<b><font color=green>"+status.dase+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			web.innerHTML = status.web ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			webo.innerHTML = status.web ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			close_all_connection.innerHTML = status.clash ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			restore_history.innerHTML = status.clash ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:Restore Nodes Selection%>" onclick="return b_restore_history(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			get_history.innerHTML = status.clash ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:Save Nodes Selection%>" onclick="return b_get_history(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			reload_firewall.innerHTML = status.clash ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:Reload Firewall Rules%>" onclick="return b_reload_firewall(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			one_key_update.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:Check All Components Update%>" onclick="return all_one_key_update(this)"/>';
-			update_subscribe.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:Check Config Update%>" onclick="return b_update_subscribe(this)"/>';
-			update_other_rules.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:Check Third Party Rules Update%>" onclick="return b_update_other_rules(this)"/>';
-			update_geoip.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:Check GEOIP Data Update%>" onclick="return b_update_geoip(this)"/>';
+			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
+			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
+			close_all_connection.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
+			restore_history.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Restore Nodes Selection%>" onclick="return b_restore_history(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
+			get_history.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Save Nodes Selection%>" onclick="return b_get_history(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
+			reload_firewall.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Reload Firewall Rules%>" onclick="return b_reload_firewall(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
+			one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check All Components Update%>" onclick="return all_one_key_update(this)"/>';
+			update_subscribe.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Config Update%>" onclick="return b_update_subscribe(this)"/>';
+			update_other_rules.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Third Party Rules Update%>" onclick="return b_update_other_rules(this)"/>';
+			update_geoip.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GEOIP Data Update%>" onclick="return b_update_geoip(this)"/>';
 		}
 	});
 	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "state")%>', null, function(x, status) {
