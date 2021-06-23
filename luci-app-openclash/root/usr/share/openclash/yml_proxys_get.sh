@@ -313,35 +313,6 @@ yml_servers_name_get()
    server_num=$(( $server_num + 1 ))
 }
 
-server_key_get()
-{
-   local section="$1"
-   config_get_bool "enabled" "$section" "enabled" "1"
-
-   if [ "$enabled" = "0" ]; then
-      return
-   fi
-   
-   config_get "name" "$section" "name" ""
-   config_get "keyword" "$section" "keyword" ""
-   config_get "ex_keyword" "$section" "ex_keyword" ""
-   
-   if [ -z "$name" ]; then
-      name="config"
-   fi
-   
-   if [ ! -z "$keyword" ] && [ "$name.yaml" == "$CONFIG_NAME" ]; then
-      config_keyword="$keyword"
-      key_section="$1"
-   fi
-   
-   if [ ! -z "$ex_keyword" ] && [ "$name.yaml" == "$CONFIG_NAME" ]; then
-      config_ex_keyword="$ex_keyword"
-      key_section="$1"
-   fi
-
-}
-
 server_key_match()
 {
 
@@ -436,32 +407,6 @@ do
    if [ -z "$server_name" ]; then
       let count++
       continue
-   fi
-   
-   config_load "openclash"
-   config_foreach server_key_get "config_subscribe"
-   
-   #匹配关键字订阅节点
-   if [ "$servers_if_update" = "1" ]; then
-      if [ -n "$config_keyword" ] || [ -n "$config_ex_keyword" ]; then
-         if [ -n "$config_keyword" ] && [ -z "$config_ex_keyword" ]; then
-            match="false"
-            config_list_foreach "$key_section" "keyword" server_key_match "$server_name"
-         elif [ -z "$config_keyword" ] && [ ! -z "$config_ex_keyword" ]; then
-         	  match="true"
-            config_list_foreach "$key_section" "ex_keyword" server_key_exmatch "$server_name"
-         elif [ ! -z "$config_keyword" ] && [ ! -z "$config_ex_keyword" ]; then
-            match="false"
-            config_list_foreach "$key_section" "keyword" server_key_match "$server_name"
-            config_list_foreach "$key_section" "ex_keyword" server_key_exmatch "$server_name"
-         fi
-
-         if [ "$match" = "false" ]; then
-            echo "跳过【$server_name】服务器节点..." >$START_LOG
-            let count++
-            continue
-         fi
-      fi
    fi
    
 #节点存在时获取节点编号
