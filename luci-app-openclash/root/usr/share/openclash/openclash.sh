@@ -68,8 +68,54 @@ config_cus_up()
       uci commit openclash
 	fi
 	if [ -z "$subscribe_url_param" ]; then
-	   if [ "$servers_update" -eq 1 ] || [ ! -z "$keyword" ] || [ ! -z "$ex_keyword" ]; then
-	      echo "配置文件【$name】替换成功，开始挑选节点..." > $START_LOG
+	   if [ -n "$key_match_param" ] || [ -n "$key_ex_match_param" ]; then
+	      echo "配置文件【$name】替换成功，检测到已启用节点筛选，开始挑选节点..." > $START_LOG
+	      ruby -ryaml -E UTF-8 -e "
+	      begin
+	         Value = YAML.load_file('$CONFIG_FILE');
+	         if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
+	            Value['proxies'].reverse.each{
+	            |x|
+	            if not '$key_match_param'.empty? then
+	               if not /$key_match_param/i =~ x['name'] then
+	                  Value['proxies'].delete(x)
+	                  Value['proxy-groups'].each{
+	                     |g|
+	                     g['proxies'].reverse.each{
+	                        |p|
+	                        if p == x['name'] then
+	                           g['proxies'].delete(p)
+	                        end
+	                     }
+	                  }
+	               end
+	            end;
+	            if not '$key_ex_match_param'.empty? then
+	               if /$key_ex_match_param/i =~ x['name'] then
+	                  if Value['proxies'].include?(x) then
+	                     Value['proxies'].delete(x)
+	                     Value['proxy-groups'].each{
+	                        |g|
+	                        g['proxies'].reverse.each{
+	                           |p|
+	                           if p == x['name'] then
+	                              g['proxies'].delete(p)
+	                           end
+	                        }
+	                     }
+	                  end
+	               end
+	            end;
+	            }
+	         end;
+	      rescue Exception => e
+	         puts '${LOGTIME} Filter Proxies Error: ' + e.message
+	      ensure
+	         File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)};
+	      end" 2>/dev/null >> $LOG_FILE
+	   fi
+	   if [ "$servers_update" -eq 1 ]; then
+	      echo "配置文件【$name】替换成功，检测到已启用保留配置，开始进行设置..." > $START_LOG
 	      uci set openclash.config.config_update_path="/etc/openclash/config/$name.yaml"
 	      uci set openclash.config.servers_if_update=1
 	      uci commit openclash
@@ -361,6 +407,7 @@ sub_info_get()
    config_get "template" "$section" "template" ""
    config_get "node_type" "$section" "node_type" ""
    config_get "custom_template_url" "$section" "custom_template_url" ""
+   config_get "de_ex_keyword" "$section" "de_ex_keyword" ""
 
    if [ "$enabled" -eq 0 ]; then
       return
@@ -379,6 +426,22 @@ sub_info_get()
       BACKPACK_FILE="/etc/openclash/backup/$name.yaml"
    fi
    
+   if [ ! -z "$keyword" ] || [ ! -z "$ex_keyword" ]; then
+      config_list_foreach "$section" "keyword" server_key_match "keyword"
+      config_list_foreach "$section" "ex_keyword" server_key_match "ex_keyword"
+   fi
+   
+   if [ -n "$de_ex_keyword" ]; then
+      for i in $de_ex_keyword;
+      do
+      	if [ -z "$key_ex_match_param" ]; then
+      	   key_ex_match_param="($i)"
+      	else
+      	   key_ex_match_param="$key_ex_match_param|($i)"
+        fi
+      done
+   fi
+         
    if [ "$sub_convert" -eq 0 ]; then
       subscribe_url=$address
    elif [ "$sub_convert" -eq 1 ] && [ -n "$template" ]; then
@@ -390,12 +453,8 @@ sub_info_get()
       fi
       if [ -n "$template_path" ]; then
          template_path_encode=$(urlencode "$template_path")
-         if [ ! -z "$keyword" ] || [ ! -z "$ex_keyword" ]; then
-      	   config_list_foreach "$section" "keyword" server_key_match "keyword"
-      	   config_list_foreach "$section" "ex_keyword" server_key_match "ex_keyword"
-      	   [ -n "$key_match_param" ] && key_match_param=$(urlencode "$key_match_param")
-      	   [ -n "$key_ex_match_param" ] && key_ex_match_param=$(urlencode "$key_ex_match_param")
-         fi
+      	 [ -n "$key_match_param" ] && key_match_param="(?i)$(urlencode "$key_match_param")"
+      	 [ -n "$key_ex_match_param" ] && key_ex_match_param="(?i)$(urlencode "$key_ex_match_param")"
          subscribe_url_param="?target=clash&new_name=true&url=$subscribe_url&config=$template_path_encode&include=$key_match_param&exclude=$key_ex_match_param&emoji=$emoji&list=false&sort=$sort&udp=$udp&scv=$skip_cert_verify&append_type=$node_type&fdn=true"
          c_address="$convert_address"
       else
