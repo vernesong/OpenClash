@@ -11,6 +11,10 @@ uci -q set firewall.openclash.path=/var/etc/openclash.include
 uci -q set firewall.openclash.reload=1
 uci -q commit firewall
 
+if [ -n "$(uci -q get dhcp.@dnsmasq[0].resolvfile)" ]; then
+   uci -q set openclash.config.default_resolvfile=$(uci -q get dhcp.@dnsmasq[0].resolvfile)
+fi
+
 mkdir -p /etc/openclash/config
 mkdir -p /etc/openclash/proxy_provider
 mkdir -p /etc/openclash/backup
