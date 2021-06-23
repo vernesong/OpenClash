@@ -1506,3 +1506,6 @@ msgstr "无法复制SSR网址到剪贴板。"
 
 msgid "Copy SSR to clipboard successfully."
 msgstr "成功复制SSR网址到剪贴板。"
+
+msgid "Exclude Keyword Match Default"
+msgstr "排除无效节点"
