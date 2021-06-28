@@ -333,7 +333,7 @@ o = a:option(Button,"Back", " ")
 o.inputtitle = translate("Back Configurations")
 o.inputstyle = "reset"
 o.write = function()
-   m.uci:revert(openclash)
+   m.uci:revert(openclash, sid)
    luci.http.redirect(m.redirect)
 end
 
