@@ -72,14 +72,15 @@
 		<tr><td width="25%"><%:Yacd Control Panel%></td><td width="25%" align="left" id="_web"><%:Collecting data...%></td><td width="25%"><%:Dashboard Control Panel%></td><td width="25%" align="left" id="_webo"><%:Collecting data...%></td></tr>
 		<tr><td width="100%" colspan="4"><p align="center"><img id="hid_btn" alt="Show More" height="20px" onclick="return hid_btn_action()"/></p></td></tr>
 		<tr id="hid_1"><td width="100%" colspan="4"><p align="center"><b><%:Quick Operation%></b></p></td></tr>
-    <tr id="hid_2"><td width="25%" align="center" id="_get_history"><%:Collecting data...%></td>
-    	<td width="25%" align="center" id="_restore_history"><%:Collecting data...%></td>
+    <tr id="hid_2">
     	<td width="25%" align="center" id="_close_all_connection"><%:Collecting data...%></td>
-			<td width="25%" align="center" id="_reload_firewall"><%:Collecting data...%></td></tr>
-		<tr id="hid_3"><td width="25%" align="center" id="_update_subscribe"><%:Collecting data...%></td>
+			<td width="25%" align="center" id="_reload_firewall"><%:Collecting data...%></td>
+			<td width="25%" align="center" id="_update_subscribe"><%:Collecting data...%></td>
 			<td width="25%" align="center" id="_one_key_update"><%:Collecting data...%></td>
-			<td width="25%" align="center" id="_update_other_rules"><%:Collecting data...%></td>
-			<td width="25%" align="center" id="_update_geoip"><%:Collecting data...%></td>
+			</tr>
+		<tr id="hid_3">
+			<td width="50%" colspan="2" align="center" id="_update_other_rules"><%:Collecting data...%></td>
+			<td width="50%" colspan="2" align="center" id="_update_geoip"><%:Collecting data...%></td>
 			</tr>
 </table>
 </fieldset>
@@ -106,8 +107,6 @@
 	var dapo = document.getElementById('_dapo');
 	var clashversion = document.getElementById('_clashversion');
 	var close_all_connection = document.getElementById('_close_all_connection');
-	var restore_history = document.getElementById('_restore_history');
-	var get_history = document.getElementById('_get_history');
 	var reload_firewall = document.getElementById('_reload_firewall');
 	var one_key_update = document.getElementById('_one_key_update');
 	var update_subscribe = document.getElementById('_update_subscribe');
@@ -218,8 +217,6 @@
 			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
 			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
 			close_all_connection.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			restore_history.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Restore Nodes Selection%>" onclick="return b_restore_history(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			get_history.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Save Nodes Selection%>" onclick="return b_get_history(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
 			reload_firewall.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Reload Firewall Rules%>" onclick="return b_reload_firewall(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
 			one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check All Components Update%>" onclick="return all_one_key_update(this)"/>';
 			update_subscribe.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Config Update%>" onclick="return b_update_subscribe(this)"/>';
@@ -355,38 +352,6 @@
         else {
         	btn.disabled = false;
           btn.value    = '<%:Close All Connections Failed%>';
-        }
-        return false;
-        });
-    }
-    function b_restore_history(btn)
-    {
-        btn.disabled = true;
-        btn.value    = '<%:Restoring...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "restore_history")%>', null, function(x, status) {
-        if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Restore Nodes Selection%>';
-        }
-        else {
-        	btn.disabled = false;
-          btn.value    = '<%:Restore Nodes Selection Failed%>';
-        }
-        return false;
-        });
-    }
-    function b_get_history(btn)
-    {
-        btn.disabled = true;
-        btn.value    = '<%:Saving...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_history")%>', null, function(x, status) {
-        if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Save Nodes Selection%>';
-        }
-        else {
-        	btn.disabled = false;
-          btn.value    = '<%:Save Nodes Selection Failed%>';
         }
         return false;
         });

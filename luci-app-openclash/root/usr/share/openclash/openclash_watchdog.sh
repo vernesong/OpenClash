@@ -67,7 +67,6 @@ if [ "$enable" -eq 1 ]; then
            ip route replace default dev clash0 table "$PROXY_ROUTE_TABLE" 2>/dev/null
            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	      fi
-	      /usr/share/openclash/openclash_history_set.sh
 	   else
 	      echo "${LOGTIME} Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit." >> $LOG_FILE
 	      /etc/init.d/openclash stop
