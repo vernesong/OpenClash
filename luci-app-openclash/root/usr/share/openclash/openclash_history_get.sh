@@ -1,4 +1,5 @@
 #!/bin/sh
+. /lib/functions.sh
 . /usr/share/openclash/openclash_ps.sh
 
 set_lock() {
@@ -11,41 +12,35 @@ del_lock() {
    rm -rf "/tmp/lock/openclash_history_get.lock"
 }
 
-CURL_GROUP_CACHE="/tmp/openclash_history_gorup.json"
-CURL_NOW_CACHE="/tmp/openclash_history_now.json"
-CURL_CACHE="/tmp/openclash_history_curl.json"
+close_all_conection() {
+   SECRET=$(uci -q get openclash.config.dashboard_password)
+   LAN_IP=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null)
+   PORT=$(uci -q get openclash.config.cn_port)
+   curl -m 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X DELETE http://"$LAN_IP":"$PORT"/connections >/dev/null 2>&1
+}
+
+if [ "$1" = "close_all_conection" ]; then
+   close_all_conection
+   exit 0
+fi
+
 CONFIG_FILE=$(unify_ps_cfgname)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $4}' 2>/dev/null)
-HISTORY_PATH="/etc/openclash/history/$CONFIG_NAME"
-HISTORY_TMP="/tmp/openclash_history_tmp.yaml"
-SECRET=$(uci get openclash.config.dashboard_password 2>/dev/null)
-LAN_IP=$(uci get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null)
-PORT=$(uci get openclash.config.cn_port 2>/dev/null)
-LOG_FILE="/tmp/openclash.log"
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+HISTORY_PATH="/etc/openclash/history/$(basename "$CONFIG_NAME" .yaml)"
+CACHE_PATH="/etc/openclash/.cache"
 set_lock
 
 if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
    CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
    CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-   HISTORY_PATH="/etc/openclash/history/$CONFIG_NAME"
+   HISTORY_PATH="/etc/openclash/history/$(basename "$CONFIG_NAME" .yaml)"
 fi
 
-if [ -n "$(pidof clash)" ] && [ -f "$CONFIG_FILE" ]; then
-   curl -m 5 --retry 2 -w %{http_code}"\n" -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X GET http://"$LAN_IP":"$PORT"/proxies > "$CURL_CACHE" 2>/dev/null
-   if [ "$(sed -n '$p' "$CURL_CACHE" 2>/dev/null)" = "200" ]; then
-      mkdir -p /etc/openclash/history 2>/dev/null
-      cat "$CURL_CACHE" |jsonfilter -e '@["proxies"][@.type="Selector"]["name"]' > "$CURL_GROUP_CACHE" 2>/dev/null
-      cat "$CURL_CACHE" |jsonfilter -e '@["proxies"][@.type="Selector"]["now"]' > "$CURL_NOW_CACHE" 2>/dev/null
-      awk 'NR==FNR{a[i]=$0;i++}NR>FNR{print a[j]"#*#"$0;j++}' "$CURL_GROUP_CACHE" "$CURL_NOW_CACHE" > "$HISTORY_TMP" 2>/dev/null
-      cmp -s "$HISTORY_TMP" "$HISTORY_PATH"
-      if [ "$?" -ne "0" ] && [ -s "$HISTORY_TMP" ]; then
-         mv "$HISTORY_TMP" "$HISTORY_PATH" 2>/dev/null
-         echo "${LOGTIME} Groups History:【${CONFIG_NAME}】 Update Successful" >> $LOG_FILE
-      fi
-   else
-      echo "${LOGTIME} Groups History:【${CONFIG_NAME}】 Update Faild" >> $LOG_FILE
+if [ -n "$(pidof clash)" ] && [ -f "$CONFIG_FILE" ] && [ -f "$CACHE_PATH" ]; then
+   cmp -s "$CACHE_PATH" "$HISTORY_PATH"
+   if [ "$?" -ne "0" ]; then
+      cp "$CACHE_PATH" "$HISTORY_PATH" 2>/dev/null
    fi
 fi
-rm -rf /tmp/openclash_history_*  2>/dev/null
+
 del_lock
