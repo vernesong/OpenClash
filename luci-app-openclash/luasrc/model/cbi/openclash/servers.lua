@@ -16,7 +16,7 @@ s = m:section(TypedSection, "openclash")
 s.anonymous = true
 
 o = s:option(Flag, "create_config", translate("Create Config"))
-o.description = font_red .. bold_on .. translate("Create Config By One-Click Only Need Proxys") .. bold_off .. font_off
+o.description = font_red .. bold_on .. translate("Create Config By One-Click Only Need Proxies") .. bold_off .. font_off
 o.default=0
 
 o = s:option(ListValue, "rule_sources", translate("Choose Template For Create Config"))
@@ -112,7 +112,7 @@ function o.cfgvalue(...)
 end
 
 -- [[ Servers Manage ]]--
-s = m:section(TypedSection, "servers", translate("Proxys"))
+s = m:section(TypedSection, "servers", translate("Proxies"))
 s.anonymous = true
 s.addremove = true
 s.sortable = true
