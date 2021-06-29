@@ -240,7 +240,7 @@ end
 btndlr = tb:option(Button,"download_run",translate("Download Running Config"))
 btndlr.template="openclash/other_button"
 btndlr.render=function(c,t,a)
-	if string.sub(SYS.exec("uci get openclash.config.config_path 2>/dev/null"), 23, -2) == e[t].name then
+	if nixio.fs.access("/etc/openclash/"..e[t].name)  then
 		a.display=""
 	else
 		a.display="none"
@@ -283,7 +283,7 @@ end
 btnrm.write=function(a,t)
 	fs.unlink("/tmp/Proxy_Group")
 	fs.unlink("/etc/openclash/backup/"..fs.basename(e[t].name))
-	fs.unlink("/etc/openclash/history/"..fs.basename(e[t].name))
+	fs.unlink("/etc/openclash/history/"..string.sub(luci.sys.exec(string.format("echo $(basename '%s' .yaml) 2>/dev/null",fs.basename(e[t].name))), 1, -2))
 	fs.unlink("/etc/openclash/"..fs.basename(e[t].name))
 	local a=fs.unlink("/etc/openclash/config/"..fs.basename(e[t].name))
 	default_config_set(fs.basename(e[t].name))
