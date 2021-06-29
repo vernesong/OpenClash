@@ -718,13 +718,13 @@ msgstr "未配置"
 msgid "Create Config"
 msgstr "一键生成配置文件"
 
-msgid "Create Config By One-Click Only Need Proxys"
+msgid "Create Config By One-Click Only Need Proxies"
 msgstr "一键生成配置文件功能只需要配置服务器节点信息或代理集信息"
 
 msgid "Proxy Groups(No Need Set when Config Create)"
 msgstr "策略组配置（使用一键生成配置文件功能时无需设置）"
 
-msgid "Proxys"
+msgid "Proxies"
 msgstr "服务器节点配置"
 
 msgid "Edit Rule Providers"
