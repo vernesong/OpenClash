@@ -242,7 +242,7 @@ end
 
 local function historychecktime()
 	local CONFIG_FILE = string.sub(luci.sys.exec("uci get openclash.config.config_path 2>/dev/null"), 1, -2)
-  local HISTORY_PATH = "/etc/openclash/history/" .. string.sub(luci.sys.exec(string.format("echo $(basename '%s' .yaml) 2>/dev/null",CONFIG_FILE)), 1, -2)
+  local HISTORY_PATH = "/etc/openclash/history/" .. string.sub(luci.sys.exec(string.format("$(basename '%s' .yml) 2>/dev/null || $(basename '%s' .yaml) 2>/dev/null",CONFIG_FILE,CONFIG_FILE)), 1, -2)
 	if not nixio.fs.access(HISTORY_PATH) then
   	return "0"
 	else
