@@ -758,7 +758,7 @@ if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
    fi
 fi 2>/dev/null
 CONFIG_NAME=$(echo "$RAW_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-HISTORY_PATH="/etc/openclash/history/$(basename "$CONFIG_NAME" .yaml)"
+HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}"
 
 if [ ! -f "$RAW_CONFIG_FILE" ]; then
    config_load "openclash"
