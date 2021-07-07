@@ -14,7 +14,7 @@ del_lock() {
 
 close_all_conection() {
    SECRET=$(uci -q get openclash.config.dashboard_password)
-   LAN_IP=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null)
+   LAN_IP=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
    PORT=$(uci -q get openclash.config.cn_port)
    curl -m 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X DELETE http://"$LAN_IP":"$PORT"/connections >/dev/null 2>&1
 }
