@@ -1377,10 +1377,16 @@ fi
    ipset add localnetwork 240.0.0.0/4
    ipset add localnetwork 172.16.0.0/12
    ipset add localnetwork 100.64.0.0/10
+   
+   if [ -n "$lan_ip_cidrs" ]; then
+      for lan_ip_cidr in $lan_ip_cidrs; do
+         ipset add localnetwork "$lan_ip_cidr" 2>/dev/null
+      done
+   fi
 
-   if [ -n "$wan_ip4" ]; then
-      for wan_ip4s in $wan_ip4; do
-         ipset add localnetwork "$wan_ip4s" 2>/dev/null
+   if [ -n "$wan_ip4s" ]; then
+      for wan_ip4 in $wan_ip4s; do
+         ipset add localnetwork "$wan_ip4" 2>/dev/null
       done
    fi
 
@@ -1714,8 +1720,9 @@ get_config()
    http_port=$(uci -q get openclash.config.http_port)
    socks_port=$(uci -q get openclash.config.socks_port)
    enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
-   lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null)
-   wan_ip4=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 2>/dev/null)
+   lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
+   lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^198.18" 2>/dev/null)
+   wan_ip4s=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 | grep -vE "(^198.18|^192.168|^127.0)" 2>/dev/null)
    lan_ip6=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
    disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
    log_level=$(uci -q get openclash.config.log_level)
