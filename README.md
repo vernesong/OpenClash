@@ -52,7 +52,6 @@
 * coreutils-nohup
 * bash
 * curl
-* jsonfilter
 * ca-certificates
 * ipset
 * ip-full
