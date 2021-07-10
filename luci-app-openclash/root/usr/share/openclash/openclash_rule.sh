@@ -116,7 +116,7 @@
       if [ "$?" -ne "0" ]; then
          LOG_OUT "Detected that The Downloaded Rule File Has Been Updated, Starting To Replace..."
          mv /tmp/rules.yaml /usr/share/openclash/res/"$rule_name".yaml >/dev/null 2>&1
-         LOG_OUT "Other Rules【$rule_name】Update Successful"
+         LOG_OUT "Other Rules【$rule_name】Update Successful!"
          ifrestart=1
       else
          LOG_OUT "Updated Other Rules【$rule_name】No Change, Do Nothing！"
