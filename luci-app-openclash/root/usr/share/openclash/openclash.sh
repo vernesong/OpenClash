@@ -2,6 +2,7 @@
 . /lib/functions.sh
 . /usr/share/openclash/ruby.sh
 . /usr/share/openclash/openclash_ps.sh
+. /usr/share/openclash/log.sh
 
 set_lock() {
    exec 889>"/tmp/lock/openclash_subs.lock" 2>/dev/null
@@ -13,7 +14,6 @@ del_lock() {
    rm -rf "/tmp/lock/openclash_subs.lock"
 }
 
-START_LOG="/tmp/openclash_start.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 LOG_FILE="/tmp/openclash.log"
 CFG_FILE="/tmp/config.yaml"
@@ -70,7 +70,7 @@ config_cus_up()
 	fi
 	if [ -z "$subscribe_url_param" ]; then
 	   if [ -n "$key_match_param" ] || [ -n "$key_ex_match_param" ]; then
-	      echo "配置文件【$name】替换成功，检测到已启用节点筛选，开始挑选节点..." > $START_LOG
+	      LOG_OUT "Config file【$name】is Replaced Successfully, Start Picking Nodes..."	      
 	      ruby -ryaml -E UTF-8 -e "
 	      begin
 	         Value = YAML.load_file('$CONFIG_FILE');
@@ -116,7 +116,7 @@ config_cus_up()
 	      end" 2>/dev/null >> $LOG_FILE
 	   fi
 	   if [ "$servers_update" -eq 1 ]; then
-	      echo "配置文件【$name】替换成功，检测到已启用保留配置，开始进行设置..." > $START_LOG
+	      LOG_OUT "Config file【$name】is Replaced Successfully, Start to Reserving..."
 	      uci -q set openclash.config.config_update_path="/etc/openclash/config/$name.yaml"
 	      uci -q set openclash.config.servers_if_update=1
 	      uci commit openclash
@@ -127,32 +127,27 @@ config_cus_up()
 	      if [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
 	         if_restart=1
 	      fi
-	      echo "${LOGTIME} Config 【$name】 Update Successful" >> $LOG_FILE
-	      echo "配置文件【$name】更新成功！" > $START_LOG
+	      LOG_OUT "Config File【$name】Update Successful!"
 	      sleep 3
-	      echo "" > $START_LOG
+	      SLOG_CLEAN
 	   elif [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
-        echo "${LOGTIME} Config 【$name】 Update Successful" >> $LOG_FILE
-        echo "配置文件【$name】更新成功！" > $START_LOG
+        LOG_OUT "Config File【$name】Update Successful!"
         sleep 3
         if_restart=1
      else
-        echo "配置文件【$name】更新成功！" > $START_LOG
-        echo "${LOGTIME} Config 【$name】 Update Successful" >> $LOG_FILE
+        LOG_OUT "Config File【$name】Update Successful!"
         sleep 3
-        echo "" > $START_LOG
+        SLOG_CLEAN
      fi
   else
      if [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
-        echo "${LOGTIME} Config 【$name】 Update Successful" >> $LOG_FILE
-        echo "配置文件【$name】更新成功！" > $START_LOG
+        LOG_OUT "Config File【$name】Update Successful!"
         sleep 3
         if_restart=1
      else
-        echo "配置文件【$name】更新成功！" > $START_LOG
-        echo "${LOGTIME} Config 【$name】 Update Successful" >> $LOG_FILE
+        LOG_OUT "Config File【$name】Update Successful!"
         sleep 3
-        echo "" >$START_LOG
+        SLOG_CLEAN
      fi
   fi
   
@@ -161,12 +156,12 @@ config_cus_up()
 
 config_su_check()
 {
-   echo "配置文件下载成功，检查是否有更新..." > $START_LOG
+   LOG_OUT "Config File Download Successful, Check If There is Any Update"
    sed -i 's/!<str> //g' "$CFG_FILE" >/dev/null 2>&1
    if [ -f "$CONFIG_FILE" ]; then
       cmp -s "$BACKPACK_FILE" "$CFG_FILE"
       if [ "$?" -ne 0 ]; then
-         echo "配置文件【$name】有更新，开始替换..." > $START_LOG
+         LOG_OUT "Config File【$name】Are Updates, Start Replacing..."
          cp "$CFG_FILE" "$BACKPACK_FILE"
          #保留规则部分
          if [ "$servers_update" -eq 1 ]; then
@@ -189,40 +184,36 @@ config_su_check()
          if [ "$only_download" -eq 0 ]; then
             config_cus_up
          else
-            echo "配置文件【$name】更新成功！" > $START_LOG
-            echo "${LOGTIME} Config 【$name】 Update Successful" >> $LOG_FILE
+            LOG_OUT "Config File【$name】Update Successful!"
             sleep 3
-            echo "" > $START_LOG
+            SLOG_CLEAN
          fi
       else
-         echo "配置文件【$name】没有任何更新，停止继续操作..." > $START_LOG
+         LOG_OUT "Config File【$name】No Change, Do Nothing!"
          rm -rf "$CFG_FILE"
-         echo "${LOGTIME} Updated Config【$name】 No Change, Do Nothing" >> $LOG_FILE
          sleep 5
-         echo "" > $START_LOG
+         SLOG_CLEAN
       fi
    else
-      echo "配置文件下载成功，本地没有配置文件，开始创建 ..." > $START_LOG
+      LOG_OUT "Config File【$name】Download Successful, Start To Create..."
       mv "$CFG_FILE" "$CONFIG_FILE" 2>/dev/null
       cp "$CONFIG_FILE" "$BACKPACK_FILE"
       if [ "$only_download" -eq 0 ]; then
          config_cus_up
       else
-         echo "配置文件【$name】更新成功！" >$START_LOG
-         echo "${LOGTIME} Config 【$name】 Update Successful" >> $LOG_FILE
+         LOG_OUT "Config File【$name】Update Successful!"
          sleep 3
-         echo "" > $START_LOG
+         SLOG_CLEAN
       fi
    fi
 }
 
 config_error()
 {
-   echo "配置文件【$name】下载失败，请检查网络或稍后再试！" > $START_LOG
-   echo "${LOGTIME} Error: Config 【$name】Update Error" >> $LOG_FILE
+   LOG_OUT "Error:【$name】Update Error, Please Try Again Later..."
    rm -rf "$CFG_FILE" 2>/dev/null
    sleep 5
-   echo "" > $START_LOG
+   SLOG_CLEAN
 }
 
 change_dns()
@@ -317,22 +308,20 @@ EOF
          end
          " 2>/dev/null >> $LOG_FILE
          if [ $? -ne 0 ]; then
-            echo "${LOGTIME} Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!" >> $LOG_FILE
-            echo "Ruby依赖异常，无法校验配置文件，请确认ruby依赖工作正常后重试！" > $START_LOG
+            LOG_OUT "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
             sleep 3
             only_download=1
             change_dns
             config_su_check
          elif [ ! -f "$CFG_FILE" ]; then
-            echo "配置文件格式校验失败..." > $START_LOG
+            LOG_OUT "Config File Format Validation Failed..."
             sleep 3
             change_dns
             config_error
          elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
             field_name_check
             if ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
-               echo "${LOGTIME} Error: Updated Config 【$name】 Has No Proxy Field, Update Exit..." >> $LOG_FILE
-               echo "配置文件节点部分校验失败..." > $START_LOG
+               LOG_OUT "Error: Updated Config【$name】Has No Proxy Field, Update Exit..."
                sleep 3
                change_dns
                config_error
@@ -469,7 +458,7 @@ sub_info_get()
       subscribe_url=$address
    fi
 
-   echo "开始更新配置文件【$name】..." > $START_LOG
+   LOG_OUT "Start Updating Config File【$name】..."
 
    config_download
 
@@ -483,20 +472,18 @@ sub_info_get()
       end
       " 2>/dev/null >> $LOG_FILE
       if [ $? -ne 0 ]; then
-         echo "${LOGTIME} Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!" >> $LOG_FILE
-         echo "Ruby依赖异常，无法校验配置文件，请确认ruby依赖工作正常后重试！" > $START_LOG
+         LOG_OUT "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
          sleep 3
          only_download=1
          config_su_check
       elif [ ! -f "$CFG_FILE" ]; then
-         echo "配置文件格式校验失败，尝试不使用代理下载配置文件..." > $START_LOG
+         LOG_OUT "Config File Format Validation Failed, Trying To Download Without Agent..."
          sleep 3
          config_download_direct
       elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
          field_name_check
          if ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
-            echo "${LOGTIME} Error: Updated Config 【$name】 Has No Proxy Field" >> $LOG_FILE
-            echo "配置文件节点部分校验失败，尝试不使用代理下载配置文件..." > $START_LOG
+            LOG_OUT "Error: Updated Config【$name】Has No Proxy Field, Trying To Download Without Agent..."
             sleep 3
             config_download_direct
          else
@@ -506,8 +493,7 @@ sub_info_get()
          config_su_check
       fi
    else
-      echo "配置文件【$name】订阅失败，尝试不使用代理下载配置文件..." > $START_LOG
-      echo "${LOGTIME} Error: Config 【$name】 Download Faild" >> $LOG_FILE
+      LOG_OUT "Error: Config File【$name】Subscribed Failed, Trying to Download Without Agent..."
       config_download_direct
    fi
 }

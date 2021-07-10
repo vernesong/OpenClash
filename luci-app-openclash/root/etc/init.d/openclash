@@ -2,6 +2,7 @@
 # Copyright (c) 2019 vernesong
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/ruby.sh
+. /usr/share/openclash/log.sh
 
 START=99
 STOP=15
@@ -146,7 +147,7 @@ yml_dns_check()
 {
    #检查DNS服务
    if [ -z "$(ruby_read "$1" "['dns']['nameserver']")" ]; then
-      echo "检测到DNS选项下的Nameserver未设置服务器，开始补全..." >$START_LOG
+      LOG_OUT "Detected That The nameserver DNS Option Has No Server Set, Starting To Complete..."
       echo "  nameserver:" > "$DNS_FILE" 2>/dev/null
       cat >> "$DNS_FILE" <<-EOF
     - 114.114.114.114
@@ -275,16 +276,14 @@ fi
 
 if [ -z "$(pidof clash)" ] && [ -n "$provider_path_check" ]; then
    if [ "$2" = "proxy-providers" ]; then
-      echo "错误: 代理集文件下载失败，请到日志页面查看详细错误信息！" >$START_LOG
-      echo "${LOGTIME} Error: Faild to Download Proxy-Provider File, Please Check The Error Info And Try Again" >> $LOG_FILE
+      LOG_OUT "Error: Failed To Download Proxy-providers, Please Check The Log Page For Detailed error information!"
    else
-      echo "错误: 规则集文件下载失败，请到日志页面查看详细错误信息！" >$START_LOG
-      echo "${LOGTIME} Error: Faild to Download Rule-Provider File, Please Check The Error Info And Try Again" >> $LOG_FILE
+      LOG_OUT "Error: Failed To Download Rule-providers, Please Check The Log Page For Detailed error information!"
    fi
    sleep 5
    start_fail
 elif [ "$provider_path_check_num" -gt 5 ]; then
-   echo "警告: 代理集文件检查超时，如启动失败请到日志页面查看详细信息！" >$START_LOG
+   LOG_OUT "Warning: Providers File Check Timeout, If Failed To start, Please Check The Log Page For Detailed error information!"
    sleep 3
 fi
 
@@ -362,8 +361,7 @@ yml_dns_custom()
             ruby_merge "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.falldns.yaml"
          fi
       else
-         echo "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已停止设置自定义DNS服务器！" >$START_LOG
-         echo "${LOGTIME} Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers" >>$LOG_FILE
+         LOG_OUT "Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers"
          sleep 2
       fi
    fi
@@ -765,14 +763,13 @@ if [ ! -f "$RAW_CONFIG_FILE" ]; then
    config_foreach sub_info_get "config_subscribe"
    subscribe_auto_update=$(uci get openclash.config.auto_update 2>/dev/null)
    if [ "$subscribe_enable" = "1" ] && [ "$subscribe_auto_update" -eq 1 ]; then
-      echo "配置文件不存在，您已设置订阅信息，准备开始下载..." >$START_LOG
+      LOG_OUT "Config File Does Not Exist, You Have Set Subscription Information, Ready To Download..."
       sleep 3
       nohup /usr/share/openclash/openclash.sh &
       del_lock
       exit 0
    else
-      echo "错误: 缺少配置文件，请上传或更新配置文件！" >$START_LOG
-      echo "${LOGTIME} Error: Config Not Found" >> $LOG_FILE
+      LOG_OUT "Error: Config Not Found"
       sleep 5
       del_lock
       exit 0
@@ -791,12 +788,11 @@ system 'rm -rf ${CONFIG_FILE}'
 end
 " 2>/dev/null >> $LOG_FILE
 if [ $? -ne 0 ]; then
-   echo "${LOGTIME} Error: Ruby Works Abnormally, Please Check The Ruby Library Depends And Try Again!" >> $LOG_FILE
-   echo "Ruby依赖异常，请确认ruby依赖工作正常后重试！" > $START_LOG
+   LOG_OUT "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
    sleep 3
    start_fail
 elif [ ! -f "$CONFIG_FILE" ] || [ ! -s "$CONFIG_FILE" ]; then
-   echo "配置文件校验失败，请检查配置文件后重试！" > $START_LOG
+   LOG_OUT "Error: Config File Format Validation Failed..."
    sleep 3
    start_fail
 fi
@@ -907,13 +903,13 @@ do_run_file()
    if [ "$en_mode_tun" = "1" ] || [ "$en_mode_tun" = "3" ]; then
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
       core_type="TUN"
-      core_start_log="检测到配置了【TUN】内核专属功能，调用【TUN】内核启动..."
+      core_start_log="Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
    fi
     
    if [ "$en_mode_tun" = "2" ]; then
       ln -s "$game_core_path" /etc/openclash/clash 2>/dev/null
       core_type="Game"
-      core_start_log="检测到配置了【Game】内核专属功能，调用【Game】内核启动..."
+      core_start_log="Detected The Exclusive Function of The Game Core, Use Game Core to Start..."
    fi
    
    if [ "$rule_source" != "0" ]; then
@@ -926,25 +922,25 @@ do_run_file()
          rm -rf "/etc/openclash/clash"
          ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
          core_type="TUN"
-         core_start_log="检测到配置了【TUN】内核专属功能，调用【TUN】内核启动..."
+         core_start_log="Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
       fi
    fi
     
    if [ ! -f "/etc/openclash/clash" ] && [ -f "$dev_core_path" ] && [ -z "$core_type" ]; then
       ln -s "$dev_core_path" /etc/openclash/clash 2>/dev/null
-      core_start_log="未检测到特殊配置，调用【Dev】内核启动..."
+      core_start_log="No Special Configuration Detected, Use Dev Core to Start..."
    fi
     
    if [ ! -f "/etc/openclash/clash" ] && [ -f "$tun_core_path" ] && [ "$core_type" != "Game" ]; then
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
       core_type="TUN"
-      core_start_log="检测到【Dev】内核未安装，调用【TUN】内核启动..."
+      core_start_log="Detect that the Dev Core is not Installed, Use TUN Core to Start..."
    fi
     
    if [ ! -f "/etc/openclash/clash" ] && [ -f "$game_core_path" ] && [ "$core_type" != "TUN" ]; then
       ln -s "$game_core_path" /etc/openclash/clash 2>/dev/null
       core_type="Game"
-      core_start_log="检测到【Dev】内核未安装，调用【Game】内核启动..."
+      core_start_log="Detect that the Dev Core is not Installed, Use Game Core to Start..."
    fi
 
 #权限检查
@@ -962,20 +958,20 @@ do_run_file()
    }
    
    [ ! -f "$geoip_path" ] && {
-     echo "检测到GEOIP数据库文件不存在，准备开始下载..." >$START_LOG
+     LOG_OUT "Detect that the GEOIP Database is not Installed, Ready to Download..."
      nofile=1
      nohup /usr/share/openclash/openclash_ipdb.sh &
    }
    
    [ ! -f "$CLASH" ] && {
-     echo "检测到内核文件不存在，准备开始下载..." >$START_LOG
+     LOG_OUT "Detect that the Core is not Installed, Ready to Download..."
      nofile=1
      rm -rf "/tmp/clash_last_version"
      nohup /usr/share/openclash/openclash_core.sh "$core_type" &
    }
    
    if [ "$china_ip_route" = "1" ] && [ ! -f "$chnr_path" ]; then
-      echo "检测到大陆白名单列表不存在，准备开始下载..." >$START_LOG
+      LOG_OUT "Detect that the Chnroute Cidr List is not Installed, Ready to Download..."
       nofile=1
       nohup /usr/share/openclash/openclash_chnroute.sh &
    fi
@@ -987,9 +983,8 @@ do_run_file()
    
    if [ -z "$_koolshare" ]; then
       if ! capsh --is-uid=0 >/dev/null || ! capsh --has-ambient >/dev/null; then
-        echo "错误：Capsh异常，请尝试重新安装依赖【libcap】和相应的Capsh库，终止启动..." >$START_LOG
-        echo "${LOGTIME} Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well" >> $LOG_FILE
-        echo "${LOGTIME} Tip: You Could Download And Re-Install The libcap & libcap-bin Library From The Address Below:" >> $LOG_FILE
+        LOG_OUT "Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well"
+        LOG_OUT "Tip: You Could Download And Re-Install The libcap & libcap-bin Library From The Address Give"
         echo "" >> $LOG_FILE
         echo "---------- https://mirrors.cloud.tencent.com/lede/snapshots/packages/ ----------" >> $LOG_FILE
         echo "" >> $LOG_FILE
@@ -1021,7 +1016,7 @@ check_interface_name()
 
 start_run_core()
 {
-   echo "$core_start_log" >$START_LOG
+   LOG_OUT "$core_start_log"
    sleep 2
    ulimit -SHn 65535 2>/dev/null
    ulimit -v unlimited 2>/dev/null
@@ -1075,18 +1070,15 @@ raw_config_start()
    
    if [ -z "$dns_port" ] || [ -z "$en_mode" ] || [ -z "$proxy_port" ]; then
       if [ -z "$dns_port" ]; then
-         echo "错误: 无法获取DNS部分的监听端口设置, OpenClash 使用原始配置文件启动失败" >$START_LOG
-         echo "${LOGTIME} Error: Get DNS 'listen' Option Error, OpenClash Can Not Start With Raw Config File" >> $LOG_FILE
+         LOG_OUT "Error: Get DNS 'listen' Option Error, OpenClash Can Not Start With Raw Config File"
          sleep 3
       fi
       if [ -z "$en_mode" ]; then
-         echo "错误: 无法获取DNS部分的运行模式设置, OpenClash 使用原始配置文件启动失败" >$START_LOG
-         echo "${LOGTIME} Error: Get DNS 'enhanced-mode' Option Error, OpenClash Can Not Start With Raw Config File" >> $LOG_FILE
+         LOG_OUT "Error: Get DNS 'enhanced-mode' Option Error, OpenClash Can Not Start With Raw Config File"
          sleep 3
       fi
       if [ -z "$proxy_port" ]; then
-         echo "错误: 无法获取General部分的转发端口设置, OpenClash 使用原始配置文件启动失败" >$START_LOG
-         echo "${LOGTIME} Error: Get General 'redir-port' Option Error, OpenClash Can Not Start With Raw Config File" >> $LOG_FILE
+         LOG_OUT "Error: Get General 'redir-port' Option Error, OpenClash Can Not Start With Raw Config File"
          sleep 3
       fi
       start_fail
@@ -1096,8 +1088,7 @@ raw_config_start()
    check_core_status
    
    if ! pidof clash >/dev/null; then
-      echo "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！" >$START_LOG
-      echo "${LOGTIME} Error: OpenClash Can Not Start, Please Check The Error Info And Try Again" >> $LOG_FILE
+      LOG_OUT "Error: OpenClash Can Not Start, Please Check The Error Info And Try Again!"
       sleep 5
       start_fail
    fi
@@ -1148,13 +1139,11 @@ try_restore_start()
 {
    if [ -z "$(pidof clash)" ]; then
       if [ "$rule_source" = 0 ] && [ "$enable_custom_clash_rules" = 0 ]; then
-         echo "错误: OpenClash 启动失败，尝试使用原始配置文件启动..." >$START_LOG
-         echo "${LOGTIME} Error: OpenClash Can Not Start, Try Use Raw Config Restart Again" >> $LOG_FILE
+         LOG_OUT "Error: OpenClash Can Not Start, Try Use Raw Config Restart Again..."
          sleep 3
          raw_config_start
       else
-         echo "错误: OpenClash 启动失败，尝试还原第三方规则并重新启动 Clash 主程序..." >$START_LOG
-         echo "${LOGTIME} Error: OpenClash Can Not Start, Try Use Backup Rules Start Again" >> $LOG_FILE
+         LOG_OUT "Error: OpenClash Can Not Start, Try Use Backup Rules Start Again..."
          ruby -ryaml -E UTF-8 -e "
          begin
          Value = YAML.load_file('$RAW_CONFIG_FILE');
@@ -1176,8 +1165,7 @@ try_restore_start()
          start_run_core
          check_core_status
          if ! pidof clash >/dev/null; then
-            echo "错误: OpenClash 启动失败，尝试使用原始配置文件启动..." >$START_LOG
-            echo "${LOGTIME} Error: OpenClash Can Not Start, Try Use Raw Config Restart Again" >> $LOG_FILE
+            LOG_OUT "Error: OpenClash Can Not Start, Try Use Raw Config Restart Again..."
             sleep 3
             raw_config_start
          fi
@@ -1297,7 +1285,7 @@ if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(iptables -t nat -nL PREROUTING --
 fi
 
 if [ "$(iptables -t nat -nL PREROUTING --line-number | grep "redir port $DNSPORT" | wc -l)" -gt 2 ] && [ "$enable_redirect_dns" -eq 1 ]; then
-   echo "发现53端口被劫持，清理防火墙规则..." >$START_LOG
+   LOG_OUT "Found 53 Port Hijacked, Clean Up Firewall Rules..."
    pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d | sed -n "/redir port $DNSPORT/=" 2>/dev/null |sort -rn)
    for pre_line in $pre_lines; do
       iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
@@ -1748,21 +1736,21 @@ start()
 {
 
    enable=$(uci -q get openclash.config.enable)
-   [ "$enable" != "1" ] && echo "${LOGTIME} Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." >> $LOG_FILE && del_lock && exit 0
+   [ "$enable" != "1" ] && LOG_OUT "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && del_lock && exit 0
 
    config_choose
 
-   echo "OpenClash 开始启动..." >$START_LOG
+   LOG_OUT "OpenClash Start Running..."
    do_run_mode
    
-   echo "第一步: 获取配置..." >$START_LOG
+   LOG_OUT "Step 1: Get The Configuration..."
    get_config
    
-   echo "第二步: 组件运行前检查..." >$START_LOG
+   LOG_OUT "Step 2: Check The Components..."
    #检查文件是否存在
    do_run_file "$CONFIG_FILE" "$BACKUP_FILE"
 
-   echo "第三步: 修改配置文件..." >$START_LOG
+   LOG_OUT "Step 3: Modify The Config File..."
    config_load "openclash"
    config_foreach yml_auth_get "authentication"
    yml_auth_custom "$CONFIG_FILE"
@@ -1775,46 +1763,43 @@ start()
    yml_provider_path "$CONFIG_FILE" "rule-providers" "rule_provider"
    yml_dns_check "$CONFIG_FILE"  "$FALLBACK_FILTER_FILE"
 
-   echo "第四步: 启动主程序..." >$START_LOG
+   LOG_OUT "Step 4: Start Running The Clash Core..."
    start_run_core
    
-   echo "第五步: 检查内核启动状态..." >$START_LOG
+   LOG_OUT "Step 5: Check The Core Status..."
    check_core_status
 
    #检测proxy_provider配置文件状态
-   echo "第六步: 等待主程序下载外部文件..." >$START_LOG
+   LOG_OUT "Step 6: Wait For The File Downloading..."
    yml_provider_check "$CONFIG_FILE" "proxy-providers" "proxies"
    yml_provider_check "$CONFIG_FILE" "rule-providers" "payload"
    try_restore_start
 
-   echo "第七步: 设置控制面板..." >$START_LOG
+   LOG_OUT "Step 7: Set Control Panel..."
    ln -s /usr/share/openclash/yacd /www/luci-static/openclash 2>/dev/null
        
-   echo "第八步: 设置防火墙规则..." >$START_LOG
+   LOG_OUT "Step 8: Set Firewall Rules..."
    set_firewall
 
-   echo "第九步: 重启 Dnsmasq 程序..." >$START_LOG
+   LOG_OUT "Step 9: Restart Dnsmasq..."
    change_dns "$enable_redirect_dns" "$disable_masq_cache"
    /etc/init.d/dnsmasq restart >/dev/null 2>&1
    
-   echo "第十步: 添加计划任务,启动进程守护程序..." >$START_LOG
+   LOG_OUT "Step 10: Add Cron Rules, Start Daemons..."
    add_cron
    if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] && [ "$(uci -q get openclash.config.restricted_mode)" != "1" ]; then
-      echo "OpenClash 启动成功，请等待服务器上线！" >$START_LOG
-      echo "${LOGTIME} OpenClash Start Successful" >> $LOG_FILE
+      LOG_OUT "OpenClash Start Successful!"
       sleep 5
    elif [ -n "$(uci -q get dhcp.lan.dhcpv6)" ]; then
-      echo "OpenClash 启动成功，检测到您启用了IPV6的DHCP服务，可能会造成连接异常！" >$START_LOG
-      echo "${LOGTIME} Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPV6's DHCP Server" >> $LOG_FILE
+      LOG_OUT "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPV6's DHCP Server"
       sleep 5
    fi
    if [ "$(uci -q get openclash.config.restricted_mode)" = "1" ]; then
-      echo "OpenClash 使用原始配置文件启动成功，部分设置可能未生效！" >$START_LOG
-      echo "${LOGTIME} Warning: OpenClash Start Successful With Raw Config File, Please Note That It's Restricted Mode Now" >> $LOG_FILE
+      LOG_OUT "Warning: OpenClash Start Successful With Raw Config File, Please Note That It's Restricted Mode Now"
       sleep 5
    fi
    echo "OpenClash Already Start"
-   echo "" >$START_LOG
+   SLOG_CLEAN
    rm -rf /tmp/yaml_*
 }
 
@@ -1823,25 +1808,25 @@ stop()
 
    enable=$(uci -q get openclash.config.enable)
 
-   echo "OpenClash 开始关闭..." >$START_LOG
-   echo "第一步: 备份当前节点状态..." >$START_LOG
+   LOG_OUT "OpenClash Stoping..."
+   LOG_OUT "Step 1: Backup The Current Groups State..."
    /usr/share/openclash/openclash_history_get.sh 2>/dev/null
 
-   echo "第二步: 删除 OpenClash 防火墙规则..." >$START_LOG
+   LOG_OUT "Step 2: Delete OpenClash Firewall Rules..."
    revert_firewall
 
-   echo "第三步: 关闭 OpenClash 守护程序..." >$START_LOG
+   LOG_OUT "Step 3: Close The OpenClash Daemons..."
    watchdog_pids=$(unify_ps_pids "openclash_watchdog.sh")
    for watchdog_pid in $watchdog_pids; do
       kill -9 "$watchdog_pid" >/dev/null 2>&1
    done >/dev/null 2>&1
 
-   echo "第四步: 关闭 Clash 主程序..." >$START_LOG
+   LOG_OUT "Step 4: Close The Clash Core Process..."
    if [ "$enable" != "1" ]; then
       kill_clash
    fi
 
-   echo "第五步: 重启 Dnsmasq 程序..." >$START_LOG
+   LOG_OUT "Step 5: Restart Dnsmasq..."
    dns_port=$(uci -q get openclash.config.dns_port)
    redirect_dns=$(uci -q get openclash.config.redirect_dns)
    masq_cache=$(uci -q get openclash.config.masq_cache)
@@ -1849,7 +1834,7 @@ stop()
    revert_dns "$redirect_dns" "$masq_cache" "$dns_port" "$enable" "$default_resolvfile"
    /etc/init.d/dnsmasq restart >/dev/null 2>&1
 
-   echo "第六步：删除 OpenClash 残留文件..." >$START_LOG
+   LOG_OUT "Step 6: Delete OpenClash Residue File..."
    if [ "$enable" != "1" ]; then
       rm -rf $LOG_FILE
       rm -rf /tmp/openclash_debug.log
@@ -1862,7 +1847,7 @@ stop()
       rm -rf /tmp/openclash_fake_filter.list
       rm -rf /tmp/openclash_servers_fake_filter.conf
       del_lock
-      echo "OpenClash 关闭成功！" >$START_LOG
+      LOG_OUT "OpenClash 关闭成功！"
       sleep 5
    fi
    
@@ -1877,7 +1862,7 @@ stop()
 
 restart()
 {
-   [ -f "$LOCK_FILE" ] && echo "${LOGTIME} Warning: Multiple Restart Scripts Running, Exit..." >> $LOG_FILE && exit 0
+   [ -f "$LOCK_FILE" ] && LOG_OUT "Warning: Multiple Restart Scripts Running, Exit..." && SLOG_CLEAN && exit 0
    mkdir -p /tmp/lock
    touch $LOCK_FILE
    set_lock
@@ -1894,7 +1879,7 @@ reload()
       get_config 2>/dev/null
       set_firewall 2>/dev/null
       /etc/init.d/dnsmasq restart >/dev/null 2>&1
-      echo "${LOGTIME} Reload OpenClash Firewall Rules" >> $LOG_FILE
-      echo "" >$START_LOG
+      LOG_OUT "Reload OpenClash Firewall Rules..."
+      SLOG_CLEAN
    fi
 }

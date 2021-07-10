@@ -1,4 +1,6 @@
 #!/bin/sh
+. /usr/share/openclash/log.sh
+
    RULE_FILE_NAME="$1"
    if [ -z "$(grep "$RULE_FILE_NAME" /usr/share/openclash/res/rule_providers.list 2>/dev/null)" ]; then
       DOWNLOAD_PATH=$(grep -F "$RULE_FILE_NAME" /usr/share/openclash/res/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null)
@@ -12,13 +14,11 @@
    fi
 
    if [ -z "$DOWNLOAD_PATH" ]; then
-      echo "${LOGTIME} Rule File【$RULE_FILE_NAME】 Download Error" >>$LOG_FILE
+      LOG_OUT "Rule File【$RULE_FILE_NAME】Download Error!" && SLOG_CLEAN
       return 0
    fi
 
    TMP_RULE_DIR="/tmp/$RULE_FILE_NAME"
-   LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
-   LOG_FILE="/tmp/openclash.log"
    
    if [ "$RULE_TYPE" = "game" ]; then
       if pidof clash >/dev/null; then
@@ -41,15 +41,15 @@
          if [ "$?" -ne "0" ]; then
             mv "$TMP_RULE_DIR" "$RULE_FILE_DIR" >/dev/null 2>&1\
             && rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
-            echo "${LOGTIME} Rule File【$RULE_FILE_NAME】 Download Successful" >>$LOG_FILE
+            LOG_OUT "Rule File【$RULE_FILE_NAME】Download Successful!" && SLOG_CLEAN
             return 1
          else
-            echo "${LOGTIME} Updated Rule File【$RULE_FILE_NAME】 No Change, Do Nothing" >>$LOG_FILE
+            LOG_OUT "Rule File【$RULE_FILE_NAME】No Change, Do Nothing!" && SLOG_CLEAN
             rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
             return 2
          fi
    else
       rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
-      echo "${LOGTIME} Rule File【$RULE_FILE_NAME】 Download Error" >>$LOG_FILE
+      LOG_OUT "Rule File【$RULE_FILE_NAME】Download Error!" && SLOG_CLEAN
       return 0
    fi

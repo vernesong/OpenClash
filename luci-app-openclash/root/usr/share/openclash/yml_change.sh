@@ -2,7 +2,6 @@
 . /usr/share/openclash/ruby.sh
 
 LOG_FILE="/tmp/openclash.log"
-START_LOG="/tmp/openclash_start.log"
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 dns_advanced_setting=$(uci -q get openclash.config.dns_advanced_setting)
 
