@@ -1,10 +1,8 @@
 #!/bin/sh
 . /lib/functions.sh
 . /usr/share/openclash/openclash_ps.sh
+. /usr/share/openclash/log.sh
 
-START_LOG="/tmp/openclash_start.log"
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
-LOG_FILE="/tmp/openclash.log"
 CORE_TYPE="$1"
 C_CORE_TYPE=$(uci get openclash.config.core_type 2>/dev/null)
 [ -z "$CORE_TYPE" ] || [ "$1" = "one_key_update" ] && CORE_TYPE="Dev"
@@ -29,10 +27,9 @@ case $CORE_TYPE in
    CORE_CV=$($tun_core_path -v 2>/dev/null |awk -F ' ' '{print $2}')
    CORE_LV=$(sed -n 2p /tmp/clash_last_version 2>/dev/null)
    if [ -z "$CORE_LV" ]; then
-      echo "获取【"$CORE_TYPE"】内核最新版本信息失败，请稍后再试..." >$START_LOG
-      echo "${LOGTIME} Error: 【"$CORE_TYPE"】Core Version Check Error, Please Try Again After A few Seconds" >>$LOG_FILE
+      LOG_OUT "Error: 【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
       sleep 5
-      echo "" >$START_LOG
+      SLOG_CLEAN
       exit 0
    fi
    ;;
@@ -53,35 +50,35 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
    if pidof clash >/dev/null; then
 			case $CORE_TYPE in
       	"TUN")
-      	echo "正在下载【TUN】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
+      	LOG_OUT "【Tun】Core Downloading, Please Try to Download and Upload Manually If Fails"
 				curl -sL -m 10 --retry 2 https://github.com/vernesong/OpenClash/releases/download/TUN-Premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
 				;;
 				"Game")
-				echo "正在下载【Game】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
+				LOG_OUT "【Game】Core Downloading, Please Try to Download and Upload Manually If Fails"
 				curl -sL -m 10 --retry 2 https://github.com/vernesong/OpenClash/releases/download/TUN/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_game.tar.gz >/dev/null 2>&1
 				;;
 				*)
-				echo "正在下载【Dev】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
+				LOG_OUT "【Dev】Core Downloading, Please Try to Download and Upload Manually If Fails"
 				curl -sL -m 10 --retry 2 https://github.com/vernesong/OpenClash/releases/download/Clash/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
 			esac
    fi
    if [ "$?" -ne "0" ] || ! pidof clash >/dev/null; then
 			case $CORE_TYPE in
       	"TUN")
-      	echo "正在下载【TUN】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
+      	LOG_OUT "【Tun】Core Downloading, Please Try to Download and Upload Manually If Fails"
 				curl -sL -m 10 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@master/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
 				;;
 				"Game")
-				echo "正在下载【Game】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
+				LOG_OUT "【Game】Core Downloading, Please Try to Download and Upload Manually If Fails"
 				curl -sL -m 10 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@master/core-lateset/game/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_game.tar.gz >/dev/null 2>&1
 				;;
 				*)
-				echo "正在下载【Dev】版本内核，如下载失败请尝试手动下载并上传..." >$START_LOG
+				LOG_OUT "【Dev】Core Downloading, Please Try to Download and Upload Manually If Fails"
 				curl -sL -m 10 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@master/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
 			esac
    fi
    if [ "$?" -eq "0" ]; then
-   	  echo "【"$CORE_TYPE"】版本内核下载成功，开始更新..." >$START_LOG
+   	  LOG_OUT "【"$CORE_TYPE"】Core Download Successful, Start Update..."
 			case $CORE_TYPE in
       	"TUN")
 				[ -s "/tmp/clash_tun.gz" ] && {
@@ -114,8 +111,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			esac
       
       if [ "$?" -ne "0" ]; then
-      	echo "【"$CORE_TYPE"】版本内核更新失败，请检查网络或稍后再试！" >$START_LOG
-        echo "${LOGTIME} Error: OpenClash 【"$CORE_TYPE"】 Core Update Error" >>$LOG_FILE
+      	LOG_OUT "【"$CORE_TYPE"】Core Update Failed, Please Check The Network or Try Again Later!"
         case $CORE_TYPE in
             "TUN")
 				    rm -rf /tmp/clash_tun >/dev/null 2>&1
@@ -126,7 +122,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 				    *)
 			   esac
          sleep 5
-         echo "" >$START_LOG
+         SLOG_CLEAN
          exit 0
       fi
       
@@ -147,18 +143,16 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 				*)
 			esac
       if [ "$?" -eq "0" ]; then
-         echo "【"$CORE_TYPE"】版本内核更新成功！" >$START_LOG
-         echo "${LOGTIME} OpenClash 【"$CORE_TYPE"】 Core Update Successful" >>$LOG_FILE
+         LOG_OUT "【"$CORE_TYPE"】Core Update Successful!"
          sleep 3
          if [ -n "$2" ] || [ "$1" = "one_key_update" ]; then
          	 uci set openclash.config.config_reload=0
          	 uci commit openclash
          fi
          [ "$if_restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart
-         echo "" >$START_LOG
+         SLOG_CLEAN
       else
-         echo "【"$CORE_TYPE"】版本内核更新失败，请确认设备闪存空间足够后再试！" >$START_LOG
-         echo "${LOGTIME} Error: OpenClash 【"$CORE_TYPE"】 Core Update Error" >>$LOG_FILE
+         LOG_OUT "【"$CORE_TYPE"】Core Update Failed. Please Make Sure Enough Flash Memory Space And Try Again!"
          case $CORE_TYPE in
             "TUN")
 				    rm -rf /tmp/clash_tun >/dev/null 2>&1
@@ -169,11 +163,10 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 				    *)
 			   esac
          sleep 5
-         echo "" >$START_LOG
+         SLOG_CLEAN
       fi
    else
-      echo "【"$CORE_TYPE"】版本内核下载失败，请检查网络或稍后再试！" >$START_LOG
-      echo "${LOGTIME} Error: OpenClash 【"$CORE_TYPE"】 Core Update Error" >>$LOG_FILE
+      LOG_OUT "【"$CORE_TYPE"】Core Update Failed, Please Check The Network or Try Again Later!"
       case $CORE_TYPE in
          "TUN")
 			   rm -rf /tmp/clash_tun >/dev/null 2>&1
@@ -185,16 +178,15 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			   rm -rf /tmp/clash >/dev/null 2>&1
 		  esac
       sleep 10
-      echo "" >$START_LOG
+      SLOG_CLEAN
    fi
    else
-      echo "未选择编译版本，请到全局设置中选择后再试！" >$START_LOG
+      LOG_OUT "No Compiled Version Selected, Please Select In Global Settings And Try Again!"
       sleep 10
-      echo "" >$START_LOG
+      SLOG_CLEAN
    fi
 else
-      echo "【"$CORE_TYPE"】版本内核没有更新，停止继续操作！" >$START_LOG
-      echo "${LOGTIME} OpenClash 【"$CORE_TYPE"】 Core No Change, Do Nothing" >>$LOG_FILE
+      LOG_OUT "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation!"
       sleep 5
-      echo "" >$START_LOG
+      SLOG_CLEAN
 fi

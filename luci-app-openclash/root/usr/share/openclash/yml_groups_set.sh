@@ -1,5 +1,6 @@
 #!/bin/sh
 . /lib/functions.sh
+. /usr/share/openclash/log.sh
 
 set_lock() {
    exec 887>"/tmp/lock/openclash_groups_set.lock" 2>/dev/null
@@ -12,7 +13,6 @@ del_lock() {
 }
 
 set_lock
-START_LOG="/tmp/openclash_start.log"
 GROUP_FILE="/tmp/yaml_groups.yaml"
 CFG_FILE="/etc/config/openclash"
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
@@ -187,7 +187,7 @@ yml_groups_set()
       return
    fi
    
-   echo "正在写入【$type】-【$name】策略组到配置文件【$CONFIG_NAME】..." >$START_LOG
+   LOG_OUT "Start Writing【$CONFIG_NAME - $type - $name】Group To Config File..."
    
    echo "  - name: $name" >>$GROUP_FILE
    echo "    type: $type" >>$GROUP_FILE
@@ -254,18 +254,18 @@ if_game_group="$1"
 if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ ! -z "$if_game_group" ]; then
    /usr/share/openclash/yml_groups_name_get.sh
    if [ ! -z "$(grep "读取错误" /tmp/Proxy_Group)"]; then
-      echo "配置文件【$CONFIG_NAME】的信息读取失败，无法进行修改，请选择一键创建配置文件..." >$START_LOG
+      LOG_OUT "Error: Config File【$CONFIG_NAME】Unable To Parse, Please Choose One-key Function To Create Config File..."
       uci commit openclash
       sleep 5
-      echo "" >$START_LOG
+      SLOG_CLEAN
       del_lock
       exit 0
    else
       if [ -z "$if_game_group" ]; then
-         echo "开始写入配置文件【$CONFIG_NAME】的策略组信息..." >$START_LOG
+         LOG_OUT "Start Writing【$CONFIG_NAME】Group To Config File..."
          echo "proxy-groups:" >$GROUP_FILE
       else
-         echo "开始加入游戏&规则集策略组【$if_game_group】的信息..." >$START_LOG
+         LOG_OUT "Start Writing【$if_game_group】Group To Config File..."
          rm -rf $GROUP_FILE
       fi
       config_load "openclash"
