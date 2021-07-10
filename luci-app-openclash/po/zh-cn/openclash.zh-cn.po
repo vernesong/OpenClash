@@ -1627,8 +1627,8 @@ msgstr "替换成功，检测到已启用节点筛选，开始挑选节点..."
 msgid "is Replaced Successfully, Start to Reserving..."
 msgstr "替换成功，检测到已启用保留配置，开始进行设置..."
 
-msgid "配置文件下载成功，检查是否有更新..."
-msgstr "Config File Download Successful, Check If There is Any Update"
+msgid "Config File Download Successful, Check If There is Any Update..."
+msgstr "配置文件下载成功，检查是否有更新..."
 
 msgid "Are Updates, Start Replacing..."
 msgstr "有更新，开始替换..."
