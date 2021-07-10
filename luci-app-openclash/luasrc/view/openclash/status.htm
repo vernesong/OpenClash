@@ -362,7 +362,12 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', status.cn_port, function(x, status) {
         btn.disabled = true;
         btn.value    = '<%:Open Panel%>';
-        url1='<%="http://'+window.location.hostname+status.uh_port+'/luci-static/openclash?hostname='+ window.location.hostname + '&port=' + (window.location.port || status.cn_port) + '&secret=' + status.dase +'"%>';
+        if (status.daip != "" && window.location.hostname == status.daip) {
+        	url1='<%="http://'+window.location.hostname+':'+window.location.port+'/luci-static/openclash?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+        }
+        else {
+        	url1='<%="http://'+window.location.hostname+':'+window.location.port+'/luci-static/openclash"%>';
+        }
         winOpen(url1);
         return false;
         });
@@ -372,7 +377,12 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', status.cn_port, function(x, status) {
         btn.disabled = true;
         btn.value    = '<%:Open Panel%>';
-        url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/?host='+ (window.location.hostname || status.daip) + '&port=' + (window.location.port || status.cn_port) + '&secret=' + status.dase +'"%>';
+        if (status.daip != "" && window.location.hostname == status.daip) {
+        	url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/?host='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+        }
+        else {
+        	url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/"%>';
+        }
         winOpen(url2);
         return false;
         });

@@ -125,13 +125,6 @@ local function daip()
 	return daip
 end
 
-local function uh_port()
-	local uh_port = luci.sys.exec("uci -q get uhttpd.main.listen_http |awk -F ':' '{print $NF}'")
-	if uh_port ~= "80" then
-		return ":" .. uh_port
-	end
-end
-
 local function dase()
 	return luci.sys.exec("uci -q get openclash.config.dashboard_password")
 end
@@ -146,7 +139,24 @@ local function check_currentversion()
 end
 
 local function startlog()
-	return luci.sys.exec("sed -n '$p' /tmp/openclash_start.log 2>/dev/null")
+	local info = ""
+	if nixio.fs.access("/tmp/openclash_start.log") then
+		info = luci.sys.exec("sed -n '$p' /tmp/openclash_start.log 2>/dev/null")
+		if not string.find (info, "【") and not string.find (info, "】") then
+   		info = luci.i18n.translate(string.sub(info, 0, -1))
+   	else
+   		local a = string.find (info, "【")
+   		local b = string.find (info, "】")+2
+   		if a <= 1 then
+   			info = string.sub(info, 0, b)..luci.i18n.translate(string.sub(info, b+1, -1))
+   		elseif b < string.len(info) then
+   			info = luci.i18n.translate(string.sub(info, 0, a-1))..string.sub(info, a, b)..luci.i18n.translate(string.sub(info, b+1, -1))
+   		elseif b == string.len(info) then
+   			info = luci.i18n.translate(string.sub(info, 0, a-1))..string.sub(info, a, -1)
+   		end
+   	end
+	end
+	return info
 end
 
 local function coremodel()
@@ -312,7 +322,6 @@ function action_status()
 		watchdog = is_watchdog(),
 		daip = daip(),
 		dase = dase(),
-		uh_port = uh_port(),
 		web = is_web(),
 		cn_port = cn_port(),
 		restricted_mode = restricted_mode(),
@@ -448,11 +457,33 @@ function action_refresh_log()
 		return
 	end
 	luci.http.prepare_content("text/plain; charset=utf-8")
-	local f=io.open(logfile, "r+")
-	f:seek("set")
-	local a=f:read(2048000) or ""
-	f:close()
-	luci.http.write(a)
+	local file=io.open(logfile, "r+")
+	file:seek("set")
+	local info = ""
+	for line in file:lines() do
+		if not string.find (line, "level=") then
+			if not string.find (line, "【") and not string.find (line, "】") then
+   			line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, -1))
+   		else
+   			local a = string.find (line, "【")
+   			local b = string.find (line, "】")+2
+   			if a <= 21 then
+   				line = string.sub(line, 0, b)..luci.i18n.translate(string.sub(line, b+1, -1))
+   			elseif b < string.len(line) then
+   				line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, a-1))..string.sub(line, a, b)..luci.i18n.translate(string.sub(line, b+1, -1))
+   			elseif b == string.len(line) then
+   				line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, a-1))..string.sub(line, a, b)
+   			end
+   		end
+		end
+		if info ~= "" then
+			info = info.."\n"..line
+		else
+			info = line
+		end
+	end
+	file:close()
+	luci.http.write(info)
 end
 
 function action_del_log()

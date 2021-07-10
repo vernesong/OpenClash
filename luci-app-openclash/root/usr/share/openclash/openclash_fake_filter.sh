@@ -1,12 +1,12 @@
 #!/bin/bash
 . /lib/functions.sh
+. /usr/share/openclash/log.sh
 
-START_LOG="/tmp/openclash_start.log"
 CUSTOM_FILE="/etc/openclash/custom/openclash_custom_fake_filter.list"
 FAKE_FILTER_FILE="/tmp/openclash_fake_filter.list"
 SER_FAKE_FILTER_FILE="/tmp/openclash_servers_fake_filter.conf"
 
-echo "正在设置Fake-IP黑名单..." >$START_LOG
+LOG_OUT "Setting Fake IP Filter..."
 
 rm -rf "$FAKE_FILTER_FILE" 2>/dev/null
 if [ -s "$CUSTOM_FILE" ]; then

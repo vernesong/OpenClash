@@ -1,6 +1,7 @@
 #!/bin/bash
 . /lib/functions.sh
 . /usr/share/openclash/ruby.sh
+. /usr/share/openclash/log.sh
 
 set_lock() {
    exec 875>"/tmp/lock/openclash_proxies_get.lock" 2>/dev/null
@@ -12,7 +13,6 @@ del_lock() {
    rm -rf "/tmp/lock/openclash_proxies_get.lock"
 }
 
-START_LOG="/tmp/openclash_start.log"
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
@@ -66,8 +66,7 @@ provider_count=0
 group_hash=$(ruby_read "$CONFIG_FILE" ".select {|x| 'proxy-groups' == x}")
 
 if [ -z "$num" ] && [ -z "$provider_num" ]; then
-   echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
-   echo "${LOGTIME} Error: Unable To Parse Config File, Please Check And Try Again!" >> $LOG_FILE
+   LOG_OUT "Error: Unable To Parse Config File, Please Check And Try Again!"
    sleep 3
    del_lock
    exit 0
@@ -119,7 +118,7 @@ else
    config_group_exist=0
 fi
 
-echo "开始更新【$CONFIG_NAME】的代理集配置..." >$START_LOG
+LOG_OUT "Start Getting【$CONFIG_NAME】Proxy-providers Setting..."
 
 yml_provider_name_get()
 {
@@ -160,7 +159,7 @@ do
       continue
    fi
    
-   echo "正在读取【$CONFIG_NAME】-【$provider_name】代理集配置..." >$START_LOG
+   LOG_OUT "Start Getting【$CONFIG_NAME - $provider_name】Proxy-provider Setting..."
 
    #代理集存在时获取代理集编号
    provider_nums=$(grep -Fw "$provider_name" "$match_provider" 2>/dev/null|awk -F '.' '{print $1}')
@@ -289,7 +288,7 @@ done 2>/dev/null
 
 #删除订阅中已不存在的代理集
 if [ "$servers_if_update" = "1" ]; then
-     echo "删除【$CONFIG_NAME】订阅中已不存在的代理集..." >$START_LOG
+     LOG_OUT "Deleting【$CONFIG_NAME】Proxy-providers That no Longer Exists in Subscription"
      sed -i '/#match#/d' "$match_provider" 2>/dev/null
      cat $match_provider 2>/dev/null|awk -F '.' '{print $1}' |sort -rn |while read line
      do
@@ -390,7 +389,7 @@ cfg_new_servers_groups_get()
    ${uci_add}groups="${1}"
 }
 	   
-echo "开始更新【$CONFIG_NAME】的服务器节点配置..." >$START_LOG
+LOG_OUT "Start Getting【$CONFIG_NAME】Proxies Setting..."
 
 [ "$servers_update" -eq 1 ] && {
 echo "" >"$match_servers"
@@ -418,7 +417,7 @@ do
    #type
    server_type=$(ruby_read_hash "$proxy_hash" "['proxies'][$count]['type']")
 
-   echo "正在读取【$CONFIG_NAME】-【$server_type】-【$server_name】服务器节点配置..." > "$START_LOG"
+   LOG_OUT "Start Getting【$CONFIG_NAME - $server_type - $server_name】Proxy Setting..."
 
    if [ "$servers_update" -eq 1 ] && [ ! -z "$server_num" ]; then
 #更新已有节点
@@ -845,7 +844,7 @@ done 2>/dev/null
 
 #删除订阅中已不存在的节点
 if [ "$servers_if_update" = "1" ]; then
-     echo "删除【$CONFIG_NAME】订阅中已不存在的节点..." >$START_LOG
+     LOG_OUT "Deleting【$CONFIG_NAME】Proxies That no Longer Exists in Subscription"
      sed -i '/#match#/d' "$match_servers" 2>/dev/null
      cat $match_servers |awk -F '.' '{print $1}' |sort -rn |while read -r line
      do
@@ -862,9 +861,9 @@ uci set openclash.config.servers_if_update=0
 wait
 uci commit openclash
 /usr/share/openclash/cfg_servers_address_fake_filter.sh
-echo "配置文件【$CONFIG_NAME】读取完成！" >$START_LOG
+LOG_OUT "Config File【$CONFIG_NAME】Read Successful!"
 sleep 3
-echo "" >$START_LOG
+SLOG_CLEAN
 rm -rf /tmp/match_servers.list 2>/dev/null
 rm -rf /tmp/match_provider.list 2>/dev/null
 rm -rf /tmp/yaml_other_group.yaml 2>/dev/null

@@ -1,4 +1,5 @@
 #!/bin/sh
+. /usr/share/openclash/log.sh
 
 set_lock() {
    exec 883>"/tmp/lock/openclash_cus_domian.lock" 2>/dev/null
@@ -10,12 +11,11 @@ del_lock() {
    rm -rf "/tmp/lock/openclash_cus_domian.lock"
 }
 
-START_LOG="/tmp/openclash_start.log"
 set_lock
 
 rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
 if [ "$(uci get openclash.config.dns_advanced_setting 2>/dev/null)" -eq 1 ]; then
-   echo "正在设置第二DNS服务器列表..." >$START_LOG
+   LOG_OUT "Setting Secondary DNS Server List..."
 
    custom_domain_dns_server=$(uci get openclash.config.custom_domain_dns_server 2>/dev/null)
    [ -z "$custom_domain_dns_server" ] && {
