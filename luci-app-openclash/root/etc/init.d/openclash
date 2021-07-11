@@ -400,6 +400,27 @@ yml_auth_custom()
    fi
 }
 
+#Tolerance
+yml_tolerance_set()
+{
+if [ -n "$tolerance" ] && [ "$tolerance" -ne 0 ]; then
+ruby -ryaml -E UTF-8 -e "
+	begin
+  	Value = YAML.load_file('${1}');
+  	Value['proxy-groups'].each{
+  		|x|
+			if x['type'] == 'url-test' then
+				x['tolerance']=${2}
+			end
+		};
+		File.open('${1}','w') {|f| YAML.dump(Value, f)};
+	rescue Exception => e
+		puts '${LOGTIME} Set Url-Test Group Tolerance Error: ' + e.message
+	end
+" 2>/dev/null >> $LOG_FILE
+fi
+}
+
 get_rule_file()
 {
    if [ -z "$1" ]; then
@@ -1727,6 +1748,7 @@ get_config()
    interface_name=$(uci -q get openclash.config.interface_name)
    common_ports=$(uci -q get openclash.config.common_ports)
    dns_port=$(uci -q get openclash.config.dns_port)
+   tolerance=$(uci -q get openclash.config.tolerance)
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
@@ -1762,6 +1784,7 @@ start()
    yml_provider_path "$CONFIG_FILE" "proxy-providers" "proxy_provider"
    yml_provider_path "$CONFIG_FILE" "rule-providers" "rule_provider"
    yml_dns_check "$CONFIG_FILE"  "$FALLBACK_FILTER_FILE"
+   yml_tolerance_set "$CONFIG_FILE" "$tolerance"
 
    LOG_OUT "Step 4: Start Running The Clash Core..."
    start_run_core
