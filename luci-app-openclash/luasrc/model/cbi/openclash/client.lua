@@ -125,7 +125,7 @@ o.write = function()
 end
 
 d = Map("openclash")
-d.title = translate("Technical Support")
+d.title = translate("Credits")
 d.pageaction = false
 d:section(SimpleSection).template  = "openclash/developer"
 

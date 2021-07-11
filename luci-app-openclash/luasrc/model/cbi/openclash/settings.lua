@@ -219,6 +219,29 @@ o = s:taboption("dns", Flag, "disable_masq_cache", translate("Disable Dnsmasq's 
 o.description = translate("Recommended Enabled For Avoiding Some Connection Errors")..font_red..bold_on..translate("(Maybe Incompatible For Your Firmware)")..bold_off..font_off
 o.default=0
 
+o = s:taboption("dns", Flag, "custom_fallback_filter", translate("Custom Fallback-Filter"))
+o.description = translate("Take Effect If Fallback DNS Setted, Prevent DNS Pollution")
+o.default=0
+
+custom_fallback_filter = s:taboption("dns", Value, "custom_fallback_fil")
+custom_fallback_filter.template = "cbi/tvalue"
+custom_fallback_filter.rows = 20
+custom_fallback_filter.wrap = "off"
+custom_fallback_filter:depends("custom_fallback_filter", "1")
+
+function custom_fallback_filter.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_fallback_filter.yaml") or ""
+end
+function custom_fallback_filter.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_fallback_filter.yaml")
+	  if value ~= old_value then
+			NXFS.writefile("/etc/openclash/custom/openclash_custom_fallback_filter.yaml", value)
+		end
+	end
+end
+
 o = s:taboption("dns", Flag, "dns_advanced_setting", translate("Advanced Setting"))
 o.description = translate("DNS Advanced Settings")..font_red..bold_on..translate("(Please Don't Modify it at Will)")..bold_off..font_off
 o.default=0
