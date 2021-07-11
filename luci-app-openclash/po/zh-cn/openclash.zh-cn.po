@@ -11,7 +11,7 @@ msgstr "一个运行在OpenWrt上的Clash客户端，兼容Shadowsocks、Shadows
 msgid "Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"
 msgstr "全局设置（将按照本页设置自动修改配置文件和获取订阅）"
 
-msgid "Technical Support"
+msgid "Credits"
 msgstr "技术支持"
 
 msgid "Overviews"
@@ -2028,3 +2028,9 @@ msgstr "如您有值得推荐的外部配置文件(订阅转换模板)，可以�
 
 msgid "To restore the default configuration, try accessing: "
 msgstr "如遇到配置丢失或者需要还原默认配置，请尝试访问地址: "
+
+msgid "Take Effect If Fallback DNS Setted, Prevent DNS Pollution"
+msgstr "只有在配置文件设置了 Fallback 组的DNS时才会生效，正确设置可以有效防止DNS污染"
+
+msgid "Custom Fallback-Filter"
+msgstr "自定义Fallback-Filter"
