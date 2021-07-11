@@ -1971,3 +1971,60 @@ msgstr "下载失败！"
 
 msgid "Download Successful!"
 msgstr "下载成功！"
+
+msgid "Switch To The New Proxy When The Delay Difference Between Old and The Fastest Currently is Greater Than This Value"
+msgstr "仅当旧代理和当前最快代理之间的延迟差大于此值时，才切换到新代理"
+
+msgid "Url-Test Group Tolerance (ms)"
+msgstr "Url-Test 策略组切换灵敏度（ms）"
+
+msgid "Attention:"
+msgstr "注意事项："
+
+msgid "The game proxy is a test function and does not guarantee the availability of rules"
+msgstr "游戏代理为测试功能，不保证规则可用性"
+
+msgid "Preparation steps:"
+msgstr "准备步骤："
+
+msgid "1. In the <server and policy group management> page, create the policy group and node you are going to use, and apply the configuration (when adding nodes, you must select the policy group you want to join). Policy group type suggestion: fallback, game nodes must support UDP"
+msgstr "1、在《服务器与策略组管理》页面创建您准备使用的策略组和节点，并应用配置（节点添加时必须选择要加入的策略组），策略组类型建议:FallBack，游戏节点必须支持UDP"
+
+msgid "2. Click the <manage third party game rules> or <manage third party rule set> button to enter the rule list and download the rules you want to use"
+msgstr "2、点击《管理第三方游戏规则》或者《管理第三方规则集》按钮进入规则列表下载您要使用的规则"
+
+msgid "3. On this page, set the corresponding configuration file and policy group of the rule you have downloaded, and save the settings"
+msgstr "3、在此页面设置您已下载的规则的对应配置文件、策略组并保存设置"
+
+msgid "Use in normal mode (rules of the game only):"
+msgstr "在普通模式下使用（仅游戏规则）："
+
+msgid "1. Select normal mode in <global settings> - <mode settings> - <running mode> and enable UDP traffic, then restart"
+msgstr "1、在《全局设置》-《模式设置》-《运行模式》中选择普通模式并启用UDP流量代理，然后重新启动"
+
+msgid "Use in tun mode:"
+msgstr "在TUN模式下使用："
+
+msgid "1. In the <global settings> - <version update tab>, download and install the corresponding mode core first"
+msgstr "1、在全局设置-版本更新标签先下载、安装对应模式内核"
+
+msgid "2. Select mixed mode, Tun mode or game mode in <global settings> - <mode settings> - <running mode> and restart"
+msgstr "2、在《全局设置》-《模式设置》-《运行模式》中选择混合模式、TUN模式或者游戏模式并重新启动"
+
+msgid "When setting this page, if the groups is empty, please go to the <server and group management> page to add"
+msgstr "本页设置时如策略组为空，请先到《服务器与策略组管理》页面进行添加"
+
+msgid "Introduction to rule set usage: https://lancellc.gitbook.io/clash/clash-config-file/rule-provider"
+msgstr "规则集使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/rule-provider"
+
+msgid "Subconverter external configuration (subscription conversion template) Description: https://github.com/tindy2013/subconverter#external-configuration-file"
+msgstr "subconverter 外部配置(订阅转换模板)说明：https://github.com/tindy2013/subconverter#external-configuration-file"
+
+msgid "If you need to customize the external configuration file (subscription conversion template), please write it according to the instructions, upload it to the accessible location of the external network, and fill in the address correctly when using it"
+msgstr "如需自定义外部配置文件(订阅转换模板)，请按照说明编写后上传至外部网络可访问的位置，并在使用时正确填写地址"
+
+msgid "If you have a recommended external configuration file (subscription conversion template), you can modify by following The file format of /usr/share/opencrash/res/sub_ini.list and pr"
+msgstr "如您有值得推荐的外部配置文件(订阅转换模板)，可以按照 /usr/share/openclash/res/sub_ini.list 的文件格式修改后提交PR"
+
+msgid "To restore the default configuration, try accessing: "
+msgstr "如遇到配置丢失或者需要还原默认配置，请尝试访问地址: "
