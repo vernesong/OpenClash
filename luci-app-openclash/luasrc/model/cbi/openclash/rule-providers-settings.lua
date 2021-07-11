@@ -11,22 +11,23 @@ local uci = require "luci.model.uci".cursor()
 
 m = Map(openclash,  translate("Rule Providers and Groups"))
 m.pageaction = false
-m.description=translate("注意事项：<br/>游戏代理为测试功能，不保证规则可用性 \
-<br/>准备步骤：\
-<br/>1、在《服务器与策略组管理》页面创建您准备使用的策略组和节点，并应用配置（节点添加时必须选择要加入的策略组），策略组类型建议:FallBack，游戏节点必须支持UDP \
-<br/>2、点击《管理第三方游戏规则》或者《管理第三方规则集》按钮进入规则列表下载您要使用的规则 \
-<br/>3、在此页面设置您已下载的规则的对应配置文件、策略组并保存设置 \
-<br/> \
-<br/>在普通模式下使用（仅游戏规则）： \
-<br/>1、在《全局设置》-《模式设置》-《运行模式》中选择普通模式并启用UDP流量代理，然后重新启动 \
-<br/> \
-<br/>在TUN模式下使用： \
-<br/>1、在全局设置-版本更新标签先下载、安装对应模式内核 \
-<br/>2、在《全局设置》-《模式设置》-《运行模式》中选择混合模式、TUN模式或者游戏模式并重新启动 \
-<br/> \
-<br/>本页设置时如策略组为空，请先到《服务器与策略组管理》页面进行添加 \
-<br/> \
-<br/>规则集使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/rule-provider")
+m.description=translate("Attention:")..
+"<br/>"..translate("The game proxy is a test function and does not guarantee the availability of rules")..
+"<br/>"..translate("Preparation steps:")..
+"<br/>"..translate("1. In the <server and policy group management> page, create the policy group and node you are going to use, and apply the configuration (when adding nodes, you must select the policy group you want to join). Policy group type suggestion: fallback, game nodes must support UDP")..
+"<br/>"..translate("2. Click the <manage third party game rules> or <manage third party rule set> button to enter the rule list and download the rules you want to use")..
+"<br/>"..translate("3. On this page, set the corresponding configuration file and policy group of the rule you have downloaded, and save the settings")..
+"<br/>"..
+"<br/>"..translate("Use in normal mode (rules of the game only):")..
+"<br/>"..translate("1. Select normal mode in <global settings> - <mode settings> - <running mode> and enable UDP traffic, then restart")..
+"<br/>"..
+"<br/>"..translate("Use in tun mode:")..
+"<br/>"..translate("1. In the <global settings> - <version update tab>, download and install the corresponding mode core first")..
+"<br/>"..translate("2. Select mixed mode, Tun mode or game mode in <global settings> - <mode settings> - <running mode> and restart")..
+"<br/>"..
+"<br/>"..translate("When setting this page, if the groups is empty, please go to the <server and group management> page to add")..
+"<br/>"..
+"<br/>"..translate("Introduction to rule set usage: https://lancellc.gitbook.io/clash/clash-config-file/rule-provider")
 
 
 function IsRuleFile(e)

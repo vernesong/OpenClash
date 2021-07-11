@@ -15,9 +15,12 @@ bold_off = [[</strong>]]
 
 local op_mode = string.sub(luci.sys.exec('uci get openclash.config.operation_mode 2>/dev/null'),0,-2)
 if not op_mode then op_mode = "redir-host" end
+local lan_ip=SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
 
 m = Map("openclash", translate("Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"))
 m.pageaction = false
+m.description=translate("To restore the default configuration, try accessing: ").."<a href='http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"
+
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
 
@@ -138,6 +141,14 @@ for interface in string.gmatch(interfaces, "%S+") do
 end
 o:value("0", translate("Disable"))
 o.default=0
+
+o = s:taboption("settings", Value, "tolerance", font_red..bold_on..translate("Url-Test Group Tolerance (ms)")..bold_off..font_off)
+o.description = translate("Switch To The New Proxy When The Delay Difference Between Old and The Fastest Currently is Greater Than This Value")
+o:value("0", translate("Disable"))
+o:value("100")
+o:value("150")
+o.datatype = "uinteger"
+o.default = "0"
 
 o = s:taboption("settings", ListValue, "log_level", translate("Log Level"))
 o.description = translate("Select Core's Log Level")
@@ -525,7 +536,6 @@ end
 o.default=0
 
 ---- Dashboard Settings
-local lan_ip=SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
 local cn_port=SYS.exec("uci get openclash.config.cn_port 2>/dev/null |tr -d '\n'")
 o = s:taboption("dashboard", Value, "cn_port")
 o.title = translate("Dashboard Port")

@@ -3,7 +3,6 @@
 . /usr/share/openclash/ruby.sh
 . /usr/share/openclash/log.sh
 
-/usr/share/openclash/yml_groups_name_get.sh
 LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
 LOG_FILE="/tmp/openclash.log"
 
@@ -176,6 +175,11 @@ yml_other_rules_get()
 }
 
 if [ "$2" != "0" ]; then
+   /usr/share/openclash/yml_groups_name_get.sh
+   if [ $? -ne 0 ]; then
+      LOG_OUT "Error: Unable To Parse Config File, Please Check And Try Again!"
+      exit 0
+   fi
    config_load "openclash"
    config_foreach yml_other_rules_get "other_rules" "$6"
    if [ -z "$rule_name" ]; then

@@ -20,8 +20,8 @@ if [ -f "$CFG_FILE" ]; then
       echo 'DIRECT' >>/tmp/Proxy_Group
       echo 'REJECT' >>/tmp/Proxy_Group
    else
-      echo '读取错误，配置文件异常！' >/tmp/Proxy_Group
+      return 1
    fi
 else
-   echo '读取错误，配置文件异常！' >/tmp/Proxy_Group
+   return 1
 fi

@@ -53,14 +53,14 @@ fi
 LOG_OUT "Start Getting【$CONFIG_NAME】Groups Setting..."
 
 /usr/share/openclash/yml_groups_name_get.sh
-[ ! -z "$(grep "读取错误" /tmp/Proxy_Group)" ] && {
+if [ $? -ne 0 ]; then
 	LOG_OUT "Read Error, Config File【$CONFIG_NAME】Abnormal!"
 	uci commit openclash
 	sleep 5
 	SLOG_CLEAN
 	del_lock
 	exit 0
-}
+fi
 
 #判断当前配置文件是否有策略组信息
 cfg_group_name()

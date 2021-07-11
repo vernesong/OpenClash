@@ -14,14 +14,15 @@ bold_off = [[</strong>]]
 
 m = Map(openclash, translate("Config Subscribe Edit"))
 m.pageaction = false
-m.description=translate("Convert Subscribe function of Online is Supported By subconverter Written By tindy X") .. translate("<br/> \
-<br/>API By tindy X & lhie1 \
-<br/> \
-<br/>subconverter 外部配置(订阅转换模板)说明：https://github.com/tindy2013/subconverter#external-configuration-file \
-<br/> \
-<br/>如需自定义外部配置文件(订阅转换模板)，请按照说明编写后上传至外部网络可访问的位置，并在使用时正确填写地址 \
-<br/> \
-<br/>如您有值得推荐的外部配置文件(订阅转换模板)，可以按照 /usr/share/openclash/res/sub_ini.list 的文件格式修改后提交PR")
+m.description=translate("Convert Subscribe function of Online is Supported By subconverter Written By tindy X") ..
+"<br/>"..
+"<br/>"..translate("API By tindy X & lhie1")..
+"<br/>"..
+"<br/>"..translate("Subconverter external configuration (subscription conversion template) Description: https://github.com/tindy2013/subconverter#external-configuration-file")..
+"<br/>"..
+"<br/>"..translate("If you need to customize the external configuration file (subscription conversion template), please write it according to the instructions, upload it to the accessible location of the external network, and fill in the address correctly when using it")..
+"<br/>"..
+"<br/>"..translate("If you have a recommended external configuration file (subscription conversion template), you can modify by following The file format of /usr/share/opencrash/res/sub_ini.list and pr")
 m.redirect = luci.dispatcher.build_url("admin/services/openclash/config-subscribe")
 if m.uci:get(openclash, sid) ~= "config_subscribe" then
 	luci.http.redirect(m.redirect)
