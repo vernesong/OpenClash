@@ -20,7 +20,7 @@ CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/
 RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
 GAME_RULE_FILE="/tmp/yaml_game_rule.yaml"
-FALLBACK_FILTER_FILE="/tmp/yaml_fallback_filter_file.yaml"
+FALLBACK_FILTER_FILE="/etc/openclash/custom/openclash_custom_fallback_filter.yaml"
 LOCK_FILE=/tmp/lock/openclash.lock
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
@@ -166,34 +166,10 @@ EOF
    fi
    
    #fallback-filter
-   if [ -n "$(ruby_read "$CONFIG_FILE" "['dns']['fallback']")" ] && [ -z "$(ruby_read "$CONFIG_FILE" "['dns']['fallback-filter']")" ]; then
-cat >> "$2" <<-EOF
-  fallback-filter:
-    geoip: false
-    ipcidr:
-      - 0.0.0.0/8
-      - 10.0.0.0/8
-      - 100.64.0.0/10
-      - 127.0.0.0/8
-      - 169.254.0.0/16
-      - 172.16.0.0/12
-      - 192.0.0.0/24
-      - 192.0.2.0/24
-      - 192.88.99.0/24
-      - 192.168.0.0/16
-      - 198.18.0.0/15
-      - 198.51.100.0/24
-      - 203.0.113.0/24
-      - 224.0.0.0/4
-      - 240.0.0.0/4
-      - 255.255.255.255/32
-    domain:
-      - '+.google.com'
-      - '+.facebook.com'
-      - '+.youtube.com'
-      - '+.githubusercontent.com'
-EOF
-   ruby_merge "$CONFIG_FILE" "['dns']" "$2"
+   if [ "$custom_fallback_filter" = "1" ]; then
+      if [ -n "$(ruby_read "$CONFIG_FILE" "['dns']['fallback']")" ] && [ -n "$(ruby_read "$2" "['fallback-filter']")" ]; then
+         ruby_merge "$CONFIG_FILE" "['dns']" "$2"
+      fi
    fi
 }
 
@@ -1749,6 +1725,7 @@ get_config()
    common_ports=$(uci -q get openclash.config.common_ports)
    dns_port=$(uci -q get openclash.config.dns_port)
    tolerance=$(uci -q get openclash.config.tolerance)
+   custom_fallback_filter=$(uci -q get openclash.config.custom_fallback_filter)
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
