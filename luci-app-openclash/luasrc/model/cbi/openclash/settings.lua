@@ -19,7 +19,7 @@ local lan_ip=SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>
 
 m = Map("openclash", translate("Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"))
 m.pageaction = false
-m.description=translate("To restore the default configuration, try accessing: ").."<a href='http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"
+m.description=translate("To restore the default configuration, try accessing:").." <a href='/cgi-bin/luci/admin/services/openclash/restore'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"
 
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
@@ -40,6 +40,7 @@ s:tab("chnr_update", translate("Chnroute Update"))
 s:tab("auto_restart", translate("Auto Restart"))
 s:tab("version_update", translate("Version Update"))
 s:tab("debug", translate("Debug Logs"))
+s:tab("dlercloud", translate("Dler Cloud"))
 
 o = s:taboption("op_mode", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
 o.description = translate("Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error")
@@ -593,6 +594,34 @@ o.inputstyle = "reload"
 o.write = function()
   SYS.call("/usr/share/openclash/openclash_debug.sh")
 end
+
+---- dlercloud
+o = s:taboption("dlercloud", Value, "dler_email")
+o.title = translate("Account Email Address")
+o.rmempty = true
+
+o = s:taboption("dlercloud", Value, "dler_passwd")
+o.title = translate("Account Password")
+o.password = true
+o.rmempty = true
+
+o = s:taboption("dlercloud", Flag, "dler_checkin")
+o.title = translate("Checkin")
+o.default=0
+o.rmempty = true
+
+o = s:taboption("dlercloud", Value, "dler_checkin_interval")
+o.title = translate("Checkin Interval (hour)")
+o:depends("dler_checkin", "1")
+o.default=1
+o.rmempty = true
+
+o = s:taboption("dlercloud", Value, "dler_checkin_multiple")
+o.title = translate("Checkin multiple")
+o.datatype = "uinteger"
+o.default=1
+o:depends("dler_checkin", "1")
+o.rmempty = true
 
 -- [[ Edit Server ]] --
 s = m:section(TypedSection, "dns_servers", translate("Add Custom DNS Servers")..translate("(Take Effect After Choose Above)"))

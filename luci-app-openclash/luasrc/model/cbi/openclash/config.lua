@@ -27,7 +27,7 @@ function IsYmlFile(e)
 end
 
 function default_config_set(f)
-	local cf=string.sub(SYS.exec("uci get openclash.config.config_path 2>/dev/null"), 1, -2)
+	local cf = uci:get("openclash", "config", "config_path")
 	if cf == "/etc/openclash/config/"..f or not cf or cf == "" or not fs.isfile(cf) then
 		if CHIF == "1" and cf == "/etc/openclash/config/"..f then
 			return
@@ -36,11 +36,11 @@ function default_config_set(f)
 		if fis ~= nil then
 			fcf = fs.basename(fis)
 			if fcf then
-				SYS.exec(string.format('uci set openclash.config.config_path="/etc/openclash/config/%s"',fcf))
+				uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..fcf)
 				uci:commit("openclash")
 			end
 		else
-			SYS.exec("uci set openclash.config.config_path=/etc/openclash/config/config.yaml")
+			uci:set("openclash", "config", "config_path", "/etc/openclash/config/config.yaml")
 			uci:commit("openclash")
 		end
 	end
@@ -162,7 +162,7 @@ if fs.mtime(BACKUP_FILE) then
 else
    e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
 end
-if string.sub(SYS.exec("uci get openclash.config.config_path 2>/dev/null"), 23, -2) == e[t].name then
+if string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
    e[t].state=translate("Enable")
 else
    e[t].state=translate("Disable")
@@ -199,7 +199,7 @@ Button.render(o,t,a)
 end
 btnis.write=function(a,t)
 fs.unlink("/tmp/Proxy_Group")
-SYS.exec(string.format('uci set openclash.config.config_path="/etc/openclash/config/%s"',e[t].name))
+uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..e[t].name)
 uci:commit("openclash")
 HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
 end
@@ -328,7 +328,7 @@ s.description = align_mid..translate("Support syntax check, press").." "..font_g
 s.anonymous = true
 s.addremove = false
 
-local conf = string.sub(SYS.exec("uci get openclash.config.config_path 2>/dev/null"), 1, -2)
+local conf = uci:get("openclash", "config", "config_path")
 local dconf = "/usr/share/openclash/res/default.yaml"
 local conf_name = fs.basename(conf)
 if not conf_name or conf == "" then conf_name = "config.yaml" conf = "/etc/openclash/config/config.yaml" end

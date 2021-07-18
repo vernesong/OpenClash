@@ -53,7 +53,7 @@ if fs.mtime(BACKUP_FILE) then
 else
    e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
 end
-if string.sub(SYS.exec("uci get openclash.config.config_path 2>/dev/null"), 23, -2) == e[t].name then
+if string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
    e[t].state=translate("Enable")
 else
    e[t].state=translate("Disable")
@@ -86,7 +86,7 @@ Button.render(o,t,a)
 end
 btnis.write=function(a,t)
 fs.unlink("/tmp/Proxy_Group")
-SYS.exec(string.format('uci set openclash.config.config_path="/etc/openclash/config/%s"',e[t].name))
+uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..e[t].name)
 uci:set("openclash", "config", "enable", 1)
 uci:commit("openclash")
 SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
@@ -129,4 +129,14 @@ d.title = translate("Credits")
 d.pageaction = false
 d:section(SimpleSection).template  = "openclash/developer"
 
-return m, form, s, ap, d
+dler = Map("openclash")
+dler.pageaction = false
+dler:section(SimpleSection).template  = "openclash/dlercloud"
+
+if uci:get("openclash", "config", "dler_email") and uci:get("openclash", "config", "dler_passwd") then
+  return m, dler, form, s, ap, d
+else
+	dler.title = translate("Sponsor")
+	fs.unlink("/tmp/dler_info")
+  return m, form, s, ap, d, dler
+end
