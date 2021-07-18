@@ -167,9 +167,15 @@ EOF
    
    #fallback-filter
    if [ "$custom_fallback_filter" = "1" ]; then
-      if [ -n "$(ruby_read "$CONFIG_FILE" "['dns']['fallback']")" ] && [ -n "$(ruby_read "$2" "['fallback-filter']")" ]; then
-         ruby_merge "$CONFIG_FILE" "['dns']" "$2"
+      if [ -z "$(ruby_read "$CONFIG_FILE" "['dns']['fallback']")" ]; then
+         LOG_OUT "Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore..."
+         return
       fi
+      if [ -z "$(ruby_read "$2" "['fallback-filter']")" ]; then
+         LOG_OUT "Error: Unable To Parse Custom Fallback-Filter File, Ignore..."
+         return
+      fi
+      ruby_merge "$CONFIG_FILE" "['dns']" "$2"
    fi
 }
 
@@ -1846,6 +1852,13 @@ stop()
       rm -rf /tmp/rule_providers_name
       rm -rf /tmp/openclash_fake_filter.list
       rm -rf /tmp/openclash_servers_fake_filter.conf
+      
+      firewall_forward_default=$(uci -q get openclash.config.firewall_forward_default)
+      if [ -n "$firewall_forward_default" ] && [ "$firewall_forward_default" != "$(uci -q get firewall.@defaults[0].forward)" ]; then
+      	uci -q set firewall.@defaults[0].forward=$firewall_forward_default
+      	uci -q commit firewall
+      	/etc/init.d/firewall reload >/dev/null 2>&1
+      fi
       del_lock
       LOG_OUT "OpenClash 关闭成功！"
       sleep 5
