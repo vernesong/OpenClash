@@ -1,0 +1,60 @@
+<%+cbi/valueheader%>
+<script type="text/javascript">//<![CDATA[
+	function dler_login(btn,option)
+	{
+		btn.disabled = true;
+		if (option == "dler_login") {
+			var s = document.getElementById(option+'-status');
+			var e = document.getElementById('cbid.openclash.config.dler_email').value;
+			var p = document.getElementById('cbid.openclash.config.dler_passwd').value;
+			var c = document.getElementById('cbid.openclash.config.dler_checkin').value;
+			var i = document.getElementById('cbid.openclash.config.dler_checkin_interval').value;
+			var m = document.getElementById('cbid.openclash.config.dler_checkin_multiple').value;
+			btn.value = '<%:Login...%>';
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_login_info_save")%>', {email: e, passwd : p, checkin: c, interval: i, multiple: m}, function(x, status) {
+				if (x && x.status == 200) {
+					XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_login")%>', null, function(x, status) {
+					if (s)
+					{
+						if (x && x.status == 200 && status.dler_login == 200) {
+							s.innerHTML ="<font color='green'><strong>"+"<%:Dler Cloud Login Successful%>"+"</strong></font>";
+							window.location.href='<%="settings?tab.openclash.config=dlercloud"%>';
+						}
+						else {
+							s.innerHTML ="<font color='red'><strong>"+"<%:Dler Cloud Login Faild%>"+"</strong></font>";
+							window.location.href='<%="settings?tab.openclash.config=dlercloud"%>';
+						}
+					}
+					btn.disabled = false;
+					btn.value = '<%:Login Account%>';
+					});
+				}
+			});
+		};
+		
+		if (option == "dler_logout") {
+			var s = document.getElementById('dler_login-status');
+			btn.value = '<%:Logout...%>';
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_logout")%>', null, function(x, status) {
+				if (s)
+				{
+					if (x && x.status == 200 && status.dler_logout == 200) {
+						s.innerHTML ="<font color='green'><strong>"+"<%:Dler Cloud Logout Successful%>"+"</strong></font>";
+						window.location.href='<%="settings?tab.openclash.config=dlercloud"%>';
+					}
+					else {
+						s.innerHTML ="<font color='red'><strong>"+"<%:Dler Cloud Logout Faild%>"+"</strong></font>";
+					}
+				}
+				btn.disabled = false;
+				btn.value = '<%:Logout Account%>';
+				}
+			);
+		};
+		return false;
+	}
+//]]></script>
+<input type="button" class="btn cbi-button cbi-button-apply" value="<%:Login Account%>" onclick="return dler_login(this,'dler_login')" />
+<input type="button" class="btn cbi-button cbi-button-remove" value="<%:Logout Account%>" onclick="return dler_login(this,'dler_logout')" />
+<span id="<%=self.option%>-status"><%=self.value%></span>
+<%+cbi/valuefooter%>
