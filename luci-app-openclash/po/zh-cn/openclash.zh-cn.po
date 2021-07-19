@@ -2151,3 +2151,6 @@ msgstr "账号已登录"
 
 msgid "Account not logged in"
 msgstr "账号未登录"
+
+msgid "Logout..."
+msgstr "退出中..."

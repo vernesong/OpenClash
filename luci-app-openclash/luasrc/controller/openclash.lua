@@ -300,7 +300,8 @@ local function dler_login_info_save()
 end
 
 local function dler_login()
-	local info, token
+	local info, token, get_sub
+	local sub_path = "/tmp/dler_sub"
 	local email = uci:get("openclash", "config", "dler_email")
 	local passwd = uci:get("openclash", "config", "dler_passwd")
 	if email and passwd then
@@ -312,15 +313,23 @@ local function dler_login()
 			token = info.data.token
 			uci:set("openclash", "config", "dler_token", token)
 			uci:commit("openclash")
+			get_sub = string.format("curl -sL -d 'access_token=%s' -X POST https://dler.cloud/api/v1/managed/clash -o %s", token, sub_path)
+			luci.sys.exec(get_sub)
 			return info.ret
 		else
 			uci:delete("openclash", "config", "dler_token")
 			uci:commit("openclash")
+			fs.unlink(sub_path)
+			fs.unlink("/tmp/dler_checkin")
+			fs.unlink("/tmp/dler_info")
 			return "402"
 		end
 	else
 		uci:delete("openclash", "config", "dler_token")
-	  uci:commit("openclash")
+		uci:commit("openclash")
+		fs.unlink(sub_path)
+		fs.unlink("/tmp/dler_checkin")
+		fs.unlink("/tmp/dler_info")
 		return "402"
 	end
 end
@@ -339,6 +348,9 @@ local function dler_logout()
 			uci:delete("openclash", "config", "dler_checkin_interval")
 			uci:delete("openclash", "config", "dler_checkin_multiple")
 			uci:commit("openclash")
+			fs.unlink("/tmp/dler_sub")
+			fs.unlink("/tmp/dler_checkin")
+			fs.unlink("/tmp/dler_info")
 			return info.ret
 		else
 			return "403"
@@ -374,7 +386,7 @@ local function dler_info()
 		if info.ret == 200 then
 			return info.data
 		else
-			luci.sys.exec(get_info)
+			fs.unlink(path)
 			luci.sys.exec(string.format("echo -e %s Dler Cloud Account Login Failed! Please Check And Try Again... >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S")))
 			return "errorget"
 		end
