@@ -4,6 +4,7 @@ local openclash = "openclash"
 local uci = luci.model.uci.cursor()
 local fs = require "luci.openclash"
 local sys = require "luci.sys"
+local json = require "luci.jsonc"
 local sid = arg[1]
 
 font_red = [[<font color="red">]]
@@ -47,6 +48,34 @@ o.placeholder = translate("Not Null")
 o.datatype = "or(host, string)"
 o.rmempty = false
 
+local sub_path = "/tmp/dler_sub"
+local info, token, get_sub, sub_info
+local token = uci:get("openclash", "config", "dler_token")
+if token then
+	get_sub = string.format("curl -sL -d 'access_token=%s' -X POST https://dler.cloud/api/v1/managed/clash -o %s", token, sub_path)
+	if not nixio.fs.access(sub_path) then
+		luci.sys.exec(get_sub)
+	else
+		if fs.readfile(sub_path) == "" or not fs.readfile(sub_path) then
+			luci.sys.exec(get_sub)
+		else
+			if (os.time() - fs.mtime(sub_path) > 900) then
+				luci.sys.exec(get_sub)
+			end
+		end
+	end
+	sub_info = fs.readfile(sub_path)
+	if sub_info then
+		sub_info = json.parse(sub_info)
+	end
+	if sub_info.ret == 200 then
+		o:value(sub_info.smart)
+		o:value(sub_info.ss)
+		o:value(sub_info.vmess)
+		o:value(sub_info.trojan)
+	end
+end
+	
 ---- subconverter
 o = s:option(Flag, "sub_convert", translate("Subscribe Convert Online"))
 o.description = translate("Convert Subscribe Online With Template, Mix Proxies and Keep Settings options Will Not Effect")

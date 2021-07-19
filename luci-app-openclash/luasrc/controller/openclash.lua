@@ -23,12 +23,11 @@ function index()
 	entry({"admin", "services", "openclash", "update_geoip"},call("action_update_geoip"))
 	entry({"admin", "services", "openclash", "currentversion"},call("action_currentversion"))
 	entry({"admin", "services", "openclash", "lastversion"},call("action_lastversion"))
+	entry({"admin", "services", "openclash", "save_corever"},call("action_save_corever"))
 	entry({"admin", "services", "openclash", "update"},call("action_update"))
 	entry({"admin", "services", "openclash", "update_ma"},call("action_update_ma"))
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
-	entry({"admin", "services", "openclash", "coretunupdate"},call("action_core_tun_update"))
-	entry({"admin", "services", "openclash", "coregameupdate"},call("action_core_game_update"))
 	entry({"admin", "services", "openclash", "ping"}, call("act_ping"))
 	entry({"admin", "services", "openclash", "download_rule"}, call("action_download_rule"))
 	entry({"admin", "services", "openclash", "restore"}, call("action_restore_config"))
@@ -39,6 +38,9 @@ function index()
 	entry({"admin", "services", "openclash", "op_mode"}, call("action_op_mode"))
 	entry({"admin", "services", "openclash", "dler_info"}, call("action_dler_info"))
 	entry({"admin", "services", "openclash", "dler_checkin"}, call("action_dler_checkin"))
+	entry({"admin", "services", "openclash", "dler_logout"}, call("action_dler_logout"))
+	entry({"admin", "services", "openclash", "dler_login"}, call("action_dler_login"))
+	entry({"admin", "services", "openclash", "dler_login_info_save"}, call("action_dler_login_info_save"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Servers and Groups"), 40).leaf = true
 	entry({"admin", "services", "openclash", "other-rules-edit"},cbi("openclash/other-rules-edit"), nil).leaf = true
@@ -223,26 +225,19 @@ end
 local function coreup()
 	uci:set("openclash", "config", "enable", "1")
 	uci:commit("openclash")
+	local type = luci.http.formvalue("core_type")
 	luci.sys.call("rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
-	return luci.sys.call("/usr/share/openclash/openclash_core.sh >/dev/null 2>&1 &")
-end
-
-local function coretunup()
-	uci:set("openclash", "config", "enable", "1")
-	uci:commit("openclash")
-	luci.sys.call("rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
-	return luci.sys.call("/usr/share/openclash/openclash_core.sh 'TUN' >/dev/null 2>&1 &")
-end
-
-local function coregameup()
-	uci:set("openclash", "config", "enable", "1")
-	uci:commit("openclash")
-	luci.sys.call("rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
-	return luci.sys.call("/usr/share/openclash/openclash_core.sh 'Game' >/dev/null 2>&1 &")
+	return luci.sys.call(string.format("/usr/share/openclash/openclash_core.sh '%s' >/dev/null 2>&1 &", type))
 end
 
 local function corever()
-   return uci:get("openclash", "config", "core_version")
+	return uci:get("openclash", "config", "core_version")
+end
+
+local function save_corever()
+	uci:set("openclash", "config", "core_version", luci.http.formvalue("core_ver"))
+	uci:commit("openclash")
+	return "success"
 end
 
 local function upchecktime()
@@ -294,12 +289,72 @@ function action_one_key_update()
   return luci.sys.call("sh /usr/share/openclash/openclash_update.sh 'one_key_update' >/dev/null 2>&1 &")
 end
 
+local function dler_login_info_save()
+	local email = uci:set("openclash", "config", "dler_email", luci.http.formvalue("email"))
+	local passwd = uci:set("openclash", "config", "dler_passwd", luci.http.formvalue("passwd"))
+	local checkin = uci:set("openclash", "config", "dler_checkin", luci.http.formvalue("checkin"))
+	local interval = uci:set("openclash", "config", "dler_checkin_interval", luci.http.formvalue("interval"))
+	local multiple = uci:set("openclash", "config", "dler_checkin_multiple", luci.http.formvalue("multiple"))
+	uci:commit("openclash")
+	return "success"
+end
+
+local function dler_login()
+	local info, token
+	local email = uci:get("openclash", "config", "dler_email")
+	local passwd = uci:get("openclash", "config", "dler_passwd")
+	if email and passwd then
+		info = luci.sys.exec(string.format("curl -sL -d 'email=%s' -d 'passwd=%s' -X POST https://dler.cloud/api/v1/login", email, passwd))
+		if info then
+			info = json.parse(info)
+		end
+		if info.ret == 200 then
+			token = info.data.token
+			uci:set("openclash", "config", "dler_token", token)
+			uci:commit("openclash")
+			return info.ret
+		else
+			uci:delete("openclash", "config", "dler_token")
+			uci:commit("openclash")
+			return "402"
+		end
+	else
+		uci:delete("openclash", "config", "dler_token")
+	  uci:commit("openclash")
+		return "402"
+	end
+end
+
+local function dler_logout()
+	local info, token
+	local token = uci:get("openclash", "config", "dler_token")
+	if token then
+		info = luci.sys.exec(string.format("curl -sL -d 'access_token=%s' -X POST https://dler.cloud/api/v1/logout", token))
+		if info then
+			info = json.parse(info)
+		end
+		if info.ret == 200 then
+			uci:delete("openclash", "config", "dler_token")
+			uci:delete("openclash", "config", "dler_checkin")
+			uci:delete("openclash", "config", "dler_checkin_interval")
+			uci:delete("openclash", "config", "dler_checkin_multiple")
+			uci:commit("openclash")
+			return info.ret
+		else
+			return "403"
+		end
+	else
+		return "403"
+	end
+end
+
 local function dler_info()
 	local info, path, get_info
+	local token = uci:get("openclash", "config", "dler_token")
 	local email = uci:get("openclash", "config", "dler_email")
 	local passwd = uci:get("openclash", "config", "dler_passwd")
 	path = "/tmp/dler_info"
-	if email and passwd and email ~= "" and passwd ~= "" then
+	if token and email and passwd then
 		get_info = string.format("curl -sL -d 'email=%s' -d 'passwd=%s' -X POST https://dler.cloud/api/v1/information -o %s", email, passwd, path)
 		if not nixio.fs.access(path) then
 			luci.sys.exec(get_info)
@@ -330,9 +385,10 @@ end
 
 local function dler_checkin()
 	local info
+	local token = uci:get("openclash", "config", "dler_token")
 	local email = uci:get("openclash", "config", "dler_email")
 	local passwd = uci:get("openclash", "config", "dler_passwd")
-	if email and passwd then
+	if token and email and passwd then
 			info = luci.sys.exec(string.format("curl -sL -d 'email=%s' -d 'passwd=%s' -X POST https://dler.cloud/api/v1/checkin", email, passwd))
 		if info then
 			info = json.parse(info)
@@ -343,7 +399,7 @@ local function dler_checkin()
 			return info
 		else
 			if info.msg then
-				luci.sys.exec(string.format("echo -e %s Dler Cloud Account Checkin Failed, Result:【%s】 >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S"), info.msg))
+				luci.sys.exec(string.format("echo -e %s Dler Cloud Checkin Failed, Result:【%s】 >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S"), info.msg))
 			else
 				luci.sys.exec(string.format("echo -e %s Dler Cloud Checkin Failed! Please Check And Try Again... >> /tmp/openclash.log",os.date("%Y-%m-%d %H:%M:%S")))
 			end
@@ -352,6 +408,21 @@ local function dler_checkin()
 	else
 		return "error"
 	end
+end
+
+
+function action_save_corever()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		save_corever = save_corever();
+	})
+end
+
+function action_dler_login_info_save()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		dler_login_info_save = dler_login_info_save();
+	})
 end
 
 function action_dler_info()
@@ -367,6 +438,21 @@ function action_dler_checkin()
 		dler_checkin = dler_checkin();
 	})
 end
+
+function action_dler_logout()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		dler_logout = dler_logout();
+	})
+end
+
+function action_dler_login()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		dler_login = dler_login();
+	})
+end
+
 
 function action_one_key_update_check()
 	luci.sys.call("rm -rf /tmp/*_last_version 2>/dev/null")
@@ -483,20 +569,6 @@ function action_coreupdate()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 			coreup = coreup();
-	})
-end
-
-function action_core_tun_update()
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({
-			coretunup = coretunup();
-	})
-end
-
-function action_core_game_update()
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({
-			coregameup = coregameup();
 	})
 end
 

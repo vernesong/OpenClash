@@ -6,6 +6,7 @@ local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
 local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
+local json = require "luci.jsonc"
 
 font_green = [[<font color="green">]]
 font_red = [[<font color="red">]]
@@ -115,24 +116,6 @@ switch_mode = s:taboption("op_mode", DummyValue, "", nil)
 switch_mode.template = "openclash/switch_mode"
 
 ---- General Settings
-local cpu_model=SYS.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
-o = s:taboption("settings", ListValue, "core_version", font_red..bold_on..translate("Chose to Download")..bold_off..font_off)
-o.description = translate("CPU Model")..': '..font_green..bold_on..cpu_model..bold_off..font_off..', '..translate("Select Based On Your CPU Model For Core Update, Wrong Version Will Not Work")
-o:value("linux-386")
-o:value("linux-amd64", translate("linux-amd64(x86-64)"))
-o:value("linux-armv5")
-o:value("linux-armv6")
-o:value("linux-armv7")
-o:value("linux-armv8")
-o:value("linux-mips-hardfloat")
-o:value("linux-mips-softfloat")
-o:value("linux-mips64")
-o:value("linux-mips64le")
-o:value("linux-mipsle-softfloat")
-o:value("linux-mipsle-hardfloat")
-o:value("0", translate("Not Set"))
-o.default=0
-
 o = s:taboption("settings", ListValue, "interface_name", font_red..bold_on..translate("Bind Network Interface")..bold_off..font_off)
 local de_int = SYS.exec("ip route |grep 'default' |awk '{print $5}' 2>/dev/null")
 o.description = translate("Default Interface Name:").." "..font_green..bold_on..de_int..bold_off..font_off..translate(",Try Enable If Network Loopback")
@@ -605,10 +588,12 @@ o.title = translate("Account Password")
 o.password = true
 o.rmempty = true
 
-o = s:taboption("dlercloud", Flag, "dler_checkin")
-o.title = translate("Checkin")
-o.default=0
-o.rmempty = true
+if uci:get("openclash", "config", "dler_token") then
+	o = s:taboption("dlercloud", Flag, "dler_checkin")
+	o.title = translate("Checkin")
+	o.default=0
+	o.rmempty = true
+end
 
 o = s:taboption("dlercloud", Value, "dler_checkin_interval")
 o.title = translate("Checkin Interval (hour)")
@@ -622,6 +607,14 @@ o.datatype = "uinteger"
 o.default=1
 o:depends("dler_checkin", "1")
 o.rmempty = true
+
+o = s:taboption("dlercloud", DummyValue, "dler_login", translate("Account Login"))
+o.template = "openclash/dler_login"
+if uci:get("openclash", "config", "dler_token") then
+	o.value = font_green..bold_on..translate("Account logged in")..bold_off..font_off
+else
+	o.value = font_red..bold_on..translate("Account not logged in")..bold_off..font_off
+end
 
 -- [[ Edit Server ]] --
 s = m:section(TypedSection, "dns_servers", translate("Add Custom DNS Servers")..translate("(Take Effect After Choose Above)"))
