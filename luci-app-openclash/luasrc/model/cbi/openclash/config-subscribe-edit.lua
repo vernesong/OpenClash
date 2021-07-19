@@ -52,16 +52,12 @@ local sub_path = "/tmp/dler_sub"
 local info, token, get_sub, sub_info
 local token = uci:get("openclash", "config", "dler_token")
 if token then
-	get_sub = string.format("curl -sL -d 'access_token=%s' -X POST https://dler.cloud/api/v1/managed/clash -o %s", token, sub_path)
+	get_sub = string.format("curl -sL --connect-timeout 2 -d 'access_token=%s' -X POST https://dler.cloud/api/v1/managed/clash -o %s", token, sub_path)
 	if not nixio.fs.access(sub_path) then
 		luci.sys.exec(get_sub)
 	else
 		if fs.readfile(sub_path) == "" or not fs.readfile(sub_path) then
 			luci.sys.exec(get_sub)
-		else
-			if (os.time() - fs.mtime(sub_path) > 900) then
-				luci.sys.exec(get_sub)
-			end
 		end
 	end
 	sub_info = fs.readfile(sub_path)
@@ -73,6 +69,8 @@ if token then
 		o:value(sub_info.ss)
 		o:value(sub_info.vmess)
 		o:value(sub_info.trojan)
+	else
+		fs.unlink(sub_path)
 	end
 end
 	
