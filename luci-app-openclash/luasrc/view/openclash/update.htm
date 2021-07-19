@@ -118,7 +118,7 @@
 		     core_version.value = status.corever;
 		  }
 		  else {
-		     core_version.innerHTML = "0";
+		     core_version.value = "0";
 		  }
 		  if ( status.upchecktime != "1" ) {
 		     checktime.innerHTML = "<b><font color=green>"+status.upchecktime+"</font></b>";
@@ -277,7 +277,7 @@
         		}
         	}
         	else {
-        		alert('<%:No compiled version is selected. Please configure it in the General Settings tab!%>')
+        		alert('<%:No Compiled Version is Selected, Please Select on The Top and Try Again!%>')
         	}
         }
         });
@@ -367,7 +367,7 @@
               	});
 							}
 							else {
-								alert('<%:No compiled version is selected. Please configure it in the General Settings tab!%>')
+								alert('<%:No Compiled Version is Selected, Please Select on The Top and Try Again!%>')
            		}
         		}
           	else {

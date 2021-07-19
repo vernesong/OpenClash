@@ -54,7 +54,6 @@ rules:
 script:
   code: |
     def main(ctx, metadata):
-        port_list = [21, 22, 23, 53, 80, 123, 143, 194, 443, 465, 587, 853, 993, 995, 998, 2052, 2053, 2082, 2083, 2086, 2095, 2096, 5222, 5228, 5229, 5230, 8080, 8443, 8880, 8888, 8889]
         ruleset_action = {"Reject": "AdBlock",
             "Special": "DIRECT",
             "Netflix": "Netflix",
@@ -105,26 +104,36 @@ script:
             "Domestic": "Domestic",
             "Domestic IPs": "Domestic",
             "LAN": "DIRECT"
-            }
+          }
+
         port = int(metadata["dst_port"])
 
+        if metadata["network"] == "UDP":
+            if port == 443:
+                ctx.log('[Script] matched QUIC traffic use reject')
+                return "REJECT"
+
+        port_list = [21, 22, 23, 53, 80, 123, 143, 194, 443, 465, 587, 853, 993, 995, 998, 2052, 2053, 2082, 2083, 2086, 2095, 2096, 5222, 5228, 5229, 5230, 8080, 8443, 8880, 8888, 8889]
         if port not in port_list:
+            ctx.log('[Script] not common port use direct')
             return "DIRECT"
 
-        for rule_name in ctx.rule_providers.keys():
-            if ctx.rule_providers[rule_name].match(metadata):
-                return ruleset_action[rule_name]
+        if metadata["dst_ip"] == "":
+            metadata["dst_ip"] = ctx.resolve_ip(metadata["host"])
 
-        ip = metadata["dst_ip"] or ctx.resolve_ip(metadata["host"])
+        for ruleset in ruleset_action:
+            if ctx.rule_providers[ruleset].match(metadata):
+                return ruleset_action[ruleset]
 
-        if ip == "":
-          return "DIRECT"
+        if metadata["dst_ip"] == "":
+            return "DIRECT"
 
-        code = ctx.geoip(ip)
-
+        code = ctx.geoip(metadata["dst_ip"])
         if code == "CN":
-          return "Domestic"
+            ctx.log('[Script] Geoip CN')
+            return "Domestic"
 
+        ctx.log('[Script] FINAL')
         return "Others"
 rule-providers:
   Reject:
