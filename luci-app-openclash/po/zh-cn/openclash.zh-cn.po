@@ -1204,8 +1204,8 @@ msgstr "确定要一键检查并更新所有内核及插件吗？"
 msgid "Check failed, Please try again later!"
 msgstr "一键检查更新失败,请稍后再试！"
 
-msgid "No compiled version is selected. Please configure it in the General Settings tab!"
-msgstr "未选择编译版本，请到常规设置标签中配置！"
+msgid "No Compiled Version is Selected, Please Select on The Top and Try Again!"
+msgstr "未选择编译版本，请到上方标签选择后重试！"
 
 msgid "Checking..."
 msgstr "正在检查更新..."
