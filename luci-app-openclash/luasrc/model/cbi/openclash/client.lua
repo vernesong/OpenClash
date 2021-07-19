@@ -133,7 +133,7 @@ dler = Map("openclash")
 dler.pageaction = false
 dler:section(SimpleSection).template  = "openclash/dlercloud"
 
-if uci:get("openclash", "config", "dler_email") and uci:get("openclash", "config", "dler_passwd") then
+if uci:get("openclash", "config", "dler_token") then
   return m, dler, form, s, ap, d
 else
 	dler.title = translate("Sponsor")

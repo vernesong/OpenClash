@@ -551,9 +551,6 @@ msgstr "设置自定义Hosts，仅在Redir-Host模式下生效（不会覆盖配
 msgid "Version Update"
 msgstr "版本更新"
 
-msgid "CPU Model"
-msgstr "处理器架构"
-
 msgid "Model Not Found"
 msgstr "处理器架构识别失败"
 
@@ -571,12 +568,6 @@ msgstr "查询更新失败"
 
 msgid "<New>"
 msgstr "<可更新>"
-
-msgid "Chose to Download"
-msgstr "*选择内核编译版本"
-
-msgid "Select Based On Your CPU Model For Core Update, Wrong Version Will Not Work"
-msgstr "请根据处理器架构选择以便下载、更新对应内核，错误的版本将不能正常运行"
 
 msgid "Update Core File"
 msgstr "更新内核"
@@ -2107,7 +2098,7 @@ msgstr "签到倍数"
 msgid "Dler Cloud Checkin Successful, Result:"
 msgstr "Dler Cloud 签到成功，结果："
 
-msgid "Dler Cloud Account Checkin Failed, Result:"
+msgid "Dler Cloud Checkin Failed, Result:"
 msgstr "Dler Cloud 签到失败，结果："
 
 msgid "Downloading Rule..."
@@ -2127,3 +2118,36 @@ msgstr "下载超时"
 
 msgid "Rule Project:"
 msgstr "规则项目:"
+
+msgid "Rule Project:"
+msgstr "规则项目:"
+
+msgid "Login..."
+msgstr "登录中..."
+
+msgid "Dler Cloud Login Successful"
+msgstr "Dler Cloud 登录成功"
+
+msgid "Dler Cloud Login Faild"
+msgstr "Dler Cloud 登录失败"
+
+msgid "Login Account"
+msgstr "登录账号"
+
+msgid "Dler Cloud Logout Successful"
+msgstr "Dler Cloud 已成功退出"
+
+msgid "Dler Cloud Logout Faild"
+msgstr "Dler Cloud 退出失败"
+
+msgid "Logout Account"
+msgstr "退出账号"
+
+msgid "Account Login"
+msgstr "账号登录"
+
+msgid "Account logged in"
+msgstr "账号已登录"
+
+msgid "Account not logged in"
+msgstr "账号未登录"

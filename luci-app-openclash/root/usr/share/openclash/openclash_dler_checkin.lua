@@ -9,13 +9,14 @@ local json = require "luci.jsonc"
 
 local function dler_checkin()
 	local info, path, checkin
+	local token = uci:get("openclash", "config", "dler_token")
 	local email = uci:get("openclash", "config", "dler_email")
 	local passwd = uci:get("openclash", "config", "dler_passwd")
 	local enable = uci:get("openclash", "config", "dler_checkin") or 0
 	local interval = uci:get("openclash", "config", "dler_checkin_interval") or 1
 	local multiple = uci:get("openclash", "config", "dler_checkin_multiple") or 1
 	path = "/tmp/dler_checkin"
-	if email and passwd and enable == "1" then
+	if token and email and passwd and enable == "1" then
 		checkin = string.format("curl -sL -d 'email=%s' -d 'passwd=%s' -d 'multiple=%s' -X POST https://dler.cloud/api/v1/checkin -o %s", email, passwd, multiple, path)
 		if not nixio.fs.access(path) then
 			luci.sys.exec(checkin)
@@ -39,7 +40,7 @@ local function dler_checkin()
 			os.exit(0)
 		else
 			if info.msg then
-				luci.sys.exec(string.format('echo "%s Dler Cloud Account Checkin Failed, Result:【%s】" >> /tmp/openclash.log', os.date("%Y-%m-%d %H:%M:%S"), info.msg))
+				luci.sys.exec(string.format('echo "%s Dler Cloud Checkin Failed, Result:【%s】" >> /tmp/openclash.log', os.date("%Y-%m-%d %H:%M:%S"), info.msg))
 			else
 				luci.sys.exec(string.format('echo "%s Dler Cloud Checkin Failed! Please Check And Try Again..."" >> /tmp/openclash.log', os.date("%Y-%m-%d %H:%M:%S")))
 			end
