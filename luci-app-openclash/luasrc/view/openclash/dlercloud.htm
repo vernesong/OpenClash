@@ -10,7 +10,6 @@
 .center {
   top: 50%;
   left: 50%;
-  min-width:1400px;
 }
 
 .card {
@@ -20,9 +19,7 @@
   background: linear-gradient(#f8f8f8, #fff);
   box-shadow: 0 8px 16px -8px rgba(0,0,0,0.4);
   border-radius: 6px;
-  overflow: hidden;
   position: relative;
-  display: flex;
 }
 
 .card h1 {
@@ -67,16 +64,14 @@
 
 .card .additional .more-info {
   float: left;
-  position: relative;
-  left: 25%;
+  position: absolute;
+  left: 45%;
   top: 30%;
   height: 50%;
-  width: 28%;
 }
 
 .card .additional .more-info h1 {
   color: #fff;
-  width: 365px;
   margin-bottom: 0;
   margin: 0 1rem;
   font-size: 2rem;
@@ -95,11 +90,12 @@
 .card .general {
   width: 100%;
   height: 100%;
-  position: absolute;
+  position: relative;
   top: 0;
   right: 0;
   z-index: 1;
   box-sizing: border-box;
+  overflow: hidden;
   padding: 1rem;
   padding-top: 0;
 }
@@ -109,12 +105,21 @@
   text-align: center;
 }
 
+.card .general .dler-info {
+	top: 10%;
+  margin-left: 160px;
+  width: 85%;
+  display: flex;
+  position: relative;
+}
+
 .card .general .dler-title {
   font-weight: bold;
   color: #444;
   font-size:15px;
   display: inline-block;
-  width: 25%;
+  width: 30%;
+  overflow: hidden;
   vertical-align:bottom;
   padding-top: 6px;
 }
@@ -124,7 +129,8 @@
   color: #444;
   font-size:15px;
   display: inline-block;
-  width: 52%;
+  width: 30%;
+  overflow: hidden;
   vertical-align:bottom;
   padding-top: 6px;
 }
@@ -149,7 +155,7 @@
   margin:0px 0px 0px 30px;
   white-space: nowrap;
   display: inline-block;
-  width: 40%;
+  width: 50%;
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align:bottom;
@@ -167,24 +173,29 @@
   height: 90px;
   font-size: 15px;
   font-weight: bold;
+  display: inline-block;
+  overflow: hidden;
   position: relative;
-  top: 13%;
-  left: 60%;
+  right: 35%;
+  margin-top: 5%;
   -webkit-appearance:button;
 }
 
 .card .general .more {
   float: right;
-  margin-top: 80%;
+  top: 85%;
+  right: 2%;
   font-size: 15px;
-  padding-right: 25%;
-  position: relative;
+  height: 15%;
+  position: absolute;
+  display: inline-block;
+  overflow: hidden;
 }
 	</style>
 </head>
 <body>
 <fieldset class="cbi-section">
-<table width="100%"><tr><td>
+<table width="100%"><tr><td width="100%">
 <div class="center">
   <div id="card" class="card">
     <div id="additional" class="additional">
@@ -193,7 +204,7 @@
           <img src="https://gblobscdn.gitbook.com/spaces%2F-LA4MIEaZUSjdLrk1eJx%2Favatar-1586188293684.png?alt=media" loading="lazy" title="Dler Cloud" alt="Dler Cloud" onerror="return imgerrorfuns(this,this.src)" onclick="return show_more()" />
         </div>
       </div>
-      <div class="more-info">
+      <div class="more-info" id="more_info">
         <h1>Dler Cloud</h1>
         <div class="coords" id="dler_it">
         	<%:Simple & trustworthy%>
@@ -202,7 +213,7 @@
     </div>
     <div class="general">
       <h1 id="dler-plan" ></h1>
-      	<div style="display: flex; left: 13%; top: 5%; position: relative; width: 90%">
+      	<div class="dler-info">
       		<div style="width: 40%">
             <p>
                 <span class="dler-title"><%:Plan Expiration Time%>:</span><span class="dler-result" id="dler-plantime"><%:Collecting data...%></span>
@@ -231,10 +242,12 @@
                 <span class="dler2-title"><%:Plan Traffic%>:</span><span class="dler-result2" id="dler-traffic"><%:Collecting data...%></span>
             </p>
         	</div>
-        	<div style="width: 20%；text-align:center">
-        	   <input type="button" class="btn" value="<%:Checkin%>" onclick="return dler_checkin_btn(this)"
+        	<div style="width: 20%; text-align:center">
+        		<p>
+        			<input type="button" class="btn" value="<%:Checkin%>" onclick="return dler_checkin_btn(this)"
+        		</p>
         	</div>
-    		</div>
+        </div>
     		<div>
        	 <p class="more">Powered by <a onclick="return web_dler()" href="javascript:void(0);">dlercloud.com</a></p>
     		</div>
@@ -258,7 +271,11 @@
 	var dler_traffic = document.getElementById('dler-traffic');
 	var dler_integral = document.getElementById('dler-integral');
 	var dler_checkin = document.getElementById('dler-checkin');
-
+	var obj = document.getElementById("additional");
+  var card = document.getElementById("card");
+  var dler_it = document.getElementById("dler_it");
+  var more_info = document.getElementById("more_info");
+   
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
 		if ( x && x.status == 200 && status.dler_info != "error" ) {
 			dler_plan.innerHTML = status.dler_info.plan;
@@ -331,16 +348,17 @@ function web_dler()
        
 function show_more()
 {
-   var obj = document.getElementById("additional");
    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
       if (x && x.status == 200 && status.dler_info != "error") {
          if (obj.style.width == "100%") {
             obj.style.width = "150px";
             obj.style.borderRadius = "0 0 0 0";
+            more_info.style.display = "none";
          }
          else {
    	        obj.style.width = "100%";
             obj.style.borderRadius = "0 5px 5px 0";
+            more_info.style.display = "";
          }
 		  }
 		  else {
@@ -352,22 +370,19 @@ function show_more()
 
 function show_less()
 {
-   var obj = document.getElementById("additional");
    if (obj.style.width != "100%") {
       obj.style.width = "100%";
       obj.style.borderRadius = "0 5px 5px 0";
+      more_info.style.display = "";
    }
 }
 
 function show_ad()
 {
-   var obj = document.getElementById("additional");
-   var card = document.getElementById("card");
-   var dler_it = document.getElementById("dler_it");
-   
    if (obj.style.width != "100%" || card.style.height != "180px") {
       obj.style.width = "100%";
       obj.style.borderRadius = "0 5px 5px 0";
+      more_info.style.display = "";
       card.style.height = "180px";
    }
    var rdmdl=Math.floor(Math.random()*6)+1;
@@ -400,10 +415,10 @@ function show_ad()
 
 function show_info()
 {
-   var obj = document.getElementById("additional");
    if (obj.style.width != "150px") {
       obj.style.width = "150px";
       obj.style.borderRadius = "0 0 0 0";
+      more_info.style.display = "none";
    }
 }
 
