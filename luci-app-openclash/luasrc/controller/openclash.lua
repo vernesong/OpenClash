@@ -409,13 +409,13 @@ local function dler_checkin()
 	local passwd = uci:get("openclash", "config", "dler_passwd")
 	local multiple = uci:get("openclash", "config", "dler_checkin_multiple") or 1
 	if token and email and passwd then
-		luci.sys.exec(string.format("curl -sL -d 'email=%s' -d 'passwd=%s' -d 'multiple=%s' -X POST https://dler.cloud/api/v1/checkin -o %s", email, passwd, multiple, path))
-		info = fs.readfile(path)
+		info = luci.sys.exec(string.format("curl -sL -d 'email=%s' -d 'passwd=%s' -d 'multiple=%s' -X POST https://dler.cloud/api/v1/checkin", email, passwd, multiple))
 		if info then
 			info = json.parse(info)
 		end
 		if info.ret == 200 then
 			fs.unlink("/tmp/dler_info")
+			fs.writefile(path, info)
 			luci.sys.exec(string.format("echo -e %s Dler Cloud Checkin Successful, Result:【%s】 >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S"), info.data.checkin))
 			return info
 		else
