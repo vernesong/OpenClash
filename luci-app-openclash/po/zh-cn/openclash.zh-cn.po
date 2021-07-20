@@ -2092,8 +2092,11 @@ msgstr "账户密码"
 msgid "Checkin Interval (hour)"
 msgstr "签到间隔（小时）"
 
-msgid "Checkin multiple"
+msgid "Checkin Multiple"
 msgstr "签到倍数"
+
+msgid "Multiple Must Be a Positive Integer and No More Than 50"
+msgstr "倍数必须是正整数且不大于50"
 
 msgid "Dler Cloud Checkin Successful, Result:"
 msgstr "Dler Cloud 签到成功，结果："
@@ -2154,3 +2157,6 @@ msgstr "账号未登录"
 
 msgid "Logout..."
 msgstr "退出中..."
+
+msgid "Error Login Info"
+msgstr "登录信息错误"
