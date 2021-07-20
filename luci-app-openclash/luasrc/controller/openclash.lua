@@ -290,11 +290,17 @@ function action_one_key_update()
 end
 
 local function dler_login_info_save()
-	local email = uci:set("openclash", "config", "dler_email", luci.http.formvalue("email"))
-	local passwd = uci:set("openclash", "config", "dler_passwd", luci.http.formvalue("passwd"))
-	local checkin = uci:set("openclash", "config", "dler_checkin", luci.http.formvalue("checkin"))
-	local interval = uci:set("openclash", "config", "dler_checkin_interval", luci.http.formvalue("interval"))
-	local multiple = uci:set("openclash", "config", "dler_checkin_multiple", luci.http.formvalue("multiple"))
+	uci:set("openclash", "config", "dler_email", luci.http.formvalue("email"))
+	uci:set("openclash", "config", "dler_passwd", luci.http.formvalue("passwd"))
+	uci:set("openclash", "config", "dler_checkin", luci.http.formvalue("checkin"))
+	uci:set("openclash", "config", "dler_checkin_interval", luci.http.formvalue("interval"))
+	if tonumber(luci.http.formvalue("multiple")) > 50 then
+		uci:set("openclash", "config", "dler_checkin_multiple", "50")
+	elseif tonumber(luci.http.formvalue("multiple")) < 1 or not tonumber(luci.http.formvalue("multiple")) then
+		uci:set("openclash", "config", "dler_checkin_multiple", "1")
+	else
+		uci:set("openclash", "config", "dler_checkin_multiple", luci.http.formvalue("multiple"))
+	end
 	uci:commit("openclash")
 	return "success"
 end
@@ -397,11 +403,14 @@ end
 
 local function dler_checkin()
 	local info
+	local path = "/tmp/dler_checkin"
 	local token = uci:get("openclash", "config", "dler_token")
 	local email = uci:get("openclash", "config", "dler_email")
 	local passwd = uci:get("openclash", "config", "dler_passwd")
+	local multiple = uci:get("openclash", "config", "dler_checkin_multiple") or 1
 	if token and email and passwd then
-			info = luci.sys.exec(string.format("curl -sL -d 'email=%s' -d 'passwd=%s' -X POST https://dler.cloud/api/v1/checkin", email, passwd))
+		luci.sys.exec(string.format("curl -sL -d 'email=%s' -d 'passwd=%s' -d 'multiple=%s' -X POST https://dler.cloud/api/v1/checkin -o %s", email, passwd, multiple, path))
+		info = fs.readfile(path)
 		if info then
 			info = json.parse(info)
 		end

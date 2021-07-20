@@ -5,21 +5,48 @@
 		btn.disabled = true;
 		if (option == "dler_login") {
 			var s = document.getElementById(option+'-status');
-			var e = document.getElementById('cbid.openclash.config.dler_email').value;
-			var p = document.getElementById('cbid.openclash.config.dler_passwd').value;
-			var c = document.getElementById('cbid.openclash.config.dler_checkin')
+			var e = document.getElementById('cbid.openclash.config.dler_email');
+			var p = document.getElementById('cbid.openclash.config.dler_passwd');
+			var c = document.getElementById('cbid.openclash.config.dler_checkin');
+			if ( ! e.value || ! p.value) {
+				btn.disabled = false;
+				s.innerHTML ="<font color='red'><strong>"+"<%:Error Login Info%>"+"</strong></font>";
+				return false;
+			};
 			if (c && c.checked) {
-				c = "1"
-				var i = document.getElementById('cbid.openclash.config.dler_checkin_interval').value
-				var m = document.getElementById('cbid.openclash.config.dler_checkin_multiple').value
+				c = "1";
+				var i = document.getElementById('cbid.openclash.config.dler_checkin_interval');
+				var m = document.getElementById('cbid.openclash.config.dler_checkin_multiple');
+				if (!i.value || !(/(^[1-9]\d*$)/.test(i.value))) { i = "1"} else {i = i.value};
+				if (!m.value || !(/(^[1-9]\d*$)/.test(m.value)))
+					{
+						btn.disabled = false;
+						s.innerHTML ="<font color='red'><strong>"+"<%:Multiple Must Be a Positive Integer and No More Than 50%>"+"</strong></font>";
+						return false;
+					}
+				else if (m.value < 1)
+					{
+						btn.disabled = false;
+						s.innerHTML ="<font color='red'><strong>"+"<%:Multiple Must Be a Positive Integer and No More Than 50%>"+"</strong></font>";
+						return false;
+					}
+				else if (m.value > 50)
+					{
+						btn.disabled = false;
+						s.innerHTML ="<font color='red'><strong>"+"<%:Multiple Must Be a Positive Integer and No More Than 50%>"+"</strong></font>";
+						return false;
+					}
+				else {
+					m = m.value;
+				};
 			}
 			else {
-				c = "0"
-				var i = "1"
-				var m = "1"
-			}
+				c = "0";
+				var i = "1";
+				var m = "1";
+			};
 			btn.value = '<%:Login...%>';
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_login_info_save")%>', {email: e, passwd : p, checkin: c, interval: i, multiple: m}, function(x, status) {
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_login_info_save")%>', {email: e.value, passwd : p.value, checkin: c, interval: i, multiple: m}, function(x, status) {
 				if (x && x.status == 200) {
 					XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_login")%>', null, function(x, status) {
 					if (s)
