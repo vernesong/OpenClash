@@ -2072,7 +2072,7 @@ msgid "Plan Unused"
 msgstr "剩余流量"
 
 msgid "Plan Traffic"
-msgstr "套餐总流量"
+msgstr "套餐流量"
 
 msgid "Checkin"
 msgstr "试试手气"
@@ -2084,10 +2084,10 @@ msgid "Dler Cloud Checkin Failed! Please Check And Try Again..."
 msgstr "Dler Cloud 签到失败，请稍后再试！"
 
 msgid "Account Email Address"
-msgstr "账户地址"
+msgstr "账号地址"
 
 msgid "Account Password"
-msgstr "账户密码"
+msgstr "账号密码"
 
 msgid "Checkin Interval (hour)"
 msgstr "签到间隔（小时）"
