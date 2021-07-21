@@ -2160,3 +2160,24 @@ msgstr "退出中..."
 
 msgid "Error Login Info"
 msgstr "登录信息错误"
+
+msgid "Watchdog: Multiple Clash Processes, Kill All..."
+msgstr "Watchdog: 检测到多个Clash内核正在运行，清理中..."
+
+msgid "Watchdog: Clash Core Problem, Restart..."
+msgstr "Watchdog: 检测到Clash内核意外退出，重启中..."
+
+msgid "Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit..."
+msgstr "Watchdog: Clash内核已意外退出3次，OpenClash自动停止运行..."
+
+msgid "Watchdog: Log Size Limit, Clean Up All Log Records..."
+msgstr "Watchdog: 日志文件大小限制，清空日志所有内容..."
+
+msgid "Watchdog: Reset Firewall For Enabling Redirect..."
+msgstr "Watchdog: 调整防火墙规则,确保转发规则位于末尾..."
+
+msgid "Watchdog: Force Reset DNS Hijack..."
+msgstr "Watchdog: 重置防火墙DNS劫持规则..."
+
+msgid "Watchdog: Force Reset DNS Hijack..."
+msgstr "Watchdog: 重置防火墙DNS劫持规则..."
