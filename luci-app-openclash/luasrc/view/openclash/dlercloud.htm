@@ -4,7 +4,6 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
 	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,minimal-ui">
-	<link rel='stylesheet' href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css'>
 	<style>
 
 .center {
@@ -54,20 +53,23 @@
 }
 
 .card .additional .user-card img {
-  top: 30%;
+
   left: 20%;
   bottom: 30%;
   width: 60%;
   border-radius: 60%;
   position: absolute;
+
 }
 
 .card .additional .more-info {
-  float: left;
-  position: absolute;
-  left: 45%;
-  top: 30%;
+  position: relative;
+  top: 28%;
   height: 50%;
+  margin: 0 auto;
+  width: 50%;
+  padding-left: 150px;
+  padding-top: 1%;
 }
 
 .card .additional .more-info h1 {
@@ -85,12 +87,15 @@
   position: relative;
   top: 10%;
   text-align: center;
+  overflow: hidden;
+  line-height: 20px;
 }
 
 .card .general {
-  width: 100%;
+  width: auto;
   height: 100%;
   position: relative;
+  margin-left: 150px;
   top: 0;
   right: 0;
   z-index: 1;
@@ -103,12 +108,12 @@
 .card .general h1 {
   font-size: 2rem;
   text-align: center;
+  margin-left: -12%;
 }
 
 .card .general .dler-info {
-	top: 10%;
-  margin-left: 160px;
-  width: 85%;
+	top: 5%;
+  width: auto;
   display: flex;
   position: relative;
 }
@@ -118,10 +123,13 @@
   color: #444;
   font-size:15px;
   display: inline-block;
-  width: 30%;
+  width: 35%;
   overflow: hidden;
   vertical-align:bottom;
   padding-top: 6px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 20px;
 }
         
 .card .general .dler2-title {
@@ -133,6 +141,9 @@
   overflow: hidden;
   vertical-align:bottom;
   padding-top: 6px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  line-height: 20px;
 }
         
 .card .general .dler-result {
@@ -145,7 +156,7 @@
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align:bottom;
-  transform: translate(30%,8%);
+  transform: translate(10%,-8%);
   text-align: right;
 }
 
@@ -159,14 +170,14 @@
   overflow: hidden;
   text-overflow: ellipsis;
   vertical-align:bottom;
-  transform: translate(-35%,8%);
+  transform: translate(-10%,-8%);
   text-align: right;
 }
 
 .card .general .btn {
   color: #fff;
   border-color: #337ab7;
-  background-color: #1473e6;
+  background: #1473e6;
   box-shadow: 0 8px 16px -8px rgba(0,0,0,0.4);
   border-radius: 6px;
   width: 90px;
@@ -176,8 +187,8 @@
   display: inline-block;
   overflow: hidden;
   position: relative;
-  right: 35%;
-  margin-top: 5%;
+  right: 5%;
+  margin-top: 10%;
   -webkit-appearance:button;
 }
 
@@ -195,13 +206,13 @@
 </head>
 <body>
 <fieldset class="cbi-section">
-<table width="100%"><tr><td width="100%">
+<table><tr><td>
 <div class="center">
   <div id="card" class="card">
     <div id="additional" class="additional">
       <div class="user-card">
         <div class="img">
-          <img src="https://gblobscdn.gitbook.com/spaces%2F-LA4MIEaZUSjdLrk1eJx%2Favatar-1586188293684.png?alt=media" loading="lazy" title="Dler Cloud" alt="Dler Cloud" onerror="return imgerrorfuns(this,this.src)" onclick="return show_more()" />
+          <img id="dler_logo" src="https://gblobscdn.gitbook.com/spaces%2F-LA4MIEaZUSjdLrk1eJx%2Favatar-1586188293684.png?alt=media" loading="lazy" title="Dler Cloud" alt="Dler Cloud" onerror="return imgerrorfuns(this,this.src)" onclick="return show_more()" />
         </div>
       </div>
       <div class="more-info" id="more_info">
@@ -255,8 +266,7 @@
     </div>
   </div>
 </div>
-	    </td></tr>
-	</table>
+</td></tr></table>
 </fieldset>
 </body>
 
@@ -275,6 +285,7 @@
   var card = document.getElementById("card");
   var dler_it = document.getElementById("dler_it");
   var more_info = document.getElementById("more_info");
+  var dler_logo = document.getElementById("dler_logo");
    
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
 		if ( x && x.status == 200 && status.dler_info != "error" ) {
@@ -359,6 +370,7 @@ function show_more()
    	        obj.style.width = "100%";
             obj.style.borderRadius = "0 5px 5px 0";
             more_info.style.display = "";
+            more_info.style.transform = "translateY(11%)";
          }
 		  }
 		  else {
@@ -374,6 +386,7 @@ function show_less()
       obj.style.width = "100%";
       obj.style.borderRadius = "0 5px 5px 0";
       more_info.style.display = "";
+      more_info.style.transform = "translateY(11%)";
    }
 }
 
@@ -384,6 +397,7 @@ function show_ad()
       obj.style.borderRadius = "0 5px 5px 0";
       more_info.style.display = "";
       card.style.height = "180px";
+      dler_logo.style.transform = "translateY(16%)";
    }
    var rdmdl=Math.floor(Math.random()*6)+1;
    if(rdmdl==1)
