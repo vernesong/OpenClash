@@ -162,7 +162,7 @@ if fs.mtime(BACKUP_FILE) then
 else
    e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
 end
-if string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
+if uci:get("openclash", "config", "config_path") and string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
    e[t].state=translate("Enable")
 else
    e[t].state=translate("Disable")
@@ -330,8 +330,9 @@ s.addremove = false
 
 local conf = uci:get("openclash", "config", "config_path")
 local dconf = "/usr/share/openclash/res/default.yaml"
+if not conf then conf = "/etc/openclash/config/config.yaml" end
 local conf_name = fs.basename(conf)
-if not conf_name or conf == "" then conf_name = "config.yaml" conf = "/etc/openclash/config/config.yaml" end
+if not conf_name then conf_name = "config.yaml"  end
 local sconf = "/etc/openclash/"..conf_name
 
 sev = s:option(TextValue, "user")

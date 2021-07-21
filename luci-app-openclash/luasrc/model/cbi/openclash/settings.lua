@@ -588,7 +588,7 @@ o.title = translate("Account Password")
 o.password = true
 o.rmempty = true
 
-if uci:get("openclash", "config", "dler_token") then
+if m.uci:get("openclash", "config", "dler_token") then
 	o = s:taboption("dlercloud", Flag, "dler_checkin")
 	o.title = translate("Checkin")
 	o.default=0
@@ -620,7 +620,7 @@ end
 
 o = s:taboption("dlercloud", DummyValue, "dler_login", translate("Account Login"))
 o.template = "openclash/dler_login"
-if uci:get("openclash", "config", "dler_token") then
+if m.uci:get("openclash", "config", "dler_token") then
 	o.value = font_green..bold_on..translate("Account logged in")..bold_off..font_off
 else
 	o.value = font_red..bold_on..translate("Account not logged in")..bold_off..font_off
