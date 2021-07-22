@@ -106,7 +106,18 @@
 	var one_key_update  = document.getElementById('one_key_update');
 	var remove_core  = document.getElementById('remove_core');
   
-	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
+  XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
+		if ( x && x.status == 200 ) {
+		  if ( status.corever != "0" && status.corever != "" ) {
+		     core_version.value = status.corever;
+		  }
+		  else {
+		     core_version.value = "0";
+		  }
+		}
+	});
+	
+	XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
 		  var cpu_models = status.coremodel;
 			var arr_model = cpu_models.split(",");
@@ -114,12 +125,6 @@
       var cpu_model22 = arr_model[1];
 		  cpu_model.innerHTML = cpu_model1 ? "<b><font color=green>"+cpu_model1+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
       cpu_model2.innerHTML = cpu_model22 ? "<b><font color=green>"+cpu_model22+"</font></b>" : "<b><font color=red><%:Model Not Found%></font></b>";
-		  if ( status.corever != "0" && status.corever != "" ) {
-		     core_version.value = status.corever;
-		  }
-		  else {
-		     core_version.value = "0";
-		  }
 		  if ( status.upchecktime != "1" ) {
 		     checktime.innerHTML = "<b><font color=green>"+status.upchecktime+"</font></b>";
 		  }
