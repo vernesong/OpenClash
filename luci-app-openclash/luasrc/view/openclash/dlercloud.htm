@@ -129,19 +129,7 @@
   white-space: nowrap;
   text-overflow: ellipsis;
   line-height: 25px;
-}
-        
-.card .general .dler2-title {
-  font-weight: bold;
-  color: #444;
-  font-size:15px;
-  display: inline-block;
-  width: 30%;
-  overflow: hidden;
-  vertical-align:bottom;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  line-height: 25px;
+  height: 25px;
 }
         
 .card .general .dler-result {
@@ -156,6 +144,7 @@
   vertical-align:bottom;
   text-align: right;
   line-height: 25px;
+  height: 25px;
 }
 
 .card .general .dler-result2 {
@@ -170,6 +159,7 @@
   vertical-align:bottom;
   text-align: right;
   line-height: 25px;
+  height: 25px;
 }
 
 .card .general .btn {
@@ -239,16 +229,16 @@
         	</div>
         	<div style="width: 40%">
             <p>
-                <span class="dler2-title"><%:Today Used%>:</span><span class="dler-result2" id="dler-today-used"><%:Collecting data...%></span>
+                <span class="dler-title"><%:Today Used%>:</span><span class="dler-result2" id="dler-today-used"><%:Collecting data...%></span>
             </p>
             <p>
-                <span class="dler2-title"><%:Plan Used%>:</span><span class="dler-result2" id="dler-used"><%:Collecting data...%></span>
+                <span class="dler-title"><%:Plan Used%>:</span><span class="dler-result2" id="dler-used"><%:Collecting data...%></span>
             </p>
             <p>
-                <span class="dler2-title"><%:Plan Unused%>:</span><span class="dler-result2" id="dler-unused"><%:Collecting data...%></span>
+                <span class="dler-title"><%:Plan Unused%>:</span><span class="dler-result2" id="dler-unused"><%:Collecting data...%></span>
             </p>
             <p>
-                <span class="dler2-title"><%:Plan Traffic%>:</span><span class="dler-result2" id="dler-traffic"><%:Collecting data...%></span>
+                <span class="dler-title"><%:Plan Traffic%>:</span><span class="dler-result2" id="dler-traffic"><%:Collecting data...%></span>
             </p>
         	</div>
         	<div style="width: 20%; text-align:center">
@@ -286,7 +276,7 @@
   var dler_logo = document.getElementById("dler_logo");
    
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
-		if ( x && x.status == 200 && status.dler_info != "error" ) {
+		if (x && x.status == 200 && status.dler_info != "error" && status.dler_info != "errorget") {
 			dler_plan.innerHTML = status.dler_info.plan;
 			dler_plantime.innerHTML = status.dler_info.plan_time;
 			dler_money.innerHTML = status.dler_info.money;
@@ -307,7 +297,7 @@
 	});
 	
 	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
-		if (x && x.status == 200 && status.dler_info != "error") {
+		if (x && x.status == 200 && status.dler_info != "error" && status.dler_info != "errorget") {
 			dler_plan.innerHTML = status.dler_info.plan;
 			dler_plantime.innerHTML = status.dler_info.plan_time;
 			dler_money.innerHTML = status.dler_info.money;
@@ -383,6 +373,7 @@ function show_less()
    if (obj.style.width != "100%") {
       obj.style.width = "100%";
       obj.style.borderRadius = "0 5px 5px 0";
+      card.style.height = "250px";
       more_info.style.display = "";
       more_info.style.transform = "translateY(11%)";
    }
@@ -430,6 +421,7 @@ function show_info()
    if (obj.style.width != "150px") {
       obj.style.width = "150px";
       obj.style.borderRadius = "0 0 0 0";
+      card.style.height = "250px";
       more_info.style.display = "none";
    }
 }

@@ -315,7 +315,7 @@ local function dler_login()
 		if info then
 			info = json.parse(info)
 		end
-		if info.ret == 200 then
+		if info and info.ret == 200 then
 			token = info.data.token
 			uci:set("openclash", "config", "dler_token", token)
 			uci:commit("openclash")
@@ -348,7 +348,7 @@ local function dler_logout()
 		if info then
 			info = json.parse(info)
 		end
-		if info.ret == 200 then
+		if info and info.ret == 200 then
 			uci:delete("openclash", "config", "dler_token")
 			uci:delete("openclash", "config", "dler_checkin")
 			uci:delete("openclash", "config", "dler_checkin_interval")
@@ -389,7 +389,7 @@ local function dler_info()
 		if info then
 			info = json.parse(info)
 		end
-		if info.ret == 200 then
+		if info and info.ret == 200 then
 			return info.data
 		else
 			fs.unlink(path)
@@ -413,13 +413,13 @@ local function dler_checkin()
 		if info then
 			info = json.parse(info)
 		end
-		if info.ret == 200 then
+		if info and info.ret == 200 then
 			fs.unlink("/tmp/dler_info")
 			fs.writefile(path, info)
 			luci.sys.exec(string.format("echo -e %s Dler Cloud Checkin Successful, Result:【%s】 >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S"), info.data.checkin))
 			return info
 		else
-			if info.msg then
+			if info and info.msg then
 				luci.sys.exec(string.format("echo -e %s Dler Cloud Checkin Failed, Result:【%s】 >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S"), info.msg))
 			else
 				luci.sys.exec(string.format("echo -e %s Dler Cloud Checkin Failed! Please Check And Try Again... >> /tmp/openclash.log",os.date("%Y-%m-%d %H:%M:%S")))
