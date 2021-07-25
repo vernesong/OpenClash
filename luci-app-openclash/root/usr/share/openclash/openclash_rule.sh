@@ -119,7 +119,7 @@
          LOG_OUT "Other Rules【$rule_name】Update Successful!"
          ifrestart=1
       else
-         LOG_OUT "Updated Other Rules【$rule_name】No Change, Do Nothing！"
+         LOG_OUT "Updated Other Rules【$rule_name】No Change, Do Nothing!"
          sleep 5
       fi
    else
