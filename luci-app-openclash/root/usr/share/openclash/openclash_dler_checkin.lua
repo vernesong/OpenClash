@@ -17,7 +17,7 @@ local function dler_checkin()
 	local multiple = uci:get("openclash", "config", "dler_checkin_multiple") or 1
 	path = "/tmp/dler_checkin"
 	if token and email and passwd and enable == "1" then
-		checkin = string.format("curl -sL -d 'email=%s' -d 'passwd=%s' -d 'multiple=%s' -X POST https://dler.cloud/api/v1/checkin -o %s", email, passwd, multiple, path)
+		checkin = string.format("curl -sL -H 'Content-Type: application/json' -d '{\"email\":\"%s\", \"passwd\":\"%s\", \"multiple\":\"%s\"}' -X POST https://dler.cloud/api/v1/checkin -o %s", email, passwd, multiple, path)
 		if not nixio.fs.access(path) then
 			luci.sys.exec(checkin)
 		else
