@@ -35,11 +35,11 @@ local function dler_checkin()
 		if info then
 			info = json.parse(info)
 		end
-		if info.ret == 200 then
+		if info and info.ret == 200 then
 			luci.sys.exec(string.format('echo "%s Dler Cloud Checkin Successful, Result:【%s】" >> /tmp/openclash.log', os.date("%Y-%m-%d %H:%M:%S"), info.data.checkin))
 			os.exit(0)
 		else
-			if info.msg then
+			if info and info.msg then
 				luci.sys.exec(string.format('echo "%s Dler Cloud Checkin Failed, Result:【%s】" >> /tmp/openclash.log', os.date("%Y-%m-%d %H:%M:%S"), info.msg))
 			else
 				luci.sys.exec(string.format('echo "%s Dler Cloud Checkin Failed! Please Check And Try Again..."" >> /tmp/openclash.log', os.date("%Y-%m-%d %H:%M:%S")))

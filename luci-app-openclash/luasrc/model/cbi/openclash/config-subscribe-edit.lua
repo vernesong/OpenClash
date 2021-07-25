@@ -64,7 +64,7 @@ if token then
 	if sub_info then
 		sub_info = json.parse(sub_info)
 	end
-	if sub_info.ret == 200 then
+	if sub_info and sub_info.ret == 200 then
 		o:value(sub_info.smart)
 		o:value(sub_info.ss)
 		o:value(sub_info.vmess)
