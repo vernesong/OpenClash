@@ -274,7 +274,7 @@
   var dler_logo = document.getElementById("dler_logo");
    
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
-		if (x && x.status == 200 && status.dler_info != "error" && status.dler_info != "errorget") {
+		if (x && x.status == 200 && status.dler_info != "error") {
 			dler_plan.innerHTML = status.dler_info.plan;
 			dler_plantime.innerHTML = status.dler_info.plan_time;
 			dler_money.innerHTML = status.dler_info.money;
@@ -286,16 +286,13 @@
 			dler_integral.innerHTML = status.dler_info.integral;
 			show_info();
 		}
-		else if (x && x.status == 200 && status.dler_info == "errorget") {
-			show_less();
-		}
 		else {
-			show_ad();
+			show_less();
 		}
 	});
 	
 	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
-		if (x && x.status == 200 && status.dler_info != "error" && status.dler_info != "errorget") {
+		if (x && x.status == 200 && status.dler_info != "error") {
 			dler_plan.innerHTML = status.dler_info.plan;
 			dler_plantime.innerHTML = status.dler_info.plan_time;
 			dler_money.innerHTML = status.dler_info.money;
@@ -307,11 +304,8 @@
 			dler_integral.innerHTML = status.dler_info.integral;
 			show_info();
 		}
-		else if (x && x.status == 200 && status.dler_info == "errorget") {
-			show_less();
-		}
 		else {
-			show_ad();
+			show_less();
 		}
 	});
 	
@@ -375,17 +369,6 @@ function show_less()
       more_info.style.display = "";
       more_info.style.transform = "translateY(11%)";
    }
-}
-
-function show_ad()
-{
-   if (obj.style.width != "100%" || card.style.height != "180px") {
-      obj.style.width = "100%";
-      obj.style.borderRadius = "0 5px 5px 0";
-      more_info.style.display = "";
-      card.style.height = "180px";
-      dler_logo.style.transform = "translateY(16%)";
-   }
    var rdmdl=Math.floor(Math.random()*6)+1;
    if(rdmdl==1)
    {
@@ -411,7 +394,6 @@ function show_ad()
    {
       dler_it.innerHTML = '<%:Perfect Technical Support%>';
    }
-   
 }
 
 function show_info()
