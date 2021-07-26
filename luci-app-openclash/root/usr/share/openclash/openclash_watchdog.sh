@@ -6,30 +6,22 @@ CLASH_CONFIG="/etc/openclash"
 LOG_FILE="/tmp/openclash.log"
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
-enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
-dns_port=$(uci get openclash.config.dns_port 2>/dev/null)
-disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
-en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
-cfg_update_interval=$(uci get openclash.config.config_update_interval 2>/dev/null)
-log_size=$(uci get openclash.config.log_size 2>/dev/null || 1024)
+enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
+dns_port=$(uci -q get openclash.config.dns_port)
+disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
+cfg_update_interval=$(uci -q get openclash.config.config_update_interval)
+log_size=$(uci -q get openclash.config.log_size || 1024)
+core_type=$(uci -q get openclash.config.core_type)
 _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
 CRASH_NUM=0
 CFG_UPDATE_INT=0
 
-if [ "$en_mode" = "fake-ip-tun" ] || [ "$en_mode" = "redir-host-tun" ] || [ "$en_mode" = "redir-host-mix" ] || [ "$en_mode" = "fake-ip-mix" ]; then
-   core_type="Tun"
-fi
-
-if [ "$en_mode" = "redir-host-vpn" ] || [ "$en_mode" = "fake-ip-vpn" ]; then
-   core_type="Game"
-fi
-
 while :;
 do
-   cfg_update=$(uci get openclash.config.auto_update 2>/dev/null)
-   cfg_update_mode=$(uci get openclash.config.config_auto_update_mode 2>/dev/null)
-   cfg_update_interval_now=$(uci get openclash.config.config_update_interval 2>/dev/null)
-   enable=$(uci get openclash.config.enable)
+   cfg_update=$(uci -q get openclash.config.auto_update)
+   cfg_update_mode=$(uci -q get openclash.config.config_auto_update_mode)
+   cfg_update_interval_now=$(uci -q get openclash.config.config_update_interval)
+   enable=$(uci -q get openclash.config.enable)
 
 if [ "$enable" -eq 1 ]; then
 	clash_pids=$(pidof clash |sed 's/$//g' |wc -l)
@@ -43,8 +35,8 @@ if [ "$enable" -eq 1 ]; then
 	if ! pidof clash >/dev/null; then
 	   CRASH_NUM=$(expr "$CRASH_NUM" + 1)
 	   if [ "$CRASH_NUM" -le 3 ]; then
-	      RAW_CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
-	      CONFIG_FILE="/etc/openclash/$(uci get openclash.config.config_path 2>/dev/null |awk -F '/' '{print $5}' 2>/dev/null)"
+	      RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
+	      CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 	      LOG_OUT "Watchdog: Clash Core Problem, Restart..."
 	      if [ -z "$_koolshare" ]; then
 	         touch /tmp/openclash.log 2>/dev/null
@@ -58,7 +50,7 @@ if [ "$enable" -eq 1 ]; then
            nohup $CLASH -d $CLASH_CONFIG -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
         fi
 	      sleep 3
-	      if [ "$core_type" = "Tun" ]; then
+	      if [ "$core_type" = "TUN" ]; then
 	         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	      elif [ "$core_type" = "Game" ]; then
@@ -89,7 +81,7 @@ fi
 ## 端口转发重启
    last_line=$(iptables -t nat -nL PREROUTING --line-number |awk '{print $1}' 2>/dev/null |awk 'END {print}' |sed -n '$p')
    op_line=$(iptables -t nat -nL PREROUTING --line-number |grep "openclash" 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1)
-   if [ "$last_line" != "$op_line" ] && [ -z "$core_type" ]; then
+   if [ "$last_line" != "$op_line" ] && [ -n "$op_line" ]; then
       pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
       for pre_line in $pre_lines; do
          iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
@@ -100,16 +92,16 @@ fi
    
 ## DNS转发劫持
    if [ "$enable_redirect_dns" -ne 0 ]; then
-      if [ -z "$(uci get dhcp.@dnsmasq[0].server 2>/dev/null |grep "$dns_port")" ] || [ ! -z "$(uci get dhcp.@dnsmasq[0].server 2>/dev/null |awk -F ' ' '{print $2}')" ]; then
+      if [ -z "$(uci -q get dhcp.@dnsmasq[0].server |grep "$dns_port")" ] || [ ! -z "$(uci -q get dhcp.@dnsmasq[0].server |awk -F ' ' '{print $2}')" ]; then
          LOG_OUT "Watchdog: Force Reset DNS Hijack..."
-         uci del dhcp.@dnsmasq[-1].server >/dev/null 2>&1
-         uci add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
-         uci delete dhcp.@dnsmasq[0].resolvfile
-         uci set dhcp.@dnsmasq[0].noresolv=1
+         uci -q del dhcp.@dnsmasq[-1].server
+         uci -q add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
+         uci -q delete dhcp.@dnsmasq[0].resolvfile
+         uci -q set dhcp.@dnsmasq[0].noresolv=1
          [ "$disable_masq_cache" -eq 1 ] && {
-         	uci set dhcp.@dnsmasq[0].cachesize=0
+         	uci -q set dhcp.@dnsmasq[0].cachesize=0
          }
-         uci commit dhcp
+         uci -q commit dhcp
          /etc/init.d/dnsmasq restart >/dev/null 2>&1
       fi
    fi
