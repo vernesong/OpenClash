@@ -1281,6 +1281,8 @@ firewall_redirect_exclude()
 set_firewall()
 {
 
+   enable=$(uci -q get openclash.config.enable) && [ "$enable" != "1" ] && exit 0
+
 DNSPORT="$(uci get dhcp.@dnsmasq[0].port 2>/dev/null || echo 53)"
 if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(iptables -t nat -nL PREROUTING --line-number |grep 'dns_hijack')"]; then
    iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment dns_hijack
