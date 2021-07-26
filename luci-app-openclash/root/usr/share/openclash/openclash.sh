@@ -171,9 +171,11 @@ config_su_check()
                if Value.key?('rules') or Value.key?('script') or Value.key?('rule-providers') then
                   if Value.key?('rules') then
                      Value_1['rules'] = Value['rules']
-                  elsif Value.key?('script') then
+                  end;
+                  if Value.key?('script') then
                      Value_1['script'] = Value['script']
-                  elsif Value.key?('rule-providers') then
+                  end;
+                  if Value.key?('rule-providers') then
                      Value_1['rule-providers'] = Value['rule-providers']
                   end;
                   File.open('$CFG_FILE','w') {|f| YAML.dump(Value_1, f)};
