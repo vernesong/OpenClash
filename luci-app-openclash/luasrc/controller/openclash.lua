@@ -394,7 +394,7 @@ local function dler_info()
 		else
 			fs.unlink(path)
 			luci.sys.exec(string.format("echo -e %s Dler Cloud Account Login Failed! Please Check And Try Again... >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S")))
-			return "errorget"
+			return "error"
 		end
 	else
 		return "error"
