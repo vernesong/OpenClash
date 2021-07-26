@@ -91,8 +91,6 @@ if [ -n "$(uci -q get dhcp.@dnsmasq[0].resolvfile)" ]; then
    uci -q set openclash.config.default_resolvfile=$(uci -q get dhcp.@dnsmasq[0].resolvfile)
 fi
 
-uci -q set openclash.config.firewall_forward_default=$(uci -q get firewall.@defaults[0].forward)
-
 uci -q set openclash.config.enable=0
 uci -q commit openclash
 
