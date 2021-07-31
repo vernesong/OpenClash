@@ -116,7 +116,7 @@ config_cus_up()
 	      end" 2>/dev/null >> $LOG_FILE
 	   fi
 	   if [ "$servers_update" -eq 1 ]; then
-	      LOG_OUT "Config file【$name】is Replaced Successfully, Start to Reserving..."
+	      LOG_OUT "Config File【$name】is Replaced Successfully, Start to Reserving..."
 	      uci -q set openclash.config.config_update_path="/etc/openclash/config/$name.yaml"
 	      uci -q set openclash.config.servers_if_update=1
 	      uci commit openclash
