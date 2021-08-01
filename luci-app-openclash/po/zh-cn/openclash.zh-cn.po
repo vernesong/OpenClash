@@ -2160,3 +2160,19 @@ msgstr "退出中..."
 
 msgid "Error Login Info"
 msgstr "登录信息错误"
+
+msgid "Warning: Proxy is no longer used. Auto replaced by proxies"
+msgstr "警告：【Proxy】写法已不再支持，自动替换为proxies"
+
+msgid "Warning: Proxy Group is no longer used. Auto replaced by proxy-groups"
+msgstr "警告：【Proxy Group】写法已不再支持，自动替换为proxy-groups"
+
+msgid "Warning: Rule is no longer used. Auto replaced by rules"
+msgstr "警告：【Rule】写法已不再支持，自动替换为rules"
+
+msgid "Warning: rule-provider is no longer used. Auto replaced by rule-providers"
+msgstr "警告：【rule-provider】写法已不再支持，自动替换为rule-providers"
+
+msgid "Warning: Because of No Rules Field, Stop Setting BT/P2P DIRECT Rules!"
+msgstr "警告：未找到【rules】配置，停止添加BT/P2P直连规则！"
+
