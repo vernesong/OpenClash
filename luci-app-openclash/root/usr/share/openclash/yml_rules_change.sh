@@ -112,7 +112,7 @@ yml_other_set()
          end
          Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
       else
-         puts '${LOGTIME} Because of No Rules Field, Stop Setting BT/P2P DIRECT Rules!'
+         puts '${LOGTIME} Warning: Because of No Rules Field, Stop Setting BT/P2P DIRECT Rules!'
       end;
    end;
    rescue Exception => e
