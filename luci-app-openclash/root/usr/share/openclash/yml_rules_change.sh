@@ -63,55 +63,57 @@ yml_other_set()
    puts '${LOGTIME} Set Custom Rules Error: ' + e.message
    end
    begin
-   if $5 == 1 and Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-      Value['rules']=Value['rules'].to_a.insert(0,
-      'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
-      'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
-      'DOMAIN-SUFFIX,chdbits.co,DIRECT',
-      'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
-      'DOMAIN-SUFFIX,empornium.me,DIRECT',
-      'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
-      'DOMAIN-SUFFIX,hdchina.org,DIRECT',
-      'DOMAIN-SUFFIX,hdsky.me,DIRECT',
-      'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
-      'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
-      'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
-      'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
-      'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
-      'DOMAIN-SUFFIX,m-team.cc,DIRECT',
-      'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
-      'DOMAIN-SUFFIX,ncore.cc,DIRECT',
-      'DOMAIN-SUFFIX,open.cd,DIRECT',
-      'DOMAIN-SUFFIX,ourbits.club,DIRECT',
-      'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
-      'DOMAIN-SUFFIX,privatehd.to,DIRECT',
-      'DOMAIN-SUFFIX,redacted.ch,DIRECT',
-      'DOMAIN-SUFFIX,springsunday.net,DIRECT',
-      'DOMAIN-SUFFIX,tjupt.org,DIRECT',
-      'DOMAIN-SUFFIX,totheglory.im,DIRECT',
-      'DOMAIN-KEYWORD,announce,DIRECT',
-      'DOMAIN-KEYWORD,torrent,DIRECT'
-      )
-      begin
-      match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0]
-      if not match_group.empty? and not match_group.nil? then
-         common_port_group=match_group.split(',')[2] or common_port_group=match_group.split(',')[1]
-         if not common_port_group.empty? and not common_port_group.nil? then
-            ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first)
-            ruby_add_index ||= -1
-            Value['rules']=Value['rules'].to_a.insert(ruby_add_index,
-            'DST-PORT,80,' + common_port_group,
-            'DST-PORT,443,' + common_port_group,
-            'DST-PORT,22,' + common_port_group
-            )
+   if $5 == 1 then
+      if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+         Value['rules']=Value['rules'].to_a.insert(0,
+         'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
+         'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
+         'DOMAIN-SUFFIX,chdbits.co,DIRECT',
+         'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
+         'DOMAIN-SUFFIX,empornium.me,DIRECT',
+         'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
+         'DOMAIN-SUFFIX,hdchina.org,DIRECT',
+         'DOMAIN-SUFFIX,hdsky.me,DIRECT',
+         'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
+         'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
+         'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
+         'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
+         'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
+         'DOMAIN-SUFFIX,m-team.cc,DIRECT',
+         'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
+         'DOMAIN-SUFFIX,ncore.cc,DIRECT',
+         'DOMAIN-SUFFIX,open.cd,DIRECT',
+         'DOMAIN-SUFFIX,ourbits.club,DIRECT',
+         'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
+         'DOMAIN-SUFFIX,privatehd.to,DIRECT',
+         'DOMAIN-SUFFIX,redacted.ch,DIRECT',
+         'DOMAIN-SUFFIX,springsunday.net,DIRECT',
+         'DOMAIN-SUFFIX,tjupt.org,DIRECT',
+         'DOMAIN-SUFFIX,totheglory.im,DIRECT',
+         'DOMAIN-KEYWORD,announce,DIRECT',
+         'DOMAIN-KEYWORD,torrent,DIRECT'
+         )
+         begin
+         match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0]
+         if not match_group.empty? and not match_group.nil? then
+            common_port_group=match_group.split(',')[2] or common_port_group=match_group.split(',')[1]
+            if not common_port_group.empty? and not common_port_group.nil? then
+               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first)
+               ruby_add_index ||= -1
+               Value['rules']=Value['rules'].to_a.insert(ruby_add_index,
+               'DST-PORT,80,' + common_port_group,
+               'DST-PORT,443,' + common_port_group,
+               'DST-PORT,22,' + common_port_group
+               )
+            end
          end
-      end
-      rescue Exception => e
-      puts '${LOGTIME} Set BT/P2P Common Port Rules Error: ' + e.message
-      end
-      Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
-   else
-      puts '${LOGTIME} Because of No Rules Field, Stop Setting BT/P2P DIRECT Rules!'
+         rescue Exception => e
+         puts '${LOGTIME} Set BT/P2P Common Port Rules Error: ' + e.message
+         end
+         Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
+      else
+         puts '${LOGTIME} Because of No Rules Field, Stop Setting BT/P2P DIRECT Rules!'
+      end;
    end;
    rescue Exception => e
    puts '${LOGTIME} Set BT/P2P DIRECT Rules Error: ' + e.message
