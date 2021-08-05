@@ -262,10 +262,8 @@ if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ ! -z "$if_g
       exit 0
    else
       if [ -z "$if_game_group" ]; then
-         LOG_OUT "Start Writing【$CONFIG_NAME】Group To Config File..."
          echo "proxy-groups:" >$GROUP_FILE
       else
-         LOG_OUT "Start Writing【$if_game_group】Group To Config File..."
          rm -rf $GROUP_FILE
       fi
       config_load "openclash"

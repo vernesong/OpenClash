@@ -533,14 +533,17 @@ msgstr "自定义规则"
 msgid "Custom Clash Rules(Access Control)"
 msgstr "自定义规则(访问控制)"
 
-msgid "Custom Rules Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md, IP To CIDR: http://ip2cidr.com"
-msgstr "设置自定义规则（顶部），详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询，在线IP段转CIDR地址：http://ip2cidr.com"
+msgid "Custom Priority Rules Here, For More Go:"
+msgstr "设置自定义规则（优先匹配），详细信息请参阅:"
 
-msgid "Custom Rules 2 Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md, IP To CIDR: http://ip2cidr.com"
-msgstr "设置自定义规则（底部），详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询，在线IP段转CIDR地址：http://ip2cidr.com"
+msgid "Custom Extended Rules Here, For More Go:"
+msgstr "设置自定义规则（候补匹配），详细信息请参阅:"
 
-msgid "Custom Hosts Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md"
-msgstr "设置自定义Hosts，详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询"
+msgid "IP To CIDR:"
+msgstr "在线IP段转CIDR地址:"
+
+msgid "Custom Hosts Here, For More Go:"
+msgstr "设置自定义Hosts，详细信息请参阅:"
 
 msgid "Set Custom Rules"
 msgstr "设置自定义规则（在上方规则设置中启用本功能后生效）"
@@ -2175,4 +2178,79 @@ msgstr "警告：【rule-provider】写法已不再支持，自动替换为rule-
 
 msgid "Warning: Because of No Rules Field, Stop Setting BT/P2P DIRECT Rules!"
 msgstr "警告：未找到【rules】配置，停止添加BT/P2P直连规则！"
+
+msgid "Error: Load File Error,"
+msgstr "错误：文件解析失败，"
+
+msgid "Error: Set General Error,"
+msgstr "错误：修改General配置失败，"
+
+msgid "Error: Set Hosts Rules Error,"
+msgstr "错误：修改Hosts配置失败，"
+
+msgid "Error: Set Fake-IP-Filter Error,"
+msgstr "错误：修改Fake-IP-Filter配置失败，"
+
+msgid "Error: Set Nameserver-Policy Error,"
+msgstr "错误：修改Nameserver-Policy配置失败，"
+
+msgid "Error: Set Custom Rules Error,"
+msgstr "错误：设置自定义规则失败，"
+
+msgid "Error: Set BT/P2P DIRECT Rules Error,"
+msgstr "错误：设置仅代理命中规则流量（BT/P2P直连）失败，"
+
+msgid "Error: Set 198.18.0.1/16 REJECT Rule Error,"
+msgstr "错误：设置198.18.0.1/16（REJECT）规则失败，"
+
+msgid "Error: Set lhie1 Rules Error,"
+msgstr "错误：设置第三方规则（lhie1）失败，"
+
+msgid "Error: Set ConnersHua Rules Error,"
+msgstr "错误：设置第三方规则（ConnersHua）失败，"
+
+msgid "Error: Set ConnersHua Return Rules Error,"
+msgstr "错误：设置第三方规则（ConnersHua 回国）失败，"
+
+msgid "Error: Filter Proxies Error,"
+msgstr "错误：节点筛选失败，"
+
+msgid "Error: Unable To Parse Config File,"
+msgstr "错误：配置文件解析失败，"
+
+msgid "Error: Unable To Parse Updated Rules File,"
+msgstr "错误：更新的规则文件解析失败，"
+
+msgid "Error: Edit Provider Path Error,"
+msgstr "错误：修改集路径失败，"
+
+msgid "Error: Set Url-Test Group Tolerance Error,"
+msgstr "错误：修改Url-Test策略组容忍值失败，"
+
+msgid "Error: Game Rule Merge Error,"
+msgstr "错误：游戏规则合并失败，"
+
+msgid "Error: Game Proxy Merge Error,"
+msgstr "错误：游戏规则策略组合并失败，"
+
+msgid "Error: Rule Set Add Error,"
+msgstr "错误：规则集Rule-Set规则添加失败，"
+
+msgid "Error: Custom Rule Provider Merge Error,"
+msgstr "错误：规则集Rule Provider合并失败，"
+
+msgid "Error: Restore Backup Rules Error,"
+msgstr "错误：还原默认规则失败，"
+
+msgid "Error: Restore Backup Rules Error,"
+msgstr "错误：还原默认规则失败，"
+
+msgid "Error: Resolve Proxy-provider Error,"
+msgstr "错误：解析代理集失败，"
+
+msgid "Error: Resolve Proxy Error,"
+msgstr "错误：节点解析失败，"
+
+msgid "Error: Resolve Proxy-group Error,"
+msgstr "错误：策略组解析失败，"
 

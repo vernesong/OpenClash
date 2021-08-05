@@ -64,7 +64,7 @@
       begin
       YAML.load_file('/tmp/rules.yaml');
       rescue Exception => e
-      puts '${LOGTIME} Error: Unable To Parse Updated ${rule_name} Rules File ' + e.message
+      puts '${LOGTIME} Error: Unable To Parse Updated Rules File,【${rule_name}:' + e.message + '】'
       system 'rm -rf /tmp/rules.yaml 2>/dev/null'
       end
       " 2>/dev/null >> $LOG_FILE
@@ -128,7 +128,7 @@
    fi
    }
    
-   LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+   LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
    LOG_FILE="/tmp/openclash.log"
    RUlE_SOURCE=$(uci get openclash.config.rule_source 2>/dev/null)
    set_lock

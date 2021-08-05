@@ -7,7 +7,7 @@
 START=99
 STOP=15
 
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
@@ -213,7 +213,7 @@ yml_provider_path()
       end
    end;
    rescue Exception => e
-   puts '${LOGTIME} Edit Provider Path Error: ' + e.message
+   puts '${LOGTIME} Error: Edit Provider Path Error,【' + e.message + '】'
    end
    " 2>/dev/null >> $LOG_FILE
 }
@@ -397,7 +397,7 @@ ruby -ryaml -E UTF-8 -e "
 		};
 		File.open('${1}','w') {|f| YAML.dump(Value, f)};
 	rescue Exception => e
-		puts '${LOGTIME} Set Url-Test Group Tolerance Error: ' + e.message
+		puts '${LOGTIME} Error: Set Url-Test Group Tolerance Error,【' + e.message + '】'
 	end
 " 2>/dev/null >> $LOG_FILE
 fi
@@ -487,7 +487,7 @@ else
 end;
 File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
-puts '${LOGTIME} Game Rule Merge Error: ' + e.message
+puts '${LOGTIME} Error: Game Rule Merge Error,【' + e.message + '】'
 end
 " 2>/dev/null >> $LOG_FILE
 }
@@ -530,7 +530,7 @@ if File::exist?('/tmp/yaml_provider.yaml') then
 end;
 File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
-puts '${LOGTIME} Game Proxy Merge Error: ' + e.message
+puts '${LOGTIME} Error: Game Proxy Merge Error,【' + e.message + '】'
 end" 2>/dev/null >> $LOG_FILE
 fi
 }
@@ -554,7 +554,7 @@ else
 end;
 File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
-puts '${LOGTIME} Rule Set Add Error: ' + e.message
+puts '${LOGTIME} Error: Rule Set Add Error,【' + e.message + '】'
 end
 " 2>/dev/null >> $LOG_FILE
 }
@@ -705,7 +705,7 @@ yml_custom_rule_provider()
       end;
       File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
       rescue Exception => e
-      puts '${LOGTIME} Custom Rule Provider Merge Error: ' + e.message
+      puts '${LOGTIME} Error: Custom Rule Provider Merge Error,【' + e.message + '】'
       end
       " 2>/dev/null >> $LOG_FILE
    fi
@@ -786,7 +786,7 @@ ruby -ryaml -E UTF-8 -e "
 begin
 YAML.load_file('$RAW_CONFIG_FILE');
 rescue Exception => e
-puts '${LOGTIME} Error: Unable To Parse Config File ' + e.message
+puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】'
 system 'rm -rf ${CONFIG_FILE}'
 end
 " 2>/dev/null >> $LOG_FILE
@@ -1162,7 +1162,7 @@ try_restore_start()
          end;
          File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value_1, f)}
          rescue Exception => e
-         puts '${LOGTIME} Restore Backup Rules Error: ' + e.message
+         puts '${LOGTIME} Error: Restore Backup Rules Error,【' + e.message + '】'
          end
          " 2>/dev/null >> $LOG_FILE
          start_run_core
@@ -1594,7 +1594,7 @@ if [ -n "$en_mode_tun" ]; then
    fi
    #quic
    if [ "$disable_udp_quic" -eq 1 ]; then
-      iptables -I FORWARD -p udp --dport 443 -j REJECT 
+      iptables -I FORWARD -p udp --dport 443 -j REJECT
    fi
 fi
 
