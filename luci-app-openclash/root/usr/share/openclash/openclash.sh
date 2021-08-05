@@ -14,7 +14,7 @@ del_lock() {
    rm -rf "/tmp/lock/openclash_subs.lock"
 }
 
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
 CFG_FILE="/tmp/config.yaml"
 CRON_FILE="/etc/crontabs/root"
@@ -110,7 +110,7 @@ config_cus_up()
 	            }
 	         end;
 	      rescue Exception => e
-	         puts '${LOGTIME} Filter Proxies Error: ' + e.message
+	         puts '${LOGTIME} Error: Filter Proxies Error,【' + e.message + '】'
 	      ensure
 	         File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)};
 	      end" 2>/dev/null >> $LOG_FILE
@@ -305,7 +305,7 @@ EOF
          begin
          YAML.load_file('$CFG_FILE');
          rescue Exception => e
-         puts '${LOGTIME} Error: Unable To Parse Config File ' + e.message
+         puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】'
          system 'rm -rf ${CFG_FILE} 2>/dev/null'
          end
          " 2>/dev/null >> $LOG_FILE
@@ -469,7 +469,7 @@ sub_info_get()
       begin
       YAML.load_file('$CFG_FILE');
       rescue Exception => e
-      puts '${LOGTIME} Error: Unable To Parse Config File ' + e.message
+      puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】'
       system 'rm -rf ${CFG_FILE} 2>/dev/null'
       end
       " 2>/dev/null >> $LOG_FILE
