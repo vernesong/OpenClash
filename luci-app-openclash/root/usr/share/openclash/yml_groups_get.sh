@@ -22,7 +22,7 @@ CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
 set_lock
 
@@ -221,7 +221,7 @@ do
 	 end
 	 }.join;
    rescue Exception => e
-   puts '${LOGTIME} Resolve Proxy-group【${CONFIG_NAME} - ${group_type} - ${group_name}】 Error: ' + e.message
+   puts '${LOGTIME} Error: Resolve Proxy-group Error,【${CONFIG_NAME} - ${group_type} - ${group_name}: ' + e.message + '】'
    end
    " 2>/dev/null >> $LOG_FILE &
    

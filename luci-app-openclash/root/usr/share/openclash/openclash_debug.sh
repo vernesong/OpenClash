@@ -13,7 +13,7 @@ del_lock() {
 }
 
 DEBUG_LOG="/tmp/openclash_debug.log"
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 uci commit openclash
 set_lock
 

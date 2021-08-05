@@ -13,11 +13,23 @@ del_lock() {
    rm -rf "/tmp/lock/openclash_proxies_get.lock"
 }
 
+sub_info_get()
+{
+   local section="$1" name
+   config_get "name" "$section" "name" ""
+   
+   if [ -z "$name" ] || [ "$name" != "${CONFIG_NAME%%.*}" ]; then
+      return
+   else
+      sub_cfg=true
+   fi
+}
+
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
 set_lock
 
@@ -44,6 +56,10 @@ if [ ! -s "$CONFIG_FILE" ] && [ ! -s "$BACKUP_FILE" ]; then
 elif [ ! -s "$CONFIG_FILE" ] && [ -s "$BACKUP_FILE" ]; then
    mv "$BACKUP_FILE" "$CONFIG_FILE"
 fi
+
+#判断订阅配置
+config_load "openclash"
+config_foreach sub_info_get "config_subscribe"
 
 #提取节点部分
 proxy_hash=$(ruby_read "$CONFIG_FILE" ".select {|x| 'proxies' == x or 'proxy-providers' == x}")
@@ -180,7 +196,7 @@ do
       else
          ${uci_set}enabled="1"
       fi
-      if [ "$servers_if_update" = "1" ]; then
+      if [ "$servers_if_update" = "1" ] || "$sub_cfg"; then
          ${uci_set}manual="0"
       else
          ${uci_set}manual="1"
@@ -251,7 +267,7 @@ do
    }.join;
       
    rescue Exception => e
-   puts '${LOGTIME} Resolve Proxy-provider【${CONFIG_NAME} - ${provider_name}】 Error: ' + e.message
+   puts '${LOGTIME} Error: Resolve Proxy-provider Error,【${CONFIG_NAME} - ${provider_name}: ' + e.message + '】'
    end
    " 2>/dev/null >> $LOG_FILE &
       
@@ -276,7 +292,7 @@ do
             end
             }
          rescue Exception => e
-         puts '${LOGTIME} Resolve Proxy-provider【${CONFIG_NAME} - ${provider_name}】 Error: ' + e.message
+         puts '${LOGTIME} Error: Resolve Proxy-provider Error,【${CONFIG_NAME} - ${provider_name}: ' + e.message + '】'
          end
          }.join;
          " 2>/dev/null >> $LOG_FILE &
@@ -373,7 +389,7 @@ do
       else
          ${uci_set}enabled="1"
       fi
-      if [ "$servers_if_update" = "1" ]; then
+      if [ "$servers_if_update" = "1" ] || "$sub_cfg"; then
          ${uci_set}manual="0"
       else
          ${uci_set}manual="1"
@@ -729,7 +745,7 @@ do
    end;
    
    rescue Exception => e
-   puts '${LOGTIME} Resolve Proxy【${CONFIG_NAME} - ${server_type} - ${server_name}】 Error: ' + e.message
+   puts '${LOGTIME} Error: Resolve Proxy Error,【${CONFIG_NAME} - ${server_type} - ${server_name}: ' + e.message + '】'
    end
    " 2>/dev/null >> $LOG_FILE &
    
@@ -765,7 +781,7 @@ do
             end
             }
          rescue Exception => e
-         puts '${LOGTIME} Resolve Proxy【${CONFIG_NAME} - ${server_type} - ${server_name}】 Error: ' + e.message
+         puts '${LOGTIME} Error: Resolve Proxy Error,【${CONFIG_NAME} - ${server_type} - ${server_name}: ' + e.message + '】'
          end
          }.join;
          " 2>/dev/null >> $LOG_FILE &

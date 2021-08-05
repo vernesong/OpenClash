@@ -3,7 +3,7 @@
 . /usr/share/openclash/ruby.sh
 . /usr/share/openclash/log.sh
 
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
 
 yml_other_set()
@@ -12,7 +12,7 @@ yml_other_set()
    begin
    Value = YAML.load_file('$4');
    rescue Exception => e
-   puts '${LOGTIME} Load File Error: ' + e.message
+   puts '${LOGTIME} Error: Load File Error,【' + e.message + '】'
    end
    begin
    if $3 == 1 then
@@ -60,7 +60,7 @@ yml_other_set()
       end
    end;
    rescue Exception => e
-   puts '${LOGTIME} Set Custom Rules Error: ' + e.message
+   puts '${LOGTIME} Error: Set Custom Rules Error,【' + e.message + '】'
    end
    begin
    if $5 == 1 then
@@ -108,7 +108,7 @@ yml_other_set()
             end
          end
          rescue Exception => e
-         puts '${LOGTIME} Set BT/P2P Common Port Rules Error: ' + e.message
+         puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Error,【' + e.message + '】'
          end
          Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
       else
@@ -116,7 +116,7 @@ yml_other_set()
       end;
    end;
    rescue Exception => e
-   puts '${LOGTIME} Set BT/P2P DIRECT Rules Error: ' + e.message
+   puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Error,【' + e.message + '】'
    end
    begin
    if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
@@ -129,7 +129,7 @@ yml_other_set()
       Value['rules']=%w(IP-CIDR,198.18.0.1/16,REJECT,no-resolve)
    end;
    rescue Exception => e
-   puts '${LOGTIME} Set 198.18.0.1/16 REJECT Rule Error: ' + e.message
+   puts '${LOGTIME} Error: Set 198.18.0.1/16 REJECT Rule Error,【' + e.message + '】'
    ensure
    File.open('$4','w') {|f| YAML.dump(Value, f)}
    end" 2>/dev/null >> $LOG_FILE
@@ -307,7 +307,7 @@ if [ "$2" != "0" ]; then
        	    .gsub!(/#d/, '');
        	    File.open('$4','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    puts '${LOGTIME} Set lhie1 Rules Error: ' + e.message
+       	    puts '${LOGTIME} Error: Set lhie1 Rules Error,【' + e.message + '】'
        	    end" 2>/dev/null >> $LOG_FILE
        elif [ "$rule_name" = "ConnersHua" ]; then
             ruby -ryaml -E UTF-8 -e "
@@ -334,7 +334,7 @@ if [ "$2" != "0" ]; then
        	    };
        	    File.open('$4','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    puts '${LOGTIME} Set ConnersHua Rules Error: ' + e.message
+       	    puts '${LOGTIME} Error: Set ConnersHua Rules Error,【' + e.message + '】'
        	    end" 2>/dev/null >> $LOG_FILE
        else
             ruby -ryaml -E UTF-8 -e "
@@ -349,7 +349,7 @@ if [ "$2" != "0" ]; then
        	    };
        	    File.open('$4','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    puts '${LOGTIME} Set ConnersHua Return Rules Error: ' + e.message
+       	    puts '${LOGTIME} Error: Set ConnersHua Return Rules Error,【' + e.message + '】'
        	    end" 2>/dev/null >> $LOG_FILE
        fi
    fi
