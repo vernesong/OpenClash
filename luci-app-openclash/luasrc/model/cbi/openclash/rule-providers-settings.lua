@@ -9,9 +9,9 @@ local UTIL = require "luci.util"
 local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 
-m = Map(openclash,  translate("Rule Providers and Groups"))
-m.pageaction = false
-m.description=translate("Attention:")..
+mm = Map(openclash,  translate("Rule Providers and Groups"))
+mm.pageaction = false
+mm.description=translate("Attention:")..
 "<br/>"..translate("The game proxy is a test function and does not guarantee the availability of rules")..
 "<br/>"..translate("Preparation steps:")..
 "<br/>"..translate("1. In the <server and policy group management> page, create the policy group and node you are going to use, and apply the configuration (when adding nodes, you must select the policy group you want to join). Policy group type suggestion: fallback, game nodes must support UDP")..
@@ -29,6 +29,12 @@ m.description=translate("Attention:")..
 "<br/>"..
 "<br/>"..translate("Introduction to rule set usage: https://lancellc.gitbook.io/clash/clash-config-file/rule-provider")
 
+cfg_show = Map("openclash_cfg_show")
+cfg_show.pageaction = false
+cfg_show:section(SimpleSection).template  = "openclash/config_show"
+
+m = Map("openclash")
+m.pageaction = false
 
 function IsRuleFile(e)
 e=e or""
@@ -263,4 +269,4 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-return m
+return mm, cfg_show, m

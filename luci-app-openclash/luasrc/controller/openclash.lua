@@ -41,6 +41,8 @@ function index()
 	entry({"admin", "services", "openclash", "dler_logout"}, call("action_dler_logout"))
 	entry({"admin", "services", "openclash", "dler_login"}, call("action_dler_login"))
 	entry({"admin", "services", "openclash", "dler_login_info_save"}, call("action_dler_login_info_save"))
+	entry({"admin", "services", "openclash", "config_name"}, call("action_config_name"))
+	entry({"admin", "services", "openclash", "switch_config"}, call("action_switch_config"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Servers and Groups"), 40).leaf = true
 	entry({"admin", "services", "openclash", "other-rules-edit"},cbi("openclash/other-rules-edit"), nil).leaf = true
@@ -431,6 +433,34 @@ local function dler_checkin()
 	end
 end
 
+local function config_name()
+	local e,a={}
+	for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
+		a=fs.stat(o)
+		if a then
+			e[t]={}
+			e[t].name=fs.basename(o)
+		end
+	end
+	return json.parse(json.stringify(e)) or e
+end
+
+local function config_path()
+	return string.sub(uci:get("openclash", "config", "config_path"), 23, -1) or ""
+end
+
+function action_switch_config()
+	uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..luci.http.formvalue("config_name"))
+	uci:commit("openclash")
+end
+
+function action_config_name()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		config_name = config_name();
+		config_path = config_path();
+	})
+end
 
 function action_save_corever()
 	luci.http.prepare_content("application/json")
