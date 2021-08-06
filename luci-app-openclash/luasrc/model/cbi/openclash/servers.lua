@@ -9,7 +9,14 @@ font_off = [[</font>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
-m = Map(openclash,  translate("Servers manage and Config create"))
+mm = Map(openclash,  translate("Servers manage and Config create"))
+mm.pageaction = false
+
+cfg_show = Map("openclash_cfg_show")
+cfg_show.pageaction = false
+cfg_show:section(SimpleSection).template  = "openclash/config_show"
+
+m = Map("openclash")
 m.pageaction = false
 
 s = m:section(TypedSection, "openclash")
@@ -257,4 +264,4 @@ o.write = function()
 end
 
 m:append(Template("openclash/server_list"))
-return m
+return mm, cfg_show, m
