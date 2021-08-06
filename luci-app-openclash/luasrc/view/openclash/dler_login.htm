@@ -88,8 +88,18 @@
 		};
 		return false;
 	}
+	
+function web_dler(btn)
+{
+	btn.disabled = true;
+  url='https://dlercloud.com';
+  window.open(url);
+  btn.disabled = false;
+  return false;
+}
 //]]></script>
 <input type="button" class="btn cbi-button cbi-button-apply" value="<%:Login Account%>" onclick="return dler_login(this,'dler_login')" />
 <input type="button" class="btn cbi-button cbi-button-remove" value="<%:Logout Account%>" onclick="return dler_login(this,'dler_logout')" />
+<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Official Website%>" onclick="return web_dler(this)" />
 <span id="<%=self.option%>-status"><%=self.value%></span>
 <%+cbi/valuefooter%>

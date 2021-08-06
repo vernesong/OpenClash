@@ -2254,3 +2254,14 @@ msgstr "错误：节点解析失败，"
 msgid "Error: Resolve Proxy-group Error,"
 msgstr "错误：策略组解析失败，"
 
+msgid "switching succeeded!"
+msgstr "切换成功！"
+
+msgid "switching failed!"
+msgstr "切换失败！"
+
+msgid "Current Config File"
+msgstr "当前配置文件"
+
+msgid "Official Website"
+msgstr "官方网站"
