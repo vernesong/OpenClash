@@ -35,6 +35,7 @@
     	config_name.value = status.config_path;
 		}
 		else if (x && x.status == 200 && status.config_path != "") {
+			config_name.options.add(new Option(status.config_path,status.config_path));
 			config_name.value = status.config_path;
 		}
 		else if (x && x.status == 200) {
