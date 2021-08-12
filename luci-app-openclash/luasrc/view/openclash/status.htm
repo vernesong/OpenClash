@@ -1,44 +1,8 @@
+<head>
 <style>
-	#hid_btn {
-		display: block;
-		width: 18px;
-		margin:0 auto;
-	}
-	.rotate{
-    transform-origin:center center;
-    transform: rotate(180deg);
-    -webkit-transform: rotate(180deg);
-    -moz-transform: rotate(180deg);
-    -ms-transform: rotate(180deg);
-    -o-transform: rotate(180deg);
-    transition: transform 0.2s;
-    -moz-transition: -moz-transform 0.2s; 
-    -moz-transition: -moz-transform 0.2s; 
-    -o-transition: -o-transform 0.2s; 
-    -ms-transition: -ms-transform 0.2s; 
-}
-
-	.rotate1{
-    transform-origin:center center;
-    transform: rotate(360deg);
-    -webkit-transform: rotate(360deg);
-    -moz-transform: rotate(360deg);
-    -ms-transform: rotate(360deg);
-    -o-transform: rotate(360deg);
-    transition: transform 0.2s; 
-    -moz-transition: -moz-transform 0.2s; 
-    -moz-transition: -moz-transform 0.2s; 
-    -o-transition: -o-transform 0.2s; 
-    -ms-transition: -ms-transform 0.2s; 
-}
-	.rotate2{
-    transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    -moz-transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-}
+.dot-typing{position:relative;left:-9999px;width:10px;height:10px;border-radius:5px;background-color:#9880ff;color:#9880ff;box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff;animation:dotTyping 1.5s infinite linear}@keyframes dotTyping{0%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}16.667%{box-shadow:9984px -10px 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}33.333%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}50%{box-shadow:9984px 0 0 0 #9880ff,9999px -10px 0 0 #9880ff,10014px 0 0 0 #9880ff}66.667%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}83.333%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px -10px 0 0 #9880ff}100%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}}
 </style>
+</head>
 <fieldset class="cbi-section">
 	<table width="100%">
 	   <tr>
@@ -69,8 +33,14 @@
 		<tr><td width="25%"><%:Main Program%></td><td  width="25%" align="left" id="_clash"><%:Collecting data...%></td><td width="25%"><%:Control Panel Login IP%></td><td width="25%" align="left" id="_daip"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"><%:Core Daemons%></td><td width="25%" align="left" id="_watchdog"><%:Collecting data...%></td><td width="25%"><%:Control Panel Login Port%></td><td width="25%" align="left" id="_dapo"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"><%:Core Running Mode%></td><td  width="25%" align="left" id="_mode"><%:Collecting data...%></td><td width="25%"><%:Control Panel Login Secret%></td><td width="25%" align="left" id="_dase"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"><%:Yacd Control Panel%></td><td width="25%" align="left" id="_web"><%:Collecting data...%></td><td width="25%"><%:Dashboard Control Panel%></td><td width="25%" align="left" id="_webo"><%:Collecting data...%></td></tr>
-		<tr><td width="100%" colspan="4"><p align="center"><img id="hid_btn" alt="Show More" height="20px" onclick="return hid_btn_action()"/></p></td></tr>
+		<tr id="dash"><td width="25%"><%:Yacd Control Panel%></td><td width="25%" align="left" id="_web"><%:Collecting data...%></td><td width="25%"><%:Dashboard Control Panel%></td><td width="25%" align="left" id="_webo"><%:Collecting data...%></td></tr>
+		<tr height="50px">
+			<td width="100%" colspan="4">
+				<div id="hid_btn" onclick="hid_btn_action()">
+					<div style="margin: 0 auto;" class="dot-typing"></div>
+				</div>
+			</td>
+		</tr>
 		<tr id="hid_1"><td width="100%" colspan="4"><p align="center"><b><%:Quick Operation%></b></p></td></tr>
     <tr id="hid_2">
     	<td width="25%" align="center" id="_close_all_connection"><%:Collecting data...%></td>
@@ -124,32 +94,31 @@
 	var state = document.getElementById("state");
 	var hid_btn = document.getElementById("hid_btn");
 	var hid_btn_if = true;
-	var arrow="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAF0AAABoCAMAAACkGAzvAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ4IDc5LjE2NDAzNiwgMjAxOS8wOC8xMy0wMTowNjo1NyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkYzOTBCNjQ4RkMyMTExRUE4QzgwOUMwRjlGNTNBMzY3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkYzOTBCNjQ5RkMyMTExRUE4QzgwOUMwRjlGNTNBMzY3Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6RjM5MEI2NDZGQzIxMTFFQThDODA5QzBGOUY1M0EzNjciIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6RjM5MEI2NDdGQzIxMTFFQThDODA5QzBGOUY1M0EzNjciLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7+mRMLAAAAaVBMVEUQEBDv7+/Pz88wMDBQUFAgICC/v79wcHBgYGBAQECfn5+Pj49/f3/f39+vr6/s7Ox9fX2ysrLT09NbW1v09PQ6OjonJyd8fHwRERHk5OSenp4WFhZOTk4BAQHh4eGMjIwDAwMAAAD///+EZwwxAAAAI3RSTlP/////////////////////////////////////////////AGYpg5YAAAKoSURBVHja7Fppd5tADNQCC+ZskzZHz1T+/z+yNvjAhkWaBaXte9XHRDvPHoOkGS3tLYPeBd1VGTFzWuQrwNo6S5nKK8YJvT5CD1Emsdi7C4bPx+jXvx+jjgLvaIzRXNFvwQ8f38HY7h6jOKN3fB+Esp+kE4xuQHfE02gg8GoGwg/oFc8FwM6ElSGqHj2b/R9TF89KH1mPThyIQgVeh877Hp2DkbYyK1n4uIAus5N4jkeX2KkXz/bo5WJKmkSxcjzZoxeLOUxVDCvD1z6gtyzEzuGsHCIZKsFOypthx5XSoexUZ5yXMifs5CQececamYi5nN2w04j5lFzru0vFdJ8ArJyzSf1pLk1FZuXyHJCeyRM7Claq6Uyg+b75vpWzRk8YQb8VF3pWJvOMgh3s2SWkcshxV7MJfb+hikpobYK6AaF1FepkFFP91H2GkC6/xEqun7DdDgQPTD8ETFfhaFB1ALATnjoJnd+gmZDUEznKiqibWqip4KqsgBoirPmW2ZE0kKgoF9jxon5T6NUmjhWtGp5tKsEBENbaMy03ValapZJvVKNltE+Qe5QVyIUYNRUdK6DHUUNiDXZQHp+Zf3x7sPJnPr99+vjh73N//qOvQ//6/eWLFfrPp1/Mr50N+rmRWLxNoxFBYX2A6DfjzdZV7H4027ICzwzd23WPWcGwVeerIesDQ1+QIusnjtxyWmoMJz29mRGBrpPedRx6YagOWktl0xmqMlcYKkpTNVyRnZKHdTbiQpg6KJbuz3rnKgmjr2BFdt0sHUNdQYx0O02d2m1d5uzGZTZ1yE3dfZvNRLtfsVUR37vTVsV2I2S7zbLdxNluEf/UBnSL7e3KzXO1vHm23ZrbbvxtbysY3bTI3+WWiPENF+PbOdvdLCrZT28W/ZPe0m8BBgDHY8G52E6VGwAAAABJRU5ErkJggg=="
-
+	
 	hid_1.style.display = "none";
 	hid_2.style.display = "none";
 	hid_3.style.display = "none";
   state.style.display="none";
-  hid_btn.src=arrow;
+  
+	window.onload=function(){
+		hid_btn_action();
+	}
 
 	function hid_btn_action() {
-		if (hid_btn_if) {
-			hid_1.style.display = "";
-			hid_2.style.display = "";
-			hid_3.style.display = "";
-			state.style.display = "block";
-			hid_btn.className="rotate";
-			hid_btn_if = false;
-		} else {
-			hid_1.style.display = "none";
-			hid_2.style.display = "none";
-			hid_3.style.display = "none";
-			state.style.display = "none";
-			hid_btn.className="rotate1";
-			hid_btn_if = true;
-		}
-		if (hid_btn.className == "rotate1"){
-			setTimeout('hid_btn.className="rotate2"',200);
+		hid_btn.onclick = function() {
+			if (hid_btn_if) {
+				hid_1.style.display = "";
+				hid_2.style.display = "";
+				hid_3.style.display = "";
+				state.style.display = "block";
+				hid_btn_if = false;
+			} else {
+				hid_1.style.display = "none";
+				hid_2.style.display = "none";
+				hid_3.style.display = "none";
+				state.style.display = "none";
+				hid_btn_if = true;
+			}
 		}
 	}
 	

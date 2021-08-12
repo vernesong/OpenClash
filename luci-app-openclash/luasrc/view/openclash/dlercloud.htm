@@ -272,6 +272,7 @@
   var dler_it = document.getElementById("dler_it");
   var more_info = document.getElementById("more_info");
   var dler_logo = document.getElementById("dler_logo");
+  var showmore=1;
    
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
 		if (x && x.status == 200 && status.dler_info != "error") {
@@ -291,7 +292,7 @@
 		}
 	});
 	
-	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
+	XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
 		if (x && x.status == 200 && status.dler_info != "error") {
 			dler_plan.innerHTML = status.dler_info.plan;
 			dler_plantime.innerHTML = status.dler_info.plan_time;
@@ -302,7 +303,12 @@
 			dler_unused.innerHTML = status.dler_info.unused;
 			dler_traffic.innerHTML = status.dler_info.traffic;
 			dler_integral.innerHTML = status.dler_info.integral;
-			show_info();
+			if (showmore != 0) {
+			   show_info();
+			}
+			else {
+			   show_less();
+		  }
 		}
 		else {
 			show_less();
@@ -339,25 +345,19 @@ function web_dler()
        
 function show_more()
 {
-   XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
-      if (x && x.status == 200 && status.dler_info != "error") {
-         if (obj.style.width == "100%") {
-            obj.style.width = "150px";
-            obj.style.borderRadius = "0 0 0 0";
-            more_info.style.display = "none";
-         }
-         else {
-   	        obj.style.width = "100%";
-            obj.style.borderRadius = "0 5px 5px 0";
-            more_info.style.display = "";
-            more_info.style.transform = "translateY(11%)";
-         }
+	 if (obj.style.width == "150px") {
+	    show_less();
+	    showmore=0;
+	 }
+	 else {
+	    if (dler_plan.value != "") {
+         show_info();
+         showmore=1;
 		  }
 		  else {
 		     web_dler();
       }
-	});
-   
+	 }
 }
 
 function show_less()
