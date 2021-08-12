@@ -14,14 +14,7 @@ font_off = [[</font>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
-mm = Map("openclash",  translate("Config Update"))
-mm.pageaction = false
-
-cfg_show = Map("openclash_cfg_show")
-cfg_show.pageaction = false
-cfg_show:section(SimpleSection).template  = "openclash/config_show"
-
-m = Map("openclash")
+m = Map("openclash",  translate("Config Update"))
 m.pageaction = false
 
 s = m:section(TypedSection, "openclash")
@@ -145,4 +138,6 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-return mm, cfg_show, m
+m:append(Template("openclash/toolbar_show"))
+
+return m

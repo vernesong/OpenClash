@@ -18,16 +18,9 @@ local op_mode = string.sub(luci.sys.exec('uci get openclash.config.operation_mod
 if not op_mode then op_mode = "redir-host" end
 local lan_ip=SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
 
-mm = Map("openclash", translate("Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"))
-mm.pageaction = false
-mm.description=translate("To restore the default configuration, try accessing:").." <a href='/cgi-bin/luci/admin/services/openclash/restore'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"
-
-cfg_show = Map("openclash_cfg_show")
-cfg_show.pageaction = false
-cfg_show:section(SimpleSection).template  = "openclash/config_show"
-
-m = Map("openclash")
+m = Map("openclash", translate("Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"))
 m.pageaction = false
+m.description=translate("To restore the default configuration, try accessing:").." <a href='/cgi-bin/luci/admin/services/openclash/restore'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"
 
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
@@ -797,6 +790,9 @@ o.write = function()
   SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
-return mm, cfg_show, m
+
+m:append(Template("openclash/toolbar_show"))
+
+return m
 
 
