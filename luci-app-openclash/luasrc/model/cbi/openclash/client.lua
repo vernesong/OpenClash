@@ -133,6 +133,8 @@ dler = Map("openclash")
 dler.pageaction = false
 dler:section(SimpleSection).template  = "openclash/dlercloud"
 
+m:append(Template("openclash/toolbar_show"))
+
 if m.uci:get("openclash", "config", "dler_token") then
   return m, dler, form, s, ap, d
 else

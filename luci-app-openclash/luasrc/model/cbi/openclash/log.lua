@@ -16,4 +16,6 @@ log.template="openclash/log"
 log.description = translate("")
 log.rows = 29
 
+m:append(Template("openclash/toolbar_show"))
+
 return m

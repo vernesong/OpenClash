@@ -43,6 +43,7 @@ function index()
 	entry({"admin", "services", "openclash", "dler_login_info_save"}, call("action_dler_login_info_save"))
 	entry({"admin", "services", "openclash", "config_name"}, call("action_config_name"))
 	entry({"admin", "services", "openclash", "switch_config"}, call("action_switch_config"))
+	entry({"admin", "services", "openclash", "toolbar_show"}, call("action_toolbar_show"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Servers and Groups"), 40).leaf = true
 	entry({"admin", "services", "openclash", "other-rules-edit"},cbi("openclash/other-rules-edit"), nil).leaf = true
@@ -454,10 +455,68 @@ function action_switch_config()
 	uci:commit("openclash")
 end
 
+local function s(e)
+local t=0
+local a={' KB/S',' MB/S',' GB/S',' TB/S'}
+repeat
+e=e/1024
+t=t+1
+until(e<=1024)
+return string.format("%.1f",e)..a[t]
+end
+
+local function i(e)
+local t=0
+local a={' KB',' MB',' GB',' TB'}
+repeat
+e=e/1024
+t=t+1
+until(e<=1024)
+return string.format("%.1f",e)..a[t]
+end
+
+function action_toolbar_show()
+	local pid = luci.sys.exec("pidof clash |tr -d '\n'")
+	local traffic, connections, up, down, mem, cpu
+	if pid then
+		local daip = daip()
+		local dase = dase()
+		local cn_port = cn_port()
+		traffic = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/traffic', dase, daip, cn_port)))
+		connections = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/connections', dase, daip, cn_port)))
+		if traffic and connections then
+			connections = #(connections.connections)
+			up = s(traffic.up)
+			down = s(traffic.down)
+		else
+			up = "0 KB/S"
+			down = "0 KB/S"
+			connections = "0"
+		end
+		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status |grep -w VmRSS |awk '{print $2}'", pid)))
+		cpu = luci.sys.exec(string.format("top -b -n1 |grep %s |head -1 |awk '{print $7}'", pid))
+		if mem and cpu then
+			mem = i(mem*1024)
+			cpu = string.gsub(cpu, "%%", " %%")
+		else
+			mem = "0 KB"
+			cpu = "0 %"
+		end
+	end
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		connections = connections,
+		up = up,
+		down = down,
+		mem = mem,
+		cpu = cpu;
+	})
+end
+
 function action_config_name()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		config_name = config_name();
+		config_name = config_name(),
 		config_path = config_path();
 	})
 end
@@ -503,7 +562,6 @@ function action_dler_login()
 		dler_login = dler_login();
 	})
 end
-
 
 function action_one_key_update_check()
 	luci.sys.call("rm -rf /tmp/*_last_version 2>/dev/null")
