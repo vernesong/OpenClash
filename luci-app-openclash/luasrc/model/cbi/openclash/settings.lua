@@ -561,22 +561,8 @@ core_update = s:taboption("version_update", DummyValue, "", nil)
 core_update.template = "openclash/update"
 
 ---- debug
-debug_log = s:taboption("debug", Value, "debug_log")
-debug_log.template = "cbi/tvalue"
-debug_log.readonly=true
-debug_log.rows = 30
-debug_log.wrap = "off"
-function debug_log.cfgvalue(self, section)
-  return NXFS.readfile("/tmp/openclash_debug.log") or ""
-end
-  
-o = s:taboption("debug", Button, translate("Generate Logs")) 
-o.title = translate("Generate Logs")
-o.inputtitle = translate("Click to Generate")
-o.inputstyle = "reload"
-o.write = function()
-  SYS.call("/usr/share/openclash/openclash_debug.sh")
-end
+o = s:taboption("debug", DummyValue, "", nil)
+o.template = "openclash/debug"
 
 ---- dlercloud
 o = s:taboption("dlercloud", Value, "dler_email")
@@ -745,7 +731,7 @@ o.placeholder = translate("Not Null")
 o.rmempty = true
 
 if op_mode == "redir-host" then
-s = m:section(TypedSection, "openclash", translate("Set Custom Hosts, Only Work with Redir-Host Mode"))
+s = m:section(NamedSection, "config", translate("Set Custom Hosts, Only Work with Redir-Host Mode"))
 s.anonymous = true
 
 custom_hosts = s:option(Value, "custom_hosts")

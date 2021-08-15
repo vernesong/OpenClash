@@ -16,9 +16,9 @@
 	</span>
 </li>
 
-<table><tr id="tool_label2"><td colspan="4" align="center">
+<table><tr id="tool_label2"><td colspan="4"><p align="center">
 <span>
-&nbsp;&nbsp;上传:&nbsp;
+&nbsp;&nbsp;<%:Up:%>&nbsp;
 	<span id="upload_">
 		<font color=green>
 		0 KB/S
@@ -26,7 +26,7 @@
 	</span>
 </span>
 <span>
-&nbsp;&nbsp;下载:&nbsp;
+&nbsp;&nbsp;<%:Down:%>&nbsp;
 	<span id="download_">
 		<font color=green>
 		0 KB/S
@@ -35,7 +35,7 @@
 </span>
 
 <span>
-&nbsp;&nbsp;活动连接:&nbsp;
+&nbsp;&nbsp;<%:Connections:%>&nbsp;
 	<span id="connect_t">
 		<font color=green>
 		0
@@ -44,7 +44,7 @@
 </span>
 
 <span>
-&nbsp;&nbsp;内存占用:&nbsp;
+&nbsp;&nbsp;<%:Ram:%>&nbsp;
 	<span id="mem_t">
 		<font color=green>
 		0 KB
@@ -53,7 +53,7 @@
 </span>
 
 <span>
-&nbsp;&nbsp;CPU占用:&nbsp;
+&nbsp;&nbsp;<%:CPU:%>&nbsp;
 	<span id="cpu_t">
 		<font color=green>
 		0 %
@@ -61,7 +61,7 @@
 	</span>
 	&nbsp;&nbsp;
 </span>
-</td></tr></table>
+</p></td></tr></table>
 
 
 <script type="text/javascript">//<![CDATA[
@@ -96,19 +96,22 @@
 	};
 	
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "config_name")%>', null, function(x, status) {
-		if (x && x.status == 200 && status.config_name != "" && status.config_path != "") {
+		if (x && x.status == 200 && status.config_name != "") {
 			for(var i in status.config_name){
         config_name.options.add(new Option(status.config_name[i].name,status.config_name[i].name));
     	}
-    	config_name.value = status.config_path;
+    	if (status.config_path != "") {
+    		config_name.value = status.config_path;
+    	}
+    	else
+    	{
+    		config_name.options.add(new Option("<%:Not Select%>",""));
+    		config_name.value = "";
+    	}
 		}
 		else if (x && x.status == 200 && status.config_path != "") {
 			config_name.options.add(new Option(status.config_path,status.config_path));
 			config_name.value = status.config_path;
-		}
-		else if (x && x.status == 200) {
-			config_name.options.add(new Option("config.yaml","config.yaml"));
-			config_name.value = "config.yaml";
 		}
 		else {
 			tool_label.style.display = "none";
@@ -116,7 +119,7 @@
 	});
 	
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', null, function(x, status) {
-		if (x && x.status == 200) {
+		if (x && x.status == 200 && x.responseText != "") {
 			document.getElementById("upload_").innerHTML = "<font color=green>"+status.up+"</font>";
 			document.getElementById("download_").innerHTML = "<font color=green>"+status.down+"</font>";
 			document.getElementById("mem_t").innerHTML = "<font color=green>"+status.mem+"</font>";
@@ -133,12 +136,19 @@
 	});
 	
 	XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', null, function(x, status) {
-		if (x && x.status == 200) {
+		if (x && x.status == 200 && x.responseText != "") {
 			document.getElementById("upload_").innerHTML = "<font color=green>"+status.up+"</font>";
 			document.getElementById("download_").innerHTML = "<font color=green>"+status.down+"</font>";
 			document.getElementById("mem_t").innerHTML = "<font color=green>"+status.mem+"</font>";
 			document.getElementById("cpu_t").innerHTML = "<font color=green>"+status.cpu+"</font>";
 			document.getElementById("connect_t").innerHTML = "<font color=green>"+status.connections+"</font>";
+		}
+		else {
+			document.getElementById("upload_").innerHTML = "<font color=green>0 KB/S</font>";
+			document.getElementById("download_").innerHTML = "<font color=green>0 KB/S</font>";
+			document.getElementById("mem_t").innerHTML = "<font color=green>0 KB</font>";
+			document.getElementById("cpu_t").innerHTML = "<font color=green>0 %</font>";
+			document.getElementById("connect_t").innerHTML = "<font color=green>0</font>";
 		}
 	});
 	
