@@ -76,6 +76,7 @@ dir = "/etc/openclash/config/"
 bakck_dir="/etc/openclash/backup"
 proxy_pro_dir="/etc/openclash/proxy_provider/"
 rule_pro_dir="/etc/openclash/rule_provider/"
+backup_dir="/tmp/"
 create_bakck_dir=fs.mkdir(bakck_dir)
 create_proxy_pro_dir=fs.mkdir(proxy_pro_dir)
 create_rule_pro_dir=fs.mkdir(rule_pro_dir)
@@ -93,6 +94,8 @@ HTTP.setfilehandler(
 				if meta and chunk then fd = nixio.open(proxy_pro_dir .. meta.file, "w") end
 			elseif fp == "rule-provider" then
 				if meta and chunk then fd = nixio.open(rule_pro_dir .. meta.file, "w") end
+			elseif fp == "backup-file" then
+				if meta and chunk then fd = nixio.open(backup_dir .. meta.file, "w") end
 			end
 
 			if not fd then
@@ -126,6 +129,11 @@ HTTP.setfilehandler(
 				um.value = translate("File saved to") .. ' "/etc/openclash/proxy_provider/"'
 			elseif fp == "rule-provider" then
 				um.value = translate("File saved to") .. ' "/etc/openclash/rule_provider/"'
+			elseif fp == "backup-file" then
+				os.execute("tar -C '/etc/openclash/' -xzf %s >/dev/null 2>&1" % (backup_dir .. meta.file))
+				os.execute("mv /etc/openclash/openclash /etc/config/openclash >/dev/null 2>&1")
+				fs.unlink(backup_dir .. meta.file)
+				um.value = translate("Backup File Restore Successful!")
 			end
 			fs.unlink("/tmp/Proxy_Group")
 		end
