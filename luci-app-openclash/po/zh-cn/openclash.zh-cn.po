@@ -316,9 +316,8 @@ msgstr "文件上传失败"
 msgid "No specify upload file."
 msgstr "未指定上传文件"
 
-msgid ""
-"Only Support yaml what would be save to /etc/openclash/"
-msgstr "注意：只支持【yaml】后缀的文件，文件将被保存到 /etc/openclash/"
+msgid "Note: Please Upload File According To File Type, File Will Be Saved To The Prompt Path"
+msgstr "注意：请根据文件类型上传文件，文件将会被保存到提示路径"
 
 msgid "Proxy Provider File List"
 msgstr "代理集文件列表"
@@ -2265,3 +2264,45 @@ msgstr "当前配置文件"
 
 msgid "Official Website"
 msgstr "官方网站"
+
+msgid "Up"
+msgstr "上传"
+
+msgid "Up:"
+msgstr "上传:"
+
+msgid "Down:"
+msgstr "下载:"
+
+msgid "Connections:"
+msgstr "活动连接:"
+
+msgid "Ram:"
+msgstr "内存占用:"
+
+msgid "CPU:"
+msgstr "CPU占用:"
+
+msgid "Could not find any connection logs!"
+msgstr "找不到任何连接日志！"
+
+msgid "Some error occurred!"
+msgstr "发生了一些错误！"
+
+msgid "Click to Test"
+msgstr "点击测试"
+
+msgid "Connection Test"
+msgstr "连接测试"
+
+msgid "Backup File"
+msgstr "备份文件"
+
+msgid "Backup File Restore Successful!"
+msgstr "备份文件恢复成功！"
+
+msgid "Backup OpenClash"
+msgstr "备份 OpenClash"
+
+msgid "Not Select"
+msgstr "未选择"

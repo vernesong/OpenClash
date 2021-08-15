@@ -61,17 +61,22 @@
 <fieldset class="cbi-section">
 	<table width="100%">
 	  <tr>
-	  	<td width="33%" colspan="2">
+	  	<td width="25%">
 	  	   <p align="center" id="restore">
 	  		   <%:Collecting data...%>
 	  	   </p>
 	  	</td>
-	  	<td width="33%" colspan="2">
+	  	<td width="25%">
+	  	   <p align="center" id="backup">
+	  		   <%:Collecting data...%>
+	  	   </p>
+	  	</td>
+	  	<td width="25%">
 	  	   <p align="center" id="remove_core">
 	  		   <%:Collecting data...%>
 	  	   </p>
 	  	</td>
-	    <td width="33%" colspan="2">
+	    <td width="25%">
 	  	   <p align="center" id="one_key_update">
 	  		   <%:Collecting data...%>
 	  	   </p>
@@ -103,6 +108,7 @@
 	var ma_core_game_up  = document.getElementById('ma_core_game_up');
 	var ma_op_up  = document.getElementById('ma_op_up');
 	var restore  = document.getElementById('restore');
+	var backup  = document.getElementById('backup');
 	var one_key_update  = document.getElementById('one_key_update');
 	var remove_core  = document.getElementById('remove_core');
   
@@ -218,15 +224,8 @@
 	restore.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Restore Default Config%>" onclick="return restore_config(this)"/>';
 	one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:One Click Check Update%>" onclick="return all_one_key_update(this)"/>';
 	remove_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-remove" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
+	backup.innerHTML = '<input type="button" class="btn cbi-button cbi-button-apply" value="<%:Backup OpenClash%>" onclick="return backup_all_file(this)"/>';
 	
-	function winOpen(url)
-	  {
-	  	var winOpen = window.open(url);
-      if(winOpen == null || typeof(winOpen) == 'undefined'){
-         window.location.href=url;
-      }
-	  }
-	  
 	function core_update(btn,type)
     {
     	var v = document.getElementById('CORE_VERSION').value;
@@ -262,7 +261,7 @@
         	if ( status.corever != "0" ) {
         		if (type == "Dev") {
         			url1='https://github.com/vernesong/OpenClash/releases/download/Clash/clash-'+status.corever+'.tar.gz';
-        			winOpen(url1);
+        			window.location.href=url1;
         		}
         		if (type == "TUN") {
         			var corelv = status.corelv;
@@ -270,7 +269,7 @@
           		var coretunlvis = arr_core[1];
           		if ( coretunlvis != "" ) {
               	url3='https://github.com/vernesong/OpenClash/releases/download/TUN-Premium/clash-'+status.corever+'-'+coretunlvis+'.gz';
-              	winOpen(url3);
+              	window.location.href=url3;
           		}
           		else {
               	alert('<%:Failed to get the latest version. Please try again later!%>')
@@ -278,7 +277,7 @@
         		}
         		if (type == "Game") {
         			url4='https://github.com/vernesong/OpenClash/releases/download/TUN/clash-'+status.corever+'.tar.gz';
-              winOpen(url4);
+              window.location.href=url4;
         		}
         	}
         	else {
@@ -301,7 +300,7 @@
            var oplvis = oplv.substring(oplv.indexOf("v") + 1,oplv.indexOf(","));
            if ( oplvis != "" ) {
               url2='https://github.com/vernesong/OpenClash/releases/download/v'+oplvis+'/luci-app-openclash_'+oplvis+'_all.ipk';
-              winOpen(url2);
+              window.location.href=url2;
            }
            else {
               alert('<%:Failed to get the latest version. Please try again later!%>')
@@ -349,6 +348,15 @@
            }
         });
         }
+        btn.disabled = false;
+        return false; 
+    }
+    
+    function backup_all_file(btn)
+    {
+    	  btn.value    = '<%:Backup OpenClash%>';
+        btn.disabled = true;
+        window.location.href='<%="backup"%>';
         btn.disabled = false;
         return false; 
     }
