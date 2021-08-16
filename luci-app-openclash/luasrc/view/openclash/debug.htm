@@ -114,13 +114,12 @@ local diag_host = "www.youtube.com"
 
 <form>
 	<fieldset>
-		<div style="width:30%; margin: 0 auto">
+		<div style="width:50%; float: left; text-align: center;">
 			<%:Connection Test%>&nbsp;&nbsp;&nbsp;&nbsp;
 			<input type="text" value="<%=diag_host%>" name="diag" />
 			<input type="button" value="<%:Click to Test%>" class="btn cbi-button cbi-button-apply" onclick="update_status(this.form.diag)" />
 		</div>
-		<br />
-		<div style="width:30%; margin: 0 auto">
+		<div style="width:50%; float: left; text-align: center;">
 			<%:Generate Logs%>&nbsp;&nbsp;&nbsp;&nbsp;
 			<input type="button" value="<%:Click to Generate%>" class="btn cbi-button cbi-button-apply" onclick="gen_debug_logs(this)" />
 		</div>
