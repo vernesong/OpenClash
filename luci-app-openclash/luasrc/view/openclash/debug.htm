@@ -9,67 +9,77 @@ local diag_host = "www.youtube.com"
 
 <script type="text/javascript">//<![CDATA[
 
-	function update_status(field)
+	function show_diag_info(addr)
 	{
-		var addr = field.value;
-
+		var addr = addr;
 		var legend = document.getElementById('diag-rc-legend');
 		var output = document.getElementById('diag-rc-output');
 
 		if (legend && output)
 		{
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "diag_connection")%>', {addr: addr}, function(x, status) {
+				if (x && x.status == 200 && x.responseText != "")
+				{
+					legend.style.display = 'none';
+					output.innerHTML = String.format('<pre>%h</pre>', x.responseText);
+				}
+				else if (x.status == 500)
+				{
+					legend.style.display = 'none';
+					output.innerHTML = '<span class="error"><%:Bad address specified!%></span>';
+				}
+				else
+				{
+					legend.style.display = 'none';
+					output.innerHTML = '<span class="error"><%:Could not find any connection logs!%></span>';
+				}
+			});
+		}
+	}
+	
+	function update_status(field)
+	{
+		var addr = field.value;
+		var legend = document.getElementById('diag-rc-legend');
+		var output = document.getElementById('diag-rc-output');
+		
+		if (legend && output)
+		{
 			output.innerHTML =
 				'<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
-				'<%:Waiting for command to complete...%>'
-			;
+				'<%:Waiting for command to complete...%>';
 
 			legend.parentNode.style.display = 'block';
 			legend.style.display = 'inline';
-			
-			let HTTP = {
-            checker: (domain) => {
-                let img = new Image;
-                let timeout = setTimeout(() => {
-                    img.onerror = img.onload = null;
-                }, 2000);
-
-                img.onerror = () => {
-                    clearTimeout(timeout);
-                }
-
-                img.onload = () => {
-                    clearTimeout(timeout);
-                }
-
-                img.src = `https://${domain}/favicon.ico?${+(new Date)}`
-            },
-            runcheck: () => {
-                HTTP.checker(addr);
-            }
-        };
-        
-      HTTP.runcheck();
-
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "diag_connection")%>', {addr: addr}, function(x, status) {
-					if (x && x.status == 200 && x.responseText != "")
-					{
-						legend.style.display = 'none';
-						output.innerHTML = String.format('<pre>%h</pre>', x.responseText);
-					}
-					else if (x.status == 500)
-					{
-						legend.style.display = 'none';
-						output.innerHTML = '<span class="error"><%:Bad address specified!%></span>';
-					}
-					else
-					{
-						legend.style.display = 'none';
-						output.innerHTML = '<span class="error"><%:Could not find any connection logs!%></span>';
-					}
-				}
-			);
 		}
+		
+		let HTTP = {
+			checker: (domain) => {
+			let img = new Image;
+			let timeout = setTimeout(() => {
+				img.onerror = img.onload = null;
+				show_diag_info(addr);
+				}, 10000);
+
+				img.onerror = () => {
+			  	clearTimeout(timeout);
+  		  	show_diag_info(addr);
+  			}
+
+				img.onload = () => {
+					clearTimeout(timeout);
+					show_diag_info(addr);
+				}
+
+				img.src = `https://${domain}/favicon.ico?${+(new Date)}`
+			},
+			runcheck: () => {
+				HTTP.checker(addr);
+			}
+			};
+	HTTP.runcheck();
 	}
+	
 	
 	function gen_debug_logs()
 	{
@@ -80,8 +90,7 @@ local diag_host = "www.youtube.com"
 		{
 			output.innerHTML =
 				'<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
-				'<%:Waiting for command to complete...%>'
-			;
+				'<%:Waiting for command to complete...%>';
 
 			legend.parentNode.style.display = 'block';
 			legend.style.display = 'inline';
