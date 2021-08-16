@@ -42,7 +42,7 @@ local function debug_getcon()
 				if not addr then
 					luci.sys.exec(string.format('echo "%s. SourceIP:【%s】 - Host:【%s】 - DestinationIP:【%s】 - Network:【%s】 - RulePayload:【%s】 - Lastchain:【%s】" >> /tmp/openclash_debug.log', i, (info.connections[i].metadata.sourceIP), host, (info.connections[i].metadata.destinationIP), (info.connections[i].metadata.network), (info.connections[i].rulePayload),(info.connections[i].chains[1])))
 				else
-					if datatype.hostname(addr) and addr == host  or datatype.ipaddr(addr) and addr == (info.connections[i].metadata.destinationIP) then
+					if datatype.hostname(addr) and string.lower(addr) == host  or datatype.ipaddr(addr) and addr == (info.connections[i].metadata.destinationIP) then
 						print("id: "..(info.connections[i].id))
 						print("start: "..(info.connections[i].start))
 						print("download: "..s(info.connections[i].download))
