@@ -26,10 +26,10 @@
    LOG_OUT "Start Downloading Geoip Database..."
    if [ -z "$GEOIP_CUSTOM_URL" ]; then
       if pidof clash >/dev/null; then
-         curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/alecthw/mmdb_china_ip_list/release/Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
+         curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/alecthw/mmdb_china_ip_list/release/lite/Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
       fi
       if [ "$?" -ne "0" ] || ! pidof clash >/dev/null; then
-         curl -sL --connect-timeout 10 --retry 2 http://www.ideame.top/mmdb/Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
+         curl -sL --connect-timeout 10 --retry 2 https://cdn.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
       fi
    else
       curl -sL --connect-timeout 10 --retry 2 "$GEOIP_CUSTOM_URL" -o /tmp/Country.mmdb >/dev/null 2>&1

@@ -1413,6 +1413,12 @@ msgstr "自定义大陆IP段的更新来源，编辑后点击下方按钮生效"
 msgid "(Default)"
 msgstr "(默认)"
 
+msgid "(Default mmdb)"
+msgstr "(默认，全部国家且仅写入iso_code和geoname_id)"
+
+msgid "(All Info mmdb)"
+msgstr "(全部国家且且包含官方全部信息数据)"
+
 msgid "(Only CN)"
 msgstr "(仅中国数据)"
 
