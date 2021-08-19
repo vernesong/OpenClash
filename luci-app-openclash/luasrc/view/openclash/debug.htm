@@ -31,7 +31,7 @@ local diag_host = "www.youtube.com"
 				else
 				{
 					legend.style.display = 'none';
-					output.innerHTML = '<span class="error"><%:Could not find any connection logs!%></span>';
+					output.innerHTML = '<span class="error"><%:Could not find any connection logs!%></br></br><%:1. It may be that the plugin is not running%></br><%:2. It may be that the cache causes the browser to directly use the IP for access%></br><%:3. It may be that DNS hijacking did not take effect, so clash unable to reverse the domain name%></br><%:4. It may be that the filled address cannot be resolved and connected%></span>';
 				}
 			});
 		}
@@ -115,7 +115,7 @@ local diag_host = "www.youtube.com"
 <form>
 	<fieldset>
 		<div style="width:50%; float: left; text-align: center;">
-			<%:Connection Test%>&nbsp;&nbsp;&nbsp;&nbsp;
+			<%:Connection Test (Current Browser)%>&nbsp;&nbsp;&nbsp;&nbsp;
 			<input type="text" value="<%=diag_host%>" name="diag" />
 			<input type="button" value="<%:Click to Test%>" class="btn cbi-button cbi-button-apply" onclick="update_status(this.form.diag)" />
 		</div>
