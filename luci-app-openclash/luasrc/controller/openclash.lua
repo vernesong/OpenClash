@@ -45,6 +45,7 @@ function index()
 	entry({"admin", "services", "openclash", "config_name"}, call("action_config_name"))
 	entry({"admin", "services", "openclash", "switch_config"}, call("action_switch_config"))
 	entry({"admin", "services", "openclash", "toolbar_show"}, call("action_toolbar_show"))
+	entry({"admin", "services", "openclash", "toolbar_show_sys"}, call("action_toolbar_show_sys"))
 	entry({"admin", "services", "openclash", "diag_connection"}, call("action_diag_connection"))
 	entry({"admin", "services", "openclash", "gen_debug_logs"}, call("action_gen_debug_logs"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
@@ -469,12 +470,16 @@ end
 
 local function s(e)
 local t=0
-local a={' KB/S',' MB/S',' GB/S',' TB/S'}
+local a={' B/S',' KB/S',' MB/S',' GB/S',' TB/S'}
+if (e<=1024) then
+	return e..a[1]
+else
 repeat
 e=e/1024
 t=t+1
 until(e<=1024)
 return string.format("%.1f",e)..a[t]
+end
 end
 
 local function i(e)
@@ -485,6 +490,29 @@ e=e/1024
 t=t+1
 until(e<=1024)
 return string.format("%.1f",e)..a[t]
+end
+
+function action_toolbar_show_sys()
+	local pid = luci.sys.exec("pidof clash |tr -d '\n' 2>/dev/null")
+	local mem, cpu
+	if pid and pid ~= "" then
+		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
+		cpu = luci.sys.exec(string.format("top -b -n1 |grep %s 2>/dev/null |head -1 |awk '{print $7}' 2>/dev/null", pid))
+		if mem and cpu then
+			mem = i(mem*1024)
+			cpu = string.gsub(cpu, "%%\n", "")
+		else
+			mem = "0 KB"
+			cpu = "0"
+		end
+	else
+		return
+	end
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		mem = mem,
+		cpu = cpu;
+	})
 end
 
 function action_toolbar_show()
@@ -502,18 +530,18 @@ function action_toolbar_show()
 			up = s(traffic.up)
 			down = s(traffic.down)
 		else
-			up = "0 KB/S"
-			down = "0 KB/S"
+			up = "0 B/S"
+			down = "0 B/S"
 			connections = "0"
 		end
 		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
 		cpu = luci.sys.exec(string.format("top -b -n1 |grep %s 2>/dev/null |head -1 |awk '{print $7}' 2>/dev/null", pid))
 		if mem and cpu then
 			mem = i(mem*1024)
-			cpu = string.gsub(cpu, "%%", " %%")
+			cpu = string.gsub(cpu, "%%\n", "")
 		else
 			mem = "0 KB"
-			cpu = "0 %"
+			cpu = "0"
 		end
 	else
 		return
