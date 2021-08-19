@@ -85,15 +85,19 @@
 	else {
 		tool_label2.style.display = "none";
 	}
-	
-	function insertAfter( newElement, targetElement ){
-    var parent = targetElement.parentNode;
-    if( parent.lastChild == targetElement ){
-        parent.appendChild( newElement, targetElement ); 
-    }else{ 
-        parent.insertBefore( newElement, targetElement.nextSibling );
-    };
-	};
+
+	if (tool_label2.style.display != "none") {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
+			if (x && x.status == 200 && status.clash) {
+				var luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
+				var ws_t = new WebSocket(luci_protocol+"/traffic?token="+status.dase);
+				var ws_c = new WebSocket(luci_protocol+"/connections?token="+status.dase);
+				ws_t.onmessage = ws_tmessage;
+				ws_c.onmessage = ws_cmessage;
+				ws_t.onerror = ws_terror;
+			}
+		});
+	}
 	
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "config_name")%>', null, function(x, status) {
 		if (x && x.status == 200 && status.config_name != "") {
@@ -118,39 +122,81 @@
 		}
 	});
 	
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', null, function(x, status) {
-		if (x && x.status == 200 && x.responseText != "") {
-			document.getElementById("upload_").innerHTML = "<font color=green>"+status.up+"</font>";
-			document.getElementById("download_").innerHTML = "<font color=green>"+status.down+"</font>";
-			document.getElementById("mem_t").innerHTML = "<font color=green>"+status.mem+"</font>";
-			document.getElementById("cpu_t").innerHTML = "<font color=green>"+status.cpu+"</font>";
-			document.getElementById("connect_t").innerHTML = "<font color=green>"+status.connections+"</font>";
-		}
-		else {
-			document.getElementById("upload_").innerHTML = "<font color=green>0 KB/S</font>";
-			document.getElementById("download_").innerHTML = "<font color=green>0 KB/S</font>";
-			document.getElementById("mem_t").innerHTML = "<font color=green>0 KB</font>";
-			document.getElementById("cpu_t").innerHTML = "<font color=green>0 %</font>";
-			document.getElementById("connect_t").innerHTML = "<font color=green>0</font>";
-		}
-	});
+	function insertAfter( newElement, targetElement ){
+    var parent = targetElement.parentNode;
+    if( parent.lastChild == targetElement ){
+        parent.appendChild( newElement, targetElement ); 
+    }else{ 
+        parent.insertBefore( newElement, targetElement.nextSibling );
+    };
+	};
 	
-	XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', null, function(x, status) {
-		if (x && x.status == 200 && x.responseText != "") {
-			document.getElementById("upload_").innerHTML = "<font color=green>"+status.up+"</font>";
-			document.getElementById("download_").innerHTML = "<font color=green>"+status.down+"</font>";
-			document.getElementById("mem_t").innerHTML = "<font color=green>"+status.mem+"</font>";
-			document.getElementById("cpu_t").innerHTML = "<font color=green>"+status.cpu+"</font>";
-			document.getElementById("connect_t").innerHTML = "<font color=green>"+status.connections+"</font>";
-		}
-		else {
-			document.getElementById("upload_").innerHTML = "<font color=green>0 KB/S</font>";
-			document.getElementById("download_").innerHTML = "<font color=green>0 KB/S</font>";
-			document.getElementById("mem_t").innerHTML = "<font color=green>0 KB</font>";
-			document.getElementById("cpu_t").innerHTML = "<font color=green>0 %</font>";
-			document.getElementById("connect_t").innerHTML = "<font color=green>0</font>";
-		}
-	});
+	function ws_terror() {
+		XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', null, function(x, status) {
+			if (x && x.status == 200 && x.responseText != "") {
+				document.getElementById("upload_").innerHTML = "<font color=green>"+status.up+"</font>";
+				document.getElementById("download_").innerHTML = "<font color=green>"+status.down+"</font>";
+				document.getElementById("mem_t").innerHTML = "<font color=green>"+status.mem+"</font>";
+				document.getElementById("connect_t").innerHTML = "<font color=green>"+status.connections+"</font>";
+				if (status.cpu <= 50) {
+					document.getElementById("cpu_t").innerHTML = "<font color=green>"+status.cpu+" %</font>";
+				}
+				else if (status.cpu >= 50 && status.cpu <= 80) {
+					document.getElementById("cpu_t").innerHTML = "<font color=orange>"+status.cpu+" %</font>";
+				}
+				else {
+					document.getElementById("cpu_t").innerHTML = "<font color=red>"+status.cpu+" %</font>";
+				}
+			}
+			else {
+				document.getElementById("upload_").innerHTML = "<font color=green>0 B/S</font>";
+				document.getElementById("download_").innerHTML = "<font color=green>0 B/S</font>";
+				document.getElementById("mem_t").innerHTML = "<font color=green>0 KB</font>";
+				document.getElementById("cpu_t").innerHTML = "<font color=green>0 %</font>";
+				document.getElementById("connect_t").innerHTML = "<font color=green>0</font>";
+			}
+		});
+	}
+	
+	function show_sys() {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', null, function(x, status) {
+			if (x && x.status == 200 && x.responseText != "") {
+				document.getElementById("mem_t").innerHTML = "<font color=green>"+status.mem+"</font>";
+				if (status.cpu <= 50) {
+					document.getElementById("cpu_t").innerHTML = "<font color=green>"+status.cpu+" %</font>";
+				}
+				else if (status.cpu >= 50 && status.cpu <= 80) {
+					document.getElementById("cpu_t").innerHTML = "<font color=orange>"+status.cpu+" %</font>";
+				}
+				else {
+					document.getElementById("cpu_t").innerHTML = "<font color=red>"+status.cpu+" %</font>";
+				}
+			}
+			else {
+				document.getElementById("mem_t").innerHTML = "<font color=green>0 KB</font>";
+				document.getElementById("cpu_t").innerHTML = "<font color=green>0 %</font>";
+			}
+		});
+	};
+	
+	function ws_tmessage(event) {
+		var data = JSON.parse(event.data)
+		document.getElementById("upload_").innerHTML = "<font color=green>"+bytesToSize(data.up)+"</font>";
+		document.getElementById("download_").innerHTML = "<font color=green>"+bytesToSize(data.down)+"</font>";
+	};
+	
+	function ws_cmessage(event) {
+		var data = JSON.parse(event.data)
+		document.getElementById("connect_t").innerHTML = "<font color=green>"+Object.keys(data.connections).length+"</font>";
+		show_sys();
+	};
+	
+	function bytesToSize(bytes) {
+		var sizes = ['B/S', 'KB/S', 'MB/S', 'GB/S', 'TB/S'];
+		if (bytes == 0) return '0 B/S';
+		var i = Math.floor(Math.log(bytes) / Math.log(1024));
+		return i == 0 ? (bytes / Math.pow(1024, i)) + ' ' + sizes[i] : (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+	};
 	
 	function switch_config(btn)
 	{

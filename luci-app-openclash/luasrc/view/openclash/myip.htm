@@ -16,6 +16,7 @@
     <link rel="preconnect" href="https://whois.pconline.com.cn">
     <link rel="preconnect" href="https://api-ipv4.ip.sb">
     <link rel="preconnect" href="https://myip.ipip.net">
+    <link rel="preconnect" href="http://myip.ipip.net">
     <link rel="preconnect" href="https://api.ipify.org">
     <link rel="preconnect" href="https://api.ttt.sh">
     <link rel="preconnect" href="https://api.skk.moe">
@@ -225,7 +226,7 @@
             	  document.getElementsByTagName('head')[0].appendChild(meta); 
             },
             getIpipnetIP: () => {
-                IP.get(`https://myip.ipip.net/?z=${random}`, 'text')
+                IP.get(window.location.protocol+`//myip.ipip.net/?z=${random}`, 'text')
                     .then((resp) => {
                         let data = resp.data.replace('当前 IP：', '').split(' 来自于：');
                         $$.getElementById('ip-ipipnet').innerHTML = `${data[0]}`;
