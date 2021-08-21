@@ -4,7 +4,7 @@
 -%>
 
 <%
-local diag_host = "www.youtube.com"
+local diag_host = "www.instagram.com"
 %>
 
 <script type="text/javascript">//<![CDATA[
@@ -31,12 +31,12 @@ local diag_host = "www.youtube.com"
 				else
 				{
 					legend.style.display = 'none';
-					output.innerHTML = '<span class="error"><%:Could not find any connection logs!%></br></br><%:1. It may be that the plugin is not running%></br><%:2. It may be that the cache causes the browser to directly use the IP for access%></br><%:3. It may be that DNS hijacking did not take effect, so clash unable to reverse the domain name%></br><%:4. It may be that the filled address cannot be resolved and connected%></span>';
+					output.innerHTML = '<span class="error"><%:Could not find any connection logs!%></br></br><%:1. It may be that the plugin is not running%></br></br><%:2. It may be that the cache causes the browser to directly use the IP for access%></br></br><%:3. It may be that DNS hijacking did not take effect, so clash unable to reverse the domain name%></br></br><%:4. It may be that the filled address cannot be resolved and connected%></span>';
 				}
 			});
 		}
 	}
-	
+
 	function update_status(field)
 	{
 		var addr = field.value;
