@@ -2275,7 +2275,7 @@ msgid "Up"
 msgstr "上传"
 
 msgid "Up:"
-msgstr "上传"
+msgstr "上传:"
 
 msgid "Down:"
 msgstr "下载:"
