@@ -2275,10 +2275,16 @@ msgid "Up"
 msgstr "上传"
 
 msgid "Up:"
-msgstr "上传:"
+msgstr "上传"
 
 msgid "Down:"
 msgstr "下载:"
+
+msgid "Up Total:"
+msgstr "上传总量:"
+
+msgid "Down Total:"
+msgstr "下载总量:"
 
 msgid "Connections:"
 msgstr "活动连接:"

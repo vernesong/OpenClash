@@ -48,6 +48,7 @@ function index()
 	entry({"admin", "services", "openclash", "toolbar_show_sys"}, call("action_toolbar_show_sys"))
 	entry({"admin", "services", "openclash", "diag_connection"}, call("action_diag_connection"))
 	entry({"admin", "services", "openclash", "gen_debug_logs"}, call("action_gen_debug_logs"))
+	entry({"admin", "services", "openclash", "toolbar_ws"}, call("action_toolbar_ws"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Servers and Groups"), 40).leaf = true
 	entry({"admin", "services", "openclash", "other-rules-edit"},cbi("openclash/other-rules-edit"), nil).leaf = true
@@ -517,7 +518,7 @@ end
 
 function action_toolbar_show()
 	local pid = luci.sys.exec("pidof clash |tr -d '\n' 2>/dev/null")
-	local traffic, connections, up, down, mem, cpu
+	local traffic, connections, up, down, up_total, down_total, mem, cpu
 	if pid and pid ~= "" then
 		local daip = daip()
 		local dase = dase()
@@ -529,9 +530,13 @@ function action_toolbar_show()
 			connections = #(connections.connections)
 			up = s(traffic.up)
 			down = s(traffic.down)
+			up_total = i(connections.uploadTotal)
+			down_total = i(connections.downloadTotal)
 		else
 			up = "0 B/S"
 			down = "0 B/S"
+			up_total = "0 KB"
+			down_total = "0 KB"
 			connections = "0"
 		end
 		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
@@ -551,6 +556,8 @@ function action_toolbar_show()
 		connections = connections,
 		up = up,
 		down = down,
+		up_total = up_total,
+		down_total = down_total,
 		mem = mem,
 		cpu = cpu;
 	})
@@ -636,6 +643,16 @@ function action_switch_mode()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 	  switch_mode = switch_mode;
+	})
+end
+
+function action_toolbar_ws()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+	  clash = is_running(),
+		daip = daip(),
+		dase = dase(),
+		cn_port = cn_port();
 	})
 end
 
