@@ -1292,14 +1292,6 @@ if [ -z "$(uci -q get firewall.openclash)" ] || [ -z "$(uci -q get ucitrack.@ope
    uci -q set firewall.openclash.path=/var/etc/openclash.include
    uci -q set firewall.openclash.reload=1
 fi
-          
-if [ "$(uci -q get firewall.@defaults[0].forward)" != "ACCEPT" ]; then
-	 uci -q set openclash.config.firewall_forward_default=$(uci -q get firewall.@defaults[0].forward)
-   uci -q set firewall.@defaults[0].forward=ACCEPT
-   uci -q commit firewall
-   uci -q commit openclash
-   /etc/init.d/firewall reload >/dev/null 2>&1 &
-fi
 
 mkdir -p /var/etc
 cat > "/var/etc/openclash.include" <<-EOF
@@ -1588,6 +1580,8 @@ if [ -n "$en_mode_tun" ]; then
    if [ "$disable_udp_quic" -eq 1 ]; then
       iptables -I FORWARD -p udp --dport 443 -j REJECT
    fi
+   #TUN FORWORD
+   iptables -I FORWARD -o utun -j ACCEPT
 fi
 
 #端口转发
@@ -1669,6 +1663,7 @@ revert_firewall()
    ip link set dev clash0 down >/dev/null 2>&1
    ip tuntap del clash0 mode tun >/dev/null 2>&1
 
+   iptables -D FORWARD -o utun -j ACCEPT >/dev/null 2>&1
    iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
    iptables -t mangle -D PREROUTING -j openclash >/dev/null 2>&1
    iptables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
@@ -1847,14 +1842,6 @@ stop()
       rm -rf /tmp/openclash_fake_filter.list
       rm -rf /tmp/openclash_servers_fake_filter.conf
       
-      firewall_forward_default=$(uci -q get openclash.config.firewall_forward_default)
-      if [ -n "$firewall_forward_default" ] && [ "$firewall_forward_default" != "$(uci -q get firewall.@defaults[0].forward)" ]; then
-      	uci -q set firewall.@defaults[0].forward=$firewall_forward_default
-      	uci -q delete openclash.config.firewall_forward_default
-      	uci -q commit firewall
-      	uci -q commit openclash
-      	/etc/init.d/firewall reload >/dev/null 2>&1 &
-      fi
       del_lock
       LOG_OUT "OpenClash Already Stop!"
       sleep 5
