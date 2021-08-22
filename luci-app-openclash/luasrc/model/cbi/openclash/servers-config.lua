@@ -266,6 +266,22 @@ o.rmempty = true
 o:depends("obfs", "websocket")
 o:depends("obfs_vmess", "websocket")
 
+o = s:option(Value, "ws_opts_path", translate("ws-opts-path"))
+o.rmempty = true
+o:depends("obfs_vmess", "websocket")
+
+o = s:option(Value, "ws_opts_headers", translate("ws-opts-headers"))
+o.rmempty = true
+o:depends("obfs_vmess", "websocket")
+
+o = s:option(Value, "max_early_data", translate("max-early-data"))
+o.rmempty = true
+o:depends("obfs_vmess", "websocket")
+
+o = s:option(Value, "early_data_header_name", translate("early-data-header-name"))
+o.rmempty = true
+o:depends("obfs_vmess", "websocket")
+
 -- [[ skip-cert-verify ]]--
 o = s:option(ListValue, "skip_cert_verify", translate("skip-cert-verify"))
 o.rmempty = true

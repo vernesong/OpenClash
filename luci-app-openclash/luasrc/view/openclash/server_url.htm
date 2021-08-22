@@ -282,6 +282,12 @@ function import_ssr_url(btn, urlname, sid) {
 				document.getElementsByName('cbid.openclash.' + sid + '.obfs_vmess')[0].dispatchEvent(event);
 				document.getElementsByName('cbid.openclash.' + sid + '.custom')[0].value = ssm.host;
 				document.getElementsByName('cbid.openclash.' + sid + '.path')[0].value = ssm.path;
+				if (ssm.maxearlydata) {
+					document.getElementsByName('cbid.openclash.' + sid + '.max_early_data')[0].value = ssm.maxearlydata;
+				}
+				if (ssm.earlydataheadername) {
+					document.getElementsByName('cbid.openclash.' + sid + '.early_data_header_name')[0].value = ssm.earlydataheadername;
+				}
 			}
 			if (ssm.net == "h2") {
 				document.getElementsByName('cbid.openclash.' + sid + '.h2_host')[0].value = ssm.host;
