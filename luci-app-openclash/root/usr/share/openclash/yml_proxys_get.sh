@@ -590,6 +590,28 @@ do
                   system(custom)
                end
             end
+            #ws-opts-path:
+            if Value['proxies'][$count].key?('ws-opts') then
+               if Value['proxies'][$count]['ws-opts'].key?('path') then
+                  ws_opts_path = '${uci_set}ws_opts_path=\"' + Value['proxies'][$count]['ws-opts']['path'].to_s + '\"'
+                  system(ws_opts_path)
+               end
+               #ws-opts-headers:
+               if Value['proxies'][$count]['ws-opts'].key?('headers') then
+                  ws_opts_headers = '${uci_set}ws_opts_headers=\"' + Value['proxies'][$count]['ws-opts']['headers'].to_s + '\"'
+                  system(ws_opts_headers)
+               end
+               #max-early-data:
+               if Value['proxies'][$count]['ws-opts'].key?('max-early-data') then
+                  max_early_data = '${uci_set}max_early_data=\"' + Value['proxies'][$count]['ws-opts']['max-early-data'].to_s + '\"'
+                  system(max_early_data)
+               end
+               #early-data-header-name:
+               if Value['proxies'][$count]['ws-opts'].key?('early-data-header-name') then
+                  early_data_header_name = '${uci_set}early_data_header_name=\"' + Value['proxies'][$count]['ws-opts']['early-data-header-name'].to_s + '\"'
+                  system(early_data_header_name)
+               end
+            end
          elsif Value['proxies'][$count]['network'].to_s == 'http'
             system '${uci_set}obfs_vmess=http'
             if Value['proxies'][$count].key?('http-opts') then
@@ -624,7 +646,7 @@ do
                   }
                end
                if Value['proxies'][$count]['h2-opts'].key?('path') then
-                  h2_path = '${uci_set}h2_path=\"' + Value['proxies'][$count]['h2-opts']['host'].to_s + '\"'
+                  h2_path = '${uci_set}h2_path=\"' + Value['proxies'][$count]['h2-opts']['path'].to_s + '\"'
                   system(h2_path)
                end
             end
