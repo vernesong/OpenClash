@@ -66,7 +66,7 @@ rescue Exception => e
 end
 begin
    Value['redir-port']=$6;
-   Value['tproxy-port']=$20;
+   Value['tproxy-port']=${20};
    Value['port']=$9;
    Value['socks-port']=${10};
    Value['mixed-port']=${19};
