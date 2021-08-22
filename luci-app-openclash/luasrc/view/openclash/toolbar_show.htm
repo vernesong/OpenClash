@@ -16,112 +16,18 @@
 	</span>
 </div>
 
-<table><tr id="tool_label2"><td colspan="4"><p align="center">
-<span>
-&nbsp;&nbsp;<%:Up:%>&nbsp;
-	<span id="upload_">
-		<font color=green>
-		0 KB/S
-		</font>
-	</span>
-</span>
-
-<span>
-&nbsp;&nbsp;<%:Down:%>&nbsp;
-	<span id="download_">
-		<font color=green>
-		0 KB/S
-		</font>
-	</span>
-</span>
-
-<span>
-&nbsp;&nbsp;<%:Up Total:%>&nbsp;
-	<span id="uploadtotal_">
-		<font color=green>
-		0 KB
-		</font>
-	</span>
-</span>
-
-<span>
-&nbsp;&nbsp;<%:Down Total:%>&nbsp;
-	<span id="downloadtotal_">
-		<font color=green>
-		0 KB
-		</font>
-	</span>
-</span>
-
-<span>
-&nbsp;&nbsp;<%:Connections:%>&nbsp;
-	<span id="connect_t">
-		<font color=green>
-		0
-		</font>
-	</span>
-</span>
-
-<span>
-&nbsp;&nbsp;<%:Ram:%>&nbsp;
-	<span id="mem_t">
-		<font color=green>
-		0 KB
-		</font>
-	</span>
-</span>
-
-<span>
-&nbsp;&nbsp;<%:CPU:%>&nbsp;
-	<span id="cpu_t">
-		<font color=green>
-		0 %
-		</font>
-	</span>
-	&nbsp;&nbsp;
-</span>
-</p></td></tr></table>
-
 <script type="text/javascript">//<![CDATA[
 	var config_name = document.getElementById('cfg_name');
 	var tool_label = document.getElementById('tool_label');
-	var tool_label2 = document.getElementById('tool_label2');
 	var header1 = document.getElementsByClassName("tabmenu-item-log ")[0];
-	var header2 = document.getElementById("dash");
-	var header3 = document.getElementsByClassName("tabmenu-item-client ")[0];
-	var header4 = document.getElementsByClassName("tabmenu-item-config ")[0];
-	var ws_connect = false;
-	var ws_error = false;
-	if (header1 && header3.className != "tabmenu-item-client active" && header4.className != "tabmenu-item-config active") {
+	var header2 = document.getElementsByClassName("tabmenu-item-client ")[0];
+	var header3 = document.getElementsByClassName("tabmenu-item-config ")[0];
+	
+	if (header1 && header2.className != "tabmenu-item-client active" && header3.className != "tabmenu-item-config active") {
 		insertAfter(tool_label,header1);
 	}
 	else {
 		tool_label.style.display = "none";
-	}
-	
-	if (header2) {
-		insertAfter(tool_label2,header2);
-	}
-	else {
-		tool_label2.style.display = "none";
-	}
-
-	if (tool_label2.style.display != "none") {
-		XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_ws")%>', null, function(x, status) {
-			if (x && x.status == 200 && status.clash) {
-				if (!ws_connect && !ws_error) {
-					var luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
-					var ws_t = new WebSocket(luci_protocol+"/traffic?token="+status.dase);
-					var ws_c = new WebSocket(luci_protocol+"/connections?token="+status.dase);
-					ws_t.onmessage = ws_tmessage;
-					ws_c.onmessage = ws_cmessage;
-					ws_t.onerror = ws_terror;
-					ws_t.onopen = function (event) {
-						ws_connect = true;
-					};
-				}
-			}
-		});
 	}
 	
 	if (tool_label.style.display != "none") {
@@ -156,80 +62,6 @@
     }else{ 
         parent.insertBefore( newElement, targetElement.nextSibling );
     };
-	};
-	
-	function ws_terror() {
-		ws_error = true;
-		XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', null, function(x, status) {
-			if (x && x.status == 200 && x.responseText != "") {
-				document.getElementById("upload_").innerHTML = "<font color=green>"+status.up+"</font>";
-				document.getElementById("download_").innerHTML = "<font color=green>"+status.down+"</font>";
-				document.getElementById("uploadtotal_").innerHTML = "<font color=green>"+status.up_total+"</font>";
-				document.getElementById("downloadtotal_").innerHTML = "<font color=green>"+status.down_total+"</font>";
-				document.getElementById("mem_t").innerHTML = "<font color=green>"+status.mem+"</font>";
-				document.getElementById("connect_t").innerHTML = "<font color=green>"+status.connections+"</font>";
-				if (status.cpu <= 50) {
-					document.getElementById("cpu_t").innerHTML = "<font color=green>"+status.cpu+" %</font>";
-				}
-				else if (status.cpu >= 50 && status.cpu <= 80) {
-					document.getElementById("cpu_t").innerHTML = "<font color=orange>"+status.cpu+" %</font>";
-				}
-				else {
-					document.getElementById("cpu_t").innerHTML = "<font color=red>"+status.cpu+" %</font>";
-				}
-			}
-			else {
-				document.getElementById("upload_").innerHTML = "<font color=green>0 B/S</font>";
-				document.getElementById("download_").innerHTML = "<font color=green>0 B/S</font>";
-				document.getElementById("uploadtotal_").innerHTML = "<font color=green>0 KB</font>";
-				document.getElementById("downloadtotal_").innerHTML = "<font color=green>0 KB</font>";
-				document.getElementById("mem_t").innerHTML = "<font color=green>0 KB</font>";
-				document.getElementById("cpu_t").innerHTML = "<font color=green>0 %</font>";
-				document.getElementById("connect_t").innerHTML = "<font color=green>0</font>";
-			}
-		});
-	}
-	
-	function show_sys() {
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', null, function(x, status) {
-			if (x && x.status == 200 && x.responseText != "") {
-				document.getElementById("mem_t").innerHTML = "<font color=green>"+status.mem+"</font>";
-				if (status.cpu <= 50) {
-					document.getElementById("cpu_t").innerHTML = "<font color=green>"+status.cpu+" %</font>";
-				}
-				else if (status.cpu >= 50 && status.cpu <= 80) {
-					document.getElementById("cpu_t").innerHTML = "<font color=orange>"+status.cpu+" %</font>";
-				}
-				else {
-					document.getElementById("cpu_t").innerHTML = "<font color=red>"+status.cpu+" %</font>";
-				}
-			}
-			else {
-				document.getElementById("mem_t").innerHTML = "<font color=green>0 KB</font>";
-				document.getElementById("cpu_t").innerHTML = "<font color=green>0 %</font>";
-			}
-		});
-	};
-	
-	function ws_tmessage(event) {
-		var data = JSON.parse(event.data)
-		document.getElementById("upload_").innerHTML = "<font color=green>"+bytesToSize(data.up)+"/S</font>";
-		document.getElementById("download_").innerHTML = "<font color=green>"+bytesToSize(data.down)+"/S</font>";
-	};
-	
-	function ws_cmessage(event) {
-		var data = JSON.parse(event.data)
-		document.getElementById("uploadtotal_").innerHTML = "<font color=green>"+bytesToSize(data.uploadTotal)+"</font>";
-		document.getElementById("downloadtotal_").innerHTML = "<font color=green>"+bytesToSize(data.downloadTotal)+"</font>";
-		document.getElementById("connect_t").innerHTML = "<font color=green>"+Object.keys(data.connections).length+"</font>";
-		show_sys();
-	};
-	
-	function bytesToSize(bytes) {
-		var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-		if (bytes == 0) return '0 B';
-		var i = Math.floor(Math.log(bytes) / Math.log(1024));
-		return i == 0 ? (bytes / Math.pow(1024, i)) + ' ' + sizes[i] : (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
 	};
 	
 	function switch_config(btn)
