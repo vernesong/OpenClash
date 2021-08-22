@@ -48,7 +48,6 @@ function index()
 	entry({"admin", "services", "openclash", "toolbar_show_sys"}, call("action_toolbar_show_sys"))
 	entry({"admin", "services", "openclash", "diag_connection"}, call("action_diag_connection"))
 	entry({"admin", "services", "openclash", "gen_debug_logs"}, call("action_gen_debug_logs"))
-	entry({"admin", "services", "openclash", "toolbar_ws"}, call("action_toolbar_ws"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Servers and Groups"), 40).leaf = true
 	entry({"admin", "services", "openclash", "other-rules-edit"},cbi("openclash/other-rules-edit"), nil).leaf = true
@@ -639,16 +638,6 @@ function action_switch_mode()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 	  switch_mode = switch_mode;
-	})
-end
-
-function action_toolbar_ws()
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({
-	  clash = is_running(),
-		daip = daip(),
-		dase = dase(),
-		cn_port = cn_port();
 	})
 end
 
