@@ -1367,6 +1367,26 @@ fi
       done
    fi
 
+   ipset create localnetwork6 hash:net family inet6
+   ipset add localnetwork6 ::/128
+   ipset add localnetwork6 ::1/128
+   ipset add localnetwork6 ::ffff:0:0/96
+   ipset add localnetwork6 ::ffff:0:0:0/96
+   ipset add localnetwork6 64:ff9b::/96
+   ipset add localnetwork6 100::/64
+   ipset add localnetwork6 2001::/32
+   ipset add localnetwork6 2001:20::/28
+   ipset add localnetwork6 2001:db8::/32
+   ipset add localnetwork6 2002::/16
+   ipset add localnetwork6 fc00::/7
+   ipset add localnetwork6 fe80::/10
+   ipset add localnetwork6 ff00::/8
+
+   if [ -n "$wan_ip6" ]; then
+      for wan_ip6s in $wan_ip6; do
+         ipset add localnetwork6 "$wan_ip6s"
+      done
+   fi
 #common ports
 if [ "$common_ports" = "1" ]; then
    common_port="21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 5222 5228 5229 5230 8080 8443 8880 8888 8889"
@@ -1457,31 +1477,33 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
          
       fi
    fi
-   #if [ "$ipv6_enable" -eq 1 ]; then
-   #   #tcp
-   #   ip6tables -t nat -N openclash
-   #   if [ -n "$lan_ip6" ]; then
-   #      for lan_ip6s in $lan_ip6; do
-   #         ip6tables -t nat -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
-   #      done
-   #   fi
-   #   ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
-   #   ip6tables -t nat -A PREROUTING -p tcp -j openclash
 
-      #udp
-      #if [ "$enable_udp_proxy" -eq 1 ]; then
-      #   ip6tables -t mangle -N openclash
-      #   if [ -n "$lan_ip6" ]; then
-      #      for lan_ip6s in $lan_ip6; do
-      #         if [ "$enable_udp_proxy" -eq 1 ]; then
-      #            ip6tables -t mangle -A openclash -d "$lan_ip6s" -j RETURN 2>/dev/null
-      #         fi
-      #      done
-      #   fi
-      #   ip6tables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
-      #   ip6tables -t mangle -A PREROUTING -p udp -j openclash
-      #fi
-   #fi 2>/dev/null
+   iptables -t nat -I OUTPUT -j openclash_output
+
+   if [ "$ipv6_enable" -eq 1 ]; then
+
+      ip6tables -t mangle -N openclash
+      ip6tables -t mangle -F openclash
+      ip6tables -t mangle -A openclash -m set --match-set localnetwork6 dst -j RETURN
+      ip6tables -t mangle -A PREROUTING -j openclash
+
+      ip6tables -t mangle -N openclash_output
+      ip6tables -t mangle -F openclash_output
+      ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
+      ip6tables -t mangle -A OUTPUT -j openclash_output
+
+      ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+      ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
+
+      # 防止出现死循环
+      ip6tables -t mangle -A openclash_output -p tcp -m owner ! --uid-owner 65534 -j MARK --set-xmark "$PROXY_FWMARK"
+      ip6tables -t mangle -A openclash_output -p udp -m owner ! --uid-owner 65534 -j MARK --set-xmark "$PROXY_FWMARK"
+
+
+      ip6tables -t mangle -A openclash -p tcp -m comment --comment "\'默认\'" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
+
+      ip6tables -t mangle -A openclash -p udp -m comment --comment "\'默认\'" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
+   fi 2>/dev/null
 fi
 if [ -n "$en_mode_tun" ]; then
    #TUN模式
@@ -1599,6 +1621,9 @@ revert_firewall()
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip route del local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 
+   ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+   ip -6 route del local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
+
    iptables -t nat -D PREROUTING -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1
    
    iptables -D FORWARD -p udp --dport 443 -j REJECT >/dev/null 2>&1
@@ -1637,11 +1662,6 @@ revert_firewall()
       iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
    done >/dev/null 2>&1
 
-   #ipv6
-   #ip6tables -t mangle -F openclash >/dev/null 2>&1
-   #ip6tables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
-   #ip6tables -t mangle -X openclash >/dev/null 2>&1
-
    iptables -t nat -F openclash >/dev/null 2>&1
    iptables -t nat -X openclash >/dev/null 2>&1
    
@@ -1651,10 +1671,6 @@ revert_firewall()
    iptables -t nat -F openclash_post >/dev/null 2>&1
    iptables -t nat -X openclash_post >/dev/null 2>&1
    iptables -t nat -D POSTROUTING -j openclash_post >/dev/null 2>&1
-
-   ip6tables -t nat -F openclash >/dev/null 2>&1
-   ip6tables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
-   ip6tables -t nat -X openclash >/dev/null 2>&1
 
    #TUN
    ip route del default dev clash0 table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
@@ -1675,8 +1691,6 @@ revert_firewall()
    iptables -t mangle -F openclash_output >/dev/null 2>&1
    iptables -t mangle -X openclash_output >/dev/null 2>&1
 
-   #ip6tables -t mangle -D PREROUTING -j MARK --set-mark "$PROXY_FWMARK" >/dev/null 2>&1
-
    ipset destroy localnetwork >/dev/null 2>&1
    ipset destroy china_ip_route >/dev/null 2>&1
    ipset destroy lan_ac_white_ips >/dev/null 2>&1
@@ -1685,6 +1699,25 @@ revert_firewall()
    ipset destroy lan_ac_black_macs >/dev/null 2>&1
    ipset destroy wan_ac_black_ips >/dev/null 2>&1
    ipset destroy common_ports >/dev/null 2>&1
+
+   #Revert IPv6 rules
+
+   pre_lines=$(ip6tables -nvL PREROUTING -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
+   for pre_line in $pre_lines; do
+      ip6tables -t mangle -D PREROUTING "$pre_line" >/dev/null 2>&1
+   done >/dev/null 2>&1
+
+   out_lines=$(ip6tables -nvL OUTPUT -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
+   for out_line in $out_lines; do
+      ip6tables -t mangle -D OUTPUT "$out_line" >/dev/null 2>&1
+   done >/dev/null 2>&1
+
+   ip6tables -t mangle -F openclash >/dev/null 2>&1
+   ip6tables -t mangle -X openclash >/dev/null 2>&1
+   ip6tables -t mangle -F openclash_output >/dev/null 2>&1
+   ip6tables -t mangle -X openclash_output >/dev/null 2>&1
+
+   ipset destroy localnetwork6 >/dev/null 2>&1
 }
 
 get_config()
@@ -1695,6 +1728,10 @@ get_config()
    da_password=$(uci -q get openclash.config.dashboard_password)
    cn_port=$(uci -q get openclash.config.cn_port)
    proxy_port=$(uci -q get openclash.config.proxy_port)
+   tproxy_port=$(uci -q get openclash.config.tproxy_port)
+   if [ -z "$tproxy_port" ];then
+        tproxy_port=7895
+   else
    proxy_mode=$(uci -q get openclash.config.proxy_mode)
    ipv6_enable=$(uci -q get openclash.config.ipv6_enable)
    http_port=$(uci -q get openclash.config.http_port)
@@ -1704,6 +1741,7 @@ get_config()
    lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^198.18" 2>/dev/null)
    wan_ip4s=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 | grep -vE "(^198.18|^192.168|^127.0)" 2>/dev/null)
    lan_ip6=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
+   wan_ip6=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
    disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
    log_level=$(uci -q get openclash.config.log_level)
    intranet_allowed=$(uci -q get openclash.config.intranet_allowed)
@@ -1749,7 +1787,7 @@ start()
    config_foreach yml_auth_get "authentication"
    yml_auth_custom "$CONFIG_FILE"
    yml_dns_custom "$enable_custom_dns" "$CONFIG_FILE"
-   /usr/share/openclash/yml_change.sh 2>/dev/null "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" "$dns_port" "$core_type" "$mixed_port"
+   /usr/share/openclash/yml_change.sh 2>/dev/null "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" "$dns_port" "$core_type" "$mixed_port" "$tproxy_port"
    /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME"
    yml_custom_rule_provider
    yml_game_custom
