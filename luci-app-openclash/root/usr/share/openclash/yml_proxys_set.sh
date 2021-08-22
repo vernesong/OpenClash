@@ -208,6 +208,10 @@ yml_servers_set()
    config_get "h2_path" "$section" "h2_path" ""
    config_get "h2_host" "$section" "h2_host" ""
    config_get "grpc_service_name" "$section" "grpc_service_name" ""
+   config_get "ws_opts_path" "$section" "ws_opts_path" ""
+   config_get "ws_opts_headers" "$section" "ws_opts_headers" ""
+   config_get "max_early_data" "$section" "max_early_data" ""
+   config_get "early_data_header_name" "$section" "early_data_header_name" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -419,45 +423,59 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
     $obfs_vmess
 EOF
-         if [ ! -z "$path" ] && [ "$obfs_vmess" = "network: ws" ]; then
+         if [ "$obfs_vmess" = "network: ws" ]; then
+            if [ ! -z "$path" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     $path
 EOF
-         fi
-         if [ ! -z "$custom" ] && [ "$obfs_vmess" = "network: ws" ]; then
+            fi
+            if [ ! -z "$custom" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ws-headers:
       $custom
 EOF
+            fi
+            if [ -n "$ws_opts_path" ] || [ -n "$ws_opts_headers" ] || [ -n "$max_early_data" ] || [ -n "$early_data_header_name" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    ws-opts:
+      path: $ws_opts_path
+      headers: $ws_opts_headers
+      max-early-data: $max_early_data
+      early-data-header-name: $early_data_header_name
+EOF
+            fi
          fi
-         if [ ! -z "$http_path" ] && [ "$obfs_vmess" = "network: http" ]; then
+         if [ "$obfs_vmess" = "network: http" ]; then
+            if [ ! -z "$http_path" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     http-opts:
       method: "GET"
       path:
 EOF
-            config_list_foreach "$section" "http_path" set_http_path
-         fi
-         if [ "$keep_alive" = "true" ] && [ "$obfs_vmess" = "network: http" ]; then
+               config_list_foreach "$section" "http_path" set_http_path
+            fi
+            if [ "$keep_alive" = "true" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       headers:
         Connection:
           - keep-alive
 EOF
+            fi
          fi
-         
          #h2
-         if [ ! -z "$h2_host" ] && [ "$obfs_vmess" = "network: h2" ]; then
+         if [ "$obfs_vmess" = "network: h2" ]; then
+            if [ ! -z "$h2_host" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     h2-opts:
       host:
 EOF
-            config_list_foreach "$section" "h2_host" set_h2_host
-         fi
-         if [ ! -z "$h2_path" ] && [ "$obfs_vmess" = "network: h2" ]; then
+               config_list_foreach "$section" "h2_host" set_h2_host
+            fi
+            if [ ! -z "$h2_path" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       path: $h2_path
 EOF
+            fi
          fi
          if [ ! -z "$grpc_service_name" ] && [ "$obfs_vmess" = "network: grpc" ]; then
 cat >> "$SERVER_FILE" <<-EOF
