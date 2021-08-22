@@ -1,6 +1,7 @@
 
 config openclash 'config'
 	option proxy_port '7892'
+	option tproxy_port '7895'
 	option mixed_port '7893'
 	option socks_port '7891'
 	option http_port '7890'

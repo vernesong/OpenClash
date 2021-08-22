@@ -165,6 +165,13 @@ o.datatype = "port"
 o.rmempty = false
 o.description = translate("Please Make Sure Ports Available")
 
+o = s:taboption("settings", Value, "tproxy_port")
+o.title = translate("TProxy Port")
+o.default = 7895
+o.datatype = "port"
+o.rmempty = false
+o.description = translate("Please Make Sure Ports Available")
+
 o = s:taboption("settings", Value, "http_port")
 o.title = translate("HTTP(S) Port")
 o.default = 7890
