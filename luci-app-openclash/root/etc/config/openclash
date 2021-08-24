@@ -16,6 +16,7 @@ config openclash 'config'
 	option rule_source '0'
 	option enable_custom_dns '0'
 	option ipv6_enable '0'
+	option ipv6_dns '0'
 	option enable_custom_clash_rules '0'
 	option other_rule_auto_update '0'
 	option core_version '0'
@@ -42,6 +43,7 @@ config openclash 'config'
 	option custom_fallback_filter '0'
 	option geo_custom_url 'http://www.ideame.top/mmdb/Country.mmdb'
 	option chnr_custom_url 'https://ispip.clang.cn/all_cn.txt'
+	option chnr6_custom_url 'https://ispip.clang.cn/all_cn_ipv6.txt'
 	
 config dns_servers
 	option group 'nameserver'
@@ -71,6 +73,18 @@ config dns_servers
 	option type 'https'
 	option group 'fallback'
 	option enabled '1'
+	option ip 'doh.pub/dns-query'
+
+config dns_servers
+	option type 'https'
+	option group 'fallback'
+	option enabled '1'
+	option ip 'dns.alidns.com/dns-query'
+
+config dns_servers
+	option type 'https'
+	option group 'fallback'
+	option enabled '1'
 	option ip 'cloudflare-dns.com/dns-query'
 
 config dns_servers
@@ -87,7 +101,7 @@ config dns_servers
 	option type 'tls'
 
 config dns_servers
-	option enabled '1'
+	option enabled '0'
 	option group 'fallback'
 	option type 'https'
 	option ip '1.1.1.1/dns-query'
@@ -100,8 +114,22 @@ config dns_servers
 	option type 'tls'
 
 config dns_servers
-	option enabled '1'
+	option enabled '0'
 	option group 'fallback'
 	option ip '8.8.8.8'
 	option port '853'
 	option type 'tls'
+	
+config dns_servers
+	option enabled '0'
+	option type 'udp'
+	option group 'fallback'
+	option ip '2001:4860:4860::8888'
+	option port '53'
+
+config dns_servers
+	option enabled '0'
+	option type 'udp'
+	option group 'fallback'
+	option ip '2001:4860:4860::8844'
+	option port '53'

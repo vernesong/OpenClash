@@ -15,6 +15,7 @@ core_type=$(uci -q get openclash.config.core_type)
 _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
 CRASH_NUM=0
 CFG_UPDATE_INT=0
+sleep 60
 
 while :;
 do

@@ -84,11 +84,14 @@ else
    Value['dns']['enable']=true
 end;
 if $8 == 1 then
-   Value['dns']['ipv6']=true
    Value['ipv6']=true
 else
-   Value['dns']['ipv6']=false
    Value['ipv6']=false
+end;
+if ${21} == 1 then
+   Value['dns']['ipv6']=true
+else
+   Value['dns']['ipv6']=false
 end;
 Value['dns']['enhanced-mode']='$2';
 if '$2' == 'fake-ip' then
@@ -96,7 +99,7 @@ if '$2' == 'fake-ip' then
 else
    Value['dns'].delete('fake-ip-range')
 end;
-if $8 != 1 then
+if ${21} != 1 then
    Value['dns']['listen']='127.0.0.1:${17}'
 else
    Value['dns']['listen']='0.0.0.0:${17}'
@@ -109,7 +112,7 @@ if $en_mode_tun == 1 or $en_mode_tun == 3 then
    Value['tun'].merge!(Value_2)
 elsif $en_mode_tun == 2
    Value['tun']=Value_2['tun']
-   Value['tun']['device-url']='dev://clash0'
+   Value['tun']['device-url']='dev://utun'
    Value['tun']['dns-listen']='0.0.0.0:53'
 elsif $en_mode_tun == 0
    if Value.key?('tun') then
