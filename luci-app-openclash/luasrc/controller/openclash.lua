@@ -769,33 +769,42 @@ function action_refresh_log()
 		return
 	end
 	luci.http.prepare_content("text/plain; charset=utf-8")
-	local file=io.open(logfile, "r+")
+	local len = tonumber(luci.http.formvalue("log_len"))
+	local lens = len + 500
+	local st_l = 0
+	local file = io.open(logfile, "r+")
 	file:seek("set")
 	local info = ""
 	for line in file:lines() do
-		if not string.find (line, "level=") then
-			if not string.find (line, "【") and not string.find (line, "】") then
-   			line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, -1))
-   		else
-   			local a = string.find (line, "【")
-   			local b = string.find (line, "】")+2
-   			if a <= 21 then
-   				line = string.sub(line, 0, b)..luci.i18n.translate(string.sub(line, b+1, -1))
-   			elseif b < string.len(line) then
-   				line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, a-1))..string.sub(line, a, b)..luci.i18n.translate(string.sub(line, b+1, -1))
-   			elseif b == string.len(line) then
-   				line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, a-1))..string.sub(line, a, b)
+		st_l = st_l + 1
+		if len < st_l and st_l <= lens then
+			if not string.find (line, "level=") then
+				if not string.find (line, "【") and not string.find (line, "】") then
+   				line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, -1))
+   			else
+   				local a = string.find (line, "【")
+   				local b = string.find (line, "】")+2
+   				if a <= 21 then
+   					line = string.sub(line, 0, b)..luci.i18n.translate(string.sub(line, b+1, -1))
+   				elseif b < string.len(line) then
+   					line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, a-1))..string.sub(line, a, b)..luci.i18n.translate(string.sub(line, b+1, -1))
+   				elseif b == string.len(line) then
+   					line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, a-1))..string.sub(line, a, b)
+   				end
    			end
-   		end
-		end
-		if info ~= "" then
-			info = info.."\n"..line
-		else
-			info = line
+			end
+			if info ~= "" then
+				info = info.."\n"..line
+			else
+				info = line
+			end
+		elseif st_l > lens then
+   		st_l = st_l - 1
+   		break
 		end
 	end
 	file:close()
-	luci.http.write(info)
+	luci.http.write(st_l.."\n"..info)
 	return
 end
 

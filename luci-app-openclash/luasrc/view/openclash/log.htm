@@ -20,7 +20,9 @@
 </fieldset>
 
 <script type="text/javascript">//<![CDATA[
-var r
+var r;
+var log_len = 0;
+var lv = document.getElementById('cbid.openclash.config.clog');
 
 function stop_refresh() {
 	clearTimeout(r);
@@ -51,8 +53,8 @@ function download_log(){
 
 function del_log() {
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_log")%>',null,function(x, data){
-	var lv = document.getElementById('cbid.openclash.config.clog');
 		lv.innerHTML="";
+		log_len = 0;
 	}
 		);
 	return
@@ -74,41 +76,17 @@ function line_tolocal(str){
 	  strt[i]=dt.getFullYear()+"-"+p(dt.getMonth()+1)+"-"+p(dt.getDate())+" "+p(dt.getHours())+":"+p(dt.getMinutes())+":"+p(dt.getSeconds())+v.substring(res[1].length + 7);
 	}else{
 	  strt[i]=v;}})
-	var old_log_line = sessionStorage.log_line;
-	if ( old_log_line != null && strt.length != null ) {
-		if (old_log_line - strt.length < 0) {
-			sessionStorage.log_line = strt.length;
-			return strt.slice('-'+(strt.length-old_log_line))
-		}
-		else if (old_log_line == strt.length) {
-			sessionStorage.log_line = strt.length;
-			return
-		}
-		else if (old_log_line - strt.length > 0) {
-			sessionStorage.log_line = strt.length;
-			var lv = document.getElementById('cbid.openclash.config.clog');
-			lv.innerHTML = "";
-			return strt
-		}
-	}
-	else if ( strt.length != null ) {
-	   sessionStorage.log_line = strt.length;
-	   return strt
-	}
-	else {
-		sessionStorage.log_line = "0";
-	  return strt
-	}
+	return strt
 }
 
 function poll_log(){
-XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "refresh_log")%>', null,
-	function(x, data) {
+XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "refresh_log")%>', {log_len: log_len},
+	function(x, status) {
 		if ( x && x.status == 200 ) {
-			var lv = document.getElementById('cbid.openclash.config.clog');
 			if (x.responseText && lv) {
-				var lines=line_tolocal(x.responseText);
-				if (lines != null) {
+				log_len = x.responseText.split("\n")[0];
+				var lines = line_tolocal(x.responseText.replace(/.*/, "").substr(1));
+				if (lines != null && lines != "") {
 					lv.innerHTML = lines.reverse().join('\n')+'\n'+lv.innerHTML;
 					//lv.innerHTML = x.responseText.split('\n').reverse().join('\n')+lv.innerHTML;
 				}
@@ -118,10 +96,7 @@ XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "refresh
 );
 	r=setTimeout("poll_log()",1000*2);
 }
-sessionStorage.removeItem("log_line");
 poll_log();
 //]]>
-</script>	
-
-
+</script>
 <%+cbi/valuefooter%>
