@@ -167,6 +167,9 @@ msgstr "请自行根据运行速度为TUN模式选择合适的网络栈"
 msgid "China IP Route"
 msgstr "实验性：绕过中国大陆IP"
 
+msgid "China IPv6 Route"
+msgstr "实验性：绕过中国大陆IPv6"
+
 msgid "Bypass The China Network Flows, Improve Performance"
 msgstr "启用后中国大陆流量将不再经过内核，提升系统性能"
 
@@ -279,12 +282,17 @@ msgstr "服务器类型"
 msgid "(Communication protocol)"
 msgstr "(通讯协议)"
 
-msgid "Enable ipv6 Resolve"
+msgid "Proxy IPv6 Traffic"
+msgstr "IPv6 流量代理"
+
+msgid "Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use"
+msgstr "如果您不使用，请禁用IPv6的DHCP以避免连接异常"
+
+msgid "IPv6 DNS Resolve"
 msgstr "允许IPV6类型DNS解析"
 
 msgid "Enable Clash to Resolve ipv6 DNS Requests"
-msgstr ""
-"固件须配置好IPV6的NAT，如你不使用IPV6请关闭固件的相关服务，避免客户端连接出现异常"
+msgstr "允许解析IPV6类型的DNS请求"
 
 msgid "Rules Setting"
 msgstr "规则设置"
@@ -1404,6 +1412,9 @@ msgstr ", 如发生回环死机请尝试启用"
 msgid "Custom GEOIP URL"
 msgstr "GEOIP数据库更新URL"
 
+msgid "Custom Chnroute6 Lists URL"
+msgstr "大陆IPV6段更新URL"
+
 msgid "Custom Chnroute Lists URL"
 msgstr "大陆IP段更新URL"
 
@@ -1412,6 +1423,9 @@ msgstr "自定义GEOIP数据库的更新来源，编辑后点击下方按钮生�
 
 msgid "Custom Chnroute Lists URL, Click Button Below To Refresh After Edit"
 msgstr "自定义大陆IP段的更新来源，编辑后点击下方按钮生效"
+
+msgid "Custom Chnroute6 Lists URL, Click Button Below To Refresh After Edit"
+msgstr "自定义大陆IPV6段的更新来源，编辑后点击下方按钮生效"
 
 msgid "(Default)"
 msgstr "(默认)"
@@ -1668,20 +1682,38 @@ msgstr "订阅失败，尝试不使用代理下载配置文件..."
 msgid "Start Downloading The Chnroute Cidr List..."
 msgstr "开始下载大陆IP白名单..."
 
+msgid "Start Downloading The Chnroute6 Cidr List..."
+msgstr "开始下载大陆IPV6白名单..."
+
 msgid "Chnroute Cidr List Download Success, Check Updated..."
 msgstr "大陆IP白名单下载成功，检查版本是否更新..."
+
+msgid "Chnroute6 Cidr List Download Success, Check Updated..."
+msgstr "大陆IPV6白名单下载成功，检查版本是否更新..."
 
 msgid "Chnroute Cidr List Has Been Updated, Starting To Replace The Old Version..."
 msgstr "大陆IP白名单有更新，开始替换旧版本..."
 
+msgid "Chnroute6 Cidr List Has Been Updated, Starting To Replace The Old Version..."
+msgstr "大陆IPV6白名单有更新，开始替换旧版本..."
+
 msgid "Chnroute Cidr List Update Successful!"
 msgstr "大陆IP白名单更新成功！"
+
+msgid "Chnroute6 Cidr List Update Successful!"
+msgstr "大陆IPV6白名单更新成功！"
 
 msgid "Updated Chnroute Cidr List No Change, Do Nothing..."
 msgstr "大陆IP白名单没有更新，停止继续操作..."
 
+msgid "Updated Chnroute6 Cidr List No Change, Do Nothing..."
+msgstr "大陆IPV6白名单没有更新，停止继续操作..."
+
 msgid "Chnroute Cidr List Update Error, Please Try Again Later..."
 msgstr "大陆IP白名单下载失败，请检查网络或稍后再试..."
+
+msgid "Chnroute6 Cidr List Update Error, Please Try Again Later..."
+msgstr "大陆IPV6白名单下载失败，请检查网络或稍后再试..."
 
 msgid "Start Downloading Geoip Database..."
 msgstr "开始下载 GEOIP 数据库..."
@@ -1744,7 +1776,7 @@ msgid "Group To Config File..."
 msgstr "策略组到配置文件..."
 
 msgid "Proxy To Config File..."
-msgstr "策略组到配置文件..."
+msgstr "节点到配置文件..."
 
 msgid "Proxy-provider To Config File..."
 msgstr "代理集到配置文件..."

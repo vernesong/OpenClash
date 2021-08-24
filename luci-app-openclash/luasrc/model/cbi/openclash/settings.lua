@@ -83,6 +83,15 @@ o:value("direct", translate("Direct Proxy Mode"))
 o:value("script", translate("Script Proxy Mode (Tun Core Only)"))
 o.default = "rule"
 
+o = s:taboption("op_mode", Flag, "ipv6_enable", font_red..bold_on..translate("Proxy IPv6 Traffic")..bold_off..font_off)
+o.description = font_red..bold_on..translate("Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use")..bold_off..font_off
+o.default=0
+
+o = s:taboption("op_mode", Flag, "china_ip6_route", translate("China IPv6 Route"))
+o.description = translate("Bypass The China Network Flows, Improve Performance")
+o.default=0
+o:depends("ipv6_enable", 1)
+
 o = s:taboption("op_mode", Flag, "disable_udp_quic", font_red..bold_on..translate("Disable QUIC")..bold_off..font_off)
 o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic On Port 443")..bold_off..font_off
 o.default=1
@@ -202,7 +211,7 @@ o = s:taboption("dns", Flag, "enable_custom_dns", font_red..bold_on..translate("
 o.description = font_red..bold_on..translate("Set OpenClash Upstream DNS Resolve Server")..bold_off..font_off
 o.default=0
 
-o = s:taboption("dns", Flag, "ipv6_enable", translate("Enable ipv6 Resolve"))
+o = s:taboption("dns", Flag, "ipv6_dns", translate("IPv6 DNS Resolve"))
 o.description = font_red..bold_on..translate("Enable Clash to Resolve ipv6 DNS Requests")..bold_off..font_off
 o.default=0
 
@@ -350,7 +359,18 @@ luci.ip.neighbors({ family = 4 }, function(n)
 		mac_w:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
 	end
 end)
+
+luci.ip.neighbors({ family = 6 }, function(n)
+	if n.mac and n.dest then
+		ip_b:value(n.dest:string())
+		ip_w:value(n.dest:string())
+		mac_b:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
+		mac_w:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
+	end
+end)
 end
+
+
 
 o = s:taboption("lan_ac", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
 o.datatype = "ipaddr"
@@ -486,7 +506,6 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-if op_mode == "redir-host" then
 o = s:taboption("chnr_update", Flag, "chnr_auto_update", translate("Auto Update"))
 o.description = translate("Auto Update Chnroute Lists")
 o.default=0
@@ -517,6 +536,13 @@ o:value("https://ispip.clang.cn/all_cn_cidr.txt", translate("Clang-CN-CIDR"))
 o:value("https://cdn.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr.txt", translate("Hackl0us-CN-CIDR")..translate("(Large Size)"))
 o.default = "https://ispip.clang.cn/all_cn.txt"
 
+o = s:taboption("chnr_update", Value, "chnr6_custom_url")
+o.title = translate("Custom Chnroute6 Lists URL")
+o.rmempty = false
+o.description = translate("Custom Chnroute6 Lists URL, Click Button Below To Refresh After Edit")
+o:value("https://ispip.clang.cn/all_cn_ipv6.txt", translate("Clang-CN-IPV6")..translate("(Default)"))
+o.default = "https://ispip.clang.cn/all_cn_ipv6.txt"
+
 o = s:taboption("chnr_update", Button, translate("Chnroute Lists Update")) 
 o.title = translate("Update Chnroute Lists")
 o.inputtitle = translate("Check And Update")
@@ -526,7 +552,6 @@ o.write = function()
   m.uci:commit("openclash")
   SYS.call("/usr/share/openclash/openclash_chnroute.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
-end
 end
 
 o = s:taboption("auto_restart", Flag, "auto_restart", translate("Auto Restart"))

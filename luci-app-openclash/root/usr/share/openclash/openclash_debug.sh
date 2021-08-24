@@ -21,6 +21,7 @@ enable_custom_dns=$(uci get openclash.config.enable_custom_dns 2>/dev/null)
 rule_source=$(uci get openclash.config.rule_source 2>/dev/null)
 enable_custom_clash_rules=$(uci get openclash.config.enable_custom_clash_rules 2>/dev/null) 
 ipv6_enable=$(uci get openclash.config.ipv6_enable 2>/dev/null)
+ipv6_dns=$(uci get openclash.config.ipv6_dns 2>/dev/null)
 enable_redirect_dns=$(uci get openclash.config.enable_redirect_dns 2>/dev/null)
 disable_masq_cache=$(uci get openclash.config.disable_masq_cache 2>/dev/null)
 proxy_mode=$(uci get openclash.config.proxy_mode 2>/dev/null)
@@ -87,10 +88,7 @@ LuCI版本: $(opkg status luci 2>/dev/null |grep 'Version' |awk -F ': ' '{print 
 内核版本: $(uname -r 2>/dev/null)
 处理器架构: $cpu_model
 
-#此项在使用Tun模式时应为ACCEPT
-防火墙转发: $(uci get firewall.@defaults[0].forward 2>/dev/null)
-
-#此项有值时建议到网络-接口-lan的设置中禁用IPV6的DHCP
+#此项有值时,如不使用IPv6,建议到网络-接口-lan的设置中禁用IPV6的DHCP
 IPV6-DHCP: $(uci get dhcp.lan.dhcpv6 2>/dev/null)
 
 #此项结果应仅有配置文件的DNS监听地址
@@ -231,6 +229,7 @@ cat >> "$DEBUG_LOG" <<-EOF
 UDP流量转发(tproxy): $(ts_cf "$enable_udp_proxy")
 DNS劫持: $(ts_cf "$enable_redirect_dns")
 自定义DNS: $(ts_cf "$enable_custom_dns")
+IPV6代理: $(ts_cf "$ipv6_dns")
 IPV6-DNS解析: $(ts_cf "$ipv6_enable")
 禁用Dnsmasq缓存: $(ts_cf "$disable_masq_cache")
 自定义规则: $(ts_cf "$enable_custom_clash_rules")
@@ -283,17 +282,31 @@ cat >> "$DEBUG_LOG" <<-EOF
 
 #===================== 防火墙设置 =====================#
 
-#NAT chain
+#IPv4 NAT chain
 
 EOF
 iptables-save -t nat >> "$DEBUG_LOG" 2>/dev/null
 
 cat >> "$DEBUG_LOG" <<-EOF
 
-#Mangle chain
+#IPv4 Mangle chain
 
 EOF
 iptables-save -t mangle >> "$DEBUG_LOG" 2>/dev/null
+
+cat >> "$DEBUG_LOG" <<-EOF
+
+#IPv6 NAT chain
+
+EOF
+ip6tables-save -t nat >> "$DEBUG_LOG" 2>/dev/null
+
+cat >> "$DEBUG_LOG" <<-EOF
+
+#IPv6 Mangle chain
+
+EOF
+ip6tables-save -t mangle >> "$DEBUG_LOG" 2>/dev/null
 
 cat >> "$DEBUG_LOG" <<-EOF
 
