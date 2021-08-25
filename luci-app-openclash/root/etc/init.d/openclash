@@ -310,14 +310,10 @@ yml_dns_get()
       dns_type="- https://"
    fi
 
-   if [ -n "$port" ] && [ -n "$(echo $ip |grep ":" 2>/dev/null)" ]; then
+   if [ -n "$port" ] && [ -n "$ip" ]; then
       dns_address="\"$ip:$port\""
-   elif [ -n "$(echo $ip |grep ":" 2>/dev/null)" ]; then
-      dns_address="\"$ip\""
-   elif [ -n "$port" ] && [ -n "$ip" ]; then
-      dns_address="$ip:$port"
    elif [ -z "$port" ] && [ -n "$ip" ]; then
-      dns_address="$ip"
+      dns_address="\"$ip\""
    else
       return
    fi
@@ -1677,7 +1673,6 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
       ip6tables -t mangle -A openclash_output -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
       ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
       ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip6_route dst -j RETURN >/dev/null 2>&1
-      # 防止出现死循环
       ip6tables -t mangle -A openclash_output -p tcp -m owner ! --uid-owner 65534 -j MARK --set-xmark "$PROXY_FWMARK"
       ip6tables -t mangle -A OUTPUT -j openclash_output
    fi
@@ -1780,15 +1775,6 @@ revert_firewall()
    iptables -t mangle -F openclash_output >/dev/null 2>&1
    iptables -t mangle -X openclash_output >/dev/null 2>&1
 
-   ipset destroy localnetwork >/dev/null 2>&1
-   ipset destroy china_ip_route >/dev/null 2>&1
-   ipset destroy lan_ac_white_ips >/dev/null 2>&1
-   ipset destroy lan_ac_black_ips >/dev/null 2>&1
-   ipset destroy lan_ac_white_macs >/dev/null 2>&1
-   ipset destroy lan_ac_black_macs >/dev/null 2>&1
-   ipset destroy wan_ac_black_ips >/dev/null 2>&1
-   ipset destroy common_ports >/dev/null 2>&1
-
    #Revert IPv6 rules
 
    pre_lines=$(ip6tables -nvL PREROUTING -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
@@ -1821,6 +1807,15 @@ revert_firewall()
    ipset destroy lan_ac_white_ipv6s >/dev/null 2>&1
    ipset destroy lan_ac_black_ipv6s >/dev/null 2>&1
    ipset destroy wan_ac_black_ipv6s >/dev/null 2>&1
+   
+   ipset destroy localnetwork >/dev/null 2>&1
+   ipset destroy china_ip_route >/dev/null 2>&1
+   ipset destroy lan_ac_white_ips >/dev/null 2>&1
+   ipset destroy lan_ac_black_ips >/dev/null 2>&1
+   ipset destroy lan_ac_white_macs >/dev/null 2>&1
+   ipset destroy lan_ac_black_macs >/dev/null 2>&1
+   ipset destroy wan_ac_black_ips >/dev/null 2>&1
+   ipset destroy common_ports >/dev/null 2>&1
 }
 
 get_config()
