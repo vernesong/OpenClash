@@ -70,7 +70,7 @@ config_cus_up()
 	fi
 	if [ -z "$subscribe_url_param" ]; then
 	   if [ -n "$key_match_param" ] || [ -n "$key_ex_match_param" ]; then
-	      LOG_OUT "Config file【$name】is Replaced Successfully, Start Picking Nodes..."	      
+	      LOG_OUT "Config File【$name】is Replaced Successfully, Start Picking Nodes..."	      
 	      ruby -ryaml -E UTF-8 -e "
 	      begin
 	         Value = YAML.load_file('$CONFIG_FILE');

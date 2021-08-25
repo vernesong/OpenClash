@@ -119,18 +119,18 @@ yml_proxy_provider_set()
 cat >> "$PROXY_PROVIDER_FILE" <<-EOF
   $name:
     type: $type
-    path: $path
+    path: "$path"
 EOF
    if [ ! -z "$provider_url" ]; then
 cat >> "$PROXY_PROVIDER_FILE" <<-EOF
-    url: $provider_url
+    url: "$provider_url"
     interval: $provider_interval
 EOF
    fi
 cat >> "$PROXY_PROVIDER_FILE" <<-EOF
     health-check:
       enable: $health_check
-      url: $health_check_url
+      url: "$health_check_url"
       interval: $health_check_interval
 EOF
 
@@ -142,7 +142,7 @@ set_alpn()
       return
    fi
 cat >> "$SERVER_FILE" <<-EOF
-      - $1
+      - '$1'
 EOF
 }
 
@@ -291,14 +291,14 @@ yml_servers_set()
    fi
    
    if [ ! -z "$custom" ] && [ "$type" = "vmess" ]; then
-      custom="Host: $custom"
+      custom="Host: \"$custom\""
    fi
    
    if [ ! -z "$path" ]; then
       if [ "$type" != "vmess" ]; then
-         path="path: '$path'"
+         path="path: \"$path\""
       elif [ "$obfs_vmess" = "network: ws" ]; then
-         path="ws-path: $path"
+         path="ws-path: \"$path\""
       fi
    fi
 
@@ -307,7 +307,7 @@ yml_servers_set()
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
-    server: $server
+    server: "$server"
     port: $port
     cipher: $cipher
     password: "$password"
@@ -325,7 +325,7 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
         if [ ! -z "$host" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-      host: $host
+      host: "$host"
 EOF
         fi
         if [  "$obfss" = "plugin: v2ray-plugin" ]; then
@@ -364,7 +364,7 @@ if [ "$type" = "ssr" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
-    server: $server
+    server: "$server"
     port: $port
     cipher: $cipher_ssr
     password: "$password"
@@ -393,7 +393,7 @@ fi
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
-    server: $server
+    server: "$server"
     port: $port
     uuid: $uuid
     alterId: $alterId
@@ -416,7 +416,7 @@ EOF
       fi
       if [ ! -z "$servername" ] && [ "$tls" = "true" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    servername: $servername
+    servername: "$servername"
 EOF
       fi
       if [ "$obfs_vmess" != "none" ]; then
@@ -438,10 +438,10 @@ EOF
             if [ -n "$ws_opts_path" ] || [ -n "$ws_opts_headers" ] || [ -n "$max_early_data" ] || [ -n "$early_data_header_name" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ws-opts:
-      path: $ws_opts_path
-      headers: $ws_opts_headers
+      path: "$ws_opts_path"
+      headers: "$ws_opts_headers"
       max-early-data: $max_early_data
-      early-data-header-name: $early_data_header_name
+      early-data-header-name: "$early_data_header_name"
 EOF
             fi
          fi
@@ -491,17 +491,17 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
-    server: $server
+    server: "$server"
     port: $port
 EOF
       if [ ! -z "$auth_name" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    username: $auth_name
+    username: "$auth_name"
 EOF
       fi
       if [ ! -z "$auth_pass" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    password: $auth_pass
+    password: "$auth_pass"
 EOF
       fi
       if [ ! -z "$udp" ]; then
@@ -526,17 +526,17 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
-    server: $server
+    server: "$server"
     port: $port
 EOF
       if [ ! -z "$auth_name" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    username: $auth_name
+    username: "$auth_name"
 EOF
       fi
       if [ ! -z "$auth_pass" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    password: $auth_pass
+    password: "$auth_pass"
 EOF
       fi
       if [ ! -z "$skip_cert_verify" ]; then
@@ -551,7 +551,7 @@ EOF
       fi
       if [ ! -z "$sni" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    sni: $sni
+    sni: "$sni"
 EOF
       fi
    fi
@@ -561,7 +561,7 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
-    server: $server
+    server: "$server"
     port: $port
     password: "$password"
 EOF
@@ -572,7 +572,7 @@ EOF
    fi
    if [ ! -z "$sni" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    sni: $sni
+    sni: "$sni"
 EOF
    fi
    if [ ! -z "$alpn" ]; then
@@ -599,7 +599,7 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
-    server: $server
+    server: "$server"
     port: $port
     psk: $psk
 EOF
@@ -607,7 +607,7 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
     obfs-opts:
       mode: $obfs_snell
-      host: $host
+      host: "$host"
 EOF
    fi
    fi
