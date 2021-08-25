@@ -1353,8 +1353,12 @@ if [ "$china_ip_route" = "1" ] && [ -f "/etc/openclash/china_ip_route.ipset" ]; 
    ipset -! restore </etc/openclash/china_ip_route.ipset 2>/dev/null
 fi
 
-DNSPORT="$(uci -q get dhcp.@dnsmasq[0].port || echo $dns_port)"
 if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(iptables -t nat -nL PREROUTING --line-number |grep 'dns_hijack')"]; then
+   if [ -z "$(netstat -nlp |grep -E '127.0.0.1:53.*dnsmasq')" ]; then
+      DNSPORT="$dns_port"
+   else
+      DNSPORT="$(uci -q get dhcp.@dnsmasq[0].port || echo 53)"
+   fi
    iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment dns_hijack
    iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment dns_hijack
 fi
