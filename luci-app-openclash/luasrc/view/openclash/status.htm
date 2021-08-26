@@ -162,32 +162,14 @@
 	var hid_btn_if = true;
 	var ws_connect = false;
 	var ws_error = false;
+	var state_refresh;
+	state_get();
 	
 	hid_1.style.display = "none";
 	hid_2.style.display = "none";
 	hid_3.style.display = "none";
   state.style.display="none";
-  
-	window.onload=function(){
-		hid_btn_action();
-	}
 
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "state")%>', null, function(x, status) {
-		if ( x && x.status == 200 ) {
-			ipdb.innerHTML = status.ipdb ? "<b><font color=green>"+status.ipdb+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			lhie1.innerHTML = status.lhie1 ? "<b><font color=green>"+status.lhie1+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			ConnersHua.innerHTML = status.ConnersHua ? "<b><font color=green>"+status.ConnersHua+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			ConnersHua_return.innerHTML = status.ConnersHua_return ? "<b><font color=green>"+status.ConnersHua_return+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			chnroute.innerHTML = status.chnroute ? "<b><font color=green>"+status.chnroute+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			if ( status.historychecktime != "0" ) {
-			   historychecktime.innerHTML = "<b><font color=green>"+status.historychecktime+"</font></b>";
-			}
-		  else {
-		  	 historychecktime.innerHTML = "<b><font color=green>"+"<%:No Backup%>"+"</font></b>";
-		  }
-		}
-	});
-	
 	XHR.poll(2, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
 			if ( status.restricted_mode != "1" )
@@ -258,38 +240,41 @@
 			}
 		}
 	});
-		
-	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "state")%>', null, function(x, status) {
-		if ( x && x.status == 200 ) {
-			ipdb.innerHTML = status.ipdb ? "<b><font color=green>"+status.ipdb+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			lhie1.innerHTML = status.lhie1 ? "<b><font color=green>"+status.lhie1+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			ConnersHua.innerHTML = status.ConnersHua ? "<b><font color=green>"+status.ConnersHua+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			ConnersHua_return.innerHTML = status.ConnersHua_return ? "<b><font color=green>"+status.ConnersHua_return+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			chnroute.innerHTML = status.chnroute ? "<b><font color=green>"+status.chnroute+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			if ( status.historychecktime != "0" ) {
-			   historychecktime.innerHTML = "<b><font color=green>"+status.historychecktime+"</font></b>";
+	
+	function state_get() {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "state")%>', null, function(x, status) {
+			if ( x && x.status == 200 ) {
+				ipdb.innerHTML = status.ipdb ? "<b><font color=green>"+status.ipdb+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
+				lhie1.innerHTML = status.lhie1 ? "<b><font color=green>"+status.lhie1+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
+				ConnersHua.innerHTML = status.ConnersHua ? "<b><font color=green>"+status.ConnersHua+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
+				ConnersHua_return.innerHTML = status.ConnersHua_return ? "<b><font color=green>"+status.ConnersHua_return+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
+				chnroute.innerHTML = status.chnroute ? "<b><font color=green>"+status.chnroute+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
+				if ( status.historychecktime != "0" ) {
+				   historychecktime.innerHTML = "<b><font color=green>"+status.historychecktime+"</font></b>";
+				}
+		  	else {
+		 	 	 historychecktime.innerHTML = "<b><font color=green>"+"<%:No Backup%>"+"</font></b>";
+		 	 }
 			}
-		  else {
-		  	 historychecktime.innerHTML = "<b><font color=green>"+"<%:No Backup%>"+"</font></b>";
-		  }
-		}
-	});
+		});
+	}
 	
 	function hid_btn_action() {
-		hid_btn.onclick = function() {
-			if (hid_btn_if) {
-				hid_1.style.display = "";
-				hid_2.style.display = "";
-				hid_3.style.display = "";
-				state.style.display = "block";
-				hid_btn_if = false;
-			} else {
-				hid_1.style.display = "none";
-				hid_2.style.display = "none";
-				hid_3.style.display = "none";
-				state.style.display = "none";
-				hid_btn_if = true;
-			}
+		if (hid_btn_if) {
+			hid_1.style.display = "";
+			hid_2.style.display = "";
+			hid_3.style.display = "";
+			state.style.display = "block";
+			hid_btn_if = false;
+			clearInterval(state_refresh);
+			state_refresh=setInterval("state_get()",1000*2);
+		} else {
+			hid_1.style.display = "none";
+			hid_2.style.display = "none";
+			hid_3.style.display = "none";
+			state.style.display = "none";
+			hid_btn_if = true;
+			clearInterval(state_refresh);
 		}
 	}
 	

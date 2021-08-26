@@ -80,7 +80,7 @@ change_dns() {
       uci -q set dhcp.@dnsmasq[0].cachesize=0
    fi
    
-   if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
+   if [ "$ipv6_dns" == 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
       #dnsmasq answer ipv6
 	    uci -q set dhcp.@dnsmasq[0].filter_aaaa=0
 	 fi
@@ -1522,7 +1522,6 @@ if [ -n "$en_mode_tun" ]; then
    if [ "$en_mode_tun" -eq 2 ]; then
       ip tuntap add user root mode tun utun
       ip link set utun up
-      ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
    elif [ "$en_mode_tun" -eq 1 ] || [ "$en_mode_tun" -eq 3 ]; then
       TUN_WAIT=0
       while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 3 ] )
@@ -1530,8 +1529,8 @@ if [ -n "$en_mode_tun" ]; then
          let TUN_WAIT++
          sleep 2
       done
-      ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
    fi
+   ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
    ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    
    #设置防火墙
@@ -1605,13 +1604,13 @@ if [ -n "$en_mode_tun" ]; then
          iptables -t nat -A POSTROUTING -j openclash_post
       fi
    fi
+   #TUN FORWORD
+   iptables -I FORWARD -o utun -j ACCEPT
    #quic
    if [ "$disable_udp_quic" -eq 1 ]; then
    	  iptables -I INPUT -p udp --dport 443 -j REJECT
       iptables -I FORWARD -p udp --dport 443 -j REJECT
    fi
-   #TUN FORWORD
-   iptables -I FORWARD -o utun -j ACCEPT
 fi
 
 #ipv6
@@ -1626,7 +1625,7 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
       ipset -! restore </etc/openclash/china_ip6_route.ipset 2>/dev/null
    fi
    
-	 ipset create localnetwork6 hash:net family inet6
+   ipset create localnetwork6 hash:net family inet6
    ipset add localnetwork6 ::/128
    ipset add localnetwork6 ::1/128
    ipset add localnetwork6 ::ffff:0:0/96
