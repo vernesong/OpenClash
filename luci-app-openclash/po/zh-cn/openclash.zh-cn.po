@@ -92,20 +92,23 @@ msgstr "生成日志"
 msgid "Click to Generate"
 msgstr "点击生成"
 
-msgid "Enable Clash"
+msgid "Enable OpenClash"
 msgstr "启动 OpenClash"
 
-msgid "Disable Clash"
+msgid "Disable OpenClash"
 msgstr "关闭 OpenClash"
 
-msgid "Commit Configurations"
+msgid "Commit Settings"
 msgstr "保存配置"
 
-msgid "Apply Configurations"
+msgid "Apply Settings"
 msgstr "应用配置"
 
 msgid "Download Config"
 msgstr "下载配置"
+
+msgid "Update Config"
+msgstr "更新配置"
 
 msgid "Download Running Config"
 msgstr "下载运行配置"
@@ -605,7 +608,7 @@ msgstr ""
 msgid "Servers and Groups"
 msgstr "服务器与策略组管理"
 
-msgid "Load Config"
+msgid "Read Config"
 msgstr "读取配置"
 
 msgid "Delete Unused Servers"
@@ -614,13 +617,13 @@ msgstr "删除未启用节点"
 msgid "Delete Servers"
 msgstr "清空服务器配置"
 
-msgid "Delete Proxy Provider"
+msgid "Delete Proxy Providers"
 msgstr "清空代理集配置"
 
 msgid "Delete Groups"
 msgstr "清空策略组配置"
 
-msgid "Back Configurations"
+msgid "Back Settings"
 msgstr "返回概览"
 
 msgid "Refresh Page"

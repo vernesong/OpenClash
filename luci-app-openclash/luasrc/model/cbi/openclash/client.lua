@@ -107,7 +107,7 @@ ap.pageaction = false
 ss = ap:section(Table, t)
 
 o = ss:option(Button, "enable", " ")
-o.inputtitle = translate("Enable Clash")
+o.inputtitle = translate("Enable OpenClash")
 o.inputstyle = "apply"
 o.write = function()
   uci:set("openclash", "config", "enable", 1)
@@ -116,7 +116,7 @@ o.write = function()
 end
 
 o = ss:option(Button, "disable", " ")
-o.inputtitle = translate("Disable Clash")
+o.inputtitle = translate("Disable OpenClash")
 o.inputstyle = "reset"
 o.write = function()
   uci:set("openclash", "config", "enable", 0)
