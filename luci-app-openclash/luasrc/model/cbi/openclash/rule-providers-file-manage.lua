@@ -106,7 +106,7 @@ o.write = function()
 end
 
 o = a:option(Button, "Apply", " ")
-o.inputtitle = translate("Back Configurations")
+o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
 o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config"))
