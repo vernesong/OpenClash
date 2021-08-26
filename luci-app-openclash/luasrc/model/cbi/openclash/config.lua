@@ -386,7 +386,7 @@ local t = {
 a = m:section(Table, t)
 
 o = a:option(Button, "Commit", " ")
-o.inputtitle = translate("Commit Configurations")
+o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
 	fs.unlink("/tmp/Proxy_Group")
@@ -394,7 +394,7 @@ o.write = function()
 end
 
 o = a:option(Button, "Apply", " ")
-o.inputtitle = translate("Apply Configurations")
+o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
 	fs.unlink("/tmp/Proxy_Group")
