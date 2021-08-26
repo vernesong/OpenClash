@@ -301,19 +301,19 @@ yml_dns_get()
    fi
 
    if [ "$type" = "tcp" ]; then
-      dns_type="- tcp://"
+      dns_type="tcp://"
    elif [ "$type" = "tls" ]; then
-      dns_type="- tls://"
+      dns_type="tls://"
    elif [ "$type" = "udp" ]; then
-      dns_type="- "
+      dns_type=""
    elif [ "$type" = "https" ]; then
-      dns_type="- https://"
+      dns_type="https://"
    fi
 
    if [ -n "$port" ] && [ -n "$ip" ]; then
-      dns_address="\"$ip:$port\""
+      dns_address="$ip:$port"
    elif [ -z "$port" ] && [ -n "$ip" ]; then
-      dns_address="\"$ip\""
+      dns_address="$ip"
    else
       return
    fi
@@ -323,12 +323,12 @@ yml_dns_get()
          if [ -z "$(grep "^ \{0,\}nameserver:$" /tmp/yaml_config.namedns.yaml 2>/dev/null)" ]; then
             echo "  nameserver:" >/tmp/yaml_config.namedns.yaml
          fi
-         echo "    $dns_type$dns_address" >>/tmp/yaml_config.namedns.yaml
+         echo "    - \"$dns_type$dns_address\"" >>/tmp/yaml_config.namedns.yaml
       else
          if [ -z "$(grep "^ \{0,\}fallback:$" /tmp/yaml_config.falldns.yaml 2>/dev/null)" ]; then
             echo "  fallback:" >/tmp/yaml_config.falldns.yaml
          fi
-         echo "    $dns_type$dns_address" >>/tmp/yaml_config.falldns.yaml
+         echo "    - \"$dns_type$dns_address\"" >>/tmp/yaml_config.falldns.yaml
       fi
    else
       return
