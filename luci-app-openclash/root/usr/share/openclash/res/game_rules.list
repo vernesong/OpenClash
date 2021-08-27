@@ -14,11 +14,12 @@ Atlas-全区,Atlas.rules
 战地5,Battlefield-Ⅴ.rules,Battlefield-5.rules
 黑色沙漠,Black-Desert.rules
 黑色幸存者,BlackSurvivor.rules
-剑灵台服,Blade%26Soul%20TW.rules,Blade&Soul TW.rules
-剑灵-日服,Blade-%26-Soul-jp.rules,Blade-&-Soul-jp.rules
-剑灵-国服全部区服（UU规则）,Blood-%26-Soul-CN-TestServer-NantianGuo-Alpha.rules,Blood-&-Soul-CN-TestServer-NantianGuo-Alpha.rules
-剑灵-国服-南天国（测试版）,Blood-%26-Soul-CN.rules,Blood-&-Soul-CN.rules
+剑灵台服,Blade&Soul TW.rules
+剑灵-日服,Blade-&-Soul-jp.rules
+剑灵-国服全部区服（UU规则）,Blood-&-Soul-CN-TestServer-NantianGuo-Alpha.rules
+剑灵-国服-南天国（测试版）,Blood-&-Soul-CN.rules
 无主之地3,Borderlands3-asia.rules
+泡泡战士-跑跑卡丁车-韩服,BubbleFighter-KartRider-KR.rules
 使命召唤4：现代战争重置版,Call-Of-Duty-4-Modern-Warfare.rules
 使命召唤15亚服,Call-Of-Duty15-Asia.rules
 英雄连2,Company-Of-Heroes-2.rules
@@ -87,14 +88,14 @@ NBA2K20,NBA2K20.rules
 Osu!,Osu!.rules
 守望先锋-亚服,Overwatch-Asia.rules
 守望先锋-美服,Overwatch-US.rules
-流亡黯道-国际服,Path%20Of%20Exile.rules,Path Of Exile.rules
+流亡黯道-国际服,Path Of Exile.rules
 流放之路,PathOfexile.rules
-梦幻之星2-日服(tx),PHANTASY%20STAR%20ONLINE2-JPtx.rules,PHANTASY STAR ONLINE2-JPtx.rules
+梦幻之星2-日服(tx),PHANTASY STAR ONLINE2-JPtx.rules
 行星边际2,PlanetSide-2.rules
 绝地求生大逃杀,PlayerUnknown's-Battlegrounds-update.rules,PlayerUnknowns-Battlegrounds-update.rules
 实况足球-2018,Pro-Evolution-Soccer-2018.rules
 实况足球-2019,Pro-Evolution-Soccer-2019.rules
-绝地求生亚服-东南亚服,PUBG-Asia%26-Southeast-Asia.rules
+绝地求生亚服-东南亚服,PUBG-Asia&-Southeast-Asia.rules
 绝地求生国际服,PUBG-INT.rules
 绝地求生韩服,PUBG-kakao.rules
 绝地求生低配版-Garena,PUBGLite-Garena.rules
@@ -143,5 +144,5 @@ Steam-社区(Beta),Steam.rules
 战舰世界-美服,World-of-Warships.rules
 僵尸世界大战,Worldwar-Z.rules
 魔兽世界-欧服,WoW-EU.rules
-游戏王决斗链接,YO-GI-HO%20delulinks.rules,YO-GI-HO delulinks.rules
+游戏王决斗链接,YO-GI-HO delulinks.rules
 游侠对战平台,YouXiaDuiZhanPingTai.rules
