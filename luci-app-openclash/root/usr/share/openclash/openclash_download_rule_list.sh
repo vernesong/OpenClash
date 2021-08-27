@@ -1,5 +1,16 @@
 #!/bin/sh
 . /usr/share/openclash/log.sh
+. /lib/functions.sh
+
+urlencode() {
+   local data
+   if [ "$#" -eq 1 ]; then
+      data=$(curl -s -o /dev/null -w %{url_effective} --get --data-urlencode "$1" "")
+      if [ ! -z "$data" ]; then
+         echo "$(echo ${data##/?} |sed 's/\//%2f/g' |sed 's/:/%3a/g' |sed 's/?/%3f/g' |sed 's/(/%28/g' |sed 's/)/%29/g' |sed 's/\^/%5e/g' |sed 's/=/%3d/g' |sed 's/|/%7c/g' |sed 's/+/%20/g')"
+      fi
+   fi
+}
 
    RULE_FILE_NAME="$1"
    if [ -z "$(grep "$RULE_FILE_NAME" /usr/share/openclash/res/rule_providers.list 2>/dev/null)" ]; then
@@ -19,6 +30,7 @@
    fi
 
    TMP_RULE_DIR="/tmp/$RULE_FILE_NAME"
+   DOWNLOAD_PATH=$(urlencode "$DOWNLOAD_PATH")
    
    if [ "$RULE_TYPE" = "game" ]; then
       if pidof clash >/dev/null; then
