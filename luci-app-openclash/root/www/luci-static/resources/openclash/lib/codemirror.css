@@ -19,7 +19,7 @@
 }
 
 .CodeMirror-scrollbar-filler, .CodeMirror-gutter-filler {
-  background-color: transparent; /* The little square between H and V scrollbars */
+  background-color: white; /* The little square between H and V scrollbars */
 }
 
 /* GUTTER */
@@ -68,7 +68,6 @@
 }
 .cm-animate-fat-cursor {
   width: auto;
-  border: 0;
   -webkit-animation: blink 1.06s steps(1) infinite;
   -moz-animation: blink 1.06s steps(1) infinite;
   animation: blink 1.06s steps(1) infinite;
