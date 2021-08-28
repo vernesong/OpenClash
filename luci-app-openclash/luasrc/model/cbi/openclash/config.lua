@@ -304,7 +304,7 @@ p.reset = false
 p.submit = false
 
 local provider_manage = {
-    {proxy_mg, rule_mg}
+    {proxy_mg, rule_mg, game_mg}
 }
 
 promg = p:section(Table, provider_manage)
@@ -321,6 +321,13 @@ o.inputtitle = translate("Rule Providers File List")
 o.inputstyle = "reload"
 o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-file-manage"))
+end
+
+o = promg:option(Button, "game_mg", " ")
+o.inputtitle = translate("Game Rules File List")
+o.inputstyle = "reload"
+o.write = function()
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-file-manage"))
 end
 
 m = SimpleForm("openclash",translate("Config File Edit"))
@@ -375,10 +382,6 @@ end
 def.write = function(self, section, value)
 end
 
-o = s:option(DummyValue, "")
-o.anonymous=true
-o.template = "openclash/config_editor"
-
 local t = {
     {Commit, Apply}
 }
@@ -404,6 +407,7 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
+m:append(Template("openclash/config_editor"))
 m:append(Template("openclash/toolbar_show"))
 
 return ful , form , p , m

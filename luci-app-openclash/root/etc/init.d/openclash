@@ -1922,7 +1922,7 @@ start()
    if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] && [ "$(uci -q get openclash.config.restricted_mode)" != "1" ]; then
       LOG_OUT "OpenClash Start Successful!"
       sleep 5
-   elif [ -n "$(uci -q get dhcp.lan.dhcpv6)" ]; then
+   elif [ -n "$(uci -q get dhcp.lan.dhcpv6)" ] && [ "$ipv6_enable" -eq 0 ]; then
       LOG_OUT "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPV6's DHCP Server"
       sleep 5
    fi

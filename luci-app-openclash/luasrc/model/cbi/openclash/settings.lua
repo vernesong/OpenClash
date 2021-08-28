@@ -370,8 +370,6 @@ luci.ip.neighbors({ family = 6 }, function(n)
 end)
 end
 
-
-
 o = s:taboption("lan_ac", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
 o.datatype = "ipaddr"
 o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
@@ -810,6 +808,7 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
+m:append(Template("openclash/config_editor"))
 m:append(Template("openclash/toolbar_show"))
 
 return m
