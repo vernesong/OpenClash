@@ -35,7 +35,7 @@ local function debug_getcon()
 		if info then
 			for i = 1, #(info.connections) do
 				if info.connections[i].metadata.host == "" then
-					host = "Not exist"
+					host = "Empty"
 				else
 					host = info.connections[i].metadata.host
 				end
