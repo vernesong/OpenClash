@@ -76,6 +76,7 @@ fi
 ## Log File Size Manage:
     LOGSIZE=`ls -l /tmp/openclash.log |awk '{print int($5/1024)}'`
     if [ "$LOGSIZE" -gt "$log_size" ]; then
+       : > /tmp/openclash.log
        LOG_OUT "Watchdog: Log Size Limit, Clean Up All Log Records..."
     fi
 
