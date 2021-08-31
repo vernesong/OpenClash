@@ -764,49 +764,58 @@ function action_download_rule()
 end
 
 function action_refresh_log()
+	luci.http.prepare_content("application/json")
 	local logfile="/tmp/openclash.log"
-	if not fs.access(logfile) then
-		luci.http.write("")
-		return
-	end
-	luci.http.prepare_content("text/plain; charset=utf-8")
-	local len = tonumber(luci.http.formvalue("log_len"))
-	local lens = len + 500
-	local st_l = 0
 	local file = io.open(logfile, "r+")
-	file:seek("set")
-	local info = ""
-	for line in file:lines() do
-		st_l = st_l + 1
-		if len < st_l and st_l <= lens then
-			if not string.find (line, "level=") then
-				if not string.find (line, "【") and not string.find (line, "】") then
-   				line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, -1))
-   			else
-   				local a = string.find (line, "【")
-   				local b = string.find (line, "】")+2
-   				if a <= 21 then
-   					line = string.sub(line, 0, b)..luci.i18n.translate(string.sub(line, b+1, -1))
-   				elseif b < string.len(line) then
-   					line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, a-1))..string.sub(line, a, b)..luci.i18n.translate(string.sub(line, b+1, -1))
-   				elseif b == string.len(line) then
-   					line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, a-1))..string.sub(line, a, b)
-   				end
-   			end
-			end
-			if info ~= "" then
-				info = info.."\n"..line
-			else
-				info = line
-			end
-		elseif st_l > lens then
-   		st_l = st_l - 1
-   		break
-		end
+	local info, len, line, lens, cache
+	local data = ""
+	local limit = 1000
+	local log_tb = {}
+	local log_len = tonumber(luci.http.formvalue("log_len")) or 0
+	if file == nil then
+ 		return nil
+ 	end
+ 	file:seek("set")
+ 	info = file:read("*all")
+ 	info = info:reverse()
+ 	file:close()
+ 	cache, len = string.gsub(info, '[^\n]+', "")
+ 	if len == log_len then return nil end
+	if log_len == 0 then
+		if len > limit then lens = limit else lens = len end
+	else
+		lens = len - log_len
 	end
-	file:close()
-	luci.http.write(st_l.."\n"..info)
-	return
+	string.gsub(info, '[^\n]+', function(w) table.insert(log_tb, w) end, lens)
+	for i=1, lens do
+		line = log_tb[i]:reverse()
+		if not string.find (line, "level=") then
+			if not string.find (line, "【") and not string.find (line, "】") then
+   			line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, -1))
+   		else
+   			local a = string.find (line, "【")
+   			local b = string.find (line, "】")+2
+   			if a <= 21 then
+   				line = string.sub(line, 0, b)..luci.i18n.translate(string.sub(line, b+1, -1))
+   			elseif b < string.len(line) then
+   				line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, a-1))..string.sub(line, a, b)..luci.i18n.translate(string.sub(line, b+1, -1))
+   			elseif b == string.len(line) then
+   				line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, a-1))..string.sub(line, a, b)
+   			end
+   		end
+		end
+		if data == "" then
+    	data = line
+    elseif log_len == 0 and i == limit then
+    	data = data .."\n" .. line .. "\n..."
+    else
+    	data = data .."\n" .. line
+  	end
+	end
+	luci.http.write_json({
+		len = len,
+		log = data;
+	})
 end
 
 function action_del_log()

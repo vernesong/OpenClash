@@ -8,11 +8,13 @@
 </style>
 <link rel="stylesheet" href="/luci-static/resources/openclash/lib/codemirror.css"/>
 <link rel="stylesheet" href="/luci-static/resources/openclash/theme/material.css"/>
+<link rel="stylesheet" href="/luci-static/resources/openclash/theme/idea.css"/>
 <link rel="stylesheet" href="/luci-static/resources/openclash/addon/fold/foldgutter.css"/>
 <link rel="stylesheet" href="/luci-static/resources/openclash/addon/lint/lint.css">
 <link rel="stylesheet" href="/luci-static/resources/openclash/addon/display/fullscreen.css">
 <script src="/luci-static/resources/openclash/lib/codemirror.js"></script>
 <script src="/luci-static/resources/openclash/mode/yaml/yaml.js"></script>
+<script src="/luci-static/resources/openclash/mode/lua/lua.js"></script>
 <script src="/luci-static/resources/openclash/addon/fold/foldcode.js"></script>
 <script src="/luci-static/resources/openclash/addon/fold/foldgutter.js"></script>
 <script src="/luci-static/resources/openclash/addon/fold/indent-fold.js"></script>
@@ -44,6 +46,14 @@ function editor(id, readOnly, wid, height)
         },
         "Esc": function(cm) {
           if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+        },
+        "Tab": function(cm) {
+				   if (cm.somethingSelected()) {
+              cm.indentSelection('add')
+           } else {
+              var spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
+              cm.replaceSelection(spaces)
+           }
         }
       }
 	});
@@ -55,6 +65,37 @@ function editor(id, readOnly, wid, height)
 	if (wid && height) {
 		editor.setSize(wid, height);
 	}
+}
+
+function other_editor(id, readOnly)
+{
+	var editor = CodeMirror.fromTextArea(id, {
+	mode: "lua",
+	autoRefresh: true,
+	styleActiveLine: true,
+	lineNumbers: true,
+	theme: "material",
+	lineWrapping: true,
+	matchBrackets: true,
+	foldGutter: true,
+	gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+	extraKeys: {
+        "F11": function(cm) {
+          cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+        },
+        "Esc": function(cm) {
+          if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+        },
+        "Tab": function(cm) {
+           if (cm.somethingSelected()) {
+              cm.indentSelection('add')
+           } else {
+              var spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
+              cm.replaceSelection(spaces)
+           }
+        }
+      }
+	});
 }
 
 var myEditor_use = document.getElementById("cbid.table.1.user");
@@ -73,6 +114,8 @@ var myEditor_fall_fil = document.getElementById("cbid.openclash.config.custom_fa
 var myEditor_name_pol = document.getElementById("cbid.openclash.config.custom_domain_dns_core");
 var myEditor_name_cus_r1 = document.getElementById("cbid.openclash.config.custom_rules_2");
 var myEditor_name_cus_r2 = document.getElementById("cbid.openclash.config.custom_rules");
+var myEditor_fake_filter = document.getElementById("cbid.openclash.config.custom_fake_filter");
+var myEditor_custom_domain_dns = document.getElementById("cbid.openclash.config.custom_domain_dns");
 
 if (myEditor_hosts) {
 	editor(myEditor_hosts, 'false');
@@ -84,5 +127,61 @@ if (myEditor_fall_fil) {
 	editor(myEditor_name_cus_r1, 'false');
 	editor(myEditor_name_cus_r2, 'false');
 }
+
+if (myEditor_fake_filter) {
+	other_editor(myEditor_fake_filter, 'false');
+}
+if (myEditor_custom_domain_dns) {
+	other_editor(myEditor_custom_domain_dns, 'false');
+}
+
+var core_log = document.getElementById("core_log");
+var oc_log = document.getElementById("cbid.openclash.config.clog");
+if (core_log && oc_log) {
+	var core_editor = CodeMirror.fromTextArea(core_log, {
+	mode: "lua",
+	autoRefresh: true,
+	styleActiveLine: true,
+	lineNumbers: true,
+	theme: "idea",
+	lineWrapping: true,
+	matchBrackets: true,
+	foldGutter: true,
+	gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+	extraKeys: {
+        "F11": function(cm) {
+          cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+        },
+        "Esc": function(cm) {
+          if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+        }
+      }
+	});
+	
+	var oc_editor = CodeMirror.fromTextArea(oc_log, {
+	mode: "lua",
+	autoRefresh: true,
+	styleActiveLine: true,
+	lineNumbers: true,
+	theme: "idea",
+	lineWrapping: true,
+	matchBrackets: true,
+	foldGutter: true,
+	gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+	extraKeys: {
+        "F11": function(cm) {
+          cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+        },
+        "Esc": function(cm) {
+          if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+        }
+      }
+	});
+	core_editor.setSize("auto", "540px");
+	core_editor.setOption("readOnly","true");
+	oc_editor.setSize("auto", "540px");
+	oc_editor.setOption("readOnly","true");
+}
+
 //]]>
 </script> 
