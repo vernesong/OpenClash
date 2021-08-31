@@ -1,5 +1,82 @@
 <%+cbi/valueheader%>
-<textarea id="cbid.openclash.config.clog" class="cbi-input-textarea" style="width: 100%;display:inline" data-update="change" rows="32" cols="60" readonly="readonly" > </textarea>
+<style type="text/css">
+*{margin: 0;padding: 0;}
+
+ul{
+	list-style: none;
+}
+ 
+#tab{
+	width: 100%;
+	height: 100%;
+	border: 1px solid #ddd;
+	box-shadow: 0 0 2px #ddd;
+	overflow: hidden;
+}
+
+#tab-header{
+	background-color: #F7F7F7;
+	height: 33px;
+	text-align: center;
+	position: relative;
+}
+#tab-header ul{
+	width: 500px;
+	position: absolute;
+	left: -1px;
+}
+#tab-header ul li{
+	float: left;
+	width: 120px;
+	height: 33px;
+	line-height: 33px;
+	padding: 0 1px;
+	border-bottom: 1px solid #dddddd;
+	border-right: 1px solid #dddddd;
+}
+#tab-header ul li.selected{
+  background-color: white;
+  font-weight: bolder;
+  border-bottom: 0;
+  border-right: 1px solid #dddddd;
+  padding: 0;
+}
+ 
+#tab-header ul li:hover{
+	color: orangered;
+}
+
+#tab-content .dom{
+	display: none;
+}
+ 
+#tab-content .dom ul li{
+  float: left;
+  /*background-color: red;*/
+  margin: 15px 10px;
+  width: 225px;
+}
+
+</style>
+
+<body>
+	<div id="tab">
+		<div id="tab-header">
+			<ul>
+				<li name="tab-header" class="selected"><%:OpenClash Log%></li>
+				<li name="tab-header"><%:Core Log%></li>
+			</ul>
+		</div>
+		<div id="tab-content">
+			<div class="dom" style="display: block;">
+				<textarea id="cbid.openclash.config.clog" class="cbi-input-textarea" style="width: 100%;display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+			</div>
+		<div class="dom">
+				<textarea id="core_log" class="cbi-input-textarea" style="width: 100%;display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+		</div>
+	</div>
+</div>
+
 <fieldset class="cbi-section">
 	<table width="100%">
 		<tr>
@@ -18,11 +95,13 @@
 		</tr>
 	</table>
 </fieldset>
+</body>
 
 <script type="text/javascript">//<![CDATA[
 var r;
 var log_len = 0;
 var lv = document.getElementById('cbid.openclash.config.clog');
+var cl = document.getElementById('core_log');
 
 function stop_refresh() {
 	clearTimeout(r);
@@ -43,20 +122,21 @@ function createAndDownloadFile(fileName, content) {
     aTag.click();
     URL.revokeObjectURL(blob);
 }
+
 function download_log(){
 	var lv = document.getElementById('cbid.openclash.config.clog');
 	var dt = new Date();
 	var timestamp = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getDate()+"-"+dt.getHours()+"-"+dt.getMinutes()+"-"+dt.getSeconds();
-	createAndDownloadFile("OpenClash-"+timestamp+".log",lv.innerHTML)
+	createAndDownloadFile("OpenClash-"+timestamp+".log",lv.innerHTML+cl.innerHTML)
 	return
 }
 
 function del_log() {
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_log")%>',null,function(x, data){
 		lv.innerHTML="";
+		cl.innerHTML="";
 		log_len = 0;
-	}
-		);
+	});
 	return
 }
 
@@ -66,28 +146,52 @@ function p(s) {
 
 function line_tolocal(str){
 	var strt=new Array();
+	var cstrt=new Array();
+	var cn = 0;
+	var sn = 0;
 	str.trim().split('\n').forEach(function(v, i) {
-	var regex = /"([^"]*)"/g;
-	var res = regex.exec(v);
-	if (res) {
-		var dt = new Date(res[1].match(/\+08\:00/)? res[1].replace("+08:00", "Z") : res[1]);
-	}
-	if (dt && dt != "Invalid Date"){
-	  strt[i]=dt.getFullYear()+"-"+p(dt.getMonth()+1)+"-"+p(dt.getDate())+" "+p(dt.getHours())+":"+p(dt.getMinutes())+":"+p(dt.getSeconds())+v.substring(res[1].length + 7);
-	}else{
-	  strt[i]=v;}})
-	return strt
+		var regex = /"([^"]*)"/g;
+		var res = regex.exec(v);
+		if (res) {
+			var dt = new Date(res[1].match(/\+08\:00/)? res[1].replace("+08:00", "Z") : res[1]);
+		}
+		if (dt && dt != "Invalid Date"){
+		  cstrt[cn]=dt.getFullYear()+"-"+p(dt.getMonth()+1)+"-"+p(dt.getDate())+" "+p(dt.getHours())+":"+p(dt.getMinutes())+":"+p(dt.getSeconds())+v.substring(res[1].length + 7);
+			cn = cn + 1;
+		}
+		else{
+			strt[sn]=v;
+			sn = sn + 1;
+		}
+	})
+	return [strt,cstrt]
 }
 
 function poll_log(){
 XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "refresh_log")%>', {log_len: log_len},
 	function(x, status) {
 		if ( x && x.status == 200 ) {
-			if (x.responseText && lv) {
-				log_len = x.responseText.split("\n")[0];
-				var lines = line_tolocal(x.responseText.replace(/.*/, "").substr(1));
-				if (lines != null && lines != "") {
-					lv.innerHTML = lines.reverse().join('\n')+'\n'+lv.innerHTML;
+			if (status && status.log != "" && lv && cl) {
+				var log = line_tolocal(status.log);
+				var lines = log[0];
+				var clines = log[1];
+				if (lines != "" || clines != "") {
+					if (lines != "") {
+						lv.innerHTML = lines.join('\n')+ (log_len != 0 ? '\n' : '') + lv.innerHTML;
+						oc_editor.setValue(lv.value);
+						oc_editor.refresh();
+					}
+					if (clines != "") {
+						if (lines[0] != "..." && lines[lines.length-1] != "...") {
+							cl.innerHTML = clines.join('\n') + (log_len != 0 ? '\n' : '') + cl.innerHTML;
+						}
+						else {
+							cl.innerHTML = clines.join('\n') + (log_len != 0 ? '\n' : cl.innerHTML + '\n...');
+						}
+						core_editor.setValue(cl.value);
+						core_editor.refresh();
+					}
+					log_len = status.len;
 					//lv.innerHTML = x.responseText.split('\n').reverse().join('\n')+lv.innerHTML;
 				}
 			}
@@ -96,7 +200,33 @@ XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "refresh
 );
 	r=setTimeout("poll_log()",1000*2);
 }
-poll_log();
+ 
+window.onload = function(){
+    var titles = document.getElementsByName('tab-header');
+    var divs = document.getElementsByClassName('dom');
+    if(titles.length != divs.length) return;
+    for(var i=0; i<titles.length; i++){
+        var li = titles[i];
+        li.id = i;
+        li.onmousemove = function(){
+            for(var j=0; j<titles.length; j++){
+                titles[j].className = '';
+                divs[j].style.display = 'none';
+            }
+            this.className = 'selected';
+            divs[this.id].style.display = 'block';
+        }
+        li.onTouchStart = function(){
+            for(var j=0; j<titles.length; j++){
+                titles[j].className = '';
+                divs[j].style.display = 'none';
+            }
+            this.className = 'selected';
+            divs[this.id].style.display = 'block';
+        }
+    }
+    poll_log();
+}
 //]]>
 </script>
 <%+cbi/valuefooter%>

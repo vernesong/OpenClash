@@ -2371,3 +2371,9 @@ msgstr "3. 可能是DNS未劫持成功，导致Clash无法正确反推出域名�
 
 msgid "4. It may be that the filled address cannot be resolved and connected"
 msgstr "4. 可能是所填地址无法进行解析和连接"
+
+msgid "OpenClash Log"
+msgstr "插件日志"
+
+msgid "Core Log"
+msgstr "内核日志"
