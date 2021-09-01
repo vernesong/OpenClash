@@ -276,6 +276,31 @@ fi
 
 }
 
+#获取DHCP或接口的DNS并追加
+sys_dns_append()
+{
+   if [ "$1" = 1 ]; then
+   	  wan_dns=$(/usr/share/openclash/openclash_get_network.lua "dns")
+      wan6_dns=$(/usr/share/openclash/openclash_get_network.lua "dns6")
+      if [ -n "$wan_dns" ]; then
+         if [ -z "$(grep "^ \{0,\}nameserver:$" /tmp/yaml_config.namedns.yaml 2>/dev/null)" ]; then
+            echo "  nameserver:" >/tmp/yaml_config.namedns.yaml
+         fi
+         for i in $wan_dns; do
+            echo "    - \"$i\"" >>/tmp/yaml_config.namedns.yaml
+         done
+      fi
+      if [ -n "$wan6_dns" ] && [ "$2" = 1 ]; then
+         if [ -z "$(grep "^ \{0,\}nameserver:$" /tmp/yaml_config.namedns.yaml 2>/dev/null)" ]; then
+            echo "  nameserver:" >/tmp/yaml_config.namedns.yaml
+         fi
+         for i in $wan6_dns; do
+            echo "    - \"[${i}]:53\"" >>/tmp/yaml_config.namedns.yaml
+         done
+      fi
+   fi
+}
+
 #获取自定义DNS设置
 yml_dns_get()
 {
@@ -338,9 +363,12 @@ yml_dns_get()
 #添加自定义DNS设置
 yml_dns_custom()
 {
-   if [ "$1" = 1 ]; then
+   if [ "$1" = 1 ] || [ "$3" = 1 ]; then
+   	  sys_dns_append "$3" "$4"
       config_load "openclash"
       config_foreach yml_dns_get "dns_servers"
+      ruby_uniq "/tmp/yaml_config.namedns.yaml" "['nameserver']"
+      ruby_uniq "/tmp/yaml_config.falldns.yaml" "['fallback']"
       if [ -f "/tmp/yaml_config.namedns.yaml" ]; then
          if [ -z "$(ruby_read "$CONFIG_FILE" "['dns']")" ]; then
             ruby_cover "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.namedns.yaml"
@@ -1858,6 +1886,7 @@ get_config()
    dns_port=$(uci -q get openclash.config.dns_port)
    tolerance=$(uci -q get openclash.config.tolerance)
    custom_fallback_filter=$(uci -q get openclash.config.custom_fallback_filter)
+   append_wan_dns=$(uci -q get openclash.config.append_wan_dns || 1)
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
@@ -1885,7 +1914,7 @@ start()
    config_load "openclash"
    config_foreach yml_auth_get "authentication"
    yml_auth_custom "$CONFIG_FILE"
-   yml_dns_custom "$enable_custom_dns" "$CONFIG_FILE"
+   yml_dns_custom "$enable_custom_dns" "$CONFIG_FILE" "$append_wan_dns" "$ipv6_dns"
    /usr/share/openclash/yml_change.sh 2>/dev/null "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" "$dns_port" "$core_type" "$mixed_port" "$tproxy_port" "$ipv6_dns"
    /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME"
    yml_custom_rule_provider
