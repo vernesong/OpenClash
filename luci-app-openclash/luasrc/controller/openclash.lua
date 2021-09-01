@@ -48,6 +48,8 @@ function index()
 	entry({"admin", "services", "openclash", "toolbar_show_sys"}, call("action_toolbar_show_sys"))
 	entry({"admin", "services", "openclash", "diag_connection"}, call("action_diag_connection"))
 	entry({"admin", "services", "openclash", "gen_debug_logs"}, call("action_gen_debug_logs"))
+	entry({"admin", "services", "openclash", "log_level"}, call("action_log_level"))
+	entry({"admin", "services", "openclash", "switch_log"}, call("action_switch_log"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Servers and Groups"), 40).leaf = true
 	entry({"admin", "services", "openclash", "other-rules-edit"},cbi("openclash/other-rules-edit"), nil).leaf = true
@@ -465,6 +467,45 @@ function action_switch_config()
 	uci:commit("openclash")
 end
 
+function action_log_level()
+	local level, info
+	if is_running() then
+		local daip = daip()
+		local dase = dase() or ""
+		local cn_port = cn_port()
+		if not daip or not cn_port then return end
+		info = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/configs', dase, daip, cn_port)))
+		level = info["log-level"]
+	else
+		level = uci:get("openclash", "config", "log_level") or "info"
+	end
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		log_level = level;
+	})
+end
+
+function action_switch_log()
+	local level, info
+	if is_running() then
+		local daip = daip()
+		local dase = dase() or ""
+		local cn_port = cn_port()
+		level = luci.http.formvalue("log_level")
+		if not daip or not cn_port then luci.http.status(500, "Switch Faild") return end
+		info = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPATCH http://"%s":"%s"/configs -d \'{\"log-level\": \"%s\"}\'', dase, daip, cn_port, level))
+		if info ~= "" then
+			luci.http.status(500, "Switch Faild")
+		end
+	else
+		luci.http.status(500, "Switch Faild")
+	end
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		info = info;
+	})
+end
+
 local function s(e)
 local t=0
 local a={' B/S',' KB/S',' MB/S',' GB/S',' TB/S'}
@@ -517,7 +558,7 @@ function action_toolbar_show()
 	local traffic, connections, up, down, up_total, down_total, mem, cpu
 	if pid and pid ~= "" then
 		local daip = daip()
-		local dase = dase()
+		local dase = dase() or ""
 		local cn_port = cn_port()
 		if not daip or not cn_port then return end
 		traffic = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/traffic', dase, daip, cn_port)))
