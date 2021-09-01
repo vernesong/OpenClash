@@ -2303,6 +2303,9 @@ msgstr "错误：节点解析失败，"
 msgid "Error: Resolve Proxy-group Error,"
 msgstr "错误：策略组解析失败，"
 
+msgid "Error: Set default-nameserver Error,"
+msgstr "错误：修改default-nameserver配置失败，"
+
 msgid "switching succeeded!"
 msgstr "切换成功！"
 
@@ -2383,6 +2386,9 @@ msgstr "内核日志"
 
 msgid "Append Upstream DNS"
 msgstr "追加上游DNS"
+
+msgid "Append The Upstream Assigned DNS To The Nameserver"
+msgstr "将上游分配的DNS追加到Nameserver"
 
 msgid "Append The Upstream Assigned DNS To The Nameserver"
 msgstr "将上游分配的DNS追加到Nameserver"
