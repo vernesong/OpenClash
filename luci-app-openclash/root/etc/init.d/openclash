@@ -170,6 +170,32 @@ EOF
       fi
    fi
    
+   #default-nameserver
+   ruby -ryaml -E UTF-8 -e "
+   begin
+      Value = YAML.load_file('$1');
+      reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/;
+      if Value['dns'].has_key?('fallback') then
+         Value_1=Value['dns']['nameserver'] | Value['dns']['fallback']
+      else
+         Value_1=Value['dns']['nameserver']
+      end;
+      Value_1.each{|x|
+         if x =~ reg then
+            if Value['dns'].has_key?('default-nameserver') then
+               Value['dns']['default-nameserver']=Value['dns']['default-nameserver'].to_a.insert(-1,x).uniq
+            else
+               Value_2={'default-nameserver'=>[x]}
+               Value['dns'].merge!(Value_2)
+            end
+         end
+       };
+       File.open('${1}','w') {|f| YAML.dump(Value, f)};
+    rescue Exception => e
+    puts '${LOGTIME} Error: Set default-nameserver Error,【' + e.message + '】'
+    end
+    " 2>/dev/null >> $LOG_FILE
+   
    #fallback-filter
    if [ "$custom_fallback_filter" = "1" ]; then
       if [ -z "$(ruby_read "$CONFIG_FILE" "['dns']['fallback']")" ]; then
@@ -370,14 +396,14 @@ yml_dns_custom()
       ruby_uniq "/tmp/yaml_config.namedns.yaml" "['nameserver']"
       ruby_uniq "/tmp/yaml_config.falldns.yaml" "['fallback']"
       if [ -f "/tmp/yaml_config.namedns.yaml" ]; then
-         if [ -z "$(ruby_read "$CONFIG_FILE" "['dns']")" ]; then
-            ruby_cover "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.namedns.yaml"
-            ruby_merge "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.falldns.yaml"
+         if [ -z "$(ruby_read "$2" "['dns']")" ]; then
+            ruby_cover "$2" "['dns']" "/tmp/yaml_config.namedns.yaml"
+            ruby_merge "$2" "['dns']" "/tmp/yaml_config.falldns.yaml"
          else
-            ruby_edit "$CONFIG_FILE" "['dns'].delete('nameserver')"
-      	    ruby_edit "$CONFIG_FILE" "['dns'].delete('fallback')"
-            ruby_merge "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.namedns.yaml"
-            ruby_merge "$CONFIG_FILE" "['dns']" "/tmp/yaml_config.falldns.yaml"
+            ruby_edit "$2" "['dns'].delete('nameserver')"
+      	    ruby_edit "$2" "['dns'].delete('fallback')"
+            ruby_merge "$2" "['dns']" "/tmp/yaml_config.namedns.yaml"
+            ruby_merge "$2" "['dns']" "/tmp/yaml_config.falldns.yaml"
          fi
       else
          LOG_OUT "Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers"
