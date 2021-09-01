@@ -2380,3 +2380,10 @@ msgstr "插件日志"
 
 msgid "Core Log"
 msgstr "内核日志"
+
+msgid "Append Upstream DNS"
+msgstr "追加上游DNS"
+
+msgid "Append The Upstream Assigned DNS To The Nameserver"
+msgstr "将上游分配的DNS追加到Nameserver"
+
