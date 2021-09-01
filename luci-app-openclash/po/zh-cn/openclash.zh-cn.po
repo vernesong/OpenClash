@@ -197,6 +197,9 @@ msgstr "Silent【静默】"
 msgid "Select Core's Log Level"
 msgstr "选择内核日志的默认输出模式"
 
+msgid "Switch Log Level"
+msgstr "切换日志等级"
+
 msgid "Only intranet allowed"
 msgstr "仅允许内网"
 

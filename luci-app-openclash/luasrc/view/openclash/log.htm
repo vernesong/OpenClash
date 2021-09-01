@@ -5,7 +5,13 @@
 ul{
 	list-style: none;
 }
- 
+
+.log_level{
+	padding-top: 10px;
+	height: 50px;
+	text-align: center;
+}
+
 #tab{
 	width: 100%;
 	height: 100%;
@@ -73,6 +79,17 @@ ul{
 			</div>
 		<div class="dom">
 				<textarea id="core_log" class="cbi-input-textarea" style="width: 100%;display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+				<div class="log_level">&nbsp;&nbsp;<%:Log Level%>:&nbsp;
+					<select id="log_level">
+						<option value="info"><%:Info Mode%></option>
+						<option value="warning"><%:Warning Mode%></option>
+						<option value="error"><%:Error Mode%></option>
+						<option value="debug"><%:Debug Mode%></option>
+						<option value="silent"><%:Silent Mode%></option>
+					</select>&nbsp;&nbsp;
+					<input type="button" class="btn cbi-button cbi-button-apply" value="<%:Switch Log Level%>" onclick="return switch_log_level(this)" />
+					&nbsp;
+				</div>
 		</div>
 	</div>
 </div>
@@ -99,9 +116,40 @@ ul{
 
 <script type="text/javascript">//<![CDATA[
 var r;
+var s;
 var log_len = 0;
 var lv = document.getElementById('cbid.openclash.config.clog');
 var cl = document.getElementById('core_log');
+var log_level = document.getElementById('log_level');
+
+function get_log_level() {
+	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "log_level")%>', null, function(x, status) {
+	if (x && x.status == 200 && status.log_level != "") {
+   	log_level.value = status.log_level;
+   	clearTimeout(s);
+	}
+	else {
+		s=setTimeout("get_log_level()",2000);
+	}
+});
+}
+
+	
+function switch_log_level(btn)
+{
+	btn.disabled = true;
+	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_log")%>', {log_level: log_level.value}, function(x, status) {
+		if (x && x.status == 200) {
+   		btn.disabled = false;
+    	alert(' <%:Log Level%>: ' + log_level.value + ' <%:switching succeeded!%>')
+		}
+		else {
+			alert(' <%:Log Level%>: ' + log_level.value + ' <%:switching failed!%>')
+		}
+	});
+	btn.disabled = false;
+	return false;
+}
 
 function stop_refresh() {
 	clearTimeout(r);
@@ -124,10 +172,9 @@ function createAndDownloadFile(fileName, content) {
 }
 
 function download_log(){
-	var lv = document.getElementById('cbid.openclash.config.clog');
 	var dt = new Date();
 	var timestamp = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getDate()+"-"+dt.getHours()+"-"+dt.getMinutes()+"-"+dt.getSeconds();
-	createAndDownloadFile("OpenClash-"+timestamp+".log",lv.innerHTML+cl.innerHTML)
+	createAndDownloadFile("OpenClash-"+timestamp+".log","<%:OpenClash Log%>:\n"+lv.innerHTML+"\n<%:Core Log%>:\n"+cl.innerHTML)
 	return
 }
 
@@ -225,6 +272,7 @@ window.onload = function(){
             divs[this.id].style.display = 'block';
         }
     }
+    get_log_level();
     poll_log();
 }
 //]]>
