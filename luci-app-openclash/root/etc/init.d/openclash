@@ -1844,7 +1844,7 @@ revert_firewall()
       ip6tables -t mangle -D OUTPUT "$out_line" >/dev/null 2>&1
    done >/dev/null 2>&1
    
-   pre_lines=$(ip6tables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/dns_hijack/=' 2>/dev/null |sort -rn)
+   pre_lines=$(ip6tables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/DNS Hijack/=' 2>/dev/null |sort -rn)
    for pre_line in $pre_lines; do
       ip6tables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
    done >/dev/null 2>&1
