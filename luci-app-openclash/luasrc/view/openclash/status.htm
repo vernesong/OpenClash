@@ -162,6 +162,10 @@
 	var hid_btn_if = true;
 	var ws_connect = false;
 	var ws_error = false;
+	var ws_retry = 0;
+	var luci_protocol;
+	var ws_t;
+	var ws_c;
 	var state_refresh;
 	state_get();
 	
@@ -225,18 +229,38 @@
 			update_other_rules.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Third Party Rules Update%>" onclick="return b_update_other_rules(this)"/>';
 			update_geoip.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GEOIP Data Update%>" onclick="return b_update_geoip(this)"/>';
 			
-			if (status.clash) {
+			function ws_open() {
+				luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
+				ws_t = new WebSocket(luci_protocol+"/traffic?token="+status.dase);
+				ws_c = new WebSocket(luci_protocol+"/connections?token="+status.dase);
+				ws_t.onmessage = ws_tmessage;
+				ws_c.onmessage = ws_cmessage;
+				ws_t.onerror = ws_terror;
+				ws_t.onopen = function (event) {
+					ws_connect = true;
+					ws_error = false;
+				};
+			};
+
+			if (status.watchdog) {
 				if (!ws_connect && !ws_error) {
-					var luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
-					var ws_t = new WebSocket(luci_protocol+"/traffic?token="+status.dase);
-					var ws_c = new WebSocket(luci_protocol+"/connections?token="+status.dase);
-					ws_t.onmessage = ws_tmessage;
-					ws_c.onmessage = ws_cmessage;
-					ws_t.onerror = ws_terror;
-					ws_t.onopen = function (event) {
-						ws_connect = true;
-					};
+					ws_open();
 				}
+				else if (ws_error && ws_retry < 3)
+				{
+					ws_retry=ws_retry+1;
+					setTimeout(ws_open,1000*3);
+				}
+				else if (ws_error && ws_retry >= 3)
+				{
+					setInterval("ws_terror()",1000*2);
+				}
+			}
+			else
+			{
+				ws_connect = false;
+				ws_error = false;
+				ws_terror();
 			}
 		}
 	});
@@ -288,7 +312,7 @@
 	 
 	function ws_terror() {
 		ws_error = true;
-		XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', null, function(x, status) {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', null, function(x, status) {
 			if (x && x.status == 200 && x.responseText != "") {
 				document.getElementById("upload_").innerHTML = "<font color=green>"+status.up+"</font>";
 				document.getElementById("download_").innerHTML = "<font color=green>"+status.down+"</font>";
