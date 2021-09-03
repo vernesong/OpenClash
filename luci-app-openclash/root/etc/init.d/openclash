@@ -1767,8 +1767,8 @@ revert_firewall()
 
    iptables -t nat -D PREROUTING -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1
    #quic
-	 iptables -D INPUT -p udp --dport 443 -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
-   iptables -D FORWARD -p udp --dport 443 -o utun -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+	 iptables -D INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+   iptables -D FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
 
 
    out_lines=$(iptables -nvL OUTPUT -t nat |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
@@ -1857,8 +1857,7 @@ revert_firewall()
    ip6tables -t mangle -F openclash_output >/dev/null 2>&1
    ip6tables -t mangle -X openclash_output >/dev/null 2>&1
    #quic
-	 ip6tables -D INPUT -p udp --dport 443 -m set ! --match-set china_ip6_route dst -j REJECT >/dev/null 2>&1
-   ip6tables -D FORWARD -p udp --dport 443 -o utun -m set ! --match-set china_ip6_route dst -j REJECT >/dev/null 2>&1
+	 ip6tables -D INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip6_route dst -j REJECT >/dev/null 2>&1
    
    ipset destroy localnetwork6 >/dev/null 2>&1
    ipset destroy china_ip6_route >/dev/null 2>&1
