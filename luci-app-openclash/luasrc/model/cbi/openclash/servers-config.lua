@@ -125,6 +125,7 @@ o.description = translate("Using incorrect encryption mothod may causes service 
 
 o = s:option(Value, "name", translate("Server Alias"))
 o.rmempty = false
+o.default = "Server -"..sid
 
 o = s:option(Value, "server", translate("Server Address"))
 o.datatype = "host"

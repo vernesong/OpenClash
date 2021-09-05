@@ -146,6 +146,14 @@ local function dase()
 	return uci:get("openclash", "config", "dashboard_password")
 end
 
+local function db_foward_domain()
+	return uci:get("openclash", "config", "dashboard_forward_domain")
+end
+
+local function db_foward_port()
+	return uci:get("openclash", "config", "dashboard_forward_port")
+end
+
 local function check_lastversion()
 	luci.sys.exec("sh /usr/share/openclash/openclash_version.sh 2>/dev/null")
 	return luci.sys.exec("sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
@@ -690,6 +698,8 @@ function action_status()
 		watchdog = is_watchdog(),
 		daip = daip(),
 		dase = dase(),
+		db_foward_port = db_foward_port(),
+		db_foward_domain = db_foward_domain(),
 		web = is_web(),
 		cn_port = cn_port(),
 		restricted_mode = restricted_mode(),
