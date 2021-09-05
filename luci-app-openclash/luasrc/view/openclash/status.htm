@@ -217,9 +217,7 @@
 			   mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host (TUN-Mix)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
 			}
 			watchdog.innerHTML = status.watchdog ? '<b><font color=green><%:Running%></font> </b>' : '<b><font color=red><%:Not Running%></font></b>';
-			daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			dase.innerHTML = status.dase ? "<b><font color=green>"+status.dase+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
 			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
 			close_all_connection.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
@@ -228,9 +226,24 @@
 			update_subscribe.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Config Update%>" onclick="return b_update_subscribe(this)"/>';
 			update_other_rules.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Third Party Rules Update%>" onclick="return b_update_other_rules(this)"/>';
 			update_geoip.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GEOIP Data Update%>" onclick="return b_update_geoip(this)"/>';
+			if (status.daip != "" && window.location.hostname == status.daip) {
+			   daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			   dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
+			}
+			else if (status.daip != "" && window.location.hostname != status.daip && status.db_foward_domain != "" && status.db_foward_port != "")
+			{
+			   daip.innerHTML = status.db_foward_domain ? "<b><font color=green>"+status.db_foward_domain+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			   dapo.innerHTML = status.db_foward_port ? "<b><font color=green>"+status.db_foward_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.db_foward_domain + ":" + status.db_foward_port;
+			}
+			else {
+			   daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			   dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
+			}
 			
 			function ws_open() {
-				luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
 				ws_t = new WebSocket(luci_protocol+"/traffic?token="+status.dase);
 				ws_c = new WebSocket(luci_protocol+"/connections?token="+status.dase);
 				ws_t.onmessage = ws_tmessage;
@@ -253,7 +266,7 @@
 				}
 				else if (ws_error && ws_retry >= 3)
 				{
-					setInterval("ws_terror()",1000*2);
+					ws_terror();
 				}
 			}
 			else
@@ -496,11 +509,14 @@
     
 	  function ycad_dashboard(btn)
     {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', status.cn_port, function(x, status) {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
         btn.disabled = true;
         btn.value    = '<%:Open Panel%>';
         if (status.daip != "" && window.location.hostname == status.daip) {
         	url1='<%="http://'+window.location.hostname+':'+window.location.port+'/luci-static/openclash?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+        }
+        else if (status.daip != "" && window.location.hostname != status.daip && status.db_foward_domain != "" && status.db_foward_port != "") {
+        	url1='<%="http://'+window.location.hostname+':'+window.location.port+'/luci-static/openclash?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
         }
         else {
         	url1='<%="http://'+window.location.hostname+':'+window.location.port+'/luci-static/openclash"%>';
@@ -511,11 +527,14 @@
     }
     function net_dashboard(btn)
     {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', status.cn_port, function(x, status) {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
         btn.disabled = true;
         btn.value    = '<%:Open Panel%>';
         if (status.daip != "" && window.location.hostname == status.daip) {
         	url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/?host='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+        }
+        else if (status.daip != "" && window.location.hostname != status.daip && status.db_foward_domain != "" && status.db_foward_port != "") {
+        	url2='<%="http://'+status.db_foward_domain+':'+status.db_foward_port+'/ui/?host='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
         }
         else {
         	url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/"%>';
@@ -550,7 +569,7 @@
     }
     
 
-	  XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "currentversion")%>', status.currentversion, function(x, status) {
+	  XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "currentversion")%>', null, function(x, status) {
 	     if ( x && x.status == 200 ) {
 	        clashversion.innerHTML = '<img id="currenntver" src="'+status.currentversion+'" alt="currentversion" height="21px" onload="return clashversion_check()" onclick="return go_update()">';
 	     }
@@ -558,7 +577,7 @@
 
     function clashversion_check()
     {
-    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "lastversion")%>', status.lastversion, function(x, status) {
+    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "lastversion")%>', null, function(x, status) {
        if ( x && x.status == 200 ) {
           if ( status.lastversion != "" )
           {
@@ -570,7 +589,7 @@
 
     function clashversion_error()
     {
-       XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "currentversion")%>', status.currentversion, function(x, status) {
+       XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "currentversion")%>', null, function(x, status) {
 	        if ( x && x.status == 200 ) {
              clashversion.innerHTML = '<img id="currenntver" src="'+status.currentversion+'" alt="currentversion" height="21px" onclick="return go_update()">';
 	        }
@@ -590,7 +609,7 @@
     }
     
 	var startlog = document.getElementById('_clashstart');
-	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
+	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
 	  if ( x && x.status == 200 ) {
 		   if ( status.startlog == "\n" || status.startlog == "" ) {
           var rdmdl=Math.floor(Math.random()*12)+1;
@@ -645,7 +664,7 @@
        }
 	  }
 	});
-	XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
+	XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
 	  if ( x && x.status == 200 ) {
 		   if ( status.startlog != "\n" && status.startlog != "" ) {
 	     startlog.innerHTML = '<b><font color="green">'+status.startlog+'</font></b>';

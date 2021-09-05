@@ -591,6 +591,19 @@ o.title = translate("Dashboard Secret")
 o.rmempty = true
 o.description = translate("Set Dashboard Secret")
 
+o = s:taboption("dashboard", Value, "dashboard_forward_domain")
+o.title = translate("Public Dashboard Address")
+o.datatype = "or(host, string)"
+o.placeholder = "example.com"
+o.rmempty = true
+o.description = translate("Domain Name For Dashboard Login From Public Network")
+
+o = s:taboption("dashboard", Value, "dashboard_forward_port")
+o.title = translate("Public Dashboard Port")
+o.datatype = "port"
+o.rmempty = true
+o.description = translate("Port For Dashboard Login From Public Network")
+
 ---- version update
 core_update = s:taboption("version_update", DummyValue, "", nil)
 core_update.template = "openclash/update"

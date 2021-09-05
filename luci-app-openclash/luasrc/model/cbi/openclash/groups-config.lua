@@ -67,6 +67,7 @@ o:depends("type", "load-balance")
 
 o = s:option(Value, "name", translate("Group Name"))
 o.rmempty = false
+o.default = "Group -"..sid
 
 o = s:option(ListValue, "disable_udp", translate("Disable UDP"))
 o:value("false", translate("Disable"))
