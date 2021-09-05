@@ -14,7 +14,7 @@ font_off = [[</font>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
-m = Map(openclash,  translate("Config Update"))
+m = Map("openclash",  translate("Config Update"))
 m.pageaction = false
 
 s = m:section(TypedSection, "openclash")
@@ -110,16 +110,16 @@ local t = {
 
 a = m:section(Table, t)
 
-o = a:option(Button, "Commit") 
-o.inputtitle = translate("Commit Configurations")
+o = a:option(Button, "Commit", " ")
+o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
 	fs.unlink("/tmp/Proxy_Group")
   m.uci:commit("openclash")
 end
 
-o = a:option(Button, "Apply")
-o.inputtitle = translate("Apply Configurations")
+o = a:option(Button, "Apply", " ")
+o.inputtitle = translate("Update Config")
 o.inputstyle = "apply"
 o.write = function()
 	fs.unlink("/tmp/Proxy_Group")
@@ -137,5 +137,7 @@ o.write = function()
   SYS.call("/usr/share/openclash/openclash.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
+
+m:append(Template("openclash/toolbar_show"))
 
 return m

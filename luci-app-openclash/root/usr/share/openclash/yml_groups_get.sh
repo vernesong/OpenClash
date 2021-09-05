@@ -1,12 +1,19 @@
 #!/bin/bash
 . /lib/functions.sh
-. /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/ruby.sh
+. /usr/share/openclash/log.sh
 
-status=$(unify_ps_status "yml_groups_get.sh")
-[ "$status" -gt "3" ] && exit 0
+set_lock() {
+   exec 876>"/tmp/lock/openclash_groups_get.lock" 2>/dev/null
+   flock -x 876 2>/dev/null
+}
 
-START_LOG="/tmp/openclash_start.log"
+del_lock() {
+   flock -u 876 2>/dev/null
+   rm -rf "/tmp/lock/openclash_groups_get.lock"
+}
+   
+
 CFG_FILE="/etc/config/openclash"
 other_group_file="/tmp/yaml_other_group.yaml"
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
@@ -15,8 +22,9 @@ CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
+set_lock
 
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CONFIG_FILE="$UPDATE_CONFIG_FILE"
@@ -36,21 +44,23 @@ fi
 BACKUP_FILE="/etc/openclash/backup/$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)"
 
 if [ ! -s "$CONFIG_FILE" ] && [ ! -s "$BACKUP_FILE" ]; then
+   del_lock
    exit 0
 elif [ ! -s "$CONFIG_FILE" ] && [ -s "$BACKUP_FILE" ]; then
    mv "$BACKUP_FILE" "$CONFIG_FILE"
 fi
 
-echo "开始更新【$CONFIG_NAME】的策略组配置..." >$START_LOG
+LOG_OUT "Start Getting【$CONFIG_NAME】Groups Setting..."
 
 /usr/share/openclash/yml_groups_name_get.sh
-[ ! -z "$(grep "读取错误" /tmp/Proxy_Group)" ] && {
-	echo "读取错误，配置文件【$CONFIG_NAME】异常！" >$START_LOG
+if [ $? -ne 0 ]; then
+	LOG_OUT "Read Error, Config File【$CONFIG_NAME】Abnormal!"
 	uci commit openclash
 	sleep 5
-	echo "" >$START_LOG
+	SLOG_CLEAN
+	del_lock
 	exit 0
-}
+fi
 
 #判断当前配置文件是否有策略组信息
 cfg_group_name()
@@ -70,7 +80,7 @@ cfg_group_name()
 #删除不必要的配置
 cfg_delete()
 {
-   echo "正在删除旧配置..." >$START_LOG
+   LOG_OUT "Deleting Old Configuration..."
 #删除策略组
    group_num=$(grep "config groups" "$CFG_FILE" |wc -l)
    for ((i=$group_num;i>=0;i--))
@@ -109,6 +119,7 @@ config_foreach cfg_group_name "groups"
 
 if [ "$servers_if_update" -eq 1 ] && [ "$servers_update" -eq 1 ] && [ "$config_group_exist" -eq 1 ]; then
    /usr/share/openclash/yml_proxys_get.sh
+   del_lock
    exit 0
 else
    cfg_delete
@@ -121,9 +132,9 @@ group_hash=$(ruby_read "$CONFIG_FILE" ".select {|x| 'proxy-groups' == x}")
 num=$(ruby_read_hash "$group_hash" "['proxy-groups'].count")
 
 if [ -z "$num" ]; then
-   echo "配置文件校验失败，请检查配置文件后重试！" >$START_LOG
-   echo "${LOGTIME} Error: Unable To Parse Config File, Please Check And Try Again!" >> $LOG_FILE
+   LOG_OUT "Error: Unable To Parse Config File, Please Check And Try Again!"
    sleep 3
+   del_lock
    exit 0
 fi
 
@@ -140,7 +151,7 @@ do
       continue
    fi
    
-   echo "正在读取【$CONFIG_NAME】-【$group_type】-【$group_name】策略组配置..." > $START_LOG
+   LOG_OUT "Start Getting【$CONFIG_NAME - $group_type - $group_name】Group Setting..."
    
    name=openclash
    uci_name_tmp=$(uci add $name groups)
@@ -210,7 +221,7 @@ do
 	 end
 	 }.join;
    rescue Exception => e
-   puts '${LOGTIME} Resolve Proxy-group【${CONFIG_NAME} - ${group_type} - ${group_name}】 Error: ' + e.message
+   puts '${LOGTIME} Error: Resolve Proxy-group Error,【${CONFIG_NAME} - ${group_type} - ${group_name}: ' + e.message + '】'
    end
    " 2>/dev/null >> $LOG_FILE &
    
@@ -220,3 +231,4 @@ done
 wait
 uci commit openclash
 /usr/share/openclash/yml_proxys_get.sh
+del_lock

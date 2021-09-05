@@ -41,7 +41,7 @@ local Value Value_1 RUBY_YAML_PARSE
 if [ -z "$1" ] || [ -z "$2" ]; then
 	return
 fi
-RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); Value_1 = YAML.load_file('$3'); Value$2=Value_1$4; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
+RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); if File::exist?('$3') then Value_1 = YAML.load_file('$3'); Value$2=Value_1$4; else Value.delete('$4'); end; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
 ruby -ryaml -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
@@ -53,6 +53,17 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 	return
 fi
 RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); Value_1 = YAML.load_file('$3'); Value$2.merge!(Value_1$4); File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
+ruby -ryaml -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
+}
+
+#hash去重
+ruby_uniq()
+{
+local Value RUBY_YAML_PARSE
+if [ -z "$1" ] || [ -z "$2" ]; then
+	return
+fi
+RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); Value$2=Value$2.uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
 ruby -ryaml -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 

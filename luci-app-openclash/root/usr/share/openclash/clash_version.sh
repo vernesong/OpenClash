@@ -1,12 +1,18 @@
 #!/bin/sh
-. /usr/share/openclash/openclash_ps.sh
 
-#禁止多个实例
-status=$(unify_ps_status "clash_version.sh")
-[ "$status" -gt "3" ] && exit 0
+set_lock() {
+   exec 884>"/tmp/lock/openclash_clash_version.lock" 2>/dev/null
+   flock -x 884 2>/dev/null
+}
+
+del_lock() {
+   flock -u 884 2>/dev/null
+   rm -rf "/tmp/lock/openclash_clash_version.lock"
+}
 
 CKTIME=$(date "+%Y-%m-%d-%H")
 LAST_OPVER="/tmp/clash_last_version"
+set_lock
 
 if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{print $2}')" ]; then
 	 if pidof clash >/dev/null; then
@@ -21,3 +27,4 @@ if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{prin
       rm -rf $LAST_OPVER
    fi
 fi
+del_lock

@@ -11,7 +11,7 @@ msgstr "一个运行在OpenWrt上的Clash客户端，兼容Shadowsocks、Shadows
 msgid "Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"
 msgstr "全局设置（将按照本页设置自动修改配置文件和获取订阅）"
 
-msgid "Technical Support"
+msgid "Credits"
 msgstr "技术支持"
 
 msgid "Overviews"
@@ -26,11 +26,11 @@ msgstr "规则集与策略组管理"
 msgid "Game Rules and Groups"
 msgstr "游戏规则与策略组管理"
 
-msgid "Other Rule Providers and Groups"
-msgstr "第三方规则集与策略组管理"
+msgid "Other Rule Providers and Groups (Only TUN Core Support)"
+msgstr "第三方规则集与策略组管理（仅TUN内核）"
 
-msgid "Custom Rule Providers and Groups"
-msgstr "自定义规则集与策略组管理"
+msgid "Custom Rule Providers and Groups (Only TUN Core Support)"
+msgstr "自定义规则集与策略组管理（仅TUN内核）"
 
 msgid "General Settings"
 msgstr "常规设置"
@@ -92,20 +92,26 @@ msgstr "生成日志"
 msgid "Click to Generate"
 msgstr "点击生成"
 
-msgid "Enable Clash"
+msgid "Enable OpenClash"
 msgstr "启动 OpenClash"
 
-msgid "Disable Clash"
+msgid "Disable OpenClash"
 msgstr "关闭 OpenClash"
 
-msgid "Commit Configurations"
+msgid "Commit Settings"
 msgstr "保存配置"
 
-msgid "Apply Configurations"
+msgid "Apply Settings"
 msgstr "应用配置"
 
-msgid "Download Configurations"
+msgid "Download Config"
 msgstr "下载配置"
+
+msgid "Update Config"
+msgstr "更新配置"
+
+msgid "Download Running Config"
+msgstr "下载运行配置"
 
 msgid "Select Mode"
 msgstr "*运行模式"
@@ -153,16 +159,19 @@ msgid "Direct Proxy Mode"
 msgstr "Direct【全局直连】"
 
 msgid "Script Proxy Mode (Tun Core Only)"
-msgstr "Script【脚本模式 - 仅Tun内核】"
+msgstr "Script【脚本模式 - 仅TUN内核】"
 
 msgid "Select Stack Type"
 msgstr "网络栈类型"
 
-msgid "Select Stack Type For Tun Mode, According To The Running Speed on Your Machine"
-msgstr "请自行根据运行速度为Tun模式选择合适的网络栈"
+msgid "Select Stack Type For TUN Mode, According To The Running Speed on Your Machine"
+msgstr "请自行根据运行速度为TUN模式选择合适的网络栈"
 
 msgid "China IP Route"
 msgstr "实验性：绕过中国大陆IP"
+
+msgid "China IPv6 Route"
+msgstr "实验性：绕过中国大陆IPv6"
 
 msgid "Bypass The China Network Flows, Improve Performance"
 msgstr "启用后中国大陆流量将不再经过内核，提升系统性能"
@@ -187,6 +196,9 @@ msgstr "Silent【静默】"
 
 msgid "Select Core's Log Level"
 msgstr "选择内核日志的默认输出模式"
+
+msgid "Switch Log Level"
+msgstr "切换日志等级"
 
 msgid "Only intranet allowed"
 msgstr "仅允许内网"
@@ -242,6 +254,10 @@ msgstr "每行请只填写一个域名，列表中的域名在（Fake-IP模式�
 msgid "Domain Names In The List Use The Custom DNS Server, One rule per line"
 msgstr "每行请只填写一个域名，列表中的域名将使用上方指定的DNS进行查询"
 
+
+msgid "Domain Names In The List Use The Custom DNS Server, But Still Return Fake-IP Results, One rule per line"
+msgstr "每行请只填写一个规则，列表中的域名将使用指定的DNS进行查询，但Fake-IP模式下仍将返回保留地址"
+
 msgid "Fake-IP-Filter List Update"
 msgstr "更新Fake-IP域名黑名单"
 
@@ -272,12 +288,17 @@ msgstr "服务器类型"
 msgid "(Communication protocol)"
 msgstr "(通讯协议)"
 
-msgid "Enable ipv6 Resolve"
+msgid "Proxy IPv6 Traffic"
+msgstr "IPv6 流量代理"
+
+msgid "Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use"
+msgstr "如果您不使用，请禁用IPv6的DHCP以避免连接异常"
+
+msgid "IPv6 DNS Resolve"
 msgstr "允许IPV6类型DNS解析"
 
 msgid "Enable Clash to Resolve ipv6 DNS Requests"
-msgstr ""
-"固件须配置好IPV6的NAT，如你不使用IPV6请关闭固件的相关服务，避免客户端连接出现异常"
+msgstr "允许解析IPV6类型的DNS请求"
 
 msgid "Rules Setting"
 msgstr "规则设置"
@@ -309,15 +330,17 @@ msgstr "文件上传失败"
 msgid "No specify upload file."
 msgstr "未指定上传文件"
 
-msgid ""
-"Only Support yaml what would be save to /etc/openclash/"
-msgstr "注意：只支持【yaml】后缀的文件，文件将被保存到 /etc/openclash/"
+msgid "Note: Please Upload File According To File Type, File Will Be Saved To The Prompt Path"
+msgstr "注意：请根据文件类型上传文件，文件将会被保存到提示路径"
 
 msgid "Proxy Provider File List"
 msgstr "代理集文件列表"
 
 msgid "Rule Providers File List"
 msgstr "规则集文件列表"
+
+msgid "Game Rules File List"
+msgstr "游戏规则文件列表"
 
 msgid "Please Make Sure Ports Available"
 msgstr "请确保端口可用"
@@ -351,6 +374,9 @@ msgstr "运行后，请等待服务器上线"
 
 msgid "Redir Port"
 msgstr "流量转发端口"
+
+msgid "TProxy Port"
+msgstr "TProxy 端口"
 
 msgid "SOCKS5 Port"
 msgstr "SOCKS5 代理端口"
@@ -470,49 +496,46 @@ msgid "Update Other Rules"
 msgstr "更新第三方规则"
 
 msgid "GlobalTV"
-msgstr "国际流媒体流量"
+msgstr "国际流媒体"
 
 msgid "AsianTV"
-msgstr "亚洲流媒体流量"
+msgstr "亚洲流媒体"
 
 msgid "Proxy"
 msgstr "必须代理的流量"
 
-msgid "Youtube"
-msgstr "Youtube流量"
-
 msgid "Apple"
-msgstr "苹果服务流量"
+msgstr "苹果服务（Apple）"
+
+msgid "Scholar"
+msgstr "学术网站（Scholar）"
 
 msgid "Microsoft"
-msgstr "微软服务流量"
+msgstr "微软服务（Microsoft）"
 
 msgid "Netflix"
-msgstr "Netflix流量"
+msgstr "奈飞（Netflix）"
 
 msgid "Disney"
-msgstr "Disney流量"
+msgstr "迪士尼（Disney）"
 
-msgid "Spotify"
-msgstr "Spotify流量"
+msgid "Bilibili"
+msgstr "哔哩哔哩（Bilibili）"
+
+msgid "Bahamut"
+msgstr "巴哈姆特（Bahamut）"
 
 msgid "Steam"
-msgstr "Steam流量（非下载流量）"
+msgstr "Steam（非下载流量）"
 
 msgid "Netease Music"
-msgstr "网易云音乐流量"
+msgstr "网易云音乐"
 
 msgid "Speedtest"
-msgstr "测速流量"
-
-msgid "Telegram"
-msgstr "Telegram流量"
-
-msgid "PayPal"
-msgstr "PayPal流量"
+msgstr "测速流量（Speedtest）"
 
 msgid "AdBlock"
-msgstr "广告流量"
+msgstr "广告（AdBlock）"
 
 msgid "Domestic"
 msgstr "国内流量"
@@ -529,14 +552,17 @@ msgstr "自定义规则"
 msgid "Custom Clash Rules(Access Control)"
 msgstr "自定义规则(访问控制)"
 
-msgid "Custom Rules Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md, IP To CIDR: http://ip2cidr.com"
-msgstr "设置自定义规则（顶部），详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询，在线IP段转CIDR地址：http://ip2cidr.com"
+msgid "Custom Priority Rules Here, For More Go:"
+msgstr "设置自定义规则（优先匹配），详细信息请参阅:"
 
-msgid "Custom Rules 2 Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md, IP To CIDR: http://ip2cidr.com"
-msgstr "设置自定义规则（底部），详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询，在线IP段转CIDR地址：http://ip2cidr.com"
+msgid "Custom Extended Rules Here, For More Go:"
+msgstr "设置自定义规则（候补匹配），详细信息请参阅:"
 
-msgid "Custom Hosts Here, For More Go Github:https://github.com/Dreamacro/clash/blob/master/README.md"
-msgstr "设置自定义Hosts，详细信息请前往Github( https://github.com/Dreamacro/clash/blob/master/README.md )查询"
+msgid "IP To CIDR:"
+msgstr "在线IP段转CIDR地址:"
+
+msgid "Custom Hosts Here, For More Go:"
+msgstr "设置自定义Hosts，详细信息请参阅:"
 
 msgid "Set Custom Rules"
 msgstr "设置自定义规则（在上方规则设置中启用本功能后生效）"
@@ -546,9 +572,6 @@ msgstr "设置自定义Hosts，仅在Redir-Host模式下生效（不会覆盖配
 
 msgid "Version Update"
 msgstr "版本更新"
-
-msgid "CPU Model"
-msgstr "处理器架构"
 
 msgid "Model Not Found"
 msgstr "处理器架构识别失败"
@@ -567,12 +590,6 @@ msgstr "查询更新失败"
 
 msgid "<New>"
 msgstr "<可更新>"
-
-msgid "Chose to Download"
-msgstr "*选择内核编译版本"
-
-msgid "Select Based On Your CPU Model For Core Update, Wrong Version Will Not Work"
-msgstr "请根据处理器架构选择以便下载、更新对应内核，错误的版本将不能正常运行"
 
 msgid "Update Core File"
 msgstr "更新内核"
@@ -597,7 +614,7 @@ msgstr ""
 msgid "Servers and Groups"
 msgstr "服务器与策略组管理"
 
-msgid "Load Config"
+msgid "Read Config"
 msgstr "读取配置"
 
 msgid "Delete Unused Servers"
@@ -606,13 +623,13 @@ msgstr "删除未启用节点"
 msgid "Delete Servers"
 msgstr "清空服务器配置"
 
-msgid "Delete Proxy Provider"
+msgid "Delete Proxy Providers"
 msgstr "清空代理集配置"
 
 msgid "Delete Groups"
 msgstr "清空策略组配置"
 
-msgid "Back Configurations"
+msgid "Back Settings"
 msgstr "返回概览"
 
 msgid "Refresh Page"
@@ -714,13 +731,13 @@ msgstr "未配置"
 msgid "Create Config"
 msgstr "一键生成配置文件"
 
-msgid "Create Config By One-Click Only Need Proxys"
+msgid "Create Config By One-Click Only Need Proxies"
 msgstr "一键生成配置文件功能只需要配置服务器节点信息或代理集信息"
 
 msgid "Proxy Groups(No Need Set when Config Create)"
 msgstr "策略组配置（使用一键生成配置文件功能时无需设置）"
 
-msgid "Proxys"
+msgid "Proxies"
 msgstr "服务器节点配置"
 
 msgid "Edit Rule Providers"
@@ -786,7 +803,7 @@ msgstr "检测频率（秒）"
 msgid "Tolerance(ms)"
 msgstr "节点切换容忍值（毫秒）"
 
-msgid "Select　"
+msgid "Manual-Select"
 msgstr "Select【手动选择】"
 
 msgid "URL-Test"
@@ -798,7 +815,7 @@ msgstr "Fallback【故障切换】"
 msgid "Load-Balance"
 msgstr "Load-Balance【负载均衡】"
 
-msgid "Relay Traffic"
+msgid "Relay-Traffic"
 msgstr "Relay【嵌套中转】"
 
 msgid "Other Group"
@@ -858,14 +875,11 @@ msgstr "（启用或禁用更新）"
 msgid "Config Alias"
 msgstr "配置文件名"
 
-msgid "(Name For Distinguishing)"
-msgstr "（用于区分，请勿重名）"
+msgid "Name For Distinguishing"
+msgstr "用于区分，请勿重名"
 
 msgid "Subscribe Address"
 msgstr "订阅地址"
-
-msgid "(Not Null)"
-msgstr "（空值无效）"
 
 msgid "Keyword Match"
 msgstr "筛选节点"
@@ -873,8 +887,8 @@ msgstr "筛选节点"
 msgid "Exclude Keyword Match"
 msgstr "排除节点"
 
-msgid "(eg: hk or tw&bgp)"
-msgstr "（格式示例：香港、台湾&bgp）"
+msgid "eg: hk or tw&bgp"
+msgstr "格式示例：香港 或 台湾&bgp 或 新加坡&bgp&奈飞"
 
 msgid "Config File List"
 msgstr "配置文件列表"
@@ -963,8 +977,20 @@ msgstr "第三方规则集列表"
 msgid "Proxy UDP Traffics"
 msgstr "*UDP流量转发"
 
-msgid "Select Mode For UDP Traffics, The Servers Must Support UDP while Choose Proxy"
+msgid "The Servers Must Support UDP forwarding"
 msgstr "启用时服务器必须支持UDP转发"
+
+msgid "If Docker is Installed, UDP May Not Forward Normally"
+msgstr "安装了Docker的固件请使用TUN模式，否则可能无法正常转发UDP，造成游戏异常"
+
+msgid "Disable QUIC"
+msgstr "*禁用QUIC"
+
+msgid "Prevent YouTube and Others To Use QUIC Transmission"
+msgstr "防止YouTube等使用QUIC导致速度不佳"
+
+msgid "REJECT UDP Traffic On Port 443"
+msgstr "禁用443端口UDP流量"
 
 msgid "Operation Mode"
 msgstr "模式设置"
@@ -1200,8 +1226,8 @@ msgstr "确定要一键检查并更新所有内核及插件吗？"
 msgid "Check failed, Please try again later!"
 msgstr "一键检查更新失败,请稍后再试！"
 
-msgid "No compiled version is selected. Please configure it in the General Settings tab!"
-msgstr "未选择编译版本，请到常规设置标签中配置！"
+msgid "No Compiled Version is Selected, Please Select on The Top and Try Again!"
+msgstr "未选择编译版本，请到上方标签选择后重试！"
 
 msgid "Checking..."
 msgstr "正在检查更新..."
@@ -1314,7 +1340,7 @@ msgstr "下载最新版本客户端"
 msgid "Download"
 msgstr "下载到本地"
 
-msgid "Restore Default Configuration"
+msgid "Restore Default Config"
 msgstr "还原默认配置"
 
 msgid "One Click Check Update"
@@ -1323,7 +1349,7 @@ msgstr "一键检查更新"
 msgid "Failed to get the latest version. Please try again later!"
 msgstr "最新版本获取失败，请稍后再试！"
 
-msgid "Are you sure want to restore the default configuration?"
+msgid "Are you sure want to restore the default config?"
 msgstr "确定要还原默认配置吗？"
 
 msgid "Restore succeeded!"
@@ -1395,6 +1421,9 @@ msgstr ", 如发生回环死机请尝试启用"
 msgid "Custom GEOIP URL"
 msgstr "GEOIP数据库更新URL"
 
+msgid "Custom Chnroute6 Lists URL"
+msgstr "大陆IPV6段更新URL"
+
 msgid "Custom Chnroute Lists URL"
 msgstr "大陆IP段更新URL"
 
@@ -1404,8 +1433,17 @@ msgstr "自定义GEOIP数据库的更新来源，编辑后点击下方按钮生�
 msgid "Custom Chnroute Lists URL, Click Button Below To Refresh After Edit"
 msgstr "自定义大陆IP段的更新来源，编辑后点击下方按钮生效"
 
+msgid "Custom Chnroute6 Lists URL, Click Button Below To Refresh After Edit"
+msgstr "自定义大陆IPV6段的更新来源，编辑后点击下方按钮生效"
+
 msgid "(Default)"
 msgstr "(默认)"
+
+msgid "(Default mmdb)"
+msgstr "(默认，全部国家且仅写入iso_code和geoname_id)"
+
+msgid "(All Info mmdb)"
+msgstr "(全部国家且且包含官方全部信息数据)"
 
 msgid "(Only CN)"
 msgstr "(仅中国数据)"
@@ -1424,3 +1462,931 @@ msgstr "选择配置文件后请点击以获取对应的策略组"
 
 msgid "Other Rules Name"
 msgstr "第三方规则"
+
+msgid "Note"
+msgstr "备注"
+
+msgid "Auto Restart"
+msgstr "定时重启"
+
+msgid "Auto Restart OpenClash"
+msgstr "定时重启插件"
+
+msgid "Restart Time (Every Week)"
+msgstr "重启时间(每周)"
+
+msgid "Restart time (every day)"
+msgstr "重启时间(每天)"
+
+msgid "DNS Port"
+msgstr "DNS监听端口"
+
+msgid "Log Size (KB)"
+msgstr "日志大小（KB）"
+
+msgid "Set Log File Size (KB)"
+msgstr "设置日志文件大小（KB）"
+
+msgid "Download Log"
+msgstr "下载日志"
+
+msgid "Convert Address"
+msgstr "订阅转换服务地址"
+
+msgid "Note: There is A Risk of Privacy Leakage in Online Convert"
+msgstr "注意：在线订阅转换存在隐私泄露风险"
+
+msgid "Remove Core"
+msgstr "删除内核"
+
+msgid "Are you sure want to remove all core files?"
+msgstr "确定要删除所有内核文件吗？"
+
+msgid "Remove succeeded!"
+msgstr "删除成功！"
+
+msgid "Remove failed!"
+msgstr "删除失败！"
+
+msgid "Import"
+msgstr "导入配置信息"
+
+msgid "Export SSR"
+msgstr "导出ssr配置信息"
+
+msgid "Import configuration information successfully."
+msgstr "导入配置信息成功。"
+
+msgid "Invalid format."
+msgstr "无效的格式。"
+
+msgid "User cancelled."
+msgstr "用户已取消。"
+
+msgid "Paste sharing link here"
+msgstr "在此处粘贴分享链接"
+
+msgid "Unable to copy SSR to clipboard."
+msgstr "无法复制SSR网址到剪贴板。"
+
+msgid "Copy SSR to clipboard successfully."
+msgstr "成功复制SSR网址到剪贴板。"
+
+msgid "Exclude Keyword Match Default"
+msgstr "排除无效节点"
+
+msgid "Start Downloading"
+msgstr "开始下载"
+
+msgid "Download Successful, Start Pre Update Test..."
+msgstr "下载成功，开始进行更新前测试..."
+
+msgid "Pre Update Test Failed, The File is Saved in /tmp/opencrash.ipk, Please Try to Update Manually!"
+msgstr "更新前测试失败，文件保存在/tmp/openclash.ipk，请尝试手动更新！"
+
+msgid "Pre Update Test Passed, Ready to Update and Please Do not Refresh The Page and Other Operations..."
+msgstr "更新前测试通过，准备开始更新，更新过程请不要刷新页面和进行其他操作..."
+
+msgid "Uninstalling The Old Version, Please Do not Refresh The Page or Do Other Operations..."
+msgstr "正在卸载旧版本，更新过程请不要刷新页面和进行其他操作..."
+
+msgid "Installing The New Version, Please Do Not Refresh The Page or Do Other Operations..."
+msgstr "正在安装新版本，更新过程请不要刷新页面和进行其他操作..."
+
+msgid "OpenClash Update Successful, About To Restart!"
+msgstr "OpenClash 更新成功，即将进行重启！"
+
+msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually!"
+msgstr "OpenClash 更新失败，文件保存在/tmp/openclash.ipk，请尝试手动更新！"
+
+msgid "Download Failed, Please Check The Network or Try Again Later!"
+msgstr "下载失败，请检查网络或稍后再试！"
+
+msgid "Failed to Get Version Information, Please Try Again Later..."
+msgstr "获取版本信息失败，请稍后再试..."
+
+msgid "OpenClash Has not Been Updated, Stop Continuing!"
+msgstr "OpenClash 没有更新，停止继续操作！"
+
+msgid "Core Version Check Error, Please Try Again Later..."
+msgstr "内核最新版本检测失败，请稍后再试..."
+
+msgid "Core Downloading, Please Try to Download and Upload Manually If Fails"
+msgstr "版本内核正在下载，如下载失败请尝试手动下载并上传..."
+
+msgid "Core Download Successful, Start Update..."
+msgstr "版本内核下载成功，开始更新..."
+
+msgid "Core Update Failed, Please Check The Network or Try Again Later!"
+msgstr "版本内核更新失败，请检查网络或稍后再试！"
+
+msgid "Core Update Successful!"
+msgstr "版本内核更新成功！"
+
+msgid "Core Update Failed. Please Make Sure Enough Flash Memory Space And Try Again!"
+msgstr "版本内核更新失败，请确认设备闪存空间足够后再试！"
+
+msgid "No Compiled Version Selected, Please Select In Global Settings And Try Again!"
+msgstr "未选择编译版本，请到全局设置中选择后再试！"
+
+msgid "Core Has Not Been Updated, Stop Continuing Operation!"
+msgstr "版本内核没有更新，停止继续操作！"
+
+msgid "Start Downloading Third Party Rules in Use..."
+msgstr "开始下载使用中的第三方规则..."
+
+msgid "Warrning: Multiple Other-Rules-Configurations Enabled, Ignore..."
+msgstr "警告：检测到启用了多个第三方规则配置，忽略后续配置..."
+
+msgid "Download Successful, Start Preprocessing Rule File..."
+msgstr "下载成功，开始预处理规则文件..."
+
+msgid "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
+msgstr "错误：Ruby依赖异常，无法校验配置文件，请确认ruby依赖工作正常后重试！"
+
+msgid "Error:"
+msgstr "错误："
+
+msgid "Rule File Format Validation Failed, Please Try Again Later..."
+msgstr "规则文件格式校验失败，请稍后再试..."
+
+msgid "Error: Updated Others Rules"
+msgstr "错误：更新的第三方规则文件"
+
+msgid "Has No Rules Field, Update Exit..."
+msgstr "规则部分校验失败，请稍后再试..."
+
+msgid "Has Incompatible Proxy-Group, Update Exit, Please Wait For OpenClash Update To Adapt..."
+msgstr "含有未支持的新策略组，更新停止，请等待OpenClash版本更新适配..."
+
+msgid "Check The Downloaded Rule File For Updates..."
+msgstr "检查下载的规则文件是否有更新..."
+
+msgid "Detected that The Downloaded Rule File Has Been Updated, Starting To Replace..."
+msgstr "检测到下载的规则文件有更新，开始替换..."
+
+msgid "Other Rules"
+msgstr "第三方规则文件"
+
+msgid "Update Successful!"
+msgstr "更新成功！"
+
+msgid "Updated Other Rules"
+msgstr "检测到更新的规则文件"
+
+msgid "No Change, Do Nothing!"
+msgstr "没有更新，停止继续操作!"
+
+msgid "Update Error, Please Try Again Later..."
+msgstr "下载失败，请检查网络或稍后再试..."
+
+msgid "Other Rules Not Enable, Update Stop!"
+msgstr "未启用第三方规则，更新程序终止！"
+
+msgid "Get Other Rules Settings Faild, Update Stop!"
+msgstr "未找到第三方规则配置，更新程序终止！"
+
+msgid "is Replaced Successfully, Start Picking Nodes..."
+msgstr "替换成功，检测到已启用节点筛选，开始挑选节点..."
+
+msgid "is Replaced Successfully, Start to Reserving..."
+msgstr "替换成功，检测到已启用保留配置，开始进行设置..."
+
+msgid "Config File Download Successful, Check If There is Any Update..."
+msgstr "配置文件下载成功，检查是否有更新..."
+
+msgid "Are Updates, Start Replacing..."
+msgstr "有更新，开始替换..."
+
+msgid "Download Successful, Start To Create..."
+msgstr "下载成功，本地没有配置文件，开始创建..."
+
+msgid "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
+msgstr "错误：Ruby依赖异常，无法校验配置文件，请确认ruby依赖工作正常后重试！"
+
+msgid "Config File Format Validation Failed..."
+msgstr "配置文件格式校验失败..."
+
+msgid "Error: Updated Config"
+msgstr "错误：更新的配置文件"
+
+msgid "Has No Proxy Field, Update Exit..."
+msgstr "节点部分校验失败..."
+
+msgid "Start Updating Config File"
+msgstr "开始更新配置文件"
+
+msgid "Config File Format Validation Failed, Trying To Download Without Agent..."
+msgstr "配置文件格式校验失败，尝试不使用代理下载配置文件..."
+
+msgid "Has No Proxy Field, Trying To Download Without Agent..."
+msgstr "节点部分校验失败，尝试不使用代理下载配置文件..."
+
+msgid "Error: Config File"
+msgstr "错误：配置文件"
+
+msgid "Subscribed Failed, Trying to Download Without Agent..."
+msgstr "订阅失败，尝试不使用代理下载配置文件..."
+
+msgid "Start Downloading The Chnroute Cidr List..."
+msgstr "开始下载大陆IP白名单..."
+
+msgid "Start Downloading The Chnroute6 Cidr List..."
+msgstr "开始下载大陆IPV6白名单..."
+
+msgid "Chnroute Cidr List Download Success, Check Updated..."
+msgstr "大陆IP白名单下载成功，检查版本是否更新..."
+
+msgid "Chnroute6 Cidr List Download Success, Check Updated..."
+msgstr "大陆IPV6白名单下载成功，检查版本是否更新..."
+
+msgid "Chnroute Cidr List Has Been Updated, Starting To Replace The Old Version..."
+msgstr "大陆IP白名单有更新，开始替换旧版本..."
+
+msgid "Chnroute6 Cidr List Has Been Updated, Starting To Replace The Old Version..."
+msgstr "大陆IPV6白名单有更新，开始替换旧版本..."
+
+msgid "Chnroute Cidr List Update Successful!"
+msgstr "大陆IP白名单更新成功！"
+
+msgid "Chnroute6 Cidr List Update Successful!"
+msgstr "大陆IPV6白名单更新成功！"
+
+msgid "Updated Chnroute Cidr List No Change, Do Nothing..."
+msgstr "大陆IP白名单没有更新，停止继续操作..."
+
+msgid "Updated Chnroute6 Cidr List No Change, Do Nothing..."
+msgstr "大陆IPV6白名单没有更新，停止继续操作..."
+
+msgid "Chnroute Cidr List Update Error, Please Try Again Later..."
+msgstr "大陆IP白名单下载失败，请检查网络或稍后再试..."
+
+msgid "Chnroute6 Cidr List Update Error, Please Try Again Later..."
+msgstr "大陆IPV6白名单下载失败，请检查网络或稍后再试..."
+
+msgid "Start Downloading Geoip Database..."
+msgstr "开始下载 GEOIP 数据库..."
+
+msgid "Geoip Database Download Success, Check Updated..."
+msgstr "GEOIP 数据库下载成功，检查数据库版本是否更新..."
+
+msgid "Geoip Database Has Been Updated, Starting To Replace The Old Version..."
+msgstr "GEOIP 数据库版本有更新，开始替换数据库版本..."
+
+msgid "Geoip Database Update Successful!"
+msgstr "GEOIP 数据库更新成功！"
+
+msgid "Updated Geoip Database No Change, Do Nothing..."
+msgstr "数据库版本没有更新，停止继续操作..."
+
+msgid "Geoip Database Update Error, Please Try Again Later..."
+msgstr "GEOIP 数据库下载失败，请检查网络或稍后再试..."
+
+msgid "Start Getting"
+msgstr "开始获取"
+
+msgid "Groups Setting..."
+msgstr "的策略组配置..."
+
+msgid "Group Setting..."
+msgstr "的策略组配置..."
+
+msgid "Proxy-providers Setting..."
+msgstr "的代理集配置..."
+
+msgid "Proxy-provider Setting..."
+msgstr "的代理集配置..."
+
+msgid "Proxies Setting..."
+msgstr "的服务器节点配置..."
+
+msgid "Proxy Setting..."
+msgstr "的服务器节点配置..."
+
+msgid "Read Error, Config File"
+msgstr "读取错误，配置文件"
+
+msgid "Abnormal!"
+msgstr "异常！"
+
+msgid "Abnormal!"
+msgstr "异常！"
+
+msgid "Deleting Old Configuration..."
+msgstr "正在删除旧配置..."
+
+msgid "Error: Unable To Parse Config File, Please Check And Try Again!"
+msgstr "配置文件校验失败，请检查配置文件后重试！"
+
+msgid "Start Writing"
+msgstr "开始写入"
+
+msgid "Group To Config File..."
+msgstr "策略组到配置文件..."
+
+msgid "Proxy To Config File..."
+msgstr "节点到配置文件..."
+
+msgid "Proxy-provider To Config File..."
+msgstr "代理集到配置文件..."
+
+msgid "Unable To Parse, Please Choose One-key Function To Create Config File..."
+msgstr "的信息读取失败，无法进行修改，请选择一键创建配置文件..."
+
+msgid "Setting Secondary DNS Server List..."
+msgstr "正在设置第二DNS服务器列表..."
+
+msgid "Setting Fake IP Filter..."
+msgstr "正在设置Fake-IP黑名单..."
+
+msgid "Deleting"
+msgstr "删除"
+
+msgid "Proxy-providers That no Longer Exists in Subscription"
+msgstr "订阅中已不存在的代理集..."
+
+msgid "Proxies That no Longer Exists in Subscription"
+msgstr "订阅中已不存在的代理集..."
+
+msgid "Read Successful!"
+msgstr "读取完成！"
+
+msgid "Write Successful!"
+msgstr "读取完成！"
+
+msgid "Creating By Using Connershua (rule set) Rules..."
+msgstr "使用ConnersHua(规则集)规则创建中..."
+
+msgid "Creating By Using lhie1 Rules..."
+msgstr "使用lhie1规则创建中..."
+
+msgid "Creating By Using ConnersHua Return Rules..."
+msgstr "使用ConnersHua回国规则创建中..."
+
+msgid "Created Successful, Updating Proxies, Proxy-providers, Groups..."
+msgstr "创建完成，正在更新服务器、代理集、策略组信息..."
+
+msgid "Proxies, Proxy-providers, Groups Edited Successful, Updating Config File"
+msgstr "服务器、代理集、策略组信息修改完成，正在更新配置文件"
+
+msgid "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
+msgstr "警告：由于第三方规则设置中的策略组名称与配置文件中的不符或不存在，停止继续设置第三方规则！"
+
+msgid "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
+msgstr "错误：丢失或未指定第三方规则中的部分策略组，停止继续设置第三方规则！"
+
+msgid "Detected That The nameserver DNS Option Has No Server Set, Starting To Complete..."
+msgstr "检测到DNS选项下的Nameserver未设置服务器，开始补全..."
+
+msgid "Error: Failed To Download Proxy-providers, Please Check The Log Page For Detailed error information!"
+msgstr "错误: 代理集文件下载失败，请到日志页面查看详细错误信息！"
+
+msgid "Error: Failed To Download Rule-providers, Please Check The Log Page For Detailed error information!"
+msgstr "错误: 规则集文件下载失败，请到日志页面查看详细错误信息！"
+
+msgid "Warning: Providers File Check Timeout, If Failed To start, Please Check The Log Page For Detailed error information!"
+msgstr "警告: 代理集文件检查超时，如启动失败请到日志页面查看详细信息！"
+
+msgid "Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers"
+msgstr "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已停止设置自定义DNS服务器！"
+
+msgid "Config File Does Not Exist, You Have Set Subscription Information, Ready To Download..."
+msgstr "配置文件不存在，您已设置订阅信息，准备开始下载..."
+
+msgid "Error: Config Not Found"
+msgstr "错误: 缺少配置文件，请上传或更新配置文件！"
+
+msgid "Error: Config File Format Validation Failed..."
+msgstr "错误：配置文件格式校验失败..."
+
+msgid "Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
+msgstr "检测到配置了 TUN 内核专属功能，调用 TUN 内核启动..."
+
+msgid "Detected The Exclusive Function of The Game Core, Use Game Core to Start..."
+msgstr "检测到配置了 Game 内核专属功能，调用 Game 内核启动..."
+
+msgid "No Special Configuration Detected, Use Dev Core to Start..."
+msgstr "未检测到特殊配置，调用 Dev 内核启动..."
+
+msgid "Detect that the Dev Core is not Installed, Use TUN Core to Start..."
+msgstr "检测到 Dev 内核未安装，调用 TUN 内核启动..."
+
+msgid "Detect that the Dev Core is not Installed, Use Game Core to Start..."
+msgstr "检测到 Dev 内核未安装，调用 Game 内核启动..."
+
+msgid "Detect that the Dev Core is not Installed, Use Game Core to Start..."
+msgstr "检测到 Dev 内核未安装，调用 Game 内核启动..."
+
+msgid "Detect that the GEOIP Database is not Installed, Ready to Download..."
+msgstr "检测到GEOIP数据库文件不存在，准备开始下载..."
+
+msgid "Detect that the Core is not Installed, Ready to Download..."
+msgstr "检测到内核文件不存在，准备开始下载..."
+
+msgid "Detect that the Chnroute Cidr List is not Installed, Ready to Download..."
+msgstr "检测到大陆白名单列表不存在，准备开始下载..."
+
+msgid "Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well..."
+msgstr "错误：Capsh异常，请尝试重新安装依赖【libcap】和相应的Capsh库，终止启动..."
+
+msgid "Tip: You Could Download And Re-Install The libcap & libcap-bin Library From The Address Give"
+msgstr "Tip: 你可以尝试从给出的地址中查找、下载并重新安装架构对应的 libcap 和 libcap-bin 依赖"
+
+msgid "Error: Get DNS 'listen' Option Error, OpenClash Can Not Start With Raw Config File"
+msgstr "错误: 无法获取DNS部分的监听端口设置, OpenClash 使用原始配置文件启动失败"
+
+msgid "Error: Get DNS 'enhanced-mode' Option Error, OpenClash Can Not Start With Raw Config File"
+msgstr "错误: 无法获取DNS部分的运行模式设置, OpenClash 使用原始配置文件启动失败"
+
+msgid "Error: Get General 'redir-port' Option Error, OpenClash Can Not Start With Raw Config File"
+msgstr "错误: 无法获取General部分的转发端口设置, OpenClash 使用原始配置文件启动失败"
+
+msgid "Error: OpenClash Can Not Start, Please Check The Error Info And Try Again!"
+msgstr "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！"
+
+msgid "Error: OpenClash Can Not Start, Try Use Raw Config Restart Again..."
+msgstr "错误: OpenClash 启动失败，尝试使用原始配置文件启动..."
+
+msgid "Error: OpenClash Can Not Start, Try Use Backup Rules Start Again..."
+msgstr "错误: OpenClash 启动失败，尝试还原第三方规则并重新启动 Clash 主程序..."
+
+msgid "Found 53 Port Hijacked, Clean Up Firewall Rules..."
+msgstr "发现53端口被劫持，清理防火墙规则..."
+
+msgid "OpenClash Start Running..."
+msgstr "OpenClash 开始启动..."
+
+msgid "Step 1: Get The Configuration..."
+msgstr "第一步: 获取配置..."
+
+msgid "Step 2: Check The Components..."
+msgstr "第二步: 组件运行前检查..."
+
+msgid "Step 3: Modify The Config File..."
+msgstr "第三步: 修改配置文件..."
+
+msgid "Step 4: Start Running The Clash Core..."
+msgstr "第四步: 启动主程序..."
+
+msgid "Step 5: Check The Core Status..."
+msgstr "第五步: 检查内核启动状态..."
+
+msgid "Step 6: Wait For The File Downloading..."
+msgstr "第六步: 等待主程序下载外部文件..."
+
+msgid "Step 7: Set Control Panel..."
+msgstr "第七步: 设置控制面板..."
+
+msgid "Step 8: Set Firewall Rules..."
+msgstr "第八步: 设置防火墙规则..."
+
+msgid "Step 9: Restart Dnsmasq..."
+msgstr "第九步: 重启 Dnsmasq 程序..."
+
+msgid "Step 10: Add Cron Rules, Start Daemons..."
+msgstr "第十步: 添加计划任务,启动进程守护程序..."
+
+msgid "OpenClash Start Successful!"
+msgstr "OpenClash 启动成功，请等待服务器上线！"
+
+msgid "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPV6's DHCP Server"
+msgstr "警告：OpenClash 启动成功，检测到您启用了IPV6的DHCP服务，可能会造成连接异常！"
+
+msgid "Warning: OpenClash Start Successful With Raw Config File, Please Note That It's Restricted Mode Now"
+msgstr "警告：OpenClash 使用原始配置文件启动成功，部分设置可能未生效！"
+
+msgid "OpenClash Stoping..."
+msgstr "OpenClash 开始关闭..."
+
+msgid "Step 1: Backup The Current Groups State..."
+msgstr "第一步: 备份当前策略组状态..."
+
+msgid "Step 2: Delete OpenClash Firewall Rules..."
+msgstr "第二步: 删除 OpenClash 防火墙规则..."
+
+msgid "Step 3: Close The OpenClash Daemons..."
+msgstr "第三步: 关闭 OpenClash 守护程序..."
+
+msgid "Step 4: Close The Clash Core Process..."
+msgstr "第四步: 关闭 Clash 主程序..."
+
+msgid "Step 5: Restart Dnsmasq..."
+msgstr "第五步: 重启 Dnsmasq 程序..."
+
+msgid "Step 6: Delete OpenClash Residue File..."
+msgstr "第六步：删除 OpenClash 残留文件..."
+
+msgid "OpenClash Already Stop!"
+msgstr "OpenClash 关闭成功！"
+
+msgid "Reload OpenClash Firewall Rules..."
+msgstr "重置 OpenClash 防火墙规则..."
+
+msgid "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..."
+msgstr "警告：OpenClash 目前处于未启用状态，请从插件页面启动本插件，脚本退出..."
+
+msgid "Warning: Multiple Restart Scripts Running, Exit..."
+msgstr "警告：多个 OpenClash 启动脚本运行中，此脚本退出..."
+
+msgid "Watchdog: Multiple Clash Processes, Kill All..."
+msgstr "守护程序：检测到多个 Clash 内核运行，清理中..."
+
+msgid "Watchdog: Clash Core Problem, Restart..."
+msgstr "守护程序：检测到 Clash 内核崩溃，重启中..."
+
+msgid "Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit..."
+msgstr "守护程序：已尝试自动重启三次 Clash 内核，为防止频繁重启造成严重后果，OpenClash 将停止运行..."
+
+msgid "Watchdog: Log Size Limit, Clean Up All Log Records..."
+msgstr "守护程序：因日志大小限制，清理所有日志内容..."
+
+msgid "Watchdog: Reset Firewall For Enabling Redirect..."
+msgstr "守护程序：检测到转发规则顺序错误，重置插件防火墙规则..."
+
+msgid "Watchdog: Force Reset DNS Hijack..."
+msgstr "守护程序：重新设置 Dnsmasq 的 DNS 转发选项..."
+
+msgid "Rule File"
+msgstr "规则文件"
+
+msgid "Download Error!"
+msgstr "下载失败！"
+
+msgid "Download Successful!"
+msgstr "下载成功！"
+
+msgid "Switch To The New Proxy When The Delay Difference Between Old and The Fastest Currently is Greater Than This Value"
+msgstr "仅当旧代理和当前最快代理之间的延迟差大于此值时，才会切换到新代理"
+
+msgid "Url-Test Group Tolerance (ms)"
+msgstr "Url-Test 策略组切换灵敏度（ms）"
+
+msgid "Attention:"
+msgstr "注意事项："
+
+msgid "The game proxy is a test function and does not guarantee the availability of rules"
+msgstr "游戏代理为测试功能，不保证规则可用性"
+
+msgid "Preparation steps:"
+msgstr "准备步骤："
+
+msgid "1. In the <server and policy group management> page, create the policy group and node you are going to use, and apply the configuration (when adding nodes, you must select the policy group you want to join). Policy group type suggestion: fallback, game nodes must support UDP"
+msgstr "1、在《服务器与策略组管理》页面创建您准备使用的策略组和节点，并应用配置（节点添加时必须选择要加入的策略组），策略组类型建议:FallBack，游戏节点必须支持UDP"
+
+msgid "2. Click the <manage third party game rules> or <manage third party rule set> button to enter the rule list and download the rules you want to use"
+msgstr "2、点击《管理第三方游戏规则》或者《管理第三方规则集》按钮进入规则列表下载您要使用的规则"
+
+msgid "3. On this page, set the corresponding configuration file and policy group of the rule you have downloaded, and save the settings"
+msgstr "3、在此页面设置您已下载的规则的对应配置文件、策略组并保存设置"
+
+msgid "Use in normal mode (rules of the game only):"
+msgstr "在普通模式下使用（仅游戏规则）："
+
+msgid "1. Select normal mode in <global settings> - <mode settings> - <running mode> and enable UDP traffic, then restart"
+msgstr "1、在《全局设置》-《模式设置》-《运行模式》中选择普通模式并启用UDP流量代理，然后重新启动"
+
+msgid "Use in tun mode:"
+msgstr "在TUN模式下使用："
+
+msgid "1. In the <global settings> - <version update tab>, download and install the corresponding mode core first"
+msgstr "1、在全局设置-版本更新标签先下载、安装对应模式内核"
+
+msgid "2. Select mixed mode, Tun mode or game mode in <global settings> - <mode settings> - <running mode> and restart"
+msgstr "2、在《全局设置》-《模式设置》-《运行模式》中选择混合模式、TUN模式或者游戏模式并重新启动"
+
+msgid "When setting this page, if the groups is empty, please go to the <server and group management> page to add"
+msgstr "本页设置时如策略组为空，请先到《服务器与策略组管理》页面进行添加"
+
+msgid "Introduction to rule set usage: https://lancellc.gitbook.io/clash/clash-config-file/rule-provider"
+msgstr "规则集使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/rule-provider"
+
+msgid "Subconverter external configuration (subscription conversion template) Description: https://github.com/tindy2013/subconverter#external-configuration-file"
+msgstr "subconverter 外部配置(订阅转换模板)说明：https://github.com/tindy2013/subconverter#external-configuration-file"
+
+msgid "If you need to customize the external configuration file (subscription conversion template), please write it according to the instructions, upload it to the accessible location of the external network, and fill in the address correctly when using it"
+msgstr "如需自定义外部配置文件(订阅转换模板)，请按照说明编写后上传至外部网络可访问的位置，并在使用时正确填写地址"
+
+msgid "If you have a recommended external configuration file (subscription conversion template), you can modify by following The file format of /usr/share/opencrash/res/sub_ini.list and pr"
+msgstr "如您有值得推荐的外部配置文件(订阅转换模板)，可以按照 /usr/share/openclash/res/sub_ini.list 的文件格式修改后提交PR"
+
+msgid "To restore the default configuration, try accessing:"
+msgstr "如遇到配置丢失或者需要还原默认配置，请尝试访问地址:"
+
+msgid "Take Effect If Fallback DNS Setted, Prevent DNS Pollution"
+msgstr "只有在配置文件设置了 Fallback 组的DNS时才会生效，正确设置可以有效防止DNS污染"
+
+msgid "Custom Fallback-Filter"
+msgstr "自定义Fallback-Filter"
+
+msgid "Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore..."
+msgstr "错误：只有在配置文件设置了Fallback组的DNS时Fallback-Filter才会生效，跳过此项修改..."
+
+msgid "Error: Unable To Parse Custom Fallback-Filter File, Ignore..."
+msgstr "错误：读取自定义的Fallback-Filter设置失败，跳过此项修改..."
+
+msgid "Simple & trustworthy"
+msgstr "简单 & 值得信赖"
+
+msgid "Cross-platform Support"
+msgstr "丰富的第三方应用兼容性"
+
+msgid "Global Acceleration Network"
+msgstr "全球网络基础设施"
+
+msgid "Easy to Use"
+msgstr "操作简易"
+
+msgid "Intelligent Shunting"
+msgstr "智能分流"
+
+msgid "Perfect Technical Support"
+msgstr "完善技术支持"
+
+msgid "Plan Expiration Time"
+msgstr "到期时间"
+
+msgid "Account Balances"
+msgstr "账户余额"
+
+msgid "Aff Balances"
+msgstr "返利余额"
+
+msgid "Account Integral"
+msgstr "账户积分"
+
+msgid "Today Used"
+msgstr "今日已用"
+
+msgid "Plan Used"
+msgstr "本月已用"
+
+msgid "Plan Unused"
+msgstr "剩余流量"
+
+msgid "Plan Traffic"
+msgstr "套餐流量"
+
+msgid "Checkin"
+msgstr "试试手气"
+
+msgid "Dler Cloud Account Login Failed! Please Check And Try Again..."
+msgstr "Dler Cloud 账户登录失败！请检查账户信息并重试..."
+
+msgid "Dler Cloud Checkin Failed! Please Check And Try Again..."
+msgstr "Dler Cloud 签到失败，请稍后再试！"
+
+msgid "Account Email Address"
+msgstr "账号地址"
+
+msgid "Account Password"
+msgstr "账号密码"
+
+msgid "Checkin Interval (hour)"
+msgstr "签到间隔（小时）"
+
+msgid "Checkin Multiple"
+msgstr "签到倍数"
+
+msgid "Multiple Must Be a Positive Integer and No More Than 50"
+msgstr "倍数必须是正整数且不大于50"
+
+msgid "Dler Cloud Checkin Successful, Result:"
+msgstr "Dler Cloud 签到成功，结果："
+
+msgid "Dler Cloud Checkin Failed, Result:"
+msgstr "Dler Cloud 签到失败，结果："
+
+msgid "Downloading Rule..."
+msgstr "正在下载规则..."
+
+msgid "Downloading Fail"
+msgstr "下载失败"
+
+msgid "Downloading Successful"
+msgstr "下载成功"
+
+msgid "Rule No Change"
+msgstr "规则没有更新"
+
+msgid "Downloading Timeout"
+msgstr "下载超时"
+
+msgid "Rule Project:"
+msgstr "规则项目:"
+
+msgid "Rule Project:"
+msgstr "规则项目:"
+
+msgid "Login..."
+msgstr "登录中..."
+
+msgid "Dler Cloud Login Successful"
+msgstr "Dler Cloud 登录成功"
+
+msgid "Dler Cloud Login Faild"
+msgstr "Dler Cloud 登录失败"
+
+msgid "Login Account"
+msgstr "登录账号"
+
+msgid "Dler Cloud Logout Successful"
+msgstr "Dler Cloud 已成功退出"
+
+msgid "Dler Cloud Logout Faild"
+msgstr "Dler Cloud 退出失败"
+
+msgid "Logout Account"
+msgstr "退出账号"
+
+msgid "Account Login"
+msgstr "账号登录"
+
+msgid "Account logged in"
+msgstr "账号已登录"
+
+msgid "Account not logged in"
+msgstr "账号未登录"
+
+msgid "Logout..."
+msgstr "退出中..."
+
+msgid "Error Login Info"
+msgstr "登录信息错误"
+
+msgid "Warning: Proxy is no longer used. Auto replaced by proxies"
+msgstr "警告：【Proxy】写法已不再支持，自动替换为proxies"
+
+msgid "Warning: Proxy Group is no longer used. Auto replaced by proxy-groups"
+msgstr "警告：【Proxy Group】写法已不再支持，自动替换为proxy-groups"
+
+msgid "Warning: Rule is no longer used. Auto replaced by rules"
+msgstr "警告：【Rule】写法已不再支持，自动替换为rules"
+
+msgid "Warning: rule-provider is no longer used. Auto replaced by rule-providers"
+msgstr "警告：【rule-provider】写法已不再支持，自动替换为rule-providers"
+
+msgid "Warning: Because of No Rules Field, Stop Setting BT/P2P DIRECT Rules!"
+msgstr "警告：未找到【rules】配置，停止添加BT/P2P直连规则！"
+
+msgid "Error: Load File Error,"
+msgstr "错误：文件解析失败，"
+
+msgid "Error: Set General Error,"
+msgstr "错误：修改General配置失败，"
+
+msgid "Error: Set Hosts Rules Error,"
+msgstr "错误：修改Hosts配置失败，"
+
+msgid "Error: Set Fake-IP-Filter Error,"
+msgstr "错误：修改Fake-IP-Filter配置失败，"
+
+msgid "Error: Set Nameserver-Policy Error,"
+msgstr "错误：修改Nameserver-Policy配置失败，"
+
+msgid "Error: Set Custom Rules Error,"
+msgstr "错误：设置自定义规则失败，"
+
+msgid "Error: Set BT/P2P DIRECT Rules Error,"
+msgstr "错误：设置仅代理命中规则流量（BT/P2P直连）失败，"
+
+msgid "Error: Set 198.18.0.1/16 REJECT Rule Error,"
+msgstr "错误：设置198.18.0.1/16（REJECT）规则失败，"
+
+msgid "Error: Set lhie1 Rules Error,"
+msgstr "错误：设置第三方规则（lhie1）失败，"
+
+msgid "Error: Set ConnersHua Rules Error,"
+msgstr "错误：设置第三方规则（ConnersHua）失败，"
+
+msgid "Error: Set ConnersHua Return Rules Error,"
+msgstr "错误：设置第三方规则（ConnersHua 回国）失败，"
+
+msgid "Error: Filter Proxies Error,"
+msgstr "错误：节点筛选失败，"
+
+msgid "Error: Unable To Parse Config File,"
+msgstr "错误：配置文件解析失败，"
+
+msgid "Error: Unable To Parse Updated Rules File,"
+msgstr "错误：更新的规则文件解析失败，"
+
+msgid "Error: Edit Provider Path Error,"
+msgstr "错误：修改集路径失败，"
+
+msgid "Error: Set Url-Test Group Tolerance Error,"
+msgstr "错误：修改Url-Test策略组容忍值失败，"
+
+msgid "Error: Game Rule Merge Error,"
+msgstr "错误：游戏规则合并失败，"
+
+msgid "Error: Game Proxy Merge Error,"
+msgstr "错误：游戏规则策略组合并失败，"
+
+msgid "Error: Rule Set Add Error,"
+msgstr "错误：规则集Rule-Set规则添加失败，"
+
+msgid "Error: Custom Rule Provider Merge Error,"
+msgstr "错误：规则集Rule Provider合并失败，"
+
+msgid "Error: Restore Backup Rules Error,"
+msgstr "错误：还原默认规则失败，"
+
+msgid "Error: Restore Backup Rules Error,"
+msgstr "错误：还原默认规则失败，"
+
+msgid "Error: Resolve Proxy-provider Error,"
+msgstr "错误：解析代理集失败，"
+
+msgid "Error: Resolve Proxy Error,"
+msgstr "错误：节点解析失败，"
+
+msgid "Error: Resolve Proxy-group Error,"
+msgstr "错误：策略组解析失败，"
+
+msgid "Error: Set default-nameserver Error,"
+msgstr "错误：修改default-nameserver配置失败，"
+
+msgid "switching succeeded!"
+msgstr "切换成功！"
+
+msgid "switching failed!"
+msgstr "切换失败！"
+
+msgid "Current Config File"
+msgstr "当前配置文件"
+
+msgid "Official Website"
+msgstr "官方网站"
+
+msgid "Up"
+msgstr "上传"
+
+msgid "Up:"
+msgstr "上传:"
+
+msgid "Down:"
+msgstr "下载:"
+
+msgid "Up Total:"
+msgstr "上传总量:"
+
+msgid "Down Total:"
+msgstr "下载总量:"
+
+msgid "Connections:"
+msgstr "活动连接:"
+
+msgid "Ram:"
+msgstr "内存占用:"
+
+msgid "CPU:"
+msgstr "CPU占用:"
+
+msgid "Could not find any connection logs!"
+msgstr "找不到任何连接日志！"
+
+msgid "Some error occurred!"
+msgstr "发生了一些错误！"
+
+msgid "Click to Test"
+msgstr "点击测试"
+
+msgid "Connection Test (Current Browser)"
+msgstr "连接测试（当前浏览器）"
+
+msgid "Backup File"
+msgstr "备份文件"
+
+msgid "Backup File Restore Successful!"
+msgstr "备份文件恢复成功！"
+
+msgid "Backup OpenClash"
+msgstr "备份 OpenClash"
+
+msgid "Not Select"
+msgstr "未选择"
+
+msgid "1. It may be that the plugin is not running"
+msgstr "1. 可能是插件未在运行"
+
+msgid "2. It may be that the cache causes the browser to directly use the IP for access"
+msgstr "2. 可能是缓存导致浏览直接使用IP地址进行访问"
+
+msgid "3. It may be that DNS hijacking did not take effect, so clash unable to reverse the domain name"
+msgstr "3. 可能是DNS未劫持成功，导致Clash无法正确反推出域名连接"
+
+msgid "4. It may be that the filled address cannot be resolved and connected"
+msgstr "4. 可能是所填地址无法进行解析和连接"
+
+msgid "OpenClash Log"
+msgstr "插件日志"
+
+msgid "Core Log"
+msgstr "内核日志"
+
+msgid "Append Upstream DNS"
+msgstr "追加上游DNS"
+
+msgid "Append The Upstream Assigned DNS And Gateway IP To The Nameserver"
+msgstr "将上游分配的DNS和网关IP追加到Nameserver"
+

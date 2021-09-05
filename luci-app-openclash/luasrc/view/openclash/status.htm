@@ -1,44 +1,8 @@
+<head>
 <style>
-	#hid_btn {
-		display: block;
-		width: 18px;
-		margin:0 auto;
-	}
-	.rotate{
-    transform-origin:center center;
-    transform: rotate(180deg);
-    -webkit-transform: rotate(180deg);
-    -moz-transform: rotate(180deg);
-    -ms-transform: rotate(180deg);
-    -o-transform: rotate(180deg);
-    transition: transform 0.2s;
-    -moz-transition: -moz-transform 0.2s; 
-    -moz-transition: -moz-transform 0.2s; 
-    -o-transition: -o-transform 0.2s; 
-    -ms-transition: -ms-transform 0.2s; 
-}
-
-	.rotate1{
-    transform-origin:center center;
-    transform: rotate(360deg);
-    -webkit-transform: rotate(360deg);
-    -moz-transform: rotate(360deg);
-    -ms-transform: rotate(360deg);
-    -o-transform: rotate(360deg);
-    transition: transform 0.2s; 
-    -moz-transition: -moz-transform 0.2s; 
-    -moz-transition: -moz-transform 0.2s; 
-    -o-transition: -o-transform 0.2s; 
-    -ms-transition: -ms-transform 0.2s; 
-}
-	.rotate2{
-    transform: rotate(0deg);
-    -webkit-transform: rotate(0deg);
-    -moz-transform: rotate(0deg);
-    -ms-transform: rotate(0deg);
-    -o-transform: rotate(0deg);
-}
+.dot-typing{position:relative;left:-9999px;width:10px;height:10px;border-radius:5px;background-color:#9880ff;color:#9880ff;box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff;animation:dotTyping 1.5s infinite linear}@keyframes dotTyping{0%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}16.667%{box-shadow:9984px -10px 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}33.333%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}50%{box-shadow:9984px 0 0 0 #9880ff,9999px -10px 0 0 #9880ff,10014px 0 0 0 #9880ff}66.667%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}83.333%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px -10px 0 0 #9880ff}100%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}}
 </style>
+</head>
 <fieldset class="cbi-section">
 	<table width="100%">
 	   <tr>
@@ -70,16 +34,88 @@
 		<tr><td width="25%"><%:Core Daemons%></td><td width="25%" align="left" id="_watchdog"><%:Collecting data...%></td><td width="25%"><%:Control Panel Login Port%></td><td width="25%" align="left" id="_dapo"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"><%:Core Running Mode%></td><td  width="25%" align="left" id="_mode"><%:Collecting data...%></td><td width="25%"><%:Control Panel Login Secret%></td><td width="25%" align="left" id="_dase"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"><%:Yacd Control Panel%></td><td width="25%" align="left" id="_web"><%:Collecting data...%></td><td width="25%"><%:Dashboard Control Panel%></td><td width="25%" align="left" id="_webo"><%:Collecting data...%></td></tr>
-		<tr><td width="100%" colspan="4"><p align="center"><img id="hid_btn" alt="Show More" height="20px" onclick="return hid_btn_action()"/></p></td></tr>
+		<tr id="tool_label2"><td colspan="4"><p align="center">
+<span>
+&nbsp;&nbsp;<%:Up:%>&nbsp;
+	<span id="upload_">
+		<font color=green>
+		0 KB/S
+		</font>
+	</span>
+</span>
+
+<span>
+&nbsp;&nbsp;<%:Down:%>&nbsp;
+	<span id="download_">
+		<font color=green>
+		0 KB/S
+		</font>
+	</span>
+</span>
+
+<span>
+&nbsp;&nbsp;<%:Up Total:%>&nbsp;
+	<span id="uploadtotal_">
+		<font color=green>
+		0 KB
+		</font>
+	</span>
+</span>
+
+<span>
+&nbsp;&nbsp;<%:Down Total:%>&nbsp;
+	<span id="downloadtotal_">
+		<font color=green>
+		0 KB
+		</font>
+	</span>
+</span>
+
+<span>
+&nbsp;&nbsp;<%:Connections:%>&nbsp;
+	<span id="connect_t">
+		<font color=green>
+		0
+		</font>
+	</span>
+</span>
+
+<span>
+&nbsp;&nbsp;<%:Ram:%>&nbsp;
+	<span id="mem_t">
+		<font color=green>
+		0 KB
+		</font>
+	</span>
+</span>
+
+<span>
+&nbsp;&nbsp;<%:CPU:%>&nbsp;
+	<span id="cpu_t">
+		<font color=green>
+		0 %
+		</font>
+	</span>
+	&nbsp;&nbsp;
+</span>
+</p></td></tr>
+		<tr height="50px">
+			<td width="100%" colspan="4">
+				<div id="hid_btn" style="height: 25px;width: 100px;margin: 0 auto;" onclick="hid_btn_action()">
+					<div style="margin: 0 auto; top: 50%;" class="dot-typing"></div>
+				</div>
+			</td>
+		</tr>
 		<tr id="hid_1"><td width="100%" colspan="4"><p align="center"><b><%:Quick Operation%></b></p></td></tr>
-    <tr id="hid_2"><td width="25%" align="center" id="_get_history"><%:Collecting data...%></td>
-    	<td width="25%" align="center" id="_restore_history"><%:Collecting data...%></td>
+    <tr id="hid_2">
     	<td width="25%" align="center" id="_close_all_connection"><%:Collecting data...%></td>
-			<td width="25%" align="center" id="_reload_firewall"><%:Collecting data...%></td></tr>
-		<tr id="hid_3"><td width="25%" align="center" id="_update_subscribe"><%:Collecting data...%></td>
+			<td width="25%" align="center" id="_reload_firewall"><%:Collecting data...%></td>
+			<td width="25%" align="center" id="_update_subscribe"><%:Collecting data...%></td>
 			<td width="25%" align="center" id="_one_key_update"><%:Collecting data...%></td>
-			<td width="25%" align="center" id="_update_other_rules"><%:Collecting data...%></td>
-			<td width="25%" align="center" id="_update_geoip"><%:Collecting data...%></td>
+			</tr>
+		<tr id="hid_3">
+			<td width="50%" colspan="2" align="center" id="_update_other_rules"><%:Collecting data...%></td>
+			<td width="50%" colspan="2" align="center" id="_update_geoip"><%:Collecting data...%></td>
 			</tr>
 </table>
 </fieldset>
@@ -106,8 +142,6 @@
 	var dapo = document.getElementById('_dapo');
 	var clashversion = document.getElementById('_clashversion');
 	var close_all_connection = document.getElementById('_close_all_connection');
-	var restore_history = document.getElementById('_restore_history');
-	var get_history = document.getElementById('_get_history');
 	var reload_firewall = document.getElementById('_reload_firewall');
 	var one_key_update = document.getElementById('_one_key_update');
 	var update_subscribe = document.getElementById('_update_subscribe');
@@ -124,51 +158,22 @@
 	var hid_3 = document.getElementById("hid_3");
 	var state = document.getElementById("state");
 	var hid_btn = document.getElementById("hid_btn");
+	var tool_label2 = document.getElementById('tool_label2');
 	var hid_btn_if = true;
-	var arrow="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAF0AAABoCAMAAACkGAzvAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAyNpVFh0WE1MOmNvbS5hZG9iZS54bXAAAAAAADw/eHBhY2tldCBiZWdpbj0i77u/IiBpZD0iVzVNME1wQ2VoaUh6cmVTek5UY3prYzlkIj8+IDx4OnhtcG1ldGEgeG1sbnM6eD0iYWRvYmU6bnM6bWV0YS8iIHg6eG1wdGs9IkFkb2JlIFhNUCBDb3JlIDUuNi1jMTQ4IDc5LjE2NDAzNiwgMjAxOS8wOC8xMy0wMTowNjo1NyAgICAgICAgIj4gPHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj4gPHJkZjpEZXNjcmlwdGlvbiByZGY6YWJvdXQ9IiIgeG1sbnM6eG1wPSJodHRwOi8vbnMuYWRvYmUuY29tL3hhcC8xLjAvIiB4bWxuczp4bXBNTT0iaHR0cDovL25zLmFkb2JlLmNvbS94YXAvMS4wL21tLyIgeG1sbnM6c3RSZWY9Imh0dHA6Ly9ucy5hZG9iZS5jb20veGFwLzEuMC9zVHlwZS9SZXNvdXJjZVJlZiMiIHhtcDpDcmVhdG9yVG9vbD0iQWRvYmUgUGhvdG9zaG9wIDIxLjAgKFdpbmRvd3MpIiB4bXBNTTpJbnN0YW5jZUlEPSJ4bXAuaWlkOkYzOTBCNjQ4RkMyMTExRUE4QzgwOUMwRjlGNTNBMzY3IiB4bXBNTTpEb2N1bWVudElEPSJ4bXAuZGlkOkYzOTBCNjQ5RkMyMTExRUE4QzgwOUMwRjlGNTNBMzY3Ij4gPHhtcE1NOkRlcml2ZWRGcm9tIHN0UmVmOmluc3RhbmNlSUQ9InhtcC5paWQ6RjM5MEI2NDZGQzIxMTFFQThDODA5QzBGOUY1M0EzNjciIHN0UmVmOmRvY3VtZW50SUQ9InhtcC5kaWQ6RjM5MEI2NDdGQzIxMTFFQThDODA5QzBGOUY1M0EzNjciLz4gPC9yZGY6RGVzY3JpcHRpb24+IDwvcmRmOlJERj4gPC94OnhtcG1ldGE+IDw/eHBhY2tldCBlbmQ9InIiPz7+mRMLAAAAaVBMVEUQEBDv7+/Pz88wMDBQUFAgICC/v79wcHBgYGBAQECfn5+Pj49/f3/f39+vr6/s7Ox9fX2ysrLT09NbW1v09PQ6OjonJyd8fHwRERHk5OSenp4WFhZOTk4BAQHh4eGMjIwDAwMAAAD///+EZwwxAAAAI3RSTlP/////////////////////////////////////////////AGYpg5YAAAKoSURBVHja7Fppd5tADNQCC+ZskzZHz1T+/z+yNvjAhkWaBaXte9XHRDvPHoOkGS3tLYPeBd1VGTFzWuQrwNo6S5nKK8YJvT5CD1Emsdi7C4bPx+jXvx+jjgLvaIzRXNFvwQ8f38HY7h6jOKN3fB+Esp+kE4xuQHfE02gg8GoGwg/oFc8FwM6ElSGqHj2b/R9TF89KH1mPThyIQgVeh877Hp2DkbYyK1n4uIAus5N4jkeX2KkXz/bo5WJKmkSxcjzZoxeLOUxVDCvD1z6gtyzEzuGsHCIZKsFOypthx5XSoexUZ5yXMifs5CQececamYi5nN2w04j5lFzru0vFdJ8ArJyzSf1pLk1FZuXyHJCeyRM7Claq6Uyg+b75vpWzRk8YQb8VF3pWJvOMgh3s2SWkcshxV7MJfb+hikpobYK6AaF1FepkFFP91H2GkC6/xEqun7DdDgQPTD8ETFfhaFB1ALATnjoJnd+gmZDUEznKiqibWqip4KqsgBoirPmW2ZE0kKgoF9jxon5T6NUmjhWtGp5tKsEBENbaMy03ValapZJvVKNltE+Qe5QVyIUYNRUdK6DHUUNiDXZQHp+Zf3x7sPJnPr99+vjh73N//qOvQ//6/eWLFfrPp1/Mr50N+rmRWLxNoxFBYX2A6DfjzdZV7H4027ICzwzd23WPWcGwVeerIesDQ1+QIusnjtxyWmoMJz29mRGBrpPedRx6YagOWktl0xmqMlcYKkpTNVyRnZKHdTbiQpg6KJbuz3rnKgmjr2BFdt0sHUNdQYx0O02d2m1d5uzGZTZ1yE3dfZvNRLtfsVUR37vTVsV2I2S7zbLdxNluEf/UBnSL7e3KzXO1vHm23ZrbbvxtbysY3bTI3+WWiPENF+PbOdvdLCrZT28W/ZPe0m8BBgDHY8G52E6VGwAAAABJRU5ErkJggg=="
-
+	var ws_connect = false;
+	var ws_error = false;
+	var ws_retry = 0;
+	var luci_protocol;
+	var ws_t;
+	var ws_c;
+	var state_refresh;
+	state_get();
+	
 	hid_1.style.display = "none";
 	hid_2.style.display = "none";
 	hid_3.style.display = "none";
   state.style.display="none";
-  hid_btn.src=arrow;
 
-	function hid_btn_action() {
-		if (hid_btn_if) {
-			hid_1.style.display = "";
-			hid_2.style.display = "";
-			hid_3.style.display = "";
-			state.style.display = "block";
-			hid_btn.className="rotate";
-			hid_btn_if = false;
-		} else {
-			hid_1.style.display = "none";
-			hid_2.style.display = "none";
-			hid_3.style.display = "none";
-			state.style.display = "none";
-			hid_btn.className="rotate1";
-			hid_btn_if = true;
-		}
-		if (hid_btn.className == "rotate1"){
-			setTimeout('hid_btn.className="rotate2"',200);
-		}
-	}
-	
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "state")%>', null, function(x, status) {
-		if ( x && x.status == 200 ) {
-			ipdb.innerHTML = status.ipdb ? "<b><font color=green>"+status.ipdb+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			lhie1.innerHTML = status.lhie1 ? "<b><font color=green>"+status.lhie1+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			ConnersHua.innerHTML = status.ConnersHua ? "<b><font color=green>"+status.ConnersHua+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			ConnersHua_return.innerHTML = status.ConnersHua_return ? "<b><font color=green>"+status.ConnersHua_return+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			chnroute.innerHTML = status.chnroute ? "<b><font color=green>"+status.chnroute+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			if ( status.historychecktime != "0" ) {
-			   historychecktime.innerHTML = "<b><font color=green>"+status.historychecktime+"</font></b>";
-			}
-		  else {
-		  	 historychecktime.innerHTML = "<b><font color=green>"+"<%:No Backup%>"+"</font></b>";
-		  }
-		}
-	});
 	XHR.poll(2, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
 			if ( status.restricted_mode != "1" )
@@ -179,35 +184,35 @@
 			{
 			   clash.innerHTML = status.clash ? '<b><font color=green><%:Running%> <%:<Limited State>%></font></b>' : '<b><font color=red><%:Not Running%></font></b>';
 			}
-			if ( status.mode == "fake-ip\n" )
+			if ( status.mode == "fake-ip" )
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP (Enhance)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
 			}
-			else if ( status.mode == "redir-host\n" )
+			else if ( status.mode == "redir-host" )
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host (Compatible)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
 			}
-			else if ( status.mode == "redir-host-tun\n" )
+			else if ( status.mode == "redir-host-tun" )
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host (TUN)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
 			}
-			else if ( status.mode == "fake-ip-tun\n" )
+			else if ( status.mode == "fake-ip-tun" )
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP (TUN)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
 			}
-			else if ( status.mode == "redir-host-vpn\n" )
+			else if ( status.mode == "redir-host-vpn" )
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host (Game)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
 			}
-			else if ( status.mode == "fake-ip-vpn\n" )
+			else if ( status.mode == "fake-ip-vpn" )
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP (Game)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
 			}
-			else if ( status.mode == "fake-ip-mix\n" )
+			else if ( status.mode == "fake-ip-mix" )
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP (TUN-Mix)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
 			}
-			else if ( status.mode == "redir-host-mix\n" )
+			else if ( status.mode == "redir-host-mix" )
 			{
 			   mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host (TUN-Mix)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
 			}
@@ -215,40 +220,169 @@
 			daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			dase.innerHTML = status.dase ? "<b><font color=green>"+status.dase+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			web.innerHTML = status.web ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			webo.innerHTML = status.web ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			close_all_connection.innerHTML = status.clash ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			restore_history.innerHTML = status.clash ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:Restore Nodes Selection%>" onclick="return b_restore_history(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			get_history.innerHTML = status.clash ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:Save Nodes Selection%>" onclick="return b_get_history(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			reload_firewall.innerHTML = status.clash ? '<input type="button" class="cbi-button cbi-button-reload" value="<%:Reload Firewall Rules%>" onclick="return b_reload_firewall(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			one_key_update.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:Check All Components Update%>" onclick="return all_one_key_update(this)"/>';
-			update_subscribe.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:Check Config Update%>" onclick="return b_update_subscribe(this)"/>';
-			update_other_rules.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:Check Third Party Rules Update%>" onclick="return b_update_other_rules(this)"/>';
-			update_geoip.innerHTML = '<input type="button" class="cbi-button cbi-button-reload" value="<%:Check GEOIP Data Update%>" onclick="return b_update_geoip(this)"/>';
-		}
-	});
-	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "state")%>', null, function(x, status) {
-		if ( x && x.status == 200 ) {
-			ipdb.innerHTML = status.ipdb ? "<b><font color=green>"+status.ipdb+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			lhie1.innerHTML = status.lhie1 ? "<b><font color=green>"+status.lhie1+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			ConnersHua.innerHTML = status.ConnersHua ? "<b><font color=green>"+status.ConnersHua+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			ConnersHua_return.innerHTML = status.ConnersHua_return ? "<b><font color=green>"+status.ConnersHua_return+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			chnroute.innerHTML = status.chnroute ? "<b><font color=green>"+status.chnroute+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-			if ( status.historychecktime != "0" ) {
-			   historychecktime.innerHTML = "<b><font color=green>"+status.historychecktime+"</font></b>";
+			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
+			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
+			close_all_connection.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
+			reload_firewall.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Reload Firewall Rules%>" onclick="return b_reload_firewall(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
+			one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check All Components Update%>" onclick="return all_one_key_update(this)"/>';
+			update_subscribe.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Config Update%>" onclick="return b_update_subscribe(this)"/>';
+			update_other_rules.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Third Party Rules Update%>" onclick="return b_update_other_rules(this)"/>';
+			update_geoip.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GEOIP Data Update%>" onclick="return b_update_geoip(this)"/>';
+			
+			function ws_open() {
+				luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
+				ws_t = new WebSocket(luci_protocol+"/traffic?token="+status.dase);
+				ws_c = new WebSocket(luci_protocol+"/connections?token="+status.dase);
+				ws_t.onmessage = ws_tmessage;
+				ws_c.onmessage = ws_cmessage;
+				ws_t.onerror = ws_terror;
+				ws_t.onopen = function (event) {
+					ws_connect = true;
+					ws_error = false;
+				};
+			};
+
+			if (status.watchdog) {
+				if (!ws_connect && !ws_error) {
+					ws_open();
+				}
+				else if (ws_error && ws_retry < 3)
+				{
+					ws_retry=ws_retry+1;
+					setTimeout(ws_open,1000*3);
+				}
+				else if (ws_error && ws_retry >= 3)
+				{
+					setInterval("ws_terror()",1000*2);
+				}
 			}
-		  else {
-		  	 historychecktime.innerHTML = "<b><font color=green>"+"<%:No Backup%>"+"</font></b>";
-		  }
+			else
+			{
+				ws_connect = false;
+				ws_error = false;
+				ws_terror();
+			}
 		}
 	});
-	  function winOpen(url)
-	  {
-	  	var winOpen = window.open(url);
-      if(winOpen == null || typeof(winOpen) == 'undefined'){
-         window.location.href=url;
-      }
-	  }
+	
+	function state_get() {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "state")%>', null, function(x, status) {
+			if ( x && x.status == 200 ) {
+				ipdb.innerHTML = status.ipdb ? "<b><font color=green>"+status.ipdb+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
+				lhie1.innerHTML = status.lhie1 ? "<b><font color=green>"+status.lhie1+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
+				ConnersHua.innerHTML = status.ConnersHua ? "<b><font color=green>"+status.ConnersHua+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
+				ConnersHua_return.innerHTML = status.ConnersHua_return ? "<b><font color=green>"+status.ConnersHua_return+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
+				chnroute.innerHTML = status.chnroute ? "<b><font color=green>"+status.chnroute+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
+				if ( status.historychecktime != "0" ) {
+				   historychecktime.innerHTML = "<b><font color=green>"+status.historychecktime+"</font></b>";
+				}
+		  	else {
+		 	 	 historychecktime.innerHTML = "<b><font color=green>"+"<%:No Backup%>"+"</font></b>";
+		 	 }
+			}
+		});
+	}
+	
+	function hid_btn_action() {
+		if (hid_btn_if) {
+			hid_1.style.display = "";
+			hid_2.style.display = "";
+			hid_3.style.display = "";
+			state.style.display = "block";
+			hid_btn_if = false;
+			clearInterval(state_refresh);
+			state_refresh=setInterval("state_get()",1000*2);
+		} else {
+			hid_1.style.display = "none";
+			hid_2.style.display = "none";
+			hid_3.style.display = "none";
+			state.style.display = "none";
+			hid_btn_if = true;
+			clearInterval(state_refresh);
+		}
+	}
+	
+	function winOpen(url)
+	{
+		var winOpen = window.open(url);
+		if(winOpen == null || typeof(winOpen) == 'undefined'){
+			window.location.href=url;
+		}
+	}
+	 
+	function ws_terror() {
+		ws_error = true;
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', null, function(x, status) {
+			if (x && x.status == 200 && x.responseText != "") {
+				document.getElementById("upload_").innerHTML = "<font color=green>"+status.up+"</font>";
+				document.getElementById("download_").innerHTML = "<font color=green>"+status.down+"</font>";
+				document.getElementById("uploadtotal_").innerHTML = "<font color=green>"+status.up_total+"</font>";
+				document.getElementById("downloadtotal_").innerHTML = "<font color=green>"+status.down_total+"</font>";
+				document.getElementById("mem_t").innerHTML = "<font color=green>"+status.mem+"</font>";
+				document.getElementById("connect_t").innerHTML = "<font color=green>"+status.connections+"</font>";
+				if (status.cpu <= 50) {
+					document.getElementById("cpu_t").innerHTML = "<font color=green>"+status.cpu+" %</font>";
+				}
+				else if (status.cpu >= 50 && status.cpu <= 80) {
+					document.getElementById("cpu_t").innerHTML = "<font color=orange>"+status.cpu+" %</font>";
+				}
+				else {
+					document.getElementById("cpu_t").innerHTML = "<font color=red>"+status.cpu+" %</font>";
+				}
+			}
+			else {
+				document.getElementById("upload_").innerHTML = "<font color=green>0 B/S</font>";
+				document.getElementById("download_").innerHTML = "<font color=green>0 B/S</font>";
+				document.getElementById("uploadtotal_").innerHTML = "<font color=green>0 KB</font>";
+				document.getElementById("downloadtotal_").innerHTML = "<font color=green>0 KB</font>";
+				document.getElementById("mem_t").innerHTML = "<font color=green>0 KB</font>";
+				document.getElementById("cpu_t").innerHTML = "<font color=green>0 %</font>";
+				document.getElementById("connect_t").innerHTML = "<font color=green>0</font>";
+			}
+		});
+	}
+	
+	function show_sys() {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', null, function(x, status) {
+			if (x && x.status == 200 && x.responseText != "") {
+				document.getElementById("mem_t").innerHTML = "<font color=green>"+status.mem+"</font>";
+				if (status.cpu <= 50) {
+					document.getElementById("cpu_t").innerHTML = "<font color=green>"+status.cpu+" %</font>";
+				}
+				else if (status.cpu >= 50 && status.cpu <= 80) {
+					document.getElementById("cpu_t").innerHTML = "<font color=orange>"+status.cpu+" %</font>";
+				}
+				else {
+					document.getElementById("cpu_t").innerHTML = "<font color=red>"+status.cpu+" %</font>";
+				}
+			}
+			else {
+				document.getElementById("mem_t").innerHTML = "<font color=green>0 KB</font>";
+				document.getElementById("cpu_t").innerHTML = "<font color=green>0 %</font>";
+			}
+		});
+	};
+	
+	function ws_tmessage(event) {
+		var data = JSON.parse(event.data)
+		document.getElementById("upload_").innerHTML = "<font color=green>"+bytesToSize(data.up)+"/S</font>";
+		document.getElementById("download_").innerHTML = "<font color=green>"+bytesToSize(data.down)+"/S</font>";
+	};
+	
+	function ws_cmessage(event) {
+		var data = JSON.parse(event.data)
+		document.getElementById("uploadtotal_").innerHTML = "<font color=green>"+bytesToSize(data.uploadTotal)+"</font>";
+		document.getElementById("downloadtotal_").innerHTML = "<font color=green>"+bytesToSize(data.downloadTotal)+"</font>";
+		document.getElementById("connect_t").innerHTML = "<font color=green>"+Object.keys(data.connections).length+"</font>";
+		show_sys();
+	};
+	
+	function bytesToSize(bytes) {
+		var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+		if (bytes == 0) return '0 B';
+		var i = Math.floor(Math.log(bytes) / Math.log(1024));
+		return i == 0 ? (bytes / Math.pow(1024, i)) + ' ' + sizes[i] : (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+	};
 	  
 	  function all_one_key_update(btn)
     {
@@ -258,7 +392,7 @@
         if (r == true) {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update_check")%>', null, function(x, status) {
         	if ( x && x.status == 200 ) {
-        		if ( status.corever != "0\n" ) {
+        		if ( status.corever != "0" ) {
         			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', null, function(x, status) {
               	if ( x && x.status != 200 ) {
             			alert('<%:Check failed, Please try again later!%>')
@@ -359,45 +493,18 @@
         return false;
         });
     }
-    function b_restore_history(btn)
-    {
-        btn.disabled = true;
-        btn.value    = '<%:Restoring...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "restore_history")%>', null, function(x, status) {
-        if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Restore Nodes Selection%>';
-        }
-        else {
-        	btn.disabled = false;
-          btn.value    = '<%:Restore Nodes Selection Failed%>';
-        }
-        return false;
-        });
-    }
-    function b_get_history(btn)
-    {
-        btn.disabled = true;
-        btn.value    = '<%:Saving...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_history")%>', null, function(x, status) {
-        if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Save Nodes Selection%>';
-        }
-        else {
-        	btn.disabled = false;
-          btn.value    = '<%:Save Nodes Selection Failed%>';
-        }
-        return false;
-        });
-    }
     
 	  function ycad_dashboard(btn)
     {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', status.cn_port, function(x, status) {
         btn.disabled = true;
         btn.value    = '<%:Open Panel%>';
-        url1='<%="http://'+window.location.hostname+status.uh_port+'/luci-static/openclash?hostname='+ status.daip + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+        if (status.daip != "" && window.location.hostname == status.daip) {
+        	url1='<%="http://'+window.location.hostname+':'+window.location.port+'/luci-static/openclash?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+        }
+        else {
+        	url1='<%="http://'+window.location.hostname+':'+window.location.port+'/luci-static/openclash"%>';
+        }
         winOpen(url1);
         return false;
         });
@@ -407,7 +514,12 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', status.cn_port, function(x, status) {
         btn.disabled = true;
         btn.value    = '<%:Open Panel%>';
-        url2='http://'+window.location.hostname+':'+status.cn_port+'/ui';
+        if (status.daip != "" && window.location.hostname == status.daip) {
+        	url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/?host='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+        }
+        else {
+        	url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/"%>';
+        }
         winOpen(url2);
         return false;
         });
@@ -448,7 +560,7 @@
     {
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "lastversion")%>', status.lastversion, function(x, status) {
        if ( x && x.status == 200 ) {
-          if ( status.lastversion != "\n" && status.lastversion != "" )
+          if ( status.lastversion != "" )
           {
              clashversion.innerHTML = '<img id="lastver" src="'+status.lastversion+'" alt="lastversion" onerror="return clashversion_error()" onclick="return go_update()">';
           }

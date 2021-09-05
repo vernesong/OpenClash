@@ -10,7 +10,7 @@ local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 
 m = SimpleForm("openclash", translate("Game Rules List"))
-m.description=translate("规则项目: SSTap-Rule ( https://github.com/FQrabbit/SSTap-Rule )<br/>")
+m.description=translate("Rule Project:").." SSTap-Rule ( https://github.com/FQrabbit/SSTap-Rule )"
 m.reset = false
 m.submit = false
 
@@ -20,15 +20,15 @@ local t = {
 
 a = m:section(Table, t)
 
-o = a:option(Button, "Refresh")
+o = a:option(Button, "Refresh", " ")
 o.inputtitle = translate("Refresh Page")
 o.inputstyle = "apply"
 o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-manage"))
 end
 
-o = a:option(Button, "Apply")
-o.inputtitle = translate("Back Configurations")
+o = a:option(Button, "Apply", " ")
+o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
 o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-settings"))

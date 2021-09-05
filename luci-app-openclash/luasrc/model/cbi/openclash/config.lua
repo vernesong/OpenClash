@@ -27,7 +27,7 @@ function IsYmlFile(e)
 end
 
 function default_config_set(f)
-	local cf=string.sub(SYS.exec("uci get openclash.config.config_path 2>/dev/null"), 1, -2)
+	local cf = uci:get("openclash", "config", "config_path")
 	if cf == "/etc/openclash/config/"..f or not cf or cf == "" or not fs.isfile(cf) then
 		if CHIF == "1" and cf == "/etc/openclash/config/"..f then
 			return
@@ -36,11 +36,11 @@ function default_config_set(f)
 		if fis ~= nil then
 			fcf = fs.basename(fis)
 			if fcf then
-				SYS.exec(string.format('uci set openclash.config.config_path="/etc/openclash/config/%s"',fcf))
+				uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..fcf)
 				uci:commit("openclash")
 			end
 		else
-			SYS.exec("uci set openclash.config.config_path=/etc/openclash/config/config.yaml")
+			uci:set("openclash", "config", "config_path", "/etc/openclash/config/config.yaml")
 			uci:commit("openclash")
 		end
 	end
@@ -59,7 +59,7 @@ function config_check(CONFIG_FILE)
 	   return "File Not Exist"
 	end
 end
-    
+
 ful = SimpleForm("upload", translate("Config Manage"), nil)
 ful.reset = false
 ful.submit = false
@@ -76,6 +76,7 @@ dir = "/etc/openclash/config/"
 bakck_dir="/etc/openclash/backup"
 proxy_pro_dir="/etc/openclash/proxy_provider/"
 rule_pro_dir="/etc/openclash/rule_provider/"
+backup_dir="/tmp/"
 create_bakck_dir=fs.mkdir(bakck_dir)
 create_proxy_pro_dir=fs.mkdir(proxy_pro_dir)
 create_rule_pro_dir=fs.mkdir(rule_pro_dir)
@@ -86,13 +87,15 @@ HTTP.setfilehandler(
 		local fp = HTTP.formvalue("file_type")
 		if not fd then
 			if not meta then return end
-			
+
 			if fp == "config" then
 				if meta and chunk then fd = nixio.open(dir .. meta.file, "w") end
 			elseif fp == "proxy-provider" then
 				if meta and chunk then fd = nixio.open(proxy_pro_dir .. meta.file, "w") end
 			elseif fp == "rule-provider" then
 				if meta and chunk then fd = nixio.open(rule_pro_dir .. meta.file, "w") end
+			elseif fp == "backup-file" then
+				if meta and chunk then fd = nixio.open(backup_dir .. meta.file, "w") end
 			end
 
 			if not fd then
@@ -126,6 +129,11 @@ HTTP.setfilehandler(
 				um.value = translate("File saved to") .. ' "/etc/openclash/proxy_provider/"'
 			elseif fp == "rule-provider" then
 				um.value = translate("File saved to") .. ' "/etc/openclash/rule_provider/"'
+			elseif fp == "backup-file" then
+				os.execute("tar -C '/etc/openclash/' -xzf %s >/dev/null 2>&1" % (backup_dir .. meta.file))
+				os.execute("mv /etc/openclash/openclash /etc/config/openclash >/dev/null 2>&1")
+				fs.unlink(backup_dir .. meta.file)
+				um.value = translate("Backup File Restore Successful!")
 			end
 			fs.unlink("/tmp/Proxy_Group")
 		end
@@ -162,7 +170,7 @@ if fs.mtime(BACKUP_FILE) then
 else
    e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
 end
-if string.sub(SYS.exec("uci get openclash.config.config_path 2>/dev/null"), 23, -2) == e[t].name then
+if uci:get("openclash", "config", "config_path") and string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
    e[t].state=translate("Enable")
 else
    e[t].state=translate("Disable")
@@ -172,7 +180,7 @@ e[t].check=translate(config_check(CONFIG_FILE))
 e[t].remove=0
 end
 end
-    
+
 form=SimpleForm("config_file_list",translate("Config File List"))
 form.reset=false
 form.submit=false
@@ -199,12 +207,12 @@ Button.render(o,t,a)
 end
 btnis.write=function(a,t)
 fs.unlink("/tmp/Proxy_Group")
-SYS.exec(string.format('uci set openclash.config.config_path="/etc/openclash/config/%s"',e[t].name))
+uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..e[t].name)
 uci:commit("openclash")
 HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
 end
 
-btndl = tb:option(Button,"download",translate("Download Configurations")) 
+btndl = tb:option(Button,"download",translate("Download Config"))
 btndl.template="openclash/other_button"
 btndl.render=function(e,t,a)
 e.inputstyle="remove"
@@ -237,6 +245,44 @@ btndl.write = function (a,t)
 	HTTP.close()
 end
 
+btndlr = tb:option(Button,"download_run",translate("Download Running Config"))
+btndlr.template="openclash/other_button"
+btndlr.render=function(c,t,a)
+	if nixio.fs.access("/etc/openclash/"..e[t].name)  then
+		a.display=""
+	else
+		a.display="none"
+	end
+c.inputstyle="remove"
+Button.render(c,t,a)
+end
+btndlr.write = function (a,t)
+	local sPath, sFile, fd, block
+	sPath = "/etc/openclash/"..e[t].name
+	sFile = NXFS.basename(sPath)
+	if fs.isdirectory(sPath) then
+		fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+		sFile = sFile .. ".tar.gz"
+	else
+		fd = nixio.open(sPath, "r")
+	end
+	if not fd then
+		return
+	end
+	HTTP.header('Content-Disposition', 'attachment; filename="%s"' % {sFile})
+	HTTP.prepare_content("application/octet-stream")
+	while true do
+		block = fd:read(nixio.const.buffersize)
+		if (not block) or (#block ==0) then
+			break
+		else
+			HTTP.write(block)
+		end
+	end
+	fd:close()
+	HTTP.close()
+end
+
 btnrm=tb:option(Button,"remove",translate("Remove"))
 btnrm.render=function(e,t,a)
 e.inputstyle="reset"
@@ -245,7 +291,7 @@ end
 btnrm.write=function(a,t)
 	fs.unlink("/tmp/Proxy_Group")
 	fs.unlink("/etc/openclash/backup/"..fs.basename(e[t].name))
-	fs.unlink("/etc/openclash/history/"..fs.basename(e[t].name))
+	fs.unlink("/etc/openclash/history/"..string.sub(luci.sys.exec(string.format("echo $(basename '%s' .yaml) 2>/dev/null",fs.basename(e[t].name))), 1, -2))
 	fs.unlink("/etc/openclash/"..fs.basename(e[t].name))
 	local a=fs.unlink("/etc/openclash/config/"..fs.basename(e[t].name))
 	default_config_set(fs.basename(e[t].name))
@@ -258,23 +304,30 @@ p.reset = false
 p.submit = false
 
 local provider_manage = {
-    {proxy_mg, rule_mg}
+    {proxy_mg, rule_mg, game_mg}
 }
 
 promg = p:section(Table, provider_manage)
 
-o = promg:option(Button, "proxy_mg")
+o = promg:option(Button, "proxy_mg", " ")
 o.inputtitle = translate("Proxy Provider File List")
 o.inputstyle = "reload"
 o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "proxy-provider-file-manage"))
 end
 
-o = promg:option(Button, "rule_mg")
+o = promg:option(Button, "rule_mg", " ")
 o.inputtitle = translate("Rule Providers File List")
 o.inputstyle = "reload"
 o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-file-manage"))
+end
+
+o = promg:option(Button, "game_mg", " ")
+o.inputtitle = translate("Game Rules File List")
+o.inputstyle = "reload"
+o.write = function()
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-file-manage"))
 end
 
 m = SimpleForm("openclash",translate("Config File Edit"))
@@ -290,10 +343,11 @@ s.description = align_mid..translate("Support syntax check, press").." "..font_g
 s.anonymous = true
 s.addremove = false
 
-local conf = string.sub(SYS.exec("uci get openclash.config.config_path 2>/dev/null"), 1, -2)
+local conf = uci:get("openclash", "config", "config_path")
 local dconf = "/usr/share/openclash/res/default.yaml"
+if not conf then conf = "/etc/openclash/config/config.yaml" end
 local conf_name = fs.basename(conf)
-if not conf_name or conf == "" then conf_name = "config.yaml" conf = "/etc/openclash/config/config.yaml" end
+if not conf_name then conf_name = "config.yaml"  end
 local sconf = "/etc/openclash/"..conf_name
 
 sev = s:option(TextValue, "user")
@@ -328,26 +382,22 @@ end
 def.write = function(self, section, value)
 end
 
-o = s:option(DummyValue, "")
-o.anonymous=true
-o.template = "openclash/config_editor"
-
 local t = {
     {Commit, Apply}
 }
 
 a = m:section(Table, t)
 
-o = a:option(Button, "Commit") 
-o.inputtitle = translate("Commit Configurations")
+o = a:option(Button, "Commit", " ")
+o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
 	fs.unlink("/tmp/Proxy_Group")
   uci:commit("openclash")
 end
 
-o = a:option(Button, "Apply")
-o.inputtitle = translate("Apply Configurations")
+o = a:option(Button, "Apply", " ")
+o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
 	fs.unlink("/tmp/Proxy_Group")
@@ -356,5 +406,8 @@ o.write = function()
   SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
+
+m:append(Template("openclash/config_editor"))
+m:append(Template("openclash/toolbar_show"))
 
 return ful , form , p , m

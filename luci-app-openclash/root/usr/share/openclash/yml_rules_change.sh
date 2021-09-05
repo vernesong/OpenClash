@@ -1,9 +1,9 @@
 #!/bin/sh
 . /lib/functions.sh
 . /usr/share/openclash/ruby.sh
+. /usr/share/openclash/log.sh
 
-/usr/share/openclash/yml_groups_name_get.sh
-LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
 
 yml_other_set()
@@ -12,7 +12,7 @@ yml_other_set()
    begin
    Value = YAML.load_file('$4');
    rescue Exception => e
-   puts '${LOGTIME} Load File Error: ' + e.message
+   puts '${LOGTIME} Error: Load File Error,【' + e.message + '】'
    end
    begin
    if $3 == 1 then
@@ -60,42 +60,63 @@ yml_other_set()
       end
    end;
    rescue Exception => e
-   puts '${LOGTIME} Set Custom Rules Error: ' + e.message
+   puts '${LOGTIME} Error: Set Custom Rules Error,【' + e.message + '】'
    end
    begin
    if $5 == 1 then
-      Value['rules']=Value['rules'].to_a.insert(0,
-      'DOMAIN-KEYWORD,tracker,DIRECT',
-      'DOMAIN-KEYWORD,announce.php?passkey=,DIRECT',
-      'DOMAIN-KEYWORD,torrent,DIRECT',
-      'DOMAIN-KEYWORD,peer_id=,DIRECT',
-      'DOMAIN-KEYWORD,info_hash,DIRECT',
-      'DOMAIN-KEYWORD,get_peers,DIRECT',
-      'DOMAIN-KEYWORD,find_node,DIRECT',
-      'DOMAIN-KEYWORD,BitTorrent,DIRECT',
-      'DOMAIN-KEYWORD,announce_peer,DIRECT'
-      )
-      begin
-      match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0]
-      if not match_group.empty? and not match_group.nil? then
-         common_port_group=match_group.split(',')[2] or common_port_group=match_group.split(',')[1]
-         if not common_port_group.empty? and not common_port_group.nil? then
-            ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first)
-            ruby_add_index ||= -1
-            Value['rules']=Value['rules'].to_a.insert(ruby_add_index,
-            'DST-PORT,80,' + common_port_group,
-            'DST-PORT,443,' + common_port_group,
-            'DST-PORT,22,' + common_port_group
-            )
+      if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+         Value['rules']=Value['rules'].to_a.insert(0,
+         'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
+         'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
+         'DOMAIN-SUFFIX,chdbits.co,DIRECT',
+         'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
+         'DOMAIN-SUFFIX,empornium.me,DIRECT',
+         'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
+         'DOMAIN-SUFFIX,hdchina.org,DIRECT',
+         'DOMAIN-SUFFIX,hdsky.me,DIRECT',
+         'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
+         'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
+         'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
+         'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
+         'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
+         'DOMAIN-SUFFIX,m-team.cc,DIRECT',
+         'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
+         'DOMAIN-SUFFIX,ncore.cc,DIRECT',
+         'DOMAIN-SUFFIX,open.cd,DIRECT',
+         'DOMAIN-SUFFIX,ourbits.club,DIRECT',
+         'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
+         'DOMAIN-SUFFIX,privatehd.to,DIRECT',
+         'DOMAIN-SUFFIX,redacted.ch,DIRECT',
+         'DOMAIN-SUFFIX,springsunday.net,DIRECT',
+         'DOMAIN-SUFFIX,tjupt.org,DIRECT',
+         'DOMAIN-SUFFIX,totheglory.im,DIRECT',
+         'DOMAIN-KEYWORD,announce,DIRECT',
+         'DOMAIN-KEYWORD,torrent,DIRECT'
+         )
+         begin
+         match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0]
+         if not match_group.empty? and not match_group.nil? then
+            common_port_group=match_group.split(',')[2] or common_port_group=match_group.split(',')[1]
+            if not common_port_group.empty? and not common_port_group.nil? then
+               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first)
+               ruby_add_index ||= -1
+               Value['rules']=Value['rules'].to_a.insert(ruby_add_index,
+               'DST-PORT,80,' + common_port_group,
+               'DST-PORT,443,' + common_port_group,
+               'DST-PORT,22,' + common_port_group
+               )
+            end
          end
-      end
-      rescue Exception => e
-      puts '${LOGTIME} Set BT/P2P Common Port Rules Error: ' + e.message
-      end
-      Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
+         rescue Exception => e
+         puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Error,【' + e.message + '】'
+         end
+         Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
+      else
+         puts '${LOGTIME} Warning: Because of No Rules Field, Stop Setting BT/P2P DIRECT Rules!'
+      end;
    end;
    rescue Exception => e
-   puts '${LOGTIME} Set BT/P2P DIRECT Rules Error: ' + e.message
+   puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Error,【' + e.message + '】'
    end
    begin
    if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
@@ -108,7 +129,7 @@ yml_other_set()
       Value['rules']=%w(IP-CIDR,198.18.0.1/16,REJECT,no-resolve)
    end;
    rescue Exception => e
-   puts '${LOGTIME} Set 198.18.0.1/16 REJECT Rule Error: ' + e.message
+   puts '${LOGTIME} Error: Set 198.18.0.1/16 REJECT Rule Error,【' + e.message + '】'
    ensure
    File.open('$4','w') {|f| YAML.dump(Value, f)}
    end" 2>/dev/null >> $LOG_FILE
@@ -126,7 +147,7 @@ yml_other_rules_get()
    fi
    
    if [ -n "$rule_name" ]; then
-      echo "${LOGTIME} Warrning: Multiple Other-Rules-Configurations Enabled, Ignore..." >> $LOG_FILE
+      LOG_OUT "Warrning: Multiple Other-Rules-Configurations Enabled, Ignore..."
       return
    fi
    
@@ -135,7 +156,12 @@ yml_other_rules_get()
    config_get "AsianTV" "$section" "AsianTV" ""
    config_get "Proxy" "$section" "Proxy" ""
    config_get "Youtube" "$section" "Youtube" ""
+   config_get "Bilibili" "$section" "Bilibili" ""
+   config_get "Bahamut" "$section" "Bahamut" ""
+   config_get "HBO" "$section" "HBO" ""
+   config_get "Pornhub" "$section" "Pornhub" ""
    config_get "Apple" "$section" "Apple" ""
+   config_get "Scholar" "$section" "Scholar" ""
    config_get "Netflix" "$section" "Netflix" ""
    config_get "Disney" "$section" "Disney" ""
    config_get "Spotify" "$section" "Spotify" ""
@@ -151,6 +177,11 @@ yml_other_rules_get()
 }
 
 if [ "$2" != "0" ]; then
+   /usr/share/openclash/yml_groups_name_get.sh
+   if [ $? -ne 0 ]; then
+      LOG_OUT "Error: Unable To Parse Config File, Please Check And Try Again!"
+      exit 0
+   fi
    config_load "openclash"
    config_foreach yml_other_rules_get "other_rules" "$6"
    if [ -z "$rule_name" ]; then
@@ -160,7 +191,7 @@ if [ "$2" != "0" ]; then
    elif [ "$rule_name" = "ConnersHua_return" ]; then
 	    if [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ];then
-         echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >> $LOG_FILE
+         LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5"
          exit 0
 	    fi
@@ -170,7 +201,7 @@ if [ "$2" != "0" ]; then
 	 || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
-         echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >> $LOG_FILE
+         LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5"
          exit 0
        fi
@@ -179,7 +210,12 @@ if [ "$2" != "0" ]; then
 	 || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Youtube" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Bilibili" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Bahamut" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$HBO" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Pornhub" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Apple" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Scholar" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Netflix" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Disney" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Spotify" /tmp/Proxy_Group)" ]\
@@ -191,22 +227,22 @@ if [ "$2" != "0" ]; then
    || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
-         echo "${1} Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!" >> $LOG_FILE
+         LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5"
          exit 0
        fi
    fi
    if [ -z "$Proxy" ]; then
-      echo "${1} Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!" >> $LOG_FILE
+      LOG_OUT "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
       yml_other_set "$1" "$2" "$3" "$4" "$5"
       exit 0
    else
        #删除原有的部分，防止冲突
        if [ -n "$(ruby_read "$4" "['script']")" ]; then
-          ruby_edit "$4" "['script'].clear"
+          ruby_edit "$4" ".delete('script')"
        fi
        if [ -n "$(ruby_read "$4" "['rules']")" ]; then
-          ruby_edit "$4" "['rules'].clear"
+          ruby_edit "$4" ".delete('rules')"
        fi
        if [ "$rule_name" = "lhie1" ]; then
        	    ruby -ryaml -E UTF-8 -e "
@@ -223,11 +259,16 @@ if [ "$2" != "0" ]; then
        	    Value['script']=Value_1['script'];
        	    Value['rules']=Value_1['rules'];
        	    Value['rules'].to_a.collect!{|x|
-       	    x.to_s.gsub(/,GlobalTV$/, ',$GlobalTV#d')
+       	    x.to_s.gsub(/,Bilibili,AsianTV$/, ',Bilibili,$Bilibili#d')
+       	    .gsub(/,Bahamut,GlobalTV$/, ',Bahamut,$Bahamut#d')
+       	    .gsub(/,HBO,GlobalTV$/, ',HBO,$HBO#d')
+       	    .gsub(/,Pornhub,GlobalTV$/, ',Pornhub,$Pornhub#d')
+       	    .gsub(/,GlobalTV$/, ',$GlobalTV#d')
        	    .gsub(/,AsianTV$/, ',$AsianTV#d')
        	    .gsub(/,Proxy$/, ',$Proxy#d')
        	    .gsub(/,YouTube$/, ',$Youtube#d')
        	    .gsub(/,Apple$/, ',$Apple#d')
+       	    .gsub(/,Scholar$/, ',$Scholar#d')
        	    .gsub(/,Netflix$/, ',$Netflix#d')
        	    .gsub(/,Disney$/, ',$Disney#d')
        	    .gsub(/,Spotify$/, ',$Spotify#d')
@@ -241,11 +282,16 @@ if [ "$2" != "0" ]; then
        	    .gsub(/,Others$/, ',$Others#d')
        	    .gsub(/#d/, '')
        	    };
-       	    Value['script']['code'].to_s.gsub!(/: \"GlobalTV\"/,': \"$GlobalTV#d\"')
+       	    Value['script']['code'].to_s.gsub!(/\"Bilibili\": \"AsianTV\"/,'\"Bilibili\": \"$Bilibili#d\"')
+       	    .gsub!(/\"Bahamut\": \"GlobalTV\"/,'\"Bahamut\": \"$Bahamut#d\"')
+       	    .gsub!(/\"HBO\": \"GlobalTV\"/,'\"HBO\": \"$HBO#d\"')
+       	    .gsub!(/\"Pornhub\": \"GlobalTV\"/,'\"Pornhub\": \"$Pornhub#d\"')
+       	    .gsub!(/: \"GlobalTV\"/,': \"$GlobalTV#d\"')
        	    .gsub!(/: \"AsianTV\"/,': \"$AsianTV#d\"')
        	    .gsub!(/: \"Proxy\"/,': \"$Proxy#d\"')
        	    .gsub!(/: \"YouTube\"/,': \"$Youtube#d\"')
        	    .gsub!(/: \"Apple\"/,': \"$Apple#d\"')
+       	    .gsub!(/: \"Scholar\"/,': \"$Scholar#d\"')
        	    .gsub!(/: \"Netflix\"/,': \"$Netflix#d\"')
        	    .gsub!(/: \"Disney\"/,': \"$Disney#d\"')
        	    .gsub!(/: \"Spotify\"/,': \"$Spotify#d\"')
@@ -261,7 +307,7 @@ if [ "$2" != "0" ]; then
        	    .gsub!(/#d/, '');
        	    File.open('$4','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    puts '${LOGTIME} Set lhie1 Rules Error: ' + e.message
+       	    puts '${LOGTIME} Error: Set lhie1 Rules Error,【' + e.message + '】'
        	    end" 2>/dev/null >> $LOG_FILE
        elif [ "$rule_name" = "ConnersHua" ]; then
             ruby -ryaml -E UTF-8 -e "
@@ -288,7 +334,7 @@ if [ "$2" != "0" ]; then
        	    };
        	    File.open('$4','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    puts '${LOGTIME} Set ConnersHua Rules Error: ' + e.message
+       	    puts '${LOGTIME} Error: Set ConnersHua Rules Error,【' + e.message + '】'
        	    end" 2>/dev/null >> $LOG_FILE
        else
             ruby -ryaml -E UTF-8 -e "
@@ -303,7 +349,7 @@ if [ "$2" != "0" ]; then
        	    };
        	    File.open('$4','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    puts '${LOGTIME} Set ConnersHua Return Rules Error: ' + e.message
+       	    puts '${LOGTIME} Error: Set ConnersHua Return Rules Error,【' + e.message + '】'
        	    end" 2>/dev/null >> $LOG_FILE
        fi
    fi

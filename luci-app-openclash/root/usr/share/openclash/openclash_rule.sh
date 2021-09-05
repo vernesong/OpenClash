@@ -2,9 +2,17 @@
 . /usr/share/openclash/openclash_ps.sh
 . /lib/functions.sh
 . /usr/share/openclash/ruby.sh
+. /usr/share/openclash/log.sh
 
-   status=$(unify_ps_status "openclash_rule.sh")
-   [ "$status" -gt 3 ] && exit 0
+   set_lock() {
+      exec 877>"/tmp/lock/openclash_rule.lock" 2>/dev/null
+      flock -x 877 2>/dev/null
+   }
+
+   del_lock() {
+      flock -u 877 2>/dev/null
+      rm -rf "/tmp/lock/openclash_rule.lock"
+   }
 
    yml_other_rules_dl()
    {
@@ -18,13 +26,13 @@
    fi
    
    if [ -n "$rule_name" ]; then
-      echo "${LOGTIME} Warrning: Multiple Other-Rules-Configurations Enabled, Ignore..." >> $LOG_FILE
+      LOG_OUT "Warrning: Multiple Other-Rules-Configurations Enabled, Ignore..."
       return
    fi
    
    config_get "rule_name" "$section" "rule_name" ""
    
-   echo "开始下载使用中的第三方规则..." >$START_LOG
+   LOG_OUT "Start Downloading Third Party Rules in Use..."
    if [ "$rule_name" = "lhie1" ]; then
      if pidof clash >/dev/null; then
          curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
@@ -51,66 +59,82 @@
       fi
    fi
    if [ "$?" -eq "0" ] && [ -s "/tmp/rules.yaml" ]; then
-      echo "下载成功，开始预处理规则文件..." >$START_LOG
+      LOG_OUT "Download Successful, Start Preprocessing Rule File..."
       ruby -ryaml -E UTF-8 -e "
       begin
       YAML.load_file('/tmp/rules.yaml');
       rescue Exception => e
-      puts '${LOGTIME} Error: Unable To Parse Updated ${rule_name} Rules File ' + e.message
+      puts '${LOGTIME} Error: Unable To Parse Updated Rules File,【${rule_name}:' + e.message + '】'
       system 'rm -rf /tmp/rules.yaml 2>/dev/null'
       end
       " 2>/dev/null >> $LOG_FILE
       if [ $? -ne 0 ]; then
-         echo "${LOGTIME} Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!" >> $LOG_FILE
-         echo "Ruby依赖异常，无法校验配置文件，请确认ruby依赖工作正常后重试！" > $START_LOG
+         LOG_OUT "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
+         SLOG_CLEAN
+         del_lock
          exit 0
       elif [ ! -f "/tmp/rules.yaml" ]; then
-         echo "$rule_name 规则文件格式校验失败，请稍后再试..." > $START_LOG
+         LOG_OUT "Error:【$rule_name】Rule File Format Validation Failed, Please Try Again Later..."
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
+         SLOG_CLEAN
+         del_lock
          exit 0
       elif ! "$(ruby_read "/tmp/rules.yaml" ".key?('rules')")" ; then
-         echo "${LOGTIME} Error: Updated Others Rules 【$rule_name】 Has No Rules Field, Update Exit..." >> $LOG_FILE
-         echo "$rule_name 规则文件规则部分校验失败，请稍后再试..." > $START_LOG
+         LOG_OUT "Error: Updated Others Rules【$rule_name】Has No Rules Field, Update Exit..."
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
+         SLOG_CLEAN
+         del_lock
+         exit 0
+      #校验是否含有新策略组
+      elif ! "$(ruby -ryaml -E UTF-8 -e "
+         Value = YAML.load_file('/usr/share/openclash/res/${rule_name}.yaml');
+         Value_1 = YAML.load_file('/tmp/rules.yaml');
+         OLD_GROUP = Value['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;
+         NEW_GROUP = Value_1['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;
+         puts (OLD_GROUP | NEW_GROUP).eql?(OLD_GROUP)
+         ")" ; then
+         LOG_OUT "Error: Updated Others Rules【$rule_name】Has Incompatible Proxy-Group, Update Exit, Please Wait For OpenClash Update To Adapt..."
+         rm -rf /tmp/rules.yaml >/dev/null 2>&1
+         sleep 3
+         SLOG_CLEAN
+         del_lock
          exit 0
       fi
+      
       #取出规则部分
       ruby_read "/tmp/rules.yaml" ".select {|x| 'rule-providers' == x or 'script' == x or 'rules' == x }.to_yaml" > "$OTHER_RULE_FILE"
       #合并
       cat "$OTHER_RULE_FILE" > "/tmp/rules.yaml" 2>/dev/null
       rm -rf /tmp/other_rule* 2>/dev/null
       
-      echo "检查下载的规则文件是否有更新..." >$START_LOG
+      LOG_OUT "Check The Downloaded Rule File For Updates..."
       cmp -s /usr/share/openclash/res/"$rule_name".yaml /tmp/rules.yaml
       if [ "$?" -ne "0" ]; then
-         echo "检测到下载的规则文件有更新，开始替换..." >$START_LOG
+         LOG_OUT "Detected that The Downloaded Rule File Has Been Updated, Starting To Replace..."
          mv /tmp/rules.yaml /usr/share/openclash/res/"$rule_name".yaml >/dev/null 2>&1
-         echo "${LOGTIME} Other Rules 【$rule_name】 Update Successful" >>$LOG_FILE
+         LOG_OUT "Other Rules【$rule_name】Update Successful!"
          ifrestart=1
       else
-         echo "检测到下载的规则文件没有更新，停止继续操作..." >$START_LOG
-         echo "${LOGTIME} Updated Other Rules 【$rule_name】 No Change, Do Nothing" >>$LOG_FILE
+         LOG_OUT "Updated Other Rules【$rule_name】No Change, Do Nothing!"
          sleep 5
       fi
    else
-      echo "第三方规则下载失败，请检查网络或稍后再试！" >$START_LOG
-      echo "${LOGTIME} Other Rules 【$rule_name】 Update Error" >>$LOG_FILE
+      LOG_OUT "Other Rules【$rule_name】Update Error, Please Try Again Later..."
       sleep 5
    fi
    }
-
-   START_LOG="/tmp/openclash_start.log"
-   LOGTIME=$(date "+%Y-%m-%d %H:%M:%S")
+   
+   LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
    LOG_FILE="/tmp/openclash.log"
    RUlE_SOURCE=$(uci get openclash.config.rule_source 2>/dev/null)
+   set_lock
    
    if [ "$RUlE_SOURCE" = "0" ]; then
-      echo "未启用第三方规则，更新程序终止！" >$START_LOG
-      echo "${LOGTIME} Other Rules Not Enable, Update Stop" >>$LOG_FILE
+      LOG_OUT "Other Rules Not Enable, Update Stop!"
       sleep 5
    else
       OTHER_RULE_FILE="/tmp/other_rule.yaml"
@@ -131,8 +155,7 @@
       config_load "openclash"
       config_foreach yml_other_rules_dl "other_rules" "$CONFIG_NAME"
       if [ -z "$rule_name" ]; then
-      	echo "未找到第三方规则配置，更新程序终止！" >$START_LOG
-        echo "${LOGTIME} Get Other Rules Settings Faild, Update Stop" >>$LOG_FILE
+        LOG_OUT "Get Other Rules Settings Faild, Update Stop!"
         sleep 5
       fi
       if [ "$ifrestart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
@@ -140,4 +163,5 @@
       fi
    fi
    rm -rf /tmp/rules.yaml >/dev/null 2>&1
-   echo "" >$START_LOG
+   SLOG_CLEAN
+   del_lock

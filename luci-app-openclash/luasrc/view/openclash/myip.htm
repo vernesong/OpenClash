@@ -16,6 +16,7 @@
     <link rel="preconnect" href="https://whois.pconline.com.cn">
     <link rel="preconnect" href="https://api-ipv4.ip.sb">
     <link rel="preconnect" href="https://myip.ipip.net">
+    <link rel="preconnect" href="http://myip.ipip.net">
     <link rel="preconnect" href="https://api.ipify.org">
     <link rel="preconnect" href="https://api.ttt.sh">
     <link rel="preconnect" href="https://api.skk.moe">
@@ -30,6 +31,8 @@
             font-size:15px;
             display: inline-block;
             width: 25%;
+            overflow: hidden;
+            text-overflow: ellipsis;
             vertical-align:bottom;
         }
         
@@ -40,6 +43,8 @@
             display: inline-block;
             width: 52%;
             vertical-align:bottom;
+            overflow: hidden;
+            text-overflow: ellipsis;
             transform:translateY(5%);
         }
         
@@ -125,10 +130,10 @@
 
     </style>
 </head>
+<body>
 <fieldset class="cbi-section">
 	<table width="100%">
-     <tr><td width="100%">
-<body>
+     <tr><td>
     <div style="display: flex;">
         <div style="width: 51%">
             <h3><%:IP Address%></h3>
@@ -167,6 +172,7 @@
     </td></tr>
 	</table>
 </fieldset>
+</body>
     <script>
         function ip_skk()
        {
@@ -220,7 +226,7 @@
             	  document.getElementsByTagName('head')[0].appendChild(meta); 
             },
             getIpipnetIP: () => {
-                IP.get(`https://myip.ipip.net/?z=${random}`, 'text')
+                IP.get(window.location.protocol+`//myip.ipip.net/?z=${random}`, 'text')
                     .then((resp) => {
                         let data = resp.data.replace('当前 IP：', '').split(' 来自于：');
                         $$.getElementById('ip-ipipnet').innerHTML = `${data[0]}`;
@@ -332,6 +338,4 @@
     </script>
     <script defer="defer" src="https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP"></script>
     <script defer="defer" src="https://api-ipv4.ip.sb/jsonip?callback=getIpsbIP"></script>
-</body>
-
 </html>
