@@ -185,6 +185,10 @@ function del_log() {
 		lv.innerHTML="";
 		cl.innerHTML="";
 		log_len = 0;
+		oc_editor.setValue(lv.value);
+		core_editor.setValue(cl.value);
+		core_editor.refresh();
+		oc_editor.refresh();
 	});
 	return
 }
