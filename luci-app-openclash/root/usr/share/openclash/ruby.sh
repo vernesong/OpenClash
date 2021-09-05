@@ -41,7 +41,7 @@ local Value Value_1 RUBY_YAML_PARSE
 if [ -z "$1" ] || [ -z "$2" ]; then
 	return
 fi
-RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); if File::exist?('$3') then Value_1 = YAML.load_file('$3'); Value$2=Value_1$4; else Value.delete('$4'); end; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
+RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); if File::exist?('$3') then Value_1 = YAML.load_file('$3'); if not '$4'.empty? then Value$2=Value_1['$4']; else Value$2=Value_1 end else if not '$4'.empty? then Value.delete('$4'); end; end; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
 ruby -ryaml -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
