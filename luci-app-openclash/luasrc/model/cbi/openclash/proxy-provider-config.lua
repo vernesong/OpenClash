@@ -57,6 +57,7 @@ o:value("file")
 
 o = s:option(Value, "name", translate("Provider Name"))
 o.rmempty = false
+o.default = "Proxy-provider -"..sid
 
 o = s:option(ListValue, "path", translate("Provider Path"))
 o.description = translate("Update Your Proxy Provider File From Config Luci Page")

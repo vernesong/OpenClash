@@ -423,6 +423,18 @@ msgstr "管理页面地址示例:"
 msgid "Dashboard Port"
 msgstr "管理页面端口"
 
+msgid "Public Dashboard Address"
+msgstr "管理页面公网域名"
+
+msgid "Domain Name For Dashboard Login From Public Network"
+msgstr "设置公网域名，便于从公网访问时自动登录"
+
+msgid "Public Dashboard Port"
+msgstr "管理页面映射端口"
+
+msgid "Port For Dashboard Login From Public Network"
+msgstr "设置映射端口，便于从公网访问时自动登录"
+
 msgid "GEOIP Update"
 msgstr "GEOIP数据库订阅"
 

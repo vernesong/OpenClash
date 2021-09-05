@@ -1849,8 +1849,8 @@ revert_firewall()
       ip6tables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
    done >/dev/null 2>&1
    
-   ip6tables -t nat -D PREROUTING -p tcp -d 2001:4860:4860::8888 --dport 53 -j ACCEPT
-   ip6tables -t nat -D PREROUTING -p tcp -d 2001:4860:4860::8844 --dport 53 -j ACCEPT
+   ip6tables -t nat -D PREROUTING -p tcp -d 2001:4860:4860::8888 --dport 53 -j ACCEPT >/dev/null 2>&1
+   ip6tables -t nat -D PREROUTING -p tcp -d 2001:4860:4860::8844 --dport 53 -j ACCEPT >/dev/null 2>&1
 
    ip6tables -t mangle -F openclash >/dev/null 2>&1
    ip6tables -t mangle -X openclash >/dev/null 2>&1
