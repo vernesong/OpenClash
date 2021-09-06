@@ -226,12 +226,12 @@
 			update_subscribe.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Config Update%>" onclick="return b_update_subscribe(this)"/>';
 			update_other_rules.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Third Party Rules Update%>" onclick="return b_update_other_rules(this)"/>';
 			update_geoip.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GEOIP Data Update%>" onclick="return b_update_geoip(this)"/>';
-			if (status.daip != "" && window.location.hostname == status.daip) {
+			if (status.daip && window.location.hostname == status.daip) {
 			   daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			   dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
 			}
-			else if (status.daip != "" && window.location.hostname != status.daip && status.db_foward_domain != "" && status.db_foward_port != "")
+			else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port)
 			{
 			   daip.innerHTML = status.db_foward_domain ? "<b><font color=green>"+status.db_foward_domain+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			   dapo.innerHTML = status.db_foward_port ? "<b><font color=green>"+status.db_foward_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
@@ -512,10 +512,10 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
         btn.disabled = true;
         btn.value    = '<%:Open Panel%>';
-        if (status.daip != "" && window.location.hostname == status.daip) {
+        if (status.daip && window.location.hostname == status.daip) {
         	url1='<%="http://'+window.location.hostname+':'+window.location.port+'/luci-static/openclash?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
         }
-        else if (status.daip != "" && window.location.hostname != status.daip && status.db_foward_domain != "" && status.db_foward_port != "") {
+        else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
         	url1='<%="http://'+window.location.hostname+':'+window.location.port+'/luci-static/openclash?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
         }
         else {
@@ -530,10 +530,10 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
         btn.disabled = true;
         btn.value    = '<%:Open Panel%>';
-        if (status.daip != "" && window.location.hostname == status.daip) {
+        if (status.daip && window.location.hostname == status.daip) {
         	url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/?host='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
         }
-        else if (status.daip != "" && window.location.hostname != status.daip && status.db_foward_domain != "" && status.db_foward_port != "") {
+        else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
         	url2='<%="http://'+status.db_foward_domain+':'+status.db_foward_port+'/ui/?host='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
         }
         else {
