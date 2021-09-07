@@ -126,7 +126,7 @@ switch_mode.template = "openclash/switch_mode"
 
 ---- General Settings
 o = s:taboption("settings", ListValue, "interface_name", font_red..bold_on..translate("Bind Network Interface")..bold_off..font_off)
-local de_int = SYS.exec("ip route |grep 'default' |awk '{print $5}' 2>/dev/null")
+local de_int = SYS.exec("/usr/share/openclash/openclash_get_network.lua 'dhcp'") or SYS.exec("ip route |grep 'default' |awk '{print $5}' 2>/dev/null")
 o.description = translate("Default Interface Name:").." "..font_green..bold_on..de_int..bold_off..font_off..translate(",Try Enable If Network Loopback")
 local interfaces = SYS.exec("ls -l /sys/class/net/ 2>/dev/null |awk '{print $9}' 2>/dev/null")
 for interface in string.gmatch(interfaces, "%S+") do
@@ -394,7 +394,7 @@ o.default=0
 custom_rules = s:taboption("rules", Value, "custom_rules")
 custom_rules:depends("enable_custom_clash_rules", 1)
 custom_rules.template = "cbi/tvalue"
-custom_rules.description = translate("Custom Priority Rules Here, For More Go:").." "..'<a href="https://lancellc.gitbook.io/clash/clash-config-file/rules">https://lancellc.gitbook.io/clash/clash-config-file/rules</a>'.." ,"..translate("IP To CIDR:").." "..'<a href="http://ip2cidr.com">http://ip2cidr.com</a>'
+custom_rules.description = translate("Custom Priority Rules Here, For More Go:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://lancellc.gitbook.io/clash/clash-config-file/rules\")'>https://lancellc.gitbook.io/clash/clash-config-file/rules</a>".." ,"..translate("IP To CIDR:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"http://ip2cidr.com\")'>http://ip2cidr.com</a>"
 custom_rules.rows = 20
 custom_rules.wrap = "off"
 
@@ -414,7 +414,7 @@ end
 custom_rules_2 = s:taboption("rules", Value, "custom_rules_2")
 custom_rules_2:depends("enable_custom_clash_rules", 1)
 custom_rules_2.template = "cbi/tvalue"
-custom_rules_2.description = translate("Custom Extended Rules Here, For More Go:").." "..'<a href="https://lancellc.gitbook.io/clash/clash-config-file/rules">https://lancellc.gitbook.io/clash/clash-config-file/rules</a>'.." ,"..translate("IP To CIDR:").." "..'<a href="http://ip2cidr.com">http://ip2cidr.com</a>'
+custom_rules_2.description = translate("Custom Extended Rules Here, For More Go:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://lancellc.gitbook.io/clash/clash-config-file/rules\")'>https://lancellc.gitbook.io/clash/clash-config-file/rules</a>".." ,"..translate("IP To CIDR:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"http://ip2cidr.com\")'>http://ip2cidr.com</a>"
 custom_rules_2.rows = 20
 custom_rules_2.wrap = "off"
 
@@ -784,7 +784,7 @@ s.anonymous = true
 
 custom_hosts = s:option(Value, "custom_hosts")
 custom_hosts.template = "cbi/tvalue"
-custom_hosts.description = translate("Custom Hosts Here, For More Go:").." "..'<a href="https://lancellc.gitbook.io/clash/clash-config-file/dns/host">https://lancellc.gitbook.io/clash/clash-config-file/dns/host</a>'
+custom_hosts.description = translate("Custom Hosts Here, For More Go:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://lancellc.gitbook.io/clash/clash-config-file/dns/host\")'>https://lancellc.gitbook.io/clash/clash-config-file/dns/host</a>"
 custom_hosts.rows = 20
 custom_hosts.wrap = "off"
 
