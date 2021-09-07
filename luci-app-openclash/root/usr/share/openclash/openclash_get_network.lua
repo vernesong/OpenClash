@@ -6,57 +6,101 @@ require "luci.sys"
 local ntm = require "luci.model.network".init()
 local type = arg[1]
 local rv = {}
+local wan, wan6
 
-local wan = ntm:get_wannet()
-local wan6 = ntm:get_wan6net()
+if not type then os.exit(0) end
+
+if pcall(function() local x = ntm:get_wannet(); local y = ntm:get_wan6net(); end) then
+	wan =  ntm:get_wannet()
+	wan6 = ntm:get_wan6net()
+elseif pcall(function() local x = ntm:get_wan_networks(); local y = ntm:get_wan6_networks(); end) then
+	wan = ntm:get_wan_networks()
+	wan6 = ntm:get_wan6_networks()
+else
+	os.exit(0)
+end
 
 if wan then
-	rv.wan = {
-		ipaddr  = wan:ipaddr(),
-		gwaddr  = wan:gwaddr(),
-		netmask = wan:netmask(),
-		dns     = wan:dnsaddrs(),
-		expires = wan:expires(),
-		uptime  = wan:uptime(),
-		proto   = wan:proto(),
-		ifname  = wan:ifname()
-	}
+	rv.wan = {}
+	for i = 1, #wan do
+		rv.wan[i] = {
+			ipaddr  = wan[i]:ipaddr(),
+			gwaddr  = wan[i]:gwaddr(),
+			netmask = wan[i]:netmask(),
+			dns     = wan[i]:dnsaddrs(),
+			expires = wan[i]:expires(),
+			uptime  = wan[i]:uptime(),
+			proto   = wan[i]:proto(),
+			ifname  = wan[i]:ifname()
+		}
+	end
 end
 
 if wan6 then
-	rv.wan6 = {
-		ip6addr   = wan6:ip6addr(),
-		gw6addr   = wan6:gw6addr(),
-		dns       = wan6:dns6addrs(),
-		ip6prefix = wan6:ip6prefix(),
-		uptime    = wan6:uptime(),
-		proto     = wan6:proto(),
-		ifname    = wan6:ifname()
-	}
+	rv.wan6 = {}
+	for i = 1, #wan6 do
+		rv.wan6[i] = {
+			ip6addr   = wan6[i]:ip6addr(),
+			gw6addr   = wan6[i]:gw6addr(),
+			dns       = wan6[i]:dns6addrs(),
+			ip6prefix = wan6[i]:ip6prefix(),
+			uptime    = wan6[i]:uptime(),
+			proto     = wan6[i]:proto(),
+			ifname    = wan6[i]:ifname()
+		}
+	end
 end
 
 if type == "dns" then
 	if wan then
-		if #(rv.wan.dns) >= 1 then
-			for i=1, #(rv.wan.dns) do
-				if rv.wan.dns[i] ~= rv.wan.gwaddr then
-					print(rv.wan.dns[i])
+		for o = 1, #(rv.wan) do
+			for i = 1, #(rv.wan[o].dns) do
+				if rv.wan[o].dns[i] ~= rv.wan[o].gwaddr then
+					print(rv.wan[o].dns[i])
 				end
 			end
+			print(rv.wan[o].gwaddr)
 		end
-		print(rv.wan.gwaddr)
 	end
 end
 
 if type == "dns6" then
 	if wan6 then
-		if #(rv.wan6.dns) >= 1 then
-			for i=1, #(rv.wan6.dns) do
-				if rv.wan6.dns[i] ~= rv.wan6.gw6addr then
-					print(rv.wan6.dns[i])
+		for o = 1, #(rv.wan6) do
+			for i = 1, #(rv.wan6[o].dns) do
+				if rv.wan6[o].dns[i] ~= rv.wan6[o].gw6addr then
+					print(rv.wan6[o].dns[i])
 				end
 			end
+			print(rv.wan6[o].gw6addr)
 		end
-		print(rv.wan6.gw6addr)
 	end
 end
+
+if type == "gateway" then
+	if wan then
+		for o = 1, #(rv.wan) do
+			print(rv.wan[o].gwaddr)
+		end
+	end
+end
+
+if type == "gateway6" then
+	if wan6 then
+		for o = 1, #(rv.wan6) do
+			print(rv.wan6[o].gw6addr)
+		end
+	end
+end
+
+if type == "dhcp" then
+	if wan then
+		for o = 1, #(rv.wan) do
+			if rv.wan[o].proto == "dhcp" then
+				print(rv.wan[o].ifname)
+			end
+		end
+	end
+end
+
+os.exit(0)
