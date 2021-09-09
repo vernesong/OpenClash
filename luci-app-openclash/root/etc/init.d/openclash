@@ -1010,7 +1010,7 @@ do_run_file()
       config_foreach yml_other_rules_get "other_rules" "$CONFIG_NAME"
    fi
 
-   if [ "$proxy_mode" = "script" ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$CONFIG_FILE" "['rules'].grep(/^RULE-SET,/)")" ]; then
+   if [ "$proxy_mode" = "script" ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$CONFIG_FILE" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules_2.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ]; then
       if [ "$en_mode_tun" != "2" ]; then
          rm -rf "/etc/openclash/clash"
          ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
@@ -1800,9 +1800,6 @@ revert_firewall()
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip route del local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 
-   ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-   ip -6 route del local ::/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-
    iptables -t nat -D PREROUTING -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1
    #quic
 	 iptables -D INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
@@ -1871,6 +1868,9 @@ revert_firewall()
    iptables -t mangle -X openclash_output >/dev/null 2>&1
 
    #Revert IPv6 rules
+   
+   ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+   ip -6 route del local ::/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 
    pre_lines=$(ip6tables -nvL PREROUTING -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
    for pre_line in $pre_lines; do
@@ -2100,6 +2100,7 @@ restart()
 reload()
 {
    if pidof clash >/dev/null; then
+   	  set_lock
       revert_firewall 2>/dev/null
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
@@ -2107,5 +2108,6 @@ reload()
       /etc/init.d/dnsmasq restart >/dev/null 2>&1
       LOG_OUT "Reload OpenClash Firewall Rules..."
       SLOG_CLEAN
+      del_lock
    fi
 }

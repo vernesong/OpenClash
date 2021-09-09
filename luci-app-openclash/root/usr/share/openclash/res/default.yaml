@@ -239,9 +239,12 @@ proxies: # 节点设置，此部分与proxy-provider两者不能同时删除
  # skip-cert-verify: true
  # servername: example.com # priority over wss host
  # network: ws
- # ws-path: /path
- # ws-headers:
- #    Host: v2ray.com
+ # ws-opts:
+ #   path: /path
+ #   headers:
+ #     Host: v2ray.com
+ #   max-early-data: 2048
+ #   early-data-header-name: Sec-WebSocket-Protocol
 
 - name: "vmess-http"
   type: vmess
