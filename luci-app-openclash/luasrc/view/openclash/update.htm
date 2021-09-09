@@ -1,6 +1,6 @@
 
 <fieldset class="cbi-section">
-	<table>
+	<table width="100%">
 	  <tr><td width="100%" colspan="4">
 	    <p align="center" id="update_tip">
 	  		<b><%:Note: if the update fails, you can manually download and upload%></b>
@@ -48,7 +48,7 @@
 	</table>
 </fieldset>
 <fieldset class="cbi-section">
-	<table>
+	<table width="100%">
 		<tr><td width="100%" colspan="4">
 	    <p align="center">
 	  		<b><%:Client Update%></b>
@@ -223,8 +223,8 @@
 	ma_op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_op_update(this)"/>';
 	restore.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Restore Default Config%>" onclick="return restore_config(this)"/>';
 	one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:One Click Check Update%>" onclick="return all_one_key_update(this)"/>';
-	remove_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-remove" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
-	backup.innerHTML = '<input type="button" class="btn cbi-button cbi-button-apply" value="<%:Backup OpenClash%>" onclick="return backup_all_file(this)"/>';
+	remove_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
+	backup.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup OpenClash%>" onclick="return backup_all_file(this)"/>';
 	
 	function core_update(btn,type)
     {
