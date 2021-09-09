@@ -1,11 +1,12 @@
 script:
 ##  shortcuts:
-##    quic: network == 'udp' and dst_port == 443
+##    quic: network == 'udp' and dst_port == 443 and (geoip(resolve_ip(host)) != 'CN' or geoip(dst_ip) != 'CN')
+##    time-limit: in_cidr(src_ip,'192.168.1.2/32') and time.now().hour < 20 or time.now().hour > 21
 ##    time-limit: src_ip == '192.168.1.2' and time.now().hour < 20 or time.now().hour > 21
 
 rules:
-## - SCRIPT,quic,REJECT #shortcuts rule
-## - SCRIPT,time-limit,REJECT #shortcuts rule
+##- SCRIPT,quic,REJECT #shortcuts rule
+##- SCRIPT,time-limit,REJECT #shortcuts rule
 
 ##- DOMAIN-SUFFIX,google.com,Proxy #匹配域名后缀(交由Proxy代理服务器组)
 ##- DOMAIN-KEYWORD,google,Proxy #匹配域名关键字(交由Proxy代理服务器组)
