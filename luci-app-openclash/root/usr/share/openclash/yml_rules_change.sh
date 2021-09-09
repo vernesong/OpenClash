@@ -16,13 +16,48 @@ yml_other_set()
    end
    begin
    if $3 == 1 then
+   #script
+      for i in ['/etc/openclash/custom/openclash_custom_rules.list','/etc/openclash/custom/openclash_custom_rules_2.list'] do
+         if File::exist?(i) then
+            Value_1 = YAML.load_file(i)
+            if Value_1 != false then
+               if Value_1.class.to_s == 'Hash' then
+                  if Value_1['script'] then
+                     if Value.key?('script') and not Value['script'].to_a.empty? then
+                        if Value['script'].key?('code') and Value_1['script'].key?('code') then
+                           Value['script']['code'].merge!(Value_1['script']['code']).uniq
+                        elsif Value_1['script'].key?('code') then
+                           Value['script']['code'] = Value_1['script']['code']
+                        end
+                        if Value['script'].key?('shortcuts') and Value_1['script'].key?('shortcuts')
+                           Value['script']['shortcuts'].merge!(Value_1['script']['shortcuts']).uniq
+                        elsif Value_1['script'].key?('shortcuts') then
+                           Value['script']['shortcuts'] = Value_1['script']['shortcuts']
+                        end
+                     else
+                        Value['script'] = Value_1['script']
+                     end
+                  end
+               end
+            end
+         end
+      end;
+   #rules
       if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
          if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
             Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
             if Value_1 != false then
-               Value_2 = Value_1.reverse!
-               Value_2.each{|x| Value['rules'].insert(0,x)}
-               Value['rules']=Value['rules'].uniq
+               if Value_1.class.to_s == 'Hash' then
+                  if not Value_1['rules'].to_a.empty? then
+                     Value_2 = Value_1['rules'].to_a.reverse!
+                  end
+               else
+                  Value_2 = Value_1.reverse!
+               end
+               if defined? Value_2 then
+                  Value_2.each{|x| Value['rules'].insert(0,x)}
+                  Value['rules'] = Value['rules'].uniq
+               end
             end
          end
          if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
@@ -30,31 +65,59 @@ yml_other_set()
             if Value_3 != false then
                ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
                ruby_add_index ||= -1
-               Value_4 = Value_3.reverse!
-               Value_4.each{|x| Value['rules'].insert(ruby_add_index,x)}
-               Value['rules']=Value['rules'].uniq
+               if Value_3.class.to_s == 'Hash' then
+                  if not Value_3['rules'].to_a.empty? then
+                     Value_4 = Value_3['rules'].to_a.reverse!
+                  end
+               else
+                  Value_4 = Value_3.reverse!
+               end
+               if defined? Value_4 then
+                  Value_4.each{|x| Value['rules'].insert(ruby_add_index,x)}
+                  Value['rules'] = Value['rules'].uniq
+               end
             end
          end
       else
          if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
             Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
             if Value_1 != false then
-               Value['rules']=Value_1
-               Value['rules']=Value['rules'].uniq
+               if Value_1.class.to_s == 'Hash' then
+                 if not Value_1['rules'].to_a.empty? then
+                    Value['rules'] = Value_1['rules']
+                 end
+               else
+                  Value['rules'] = Value_1
+               end
+               Value['rules'] = Value['rules'].uniq
             end
          end
          if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
             Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list')
             if Value_2 != false then
                if Value['rules'].to_a.empty? then
-                  Value['rules']=Value_2
+                  if Value_2.class.to_s == 'Hash' then
+                    if not Value_2['rules'].to_a.empty? then
+                       Value['rules'] = Value_2['rules']
+                    end
+                  else
+                     Value['rules'] = Value_2
+                  end
                else
                   ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
                   ruby_add_index ||= -1
-                  Value_3 = Value_2.reverse!
-                  Value_3.each{|x| Value['rules'].insert(ruby_add_index,x)}
+                  if Value_2.class.to_s == 'Hash' then
+                    if not Value_2['rules'].to_a.empty? then
+                       Value_3 = Value_2['rules'].to_a.reverse!
+                    end
+                  else
+                     Value_3 = Value_2.reverse!
+                  end
+                  if defined? Value_3 then
+                     Value_3.each{|x| Value['rules'].insert(ruby_add_index,x)}
+                  end
                end
-               Value['rules']=Value['rules'].uniq
+               Value['rules'] = Value['rules'].uniq
             end
          end
       end
