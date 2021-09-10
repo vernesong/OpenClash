@@ -2330,9 +2330,6 @@ msgstr "当前配置文件"
 msgid "Official Website"
 msgstr "官方网站"
 
-msgid "Up"
-msgstr "上传"
-
 msgid "Up:"
 msgstr "上传:"
 

@@ -353,7 +353,7 @@ sys_dns_append()
 yml_dns_get()
 {
 
-   local section="$1"
+   local section="$1" regex='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
    local enabled port type ip group dns_type dns_address
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "port" "$section" "port" ""
@@ -369,7 +369,7 @@ yml_dns_get()
       return
    fi
    
-   if [ -n "$(echo $ip |grep ":" 2>/dev/null)" ]; then
+   if [[ $ip =~ $regex ]]; then
       ip="[${ip}]"
    fi
 
