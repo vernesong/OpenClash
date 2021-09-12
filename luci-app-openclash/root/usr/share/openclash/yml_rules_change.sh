@@ -183,10 +183,8 @@ yml_other_set()
    end
    begin
    if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-      if Value['rules'].to_a.grep(/(?=.*198.18)(?=.*REJECT)/).empty? then
-         ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
-         ruby_add_index ||= -1
-         Value['rules']=Value['rules'].to_a.insert(ruby_add_index,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve')
+      if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
+         Value['rules']=Value['rules'].to_a.insert(0,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve')
       end
    else
       Value['rules']=%w(IP-CIDR,198.18.0.1/16,REJECT,no-resolve)
