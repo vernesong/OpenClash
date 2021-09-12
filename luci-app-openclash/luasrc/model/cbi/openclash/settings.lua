@@ -126,7 +126,7 @@ switch_mode.template = "openclash/switch_mode"
 
 ---- General Settings
 o = s:taboption("settings", ListValue, "interface_name", font_red..bold_on..translate("Bind Network Interface")..bold_off..font_off)
-local de_int = SYS.exec("/usr/share/openclash/openclash_get_network.lua 'dhcp'") or SYS.exec("ip route |grep 'default' |awk '{print $5}' 2>/dev/null")
+local de_int = SYS.exec("ip route |grep 'default' |awk '{print $5}' 2>/dev/null") or SYS.exec("/usr/share/openclash/openclash_get_network.lua 'dhcp'")
 o.description = translate("Default Interface Name:").." "..font_green..bold_on..de_int..bold_off..font_off..translate(",Try Enable If Network Loopback")
 local interfaces = SYS.exec("ls -l /sys/class/net/ 2>/dev/null |awk '{print $9}' 2>/dev/null")
 for interface in string.gmatch(interfaces, "%S+") do
@@ -157,7 +157,7 @@ o.description = translate("Set Log File Size (KB)")
 o.default=1024
 
 o = s:taboption("settings", Flag, "intranet_allowed", translate("Only intranet allowed"))
-o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network")
+o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network, Not Support IPv6 Yet")
 o.default=0
 
 o = s:taboption("settings", Value, "dns_port")
