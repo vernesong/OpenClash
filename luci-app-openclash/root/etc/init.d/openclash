@@ -2100,7 +2100,7 @@ restart()
 reload()
 {
    if pidof clash >/dev/null; then
-   	  set_lock
+      set_lock
       revert_firewall 2>/dev/null
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
