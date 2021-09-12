@@ -1953,6 +1953,7 @@ get_config()
    append_wan_dns=$(uci -q get openclash.config.append_wan_dns || echo 1)
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
+   [ "$ipv6_enable" -eq 1 ] && [ "$intranet_allowed" -eq 1 ] && intranet_allowed=0 && uci -q set openclash.config.intranet_allowed=0
    uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
 }
 
