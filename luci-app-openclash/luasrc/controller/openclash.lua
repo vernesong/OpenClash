@@ -327,7 +327,7 @@ local function dler_login_info_save()
 end
 
 local function dler_login()
-	local info, token, get_sub
+	local info, token, get_sub, sub_info
 	local sub_path = "/tmp/dler_sub"
 	local email = uci:get("openclash", "config", "dler_email")
 	local passwd = uci:get("openclash", "config", "dler_passwd")
@@ -342,6 +342,16 @@ local function dler_login()
 			uci:commit("openclash")
 			get_sub = string.format("curl -sL -H 'Content-Type: application/json' -d '{\"access_token\":\"%s\"}' -X POST https://dler.cloud/api/v1/managed/clash -o %s", token, sub_path)
 			luci.sys.exec(get_sub)
+			sub_info = fs.readfile(sub_path)
+			if sub_info then
+				sub_info = json.parse(sub_info)
+			end
+			if sub_info and sub_info.ret == 200 then
+				luci.sys.exec(string.format('curl -sL -m 3 --retry 2 --user-agent "clash" "%s" -o "/etc/openclash/config/Dler Cloud - Smart.yaml" >/dev/null 2>&1', sub_info.smart))
+				luci.sys.exec(string.format('curl -sL -m 3 --retry 2 --user-agent "clash" "%s" -o "/etc/openclash/config/Dler Cloud - SS.yaml" >/dev/null 2>&1', sub_info.ss))
+				luci.sys.exec(string.format('curl -sL -m 3 --retry 2 --user-agent "clash" "%s" -o "/etc/openclash/config/Dler Cloud - Vmess.yaml" >/dev/null 2>&1', sub_info.vmess))
+				luci.sys.exec(string.format('curl -sL -m 3 --retry 2 --user-agent "clash" "%s" -o "/etc/openclash/config/Dler Cloud - Trojan.yaml" >/dev/null 2>&1', sub_info.trojan))
+			end
 			return info.ret
 		else
 			uci:delete("openclash", "config", "dler_token")
