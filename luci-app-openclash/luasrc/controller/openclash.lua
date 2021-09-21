@@ -167,17 +167,19 @@ local function startlog()
 	local info = ""
 	if nixio.fs.access("/tmp/openclash_start.log") then
 		info = luci.sys.exec("sed -n '$p' /tmp/openclash_start.log 2>/dev/null")
-		if not string.find (info, "【") and not string.find (info, "】") then
-   		info = luci.i18n.translate(string.sub(info, 0, -1))
-   	else
-   		local a = string.find (info, "【")
-   		local b = string.find (info, "】")+2
-   		if a <= 1 then
-   			info = string.sub(info, 0, b)..luci.i18n.translate(string.sub(info, b+1, -1))
-   		elseif b < string.len(info) then
-   			info = luci.i18n.translate(string.sub(info, 0, a-1))..string.sub(info, a, b)..luci.i18n.translate(string.sub(info, b+1, -1))
-   		elseif b == string.len(info) then
-   			info = luci.i18n.translate(string.sub(info, 0, a-1))..string.sub(info, a, -1)
+		if string.len(info) > 0 then
+			if not string.find (info, "【") and not string.find (info, "】") then
+   			info = luci.i18n.translate(string.sub(info, 0, -1))
+   		else
+   			local a = string.find (info, "【")
+   			local b = string.find (info, "】")+2
+   			if a <= 1 then
+   				info = string.sub(info, 0, b)..luci.i18n.translate(string.sub(info, b+1, -1))
+   			elseif b < string.len(info) then
+   				info = luci.i18n.translate(string.sub(info, 0, a-1))..string.sub(info, a, b)..luci.i18n.translate(string.sub(info, b+1, -1))
+   			elseif b == string.len(info) then
+   				info = luci.i18n.translate(string.sub(info, 0, a-1))..string.sub(info, a, -1)
+   			end
    		end
    	end
 	end
