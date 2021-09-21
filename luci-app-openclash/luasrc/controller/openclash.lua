@@ -327,7 +327,7 @@ local function dler_login_info_save()
 end
 
 local function dler_login()
-	local info, token, get_sub, sub_info
+	local info, token, get_sub, sub_info, sub_key
 	local sub_path = "/tmp/dler_sub"
 	local email = uci:get("openclash", "config", "dler_email")
 	local passwd = uci:get("openclash", "config", "dler_passwd")
@@ -347,10 +347,11 @@ local function dler_login()
 				sub_info = json.parse(sub_info)
 			end
 			if sub_info and sub_info.ret == 200 then
-				luci.sys.exec(string.format('curl -sL -m 3 --retry 2 --user-agent "clash" "%s" -o "/etc/openclash/config/Dler Cloud - Smart.yaml" >/dev/null 2>&1', sub_info.smart))
-				luci.sys.exec(string.format('curl -sL -m 3 --retry 2 --user-agent "clash" "%s" -o "/etc/openclash/config/Dler Cloud - SS.yaml" >/dev/null 2>&1', sub_info.ss))
-				luci.sys.exec(string.format('curl -sL -m 3 --retry 2 --user-agent "clash" "%s" -o "/etc/openclash/config/Dler Cloud - Vmess.yaml" >/dev/null 2>&1', sub_info.vmess))
-				luci.sys.exec(string.format('curl -sL -m 3 --retry 2 --user-agent "clash" "%s" -o "/etc/openclash/config/Dler Cloud - Trojan.yaml" >/dev/null 2>&1', sub_info.trojan))
+				sub_key = {"smart","ss","vmess","trojan"}
+				for _,v in ipairs(sub_key) do
+					luci.sys.exec(string.format('curl -sL -m 3 --retry 2 --user-agent "clash" "%s" -o "/etc/openclash/config/Dler Cloud - %s.yaml" >/dev/null 2>&1 && sid=$(uci -q add openclash config_subscribe) && uci -q set openclash."$sid".name="Dler Cloud - %s" && uci -q set openclash."$sid".address="%s"', sub_info[v], v, v, sub_info[v]))
+					uci:commit("openclash")
+				end
 			end
 			return info.ret
 		else
