@@ -125,7 +125,7 @@ o.description = translate("Using incorrect encryption mothod may causes service 
 
 o = s:option(Value, "name", translate("Server Alias"))
 o.rmempty = false
-o.default = "Server -"..sid
+o.default = "Server - "..sid
 
 o = s:option(Value, "server", translate("Server Address"))
 o.datatype = "host"
@@ -371,6 +371,7 @@ o:depends("obfs_vmess", "grpc")
 o = s:option(DynamicList, "groups", translate("Proxy Group"))
 o.description = font_red..bold_on..translate("No Need Set when Config Create, The added Proxy Groups Must Exist")..bold_off..font_off
 o.rmempty = true
+o:value("all", translate("All Groups"))
 m.uci:foreach("openclash", "groups",
 		function(s)
 			if s.name ~= "" and s.name ~= nil then

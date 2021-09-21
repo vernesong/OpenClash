@@ -52,7 +52,7 @@ end
 
 o = s:option(Value, "name", translate("Rule Providers Name"))
 o.rmempty = false
-o.default = "Rule-provider -"..sid
+o.default = "Rule-provider - "..sid
 
 o = s:option(ListValue, "type", translate("Rule Providers Type"))
 o.rmempty = true

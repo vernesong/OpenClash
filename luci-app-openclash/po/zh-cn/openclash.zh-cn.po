@@ -2399,3 +2399,5 @@ msgstr "追加上游DNS"
 msgid "Append The Upstream Assigned DNS And Gateway IP To The Nameserver"
 msgstr "将上游分配的DNS和网关IP追加到Nameserver"
 
+msgid "All Groups"
+msgstr "所有策略组"
