@@ -1432,11 +1432,10 @@ if [ "$china_ip_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
    ipset -! restore </etc/openclash/china_ip_route.ipset 2>/dev/null
 fi
 
-if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(iptables -t nat -nL PREROUTING --line-number |grep 'dns_hijack')"]; then
-   if [ -z "$(netstat -nlp |grep -E '127.0.0.1:53.*dnsmasq')" ]; then
-      DNSPORT="$dns_port"
-   else
-      DNSPORT="$(uci -q get dhcp.@dnsmasq[0].port || echo 53)"
+if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(iptables -t nat -nL PREROUTING --line-number |grep 'DNS Hijack')"]; then
+   DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
+   if [ -z "$DNSPORT" ]; then
+    DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo "$dns_port")
    fi
    iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
    iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
@@ -1532,8 +1531,8 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
    iptables -t nat -A PREROUTING -p tcp -j openclash
    if [ -z "$en_mode_tun" ]; then
       #Google dns
-      iptables -t nat -I PREROUTING -p tcp -d 8.8.8.8 --dport 53 -j REDIRECT --to-ports "$proxy_port"
-      iptables -t nat -I PREROUTING -p tcp -d 8.8.4.4 --dport 53 -j REDIRECT --to-ports "$proxy_port"
+      iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp -d 8.8.8.8 --dport 53 -j REDIRECT --to-ports "$proxy_port"
+      iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp -d 8.8.4.4 --dport 53 -j REDIRECT --to-ports "$proxy_port"
       #udp
       if [ "$enable_udp_proxy" -eq 1 ]; then
          modprobe xt_TPROXY >/dev/null 2>&1
@@ -1669,14 +1668,14 @@ if [ -n "$en_mode_tun" ]; then
    
    if [ "$en_mode_tun" -ne 3 ]; then
       iptables -t mangle -I PREROUTING -j openclash
-      iptables -t nat -I PREROUTING -p tcp --dport 53 -j ACCEPT
+      iptables -t nat -I PREROUTING -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j ACCEPT
    else
       iptables -t mangle -I PREROUTING -p tcp --dport 53 -j openclash_dns_hijack
-      iptables -t mangle -A openclash_dns_hijack -d 8.8.8.8 -j MARK --set-mark "$PROXY_FWMARK"
-      iptables -t mangle -A openclash_dns_hijack -d 8.8.4.4 -j MARK --set-mark "$PROXY_FWMARK"
+      iptables -t mangle -A openclash_dns_hijack -m comment --comment "OpenClash Google DNS Hijack" -d 8.8.8.8 -j MARK --set-mark "$PROXY_FWMARK"
+      iptables -t mangle -A openclash_dns_hijack -m comment --comment "OpenClash Google DNS Hijack" -d 8.8.4.4 -j MARK --set-mark "$PROXY_FWMARK"
       iptables -t mangle -I PREROUTING -p udp -j openclash
-      iptables -t nat -I PREROUTING -p tcp --dport 53 -d 8.8.8.8 -j ACCEPT
-      iptables -t nat -I PREROUTING -p tcp --dport 53 -d 8.8.4.4 -j ACCEPT
+      iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp --dport 53 -d 8.8.8.8 -j ACCEPT
+      iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp --dport 53 -d 8.8.4.4 -j ACCEPT
    fi
    
    #snat routerself for tun while bindaddress enable
@@ -1694,7 +1693,7 @@ if [ -n "$en_mode_tun" ]; then
       fi
    fi
    #TUN FORWORD
-   iptables -I FORWARD -o utun -j ACCEPT
+   iptables -I FORWARD -m comment --comment "OpenClash TUN Forward" -o utun -j ACCEPT
 fi
 
 #quic
@@ -1740,8 +1739,8 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
    ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
    
    #Google dns
-   ip6tables -t nat -I PREROUTING -p tcp -d 2001:4860:4860::8888 --dport 53 -j ACCEPT
-   ip6tables -t nat -I PREROUTING -p tcp -d 2001:4860:4860::8844 --dport 53 -j ACCEPT
+   ip6tables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp -d 2001:4860:4860::8888 --dport 53 -j ACCEPT
+   ip6tables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp -d 2001:4860:4860::8844 --dport 53 -j ACCEPT
    
    ip6tables -t mangle -N openclash
    ip6tables -t mangle -F openclash
@@ -1796,108 +1795,38 @@ revert_firewall()
 {
    rm -rf /var/etc/openclash.include
 
-   #ipv4
-
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip route del local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-
-   iptables -t nat -D PREROUTING -p tcp --dport 53 -j ACCEPT >/dev/null 2>&1
-   #quic
-	 iptables -D INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
-   iptables -D FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
-
-
-   out_lines=$(iptables -nvL OUTPUT -t nat |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
-   for out_line in $out_lines; do
-      iptables -t nat -D OUTPUT "$out_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-   iptables -t nat -D OUTPUT -j openclash_output >/dev/null 2>&1
    
-   out_lines=$(iptables -nvL OUTPUT -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
-   for out_line in $out_lines; do
-      iptables -t mangle -D OUTPUT "$out_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-   iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
-
-   pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/8\.8\./=' 2>/dev/null |sort -rn)
-   for pre_line in $pre_lines; do
-      iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-
-   pre_lines=$(iptables -nvL PREROUTING -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
-   for pre_line in $pre_lines; do
-      iptables -t mangle -D PREROUTING "$pre_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-
-   pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
-   for pre_line in $pre_lines; do
-      iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-   iptables -t nat -D PREROUTING -p tcp -j openclash >/dev/null 2>&1
-
-   pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/DNS Hijack/=' 2>/dev/null |sort -rn)
-   for pre_line in $pre_lines; do
-      iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-
-   iptables -t nat -F openclash >/dev/null 2>&1
-   iptables -t nat -X openclash >/dev/null 2>&1
+   ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+   ip -6 route del local ::/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    
-   iptables -t nat -F openclash_output >/dev/null 2>&1
-   iptables -t nat -X openclash_output >/dev/null 2>&1
-   
-   iptables -t nat -F openclash_post >/dev/null 2>&1
-   iptables -t nat -X openclash_post >/dev/null 2>&1
-   iptables -t nat -D POSTROUTING -j openclash_post >/dev/null 2>&1
-
    #TUN
    ip route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip link set dev utun down >/dev/null 2>&1
    ip tuntap del utun mode tun >/dev/null 2>&1
-
-   iptables -D FORWARD -o utun -j ACCEPT >/dev/null 2>&1
-   iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
-   iptables -t mangle -D PREROUTING -j openclash >/dev/null 2>&1
-   iptables -t mangle -D PREROUTING -p udp -j openclash >/dev/null 2>&1
-   iptables -t mangle -D PREROUTING -p tcp --dport 53 -j openclash_dns_hijack >/dev/null 2>&1
-   iptables -t mangle -F openclash >/dev/null 2>&1
-   iptables -t mangle -X openclash >/dev/null 2>&1
-   iptables -t mangle -F openclash_dns_hijack >/dev/null 2>&1
-   iptables -t mangle -X openclash_dns_hijack >/dev/null 2>&1
-   iptables -t mangle -F openclash_output >/dev/null 2>&1
-   iptables -t mangle -X openclash_output >/dev/null 2>&1
-
-   #Revert IPv6 rules
    
-   ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-   ip -6 route del local ::/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-
-   pre_lines=$(ip6tables -nvL PREROUTING -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
-   for pre_line in $pre_lines; do
-      ip6tables -t mangle -D PREROUTING "$pre_line" >/dev/null 2>&1
-   done >/dev/null 2>&1
-
-   out_lines=$(ip6tables -nvL OUTPUT -t mangle |sed 1,2d |sed -n '/openclash/=' 2>/dev/null |sort -rn)
-   for out_line in $out_lines; do
-      ip6tables -t mangle -D OUTPUT "$out_line" >/dev/null 2>&1
+   for ipt in "iptables -nvL INPUT" "iptables -nvL FORWARD" "iptables -nvL POSTROUTING -t nat" "iptables -nvL OUTPUT -t nat" "iptables -nvL OUTPUT -t mangle" "iptables -nvL PREROUTING -t nat" "iptables -nvL PREROUTING -t mangle" "ip6tables -nvL PREROUTING -t mangle" "ip6tables -nvL OUTPUT -t mangle" "ip6tables -nvL PREROUTING -t nat" "ip6tables -nvL INPUT"; do
+      for comment in "openclash" "DNS Hijack" "OpenClash"; do
+         local lines=$($ipt |sed 1,2d |sed -n "/${comment}/=" 2>/dev/null |sort -rn)
+         if [ -n "$lines" ]; then
+            for line in $lines; do
+               $(echo "$ipt" |awk -v OFS=" " '{print $1,$4,$5}' |sed 's/[ ]*$//g') -D $(echo "$ipt" |awk '{print $3}') $line
+            done
+         fi
+      done
    done >/dev/null 2>&1
    
-   pre_lines=$(ip6tables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/DNS Hijack/=' 2>/dev/null |sort -rn)
-   for pre_line in $pre_lines; do
-      ip6tables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
+   for chain in "openclash" "openclash_output" "openclash_post" "openclash_dns_hijack"; do
+      iptables -t nat -F $chain
+      iptables -t nat -X $chain
+      iptables -t mangle -F $chain
+      iptables -t mangle -X $chain
+      ip6tables -t mangle -F $chain
+      ip6tables -t mangle -X $chain
    done >/dev/null 2>&1
-   
-   ip6tables -t nat -D PREROUTING -p tcp -d 2001:4860:4860::8888 --dport 53 -j ACCEPT >/dev/null 2>&1
-   ip6tables -t nat -D PREROUTING -p tcp -d 2001:4860:4860::8844 --dport 53 -j ACCEPT >/dev/null 2>&1
 
-   ip6tables -t mangle -F openclash >/dev/null 2>&1
-   ip6tables -t mangle -X openclash >/dev/null 2>&1
-   ip6tables -t mangle -F openclash_output >/dev/null 2>&1
-   ip6tables -t mangle -X openclash_output >/dev/null 2>&1
-   #quic
-	 ip6tables -D INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip6_route dst -j REJECT >/dev/null 2>&1
-   
    ipset destroy localnetwork6 >/dev/null 2>&1
    ipset destroy china_ip6_route >/dev/null 2>&1
    ipset destroy lan_ac_white_ipv6s >/dev/null 2>&1
