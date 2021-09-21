@@ -41,9 +41,14 @@ set_groups()
   if [ -z "$1" ]; then
      return
   fi
+  
+  if [ "$add_for_this" -eq 1 ]; then
+     return
+  fi
 
-	if [ "$1" = "$3" ]; then
+	if [ "$1" = "$3" ] || [ "$1" = "all" ]; then
 	   set_group=1
+	   add_for_this=1
 	   echo "      - \"${2}\"" >>$GROUP_FILE
 	fi
 
@@ -55,14 +60,21 @@ set_relay_groups()
      return
   fi
   
+  if [ "$add_for_this" -eq 1 ]; then
+     return
+  fi
+  
   if [ ! -z "$(echo "$1" |grep "#relay#")" ]; then
      server_relay_num=$(echo "$1" |awk -F '#relay#' '{print $2}')
      server_group_name=$(echo "$1" |awk -F '#relay#' '{print $1}')
   fi
 
-  if [ ! -z "$server_relay_num" ] && [ "$server_group_name" = "$3" ]; then
-     set_group=1
-     echo "$server_relay_num #      - \"${2}\"" >>/tmp/relay_server
+  if [ ! -z "$server_relay_num" ]; then
+     if [ "$server_group_name" = "$3" ] || [ "$server_group_name" = "all" ]; then
+        set_group=1
+        add_for_this=1
+        echo "$server_relay_num #      - \"${2}\"" >>/tmp/relay_server
+     fi
 	fi
 }
 
@@ -71,6 +83,7 @@ yml_servers_add()
 {
 	
 	local section="$1"
+	add_for_this=0
 	config_get_bool "enabled" "$section" "enabled" "1"
 	config_get "config" "$section" "config" ""
 	config_get "name" "$section" "name" ""
@@ -111,6 +124,7 @@ set_other_groups()
 set_proxy_provider()
 {
 	local section="$1"
+	add_for_this=0
 	config_get_bool "enabled" "$section" "enabled" "1"
 	config_get "config" "$section" "config" ""
 	config_get "name" "$section" "name" ""
@@ -137,9 +151,14 @@ set_provider_groups()
   if [ -z "$1" ]; then
      return
   fi
+  
+  if [ "$add_for_this" -eq 1 ]; then
+     return
+  fi
 
-	if [ "$1" = "$3" ]; then
+	if [ "$1" = "$3" ] || [ "$1" = "all" ]; then
 	   set_proxy_provider=1
+	   add_for_this=1
 	   echo "      - ${2}" >>$GROUP_FILE
 	fi
 
