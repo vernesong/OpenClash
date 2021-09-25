@@ -201,6 +201,7 @@
 	var hid_btn = document.getElementById("hid_btn");
 	var tool_label2 = document.getElementById('tool_label2');
 	var radio_mode = document.getElementById('radio-mode');
+	var radio = document.getElementsByName("radios");
 	var radio_de = document.getElementById('radio-de');
 	var radio_ru_mode = document.getElementById('radio-ru-mode');
 	var radio_ru = document.getElementsByName("radios-ru");
@@ -316,7 +317,6 @@
 	function get_rule_mode() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "rule_mode")%>', null, function(x, status) {
 			if (x && x.status == 200 && status.mode != "") {
-				var radio = document.getElementsByName("radios");
 				for (i=0; i<radio.length; i++) {
 					if (radio[i].value == status.mode && ! radio[i].checked) {
 						radio[i].checked = true;
@@ -356,13 +356,13 @@
 			  	 radio_run_normal.innerHTML = "<%:Compatible%>"
 				};
 				for (i=0; i<radio_ru.length; i++) {
-					if (radio_ru[i].value == ("-"+status["mode"].split("-")[2]) && ! radio_ru[i].checked) {
+					if (radio_ru[i].value == (status["mode"].split("-")[2] == undefined ? "" : ("-" + status["mode"].split("-")[2])) && ! radio_ru[i].checked) {
 						radio_ru[i].checked = true;
 					}
 				};
 			};
 		});
-		gr = setTimeout("get_run_mode()",5000);
+		gr = setTimeout("get_run_mode()",2000);
 	};
 	
 	function switch_run_mode(value)
@@ -378,7 +378,6 @@
 				get_run_mode();
 			}
 			});
-			
 		}
 	};
 	
