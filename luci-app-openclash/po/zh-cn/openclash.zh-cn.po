@@ -292,7 +292,7 @@ msgid "Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use"
 msgstr "如果您不使用，请禁用IPv6的DHCP以避免连接异常"
 
 msgid "IPv6 DNS Resolve"
-msgstr "允许IPV6类型DNS解析"
+msgstr "允许IPv6类型DNS解析"
 
 msgid "Enable Clash to Resolve IPv6 DNS Requests"
 msgstr "允许解析IPv6类型的DNS请求"
