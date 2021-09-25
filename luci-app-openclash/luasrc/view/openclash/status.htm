@@ -1,6 +1,29 @@
 <head>
 <style>
 .dot-typing{position:relative;left:-9999px;width:10px;height:10px;border-radius:5px;background-color:#9880ff;color:#9880ff;box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff;animation:dotTyping 1.5s infinite linear}@keyframes dotTyping{0%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}16.667%{box-shadow:9984px -10px 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}33.333%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}50%{box-shadow:9984px 0 0 0 #9880ff,9999px -10px 0 0 #9880ff,10014px 0 0 0 #9880ff}66.667%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}83.333%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px -10px 0 0 #9880ff}100%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}}
+.radio-button{
+	display: none;
+	white-space: nowrap;
+	background-color: #d1d1d1;
+	border-radius: 4px;
+}
+
+.radio-button input[type="radio"] {
+	display: none;
+}
+   
+.radio-button label {
+	display: inline-block;
+	font-size: 14px;
+	padding: 4px 5px;
+	color: white;
+	cursor: pointer;
+	border-radius: 4px;
+}
+
+.radio-button input[type="radio"]:checked+label {
+	background-color: #1080c1;
+}
 </style>
 </head>
 <fieldset class="cbi-section">
@@ -30,10 +53,28 @@
 	  		<b><%:Tip: after started, please wait patiently until the connection is normal%></b>
 	  	</p>
 	  </td></tr>
-		<tr><td width="25%"><%:Main Program%></td><td  width="25%" align="left" id="_clash"><%:Collecting data...%></td><td width="25%"><%:Control Panel Login IP%></td><td width="25%" align="left" id="_daip"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"><%:Core Daemons%></td><td width="25%" align="left" id="_watchdog"><%:Collecting data...%></td><td width="25%"><%:Control Panel Login Port%></td><td width="25%" align="left" id="_dapo"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"><%:Core Running Mode%></td><td  width="25%" align="left" id="_mode"><%:Collecting data...%></td><td width="25%"><%:Control Panel Login Secret%></td><td width="25%" align="left" id="_dase"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"><%:Yacd Control Panel%></td><td width="25%" align="left" id="_web"><%:Collecting data...%></td><td width="25%"><%:Dashboard Control Panel%></td><td width="25%" align="left" id="_webo"><%:Collecting data...%></td></tr>
+		<tr><td width="25%"><%:Main Program%></td><td  width="25%" align="left"><span id="_clash"><%:Collecting data...%></span><span id="_watchdog">></span></td><td width="25%"><%:Control Panel Login IP%></td><td width="25%" align="left" id="_daip"><%:Collecting data...%></td></tr>
+		<tr><td width="20%"><%:Running Mode%></td><td  width="30%" align="left"><span id="_mode"><%:Collecting data...%></span><span id="radio-ru-mode" class="radio-button">
+				<input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/>
+				<label for="normal" id="run_normal"><%:Compatible%></label>
+				<input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/>
+				<label for="tun"><%:TUN%></label>
+				<input type="radio" id="game" name="radios-ru" value="-vpn" onclick="return switch_run_mode(this.value)"/>
+				<label for="game"><%:Game%></label>
+				<input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/>
+				<label for="mix"><%:Mix%></label>
+			</span></td><td width="25%"><%:Control Panel Login Port%></td><td width="25%" align="left" id="_dapo"><%:Collecting data...%></td></tr>
+		<tr><td width="25%"><%:Proxy Mode%></td><td width="25%" align="left"><span id="radio-de"><%:Collecting data...%></span><span id="radio-mode" class="radio-button">
+				<input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/>
+				<label for="rule">Rule</label>
+				<input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/>
+				<label for="global">Global</label>
+				<input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/>
+				<label for="direct">Direct</label>
+				<input type="radio" id="script" name="radios" value="script" onclick="return switch_rule_mode(this.value)"/>
+				<label for="script">Script</label>
+			</span></td><td width="25%"><%:Control Panel Login Secret%></td><td width="25%" align="left" id="_dase"><%:Collecting data...%></td></tr>
+			<tr><td width="25%"><%:Yacd Control Panel%></td><td width="25%" align="left" id="_web"><%:Collecting data...%></td><td width="25%"><%:Dashboard Control Panel%></td><td width="25%" align="left" id="_webo"><%:Collecting data...%></td></tr>
 		<tr id="tool_label2"><td colspan="4"><p align="center">
 <span>
 &nbsp;&nbsp;<%:Up:%>&nbsp;
@@ -108,14 +149,14 @@
 		</tr>
 		<tr id="hid_1"><td width="100%" colspan="4"><p align="center"><b><%:Quick Operation%></b></p></td></tr>
     <tr id="hid_2">
-    	<td width="25%" align="center" id="_close_all_connection"><%:Collecting data...%></td>
-			<td width="25%" align="center" id="_reload_firewall"><%:Collecting data...%></td>
-			<td width="25%" align="center" id="_update_subscribe"><%:Collecting data...%></td>
-			<td width="25%" align="center" id="_one_key_update"><%:Collecting data...%></td>
+    	<td width="25%" align="center"><p align="center" id="_close_all_connection"><%:Collecting data...%></p></td>
+			<td width="25%" align="center"><p align="center" id="_reload_firewall"><%:Collecting data...%></p></td>
+			<td width="25%" align="center"><p align="center" id="_update_subscribe"><%:Collecting data...%></p></td>
+			<td width="25%" align="center"><p align="center" id="_one_key_update"><%:Collecting data...%></p></td>
 			</tr>
 		<tr id="hid_3">
-			<td width="50%" colspan="2" align="center" id="_update_other_rules"><%:Collecting data...%></td>
-			<td width="50%" colspan="2" align="center" id="_update_geoip"><%:Collecting data...%></td>
+			<td width="50%" colspan="2" align="center"><p align="center" id="_update_other_rules"><%:Collecting data...%></p></td>
+			<td width="50%" colspan="2" align="center"><p align="center" id="_update_geoip"><%:Collecting data...%></p></td>
 			</tr>
 </table>
 </fieldset>
@@ -159,6 +200,11 @@
 	var state = document.getElementById("state");
 	var hid_btn = document.getElementById("hid_btn");
 	var tool_label2 = document.getElementById('tool_label2');
+	var radio_mode = document.getElementById('radio-mode');
+	var radio_de = document.getElementById('radio-de');
+	var radio_ru_mode = document.getElementById('radio-ru-mode');
+	var radio_ru = document.getElementsByName("radios-ru");
+	var radio_run_normal = document.getElementById("run_normal");
 	var hid_btn_if = true;
 	var ws_connect = false;
 	var ws_error = false;
@@ -167,7 +213,11 @@
 	var ws_t;
 	var ws_c;
 	var state_refresh;
+	var s;
+	var gr;
 	state_get();
+	get_rule_mode();
+	get_run_mode();	
 	
 	hid_1.style.display = "none";
 	hid_2.style.display = "none";
@@ -184,39 +234,7 @@
 			{
 			   clash.innerHTML = status.clash ? '<b><font color=green><%:Running%> <%:<Limited State>%></font></b>' : '<b><font color=red><%:Not Running%></font></b>';
 			}
-			if ( status.mode == "fake-ip" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP (Enhance)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
-			}
-			else if ( status.mode == "redir-host" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host (Compatible)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
-			}
-			else if ( status.mode == "redir-host-tun" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host (TUN)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
-			}
-			else if ( status.mode == "fake-ip-tun" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP (TUN)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
-			}
-			else if ( status.mode == "redir-host-vpn" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host (Game)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
-			}
-			else if ( status.mode == "fake-ip-vpn" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP (Game)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
-			}
-			else if ( status.mode == "fake-ip-mix" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP (TUN-Mix)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
-			}
-			else if ( status.mode == "redir-host-mix" )
-			{
-			   mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host (TUN-Mix)%></font></b>" : '<b><font color=red><%:Not Running%></font></b>';
-			}
-			watchdog.innerHTML = status.watchdog ? '<b><font color=green><%:Running%></font> </b>' : '<b><font color=red><%:Not Running%></font></b>';
+			watchdog.innerHTML = status.watchdog ? '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b><font color=green><%:Running%></font></b>' : '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b><font color=red><%:Not Running%></font></b>';
 			dase.innerHTML = status.dase ? "<b><font color=green>"+status.dase+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
 			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
@@ -241,7 +259,24 @@
 			   daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			   dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
 			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
+			};
+			
+			if (status.clash) {
+				radio_mode.style.display = "inline-block";
+				radio_de.style.display = "none";
 			}
+			else {
+				radio_mode.style.display = "none";
+				radio_de.style.display = "";
+				radio_de.innerHTML = "<b><font color=red><%:Not Running%></font></b>";
+			};
+			
+			if (status.clash) {
+				radio_ru_mode.style.display = "inline-block";
+			}
+			else {
+				radio_ru_mode.style.display = "none";
+			};
 			
 			function ws_open() {
 				ws_t = new WebSocket(luci_protocol+"/traffic?token="+status.dase);
@@ -278,6 +313,75 @@
 		}
 	});
 	
+	function get_rule_mode() {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "rule_mode")%>', null, function(x, status) {
+			if (x && x.status == 200 && status.mode != "") {
+				var radio = document.getElementsByName("radios");
+				for (i=0; i<radio.length; i++) {
+					if (radio[i].value == status.mode && ! radio[i].checked) {
+						radio[i].checked = true;
+					}
+				}
+			}
+		});
+		s = setTimeout("get_rule_mode()",5000);
+	};
+	
+	function switch_rule_mode(value)
+	{
+		clearTimeout(s);
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_rule_mode")%>', {rule_mode: value}, function(x, status) {
+			if (x && x.status == 200) {
+    		alert(' <%:Proxy Mode%>: ' + value + ' <%:switching succeeded!%>');
+    		get_rule_mode();
+			}
+			else {
+				alert(' <%:Proxy Mode%>: ' + value + ' <%:switching failed!%>');
+				get_rule_mode();
+			}
+		});
+	};
+	
+	function get_run_mode() {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_run_mode")%>', null, function(x, status) {
+			if (x && x.status == 200 && status.mode) {
+				if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-vpn" || status.mode == "fake-ip-mix")
+				{
+			   	mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP%></font></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b><font color=red><%:Not Running%></font></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;';
+			   	radio_run_normal.innerHTML = "<%:Enhance%>"
+				}
+				else if (status.mode == "redir-host" || status.mode == "redir-host-tun" || status.mode == "redir-host-vpn" || status.mode == "redir-host-mix")
+				{
+			  	 mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host%></font></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b><font color=red><%:Not Running%></font></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;';
+			  	 radio_run_normal.innerHTML = "<%:Compatible%>"
+				};
+				for (i=0; i<radio_ru.length; i++) {
+					if (radio_ru[i].value == ("-"+status["mode"].split("-")[2]) && ! radio_ru[i].checked) {
+						radio_ru[i].checked = true;
+					}
+				};
+			};
+		});
+		gr = setTimeout("get_run_mode()",5000);
+	};
+	
+	function switch_run_mode(value)
+	{
+		var r = confirm("<%:Are you sure want to switch the running mode?%>")
+    if (r == true) {
+    	clearTimeout(gr);
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_run_mode")%>', {run_mode: value}, function(x, status) {
+			if (x && x.status == 200) {
+				get_run_mode();
+			}
+			else {
+				get_run_mode();
+			}
+			});
+			
+		}
+	};
+	
 	function state_get() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "state")%>', null, function(x, status) {
 			if ( x && x.status == 200 ) {
@@ -294,7 +398,7 @@
 		 	 }
 			}
 		});
-	}
+	};
 	
 	function hid_btn_action() {
 		if (hid_btn_if) {
@@ -313,7 +417,7 @@
 			hid_btn_if = true;
 			clearInterval(state_refresh);
 		}
-	}
+	};
 	
 	function winOpen(url)
 	{
@@ -321,7 +425,7 @@
 		if(winOpen == null || typeof(winOpen) == 'undefined'){
 			window.location.href=url;
 		}
-	}
+	};
 	 
 	function ws_terror() {
 		ws_error = true;
@@ -353,7 +457,7 @@
 				document.getElementById("connect_t").innerHTML = "<font color=green>0</font>";
 			}
 		});
-	}
+	};
 	
 	function show_sys() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', null, function(x, status) {
@@ -425,7 +529,8 @@
         }
         btn.disabled = false;
         return false; 
-    }
+    };
+    
     function b_update_other_rules(btn)
     {
         btn.disabled = true;
@@ -441,7 +546,8 @@
         }
         return false;
         });
-    }
+    };
+    
     function b_update_geoip(btn)
     {
         btn.disabled = true;
@@ -457,7 +563,8 @@
         }
         return false;
         });
-    }
+    };
+    
     function b_update_subscribe(btn)
     {
         btn.disabled = true;
@@ -473,7 +580,8 @@
         }
         return false;
         });
-    }
+    };
+    
 	  function b_reload_firewall(btn)
     {
         btn.disabled = true;
@@ -489,7 +597,8 @@
         }
         return false;
         });
-    }
+    };
+    
 	  function b_close_all_connection(btn)
     {
         btn.disabled = true;
@@ -505,7 +614,7 @@
         }
         return false;
         });
-    }
+    };
     
 	  function ycad_dashboard(btn)
     {
@@ -524,7 +633,8 @@
         winOpen(url1);
         return false;
         });
-    }
+    };
+    
     function net_dashboard(btn)
     {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
@@ -542,31 +652,31 @@
         winOpen(url2);
         return false;
         });
-    }
+    };
     
     function homepage()
     {
         url3='https://github.com/vernesong/OpenClash';
         winOpen(url3);
-    }
+    };
     
     function wikipage()
     {
         url5='https://github.com/vernesong/OpenClash/wiki';
         winOpen(url5);
-    }
+    };
     
     function telegrampage()
     {
         url6='https://t.me/ctcgfw_openwrt_discuss';
         winOpen(url6);
-    }
+    };
     
     function sponsorpage()
     {
         url7='https://ko-fi.com/vernesong';
         winOpen(url7);
-    }
+    };
     
 
 	  XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "currentversion")%>', null, function(x, status) {
@@ -585,7 +695,7 @@
           }
        }
         });
-    }
+    };
 
     function clashversion_error()
     {
@@ -594,19 +704,19 @@
              clashversion.innerHTML = '<img id="currenntver" src="'+status.currentversion+'" alt="currentversion" height="21px" onclick="return go_update()">';
 	        }
 	     });
-    }
+    };
     
     function imgerrorfuns(imgobj,imgSrc){
     	setTimeout(function(){
         imgobj.src=imgSrc;
       },1000*10);
-     }
+     };
      
     function go_update()
     {
        url4='https://github.com/vernesong/OpenClash/releases';
        winOpen(url4);
-    }
+    };
     
 	var startlog = document.getElementById('_clashstart');
 	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {

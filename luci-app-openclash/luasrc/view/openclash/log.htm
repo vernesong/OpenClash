@@ -6,14 +6,6 @@ ul{
 	list-style: none;
 }
 
-.log_level{
-	padding-top: 10px;
-	height: 50px;
-	text-align: center;
-	overflow: auto;
-	white-space: nowrap;
-}
-
 #tab{
 	width: 100%;
 	height: 100%;
@@ -60,9 +52,35 @@ ul{
  
 #tab-content .dom ul li{
   float: left;
-  /*background-color: red;*/
   margin: 15px 10px;
   width: 225px;
+}
+
+.radio-button{
+	width: fit-content;
+	text-align: center;
+	overflow: auto;
+	margin: 10px auto;
+	white-space: nowrap;
+	background-color: #d1d1d1;
+	border-radius: 4px;
+}
+
+.radio-button input[type="radio"] {
+	display: none;
+}
+   
+.radio-button label {
+	display: inline-block;
+	padding: 4px 11px;
+	font-size: 18px;
+	color: white;
+	cursor: pointer;
+	border-radius: 4px;
+}
+
+.radio-button input[type="radio"]:checked+label {
+	background-color: #1080c1;
 }
 
 </style>
@@ -81,16 +99,17 @@ ul{
 			</div>
 		<div class="dom">
 				<textarea id="core_log" class="cbi-input-textarea" style="width: 100%;display:inline" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
-				<div class="log_level">&nbsp;&nbsp;<%:Log Level%>:&nbsp;
-					<select id="log_level">
-						<option value="info"><%:Info Mode%></option>
-						<option value="warning"><%:Warning Mode%></option>
-						<option value="error"><%:Error Mode%></option>
-						<option value="debug"><%:Debug Mode%></option>
-						<option value="silent"><%:Silent Mode%></option>
-					</select>&nbsp;&nbsp;
-					<input type="button" class="btn cbi-button cbi-button-apply" value="<%:Switch Log Level%>" onclick="return switch_log_level(this)" />
-					&nbsp;
+				<div class="radio-button">
+					<input type="radio" id="info" name="radios" value="info" checked onclick="return switch_log_level(this.value)"/>
+					<label for="info">Info</label>
+					<input type="radio" id="warning" name="radios" value="warning" onclick="return switch_log_level(this.value)"/>
+					<label for="warning">Warning</label>
+					<input type="radio" id="error" name="radios" value="error" onclick="return switch_log_level(this.value)"/>
+					<label for="error">Error</label>
+					<input type="radio" id="debug" name="radios" value="debug" onclick="return switch_log_level(this.value)"/>
+					<label for="debug">Debug</label>
+					<input type="radio" id="silent" name="radios" value="silent" onclick="return switch_log_level(this.value)"/>
+					<label for="silent">Silent</label>
 				</div>
 		</div>
 	</div>
@@ -122,47 +141,47 @@ var s;
 var log_len = 0;
 var lv = document.getElementById('cbid.openclash.config.clog');
 var cl = document.getElementById('core_log');
-var log_level = document.getElementById('log_level');
 
 function get_log_level() {
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "log_level")%>', null, function(x, status) {
 	if (x && x.status == 200 && status.log_level != "") {
-   	log_level.value = status.log_level;
-   	clearTimeout(s);
+		var radio = document.getElementsByName("radios");
+		for (i=0; i<radio.length; i++) {
+			if (radio[i].value == status.log_level && ! radio[i].checked) {
+				radio[i].checked = true;
+			}
+		}
 	}
-	else {
-		s=setTimeout("get_log_level()",2000);
-	}
-});
-}
-
+	});
+	s=setTimeout("get_log_level()",5000);
+};
 	
-function switch_log_level(btn)
+function switch_log_level(value)
 {
-	btn.disabled = true;
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_log")%>', {log_level: log_level.value}, function(x, status) {
+	clearTimeout(s);
+	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_log")%>', {log_level: value}, function(x, status) {
 		if (x && x.status == 200) {
-   		btn.disabled = false;
-    	alert(' <%:Log Level%>: ' + log_level.value + ' <%:switching succeeded!%>')
+    	alert(' <%:Log Level%>: ' + value + ' <%:switching succeeded!%>');
+    	get_log_level();
 		}
 		else {
-			alert(' <%:Log Level%>: ' + log_level.value + ' <%:switching failed!%>')
+			alert(' <%:Log Level%>: ' + value + ' <%:switching failed!%>');
+			get_log_level();
 		}
 	});
-	btn.disabled = false;
-	return false;
-}
+};
+
 
 function stop_refresh() {
 	clearTimeout(r);
 	return
-}
+};
 
 function start_refresh() {
 	clearTimeout(r);
 	r=setTimeout("poll_log()",1000*2);
 	return
-}
+};
 
 function createAndDownloadFile(fileName, content) {
     var aTag = document.createElement('a');
@@ -171,14 +190,14 @@ function createAndDownloadFile(fileName, content) {
     aTag.href = URL.createObjectURL(blob);
     aTag.click();
     URL.revokeObjectURL(blob);
-}
+};
 
 function download_log(){
 	var dt = new Date();
 	var timestamp = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getDate()+"-"+dt.getHours()+"-"+dt.getMinutes()+"-"+dt.getSeconds();
 	createAndDownloadFile("OpenClash-"+timestamp+".log","<%:OpenClash Log%>:\n"+lv.innerHTML+"\n<%:Core Log%>:\n"+cl.innerHTML)
 	return
-}
+};
 
 function del_log() {
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_log")%>',null,function(x, data){
@@ -191,11 +210,11 @@ function del_log() {
 		oc_editor.refresh();
 	});
 	return
-}
+};
 
 function p(s) {
 	return s < 10 ? '0' + s: s;
-}
+};
 
 function line_tolocal(str){
 	var strt=new Array();
@@ -218,7 +237,7 @@ function line_tolocal(str){
 		}
 	})
 	return [strt,cstrt]
-}
+};
 
 function poll_log(){
 XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "refresh_log")%>', {log_len: log_len},
@@ -252,7 +271,7 @@ XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "refresh
 	}
 );
 	r=setTimeout("poll_log()",1000*2);
-}
+};
  
 window.onload = function(){
     var titles = document.getElementsByName('tab-header');
@@ -280,7 +299,7 @@ window.onload = function(){
     }
     get_log_level();
     poll_log();
-}
+};
 //]]>
 </script>
 <%+cbi/valuefooter%>

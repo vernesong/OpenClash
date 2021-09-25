@@ -144,7 +144,7 @@ msgid "Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error"
 msgstr "选择运行模式，如客户端的网络异常请尝试清除DNS缓存"
 
 msgid "Proxy Mode"
-msgstr "*代理模式"
+msgstr "代理模式"
 
 msgid "Select Proxy Mode, Use Script Mode Could Prevent Proxy BT traffics If Rules Support, eg.lhie1's"
 msgstr "选择默认代理模式，如果规则支持，使用脚本模式可以阻止代理BT流量，比如lhie1规则"
@@ -196,9 +196,6 @@ msgstr "Silent【静默】"
 
 msgid "Select Core's Log Level"
 msgstr "选择内核日志的默认输出模式"
-
-msgid "Switch Log Level"
-msgstr "切换日志等级"
 
 msgid "Only intranet allowed"
 msgstr "仅允许内网"
@@ -297,8 +294,8 @@ msgstr "如果您不使用，请禁用IPv6的DHCP以避免连接异常"
 msgid "IPv6 DNS Resolve"
 msgstr "允许IPV6类型DNS解析"
 
-msgid "Enable Clash to Resolve ipv6 DNS Requests"
-msgstr "允许解析IPV6类型的DNS请求"
+msgid "Enable Clash to Resolve IPv6 DNS Requests"
+msgstr "允许解析IPv6类型的DNS请求"
 
 msgid "Rules Setting"
 msgstr "规则设置"
@@ -1125,13 +1122,13 @@ msgid "Choose The Load-Balance's Strategy Type"
 msgstr "选择负载均衡的策略类型"
 
 msgid "Main Program"
-msgstr "OpenClash 主程序"
+msgstr "主程序"
 
-msgid "Core Daemons"
-msgstr "OpenClash 守护程序"
+msgid "Daemons"
+msgstr "守护程序"
 
-msgid "Core Running Mode"
-msgstr "OpenClash 运行模式"
+msgid "Running Mode"
+msgstr "运行模式"
 
 msgid "Yacd Control Panel"
 msgstr "Yacd 控制面板"
@@ -1179,31 +1176,19 @@ msgid "No Backup"
 msgstr "暂未备份"
 
 msgid "<Limited State>"
-msgstr "<功能受限状态>"
+msgstr "<受限状态>"
 
-msgid "Fake-IP (Enhance)"
-msgstr "Fake-IP（增强）模式"
+msgid "Enhance"
+msgstr "增强"
 
-msgid "Redir-Host (Compatible)"
-msgstr "Redir-Host（兼容）模式"
+msgid "Compatible"
+msgstr "兼容"
 
-msgid "Redir-Host (TUN)"
-msgstr "Redir-Host（TUN）模式"
+msgid "Game"
+msgstr "游戏"
 
-msgid "Fake-IP (TUN)"
-msgstr "Fake-IP（TUN）模式"
-
-msgid "Redir-Host (Game)"
-msgstr "Redir-Host（游戏）模式"
-
-msgid "Fake-IP (Game)"
-msgstr "Fake-IP（游戏）模式"
-
-msgid "Fake-IP (TUN-Mix)"
-msgstr "Fake-IP（TUN-混合）模式"
-
-msgid "Redir-Host (TUN-Mix)"
-msgstr "Redir-Host（TUN-混合）模式"
+msgid "Mix"
+msgstr "混合"
 
 msgid "Open Panel"
 msgstr "打开控制面板"
@@ -1296,7 +1281,7 @@ msgid "Tip: the website access check shows the connection of the device currentl
 msgstr "Tip: 网站访问检查展示的是当前登录LUCI页面设备的连接情况"
 
 msgid "Tip: if you don not use IPv6, please turn off the DHCP service of IPv6, otherwise the connection will be abnormal"
-msgstr "Tip: 如果不使用IPV6，请关闭IPV6的DHCP服务，否则会造成连接异常"
+msgstr "Tip: 如果不使用IPv6，请关闭IPv6的DHCP服务，否则会造成连接异常"
 
 msgid "Tip: you can update the version in the global settings page"
 msgstr "Tip: 您可以在全局设置页面进行版本更新操作"
@@ -1434,7 +1419,7 @@ msgid "Custom GEOIP URL"
 msgstr "GEOIP数据库更新URL"
 
 msgid "Custom Chnroute6 Lists URL"
-msgstr "大陆IPV6段更新URL"
+msgstr "大陆IPv6段更新URL"
 
 msgid "Custom Chnroute Lists URL"
 msgstr "大陆IP段更新URL"
@@ -1446,7 +1431,7 @@ msgid "Custom Chnroute Lists URL, Click Button Below To Refresh After Edit"
 msgstr "自定义大陆IP段的更新来源，编辑后点击下方按钮生效"
 
 msgid "Custom Chnroute6 Lists URL, Click Button Below To Refresh After Edit"
-msgstr "自定义大陆IPV6段的更新来源，编辑后点击下方按钮生效"
+msgstr "自定义大陆IPv6段的更新来源，编辑后点击下方按钮生效"
 
 msgid "(Default)"
 msgstr "(默认)"
@@ -1704,37 +1689,37 @@ msgid "Start Downloading The Chnroute Cidr List..."
 msgstr "开始下载大陆IP白名单..."
 
 msgid "Start Downloading The Chnroute6 Cidr List..."
-msgstr "开始下载大陆IPV6白名单..."
+msgstr "开始下载大陆IPv6白名单..."
 
 msgid "Chnroute Cidr List Download Success, Check Updated..."
 msgstr "大陆IP白名单下载成功，检查版本是否更新..."
 
 msgid "Chnroute6 Cidr List Download Success, Check Updated..."
-msgstr "大陆IPV6白名单下载成功，检查版本是否更新..."
+msgstr "大陆IPv6白名单下载成功，检查版本是否更新..."
 
 msgid "Chnroute Cidr List Has Been Updated, Starting To Replace The Old Version..."
 msgstr "大陆IP白名单有更新，开始替换旧版本..."
 
 msgid "Chnroute6 Cidr List Has Been Updated, Starting To Replace The Old Version..."
-msgstr "大陆IPV6白名单有更新，开始替换旧版本..."
+msgstr "大陆IPv6白名单有更新，开始替换旧版本..."
 
 msgid "Chnroute Cidr List Update Successful!"
 msgstr "大陆IP白名单更新成功！"
 
 msgid "Chnroute6 Cidr List Update Successful!"
-msgstr "大陆IPV6白名单更新成功！"
+msgstr "大陆IPv6白名单更新成功！"
 
 msgid "Updated Chnroute Cidr List No Change, Do Nothing..."
 msgstr "大陆IP白名单没有更新，停止继续操作..."
 
 msgid "Updated Chnroute6 Cidr List No Change, Do Nothing..."
-msgstr "大陆IPV6白名单没有更新，停止继续操作..."
+msgstr "大陆IPv6白名单没有更新，停止继续操作..."
 
 msgid "Chnroute Cidr List Update Error, Please Try Again Later..."
 msgstr "大陆IP白名单下载失败，请检查网络或稍后再试..."
 
 msgid "Chnroute6 Cidr List Update Error, Please Try Again Later..."
-msgstr "大陆IPV6白名单下载失败，请检查网络或稍后再试..."
+msgstr "大陆IPv6白名单下载失败，请检查网络或稍后再试..."
 
 msgid "Start Downloading Geoip Database..."
 msgstr "开始下载 GEOIP 数据库..."
@@ -1961,8 +1946,8 @@ msgstr "第十步: 添加计划任务,启动进程守护程序..."
 msgid "OpenClash Start Successful!"
 msgstr "OpenClash 启动成功，请等待服务器上线！"
 
-msgid "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPV6's DHCP Server"
-msgstr "警告：OpenClash 启动成功，检测到您启用了IPV6的DHCP服务，可能会造成连接异常！"
+msgid "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPv6's DHCP Server"
+msgstr "警告：OpenClash 启动成功，检测到您启用了IPv6的DHCP服务，可能会造成连接异常！"
 
 msgid "Warning: OpenClash Start Successful With Raw Config File, Please Note That It's Restricted Mode Now"
 msgstr "警告：OpenClash 使用原始配置文件启动成功，部分设置可能未生效！"
@@ -2401,3 +2386,6 @@ msgstr "将上游分配的DNS和网关IP追加到Nameserver"
 
 msgid "All Groups"
 msgstr "所有策略组"
+
+msgid "Are you sure want to switch the running mode?"
+msgstr "确认要切换运行模式吗?"
