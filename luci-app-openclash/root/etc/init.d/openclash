@@ -1608,8 +1608,10 @@ if [ -n "$en_mode_tun" ]; then
       ip link set utun up
    elif [ "$en_mode_tun" -eq 1 ] || [ "$en_mode_tun" -eq 3 ]; then
       TUN_WAIT=0
+      ip link set utun up
       while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 3 ] )
       do
+         ip link set utun up
          let TUN_WAIT++
          sleep 2
       done
