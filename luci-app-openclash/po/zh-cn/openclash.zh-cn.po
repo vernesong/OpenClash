@@ -107,6 +107,9 @@ msgstr "应用配置"
 msgid "Download Config"
 msgstr "下载配置"
 
+msgid "Copy Config"
+msgstr "复制配置"
+
 msgid "Update Config"
 msgstr "更新配置"
 

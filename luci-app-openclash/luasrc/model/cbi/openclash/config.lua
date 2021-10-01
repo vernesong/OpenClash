@@ -147,16 +147,6 @@ if HTTP.formvalue("upload") then
 	end
 end
 
-local function i(e)
-local t=0
-local a={' KB',' MB',' GB',' TB'}
-repeat
-e=e/1024
-t=t+1
-until(e<=1024)
-return string.format("%.1f",e)..a[t]
-end
-
 local e,a={}
 for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
 a=fs.stat(o)
@@ -164,7 +154,6 @@ if a then
 e[t]={}
 e[t].name=fs.basename(o)
 BACKUP_FILE="/etc/openclash/backup/".. e[t].name
-CONFIG_FILE="/etc/openclash/config/".. e[t].name
 if fs.mtime(BACKUP_FILE) then
    e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",fs.mtime(BACKUP_FILE))
 else
@@ -175,8 +164,8 @@ if uci:get("openclash", "config", "config_path") and string.sub(uci:get("opencla
 else
    e[t].state=translate("Disable")
 end
-e[t].size=i(a.size)
-e[t].check=translate(config_check(CONFIG_FILE))
+e[t].size=fs.filesize(a.size)
+e[t].check=translate(config_check(o))
 e[t].remove=0
 end
 end
@@ -210,6 +199,30 @@ fs.unlink("/tmp/Proxy_Group")
 uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..e[t].name)
 uci:commit("openclash")
 HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
+end
+
+btncp=tb:option(Button,"copy",translate("Copy Config"))
+btncp.template="openclash/other_button"
+btncp.render=function(o,t,a)
+if not e[t] then return false end
+if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+a.display=""
+else
+a.display="none"
+end
+o.inputstyle="apply"
+Button.render(o,t,a)
+end
+btncp.write=function(a,t)
+	local num = 1
+	while true do
+		num = num + 1
+		if not fs.isfile("/etc/openclash/config/"..fs.filename(e[t].name).."("..num..")"..".yaml") then
+			fs.copy("/etc/openclash/config/"..e[t].name, "/etc/openclash/config/"..fs.filename(e[t].name).."("..num..")"..".yaml")
+			break
+		end
+	end
+	HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
 end
 
 btndl = tb:option(Button,"download",translate("Download Config"))

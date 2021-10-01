@@ -283,7 +283,7 @@ end
 local function historychecktime()
 	local CONFIG_FILE = uci:get("openclash", "config", "config_path")
 	if not CONFIG_FILE then return "0" end
-  local HISTORY_PATH = "/etc/openclash/history/" .. string.sub(luci.sys.exec(string.format("$(basename '%s' .yml) 2>/dev/null || $(basename '%s' .yaml) 2>/dev/null",CONFIG_FILE,CONFIG_FILE)), 1, -2)
+  local HISTORY_PATH = "/etc/openclash/history/" .. fs.filename(fs.basename(CONFIG_FILE))
 	if not nixio.fs.access(HISTORY_PATH) then
   	return "0"
 	else
@@ -627,16 +627,6 @@ return string.format("%.1f",e)..a[t]
 end
 end
 
-local function i(e)
-local t=0
-local a={' KB',' MB',' GB',' TB'}
-repeat
-e=e/1024
-t=t+1
-until(e<=1024)
-return string.format("%.1f",e)..a[t]
-end
-
 function action_toolbar_show_sys()
 	local pid = luci.sys.exec("pidof clash |tr -d '\n' 2>/dev/null")
 	local mem, cpu
@@ -644,7 +634,7 @@ function action_toolbar_show_sys()
 		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
 		cpu = luci.sys.exec(string.format("top -b -n1 |grep %s 2>/dev/null |head -1 |awk '{print $7}' 2>/dev/null", pid))
 		if mem and cpu then
-			mem = i(mem*1024)
+			mem = fs.filesize(mem*1024)
 			cpu = string.gsub(cpu, "%%\n", "")
 		else
 			mem = "0 KB"
@@ -674,8 +664,8 @@ function action_toolbar_show()
 			connection = #(connections.connections)
 			up = s(traffic.up)
 			down = s(traffic.down)
-			up_total = i(connections.uploadTotal)
-			down_total = i(connections.downloadTotal)
+			up_total = fs.filesize(connections.uploadTotal)
+			down_total = fs.filesize(connections.downloadTotal)
 		else
 			up = "0 B/S"
 			down = "0 B/S"
@@ -686,7 +676,7 @@ function action_toolbar_show()
 		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
 		cpu = luci.sys.exec(string.format("top -b -n1 |grep %s 2>/dev/null |head -1 |awk '{print $7}' 2>/dev/null", pid))
 		if mem and cpu then
-			mem = i(mem*1024)
+			mem = fs.filesize(mem*1024)
 			cpu = string.gsub(cpu, "%%\n", "")
 		else
 			mem = "0 KB"
