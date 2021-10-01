@@ -493,7 +493,6 @@ o.description = translate("Custom GEOIP Data URL, Click Button Below To Refresh 
 o:value("https://cdn.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb", translate("Alecthw-lite-Version")..translate("(Default mmdb)"))
 o:value("https://cdn.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/Country.mmdb", translate("Alecthw-Version")..translate("(All Info mmdb)"))
 o:value("https://cdn.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/Country.mmdb", translate("Hackl0us-Version")..translate("(Only CN)"))
-o:value("https://static.clash.to/GeoIP2/GeoIP2-Country.mmdb", translate("Static.clash.to"))
 o:value("https://geolite.clash.dev/Country.mmdb", translate("Geolite.clash.dev"))
 o.default = "http://www.ideame.top/mmdb/Country.mmdb"
 

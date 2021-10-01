@@ -47,7 +47,6 @@ e[t]={}
 e[t].num=string.format(t)
 e[t].name=fs.basename(o)
 BACKUP_FILE="/etc/openclash/backup/".. e[t].name
-CONFIG_FILE="/etc/openclash/config/".. e[t].name
 if fs.mtime(BACKUP_FILE) then
    e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",fs.mtime(BACKUP_FILE))
 else
@@ -58,7 +57,7 @@ if m.uci:get("openclash", "config", "config_path") and string.sub(m.uci:get("ope
 else
    e[t].state=translate("Disable")
 end
-e[t].check=translate(config_check(CONFIG_FILE))
+e[t].check=translate(config_check(o))
 end
 end
 

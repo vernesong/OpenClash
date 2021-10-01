@@ -31,6 +31,7 @@ local fs	= require "nixio.fs"
 local nutil = require "nixio.util"
 
 local type  = type
+local string  = string
 
 --- LuCI filesystem library.
 module "luci.openclash"
@@ -242,3 +243,22 @@ unlink = fs.unlink
 -- @return		String containing the error description on error
 -- @return		Number containing the os specific errno on error
 readlink = fs.readlink
+
+function filename(str)
+	local idx = str:match(".+()%.%w+$")
+	if(idx) then
+		return str:sub(1, idx-1)
+	else
+		return str
+	end
+end
+
+function filesize(e)
+	local t=0
+	local a={' KB',' MB',' GB',' TB'}
+	repeat
+		e=e/1024
+		t=t+1
+	until(e<=1024)
+	return string.format("%.1f",e)..a[t]
+end
