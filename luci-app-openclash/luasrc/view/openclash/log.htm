@@ -118,16 +118,16 @@ ul{
 <fieldset class="cbi-section">
 	<table width="100%">
 		<tr>
-			<td width="25%" align="center">
+			<td style="text-align: center; width: 25%">
 				<input type="button" class="btn cbi-button cbi-button-apply" id="stop_refresh_button" value="<%:Stop Refresh Log%>" onclick=" return stop_refresh() "/>
 			</td>
-			<td width="25%" align="center">
+			<td style="text-align: center; width: 25%">
 				<input type="button" class="btn cbi-button cbi-button-apply" id="start_refresh_button" value="<%:Start Refresh Log%>" onclick=" return start_refresh() "/>
 			</td>
-			<td width="25%" align="center">
+			<td style="text-align: center; width: 25%">
 				<input type="button" class="btn cbi-button cbi-button-apply" id="del_log_button" value="<%:Clean Log%>" style=" display:inline;" onclick=" return del_log() " />
 			</td>
-			<td width="25%" align="center">
+			<td style="text-align: center; width: 25%">
 				<input type="button" class="btn cbi-button cbi-button-apply" id="down_log_button" value="<%:Download Log%>" style=" display:inline;" onclick=" return download_log() " />
 			</td>
 		</tr>
@@ -141,6 +141,10 @@ var s;
 var log_len = 0;
 var lv = document.getElementById('cbid.openclash.config.clog');
 var cl = document.getElementById('core_log');
+document.getElementById('stop_refresh_button').style.textAlign="center";
+document.getElementById('start_refresh_button').style.textAlign="center";
+document.getElementById('del_log_button').style.textAlign="center";
+document.getElementById('down_log_button').style.textAlign="center";
 
 function get_log_level() {
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "log_level")%>', null, function(x, status) {
