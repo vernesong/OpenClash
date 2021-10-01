@@ -40,16 +40,6 @@ if not NXFS.access("/tmp/rule_providers_name") then
 end
 file = io.open("/tmp/rule_providers_name", "r");
 
-local function i(e)
-local t=0
-local a={' KB',' MB',' GB',' TB'}
-repeat
-e=e/1024
-t=t+1
-until(e<=1024)
-return string.format("%.1f",e)..a[t]
-end
-
 ---- Rules List
 local e={},o,t
 if NXFS.access("/tmp/rule_providers_name") then
@@ -69,7 +59,7 @@ e[t].author=string.sub(luci.sys.exec(string.format("grep -F '%s' /usr/share/open
 e[t].rule_type=string.sub(luci.sys.exec(string.format("grep -F '%s' /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $3}' 2>/dev/null",o)),1,-2)
 RULE_FILE="/etc/openclash/rule_provider/".. e[t].lfilename
 if fs.mtime(RULE_FILE) then
-e[t].size=i(fs.stat(RULE_FILE).size)
+e[t].size=fs.filesize(fs.stat(RULE_FILE).size)
 e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",fs.mtime(RULE_FILE))
 else
 e[t].size="/"

@@ -55,8 +55,10 @@ e[t].filename=string.sub(luci.sys.exec(string.format("grep -F '%s,' /usr/share/o
 end
 RULE_FILE="/etc/openclash/game_rules/".. e[t].filename
 if fs.mtime(RULE_FILE) then
+e[t].size=fs.filesize(fs.stat(RULE_FILE).size)
 e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",fs.mtime(RULE_FILE))
 else
+e[t].size="/"
 e[t].mtime="/"
 end
 if fs.isfile(RULE_FILE) then
@@ -78,6 +80,7 @@ st=tb:option(DummyValue,"exist",translate("State"))
 st.template="openclash/cfg_check"
 nm=tb:option(DummyValue,"name",translate("Rule Name"))
 fm=tb:option(DummyValue,"filename",translate("File Name"))
+sz=tb:option(DummyValue,"size",translate("Size"))
 mt=tb:option(DummyValue,"mtime",translate("Update Time"))
 
 btnis=tb:option(DummyValue,"filename",translate("Download Rule"))

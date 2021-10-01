@@ -9,16 +9,6 @@ local UTIL = require "luci.util"
 local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 
-local function i(e)
-local t=0
-local a={' KB',' MB',' GB',' TB'}
-repeat
-e=e/1024
-t=t+1
-until(e<=1024)
-return string.format("%.1f",e)..a[t]
-end
-
 local p,r={}
 for x,y in ipairs(fs.glob("/etc/openclash/proxy_provider/*"))do
 r=fs.stat(y)
@@ -26,7 +16,7 @@ if r then
 p[x]={}
 p[x].name=fs.basename(y)
 p[x].mtime=os.date("%Y-%m-%d %H:%M:%S",r.mtime)
-p[x].size=i(r.size)
+p[x].size=fs.filesize(r.size)
 p[x].remove=0
 p[x].enable=false
 end
