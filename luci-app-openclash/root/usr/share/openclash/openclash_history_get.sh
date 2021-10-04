@@ -26,20 +26,31 @@ fi
 
 CONFIG_FILE=$(unify_ps_cfgname)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $4}' 2>/dev/null)
-HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}"
-CACHE_PATH="/etc/openclash/.cache"
+HISTORY_PATH_OLD="/etc/openclash/history/${CONFIG_NAME%.*}"
+HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}.db"
+CACHE_PATH_OLD="/etc/openclash/.cache"
+CACHE_PATH="/etc/openclash/cache.db"
 set_lock
 
 if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
    CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
    CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-   HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}"
+   HISTORY_PATH_OLD="/etc/openclash/history/${CONFIG_NAME%.*}"
+   HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}.db"
 fi
 
-if [ -n "$(pidof clash)" ] && [ -f "$CONFIG_FILE" ] && [ -f "$CACHE_PATH" ]; then
-   cmp -s "$CACHE_PATH" "$HISTORY_PATH"
-   if [ "$?" -ne "0" ]; then
-      cp "$CACHE_PATH" "$HISTORY_PATH" 2>/dev/null
+if [ -n "$(pidof clash)" ] && [ -f "$CONFIG_FILE" ]; then
+   if [ -f "$CACHE_PATH" ]; then
+      cmp -s "$CACHE_PATH" "$HISTORY_PATH"
+      if [ "$?" -ne "0" ]; then
+         cp "$CACHE_PATH" "$HISTORY_PATH" 2>/dev/null
+      fi
+   fi
+   if [ -f "$CACHE_PATH_OLD" ]; then
+      cmp -s "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD"
+      if [ "$?" -ne "0" ]; then
+         cp "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD" 2>/dev/null
+      fi
    fi
 fi
 
