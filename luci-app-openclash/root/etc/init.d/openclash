@@ -13,7 +13,8 @@ CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
 RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
 BACKUP_FILE="/etc/openclash/backup/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
-CACHE_PATH="/etc/openclash/.cache"
+CACHE_PATH_OLD="/etc/openclash/.cache"
+CACHE_PATH="/etc/openclash/cache.db"
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
 CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
@@ -137,7 +138,6 @@ kill_clash()
    for clash_pid in $clash_pids; do
       kill -9 "$clash_pid" 2>/dev/null
    done >/dev/null 2>&1
-   sleep 1
 }
 
 start_fail()
@@ -294,7 +294,7 @@ if [ -z "$(pidof clash)" ] && [ -n "$provider_path_check" ]; then
    else
       LOG_OUT "Error: Failed To Download Rule-providers, Please Check The Log Page For Detailed error information!"
    fi
-   sleep 5
+   sleep 3
    start_fail
 elif [ "$provider_path_check_num" -gt 5 ]; then
    LOG_OUT "Warning: Providers File Check Timeout, If Failed To start, Please Check The Log Page For Detailed error information!"
@@ -432,7 +432,6 @@ yml_dns_custom()
          fi
       else
          LOG_OUT "Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers"
-         sleep 2
       fi
    fi
 }
@@ -847,7 +846,8 @@ if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
    fi
 fi 2>/dev/null
 CONFIG_NAME=$(echo "$RAW_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}"
+HISTORY_PATH_OLD="/etc/openclash/history/${CONFIG_NAME%.*}"
+HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}.db"
 
 if [ ! -f "$RAW_CONFIG_FILE" ]; then
    config_load "openclash"
@@ -855,13 +855,12 @@ if [ ! -f "$RAW_CONFIG_FILE" ]; then
    subscribe_auto_update=$(uci get openclash.config.auto_update 2>/dev/null)
    if [ "$subscribe_enable" = "1" ] && [ "$subscribe_auto_update" -eq 1 ]; then
       LOG_OUT "Config File Does Not Exist, You Have Set Subscription Information, Ready To Download..."
-      sleep 3
       nohup /usr/share/openclash/openclash.sh &
       del_lock
       exit 0
    else
       LOG_OUT "Error: Config Not Found"
-      sleep 5
+      sleep 3
       del_lock
       exit 0
    fi
@@ -1088,7 +1087,7 @@ do_run_file()
         echo "" >> $LOG_FILE
         echo "---------- https://mirrors.cloud.tencent.com/lede/snapshots/packages/ ----------" >> $LOG_FILE
         echo "" >> $LOG_FILE
-        sleep 5
+        sleep 3
         start_fail
       fi
    fi
@@ -1117,16 +1116,23 @@ check_interface_name()
 start_run_core()
 {
    LOG_OUT "$core_start_log"
-   sleep 2
    ulimit -SHn 65535 2>/dev/null
    ulimit -v unlimited 2>/dev/null
    modprobe tun >/dev/null 2>&1
    check_interface_name
-   config_reload=$(uci get openclash.config.config_reload 2>/dev/null)
+   config_reload=$(uci -q get openclash.config.config_reload)
    #Resore history cache
-   cmp -s "$CACHE_PATH" "$HISTORY_PATH"
-   if [ "$?" -ne "0" ]; then
-      cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
+   if [ -f "$HISTORY_PATH" ]; then
+      cmp -s "$CACHE_PATH" "$HISTORY_PATH"
+      if [ "$?" -ne "0" ]; then
+         cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
+      fi
+   fi
+   if [ -f "$HISTORY_PATH_OLD" ]; then
+      cmp -s "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD"
+      if [ "$?" -ne "0" ]; then
+         cp "$HISTORY_PATH_OLD" "$CACHE_PATH_OLD" 2>/dev/null
+      fi
    fi
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$config_reload" != "0" ]; then
       curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
@@ -1189,7 +1195,7 @@ raw_config_start()
    
    if ! pidof clash >/dev/null; then
       LOG_OUT "Error: OpenClash Can Not Start, Please Check The Error Info And Try Again!"
-      sleep 5
+      sleep 3
       start_fail
    fi
    
@@ -1240,7 +1246,6 @@ try_restore_start()
    if [ -z "$(pidof clash)" ]; then
       if [ "$rule_source" = 0 ] && [ "$enable_custom_clash_rules" = 0 ]; then
          LOG_OUT "Error: OpenClash Can Not Start, Try Use Raw Config Restart Again..."
-         sleep 3
          raw_config_start
       else
          LOG_OUT "Error: OpenClash Can Not Start, Try Use Backup Rules Start Again..."
@@ -1266,7 +1271,6 @@ try_restore_start()
          check_core_status
          if ! pidof clash >/dev/null; then
             LOG_OUT "Error: OpenClash Can Not Start, Try Use Raw Config Restart Again..."
-            sleep 3
             raw_config_start
          fi
       fi
@@ -1947,14 +1951,14 @@ start()
    add_cron
    if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] && [ "$(uci -q get openclash.config.restricted_mode)" != "1" ]; then
       LOG_OUT "OpenClash Start Successful!"
-      sleep 5
+      sleep 3
    elif [ -n "$(uci -q get dhcp.lan.dhcpv6)" ] && [ "$ipv6_enable" -eq 0 ]; then
       LOG_OUT "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPv6's DHCP Server"
-      sleep 5
+      sleep 3
    fi
    if [ "$(uci -q get openclash.config.restricted_mode)" = "1" ]; then
       LOG_OUT "Warning: OpenClash Start Successful With Raw Config File, Please Note That It's Restricted Mode Now"
-      sleep 5
+      sleep 3
    fi
    echo "OpenClash Already Start!"
    SLOG_CLEAN
@@ -2007,7 +2011,7 @@ stop()
       
       del_lock
       LOG_OUT "OpenClash Already Stop!"
-      sleep 5
+      sleep 3
    fi
    
    del_cron
