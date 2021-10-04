@@ -308,6 +308,7 @@ o:depends("obfs_vmess", "none")
 o:depends("obfs_vmess", "websocket")
 o:depends("obfs_vmess", "http")
 o:depends("obfs_vmess", "grpc")
+o:depends("obfs_vmess", "h2")
 o:depends("type", "socks5")
 o:depends("type", "http")
 
