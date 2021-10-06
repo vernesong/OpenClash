@@ -22,8 +22,8 @@ yml_other_set()
             Value_1 = YAML.load_file(i)
             if Value_1 != false then
                if Value_1.class.to_s == 'Hash' then
-                  if Value_1['script'] then
-                     if Value.key?('script') and not Value['script'].to_a.empty? then
+                  if Value_1['script'] and Value_1['script'].class.to_s != 'Array' then
+                     if Value.key?('script') and not Value_1['script'].to_a.empty? then
                         if Value['script'].key?('code') and Value_1['script'].key?('code') then
                            Value['script']['code'].merge!(Value_1['script']['code']).uniq
                         elsif Value_1['script'].key?('code') then
@@ -48,10 +48,10 @@ yml_other_set()
             Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
             if Value_1 != false then
                if Value_1.class.to_s == 'Hash' then
-                  if not Value_1['rules'].to_a.empty? then
+                  if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
                      Value_2 = Value_1['rules'].to_a.reverse!
                   end
-               else
+               elsif Value_1.class.to_s == 'Array'
                   Value_2 = Value_1.reverse!
                end
                if defined? Value_2 then
@@ -66,10 +66,10 @@ yml_other_set()
                ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
                ruby_add_index ||= -1
                if Value_3.class.to_s == 'Hash' then
-                  if not Value_3['rules'].to_a.empty? then
+                  if not Value_3['rules'].to_a.empty? and Value_3['rules'].class.to_s == 'Array' then
                      Value_4 = Value_3['rules'].to_a.reverse!
                   end
-               else
+               elsif Value_3.class.to_s == 'Array'
                   Value_4 = Value_3.reverse!
                end
                if defined? Value_4 then
@@ -83,13 +83,14 @@ yml_other_set()
             Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
             if Value_1 != false then
                if Value_1.class.to_s == 'Hash' then
-                 if not Value_1['rules'].to_a.empty? then
+                 if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
                     Value['rules'] = Value_1['rules']
+                    Value['rules'] = Value['rules'].uniq
                  end
-               else
+               elsif Value_1.class.to_s == 'Array'
                   Value['rules'] = Value_1
+                  Value['rules'] = Value['rules'].uniq
                end
-               Value['rules'] = Value['rules'].uniq
             end
          end
          if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
@@ -97,27 +98,29 @@ yml_other_set()
             if Value_2 != false then
                if Value['rules'].to_a.empty? then
                   if Value_2.class.to_s == 'Hash' then
-                    if not Value_2['rules'].to_a.empty? then
+                    if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
                        Value['rules'] = Value_2['rules']
+                       Value['rules'] = Value['rules'].uniq
                     end
-                  else
+                  elsif Value_2.class.to_s == 'Array' 
                      Value['rules'] = Value_2
+                     Value['rules'] = Value['rules'].uniq
                   end
                else
                   ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
                   ruby_add_index ||= -1
                   if Value_2.class.to_s == 'Hash' then
-                    if not Value_2['rules'].to_a.empty? then
+                    if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
                        Value_3 = Value_2['rules'].to_a.reverse!
                     end
-                  else
+                  elsif Value_2.class.to_s == 'Array'
                      Value_3 = Value_2.reverse!
                   end
                   if defined? Value_3 then
                      Value_3.each{|x| Value['rules'].insert(ruby_add_index,x)}
+                     Value['rules'] = Value['rules'].uniq
                   end
                end
-               Value['rules'] = Value['rules'].uniq
             end
          end
       end
