@@ -283,11 +283,12 @@ end
 local function historychecktime()
 	local CONFIG_FILE = uci:get("openclash", "config", "config_path")
 	if not CONFIG_FILE then return "0" end
-  local HISTORY_PATH = "/etc/openclash/history/" .. fs.filename(fs.basename(CONFIG_FILE))
-	if not nixio.fs.access(HISTORY_PATH) then
+  local HISTORY_PATH_OLD = "/etc/openclash/history/" .. fs.filename(fs.basename(CONFIG_FILE))
+  local HISTORY_PATH = "/etc/openclash/history/" .. fs.filename(fs.basename(CONFIG_FILE)) .. ".db"
+	if not nixio.fs.access(HISTORY_PATH) and not nixio.fs.access(HISTORY_PATH_OLD) then
   	return "0"
 	else
-		return os.date("%Y-%m-%d %H:%M:%S",fs.mtime(HISTORY_PATH))
+		return os.date("%Y-%m-%d %H:%M:%S",fs.mtime(HISTORY_PATH)) or os.date("%Y-%m-%d %H:%M:%S",fs.mtime(HISTORY_PATH_OLD))
 	end
 end
 
