@@ -1296,7 +1296,6 @@ firewall_rule_exclude()
    config_get "name" "$section" "name" ""
    config_get "src" "$section" "src" ""
    config_get "src_port" "$section" "src_port" ""
-   config_get "src_ip" "$section" "src_port" ""
    config_get "dest" "$section" "dest" ""
    config_get "dest_port" "$section" "dest_port" ""
    config_get "dest_ip" "$section" "dest_ip" ""
@@ -1321,28 +1320,45 @@ firewall_rule_exclude()
    fi
    
    dest_port=$(echo $dest_port |sed "s/-/:/g" 2>/dev/null)
+   dest_ip=$(echo $dest_ip |sed "s/ /,/g" 2>/dev/null)
    
    if [ -z "$family" ] || [ "$family" == "ipv4" ]; then
       if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
          for i in $dest_port; do
             if $e_tcp ; then
                iptables -t nat -I openclash_output -p tcp --sport "$i" -j RETURN >/dev/null 2>&1
-               iptables -t nat -I openclash -p tcp --dport "$i" -j RETURN >/dev/null 2>&1
+               if [ -z "$dest_ip" ]; then
+                  iptables -t nat -I openclash -p tcp --sport "$i" -j RETURN >/dev/null 2>&1
+               else
+                  iptables -t nat -I openclash -p tcp -s "$dest_ip" --sport "$i" -j RETURN >/dev/null 2>&1
+               fi
             fi
             if $e_udp ; then
                iptables -t mangle -I openclash_output -p udp --sport "$i" -j RETURN >/dev/null 2>&1
-               iptables -t mangle -I openclash -p udp --dport "$i" -j RETURN >/dev/null 2>&1
+               if [ -z "$dest_ip" ]; then
+                  iptables -t mangle -I openclash -p udp --sport "$i" -j RETURN >/dev/null 2>&1
+               else
+                  iptables -t mangle -I openclash -p udp -s "$dest_ip" --sport "$i" -j RETURN >/dev/null 2>&1
+               fi
             fi
          done
       elif [ "$en_mode_tun" -ne 3 ]; then
          for i in $dest_port; do
             if $e_tcp ; then
                iptables -t mangle -I openclash_output -p tcp --sport "$i" -j RETURN >/dev/null 2>&1
-               iptables -t mangle -I openclash -p tcp --dport "$i" -j RETURN >/dev/null 2>&1
+               if [ -z "$dest_ip" ]; then
+                  iptables -t mangle -I openclash -p tcp --sport "$i" -j RETURN >/dev/null 2>&1
+               else
+                  iptables -t mangle -I openclash -p tcp -s "$dest_ip" --sport "$i" -j RETURN >/dev/null 2>&1
+               fi
             fi
             if $e_udp ; then
                iptables -t mangle -I openclash_output -p udp --sport "$i" -j RETURN >/dev/null 2>&1
-               iptables -t mangle -I openclash -p udp --dport "$i" -j RETURN >/dev/null 2>&1
+               if [ -z "$dest_ip" ]; then
+                  iptables -t mangle -I openclash -p udp --sport "$i" -j RETURN >/dev/null 2>&1
+               else
+                  iptables -t mangle -I openclash -p udp -s "$dest_ip" --sport "$i" -j RETURN >/dev/null 2>&1
+               fi
             fi
          done
       fi
@@ -1351,24 +1367,20 @@ firewall_rule_exclude()
    if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
       if [ -z "$family" ] || [ "$family" == "ipv6" ]; then
          for i in $dest_port; do
-               if $e_tcp ; then
-	       if [ ! -n "$dest_ip" ]; then #判断规则是否带有目标IP设置
-		    ip6tables -t mangle -I openclash -p tcp --sport "$i" -j RETURN >/dev/null 2>&1
-	       else
-		    dest_ip=$(echo $dest_ip |sed "s/ /,/g" 2>/dev/null) #多IP规则处理
-		    ip6tables -t mangle -I openclash -s "$dest_ip" -p tcp --sport "$i" -j RETURN >/dev/null 2>&1
-	       fi
-               #ip6tables -t mangle -I openclash -p tcp --dport "$i" -j RETURN >/dev/null 2>&1
+            if $e_tcp ; then
+	             if [ -z "$dest_ip" ]; then
+		              ip6tables -t mangle -I openclash -p tcp --sport "$i" -j RETURN >/dev/null 2>&1
+	             else
+		              ip6tables -t mangle -I openclash -s "$dest_ip" -p tcp --sport "$i" -j RETURN >/dev/null 2>&1
+	             fi
                ip6tables -t mangle -I openclash_output -p tcp --sport "$i" -j RETURN >/dev/null 2>&1
             fi
             if $e_udp ; then
-   	       if [ ! -n "$dest_ip" ]; then
-		    ip6tables -t mangle -I openclash -p udp --sport "$i" -j RETURN >/dev/null 2>&1
-	       else
-		    dest_ip=$(echo $dest_ip |sed "s/ /,/g" 2>/dev/null)
-		    ip6tables -t mangle -I openclash -s "$dest_ip" -p udp --sport "$i" -j RETURN >/dev/null 2>&1
-	       fi
-               #ip6tables -t mangle -I openclash -p udp --dport "$i" -j RETURN >/dev/null 2>&1
+   	           if [ -z "$dest_ip" ]; then
+		              ip6tables -t mangle -I openclash -p udp --sport "$i" -j RETURN >/dev/null 2>&1
+	             else
+		              ip6tables -t mangle -I openclash -s "$dest_ip" -p udp --sport "$i" -j RETURN >/dev/null 2>&1
+	             fi
                ip6tables -t mangle -I openclash_output -p udp --sport "$i" -j RETURN >/dev/null 2>&1
             fi
          done
