@@ -629,11 +629,11 @@ end
 end
 
 function action_toolbar_show_sys()
-	local pid = luci.sys.exec("pidof clash |tr -d '\n' 2>/dev/null")
+	local pid = luci.sys.exec("pidof clash |head -1 |tr -d '\n' 2>/dev/null")
 	local mem, cpu
 	if pid and pid ~= "" then
 		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
-		cpu = luci.sys.exec(string.format("top -b -n1 |grep %s 2>/dev/null |head -1 |awk '{print $7}' 2>/dev/null", pid))
+		cpu = luci.sys.exec(string.format("top -b -n1 |grep -E '(%s|PID)' 2>/dev/null |grep -v grep |awk '{for (i=1;i<=NF;i++) {if ($i ~ /CPU/) num=i}};{print $num}' 2>/dev/null | sed -n '2p' 2>/dev/null", pid))
 		if mem and cpu then
 			mem = fs.filesize(mem*1024)
 			cpu = string.gsub(cpu, "%%\n", "")
@@ -652,7 +652,7 @@ function action_toolbar_show_sys()
 end
 
 function action_toolbar_show()
-	local pid = luci.sys.exec("pidof clash |tr -d '\n' 2>/dev/null")
+	local pid = luci.sys.exec("pidof clash |head -1 |tr -d '\n' 2>/dev/null")
 	local traffic, connections, connection, up, down, up_total, down_total, mem, cpu
 	if pid and pid ~= "" then
 		local daip = daip()
@@ -675,7 +675,7 @@ function action_toolbar_show()
 			connection = "0"
 		end
 		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
-		cpu = luci.sys.exec(string.format("top -b -n1 |grep %s 2>/dev/null |head -1 |awk '{print $7}' 2>/dev/null", pid))
+		cpu = luci.sys.exec(string.format("top -b -n1 |grep -E '(%s|PID)' 2>/dev/null |grep -v grep |awk '{for (i=1;i<=NF;i++) {if ($i ~ /CPU/) num=i}};{print $num}' 2>/dev/null | sed -n '2p' 2>/dev/null", pid))
 		if mem and cpu then
 			mem = fs.filesize(mem*1024)
 			cpu = string.gsub(cpu, "%%\n", "")
