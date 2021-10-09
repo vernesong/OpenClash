@@ -75,9 +75,7 @@ for t,f in ipairs(fs.glob("/etc/openclash/rule_provider/*"))do
 	if h then
     p[t]={}
     p[t].name=fs.basename(f)
-    if IsYamlFile(p[t].name) or IsYmlFile(p[t].name) then
-       o:value("./rule_provider/"..p[t].name)
-    end
+    o:value("./rule_provider/"..p[t].name)
   end
 end
 o.rmempty = false
