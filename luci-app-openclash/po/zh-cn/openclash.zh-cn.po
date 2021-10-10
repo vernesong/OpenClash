@@ -23,8 +23,8 @@ msgstr "全局设置"
 msgid "Rule Providers and Groups"
 msgstr "规则集与策略组管理"
 
-msgid "Game Rules and Groups"
-msgstr "游戏规则与策略组管理"
+msgid "Game Rules and Groups (Only TUN Core Support)"
+msgstr "游戏规则与策略组管理（仅TUN内核）"
 
 msgid "Other Rule Providers and Groups (Only TUN Core Support)"
 msgstr "第三方规则集与策略组管理（仅TUN内核）"
@@ -1859,38 +1859,38 @@ msgstr "错误: 缺少配置文件，请上传或更新配置文件！"
 msgid "Error: Config File Format Validation Failed..."
 msgstr "错误：配置文件格式校验失败..."
 
-msgid "Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
-msgstr "检测到配置了 TUN 内核专属功能，调用 TUN 内核启动..."
+msgid "Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
+msgstr "提示: 检测到配置了 TUN 内核专属功能，调用 TUN 内核启动..."
 
-msgid "Detected The Exclusive Function of The Game Core, Use Game Core to Start..."
-msgstr "检测到配置了 Game 内核专属功能，调用 Game 内核启动..."
+msgid "Tip: Detected The Exclusive Function of The Game Core, Use Game Core to Start..."
+msgstr "提示: 检测到配置了 Game 内核专属功能，调用 Game 内核启动..."
 
-msgid "No Special Configuration Detected, Use Dev Core to Start..."
-msgstr "未检测到特殊配置，调用 Dev 内核启动..."
+msgid "Tip: No Special Configuration Detected, Use Dev Core to Start..."
+msgstr "提示: 未检测到特殊配置，调用 Dev 内核启动..."
 
-msgid "Detect that the Dev Core is not Installed, Use TUN Core to Start..."
-msgstr "检测到 Dev 内核未安装，调用 TUN 内核启动..."
+msgid "Tip: Detected that the Dev Core is not Installed, Use TUN Core to Start..."
+msgstr "提示: 检测到 Dev 内核未安装，调用 TUN 内核启动..."
 
-msgid "Detect that the Dev Core is not Installed, Use Game Core to Start..."
-msgstr "检测到 Dev 内核未安装，调用 Game 内核启动..."
+msgid "Tip: Detected that the Dev Core is not Installed, Use Game Core to Start..."
+msgstr "提示: 检测到 Dev 内核未安装，调用 Game 内核启动..."
 
-msgid "Detect that the Dev Core is not Installed, Use Game Core to Start..."
-msgstr "检测到 Dev 内核未安装，调用 Game 内核启动..."
+msgid "Tip: Detected that the Dev Core is not Installed, Use Game Core to Start..."
+msgstr "提示: 检测到 Dev 内核未安装，调用 Game 内核启动..."
 
-msgid "Detect that the GEOIP Database is not Installed, Ready to Download..."
-msgstr "检测到GEOIP数据库文件不存在，准备开始下载..."
+msgid "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
+msgstr "提示: 检测到GEOIP数据库文件不存在，准备开始下载..."
 
-msgid "Detect that the Core is not Installed, Ready to Download..."
-msgstr "检测到内核文件不存在，准备开始下载..."
+msgid "Tip: Detected that the Core is not Installed, Ready to Download..."
+msgstr "提示: 检测到内核文件不存在，准备开始下载..."
 
-msgid "Detect that the Chnroute Cidr List is not Installed, Ready to Download..."
-msgstr "检测到大陆白名单列表不存在，准备开始下载..."
+msgid "Tip: Detected that the Chnroute Cidr List is not Installed, Ready to Download..."
+msgstr "提示: 检测到大陆白名单列表不存在，准备开始下载..."
 
 msgid "Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well..."
 msgstr "错误：Capsh异常，请尝试重新安装依赖【libcap】和相应的Capsh库，终止启动..."
 
 msgid "Tip: You Could Download And Re-Install The libcap & libcap-bin Library From The Address Give"
-msgstr "Tip: 你可以尝试从给出的地址中查找、下载并重新安装架构对应的 libcap 和 libcap-bin 依赖"
+msgstr "提示: 你可以尝试从给出的地址中查找、下载并重新安装架构对应的 libcap 和 libcap-bin 依赖"
 
 msgid "Error: Get DNS 'listen' Option Error, OpenClash Can Not Start With Raw Config File"
 msgstr "错误: 无法获取DNS部分的监听端口设置, OpenClash 使用原始配置文件启动失败"
@@ -2038,12 +2038,6 @@ msgstr "2、点击《管理第三方游戏规则》或者《管理第三方规�
 
 msgid "3. On this page, set the corresponding configuration file and policy group of the rule you have downloaded, and save the settings"
 msgstr "3、在此页面设置您已下载的规则的对应配置文件、策略组并保存设置"
-
-msgid "Use in normal mode (rules of the game only):"
-msgstr "在普通模式下使用（仅游戏规则）："
-
-msgid "1. Select normal mode in <global settings> - <mode settings> - <running mode> and enable UDP traffic, then restart"
-msgstr "1、在《全局设置》-《模式设置》-《运行模式》中选择普通模式并启用UDP流量代理，然后重新启动"
 
 msgid "Use in tun mode:"
 msgstr "在TUN模式下使用："
@@ -2392,3 +2386,9 @@ msgstr "所有策略组"
 
 msgid "Are you sure want to switch the running mode?"
 msgstr "确认要切换运行模式吗?"
+
+msgid "Tip: Because of the file"
+msgstr "提示: 由于文件"
+
+msgid "modificated, Pause quick start..."
+msgstr "被修改，暂停快速启动..."
