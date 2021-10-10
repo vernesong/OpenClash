@@ -84,6 +84,7 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /usr/share/openclash/backup
 	rm -rf /tmp/openclash_fake_filter.list
 	rm -rf /tmp/openclash_servers_fake_filter.conf
+	rm -rf /tmp/dler*
 	uci -q delete firewall.openclash
 	uci -q commit firewall
 	uci -q delete ucitrack.@openclash[-1]
