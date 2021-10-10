@@ -235,7 +235,7 @@ yml_provider_path()
       Value_1 = Marshal.load(Marshal.dump(Value['$2']));
       Value['$2'].values.each{
       |x,v|
-      unless x['path'].include? '$3' then
+      if not x['path'].include? '$3' and not x['path'].include? 'game_rules' then
          v=File.basename(x['path'])
          x['path']='./$3/'+v
       end
@@ -502,9 +502,31 @@ get_rule_file()
       GAME_RULE_FILE_NAME=$(grep "^$1," /usr/share/openclash/res/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null)
    fi
    
-   GAME_RULE_PATH="/etc/openclash/game_rules/$GAME_RULE_FILE_NAME"
+   GAME_RULE_PATH="./game_rules/$GAME_RULE_FILE_NAME"
    
-   sed '/^#/d' "$GAME_RULE_PATH" 2>/dev/null |sed '/^ *$/d' |awk '{print "- IP-CIDR,"$0}' |awk -v tag="$2" '{print $0","'tag'""}' >> $GAME_RULE_FILE 2>/dev/null
+   [ ! -f "$GAME_RULE_FILE" ] && echo "rules:" > "$GAME_RULE_FILE"
+
+   ruby -ryaml -E UTF-8 -e "
+   begin
+      Value = YAML.load_file('$GAME_RULE_FILE');
+      if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+         Value['rules'].insert(-1,'RULE-SET,${1},${2}')
+         Value['rules']=Value['rules'].uniq
+      else
+         Value={'rules'=>['RULE-SET,${1},${2}']}
+      end;
+      Value_1={'rule-providers'=>{'${1}'=>{'type'=>'file', 'behavior'=>'ipcidr', 'path'=>'${GAME_RULE_PATH}'}}};
+      if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+         Value['rule-providers'].merge!(Value_1['rule-providers'])
+         Value['rule-providers'].uniq
+      else
+         Value['rule-providers']=Value_1['rule-providers']
+      end;
+      File.open('$GAME_RULE_FILE','w') {|f| YAML.dump(Value, f)};
+   rescue Exception => e
+      puts '${LOGTIME} Error: Game Rule Merge Error,【' + e.message + '】'
+   end
+   " 2>/dev/null >> $LOG_FILE
 }
 
 yml_game_rule_get()
@@ -566,11 +588,17 @@ Value_1 = YAML.load_file('$GAME_RULE_FILE');
 if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
    ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
    ruby_add_index ||= -1
-   Value_2 = Value_1.reverse!
+   Value_2 = Value_1['rules'].reverse!
    Value_2.each{|x| Value['rules'].insert(ruby_add_index,x)}
    Value['rules']=Value['rules'].uniq;
 else
-   Value['rules'] = Value_1
+   Value['rules'] = Value_1['rules']
+end;
+if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+   Value['rule-providers'].merge!(Value_1['rule-providers'])
+   Value['rule-providers'].uniq
+else
+   Value['rule-providers']=Value_1['rule-providers']
 end;
 File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
@@ -631,12 +659,12 @@ if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
    if $3 == 1 then
       ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
       ruby_add_index ||= -1
-      Value['rules'].insert(ruby_add_index,'RULE-SET,$1,$2')
+      Value['rules'].insert(ruby_add_index,'RULE-SET,${1},${2}')
    else
-      Value['rules'].insert(0,'RULE-SET,$1,$2')
+      Value['rules'].insert(0,'RULE-SET,${1},${2}')
    end
 else
-   Value_1 = {'rules'=>['RULE-SET,$1,$2']}
+   Value_1 = {'rules'=>['RULE-SET,${1},${2}']}
    Value.merge!(Value_1);
 end;
 File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
@@ -865,16 +893,20 @@ if [ ! -f "$RAW_CONFIG_FILE" ]; then
       exit 0
    fi
 fi
+}
 
+config_check()
+{
 #创建启动配置
 #rm -rf "/etc/openclash/*.y*" 2>/dev/null
 cp "$RAW_CONFIG_FILE" "$CONFIG_FILE"
+
 ruby -ryaml -E UTF-8 -e "
 begin
-YAML.load_file('$RAW_CONFIG_FILE');
+   YAML.load_file('$RAW_CONFIG_FILE');
 rescue Exception => e
-puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】'
-system 'rm -rf ${CONFIG_FILE}'
+   puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】'
+   system 'rm -rf ${CONFIG_FILE}'
 end
 " 2>/dev/null >> $LOG_FILE
 if [ $? -ne 0 ]; then
@@ -932,6 +964,39 @@ yml_other_rules_get()
    fi
    
    config_get "rule_name" "$section" "rule_name" ""
+}
+
+check_run_quick()
+{
+   quick_start=true
+   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $game_core_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version"
+	 if [ ! -f "$CONFIG_FILE" ]; then
+	    quick_start=false
+	    return
+	 fi
+	 cmp -s "/etc/config/openclash" "/tmp/openclash_config.tmp"
+	 if [ "$?" -ne "0" ]; then
+	    LOG_OUT "Tip: Because of the file【 /etc/config/openclash 】modificated, Pause quick start..."
+	    quick_start=false
+	 else
+	    if [ -s "/tmp/openclash.change" ]; then
+         for i in $check_file; do
+            if [ -z "$(grep "$i $(date -r $i)" "/tmp/openclash.change")" ]; then
+            	LOG_OUT "Tip: Because of the file【 $i 】modificated, Pause quick start..."
+            	quick_start=false
+            	break
+            fi
+         done
+      fi
+	 fi
+	 
+	 if ! $quick_start; then
+	    cp "/etc/config/openclash" "/tmp/openclash_config.tmp"
+	    : > "/tmp/openclash.change"
+	    for i in $check_file; do
+         echo "$i $(date -r $i)" >> "/tmp/openclash.change"
+      done
+	 fi
 }
 
 #运行模式处理
@@ -999,13 +1064,13 @@ do_run_file()
    if [ "$en_mode_tun" = "1" ] || [ "$en_mode_tun" = "3" ]; then
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
       core_type="TUN"
-      core_start_log="Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
+      core_start_log="Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
    fi
     
    if [ "$en_mode_tun" = "2" ]; then
       ln -s "$game_core_path" /etc/openclash/clash 2>/dev/null
       core_type="Game"
-      core_start_log="Detected The Exclusive Function of The Game Core, Use Game Core to Start..."
+      core_start_log="Tip: Detected The Exclusive Function of The Game Core, Use Game Core to Start..."
    fi
    
    if [ "$rule_source" != "0" ]; then
@@ -1013,30 +1078,30 @@ do_run_file()
       config_foreach yml_other_rules_get "other_rules" "$CONFIG_NAME"
    fi
 
-   if [ "$proxy_mode" = "script" ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$CONFIG_FILE" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules_2.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ]; then
+   if [ "$proxy_mode" = "script" ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$RAW_CONFIG_FILE" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules_2.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ]; then
       if [ "$en_mode_tun" != "2" ]; then
          rm -rf "/etc/openclash/clash"
          ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
          core_type="TUN"
-         core_start_log="Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
+         core_start_log="Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
       fi
    fi
     
    if [ ! -f "/etc/openclash/clash" ] && [ -f "$dev_core_path" ] && [ -z "$core_type" ]; then
       ln -s "$dev_core_path" /etc/openclash/clash 2>/dev/null
-      core_start_log="No Special Configuration Detected, Use Dev Core to Start..."
+      core_start_log="Tip: No Special Configuration Detected, Use Dev Core to Start..."
    fi
     
    if [ ! -f "/etc/openclash/clash" ] && [ -f "$tun_core_path" ] && [ "$core_type" != "Game" ]; then
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
       core_type="TUN"
-      core_start_log="Detect that the Dev Core is not Installed, Use TUN Core to Start..."
+      core_start_log="Tip: Detected that the Dev Core is not Installed, Use TUN Core to Start..."
    fi
     
    if [ ! -f "/etc/openclash/clash" ] && [ -f "$game_core_path" ] && [ "$core_type" != "TUN" ]; then
       ln -s "$game_core_path" /etc/openclash/clash 2>/dev/null
       core_type="Game"
-      core_start_log="Detect that the Dev Core is not Installed, Use Game Core to Start..."
+      core_start_log="Tip: Detected that the Dev Core is not Installed, Use Game Core to Start..."
    fi
 
 #权限检查
@@ -1058,13 +1123,13 @@ do_run_file()
    }
    
    [ ! -f "$geoip_path" ] && {
-     LOG_OUT "Detect that the GEOIP Database is not Installed, Ready to Download..."
+     LOG_OUT "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
      nofile=1
      nohup /usr/share/openclash/openclash_ipdb.sh &
    }
    
    [ ! -f "$CLASH" ] && {
-     LOG_OUT "Detect that the Core is not Installed, Ready to Download..."
+     LOG_OUT "Tip: Detected that the Core is not Installed, Ready to Download..."
      nofile=1
      rm -rf "/tmp/clash_last_version"
      nohup /usr/share/openclash/openclash_core.sh "$core_type" &
@@ -1072,7 +1137,7 @@ do_run_file()
    
    if [ "$china_ip_route" = "1" ] || [ "$china_ip6_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
    	  if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ]; then
-         LOG_OUT "Detect that the Chnroute Cidr List is not Installed, Ready to Download..."
+         LOG_OUT "Tip: Detected that the Chnroute Cidr List is not Installed, Ready to Download..."
          nofile=1
          nohup /usr/share/openclash/openclash_chnroute.sh &
       fi
@@ -1937,9 +2002,8 @@ start()
    enable=$(uci -q get openclash.config.enable)
    [ "$enable" != "1" ] && LOG_OUT "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && del_lock && exit 0
 
-   config_choose
-
    LOG_OUT "OpenClash Start Running..."
+   config_choose
    do_run_mode
    
    LOG_OUT "Step 1: Get The Configuration..."
@@ -1947,22 +2011,28 @@ start()
    
    LOG_OUT "Step 2: Check The Components..."
    #检查文件是否存在
-   do_run_file "$CONFIG_FILE" "$BACKUP_FILE"
-
-   LOG_OUT "Step 3: Modify The Config File..."
-   config_load "openclash"
-   config_foreach yml_auth_get "authentication"
-   yml_auth_custom "$CONFIG_FILE"
-   yml_dns_custom "$enable_custom_dns" "$CONFIG_FILE" "$append_wan_dns" "$ipv6_dns"
-   /usr/share/openclash/yml_change.sh 2>/dev/null "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" "$dns_port" "$core_type" "$mixed_port" "$tproxy_port" "$ipv6_dns"
-   /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME"
-   yml_custom_rule_provider
-   yml_game_custom
-   yml_provider_path "$CONFIG_FILE" "proxy-providers" "proxy_provider"
-   yml_provider_path "$CONFIG_FILE" "rule-providers" "rule_provider"
-   yml_dns_check "$CONFIG_FILE"  "$FALLBACK_FILTER_FILE"
-   yml_tolerance_set "$CONFIG_FILE" "$tolerance"
-
+   do_run_file "$RAW_CONFIG_FILE" "$BACKUP_FILE"
+   
+   #快速启动判断
+   check_run_quick
+   
+   if ! $quick_start; then
+      LOG_OUT "Step 3: Modify The Config File..."
+      config_check
+      config_load "openclash"
+      config_foreach yml_auth_get "authentication"
+      yml_auth_custom "$CONFIG_FILE"
+      yml_dns_custom "$enable_custom_dns" "$CONFIG_FILE" "$append_wan_dns" "$ipv6_dns"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" "$dns_port" "$core_type" "$mixed_port" "$tproxy_port" "$ipv6_dns"
+      /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME"
+      yml_custom_rule_provider
+      yml_game_custom
+      yml_provider_path "$CONFIG_FILE" "proxy-providers" "proxy_provider"
+      yml_provider_path "$CONFIG_FILE" "rule-providers" "rule_provider"
+      yml_dns_check "$CONFIG_FILE"  "$FALLBACK_FILTER_FILE"
+      yml_tolerance_set "$CONFIG_FILE" "$tolerance"
+   fi
+   
    LOG_OUT "Step 4: Start Running The Clash Core..."
    start_run_core
    
@@ -2037,24 +2107,18 @@ stop()
    LOG_OUT "Step 6: Delete OpenClash Residue File..."
    if [ "$enable" != "1" ]; then
       rm -rf $LOG_FILE
-      rm -rf /tmp/openclash_debug.log
       rm -rf /www/luci-static/openclash
-      rm -rf /tmp/openclash_last_version
       rm -rf /tmp/clash_last_version
       rm -rf /tmp/Proxy_Group
       rm -rf /tmp/rules_name
       rm -rf /tmp/rule_providers_name
-      rm -rf /tmp/openclash_fake_filter.list
-      rm -rf /tmp/openclash_servers_fake_filter.conf
-      
       del_lock
-      LOG_OUT "OpenClash Already Stop!"
       sleep 3
+      LOG_OUT "OpenClash Already Stop!"
+      rm -rf /tmp/openclash*
    fi
    
    del_cron
-   uci -q delete openclash.config.core_type
-   uci -q commit openclash
    rm -rf /tmp/yaml_*
    rm -rf $START_LOG
    echo "OpenClash Already Stop!"

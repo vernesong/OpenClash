@@ -49,6 +49,10 @@ urlencode() {
    fi
 
    if [ "$?" -eq "0" ] && [ -s "$TMP_RULE_DIR" ] && [ -z "$(grep "404: Not Found" "$TMP_RULE_DIR")" ]; then
+      if [ "$RULE_TYPE" = "game" ]; then
+      	cat "$TMP_RULE_DIR" |sed '/^#/d' 2>/dev/null |sed '/^ *$/d' 2>/dev/null |awk '{print "  - "$0}' > "$TMP_RULE_DIR" 2>/dev/null
+      	sed -i '1i\payload:' "$TMP_RULE_DIR" 2>/dev/null
+      fi
       cmp -s "$TMP_RULE_DIR" "$RULE_FILE_DIR"
          if [ "$?" -ne "0" ]; then
             mv "$TMP_RULE_DIR" "$RULE_FILE_DIR" >/dev/null 2>&1\
