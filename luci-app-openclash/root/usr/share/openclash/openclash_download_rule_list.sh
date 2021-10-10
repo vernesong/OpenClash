@@ -13,7 +13,11 @@ urlencode() {
 }
 
    RULE_FILE_NAME="$1"
-   if [ -z "$(grep "$RULE_FILE_NAME" /usr/share/openclash/res/rule_providers.list 2>/dev/null)" ]; then
+   if [ "$1" == "netflix_ip" ]; then
+      DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/QiuSimons/Netflix_IP@master/getflix.txt"
+      RULE_FILE_DIR="/etc/openclash/rule_provider/Netflix_ip_full.yaml"
+      RULE_TYPE="netflix"
+   elif [ -z "$(grep "$RULE_FILE_NAME" /usr/share/openclash/res/rule_providers.list 2>/dev/null)" ]; then
       DOWNLOAD_PATH=$(grep -F "$RULE_FILE_NAME" /usr/share/openclash/res/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null)
       RULE_FILE_DIR="/etc/openclash/game_rules/$RULE_FILE_NAME"
       RULE_TYPE="game"
@@ -30,9 +34,12 @@ urlencode() {
    fi
 
    TMP_RULE_DIR="/tmp/$RULE_FILE_NAME"
-   DOWNLOAD_PATH=$(urlencode "$DOWNLOAD_PATH")
+   TMP_RULE_DIR_TMP="/tmp/$RULE_FILE_NAME.tmp"
+   [ "$RULE_TYPE" != "netflix" ] && DOWNLOAD_PATH=$(urlencode "$DOWNLOAD_PATH")
    
-   if [ "$RULE_TYPE" = "game" ]; then
+   if [ "$RULE_TYPE" = "netflix" ]; then
+      curl -sL --connect-timeout 5 --retry 2 "$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+   elif [ "$RULE_TYPE" = "game" ]; then
       if pidof clash >/dev/null; then
    	     curl -sL --connect-timeout 5 --retry 2 https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
       fi
@@ -49,19 +56,26 @@ urlencode() {
    fi
 
    if [ "$?" -eq "0" ] && [ -s "$TMP_RULE_DIR" ] && [ -z "$(grep "404: Not Found" "$TMP_RULE_DIR")" ]; then
-      if [ "$RULE_TYPE" = "game" ]; then
-      	cat "$TMP_RULE_DIR" |sed '/^#/d' 2>/dev/null |sed '/^ *$/d' 2>/dev/null |awk '{print "  - "$0}' > "$TMP_RULE_DIR" 2>/dev/null
-      	sed -i '1i\payload:' "$TMP_RULE_DIR" 2>/dev/null
+      if [ "$RULE_TYPE" = "game" ] || [ "$RULE_TYPE" = "netflix" ]; then
+      	cat "$TMP_RULE_DIR" |sed '/^#/d' 2>/dev/null |sed '/^ *$/d' 2>/dev/null |awk '{print "  - "$0}' > "$TMP_RULE_DIR_TMP" 2>/dev/null
+      	sed -i '1i\payload:' "$TMP_RULE_DIR_TMP" 2>/dev/null
+      	cmp -s "$TMP_RULE_DIR_TMP" "$RULE_FILE_DIR"
+      else
+         cmp -s "$TMP_RULE_DIR" "$RULE_FILE_DIR"
       fi
-      cmp -s "$TMP_RULE_DIR" "$RULE_FILE_DIR"
          if [ "$?" -ne "0" ]; then
-            mv "$TMP_RULE_DIR" "$RULE_FILE_DIR" >/dev/null 2>&1\
-            && rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
+            if [ "$RULE_TYPE" = "provider" ]; then
+               mv "$TMP_RULE_DIR" "$RULE_FILE_DIR" >/dev/null 2>&1
+            else
+               mv "$TMP_RULE_DIR_TMP" "$RULE_FILE_DIR" >/dev/null 2>&1
+            fi
+            rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
             LOG_OUT "Rule File【$RULE_FILE_NAME】Download Successful!" && SLOG_CLEAN
             return 1
          else
             LOG_OUT "Rule File【$RULE_FILE_NAME】No Change, Do Nothing!" && SLOG_CLEAN
             rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
+            rm -rf "$TMP_RULE_DIR_TMP" >/dev/null 2>&1
             return 2
          fi
    else
