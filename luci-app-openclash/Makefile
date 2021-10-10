@@ -77,6 +77,8 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /tmp/openclash.log
 	rm -rf /tmp/openclash_start.log
 	rm -rf /tmp/openclash_last_version
+	rm -rf /tmp/openclash_config.tmp
+	rm -rf /tmp/openclash.change
 	rm -rf /tmp/Proxy_Group
 	rm -rf /tmp/rules_name
 	rm -rf /tmp/rule_providers_name

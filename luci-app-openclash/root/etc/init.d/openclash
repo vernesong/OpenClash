@@ -989,7 +989,10 @@ check_run_quick()
          done
       fi
 	 fi
-	 
+}
+
+write_run_quick()
+{
 	 if ! $quick_start; then
 	    cp "/etc/config/openclash" "/tmp/openclash_config.tmp"
 	    : > "/tmp/openclash.change"
@@ -2069,6 +2072,7 @@ start()
       sleep 3
    fi
    echo "OpenClash Already Start!"
+   write_run_quick
    SLOG_CLEAN
    rm -rf /tmp/yaml_*
 }
