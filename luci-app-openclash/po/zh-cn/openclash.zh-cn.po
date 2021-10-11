@@ -2413,3 +2413,9 @@ msgstr "设置关键字以自动匹配 Netflix 的策略组，不区分大小写
 
 msgid "Update Netflix IP Rules"
 msgstr "更新 Netflix IP 规则"
+
+msgid "Persistence Fake-IP"
+msgstr "Fake-IP 持久化"
+
+msgid "Cache Fake-IP DNS Resolution Records To File, Improve The Response Speed After Startup"
+msgstr "存储Fake-IP的DNS解析记录到文件，提升内核启动后的反应速度和稳定性"

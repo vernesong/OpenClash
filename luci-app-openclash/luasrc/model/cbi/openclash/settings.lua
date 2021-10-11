@@ -229,6 +229,12 @@ o = s:taboption("dns", Flag, "append_wan_dns", font_red..bold_on..translate("App
 o.description = font_red..bold_on..translate("Append The Upstream Assigned DNS And Gateway IP To The Nameserver")..bold_off..font_off
 o.default=1
 
+if op_mode == "fake-ip" then
+o = s:taboption("dns", Flag, "store_fakeip", font_red..bold_on..translate("Persistence Fake-IP")..bold_off..font_off)
+o.description = font_red..bold_on..translate("Cache Fake-IP DNS Resolution Records To File, Improve The Response Speed After Startup")..bold_off..font_off
+o.default=1
+end
+
 o = s:taboption("dns", Flag, "ipv6_dns", translate("IPv6 DNS Resolve"))
 o.description = font_red..bold_on..translate("Enable Clash to Resolve IPv6 DNS Requests")..bold_off..font_off
 o.default=0
