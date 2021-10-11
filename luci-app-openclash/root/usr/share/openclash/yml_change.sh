@@ -125,6 +125,11 @@ if not Value.key?('profile') then
 else
    Value['profile']['store-selected']=true
 end;
+if ${22} != 1 then
+   Value['profile']['store-fakeip']=false
+else
+   Value['profile']['store-fakeip']=true
+end;
 rescue Exception => e
 puts '${LOGTIME} Error: Set General Error,【' + e.message + '】'
 end
