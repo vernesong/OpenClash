@@ -120,7 +120,7 @@ o = s:taboption("op_mode", Flag, "netflix_domains_prefetch", font_red..bold_on..
 o.description = translate("Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure")
 o.default=0
 
-o = s:taboption("op_mode", Value, "netflix_domains_prefetch_interval", translate("Prefetch Interval(min)"))
+o = s:taboption("op_mode", Value, "netflix_domains_prefetch_interval", translate("Netflix Domains Prefetch Interval(min)"))
 o.default=60
 o.datatype = "uinteger"
 o:depends("netflix_domains_prefetch", "1")

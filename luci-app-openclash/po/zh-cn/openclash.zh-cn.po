@@ -2403,13 +2403,13 @@ msgid "Prefetch Netflix Domains"
 msgstr "实验性：预解析 Netflix 域名"
 
 msgid "Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure"
-msgstr "防止部分设备直接使用IP访问导致解锁失败"
+msgstr "防止部分设备直接使用IP访问导致DNS解锁失败"
 
 msgid "Update Netflix Domains List"
-msgstr "更新 Netflix 域名规则"
+msgstr "更新 Netflix 域名列表"
 
-msgid "Prefetch Interval(min)"
-msgstr "预解析间隔（分钟）"
+msgid "Netflix Domains Prefetch Interval(min)"
+msgstr "Netflix 域名预解析间隔（分钟）"
 
 msgid "Tip: Start Prefetch Netflix Domains..."
 msgstr "提示：开始预解析 Netflix 域名..."
