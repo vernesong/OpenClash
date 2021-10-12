@@ -9,19 +9,24 @@ PROXY_ROUTE_TABLE="0x162"
 enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
 dns_port=$(uci -q get openclash.config.dns_port)
 disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
-cfg_update_interval=$(uci -q get openclash.config.config_update_interval)
+cfg_update_interval=$(uci -q get openclash.config.config_update_interval || echo 60)
 log_size=$(uci -q get openclash.config.log_size || echo 1024)
 core_type=$(uci -q get openclash.config.core_type)
+netflix_domains_prefetch_interval=$(uci -q get openclash.config.netflix_domains_prefetch_interval || echo 60)
+NETFLIX_DOMAINS_LIST="/usr/share/openclash/res/Netflix_Domains.list"
 _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
 CRASH_NUM=0
-CFG_UPDATE_INT=0
+CFG_UPDATE_INT=1
+NETFLIX_DOMAINS_PREFETCH=1
 sleep 60
 
 while :;
 do
    cfg_update=$(uci -q get openclash.config.auto_update)
    cfg_update_mode=$(uci -q get openclash.config.config_auto_update_mode)
-   cfg_update_interval_now=$(uci -q get openclash.config.config_update_interval)
+   cfg_update_interval_now=$(uci -q get openclash.config.config_update_interval || echo 60)
+   netflix_domains_prefetch=$(uci -q get openclash.config.netflix_domains_prefetch || echo 0)
+   netflix_domains_prefetch_interval_now=$(uci -q get openclash.config.netflix_domains_prefetch_interval || echo 60)
    enable=$(uci -q get openclash.config.enable)
 
 if [ "$enable" -eq 1 ]; then
@@ -110,12 +115,6 @@ fi
 
 ## 配置文件循环更新
    if [ "$cfg_update" -eq 1 ] && [ "$cfg_update_mode" -eq 1 ]; then
-      if [ -z "$cfg_update_interval_now" ]; then
-         cfg_update_interval_now=60
-      fi
-      if [ -z "$cfg_update_interval" ]; then
-         cfg_update_interval=60
-      fi
       [ "$cfg_update_interval" -ne "$cfg_update_interval_now" ] && CFG_UPDATE_INT=0 && cfg_update_interval="$cfg_update_interval_now"
       if [ "$CFG_UPDATE_INT" -ne 0 ]; then
          [ "$(expr "$CFG_UPDATE_INT" % "$cfg_update_interval_now")" -eq 0 ] && /usr/share/openclash/openclash.sh
@@ -123,8 +122,24 @@ fi
       CFG_UPDATE_INT=$(expr "$CFG_UPDATE_INT" + 1)
    fi
 
-##dler checkin
-   /usr/share/openclash/openclash_dler_checkin.lua
+##Dler Cloud Checkin
+   /usr/share/openclash/openclash_dler_checkin.lua >/dev/null 2>&1
+   
+##NETFLIX_DNS_PREFETCH
+   if [ "$netflix_domains_prefetch" -eq 1 ]; then
+      [ "$netflix_domains_prefetch_interval" -ne "$netflix_domains_prefetch_interval_now" ] && NETFLIX_DOMAINS_PREFETCH=0 && netflix_domains_prefetch_interval="$netflix_domains_prefetch_interval_now"
+      if [ "$NETFLIX_DOMAINS_PREFETCH" -ne 0 ]; then
+         if [ "$(expr "$NETFLIX_DOMAINS_PREFETCH" % "$netflix_domains_prefetch_interval_now")" -eq 0 ]; then
+            LOG_OUT "Tip: Start Prefetch Netflix Domains..."
+            cat "$NETFLIX_DOMAINS_LIST" |while read -r line
+            do
+               [ -n "$line" ] && nslookup $line >/dev/null 2>&1
+            done
+            LOG_OUT "Tip: Netflix Domains Prefetch Finished..."
+         fi
+      fi
+      NETFLIX_DOMAINS_PREFETCH=$(expr "$NETFLIX_DOMAINS_PREFETCH" + 1)
+   fi
 
    SLOG_CLEAN
    sleep 60

@@ -116,19 +116,18 @@ o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-vpn")
 o:depends("en_mode", "redir-host-mix")
 
-o = s:taboption("op_mode", Flag, "netflix_ip_complete", font_red..bold_on..translate("Completion Netflix IP Rules")..bold_off..font_off)
+o = s:taboption("op_mode", Flag, "netflix_domains_prefetch", font_red..bold_on..translate("Prefetch Netflix Domains")..bold_off..font_off)
 o.description = translate("Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure")
 o.default=0
 
-o = s:taboption("op_mode", Value, "netflix_group_key", translate("Netflix Proxy Group Filter"))
-o.description = translate("Set Keywords To Find Netflix Group, No Case Sensitive")
-o:depends("netflix_ip_complete", "1")
-o.default="NETFLIX|奈飞|NF|网飞"
-o.placeholder = translate("NETFLIX|奈飞|NF|网飞")
+o = s:taboption("op_mode", Value, "netflix_domains_prefetch_interval", translate("Prefetch Interval(min)"))
+o.default=60
+o.datatype = "uinteger"
+o:depends("netflix_domains_prefetch", "1")
 
-o = s:taboption("op_mode", DummyValue, "netflix_ip_update", translate("Update Netflix IP Rules"))
-o:depends("netflix_ip_complete", "1")
-o.template = "openclash/download_netflix_rule"
+o = s:taboption("op_mode", DummyValue, "netflix_domains_update", translate("Update Netflix Domains List"))
+o:depends("netflix_domains_prefetch", "1")
+o.template = "openclash/download_netflix_domains"
 
 o = s:taboption("op_mode", Flag, "small_flash_memory", translate("Small Flash Memory"))
 o.description = translate("Move Core And GEOIP Data File To /tmp/etc/openclash For Small Flash Memory Device")

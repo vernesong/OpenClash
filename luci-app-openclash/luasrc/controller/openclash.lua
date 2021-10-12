@@ -30,7 +30,7 @@ function index()
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
 	entry({"admin", "services", "openclash", "ping"}, call("act_ping"))
 	entry({"admin", "services", "openclash", "download_rule"}, call("action_download_rule"))
-	entry({"admin", "services", "openclash", "download_netflix_ip_rule"}, call("action_download_netflix_ip_rule"))
+	entry({"admin", "services", "openclash", "download_netflix_domains"}, call("action_download_netflix_domains"))
 	entry({"admin", "services", "openclash", "restore"}, call("action_restore_config"))
 	entry({"admin", "services", "openclash", "backup"}, call("action_backup"))
 	entry({"admin", "services", "openclash", "remove_all_core"}, call("action_remove_all_core"))
@@ -299,8 +299,8 @@ function download_rule()
   return state
 end
 
-function download_netflix_ip_rule()
-  local state = luci.sys.call(string.format('/usr/share/openclash/openclash_download_rule_list.sh "%s" >/dev/null 2>&1',"netflix_ip"))
+function download_netflix_domains()
+  local state = luci.sys.call(string.format('/usr/share/openclash/openclash_download_rule_list.sh "%s" >/dev/null 2>&1',"netflix_domains"))
   return state
 end
 
@@ -909,10 +909,10 @@ function action_download_rule()
 	})
 end
 
-function action_download_netflix_ip_rule()
+function action_download_netflix_domains()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		rule_download_status = download_netflix_ip_rule();
+		rule_download_status = download_netflix_domains();
 	})
 end
 

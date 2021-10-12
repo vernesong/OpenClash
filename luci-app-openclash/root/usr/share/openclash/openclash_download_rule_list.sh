@@ -13,9 +13,9 @@ urlencode() {
 }
 
    RULE_FILE_NAME="$1"
-   if [ "$1" == "netflix_ip" ]; then
-      DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/QiuSimons/Netflix_IP@master/getflix.txt"
-      RULE_FILE_DIR="/etc/openclash/rule_provider/Netflix_ip_full.yaml"
+   if [ "$1" == "netflix_domains" ]; then
+      DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@master/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
+      RULE_FILE_DIR="/usr/share/openclash/res/Netflix_Domains.list"
       RULE_TYPE="netflix"
    elif [ -z "$(grep "$RULE_FILE_NAME" /usr/share/openclash/res/rule_providers.list 2>/dev/null)" ]; then
       DOWNLOAD_PATH=$(grep -F "$RULE_FILE_NAME" /usr/share/openclash/res/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null)
@@ -56,7 +56,7 @@ urlencode() {
    fi
 
    if [ "$?" -eq "0" ] && [ -s "$TMP_RULE_DIR" ] && [ -z "$(grep "404: Not Found" "$TMP_RULE_DIR")" ]; then
-      if [ "$RULE_TYPE" = "game" ] || [ "$RULE_TYPE" = "netflix" ]; then
+      if [ "$RULE_TYPE" = "game" ]; then
       	cat "$TMP_RULE_DIR" |sed '/^#/d' 2>/dev/null |sed '/^ *$/d' 2>/dev/null |awk '{print "  - "$0}' > "$TMP_RULE_DIR_TMP" 2>/dev/null
       	sed -i '1i\payload:' "$TMP_RULE_DIR_TMP" 2>/dev/null
       	cmp -s "$TMP_RULE_DIR_TMP" "$RULE_FILE_DIR"
@@ -64,10 +64,10 @@ urlencode() {
          cmp -s "$TMP_RULE_DIR" "$RULE_FILE_DIR"
       fi
          if [ "$?" -ne "0" ]; then
-            if [ "$RULE_TYPE" = "provider" ]; then
-               mv "$TMP_RULE_DIR" "$RULE_FILE_DIR" >/dev/null 2>&1
-            else
+            if [ "$RULE_TYPE" = "game" ]; then
                mv "$TMP_RULE_DIR_TMP" "$RULE_FILE_DIR" >/dev/null 2>&1
+            else
+               mv "$TMP_RULE_DIR" "$RULE_FILE_DIR" >/dev/null 2>&1
             fi
             rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
             LOG_OUT "Rule File【$RULE_FILE_NAME】Download Successful!" && SLOG_CLEAN

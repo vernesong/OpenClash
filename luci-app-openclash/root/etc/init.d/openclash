@@ -22,7 +22,6 @@ RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
 GAME_RULE_FILE="/tmp/yaml_game_rule.yaml"
 FALLBACK_FILTER_FILE="/etc/openclash/custom/openclash_custom_fallback_filter.yaml"
-NETFLIX_FULL_IP_FILE="/etc/openclash/rule_provider/Netflix_ip_full.yaml"
 LOCK_FILE=/tmp/lock/openclash.lock
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
@@ -489,50 +488,6 @@ ruby -ryaml -E UTF-8 -e "
 	end
 " 2>/dev/null >> $LOG_FILE
 fi
-}
-
-yml_netflix_complete()
-{
-	 
-   [ "$netflix_ip_complete" != "1" ] && return
-	
-   [ ! -f "$NETFLIX_FULL_IP_FILE" ] && /usr/share/openclash/openclash_download_rule_list.sh "netflix_ip"
-   
-   [ ! -f "$NETFLIX_FULL_IP_FILE" ] && return
-   
-   ruby -ryaml -E UTF-8 -e "
-   begin
-      Value = YAML.load_file('${1}');
-      reg = /(${netflix_group_key})/i;
-      Value['proxy-groups'].each{
-  		|x|
-			if x['name'] =~ reg then
-			  Group=x['name']
-				break
-			end
-		  };
-		  if defined? Group then
-         if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-            ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
-            ruby_add_index ||= -1
-            Value['rules'].insert(ruby_add_index,'RULE-SET,Netflix Full IP,' + Group)
-            Value['rules']=Value['rules'].uniq
-         else
-            Value={'rules'=>['RULE-SET,Netflix Full IP,' + Group]}
-         end;
-         Value_1={'rule-providers'=>{'Netflix Full IP'=>{'type'=>'file', 'behavior'=>'ipcidr', 'path'=>'./rule_provider/Netflix_ip_full.yaml'}}};
-         if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-            Value['rule-providers'].merge!(Value_1['rule-providers'])
-            Value['rule-providers'].uniq
-         else
-            Value['rule-providers']=Value_1['rule-providers']
-         end;
-         File.open('${1}','w') {|f| YAML.dump(Value, f)};
-      end;
-   rescue Exception => e
-      puts '${LOGTIME} Error: Netflix IP Rules Complete Error,【' + e.message + '】'
-   end
-   " 2>/dev/null >> $LOG_FILE
 }
 
 get_rule_file()
@@ -2038,8 +1993,6 @@ get_config()
    tolerance=$(uci -q get openclash.config.tolerance)
    custom_fallback_filter=$(uci -q get openclash.config.custom_fallback_filter)
    append_wan_dns=$(uci -q get openclash.config.append_wan_dns || echo 1)
-   netflix_group_key=$(uci -q get openclash.config.netflix_group_key || echo "NETFLIX|奈飞|NF|网飞")
-   netflix_ip_complete=$(uci -q get openclash.config.netflix_ip_complete)
    store_fakeip=$(uci -q get openclash.config.store_fakeip || echo 1)
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
@@ -2078,7 +2031,6 @@ start()
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME"
       yml_custom_rule_provider
       yml_game_custom
-      yml_netflix_complete "$CONFIG_FILE"
       yml_provider_path "$CONFIG_FILE" "proxy-providers" "proxy_provider"
       yml_provider_path "$CONFIG_FILE" "rule-providers" "rule_provider"
       yml_dns_check "$CONFIG_FILE"  "$FALLBACK_FILTER_FILE"
