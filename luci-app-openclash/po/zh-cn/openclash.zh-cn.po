@@ -2399,20 +2399,23 @@ msgstr "被修改，暂停快速启动..."
 msgid "Click to Update"
 msgstr "点击更新规则"
 
-msgid "Completion Netflix IP Rules"
-msgstr "实验性：补全 Netflix IP 规则"
+msgid "Prefetch Netflix Domains"
+msgstr "实验性：预解析 Netflix 域名"
 
 msgid "Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure"
 msgstr "防止部分设备直接使用IP访问导致解锁失败"
 
-msgid "Netflix Proxy Group Filter"
-msgstr "Netflix 策略组自动匹配"
+msgid "Update Netflix Domains List"
+msgstr "更新 Netflix 域名规则"
 
-msgid "Set Keywords To Find Netflix Group, No Case Sensitive"
-msgstr "设置关键字以自动匹配 Netflix 的策略组，不区分大小写"
+msgid "Prefetch Interval(min)"
+msgstr "预解析间隔（分钟）"
 
-msgid "Update Netflix IP Rules"
-msgstr "更新 Netflix IP 规则"
+msgid "Tip: Start Prefetch Netflix Domains..."
+msgstr "提示：开始预解析 Netflix 域名..."
+
+msgid "Tip: Netflix Domains Prefetch Finished..."
+msgstr "提示：Netflix 域名预解析完成..."
 
 msgid "Persistence Fake-IP"
 msgstr "Fake-IP 持久化"
