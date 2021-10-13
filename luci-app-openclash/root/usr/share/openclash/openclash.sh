@@ -193,7 +193,7 @@ config_su_check()
       else
          LOG_OUT "Config File【$name】No Change, Do Nothing!"
          rm -rf "$CFG_FILE"
-         sleep 5
+         sleep 3
          SLOG_CLEAN
       fi
    else
@@ -214,7 +214,7 @@ config_error()
 {
    LOG_OUT "Error:【$name】Update Error, Please Try Again Later..."
    rm -rf "$CFG_FILE" 2>/dev/null
-   sleep 5
+   sleep 3
    SLOG_CLEAN
 }
 
