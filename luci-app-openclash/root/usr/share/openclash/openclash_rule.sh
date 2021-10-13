@@ -120,11 +120,11 @@
          ifrestart=1
       else
          LOG_OUT "Updated Other Rules【$rule_name】No Change, Do Nothing!"
-         sleep 5
+         sleep 3
       fi
    else
       LOG_OUT "Other Rules【$rule_name】Update Error, Please Try Again Later..."
-      sleep 5
+      sleep 3
    fi
    }
    
@@ -135,7 +135,7 @@
    
    if [ "$RUlE_SOURCE" = "0" ]; then
       LOG_OUT "Other Rules Not Enable, Update Stop!"
-      sleep 5
+      sleep 3
    else
       OTHER_RULE_FILE="/tmp/other_rule.yaml"
       CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
@@ -156,7 +156,7 @@
       config_foreach yml_other_rules_dl "other_rules" "$CONFIG_NAME"
       if [ -z "$rule_name" ]; then
         LOG_OUT "Get Other Rules Settings Faild, Update Stop!"
-        sleep 5
+        sleep 3
       fi
       if [ "$ifrestart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
          /etc/init.d/openclash restart >/dev/null 2>&1 &

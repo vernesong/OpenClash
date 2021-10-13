@@ -275,7 +275,7 @@ if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ ! -z "$if_g
    if [ $? -ne 0 ]; then
       LOG_OUT "Error: Config File【$CONFIG_NAME】Unable To Parse, Please Choose One-key Function To Create Config File..."
       uci commit openclash
-      sleep 5
+      sleep 3
       SLOG_CLEAN
       del_lock
       exit 0
