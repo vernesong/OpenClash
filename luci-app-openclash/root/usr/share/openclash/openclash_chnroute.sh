@@ -13,9 +13,10 @@
    }
 
    china_ip_route=$(uci get openclash.config.china_ip_route 2>/dev/null)
-   china_ip6_route=$(uci get openclash.config.china_ip_route 2>/dev/null)
+   china_ip6_route=$(uci get openclash.config.china_ip6_route 2>/dev/null)
    CHNR_CUSTOM_URL=$(uci get openclash.config.chnr_custom_url 2>/dev/null)
    CHNR6_CUSTOM_URL=$(uci get openclash.config.chnr6_custom_url 2>/dev/null)
+   disable_udp_quic=$(uci get openclash.config.disable_udp_quic 2>/dev/null)
    small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
    set_lock
    
@@ -49,16 +50,18 @@
       if [ "$?" -ne "0" ]; then
          LOG_OUT "Chnroute Cidr List Has Been Updated, Starting To Replace The Old Version..."
          mv /tmp/china_ip_route.list "$chnr_path" >/dev/null 2>&1
-         [ "$china_ip_route" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
+         if [ "$china_ip_route" -eq 1 ] || [ "$disable_udp_quic" -eq 1 ]; then
+            [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
+         fi
          LOG_OUT "Chnroute Cidr List Update Successful!"
-         sleep 5
+         sleep 3
       else
          LOG_OUT "Updated Chnroute Cidr List No Change, Do Nothing..."
-         sleep 5
+         sleep 3
       fi
    else
       LOG_OUT "Chnroute Cidr List Update Error, Please Try Again Later..."
-      sleep 5
+      sleep 3
    fi
    
    #ipv6
@@ -77,16 +80,18 @@
       if [ "$?" -ne "0" ]; then
          LOG_OUT "Chnroute6 Cidr List Has Been Updated, Starting To Replace The Old Version..."
          mv /tmp/china_ip6_route.list "$chnr6_path" >/dev/null 2>&1
-         [ "$china_ip6_route" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
+         if [ "$china_ip6_route" -eq 1 ] || [ "$disable_udp_quic" -eq 1 ]; then
+            [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
+         fi
          LOG_OUT "Chnroute6 Cidr List Update Successful!"
-         sleep 5
+         sleep 3
       else
          LOG_OUT "Updated Chnroute6 Cidr List No Change, Do Nothing..."
-         sleep 5
+         sleep 3
       fi
    else
       LOG_OUT "Chnroute6 Cidr List Update Error, Please Try Again Later..."
-      sleep 5
+      sleep 3
    fi
    rm -rf /tmp/china_ip*_route* >/dev/null 2>&1
    SLOG_CLEAN

@@ -41,15 +41,15 @@
          LOG_OUT "Geoip Database Has Been Updated, Starting To Replace The Old Version..."
          mv /tmp/Country.mmdb "$geoip_path" >/dev/null 2>&1
          LOG_OUT "Geoip Database Update Successful!"
-         sleep 5
+         sleep 3
          [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
       else
          LOG_OUT "Updated Geoip Database No Change, Do Nothing..."
-         sleep 5
+         sleep 3
       fi
    else
       LOG_OUT "Geoip Database Update Error, Please Try Again Later..."
-      sleep 5
+      sleep 3
    fi
    rm -rf /tmp/Country.mmdb >/dev/null 2>&1
    SLOG_CLEAN
