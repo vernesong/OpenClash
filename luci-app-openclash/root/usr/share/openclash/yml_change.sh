@@ -161,12 +161,20 @@ if '$2' == 'fake-ip' then
         if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
            Value_5 = Value_4['fake-ip-filter'].reverse!
            Value_5.each{|x| Value['dns']['fake-ip-filter'].insert(-1,x)}
-           Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq
         else
            Value['dns']['fake-ip-filter']=Value_4['fake-ip-filter']
         end
+        Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq
      end
-  end
+   end
+   if ${23} == 1 then
+      if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+         Value['dns']['fake-ip-filter'].insert(-1,'+.nflxvideo.net')
+         Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq
+      else
+         Value['dns'].merge!({'fake-ip-filter'=>['+.nflxvideo.net']})
+      end
+   end
 end;
 rescue Exception => e
 puts '${LOGTIME} Error: Set Fake-IP-Filter Error,【' + e.message + '】'
