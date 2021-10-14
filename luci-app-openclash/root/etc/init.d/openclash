@@ -969,7 +969,7 @@ yml_other_rules_get()
 check_run_quick()
 {
    quick_start=true
-   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $game_core_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version"
+   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $game_core_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version /tmp/openclash_fake_filter.list"
 	 if [ ! -f "$CONFIG_FILE" ] || [ ! -f "/tmp/openclash_config.tmp" ] || [ ! -f "/tmp/openclash.change" ]; then
 	    quick_start=false
 	    return
@@ -1992,6 +1992,7 @@ get_config()
    dns_port=$(uci -q get openclash.config.dns_port)
    tolerance=$(uci -q get openclash.config.tolerance)
    custom_fallback_filter=$(uci -q get openclash.config.custom_fallback_filter)
+   netflix_domains_prefetch=$(uci -q get openclash.config.netflix_domains_prefetch || echo 0)
    append_wan_dns=$(uci -q get openclash.config.append_wan_dns || echo 1)
    store_fakeip=$(uci -q get openclash.config.store_fakeip || echo 1)
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
@@ -2027,7 +2028,7 @@ start()
       config_foreach yml_auth_get "authentication"
       yml_auth_custom "$CONFIG_FILE"
       yml_dns_custom "$enable_custom_dns" "$CONFIG_FILE" "$append_wan_dns" "$ipv6_dns"
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" "$dns_port" "$core_type" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" "$dns_port" "$core_type" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$netflix_domains_prefetch"
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME"
       yml_custom_rule_provider
       yml_game_custom
