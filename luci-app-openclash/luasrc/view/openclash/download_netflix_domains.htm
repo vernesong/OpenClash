@@ -3,7 +3,7 @@
 <script type="text/javascript">//<![CDATA[
 	var catch_num;
 	var catch_timeout;
-	var catch_out = "";
+	var catch_out;
 	
 	function act_download_rule(btn)
 	{
@@ -54,6 +54,7 @@
 				legend.parentNode.style.display = 'block';
 				legend.style.display = 'inline';
 				catch_num = 0;
+				catch_out = "";
 				get_netflix_domains();
 			}
 		}
