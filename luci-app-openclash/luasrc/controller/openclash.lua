@@ -31,6 +31,8 @@ function index()
 	entry({"admin", "services", "openclash", "ping"}, call("act_ping"))
 	entry({"admin", "services", "openclash", "download_rule"}, call("action_download_rule"))
 	entry({"admin", "services", "openclash", "download_netflix_domains"}, call("action_download_netflix_domains"))
+	entry({"admin", "services", "openclash", "catch_netflix_domains"}, call("action_catch_netflix_domains"))
+	entry({"admin", "services", "openclash", "write_netflix_domains"}, call("action_write_netflix_domains"))
 	entry({"admin", "services", "openclash", "restore"}, call("action_restore_config"))
 	entry({"admin", "services", "openclash", "backup"}, call("action_backup"))
 	entry({"admin", "services", "openclash", "remove_all_core"}, call("action_remove_all_core"))
@@ -974,6 +976,64 @@ end
 function action_del_log()
 	luci.sys.exec(": > /tmp/openclash.log")
 	return
+end
+
+function split(str,delimiter)
+	local dLen = string.len(delimiter)
+	local newDeli = ''
+	for i=1,dLen,1 do
+		newDeli = newDeli .. "["..string.sub(delimiter,i,i).."]"
+	end
+
+	local locaStart,locaEnd = string.find(str,newDeli)
+	local arr = {}
+	local n = 1
+	while locaStart ~= nil
+	do
+		if locaStart>0 then
+			arr[n] = string.sub(str,1,locaStart-1)
+			n = n + 1
+		end
+
+		str = string.sub(str,locaEnd+1,string.len(str))
+		locaStart,locaEnd = string.find(str,newDeli)
+	end
+	if str ~= nil then
+		arr[n] = str
+	end
+	return arr
+end
+
+function action_write_netflix_domains()
+	local domains = luci.http.formvalue("domains")
+	local dustom_file = "/etc/openclash/custom/openclash_custom_netflix_domains.list"
+	local file = io.open(dustom_file, "a+")
+	file:seek("set")
+	local domain = file:read("*a")
+	for v, k in pairs(split(domains,"\n")) do
+		if not string.find(domain,k,1,true) then
+			file:write(k.."\n")
+		end
+	end
+	file:close()
+	return
+end
+
+function action_catch_netflix_domains()
+	local cmd = "/usr/share/openclash/openclash_debug_getcon.lua 'netflix-nflxvideo'"
+	luci.http.prepare_content("text/plain")
+	local util = io.popen(cmd)
+	if util and util ~= "" then
+		while true do
+			local ln = util:read("*l")
+			if not ln then break end
+			luci.http.write(ln)
+			luci.http.write(",")
+		end
+		util:close()
+		return
+	end
+	luci.http.status(500, "Bad address")
 end
 
 function action_diag_connection()

@@ -2422,3 +2422,24 @@ msgstr "Fake-IP 持久化"
 
 msgid "Cache Fake-IP DNS Resolution Records To File, Improve The Response Speed After Startup"
 msgstr "存储Fake-IP的DNS解析记录到文件，提升内核启动后的反应速度和稳定性"
+
+msgid "About to open fast.com"
+msgstr "确认后将打开 fast.com 进行测速"
+
+msgid "Please make sure the OpenClash works normally"
+msgstr "请确保 OpenClash 已在正常运行"
+
+msgid "The domains catch time is one minute"
+msgstr "域名抓取功能运行时间为一分钟"
+
+msgid "You can also try to catch while unlocking device playing"
+msgstr "您也可以在正常解锁的设备播放时尝试抓取"
+
+msgid "The catch result will be automatically saved"
+msgstr "抓取结果将自动保存"
+
+msgid "Click to Catch"
+msgstr "手动抓取域名"
+
+msgid "No domain names were catched..."
+msgstr "未抓取到任何域名..."
