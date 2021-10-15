@@ -1002,6 +1002,19 @@ write_run_quick()
 	 fi
 }
 
+custom_rule_provider()
+{
+   local section="$1"
+   local enabled
+   config_get_bool "enabled" "$section" "enabled" "1"
+
+   if [ "$enabled" = "0" ]; then
+      return
+   else
+      config_set_custom_rule_provider=1
+   fi
+}
+
 #运行模式处理
 do_run_mode()
 {
@@ -1080,8 +1093,17 @@ do_run_file()
       config_load "openclash"
       config_foreach yml_other_rules_get "other_rules" "$CONFIG_NAME"
    fi
+   
+   config_load "openclash"
+   config_set_custom_rule_provider=0
+   for i in "rule_provider_config rule_providers game_config"; do
+      config_foreach custom_rule_provider "$i"
+      if [ "$config_set_custom_rule_provider" -eq 1 ]; then
+      	break
+      fi
+   done 2>/dev/null
 
-   if [ "$proxy_mode" = "script" ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$RAW_CONFIG_FILE" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules_2.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ]; then
+   if [ "$proxy_mode" = "script" ] || [ "$config_set_custom_rule_provider" -eq 1 ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$RAW_CONFIG_FILE" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules_2.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ]; then
       if [ "$en_mode_tun" != "2" ]; then
          rm -rf "/etc/openclash/clash"
          ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
@@ -1977,7 +1999,7 @@ get_config()
    disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
    log_level=$(uci -q get openclash.config.log_level)
    intranet_allowed=$(uci -q get openclash.config.intranet_allowed)
-   enable_udp_proxy=$(uci -q get openclash.config.enable_udp_proxy)
+   enable_udp_proxy=$(uci -q get openclash.config.enable_udp_proxy || echo 1)
    disable_udp_quic=$(uci -q get openclash.config.disable_udp_quic)
    operation_mode=$(uci -q get openclash.config.operation_mode)
    lan_ac_mode=$(uci -q get openclash.config.lan_ac_mode)
