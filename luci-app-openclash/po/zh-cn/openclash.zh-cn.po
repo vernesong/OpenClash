@@ -1178,6 +1178,9 @@ msgstr "GEOIP（By MaxMind）数据库日期"
 msgid "No Backup"
 msgstr "暂未备份"
 
+msgid "Backup"
+msgstr "备份"
+
 msgid "<Limited State>"
 msgstr "<受限状态>"
 
