@@ -598,8 +598,12 @@ do
                end
                #ws-opts-headers:
                if Value['proxies'][$count]['ws-opts'].key?('headers') then
-                  ws_opts_headers = '${uci_set}ws_opts_headers=\"' + Value['proxies'][$count]['ws-opts']['headers'].to_s + '\"'
-                  system(ws_opts_headers)
+                  system '${uci_del}ws_opts_headers >/dev/null 2>&1'
+                  Value['proxies'][$count]['ws-opts']['headers'].keys.each{
+                  |v|
+                     ws_opts_headers = '${uci_add}ws_opts_headers=\"' + v.to_s + ': '+ Value['proxies'][$count]['ws-opts']['headers'][v].to_s + '\"'
+                     system(ws_opts_headers)
+                  }
                end
                #max-early-data:
                if Value['proxies'][$count]['ws-opts'].key?('max-early-data') then
@@ -750,9 +754,30 @@ do
       Thread.new{
       #grpc-service-name
       if Value['proxies'][$count].key?('grpc-opts') then
+         system '${uci_set}obfs_trojan=grpc'
          if Value['proxies'][$count]['grpc-opts'].key?('grpc-service-name') then
             grpc_service_name = '${uci_set}grpc_service_name=\"' + Value['proxies'][$count]['grpc-opts']['grpc-service-name'].to_s + '\"'
             system(grpc_service_name)
+         end
+      end
+      }.join
+      
+      Thread.new{
+      if Value['proxies'][$count].key?('ws-opts') then
+      system '${uci_set}obfs_trojan=ws'
+      #trojan_ws_path
+         if Value['proxies'][$count]['ws-opts'].key?('path') then
+            trojan_ws_path = '${uci_set}trojan_ws_path=\"' + Value['proxies'][$count]['ws-opts']['path'].to_s + '\"'
+            system(trojan_ws_path)
+         end
+      #trojan_ws_headers
+         if Value['proxies'][$count]['ws-opts'].key?('headers') then
+            system '${uci_del}trojan_ws_headers >/dev/null 2>&1'
+            Value['proxies'][$count]['ws-opts']['headers'].keys.each{
+            |v|
+               trojan_ws_headers = '${uci_add}trojan_ws_headers=\"' + v.to_s + ': '+ Value['proxies'][$count]['ws-opts']['headers'][v].to_s + '\"'
+               system(trojan_ws_headers)
+            }
          end
       end
       }.join

@@ -229,6 +229,14 @@ o:value("h2", translate("h2"))
 o:value("grpc", translate("grpc"))
 o:depends("type", "vmess")
 
+o = s:option(ListValue, "obfs_trojan", translate("obfs-mode"))
+o.rmempty = true
+o.default = "none"
+o:value("none")
+o:value("ws", translate("websocket (ws)"))
+o:value("grpc", translate("grpc"))
+o:depends("type", "trojan")
+
 o = s:option(Value, "host", translate("obfs-hosts"))
 o.datatype = "host"
 o.placeholder = translate("example.com")
@@ -242,8 +250,8 @@ o:depends("obfs_snell", "http")
 -- vmess路径
 o = s:option(Value, "path", translate("path"))
 o.rmempty = true
+o.placeholder = translate("/")
 o:depends("obfs", "websocket")
-o:depends("obfs_vmess", "websocket")
 
 o = s:option(DynamicList, "h2_host", translate("host"))
 o.rmempty = true
@@ -264,15 +272,17 @@ o:depends("obfs_vmess", "http")
 
 o = s:option(Value, "custom", translate("headers"))
 o.rmempty = true
+o.placeholder = translate("v2ray.com")
 o:depends("obfs", "websocket")
-o:depends("obfs_vmess", "websocket")
 
 o = s:option(Value, "ws_opts_path", translate("ws-opts-path"))
 o.rmempty = true
+o.placeholder = translate("/path")
 o:depends("obfs_vmess", "websocket")
 
-o = s:option(Value, "ws_opts_headers", translate("ws-opts-headers"))
+o = s:option(DynamicList, "ws_opts_headers", translate("ws-opts-headers"))
 o.rmempty = true
+o.placeholder = translate("Host: v2ray.com")
 o:depends("obfs_vmess", "websocket")
 
 o = s:option(Value, "max_early_data", translate("max-early-data"))
@@ -366,8 +376,20 @@ o = s:option(Value, "grpc_service_name", translate("grpc-service-name"))
 o.rmempty = true
 o.datatype = "host"
 o.placeholder = translate("example")
-o:depends("type", "trojan")
+o:depends("obfs_trojan", "grpc")
 o:depends("obfs_vmess", "grpc")
+
+-- [[ trojan-ws-path ]]--
+o = s:option(Value, "trojan_ws_path", translate("Path"))
+o.rmempty = true
+o.placeholder = translate("/path")
+o:depends("obfs_trojan", "ws")
+
+-- [[ trojan-ws-headers ]]--
+o = s:option(DynamicList, "trojan_ws_headers", translate("Headers"))
+o.rmempty = true
+o.placeholder = translate("Host: v2ray.com")
+o:depends("obfs_trojan", "ws")
 
 o = s:option(DynamicList, "groups", translate("Proxy Group"))
 o.description = font_red..bold_on..translate("No Need Set when Config Create, The added Proxy Groups Must Exist")..bold_off..font_off
