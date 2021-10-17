@@ -54,7 +54,7 @@ if [ "$2" = "fake-ip" ]; then
    fi
    if [ -s "/tmp/openclash_servers_fake_filter.conf" ]; then
       mkdir -p /tmp/dnsmasq.d
-      ln -s /tmp/openclash_servers_fake_filter.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf
+      cp /tmp/openclash_servers_fake_filter.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf
    fi
 fi
 
