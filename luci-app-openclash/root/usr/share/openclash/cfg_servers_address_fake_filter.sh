@@ -8,7 +8,7 @@ if pidof clash >/dev/null && [ -z "$(echo "$en_mode" |grep "redir-host")" ]; the
    /usr/share/openclash/openclash_fake_filter.sh
    if [ -s "/etc/openclash/servers_fake_filter.conf" ]; then
       mkdir -p /tmp/dnsmasq.d
-      ln -s /etc/openclash/servers_fake_filter.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
+      cp /etc/openclash/servers_fake_filter.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
       /etc/init.d/dnsmasq restart >/dev/null 2>&1
    fi
    echo "" >$START_LOG
