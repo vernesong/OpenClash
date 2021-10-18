@@ -121,8 +121,9 @@ o.description = translate("Prevent Some Devices From Directly Using IP Access To
 o.default=0
 
 o = s:taboption("op_mode", Value, "netflix_domains_prefetch_interval", translate("Netflix Domains Prefetch Interval(min)"))
-o.default=60
+o.default=1440
 o.datatype = "uinteger"
+o.description = translate("Will Run Once Immediately After Started, The Interval Does Not Need To Be Too Short (Take Effect Immediately After Commit)")
 o:depends("netflix_domains_prefetch", "1")
 
 o = s:taboption("op_mode", DummyValue, "netflix_domains_update", translate("Update Netflix Domains List"))
