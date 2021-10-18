@@ -66,7 +66,6 @@ add china_ip6_route 2001:df3:c680::/48
 add china_ip6_route 2001:df3:d880::/48 
 add china_ip6_route 2001:df3:ed80::/48 
 add china_ip6_route 2001:df3:ef80::/48 
-add china_ip6_route 2001:df4:80::/48 
 add china_ip6_route 2001:df4:880::/48 
 add china_ip6_route 2001:df4:d80::/48 
 add china_ip6_route 2001:df4:1280::/48 
@@ -90,7 +89,6 @@ add china_ip6_route 2001:df5:2080::/48
 add china_ip6_route 2001:df5:5f80::/48 
 add china_ip6_route 2001:df5:7800::/48 
 add china_ip6_route 2001:df6:100::/48 
-add china_ip6_route 2001:df6:1c00::/48 
 add china_ip6_route 2001:df6:3d00::/48 
 add china_ip6_route 2001:df6:5d00::/48 
 add china_ip6_route 2001:df6:6800::/48 
@@ -111,6 +109,7 @@ add china_ip6_route 2001:f88::/32
 add china_ip6_route 2001:4438::/32 
 add china_ip6_route 2001:4510::/29 
 add china_ip6_route 2400:1040::/32 
+add china_ip6_route 2400:1160::/32 
 add china_ip6_route 2400:12c0::/32 
 add china_ip6_route 2400:1340::/32 
 add china_ip6_route 2400:1380::/32 
@@ -534,7 +533,6 @@ add china_ip6_route 2401:ec40::/32
 add china_ip6_route 2401:f300::/32 
 add china_ip6_route 2401:f7c0::/32 
 add china_ip6_route 2401:fa80::/32 
-add china_ip6_route 2401:fac0::/32 
 add china_ip6_route 2401:fb80::/32 
 add china_ip6_route 2401:fc80::/32 
 add china_ip6_route 2401:fe80::/32 
@@ -1176,7 +1174,6 @@ add china_ip6_route 2404:8a80::/32
 add china_ip6_route 2404:8b00::/32 
 add china_ip6_route 2404:8dc0::/32 
 add china_ip6_route 2404:9340::/32 
-add china_ip6_route 2404:9880::/32 
 add china_ip6_route 2404:9b80::/32 
 add china_ip6_route 2404:9c80::/32 
 add china_ip6_route 2404:a000::/32 
@@ -1733,7 +1730,6 @@ add china_ip6_route 2406:de80::/32
 add china_ip6_route 2406:df80::/32 
 add china_ip6_route 2406:e080::/32 
 add china_ip6_route 2406:e180::/32 
-add china_ip6_route 2406:e280::/32 
 add china_ip6_route 2406:e2c0::/32 
 add china_ip6_route 2406:e380::/32 
 add china_ip6_route 2406:e3c0::/32 
@@ -1863,14 +1859,18 @@ add china_ip6_route 2407:d480::/32
 add china_ip6_route 2407:d580::/32 
 add china_ip6_route 2407:d680::/32 
 add china_ip6_route 2407:d780::/32 
+add china_ip6_route 2407:d7c0::/32 
 add china_ip6_route 2407:d880::/32 
+add china_ip6_route 2407:d8c0::/32 
 add china_ip6_route 2407:d980::/32 
+add china_ip6_route 2407:d9c0::/32 
 add china_ip6_route 2407:da80::/32 
 add china_ip6_route 2407:db80::/32 
 add china_ip6_route 2407:dc80::/32 
 add china_ip6_route 2407:dd80::/32 
 add china_ip6_route 2407:de80::/32 
 add china_ip6_route 2407:df80::/32 
+add china_ip6_route 2407:dfc0::/32 
 add china_ip6_route 2407:e080::/32 
 add china_ip6_route 2407:e180::/32 
 add china_ip6_route 2407:e280::/32 
@@ -1882,7 +1882,9 @@ add china_ip6_route 2407:e780::/32
 add china_ip6_route 2407:e800::/32 
 add china_ip6_route 2407:ea80::/32 
 add china_ip6_route 2407:eb80::/32 
+add china_ip6_route 2407:ec40::/32 
 add china_ip6_route 2407:ec80::/32 
+add china_ip6_route 2407:ecc0::/32 
 add china_ip6_route 2407:ed80::/32 
 add china_ip6_route 2407:ee80::/32 
 add china_ip6_route 2407:ef80::/32 
