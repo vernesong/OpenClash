@@ -48,16 +48,6 @@ if [ "$(ruby_read "$7" "['secret']")" != "$4" ]; then
 fi
 uci commit openclash
 
-if [ "$2" = "fake-ip" ]; then
-   if [ ! -f "/tmp/openclash_fake_filter.list" ] || [ ! -z "$(grep "config servers" /etc/config/openclash 2>/dev/null)" ]; then
-      /usr/share/openclash/openclash_fake_filter.sh
-   fi
-   if [ -s "/tmp/openclash_servers_fake_filter.conf" ]; then
-      mkdir -p /tmp/dnsmasq.d
-      cp /tmp/openclash_servers_fake_filter.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf
-   fi
-fi
-
 ruby -ryaml -E UTF-8 -e "
 begin
    Value = YAML.load_file('$7');

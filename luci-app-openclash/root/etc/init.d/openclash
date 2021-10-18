@@ -1135,6 +1135,17 @@ do_run_file()
    [ ! -x "$dev_core_path" ] && chmod 4755 "$dev_core_path" 2>/dev/null
 
 #文件检查
+   #fake_ip_filter
+   if [ "$3" = "fake-ip" ]; then
+      if [ ! -f "/tmp/openclash_fake_filter.list" ] || [ -n "$(grep "config servers" /etc/config/openclash 2>/dev/null)" ]; then
+         /usr/share/openclash/openclash_fake_filter.sh
+      fi
+      if [ -s "/tmp/openclash_servers_fake_filter.conf" ]; then
+         mkdir -p /tmp/dnsmasq.d
+         cp /tmp/openclash_servers_fake_filter.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf
+      fi
+   fi
+  
    [ -f "$geoip_path" ] && [ "$small_flash_memory" = "1" ] && {
       ln -s "$geoip_path" /etc/openclash/Country.mmdb 2>/dev/null
    }
@@ -2038,7 +2049,7 @@ start()
    
    LOG_OUT "Step 2: Check The Components..."
    #检查文件是否存在
-   do_run_file "$RAW_CONFIG_FILE" "$BACKUP_FILE"
+   do_run_file "$RAW_CONFIG_FILE" "$BACKUP_FILE" "$en_mode"
    
    #快速启动判断
    check_run_quick
