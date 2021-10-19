@@ -1096,8 +1096,7 @@ do_run_file()
    
    config_load "openclash"
    config_set_custom_rule_provider=0
-   checkList="rule_provider_config rule_providers game_config"
-   for i in $checkList; do
+   for i in "rule_provider_config" "rule_providers game_config"; do
       config_foreach custom_rule_provider "$i"
       if [ "$config_set_custom_rule_provider" -eq 1 ]; then
       	break
