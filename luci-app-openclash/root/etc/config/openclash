@@ -74,47 +74,47 @@ config dns_servers
 
 config dns_servers
 	option type 'https'
-	option group 'fallback'
-	option enabled '1'
 	option ip 'doh.pub/dns-query'
+	option group 'fallback'
+	option enabled '1'
 
 config dns_servers
 	option type 'https'
-	option group 'fallback'
-	option enabled '1'
 	option ip 'dns.alidns.com/dns-query'
+	option group 'fallback'
+	option enabled '1'
 
 config dns_servers
 	option type 'https'
 	option group 'fallback'
-	option enabled '1'
 	option ip 'cloudflare-dns.com/dns-query'
+	option enabled '1'
 
 config dns_servers
 	option group 'fallback'
-	option enabled '1'
 	option ip 'dns.rubyfish.cn/dns-query'
 	option type 'https'
+	option enabled '1'
 
 config dns_servers
-	option enabled '0'
 	option group 'fallback'
 	option ip 'dns.google'
 	option port '853'
 	option type 'tls'
+	option enabled '0'
 
 config dns_servers
-	option enabled '0'
 	option group 'fallback'
 	option type 'https'
 	option ip '1.1.1.1/dns-query'
+	option enabled '0'
 
 config dns_servers
-	option enabled '0'
 	option group 'fallback'
 	option ip '1.1.1.1'
 	option port '853'
 	option type 'tls'
+	option enabled '0'
 
 config dns_servers
 	option enabled '0'
@@ -122,17 +122,24 @@ config dns_servers
 	option ip '8.8.8.8'
 	option port '853'
 	option type 'tls'
-	
+
 config dns_servers
-	option enabled '0'
 	option type 'udp'
 	option group 'fallback'
 	option ip '2001:4860:4860::8888'
 	option port '53'
+	option enabled '0'
 
 config dns_servers
-	option enabled '0'
 	option type 'udp'
 	option group 'fallback'
 	option ip '2001:4860:4860::8844'
 	option port '53'
+	option enabled '0'
+
+config dns_servers
+	option type 'udp'
+	option group 'fallback'
+	option ip '2001:da8::666'
+	option port '53'
+	option enabled '1'
