@@ -618,6 +618,7 @@ EOF
    fi
    if [ ! -z "$grpc_service_name" ]; then
 cat >> "$SERVER_FILE" <<-EOF
+    network: grpc
     grpc-opts:
       grpc-service-name: "$grpc_service_name"
 EOF
@@ -625,6 +626,7 @@ EOF
    if [ "$obfs_trojan" = "ws" ]; then
       if [ -n "$trojan_ws_path" ] || [ -n "$trojan_ws_headers" ]; then
 cat >> "$SERVER_FILE" <<-EOF
+    network: ws
     ws-opts:
 EOF
       fi
