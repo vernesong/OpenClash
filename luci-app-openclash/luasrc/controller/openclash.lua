@@ -521,9 +521,9 @@ function action_rule_mode()
 		local cn_port = cn_port()
 		if not daip or not cn_port then return end
 		info = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/configs', dase, daip, cn_port)))
-		mode = info["mode"]
+		mode = info["mode"] or "rule"
 	else
-		mode = uci:get("openclash", "config", "proxy_mode") or "info"
+		mode = uci:get("openclash", "config", "proxy_mode") or "rule"
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
@@ -591,7 +591,7 @@ function action_log_level()
 		local cn_port = cn_port()
 		if not daip or not cn_port then return end
 		info = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/configs', dase, daip, cn_port)))
-		level = info["log-level"]
+		level = info["log-level"] or "info"
 	else
 		level = uci:get("openclash", "config", "log_level") or "info"
 	end
