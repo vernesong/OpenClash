@@ -981,12 +981,12 @@ check_run_quick()
 	 else
 	    if [ -s "/tmp/openclash.change" ]; then
          for i in $check_file; do
-            if [ -z "$(grep "$i $(date -r $i)" "/tmp/openclash.change")" ]; then
+            if [ -z "$(grep "$i $(date -r $i)$" "/tmp/openclash.change")" ]; then
             	LOG_OUT "Tip: Because of the file【 $i 】modificated, Pause quick start..."
             	quick_start=false
             	break
             fi
-         done
+         done 2>/dev/null
       fi
 	 fi
 }
@@ -998,7 +998,7 @@ write_run_quick()
 	    : > "/tmp/openclash.change"
 	    for i in $check_file; do
          echo "$i $(date -r $i)" >> "/tmp/openclash.change"
-      done
+      done 2>/dev/null
 	 fi
 }
 

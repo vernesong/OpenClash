@@ -232,9 +232,11 @@ change_dns()
          uci commit dhcp
          /etc/init.d/dnsmasq restart >/dev/null 2>&1
       fi
+      iptables -t nat -D OUTPUT -j openclash_output >/dev/null 2>&1
+      iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
       iptables -t nat -I OUTPUT -j openclash_output >/dev/null 2>&1
       iptables -t mangle -I OUTPUT -j openclash_output >/dev/null 2>&1
-      nohup /usr/share/openclash/openclash_watchdog.sh &
+      [ "$(unify_ps_status "openclash_watchdog.sh")" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && nohup /usr/share/openclash/openclash_watchdog.sh &
    fi
 }
 
