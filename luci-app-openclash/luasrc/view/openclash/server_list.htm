@@ -16,7 +16,7 @@ local dsp = require "luci.dispatcher"
 				domain: pings[i].getAttribute("hint")
 			},
 			function(x, result) {
-				pings[result.index].innerHTML = (result.ping ? "<b><font color=green>"+result.ping+"</font></b> ms" : "<b><font color=red><%: 检测失败 %></font></b>");
+				pings[result.index].innerHTML = (result.ping ? "<b><font color=green>"+result.ping+"</font></b> ms" : "<b><font color=red><%:Test failed%></font></b>");
 			}
 		);
 		XHR.poll(10,'<%=dsp.build_url("admin", "services", "openclash", "ping")%>',{
@@ -24,7 +24,7 @@ local dsp = require "luci.dispatcher"
 				domain: pings[i].getAttribute("hint")
 			},
 			function(x, result) {
-				pings[result.index].innerHTML = (result.ping ? "<b><font color=green>"+result.ping+"</font></b> ms" : "<b><font color=red><%: 检测失败 %></font></b>");
+				pings[result.index].innerHTML = (result.ping ? "<b><font color=green>"+result.ping+"</font></b> ms" : "<b><font color=red><%:Test failed%></font></b>");
 			}
 		);
 	}

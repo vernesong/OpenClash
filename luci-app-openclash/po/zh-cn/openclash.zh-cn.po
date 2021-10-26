@@ -2450,3 +2450,5 @@ msgstr "未抓取到任何域名..."
 msgid "Will Run Once Immediately After Started, The Interval Does Not Need To Be Too Short (Take Effect Immediately After Commit)"
 msgstr "启动后会立即执行一次，间隔无需太短（修改后保存配置即可生效）"
 
+msgid "Test failed"
+msgstr "检测失败"
