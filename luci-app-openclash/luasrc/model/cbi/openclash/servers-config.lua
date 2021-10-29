@@ -287,10 +287,12 @@ o:depends("obfs_vmess", "websocket")
 
 o = s:option(Value, "max_early_data", translate("max-early-data"))
 o.rmempty = true
+o.placeholder = translate("2048")
 o:depends("obfs_vmess", "websocket")
 
 o = s:option(Value, "early_data_header_name", translate("early-data-header-name"))
 o.rmempty = true
+o.placeholder = translate("Sec-WebSocket-Protocol")
 o:depends("obfs_vmess", "websocket")
 
 -- [[ skip-cert-verify ]]--
