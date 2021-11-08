@@ -75,25 +75,19 @@ config dns_servers
 config dns_servers
 	option type 'https'
 	option ip 'doh.pub/dns-query'
-	option group 'fallback'
+	option group 'nameserver'
 	option enabled '1'
 
 config dns_servers
 	option type 'https'
 	option ip 'dns.alidns.com/dns-query'
-	option group 'fallback'
+	option group 'nameserver'
 	option enabled '1'
 
 config dns_servers
 	option type 'https'
 	option group 'fallback'
-	option ip 'cloudflare-dns.com/dns-query'
-	option enabled '1'
-
-config dns_servers
-	option group 'fallback'
-	option ip 'dns.rubyfish.cn/dns-query'
-	option type 'https'
+	option ip 'dns.cloudflare.com/dns-query'
 	option enabled '1'
 
 config dns_servers
@@ -142,4 +136,34 @@ config dns_servers
 	option group 'fallback'
 	option ip '2001:da8::666'
 	option port '53'
+	option enabled '1'
+
+config dns_servers
+	option group 'fallback'
+	option type 'https'
+	option ip 'public.dns.iij.jp/dns-query'
+	option enabled '1'
+
+config dns_servers
+	option group 'fallback'
+	option type 'https'
+	option ip 'jp.tiar.app/dns-query'
+	option enabled '1'
+
+config dns_servers
+	option group 'fallback'
+	option type 'https'
+	option ip 'jp.tiarap.org/dns-query'
+	option enabled '1'
+
+config dns_servers
+	option group 'fallback'
+	option ip 'jp.tiar.app'
+	option type 'tls'
+	option enabled '0'
+
+config dns_servers
+	option group 'fallback'
+	option ip 'dot.tiar.app'
+	option type 'tls'
 	option enabled '1'

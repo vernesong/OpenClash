@@ -157,11 +157,13 @@ yml_dns_check()
       cat >> "$DNS_FILE" <<-EOF
     - 114.114.114.114
     - 119.29.29.29
+    - 223.5.5.5
   fallback:
-    - https://cloudflare-dns.com/dns-query
-    - https://doh.pub/dns-query
-    - https://dns.alidns.com/dns-query
-    - https://dns.rubyfish.cn/dns-query
+    - https://dns.cloudflare.com/dns-query
+    - https://public.dns.iij.jp/dns-query
+    - https://jp.tiar.app/dns-query
+    - https://jp.tiarap.org/dns-query
+    - tls://dot.tiar.app
 EOF
       if [ -z "$(ruby_read "$1" "['dns']")" ]; then
          ruby_cover "$1" "['dns']" "$DNS_FILE"
