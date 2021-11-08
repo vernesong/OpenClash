@@ -126,22 +126,16 @@ msgid "fake-ip"
 msgstr "Fake-IP（增强）模式"
 
 msgid "redir-host(tun mode)"
-msgstr "Redir-Host（TUN）模式【依赖kmod-tun】"
+msgstr "Redir-Host（TUN）模式"
 
 msgid "fake-ip(tun mode)"
-msgstr "Fake-IP（TUN）模式【依赖kmod-tun】"
-
-msgid "redir-host-vpn(game mode)"
-msgstr "Redir-Host（游戏）模式【依赖kmod-tun】"
-
-msgid "fake-ip-vpn(game mode)"
-msgstr "Fake-IP（游戏）模式【依赖kmod-tun】"
+msgstr "Fake-IP（TUN）模式"
 
 msgid "redir-host-mix(tun mix mode)"
-msgstr "Redir-Host（TUN-混合）模式【依赖kmod-tun】【UDP-TUN，TCP-转发】"
+msgstr "Redir-Host（TUN-混合）模式【UDP-TUN，TCP-转发】"
 
 msgid "fake-ip-mix(tun mix mode)"
-msgstr "Fake-IP（TUN-混合）模式【依赖kmod-tun】【UDP-TUN，TCP-转发】"
+msgstr "Fake-IP（TUN-混合）模式【UDP-TUN，TCP-转发】"
 
 msgid "Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error"
 msgstr "选择运行模式，如客户端的网络异常请尝试清除DNS缓存"
@@ -1190,9 +1184,6 @@ msgstr "增强"
 msgid "Compatible"
 msgstr "兼容"
 
-msgid "Game"
-msgstr "游戏"
-
 msgid "Mix"
 msgstr "混合"
 
@@ -1865,9 +1856,6 @@ msgstr "错误：配置文件格式校验失败..."
 msgid "Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
 msgstr "提示: 检测到配置了 TUN 内核专属功能，调用 TUN 内核启动..."
 
-msgid "Tip: Detected The Exclusive Function of The Game Core, Use Game Core to Start..."
-msgstr "提示: 检测到配置了 Game 内核专属功能，调用 Game 内核启动..."
-
 msgid "Tip: No Special Configuration Detected, Use Dev Core to Start..."
 msgstr "提示: 未检测到特殊配置，调用 Dev 内核启动..."
 
@@ -2042,14 +2030,8 @@ msgstr "2、点击《管理第三方游戏规则》或者《管理第三方规�
 msgid "3. On this page, set the corresponding configuration file and policy group of the rule you have downloaded, and save the settings"
 msgstr "3、在此页面设置您已下载的规则的对应配置文件、策略组并保存设置"
 
-msgid "Use in tun mode:"
-msgstr "在TUN模式下使用："
-
-msgid "1. In the <global settings> - <version update tab>, download and install the corresponding mode core first"
-msgstr "1、在全局设置-版本更新标签先下载、安装对应模式内核"
-
-msgid "2. Select mixed mode, Tun mode or game mode in <global settings> - <mode settings> - <running mode> and restart"
-msgstr "2、在《全局设置》-《模式设置》-《运行模式》中选择混合模式、TUN模式或者游戏模式并重新启动"
+msgid "4. Install the TUN core"
+msgstr "4、安装TUN内核"
 
 msgid "When setting this page, if the groups is empty, please go to the <server and group management> page to add"
 msgstr "本页设置时如策略组为空，请先到《服务器与策略组管理》页面进行添加"

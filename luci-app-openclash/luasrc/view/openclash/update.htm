@@ -38,13 +38,6 @@
 	  </td></tr>
 		<tr><td width="25%">[TUN] <%:Current Core%></td><td width="25%" align="left" id="CORE_TUN_CV"><%:Collecting data...%></td><td width="25%">[TUN] <%:Latest Core%></td><td width="25%" align="left" id="CORE_TUN_LV"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"><%:Update Core%></td><td width="25%" align="left" id="core_tun_up"><%:Collecting data...%></td><td width="25%"><%:Download Latest Core%></td><td width="25%" align="left" id="ma_core_tun_up"><%:Collecting data...%></td></tr>
-		<tr><td width="100%" colspan="4">
-	    <p align="center">
-	  		<b><%:Core path:%>/etc/openclash/core/clash_game </b>
-	  	</p>
-	  </td></tr>
-		<tr><td width="25%">[Game] <%:Current Core%> </td><td width="25%" align="left" id="CORE_GAME_CV"><%:Collecting data...%></td><td width="25%">[Game] <%:Latest Core%></td><td width="25%" align="left" id="CORE_GAME_LV"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"><%:Update Core%></td><td width="25%" align="left" id="core_game_up"><%:Collecting data...%></td><td width="25%"><%:Download Latest Core%></td><td width="25%" align="left" id="ma_core_game_up"><%:Collecting data...%></td></tr>
 	</table>
 </fieldset>
 <fieldset class="cbi-section">
@@ -94,18 +87,14 @@
 	var core_lv = document.getElementById('CORE_LV');
 	var core_tun_cv = document.getElementById('CORE_TUN_CV');
 	var core_tun_lv = document.getElementById('CORE_TUN_LV');
-	var core_game_cv = document.getElementById('CORE_GAME_CV');
-	var core_game_lv = document.getElementById('CORE_GAME_LV');
 	var op_cv = document.getElementById('OP_CV');
 	var op_lv = document.getElementById('OP_LV');
 	var core_up = document.getElementById('core_up');
 	var core_tun_up = document.getElementById('core_tun_up');
-	var core_game_up = document.getElementById('core_game_up');
 	var op_up = document.getElementById('op_up');
 	var update_tip = document.getElementById('update_tip');
 	var ma_core_up  = document.getElementById('ma_core_up');
 	var ma_core_tun_up  = document.getElementById('ma_core_tun_up');
-	var ma_core_game_up  = document.getElementById('ma_core_game_up');
 	var ma_op_up  = document.getElementById('ma_op_up');
 	var restore  = document.getElementById('restore');
 	var backup  = document.getElementById('backup');
@@ -155,20 +144,10 @@
       else {
          core_tun_cv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
       }
-      if ( status.coregamecv == "0" ) {
-         core_game_cv.innerHTML = "<b><font color=red><%:File Not Exist%></font></b>";
-      }
-      else if (status.coregamecv != "") {
-         core_game_cv.innerHTML = "<b><font color=green>"+status.coregamecv+"</font></b>";
-      }
-      else {
-         core_game_cv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
-      }
       var corelv = status.corelv;
       var arr_core = corelv.split(",");
       var corelvis = arr_core[0];
       var coretunlvis = arr_core[1];
-      var coregamelvis = arr_core[2];
 			if (corelvis != status.corecv && corelvis != "") {
 			   core_lv.innerHTML = "<b><font color=green>"+corelvis+"<%:<New>%></font></b>";
 			}
@@ -186,15 +165,6 @@
 			}
 			else {
 			   core_tun_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
-			}
-			if (coregamelvis != status.coregamecv && coregamelvis != "") {
-			   core_game_lv.innerHTML = "<b><font color=green>"+coregamelvis+"<%:<New>%></font></b>";
-			}
-			else if (coregamelvis != "" && coregamelvis == status.coregamecv) {
-			   core_game_lv.innerHTML = "<b><font color=green>"+coregamelvis+"</font></b>";
-			}
-			else {
-			   core_game_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
 			}
 			var oplv = status.oplv;
       var arr_op = oplv.split(",");
@@ -215,11 +185,9 @@
 	
 	core_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'Dev\')"/>';
 	core_tun_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'TUN\')"/>';
-	core_game_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'Game\')"/>';
 	op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return op_update(this)"/>';
 	ma_core_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'Dev\')"/>';
 	ma_core_tun_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'TUN\')"/>';
-	ma_core_game_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'Game\')"/>';
 	ma_op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_op_update(this)"/>';
 	restore.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Restore Default Config%>" onclick="return restore_config(this)"/>';
 	one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:One Click Check Update%>" onclick="return all_one_key_update(this)"/>';
@@ -274,10 +242,6 @@
           		else {
               	alert('<%:Failed to get the latest version. Please try again later!%>')
           		}
-        		}
-        		if (type == "Game") {
-        			url4='https://github.com/vernesong/OpenClash/releases/download/TUN/clash-'+status.corever+'.tar.gz';
-              window.location.href=url4;
         		}
         	}
         	else {
