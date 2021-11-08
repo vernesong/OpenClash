@@ -1667,10 +1667,11 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
          iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
          iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
          iptables -t mangle -A PREROUTING -p udp -j openclash
-      fi
-      #quic
-      if [ "$disable_udp_quic" -eq 1 ]; then
-	       iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+         
+         #quic
+         if [ "$disable_udp_quic" -eq 1 ]; then
+	          iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+         fi
       fi
    fi
    
@@ -1801,14 +1802,17 @@ if [ -n "$en_mode_tun" ]; then
          iptables -t nat -A POSTROUTING -j openclash_post
       fi
    fi
+   
    #TUN FORWORD
    iptables -I FORWARD -m comment --comment "OpenClash TUN Forward" -o utun -j ACCEPT
+   
+   #quic
+   if [ "$disable_udp_quic" -eq 1 ]; then
+      iptables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+   fi
 fi
 
-#quic
-if [ "$disable_udp_quic" -eq 1 ]; then
-   iptables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
-fi
+
 
 #ipv6
 if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
