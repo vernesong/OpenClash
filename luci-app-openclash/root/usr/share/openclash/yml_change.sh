@@ -95,16 +95,12 @@ else
    Value['dns']['listen']='0.0.0.0:${17}'
 end;
 Value_2={'tun'=>{'enable'=>true}};
-if $en_mode_tun == 1 or $en_mode_tun == 3 then
+if $en_mode_tun != 0 then
    Value['tun']=Value_2['tun']
    Value['tun']['stack']='$stack_type'
    Value_2={'dns-hijack'=>['tcp://8.8.8.8:53','tcp://8.8.4.4:53']}
    Value['tun'].merge!(Value_2)
-elsif $en_mode_tun == 2
-   Value['tun']=Value_2['tun']
-   Value['tun']['device-url']='dev://utun'
-   Value['tun']['dns-listen']='0.0.0.0:53'
-elsif $en_mode_tun == 0
+else
    if Value.key?('tun') then
       Value.delete('tun')
    end
@@ -116,9 +112,9 @@ else
    Value['profile']['store-selected']=true
 end;
 if ${22} != 1 then
-   Value['profile']['store-fakeip']=false
+   Value['profile']['store-fake-ip']=false
 else
-   Value['profile']['store-fakeip']=true
+   Value['profile']['store-fake-ip']=true
 end;
 rescue Exception => e
 puts '${LOGTIME} Error: Set General Error,【' + e.message + '】'

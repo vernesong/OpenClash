@@ -85,11 +85,9 @@ local core_path_mode = uci:get("openclash", "config", "small_flash_memory")
 if core_path_mode ~= "1" then
 	dev_core_path="/etc/openclash/core/clash"
 	tun_core_path="/etc/openclash/core/clash_tun"
-	game_core_path="/etc/openclash/core/clash_game"
 else
 	dev_core_path="/tmp/etc/openclash/core/clash"
 	tun_core_path="/tmp/etc/openclash/core/clash_tun"
-	game_core_path="/tmp/etc/openclash/core/clash_game"
 end
 
 local function is_running()
@@ -219,20 +217,11 @@ else
 end
 end
 
-local function coregamecv()
-if not nixio.fs.access(game_core_path) then
-  return "0"
-else
-	return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $2}'",game_core_path))
-end
-end
-
 local function corelv()
 	luci.sys.call("sh /usr/share/openclash/clash_version.sh")
 	local core_lv = luci.sys.exec("sed -n 1p /tmp/clash_last_version 2>/dev/null")
 	local core_tun_lv = luci.sys.exec("sed -n 2p /tmp/clash_last_version 2>/dev/null")
-	local core_game_lv = luci.sys.exec("sed -n 3p /tmp/clash_last_version 2>/dev/null")
-	return core_lv .. "," .. core_tun_lv .. "," .. core_game_lv
+	return core_lv .. "," .. core_tun_lv
 end
 
 local function opcv()
@@ -851,7 +840,6 @@ function action_update()
 			coremodel = coremodel(),
 			corecv = corecv(),
 			coretuncv = coretuncv(),
-			coregamecv = coregamecv(),
 			opcv = opcv(),
 			corever = corever(),
 			upchecktime = upchecktime(),

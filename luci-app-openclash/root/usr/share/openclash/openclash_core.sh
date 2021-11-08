@@ -13,12 +13,10 @@ CPU_MODEL=$(uci get openclash.config.core_version 2>/dev/null)
 if [ "$small_flash_memory" != "1" ]; then
    dev_core_path="/etc/openclash/core/clash"
    tun_core_path="/etc/openclash/core/clash_tun"
-   game_core_path="/etc/openclash/core/clash_game"
    mkdir -p /etc/openclash/core
 else
    dev_core_path="/tmp/etc/openclash/core/clash"
    tun_core_path="/tmp/etc/openclash/core/clash_tun"
-   game_core_path="/tmp/etc/openclash/core/clash_game"
    mkdir -p /tmp/etc/openclash/core
 fi
 
@@ -32,10 +30,6 @@ case $CORE_TYPE in
       SLOG_CLEAN
       exit 0
    fi
-   ;;
-	"Game")
-   CORE_CV=$($game_core_path -v 2>/dev/null |awk -F ' ' '{print $2}')
-   CORE_LV=$(sed -n 3p /tmp/clash_last_version 2>/dev/null)
    ;;
    *)
    CORE_CV=$($dev_core_path -v 2>/dev/null |awk -F ' ' '{print $2}')
@@ -53,10 +47,6 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
       	LOG_OUT "【Tun】Core Downloading, Please Try to Download and Upload Manually If Fails"
 				curl -sL -m 10 --retry 2 https://github.com/vernesong/OpenClash/releases/download/TUN-Premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
 				;;
-				"Game")
-				LOG_OUT "【Game】Core Downloading, Please Try to Download and Upload Manually If Fails"
-				curl -sL -m 10 --retry 2 https://github.com/vernesong/OpenClash/releases/download/TUN/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_game.tar.gz >/dev/null 2>&1
-				;;
 				*)
 				LOG_OUT "【Dev】Core Downloading, Please Try to Download and Upload Manually If Fails"
 				curl -sL -m 10 --retry 2 https://github.com/vernesong/OpenClash/releases/download/Clash/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
@@ -67,10 +57,6 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
       	"TUN")
       	LOG_OUT "【Tun】Core Downloading, Please Try to Download and Upload Manually If Fails"
 				curl -sL -m 10 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@master/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
-				;;
-				"Game")
-				LOG_OUT "【Game】Core Downloading, Please Try to Download and Upload Manually If Fails"
-				curl -sL -m 10 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@master/core-lateset/game/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_game.tar.gz >/dev/null 2>&1
 				;;
 				*)
 				LOG_OUT "【Dev】Core Downloading, Please Try to Download and Upload Manually If Fails"
@@ -86,15 +72,6 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 					rm -rf /tmp/clash_tun.gz >/dev/null 2>&1
 					rm -rf "$tun_core_path" >/dev/null 2>&1
 					chmod 4755 /tmp/clash_tun >/dev/null 2>&1
-				}
-				;;
-				"Game")
-				[ -s "/tmp/clash_game.tar.gz" ] && {
-					tar zxvf /tmp/clash_game.tar.gz -C /tmp >/dev/null 2>&1
-					mv /tmp/clash /tmp/clash_game >/dev/null 2>&1
-					rm -rf /tmp/clash_game.tar.gz >/dev/null 2>&1
-					rm -rf "$game_core_path" >/dev/null 2>&1
-					chmod 4755 /tmp/clash_game >/dev/null 2>&1
 				}
 				;;
 				*)
@@ -116,9 +93,6 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             "TUN")
 				    rm -rf /tmp/clash_tun >/dev/null 2>&1
 				    ;;
-				    "Game")
-				    rm -rf /tmp/clash_game >/dev/null 2>&1
-				    ;;
 				    *)
 			   esac
          sleep 3
@@ -137,9 +111,6 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
       	"TUN")
 				mv /tmp/clash_tun "$tun_core_path" >/dev/null 2>&1
 				;;
-				"Game")
-				mv /tmp/clash_game "$game_core_path" >/dev/null 2>&1
-				;;
 				*)
 			esac
       if [ "$?" -eq "0" ]; then
@@ -157,9 +128,6 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             "TUN")
 				    rm -rf /tmp/clash_tun >/dev/null 2>&1
 				    ;;
-				    "Game")
-				    rm -rf /tmp/clash_game >/dev/null 2>&1
-				    ;;
 				    *)
 			   esac
          sleep 3
@@ -170,9 +138,6 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
       case $CORE_TYPE in
          "TUN")
 			   rm -rf /tmp/clash_tun >/dev/null 2>&1
-			   ;;
-			   "Game")
-			   rm -rf /tmp/clash_game >/dev/null 2>&1
 			   ;;
 			   *)
 			   rm -rf /tmp/clash >/dev/null 2>&1
