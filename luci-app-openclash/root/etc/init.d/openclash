@@ -969,7 +969,7 @@ yml_other_rules_get()
 check_run_quick()
 {
    quick_start=true
-   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $game_core_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version /tmp/openclash_fake_filter.list"
+   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version /tmp/openclash_fake_filter.list"
 	 if [ ! -f "$CONFIG_FILE" ] || [ ! -f "/tmp/openclash_config.tmp" ] || [ ! -f "/tmp/openclash.change" ]; then
 	    quick_start=false
 	    return
@@ -1031,22 +1031,12 @@ do_run_mode()
    fi
     
    if [ "$en_mode" = "redir-host-mix" ]; then
-      en_mode_tun="3"
-      en_mode="redir-host"
-   fi
-    
-   if [ "$en_mode" = "redir-host-vpn" ]; then
       en_mode_tun="2"
       en_mode="redir-host"
-   fi
-    
-   if [ "$en_mode" = "fake-ip-vpn" ]; then
-      en_mode_tun="2"
-      en_mode="fake-ip"
    fi
     
    if [ "$en_mode" = "fake-ip-mix" ]; then
-      en_mode_tun="3"
+      en_mode_tun="2"
       en_mode="fake-ip"
    fi
 }
@@ -1057,7 +1047,6 @@ do_run_file()
    if [ "$small_flash_memory" != "1" ]; then
       dev_core_path="/etc/openclash/core/clash"
       tun_core_path="/etc/openclash/core/clash_tun"
-      game_core_path="/etc/openclash/core/clash_game"
       geoip_path="/etc/openclash/Country.mmdb"
       chnr_path="/etc/openclash/china_ip_route.ipset"
       chnr6_path="/etc/openclash/china_ip6_route.ipset"
@@ -1065,7 +1054,6 @@ do_run_file()
    else
       dev_core_path="/tmp/etc/openclash/core/clash"
       tun_core_path="/tmp/etc/openclash/core/clash_tun"
-      game_core_path="/tmp/etc/openclash/core/clash_game"
       geoip_path="/tmp/etc/openclash/Country.mmdb"
       chnr_path="/tmp/etc/openclash/china_ip_route.ipset"
       chnr6_path="/tmp/etc/openclash/china_ip6_route.ipset"
@@ -1077,16 +1065,10 @@ do_run_file()
     
    rm -rf "/etc/openclash/clash" 2>/dev/null
     
-   if [ "$en_mode_tun" = "1" ] || [ "$en_mode_tun" = "3" ]; then
+   if [ -n "$en_mode_tun" ]; then
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
       core_type="TUN"
       core_start_log="Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
-   fi
-    
-   if [ "$en_mode_tun" = "2" ]; then
-      ln -s "$game_core_path" /etc/openclash/clash 2>/dev/null
-      core_type="Game"
-      core_start_log="Tip: Detected The Exclusive Function of The Game Core, Use Game Core to Start..."
    fi
    
    if [ "$rule_source" != "0" ]; then
@@ -1104,7 +1086,7 @@ do_run_file()
    done 2>/dev/null
 
    if [ "$proxy_mode" = "script" ] || [ "$config_set_custom_rule_provider" -eq 1 ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$RAW_CONFIG_FILE" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules_2.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ]; then
-      if [ "$en_mode_tun" != "2" ]; then
+      if [ -z "$en_mode_tun" ]; then
          rm -rf "/etc/openclash/clash"
          ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
          core_type="TUN"
@@ -1117,21 +1099,14 @@ do_run_file()
       core_start_log="Tip: No Special Configuration Detected, Use Dev Core to Start..."
    fi
     
-   if [ ! -f "/etc/openclash/clash" ] && [ -f "$tun_core_path" ] && [ "$core_type" != "Game" ]; then
+   if [ ! -f "/etc/openclash/clash" ] && [ -f "$tun_core_path" ]; then
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
       core_type="TUN"
       core_start_log="Tip: Detected that the Dev Core is not Installed, Use TUN Core to Start..."
    fi
-    
-   if [ ! -f "/etc/openclash/clash" ] && [ -f "$game_core_path" ] && [ "$core_type" != "TUN" ]; then
-      ln -s "$game_core_path" /etc/openclash/clash 2>/dev/null
-      core_type="Game"
-      core_start_log="Tip: Detected that the Dev Core is not Installed, Use Game Core to Start..."
-   fi
 
 #权限检查
    [ ! -x "$tun_core_path" ] && chmod 4755 "$tun_core_path" 2>/dev/null
-   [ ! -x "$game_core_path" ] && chmod 4755 "$game_core_path" 2>/dev/null
    [ ! -x "$dev_core_path" ] && chmod 4755 "$dev_core_path" 2>/dev/null
 
 #文件检查
@@ -1309,9 +1284,6 @@ raw_config_start()
          uci -q set openclash.config.en_mode=redir-host-tun
       ;;
       "2")
-         uci -q set openclash.config.en_mode=redir-host-vpn
-      ;;
-      "3")
          uci -q set openclash.config.en_mode=redir-host-mix
       ;;
       *)
@@ -1323,9 +1295,6 @@ raw_config_start()
          uci -q set openclash.config.en_mode=fake-ip-tun
       ;;
       "2")
-         uci -q set openclash.config.en_mode=fake-ip-vpn
-      ;;
-      "3")
          uci -q set openclash.config.en_mode=fake-ip-mix
       ;;
       *)
@@ -1427,7 +1396,7 @@ firewall_rule_exclude()
    dest_ip=$(echo $dest_ip |sed "s/ /,/g" 2>/dev/null)
    
    if [ -z "$family" ] || [ "$family" == "ipv4" ]; then
-      if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
+      if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
          for i in $dest_port; do
             if $e_tcp ; then
                iptables -t nat -I openclash_output -p tcp --sport "$i" -j RETURN >/dev/null 2>&1
@@ -1446,7 +1415,7 @@ firewall_rule_exclude()
                fi
             fi
          done
-      elif [ "$en_mode_tun" -ne 3 ]; then
+      elif [ "$en_mode_tun" -eq 1 ]; then
          for i in $dest_port; do
             if $e_tcp ; then
                iptables -t mangle -I openclash_output -p tcp --sport "$i" -j RETURN >/dev/null 2>&1
@@ -1516,11 +1485,11 @@ firewall_redirect_exclude()
        return
    fi
 
-   if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
+   if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
    	  iptables -t nat -I openclash_output -p tcp --sport "$src_dport" -j RETURN >/dev/null 2>&1
    	  iptables -t mangle -I openclash_output -p udp --sport "$src_dport" -j RETURN >/dev/null 2>&1
       iptables -t mangle -I openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
-   elif [ "$en_mode_tun" -ne 3 ]; then
+   elif [ "$en_mode_tun" -eq 1 ]; then
    	  iptables -t mangle -I openclash_output -p tcp --sport "$src_dport" -j RETURN >/dev/null 2>&1
    	  iptables -t mangle -I openclash_output -p udp --sport "$src_dport" -j RETURN >/dev/null 2>&1
       iptables -t mangle -I openclash -p tcp --dport "$src_dport" -j RETURN >/dev/null 2>&1
@@ -1654,7 +1623,7 @@ if [ "$common_ports" = "1" ]; then
    done
 fi
 
-if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 3 ]; then
+if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
    #tcp
    iptables -t nat -N openclash
    iptables -t nat -F openclash
@@ -1746,19 +1715,14 @@ fi
 if [ -n "$en_mode_tun" ]; then
    #TUN模式
    #启动TUN
-   if [ "$en_mode_tun" -eq 2 ]; then
-      ip tuntap add user root mode tun utun
+   TUN_WAIT=0
+   ip link set utun up
+   while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 3 ] )
+   do
       ip link set utun up
-   elif [ "$en_mode_tun" -eq 1 ] || [ "$en_mode_tun" -eq 3 ]; then
-      TUN_WAIT=0
-      ip link set utun up
-      while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 3 ] )
-      do
-         ip link set utun up
-         let TUN_WAIT++
-         sleep 2
-      done
-   fi
+      let TUN_WAIT++
+      sleep 2
+   done
    ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
    ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    
@@ -1767,7 +1731,7 @@ if [ -n "$en_mode_tun" ]; then
       iptables -t mangle -N openclash_output
       iptables -t mangle -F openclash_output
       iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
-      if [ "$en_mode_tun" -ne 3 ]; then
+      if [ "$en_mode_tun" -eq 1 ]; then
          if [ -z "$_koolshare" ]; then
             iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
             iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
@@ -1779,7 +1743,7 @@ if [ -n "$en_mode_tun" ]; then
          iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
       fi
       iptables -t mangle -I OUTPUT -j openclash_output
-   elif [ -z "$_koolshare" ] && [ "$en_mode" = "redir-host" ] && [ "$en_mode_tun" -ne 3 ]; then
+   elif [ -z "$_koolshare" ] && [ "$en_mode" = "redir-host" ] && [ "$en_mode_tun" -eq 1 ]; then
       iptables -t mangle -N openclash_output
       iptables -t mangle -F openclash_output
       iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
@@ -1811,7 +1775,7 @@ if [ -n "$en_mode_tun" ]; then
    fi
    iptables -t mangle -A openclash -j MARK --set-mark "$PROXY_FWMARK"
    
-   if [ "$en_mode_tun" -ne 3 ]; then
+   if [ "$en_mode_tun" -eq 1 ]; then
       iptables -t mangle -I PREROUTING -j openclash
       iptables -t nat -I PREROUTING -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j ACCEPT
    else
@@ -1824,7 +1788,7 @@ if [ -n "$en_mode_tun" ]; then
    fi
    
    #snat routerself for tun while bindaddress enable
-   if [ "$en_mode_tun" -ne 3 ] && [ "$intranet_allowed" -eq 1 ]; then
+   if [ "$en_mode_tun" -eq 1 ] && [ "$intranet_allowed" -eq 1 ]; then
       if [ -z "$_koolshare" ]; then
          iptables -t nat -N openclash_post
          iptables -t nat -F openclash_post
