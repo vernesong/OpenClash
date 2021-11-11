@@ -16,6 +16,7 @@ function index()
 	entry({"admin", "services", "openclash", "startlog"},call("action_start")).leaf=true
 	entry({"admin", "services", "openclash", "refresh_log"},call("action_refresh_log"))
 	entry({"admin", "services", "openclash", "del_log"},call("action_del_log"))
+	entry({"admin", "services", "openclash", "del_start_log"},call("action_del_start_log"))
 	entry({"admin", "services", "openclash", "close_all_connection"},call("action_close_all_connection"))
 	entry({"admin", "services", "openclash", "reload_firewall"},call("action_reload_firewall"))
 	entry({"admin", "services", "openclash", "update_subscribe"},call("action_update_subscribe"))
@@ -971,6 +972,11 @@ end
 
 function action_del_log()
 	luci.sys.exec(": > /tmp/openclash.log")
+	return
+end
+
+function action_del_start_log()
+	luci.sys.exec(": > /tmp/openclash_start.log")
 	return
 end
 

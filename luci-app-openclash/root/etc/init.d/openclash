@@ -296,7 +296,7 @@ if [ -z "$(pidof clash)" ] && [ -n "$provider_path_check" ]; then
    else
       LOG_OUT "Error: Failed To Download Rule-providers, Please Check The Log Page For Detailed error information!"
    fi
-   sleep 3
+   LOG_ALERT
    start_fail
 elif [ "$provider_path_check_num" -gt 5 ]; then
    LOG_OUT "Warning: Providers File Check Timeout, If Failed To start, Please Check The Log Page For Detailed error information!"
@@ -1245,6 +1245,9 @@ check_core_status()
       sleep 1
       let check_time++
    done
+   if [ -z "$(pidof clash)" ]; then
+      LOG_ALERT
+   fi
 }
 
 #不修改配置文件启动
@@ -1258,15 +1261,15 @@ raw_config_start()
    if [ -z "$dns_port" ] || [ -z "$en_mode" ] || [ -z "$proxy_port" ]; then
       if [ -z "$dns_port" ]; then
          LOG_OUT "Error: Get DNS 'listen' Option Error, OpenClash Can Not Start With Raw Config File"
-         sleep 3
+         sleep 2
       fi
       if [ -z "$en_mode" ]; then
          LOG_OUT "Error: Get DNS 'enhanced-mode' Option Error, OpenClash Can Not Start With Raw Config File"
-         sleep 3
+         sleep 2
       fi
       if [ -z "$proxy_port" ]; then
          LOG_OUT "Error: Get General 'redir-port' Option Error, OpenClash Can Not Start With Raw Config File"
-         sleep 3
+         sleep 2
       fi
       start_fail
    fi

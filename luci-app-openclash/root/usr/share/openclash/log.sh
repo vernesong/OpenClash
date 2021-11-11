@@ -11,6 +11,12 @@ LOG_OUT()
 	fi
 }
 
+LOG_ALERT()
+{
+	echo -e "$(tail -n 20 $LOG_FILE |grep 'level=fatal' |awk 'END {print}')" > $START_LOG
+	sleep 3
+}
+
 SLOG_CLEAN()
 {
 	echo "" > $START_LOG
