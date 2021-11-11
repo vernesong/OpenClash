@@ -2434,3 +2434,6 @@ msgstr "启动后会立即执行一次，间隔无需太短（修改后保存配
 
 msgid "Test failed"
 msgstr "检测失败"
+
+msgid "OpenClash Start Failed"
+msgstr "OpenClash 启动失败"
