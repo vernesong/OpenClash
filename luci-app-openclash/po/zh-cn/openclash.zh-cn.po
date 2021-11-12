@@ -2437,3 +2437,9 @@ msgstr "检测失败"
 
 msgid "OpenClash Start Failed"
 msgstr "OpenClash 启动失败"
+
+msgid "interface-name"
+msgstr "指定出口网卡"
+
+msgid "routing-mark"
+msgstr "指定路由标记"

@@ -426,6 +426,22 @@ do
    end
    }.join;
    
+   Thread.new{
+   #interface-name
+   if Value['proxies'][$count].key?('interface-name') then
+      interface_name = '${uci_set}interface_name=' + Value['proxies'][$count]['interface-name'].to_s
+      system(interface_name)
+   end
+   }.join;
+   
+   Thread.new{
+   #routing-mark
+   if Value['proxies'][$count].key?('routing-mark') then
+      routing_mark = '${uci_set}routing_mark=' + Value['proxies'][$count]['routing-mark'].to_s
+      system(routing_mark)
+   end
+   }.join;
+   
    if '$server_type' == 'ss' then
       Thread.new{
       #cipher

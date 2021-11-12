@@ -225,6 +225,8 @@ yml_servers_set()
    config_get "early_data_header_name" "$section" "early_data_header_name" ""
    config_get "trojan_ws_path" "$section" "trojan_ws_path" ""
    config_get "trojan_ws_headers" "$section" "trojan_ws_headers" ""
+   config_get "interface_name" "$section" "interface_name" ""
+   config_get "routing_mark" "$section" "routing_mark" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -661,7 +663,20 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
    fi
    fi
+   
+#interface-name
+   if [ -n "$interface_name" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    interface-name: $interface_name
+EOF
+   fi
 
+#routing_mark
+   if [ -n "$routing_mark" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    routing-mark: $routing_mark
+EOF
+   fi
 }
 
 new_servers_group_set()

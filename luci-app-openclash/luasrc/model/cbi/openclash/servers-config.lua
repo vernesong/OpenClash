@@ -393,6 +393,16 @@ o.rmempty = true
 o.placeholder = translate("Host: v2ray.com")
 o:depends("obfs_trojan", "ws")
 
+-- [[ interface-name ]]--
+o = s:option(Value, "interface_name", translate("interface-name"))
+o.rmempty = true
+o.placeholder = translate("eth0")
+
+-- [[ interface-name ]]--
+o = s:option(Value, "routing_mark", translate("routing-mark"))
+o.rmempty = true
+o.placeholder = translate("2333")
+
 o = s:option(DynamicList, "groups", translate("Proxy Group"))
 o.description = font_red..bold_on..translate("No Need Set when Config Create, The added Proxy Groups Must Exist")..bold_off..font_off
 o.rmempty = true

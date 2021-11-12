@@ -112,4 +112,24 @@ if type == "dhcp" then
 	end
 end
 
+if type == "wanip" then
+	if wan then
+		for o = 1, #(rv.wan) do
+			if rv.wan[o].proto == "pppoe" then
+				print(rv.wan[o].ipaddr)
+			end
+		end
+	end
+end
+
+if type == "wanip6" then
+	if wan6 then
+		for o = 1, #(rv.wan6) do
+			if rv.wan6[o].proto == "pppoe" then
+				print(rv.wan6[o].ip6addr)
+			end
+		end
+	end
+end
+
 os.exit(0)
