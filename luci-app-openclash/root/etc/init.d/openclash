@@ -1686,6 +1686,20 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
          if [ "$disable_udp_quic" -eq 1 ]; then
 	          iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
          fi
+         
+      elif [ "$en_mode" = "fake-ip" ]; then
+         modprobe xt_TPROXY >/dev/null 2>&1
+         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+         ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+         iptables -t mangle -N openclash
+         iptables -t mangle -F openclash
+         iptables -t mangle -A openclash -p udp -d 198.18.0.0/16 -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
+         iptables -t mangle -A PREROUTING -p udp -j openclash
+         
+         #quic
+         if [ "$disable_udp_quic" -eq 1 ]; then
+	          iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+         fi
       fi
    fi
    
