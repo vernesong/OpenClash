@@ -60,11 +60,6 @@ if [ "$enable" -eq 1 ]; then
 	      if [ "$core_type" = "TUN" ]; then
 	         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
-	      elif [ "$core_type" = "Game" ]; then
-	         ip tuntap add user root mode tun clash0 2>/dev/null
-           ip link set clash0 up 2>/dev/null
-           ip route replace default dev clash0 table "$PROXY_ROUTE_TABLE" 2>/dev/null
-           ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	      fi
 	   else
 	      LOG_OUT "Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit..."
