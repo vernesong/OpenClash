@@ -35,7 +35,6 @@ core_type=$(uci get openclash.config.core_version 2>/dev/null)
 cpu_model=$(opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null)
 core_version=$(/etc/openclash/core/clash -v 2>/dev/null |awk -F ' ' '{print $2}' 2>/dev/null)
 core_tun_version=$(/etc/openclash/core/clash_tun -v 2>/dev/null |awk -F ' ' '{print $2}' 2>/dev/null)
-core_game_version=$(/etc/openclash/core/clash_game -v 2>/dev/null |awk -F ' ' '{print $2}' 2>/dev/null)
 servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
 mix_proxies=$(uci get openclash.config.mix_proxies 2>/dev/null)
 op_version=$(sed -n 1p /usr/share/openclash/res/openclash_version 2>/dev/null)
@@ -168,30 +167,6 @@ EOF
 else
 cat >> "$DEBUG_LOG" <<-EOF
 Tun内核运行权限: 正常
-EOF
-fi
-
-cat >> "$DEBUG_LOG" <<-EOF
-
-Game内核版本: $core_game_version
-EOF
-
-if [ ! -f "/etc/openclash/core/clash_game" ]; then
-cat >> "$DEBUG_LOG" <<-EOF
-Game内核文件: 不存在
-EOF
-else
-cat >> "$DEBUG_LOG" <<-EOF
-Game内核文件: 存在
-EOF
-fi
-if [ ! -x "/etc/openclash/core/clash_game" ]; then
-cat >> "$DEBUG_LOG" <<-EOF
-Game内核运行权限: 否
-EOF
-else
-cat >> "$DEBUG_LOG" <<-EOF
-Game内核运行权限: 正常
 EOF
 fi
 
