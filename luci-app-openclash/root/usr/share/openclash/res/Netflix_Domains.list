@@ -544,3 +544,8 @@ dualstack.apiproxy-nrdp-prod-nlb-4-9fae3883a092e5c6.elb.us-west-2.amazonaws.com
 dualstack.apiproxy-nrdp-prod-nlb-2-42101415231301e4.elb.us-west-2.amazonaws.com
 dualstack.apiproxy-nrdp-prod-nlb-1-4659b24f746a127b.elb.us-west-2.amazonaws.com
 dualstack.apiproxy-nrdp-prod-nlb-3-80d1f4b305f7c0e4.elb.us-west-2.amazonaws.com
+ipv4-c002-hkg001-pccw-isp.1.oca.nflxvideo.net
+ipv6-c012-hkg001-ix.1.oca.nflxvideo.net
+ipv6-c006-sin001-starhub-isp.1.oca.nflxvideo.net
+ipv6-c026-sin001-ix.1.oca.nflxvideo.net
+ipv4-c001-cgk001-moratel-isp.1.oca.nflxvideo.net
