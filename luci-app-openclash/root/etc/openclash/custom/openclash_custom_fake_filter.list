@@ -113,3 +113,5 @@ stun.l.google.com
 *.square-enix.com
 *.finalfantasyxiv.com
 *.ffxiv.com
+#Bilibili
+*.mcdn.bilivideo.cn
