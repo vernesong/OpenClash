@@ -639,7 +639,7 @@ function action_toolbar_show_sys()
 	local mem, cpu
 	if pid and pid ~= "" then
 		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
-		cpu = luci.sys.exec(string.format("top -b -n1 |grep -E '(%s|PID)' 2>/dev/null |grep -v grep |awk '{for (i=1;i<=NF;i++) {if ($i ~ /CPU/) num=i}};{print $num}' 2>/dev/null | sed -n '2p' 2>/dev/null", pid))
+		cpu = luci.sys.exec(string.format("top -b -n1 |grep -E '%s' 2>/dev/null |grep -v grep |awk '{for (i=1;i<=NF;i++) {if ($i ~ /clash/) break; else cpu=i}}; {print $cpu}' 2>/dev/null", pid))
 		if mem and cpu then
 			mem = fs.filesize(mem*1024)
 			cpu = string.gsub(cpu, "%%\n", "")
