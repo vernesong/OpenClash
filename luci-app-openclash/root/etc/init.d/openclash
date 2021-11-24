@@ -1595,15 +1595,6 @@ if [ -n "$(uci -q get openclash.config.wan_ac_black_ips)" ]; then
    config_list_foreach "config" "wan_ac_black_ips" ac_add "wan_ac_black_ips" "wan_ac_black_ipv6s"
 fi
 
-#wan local
-   ipset create localwannetwork hash:net
-   wanip4s=$(/usr/share/openclash/openclash_get_network.lua "wanip")
-   if [ -n "$wanip4s" ]; then
-      for wanip4 in $wanip4s; do
-         ipset add localwannetwork "$wanip4" 2>/dev/null
-      done
-   fi
-
 #local
    ipset create localnetwork hash:net
    ipset add localnetwork 0.0.0.0/8
@@ -1707,7 +1698,6 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
       iptables -t nat -N openclash_output
       iptables -t nat -F openclash_output
       iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
-      iptables -t nat -A openclash_output -m set --match-set localwannetwork src -j RETURN >/dev/null 2>&1
       if [ "$en_mode" = "fake-ip" ]; then
          if [ "$intranet_allowed" -eq 1 ]; then
             iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j DNAT --to-destination "$lan_ip:$proxy_port"
@@ -1732,7 +1722,6 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
          iptables -t nat -N openclash_output
          iptables -t nat -F openclash_output
          iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
-         iptables -t nat -A openclash_output -m set --match-set localwannetwork src -j RETURN >/dev/null 2>&1
          if [ "$intranet_allowed" -eq 1 ]; then
             iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j DNAT --to-destination "$lan_ip:$proxy_port"
          else
@@ -1762,7 +1751,6 @@ if [ -n "$en_mode_tun" ]; then
       iptables -t mangle -N openclash_output
       iptables -t mangle -F openclash_output
       iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
-      iptables -t mangle -A openclash_output -m set --match-set localwannetwork src -j RETURN >/dev/null 2>&1
       if [ "$en_mode_tun" -eq 1 ]; then
          if [ -z "$_koolshare" ]; then
             iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
@@ -1779,7 +1767,6 @@ if [ -n "$en_mode_tun" ]; then
       iptables -t mangle -N openclash_output
       iptables -t mangle -F openclash_output
       iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
-      iptables -t mangle -A openclash_output -m set --match-set localwannetwork src -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash_output -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
       if [ "$china_ip_route" = "1" ]; then
@@ -1858,15 +1845,6 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
       ipset -! restore </etc/openclash/china_ip6_route.ipset 2>/dev/null
    fi
    
-   #wan local
-   ipset create localwannetwork6 hash:net family inet6
-   wanip6s=$(/usr/share/openclash/openclash_get_network.lua "wanip6")
-   if [ -n "$wanip6s" ]; then
-      for wanip6 in $wanip6s; do
-         ipset add localwannetwork6 "$wanip6" 2>/dev/null
-      done
-   fi
-   
    #local
    ipset create localnetwork6 hash:net family inet6
    ipset add localnetwork6 ::/128
@@ -1918,7 +1896,6 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
       ip6tables -t mangle -N openclash_output
       ip6tables -t mangle -F openclash_output
       ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
-      ip6tables -t mangle -A openclash_output -m set --match-set localwannetwork6 src -j RETURN >/dev/null 2>&1
       ip6tables -t mangle -A openclash_output -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
       ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
       if [ "$china_ip6_route" = "1" ]; then
@@ -1984,14 +1961,12 @@ revert_firewall()
    done >/dev/null 2>&1
 
    ipset destroy localnetwork6 >/dev/null 2>&1
-   ipset destroy localwannetwork6 >/dev/null 2>&1
    ipset destroy china_ip6_route >/dev/null 2>&1
    ipset destroy lan_ac_white_ipv6s >/dev/null 2>&1
    ipset destroy lan_ac_black_ipv6s >/dev/null 2>&1
    ipset destroy wan_ac_black_ipv6s >/dev/null 2>&1
    
    ipset destroy localnetwork >/dev/null 2>&1
-   ipset destroy localwannetwork >/dev/null 2>&1
    ipset destroy china_ip_route >/dev/null 2>&1
    ipset destroy lan_ac_white_ips >/dev/null 2>&1
    ipset destroy lan_ac_black_ips >/dev/null 2>&1
