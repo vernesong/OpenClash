@@ -79,6 +79,10 @@ o = s:option(Value, "provider_url", translate("Provider URL"))
 o.rmempty = false
 o:depends("type", "http")
 
+o = s:option(Value, "provider_filter", translate("Provider Filter"))
+o.rmempty = true
+o.placeholder = "bgp|sg"
+
 o = s:option(Value, "provider_interval", translate("Provider Interval(s)"))
 o.default = "3600"
 o.rmempty = false

@@ -923,6 +923,9 @@ msgstr "代理集路径（Path）"
 msgid "Update Your Proxy Provider File From Config Luci Page"
 msgstr "请先在配置文件管理页面上传您的代理集文件"
 
+msgid "Provider Filter"
+msgstr "代理集节点筛选"
+
 msgid "Provider URL"
 msgstr "代理集URL"
 

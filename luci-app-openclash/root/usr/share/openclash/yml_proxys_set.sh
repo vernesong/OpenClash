@@ -67,6 +67,7 @@ yml_proxy_provider_set()
    config_get "type" "$section" "type" ""
    config_get "name" "$section" "name" ""
    config_get "path" "$section" "path" ""
+   config_get "provider_filter" "$section" "provider_filter" ""
    config_get "provider_url" "$section" "provider_url" ""
    config_get "provider_interval" "$section" "provider_interval" ""
    config_get "health_check" "$section" "health_check" ""
@@ -121,7 +122,12 @@ cat >> "$PROXY_PROVIDER_FILE" <<-EOF
     type: $type
     path: "$path"
 EOF
-   if [ ! -z "$provider_url" ]; then
+   if [ -n "$provider_filter" ]; then
+cat >> "$PROXY_PROVIDER_FILE" <<-EOF
+    filter: "$provider_filter"
+EOF
+   fi
+   if [ -n "$provider_url" ]; then
 cat >> "$PROXY_PROVIDER_FILE" <<-EOF
     url: "$provider_url"
     interval: $provider_interval

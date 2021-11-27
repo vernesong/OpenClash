@@ -59,6 +59,7 @@ function unlock_auto_select()
 	elseif type == "Disney" then
 		luci.sys.call('curl -sL --limit-rate 5k https://www.disneyplus.com >/dev/null 2>&1 &')
 	end
+	os.execute("sleep 1")
 	local con = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
 	if con then
 		con = json.parse(con)
@@ -71,7 +72,7 @@ function unlock_auto_select()
 					break
 				end
 			elseif type == "Disney" then
-				if string.match(con.connections[i].metadata.host, "global%.edge%.bamgrid%.com") or string.match(host, "www%.disneyplus%.com") then
+				if string.match(con.connections[i].metadata.host, "www%.disneyplus%.com") then
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
 				end
@@ -97,7 +98,7 @@ function unlock_auto_select()
 			table.insert(groups, value.name)
 		end
 	end
-	
+
 	for _, value in pairs(info.proxies) do
 		--match only once
 		group_match = false
@@ -395,7 +396,7 @@ function disney_unlock_test()
 		elseif string.find(url_effective,"hotstar") then
 			return "Unknow"
 		end
-		local region = luci.sys.exec(string.format("curl -sL -m 10 --retry 2 -H 'User-Agent: %s' %s |grep 'Region: ' |awk '{print $2}'", UA, url2))
+		local region = luci.sys.exec(string.format("curl -sL -m 10 --retry 2 -H 'User-Agent: %s' %s |grep 'Region: ' |awk '{print $2}' |tr -d '\n'", UA, url2))
 		if region and region ~= "" then
 			status = 2
 			return region
