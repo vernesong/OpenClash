@@ -237,6 +237,14 @@ do
    }.join;
    
    Thread.new{
+   #filter
+   if Value['proxy-providers'].values[$provider_count].key?('filter') then
+      provider_gen_filter = '${uci_set}provider_filter=' + Value['proxy-providers'].values[$provider_count]['filter'].to_s
+      system(provider_gen_filter)
+   end
+   }.join;
+   
+   Thread.new{
    #che_enable
    if Value['proxy-providers'].values[$provider_count].key?('health-check') then
       if Value['proxy-providers'].values[$provider_count]['health-check'].key?('enable') then
