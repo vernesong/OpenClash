@@ -171,25 +171,52 @@ end
 
 local function startlog()
 	local info = ""
+	local line_trans = ""
 	if nixio.fs.access("/tmp/openclash_start.log") then
 		info = luci.sys.exec("sed -n '$p' /tmp/openclash_start.log 2>/dev/null")
+		line_trans = info
 		if string.len(info) > 0 then
 			if not string.find (info, "【") and not string.find (info, "】") then
-   			info = luci.i18n.translate(string.sub(info, 0, -1))
+   			line_trans = luci.i18n.translate(string.sub(info, 0, -1))
    		else
+   			local no_trans = {}
+   			line_trans = ""
    			local a = string.find (info, "【")
-   			local b = string.find (info, "】")+2
-   			if a <= 1 then
-   				info = string.sub(info, 0, b)..luci.i18n.translate(string.sub(info, b+1, -1))
-   			elseif b < string.len(info) then
-   				info = luci.i18n.translate(string.sub(info, 0, a-1))..string.sub(info, a, b)..luci.i18n.translate(string.sub(info, b+1, -1))
-   			elseif b == string.len(info) then
-   				info = luci.i18n.translate(string.sub(info, 0, a-1))..string.sub(info, a, -1)
+   			local b = string.find (info, "】") + 2
+   			local c = 0
+   			local v
+   			local x
+   			while true do
+   				table.insert(no_trans, a)
+   				table.insert(no_trans, b)
+   				if string.find (info, "【", b+1) and string.find (info, "】", b+1) then
+   					a = string.find (info, "【", b+1)
+   					b = string.find (info, "】", b+1) + 2
+   				else
+   					break
+   				end
+   			end
+   			for k = 1, #no_trans, 2 do
+   				x = no_trans[k]
+   				v = no_trans[k+1]
+   				if x <= 1 then
+   					line_trans = line_trans .. string.sub(info, 0, v)
+   				elseif v < string.len(info) then
+   					line_trans = line_trans .. luci.i18n.translate(string.sub(info, c, x - 1))..string.sub(info, x, v)
+   				elseif v == string.len(info) then
+   					line_trans = line_trans .. luci.i18n.translate(string.sub(info, c, x - 1))..string.sub(info, x, v)
+   				end
+   				c = v + 1
+   			end
+   			if c > string.len(info) then
+   				line_trans = line_trans
+   			else
+   				line_trans = line_trans .. luci.i18n.translate(string.sub(info, c, -1))
    			end
    		end
    	end
 	end
-	return info
+	return line_trans
 end
 
 local function coremodel()
@@ -919,7 +946,7 @@ function action_refresh_log()
 	luci.http.prepare_content("application/json")
 	local logfile="/tmp/openclash.log"
 	local file = io.open(logfile, "r+")
-	local info, len, line, lens, cache, ex_match
+	local info, len, line, lens, cache, ex_match, line_trans
 	local data = ""
 	local limit = 1000
 	local log_tb = {}
@@ -941,6 +968,7 @@ function action_refresh_log()
 	string.gsub(info, '[^\n]+', function(w) table.insert(log_tb, w) end, lens)
 	for i=1, lens do
 		line = log_tb[i]:reverse()
+		line_trans = log_tb[i]:reverse()
 		ex_match = false
 		while true do
 			ex_keys = {"^Sec%-Fetch%-Mode", "^User%-Agent", "^Access%-Control", "^Accept", "^Origin", "^Referer", "^Connection"}
@@ -953,25 +981,50 @@ function action_refresh_log()
     	if ex_match then break end
     	if not string.find (line, "level=") then
 				if not string.find (line, "【") and not string.find (line, "】") then
-   				line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, -1))
+   				line_trans = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, -1))
    			else
+   				local no_trans = {}
+   				line_trans = ""
    				local a = string.find (line, "【")
-   				local b = string.find (line, "】")+2
-   				if a <= 21 then
-   					line = string.sub(line, 0, b)..luci.i18n.translate(string.sub(line, b+1, -1))
-   				elseif b < string.len(line) then
-   					line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, a-1))..string.sub(line, a, b)..luci.i18n.translate(string.sub(line, b+1, -1))
-   				elseif b == string.len(line) then
-   					line = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, a-1))..string.sub(line, a, b)
+   				local b = string.find (line, "】") + 2
+   				local c = 21
+   				local v
+   				local x
+   				while true do
+   					table.insert(no_trans, a)
+   					table.insert(no_trans, b)
+   					if string.find (line, "【", b+1) and string.find (line, "】", b+1) then
+   						a = string.find (line, "【", b+1)
+   						b = string.find (line, "】", b+1) + 2
+   					else
+   						break
+   					end
+   				end
+   				for k = 1, #no_trans, 2 do
+   					v = no_trans[k+1]
+   					x = no_trans[k]
+   					if x <= 21 then
+   						line_trans = line_trans .. string.sub(line, 0, v)
+   					elseif v < string.len(line) then
+   						line_trans = line_trans .. luci.i18n.translate(string.sub(line, c, x - 1))..string.sub(line, x, v)
+   					elseif v == string.len(line) then
+   						line_trans = line_trans .. luci.i18n.translate(string.sub(line, c, x - 1))..string.sub(line, x, v)
+   					end
+   					c = v + 1
+   				end
+   				if c > string.len(line) then
+   					line_trans = string.sub(line, 0, 20) .. line_trans
+   				else
+   					line_trans = string.sub(line, 0, 20) .. line_trans .. luci.i18n.translate(string.sub(line, c, -1))
    				end
    			end
 			end
 			if data == "" then
-    		data = line
+    		data = line_trans
     	elseif log_len == 0 and i == limit then
-    		data = data .."\n" .. line .. "\n..."
+    		data = data .."\n" .. line_trans .. "\n..."
     	else
-    		data = data .."\n" .. line
+    		data = data .."\n" .. line_trans
   		end
     	break
     end
