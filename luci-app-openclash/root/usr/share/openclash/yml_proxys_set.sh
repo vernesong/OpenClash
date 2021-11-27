@@ -172,7 +172,7 @@ set_ws_headers()
       return
    fi
 cat >> "$SERVER_FILE" <<-EOF
-        '$1'
+        $1
 EOF
 }
 
