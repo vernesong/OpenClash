@@ -201,9 +201,7 @@ local function startlog()
    				v = no_trans[k+1]
    				if x <= 1 then
    					line_trans = line_trans .. string.sub(info, 0, v)
-   				elseif v < string.len(info) then
-   					line_trans = line_trans .. luci.i18n.translate(string.sub(info, c, x - 1))..string.sub(info, x, v)
-   				elseif v == string.len(info) then
+   				elseif v <= string.len(info) then
    					line_trans = line_trans .. luci.i18n.translate(string.sub(info, c, x - 1))..string.sub(info, x, v)
    				end
    				c = v + 1
@@ -968,7 +966,7 @@ function action_refresh_log()
 	string.gsub(info, '[^\n]+', function(w) table.insert(log_tb, w) end, lens)
 	for i=1, lens do
 		line = log_tb[i]:reverse()
-		line_trans = log_tb[i]:reverse()
+		line_trans = line
 		ex_match = false
 		while true do
 			ex_keys = {"^Sec%-Fetch%-Mode", "^User%-Agent", "^Access%-Control", "^Accept", "^Origin", "^Referer", "^Connection"}
@@ -1001,14 +999,12 @@ function action_refresh_log()
    					end
    				end
    				for k = 1, #no_trans, 2 do
-   					v = no_trans[k+1]
    					x = no_trans[k]
+   					v = no_trans[k+1]
    					if x <= 21 then
    						line_trans = line_trans .. string.sub(line, 0, v)
-   					elseif v < string.len(line) then
-   						line_trans = line_trans .. luci.i18n.translate(string.sub(line, c, x - 1))..string.sub(line, x, v)
-   					elseif v == string.len(line) then
-   						line_trans = line_trans .. luci.i18n.translate(string.sub(line, c, x - 1))..string.sub(line, x, v)
+   					elseif v <= string.len(line) then
+   						line_trans = line_trans .. luci.i18n.translate(string.sub(line, c, x - 1)) .. string.sub(line, x, v)
    					end
    					c = v + 1
    				end
