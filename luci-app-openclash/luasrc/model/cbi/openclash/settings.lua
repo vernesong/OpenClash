@@ -28,6 +28,7 @@ s.anonymous = true
 s:tab("op_mode", translate("Operation Mode"))
 s:tab("settings", translate("General Settings"))
 s:tab("dns", translate("DNS Setting"))
+s:tab("stream_enhance", translate("Streaming Enhance"))
 s:tab("lan_ac", translate("Access Control"))
 if op_mode == "fake-ip" then
 s:tab("rules", translate("Rules Setting(Access Control)"))
@@ -111,20 +112,6 @@ o.default=0
 o:depends("en_mode", "redir-host")
 o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")
-
-o = s:taboption("op_mode", Flag, "netflix_domains_prefetch", font_red..bold_on..translate("Prefetch Netflix Domains")..bold_off..font_off)
-o.description = translate("Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure")
-o.default=0
-
-o = s:taboption("op_mode", Value, "netflix_domains_prefetch_interval", translate("Netflix Domains Prefetch Interval(min)"))
-o.default=1440
-o.datatype = "uinteger"
-o.description = translate("Will Run Once Immediately After Started, The Interval Does Not Need To Be Too Short (Take Effect Immediately After Commit)")
-o:depends("netflix_domains_prefetch", "1")
-
-o = s:taboption("op_mode", DummyValue, "netflix_domains_update", translate("Update Netflix Domains List"))
-o:depends("netflix_domains_prefetch", "1")
-o.template = "openclash/download_netflix_domains"
 
 o = s:taboption("op_mode", Flag, "small_flash_memory", translate("Small Flash Memory"))
 o.description = translate("Move Core And GEOIP Data File To /tmp/etc/openclash For Small Flash Memory Device")
@@ -448,6 +435,55 @@ function custom_rules_2.write(self, section, value)
 		end
 	end
 end
+
+--Stream Enhance
+o = s:taboption("stream_enhance", Flag, "netflix_domains_prefetch", font_red..bold_on..translate("Prefetch Netflix Domains")..bold_off..font_off)
+o.description = translate("Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure")
+o.default=0
+
+o = s:taboption("stream_enhance", Value, "netflix_domains_prefetch_interval", translate("Netflix Domains Prefetch Interval(min)"))
+o.default=1440
+o.datatype = "uinteger"
+o.description = translate("Will Run Once Immediately After Started, The Interval Does Not Need To Be Too Short (Take Effect Immediately After Commit)")
+o:depends("netflix_domains_prefetch", "1")
+
+o = s:taboption("stream_enhance", DummyValue, "netflix_domains_update", translate("Update Netflix Domains List"))
+o:depends("netflix_domains_prefetch", "1")
+o.template = "openclash/download_netflix_domains"
+
+o = s:taboption("stream_enhance", Flag, "stream_auto_select", font_red..bold_on..translate("Auto Select Unlock Proxy")..bold_off..font_off)
+o.description = translate("Auto Select Proxy For Streaming Unlock, Support Netflix and Disney Plus")
+o.default=0
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_interval", translate("Auto Select Interval(min)"))
+o.default=30
+o.datatype = "uinteger"
+o:depends("stream_auto_select", "1")
+
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_expand_group", font_red..bold_on..translate("Expand Group")..bold_off..font_off)
+o.description = translate("Automatically Expand The Group When Selected")
+o.default=0
+o:depends("stream_auto_select", "1")
+
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_netflix", translate("Netflix Auto Select"))
+o.default=1
+o:depends("stream_auto_select", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_netflix", translate("Netflix Group Filter Keywords"))
+o.default = "Netflix|奈飞"
+o.placeholder = "Netflix|奈飞"
+o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
+o:depends("stream_auto_select_netflix", "1")
+
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_disney", translate("Disney Plus Auto Select"))
+o.default=1
+o:depends("stream_auto_select", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_disney", translate("Disney Plus Group Filter Keywords"))
+o.default = "Disney|迪士尼"
+o.placeholder = "Disney|迪士尼"
+o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
+o:depends("stream_auto_select_disney", "1")
 
 ---- update Settings
 o = s:taboption("rules_update", Flag, "other_rule_auto_update", translate("Auto Update"))
