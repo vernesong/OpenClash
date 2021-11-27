@@ -153,14 +153,6 @@ if '$2' == 'fake-ip' then
         Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq
      end
    end
-   if ${23} == 1 then
-      if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-         Value['dns']['fake-ip-filter'].insert(-1,'+.nflxvideo.net')
-         Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq
-      else
-         Value['dns'].merge!({'fake-ip-filter'=>['+.nflxvideo.net']})
-      end
-   end
 end;
 rescue Exception => e
 puts '${LOGTIME} Error: Set Fake-IP-Filter Error,【' + e.message + '】'

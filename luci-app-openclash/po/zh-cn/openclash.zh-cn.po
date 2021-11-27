@@ -2399,8 +2399,8 @@ msgstr "Netflix 域名预解析间隔（分钟）"
 msgid "Tip: Start Prefetch Netflix Domains..."
 msgstr "提示：开始预解析 Netflix 域名..."
 
-msgid "Tip: Netflix Domains Prefetch Finished..."
-msgstr "提示：Netflix 域名预解析完成..."
+msgid "Tip: Netflix Domains Prefetch Finished!"
+msgstr "提示：Netflix 域名预解析完成!"
 
 msgid "Persistence Fake-IP"
 msgstr "Fake-IP 持久化"
@@ -2443,3 +2443,75 @@ msgstr "指定出口网卡"
 
 msgid "routing-mark"
 msgstr "指定路由标记"
+
+msgid "Streaming Enhance"
+msgstr "流媒体增强"
+
+msgid "Auto Select Unlock Proxy"
+msgstr "自动选择解锁节点"
+
+msgid "Auto Select Proxy For Streaming Unlock, Support Netflix and Disney Plus"
+msgstr "自动为 Netflix 和 Disney Plus 选择解锁节点"
+
+msgid "Auto Select Interval(min)"
+msgstr "自动选择（检测）间隔（分钟）"
+
+msgid "Expand Group"
+msgstr "展开策略组"
+
+msgid "Automatically Expand The Group When Selected"
+msgstr "自动展开嵌套的策略组并进行解锁检测，启用后可能会造成网络不稳定"
+
+msgid "Netflix Group Filter Keywords"
+msgstr "Netflix 策略组筛选关键字"
+
+msgid "Disney Plus Group Filter Keywords"
+msgstr "Disney Plus 策略组筛选关键字"
+
+msgid "Tip: Start Auto Select Proxy For Netflix Unlock..."
+msgstr "提示：开始自动选择（检测）Netflix 解锁节点..."
+
+msgid "Tip: Start Auto Select Proxy For Disney Plus Unlock..."
+msgstr "提示：开始自动选择（检测）Disney Plus 解锁节点..."
+
+msgid "Netflix Group:"
+msgstr "Netflix 策略组："
+
+msgid "Disney Group:"
+msgstr "Disney 策略组："
+
+msgid "full support, area:"
+msgstr "完整解锁，区域："
+
+msgid "only support homemade!"
+msgstr "仅支持自制剧！"
+
+msgid "unlock test faild!"
+msgstr "解锁检测失败！"
+
+msgid "the type of group is not select, auto select could not work!"
+msgstr "当前策略组类型非Select，无法进行自动选择！"
+
+msgid "Start auto select unlock proxy..."
+msgstr "开始进行解锁节点自动选择..."
+
+msgid "only support homemade! the type of group is not select, auto select could not work!"
+msgstr "仅支持自制剧！当前策略组类型非 Select，无法进行自动选择！"
+
+msgid "unlock test faild! the type of group is not select, auto select could not work!"
+msgstr "解锁检测失败！当前策略组类型非 Select，无法进行自动选择！"
+
+msgid "only support homemade! start auto select unlock proxy..."
+msgstr "仅支持自制剧！开始进行解锁节点自动选择..."
+
+msgid "unlock test faild! start auto select unlock proxy..."
+msgstr "解锁检测失败！开始进行解锁节点自动选择..."
+
+msgid "It Will Be Searched According To The Keywords When Auto Search Group Fails"
+msgstr "策略组自动搜索失败时将会根据关键字进行搜索"
+
+msgid "Netflix Auto Select"
+msgstr "Netflix 自动选择"
+
+msgid "Disney Plus Auto Select"
+msgstr "Disney Plus 自动选择"
