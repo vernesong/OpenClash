@@ -107,6 +107,8 @@ swdist.apple.com
 #Google
 lens.l.google.com
 stun.l.google.com
+#Netflix
++.nflxvideo.net
 #FinalFantasy XIV
 *.square-enix.com
 *.finalfantasyxiv.com
