@@ -969,7 +969,7 @@ function action_refresh_log()
 		line_trans = line
 		ex_match = false
 		while true do
-			ex_keys = {"^Sec%-Fetch%-Mode", "^User%-Agent", "^Access%-Control", "^Accept", "^Origin", "^Referer", "^Connection"}
+			ex_keys = {"^Sec%-Fetch%-Mode", "^User%-Agent", "^Access%-Control", "^Accept", "^Origin", "^Referer", "^Connection", "^Pragma", "^Cache-"}
     	for key=1, #ex_keys do
     		if string.find (line, ex_keys[key]) then
     			ex_match = true
