@@ -452,7 +452,7 @@ o:depends("netflix_domains_prefetch", "1")
 o.template = "openclash/download_netflix_domains"
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select", font_red..bold_on..translate("Auto Select Unlock Proxy")..bold_off..font_off)
-o.description = translate("Auto Select Proxy For Streaming Unlock, Support Netflix and Disney Plus")
+o.description = translate("Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium")
 o.default=0
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_interval", translate("Auto Select Interval(min)"))
@@ -476,7 +476,7 @@ o.description = translate("It Will Be Searched According To The Keywords When Au
 o:depends("stream_auto_select_netflix", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_disney", translate("Disney Plus Auto Select"))
-o.default=1
+o.default=0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_disney", translate("Disney Plus Group Filter Keywords"))
@@ -484,6 +484,26 @@ o.default = "Disney|迪士尼"
 o.placeholder = "Disney|迪士尼"
 o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
 o:depends("stream_auto_select_disney", "1")
+
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo", translate("HBO Auto Select"))
+o.default=0
+o:depends("stream_auto_select", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo", translate("HBO Group Filter Keywords"))
+o.default = "HBO"
+o.placeholder = "HBO"
+o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
+o:depends("stream_auto_select_hbo", "1")
+
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_ytb", translate("YouTube Premium Auto Select"))
+o.default=0
+o:depends("stream_auto_select", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_ytb", translate("YouTube Premium Group Filter Keywords"))
+o.default = "YouTube|油管"
+o.placeholder = "YouTube|油管"
+o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
+o:depends("stream_auto_select_ytb", "1")
 
 ---- update Settings
 o = s:taboption("rules_update", Flag, "other_rule_auto_update", translate("Auto Update"))
