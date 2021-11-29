@@ -517,18 +517,19 @@ function ytb_unlock_test()
 	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", MOBILE_UA, url))
 	local region
 	if tonumber(httpcode) == 200 then
-		local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", MOBILE_UA, url))
-		region = luci.sys.exec(string.format("echo '%s' |awk -F ',\"GL\":' '{print $2}'|awk -F ',' '{print $1}' |sed 's/\"//g' |tr -d '\\n'", data))
-		if region then
+		region = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s |awk -F ',\"GL\":' '{print $2}'|awk -F ',' '{print $1}'", MOBILE_UA, url))
+		if region and region ~= "" then
 			status = 2
 			return region
-			
-		elseif not string.find(data,"www%.google%.cn") then
-	  	status = 2
-	  	return "US"
-	  else
-	  	status = 1
-	  	return "Unknow"
+		else
+			local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", MOBILE_UA, url))
+			if not string.find(data,"www%.google%.cn") then
+	  		status = 2
+	  		return "US"
+	  	else
+	  		status = 1
+	  		return "Unknow"
+	  	end
 		end
 	else
 		return "Unknow"
