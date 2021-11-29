@@ -2453,8 +2453,8 @@ msgstr "流媒体增强"
 msgid "Auto Select Unlock Proxy"
 msgstr "自动选择解锁节点"
 
-msgid "Auto Select Proxy For Streaming Unlock, Support Netflix and Disney Plus"
-msgstr "自动为 Netflix 和 Disney Plus 选择解锁节点"
+msgid "Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium"
+msgstr "自动选择解锁节点，支持 Netflix、Disney Plus、HBO 和 YouTube Premium"
 
 msgid "Auto Select Interval(min)"
 msgstr "自动选择（检测）间隔（分钟）"
@@ -2471,17 +2471,38 @@ msgstr "Netflix 策略组筛选关键字"
 msgid "Disney Plus Group Filter Keywords"
 msgstr "Disney Plus 策略组筛选关键字"
 
+msgid "HBO Group Filter Keywords"
+msgstr "HBO 策略组筛选关键字"
+
+msgid "YouTube Premium Group Filter Keywords"
+msgstr "YouTube Premium 策略组筛选关键字"
+
 msgid "Tip: Start Auto Select Proxy For Netflix Unlock..."
 msgstr "提示：开始自动选择（检测）Netflix 解锁节点..."
 
 msgid "Tip: Start Auto Select Proxy For Disney Plus Unlock..."
 msgstr "提示：开始自动选择（检测）Disney Plus 解锁节点..."
 
+msgid "Tip: Start Auto Select Proxy For HBO Unlock..."
+msgstr "提示：开始自动选择（检测）HBO 解锁节点..."
+
+msgid "Tip: Start Auto Select Proxy For YouTube Premium Unlock..."
+msgstr "提示：开始自动选择（检测）YouTube Premium 解锁节点..."
+
 msgid "Netflix Group:"
 msgstr "Netflix 策略组："
 
 msgid "Disney Group:"
 msgstr "Disney 策略组："
+
+msgid "HBO Group:"
+msgstr "HBO 策略组："
+
+msgid "YouTube Premium Group:"
+msgstr "YouTube Premium 策略组："
+
+msgid "full support"
+msgstr "完整解锁"
 
 msgid "full support, area:"
 msgstr "完整解锁，区域："
@@ -2511,10 +2532,25 @@ msgid "unlock test faild! start auto select unlock proxy..."
 msgstr "解锁检测失败！开始进行解锁节点自动选择..."
 
 msgid "It Will Be Searched According To The Keywords When Auto Search Group Fails"
-msgstr "策略组自动搜索失败时将会根据关键字进行搜索"
+msgstr "策略组自动获取失败时将会根据关键字进行匹配"
 
 msgid "Netflix Auto Select"
 msgstr "Netflix 自动选择"
 
 msgid "Disney Plus Auto Select"
 msgstr "Disney Plus 自动选择"
+
+msgid "HBO Auto Select"
+msgstr "HBO 自动选择"
+
+msgid "YouTube Premium Auto Select"
+msgstr "YouTube Premium 自动选择"
+
+msgid "not support Premium!"
+msgstr "不支持 Premium！"
+
+msgid "not support Premium! the type of group is not select, auto select could not work!"
+msgstr "不支持 Premium！当前策略组类型非 Select，无法进行自动选择！"
+
+msgid "not support Premium! start auto select unlock proxy..."
+msgstr "不支持 Premium！开始进行解锁节点自动选择..."

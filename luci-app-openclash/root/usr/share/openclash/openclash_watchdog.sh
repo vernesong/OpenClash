@@ -34,6 +34,8 @@ do
    stream_auto_select_interval_now=$(uci -q get openclash.config.stream_auto_select_interval || echo 30)
    stream_auto_select_netflix=$(uci -q get openclash.config.stream_auto_select_netflix || echo 0)
    stream_auto_select_disney=$(uci -q get openclash.config.stream_auto_select_disney || echo 0)
+   stream_auto_select_hbo=$(uci -q get openclash.config.stream_auto_select_hbo || echo 0)
+   stream_auto_select_ytb=$(uci -q get openclash.config.stream_auto_select_ytb || echo 0)
    enable=$(uci -q get openclash.config.enable)
 
 if [ "$enable" -eq 1 ]; then
@@ -129,7 +131,7 @@ fi
 ##Dler Cloud Checkin
    /usr/share/openclash/openclash_dler_checkin.lua >/dev/null 2>&1
 
-##NETFLIX_UNLOCK_CHECK
+##STREAMING_UNLOCK_CHECK
    if [ "$stream_auto_select" -eq 1 ]; then
       [ "$stream_auto_select_interval" -ne "$stream_auto_select_interval_now" ] && STREAM_AUTO_SELECT=1 && stream_auto_select_interval="$stream_auto_select_interval_now"
       if [ "$STREAM_AUTO_SELECT" -ne 0 ]; then
@@ -141,6 +143,14 @@ fi
             if [ "$stream_auto_select_disney" -eq 1 ]; then
                LOG_OUT "Tip: Start Auto Select Proxy For Disney Plus Unlock..."
                /usr/share/openclash/openclash_streaming_unlock.lua "Disney" >> $LOG_FILE
+            fi
+            if [ "$stream_auto_select_hbo" -eq 1 ]; then
+               LOG_OUT "Tip: Start Auto Select Proxy For HBO Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "HBO" >> $LOG_FILE
+            fi
+            if [ "$stream_auto_select_ytb" -eq 1 ]; then
+               LOG_OUT "Tip: Start Auto Select Proxy For YouTube Premium Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "YouTube Premium" >> $LOG_FILE
             fi
          fi
       fi
