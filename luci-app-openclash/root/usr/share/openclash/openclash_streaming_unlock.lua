@@ -8,7 +8,6 @@ local uci = require("luci.model.uci").cursor()
 local fs = require "luci.openclash"
 local json = require "luci.jsonc"
 local UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36"
-local MOBILE_UA = "Mozilla/5.0 (iPhone; CPU iPhone OS 13_2_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Mobile/15E148 Safari/604.1"
 local filmId = 81215567
 local type = arg[1]
 local enable = tonumber(uci:get("openclash", "config", "stream_auto_select")) or 0
@@ -153,7 +152,7 @@ function unlock_auto_select()
 						end
 						break
 					elseif status == 1 then
-						if type ~= "YouTobe" then
+						if type ~= "YouTube Premium" then
 							print(now..original_test_start)
 						else
 							print(now..ytb_test_start)
@@ -205,11 +204,11 @@ function unlock_auto_select()
 																print(now..hbo_full_support)
 															end
 														elseif status == 1 then
-															if type ~= "YouTobe" then
+															if type ~= "YouTube Premium" then
 																table.insert(original, {group_name, proxy})
 																print(now..only_original)
 															else
-																print(now..ytb_original)
+																print(now..ytb_no_pre)
 															end
 														else
 															print(now..test_faild)
@@ -248,7 +247,7 @@ function unlock_auto_select()
 														print(now..hbo_full_support)
 													end
 												elseif status == 1 then
-													if type ~= "YouTobe" then
+													if type ~= "YouTube Premium" then
 														table.insert(original, {group_name, value.all[i]})
 														print(now..original_no_select)
 													else
@@ -286,7 +285,7 @@ function unlock_auto_select()
 							end
 							break
 						elseif status == 1 then
-							if type ~= "YouTobe" then
+							if type ~= "YouTube Premium" then
 								print(now..original_no_select)
 							else
 								print(now..ytb_no_select)
@@ -514,15 +513,19 @@ end
 function ytb_unlock_test()
 	status = 0
 	local url = "https://m.youtube.com/premium"
-	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", MOBILE_UA, url))
+	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local region
 	if tonumber(httpcode) == 200 then
-		region = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s |awk -F ',\"GL\":' '{print $2}'|awk -F ',' '{print $1}'", MOBILE_UA, url))
+		local data = luci.sys.exec(string.format("curl -sL -m 3 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+		if string.find(data,"is not available in your country") then
+			status = 1
+	  	return "Unknow"
+	  end
+		region = luci.sys.exec(string.format("curl -sL -m 3 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s |awk -F ',\"GL\":' '{print $2}'|awk -F ',' '{print $1}' |sed 's/\"//g' |tr -d '\\n'", UA, url))
 		if region and region ~= "" then
 			status = 2
 			return region
 		else
-			local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", MOBILE_UA, url))
 			if not string.find(data,"www%.google%.cn") then
 	  		status = 2
 	  		return "US"
