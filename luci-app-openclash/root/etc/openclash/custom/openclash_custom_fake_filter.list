@@ -115,3 +115,5 @@ stun.l.google.com
 *.ffxiv.com
 #Bilibili
 *.mcdn.bilivideo.cn
+#Disney Plus
++.media.dssott.com
