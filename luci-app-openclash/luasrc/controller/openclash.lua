@@ -32,6 +32,7 @@ function index()
 	entry({"admin", "services", "openclash", "ping"}, call("act_ping"))
 	entry({"admin", "services", "openclash", "download_rule"}, call("action_download_rule"))
 	entry({"admin", "services", "openclash", "download_netflix_domains"}, call("action_download_netflix_domains"))
+	entry({"admin", "services", "openclash", "download_disney_domains"}, call("action_download_disney_domains"))
 	entry({"admin", "services", "openclash", "catch_netflix_domains"}, call("action_catch_netflix_domains"))
 	entry({"admin", "services", "openclash", "write_netflix_domains"}, call("action_write_netflix_domains"))
 	entry({"admin", "services", "openclash", "restore"}, call("action_restore_config"))
@@ -313,6 +314,11 @@ end
 function download_rule()
 	local filename = luci.http.formvalue("filename")
   local state = luci.sys.call(string.format('/usr/share/openclash/openclash_download_rule_list.sh "%s" >/dev/null 2>&1',filename))
+  return state
+end
+
+function download_disney_domains()
+  local state = luci.sys.call(string.format('/usr/share/openclash/openclash_download_rule_list.sh "%s" >/dev/null 2>&1',"disney_domains"))
   return state
 end
 
@@ -706,7 +712,7 @@ function action_toolbar_show()
 			connection = "0"
 		end
 		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
-		cpu = luci.sys.exec(string.format("top -b -n1 |grep -E '(%s|PID)' 2>/dev/null |grep -v grep |awk '{for (i=1;i<=NF;i++) {if ($i ~ /CPU/) num=i}};{print $num}' 2>/dev/null | sed -n '2p' 2>/dev/null", pid))
+		cpu = luci.sys.exec(string.format("top -b -n1 |grep -E '%s' 2>/dev/null |grep -v grep |awk '{for (i=1;i<=NF;i++) {if ($i ~ /clash/) break; else cpu=i}}; {print $cpu}' 2>/dev/null", pid))
 		if mem and cpu then
 			mem = fs.filesize(mem*1024)
 			cpu = string.gsub(cpu, "%%\n", "")
@@ -937,6 +943,13 @@ function action_download_netflix_domains()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 		rule_download_status = download_netflix_domains();
+	})
+end
+
+function action_download_disney_domains()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		rule_download_status = download_disney_domains();
 	})
 end
 

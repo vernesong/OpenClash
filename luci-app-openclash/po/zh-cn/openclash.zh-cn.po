@@ -522,8 +522,8 @@ msgstr "微软服务（Microsoft）"
 msgid "Netflix"
 msgstr "奈飞（Netflix）"
 
-msgid "Disney"
-msgstr "迪士尼（Disney）"
+msgid "Disney Plus"
+msgstr "迪士尼+（Disney Plus）"
 
 msgid "Bilibili"
 msgstr "哔哩哔哩（Bilibili）"
@@ -2387,23 +2387,29 @@ msgstr "被修改，暂停快速启动..."
 msgid "Click to Update"
 msgstr "点击更新规则"
 
-msgid "Prefetch Netflix Domains"
-msgstr "实验性：预解析 Netflix 域名"
+msgid "Prefetch Netflix, Disney Plus Domains"
+msgstr "实验性：预解析 Netflix、Disney Plus 域名"
 
 msgid "Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure"
 msgstr "防止部分设备直接使用IP访问导致DNS解锁失败"
 
-msgid "Update Netflix Domains List"
-msgstr "更新 Netflix 域名列表"
+msgid "Update Domains List"
+msgstr "更新域名列表"
 
-msgid "Netflix Domains Prefetch Interval(min)"
-msgstr "Netflix 域名预解析间隔（分钟）"
+msgid "Domains Prefetch Interval(min)"
+msgstr "域名预解析间隔（分钟）"
 
 msgid "Tip: Start Prefetch Netflix Domains..."
 msgstr "提示：开始预解析 Netflix 域名..."
 
 msgid "Tip: Netflix Domains Prefetch Finished!"
 msgstr "提示：Netflix 域名预解析完成!"
+
+msgid "Tip: Start Prefetch Disney Plus Domains..."
+msgstr "提示：开始预解析 Disney Plus 域名..."
+
+msgid "Tip: Disney Plus Domains Prefetch Finished!"
+msgstr "提示：Disney Plus 域名预解析完成!"
 
 msgid "Persistence Fake-IP"
 msgstr "Fake-IP 持久化"
@@ -2428,6 +2434,9 @@ msgstr "抓取结果将自动保存"
 
 msgid "Click to Catch"
 msgstr "手动抓取域名"
+
+msgid "Catch Netflix"
+msgstr "手动抓取 Netflix 域名"
 
 msgid "No domain names were catched..."
 msgstr "未抓取到任何域名..."
@@ -2533,18 +2542,6 @@ msgstr "解锁检测失败！开始进行解锁节点自动选择..."
 
 msgid "It Will Be Searched According To The Keywords When Auto Search Group Fails"
 msgstr "策略组自动获取失败时将会根据关键字进行匹配"
-
-msgid "Netflix Auto Select"
-msgstr "Netflix 自动选择"
-
-msgid "Disney Plus Auto Select"
-msgstr "Disney Plus 自动选择"
-
-msgid "HBO Auto Select"
-msgstr "HBO 自动选择"
-
-msgid "YouTube Premium Auto Select"
-msgstr "YouTube Premium 自动选择"
 
 msgid "not support Premium!"
 msgstr "不支持 Premium！"
