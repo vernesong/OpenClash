@@ -1203,16 +1203,30 @@ start_run_core()
    check_interface_name
    config_reload=$(uci -q get openclash.config.config_reload)
    #Resore history cache
-   if [ -f "$HISTORY_PATH" ]; then
-      cmp -s "$CACHE_PATH" "$HISTORY_PATH"
-      if [ "$?" -ne "0" ]; then
-         cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
+   if [ -f "$HISTORY_PATH" ] && [ -f "$HISTORY_PATH_OLD" ]; then
+      if [ "$(date -r $HISTORY_PATH +%s)" -ge "$(date -r $HISTORY_PATH_OLD +%s)" ]; then
+         cmp -s "$CACHE_PATH" "$HISTORY_PATH"
+         if [ "$?" -ne "0" ]; then
+            cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
+         fi
+      else
+         cmp -s "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD"
+         if [ "$?" -ne "0" ]; then
+            cp "$HISTORY_PATH_OLD" "$CACHE_PATH_OLD" 2>/dev/null
+         fi
       fi
-   fi
-   if [ -f "$HISTORY_PATH_OLD" ]; then
-      cmp -s "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD"
-      if [ "$?" -ne "0" ]; then
-         cp "$HISTORY_PATH_OLD" "$CACHE_PATH_OLD" 2>/dev/null
+   else
+      if [ -f "$HISTORY_PATH" ]; then
+         cmp -s "$CACHE_PATH" "$HISTORY_PATH"
+         if [ "$?" -ne "0" ]; then
+            cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
+         fi
+      fi
+      if [ -f "$HISTORY_PATH_OLD" ]; then
+         cmp -s "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD"
+         if [ "$?" -ne "0" ]; then
+            cp "$HISTORY_PATH_OLD" "$CACHE_PATH_OLD" 2>/dev/null
+         fi
       fi
    fi
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$config_reload" != "0" ]; then
