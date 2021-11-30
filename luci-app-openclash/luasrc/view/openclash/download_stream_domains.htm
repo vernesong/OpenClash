@@ -5,7 +5,38 @@
 	var catch_timeout;
 	var catch_out;
 	
-	function act_download_rule(btn)
+	function act_download_disney_rule(btn)
+	{
+		btn.disabled = true;
+		btn.value    = '<%:Downloading Rule...%> ';
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","download_disney_domains")%>',
+			null,
+			function(x,status)
+			{
+				if ( x && x.status == 200 ) {
+					if(status.rule_download_status=="0")
+					{
+						btn.value = '<%:Downloading Fail%>';
+					}
+					else if (status.rule_download_status=="1")
+					{
+						btn.value = '<%:Downloading Successful%>';
+					}
+					else if (status.rule_download_status=="2")
+					{
+						btn.value = '<%:Rule No Change%>';
+					}
+				}
+				else {
+					btn.value = '<%:Downloading Timeout%>';
+				}
+			}
+		);
+		btn.disabled = false;
+		return false;
+	};
+	
+	function act_download_netflix_rule(btn)
 	{
 		btn.disabled = true;
 		btn.value    = '<%:Downloading Rule...%> ';
@@ -110,8 +141,9 @@
 //]]></script>
 
 
-<input type="button" class="btn cbi-button cbi-input-reload" value="<%:Click to Update%>" onclick="return act_download_rule(this)" />
-<input type="button" class="btn cbi-button cbi-input-reload" value="<%:Click to Catch%>" onclick="return catch_netflix_domains(this)" />
+<input type="button" class="btn cbi-button cbi-input-reload" value="<%:Netflix%>" onclick="return act_download_netflix_rule(this)" />
+<input type="button" class="btn cbi-button cbi-input-reload" value="<%:Disney Plus%>" onclick="return act_download_disney_rule(this)" />
+<input type="button" class="btn cbi-button cbi-input-reload" value="<%:Catch Netflix%>" onclick="return catch_netflix_domains(this)" />
 <fieldset style="display: none;margin: 0 auto;">
 	<legend id="catch-netflix-state"><%:Collecting data...%></legend>
 	<br />

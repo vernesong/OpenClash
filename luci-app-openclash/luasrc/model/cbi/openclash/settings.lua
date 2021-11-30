@@ -437,19 +437,19 @@ function custom_rules_2.write(self, section, value)
 end
 
 --Stream Enhance
-o = s:taboption("stream_enhance", Flag, "netflix_domains_prefetch", font_red..bold_on..translate("Prefetch Netflix Domains")..bold_off..font_off)
+o = s:taboption("stream_enhance", Flag, "stream_domains_prefetch", font_red..bold_on..translate("Prefetch Netflix, Disney Plus Domains")..bold_off..font_off)
 o.description = translate("Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure")
 o.default=0
 
-o = s:taboption("stream_enhance", Value, "netflix_domains_prefetch_interval", translate("Netflix Domains Prefetch Interval(min)"))
+o = s:taboption("stream_enhance", Value, "stream_domains_prefetch_interval", translate("Domains Prefetch Interval(min)"))
 o.default=1440
 o.datatype = "uinteger"
 o.description = translate("Will Run Once Immediately After Started, The Interval Does Not Need To Be Too Short (Take Effect Immediately After Commit)")
-o:depends("netflix_domains_prefetch", "1")
+o:depends("stream_domains_prefetch", "1")
 
-o = s:taboption("stream_enhance", DummyValue, "netflix_domains_update", translate("Update Netflix Domains List"))
-o:depends("netflix_domains_prefetch", "1")
-o.template = "openclash/download_netflix_domains"
+o = s:taboption("stream_enhance", DummyValue, "stream_domains_update", translate("Update Domains List"))
+o:depends("stream_domains_prefetch", "1")
+o.template = "openclash/download_stream_domains"
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select", font_red..bold_on..translate("Auto Select Unlock Proxy")..bold_off..font_off)
 o.description = translate("Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium")
@@ -465,7 +465,7 @@ o.description = translate("Automatically Expand The Group When Selected")
 o.default=0
 o:depends("stream_auto_select", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_netflix", translate("Netflix Auto Select"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_netflix", translate("Netflix"))
 o.default=1
 o:depends("stream_auto_select", "1")
 
@@ -475,7 +475,7 @@ o.placeholder = "Netflix|奈飞"
 o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
 o:depends("stream_auto_select_netflix", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_disney", translate("Disney Plus Auto Select"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_disney", translate("Disney Plus"))
 o.default=0
 o:depends("stream_auto_select", "1")
 
@@ -485,7 +485,7 @@ o.placeholder = "Disney|迪士尼"
 o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
 o:depends("stream_auto_select_disney", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo", translate("HBO Auto Select"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo", translate("HBO"))
 o.default=0
 o:depends("stream_auto_select", "1")
 
@@ -495,7 +495,7 @@ o.placeholder = "HBO"
 o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
 o:depends("stream_auto_select_hbo", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_ytb", translate("YouTube Premium Auto Select"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_ytb", translate("YouTube Premium"))
 o.default=0
 o:depends("stream_auto_select", "1")
 
