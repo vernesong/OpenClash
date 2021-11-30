@@ -604,15 +604,17 @@ do
             system '${uci_set}obfs_vmess=websocket'
             #ws-path:
             if Value['proxies'][$count].key?('ws-path') then
-               path = '${uci_set}path=\"' + Value['proxies'][$count]['ws-path'].to_s + '\"'
+               path = '${uci_set}ws_opts_path=\"' + Value['proxies'][$count]['ws-path'].to_s + '\"'
                system(path)
             end
             #Host:
             if Value['proxies'][$count].key?('ws-headers') then
-               if Value['proxies'][$count]['ws-headers'].key?('Host') then
-                  custom = '${uci_set}custom=\"' + Value['proxies'][$count]['ws-headers']['Host'].to_s + '\"'
+               system '${uci_del}ws_opts_headers >/dev/null 2>&1'
+               Value['proxies'][$count]['ws-headers'].keys.each{
+               |v|
+                  custom = '${uci_add}ws_opts_headers=\"' + v.to_s + ': '+ Value['proxies'][$count]['ws-headers'][v].to_s + '\"'
                   system(custom)
-               end
+               }
             end
             #ws-opts-path:
             if Value['proxies'][$count].key?('ws-opts') then
