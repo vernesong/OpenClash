@@ -143,7 +143,7 @@ fi
             fi
             if [ "$stream_auto_select_disney" -eq 1 ]; then
                LOG_OUT "Tip: Start Auto Select Proxy For Disney Plus Unlock..."
-               /usr/share/openclash/openclash_streaming_unlock.lua "Disney" >> $LOG_FILE
+               /usr/share/openclash/openclash_streaming_unlock.lua "Disney Plus" >> $LOG_FILE
             fi
             if [ "$stream_auto_select_hbo" -eq 1 ]; then
                LOG_OUT "Tip: Start Auto Select Proxy For HBO Unlock..."

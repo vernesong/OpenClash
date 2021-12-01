@@ -2501,8 +2501,8 @@ msgstr "提示：开始自动选择（检测）YouTube Premium 解锁节点..."
 msgid "Netflix Group:"
 msgstr "Netflix 策略组："
 
-msgid "Disney Group:"
-msgstr "Disney 策略组："
+msgid "Disney Plus Group:"
+msgstr "Disney Plus 策略组："
 
 msgid "HBO Group:"
 msgstr "HBO 策略组："
