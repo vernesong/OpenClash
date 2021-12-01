@@ -1007,12 +1007,15 @@ write_run_quick()
 custom_rule_provider()
 {
    local section="$1"
-   local enabled
+   local enabled config
+   config_get "config" "$section" "config" ""
    config_get_bool "enabled" "$section" "enabled" "1"
 
    if [ "$enabled" = "0" ]; then
       return
-   else
+   fi
+   
+   if [ "$config" = "all" ] || [ "$config" = "$CONFIG_NAME" ]; then
       config_set_custom_rule_provider=1
    fi
 }
@@ -1080,7 +1083,7 @@ do_run_file()
    
    config_load "openclash"
    config_set_custom_rule_provider=0
-   for i in "rule_provider_config" "rule_providers" "game_config"; do
+   for i in "rule_provider_config" "rule_provider_config" "rule_providers" "game_config"; do
       config_foreach custom_rule_provider "$i"
       if [ "$config_set_custom_rule_provider" -eq 1 ]; then
       	break
