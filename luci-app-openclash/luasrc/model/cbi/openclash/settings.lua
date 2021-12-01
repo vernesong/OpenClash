@@ -447,7 +447,7 @@ o.datatype = "uinteger"
 o.description = translate("Will Run Once Immediately After Started, The Interval Does Not Need To Be Too Short (Take Effect Immediately After Commit)")
 o:depends("stream_domains_prefetch", "1")
 
-o = s:taboption("stream_enhance", DummyValue, "stream_domains_update", translate("Update Domains List"))
+o = s:taboption("stream_enhance", DummyValue, "stream_domains_update", translate("Update Preset Domains List"))
 o:depends("stream_domains_prefetch", "1")
 o.template = "openclash/download_stream_domains"
 
