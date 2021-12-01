@@ -2393,8 +2393,8 @@ msgstr "实验性：预解析 Netflix、Disney Plus 域名"
 msgid "Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure"
 msgstr "防止部分设备直接使用IP访问导致DNS解锁失败"
 
-msgid "Update Domains List"
-msgstr "更新域名列表"
+msgid "Update Preset Domains List"
+msgstr "更新预置域名列表"
 
 msgid "Domains Prefetch Interval(min)"
 msgstr "域名预解析间隔（分钟）"
