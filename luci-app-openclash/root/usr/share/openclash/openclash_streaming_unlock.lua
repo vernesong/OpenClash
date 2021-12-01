@@ -60,7 +60,7 @@ function unlock_auto_select()
 	--auto get group
 	if type == "Netflix" then
 		luci.sys.call('curl -sL --limit-rate 5k https://www.netflix.com >/dev/null 2>&1 &')
-	elseif type == "Disney" then
+	elseif type == "Disney Plus" then
 		luci.sys.call('curl -sL --limit-rate 5k https://www.disneyplus.com >/dev/null 2>&1 &')
 	elseif type == "HBO" then
 		luci.sys.call('curl -sL --limit-rate 5k https://play.hbonow.com >/dev/null 2>&1 &')
@@ -79,7 +79,7 @@ function unlock_auto_select()
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
 				end
-			elseif type == "Disney" then
+			elseif type == "Disney Plus" then
 				if string.match(con.connections[i].metadata.host, "www%.disneyplus%.com") then
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
@@ -101,7 +101,7 @@ function unlock_auto_select()
 	if not auto_get_group then
 		if type == "Netflix" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_netflix") or "netflix|奈飞"
-		elseif type == "Disney" then
+		elseif type == "Disney Plus" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_disney") or "disney|迪士尼"
 		elseif type == "HBO" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo") or "hbo"
@@ -306,7 +306,7 @@ end
 function proxy_unlock_test()
 	if type == "Netflix" then
 		region = netflix_unlock_test()
-	elseif type == "Disney" then
+	elseif type == "Disney Plus" then
 		region = disney_unlock_test()
 	elseif type == "HBO" then
 		region = hbo_unlock_test()
@@ -364,7 +364,7 @@ function get_proxy(info, group, name)
 						end
 						group_name = group
 						group = value.now
-						now_name = value.now
+						now_name = value.now or group_name
 						proxies = value.all
 						group_type = value.type
 						break
@@ -386,7 +386,7 @@ function get_proxy(info, group, name)
 				if value.name == name then
 					group_show = name
 					group_name = name
-					now_name = value.now
+					now_name = value.now or name
 					table.insert(proxies, group)
 					group_type = value.type
 					break
@@ -414,7 +414,7 @@ function get_proxy(info, group, name)
 								group_show = name .. " ➟ " .. group
 							end
 						end
-						now_name = value.now
+						now_name = value.now or group
 						group = value.now
 						break
 					end
@@ -424,7 +424,7 @@ function get_proxy(info, group, name)
 			for _, value in pairs(info.proxies) do
 				if value.name == name then
 					table.insert(proxies, group)
-					now_name = value.now
+					now_name = value.now or name
 					group_show = name
 					group_name = name
 					group_type = value.type
