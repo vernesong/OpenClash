@@ -1814,7 +1814,8 @@ if [ -n "$en_mode_tun" ]; then
    
    if [ "$en_mode_tun" -eq 1 ]; then
       iptables -t mangle -I PREROUTING -j openclash
-      iptables -t nat -I PREROUTING -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j ACCEPT
+      iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp -d 8.8.8.8 --dport 53 -j ACCEPT
+      iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp -d 8.8.4.4 --dport 53 -j ACCEPT
    else
       iptables -t mangle -I PREROUTING -p tcp --dport 53 -j openclash_dns_hijack
       iptables -t mangle -A openclash_dns_hijack -m comment --comment "OpenClash Google DNS Hijack" -d 8.8.8.8 -j MARK --set-mark "$PROXY_FWMARK"
