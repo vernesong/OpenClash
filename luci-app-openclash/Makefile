@@ -25,8 +25,6 @@ endef
 define Build/Prepare
 	$(CP) $(CURDIR)/root $(PKG_BUILD_DIR)
 	$(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)
-	$(foreach po,$(wildcard ${CURDIR}/po/zh-cn/*.po), \
-		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/openclash
 	chmod -R 0755 $(PKG_BUILD_DIR)/root/usr/share/openclash/
 	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/config
@@ -97,10 +95,10 @@ define Package/$(PKG_NAME)/postrm
 endef
 
 define Package/$(PKG_NAME)/install
-	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/*.*.lmo $(1)/usr/lib/lua/luci/i18n/
 	$(CP) $(PKG_BUILD_DIR)/root/* $(1)/
 	$(CP) $(PKG_BUILD_DIR)/luasrc/* $(1)/usr/lib/lua/luci/
+	$(INSTALL_DIR) $(1)/usr/lib/lua/luci/i18n
+	po2lmo ./po/zh-cn/openclash.po $(1)/usr/lib/lua/luci/i18n/openclash.zh-cn.lmo
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
