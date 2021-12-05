@@ -10,18 +10,18 @@
   <input class="cbi-input-file" style="width: 30%" type="file" id="ulfile" name="ulfile" />
 	<input type="submit" class="btn cbi-button cbi-input-reload" name="upload" value="<%:Upload%>" />
 	<input type="submit" class="btn cbi-button cbi-button-reset" value="<%:Backup%>" onclick="return backup_all_file(this)"/>
-</div>	
+</div>
 <%+cbi/valuefooter%>
 
 <script type="text/javascript">//<![CDATA[
-	
+
 function backup_all_file(btn)
 {
 	btn.value    = '<%:Backup%>';
 	btn.disabled = true;
 	window.location.href='<%="backup"%>';
 	btn.disabled = false;
-	return false; 
+	return false;
 };
 
 //]]></script>

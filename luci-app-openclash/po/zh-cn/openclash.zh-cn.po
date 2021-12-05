@@ -2551,3 +2551,15 @@ msgstr "不支持 Premium！当前策略组类型非 Select，无法进行自动
 
 msgid "not support Premium! start auto select unlock proxy..."
 msgstr "不支持 Premium！开始进行解锁节点自动选择..."
+
+msgid "unlock node auto selected successfully, the current selected is"
+msgstr "解锁节点自动选择成功，当前选择的是"
+
+msgid "unlock node auto selected failed, no node available, rolled back to the"
+msgstr "解锁节点自动选择失败，无可用节点，回退到"
+
+msgid ", area:"
+msgstr "，区域："
+
+msgid "failed to search based on keywords and automatically obtain the group, please confirm the validity of the keywords!"
+msgstr "根据关键字搜索且自动获取策略组失败，请确认关键字的有效性！"
