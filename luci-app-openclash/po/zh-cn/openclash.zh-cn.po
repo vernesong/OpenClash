@@ -2543,14 +2543,14 @@ msgstr "解锁检测失败！开始进行解锁节点自动选择..."
 msgid "It Will Be Searched According To The Keywords When Auto Search Group Fails"
 msgstr "策略组自动获取失败时将会根据关键字进行匹配"
 
-msgid "not support Premium!"
-msgstr "不支持 Premium！"
+msgid "not support unlock!"
+msgstr "不支持解锁！"
 
-msgid "not support Premium! the type of group is not select, auto select could not work!"
-msgstr "不支持 Premium！当前策略组类型非 Select，无法进行自动选择！"
+msgid "not support unlock! the type of group is not select, auto select could not work!"
+msgstr "不支持解锁！当前策略组类型非 Select，无法进行自动选择！"
 
-msgid "not support Premium! start auto select unlock proxy..."
-msgstr "不支持 Premium！开始进行解锁节点自动选择..."
+msgid "not support unlock! start auto select unlock proxy..."
+msgstr "不支持解锁！开始进行解锁节点自动选择..."
 
 msgid "unlock node auto selected successfully, the current selected is"
 msgstr "解锁节点自动选择成功，当前选择的是"
