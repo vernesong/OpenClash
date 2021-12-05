@@ -234,7 +234,7 @@
 			   clash.innerHTML = status.clash ? '<b style=color:green><%:Running%> <%:<Limited State>%></b>' : '<b style=color:red><%:Not Running%></b>';
 			}
 			watchdog.innerHTML = status.watchdog ? '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:green><%:Running%></b>' : '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:red><%:Not Running%></b>';
-			dase.innerHTML = status.dase ? "<b><font color=green>"+status.dase+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			dase.innerHTML = status.dase ? "<b style=color:green>"+status.dase+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
 			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			close_all_connection.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
@@ -244,19 +244,19 @@
 			update_other_rules.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Third Party Rules Update%>" onclick="return b_update_other_rules(this)"/>';
 			update_geoip.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GEOIP Data Update%>" onclick="return b_update_geoip(this)"/>';
 			if (status.daip && window.location.hostname == status.daip) {
-			   daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			   dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			   daip.innerHTML = status.daip ? "<b style=color:green>"+status.daip+"</font></b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+			   dapo.innerHTML = status.cn_port ? "<b style=color:green>"+status.cn_port+"</font></b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
 			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
 			}
 			else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port)
 			{
-			   daip.innerHTML = status.db_foward_domain ? "<b><font color=green>"+status.db_foward_domain+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			   dapo.innerHTML = status.db_foward_port ? "<b><font color=green>"+status.db_foward_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			   daip.innerHTML = status.db_foward_domain ? "<b style=color:green>"+status.db_foward_domain+"</font></b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+			   dapo.innerHTML = status.db_foward_port ? "<b style=color:green>"+status.db_foward_port+"</font></b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
 			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.db_foward_domain + ":" + status.db_foward_port;
 			}
 			else {
-			   daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			   dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			   daip.innerHTML = status.daip ? "<b style=color:green>"+status.daip+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+			   dapo.innerHTML = status.cn_port ? "<b style=color:green>"+status.cn_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
 			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
 			};
 			
@@ -445,13 +445,13 @@
 				}
 			}
 			else {
-				document.getElementById("upload_").innerHTML = "<font color=green>0 B/S</font>";
-				document.getElementById("download_").innerHTML = "<font color=green>0 B/S</font>";
-				document.getElementById("uploadtotal_").innerHTML = "<font color=green>0 KB</font>";
-				document.getElementById("downloadtotal_").innerHTML = "<font color=green>0 KB</font>";
-				document.getElementById("mem_t").innerHTML = "<font color=green>0 KB</font>";
-				document.getElementById("cpu_t").innerHTML = "<font color=green>0 %</font>";
-				document.getElementById("connect_t").innerHTML = "<font color=green>0</font>";
+				document.getElementById("upload_").innerHTML = "<font style=\"color:green\">0 B/S</font>";
+				document.getElementById("download_").innerHTML = "<font style=\"color:green\">0 B/S</font>";
+				document.getElementById("uploadtotal_").innerHTML = "<font style=\"color:green\">0 KB</font>";
+				document.getElementById("downloadtotal_").innerHTML = "<font style=\"color:green\">0 KB</font>";
+				document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">0 KB</font>";
+				document.getElementById("cpu_t").innerHTML = "<font style=\"color:green\">0 %</font>";
+				document.getElementById("connect_t").innerHTML = "<font style=\"color:green\">0</font>";
 			}
 		});
 	};
