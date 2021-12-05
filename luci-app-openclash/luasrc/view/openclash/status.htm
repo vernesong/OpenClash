@@ -227,16 +227,16 @@
 		if ( x && x.status == 200 ) {
 			if ( status.restricted_mode != "1" )
 			{
-			   clash.innerHTML = status.clash ? '<b><font color=green><%:Running%></font></b>' : '<b><font color=red><%:Not Running%></font></b>';
+			   clash.innerHTML = status.clash ? '<b style=color:green><%:Running%></b>' : '<b style=color:red><%:Not Running%></b>';
 			}
 			else
 			{
-			   clash.innerHTML = status.clash ? '<b><font color=green><%:Running%> <%:<Limited State>%></font></b>' : '<b><font color=red><%:Not Running%></font></b>';
+			   clash.innerHTML = status.clash ? '<b style=color:green><%:Running%> <%:<Limited State>%></b>' : '<b style=color:red><%:Not Running%></b>';
 			}
-			watchdog.innerHTML = status.watchdog ? '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b><font color=green><%:Running%></font></b>' : '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b><font color=red><%:Not Running%></font></b>';
+			watchdog.innerHTML = status.watchdog ? '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:green><%:Running%></b>' : '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:red><%:Not Running%></b>';
 			dase.innerHTML = status.dase ? "<b><font color=green>"+status.dase+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
+			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
+			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			close_all_connection.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
 			reload_firewall.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Reload Firewall Rules%>" onclick="return b_reload_firewall(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
 			one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check All Components Update%>" onclick="return all_one_key_update(this)"/>';
@@ -267,7 +267,7 @@
 			else {
 				radio_mode.style.display = "none";
 				radio_de.style.display = "";
-				radio_de.innerHTML = "<b><font color=red><%:Not Running%></font></b>";
+				radio_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
 			};
 			
 			if (status.clash) {
@@ -345,12 +345,12 @@
 			if (x && x.status == 200 && status.mode) {
 				if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix")
 				{
-			   	mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP%></font></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b><font color=red><%:Not Running%></font></b>';
+			   	mode.innerHTML = status.clash ? "<b style=color:green><%:Fake-IP%></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b style=color:red><%:Not Running%></b>';
 			   	radio_run_normal.innerHTML = "<%:Enhance%>"
 				}
 				else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix")
 				{
-			  	 mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host%></font></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b><font color=red><%:Not Running%></font></b>';
+			  	 mode.innerHTML = status.clash ? "<b style=color:green><%:Redir-Host%></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b style=color:red><%:Not Running%></b>';
 			  	 radio_run_normal.innerHTML = "<%:Compatible%>"
 				};
 				for (i=0; i<radio_ru.length; i++) {
