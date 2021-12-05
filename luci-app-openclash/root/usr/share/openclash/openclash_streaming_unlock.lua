@@ -31,16 +31,16 @@ function unlock_auto_select()
 	local hbo_full_support = "full support"
 	local full_support = "full support, area:"
 	local only_original = "only support homemade!"
-	local ytb_no_pre = "not support Premium!"
+	local no_unlock = "not support unlock!"
 	local select_success = "unlock node auto selected successfully, the current selected is"
 	local select_faild = "unlock node auto selected failed, no node available, rolled back to the"
 	local test_faild = "unlock test faild!"
 	local test_start = "Start auto select unlock proxy..."
 	local original_no_select = "only support homemade! the type of group is not select, auto select could not work!"
-	local ytb_no_select = "not support Premium! the type of group is not select, auto select could not work!"
+	local no_unlock_no_select = "not support unlock! the type of group is not select, auto select could not work!"
 	local faild_no_select = "unlock test faild! the type of group is not select, auto select could not work!"
 	local original_test_start = "only support homemade! start auto select unlock proxy..."
-	local ytb_test_start = "not support Premium! start auto select unlock proxy..."
+	local no_unlock_test_start = "not support unlock! start auto select unlock proxy..."
 	local faild_test_start = "unlock test faild! start auto select unlock proxy..."
 	local area_i18 = ", area:"
 	
@@ -125,9 +125,9 @@ function unlock_auto_select()
 		end
 	end
 
+	group_match = false
 	for _, value in pairs(info.proxies) do
 		--match only once
-		group_match = false
 		for g = 1, #key_groups do
 			while true do
 				--find group
@@ -157,11 +157,11 @@ function unlock_auto_select()
 						end
 						break
 					elseif status == 1 then
-						if type ~= "YouTube Premium" then
-							table.insert(original, {get_group_now(info, value.name), group_name, now_name})
+						table.insert(original, {get_group_now(info, value.name), group_name, now_name})
+						if type == "Netflix" then
 							print(now..original_test_start)
 						else
-							print(now..ytb_test_start)
+							print(now..no_unlock_test_start)
 						end
 					else
 						print(now..faild_test_start)
@@ -212,11 +212,11 @@ function unlock_auto_select()
 																print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..proxy.."】")
 															end
 														elseif status == 1 then
-															if type ~= "YouTube Premium" then
-																table.insert(original, {value.all[i], group_name, proxy})
+															table.insert(original, {value.all[i], group_name, proxy})
+															if type == "Netflix" then
 																print(now..only_original)
 															else
-																print(now..ytb_no_pre)
+																print(now..no_unlock)
 															end
 														else
 															print(now..test_faild)
@@ -257,11 +257,11 @@ function unlock_auto_select()
 														print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, now_name).."】")
 													end
 												elseif status == 1 then
-													if type ~= "YouTube Premium" then
-														table.insert(original, {value.all[i], group_name, value.all[i]})
+													table.insert(original, {value.all[i], group_name, value.all[i]})
+													if type == "Netflix" then
 														print(now..original_no_select)
 													else
-														print(now..ytb_no_select)
+														print(now..no_unlock_no_select)
 													end
 												else
 													print(now..faild_no_select)
@@ -298,10 +298,10 @@ function unlock_auto_select()
 							end
 							break
 						elseif status == 1 then
-							if type ~= "YouTube Premium" then
+							if type == "Netflix" then
 								print(now..original_no_select)
 							else
-								print(now..ytb_no_select)
+								print(now..no_unlock_no_select)
 							end
 						else
 							print(now..faild_no_select)
@@ -310,11 +310,12 @@ function unlock_auto_select()
 				end
 				break
 			end
-			if group_match == true then break end
+			if group_match then break end
 		end
+		if auto_get_group and group_match then break end
 		if status == 2 then	break end
 	end
-	if group_match == false and not auto_get_group then
+	if not group_match and not auto_get_group then
 		print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..key_group.."】"..no_group_find)
 	end
 end
@@ -477,8 +478,6 @@ function netflix_unlock_test()
 			if region == "TITLE" then region = "US" end
 		elseif info.http_code == 404 then
 			status = 1
-		else
-			status = 0
 		end
 	end
 	return region or "Unknow"
@@ -505,6 +504,7 @@ function disney_unlock_test()
 			status = 2
 			return region
 		else
+			status = 1
 			return "Unknow"
 		end
 	else
@@ -523,6 +523,9 @@ function hbo_unlock_test()
 		if data.http_code == 200 then
 			if string.find(data.url_effective,"play%.hbonow%.com") then
 				status = 2
+				return "Unknow"
+			else
+				status = 1
 				return "Unknow"
 			end
 		else
