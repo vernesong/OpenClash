@@ -2,25 +2,25 @@
 
 unify_ps_status() {
 	if [ "$(ps --version 2>&1 |grep -c procps-ng)" -eq 1 ];then
-		echo "$(ps -ef |grep -v grep |grep -c "$1")"
+		echo "$(ps -efw |grep -v grep |grep -c "$1")"
 	else
-		echo "$(ps |grep -v grep |grep -c "$1")"
+		echo "$(ps -w |grep -v grep |grep -c "$1")"
 	fi
 }
 
 unify_ps_pids() {
 	if [ "$(ps --version 2>&1 |grep -c procps-ng)" -eq 1 ];then
-		echo "$(ps -ef |grep "$1" |grep -v grep |awk '{print $2}' 2>/dev/null)"
+		echo "$(ps -efw |grep "$1" |grep -v grep |awk '{print $2}' 2>/dev/null)"
 	else
-		echo "$(ps |grep "$1" |grep -v grep |awk '{print $1}' 2>/dev/null)"
+		echo "$(ps -w |grep "$1" |grep -v grep |awk '{print $1}' 2>/dev/null)"
 	fi
 }
 
 unify_ps_prevent() {
 	if [ "$(ps --version 2>&1 |grep -c procps-ng)" -eq 1 ];then
-		echo "$(ps -ef |grep -v grep |grep -c "/etc/init.d/openclash")"
+		echo "$(ps -efw |grep -v grep |grep -c "/etc/init.d/openclash")"
 	else
-		echo "$(ps |grep -v grep |grep -c "/etc/init.d/openclash")"
+		echo "$(ps -w |grep -v grep |grep -c "/etc/init.d/openclash")"
 	fi
 }
 
