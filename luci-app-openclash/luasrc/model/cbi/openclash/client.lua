@@ -61,9 +61,7 @@ e[t].check=translate(config_check(o))
 end
 end
 
-form = Map("openclash")
-form.pageaction = false
-tb=form:section(Table,e)
+tb=m:section(Table,e)
 st=tb:option(DummyValue,"state",translate("State"))
 st.template="openclash/cfg_check"
 nm=tb:option(DummyValue,"name",translate("Config Alias"))
@@ -92,19 +90,13 @@ SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "client"))
 end
 
-s = Map("openclash")
-s.pageaction = false
 s:section(SimpleSection).template  = "openclash/myip"
 
 local t = {
     {enable, disable}
 }
 
-ap = Map("openclash")
-ap.pageaction = false
-
-ss = ap:section(Table, t)
-
+ss = m:section(Table, t)
 o = ss:option(Button, "enable", " ")
 o.inputtitle = translate("Enable OpenClash")
 o.inputstyle = "apply"
@@ -123,14 +115,10 @@ o.write = function()
   SYS.call("/etc/init.d/openclash stop >/dev/null 2>&1 &")
 end
 
-d = Map("openclash")
-d.title = translate("Credits")
-d.pageaction = false
-d:section(SimpleSection).template  = "openclash/developer"
+m.title = translate("Credits")
+m:section(SimpleSection).template  = "openclash/developer"
 
-dler = Map("openclash")
-dler.pageaction = false
-dler:section(SimpleSection).template  = "openclash/dlercloud"
+m:section(SimpleSection).template  = "openclash/dlercloud"
 
 if m.uci:get("openclash", "config", "dler_token") then
   return m, dler, form, s, ap, d
