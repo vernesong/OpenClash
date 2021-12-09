@@ -90,7 +90,7 @@ SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "client"))
 end
 
-s:section(SimpleSection).template  = "openclash/myip"
+m:section(SimpleSection).template  = "openclash/myip"
 
 local t = {
     {enable, disable}
