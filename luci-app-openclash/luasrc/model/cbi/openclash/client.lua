@@ -7,35 +7,35 @@ local UTIL = require "luci.util"
 local fs = require "luci.openclash"
 local uci = require("luci.model.uci").cursor()
 
-m = Map("openclash")
-m.title = translate("OpenClash")
+m = SimpleForm("openclash",translate("OpenClash"))
 m.description = translate("A Clash Client For OpenWrt")
-m.pageaction = false
+m.reset = false
+m.submit = false
 
 m:section(SimpleSection).template  = "openclash/status"
 
 function IsYamlFile(e)
-   e=e or""
-   local e=string.lower(string.sub(e,-5,-1))
-   return e == ".yaml"
+	e=e or""
+	local e=string.lower(string.sub(e,-5,-1))
+	return e == ".yaml"
 end
 function IsYmlFile(e)
-   e=e or""
-   local e=string.lower(string.sub(e,-4,-1))
-   return e == ".yml"
+	e=e or""
+	local e=string.lower(string.sub(e,-4,-1))
+	return e == ".yml"
 end
 
 function config_check(CONFIG_FILE)
-  local yaml = fs.isfile(CONFIG_FILE)
-  if yaml then
-  	 yaml = SYS.exec(string.format('ruby -ryaml -E UTF-8 -e "puts YAML.load_file(\'%s\')" 2>/dev/null',CONFIG_FILE))
-     if yaml ~= "false\n" and yaml ~= "" then
-        return "Config Normal"
-     else
-        return "Config Abnormal"
-     end
+	local yaml = fs.isfile(CONFIG_FILE)
+	if yaml then
+		yaml = SYS.exec(string.format('ruby -ryaml -E UTF-8 -e "puts YAML.load_file(\'%s\')" 2>/dev/null',CONFIG_FILE))
+		if yaml ~= "false\n" and yaml ~= "" then
+			return "Config Normal"
+		else
+			return "Config Abnormal"
+		end
 	elseif (yaml ~= 0) then
-	   return "File Not Exist"
+		return "File Not Exist"
 	end
 end
 
@@ -48,21 +48,22 @@ e[t].num=string.format(t)
 e[t].name=fs.basename(o)
 BACKUP_FILE="/etc/openclash/backup/".. e[t].name
 if fs.mtime(BACKUP_FILE) then
-   e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",fs.mtime(BACKUP_FILE))
+	e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",fs.mtime(BACKUP_FILE))
 else
-   e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
+	e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
 end
-if m.uci:get("openclash", "config", "config_path") and string.sub(m.uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
-   e[t].state=translate("Enable")
+if uci:get("openclash", "config", "config_path") and string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
+	e[t].state=translate("Enable")
 else
-   e[t].state=translate("Disable")
+	e[t].state=translate("Disable")
 end
 e[t].check=translate(config_check(o))
 end
 end
 
-form = Map("openclash")
-form.pageaction = false
+form = SimpleForm("openclash")
+form.reset = false
+form.submit = false
 tb=form:section(Table,e)
 st=tb:option(DummyValue,"state",translate("State"))
 st.template="openclash/cfg_check"
@@ -92,16 +93,18 @@ SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "client"))
 end
 
-s = Map("openclash")
-s.pageaction = false
+s = SimpleForm("openclash")
+s.reset = false
+s.submit = false
 s:section(SimpleSection).template  = "openclash/myip"
 
 local t = {
     {enable, disable}
 }
 
-ap = Map("openclash")
-ap.pageaction = false
+ap = SimpleForm("openclash")
+ap.reset = false
+ap.submit = false
 
 ss = ap:section(Table, t)
 
@@ -109,31 +112,33 @@ o = ss:option(Button, "enable", " ")
 o.inputtitle = translate("Enable OpenClash")
 o.inputstyle = "apply"
 o.write = function()
-  uci:set("openclash", "config", "enable", 1)
-  uci:commit("openclash")
-  SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+	uci:set("openclash", "config", "enable", 1)
+	uci:commit("openclash")
+	SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 end
 
 o = ss:option(Button, "disable", " ")
 o.inputtitle = translate("Disable OpenClash")
 o.inputstyle = "reset"
 o.write = function()
-  uci:set("openclash", "config", "enable", 0)
-  uci:commit("openclash")
-  SYS.call("/etc/init.d/openclash stop >/dev/null 2>&1 &")
+	uci:set("openclash", "config", "enable", 0)
+	uci:commit("openclash")
+	SYS.call("/etc/init.d/openclash stop >/dev/null 2>&1 &")
 end
 
-d = Map("openclash")
+d = SimpleForm("openclash")
 d.title = translate("Credits")
-d.pageaction = false
+d.reset = false
+d.submit = false
 d:section(SimpleSection).template  = "openclash/developer"
 
-dler = Map("openclash")
-dler.pageaction = false
+dler = SimpleForm("openclash")
+dler.reset = false
+dler.submit = false
 dler:section(SimpleSection).template  = "openclash/dlercloud"
 
-if m.uci:get("openclash", "config", "dler_token") then
-  return m, dler, form, s, ap, d
+if uci:get("openclash", "config", "dler_token") then
+	return m, dler, form, s, ap, d
 else
 	return m, form, s, ap, d
 end
