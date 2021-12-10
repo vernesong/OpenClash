@@ -7,8 +7,8 @@ local sys = require "luci.sys"
 local sid = arg[1]
 local uuid = luci.sys.exec("cat /proc/sys/kernel/random/uuid")
 
-font_red = [[<font color="red">]]
-font_off = [[</font>]]
+font_red = [[<b style=color:red>]]
+font_off = [[</b>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
