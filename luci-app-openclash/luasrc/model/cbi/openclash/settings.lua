@@ -8,9 +8,9 @@ local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 local json = require "luci.jsonc"
 
-font_green = [[<font color="green">]]
-font_red = [[<font color="red">]]
-font_off = [[</font>]]
+font_green = [[<b style=color:green>]]
+font_red = [[<b style=color:red>]]
+font_off = [[</b>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 

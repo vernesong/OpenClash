@@ -77,7 +77,7 @@
 <span>
 &nbsp;&nbsp;<%:Up:%>&nbsp;
 	<span id="upload_">
-		<font color=green>
+		<font style=color:green>
 		0 KB/S
 		</font>
 	</span>
@@ -86,7 +86,7 @@
 <span>
 &nbsp;&nbsp;<%:Down:%>&nbsp;
 	<span id="download_">
-		<font color=green>
+		<font style=color:green>
 		0 KB/S
 		</font>
 	</span>
@@ -95,7 +95,7 @@
 <span>
 &nbsp;&nbsp;<%:Up Total:%>&nbsp;
 	<span id="uploadtotal_">
-		<font color=green>
+		<font style=color:green>
 		0 KB
 		</font>
 	</span>
@@ -104,7 +104,7 @@
 <span>
 &nbsp;&nbsp;<%:Down Total:%>&nbsp;
 	<span id="downloadtotal_">
-		<font color=green>
+		<font style=color:green>
 		0 KB
 		</font>
 	</span>
@@ -113,7 +113,7 @@
 <span>
 &nbsp;&nbsp;<%:Connections:%>&nbsp;
 	<span id="connect_t">
-		<font color=green>
+		<font style=color:green>
 		0
 		</font>
 	</span>
@@ -122,7 +122,7 @@
 <span>
 &nbsp;&nbsp;<%:Ram:%>&nbsp;
 	<span id="mem_t">
-		<font color=green>
+		<font style=color:green>
 		0 KB
 		</font>
 	</span>
@@ -131,7 +131,7 @@
 <span>
 &nbsp;&nbsp;<%:CPU:%>&nbsp;
 	<span id="cpu_t">
-		<font color=green>
+		<font style=color:green>
 		0 %
 		</font>
 	</span>
@@ -227,36 +227,36 @@
 		if ( x && x.status == 200 ) {
 			if ( status.restricted_mode != "1" )
 			{
-			   clash.innerHTML = status.clash ? '<b><font color=green><%:Running%></font></b>' : '<b><font color=red><%:Not Running%></font></b>';
+			   clash.innerHTML = status.clash ? '<b style=color:green><%:Running%></b>' : '<b style=color:red><%:Not Running%></b>';
 			}
 			else
 			{
-			   clash.innerHTML = status.clash ? '<b><font color=green><%:Running%> <%:<Limited State>%></font></b>' : '<b><font color=red><%:Not Running%></font></b>';
+			   clash.innerHTML = status.clash ? '<b style=color:green><%:Running%> <%:<Limited State>%></b>' : '<b style=color:red><%:Not Running%></b>';
 			}
-			watchdog.innerHTML = status.watchdog ? '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b><font color=green><%:Running%></font></b>' : '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b><font color=red><%:Not Running%></font></b>';
-			dase.innerHTML = status.dase ? "<b><font color=green>"+status.dase+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			close_all_connection.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
-			reload_firewall.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Reload Firewall Rules%>" onclick="return b_reload_firewall(this)"/>' : '<b><font color=red><%:Not Running%></font></b>';
+			watchdog.innerHTML = status.watchdog ? '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:green><%:Running%></b>' : '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:red><%:Not Running%></b>';
+			dase.innerHTML = status.dase ? "<b style=color:green>"+status.dase+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
+			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
+			close_all_connection.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b style=color:red><%:Not Running%></b>';
+			reload_firewall.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Reload Firewall Rules%>" onclick="return b_reload_firewall(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check All Components Update%>" onclick="return all_one_key_update(this)"/>';
 			update_subscribe.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Config Update%>" onclick="return b_update_subscribe(this)"/>';
 			update_other_rules.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Third Party Rules Update%>" onclick="return b_update_other_rules(this)"/>';
 			update_geoip.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GEOIP Data Update%>" onclick="return b_update_geoip(this)"/>';
 			if (status.daip && window.location.hostname == status.daip) {
-			   daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			   dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			   daip.innerHTML = status.daip ? "<b style=color:green>"+status.daip+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+			   dapo.innerHTML = status.cn_port ? "<b style=color:green>"+status.cn_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
 			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
 			}
 			else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port)
 			{
-			   daip.innerHTML = status.db_foward_domain ? "<b><font color=green>"+status.db_foward_domain+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			   dapo.innerHTML = status.db_foward_port ? "<b><font color=green>"+status.db_foward_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			   daip.innerHTML = status.db_foward_domain ? "<b style=color:green>"+status.db_foward_domain+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+			   dapo.innerHTML = status.db_foward_port ? "<b style=color:green>"+status.db_foward_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
 			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.db_foward_domain + ":" + status.db_foward_port;
 			}
 			else {
-			   daip.innerHTML = status.daip ? "<b><font color=green>"+status.daip+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
-			   dapo.innerHTML = status.cn_port ? "<b><font color=green>"+status.cn_port+"</font></b>" : "<b><font color=red>"+"<%:Not Set%>"+"</font></b>";
+			   daip.innerHTML = status.daip ? "<b style=color:green>"+status.daip+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+			   dapo.innerHTML = status.cn_port ? "<b style=color:green>"+status.cn_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
 			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
 			};
 			
@@ -267,7 +267,7 @@
 			else {
 				radio_mode.style.display = "none";
 				radio_de.style.display = "";
-				radio_de.innerHTML = "<b><font color=red><%:Not Running%></font></b>";
+				radio_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
 			};
 			
 			if (status.clash) {
@@ -345,12 +345,12 @@
 			if (x && x.status == 200 && status.mode) {
 				if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix")
 				{
-			   	mode.innerHTML = status.clash ? "<b><font color=green><%:Fake-IP%></font></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b><font color=red><%:Not Running%></font></b>';
+			   	mode.innerHTML = status.clash ? "<b style=color:green><%:Fake-IP%></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b style=color:red><%:Not Running%></b>';
 			   	radio_run_normal.innerHTML = "<%:Enhance%>"
 				}
 				else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix")
 				{
-			  	 mode.innerHTML = status.clash ? "<b><font color=green><%:Redir-Host%></font></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b><font color=red><%:Not Running%></font></b>';
+			  	 mode.innerHTML = status.clash ? "<b style=color:green><%:Redir-Host%></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b style=color:red><%:Not Running%></b>';
 			  	 radio_run_normal.innerHTML = "<%:Compatible%>"
 				};
 				for (i=0; i<radio_ru.length; i++) {
@@ -382,16 +382,16 @@
 	function state_get() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "state")%>', null, function(x, status) {
 			if ( x && x.status == 200 ) {
-				ipdb.innerHTML = status.ipdb ? "<b><font color=green>"+status.ipdb+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-				lhie1.innerHTML = status.lhie1 ? "<b><font color=green>"+status.lhie1+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-				ConnersHua.innerHTML = status.ConnersHua ? "<b><font color=green>"+status.ConnersHua+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-				ConnersHua_return.innerHTML = status.ConnersHua_return ? "<b><font color=green>"+status.ConnersHua_return+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
-				chnroute.innerHTML = status.chnroute ? "<b><font color=green>"+status.chnroute+"</font></b>" : "<b><font color=red>"+"<%:File Not Exist%>"+"</font></b>";
+				ipdb.innerHTML = status.ipdb ? "<b style=color:green>"+status.ipdb+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
+				lhie1.innerHTML = status.lhie1 ? "<b style=color:green>"+status.lhie1+"/b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
+				ConnersHua.innerHTML = status.ConnersHua ? "<b style=color:green>"+status.ConnersHua+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
+				ConnersHua_return.innerHTML = status.ConnersHua_return ? "<b style=color:green>"+status.ConnersHua_return+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
+				chnroute.innerHTML = status.chnroute ? "<b style=color:green>"+status.chnroute+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				if ( status.historychecktime != "0" ) {
-				   historychecktime.innerHTML = "<b><font color=green>"+status.historychecktime+"</font></b>";
+				   historychecktime.innerHTML = "<b style=color:green>"+status.historychecktime+"</b>";
 				}
 		  	else {
-		 	 	 historychecktime.innerHTML = "<b><font color=green>"+"<%:No Backup%>"+"</font></b>";
+		 	 	 historychecktime.innerHTML = "<b style=color:green>"+"<%:No Backup%>"+"</b>";
 		 	 }
 			}
 		});
@@ -428,30 +428,30 @@
 		ws_error = true;
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', null, function(x, status) {
 			if (x && x.status == 200 && x.responseText != "") {
-				document.getElementById("upload_").innerHTML = "<font color=green>"+status.up+"</font>";
-				document.getElementById("download_").innerHTML = "<font color=green>"+status.down+"</font>";
-				document.getElementById("uploadtotal_").innerHTML = "<font color=green>"+status.up_total+"</font>";
-				document.getElementById("downloadtotal_").innerHTML = "<font color=green>"+status.down_total+"</font>";
-				document.getElementById("mem_t").innerHTML = "<font color=green>"+status.mem+"</font>";
-				document.getElementById("connect_t").innerHTML = "<font color=green>"+status.connections+"</font>";
+				document.getElementById("upload_").innerHTML = "<font style=\"color:green\">"+status.up+"</font>";
+				document.getElementById("download_").innerHTML = "<font style=\"color:green\">"+status.down+"</font>";
+				document.getElementById("uploadtotal_").innerHTML = "<font style=\"color:green\">"+status.up_total+"</font>";
+				document.getElementById("downloadtotal_").innerHTML = "<font style=\"color:green\">"+status.down_total+"</font>";
+				document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">"+status.mem+"</font>";
+				document.getElementById("connect_t").innerHTML = "<font style=\"color:green\">"+status.connections+"</font>";
 				if (status.cpu <= 50) {
-					document.getElementById("cpu_t").innerHTML = "<font color=green>"+status.cpu+" %</font>";
+					document.getElementById("cpu_t").innerHTML = "<font style=\"color:green\">"+status.cpu+" %</font>";
 				}
 				else if (status.cpu >= 50 && status.cpu <= 80) {
-					document.getElementById("cpu_t").innerHTML = "<font color=orange>"+status.cpu+" %</font>";
+					document.getElementById("cpu_t").innerHTML = "<font style=\"color:orange\">"+status.cpu+" %</font>";
 				}
 				else {
-					document.getElementById("cpu_t").innerHTML = "<font color=red>"+status.cpu+" %</font>";
+					document.getElementById("cpu_t").innerHTML = "<font style=\"color:red\">"+status.cpu+" %</font>";
 				}
 			}
 			else {
-				document.getElementById("upload_").innerHTML = "<font color=green>0 B/S</font>";
-				document.getElementById("download_").innerHTML = "<font color=green>0 B/S</font>";
-				document.getElementById("uploadtotal_").innerHTML = "<font color=green>0 KB</font>";
-				document.getElementById("downloadtotal_").innerHTML = "<font color=green>0 KB</font>";
-				document.getElementById("mem_t").innerHTML = "<font color=green>0 KB</font>";
-				document.getElementById("cpu_t").innerHTML = "<font color=green>0 %</font>";
-				document.getElementById("connect_t").innerHTML = "<font color=green>0</font>";
+				document.getElementById("upload_").innerHTML = "<font style=\"color:green\">0 B/S</font>";
+				document.getElementById("download_").innerHTML = "<font style=\"color:green\">0 B/S</font>";
+				document.getElementById("uploadtotal_").innerHTML = "<font style=\"color:green\">0 KB</font>";
+				document.getElementById("downloadtotal_").innerHTML = "<font style=\"color:green\">0 KB</font>";
+				document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">0 KB</font>";
+				document.getElementById("cpu_t").innerHTML = "<font style=\"color:green\">0 %</font>";
+				document.getElementById("connect_t").innerHTML = "<font style=\"color:green\">0</font>";
 			}
 		});
 	};
@@ -459,35 +459,35 @@
 	function show_sys() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', null, function(x, status) {
 			if (x && x.status == 200 && x.responseText != "") {
-				document.getElementById("mem_t").innerHTML = "<font color=green>"+status.mem+"</font>";
+				document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">"+status.mem+"</font>";
 				if (status.cpu <= 50) {
-					document.getElementById("cpu_t").innerHTML = "<font color=green>"+status.cpu+" %</font>";
+					document.getElementById("cpu_t").innerHTML = "<font style=\"color:green\">"+status.cpu+" %</font>";
 				}
 				else if (status.cpu >= 50 && status.cpu <= 80) {
-					document.getElementById("cpu_t").innerHTML = "<font color=orange>"+status.cpu+" %</font>";
+					document.getElementById("cpu_t").innerHTML = "<font style=\"color:orange\">"+status.cpu+" %</font>";
 				}
 				else {
-					document.getElementById("cpu_t").innerHTML = "<font color=red>"+status.cpu+" %</font>";
+					document.getElementById("cpu_t").innerHTML = "<font style=\"color:red\">"+status.cpu+" %</font>";
 				}
 			}
 			else {
-				document.getElementById("mem_t").innerHTML = "<font color=green>0 KB</font>";
-				document.getElementById("cpu_t").innerHTML = "<font color=green>0 %</font>";
+				document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">0 KB</font>";
+				document.getElementById("cpu_t").innerHTML = "<font style=\"color:green\">0 %</font>";
 			}
 		});
 	};
 	
 	function ws_tmessage(event) {
 		var data = JSON.parse(event.data)
-		document.getElementById("upload_").innerHTML = "<font color=green>"+bytesToSize(data.up)+"/S</font>";
-		document.getElementById("download_").innerHTML = "<font color=green>"+bytesToSize(data.down)+"/S</font>";
+		document.getElementById("upload_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.up)+"/S</font>";
+		document.getElementById("download_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.down)+"/S</font>";
 	};
 	
 	function ws_cmessage(event) {
 		var data = JSON.parse(event.data)
-		document.getElementById("uploadtotal_").innerHTML = "<font color=green>"+bytesToSize(data.uploadTotal)+"</font>";
-		document.getElementById("downloadtotal_").innerHTML = "<font color=green>"+bytesToSize(data.downloadTotal)+"</font>";
-		document.getElementById("connect_t").innerHTML = "<font color=green>"+Object.keys(data.connections).length+"</font>";
+		document.getElementById("uploadtotal_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.uploadTotal)+"</font>";
+		document.getElementById("downloadtotal_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.downloadTotal)+"</font>";
+		document.getElementById("connect_t").innerHTML = "<font style=\"color:green\">"+Object.keys(data.connections).length+"</font>";
 		show_sys();
 	};
 	
@@ -778,7 +778,7 @@
 	        alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('msg=')[1]);
 	     }
 		   else if ( status.startlog != "\n" && status.startlog != "" ) {
-	        startlog.innerHTML = '<b><font color="green">'+status.startlog+'</font></b>';
+	        startlog.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
 	     }
 	  }
 	});
