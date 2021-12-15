@@ -8,8 +8,8 @@ local fs = require "luci.openclash"
 local uci = require("luci.model.uci").cursor()
 local CHIF = "0"
 
-font_green = [[<font color="green">]]
-font_off = [[</font>]]
+font_green = [[<b style=color:green>]]
+font_off = [[</b>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 align_mid = [[<p align="center">]]

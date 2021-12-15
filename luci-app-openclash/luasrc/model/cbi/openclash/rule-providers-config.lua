@@ -6,8 +6,8 @@ local fs = require "luci.openclash"
 local sys = require "luci.sys"
 local sid = arg[1]
 
-font_red = [[<font color="red">]]
-font_off = [[</font>]]
+font_red = [[<b style=color:red>]]
+font_off = [[</b>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
