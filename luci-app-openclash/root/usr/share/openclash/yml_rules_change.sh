@@ -73,6 +73,9 @@ yml_other_set()
                   Value_4 = Value_3.reverse!
                end
                if defined? Value_4 then
+                  if ruby_add_index == -1 then
+                     Value_4 = Value_4.reverse!
+                  end
                   Value_4.each{|x| Value['rules'].insert(ruby_add_index,x)}
                   Value['rules'] = Value['rules'].uniq
                end
@@ -117,6 +120,9 @@ yml_other_set()
                      Value_3 = Value_2.reverse!
                   end
                   if defined? Value_3 then
+                     if ruby_add_index == -1 then
+                        Value_3 = Value_3.reverse!
+                     end
                      Value_3.each{|x| Value['rules'].insert(ruby_add_index,x)}
                      Value['rules'] = Value['rules'].uniq
                   end
