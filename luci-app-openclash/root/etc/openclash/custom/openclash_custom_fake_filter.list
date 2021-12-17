@@ -62,8 +62,8 @@ amobile.music.tc.qq.com
 *.music.migu.cn
 music.migu.cn
 #win10本地连接检测
-*.msftconnecttest.com
-*.msftncsi.com
++.msftconnecttest.com
++.msftncsi.com
 msftconnecttest.com
 msftncsi.com
 #QQ快捷登录
