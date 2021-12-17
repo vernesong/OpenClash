@@ -2563,3 +2563,9 @@ msgstr "，区域："
 
 msgid "failed to search based on keywords and automatically obtain the group, please confirm the validity of the keywords!"
 msgstr "根据关键字搜索且自动获取策略组失败，请确认关键字的有效性！"
+
+msgid "DNS Remote"
+msgstr "*远程域名解析"
+
+msgid "Add DNS Remote Support For Redir-Host"
+msgstr "Redir-Host模式强制进行远程域名解析"
