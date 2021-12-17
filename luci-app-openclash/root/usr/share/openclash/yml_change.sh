@@ -83,8 +83,12 @@ if ${21} == 1 then
 else
    Value['dns']['ipv6']=false
 end;
-Value['dns']['enhanced-mode']='$2';
-if '$2' == 'fake-ip' then
+if ${24} != 1 then
+   Value['dns']['enhanced-mode']='$2';
+else
+   Value['dns']['enhanced-mode']='fake-ip';
+end;
+if '$2' == 'fake-ip' or ${24} == 1 then
    Value['dns']['fake-ip-range']='198.18.0.1/16'
 else
    Value['dns'].delete('fake-ip-range')
@@ -161,6 +165,13 @@ if '$2' == 'fake-ip' then
       else
          Value['dns'].merge!({'fake-ip-filter'=>['+.nflxvideo.net', '+.media.dssott.com']})
       end
+   end
+elsif ${24} == 1 then
+   if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+      Value['dns']['fake-ip-filter'].insert(-1,'+.*')
+      Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq
+   else
+      Value['dns'].merge!({'fake-ip-filter'=>['+.*']})
    end
 end;
 rescue Exception => e

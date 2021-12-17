@@ -208,6 +208,12 @@ o = s:taboption("dns", Flag, "enable_custom_dns", font_red..bold_on..translate("
 o.description = font_red..bold_on..translate("Set OpenClash Upstream DNS Resolve Server")..bold_off..font_off
 o.default=0
 
+if op_mode == "redir-host" then
+o = s:taboption("dns", Flag, "dns_remote", font_red..bold_on..translate("DNS Remote")..bold_off..font_off)
+o.description = font_red..bold_on..translate("Add DNS Remote Support For Redir-Host")..bold_off..font_off
+o.default=1
+end
+
 o = s:taboption("dns", Flag, "append_wan_dns", font_red..bold_on..translate("Append Upstream DNS")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Append The Upstream Assigned DNS And Gateway IP To The Nameserver")..bold_off..font_off
 o.default=1
