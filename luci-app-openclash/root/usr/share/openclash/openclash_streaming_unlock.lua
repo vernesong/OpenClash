@@ -19,7 +19,7 @@ if enable == 0 then os.exit(0) end
 if not type then os.exit(0) end
 
 function unlock_auto_select()
-	local key_group, region, now, proxy, group_match, proxy_default, auto_get_group, info, group_now
+	local key_group, region, now, proxy, group_match, proxy_default, auto_get_group, info, group_now, con
 	local port = uci:get("openclash", "config", "cn_port")
 	local passwd = uci:get("openclash", "config", "dashboard_password") or ""
 	local ip = luci.sys.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
@@ -28,7 +28,7 @@ function unlock_auto_select()
 	local tested_proxy = {}
 	local gorup_i18 = "Group:"
 	local no_group_find = "failed to search based on keywords and automatically obtain the group, please confirm the validity of the keywords!"
-	local hbo_full_support = "full support"
+	local full_support_no_area = "full support."
 	local full_support = "full support, area:"
 	local only_original = "only support homemade!"
 	local no_unlock = "not support unlock!"
@@ -54,11 +54,7 @@ function unlock_auto_select()
 	info = luci.sys.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/proxies', passwd, ip, port))
 	if info then
 		info = json.parse(info)
-		if not info then os.exit(0) end
-	end
-	
-	if not info.proxies then
-		os.exit(0)
+		if not info or not info.proxies then os.exit(0) end
 	end
 	
 	--auto get group
@@ -66,13 +62,21 @@ function unlock_auto_select()
 		luci.sys.call('curl -sL --limit-rate 1k https://www.netflix.com >/dev/null 2>&1 &')
 	elseif type == "Disney Plus" then
 		luci.sys.call('curl -sL --limit-rate 1k https://www.disneyplus.com >/dev/null 2>&1 &')
-	elseif type == "HBO" then
+	elseif type == "HBO Now" then
 		luci.sys.call('curl -sL --limit-rate 1k https://play.hbonow.com >/dev/null 2>&1 &')
+	elseif type == "HBO Max" then
+		luci.sys.call('curl -sL --limit-rate 1k https://www.hbomax.com >/dev/null 2>&1 &')
+	elseif type == "HBO GO Aaia" then
+		luci.sys.call('curl -sL --limit-rate 1k https://www.hbogoasia.com >/dev/null 2>&1 &')
 	elseif type == "YouTube Premium" then
 		luci.sys.call('curl -sL --limit-rate 1k https://m.youtube.com/premium >/dev/null 2>&1 &')
+	elseif type == "TVB Anywhere+" then
+		luci.sys.call('curl -sL --limit-rate 1k https://uapisfm.tvbanywhere.com.sg >/dev/null 2>&1 &')
+	elseif type == "Amazon Prime Video" then
+		luci.sys.call('curl -sL --limit-rate 1k https://www.primevideo.com >/dev/null 2>&1 &')
 	end
 	os.execute("sleep 1")
-	local con = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
+	con = luci.sys.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
 	if con then
 		con = json.parse(con)
 	end
@@ -88,13 +92,33 @@ function unlock_auto_select()
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
 				end
-			elseif type == "HBO" then
+			elseif type == "HBO Now" then
 				if string.match(con.connections[i].metadata.host, "play%.hbonow%.com") then
+					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
+					break
+				end
+			elseif type == "HBO Max" then
+				if string.match(con.connections[i].metadata.host, "www%.hbomax%.com") then
+					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
+					break
+				end
+			elseif type == "HBO GO Aaia" then
+				if string.match(con.connections[i].metadata.host, "www%.hbogoasia%.com") then
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
 				end
 			elseif type == "YouTube Premium" then
 				if string.match(con.connections[i].metadata.host, "m%.youtube%.com") then
+					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
+					break
+				end
+			elseif type == "TVB Anywhere+" then
+				if string.match(con.connections[i].metadata.host, "uapisfm%.tvbanywhere%.com%.sg") then
+					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
+					break
+				end
+			elseif type == "Amazon Prime Video" then
+				if string.match(con.connections[i].metadata.host, "www%.primevideo%.com") then
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
 				end
@@ -107,10 +131,18 @@ function unlock_auto_select()
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_netflix") or "netflix|奈飞"
 		elseif type == "Disney Plus" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_disney") or "disney|迪士尼"
-		elseif type == "HBO" then
-			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo") or "hbo"
+		elseif type == "HBO Now" then
+			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo_now") or "hbo"
+		elseif type == "HBO Max" then
+			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo_max") or "hbo"
+		elseif type == "HBO GO Aaia" then
+			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo_go_asia") or "hbo"
 		elseif type == "YouTube Premium" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_ytb") or "YouTobe|油管"
+		elseif type == "TVB Anywhere+" then
+			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_tvb_anywhere") or "tvb"
+		elseif type == "Amazon Prime Video" then
+			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_prime_video") or "Prime Video|Amazon"
 		end
 		string.gsub(key_group, '[^%|]+', function(w) table.insert(key_groups, w) end)
 		if #key_groups == 0 then table.insert(key_groups, type) end
@@ -150,10 +182,10 @@ function unlock_auto_select()
 						region = proxy_unlock_test()
 					end
 					if status == 2 then
-						if type ~= "HBO" then
+						if region then
 							print(now..full_support.."【"..region.."】")
 						else
-							print(now..hbo_full_support)
+							print(now..full_support_no_area)
 						end
 						break
 					elseif status == 1 then
@@ -204,11 +236,11 @@ function unlock_auto_select()
 														luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, proxy, ip, port, urlencode(group_name)))
 														region = proxy_unlock_test()
 														if status == 2 then
-															if type ~= "HBO" then
+															if region then
 																print(now..full_support.."【"..region.."】")
 																print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..proxy.."】"..area_i18.."【"..region.."】")
 															else
-																print(now..hbo_full_support)
+																print(now..full_support_no_area)
 																print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..proxy.."】")
 															end
 														elseif status == 1 then
@@ -249,11 +281,11 @@ function unlock_auto_select()
 													now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.." ➟ "..now_name.."】"
 												end
 												if status == 2 then
-													if type ~= "HBO" then
+													if region then
 														print(now..full_support.."【"..region.."】")
 														print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, now_name).."】"..area_i18.."【"..region.."】")
 													else
-														print(now..hbo_full_support)
+														print(now..full_support_no_area)
 														print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, now_name).."】")
 													end
 												elseif status == 1 then
@@ -289,11 +321,11 @@ function unlock_auto_select()
 					else
 						region = proxy_unlock_test()
 						if status == 2 then
-							if type ~= "HBO" then
+							if region then
 								print(now..full_support.."【"..region.."】")
 								print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, value.name).."】"..area_i18.."【"..region.."】")
 							else
-								print(now..hbo_full_support)
+								print(now..full_support_no_area)
 								print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, value.name).."】")
 							end
 							break
@@ -325,10 +357,18 @@ function proxy_unlock_test()
 		region = netflix_unlock_test()
 	elseif type == "Disney Plus" then
 		region = disney_unlock_test()
-	elseif type == "HBO" then
-		region = hbo_unlock_test()
+	elseif type == "HBO Now" then
+		region = hbo_now_unlock_test()
+	elseif type == "HBO Max" then
+		region = hbo_max_unlock_test()
+	elseif type == "HBO GO Aaia" then
+		region = hbo_go_asia_unlock_test()
 	elseif type == "YouTube Premium" then
 		region = ytb_unlock_test()
+	elseif type == "TVB Anywhere+" then
+		region = tvb_anywhere_unlock_test()
+	elseif type == "Amazon Prime Video" then
+		region = prime_video_unlock_test()
 	end
 	return region
 end
@@ -464,7 +504,7 @@ function netflix_unlock_test()
 	status = 0
 	local url = "https://www.netflix.com/title/"..filmId
 	local headers = "User-Agent: "..UA
-	local info = luci.sys.exec(string.format('curl -sLI -m 10 --retry 2 -o /dev/null -w %%{json} -H "Content-Type: application/json" -H "%s" -XGET %s', headers, url))
+	local info = luci.sys.exec(string.format('curl -sLI -m 3 --retry 2 -o /dev/null -w %%{json} -H "Content-Type: application/json" -H "%s" -XGET %s', headers, url))
 	local result = {}
 	local region
 	if info then
@@ -476,11 +516,12 @@ function netflix_unlock_test()
 			string.gsub(info.url_effective, '[^/]+', function(w) table.insert(result, w) end)
 			region = string.upper(string.match(result[3], "^%a+"))
 			if region == "TITLE" then region = "US" end
+			return region
 		elseif info.http_code == 404 then
 			status = 1
 		end
 	end
-	return region or "Unknow"
+	return
 end
 
 function disney_unlock_test()
@@ -489,63 +530,104 @@ function disney_unlock_test()
 	local url2 = "https://www.disneyplus.com"
 	local headers = '-H "Accept-Language: en" -H "authorization: Bearer ZGlzbmV5JmJyb3dzZXImMS4wLjA.Cu56AgSfBTDag5NiRA81oLHkDZfu5L3CKadnefEAY84" -H "Content-Type: application/x-www-form-urlencoded"'
 	local auth = '"grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&latitude=0&longitude=0&platform=browser&subject_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJiNDAzMjU0NS0yYmE2LTRiZGMtOGFlOS04ZWI3YTY2NzBjMTIiLCJhdWQiOiJ1cm46YmFtdGVjaDpzZXJ2aWNlOnRva2VuIiwibmJmIjoxNjIyNjM3OTE2LCJpc3MiOiJ1cm46YmFtdGVjaDpzZXJ2aWNlOmRldmljZSIsImV4cCI6MjQ4NjYzNzkxNiwiaWF0IjoxNjIyNjM3OTE2LCJqdGkiOiI0ZDUzMTIxMS0zMDJmLTQyNDctOWQ0ZC1lNDQ3MTFmMzNlZjkifQ.g-QUcXNzMJ8DwC9JqZbbkYUSKkB1p4JGW77OON5IwNUcTGTNRLyVIiR8mO6HFyShovsR38HRQGVa51b15iAmXg&subject_token_type=urn%3Abamtech%3Aparams%3Aoauth%3Atoken-type%3Adevice"'
-	local httpcode = luci.sys.exec(string.format("curl -sL -m 10 --retry 2 -o /dev/null -w %%{http_code} %s -H 'User-Agent: %s' -d %s -XPOST %s", headers, UA, auth, url))
+	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} %s -H 'User-Agent: %s' -d %s -XPOST %s", headers, UA, auth, url))
 	local region
 	if tonumber(httpcode) == 200 then
-		local url_effective = luci.sys.exec(string.format("curl -sL -m 10 --retry 2 -o /dev/null -w %%{url_effective} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url2))
+		status = 1
+		local url_effective = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{url_effective} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url2))
 		if url_effective == "https://disneyplus.disney.co.jp/" then
+			status = 2
 			region = "JP"
 			return region
 		elseif string.find(url_effective,"hotstar") then
-			return "Unknow"
+			return
 		end
-		local region = luci.sys.exec(string.format("curl -sL -m 10 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s |grep 'Region: ' |awk '{print $2}' |tr -d '\n'", UA, url2))
+		local region = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s |grep 'Region: ' |awk '{print $2}' |tr -d '\n'", UA, url2))
 		if region and region ~= "" then
 			status = 2
 			return region
-		else
-			status = 1
-			return "Unknow"
 		end
-	else
-		return "Unknow"
 	end
+	return
 end
 
-function hbo_unlock_test()
+function hbo_now_unlock_test()
 	status = 0
 	local url = "https://play.hbonow.com/"
-	local data = luci.sys.exec(string.format("curl -sL -m 10 --retry 2 -o /dev/null -w %%{json} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{json} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	if data then
 		data = json.parse(data)
 	end
 	if data then
 		if data.http_code == 200 then
+			status = 1
 			if string.find(data.url_effective,"play%.hbonow%.com") then
 				status = 2
-				return "Unknow"
-			else
-				status = 1
-				return "Unknow"
 			end
-		else
-			return "Unknow"
 		end
-	else
-		return "Unknow"
 	end
+	return
+end
+
+function hbo_max_unlock_test()
+	status = 0
+	local url = "https://www.hbomax.com/"
+	local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{json} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local result = {}
+	local region
+	if data then
+		data = json.parse(data)
+	end
+	if data then
+		if data.http_code == 200 then
+			status = 1
+			if not string.find(data.url_effective,"geo-availability") then
+				status = 2
+				string.gsub(data.url_effective, '[^/]+', function(w) table.insert(result, w) end)
+				if result[3] then
+					region = string.upper(string.match(result[3], "^%a+"))
+					if region then
+						return region
+					end
+				end
+			end
+		end
+	end
+	return
+end
+
+function hbo_go_asia_unlock_test()
+	status = 0
+	local url = "https://api2.hbogoasia.com/v1/geog?lang=undefined&version=0&bundleId=www.hbogoasia.com"
+	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	if tonumber(httpcode) == 200 then
+		status = 1
+		local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+		if data then
+			data = json.parse(data)
+		end
+		if data then
+			if data.territory then
+				status = 2
+				if data.country then
+					return string.upper(data.country)
+				end
+			end
+		end
+	end
+	return
 end
 
 function ytb_unlock_test()
 	status = 0
 	local url = "https://m.youtube.com/premium"
-	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local region
 	if tonumber(httpcode) == 200 then
-		local data = luci.sys.exec(string.format("curl -sL -m 3 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+		status = 1
+		local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 		if string.find(data, "is not available in your country") then
-			status = 1
-	  	return "Unknow"
+	  	return
 	  end
 	  region = string.sub(string.match(data, "\"GL\":\"%a+\""), 7, -2)
 		if region then
@@ -555,14 +637,51 @@ function ytb_unlock_test()
 			if not string.find(data,"www%.google%.cn") then
 	  		status = 2
 	  		return "US"
-	  	else
-	  		status = 1
-	  		return "Unknow"
 	  	end
 		end
-	else
-		return "Unknow"
 	end
+	return
+end
+
+function tvb_anywhere_unlock_test()
+	status = 0
+	local url = "https://uapisfm.tvbanywhere.com.sg/geoip/check/platform/android"
+	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local region
+	if tonumber(httpcode) == 200 then
+		status = 1
+		local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+		if data then
+			data = json.parse(data)
+		end
+		if data and data.allow_in_this_country then
+			status = 2
+	  	region = string.upper(data.country)
+			if region then
+				return region
+			end
+		end
+	end
+	return
+end
+
+function prime_video_unlock_test()
+	status = 0
+	local url = "https://www.primevideo.com"
+	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local region
+	if tonumber(httpcode) == 200 then
+		status = 1
+		local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+		if data then
+	  	region = string.sub(string.match(data, "\"currentTerritory\":\"%a+\""), 21, -2)
+			if region then
+				status = 2
+				return region
+			end
+		end
+	end
+	return
 end
 
 unlock_auto_select()
