@@ -35,7 +35,11 @@ do
    stream_auto_select_interval_now=$(uci -q get openclash.config.stream_auto_select_interval || echo 30)
    stream_auto_select_netflix=$(uci -q get openclash.config.stream_auto_select_netflix || echo 0)
    stream_auto_select_disney=$(uci -q get openclash.config.stream_auto_select_disney || echo 0)
-   stream_auto_select_hbo=$(uci -q get openclash.config.stream_auto_select_hbo || echo 0)
+   stream_auto_select_hbo_now=$(uci -q get openclash.config.stream_auto_select_hbo_now || echo 0)
+   stream_auto_select_hbo_max=$(uci -q get openclash.config.stream_auto_select_hbo_max || echo 0)
+   stream_auto_select_hbo_go_asia=$(uci -q get openclash.config.stream_auto_select_hbo_go_asia || echo 0)
+   stream_auto_select_tvb_anywhere=$(uci -q get openclash.config.stream_auto_select_tvb_anywhere || echo 0)
+   stream_auto_select_prime_video=$(uci -q get openclash.config.stream_auto_select_prime_video || echo 0)
    stream_auto_select_ytb=$(uci -q get openclash.config.stream_auto_select_ytb || echo 0)
    enable=$(uci -q get openclash.config.enable)
 
@@ -145,13 +149,29 @@ fi
                LOG_OUT "Tip: Start Auto Select Proxy For Disney Plus Unlock..."
                /usr/share/openclash/openclash_streaming_unlock.lua "Disney Plus" >> $LOG_FILE
             fi
-            if [ "$stream_auto_select_hbo" -eq 1 ]; then
-               LOG_OUT "Tip: Start Auto Select Proxy For HBO Unlock..."
-               /usr/share/openclash/openclash_streaming_unlock.lua "HBO" >> $LOG_FILE
-            fi
             if [ "$stream_auto_select_ytb" -eq 1 ]; then
                LOG_OUT "Tip: Start Auto Select Proxy For YouTube Premium Unlock..."
                /usr/share/openclash/openclash_streaming_unlock.lua "YouTube Premium" >> $LOG_FILE
+            fi
+            if [ "$stream_auto_select_hbo_now" -eq 1 ]; then
+               LOG_OUT "Tip: Start Auto Select Proxy For HBO Now Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "HBO Now" >> $LOG_FILE
+            fi
+            if [ "$stream_auto_select_hbo_max" -eq 1 ]; then
+               LOG_OUT "Tip: Start Auto Select Proxy For HBO Max Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "HBO Max" >> $LOG_FILE
+            fi
+            if [ "$stream_auto_select_hbo_go_asia" -eq 1 ]; then
+               LOG_OUT "Tip: Start Auto Select Proxy For HBO GO Aaia Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "HBO GO Aaia" >> $LOG_FILE
+            fi
+            if [ "$stream_auto_select_tvb_anywhere" -eq 1 ]; then
+               LOG_OUT "Tip: Start Auto Select Proxy For TVB Anywhere+ Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "TVB Anywhere+" >> $LOG_FILE
+            fi
+            if [ "$stream_auto_select_prime_video" -eq 1 ]; then
+               LOG_OUT "Tip: Start Auto Select Proxy For Amazon Prime Video Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "Amazon Prime Video" >> $LOG_FILE
             fi
          fi
       fi
