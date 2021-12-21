@@ -1463,7 +1463,10 @@ firewall_rule_exclude()
    for p in $proto; do
        if [ $p == tcp ]; then e_tcp=true; fi
        if [ $p == udp ]; then e_udp=true; fi
+       if [ $p == all ]; then e_tcp=true; e_udp=true; fi
    done
+   
+   if [ -z "$proto" ]; then e_tcp=true; e_udp=true; fi
 
    if ! $e_udp && ! $e_tcp ; then
        return
@@ -1556,7 +1559,10 @@ firewall_redirect_exclude()
    for p in $proto; do
        if [ $p == tcp ]; then e_tcp=true; fi
        if [ $p == udp ]; then e_udp=true; fi
+       if [ $p == all ]; then e_tcp=true; e_udp=true; fi
    done
+   
+   if [ -z "$proto" ]; then e_tcp=true; e_udp=true; fi
 
    if ! $e_udp && ! $e_tcp ; then
        return
