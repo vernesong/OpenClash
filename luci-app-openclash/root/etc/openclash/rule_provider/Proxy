@@ -23,7 +23,7 @@ payload:
   - DOMAIN-KEYWORD,tesla
 
   # > Zooba
-  # - User-Agent,battleroyale*
+  # - USER-AGENT,battleroyale*
 
   # > Top blocked sites
   - DOMAIN-SUFFIX,2o7.net
@@ -616,7 +616,7 @@ payload:
   - DOMAIN-SUFFIX,zynamics.com
 
   # > Force some domains which are fucked by GFW while resolving DNS,or do not respect the system Proxy
-  # - User-Agent,WhatsApp*
+  # - USER-AGENT,WhatsApp*
 
   - DOMAIN-KEYWORD,appledaily
   - DOMAIN-KEYWORD,beetalk
@@ -676,8 +676,12 @@ payload:
 
   # > V2EX
   - DOMAIN-SUFFIX,v2ex.com
-
+  
   - DOMAIN-KEYWORD,dlercloud
+
+  # > exception
+  - DOMAIN-SUFFIX,wheel-size.cn
+  - DOMAIN-SUFFIX,chalungu.cn
 
   # > Amazon
   - IP-CIDR,13.32.0.0/16,no-resolve

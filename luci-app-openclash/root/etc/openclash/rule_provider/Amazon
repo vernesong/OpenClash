@@ -1,7 +1,7 @@
 payload:  
   # > Amazon Prime Video
-  # - User-Agent,InstantVideo.US*
-  # - User-Agent,Prime%20Video*
+  # - USER-AGENT,InstantVideo.US*
+  # - USER-AGENT,Prime%20Video*
   - DOMAIN-SUFFIX,aiv-cdn.net
   - DOMAIN-SUFFIX,amazonaws.co.uk
   - DOMAIN-SUFFIX,amazonaws.com

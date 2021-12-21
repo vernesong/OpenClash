@@ -1,7 +1,6 @@
 payload:  
   # > KKTV
-  # - User-Agent,KKTV*
-  # - User-Agent,com.kktv*
+  - PROCESS-NAME,com.kktv.kktv
   - DOMAIN-SUFFIX,kktv.me
   - DOMAIN-SUFFIX,kktv.com.tw
   - DOMAIN,kktv-theater.kk.stream

@@ -1,6 +1,7 @@
 payload:  
   # > Bahamut
-  # - User-Agent,Anime*
+  # - USER-AGENT,Anime*
+  - PROCESS-NAME,tw.com.gamer.android.animad
   - DOMAIN-SUFFIX,bahamut.com.tw
   - DOMAIN-SUFFIX,gamer.com.tw
   - DOMAIN-SUFFIX,hinet.net

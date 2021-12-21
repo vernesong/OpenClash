@@ -1,6 +1,6 @@
 payload:  
   # > HBO Max
-  # - USER-AGENT,HBOMAX*
+  - PROCESS-NAME,com.hbo.hbonow
   - DOMAIN-SUFFIX,hbo.com
   - DOMAIN-SUFFIX,hbogo.com
   - DOMAIN-SUFFIX,hbonow.com
@@ -8,7 +8,6 @@ payload:
   - DOMAIN-SUFFIX,hbomaxcdn.com
 
   # > HBO GO
-  # - USER-AGENT,HBO%20GO%20PROD%20HKG*
   - DOMAIN,44wilhpljf.execute-api.ap-southeast-1.amazonaws.com
   - DOMAIN,bcbolthboa-a.akamaihd.net
   - DOMAIN,cf-images.ap-southeast-1.prod.boltdns.net
