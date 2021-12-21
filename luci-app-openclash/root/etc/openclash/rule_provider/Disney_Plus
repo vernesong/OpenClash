@@ -1,6 +1,6 @@
 payload:  
   # > Disney Plus
-  # - User-Agent,Disney*
+  - PROCESS-NAME,com.disney.disneyplus
   - DOMAIN-SUFFIX,adobedtm.com
   - DOMAIN-SUFFIX,bam.nr-date.net
   - DOMAIN-SUFFIX,bamgrid.com

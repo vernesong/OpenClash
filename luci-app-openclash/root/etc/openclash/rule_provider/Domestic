@@ -3,7 +3,7 @@ payload:
   - DOMAIN-KEYWORD,beplay
 
   # > Blizzard
-  # - User-Agent,hearthstone*
+  # - USER-AGENT,hearthstone*
   - DOMAIN,cdp.cloud.unity3d.com
   - DOMAIN-SUFFIX,battle.net
   - DOMAIN-SUFFIX,battlenet.com
@@ -20,7 +20,7 @@ payload:
   - DOMAIN-SUFFIX,zmzfile.com
 
   # > Sony
-  # - User-Agent,RemotePlay*
+  # - USER-AGENT,RemotePlay*
   - DOMAIN-SUFFIX,playstation.com
   - DOMAIN-SUFFIX,playstation.net
   - DOMAIN-SUFFIX,playstationnetwork.com

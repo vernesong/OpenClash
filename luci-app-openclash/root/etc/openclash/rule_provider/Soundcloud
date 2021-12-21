@@ -1,5 +1,5 @@
 payload:  
   # > SoundCloud
-  # - User-Agent,SoundCloud*
+  # - USER-AGENT,SoundCloud*
   - DOMAIN-SUFFIX,sndcdn.com
   - DOMAIN-SUFFIX,soundcloud.com

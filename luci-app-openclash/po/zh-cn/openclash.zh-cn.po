@@ -2210,9 +2210,6 @@ msgstr "警告：【Rule】写法已不再支持，自动替换为rules"
 msgid "Warning: rule-provider is no longer used. Auto replaced by rule-providers"
 msgstr "警告：【rule-provider】写法已不再支持，自动替换为rule-providers"
 
-msgid "Warning: Because of No Rules Field, Stop Setting BT/P2P DIRECT Rules!"
-msgstr "警告：未找到【rules】配置，停止添加BT/P2P直连规则！"
-
 msgid "Error: Load File Error,"
 msgstr "错误：文件解析失败，"
 

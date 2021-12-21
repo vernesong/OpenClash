@@ -656,31 +656,27 @@ yml_rule_set_add()
 {
 ruby -ryaml -E UTF-8 -e "
 begin
-Value = YAML.load_file('$CONFIG_FILE');
-if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+   Value = YAML.load_file('$CONFIG_FILE');
    if $3 == 1 then
-      if $enable_rule_proxy != 1 then
-         ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
+      if Value.has_key?('rule-set-bottom') and not Value['rule-set-bottom'].to_a.empty? then
+         Value['rule-set-bottom'].insert(-1,'RULE-SET,${1},${2}')
       else
-         if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
-            ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last)
-            ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first)
-         else
-            ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first)
-         end
+         Value_1 = {'rule-set-bottom'=>['RULE-SET,${1},${2}']}
+         Value.merge!(Value_1);
       end
-      ruby_add_index ||= -1
-      Value['rules'].insert(ruby_add_index,'RULE-SET,${1},${2}')
+      Value['rule-set-bottom'] = Value['rule-set-bottom'].uniq
    else
-      Value['rules'].insert(0,'RULE-SET,${1},${2}')
+      if Value.has_key?('rule-set-top') and not Value['rule-set-top'].to_a.empty? then
+         Value['rule-set-top'].insert(-1,'RULE-SET,${1},${2}')
+      else
+         Value_1 = {'rule-set-top'=>['RULE-SET,${1},${2}']}
+         Value.merge!(Value_1);
+      end
+      Value['rule-set-top'] = Value['rule-set-top'].uniq
    end
-else
-   Value_1 = {'rules'=>['RULE-SET,${1},${2}']}
-   Value.merge!(Value_1);
-end;
 File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
-puts '${LOGTIME} Error: Rule Set Add Error,【' + e.message + '】'
+   puts '${LOGTIME} Error: Rule Set Add Error,【' + e.message + '】'
 end
 " 2>/dev/null >> $LOG_FILE
 }
@@ -822,17 +818,67 @@ yml_custom_rule_provider()
    if [ -f "$RULE_PROVIDER_FILE" ]; then
       ruby -ryaml -E UTF-8 -e "
       begin
-      Value = YAML.load_file('$CONFIG_FILE');
-      Value_1 = YAML.load_file('$RULE_PROVIDER_FILE');
-      if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-         Value['rule-providers'].merge!(Value_1)
-      else
-         Value['rule-providers']=Value_1
-      end;
-      File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
+         Value = YAML.load_file('$CONFIG_FILE');
       rescue Exception => e
-      puts '${LOGTIME} Error: Custom Rule Provider Merge Error,【' + e.message + '】'
-      end
+         puts '${LOGTIME} Error: Load File Error,【' + e.message + '】'
+      end;
+      
+      begin
+         Value_1 = YAML.load_file('$RULE_PROVIDER_FILE');
+         if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+            Value['rule-providers'].merge!(Value_1)
+         else
+            Value['rule-providers']=Value_1
+         end;
+      rescue Exception => e
+         puts '${LOGTIME} Error: Custom Rule Provider Merge Error,【' + e.message + '】'
+      end;
+      
+      begin
+         if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+            if Value.has_key?('rule-set-bottom') and not Value['rule-set-bottom'].to_a.empty? then
+               if $enable_rule_proxy != 1 then
+                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
+               else
+                  if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
+                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last)
+                     ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first)
+                  else
+                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first)
+                  end
+               end
+               ruby_add_index ||= -1
+               Value['rule-set-bottom'].reverse.each{|x| Value['rules'].insert(ruby_add_index,x)}
+               Value.delete('rule-set-bottom')
+            end
+            if Value.has_key?('rule-set-top') and not Value['rule-set-top'].to_a.empty? then
+               if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
+                  Value['rule-set-top'].reverse.each{|x| Value['rules'].insert(0,x)}
+               else
+                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/(?=.*198.18.0)(?=.*REJECT)/).first)
+                  Value['rule-set-top'].reverse.each{|x| Value['rules'].insert(ruby_add_index + 1,x)}
+               end
+               Value.delete('rule-set-top')
+            end
+         else
+            if Value.has_key?('rule-set-top') and not Value['rule-set-top'].to_a.empty? then
+               Value['rules'] = Value['rule-set-top']
+               Value.delete('rule-set-top')
+            end
+            if Value.has_key?('rule-set-bottom') and not Value['rule-set-bottom'].to_a.empty? then
+               if Value.has_key?('rule-set-top') and not Value['rule-set-top'].to_a.empty? then
+                  Value['rules'] = Value['rules'] | Value['rule-set-bottom']
+               else
+                  Value['rules'] = Value['rule-set-bottom']
+               end
+               Value.delete('rule-set-bottom')
+            end
+         end;
+      rescue Exception => e
+         puts '${LOGTIME} Error: Rule Set Add Error,【' + e.message + '】'
+      ensure
+         File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
+      end;
       " 2>/dev/null >> $LOG_FILE
    fi
 }

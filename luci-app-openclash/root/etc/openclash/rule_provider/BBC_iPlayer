@@ -1,6 +1,6 @@
 payload:  
   # > BBC iPlayer
-  # - User-Agent,BBCiPlayer*
+  - PROCESS-NAME,bbc.iplayer.android
   - DOMAIN-KEYWORD,bbcfmt
   - DOMAIN,aod-dash-uk-live.akamaized.net
   - DOMAIN,aod-hls-uk-live.akamaized.net
@@ -12,3 +12,4 @@ payload:
   - DOMAIN-SUFFIX,bbcfmt.hs.llnwd.net
   - DOMAIN-SUFFIX,bbci.co
   - DOMAIN-SUFFIX,bbci.co.uk
+  - DOMAIN-SUFFIX,bidi.net.uk

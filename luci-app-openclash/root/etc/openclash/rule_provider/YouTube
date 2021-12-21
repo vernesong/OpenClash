@@ -1,7 +1,7 @@
 payload:  
   # > Youtube
-  # - User-Agent,*youtube*
-  # - User-Agent,YouTube*
+  - PROCESS-NAME,com.google.android.youtube
+  - PROCESS-NAME,com.google.android.youtube.tv
   - DOMAIN-KEYWORD,youtube
   - DOMAIN,yt3.ggpht.com
   - DOMAIN-SUFFIX,googlevideo.com

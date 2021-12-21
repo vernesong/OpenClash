@@ -4,7 +4,7 @@ payload:
 
   # > Apple CDN
   - PROCESS-NAME,storedownloadd
-  # - User-Agent,com.apple.appstored*
+  # - USER-AGENT,com.apple.appstored*
   - DOMAIN,aod.itunes.apple.com
   - DOMAIN,api.smoot.apple.cn
   - DOMAIN,appldnld.apple.com
@@ -29,14 +29,20 @@ payload:
   - DOMAIN-SUFFIX,dl.google.com
 
   # > Microsoft
+  # - USER-AGENT,Microsoft%20Remote%20Desktop*
   - DOMAIN-SUFFIX,msftconnecttest.com
+  - DOMAIN-SUFFIX,windows.com
+  - DOMAIN-SUFFIX,windows.net
+  - DOMAIN-SUFFIX,windowsupdate.com
+  - DOMAIN-SUFFIX,xbox.com
+  - DOMAIN-SUFFIX,xboxlive.com
 
   # > Proxy plugin
   - PROCESS-NAME,v2ray
   - PROCESS-NAME,ss-local
 
   # > Steam
-  # - User-Agent,Steam*
+  # - USER-AGENT,Steam*
   - DOMAIN-SUFFIX,pinyuncloud.com
   - DOMAIN-SUFFIX,steamcontent.com
 
@@ -47,11 +53,8 @@ payload:
   # > UUBooster
   - PROCESS-NAME,UUBooster
 
-  # > Windows
-  - DOMAIN-SUFFIX,windowsupdate.com
-
   # > Xunlei
-  # - User-Agent,%E8%BF%85%E9%9B%B7
+  # - USER-AGENT,%E8%BF%85%E9%9B%B7
   - DOMAIN-SUFFIX,xunlei.com
 
   # > Download
@@ -62,7 +65,6 @@ payload:
   - PROCESS-NAME,NetTransport.exe
   - PROCESS-NAME,qbittorrent.exe
   - PROCESS-NAME,Thunder.exe
-  - PROCESS-NAME,ThunderVIP.exe
   - PROCESS-NAME,transmission-daemon.exe
   - PROCESS-NAME,transmission-qt.exe
   - PROCESS-NAME,uTorrent.exe

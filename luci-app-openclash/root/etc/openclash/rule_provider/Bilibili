@@ -1,7 +1,7 @@
 payload:  
   # > Bilibili
-  # - User-Agent,bili*
-  # - User-Agent,Bilibili*
+  - PROCESS-NAME,com.bilibili.app.in
+  - PROCESS-NAME,tv.danmaku.bili
   - DOMAIN-SUFFIX,acg.tv
   - DOMAIN-SUFFIX,acgvideo.com
   - DOMAIN-SUFFIX,b23.tv
