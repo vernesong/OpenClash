@@ -513,6 +513,9 @@ msgstr "必须代理的流量"
 msgid "Apple"
 msgstr "苹果服务（Apple）"
 
+msgid "FCM"
+msgstr "谷歌FCM推送（FCM）"
+
 msgid "Scholar"
 msgstr "学术网站（Scholar）"
 
