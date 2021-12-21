@@ -42,7 +42,7 @@ cfg_groups_set()
       sed -i "s/new_servers_group \'${old_name_cfg}/new_servers_group \'${name}/g" $CFG_FILE 2>/dev/null
       sed -i "s/relay_groups \'${old_name_cfg}/relay_groups \'${name}/g" $CFG_FILE 2>/dev/null
    #第三方规则处理
-      OTHER_RULE_NAMES=("GlobalTV" "AsianTV" "Proxy" "Youtube" "Bilibili" "Bahamut" "HBO" "Pornhub" "Apple" "Scholar" "Microsoft" "Netflix" "Disney" "Spotify" "Steam" "Speedtest" "Telegram" "PayPal" "Netease_Music" "AdBlock" "Domestic" "Others")
+      OTHER_RULE_NAMES=("GlobalTV" "AsianTV" "Proxy" "Youtube" "Bilibili" "Bahamut" "HBO" "Pornhub" "Apple" "FCM" "Scholar" "Microsoft" "Netflix" "Disney" "Spotify" "Steam" "Speedtest" "Telegram" "PayPal" "Netease_Music" "AdBlock" "Domestic" "Others")
       for i in ${OTHER_RULE_NAMES[@]}; do
       	if [ "$(uci get openclash.config."$i" 2>/dev/null)" = "$old_name_cfg" ]; then
       	   uci set openclash.config."$i"=$name 2>/dev/null

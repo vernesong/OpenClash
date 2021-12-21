@@ -244,6 +244,7 @@ yml_other_rules_get()
    config_get "PayPal" "$section" "PayPal" ""
    config_get "Domestic" "$section" "Domestic" ""
    config_get "Others" "$section" "Others" ""
+   config_get "FCM" "$section" "FCM" ""
 }
 
 if [ "$2" != "0" ]; then
@@ -296,6 +297,7 @@ if [ "$2" != "0" ]; then
    || [ -z "$(grep -F "$Microsoft" /tmp/Proxy_Group)" ]\
    || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$FCM" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5"
@@ -350,6 +352,7 @@ if [ "$2" != "0" ]; then
        	    .to_s.gsub(/,PayPal$/, ',$PayPal#d')
        	    .gsub(/,Domestic$/, ',$Domestic#d')
        	    .gsub(/,Others$/, ',$Others#d')
+       	    .gsub(/,FCM$/, ',$FCM#d')
        	    .gsub(/#d/, '')
        	    };
        	    Value['script']['code'].to_s.gsub!(/\"Bilibili\": \"AsianTV\"/,'\"Bilibili\": \"$Bilibili#d\"')
@@ -372,6 +375,7 @@ if [ "$2" != "0" ]; then
        	    .gsub!(/: \"Microsoft\"/,': \"$Microsoft#d\"')
        	    .gsub!(/: \"PayPal\"/,': \"$PayPal#d\"')
        	    .gsub!(/: \"Domestic\"/,': \"$Domestic#d\"')
+       	    .gsub!(/: \"FCM\"/,': \"$FCM#d\"')
        	    .gsub!(/return \"Domestic\"$/, 'return \"$Domestic#d\"')
        	    .gsub!(/return \"Others\"$/, 'return \"$Others#d\"')
        	    .gsub!(/#d/, '');
