@@ -1,13 +1,10 @@
 payload:
   # > bilibili
   - DOMAIN-SUFFIX,biliapi.net
-  - DOMAIN,api.bilibili.com
-  - DOMAIN,www.bilibili.com
+  - DOMAIN-SUFFIX,bilibili.com
+  - DOMAIN-KEYWORD,cn-hk-eq-bcache-
   - DOMAIN,upos-hz-mirrorakam.akamaized.net
   # > 愛奇藝台灣站
   - DOMAIN,cache.video.iqiyi.com
-  # > 芒果TV国际
-  - DOMAIN-SUFFIX,api.mgtv.com
-  # > WeTV
-  - DOMAIN-SUFFIX,wetv.vip
-  - DOMAIN-SUFFIX,wetvinfo.com
+  - IP-CIDR,116.211.202.206/32,no-resolve
+  - IP-CIDR,116.211.202.216/32,no-resolve

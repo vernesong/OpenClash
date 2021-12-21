@@ -1,4 +1,4 @@
 payload:  
   # > PBS
-  # - User-Agent,PBS*
+  # - USER-AGENT,PBS*
   - DOMAIN-SUFFIX,pbs.org

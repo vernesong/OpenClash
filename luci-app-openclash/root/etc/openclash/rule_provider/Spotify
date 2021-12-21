@@ -1,6 +1,6 @@
 payload:  
   # > Spotify
-  # - User-Agent,Spotify*
+  - PROCESS-NAME,com.spotify.music
   - DOMAIN-SUFFIX,pscdn.co
   - DOMAIN-SUFFIX,scdn.co
   - DOMAIN-SUFFIX,spoti.fi

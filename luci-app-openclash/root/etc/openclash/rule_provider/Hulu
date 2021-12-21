@@ -1,5 +1,6 @@
 payload:  
   # > Hulu
+  - PROCESS-NAME,com.hulu.plus
   - DOMAIN-SUFFIX,cws-hulu.conviva.com
   - DOMAIN-SUFFIX,hulu.com
   - DOMAIN-SUFFIX,hulu.hb.omtrdc.net

@@ -1,6 +1,7 @@
 payload:  
   # > ViuTV
-  # - User-Agent,ViuTV*
+  - PROCESS-NAME,com.hktve.viutv
+
   - DOMAIN-SUFFIX,bootstrapcdn.com
   - DOMAIN-SUFFIX,cloudfront.net
   - DOMAIN-SUFFIX,cognito-identity.us-east-1.amazonaws.com
