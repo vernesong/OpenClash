@@ -67,7 +67,7 @@ function unlock_auto_select()
 	elseif type == "HBO Max" then
 		luci.sys.call('curl -sL --limit-rate 1k https://www.hbomax.com >/dev/null 2>&1 &')
 	elseif type == "HBO GO Aaia" then
-		luci.sys.call('curl -sL --limit-rate 1k https://www.hbogoasia.com >/dev/null 2>&1 &')
+		luci.sys.call('curl -sL --limit-rate 50b https://www.hbogoasia.com >/dev/null 2>&1 &')
 	elseif type == "YouTube Premium" then
 		luci.sys.call('curl -sL --limit-rate 1k https://m.youtube.com/premium >/dev/null 2>&1 &')
 	elseif type == "TVB Anywhere+" then
@@ -581,7 +581,7 @@ function hbo_max_unlock_test()
 	if data then
 		if data.http_code == 200 then
 			status = 1
-			if not string.find(data.url_effective,"geo-availability") then
+			if not string.find(data.url_effective,"geo%-availability") then
 				status = 2
 				string.gsub(data.url_effective, '[^/]+', function(w) table.insert(result, w) end)
 				if result[3] then
