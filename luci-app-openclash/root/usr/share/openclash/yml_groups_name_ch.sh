@@ -25,29 +25,26 @@ cfg_groups_set()
    fi
    
    if [ -z "$old_name_cfg" ]; then
-      uci set openclash."$section".old_name_cfg="$name"
+      uci -q set openclash."$section".old_name_cfg="$name"
       uci commit openclash
    fi
    
    if [ -z "$old_name" ]; then
-      uci set openclash."$section".old_name="$name"
+      uci -q set openclash."$section".old_name="$name"
       uci commit openclash
    fi
    
    #名字变化时处理配置文件
    if [ "$name" != "$old_name_cfg" ] && [ ! -z "$old_name_cfg" ]; then
       sed -i "s/old_name_cfg \'${old_name_cfg}\'/old_name_cfg \'${name}\'/g" $CFG_FILE 2>/dev/null
-      sed -i "s/groups \'${old_name_cfg}/groups \'${name}/g" $CFG_FILE 2>/dev/null
-      sed -i "s/other_group \'${old_name_cfg}/other_group \'${name}/g" $CFG_FILE 2>/dev/null
-      sed -i "s/new_servers_group \'${old_name_cfg}/new_servers_group \'${name}/g" $CFG_FILE 2>/dev/null
-      sed -i "s/relay_groups \'${old_name_cfg}/relay_groups \'${name}/g" $CFG_FILE 2>/dev/null
-   #第三方规则处理
-      OTHER_RULE_NAMES=("GlobalTV" "AsianTV" "Proxy" "Youtube" "Bilibili" "Bahamut" "HBO" "Pornhub" "Apple" "FCM" "Scholar" "Microsoft" "Netflix" "Disney" "Spotify" "Steam" "Speedtest" "Telegram" "PayPal" "Netease_Music" "AdBlock" "Domestic" "Others")
+      sed -i "s/groups \'${old_name_cfg}\'/groups \'${name}\'/g" $CFG_FILE 2>/dev/null
+      sed -i "s/other_group \'${old_name_cfg}\'/other_group \'${name}\'/g" $CFG_FILE 2>/dev/null
+      sed -i "s/new_servers_group \'${old_name_cfg}\'/new_servers_group \'${name}\'/g" $CFG_FILE 2>/dev/null
+      sed -i "s/relay_groups \'${old_name_cfg}\'/relay_groups \'${name}\'/g" $CFG_FILE 2>/dev/null
+      #第三方规则处理
+      OTHER_RULE_NAMES=("GlobalTV" "AsianTV" "Proxy" "Youtube" "Bilibili" "Bahamut" "HBOGo" "HBOMax" "Pornhub" "Apple" "GoogleFCM" "Scholar" "Microsoft" "Netflix" "Disney" "Spotify" "Steam" "Speedtest" "Telegram" "PayPal" "Netease_Music" "AdBlock" "Domestic" "Others")
       for i in ${OTHER_RULE_NAMES[@]}; do
-      	if [ "$(uci get openclash.config."$i" 2>/dev/null)" = "$old_name_cfg" ]; then
-      	   uci set openclash.config."$i"=$name 2>/dev/null
-      	   uci commit openclash
-        fi
+      	sed -i "s/option ${i} \'${old_name_cfg}\'/option ${i} \'${name}\'/g" $CFG_FILE 2>/dev/null
       done 2>/dev/null
       config_load "openclash"
    fi

@@ -513,8 +513,8 @@ msgstr "必须代理的流量"
 msgid "Apple"
 msgstr "苹果服务（Apple）"
 
-msgid "FCM"
-msgstr "谷歌FCM推送（FCM）"
+msgid "Google FCM"
+msgstr "谷歌推送（Google FCM）"
 
 msgid "Scholar"
 msgstr "学术网站（Scholar）"
@@ -2462,8 +2462,8 @@ msgstr "流媒体增强"
 msgid "Auto Select Unlock Proxy"
 msgstr "自动选择解锁节点"
 
-msgid "Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium"
-msgstr "自动选择解锁节点，支持 Netflix、Disney Plus、HBO 和 YouTube Premium"
+msgid "Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc"
+msgstr "自动选择解锁节点，支持 Netflix、Disney Plus、HBO 和 YouTube Premium 等"
 
 msgid "Auto Select Interval(min)"
 msgstr "自动选择（检测）间隔（分钟）"
