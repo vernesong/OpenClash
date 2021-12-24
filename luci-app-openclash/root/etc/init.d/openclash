@@ -241,6 +241,10 @@ yml_provider_path()
          v=File.basename(x['path'])
          x['path']='./$3/'+v
       end
+      #CDN Replace
+      if x['url'] and x['url'].include? 'raw.githubusercontent.com' then
+         x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[4] + '/')[1]
+      end
       };
       if not Value_1.eql?(Value['$2']) then
          File.open('$1','w') {|f| YAML.dump(Value, f)}
