@@ -224,7 +224,9 @@ yml_groups_set()
    #名字变化时处理规则部分
    if [ "$name" != "$old_name" ] && [ ! -z "$old_name" ]; then
       sed -i "s/,${old_name}/,${name}#d/g" "$CONFIG_FILE" 2>/dev/null
-      sed -i "s/old_name \'${old_name}/old_name \'${name}/g" "$CFG_FILE" 2>/dev/null
+      sed -i "s/: \"${old_name}\"/: \"${name}#d\"/g" "$CONFIG_FILE" 2>/dev/null
+      sed -i "s/return \"${old_name}\"$/return \"${name}#d\"/g" "$CONFIG_FILE" 2>/dev/null
+      sed -i "s/old_name \'${old_name}\'/old_name \'${name}\'/g" "$CFG_FILE" 2>/dev/null
       config_load "openclash"
    fi
    
