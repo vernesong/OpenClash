@@ -5,48 +5,50 @@ rules:
 - RULE-SET,Spotify,Spotify
 - RULE-SET,YouTube,YouTube
 - RULE-SET,Disney Plus,Disney
-- RULE-SET,Bilibili,AsianTV
-- RULE-SET,iQiyi,AsianTV
-- RULE-SET,Letv,AsianTV
-- RULE-SET,Netease Music,AsianTV
-- RULE-SET,Tencent Video,AsianTV
-- RULE-SET,Youku,AsianTV
-- RULE-SET,WeTV,AsianTV
-- RULE-SET,ABC,GlobalTV
-- RULE-SET,Abema TV,GlobalTV
-- RULE-SET,Amazon,GlobalTV
-- RULE-SET,Apple News,GlobalTV
-- RULE-SET,Apple TV,GlobalTV
-- RULE-SET,Bahamut,GlobalTV
-- RULE-SET,BBC iPlayer,GlobalTV
-- RULE-SET,DAZN,GlobalTV
-- RULE-SET,Discovery Plus,GlobalTV
-- RULE-SET,encoreTVB,GlobalTV
-- RULE-SET,Fox Now,GlobalTV
-- RULE-SET,Fox+,GlobalTV
-- RULE-SET,HBO,GlobalTV
-- RULE-SET,Hulu Japan,GlobalTV
-- RULE-SET,Hulu,GlobalTV
-- RULE-SET,Japonx,GlobalTV
-- RULE-SET,JOOX,GlobalTV
-- RULE-SET,KKBOX,GlobalTV
-- RULE-SET,KKTV,GlobalTV
-- RULE-SET,Line TV,GlobalTV
-- RULE-SET,myTV SUPER,GlobalTV
-- RULE-SET,Pandora,GlobalTV
-- RULE-SET,PBS,GlobalTV
-- RULE-SET,Pornhub,GlobalTV
-- RULE-SET,Soundcloud,GlobalTV
-- RULE-SET,ViuTV,GlobalTV
+- RULE-SET,Bilibili,Asian TV
+- RULE-SET,IQ,Asian TV
+- RULE-SET,IQIYI,Asian TV
+- RULE-SET,HBO Go,Asian TV
+- RULE-SET,Letv,Asian TV
+- RULE-SET,Netease Music,Asian TV
+- RULE-SET,Tencent Video,Asian TV
+- RULE-SET,Youku,Asian TV
+- RULE-SET,WeTV,Asian TV
+- RULE-SET,ABC,Global TV
+- RULE-SET,Abema TV,Global TV
+- RULE-SET,Amazon,Global TV
+- RULE-SET,Apple News,Global TV
+- RULE-SET,Apple TV,Global TV
+- RULE-SET,Bahamut,Global TV
+- RULE-SET,BBC iPlayer,Global TV
+- RULE-SET,DAZN,Global TV
+- RULE-SET,Discovery Plus,Global TV
+- RULE-SET,encoreTVB,Global TV
+- RULE-SET,Fox Now,Global TV
+- RULE-SET,Fox+,Global TV
+- RULE-SET,HBO Max,Global TV
+- RULE-SET,Hulu Japan,Global TV
+- RULE-SET,Hulu,Global TV
+- RULE-SET,Japonx,Global TV
+- RULE-SET,JOOX,Global TV
+- RULE-SET,KKBOX,Global TV
+- RULE-SET,KKTV,Global TV
+- RULE-SET,Line TV,Global TV
+- RULE-SET,myTV SUPER,Global TV
+- RULE-SET,Pandora,Global TV
+- RULE-SET,PBS,Global TV
+- RULE-SET,Pornhub,Global TV
+- RULE-SET,Soundcloud,Global TV
+- RULE-SET,ViuTV,Global TV
 - RULE-SET,Telegram,Telegram
 - RULE-SET,Steam,Steam
 - RULE-SET,Speedtest,Speedtest
 - RULE-SET,PayPal,PayPal
 - RULE-SET,Microsoft,Microsoft
-- RULE-SET,PROXY,Proxy
 - RULE-SET,Apple,Apple
-- RULE-SET,FCM,FCM
+- RULE-SET,Google FCM,Google FCM
 - RULE-SET,Scholar,Scholar
+- RULE-SET,PROXY,Proxy
 - RULE-SET,Domestic,Domestic
 - RULE-SET,Domestic IPs,Domestic
 - RULE-SET,LAN,DIRECT
@@ -61,48 +63,50 @@ script:
             "Spotify": "Spotify",
             "YouTube": "YouTube",
             "Disney Plus": "Disney",
-            "Bilibili": "AsianTV",
-            "iQiyi": "AsianTV",
-            "Letv": "AsianTV",
-            "Netease Music": "AsianTV",
-            "Tencent Video": "AsianTV",
-            "Youku": "AsianTV",
-            "WeTV": "AsianTV",
-            "ABC": "GlobalTV",
-            "Abema TV": "GlobalTV",
-            "Amazon": "GlobalTV",
-            "Apple News": "GlobalTV",
-            "Apple TV": "GlobalTV",
-            "Bahamut": "GlobalTV",
-            "BBC iPlayer": "GlobalTV",
-            "DAZN": "GlobalTV",
-            "Discovery Plus": "GlobalTV",
-            "encoreTVB": "GlobalTV",
-            "Fox Now": "GlobalTV",
-            "Fox+": "GlobalTV",
-            "HBO": "GlobalTV",
-            "Hulu Japan": "GlobalTV",
-            "Hulu": "GlobalTV",
-            "Japonx": "GlobalTV",
-            "JOOX": "GlobalTV",
-            "KKBOX": "GlobalTV",
-            "KKTV": "GlobalTV",
-            "Line TV": "GlobalTV",
-            "myTV SUPER": "GlobalTV",
-            "Pandora": "GlobalTV",
-            "PBS": "GlobalTV",
-            "Pornhub": "GlobalTV",
-            "Soundcloud": "GlobalTV",
-            "ViuTV": "GlobalTV",
+            "Bilibili": "Asian TV",
+            "IQ": "Asian TV",
+            "IQIYI": "Asian TV",
+            "HBO Go": "Asian TV",
+            "Letv": "Asian TV",
+            "Netease Music": "Asian TV",
+            "Tencent Video": "Asian TV",
+            "Youku": "Asian TV",
+            "WeTV": "Asian TV",
+            "ABC": "Global TV",
+            "Abema TV": "Global TV",
+            "Amazon": "Global TV",
+            "Apple News": "Global TV",
+            "Apple TV": "Global TV",
+            "Bahamut": "Global TV",
+            "BBC iPlayer": "Global TV",
+            "DAZN": "Global TV",
+            "Discovery Plus": "Global TV",
+            "encoreTVB": "Global TV",
+            "Fox Now": "Global TV",
+            "Fox+": "Global TV",
+            "HBO Max": "Global TV",
+            "Hulu Japan": "Global TV",
+            "Hulu": "Global TV",
+            "Japonx": "Global TV",
+            "JOOX": "Global TV",
+            "KKBOX": "Global TV",
+            "KKTV": "Global TV",
+            "Line TV": "Global TV",
+            "myTV SUPER": "Global TV",
+            "Pandora": "Global TV",
+            "PBS": "Global TV",
+            "Pornhub": "Global TV",
+            "Soundcloud": "Global TV",
+            "ViuTV": "Global TV",
             "Telegram": "Telegram",
             "Steam": "Steam",
             "Speedtest": "Speedtest",
             "PayPal": "PayPal",
             "Microsoft": "Microsoft",
-            "PROXY": "Proxy",
             "Apple": "Apple",
-            "FCM": "FCM",
+            "Google FCM": "Google FCM",
             "Scholar": "Scholar",
+            "PROXY": "Proxy",
             "Domestic": "Domestic",
             "Domestic IPs": "Domestic",
             "LAN": "DIRECT"
@@ -174,11 +178,23 @@ rule-providers:
     url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Media/Bilibili.yaml
     path: "./Rules/Media/Bilibili"
     interval: 86400
-  iQiyi:
+  IQ:
     type: http
     behavior: classical
-    url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Media/iQiyi.yaml
-    path: "./Rules/Media/iQiyi"
+    url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Media/IQ.yaml
+    path: "./Rules/Media/IQI"
+    interval: 86400
+  IQIYI:
+    type: http
+    behavior: classical
+    url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Media/IQIYI.yaml
+    path: "./Rules/Media/IQYI"
+    interval: 86400
+  HBO Go:
+    type: http
+    behavior: classical
+    url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Media/HBO%20Go.yaml
+    path: "./Rules/Media/HBO_Go"
     interval: 86400
   Letv:
     type: http
@@ -288,11 +304,11 @@ rule-providers:
     url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Media/Fox%2B.yaml
     path: "./Rules/Media/Fox+"
     interval: 86400
-  HBO:
+  HBO Max:
     type: http
     behavior: classical
-    url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Media/HBO.yaml
-    path: "./Rules/Media/HBO"
+    url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Media/HBO%20Max.yaml
+    path: "./Rules/Media/HBO_Max"
     interval: 86400
   Hulu Japan:
     type: http
@@ -420,11 +436,11 @@ rule-providers:
     url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Apple.yaml
     path: "./Rules/Apple"
     interval: 86400
-  FCM:
+  Google FCM:
     type: http
     behavior: classical
-    url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/FCM.yaml
-    path: "./Rules/FCM"
+    url: https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Provider/Google%20FCM.yaml
+    path: "./Rules/Google FCM"
     interval: 86400
   Scholar:
     type: http

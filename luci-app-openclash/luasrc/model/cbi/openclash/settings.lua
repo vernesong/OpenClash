@@ -458,7 +458,7 @@ o:depends("stream_domains_prefetch", "1")
 o.template = "openclash/download_stream_domains"
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select", font_red..bold_on..translate("Auto Select Unlock Proxy")..bold_off..font_off)
-o.description = translate("Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium")
+o.description = translate("Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc")
 o.default=0
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_interval", translate("Auto Select Interval(min)"))

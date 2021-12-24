@@ -223,7 +223,8 @@ yml_other_rules_get()
    config_get "Youtube" "$section" "Youtube" ""
    config_get "Bilibili" "$section" "Bilibili" ""
    config_get "Bahamut" "$section" "Bahamut" ""
-   config_get "HBO" "$section" "HBO" ""
+   config_get "HBOMax" "$section" "HBOMax" ""
+   config_get "HBOGo" "$section" "HBOGo" ""
    config_get "Pornhub" "$section" "Pornhub" ""
    config_get "Apple" "$section" "Apple" ""
    config_get "Scholar" "$section" "Scholar" ""
@@ -239,7 +240,7 @@ yml_other_rules_get()
    config_get "PayPal" "$section" "PayPal" ""
    config_get "Domestic" "$section" "Domestic" ""
    config_get "Others" "$section" "Others" ""
-   config_get "FCM" "$section" "FCM" "DIRECT"
+   config_get "GoogleFCM" "$section" "GoogleFCM" "DIRECT"
 }
 
 if [ "$2" != "0" ]; then
@@ -278,7 +279,8 @@ if [ "$2" != "0" ]; then
 	 || [ -z "$(grep -F "$Youtube" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Bilibili" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Bahamut" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$HBO" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$HBOMax" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$HBOGo" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Pornhub" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Apple" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Scholar" /tmp/Proxy_Group)" ]\
@@ -292,7 +294,7 @@ if [ "$2" != "0" ]; then
    || [ -z "$(grep -F "$Microsoft" /tmp/Proxy_Group)" ]\
    || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$FCM" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5"
@@ -326,12 +328,13 @@ if [ "$2" != "0" ]; then
        	    Value['script']=Value_1['script'];
        	    Value['rules']=Value_1['rules'];
        	    Value['rules'].to_a.collect!{|x|
-       	    x.to_s.gsub(/,Bilibili,AsianTV$/, ',Bilibili,$Bilibili#d')
-       	    .gsub(/,Bahamut,GlobalTV$/, ',Bahamut,$Bahamut#d')
-       	    .gsub(/,HBO,GlobalTV$/, ',HBO,$HBO#d')
-       	    .gsub(/,Pornhub,GlobalTV$/, ',Pornhub,$Pornhub#d')
-       	    .gsub(/,GlobalTV$/, ',$GlobalTV#d')
-       	    .gsub(/,AsianTV$/, ',$AsianTV#d')
+       	    x.to_s.gsub(/,Bilibili,Asian TV$/, ',Bilibili,$Bilibili#d')
+       	    .gsub(/,Bahamut,Global TV$/, ',Bahamut,$Bahamut#d')
+       	    .gsub(/,HBO Max,Global TV$/, ',HBO Max,$HBOMax#d')
+       	    .gsub(/,HBO Go,Asian TV$/, ',HBO Go,$HBOGo#d')
+       	    .gsub(/,Pornhub,Global TV$/, ',Pornhub,$Pornhub#d')
+       	    .gsub(/,Global TV$/, ',$GlobalTV#d')
+       	    .gsub(/,Asian TV$/, ',$AsianTV#d')
        	    .gsub(/,Proxy$/, ',$Proxy#d')
        	    .gsub(/,YouTube$/, ',$Youtube#d')
        	    .gsub(/,Apple$/, ',$Apple#d')
@@ -347,15 +350,16 @@ if [ "$2" != "0" ]; then
        	    .to_s.gsub(/,PayPal$/, ',$PayPal#d')
        	    .gsub(/,Domestic$/, ',$Domestic#d')
        	    .gsub(/,Others$/, ',$Others#d')
-       	    .gsub(/,FCM$/, ',$FCM#d')
+       	    .gsub(/,Google FCM$/, ',$GoogleFCM#d')
        	    .gsub(/#d/, '')
        	    };
-       	    Value['script']['code'].to_s.gsub!(/\"Bilibili\": \"AsianTV\"/,'\"Bilibili\": \"$Bilibili#d\"')
-       	    .gsub!(/\"Bahamut\": \"GlobalTV\"/,'\"Bahamut\": \"$Bahamut#d\"')
-       	    .gsub!(/\"HBO\": \"GlobalTV\"/,'\"HBO\": \"$HBO#d\"')
-       	    .gsub!(/\"Pornhub\": \"GlobalTV\"/,'\"Pornhub\": \"$Pornhub#d\"')
-       	    .gsub!(/: \"GlobalTV\"/,': \"$GlobalTV#d\"')
-       	    .gsub!(/: \"AsianTV\"/,': \"$AsianTV#d\"')
+       	    Value['script']['code'].to_s.gsub!(/\"Bilibili\": \"Asian TV\"/,'\"Bilibili\": \"$Bilibili#d\"')
+       	    .gsub!(/\"Bahamut\": \"Global TV\"/,'\"Bahamut\": \"$Bahamut#d\"')
+       	    .gsub!(/\"HBO Max\": \"Global TV\"/,'\"HBO Max\": \"$HBOMax#d\"')
+       	    .gsub!(/\"HBO Go\": \"Asian TV\"/,'\"HBO Go\": \"$HBOGo#d\"')
+       	    .gsub!(/\"Pornhub\": \"Global TV\"/,'\"Pornhub\": \"$Pornhub#d\"')
+       	    .gsub!(/: \"Global TV\"/,': \"$GlobalTV#d\"')
+       	    .gsub!(/: \"Asian TV\"/,': \"$AsianTV#d\"')
        	    .gsub!(/: \"Proxy\"/,': \"$Proxy#d\"')
        	    .gsub!(/: \"YouTube\"/,': \"$Youtube#d\"')
        	    .gsub!(/: \"Apple\"/,': \"$Apple#d\"')
@@ -370,7 +374,7 @@ if [ "$2" != "0" ]; then
        	    .gsub!(/: \"Microsoft\"/,': \"$Microsoft#d\"')
        	    .gsub!(/: \"PayPal\"/,': \"$PayPal#d\"')
        	    .gsub!(/: \"Domestic\"/,': \"$Domestic#d\"')
-       	    .gsub!(/: \"FCM\"/,': \"$FCM#d\"')
+       	    .gsub!(/: \"Google FCM\"/,': \"$GoogleFCM#d\"')
        	    .gsub!(/return \"Domestic\"$/, 'return \"$Domestic#d\"')
        	    .gsub!(/return \"Others\"$/, 'return \"$Others#d\"')
        	    .gsub!(/#d/, '');
