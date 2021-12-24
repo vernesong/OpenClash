@@ -29,12 +29,6 @@ rule-providers:
     path: "./RuleSet/China.yaml"
     url: https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/RuleSet/China.yaml
     interval: 86400
-  ChinaIP:
-    type: http
-    behavior: ipcidr
-    path: "./RuleSet/Extra/ChinaIP.yaml"
-    url: https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/RuleSet/Extra/ChinaIP.yaml
-    interval: 86400
 rules:
 - RULE-SET,Unbreak,DIRECT
 - RULE-SET,Streaming,Streaming
@@ -48,7 +42,6 @@ rules:
 - IP-CIDR,100.64.0.0/10,DIRECT
 - IP-CIDR,224.0.0.0/4,DIRECT
 - IP-CIDR,fe80::/10,DIRECT
-- RULE-SET,ChinaIP,DIRECT
 - IP-CIDR,119.28.28.28/32,DIRECT
 - IP-CIDR,182.254.116.0/24,DIRECT
 - MATCH,MATCH

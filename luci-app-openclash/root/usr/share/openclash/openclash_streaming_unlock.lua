@@ -59,21 +59,21 @@ function unlock_auto_select()
 	
 	--auto get group
 	if type == "Netflix" then
-		luci.sys.call('curl -sL --limit-rate 1k https://www.netflix.com >/dev/null 2>&1 &')
+		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://www.netflix.com &')
 	elseif type == "Disney Plus" then
-		luci.sys.call('curl -sL --limit-rate 1k https://www.disneyplus.com >/dev/null 2>&1 &')
+		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://www.disneyplus.com &')
 	elseif type == "HBO Now" then
-		luci.sys.call('curl -sL --limit-rate 1k https://play.hbonow.com >/dev/null 2>&1 &')
+		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1K -o /dev/null https://play.hbonow.com/assets/fonts/Street2-Medium.ttf &')
 	elseif type == "HBO Max" then
-		luci.sys.call('curl -sL --limit-rate 1k https://www.hbomax.com >/dev/null 2>&1 &')
+		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://www.hbomax.com &')
 	elseif type == "HBO GO Aaia" then
-		luci.sys.call('curl -sL --limit-rate 50b https://www.hbogoasia.com >/dev/null 2>&1 &')
+		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://www.hbogoasia.sg/static/media/GothamLight.8566e233.ttf &')
 	elseif type == "YouTube Premium" then
-		luci.sys.call('curl -sL --limit-rate 1k https://m.youtube.com/premium >/dev/null 2>&1 &')
+		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://m.youtube.com/premium &')
 	elseif type == "TVB Anywhere+" then
-		luci.sys.call('curl -sL --limit-rate 1k https://uapisfm.tvbanywhere.com.sg >/dev/null 2>&1 &')
+		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://uapisfm.tvbanywhere.com.sg &')
 	elseif type == "Amazon Prime Video" then
-		luci.sys.call('curl -sL --limit-rate 1k https://www.primevideo.com >/dev/null 2>&1 &')
+		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://www.primevideo.com &')
 	end
 	os.execute("sleep 1")
 	con = luci.sys.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
@@ -103,7 +103,7 @@ function unlock_auto_select()
 					break
 				end
 			elseif type == "HBO GO Aaia" then
-				if string.match(con.connections[i].metadata.host, "www%.hbogoasia%.com") then
+				if string.match(con.connections[i].metadata.host, "www%.hbogoasia%.sg") then
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
 				end
@@ -125,7 +125,7 @@ function unlock_auto_select()
 			end
 		end
 	end
-
+print(auto_get_group.."123")
 	if not auto_get_group then
 		if type == "Netflix" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_netflix") or "netflix|奈飞"
