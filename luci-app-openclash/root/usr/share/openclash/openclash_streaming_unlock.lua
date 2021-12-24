@@ -125,7 +125,7 @@ function unlock_auto_select()
 			end
 		end
 	end
-print(auto_get_group.."123")
+
 	if not auto_get_group then
 		if type == "Netflix" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_netflix") or "netflix|奈飞"
