@@ -11,16 +11,35 @@ payload:
   - DOMAIN,a771.dscq.akamai.net
   # > Apple
   - DOMAIN,testflight.apple.com
-  # > Cryptocurrency
+  # > Crypto
   - DOMAIN-SUFFIX,aex.com
   - DOMAIN-SUFFIX,bibox.com
+  - DOMAIN-SUFFIX,binance.cc
   - DOMAIN-SUFFIX,binance.com
+  - DOMAIN-SUFFIX,binance.us
   - DOMAIN-SUFFIX,bitcointalk.org
   - DOMAIN-SUFFIX,bitfinex.com
+  - DOMAIN-SUFFIX,bithumb.com
   - DOMAIN-SUFFIX,bitmex.com
+  - DOMAIN-SUFFIX,bitstamp.net
+  - DOMAIN-SUFFIX,bittrex.com
+  - DOMAIN-SUFFIX,bybit.com
+  - DOMAIN-SUFFIX,coinbase.com
+  - DOMAIN-SUFFIX,coincheck.com
+  - DOMAIN-SUFFIX,coingecko.com
+  - DOMAIN-SUFFIX,coinmarketcap.com
+  - DOMAIN-SUFFIX,coinone.co.kr
+  - DOMAIN-SUFFIX,ftx.com
   - DOMAIN-SUFFIX,gate.io
+  - DOMAIN-SUFFIX,gemini.com
   - DOMAIN-SUFFIX,huobi.com
+  - DOMAIN-SUFFIX,korbit.co.kr
+  - DOMAIN-SUFFIX,kraken.com
+  - DOMAIN-SUFFIX,kucoin.com
+  - DOMAIN-SUFFIX,liquid.com
   - DOMAIN-SUFFIX,okex.com
+  - DOMAIN-SUFFIX,poloniex.com
+  - DOMAIN-SUFFIX,uniswap.org
   - DOMAIN-SUFFIX,zb.com
   # > Discord
   - DOMAIN-SUFFIX,discord.com
@@ -57,6 +76,7 @@ payload:
   - DOMAIN-SUFFIX,blogger.com
   - DOMAIN-SUFFIX,getoutline.org
   - DOMAIN-SUFFIX,gvt0.com
+  - DOMAIN-SUFFIX,gvt1.com
   - DOMAIN-SUFFIX,gvt3.com
   - DOMAIN-SUFFIX,xn--ngstr-lra8j.com
   - DOMAIN-SUFFIX,ytimg.com
@@ -114,11 +134,14 @@ payload:
   - IP-CIDR,91.108.16.0/22,no-resolve
   - IP-CIDR,91.108.20.0/22,no-resolve
   - IP-CIDR,91.108.56.0/22,no-resolve
-  - IP-CIDR,95.161.64.0/20,no-resolve
+  - IP-CIDR,91.105.192.0/23,no-resolve
   - IP-CIDR,149.154.160.0/20,no-resolve
+  - IP-CIDR,185.76.151.0/24,no-resolve
   - IP-CIDR,2001:b28:f23d::/48,no-resolve
   - IP-CIDR,2001:b28:f23f::/48,no-resolve
   - IP-CIDR,2001:67c:4e8::/48,no-resolve
+  - IP-CIDR,2001:b28:f23c::/48,no-resolve
+  - IP-CIDR,2a0a:f280::/32,no-resolve
   # > Twitter
   - DOMAIN-SUFFIX,pscp.tv
   - DOMAIN-SUFFIX,periscope.tv
@@ -398,6 +421,7 @@ payload:
   - DOMAIN-SUFFIX,straitstimes.com
   - DOMAIN-SUFFIX,streamable.com
   - DOMAIN-SUFFIX,streema.com
+  - DOMAIN-SUFFIX,substack.com
   - DOMAIN-SUFFIX,t66y.com
   - DOMAIN-SUFFIX,tapatalk.com
   - DOMAIN-SUFFIX,teco-hk.org
@@ -413,6 +437,7 @@ payload:
   - DOMAIN-SUFFIX,tiny.cc
   - DOMAIN-SUFFIX,tinyurl.com
   - DOMAIN-SUFFIX,torproject.org
+  - DOMAIN-SUFFIX,tradingview.com
   - DOMAIN-SUFFIX,tumblr.com
   - DOMAIN-SUFFIX,turbobit.net
   - DOMAIN-SUFFIX,tutanota.com
@@ -451,6 +476,7 @@ payload:
   - DOMAIN-SUFFIX,xn--i2ru8q2qg.com
   - DOMAIN-SUFFIX,xnxx.com
   - DOMAIN-SUFFIX,xvideos.com
+  - DOMAIN-SUFFIX,yadi.sk
   - DOMAIN-SUFFIX,yahoo.com
   - DOMAIN-SUFFIX,yandex.ru
   - DOMAIN-SUFFIX,ycombinator.com
@@ -461,9 +487,11 @@ payload:
   - DOMAIN-SUFFIX,zaobao.com
   - DOMAIN-SUFFIX,zello.com
   - DOMAIN-SUFFIX,zeronet.io
+  - DOMAIN-SUFFIX,z-lib.org
   - DOMAIN-SUFFIX,zoom.us
 
   - DOMAIN,cc.tvbs.com.tw
+  - DOMAIN,clubhouse.pubnubapi.com
   - DOMAIN,ocsp.int-x3.letsencrypt.org
   - DOMAIN,us.weibo.com
 
@@ -495,7 +523,6 @@ payload:
   - DOMAIN-SUFFIX,gmail.com
   - DOMAIN-SUFFIX,gmodules.com
   - DOMAIN-SUFFIX,godoc.org
-  - DOMAIN-SUFFIX,golang.org
   - DOMAIN-SUFFIX,gstatic.com
   - DOMAIN-SUFFIX,gv.com
   - DOMAIN-SUFFIX,gwtproject.org
@@ -537,22 +564,35 @@ payload:
 
   # (Region-Restricted Access Denied)
   # ---(Apple)---
-  # > Apple URL Shortener
   - DOMAIN-SUFFIX,appsto.re
-  # > iBooks Store download
   - DOMAIN,books.itunes.apple.com
-  # > App Store Preview
-  - DOMAIN,apps.apple.com
-  - DOMAIN,itunes.apple.com
-  # > Spotlight
-  - DOMAIN,api-glb-sea.smoot.apple.com
-  # > Look Up
   - DOMAIN-SUFFIX,smoot.apple.com
-  - DOMAIN,lookup-api.apple.com
-  # > Apple Music Web
   - DOMAIN,beta.music.apple.com
+  - DOMAIN,lookup-api.apple.com
+  # > Web Preview
+  - DOMAIN,apps.apple.com
+  - DOMAIN,books.apple.com
+  - DOMAIN,itunes.apple.com
+  - DOMAIN,tv.apple.com
+  # > Podcasts
+  - DOMAIN,amp-api.podcasts.apple.com
+  - DOMAIN,bookkeeper.itunes.apple.com
+  # > News
+  - DOMAIN,gateway.icloud.com
+  - DOMAIN-SUFFIX,apple.news
+  - DOMAIN,news-assets.apple.com
+  - DOMAIN,news-client.apple.com
+  - DOMAIN,news-client-search.apple.com
+  - DOMAIN,news-edge.apple.com
+  - DOMAIN,news-events.apple.com
+  - DOMAIN,apple.comscoreresearch.com
   # ------
+  # Google
+  - DOMAIN-SUFFIX,go.dev
+  - DOMAIN-SUFFIX,golang.org
   # > Others
+  - DOMAIN-SUFFIX,aicoin.com
+  - DOMAIN-SUFFIX,aimoon.com
   - DOMAIN-SUFFIX,bing.com
   - DOMAIN-SUFFIX,cccat.io
   - DOMAIN-SUFFIX,dubox.com
@@ -560,7 +600,7 @@ payload:
   - DOMAIN-SUFFIX,ifixit.com
   - DOMAIN-SUFFIX,mangakakalot.com
   - DOMAIN-SUFFIX,shopeemobile.com
-  # URL-REGEX,http:\/\/img\.sina\.com\/usweibo\/
+  - DOMAIN-SUFFIX,sushi.com
 
   # (Network Jitter)
   # > Apple
@@ -568,7 +608,6 @@ payload:
   - DOMAIN,developer.apple.com
   - DOMAIN,www.icloud.com
   - DOMAIN,ocsp.apple.com
-  - DOMAIN,xp.apple.com
   # > DigiCert
   - DOMAIN,cacerts.digicert.com
   - DOMAIN,crl3.digicert.com
@@ -581,4 +620,3 @@ payload:
   - DOMAIN-SUFFIX,s3.amazonaws.com
   - DOMAIN-SUFFIX,zaobao.com.sg
   - DOMAIN,international-gfe.download.nvidia.com
-  - DOMAIN,store-images.s-microsoft.com

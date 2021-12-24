@@ -1,38 +1,12 @@
 payload:  
   # > DAZN
   - PROCESS-NAME,com.dazn
-  - DOMAIN,d151l6v8er5bdm.cloudfront.net
-  - DOMAIN,edge.api.brightcove.com
-  - DOMAIN,players.brightcove.net
-  - DOMAIN-KEYWORD,livedazn
+
+  # - USER-AGENT,DAZN*
   - DOMAIN-KEYWORD,voddazn
-  - DOMAIN-KEYWORD,vod2dazn
-  - DOMAIN-SUFFIX,amplify.outbrain.com
-  - DOMAIN-SUFFIX,bluekai.com
-  - DOMAIN-SUFFIX,control.kochava.com
-  - DOMAIN-SUFFIX,cws.conviva.com
-  - DOMAIN-SUFFIX,d151l6v8er5bdm.cloudfront.net
-  - DOMAIN-SUFFIX,dazn.com
   - DOMAIN-SUFFIX,dazn-api.com
+  - DOMAIN-SUFFIX,dazn.com
   - DOMAIN-SUFFIX,dazndn.com
-  - DOMAIN-SUFFIX,dc1live21715dazn.akamaized.net
-  - DOMAIN-SUFFIX,dc1-voddash-perform.secure.footprint.net
-  - DOMAIN-SUFFIX,dc2-live2dash-perform.secure.footprint.net
-  - DOMAIN-SUFFIX,dc2-live2hls-perform.secure.footprint.net
-  - DOMAIN-SUFFIX,dc2-vodhls-perform.secure.footprint.net
-  - DOMAIN-SUFFIX,dca-livedash-perform.secure.footprint.net
-  - DOMAIN-SUFFIX,dca-voddash-perform.secure.footprint.net
-  - DOMAIN-SUFFIX,dca-vodhls-perform.secure.footprint.net
-  - DOMAIN-SUFFIX,dcb-livedash-perform.secure.footprint.net
-  - DOMAIN-SUFFIX,dcb-voddash-perform.secure.footprint.net
   - DOMAIN-SUFFIX,indazn.com
-  - DOMAIN-SUFFIX,intercom.io
-  - DOMAIN-SUFFIX,perfops.doracdn.com
-  - DOMAIN-SUFFIX,s.llnwi.net
-  - DOMAIN-SUFFIX,s.yimg.jp
-  - DOMAIN-SUFFIX,secure.footprint.net
-  - DOMAIN-SUFFIX,sentry.io
-  - DOMAIN-SUFFIX,urbanairship.com
-  - DOMAIN-SUFFIX,vjs.zencdn.net
-  - DOMAIN-SUFFIX,widevine.entitlement.us.theplatform.com
-  - DOMAIN-SUFFIX,yahoo.co.jp
+  - DOMAIN-SUFFIX,indaznlab.com
+  - DOMAIN,d151l6v8er5bdm.cloudfront.net

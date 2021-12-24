@@ -62,6 +62,7 @@ payload:
   - DOMAIN-SUFFIX,sciencemag.org
   - DOMAIN-SUFFIX,scitation.org
   - DOMAIN-SUFFIX,scopus.com
+  - DOMAIN-SUFFIX,semanticscholar.org
   - DOMAIN-SUFFIX,siam.org
   - DOMAIN-SUFFIX,spiedigitallibrary.org
   - DOMAIN-SUFFIX,springer.com

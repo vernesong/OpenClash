@@ -1,4 +1,4 @@
-payload:  
+payload:
   # > Beplay
   - DOMAIN-KEYWORD,beplay
 
@@ -39,6 +39,14 @@ payload:
 
   # > Tencent
   - IP-CIDR,182.254.116.0/24,no-resolve
+
+  # > Tencent WeChat (International)
+  - IP-CIDR,101.32.104.0/21,DIRECT,no-resolve
+  - IP-CIDR,101.32.118.0/23,DIRECT,no-resolve
+  - IP-CIDR,101.32.96.0/20,DIRECT,no-resolve
+  - IP-CIDR,129.226.0.0/16,DIRECT,no-resolve
+  - IP-CIDR,183.128.0.0/11,DIRECT,no-resolve
+  - IP-CIDR,183.131.48.0/20,DIRECT,no-resolve
 
   - DOMAIN-SUFFIX,12306.cn
   - DOMAIN-SUFFIX,12306.com
@@ -221,7 +229,6 @@ payload:
   - DOMAIN-SUFFIX,soso.com
   - DOMAIN-SUFFIX,sspai.com
   - DOMAIN-SUFFIX,startssl.com
-  - DOMAIN-SUFFIX,store.steampowered.com
   - DOMAIN-SUFFIX,suning.com
   - DOMAIN-SUFFIX,symcd.com
   - DOMAIN-SUFFIX,taobao.com
