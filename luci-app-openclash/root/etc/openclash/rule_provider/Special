@@ -24,7 +24,6 @@ payload:
   - DOMAIN-KEYWORD,epicgames
 
   # > Google
-  - DOMAIN-KEYWORD,mtalk.google.com
   - DOMAIN,safebrowsing.googleapis.com
   - DOMAIN-SUFFIX,dl.google.com
 
@@ -43,12 +42,45 @@ payload:
 
   # > Steam
   # - USER-AGENT,Steam*
-  - DOMAIN-SUFFIX,pinyuncloud.com
   - DOMAIN-SUFFIX,steamcontent.com
+  - DOMAIN-SUFFIX,steampowered.com
+
+  - DOMAIN-SUFFIX,steamchina.com
+
+  - DOMAIN,csgo.wmsj.cn
+  - DOMAIN,dota2.wmsj.cn
+  - DOMAIN,wmsjsteam.com
+
+  - DOMAIN,dl.steam.clngaa.com
+  - DOMAIN,dl.steam.ksyna.com
+
+  - DOMAIN,st.dl.bscstorage.net
+  - DOMAIN,st.dl.eccdnx.com
+  - DOMAIN,st.dl.pinyuncloud.com
+
+  - DOMAIN,steampipe.steamcontent.tnkjmec.com
+
+  - DOMAIN,steampowered.com.8686c.com
+  - DOMAIN,steamstatic.com.8686c.com
+
+  - DOMAIN,steambroadcast.akamaized.net
+  - DOMAIN,steamcdn-a.akamaihd.net
+  - DOMAIN,steamcommunity-a.akamaihd.net
+  - DOMAIN,steamstore-a.akamaihd.net
+  - DOMAIN,steamusercontent-a.akamaihd.net
+  - DOMAIN,steamuserimages-a.akamaihd.net
 
   # > Tesla
+  - DOMAIN,tesla-cdn.thron.cn
+  - DOMAIN,tesla-cdn.thron.com
+  - DOMAIN-SUFFIX,solarcity.com
   - DOMAIN-SUFFIX,tesla.cn
-  - DOMAIN-SUFFIX,tesla-cdn.thron.cn
+  - DOMAIN-SUFFIX,tesla.com
+  - DOMAIN-SUFFIX,tesla.com.cn
+  - DOMAIN-SUFFIX,teslamotors.cn
+  - DOMAIN-SUFFIX,teslamotors.com
+  - DOMAIN-SUFFIX,teslamotors.com.cn
+  - DOMAIN-SUFFIX,ts.la
 
   # > UUBooster
   - PROCESS-NAME,UUBooster
