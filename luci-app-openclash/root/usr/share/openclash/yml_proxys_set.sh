@@ -997,7 +997,7 @@ cat >> "$SERVER_FILE" <<-EOF
   - name: HBO Go
     type: select
     proxies:
-      - Asian TV
+      - Global TV
       - DIRECT
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
