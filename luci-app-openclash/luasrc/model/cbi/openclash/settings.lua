@@ -610,9 +610,9 @@ o = s:taboption("geo_update", Value, "geo_custom_url")
 o.title = translate("Custom GEOIP URL")
 o.rmempty = false
 o.description = translate("Custom GEOIP Data URL, Click Button Below To Refresh After Edit")
-o:value("https://cdn.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb", translate("Alecthw-lite-Version")..translate("(Default mmdb)"))
-o:value("https://cdn.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/Country.mmdb", translate("Alecthw-Version")..translate("(All Info mmdb)"))
-o:value("https://cdn.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/Country.mmdb", translate("Hackl0us-Version")..translate("(Only CN)"))
+o:value("https://raw.githubusercontent.com/alecthw/mmdb_china_ip_list/release/lite/Country.mmdb", translate("Alecthw-lite-Version")..translate("(Default mmdb)"))
+o:value("https://raw.githubusercontent.com/alecthw/mmdb_china_ip_list/release/Country.mmdb", translate("Alecthw-Version")..translate("(All Info mmdb)"))
+o:value("https://github.com/Hackl0us/GeoIP2-CN/raw/release/Country.mmdb", translate("Hackl0us-Version")..translate("(Only CN)"))
 o:value("https://geolite.clash.dev/Country.mmdb", translate("Geolite.clash.dev"))
 o.default = "http://www.ideame.top/mmdb/Country.mmdb"
 
@@ -654,7 +654,7 @@ o.rmempty = false
 o.description = translate("Custom Chnroute Lists URL, Click Button Below To Refresh After Edit")
 o:value("https://ispip.clang.cn/all_cn.txt", translate("Clang-CN")..translate("(Default)"))
 o:value("https://ispip.clang.cn/all_cn_cidr.txt", translate("Clang-CN-CIDR"))
-o:value("https://cdn.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr.txt", translate("Hackl0us-CN-CIDR")..translate("(Large Size)"))
+o:value("https://github.com/Hackl0us/GeoIP2-CN/raw/release/CN-ip-cidr.txt", translate("Hackl0us-CN-CIDR")..translate("(Large Size)"))
 o.default = "https://ispip.clang.cn/all_cn.txt"
 
 o = s:taboption("chnr_update", Value, "chnr6_custom_url")
