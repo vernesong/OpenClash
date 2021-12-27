@@ -59,23 +59,23 @@ function unlock_auto_select()
 	
 	--auto get group
 	if type == "Netflix" then
-		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.netflix.com &')
+		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://www.netflix.com &')
 	elseif type == "Disney Plus" then
-		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.disneyplus.com &')
+		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://www.disneyplus.com &')
 	elseif type == "HBO Now" then
-		luci.sys.call('curl -sL -m 10 --limit-rate 1K -o /dev/null https://play.hbonow.com/assets/fonts/Street2-Medium.ttf &')
+		luci.sys.call('curl -s -m 5 --limit-rate 1K -o /dev/null https://play.hbonow.com &')
 	elseif type == "HBO Max" then
-		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.hbomax.com &')
+		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://www.hbomax.com &')
 	elseif type == "HBO GO Asia" then
-		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.hbogoasia.sg/static/media/GothamLight.8566e233.ttf &')
+		luci.sys.call('curl -s -m 5 --limit-rate 1k -o /dev/null https://www.hbogoasia.sg &')
 	elseif type == "YouTube Premium" then
-		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://m.youtube.com/premium &')
+		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://m.youtube.com/premium &')
 	elseif type == "TVB Anywhere+" then
-		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://uapisfm.tvbanywhere.com.sg &')
+		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://uapisfm.tvbanywhere.com.sg &')
 	elseif type == "Amazon Prime Video" then
-		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.primevideo.com &')
+		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://www.primevideo.com &')
 	end
-	os.execute("sleep 2")
+	os.execute("sleep 1")
 	con = luci.sys.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
 	if con then
 		con = json.parse(con)
@@ -132,17 +132,17 @@ function unlock_auto_select()
 		elseif type == "Disney Plus" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_disney") or "disney|迪士尼"
 		elseif type == "HBO Now" then
-			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo_now") or "hbo"
+			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo_now") or "hbo|hbonow|hbo now"
 		elseif type == "HBO Max" then
-			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo_max") or "hbo"
+			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo_max") or "hbo|hbomax|hbo max"
 		elseif type == "HBO GO Asia" then
-			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo_go_asia") or "hbo"
+			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo_go_asia") or "hbo|hbogo|hbo go"
 		elseif type == "YouTube Premium" then
-			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_ytb") or "YouTobe|油管"
+			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_ytb") or "youtobe|油管"
 		elseif type == "TVB Anywhere+" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_tvb_anywhere") or "tvb"
 		elseif type == "Amazon Prime Video" then
-			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_prime_video") or "Prime Video|Amazon"
+			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_prime_video") or "prime video|amazon"
 		end
 		string.gsub(key_group, '[^%|]+', function(w) table.insert(key_groups, w) end)
 		if #key_groups == 0 then table.insert(key_groups, type) end
