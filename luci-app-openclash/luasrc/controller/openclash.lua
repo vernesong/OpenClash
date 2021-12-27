@@ -536,7 +536,7 @@ function action_switch_config()
 end
 
 function sub_info_get()
-	local filename, sub_url, sub_info, info, upload, download, total, expire
+	local filename, sub_url, sub_info, info, upload, download, total, expire, http_code
 	filename = luci.http.formvalue("filename")
 	sub_info = ""
 	if filename then
@@ -544,19 +544,22 @@ function sub_info_get()
 			function(s)
 				if s.name == filename and s.address then
 			  	sub_url = s.address
-			  	info = luci.sys.exec(string.format("curl -sLI -m 10 -H 'User-Agent: Clash' %s", sub_url))
+			  	info = luci.sys.exec(string.format("curl -sLI -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Clash' %s", sub_url))
 			  	if info then
-			  		info = string.lower(info)
-			  		if string.find(info, "subscription%-userinfo") then
-			  			info = luci.sys.exec("echo '%s' |grep 'subscription-userinfo'" %info)
-			  			upload = string.sub(string.match(info, "upload=%d+"), 8, -1)
-			  			download = string.sub(string.match(info, "download=%d+"), 10, -1)
-			  			total = fs.filesize(string.sub(string.match(info, "total=%d+"), 7, -1))
-			  			expire = os.date("%Y-%m-%d %H:%M:%S", string.sub(string.match(info, "expire=%d+"), 8, -1))
-			  			used = fs.filesize(upload + download)
-			  			sub_info = "Successful"
-			  		else
-			  			sub_info = "No Sub Info Found"
+			  		http_code=string.sub(string.match(info, "http_code=%d+"), 11, -1)
+			  		if tonumber(http_code) == 200 then
+			  			info = string.lower(info)
+			  			if string.find(info, "subscription%-userinfo") then
+			  				info = luci.sys.exec("echo '%s' |grep 'subscription-userinfo'" %info)
+			  				upload = string.sub(string.match(info, "upload=%d+"), 8, -1) or nil
+			  				download = string.sub(string.match(info, "download=%d+"), 10, -1) or nil
+			  				total = fs.filesize(string.sub(string.match(info, "total=%d+"), 7, -1)) or nil
+			  				expire = os.date("%Y-%m-%d %H:%M:%S", string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
+			  				used = fs.filesize(upload + download) or nil
+			  				sub_info = "Successful"
+			  			else
+			  				sub_info = "No Sub Info Found"
+			  			end
 			  		end
 			  	end
 				end
@@ -568,6 +571,7 @@ function sub_info_get()
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
+		http_code = http_code,
 		sub_info = sub_info,
 		used = used,
 		total = total,
