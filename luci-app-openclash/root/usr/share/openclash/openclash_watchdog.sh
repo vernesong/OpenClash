@@ -162,8 +162,8 @@ fi
                /usr/share/openclash/openclash_streaming_unlock.lua "HBO Max" >> $LOG_FILE
             fi
             if [ "$stream_auto_select_hbo_go_asia" -eq 1 ]; then
-               LOG_OUT "Tip: Start Auto Select Proxy For HBO GO Aaia Unlock..."
-               /usr/share/openclash/openclash_streaming_unlock.lua "HBO GO Aaia" >> $LOG_FILE
+               LOG_OUT "Tip: Start Auto Select Proxy For HBO GO Asia Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "HBO GO Asia" >> $LOG_FILE
             fi
             if [ "$stream_auto_select_tvb_anywhere" -eq 1 ]; then
                LOG_OUT "Tip: Start Auto Select Proxy For TVB Anywhere+ Unlock..."

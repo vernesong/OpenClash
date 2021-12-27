@@ -66,7 +66,7 @@ function unlock_auto_select()
 		luci.sys.call('curl -sL -m 10 --limit-rate 1K -o /dev/null https://play.hbonow.com/assets/fonts/Street2-Medium.ttf &')
 	elseif type == "HBO Max" then
 		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.hbomax.com &')
-	elseif type == "HBO GO Aaia" then
+	elseif type == "HBO GO Asia" then
 		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.hbogoasia.sg/static/media/GothamLight.8566e233.ttf &')
 	elseif type == "YouTube Premium" then
 		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://m.youtube.com/premium &')
@@ -75,7 +75,7 @@ function unlock_auto_select()
 	elseif type == "Amazon Prime Video" then
 		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.primevideo.com &')
 	end
-	os.execute("sleep 1")
+	os.execute("sleep 2")
 	con = luci.sys.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
 	if con then
 		con = json.parse(con)
@@ -102,7 +102,7 @@ function unlock_auto_select()
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
 				end
-			elseif type == "HBO GO Aaia" then
+			elseif type == "HBO GO Asia" then
 				if string.match(con.connections[i].metadata.host, "www%.hbogoasia%.sg") then
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
@@ -135,7 +135,7 @@ function unlock_auto_select()
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo_now") or "hbo"
 		elseif type == "HBO Max" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo_max") or "hbo"
-		elseif type == "HBO GO Aaia" then
+		elseif type == "HBO GO Asia" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_hbo_go_asia") or "hbo"
 		elseif type == "YouTube Premium" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_ytb") or "YouTobe|油管"
@@ -361,7 +361,7 @@ function proxy_unlock_test()
 		region = hbo_now_unlock_test()
 	elseif type == "HBO Max" then
 		region = hbo_max_unlock_test()
-	elseif type == "HBO GO Aaia" then
+	elseif type == "HBO GO Asia" then
 		region = hbo_go_asia_unlock_test()
 	elseif type == "YouTube Premium" then
 		region = ytb_unlock_test()
