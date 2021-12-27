@@ -31,7 +31,7 @@
 	local fs = require "luci.openclash"
 	local val = self:cfgvalue(section)
 	local filename = fs.filename(val)
-	local idname = math.random(1000)..string.match(filename, "[%w_]+")
+	local idname = math.random(1000)..(string.match(filename, "[%w_]+") or "")
 	write(pcdata(val))
 %>
 <br/>
