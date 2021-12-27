@@ -90,6 +90,11 @@ o.default = "86400"
 o.rmempty = false
 o:depends("type", "http")
 
+o = s:option(ListValue, "position", translate("Append Position"))
+o.rmempty     = false
+o:value("0", translate("Priority Match"))
+o:value("1", translate("Extended Match"))
+
 o = s:option(ListValue, "group", translate("Set Proxy Group"))
 o.description = font_red..bold_on..translate("The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT'")..bold_off..font_off
 o.rmempty = true

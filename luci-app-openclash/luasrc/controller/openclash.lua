@@ -47,6 +47,7 @@ function index()
 	entry({"admin", "services", "openclash", "dler_logout"}, call("action_dler_logout"))
 	entry({"admin", "services", "openclash", "dler_login"}, call("action_dler_login"))
 	entry({"admin", "services", "openclash", "dler_login_info_save"}, call("action_dler_login_info_save"))
+	entry({"admin", "services", "openclash", "sub_info_get"}, call("sub_info_get"))
 	entry({"admin", "services", "openclash", "config_name"}, call("action_config_name"))
 	entry({"admin", "services", "openclash", "switch_config"}, call("action_switch_config"))
 	entry({"admin", "services", "openclash", "toolbar_show"}, call("action_toolbar_show"))
@@ -532,6 +533,46 @@ end
 function action_switch_config()
 	uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..luci.http.formvalue("config_name"))
 	uci:commit("openclash")
+end
+
+function sub_info_get()
+	local filename, sub_url, sub_info, info, upload, download, total, expire
+	filename = luci.http.formvalue("filename")
+	sub_info = ""
+	if filename then
+		uci:foreach("openclash", "config_subscribe",
+			function(s)
+				if s.name == filename and s.address then
+			  	sub_url = s.address
+			  	info = luci.sys.exec(string.format("curl -sLI -m 10 -H 'User-Agent: Clash' %s", sub_url))
+			  	if info then
+			  		info = string.lower(info)
+			  		if string.find(info, "subscription%-userinfo") then
+			  			info = luci.sys.exec("echo '%s' |grep 'subscription-userinfo'" %info)
+			  			upload = string.sub(string.match(info, "upload=%d+"), 8, -1)
+			  			download = string.sub(string.match(info, "download=%d+"), 10, -1)
+			  			total = fs.filesize(string.sub(string.match(info, "total=%d+"), 7, -1))
+			  			expire = os.date("%Y-%m-%d %H:%M:%S", string.sub(string.match(info, "expire=%d+"), 8, -1))
+			  			used = fs.filesize(upload + download)
+			  			sub_info = "Successful"
+			  		else
+			  			sub_info = "No Sub Info Found"
+			  		end
+			  	end
+				end
+			end
+		)
+		if not sub_url then
+			sub_info = "No Sub Info Found"
+		end
+	end
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		sub_info = sub_info,
+		used = used,
+		total = total,
+		expire = expire;
+	})
 end
 
 function action_rule_mode()
