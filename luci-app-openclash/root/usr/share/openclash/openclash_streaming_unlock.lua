@@ -59,21 +59,21 @@ function unlock_auto_select()
 	
 	--auto get group
 	if type == "Netflix" then
-		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://www.netflix.com &')
+		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.netflix.com &')
 	elseif type == "Disney Plus" then
-		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://www.disneyplus.com &')
+		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.disneyplus.com &')
 	elseif type == "HBO Now" then
-		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1K -o /dev/null https://play.hbonow.com/assets/fonts/Street2-Medium.ttf &')
+		luci.sys.call('curl -sL -m 10 --limit-rate 1K -o /dev/null https://play.hbonow.com/assets/fonts/Street2-Medium.ttf &')
 	elseif type == "HBO Max" then
-		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://www.hbomax.com &')
+		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.hbomax.com &')
 	elseif type == "HBO GO Aaia" then
-		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://www.hbogoasia.sg/static/media/GothamLight.8566e233.ttf &')
+		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.hbogoasia.sg/static/media/GothamLight.8566e233.ttf &')
 	elseif type == "YouTube Premium" then
-		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://m.youtube.com/premium &')
+		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://m.youtube.com/premium &')
 	elseif type == "TVB Anywhere+" then
-		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://uapisfm.tvbanywhere.com.sg &')
+		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://uapisfm.tvbanywhere.com.sg &')
 	elseif type == "Amazon Prime Video" then
-		luci.sys.call('curl -sL -m 3 --retry 2 --limit-rate 1k -o /dev/null https://www.primevideo.com &')
+		luci.sys.call('curl -sL -m 10 --limit-rate 1k -o /dev/null https://www.primevideo.com &')
 	end
 	os.execute("sleep 1")
 	con = luci.sys.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
