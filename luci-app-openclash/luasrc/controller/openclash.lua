@@ -544,7 +544,7 @@ function sub_info_get()
 			function(s)
 				if s.name == filename and s.address then
 			  	sub_url = s.address
-			  	info = luci.sys.exec(string.format("curl -sLI -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Clash' %s", sub_url))
+			  	info = luci.sys.exec(string.format("curl -sLI -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Clash' '%s'", sub_url))
 			  	if info then
 			  		http_code=string.sub(string.match(info, "http_code=%d+"), 11, -1)
 			  		if tonumber(http_code) == 200 then
