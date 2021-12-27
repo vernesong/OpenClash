@@ -71,6 +71,7 @@ nm=tb:option(DummyValue,"name",translate("Config Alias"))
 mt=tb:option(DummyValue,"mtime",translate("Update Time"))
 ck=tb:option(DummyValue,"check",translate("Grammar Check"))
 ck.template="openclash/cfg_check"
+nm.template="openclash/sub_info_show"
 
 btnis=tb:option(Button,"switch",translate("Switch Config"))
 btnis.template="openclash/other_button"

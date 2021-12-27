@@ -181,6 +181,7 @@ mt=tb:option(DummyValue,"mtime",translate("Update Time"))
 sz=tb:option(DummyValue,"size",translate("Size"))
 ck=tb:option(DummyValue,"check",translate("Grammar Check"))
 ck.template="openclash/cfg_check"
+nm.template="openclash/sub_info_show"
 
 btnis=tb:option(Button,"switch",translate("Switch Config"))
 btnis.template="openclash/other_button"
