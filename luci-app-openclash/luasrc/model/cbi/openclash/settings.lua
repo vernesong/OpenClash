@@ -516,8 +516,8 @@ o.default=0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_now", translate("HBO Now Group Filter Keywords"))
-o.default = "HBO"
-o.placeholder = "HBO"
+o.default = "HBO|HBONow|HBO Now"
+o.placeholder = "HBO|HBONow|HBO Now"
 o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
 o:depends("stream_auto_select_hbo_now", "1")
 
@@ -526,8 +526,8 @@ o.default=0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_max", translate("HBO Max Group Filter Keywords"))
-o.default = "HBO"
-o.placeholder = "HBO"
+o.default = "HBO|HBOMax|HBO Max"
+o.placeholder = "HBO|HBOMax|HBO Max"
 o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
 o:depends("stream_auto_select_hbo_max", "1")
 
@@ -536,8 +536,8 @@ o.default=0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_go_asia", translate("HBO GO Asia Group Filter Keywords"))
-o.default = "HBO"
-o.placeholder = "HBO"
+o.default = "HBO|HBOGO|HBO GO"
+o.placeholder = "HBO|HBOGO|HBO GO"
 o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
 o:depends("stream_auto_select_hbo_go_asia", "1")
 
