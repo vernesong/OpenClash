@@ -531,11 +531,11 @@ o.placeholder = "HBO"
 o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
 o:depends("stream_auto_select_hbo_max", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_go_asia", translate("HBO GO Aaia"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_go_asia", translate("HBO GO Asia"))
 o.default=0
 o:depends("stream_auto_select", "1")
 
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_go_asia", translate("HBO GO Aaia Group Filter Keywords"))
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_go_asia", translate("HBO GO Asia Group Filter Keywords"))
 o.default = "HBO"
 o.placeholder = "HBO"
 o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")

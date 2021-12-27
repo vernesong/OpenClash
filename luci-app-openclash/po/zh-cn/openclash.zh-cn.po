@@ -2486,8 +2486,8 @@ msgstr "HBO Now 策略组筛选关键字"
 msgid "HBO Max Group Filter Keywords"
 msgstr "HBO Max 策略组筛选关键字"
 
-msgid "HBO GO Aaia Group Filter Keywords"
-msgstr "HBO GO Aaia 策略组筛选关键字"
+msgid "HBO GO Asia Group Filter Keywords"
+msgstr "HBO GO Asia 策略组筛选关键字"
 
 msgid "YouTube Premium Group Filter Keywords"
 msgstr "YouTube Premium 策略组筛选关键字"
@@ -2510,8 +2510,8 @@ msgstr "提示：开始自动选择（检测）HBO Now 解锁节点..."
 msgid "Tip: Start Auto Select Proxy For HBO Max Unlock..."
 msgstr "提示：开始自动选择（检测）HBO Max 解锁节点..."
 
-msgid "Tip: Start Auto Select Proxy For HBO GO Aaia Unlock..."
-msgstr "提示：开始自动选择（检测）HBO GO Aaia 解锁节点..."
+msgid "Tip: Start Auto Select Proxy For HBO GO Asia Unlock..."
+msgstr "提示：开始自动选择（检测）HBO GO Asia 解锁节点..."
 
 msgid "Tip: Start Auto Select Proxy For YouTube Premium Unlock..."
 msgstr "提示：开始自动选择（检测）YouTube Premium 解锁节点..."
@@ -2534,8 +2534,8 @@ msgstr "HBO Now 策略组："
 msgid "HBO Max Group:"
 msgstr "HBO Max 策略组："
 
-msgid "HBO GO Aaia Group:"
-msgstr "HBO GO Aaia 策略组："
+msgid "HBO GO Asia Group:"
+msgstr "HBO GO Asia 策略组："
 
 msgid "TVB Anywhere+ Group:"
 msgstr "TVB Anywhere+ 策略组："
