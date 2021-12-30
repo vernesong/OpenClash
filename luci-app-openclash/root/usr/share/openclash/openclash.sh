@@ -49,15 +49,15 @@ config_download()
 {
 if [ -n "$subscribe_url_param" ]; then
    if [ -n "$c_address" ]; then
-      curl -sL --connect-timeout 10 --retry 2 "$c_address""$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
+      curl -sL --connect-timeout 10 --retry 2 -H 'User-Agent: Clash' "$c_address""$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
    else
-      curl -sL --connect-timeout 10 --retry 2 https://api.dler.io/sub"$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
+      curl -sL --connect-timeout 10 --retry 2 -H 'User-Agent: Clash' https://api.dler.io/sub"$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
       if [ "$?" -ne 0 ]; then
-         curl -sL --connect-timeout 10 --retry 2 https://subconverter.herokuapp.com/sub"$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
+         curl -sL --connect-timeout 10 --retry 2 -H 'User-Agent: Clash' https://subconverter.herokuapp.com/sub"$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
       fi
    fi
 else
-   curl -sL --connect-timeout 10 --retry 2 --user-agent "clash" "$subscribe_url" -o "$CFG_FILE" >/dev/null 2>&1
+   curl -sL --connect-timeout 10 --retry 2 -H 'User-Agent: Clash' "$subscribe_url" -o "$CFG_FILE" >/dev/null 2>&1
 fi
 }
 
@@ -418,6 +418,12 @@ sub_info_get()
       return
    fi
    
+   if [ "$udp" == "true" ]; then
+      udp="udp=true"
+   else
+      udp=""
+   fi
+   
    if [ -z "$name" ]; then
       name="config"
       CONFIG_FILE="/etc/openclash/config/config.yaml"
@@ -456,7 +462,7 @@ sub_info_get()
          template_path_encode=$(urlencode "$template_path")
       	 [ -n "$key_match_param" ] && key_match_param="(?i)$(urlencode "$key_match_param")"
       	 [ -n "$key_ex_match_param" ] && key_ex_match_param="(?i)$(urlencode "$key_ex_match_param")"
-         subscribe_url_param="?target=clash&new_name=true&url=$subscribe_url&config=$template_path_encode&include=$key_match_param&exclude=$key_ex_match_param&emoji=$emoji&list=false&sort=$sort&udp=$udp&scv=$skip_cert_verify&append_type=$node_type&fdn=true"
+         subscribe_url_param="?target=clash&new_name=true&url=$subscribe_url&config=$template_path_encode&include=$key_match_param&exclude=$key_ex_match_param&emoji=$emoji&list=false&sort=$sort&$udp&scv=$skip_cert_verify&append_type=$node_type&fdn=true"
          c_address="$convert_address"
       else
          subscribe_url=$address
