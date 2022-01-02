@@ -5,8 +5,8 @@
 </h1>
 
   <p align="center">
-	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.8.0">
-    <img src="https://img.shields.io/badge/Clash-v1.8.0-blue.svg">
+	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.9.0">
+    <img src="https://img.shields.io/badge/Clash-v1.9.0-blue.svg">
   </a>
   <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.44.07-beta">
     <img src="https://img.shields.io/badge/source code-v0.44.07--beta-green.svg">
