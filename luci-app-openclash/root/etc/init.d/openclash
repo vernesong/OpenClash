@@ -1294,8 +1294,8 @@ start_run_core()
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$config_reload" != "0" ]; then
       curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
    else
+      kill_clash
       if [ -z "$_koolshare" ]; then
-         kill_clash
          #防止赋权失败
          touch /tmp/openclash.log 2>/dev/null
          chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
