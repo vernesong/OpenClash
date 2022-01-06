@@ -242,7 +242,7 @@ yml_provider_path()
          x['path']='./$3/'+v
       end
       #CDN Replace
-      if x['url'] and x['url'].include? 'raw.githubusercontent.com' then
+      if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
          x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[4] + '/')[1]
       end
       };
