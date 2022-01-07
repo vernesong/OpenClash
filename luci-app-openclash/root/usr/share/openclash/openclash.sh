@@ -164,7 +164,7 @@ config_su_check()
          LOG_OUT "Config File【$name】Are Updates, Start Replacing..."
          cp "$CFG_FILE" "$BACKPACK_FILE"
          #保留规则部分
-         if [ "$servers_update" -eq 1 ]; then
+         if [ "$servers_update" -eq 1 ] && [ "$only_download" -eq 0 ]; then
    	        ruby -ryaml -E UTF-8 -e "
                Value = YAML.load_file('$CONFIG_FILE');
                Value_1 = YAML.load_file('$CFG_FILE');
