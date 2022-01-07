@@ -1,6 +1,5 @@
 #!/bin/bash
 . /lib/functions.sh
-. /usr/share/openclash/ruby.sh
 . /usr/share/openclash/log.sh
 
 set_lock() {
@@ -12,7 +11,18 @@ del_lock() {
    flock -u 876 2>/dev/null
    rm -rf "/tmp/lock/openclash_groups_get.lock"
 }
-   
+
+ruby_read_hash()
+{
+   RUBY_YAML_PARSE="Thread.new{Value = $1; puts Value$2}.join"
+   ruby -ryaml -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
+}
+
+ruby_read()
+{
+   RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); puts Value$2}.join"
+   ruby -ryaml -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
+}
 
 CFG_FILE="/etc/config/openclash"
 other_group_file="/tmp/yaml_other_group.yaml"
@@ -82,7 +92,7 @@ cfg_delete()
 {
    LOG_OUT "Deleting Old Configuration..."
 #删除策略组
-   group_num=$(grep "config groups" "$CFG_FILE" |wc -l)
+   group_num=$(grep "^config groups$" "$CFG_FILE" |wc -l)
    for ((i=$group_num;i>=0;i--))
 	 do
 	    if [ "$(uci get openclash.@groups["$i"].config 2>/dev/null)" = "$CONFIG_NAME" ] || [ "$(uci get openclash.@groups["$i"].config 2>/dev/null)" = "all" ]; then
@@ -91,22 +101,22 @@ cfg_delete()
 	    fi
 	 done
 #删除启用的节点
-   server_num=$(grep "config servers" "$CFG_FILE" |wc -l)
+   server_num=$(grep "^config servers$" "$CFG_FILE" |wc -l)
    for ((i=$server_num;i>=0;i--))
 	 do
 	    if [ "$(uci get openclash.@servers["$i"].config 2>/dev/null)" = "$CONFIG_NAME" ] || [ "$(uci get openclash.@servers["$i"].config 2>/dev/null)" = "all" ]; then
-	    	 if [ "$(uci get openclash.@servers["$i"].enabled 2>/dev/null)" = "1" ]; then
+	    	 if [ "$(uci get openclash.@servers["$i"].enabled 2>/dev/null)" = "1" ] && [ "$(uci get openclash.@servers["$i"].manual 2>/dev/null)" = "0" ]; then
 	          uci delete openclash.@servers["$i"] 2>/dev/null
 	          uci commit openclash
 	       fi
 	    fi
 	 done
 #删除启用的代理集
-   provider_num=$(grep "config proxy-provider" "$CFG_FILE" 2>/dev/null |wc -l)
+   provider_num=$(grep "^config proxy-provider$" "$CFG_FILE" 2>/dev/null |wc -l)
    for ((i=$provider_num;i>=0;i--))
 	 do
 	    if [ "$(uci get openclash.@proxy-provider["$i"].config 2>/dev/null)" = "$CONFIG_NAME" ] || [ "$(uci get openclash.@proxy-provider["$i"].config 2>/dev/null)" = "all" ]; then
-	       if [ "$(uci get openclash.@proxy-provider["$i"].enabled)" = "1" ]; then
+	       if [ "$(uci get openclash.@proxy-provider["$i"].enabled)" = "1" ] && [ "$(uci get openclash.@proxy-provider["$i"].manual)" = "0" ]; then
 	          uci delete openclash.@proxy-provider["$i"] 2>/dev/null
 	          uci commit openclash
 	       fi
@@ -121,8 +131,6 @@ if [ "$servers_if_update" -eq 1 ] && [ "$servers_update" -eq 1 ] && [ "$config_g
    /usr/share/openclash/yml_proxys_get.sh
    del_lock
    exit 0
-else
-   cfg_delete
 fi
 
 count=0
@@ -137,6 +145,8 @@ if [ -z "$num" ]; then
    del_lock
    exit 0
 fi
+
+cfg_delete
 
 while [ "$count" -lt "$num" ]
 do
@@ -166,7 +176,7 @@ do
 
    ruby -ryaml -E UTF-8 -e "
    begin
-   Value = $group_hash;
+   Value = ${group_hash};
    Thread.new{
    #strategy
    if Value['proxy-groups'][$count].key?('strategy') then

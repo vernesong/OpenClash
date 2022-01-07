@@ -1806,13 +1806,13 @@ msgid "Proxy-providers That no Longer Exists in Subscription"
 msgstr "订阅中已不存在的代理集..."
 
 msgid "Proxies That no Longer Exists in Subscription"
-msgstr "订阅中已不存在的代理集..."
+msgstr "订阅中已不存在的节点..."
 
 msgid "Read Successful!"
 msgstr "读取完成！"
 
 msgid "Write Successful!"
-msgstr "读取完成！"
+msgstr "写入完成！"
 
 msgid "Creating By Using Connershua (rule set) Rules..."
 msgstr "使用ConnersHua(规则集)规则创建中..."

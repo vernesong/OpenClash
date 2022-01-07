@@ -39,6 +39,7 @@ o = s:option(DynamicList, "new_servers_group", translate("New Servers Group"))
 o.description = translate("Set The New Subscribe Server's Default Proxy Groups")
 o.rmempty = true
 o:depends("servers_update", 1)
+o:value("all", translate("All Groups"))
 m.uci:foreach("openclash", "groups",
 		function(s)
 			o:value(s.name)
