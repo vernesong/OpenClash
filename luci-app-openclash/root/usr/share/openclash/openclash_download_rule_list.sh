@@ -13,13 +13,16 @@ urlencode() {
 }
 
    RULE_FILE_NAME="$1"
+   RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
    if [ "$1" == "netflix_domains" ]; then
-      DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@master/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
+      DOWNLOAD_PATH="https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
+      DOWNLOAD_PATH2="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
       RULE_FILE_DIR="/usr/share/openclash/res/Netflix_Domains.list"
       RULE_FILE_NAME="Netflix_Domains"
       RULE_TYPE="netflix"
    elif [ "$1" == "disney_domains" ]; then
-      DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@master/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
+      DOWNLOAD_PATH="https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
+      DOWNLOAD_PATH2="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
       RULE_FILE_DIR="/usr/share/openclash/res/Disney_Plus_Domains.list"
       RULE_FILE_NAME="Disney_Plus_Domains"
       RULE_TYPE="disney"
@@ -45,8 +48,14 @@ urlencode() {
    
    if [ "$RULE_TYPE" = "netflix" ]; then
       curl -sL --connect-timeout 5 --retry 2 "$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+      if [ "$?" -ne "0" ]; then
+         curl -sL --connect-timeout 5 --retry 2 "$DOWNLOAD_PATH2" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+      fi
    elif [ "$RULE_TYPE" = "disney" ]; then
       curl -sL --connect-timeout 5 --retry 2 "$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+      if [ "$?" -ne "0" ]; then
+         curl -sL --connect-timeout 5 --retry 2 "$DOWNLOAD_PATH2" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+      fi
    elif [ "$RULE_TYPE" = "game" ]; then
       if pidof clash >/dev/null; then
    	     curl -sL --connect-timeout 5 --retry 2 https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1

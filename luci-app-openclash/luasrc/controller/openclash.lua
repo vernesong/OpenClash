@@ -24,7 +24,7 @@ function index()
 	entry({"admin", "services", "openclash", "update_geoip"},call("action_update_geoip"))
 	entry({"admin", "services", "openclash", "currentversion"},call("action_currentversion"))
 	entry({"admin", "services", "openclash", "lastversion"},call("action_lastversion"))
-	entry({"admin", "services", "openclash", "save_corever"},call("action_save_corever"))
+	entry({"admin", "services", "openclash", "save_corever_branch"},call("action_save_corever_branch"))
 	entry({"admin", "services", "openclash", "update"},call("action_update"))
 	entry({"admin", "services", "openclash", "update_ma"},call("action_update_ma"))
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
@@ -220,13 +220,8 @@ local function startlog()
 end
 
 local function coremodel()
-  local coremodel = luci.sys.exec("cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_ARCH 2>/dev/null |awk -F '\"' '{print $2}' 2>/dev/null")
-  local coremodel2 = luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
-  if not coremodel or coremodel == "" then
-     return coremodel2 .. "," .. coremodel2
-  else
-     return coremodel .. "," .. coremodel2
-  end
+  local coremodel = luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
+  return coremodel
 end
 
 local function corecv()
@@ -279,8 +274,13 @@ local function corever()
 	return uci:get("openclash", "config", "core_version")
 end
 
-local function save_corever()
-	uci:set("openclash", "config", "core_version", luci.http.formvalue("core_ver"))
+local function save_corever_branch()
+	if luci.http.formvalue("core_ver") then
+		uci:set("openclash", "config", "core_version", luci.http.formvalue("core_ver"))
+	end
+	if luci.http.formvalue("release_branch") then
+		uci:set("openclash", "config", "release_branch", luci.http.formvalue("release_branch"))
+	end
 	uci:commit("openclash")
 	return "success"
 end
@@ -788,10 +788,10 @@ function action_config_name()
 	})
 end
 
-function action_save_corever()
+function action_save_corever_branch()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		save_corever = save_corever();
+		save_corever_branch = save_corever_branch();
 	})
 end
 

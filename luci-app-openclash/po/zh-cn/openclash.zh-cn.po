@@ -1298,14 +1298,14 @@ msgstr "注意：客户端可能无法更新，因为squashfs格式的固件更�
 msgid "Compiled Version Selected"
 msgstr "已选择编译版本"
 
-msgid "CPU Architecture (OS)"
-msgstr "处理器架构（OS）"
+msgid "Release Branch Selected"
+msgstr "已选择更新分支"
+
+msgid "CPU Architecture"
+msgstr "处理器架构"
 
 msgid "Last Check Update"
 msgstr "上次检查更新时间"
-
-msgid "CPU Architecture (OPKG)"
-msgstr "处理器架构（OPKG）"
 
 msgid "Current Core"
 msgstr "当前内核版本"
