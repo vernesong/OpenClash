@@ -67,6 +67,7 @@ function sub_info_get_<%=idname%>()
 		}
 		else if ( x && x.status == 200 && status.sub_info == "No Sub Info Found" ) {
 			document.getElementById('<%=idname%>').style.display = "none";
+			document.getElementById('<%=idname%>').style.width = "0";
 			clearTimeout(s_<%=idname%>);
 			return
 		};
