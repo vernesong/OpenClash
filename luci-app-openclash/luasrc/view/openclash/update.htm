@@ -22,8 +22,15 @@
 				<option value="linux-mipsle-hardfloat"><%:linux-mipsle-hardfloat%></option>
 				<option value="0"><%:Not Set%></option>
 	  	</select></td>
-	  	<td width="25%"><%:Last Check Update%></td><td width="25%" align="left" id="CHECKTIME"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"><%:CPU Architecture (OS)%></td><td width="25%" align="left" id="CPU_MODEL"><%:Collecting data...%></td><td width="25%"><%:CPU Architecture (OPKG)%></td><td width="25%" align="left" id="CPU_MODEL2"><%:Collecting data...%></td></tr>
+	  	<td width="25%"><%:Release Branch Selected%></td>
+	  	<td width="25%" align="left"><select id="RELEASE_BRANCH">
+	  		<option value="master"><%:Master%></option>
+				<option value="dev"><%:Developer%></option>
+	  	</select></td>
+	  	</tr>
+		<tr>
+			<td width="25%"><%:Last Check Update%></td><td width="25%" align="left" id="CHECKTIME"><%:Collecting data...%></td>
+			<td width="25%"><%:CPU Architecture%></td><td width="25%" align="left" id="CPU_MODEL"><%:Collecting data...%></td></tr>
 	  <tr><td width="100%" colspan="4">
 	    <p align="center">
 	  		<b><%:Core path:%> /etc/openclash/core/clash</b>
@@ -82,7 +89,6 @@
   var core_version = document.getElementById('CORE_VERSION');
   var checktime = document.getElementById('CHECKTIME');
 	var cpu_model = document.getElementById('CPU_MODEL');
-	var cpu_model2 = document.getElementById('CPU_MODEL2');
 	var core_cv = document.getElementById('CORE_CV');
 	var core_lv = document.getElementById('CORE_LV');
 	var core_tun_cv = document.getElementById('CORE_TUN_CV');
@@ -100,7 +106,8 @@
 	var backup  = document.getElementById('backup');
 	var one_key_update  = document.getElementById('one_key_update');
 	var remove_core  = document.getElementById('remove_core');
-  
+	var release_branch  = document.getElementById('RELEASE_BRANCH');
+
   XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
 		  if ( status.corever != "0" && status.corever != "" ) {
@@ -114,12 +121,7 @@
 	
 	XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
-		  var cpu_models = status.coremodel;
-			var arr_model = cpu_models.split(",");
-      var cpu_model1 = arr_model[0];
-      var cpu_model22 = arr_model[1];
-		  cpu_model.innerHTML = cpu_model1 ? "<b style=color:green>"+cpu_model1+"</b>" : "<b style=color:red><%:Model Not Found%></b>";
-      cpu_model2.innerHTML = cpu_model22 ? "<b style=color:green>"+cpu_model22+"</b>" : "<b style=color:red><%:Model Not Found%></b>";
+		  cpu_model.innerHTML = status.coremodel ? "<b style=color:green>"+status.coremodel+"</b>" : "<b style=color:red><%:Model Not Found%></b>";
 		  if ( status.upchecktime != "1" ) {
 		     checktime.innerHTML = "<b style=color:green>"+status.upchecktime+"</b>";
 		  }
@@ -196,8 +198,9 @@
 	
 	function core_update(btn,type)
     {
-    	var v = document.getElementById('CORE_VERSION').value;
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever")%>', {core_ver: v}, function(x, status) {
+    	var v = core_version.value;
+    	var r = release_branch.value;
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
 				if (x && x.status == 200) {
 					XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "coreupdate")%>', {core_type: type}, function(x, status) {
         	btn.value    = '<%:Check And Update%>';
@@ -210,17 +213,23 @@
 
 	function op_update(btn)
     {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', null, function(x, status) {
-        btn.value    = '<%:Check And Update%>';
-        btn.disabled = false;
-        return false;
-        });
+        var r = release_branch.value;
+			  XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {release_branch: r}, function(x, status) {
+				if (x && x.status == 200) {
+           XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', null, function(x, status) {
+           btn.value    = '<%:Check And Update%>';
+           btn.disabled = false;
+           return false;
+           });
+        }
+		});
     }
     
     function ma_core_update(btn,type)
     {
-    	var v = document.getElementById('CORE_VERSION').value;
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever")%>', {core_ver: v}, function(x, status) {
+    	var v = core_version.value;
+			var r = release_branch.value;
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
 			if (x && x.status == 200) {
         btn.value    = '<%:Download%>';
         btn.disabled = false;
@@ -228,16 +237,28 @@
         if ( x && x.status == 200 ) {
         	if ( status.corever != "0" ) {
         		if (type == "Dev") {
-        			url1='https://github.com/vernesong/OpenClash/releases/download/Clash/clash-'+status.corever+'.tar.gz';
-        			window.location.href=url1;
+        			if (r == "dev") {
+        				url1='https://raw.githubusercontent.com/vernesong/OpenClash/'+r+'/core-lateset/dev/clash-'+status.corever+'.tar.gz';
+        				window.location.href=url1;
+        			}
+        			else {
+        				url1='https://github.com/vernesong/OpenClash/releases/download/Clash/clash-'+status.corever+'.tar.gz';
+        				window.location.href=url1;
+        			}
         		}
         		if (type == "TUN") {
         			var corelv = status.corelv;
           		var arr_core = corelv.split(",");
           		var coretunlvis = arr_core[1];
           		if ( coretunlvis != "" ) {
-              	url3='https://github.com/vernesong/OpenClash/releases/download/TUN-Premium/clash-'+status.corever+'-'+coretunlvis+'.gz';
-              	window.location.href=url3;
+          			if (r == "dev") {
+          				url3='https://raw.githubusercontent.com/vernesong/OpenClash/'+r+'/core-lateset/premium/clash-'+status.corever+'-'+coretunlvis+'.gz';
+              		window.location.href=url3;
+          			}
+          			else {
+              		url3='https://github.com/vernesong/OpenClash/releases/download/TUN-Premium/clash-'+status.corever+'-'+coretunlvis+'.gz';
+              		window.location.href=url3;
+              	}
           		}
           		else {
               	alert('<%:Failed to get the latest version. Please try again later!%>')
@@ -258,17 +279,28 @@
     {
         btn.value    = '<%:Download%>';
         btn.disabled = false;
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.oplv, function(x, status) {
-        if ( x && x.status == 200 ) {
-           var oplv = status.oplv;
-           var oplvis = oplv.substring(oplv.indexOf("v") + 1,oplv.indexOf(","));
-           if ( oplvis != "" ) {
-              url2='https://github.com/vernesong/OpenClash/releases/download/v'+oplvis+'/luci-app-openclash_'+oplvis+'_all.ipk';
-              window.location.href=url2;
+        var r = release_branch.value;
+			  XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {release_branch: r}, function(x, status) {
+				if (x && x.status == 200) {
+           XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.oplv, function(x, status) {
+           if ( x && x.status == 200 ) {
+              var oplv = status.oplv;
+              var oplvis = oplv.substring(oplv.indexOf("v") + 1,oplv.indexOf(","));
+              if ( oplvis != "" ) {
+              	if (r == "dev") {
+                	url2='https://raw.githubusercontent.com/vernesong/OpenClash/'+r+'/luci-app-openclash_'+oplvis+'_all.ipk';
+                	window.location.href=url2;
+                }
+                else {
+                	url2='https://github.com/vernesong/OpenClash/releases/download/v'+oplvis+'/luci-app-openclash_'+oplvis+'_all.ipk';
+                	window.location.href=url2;
+                }
+              }
+              else {
+                 alert('<%:Failed to get the latest version. Please try again later!%>')
+              }
            }
-           else {
-              alert('<%:Failed to get the latest version. Please try again later!%>')
-           }
+           });
         }
         });
         return false; 
@@ -327,8 +359,9 @@
 
     function all_one_key_update(btn)
     {
-    	var v = document.getElementById('CORE_VERSION').value;
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever")%>', {core_ver: v}, function(x, status) {
+    	var v = core_version.value;
+			var r = release_branch.value;
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
 				if (x && x.status == 200) {
 					btn.value    = '<%:One Click Check Update%>';
         	btn.disabled = true;
