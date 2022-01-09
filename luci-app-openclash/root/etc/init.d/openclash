@@ -233,10 +233,12 @@ yml_vmess_compatible()
          if not x.key?('ws-opts') then
             x['ws-opts'] = {'path'=>x['ws-path'].to_s}
          else
-            if not x['ws-opts'].key?('path') then
-               x['ws-opts']['path'] = {x['ws-path'].to_s}
-            elsif x['ws-opts']['path'].empty? then
-               x['ws-opts']['path'].update({x['ws-path'].to_s})
+            if x['ws-opts'].nil? then
+               x['ws-opts'] = {'path'=>x['ws-path'].to_s}
+            elsif x['ws-opts']['path'].nil? then
+               x['ws-opts'].update({'path'=>x['ws-path'].to_s})
+            else
+               x['ws-opts']['path'].update(x['ws-path'].to_s)
             end
          end
          x.delete('ws-path')
@@ -247,9 +249,11 @@ yml_vmess_compatible()
             if not x.key?('ws-opts') then
                x['ws-opts'] = {'headers'=>{v.to_s=>x['ws-headers'][v].to_s}}
             else
-               if not x['ws-opts'].key?('headers') then
-                  x['ws-opts']['headers'] = {v.to_s=>x['ws-headers'][v].to_s}
-               elsif x['ws-opts']['headers'].empty? then
+               if x['ws-opts'].nil? then
+                  x['ws-opts'] = {'headers'=>{v.to_s=>x['ws-headers'][v].to_s}}
+               elsif x['ws-opts']['headers'].nil? then
+                  x['ws-opts'].update({'headers'=>{v.to_s=>x['ws-headers'][v].to_s}})
+               else
                   x['ws-opts']['headers'].update({v.to_s=>x['ws-headers'][v].to_s})
                end
             end
