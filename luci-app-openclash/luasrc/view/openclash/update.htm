@@ -116,6 +116,12 @@
 		  else {
 		     core_version.value = "0";
 		  }
+		  if ( status.release_branch != "" ) {
+		     release_branch.value = status.release_branch;
+		  }
+		  else {
+		     release_branch.value = "master";
+		  }
 		}
 	});
 	
