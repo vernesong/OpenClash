@@ -1,26 +1,26 @@
 #!/bin/sh /etc/rc.common
 # Copyright (c) 2019 vernesong
 
-[ ! -f /etc/openwrt_release ] && exit 0
-
-. /usr/share/openclash/openclash_ps.sh
-. /usr/share/openclash/ruby.sh
-. /usr/share/openclash/log.sh
-
 START=99
 STOP=15
 
+. $IPKG_INSTROOT/usr/share/openclash/openclash_ps.sh
+. $IPKG_INSTROOT/usr/share/openclash/ruby.sh
+. $IPKG_INSTROOT/usr/share/openclash/log.sh
+
+[ -f /etc/openwrt_release ] && {
+RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
+BACKUP_FILE="/etc/openclash/backup/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
+CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
+}
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
-RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
-BACKUP_FILE="/etc/openclash/backup/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 CACHE_PATH_OLD="/etc/openclash/.cache"
 CACHE_PATH="/etc/openclash/cache.db"
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
-CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
 DNS_FILE="/tmp/yaml_dns.yaml"
 GAME_RULE_FILE="/tmp/yaml_game_rule.yaml"
