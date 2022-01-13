@@ -274,6 +274,10 @@ local function corever()
 	return uci:get("openclash", "config", "core_version")
 end
 
+local function release_branch()
+	return uci:get("openclash", "config", "release_branch")
+end
+
 local function save_corever_branch()
 	if luci.http.formvalue("core_ver") then
 		uci:set("openclash", "config", "core_version", luci.http.formvalue("core_ver"))
@@ -919,6 +923,7 @@ function action_update()
 			coretuncv = coretuncv(),
 			opcv = opcv(),
 			corever = corever(),
+			release_branch = release_branch(),
 			upchecktime = upchecktime(),
 			corelv = corelv(),
 			oplv = oplv();
