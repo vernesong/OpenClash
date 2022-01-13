@@ -217,6 +217,7 @@ yml_servers_set()
    config_get "auth_pass" "$section" "auth_pass" ""
    config_get "psk" "$section" "psk" ""
    config_get "obfs_snell" "$section" "obfs_snell" ""
+   config_get "snell_version" "$section" "snell_version" ""
    config_get "sni" "$section" "sni" ""
    config_get "alpn" "$section" "alpn" ""
    config_get "http_path" "$section" "http_path" ""
@@ -661,6 +662,11 @@ cat >> "$SERVER_FILE" <<-EOF
     port: $port
     psk: $psk
 EOF
+   if [ -n "$snell_version" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    version: "$snell_version"
+EOF
+   fi
    if [ "$obfs_snell" != "none" ] && [ ! -z "$host" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     obfs-opts:

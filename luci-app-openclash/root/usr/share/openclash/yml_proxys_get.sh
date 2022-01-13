@@ -745,6 +745,13 @@ do
          system(psk)
       end
       }.join
+      
+      Thread.new{
+      if Value['proxies'][$count].key?('version') then
+         snell_version = '${uci_set}snell_version=' + Value['proxies'][$count]['version'].to_s
+         system(snell_version)
+      end
+      }.join
    end;
    if '$server_type' == 'socks5' or '$server_type' == 'http' then
       Thread.new{

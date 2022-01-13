@@ -150,6 +150,11 @@ o = s:option(Value, "psk", translate("Psk"))
 o.rmempty = false
 o:depends("type", "snell")
 
+o = s:option(ListValue, "snell_version", translate("Version"))
+o:value("2")
+o:value("3")
+o:depends("type", "snell")
+
 o = s:option(ListValue, "cipher", translate("Encrypt Method"))
 for _, v in ipairs(encrypt_methods_ss) do o:value(v) end
 o.rmempty = true
@@ -204,6 +209,7 @@ o:depends("type", "ssr")
 o:depends("type", "vmess")
 o:depends("type", "socks5")
 o:depends("type", "trojan")
+o:depends({type = "snell", snell_version = "3"})
 
 o = s:option(ListValue, "obfs", translate("obfs-mode"))
 o.rmempty = true
