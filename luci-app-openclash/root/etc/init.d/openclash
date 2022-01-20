@@ -301,7 +301,7 @@ yml_provider_path()
       end
       #CDN Replace
       if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
-         x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[4] + '/')[1]
+         x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1]
       end
       };
       if not Value_1.eql?(Value['$2']) then
