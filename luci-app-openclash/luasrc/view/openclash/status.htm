@@ -383,7 +383,7 @@
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "state")%>', null, function(x, status) {
 			if ( x && x.status == 200 ) {
 				ipdb.innerHTML = status.ipdb ? "<b style=color:green>"+status.ipdb+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
-				lhie1.innerHTML = status.lhie1 ? "<b style=color:green>"+status.lhie1+"/b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
+				lhie1.innerHTML = status.lhie1 ? "<b style=color:green>"+status.lhie1+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				ConnersHua.innerHTML = status.ConnersHua ? "<b style=color:green>"+status.ConnersHua+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				ConnersHua_return.innerHTML = status.ConnersHua_return ? "<b style=color:green>"+status.ConnersHua_return+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				chnroute.innerHTML = status.chnroute ? "<b style=color:green>"+status.chnroute+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
