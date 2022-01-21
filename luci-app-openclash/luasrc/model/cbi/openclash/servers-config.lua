@@ -404,7 +404,7 @@ o = s:option(Value, "interface_name", translate("interface-name"))
 o.rmempty = true
 o.placeholder = translate("eth0")
 
--- [[ interface-name ]]--
+-- [[ routing-mark ]]--
 o = s:option(Value, "routing_mark", translate("routing-mark"))
 o.rmempty = true
 o.placeholder = translate("2333")
