@@ -235,7 +235,7 @@ do
    
    Thread.new{
    #other_group
-   Value_1=YAML.load_file('/tmp/Proxy_Group'); 
+   Value_1 = File.readlines('/tmp/Proxy_Group').map!{|x| x.strip}; 
 	 if Value['proxy-groups'][$count].key?('proxies') then 
 	    Value['proxy-groups'][$count]['proxies'].each{
 	    |x|
