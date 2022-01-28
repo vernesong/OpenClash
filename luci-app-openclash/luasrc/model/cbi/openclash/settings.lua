@@ -475,80 +475,122 @@ o = s:taboption("stream_enhance", Flag, "stream_auto_select_netflix", translate(
 o.default=1
 o:depends("stream_auto_select", "1")
 
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_netflix", translate("Netflix Group Filter Keywords"))
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_netflix", translate("Netflix Group Filter"))
 o.default = "Netflix|奈飞"
 o.placeholder = "Netflix|奈飞"
-o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_netflix", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_netflix", translate("Netflix Unlock Region Filter"))
+o.default = ""
+o.placeholder = "HK|SG|TW"
+o.description = translate("It Will Be Selected Region According To The Regex")
 o:depends("stream_auto_select_netflix", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_disney", translate("Disney Plus"))
 o.default=0
 o:depends("stream_auto_select", "1")
 
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_disney", translate("Disney Plus Group Filter Keywords"))
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_disney", translate("Disney Plus Group Filter"))
 o.default = "Disney|迪士尼"
 o.placeholder = "Disney|迪士尼"
-o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_disney", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_disney", translate("Disney Plus Unlock Region Filter"))
+o.default = ""
+o.placeholder = "HK|SG|TW"
+o.description = translate("It Will Be Selected Region According To The Regex")
 o:depends("stream_auto_select_disney", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_ytb", translate("YouTube Premium"))
 o.default=0
 o:depends("stream_auto_select", "1")
 
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_ytb", translate("YouTube Premium Group Filter Keywords"))
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_ytb", translate("YouTube Premium Group Filter"))
 o.default = "YouTube|油管"
 o.placeholder = "YouTube|油管"
-o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_ytb", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_ytb", translate("YouTube Premium Unlock Region Filter"))
+o.default = ""
+o.placeholder = "HK|US"
+o.description = translate("It Will Be Selected Region According To The Regex")
 o:depends("stream_auto_select_ytb", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_prime_video", translate("Amazon Prime Video"))
 o.default=0
 o:depends("stream_auto_select", "1")
 
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_prime_video", translate("Amazon Prime Video Group Filter Keywords"))
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_prime_video", translate("Amazon Prime Video Group Filter"))
 o.default = "Amazon|Prime Video"
 o.placeholder = "Amazon|Prime Video"
-o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_prime_video", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_prime_video", translate("Amazon Prime Video Unlock Region Filter"))
+o.default = ""
+o.placeholder = "HK|US|SG"
+o.description = translate("It Will Be Selected Region According To The Regex")
 o:depends("stream_auto_select_prime_video", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_now", translate("HBO Now"))
 o.default=0
 o:depends("stream_auto_select", "1")
 
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_now", translate("HBO Now Group Filter Keywords"))
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_now", translate("HBO Now Group Filter"))
 o.default = "HBO|HBONow|HBO Now"
 o.placeholder = "HBO|HBONow|HBO Now"
-o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_hbo_now", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_max", translate("HBO Max"))
 o.default=0
 o:depends("stream_auto_select", "1")
 
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_max", translate("HBO Max Group Filter Keywords"))
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_max", translate("HBO Max Group Filter"))
 o.default = "HBO|HBOMax|HBO Max"
 o.placeholder = "HBO|HBOMax|HBO Max"
-o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_hbo_max", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_hbo_max", translate("HBO Max Unlock Region Filter"))
+o.default = ""
+o.placeholder = "US"
+o.description = translate("It Will Be Selected Region According To The Regex")
 o:depends("stream_auto_select_hbo_max", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_go_asia", translate("HBO GO Asia"))
 o.default=0
 o:depends("stream_auto_select", "1")
 
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_go_asia", translate("HBO GO Asia Group Filter Keywords"))
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_go_asia", translate("HBO GO Asia Group Filter"))
 o.default = "HBO|HBOGO|HBO GO"
 o.placeholder = "HBO|HBOGO|HBO GO"
-o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_hbo_go_asia", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_hbo_go_asia", translate("HBO Max Unlock Region Filter"))
+o.default = ""
+o.placeholder = "HK|SG|TW"
+o.description = translate("It Will Be Selected Region According To The Regex")
 o:depends("stream_auto_select_hbo_go_asia", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_tvb_anywhere", translate("TVB Anywhere+"))
 o.default=0
 o:depends("stream_auto_select", "1")
 
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_tvb_anywhere", translate("TVB Anywhere+ Group Filter Keywords"))
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_tvb_anywhere", translate("TVB Anywhere+ Group Filter"))
 o.default = "TVB"
 o.placeholder = "TVB"
-o.description = translate("It Will Be Searched According To The Keywords When Auto Search Group Fails")
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_tvb_anywhere", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_tvb_anywhere", translate("HBO Max Unlock Region Filter"))
+o.default = ""
+o.placeholder = "HK|SG|TW"
+o.description = translate("It Will Be Selected Region According To The Regex")
 o:depends("stream_auto_select_tvb_anywhere", "1")
 
 ---- update Settings
