@@ -2474,29 +2474,50 @@ msgstr "展开策略组"
 msgid "Automatically Expand The Group When Selected"
 msgstr "自动展开嵌套的策略组并进行解锁检测，启用后可能会造成网络不稳定"
 
-msgid "Netflix Group Filter Keywords"
-msgstr "Netflix 策略组筛选关键字"
+msgid "Netflix Group Filter"
+msgstr "Netflix 策略组筛选"
 
-msgid "Disney Plus Group Filter Keywords"
-msgstr "Disney Plus 策略组筛选关键字"
+msgid "Disney Plus Group Filter"
+msgstr "Disney Plus 策略组筛选"
 
-msgid "HBO Now Group Filter Keywords"
-msgstr "HBO Now 策略组筛选关键字"
+msgid "HBO Now Group Filter"
+msgstr "HBO Now 策略组筛选"
 
-msgid "HBO Max Group Filter Keywords"
-msgstr "HBO Max 策略组筛选关键字"
+msgid "HBO Max Group Filter"
+msgstr "HBO Max 策略组筛选"
 
-msgid "HBO GO Asia Group Filter Keywords"
-msgstr "HBO GO Asia 策略组筛选关键字"
+msgid "HBO GO Asia Group Filter"
+msgstr "HBO GO Asia 策略组筛选"
 
-msgid "YouTube Premium Group Filter Keywords"
-msgstr "YouTube Premium 策略组筛选关键字"
+msgid "YouTube Premium Group Filter"
+msgstr "YouTube Premium 策略组筛选"
 
-msgid "TVB Anywhere+ Group Filter Keywords"
-msgstr "TVB Anywhere+ 策略组筛选关键字"
+msgid "TVB Anywhere+ Group Filter"
+msgstr "TVB Anywhere+ 策略组筛选"
 
-msgid "Amazon Prime Video Group Filter Keywords"
-msgstr "Amazon Prime Video 策略组筛选关键字"
+msgid "Amazon Prime Video Group Filter"
+msgstr "Amazon Prime Video 策略组筛选"
+
+msgid "Netflix Unlock Region Filter"
+msgstr "Netflix 解锁区域筛选"
+
+msgid "Disney Plus Unlock Region Filter"
+msgstr "Disney Plus 解锁区域筛选"
+
+msgid "HBO Max Unlock Region Filter"
+msgstr "HBO Max 解锁区域筛选"
+
+msgid "HBO GO Asia Unlock Region Filter"
+msgstr "HBO GO Asia 解锁区域筛选"
+
+msgid "YouTube Premium Unlock Region Filter"
+msgstr "YouTube Premium 解锁区域筛选"
+
+msgid "TVB Anywhere+ Unlock Region Filter"
+msgstr "TVB Anywhere+ 解锁区域筛选"
+
+msgid "Amazon Prime Video Unlock Region Filter"
+msgstr "Amazon Prime Video 解锁区域筛选"
 
 msgid "Tip: Start Auto Select Proxy For Netflix Unlock..."
 msgstr "提示：开始自动选择（检测）Netflix 解锁节点..."
@@ -2576,8 +2597,11 @@ msgstr "仅支持自制剧！开始进行解锁节点自动选择..."
 msgid "unlock test faild! start auto select unlock proxy..."
 msgstr "解锁检测失败！开始进行解锁节点自动选择..."
 
-msgid "It Will Be Searched According To The Keywords When Auto Search Group Fails"
-msgstr "策略组自动获取失败时将会根据关键字进行匹配"
+msgid "It Will Be Searched According To The Regex When Auto Search Group Fails"
+msgstr "策略组自动获取失败时将会根据正则表达式进行匹配"
+
+msgid "It Will Be Selected Region According To The Regex"
+msgstr "解锁区域将会根据正则表达式进行匹配"
 
 msgid "not support unlock!"
 msgstr "不支持解锁！"
@@ -2597,8 +2621,20 @@ msgstr "解锁节点自动选择失败，无可用节点，回退到"
 msgid ", area:"
 msgstr "，区域："
 
-msgid "failed to search based on keywords and automatically obtain the group, please confirm the validity of the keywords!"
+msgid "failed to search based on keywords and automatically obtain the group, please confirm the validity of the regex!"
 msgstr "根据关键字搜索且自动获取策略组失败，请确认关键字的有效性！"
+
+msgid "unlock node auto selected failed, no node match the regex, rolled back to other full support node"
+msgstr "解锁节点自动选择失败，未找到区域匹配的节点，回退到其他区域的解锁节点"
+
+msgid "full support but not match the regex!"
+msgstr "完整解锁但区域不匹配！"
+
+msgid "but not match the regex! the type of group is not select, auto select could not work!"
+msgstr "完整解锁但区域不匹配！当前策略组类型非 Select，无法进行自动选择！"
+
+msgid "full support but not match the regex! start auto select unlock proxy..."
+msgstr "完整解锁但区域不匹配！开始进行解锁节点自动选择..."
 
 msgid "DNS Remote"
 msgstr "*远程域名解析"

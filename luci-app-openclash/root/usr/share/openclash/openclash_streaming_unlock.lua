@@ -15,8 +15,7 @@ local now_name, group_name, group_type, group_show, status
 local groups = {}
 local proxies = {}
 
-if enable == 0 then os.exit(0) end
-if not type then os.exit(0) end
+if enable == 0 or not type then os.exit(0) end
 
 function unlock_auto_select()
 	local key_group, region, now, proxy, group_match, proxy_default, auto_get_group, info, group_now
@@ -24,10 +23,11 @@ function unlock_auto_select()
 	local passwd = uci:get("openclash", "config", "dashboard_password") or ""
 	local ip = luci.sys.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
 	local original = {}
-	local key_groups = {}
+	local other_region_unlock = {}
 	local tested_proxy = {}
+	local fallback_select = {}
 	local gorup_i18 = "Group:"
-	local no_group_find = "failed to search based on keywords and automatically obtain the group, please confirm the validity of the keywords!"
+	local no_group_find = "failed to search based on keywords and automatically obtain the group, please confirm the validity of the regex!"
 	local full_support_no_area = "full support."
 	local full_support = "full support, area:"
 	local only_original = "only support homemade!"
@@ -43,6 +43,10 @@ function unlock_auto_select()
 	local no_unlock_test_start = "not support unlock! start auto select unlock proxy..."
 	local faild_test_start = "unlock test faild! start auto select unlock proxy..."
 	local area_i18 = ", area:"
+	local select_faild_other_region = "unlock node auto selected failed, no node match the regex, rolled back to other full support node"
+	local other_region_unlock_test = "full support but not match the regex!"
+	local other_region_unlock_no_select = "but not match the regex! the type of group is not select, auto select could not work!"
+	local other_region_unlock_test_start = "full support but not match the regex! start auto select unlock proxy..."
 	
 	if not ip or ip == "" then
 		ip = luci.sys.exec("ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
@@ -82,10 +86,9 @@ function unlock_auto_select()
 		elseif type == "Amazon Prime Video" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_prime_video") or "prime video|amazon"
 		end
-		string.gsub(key_group, '[^%|]+', function(w) table.insert(key_groups, w) end)
-		if #key_groups == 0 then table.insert(key_groups, type) end
+		if not key_group then key_group = type end
 	else
-		table.insert(key_groups, auto_get_group)
+		key_group = "^" .. auto_get_group .. "$"
 	end
 
 	--save group name
@@ -98,189 +101,206 @@ function unlock_auto_select()
 	group_match = false
 	for _, value in pairs(info.proxies) do
 		--match only once
-		for g = 1, #key_groups do
-			while true do
-				--find group
-				if not string.find(string.lower(value.name), string.lower(key_groups[g])) then
-					break
+		while true do
+			--find group
+			if not datamatch(value.name, key_group) then
+				break
+			else
+				--get groups info
+				get_proxy(info, value.name, value.name)
+				table.insert(tested_proxy, now_name)
+				group_match = true
+				--test now proxy
+				region = proxy_unlock_test()
+				if table_include(groups, now_name) then
+					now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.."】"
 				else
-					--get groups info
-					get_proxy(info, value.name, value.name)
-					table.insert(tested_proxy, now_name)
-					group_match = true
-					--test now proxy
+					now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.." ➟ "..now_name.."】"
+				end
+				if status ~= 2 then
+					os.execute("sleep 3")
 					region = proxy_unlock_test()
-					if table_include(groups, now_name) then
-						now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.."】"
+				end
+				if status == 2 then
+					if region and region ~= "" then
+						print(now..full_support.."【"..region.."】")
 					else
-						now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.." ➟ "..now_name.."】"
+						print(now..full_support_no_area)
 					end
-					if status ~= 2 then
-						os.execute("sleep 3")
-						region = proxy_unlock_test()
-					end
-					if status == 2 then
-						if region then
-							print(now..full_support.."【"..region.."】")
-						else
-							print(now..full_support_no_area)
-						end
-						break
-					elseif status == 1 then
-						table.insert(original, {get_group_now(info, value.name), group_name, now_name})
-						if type == "Netflix" then
-							print(now..original_test_start)
-						else
-							print(now..no_unlock_test_start)
-						end
+					break
+				elseif status == 3 then
+					table.insert(other_region_unlock, {get_group_now(info, value.name), group_name, now_name})
+					print(now..other_region_unlock_test_start)
+				elseif status == 1 then
+					table.insert(original, {get_group_now(info, value.name), group_name, now_name})
+					if type == "Netflix" then
+						print(now..original_test_start)
 					else
-						print(now..faild_test_start)
+						print(now..no_unlock_test_start)
 					end
-					
-					--find new unlock
-					if value.type == "Selector" then
-						--loop proxy test
-						for i = 1, #(value.all) do
-							--save group current selected
-							proxy_default = value.now
-							while true do
-								if value.all[i] == "REJECT" or value.all[i] == "DIRECT" then
-									break
-								else
-									get_proxy(info, value.all[i], value.name)
-									if group_type == "Selector" then
-										if group_name == value.all[i] then
-											luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, group_name, ip, port, urlencode(value.name)))
+				else
+					print(now..faild_test_start)
+				end
+				
+				--find new unlock
+				if value.type == "Selector" then
+					--loop proxy test
+					for i = 1, #(value.all) do
+						--save group current selected
+						proxy_default = value.now
+						while true do
+							if value.all[i] == "REJECT" or value.all[i] == "DIRECT" then
+								break
+							else
+								get_proxy(info, value.all[i], value.name)
+								if group_type == "Selector" then
+									if group_name == value.all[i] then
+										luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, group_name, ip, port, urlencode(value.name)))
+									end
+									for p = 1, #(proxies) do
+										proxy = proxies[p]
+										if table_include(groups, proxy) then
+											group_now = get_group_now(info, proxy)
+											now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.." ➟ "..group_now.."】"
+										else
+											now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.." ➟ "..proxy.."】"
 										end
-										for p = 1, #(proxies) do
-											proxy = proxies[p]
-											if table_include(groups, proxy) then
-												group_now = get_group_now(info, proxy)
-												now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.." ➟ "..group_now.."】"
-											else
-												now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.." ➟ "..proxy.."】"
-											end
-											--skip tested proxy
-											while true do
-												if table_include(tested_proxy, proxy) then
-													break
-												else
-													table.insert(tested_proxy, proxy)
-												end
-												while true do
-													if proxy == "REJECT" or proxy == "DIRECT" then
-														break
-													else
-														luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, proxy, ip, port, urlencode(group_name)))
-														region = proxy_unlock_test()
-														if status == 2 then
-															if region then
-																print(now..full_support.."【"..region.."】")
-																print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..proxy.."】"..area_i18.."【"..region.."】")
-															else
-																print(now..full_support_no_area)
-																print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..proxy.."】")
-															end
-														elseif status == 1 then
-															table.insert(original, {value.all[i], group_name, proxy})
-															if type == "Netflix" then
-																print(now..only_original)
-															else
-																print(now..no_unlock)
-															end
-														else
-															print(now..test_faild)
-														end
-													end
-													break
-												end
-												if status == 2 then
-													break
-												elseif p == #(proxies) and #(proxies) ~= 1 then
-													luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, now_name, ip, port, urlencode(group_name)))
-												end
-												break
-											end
-											if status == 2 then break end
-										end
-									else
-										--only group expand
-										luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, value.all[i], ip, port, urlencode(group_name)))
+										--skip tested proxy
 										while true do
-											if table_include(tested_proxy, now_name) then
+											if table_include(tested_proxy, proxy) then
 												break
 											else
-												table.insert(tested_proxy, now_name)
+												table.insert(tested_proxy, proxy)
 											end
-												region = proxy_unlock_test()
-												if table_include(groups, now_name) then
-													now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.."】"
+											while true do
+												if proxy == "REJECT" or proxy == "DIRECT" then
+													break
 												else
-													now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.." ➟ "..now_name.."】"
-												end
-												if status == 2 then
-													if region then
-														print(now..full_support.."【"..region.."】")
-														print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, now_name).."】"..area_i18.."【"..region.."】")
+													luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, proxy, ip, port, urlencode(group_name)))
+													region = proxy_unlock_test()
+													if status == 2 then
+														if region and region ~= "" then
+															print(now..full_support.."【"..region.."】")
+															print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..proxy.."】"..area_i18.."【"..region.."】")
+														else
+															print(now..full_support_no_area)
+															print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..proxy.."】")
+														end
+													elseif status == 3 then
+														table.insert(other_region_unlock, {value.all[i], group_name, proxy})
+														print(now..other_region_unlock_test)
+													elseif status == 1 then
+														table.insert(original, {value.all[i], group_name, proxy})
+														if type == "Netflix" then
+															print(now..only_original)
+														else
+															print(now..no_unlock)
+														end
 													else
-														print(now..full_support_no_area)
-														print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, now_name).."】")
+														print(now..test_faild)
 													end
-												elseif status == 1 then
-													table.insert(original, {value.all[i], group_name, value.all[i]})
-													if type == "Netflix" then
-														print(now..original_no_select)
-													else
-														print(now..no_unlock_no_select)
-													end
-												else
-													print(now..faild_no_select)
 												end
+												break
+											end
+											if status == 2 then
+												break
+											elseif p == #(proxies) and #(proxies) ~= 1 then
+												luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, now_name, ip, port, urlencode(group_name)))
+											end
 											break
 										end
+										if status == 2 then break end
+									end
+								else
+									--only group expand
+									luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, value.all[i], ip, port, urlencode(group_name)))
+									while true do
+										if table_include(tested_proxy, now_name) then
+											break
+										else
+											table.insert(tested_proxy, now_name)
+										end
+										region = proxy_unlock_test()
+										if table_include(groups, now_name) then
+											now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.."】"
+										else
+											now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.." ➟ "..now_name.."】"
+										end
+										if status == 2 then
+											if region and region ~= "" then
+												print(now..full_support.."【"..region.."】")
+												print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, now_name).."】"..area_i18.."【"..region.."】")
+											else
+												print(now..full_support_no_area)
+												print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, now_name).."】")
+											end
+										elseif status == 3 then
+											table.insert(other_region_unlock, {value.all[i], group_name, value.all[i]})
+											print(now..full_support.."【"..region.."】"..other_region_unlock_no_select)
+										elseif status == 1 then
+											table.insert(original, {value.all[i], group_name, value.all[i]})
+											if type == "Netflix" then
+												print(now..original_no_select)
+											else
+												print(now..no_unlock_no_select)
+											end
+										else
+											print(now..faild_no_select)
+										end
+										break
 									end
 								end
-								break
-							end
-							if status == 2 then
-								break
-							elseif i == #(value.all) and #original > 0 then
-								for k, v in pairs(original) do
-									luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, v[1], ip, port, urlencode(value.name)))
-									luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, v[3], ip, port, urlencode(v[2])))
-									print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..v[3].."】")
-									break
-								end
-							elseif i == #(value.all) then
-								luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, proxy_default, ip, port, urlencode(value.name)))
-								print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..proxy_default.."】")
-							end
-						end
-					else
-						region = proxy_unlock_test()
-						if status == 2 then
-							if region then
-								print(now..full_support.."【"..region.."】")
-								print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, value.name).."】"..area_i18.."【"..region.."】")
-							else
-								print(now..full_support_no_area)
-								print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, value.name).."】")
 							end
 							break
-						elseif status == 1 then
-							if type == "Netflix" then
-								print(now..original_no_select)
+						end
+						if status == 2 then
+							break
+						elseif i == #(value.all) and (#original > 0 or #other_region_unlock > 0) then
+							if #other_region_unlock > 0 then
+								fallback_select = other_region_unlock
 							else
-								print(now..no_unlock_no_select)
+								fallback_select = original
 							end
-						else
-							print(now..faild_no_select)
+							for k, v in pairs(fallback_select) do
+								luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, v[1], ip, port, urlencode(value.name)))
+								luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, v[3], ip, port, urlencode(v[2])))
+								if #other_region_unlock > 0 then
+									print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild_other_region.."【"..v[3].."】")
+								else
+									print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..v[3].."】")
+								end
+								break
+							end
+						elseif i == #(value.all) then
+							luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, proxy_default, ip, port, urlencode(value.name)))
+							print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..proxy_default.."】")
 						end
 					end
+				else
+					region = proxy_unlock_test()
+					if status == 2 then
+						if region and region ~= "" then
+							print(now..full_support.."【"..region.."】")
+							print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, value.name).."】"..area_i18.."【"..region.."】")
+						else
+							print(now..full_support_no_area)
+							print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, value.name).."】")
+						end
+						break
+					elseif status == 3 then
+						print(now..full_support.."【"..region.."】"..other_region_unlock_no_select)
+					elseif status == 1 then
+						if type == "Netflix" then
+							print(now..original_no_select)
+						else
+							print(now..no_unlock_no_select)
+						end
+					else
+						print(now..faild_no_select)
+					end
 				end
-				break
 			end
-			if group_match then break end
+			break
 		end
 		if auto_get_group and group_match then break end
 		if status == 2 then	break end
@@ -511,6 +531,11 @@ function urlencode(data)
 	return luci.sys.exec(string.format("echo %s |sed 's/+/%%20/g'", string.match(data, "/%?(.+)")))
 end
 
+function datamatch(data, regex)
+	local result = luci.sys.exec(string.format('ruby -E UTF-8 -e "x=\'%s\'; if x =~ /%s/i then print \'true\' else print \'false\' end"', data, regex))
+	if result == "true" then return true else return false end
+end
+
 function netflix_unlock_test()
 	status = 0
 	local url = "https://www.netflix.com/title/"..filmId
@@ -518,6 +543,7 @@ function netflix_unlock_test()
 	local info = luci.sys.exec(string.format('curl -sLI -m 3 --retry 2 -o /dev/null -w %%{json} -H "Content-Type: application/json" -H "%s" -XGET %s', headers, url))
 	local result = {}
 	local region
+	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_netflix") or ""
 	if info then
 		info = json.parse(info)
 	end
@@ -527,6 +553,9 @@ function netflix_unlock_test()
 			string.gsub(info.url_effective, '[^/]+', function(w) table.insert(result, w) end)
 			region = string.upper(string.match(result[3], "^%a+"))
 			if region == "TITLE" then region = "US" end
+			if not datamatch(region, regex) then
+				status = 3
+			end
 			return region
 		elseif info.http_code == 404 then
 			status = 1
@@ -543,12 +572,16 @@ function disney_unlock_test()
 	local auth = '"grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&latitude=0&longitude=0&platform=browser&subject_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJiNDAzMjU0NS0yYmE2LTRiZGMtOGFlOS04ZWI3YTY2NzBjMTIiLCJhdWQiOiJ1cm46YmFtdGVjaDpzZXJ2aWNlOnRva2VuIiwibmJmIjoxNjIyNjM3OTE2LCJpc3MiOiJ1cm46YmFtdGVjaDpzZXJ2aWNlOmRldmljZSIsImV4cCI6MjQ4NjYzNzkxNiwiaWF0IjoxNjIyNjM3OTE2LCJqdGkiOiI0ZDUzMTIxMS0zMDJmLTQyNDctOWQ0ZC1lNDQ3MTFmMzNlZjkifQ.g-QUcXNzMJ8DwC9JqZbbkYUSKkB1p4JGW77OON5IwNUcTGTNRLyVIiR8mO6HFyShovsR38HRQGVa51b15iAmXg&subject_token_type=urn%3Abamtech%3Aparams%3Aoauth%3Atoken-type%3Adevice"'
 	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} %s -H 'User-Agent: %s' -d %s -XPOST %s", headers, UA, auth, url))
 	local region
+	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_disney") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
 		local url_effective = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{url_effective} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url2))
 		if url_effective == "https://disneyplus.disney.co.jp/" then
 			status = 2
 			region = "JP"
+			if not datamatch(region, regex) then
+				status = 3
+			end
 			return region
 		elseif string.find(url_effective,"hotstar") then
 			return
@@ -556,6 +589,9 @@ function disney_unlock_test()
 		local region = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s |grep 'Region: ' |awk '{print $2}' |tr -d '\n'", UA, url2))
 		if region and region ~= "" then
 			status = 2
+			if not datamatch(region, regex) then
+				status = 3
+			end
 			return region
 		end
 	end
@@ -585,7 +621,8 @@ function hbo_max_unlock_test()
 	local url = "https://www.hbomax.com/"
 	local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{json} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local result = {}
-	local region
+	local region = ""
+	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_hbo_max") or ""
 	if data then
 		data = json.parse(data)
 	end
@@ -597,10 +634,11 @@ function hbo_max_unlock_test()
 				string.gsub(data.url_effective, '[^/]+', function(w) table.insert(result, w) end)
 				if result[3] then
 					region = string.upper(string.match(result[3], "^%a+"))
-					if region then
-						return region
-					end
 				end
+				if not datamatch(region, regex) then
+					status = 3
+				end
+				return region
 			end
 		end
 	end
@@ -611,6 +649,8 @@ function hbo_go_asia_unlock_test()
 	status = 0
 	local url = "https://api2.hbogoasia.com/v1/geog?lang=undefined&version=0&bundleId=www.hbogoasia.com"
 	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_hbo_go_asia") or ""
+	local region = ""
 	if tonumber(httpcode) == 200 then
 		status = 1
 		local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
@@ -621,8 +661,12 @@ function hbo_go_asia_unlock_test()
 			if data.territory then
 				status = 2
 				if data.country then
-					return string.upper(data.country)
+					region = string.upper(data.country)
 				end
+				if not datamatch(region, regex) then
+					status = 3
+				end
+				return region
 			end
 		end
 	end
@@ -633,7 +677,8 @@ function ytb_unlock_test()
 	status = 0
 	local url = "https://m.youtube.com/premium"
 	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
-	local region
+	local region = ""
+	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_ytb") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
 		local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
@@ -643,22 +688,25 @@ function ytb_unlock_test()
 	  region = string.sub(string.match(data, "\"GL\":\"%a+\""), 7, -2)
 		if region then
 			status = 2
-			return region
 		else
 			if not string.find(data,"www%.google%.cn") then
 	  		status = 2
-	  		return "US"
+	  		region = "US"
 	  	end
 		end
+		if not datamatch(region, regex) then
+			status = 3
+		end
 	end
-	return
+	return region
 end
 
 function tvb_anywhere_unlock_test()
 	status = 0
 	local url = "https://uapisfm.tvbanywhere.com.sg/geoip/check/platform/android"
 	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
-	local region
+	local region = ""
+	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_tvb_anywhere") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
 		local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
@@ -667,13 +715,15 @@ function tvb_anywhere_unlock_test()
 		end
 		if data and data.allow_in_this_country then
 			status = 2
-	  	region = string.upper(data.country)
-			if region then
-				return region
+			if data.country then
+	  		region = string.upper(data.country)
+	  	end
+	  	if not datamatch(region, regex) then
+				status = 3
 			end
 		end
 	end
-	return
+	return region
 end
 
 function prime_video_unlock_test()
@@ -681,6 +731,7 @@ function prime_video_unlock_test()
 	local url = "https://www.primevideo.com"
 	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local region
+	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_prime_video") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
 		local data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
@@ -688,6 +739,9 @@ function prime_video_unlock_test()
 	  	region = string.sub(string.match(data, "\"currentTerritory\":\"%a+\""), 21, -2)
 			if region then
 				status = 2
+				if not datamatch(region, regex) then
+					status = 3
+				end
 				return region
 			end
 		end
