@@ -1172,6 +1172,7 @@ do_run_file()
       geoip_path="/etc/openclash/Country.mmdb"
       chnr_path="/etc/openclash/china_ip_route.ipset"
       chnr6_path="/etc/openclash/china_ip6_route.ipset"
+      cache_path="/etc/openclash/cache.db"
       rm -rf "/tmp/etc/openclash" 2>/dev/null
    else
       dev_core_path="/tmp/etc/openclash/core/clash"
@@ -1179,10 +1180,12 @@ do_run_file()
       geoip_path="/tmp/etc/openclash/Country.mmdb"
       chnr_path="/tmp/etc/openclash/china_ip_route.ipset"
       chnr6_path="/tmp/etc/openclash/china_ip6_route.ipset"
+      cache_path="/tmp/etc/openclash/cache.db"
       rm -rf "/etc/openclash/Country.mmdb" 2>/dev/null
       rm -rf "/etc/openclash/china_ip_route.ipset" 2>/dev/null
       rm -rf "/etc/openclash/china_ip6_route.ipset" 2>/dev/null
       rm -rf "/etc/openclash/core" 2>/dev/null
+      rm -rf "/etc/openclash/cache.db" 2>/dev/null
    fi
     
    rm -rf "/etc/openclash/clash" 2>/dev/null
@@ -1253,6 +1256,10 @@ do_run_file()
    
    [ -f "$chnr6_path" ] && [ "$small_flash_memory" = "1" ] && {
       ln -s "$chnr6_path" /etc/openclash/china_ip6_route.ipset 2>/dev/null
+   }
+   
+   [ -f "$cache_path" ] && [ "$small_flash_memory" = "1" ] && {
+      ln -s "$cache_path" /etc/openclash/cache.db 2>/dev/null
    }
    
    [ ! -f "$geoip_path" ] && {
