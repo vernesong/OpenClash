@@ -179,7 +179,7 @@
       var oplvis = arr_op[0];
       var new_op = arr_op[1];
 			op_cv.innerHTML = status.opcv ? "<b style=color:green>"+status.opcv+"</b>" : "<b style=color:red><%:Unknown%></b>";
-			if ( new_op == "2" ) {
+			if ( new_op == "2" && oplvis != "") {
 			   op_lv.innerHTML = "<b style=color:green>"+oplvis+"<%:<New>%></b>";
 			}
 			else if (oplvis != "") {
