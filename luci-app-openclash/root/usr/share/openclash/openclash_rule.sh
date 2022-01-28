@@ -35,10 +35,10 @@
    LOG_OUT "Start Downloading Third Party Rules in Use..."
    if [ "$rule_name" = "lhie1" ]; then
      if pidof clash >/dev/null; then
-         curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/lhie1/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/dler-io/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
      fi
      if [ "$?" -ne "0" ] || ! pidof clash >/dev/null; then
-         curl -sL --connect-timeout 10 --retry 2 https://cdn.jsdelivr.net/gh/lhie1/Rules@master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         curl -sL --connect-timeout 10 --retry 2 https://cdn.jsdelivr.net/gh/dler-io/Rules@master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
       fi
       sed -i '1i rules:' /tmp/rules.yaml
    elif [ "$rule_name" = "ConnersHua" ]; then
