@@ -11,6 +11,13 @@ CPU_MODEL=$(uci get openclash.config.core_version 2>/dev/null)
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
 
 [ ! -f "/tmp/clash_last_version" ] && /usr/share/openclash/clash_version.sh 2>/dev/null
+if [ ! -f "/tmp/clash_last_version" ]; then
+   LOG_OUT "Error: 【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
+   sleep 3
+   SLOG_CLEAN
+   exit 0
+fi
+
 if [ "$small_flash_memory" != "1" ]; then
    dev_core_path="/etc/openclash/core/clash"
    tun_core_path="/etc/openclash/core/clash_tun"
