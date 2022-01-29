@@ -1172,7 +1172,11 @@ do_run_file()
       geoip_path="/etc/openclash/Country.mmdb"
       chnr_path="/etc/openclash/china_ip_route.ipset"
       chnr6_path="/etc/openclash/china_ip6_route.ipset"
-      cache_path="/etc/openclash/cache.db"
+      mv "/tmp/etc/openclash/Country.mmdb" "$geoip_path" 2>/dev/null
+      mv "/tmp/etc/openclash/china_ip_route.ipset" "$chnr_path" 2>/dev/null
+      mv "/tmp/etc/openclash/china_ip6_route.ipset" "$chnr6_path" 2>/dev/null
+      mv "/tmp/etc/openclash/core/" "/etc/openclash" 2>/dev/null
+      mv "/tmp/etc/openclash/cache.db" "/etc/openclash/cache.db" 2>/dev/null
       rm -rf "/tmp/etc/openclash" 2>/dev/null
    else
       dev_core_path="/tmp/etc/openclash/core/clash"
@@ -1180,12 +1184,13 @@ do_run_file()
       geoip_path="/tmp/etc/openclash/Country.mmdb"
       chnr_path="/tmp/etc/openclash/china_ip_route.ipset"
       chnr6_path="/tmp/etc/openclash/china_ip6_route.ipset"
-      cache_path="/tmp/etc/openclash/cache.db"
-      rm -rf "/etc/openclash/Country.mmdb" 2>/dev/null
-      rm -rf "/etc/openclash/china_ip_route.ipset" 2>/dev/null
-      rm -rf "/etc/openclash/china_ip6_route.ipset" 2>/dev/null
-      rm -rf "/etc/openclash/core" 2>/dev/null
-      rm -rf "/etc/openclash/cache.db" 2>/dev/null
+      CACHE_PATH="/tmp/etc/openclash/cache.db"
+      mkdir -p /tmp/etc/openclash
+      mv "/etc/openclash/Country.mmdb" "$geoip_path" 2>/dev/null
+      mv "/etc/openclash/china_ip_route.ipset" "$chnr_path" 2>/dev/null
+      mv "/etc/openclash/china_ip6_route.ipset" "$chnr6_path" 2>/dev/null
+      mv "/etc/openclash/core/" "/tmp/etc/openclash" 2>/dev/null
+      mv "/etc/openclash/cache.db" "$CACHE_PATH" 2>/dev/null
    fi
     
    rm -rf "/etc/openclash/clash" 2>/dev/null
@@ -1229,12 +1234,30 @@ do_run_file()
       core_type="TUN"
       core_start_log="Tip: Detected that the Dev Core is not Installed, Use TUN Core to Start..."
    fi
+   
+   [ ! -f "$CLASH" ] && {
+     LOG_OUT "Tip: Detected that the Core is not Installed, Ready to Download..."
+     rm -rf "/tmp/clash_last_version"
+     nohup /usr/share/openclash/openclash_core.sh "$core_type" &
+     del_lock
+     exit 0
+   }
+   
+   [ ! -f "$geoip_path" ] && {
+     LOG_OUT "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
+     /usr/share/openclash/openclash_ipdb.sh
+   }
+   
+   if [ "$china_ip_route" = "1" ] || [ "$china_ip6_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
+   	  if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ]; then
+         LOG_OUT "Tip: Detected that the Chnroute Cidr List is not Installed, Ready to Download..."
+         /usr/share/openclash/openclash_chnroute.sh
+      fi
+   fi
 
-#权限检查
    [ ! -x "$tun_core_path" ] && chmod 4755 "$tun_core_path" 2>/dev/null
    [ ! -x "$dev_core_path" ] && chmod 4755 "$dev_core_path" 2>/dev/null
 
-#文件检查
    #fake_ip_filter
    if [ "$3" = "fake-ip" ]; then
       if [ ! -f "/tmp/openclash_fake_filter.list" ] || [ -n "$(grep "config servers" /etc/config/openclash 2>/dev/null)" ]; then
@@ -1258,35 +1281,36 @@ do_run_file()
       ln -s "$chnr6_path" /etc/openclash/china_ip6_route.ipset 2>/dev/null
    }
    
-   [ -f "$cache_path" ] && [ "$small_flash_memory" = "1" ] && {
-      ln -s "$cache_path" /etc/openclash/cache.db 2>/dev/null
-   }
-   
-   [ ! -f "$geoip_path" ] && {
-     LOG_OUT "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
-     nofile=1
-     nohup /usr/share/openclash/openclash_ipdb.sh &
-   }
-   
-   [ ! -f "$CLASH" ] && {
-     LOG_OUT "Tip: Detected that the Core is not Installed, Ready to Download..."
-     nofile=1
-     rm -rf "/tmp/clash_last_version"
-     nohup /usr/share/openclash/openclash_core.sh "$core_type" &
-   }
-   
-   if [ "$china_ip_route" = "1" ] || [ "$china_ip6_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
-   	  if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ]; then
-         LOG_OUT "Tip: Detected that the Chnroute Cidr List is not Installed, Ready to Download..."
-         nofile=1
-         nohup /usr/share/openclash/openclash_chnroute.sh &
+   #Resore history cache
+   if [ -f "$HISTORY_PATH" ] && [ -f "$HISTORY_PATH_OLD" ]; then
+      if [ "$(date -r $HISTORY_PATH +%s)" -ge "$(date -r $HISTORY_PATH_OLD +%s)" ]; then
+         cmp -s "$CACHE_PATH" "$HISTORY_PATH"
+         if [ "$?" -ne "0" ]; then
+            cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
+         fi
+      else
+         cmp -s "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD"
+         if [ "$?" -ne "0" ]; then
+            cp "$HISTORY_PATH_OLD" "$CACHE_PATH_OLD" 2>/dev/null
+         fi
+      fi
+   else
+      if [ -f "$HISTORY_PATH" ]; then
+         cmp -s "$CACHE_PATH" "$HISTORY_PATH"
+         if [ "$?" -ne "0" ]; then
+            cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
+         fi
+      fi
+      if [ -f "$HISTORY_PATH_OLD" ]; then
+         cmp -s "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD"
+         if [ "$?" -ne "0" ]; then
+            cp "$HISTORY_PATH_OLD" "$CACHE_PATH_OLD" 2>/dev/null
+         fi
       fi
    fi
-   
-   if [ "$nofile" = "1" ]; then
-      del_lock
-      exit 0
-   fi
+   [ -f "$CACHE_PATH" ] && [ "$small_flash_memory" = "1" ] && {
+      ln -s "$CACHE_PATH" /etc/openclash/cache.db 2>/dev/null
+   }
    
    if [ -z "$_koolshare" ]; then
       if ! capsh --is-uid=0 >/dev/null || ! capsh --has-ambient >/dev/null; then
@@ -1329,40 +1353,13 @@ start_run_core()
    modprobe tun >/dev/null 2>&1
    check_interface_name
    config_reload=$(uci -q get openclash.config.config_reload)
-   #Resore history cache
-   if [ -f "$HISTORY_PATH" ] && [ -f "$HISTORY_PATH_OLD" ]; then
-      if [ "$(date -r $HISTORY_PATH +%s)" -ge "$(date -r $HISTORY_PATH_OLD +%s)" ]; then
-         cmp -s "$CACHE_PATH" "$HISTORY_PATH"
-         if [ "$?" -ne "0" ]; then
-            cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
-         fi
-      else
-         cmp -s "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD"
-         if [ "$?" -ne "0" ]; then
-            cp "$HISTORY_PATH_OLD" "$CACHE_PATH_OLD" 2>/dev/null
-         fi
-      fi
-   else
-      if [ -f "$HISTORY_PATH" ]; then
-         cmp -s "$CACHE_PATH" "$HISTORY_PATH"
-         if [ "$?" -ne "0" ]; then
-            cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
-         fi
-      fi
-      if [ -f "$HISTORY_PATH_OLD" ]; then
-         cmp -s "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD"
-         if [ "$?" -ne "0" ]; then
-            cp "$HISTORY_PATH_OLD" "$CACHE_PATH_OLD" 2>/dev/null
-         fi
-      fi
-   fi
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$config_reload" != "0" ]; then
       curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
    else
       kill_clash
       if [ -z "$_koolshare" ]; then
          #防止赋权失败
-         touch /tmp/openclash.log 2>/dev/null
+         touch "/tmp/openclash.log" 2>/dev/null
          chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
          chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
          chmod o+w /tmp/openclash.log 2>/dev/null
