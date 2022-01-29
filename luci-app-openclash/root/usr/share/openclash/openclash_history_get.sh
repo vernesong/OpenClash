@@ -26,10 +26,15 @@ fi
 
 CONFIG_FILE=$(unify_ps_cfgname)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $4}' 2>/dev/null)
+small_flash_memory=$(uci -q get openclash.config.small_flash_memory)
 HISTORY_PATH_OLD="/etc/openclash/history/${CONFIG_NAME%.*}"
 HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}.db"
 CACHE_PATH_OLD="/etc/openclash/.cache"
-CACHE_PATH="/etc/openclash/cache.db"
+if [ "$small_flash_memory" != "1" ]; then
+   CACHE_PATH="/etc/openclash/cache.db"
+else
+   CACHE_PATH="/tmp/etc/openclash/cache.db"
+fi
 set_lock
 
 if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
