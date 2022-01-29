@@ -1186,11 +1186,11 @@ do_run_file()
       chnr6_path="/tmp/etc/openclash/china_ip6_route.ipset"
       CACHE_PATH="/tmp/etc/openclash/cache.db"
       mkdir -p /tmp/etc/openclash
-      mv "/etc/openclash/Country.mmdb" "$geoip_path" 2>/dev/null
-      mv "/etc/openclash/china_ip_route.ipset" "$chnr_path" 2>/dev/null
-      mv "/etc/openclash/china_ip6_route.ipset" "$chnr6_path" 2>/dev/null
+      [ ! -h "/etc/openclash/Country.mmdb" ] && mv "/etc/openclash/Country.mmdb" "$geoip_path" 2>/dev/null
+      [ ! -h "/etc/openclash/china_ip_route.ipset" ] && mv "/etc/openclash/china_ip_route.ipset" "$chnr_path" 2>/dev/null
+      [ ! -h "/etc/openclash/china_ip6_route.ipset" ] && mv "/etc/openclash/china_ip6_route.ipset" "$chnr6_path" 2>/dev/null
       mv "/etc/openclash/core/" "/tmp/etc/openclash" 2>/dev/null
-      mv "/etc/openclash/cache.db" "$CACHE_PATH" 2>/dev/null
+      [ ! -h "/etc/openclash/cache.db" ] && mv "/etc/openclash/cache.db" "$CACHE_PATH" 2>/dev/null
    fi
     
    rm -rf "/etc/openclash/clash" 2>/dev/null
@@ -1236,16 +1236,23 @@ do_run_file()
    fi
    
    [ ! -f "$CLASH" ] && {
-     LOG_OUT "Tip: Detected that the Core is not Installed, Ready to Download..."
-     rm -rf "/tmp/clash_last_version"
-     nohup /usr/share/openclash/openclash_core.sh "$core_type" &
-     del_lock
-     exit 0
+      LOG_OUT "Tip: Detected that the Core is not Installed, Ready to Download..."
+      rm -rf "/tmp/clash_last_version"
+      /usr/share/openclash/openclash_core.sh "$core_type"
+      if [ "$core_type" == "TUN" ] && [ ! -f "$tun_core_path" ]; then
+         start_fail
+      elif [ -z "$core_type" ] && [ ! -f "$dev_core_path" ]; then
+         start_fail
+      else
+         del_lock
+         restart
+         exit 0
+      fi
    }
    
    [ ! -f "$geoip_path" ] && {
-     LOG_OUT "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
-     /usr/share/openclash/openclash_ipdb.sh
+      LOG_OUT "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
+      /usr/share/openclash/openclash_ipdb.sh
    }
    
    if [ "$china_ip_route" = "1" ] || [ "$china_ip6_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
@@ -1253,6 +1260,10 @@ do_run_file()
          LOG_OUT "Tip: Detected that the Chnroute Cidr List is not Installed, Ready to Download..."
          /usr/share/openclash/openclash_chnroute.sh
       fi
+   fi
+   
+   if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ] || [ ! -f "$geoip_path" ]; then
+      start_fail
    fi
 
    [ ! -x "$tun_core_path" ] && chmod 4755 "$tun_core_path" 2>/dev/null
