@@ -157,7 +157,7 @@ config_cus_up()
 config_su_check()
 {
    LOG_OUT "Config File Download Successful, Check If There is Any Update..."
-   sed -i 's/!<str> //g' "$CFG_FILE" >/dev/null 2>&1
+   sed -i 's/!<str> /!!str /g' "$CFG_FILE" >/dev/null 2>&1
    if [ -f "$CONFIG_FILE" ]; then
       cmp -s "$BACKPACK_FILE" "$CFG_FILE"
       if [ "$?" -ne 0 ]; then
