@@ -1704,19 +1704,13 @@ if [ "$china_ip_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
    ipset -! restore </etc/openclash/china_ip_route.ipset 2>/dev/null
 fi
 
-if [ "$enable_redirect_dns" -eq 1 ]; then
+if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(iptables -t nat -nL PREROUTING --line-number |grep 'DNS Hijack')"]; then
    DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
    if [ -z "$DNSPORT" ]; then
       DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo "$dns_port")
    fi
-   if [ -z "$(iptables -t nat -nL PREROUTING --line-number |grep 'DNS Hijack')"]; then
-      iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
-      iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
-   fi
-   if [ -z "$(iptables -t nat -nL OUTPUT --line-number |grep 'DNS Hijack')"]; then
-      iptables -t nat -I OUTPUT -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
-      iptables -t nat -I OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
-   fi
+   iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
+   iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
 fi
 
 #lan_ac
