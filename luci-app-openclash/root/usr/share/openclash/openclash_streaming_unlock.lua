@@ -8,7 +8,7 @@ local uci = require("luci.model.uci").cursor()
 local fs = require "luci.openclash"
 local json = require "luci.jsonc"
 local UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36"
-local filmId = 81215567
+local filmId = 70143836
 local type = arg[1]
 local enable = tonumber(uci:get("openclash", "config", "stream_auto_select")) or 0
 local now_name, group_name, group_type, group_show, status
@@ -557,7 +557,7 @@ function netflix_unlock_test()
 				status = 3
 			end
 			return region
-		elseif info.http_code == 404 then
+		elseif info.http_code == 404 or info.http_code == 403 then
 			status = 1
 		end
 	end
