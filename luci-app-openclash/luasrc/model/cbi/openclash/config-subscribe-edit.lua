@@ -163,6 +163,7 @@ o.rmempty = true
 ---- de_exkey
 o = s:option(MultiValue, "de_ex_keyword", font_red..bold_on..translate("Exclude Keyword Match Default")..bold_off..font_off)
 o.rmempty = true
+o:depends("sub_convert", 0)
 o:value("过期时间")
 o:value("剩余流量")
 o:value("TG群")
