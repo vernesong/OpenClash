@@ -11,7 +11,7 @@ local uci = require "luci.model.uci".cursor()
 
 m = SimpleForm("openclash", translate("Other Rule Providers List"))
 m.description=translate("Rule Project:").." ConnersHua ( https://github.com/DivineEngine/Profiles )<br/>"..
-translate("Rule Project:").." lhie1 ( https://github.com/lhie1/Rules )<br/>"..
+translate("Rule Project:").." lhie1 ( https://github.com/dler-io/Rules )<br/>"..
 translate("Rule Project:").." ACL4SSR ( https://github.com/ACL4SSR/ACL4SSR/tree/master )"
 m.reset = false
 m.submit = false

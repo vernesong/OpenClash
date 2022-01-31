@@ -1704,13 +1704,19 @@ if [ "$china_ip_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
    ipset -! restore </etc/openclash/china_ip_route.ipset 2>/dev/null
 fi
 
-if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(iptables -t nat -nL PREROUTING --line-number |grep 'DNS Hijack')"]; then
+if [ "$enable_redirect_dns" -eq 1 ]; then
    DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
    if [ -z "$DNSPORT" ]; then
-    DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo "$dns_port")
+      DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo "$dns_port")
    fi
-   iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
-   iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
+   if [ -z "$(iptables -t nat -nL PREROUTING --line-number |grep 'DNS Hijack')"]; then
+      iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
+      iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
+   fi
+   if [ -z "$(iptables -t nat -nL OUTPUT --line-number |grep 'DNS Hijack')"]; then
+      iptables -t nat -I OUTPUT -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
+      iptables -t nat -I OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
+   fi
 fi
 
 #lan_ac
@@ -1876,6 +1882,10 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
       if [ "$en_mode" = "fake-ip" ]; then
          iptables -t nat -N openclash_output
          iptables -t nat -F openclash_output
+         if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(iptables -t nat -nL OUTPUT --line-number |grep 'DNS Hijack')"]; then
+            iptables -t nat -I OUTPUT -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
+            iptables -t nat -I OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "DNS Hijack"
+         fi
          iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
          if [ "$intranet_allowed" -eq 1 ]; then
             iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j DNAT --to-destination "$lan_ip:$proxy_port"
@@ -1885,7 +1895,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
          
       fi
    fi
-   iptables -t nat -I OUTPUT -j openclash_output >/dev/null 2>&1
+   iptables -t nat -A OUTPUT -j openclash_output >/dev/null 2>&1
 fi
 if [ -n "$en_mode_tun" ]; then
    #TUN模式
@@ -1917,7 +1927,7 @@ if [ -n "$en_mode_tun" ]; then
       elif [ -z "$_koolshare" ]; then
          iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
       fi
-      iptables -t mangle -I OUTPUT -j openclash_output
+      iptables -t mangle -A OUTPUT -j openclash_output
    elif [ -z "$_koolshare" ] && [ "$en_mode" = "redir-host" ] && [ "$en_mode_tun" -eq 1 ]; then
       iptables -t mangle -N openclash_output
       iptables -t mangle -F openclash_output
@@ -1928,7 +1938,7 @@ if [ -n "$en_mode_tun" ]; then
          iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
       fi
       iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j MARK --set-mark "$PROXY_FWMARK"
-      iptables -t mangle -I OUTPUT -j openclash_output
+      iptables -t mangle -A OUTPUT -j openclash_output
    fi
    
    iptables -t mangle -N openclash
