@@ -43,6 +43,11 @@ kill_watchdog() {
    for watchdog_pid in $watchdog_pids; do
       kill -9 "$watchdog_pid" >/dev/null 2>&1
    done
+   
+   streaming_unlock_pids=$(unify_ps_pids "openclash_streaming_unlock.lua")
+   for streaming_unlock_pid in $streaming_unlock_pids; do
+      kill -9 "$streaming_unlock_pid" >/dev/null 2>&1
+   done >/dev/null 2>&1
 }
 
 config_download()
