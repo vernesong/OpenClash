@@ -571,7 +571,7 @@ o.placeholder = "HBO|HBOGO|HBO GO"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_hbo_go_asia", "1")
 
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_hbo_go_asia", translate("HBO Max Unlock Region Filter"))
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_hbo_go_asia", translate("HBO GO Asia Unlock Region Filter"))
 o.default = ""
 o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region According To The Regex")
@@ -587,7 +587,7 @@ o.placeholder = "TVB"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_tvb_anywhere", "1")
 
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_tvb_anywhere", translate("HBO Max Unlock Region Filter"))
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_tvb_anywhere", translate("TVB Anywhere+ Unlock Region Filter"))
 o.default = ""
 o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region According To The Regex")
