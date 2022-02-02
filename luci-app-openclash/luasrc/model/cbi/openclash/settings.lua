@@ -83,7 +83,7 @@ o:value("script", translate("Script Proxy Mode (Tun Core Only)"))
 o.default = "rule"
 
 o = s:taboption("op_mode", Flag, "ipv6_enable", font_red..bold_on..translate("Proxy IPv6 Traffic")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use")..bold_off..font_off
+o.description = font_red..bold_on..translate("The Gateway and DNS of The Connected Device Must be The Router IP, Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use")..bold_off..font_off
 o.default=0
 
 o = s:taboption("op_mode", Flag, "china_ip6_route", translate("China IPv6 Route"))
@@ -112,6 +112,10 @@ o.default=0
 o:depends("en_mode", "redir-host")
 o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")
+
+o = s:taboption("op_mode", Flag, "bypass_gateway_compatible", translate("Bypass Gateway Compatible"))
+o.description = translate("If The Ntwork Cannot be Connected in Bypass Gateway Mode, Please Try to Enable")
+o.default=0
 
 o = s:taboption("op_mode", Flag, "small_flash_memory", translate("Small Flash Memory"))
 o.description = translate("Move Core And GEOIP Data File To /tmp/etc/openclash For Small Flash Memory Device")

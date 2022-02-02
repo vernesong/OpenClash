@@ -285,8 +285,8 @@ msgstr "(通讯协议)"
 msgid "Proxy IPv6 Traffic"
 msgstr "IPv6 流量代理"
 
-msgid "Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use"
-msgstr "如果您不使用，请禁用IPv6的DHCP以避免连接异常"
+msgid "The Gateway and DNS of The Connected Device Must be The Router IP, Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use"
+msgstr "连接设备的网关和DNS须为路由器IP，如果您不使用，请禁用IPv6的DHCP以避免连接异常"
 
 msgid "IPv6 DNS Resolve"
 msgstr "允许IPv6类型DNS解析"
@@ -2641,3 +2641,9 @@ msgstr "*远程域名解析"
 
 msgid "Add DNS Remote Support For Redir-Host"
 msgstr "Redir-Host模式强制进行远程域名解析"
+
+msgid "Bypass Gateway Compatible"
+msgstr "旁路网关（旁路由）兼容"
+
+msgid "If The Ntwork Cannot be Connected in Bypass Gateway Mode, Please Try to Enable"
+msgstr "旁路网关（旁路由）模式下网络无法连接时请尝试启用"
