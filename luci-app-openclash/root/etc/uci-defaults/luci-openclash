@@ -47,10 +47,10 @@ if [ -f "/tmp/openclash.bak" ]; then
 	mv -f "/tmp/openclash_custom_hosts.list.bak" "/etc/openclash/custom/openclash_custom_hosts.list" >/dev/null 2>&1
 	mv -f "/tmp/openclash_custom_fake_filter.list.bak" "/etc/openclash/custom/openclash_custom_fake_filter.list" >/dev/null 2>&1
 	mv -f "/tmp/openclash_custom_domain_dns.list.bak" "/etc/openclash/custom/openclash_custom_domain_dns.list" >/dev/null 2>&1
-	rm -rf "/etc/openclash/openclash"
-	rm -rf "/etc/openclash/fake_filter.list"
-	rm -rf "/etc/openclash/openclash_servers_fake_filter.conf"
-	rm -rf /tmp/openclash*
+	rm -rf "/etc/openclash/openclash" >/dev/null 2>&1
+	rm -rf "/etc/openclash/fake_filter.list" >/dev/null 2>&1
+	rm -rf "/etc/openclash/openclash_servers_fake_filter.conf" >/dev/null 2>&1
+	rm -rf "/tmp/openclash*" >/dev/null 2>&1
 fi
 
 source "/etc/openwrt_release"
