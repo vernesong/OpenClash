@@ -75,20 +75,21 @@ endef
 
 define Package/$(PKG_NAME)/postrm
 #!/bin/sh
-	rm -rf /etc/openclash
-	rm -rf /tmp/openclash.log
-	rm -rf /tmp/openclash_start.log
-	rm -rf /tmp/openclash_last_version
-	rm -rf /tmp/openclash_config.tmp
-	rm -rf /tmp/openclash.change
-	rm -rf /tmp/Proxy_Group
-	rm -rf /tmp/rules_name
-	rm -rf /tmp/rule_providers_name
-	rm -rf /tmp/clash_last_version
-	rm -rf /usr/share/openclash/backup
-	rm -rf /tmp/openclash_fake_filter.list
-	rm -rf /tmp/openclash_servers_fake_filter.conf
-	rm -rf /tmp/dler*
+	rm -rf /etc/openclash >/dev/null 2>&1
+	rm -rf /tmp/openclash.log >/dev/null 2>&1
+	rm -rf /tmp/openclash_start.log >/dev/null 2>&1
+	rm -rf /tmp/openclash_last_version >/dev/null 2>&1
+	rm -rf /tmp/openclash_config.tmp >/dev/null 2>&1
+	rm -rf /tmp/openclash.change >/dev/null 2>&1
+	rm -rf /tmp/Proxy_Group >/dev/null 2>&1
+	rm -rf /tmp/rules_name >/dev/null 2>&1
+	rm -rf /tmp/rule_providers_name >/dev/null 2>&1
+	rm -rf /tmp/clash_last_version >/dev/null 2>&1
+	rm -rf /usr/share/openclash/backup >/dev/null 2>&1
+	rm -rf /tmp/openclash_fake_filter.list >/dev/null 2>&1
+	rm -rf /tmp/openclash_servers_fake_filter.conf >/dev/null 2>&1
+	rm -rf /tmp/dler* >/dev/null 2>&1
+	rm -rf /tmp/etc/openclash >/dev/null 2>&1
 	uci -q delete firewall.openclash
 	uci -q commit firewall
 	uci -q delete ucitrack.@openclash[-1]
