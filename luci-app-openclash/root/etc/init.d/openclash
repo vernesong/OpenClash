@@ -1961,6 +1961,7 @@ if [ -n "$en_mode_tun" ]; then
    iptables -t mangle -N openclash_dns_hijack
    iptables -t mangle -F openclash_dns_hijack
    #其他流量
+   iptables -t mangle -A openclash -i utun -j RETURN >/dev/null 2>&1
    iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN >/dev/null 2>&1
    iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
    iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
