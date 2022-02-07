@@ -25,7 +25,28 @@ yml_other_set()
                   if Value_1['script'] and Value_1['script'].class.to_s != 'Array' then
                      if Value.key?('script') and not Value_1['script'].to_a.empty? then
                         if Value['script'].key?('code') and Value_1['script'].key?('code') then
-                           Value['script']['code'].merge!(Value_1['script']['code']).uniq
+                           if not Value['script']['code'].include?('def main(ctx, metadata):') then
+                              Value['script']['code'] = Value_1['script']['code']
+                           else
+                              if i == '/etc/openclash/custom/openclash_custom_rules.list' then
+                                 if not Value_1['script']['code'].include?('def main(ctx, metadata):') then
+                                    Value['script']['code'].gsub!('def main(ctx, metadata):', \"def main(ctx, metadata):\n\" + Value_1['script']['code'])
+                                 else
+                                    Value['script']['code'].gsub!('def main(ctx, metadata):', Value_1['script']['code'])
+                                 end
+                              else
+                                 insert_index = Value['script']['code'].rindex(/(return|GEOIP|MATCH|FINAL)/)
+                                 insert_index ||= -1
+                                 if insert_index != -1 then
+                                    insert_index  = Value['script']['code'].rindex(\"\n\", insert_index) + 1
+                                 end
+                                 if not Value_1['script']['code'].include?('def main(ctx, metadata):') then
+                                    Value['script']['code'].insert(insert_index, Value_1['script']['code'])
+                                 else
+                                    Value['script']['code'].insert(insert_index, Value_1['script']['code'].gsub('def main(ctx, metadata):', ''))
+                                 end
+                              end
+                           end
                         elsif Value_1['script'].key?('code') then
                            Value['script']['code'] = Value_1['script']['code']
                         end
