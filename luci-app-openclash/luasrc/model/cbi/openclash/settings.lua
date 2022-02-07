@@ -114,7 +114,7 @@ o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")
 
 o = s:taboption("op_mode", Flag, "bypass_gateway_compatible", translate("Bypass Gateway Compatible"))
-o.description = translate("If The Ntwork Cannot be Connected in Bypass Gateway Mode, Please Try to Enable.")..font_red..bold_on..translate("Suggestion: If The Device Does Not Have Wifi, Please Disable The Lan Interface's Bridge Option")..bold_off..font_off
+o.description = translate("If The Ntwork Cannot be Connected in Bypass Gateway Mode, Please Try to Enable.")..font_red..bold_on..translate("Suggestion: If The Device Does Not Have WLAN, Please Disable The Lan Interface's Bridge Option")..bold_off..font_off
 o.default=0
 
 o = s:taboption("op_mode", Flag, "small_flash_memory", translate("Small Flash Memory"))
