@@ -4,7 +4,17 @@ script:
 ##    time-limit: in_cidr(src_ip,'192.168.1.2/32') and time.now().hour < 20 or time.now().hour > 21
 ##    time-limit: src_ip == '192.168.1.2' and time.now().hour < 20 or time.now().hour > 21
 
+##  code: |
+##    def main(ctx, metadata):
+##      directkeywordlist = ["baidu"]
+##      for directkeyword in directkeywordlist:
+##        if directkeyword in metadata["host"]:
+##          ctx.log('[Script] matched keyword %s use direct' % directkeyword)
+##          return "DIRECT"
+
 rules:
+#- PROCESS-NAME,tcping,DIRECT
+#- PROCESS-NAME,curl,DIRECT
 ##- SCRIPT,quic,REJECT #shortcuts rule
 ##- SCRIPT,time-limit,REJECT #shortcuts rule
 
