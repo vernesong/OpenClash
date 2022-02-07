@@ -6,15 +6,13 @@ script:
 
 ##  code: |
 ##    def main(ctx, metadata):
-##      directkeywordlist = ["baidu"]
-##      for directkeyword in directkeywordlist:
-##        if directkeyword in metadata["host"]:
-##          ctx.log('[Script] matched keyword %s use direct' % directkeyword)
-##          return "DIRECT"
+##        directkeywordlist = ["baidu"]
+##        for directkeyword in directkeywordlist:
+##          if directkeyword in metadata["host"]:
+##            ctx.log('[Script] matched keyword %s use direct' % directkeyword)
+##            return "DIRECT"
 
 rules:
-#- PROCESS-NAME,tcping,DIRECT
-#- PROCESS-NAME,curl,DIRECT
 ##- SCRIPT,quic,REJECT #shortcuts rule
 ##- SCRIPT,time-limit,REJECT #shortcuts rule
 
