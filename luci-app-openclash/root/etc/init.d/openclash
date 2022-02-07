@@ -2376,5 +2376,3 @@ reload()
       del_lock
    fi
 }
-LEAN
-      del_lo
