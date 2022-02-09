@@ -300,8 +300,16 @@ yml_provider_path()
          x['path']='./$3/'+v
       end
       #CDN Replace
-      if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
-         x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1]
+      if '$4' != '0' then
+         if '$4' == 'https://cdn.jsdelivr.net/' then
+            if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
+               x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1]
+            end
+         else
+            if x['url'] and x['url'] =~ /^https:\/\/(raw.|gist.)(githubusercontent.com|github.com)/ then
+               x['url'] = '$4' + x['url']
+            end
+         end
       end
       };
       if not Value_1.eql?(Value['$2']) then
@@ -756,7 +764,16 @@ yml_gen_rule_provider_file()
    RULE_PROVIDER_FILE_BEHAVIOR=$(grep ",$RULE_PROVIDER_FILE_NAME$" /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $3}' 2>/dev/null)
    RULE_PROVIDER_FILE_PATH="/etc/openclash/rule_provider/$RULE_PROVIDER_FILE_NAME"
    RULE_PROVIDER_FILE_URL_PATH="$(grep ",$RULE_PROVIDER_FILE_NAME$" /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $4$5}' 2>/dev/null)"
-   RULE_PROVIDER_FILE_URL="https://cdn.jsdelivr.net/gh/"$(echo "$RULE_PROVIDER_FILE_URL_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"@master"$(echo "$RULE_PROVIDER_FILE_URL_PATH" |awk -F 'master' '{print $2}')""
+   if [ "$github_address_mod" -eq 0 ]; then
+      RULE_PROVIDER_FILE_URL="https://raw.githubusercontent.com/${RULE_PROVIDER_FILE_URL_PATH}"
+   else
+      if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+         RULE_PROVIDER_FILE_URL="https://cdn.jsdelivr.net/gh/"$(echo "$RULE_PROVIDER_FILE_URL_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"@master"$(echo "$RULE_PROVIDER_FILE_URL_PATH" |awk -F 'master' '{print $2}')""
+      else
+         RULE_PROVIDER_FILE_URL="${github_address_mod}https://raw.githubusercontent.com/${RULE_PROVIDER_FILE_URL_PATH}"
+      fi
+      
+   fi
    if [ -n "$(grep "$RULE_PROVIDER_FILE_URL" $RULE_PROVIDER_FILE 2>/dev/null)" ]; then
       return
    fi
@@ -2203,6 +2220,7 @@ get_config()
    dns_remote=$(uci -q get openclash.config.dns_remote || echo 1)
    bypass_gateway_compatible=$(uci -q get openclash.config.bypass_gateway_compatible || echo 0)
    core_version=$(uci -q get openclash.config.core_version || echo 0)
+   github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    [ "$ipv6_enable" -eq 1 ] && [ "$intranet_allowed" -eq 1 ] && intranet_allowed=0 && uci -q set openclash.config.intranet_allowed=0
@@ -2240,8 +2258,8 @@ start()
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME"
       yml_custom_rule_provider
       yml_game_custom
-      yml_provider_path "$CONFIG_FILE" "proxy-providers" "proxy_provider"
-      yml_provider_path "$CONFIG_FILE" "rule-providers" "rule_provider"
+      yml_provider_path "$CONFIG_FILE" "proxy-providers" "proxy_provider" "$github_address_mod"
+      yml_provider_path "$CONFIG_FILE" "rule-providers" "rule_provider" "$github_address_mod"
       yml_vmess_compatible "$CONFIG_FILE" "proxies"
       yml_dns_check "$CONFIG_FILE"  "$FALLBACK_FILTER_FILE"
       yml_tolerance_set "$CONFIG_FILE" "$tolerance"
