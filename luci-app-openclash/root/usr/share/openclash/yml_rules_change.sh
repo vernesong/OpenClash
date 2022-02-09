@@ -35,7 +35,8 @@ yml_other_set()
                                     Value['script']['code'].gsub!('def main(ctx, metadata):', Value_1['script']['code'])
                                  end
                               else
-                                 insert_index = Value['script']['code'].rindex(/(return|GEOIP|MATCH|FINAL)/)
+                                 insert_index = Value['script']['code'].index(/ctx.geoip/)
+                                 insert_index ||= Value['script']['code'].rindex(/return/)
                                  insert_index ||= -1
                                  if insert_index != -1 then
                                     insert_index  = Value['script']['code'].rindex(\"\n\", insert_index) + 1
