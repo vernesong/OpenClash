@@ -2650,3 +2650,9 @@ msgstr "旁路网关（旁路由）模式下网络无法连接时请尝试启用
 
 msgid "Suggestion: If The Device Does Not Have WLAN, Please Disable The Lan Interface's Bridge Option"
 msgstr "建议：如果设备没有WLAN，请禁用Lan接口的桥接接口选项"
+
+msgid "Github Address Modify"
+msgstr "Github 地址修改"
+
+msgid "Modify The Github Address In The Config With Proxy(CDN) To Prevent File Download Faild When The Core Starting. Format Reference:"
+msgstr "使用指定代理（CDN）反代配置文件中的Github地址，以防止内核在启动时无法下载文件，格式参考："
