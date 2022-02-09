@@ -2097,8 +2097,8 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
    fi
    
    if [ "$bypass_gateway_compatible" -eq 1 ]; then
-      ip6tables -t nat -A POSTROUTING -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
-      ip6tables -t nat -A POSTROUTING -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
+   	  ip6tables -t nat -I POSTROUTING -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
+      ip6tables -t nat -I POSTROUTING -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
    fi
 fi 2>/dev/null
 
