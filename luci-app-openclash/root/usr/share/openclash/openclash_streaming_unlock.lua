@@ -536,6 +536,8 @@ function datamatch(data, regex)
 	if result == "true" then return true else return false end
 end
 
+-- Thanks https://github.com/lmc999/RegionRestrictionCheck --
+
 function netflix_unlock_test()
 	status = 0
 	local url = "https://www.netflix.com/title/"..filmId
@@ -566,28 +568,46 @@ end
 
 function disney_unlock_test()
 	status = 0
-	local url = "https://global.edge.bamgrid.com/token"
-	local url2 = "https://www.disneyplus.com"
-	local headers = '-H "Accept-Language: en" -H "authorization: Bearer ZGlzbmV5JmJyb3dzZXImMS4wLjA.Cu56AgSfBTDag5NiRA81oLHkDZfu5L3CKadnefEAY84" -H "Content-Type: application/x-www-form-urlencoded"'
-	local auth = '"grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&latitude=0&longitude=0&platform=browser&subject_token=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJiNDAzMjU0NS0yYmE2LTRiZGMtOGFlOS04ZWI3YTY2NzBjMTIiLCJhdWQiOiJ1cm46YmFtdGVjaDpzZXJ2aWNlOnRva2VuIiwibmJmIjoxNjIyNjM3OTE2LCJpc3MiOiJ1cm46YmFtdGVjaDpzZXJ2aWNlOmRldmljZSIsImV4cCI6MjQ4NjYzNzkxNiwiaWF0IjoxNjIyNjM3OTE2LCJqdGkiOiI0ZDUzMTIxMS0zMDJmLTQyNDctOWQ0ZC1lNDQ3MTFmMzNlZjkifQ.g-QUcXNzMJ8DwC9JqZbbkYUSKkB1p4JGW77OON5IwNUcTGTNRLyVIiR8mO6HFyShovsR38HRQGVa51b15iAmXg&subject_token_type=urn%3Abamtech%3Aparams%3Aoauth%3Atoken-type%3Adevice"'
-	local httpcode = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{http_code} %s -H 'User-Agent: %s' -d %s -XPOST %s", headers, UA, auth, url))
-	local region
+	local url = "https://global.edge.bamgrid.com/devices"
+	local url2 = "https://global.edge.bamgrid.com/token"
+	local url3 = "https://disney.api.edge.bamgrid.com/graph/v1/device/graphql"
+	local headers = '-H "Accept-Language: en" -H "Content-Type: application/json" -H "authorization: ZGlzbmV5JmJyb3dzZXImMS4wLjA.Cu56AgSfBTDag5NiRA81oLHkDZfu5L3CKadnefEAY84"'
+	local auth = '-H "authorization: Bearer ZGlzbmV5JmJyb3dzZXImMS4wLjA.Cu56AgSfBTDag5NiRA81oLHkDZfu5L3CKadnefEAY84"'
+	local body = '{"query":"mutation registerDevice($input: RegisterDeviceInput!) { registerDevice(registerDevice: $input) { grant { grantType assertion } } }","variables":{"input":{"deviceFamily":"browser","applicationRuntime":"chrome","deviceProfile":"windows","deviceLanguage":"en","attributes":{"osDeviceIds":[],"manufacturer":"microsoft","model":null,"operatingSystem":"windows","operatingSystemVersion":"10.0","browserName":"chrome","browserVersion":"96.0.4606"}}}}'
+	local region, assertion, data, preassertion, disneycookie, tokencontent
 	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_disney") or ""
-	if tonumber(httpcode) == 200 then
+	
+	preassertion = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 %s -H 'User-Agent: %s' -H 'content-type: application/json; charset=UTF-8' -d '{\"deviceFamily\":\"browser\",\"applicationRuntime\":\"chrome\",\"deviceProfile\":\"windows\",\"attributes\":{}}' -XPOST %s", auth, UA, url))
+
+	if preassertion and json.parse(preassertion).assertion then
+		assertion = json.parse(preassertion).assertion
+	else
+		return
+	end
+
+	disneycookie = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&latitude=0&longitude=0&platform=browser&subject_token="..assertion.."&subject_token_type=urn%3Abamtech%3Aparams%3Aoauth%3Atoken-type%3Adevice"
+	tokencontent = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 %s -H 'User-Agent: %s' -d '%s' -XPOST %s", auth, UA, disneycookie, url2))
+
+	if tokencontent and json.parse(tokencontent).error_description then
 		status = 1
-		local url_effective = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -o /dev/null -w %%{url_effective} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url2))
-		if url_effective == "https://disneyplus.disney.co.jp/" then
+		return
+	end
+	
+	data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 %s -H 'User-Agent: %s' -d '%s' -XPOST %s", headers, UA, body, url3))
+
+	if data and json.parse(data) then
+		status = 1
+		region = json.parse(data).extensions.sdk.session.location.countryCode or ""
+		inSupportedLocation = json.parse(data).extensions.sdk.session.inSupportedLocation or ""
+		if region == "JP" then
 			status = 2
-			region = "JP"
 			if not datamatch(region, regex) then
 				status = 3
 			end
 			return region
-		elseif string.find(url_effective,"hotstar") then
-			return
 		end
-		local region = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s |grep 'Region: ' |awk '{print $2}' |tr -d '\n'", UA, url2))
-		if region and region ~= "" then
+
+		if region and region ~= "" and inSupportedLocation then
 			status = 2
 			if not datamatch(region, regex) then
 				status = 3
