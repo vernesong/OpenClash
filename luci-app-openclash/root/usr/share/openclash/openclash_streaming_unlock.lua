@@ -579,40 +579,44 @@ function disney_unlock_test()
 	
 	preassertion = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 %s -H 'User-Agent: %s' -H 'content-type: application/json; charset=UTF-8' -d '{\"deviceFamily\":\"browser\",\"applicationRuntime\":\"chrome\",\"deviceProfile\":\"windows\",\"attributes\":{}}' -XPOST %s", auth, UA, url))
 
-	if preassertion and json.parse(preassertion).assertion then
+	if preassertion and json.parse(preassertion) then
 		assertion = json.parse(preassertion).assertion
-	else
-		return
 	end
+	
+	if not assertion then return end
 
 	disneycookie = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&latitude=0&longitude=0&platform=browser&subject_token="..assertion.."&subject_token_type=urn%3Abamtech%3Aparams%3Aoauth%3Atoken-type%3Adevice"
 	tokencontent = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 %s -H 'User-Agent: %s' -d '%s' -XPOST %s", auth, UA, disneycookie, url2))
 
-	if tokencontent and json.parse(tokencontent).error_description then
-		status = 1
-		return
+	if tokencontent and json.parse(tokencontent) then
+		if json.parse(tokencontent).error_description then
+			status = 1
+			return
+		end
 	end
 	
 	data = luci.sys.exec(string.format("curl -sL -m 3 --retry 2 %s -H 'User-Agent: %s' -d '%s' -XPOST %s", headers, UA, body, url3))
 
 	if data and json.parse(data) then
 		status = 1
-		region = json.parse(data).extensions.sdk.session.location.countryCode or ""
-		inSupportedLocation = json.parse(data).extensions.sdk.session.inSupportedLocation or ""
-		if region == "JP" then
-			status = 2
-			if not datamatch(region, regex) then
-				status = 3
+		if json.parse(data).extensions and json.parse(data).extensions.sdk and json.parse(data).extensions.sdk.session then
+			region = json.parse(data).extensions.sdk.session.location.countryCode or ""
+			inSupportedLocation = json.parse(data).extensions.sdk.session.inSupportedLocation or ""
+			if region == "JP" then
+				status = 2
+				if not datamatch(region, regex) then
+					status = 3
+				end
+				return region
 			end
-			return region
-		end
 
-		if region and region ~= "" and inSupportedLocation then
-			status = 2
-			if not datamatch(region, regex) then
-				status = 3
+			if region and region ~= "" and inSupportedLocation then
+				status = 2
+				if not datamatch(region, regex) then
+					status = 3
+				end
+				return region
 			end
-			return region
 		end
 	end
 	return
