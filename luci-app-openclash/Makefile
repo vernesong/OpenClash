@@ -90,6 +90,7 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /tmp/openclash_servers_fake_filter.conf >/dev/null 2>&1
 	rm -rf /tmp/dler* >/dev/null 2>&1
 	rm -rf /tmp/etc/openclash >/dev/null 2>&1
+	rm -rf /tmp/openclash_edit_file_name >/dev/null 2>&1
 	uci -q delete firewall.openclash
 	uci -q commit firewall
 	uci -q delete ucitrack.@openclash[-1]

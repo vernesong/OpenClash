@@ -30,6 +30,16 @@ nm2=tb2:option(DummyValue,"name",translate("File Name"))
 mt2=tb2:option(DummyValue,"mtime",translate("Update Time"))
 sz2=tb2:option(DummyValue,"size",translate("Size"))
 
+btned1=tb2:option(Button,"edit",translate("Edit"))
+btned1.render=function(g,n,h)
+g.inputstyle="apply"
+Button.render(g,n,h)
+end
+btned1.write=function(h,n)
+	local file_path = "etc/openclash/game_rules/" .. fs.basename(g[n].name)
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "game-rules-file-manage", "%s") %file_path)
+end
+
 btndl2 = tb2:option(Button,"download2",translate("Download Config"))
 btndl2.template="openclash/other_button"
 btndl2.render=function(m,n,h)
@@ -75,7 +85,7 @@ return h
 end
 
 local t = {
-    {Refresh, Delete_all, Apply}
+    {Refresh, Create, Delete_all, Apply}
 }
 
 a = rule_form:section(Table, t)
@@ -86,6 +96,11 @@ o.inputstyle = "apply"
 o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-file-manage"))
 end
+
+o = a:option(DummyValue, "Create", " ")
+o.rawhtml = true
+o.template = "openclash/input_file_name"
+o.value = "/etc/openclash/game_rules/"
 
 o = a:option(Button, "Delete_all", " ")
 o.inputtitle = translate("Delete All File")

@@ -2656,3 +2656,12 @@ msgstr "Github 地址修改"
 
 msgid "Modify The Github Address In The Config With Proxy(CDN) To Prevent File Download Faild When The Core Starting. Format Reference:"
 msgstr "使用指定代理（CDN）反代配置文件中的Github地址，以防止内核在启动时无法下载文件，格式参考："
+
+msgid "File Edit"
+msgstr "文件编辑"
+
+msgid "Create File"
+msgstr "新建文件"
+
+msgid "Paste the name of the new file (including the extension) here"
+msgstr "请在此输入要新建的文件名称（含扩展名）"
