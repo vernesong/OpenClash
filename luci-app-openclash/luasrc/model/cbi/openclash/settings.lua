@@ -145,7 +145,7 @@ o.datatype = "uinteger"
 o.default = "0"
 
 o = s:taboption("settings", Value, "github_address_mod", font_red..bold_on..translate("Github Address Modify")..bold_off..font_off)
-o.description = translate("Modify The Github Address In The Config With Proxy(CDN) To Prevent File Download Faild When The Core Starting. Format Reference:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://ghproxy.com/\")'>https://ghproxy.com/</a>"
+o.description = translate("Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Faild. Format Reference:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://ghproxy.com/\")'>https://ghproxy.com/</a>"
 o:value("0", translate("Disable"))
 o:value("https://cdn.jsdelivr.net/")
 o.default = "0"
