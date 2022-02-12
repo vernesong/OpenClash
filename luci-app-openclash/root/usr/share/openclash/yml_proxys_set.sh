@@ -1300,7 +1300,7 @@ if [ "$create_config" != "0" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_g
    /usr/share/openclash/yml_groups_get.sh >/dev/null 2>&1
 elif [ -z "$if_game_proxy" ]; then
    LOG_OUT "Proxies, Proxy-providers, Groups Edited Successful, Updating Config File【$CONFIG_NAME】..."
-   config_hash=$(ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$CONFIG_FILE', indentation: 4); puts Value" 2>/dev/null)
+   config_hash=$(ruby -ryaml -E UTF-8 -e "Value = YAML.load_file('$CONFIG_FILE'); puts Value" 2>/dev/null)
    if [ "$config_hash" != "false" ] && [ -n "$config_hash" ]; then
       ruby_cover "$CONFIG_FILE" "['proxies']" "$SERVER_FILE" "proxies"
       ruby_cover "$CONFIG_FILE" "['proxy-providers']" "$PROXY_PROVIDER_FILE" "proxy-providers"
