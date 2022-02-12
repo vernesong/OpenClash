@@ -14,6 +14,7 @@
 
    small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
    GEOIP_CUSTOM_URL=$(uci get openclash.config.geo_custom_url 2>/dev/null)
+   github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
    set_lock
    
    if [ "$small_flash_memory" != "1" ]; then
@@ -25,14 +26,17 @@
    fi
    LOG_OUT "Start Downloading Geoip Database..."
    if [ -z "$GEOIP_CUSTOM_URL" ]; then
-      if pidof clash >/dev/null; then
-         curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/alecthw/mmdb_china_ip_list/release/lite/Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
-      fi
-      if [ "$?" -ne "0" ] || ! pidof clash >/dev/null; then
-         curl -sL --connect-timeout 10 --retry 2 https://cdn.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
+      if [ "$github_address_mod" != "0" ]; then
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+            curl -sL --connect-timeout 5 --retry 2 https://cdn.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
+         else
+            curl -sL --connect-timeout 5 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/alecthw/mmdb_china_ip_list/release/lite/Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
+         fi
+      else
+         curl -sL --connect-timeout 5 --retry 2 https://raw.githubusercontent.com/alecthw/mmdb_china_ip_list/release/lite/Country.mmdb -o /tmp/Country.mmdb >/dev/null 2>&1
       fi
    else
-      curl -sL --connect-timeout 10 --retry 2 "$GEOIP_CUSTOM_URL" -o /tmp/Country.mmdb >/dev/null 2>&1
+      curl -sL --connect-timeout 5 --retry 2 "$GEOIP_CUSTOM_URL" -o /tmp/Country.mmdb >/dev/null 2>&1
    fi
    if [ "$?" -eq "0" ] && [ -s "/tmp/Country.mmdb" ]; then
       LOG_OUT "Geoip Database Download Success, Check Updated..."

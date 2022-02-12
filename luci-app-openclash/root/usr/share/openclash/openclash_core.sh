@@ -9,6 +9,7 @@ C_CORE_TYPE=$(uci get openclash.config.core_type 2>/dev/null)
 small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
 CPU_MODEL=$(uci get openclash.config.core_version 2>/dev/null)
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
+github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
 
 [ ! -f "/tmp/clash_last_version" ] && /usr/share/openclash/clash_version.sh 2>/dev/null
 if [ ! -f "/tmp/clash_last_version" ]; then
@@ -49,41 +50,32 @@ esac
 
 if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
    if [ "$CPU_MODEL" != 0 ]; then
-      if [ "$RELEASE_BRANCH" = "dev" ]; then
-         case $CORE_TYPE in
-            "TUN")
-               LOG_OUT "【Tun】Core Downloading, Please Try to Download and Upload Manually If Fails"
-			         curl -sL -m 10 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
-			      ;;
-			      *)
-			         LOG_OUT "【Dev】Core Downloading, Please Try to Download and Upload Manually If Fails"
-			         curl -sL -m 10 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
-			   esac
-      else
-         if pidof clash >/dev/null; then
-			      case $CORE_TYPE in
-            	"TUN")
-            	   LOG_OUT "【Tun】Core Downloading, Please Try to Download and Upload Manually If Fails"
-			      	   curl -sL -m 10 --retry 2 https://github.com/vernesong/OpenClash/releases/download/TUN-Premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
-			      	;;
-			      	*)
-			      	   LOG_OUT "【Dev】Core Downloading, Please Try to Download and Upload Manually If Fails"
-			      	   curl -sL -m 10 --retry 2 https://github.com/vernesong/OpenClash/releases/download/Clash/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
-			      esac
-         fi
-      fi
-      if [ "$?" -ne "0" ] || ! pidof clash >/dev/null; then
-			   case $CORE_TYPE in
+      case $CORE_TYPE in
          "TUN")
             LOG_OUT "【Tun】Core Downloading, Please Try to Download and Upload Manually If Fails"
-            curl -sL -m 10 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
-			   	;;
-			   	*)
-            LOG_OUT "【Dev】Core Downloading, Please Try to Download and Upload Manually If Fails"
-            curl -sL -m 10 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
-			   esac
-      fi
-      
+            if [ "$github_address_mod" != "0" ]; then
+               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+                  curl -sL -m 5 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+               else
+                  curl -sL -m 5 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+               fi
+            else
+			         curl -sL -m 5 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+			      fi
+			   ;;
+			   *)
+			      LOG_OUT "【Dev】Core Downloading, Please Try to Download and Upload Manually If Fails"
+			      if [ "$github_address_mod" != "0" ]; then
+               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+                  curl -sL -m 10 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
+               else
+                  curl -sL -m 10 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
+               fi
+            else
+			         curl -sL -m 10 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
+			      fi
+			esac
+
       if [ "$?" -eq "0" ]; then
          LOG_OUT "【"$CORE_TYPE"】Core Download Successful, Start Update..."
 	       case $CORE_TYPE in

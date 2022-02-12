@@ -14,15 +14,30 @@ urlencode() {
 
    RULE_FILE_NAME="$1"
    RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
+   github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
    if [ "$1" == "netflix_domains" ]; then
-      DOWNLOAD_PATH="https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
-      DOWNLOAD_PATH2="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
+   	  if [ "$github_address_mod" != "0" ]; then
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+            DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
+         else
+            DOWNLOAD_PATH="${github_address_mod}https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
+         fi
+      else
+         DOWNLOAD_PATH="https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
+      fi
       RULE_FILE_DIR="/usr/share/openclash/res/Netflix_Domains.list"
       RULE_FILE_NAME="Netflix_Domains"
       RULE_TYPE="netflix"
    elif [ "$1" == "disney_domains" ]; then
-      DOWNLOAD_PATH="https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
-      DOWNLOAD_PATH2="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
+      if [ "$github_address_mod" != "0" ]; then
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+            DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
+         else
+            DOWNLOAD_PATH="${github_address_mod}https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
+         fi
+      else
+         DOWNLOAD_PATH="https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
+      fi
       RULE_FILE_DIR="/usr/share/openclash/res/Disney_Plus_Domains.list"
       RULE_FILE_NAME="Disney_Plus_Domains"
       RULE_TYPE="disney"
@@ -48,27 +63,27 @@ urlencode() {
    
    if [ "$RULE_TYPE" = "netflix" ]; then
       curl -sL --connect-timeout 5 --retry 2 "$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
-      if [ "$?" -ne "0" ]; then
-         curl -sL --connect-timeout 5 --retry 2 "$DOWNLOAD_PATH2" -o "$TMP_RULE_DIR" >/dev/null 2>&1
-      fi
    elif [ "$RULE_TYPE" = "disney" ]; then
       curl -sL --connect-timeout 5 --retry 2 "$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
-      if [ "$?" -ne "0" ]; then
-         curl -sL --connect-timeout 5 --retry 2 "$DOWNLOAD_PATH2" -o "$TMP_RULE_DIR" >/dev/null 2>&1
-      fi
    elif [ "$RULE_TYPE" = "game" ]; then
-      if pidof clash >/dev/null; then
-   	     curl -sL --connect-timeout 5 --retry 2 https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
-      fi
-      if [ "$?" -ne "0" ] || ! pidof clash >/dev/null; then
-         curl -sL --connect-timeout 5 --retry 2 https://cdn.jsdelivr.net/gh/FQrabbit/SSTap-Rule@master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+      if [ "$github_address_mod" != "0" ]; then
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+            curl -sL --connect-timeout 5 --retry 2 https://cdn.jsdelivr.net/gh/FQrabbit/SSTap-Rule@master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+         else
+            curl -sL --connect-timeout 5 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+         fi
+      else
+         curl -sL --connect-timeout 5 --retry 2 https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
       fi
    elif [ "$RULE_TYPE" = "provider" ]; then
-      if pidof clash >/dev/null; then
-   	     curl -sL --connect-timeout 5 --retry 2 https://raw.githubusercontent.com/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
-      fi
-      if [ "$?" -ne "0" ] || ! pidof clash >/dev/null; then
-         curl -sL --connect-timeout 5 --retry 2 https://cdn.jsdelivr.net/gh/"$(echo "$DOWNLOAD_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"@master"$(echo "$DOWNLOAD_PATH" |awk -F 'master' '{print $2}')" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+      if [ "$github_address_mod" != "0" ]; then
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+            curl -sL --connect-timeout 5 --retry 2 https://cdn.jsdelivr.net/gh/"$(echo "$DOWNLOAD_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"@master"$(echo "$DOWNLOAD_PATH" |awk -F 'master' '{print $2}')" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+         else
+            curl -sL --connect-timeout 5 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
+         fi
+      else
+         curl -sL --connect-timeout 5 --retry 2 https://raw.githubusercontent.com/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" >/dev/null 2>&1
       fi
    fi
 

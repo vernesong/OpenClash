@@ -34,28 +34,37 @@
    
    LOG_OUT "Start Downloading Third Party Rules in Use..."
    if [ "$rule_name" = "lhie1" ]; then
-     if pidof clash >/dev/null; then
-         curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/dler-io/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
-     fi
-     if [ "$?" -ne "0" ] || ! pidof clash >/dev/null; then
-         curl -sL --connect-timeout 10 --retry 2 https://cdn.jsdelivr.net/gh/dler-io/Rules@master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+      if [ "$github_address_mod" != "0" ]; then
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+            curl -sL -m 5 --retry 2 https://cdn.jsdelivr.net/gh/dler-io/Rules@master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         else
+            curl -sL -m 5 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/dler-io/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         fi
+      else
+         curl -sL -m 5 --retry 2 https://raw.githubusercontent.com/dler-io/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
       fi
       sed -i '1i rules:' /tmp/rules.yaml
    elif [ "$rule_name" = "ConnersHua" ]; then
-      if pidof clash >/dev/null; then
-         curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
-      fi
-      if [ "$?" -ne "0" ] || ! pidof clash >/dev/null; then
-         curl -sL --connect-timeout 10 --retry 2 https://cdn.jsdelivr.net/gh/DivineEngine/Profiles@master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+      if [ "$github_address_mod" != "0" ]; then
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+            curl -sL -m 5 --retry 2 https://cdn.jsdelivr.net/gh/DivineEngine/Profiles@master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         else
+            curl -sL -m 5 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         fi
+      else
+         curl -sL -m 5 --retry 2 https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
       fi
       sed -i "s/# - RULE-SET,ChinaIP,DIRECT/- RULE-SET,ChinaIP,DIRECT/g" /tmp/rules.yaml 2>/dev/null
       sed -i "s/- GEOIP,/#- GEOIP,/g" /tmp/rules.yaml 2>/dev/null
    elif [ "$rule_name" = "ConnersHua_return" ]; then
-      if pidof clash >/dev/null; then
-         curl -sL --connect-timeout 10 --retry 2 https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
-      fi
-      if [ "$?" -ne "0" ] || ! pidof clash >/dev/null; then
-         curl -sL --connect-timeout 10 --retry 2 https://cdn.jsdelivr.net/gh/DivineEngine/Profiles@master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+      if [ "$github_address_mod" != "0" ]; then
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+            curl -sL -m 5 --retry 2 https://cdn.jsdelivr.net/gh/DivineEngine/Profiles@master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         else
+            curl -sL -m 5 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         fi
+      else
+         curl -sL -m 5 --retry 2 https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
       fi
    fi
    if [ "$?" -eq "0" ] && [ -s "/tmp/rules.yaml" ]; then
@@ -131,6 +140,7 @@
    LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
    LOG_FILE="/tmp/openclash.log"
    RUlE_SOURCE=$(uci get openclash.config.rule_source 2>/dev/null)
+   github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
    set_lock
    
    if [ "$RUlE_SOURCE" = "0" ]; then
