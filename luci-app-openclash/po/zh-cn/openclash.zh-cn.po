@@ -2665,3 +2665,15 @@ msgstr "新建文件"
 
 msgid "Paste the name of the new file (including the extension) here"
 msgstr "请在此输入要新建的文件名称（含扩展名）"
+
+msgid "Delay Start (s)"
+msgstr "延迟启动（秒）"
+
+msgid "Delay Start On Boot"
+msgstr "系统重启时延迟启动"
+
+msgid "Enable Delay Start, OpenClash Will Start After"
+msgstr "延迟启动已启用，OpenClash 将在"
+
+msgid "Secends..."
+msgstr "秒后开始启动..."
