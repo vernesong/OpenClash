@@ -30,6 +30,16 @@ nm1=tb1:option(DummyValue,"name",translate("File Name"))
 mt1=tb1:option(DummyValue,"mtime",translate("Update Time"))
 sz1=tb1:option(DummyValue,"size",translate("Size"))
 
+btned1=tb1:option(Button,"edit",translate("Edit"))
+btned1.render=function(p,x,r)
+p.inputstyle="apply"
+Button.render(p,x,r)
+end
+btned1.write=function(r,x)
+	local file_path = "etc/openclash/proxy_provider/" .. fs.basename(p[x].name)
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "proxy-provider-file-manage", "%s") %file_path)
+end
+
 btndl1 = tb1:option(Button,"download1",translate("Download Config"))
 btndl1.template="openclash/other_button"
 btndl1.render=function(y,x,r)
@@ -75,7 +85,7 @@ return r
 end
 
 local t = {
-    {Refresh, Delete_all, Apply}
+    {Refresh, Create, Delete_all, Apply}
 }
 
 a = proxy_form:section(Table, t)
@@ -86,6 +96,11 @@ o.inputstyle = "apply"
 o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "proxy-provider-file-manage"))
 end
+
+o = a:option(DummyValue, "Create", " ")
+o.rawhtml = true
+o.template = "openclash/input_file_name"
+o.value = "/etc/openclash/proxy_provider/"
 
 o = a:option(Button, "Delete_all", " ")
 o.inputtitle = translate("Delete All File")

@@ -124,9 +124,14 @@ var myEditor_name_cus_r1 = document.getElementById("cbid.openclash.config.custom
 var myEditor_name_cus_r2 = document.getElementById("cbid.openclash.config.custom_rules");
 var myEditor_fake_filter = document.getElementById("cbid.openclash.config.custom_fake_filter");
 var myEditor_custom_domain_dns = document.getElementById("cbid.openclash.config.custom_domain_dns");
+var myEditor_edit_file = document.getElementById("cbid.openclash.config.edit_file");
 
 if (myEditor_hosts) {
 	editor(myEditor_hosts, 'false');
+}
+
+if (myEditor_edit_file) {
+	editor(myEditor_edit_file, 'false', "auto", '700px');
 }
 
 if (myEditor_fall_fil) {
