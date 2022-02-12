@@ -2395,3 +2395,14 @@ reload()
       del_lock
    fi
 }
+
+boot()
+{
+	delay_start=$(uci -q get openclash.config.delay_start || echo 0)
+	enable=$(uci -q get openclash.config.enable)
+	if [ "$delay_start" -gt 0 ] && [ "$enable" == "1" ]; then
+		LOG_OUT "Enable Delay Start, OpenClash Will Start After【$delay_start】Secends..."
+		sleep "$delay_start"
+	fi
+	restart
+}

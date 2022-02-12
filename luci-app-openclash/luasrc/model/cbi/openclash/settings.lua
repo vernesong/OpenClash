@@ -150,6 +150,11 @@ o:value("0", translate("Disable"))
 o:value("https://cdn.jsdelivr.net/")
 o.default = "0"
 
+o = s:taboption("settings", Value, "delay_start", translate("Delay Start (s)"))
+o.description = translate("Delay Start On Boot")
+o.default = "0"
+o.datatype = "uinteger"
+
 o = s:taboption("settings", ListValue, "log_level", translate("Log Level"))
 o.description = translate("Select Core's Log Level")
 o:value("info", translate("Info Mode"))
