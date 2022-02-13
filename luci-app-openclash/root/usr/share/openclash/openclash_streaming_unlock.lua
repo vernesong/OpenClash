@@ -11,7 +11,7 @@ local UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (
 local filmId = 70143836
 local type = arg[1]
 local enable = tonumber(uci:get("openclash", "config", "stream_auto_select")) or 0
-local now_name, group_name, group_type, group_show, status
+local now_name, group_name, group_type, group_show, status, ip, port, passwd, group_match_name
 local groups = {}
 local proxies = {}
 
@@ -19,9 +19,6 @@ if enable == 0 or not type then os.exit(0) end
 
 function unlock_auto_select()
 	local key_group, region, now, proxy, group_match, proxy_default, auto_get_group, info, group_now
-	local port = uci:get("openclash", "config", "cn_port")
-	local passwd = uci:get("openclash", "config", "dashboard_password") or ""
-	local ip = luci.sys.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
 	local original = {}
 	local other_region_unlock = {}
 	local tested_proxy = {}
@@ -48,12 +45,8 @@ function unlock_auto_select()
 	local other_region_unlock_no_select = "but not match the regex! the type of group is not select, auto select could not work!"
 	local other_region_unlock_test_start = "full support but not match the regex! start auto select unlock proxy..."
 	
-	if not ip or ip == "" then
-		ip = luci.sys.exec("ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
-	end
-	if not ip or not port then
-		os.exit(0)
-	end
+	--Get ip port and password
+	get_auth_info()
 	
 	info = luci.sys.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/proxies', passwd, ip, port))
 	if info then
@@ -107,6 +100,7 @@ function unlock_auto_select()
 				break
 			else
 				--get groups info
+				group_match_name = value.name
 				get_proxy(info, value.name, value.name)
 				table.insert(tested_proxy, now_name)
 				group_match = true
@@ -254,6 +248,7 @@ function unlock_auto_select()
 							break
 						end
 						if status == 2 then
+							close_connections()
 							break
 						elseif i == #(value.all) and (#original > 0 or #other_region_unlock > 0) then
 							if #other_region_unlock > 0 then
@@ -265,6 +260,7 @@ function unlock_auto_select()
 								luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, v[1], ip, port, urlencode(value.name)))
 								luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, v[3], ip, port, urlencode(v[2])))
 								if #other_region_unlock > 0 then
+									close_connections()
 									print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild_other_region.."【"..v[3].."】")
 								else
 									print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..v[3].."】")
@@ -307,6 +303,42 @@ function unlock_auto_select()
 	end
 	if not group_match and not auto_get_group then
 		print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..key_group.."】"..no_group_find)
+	end
+end
+
+function get_auth_info()
+	port = uci:get("openclash", "config", "cn_port")
+	passwd = uci:get("openclash", "config", "dashboard_password") or ""
+	ip = luci.sys.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
+	
+	if not ip or ip == "" then
+		ip = luci.sys.exec("ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
+	end
+	if not ip or not port then
+		os.exit(0)
+	end
+end
+
+function close_connections()
+	local con
+	local group_cons_id = {}
+	con = luci.sys.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
+	if con then
+		con = json.parse(con)
+	end
+	if con then
+		for i = 1, #(con.connections) do
+			if con.connections[i].chains[#(con.connections[i].chains)] == group_match_name then
+				table.insert(group_cons_id, (con.connections[i].id))
+			end
+		end
+		--close connections
+		if #(group_cons_id) > 0 then
+			for i = 1, #(group_cons_id) do
+				print(i)
+				luci.sys.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -X DELETE http://%s:%s/connections/%s >/dev/null 2>&1', passwd, ip, port, group_cons_id[i]))
+			end
+		end
 	end
 end
 
