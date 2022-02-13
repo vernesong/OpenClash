@@ -1051,6 +1051,7 @@ function action_refresh_log()
    				local a = string.find (line, "【")
    				local b = string.find (line, "】") + 2
    				local c = 21
+   				local d = 0
    				local v
    				local x
    				while true do
@@ -1067,16 +1068,23 @@ function action_refresh_log()
    					x = no_trans[k]
    					v = no_trans[k+1]
    					if x <= 21 then
-   						line_trans = line_trans .. string.sub(line, 0, v)
+   						line_trans = line_trans .. luci.i18n.translate(string.sub(line, d, x - 1)) .. string.sub(line, x, v)
+   						d = v + 1
    					elseif v <= string.len(line) then
    						line_trans = line_trans .. luci.i18n.translate(string.sub(line, c, x - 1)) .. string.sub(line, x, v)
    					end
    					c = v + 1
    				end
    				if c > string.len(line) then
-   					line_trans = string.sub(line, 0, 20) .. line_trans
+   					if d == 0 then
+   						line_trans = string.sub(line, 0, 20) .. line_trans
+   					end
    				else
-   					line_trans = string.sub(line, 0, 20) .. line_trans .. luci.i18n.translate(string.sub(line, c, -1))
+   					if d == 0 then
+   						line_trans = string.sub(line, 0, 20) .. line_trans .. luci.i18n.translate(string.sub(line, c, -1))
+   					else
+   						line_trans = line_trans .. luci.i18n.translate(string.sub(line, c, -1))
+   					end
    				end
    			end
 			end
