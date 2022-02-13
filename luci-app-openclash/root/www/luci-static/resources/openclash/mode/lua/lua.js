@@ -82,6 +82,11 @@ CodeMirror.defineMode("lua", function(config, parserConfig) {
       stream.skipToEnd();
       return "comment";
     }
+    if (ch == "【") {
+      stream.eatWhile(/[^】.%]/);
+      stream.eat("】");
+      return "string";
+    }
     if (ch == "\"" || ch == "'")
       return (state.cur = string(ch))(stream, state);
     if (ch == "[" && /[\[=]/.test(stream.peek()))
@@ -131,11 +136,11 @@ CodeMirror.defineMode("lua", function(config, parserConfig) {
       if (stream.eatSpace()) return null;
       var style = state.cur(stream, state);
       var word = stream.current();
-      if (style == "variable") {
-        if (keywords.test(word)) style = "keyword";
-        else if (builtins.test(word)) style = "builtin";
-        else if (specials.test(word)) style = "variable-2";
-      }
+      //if (style == "variable") {
+      //  if (keywords.test(word)) style = "keyword";
+      //  if (builtins.test(word)) style = "builtin";
+      //  else if (specials.test(word)) style = "variable-2";
+      //}
       if ((style != "comment") && (style != "string")){
         if (indentTokens.test(word)) ++state.indentDepth;
         else if (dedentTokens.test(word)) --state.indentDepth;
