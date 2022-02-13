@@ -83,7 +83,7 @@ CodeMirror.defineMode("lua", function(config, parserConfig) {
       return "comment";
     }
     if (ch == "【") {
-      stream.eatWhile(/[^】.%]/);
+      stream.eatWhile(/[^】]/);
       stream.eat("】");
       return "string";
     }
