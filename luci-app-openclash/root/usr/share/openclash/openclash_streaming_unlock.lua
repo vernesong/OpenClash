@@ -335,7 +335,7 @@ function close_connections()
 		--close connections
 		if #(group_cons_id) > 0 then
 			for i = 1, #(group_cons_id) do
-				luci.sys.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -X DELETE http://%s:%s/connections/%s >/dev/null 2>&1', passwd, ip, port, group_cons_id[i]))
+				luci.sys.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -X DELETE http://%s:%s/connections/%s >/dev/null 2>&1 &', passwd, ip, port, group_cons_id[i]))
 			end
 		end
 	end
