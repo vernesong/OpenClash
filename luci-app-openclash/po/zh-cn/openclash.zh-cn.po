@@ -312,6 +312,9 @@ msgstr "代理集文件"
 msgid "Rule Provider File"
 msgstr "规则集文件"
 
+msgid "Core File"
+msgstr "内核文件"
+
 msgid "Upload"
 msgstr "上传"
 
