@@ -76,10 +76,12 @@ dir = "/etc/openclash/config/"
 bakck_dir="/etc/openclash/backup"
 proxy_pro_dir="/etc/openclash/proxy_provider/"
 rule_pro_dir="/etc/openclash/rule_provider/"
+core_dir="/etc/openclash/core/core/"
 backup_dir="/tmp/"
 create_bakck_dir=fs.mkdir(bakck_dir)
 create_proxy_pro_dir=fs.mkdir(proxy_pro_dir)
 create_rule_pro_dir=fs.mkdir(rule_pro_dir)
+create_core_dir=fs.mkdir(core_dir)
 
 
 HTTP.setfilehandler(
@@ -94,6 +96,8 @@ HTTP.setfilehandler(
 				if meta and chunk then fd = nixio.open(proxy_pro_dir .. meta.file, "w") end
 			elseif fp == "rule-provider" then
 				if meta and chunk then fd = nixio.open(rule_pro_dir .. meta.file, "w") end
+			elseif fp == "clash" or fp == "clash_tun" then
+				if meta and chunk then fd = nixio.open(core_dir .. meta.file, "w") end
 			elseif fp == "backup-file" then
 				if meta and chunk then fd = nixio.open(backup_dir .. meta.file, "w") end
 			end
@@ -129,6 +133,19 @@ HTTP.setfilehandler(
 				um.value = translate("File saved to") .. ' "/etc/openclash/proxy_provider/"'
 			elseif fp == "rule-provider" then
 				um.value = translate("File saved to") .. ' "/etc/openclash/rule_provider/"'
+			elseif fp == "clash" or fp == "clash_tun" then
+				if string.lower(string.sub(meta.file, -7, -1)) == ".tar.gz" then
+					os.execute(string.format("tar -C '/etc/openclash/core/core' -xzf %s >/dev/null 2>&1", (core_dir .. meta.file)))
+					fs.unlink(core_dir .. meta.file)
+					os.execute(string.format("mv $(echo \"/etc/openclash/core/core/$(ls /etc/openclash/core/core/)\") '/etc/openclash/core/%s' >/dev/null 2>&1", fp))
+				elseif string.lower(string.sub(meta.file, -3, -1)) == ".gz" then
+					os.execute(string.format("mv %s '/etc/openclash/core/%s.gz' >/dev/null 2>&1", (core_dir .. meta.file), fp))
+					os.execute("gzip -fd '/etc/openclash/core/%s.gz' >/dev/null 2>&1" %fp)
+					fs.unlink("/etc/openclash/core/%s.gz" %fp)
+				end
+				os.execute("chmod 4755 /etc/openclash/core/%s >/dev/null 2>&1" %fp)
+				os.execute("rm -rf %s >/dev/null 2>&1" %core_dir)
+				um.value = translate("File saved to") .. ' "/etc/openclash/core/"'
 			elseif fp == "backup-file" then
 				os.execute("tar -C '/etc/openclash/' -xzf %s >/dev/null 2>&1" % (backup_dir .. meta.file))
 				os.execute("mv /etc/openclash/openclash /etc/config/openclash >/dev/null 2>&1")

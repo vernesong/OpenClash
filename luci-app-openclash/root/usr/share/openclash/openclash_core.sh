@@ -52,7 +52,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
    if [ "$CPU_MODEL" != 0 ]; then
       case $CORE_TYPE in
          "TUN")
-            LOG_OUT "【Tun】Core Downloading, Please Try to Download and Upload Manually If Fails"
+            LOG_OUT "【TUN】Core Downloading, Please Try to Download and Upload Manually If Fails"
             if [ "$github_address_mod" != "0" ]; then
                if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
                   curl -sL -m 5 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
@@ -80,32 +80,29 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
          LOG_OUT "【"$CORE_TYPE"】Core Download Successful, Start Update..."
 	       case $CORE_TYPE in
          	"TUN")
-		     [ -s "/tmp/clash_tun.gz" ] && {
-         gzip -d /tmp/clash_tun.gz >/dev/null 2>&1
-		     rm -rf /tmp/clash_tun.gz >/dev/null 2>&1
-			   rm -rf "$tun_core_path" >/dev/null 2>&1
-			   chmod 4755 /tmp/clash_tun >/dev/null 2>&1
-			   }
+		        [ -s "/tmp/clash_tun.gz" ] && {
+            gzip -d /tmp/clash_tun.gz >/dev/null 2>&1
+		        rm -rf /tmp/clash_tun.gz >/dev/null 2>&1
+			      rm -rf "$tun_core_path" >/dev/null 2>&1
+			      chmod 4755 /tmp/clash_tun >/dev/null 2>&1
+			      }
 			   ;;
 			   *)
 			      [ -s "/tmp/clash.tar.gz" ] && {
-            rm -rf "$dev_core_path" >/dev/null 2>&1
-            if [ "$small_flash_memory" != "1" ]; then
-               tar zxvf /tmp/clash.tar.gz -C /etc/openclash/core
-            else
-				      	tar zxvf /tmp/clash.tar.gz -C /tmp/etc/openclash/core
-            fi
+               rm -rf "$dev_core_path" >/dev/null 2>&1
+               tar zxvf /tmp/clash.tar.gz -C /tmp
 				       rm -rf /tmp/clash.tar.gz >/dev/null 2>&1
-				       chmod 4755 "$dev_core_path" >/dev/null 2>&1
+				       chmod 4755 /tmp/clash >/dev/null 2>&1
             }
          esac
          if [ "$?" -ne "0" ]; then
-            LOG_OUT "【"$CORE_TYPE"】Core Update Failed, Please Check The Network or Try Again Later!"
+            LOG_OUT "【"$CORE_TYPE"】Core Update Failed. Please Make Sure Enough Flash Memory Space And Try Again!"
             case $CORE_TYPE in
             "TUN")
                rm -rf /tmp/clash_tun >/dev/null 2>&1
 				    ;;
 				    *)
+				       rm -rf /tmp/clash >/dev/null 2>&1
             esac
             sleep 3
             SLOG_CLEAN
@@ -124,6 +121,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			      mv /tmp/clash_tun "$tun_core_path" >/dev/null 2>&1
 			   ;;
 			   *)
+            mv /tmp/clash "$dev_core_path" >/dev/null 2>&1
 			   esac
          if [ "$?" -eq "0" ]; then
             LOG_OUT "【"$CORE_TYPE"】Core Update Successful!"
@@ -141,6 +139,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 				       rm -rf /tmp/clash_tun >/dev/null 2>&1
 				    ;;
 				    *)
+				       rm -rf /tmp/clash >/dev/null 2>&1
 			      esac
             sleep 3
             SLOG_CLEAN
