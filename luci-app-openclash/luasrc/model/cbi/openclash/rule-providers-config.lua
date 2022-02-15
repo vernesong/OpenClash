@@ -78,6 +78,14 @@ for t,f in ipairs(fs.glob("/etc/openclash/rule_provider/*"))do
     o:value("./rule_provider/"..p[t].name)
   end
 end
+for t,f in ipairs(fs.glob("/etc/openclash/game_rules/*"))do
+	h=fs.stat(f)
+	if h then
+    p[t]={}
+    p[t].name=fs.basename(f)
+    o:value("./game_rules/"..p[t].name)
+  end
+end
 o.rmempty = false
 o:depends("type", "file")
 
