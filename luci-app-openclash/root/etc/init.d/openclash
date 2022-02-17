@@ -1676,36 +1676,60 @@ firewall_redirect_exclude()
    if ! $e_udp && ! $e_tcp ; then
        return
    fi
+   
+   dest_port=$(echo $dest_port |sed "s/-/:/g" 2>/dev/null)
+   src_dport=$(echo $src_dport |sed "s/-/:/g" 2>/dev/null)
+   dest_ip=$(echo $dest_ip |sed "s/ /,/g" 2>/dev/null)
+   [ -n "$dest_ip" ] && dest_ip="-s ${dest_ip}"
 
    if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
-   	  iptables -t nat -I openclash_output -p tcp --sport "$src_dport" -j RETURN >/dev/null 2>&1
-   	  iptables -t mangle -I openclash_output -p udp --sport "$src_dport" -j RETURN >/dev/null 2>&1
-      iptables -t mangle -I openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
-   elif [ "$en_mode_tun" -eq 1 ]; then
-   	  iptables -t mangle -I openclash_output -p tcp --sport "$src_dport" -j RETURN >/dev/null 2>&1
-   	  iptables -t mangle -I openclash_output -p udp --sport "$src_dport" -j RETURN >/dev/null 2>&1
-      iptables -t mangle -I openclash -p tcp --dport "$src_dport" -j RETURN >/dev/null 2>&1
-      iptables -t mangle -I openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
       if $e_tcp ; then
-         iptables -t mangle -I openclash -p tcp -s "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+   	     iptables -t nat -I openclash_output "$dest_ip" -p tcp --sport "$dest_port" -j RETURN >/dev/null 2>&1
+   	     iptables -t nat -I openclash_output "$dest_ip" -p tcp --dport "$src_dport" -j RETURN >/dev/null 2>&1
+   	  fi
+   	  if $e_udp ; then
+         iptables -t mangle -I openclash_output "$dest_ip" -p udp --sport "$dest_port" -j RETURN >/dev/null 2>&1
+         iptables -t mangle -I openclash_output "$dest_ip" -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
+         if [ -n "$dest_ip" ]; then
+            iptables -t mangle -I openclash "$dest_ip" -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
+            iptables -t mangle -I openclash "$dest_ip" -p udp --sport "$dest_port" -j RETURN >/dev/null 2>&1
+         fi
       fi
-      if $e_udp ; then
-         iptables -t mangle -I openclash -p udp -s "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+   elif [ "$en_mode_tun" -eq 1 ]; then
+      if $e_tcp ; then
+   	     iptables -t mangle -I openclash_output -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+   	     iptables -t mangle -I openclash_output -p tcp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
+   	     if [ -n "$dest_ip" ]; then
+   	        iptables -t mangle -I openclash -p tcp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
+   	        iptables -t mangle -I openclash -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+   	     fi
+   	  fi
+   	  if $e_udp ; then
+   	     iptables -t mangle -I openclash_output -p udp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+   	     iptables -t mangle -I openclash_output -p udp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
+   	     if [ -n "$dest_ip" ]; then
+            iptables -t mangle -I openclash -p udp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
+            iptables -t mangle -I openclash -p udp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+         fi
       fi
    fi
    
    if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
       if $e_tcp ; then
-      	 ip6tables -t mangle -I openclash -p tcp --dport "$src_dport" -j RETURN >/dev/null 2>&1
-         ip6tables -t mangle -I openclash -p tcp -s "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
-         ip6tables -t mangle -I openclash_output -p tcp --sport "$src_dport" -j RETURN >/dev/null 2>&1
-         ip6tables -t mangle -I openclash_output -p tcp -s "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+         if [ -n "$dest_ip" ]; then
+      	    ip6tables -t mangle -I openclash -p tcp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
+            ip6tables -t mangle -I openclash -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+         fi
+         ip6tables -t mangle -I openclash_output -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+         ip6tables -t mangle -I openclash_output -p tcp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
       fi
       if $e_udp ; then
-         ip6tables -t mangle -I openclash -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
-         ip6tables -t mangle -I openclash -p udp -s "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
-         ip6tables -t mangle -I openclash_output -p udp -s "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
-         ip6tables -t mangle -I openclash_output -p udp --sport "$src_dport" -j RETURN >/dev/null 2>&1
+         if [ -n "$dest_ip" ]; then
+            ip6tables -t mangle -I openclash -p udp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
+            ip6tables -t mangle -I openclash -p udp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+         fi
+         ip6tables -t mangle -I openclash_output -p udp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+         ip6tables -t mangle -I openclash_output -p udp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
       fi
    fi
 
