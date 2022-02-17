@@ -1079,6 +1079,9 @@ msgstr "配置文件编辑"
 msgid "Delete All File"
 msgstr "删除所有文件"
 
+msgid "ss/ssr/vmess Link And Subscription Address is Supported When Online Subscription Conversion is Enabled, Please Separate Multiple Links With |"
+msgstr "在线订阅转换启用时支持：ss/ssr/vmess和订阅链接，多个链接请用 | 分隔"
+
 msgid "Template Name"
 msgstr "订阅转换模板"
 
