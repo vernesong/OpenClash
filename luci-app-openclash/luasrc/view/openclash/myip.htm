@@ -6,17 +6,16 @@
     <meta charset="utf-8">
     <meta http-equiv="x-dns-prefetch-control" content="on">
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
-    <link rel="dns-prefetch" href="//whois.pconline.com.cn">
+    <link rel="dns-prefetch" href="//whois.pconline.com.cn/ipJson.jsp">
+    <link rel="dns-prefetch" href="//www.taobao.com/help/getip.php">
     <link rel="dns-prefetch" href="//api-ipv4.ip.sb">
-    <link rel="dns-prefetch" href="//myip.ipip.net">
     <link rel="dns-prefetch" href="//api.ipify.org">
     <link rel="dns-prefetch" href="//api.ttt.sh">
     <link rel="dns-prefetch" href="//api.skk.moe">
     <link rel="dns-prefetch" href="//d.skk.moe">
-    <link rel="preconnect" href="https://whois.pconline.com.cn">
+    <link rel="preconnect" href="https://www.taobao.com/help/getip.php">
+    <link rel="preconnect" href="https://whois.pconline.com.cn/ipJson.jsp">
     <link rel="preconnect" href="https://api-ipv4.ip.sb">
-    <link rel="preconnect" href="https://myip.ipip.net">
-    <link rel="preconnect" href="http://myip.ipip.net">
     <link rel="preconnect" href="https://api.ipify.org">
     <link rel="preconnect" href="https://api.ttt.sh">
     <link rel="preconnect" href="https://api.skk.moe">
@@ -138,16 +137,16 @@
         <div style="width: 51%">
             <h3><%:IP Address%></h3>
             <p>
-                <span class="ip-title">IPIP&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<%:Mainland%>:</span><span class="ip-result" id="ip-ipipnet"></span> <span class="ip-geo" id="ip-ipipnet-geo"></span>
+                <span class="ip-title">IP.TB&nbsp;&nbsp;&nbsp;&nbsp;<%:Mainland%>:</span><span class="ip-result" id="ip-taobao"></span> <span class="ip-geo" id="ip-taobao-geo"></span>
             </p>
             <p>
-                <span class="ip-title">IP.PC&nbsp;&nbsp;&nbsp;&nbsp;<%:Mainland%>:</span><span class="ip-result" id="ip-pcol"></span> <span class="ip-geo" id="ip-pcol-ipip"></span>
+                <span class="ip-title">IP.PC&nbsp;&nbsp;&nbsp;&nbsp;<%:Mainland%>:</span><span class="ip-result" id="ip-pcol"></span> <span class="ip-geo" id="ip-pcol-geo"></span>
             </p>
             <p>
                 <span class="ip-title">IP.SB&nbsp;&nbsp;&nbsp;&nbsp;<%:Abroad%>:</span><span class="ip-result" id="ip-ipsb"></span> <span class="ip-geo" id="ip-ipsb-geo"></span>
             </p>
             <p>
-                <span class="ip-title">IPIFY&nbsp;&nbsp;&nbsp;&nbsp;<%:Abroad%>:</span><span class="ip-result" id="ip-ipify"></span> <span class="ip-geo" id="ip-ipify-ipip"></span>
+                <span class="ip-title">IPIFY&nbsp;&nbsp;&nbsp;&nbsp;<%:Abroad%>:</span><span class="ip-result" id="ip-ipify"></span> <span class="ip-geo" id="ip-ipify-geo"></span>
             </p>
         </div>
         <div style="width: 49%">
@@ -182,7 +181,7 @@
         const $$ = document;
         $$.getElementById('ip-pcol').innerHTML = '<%:Querying...%>';
         $$.getElementById('ip-ipify').innerHTML = '<%:Querying...%>';
-        $$.getElementById('ip-ipipnet').innerHTML = '<%:Querying...%>';
+        $$.getElementById('ip-taobao').innerHTML = '<%:Querying...%>';
         $$.getElementById('ip-ipsb').innerHTML = '<%:Querying...%>';
         let random = parseInt(Math.random() * 100000000);
         let IP = {
@@ -240,6 +239,14 @@
                         IP.parseIPIpip(resp.data.ip, 'ip-ipapi-geo');
                     })
             },
+            getSpeedIP: () => {
+                IP.get(`https://forge.speedtest.cn/api/location/info?z=${random}`, 'json')
+                    .then(resp => {
+                        $$.getElementById('ip-speedtest').innerHTML = resp.data.ip;
+                        $$.getElementById('ip-speedtest-geo').innerHTML = resp.data.country + resp.data.province + resp.data.city + (resp.data.distinct == "null" ? resp.data.distinct : '') + ' '  + (resp.data.isp == "null" ? resp.data.isp : '');
+                        //IP.parseIPIpip(resp.data.ip, 'ip-speedtest-geo');
+                    })
+            },
             getIpifyIP: () => {
                 IP.get(`https://api.ipify.org/?format=json&z=${random}`, 'json')
                 .then(resp => {
@@ -247,7 +254,7 @@
                 return resp.data.ip;
                 })
                 .then(ip => {
-                IP.parseIPIpip(ip, 'ip-ipify-ipip');
+                IP.parseIPIpip(ip, 'ip-ipify-geo');
                 })
             }
         };
@@ -285,18 +292,23 @@
         };
 
 	      HTTP.runcheck();
-	      IP.getIpipnetIP();
 	      IP.getIpifyIP();
+	      //IP.getSpeedIP();
 	      
 	      function getPcolIP(data){
                 let pcisp = data.addr.split(' ');
                 $$.getElementById('ip-pcol').innerHTML = data.ip;
-                $$.getElementById('ip-pcol-ipip').innerHTML = `${data.pro} ${data.city} ${data.region} ${pcisp[1]}`;
+                $$.getElementById('ip-pcol-geo').innerHTML = `${data.pro} ${data.city} ${data.region} ${pcisp[1]}`;
         };
 
         function getIpsbIP(data){
                 $$.getElementById('ip-ipsb').innerHTML = data.ip;
                 IP.parseIPIpip(data.ip, 'ip-ipsb-geo');
+        };
+        
+        function ipCallback(data){
+                $$.getElementById('ip-taobao').innerHTML = data.ip;
+                IP.parseIPIpip(data.ip, 'ip-taobao-geo');
         };
 
 	      window.onload=myip_Load();
@@ -315,21 +327,32 @@
 	         sbipScript.src='https://api-ipv4.ip.sb/jsonip?callback=getIpsbIP';
 	         sbip.appendChild(sbipScript);
 	         
+	         var tbip = document.getElementsByTagName('HEAD').item(0);
+	         var tbipScript= document.createElement("script");
+	         tbipScript.defer = "defer";
+	         tbipScript.src='https://www.taobao.com/help/getip.php?callback=ipCallback';
+	         tbip.appendChild(sbipScript);
+	         
 	         const $$ = document;
 	         random = parseInt(Math.random() * 100000000);
 		       HTTP.runcheck();
-		       IP.getIpipnetIP();
 		       IP.getIpifyIP();
+		       //IP.getSpeedIP();
 		       
            function getPcolIP(data){
                 let pcisp = data.addr.split(' ');
                 $$.getElementById('ip-pcol').innerHTML = data.ip;
-                $$.getElementById('ip-pcol-ipip').innerHTML = `${data.pro} ${data.city} ${data.region} ${pcisp[1]}`;
+                $$.getElementById('ip-pcol-geo').innerHTML = `${data.pro} ${data.city} ${data.region} ${pcisp[1]}`;
            };
 
 		       function getIpsbIP(data){
                 $$.getElementById('ip-ipsb').innerHTML = data.ip;
                 IP.parseIPIpip(data.ip, 'ip-ipsb-geo');
+		       };
+		       
+		       function ipCallback(data){
+                $$.getElementById('ip-taobao').innerHTML = data.ip;
+                IP.parseIPIpip(data.ip, 'ip-taobao-geo');
 		       };
 
        	   setTimeout("myip_Load()",1000*10);
@@ -338,4 +361,5 @@
     </script>
     <script defer="defer" src="https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP"></script>
     <script defer="defer" src="https://api-ipv4.ip.sb/jsonip?callback=getIpsbIP"></script>
+    <script defer="defer" src="https://www.taobao.com/help/getip.php?callback=ipCallback"></script>
 </html>

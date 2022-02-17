@@ -43,7 +43,7 @@ o.rmempty = true
 
 ---- address
 o = s:option(Value, "address", translate("Subscribe Address"))
-o.description = font_red..bold_on..translate("Not Null")..bold_off..font_off
+o.description = font_red..bold_on..translate("ss/ssr/vmess Link And Subscription Address is Supported When Online Subscription Conversion is Enabled, Please Separate Multiple Links With |")..bold_off..font_off
 o.placeholder = translate("Not Null")
 o.datatype = "or(host, string)"
 o.rmempty = false
