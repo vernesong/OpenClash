@@ -93,11 +93,7 @@ if '$2' == 'fake-ip' or ${24} == 1 then
 else
    Value['dns'].delete('fake-ip-range')
 end;
-if ${21} != 1 then
-   Value['dns']['listen']='127.0.0.1:${17}'
-else
-   Value['dns']['listen']='0.0.0.0:${17}'
-end;
+Value['dns']['listen']='0.0.0.0:${17}'
 Value_2={'tun'=>{'enable'=>true}};
 if $en_mode_tun != 0 then
    Value['tun']=Value_2['tun']
