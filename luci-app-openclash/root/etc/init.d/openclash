@@ -70,23 +70,53 @@ del_cron()
    /etc/init.d/cron restart
 }
 
+save_dnsmasq_server() {
+	if [ -z "$1" ] || [ "$1" == "127.0.0.1#${dns_port}" ]; then
+     return
+  fi
+  
+  uci -q add_list openclash.config.dnsmasq_server="$1"
+}
+
+set_dnsmasq_server() {
+	if [ -z "$1" ] || [ "$1" == "127.0.0.1#${dns_port}" ]; then
+     return
+  fi
+  
+  uci -q add_list dhcp.@dnsmasq[0].server="$1"
+}
+
 change_dns() {
    if [ "$1" -eq 1 ]; then
+      uci -q del openclash.config.dnsmasq_server
+      config_load "dhcp"
+      config_list_foreach "$(uci show dhcp.@dnsmasq[0].server |awk -F '.' '{print $2}')" "server" save_dnsmasq_server
       uci -q del dhcp.@dnsmasq[-1].server
       uci -q add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
+      uci -q set openclash.config.dnsmasq_noresolv="$(uci -q get dhcp.@dnsmasq[0].noresolv)"
+      uci -q set openclash.config.dnsmasq_resolvfile="$(uci -q get dhcp.@dnsmasq[0].resolvfile)"
       uci -q delete dhcp.@dnsmasq[0].resolvfile
       uci -q set dhcp.@dnsmasq[0].noresolv=1
       uci -q set openclash.config.redirect_dns=1
    else
       uci -q set openclash.config.redirect_dns=0
    fi
+   
    if [ "$2" -eq 1 ]; then
+      uci -q set openclash.config.dnsmasq_cachesize="$(uci -q get dhcp.@dnsmasq[0].cachesize)"
       uci -q set dhcp.@dnsmasq[0].cachesize=0
+      uci -q set openclash.config.cachesize_dns=1
+   else
+      uci -q set openclash.config.cachesize_dns=0
    fi
    
    if [ "$ipv6_dns" == 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
       #dnsmasq answer ipv6
+      uci -q set openclash.config.dnsmasq_filter_aaaa="$(uci -q get dhcp.@dnsmasq[0].filter_aaaa)"
 	    uci -q set dhcp.@dnsmasq[0].filter_aaaa=0
+	    uci -q set openclash.config.filter_aaaa_dns=1
+	 else
+	    uci -q set openclash.config.filter_aaaa_dns=0
 	 fi
 	 
    uci -q commit dhcp
@@ -98,41 +128,59 @@ change_dns() {
 revert_dns() {
 
    [ "$1" -eq 1 ] && {
-      uci -q del_list dhcp.@dnsmasq[0].server=127.0.0.1#"$3"
-   }
-   
-   [ "$1" -eq 1 ] && [ "$4" -eq 0 ] && {
-      uci -q set openclash.config.redirect_dns=0
-   }
-
-   [ "$(uci -q get dhcp.@dnsmasq[0].cachesize)" = "0" ] && {
-      uci -q delete dhcp.@dnsmasq[0].cachesize
-   }
-   
-   [ "$1" -eq 1 ] && {
-      if [ -n "$5" ]; then
-         uci -q set dhcp.@dnsmasq[0].resolvfile="$5"
-      elif [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.d/resolv.conf.auto)" ]; then
-         uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.d/resolv.conf.auto
-      elif [ -s "/tmp/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.auto)" ]; then
-         uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
-      else
-         rm -rf /tmp/resolv.conf.auto
-         touch /tmp/resolv.conf.auto 2>/dev/null
-         cat >> "/tmp/resolv.conf.auto" <<-EOF
+      uci -q del dhcp.@dnsmasq[-1].server
+      [ -n "$10" ] && {
+         config_load "openclash"
+         config_list_foreach "config" "dnsmasq_server" set_dnsmasq_server
+      }
+      
+      if [ "$4" == "0" ] || [ -z "$4" ]; then
+         uci -q set dhcp.@dnsmasq[0].noresolv=0
+         if [ -n "$5" ]; then
+            uci -q set dhcp.@dnsmasq[0].resolvfile="$5"
+         elif [ -n "$3" ]; then
+            uci -q set dhcp.@dnsmasq[0].resolvfile="$3"
+         elif [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.d/resolv.conf.auto)" ]; then
+            uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.d/resolv.conf.auto
+         elif [ -s "/tmp/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.auto)" ]; then
+            uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
+         else
+            rm -rf /tmp/resolv.conf.auto
+            touch /tmp/resolv.conf.auto 2>/dev/null
+            cat >> "/tmp/resolv.conf.auto" <<-EOF
 # Interface lan
 nameserver 114.114.114.114
 nameserver 119.29.29.29
 EOF
-         uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
+            uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
+         fi
       fi
-      uci -q set dhcp.@dnsmasq[0].noresolv=0
+   }
+   
+   [ "$6" -eq 1 ] && {
+      uci -q set dhcp.@dnsmasq[0].cachesize="$7"
+   }
+   
+   [ "$8" -eq 1 ] && {
+     uci -q set dhcp.@dnsmasq[0].filter_aaaa="$9"
+   }
+   	
+   [ "$1" -eq 1 ] && [ "$2" -eq 0 ] && {
+      uci -q set openclash.config.redirect_dns=0
+   }
+   
+   [ "$6" -eq 1 ] && [ "$2" -eq 0 ] && {
+      uci -q set openclash.config.cachesize_dns=0
+   }
+   
+   [ "$8" -eq 1 ] && [ "$2" -eq 0 ] && {
+      uci -q set openclash.config.filter_aaaa_dns=0
    }
    
    uci -q commit dhcp
    uci -q commit openclash
-   rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf
-   rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf
+   rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
+   rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
 }
 
 kill_clash()
@@ -1129,8 +1177,11 @@ check_run_quick()
 
 write_run_quick()
 {
-	 if ! $quick_start; then
+   cmp -s "/etc/config/openclash" "/tmp/openclash_config.tmp"
+	 if [ "$?" -ne "0" ]; then
 	    cp "/etc/config/openclash" "/tmp/openclash_config.tmp"
+	 fi
+	 if ! $quick_start; then
 	    : > "/tmp/openclash.change"
 	    for i in $check_file; do
          echo "$i $(date -r $i)" >> "/tmp/openclash.change"
@@ -2359,11 +2410,16 @@ stop()
    fi
 
    LOG_OUT "Step 5: Restart Dnsmasq..."
-   dns_port=$(uci -q get openclash.config.dns_port)
    redirect_dns=$(uci -q get openclash.config.redirect_dns)
-   masq_cache=$(uci -q get openclash.config.masq_cache)
+   dnsmasq_server=$(uci -q get openclash.config.dnsmasq_server)
+   dnsmasq_noresolv=$(uci -q get openclash.config.dnsmasq_noresolv)
+   dnsmasq_resolvfile=$(uci -q get openclash.config.dnsmasq_resolvfile)
+   cachesize_dns=$(uci -q get openclash.config.cachesize_dns)
+   dnsmasq_cachesize=$(uci -q get openclash.config.dnsmasq_cachesize)
+   filter_aaaa_dns=$(uci -q get openclash.config.filter_aaaa_dns)
+   dnsmasq_filter_aaaa=$(uci -q get openclash.config.dnsmasq_filter_aaaa)
    default_resolvfile=$(uci -q get openclash.config.default_resolvfile)
-   revert_dns "$redirect_dns" "$masq_cache" "$dns_port" "$enable" "$default_resolvfile"
+   revert_dns "$redirect_dns" "$enable" "$default_resolvfile" "$dnsmasq_noresolv" "$dnsmasq_resolvfile" "$cachesize_dns" "$dnsmasq_cachesize" "$filter_aaaa_dns" "$dnsmasq_filter_aaaa" "$dnsmasq_server"
    /etc/init.d/dnsmasq restart >/dev/null 2>&1
 
    LOG_OUT "Step 6: Delete OpenClash Residue File..."
