@@ -40,7 +40,7 @@
             color: #444;
             font-size:15px;
             display: inline-block;
-            width: 52%;
+            width: 70%;
             vertical-align:bottom;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -50,7 +50,7 @@
         .ip-result {
             color: #444;
             font-size:16px;
-            margin:0px 0px 0px 30px;
+            margin:0px 0px 0px 10%;
             white-space: nowrap;  /*强制span不换行*/
             display: inline-block;  /*将span当做块级元素对待*/
             width: 29%;  /*限制宽度*/
@@ -66,9 +66,10 @@
             line-height:20px;
             white-space: nowrap;  /*强制span不换行*/
             display: inline-block;  /*将span当做块级元素对待*/
-            width: 30%;  /*限制宽度*/
+            width: 25%;  /*限制宽度*/
             overflow: hidden;  /*超出宽度部分隐藏*/
             text-overflow: ellipsis;  /*超出部分以点号代替*/
+            text-align: right;
             vertical-align:bottom;
             transform:translateY(15%);
         }
@@ -92,7 +93,7 @@
             line-height:20px;
             display: inline-block;
             vertical-align:bottom;
-            width: 48%;
+            width: 30%;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -106,67 +107,53 @@
             line-height:20px;
             display: inline-block;
             vertical-align:bottom;
-            width: 48%;
+            width: 30%;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             text-align: left;
             transform:translateY(12%);
         }
-
-        h3 {
-            margin: 5px 0 6px;
-        }
-
-        p {
-            margin: 10px 0;
-        }
-
-        a {
-            text-decoration: none;
-            color: #666;
-        }
-
     </style>
 </head>
 <body>
 <fieldset class="cbi-section">
 	<table width="100%">
      <tr><td>
-    <div style="display: flex;">
+    <div style="display: flex">
         <div style="width: 51%">
-            <h3><%:IP Address%></h3>
-            <p>
+            <h3 style="margin: 10px -2% 10px 2%"><%:IP Address%></h3>
+            <p style="margin: 10px -2% 10px 2%">
                 <span class="ip-title">IP.TB&nbsp;&nbsp;&nbsp;&nbsp;<%:Mainland%>:</span><span class="ip-result" id="ip-taobao"></span> <span class="ip-geo" id="ip-taobao-geo"></span>
             </p>
-            <p>
+            <p style="margin: 10px -2% 10px 2%">
                 <span class="ip-title">IP.PC&nbsp;&nbsp;&nbsp;&nbsp;<%:Mainland%>:</span><span class="ip-result" id="ip-pcol"></span> <span class="ip-geo" id="ip-pcol-geo"></span>
             </p>
-            <p>
+            <p style="margin: 10px -2% 10px 2%">
                 <span class="ip-title">IP.SB&nbsp;&nbsp;&nbsp;&nbsp;<%:Abroad%>:</span><span class="ip-result" id="ip-ipsb"></span> <span class="ip-geo" id="ip-ipsb-geo"></span>
             </p>
-            <p>
+            <p style="margin: 10px -2% 10px 2%">
                 <span class="ip-title">IPIFY&nbsp;&nbsp;&nbsp;&nbsp;<%:Abroad%>:</span><span class="ip-result" id="ip-ipify"></span> <span class="ip-geo" id="ip-ipify-geo"></span>
             </p>
         </div>
         <div style="width: 49%">
-            <h3><%:Website Access Check%></h3>
-            <p>
+            <h3 style="margin: 10px 0 10px 5%"><%:Website Access Check%></h3>
+            <p style="margin: 10px 0 10px 5%">
                 <span class="ip-state_title"><%:Baidu Search%>:</span><span id="http-baidu"></span>
             </p>
-            <p>
+            <p style="margin: 10px 0 10px 5%">
                 <span class="ip-state_title"><%:NetEase Music%>:</span><span id="http-163"></span>
             </p>
-            <p>
+            <p style="margin: 10px 0 10px 5%">
                 <span class="ip-state_title">GitHub:</span><span id="http-github"></span>
             </p>
-            <p>
+            <p style="margin: 10px 0 10px 5%">
                 <span class="ip-state_title">YouTube:</span><span id="http-youtube"></span>
             </p>
         </div>
     </div>
     <div>
-        <p style="float: right; margin-top: 30px; font-size:15px; padding-right: 10px">Powered by <a onclick="return ip_skk()" href="javascript:void(0);">ip.skk.moe</a></p>
+        <p style="float: right; margin-top: 30px; font-size:15px; padding-right: 10px">Powered by <a style="text-decoration: none; color: #666" onclick="return ip_skk()" href="javascript:void(0);">ip.skk.moe</a></p>
     </div>
     </td></tr>
 	</table>
