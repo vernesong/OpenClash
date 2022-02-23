@@ -2683,3 +2683,9 @@ msgstr "延迟启动已启用，OpenClash 将在"
 
 msgid "Secends..."
 msgstr "秒后开始启动..."
+
+msgid "Waiting for command to complete..."
+msgstr "等待命令执行完成..."
+
+msgid "Collecting data..."
+msgstr "正在收集数据..."
