@@ -81,8 +81,6 @@ backup_dir="/tmp/"
 create_bakck_dir=fs.mkdir(bakck_dir)
 create_proxy_pro_dir=fs.mkdir(proxy_pro_dir)
 create_rule_pro_dir=fs.mkdir(rule_pro_dir)
-create_core_dir=fs.mkdir(core_dir)
-
 
 HTTP.setfilehandler(
 	function(meta, chunk, eof)
@@ -97,6 +95,7 @@ HTTP.setfilehandler(
 			elseif fp == "rule-provider" then
 				if meta and chunk then fd = nixio.open(rule_pro_dir .. meta.file, "w") end
 			elseif fp == "clash" or fp == "clash_tun" then
+				create_core_dir=fs.mkdir(core_dir)
 				if meta and chunk then fd = nixio.open(core_dir .. meta.file, "w") end
 			elseif fp == "backup-file" then
 				if meta and chunk then fd = nixio.open(backup_dir .. meta.file, "w") end
