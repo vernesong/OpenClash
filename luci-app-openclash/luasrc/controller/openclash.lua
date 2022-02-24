@@ -30,6 +30,7 @@ function index()
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
 	entry({"admin", "services", "openclash", "ping"}, call("act_ping"))
+	entry({"admin", "services", "openclash", "flush_fakeip_cache"}, call("action_flush_fakeip_cache"))
 	entry({"admin", "services", "openclash", "download_rule"}, call("action_download_rule"))
 	entry({"admin", "services", "openclash", "download_netflix_domains"}, call("action_download_netflix_domains"))
 	entry({"admin", "services", "openclash", "download_disney_domains"}, call("action_download_disney_domains"))
@@ -332,6 +333,21 @@ end
 function download_netflix_domains()
   local state = luci.sys.call(string.format('/usr/share/openclash/openclash_download_rule_list.sh "%s" >/dev/null 2>&1',"netflix_domains"))
   return state
+end
+
+function action_flush_fakeip_cache()
+	local state = 0
+	if is_running() then
+		local daip = daip()
+		local dase = dase() or ""
+		local cn_port = cn_port()
+		if not daip or not cn_port then return end
+  	state = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/fakeip/flush', dase, daip, cn_port))
+  end
+  luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		flush_status = state;
+	})
 end
 
 function action_restore_config()
