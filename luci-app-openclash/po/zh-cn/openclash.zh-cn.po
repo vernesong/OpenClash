@@ -2150,16 +2150,16 @@ msgstr "Dler Cloud 签到失败，结果："
 msgid "Downloading Rule..."
 msgstr "正在下载规则..."
 
-msgid "Downloading Fail"
+msgid "Download Failed"
 msgstr "下载失败"
 
-msgid "Downloading Successful"
+msgid "Download Successful"
 msgstr "下载成功"
 
 msgid "Rule No Change"
 msgstr "规则没有更新"
 
-msgid "Downloading Timeout"
+msgid "Download Timeout"
 msgstr "下载超时"
 
 msgid "Rule Project:"
@@ -2689,3 +2689,21 @@ msgstr "等待命令执行完成..."
 
 msgid "Collecting data..."
 msgstr "正在收集数据..."
+
+msgid "Flushing..."
+msgstr "清理中..."
+
+msgid "Flush Fail"
+msgstr "清理失败"
+
+msgid "Flush Successful"
+msgstr "清理成功"
+
+msgid "Flush Timeout"
+msgstr "清理超时"
+
+msgid "Flush"
+msgstr "清理"
+
+msgid "Flush Fake-IP Cache"
+msgstr "Fake-IP 持久化缓存清理"
