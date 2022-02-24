@@ -172,7 +172,8 @@ encoreTVB(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,e
 encoreTVB,ConnersHua,classical,DivineEngine/Profiles/master/Clash/RuleSet/StreamingMedia/Video/,encoreTVB.yaml
 iCloud-email,ConnersHua,classical,DivineEngine/Profiles/master/Clash/RuleSet/Extra/Apple/,Mail.yaml
 iQIYI,ConnersHua,classical,DivineEngine/Profiles/master/Clash/RuleSet/StreamingMedia/Video/,iQIYI.yaml
-iQiyi,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,iQiyi.yaml
+IQIYI,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,IQIYI.yaml
+IQ,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,IQ.yaml
 myTV SUPER,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,myTV%20SUPER.yaml,myTV SUPER.yaml
 myTV-SUPER,ConnersHua,classical,DivineEngine/Profiles/master/Clash/RuleSet/StreamingMedia/Video/,myTV-SUPER.yaml
 niconico,ConnersHua,classical,DivineEngine/Profiles/master/Clash/RuleSet/StreamingMedia/Video/,niconico.yaml
