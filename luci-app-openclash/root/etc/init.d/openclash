@@ -1820,12 +1820,6 @@ if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(iptables -t nat -nL PREROUTING --
    iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
 fi
 
-#Bypass Gateway Compatible
-if [ "$bypass_gateway_compatible" -eq 1 ]; then
-   iptables -t nat -I POSTROUTING -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
-   iptables -t nat -I POSTROUTING -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
-fi
-
 #lan_ac
 if [ "$operation_mode" = "redir-host" ] && [ "$en_mode" = "redir-host" ]; then
    if [ "$lan_ac_mode" = "0" ]; then
@@ -1894,6 +1888,26 @@ if [ "$common_ports" = "1" ]; then
    for i in $common_port; do
       ipset add common_ports $i
    done
+fi
+
+if [ "$bypass_gateway_compatible" -eq 1 ] || [ "$intranet_allowed" -eq 1 ]; then
+   iptables -t nat -N openclash_post
+   iptables -t nat -F openclash_post
+   if [ "$bypass_gateway_compatible" -eq 1 ]; then
+      #Bypass Gateway Compatible
+      iptables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
+      iptables -t nat -A openclash_post -m comment --comment "OpenClash Bypass Gateway Compatible" -m set --match-set localnetwork dst -j RETURN
+      iptables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
+   fi
+   if [ "$intranet_allowed" -eq 1 ] && [ "$en_mode_tun" -eq 1 ]; then
+      #snat routerself for tun while bindaddress enable
+      if [ -z "$_koolshare" ]; then
+         iptables -t nat -I openclash_post -m owner ! --uid-owner 65534 -i lo -d 127.0.0.1 -j SNAT --to-source "$lan_ip"
+      elif [ "$en_mode" = "fake-ip" ]; then
+         iptables -t nat -I openclash_post -i lo -d 127.0.0.1 -j SNAT --to-source "$lan_ip"
+      fi
+   fi
+   iptables -t nat -I POSTROUTING -j openclash_post
 fi
 
 if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
@@ -2080,22 +2094,7 @@ if [ -n "$en_mode_tun" ]; then
       iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp --dport 53 -d 8.8.8.8 -j ACCEPT
       iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp --dport 53 -d 8.8.4.4 -j ACCEPT
    fi
-   
-   #snat routerself for tun while bindaddress enable
-   if [ "$en_mode_tun" -eq 1 ] && [ "$intranet_allowed" -eq 1 ]; then
-      if [ -z "$_koolshare" ]; then
-         iptables -t nat -N openclash_post
-         iptables -t nat -F openclash_post
-         iptables -t nat -A openclash_post -m owner ! --uid-owner 65534 -i lo -d 127.0.0.1 -j SNAT --to-source "$lan_ip"
-         iptables -t nat -I POSTROUTING -j openclash_post
-      elif [ "$en_mode" = "fake-ip" ]; then
-         iptables -t nat -N openclash_post
-         iptables -t nat -F openclash_post
-         iptables -t nat -A openclash_post -i lo -d 127.0.0.1 -j SNAT --to-source "$lan_ip"
-         iptables -t nat -I POSTROUTING -j openclash_post
-      fi
-   fi
-   
+
    #TUN FORWORD
    iptables -I FORWARD -m comment --comment "OpenClash TUN Forward" -o utun -j ACCEPT
    
@@ -2189,8 +2188,12 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
    fi
    
    if [ "$bypass_gateway_compatible" -eq 1 ]; then
-   	  ip6tables -t nat -I POSTROUTING -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
-      ip6tables -t nat -I POSTROUTING -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
+      ip6tables -t mangle -N openclash_post
+      ip6tables -t mangle -F openclash_post
+      ip6tables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
+      ip6tables -t nat -A openclash_post -m comment --comment "OpenClash Bypass Gateway Compatible" -m set --match-set localnetwork6 dst -j RETURN
+      ip6tables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
+      ip6tables -t nat -I POSTROUTING -j openclash_post
    fi
 fi 2>/dev/null
 
