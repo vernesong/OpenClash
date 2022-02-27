@@ -10,12 +10,12 @@ yml_other_set()
 {
    ruby -ryaml -E UTF-8 -e "
    begin
-   Value = YAML.load_file('$4');
+   Value = YAML.load_file('$3');
    rescue Exception => e
    puts '${LOGTIME} Error: Load File Error,【' + e.message + '】'
    end
    begin
-   if $3 == 1 then
+   if $2 == 1 then
    #script
       for i in ['/etc/openclash/custom/openclash_custom_rules.list','/etc/openclash/custom/openclash_custom_rules_2.list'] do
          if File::exist?(i) then
@@ -170,7 +170,7 @@ yml_other_set()
    end
       
    begin
-   if $5 == 1 then
+   if $4 == 1 then
       Value['rules']=Value['rules'].to_a.insert(1,
       'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
       'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
@@ -218,7 +218,7 @@ yml_other_set()
    rescue Exception => e
       puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Error,【' + e.message + '】'
    ensure
-   File.open('$4','w') {|f| YAML.dump(Value, f)}
+   File.open('$3','w') {|f| YAML.dump(Value, f)}
    end" 2>/dev/null >> $LOG_FILE
 }
 
@@ -265,23 +265,23 @@ yml_other_rules_get()
    config_get "GoogleFCM" "$section" "GoogleFCM" "DIRECT"
 }
 
-if [ "$2" != "0" ]; then
+if [ "$1" != "0" ]; then
    /usr/share/openclash/yml_groups_name_get.sh
    if [ $? -ne 0 ]; then
       LOG_OUT "Error: Unable To Parse Config File, Please Check And Try Again!"
       exit 0
    fi
    config_load "openclash"
-   config_foreach yml_other_rules_get "other_rules" "$6"
+   config_foreach yml_other_rules_get "other_rules" "$5"
    if [ -z "$rule_name" ]; then
-      yml_other_set "$1" "$2" "$3" "$4" "$5"
+      yml_other_set "$1" "$2" "$3" "$4"
       exit 0
    #判断策略组是否存在
    elif [ "$rule_name" = "ConnersHua_return" ]; then
 	    if [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ];then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4" "$5"
+         yml_other_set "$1" "$2" "$3" "$4"
          exit 0
 	    fi
    elif [ "$rule_name" = "ConnersHua" ]; then
@@ -291,7 +291,7 @@ if [ "$2" != "0" ]; then
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4" "$5"
+         yml_other_set "$1" "$2" "$3" "$4"
          exit 0
        fi
    elif [ "$rule_name" = "lhie1" ]; then
@@ -319,26 +319,26 @@ if [ "$2" != "0" ]; then
 	 || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4" "$5"
+         yml_other_set "$1" "$2" "$3" "$4"
          exit 0
        fi
    fi
    if [ -z "$Proxy" ]; then
       LOG_OUT "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
-      yml_other_set "$1" "$2" "$3" "$4" "$5"
+      yml_other_set "$1" "$2" "$3" "$4"
       exit 0
    else
        #删除原有的部分，防止冲突
-       if [ -n "$(ruby_read "$4" "['script']")" ]; then
-          ruby_edit "$4" ".delete('script')"
+       if [ -n "$(ruby_read "$3" "['script']")" ]; then
+          ruby_edit "$3" ".delete('script')"
        fi
-       if [ -n "$(ruby_read "$4" "['rules']")" ]; then
-          ruby_edit "$4" ".delete('rules')"
+       if [ -n "$(ruby_read "$3" "['rules']")" ]; then
+          ruby_edit "$3" ".delete('rules')"
        fi
        if [ "$rule_name" = "lhie1" ]; then
        	    ruby -ryaml -E UTF-8 -e "
        	    begin
-       	    Value = YAML.load_file('$4');
+       	    Value = YAML.load_file('$3');
        	    Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
        	    if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
        	       if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
@@ -400,14 +400,14 @@ if [ "$2" != "0" ]; then
        	    .gsub!(/return \"Domestic\"$/, 'return \"$Domestic#d\"')
        	    .gsub!(/return \"Others\"$/, 'return \"$Others#d\"')
        	    .gsub!(/#d/, '');
-       	    File.open('$4','w') {|f| YAML.dump(Value, f)};
+       	    File.open('$3','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
        	    puts '${LOGTIME} Error: Set lhie1 Rules Error,【' + e.message + '】'
        	    end" 2>/dev/null >> $LOG_FILE
        elif [ "$rule_name" = "ConnersHua" ]; then
             ruby -ryaml -E UTF-8 -e "
             begin
-       	    Value = YAML.load_file('$4');
+       	    Value = YAML.load_file('$3');
             Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua.yaml');
        	    if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
        	       if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
@@ -427,14 +427,14 @@ if [ "$2" != "0" ]; then
        	    .gsub(/,MATCH$/, ',$Others#d')
        	    .gsub(/#d/, '')
        	    };
-       	    File.open('$4','w') {|f| YAML.dump(Value, f)};
+       	    File.open('$3','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
        	    puts '${LOGTIME} Error: Set ConnersHua Rules Error,【' + e.message + '】'
        	    end" 2>/dev/null >> $LOG_FILE
        else
             ruby -ryaml -E UTF-8 -e "
             begin
-       	    Value = YAML.load_file('$4');
+       	    Value = YAML.load_file('$3');
        	    Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua_return.yaml');
        	    Value['rules']=Value_1['rules'];
        	    Value['rules'].to_a.collect!{|x|
@@ -442,7 +442,7 @@ if [ "$2" != "0" ]; then
        	    .gsub(/MATCH,DIRECT$/, 'MATCH,$Others#d')
        	    .gsub(/#d/, '')
        	    };
-       	    File.open('$4','w') {|f| YAML.dump(Value, f)};
+       	    File.open('$3','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
        	    puts '${LOGTIME} Error: Set ConnersHua Return Rules Error,【' + e.message + '】'
        	    end" 2>/dev/null >> $LOG_FILE
@@ -450,4 +450,4 @@ if [ "$2" != "0" ]; then
    fi
 fi
 
-yml_other_set "$1" "$2" "$3" "$4" "$5"
+yml_other_set "$1" "$2" "$3" "$4"

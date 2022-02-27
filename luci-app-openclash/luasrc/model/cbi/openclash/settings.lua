@@ -169,7 +169,7 @@ o.description = translate("Set Log File Size (KB)")
 o.default=1024
 
 o = s:taboption("settings", Flag, "intranet_allowed", translate("Only intranet allowed"))
-o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network, Not Support IPv6 Yet")
+o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network")
 o.default=0
 
 o = s:taboption("settings", Value, "dns_port")
