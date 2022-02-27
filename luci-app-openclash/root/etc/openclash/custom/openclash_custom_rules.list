@@ -52,7 +52,6 @@ rules:
 
 ##仅设置路由器自身直连：
 ##- SRC-IP-CIDR,192.168.1.1/32,DIRECT
-##- SRC-IP-CIDR,198.18.0.1/32,DIRECT
 
 ##DDNS
 ##- DOMAIN-SUFFIX,checkip.dyndns.org,DIRECT

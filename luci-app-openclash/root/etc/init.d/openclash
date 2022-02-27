@@ -1890,24 +1890,30 @@ if [ "$common_ports" = "1" ]; then
    done
 fi
 
-if [ "$bypass_gateway_compatible" -eq 1 ] || [ "$intranet_allowed" -eq 1 ]; then
+#bypass gateway compatible
+if [ "$bypass_gateway_compatible" -eq 1 ]; then
    iptables -t nat -N openclash_post
    iptables -t nat -F openclash_post
    if [ "$bypass_gateway_compatible" -eq 1 ]; then
-      #Bypass Gateway Compatible
       iptables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
       iptables -t nat -A openclash_post -m comment --comment "OpenClash Bypass Gateway Compatible" -m set --match-set localnetwork dst -j RETURN
       iptables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
    fi
-   if [ "$intranet_allowed" -eq 1 ] && [ "$en_mode_tun" -eq 1 ]; then
-      #snat routerself for tun while bindaddress enable
-      if [ -z "$_koolshare" ]; then
-         iptables -t nat -I openclash_post -m owner ! --uid-owner 65534 -i lo -d 127.0.0.1 -j SNAT --to-source "$lan_ip"
-      elif [ "$en_mode" = "fake-ip" ]; then
-         iptables -t nat -I openclash_post -i lo -d 127.0.0.1 -j SNAT --to-source "$lan_ip"
-      fi
-   fi
    iptables -t nat -I POSTROUTING -j openclash_post
+fi
+
+#intranet allowed
+if [ "$intranet_allowed" -eq 1 ]; then
+   wan_ints=$(iptables -nvL INPUT |grep "zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /eth/) {print $i}}}')
+   if [ -n "$wan_ints" ]; then
+      iptables -t filter -N openclash_wan_input
+      iptables -t filter -F openclash_wan_input
+      for wan_int in $wan_ints; do
+         iptables -t filter -I INPUT -i "$wan_int" -j openclash_wan_input
+      done
+      iptables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
+      iptables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
+   fi
 fi
 
 if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
@@ -1981,11 +1987,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
       iptables -t nat -F openclash_output
       iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
       if [ "$en_mode" = "fake-ip" ]; then
-         if [ "$intranet_allowed" -eq 1 ]; then
-            iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j DNAT --to-destination "$lan_ip:$proxy_port"
-         else
-            iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
-         fi
+         iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
       fi
       iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
       if [ "$en_mode" = "redir-host" ]; then
@@ -1994,11 +1996,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
             iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
          fi
       fi
-      if [ "$intranet_allowed" -eq 1 ]; then
-         iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j DNAT --to-destination "$lan_ip:$proxy_port"
-      else
-         iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j REDIRECT --to-ports "$proxy_port"
-      fi
+      iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j REDIRECT --to-ports "$proxy_port"
    else
       if [ "$en_mode" = "fake-ip" ]; then
          iptables -t nat -N openclash_output
@@ -2008,11 +2006,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
             iptables -t nat -I OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
          fi
          iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
-         if [ "$intranet_allowed" -eq 1 ]; then
-            iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j DNAT --to-destination "$lan_ip:$proxy_port"
-         else
-            iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
-         fi
+         iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
          
       fi
    fi
@@ -2187,13 +2181,28 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
 	    ip6tables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip6_route dst -j REJECT >/dev/null 2>&1
    fi
    
+   #bypass gateway compatible
    if [ "$bypass_gateway_compatible" -eq 1 ]; then
-      ip6tables -t mangle -N openclash_post
-      ip6tables -t mangle -F openclash_post
+      ip6tables -t nat -N openclash_post
+      ip6tables -t nat -F openclash_post
       ip6tables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
       ip6tables -t nat -A openclash_post -m comment --comment "OpenClash Bypass Gateway Compatible" -m set --match-set localnetwork6 dst -j RETURN
       ip6tables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
       ip6tables -t nat -I POSTROUTING -j openclash_post
+   fi
+   
+   #intranet allowed
+   if [ "$intranet_allowed" -eq 1 ]; then
+      wan6_ints=$(ip6tables -nvL INPUT |grep "zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /eth/) {print $i}}}' 2>/dev/null)
+      if [ -n "$wan_ints" ]; then
+         ip6tables -t filter -N openclash_wan_input
+         ip6tables -t filter -F openclash_wan_input
+         for wan6_int in $wan6_ints; do
+            ip6tables -t filter -I INPUT -i "$wan_int" -j openclash_wan_input
+         done
+         ip6tables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
+         ip6tables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
+      fi
    fi
 fi 2>/dev/null
 
@@ -2219,7 +2228,7 @@ revert_firewall()
    ip link set dev utun down >/dev/null 2>&1
    ip tuntap del utun mode tun >/dev/null 2>&1
    
-   for ipt in "iptables -nvL INPUT" "iptables -nvL FORWARD" "iptables -nvL POSTROUTING -t nat" "iptables -nvL OUTPUT -t nat" "iptables -nvL OUTPUT -t mangle" "iptables -nvL PREROUTING -t nat" "iptables -nvL PREROUTING -t mangle" "ip6tables -nvL PREROUTING -t mangle" "ip6tables -nvL OUTPUT -t mangle" "ip6tables -nvL PREROUTING -t nat" "ip6tables -nvL INPUT"; do
+   for ipt in "iptables -nvL INPUT" "iptables -nvL FORWARD" "iptables -nvL POSTROUTING -t nat" "iptables -nvL OUTPUT -t nat" "iptables -nvL OUTPUT -t mangle" "iptables -nvL PREROUTING -t nat" "iptables -nvL PREROUTING -t mangle" "ip6tables -nvL PREROUTING -t mangle" "ip6tables -nvL OUTPUT -t mangle" "ip6tables -nvL PREROUTING -t nat" "ip6tables -nvL INPUT" "ip6tables -nvL POSTROUTING -t nat"; do
       for comment in "openclash" "OpenClash"; do
          local lines=$($ipt |sed 1,2d |sed -n "/${comment}/=" 2>/dev/null |sort -rn)
          if [ -n "$lines" ]; then
@@ -2230,13 +2239,19 @@ revert_firewall()
       done
    done >/dev/null 2>&1
    
-   for chain in "openclash" "openclash_output" "openclash_post" "openclash_dns_hijack"; do
+   for chain in "openclash" "openclash_output" "openclash_post" "openclash_dns_hijack" "openclash_wan_input"; do
       iptables -t nat -F $chain
       iptables -t nat -X $chain
       iptables -t mangle -F $chain
       iptables -t mangle -X $chain
+      iptables -t filter -F $chain
+      iptables -t filter -X $chain
+      ip6tables -t nat -F $chain
+      ip6tables -t nat -X $chain
       ip6tables -t mangle -F $chain
       ip6tables -t mangle -X $chain
+      ip6tables -t filter -F $chain
+      ip6tables -t filter -X $chain
    done >/dev/null 2>&1
 
    ipset destroy localnetwork6 >/dev/null 2>&1
@@ -2301,7 +2316,6 @@ get_config()
    github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
-   [ "$ipv6_enable" -eq 1 ] && [ "$intranet_allowed" -eq 1 ] && intranet_allowed=0 && uci -q set openclash.config.intranet_allowed=0
    uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
 }
 
@@ -2332,8 +2346,8 @@ start()
       config_foreach yml_auth_get "authentication"
       yml_auth_custom "$CONFIG_FILE"
       yml_dns_custom "$enable_custom_dns" "$CONFIG_FILE" "$append_wan_dns" "$ipv6_dns"
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$LOGTIME" "$en_mode" "$enable_custom_dns" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$lan_ip" "$log_level" "$proxy_mode" "$intranet_allowed" "$en_mode_tun" "$stack_type" "$dns_port" "$core_type" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote"
-      /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$LOGTIME" "$rule_source" "$enable_custom_clash_rules" "$CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote"
+      /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME"
       yml_custom_rule_provider
       yml_game_custom
       yml_provider_path "$CONFIG_FILE" "proxy-providers" "proxy_provider" "$github_address_mod"

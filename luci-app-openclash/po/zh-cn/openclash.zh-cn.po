@@ -197,8 +197,8 @@ msgstr "选择内核日志的默认输出模式"
 msgid "Only intranet allowed"
 msgstr "仅允许内网"
 
-msgid "When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network, Not Support IPv6 Yet"
-msgstr "启用后将禁止从公网访问控制面板和连接代理端口, 暂不支持和IPv6代理同时启用"
+msgid "When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network"
+msgstr "启用后将禁止从公网访问控制面板和连接代理端口"
 
 msgid "Redirect Local DNS Setting"
 msgstr "*本地DNS劫持"
