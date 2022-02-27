@@ -2707,3 +2707,6 @@ msgstr "清理"
 
 msgid "Flush Fake-IP Cache"
 msgstr "Fake-IP 持久化缓存清理"
+
+msgid "No Specify Upload File"
+msgstr "未选择上传文件"
