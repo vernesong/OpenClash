@@ -141,6 +141,8 @@ HTTP.setfilehandler(
 					os.execute(string.format("mv %s '/etc/openclash/core/%s.gz' >/dev/null 2>&1", (core_dir .. meta.file), fp))
 					os.execute("gzip -fd '/etc/openclash/core/%s.gz' >/dev/null 2>&1" %fp)
 					fs.unlink("/etc/openclash/core/%s.gz" %fp)
+				else
+					os.execute(string.format("mv $(echo \"/etc/openclash/core/core/$(ls /etc/openclash/core/core/)\") '/etc/openclash/core/%s' >/dev/null 2>&1", fp))
 				end
 				os.execute("chmod 4755 /etc/openclash/core/%s >/dev/null 2>&1" %fp)
 				os.execute("rm -rf %s >/dev/null 2>&1" %core_dir)
@@ -159,7 +161,7 @@ HTTP.setfilehandler(
 if HTTP.formvalue("upload") then
 	local f = HTTP.formvalue("ulfile")
 	if #f <= 0 then
-		um.value = translate("No specify upload file.")
+		um.value = translate("No Specify Upload File")
 	end
 end
 
