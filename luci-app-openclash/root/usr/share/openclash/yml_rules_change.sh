@@ -182,7 +182,6 @@ yml_other_set()
       'DOMAIN-SUFFIX,hdsky.me,DIRECT',
       'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
       'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
-      'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
       'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
       'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
       'DOMAIN-SUFFIX,m-team.cc,DIRECT',
