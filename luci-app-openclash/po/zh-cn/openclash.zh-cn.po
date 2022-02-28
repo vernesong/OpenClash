@@ -2710,3 +2710,9 @@ msgstr "Fake-IP 持久化缓存清理"
 
 msgid "No Specify Upload File"
 msgstr "未选择上传文件"
+
+msgid "Use Rule Provider"
+msgstr "使用规则集"
+
+msgid "Note: Please Make Sure Backend Service Supports This Feature"
+msgstr "注意：请确保您选择的后端服务支持此功能，否则可能导致内核启动失败"
