@@ -115,7 +115,7 @@ o = s:option(ListValue, "emoji", translate("Emoji"))
 o.rmempty     = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default=0
+o.default="false"
 o:depends("sub_convert", "1")
 
 ---- udp
@@ -123,7 +123,7 @@ o = s:option(ListValue, "udp", translate("UDP Enable"))
 o.rmempty     = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default=0
+o.default="false"
 o:depends("sub_convert", "1")
 
 ---- skip-cert-verify
@@ -131,7 +131,7 @@ o = s:option(ListValue, "skip_cert_verify", translate("skip-cert-verify"))
 o.rmempty     = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default=0
+o.default="false"
 o:depends("sub_convert", "1")
 
 ---- sort
@@ -139,7 +139,7 @@ o = s:option(ListValue, "sort", translate("Sort"))
 o.rmempty     = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default=0
+o.default="false"
 o:depends("sub_convert", "1")
 
 ---- node type
@@ -147,7 +147,16 @@ o = s:option(ListValue, "node_type", translate("Append Node Type"))
 o.rmempty     = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default=0
+o.default="false"
+o:depends("sub_convert", "1")
+
+---- rule provider
+o = s:option(ListValue, "rule_provider", translate("Use Rule Provider"))
+o.description = font_red..bold_on..translate("Note: Please Make Sure Backend Service Supports This Feature")..bold_off..font_off
+o.rmempty     = false
+o:value("false", translate("Disable"))
+o:value("true", translate("Enable"))
+o.default="false"
 o:depends("sub_convert", "1")
 
 ---- key
