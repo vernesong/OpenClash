@@ -19,12 +19,12 @@ set_lock
 if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{print $2}')" ]; then
    if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-         curl -sL --connect-timeout 5 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core_version -o $LAST_OPVER >/dev/null 2>&1
+         curl -sL -m 3 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core_version -o $LAST_OPVER >/dev/null 2>&1
       else
-         curl -sL --connect-timeout 5 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER >/dev/null 2>&1
+         curl -sL -m 3 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER >/dev/null 2>&1
       fi
    else
-      curl -sL --connect-timeout 5 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER >/dev/null 2>&1
+      curl -sL -m 3 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER >/dev/null 2>&1
    fi
    
    if [ "$?" -eq "0" ] && [ -s "$LAST_OPVER" ]; then
