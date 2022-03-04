@@ -579,8 +579,8 @@ msgstr "设置自定义Hosts，详细信息请参阅:"
 msgid "Set Custom Rules"
 msgstr "设置自定义规则（在上方规则设置中启用本功能后生效）"
 
-msgid "Set Custom Hosts, Only Work with Redir-Host Mode"
-msgstr "设置自定义Hosts，仅在Redir-Host模式下生效（不会覆盖配置文件设置）"
+msgid "Set Custom Hosts (Does Not Override Config Settings)"
+msgstr "设置自定义Hosts（不会覆盖配置文件设置）"
 
 msgid "Version Update"
 msgstr "版本更新"
