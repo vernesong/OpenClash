@@ -107,20 +107,18 @@ puts '${LOGTIME} Error: Set General Error,【' + e.message + '】'
 end
 begin
 #添加自定义Hosts设置
-if '$1' == 'redir-host' then
-   if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
-      Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_hosts.list')
-      if Value_3 != false then
-         Value['dns']['use-hosts']=true
-         if Value.has_key?('hosts') and not Value['hosts'].to_a.empty? then
-            Value['hosts'].merge!(Value_3)
-            Value['hosts'].uniq
-         else
-            Value['hosts']=Value_3
-         end
+if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
+   Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_hosts.list')
+   if Value_3 != false then
+      Value['dns']['use-hosts']=true
+      if Value.has_key?('hosts') and not Value['hosts'].to_a.empty? then
+         Value['hosts'].merge!(Value_3)
+         Value['hosts'].uniq
+      else
+         Value['hosts']=Value_3
       end
    end
-end;
+end
 rescue Exception => e
 puts '${LOGTIME} Error: Set Hosts Rules Error,【' + e.message + '】'
 end
