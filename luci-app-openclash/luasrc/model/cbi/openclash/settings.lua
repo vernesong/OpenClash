@@ -957,9 +957,10 @@ o = s:option(Value, "password", translate("Password"))
 o.placeholder = translate("Not Null")
 o.rmempty = true
 
-if op_mode == "redir-host" then
-s = m:section(NamedSection, "config", translate("Set Custom Hosts, Only Work with Redir-Host Mode"))
+s = m:section(NamedSection, "config")
+s.title=translate("Set Custom Hosts (Does Not Override Config Settings)")
 s.anonymous = true
+s.addremove = false
 
 custom_hosts = s:option(Value, "custom_hosts")
 custom_hosts.template = "cbi/tvalue"
@@ -978,7 +979,6 @@ function custom_hosts.write(self, section, value)
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_hosts.list", value)
 		end
 	end
-end
 end
 
 local t = {
