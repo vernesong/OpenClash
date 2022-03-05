@@ -67,6 +67,7 @@ del_cron()
    sed -i '/openclash_rule.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_ipdb.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_chnroute.sh/d' $CRON_FILE 2>/dev/null
+   sed -i '/\/etc\/init.d\/openclash/d' $CRON_FILE 2>/dev/null
    /etc/init.d/cron restart
 }
 
