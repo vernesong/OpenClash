@@ -30,7 +30,13 @@ cp -f "/etc/openclash/custom/openclash_custom_netflix_domains.list" "/usr/share/
 
 mkdir -p /lib/upgrade/keep.d
 cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
-/etc/openclash/
+/etc/openclash/backup/
+/etc/openclash/config/
+/etc/openclash/custom/
+/etc/openclash/game_rules/
+/etc/openclash/history/
+/etc/openclash/proxy_provider/
+/etc/openclash/rule_provider/
 EOF
 
 if [ -f "/tmp/openclash.bak" ]; then
