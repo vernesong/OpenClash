@@ -558,8 +558,8 @@ function get_proxy(info, group, name)
 end
 
 function urlencode(data)
-	local data = luci.sys.exec(string.format('curl -s -o /dev/null -w %%{url_effective} --get --data-urlencode "%s" ""', data))
-	return luci.sys.exec(string.format("echo %s |sed 's/+/%%20/g'", string.match(data, "/%?(.+)")))
+	local data = luci.sys.exec(string.format('curl -s -o /dev/null -w %%{url_effective} --get --data-urlencode "key=%s" ""', data))
+	return luci.sys.exec(string.format("echo %s |sed 's/+/%%20/g'", string.match(data, "/%?key=(.+)")))
 end
 
 function datamatch(data, regex)

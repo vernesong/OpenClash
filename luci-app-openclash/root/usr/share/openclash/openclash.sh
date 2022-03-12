@@ -31,9 +31,9 @@ set_lock
 urlencode() {
    local data
    if [ "$#" -eq 1 ]; then
-      data=$(curl -s -o /dev/null -w %{url_effective} --get --data-urlencode "$1" "")
+      data=$(curl -s -o /dev/null -w %{url_effective} --get --data-urlencode "key=$1" "")
       if [ ! -z "$data" ]; then
-         echo "$(echo ${data##/?} |sed 's/\//%2f/g' |sed 's/:/%3a/g' |sed 's/?/%3f/g' |sed 's/(/%28/g' |sed 's/)/%29/g' |sed 's/\^/%5e/g' |sed 's/=/%3d/g' |sed 's/|/%7c/g' |sed 's/+/%20/g')"
+         echo "$(echo ${data##/?key=} |sed 's/\//%2f/g' |sed 's/:/%3a/g' |sed 's/?/%3f/g' |sed 's/(/%28/g' |sed 's/)/%29/g' |sed 's/\^/%5e/g' |sed 's/=/%3d/g' |sed 's/|/%7c/g' |sed 's/+/%20/g')"
       fi
    fi
 }
@@ -54,15 +54,15 @@ config_download()
 {
 if [ -n "$subscribe_url_param" ]; then
    if [ -n "$c_address" ]; then
-      curl -sL --connect-timeout 10 --retry 2 -H 'User-Agent: Clash' "$c_address""$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
+      curl -sL -m 5 --retry 2 -H 'User-Agent: Clash' "$c_address""$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
    else
-      curl -sL --connect-timeout 10 --retry 2 -H 'User-Agent: Clash' https://api.dler.io/sub"$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
+      curl -sL -m 5 --retry 2 -H 'User-Agent: Clash' https://api.dler.io/sub"$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
       if [ "$?" -ne 0 ]; then
-         curl -sL --connect-timeout 10 --retry 2 -H 'User-Agent: Clash' https://subconverter.herokuapp.com/sub"$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
+         curl -sL -m 5 --retry 2 -H 'User-Agent: Clash' https://subconverter.herokuapp.com/sub"$subscribe_url_param" -o "$CFG_FILE" >/dev/null 2>&1
       fi
    fi
 else
-   curl -sL --connect-timeout 10 --retry 2 -H 'User-Agent: Clash' "$subscribe_url" -o "$CFG_FILE" >/dev/null 2>&1
+   curl -sL -m 5 --retry 2 -H 'User-Agent: Clash' "$subscribe_url" -o "$CFG_FILE" >/dev/null 2>&1
 fi
 }
 
