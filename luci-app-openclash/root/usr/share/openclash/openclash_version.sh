@@ -9,15 +9,19 @@ github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
 if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{print $2}')" ]; then
 	 if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-         curl -sL -m 3 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
+         curl -sL -m 3 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
       else
-         curl -sL -m 3 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
+         curl -sL -m 3 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
       fi
    else
-      curl -sL -m 3 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
+      curl -sL -m 3 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
    fi
    
-   if [ "$?" -eq "0" ] && [ -s "$LAST_OPVER" ]; then
+   if [ "$?" != "0" ]; then
+      curl -sL -m 3 --retry 2 https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
+   fi
+   
+   if [ "$?" == "0" ] && [ -s "$LAST_OPVER" ]; then
    	  OP_LV=$(sed -n 1p $LAST_OPVER 2>/dev/null |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
       if [ "$(expr "$OP_CV" \>= "$OP_LV")" -eq 1 ]; then
          sed -i "/^https:/i\CheckTime:${CKTIME}" "$LAST_OPVER" 2>/dev/null
