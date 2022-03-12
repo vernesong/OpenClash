@@ -32,17 +32,20 @@ if [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 ] && [ -f "$LAST_OPVER" ]; then
    LOG_OUT "Start Downloading【OpenClash - v$LAST_VER】..."
    if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-         curl -sL -m 10 --retry 2 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
+         curl -sL -m 10 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
       else
-         curl -sL -m 10 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
+         curl -sL -m 10 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
       fi
    else
-      curl -sL -m 10 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
+      curl -sL -m 10 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
    fi
-   if [ "$?" -eq "0" ] && [ -s "/tmp/openclash.ipk" ]; then
+   if [ "$?" != "0" ]; then
+      curl -sL -m 10 --retry 2 https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
+   fi
+   if [ "$?" == "0" ] && [ -s "/tmp/openclash.ipk" ]; then
       LOG_OUT "【OpenClash - v$LAST_VER】Download Successful, Start Pre Update Test..."
       opkg install /tmp/openclash.ipk --noaction >>$LOG_FILE
-      if [ "$?" -ne "0" ]; then
+      if [ "$?" != "0" ]; then
          LOG_OUT "【OpenClash - v$LAST_VER】Pre Update Test Failed, The File is Saved in /tmp/opencrash.ipk, Please Try to Update Manually!"
          if [ "$(uci -q get openclash.config.config_reload)" -eq 0 ]; then
       	    /etc/init.d/openclash restart >/dev/null 2>&1 &
@@ -79,7 +82,7 @@ uci -q commit openclash
 opkg remove --force-depends --force-remove luci-app-openclash
 LOG_OUT "Installing The New Version, Please Do Not Refresh The Page or Do Other Operations..."
 opkg install /tmp/openclash.ipk
-if [ "$?" -eq "0" ]; then
+if [ "$?" == "0" ]; then
    rm -rf /tmp/openclash.ipk >/dev/null 2>&1
    LOG_OUT "OpenClash Update Successful, About To Restart!"
    sleep 3
