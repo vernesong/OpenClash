@@ -12,6 +12,7 @@ STOP=15
 RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
 BACKUP_FILE="/etc/openclash/backup/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
+TMP_CONFIG_FILE="/tmp/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 }
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 CLASH="/etc/openclash/clash"
@@ -253,7 +254,7 @@ EOF
    
    #fallback-filter
    if [ "$custom_fallback_filter" = "1" ]; then
-      if [ -z "$(ruby_read "$CONFIG_FILE" "['dns']['fallback']")" ]; then
+      if [ -z "$(ruby_read "$1" "['dns']['fallback']")" ]; then
          LOG_OUT "Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore..."
          return
       fi
@@ -261,7 +262,7 @@ EOF
          LOG_OUT "Error: Unable To Parse Custom Fallback-Filter File, Ignore..."
          return
       fi
-      ruby_merge "$CONFIG_FILE" "['dns']" "$2"
+      ruby_merge "$1" "['dns']" "$2"
    fi
 }
 
@@ -374,13 +375,13 @@ yml_provider_path()
 #检查集文件防止启动失败
 yml_provider_check()
 {
-provider_path_line=$(ruby_read "$CONFIG_FILE" ".key?('$2')")
+provider_path_line=$(ruby_read "$1" ".key?('$2')")
 local provider_path_check provider_path_check_num=0
 if "$provider_path_line"; then
    while ( [ -n "$(pidof clash)" ] && [ "$provider_path_check_num" -le 5 ] )
    do
       provider_path_check=$(ruby -ryaml -E UTF-8 -e "
-      Value = YAML.load_file('$CONFIG_FILE');
+      Value = YAML.load_file('$1');
       Value['$2'].values.each{|x,v|
       if not x['path'].empty? then
          if x['path'].split('/')[0] == '.' then
@@ -704,7 +705,7 @@ config_foreach yml_game_rule_get "game_config"
 [ -f "$GAME_RULE_FILE" ] && {
 ruby -ryaml -E UTF-8 -e "
 begin
-Value = YAML.load_file('$CONFIG_FILE');
+Value = YAML.load_file('$1');
 Value_1 = YAML.load_file('$GAME_RULE_FILE');
 if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
    ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
@@ -721,7 +722,7 @@ if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? 
 else
    Value['rule-providers']=Value_1['rule-providers']
 end;
-File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
+File.open('$1','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
 puts '${LOGTIME} Error: Game Rule Merge Error,【' + e.message + '】'
 end
@@ -736,7 +737,7 @@ config_foreach yml_rule_group_get "game_config"
 if [ -f "/tmp/yaml_groups.yaml" ] || [ -f "/tmp/yaml_servers.yaml" ] || [ -f "/tmp/yaml_provider.yaml" ]; then
 ruby -ryaml -E UTF-8 -e "
 begin
-Value = YAML.load_file('$CONFIG_FILE');
+Value = YAML.load_file('$1');
 if File::exist?('/tmp/yaml_groups.yaml') then
    Value_1 = YAML.load_file('/tmp/yaml_groups.yaml');
    if Value.has_key?('proxy-groups') and not Value['proxy-groups'].to_a.empty? then
@@ -764,7 +765,7 @@ if File::exist?('/tmp/yaml_provider.yaml') then
       Value['proxy-providers']=Value_3['proxy-providers']
    end
 end;
-File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
+File.open('$1','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
 puts '${LOGTIME} Error: Game Proxy Merge Error,【' + e.message + '】'
 end" 2>/dev/null >> $LOG_FILE
@@ -775,7 +776,7 @@ yml_rule_set_add()
 {
 ruby -ryaml -E UTF-8 -e "
 begin
-   Value = YAML.load_file('$CONFIG_FILE');
+   Value = YAML.load_file('$TMP_CONFIG_FILE');
    if $3 == 1 then
       if Value.has_key?('rule-set-bottom') and not Value['rule-set-bottom'].to_a.empty? then
          Value['rule-set-bottom'].insert(-1,'RULE-SET,${1},${2}')
@@ -793,7 +794,7 @@ begin
       end
       Value['rule-set-top'] = Value['rule-set-top'].uniq
    end
-File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
+File.open('$TMP_CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
    puts '${LOGTIME} Error: Rule Set Add Error,【' + e.message + '】'
 end
@@ -946,7 +947,7 @@ yml_custom_rule_provider()
    if [ -f "$RULE_PROVIDER_FILE" ]; then
       ruby -ryaml -E UTF-8 -e "
       begin
-         Value = YAML.load_file('$CONFIG_FILE');
+         Value = YAML.load_file('$1');
       rescue Exception => e
          puts '${LOGTIME} Error: Load File Error,【' + e.message + '】'
       end;
@@ -1005,7 +1006,7 @@ yml_custom_rule_provider()
       rescue Exception => e
          puts '${LOGTIME} Error: Rule Set Add Error,【' + e.message + '】'
       ensure
-         File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
+         File.open('$1','w') {|f| YAML.dump(Value, f)}
       end;
       " 2>/dev/null >> $LOG_FILE
    fi
@@ -1035,10 +1036,12 @@ sub_info_get()
    	  CONFIG_NAME="config"
       RAW_CONFIG_FILE="/etc/openclash/config/config.yaml"
       CONFIG_FILE="/etc/openclash/config.yaml"
+      TMP_CONFIG_FILE="/tmp/config.yaml"
    else
       CONFIG_NAME="$name"
       RAW_CONFIG_FILE="/etc/openclash/config/$name.yaml"
       CONFIG_FILE="/etc/openclash/$name.yaml"
+      TMP_CONFIG_FILE="/tmp/$name.yaml"
    fi
    
    uci -q set openclash.config.config_path="$RAW_CONFIG_FILE"
@@ -1056,6 +1059,8 @@ if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
       uci -q commit openclash
       RAW_CONFIG_FILE="/etc/openclash/config/$CONFIG_NAME"
       CONFIG_FILE="/etc/openclash/$CONFIG_NAME"
+      TMP_CONFIG_FILE="/tmp/$CONFIG_NAME"
+      
    fi
 fi 2>/dev/null
 CONFIG_NAME=$(echo "$RAW_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
@@ -1084,21 +1089,21 @@ config_check()
 {
 #创建启动配置
 #rm -rf "/etc/openclash/*.y*" 2>/dev/null
-cp "$RAW_CONFIG_FILE" "$CONFIG_FILE"
+cp "$RAW_CONFIG_FILE" "$TMP_CONFIG_FILE"
 
 ruby -ryaml -E UTF-8 -e "
 begin
    YAML.load_file('$RAW_CONFIG_FILE');
 rescue Exception => e
    puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】'
-   system 'rm -rf ${CONFIG_FILE}'
+   system 'rm -rf ${TMP_CONFIG_FILE}'
 end
 " 2>/dev/null >> $LOG_FILE
 if [ $? -ne 0 ]; then
    LOG_OUT "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
    sleep 3
    start_fail
-elif [ ! -f "$CONFIG_FILE" ] || [ ! -s "$CONFIG_FILE" ]; then
+elif [ ! -f "$TMP_CONFIG_FILE" ] || [ ! -s "$TMP_CONFIG_FILE" ]; then
    LOG_OUT "Error: Config File Format Validation Failed..."
    sleep 3
    start_fail
@@ -1106,7 +1111,7 @@ fi
 
 #检查field名称（不兼容旧写法）
 ruby -ryaml -E UTF-8 -e "
-   Value = YAML.load_file('$CONFIG_FILE');
+   Value = YAML.load_file('$TMP_CONFIG_FILE');
    if Value.key?('Proxy') or Value.key?('Proxy Group') or Value.key?('Rule') or Value.key?('rule-provider') then
       if Value.key?('Proxy') then
          Value['proxies'] = Value['Proxy']
@@ -1128,7 +1133,7 @@ ruby -ryaml -E UTF-8 -e "
          Value.delete('rule-provider')
          puts '${LOGTIME} Warning: rule-provider is no longer used. Auto replaced by rule-providers'
       end;
-      File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)};
+      File.open('$TMP_CONFIG_FILE','w') {|f| YAML.dump(Value, f)};
    end;
    " 2>/dev/null >> $LOG_FILE
 }
@@ -1431,12 +1436,12 @@ do_run_file()
 }
 
 #绑定interface防止回环
-check_interface_name()
+yml_interface_name_set()
 {
-   if [ -n "$interface_name" ] && [ "$interface_name" != "0" ]; then
-      ruby_edit "$CONFIG_FILE" "['interface-name']='$interface_name'"
+   if [ -n "$2" ] && [ "$2" != "0" ]; then
+      ruby_edit "$1" "['interface-name']='$2'"
    else
-      sed -i "/^interface-name:/d" "$CONFIG_FILE" 2>/dev/null
+      sed -i "/^interface-name:/d" "$1" 2>/dev/null
    fi
 }
 
@@ -1446,7 +1451,10 @@ start_run_core()
    ulimit -SHn 65535 2>/dev/null
    ulimit -v unlimited 2>/dev/null
    modprobe tun >/dev/null 2>&1
-   check_interface_name
+   if ! $quick_start; then
+      mv "$TMP_CONFIG_FILE" "$CONFIG_FILE" 2>/dev/null
+      rm -rf "$TMP_CONFIG_FILE" 2>/dev/null
+   fi
    config_reload=$(uci -q get openclash.config.config_reload)
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$config_reload" != "0" ]; then
       curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
@@ -2345,17 +2353,18 @@ start()
       config_check
       config_load "openclash"
       config_foreach yml_auth_get "authentication"
-      yml_auth_custom "$CONFIG_FILE"
-      yml_dns_custom "$enable_custom_dns" "$CONFIG_FILE" "$append_wan_dns" "$ipv6_dns"
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote"
-      /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME"
-      yml_custom_rule_provider
-      yml_game_custom
-      yml_provider_path "$CONFIG_FILE" "proxy-providers" "proxy_provider" "$github_address_mod"
-      yml_provider_path "$CONFIG_FILE" "rule-providers" "rule_provider" "$github_address_mod"
-      yml_vmess_compatible "$CONFIG_FILE" "proxies"
-      yml_dns_check "$CONFIG_FILE"  "$FALLBACK_FILTER_FILE"
-      yml_tolerance_set "$CONFIG_FILE" "$tolerance"
+      yml_auth_custom "$TMP_CONFIG_FILE"
+      yml_dns_custom "$enable_custom_dns" "$TMP_CONFIG_FILE" "$append_wan_dns" "$ipv6_dns"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote"
+      /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME"
+      yml_custom_rule_provider "$TMP_CONFIG_FILE"
+      yml_game_custom "$TMP_CONFIG_FILE"
+      yml_provider_path "$TMP_CONFIG_FILE" "proxy-providers" "proxy_provider" "$github_address_mod"
+      yml_provider_path "$TMP_CONFIG_FILE" "rule-providers" "rule_provider" "$github_address_mod"
+      yml_vmess_compatible "$TMP_CONFIG_FILE" "proxies"
+      yml_dns_check "$TMP_CONFIG_FILE"  "$FALLBACK_FILTER_FILE"
+      yml_tolerance_set "$TMP_CONFIG_FILE" "$tolerance"
+      yml_interface_name_set "$TMP_CONFIG_FILE" "$interface_name"
    fi
    
    LOG_OUT "Step 4: Start Running The Clash Core..."
