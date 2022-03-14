@@ -62,6 +62,7 @@ function index()
 	entry({"admin", "services", "openclash", "switch_run_mode"}, call("action_switch_run_mode"))
 	entry({"admin", "services", "openclash", "get_run_mode"}, call("action_get_run_mode"))
 	entry({"admin", "services", "openclash", "create_file"}, call("create_file"))
+	entry({"admin", "services", "openclash", "rename_file"}, call("rename_file"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Global Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Servers and Groups"), 40).leaf = true
 	entry({"admin", "services", "openclash", "other-rules-edit"},cbi("openclash/other-rules-edit"), nil).leaf = true
@@ -1277,9 +1278,97 @@ function create_file()
 	local file_name = luci.http.formvalue("filename")
 	local file_path = luci.http.formvalue("filepath")..file_name
 	fs.writefile(file_path, "")
-	if fs.isfile(file_path) then
-		return
-	else
+	if not fs.isfile(file_path) then
 		luci.http.status(500, "Create File Faild")
 	end
+	return
+end
+
+function rename_file()
+	local new_file_name = luci.http.formvalue("new_file_name")
+	local file_path = luci.http.formvalue("file_path")
+	local old_file_name = luci.http.formvalue("file_name")
+	local old_file_path = file_path .. old_file_name
+	local new_file_path = file_path .. new_file_name
+	local old_run_file_path = "/etc/openclash/" .. old_file_name
+	local new_run_file_path = "/etc/openclash/" .. new_file_name
+	local old_backup_file_path = "/etc/openclash/backup/" .. old_file_name
+	local new_backup_file_path = "/etc/openclash/backup/" .. new_file_name
+	if fs.rename(old_file_path, new_file_path) then
+		if file_path == "/etc/openclash/config/" then
+			if uci:get("openclash", "config", "config_path") == old_file_path then
+				uci:set("openclash", "config", "config_path", new_file_path)
+			end
+			
+			if fs.isfile(old_run_file_path) then
+				fs.rename(old_run_file_path, new_run_file_path)
+			end
+			
+			if fs.isfile(old_backup_file_path) then
+				fs.rename(old_backup_file_path, new_backup_file_path)
+			end
+			
+			uci:foreach("openclash", "config_subscribe",
+			function(s)
+				if s.name == fs.filename(old_file_name) and fs.filename(new_file_name) ~= new_file_name then
+					uci:set("openclash", s[".name"], "name", fs.filename(new_file_name))
+				end
+			end)
+			
+			uci:foreach("openclash", "other_rules",
+			function(s)
+				if s.config == old_file_name and fs.filename(new_file_name) ~= new_file_name then
+					uci:set("openclash", s[".name"], "config", new_file_name)
+				end
+			end)
+			
+			uci:foreach("openclash", "groups",
+			function(s)
+				if s.config == old_file_name and fs.filename(new_file_name) ~= new_file_name then
+					uci:set("openclash", s[".name"], "config", new_file_name)
+				end
+			end)
+			
+			uci:foreach("openclash", "proxy-provider",
+			function(s)
+				if s.config == old_file_name and fs.filename(new_file_name) ~= new_file_name then
+					uci:set("openclash", s[".name"], "config", new_file_name)
+				end
+			end)
+			
+			uci:foreach("openclash", "rule_provider_config",
+			function(s)
+				if s.config == old_file_name and fs.filename(new_file_name) ~= new_file_name then
+					uci:set("openclash", s[".name"], "config", new_file_name)
+				end
+			end)
+			
+			uci:foreach("openclash", "servers",
+			function(s)
+				if s.config == old_file_name and fs.filename(new_file_name) ~= new_file_name then
+					uci:set("openclash", s[".name"], "config", new_file_name)
+				end
+			end)
+			
+			uci:foreach("openclash", "game_config",
+			function(s)
+				if s.config == old_file_name and fs.filename(new_file_name) ~= new_file_name then
+					uci:set("openclash", s[".name"], "config", new_file_name)
+				end
+			end)
+			
+			uci:foreach("openclash", "rule_providers",
+			function(s)
+				if s.config == old_file_name and fs.filename(new_file_name) ~= new_file_name then
+					uci:set("openclash", s[".name"], "config", new_file_name)
+				end
+			end)
+			
+			uci:commit("openclash")
+		end
+		luci.http.status(200, "Rename File Successful")
+	else
+		luci.http.status(500, "Rename File Faild")
+	end
+	return
 end
