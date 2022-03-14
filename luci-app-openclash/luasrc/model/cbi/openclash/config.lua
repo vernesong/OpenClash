@@ -230,7 +230,6 @@ btned.write=function(a,t)
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "config", "%s") %file_path)
 end
 
-
 btncp=tb:option(Button,"copy",translate("Copy Config"))
 btncp.template="openclash/other_button"
 btncp.render=function(o,t,a)
@@ -253,6 +252,14 @@ btncp.write=function(a,t)
 		end
 	end
 	HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
+end
+
+btnrn=tb:option(DummyValue,"/etc/openclash/config/",translate("Rename"))
+btnrn.template="openclash/input_rename"
+btnrn.rawhtml = true
+btnrn.render=function(c,t,a)
+c.value = e[t].name
+Button.render(c,t,a)
 end
 
 btndl = tb:option(Button,"download",translate("Download Config"))
