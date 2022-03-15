@@ -273,6 +273,13 @@ iptables-save -t mangle >> "$DEBUG_LOG" 2>/dev/null
 
 cat >> "$DEBUG_LOG" <<-EOF
 
+#IPv4 Filter chain
+
+EOF
+iptables-save -t filter >> "$DEBUG_LOG" 2>/dev/null
+
+cat >> "$DEBUG_LOG" <<-EOF
+
 #IPv6 NAT chain
 
 EOF
@@ -284,6 +291,13 @@ cat >> "$DEBUG_LOG" <<-EOF
 
 EOF
 ip6tables-save -t mangle >> "$DEBUG_LOG" 2>/dev/null
+
+cat >> "$DEBUG_LOG" <<-EOF
+
+#IPv6 Filter chain
+
+EOF
+ip6tables-save -t filter >> "$DEBUG_LOG" 2>/dev/null
 
 cat >> "$DEBUG_LOG" <<-EOF
 
