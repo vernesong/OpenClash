@@ -2738,8 +2738,14 @@ msgstr "不支持的扩展名！"
 msgid "Manual Test"
 msgstr "手动测试"
 
-msgid "Unlock Test&Select"
+msgid "Unlock Test(Select)"
 msgstr "解锁检测(选择)"
 
 msgid "All Proxies Test"
 msgstr "测试所有节点"
+
+msgid "Something Wrong While Testing..."
+msgstr "发生了一些错误，测试失败..."
+
+msgid "Network instability may occur during testing, Are you sure want to start test?"
+msgstr "测试过程中可能会造成网络不稳定,确定要开始测试吗？"
