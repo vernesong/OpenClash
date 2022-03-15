@@ -1913,7 +1913,7 @@ fi
 
 #intranet allowed
 if [ "$intranet_allowed" -eq 1 ]; then
-   wan_ints=$(iptables -nvL INPUT |grep "zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /eth/) {print $i}}}')
+   wan_ints=$(iptables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
    if [ -n "$wan_ints" ]; then
       iptables -t filter -N openclash_wan_input
       iptables -t filter -F openclash_wan_input
@@ -2202,7 +2202,7 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
    
    #intranet allowed
    if [ "$intranet_allowed" -eq 1 ]; then
-      wan6_ints=$(ip6tables -nvL INPUT |grep "zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /eth/) {print $i}}}' 2>/dev/null)
+      wan6_ints=$(ip6tables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
       if [ -n "$wan_ints" ]; then
          ip6tables -t filter -N openclash_wan_input
          ip6tables -t filter -F openclash_wan_input
