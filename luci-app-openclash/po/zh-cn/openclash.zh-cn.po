@@ -2622,7 +2622,7 @@ msgid "unlock node auto selected successfully, the current selected is"
 msgstr "解锁节点自动选择成功，当前选择的是"
 
 msgid "unlock node auto selected failed, no node available, rolled back to the"
-msgstr "解锁节点自动选择失败，无可用节点，回退到"
+msgstr "解锁节点自动选择失败，无完整解锁节点，回退到"
 
 msgid ", area:"
 msgstr "，区域："
@@ -2641,6 +2641,15 @@ msgstr "完整解锁但区域不匹配！当前策略组类型非 Select，无�
 
 msgid "full support but not match the regex! start auto select unlock proxy..."
 msgstr "完整解锁但区域不匹配！开始进行解锁节点自动选择..."
+
+msgid "unlock node test finished, rolled back to the full support node"
+msgstr "解锁检测完成，回退到完整解锁的节点"
+
+msgid "unlock node test finished, no node match the regex, rolled back to other full support node"
+msgstr "解锁检测完成，未找到区域匹配的节点，回退到其他区域的解锁节点"
+
+msgid "unlock node test finished, no node available, rolled back to the"
+msgstr "解锁检测完成，无完整解锁节点，回退到"
 
 msgid "DNS Remote"
 msgstr "*远程域名解析"
@@ -2725,3 +2734,12 @@ msgstr "请在此输入新文件名（含扩展名）："
 
 msgid "Illegal extension!"
 msgstr "不支持的扩展名！"
+
+msgid "Manual Test"
+msgstr "手动测试"
+
+msgid "Unlock Test&Select"
+msgstr "解锁检测(选择)"
+
+msgid "All Proxies Test"
+msgstr "测试所有节点"

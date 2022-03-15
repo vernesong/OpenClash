@@ -505,6 +505,12 @@ o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region According To The Regex")
 o:depends("stream_auto_select_netflix", "1")
 
+o = s:taboption("stream_enhance", DummyValue, "Netflix", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "Netflix"
+o:depends("stream_auto_select_netflix", "1")
+
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_disney", translate("Disney Plus"))
 o.default=0
 o:depends("stream_auto_select", "1")
@@ -519,6 +525,12 @@ o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_disney",
 o.default = ""
 o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region According To The Regex")
+o:depends("stream_auto_select_disney", "1")
+
+o = s:taboption("stream_enhance", DummyValue, "Disney Plus", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "Disney Plus"
 o:depends("stream_auto_select_disney", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_ytb", translate("YouTube Premium"))
@@ -537,6 +549,12 @@ o.placeholder = "HK|US"
 o.description = translate("It Will Be Selected Region According To The Regex")
 o:depends("stream_auto_select_ytb", "1")
 
+o = s:taboption("stream_enhance", DummyValue, "YouTube Premium", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "YouTube Premium"
+o:depends("stream_auto_select_ytb", "1")
+
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_prime_video", translate("Amazon Prime Video"))
 o.default=0
 o:depends("stream_auto_select", "1")
@@ -553,6 +571,12 @@ o.placeholder = "HK|US|SG"
 o.description = translate("It Will Be Selected Region According To The Regex")
 o:depends("stream_auto_select_prime_video", "1")
 
+o = s:taboption("stream_enhance", DummyValue, "Amazon Prime Video", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "Amazon Prime Video"
+o:depends("stream_auto_select_prime_video", "1")
+
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_now", translate("HBO Now"))
 o.default=0
 o:depends("stream_auto_select", "1")
@@ -561,6 +585,12 @@ o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_now",
 o.default = "HBO|HBONow|HBO Now"
 o.placeholder = "HBO|HBONow|HBO Now"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_hbo_now", "1")
+
+o = s:taboption("stream_enhance", DummyValue, "HBO Now", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "HBO Now"
 o:depends("stream_auto_select_hbo_now", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_max", translate("HBO Max"))
@@ -579,6 +609,12 @@ o.placeholder = "US"
 o.description = translate("It Will Be Selected Region According To The Regex")
 o:depends("stream_auto_select_hbo_max", "1")
 
+o = s:taboption("stream_enhance", DummyValue, "HBO Max", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "HBO Max"
+o:depends("stream_auto_select_hbo_max", "1")
+
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_go_asia", translate("HBO GO Asia"))
 o.default=0
 o:depends("stream_auto_select", "1")
@@ -595,6 +631,12 @@ o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region According To The Regex")
 o:depends("stream_auto_select_hbo_go_asia", "1")
 
+o = s:taboption("stream_enhance", DummyValue, "HBO GO Asia", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "HBO GO Asia"
+o:depends("stream_auto_select_hbo_go_asia", "1")
+
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_tvb_anywhere", translate("TVB Anywhere+"))
 o.default=0
 o:depends("stream_auto_select", "1")
@@ -609,6 +651,12 @@ o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_tvb_anyw
 o.default = ""
 o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region According To The Regex")
+o:depends("stream_auto_select_tvb_anywhere", "1")
+
+o = s:taboption("stream_enhance", DummyValue, "TVB Anywhere+", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "TVB Anywhere+"
 o:depends("stream_auto_select_tvb_anywhere", "1")
 
 ---- update Settings

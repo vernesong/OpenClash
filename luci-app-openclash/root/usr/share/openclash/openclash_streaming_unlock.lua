@@ -10,17 +10,23 @@ local json = require "luci.jsonc"
 local UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36"
 local filmId = 70143836
 local type = arg[1]
+local all_test
 local enable = tonumber(uci:get("openclash", "config", "stream_auto_select")) or 0
 local now_name, group_name, group_type, group_show, status, ip, port, passwd, group_match_name
 local groups = {}
 local proxies = {}
+local self_status = luci.sys.exec('ps -w |grep -v grep |grep -c "openclash_streaming_unlock"')
 
 if enable == 0 or not type then os.exit(0) end
+if tonumber(self_status) > 1 then os.exit(0) end
+
+if arg[2] == "true" then all_test = true else all_test = false end
 
 function unlock_auto_select()
 	local key_group, region, now, proxy, group_match, proxy_default, auto_get_group, info, group_now
 	local original = {}
 	local other_region_unlock = {}
+	local full_support_list = {}
 	local tested_proxy = {}
 	local fallback_select = {}
 	local gorup_i18 = "Group:"
@@ -44,6 +50,9 @@ function unlock_auto_select()
 	local other_region_unlock_test = "full support but not match the regex!"
 	local other_region_unlock_no_select = "but not match the regex! the type of group is not select, auto select could not work!"
 	local other_region_unlock_test_start = "full support but not match the regex! start auto select unlock proxy..."
+	local select_all_full_support = "unlock node test finished, rolled back to the full support node"
+	local select_all_other_region = "unlock node test finished, no node match the regex, rolled back to other full support node"
+	local select_all_faild = "unlock node test finished, no node available, rolled back to the"
 	
 	--Get ip port and password
 	get_auth_info()
@@ -116,24 +125,43 @@ function unlock_auto_select()
 					region = proxy_unlock_test()
 				end
 				if status == 2 then
+					table.insert(full_support_list, {get_group_now(info, value.name), group_name, now_name})
 					if region and region ~= "" then
 						print(now..full_support.."【"..region.."】")
 					else
 						print(now..full_support_no_area)
 					end
-					break
+					if not all_test then
+						break
+					end
 				elseif status == 3 then
 					table.insert(other_region_unlock, {get_group_now(info, value.name), group_name, now_name})
-					print(now..other_region_unlock_test_start)
+					if not all_test then
+						print(now..other_region_unlock_test_start)
+					else
+						print(now..other_region_unlock_test)
+					end
 				elseif status == 1 then
 					table.insert(original, {get_group_now(info, value.name), group_name, now_name})
-					if type == "Netflix" then
-						print(now..original_test_start)
+					if not all_test then
+						if type == "Netflix" then
+							print(now..original_test_start)
+						else
+							print(now..no_unlock_test_start)
+						end
 					else
-						print(now..no_unlock_test_start)
+						if type == "Netflix" then
+							print(now..only_original)
+						else
+							print(now..no_unlock)
+						end
 					end
 				else
-					print(now..faild_test_start)
+					if not all_test then
+						print(now..faild_test_start)
+					else
+						print(now..test_faild)
+					end
 				end
 				
 				--find new unlock
@@ -173,12 +201,21 @@ function unlock_auto_select()
 													luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, proxy, ip, port, urlencode(group_name)))
 													region = proxy_unlock_test()
 													if status == 2 then
+														table.insert(full_support_list, {value.all[i], group_name, proxy})
 														if region and region ~= "" then
-															print(now..full_support.."【"..region.."】")
-															print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..proxy.."】"..area_i18.."【"..region.."】")
+															if not all_test then
+																print(now..full_support.."【"..region.."】")
+																print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..proxy.."】"..area_i18.."【"..region.."】")
+															else
+																print(now..full_support.."【"..region.."】")
+															end
 														else
-															print(now..full_support_no_area)
-															print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..proxy.."】")
+															if not all_test then
+																print(now..full_support_no_area)
+																print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..proxy.."】")
+															else
+																print(now..full_support_no_area)
+															end
 														end
 													elseif status == 3 then
 														table.insert(other_region_unlock, {value.all[i], group_name, proxy})
@@ -196,14 +233,14 @@ function unlock_auto_select()
 												end
 												break
 											end
-											if status == 2 then
+											if status == 2 and not all_test then
 												break
 											elseif p == #(proxies) and #(proxies) ~= 1 then
 												luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, now_name, ip, port, urlencode(group_name)))
 											end
 											break
 										end
-										if status == 2 then break end
+										if status == 2 and not all_test then break end
 									end
 								else
 									--only group expand
@@ -221,12 +258,21 @@ function unlock_auto_select()
 											now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.." ➟ "..now_name.."】"
 										end
 										if status == 2 then
+											table.insert(full_support_list, {value.all[i], group_name, value.all[i]})
 											if region and region ~= "" then
-												print(now..full_support.."【"..region.."】")
-												print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, now_name).."】"..area_i18.."【"..region.."】")
+												if not all_test then
+													print(now..full_support.."【"..region.."】")
+													print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, now_name).."】"..area_i18.."【"..region.."】")
+												else
+													print(now..full_support.."【"..region.."】")
+												end
 											else
-												print(now..full_support_no_area)
-												print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, now_name).."】")
+												if not all_test then
+													print(now..full_support_no_area)
+													print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, now_name).."】")
+												else
+													print(now..full_support_no_area)
+												end
 											end
 										elseif status == 3 then
 											table.insert(other_region_unlock, {value.all[i], group_name, value.all[i]})
@@ -247,11 +293,13 @@ function unlock_auto_select()
 							end
 							break
 						end
-						if status == 2 then
+						if status == 2 and not all_test then
 							close_connections()
 							break
-						elseif i == #(value.all) and (#original > 0 or #other_region_unlock > 0) then
-							if #other_region_unlock > 0 then
+						elseif i == #(value.all) and (#original > 0 or #other_region_unlock > 0 or #full_support_list > 0) then
+							if #full_support_list > 0 then
+								fallback_select = full_support_list
+							elseif #other_region_unlock > 0 then
 								fallback_select = other_region_unlock
 							else
 								fallback_select = original
@@ -259,12 +307,22 @@ function unlock_auto_select()
 							for k, v in pairs(fallback_select) do
 								luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, v[1], ip, port, urlencode(value.name)))
 								luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, v[3], ip, port, urlencode(v[2])))
-								if #other_region_unlock > 0 then
-									close_connections()
-									print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild_other_region.."【"..v[3].."】")
+								if #full_support_list > 0 then
+									print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_full_support.."【"..v[3].."】")
+								elseif #other_region_unlock > 0 then
+									if not all_test then
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild_other_region.."【"..v[3].."】")
+									else
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_other_region.."【"..v[3].."】")
+									end
 								else
-									print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..v[3].."】")
+									if not all_test then
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..v[3].."】")
+									else
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_faild.."【"..v[3].."】")
+									end
 								end
+								close_connections()
 								break
 							end
 						elseif i == #(value.all) then
@@ -276,13 +334,19 @@ function unlock_auto_select()
 					region = proxy_unlock_test()
 					if status == 2 then
 						if region and region ~= "" then
-							print(now..full_support.."【"..region.."】")
+							if not all_test then
+								print(now..full_support.."【"..region.."】")
+							end
 							print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, value.name).."】"..area_i18.."【"..region.."】")
 						else
-							print(now..full_support_no_area)
+							if not all_test then
+								print(now..full_support_no_area)
+							end
 							print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success.."【"..get_group_now(info, value.name).."】")
 						end
-						break
+						if not all_test then
+							break
+						end
 					elseif status == 3 then
 						print(now..full_support.."【"..region.."】"..other_region_unlock_no_select)
 					elseif status == 1 then
@@ -299,7 +363,7 @@ function unlock_auto_select()
 			break
 		end
 		if auto_get_group and group_match then break end
-		if status == 2 then	break end
+		if status == 2 and not all_test then break end
 	end
 	if not group_match and not auto_get_group then
 		print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..key_group.."】"..no_group_find)
