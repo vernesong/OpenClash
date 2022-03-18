@@ -68,12 +68,12 @@ function editor(id, readOnly, wid, height)
 	
 	if (readOnly == "true") {
 		editor.setOption("readOnly","true");
-	}
+	};
 	
 	if (wid && height) {
 		editor.setSize(wid, height);
-	}
-}
+	};
+};
 
 function other_editor(id, readOnly)
 {
@@ -104,7 +104,8 @@ function other_editor(id, readOnly)
         }
       }
 	});
-}
+};
+
 function other_log_area(id, readOnly, wid, height)
 {
 	var other_log_area = CodeMirror.fromTextArea(id, {
@@ -126,14 +127,15 @@ function other_log_area(id, readOnly, wid, height)
         }
       }
 	});
+	
 	if (readOnly == "true") {
 		other_log_area.setOption("readOnly","true");
-	}
+	};
 	
 	if (wid && height) {
 		other_log_area.setSize(wid, height);
-	}
-}
+	};
+};
 
 var myEditor_use = document.getElementById("cbid.table.1.user");
 var myEditor_def = document.getElementById("cbid.table.1.default");
@@ -144,7 +146,7 @@ if (myEditor_use && myEditor_def) {
 
 	editor(myEditor_use, 'false', myEditor_use_wid, '700px');
 	editor(myEditor_def, 'true', myEditor_def_wid, '700px');
-}
+};
 
 var myEditor_hosts = document.getElementById("cbid.openclash.config.custom_hosts");
 var myEditor_fall_fil = document.getElementById("cbid.openclash.config.custom_fallback_fil");
@@ -157,25 +159,26 @@ var myEditor_edit_file = document.getElementById("cbid.openclash.config.edit_fil
 
 if (myEditor_hosts) {
 	editor(myEditor_hosts, 'false');
-}
+};
 
 if (myEditor_edit_file) {
 	editor(myEditor_edit_file, 'false', "auto", '700px');
-}
+};
 
 if (myEditor_fall_fil) {
 	editor(myEditor_fall_fil, 'false');
 	editor(myEditor_name_pol, 'false');
 	editor(myEditor_name_cus_r1, 'false');
 	editor(myEditor_name_cus_r2, 'false');
-}
+};
 
 if (myEditor_fake_filter) {
 	other_editor(myEditor_fake_filter, 'false');
-}
+};
+
 if (myEditor_custom_domain_dns) {
 	other_editor(myEditor_custom_domain_dns, 'false');
-}
+};
 
 var core_log = document.getElementById("core_log");
 var oc_log = document.getElementById("cbid.openclash.config.clog");
@@ -223,19 +226,20 @@ if (core_log && oc_log) {
 	core_editor.setOption("readOnly","true");
 	oc_editor.setSize("auto", "540px");
 	oc_editor.setOption("readOnly","true");
-}
+};
 
 var proxy_mg = document.getElementById('cbi-table-1-proxy_mg');
 var rule_mg = document.getElementById('cbi-table-1-rule_mg');
 var game_mg = document.getElementById('cbi-table-1-game_mg');
 var Commit = document.getElementById('cbi-table-1-Commit');
 var Apply = document.getElementById('cbi-table-1-Apply');
+
 if (proxy_mg) {
 	proxy_mg.style.textAlign="center";
 	rule_mg.style.textAlign="center";
 	game_mg.style.textAlign="center";
 	Commit.style.textAlign="center";
   Apply.style.textAlign="center";
-}
+};
 //]]>
 </script> 
