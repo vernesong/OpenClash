@@ -489,7 +489,7 @@ o.description = translate("Automatically Expand The Group When Selected")
 o.default=0
 o:depends("stream_auto_select", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_netflix", translate("Netflix"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_netflix", font_red..translate("Netflix")..font_off)
 o.default=1
 o:depends("stream_auto_select", "1")
 
@@ -511,7 +511,7 @@ o.template = "openclash/other_stream_option"
 o.value = "Netflix"
 o:depends("stream_auto_select_netflix", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_disney", translate("Disney Plus"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_disney", font_red..translate("Disney Plus")..font_off)
 o.default=0
 o:depends("stream_auto_select", "1")
 
@@ -533,7 +533,7 @@ o.template = "openclash/other_stream_option"
 o.value = "Disney Plus"
 o:depends("stream_auto_select_disney", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_ytb", translate("YouTube Premium"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_ytb", font_red..translate("YouTube Premium")..font_off)
 o.default=0
 o:depends("stream_auto_select", "1")
 
@@ -555,7 +555,7 @@ o.template = "openclash/other_stream_option"
 o.value = "YouTube Premium"
 o:depends("stream_auto_select_ytb", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_prime_video", translate("Amazon Prime Video"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_prime_video", font_red..translate("Amazon Prime Video")..font_off)
 o.default=0
 o:depends("stream_auto_select", "1")
 
@@ -577,7 +577,7 @@ o.template = "openclash/other_stream_option"
 o.value = "Amazon Prime Video"
 o:depends("stream_auto_select_prime_video", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_now", translate("HBO Now"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_now", font_red..translate("HBO Now")..font_off)
 o.default=0
 o:depends("stream_auto_select", "1")
 
@@ -593,7 +593,7 @@ o.template = "openclash/other_stream_option"
 o.value = "HBO Now"
 o:depends("stream_auto_select_hbo_now", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_max", translate("HBO Max"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_max", font_red..translate("HBO Max")..font_off)
 o.default=0
 o:depends("stream_auto_select", "1")
 
@@ -615,7 +615,7 @@ o.template = "openclash/other_stream_option"
 o.value = "HBO Max"
 o:depends("stream_auto_select_hbo_max", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_go_asia", translate("HBO GO Asia"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_go_asia", font_red..translate("HBO GO Asia")..font_off)
 o.default=0
 o:depends("stream_auto_select", "1")
 
@@ -637,7 +637,7 @@ o.template = "openclash/other_stream_option"
 o.value = "HBO GO Asia"
 o:depends("stream_auto_select_hbo_go_asia", "1")
 
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_tvb_anywhere", translate("TVB Anywhere+"))
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_tvb_anywhere", font_red..translate("TVB Anywhere+")..font_off)
 o.default=0
 o:depends("stream_auto_select", "1")
 
