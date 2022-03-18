@@ -105,6 +105,35 @@ function other_editor(id, readOnly)
       }
 	});
 }
+function other_log_area(id, readOnly, wid, height)
+{
+	var other_log_area = CodeMirror.fromTextArea(id, {
+	mode: "lua",
+	autoRefresh: true,
+	styleActiveLine: true,
+	lineNumbers: true,
+	theme: "idea",
+	lineWrapping: true,
+	matchBrackets: true,
+	foldGutter: true,
+	gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+	extraKeys: {
+        "F11": function(cm) {
+          cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+        },
+        "Esc": function(cm) {
+          if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+        }
+      }
+	});
+	if (readOnly == "true") {
+		other_log_area.setOption("readOnly","true");
+	}
+	
+	if (wid && height) {
+		other_log_area.setSize(wid, height);
+	}
+}
 
 var myEditor_use = document.getElementById("cbid.table.1.user");
 var myEditor_def = document.getElementById("cbid.table.1.default");
