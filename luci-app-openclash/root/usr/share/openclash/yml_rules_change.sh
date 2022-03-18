@@ -197,7 +197,31 @@ yml_other_set()
       'DOMAIN-SUFFIX,totheglory.im,DIRECT',
       'DOMAIN-KEYWORD,announce,DIRECT',
       'DOMAIN-KEYWORD,torrent,DIRECT',
-      'DOMAIN-KEYWORD,tracker,DIRECT'
+      'DOMAIN-KEYWORD,tracker,DIRECT',
+      'PROCESS-NAME,aria2c,DIRECT',
+      'PROCESS-NAME,BitComet,DIRECT',
+      'PROCESS-NAME,fdm,DIRECT',
+      'PROCESS-NAME,NetTransport,DIRECT',
+      'PROCESS-NAME,qbittorrent,DIRECT',
+      'PROCESS-NAME,Thunder,DIRECT',
+      'PROCESS-NAME,transmission-daemon,DIRECT',
+      'PROCESS-NAME,transmission-qt,DIRECT',
+      'PROCESS-NAME,uTorrent,DIRECT',
+      'PROCESS-NAME,WebTorrent,DIRECT',
+      'PROCESS-NAME,aria2c,DIRECT',
+      'PROCESS-NAME,fdm,DIRECT',
+      'PROCESS-NAME,Folx,DIRECT',
+      'PROCESS-NAME,NetTransport,DIRECT',
+      'PROCESS-NAME,qbittorrent,DIRECT',
+      'PROCESS-NAME,Thunder,DIRECT',
+      'PROCESS-NAME,Transmission,DIRECT',
+      'PROCESS-NAME,uTorrent,DIRECT',
+      'PROCESS-NAME,WebTorrent,DIRECT',
+      'PROCESS-NAME,WebTorrent Helper,DIRECT',
+      'PROCESS-NAME,v2ray,DIRECT',
+      'PROCESS-NAME,ss-loca,DIRECT',
+      'PROCESS-NAME,UUBooster,DIRECT',
+      'DOMAIN-SUFFIX,smtp,DIRECT'
       )
       match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0]
       if not match_group.nil? then
