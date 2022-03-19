@@ -135,6 +135,8 @@ function other_log_area(id, readOnly, wid, height)
 	if (wid && height) {
 		other_log_area.setSize(wid, height);
 	};
+	
+	other_log_area.markText({line:0,ch:0},{line:9999,ch:9999}, {css: 'font-size:13px'});
 };
 
 var myEditor_use = document.getElementById("cbid.table.1.user");
