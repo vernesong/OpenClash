@@ -112,12 +112,7 @@ local function restricted_mode()
 end
 
 local function is_watchdog()
-	local ps_version = luci.sys.exec("ps --version 2>&1 |grep -c procps-ng |tr -d '\n'")
-	if ps_version == "1" then
-		return luci.sys.call("ps -efw |grep openclash_watchdog.sh |grep -v grep >/dev/null") == 0
-	else
-		return luci.sys.call("ps -w |grep openclash_watchdog.sh |grep -v grep >/dev/null") == 0
-	end
+	return process_status("openclash_watchdog.sh")
 end
 
 local function cn_port()
@@ -1308,14 +1303,24 @@ end
 function manual_stream_unlock_test()
 	local type = luci.http.formvalue("type")
 	local cmd = string.format('/usr/share/openclash/openclash_streaming_unlock.lua "%s"', type)
+	local line_trans
 	luci.http.prepare_content("text/plain; charset=utf-8")
 	local util = io.popen(cmd)
 	if util and util ~= "" then
 		while true do
 			local ln = util:read("*l")
-			if not ln then break end
-			luci.http.write(trans_line(ln))
-			luci.http.write("\n")
+			if ln then
+				if not string.find (ln, "【") and not string.find (ln, "】") then
+   				line_trans = luci.i18n.translate(string.sub(ln, 0, -1))
+   			else
+   				line_trans = trans_line(ln)
+   			end
+				luci.http.write(line_trans)
+				luci.http.write("\n")
+			end
+			if not process_status("openclash_streaming_unlock.lua") then
+				break
+			end
 		end
 		util:close()
 		return
@@ -1326,14 +1331,24 @@ end
 function all_proxies_stream_test()
 	local type = luci.http.formvalue("type")
 	local cmd = string.format('/usr/share/openclash/openclash_streaming_unlock.lua "%s" "%s"', type, "true")
+	local line_trans
 	luci.http.prepare_content("text/plain; charset=utf-8")
 	local util = io.popen(cmd)
 	if util and util ~= "" then
 		while true do
 			local ln = util:read("*l")
-			if not ln then break end
-			luci.http.write(trans_line(ln))
-			luci.http.write("\n")
+			if ln then
+				if not string.find (ln, "【") and not string.find (ln, "】") then
+   				line_trans = luci.i18n.translate(string.sub(ln, 0, -1))
+   			else
+   				line_trans = trans_line(ln)
+   			end
+				luci.http.write(line_trans)
+				luci.http.write("\n")
+			end
+			if not process_status("openclash_streaming_unlock.lua") then
+				break
+			end
 		end
 		util:close()
 		return
@@ -1383,4 +1398,13 @@ function trans_line(data)
 		end
 	end
 	return line_trans
+end
+
+function process_status(name)
+	local ps_version = luci.sys.exec("ps --version 2>&1 |grep -c procps-ng |tr -d '\n'")
+	if ps_version == "1" then
+		return luci.sys.call(string.format("ps -efw |grep '%s' |grep -v grep >/dev/null", name)) == 0
+	else
+		return luci.sys.call(string.format("ps -w |grep '%s' |grep -v grep >/dev/null", name)) == 0
+	end
 end
