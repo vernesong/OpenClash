@@ -166,10 +166,14 @@ function unlock_auto_select()
 				
 				--find new unlock
 				if value.type == "Selector" then
+					--save group current selected
+					proxy_default = value.now
+					--random test
+					if not all_test then
+						value.all = table_rand(value.all)
+					end
 					--loop proxy test
 					for i = 1, #(value.all) do
-						--save group current selected
-						proxy_default = value.now
 						while true do
 							if value.all[i] == "REJECT" or value.all[i] == "DIRECT" then
 								break
@@ -178,6 +182,10 @@ function unlock_auto_select()
 								if group_type == "Selector" then
 									if group_name == value.all[i] then
 										luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, group_name, ip, port, urlencode(value.name)))
+									end
+									--random test
+									if not all_test then
+										proxies = table_rand(proxies)
 									end
 									for p = 1, #(proxies) do
 										proxy = proxies[p]
@@ -403,6 +411,22 @@ function close_connections()
 			end
 		end
 	end
+end
+
+function table_rand(t)
+	if t == nil then
+		return
+	end
+	local tab = {}
+	while #t ~= 0 do
+		math.randomseed(tostring(os.time()):reverse():sub(1, 9))
+		local n = math.random(0, #t)
+		if t[n] ~= nil then
+			table.insert(tab, t[n])
+			table.remove(t, n)
+		end
+	end
+	return tab
 end
 
 function proxy_unlock_test()
