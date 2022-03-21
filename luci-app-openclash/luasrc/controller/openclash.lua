@@ -182,7 +182,7 @@ local function startlog()
 			if not string.find (info, "【") and not string.find (info, "】") then
    			line_trans = luci.i18n.translate(string.sub(info, 0, -1))
    		else
-   			line_trans = trans_line(line)
+   			line_trans = trans_line(info)
    		end
    	end
 	end
