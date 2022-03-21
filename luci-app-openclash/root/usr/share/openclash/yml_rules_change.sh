@@ -12,7 +12,7 @@ yml_other_set()
    begin
    Value = YAML.load_file('$3');
    rescue Exception => e
-   puts '${LOGTIME} Error: Load File Error,【' + e.message + '】'
+   puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】'
    end
    begin
    if $2 == 1 then
@@ -154,7 +154,7 @@ yml_other_set()
       end
    end;
    rescue Exception => e
-   puts '${LOGTIME} Error: Set Custom Rules Error,【' + e.message + '】'
+   puts '${LOGTIME} Error: Set Custom Rules Failed,【' + e.message + '】'
    end
    
    begin
@@ -166,7 +166,7 @@ yml_other_set()
          Value['rules']=%w(IP-CIDR,198.18.0.1/16,REJECT,no-resolve)
       end;
    rescue Exception => e
-      puts '${LOGTIME} Error: Set 198.18.0.1/16 REJECT Rule Error,【' + e.message + '】'
+      puts '${LOGTIME} Error: Set 198.18.0.1/16 REJECT Rule Failed,【' + e.message + '】'
    end
       
    begin
@@ -239,7 +239,7 @@ yml_other_set()
       Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
    end;
    rescue Exception => e
-      puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Error,【' + e.message + '】'
+      puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】'
    ensure
    File.open('$3','w') {|f| YAML.dump(Value, f)}
    end" 2>/dev/null >> $LOG_FILE
@@ -425,7 +425,7 @@ if [ "$1" != "0" ]; then
        	    .gsub!(/#d/, '');
        	    File.open('$3','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    puts '${LOGTIME} Error: Set lhie1 Rules Error,【' + e.message + '】'
+       	    puts '${LOGTIME} Error: Set lhie1 Rules Failed,【' + e.message + '】'
        	    end" 2>/dev/null >> $LOG_FILE
        elif [ "$rule_name" = "ConnersHua" ]; then
             ruby -ryaml -E UTF-8 -e "
@@ -452,7 +452,7 @@ if [ "$1" != "0" ]; then
        	    };
        	    File.open('$3','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    puts '${LOGTIME} Error: Set ConnersHua Rules Error,【' + e.message + '】'
+       	    puts '${LOGTIME} Error: Set ConnersHua Rules Failed,【' + e.message + '】'
        	    end" 2>/dev/null >> $LOG_FILE
        else
             ruby -ryaml -E UTF-8 -e "
@@ -467,7 +467,7 @@ if [ "$1" != "0" ]; then
        	    };
        	    File.open('$3','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    puts '${LOGTIME} Error: Set ConnersHua Return Rules Error,【' + e.message + '】'
+       	    puts '${LOGTIME} Error: Set ConnersHua Return Rules Failed,【' + e.message + '】'
        	    end" 2>/dev/null >> $LOG_FILE
        fi
    fi
