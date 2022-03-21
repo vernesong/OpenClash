@@ -247,7 +247,7 @@ do
 	 end
 	 }.join;
    rescue Exception => e
-   puts '${LOGTIME} Error: Resolve Proxy-group Error,【${CONFIG_NAME} - ${group_type} - ${group_name}: ' + e.message + '】'
+   puts '${LOGTIME} Error: Resolve Groups Failed,【${CONFIG_NAME} - ${group_type} - ${group_name}: ' + e.message + '】'
    end
    " 2>/dev/null >> $LOG_FILE &
    

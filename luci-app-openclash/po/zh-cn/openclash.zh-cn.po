@@ -2216,40 +2216,40 @@ msgstr "警告：【Rule】写法已不再支持，自动替换为rules"
 msgid "Warning: rule-provider is no longer used. Auto replaced by rule-providers"
 msgstr "警告：【rule-provider】写法已不再支持，自动替换为rule-providers"
 
-msgid "Error: Load File Error,"
+msgid "Error: Load File Failed,"
 msgstr "错误：文件解析失败，"
 
-msgid "Error: Set General Error,"
+msgid "Error: Set General Failed,"
 msgstr "错误：修改General配置失败，"
 
-msgid "Error: Set Hosts Rules Error,"
+msgid "Error: Set Hosts Rules Failed,"
 msgstr "错误：修改Hosts配置失败，"
 
-msgid "Error: Set Fake-IP-Filter Error,"
+msgid "Error: Set Fake-IP-Filter Failed,"
 msgstr "错误：修改Fake-IP-Filter配置失败，"
 
-msgid "Error: Set Nameserver-Policy Error,"
+msgid "Error: Set Nameserver-Policy Failed,"
 msgstr "错误：修改Nameserver-Policy配置失败，"
 
-msgid "Error: Set Custom Rules Error,"
+msgid "Error: Set Custom Rules Failed,"
 msgstr "错误：设置自定义规则失败，"
 
-msgid "Error: Set BT/P2P DIRECT Rules Error,"
+msgid "Error: Set BT/P2P DIRECT Rules Failed,"
 msgstr "错误：设置仅代理命中规则流量（BT/P2P直连）失败，"
 
-msgid "Error: Set 198.18.0.1/16 REJECT Rule Error,"
+msgid "Error: Set 198.18.0.1/16 REJECT Rule Failed,"
 msgstr "错误：设置198.18.0.1/16（REJECT）规则失败，"
 
-msgid "Error: Set lhie1 Rules Error,"
+msgid "Error: Set lhie1 Rules Failed,"
 msgstr "错误：设置第三方规则（lhie1）失败，"
 
-msgid "Error: Set ConnersHua Rules Error,"
+msgid "Error: Set ConnersHua Rules Failed,"
 msgstr "错误：设置第三方规则（ConnersHua）失败，"
 
-msgid "Error: Set ConnersHua Return Rules Error,"
+msgid "Error: Set ConnersHua Return Rules Failed,"
 msgstr "错误：设置第三方规则（ConnersHua 回国）失败，"
 
-msgid "Error: Filter Proxies Error,"
+msgid "Error: Filter Proxies Failed,"
 msgstr "错误：节点筛选失败，"
 
 msgid "Error: Unable To Parse Config File,"
@@ -2258,44 +2258,38 @@ msgstr "错误：配置文件解析失败，"
 msgid "Error: Unable To Parse Updated Rules File,"
 msgstr "错误：更新的规则文件解析失败，"
 
-msgid "Error: Edit Provider Path Error,"
+msgid "Error: Edit Provider Path Failed,"
 msgstr "错误：修改集路径失败，"
 
-msgid "Error: Set Url-Test Group Tolerance Error,"
+msgid "Error: Set Url-Test Group Tolerance Failed,"
 msgstr "错误：修改Url-Test策略组容忍值失败，"
 
-msgid "Error: Game Rule Merge Error,"
+msgid "Error: Game Rule Merge Failed,"
 msgstr "错误：游戏规则合并失败，"
 
-msgid "Error: Game Proxy Merge Error,"
+msgid "Error: Game Proxy Merge Failed,"
 msgstr "错误：游戏规则策略组合并失败，"
 
-msgid "Error: Rule Set Add Error,"
+msgid "Error: Rule Set Add Failed,"
 msgstr "错误：规则集Rule-Set规则添加失败，"
 
-msgid "Error: Custom Rule Provider Merge Error,"
+msgid "Error: Custom Rule Provider Merge Failed,"
 msgstr "错误：规则集Rule Provider合并失败，"
 
-msgid "Error: Restore Backup Rules Error,"
+msgid "Error: Restore Backup Rules Failed,"
 msgstr "错误：还原默认规则失败，"
 
-msgid "Error: Restore Backup Rules Error,"
-msgstr "错误：还原默认规则失败，"
-
-msgid "Error: Resolve Proxy-provider Error,"
+msgid "Error: Resolve Proxy-providers Failed,"
 msgstr "错误：解析代理集失败，"
 
-msgid "Error: Resolve Proxy Error,"
+msgid "Error: Resolve Proxies Failed,"
 msgstr "错误：节点解析失败，"
 
-msgid "Error: Resolve Proxy-group Error,"
+msgid "Error: Resolve Groups Failed,"
 msgstr "错误：策略组解析失败，"
 
-msgid "Error: Set default-nameserver Error,"
+msgid "Error: Set default-nameserver Failed,"
 msgstr "错误：修改default-nameserver配置失败，"
-
-msgid "Error: Netflix IP Rules Complete Error,"
-msgstr "错误：Netflix IP 规则补全失败，"
 
 msgid "switching succeeded!"
 msgstr "切换成功！"
@@ -2749,3 +2743,6 @@ msgstr "发生了一些错误，测试失败..."
 
 msgid "Network instability may occur during testing, Are you sure want to start test?"
 msgstr "测试过程中可能会造成网络不稳定,确定要开始测试吗？"
+
+msgid "Error: Edit Vmess Compatible Failed,"
+msgstr "错误：Vmess节点兼容性修改失败，"

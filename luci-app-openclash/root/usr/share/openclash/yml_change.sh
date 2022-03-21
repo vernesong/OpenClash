@@ -38,7 +38,7 @@ ruby -ryaml -E UTF-8 -e "
 begin
    Value = YAML.load_file('$5');
 rescue Exception => e
-   puts '${LOGTIME} Error: Load File Error,【' + e.message + '】'
+   puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】'
 end
 begin
    Value['redir-port']=$4;
@@ -103,7 +103,7 @@ else
    Value['profile']['store-fake-ip']=true
 end;
 rescue Exception => e
-puts '${LOGTIME} Error: Set General Error,【' + e.message + '】'
+puts '${LOGTIME} Error: Set General Failed,【' + e.message + '】'
 end
 begin
 #添加自定义Hosts设置
@@ -120,7 +120,7 @@ if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
    end
 end
 rescue Exception => e
-puts '${LOGTIME} Error: Set Hosts Rules Error,【' + e.message + '】'
+puts '${LOGTIME} Error: Set Hosts Rules Failed,【' + e.message + '】'
 end
 begin
 #fake-ip-filter
@@ -155,7 +155,7 @@ elsif ${19} == 1 then
    end
 end;
 rescue Exception => e
-puts '${LOGTIME} Error: Set Fake-IP-Filter Error,【' + e.message + '】'
+puts '${LOGTIME} Error: Set Fake-IP-Filter Failed,【' + e.message + '】'
 end
 begin
 #nameserver-policy
@@ -173,7 +173,7 @@ if '$dns_advanced_setting' == '1' then
   end
 end;
 rescue Exception => e
-puts '${LOGTIME} Error: Set Nameserver-Policy Error,【' + e.message + '】'
+puts '${LOGTIME} Error: Set Nameserver-Policy Failed,【' + e.message + '】'
 ensure
 File.open('$5','w') {|f| YAML.dump(Value, f)}
 end" 2>/dev/null >> $LOG_FILE
