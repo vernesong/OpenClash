@@ -302,7 +302,7 @@ do
    }.join;
       
    rescue Exception => e
-   puts '${LOGTIME} Error: Resolve Proxy-provider Error,【${CONFIG_NAME} - ${provider_name}: ' + e.message + '】'
+   puts '${LOGTIME} Error: Resolve Proxy-providers Failed,【${CONFIG_NAME} - ${provider_name}: ' + e.message + '】'
    end
    " 2>/dev/null >> $LOG_FILE &
       
@@ -331,7 +331,7 @@ do
          end
          };
       rescue Exception => e
-      puts '${LOGTIME} Error: Resolve Proxy-provider Error,【${CONFIG_NAME} - ${provider_name}: ' + e.message + '】'
+      puts '${LOGTIME} Error: Resolve Proxy-providers Failed,【${CONFIG_NAME} - ${provider_name}: ' + e.message + '】'
       end
       }.join;
       " 2>/dev/null >> $LOG_FILE &
@@ -853,7 +853,7 @@ do
    end;
    
    rescue Exception => e
-   puts '${LOGTIME} Error: Resolve Proxy Error,【${CONFIG_NAME} - ${server_type} - ${server_name}: ' + e.message + '】'
+   puts '${LOGTIME} Error: Resolve Proxies Failed,【${CONFIG_NAME} - ${server_type} - ${server_name}: ' + e.message + '】'
    end
    " 2>/dev/null >> $LOG_FILE &
    
@@ -899,7 +899,7 @@ do
          end
          };
       rescue Exception => e
-      puts '${LOGTIME} Error: Resolve Proxy Error,【${CONFIG_NAME} - ${server_type} - ${server_name}: ' + e.message + '】'
+      puts '${LOGTIME} Error: Resolve Proxies Failed,【${CONFIG_NAME} - ${server_type} - ${server_name}: ' + e.message + '】'
       end
       }.join;
       " 2>/dev/null >> $LOG_FILE &

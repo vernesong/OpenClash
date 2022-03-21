@@ -115,7 +115,7 @@ config_cus_up()
 	            }
 	         end;
 	      rescue Exception => e
-	         puts '${LOGTIME} Error: Filter Proxies Error,【' + e.message + '】'
+	         puts '${LOGTIME} Error: Filter Proxies Failed,【' + e.message + '】'
 	      ensure
 	         File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)};
 	      end" 2>/dev/null >> $LOG_FILE
