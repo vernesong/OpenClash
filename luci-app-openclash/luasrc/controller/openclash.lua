@@ -1378,7 +1378,7 @@ function trans_line(data)
 	for k = 1, #no_trans, 2 do
 		x = no_trans[k]
 		v = no_trans[k+1]
-		if x <= 21 then
+		if x <= 21 or not string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
 			line_trans = line_trans .. luci.i18n.translate(string.sub(data, d, x - 1)) .. string.sub(data, x, v)
 			d = v + 1
 		elseif v <= string.len(data) then
@@ -1388,11 +1388,15 @@ function trans_line(data)
 	end
 	if c > string.len(data) then
 		if d == 0 then
-			line_trans = string.sub(data, 0, 20) .. line_trans
+			if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+				line_trans = string.sub(data, 0, 20) .. line_trans
+			end
 		end
 	else
 		if d == 0 then
-			line_trans = string.sub(data, 0, 20) .. line_trans .. luci.i18n.translate(string.sub(data, c, -1))
+			if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+				line_trans = string.sub(data, 0, 20) .. line_trans .. luci.i18n.translate(string.sub(data, c, -1))
+			end
 		else
 			line_trans = line_trans .. luci.i18n.translate(string.sub(data, c, -1))
 		end
