@@ -12,7 +12,7 @@ STOP=15
 RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
 BACKUP_FILE="/etc/openclash/backup/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
-TMP_CONFIG_FILE="/tmp/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
+TMP_CONFIG_FILE="/tmp/yaml_config_tmp_$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 }
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 CLASH="/etc/openclash/clash"

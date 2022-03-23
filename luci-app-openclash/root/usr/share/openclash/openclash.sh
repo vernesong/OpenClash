@@ -16,7 +16,7 @@ del_lock() {
 
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
-CFG_FILE="/tmp/config.yaml"
+CFG_FILE="/tmp/yaml_sub_tmp_config.yaml"
 CRON_FILE="/etc/crontabs/root"
 CONFIG_PATH=$(uci -q get openclash.config.config_path)
 servers_update=$(uci -q get openclash.config.servers_update)
