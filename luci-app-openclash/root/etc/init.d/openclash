@@ -374,9 +374,9 @@ yml_provider_path()
 yml_provider_check()
 {
 provider_path_line=$(ruby_read "$1" ".key?('$2')")
-local provider_path_check provider_path_check_num=0
+local provider_path_check
 if "$provider_path_line"; then
-   while ( [ -n "$(pidof clash)" ] && [ "$provider_path_check_num" -le 5 ] )
+   while ( [ -n "$(pidof clash)" ] )
    do
       provider_path_check=$(ruby -ryaml -E UTF-8 -e "
       Value = YAML.load_file('$1');
@@ -400,7 +400,6 @@ if "$provider_path_line"; then
       }
       " 2>/dev/null)
       if [ "$provider_path_check" = "false" ]; then
-         let provider_path_check_num++
          sleep 2
       else
          break
@@ -416,9 +415,6 @@ if [ -z "$(pidof clash)" ] && [ -n "$provider_path_check" ]; then
    fi
    LOG_ALERT
    start_fail
-elif [ "$provider_path_check_num" -gt 5 ]; then
-   LOG_OUT "Warning: Providers File Check Timeout, If Failed To start, Please Check The Log Page For Detailed error information!"
-   sleep 3
 fi
 
 }
