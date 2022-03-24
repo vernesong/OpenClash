@@ -33,13 +33,13 @@
    LOG_OUT "Start Downloading The Chnroute Cidr List..."
    if [ -z "$CHNR_CUSTOM_URL" ]; then
       if pidof clash >/dev/null; then
-         curl -sL -m 10 --retry 2 https://ispip.clang.cn/all_cn.txt -o /tmp/china_ip_route.txt >/dev/null 2>&1
+         curl -sL --connect-timeout 5 -m 60 --retry 2 https://ispip.clang.cn/all_cn.txt -o /tmp/china_ip_route.txt >/dev/null 2>&1
       fi
       if [ "$?" -ne "0" ] || ! pidof clash >/dev/null; then
-         curl -sL -m 10 --retry 2 https://ispip.clang.cn/all_cn_cidr.txt -o /tmp/china_ip_route.txt >/dev/null 2>&1
+         curl -sL --connect-timeout 5 -m 60 --retry 2 https://ispip.clang.cn/all_cn_cidr.txt -o /tmp/china_ip_route.txt >/dev/null 2>&1
       fi
    else
-      curl -sL -m 10 --retry 2 "$CHNR_CUSTOM_URL" -o /tmp/china_ip_route.txt >/dev/null 2>&1
+      curl -sL --connect-timeout 5 -m 60 --retry 2 "$CHNR_CUSTOM_URL" -o /tmp/china_ip_route.txt >/dev/null 2>&1
    fi
    if [ "$?" -eq "0" ] && [ -s "/tmp/china_ip_route.txt" ]; then
       LOG_OUT "Chnroute Cidr List Download Success, Check Updated..."
@@ -67,9 +67,9 @@
    #ipv6
    LOG_OUT "Start Downloading The Chnroute6 Cidr List..."
    if [ -z "$CHNR6_CUSTOM_URL" ]; then
-      curl -sL -m 10 --retry 2 https://ispip.clang.cn/all_cn_ipv6.txt -o /tmp/china_ip6_route.txt >/dev/null 2>&1
+      curl -sL --connect-timeout 5 -m 60 --retry 2 https://ispip.clang.cn/all_cn_ipv6.txt -o /tmp/china_ip6_route.txt >/dev/null 2>&1
    else
-      curl -sL -m 10 --retry 2 "$CHNR6_CUSTOM_URL" -o /tmp/china_ip6_route.txt >/dev/null 2>&1
+      curl -sL --connect-timeout 5 -m 60 --retry 2 "$CHNR6_CUSTOM_URL" -o /tmp/china_ip6_route.txt >/dev/null 2>&1
    fi
    if [ "$?" -eq "0" ] && [ -s "/tmp/china_ip6_route.txt" ]; then
       LOG_OUT "Chnroute6 Cidr List Download Success, Check Updated..."
