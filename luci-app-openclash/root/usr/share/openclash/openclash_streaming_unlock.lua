@@ -9,6 +9,7 @@ local fs = require "luci.openclash"
 local json = require "luci.jsonc"
 local UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36"
 local filmId = 70143836
+local class_type = type
 local type = arg[1]
 local all_test
 local enable = tonumber(uci:get("openclash", "config", "stream_auto_select")) or 0
@@ -53,6 +54,7 @@ function unlock_auto_select()
 	local select_all_full_support = "unlock node test finished, rolled back to the full support node"
 	local select_all_other_region = "unlock node test finished, no node match the regex, rolled back to other full support node"
 	local select_all_faild = "unlock node test finished, no node available, rolled back to the"
+	local no_nodes_filter = "no nodes name match the regex!"
 	
 	--Get ip port and password
 	get_auth_info()
@@ -131,8 +133,10 @@ function unlock_auto_select()
 					else
 						print(now..full_support_no_area)
 					end
-					if not all_test then
+					if not all_test and #nodes_filter(now_name, info) ~= 0 then
 						break
+					else
+						status = 0
 					end
 				elseif status == 3 then
 					table.insert(other_region_unlock, {get_group_now(info, value.name), group_name, now_name})
@@ -171,6 +175,12 @@ function unlock_auto_select()
 					--random test
 					if not all_test then
 						value.all = table_rand(value.all)
+						--filter nodes
+						value.all = nodes_filter(value.all, info)
+					end
+					if #(value.all) == 0 then
+						print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..no_nodes_filter)
+						break
 					end
 					--loop proxy test
 					for i = 1, #(value.all) do
@@ -186,6 +196,12 @@ function unlock_auto_select()
 									--random test
 									if not all_test then
 										proxies = table_rand(proxies)
+										--filter nodes
+										proxies = nodes_filter(proxies, info)
+									end
+									if #(proxies) == 0 then
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.."】"..no_nodes_filter)
+										break
 									end
 									for p = 1, #(proxies) do
 										proxy = proxies[p]
@@ -254,7 +270,7 @@ function unlock_auto_select()
 									--only group expand
 									luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, value.all[i], ip, port, urlencode(group_name)))
 									while true do
-										if table_include(tested_proxy, now_name) then
+										if table_include(tested_proxy, now_name) or #nodes_filter(now_name, info) == 0 then
 											break
 										else
 											table.insert(tested_proxy, now_name)
@@ -313,21 +329,32 @@ function unlock_auto_select()
 								fallback_select = original
 							end
 							for k, v in pairs(fallback_select) do
+								if #nodes_filter(v[3], info) ~= 0 then
+									table.insert(fallback_select, 1, {v[1], v[2], v[3]})
+									break
+								end
+							end
+							for k, v in pairs(fallback_select) do
 								luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, v[1], ip, port, urlencode(value.name)))
 								luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, v[3], ip, port, urlencode(v[2])))
+								if table_include(groups, v[3]) then
+									group_now = v[3].." ➟ "..get_group_now(info, v[3])
+								else
+									group_now = v[3]
+								end
 								if #full_support_list > 0 then
-									print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_full_support.."【"..v[3].."】")
+									print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_full_support.."【"..group_now.."】")
 								elseif #other_region_unlock > 0 then
 									if not all_test then
-										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild_other_region.."【"..v[3].."】")
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild_other_region.."【"..group_now.."】")
 									else
-										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_other_region.."【"..v[3].."】")
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_other_region.."【"..group_now.."】")
 									end
 								else
 									if not all_test then
-										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..v[3].."】")
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..group_now.."】")
 									else
-										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_faild.."【"..v[3].."】")
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_faild.."【"..group_now.."】")
 									end
 								end
 								close_connections()
@@ -335,10 +362,15 @@ function unlock_auto_select()
 							end
 						elseif i == #(value.all) then
 							luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, proxy_default, ip, port, urlencode(value.name)))
-							print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..proxy_default.."】")
+							if table_include(groups, proxy_default) then
+								group_now = proxy_default.." ➟ "..get_group_now(info, proxy_default)
+							else
+								group_now = proxy_default
+							end
+							print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..group_now.."】")
 						end
 					end
-				else
+				elseif #nodes_filter(get_group_now(info, value.name), info) ~= 0 then
 					region = proxy_unlock_test()
 					if status == 2 then
 						if region and region ~= "" then
@@ -426,6 +458,55 @@ function table_rand(t)
 			table.remove(t, n)
 		end
 	end
+	return tab
+end
+
+function nodes_filter(t, info)
+	if t == nil then return end
+	local tab = {}
+	local regex, group_now
+	
+	if type == "Netflix" then
+		regex = uci:get("openclash", "config", "stream_auto_select_node_key_netflix") or ""
+	elseif type == "Disney Plus" then
+		regex = uci:get("openclash", "config", "stream_auto_select_node_key_disney") or ""
+	elseif type == "HBO Now" then
+		regex = uci:get("openclash", "config", "stream_auto_select_node_key_hbo_now") or ""
+	elseif type == "HBO Max" then
+		regex = uci:get("openclash", "config", "stream_auto_select_node_key_hbo_max") or ""
+	elseif type == "HBO GO Asia" then
+		regex = uci:get("openclash", "config", "stream_auto_select_node_key_hbo_go_asia") or ""
+	elseif type == "YouTube Premium" then
+		regex = uci:get("openclash", "config", "stream_auto_select_node_key_ytb") or ""
+	elseif type == "TVB Anywhere+" then
+		regex = uci:get("openclash", "config", "stream_auto_select_node_key_tvb_anywhere") or ""
+	elseif type == "Amazon Prime Video" then
+		regex = uci:get("openclash", "config", "stream_auto_select_node_key_prime_video") or ""
+	end
+
+	if not regex or regex == "" then return t end
+	if class_type(t) == "table" then
+		for n = 1, #t do
+			if table_include(groups, t[n]) and info then
+				group_now = get_group_now(info, t[n])
+				if datamatch(group_now, regex) then
+					table.insert(tab, t[n])
+				end
+			elseif datamatch(t[n], regex) and not table_include(groups, t[n]) then
+				table.insert(tab, t[n])
+			end
+		end
+	else
+		if table_include(groups, t) and info then
+			group_now = get_group_now(info, t)
+			if datamatch(group_now, regex) then
+				table.insert(tab, t)
+			end
+		elseif datamatch(t, regex) and not table_include(groups, t) then
+			table.insert(tab, t)
+		end
+	end
+
 	return tab
 end
 
@@ -545,6 +626,7 @@ function get_group_now(info, group)
 				if value.name == group_ then
 					now = value.now
 					group_ = value.now
+					break
 				end
 			end
 		end
@@ -610,6 +692,7 @@ function get_proxy(info, group, name)
 					group_name = name
 					table.insert(proxies, group)
 					group_type = value.type
+					break
 				end
 			end
 			while table_include(groups, group) do
