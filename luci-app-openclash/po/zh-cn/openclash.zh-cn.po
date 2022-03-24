@@ -1850,9 +1850,6 @@ msgstr "错误: 代理集文件下载失败，请到日志页面查看详细错�
 msgid "Error: Failed To Download Rule-providers, Please Check The Log Page For Detailed error information!"
 msgstr "错误: 规则集文件下载失败，请到日志页面查看详细错误信息！"
 
-msgid "Warning: Providers File Check Timeout, If Failed To start, Please Check The Log Page For Detailed error information!"
-msgstr "警告: 代理集文件检查超时，如启动失败请到日志页面查看详细信息！"
-
 msgid "Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers"
 msgstr "错误: 配置文件DNS选项下的Nameserver必须设置服务器，已停止设置自定义DNS服务器！"
 
@@ -2474,50 +2471,14 @@ msgstr "展开策略组"
 msgid "Automatically Expand The Group When Selected"
 msgstr "自动展开嵌套的策略组并进行解锁检测，启用后可能会造成网络不稳定"
 
-msgid "Netflix Group Filter"
-msgstr "Netflix 策略组筛选"
+msgid "Group Filter"
+msgstr "策略组筛选"
 
-msgid "Disney Plus Group Filter"
-msgstr "Disney Plus 策略组筛选"
+msgid "Unlock Region Filter"
+msgstr "解锁区域筛选"
 
-msgid "HBO Now Group Filter"
-msgstr "HBO Now 策略组筛选"
-
-msgid "HBO Max Group Filter"
-msgstr "HBO Max 策略组筛选"
-
-msgid "HBO GO Asia Group Filter"
-msgstr "HBO GO Asia 策略组筛选"
-
-msgid "YouTube Premium Group Filter"
-msgstr "YouTube Premium 策略组筛选"
-
-msgid "TVB Anywhere+ Group Filter"
-msgstr "TVB Anywhere+ 策略组筛选"
-
-msgid "Amazon Prime Video Group Filter"
-msgstr "Amazon Prime Video 策略组筛选"
-
-msgid "Netflix Unlock Region Filter"
-msgstr "Netflix 解锁区域筛选"
-
-msgid "Disney Plus Unlock Region Filter"
-msgstr "Disney Plus 解锁区域筛选"
-
-msgid "HBO Max Unlock Region Filter"
-msgstr "HBO Max 解锁区域筛选"
-
-msgid "HBO GO Asia Unlock Region Filter"
-msgstr "HBO GO Asia 解锁区域筛选"
-
-msgid "YouTube Premium Unlock Region Filter"
-msgstr "YouTube Premium 解锁区域筛选"
-
-msgid "TVB Anywhere+ Unlock Region Filter"
-msgstr "TVB Anywhere+ 解锁区域筛选"
-
-msgid "Amazon Prime Video Unlock Region Filter"
-msgstr "Amazon Prime Video 解锁区域筛选"
+msgid "Unlock Nodes Filter"
+msgstr "解锁节点筛选"
 
 msgid "Tip: Start Auto Select Proxy For Netflix Unlock..."
 msgstr "提示：开始自动选择（检测）Netflix 解锁节点..."
@@ -2603,6 +2564,9 @@ msgstr "策略组自动获取失败时将会根据正则表达式进行匹配"
 msgid "It Will Be Selected Region According To The Regex"
 msgstr "解锁区域将会根据正则表达式进行匹配"
 
+msgid "It Will Be Selected Nodes According To The Regex"
+msgstr "解锁节点将会根据正则表达式进行匹配"
+
 msgid "not support unlock!"
 msgstr "不支持解锁！"
 
@@ -2644,6 +2608,9 @@ msgstr "解锁检测完成，未找到区域匹配的节点，回退到其他区
 
 msgid "unlock node test finished, no node available, rolled back to the"
 msgstr "解锁检测完成，无完整解锁节点，回退到"
+
+msgid "no nodes name match the regex!"
+msgstr "未找到名称匹配的节点!"
 
 msgid "DNS Remote"
 msgstr "*远程域名解析"
