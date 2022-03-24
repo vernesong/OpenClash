@@ -484,8 +484,11 @@ function nodes_filter(t, info)
 		regex = uci:get("openclash", "config", "stream_auto_select_node_key_prime_video") or ""
 	end
 
-	if not regex or regex == "" then return t end
 	if class_type(t) == "table" then
+		if not regex or regex == "" then
+			tab = t
+			return tab
+		end
 		for n = 1, #t do
 			if table_include(groups, t[n]) and info then
 				group_now = get_group_now(info, t[n])
@@ -497,6 +500,10 @@ function nodes_filter(t, info)
 			end
 		end
 	else
+		if not regex or regex == "" then
+			table.insert(tab, t)
+			return tab
+		end
 		if table_include(groups, t) and info then
 			group_now = get_group_now(info, t)
 			if datamatch(group_now, regex) then
@@ -506,7 +513,6 @@ function nodes_filter(t, info)
 			table.insert(tab, t)
 		end
 	end
-
 	return tab
 end
 
