@@ -52,7 +52,12 @@ function sub_info_get_<%=idname%>()
 		if (localStorage.getItem("<%=filename%>")) {
 			var save_info = JSON.parse(localStorage.getItem("<%=filename%>"));
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
-			document.getElementById('<%=idname%>').innerHTML = "<%:Plan Traffic%>" + ": " + "<span style=color:green>" + save_info.used + "</span> | <span style=color:green>" + save_info.total + "</span> <br/> <%:Plan Expiration Time%>: " + "<span style=color:green>" + save_info.expire + "</span>";
+			if (save_info.sub_info == "No Sub Info Found") {
+				document.getElementById('<%=idname%>').innerHTML = "<span><%:No Sub Info Found%></span>";
+			}
+			else {
+				document.getElementById('<%=idname%>').innerHTML = "<%:Plan Traffic%>" + ": " + "<span style=color:green>" + save_info.used + "</span> | <span style=color:green>" + save_info.total + "</span> <br/> <%:Plan Expiration Time%>: " + "<span style=color:green>" + save_info.expire + "</span>";
+			}
 		}
 	}
 	
@@ -64,6 +69,8 @@ function sub_info_get_<%=idname%>()
 			document.getElementById('<%=idname%>').innerHTML = "<%:Plan Traffic%>" + ": " + "<span style=color:green>" + status.used + "</span> | <span style=color:green>" + status.total + "</span> <br/> <%:Plan Expiration Time%>: " + "<span style=color:green>" + status.expire + "</span>";
 		}
 		else if ( x && x.status == 200 && status.sub_info == "No Sub Info Found" ) {
+			localStorage.setItem("<%=filename%>",JSON.stringify(status));
+			new_sub_info_get_<%=idname%> = false;
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
 			document.getElementById('<%=idname%>').innerHTML = "<span><%:No Sub Info Found%></span>";
 			clearTimeout(s_<%=idname%>);
