@@ -23,13 +23,13 @@ s.anonymous = true
 ---- update Settings
 o = s:option(Flag, "auto_update", translate("Auto Update"))
 o.description = translate("Auto Update Server subscription")
-o.default="0"
+o.default = 0
 
 o = s:option(ListValue, "config_auto_update_mode", translate("Update Mode"))
 o:depends("auto_update", "1")
 o:value("0", translate("Appointment Mode"))
 o:value("1", translate("Loop Mode"))
-o.default="0"
+o.default = "0"
 o.rmempty = true
 
 o = s:option(ListValue, "config_update_week_time", translate("Update Time (Every Week)"))
@@ -42,7 +42,7 @@ o:value("4", translate("Every Thursday"))
 o:value("5", translate("Every Friday"))
 o:value("6", translate("Every Saturday"))
 o:value("0", translate("Every Sunday"))
-o.default="1"
+o.default = "1"
 o.rmempty = true
 
 o = s:option(ListValue, "auto_update_time", translate("Update time (every day)"))
@@ -50,11 +50,11 @@ o:depends("config_auto_update_mode", "0")
 for t = 0,23 do
 o:value(t, t..":00")
 end
-o.default="0"
+o.default = "0"
 o.rmempty = true
 
 o = s:option(Value, "config_update_interval", translate("Update Interval(min)"))
-o.default="60"
+o.default = "60"
 o.datatype = "integer"
 o:depends("config_auto_update_mode", "1")
 o.rmempty = true

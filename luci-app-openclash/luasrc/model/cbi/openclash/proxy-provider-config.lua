@@ -94,7 +94,7 @@ o:depends("type", "http")
 o = s:option(ListValue, "health_check", translate("Provider Health Check"))
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default=true
+o.default = true
 
 o = s:option(Value, "health_check_url", translate("Health Check URL"))
 o:value("http://www.gstatic.com/generate_204")
