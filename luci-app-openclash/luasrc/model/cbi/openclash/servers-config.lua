@@ -137,7 +137,7 @@ o.rmempty = true
 o = s:option(Value, "port", translate("Server Port"))
 o.datatype = "port"
 o.rmempty = false
-o.default = 443
+o.default = "443"
 
 o = s:option(Value, "password", translate("Password"))
 o.password = true
@@ -189,7 +189,7 @@ o:depends("type", "ssr")
 -- AlterId
 o = s:option(Value, "alterId", translate("AlterId"))
 o.datatype = "port"
-o.default = 32
+o.default = "32"
 o.rmempty = true
 o:depends("type", "vmess")
 
