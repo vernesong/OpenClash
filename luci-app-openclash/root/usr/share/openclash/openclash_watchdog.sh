@@ -12,6 +12,7 @@ disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
 cfg_update_interval=$(uci -q get openclash.config.config_update_interval || echo 60)
 log_size=$(uci -q get openclash.config.log_size || echo 1024)
 core_type=$(uci -q get openclash.config.core_type)
+router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
 stream_domains_prefetch_interval=$(uci -q get openclash.config.stream_domains_prefetch_interval || echo 1440)
 stream_auto_select_interval=$(uci -q get openclash.config.stream_auto_select_interval || echo 30)
 NETFLIX_DOMAINS_LIST="/usr/share/openclash/res/Netflix_Domains.list"
@@ -137,7 +138,7 @@ fi
    /usr/share/openclash/openclash_dler_checkin.lua >/dev/null 2>&1
 
 ##STREAMING_UNLOCK_CHECK
-   if [ "$stream_auto_select" -eq 1 ]; then
+   if [ "$stream_auto_select" -eq 1 ] && [ "$router_self_proxy" -eq 1 ]; then
       [ "$stream_auto_select_interval" -ne "$stream_auto_select_interval_now" ] && STREAM_AUTO_SELECT=1 && stream_auto_select_interval="$stream_auto_select_interval_now"
       if [ "$STREAM_AUTO_SELECT" -ne 0 ]; then
          if [ "$(expr "$STREAM_AUTO_SELECT" % "$stream_auto_select_interval_now")" -eq 0 ] || [ "$STREAM_AUTO_SELECT" -eq 1 ]; then
@@ -179,7 +180,7 @@ fi
    fi
 
 ##STREAM_DNS_PREFETCH
-   if [ "$stream_domains_prefetch" -eq 1 ]; then
+   if [ "$stream_domains_prefetch" -eq 1 ] && [ "$router_self_proxy" -eq 1 ]; then
       [ "$stream_domains_prefetch_interval" -ne "$stream_domains_prefetch_interval_now" ] && STREAM_DOMAINS_PREFETCH=1 && stream_domains_prefetch_interval="$stream_domains_prefetch_interval_now"
       if [ "$STREAM_DOMAINS_PREFETCH" -ne 0 ]; then
          if [ "$(expr "$STREAM_DOMAINS_PREFETCH" % "$stream_domains_prefetch_interval_now")" -eq 0 ] || [ "$STREAM_DOMAINS_PREFETCH" -eq 1 ]; then

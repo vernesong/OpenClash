@@ -2722,3 +2722,12 @@ msgstr "无订阅信息"
 
 msgid "Sub Info Get Error"
 msgstr "订阅信息获取失败"
+
+msgid "Router-Self Proxy"
+msgstr "路由本机代理"
+
+msgid "Only Supported for Rule Mode, ALL Functions In Stream Enhance Tag Will Not Work After Disable"
+msgstr "仅支持规则（Rule）模式，其他模式默认分流，禁用后将无法使用流媒体增强标签中的所有功能"
+
+msgid "Error: Set Router Self Proxy Rule Failed,"
+msgstr "错误：修改路由自身代理规则失败，"
