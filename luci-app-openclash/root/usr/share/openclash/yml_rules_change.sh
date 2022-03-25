@@ -12,7 +12,7 @@ yml_other_set()
    begin
    Value = YAML.load_file('$3');
    rescue Exception => e
-   puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】'
+      puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】'
    end
    begin
    if $2 == 1 then
@@ -154,24 +154,12 @@ yml_other_set()
       end
    end;
    rescue Exception => e
-   puts '${LOGTIME} Error: Set Custom Rules Failed,【' + e.message + '】'
+      puts '${LOGTIME} Error: Set Custom Rules Failed,【' + e.message + '】'
    end
-   
-   begin
-      if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-         if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
-            Value['rules']=Value['rules'].to_a.insert(0,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve')
-         end
-      else
-         Value['rules']=%w(IP-CIDR,198.18.0.1/16,REJECT,no-resolve)
-      end;
-   rescue Exception => e
-      puts '${LOGTIME} Error: Set 198.18.0.1/16 REJECT Rule Failed,【' + e.message + '】'
-   end
-      
+ 
    begin
    if $4 == 1 then
-      Value['rules']=Value['rules'].to_a.insert(1,
+      Value['rules']=Value['rules'].to_a.insert(0,
       'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
       'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
       'DOMAIN-SUFFIX,chdbits.co,DIRECT',
@@ -240,6 +228,38 @@ yml_other_set()
    end;
    rescue Exception => e
       puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】'
+   end
+   
+   begin
+      if $6 == 0 then
+         if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+            if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,198.18.0.1)/).empty? then
+               Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,198.18.0.1/32,DIRECT')
+            end
+            if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'$7')/).empty? then
+               Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,$7/32,DIRECT')
+            end
+         else
+            Value['rules']=%w('SRC-IP-CIDR,198.18.0.1/32,DIRECT','SRC-IP-CIDR,$7/32,DIRECT')
+         end;
+      elsif Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+         Value['rules'].delete('SRC-IP-CIDR,198.18.0.1/32,DIRECT')
+         Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT')
+      end;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Set Router Self Proxy Rule Failed,【' + e.message + '】'
+   end
+   
+   begin
+      if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+         if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
+            Value['rules']=Value['rules'].to_a.insert(0,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve')
+         end
+      else
+         Value['rules']=%w(IP-CIDR,198.18.0.1/16,REJECT,no-resolve)
+      end;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Set 198.18.0.1/16 REJECT Rule Failed,【' + e.message + '】'
    ensure
    File.open('$3','w') {|f| YAML.dump(Value, f)}
    end" 2>/dev/null >> $LOG_FILE
@@ -297,14 +317,14 @@ if [ "$1" != "0" ]; then
    config_load "openclash"
    config_foreach yml_other_rules_get "other_rules" "$5"
    if [ -z "$rule_name" ]; then
-      yml_other_set "$1" "$2" "$3" "$4"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
       exit 0
    #判断策略组是否存在
    elif [ "$rule_name" = "ConnersHua_return" ]; then
 	    if [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ];then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
          exit 0
 	    fi
    elif [ "$rule_name" = "ConnersHua" ]; then
@@ -314,7 +334,7 @@ if [ "$1" != "0" ]; then
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
          exit 0
        fi
    elif [ "$rule_name" = "lhie1" ]; then
@@ -342,13 +362,13 @@ if [ "$1" != "0" ]; then
 	 || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
          exit 0
        fi
    fi
    if [ -z "$Proxy" ]; then
       LOG_OUT "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
-      yml_other_set "$1" "$2" "$3" "$4"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
       exit 0
    else
        #删除原有的部分，防止冲突
@@ -473,4 +493,4 @@ if [ "$1" != "0" ]; then
    fi
 fi
 
-yml_other_set "$1" "$2" "$3" "$4"
+yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"

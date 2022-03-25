@@ -41,6 +41,7 @@ op_version=$(sed -n 1p /usr/share/openclash/res/openclash_version)
 china_ip_route=$(uci -q get openclash.config.china_ip_route)
 common_ports=$(uci -q get openclash.config.common_ports)
 dns_remote=$(uci -q -q get openclash.config.dns_remote)
+router_self_proxy=$(uci -q get openclash.config.router_self_proxy)
 
 if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
 	CONFIG_NAME=$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')
@@ -215,6 +216,7 @@ IPV6-DNS解析: $(ts_cf "$ipv6_dns")
 仅允许常用端口流量: $(ts_cf "$common_ports")
 绕过中国大陆IP: $(ts_cf "$china_ip_route")
 DNS远程解析: $(ts_cf "$dns_remote")
+路由本机代理: $(ts_cf "$router_self_proxy")
 
 #启动异常时建议关闭此项后重试
 混合节点: $(ts_cf "$mix_proxies")

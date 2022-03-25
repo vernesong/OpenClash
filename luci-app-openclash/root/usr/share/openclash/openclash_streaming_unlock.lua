@@ -13,12 +13,13 @@ local class_type = type
 local type = arg[1]
 local all_test
 local enable = tonumber(uci:get("openclash", "config", "stream_auto_select")) or 0
+local router_self_proxy = tonumber(uci:get("openclash", "config", "router_self_proxy")) or 1
 local now_name, group_name, group_type, group_show, status, ip, port, passwd, group_match_name
 local groups = {}
 local proxies = {}
 local self_status = luci.sys.exec('ps -w |grep -v grep |grep -c "openclash_streaming_unlock"')
 
-if enable == 0 or not type then os.exit(0) end
+if enable == 0 or not type or router_self_proxy == 0 then os.exit(0) end
 if tonumber(self_status) > 1 then os.exit(0) end
 
 if arg[2] == "true" then all_test = true else all_test = false end

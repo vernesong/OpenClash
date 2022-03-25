@@ -77,7 +77,7 @@ end
 ---- subconverter
 o = s:option(Flag, "sub_convert", translate("Subscribe Convert Online"))
 o.description = translate("Convert Subscribe Online With Template, Mix Proxies and Keep Settings options Will Not Effect")
-o.default=0
+o.default="0"
 
 ---- Convert Address
 o = s:option(Value, "convert_address", translate("Convert Address"))
