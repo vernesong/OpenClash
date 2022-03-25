@@ -2713,3 +2713,12 @@ msgstr "测试过程中可能会造成网络不稳定,确定要开始测试吗�
 
 msgid "Error: Edit Vmess Compatible Failed,"
 msgstr "错误：Vmess节点兼容性修改失败，"
+
+msgid "Subscription Info"
+msgstr "订阅信息"
+
+msgid "No Sub Info Found"
+msgstr "无订阅信息"
+
+msgid "Sub Info Get Error"
+msgstr "订阅信息获取失败"
