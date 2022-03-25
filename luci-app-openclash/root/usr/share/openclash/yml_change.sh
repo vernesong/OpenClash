@@ -6,10 +6,10 @@ LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 dns_advanced_setting=$(uci -q get openclash.config.dns_advanced_setting)
 
 if [ -n "$(ruby_read "$5" "['tun']")" ]; then
-   uci set openclash.config.config_reload=0
+   uci -q set openclash.config.config_reload=0
 else
    if [ -n "${11}" ]; then
-      uci set openclash.config.config_reload=0
+      uci -q set openclash.config.config_reload=0
    fi
 fi
 

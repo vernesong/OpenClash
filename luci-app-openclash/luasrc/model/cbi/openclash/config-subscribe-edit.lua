@@ -77,7 +77,7 @@ end
 ---- subconverter
 o = s:option(Flag, "sub_convert", translate("Subscribe Convert Online"))
 o.description = translate("Convert Subscribe Online With Template, Mix Proxies and Keep Settings options Will Not Effect")
-o.default="0"
+o.default = 0
 
 ---- Convert Address
 o = s:option(Value, "convert_address", translate("Convert Address"))
@@ -115,7 +115,7 @@ o = s:option(ListValue, "emoji", translate("Emoji"))
 o.rmempty     = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default="false"
+o.default = "false"
 o:depends("sub_convert", "1")
 
 ---- udp
@@ -123,7 +123,7 @@ o = s:option(ListValue, "udp", translate("UDP Enable"))
 o.rmempty     = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default="false"
+o.default = "false"
 o:depends("sub_convert", "1")
 
 ---- skip-cert-verify
@@ -131,7 +131,7 @@ o = s:option(ListValue, "skip_cert_verify", translate("skip-cert-verify"))
 o.rmempty     = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default="false"
+o.default = "false"
 o:depends("sub_convert", "1")
 
 ---- sort
@@ -139,7 +139,7 @@ o = s:option(ListValue, "sort", translate("Sort"))
 o.rmempty     = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default="false"
+o.default = "false"
 o:depends("sub_convert", "1")
 
 ---- node type
@@ -147,7 +147,7 @@ o = s:option(ListValue, "node_type", translate("Append Node Type"))
 o.rmempty     = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default="false"
+o.default = "false"
 o:depends("sub_convert", "1")
 
 ---- rule provider
@@ -156,7 +156,7 @@ o.description = font_red..bold_on..translate("Note: Please Make Sure Backend Ser
 o.rmempty     = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
-o.default="false"
+o.default = "false"
 o:depends("sub_convert", "1")
 
 ---- key

@@ -17,7 +17,7 @@ s.anonymous = true
 
 o = s:option(Flag, "create_config", translate("Create Config"))
 o.description = font_red .. bold_on .. translate("Create Config By One-Click Only Need Proxies") .. bold_off .. font_off
-o.default="0"
+o.default = 0
 
 o = s:option(ListValue, "rule_sources", translate("Choose Template For Create Config"))
 o.description = translate("Use Other Rules To Create Config")
@@ -29,11 +29,11 @@ o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 o = s:option(Flag, "mix_proxies", translate("Mix Proxies"))
 o.description = font_red .. bold_on .. translate("Mix This Page's Proxies") .. bold_off .. font_off
 o:depends("create_config", 1)
-o.default="0"
+o.default = 0
 
 o = s:option(Flag, "servers_update", translate("Keep Settings"))
 o.description = font_red .. bold_on .. translate("Only Update Servers Below When Subscription") .. bold_off .. font_off
-o.default="0"
+o.default = 0
 
 o = s:option(DynamicList, "new_servers_group", translate("New Servers Group"))
 o.description = translate("Set The New Subscribe Server's Default Proxy Groups")

@@ -62,7 +62,7 @@ o = s:taboption("op_mode", Flag, "enable_udp_proxy", font_red..bold_on..translat
 o.description = translate("The Servers Must Support UDP forwarding")..", "..font_red..bold_on..translate("If Docker is Installed, UDP May Not Forward Normally")..bold_off..font_off
 o:depends("en_mode", "redir-host")
 o:depends("en_mode", "fake-ip")
-o.default="1"
+o.default = 1
 
 o = s:taboption("op_mode", ListValue, "stack_type", translate("Select Stack Type"))
 o.description = translate("Select Stack Type For TUN Mode, According To The Running Speed on Your Machine")
@@ -84,47 +84,47 @@ o.default = "rule"
 
 o = s:taboption("op_mode", Flag, "router_self_proxy", font_red..bold_on..translate("Router-Self Proxy")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Only Supported for Rule Mode, ALL Functions In Stream Enhance Tag Will Not Work After Disable")..bold_off..font_off
-o.default="1"
+o.default = 1
 o:depends("proxy_mode", "rule")
 
 o = s:taboption("op_mode", Flag, "ipv6_enable", font_red..bold_on..translate("Proxy IPv6 Traffic")..bold_off..font_off)
 o.description = font_red..bold_on..translate("The Gateway and DNS of The Connected Device Must be The Router IP, Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use")..bold_off..font_off
-o.default="0"
+o.default = 0
 
 o = s:taboption("op_mode", Flag, "china_ip6_route", translate("China IPv6 Route"))
 o.description = translate("Bypass The China Network Flows, Improve Performance")
-o.default="0"
+o.default = 0
 o:depends("ipv6_enable", "1")
 
 o = s:taboption("op_mode", Flag, "disable_udp_quic", font_red..bold_on..translate("Disable QUIC")..bold_off..font_off)
 o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic On Port 443")..bold_off..font_off
-o.default="1"
+o.default = 1
 
 o = s:taboption("op_mode", Flag, "enable_rule_proxy", font_red..bold_on..translate("Rule Match Proxy Mode")..bold_off..font_off)
 o.description = translate("Only Proxy Rules Match, Prevent BT/P2P Passing")
-o.default="0"
+o.default = 0
 
 o = s:taboption("op_mode", Flag, "common_ports", font_red..bold_on..translate("Common Ports Proxy Mode")..bold_off..font_off)
 o.description = translate("Only Common Ports, Prevent BT/P2P Passing")
-o.default="0"
+o.default = 0
 o:depends("en_mode", "redir-host")
 o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")
 
 o = s:taboption("op_mode", Flag, "china_ip_route", translate("China IP Route"))
 o.description = translate("Bypass The China Network Flows, Improve Performance")
-o.default="0"
+o.default = 0
 o:depends("en_mode", "redir-host")
 o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")
 
 o = s:taboption("op_mode", Flag, "bypass_gateway_compatible", translate("Bypass Gateway Compatible"))
 o.description = translate("If The Ntwork Cannot be Connected in Bypass Gateway Mode, Please Try to Enable.")..font_red..bold_on..translate("Suggestion: If The Device Does Not Have WLAN, Please Disable The Lan Interface's Bridge Option")..bold_off..font_off
-o.default="0"
+o.default = 0
 
 o = s:taboption("op_mode", Flag, "small_flash_memory", translate("Small Flash Memory"))
 o.description = translate("Move Core And GEOIP Data File To /tmp/etc/openclash For Small Flash Memory Device")
-o.default="0"
+o.default = 0
 
 ---- Operation Mode
 switch_mode = s:taboption("op_mode", DummyValue, "", nil)
@@ -139,7 +139,7 @@ for interface in string.gmatch(interfaces, "%S+") do
    o:value(interface)
 end
 o:value("0", translate("Disable"))
-o.default="0"
+o.default = "0"
 
 o = s:taboption("settings", Value, "tolerance", font_red..bold_on..translate("Url-Test Group Tolerance (ms)")..bold_off..font_off)
 o.description = translate("Switch To The New Proxy When The Delay Difference Between Old and The Fastest Currently is Greater Than This Value")
@@ -171,11 +171,11 @@ o.default = "silent"
 
 o = s:taboption("settings", Value, "log_size", translate("Log Size (KB)"))
 o.description = translate("Set Log File Size (KB)")
-o.default="1024"
+o.default = "1024"
 
 o = s:taboption("settings", Flag, "intranet_allowed", translate("Only intranet allowed"))
 o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network")
-o.default="0"
+o.default = 0
 
 o = s:taboption("settings", Value, "dns_port")
 o.title = translate("DNS Port")
@@ -222,26 +222,26 @@ o.description = translate("Please Make Sure Ports Available")
 ---- DNS Settings
 o = s:taboption("dns", Flag, "enable_redirect_dns", font_red..bold_on..translate("Redirect Local DNS Setting")..bold_off..font_off)
 o.description = translate("Set Local DNS Redirect")
-o.default="1"
+o.default = 1
 
 o = s:taboption("dns", Flag, "enable_custom_dns", font_red..bold_on..translate("Custom DNS Setting")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Set OpenClash Upstream DNS Resolve Server")..bold_off..font_off
-o.default="0"
+o.default = 0
 
 if op_mode == "redir-host" then
 o = s:taboption("dns", Flag, "dns_remote", font_red..bold_on..translate("DNS Remote")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Add DNS Remote Support For Redir-Host")..bold_off..font_off
-o.default="1"
+o.default = 1
 end
 
 o = s:taboption("dns", Flag, "append_wan_dns", font_red..bold_on..translate("Append Upstream DNS")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Append The Upstream Assigned DNS And Gateway IP To The Nameserver")..bold_off..font_off
-o.default="1"
+o.default = 1
 
 if op_mode == "fake-ip" then
 o = s:taboption("dns", Flag, "store_fakeip", font_red..bold_on..translate("Persistence Fake-IP")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Cache Fake-IP DNS Resolution Records To File, Improve The Response Speed After Startup")..bold_off..font_off
-o.default="1"
+o.default = 1
 
 o = s:taboption("dns", DummyValue, "flush_fakeip_cache", translate("Flush Fake-IP Cache"))
 o.template = "openclash/flush_fakeip_cache"
@@ -249,15 +249,15 @@ end
 
 o = s:taboption("dns", Flag, "ipv6_dns", translate("IPv6 DNS Resolve"))
 o.description = font_red..bold_on..translate("Enable Clash to Resolve IPv6 DNS Requests")..bold_off..font_off
-o.default="0"
+o.default = 0
 
 o = s:taboption("dns", Flag, "disable_masq_cache", translate("Disable Dnsmasq's DNS Cache"))
 o.description = translate("Recommended Enabled For Avoiding Some Connection Errors")..font_red..bold_on..translate("(Maybe Incompatible For Your Firmware)")..bold_off..font_off
-o.default="0"
+o.default = 0
 
 o = s:taboption("dns", Flag, "custom_fallback_filter", translate("Custom Fallback-Filter"))
 o.description = translate("Take Effect If Fallback DNS Setted, Prevent DNS Pollution")
-o.default="0"
+o.default = 0
 
 custom_fallback_filter = s:taboption("dns", Value, "custom_fallback_fil")
 custom_fallback_filter.template = "cbi/tvalue"
@@ -280,7 +280,7 @@ end
 
 o = s:taboption("dns", Flag, "dns_advanced_setting", translate("Advanced Setting"))
 o.description = translate("DNS Advanced Settings")..font_red..bold_on..translate("(Please Don't Modify it at Will)")..bold_off..font_off
-o.default="0"
+o.default = 0
 
 if op_mode == "fake-ip" then
 o = s:taboption("dns", Button, translate("Fake-IP-Filter List Update")) 
@@ -318,7 +318,7 @@ end
 
 o = s:taboption("dns", Value, "custom_domain_dns_server", translate("Specify DNS Server"))
 o.description = translate("Specify DNS Server For List and Server Nodes With Fake-IP Mode, Only One IP Server Address Support")
-o.default="114.114.114.114"
+o.default = "114.114.114.114"
 o.placeholder = translate("114.114.114.114 or 127.0.0.1#5300")
 o:depends("dns_advanced_setting", "1")
 
@@ -367,7 +367,7 @@ if op_mode == "redir-host" then
 o = s:taboption("lan_ac", ListValue, "lan_ac_mode", translate("LAN Access Control Mode"))
 o:value("0", translate("Black List Mode"))
 o:value("1", translate("White List Mode"))
-o.default="0"
+o.default = "0"
 
 ip_b = s:taboption("lan_ac", DynamicList, "lan_ac_black_ips", translate("LAN Bypassed Host List"))
 ip_b:depends("lan_ac_mode", "0")
@@ -415,7 +415,7 @@ o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Suppor
 ---- Rules Settings
 o = s:taboption("rules", Flag, "rule_source", translate("Enable Other Rules"))
 o.description = translate("Use Other Rules")
-o.default="0"
+o.default = 0
 
 if op_mode == "fake-ip" then
 o = s:taboption("rules", Flag, "enable_custom_clash_rules", font_red..bold_on..translate("Custom Clash Rules(Access Control)")..bold_off..font_off)
@@ -423,7 +423,7 @@ else
 o = s:taboption("rules", Flag, "enable_custom_clash_rules", font_red..bold_on..translate("Custom Clash Rules")..bold_off..font_off)
 end
 o.description = translate("Use Custom Rules")
-o.default="0"
+o.default = 0
 
 custom_rules = s:taboption("rules", Value, "custom_rules")
 custom_rules:depends("enable_custom_clash_rules", 1)
@@ -468,10 +468,10 @@ end
 --Stream Enhance
 o = s:taboption("stream_enhance", Flag, "stream_domains_prefetch", font_red..bold_on..translate("Prefetch Netflix, Disney Plus Domains")..bold_off..font_off)
 o.description = translate("Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure")
-o.default="0"
+o.default = 0
 
 o = s:taboption("stream_enhance", Value, "stream_domains_prefetch_interval", translate("Domains Prefetch Interval(min)"))
-o.default="1440"
+o.default = "1440"
 o.datatype = "uinteger"
 o.description = translate("Will Run Once Immediately After Started, The Interval Does Not Need To Be Too Short (Take Effect Immediately After Commit)")
 o:depends("stream_domains_prefetch", "1")
@@ -482,20 +482,20 @@ o.template = "openclash/download_stream_domains"
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select", font_red..bold_on..translate("Auto Select Unlock Proxy")..bold_off..font_off)
 o.description = translate("Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc")
-o.default="0"
+o.default = 0
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_interval", translate("Auto Select Interval(min)"))
-o.default="30"
+o.default = "30"
 o.datatype = "uinteger"
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_expand_group", font_red..bold_on..translate("Expand Group")..bold_off..font_off)
 o.description = translate("Automatically Expand The Group When Selected")
-o.default="0"
+o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_netflix", font_red..translate("Netflix")..font_off)
-o.default="1"
+o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_netflix", translate("Group Filter"))
@@ -522,7 +522,7 @@ o.value = "Netflix"
 o:depends("stream_auto_select_netflix", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_disney", font_red..translate("Disney Plus")..font_off)
-o.default="0"
+o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_disney", translate("Group Filter"))
@@ -549,7 +549,7 @@ o.value = "Disney Plus"
 o:depends("stream_auto_select_disney", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_ytb", font_red..translate("YouTube Premium")..font_off)
-o.default="0"
+o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_ytb", translate("Group Filter"))
@@ -576,7 +576,7 @@ o.value = "YouTube Premium"
 o:depends("stream_auto_select_ytb", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_prime_video", font_red..translate("Amazon Prime Video")..font_off)
-o.default="0"
+o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_prime_video", translate("Group Filter"))
@@ -603,7 +603,7 @@ o.value = "Amazon Prime Video"
 o:depends("stream_auto_select_prime_video", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_now", font_red..translate("HBO Now")..font_off)
-o.default="0"
+o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_now", translate("Group Filter"))
@@ -624,7 +624,7 @@ o.value = "HBO Now"
 o:depends("stream_auto_select_hbo_now", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_max", font_red..translate("HBO Max")..font_off)
-o.default="0"
+o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_max", translate("Group Filter"))
@@ -651,7 +651,7 @@ o.value = "HBO Max"
 o:depends("stream_auto_select_hbo_max", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_go_asia", font_red..translate("HBO GO Asia")..font_off)
-o.default="0"
+o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_go_asia", translate("Group Filter"))
@@ -678,7 +678,7 @@ o.value = "HBO GO Asia"
 o:depends("stream_auto_select_hbo_go_asia", "1")
 
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_tvb_anywhere", font_red..translate("TVB Anywhere+")..font_off)
-o.default="0"
+o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_tvb_anywhere", translate("Group Filter"))
@@ -707,7 +707,7 @@ o:depends("stream_auto_select_tvb_anywhere", "1")
 ---- update Settings
 o = s:taboption("rules_update", Flag, "other_rule_auto_update", translate("Auto Update"))
 o.description = font_red..bold_on..translate("Auto Update Other Rules")..bold_off..font_off
-o.default="0"
+o.default = 0
 
 o = s:taboption("rules_update", ListValue, "other_rule_update_week_time", translate("Update Time (Every Week)"))
 o:value("*", translate("Every Day"))
@@ -718,13 +718,13 @@ o:value("4", translate("Every Thursday"))
 o:value("5", translate("Every Friday"))
 o:value("6", translate("Every Saturday"))
 o:value("0", translate("Every Sunday"))
-o.default="1"
+o.default = "1"
 
 o = s:taboption("rules_update", ListValue, "other_rule_update_day_time", translate("Update time (every day)"))
 for t = 0,23 do
 o:value(t, t..":00")
 end
-o.default="0"
+o.default = "0"
 
 o = s:taboption("rules_update", Button, translate("Other Rules Update")) 
 o.title = translate("Update Other Rules")
@@ -740,7 +740,7 @@ end
 
 o = s:taboption("geo_update", Flag, "geo_auto_update", translate("Auto Update"))
 o.description = translate("Auto Update GEOIP Database")
-o.default="0"
+o.default = 0
 
 o = s:taboption("geo_update", ListValue, "geo_update_week_time", translate("Update Time (Every Week)"))
 o:value("*", translate("Every Day"))
@@ -751,13 +751,13 @@ o:value("4", translate("Every Thursday"))
 o:value("5", translate("Every Friday"))
 o:value("6", translate("Every Saturday"))
 o:value("0", translate("Every Sunday"))
-o.default="1"
+o.default = "1"
 
 o = s:taboption("geo_update", ListValue, "geo_update_day_time", translate("Update time (every day)"))
 for t = 0,23 do
 o:value(t, t..":00")
 end
-o.default="0"
+o.default = "0"
 
 o = s:taboption("geo_update", Value, "geo_custom_url")
 o.title = translate("Custom GEOIP URL")
@@ -782,7 +782,7 @@ end
 
 o = s:taboption("chnr_update", Flag, "chnr_auto_update", translate("Auto Update"))
 o.description = translate("Auto Update Chnroute Lists")
-o.default="0"
+o.default = 0
 
 o = s:taboption("chnr_update", ListValue, "chnr_update_week_time", translate("Update Time (Every Week)"))
 o:value("*", translate("Every Day"))
@@ -793,13 +793,13 @@ o:value("4", translate("Every Thursday"))
 o:value("5", translate("Every Friday"))
 o:value("6", translate("Every Saturday"))
 o:value("0", translate("Every Sunday"))
-o.default="1"
+o.default = "1"
 
 o = s:taboption("chnr_update", ListValue, "chnr_update_day_time", translate("Update time (every day)"))
 for t = 0,23 do
 o:value(t, t..":00")
 end
-o.default="0"
+o.default = "0"
 
 o = s:taboption("chnr_update", Value, "chnr_custom_url")
 o.title = translate("Custom Chnroute Lists URL")
@@ -830,7 +830,7 @@ end
 
 o = s:taboption("auto_restart", Flag, "auto_restart", translate("Auto Restart"))
 o.description = translate("Auto Restart OpenClash")
-o.default="0"
+o.default = 0
 
 o = s:taboption("auto_restart", ListValue, "auto_restart_week_time", translate("Restart Time (Every Week)"))
 o:value("*", translate("Every Day"))
@@ -841,13 +841,13 @@ o:value("4", translate("Every Thursday"))
 o:value("5", translate("Every Friday"))
 o:value("6", translate("Every Saturday"))
 o:value("0", translate("Every Sunday"))
-o.default="1"
+o.default = "1"
 
 o = s:taboption("auto_restart", ListValue, "auto_restart_day_time", translate("Restart time (every day)"))
 for t = 0,23 do
 o:value(t, t..":00")
 end
-o.default="0"
+o.default = "0"
 
 ---- Dashboard Settings
 local cn_port=SYS.exec("uci get openclash.config.cn_port 2>/dev/null |tr -d '\n'")
@@ -897,20 +897,20 @@ o.rmempty = true
 if m.uci:get("openclash", "config", "dler_token") then
 	o = s:taboption("dlercloud", Flag, "dler_checkin")
 	o.title = translate("Checkin")
-	o.default="0"
+	o.default = 0
 	o.rmempty = true
 end
 
 o = s:taboption("dlercloud", Value, "dler_checkin_interval")
 o.title = translate("Checkin Interval (hour)")
 o:depends("dler_checkin", "1")
-o.default="1"
+o.default = "1"
 o.rmempty = true
 
 o = s:taboption("dlercloud", Value, "dler_checkin_multiple")
 o.title = translate("Checkin Multiple")
 o.datatype = "uinteger"
-o.default="1"
+o.default = "1"
 o:depends("dler_checkin", "1")
 o.rmempty = true
 o.description = font_green..bold_on..translate("Multiple Must Be a Positive Integer and No More Than 50")..bold_off..font_off
