@@ -118,6 +118,10 @@ o:depends("en_mode", "redir-host")
 o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")
 
+o = s:taboption("op_mode", Flag, "intranet_allowed", translate("Only intranet allowed"))
+o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network")
+o.default = 1
+
 o = s:taboption("op_mode", Flag, "bypass_gateway_compatible", translate("Bypass Gateway Compatible"))
 o.description = translate("If The Ntwork Cannot be Connected in Bypass Gateway Mode, Please Try to Enable.")..font_red..bold_on..translate("Suggestion: If The Device Does Not Have WLAN, Please Disable The Lan Interface's Bridge Option")..bold_off..font_off
 o.default = 0
@@ -172,10 +176,6 @@ o.default = "silent"
 o = s:taboption("settings", Value, "log_size", translate("Log Size (KB)"))
 o.description = translate("Set Log File Size (KB)")
 o.default = "1024"
-
-o = s:taboption("settings", Flag, "intranet_allowed", translate("Only intranet allowed"))
-o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network")
-o.default = 0
 
 o = s:taboption("settings", Value, "dns_port")
 o.title = translate("DNS Port")
