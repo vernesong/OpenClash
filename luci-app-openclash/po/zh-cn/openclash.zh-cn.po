@@ -2504,6 +2504,12 @@ msgstr "提示：开始自动选择（检测）TVB Anywhere+ 解锁节点..."
 msgid "Tip: Start Auto Select Proxy For Amazon Prime Video Unlock..."
 msgstr "提示：开始自动选择（检测）Amazon Prime Video 解锁节点..."
 
+msgid "Tip: Start Auto Select Proxy For Dazn Unlock..."
+msgstr "提示：开始自动选择（检测）Dazn 解锁节点..."
+
+msgid "Tip: Start Auto Select Proxy For Paramount Plus Unlock..."
+msgstr "提示：开始自动选择（检测）Paramount Plus 解锁节点..."
+
 msgid "Netflix Group:"
 msgstr "Netflix 策略组："
 
@@ -2527,6 +2533,12 @@ msgstr "Amazon Prime Video 策略组："
 
 msgid "YouTube Premium Group:"
 msgstr "YouTube Premium 策略组："
+
+msgid "Dazn Group:"
+msgstr "Dazn 策略组："
+
+msgid "Paramount Plus Group:"
+msgstr "Paramount Plus 策略组："
 
 msgid "full support."
 msgstr "完整解锁。"

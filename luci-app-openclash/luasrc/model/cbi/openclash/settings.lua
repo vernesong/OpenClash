@@ -494,6 +494,7 @@ o.description = translate("Automatically Expand The Group When Selected")
 o.default = 0
 o:depends("stream_auto_select", "1")
 
+--Netflix
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_netflix", font_red..translate("Netflix")..font_off)
 o.default = 0
 o:depends("stream_auto_select", "1")
@@ -521,6 +522,7 @@ o.template = "openclash/other_stream_option"
 o.value = "Netflix"
 o:depends("stream_auto_select_netflix", "1")
 
+--Disney Plus
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_disney", font_red..translate("Disney Plus")..font_off)
 o.default = 0
 o:depends("stream_auto_select", "1")
@@ -548,6 +550,7 @@ o.template = "openclash/other_stream_option"
 o.value = "Disney Plus"
 o:depends("stream_auto_select_disney", "1")
 
+--YouTube Premium
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_ytb", font_red..translate("YouTube Premium")..font_off)
 o.default = 0
 o:depends("stream_auto_select", "1")
@@ -575,6 +578,7 @@ o.template = "openclash/other_stream_option"
 o.value = "YouTube Premium"
 o:depends("stream_auto_select_ytb", "1")
 
+--Amazon Prime Video
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_prime_video", font_red..translate("Amazon Prime Video")..font_off)
 o.default = 0
 o:depends("stream_auto_select", "1")
@@ -602,6 +606,7 @@ o.template = "openclash/other_stream_option"
 o.value = "Amazon Prime Video"
 o:depends("stream_auto_select_prime_video", "1")
 
+--HBO Now
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_now", font_red..translate("HBO Now")..font_off)
 o.default = 0
 o:depends("stream_auto_select", "1")
@@ -623,6 +628,7 @@ o.template = "openclash/other_stream_option"
 o.value = "HBO Now"
 o:depends("stream_auto_select_hbo_now", "1")
 
+--HBO Max
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_max", font_red..translate("HBO Max")..font_off)
 o.default = 0
 o:depends("stream_auto_select", "1")
@@ -650,6 +656,7 @@ o.template = "openclash/other_stream_option"
 o.value = "HBO Max"
 o:depends("stream_auto_select_hbo_max", "1")
 
+--HBO GO Asia
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_go_asia", font_red..translate("HBO GO Asia")..font_off)
 o.default = 0
 o:depends("stream_auto_select", "1")
@@ -677,6 +684,7 @@ o.template = "openclash/other_stream_option"
 o.value = "HBO GO Asia"
 o:depends("stream_auto_select_hbo_go_asia", "1")
 
+--TVB Anywhere+
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_tvb_anywhere", font_red..translate("TVB Anywhere+")..font_off)
 o.default = 0
 o:depends("stream_auto_select", "1")
@@ -703,6 +711,62 @@ o.rawhtml = true
 o.template = "openclash/other_stream_option"
 o.value = "TVB Anywhere+"
 o:depends("stream_auto_select_tvb_anywhere", "1")
+
+--Dazn
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_dazn", font_red..translate("Dazn")..font_off)
+o.default = 0
+o:depends("stream_auto_select", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_dazn", translate("Group Filter"))
+o.default = "Dazn"
+o.placeholder = "Dazn"
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_dazn", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_dazn", translate("Unlock Region Filter"))
+o.default = ""
+o.placeholder = "DE"
+o.description = translate("It Will Be Selected Region According To The Regex")
+o:depends("stream_auto_select_dazn", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_dazn", translate("Unlock Nodes Filter"))
+o.default = ""
+o.description = translate("It Will Be Selected Nodes According To The Regex")
+o:depends("stream_auto_select_dazn", "1")
+
+o = s:taboption("stream_enhance", DummyValue, "Dazn", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "Dazn"
+o:depends("stream_auto_select_dazn", "1")
+
+--Paramount Plus
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_paramount_plus", font_red..translate("Paramount Plus")..font_off)
+o.default = 0
+o:depends("stream_auto_select", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_paramount_plus", translate("Group Filter"))
+o.default = "Paramount"
+o.placeholder = "Paramount"
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_paramount_plus", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_paramount_plus", translate("Unlock Region Filter"))
+o.default = ""
+o.placeholder = "US"
+o.description = translate("It Will Be Selected Region According To The Regex")
+o:depends("stream_auto_select_paramount_plus", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_paramount_plus", translate("Unlock Nodes Filter"))
+o.default = ""
+o.description = translate("It Will Be Selected Nodes According To The Regex")
+o:depends("stream_auto_select_paramount_plus", "1")
+
+o = s:taboption("stream_enhance", DummyValue, "Paramount Plus", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "Paramount Plus"
+o:depends("stream_auto_select_paramount_plus", "1")
 
 ---- update Settings
 o = s:taboption("rules_update", Flag, "other_rule_auto_update", translate("Auto Update"))
