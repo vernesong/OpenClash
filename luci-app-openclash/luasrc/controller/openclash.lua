@@ -1318,7 +1318,7 @@ function manual_stream_unlock_test()
 				luci.http.write(line_trans)
 				luci.http.write("\n")
 			end
-			if not process_status("openclash_streaming_unlock.lua") then
+			if not process_status("openclash_streaming_unlock.lua "..type) or not process_status("openclash_streaming_unlock.lua ") then
 				break
 			end
 		end
@@ -1330,7 +1330,7 @@ end
 
 function all_proxies_stream_test()
 	local type = luci.http.formvalue("type")
-	local cmd = string.format('/usr/share/openclash/openclash_streaming_unlock.lua "%s" "%s"', type, "true")
+	local cmd = string.format('/usr/share/openclash/openclash_streaming_unlock.lua "%s" "%s"', type, "all")
 	local line_trans
 	luci.http.prepare_content("text/plain; charset=utf-8")
 	local util = io.popen(cmd)
@@ -1346,7 +1346,7 @@ function all_proxies_stream_test()
 				luci.http.write(line_trans)
 				luci.http.write("\n")
 			end
-			if not process_status("openclash_streaming_unlock.lua") then
+			if not process_status("openclash_streaming_unlock.lua "..type) or not process_status("openclash_streaming_unlock.lua ") then
 				break
 			end
 		end
