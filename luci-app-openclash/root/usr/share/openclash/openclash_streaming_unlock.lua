@@ -429,8 +429,8 @@ function table_rand(t)
 		return
 	end
 	local tab = {}
+	math.randomseed(tostring(os.time()):reverse():sub(1, 9))
 	while #t ~= 0 do
-		math.randomseed(tostring(os.time()):reverse():sub(1, 9))
 		local n = math.random(0, #t)
 		if t[n] ~= nil then
 			table.insert(tab, t[n])
