@@ -203,12 +203,21 @@ yml_other_set()
       'PROCESS-NAME,qbittorrent,DIRECT',
       'PROCESS-NAME,Thunder,DIRECT',
       'PROCESS-NAME,Transmission,DIRECT',
+      'PROCESS-NAME,transmission,DIRECT',
       'PROCESS-NAME,uTorrent,DIRECT',
       'PROCESS-NAME,WebTorrent,DIRECT',
       'PROCESS-NAME,WebTorrent Helper,DIRECT',
       'PROCESS-NAME,v2ray,DIRECT',
-      'PROCESS-NAME,ss-loca,DIRECT',
+      'PROCESS-NAME,ss-local,DIRECT',
+      'PROCESS-NAME,ssr-local,DIRECT',
+      'PROCESS-NAME,ss-redir,DIRECT',
+      'PROCESS-NAME,ssr-redir,DIRECT',
+      'PROCESS-NAME,ss-server,DIRECT',
+      'PROCESS-NAME,trojan-go,DIRECT',
+      'PROCESS-NAME,xray,DIRECT',
+      'PROCESS-NAME,hysteria,DIRECT',
       'PROCESS-NAME,UUBooster,DIRECT',
+      'PROCESS-NAME,uugamebooster,DIRECT',
       'DOMAIN-SUFFIX,smtp,DIRECT'
       )
       match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0]
