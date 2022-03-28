@@ -768,6 +768,34 @@ o.template = "openclash/other_stream_option"
 o.value = "Paramount Plus"
 o:depends("stream_auto_select_paramount_plus", "1")
 
+--Discovery Plus
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_discovery_plus", font_red..translate("Discovery Plus")..font_off)
+o.default = 0
+o:depends("stream_auto_select", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_discovery_plus", translate("Group Filter"))
+o.default = "Discovery"
+o.placeholder = "Discovery"
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_discovery_plus", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_discovery_plus", translate("Unlock Region Filter"))
+o.default = ""
+o.placeholder = "US"
+o.description = translate("It Will Be Selected Region According To The Regex")
+o:depends("stream_auto_select_discovery_plus", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_discovery_plus", translate("Unlock Nodes Filter"))
+o.default = ""
+o.description = translate("It Will Be Selected Nodes According To The Regex")
+o:depends("stream_auto_select_discovery_plus", "1")
+
+o = s:taboption("stream_enhance", DummyValue, "Discovery Plus", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "Discovery Plus"
+o:depends("stream_auto_select_discovery_plus", "1")
+
 ---- update Settings
 o = s:taboption("rules_update", Flag, "other_rule_auto_update", translate("Auto Update"))
 o.description = font_red..bold_on..translate("Auto Update Other Rules")..bold_off..font_off

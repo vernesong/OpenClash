@@ -2510,6 +2510,9 @@ msgstr "提示：开始自动选择（检测）Dazn 解锁节点..."
 msgid "Tip: Start Auto Select Proxy For Paramount Plus Unlock..."
 msgstr "提示：开始自动选择（检测）Paramount Plus 解锁节点..."
 
+msgid "Tip: Start Auto Select Proxy For Discovery Plus Unlock..."
+msgstr "提示：开始自动选择（检测）Discovery Plus 解锁节点..."
+
 msgid "Netflix Group:"
 msgstr "Netflix 策略组："
 
@@ -2539,6 +2542,9 @@ msgstr "Dazn 策略组："
 
 msgid "Paramount Plus Group:"
 msgstr "Paramount Plus 策略组："
+
+msgid "Discovery Plus Group:"
+msgstr "Discovery Plus 策略组："
 
 msgid "full support."
 msgstr "完整解锁。"
