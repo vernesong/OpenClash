@@ -179,8 +179,8 @@ fi
                /usr/share/openclash/openclash_streaming_unlock.lua "TVB Anywhere+" >> $LOG_FILE
             fi
             if [ "$stream_auto_select_dazn" -eq 1 ]; then
-               LOG_OUT "Tip: Start Auto Select Proxy For Dazn Unlock..."
-               /usr/share/openclash/openclash_streaming_unlock.lua "Dazn" >> $LOG_FILE
+               LOG_OUT "Tip: Start Auto Select Proxy For DAZN Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "DAZN" >> $LOG_FILE
             fi
             if [ "$stream_auto_select_paramount_plus" -eq 1 ]; then
                LOG_OUT "Tip: Start Auto Select Proxy For Paramount Plus Unlock..."
