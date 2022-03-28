@@ -315,6 +315,8 @@ yml_other_rules_get()
    config_get "Domestic" "$section" "Domestic" ""
    config_get "Others" "$section" "Others" ""
    config_get "GoogleFCM" "$section" "GoogleFCM" "DIRECT"
+   config_get "Discovery" "$section" "Discovery" "$GlobalTV"
+   config_get "DAZN" "$section" "DAZN" "$GlobalTV"
 }
 
 if [ "$1" != "0" ]; then
@@ -360,6 +362,8 @@ if [ "$1" != "0" ]; then
 	 || [ -z "$(grep -F "$Scholar" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Netflix" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Disney" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$Discovery" /tmp/Proxy_Group)" ]\
+	 || [ -z "$(grep -F "$DAZN" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Spotify" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Steam" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$AdBlock" /tmp/Proxy_Group)" ]\
@@ -406,6 +410,8 @@ if [ "$1" != "0" ]; then
        	    .gsub(/,Bahamut,Global TV$/, ',Bahamut,$Bahamut#d')
        	    .gsub(/,HBO Max,Global TV$/, ',HBO Max,$HBOMax#d')
        	    .gsub(/,HBO Go,Global TV$/, ',HBO Go,$HBOGo#d')
+       	    .gsub(/,Discovery Plus,Global TV$/, ',Discovery Plus,$Discovery#d')
+       	    .gsub(/,DAZN,Global TV$/, ',DAZN,$DAZN#d')
        	    .gsub(/,Pornhub,Global TV$/, ',Pornhub,$Pornhub#d')
        	    .gsub(/,Global TV$/, ',$GlobalTV#d')
        	    .gsub(/,Asian TV$/, ',$AsianTV#d')
@@ -431,6 +437,8 @@ if [ "$1" != "0" ]; then
        	    .gsub!(/\"Bahamut\": \"Global TV\"/,'\"Bahamut\": \"$Bahamut#d\"')
        	    .gsub!(/\"HBO Max\": \"Global TV\"/,'\"HBO Max\": \"$HBOMax#d\"')
        	    .gsub!(/\"HBO Go\": \"Global TV\"/,'\"HBO Go\": \"$HBOGo#d\"')
+       	    .gsub!(/\"Discovery Plus\": \"Global TV\"/,'\"Discovery Plus\": \"$Discovery#d\"')
+       	    .gsub!(/\"DAZN\": \"Global TV\"/,'\"DAZN\": \"$DAZN#d\"')
        	    .gsub!(/\"Pornhub\": \"Global TV\"/,'\"Pornhub\": \"$Pornhub#d\"')
        	    .gsub!(/: \"Global TV\"/,': \"$GlobalTV#d\"')
        	    .gsub!(/: \"Asian TV\"/,': \"$AsianTV#d\"')
