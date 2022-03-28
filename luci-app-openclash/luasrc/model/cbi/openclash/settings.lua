@@ -712,14 +712,14 @@ o.template = "openclash/other_stream_option"
 o.value = "TVB Anywhere+"
 o:depends("stream_auto_select_tvb_anywhere", "1")
 
---Dazn
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_dazn", font_red..translate("Dazn")..font_off)
+--DAZN
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_dazn", font_red..translate("DAZN")..font_off)
 o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_dazn", translate("Group Filter"))
-o.default = "Dazn"
-o.placeholder = "Dazn"
+o.default = "DAZN"
+o.placeholder = "DAZN"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_dazn", "1")
 
@@ -734,10 +734,10 @@ o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_dazn", "1")
 
-o = s:taboption("stream_enhance", DummyValue, "Dazn", translate("Manual Test"))
+o = s:taboption("stream_enhance", DummyValue, "DAZN", translate("Manual Test"))
 o.rawhtml = true
 o.template = "openclash/other_stream_option"
-o.value = "Dazn"
+o.value = "DAZN"
 o:depends("stream_auto_select_dazn", "1")
 
 --Paramount Plus
