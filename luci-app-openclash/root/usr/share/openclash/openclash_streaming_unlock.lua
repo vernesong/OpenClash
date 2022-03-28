@@ -93,6 +93,8 @@ function unlock_auto_select()
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_dazn") or "dazn"
 		elseif type == "Paramount Plus" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_paramount_plus") or "paramount"
+		elseif type == "Discovery Plus" then
+			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_discovery_plus") or "discovery"
 		end
 		if not key_group then key_group = type end
 	else
@@ -513,6 +515,8 @@ function nodes_filter(t, info)
 		regex = uci:get("openclash", "config", "stream_auto_select_node_key_dazn") or ""
 	elseif type == "Paramount Plus" then
 		regex = uci:get("openclash", "config", "stream_auto_select_node_key_paramount_plus") or ""
+	elseif type == "Discovery Plus" then
+		regex = uci:get("openclash", "config", "stream_auto_select_node_key_discovery_plus") or ""
 	end
 
 	if class_type(t) == "table" then
@@ -568,6 +572,8 @@ function proxy_unlock_test()
 		region = dazn_unlock_test()
 	elseif type == "Paramount Plus" then
 		region = paramount_plus_unlock_test()
+	elseif type == "Discovery Plus" then
+		region = discovery_plus_unlock_test()
 	end
 	return region
 end
@@ -595,6 +601,8 @@ function auto_get_policy_group(passwd, ip, port)
 		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://www.dazn.com &')
 	elseif type == "Paramount Plus" then
 		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://www.paramountplus.com/ &')
+	elseif type == "Discovery Plus" then
+		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://www.discoveryplus.com/ &')
 	end
 	os.execute("sleep 1")
 	con = luci.sys.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
@@ -650,6 +658,11 @@ function auto_get_policy_group(passwd, ip, port)
 				end
 			elseif type == "Paramount Plus" then
 				if string.match(con.connections[i].metadata.host, "www%.paramountplus%.com") then
+					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
+					break
+				end
+			elseif type == "Discovery Plus" then
+				if string.match(con.connections[i].metadata.host, "www%.discoveryplus%.com") then
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
 				end
@@ -1047,6 +1060,31 @@ function paramount_plus_unlock_test()
 			data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 3 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 			region = string.upper(string.sub(string.match(data, "\"siteEdition\":\"%a+|%a+\""), 19, -1)) or string.upper(string.sub(string.match(data, "property: '%a+'"), 12, -2))
 			if region then
+				if not datamatch(region, regex) then
+					status = 3
+				end
+	  		return region
+	  	end
+		end
+	end
+end
+
+function discovery_plus_unlock_test()
+	status = 0
+	local url = "https://us1-prod-direct.discoveryplus.com/token?deviceId=d1a4a5d25212400d1e6985984604d740&realm=go&shortlived=true"
+	local url1 = "https://us1-prod-direct.discoveryplus.com/users/me"
+	local region
+	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_discovery_plus") or ""
+	local token = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 3 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))
+	if token and json.parse(token) and json.parse(token).data and json.parse(token).data.attributes then
+		status = 1
+		token = json.parse(token).data.attributes.token
+		local cookie = string.format("-b \"_gcl_au=1.1.858579665.1632206782; _rdt_uuid=1632206782474.6a9ad4f2-8ef7-4a49-9d60-e071bce45e88; _scid=d154b864-8b7e-4f46-90e0-8b56cff67d05; _pin_unauth=dWlkPU1qWTRNR1ZoTlRBdE1tSXdNaTAwTW1Nd0xUbGxORFV0WWpZMU0yVXdPV1l6WldFeQ; _sctr=1|1632153600000; aam_fw=aam%%3D9354365%%3Baam%%3D9040990; aam_uuid=24382050115125439381416006538140778858; st=%s; gi_ls=0; _uetvid=a25161a01aa711ec92d47775379d5e4d; AMCV_BC501253513148ED0A490D45%%40AdobeOrg=-1124106680%%7CMCIDTS%%7C18894%%7CMCMID%%7C24223296309793747161435877577673078228%%7CMCAAMLH-1633011393%%7C9%%7CMCAAMB-1633011393%%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%%7CMCOPTOUT-1632413793s%%7CNONE%%7CvVersion%%7C5.2.0; ass=19ef15da-95d6-4b1d-8fa2-e9e099c9cc38.1632408400.1632406594\"", token)
+		local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 3 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s %s", UA, cookie, url1))
+		if data and json.parse(data) and json.parse(data).data and json.parse(data).data.attributes and json.parse(data).data.attributes.currentLocationSovereignTerritory then
+			region = string.upper(json.parse(data).data.attributes.currentLocationTerritory) or string.upper(json.parse(data).data.attributes.currentLocationSovereignTerritory)
+			if region then
+				status = 2
 				if not datamatch(region, regex) then
 					status = 3
 				end
