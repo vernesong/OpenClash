@@ -89,7 +89,7 @@ function unlock_auto_select()
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_tvb_anywhere") or "tvb"
 		elseif type == "Amazon Prime Video" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_prime_video") or "prime video|amazon"
-		elseif type == "Dazn" then
+		elseif type == "DAZN" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_dazn") or "dazn"
 		elseif type == "Paramount Plus" then
 			key_group = uci:get("openclash", "config", "stream_auto_select_group_key_paramount_plus") or "paramount"
@@ -511,7 +511,7 @@ function nodes_filter(t, info)
 		regex = uci:get("openclash", "config", "stream_auto_select_node_key_tvb_anywhere") or ""
 	elseif type == "Amazon Prime Video" then
 		regex = uci:get("openclash", "config", "stream_auto_select_node_key_prime_video") or ""
-	elseif type == "Dazn" then
+	elseif type == "DAZN" then
 		regex = uci:get("openclash", "config", "stream_auto_select_node_key_dazn") or ""
 	elseif type == "Paramount Plus" then
 		regex = uci:get("openclash", "config", "stream_auto_select_node_key_paramount_plus") or ""
@@ -568,7 +568,7 @@ function proxy_unlock_test()
 		region = tvb_anywhere_unlock_test()
 	elseif type == "Amazon Prime Video" then
 		region = prime_video_unlock_test()
-	elseif type == "Dazn" then
+	elseif type == "DAZN" then
 		region = dazn_unlock_test()
 	elseif type == "Paramount Plus" then
 		region = paramount_plus_unlock_test()
@@ -597,7 +597,7 @@ function auto_get_policy_group(passwd, ip, port)
 		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://uapisfm.tvbanywhere.com.sg &')
 	elseif type == "Amazon Prime Video" then
 		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://www.primevideo.com &')
-	elseif type == "Dazn" then
+	elseif type == "DAZN" then
 		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://www.dazn.com &')
 	elseif type == "Paramount Plus" then
 		luci.sys.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://www.paramountplus.com/ &')
@@ -651,7 +651,7 @@ function auto_get_policy_group(passwd, ip, port)
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
 				end
-			elseif type == "Dazn" then
+			elseif type == "DAZN" then
 				if string.match(con.connections[i].metadata.host, "www%.dazn%.com") then
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
