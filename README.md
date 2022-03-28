@@ -129,7 +129,7 @@ make menuconfig
 * lhie1规则 [lhie1-Rules](https://github.com/lhie1/Rules) by [lhie1](https://github.com/lhie1)
 * ConnersHua规则 [ConnersHua-Rules](https://github.com/ConnersHua/Profiles/tree/master) by [ConnersHua](https://github.com/ConnersHua)
 * 游戏规则 [SSTap-Rule](https://github.com/FQrabbit/SSTap-Rule) by [FQrabbit](https://github.com/FQrabbit)
-
+* 流媒体解锁检测 [RegionRestrictionCheck](https://github.com/lmc999/RegionRestrictionCheck) by [lmc999]https://github.com/lmc999)
 
 请作者喝杯咖啡
 ---
