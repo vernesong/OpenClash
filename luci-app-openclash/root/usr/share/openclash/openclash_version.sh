@@ -9,16 +9,16 @@ github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
 if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{print $2}')" ]; then
 	 if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-         curl -sL -m 3 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
+         curl -sL -m 10 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
       else
-         curl -sL -m 3 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
+         curl -sL -m 10 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
       fi
    else
-      curl -sL -m 3 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
+      curl -sL -m 10 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
    fi
    
    if [ "$?" != "0" ]; then
-      curl -sL -m 3 --retry 2 https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
+      curl -sL -m 10 --retry 2 https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/"$RELEASE_BRANCH"/version -o $LAST_OPVER >/dev/null 2>&1
    fi
    
    if [ "$?" == "0" ] && [ -s "$LAST_OPVER" ]; then
