@@ -43,10 +43,18 @@ o.rmempty = true
 
 ---- address
 o = s:option(Value, "address", translate("Subscribe Address"))
-o.description = font_red..bold_on..translate("SS/SSR/Vmess or Other Link And Subscription Address is Supported When Online Subscription Conversion is Enabled, Please Separate Multiple Links With |")..bold_off..font_off
+o.template = "cbi/tvalue"
+o.rows = 10
+o.wrap = "on"
+o.description = font_red..bold_on..translate("SS/SSR/Vmess or Other Link And Subscription Address is Supported When Online Subscription Conversion is Enabled, Multiple Links Should be One Per Line or Separated By |")..bold_off..font_off
 o.placeholder = translate("Not Null")
-o.datatype = "or(host, string)"
 o.rmempty = false
+function o.validate(self, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+	end
+	return value
+end
 
 local sub_path = "/tmp/dler_sub"
 local info, token, get_sub, sub_info
