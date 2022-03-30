@@ -52,6 +52,7 @@ o.rmempty = false
 function o.validate(self, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
+		value = value:gsub("%c*$", "")
 	end
 	return value
 end
