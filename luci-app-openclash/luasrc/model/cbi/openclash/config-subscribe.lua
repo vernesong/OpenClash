@@ -89,9 +89,16 @@ function o.cfgvalue(...)
 end
 
 ---- address
-o = s:option(Value, "address", translate("Subscribe Address"))
+o = s:option(DummyValue, "address", translate("Subscribe Address"))
 function o.cfgvalue(...)
-	return Value.cfgvalue(...) or translate("None")
+	if Value.cfgvalue(...) then
+		if string.len(Value.cfgvalue(...)) <= 50 then
+			return Value.cfgvalue(...)
+		else
+			return string.sub(Value.cfgvalue(...), 1, 50) .. " ..."
+		end
+	end
+	return translate("None")
 end
 
 ---- template
