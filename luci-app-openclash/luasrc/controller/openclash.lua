@@ -525,13 +525,15 @@ function action_switch_config()
 end
 
 function sub_info_get()
-	local filename, sub_url, sub_info, info, upload, download, total, expire, http_code
+	local filename, sub_url, sub_info, info, upload, download, total, expire, http_code, len
 	filename = luci.http.formvalue("filename")
 	sub_info = ""
 	if filename then
 		uci:foreach("openclash", "config_subscribe",
 			function(s)
-				if s.name == filename and s.address then
+				if s.name == filename and s.address and string.find(s.address, "http") then
+					_, len = string.gsub(s.address, '[^\n]+', "")
+					if len and len > 1 then return end
 			  	sub_url = s.address
 			  	info = luci.sys.exec(string.format("curl -sLI -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Clash' '%s'", sub_url))
 			  	if info then
@@ -1118,7 +1120,7 @@ end
 
 function action_diag_connection()
 	local addr = luci.http.formvalue("addr")
-	if addr and datatype.hostname(addr) or datatype.ipaddr(addr) then
+	if addr and (datatype.hostname(addr) or datatype.ipaddr(addr)) then
 		local cmd = string.format("/usr/share/openclash/openclash_debug_getcon.lua %s", addr)
 		luci.http.prepare_content("text/plain")
 		local util = io.popen(cmd)
