@@ -228,7 +228,7 @@ function line_tolocal(str){
 		var regex = /"([^"]*)"/g;
 		var res = regex.exec(v);
 		if (res) {
-			var dt = new Date(res[1].match(/\+08\:00/)? res[1].replace("+08:00", "Z") : res[1]);
+			var dt = new Date(res[1]);
 		}
 		if (dt && dt != "Invalid Date"){
 		  cstrt[cn]=dt.getFullYear()+"-"+p(dt.getMonth()+1)+"-"+p(dt.getDate())+" "+p(dt.getHours())+":"+p(dt.getMinutes())+":"+p(dt.getSeconds())+v.substring(res[1].length + 7);
