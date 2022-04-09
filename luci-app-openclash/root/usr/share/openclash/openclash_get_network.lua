@@ -10,14 +10,17 @@ local wan, wan6
 
 if not type then os.exit(0) end
 
-if pcall(function() local x = ntm:get_wannet(); local y = ntm:get_wan6net(); end) then
+if pcall(function() local x = ntm:get_all_wan_networks(); local y = ntm:get_all_wan6_networks(); end) then
+	wan = ntm:get_all_wan_networks()
+	wan6 = ntm:get_all_wan6_networks()
+elseif pcall(function() local x = ntm:get_wan_networks(); local y = ntm:get_wan6_networks(); end) then
+	wan = ntm:get_wan_networks()
+	wan6 = ntm:get_wan6_networks()
+elseif pcall(function() local x = ntm:get_wannet(); local y = ntm:get_wan6net(); end) then
 	wan = {}
 	wan6 = {}
 	wan[1] =  ntm:get_wannet()
 	wan6[1] = ntm:get_wan6net()
-elseif pcall(function() local x = ntm:get_wan_networks(); local y = ntm:get_wan6_networks(); end) then
-	wan = ntm:get_wan_networks()
-	wan6 = ntm:get_wan6_networks()
 else
 	os.exit(0)
 end
