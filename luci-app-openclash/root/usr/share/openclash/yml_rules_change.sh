@@ -264,11 +264,17 @@ yml_other_set()
          if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
             Value['rules']=Value['rules'].to_a.insert(0,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve')
          end
+         if Value['rules'].to_a.grep(/(?=.*DST-PORT,'$8',REJECT)/).empty? then
+            Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$8,REJECT')
+         end
+         if Value['rules'].to_a.grep(/(?=.*DST-PORT,'$9',REJECT)/).empty? then
+            Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$9,REJECT')
+         end
       else
-         Value['rules']=%w(IP-CIDR,198.18.0.1/16,REJECT,no-resolve)
+         Value['rules']=['IP-CIDR,198.18.0.1/16,REJECT,no-resolve','DST-PORT,$8,REJECT','DST-PORT,$9,REJECT']
       end;
    rescue Exception => e
-      puts '${LOGTIME} Error: Set 198.18.0.1/16 REJECT Rule Failed,【' + e.message + '】'
+      puts '${LOGTIME} Error: Set Loop Protect Rules Failed,【' + e.message + '】'
    ensure
    File.open('$3','w') {|f| YAML.dump(Value, f)}
    end" 2>/dev/null >> $LOG_FILE
@@ -328,14 +334,14 @@ if [ "$1" != "0" ]; then
    config_load "openclash"
    config_foreach yml_other_rules_get "other_rules" "$5"
    if [ -z "$rule_name" ]; then
-      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
       exit 0
    #判断策略组是否存在
    elif [ "$rule_name" = "ConnersHua_return" ]; then
 	    if [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ];then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
          exit 0
 	    fi
    elif [ "$rule_name" = "ConnersHua" ]; then
@@ -345,7 +351,7 @@ if [ "$1" != "0" ]; then
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
          exit 0
        fi
    elif [ "$rule_name" = "lhie1" ]; then
@@ -375,13 +381,13 @@ if [ "$1" != "0" ]; then
 	 || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
          exit 0
        fi
    fi
    if [ -z "$Proxy" ]; then
       LOG_OUT "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
-      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
       exit 0
    else
        #删除原有的部分，防止冲突
@@ -510,4 +516,4 @@ if [ "$1" != "0" ]; then
    fi
 fi
 
-yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7"
+yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
