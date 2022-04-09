@@ -8,11 +8,11 @@
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.10.0">
     <img src="https://img.shields.io/badge/Clash-v1.10.0-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.44.42-beta">
-    <img src="https://img.shields.io/badge/source code-v0.44.42--beta-green.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.44.43-beta">
+    <img src="https://img.shields.io/badge/source code-v0.44.43--beta-green.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.44.42-beta">
-    <img src="https://img.shields.io/badge/New Release-v0.44.42--beta-orange.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.44.43-beta">
+    <img src="https://img.shields.io/badge/New Release-v0.44.43--beta-orange.svg">
   </a>
   </p>
   
@@ -129,7 +129,7 @@ make menuconfig
 * lhie1规则 [lhie1-Rules](https://github.com/lhie1/Rules) by [lhie1](https://github.com/lhie1)
 * ConnersHua规则 [ConnersHua-Rules](https://github.com/ConnersHua/Profiles/tree/master) by [ConnersHua](https://github.com/ConnersHua)
 * 游戏规则 [SSTap-Rule](https://github.com/FQrabbit/SSTap-Rule) by [FQrabbit](https://github.com/FQrabbit)
-* 流媒体解锁检测 [RegionRestrictionCheck](https://github.com/lmc999/RegionRestrictionCheck) by [lmc999]https://github.com/lmc999)
+* 流媒体解锁检测 [RegionRestrictionCheck](https://github.com/lmc999/RegionRestrictionCheck) by [lmc999](https://github.com/lmc999)
 
 请作者喝杯咖啡
 ---
