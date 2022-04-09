@@ -245,7 +245,7 @@ yml_other_set()
             if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,198.18.0.1)/).empty? then
                Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,198.18.0.1/32,DIRECT')
             end
-            if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'$7')/).empty? then
+            if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'$7')/).empty? and not '$7'.empty? then
                Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,$7/32,DIRECT')
             end
          else
