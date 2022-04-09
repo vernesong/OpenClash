@@ -193,6 +193,8 @@ fi
          fi
       fi
       STREAM_AUTO_SELECT=$(expr "$STREAM_AUTO_SELECT" + 1)
+   elif [ "$router_self_proxy" != "1" ] && [ "$stream_auto_select" -eq 1 ]; then
+      LOG_OUT "Error: Streaming Unlock Could not Work Because of Router-Self Proxy Disabled, Exiting..."
    fi
 
 ##STREAM_DNS_PREFETCH
@@ -219,6 +221,8 @@ fi
          fi
       fi
       STREAM_DOMAINS_PREFETCH=$(expr "$STREAM_DOMAINS_PREFETCH" + 1)
+   elif [ "$router_self_proxy" != "1" ] && [ "$stream_domains_prefetch" -eq 1 ]; then
+      LOG_OUT "Error: Streaming DNS Prefetch Could not Work Because of Router-Self Proxy Disabled, Exiting..."
    fi
 
    SLOG_CLEAN
