@@ -17,6 +17,7 @@ if [ "$1" = "one_key_update" ]; then
    uci -q commit openclash
    /usr/share/openclash/openclash_core.sh "$1" >/dev/null 2>&1 &
    /usr/share/openclash/openclash_core.sh "TUN" "$1" >/dev/null 2>&1 &
+   /usr/share/openclash/openclash_core.sh "Meta" "$1" >/dev/null 2>&1 &
    wait
 fi
 

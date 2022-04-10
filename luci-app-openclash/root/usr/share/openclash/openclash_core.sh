@@ -22,10 +22,12 @@ fi
 if [ "$small_flash_memory" != "1" ]; then
    dev_core_path="/etc/openclash/core/clash"
    tun_core_path="/etc/openclash/core/clash_tun"
+   meta_core_path="/etc/openclash/core/clash_meta"
    mkdir -p /etc/openclash/core
 else
    dev_core_path="/tmp/etc/openclash/core/clash"
    tun_core_path="/tmp/etc/openclash/core/clash_tun"
+   meta_core_path="/tmp/etc/openclash/core/clash_meta"
    mkdir -p /tmp/etc/openclash/core
 fi
 
@@ -39,6 +41,10 @@ case $CORE_TYPE in
       SLOG_CLEAN
       exit 0
    fi
+   ;;
+   "Meta")
+   CORE_CV=$($meta_core_path -v 2>/dev/null |awk -F ' ' '{print $2}')
+   CORE_LV=$(sed -n 3p /tmp/clash_last_version 2>/dev/null)
    ;;
    *)
    CORE_CV=$($dev_core_path -v 2>/dev/null |awk -F ' ' '{print $2}')
@@ -65,6 +71,21 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			         curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
 			      fi
 			   ;;
+         "Meta")
+            LOG_OUT "【Meta】Core Downloading, Please Try to Download and Upload Manually If Fails"
+            if [ "$github_address_mod" != "0" ]; then
+               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+                  curl -sL -m 30 --speed-time 15 --speed-limit 1 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
+               else
+                  curl -sL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
+               fi
+            else
+               curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
+            fi
+            if [ "$?" != "0" ]; then
+               curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
+            fi
+			   ;;
 			   *)
 			      LOG_OUT "【Dev】Core Downloading, Please Try to Download and Upload Manually If Fails"
 			      if [ "$github_address_mod" != "0" ]; then
@@ -84,20 +105,28 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
       if [ "$?" == "0" ]; then
          LOG_OUT "【"$CORE_TYPE"】Core Download Successful, Start Update..."
 	       case $CORE_TYPE in
-         	"TUN")
-		        [ -s "/tmp/clash_tun.gz" ] && {
-            gzip -d /tmp/clash_tun.gz >/dev/null 2>&1
-		        rm -rf /tmp/clash_tun.gz >/dev/null 2>&1
-			      rm -rf "$tun_core_path" >/dev/null 2>&1
-			      chmod 4755 /tmp/clash_tun >/dev/null 2>&1
-			      }
+         "TUN")
+            [ -s "/tmp/clash_tun.gz" ] && {
+               gzip -d /tmp/clash_tun.gz >/dev/null 2>&1
+               rm -rf /tmp/clash_tun.gz >/dev/null 2>&1
+               rm -rf "$tun_core_path" >/dev/null 2>&1
+               chmod 4755 /tmp/clash_tun >/dev/null 2>&1
+            }
+			   ;;
+         "Meta")
+            [ -s "/tmp/clash_meta.tar.gz" ] && {
+               rm -rf "$meta_core_path" >/dev/null 2>&1
+               tar zxvf /tmp/clash_meta.tar.gz -C /tmp
+               rm -rf /tmp/clash_meta.tar.gz >/dev/null 2>&1
+               chmod 4755 /tmp/clash_meta >/dev/null 2>&1
+            }
 			   ;;
 			   *)
-			      [ -s "/tmp/clash.tar.gz" ] && {
+            [ -s "/tmp/clash.tar.gz" ] && {
                rm -rf "$dev_core_path" >/dev/null 2>&1
                tar zxvf /tmp/clash.tar.gz -C /tmp
-				       rm -rf /tmp/clash.tar.gz >/dev/null 2>&1
-				       chmod 4755 /tmp/clash >/dev/null 2>&1
+               rm -rf /tmp/clash.tar.gz >/dev/null 2>&1
+               chmod 4755 /tmp/clash >/dev/null 2>&1
             }
          esac
          if [ "$?" != "0" ]; then
@@ -105,9 +134,12 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             case $CORE_TYPE in
             "TUN")
                rm -rf /tmp/clash_tun >/dev/null 2>&1
-				    ;;
-				    *)
-				       rm -rf /tmp/clash >/dev/null 2>&1
+            ;;
+            "Meta")
+               rm -rf /tmp/clash_meta >/dev/null 2>&1
+            ;;
+            *)
+               rm -rf /tmp/clash >/dev/null 2>&1
             esac
             sleep 3
             SLOG_CLEAN
@@ -118,7 +150,10 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
          "TUN")
 			      mv /tmp/clash_tun "$tun_core_path" >/dev/null 2>&1
 			   ;;
-			   *)
+         "Meta")
+            mv /tmp/clash_meta "$meta_core_path" >/dev/null 2>&1
+			   ;;
+         *)
             mv /tmp/clash "$dev_core_path" >/dev/null 2>&1
 			   esac
 			   
@@ -158,6 +193,9 @@ fi
 case $CORE_TYPE in
 "TUN")
    rm -rf /tmp/clash_tun >/dev/null 2>&1
+;;
+"Meta")
+   rm -rf /tmp/clash_meta >/dev/null 2>&1
 ;;
 *)
    rm -rf /tmp/clash >/dev/null 2>&1

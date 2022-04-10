@@ -155,12 +155,14 @@
     <tr id="hid_2">
     	<td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_close_all_connection"><%:Collecting data...%></p></td>
 			<td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_reload_firewall"><%:Collecting data...%></p></td>
+			<td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_flush_fakeip_cache"><%:Collecting data...%></p></td>
 			<td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_update_subscribe"><%:Collecting data...%></p></td>
-			<td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_one_key_update"><%:Collecting data...%></p></td>
 			</tr>
 		<tr id="hid_3">
-			<td width="50%" colspan="2" align="center"><p style="margin: 10px 0; text-align: center" id="_update_other_rules"><%:Collecting data...%></p></td>
-			<td width="50%" colspan="2" align="center"><p style="margin: 10px 0; text-align: center" id="_update_geoip"><%:Collecting data...%></p></td>
+			<td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_update_other_rules"><%:Collecting data...%></p></td>
+			<td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_update_geoip"><%:Collecting data...%></p></td>
+			<td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_update_geosite"><%:Collecting data...%></p></td>
+			<td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_one_key_update"><%:Collecting data...%></p></td>
 			</tr>
 </table>
 </fieldset>
@@ -173,7 +175,8 @@
 		</td></tr>
 		<tr><td width="25%"><%:Node Select Backup%></td><td width="25%" align="left" id="_historychecktime"><%:Collecting data...%></td><td width="25%"><%:lhie1 Rule Update%></td><td width="25%" align="left" id="_lhie1"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"><%:ConnersHua Rule Update%></td><td width="25%" align="left" id="_ConnersHua"><%:Collecting data...%></td><td width="25%"><%:ConnersHua Return Rule Update%></td><td width="25%" align="left" id="_ConnersHua_return"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"><%:Mainland IP Update%></td><td width="25%" align="left" id="_chnroute"><%:Collecting data...%></td><td width="25%"><%:GEOIP（By MaxMind）Data Update%></td><td width="25%" align="left" id="_ipdb"><%:Collecting data...%></td></tr>
+		<tr><td width="25%"><%:Mainland IP Update%></td><td width="25%" align="left" id="_chnroute"><%:Collecting data...%></td><td width="25%"><%:Mainland IPv6 Update%></td><td width="25%" align="left" id="_chnroutev6"><%:Collecting data...%></td></tr>
+		<tr><td width="25%"><%:GEOIP Data Update%></td><td width="25%" align="left" id="_ipdb"><%:Collecting data...%></td><td width="25%"><%:GeoSite Data Update%></td><td width="25%" align="left" id="_geosite"><%:Collecting data...%></td></tr>
 	</table>
 </fieldset>
 <script type="text/javascript">//<![CDATA[
@@ -192,11 +195,15 @@
 	var update_subscribe = document.getElementById('_update_subscribe');
 	var update_other_rules = document.getElementById('_update_other_rules');
 	var update_geoip = document.getElementById('_update_geoip');
+	var update_geosite = document.getElementById('_update_geosite');
+	var flush_fakeip_cache= document.getElementById('_flush_fakeip_cache');
 	var ipdb = document.getElementById('_ipdb');
+	var geosite = document.getElementById('_geosite');
 	var lhie1 = document.getElementById('_lhie1');
 	var ConnersHua = document.getElementById('_ConnersHua');
 	var ConnersHua_return = document.getElementById('_ConnersHua_return');
 	var chnroute = document.getElementById('_chnroute');
+	var chnroutev6 = document.getElementById('_chnroutev6');
 	var historychecktime = document.getElementById('_historychecktime');
 	var hid_1 = document.getElementById("hid_1");
 	var hid_2 = document.getElementById("hid_2");
@@ -245,10 +252,12 @@
 			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Open Panel%>" onclick="return net_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			close_all_connection.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			reload_firewall.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Reload Firewall Rules%>" onclick="return b_reload_firewall(this)"/>' : '<b style=color:red><%:Not Running%></b>';
+			flush_fakeip_cache.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Flush Fake-IP Cache%>" onclick="return b_flush_fakeip_cache(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check All Components Update%>" onclick="return all_one_key_update(this)"/>';
 			update_subscribe.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Config Update%>" onclick="return b_update_subscribe(this)"/>';
 			update_other_rules.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Third Party Rules Update%>" onclick="return b_update_other_rules(this)"/>';
 			update_geoip.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GEOIP Data Update%>" onclick="return b_update_geoip(this)"/>';
+			update_geosite.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GeoSite Data Update%>" onclick="return b_update_geosite(this)"/>';
 			if (status.daip && window.location.hostname == status.daip) {
 			   daip.innerHTML = status.daip ? "<b style=color:green>"+status.daip+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
 			   dapo.innerHTML = status.cn_port ? "<b style=color:green>"+status.cn_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
@@ -389,10 +398,12 @@
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "state")%>', null, function(x, status) {
 			if ( x && x.status == 200 ) {
 				ipdb.innerHTML = status.ipdb ? "<b style=color:green>"+status.ipdb+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
+				geosite.innerHTML = status.geosite ? "<b style=color:green>"+status.geosite+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				lhie1.innerHTML = status.lhie1 ? "<b style=color:green>"+status.lhie1+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				ConnersHua.innerHTML = status.ConnersHua ? "<b style=color:green>"+status.ConnersHua+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				ConnersHua_return.innerHTML = status.ConnersHua_return ? "<b style=color:green>"+status.ConnersHua_return+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				chnroute.innerHTML = status.chnroute ? "<b style=color:green>"+status.chnroute+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
+				chnroutev6.innerHTML = status.chnroutev6 ? "<b style=color:green>"+status.chnroutev6+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				if ( status.historychecktime != "0" ) {
 				   historychecktime.innerHTML = "<b style=color:green>"+status.historychecktime+"</b>";
 				}
@@ -567,6 +578,51 @@
         return false;
         });
     };
+    
+    function b_update_geosite(btn)
+    {
+        btn.disabled = true;
+        btn.value    = '<%:Checking...%>';
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_geosite")%>', null, function(x, status) {
+        if ( x && x.status == 200 ) {
+           btn.disabled = false;
+           btn.value    = '<%:Check GeoSite Data Update%>';
+        }
+        else {
+        	btn.disabled = false;
+          btn.value    = '<%:Check GeoSite Data Update%>';
+        }
+        return false;
+        });
+    };
+    
+    function b_flush_fakeip_cache(btn)
+    {
+		   btn.disabled = true;
+		   btn.value    = '<%:Flushing...%> ';
+		   XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_fakeip_cache")%>',
+			   null,
+			   function(x,status)
+			   {
+				   if ( x && x.status == 200 ) {
+					   if(status.flush_status == "0" || status.flush_status != "")
+					   {
+						   btn.value = '<%:Flush Failed%>';
+						
+					   }
+					   else
+					   {
+					   	btn.value = '<%:Flush Successful%>';
+					   }
+				   }
+				   else {
+				   	btn.value = '<%:Flush Timeout%>';
+				   }
+			   }
+		   );
+		   btn.disabled = false;
+		   return false;
+	  };
     
     function b_update_subscribe(btn)
     {
