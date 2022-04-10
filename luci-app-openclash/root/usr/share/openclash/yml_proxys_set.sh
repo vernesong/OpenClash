@@ -234,6 +234,7 @@ yml_servers_set()
    config_get "trojan_ws_headers" "$section" "trojan_ws_headers" ""
    config_get "interface_name" "$section" "interface_name" ""
    config_get "routing_mark" "$section" "routing_mark" ""
+   config_get "obfs_vless" "$section" "obfs_vless" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -294,6 +295,14 @@ yml_servers_set()
       fi
    else
       obfss=""
+   fi
+   
+   if [ "$obfs_vless" = "ws" ]; then
+      obfs_vless="network: ws"
+   fi
+   
+   if [ "$obfs_vless" = "grpc" ]; then
+      obfs_vless="network: grpc"
    fi
    
    if [ "$obfs_vmess" = "websocket" ]; then
@@ -524,7 +533,67 @@ EOF
          fi
       fi
    fi
-
+   
+#vless
+   if [ "$type" = "vless" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  - name: "$name"
+    type: $type
+    server: "$server"
+    port: $port
+    uuid: $uuid
+EOF
+      if [ ! -z "$udp" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    udp: $udp
+EOF
+      fi
+      if [ ! -z "$skip_cert_verify" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    skip-cert-verify: $skip_cert_verify
+EOF
+      fi
+      if [ ! -z "$tls" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    tls: $tls
+EOF
+      fi
+      if [ ! -z "$servername" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    servername: "$servername"
+EOF
+      fi
+      if [ "$obfs_vless" != "none" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    $obfs_vless
+EOF
+         if [ "$obfs_vless" = "network: ws" ]; then
+            if [ -n "$ws_opts_path" ] || [ -n "$ws_opts_headers" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    ws-opts:
+EOF
+               if [ -n "$ws_opts_path" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+      path: "$ws_opts_path"
+EOF
+               fi
+               if [ -n "$ws_opts_headers" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+      headers:
+EOF
+                  config_list_foreach "$section" "ws_opts_headers" set_ws_headers
+               fi
+            fi
+         fi
+         if [ ! -z "$grpc_service_name" ] && [ "$obfs_vless" = "network: grpc" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    grpc-opts:
+      grpc-service-name: "$grpc_service_name"
+EOF
+         fi
+      fi
+   fi
+   
 #socks5
    if [ "$type" = "socks5" ]; then
 cat >> "$SERVER_FILE" <<-EOF

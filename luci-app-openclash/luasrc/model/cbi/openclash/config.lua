@@ -94,7 +94,7 @@ HTTP.setfilehandler(
 				if meta and chunk then fd = nixio.open(proxy_pro_dir .. meta.file, "w") end
 			elseif fp == "rule-provider" then
 				if meta and chunk then fd = nixio.open(rule_pro_dir .. meta.file, "w") end
-			elseif fp == "clash" or fp == "clash_tun" then
+			elseif fp == "clash" or fp == "clash_tun" or fp == "clash_meta" then
 				create_core_dir=fs.mkdir(core_dir)
 				if meta and chunk then fd = nixio.open(core_dir .. meta.file, "w") end
 			elseif fp == "backup-file" then
@@ -132,7 +132,7 @@ HTTP.setfilehandler(
 				um.value = translate("File saved to") .. ' "/etc/openclash/proxy_provider/"'
 			elseif fp == "rule-provider" then
 				um.value = translate("File saved to") .. ' "/etc/openclash/rule_provider/"'
-			elseif fp == "clash" or fp == "clash_tun" then
+			elseif fp == "clash" or fp == "clash_tun" or fp == "clash_meta" then
 				if string.lower(string.sub(meta.file, -7, -1)) == ".tar.gz" then
 					os.execute(string.format("tar -C '/etc/openclash/core/core' -xzf %s >/dev/null 2>&1", (core_dir .. meta.file)))
 					fs.unlink(core_dir .. meta.file)

@@ -22,6 +22,7 @@ function index()
 	entry({"admin", "services", "openclash", "update_subscribe"},call("action_update_subscribe"))
 	entry({"admin", "services", "openclash", "update_other_rules"},call("action_update_other_rules"))
 	entry({"admin", "services", "openclash", "update_geoip"},call("action_update_geoip"))
+	entry({"admin", "services", "openclash", "update_geosite"},call("action_update_geosite"))
 	entry({"admin", "services", "openclash", "currentversion"},call("action_currentversion"))
 	entry({"admin", "services", "openclash", "lastversion"},call("action_lastversion"))
 	entry({"admin", "services", "openclash", "save_corever_branch"},call("action_save_corever_branch"))
@@ -94,9 +95,11 @@ local core_path_mode = uci:get("openclash", "config", "small_flash_memory")
 if core_path_mode ~= "1" then
 	dev_core_path="/etc/openclash/core/clash"
 	tun_core_path="/etc/openclash/core/clash_tun"
+	meta_core_path="/etc/openclash/core/clash_meta"
 else
 	dev_core_path="/tmp/etc/openclash/core/clash"
 	tun_core_path="/tmp/etc/openclash/core/clash_tun"
+	meta_core_path="/tmp/etc/openclash/core/clash_meta"
 end
 
 local function is_running()
@@ -127,6 +130,10 @@ local function ipdb()
 	return os.date("%Y-%m-%d %H:%M:%S",fs.mtime("/etc/openclash/Country.mmdb"))
 end
 
+local function geosite()
+	return os.date("%Y-%m-%d %H:%M:%S",fs.mtime("/etc/openclash/GeoSite.dat"))
+end
+
 local function lhie1()
 	return os.date("%Y-%m-%d %H:%M:%S",fs.mtime("/usr/share/openclash/res/lhie1.yaml"))
 end
@@ -140,7 +147,11 @@ local function ConnersHua_return()
 end
 
 local function chnroute()
-	return os.date("%Y-%m-%d %H:%M:%S",fs.mtime("/etc/openclash/rule_provider/ChinaIP.yaml"))
+	return os.date("%Y-%m-%d %H:%M:%S",fs.mtime("/etc/openclash/china_ip_route.ipset"))
+end
+
+local function chnroutev6()
+	return os.date("%Y-%m-%d %H:%M:%S",fs.mtime("/etc/openclash/china_ip6_route.ipset"))
 end
 
 local function daip()
@@ -210,11 +221,20 @@ else
 end
 end
 
+local function coremetacv()
+if not nixio.fs.access(meta_core_path) then
+  return "0"
+else
+	return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $3}'",meta_core_path))
+end
+end
+
 local function corelv()
 	luci.sys.call("sh /usr/share/openclash/clash_version.sh")
 	local core_lv = luci.sys.exec("sed -n 1p /tmp/clash_last_version 2>/dev/null")
 	local core_tun_lv = luci.sys.exec("sed -n 2p /tmp/clash_last_version 2>/dev/null")
-	return core_lv .. "," .. core_tun_lv
+	local core_meta_lv = luci.sys.exec("sed -n 3p /tmp/clash_last_version 2>/dev/null")
+	return core_lv .. "," .. core_tun_lv .. "," .. core_meta_lv
 end
 
 local function opcv()
@@ -876,7 +896,9 @@ function action_state()
 		ConnersHua = ConnersHua(),
 		ConnersHua_return = ConnersHua_return(),
 		ipdb = ipdb(),
+		geosite = geosite(),
 		historychecktime = historychecktime(),
+		chnroutev6 = chnroutev6(),
 		chnroute = chnroute();
 	})
 end
@@ -908,6 +930,7 @@ function action_update()
 			coremodel = coremodel(),
 			corecv = corecv(),
 			coretuncv = coretuncv(),
+			coremetacv = coremetacv(),
 			opcv = opcv(),
 			corever = corever(),
 			release_branch = release_branch(),
@@ -959,6 +982,10 @@ end
 
 function action_update_geoip()
 	return luci.sys.call("/usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1")
+end
+
+function action_update_geosite()
+	return luci.sys.call("/usr/share/openclash/openclash_geosite.sh >/dev/null 2>&1")
 end
 
 function act_ping()
