@@ -52,6 +52,9 @@ add_cron()
    [ -z "$(grep "openclash_ipdb.sh" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci -q get openclash.config.geo_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geo_update_day_time) * * $(uci -q get openclash.config.geo_update_week_time) /usr/share/openclash/openclash_ipdb.sh" >> $CRON_FILE
    }
+   [ -z "$(grep "openclash_geosite.sh" "$CRON_FILE" 2>/dev/null)" ] && {
+      [ "$(uci -q get openclash.config.geosite_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geosite_update_day_time) * * $(uci -q get openclash.config.geosite_update_week_time) /usr/share/openclash/openclash_geosite.sh" >> $CRON_FILE
+   }
    [ -z "$(grep "openclash_chnroute.sh" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci -q get openclash.config.chnr_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.chnr_update_day_time) * * $(uci -q get openclash.config.chnr_update_week_time) /usr/share/openclash/openclash_chnroute.sh" >> $CRON_FILE
    }
@@ -191,6 +194,7 @@ kill_clash()
    for clash_pid in $clash_pids; do
       kill -9 "$clash_pid" 2>/dev/null
    done >/dev/null 2>&1
+   sleep 2
 }
 
 start_fail()
@@ -1153,7 +1157,7 @@ yml_other_rules_get()
 check_run_quick()
 {
    quick_start=true
-   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version /tmp/openclash_fake_filter.list"
+   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $meta_core_path $geoip_path $geosite_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version /tmp/openclash_fake_filter.list"
 	 if [ ! -f "$CONFIG_FILE" ] || [ ! -f "/tmp/openclash_config.tmp" ] || [ ! -f "/tmp/openclash.change" ]; then
 	    quick_start=false
 	    return
@@ -1240,12 +1244,15 @@ do_run_file()
    if [ "$small_flash_memory" != "1" ]; then
       dev_core_path="/etc/openclash/core/clash"
       tun_core_path="/etc/openclash/core/clash_tun"
+      meta_core_path="/etc/openclash/core/clash_meta"
       geoip_path="/etc/openclash/Country.mmdb"
       chnr_path="/etc/openclash/china_ip_route.ipset"
       chnr6_path="/etc/openclash/china_ip6_route.ipset"
+      geosite_path="/etc/openclash/GeoSite.dat"
       mv "/tmp/etc/openclash/Country.mmdb" "$geoip_path" 2>/dev/null
       mv "/tmp/etc/openclash/china_ip_route.ipset" "$chnr_path" 2>/dev/null
       mv "/tmp/etc/openclash/china_ip6_route.ipset" "$chnr6_path" 2>/dev/null
+      mv "/tmp/etc/openclash/GeoSite.dat" "$geosite_path" 2>/dev/null
       mv "/tmp/etc/openclash/core/" "/etc/openclash" 2>/dev/null
       if [ "$CACHE_PATH" != "/tmp/etc/openclash/cache.db" ]; then
          rm -rf "/tmp/etc/openclash" 2>/dev/null
@@ -1253,47 +1260,55 @@ do_run_file()
    else
       dev_core_path="/tmp/etc/openclash/core/clash"
       tun_core_path="/tmp/etc/openclash/core/clash_tun"
+      meta_core_path="/tmp/etc/openclash/core/clash_meta"
       geoip_path="/tmp/etc/openclash/Country.mmdb"
       chnr_path="/tmp/etc/openclash/china_ip_route.ipset"
       chnr6_path="/tmp/etc/openclash/china_ip6_route.ipset"
+      geosite_path="/tmp/etc/openclash/GeoSite.dat"
       [ ! -h "/etc/openclash/Country.mmdb" ] && mv "/etc/openclash/Country.mmdb" "$geoip_path" 2>/dev/null
       [ ! -h "/etc/openclash/china_ip_route.ipset" ] && mv "/etc/openclash/china_ip_route.ipset" "$chnr_path" 2>/dev/null
       [ ! -h "/etc/openclash/china_ip6_route.ipset" ] && mv "/etc/openclash/china_ip6_route.ipset" "$chnr6_path" 2>/dev/null
+      [ ! -h "/etc/openclash/GeoSite.dat" ] && mv "/etc/openclash/GeoSite.dat" "$geosite_path" 2>/dev/null
       mv "/etc/openclash/core/" "/tmp/etc/openclash" 2>/dev/null
    fi
     
    rm -rf "/etc/openclash/cache.db" 2>/dev/null
    rm -rf "/etc/openclash/clash" 2>/dev/null
-    
-   if [ -n "$en_mode_tun" ]; then
-      ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
-      core_type="TUN"
-      core_start_log="Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
-   fi
    
-   if [ "$rule_source" != "0" ]; then
-      config_load "openclash"
-      config_foreach yml_other_rules_get "other_rules" "$CONFIG_NAME"
-   fi
-   
-   config_load "openclash"
-   config_set_custom_rule_provider=0
-   for i in "rule_provider_config" "rule_provider_config" "rule_providers" "game_config"; do
-      config_foreach custom_rule_provider "$i"
-      if [ "$config_set_custom_rule_provider" -eq 1 ]; then
-      	break
-      fi
-   done 2>/dev/null
-
-   if [ "$proxy_mode" = "script" ] || [ "$config_set_custom_rule_provider" -eq 1 ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$RAW_CONFIG_FILE" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules_2.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ]; then
-      if [ -z "$en_mode_tun" ]; then
-         rm -rf "/etc/openclash/clash"
+   if [ "$enable_meta_core" != "1" ]; then
+      if [ -n "$en_mode_tun" ]; then
          ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
          core_type="TUN"
          core_start_log="Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
       fi
+   
+      if [ "$rule_source" != "0" ]; then
+         config_load "openclash"
+         config_foreach yml_other_rules_get "other_rules" "$CONFIG_NAME"
+      fi
+   
+      config_load "openclash"
+      config_set_custom_rule_provider=0
+      for i in "rule_provider_config" "rule_provider_config" "rule_providers" "game_config"; do
+         config_foreach custom_rule_provider "$i"
+         if [ "$config_set_custom_rule_provider" -eq 1 ]; then
+         	break
+         fi
+      done 2>/dev/null
+
+      if [ "$proxy_mode" = "script" ] || [ "$config_set_custom_rule_provider" -eq 1 ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$RAW_CONFIG_FILE" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules_2.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ]; then
+         if [ -z "$en_mode_tun" ]; then
+            ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
+            core_type="TUN"
+            core_start_log="Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
+         fi
+      fi
+   else
+      ln -s "$meta_core_path" /etc/openclash/clash 2>/dev/null
+      core_type="Meta"
+      core_start_log="Tip: Detected The Exclusive Function of The Meta Core, Use Meta Core to Start..."
    fi
-    
+  
    if [ ! -f "/etc/openclash/clash" ] && [ -f "$dev_core_path" ] && [ -z "$core_type" ]; then
       ln -s "$dev_core_path" /etc/openclash/clash 2>/dev/null
       core_start_log="Tip: No Special Configuration Detected, Use Dev Core to Start..."
@@ -1305,11 +1320,19 @@ do_run_file()
       core_start_log="Tip: Detected that the Dev Core is not Installed, Use TUN Core to Start..."
    fi
    
+   if [ ! -f "/etc/openclash/clash" ] && [ -f "$meta_core_path" ]; then
+      ln -s "$meta_core_path" /etc/openclash/clash 2>/dev/null
+      core_type="Meta"
+      core_start_log="Tip: Detected that the Dev Core is not Installed, Use Meta Core to Start..."
+   fi
+   
    [ ! -f "$CLASH" ] && {
       LOG_OUT "Tip: Detected that the Core is not Installed, Ready to Download..."
       rm -rf "/tmp/clash_last_version"
       /usr/share/openclash/openclash_core.sh "$core_type"
       if [ "$core_type" == "TUN" ] && [ ! -f "$tun_core_path" ]; then
+         start_fail
+      elif [ "$core_type" == "Meta" ] && [ ! -f "$meta_core_path" ]; then
          start_fail
       elif [ -z "$core_type" ] && [ ! -f "$dev_core_path" ]; then
          start_fail
@@ -1325,6 +1348,11 @@ do_run_file()
       /usr/share/openclash/openclash_ipdb.sh
    }
    
+   [ ! -f "$geosite_path" ] && {
+      LOG_OUT "Tip: Detected that the GEOSITE Database is not Installed, Ready to Download..."
+      /usr/share/openclash/openclash_geosite.sh
+   }
+   
    if [ "$china_ip_route" = "1" ] || [ "$china_ip6_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
    	  if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ]; then
          LOG_OUT "Tip: Detected that the Chnroute Cidr List is not Installed, Ready to Download..."
@@ -1332,12 +1360,13 @@ do_run_file()
       fi
    fi
    
-   if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ] || [ ! -f "$geoip_path" ]; then
+   if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ] || [ ! -f "$geoip_path" ] || [ ! -f "$geosite_path" ]; then
       start_fail
    fi
 
    [ ! -x "$tun_core_path" ] && chmod 4755 "$tun_core_path" 2>/dev/null
    [ ! -x "$dev_core_path" ] && chmod 4755 "$dev_core_path" 2>/dev/null
+   [ ! -x "$meta_core_path" ] && chmod 4755 "$meta_core_path" 2>/dev/null
 
    #fake_ip_filter
    if [ "$3" = "fake-ip" ]; then
@@ -1352,6 +1381,10 @@ do_run_file()
   
    [ -f "$geoip_path" ] && [ "$small_flash_memory" = "1" ] && {
       ln -s "$geoip_path" /etc/openclash/Country.mmdb 2>/dev/null
+   }
+   
+   [ -f "$geosite_path" ] && [ "$small_flash_memory" = "1" ] && {
+      ln -s "$geosite_path" /etc/openclash/GeoSite.dat 2>/dev/null
    }
 
    [ -f "$chnr_path" ] && [ "$small_flash_memory" = "1" ] && {
@@ -2318,6 +2351,9 @@ get_config()
    core_version=$(uci -q get openclash.config.core_version || echo 0)
    github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
    router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
+   enable_meta_core=$(uci -q get openclash.config.enable_meta_core || echo 0)
+   enable_meta_sniffer=$(uci -q get openclash.config.enable_meta_sniffer || echo 0)
+   enable_meta_sniffer_force=$(uci -q get openclash.config.enable_meta_sniffer_force || echo 0)
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
@@ -2350,7 +2386,7 @@ start()
       config_foreach yml_auth_get "authentication"
       yml_auth_custom "$TMP_CONFIG_FILE"
       yml_dns_custom "$enable_custom_dns" "$TMP_CONFIG_FILE" "$append_wan_dns" "$ipv6_dns"
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote" "$enable_meta_core" "$enable_meta_sniffer" "$enable_meta_sniffer_force"
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port"
       yml_custom_rule_provider "$TMP_CONFIG_FILE"
       yml_game_custom "$TMP_CONFIG_FILE"

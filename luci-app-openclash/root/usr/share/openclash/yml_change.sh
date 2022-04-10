@@ -25,6 +25,12 @@ else
    stack_type=${12}
 fi
 
+if [ "${22}" != "1" ]; then
+   sniffer_force="false"
+else
+   sniffer_force="true"
+fi
+
 if [ "$(ruby_read "$5" "['external-controller']")" != "$controller_address:$3" ]; then
    uci set openclash.config.config_reload=0
 fi
@@ -80,16 +86,34 @@ else
    Value['dns'].delete('fake-ip-range')
 end;
 Value['dns']['listen']='0.0.0.0:${13}'
+if ${21} == 1 then
+   Value_sniffer={'sniffer'=>{'enable'=>true}};
+   Value['dns']['sniffer']=Value_sniffer['sniffer'];
+   Value['dns']['sniffer']['force']=$sniffer_force
+   Value_sniffer={'sniffing'=>['tls']}
+   Value['dns']['sniffer'].merge!(Value_sniffer)
+else
+   if Value['dns'].key?('sniffer') then
+      Value['dns'].delete('sniffer')
+   end
+end;
 Value_2={'tun'=>{'enable'=>true}};
 if $en_mode_tun != 0 then
    Value['tun']=Value_2['tun']
    Value['tun']['stack']='$stack_type'
+   if ${20} == 1 then
+      Value['tun']['device']='utun'
+      Value['tun']['auto-route']=false
+   end
    Value_2={'dns-hijack'=>['tcp://8.8.8.8:53','tcp://8.8.4.4:53']}
    Value['tun'].merge!(Value_2)
 else
    if Value.key?('tun') then
       Value.delete('tun')
    end
+end;
+if Value.key?('iptables') then
+   Value.delete('iptables')
 end;
 if not Value.key?('profile') then
    Value_3={'profile'=>{'store-selected'=>true}}

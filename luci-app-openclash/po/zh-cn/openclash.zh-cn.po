@@ -50,9 +50,6 @@ msgstr "第三方规则订阅"
 msgid "Dashboard Settings"
 msgstr "外部控制"
 
-msgid "GEOIP数据库订阅"
-msgstr "外部控制"
-
 msgid "Enable"
 msgstr "启用"
 
@@ -432,14 +429,20 @@ msgstr "管理页面映射端口"
 msgid "Port For Dashboard Login From Public Network"
 msgstr "设置映射端口，便于从公网访问时自动登录"
 
-msgid "GEOIP Update"
-msgstr "GEOIP数据库订阅"
+msgid "GEO Update"
+msgstr "GEO 数据库订阅"
 
 msgid "Auto Update GEOIP Database"
-msgstr "自动更新GEOIP数据库"
+msgstr "自动更新 GEOIP 数据库"
 
 msgid "Update GEOIP Database"
-msgstr "更新GEOIP数据库"
+msgstr "更新 GEOIP 数据库"
+
+msgid "Auto Update GeoSite Database"
+msgstr "自动更新 GeoSite 数据库"
+
+msgid "Update GeoSite Database"
+msgstr "更新 GeoSite 数据库"
 
 msgid "Auto Update Chnroute Lists"
 msgstr "自动更新大陆白名单"
@@ -1116,7 +1119,7 @@ msgid "Small Flash Memory"
 msgstr "小闪存模式"
 
 msgid "Move Core And GEOIP Data File To /tmp/etc/openclash For Small Flash Memory Device"
-msgstr "针对闪存空间不够的设备，移动内核和GEOIP数据库文件到 /tmp/etc/openclash 文件夹"
+msgstr "针对闪存空间不够的设备，移动内核和 GEOIP 数据库等文件到 /tmp/etc/openclash 文件夹"
 
 msgid "Round-robin"
 msgstr "轮询（轮流使用全部代理）"
@@ -1172,14 +1175,20 @@ msgstr "ConnersHua 规则更新日期"
 msgid "Mainland IP Update"
 msgstr "大陆IP白名单 更新日期"
 
+msgid "	Mainland IPv6 Update"
+msgstr "大陆IPv6白名单 更新日期"
+
 msgid "lhie1 Rule Update"
 msgstr "lhie1 规则更新日期"
 
 msgid "ConnersHua Return Rule Update"
 msgstr "ConnersHua 回国规则更新日期"
 
-msgid "GEOIP（By MaxMind）Data Update"
-msgstr "GEOIP（By MaxMind）数据库日期"
+msgid "GEOIP Data Update"
+msgstr "GEOIP 数据库日期"
+
+msgid "GeoSite Data Update"
+msgstr "GeoSite 数据库日期"
 
 msgid "No Backup"
 msgstr "暂未备份"
@@ -1224,7 +1233,10 @@ msgid "Check Third Party Rules Update"
 msgstr "第三方规则检查更新"
 
 msgid "Check GEOIP Data Update"
-msgstr "GEOIP数据库检查更新"
+msgstr "GEOIP 数据库检查更新"
+
+msgid "Check GeoSite Data Update"
+msgstr "GeoSite 数据库检查更新"
 
 msgid "Check and update all Cores and plug-ins?"
 msgstr "确定要一键检查并更新所有内核及插件吗？"
@@ -1425,7 +1437,10 @@ msgid ",Try Enable If Network Loopback"
 msgstr ", 如发生回环死机请尝试启用"
 
 msgid "Custom GEOIP URL"
-msgstr "GEOIP数据库更新URL"
+msgstr "GEOIP 数据库更新URL"
+
+msgid "Custom GeoSite URL"
+msgstr "GeoSite 数据库更新URL"
 
 msgid "Custom Chnroute6 Lists URL"
 msgstr "大陆IPv6段更新URL"
@@ -1434,7 +1449,10 @@ msgid "Custom Chnroute Lists URL"
 msgstr "大陆IP段更新URL"
 
 msgid "Custom GEOIP Data URL, Click Button Below To Refresh After Edit"
-msgstr "自定义GEOIP数据库的更新来源，编辑后点击下方按钮生效"
+msgstr "自定义 GEOIP 数据库的更新来源，编辑后点击下方按钮生效"
+
+msgid "Custom GeoSite Data URL, Click Button Below To Refresh After Edit"
+msgstr "自定义 GeoSite 数据库的更新来源，编辑后点击下方按钮生效"
 
 msgid "Custom Chnroute Lists URL, Click Button Below To Refresh After Edit"
 msgstr "自定义大陆IP段的更新来源，编辑后点击下方按钮生效"
@@ -1730,6 +1748,24 @@ msgstr "大陆IP白名单下载失败，请检查网络或稍后再试..."
 msgid "Chnroute6 Cidr List Update Error, Please Try Again Later..."
 msgstr "大陆IPv6白名单下载失败，请检查网络或稍后再试..."
 
+msgid "Start Downloading GeoSite Database..."
+msgstr "开始下载 GeoSite 数据库..."
+
+msgid "GeoSite Database Download Success, Check Updated..."
+msgstr "GeoSite 数据库下载成功，检查数据库版本是否更新..."
+
+msgid "GeoSite Database Has Been Updated, Starting To Replace The Old Version..."
+msgstr "GeoSite 数据库版本有更新，开始替换数据库版本..."
+
+msgid "GeoSite Database Update Successful!"
+msgstr "GeoSite 数据库更新成功！"
+
+msgid "Updated GeoSite Database No Change, Do Nothing..."
+msgstr "GeoSite 数据库版本没有更新，停止继续操作..."
+
+msgid "GeoSite Database Update Error, Please Try Again Later..."
+msgstr "GeoSite 数据库下载失败，请检查网络或稍后再试..."
+
 msgid "Start Downloading Geoip Database..."
 msgstr "开始下载 GEOIP 数据库..."
 
@@ -1743,7 +1779,7 @@ msgid "Geoip Database Update Successful!"
 msgstr "GEOIP 数据库更新成功！"
 
 msgid "Updated Geoip Database No Change, Do Nothing..."
-msgstr "数据库版本没有更新，停止继续操作..."
+msgstr "GEOIP 数据库版本没有更新，停止继续操作..."
 
 msgid "Geoip Database Update Error, Please Try Again Later..."
 msgstr "GEOIP 数据库下载失败，请检查网络或稍后再试..."
@@ -1865,20 +1901,23 @@ msgstr "错误：配置文件格式校验失败..."
 msgid "Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
 msgstr "提示: 检测到配置了 TUN 内核专属功能，调用 TUN 内核启动..."
 
+msgid "Tip: Detected The Exclusive Function of The Meta Core, Use Meta Core to Start..."
+msgstr "提示: 检测到配置了 Meta 内核专属功能，调用 Meta 内核启动..."
+
 msgid "Tip: No Special Configuration Detected, Use Dev Core to Start..."
 msgstr "提示: 未检测到特殊配置，调用 Dev 内核启动..."
 
 msgid "Tip: Detected that the Dev Core is not Installed, Use TUN Core to Start..."
 msgstr "提示: 检测到 Dev 内核未安装，调用 TUN 内核启动..."
 
-msgid "Tip: Detected that the Dev Core is not Installed, Use Game Core to Start..."
-msgstr "提示: 检测到 Dev 内核未安装，调用 Game 内核启动..."
-
-msgid "Tip: Detected that the Dev Core is not Installed, Use Game Core to Start..."
-msgstr "提示: 检测到 Dev 内核未安装，调用 Game 内核启动..."
+msgid "Tip: Detected that the Dev Core is not Installed, Use Meta Core to Start..."
+msgstr "提示: 检测到 Dev 内核未安装，调用 Meta 内核启动..."
 
 msgid "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
-msgstr "提示: 检测到GEOIP数据库文件不存在，准备开始下载..."
+msgstr "提示: 检测到 GEOIP 数据库文件不存在，准备开始下载..."
+
+msgid "Tip: Detected that the GEOSITE Database is not Installed, Ready to Download..."
+msgstr "提示: 检测到 GEOSITE 数据库文件不存在，准备开始下载..."
 
 msgid "Tip: Detected that the Core is not Installed, Ready to Download..."
 msgstr "提示: 检测到内核文件不存在，准备开始下载..."
@@ -2764,3 +2803,24 @@ msgstr "错误：多个脚本运行中，退出..."
 
 msgid "Error: Streaming DNS Prefetch Could not Work Because of Router-Self Proxy Disabled, Exiting..."
 msgstr "错误：因为禁用了代理路由器自身流量，预解析无法工作，退出..."
+
+msgid "Enable Meta Core"
+msgstr "使用 Meta 内核"
+
+msgid "Some Premium Core Features are Unavailable, For Other More Useful Functions Go Wiki:"
+msgstr "Meta 内核还未支持Premium内核的全部功能，对于其他更有用的功能请前往Wiki:"
+
+msgid "Enable Sniffer"
+msgstr "*启用流量（域名）探测"
+
+msgid "Sniffer Will Prevent Domain Name Proxy Failure"
+msgstr "流量（域名）探测能有效防止域名分流异常"
+
+msgid "Force Sniffer"
+msgstr "强制流量（域名）探测"
+
+msgid "Override All Dns Query"
+msgstr "启用后将尽可能的覆盖DNS查询到的域名"
+
+msgid "(Support Vless By Pinyun)"
+msgstr "(由品云提供，支持 Vless)"

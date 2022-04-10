@@ -723,6 +723,75 @@ do
       end
       }.join
    end;
+   if '$server_type' == 'vless' then
+      Thread.new{
+      #uuid
+      if Value['proxies'][$count].key?('uuid') then
+         uuid = '${uci_set}uuid=' + Value['proxies'][$count]['uuid'].to_s
+         system(uuid)
+      end
+      }.join
+      
+      Thread.new{
+      #tls
+      if Value['proxies'][$count].key?('tls') then
+         tls = '${uci_set}tls=' + Value['proxies'][$count]['tls'].to_s
+         system(tls)
+      end
+      }.join
+      
+      Thread.new{
+      #skip-cert-verify
+      if Value['proxies'][$count].key?('skip-cert-verify') then
+         skip_cert_verify = '${uci_set}skip_cert_verify=' + Value['proxies'][$count]['skip-cert-verify'].to_s
+         system(skip_cert_verify)
+      end
+      }.join
+      
+      Thread.new{
+      #servername
+      if Value['proxies'][$count].key?('servername') then
+         servername = '${uci_set}servername=\"' + Value['proxies'][$count]['servername'].to_s + '\"'
+         system(servername)
+      end
+      }.join
+      
+      Thread.new{
+      #network:
+      if Value['proxies'][$count].key?('network') then
+         if Value['proxies'][$count]['network'].to_s == 'ws'
+            system '${uci_set}obfs_vless=ws'
+            #ws-opts-path:
+            if Value['proxies'][$count].key?('ws-opts') then
+               if Value['proxies'][$count]['ws-opts'].key?('path') then
+                  ws_opts_path = '${uci_set}ws_opts_path=\"' + Value['proxies'][$count]['ws-opts']['path'].to_s + '\"'
+                  system(ws_opts_path)
+               end
+               #ws-opts-headers:
+               if Value['proxies'][$count]['ws-opts'].key?('headers') then
+                  system '${uci_del}ws_opts_headers >/dev/null 2>&1'
+                  Value['proxies'][$count]['ws-opts']['headers'].keys.each{
+                  |v|
+                     ws_opts_headers = '${uci_add}ws_opts_headers=\"' + v.to_s + ': '+ Value['proxies'][$count]['ws-opts']['headers'][v].to_s + '\"'
+                     system(ws_opts_headers)
+                  }
+               end
+            end
+         elsif Value['proxies'][$count]['network'].to_s == 'grpc'
+            #grpc-service-name
+            system '${uci_set}obfs_vless=grpc'
+            if Value['proxies'][$count].key?('grpc-opts') then
+               if Value['proxies'][$count]['grpc-opts'].key?('grpc-service-name') then
+                  grpc_service_name = '${uci_set}grpc_service_name=\"' + Value['proxies'][$count]['grpc-opts']['grpc-service-name'].to_s + '\"'
+                  system(grpc_service_name)
+               end
+            end
+         else
+            system '${uci_set}obfs_vless=none'
+         end
+      end
+      }.join
+   end;
    if '$server_type' == 'snell' then
       Thread.new{
       if Value['proxies'][$count].key?('obfs-opts') then

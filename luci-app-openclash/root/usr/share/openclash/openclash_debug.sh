@@ -35,6 +35,7 @@ core_type=$(uci -q get openclash.config.core_version)
 cpu_model=$(opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null)
 core_version=$(/etc/openclash/core/clash -v 2>/dev/null |awk -F ' ' '{print $2}' 2>/dev/null)
 core_tun_version=$(/etc/openclash/core/clash_tun -v 2>/dev/null |awk -F ' ' '{print $2}' 2>/dev/null)
+core_meta_version=$(/etc/openclash/core/clash_meta -v 2>/dev/null |awk -F ' ' '{print $3}' 2>/dev/null)
 servers_update=$(uci -q get openclash.config.servers_update)
 mix_proxies=$(uci -q get openclash.config.mix_proxies)
 op_version=$(sed -n 1p /usr/share/openclash/res/openclash_version)
@@ -193,6 +194,29 @@ EOF
 else
 cat >> "$DEBUG_LOG" <<-EOF
 Dev内核运行权限: 正常
+EOF
+fi
+
+cat >> "$DEBUG_LOG" <<-EOF
+Meta内核版本: $core_meta_version
+EOF
+
+if [ ! -f "/etc/openclash/core/clash_meta" ]; then
+cat >> "$DEBUG_LOG" <<-EOF
+Meta内核文件: 不存在
+EOF
+else
+cat >> "$DEBUG_LOG" <<-EOF
+Meta内核文件: 存在
+EOF
+fi
+if [ ! -x "/etc/openclash/core/clash_meta" ]; then
+cat >> "$DEBUG_LOG" <<-EOF
+Meta内核运行权限: 否
+EOF
+else
+cat >> "$DEBUG_LOG" <<-EOF
+Meta内核运行权限: 正常
 EOF
 fi
 
