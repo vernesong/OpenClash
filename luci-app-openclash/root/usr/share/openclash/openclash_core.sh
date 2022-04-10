@@ -117,6 +117,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             [ -s "/tmp/clash_meta.tar.gz" ] && {
                rm -rf "$meta_core_path" >/dev/null 2>&1
                tar zxvf /tmp/clash_meta.tar.gz -C /tmp
+               mv /tmp/clash /tmp/clash_meta >/dev/null 2>&1
                rm -rf /tmp/clash_meta.tar.gz >/dev/null 2>&1
                chmod 4755 /tmp/clash_meta >/dev/null 2>&1
             }
