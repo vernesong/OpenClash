@@ -55,6 +55,9 @@ add_cron()
    [ -z "$(grep "openclash_geosite.sh" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci -q get openclash.config.geosite_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geosite_update_day_time) * * $(uci -q get openclash.config.geosite_update_week_time) /usr/share/openclash/openclash_geosite.sh" >> $CRON_FILE
    }
+   [ -z "$(grep "openclash_geoip.sh" "$CRON_FILE" 2>/dev/null)" ] && {
+      [ "$(uci -q get openclash.config.geoip_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geoip_update_day_time) * * $(uci -q get openclash.config.geoip_update_week_time) /usr/share/openclash/openclash_geoip.sh" >> $CRON_FILE
+   }
    [ -z "$(grep "openclash_chnroute.sh" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci -q get openclash.config.chnr_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.chnr_update_day_time) * * $(uci -q get openclash.config.chnr_update_week_time) /usr/share/openclash/openclash_chnroute.sh" >> $CRON_FILE
    }
@@ -70,6 +73,8 @@ del_cron()
    sed -i '/openclash.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_rule.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_ipdb.sh/d' $CRON_FILE 2>/dev/null
+   sed -i '/openclash_geoip.sh/d' $CRON_FILE 2>/dev/null
+   sed -i '/openclash_geosite.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_chnroute.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/\/etc\/init.d\/openclash/d' $CRON_FILE 2>/dev/null
    /etc/init.d/cron restart
@@ -1157,7 +1162,7 @@ yml_other_rules_get()
 check_run_quick()
 {
    quick_start=true
-   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $meta_core_path $geoip_path $geosite_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version /tmp/openclash_fake_filter.list"
+   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $meta_core_path $ipdb_path $geosite_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version /tmp/openclash_fake_filter.list"
 	 if [ ! -f "$CONFIG_FILE" ] || [ ! -f "/tmp/openclash_config.tmp" ] || [ ! -f "/tmp/openclash.change" ]; then
 	    quick_start=false
 	    return
@@ -1245,14 +1250,16 @@ do_run_file()
       dev_core_path="/etc/openclash/core/clash"
       tun_core_path="/etc/openclash/core/clash_tun"
       meta_core_path="/etc/openclash/core/clash_meta"
-      geoip_path="/etc/openclash/Country.mmdb"
+      ipdb_path="/etc/openclash/Country.mmdb"
       chnr_path="/etc/openclash/china_ip_route.ipset"
       chnr6_path="/etc/openclash/china_ip6_route.ipset"
       geosite_path="/etc/openclash/GeoSite.dat"
-      mv "/tmp/etc/openclash/Country.mmdb" "$geoip_path" 2>/dev/null
+      geoip_path="/etc/openclash/GeoIP.dat"
+      mv "/tmp/etc/openclash/Country.mmdb" "$ipdb_path" 2>/dev/null
       mv "/tmp/etc/openclash/china_ip_route.ipset" "$chnr_path" 2>/dev/null
       mv "/tmp/etc/openclash/china_ip6_route.ipset" "$chnr6_path" 2>/dev/null
       mv "/tmp/etc/openclash/GeoSite.dat" "$geosite_path" 2>/dev/null
+      mv "/tmp/etc/openclash/GeoIP.dat" "$geoip_path" 2>/dev/null
       mv "/tmp/etc/openclash/core/" "/etc/openclash" 2>/dev/null
       if [ "$CACHE_PATH" != "/tmp/etc/openclash/cache.db" ]; then
          rm -rf "/tmp/etc/openclash" 2>/dev/null
@@ -1261,14 +1268,16 @@ do_run_file()
       dev_core_path="/tmp/etc/openclash/core/clash"
       tun_core_path="/tmp/etc/openclash/core/clash_tun"
       meta_core_path="/tmp/etc/openclash/core/clash_meta"
-      geoip_path="/tmp/etc/openclash/Country.mmdb"
+      ipdb_path="/tmp/etc/openclash/Country.mmdb"
       chnr_path="/tmp/etc/openclash/china_ip_route.ipset"
       chnr6_path="/tmp/etc/openclash/china_ip6_route.ipset"
       geosite_path="/tmp/etc/openclash/GeoSite.dat"
-      [ ! -h "/etc/openclash/Country.mmdb" ] && mv "/etc/openclash/Country.mmdb" "$geoip_path" 2>/dev/null
+      geoip_path="/tmp/etc/openclash/GeoIP.dat"
+      [ ! -h "/etc/openclash/Country.mmdb" ] && mv "/etc/openclash/Country.mmdb" "$ipdb_path" 2>/dev/null
       [ ! -h "/etc/openclash/china_ip_route.ipset" ] && mv "/etc/openclash/china_ip_route.ipset" "$chnr_path" 2>/dev/null
       [ ! -h "/etc/openclash/china_ip6_route.ipset" ] && mv "/etc/openclash/china_ip6_route.ipset" "$chnr6_path" 2>/dev/null
       [ ! -h "/etc/openclash/GeoSite.dat" ] && mv "/etc/openclash/GeoSite.dat" "$geosite_path" 2>/dev/null
+      [ ! -h "/etc/openclash/GeoIP.dat" ] && mv "/etc/openclash/GeoIP.dat" "$geoip_path" 2>/dev/null
       mv "/etc/openclash/core/" "/tmp/etc/openclash" 2>/dev/null
    fi
     
@@ -1343,7 +1352,7 @@ do_run_file()
       fi
    }
    
-   [ ! -f "$geoip_path" ] && {
+   [ ! -f "$ipdb_path" ] && {
       LOG_OUT "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
       /usr/share/openclash/openclash_ipdb.sh
    }
@@ -1353,6 +1362,11 @@ do_run_file()
       /usr/share/openclash/openclash_geosite.sh
    }
    
+   [ ! -f "$geoip_path" ] && [ "$enable_geoip_dat" == "1" ] && {
+      LOG_OUT "Tip: Detected that the GEOIP Dat is not Installed, Ready to Download..."
+      /usr/share/openclash/openclash_geoip.sh
+   }
+   
    if [ "$china_ip_route" = "1" ] || [ "$china_ip6_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
    	  if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ]; then
          LOG_OUT "Tip: Detected that the Chnroute Cidr List is not Installed, Ready to Download..."
@@ -1360,7 +1374,11 @@ do_run_file()
       fi
    fi
    
-   if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ] || [ ! -f "$geoip_path" ] || [ ! -f "$geosite_path" ]; then
+   if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ] || [ ! -f "$ipdb_path" ] || [ ! -f "$geosite_path" ]; then
+      start_fail
+   fi
+   
+   if [ "$enable_geoip_dat" == "1" ] && [ ! -f "$geoip_path" ]; then
       start_fail
    fi
 
@@ -1379,12 +1397,16 @@ do_run_file()
       fi
    fi
   
-   [ -f "$geoip_path" ] && [ "$small_flash_memory" = "1" ] && {
-      ln -s "$geoip_path" /etc/openclash/Country.mmdb 2>/dev/null
+   [ -f "$ipdb_path" ] && [ "$small_flash_memory" = "1" ] && {
+      ln -s "$ipdb_path" /etc/openclash/Country.mmdb 2>/dev/null
    }
    
    [ -f "$geosite_path" ] && [ "$small_flash_memory" = "1" ] && {
       ln -s "$geosite_path" /etc/openclash/GeoSite.dat 2>/dev/null
+   }
+   
+   [ -f "$geoip_path" ] && [ "$small_flash_memory" = "1" ] && {
+      ln -s "$geoip_path" /etc/openclash/GeoIP.dat 2>/dev/null
    }
 
    [ -f "$chnr_path" ] && [ "$small_flash_memory" = "1" ] && {
@@ -2358,6 +2380,8 @@ get_config()
    enable_meta_core=$(uci -q get openclash.config.enable_meta_core || echo 0)
    enable_meta_sniffer=$(uci -q get openclash.config.enable_meta_sniffer || echo 0)
    enable_meta_sniffer_force=$(uci -q get openclash.config.enable_meta_sniffer_force || echo 0)
+   geodata_loader=$(uci -q get openclash.config.geodata_loader || echo "memconservative")
+   enable_geoip_dat=$(uci -q get openclash.config.enable_geoip_dat || echo 0)
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
@@ -2390,7 +2414,7 @@ start()
       config_foreach yml_auth_get "authentication"
       yml_auth_custom "$TMP_CONFIG_FILE"
       yml_dns_custom "$enable_custom_dns" "$TMP_CONFIG_FILE" "$append_wan_dns" "$ipv6_dns"
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote" "$enable_meta_core" "$enable_meta_sniffer" "$enable_meta_sniffer_force"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote" "$enable_meta_core" "$enable_meta_sniffer" "$enable_meta_sniffer_force" "$enable_geoip_dat" "$geodata_loader"
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port"
       yml_custom_rule_provider "$TMP_CONFIG_FILE"
       yml_game_custom "$TMP_CONFIG_FILE"
