@@ -2853,7 +2853,7 @@ msgid "Geodata Loader Mode"
 msgstr "Geodata 数据加载方式"
 
 msgid "Memconservative"
-msgstr "小闪存模式"
+msgstr "小内存模式"
 
 msgid "Standard"
 msgstr "标准模式"
