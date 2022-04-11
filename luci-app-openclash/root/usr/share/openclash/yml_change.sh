@@ -31,6 +31,12 @@ else
    sniffer_force="true"
 fi
 
+if [ "${23}" != "1" ]; then
+   enable_geoip_dat="false"
+else
+   enable_geoip_dat="true"
+fi
+
 if [ "$(ruby_read "$5" "['external-controller']")" != "$controller_address:$3" ]; then
    uci set openclash.config.config_reload=0
 fi
@@ -59,6 +65,17 @@ begin
    Value['secret']='$2';
    Value['bind-address']='*';
    Value['external-ui']='/usr/share/openclash/dashboard';
+if ${21} == 1 then
+   Value['geodata-mode']=$enable_geoip_dat;
+   Value['geodata-loader']='${24}';
+else
+   if Value.key?('geodata-mode') then
+      Value.delete('geodata-mode')
+   end
+   if Value.key?('geodata-loader') then
+      Value.delete('geodata-loader')
+   end
+end
 if not Value.key?('dns') then
    Value_1={'dns'=>{'enable'=>true}}
    Value['dns']=Value_1['dns']

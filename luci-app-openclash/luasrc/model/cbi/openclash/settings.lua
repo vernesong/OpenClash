@@ -28,7 +28,8 @@ s.anonymous = true
 
 s:tab("op_mode", translate("Operation Mode"))
 s:tab("settings", translate("General Settings"))
-s:tab("dns", translate("DNS Setting"))
+s:tab("dns", translate("DNS Settings"))
+s:tab("meta", translate("Meta Settings"))
 s:tab("stream_enhance", translate("Streaming Enhance"))
 s:tab("lan_ac", translate("Access Control"))
 if op_mode == "fake-ip" then
@@ -44,20 +45,6 @@ s:tab("auto_restart", translate("Auto Restart"))
 s:tab("version_update", translate("Version Update"))
 s:tab("debug", translate("Debug Logs"))
 s:tab("dlercloud", translate("Dler Cloud"))
-
-o = s:taboption("op_mode", Flag, "enable_meta_core", font_blue..bold_on..translate("Enable Meta Core")..bold_off..font_off)
-o.description = font_blue..bold_on..translate("Some Premium Core Features are Unavailable, For Other More Useful Functions Go Wiki:")..bold_off..font_off.." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://clashmeta.gitbook.io/meta/\")'>https://clashmeta.gitbook.io/meta/</a>"
-o.default = 0
-
-o = s:taboption("op_mode", Flag, "enable_meta_sniffer", font_blue..bold_on..translate("Enable Sniffer")..bold_off..font_off)
-o.description = font_blue..bold_on..translate("Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure")..bold_off..font_off
-o.default = 1
-o:depends("enable_meta_core", "1")
-
-o = s:taboption("op_mode", Flag, "enable_meta_sniffer_force", translate("Force Sniffer"))
-o.description = font_blue..bold_on..translate("Override All Dns Query")..bold_off..font_off
-o.default = 0
-o:depends("enable_meta_sniffer", "1")
 
 o = s:taboption("op_mode", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
 o.description = translate("Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error")
@@ -377,6 +364,118 @@ function custom_domain_dns_policy.write(self, section, value)
 	end
 end
 
+-- Meta
+o = s:taboption("meta", Flag, "enable_meta_core", font_red..bold_on..translate("Enable Meta Core")..bold_off..font_off)
+o.description = font_red..bold_on..translate("Some Premium Core Features are Unavailable, For Other More Useful Functions Go Wiki:")..bold_off..font_off.." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://clashmeta.gitbook.io/meta/\")'>https://clashmeta.gitbook.io/meta/</a>"
+o.default = 0
+
+o = s:taboption("meta", Flag, "enable_meta_sniffer", font_red..bold_on..translate("Enable Sniffer")..bold_off..font_off)
+o.description = font_red..bold_on..translate("Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure")..bold_off..font_off
+o.default = 1
+o:depends("enable_meta_core", "1")
+
+o = s:taboption("meta", Flag, "enable_meta_sniffer_force", translate("Force Sniffer"))
+o.description = translate("Override All Dns Query")
+o.default = 0
+o:depends("enable_meta_sniffer", "1")
+
+o = s:taboption("meta", ListValue, "geodata_loader", translate("Geodata Loader Mode"))
+o:value("memconservative", translate("Memconservative"))
+o:value("standard", translate("Standard"))
+o.default = "memconservative"
+o:depends("enable_meta_core", "1")
+
+o = s:taboption("meta", Flag, "enable_geoip_dat", translate("Enable GeoIP Dat"))
+o.description = translate("Replace GEOIP MMDB With GEOIP Dat, Large Size File, Need Download First")
+o.default = 0
+o:depends("enable_meta_core", "1")
+
+o = s:taboption("meta", Flag, "geoip_auto_update", translate("Auto Update GeoIP Dat"))
+o.default = 0
+o:depends("enable_geoip_dat", "1")
+
+o = s:taboption("meta", ListValue, "geoip_update_week_time", translate("Update Time (Every Week)"))
+o:value("*", translate("Every Day"))
+o:value("1", translate("Every Monday"))
+o:value("2", translate("Every Tuesday"))
+o:value("3", translate("Every Wednesday"))
+o:value("4", translate("Every Thursday"))
+o:value("5", translate("Every Friday"))
+o:value("6", translate("Every Saturday"))
+o:value("0", translate("Every Sunday"))
+o.default = "1"
+o:depends("geoip_auto_update", "1")
+
+o = s:taboption("meta", ListValue, "geoip_update_day_time", translate("Update time (every day)"))
+for t = 0,23 do
+o:value(t, t..":00")
+end
+o.default = "0"
+o:depends("geoip_auto_update", "1")
+
+o = s:taboption("meta", Value, "geoip_custom_url")
+o.title = translate("Custom GeoIP Dat URL")
+o.rmempty = false
+o.description = translate("Custom GeoIP Dat URL, Click Button Below To Refresh After Edit")
+o:value("https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat", translate("Loyalsoldier-Version")..translate("(Default)"))
+o.default = "https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat"
+o:depends("geoip_auto_update", "1")
+
+o = s:taboption("meta", Button, translate("GEOIP Data Update")) 
+o.title = translate("Update GeoIP Dat")
+o.inputtitle = translate("Check And Update")
+o.inputstyle = "reload"
+o.write = function()
+  m.uci:set("openclash", "config", "enable", 1)
+  m.uci:commit("openclash")
+  SYS.call("/usr/share/openclash/openclash_geoip.sh >/dev/null 2>&1 &")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+end
+o:depends("geoip_auto_update", "1")
+
+o = s:taboption("meta", Flag, "geosite_auto_update", translate("Auto Update GeoSite Database"))
+o.default = 0
+o:depends("enable_meta_core", "1")
+
+o = s:taboption("meta", ListValue, "geosite_update_week_time", translate("Update Time (Every Week)"))
+o:value("*", translate("Every Day"))
+o:value("1", translate("Every Monday"))
+o:value("2", translate("Every Tuesday"))
+o:value("3", translate("Every Wednesday"))
+o:value("4", translate("Every Thursday"))
+o:value("5", translate("Every Friday"))
+o:value("6", translate("Every Saturday"))
+o:value("0", translate("Every Sunday"))
+o.default = "1"
+o:depends("geosite_auto_update", "1")
+
+o = s:taboption("meta", ListValue, "geosite_update_day_time", translate("Update time (every day)"))
+for t = 0,23 do
+o:value(t, t..":00")
+end
+o.default = "0"
+o:depends("geosite_auto_update", "1")
+
+o = s:taboption("meta", Value, "geosite_custom_url")
+o.title = translate("Custom GeoSite URL")
+o.rmempty = false
+o.description = translate("Custom GeoSite Data URL, Click Button Below To Refresh After Edit")
+o:value("https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat", translate("Loyalsoldier-Version")..translate("(Default)"))
+o.default = "https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat"
+o:depends("geosite_auto_update", "1")
+
+o = s:taboption("meta", Button, translate("GEOIP Update")) 
+o.title = translate("Update GeoSite Database")
+o.inputtitle = translate("Check And Update")
+o.inputstyle = "reload"
+o.write = function()
+  m.uci:set("openclash", "config", "enable", 1)
+  m.uci:commit("openclash")
+  SYS.call("/usr/share/openclash/openclash_geosite.sh >/dev/null 2>&1 &")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+end
+o:depends("geosite_auto_update", "1")
+
 ---- Access Control
 if op_mode == "redir-host" then
 o = s:taboption("lan_ac", ListValue, "lan_ac_mode", translate("LAN Access Control Mode"))
@@ -482,7 +581,7 @@ end
 
 --Stream Enhance
 o = s:taboption("stream_enhance", Flag, "stream_domains_prefetch", font_red..bold_on..translate("Prefetch Netflix, Disney Plus Domains")..bold_off..font_off)
-o.description = translate("Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure")
+o.description = translate("Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure, Recommend Use meta Sniffer Function")
 o.default = 0
 
 o = s:taboption("stream_enhance", Value, "stream_domains_prefetch_interval", translate("Domains Prefetch Interval(min)"))
@@ -884,45 +983,6 @@ o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
   SYS.call("/usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
-end
-
-o = s:taboption("geo_update", Flag, "geosite_auto_update", translate("Auto Update"))
-o.description = translate("Auto Update GeoSite Database")
-o.default = 0
-
-o = s:taboption("geo_update", ListValue, "geosite_update_week_time", translate("Update Time (Every Week)"))
-o:value("*", translate("Every Day"))
-o:value("1", translate("Every Monday"))
-o:value("2", translate("Every Tuesday"))
-o:value("3", translate("Every Wednesday"))
-o:value("4", translate("Every Thursday"))
-o:value("5", translate("Every Friday"))
-o:value("6", translate("Every Saturday"))
-o:value("0", translate("Every Sunday"))
-o.default = "1"
-
-o = s:taboption("geo_update", ListValue, "geosite_update_day_time", translate("Update time (every day)"))
-for t = 0,23 do
-o:value(t, t..":00")
-end
-o.default = "0"
-
-o = s:taboption("geo_update", Value, "geosite_custom_url")
-o.title = translate("Custom GeoSite URL")
-o.rmempty = false
-o.description = translate("Custom GeoSite Data URL, Click Button Below To Refresh After Edit")
-o:value("https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat", translate("Loyalsoldier-Version")..translate("(Default)"))
-o.default = "https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat"
-
-o = s:taboption("geo_update", Button, translate("GEOIP Update")) 
-o.title = translate("Update GeoSite Database")
-o.inputtitle = translate("Check And Update")
-o.inputstyle = "reload"
-o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("/usr/share/openclash/openclash_geosite.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
