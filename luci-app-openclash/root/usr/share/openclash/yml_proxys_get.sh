@@ -761,6 +761,14 @@ do
       }.join
       
       Thread.new{
+      #flow
+      if Value['proxies'][$count].key?('flow') then
+         flow = '${uci_set}vless_flow=\"' + Value['proxies'][$count]['flow'].to_s + '\"'
+         system(flow)
+      end
+      }.join
+      
+      Thread.new{
       #network:
       if Value['proxies'][$count].key?('network') then
          if Value['proxies'][$count]['network'].to_s == 'ws'
