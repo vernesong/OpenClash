@@ -287,6 +287,10 @@ yml_servers_set()
    fi
    LOG_OUT "Start Writing【$CONFIG_NAME - $type - $name】Proxy To Config File..."
    
+   if [ "$cipher_ssr" == "none" ]; then
+      cipher_ssr="dummy"
+   fi
+   
    if [ "$obfs" != "none" ] && [ -n "$obfs" ]; then
       if [ "$obfs" = "websocket" ]; then
          obfss="plugin: v2ray-plugin"

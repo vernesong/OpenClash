@@ -197,7 +197,7 @@ function import_ssr_url(btn, urlname, sid) {
 			document.getElementsByName('cbid.openclash.' + sid + '.server')[0].value = ssm[1];
 			document.getElementsByName('cbid.openclash.' + sid + '.port')[0].value = ssm[2];
 			document.getElementsByName('cbid.openclash.' + sid + '.protocol')[0].value = ssm[3];
-			document.getElementsByName('cbid.openclash.' + sid + '.cipher_ssr')[0].value = ssm[4];
+			document.getElementsByName('cbid.openclash.' + sid + '.cipher_ssr')[0].value = (ssm[4] == "none" ? "dummy" : ssm[4]);
 			document.getElementsByName('cbid.openclash.' + sid + '.obfs_ssr')[0].value = ssm[5];
 			document.getElementsByName('cbid.openclash.' + sid + '.password')[0].value = b64decsafe(ssm[6]);
 			document.getElementsByName('cbid.openclash.' + sid + '.obfs_param')[0].value = dictvalue(pdict, 'obfsparam');
