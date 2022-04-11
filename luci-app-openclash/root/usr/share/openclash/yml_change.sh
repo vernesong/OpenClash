@@ -105,13 +105,13 @@ end;
 Value['dns']['listen']='0.0.0.0:${13}'
 if ${21} == 1 then
    Value_sniffer={'sniffer'=>{'enable'=>true}};
-   Value['dns']['sniffer']=Value_sniffer['sniffer'];
-   Value['dns']['sniffer']['force']=$sniffer_force
+   Value['sniffer']=Value_sniffer['sniffer'];
+   Value['sniffer']['force']=$sniffer_force
    Value_sniffer={'sniffing'=>['tls']}
-   Value['dns']['sniffer'].merge!(Value_sniffer)
+   Value['sniffer'].merge!(Value_sniffer)
 else
-   if Value['dns'].key?('sniffer') then
-      Value['dns'].delete('sniffer')
+   if Value.key?('sniffer') then
+      Value.delete('sniffer')
    end
 end;
 Value_2={'tun'=>{'enable'=>true}};
