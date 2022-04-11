@@ -2062,6 +2062,10 @@ if [ -n "$en_mode_tun" ]; then
    ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
    ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    
+   if [ "$enable_meta_core" == "1" ]; then
+      route add -net 198.18.0.0/16 dev utun
+   fi
+   
    #设置防火墙
    if [ "$en_mode" = "fake-ip" ]; then
       iptables -t mangle -N openclash_output
