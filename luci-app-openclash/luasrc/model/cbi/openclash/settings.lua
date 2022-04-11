@@ -10,6 +10,7 @@ local json = require "luci.jsonc"
 
 font_green = [[<b style=color:green>]]
 font_red = [[<b style=color:red>]]
+font_blue = [[<b style=color:blue>]]
 font_off = [[</b>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
@@ -43,6 +44,20 @@ s:tab("auto_restart", translate("Auto Restart"))
 s:tab("version_update", translate("Version Update"))
 s:tab("debug", translate("Debug Logs"))
 s:tab("dlercloud", translate("Dler Cloud"))
+
+o = s:taboption("op_mode", Flag, "enable_meta_core", font_blue..bold_on..translate("Enable Meta Core")..bold_off..font_off)
+o.description = font_blue..bold_on..translate("Some Premium Core Features are Unavailable, For Other More Useful Functions Go Wiki:")..bold_off..font_off.." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://clashmeta.gitbook.io/meta/\")'>https://clashmeta.gitbook.io/meta/</a>"
+o.default = 0
+
+o = s:taboption("op_mode", Flag, "enable_meta_sniffer", font_blue..bold_on..translate("Enable Sniffer")..bold_off..font_off)
+o.description = font_blue..bold_on..translate("Sniffer Will Prevent Domain Name Proxy Failure")..bold_off..font_off
+o.default = 1
+o:depends("enable_meta_core", "1")
+
+o = s:taboption("op_mode", Flag, "enable_meta_sniffer_force", translate("Force Sniffer"))
+o.description = font_blue..bold_on..translate("Override All Dns Query")..bold_off..font_off
+o.default = 1
+o:depends("enable_meta_sniffer", "1")
 
 o = s:taboption("op_mode", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
 o.description = translate("Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error")
@@ -86,20 +101,6 @@ o = s:taboption("op_mode", Flag, "router_self_proxy", font_red..bold_on..transla
 o.description = font_red..bold_on..translate("Only Supported for Rule Mode, ALL Functions In Stream Enhance Tag Will Not Work After Disable")..bold_off..font_off
 o.default = 1
 o:depends("proxy_mode", "rule")
-
-o = s:taboption("op_mode", Flag, "enable_meta_core", font_red..bold_on..translate("Enable Meta Core")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Some Premium Core Features are Unavailable, For Other More Useful Functions Go Wiki:")..bold_off..font_off.." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://clashmeta.gitbook.io/meta/\")'>https://clashmeta.gitbook.io/meta/</a>"
-o.default = 0
-
-o = s:taboption("op_mode", Flag, "enable_meta_sniffer", font_red..bold_on..translate("Enable Sniffer")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Sniffer Will Prevent Domain Name Proxy Failure")..bold_off..font_off
-o.default = 1
-o:depends("enable_meta_core", "1")
-
-o = s:taboption("op_mode", Flag, "enable_meta_sniffer_force", translate("Force Sniffer"))
-o.description = font_red..bold_on..translate("Override All Dns Query")..bold_off..font_off
-o.default = 1
-o:depends("enable_meta_sniffer", "1")
 
 o = s:taboption("op_mode", Flag, "ipv6_enable", font_red..bold_on..translate("Proxy IPv6 Traffic")..bold_off..font_off)
 o.description = font_red..bold_on..translate("The Gateway and DNS of The Connected Device Must be The Router IP, Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use")..bold_off..font_off
