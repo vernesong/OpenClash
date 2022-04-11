@@ -539,7 +539,11 @@ do
       Thread.new{
       #cipher
       if Value['proxies'][$count].key?('cipher') then
-         cipher = '${uci_set}cipher_ssr=' + Value['proxies'][$count]['cipher'].to_s
+         if Value['proxies'][$count]['cipher'].to_s == 'none' then
+            cipher = '${uci_set}cipher_ssr=dummy'
+         else
+            cipher = '${uci_set}cipher_ssr=' + Value['proxies'][$count]['cipher'].to_s
+         end
          system(cipher)
       end
       }.join

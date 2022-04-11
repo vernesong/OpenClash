@@ -163,6 +163,7 @@ o:depends("type", "ss")
 
 o = s:option(ListValue, "cipher_ssr", translate("Encrypt Method"))
 for _, v in ipairs(encrypt_methods_ssr) do o:value(v) end
+o:value("dummy", "none")
 o.rmempty = true
 o:depends("type", "ssr")
 
