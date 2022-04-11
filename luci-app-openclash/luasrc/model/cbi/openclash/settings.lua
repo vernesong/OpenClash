@@ -56,7 +56,7 @@ o:depends("enable_meta_core", "1")
 
 o = s:taboption("op_mode", Flag, "enable_meta_sniffer_force", translate("Force Sniffer"))
 o.description = font_blue..bold_on..translate("Override All Dns Query")..bold_off..font_off
-o.default = 1
+o.default = 0
 o:depends("enable_meta_sniffer", "1")
 
 o = s:taboption("op_mode", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
@@ -912,7 +912,7 @@ o = s:taboption("geo_update", Value, "geosite_custom_url")
 o.title = translate("Custom GeoSite URL")
 o.rmempty = false
 o.description = translate("Custom GeoSite Data URL, Click Button Below To Refresh After Edit")
-o:value("https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat", translate("Offical-Version")..translate("(Default)"))
+o:value("https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat", translate("Loyalsoldier-Version")..translate("(Default)"))
 o.default = "https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat"
 
 o = s:taboption("geo_update", Button, translate("GEOIP Update")) 
