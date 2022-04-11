@@ -28,7 +28,7 @@ s.anonymous = true
 
 s:tab("op_mode", translate("Operation Mode"))
 s:tab("settings", translate("General Settings"))
-s:tab("dns", translate("DNS Settings"))
+s:tab("dns", translate("DNS Setting"))
 s:tab("meta", translate("Meta Settings"))
 s:tab("stream_enhance", translate("Streaming Enhance"))
 s:tab("lan_ac", translate("Access Control"))
