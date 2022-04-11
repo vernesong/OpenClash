@@ -421,7 +421,7 @@ o:value("https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.
 o.default = "https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat"
 o:depends("geoip_auto_update", "1")
 
-o = s:taboption("meta", Button, translate("GEOIP Data Update")) 
+o = s:taboption("meta", Button, translate("GEOIP Dat Update")) 
 o.title = translate("Update GeoIP Dat")
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
@@ -464,7 +464,7 @@ o:value("https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosit
 o.default = "https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat"
 o:depends("geosite_auto_update", "1")
 
-o = s:taboption("meta", Button, translate("GEOIP Update")) 
+o = s:taboption("meta", Button, translate("GEOSITE Update")) 
 o.title = translate("Update GeoSite Database")
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
