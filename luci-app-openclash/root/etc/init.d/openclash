@@ -1314,13 +1314,13 @@ do_run_file()
       core_start_log="Tip: No Special Configuration Detected, Use Dev Core to Start..."
    fi
     
-   if [ ! -f "/etc/openclash/clash" ] && [ -f "$tun_core_path" ]; then
+   if [ ! -f "/etc/openclash/clash" ] && [ -f "$tun_core_path" ] && [ -z "$core_type" ]; then
       ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
       core_type="TUN"
       core_start_log="Tip: Detected that the Dev Core is not Installed, Use TUN Core to Start..."
    fi
    
-   if [ ! -f "/etc/openclash/clash" ] && [ -f "$meta_core_path" ]; then
+   if [ ! -f "/etc/openclash/clash" ] && [ -f "$meta_core_path" ] && [ -z "$core_type" ]; then
       ln -s "$meta_core_path" /etc/openclash/clash 2>/dev/null
       core_type="Meta"
       core_start_log="Tip: Detected that the Dev Core is not Installed, Use Meta Core to Start..."
