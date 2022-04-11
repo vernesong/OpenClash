@@ -1175,7 +1175,7 @@ msgstr "ConnersHua 规则更新日期"
 msgid "Mainland IP Update"
 msgstr "大陆IP白名单 更新日期"
 
-msgid "	Mainland IPv6 Update"
+msgid "Mainland IPv6 Update"
 msgstr "大陆IPv6白名单 更新日期"
 
 msgid "lhie1 Rule Update"
@@ -2813,8 +2813,8 @@ msgstr "Meta 内核还未支持 Premium 内核的全部功能，要了解其独�
 msgid "Enable Sniffer"
 msgstr "*启用流量（域名）探测"
 
-msgid "Sniffer Will Prevent Domain Name Proxy Failure"
-msgstr "流量（域名）探测能有效防止域名分流异常"
+msgid "Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure"
+msgstr "流量（域名）探测能有效防止域名分流异常和DNS劫持失败"
 
 msgid "Force Sniffer"
 msgstr "强制流量（域名）探测"

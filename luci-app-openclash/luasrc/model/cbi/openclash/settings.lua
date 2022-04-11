@@ -50,7 +50,7 @@ o.description = font_blue..bold_on..translate("Some Premium Core Features are Un
 o.default = 0
 
 o = s:taboption("op_mode", Flag, "enable_meta_sniffer", font_blue..bold_on..translate("Enable Sniffer")..bold_off..font_off)
-o.description = font_blue..bold_on..translate("Sniffer Will Prevent Domain Name Proxy Failure")..bold_off..font_off
+o.description = font_blue..bold_on..translate("Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure")..bold_off..font_off
 o.default = 1
 o:depends("enable_meta_core", "1")
 
