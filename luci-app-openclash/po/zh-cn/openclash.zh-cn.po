@@ -2808,7 +2808,7 @@ msgid "Enable Meta Core"
 msgstr "使用 Meta 内核"
 
 msgid "Some Premium Core Features are Unavailable, For Other More Useful Functions Go Wiki:"
-msgstr "Meta 内核还未支持Premium内核的全部功能，对于其他更有用的功能请前往Wiki:"
+msgstr "Meta 内核还未支持 Premium 内核的全部功能，要了解其独有功能，请前往Wiki:"
 
 msgid "Enable Sniffer"
 msgstr "*启用流量（域名）探测"
