@@ -30,10 +30,10 @@
          if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat -o /tmp/GeoSite.dat >/dev/null 2>&1
          else
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geosite.dat -o /tmp/GeoSite.dat >/dev/null 2>&1
+            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -o /tmp/GeoSite.dat >/dev/null 2>&1
          fi
       else
-         curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/Loyalsoldier/v2ray-rules-dat/release/geosite.dat -o /tmp/GeoSite.dat >/dev/null 2>&1
+         curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -o /tmp/GeoSite.dat >/dev/null 2>&1
       fi
    else
       curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$GEOSITE_CUSTOM_URL" -o /tmp/GeoSite.dat >/dev/null 2>&1
