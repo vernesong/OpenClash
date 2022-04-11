@@ -35,7 +35,7 @@ msgstr "自定义规则集与策略组管理（仅TUN内核）"
 msgid "General Settings"
 msgstr "常规设置"
 
-msgid "DNS Settings"
+msgid "DNS Setting"
 msgstr "DNS 设置"
 
 msgid "Config Update"
@@ -2448,7 +2448,7 @@ msgid "Prefetch Netflix, Disney Plus Domains"
 msgstr "实验性：预解析 Netflix、Disney Plus 域名"
 
 msgid "Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure, Recommend Use meta Sniffer Function"
-msgstr "防止部分设备直接使用IP访问导致DNS解锁失败，建议使用 meta 内核的探测功能"
+msgstr "防止部分设备直接使用IP访问导致DNS解锁失败，建议换用 meta 内核的探测功能"
 
 msgid "Update Preset Domains List"
 msgstr "更新预置域名列表"
