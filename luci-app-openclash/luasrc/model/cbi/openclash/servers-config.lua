@@ -354,6 +354,13 @@ o:depends({obfs_vmess = "grpc", tls = "true"})
 o:depends({obfs_vmess = "none", tls = "true"})
 o:depends("type", "vless")
 
+o = s:option(Value, "vless_flow", translate("flow"))
+o.rmempty = true
+o.default = "xtls-rprx-direct"
+o:value("xtls-rprx-direct")
+o:value("xtls-rprx-origin")
+o:depends("obfs_vless", "none")
+
 o = s:option(Value, "keep_alive", translate("keep-alive"))
 o.rmempty = true
 o.default = "true"
