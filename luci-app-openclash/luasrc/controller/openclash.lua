@@ -416,7 +416,11 @@ local function dler_login()
 			fs.unlink(sub_path)
 			fs.unlink("/tmp/dler_checkin")
 			fs.unlink("/tmp/dler_info")
-			return "402"
+			if info and info.msg then
+				return info.msg
+			else
+				return "login faild"
+			end
 		end
 	else
 		uci:delete("openclash", "config", "dler_token")
@@ -424,7 +428,7 @@ local function dler_login()
 		fs.unlink(sub_path)
 		fs.unlink("/tmp/dler_checkin")
 		fs.unlink("/tmp/dler_info")
-		return "402"
+		return "email or passwd is wrong"
 	end
 end
 
@@ -447,10 +451,14 @@ local function dler_logout()
 			fs.unlink("/tmp/dler_info")
 			return info.ret
 		else
-			return "403"
+			if info and info.msg then
+				return info.msg
+			else
+				return "logout faild"
+			end
 		end
 	else
-		return "403"
+		return "logout faild"
 	end
 end
 
