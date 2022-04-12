@@ -36,51 +36,46 @@
 
 <script type="text/javascript">//<![CDATA[
 
-var new_sub_info_get_<%=idname%> = true;
 sub_info_get_<%=idname%>();
 
 function sub_info_get_<%=idname%>()
 {
 	
-	if (document.getElementById('<%=idname%>').innerHTML != "" && ! new_sub_info_get_<%=idname%>) {
-		clearTimeout(s_<%=idname%>);
-		return
-	}
-	else {
-		if (localStorage.getItem("<%=filename%>")) {
-			var save_info = JSON.parse(localStorage.getItem("<%=filename%>"));
-			document.getElementById('<%=idname%>').className = "sub_tab_show";
-			if (save_info.sub_info == "No Sub Info Found") {
-				document.getElementById('<%=idname%>').innerHTML = "<span><%:No Sub Info Found%></span>";
-			}
-			else {
-				document.getElementById('<%=idname%>').innerHTML = "<%:Plan Traffic%>" + ": " + "<span style=color:green>" + save_info.used + "</span> | <span style=color:green>" + save_info.total + "</span> <br/> <%:Plan Expiration Time%>: " + "<span style=color:green>" + save_info.expire + "</span>";
-			}
+	if (localStorage.getItem("<%=filename%>")) {
+		var save_info = JSON.parse(localStorage.getItem("<%=filename%>"));
+		document.getElementById('<%=idname%>').className = "sub_tab_show";
+		if (save_info.sub_info == "No Sub Info Found") {
+			document.getElementById('<%=idname%>').innerHTML = "<span><%:No Sub Info Found%></span>";
+		}
+		else {
+			document.getElementById('<%=idname%>').innerHTML = "<%:Plan Traffic%>" + ": " + "<span style=color:green>" + save_info.used + "</span> | <span style=color:green>" + save_info.total + "</span> <br/> <%:Plan Expiration Time%>: " + "<span style=color:green>" + save_info.expire + "</span>";
 		}
 	};
+	
+	if (s_<%=idname%>) { clearTimeout(s_<%=idname%>); };
 	
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "sub_info_get")%>', {filename: "<%=filename%>"}, function(x, status) {
 		if (x && x.status == 200 && status.sub_info != "" && status.sub_info != "No Sub Info Found") {
 			localStorage.setItem("<%=filename%>",JSON.stringify(status));
-			new_sub_info_get_<%=idname%> = false;
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
 			document.getElementById('<%=idname%>').innerHTML = "<%:Plan Traffic%>" + ": " + "<span style=color:green>" + status.used + "</span> | <span style=color:green>" + status.total + "</span> <br/> <%:Plan Expiration Time%>: " + "<span style=color:green>" + status.expire + "</span>";
 		}
 		else if ( x && x.status == 200 && status.sub_info == "No Sub Info Found" ) {
 			localStorage.setItem("<%=filename%>",JSON.stringify(status));
-			new_sub_info_get_<%=idname%> = false;
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
 			document.getElementById('<%=idname%>').innerHTML = "<span><%:No Sub Info Found%></span>";
-			clearTimeout(s_<%=idname%>);
-			return
 		}
 		else {
-			document.getElementById('<%=idname%>').className = "sub_tab_show";
-			document.getElementById('<%=idname%>').innerHTML = "<span style=color:red><%:Sub Info Get Error%></span>";
+			if (document.getElementById('<%=idname%>').innerHTML == "") {
+				document.getElementById('<%=idname%>').className = "sub_tab_show";
+				document.getElementById('<%=idname%>').innerHTML = "<span style=color:red><%:Sub Info Get Error%></span>";
+			}
+			var s_<%=idname%> = setTimeout("sub_info_get_<%=idname%>()",1000*120);
+			return
 		};
 	});
 	
-	var s_<%=idname%> = setTimeout("sub_info_get_<%=idname%>()",1000*600);
+	var s_<%=idname%> = setTimeout("sub_info_get_<%=idname%>()",1000*1800);
 };
 
 //]]></script>
