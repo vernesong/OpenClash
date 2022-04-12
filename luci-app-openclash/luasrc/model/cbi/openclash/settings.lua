@@ -622,7 +622,7 @@ o:depends("stream_auto_select_netflix", "1")
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_netflix", translate("Unlock Region Filter"))
 o.default = ""
 o.placeholder = "HK|SG|TW"
-o.description = translate("It Will Be Selected Region According To The Regex")
+o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_netflix", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_netflix", translate("Unlock Nodes Filter"))
@@ -650,7 +650,7 @@ o:depends("stream_auto_select_disney", "1")
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_disney", translate("Unlock Region Filter"))
 o.default = ""
 o.placeholder = "HK|SG|TW"
-o.description = translate("It Will Be Selected Region According To The Regex")
+o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_disney", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_disney", translate("Unlock Nodes Filter"))
@@ -678,7 +678,7 @@ o:depends("stream_auto_select_ytb", "1")
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_ytb", translate("Unlock Region Filter"))
 o.default = ""
 o.placeholder = "HK|US"
-o.description = translate("It Will Be Selected Region According To The Regex")
+o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_ytb", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_ytb", translate("Unlock Nodes Filter"))
@@ -706,7 +706,7 @@ o:depends("stream_auto_select_prime_video", "1")
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_prime_video", translate("Unlock Region Filter"))
 o.default = ""
 o.placeholder = "HK|US|SG"
-o.description = translate("It Will Be Selected Region According To The Regex")
+o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_prime_video", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_prime_video", translate("Unlock Nodes Filter"))
@@ -756,7 +756,7 @@ o:depends("stream_auto_select_hbo_max", "1")
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_hbo_max", translate("Unlock Region Filter"))
 o.default = ""
 o.placeholder = "US"
-o.description = translate("It Will Be Selected Region According To The Regex")
+o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_hbo_max", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_hbo_max", translate("Unlock Nodes Filter"))
@@ -784,7 +784,7 @@ o:depends("stream_auto_select_hbo_go_asia", "1")
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_hbo_go_asia", translate("Unlock Region Filter"))
 o.default = ""
 o.placeholder = "HK|SG|TW"
-o.description = translate("It Will Be Selected Region According To The Regex")
+o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_hbo_go_asia", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_hbo_go_asia", translate("Unlock Nodes Filter"))
@@ -812,7 +812,7 @@ o:depends("stream_auto_select_tvb_anywhere", "1")
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_tvb_anywhere", translate("Unlock Region Filter"))
 o.default = ""
 o.placeholder = "HK|SG|TW"
-o.description = translate("It Will Be Selected Region According To The Regex")
+o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_tvb_anywhere", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_tvb_anywhere", translate("Unlock Nodes Filter"))
@@ -840,7 +840,7 @@ o:depends("stream_auto_select_dazn", "1")
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_dazn", translate("Unlock Region Filter"))
 o.default = ""
 o.placeholder = "DE"
-o.description = translate("It Will Be Selected Region According To The Regex")
+o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_dazn", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_dazn", translate("Unlock Nodes Filter"))
@@ -868,7 +868,7 @@ o:depends("stream_auto_select_paramount_plus", "1")
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_paramount_plus", translate("Unlock Region Filter"))
 o.default = ""
 o.placeholder = "US"
-o.description = translate("It Will Be Selected Region According To The Regex")
+o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_paramount_plus", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_paramount_plus", translate("Unlock Nodes Filter"))
@@ -896,7 +896,7 @@ o:depends("stream_auto_select_discovery_plus", "1")
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_discovery_plus", translate("Unlock Region Filter"))
 o.default = ""
 o.placeholder = "US"
-o.description = translate("It Will Be Selected Region According To The Regex")
+o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_discovery_plus", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_discovery_plus", translate("Unlock Nodes Filter"))

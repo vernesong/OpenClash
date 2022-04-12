@@ -2639,11 +2639,11 @@ msgstr "解锁检测失败！开始进行解锁节点自动选择..."
 msgid "It Will Be Searched According To The Regex When Auto Search Group Fails"
 msgstr "策略组自动获取失败时将会根据正则表达式进行匹配"
 
-msgid "It Will Be Selected Region According To The Regex"
-msgstr "解锁区域将会根据正则表达式进行匹配"
+msgid "It Will Be Selected Region(Country Shortcode) According To The Regex"
+msgstr "解锁区域(国家简码)将会根据正则表达式进行匹配"
 
 msgid "It Will Be Selected Nodes According To The Regex"
-msgstr "解锁节点将会根据正则表达式进行匹配"
+msgstr "解锁节点的名字将会根据正则表达式进行匹配"
 
 msgid "not support unlock!"
 msgstr "不支持解锁！"
