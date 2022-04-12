@@ -120,9 +120,9 @@ if $en_mode_tun != 0 then
    Value['tun']['stack']='$stack_type'
    if ${20} == 1 then
       Value['tun']['device']='utun'
-      Value['tun']['auto-route']=false
-      Value['tun']['auto-detect-interface']=false
    end
+   Value['tun']['auto-route']=false
+   Value['tun']['auto-detect-interface']=false
    Value_2={'dns-hijack'=>['tcp://8.8.8.8:53','tcp://8.8.4.4:53']}
    Value['tun'].merge!(Value_2)
 else
