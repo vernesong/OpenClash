@@ -2090,8 +2090,8 @@ msgstr "游戏代理为测试功能，不保证规则可用性"
 msgid "Preparation steps:"
 msgstr "准备步骤："
 
-msgid "1. In the <server and policy group management> page, create the policy group and node you are going to use, and apply the configuration (when adding nodes, you must select the policy group you want to join). Policy group type suggestion: fallback, game nodes must support UDP"
-msgstr "1、在《服务器与策略组管理》页面创建您准备使用的策略组和节点，并应用配置（节点添加时必须选择要加入的策略组），策略组类型建议:FallBack，游戏节点必须支持UDP"
+msgid "1. In the <server and policy group management> page, create the policy group and node you are going to use, and apply the configuration (when adding nodes, you must select the policy group you want to join). Policy group type suggestion: fallback, game nodes must be support UDP and not a Vmess"
+msgstr "1、在《服务器与策略组管理》页面创建您准备使用的策略组和节点，并应用配置（节点添加时必须选择要加入的策略组），策略组类型建议:FallBack，游戏节点必须支持UDP且不是Vmess节点"
 
 msgid "2. Click the <manage third party game rules> or <manage third party rule set> button to enter the rule list and download the rules you want to use"
 msgstr "2、点击《管理第三方游戏规则》或者《管理第三方规则集》按钮进入规则列表下载您要使用的规则"
@@ -2117,8 +2117,8 @@ msgstr "如需自定义外部配置文件(订阅转换模板)，请按照说明�
 msgid "If you have a recommended external configuration file (subscription conversion template), you can modify by following The file format of /usr/share/opencrash/res/sub_ini.list and pr"
 msgstr "如您有值得推荐的外部配置文件(订阅转换模板)，可以按照 /usr/share/openclash/res/sub_ini.list 的文件格式修改后提交PR"
 
-msgid "To restore the default configuration, try accessing:"
-msgstr "如遇到配置丢失或者需要还原默认配置，请尝试访问地址:"
+msgid "Note: To restore the default configuration, try accessing:"
+msgstr "注意: 如遇到配置丢失或者需要还原默认配置，请尝试访问地址:"
 
 msgid "Take Effect If Fallback DNS Setted, Prevent DNS Pollution"
 msgstr "只有在配置文件设置了 Fallback 组的DNS时才会生效，正确设置可以有效防止DNS污染"
@@ -2875,3 +2875,24 @@ msgstr "自定义 GeoIP Dat 数据库的更新来源，编辑后点击下方按�
 
 msgid "Update GeoIP Dat"
 msgstr "更新 GeoIP Dat 数据库"
+
+msgid "Note: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it"
+msgstr "注意: 路由不建议开启 IPV6 和相关服务，目前反馈的网络连接问题多数与它有关"
+
+msgid "Note: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off"
+msgstr "注意: 浏览器开启安全 DNS，会导致分流异常，请注意关闭"
+
+msgid "Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check"
+msgstr "注意: 部分软件会修改设备 HOSTS，会导致分流异常，请注意检查"
+
+msgid "Note: The default proxy routes local traffic, BT, PT download, etc., please use redir mode as much as possible and pay attention to traffic avoidance"
+msgstr "注意: 默认代理路由本机流量，BT、PT 下载等请尽量使用 redir 模式并注意进行流量规避"
+
+msgid "Note: Game proxy please use nodes except Vmess"
+msgstr "注意: 游戏代理请使用 Vmess 以外的节点"
+
+msgid "Note: If the connection is abnormal, please follow the steps on this page to check first"
+msgstr "注意: 连接异常时请按照此页步骤先进行检查"
+
+msgid "Click to the page"
+msgstr "点击前往"

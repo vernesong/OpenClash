@@ -788,7 +788,7 @@
 	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
 	  if ( x && x.status == 200 ) {
 		   if ( status.startlog == "\n" || status.startlog == "" ) {
-          var rdmdl=Math.floor(Math.random()*12)+1;
+          var rdmdl=Math.floor(Math.random()*16)+1;
           if(rdmdl==1)
           {
              startlog.innerHTML = '<b><font><%:Tip: You can modify the profile on the profile page (for content that is not taken over)%></font></b>';
@@ -836,6 +836,22 @@
           if(rdmdl==12)
           {
              startlog.innerHTML = '<b><font><%:Tip: you can update the version in the global settings page%></font></b>';
+          }
+          if(rdmdl==13)
+          {
+             startlog.innerHTML = '<b><font><%:Tip: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it%></font></b>';
+          }
+          if(rdmdl==14)
+          {
+             startlog.innerHTML = '<b><font><%:Tip: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off%></font></b>';
+          }
+          if(rdmdl==15)
+          {
+             startlog.innerHTML = '<b><font><%:Tip: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check%></font></b>';
+          }
+          if(rdmdl==16)
+          {
+             startlog.innerHTML = '<b><font><%:Tip: The default proxy routes local traffic, BT, PT download, etc., please use redir mode as much as possible and pay attention to traffic avoidance%></font></b>';
           }
        }
 	  }
