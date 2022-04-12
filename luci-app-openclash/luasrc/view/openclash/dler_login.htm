@@ -57,6 +57,9 @@
 						}
 						else {
 							s.innerHTML ="<font color='red'><strong>"+"<%:Dler Cloud Login Faild%>"+"</strong></font>";
+							if (status.dler_login) {
+								alert("<%:Dler Cloud Login Faild%>: "+status.dler_login)
+							}
 							window.location.href='<%="settings?tab.openclash.config=dlercloud"%>';
 						}
 					}
@@ -79,6 +82,9 @@
 					}
 					else {
 						s.innerHTML ="<font color='red'><strong>"+"<%:Dler Cloud Logout Faild%>"+"</strong></font>";
+						if (status.dler_logout) {
+							alert("<%:Dler Cloud Logout Faild%>: "+status.dler_logout)
+						}
 					}
 				}
 				btn.disabled = false;
