@@ -391,7 +391,7 @@ o.default = "memconservative"
 o:depends("enable_meta_core", "1")
 
 o = s:taboption("meta", Flag, "enable_geoip_dat", translate("Enable GeoIP Dat"))
-o.description = translate("Replace GEOIP MMDB With GEOIP Dat, Large Size File, Need Download First")
+o.description = translate("Replace GEOIP MMDB With GEOIP Dat, Large Size File")..", "..font_red..bold_on..translate("Need Download First")..bold_off..font_off
 o.default = 0
 o:depends("enable_meta_core", "1")
 

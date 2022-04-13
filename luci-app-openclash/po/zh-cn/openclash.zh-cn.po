@@ -2861,8 +2861,11 @@ msgstr "标准模式"
 msgid "Enable GeoIP Dat"
 msgstr "启用 GeoIP Dat 版数据库"
 
-msgid "Replace GEOIP MMDB With GEOIP Dat, Large Size File, Need Download First"
-msgstr "使用 Geoip Dat 替换 GEOIP MMDB 数据库, 文件体积较大且无内置，启动后会自动下载"
+msgid "Replace GEOIP MMDB With GEOIP Dat, Large Size File"
+msgstr "使用 Geoip Dat 替换 GEOIP MMDB 数据库, 文件体积较大且无内置"
+
+msgid "Need Download First"
+msgstr "请提前下载"
 
 msgid "Auto Update GeoIP Dat"
 msgstr "自动更新 GeoIP Dat 数据库"
