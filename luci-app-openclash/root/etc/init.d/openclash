@@ -437,6 +437,7 @@ sys_dns_append()
       wan_gate=$(/usr/share/openclash/openclash_get_network.lua "gateway")
       wan6_gate=$(/usr/share/openclash/openclash_get_network.lua "gateway6")
       dhcp_iface=$(/usr/share/openclash/openclash_get_network.lua "dhcp")
+      pppoe_iface=$(/usr/share/openclash/openclash_get_network.lua "pppoe")
       if [ -z "$dhcp_iface" ]; then
          if [ -n "$wan_dns" ]; then
             if [ -z "$(grep "^ \{0,\}nameserver:$" /tmp/yaml_config.namedns.yaml 2>/dev/null)" ]; then
@@ -469,6 +470,9 @@ sys_dns_append()
             done
          fi
          for i in $dhcp_iface; do
+            echo "    - dhcp://\"$i\"" >>/tmp/yaml_config.namedns.yaml
+         done
+         for i in $pppoe_iface; do
             echo "    - dhcp://\"$i\"" >>/tmp/yaml_config.namedns.yaml
          done
       fi
