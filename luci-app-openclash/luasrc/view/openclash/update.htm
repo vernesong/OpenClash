@@ -166,13 +166,13 @@
          core_tun_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
       }
       if ( status.coremetacv == "0" ) {
-         core_meta_cv.innerHTML = "<b><font color=red><%:File Not Exist%></font></b>";
+         core_meta_cv.innerHTML = "<b style=color:red<%:File Not Exist%></b>";
       }
       else if (status.coremetacv != "") {
-         core_meta_cv.innerHTML = "<b><font color=green>"+status.coremetacv+"</font></b>";
+         core_meta_cv.innerHTML = "<b style=color:green>"+status.coremetacv+"</b>";
       }
       else {
-         core_meta_cv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
+         core_meta_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
       }
       var corelv = status.corelv;
       var arr_core = corelv.split(",");
