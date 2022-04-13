@@ -198,13 +198,13 @@
 			   core_tun_lv.innerHTML = "<b style=color:red><%:Unknown%></b>";
 			}
 			if (coremetalvis != status.coremetacv && coremetalvis != "") {
-			   core_meta_lv.innerHTML = "<b><font color=green>"+coremetalvis+"<%:<New>%></font></b>";
+			   core_meta_lv.innerHTML = "<b style=color:green>"+coremetalvis+"<%:<New>%></b>";
 			}
 			else if (coremetalvis != "" && coremetalvis == status.coremetacv) {
-			   core_meta_lv.innerHTML = "<b><font color=green>"+coremetalvis+"</font></b>";
+			   core_meta_lv.innerHTML = "<b style=color:green>"+coremetalvis+"</b>";
 			}
 			else {
-			   core_meta_lv.innerHTML = "<b><font color=red><%:Unknown%></font></b>";
+			   core_meta_lv.innerHTML = "<b style=color:=red><%:Unknown%></b>";
 			}
 			var oplv = status.oplv;
       var arr_op = oplv.split(",");
