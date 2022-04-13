@@ -507,6 +507,8 @@ yml_dns_get()
       dns_type=""
    elif [ "$type" = "https" ]; then
       dns_type="https://"
+   elif [ "$type" = "quic" ]; then
+      dns_type="quic://"
    fi
 
    if [ -n "$port" ] && [ -n "$ip" ]; then
@@ -514,6 +516,11 @@ yml_dns_get()
    elif [ -z "$port" ] && [ -n "$ip" ]; then
       dns_address="$ip"
    else
+      return
+   fi
+   
+   if [ "$type" == "quic" ] && [ "$enable_meta_core" != "1" ]; then
+      LOG_OUT "Warning: Only Meta Core Support QUIC Type DNS, Skip【$dns_type$dns_address】"
       return
    fi
 

@@ -2896,3 +2896,9 @@ msgstr "注意: 连接异常时请按照此页步骤先进行检查"
 
 msgid "Click to the page"
 msgstr "点击前往"
+
+msgid "QUIC (Only Meta Core)"
+msgstr "QUIC（仅 Meta 内核）"
+
+msgid "Warning: Only Meta Core Support QUIC Type DNS, Skip"
+msgstr "警告：仅 Meta 内核支持 QUIC 类型的 DNS，跳过"
