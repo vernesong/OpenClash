@@ -343,6 +343,7 @@ function action_restore_config()
 	luci.sys.call("/etc/init.d/openclash stop >/dev/null 2>&1")
 	luci.sys.call("cp '/usr/share/openclash/backup/openclash' '/etc/config/openclash' >/dev/null 2>&1 &")
 	luci.sys.call("cp /usr/share/openclash/backup/openclash_custom* /etc/openclash/custom/ >/dev/null 2>&1 &")
+	luci.sys.call("rm -rf /etc/openclash/history/* >/dev/null 2>&1 &")
 	luci.http.redirect(luci.dispatcher.build_url('admin/services/openclash/settings'))
 end
 
