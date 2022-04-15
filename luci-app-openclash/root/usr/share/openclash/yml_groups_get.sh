@@ -218,6 +218,14 @@ do
    }.join;
    
    Thread.new{
+   #Policy Filter
+   if Value['proxy-groups'][$count].key?('filter') then
+      policy_filter = '${uci_set}policy_filter=' + Value['proxy-groups'][$count]['filter'].to_s
+      system(policy_filter)
+   end
+   }.join;
+   
+   Thread.new{
    #interface-name
    if Value['proxy-groups'][$count].key?('interface-name') then
       interface_name = '${uci_set}interface_name=' + Value['proxy-groups'][$count]['interface-name'].to_s
