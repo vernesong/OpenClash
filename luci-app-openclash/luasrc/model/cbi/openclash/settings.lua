@@ -1187,7 +1187,7 @@ o:value("udp", translate("UDP"))
 o:value("tcp", translate("TCP"))
 o:value("tls", translate("TLS"))
 o:value("https", translate("HTTPS"))
-o:value("quic", translate("QUIC (Only Meta Core)"))
+o:value("quic", translate("QUIC ")..translate("(Only Meta Core)"))
 o.default     = "udp"
 o.rempty      = false
 
