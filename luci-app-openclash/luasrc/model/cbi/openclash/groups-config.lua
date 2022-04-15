@@ -95,6 +95,10 @@ o.default = "150"
 o.rmempty = true
 o:depends("type", "url-test")
 
+o = s:option(Value, "policy_filter", translate("Policy Filter").." "..translate("(Only Meta Core)"))
+o.rmempty = true
+o.placeholder = "bgp|sg"
+
 -- [[ interface-name ]]--
 o = s:option(Value, "interface_name", translate("interface-name"))
 o.rmempty = true

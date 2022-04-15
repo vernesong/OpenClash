@@ -180,6 +180,7 @@ yml_groups_set()
    config_get "tolerance" "$section" "tolerance" ""
    config_get "interface_name" "$section" "interface_name" ""
    config_get "routing_mark" "$section" "routing_mark" ""
+   config_get "policy_filter" "$section" "policy_filter" ""
    
    if [ ! -z "$if_game_group" ] && [ "$if_game_group" != "$name" ]; then
       return
@@ -268,6 +269,9 @@ yml_groups_set()
    }
    [ -n "$tolerance" ] && {
       echo "    tolerance: \"$tolerance\"" >>$GROUP_FILE
+   }
+   [ -n "$policy_filter" ] && {
+      echo "    filter: \"$policy_filter\"" >>$GROUP_FILE
    }
    [ -n "$interface_name" ] && {
       echo "    interface-name: \"$interface_name\"" >>$GROUP_FILE
