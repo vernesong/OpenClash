@@ -440,24 +440,14 @@ sys_dns_append()
       pppoe_iface=$(/usr/share/openclash/openclash_get_network.lua "pppoe")
       if [ -z "$dhcp_iface" ] && [ -z "$pppoe_iface" ]; then
          if [ -n "$wan_dns" ]; then
-            if [ -z "$(grep "^ \{0,\}nameserver:$" /tmp/yaml_config.namedns.yaml 2>/dev/null)" ]; then
-               echo "  nameserver:" >/tmp/yaml_config.namedns.yaml
-            fi
             for i in $wan_dns; do
                echo "    - \"$i\"" >>/tmp/yaml_config.namedns.yaml
             done
          fi
          if [ -n "$wan6_dns" ] && [ "$2" = 1 ]; then
-            if [ -z "$(grep "^ \{0,\}nameserver:$" /tmp/yaml_config.namedns.yaml 2>/dev/null)" ]; then
-               echo "  nameserver:" >/tmp/yaml_config.namedns.yaml
-            fi
             for i in $wan6_dns; do
                echo "    - \"[${i}]:53\"" >>/tmp/yaml_config.namedns.yaml
             done
-         fi
-      else
-         if [ -z "$(grep "^ \{0,\}nameserver:$" /tmp/yaml_config.namedns.yaml 2>/dev/null)" ]; then
-            echo "  nameserver:" >/tmp/yaml_config.namedns.yaml
          fi
          if [ -n "$wan_gate" ]; then
             for i in $wan_gate; do
@@ -469,12 +459,37 @@ sys_dns_append()
                echo "    - \"[${i}]:53\"" >>/tmp/yaml_config.namedns.yaml
             done
          fi
-         for i in $dhcp_iface; do
-            echo "    - dhcp://\"$i\"" >>/tmp/yaml_config.namedns.yaml
-         done
-         for i in $pppoe_iface; do
-            echo "    - dhcp://\"$i\"" >>/tmp/yaml_config.namedns.yaml
-         done
+      else
+         if [ -n "$dhcp_iface" ]; then
+            for i in $dhcp_iface; do
+               echo "    - dhcp://\"$i\"" >>/tmp/yaml_config.namedns.yaml
+            done
+            if [ -n "$wan_gate" ]; then
+               for i in $wan_gate; do
+                   echo "    - \"$i\"" >>/tmp/yaml_config.namedns.yaml
+               done
+            fi
+            if [ -n "$wan6_gate" ] && [ "$2" = 1 ]; then
+               for i in $wan6_gate; do
+                  echo "    - \"[${i}]:53\"" >>/tmp/yaml_config.namedns.yaml
+               done
+            fi
+         fi
+         if [ -n "$pppoe_iface" ]; then
+            if [ -n "$wan_dns" ]; then
+		           for i in $wan_dns; do
+		              echo "    - \"$i\"" >>/tmp/yaml_config.namedns.yaml
+		           done
+		       fi
+		       if [ -n "$wan6_dns" ] && [ "$2" = 1 ]; then
+		          for i in $wan6_dns; do
+		             echo "    - \"[${i}]:53\"" >>/tmp/yaml_config.namedns.yaml
+		          done
+		       fi
+         fi
+      fi
+      if [ -f "/tmp/yaml_config.namedns.yaml" ] && [ -z "$(grep "^ \{0,\}nameserver:$" /tmp/yaml_config.namedns.yaml 2>/dev/null)" ]; then
+         sed -i '1i\  nameserver:'  "/tmp/yaml_config.namedns.yaml"
       fi
    fi
 }
