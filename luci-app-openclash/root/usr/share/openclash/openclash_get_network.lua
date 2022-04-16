@@ -64,7 +64,6 @@ if type == "dns" then
 					print(rv.wan[o].dns[i])
 				end
 			end
-			print(rv.wan[o].gwaddr)
 		end
 	end
 end
@@ -77,7 +76,6 @@ if type == "dns6" then
 					print(rv.wan6[o].dns[i])
 				end
 			end
-			print(rv.wan6[o].gw6addr)
 		end
 	end
 end
