@@ -2837,7 +2837,7 @@ msgstr "*启用流量（域名）探测"
 msgid "Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure"
 msgstr "流量（域名）探测能有效防止域名分流异常和DNS劫持失败"
 
-msgid "Force Sniffer"
+msgid "Force Sniffing"
 msgstr "强制流量（域名）探测"
 
 msgid "Override All Dns Query"
@@ -2908,3 +2908,15 @@ msgstr "警告：仅 Meta 内核支持 QUIC 类型的 DNS，跳过"
 
 msgid "Policy Filter"
 msgstr "节点筛选"
+
+msgid "Force Sniffing Domain Lists"
+msgstr "强制探测（嗅探）域名列表"
+
+msgid "Force Sniffing Domain Filter"
+msgstr "忽略探测（嗅探）域名列表"
+
+msgid "Will Override Dns Queries If Domains in The List"
+msgstr "列表中的域名将会使用探测（嗅探）的结果进行连接"
+
+msgid "Will Disable Sniffing If Domains in The List"
+msgstr "列表中的域名将不会使用探测（嗅探）的结果进行连接"

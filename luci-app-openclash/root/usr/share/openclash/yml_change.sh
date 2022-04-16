@@ -109,6 +109,20 @@ if ${21} == 1 then
    Value['sniffer']['force']=$sniffer_force
    Value_sniffer={'sniffing'=>['tls']}
    Value['sniffer'].merge!(Value_sniffer)
+   if File::exist?('/etc/openclash/custom/openclash_sniffing_domain_filter.list') and $sniffer_force then
+     Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_domain_filter.list')
+     if Value_7 != false and not Value_7['reverses'].to_a.empty? then
+        Value['sniffer']['reverses']=Value_7['reverses']
+        Value['sniffer']['reverses']=Value['sniffer']['reverses'].uniq
+     end
+   end
+   if File::exist?('/etc/openclash/custom/openclash_force_sniffing_domain.list') and not $sniffer_force then
+     Value_7 = YAML.load_file('/etc/openclash/custom/openclash_force_sniffing_domain.list')
+     if Value_7 != false and not Value_7['reverses'].to_a.empty? then
+        Value['sniffer']['reverses']=Value_7['reverses']
+        Value['sniffer']['reverses']=Value['sniffer']['reverses'].uniq
+     end
+   end
 else
    if Value.key?('sniffer') then
       Value.delete('sniffer')
@@ -169,7 +183,7 @@ begin
 if '$1' == 'fake-ip' then
    if File::exist?('/tmp/openclash_fake_filter.list') then
      Value_4 = YAML.load_file('/tmp/openclash_fake_filter.list')
-     if Value_4 != false then
+     if Value_4 != false and not Value_4['fake-ip-filter'].to_a.empty? then
         if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
            Value_5 = Value_4['fake-ip-filter'].reverse!
            Value_5.each{|x| Value['dns']['fake-ip-filter'].insert(-1,x)}
