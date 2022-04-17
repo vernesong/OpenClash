@@ -67,6 +67,7 @@ if [ "$enable" -eq 1 ]; then
 	         touch /tmp/openclash.log 2>/dev/null
            chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
            chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
+           chmod o+w /etc/openclash/history/* 2>/dev/null
            chmod o+w /tmp/openclash.log 2>/dev/null
            chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
            capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace"
