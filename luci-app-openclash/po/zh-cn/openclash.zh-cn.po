@@ -2837,9 +2837,6 @@ msgstr "*启用流量（域名）探测"
 msgid "Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure"
 msgstr "流量（域名）探测能有效防止域名分流异常和DNS劫持失败"
 
-msgid "Force Sniffing"
-msgstr "强制流量（域名）探测"
-
 msgid "Override All Dns Query"
 msgstr "启用后将尽可能的覆盖DNS查询到的域名"
 
