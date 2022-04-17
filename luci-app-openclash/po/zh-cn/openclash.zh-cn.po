@@ -2917,3 +2917,9 @@ msgstr "列表中的域名将会使用探测（嗅探）的结果进行连接"
 
 msgid "Will Disable Sniffing If Domains in The List"
 msgstr "列表中的域名将不会使用探测（嗅探）的结果进行连接"
+
+msgid "Custom Sniffer Settings"
+msgstr "自定义流量探测（嗅探）设置"
+
+msgid "Custom The Force and Skip Sniffing Doamin Lists"
+msgstr "自定义强制和忽略流量探测（嗅探）的域名列表"

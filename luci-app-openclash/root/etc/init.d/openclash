@@ -2408,7 +2408,7 @@ get_config()
    router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
    enable_meta_core=$(uci -q get openclash.config.enable_meta_core || echo 0)
    enable_meta_sniffer=$(uci -q get openclash.config.enable_meta_sniffer || echo 0)
-   enable_meta_sniffer_force=$(uci -q get openclash.config.enable_meta_sniffer_force || echo 0)
+   enable_meta_sniffer_custom=$(uci -q get openclash.config.enable_meta_sniffer_custom || echo 0)
    geodata_loader=$(uci -q get openclash.config.geodata_loader || echo "memconservative")
    enable_geoip_dat=$(uci -q get openclash.config.enable_geoip_dat || echo 0)
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
@@ -2443,7 +2443,7 @@ start()
       config_foreach yml_auth_get "authentication"
       yml_auth_custom "$TMP_CONFIG_FILE"
       yml_dns_custom "$enable_custom_dns" "$TMP_CONFIG_FILE" "$append_wan_dns" "$ipv6_dns"
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote" "$enable_meta_core" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote" "$enable_meta_core" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom"
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port"
       yml_custom_rule_provider "$TMP_CONFIG_FILE"
       yml_game_custom "$TMP_CONFIG_FILE"
