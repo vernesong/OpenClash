@@ -1541,6 +1541,7 @@ start_run_core()
          chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
          chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
          chmod o+w /etc/openclash/history/* 2>/dev/null
+         chmod o+w /etc/openclash/cache.db 2>/dev/null
          chmod o+w /tmp/openclash.log 2>/dev/null
          chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
          #使用nobody启动内核方便代理路由自身流量
