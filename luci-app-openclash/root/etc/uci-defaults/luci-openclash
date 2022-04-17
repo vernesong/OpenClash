@@ -27,8 +27,8 @@ cp -f "/etc/openclash/custom/openclash_custom_domain_dns.list" "/usr/share/openc
 cp -f "/etc/openclash/custom/openclash_custom_domain_dns_policy.list" "/usr/share/openclash/backup/openclash_custom_domain_dns_policy.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_fallback_filter.yaml" "/usr/share/openclash/backup/openclash_custom_fallback_filter.yaml" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_netflix_domains.list" "/usr/share/openclash/backup/openclash_custom_netflix_domains.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_force_sniffing_domain.list" "/usr/share/openclash/backup/openclash_force_sniffing_domain.list" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_sniffing_domain_filter.list" "/usr/share/openclash/backup/openclash_sniffing_domain_filter.list" >/dev/null 2>&1
+cp -f "/etc/openclash/custom/openclash_force_sniffing_domain.yaml" "/usr/share/openclash/backup/openclash_force_sniffing_domain.yaml" >/dev/null 2>&1
+cp -f "/etc/openclash/custom/openclash_sniffing_domain_filter.yaml" "/usr/share/openclash/backup/openclash_sniffing_domain_filter.yaml" >/dev/null 2>&1
 
 mkdir -p /lib/upgrade/keep.d
 cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
