@@ -379,8 +379,13 @@ o.description = font_red..bold_on..translate("Sniffer Will Prevent Domain Name P
 o.default = 1
 o:depends("enable_meta_core", "1")
 
+o = s:taboption("meta", Flag, "enable_meta_sniffer_custom", translate("Custom Sniffer Settings"))
+o.description = translate("Custom The Force and Skip Sniffing Doamin Lists")
+o.default = 0
+o:depends("enable_meta_sniffer", "1")
+
 sniffing_domain_force = s:taboption("meta", Value, "sniffing_domain_force", translate("Force Sniffing Domain Lists"))
-sniffing_domain_force:depends("enable_meta_sniffer", "1")
+sniffing_domain_force:depends("enable_meta_sniffer_custom", "1")
 sniffing_domain_force.template = "cbi/tvalue"
 sniffing_domain_force.description = translate("Will Override Dns Queries If Domains in The List")
 sniffing_domain_force.rows = 20
@@ -400,7 +405,7 @@ function sniffing_domain_force.write(self, section, value)
 end
 
 sniffing_domain_filter = s:taboption("meta", Value, "sniffing_domain_filter", translate("Force Sniffing Domain Filter"))
-sniffing_domain_filter:depends("enable_meta_sniffer", "1")
+sniffing_domain_filter:depends("enable_meta_sniffer_custom", "1")
 sniffing_domain_filter.template = "cbi/tvalue"
 sniffing_domain_filter.description = translate("Will Disable Sniffing If Domains in The List")
 sniffing_domain_filter.rows = 20
