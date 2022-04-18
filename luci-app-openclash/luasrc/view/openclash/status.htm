@@ -75,8 +75,6 @@
 				<label for="global">Global</label>
 				<input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/>
 				<label for="direct">Direct</label>
-				<input type="radio" id="script" name="radios" value="script" onclick="return switch_rule_mode(this.value)"/>
-				<label for="script">Script</label>
 			</span></td><td width="25%"><%:Control Panel Login Secret%></td><td width="25%" align="left" id="_dase"><%:Collecting data...%></td></tr>
 			<tr><td width="25%"><%:Yacd Control Panel%></td><td width="25%" align="left" id="_web"><%:Collecting data...%></td><td width="25%"><%:Dashboard Control Panel%></td><td width="25%" align="left" id="_webo"><%:Collecting data...%></td></tr>
 		<tr id="tool_label2"><td colspan="4"><p style="margin: 10px 0; text-align: center">
@@ -217,6 +215,8 @@
 	var radio_ru_mode = document.getElementById('radio-ru-mode');
 	var radio_ru = document.getElementsByName("radios-ru");
 	var radio_run_normal = document.getElementById("run_normal");
+	var script_radio;
+	var script_radio_label;
 	var hid_btn_if = true;
 	var ws_connect = false;
 	var ws_error = false;
@@ -234,7 +234,7 @@
 	hid_1.style.display = "none";
 	hid_2.style.display = "none";
 	hid_3.style.display = "none";
-  state.style.display="none";
+	state.style.display="none";
 
 	XHR.poll(2, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
@@ -330,9 +330,27 @@
 	function get_rule_mode() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "rule_mode")%>', null, function(x, status) {
 			if (x && x.status == 200 && status.mode != "") {
+				if (status.core_type == "TUN" && radio.length != 4) {
+					script_radio = document.createElement("input")
+					script_radio.setAttribute("type", "radio");
+					script_radio.setAttribute("id", "script");
+					script_radio.setAttribute("name", "radios");
+					script_radio.setAttribute("value", "script");
+					script_radio.setAttribute("onclick", "javascript:return switch_rule_mode(this.value);");
+					script_radio_label = document.createElement("label")
+					script_radio_label.setAttribute("for", "script");
+					script_radio_label.innerHTML = "Script";
+					radio_mode.appendChild(script_radio);
+					radio_mode.appendChild(script_radio_label);
+				}
+				else if (status.core_type != "TUN" && radio.length == 4) {
+					radio_mode.removeChild(script_radio)
+					radio_mode.removeChild(script_radio_label)
+				}
 				for (i=0; i<radio.length; i++) {
 					if (radio[i].value == status.mode && ! radio[i].checked) {
-						radio[i].checked = true;
+							radio[i].checked = true;
+							break
 					}
 				}
 			}
