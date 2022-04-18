@@ -603,11 +603,12 @@ function sub_info_get()
 end
 
 function action_rule_mode()
-	local mode, info
+	local mode, info, core_type
 	if is_running() then
 		local daip = daip()
 		local dase = dase() or ""
 		local cn_port = cn_port()
+		core_type = uci:get("openclash", "config", "core_type") or "Dev"
 		if not daip or not cn_port then return end
 		info = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/configs', dase, daip, cn_port)))
 		if info then
@@ -615,12 +616,11 @@ function action_rule_mode()
 		else
 			mode = uci:get("openclash", "config", "proxy_mode") or "rule"
 		end
-	else
-		mode = uci:get("openclash", "config", "proxy_mode") or "rule"
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		mode = mode;
+		mode = mode,
+		core_type = core_type;
 	})
 end
 
@@ -630,7 +630,9 @@ function action_switch_rule_mode()
 		local daip = daip()
 		local dase = dase() or ""
 		local cn_port = cn_port()
+		local core_type = uci:get("openclash", "config", "core_type") or "Dev"
 		mode = luci.http.formvalue("rule_mode")
+		if mode == script and core_type ~= "TUN" then luci.http.status(500, "Switch Faild") return end
 		if not daip or not cn_port then luci.http.status(500, "Switch Faild") return end
 		info = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPATCH http://"%s":"%s"/configs -d \'{\"mode\": \"%s\"}\'', dase, daip, cn_port, mode))
 		if info ~= "" then

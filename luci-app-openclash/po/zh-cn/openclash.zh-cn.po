@@ -2923,3 +2923,6 @@ msgstr "自定义流量探测（嗅探）设置"
 
 msgid "Custom The Force and Skip Sniffing Doamin Lists"
 msgstr "自定义强制和忽略流量探测（嗅探）的域名列表"
+
+msgid "Warning: Only TUN Core Support Script Mode, Switch To The Rule Mode!"
+msgstr "警告：仅 TUN 内核支持 Script 模式，已切换为 Rule 模式！"
