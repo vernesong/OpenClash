@@ -1,9 +1,11 @@
 #!/bin/sh
 . /usr/share/openclash/ruby.sh
+. /usr/share/openclash/log.sh
 
 LOG_FILE="/tmp/openclash.log"
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 dns_advanced_setting=$(uci -q get openclash.config.dns_advanced_setting)
+core_type=$(uci -q get openclash.config.core_type)
 
 if [ -n "$(ruby_read "$5" "['tun']")" ]; then
    uci -q set openclash.config.config_reload=0
@@ -32,12 +34,22 @@ else
 fi
 
 if [ "$(ruby_read "$5" "['external-controller']")" != "$controller_address:$3" ]; then
-   uci set openclash.config.config_reload=0
+   uci -q set openclash.config.config_reload=0
 fi
     
 if [ "$(ruby_read "$5" "['secret']")" != "$2" ]; then
-   uci set openclash.config.config_reload=0
+   uci -q set openclash.config.config_reload=0
 fi
+
+if [ "$core_type" != "TUN" ] && [ "${10}" == "script" ]; then
+   rule_mode="rule"
+   uci -q set openclash.config.proxy_mode="$rule_mode"
+   uci -q set openclash.config.router_self_proxy="1"
+   LOG_OUT "Warning: Only TUN Core Support Script Mode, Switch To The Rule Mode!"
+else
+   rule_mode="${10}"
+fi
+
 uci commit openclash
 
 ruby -ryaml -E UTF-8 -e "
@@ -52,7 +64,7 @@ begin
    Value['port']=$7;
    Value['socks-port']=$8;
    Value['mixed-port']=${14};
-   Value['mode']='${10}';
+   Value['mode']='$rule_mode';
    Value['log-level']='$9';
    Value['allow-lan']=true;
    Value['external-controller']='0.0.0.0:$3';
