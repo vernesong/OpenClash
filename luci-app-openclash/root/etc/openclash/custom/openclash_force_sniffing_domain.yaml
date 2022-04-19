@@ -1,2 +1,2 @@
 force-domain:
-#  - '+.example.com'
+#  - '+'
