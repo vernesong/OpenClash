@@ -36,6 +36,8 @@
 
 <script type="text/javascript">//<![CDATA[
 
+var sub_info_retry = 0;
+var s_<%=idname%>;
 sub_info_get_<%=idname%>();
 
 function sub_info_get_<%=idname%>()
@@ -52,30 +54,39 @@ function sub_info_get_<%=idname%>()
 		}
 	};
 	
-	if (s_<%=idname%>) { clearTimeout(s_<%=idname%>); };
-	
+	if (s_<%=idname%>) { clearTimeout(s_<%=idname%>);};
+
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "sub_info_get")%>', {filename: "<%=filename%>"}, function(x, status) {
 		if (x && x.status == 200 && status.sub_info != "" && status.sub_info != "No Sub Info Found") {
+			sub_info_retry = 0;
 			localStorage.setItem("<%=filename%>",JSON.stringify(status));
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
 			document.getElementById('<%=idname%>').innerHTML = "<%:Plan Traffic%>" + ": " + "<span style=color:green>" + status.used + "</span> | <span style=color:green>" + status.total + "</span> <br/> <%:Plan Expiration Time%>: " + "<span style=color:green>" + status.expire + "</span>";
 		}
 		else if ( x && x.status == 200 && status.sub_info == "No Sub Info Found" ) {
+			sub_info_retry = 0;
 			localStorage.setItem("<%=filename%>",JSON.stringify(status));
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
 			document.getElementById('<%=idname%>').innerHTML = "<span><%:No Sub Info Found%></span>";
 		}
 		else {
-			if (document.getElementById('<%=idname%>').innerHTML == "") {
+			if (document.getElementById('<%=idname%>').innerHTML == "" || sub_info_retry > 2) {
 				document.getElementById('<%=idname%>').className = "sub_tab_show";
 				document.getElementById('<%=idname%>').innerHTML = "<span style=color:red><%:Sub Info Get Error%></span>";
 			}
-			var s_<%=idname%> = setTimeout("sub_info_get_<%=idname%>()",1000*120);
-			return
+			if (sub_info_retry > 2) {
+				sub_info_retry = 0;
+				localStorage.removeItem("<%=filename%>");
+			}
+			else {
+				sub_info_retry ++;
+				s_<%=idname%> = setTimeout("sub_info_get_<%=idname%>()",1000*120);
+				return
+			}
+			
 		};
+		s_<%=idname%> = setTimeout("sub_info_get_<%=idname%>()",1000*1800);
 	});
-	
-	var s_<%=idname%> = setTimeout("sub_info_get_<%=idname%>()",1000*1800);
 };
 
 //]]></script>
