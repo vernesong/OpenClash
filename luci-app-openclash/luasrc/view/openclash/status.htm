@@ -186,6 +186,7 @@
 	var daip = document.getElementById('_daip');
 	var dase = document.getElementById('_dase');
 	var dapo = document.getElementById('_dapo');
+	var startlog = document.getElementById('_clashstart');
 	var clashversion = document.getElementById('_clashversion');
 	var close_all_connection = document.getElementById('_close_all_connection');
 	var reload_firewall = document.getElementById('_reload_firewall');
@@ -227,9 +228,6 @@
 	var state_refresh;
 	var s;
 	var gr;
-	state_get();
-	get_rule_mode();
-	get_run_mode();	
 	
 	hid_1.style.display = "none";
 	hid_2.style.display = "none";
@@ -304,29 +302,127 @@
 				};
 			};
 
-			if (status.watchdog) {
-				if (!ws_connect && !ws_error) {
-					ws_open();
-				}
-				else if (ws_error && ws_retry < 3)
-				{
-					ws_retry=ws_retry+1;
-					setTimeout(ws_open,1000*3);
-				}
-				else if (ws_error && ws_retry >= 3)
-				{
-					ws_terror();
-				}
+			if (status.watchdog && status.clash) {
+				if (!ws_connect) {
+					if (!ws_error) {
+						ws_open();
+					}
+					else if (ws_retry < 3)
+					{
+						ws_retry=ws_retry+1;
+						ws_open();
+					}
+					else
+					{
+						ws_terror();
+					};
+				};
 			}
 			else
 			{
 				ws_connect = false;
 				ws_error = false;
-				ws_terror();
-			}
+				if (status.clash) {
+					ws_terror();
+				};
+			};
+		};
+	});
+
+	XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
+	  if ( x && x.status == 200 ) {
+	  	if ( status.startlog.match("level=fatal") ) {
+	    	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
+	    	alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('msg=')[1]);
 		}
+		else if ( status.startlog != "\n" && status.startlog != "" ) {
+	    	startlog.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
+		};
+	  };
+	});
+
+	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "currentversion")%>', null, function(x, status) {
+		if ( x && x.status == 200 ) {
+			clashversion.innerHTML = '<img id="currenntver" src="'+status.currentversion+'" alt="currentversion" height="21px" onload="return clashversion_check()" onclick="return go_update()">';
+		};
 	});
 	
+	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
+		if ( x && x.status == 200 ) {
+			if ( status.startlog == "\n" || status.startlog == "" ) {
+				var rdmdl=Math.floor(Math.random()*16)+1;
+				if(rdmdl==1)
+				{
+					startlog.innerHTML = '<b><font><%:Tip: You can modify the profile on the profile page (for content that is not taken over)%></font></b>';
+				}
+				if(rdmdl==2)
+				{
+					startlog.innerHTML = '<b><font><%:Tip: click the version icon above to jump to the client publishing page%></font></b>';
+				}
+				if(rdmdl==3)
+				{
+					startlog.innerHTML = '<b><font><%:Tip: do not write configuration files? Try to create one click on the server page%></font></b>';
+				}
+				if(rdmdl==4)
+				{
+					startlog.innerHTML = '<b><font><%:Tip: some website are abnormal? Try switching modes or using third-party rules%></font></b>';
+				}
+				if(rdmdl==5)
+				{
+					startlog.innerHTML = '<b><font><%:Tip: using the fake IP mode can get a faster access experience%></font></b>';
+				}
+				if(rdmdl==6)
+				{
+					startlog.innerHTML = '<b><font><%:Tip: query DNS by TLS & TCP & HTTPS can get better anti pollution effect%></font></b>';
+				}
+				if(rdmdl==7)
+				{
+					startlog.innerHTML = '<b><font><%:Tip: openlash will check the configuration file parameters to ensure that it works properly%></font></b>';
+				}
+				if(rdmdl==8)
+				{
+					startlog.innerHTML = '<b><font><%:Tip: the nameserver group must have at least one server set when using custom DNS%></font></b>';
+				}
+				if(rdmdl==9)
+				{
+					startlog.innerHTML = '<b><font><%:Tip: the website access check shows the connection of the device currently logged in to the Luci page%></font></b>';
+				}
+				if(rdmdl==10)
+				{
+					startlog.innerHTML = '<b><font><%:Tip: after started, please wait patiently until the connection is normal%></font></b>';
+				}
+				if(rdmdl==11)
+				{
+					startlog.innerHTML = '<b><font><%:Tip: if you don not use IPv6, please turn off the DHCP service of IPv6, otherwise the connection will be abnormal%></font></b>';
+				}
+				if(rdmdl==12)
+				{
+					startlog.innerHTML = '<b><font><%:Tip: you can update the version in the global settings page%></font></b>';
+				}
+				if(rdmdl==13)
+				{
+					startlog.innerHTML = '<b><font><%:Note: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it%></font></b>';
+				}
+				if(rdmdl==14)
+				{
+					startlog.innerHTML = '<b><font><%:Note: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off%></font></b>';
+				}
+				if(rdmdl==15)
+				{
+					startlog.innerHTML = '<b><font><%:Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check%></font></b>';
+				}
+				if(rdmdl==16)
+				{
+					startlog.innerHTML = '<b><font><%:Note: The default proxy routes local traffic, BT, PT download, etc., please use redir mode as much as possible and pay attention to traffic avoidance%></font></b>';
+				}
+      		}
+	 	}
+	});
+
+	get_rule_mode();
+	get_run_mode();
+	state_get();
+
 	function get_rule_mode() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "rule_mode")%>', null, function(x, status) {
 			if (x && x.status == 200 && status.mode != "") {
@@ -533,7 +629,7 @@
 		return i == 0 ? (bytes / Math.pow(1024, i)) + ' ' + sizes[i] : (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
 	};
 	  
-	  function all_one_key_update(btn)
+	function all_one_key_update(btn)
     {
         btn.value    = '<%:Check All Components Update%>';
         btn.disabled = true;
@@ -616,31 +712,31 @@
     
     function b_flush_fakeip_cache(btn)
     {
-		   btn.disabled = true;
-		   btn.value    = '<%:Flushing...%> ';
-		   XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_fakeip_cache")%>',
-			   null,
-			   function(x,status)
-			   {
-				   if ( x && x.status == 200 ) {
-					   if(status.flush_status == "0" || status.flush_status != "")
-					   {
-						   btn.value = '<%:Flush Failed%>';
-						
-					   }
-					   else
-					   {
-					   	btn.value = '<%:Flush Successful%>';
-					   }
-				   }
-				   else {
-				   	btn.value = '<%:Flush Timeout%>';
-				   }
-			   }
-		   );
-		   btn.disabled = false;
-		   return false;
-	  };
+		btn.disabled = true;
+		btn.value    = '<%:Flushing...%> ';
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_fakeip_cache")%>',
+			null,
+			function(x,status)
+			{
+				if ( x && x.status == 200 ) {
+					if(status.flush_status == "0" || status.flush_status != "")
+					{
+						btn.value = '<%:Flush Failed%>';
+					
+					}
+					else
+					{
+					btn.value = '<%:Flush Successful%>';
+					}
+				}
+				else {
+				btn.value = '<%:Flush Timeout%>';
+				}
+			}
+		);
+		btn.disabled = false;
+		return false;
+	};
     
     function b_update_subscribe(btn)
     {
@@ -659,7 +755,7 @@
         });
     };
     
-	  function b_reload_firewall(btn)
+	function b_reload_firewall(btn)
     {
         btn.disabled = true;
         btn.value    = '<%:Reloading...%>';
@@ -676,7 +772,7 @@
         });
     };
     
-	  function b_close_all_connection(btn)
+	function b_close_all_connection(btn)
     {
         btn.disabled = true;
         btn.value    = '<%:Reloading...%>';
@@ -693,7 +789,7 @@
         });
     };
     
-	  function ycad_dashboard(btn)
+	function ycad_dashboard(btn)
     {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
         btn.disabled = true;
@@ -761,13 +857,6 @@
         url7='https://ko-fi.com/vernesong';
         winOpen(url7);
     };
-    
-
-	  XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "currentversion")%>', null, function(x, status) {
-	     if ( x && x.status == 200 ) {
-	        clashversion.innerHTML = '<img id="currenntver" src="'+status.currentversion+'" alt="currentversion" height="21px" onload="return clashversion_check()" onclick="return go_update()">';
-	     }
-	  });
 
     function clashversion_check()
     {
@@ -801,89 +890,5 @@
        url4='https://github.com/vernesong/OpenClash/releases';
        winOpen(url4);
     };
-    
-	var startlog = document.getElementById('_clashstart');
-	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
-	  if ( x && x.status == 200 ) {
-		   if ( status.startlog == "\n" || status.startlog == "" ) {
-          var rdmdl=Math.floor(Math.random()*16)+1;
-          if(rdmdl==1)
-          {
-             startlog.innerHTML = '<b><font><%:Tip: You can modify the profile on the profile page (for content that is not taken over)%></font></b>';
-          }
-          if(rdmdl==2)
-          {
-             startlog.innerHTML = '<b><font><%:Tip: click the version icon above to jump to the client publishing page%></font></b>';
-          }
-          if(rdmdl==3)
-          {
-             startlog.innerHTML = '<b><font><%:Tip: do not write configuration files? Try to create one click on the server page%></font></b>';
-          }
-          if(rdmdl==4)
-          {
-             startlog.innerHTML = '<b><font><%:Tip: some website are abnormal? Try switching modes or using third-party rules%></font></b>';
-          }
-          if(rdmdl==5)
-          {
-             startlog.innerHTML = '<b><font><%:Tip: using the fake IP mode can get a faster access experience%></font></b>';
-          }
-          if(rdmdl==6)
-          {
-             startlog.innerHTML = '<b><font><%:Tip: query DNS by TLS & TCP & HTTPS can get better anti pollution effect%></font></b>';
-          }
-          if(rdmdl==7)
-          {
-             startlog.innerHTML = '<b><font><%:Tip: openlash will check the configuration file parameters to ensure that it works properly%></font></b>';
-          }
-          if(rdmdl==8)
-          {
-             startlog.innerHTML = '<b><font><%:Tip: the nameserver group must have at least one server set when using custom DNS%></font></b>';
-          }
-          if(rdmdl==9)
-          {
-             startlog.innerHTML = '<b><font><%:Tip: the website access check shows the connection of the device currently logged in to the Luci page%></font></b>';
-          }
-          if(rdmdl==10)
-          {
-             startlog.innerHTML = '<b><font><%:Tip: after started, please wait patiently until the connection is normal%></font></b>';
-          }
-          if(rdmdl==11)
-          {
-             startlog.innerHTML = '<b><font><%:Tip: if you don not use IPv6, please turn off the DHCP service of IPv6, otherwise the connection will be abnormal%></font></b>';
-          }
-          if(rdmdl==12)
-          {
-             startlog.innerHTML = '<b><font><%:Tip: you can update the version in the global settings page%></font></b>';
-          }
-          if(rdmdl==13)
-          {
-             startlog.innerHTML = '<b><font><%:Note: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it%></font></b>';
-          }
-          if(rdmdl==14)
-          {
-             startlog.innerHTML = '<b><font><%:Note: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off%></font></b>';
-          }
-          if(rdmdl==15)
-          {
-             startlog.innerHTML = '<b><font><%:Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check%></font></b>';
-          }
-          if(rdmdl==16)
-          {
-             startlog.innerHTML = '<b><font><%:Note: The default proxy routes local traffic, BT, PT download, etc., please use redir mode as much as possible and pay attention to traffic avoidance%></font></b>';
-          }
-       }
-	  }
-	});
-	XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
-	  if ( x && x.status == 200 ) {
-	     if ( status.startlog.match("level=fatal") ) {
-	        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
-	        alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('msg=')[1]);
-	     }
-		   else if ( status.startlog != "\n" && status.startlog != "" ) {
-	        startlog.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
-	     }
-	  }
-	});
 //]]></script>
 
