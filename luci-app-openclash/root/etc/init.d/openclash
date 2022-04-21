@@ -241,23 +241,23 @@ EOF
       reg = /^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])(?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?$/;
       reg6 = /^(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))|\[(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))\](?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?$/i;
       if Value['dns'].has_key?('fallback') then
-         Value_1=Value['dns']['nameserver'] | Value['dns']['fallback']
+         Value_1=Value['dns']['nameserver'] | Value['dns']['fallback'];
       else
-         Value_1=Value['dns']['nameserver']
+         Value_1=Value['dns']['nameserver'];
       end;
       Value_1.each{|x|
          if x =~ reg or x =~ reg6 then
             if Value['dns'].has_key?('default-nameserver') then
-               Value['dns']['default-nameserver']=Value['dns']['default-nameserver'].to_a.insert(-1,x).uniq
+               Value['dns']['default-nameserver']=Value['dns']['default-nameserver'].to_a.insert(-1,x).uniq;
             else
-               Value_2={'default-nameserver'=>[x]}
-               Value['dns'].merge!(Value_2)
-            end
-         end
+               Value_2={'default-nameserver'=>[x]};
+               Value['dns'].merge!(Value_2);
+            end;
+         end;
        };
        File.open('${1}','w') {|f| YAML.dump(Value, f)};
     rescue Exception => e
-    puts '${LOGTIME} Error: Set default-nameserver Failed,【' + e.message + '】'
+      puts '${LOGTIME} Error: Set default-nameserver Failed,【' + e.message + '】';
     end
     " 2>/dev/null >> $LOG_FILE
    
@@ -290,40 +290,40 @@ yml_vmess_compatible()
       end;
       if x.key?('ws-path') then
          if not x.key?('ws-opts') then
-            x['ws-opts'] = {'path'=>x['ws-path'].to_s}
+            x['ws-opts'] = {'path'=>x['ws-path'].to_s};
          else
             if x['ws-opts'].nil? then
-               x['ws-opts'] = {'path'=>x['ws-path'].to_s}
+               x['ws-opts'] = {'path'=>x['ws-path'].to_s};
             elsif x['ws-opts']['path'].nil? then
-               x['ws-opts'].update({'path'=>x['ws-path'].to_s})
+               x['ws-opts'].update({'path'=>x['ws-path'].to_s});
             end
          end
-         x.delete('ws-path')
+         x.delete('ws-path');
       end;
       if x.key?('ws-headers') then
          x['ws-headers'].keys.each{
          |v|
             if not x.key?('ws-opts') then
-               x['ws-opts'] = {'headers'=>{v.to_s=>x['ws-headers'][v].to_s}}
+               x['ws-opts'] = {'headers'=>{v.to_s=>x['ws-headers'][v].to_s}};
             else
                if x['ws-opts'].nil? then
-                  x['ws-opts'] = {'headers'=>{v.to_s=>x['ws-headers'][v].to_s}}
+                  x['ws-opts'] = {'headers'=>{v.to_s=>x['ws-headers'][v].to_s}};
                elsif x['ws-opts']['headers'].nil? then
-                  x['ws-opts'].update({'headers'=>{v.to_s=>x['ws-headers'][v].to_s}})
+                  x['ws-opts'].update({'headers'=>{v.to_s=>x['ws-headers'][v].to_s}});
                #elsif not x['ws-opts']['headers'].key?(v)
-               #   x['ws-opts']['headers'].update({v.to_s=>x['ws-headers'][v].to_s})
-               end
-            end
+               #   x['ws-opts']['headers'].update({v.to_s=>x['ws-headers'][v].to_s});
+               end;
+            end;
          };
-         x.delete('ws-headers')
+         x.delete('ws-headers');
       end;
       };
       if not Value_1.eql?(Value['$2']) then
-         File.open('$1','w') {|f| YAML.dump(Value, f)}
+         File.open('$1','w') {|f| YAML.dump(Value, f)};
       end;
    end;
    rescue Exception => e
-   puts '${LOGTIME} Error: Edit Vmess Compatible Failed,【' + e.message + '】'
+      puts '${LOGTIME} Error: Edit Vmess Compatible Failed,【' + e.message + '】';
    end
    " 2>/dev/null >> $LOG_FILE
 }
@@ -353,28 +353,28 @@ yml_provider_path()
       Value['$2'].values.each{
       |x,v|
       if not x['path'].include? '$3' and not x['path'].include? 'game_rules' then
-         v=File.basename(x['path'])
-         x['path']='./$3/'+v
-      end
+         v=File.basename(x['path']);
+         x['path']='./$3/'+v;
+      end;
       #CDN Replace
       if '$4' != '0' then
          if '$4' == 'https://cdn.jsdelivr.net/' then
             if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
-               x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1]
-            end
+               x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
+            end;
          else
             if x['url'] and x['url'] =~ /^https:\/\/(raw.|gist.)(githubusercontent.com|github.com)/ then
-               x['url'] = '$4' + x['url']
-            end
-         end
-      end
+               x['url'] = '$4' + x['url'];
+            end;
+         end;
+      end;
       };
       if not Value_1.eql?(Value['$2']) then
-         File.open('$1','w') {|f| YAML.dump(Value, f)}
-      end
+         File.open('$1','w') {|f| YAML.dump(Value, f)};
+      end;
    end;
    rescue Exception => e
-   puts '${LOGTIME} Error: Edit Provider Path Failed,【' + e.message + '】'
+      puts '${LOGTIME} Error: Edit Provider Path Failed,【' + e.message + '】'
    end
    " 2>/dev/null >> $LOG_FILE
 }
@@ -630,12 +630,12 @@ ruby -ryaml -E UTF-8 -e "
   	Value['proxy-groups'].each{
   		|x|
 			if x['type'] == 'url-test' then
-				x['tolerance']=${2}
+				x['tolerance']=${2};
 			end
 		};
 		File.open('${1}','w') {|f| YAML.dump(Value, f)};
 	rescue Exception => e
-		puts '${LOGTIME} Error: Set Url-Test Group Tolerance Failed,【' + e.message + '】'
+		puts '${LOGTIME} Error: Set Url-Test Group Tolerance Failed,【' + e.message + '】';
 	end
 " 2>/dev/null >> $LOG_FILE
 fi
@@ -661,21 +661,21 @@ get_rule_file()
    begin
       Value = YAML.load_file('$GAME_RULE_FILE');
       if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-         Value['rules'].insert(-1,'RULE-SET,${1},${2}')
-         Value['rules']=Value['rules'].uniq
+         Value['rules'].insert(-1,'RULE-SET,${1},${2}');
+         Value['rules']=Value['rules'].uniq;
       else
-         Value={'rules'=>['RULE-SET,${1},${2}']}
+         Value={'rules'=>['RULE-SET,${1},${2}']};
       end;
       Value_1={'rule-providers'=>{'${1}'=>{'type'=>'file', 'behavior'=>'ipcidr', 'path'=>'${GAME_RULE_PATH}'}}};
       if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-         Value['rule-providers'].merge!(Value_1['rule-providers'])
-         Value['rule-providers'].uniq
+         Value['rule-providers'].merge!(Value_1['rule-providers']);
+         Value['rule-providers'].uniq;
       else
-         Value['rule-providers']=Value_1['rule-providers']
+         Value['rule-providers']=Value_1['rule-providers'];
       end;
       File.open('$GAME_RULE_FILE','w') {|f| YAML.dump(Value, f)};
    rescue Exception => e
-      puts '${LOGTIME} Error: Game Rule Merge Failed,【' + e.message + '】'
+      puts '${LOGTIME} Error: Game Rule Merge Failed,【' + e.message + '】';
    end
    " 2>/dev/null >> $LOG_FILE
 }
@@ -737,23 +737,23 @@ begin
 Value = YAML.load_file('$1');
 Value_1 = YAML.load_file('$GAME_RULE_FILE');
 if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-   ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
-   ruby_add_index ||= -1
-   Value_2 = Value_1['rules'].reverse!
-   Value_2.each{|x| Value['rules'].insert(ruby_add_index,x)}
+   ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first);
+   ruby_add_index ||= -1;
+   Value_2 = Value_1['rules'].reverse!;
+   Value_2.each{|x| Value['rules'].insert(ruby_add_index,x)};
    Value['rules']=Value['rules'].uniq;
 else
-   Value['rules'] = Value_1['rules']
+   Value['rules'] = Value_1['rules'];
 end;
 if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-   Value['rule-providers'].merge!(Value_1['rule-providers'])
-   Value['rule-providers'].uniq
+   Value['rule-providers'].merge!(Value_1['rule-providers']);
+   Value['rule-providers'].uniq;
 else
-   Value['rule-providers']=Value_1['rule-providers']
+   Value['rule-providers']=Value_1['rule-providers'];
 end;
 File.open('$1','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
-puts '${LOGTIME} Error: Game Rule Merge Failed,【' + e.message + '】'
+   puts '${LOGTIME} Error: Game Rule Merge Failed,【' + e.message + '】';
 end
 " 2>/dev/null >> $LOG_FILE
 }
@@ -770,33 +770,33 @@ Value = YAML.load_file('$1');
 if File::exist?('/tmp/yaml_groups.yaml') then
    Value_1 = YAML.load_file('/tmp/yaml_groups.yaml');
    if Value.has_key?('proxy-groups') and not Value['proxy-groups'].to_a.empty? then
-      Value['proxy-groups'] = Value['proxy-groups']+Value_1
-      Value['proxy-groups'].uniq
+      Value['proxy-groups'] = Value['proxy-groups']+Value_1;
+      Value['proxy-groups'].uniq;
    else
-      Value['proxy-groups']=Value_1
-   end
+      Value['proxy-groups']=Value_1;
+   end;
 end;
 if File::exist?('/tmp/yaml_servers.yaml') then
    Value_2 = YAML.load_file('/tmp/yaml_servers.yaml');
    if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
-      Value['proxies'] = Value['proxies']+Value_2['proxies']
-      Value['proxies'].uniq
+      Value['proxies'] = Value['proxies']+Value_2['proxies'];
+      Value['proxies'].uniq;
    else
-      Value['proxies']=Value_2['proxies']
+      Value['proxies']=Value_2['proxies'];
    end
 end;
 if File::exist?('/tmp/yaml_provider.yaml') then
    Value_3 = YAML.load_file('/tmp/yaml_provider.yaml');
    if Value.has_key?('proxy-providers') and not Value['proxy-providers'].to_a.empty? then
-      Value['proxy-providers'].merge!(Value_3['proxy-providers'])
-      Value['proxy-providers'].uniq
+      Value['proxy-providers'].merge!(Value_3['proxy-providers']);
+      Value['proxy-providers'].uniq;
    else
-      Value['proxy-providers']=Value_3['proxy-providers']
-   end
+      Value['proxy-providers']=Value_3['proxy-providers'];
+   end;
 end;
 File.open('$1','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
-puts '${LOGTIME} Error: Game Proxy Merge Failed,【' + e.message + '】'
+   puts '${LOGTIME} Error: Game Proxy Merge Failed,【' + e.message + '】';
 end" 2>/dev/null >> $LOG_FILE
 fi
 }
@@ -808,24 +808,24 @@ begin
    Value = YAML.load_file('$TMP_CONFIG_FILE');
    if $3 == 1 then
       if Value.has_key?('rule-set-bottom') and not Value['rule-set-bottom'].to_a.empty? then
-         Value['rule-set-bottom'].insert(-1,'RULE-SET,${1},${2}')
+         Value['rule-set-bottom'].insert(-1,'RULE-SET,${1},${2}');
       else
-         Value_1 = {'rule-set-bottom'=>['RULE-SET,${1},${2}']}
-         Value.merge!(Value_1);
-      end
-      Value['rule-set-bottom'] = Value['rule-set-bottom'].uniq
+         Value_1 = {'rule-set-bottom'=>['RULE-SET,${1},${2}']};
+         Value.merge!(Value_1);;
+      end;
+      Value['rule-set-bottom'] = Value['rule-set-bottom'].uniq;
    else
       if Value.has_key?('rule-set-top') and not Value['rule-set-top'].to_a.empty? then
-         Value['rule-set-top'].insert(-1,'RULE-SET,${1},${2}')
+         Value['rule-set-top'].insert(-1,'RULE-SET,${1},${2}');
       else
-         Value_1 = {'rule-set-top'=>['RULE-SET,${1},${2}']}
+         Value_1 = {'rule-set-top'=>['RULE-SET,${1},${2}']};
          Value.merge!(Value_1);
-      end
-      Value['rule-set-top'] = Value['rule-set-top'].uniq
+      end;
+      Value['rule-set-top'] = Value['rule-set-top'].uniq;
    end
 File.open('$TMP_CONFIG_FILE','w') {|f| YAML.dump(Value, f)}
 rescue Exception => e
-   puts '${LOGTIME} Error: Rule Set Add Failed,【' + e.message + '】'
+   puts '${LOGTIME} Error: Rule Set Add Failed,【' + e.message + '】';
 end
 " 2>/dev/null >> $LOG_FILE
 }
@@ -978,64 +978,64 @@ yml_custom_rule_provider()
       begin
          Value = YAML.load_file('$1');
       rescue Exception => e
-         puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】'
+         puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
       end;
       
       begin
          Value_1 = YAML.load_file('$RULE_PROVIDER_FILE');
          if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-            Value['rule-providers'].merge!(Value_1)
+            Value['rule-providers'].merge!(Value_1);
          else
-            Value['rule-providers']=Value_1
+            Value['rule-providers']=Value_1;
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Custom Rule Provider Merge Failed,【' + e.message + '】'
+         puts '${LOGTIME} Error: Custom Rule Provider Merge Failed,【' + e.message + '】';
       end;
       
       begin
          if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
             if Value.has_key?('rule-set-bottom') and not Value['rule-set-bottom'].to_a.empty? then
                if $enable_rule_proxy != 1 then
-                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
+                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first);
                else
                   if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
-                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last)
-                     ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first)
+                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
+                     ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
                   else
-                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first)
-                  end
-               end
-               ruby_add_index ||= -1
-               Value['rule-set-bottom'].reverse.each{|x| Value['rules'].insert(ruby_add_index,x)}
-               Value.delete('rule-set-bottom')
+                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
+                  end;
+               end;
+               ruby_add_index ||= -1;
+               Value['rule-set-bottom'].reverse.each{|x| Value['rules'].insert(ruby_add_index,x)};
+               Value.delete('rule-set-bottom');
             end
             if Value.has_key?('rule-set-top') and not Value['rule-set-top'].to_a.empty? then
                if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
-                  Value['rule-set-top'].reverse.each{|x| Value['rules'].insert(0,x)}
+                  Value['rule-set-top'].reverse.each{|x| Value['rules'].insert(0,x)};
                else
-                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/(?=.*198.18.0)(?=.*REJECT)/).first)
-                  Value['rule-set-top'].reverse.each{|x| Value['rules'].insert(ruby_add_index + 1,x)}
-               end
-               Value.delete('rule-set-top')
+                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/(?=.*198.18.0)(?=.*REJECT)/).first);
+                  Value['rule-set-top'].reverse.each{|x| Value['rules'].insert(ruby_add_index + 1,x)};
+               end;
+               Value.delete('rule-set-top');
             end
          else
             if Value.has_key?('rule-set-top') and not Value['rule-set-top'].to_a.empty? then
-               Value['rules'] = Value['rule-set-top']
-               Value.delete('rule-set-top')
-            end
+               Value['rules'] = Value['rule-set-top'];
+               Value.delete('rule-set-top');
+            end;
             if Value.has_key?('rule-set-bottom') and not Value['rule-set-bottom'].to_a.empty? then
                if Value.has_key?('rule-set-top') and not Value['rule-set-top'].to_a.empty? then
-                  Value['rules'] = Value['rules'] | Value['rule-set-bottom']
+                  Value['rules'] = Value['rules'] | Value['rule-set-bottom'];
                else
-                  Value['rules'] = Value['rule-set-bottom']
-               end
-               Value.delete('rule-set-bottom')
-            end
+                  Value['rules'] = Value['rule-set-bottom'];
+               end;
+               Value.delete('rule-set-bottom');
+            end;
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Rule Set Add Failed,【' + e.message + '】'
+         puts '${LOGTIME} Error: Rule Set Add Failed,【' + e.message + '】';
       ensure
-         File.open('$1','w') {|f| YAML.dump(Value, f)}
+         File.open('$1','w') {|f| YAML.dump(Value, f)};
       end;
       " 2>/dev/null >> $LOG_FILE
    fi
@@ -1124,8 +1124,8 @@ ruby -ryaml -E UTF-8 -e "
 begin
    YAML.load_file('$RAW_CONFIG_FILE');
 rescue Exception => e
-   puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】'
-   system 'rm -rf ${TMP_CONFIG_FILE}'
+   puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】';
+   system 'rm -rf ${TMP_CONFIG_FILE}';
 end
 " 2>/dev/null >> $LOG_FILE
 if [ $? -ne 0 ]; then
@@ -1510,16 +1510,6 @@ do_run_file()
 
 }
 
-#绑定interface防止回环
-yml_interface_name_set()
-{
-   if [ -n "$2" ] && [ "$2" != "0" ]; then
-      ruby_edit "$1" "['interface-name']='$2'"
-   else
-      sed -i "/^interface-name:/d" "$1" 2>/dev/null
-   fi
-}
-
 start_run_core()
 {
    LOG_OUT "$core_start_log"
@@ -1647,20 +1637,20 @@ try_restore_start()
          LOG_OUT "Error: OpenClash Can Not Start, Try Use Backup Rules Start Again..."
          ruby -ryaml -E UTF-8 -e "
          begin
-         Value = YAML.load_file('$RAW_CONFIG_FILE');
-         Value_1 = YAML.load_file('$CONFIG_FILE');
-         if Value.has_key?('rule-providers') then
-            Value_1['rule-providers'] = Value.select {|x| 'rule-providers' == x}['rule-providers']
-         end;
-         if Value.has_key?('script') then
-            Value_1['script'] = Value.select {|x| 'script' == x}['script']
-         end;
-         if Value.has_key?('rules') then
-            Value_1['rules'] = Value.select {|x| 'rules' == x}['rules']
-         end;
-         File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value_1, f)}
+            Value = YAML.load_file('$RAW_CONFIG_FILE');
+            Value_1 = YAML.load_file('$CONFIG_FILE');
+            if Value.has_key?('rule-providers') then
+               Value_1['rule-providers'] = Value.select {|x| 'rule-providers' == x}['rule-providers'];
+            end;
+            if Value.has_key?('script') then
+               Value_1['script'] = Value.select {|x| 'script' == x}['script'];
+            end;
+            if Value.has_key?('rules') then
+               Value_1['rules'] = Value.select {|x| 'rules' == x}['rules'];
+            end;
+            File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value_1, f)};
          rescue Exception => e
-         puts '${LOGTIME} Error: Restore Backup Rules Failed,【' + e.message + '】'
+            puts '${LOGTIME} Error: Restore Backup Rules Failed,【' + e.message + '】';
          end
          " 2>/dev/null >> $LOG_FILE
          start_run_core
@@ -2170,15 +2160,12 @@ if [ -n "$en_mode_tun" ]; then
    
    if [ "$en_mode_tun" -eq 1 ]; then
       iptables -t mangle -I PREROUTING -j openclash
-      iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp -d 8.8.8.8 --dport 53 -j ACCEPT
-      iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp -d 8.8.4.4 --dport 53 -j ACCEPT
+      iptables -t nat -I PREROUTING -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j ACCEPT
    else
       iptables -t mangle -I PREROUTING -p tcp --dport 53 -j openclash_dns_hijack
-      iptables -t mangle -A openclash_dns_hijack -m comment --comment "OpenClash Google DNS Hijack" -d 8.8.8.8 -j MARK --set-mark "$PROXY_FWMARK"
-      iptables -t mangle -A openclash_dns_hijack -m comment --comment "OpenClash Google DNS Hijack" -d 8.8.4.4 -j MARK --set-mark "$PROXY_FWMARK"
+      iptables -t mangle -A openclash_dns_hijack -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j MARK --set-mark "$PROXY_FWMARK"
       iptables -t mangle -I PREROUTING -p udp -j openclash
-      iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp --dport 53 -d 8.8.8.8 -j ACCEPT
-      iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp --dport 53 -d 8.8.4.4 -j ACCEPT
+      iptables -t nat -I PREROUTING -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j ACCEPT
    fi
 
    #TUN FORWORD
@@ -2445,7 +2432,7 @@ start()
       config_foreach yml_auth_get "authentication"
       yml_auth_custom "$TMP_CONFIG_FILE"
       yml_dns_custom "$enable_custom_dns" "$TMP_CONFIG_FILE" "$append_wan_dns" "$ipv6_dns"
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote" "$enable_meta_core" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote" "$enable_meta_core" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name"
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port"
       yml_custom_rule_provider "$TMP_CONFIG_FILE"
       yml_game_custom "$TMP_CONFIG_FILE"
@@ -2454,7 +2441,6 @@ start()
       yml_vmess_compatible "$TMP_CONFIG_FILE" "proxies"
       yml_dns_check "$TMP_CONFIG_FILE"  "$FALLBACK_FILTER_FILE"
       yml_tolerance_set "$TMP_CONFIG_FILE" "$tolerance"
-      yml_interface_name_set "$TMP_CONFIG_FILE" "$interface_name"
    fi
    
    LOG_OUT "Step 4: Start Running The Clash Core..."

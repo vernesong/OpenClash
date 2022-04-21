@@ -51,9 +51,9 @@ yml_other_set()
                         elsif Value_1['script'].key?('code') then
                            Value['script']['code'] = Value_1['script']['code']
                         end
-                        if Value['script'].key?('shortcuts') and Value_1['script'].key?('shortcuts')
+                        if Value['script'].key?('shortcuts') and Value_1['script'].key?('shortcuts') and not Value_1['script']['shortcuts'].to_a.empty? then
                            Value['script']['shortcuts'].merge!(Value_1['script']['shortcuts']).uniq
-                        elsif Value_1['script'].key?('shortcuts') then
+                        elsif Value_1['script'].key?('shortcuts') and not Value_1['script']['shortcuts'].to_a.empty? then
                            Value['script']['shortcuts'] = Value_1['script']['shortcuts']
                         end
                      else
