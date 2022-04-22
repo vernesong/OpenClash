@@ -2467,14 +2467,18 @@ start()
    
    LOG_OUT "Step 10: Add Cron Rules, Start Daemons..."
    add_cron
-   if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] && [ "$(uci -q get openclash.config.restricted_mode)" != "1" ]; then
-      LOG_OUT "OpenClash Start Successful!"
-      sleep 3
-   elif [ -n "$(uci -q get dhcp.lan.dhcpv6)" ] && [ "$ipv6_enable" -eq 0 ]; then
-      LOG_OUT "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPv6's DHCP Server"
-      sleep 3
-   fi
-   if [ "$(uci -q get openclash.config.restricted_mode)" = "1" ]; then
+   if [ "$(uci -q get openclash.config.restricted_mode)" != "1" ]; then
+      if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] || [ "$(uci -q get dhcp.lan.dhcpv6)" == "disabled" ]; then
+         LOG_OUT "OpenClash Start Successful!"
+         sleep 3
+      elif [ "$ipv6_enable" -eq 0 ]; then
+         LOG_OUT "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPv6's DHCP Server"
+         sleep 3
+      else
+         LOG_OUT "OpenClash Start Successful!"
+         sleep 3
+      fi
+   else
       LOG_OUT "Warning: OpenClash Start Successful With Raw Config File, Please Note That It's Restricted Mode Now"
       sleep 3
    fi
