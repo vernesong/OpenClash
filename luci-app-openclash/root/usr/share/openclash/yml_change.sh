@@ -71,7 +71,7 @@ begin
    Value['secret']='$2';
    Value['bind-address']='*';
    Value['external-ui']='/usr/share/openclash/dashboard';
-   if '${25}' != 0 then
+   if '${25}' != '0' then
       Value['interface-name']='${25}';
    else
       Value.delete('interface-name');
@@ -133,6 +133,13 @@ begin
             Value['sniffer']['skip-sni']=Value['sniffer']['skip-sni'].uniq;
          end
       end;
+      if File::exist?('/etc/openclash/custom/openclash_sniffing_port_filter.yaml') and ${24} == 1 then
+         Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_port_filter.yaml');
+         if Value_7 != false and not Value_7['port-whitelist'].to_a.empty? then
+            Value['sniffer']['port-whitelist']=Value_7['port-whitelist'];
+            Value['sniffer']['port-whitelist']=Value['sniffer']['port-whitelist'].uniq;
+         end
+      end;
    else
       if Value.key?('sniffer') then
          Value.delete('sniffer');
@@ -144,10 +151,8 @@ begin
       Value['tun']['stack']='$stack_type';
       if ${20} == 1 then
          Value['tun']['device']='utun';
-         Value_2={'dns-hijack'=>['tcp://8.8.8.8:53','tcp://8.8.4.4:53']};
-      else
-         Value_2={'dns-hijack'=>['tcp://any:53']};
       end;
+      Value_2={'dns-hijack'=>['tcp://any:53']};
       Value['tun']['auto-route']=false;
       Value['tun']['auto-detect-interface']=false;
       Value['tun'].merge!(Value_2);
