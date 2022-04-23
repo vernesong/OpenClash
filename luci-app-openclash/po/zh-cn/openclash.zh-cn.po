@@ -2909,7 +2909,7 @@ msgstr "节点筛选"
 msgid "Force Sniffing Domains Lists"
 msgstr "强制探测（嗅探）域名列表"
 
-msgid "Force Sniffing domains(sni) Filter"
+msgid "Force Sniffing Domains(sni) Filter"
 msgstr "忽略探测（嗅探）域名（sni）列表"
 
 msgid "Force Sniffing Ports Filter"

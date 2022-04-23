@@ -160,6 +160,7 @@ var myEditor_custom_domain_dns = document.getElementById("cbid.openclash.config.
 var myEditor_edit_file = document.getElementById("cbid.openclash.config.edit_file");
 var myEditor_sniffing_domain_force = document.getElementById("cbid.openclash.config.sniffing_domain_force");
 var myEditor_sniffing_domain_filter = document.getElementById("cbid.openclash.config.sniffing_domain_filter");
+var myEditor_sniffing_port_filter = document.getElementById("cbid.openclash.config.sniffing_port_filter");
 
 if (myEditor_hosts) {
 	editor(myEditor_hosts, 'false');
@@ -190,6 +191,10 @@ if (myEditor_sniffing_domain_force) {
 
 if (myEditor_sniffing_domain_filter) {
 	other_editor(myEditor_sniffing_domain_filter, 'false');
+};
+
+if (myEditor_sniffing_port_filter) {
+	other_editor(myEditor_sniffing_port_filter, 'false');
 };
 
 
