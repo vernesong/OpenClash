@@ -2279,6 +2279,9 @@ msgstr "错误：文件解析失败，"
 msgid "Error: Set General Failed,"
 msgstr "错误：修改General配置失败，"
 
+msgid "Error: Set authentication Failed,"
+msgstr "错误：修改authentication配置失败，"
+
 msgid "Error: Set Hosts Rules Failed,"
 msgstr "错误：修改Hosts配置失败，"
 
@@ -2320,9 +2323,6 @@ msgstr "错误：修改集路径失败，"
 
 msgid "Error: Set Url-Test Group Tolerance Failed,"
 msgstr "错误：修改Url-Test策略组容忍值失败，"
-
-msgid "Error: Game Rule Merge Failed,"
-msgstr "错误：游戏规则合并失败，"
 
 msgid "Error: Game Proxy Merge Failed,"
 msgstr "错误：游戏规则策略组合并失败，"
@@ -2809,9 +2809,6 @@ msgstr "仅支持规则（Rule）模式，其他模式默认分流，禁用后�
 
 msgid "Error: Set Router Self Proxy Rule Failed,"
 msgstr "错误：修改路由自身代理规则失败，"
-
-msgid "Error: Streaming Unlock Now Disabled, Need Start From Luci Page, Exiting..."
-msgstr "错误：流媒体解锁处于禁用状态，请在LUCI界面启用，退出..."
 
 msgid "Error: Streaming Unlock Has No Parameter of Type, Exiting..."
 msgstr "错误：流媒体解锁没有指定需要检测的流媒体类型，退出..."

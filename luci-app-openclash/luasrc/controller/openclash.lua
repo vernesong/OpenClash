@@ -118,6 +118,10 @@ local function is_watchdog()
 	return process_status("openclash_watchdog.sh")
 end
 
+local function is_start()
+	return process_status("/etc/init.d/openclash")
+end
+
 local function cn_port()
 	return uci:get("openclash", "config", "cn_port")
 end
@@ -156,6 +160,9 @@ end
 
 local function daip()
 	local daip = luci.sys.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
+	if not daip or daip == "" then
+		local daip = luci.sys.exec("ip address show $(uci -q -p /tmp/state get network.lan.ifname) | grep -w 'inet'  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | tr -d '\n'")
+	end
 	if not daip or daip == "" then
 		local daip = luci.sys.exec("ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
 	end
@@ -557,7 +564,7 @@ function sub_info_get()
 	local filename, sub_url, sub_info, info, upload, download, total, expire, http_code, len
 	filename = luci.http.formvalue("filename")
 	sub_info = ""
-	if filename then
+	if filename and not is_start() then
 		uci:foreach("openclash", "config_subscribe",
 			function(s)
 				if s.name == filename and s.address and string.find(s.address, "http") then
@@ -1060,7 +1067,7 @@ function action_refresh_log()
 		line_trans = line
 		ex_match = false
 		while true do
-			ex_keys = {"^Sec%-Fetch%-Mode", "^User%-Agent", "^Access%-Control", "^Accept", "^Origin", "^Referer", "^Connection", "^Pragma", "^Cache-"}
+			ex_keys = {"UDP%-Receive%-Buffer%-Size", "^Sec%-Fetch%-Mode", "^User%-Agent", "^Access%-Control", "^Accept", "^Origin", "^Referer", "^Connection", "^Pragma", "^Cache-"}
     	for key=1, #ex_keys do
     		if string.find (line, ex_keys[key]) then
     			ex_match = true
