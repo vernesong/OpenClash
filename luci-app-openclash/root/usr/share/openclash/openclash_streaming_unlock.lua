@@ -12,25 +12,21 @@ local filmId = 70143836
 local class_type = type
 local type = arg[1]
 local all_test
-local enable = tonumber(uci:get("openclash", "config", "stream_auto_select")) or 0
 local router_self_proxy = tonumber(uci:get("openclash", "config", "router_self_proxy")) or 1
 local now_name, group_name, group_type, group_show, status, ip, port, passwd, group_match_name
 local groups = {}
 local proxies = {}
 local self_status = luci.sys.exec(string.format('ps -w |grep -v grep |grep -c "openclash_streaming_unlock.lua %s"', type))
 
-if enable == 0 then
-print(os.date("%Y-%m-%d %H:%M:%S").." ".."Error: Streaming Unlock Now Disabled, Need Start From Luci Page, Exiting...")
-os.exit(0)
-elseif not type then
-print(os.date("%Y-%m-%d %H:%M:%S").." ".."Error: Streaming Unlock Has No Parameter of Type, Exiting...")
-os.exit(0)
+if not type then
+	print(os.date("%Y-%m-%d %H:%M:%S").." ".."Error: Streaming Unlock Has No Parameter of Type, Exiting...")
+	os.exit(0)
 elseif router_self_proxy == 0 then
-print(os.date("%Y-%m-%d %H:%M:%S").." ".."Error: Streaming Unlock Could not Work Because of Router-Self Proxy Disabled, Exiting...")
-os.exit(0)
+	print(os.date("%Y-%m-%d %H:%M:%S").." ".."Error: Streaming Unlock Could not Work Because of Router-Self Proxy Disabled, Exiting...")
+	os.exit(0)
 elseif tonumber(self_status) > 1 then
-print(os.date("%Y-%m-%d %H:%M:%S").." ".."Error: Multiple Scripts Running, Exiting...")
-os.exit(0)
+	print(os.date("%Y-%m-%d %H:%M:%S").." ".."Error: Multiple Scripts Running, Exiting...")
+	os.exit(0)
 end
 
 if arg[2] == "all" then all_test = true else all_test = false end
