@@ -5,9 +5,266 @@
 
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
+RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
+GAME_RULE_FILE="/tmp/yaml_game_rule.yaml"
+github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
+CONFIG_NAME="$5"
+
+#处理自定义规则集
+yml_set_custom_rule_provider()
+{
+   local section="$1"
+   local enabled name config type behavior path url interval group position
+   config_get_bool "enabled" "$section" "enabled" "1"
+   config_get "name" "$section" "name" ""
+   config_get "config" "$section" "config" ""
+   config_get "type" "$section" "type" ""
+   config_get "behavior" "$section" "behavior" ""
+   config_get "path" "$section" "path" ""
+   config_get "url" "$section" "url" ""
+   config_get "interval" "$section" "interval" ""
+   config_get "group" "$section" "group" ""
+   config_get "position" "$section" "position" ""
+
+   if [ "$enabled" = "0" ]; then
+      return
+   fi
+
+   if [ -n "$(grep "$url" "$RULE_PROVIDER_FILE" 2>/dev/null)" ] && [ -n "$url" ]; then
+      return
+   fi
+   
+   if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
+      return
+   fi
+   
+   if [ -z "$name" ] || [ -z "$type" ] || [ -z "$behavior" ]; then
+      return
+   fi
+
+   if [ "$type" = "http" ] && [ -z "$url" ]; then
+      return
+   fi
+
+   if [ "$path" != "./rule_provider/$name.yaml" ] && [ "$type" = "http" ]; then
+      path="./rule_provider/$name.yaml"
+   elif [ -z "$path" ]; then
+      return
+   fi
+  
+   if [ -n "$(grep "$path" "$RULE_PROVIDER_FILE" 2>/dev/null)" ]; then
+      return
+   fi
+
+   if [ -z "$interval" ] && [ "$type" = "http" ]; then
+      interval=86400
+   fi
+
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
+  $name:
+    type: $type
+    behavior: $behavior
+    path: $path
+EOF
+    if [ "$type" = "http" ]; then
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
+    url: $url
+    interval: $interval
+EOF
+    fi
+
+   yml_rule_set_add "$name" "$group" "$position"
+}
+
+yml_rule_set_add()
+{
+   if [ -z "$3" ]; then
+      return
+   fi
+
+   if [ "$3" == "1" ]; then
+      if [ -z "$(grep "^ \{0,\}rules:$" /tmp/yaml_rule_set_bottom_custom.yaml 2>/dev/null)" ]; then
+         echo "rules:" > "/tmp/yaml_rule_set_bottom_custom.yaml"
+      fi
+      echo "- RULE-SET,${1},${2}" >> "/tmp/yaml_rule_set_bottom_custom.yaml"
+   else
+      if [ -z "$(grep "^ \{0,\}rules:$" /tmp/yaml_rule_set_top_custom.yaml 2>/dev/null)" ]; then
+         echo "rules:" > "/tmp/yaml_rule_set_top_custom.yaml"
+      fi
+      echo "- RULE-SET,${1},${2}" >> "/tmp/yaml_rule_set_top_custom.yaml"
+   fi
+}
+
+yml_gen_rule_provider_file()
+{
+   if [ -z "$1" ]; then
+      return
+   fi
+   
+   RULE_PROVIDER_FILE_NAME=$(grep "^$1," /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $6}' 2>/dev/null)
+   if [ -z "$RULE_PROVIDER_FILE_NAME" ]; then
+      RULE_PROVIDER_FILE_NAME=$(grep "^$1," /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $5}' 2>/dev/null)
+   fi
+   RULE_PROVIDER_FILE_BEHAVIOR=$(grep ",$RULE_PROVIDER_FILE_NAME$" /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $3}' 2>/dev/null)
+   RULE_PROVIDER_FILE_PATH="/etc/openclash/rule_provider/$RULE_PROVIDER_FILE_NAME"
+   RULE_PROVIDER_FILE_URL_PATH="$(grep ",$RULE_PROVIDER_FILE_NAME$" /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $4$5}' 2>/dev/null)"
+   if [ "$github_address_mod" -eq 0 ]; then
+      RULE_PROVIDER_FILE_URL="https://raw.githubusercontent.com/${RULE_PROVIDER_FILE_URL_PATH}"
+   else
+      if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
+         RULE_PROVIDER_FILE_URL="https://cdn.jsdelivr.net/gh/"$(echo "$RULE_PROVIDER_FILE_URL_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"@master"$(echo "$RULE_PROVIDER_FILE_URL_PATH" |awk -F 'master' '{print $2}')""
+      else
+         RULE_PROVIDER_FILE_URL="${github_address_mod}https://raw.githubusercontent.com/${RULE_PROVIDER_FILE_URL_PATH}"
+      fi
+      
+   fi
+   if [ -n "$(grep "$RULE_PROVIDER_FILE_URL" $RULE_PROVIDER_FILE 2>/dev/null)" ]; then
+      return
+   fi
+
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
+  $1:
+    type: http
+    behavior: $RULE_PROVIDER_FILE_BEHAVIOR
+    path: $RULE_PROVIDER_FILE_PATH
+    url: $RULE_PROVIDER_FILE_URL
+EOF
+   if [ -z "$3" ]; then
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
+    interval=86400
+EOF
+   else
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
+    interval: $3
+EOF
+   fi
+   yml_rule_set_add "$1" "$2" "$4"
+}
+
+yml_get_rule_provider()
+{
+   local section="$1"
+   local enabled group config interval position
+   config_get_bool "enabled" "$section" "enabled" "1"
+   config_get "group" "$section" "group" ""
+   config_get "config" "$section" "config" ""
+   config_get "interval" "$section" "interval" ""
+   config_get "position" "$section" "position" ""
+
+   if [ "$enabled" = "0" ]; then
+      return
+   fi
+   
+   if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
+      return
+   fi
+
+   if [ -z "$group" ]; then
+      return
+   fi
+   
+   config_list_foreach "$section" "rule_name" yml_gen_rule_provider_file "$group" "$interval" "$position"
+}
+
+get_rule_file()
+{
+   if [ -z "$1" ]; then
+      return
+   fi
+   
+   GAME_RULE_FILE_NAME=$(grep "^$1," /usr/share/openclash/res/game_rules.list |awk -F ',' '{print $3}' 2>/dev/null)
+
+   if [ -z "$GAME_RULE_FILE_NAME" ]; then
+      GAME_RULE_FILE_NAME=$(grep "^$1," /usr/share/openclash/res/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null)
+   fi
+   
+   GAME_RULE_PATH="./game_rules/$GAME_RULE_FILE_NAME"
+
+   yml_rule_set_add "$1" "$2" "1"
+
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
+  $1:
+    type: file
+    behavior: ipcidr
+    path: '${GAME_RULE_PATH}'
+EOF
+}
+
+yml_game_rule_get()
+{
+   local section="$1"
+   local enabled group config
+   config_get_bool "enabled" "$section" "enabled" "1"
+   config_get "group" "$section" "group" ""
+   config_get "config" "$section" "config" ""
+
+   if [ "$enabled" = "0" ]; then
+      return
+   fi
+   
+   if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
+      return
+   fi
+   
+   if [ -z "$group" ]; then
+      return
+   fi
+   
+   config_list_foreach "$section" "rule_name" get_rule_file "$group"
+}
+
+yml_rule_group_get()
+{
+   local section="$1"
+   local enabled group config
+   config_get_bool "enabled" "$section" "enabled" "1"
+   config_get "group" "$section" "group" ""
+   config_get "config" "$section" "config" ""
+
+   if [ "$enabled" = "0" ]; then
+      return
+   fi
+   
+   if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
+      return
+   fi
+   
+   if [ -z "$group" ] || [ "$group" = "DIRECT" ] || [ "$group" = "REJECT" ]; then
+      return
+   fi
+
+   group_check=$(ruby -ryaml -E UTF-8 -e "
+   begin
+      Thread.new{
+         Value = YAML.load_file('$2');
+         Value['proxy-groups'].each{
+            |x|
+            if x['name'] == '$group' then
+               if (x.key?('use') and not x['use'].to_a.empty?) or (x.key?('proxies') and not x['proxies'].to_a.empty?) then
+                  puts 'return'
+               end;
+            end;
+         };
+      }.join;
+   rescue Exception => e
+      puts 'return'
+   end;" 2>/dev/null)
+
+   if [ "$group_check" != "return" ]; then
+      /usr/share/openclash/yml_groups_set.sh >/dev/null 2>&1 "$group"
+   fi
+}
 
 yml_other_set()
 {
+   config_load "openclash"
+   config_foreach yml_get_rule_provider "rule_provider_config"
+   config_foreach yml_set_custom_rule_provider "rule_providers"
+   config_foreach yml_game_rule_get "game_config"
+   #添加缺失的节点与策略组
+   config_foreach yml_rule_group_get "rule_provider_config" "$3"
+   config_foreach yml_rule_group_get "rule_providers" "$3"
+   config_foreach yml_rule_group_get "game_config" "$3"
    ruby -ryaml -E UTF-8 -e "
    begin
    Value = YAML.load_file('$3');
@@ -15,6 +272,7 @@ yml_other_set()
       puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】'
    end
    begin
+   Thread.new{
    if $2 == 1 then
    #script
       for i in ['/etc/openclash/custom/openclash_custom_rules.list','/etc/openclash/custom/openclash_custom_rules_2.list'] do
@@ -153,93 +411,96 @@ yml_other_set()
          end
       end
    end;
+   }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Set Custom Rules Failed,【' + e.message + '】'
    end
- 
    begin
-   if $4 == 1 then
-      Value['rules']=Value['rules'].to_a.insert(0,
-      'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
-      'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
-      'DOMAIN-SUFFIX,chdbits.co,DIRECT',
-      'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
-      'DOMAIN-SUFFIX,empornium.me,DIRECT',
-      'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
-      'DOMAIN-SUFFIX,hdchina.org,DIRECT',
-      'DOMAIN-SUFFIX,hdsky.me,DIRECT',
-      'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
-      'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
-      'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
-      'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
-      'DOMAIN-SUFFIX,m-team.cc,DIRECT',
-      'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
-      'DOMAIN-SUFFIX,ncore.cc,DIRECT',
-      'DOMAIN-SUFFIX,open.cd,DIRECT',
-      'DOMAIN-SUFFIX,ourbits.club,DIRECT',
-      'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
-      'DOMAIN-SUFFIX,privatehd.to,DIRECT',
-      'DOMAIN-SUFFIX,redacted.ch,DIRECT',
-      'DOMAIN-SUFFIX,springsunday.net,DIRECT',
-      'DOMAIN-SUFFIX,tjupt.org,DIRECT',
-      'DOMAIN-SUFFIX,totheglory.im,DIRECT',
-      'DOMAIN-KEYWORD,announce,DIRECT',
-      'DOMAIN-KEYWORD,torrent,DIRECT',
-      'DOMAIN-KEYWORD,tracker,DIRECT',
-      'PROCESS-NAME,aria2c,DIRECT',
-      'PROCESS-NAME,BitComet,DIRECT',
-      'PROCESS-NAME,fdm,DIRECT',
-      'PROCESS-NAME,NetTransport,DIRECT',
-      'PROCESS-NAME,qbittorrent,DIRECT',
-      'PROCESS-NAME,Thunder,DIRECT',
-      'PROCESS-NAME,transmission-daemon,DIRECT',
-      'PROCESS-NAME,transmission-qt,DIRECT',
-      'PROCESS-NAME,uTorrent,DIRECT',
-      'PROCESS-NAME,WebTorrent,DIRECT',
-      'PROCESS-NAME,aria2c,DIRECT',
-      'PROCESS-NAME,fdm,DIRECT',
-      'PROCESS-NAME,Folx,DIRECT',
-      'PROCESS-NAME,NetTransport,DIRECT',
-      'PROCESS-NAME,qbittorrent,DIRECT',
-      'PROCESS-NAME,Thunder,DIRECT',
-      'PROCESS-NAME,Transmission,DIRECT',
-      'PROCESS-NAME,transmission,DIRECT',
-      'PROCESS-NAME,uTorrent,DIRECT',
-      'PROCESS-NAME,WebTorrent,DIRECT',
-      'PROCESS-NAME,WebTorrent Helper,DIRECT',
-      'PROCESS-NAME,v2ray,DIRECT',
-      'PROCESS-NAME,ss-local,DIRECT',
-      'PROCESS-NAME,ssr-local,DIRECT',
-      'PROCESS-NAME,ss-redir,DIRECT',
-      'PROCESS-NAME,ssr-redir,DIRECT',
-      'PROCESS-NAME,ss-server,DIRECT',
-      'PROCESS-NAME,trojan-go,DIRECT',
-      'PROCESS-NAME,xray,DIRECT',
-      'PROCESS-NAME,hysteria,DIRECT',
-      'PROCESS-NAME,UUBooster,DIRECT',
-      'PROCESS-NAME,uugamebooster,DIRECT',
-      'DOMAIN-SUFFIX,smtp,DIRECT'
-      )
-      match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0]
-      if not match_group.nil? then
-         common_port_group=match_group.split(',')[2] or common_port_group=match_group.split(',')[1]
-         if not common_port_group.nil? then
-            ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first)
-            ruby_add_index ||= -1
-            Value['rules']=Value['rules'].to_a.insert(ruby_add_index,
-            'DST-PORT,80,' + common_port_group,
-            'DST-PORT,443,' + common_port_group,
-            'DST-PORT,22,' + common_port_group
-            )
+   Thread.new{
+      if $4 == 1 then
+         Value['rules']=Value['rules'].to_a.insert(0,
+         'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
+         'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
+         'DOMAIN-SUFFIX,chdbits.co,DIRECT',
+         'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
+         'DOMAIN-SUFFIX,empornium.me,DIRECT',
+         'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
+         'DOMAIN-SUFFIX,hdchina.org,DIRECT',
+         'DOMAIN-SUFFIX,hdsky.me,DIRECT',
+         'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
+         'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
+         'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
+         'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
+         'DOMAIN-SUFFIX,m-team.cc,DIRECT',
+         'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
+         'DOMAIN-SUFFIX,ncore.cc,DIRECT',
+         'DOMAIN-SUFFIX,open.cd,DIRECT',
+         'DOMAIN-SUFFIX,ourbits.club,DIRECT',
+         'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
+         'DOMAIN-SUFFIX,privatehd.to,DIRECT',
+         'DOMAIN-SUFFIX,redacted.ch,DIRECT',
+         'DOMAIN-SUFFIX,springsunday.net,DIRECT',
+         'DOMAIN-SUFFIX,tjupt.org,DIRECT',
+         'DOMAIN-SUFFIX,totheglory.im,DIRECT',
+         'DOMAIN-KEYWORD,announce,DIRECT',
+         'DOMAIN-KEYWORD,torrent,DIRECT',
+         'DOMAIN-KEYWORD,tracker,DIRECT',
+         'PROCESS-NAME,aria2c,DIRECT',
+         'PROCESS-NAME,BitComet,DIRECT',
+         'PROCESS-NAME,fdm,DIRECT',
+         'PROCESS-NAME,NetTransport,DIRECT',
+         'PROCESS-NAME,qbittorrent,DIRECT',
+         'PROCESS-NAME,Thunder,DIRECT',
+         'PROCESS-NAME,transmission-daemon,DIRECT',
+         'PROCESS-NAME,transmission-qt,DIRECT',
+         'PROCESS-NAME,uTorrent,DIRECT',
+         'PROCESS-NAME,WebTorrent,DIRECT',
+         'PROCESS-NAME,aria2c,DIRECT',
+         'PROCESS-NAME,fdm,DIRECT',
+         'PROCESS-NAME,Folx,DIRECT',
+         'PROCESS-NAME,NetTransport,DIRECT',
+         'PROCESS-NAME,qbittorrent,DIRECT',
+         'PROCESS-NAME,Thunder,DIRECT',
+         'PROCESS-NAME,Transmission,DIRECT',
+         'PROCESS-NAME,transmission,DIRECT',
+         'PROCESS-NAME,uTorrent,DIRECT',
+         'PROCESS-NAME,WebTorrent,DIRECT',
+         'PROCESS-NAME,WebTorrent Helper,DIRECT',
+         'PROCESS-NAME,v2ray,DIRECT',
+         'PROCESS-NAME,ss-local,DIRECT',
+         'PROCESS-NAME,ssr-local,DIRECT',
+         'PROCESS-NAME,ss-redir,DIRECT',
+         'PROCESS-NAME,ssr-redir,DIRECT',
+         'PROCESS-NAME,ss-server,DIRECT',
+         'PROCESS-NAME,trojan-go,DIRECT',
+         'PROCESS-NAME,xray,DIRECT',
+         'PROCESS-NAME,hysteria,DIRECT',
+         'PROCESS-NAME,UUBooster,DIRECT',
+         'PROCESS-NAME,uugamebooster,DIRECT',
+         'DOMAIN-SUFFIX,smtp,DIRECT'
+         )
+         match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0]
+         if not match_group.nil? then
+            common_port_group=match_group.split(',')[2] or common_port_group=match_group.split(',')[1]
+            if not common_port_group.nil? then
+               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first)
+               ruby_add_index ||= -1
+               Value['rules']=Value['rules'].to_a.insert(ruby_add_index,
+               'DST-PORT,80,' + common_port_group,
+               'DST-PORT,443,' + common_port_group,
+               'DST-PORT,22,' + common_port_group
+               )
+            end
          end
-      end
-      Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
-   end;
+         Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
+      end;
+   }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】'
    end
    
    begin
+   Thread.new{
       if $6 == 0 then
          if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
             if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,198.18.0.1)/).empty? then
@@ -255,11 +516,13 @@ yml_other_set()
          Value['rules'].delete('SRC-IP-CIDR,198.18.0.1/32,DIRECT')
          Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT')
       end;
+   }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Set Router Self Proxy Rule Failed,【' + e.message + '】'
    end
    
    begin
+   Thread.new{
       if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
          if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
             Value['rules']=Value['rules'].to_a.insert(0,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve')
@@ -273,10 +536,140 @@ yml_other_set()
       else
          Value['rules']=['IP-CIDR,198.18.0.1/16,REJECT,no-resolve','DST-PORT,$8,REJECT','DST-PORT,$9,REJECT']
       end;
+   }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Set Loop Protect Rules Failed,【' + e.message + '】'
+   end;
+
+   #处理规则集
+   begin
+   Thread.new{
+      if File::exist?('$RULE_PROVIDER_FILE') then
+         Value_1 = YAML.load_file('$RULE_PROVIDER_FILE');
+         if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+            Value['rule-providers'].merge!(Value_1);
+         else
+            Value['rule-providers']=Value_1;
+         end;
+      end;
+   }.join;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Custom Rule Provider Merge Failed,【' + e.message + '】';
+   end;
+      
+   begin
+   Thread.new{
+      if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+         if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
+            if $4 != 1 then
+               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first);
+            else
+               if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
+                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
+                  ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
+               else
+                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
+               end;
+            end;
+            ruby_add_index ||= -1;
+            Value_1['rules'] = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml')['rules'].uniq;
+            Value_1['rules'].reverse.each{|x| Value['rules'].insert(ruby_add_index,x)};
+         end
+         if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
+            Value_1['rules'] = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml')['rules'].uniq;
+            if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
+               Value_1['rules'].reverse.each{|x| Value['rules'].insert(0,x)};
+            else
+               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(?=.*198.18.0)(?=.*REJECT)/).first);
+               Value_1['rules'].reverse.each{|x| Value['rules'].insert(ruby_add_index + 1,x)};
+            end;
+         end
+      else
+         if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
+            Value['rules'] = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml')['rules'].uniq;
+         end;
+         if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
+            Value_1['rules'] = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml')['rules'].uniq;
+            if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
+               Value['rules'] = Value['rules'] | Value_1['rules'];
+            else
+               Value['rules'] = Value_1['rules'];
+            end;
+         end;
+      end;
+   }.join;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Rule Set Add Failed,【' + e.message + '】';
+   end;
+
+   begin
+   Thread.new{
+      if File::exist?('/tmp/yaml_groups.yaml') or File::exist?('/tmp/yaml_servers.yaml') or File::exist?('/tmp/yaml_provider.yaml') then
+         if File::exist?('/tmp/yaml_groups.yaml') then
+            Value_1 = YAML.load_file('/tmp/yaml_groups.yaml');
+            if Value.has_key?('proxy-groups') and not Value['proxy-groups'].to_a.empty? then
+               Value['proxy-groups'] = Value['proxy-groups'] + Value_1;
+               Value['proxy-groups'].uniq;
+            else
+               Value['proxy-groups']=Value_1;
+            end;
+         end;
+         if File::exist?('/tmp/yaml_servers.yaml') then
+            Value_2 = YAML.load_file('/tmp/yaml_servers.yaml');
+            if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
+               Value['proxies'] = Value['proxies'] + Value_2['proxies'];
+               Value['proxies'].uniq;
+            else
+               Value['proxies']=Value_2['proxies'];
+            end
+         end;
+         if File::exist?('/tmp/yaml_provider.yaml') then
+            Value_3 = YAML.load_file('/tmp/yaml_provider.yaml');
+            if Value.has_key?('proxy-providers') and not Value['proxy-providers'].to_a.empty? then
+               Value['proxy-providers'].merge!(Value_3['proxy-providers']);
+               Value['proxy-providers'].uniq;
+            else
+               Value['proxy-providers']=Value_3['proxy-providers'];
+            end;
+         end;
+      end;
+   }.join;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Game Proxy Merge Failed,【' + e.message + '】';
+   end;
+
+   #修改集路径
+   begin
+   Thread.new{
+      provider = {'proxy-providers' => 'proxy_provider', 'rule-providers' => 'rule_provider'}
+      provider.each{|i, p|
+         if Value.key?(i) then
+            Value[i].values.each{
+            |x,v|
+            if not x['path'].include? p and not x['path'].include? 'game_rules' then
+               v=File.basename(x['path']);
+               x['path']='./'+p+'/'+v;
+            end;
+            #CDN Replace
+            if '$github_address_mod' != '0' then
+               if '$github_address_mod' == 'https://cdn.jsdelivr.net/' then
+                  if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
+                     x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
+                  end;
+               else
+                  if x['url'] and x['url'] =~ /^https:\/\/(raw.|gist.)(githubusercontent.com|github.com)/ then
+                     x['url'] = '$github_address_mod' + x['url'];
+                  end;
+               end;
+            end;
+            };
+         end;
+      };
+   }.join;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Edit Provider Path Failed,【' + e.message + '】';
    ensure
-   File.open('$3','w') {|f| YAML.dump(Value, f)}
+      File.open('$3','w') {|f| YAML.dump(Value, f)};
    end" 2>/dev/null >> $LOG_FILE
 }
 
@@ -390,128 +783,139 @@ if [ "$1" != "0" ]; then
       yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
       exit 0
    else
-       #删除原有的部分，防止冲突
-       if [ -n "$(ruby_read "$3" "['script']")" ]; then
-          ruby_edit "$3" ".delete('script')"
-       fi
-       if [ -n "$(ruby_read "$3" "['rules']")" ]; then
-          ruby_edit "$3" ".delete('rules')"
-       fi
        if [ "$rule_name" = "lhie1" ]; then
-       	    ruby -ryaml -E UTF-8 -e "
-       	    begin
-       	    Value = YAML.load_file('$3');
-       	    Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
-       	    if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
-       	       if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-                  Value['rule-providers'].merge!(Value_1['rule-providers'])
-       	       else
-                  Value['rule-providers']=Value_1['rule-providers']
-       	       end
-       	    end;
-       	    Value['script']=Value_1['script'];
-       	    Value['rules']=Value_1['rules'];
-       	    Value['rules'].to_a.collect!{|x|
-       	    x.to_s.gsub(/,Bilibili,Asian TV$/, ',Bilibili,$Bilibili#d')
-       	    .gsub(/,Bahamut,Global TV$/, ',Bahamut,$Bahamut#d')
-       	    .gsub(/,HBO Max,Global TV$/, ',HBO Max,$HBOMax#d')
-       	    .gsub(/,HBO Go,Global TV$/, ',HBO Go,$HBOGo#d')
-       	    .gsub(/,Discovery Plus,Global TV$/, ',Discovery Plus,$Discovery#d')
-       	    .gsub(/,DAZN,Global TV$/, ',DAZN,$DAZN#d')
-       	    .gsub(/,Pornhub,Global TV$/, ',Pornhub,$Pornhub#d')
-       	    .gsub(/,Global TV$/, ',$GlobalTV#d')
-       	    .gsub(/,Asian TV$/, ',$AsianTV#d')
-       	    .gsub(/,Proxy$/, ',$Proxy#d')
-       	    .gsub(/,YouTube$/, ',$Youtube#d')
-       	    .gsub(/,Apple$/, ',$Apple#d')
-       	    .gsub(/,Scholar$/, ',$Scholar#d')
-       	    .gsub(/,Netflix$/, ',$Netflix#d')
-       	    .gsub(/,Disney$/, ',$Disney#d')
-       	    .gsub(/,Spotify$/, ',$Spotify#d')
-       	    .gsub(/,Steam$/, ',$Steam#d')
-       	    .gsub(/,AdBlock$/, ',$AdBlock#d')
-       	    .gsub(/,Speedtest$/, ',$Speedtest#d')
-       	    .gsub(/,Telegram$/, ',$Telegram#d')
-       	    .gsub(/,Microsoft$/, ',$Microsoft#d')
-       	    .to_s.gsub(/,PayPal$/, ',$PayPal#d')
-       	    .gsub(/,Domestic$/, ',$Domestic#d')
-       	    .gsub(/,Others$/, ',$Others#d')
-       	    .gsub(/,Google FCM$/, ',$GoogleFCM#d')
-       	    .gsub(/#d/, '')
-       	    };
-       	    Value['script']['code'].to_s.gsub!(/\"Bilibili\": \"Asian TV\"/,'\"Bilibili\": \"$Bilibili#d\"')
-       	    .gsub!(/\"Bahamut\": \"Global TV\"/,'\"Bahamut\": \"$Bahamut#d\"')
-       	    .gsub!(/\"HBO Max\": \"Global TV\"/,'\"HBO Max\": \"$HBOMax#d\"')
-       	    .gsub!(/\"HBO Go\": \"Global TV\"/,'\"HBO Go\": \"$HBOGo#d\"')
-       	    .gsub!(/\"Discovery Plus\": \"Global TV\"/,'\"Discovery Plus\": \"$Discovery#d\"')
-       	    .gsub!(/\"DAZN\": \"Global TV\"/,'\"DAZN\": \"$DAZN#d\"')
-       	    .gsub!(/\"Pornhub\": \"Global TV\"/,'\"Pornhub\": \"$Pornhub#d\"')
-       	    .gsub!(/: \"Global TV\"/,': \"$GlobalTV#d\"')
-       	    .gsub!(/: \"Asian TV\"/,': \"$AsianTV#d\"')
-       	    .gsub!(/: \"Proxy\"/,': \"$Proxy#d\"')
-       	    .gsub!(/: \"YouTube\"/,': \"$Youtube#d\"')
-       	    .gsub!(/: \"Apple\"/,': \"$Apple#d\"')
-       	    .gsub!(/: \"Scholar\"/,': \"$Scholar#d\"')
-       	    .gsub!(/: \"Netflix\"/,': \"$Netflix#d\"')
-       	    .gsub!(/: \"Disney\"/,': \"$Disney#d\"')
-       	    .gsub!(/: \"Spotify\"/,': \"$Spotify#d\"')
-       	    .gsub!(/: \"Steam\"/,': \"$Steam#d\"')
-       	    .gsub!(/: \"AdBlock\"/,': \"$AdBlock#d\"')
-       	    .gsub!(/: \"Speedtest\"/,': \"$Speedtest#d\"')
-       	    .gsub!(/: \"Telegram\"/,': \"$Telegram#d\"')
-       	    .gsub!(/: \"Microsoft\"/,': \"$Microsoft#d\"')
-       	    .gsub!(/: \"PayPal\"/,': \"$PayPal#d\"')
-       	    .gsub!(/: \"Domestic\"/,': \"$Domestic#d\"')
-       	    .gsub!(/: \"Google FCM\"/,': \"$GoogleFCM#d\"')
-       	    .gsub!(/return \"Domestic\"$/, 'return \"$Domestic#d\"')
-       	    .gsub!(/return \"Others\"$/, 'return \"$Others#d\"')
-       	    .gsub!(/#d/, '');
-       	    File.open('$3','w') {|f| YAML.dump(Value, f)};
-       	    rescue Exception => e
-       	    puts '${LOGTIME} Error: Set lhie1 Rules Failed,【' + e.message + '】'
-       	    end" 2>/dev/null >> $LOG_FILE
+       	   ruby -ryaml -E UTF-8 -e "
+       	   begin
+               Value = YAML.load_file('$3');
+               Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
+               if Value.has_key?('script') then
+                  Value.delete('script')
+               end;
+               if Value.has_key?('rules') then
+                  Value.delete('rules')
+               end;
+               if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
+                  if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+                     Value['rule-providers'].merge!(Value_1['rule-providers'])
+                  else
+                     Value['rule-providers']=Value_1['rule-providers']
+                  end
+               end;
+               Value['script']=Value_1['script'];
+               Value['rules']=Value_1['rules'];
+               Value['rules'].to_a.collect!{|x|
+               x.to_s.gsub(/,Bilibili,Asian TV$/, ',Bilibili,$Bilibili#d')
+               .gsub(/,Bahamut,Global TV$/, ',Bahamut,$Bahamut#d')
+               .gsub(/,HBO Max,Global TV$/, ',HBO Max,$HBOMax#d')
+               .gsub(/,HBO Go,Global TV$/, ',HBO Go,$HBOGo#d')
+               .gsub(/,Discovery Plus,Global TV$/, ',Discovery Plus,$Discovery#d')
+               .gsub(/,DAZN,Global TV$/, ',DAZN,$DAZN#d')
+               .gsub(/,Pornhub,Global TV$/, ',Pornhub,$Pornhub#d')
+               .gsub(/,Global TV$/, ',$GlobalTV#d')
+               .gsub(/,Asian TV$/, ',$AsianTV#d')
+               .gsub(/,Proxy$/, ',$Proxy#d')
+               .gsub(/,YouTube$/, ',$Youtube#d')
+               .gsub(/,Apple$/, ',$Apple#d')
+               .gsub(/,Scholar$/, ',$Scholar#d')
+               .gsub(/,Netflix$/, ',$Netflix#d')
+               .gsub(/,Disney$/, ',$Disney#d')
+               .gsub(/,Spotify$/, ',$Spotify#d')
+               .gsub(/,Steam$/, ',$Steam#d')
+               .gsub(/,AdBlock$/, ',$AdBlock#d')
+               .gsub(/,Speedtest$/, ',$Speedtest#d')
+               .gsub(/,Telegram$/, ',$Telegram#d')
+               .gsub(/,Microsoft$/, ',$Microsoft#d')
+               .to_s.gsub(/,PayPal$/, ',$PayPal#d')
+               .gsub(/,Domestic$/, ',$Domestic#d')
+               .gsub(/,Others$/, ',$Others#d')
+               .gsub(/,Google FCM$/, ',$GoogleFCM#d')
+               .gsub(/#d/, '')
+               };
+               Value['script']['code'].to_s.gsub!(/\"Bilibili\": \"Asian TV\"/,'\"Bilibili\": \"$Bilibili#d\"')
+               .gsub!(/\"Bahamut\": \"Global TV\"/,'\"Bahamut\": \"$Bahamut#d\"')
+               .gsub!(/\"HBO Max\": \"Global TV\"/,'\"HBO Max\": \"$HBOMax#d\"')
+               .gsub!(/\"HBO Go\": \"Global TV\"/,'\"HBO Go\": \"$HBOGo#d\"')
+               .gsub!(/\"Discovery Plus\": \"Global TV\"/,'\"Discovery Plus\": \"$Discovery#d\"')
+               .gsub!(/\"DAZN\": \"Global TV\"/,'\"DAZN\": \"$DAZN#d\"')
+               .gsub!(/\"Pornhub\": \"Global TV\"/,'\"Pornhub\": \"$Pornhub#d\"')
+               .gsub!(/: \"Global TV\"/,': \"$GlobalTV#d\"')
+               .gsub!(/: \"Asian TV\"/,': \"$AsianTV#d\"')
+               .gsub!(/: \"Proxy\"/,': \"$Proxy#d\"')
+               .gsub!(/: \"YouTube\"/,': \"$Youtube#d\"')
+               .gsub!(/: \"Apple\"/,': \"$Apple#d\"')
+               .gsub!(/: \"Scholar\"/,': \"$Scholar#d\"')
+               .gsub!(/: \"Netflix\"/,': \"$Netflix#d\"')
+               .gsub!(/: \"Disney\"/,': \"$Disney#d\"')
+               .gsub!(/: \"Spotify\"/,': \"$Spotify#d\"')
+               .gsub!(/: \"Steam\"/,': \"$Steam#d\"')
+               .gsub!(/: \"AdBlock\"/,': \"$AdBlock#d\"')
+               .gsub!(/: \"Speedtest\"/,': \"$Speedtest#d\"')
+               .gsub!(/: \"Telegram\"/,': \"$Telegram#d\"')
+               .gsub!(/: \"Microsoft\"/,': \"$Microsoft#d\"')
+               .gsub!(/: \"PayPal\"/,': \"$PayPal#d\"')
+               .gsub!(/: \"Domestic\"/,': \"$Domestic#d\"')
+               .gsub!(/: \"Google FCM\"/,': \"$GoogleFCM#d\"')
+               .gsub!(/return \"Domestic\"$/, 'return \"$Domestic#d\"')
+               .gsub!(/return \"Others\"$/, 'return \"$Others#d\"')
+               .gsub!(/#d/, '');
+               File.open('$3','w') {|f| YAML.dump(Value, f)};
+       	   rescue Exception => e
+       	      puts '${LOGTIME} Error: Set lhie1 Rules Failed,【' + e.message + '】';
+       	   end" 2>/dev/null >> $LOG_FILE
        elif [ "$rule_name" = "ConnersHua" ]; then
             ruby -ryaml -E UTF-8 -e "
             begin
-       	    Value = YAML.load_file('$3');
-            Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua.yaml');
-       	    if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
-       	       if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-                  Value['rule-providers'].merge!(Value_1['rule-providers'])
-       	       else
-                  Value['rule-providers']=Value_1['rule-providers']
-       	       end
-       	    end;
-       	    Value['rules']=Value_1['rules'];
-       	    Value['rules'].to_a.collect!{|x|
-       	    x.to_s.gsub(/,Streaming$/, ',$GlobalTV#d')
-       	    .gsub(/,StreamingSE$/, ',$AsianTV#d')
-       	    .gsub(/(,PROXY$|,IP-Blackhole$)/, ',$Proxy#d')
-       	    .gsub(/,China,DIRECT$/, ',China,$Domestic#d')
-       	    .gsub(/,ChinaIP,DIRECT$/, ',ChinaIP,$Domestic#d')
-       	    .gsub(/,CN,DIRECT$/, ',CN,$Domestic#d')
-       	    .gsub(/,MATCH$/, ',$Others#d')
-       	    .gsub(/#d/, '')
-       	    };
-       	    File.open('$3','w') {|f| YAML.dump(Value, f)};
+               Value = YAML.load_file('$3');
+               Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua.yaml');
+               if Value.has_key?('script') then
+                  Value.delete('script')
+               end;
+               if Value.has_key?('rules') then
+                  Value.delete('rules')
+               end;
+               if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
+                  if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+                     Value['rule-providers'].merge!(Value_1['rule-providers'])
+                  else
+                     Value['rule-providers']=Value_1['rule-providers']
+                  end
+               end;
+               Value['rules']=Value_1['rules'];
+               Value['rules'].to_a.collect!{|x|
+               x.to_s.gsub(/,Streaming$/, ',$GlobalTV#d')
+               .gsub(/,StreamingSE$/, ',$AsianTV#d')
+               .gsub(/(,PROXY$|,IP-Blackhole$)/, ',$Proxy#d')
+               .gsub(/,China,DIRECT$/, ',China,$Domestic#d')
+               .gsub(/,ChinaIP,DIRECT$/, ',ChinaIP,$Domestic#d')
+               .gsub(/,CN,DIRECT$/, ',CN,$Domestic#d')
+               .gsub(/,MATCH$/, ',$Others#d')
+               .gsub(/#d/, '')
+               };
+               File.open('$3','w') {|f| YAML.dump(Value, f)};
        	    rescue Exception => e
-       	    puts '${LOGTIME} Error: Set ConnersHua Rules Failed,【' + e.message + '】'
+       	      puts '${LOGTIME} Error: Set ConnersHua Rules Failed,【' + e.message + '】';
        	    end" 2>/dev/null >> $LOG_FILE
        else
             ruby -ryaml -E UTF-8 -e "
             begin
-       	    Value = YAML.load_file('$3');
-       	    Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua_return.yaml');
-       	    Value['rules']=Value_1['rules'];
-       	    Value['rules'].to_a.collect!{|x|
-       	    x.to_s.gsub(/,PROXY$/, ',$Proxy#d')
-       	    .gsub(/MATCH,DIRECT$/, 'MATCH,$Others#d')
-       	    .gsub(/#d/, '')
-       	    };
-       	    File.open('$3','w') {|f| YAML.dump(Value, f)};
-       	    rescue Exception => e
-       	    puts '${LOGTIME} Error: Set ConnersHua Return Rules Failed,【' + e.message + '】'
-       	    end" 2>/dev/null >> $LOG_FILE
+               Value = YAML.load_file('$3');
+               Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua_return.yaml');
+               if Value.has_key?('script') then
+                  Value.delete('script')
+               end;
+               if Value.has_key?('rules') then
+                  Value.delete('rules')
+               end;
+               Value['rules']=Value_1['rules'];
+               Value['rules'].to_a.collect!{|x|
+               x.to_s.gsub(/,PROXY$/, ',$Proxy#d')
+               .gsub(/MATCH,DIRECT$/, 'MATCH,$Others#d')
+               .gsub(/#d/, '')
+               };
+               File.open('$3','w') {|f| YAML.dump(Value, f)};
+       	   rescue Exception => e
+       	      puts '${LOGTIME} Error: Set ConnersHua Return Rules Failed,【' + e.message + '】';
+       	   end" 2>/dev/null >> $LOG_FILE
        fi
    fi
 fi

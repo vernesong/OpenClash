@@ -36,7 +36,7 @@
 
 <script type="text/javascript">//<![CDATA[
 
-var sub_info_retry = 0;
+var retry_<%=idname%> = 0;
 var s_<%=idname%>;
 sub_info_get_<%=idname%>();
 
@@ -58,28 +58,28 @@ function sub_info_get_<%=idname%>()
 
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "sub_info_get")%>', {filename: "<%=filename%>"}, function(x, status) {
 		if (x && x.status == 200 && status.sub_info != "" && status.sub_info != "No Sub Info Found") {
-			sub_info_retry = 0;
+			retry_<%=idname%> = 0;
 			localStorage.setItem("<%=filename%>",JSON.stringify(status));
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
 			document.getElementById('<%=idname%>').innerHTML = "<%:Plan Traffic%>" + ": " + "<span style=color:green>" + status.used + "</span> | <span style=color:green>" + status.total + "</span> <br/> <%:Plan Expiration Time%>: " + "<span style=color:green>" + status.expire + "</span>";
 		}
 		else if ( x && x.status == 200 && status.sub_info == "No Sub Info Found" ) {
-			sub_info_retry = 0;
+			retry_<%=idname%> = 0;
 			localStorage.setItem("<%=filename%>",JSON.stringify(status));
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
 			document.getElementById('<%=idname%>').innerHTML = "<span><%:No Sub Info Found%></span>";
 		}
 		else {
-			if (document.getElementById('<%=idname%>').innerHTML == "" || sub_info_retry > 2) {
+			if (document.getElementById('<%=idname%>').innerHTML == "" || retry_<%=idname%> > 2) {
 				document.getElementById('<%=idname%>').className = "sub_tab_show";
 				document.getElementById('<%=idname%>').innerHTML = "<span style=color:red><%:Sub Info Get Error%></span>";
 			}
-			if (sub_info_retry > 2) {
-				sub_info_retry = 0;
+			if (retry_<%=idname%> > 2) {
+				retry_<%=idname%> = 0;
 				localStorage.removeItem("<%=filename%>");
 			}
 			else {
-				sub_info_retry ++;
+				retry_<%=idname%> ++;
 				s_<%=idname%> = setTimeout("sub_info_get_<%=idname%>()",1000*120);
 				return
 			}
