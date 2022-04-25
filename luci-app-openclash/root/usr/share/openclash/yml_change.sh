@@ -426,7 +426,7 @@ Thread.new{
       Value['proxy-groups'].each{
          |x|
             if x['type'] == 'url-test' then
-               x['tolerance']=${2};
+               x['tolerance']='${tolerance}';
             end
          };
    end;
