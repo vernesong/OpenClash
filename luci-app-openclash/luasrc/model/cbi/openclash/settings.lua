@@ -104,7 +104,7 @@ o.default = 0
 o:depends("ipv6_enable", "1")
 
 o = s:taboption("op_mode", Flag, "disable_udp_quic", font_red..bold_on..translate("Disable QUIC")..bold_off..font_off)
-o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic On Port 443")..bold_off..font_off
+o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic(Not Include CN) On Port 443")..bold_off..font_off
 o.default = 1
 
 o = s:taboption("op_mode", Flag, "enable_rule_proxy", font_red..bold_on..translate("Rule Match Proxy Mode")..bold_off..font_off)
