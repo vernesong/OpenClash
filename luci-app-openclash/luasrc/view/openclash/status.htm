@@ -38,30 +38,30 @@
 				<%
 					if uci:get("openclash", "config", "enable_meta_core") ~= '1' then
 				%>
-	      				<img id="logo" src="https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/logo.png" loading="lazy" onerror="javascript:this.src='/luci-static/resources/openclash/img/logo.png';" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+	      				<img id="logo" src="https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/logo.png" loading="lazy" onerror="return imgerrorfuns(this,'/luci-static/resources/openclash/img/logo.png')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 				<%
 					else
 				%>
-						<img id="logo" src="https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/meta.png" loading="lazy" onerror="javascript:this.src='/luci-static/resources/openclash/img/meta.png';" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+						<img id="logo" src="https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/meta.png" loading="lazy" onerror="return imgerrorfuns(this,'/luci-static/resources/openclash/img/meta.png')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 				<%
 					end
 				%>
 			</p>
-	  		<p style="margin: 10px 0; text-align: center">
-				<img id="currenntver" src="/luci-static/resources/openclash/img/version.svg" onerror="javascript:this.src='https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/version.png';" alt="currentversion" height="21px" onload="return clashversion_check()" onclick="return go_update()">
+	  		<p id="_clashversion" style="margin: 10px 0; text-align: center">
+				<img src="/luci-static/resources/openclash/img/version.svg" onerror="return imgerrorfuns(this,'https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/version.png')" alt="currentversion" height="21px" onclick="return go_update()">
 	  		</p>
 	    </td></tr>
 	    <tr><td colspan="4" width="100%">
      		<p style="margin: 10px 0; text-align: center">
-				<img id="gitbook" src="/luci-static/resources/openclash/img/Wiki.svg" onerror="javascript:this.src='https://img.shields.io/badge/Wiki--lightgrey?logo=GitBook&style=social';" loading="lazy" alt="GitBook" width="50px" height="20px" onerror="return imgerrorfuns(this,this.src)" onclick="return gitbookpage()" />
+				<img id="gitbook" src="/luci-static/resources/openclash/img/Wiki.svg" loading="lazy" alt="GitBook" width="50px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Wiki--lightgrey?logo=GitBook&style=social')" onclick="return gitbookpage()" />
 				&nbsp;&nbsp;&nbsp;
-				<img id="wiki" src="/luci-static/resources/openclash/img/Tutorials.svg" onerror="javascript:this.src='https://img.shields.io/badge/Tutorials--lightgrey?logo=Wikipedia&style=social';" loading="lazy" alt="Wiki" width="75px" height="20px" onerror="return imgerrorfuns(this,this.src)" onclick="return wikipage()" />
+				<img id="wiki" src="/luci-static/resources/openclash/img/Tutorials.svg" loading="lazy" alt="Wiki" width="75px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Tutorials--lightgrey?logo=Wikipedia&style=social')" onclick="return wikipage()" />
 				&nbsp;&nbsp;&nbsp;
-				<img id="star" src="/luci-static/resources/openclash/img/Star.svg" onerror="javascript:this.src='https://img.shields.io/badge/Star--lightgrey?logo=github&style=social';" loading="lazy" alt="star" width="50px" height="20px" onerror="return imgerrorfuns(this,this.src)" onclick="return homepage()" />
+				<img id="star" src="/luci-static/resources/openclash/img/Star.svg" loading="lazy" alt="star" width="50px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Star--lightgrey?logo=github&style=social')" onclick="return homepage()" />
 				&nbsp;&nbsp;&nbsp;
-				<img id="telegram" src="/luci-static/resources/openclash/img/Telegram.svg" onerror="javascript:this.src='https://img.shields.io/badge/Telegram--lightgrey?logo=Telegram&style=social';" loading="lazy" alt="Telegram" onerror="return imgerrorfuns(this,this.src)" onclick="return telegrampage()" />
+				<img id="telegram" src="/luci-static/resources/openclash/img/Telegram.svg" loading="lazy" alt="Telegram" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Telegram--lightgrey?logo=Telegram&style=social')" onclick="return telegrampage()" />
 				&nbsp;&nbsp;&nbsp;
-				<img id="sponsor" src="/luci-static/resources/openclash/img/Sponsor.svg" onerror="javascript:this.src='https://img.shields.io/badge/Sponsor--lightgrey?logo=ko-fi&style=social';" loading="lazy" alt="Sponsor" width="73px" height="20px" onerror="return imgerrorfuns(this,this.src)" onclick="return sponsorpage()" />
+				<img id="sponsor" src="/luci-static/resources/openclash/img/Sponsor.svg" loading="lazy" alt="Sponsor" width="73px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Sponsor--lightgrey?logo=ko-fi&style=social')" onclick="return sponsorpage()" />
         	</p>
         </td></tr>
 	    <tr><td width="100%" colspan="4">
@@ -197,7 +197,7 @@
 	var dase = document.getElementById('_dase');
 	var dapo = document.getElementById('_dapo');
 	var startlog = document.getElementById('_clashstart');
-	var clashversion = document.getElementById('clashversion');
+	var clashversion = document.getElementById('_clashversion');
 	var close_all_connection = document.getElementById('_close_all_connection');
 	var reload_firewall = document.getElementById('_reload_firewall');
 	var one_key_update = document.getElementById('_one_key_update');
@@ -426,6 +426,7 @@
 	get_rule_mode();
 	get_run_mode();
 	state_get();
+	clashversion_check();
 
 	function get_rule_mode() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "rule_mode")%>', null, function(x, status) {
@@ -499,8 +500,8 @@
 	function switch_run_mode(value)
 	{
 		var r = confirm("<%:Are you sure want to switch the running mode?%>")
-    if (r == true) {
-    	clearTimeout(gr);
+    	if (r == true) {
+    		clearTimeout(gr);
 			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_run_mode")%>', {run_mode: value}, function(x, status) {
 			if (x && x.status == 200) {
 				get_run_mode();
@@ -864,19 +865,19 @@
 
     function clashversion_check()
     {
-    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "lastversion")%>', null, function(x, status) {
-       if ( x && x.status == 200 ) {
-        	if ( status.lastversion != "" )
-        	{
-            	clashversion.innerHTML = '<img id="lastver" src="'+status.lastversion+'" alt="lastversion" onerror="return clashversion_error()" onclick="return go_update()">';
-        	}
-       }
-        });
+    	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "lastversion")%>', null, function(x, status) {
+    		if ( x && x.status == 200 ) {
+        		if ( status.lastversion != "" )
+        		{
+            		clashversion.innerHTML = '<img id="lastver" src="'+status.lastversion+'" alt="lastversion" onerror="return clashversion_error()" onclick="return go_update()">';
+        		}
+    		}
+    	});
     };
 
     function clashversion_error()
     {
-        clashversion.innerHTML = '<img id="currenntver" src="/luci-static/resources/openclash/img/Version.svg" alt="currentversion" height="21px" onclick="return go_update()">';
+        clashversion.innerHTML = '<img id="clashversion" src="/luci-static/resources/openclash/img/version.svg" alt="currentversion" height="21px" onerror="return imgerrorfuns(this,\'https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/version.png\')" onclick="return go_update()">';
     };
     
     function imgerrorfuns(imgobj,imgSrc){
