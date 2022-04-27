@@ -375,7 +375,7 @@ o.description = font_red..bold_on..translate("Some Premium Core Features are Una
 o.default = 0
 
 o = s:taboption("meta", Flag, "enable_tcp_concurrent", font_red..bold_on..translate("Enable Tcp Concurrent")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Concurrent Request IPs, Choose The Lowest Latency One To Connection")..bold_off..font_off
+o.description = font_red..bold_on..translate("TCP Concurrent Request IPs, Choose The Lowest Latency One To Connection")..bold_off..font_off
 o.default = 1
 
 o = s:taboption("meta", Flag, "enable_meta_sniffer", font_red..bold_on..translate("Enable Sniffer")..bold_off..font_off)
@@ -408,6 +408,26 @@ function sniffing_domain_force.write(self, section, value)
 	end
 end
 
+sniffing_port_filter = s:taboption("meta", Value, "sniffing_port_filter", translate("Sniffing Ports Filter"))
+sniffing_port_filter:depends("enable_meta_sniffer_custom", "1")
+sniffing_port_filter.template = "cbi/tvalue"
+sniffing_port_filter.description = translate("Will Only Sniffing If Ports in The List")
+sniffing_port_filter.rows = 20
+sniffing_port_filter.wrap = "off"
+
+function sniffing_port_filter.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_sniffing_port_filter.yaml") or ""
+end
+function sniffing_port_filter.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_sniffing_port_filter.yaml")
+	  if value ~= old_value then
+			NXFS.writefile("/etc/openclash/custom/openclash_sniffing_port_filter.yaml", value)
+		end
+	end
+end
+
 sniffing_domain_filter = s:taboption("meta", Value, "sniffing_domain_filter", translate("Force Sniffing Domains(sni) Filter"))
 sniffing_domain_filter:depends("enable_meta_sniffer_custom", "1")
 sniffing_domain_filter.template = "cbi/tvalue"
@@ -424,26 +444,6 @@ function sniffing_domain_filter.write(self, section, value)
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_sniffing_domain_filter.yaml")
 	  if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_sniffing_domain_filter.yaml", value)
-		end
-	end
-end
-
-sniffing_port_filter = s:taboption("meta", Value, "sniffing_port_filter", translate("Force Sniffing Ports Filter"))
-sniffing_port_filter:depends("enable_meta_sniffer_custom", "1")
-sniffing_port_filter.template = "cbi/tvalue"
-sniffing_port_filter.description = translate("Will Only Sniffing If Ports in The List")
-sniffing_port_filter.rows = 20
-sniffing_port_filter.wrap = "off"
-
-function sniffing_port_filter.cfgvalue(self, section)
-	return NXFS.readfile("/etc/openclash/custom/openclash_sniffing_port_filter.yaml") or ""
-end
-function sniffing_port_filter.write(self, section, value)
-	if value then
-		value = value:gsub("\r\n?", "\n")
-		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_sniffing_port_filter.yaml")
-	  if value ~= old_value then
-			NXFS.writefile("/etc/openclash/custom/openclash_sniffing_port_filter.yaml", value)
 		end
 	end
 end
