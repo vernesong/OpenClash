@@ -2903,13 +2903,13 @@ msgid "Policy Filter"
 msgstr "节点筛选"
 
 msgid "Force Sniffing Domains Lists"
-msgstr "强制探测（嗅探）域名列表"
+msgstr "强制探测（嗅探）的域名列表"
 
 msgid "Force Sniffing Domains(sni) Filter"
-msgstr "忽略探测（嗅探）域名（sni）列表"
+msgstr "忽略探测（嗅探）的域名（sni）列表"
 
-msgid "Force Sniffing Ports Filter"
-msgstr "强制探测（嗅探）端口列表"
+msgid "Sniffing Ports Filter"
+msgstr "指定探测（嗅探）的端口列表"
 
 msgid "Will Override Dns Queries If Domains in The List"
 msgstr "仅列表中的域名将会使用探测（嗅探）的结果进行连接"
