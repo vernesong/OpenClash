@@ -374,6 +374,10 @@ o = s:taboption("meta", Flag, "enable_meta_core", font_red..bold_on..translate("
 o.description = font_red..bold_on..translate("Some Premium Core Features are Unavailable, For Other More Useful Functions Go Wiki:")..bold_off..font_off.." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://clashmeta.gitbook.io/meta/\")'>https://clashmeta.gitbook.io/meta/</a>"
 o.default = 0
 
+o = s:taboption("meta", Flag, "enable_tcp_concurrent", font_red..bold_on..translate("Enable Tcp Concurrent")..bold_off..font_off)
+o.description = font_red..bold_on..translate("Concurrent Request IPs, Choose The Lowest Latency One To Connection")..bold_off..font_off
+o.default = 1
+
 o = s:taboption("meta", Flag, "enable_meta_sniffer", font_red..bold_on..translate("Enable Sniffer")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure")..bold_off..font_off
 o.default = 1
@@ -427,7 +431,7 @@ end
 sniffing_port_filter = s:taboption("meta", Value, "sniffing_port_filter", translate("Force Sniffing Ports Filter"))
 sniffing_port_filter:depends("enable_meta_sniffer_custom", "1")
 sniffing_port_filter.template = "cbi/tvalue"
-sniffing_port_filter.description = translate("Will Disable Sniffing If Ports in The List")
+sniffing_port_filter.description = translate("Will Only Sniffing If Ports in The List")
 sniffing_port_filter.rows = 20
 sniffing_port_filter.wrap = "off"
 
