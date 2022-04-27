@@ -2910,16 +2910,16 @@ msgid "Force Sniffing Domains(sni) Filter"
 msgstr "忽略探测（嗅探）域名（sni）列表"
 
 msgid "Force Sniffing Ports Filter"
-msgstr "忽略探测（嗅探）端口列表"
+msgstr "强制探测（嗅探）端口列表"
 
 msgid "Will Override Dns Queries If Domains in The List"
-msgstr "列表中的域名将会使用探测（嗅探）的结果进行连接"
+msgstr "仅列表中的域名将会使用探测（嗅探）的结果进行连接"
 
 msgid "Will Disable Sniffing If Domains(sni) in The List"
-msgstr "列表中的域名（sni）将不会使用探测（嗅探）的结果进行连接"
+msgstr "仅列表中的域名（sni）不会使用探测（嗅探）的结果进行连接"
 
-msgid "Will Disable Sniffing If Ports in The List"
-msgstr "列表中的端口将不会使用探测（嗅探）的结果进行连接"
+msgid "Will Only Sniffing If Ports in The List"
+msgstr "仅列表中的端口将会使用探测（嗅探）的结果进行连接"
 
 msgid "Custom Sniffer Settings"
 msgstr "自定义流量探测（嗅探）设置"
@@ -2929,3 +2929,9 @@ msgstr "自定义强制和忽略流量探测（嗅探）的域名列表"
 
 msgid "Warning: Only TUN Core Support Script Mode, Switch To The Rule Mode!"
 msgstr "警告：仅 TUN 内核支持 Script 模式，已切换为 Rule 模式！"
+
+msgid "Enable Tcp Concurrent"
+msgstr "*启用 TCP 并发"
+
+msgid "TCP Concurrent Request IPs, Choose The Lowest Latency One To Connection"
+msgstr "TCP 并发请求所有 IP 地址，然后选择延迟最低的一个进行连接"
