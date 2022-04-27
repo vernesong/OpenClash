@@ -212,7 +212,7 @@ yml_provider_check()
 provider_path_line=$(ruby_read "$1" ".key?('$2')")
 local provider_path_check
 if "$provider_path_line"; then
-   while ( [ -n "$(pidof clash)" ] )
+   while :;
    do
       provider_path_check=$(ruby -ryaml -E UTF-8 -e "
       Value = YAML.load_file('$1');
@@ -235,7 +235,7 @@ if "$provider_path_line"; then
       end
       }
       " 2>/dev/null)
-      if [ "$provider_path_check" = "false" ]; then
+      if [ "$provider_path_check" == "false" ] && [ -n "$(pidof clash)" ]; then
          sleep 2
       else
          break
@@ -243,7 +243,7 @@ if "$provider_path_line"; then
    done
 fi
 
-if [ -z "$(pidof clash)" ] && [ -n "$provider_path_check" ]; then
+if [ -z "$(pidof clash)" ] && [ "$provider_path_check" == "false" ]; then
    if [ "$2" = "proxy-providers" ]; then
       LOG_OUT "Error: Failed To Download Proxy-providers, Please Check The Log Page For Detailed error information!"
    else
