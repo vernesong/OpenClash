@@ -572,28 +572,32 @@ yml_other_set()
                end;
             end;
             ruby_add_index ||= -1;
-            Value_1['rules'] = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml')['rules'].uniq;
-            Value_1['rules'].reverse.each{|x| Value['rules'].insert(ruby_add_index,x)};
-         end
+            Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
+            if ruby_add_index != -1 then
+               Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(ruby_add_index,x)};
+            else
+               Value_1['rules'].uniq.each{|x| Value['rules'].insert(ruby_add_index,x)};
+            end;
+         end;
          if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
-            Value_1['rules'] = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml')['rules'].uniq;
+            Value_1 = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml');
             if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
-               Value_1['rules'].reverse.each{|x| Value['rules'].insert(0,x)};
+               Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(0,x)};
             else
                ruby_add_index = Value['rules'].index(Value['rules'].grep(/(?=.*198.18.0)(?=.*REJECT)/).first);
-               Value_1['rules'].reverse.each{|x| Value['rules'].insert(ruby_add_index + 1,x)};
+               Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(ruby_add_index + 1,x)};
             end;
-         end
+         end;
       else
          if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
             Value['rules'] = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml')['rules'].uniq;
          end;
          if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
-            Value_1['rules'] = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml')['rules'].uniq;
+            Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
             if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
-               Value['rules'] = Value['rules'] | Value_1['rules'];
+               Value['rules'] = Value['rules'] | Value_1['rules'].uniq;
             else
-               Value['rules'] = Value_1['rules'];
+               Value['rules'] = Value_1['rules'].uniq;
             end;
          end;
       end;
@@ -611,7 +615,7 @@ yml_other_set()
                Value['proxy-groups'] = Value['proxy-groups'] + Value_1;
                Value['proxy-groups'].uniq;
             else
-               Value['proxy-groups']=Value_1;
+               Value['proxy-groups'] = Value_1;
             end;
          end;
          if File::exist?('/tmp/yaml_servers.yaml') then
@@ -646,7 +650,7 @@ yml_other_set()
          if Value.key?(i) then
             Value[i].values.each{
             |x,v|
-            if not x['path'].include? p and not x['path'].include? 'game_rules' then
+            if x['path'] and not x['path'].include? p and not x['path'].include? 'game_rules' then
                v=File.basename(x['path']);
                x['path']='./'+p+'/'+v;
             end;
