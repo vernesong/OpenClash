@@ -1,4 +1,4 @@
 skip-sni:
-  - '+.courier.push.apple.com'
+  - '+.apple.com'
   - Mijia Cloud
   - '+.jd.com'
