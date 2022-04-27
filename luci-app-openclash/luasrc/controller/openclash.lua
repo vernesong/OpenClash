@@ -23,7 +23,6 @@ function index()
 	entry({"admin", "services", "openclash", "update_other_rules"},call("action_update_other_rules"))
 	entry({"admin", "services", "openclash", "update_geoip"},call("action_update_geoip"))
 	entry({"admin", "services", "openclash", "update_geosite"},call("action_update_geosite"))
-	entry({"admin", "services", "openclash", "currentversion"},call("action_currentversion"))
 	entry({"admin", "services", "openclash", "lastversion"},call("action_lastversion"))
 	entry({"admin", "services", "openclash", "save_corever_branch"},call("action_save_corever_branch"))
 	entry({"admin", "services", "openclash", "update"},call("action_update"))
@@ -184,10 +183,6 @@ end
 local function check_lastversion()
 	luci.sys.exec("sh /usr/share/openclash/openclash_version.sh 2>/dev/null")
 	return luci.sys.exec("sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
-end
-
-local function check_currentversion()
-	return luci.sys.exec("sed -n '/^data:image/,$p' /usr/share/openclash/res/openclash_version 2>/dev/null")
 end
 
 local function startlog()
@@ -928,13 +923,6 @@ function action_lastversion()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 			lastversion = check_lastversion();
-	})
-end
-
-function action_currentversion()
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({
-			currentversion = check_currentversion();
 	})
 end
 
