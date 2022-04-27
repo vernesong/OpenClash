@@ -240,7 +240,7 @@ local function corelv()
 end
 
 local function opcv()
-	return luci.sys.exec("sed -n 1p /usr/share/openclash/res/openclash_version 2>/dev/null")
+	return luci.sys.exec("opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}'")
 end
 
 local function oplv()

@@ -2,7 +2,7 @@
 CKTIME=$(date "+%Y-%m-%d-%H")
 LAST_OPVER="/tmp/openclash_last_version"
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
-OP_CV=$(sed -n 1p /usr/share/openclash/res/openclash_version 2>/dev/null |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
+OP_CV=$(opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F '-' '{print $1}' |awk -F 'Version: ' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 OP_LV=$(sed -n 1p $LAST_OPVER 2>/dev/null |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
 
