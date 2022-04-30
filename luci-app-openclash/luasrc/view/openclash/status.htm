@@ -29,6 +29,7 @@
 <%
 	local uci = require("luci.model.uci").cursor()
 	local RELEASE_BRANCH = uci:get("openclash", "config", "release_branch")
+	local random = tostring(os.time()):reverse():sub(1, 9)
 %>
 <fieldset class="cbi-section">
 	<table width="100%">
@@ -38,30 +39,30 @@
 				<%
 					if uci:get("openclash", "config", "enable_meta_core") ~= '1' then
 				%>
-	      				<img id="logo" src="https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/logo.png" loading="lazy" onerror="return imgerrorfuns(this,'/luci-static/resources/openclash/img/logo.png')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+	      				<img id="logo" src="https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/logo.png" loading="lazy" onerror="return imgerrorfuns(this,'/luci-static/resources/openclash/img/logo.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 				<%
 					else
 				%>
-						<img id="logo" src="https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/meta.png" loading="lazy" onerror="return imgerrorfuns(this,'/luci-static/resources/openclash/img/meta.png')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+						<img id="logo" src="https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/meta.png" loading="lazy" onerror="return imgerrorfuns(this,'/luci-static/resources/openclash/img/meta.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 				<%
 					end
 				%>
 			</p>
 	  		<p id="_clashversion" style="margin: 10px 0; text-align: center">
-				<img src="/luci-static/resources/openclash/img/version.svg" onerror="return imgerrorfuns(this,'https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/version.png')" alt="currentversion" height="21px" onclick="return go_update()">
+				<img src="/luci-static/resources/openclash/img/version.svg?<%=random%>" onerror="return imgerrorfuns(this,'https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/version.png')" alt="currentversion" height="21px" onclick="return go_update()">
 	  		</p>
 	    </td></tr>
 	    <tr><td colspan="4" width="100%">
      		<p style="margin: 10px 0; text-align: center">
-				<img id="gitbook" src="/luci-static/resources/openclash/img/Wiki.svg" loading="lazy" alt="GitBook" width="50px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Wiki--lightgrey?logo=GitBook&style=social')" onclick="return gitbookpage()" />
+				<img id="gitbook" src="/luci-static/resources/openclash/img/Wiki.svg?<%=random%>" loading="lazy" alt="GitBook" width="50px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Wiki--lightgrey?logo=GitBook&style=social')" onclick="return gitbookpage()" />
 				&nbsp;&nbsp;&nbsp;
-				<img id="wiki" src="/luci-static/resources/openclash/img/Tutorials.svg" loading="lazy" alt="Wiki" width="75px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Tutorials--lightgrey?logo=Wikipedia&style=social')" onclick="return wikipage()" />
+				<img id="wiki" src="/luci-static/resources/openclash/img/Tutorials.svg?<%=random%>" loading="lazy" alt="Wiki" width="75px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Tutorials--lightgrey?logo=Wikipedia&style=social')" onclick="return wikipage()" />
 				&nbsp;&nbsp;&nbsp;
-				<img id="star" src="/luci-static/resources/openclash/img/Star.svg" loading="lazy" alt="star" width="50px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Star--lightgrey?logo=github&style=social')" onclick="return homepage()" />
+				<img id="star" src="/luci-static/resources/openclash/img/Star.svg?<%=random%>g" loading="lazy" alt="star" width="50px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Star--lightgrey?logo=github&style=social')" onclick="return homepage()" />
 				&nbsp;&nbsp;&nbsp;
-				<img id="telegram" src="/luci-static/resources/openclash/img/Telegram.svg" loading="lazy" alt="Telegram" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Telegram--lightgrey?logo=Telegram&style=social')" onclick="return telegrampage()" />
+				<img id="telegram" src="/luci-static/resources/openclash/img/Telegram.svg?<%=random%>" loading="lazy" alt="Telegram" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Telegram--lightgrey?logo=Telegram&style=social')" onclick="return telegrampage()" />
 				&nbsp;&nbsp;&nbsp;
-				<img id="sponsor" src="/luci-static/resources/openclash/img/Sponsor.svg" loading="lazy" alt="Sponsor" width="73px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Sponsor--lightgrey?logo=ko-fi&style=social')" onclick="return sponsorpage()" />
+				<img id="sponsor" src="/luci-static/resources/openclash/img/Sponsor.svg?<%=random%>" loading="lazy" alt="Sponsor" width="73px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Sponsor--lightgrey?logo=ko-fi&style=social')" onclick="return sponsorpage()" />
         	</p>
         </td></tr>
 	    <tr><td width="100%" colspan="4">
@@ -877,7 +878,7 @@
 
     function clashversion_error()
     {
-        clashversion.innerHTML = '<img id="clashversion" src="/luci-static/resources/openclash/img/version.svg" alt="currentversion" height="21px" onerror="return imgerrorfuns(this,\'https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/version.png\')" onclick="return go_update()">';
+        clashversion.innerHTML = '<img id="clashversion" src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onerror="return imgerrorfuns(this,\'https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/version.png\')" onclick="return go_update()">';
     };
     
     function imgerrorfuns(imgobj,imgSrc){
