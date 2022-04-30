@@ -140,45 +140,45 @@
 	
 	XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
-		  cpu_model.innerHTML = status.coremodel ? "<b style=color:green>"+status.coremodel+"</b>" : "<b style=color:red><%:Model Not Found%></b>";
-		  if ( status.upchecktime != "1" ) {
-		     checktime.innerHTML = "<b style=color:green>"+status.upchecktime+"</b>";
-		  }
-		  else {
-		     checktime.innerHTML = "<b style=color:red><%:Check Failed%></b>";
-		  }
-      if ( status.corecv == "0" ) {
-         core_cv.innerHTML = "<b style=color:red><%:File Not Exist%></b>";
-      }
-      else if (status.corecv != "") {
-         core_cv.innerHTML = "<b style=color:green>"+status.corecv+"</b>";
-      }
-      else {
-         core_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
-      }
-      if ( status.coretuncv == "0" ) {
-         core_tun_cv.innerHTML = "<b style=color:red><%:File Not Exist%></b>";
-      }
-      else if (status.coretuncv != "") {
-         core_tun_cv.innerHTML = "<b style=color:green>"+status.coretuncv+"</b>";
-      }
-      else {
-         core_tun_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
-      }
-      if ( status.coremetacv == "0" ) {
-         core_meta_cv.innerHTML = "<b style=color:red><%:File Not Exist%></b>";
-      }
-      else if (status.coremetacv != "") {
-         core_meta_cv.innerHTML = "<b style=color:green>"+status.coremetacv+"</b>";
-      }
-      else {
-         core_meta_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
-      }
-      var corelv = status.corelv;
-      var arr_core = corelv.split(",");
-      var corelvis = arr_core[0];
-      var coretunlvis = arr_core[1];
-      var coremetalvis = arr_core[2];
+			cpu_model.innerHTML = status.coremodel ? "<b style=color:green>"+status.coremodel+"</b>" : "<b style=color:red><%:Model Not Found%></b>";
+			if ( status.upchecktime != "1" ) {
+				checktime.innerHTML = "<b style=color:green>"+status.upchecktime+"</b>";
+			}
+			else {
+				checktime.innerHTML = "<b style=color:red><%:Check Failed%></b>";
+			}
+			if ( status.corecv == "0" ) {
+				core_cv.innerHTML = "<b style=color:red><%:File Not Exist%></b>";
+			}
+			else if (status.corecv != "") {
+				core_cv.innerHTML = "<b style=color:green>"+status.corecv+"</b>";
+			}
+			else {
+				core_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
+			}
+			if ( status.coretuncv == "0" ) {
+				core_tun_cv.innerHTML = "<b style=color:red><%:File Not Exist%></b>";
+			}
+			else if (status.coretuncv != "") {
+				core_tun_cv.innerHTML = "<b style=color:green>"+status.coretuncv+"</b>";
+			}
+			else {
+				core_tun_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
+			}
+			if ( status.coremetacv == "0" ) {
+				core_meta_cv.innerHTML = "<b style=color:red><%:File Not Exist%></b>";
+			}
+			else if (status.coremetacv != "") {
+				core_meta_cv.innerHTML = "<b style=color:green>"+status.coremetacv+"</b>";
+			}
+			else {
+				core_meta_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
+			}
+			var corelv = status.corelv;
+			var arr_core = corelv.split(",");
+			var corelvis = arr_core[0];
+			var coretunlvis = arr_core[1];
+			var coremetalvis = arr_core[2];
 			if (corelvis != status.corecv && corelvis != "") {
 			   core_lv.innerHTML = "<b style=color:green>"+corelvis+"<%:<New>%></b>";
 			}
@@ -207,9 +207,9 @@
 			   core_meta_lv.innerHTML = "<b style=color:=red><%:Unknown%></b>";
 			}
 			var oplv = status.oplv;
-      var arr_op = oplv.split(",");
-      var oplvis = arr_op[0];
-      var new_op = arr_op[1];
+			var arr_op = oplv.split(",");
+			var oplvis = arr_op[0];
+			var new_op = arr_op[1];
 			op_cv.innerHTML = status.opcv ? "<b style=color:green>"+status.opcv+"</b>" : "<b style=color:red><%:Unknown%></b>";
 			if ( new_op == "2" && oplvis != "") {
 			   op_lv.innerHTML = "<b style=color:green>"+oplvis+"<%:<New>%></b>";
@@ -254,8 +254,8 @@
 	function op_update(btn)
     {
         var r = release_branch.value;
-			  XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {release_branch: r}, function(x, status) {
-				if (x && x.status == 200) {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {release_branch: r}, function(x, status) {
+		if (x && x.status == 200) {
            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', null, function(x, status) {
            btn.value    = '<%:Check And Update%>';
            btn.disabled = false;
@@ -268,40 +268,40 @@
     function ma_core_update(btn,type)
     {
     	var v = core_version.value;
-			var r = release_branch.value;
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
-			if (x && x.status == 200) {
-        btn.value    = '<%:Download%>';
-        btn.disabled = false;
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.corever, function(x, status) {
-        if ( x && x.status == 200 ) {
-        	if ( status.corever != "0" ) {
-        		if (type == "Dev") {
-        			url1='https://raw.githubusercontent.com/vernesong/OpenClash/'+r+'/core-lateset/dev/clash-'+status.corever+'.tar.gz';
-        			window.location.href=url1;
-        		}
-        		if (type == "TUN") {
-        			var corelv = status.corelv;
-          		var arr_core = corelv.split(",");
-          		var coretunlvis = arr_core[1];
-          		if ( coretunlvis != "" ) {
-          			url3='https://raw.githubusercontent.com/vernesong/OpenClash/'+r+'/core-lateset/premium/clash-'+status.corever+'-'+coretunlvis+'.gz';
-              	window.location.href=url3;
-          		}
-          		else {
-              	alert('<%:Failed to get the latest version. Please try again later!%>')
-          		}
-        		}
-        		if (type == "Meta") {
-        			url4='https://raw.githubusercontent.com/vernesong/OpenClash/'+r+'/core-lateset/meta/clash-'+status.corever+'.tar.gz';
-              window.location.href=url4;
-        		}
-        	}
-        	else {
-        		alert('<%:No Compiled Version is Selected, Please Select on The Top and Try Again!%>')
-        	}
-        }
-        });
+		var r = release_branch.value;
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
+		if (x && x.status == 200) {
+			btn.value    = '<%:Download%>';
+			btn.disabled = false;
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.corever, function(x, status) {
+			if ( x && x.status == 200 ) {
+				if ( status.corever != "0" ) {
+					if (type == "Dev") {
+						url1='https://raw.githubusercontent.com/vernesong/OpenClash/'+r+'/core-lateset/dev/clash-'+status.corever+'.tar.gz';
+						window.location.href=url1;
+					}
+					if (type == "TUN") {
+						var corelv = status.corelv;
+					var arr_core = corelv.split(",");
+					var coretunlvis = arr_core[1];
+					if ( coretunlvis != "" ) {
+						url3='https://raw.githubusercontent.com/vernesong/OpenClash/'+r+'/core-lateset/premium/clash-'+status.corever+'-'+coretunlvis+'.gz';
+					window.location.href=url3;
+					}
+					else {
+					alert('<%:Failed to get the latest version. Please try again later!%>')
+					}
+					}
+					if (type == "Meta") {
+						url4='https://raw.githubusercontent.com/vernesong/OpenClash/'+r+'/core-lateset/meta/clash-'+status.corever+'.tar.gz';
+				window.location.href=url4;
+					}
+				}
+				else {
+					alert('<%:No Compiled Version is Selected, Please Select on The Top and Try Again!%>')
+				}
+			}
+       		});
         return false;
     	}
       });
@@ -312,22 +312,22 @@
         btn.value    = '<%:Download%>';
         btn.disabled = false;
         var r = release_branch.value;
-			  XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {release_branch: r}, function(x, status) {
-				if (x && x.status == 200) {
-           XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.oplv, function(x, status) {
-           if ( x && x.status == 200 ) {
-              var oplv = status.oplv;
-              var oplvis = oplv.substring(oplv.indexOf("v") + 1,oplv.indexOf(","));
-              if ( oplvis != "" ) {
-                url2='https://raw.githubusercontent.com/vernesong/OpenClash/'+r+'/luci-app-openclash_'+oplvis+'_all.ipk';
-                window.location.href=url2;
-              }
-              else {
-                 alert('<%:Failed to get the latest version. Please try again later!%>')
-              }
-           }
-           });
-        }
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {release_branch: r}, function(x, status) {
+			if (x && x.status == 200) {
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.oplv, function(x, status) {
+				if ( x && x.status == 200 ) {
+					var oplv = status.oplv;
+					var oplvis = oplv.substring(oplv.indexOf("v") + 1,oplv.indexOf(","));
+					if ( oplvis != "" ) {
+						url2='https://raw.githubusercontent.com/vernesong/OpenClash/'+r+'/luci-app-openclash_'+oplvis+'_all.ipk';
+						window.location.href=url2;
+					}
+					else {
+						alert('<%:Failed to get the latest version. Please try again later!%>')
+					}
+				}
+			});
+			}
         });
         return false; 
     }
@@ -343,7 +343,7 @@
         		alert('<%:Remove succeeded!%>')
         		window.location.href='<%="settings?tab.openclash.config=version_update"%>';
         	}
-          else {
+          	else {
             alert('<%:Remove failed!%>')
            }
         });
@@ -364,9 +364,9 @@
         		alert('<%:Restore succeeded!%>')
         		window.location.href='<%="settings"%>';
         	}
-          else {
-            alert('<%:Restore failed!%>')
-            window.location.href='<%="settings"%>';
+        	else {
+				alert('<%:Restore failed!%>')
+				window.location.href='<%="settings"%>';
            }
         });
         }
@@ -376,69 +376,69 @@
     
     function backup_all_file(btn)
     {
-    	  btn.value    = '<%:Backup OpenClash%>';
-        btn.disabled = true;
-        window.location.href='<%="backup"%>';
-        btn.disabled = false;
-        return false; 
+		btn.value    = '<%:Backup OpenClash%>';
+		btn.disabled = true;
+		window.location.href='<%="backup"%>';
+		btn.disabled = false;
+		return false; 
     }
 
     function all_one_key_update(btn)
     {
     	var v = core_version.value;
-			var r = release_branch.value;
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
-				if (x && x.status == 200) {
-					btn.value    = '<%:One Click Check Update%>';
-        	btn.disabled = true;
-        	var r = confirm("<%:Check and update all Cores and plug-ins?%>")
-        	if (r == true) {
-        	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update_check")%>', null, function(x, status) {
-        		if ( x && x.status == 200 ) {
-        			if ( status.corever != "0" ) {
-        				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', null, function(x, status) {
-              		if ( x && x.status != 200 ) {
-            				alert('<%:Check failed, Please try again later!%>')
-           				}
-              	});
-							}
+		var r = release_branch.value;
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
+			if (x && x.status == 200) {
+				btn.value    = '<%:One Click Check Update%>';
+				btn.disabled = true;
+				var r = confirm("<%:Check and update all Cores and plug-ins?%>")
+				if (r == true) {
+					XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update_check")%>', null, function(x, status) {
+						if ( x && x.status == 200 ) {
+							if ( status.corever != "0" ) {
+								XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', null, function(x, status) {
+									if ( x && x.status != 200 ) {
+										alert('<%:Check failed, Please try again later!%>')
+									}
+								});
+								}
 							else {
 								alert('<%:No Compiled Version is Selected, Please Select on The Top and Try Again!%>')
-           		}
-        		}
-          	else {
-           	 alert('<%:Check failed, Please try again later!%>')
-          	}
-        	});
+							}
+						}
+						else {
+							alert('<%:Check failed, Please try again later!%>')
+							}
+					});
 				}
-        btn.disabled = false;
-        return false;
-				}
-			});
+				btn.disabled = false;
+				return false;
+			}
+		});
     }
     
     XHR.poll(7, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
-	  if ( x && x.status == 200 ) {
-		   if ( status.startlog == "\n" || status.startlog == "" ) {
-		      var rdmdl=Math.floor(Math.random()*2)+1;
-		      if(rdmdl==1)
-          {
-             update_tip.innerHTML = '<b><font><%:Note: if the update fails, you can manually download and upload%></font></b>';
-          }
-          if(rdmdl==2)
-          {
-             update_tip.innerHTML = '<b><font><%:Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating%></font></b>';
-          }
-       }
-    }
+		if ( x && x.status == 200 ) {
+			if ( status.startlog == "\n" || status.startlog == "" ) {
+		    	var rdmdl=Math.floor(Math.random()*2)+1;
+				if(rdmdl==1)
+				{
+					update_tip.innerHTML = '<b><font><%:Note: if the update fails, you can manually download and upload%></font></b>';
+				}
+				if(rdmdl==2)
+				{
+					update_tip.innerHTML = '<b><font><%:Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating%></font></b>';
+				}
+      		 }
+   		}
 	});
 	
 	XHR.poll(2, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
-	  if ( x && x.status == 200 ) {
-		   if ( status.startlog != "\n" && status.startlog != "" ) {
-	     update_tip.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
-	     }
-	  }
+		if ( x && x.status == 200 ) {
+			if ( status.startlog != "\n" && status.startlog != "" ) {
+	    		update_tip.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
+	    	}
+		}
 	});
 
 //]]></script>

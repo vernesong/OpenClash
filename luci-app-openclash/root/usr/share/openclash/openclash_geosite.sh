@@ -35,6 +35,9 @@
       else
          curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -o /tmp/GeoSite.dat >/dev/null 2>&1
       fi
+      if [ "$?" -ne "0" ]; then
+         curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/v/v2/v2raya/dists/v2ray-rules-dat/geosite.dat" -o /tmp/GeoSite.dat >/dev/null 2>&1
+      fi
    else
       curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$GEOSITE_CUSTOM_URL" -o /tmp/GeoSite.dat >/dev/null 2>&1
    fi
