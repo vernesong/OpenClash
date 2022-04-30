@@ -275,15 +275,9 @@ sub_info_get()
    fi
    
    if [ -z "$name" ]; then
-   	  CONFIG_NAME="config"
       RAW_CONFIG_FILE="/etc/openclash/config/config.yaml"
-      CONFIG_FILE="/etc/openclash/config.yaml"
-      TMP_CONFIG_FILE="/tmp/config.yaml"
    else
-      CONFIG_NAME="$name"
       RAW_CONFIG_FILE="/etc/openclash/config/$name.yaml"
-      CONFIG_FILE="/etc/openclash/$name.yaml"
-      TMP_CONFIG_FILE="/tmp/$name.yaml"
    fi
    
    uci -q set openclash.config.config_path="$RAW_CONFIG_FILE"
@@ -301,7 +295,7 @@ if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
       uci -q commit openclash
       RAW_CONFIG_FILE="/etc/openclash/config/$CONFIG_NAME"
       CONFIG_FILE="/etc/openclash/$CONFIG_NAME"
-      TMP_CONFIG_FILE="/tmp/$CONFIG_NAME"
+      TMP_CONFIG_FILE="/tmp/yaml_config_tmp_$CONFIG_NAME"
       
    fi
 fi 2>/dev/null
@@ -312,8 +306,7 @@ HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}.db"
 if [ ! -f "$RAW_CONFIG_FILE" ]; then
    config_load "openclash"
    config_foreach sub_info_get "config_subscribe"
-   subscribe_auto_update=$(uci get openclash.config.auto_update 2>/dev/null)
-   if [ "$subscribe_enable" = "1" ] && [ "$subscribe_auto_update" -eq 1 ]; then
+   if [ "$subscribe_enable" = "1" ]; then
       LOG_OUT "Config File Does Not Exist, You Have Set Subscription Information, Ready To Download..."
       nohup /usr/share/openclash/openclash.sh &
       del_lock
