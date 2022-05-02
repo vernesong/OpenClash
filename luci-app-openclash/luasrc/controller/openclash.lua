@@ -204,7 +204,11 @@ local function startlog()
 end
 
 local function coremodel()
-	local coremodel = opkg.info('uci')['uci'].Architecture or luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
+	if opkg then
+		local coremodel = opkg.info('uci')['uci'].Architecture
+	else
+		local coremodel = luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
+	end
 	return coremodel
 end
 
@@ -241,7 +245,11 @@ local function corelv()
 end
 
 local function opcv()
-	return "v" .. opkg.info('luci-app-openclash')['luci-app-openclash'].Version or luci.sys.exec("opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}'")
+	if opkg then
+		return "v" .. opkg.info('luci-app-openclash')['luci-app-openclash'].Version
+	else
+		return luci.sys.exec("opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}'")
+	end
 end
 
 local function oplv()
