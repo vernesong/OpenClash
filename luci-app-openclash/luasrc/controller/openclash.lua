@@ -26,6 +26,7 @@ function index()
 	entry({"admin", "services", "openclash", "lastversion"},call("action_lastversion"))
 	entry({"admin", "services", "openclash", "save_corever_branch"},call("action_save_corever_branch"))
 	entry({"admin", "services", "openclash", "update"},call("action_update"))
+	entry({"admin", "services", "openclash", "update_info"},call("action_update_info"))
 	entry({"admin", "services", "openclash", "update_ma"},call("action_update_ma"))
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
@@ -194,46 +195,45 @@ local function startlog()
 		line_trans = info
 		if string.len(info) > 0 then
 			if not string.find (info, "【") and not string.find (info, "】") then
-   			line_trans = luci.i18n.translate(string.sub(info, 0, -1))
-   		else
-   			line_trans = trans_line(info)
+   				line_trans = luci.i18n.translate(string.sub(info, 0, -1))
+   			else
+   				line_trans = trans_line(info)
+   			end
    		end
-   	end
 	end
 	return line_trans
 end
 
 local function coremodel()
-	if opkg then
-		local coremodel = opkg.info('uci')['uci'].Architecture
+	if opkg and opkg.info("libc") and opkg.info("libc")["libc"] then
+		return opkg.info("libc")["libc"]["Architecture"]
 	else
-		local coremodel = luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
+		return luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
 	end
-	return coremodel
 end
 
 local function corecv()
-if not nixio.fs.access(dev_core_path) then
-	return "0"
-else
-	return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $2}'",dev_core_path))
-end
+	if not nixio.fs.access(dev_core_path) then
+		return "0"
+	else
+		return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $2}'",dev_core_path))
+	end
 end
 
 local function coretuncv()
-if not nixio.fs.access(tun_core_path) then
-	return "0"
-else
-	return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $2}'",tun_core_path))
-end
+	if not nixio.fs.access(tun_core_path) then
+		return "0"
+	else
+		return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $2}'",tun_core_path))
+	end
 end
 
 local function coremetacv()
-if not nixio.fs.access(meta_core_path) then
-	return "0"
-else
-	return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $3}'",meta_core_path))
-end
+	if not nixio.fs.access(meta_core_path) then
+		return "0"
+	else
+		return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $3}'",meta_core_path))
+	end
 end
 
 local function corelv()
@@ -245,8 +245,8 @@ local function corelv()
 end
 
 local function opcv()
-	if opkg then
-		return "v" .. opkg.info('luci-app-openclash')['luci-app-openclash'].Version
+	if opkg and opkg.info("luci-app-openclash") and opkg.info("luci-app-openclash")["luci-app-openclash"] then
+		return "v" .. opkg.info("luci-app-openclash")["luci-app-openclash"]["Version"]
 	else
 		return luci.sys.exec("opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}'")
 	end
@@ -945,16 +945,22 @@ end
 function action_update()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-			coremodel = coremodel(),
 			corecv = corecv(),
 			coretuncv = coretuncv(),
 			coremetacv = coremetacv(),
+			coremodel = coremodel(),
 			opcv = opcv(),
-			corever = corever(),
-			release_branch = release_branch(),
 			upchecktime = upchecktime(),
 			corelv = corelv(),
 			oplv = oplv();
+	})
+end
+
+function action_update_info()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+			corever = corever(),
+			release_branch = release_branch();
 	})
 end
 
