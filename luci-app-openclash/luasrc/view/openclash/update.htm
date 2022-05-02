@@ -179,28 +179,28 @@
 			var corelvis = arr_core[0];
 			var coretunlvis = arr_core[1];
 			var coremetalvis = arr_core[2];
-			if (corelvis != status.corecv && corelvis != "") {
+			if (corelvis != status.corecv && corelvis != "" && corelvis != "\n") {
 			   core_lv.innerHTML = "<b style=color:green>"+corelvis+"<%:<New>%></b>";
 			}
-			else if (corelvis != "" && corelvis == status.corecv) {
+			else if (corelvis != "" && corelvis == status.corecv && corelvis != "\n") {
 			   core_lv.innerHTML = "<b style=color:green>"+corelvis+"</b>";
 			}
 			else {
 			   core_lv.innerHTML = "<b style=color:red><%:Unknown%></b>";
 			}
-			if (coretunlvis != status.coretuncv && coretunlvis != "") {
+			if (coretunlvis != status.coretuncv && coretunlvis != "" && coretunlvis != "\n") {
 			   core_tun_lv.innerHTML = "<b style=color:green>"+coretunlvis+"<%:<New>%></b>";
 			}
-			else if (coretunlvis != "" && coretunlvis == status.coretuncv) {
+			else if (coretunlvis != "" && coretunlvis == status.coretuncv && coretunlvis != "\n") {
 			   core_tun_lv.innerHTML = "<b style=color:green>"+coretunlvis+"</b>";
 			}
 			else {
 			   core_tun_lv.innerHTML = "<b style=color:red><%:Unknown%></b>";
 			}
-			if (coremetalvis != status.coremetacv && coremetalvis != "") {
+			if (coremetalvis != status.coremetacv && coremetalvis != "" && coremetalvis != "\n") {
 			   core_meta_lv.innerHTML = "<b style=color:green>"+coremetalvis+"<%:<New>%></b>";
 			}
-			else if (coremetalvis != "" && coremetalvis == status.coremetacv) {
+			else if (coremetalvis != "" && coremetalvis == status.coremetacv && coremetalvis != "\n") {
 			   core_meta_lv.innerHTML = "<b style=color:green>"+coremetalvis+"</b>";
 			}
 			else {
@@ -211,10 +211,10 @@
 			var oplvis = arr_op[0];
 			var new_op = arr_op[1];
 			op_cv.innerHTML = status.opcv ? "<b style=color:green>"+status.opcv+"</b>" : "<b style=color:red><%:Unknown%></b>";
-			if ( new_op == "2" && oplvis != "") {
+			if ( new_op == "2" && oplvis != "" && oplvis != "\n") {
 			   op_lv.innerHTML = "<b style=color:green>"+oplvis+"<%:<New>%></b>";
 			}
-			else if (oplvis != "") {
+			else if (oplvis != "" && oplvis != "\n") {
 			   op_lv.innerHTML = "<b style=color:green>"+oplvis+"</b>";
 			}
 			else {
