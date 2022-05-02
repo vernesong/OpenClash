@@ -120,6 +120,18 @@
 	var one_key_update  = document.getElementById('one_key_update');
 	var remove_core  = document.getElementById('remove_core');
 	var release_branch  = document.getElementById('RELEASE_BRANCH');
+	core_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'Dev\')"/>';
+	core_tun_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'TUN\')"/>';
+	core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'Meta\')"/>';
+	op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return op_update(this)"/>';
+	ma_core_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'Dev\')"/>';
+	ma_core_tun_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'TUN\')"/>';
+	ma_core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'Meta\')"/>';
+	ma_op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_op_update(this)"/>';
+	restore.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Restore Default Config%>" onclick="return restore_config(this)"/>';
+	one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:One Click Check Update%>" onclick="return all_one_key_update(this)"/>';
+	remove_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
+	backup.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup OpenClash%>" onclick="return backup_all_file(this)"/>';
 
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
@@ -222,19 +234,34 @@
 			}
 		}
 	});
-	
-	core_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'Dev\')"/>';
-	core_tun_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'TUN\')"/>';
-	core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'Meta\')"/>';
-	op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return op_update(this)"/>';
-	ma_core_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'Dev\')"/>';
-	ma_core_tun_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'TUN\')"/>';
-	ma_core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'Meta\')"/>';
-	ma_op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_op_update(this)"/>';
-	restore.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Restore Default Config%>" onclick="return restore_config(this)"/>';
-	one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:One Click Check Update%>" onclick="return all_one_key_update(this)"/>';
-	remove_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
-	backup.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup OpenClash%>" onclick="return backup_all_file(this)"/>';
+
+	XHR.poll(7, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
+		if ( x && x.status == 200 ) {
+			if ( status.startlog == "\n" || status.startlog == "" ) {
+		    	var rdmdl=Math.floor(Math.random()*2)+1;
+				if(rdmdl==1)
+				{
+					update_tip.innerHTML = '<b><font><%:Note: if the update fails, you can manually download and upload%></font></b>';
+				}
+				if(rdmdl==2)
+				{
+					update_tip.innerHTML = '<b><font><%:Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating%></font></b>';
+				}
+      		 }
+   		}
+	});
+
+	XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
+	  if ( x && x.status == 200 ) {
+	  	if ( status.startlog.match("level=fatal") ) {
+	    	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
+	    	alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('msg=')[1]);
+		}
+		else if ( status.startlog != "\n" && status.startlog != "" ) {
+	    	update_tip.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
+		};
+	  };
+	});
 	
 	function core_update(btn,type)
     {
@@ -416,29 +443,5 @@
 			}
 		});
     }
-    
-    XHR.poll(7, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
-		if ( x && x.status == 200 ) {
-			if ( status.startlog == "\n" || status.startlog == "" ) {
-		    	var rdmdl=Math.floor(Math.random()*2)+1;
-				if(rdmdl==1)
-				{
-					update_tip.innerHTML = '<b><font><%:Note: if the update fails, you can manually download and upload%></font></b>';
-				}
-				if(rdmdl==2)
-				{
-					update_tip.innerHTML = '<b><font><%:Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating%></font></b>';
-				}
-      		 }
-   		}
-	});
-	
-	XHR.poll(2, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
-		if ( x && x.status == 200 ) {
-			if ( status.startlog != "\n" && status.startlog != "" ) {
-	    		update_tip.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
-	    	}
-		}
-	});
 
 //]]></script>
