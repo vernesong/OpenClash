@@ -325,7 +325,7 @@ Thread.new{
    if ${20} == 1 and ${21} == 1 then
       Value_sniffer={'sniffer'=>{'enable'=>true}};
       Value['sniffer']=Value_sniffer['sniffer'];
-      Value_sniffer={'sniffing'=>['tls']};
+      Value_sniffer={'sniffing'=>['tls','http']};
       Value['sniffer'].merge!(Value_sniffer);
       if File::exist?('/etc/openclash/custom/openclash_force_sniffing_domain.yaml') and ${24} == 1 then
          Value_7 = YAML.load_file('/etc/openclash/custom/openclash_force_sniffing_domain.yaml');
