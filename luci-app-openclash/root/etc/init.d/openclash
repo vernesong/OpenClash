@@ -1273,10 +1273,6 @@ if [ -n "$en_mode_tun" ]; then
    TUN_WAIT=0
    ip link set utun up
 
-   if [ "$enable_meta_core" == "1" ]; then
-      route add -net 198.18.0.0/16 dev utun
-   fi
-
    while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 3 ] )
    do
       ip link set utun up
@@ -1360,7 +1356,7 @@ fi
 
 #ipv6
 if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
-   if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(ip6tables -t nat -nL PREROUTING --line-number |grep 'dns_hijack')"]; then
+   if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(ip6tables -t nat -nL PREROUTING --line-number |grep 'DNS Hijack')"]; then
       ip6tables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
       ip6tables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
    fi
