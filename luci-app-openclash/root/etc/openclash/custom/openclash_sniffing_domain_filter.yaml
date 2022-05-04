@@ -1,4 +1,4 @@
-skip-sni:
+skip-domain:
   - '+.apple.com'
   - Mijia Cloud
   - '+.jd.com'
