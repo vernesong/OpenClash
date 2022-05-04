@@ -90,7 +90,10 @@ local fs = require "luci.openclash"
 local json = require "luci.jsonc"
 local uci = require("luci.model.uci").cursor()
 local datatype = require "luci.cbi.datatypes"
-local opkg = require "luci.model.ipkg"
+local opkg
+if pcall(require, "luci.model.ipkg") then
+	opkg = require "luci.model.ipkg"
+end
 
 local core_path_mode = uci:get("openclash", "config", "small_flash_memory")
 if core_path_mode ~= "1" then
