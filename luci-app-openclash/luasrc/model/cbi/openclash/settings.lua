@@ -1027,6 +1027,7 @@ end
 o = s:taboption("geo_update", Flag, "geo_auto_update", translate("Auto Update"))
 o.description = translate("Auto Update GEOIP Database")
 o.default = 0
+o:depends("enable_geoip_dat", 0)
 
 o = s:taboption("geo_update", ListValue, "geo_update_week_time", translate("Update Time (Every Week)"))
 o:value("*", translate("Every Day"))
@@ -1038,12 +1039,14 @@ o:value("5", translate("Every Friday"))
 o:value("6", translate("Every Saturday"))
 o:value("0", translate("Every Sunday"))
 o.default = "1"
+o:depends("enable_geoip_dat", 0)
 
 o = s:taboption("geo_update", ListValue, "geo_update_day_time", translate("Update time (every day)"))
 for t = 0,23 do
 o:value(t, t..":00")
 end
 o.default = "0"
+o:depends("enable_geoip_dat", 0)
 
 o = s:taboption("geo_update", Value, "geo_custom_url")
 o.title = translate("Custom GEOIP URL")
@@ -1054,6 +1057,7 @@ o:value("https://cdn.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/Country.
 o:value("https://cdn.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/Country.mmdb", translate("Hackl0us-Version")..translate("(Only CN)"))
 o:value("https://geolite.clash.dev/Country.mmdb", translate("Geolite.clash.dev"))
 o.default = "http://www.ideame.top/mmdb/Country.mmdb"
+o:depends("enable_geoip_dat", 0)
 
 o = s:taboption("geo_update", Button, translate("GEOIP Update")) 
 o.title = translate("Update GEOIP Database")
@@ -1065,6 +1069,7 @@ o.write = function()
   SYS.call("/usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
+o:depends("enable_geoip_dat", 0)
 
 o = s:taboption("chnr_update", Flag, "chnr_auto_update", translate("Auto Update"))
 o.description = translate("Auto Update Chnroute Lists")
