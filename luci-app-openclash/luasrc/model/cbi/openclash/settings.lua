@@ -90,7 +90,7 @@ o:value("script", translate("Script Proxy Mode (Tun Core Only)"))
 o.default = "rule"
 
 o = s:taboption("op_mode", Flag, "router_self_proxy", font_red..bold_on..translate("Router-Self Proxy")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Only Supported for Rule Mode, ALL Functions In Stream Enhance Tag Will Not Work After Disable")..bold_off..font_off
+o.description = translate("Only Supported for Rule Mode")..", "..font_red..bold_on..translate("ALL Functions In Stream Enhance Tag Will Not Work After Disable")..bold_off..font_off
 o.default = 1
 o:depends("proxy_mode", "rule")
 
@@ -655,6 +655,10 @@ end
 o = s:taboption("stream_enhance", Flag, "stream_domains_prefetch", font_red..bold_on..translate("Prefetch Netflix, Disney Plus Domains")..bold_off..font_off)
 o.description = translate("Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure, Recommend Use meta Sniffer Function")
 o.default = 0
+o:depends({router_self_proxy = "1", proxy_mode = "rule"})
+o:depends("proxy_mode", "global")
+o:depends("proxy_mode", "direct")
+o:depends("proxy_mode", "script")
 
 o = s:taboption("stream_enhance", Value, "stream_domains_prefetch_interval", translate("Domains Prefetch Interval(min)"))
 o.default = "1440"
@@ -669,6 +673,10 @@ o.template = "openclash/download_stream_domains"
 o = s:taboption("stream_enhance", Flag, "stream_auto_select", font_red..bold_on..translate("Auto Select Unlock Proxy")..bold_off..font_off)
 o.description = translate("Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc")
 o.default = 0
+o:depends({router_self_proxy = "1", proxy_mode = "rule"})
+o:depends("proxy_mode", "global")
+o:depends("proxy_mode", "direct")
+o:depends("proxy_mode", "script")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_interval", translate("Auto Select Interval(min)"))
 o.default = "30"
