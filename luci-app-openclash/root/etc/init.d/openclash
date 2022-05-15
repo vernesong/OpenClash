@@ -1115,13 +1115,8 @@ fi
    ipset create localnetwork hash:net
    ipset add localnetwork 0.0.0.0/8
    ipset add localnetwork 127.0.0.0/8
-   ipset add localnetwork 10.0.0.0/8
    ipset add localnetwork 169.254.0.0/16
-   ipset add localnetwork 192.168.0.0/16
-   ipset add localnetwork 224.0.0.0/4
-   ipset add localnetwork 240.0.0.0/4
    ipset add localnetwork 172.16.0.0/12
-   ipset add localnetwork 100.64.0.0/10
    
    if [ -n "$lan_ip_cidrs" ]; then
       for lan_ip_cidr in $lan_ip_cidrs; do
@@ -1151,7 +1146,7 @@ if [ "$bypass_gateway_compatible" -eq 1 ]; then
    if [ "$bypass_gateway_compatible" -eq 1 ]; then
       iptables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
       iptables -t nat -A openclash_post -m comment --comment "OpenClash Bypass Gateway Compatible" -m set --match-set localnetwork dst -j RETURN
-      iptables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
+      iptables -t nat -A openclash_post -m set ! --match-set localnetwork src -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
    fi
    iptables -t nat -I POSTROUTING -j openclash_post
 fi
@@ -1287,7 +1282,6 @@ if [ -n "$en_mode_tun" ]; then
    if [ "$en_mode" = "fake-ip" ]; then
       iptables -t mangle -N openclash_output
       iptables -t mangle -F openclash_output
-      iptables -t mangle -A openclash_output -i utun -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
       if [ "$en_mode_tun" -eq 1 ]; then
          if [ -z "$_koolshare" ]; then
@@ -1320,7 +1314,6 @@ if [ -n "$en_mode_tun" ]; then
    iptables -t mangle -N openclash_dns_hijack
    iptables -t mangle -F openclash_dns_hijack
    #其他流量
-   iptables -t mangle -A openclash -i utun -j RETURN >/dev/null 2>&1
    iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN >/dev/null 2>&1
    iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
    iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
@@ -1382,6 +1375,12 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
    ipset add localnetwork6 fe80::/10
    ipset add localnetwork6 ff00::/8
 
+   if [ -n "$lan_ip6_cidrs" ]; then
+      for lan_ip6_cidr in $lan_ip6_cidrs; do
+         ipset add localnetwork6 "$lan_ip6_cidr" 2>/dev/null
+      done
+   fi
+
    if [ -n "$wan_ip6s" ]; then
       for wan_ip6 in $wan_ip6s; do
          ipset add localnetwork6 "$wan_ip6"
@@ -1410,7 +1409,7 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
    if [ "$china_ip6_route" = "1" ]; then
       ip6tables -t mangle -A openclash -m set --match-set china_ip6_route dst -j RETURN >/dev/null 2>&1
    fi
-   ip6tables -t mangle -A openclash -p tcp -m comment --comment "OpenClash TCP Mark" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
+   ip6tables -t mangle -A openclash -p tcp -m comment --comment "OpenClash TCP Tproxy" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
    ip6tables -t mangle -A PREROUTING -j openclash
 
    if [ -z "$_koolshare" ]; then
@@ -1429,7 +1428,7 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
    #udp
    if [ "$enable_udp_proxy" -eq 1 ] || [ -n "$en_mode_tun" ]; then
       ip6tables -t mangle -A openclash_output -p udp -m owner ! --uid-owner 65534 -j MARK --set-xmark "$PROXY_FWMARK"
-      ip6tables -t mangle -A openclash -p udp -m comment --comment "OpenClash" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
+      ip6tables -t mangle -A openclash -p udp -m comment --comment "OpenClash TCP Tproxy" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
    fi
    
    #quic
@@ -1443,7 +1442,7 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
       ip6tables -t nat -F openclash_post
       ip6tables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
       ip6tables -t nat -A openclash_post -m comment --comment "OpenClash Bypass Gateway Compatible" -m set --match-set localnetwork6 dst -j RETURN
-      ip6tables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
+      ip6tables -t nat -A openclash_post -m set ! --match-set localnetwork src -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
       ip6tables -t nat -I POSTROUTING -j openclash_post
    fi
    
@@ -1543,6 +1542,7 @@ get_config()
    enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
    lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
    lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^198.18" 2>/dev/null)
+   lan_ip6_cidrs=$(ip -6 route | grep "/" | awk '{print $1}' | grep -vE "^unreachable" 2>/dev/null)
    wan_ip4s=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 | grep -vE "(^198.18|^192.168|^127.0)" 2>/dev/null)
    wan_ip6s=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
    disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
