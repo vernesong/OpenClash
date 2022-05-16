@@ -429,6 +429,12 @@ msgstr "管理页面映射端口"
 msgid "Port For Dashboard Login From Public Network"
 msgstr "设置映射端口，便于从公网访问时自动登录"
 
+msgid "Public Dashboard SSL enabled"
+msgstr "管理页面公网SSL访问"
+
+msgid "Is SSL enabled For Dashboard Login From Public Network"
+msgstr "设置公网协议是否开启了SSL，便于从公网访问时自动登录"
+
 msgid "GEO Update"
 msgstr "GEO 数据库订阅"
 
@@ -1993,17 +1999,14 @@ msgstr "第五步: 检查内核启动状态..."
 msgid "Step 6: Wait For The File Downloading..."
 msgstr "第六步: 等待主程序下载外部文件..."
 
-msgid "Step 7: Set Control Panel..."
-msgstr "第七步: 设置控制面板..."
+msgid "Step 7: Set Firewall Rules..."
+msgstr "第七步: 设置防火墙规则..."
 
-msgid "Step 8: Set Firewall Rules..."
-msgstr "第八步: 设置防火墙规则..."
+msgid "Step 8: Restart Dnsmasq..."
+msgstr "第八步: 重启 Dnsmasq 程序..."
 
-msgid "Step 9: Restart Dnsmasq..."
-msgstr "第九步: 重启 Dnsmasq 程序..."
-
-msgid "Step 10: Add Cron Rules, Start Daemons..."
-msgstr "第十步: 添加计划任务,启动进程守护程序..."
+msgid "Step 9: Add Cron Rules, Start Daemons..."
+msgstr "第九步: 添加计划任务,启动进程守护程序..."
 
 msgid "OpenClash Start Successful!"
 msgstr "OpenClash 启动成功，请等待服务器上线！"

@@ -185,6 +185,10 @@ local function db_foward_port()
 	return uci:get("openclash", "config", "dashboard_forward_port")
 end
 
+local function db_foward_ssl()
+	return uci:get("openclash", "config", "dashboard_forward_ssl") or 0
+end
+
 local function check_lastversion()
 	luci.sys.exec("sh /usr/share/openclash/openclash_version.sh 2>/dev/null")
 	return luci.sys.exec("sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
@@ -911,6 +915,7 @@ function action_status()
 		dase = dase(),
 		db_foward_port = db_foward_port(),
 		db_foward_domain = db_foward_domain(),
+		db_forward_ssl = db_foward_ssl(),
 		web = is_web(),
 		cn_port = cn_port(),
 		restricted_mode = restricted_mode();

@@ -52,7 +52,7 @@ external-controller: 0.0.0.0:9090
 # directory in which you put some static web resource. Clash core will then
 # serve it at `http://{{external-controller}}/ui`.
 # 此项将被接管
-external-ui: "/usr/share/openclash/dashboard"
+external-ui: "/usr/share/openclash/ui"
 
 # Secret for the RESTful API (optional)
 # Authenticate by spedifying HTTP header `Authorization: Bearer ${secret}`
