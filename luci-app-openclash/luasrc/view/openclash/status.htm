@@ -800,15 +800,15 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
         btn.disabled = true;
         btn.value    = '<%:Open Panel%>';
-		var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
         if (status.daip && window.location.hostname == status.daip) {
-            url1='<%="'+ui_proto+window.location.hostname+':'+status.cn_port+'/ui/yacd/?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+            url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
         }
         else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-            url1='<%="'+ui_proto+window.location.hostname+':'+status.cn_port+'/ui/yacd/?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
+            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+			url1='<%="'+ui_proto+window.location.hostname+':'+status.cn_port+'/ui/yacd/?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
         }
         else {
-            url1='<%="'+ui_proto+window.location.hostname+':'+status.cn_port+'/ui/yacd/"%>';
+            url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/"%>';
         }
         winOpen(url1);
         return false;
@@ -820,15 +820,15 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
         btn.disabled = true;
         btn.value    = '<%:Open Panel%>';
-        var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
         if (status.daip && window.location.hostname == status.daip) {
-            url2='<%="'+ui_proto+window.location.hostname+':'+status.cn_port+'/ui/dashboard/#/?host='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+            url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/dashboard/#/?host='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
         }
         else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
+            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
             url2='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/dashboard/#/?host='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
         }
         else {
-            url2='<%="'+ui_proto+window.location.hostname+':'+status.cn_port+'/ui/dashboard/"%>';
+            url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/dashboard/"%>';
         }
         winOpen(url2);
         return false;
