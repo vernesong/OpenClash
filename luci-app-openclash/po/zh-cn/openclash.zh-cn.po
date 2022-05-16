@@ -429,6 +429,12 @@ msgstr "管理页面映射端口"
 msgid "Port For Dashboard Login From Public Network"
 msgstr "设置映射端口，便于从公网访问时自动登录"
 
+msgid "Public Dashboard SSL enabled"
+msgstr "管理页面公网SSL访问"
+
+msgid "Is SSL enabled For Dashboard Login From Public Network"
+msgstr "设置公网协议是否开启了SSL，便于从公网访问时自动登录"
+
 msgid "GEO Update"
 msgstr "GEO 数据库订阅"
 
