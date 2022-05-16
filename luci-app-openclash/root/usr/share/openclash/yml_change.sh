@@ -276,7 +276,7 @@ Thread.new{
    Value['external-controller']='0.0.0.0:$3';
    Value['secret']='$2';
    Value['bind-address']='*';
-   Value['external-ui']='/usr/share/openclash/dashboard';
+   Value['external-ui']='/usr/share/openclash/ui';
    if $6 == 1 then
       Value['ipv6']=true;
    else

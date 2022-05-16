@@ -801,13 +801,14 @@
         btn.disabled = true;
         btn.value    = '<%:Open Panel%>';
         if (status.daip && window.location.hostname == status.daip) {
-        	url1='<%="http://'+window.location.hostname+':'+window.location.port+'/luci-static/openclash?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+            url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
         }
         else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-        	url1='<%="http://'+window.location.hostname+':'+window.location.port+'/luci-static/openclash?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
+            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+			url1='<%="'+ui_proto+window.location.hostname+':'+status.cn_port+'/ui/yacd/?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
         }
         else {
-        	url1='<%="http://'+window.location.hostname+':'+window.location.port+'/luci-static/openclash"%>';
+            url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/"%>';
         }
         winOpen(url1);
         return false;
@@ -820,13 +821,14 @@
         btn.disabled = true;
         btn.value    = '<%:Open Panel%>';
         if (status.daip && window.location.hostname == status.daip) {
-        	url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/#/?host='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+            url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/dashboard/#/?host='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
         }
         else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-        	url2='<%="http://'+status.db_foward_domain+':'+status.db_foward_port+'/ui/#/?host='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
+            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+            url2='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/dashboard/#/?host='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
         }
         else {
-        	url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/"%>';
+            url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/dashboard/"%>';
         }
         winOpen(url2);
         return false;

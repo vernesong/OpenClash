@@ -1147,7 +1147,7 @@ o.title = translate("Dashboard Port")
 o.default = "9090"
 o.datatype = "port"
 o.rmempty = false
-o.description = translate("Dashboard Address Example:").." "..font_green..bold_on..lan_ip.."/luci-static/openclash、"..lan_ip..':'..cn_port..'/ui'..bold_off..font_off
+o.description = translate("Dashboard Address Example:").." "..font_green..bold_on..lan_ip..':'..cn_port..'/ui/yacd'..'、'..lan_ip..':'..cn_port..'/ui/dashboard'..bold_off..font_off
 
 o = s:taboption("dashboard", Value, "dashboard_password")
 o.title = translate("Dashboard Secret")
@@ -1166,6 +1166,11 @@ o.title = translate("Public Dashboard Port")
 o.datatype = "port"
 o.rmempty = true
 o.description = translate("Port For Dashboard Login From Public Network")
+
+o = s:taboption("dashboard", Flag, "dashboard_forward_ssl")
+o.title = translate("Public Dashboard SSL enabled")
+o.default = 0
+o.description = translate("Is SSL enabled For Dashboard Login From Public Network")
 
 ---- version update
 core_update = s:taboption("version_update", DummyValue, "", nil)
