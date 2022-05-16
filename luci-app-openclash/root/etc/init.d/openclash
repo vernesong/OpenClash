@@ -1146,7 +1146,7 @@ if [ "$bypass_gateway_compatible" -eq 1 ]; then
    if [ "$bypass_gateway_compatible" -eq 1 ]; then
       iptables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
       iptables -t nat -A openclash_post -m comment --comment "OpenClash Bypass Gateway Compatible" -m set --match-set localnetwork dst -j RETURN
-      iptables -t nat -A openclash_post -m set ! --match-set localnetwork src -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
+      iptables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
    fi
    iptables -t nat -I POSTROUTING -j openclash_post
 fi
@@ -1442,7 +1442,7 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
       ip6tables -t nat -F openclash_post
       ip6tables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
       ip6tables -t nat -A openclash_post -m comment --comment "OpenClash Bypass Gateway Compatible" -m set --match-set localnetwork6 dst -j RETURN
-      ip6tables -t nat -A openclash_post -m set ! --match-set localnetwork src -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
+      ip6tables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
       ip6tables -t nat -I POSTROUTING -j openclash_post
    fi
    
