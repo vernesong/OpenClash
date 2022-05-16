@@ -47,7 +47,7 @@ if [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 ] && [ -f "$LAST_OPVER" ]; then
       LOG_OUT "【OpenClash - v$LAST_VER】Download Successful, Start Pre Update Test..."
       
       if [ -z "$(opkg install /tmp/openclash.ipk --noaction 2>/dev/null |grep 'Upgrading luci-app-openclash on root' 2>/dev/null)" ]; then
-         LOG_OUT "【OpenClash - v$LAST_VER】Pre Update Test Failed, The File is Saved in /tmp/opencrash.ipk, Please Try to Update Manually!"
+         LOG_OUT "【OpenClash - v$LAST_VER】Pre Update Test Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually!"
          if [ "$(uci -q get openclash.config.config_reload)" -eq 0 ]; then
       	    /etc/init.d/openclash restart >/dev/null 2>&1 &
          else
