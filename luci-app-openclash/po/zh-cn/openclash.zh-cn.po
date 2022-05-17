@@ -249,9 +249,6 @@ msgstr "每行请只填写一个域名，列表中的域名将使用上方指定
 msgid "Domain Names In The List Use The Custom DNS Server, But Still Return Fake-IP Results, One rule per line"
 msgstr "每行请只填写一个规则，列表中的域名将使用指定的 DNS 进行查询，但 Fake-IP 模式下仍将返回保留地址"
 
-msgid "Fake-IP-Filter List Update"
-msgstr "更新 Fake-IP 域名黑名单"
-
 msgid "Set OpenClash Upstream DNS Resolve Server"
 msgstr "启用将覆盖配置文件内的设置，请先在下方配置好服务器"
 
@@ -1860,9 +1857,6 @@ msgstr "的信息读取失败，无法进行修改，请选择一键创建配置
 
 msgid "Setting Secondary DNS Server List..."
 msgstr "正在设置第二 DNS 服务器列表..."
-
-msgid "Setting Fake IP Filter..."
-msgstr "正在设置 Fake-IP 黑名单..."
 
 msgid "Deleting"
 msgstr "删除"

@@ -366,7 +366,7 @@ yml_other_rules_get()
 check_run_quick()
 {
    quick_start=true
-   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $meta_core_path $ipdb_path $geosite_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version /tmp/openclash_fake_filter.list /etc/openclash/custom/openclash_force_sniffing_domain.list /etc/openclash/custom/openclash_sniffing_domain_filter.list /etc/openclash/custom/openclash_sniffing_port_filter.yaml"
+   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $meta_core_path $ipdb_path $geosite_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version /etc/openclash/custom/openclash_force_sniffing_domain.list /etc/openclash/custom/openclash_sniffing_domain_filter.list /etc/openclash/custom/openclash_sniffing_port_filter.yaml"
 	 if [ ! -f "$CONFIG_FILE" ] || [ ! -f "/tmp/openclash_config.tmp" ] || [ ! -f "/tmp/openclash.change" ]; then
 	    quick_start=false
 	    return
@@ -590,14 +590,10 @@ do_run_file()
    [ ! -x "$dev_core_path" ] && chmod 4755 "$dev_core_path" 2>/dev/null
    [ ! -x "$meta_core_path" ] && chmod 4755 "$meta_core_path" 2>/dev/null
 
-   #fake_ip_filter
+   #for fake ip mode server ping check
    if [ "$3" = "fake-ip" ]; then
-      if [ ! -f "/tmp/openclash_fake_filter.list" ] || [ -n "$(grep "config servers" /etc/config/openclash 2>/dev/null)" ]; then
-         /usr/share/openclash/openclash_fake_filter.sh
-      fi
-      if [ -s "/tmp/openclash_servers_fake_filter.conf" ]; then
-         mkdir -p /tmp/dnsmasq.d
-         cp /tmp/openclash_servers_fake_filter.conf /tmp/dnsmasq.d/dnsmasq_openclash.conf
+      if [ -n "$(grep "config servers" /etc/config/openclash 2>/dev/null)" ]; then
+         /usr/share/openclash/openclash_server_fake_filter.sh
       fi
    fi
   
@@ -1694,8 +1690,8 @@ stop()
       rm -rf /tmp/Proxy_Group >/dev/null 2>&1
       rm -rf /tmp/rules_name >/dev/null 2>&1
       rm -rf /tmp/rule_providers_name >/dev/null 2>&1
-      rm -rf /tmp/openclash_fake_filter.list >/dev/null 2>&1
-      rm -rf /tmp/openclash_servers_fake_filter.conf >/dev/null 2>&1
+      rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
+      rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
       rm -rf /tmp/openclash_last_version >/dev/null 2>&1
       rm -rf /tmp/openclash_config.tmp >/dev/null 2>&1
       rm -rf /tmp/openclash.change >/dev/null 2>&1
