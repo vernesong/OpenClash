@@ -118,7 +118,7 @@ change_dns() {
    
    if [ "$ipv6_dns" == 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
       #dnsmasq answer ipv6
-      uci -q set openclash.config.dnsmasq_filter_aaaa="$(uci -q get dhcp.@dnsmasq[0].filter_aaaa)"
+       uci -q set openclash.config.dnsmasq_filter_aaaa="$(uci -q get dhcp.@dnsmasq[0].filter_aaaa)"
 	    uci -q set dhcp.@dnsmasq[0].filter_aaaa=0
 	    uci -q set openclash.config.filter_aaaa_dns=1
 	 else
@@ -127,8 +127,6 @@ change_dns() {
 	 
    uci -q commit dhcp
    uci -q commit openclash
-   
-   /usr/share/openclash/openclash_custom_domain_dns.sh >/dev/null 2>&1
 }
 
 revert_dns() {
@@ -589,13 +587,6 @@ do_run_file()
    [ ! -x "$tun_core_path" ] && chmod 4755 "$tun_core_path" 2>/dev/null
    [ ! -x "$dev_core_path" ] && chmod 4755 "$dev_core_path" 2>/dev/null
    [ ! -x "$meta_core_path" ] && chmod 4755 "$meta_core_path" 2>/dev/null
-
-   #for fake ip mode server ping check
-   if [ "$3" = "fake-ip" ]; then
-      if [ -n "$(grep "config servers" /etc/config/openclash 2>/dev/null)" ]; then
-         /usr/share/openclash/openclash_server_fake_filter.sh
-      fi
-   fi
   
    [ -f "$ipdb_path" ] && [ "$small_flash_memory" = "1" ] && {
       ln -s "$ipdb_path" /etc/openclash/Country.mmdb 2>/dev/null
@@ -1589,7 +1580,7 @@ start()
    
    LOG_OUT "Step 2: Check The Components..."
    #检查文件是否存在
-   do_run_file "$RAW_CONFIG_FILE" "$BACKUP_FILE" "$en_mode"
+   do_run_file "$RAW_CONFIG_FILE" "$BACKUP_FILE"
    
    #快速启动判断
    check_run_quick
@@ -1599,6 +1590,8 @@ start()
       config_check
       /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote" "$enable_meta_core" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent"
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port"
+      /usr/share/openclash/openclash_server_fake_filter.sh >/dev/null 2>&1
+      /usr/share/openclash/openclash_custom_domain_dns.sh >/dev/null 2>&1
    fi
    
    LOG_OUT "Step 4: Start Running The Clash Core..."
