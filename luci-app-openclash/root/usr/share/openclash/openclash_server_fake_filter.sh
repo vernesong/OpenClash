@@ -3,6 +3,7 @@
 . /usr/share/openclash/log.sh
 
 SER_FAKE_FILTER_FILE="/tmp/dnsmasq.d/dnsmasq_openclash.conf"
+en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
 
 cfg_server_address()
 {
@@ -19,11 +20,13 @@ cfg_server_address()
 }
 
 #Fake下正确检测节点延迟及获取真实地址
-rm -rf "$SER_FAKE_FILTER_FILE" 2>/dev/null
-mkdir -p /tmp/dnsmasq.d
-custom_domain_dns_server=$(uci get openclash.config.custom_domain_dns_server 2>/dev/null)
-   [ -z "$custom_domain_dns_server" ] && {
-	   custom_domain_dns_server="114.114.114.114"
-	}
-config_load "openclash"
-config_foreach cfg_server_address "servers"
+if [ -z "$(echo "$en_mode" |grep "redir-host")" ]; then
+   rm -rf "$SER_FAKE_FILTER_FILE" 2>/dev/null
+   mkdir -p /tmp/dnsmasq.d
+   custom_domain_dns_server=$(uci get openclash.config.custom_domain_dns_server 2>/dev/null)
+      [ -z "$custom_domain_dns_server" ] && {
+         custom_domain_dns_server="114.114.114.114"
+      }
+   config_load "openclash"
+   config_foreach cfg_server_address "servers"
+fi
