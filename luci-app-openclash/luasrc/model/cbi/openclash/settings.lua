@@ -290,17 +290,6 @@ o.description = translate("DNS Advanced Settings")..font_red..bold_on..translate
 o.default = 0
 
 if op_mode == "fake-ip" then
-o = s:taboption("dns", Button, translate("Fake-IP-Filter List Update")) 
-o.title = translate("Fake-IP-Filter List Update")
-o:depends("dns_advanced_setting", "1")
-o.inputtitle = translate("Check And Update")
-o.inputstyle = "reload"
-o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("rm -rf /tmp/openclash_fake_filter.list >/dev/null 2>&1 && /etc/init.d/openclash restart >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
-end
 
 custom_fake_black = s:taboption("dns", Value, "custom_fake_filter")
 custom_fake_black.template = "cbi/tvalue"
@@ -1050,7 +1039,7 @@ o:depends("enable_geoip_dat", 0)
 
 o = s:taboption("geo_update", Value, "geo_custom_url")
 o.title = translate("Custom GEOIP URL")
-o.rmempty = false
+o.rmempty = true
 o.description = translate("Custom GEOIP Data URL, Click Button Below To Refresh After Edit")
 o:value("https://cdn.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb", translate("Alecthw-lite-Version")..translate("(Default mmdb)"))
 o:value("https://cdn.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/Country.mmdb", translate("Alecthw-Version")..translate("(All Info mmdb)"))
