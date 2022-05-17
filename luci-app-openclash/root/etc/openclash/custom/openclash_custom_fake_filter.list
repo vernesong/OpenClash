@@ -99,8 +99,31 @@ stun.*.*.*
 heartbeat.belkin.com
 *.linksys.com
 *.linksyssmartwifi.com
+myrouter.local
 #ASUS Router
 *.router.asus.com
+# Ubiquiti Amplifi Router
+amplifi.lan
+# Synology Router
+router.synology.com
+# Razer Sila Router
+sila.razer.com
+# Netgear Router
+routerlogin.net
+# Netgear Obri Router
+orbilogin.com
+# Xiaomi Mi WiFi Router
+www.miwifi.com
+miwifi.com
+# Huawei Router
+mediarouter.home
+# TP-Link Router
+tplogin.cn
+tplinklogin.net
+# MERCURY Router
+melogin.cn
+# FAST Router
+falogin.cn
 #Apple Software Update Service
 mesu.apple.com
 swscan.apple.com
