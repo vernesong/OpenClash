@@ -1690,7 +1690,6 @@ stop()
 
    LOG_OUT "Step 6: Delete OpenClash Residue File..."
    if [ "$enable" != "1" ]; then
-      rm -rf /www/luci-static/openclash >/dev/null 2>&1
       rm -rf /tmp/clash_last_version >/dev/null 2>&1
       rm -rf /tmp/Proxy_Group >/dev/null 2>&1
       rm -rf /tmp/rules_name >/dev/null 2>&1
