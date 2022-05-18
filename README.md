@@ -8,8 +8,8 @@
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.10.6">
     <img src="https://img.shields.io/badge/Clash-v1.10.6-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.45.17-beta">
-    <img src="https://img.shields.io/badge/source code-v0.45.17--beta-green.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.45.18-beta">
+    <img src="https://img.shields.io/badge/source code-v0.45.18--beta-green.svg">
   </a>
   <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.45.16-beta">
     <img src="https://img.shields.io/badge/New Release-v0.45.16--beta-orange.svg">
