@@ -61,6 +61,8 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             if [ "$github_address_mod" != "0" ]; then
                if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
                   curl -sL -m 30 --speed-time 15 --speed-limit 1 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+	       elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
+                  curl -sL -m 30 --speed-time 15 --speed-limit 1 https://fastly.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
                else
                   curl -sL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
                fi
@@ -76,6 +78,8 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             if [ "$github_address_mod" != "0" ]; then
                if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
                   curl -sL -m 30 --speed-time 15 --speed-limit 1 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
+	       elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
+                  curl -sL -m 30 --speed-time 15 --speed-limit 1 https://fastly.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
                else
                   curl -sL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
                fi
@@ -91,6 +95,8 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			      if [ "$github_address_mod" != "0" ]; then
                if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
                   curl -sL -m 30 --speed-time 15 --speed-limit 1 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
+	       elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
+                  curl -sL -m 30 --speed-time 15 --speed-limit 1 https://fastly.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
                else
                   curl -sL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
                fi
