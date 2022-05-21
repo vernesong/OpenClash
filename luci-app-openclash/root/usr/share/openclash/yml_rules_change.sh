@@ -113,6 +113,8 @@ yml_gen_rule_provider_file()
    else
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
          RULE_PROVIDER_FILE_URL="https://cdn.jsdelivr.net/gh/"$(echo "$RULE_PROVIDER_FILE_URL_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"@master"$(echo "$RULE_PROVIDER_FILE_URL_PATH" |awk -F 'master' '{print $2}')""
+      elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
+         RULE_PROVIDER_FILE_URL="https://fastly.jsdelivr.net/gh/"$(echo "$RULE_PROVIDER_FILE_URL_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"@master"$(echo "$RULE_PROVIDER_FILE_URL_PATH" |awk -F 'master' '{print $2}')""
       else
          RULE_PROVIDER_FILE_URL="${github_address_mod}https://raw.githubusercontent.com/${RULE_PROVIDER_FILE_URL_PATH}"
       fi
@@ -659,6 +661,10 @@ yml_other_set()
                if '$github_address_mod' == 'https://cdn.jsdelivr.net/' then
                   if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
                      x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
+                  end;
+	       elif '$github_address_mod' == 'https://fastly.jsdelivr.net/' then
+                  if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
+                     x['url'] = 'https://fastly.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
                   end;
                else
                   if x['url'] and x['url'] =~ /^https:\/\/(raw.|gist.)(githubusercontent.com|github.com)/ then
