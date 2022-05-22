@@ -63,7 +63,7 @@ local diag_host = "www.instagram.com"
 
 				img.onerror = () => {
 			  	clearTimeout(timeout);
-  		  	show_diag_info(addr);
+  		  		show_diag_info(addr);
   			}
 
 				img.onload = () => {
@@ -77,7 +77,7 @@ local diag_host = "www.instagram.com"
 				HTTP.checker(addr);
 			}
 			};
-	HTTP.runcheck();
+		HTTP.runcheck();
 	}
 	
 	
