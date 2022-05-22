@@ -1102,6 +1102,7 @@ fi
    ipset create localnetwork hash:net
    ipset add localnetwork 0.0.0.0/8
    ipset add localnetwork 127.0.0.0/8
+   ipset add localnetwork 224.0.0.0/4
    ipset add localnetwork 169.254.0.0/16
    ipset add localnetwork 172.16.0.0/12
    
@@ -1602,8 +1603,10 @@ start()
 
    #检测proxy_provider配置文件状态
    LOG_OUT "Step 6: Wait For The File Downloading..."
-   yml_provider_check "$CONFIG_FILE" "proxy-providers" "proxies"
-   yml_provider_check "$CONFIG_FILE" "rule-providers" "payload"
+   if [ "$enable_meta_core" != "1" ]; then
+      yml_provider_check "$CONFIG_FILE" "proxy-providers" "proxies"
+      yml_provider_check "$CONFIG_FILE" "rule-providers" "payload"
+   fi
    try_restore_start
        
    LOG_OUT "Step 7: Set Firewall Rules..."
