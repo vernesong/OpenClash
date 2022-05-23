@@ -269,154 +269,156 @@ yml_other_set()
    config_foreach yml_rule_group_get "game_config" "$3"
    ruby -ryaml -E UTF-8 -e "
    begin
-   Value = YAML.load_file('$3');
+      Value = YAML.load_file('$3');
    rescue Exception => e
-      puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】'
-   end
+      puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
+   end;
+
    begin
    Thread.new{
    if $2 == 1 then
    #script
       for i in ['/etc/openclash/custom/openclash_custom_rules.list','/etc/openclash/custom/openclash_custom_rules_2.list'] do
          if File::exist?(i) then
-            Value_1 = YAML.load_file(i)
+            Value_1 = YAML.load_file(i);
             if Value_1 != false then
                if Value_1.class.to_s == 'Hash' then
                   if Value_1['script'] and Value_1['script'].class.to_s != 'Array' then
                      if Value.key?('script') and not Value_1['script'].to_a.empty? then
                         if Value['script'].key?('code') and Value_1['script'].key?('code') then
                            if not Value['script']['code'].include?('def main(ctx, metadata):') then
-                              Value['script']['code'] = Value_1['script']['code']
+                              Value['script']['code'] = Value_1['script']['code'];
                            else
                               if i == '/etc/openclash/custom/openclash_custom_rules.list' then
                                  if not Value_1['script']['code'].include?('def main(ctx, metadata):') then
-                                    Value['script']['code'].gsub!('def main(ctx, metadata):', \"def main(ctx, metadata):\n\" + Value_1['script']['code'])
+                                    Value['script']['code'].gsub!('def main(ctx, metadata):', \"def main(ctx, metadata):\n\" + Value_1['script']['code']);
                                  else
-                                    Value['script']['code'].gsub!('def main(ctx, metadata):', Value_1['script']['code'])
-                                 end
+                                    Value['script']['code'].gsub!('def main(ctx, metadata):', Value_1['script']['code']);
+                                 end;
                               else
-                                 insert_index = Value['script']['code'].index(/ctx.geoip/)
-                                 insert_index ||= Value['script']['code'].rindex(/return/)
-                                 insert_index ||= -1
+                                 insert_index = Value['script']['code'].index(/ctx.geoip/);
+                                 insert_index ||= Value['script']['code'].rindex(/return/);
+                                 insert_index ||= -1;
                                  if insert_index != -1 then
-                                    insert_index  = Value['script']['code'].rindex(\"\n\", insert_index) + 1
+                                    insert_index  = Value['script']['code'].rindex(\"\n\", insert_index) + 1;
                                  end
                                  if not Value_1['script']['code'].include?('def main(ctx, metadata):') then
-                                    Value['script']['code'].insert(insert_index, Value_1['script']['code'])
+                                    Value['script']['code'].insert(insert_index, Value_1['script']['code']);
                                  else
-                                    Value['script']['code'].insert(insert_index, Value_1['script']['code'].gsub('def main(ctx, metadata):', ''))
-                                 end
-                              end
-                           end
+                                    Value['script']['code'].insert(insert_index, Value_1['script']['code'].gsub('def main(ctx, metadata):', ''));
+                                 end;
+                              end;
+                           end;
                         elsif Value_1['script'].key?('code') then
-                           Value['script']['code'] = Value_1['script']['code']
-                        end
+                           Value['script']['code'] = Value_1['script']['code'];
+                        end;
                         if Value['script'].key?('shortcuts') and Value_1['script'].key?('shortcuts') and not Value_1['script']['shortcuts'].to_a.empty? then
-                           Value['script']['shortcuts'].merge!(Value_1['script']['shortcuts']).uniq
+                           Value['script']['shortcuts'].merge!(Value_1['script']['shortcuts']).uniq;
                         elsif Value_1['script'].key?('shortcuts') and not Value_1['script']['shortcuts'].to_a.empty? then
-                           Value['script']['shortcuts'] = Value_1['script']['shortcuts']
-                        end
+                           Value['script']['shortcuts'] = Value_1['script']['shortcuts'];
+                        end;
                      else
-                        Value['script'] = Value_1['script']
-                     end
-                  end
-               end
-            end
-         end
+                        Value['script'] = Value_1['script'];
+                     end;
+                  end;
+               end;
+            end;
+         end;
       end;
    #rules
       if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
          if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
+            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
             if Value_1 != false then
                if Value_1.class.to_s == 'Hash' then
                   if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
-                     Value_2 = Value_1['rules'].to_a.reverse!
-                  end
-               elsif Value_1.class.to_s == 'Array'
-                  Value_2 = Value_1.reverse!
-               end
+                     Value_2 = Value_1['rules'].to_a.reverse!;
+                  end;
+               elsif Value_1.class.to_s == 'Array' then
+                  Value_2 = Value_1.reverse!;
+               end;
                if defined? Value_2 then
-                  Value_2.each{|x| Value['rules'].insert(0,x)}
-                  Value['rules'] = Value['rules'].uniq
-               end
-            end
-         end
+                  Value_2.each{|x| Value['rules'].insert(0,x)};
+                  Value['rules'] = Value['rules'].uniq;
+               end;
+            end;
+         end;
          if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-            Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list')
+            Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
             if Value_3 != false then
-               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
-               ruby_add_index ||= -1
+               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first);
+               ruby_add_index ||= -1;
                if Value_3.class.to_s == 'Hash' then
                   if not Value_3['rules'].to_a.empty? and Value_3['rules'].class.to_s == 'Array' then
-                     Value_4 = Value_3['rules'].to_a.reverse!
-                  end
-               elsif Value_3.class.to_s == 'Array'
-                  Value_4 = Value_3.reverse!
-               end
+                     Value_4 = Value_3['rules'].to_a.reverse!;
+                  end;
+               elsif Value_3.class.to_s == 'Array' then
+                  Value_4 = Value_3.reverse!;
+               end;
                if defined? Value_4 then
                   if ruby_add_index == -1 then
-                     Value_4 = Value_4.reverse!
-                  end
-                  Value_4.each{|x| Value['rules'].insert(ruby_add_index,x)}
-                  Value['rules'] = Value['rules'].uniq
-               end
-            end
-         end
+                     Value_4 = Value_4.reverse!;
+                  end;
+                  Value_4.each{|x| Value['rules'].insert(ruby_add_index,x)};
+                  Value['rules'] = Value['rules'].uniq;
+               end;
+            end;
+         end;
       else
          if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
+            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
             if Value_1 != false then
                if Value_1.class.to_s == 'Hash' then
                  if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
-                    Value['rules'] = Value_1['rules']
-                    Value['rules'] = Value['rules'].uniq
-                 end
-               elsif Value_1.class.to_s == 'Array'
-                  Value['rules'] = Value_1
-                  Value['rules'] = Value['rules'].uniq
-               end
-            end
-         end
+                    Value['rules'] = Value_1['rules'];
+                    Value['rules'] = Value['rules'].uniq;
+                 end;
+               elsif Value_1.class.to_s == 'Array' then
+                  Value['rules'] = Value_1;
+                  Value['rules'] = Value['rules'].uniq;
+               end;
+            end;
+         end;
          if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-            Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list')
+            Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
             if Value_2 != false then
                if Value['rules'].to_a.empty? then
                   if Value_2.class.to_s == 'Hash' then
                     if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
-                       Value['rules'] = Value_2['rules']
-                       Value['rules'] = Value['rules'].uniq
-                    end
-                  elsif Value_2.class.to_s == 'Array' 
-                     Value['rules'] = Value_2
-                     Value['rules'] = Value['rules'].uniq
-                  end
+                       Value['rules'] = Value_2['rules'];
+                       Value['rules'] = Value['rules'].uniq;
+                    end;
+                  elsif Value_2.class.to_s == 'Array' then
+                     Value['rules'] = Value_2;
+                     Value['rules'] = Value['rules'].uniq;
+                  end;
                else
-                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first)
-                  ruby_add_index ||= -1
+                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first);
+                  ruby_add_index ||= -1;
                   if Value_2.class.to_s == 'Hash' then
                     if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
-                       Value_3 = Value_2['rules'].to_a.reverse!
-                    end
-                  elsif Value_2.class.to_s == 'Array'
-                     Value_3 = Value_2.reverse!
-                  end
+                       Value_3 = Value_2['rules'].to_a.reverse!;
+                    end;
+                  elsif Value_2.class.to_s == 'Array' then
+                     Value_3 = Value_2.reverse!;
+                  end;
                   if defined? Value_3 then
                      if ruby_add_index == -1 then
-                        Value_3 = Value_3.reverse!
+                        Value_3 = Value_3.reverse!;
                      end
-                     Value_3.each{|x| Value['rules'].insert(ruby_add_index,x)}
-                     Value['rules'] = Value['rules'].uniq
-                  end
-               end
-            end
-         end
-      end
+                     Value_3.each{|x| Value['rules'].insert(ruby_add_index,x)};
+                     Value['rules'] = Value['rules'].uniq;
+                  end;
+               end;
+            end;
+         end;
+      end;
    end;
    }.join;
    rescue Exception => e
-      puts '${LOGTIME} Error: Set Custom Rules Failed,【' + e.message + '】'
-   end
+      puts '${LOGTIME} Error: Set Custom Rules Failed,【' + e.message + '】';
+   end;
+
    begin
    Thread.new{
       if $4 == 1 then
@@ -480,67 +482,67 @@ yml_other_set()
          'PROCESS-NAME,UUBooster,DIRECT',
          'PROCESS-NAME,uugamebooster,DIRECT',
          'DOMAIN-SUFFIX,smtp,DIRECT'
-         )
-         match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0]
+         );
+         match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0];
          if not match_group.nil? then
-            common_port_group=match_group.split(',')[2] or common_port_group=match_group.split(',')[1]
+            common_port_group=match_group.split(',')[2] or common_port_group=match_group.split(',')[1];
             if not common_port_group.nil? then
-               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first)
-               ruby_add_index ||= -1
+               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
+               ruby_add_index ||= -1;
                Value['rules']=Value['rules'].to_a.insert(ruby_add_index,
                'DST-PORT,80,' + common_port_group,
                'DST-PORT,443,' + common_port_group,
                'DST-PORT,22,' + common_port_group
-               )
-            end
+               );
+            end;
          end
-         Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')}
+         Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')};
       end;
    }.join;
    rescue Exception => e
-      puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】'
-   end
+      puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】';
+   end;
    
    begin
    Thread.new{
       if $6 == 0 then
          if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
             if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,198.18.0.1)/).empty? then
-               Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,198.18.0.1/32,DIRECT')
+               Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,198.18.0.1/32,DIRECT');
             end
             if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'$7')/).empty? and not '$7'.empty? then
-               Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,$7/32,DIRECT')
-            end
+               Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,$7/32,DIRECT');
+            end;
          else
-            Value['rules']=%w('SRC-IP-CIDR,198.18.0.1/32,DIRECT','SRC-IP-CIDR,$7/32,DIRECT')
+            Value['rules']=%w('SRC-IP-CIDR,198.18.0.1/32,DIRECT','SRC-IP-CIDR,$7/32,DIRECT');
          end;
       elsif Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-         Value['rules'].delete('SRC-IP-CIDR,198.18.0.1/32,DIRECT')
-         Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT')
+         Value['rules'].delete('SRC-IP-CIDR,198.18.0.1/32,DIRECT');
+         Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT');
       end;
    }.join;
    rescue Exception => e
-      puts '${LOGTIME} Error: Set Router Self Proxy Rule Failed,【' + e.message + '】'
+      puts '${LOGTIME} Error: Set Router Self Proxy Rule Failed,【' + e.message + '】';
    end
    
    begin
    Thread.new{
       if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
          if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
-            Value['rules']=Value['rules'].to_a.insert(0,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve')
-         end
+            Value['rules']=Value['rules'].to_a.insert(0,'IP-CIDR,198.18.0.1/16,REJECT,no-resolve');
+         end;
          if Value['rules'].to_a.grep(/(?=.*DST-PORT,'$8',REJECT)/).empty? then
-            Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$8,REJECT')
-         end
+            Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$8,REJECT');
+         end;
          if Value['rules'].to_a.grep(/(?=.*DST-PORT,'$9',REJECT)/).empty? then
-            Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$9,REJECT')
-         end
+            Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$9,REJECT');
+         end;
       else
-         Value['rules']=['IP-CIDR,198.18.0.1/16,REJECT,no-resolve','DST-PORT,$8,REJECT','DST-PORT,$9,REJECT']
+         Value['rules']=['IP-CIDR,198.18.0.1/16,REJECT,no-resolve','DST-PORT,$8,REJECT','DST-PORT,$9,REJECT'];
       end;
    }.join;
    rescue Exception => e
-      puts '${LOGTIME} Error: Set Loop Protect Rules Failed,【' + e.message + '】'
+      puts '${LOGTIME} Error: Set Loop Protect Rules Failed,【' + e.message + '】';
    end;
 
    #处理规则集
@@ -662,7 +664,7 @@ yml_other_set()
                   if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
                      x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
                   end;
-	       elif '$github_address_mod' == 'https://fastly.jsdelivr.net/' then
+	            elsif '$github_address_mod' == 'https://fastly.jsdelivr.net/' then
                   if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
                      x['url'] = 'https://fastly.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
                   end;
