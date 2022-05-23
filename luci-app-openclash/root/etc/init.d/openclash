@@ -1105,6 +1105,8 @@ fi
    ipset add localnetwork 224.0.0.0/4
    ipset add localnetwork 169.254.0.0/16
    ipset add localnetwork 172.16.0.0/12
+   ipset add localnetwork 100.64.0.0/10
+   ipset add localnetwork 240.0.0.0/4
    
    if [ -n "$lan_ip_cidrs" ]; then
       for lan_ip_cidr in $lan_ip_cidrs; do
