@@ -12,7 +12,7 @@ body:
     attributes:
       label: Verify steps
       description: |
-        在提交之前, 请确认 Please verify that you've followed these steps.
+        在提交之前, 请确认 / Please verify that you've followed these steps.
       options:
         - label: Tracker 我已经在 [Issue Tracker](……/) 中找过我要提出的问题
           required: true
@@ -36,7 +36,7 @@ body:
     attributes:
       label: Bug on Environment
       description: |
-        发现问题所在的系统环境 Environment
+        发现问题所在的系统环境 / System Environment
       multiple: true
       options:
         - Official OpenWrt
@@ -50,7 +50,7 @@ body:
     attributes:
       label: Bug on Platform
       description: |
-        发现问题所在的平台 Platform
+        发现问题所在的架构平台 / Platform
       multiple: true
       options:
         - Linux-386
@@ -67,6 +67,7 @@ body:
         - Linux-mipsle-softfloat
         - Linux-mipsle-hardfloat
         - Other
+        - All
     validations:
       required: true
   - type: textarea
@@ -74,7 +75,7 @@ body:
     attributes:
       label: To Reproduce
       description: |
-        复现此Bug的步骤.
+        复现此Bug的步骤 / How to reproduce?
     validations:
       required: true
   - type: textarea
@@ -82,7 +83,7 @@ body:
     attributes:
       label: Describe the Bug
       description: |
-        对Bug本身清晰而简洁的描述.
+        对Bug本身清晰而简洁的描述 / Describe the Bug
     validations:
       required: true
   - type: textarea
@@ -90,7 +91,7 @@ body:
     attributes:
       label: OpenClash config
       description: |
-        在下方附上 OpenClash 脱敏后配置文件 或 创建容器命令及环境变量 的内容.
+        在下方附上 OpenClash 与Bug相关的配置文件或内容 / OpenClash config
       render: shell
     validations:
       required: false
@@ -99,7 +100,8 @@ body:
     attributes:
       label: OpenClash log
       description: |
-        在下方附上 OpenClash后台报错 的日志.
+        在下方附上 OpenClash 调试日志 / OpenClash Debug Log
+        隐私提示: 上传此日志前请注意检查、屏蔽公网IP、节点、密码等相关敏感信息
       render: shell
     validations:
       required: true
@@ -108,7 +110,7 @@ body:
     attributes:
       label: Expected behavior
       description: |
-        对预期修复后情况的清晰明了的描述.
+        对预期修复后情况的清晰明了的描述 / Expected behavior
     validations:
       required: true
   - type: textarea
@@ -116,6 +118,6 @@ body:
     attributes:
       label: Screenshots
       description: |
-        添加屏幕截图以帮助解释您的问题.
+        添加屏幕截图以帮助解释您的问题 / Screenshots
     validations:
       required: false

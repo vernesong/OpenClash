@@ -11,7 +11,7 @@ body:
     id: verify_step
     attributes:
       label: Verify steps
-      description: "在提交之前，请确认 Please verify that you've followed these steps"
+      description: "在提交之前，请确认 / Please verify that you've followed these steps"
       options:
         - label: Tracker 我已经在 [Issue Tracker](……/) 中找过我要提出的问题
           required: true
