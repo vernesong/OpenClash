@@ -87,24 +87,23 @@ body:
     validations:
       required: true
   - type: textarea
-    id: openclash_config
-    attributes:
-      label: OpenClash config
-      description: |
-        在下方附上 OpenClash 与Bug相关的配置文件或内容 / OpenClash config
-      render: shell
-    validations:
-      required: false
-  - type: textarea
     id: openclash_log
     attributes:
       label: OpenClash log
       description: |
         在下方附上 OpenClash 调试日志 / OpenClash Debug Log
         隐私提示: 上传此日志前请注意检查、屏蔽公网IP、节点、密码等相关敏感信息
-      render: shell
     validations:
       required: true
+  - type: textarea
+    id: openclash_config
+    attributes:
+      label: OpenClash config
+      description: |
+        在下方附上与Bug相关的系统配置、防火墙规则或环境变量 / System config
+      render: shell
+    validations:
+      required: false
   - type: textarea
     id: excepted_behavior
     attributes:
