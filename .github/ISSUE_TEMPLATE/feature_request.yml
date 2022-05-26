@@ -10,7 +10,7 @@ body:
   - type: checkboxes
     id: verify_step
     attributes:
-      label: Verify steps
+      label: Verify Steps
       description: "在提交之前，请确认 / Please verify that you've followed these steps"
       options:
         - label: Tracker 我已经在 [Issue Tracker](……/) 中找过我要提出的问题
@@ -30,21 +30,21 @@ body:
       required: true
   - type: textarea
     attributes:
-      label: Describe the solution
+      label: Describe the Solution
       description: |
         清晰明了地描述您的解决方案. 例如你想实现什么 Feature 特性或功能? 如何实现该功能? 
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Describe alternatives
+      label: Describe Alternatives
       description: |
         对您考虑过的任何替代解决方案或备选功能进行清晰、简洁的描述.
     validations:
       required: false
   - type: textarea
     attributes:
-      label: Additional context
+      label: Additional Context
       description: |
         在此处添加关于功能请求的任何其他描述或屏幕截图.
     validations:

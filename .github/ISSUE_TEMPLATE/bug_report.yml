@@ -10,7 +10,7 @@ body:
   - type: checkboxes
     id: verify_step
     attributes:
-      label: Verify steps
+      label: Verify Steps
       description: |
         在提交之前, 请确认 / Please verify that you've followed these steps.
       options:
@@ -89,7 +89,7 @@ body:
   - type: textarea
     id: openclash_log
     attributes:
-      label: OpenClash log
+      label: OpenClash Log
       description: |
         在下方附上 OpenClash 调试日志 / OpenClash Debug Log
         隐私提示: 上传此日志前请注意检查、屏蔽公网IP、节点、密码等相关敏感信息
@@ -98,7 +98,7 @@ body:
   - type: textarea
     id: openclash_config
     attributes:
-      label: OpenClash config
+      label: OpenClash Config
       description: |
         在下方附上与Bug相关的系统配置、防火墙规则或环境变量 / System config
       render: shell
@@ -107,7 +107,7 @@ body:
   - type: textarea
     id: excepted_behavior
     attributes:
-      label: Expected behavior
+      label: Expected Behavior
       description: |
         对预期修复后情况的清晰明了的描述 / Expected behavior
     validations:
