@@ -577,8 +577,11 @@
 				else if (status.cpu >= 50 && status.cpu <= 80) {
 					document.getElementById("cpu_t").innerHTML = "<font style=\"color:orange\">"+status.cpu+" %</font>";
 				}
-				else {
+				else if (status.cpu <= 100) {
 					document.getElementById("cpu_t").innerHTML = "<font style=\"color:red\">"+status.cpu+" %</font>";
+				}
+				else {
+					document.getElementById("cpu_t").innerHTML = "<font style=\"color:green\">0 %</font>";
 				}
 			}
 			else {
@@ -603,8 +606,11 @@
 				else if (status.cpu >= 50 && status.cpu <= 80) {
 					document.getElementById("cpu_t").innerHTML = "<font style=\"color:orange\">"+status.cpu+" %</font>";
 				}
-				else {
+				else if (status.cpu <= 100) {
 					document.getElementById("cpu_t").innerHTML = "<font style=\"color:red\">"+status.cpu+" %</font>";
+				}
+				else {
+					document.getElementById("cpu_t").innerHTML = "<font style=\"color:green\">0 %</font>";
 				}
 			}
 			else {
