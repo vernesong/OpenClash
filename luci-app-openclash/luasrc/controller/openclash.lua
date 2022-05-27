@@ -760,8 +760,8 @@ function action_toolbar_show_sys()
 		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
 		cpu = luci.sys.exec(string.format("top -b -n1 |grep -E '%s' 2>/dev/null |grep -v grep |awk '{for (i=1;i<=NF;i++) {if ($i ~ /clash/) break; else cpu=i}}; {print $cpu}' 2>/dev/null", pid))
 		if mem and cpu then
-			mem = fs.filesize(mem*1024)
-			cpu = string.match(cpu, "%d+")
+			mem = fs.filesize(mem*1024) or "0 KB"
+			cpu = string.match(cpu, "%d+") or "0"
 		else
 			mem = "0 KB"
 			cpu = "0"
@@ -802,8 +802,8 @@ function action_toolbar_show()
 		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
 		cpu = luci.sys.exec(string.format("top -b -n1 |grep -E '%s' 2>/dev/null |grep -v grep |awk '{for (i=1;i<=NF;i++) {if ($i ~ /clash/) break; else cpu=i}}; {print $cpu}' 2>/dev/null", pid))
 		if mem and cpu then
-			mem = fs.filesize(mem*1024)
-			cpu = string.match(cpu, "%d+")
+			mem = fs.filesize(mem*1024) or "0 KB"
+			cpu = string.match(cpu, "%d+") or  "0"
 		else
 			mem = "0 KB"
 			cpu = "0"
