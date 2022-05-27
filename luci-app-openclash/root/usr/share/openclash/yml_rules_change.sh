@@ -276,6 +276,213 @@ yml_other_set()
 
    begin
    Thread.new{
+      if $4 == 1 then
+         Value['rules']=Value['rules'].to_a.insert(0,
+         'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
+         'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
+         'DOMAIN-SUFFIX,chdbits.co,DIRECT',
+         'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
+         'DOMAIN-SUFFIX,empornium.me,DIRECT',
+         'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
+         'DOMAIN-SUFFIX,hdchina.org,DIRECT',
+         'DOMAIN-SUFFIX,hdsky.me,DIRECT',
+         'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
+         'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
+         'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
+         'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
+         'DOMAIN-SUFFIX,m-team.cc,DIRECT',
+         'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
+         'DOMAIN-SUFFIX,ncore.cc,DIRECT',
+         'DOMAIN-SUFFIX,open.cd,DIRECT',
+         'DOMAIN-SUFFIX,ourbits.club,DIRECT',
+         'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
+         'DOMAIN-SUFFIX,privatehd.to,DIRECT',
+         'DOMAIN-SUFFIX,redacted.ch,DIRECT',
+         'DOMAIN-SUFFIX,springsunday.net,DIRECT',
+         'DOMAIN-SUFFIX,tjupt.org,DIRECT',
+         'DOMAIN-SUFFIX,totheglory.im,DIRECT',
+         'DOMAIN-SUFFIX,smtp,DIRECT',
+         'DOMAIN-KEYWORD,announce,DIRECT',
+         'DOMAIN-KEYWORD,torrent,DIRECT',
+         'DOMAIN-KEYWORD,tracker,DIRECT'
+         );
+         match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0];
+         if not match_group.nil? then
+            common_port_group=match_group.split(',')[2] or common_port_group=match_group.split(',')[1];
+            if not common_port_group.nil? then
+               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
+               ruby_add_index ||= -1;
+               Value['rules']=Value['rules'].to_a.insert(ruby_add_index,
+               'PROCESS-NAME,aria2c,DIRECT',
+               'PROCESS-NAME,BitComet,DIRECT',
+               'PROCESS-NAME,fdm,DIRECT',
+               'PROCESS-NAME,NetTransport,DIRECT',
+               'PROCESS-NAME,qbittorrent,DIRECT',
+               'PROCESS-NAME,Thunder,DIRECT',
+               'PROCESS-NAME,transmission-daemon,DIRECT',
+               'PROCESS-NAME,transmission-qt,DIRECT',
+               'PROCESS-NAME,uTorrent,DIRECT',
+               'PROCESS-NAME,WebTorrent,DIRECT',
+               'PROCESS-NAME,aria2c,DIRECT',
+               'PROCESS-NAME,fdm,DIRECT',
+               'PROCESS-NAME,Folx,DIRECT',
+               'PROCESS-NAME,NetTransport,DIRECT',
+               'PROCESS-NAME,qbittorrent,DIRECT',
+               'PROCESS-NAME,Thunder,DIRECT',
+               'PROCESS-NAME,Transmission,DIRECT',
+               'PROCESS-NAME,transmission,DIRECT',
+               'PROCESS-NAME,uTorrent,DIRECT',
+               'PROCESS-NAME,WebTorrent,DIRECT',
+               'PROCESS-NAME,WebTorrent Helper,DIRECT',
+               'PROCESS-NAME,v2ray,DIRECT',
+               'PROCESS-NAME,ss-local,DIRECT',
+               'PROCESS-NAME,ssr-local,DIRECT',
+               'PROCESS-NAME,ss-redir,DIRECT',
+               'PROCESS-NAME,ssr-redir,DIRECT',
+               'PROCESS-NAME,ss-server,DIRECT',
+               'PROCESS-NAME,trojan-go,DIRECT',
+               'PROCESS-NAME,xray,DIRECT',
+               'PROCESS-NAME,hysteria,DIRECT',
+               'PROCESS-NAME,UUBooster,DIRECT',
+               'PROCESS-NAME,uugamebooster,DIRECT',
+               'DST-PORT,80,' + common_port_group,
+               'DST-PORT,443,' + common_port_group,
+               'DST-PORT,22,' + common_port_group
+               );
+            end;
+         end
+         Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')};
+      end;
+   }.join;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】';
+   end;
+   
+   begin
+   Thread.new{
+      if $6 == 0 then
+         if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+            if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,198.18.0.1)/).empty? then
+               Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,198.18.0.1/32,DIRECT');
+            end
+            if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'$7')/).empty? and not '$7'.empty? then
+               Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,$7/32,DIRECT');
+            end;
+         else
+            Value['rules']=%w('SRC-IP-CIDR,198.18.0.1/32,DIRECT','SRC-IP-CIDR,$7/32,DIRECT');
+         end;
+      elsif Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+         Value['rules'].delete('SRC-IP-CIDR,198.18.0.1/32,DIRECT');
+         Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT');
+      end;
+   }.join;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Set Router Self Proxy Rule Failed,【' + e.message + '】';
+   end
+
+   #处理规则集
+   begin
+   Thread.new{
+      if File::exist?('$RULE_PROVIDER_FILE') then
+         Value_1 = YAML.load_file('$RULE_PROVIDER_FILE');
+         if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+            Value['rule-providers'].merge!(Value_1);
+         else
+            Value['rule-providers']=Value_1;
+         end;
+      end;
+   }.join;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Custom Rule Provider Merge Failed,【' + e.message + '】';
+   end;
+      
+   begin
+   Thread.new{
+      if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+         if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
+            if $4 != 1 then
+               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first);
+            else
+               if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
+                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
+                  ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
+               else
+                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
+               end;
+            end;
+            ruby_add_index ||= -1;
+            Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
+            if ruby_add_index != -1 then
+               Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(ruby_add_index,x)};
+            else
+               Value_1['rules'].uniq.each{|x| Value['rules'].insert(ruby_add_index,x)};
+            end;
+         end;
+         if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
+            Value_1 = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml');
+            if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
+               Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(0,x)};
+            else
+               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(?=.*198.18.0)(?=.*REJECT)/).first);
+               Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(ruby_add_index + 1,x)};
+            end;
+         end;
+      else
+         if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
+            Value['rules'] = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml')['rules'].uniq;
+         end;
+         if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
+            Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
+            if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
+               Value['rules'] = Value['rules'] | Value_1['rules'].uniq;
+            else
+               Value['rules'] = Value_1['rules'].uniq;
+            end;
+         end;
+      end;
+   }.join;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Rule Set Add Failed,【' + e.message + '】';
+   end;
+
+   begin
+   Thread.new{
+      if File::exist?('/tmp/yaml_groups.yaml') or File::exist?('/tmp/yaml_servers.yaml') or File::exist?('/tmp/yaml_provider.yaml') then
+         if File::exist?('/tmp/yaml_groups.yaml') then
+            Value_1 = YAML.load_file('/tmp/yaml_groups.yaml');
+            if Value.has_key?('proxy-groups') and not Value['proxy-groups'].to_a.empty? then
+               Value['proxy-groups'] = Value['proxy-groups'] + Value_1;
+               Value['proxy-groups'].uniq;
+            else
+               Value['proxy-groups'] = Value_1;
+            end;
+         end;
+         if File::exist?('/tmp/yaml_servers.yaml') then
+            Value_2 = YAML.load_file('/tmp/yaml_servers.yaml');
+            if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
+               Value['proxies'] = Value['proxies'] + Value_2['proxies'];
+               Value['proxies'].uniq;
+            else
+               Value['proxies']=Value_2['proxies'];
+            end
+         end;
+         if File::exist?('/tmp/yaml_provider.yaml') then
+            Value_3 = YAML.load_file('/tmp/yaml_provider.yaml');
+            if Value.has_key?('proxy-providers') and not Value['proxy-providers'].to_a.empty? then
+               Value['proxy-providers'].merge!(Value_3['proxy-providers']);
+               Value['proxy-providers'].uniq;
+            else
+               Value['proxy-providers']=Value_3['proxy-providers'];
+            end;
+         end;
+      end;
+   }.join;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Game Proxy Merge Failed,【' + e.message + '】';
+   end;
+
+   begin
+   Thread.new{
    if $2 == 1 then
    #script
       for i in ['/etc/openclash/custom/openclash_custom_rules.list','/etc/openclash/custom/openclash_custom_rules_2.list'] do
@@ -419,112 +626,7 @@ yml_other_set()
       puts '${LOGTIME} Error: Set Custom Rules Failed,【' + e.message + '】';
    end;
 
-   begin
-   Thread.new{
-      if $4 == 1 then
-         Value['rules']=Value['rules'].to_a.insert(0,
-         'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
-         'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
-         'DOMAIN-SUFFIX,chdbits.co,DIRECT',
-         'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
-         'DOMAIN-SUFFIX,empornium.me,DIRECT',
-         'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
-         'DOMAIN-SUFFIX,hdchina.org,DIRECT',
-         'DOMAIN-SUFFIX,hdsky.me,DIRECT',
-         'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
-         'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
-         'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
-         'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
-         'DOMAIN-SUFFIX,m-team.cc,DIRECT',
-         'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
-         'DOMAIN-SUFFIX,ncore.cc,DIRECT',
-         'DOMAIN-SUFFIX,open.cd,DIRECT',
-         'DOMAIN-SUFFIX,ourbits.club,DIRECT',
-         'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
-         'DOMAIN-SUFFIX,privatehd.to,DIRECT',
-         'DOMAIN-SUFFIX,redacted.ch,DIRECT',
-         'DOMAIN-SUFFIX,springsunday.net,DIRECT',
-         'DOMAIN-SUFFIX,tjupt.org,DIRECT',
-         'DOMAIN-SUFFIX,totheglory.im,DIRECT',
-         'DOMAIN-KEYWORD,announce,DIRECT',
-         'DOMAIN-KEYWORD,torrent,DIRECT',
-         'DOMAIN-KEYWORD,tracker,DIRECT',
-         'PROCESS-NAME,aria2c,DIRECT',
-         'PROCESS-NAME,BitComet,DIRECT',
-         'PROCESS-NAME,fdm,DIRECT',
-         'PROCESS-NAME,NetTransport,DIRECT',
-         'PROCESS-NAME,qbittorrent,DIRECT',
-         'PROCESS-NAME,Thunder,DIRECT',
-         'PROCESS-NAME,transmission-daemon,DIRECT',
-         'PROCESS-NAME,transmission-qt,DIRECT',
-         'PROCESS-NAME,uTorrent,DIRECT',
-         'PROCESS-NAME,WebTorrent,DIRECT',
-         'PROCESS-NAME,aria2c,DIRECT',
-         'PROCESS-NAME,fdm,DIRECT',
-         'PROCESS-NAME,Folx,DIRECT',
-         'PROCESS-NAME,NetTransport,DIRECT',
-         'PROCESS-NAME,qbittorrent,DIRECT',
-         'PROCESS-NAME,Thunder,DIRECT',
-         'PROCESS-NAME,Transmission,DIRECT',
-         'PROCESS-NAME,transmission,DIRECT',
-         'PROCESS-NAME,uTorrent,DIRECT',
-         'PROCESS-NAME,WebTorrent,DIRECT',
-         'PROCESS-NAME,WebTorrent Helper,DIRECT',
-         'PROCESS-NAME,v2ray,DIRECT',
-         'PROCESS-NAME,ss-local,DIRECT',
-         'PROCESS-NAME,ssr-local,DIRECT',
-         'PROCESS-NAME,ss-redir,DIRECT',
-         'PROCESS-NAME,ssr-redir,DIRECT',
-         'PROCESS-NAME,ss-server,DIRECT',
-         'PROCESS-NAME,trojan-go,DIRECT',
-         'PROCESS-NAME,xray,DIRECT',
-         'PROCESS-NAME,hysteria,DIRECT',
-         'PROCESS-NAME,UUBooster,DIRECT',
-         'PROCESS-NAME,uugamebooster,DIRECT',
-         'DOMAIN-SUFFIX,smtp,DIRECT'
-         );
-         match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0];
-         if not match_group.nil? then
-            common_port_group=match_group.split(',')[2] or common_port_group=match_group.split(',')[1];
-            if not common_port_group.nil? then
-               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
-               ruby_add_index ||= -1;
-               Value['rules']=Value['rules'].to_a.insert(ruby_add_index,
-               'DST-PORT,80,' + common_port_group,
-               'DST-PORT,443,' + common_port_group,
-               'DST-PORT,22,' + common_port_group
-               );
-            end;
-         end
-         Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')};
-      end;
-   }.join;
-   rescue Exception => e
-      puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】';
-   end;
-   
-   begin
-   Thread.new{
-      if $6 == 0 then
-         if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-            if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,198.18.0.1)/).empty? then
-               Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,198.18.0.1/32,DIRECT');
-            end
-            if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'$7')/).empty? and not '$7'.empty? then
-               Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,$7/32,DIRECT');
-            end;
-         else
-            Value['rules']=%w('SRC-IP-CIDR,198.18.0.1/32,DIRECT','SRC-IP-CIDR,$7/32,DIRECT');
-         end;
-      elsif Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-         Value['rules'].delete('SRC-IP-CIDR,198.18.0.1/32,DIRECT');
-         Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT');
-      end;
-   }.join;
-   rescue Exception => e
-      puts '${LOGTIME} Error: Set Router Self Proxy Rule Failed,【' + e.message + '】';
-   end
-   
+   #loop prevent
    begin
    Thread.new{
       if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
@@ -543,107 +645,6 @@ yml_other_set()
    }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Set Loop Protect Rules Failed,【' + e.message + '】';
-   end;
-
-   #处理规则集
-   begin
-   Thread.new{
-      if File::exist?('$RULE_PROVIDER_FILE') then
-         Value_1 = YAML.load_file('$RULE_PROVIDER_FILE');
-         if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-            Value['rule-providers'].merge!(Value_1);
-         else
-            Value['rule-providers']=Value_1;
-         end;
-      end;
-   }.join;
-   rescue Exception => e
-      puts '${LOGTIME} Error: Custom Rule Provider Merge Failed,【' + e.message + '】';
-   end;
-      
-   begin
-   Thread.new{
-      if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-         if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
-            if $4 != 1 then
-               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first);
-            else
-               if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
-                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
-                  ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
-               else
-                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
-               end;
-            end;
-            ruby_add_index ||= -1;
-            Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
-            if ruby_add_index != -1 then
-               Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(ruby_add_index,x)};
-            else
-               Value_1['rules'].uniq.each{|x| Value['rules'].insert(ruby_add_index,x)};
-            end;
-         end;
-         if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
-            Value_1 = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml');
-            if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
-               Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(0,x)};
-            else
-               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(?=.*198.18.0)(?=.*REJECT)/).first);
-               Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(ruby_add_index + 1,x)};
-            end;
-         end;
-      else
-         if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
-            Value['rules'] = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml')['rules'].uniq;
-         end;
-         if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
-            Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
-            if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
-               Value['rules'] = Value['rules'] | Value_1['rules'].uniq;
-            else
-               Value['rules'] = Value_1['rules'].uniq;
-            end;
-         end;
-      end;
-   }.join;
-   rescue Exception => e
-      puts '${LOGTIME} Error: Rule Set Add Failed,【' + e.message + '】';
-   end;
-
-   begin
-   Thread.new{
-      if File::exist?('/tmp/yaml_groups.yaml') or File::exist?('/tmp/yaml_servers.yaml') or File::exist?('/tmp/yaml_provider.yaml') then
-         if File::exist?('/tmp/yaml_groups.yaml') then
-            Value_1 = YAML.load_file('/tmp/yaml_groups.yaml');
-            if Value.has_key?('proxy-groups') and not Value['proxy-groups'].to_a.empty? then
-               Value['proxy-groups'] = Value['proxy-groups'] + Value_1;
-               Value['proxy-groups'].uniq;
-            else
-               Value['proxy-groups'] = Value_1;
-            end;
-         end;
-         if File::exist?('/tmp/yaml_servers.yaml') then
-            Value_2 = YAML.load_file('/tmp/yaml_servers.yaml');
-            if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
-               Value['proxies'] = Value['proxies'] + Value_2['proxies'];
-               Value['proxies'].uniq;
-            else
-               Value['proxies']=Value_2['proxies'];
-            end
-         end;
-         if File::exist?('/tmp/yaml_provider.yaml') then
-            Value_3 = YAML.load_file('/tmp/yaml_provider.yaml');
-            if Value.has_key?('proxy-providers') and not Value['proxy-providers'].to_a.empty? then
-               Value['proxy-providers'].merge!(Value_3['proxy-providers']);
-               Value['proxy-providers'].uniq;
-            else
-               Value['proxy-providers']=Value_3['proxy-providers'];
-            end;
-         end;
-      end;
-   }.join;
-   rescue Exception => e
-      puts '${LOGTIME} Error: Game Proxy Merge Failed,【' + e.message + '】';
    end;
 
    #修改集路径
