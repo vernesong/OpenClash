@@ -2934,3 +2934,9 @@ msgstr "*启用 TCP 并发"
 
 msgid "TCP Concurrent Request IPs, Choose The Lowest Latency One To Connection"
 msgstr "TCP 并发请求所有 IP 地址，然后选择延迟最低的一个进行连接"
+
+msgid "Remaining"
+msgstr "剩余"
+
+msgid "days"
+msgstr "天"
