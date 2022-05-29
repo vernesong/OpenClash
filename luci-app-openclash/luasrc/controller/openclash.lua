@@ -572,7 +572,7 @@ function action_switch_config()
 end
 
 function sub_info_get()
-	local filename, sub_url, sub_info, info, upload, download, total, expire, http_code, len, percent
+	local filename, sub_url, sub_info, info, upload, download, total, expire, http_code, len, percent, day_left, day_expire
 	filename = luci.http.formvalue("filename")
 	sub_info = ""
 	if filename and not is_start() then
@@ -595,7 +595,13 @@ function sub_info_get()
 			  				upload = string.sub(string.match(info, "upload=%d+"), 8, -1) or nil
 			  				download = string.sub(string.match(info, "download=%d+"), 10, -1) or nil
 			  				total = string.sub(string.match(info, "total=%d+"), 7, -1) or nil
-			  				expire = os.date("%Y-%m-%d %H:%M:%S", string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
+							day_expire = tonumber(string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
+			  				expire = os.date("%Y-%m-%d", day_expire) or nil
+							if os.time() <= day_expire then
+								day_left = (day_expire - os.time()) / (3600*24)
+							else
+								day_left = 0
+							end
 			  				used = (upload + download) or nil
 							percent = string.format("%g",string.format("%.1f",(tonumber(used)/tonumber(total))*100)) or nil
 							total = fs.filesize(total) or nil
@@ -620,6 +626,7 @@ function sub_info_get()
 		used = used,
 		total = total,
 		percent = percent,
+		day_left = day_left,
 		expire = expire;
 	})
 end
