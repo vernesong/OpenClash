@@ -13,24 +13,22 @@
 	white-space: nowrap;
 	font-size: 12px;
 	margin: 0 auto;
-	-webkit-transition: all 1.5s;  
-	-moz-transition: all 1.5s;  
-	-ms-transition: all 1.5s;  
-	-o-transition: all 1.5s;  
-	transition: all 1s;  
+	-webkit-transition: all 1.5s;
+	-moz-transition: all 1.5s;
+	-ms-transition: all 1.5s;
+	-o-transition: all 1.5s;
+	transition: all 1s;
 	opacity: 1;
 }
 </style>
 
-<div>
 <%
 	local fs = require "luci.openclash"
 	local val = self:cfgvalue(section)
 	local filename = fs.filename(val)
 	local idname = math.random(1000)..(string.match(filename, "[%w_]+") or "")
 %>
-	<div id='<%=idname%>' class="sub_tab"></div>
-</div>
+<div id='<%=idname%>' class="sub_tab"></div>
 
 <script type="text/javascript">//<![CDATA[
 
@@ -40,7 +38,7 @@ sub_info_get_<%=idname%>();
 
 function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
 		return String.format(
-			'<div style="width:210px; max-width:500px; position:relative; border:1px solid #999999; border-radius: 6px">' +
+			'<div style="width:250px; max-width:500px; position:relative; border:1px solid #999999; border-radius: 6px">' +
 			(pc <= 50 ? '<div style="background-color:#9edd9e; width:%d%%; height:35px; border-radius: 6px">' : (pc > 50 && pc <= 80 ? '<div style="background-color:#fffa9f; width:%d%%; height:35px">' : '<div style="background-color:#ffb9b9; width:%d%%; height:35px">')) +
 			'<div style="position:absolute; left:0; top:0; text-align:center; width:100%%">' +
 			'<small>%s '+(f ? f : '/')+' %s ' + (np ? "" : '(%d%%)') + '<br/>' + '%s (<%:Remaining%> %s <%:days%>)</small>' +
