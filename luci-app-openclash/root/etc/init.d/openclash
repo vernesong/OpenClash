@@ -1044,7 +1044,7 @@ fi
 
 mkdir -p /var/etc
 cat > "/var/etc/openclash.include" <<-EOF
-/etc/init.d/openclash reload >/dev/null 2>&1
+/etc/init.d/openclash reload_firewall >/dev/null 2>&1
 EOF
 
 if [ "$china_ip_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
@@ -1720,7 +1720,7 @@ restart()
    del_lock
 }
 
-reload()
+reload_firewall()
 {
    if pidof clash >/dev/null; then
       set_lock
