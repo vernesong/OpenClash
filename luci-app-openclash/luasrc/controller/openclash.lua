@@ -598,7 +598,7 @@ function sub_info_get()
 							day_expire = tonumber(string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
 			  				expire = os.date("%Y-%m-%d", day_expire) or nil
 							if os.time() <= day_expire then
-								day_left = (day_expire - os.time()) / (3600*24)
+								day_left = math.ceil((day_expire - os.time()) / (3600*24))
 							else
 								day_left = 0
 							end
