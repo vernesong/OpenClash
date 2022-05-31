@@ -198,6 +198,7 @@ EOF
 fi
 
 cat >> "$DEBUG_LOG" <<-EOF
+
 Meta内核版本: $core_meta_version
 EOF
 
