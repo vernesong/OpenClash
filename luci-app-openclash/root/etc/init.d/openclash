@@ -1723,13 +1723,13 @@ restart()
 reload()
 {
    if pidof clash >/dev/null; then
+      LOG_OUT "Reload OpenClash Firewall Rules..."
       set_lock
       revert_firewall 2>/dev/null
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
       set_firewall 2>/dev/null
       /etc/init.d/dnsmasq restart >/dev/null 2>&1
-      LOG_OUT "Reload OpenClash Firewall Rules..."
       SLOG_CLEAN
       del_lock
    fi
