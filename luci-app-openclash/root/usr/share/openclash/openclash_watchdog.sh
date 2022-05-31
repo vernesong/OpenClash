@@ -51,11 +51,11 @@ do
 if [ "$enable" -eq 1 ]; then
 	clash_pids=$(pidof clash |sed 's/$//g' |wc -l)
 	if [ "$clash_pids" -gt 1 ]; then
-		 LOG_OUT "Watchdog: Multiple Clash Processes, Kill All..."
-		 for clash_pid in $clash_pids; do
-	      kill -9 "$clash_pid" 2>/dev/null
-		 done >/dev/null 2>&1
-		 sleep 1
+         LOG_OUT "Watchdog: Multiple Clash Processes, Kill All..."
+         for clash_pid in $clash_pids; do
+            kill -9 "$clash_pid" 2>/dev/null
+         done >/dev/null 2>&1
+         sleep 1
 	fi 2>/dev/null
 	if ! pidof clash >/dev/null; then
 	   CRASH_NUM=$(expr "$CRASH_NUM" + 1)
@@ -65,16 +65,16 @@ if [ "$enable" -eq 1 ]; then
 	      LOG_OUT "Watchdog: Clash Core Problem, Restart..."
 	      if [ -z "$_koolshare" ]; then
 	         touch /tmp/openclash.log 2>/dev/null
-           chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
-           chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
-           chmod o+w /etc/openclash/history/* 2>/dev/null
-           chmod o+w /tmp/openclash.log 2>/dev/null
-           chmod o+w /etc/openclash/cache.db 2>/dev/null
-           chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
-           capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace"
-           capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
+            chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
+            chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
+            chmod o+w /etc/openclash/history/* 2>/dev/null
+            chmod o+w /tmp/openclash.log 2>/dev/null
+            chmod o+w /etc/openclash/cache.db 2>/dev/null
+            chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
+            capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace"
+            capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
         else
-           nohup $CLASH -d $CLASH_CONFIG -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
+            nohup $CLASH -d $CLASH_CONFIG -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
         fi
 	      sleep 3
 	      if [ "$core_type" == "TUN" ] || [ "$core_type" == "Meta" ]; then
@@ -99,8 +99,8 @@ fi
 ## Log File Size Manage:
     LOGSIZE=`ls -l /tmp/openclash.log |awk '{print int($5/1024)}'`
     if [ "$LOGSIZE" -gt "$log_size" ]; then
-       : > /tmp/openclash.log
-       LOG_OUT "Watchdog: Log Size Limit, Clean Up All Log Records..."
+      : > /tmp/openclash.log
+      LOG_OUT "Watchdog: Log Size Limit, Clean Up All Log Records..."
     fi
 
 ## 端口转发重启
