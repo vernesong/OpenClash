@@ -1011,7 +1011,7 @@ function action_close_all_connection()
 end
 
 function action_reload_firewall()
-	return luci.sys.call("/etc/init.d/openclash reload")
+	return luci.sys.call("/etc/init.d/openclash reload 'firewall'")
 end
 
 function action_update_subscribe()
