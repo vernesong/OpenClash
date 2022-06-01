@@ -41,6 +41,7 @@ rules:
 - RULE-SET,Soundcloud,Global TV
 - RULE-SET,ViuTV,Global TV
 - RULE-SET,Telegram,Telegram
+- RULE-SET,Douyin,Douyin
 - RULE-SET,Steam,Steam
 - RULE-SET,Speedtest,Speedtest
 - RULE-SET,PayPal,PayPal
@@ -99,6 +100,7 @@ script:
             "Soundcloud": "Global TV",
             "ViuTV": "Global TV",
             "Telegram": "Telegram",
+            "Douyin": "Douyin",
             "Steam": "Steam",
             "Speedtest": "Speedtest",
             "PayPal": "PayPal",
@@ -393,6 +395,12 @@ rule-providers:
     behavior: classical
     url: https://dler.cloud/Rules/Clash/Provider/Telegram.yaml
     path: "./Rules/Telegram"
+    interval: 86400
+  Douyin:
+    type: http
+    behavior: classical
+    url: https://dler.cloud/Rules/Clash/Provider/Douyin.yaml
+    path: "./Rules/Douyin"
     interval: 86400
   Steam:
     type: http

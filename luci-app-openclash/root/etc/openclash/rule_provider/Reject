@@ -2246,6 +2246,7 @@ payload:
   - DOMAIN-SUFFIX,chidir.com
   - DOMAIN-SUFFIX,chinacsky.com
   - DOMAIN-SUFFIX,chinaheh.com
+  - DOMAIN-SUFFIX,chinaliftoff.io
   - DOMAIN-SUFFIX,chinauma.net
   - DOMAIN-SUFFIX,chinaweichu.net
   - DOMAIN-SUFFIX,chjxzk.1555110.cn
@@ -2488,6 +2489,7 @@ payload:
   - DOMAIN-SUFFIX,cqfangduan.com
   - DOMAIN-SUFFIX,cqftonline.com
   - DOMAIN-SUFFIX,cqhnm.com
+  - DOMAIN-SUFFIX,cqhot.club
   - DOMAIN-SUFFIX,cqsta.com
   - DOMAIN-SUFFIX,cqyhd.com
   - DOMAIN-SUFFIX,cr.m.liebao.cn
@@ -3688,6 +3690,7 @@ payload:
   - DOMAIN-SUFFIX,gog9.qzdfc.com
   - DOMAIN-SUFFIX,go-mpulse.net
   - DOMAIN-SUFFIX,good.ta80.com
+  - DOMAIN-SUFFIX,googleadsserving.cn
   - DOMAIN-SUFFIX,googlecommerce.com
   - DOMAIN-SUFFIX,googlesyndication.com
   - DOMAIN-SUFFIX,goolpter.com
@@ -5265,7 +5268,6 @@ payload:
   - DOMAIN-SUFFIX,mbrowser.news.haosou.com
   - DOMAIN-SUFFIX,mbrowser.news.so.com
   - DOMAIN-SUFFIX,mbs.weathercn.com
-  - DOMAIN-SUFFIX,mc.hujiang.com
   - DOMAIN-SUFFIX,mc.yandex.ru
   - DOMAIN-SUFFIX,mclick.simba.taobao.com
   - DOMAIN-SUFFIX,mcore.vcgame.cn
