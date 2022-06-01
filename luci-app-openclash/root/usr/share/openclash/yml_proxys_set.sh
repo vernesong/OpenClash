@@ -1053,6 +1053,20 @@ EOF
 fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
 cat >> "$SERVER_FILE" <<-EOF
+  - name: Douyin
+    type: select
+    proxies:
+      - DIRECT
+      - Asian TV
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+if [ -f "/tmp/Proxy_Provider" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    use:
+EOF
+fi
+cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
   - name: Bahamut
     type: select
     proxies:
@@ -1296,6 +1310,7 @@ ${uci_set}AsianTV="Asian TV"
 ${uci_set}Proxy="Proxy"
 ${uci_set}Youtube="Youtube"
 ${uci_set}Bilibili="Bilibili"
+${uci_set}Douyin="Douyin"
 ${uci_set}Bahamut="Bahamut"
 ${uci_set}HBOMax="HBO Max"
 ${uci_set}HBOGo="HBO Go"
@@ -1324,6 +1339,7 @@ ${uci_set}Others="Others"
 	${UCI_DEL_LIST}="Proxy" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Proxy" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Youtube" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Youtube" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Bilibili" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Bilibili" >/dev/null 2>&1
+   ${UCI_DEL_LIST}="Douyin" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Douyin" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Bahamut" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Bahamut" >/dev/null 2>&1
 	${UCI_DEL_LIST}="HBO Max" >/dev/null 2>&1 && ${UCI_ADD_LIST}="HBO Max" >/dev/null 2>&1
 	${UCI_DEL_LIST}="HBO Go" >/dev/null 2>&1 && ${UCI_ADD_LIST}="HBO Go" >/dev/null 2>&1
