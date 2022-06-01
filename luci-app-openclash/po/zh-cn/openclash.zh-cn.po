@@ -2940,3 +2940,6 @@ msgstr "剩余"
 
 msgid "days"
 msgstr "天"
+
+msgid "抖音（Douyin）"
+msgstr "抖音"

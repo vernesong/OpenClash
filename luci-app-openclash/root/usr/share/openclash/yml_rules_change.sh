@@ -729,6 +729,7 @@ yml_other_rules_get()
    config_get "GoogleFCM" "$section" "GoogleFCM" "DIRECT"
    config_get "Discovery" "$section" "Discovery" "$GlobalTV"
    config_get "DAZN" "$section" "DAZN" "$GlobalTV"
+   config_get "Douyin" "$section" "Douyin" "$AsianTV"
 }
 
 if [ "$1" != "0" ]; then
@@ -780,9 +781,10 @@ if [ "$1" != "0" ]; then
 	 || [ -z "$(grep -F "$Steam" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$AdBlock" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Speedtest" /tmp/Proxy_Group)" ]\
-   || [ -z "$(grep -F "$Telegram" /tmp/Proxy_Group)" ]\
-   || [ -z "$(grep -F "$Microsoft" /tmp/Proxy_Group)" ]\
-   || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Telegram" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Douyin" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Microsoft" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
@@ -833,6 +835,7 @@ if [ "$1" != "0" ]; then
                .gsub(/,Netflix$/, ',$Netflix#d')
                .gsub(/,Disney$/, ',$Disney#d')
                .gsub(/,Spotify$/, ',$Spotify#d')
+               .gsub(/,Douyin$/, ',$Douyin#d')
                .gsub(/,Steam$/, ',$Steam#d')
                .gsub(/,AdBlock$/, ',$AdBlock#d')
                .gsub(/,Speedtest$/, ',$Speedtest#d')
@@ -860,6 +863,7 @@ if [ "$1" != "0" ]; then
                .gsub!(/: \"Netflix\"/,': \"$Netflix#d\"')
                .gsub!(/: \"Disney\"/,': \"$Disney#d\"')
                .gsub!(/: \"Spotify\"/,': \"$Spotify#d\"')
+               .gsub!(/: \"Douyin\"/,': \"$Douyin#d\"')
                .gsub!(/: \"Steam\"/,': \"$Steam#d\"')
                .gsub!(/: \"AdBlock\"/,': \"$AdBlock#d\"')
                .gsub!(/: \"Speedtest\"/,': \"$Speedtest#d\"')

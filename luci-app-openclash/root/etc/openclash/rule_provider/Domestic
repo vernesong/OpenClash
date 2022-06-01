@@ -32,10 +32,10 @@ payload:
   - IP-CIDR,185.188.33.0/24,no-resolve
   - IP-CIDR,185.188.34.0/24,no-resolve
   - IP-CIDR,185.188.35.0/24,no-resolve
-  - IP-CIDR,2a0b:b580::/48,no-resolve
-  - IP-CIDR,2a0b:b581::/48,no-resolve
-  - IP-CIDR,2a0b:b582::/48,no-resolve
-  - IP-CIDR,2a0b:b583::/48,no-resolve
+  - IP-CIDR6,2a0b:b580::/48,no-resolve
+  - IP-CIDR6,2a0b:b581::/48,no-resolve
+  - IP-CIDR6,2a0b:b582::/48,no-resolve
+  - IP-CIDR6,2a0b:b583::/48,no-resolve
 
   # > Tencent
   - IP-CIDR,182.254.116.0/24,no-resolve
@@ -67,6 +67,7 @@ payload:
   - DOMAIN-SUFFIX,air-matters.io
   - DOMAIN-SUFFIX,aixifan.com
   - DOMAIN-SUFFIX,akadns.net
+  - DOMAIN-SUFFIX,alibaba.com
   - DOMAIN-SUFFIX,alibabacloud.com
   - DOMAIN-SUFFIX,alicdn.com
   - DOMAIN-SUFFIX,alipay.com
@@ -84,7 +85,6 @@ payload:
   - DOMAIN-SUFFIX,bdimg.com
   - DOMAIN-SUFFIX,bdstatic.com
   - DOMAIN-SUFFIX,beatsbydre.com
-  - DOMAIN-SUFFIX,bet365.com
   - DOMAIN-SUFFIX,broadcasthe.net
   - DOMAIN-SUFFIX,caiyunapp.com
   - DOMAIN-SUFFIX,ccgslb.com
@@ -129,15 +129,18 @@ payload:
   - DOMAIN-SUFFIX,geetest.com
   - DOMAIN-SUFFIX,godic.net
   - DOMAIN-SUFFIX,goodread.com
+  - DOMAIN-SUFFIX,goofish.com
   - DOMAIN-SUFFIX,gtimg.com
   - DOMAIN-SUFFIX,haibian.com
   - DOMAIN-SUFFIX,hao123.com
   - DOMAIN-SUFFIX,haosou.com
   - DOMAIN-SUFFIX,hdchina.org
   - DOMAIN-SUFFIX,hdcmct.org
+  - DOMAIN-SUFFIX,hjfile.cn
   - DOMAIN-SUFFIX,hkserversolution.com
   - DOMAIN-SUFFIX,hollisterco.com
   - DOMAIN-SUFFIX,hongxiu.com
+  - DOMAIN-SUFFIX,hujiang.com
   - DOMAIN-SUFFIX,hxcdn.net
   - DOMAIN-SUFFIX,icedropper.com
   - DOMAIN-SUFFIX,iciba.com
@@ -264,6 +267,7 @@ payload:
   - DOMAIN-SUFFIX,xhostfire.com
   - DOMAIN-SUFFIX,xiami.com
   - DOMAIN-SUFFIX,xiami.net
+  - DOMAIN-SUFFIX,xiaohongshu.com
   - DOMAIN-SUFFIX,xiaojukeji.com
   - DOMAIN-SUFFIX,xiaomi.com
   - DOMAIN-SUFFIX,xiaomi.net
