@@ -42,8 +42,10 @@ payload:
 
   # > Steam
   # - USER-AGENT,Steam*
-  - DOMAIN-SUFFIX,steamcontent.com
   # - DOMAIN,store.steampowered.com
+  - DOMAIN,cm.steampowered.com
+  - DOMAIN,ol.epicgames.com
+  - DOMAIN-SUFFIX,steamcontent.com
 
   - DOMAIN-SUFFIX,steamchina.com
 
