@@ -485,7 +485,7 @@ yml_other_set()
    Thread.new{
    if $2 == 1 then
    #script
-      if ${10} != '1' then
+      if ${10} != 1 then
          for i in ['/etc/openclash/custom/openclash_custom_rules.list','/etc/openclash/custom/openclash_custom_rules_2.list'] do
             if File::exist?(i) then
                Value_1 = YAML.load_file(i);
@@ -548,7 +548,7 @@ yml_other_set()
                end;
                if defined? Value_2 then
                   Value_2.each{|x|
-                     if ${10} != '1' then
+                     if ${10} != 1 then
                         if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                            puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                            next
@@ -582,7 +582,7 @@ yml_other_set()
                      Value_4 = Value_4.reverse!;
                   end;
                   Value_4.each{|x|
-                     if ${10} != '1' then
+                     if ${10} != 1 then
                         if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                            puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                            next
@@ -601,7 +601,7 @@ yml_other_set()
                if Value_1.class.to_s == 'Hash' then
                  if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
                      Value_1.each{|x|
-                     if ${10} != '1' then
+                     if ${10} != 1 then
                         if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                            puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                            Value_1.delete(x);
@@ -613,7 +613,7 @@ yml_other_set()
                  end;
                elsif Value_1.class.to_s == 'Array' then
                   Value_1.each{|x|
-                     if ${10} != '1' then
+                     if ${10} != 1 then
                         if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                            puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                            Value_1.delete(x);
@@ -632,7 +632,7 @@ yml_other_set()
                   if Value_2.class.to_s == 'Hash' then
                      if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
                         Value_2.each{|x|
-                           if ${10} != '1' then
+                           if ${10} != 1 then
                               if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                                  puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                                  Value_2.delete(x);
@@ -644,7 +644,7 @@ yml_other_set()
                      end;
                   elsif Value_2.class.to_s == 'Array' then
                      Value_2.each{|x|
-                        if ${10} != '1' then
+                        if ${10} != 1 then
                            if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                               puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                               Value_2.delete(x);
@@ -674,7 +674,7 @@ yml_other_set()
                         Value_3 = Value_3.reverse!;
                      end
                      Value_3.each{|x|
-                        if ${10} != '1' then
+                        if ${10} != 1 then
                            if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                               puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                               next
