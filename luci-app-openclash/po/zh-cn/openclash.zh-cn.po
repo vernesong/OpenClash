@@ -2959,11 +2959,11 @@ msgstr "指定策略组"
 msgid "Warning: Only Meta Core Support Specific Group, Skip Setting"
 msgstr "警告：仅 Meta 内核支持指定 DNS 的策略组，跳过设置"
 
-msgid "Proxy Server"
+msgid "Node Resolve"
 msgstr "节点解析"
 
 msgid "Warning: Only Meta Core Support proxy-server-nameserver, Skip Setting"
-msgstr "警告：仅 Meta 内核支持设置节点域名解析的 DNS，跳过设置"
+msgstr "警告：仅 Meta 内核支持设置解析节点域名的 DNS，跳过设置"
 
 msgid "Warning: Meta Core not Support Specific Interface, Skip Setting"
-msgstr "警告：Meta 内核不支持设置指定 DNS 出口，跳过设置"
+msgstr "警告：Meta 内核不支持设置指定 DNS 的出口，跳过设置"
