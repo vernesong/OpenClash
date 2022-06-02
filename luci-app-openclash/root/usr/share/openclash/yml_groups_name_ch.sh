@@ -39,6 +39,7 @@ cfg_groups_set()
       sed -i "s/old_name_cfg \'${old_name_cfg}\'/old_name_cfg \'${name}\'/g" $CFG_FILE 2>/dev/null
       sed -i "s/groups \'${old_name_cfg}\'/groups \'${name}\'/g" $CFG_FILE 2>/dev/null
       sed -i "s/option group \'${old_name_cfg}\'/option group \'${name}\'/g" $CFG_FILE 2>/dev/null
+      sed -i "s/option specific_group \'${old_name_cfg}\'/option specific_group \'${name}\'/g" $CFG_FILE 2>/dev/null
       sed -i "s/other_group \'${old_name_cfg}\'/other_group \'${name}\'/g" $CFG_FILE 2>/dev/null
       sed -i "s/new_servers_group \'${old_name_cfg}\'/new_servers_group \'${name}\'/g" $CFG_FILE 2>/dev/null
       sed -i "s/relay_groups \'${old_name_cfg}\'/relay_groups \'${name}\'/g" $CFG_FILE 2>/dev/null
