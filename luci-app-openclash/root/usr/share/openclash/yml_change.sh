@@ -173,7 +173,7 @@ yml_dns_get()
    config_get "group" "$section" "group" ""
    config_get "interface" "$section" "interface" ""
    config_get "specific_group" "$section" "specific_group" ""
-   config_get_bool "proxy_server" "$section" "proxy_server" "0"
+   config_get_bool "node_resolve" "$section" "node_resolve" "0"
 
    if [ "$enabled" = "0" ]; then
       return
@@ -212,12 +212,12 @@ yml_dns_get()
       return
    fi
 
-   if [ "$proxy_server" = "1" ] && [ "$enable_meta_core" = "1" ]; then
+   if [ "$node_resolve" = "1" ] && [ "$enable_meta_core" = "1" ]; then
       if [ -z "$(grep "^ \{0,\}proxy-server-nameserver:$" /tmp/yaml_config.proxynamedns.yaml 2>/dev/null)" ]; then
          echo "  proxy-server-nameserver:" >/tmp/yaml_config.proxynamedns.yaml
       fi
       echo "    - \"$dns_type$dns_address\"" >>/tmp/yaml_config.proxynamedns.yaml
-   elif [ "$proxy_server" = "1" ]; then
+   elif [ "$node_resolve" = "1" ]; then
       LOG_OUT "Warning: Only Meta Core Support proxy-server-nameserver, Skip Setting【$dns_type$dns_address】"
    fi
 
