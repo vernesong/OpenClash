@@ -553,7 +553,12 @@ yml_other_set()
          if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
             Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
             if Value_3 != false then
-               ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first);
+               if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
+                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
+                  ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
+               else
+                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
+               end;
                ruby_add_index ||= -1;
                if Value_3.class.to_s == 'Hash' then
                   if not Value_3['rules'].to_a.empty? and Value_3['rules'].class.to_s == 'Array' then
@@ -600,7 +605,12 @@ yml_other_set()
                      Value['rules'] = Value['rules'].uniq;
                   end;
                else
-                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first);
+                  if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
+                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
+                     ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
+                  else
+                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
+                  end;
                   ruby_add_index ||= -1;
                   if Value_2.class.to_s == 'Hash' then
                     if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
