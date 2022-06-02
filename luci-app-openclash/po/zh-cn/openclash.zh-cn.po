@@ -2943,3 +2943,6 @@ msgstr "天"
 
 msgid "抖音（Douyin）"
 msgstr "抖音"
+
+msgid "Warning: Skip the Custom Rule that Core not Support"
+msgstr "警告：跳过核心不支持的自定义规则"
