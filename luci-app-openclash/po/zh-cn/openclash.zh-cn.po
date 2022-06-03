@@ -23,13 +23,13 @@ msgstr "全局设置"
 msgid "Rule Providers and Groups"
 msgstr "规则集与策略组管理"
 
-msgid "Game Rules and Groups (Only TUN Core Support)"
+msgid "Game Rules and Groups (Only TUN & Meta Core Support)"
 msgstr "游戏规则与策略组管理（仅 TUN 内核）"
 
-msgid "Other Rule Providers and Groups (Only TUN Core Support)"
+msgid "Other Rule Providers and Groups (Only TUN & Meta Core Support)"
 msgstr "第三方规则集与策略组管理（仅 TUN 内核）"
 
-msgid "Custom Rule Providers and Groups (Only TUN Core Support)"
+msgid "Custom Rule Providers and Groups (Only TUN & Meta Core Support)"
 msgstr "自定义规则集与策略组管理（仅 TUN 内核）"
 
 msgid "General Settings"
@@ -2896,6 +2896,12 @@ msgstr "点击前往"
 msgid "(Only Meta Core)"
 msgstr "（仅 Meta 内核）"
 
+msgid "(Only TUN Core)"
+msgstr "（仅 TUN 内核）"
+
+msgid "(TUN&Meta Core)"
+msgstr "（TUN&Meta 内核）"
+
 msgid "Warning: Only Meta Core Support QUIC Type DNS, Skip"
 msgstr "警告：仅 Meta 内核支持 QUIC 类型的 DNS，跳过"
 
@@ -2949,9 +2955,6 @@ msgstr "警告：跳过核心不支持的自定义规则"
 
 msgid "Specific Interface"
 msgstr "指定接口"
-
-msgid "(Interface Name)"
-msgstr "(接口名称)"
 
 msgid "Specific Group"
 msgstr "指定策略组"
