@@ -1277,7 +1277,7 @@ o.rempty      = false
 
 ---- interface
 o = s:option(Value, "interface", translate("Specific Interface"))
-o.description = font_red..bold_on..translate("(Interface Name)")..bold_off..font_off
+o.description = font_red..bold_on..translate("(Only TUN Core)")..bold_off..font_off
 for interface in string.gmatch(interfaces, "%S+") do
 	o:value(interface)
 end
