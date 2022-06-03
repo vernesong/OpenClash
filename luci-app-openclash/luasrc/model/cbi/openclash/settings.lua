@@ -1281,8 +1281,8 @@ o.description = font_red..bold_on..translate("(Only TUN Core)")..bold_off..font_
 for interface in string.gmatch(interfaces, "%S+") do
 	o:value(interface)
 end
-o:value("")
-o.default = ""
+o:value("Disable", translate("Disable"))
+o.default = "Disable"
 o.rempty = false
 
 ---- Proxy group
@@ -1296,8 +1296,8 @@ uci:foreach("openclash", "groups",
 		end)
 o:value("DIRECT")
 o:value("REJECT")
-o:value("")
-o.default = ""
+o:value("Disable", translate("Disable"))
+o.default = "Disable"
 o.rempty = false
 
 -- [[ Other Rules Manage ]]--
