@@ -497,6 +497,17 @@ begin
 Thread.new{
    if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
       begin
+         Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_hosts.list');
+         if Value_3 != false then
+            Value['dns']['use-hosts']=true;
+            if Value.has_key?('hosts') and not Value['hosts'].to_a.empty? then
+               Value['hosts'].merge!(Value_3);
+            else
+               Value['hosts']=Value_3;
+            end;
+            Value['hosts'].uniq;
+         end;
+      rescue
          Value_3 = IO.readlines('/etc/openclash/custom/openclash_custom_hosts.list');
          if not Value_3.empty? then
             Value_3 = Value_3.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
@@ -505,18 +516,6 @@ Thread.new{
                Value_3.each{|x| Value['hosts'].merge!(x)};
             else
                Value_3.each{|x| Value['hosts'].merge!(x)};
-            end;
-            Value['hosts'].uniq;
-         end;
-         
-      rescue
-         Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_hosts.list');
-         if Value_3 != false then
-            Value['dns']['use-hosts']=true;
-            if Value.has_key?('hosts') and not Value['hosts'].to_a.empty? then
-               Value['hosts'].merge!(Value_3);
-            else
-               Value['hosts']=Value_3;
             end;
             Value['hosts'].uniq;
          end;
