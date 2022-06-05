@@ -581,37 +581,45 @@ function sub_info_get()
 				if s.name == filename and s.address and string.find(s.address, "http") then
 					_, len = string.gsub(s.address, '[^\n]+', "")
 					if len and len > 1 then return end
-			  	sub_url = s.address
-			  	info = luci.sys.exec(string.format("curl -sLI -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Clash' '%s'", sub_url))
-			  	if not info or tonumber(string.sub(string.match(info, "http_code=%d+"), 11, -1)) ~= 200 then
-			  		info = luci.sys.exec(string.format("curl -sLI -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Quantumultx' '%s'", sub_url))
-			  	end
-			  	if info then
-			  		http_code=string.sub(string.match(info, "http_code=%d+"), 11, -1)
-			  		if tonumber(http_code) == 200 then
-			  			info = string.lower(info)
-			  			if string.find(info, "subscription%-userinfo") then
-			  				info = luci.sys.exec("echo '%s' |grep 'subscription-userinfo'" %info)
-			  				upload = string.sub(string.match(info, "upload=%d+"), 8, -1) or nil
-			  				download = string.sub(string.match(info, "download=%d+"), 10, -1) or nil
-			  				total = string.sub(string.match(info, "total=%d+"), 7, -1) or nil
-							day_expire = tonumber(string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
-			  				expire = os.date("%Y-%m-%d", day_expire) or nil
-							if os.time() <= day_expire then
-								day_left = math.ceil((day_expire - os.time()) / (3600*24))
+					sub_url = s.address
+					info = luci.sys.exec(string.format("curl -sLI -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Clash' '%s'", sub_url))
+					if not info or tonumber(string.sub(string.match(info, "http_code=%d+"), 11, -1)) ~= 200 then
+						info = luci.sys.exec(string.format("curl -sLI -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Quantumultx' '%s'", sub_url))
+					end
+					if info then
+						http_code=string.sub(string.match(info, "http_code=%d+"), 11, -1)
+						if tonumber(http_code) == 200 then
+							info = string.lower(info)
+							if string.find(info, "subscription%-userinfo") then
+								info = luci.sys.exec("echo '%s' |grep 'subscription-userinfo'" %info)
+								upload = string.sub(string.match(info, "upload=%d+"), 8, -1) or nil
+								download = string.sub(string.match(info, "download=%d+"), 10, -1) or nil
+								total = tonumber(string.format("%.1f",string.sub(string.match(info, "total=%d+"), 7, -1))) or nil
+								used = tonumber(string.format("%.1f",(upload + download))) or nil
+								day_expire = tonumber(string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
+								expire = os.date("%Y-%m-%d", day_expire) or "null"
+								if day_expire and os.time() <= day_expire then
+									day_left = math.ceil((day_expire - os.time()) / (3600*24))
+								elseif day_expire == nil then
+									day_left = "null"
+								else
+									day_left = 0
+								end
+								if used and total and used <= total then
+									percent = string.format("%.1f",(used/total)*100) or nil
+								elseif used == nil or total == nil or total == 0 then
+									percent = 0
+								else
+									percent = 100
+								end
+								total = fs.filesize(total) or "null"
+								used = fs.filesize(used) or "null"
+								sub_info = "Successful"
 							else
-								day_left = 0
+								sub_info = "No Sub Info Found"
 							end
-			  				used = (upload + download) or nil
-							percent = string.format("%g",string.format("%.1f",(tonumber(used)/tonumber(total))*100)) or nil
-							total = fs.filesize(total) or nil
-							used = fs.filesize(used) or nil
-			  				sub_info = "Successful"
-			  			else
-			  				sub_info = "No Sub Info Found"
-			  			end
-			  		end
-			  	end
+						end
+					end
 				end
 			end
 		)
