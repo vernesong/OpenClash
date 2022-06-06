@@ -1009,7 +1009,7 @@ firewall_redirect_exclude()
    if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
       if $e_tcp ; then
          if [ -n "$dest_ip" ]; then
-      	    ip6tables -t mangle -I openclash -p tcp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
+      	   ip6tables -t mangle -I openclash -p tcp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
             ip6tables -t mangle -I openclash -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
          fi
          ip6tables -t mangle -I openclash_output -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
@@ -1098,6 +1098,13 @@ if [ -n "$(uci -q get openclash.config.wan_ac_black_ips)" ]; then
    config_list_foreach "config" "wan_ac_black_ips" ac_add "wan_ac_black_ips" "wan_ac_black_ipv6s"
 fi
 
+#lan port ac
+if [ -n "$(uci -q get openclash.config.lan_ac_black_ports)" ]; then
+   ipset create lan_ac_black_ports bitmap:port range 0-65535
+   config_load "openclash"
+   config_list_foreach "config" "lan_ac_black_ports" ac_add "lan_ac_black_ports"
+fi
+
 #local
    ipset create localnetwork hash:net
    ipset add localnetwork 0.0.0.0/8
@@ -1160,6 +1167,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
    iptables -t nat -N openclash
    iptables -t nat -F openclash
    iptables -t nat -A openclash -m set --match-set localnetwork dst -j RETURN
+   iptables -t nat -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
    iptables -t nat -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
    iptables -t nat -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
    iptables -t nat -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
@@ -1185,6 +1193,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
          iptables -t mangle -N openclash
          iptables -t mangle -F openclash
          iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
+         iptables -t mangle -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
          iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
          iptables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
          iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
@@ -1225,6 +1234,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
       iptables -t nat -N openclash_output
       iptables -t nat -F openclash_output
       iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
+      iptables -t nat -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
       if [ "$en_mode" = "fake-ip" ]; then
          iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
       fi
@@ -1245,6 +1255,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
             iptables -t nat -I OUTPUT -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
          fi
          iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
+         iptables -t nat -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
          iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
          
       fi
@@ -1273,6 +1284,7 @@ if [ -n "$en_mode_tun" ]; then
       iptables -t mangle -N openclash_output
       iptables -t mangle -F openclash_output
       iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
+      iptables -t mangle -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
       if [ "$en_mode_tun" -eq 1 ]; then
          if [ -z "$_koolshare" ]; then
             iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
@@ -1290,6 +1302,7 @@ if [ -n "$en_mode_tun" ]; then
       iptables -t mangle -N openclash_output
       iptables -t mangle -F openclash_output
       iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
+      iptables -t mangle -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
       iptables -t mangle -A openclash_output -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
       if [ "$china_ip_route" = "1" ]; then
@@ -1305,6 +1318,7 @@ if [ -n "$en_mode_tun" ]; then
    iptables -t mangle -F openclash_dns_hijack
    #其他流量
    iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN >/dev/null 2>&1
+   iptables -t mangle -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
    iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
    iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
    iptables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
@@ -1388,6 +1402,7 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
    ip6tables -t mangle -N openclash
    ip6tables -t mangle -F openclash
    ip6tables -t mangle -A openclash -m set --match-set localnetwork6 dst -j RETURN
+   ip6tables -t mangle -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
    ip6tables -t mangle -A openclash -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
    if [ "$en_mode" == "redir-host" ]; then
       ip6tables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
@@ -1406,6 +1421,7 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
       ip6tables -t mangle -N openclash_output
       ip6tables -t mangle -F openclash_output
       ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
+      ip6tables -t mangle -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
       ip6tables -t mangle -A openclash_output -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
       ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
       if [ "$china_ip6_route" = "1" ]; then

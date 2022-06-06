@@ -30,6 +30,8 @@ cp -f "/etc/openclash/custom/openclash_custom_netflix_domains.list" "/usr/share/
 cp -f "/etc/openclash/custom/openclash_force_sniffing_domain.yaml" "/usr/share/openclash/backup/openclash_force_sniffing_domain.yaml" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_sniffing_domain_filter.yaml" "/usr/share/openclash/backup/openclash_sniffing_domain_filter.yaml" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_sniffing_port_filter.yaml" "/usr/share/openclash/backup/openclash_sniffing_port_filter.yaml" >/dev/null 2>&1
+cp -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list" "/usr/share/openclash/backup/openclash_custom_localnetwork_ipv4.list" >/dev/null 2>&1
+cp -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list" "/usr/share/openclash/backup/openclash_custom_localnetwork_ipv6.list" >/dev/null 2>&1
 
 mkdir -p /lib/upgrade/keep.d
 cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
