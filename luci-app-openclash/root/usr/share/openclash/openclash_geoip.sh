@@ -31,6 +31,8 @@
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://cdn.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat" -o /tmp/GeoIP.dat >/dev/null 2>&1
          elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://fastly.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat" -o /tmp/GeoIP.dat >/dev/null 2>&1
+         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
+            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://raw.fastgit.org/Loyalsoldier/v2ray-rules-dat/release/geoip.dat" -o /tmp/GeoIP.dat >/dev/null 2>&1
          else
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat -o /tmp/GeoIP.dat >/dev/null 2>&1
          fi

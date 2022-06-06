@@ -737,6 +737,10 @@ yml_other_set()
                   if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
                      x['url'] = 'https://fastly.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
                   end;
+               elsif '$github_address_mod' == 'https://raw.fastgit.org/' then
+                  if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
+                     x['url'] = 'https://raw.fastgit.org/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
+                  end;
                else
                   if x['url'] and x['url'] =~ /^https:\/\/(raw.|gist.)(githubusercontent.com|github.com)/ then
                      x['url'] = '$github_address_mod' + x['url'];
