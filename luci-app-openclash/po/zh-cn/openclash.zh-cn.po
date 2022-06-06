@@ -2970,3 +2970,18 @@ msgstr "警告：仅 Meta 内核支持设置解析节点域名的 DNS，跳过�
 
 msgid "Warning: Meta Core not Support Specific Interface, Skip Setting"
 msgstr "警告：Meta 内核不支持设置指定 DNS 的出口，跳过设置"
+
+msgid "Lan Bypassed Port List"
+msgstr "绕过核心的来源端口"
+
+msgid "The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails"
+msgstr "来自本地指定端口的流量不会通过核心，在旁路网关（旁路由）下转发失败时尝试设置"
+
+msgid "Local IPv4 Network Bypassed List"
+msgstr "本地 IPv4 绕过地址"
+
+msgid "Local IPv6 Network Bypassed List"
+msgstr "本地 IPv6 绕过地址"
+
+msgid "The Traffic of The Destination For The Specified Address Will Not Pass The Core"
+msgstr "目的地流量为指定地址的不会通过核心"
