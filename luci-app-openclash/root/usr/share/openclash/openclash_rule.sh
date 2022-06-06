@@ -37,8 +37,10 @@
       if [ "$github_address_mod" != "0" ]; then
          if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://cdn.jsdelivr.net/gh/dler-io/Rules@master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
-	 elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
+	      elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://fastly.jsdelivr.net/gh/dler-io/Rules@master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
+            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.fastgit.org/dler-io/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          else
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/dler-io/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          fi
@@ -50,8 +52,10 @@
       if [ "$github_address_mod" != "0" ]; then
          if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://cdn.jsdelivr.net/gh/DivineEngine/Profiles@master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
-	 elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
+	      elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://fastly.jsdelivr.net/gh/DivineEngine/Profiles@master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
+            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.fastgit.org/DivineEngine/Profiles/master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          else
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          fi
@@ -64,8 +68,10 @@
       if [ "$github_address_mod" != "0" ]; then
          if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://cdn.jsdelivr.net/gh/DivineEngine/Profiles@master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
-	 elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
+	      elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://fastly.jsdelivr.net/gh/DivineEngine/Profiles@master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
+            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.fastgit.org/DivineEngine/Profiles/master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          else
             curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
          fi

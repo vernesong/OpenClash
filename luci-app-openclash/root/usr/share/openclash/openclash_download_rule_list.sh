@@ -21,6 +21,8 @@ urlencode() {
             DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
          elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
             DOWNLOAD_PATH="https://fastly.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
+         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
+            DOWNLOAD_PATH="https://raw.fastgit.org/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
          else
             DOWNLOAD_PATH="${github_address_mod}https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
          fi
@@ -36,6 +38,8 @@ urlencode() {
             DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
          elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
             DOWNLOAD_PATH="https://fastly.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
+         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
+            DOWNLOAD_PATH="https://raw.fastgit.org/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
          else
             DOWNLOAD_PATH="${github_address_mod}https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
          fi
