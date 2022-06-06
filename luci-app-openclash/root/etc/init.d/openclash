@@ -364,7 +364,7 @@ yml_other_rules_get()
 check_run_quick()
 {
    quick_start=true
-   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $meta_core_path $ipdb_path $geosite_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version /etc/openclash/custom/openclash_force_sniffing_domain.list /etc/openclash/custom/openclash_sniffing_domain_filter.list /etc/openclash/custom/openclash_sniffing_port_filter.yaml"
+   check_file="$RAW_CONFIG_FILE /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $meta_core_path $ipdb_path $geosite_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /usr/share/openclash/res/openclash_version /etc/openclash/custom/openclash_force_sniffing_domain.list /etc/openclash/custom/openclash_sniffing_domain_filter.list /etc/openclash/custom/openclash_sniffing_port_filter.yaml /etc/openclash/custom/openclash_custom_localnetwork_ipv4.list /etc/openclash/custom/openclash_custom_localnetwork_ipv6.list"
 	 if [ ! -f "$CONFIG_FILE" ] || [ ! -f "/tmp/openclash_config.tmp" ] || [ ! -f "/tmp/openclash.change" ]; then
 	    quick_start=false
 	    return
@@ -1107,13 +1107,22 @@ fi
 
 #local
    ipset create localnetwork hash:net
-   ipset add localnetwork 0.0.0.0/8
-   ipset add localnetwork 127.0.0.0/8
-   ipset add localnetwork 224.0.0.0/4
-   ipset add localnetwork 169.254.0.0/16
-   ipset add localnetwork 172.16.0.0/12
-   ipset add localnetwork 100.64.0.0/10
-   ipset add localnetwork 240.0.0.0/4
+   if [ -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list" ]; then
+      cat "/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list" | while read line
+      do
+         ipset add localnetwork "$line"
+      done 2>/dev/null
+   else
+      ipset add localnetwork 0.0.0.0/8
+      ipset add localnetwork 127.0.0.0/8
+      ipset add localnetwork 10.0.0.0/8
+      ipset add localnetwork 169.254.0.0/16
+      ipset add localnetwork 192.168.0.0/16
+      ipset add localnetwork 224.0.0.0/4
+      ipset add localnetwork 240.0.0.0/4
+      ipset add localnetwork 172.16.0.0/12
+      ipset add localnetwork 100.64.0.0/10
+   fi
    
    if [ -n "$lan_ip_cidrs" ]; then
       for lan_ip_cidr in $lan_ip_cidrs; do
@@ -1365,19 +1374,26 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
    
    #local
    ipset create localnetwork6 hash:net family inet6
-   ipset add localnetwork6 ::/128
-   ipset add localnetwork6 ::1/128
-   ipset add localnetwork6 ::ffff:0:0/96
-   ipset add localnetwork6 ::ffff:0:0:0/96
-   ipset add localnetwork6 64:ff9b::/96
-   ipset add localnetwork6 100::/64
-   ipset add localnetwork6 2001::/32
-   ipset add localnetwork6 2001:20::/28
-   ipset add localnetwork6 2001:db8::/32
-   ipset add localnetwork6 2002::/16
-   ipset add localnetwork6 fc00::/7
-   ipset add localnetwork6 fe80::/10
-   ipset add localnetwork6 ff00::/8
+   if [ -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list" ]; then
+      cat "/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list" | while read line
+      do
+         ipset add localnetwork6 "$line"
+      done 2>/dev/null
+   else
+      ipset add localnetwork6 ::/128
+      ipset add localnetwork6 ::1/128
+      ipset add localnetwork6 ::ffff:0:0/96
+      ipset add localnetwork6 ::ffff:0:0:0/96
+      ipset add localnetwork6 64:ff9b::/96
+      ipset add localnetwork6 100::/64
+      ipset add localnetwork6 2001::/32
+      ipset add localnetwork6 2001:20::/28
+      ipset add localnetwork6 2001:db8::/32
+      ipset add localnetwork6 2002::/16
+      ipset add localnetwork6 fc00::/7
+      ipset add localnetwork6 fe80::/10
+      ipset add localnetwork6 ff00::/8
+   fi
 
    if [ -n "$lan_ip6_cidrs" ]; then
       for lan_ip6_cidr in $lan_ip6_cidrs; do
