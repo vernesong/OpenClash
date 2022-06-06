@@ -39,11 +39,11 @@
 				<%
 					if uci:get("openclash", "config", "enable_meta_core") ~= '1' then
 				%>
-	      				<img id="logo" src="https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/logo.png" loading="lazy" onerror="return imgerrorfuns(this,'/luci-static/resources/openclash/img/logo.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+	      				<img id="_logo" src="/luci-static/resources/openclash/img/logo.png?<%=random%>" loading="lazy" onload="return logo_check(this,this.src,'https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/logo.png')" onerror="return imgerrorfuns(this,'https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/logo.png')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 				<%
 					else
 				%>
-						<img id="logo" src="https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/meta.png" loading="lazy" onerror="return imgerrorfuns(this,'/luci-static/resources/openclash/img/meta.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+						<img id="_logo" src="/luci-static/resources/openclash/img/meta.png?<%=random%>" loading="lazy" onload="return logo_check(this,this.src,'https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return imgerrorfuns(this,'https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/meta.png')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 				<%
 					end
 				%>
@@ -872,6 +872,19 @@
         winOpen(url7);
     };
 
+	function logo_check(imgobj,imgSrc,imgNewSrc)
+    {
+		var newimg = new Image();
+		newimg.src = imgNewSrc;
+		newimg.onload = function() {
+    		imgobj.src = imgNewSrc;
+		};
+		newimg.onerror = function() {
+			imgobj.onload = function() {};
+			imgerrorfuns(imgobj,imgSrc);
+		};
+    };
+
     function clashversion_check()
     {
     	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "lastversion")%>', null, function(x, status) {
@@ -893,7 +906,7 @@
     	setTimeout(function(){
         imgobj.src=imgSrc;
       },1000*10);
-     };
+    };
      
     function go_update()
     {
