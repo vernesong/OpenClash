@@ -24,13 +24,13 @@ msgid "Rule Providers and Groups"
 msgstr "规则集与策略组管理"
 
 msgid "Game Rules and Groups (Only TUN & Meta Core Support)"
-msgstr "游戏规则与策略组管理（仅 TUN 内核）"
+msgstr "游戏规则与策略组管理（仅 TUN & Meta 内核）"
 
 msgid "Other Rule Providers and Groups (Only TUN & Meta Core Support)"
-msgstr "第三方规则集与策略组管理（仅 TUN 内核）"
+msgstr "第三方规则集与策略组管理（仅 TUN & Meta 内核）"
 
 msgid "Custom Rule Providers and Groups (Only TUN & Meta Core Support)"
-msgstr "自定义规则集与策略组管理（仅 TUN 内核）"
+msgstr "自定义规则集与策略组管理（仅 TUN & Meta 内核）"
 
 msgid "General Settings"
 msgstr "常规设置"
