@@ -266,8 +266,9 @@ ruby -ryaml -E UTF-8 -e "
 begin
    Value = YAML.load_file('$5');
 rescue Exception => e
-   puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】'
-end
+   puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
+end;
+
 #field name check
 begin
 Thread.new{
