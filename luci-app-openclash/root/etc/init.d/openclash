@@ -1108,7 +1108,7 @@ fi
 #local
    ipset create localnetwork hash:net
    if [ -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list" ]; then
-      cat "/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list" | while read line
+      for line in `cat "/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list"`
       do
          ipset add localnetwork "$line"
       done 2>/dev/null
@@ -1375,7 +1375,7 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
    #local
    ipset create localnetwork6 hash:net family inet6
    if [ -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list" ]; then
-      cat "/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list" | while read line
+      for line in `cat "/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list"`
       do
          ipset add localnetwork6 "$line"
       done 2>/dev/null
