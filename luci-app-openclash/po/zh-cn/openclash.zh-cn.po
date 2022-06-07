@@ -2984,4 +2984,4 @@ msgid "Local IPv6 Network Bypassed List"
 msgstr "本地 IPv6 绕过地址"
 
 msgid "The Traffic of The Destination For The Specified Address Will Not Pass The Core"
-msgstr "目的地流量为指定地址的不会通过核心"
+msgstr "目的地为指定地址的流量不会通过核心"
