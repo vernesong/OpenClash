@@ -878,6 +878,7 @@
 		newimg.src = imgNewSrc;
 		newimg.onload = function() {
     		imgobj.src = imgNewSrc;
+			imgobj.onload = function() {};
 		};
 		newimg.onerror = function() {
 			imgobj.onload = function() {};
