@@ -2893,6 +2893,9 @@ msgstr "注意: 连接异常时请按照此页步骤先进行检查"
 msgid "Click to the page"
 msgstr "点击前往"
 
+msgid "Only Meta Core"
+msgstr "仅 Meta 内核"
+
 msgid "(Only Meta Core)"
 msgstr "（仅 Meta 内核）"
 

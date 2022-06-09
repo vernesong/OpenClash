@@ -864,6 +864,18 @@ do
          system(skip_cert_verify)
       end
       }.join
+
+      Thread.new{
+      #http-headers:
+      if Value['proxies'][$count].key?('headers') then
+         system '${uci_del}http_headers >/dev/null 2>&1'
+         Value['proxies'][$count]['headers'].keys.each{
+         |v|
+            http_headers = '${uci_add}http_headers=\"' + v.to_s + ': '+ Value['proxies'][$count]['headers'][v].to_s + '\"'
+            system(http_headers)
+         }
+      end
+      }.join
    else
       Thread.new{
       if Value['proxies'][$count].key?('password') then
@@ -871,7 +883,7 @@ do
          system(password)
       end
       }.join
-	 end;
+	end;
    if '$server_type' == 'http' or '$server_type' == 'trojan' then
       Thread.new{
       if Value['proxies'][$count].key?('sni') then

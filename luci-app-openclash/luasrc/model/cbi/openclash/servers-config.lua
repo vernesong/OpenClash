@@ -161,6 +161,7 @@ o:depends("type", "snell")
 
 o = s:option(ListValue, "cipher", translate("Encrypt Method"))
 for _, v in ipairs(encrypt_methods_ss) do o:value(v) end
+o.description = translate("Only Meta Core Support SS2022")
 o.rmempty = true
 o:depends("type", "ss")
 
@@ -385,6 +386,13 @@ o.datatype = "host"
 o.placeholder = translate("example.com")
 o.rmempty = true
 o:depends("type", "trojan")
+o:depends("type", "http")
+
+-- [[ headers ]]--
+o = s:option(DynamicList, "http_headers", translate("headers"))
+o.description = translate("Only Meta Core")
+o.rmempty = true
+o.placeholder = translate("User-Agent: okhttp/3.11.0 Dalvik/2.1.0 ...... ")
 o:depends("type", "http")
 
 -- 验证用户名
