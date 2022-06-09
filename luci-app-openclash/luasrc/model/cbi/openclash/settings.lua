@@ -592,6 +592,7 @@ o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Suppor
 
 o = s:taboption("lan_ac", DynamicList, "lan_ac_black_ports", translate("Lan Bypassed Port List"))
 o.datatype = "port"
+o:value("5000", translate("5000(NAS)"))
 o.description = translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails")
 
 o = s:taboption("lan_ac", Value, "local_network_pass", translate("Local IPv4 Network Bypassed List"))
