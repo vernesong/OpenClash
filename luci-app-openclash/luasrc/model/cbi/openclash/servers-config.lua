@@ -357,7 +357,7 @@ o:depends("obfs_vmess", "websocket")
 -- [[ skip-cert-verify ]]--
 o = s:option(ListValue, "skip_cert_verify", translate("skip-cert-verify"))
 o.rmempty = true
-o.default = "false"
+o.default = "true"
 o:value("true")
 o:value("false")
 o:depends("obfs", "websocket")
