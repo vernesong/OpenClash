@@ -163,27 +163,27 @@ o.rmempty = false
 o:depends("type", "hysteria")
 
 o = s:option(Value, "up_mbps", translate("up_mbps"))
-o.rmempty = false
+o.rmempty = true
 o.datatype = "uinteger"
 o:depends("type", "hysteria")
 
 o = s:option(Value, "down_mbps", translate("down_mbps"))
-o.rmempty = false
+o.rmempty = true
 o.datatype = "uinteger"
 o:depends("type", "hysteria")
 
 o = s:option(Value, "hysteria_up", translate("Up"))
-o.rmempty = false
+o.rmempty = true
 o.description = translate("Mutual Exclusion With up_mbps")
 o:depends("type", "hysteria")
 
 o = s:option(Value, "hysteria_down", translate("Down"))
-o.rmempty = false
+o.rmempty = true
 o.description = translate("Mutual Exclusion With down_mbps")
 o:depends("type", "hysteria")
 
 o = s:option(Value, "psk", translate("Psk"))
-o.rmempty = false
+o.rmempty = true
 o:depends("type", "snell")
 
 o = s:option(ListValue, "snell_version", translate("Version"))
