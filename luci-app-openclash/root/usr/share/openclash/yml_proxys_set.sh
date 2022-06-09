@@ -236,6 +236,7 @@ yml_servers_set()
    config_get "routing_mark" "$section" "routing_mark" ""
    config_get "obfs_vless" "$section" "obfs_vless" ""
    config_get "vless_flow" "$section" "vless_flow" ""
+   config_get "http_headers" "$section" "http_headers" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -672,6 +673,12 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
     sni: "$sni"
 EOF
+      fi
+      if [ -n "$ws_opts_headers" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    headers:
+EOF
+      config_list_foreach "$section" "http_headers" set_ws_headers
       fi
    fi
 
