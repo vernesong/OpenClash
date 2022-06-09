@@ -40,6 +40,9 @@ local encrypt_methods_ss = {
 	"xchacha20",
 	"chacha20-ietf-poly1305",
 	"xchacha20-ietf-poly1305",
+	"2022-blake3-aes-128-gcm",
+	"2022-blake3-aes-256-gcm",
+	"2022-blake3-chacha20-poly1305"
 }
 
 local encrypt_methods_ssr = {
@@ -52,7 +55,7 @@ local encrypt_methods_ssr = {
 	"aes-192-ctr",
 	"aes-256-ctr",
 	"chacha20-ietf",
-	"xchacha20",
+	"xchacha20"
 }
 
 local securitys = {
@@ -68,7 +71,7 @@ local protocols = {
 	"auth_aes128_md5",
 	"auth_aes128_sha1",
 	"auth_chain_a",
-	"auth_chain_b",
+	"auth_chain_b"
 }
 
 local obfs = {
@@ -77,7 +80,7 @@ local obfs = {
 	"http_post",
 	"random_head",
 	"tls1.2_ticket_auth",
-	"tls1.2_ticket_fastauth",
+	"tls1.2_ticket_fastauth"
 }
 
 m = Map(openclash, translate("Edit Server"))
