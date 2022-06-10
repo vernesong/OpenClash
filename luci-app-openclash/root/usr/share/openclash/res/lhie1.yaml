@@ -42,6 +42,7 @@ rules:
 - RULE-SET,Soundcloud,Global TV
 - RULE-SET,ViuTV,Global TV
 - RULE-SET,Telegram,Telegram
+- RULE-SET,Crypto,Crypto
 - RULE-SET,Douyin,Douyin
 - RULE-SET,Steam,Steam
 - RULE-SET,Speedtest,Speedtest
@@ -102,6 +103,7 @@ script:
             "Soundcloud": "Global TV",
             "ViuTV": "Global TV",
             "Telegram": "Telegram",
+            "Crypto": "Crypto",
             "Douyin": "Douyin",
             "Steam": "Steam",
             "Speedtest": "Speedtest",
@@ -403,6 +405,12 @@ rule-providers:
     behavior: classical
     url: https://dler.cloud/Rules/Clash/Provider/Telegram.yaml
     path: "./Rules/Telegram"
+    interval: 86400
+  Crypto:
+    type: http
+    behavior: classical
+    url: https://dler.cloud/Rules/Clash/Provider/Crypto.yaml
+    path: "./Rules/Crypto"
     interval: 86400
   Douyin:
     type: http

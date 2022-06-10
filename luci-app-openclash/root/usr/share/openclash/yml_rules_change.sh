@@ -794,6 +794,7 @@ yml_other_rules_get()
    config_get "Netease_Music" "$section" "Netease_Music" ""
    config_get "Speedtest" "$section" "Speedtest" ""
    config_get "Telegram" "$section" "Telegram" ""
+   config_get "Crypto" "$section" "Crypto" "$Proxy"
    config_get "Microsoft" "$section" "Microsoft" ""
    config_get "PayPal" "$section" "PayPal" ""
    config_get "Domestic" "$section" "Domestic" ""
@@ -854,6 +855,7 @@ if [ "$1" != "0" ]; then
 	 || [ -z "$(grep -F "$AdBlock" /tmp/Proxy_Group)" ]\
 	 || [ -z "$(grep -F "$Speedtest" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Telegram" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Crypto" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Douyin" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Microsoft" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
@@ -912,6 +914,7 @@ if [ "$1" != "0" ]; then
                .gsub(/,AdBlock$/, ',$AdBlock#d')
                .gsub(/,Speedtest$/, ',$Speedtest#d')
                .gsub(/,Telegram$/, ',$Telegram#d')
+               .gsub(/,Crypto$/, ',$Crypto#d')
                .gsub(/,Microsoft$/, ',$Microsoft#d')
                .to_s.gsub(/,PayPal$/, ',$PayPal#d')
                .gsub(/,Domestic$/, ',$Domestic#d')
@@ -940,6 +943,7 @@ if [ "$1" != "0" ]; then
                .gsub!(/: \"AdBlock\"/,': \"$AdBlock#d\"')
                .gsub!(/: \"Speedtest\"/,': \"$Speedtest#d\"')
                .gsub!(/: \"Telegram\"/,': \"$Telegram#d\"')
+               .gsub!(/: \"Crypto\"/,': \"$Crypto#d\"')
                .gsub!(/: \"Microsoft\"/,': \"$Microsoft#d\"')
                .gsub!(/: \"PayPal\"/,': \"$PayPal#d\"')
                .gsub!(/: \"Domestic\"/,': \"$Domestic#d\"')
