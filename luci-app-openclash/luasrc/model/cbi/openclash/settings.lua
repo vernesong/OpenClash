@@ -1280,7 +1280,7 @@ o.cfgvalue    = function(...)
 end
 
 ---- enable flag
-o = s:option(Flag, "node_resolve", translate("Node Resolve"), font_red..bold_on..translate("(Only Meta Core)")..bold_off..font_off)
+o = s:option(Flag, "node_resolve", translate("Node Domain Resolve"), font_red..bold_on..translate("(Only Meta Core)")..bold_off..font_off)
 o.rmempty     = false
 o.default     = o.disbled
 o.cfgvalue    = function(...)
