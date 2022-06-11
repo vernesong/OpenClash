@@ -596,7 +596,9 @@ function sub_info_get()
 								download = string.sub(string.match(info, "download=%d+"), 10, -1) or nil
 								total = tonumber(string.format("%.1f",string.sub(string.match(info, "total=%d+"), 7, -1))) or nil
 								used = tonumber(string.format("%.1f",(upload + download))) or nil
-								day_expire = tonumber(string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
+								if string.match(info, "expire=%d+") then
+									day_expire = tonumber(string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
+								end
 								expire = os.date("%Y-%m-%d", day_expire) or "null"
 								if day_expire and os.time() <= day_expire then
 									day_left = math.ceil((day_expire - os.time()) / (3600*24))
@@ -605,6 +607,7 @@ function sub_info_get()
 								else
 									day_left = 0
 								end
+								
 								if used and total and used <= total then
 									percent = string.format("%.1f",(used/total)*100) or nil
 								elseif used == nil or total == nil or total == 0 then
