@@ -635,7 +635,7 @@ EOF
       fi
       if [ -n "$disable_mtu_discovery" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    disable_mtu_discovery: "$disable_mtu_discovery"
+    disable_mtu_discovery: $disable_mtu_discovery
 EOF
       fi
    fi
