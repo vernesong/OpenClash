@@ -133,7 +133,7 @@ revert_dns() {
 
    [ "$1" -eq 1 ] && {
       uci -q del dhcp.@dnsmasq[-1].server
-      [ -n "$10" ] && {
+      [ -n "$1" ] && {
          config_load "openclash"
          config_list_foreach "config" "dnsmasq_server" set_dnsmasq_server
       }
