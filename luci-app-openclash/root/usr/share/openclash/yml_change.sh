@@ -657,7 +657,7 @@ end;
 #Vmess-ws formalt check, not support proxy-provider
 begin
 Thread.new{
-   if Value.key?('proxies') then
+   if Value.key?('proxies') and not Value['proxies'].nil? then
       Value['proxies'].each{
       |x|
       if x['type'] != 'vmess' then
