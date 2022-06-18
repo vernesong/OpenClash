@@ -557,16 +557,25 @@ do_run_file()
    [ ! -f "$ipdb_path" ] && {
       LOG_OUT "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
       /usr/share/openclash/openclash_ipdb.sh
+      if [ ! -f "$ipdb_path" ]; then
+         start_fail
+      fi
    }
    
    [ ! -f "$geosite_path" ] && {
       LOG_OUT "Tip: Detected that the GEOSITE Database is not Installed, Ready to Download..."
       /usr/share/openclash/openclash_geosite.sh
+      if [ ! -f "$geosite_path" ]; then
+         start_fail
+      fi
    }
    
    [ ! -f "$geoip_path" ] && [ "$enable_geoip_dat" == "1" ] && {
       LOG_OUT "Tip: Detected that the GEOIP Dat is not Installed, Ready to Download..."
       /usr/share/openclash/openclash_geoip.sh
+      if [ "$enable_geoip_dat" == "1" ] && [ ! -f "$geoip_path" ]; then
+         start_fail
+      fi
    }
    
    if [ "$china_ip_route" = "1" ] || [ "$china_ip6_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
@@ -574,14 +583,9 @@ do_run_file()
          LOG_OUT "Tip: Detected that the Chnroute Cidr List is not Installed, Ready to Download..."
          /usr/share/openclash/openclash_chnroute.sh
       fi
-   fi
-   
-   if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ] || [ ! -f "$ipdb_path" ] || [ ! -f "$geosite_path" ]; then
-      start_fail
-   fi
-   
-   if [ "$enable_geoip_dat" == "1" ] && [ ! -f "$geoip_path" ]; then
-      start_fail
+      if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ]; then
+         start_fail
+      fi
    fi
 
    [ ! -x "$tun_core_path" ] && chmod 4755 "$tun_core_path" 2>/dev/null
