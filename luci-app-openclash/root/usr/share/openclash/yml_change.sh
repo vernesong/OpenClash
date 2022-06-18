@@ -426,6 +426,9 @@ Thread.new{
    if Value.key?('routing-mark') then
       Value.delete('routing-mark');
    end;
+   if Value.key?('auto-redir') then
+      Value.delete('auto-redir');
+   end;
 }.join;
 rescue Exception => e
    puts '${LOGTIME} Error: Set General Failed,【' + e.message + '】';
