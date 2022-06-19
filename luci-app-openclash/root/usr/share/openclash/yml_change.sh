@@ -221,18 +221,18 @@ yml_dns_get()
       LOG_OUT "Warning: Only Meta Core Support proxy-server-nameserver, Skip Setting【$dns_type$dns_address】"
    fi
 
-   if [ "$specific_group" != "Disable" ] && [ "$enable_meta_core" = "1" ]; then
+   if [ "$specific_group" != "Disable" ] && [ -n "$specific_group" ] && [ "$enable_meta_core" = "1" ]; then
       specific_group="#$specific_group"
-   elif [ "$specific_group" != "Disable" ]; then
+   elif [ "$specific_group" != "Disable" ] && [ -n "$specific_group" ]; then
       LOG_OUT "Warning: Only Meta Core Support Specific Group, Skip Setting【$dns_type$dns_address】"
       specific_group=""
    else
       specific_group=""
    fi
 
-   if [ "$interface" != "Disable" ] && [ "$enable_meta_core" != "1" ]; then
+   if [ "$interface" != "Disable" ] && [ -n "$interface" ] && [ "$enable_meta_core" != "1" ]; then
       interface="#$interface"
-   elif [ "$interface" != "Disable" ]; then
+   elif [ "$interface" != "Disable" ] && [ -n "$interface" ]; then
       LOG_OUT "Warning: Meta Core not Support Specific Interface, Skip Setting【$dns_type$dns_address】"
       interface=""
    else
