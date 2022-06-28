@@ -399,9 +399,9 @@ function unlock_auto_select()
 								luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, v[1], ip, port, urlencode(value.name)))
 								luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, v[3], ip, port, urlencode(v[2])))
 								if table_include(groups, v[3]) then
-									group_now = v[3].." ➟ "..get_group_now(info, v[3])
+									group_now = "【".. v[3] .. " ➟ " .. get_group_now(info, v[3]) .. "】"
 								else
-									group_now = v[3]
+									group_now = "【".. v[3] .. "】"
 								end
 								if v[4] then
 									group_now = group_now .. area_i18 .. "【"..v[4].."】"
@@ -409,24 +409,24 @@ function unlock_auto_select()
 									group_now = group_now .. area_i18 .. "【"..v[4].."】"
 								end
 								if #full_support_list > 0 then
-									print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_full_support.."【"..group_now.."】")
+									print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_full_support..group_now)
 								elseif #no_old_region_unlock > 0 then
 									if not all_test then
-										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success_no_old_region.."【"..group_now.."】")
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_success_no_old_region..group_now)
 									else
-										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_no_old_region.."【"..group_now.."】")
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_no_old_region..group_now)
 									end
 								elseif #other_region_unlock > 0 then
 									if not all_test then
-										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild_other_region.."【"..group_now.."】")
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild_other_region..group_now)
 									else
-										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_other_region.."【"..group_now.."】")
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_other_region..group_now)
 									end
 								else
 									if not all_test then
-										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..group_now.."】")
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_faild..group_now)
 									else
-										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_faild.."【"..group_now.."】")
+										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..select_all_faild..group_now)
 									end
 								end
 								close_connections()
