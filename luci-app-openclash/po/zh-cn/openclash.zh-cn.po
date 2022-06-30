@@ -3001,11 +3001,5 @@ msgstr "本地 IPv6 绕过地址"
 msgid "The Traffic of The Destination For The Specified Address Will Not Pass The Core"
 msgstr "目的地为指定地址的流量不会通过核心"
 
-msgid "Mutual Exclusion With down_mbps"
-msgstr "与 down_mbps 二选一进行设置"
-
-msgid "Mutual Exclusion With up_mbps"
-msgstr "与 up_mbps 二选一进行设置"
-
 msgid "Only Meta Core Support SS2022"
 msgstr "仅 Meta 内核支持 SS2022"
