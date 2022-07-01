@@ -389,6 +389,14 @@ Thread.new{
       if Value.key?('sniffer') then
          Value.delete('sniffer');
       end;
+      if ${27} == 'TUN' then
+         Value_tun_sniff={'experimental'=>{'sniff-tls-sni'=>true}};
+         Value['experimental'] = Value_tun_sniff['experimental'];
+      else
+         if Value.key?('experimental') then
+            Value.delete('experimental');
+         end;
+      end;
    end;
    Value_2={'tun'=>{'enable'=>true}};
    if $en_mode_tun != 0 then
