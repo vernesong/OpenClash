@@ -31,11 +31,11 @@ if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{prin
       curl -sL -m 10 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER >/dev/null 2>&1
    fi
    
-   if [ "$?" != "0" ]; then
+   if [ "$?" != "0" ] || [ -n "$(cat $LAST_OPVER |grep '<html>')" ]; then
       curl -sL -m 10 --retry 2 https://mirrors.tuna.tsinghua.edu.cn/osdn/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER >/dev/null 2>&1
    fi
    
-   if [ "$?" == "0" ] && [ -s "$LAST_OPVER" ]; then
+   if [ "$?" == "0" ] && [ -z "$(cat $LAST_OPVER |grep '<html>')" ]; then
       echo "CheckTime:$CKTIME" >>$LAST_OPVER
    else
       rm -rf $LAST_OPVER
