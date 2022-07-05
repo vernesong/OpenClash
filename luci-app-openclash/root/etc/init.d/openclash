@@ -138,7 +138,7 @@ revert_dns() {
          config_list_foreach "config" "dnsmasq_server" set_dnsmasq_server
       }
       
-      if [ "$4" == "0" ] || [ -z "$4" ]; then
+      if [ "$4" == "0" ] || [ -z "$4" ] || [ -z "$(uci -q show dhcp.@dnsmasq[0].server)" ]; then
          uci -q set dhcp.@dnsmasq[0].noresolv=0
          if [ -n "$5" ]; then
             uci -q set dhcp.@dnsmasq[0].resolvfile="$5"

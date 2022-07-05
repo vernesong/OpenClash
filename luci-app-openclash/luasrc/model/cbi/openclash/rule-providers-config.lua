@@ -106,12 +106,26 @@ o:value("1", translate("Extended Match"))
 o = s:option(ListValue, "group", translate("Set Proxy Group"))
 o.description = font_red..bold_on..translate("The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT'")..bold_off..font_off
 o.rmempty = true
+local groupnames,filename
+filename = m.uci:get(openclash, "config", "config_path")
+if filename then
+   groupnames = sys.exec(string.format('ruby -ryaml -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
+   if groupnames then
+      for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
+         if groupname ~= nil and groupname ~= "" then
+            o:value(groupname)
+         end
+      end
+   end
+end
+
 m.uci:foreach("openclash", "groups",
-		function(s)
-			if s.name ~= "" and s.name ~= nil then
-			   o:value(s.name)
-			end
-		end)
+   function(s)
+      if s.name ~= "" and s.name ~= nil then
+         o:value(s.name)
+      end
+   end)
+
 o:value("DIRECT")
 o:value("REJECT")
 
@@ -137,4 +151,5 @@ o.write = function()
    luci.http.redirect(m.redirect)
 end
 
+m:append(Template("openclash/toolbar_show"))
 return m
