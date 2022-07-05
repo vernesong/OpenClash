@@ -1264,23 +1264,30 @@ else
 end
 
 -- [[ Edit Custom DNS ]] --
-s = m:section(TypedSection, "dns_servers", translate("Add Custom DNS Servers")..translate("(Take Effect After Choose Above)"))
-s.anonymous = true
-s.addremove = true
-s.sortable = false
-s.template = "cbi/tblsection"
-s.rmempty = false
+ds = m:section(TypedSection, "dns_servers", translate("Add Custom DNS Servers")..translate("(Take Effect After Choose Above)"))
+ds.anonymous = true
+ds.addremove = true
+ds.sortable = false
+ds.template = "cbi/tblsection"
+ds.extedit = luci.dispatcher.build_url("admin/services/openclash/custom-dns-edit/%s")
+function ds.create(...)
+	local sid = TypedSection.create(...)
+	if sid then
+		luci.http.redirect(ds.extedit % sid)
+		return
+	end
+end
 
 ---- enable flag
-o = s:option(Flag, "enabled", translate("Enable"), font_red..bold_on..translate("(Enable or Disable)")..bold_off..font_off)
+o = ds:option(Flag, "enabled", translate("Enable"))
 o.rmempty     = false
 o.default     = o.enabled
 o.cfgvalue    = function(...)
     return Flag.cfgvalue(...) or "1"
 end
 
----- enable flag
-o = s:option(Flag, "node_resolve", translate("Node Domain Resolve"), font_red..bold_on..translate("(Only Meta Core)")..bold_off..font_off)
+---- Node Domain Resolve
+o = ds:option(Flag, "node_resolve", translate("Node Domain Resolve"))
 o.rmempty     = false
 o.default     = o.disbled
 o.cfgvalue    = function(...)
@@ -1288,29 +1295,25 @@ o.cfgvalue    = function(...)
 end
 
 ---- group
-o = s:option(ListValue, "group", translate("DNS Server Group"))
-o.description = font_red..bold_on..translate("(NameServer Group Must Be Set)")..bold_off..font_off
-o:value("nameserver", translate("NameServer"))
-o:value("fallback", translate("FallBack"))
+o = ds:option(ListValue, "group", translate("DNS Server Group"))
+o:value("nameserver", translate("NameServer "))
+o:value("fallback", translate("FallBack "))
 o.default     = "nameserver"
 o.rempty      = false
 
 ---- IP address
-o = s:option(Value, "ip", translate("DNS Server Address"))
-o.description = font_red..bold_on..translate("(Do Not Add Type Ahead)")..bold_off..font_off
+o = ds:option(Value, "ip", translate("DNS Server Address"))
 o.placeholder = translate("Not Null")
 o.datatype = "or(host, string)"
 o.rmempty = true
 
 ---- port
-o = s:option(Value, "port", translate("DNS Server Port"))
-o.description = font_red..bold_on..translate("(Require When Use Non-Standard Port)")..bold_off..font_off
+o = ds:option(Value, "port", translate("DNS Server Port"))
 o.datatype    = "port"
 o.rempty      = true
 
 ---- type
-o = s:option(ListValue, "type", translate("DNS Server Type"))
-o.description = font_red..bold_on..translate("(Communication protocol)")..bold_off..font_off
+o = ds:option(ListValue, "type", translate("DNS Server Type"))
 o:value("udp", translate("UDP"))
 o:value("tcp", translate("TCP"))
 o:value("tls", translate("TLS"))
@@ -1318,31 +1321,6 @@ o:value("https", translate("HTTPS"))
 o:value("quic", translate("QUIC ")..translate("(Only Meta Core)"))
 o.default     = "udp"
 o.rempty      = false
-
----- interface
-o = s:option(Value, "interface", translate("Specific Interface"))
-o.description = font_red..bold_on..translate("(Only TUN Core)")..bold_off..font_off
-for interface in string.gmatch(interfaces, "%S+") do
-	o:value(interface)
-end
-o:value("Disable", translate("Disable"))
-o.default = "Disable"
-o.rempty = false
-
----- Proxy group
-o = s:option(Value, "specific_group", translate("Specific Group"))
-o.description = font_red..bold_on..translate("(Only Meta Core)")..bold_off..font_off
-uci:foreach("openclash", "groups",
-		function(s)
-		  if s.name ~= "" and s.name ~= nil then
-			   o:value(s.name)
-			end
-		end)
-o:value("DIRECT")
-o:value("REJECT")
-o:value("Disable", translate("Disable"))
-o.default = "Disable"
-o.rempty = false
 
 -- [[ Other Rules Manage ]]--
 ss = m:section(TypedSection, "other_rules", translate("Other Rules Edit")..translate("(Take Effect After Choose Above)"))
