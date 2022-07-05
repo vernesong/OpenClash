@@ -255,26 +255,26 @@ msgstr "启用将覆盖配置文件内的设置，请先在下方配置好服务
 msgid "DNS Server Group"
 msgstr "服务器分组"
 
-msgid "(NameServer Group Must Be Set)"
-msgstr "(NameServer 组必须设置)"
+msgid "NameServer Group Must Be Set"
+msgstr "NameServer 组必须设置"
 
 msgid "DNS Server Address"
 msgstr "服务器地址"
 
-msgid "(Do Not Add Type Ahead)"
-msgstr "(请勿添加类型前缀)"
+msgid "Do Not Add Type Ahead"
+msgstr "请勿添加类型前缀"
 
 msgid "DNS Server Port"
 msgstr "服务器端口"
 
-msgid "(Require When Use Non-Standard Port)"
-msgstr "(使用非标准端口时必须填写)"
+msgid "Require When Use Non-Standard Port"
+msgstr "使用非标准端口时必须填写"
 
 msgid "DNS Server Type"
 msgstr "服务器类型"
 
-msgid "(Communication protocol)"
-msgstr "(通讯协议)"
+msgid "Communication protocol"
+msgstr "通讯协议"
 
 msgid "Proxy IPv6 Traffic"
 msgstr "IPv6 流量代理"
@@ -2971,14 +2971,23 @@ msgstr "警告：跳过核心不支持的自定义规则"
 msgid "Specific Interface"
 msgstr "指定接口"
 
+msgid "DNS Lookup Only Through The Specific Interface"
+msgstr "DNS 仅通过特定接口进行查询"
+
 msgid "Specific Group"
 msgstr "指定策略组"
+
+msgid "Group Use For Proxy The DNS"
+msgstr "用于代理此 DNS 的策略组"
 
 msgid "Warning: Only Meta Core Support Specific Group, Skip Setting"
 msgstr "警告：仅 Meta 内核支持指定 DNS 的策略组，跳过设置"
 
 msgid "Node Domain Resolve"
 msgstr "节点域名解析"
+
+msgid "Use For Node Domain Resolve"
+msgstr "用于解析节点域名的 IP 地址"
 
 msgid "Warning: Only Meta Core Support proxy-server-nameserver, Skip Setting"
 msgstr "警告：仅 Meta 内核支持设置解析节点域名的 DNS，跳过设置"
