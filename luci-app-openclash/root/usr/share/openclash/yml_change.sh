@@ -91,7 +91,7 @@ yml_dns_custom()
    if [ "$1" = 1 ] || [ "$3" = 1 ]; then
    	sys_dns_append "$3" "$4"
       config_load "openclash"
-      config_foreach yml_dns_get "dns_servers"
+      config_foreach yml_dns_get "dns_servers" "$2"
    fi
 }
 
@@ -222,6 +222,26 @@ yml_dns_get()
    fi
 
    if [ "$specific_group" != "Disable" ] && [ -n "$specific_group" ] && [ "$enable_meta_core" = "1" ]; then
+      group_check=$(ruby -ryaml -E UTF-8 -e "
+      begin
+         Thread.new{
+            Value = YAML.load_file('$2');
+            Value['proxy-groups'].each{
+               |x|
+               if x['name'] == '$specific_group' then
+                  if (x.key?('use') and not x['use'].to_a.empty?) or (x.key?('proxies') and not x['proxies'].to_a.empty?) then
+                     puts 'return'
+                  end;
+               end;
+            };
+         }.join;
+      rescue Exception => e
+         puts 'return'
+      end;" 2>/dev/null)
+
+      if [ "$group_check" != "return" ]; then
+         /usr/share/openclash/yml_groups_set.sh >/dev/null 2>&1 "$specific_group"
+      fi
       specific_group="#$specific_group"
    elif [ "$specific_group" != "Disable" ] && [ -n "$specific_group" ]; then
       LOG_OUT "Warning: Only Meta Core Support Specific Group, Skip Setting【$dns_type$dns_address】"
@@ -388,6 +408,14 @@ Thread.new{
    else
       if Value.key?('sniffer') then
          Value.delete('sniffer');
+      end;
+      if '${27}' == 'TUN' then
+         Value_tun_sniff={'experimental'=>{'sniff-tls-sni'=>true}};
+         Value['experimental'] = Value_tun_sniff['experimental'];
+      else
+         if Value.key?('experimental') then
+            Value.delete('experimental');
+         end;
       end;
    end;
    Value_2={'tun'=>{'enable'=>true}};

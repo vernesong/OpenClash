@@ -255,26 +255,26 @@ msgstr "启用将覆盖配置文件内的设置，请先在下方配置好服务
 msgid "DNS Server Group"
 msgstr "服务器分组"
 
-msgid "(NameServer Group Must Be Set)"
-msgstr "(NameServer 组必须设置)"
+msgid "NameServer Group Must Be Set"
+msgstr "NameServer 组必须设置"
 
 msgid "DNS Server Address"
 msgstr "服务器地址"
 
-msgid "(Do Not Add Type Ahead)"
-msgstr "(请勿添加类型前缀)"
+msgid "Do Not Add Type Ahead"
+msgstr "请勿添加类型前缀"
 
 msgid "DNS Server Port"
 msgstr "服务器端口"
 
-msgid "(Require When Use Non-Standard Port)"
-msgstr "(使用非标准端口时必须填写)"
+msgid "Require When Use Non-Standard Port"
+msgstr "使用非标准端口时必须填写"
 
 msgid "DNS Server Type"
 msgstr "服务器类型"
 
-msgid "(Communication protocol)"
-msgstr "(通讯协议)"
+msgid "Communication protocol"
+msgstr "通讯协议"
 
 msgid "Proxy IPv6 Traffic"
 msgstr "IPv6 流量代理"
@@ -2665,17 +2665,29 @@ msgstr "根据关键字搜索且自动获取策略组失败，请确认关键字
 msgid "unlock node auto selected failed, no node match the regex, rolled back to other full support node"
 msgstr "解锁节点自动选择失败，未找到区域匹配的节点，回退到其他区域的解锁节点"
 
+msgid "unlock node auto selected successfully, no node match the old region, rolled back to other full support node"
+msgstr "解锁节点自动选择成功，未找到与先前解锁区域匹配的节点，回退到其他区域且符合条件的解锁节点"
+
 msgid "full support but not match the regex!"
 msgstr "完整解锁但区域不匹配！"
 
+msgid "full support but not match the old region!"
+msgstr "完整解锁但与先前解锁区域不匹配！"
+
 msgid "but not match the regex! the type of group is not select, auto select could not work!"
 msgstr "完整解锁但区域不匹配！当前策略组类型非 Select，无法进行自动选择！"
+
+msgid "but not match the old region! the type of group is not select, auto select could not work!"
+msgstr "完整解锁但与先前解锁区域不匹配！当前策略组类型非 Select，无法进行自动选择！"
 
 msgid "full support but not match the regex! start auto select unlock proxy..."
 msgstr "完整解锁但区域不匹配！开始进行解锁节点自动选择..."
 
 msgid "unlock node test finished, rolled back to the full support node"
 msgstr "解锁检测完成，回退到完整解锁的节点"
+
+msgid "unlock node test finished, no node match the old region, rolled back to other full support node"
+msgstr "解锁检测完成，未找到与先前解锁区域匹配的节点，回退到其他区域的解锁节点"
 
 msgid "unlock node test finished, no node match the regex, rolled back to other full support node"
 msgstr "解锁检测完成，未找到区域匹配的节点，回退到其他区域的解锁节点"
@@ -2959,14 +2971,23 @@ msgstr "警告：跳过核心不支持的自定义规则"
 msgid "Specific Interface"
 msgstr "指定接口"
 
+msgid "DNS Lookup Only Through The Specific Interface"
+msgstr "DNS 仅通过特定接口进行查询"
+
 msgid "Specific Group"
 msgstr "指定策略组"
+
+msgid "Group Use For Proxy The DNS"
+msgstr "用于代理此 DNS 的策略组"
 
 msgid "Warning: Only Meta Core Support Specific Group, Skip Setting"
 msgstr "警告：仅 Meta 内核支持指定 DNS 的策略组，跳过设置"
 
 msgid "Node Domain Resolve"
 msgstr "节点域名解析"
+
+msgid "Use For Node Domain Resolve"
+msgstr "用于解析节点域名的 IP 地址"
 
 msgid "Warning: Only Meta Core Support proxy-server-nameserver, Skip Setting"
 msgstr "警告：仅 Meta 内核支持设置解析节点域名的 DNS，跳过设置"
@@ -2988,12 +3009,6 @@ msgstr "本地 IPv6 绕过地址"
 
 msgid "The Traffic of The Destination For The Specified Address Will Not Pass The Core"
 msgstr "目的地为指定地址的流量不会通过核心"
-
-msgid "Mutual Exclusion With down_mbps"
-msgstr "与 down_mbps 二选一进行设置"
-
-msgid "Mutual Exclusion With up_mbps"
-msgstr "与 up_mbps 二选一进行设置"
 
 msgid "Only Meta Core Support SS2022"
 msgstr "仅 Meta 内核支持 SS2022"

@@ -138,7 +138,7 @@ revert_dns() {
          config_list_foreach "config" "dnsmasq_server" set_dnsmasq_server
       }
       
-      if [ "$4" == "0" ] || [ -z "$4" ]; then
+      if [ "$4" == "0" ] || [ -z "$4" ] || [ -z "$(uci -q show dhcp.@dnsmasq[0].server)" ]; then
          uci -q set dhcp.@dnsmasq[0].noresolv=0
          if [ -n "$5" ]; then
             uci -q set dhcp.@dnsmasq[0].resolvfile="$5"
@@ -1219,7 +1219,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
             fi
          fi
          iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
-         iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
+         iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
          iptables -t mangle -A PREROUTING -p udp -j openclash
          
          #quic
@@ -1233,7 +1233,7 @@ if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
          ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
          iptables -t mangle -N openclash
          iptables -t mangle -F openclash
-         iptables -t mangle -A openclash -p udp -d 198.18.0.0/16 -j TPROXY --on-port "$proxy_port" --tproxy-mark "$PROXY_FWMARK"
+         iptables -t mangle -A openclash -p udp -d 198.18.0.0/16 -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
          iptables -t mangle -A PREROUTING -p udp -j openclash
          
          #quic
@@ -1291,7 +1291,10 @@ if [ -n "$en_mode_tun" ]; then
 
    ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
    ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
-   
+
+   #MTU UP TO 65535
+   ifconfig utun mtu 65535 >/dev/null 2>&1
+
    #设置防火墙
    if [ "$en_mode" = "fake-ip" ]; then
       iptables -t mangle -N openclash_output
@@ -1627,7 +1630,7 @@ start()
    if ! $quick_start; then
       LOG_OUT "Step 3: Modify The Config File..."
       config_check
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote" "$enable_meta_core" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote" "$enable_meta_core" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type"
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port" "$enable_meta_core"
       /usr/share/openclash/openclash_server_fake_filter.sh >/dev/null 2>&1
       /usr/share/openclash/openclash_custom_domain_dns.sh >/dev/null 2>&1
