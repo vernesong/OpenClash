@@ -162,6 +162,16 @@ for _, v in ipairs(hysteria_protocols) do o:value(v) end
 o.rmempty = false
 o:depends("type", "hysteria")
 
+o = s:option(Value, "hysteria_up", translate("up"))
+o.rmempty = true
+o.description = translate("Required")
+o:depends("type", "hysteria")
+
+o = s:option(Value, "hysteria_down", translate("down"))
+o.rmempty = true
+o.description = translate("Required")
+o:depends("type", "hysteria")
+
 o = s:option(Value, "up_mbps", translate("up_mbps"))
 o.rmempty = true
 o.datatype = "uinteger"
@@ -170,16 +180,6 @@ o:depends("type", "hysteria")
 o = s:option(Value, "down_mbps", translate("down_mbps"))
 o.rmempty = true
 o.datatype = "uinteger"
-o:depends("type", "hysteria")
-
-o = s:option(Value, "hysteria_up", translate("Up"))
-o.rmempty = true
-o.description = translate("Mutual Exclusion With up_mbps")
-o:depends("type", "hysteria")
-
-o = s:option(Value, "hysteria_down", translate("Down"))
-o.rmempty = true
-o.description = translate("Mutual Exclusion With down_mbps")
 o:depends("type", "hysteria")
 
 o = s:option(Value, "psk", translate("Psk"))
@@ -570,4 +570,5 @@ o.write = function()
    luci.http.redirect(m.redirect)
 end
 
+m:append(Template("openclash/toolbar_show"))
 return m
