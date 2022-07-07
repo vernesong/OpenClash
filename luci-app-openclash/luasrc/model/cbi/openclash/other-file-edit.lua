@@ -6,13 +6,18 @@ local file_path = ""
 local edit_file_name = "/tmp/openclash_edit_file_name"
 
 for i = 2, #(arg) do
- file_path = file_path .. "/" .. arg[i]
+	file_path = file_path .. "/" .. luci.http.urlencode(arg[i])
 end
 
+if not fs.isfile(file_path) and file_path ~= "" then
+	file_path = luci.http.urldecode(file_path)
+end
+
+--re-get file path to save
 if NXFS.readfile(edit_file_name) ~= file_path and fs.isfile(file_path) then
 	NXFS.writefile(edit_file_name, file_path)
 else
-	if not fs.isfile(file_path) then
+	if not fs.isfile(file_path) and fs.isfile(edit_file_name) then
 		file_path = NXFS.readfile(edit_file_name)
 		fs.unlink(edit_file_name)
 	end
@@ -33,7 +38,7 @@ function o.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile(file_path)
-	  if value ~= old_value then
+		if value ~= old_value then
 			NXFS.writefile(file_path, value)
 		end
 	end
