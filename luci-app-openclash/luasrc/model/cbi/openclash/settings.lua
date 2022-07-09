@@ -371,6 +371,11 @@ o.description = font_red..bold_on..translate("TCP Concurrent Request IPs, Choose
 o.default = 1
 o:depends("enable_meta_core", "1")
 
+o = s:taboption("meta", Flag, "enable_http3", translate("Enable HTTP/3"))
+o.description = font_red..bold_on..translate("DOH DNS Prefers Using HTTP/3 For Connections")..bold_off..font_off
+o.default = 0
+o:depends("enable_meta_core", "1")
+
 o = s:taboption("meta", Flag, "enable_meta_sniffer", font_red..bold_on..translate("Enable Sniffer")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure")..bold_off..font_off
 o.default = 1
