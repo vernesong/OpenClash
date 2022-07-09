@@ -3012,3 +3012,9 @@ msgstr "目的地为指定地址的流量不会通过核心"
 
 msgid "Only Meta Core Support SS2022"
 msgstr "仅 Meta 内核支持 SS2022"
+
+msgid "Enable HTTP/3"
+msgstr "启用 HTTP/3"
+
+msgid "DOH DNS Prefers Using HTTP/3 For Connections"
+msgstr "DOH 类型的 DNS 优先使用 HTTP/3 进行连接"

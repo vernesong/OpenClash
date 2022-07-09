@@ -340,16 +340,19 @@ Thread.new{
    else
       Value.delete('interface-name');
    end;
-   if ${21} == 1 then
+   if ${20} == 1 then
       Value['geodata-mode']=$enable_geoip_dat;
       Value['geodata-loader']='${23}';
       Value['tcp-concurrent']=$enable_tcp_concurrent;
    else
       if Value.key?('geodata-mode') then
          Value.delete('geodata-mode');
-      end
+      end;
       if Value.key?('geodata-loader') then
          Value.delete('geodata-loader');
+      end;
+      if Value.key?('tcp-concurrent') then
+         Value.delete('tcp-concurrent');
       end
    end;
    if not Value.key?('dns') then
@@ -357,6 +360,17 @@ Thread.new{
       Value['dns']=Value_1['dns'];
    else
       Value['dns']['enable']=true;
+   end;
+   if ${20} == 1 then
+      if ${28} == 1 then
+         Value['dns']['prefer-h3']=true;
+      else
+         Value['dns']['prefer-h3']=false;
+      end;
+   else
+      if Value['dns'].key?('prefer-h3') then
+         Value['dns'].delete('prefer-h3');
+      end;
    end;
    if ${16} == 1 then
       Value['dns']['ipv6']=true;
