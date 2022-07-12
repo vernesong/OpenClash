@@ -40,8 +40,8 @@ function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
 		return String.format(
 			'<div style="width:250px; max-width:500px; position:relative; border:1px solid #999999; border-radius: 6px">' +
 			(pc <= 50 ? '<div style="background-color:#9edd9e; width:%d%%; height:36px; border-radius: 6px">' : (pc > 50 && pc <= 80 ? '<div style="background-color:#ffc99f; width:%d%%; height:35px">' : '<div style="background-color:#ffb9b9; width:%d%%; height:35px">')) +
-			'<div style="position:absolute; left:0;' + (t == "null" ? 'top:12px;' : 'top:0;') + 'text-align:center; width:100%%">' +
-			'<small>%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') + (t == "null" ? '<div style="visibility: hidden;">' : '<div style="visibility: visible;">') + '%s (<%:Remaining%> %s <%:days%>)</small>' +
+			'<div style="position:absolute; left:0;' + (tr == "null" ? 'top:12px;' : 'top:0;') + 'text-align:center; width:100%%">' +
+			'<small>%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') + (tr == "null" ? '<div style="visibility: hidden;">' : '<div style="visibility: visible;">') + '%s (<%:Remaining%> %s <%:days%>)</small>' +
 			'</div>' +
 			'</div>' +
 			'</div>', pc, v, m, pc, t, tr
