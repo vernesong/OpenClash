@@ -61,6 +61,8 @@ function index()
 	entry({"admin", "services", "openclash", "rule_mode"}, call("action_rule_mode"))
 	entry({"admin", "services", "openclash", "switch_rule_mode"}, call("action_switch_rule_mode"))
 	entry({"admin", "services", "openclash", "switch_run_mode"}, call("action_switch_run_mode"))
+	entry({"admin", "services", "openclash", "dashboard_type"}, call("action_dashboard_type"))
+	entry({"admin", "services", "openclash", "switch_dashboard"}, call("action_switch_dashboard"))
 	entry({"admin", "services", "openclash", "get_run_mode"}, call("action_get_run_mode"))
 	entry({"admin", "services", "openclash", "create_file"}, call("create_file"))
 	entry({"admin", "services", "openclash", "rename_file"}, call("rename_file"))
@@ -903,6 +905,43 @@ function action_one_key_update_check()
 		corever = corever(),
 		corelv = corelv(),
 		oplv = oplv();
+	})
+end
+
+function action_dashboard_type()
+	local dashboard_type = uci:get("openclash", "config", "dashboard_type") or "Official"
+	local yacd_type = uci:get("openclash", "config", "yacd_type") or "Official"
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		dashboard_type = dashboard_type,
+		yacd_type = yacd_type;
+	})
+end
+
+function action_switch_dashboard()
+	local switch_name = luci.http.formvalue("name")
+	local switch_type = luci.http.formvalue("type")
+	local state = luci.sys.call(string.format('/usr/share/openclash/openclash_download_dashboard.sh "%s" "%s" >/dev/null 2>&1', switch_name, switch_type))
+	if switch_name == "Dashboard" and tonumber(state) == 1 then
+		if switch_type == "Official" then
+			uci:set("openclash", "config", "dashboard_type", "Official")
+			uci:commit("openclash")
+		else
+			uci:set("openclash", "config", "dashboard_type", "Meta")
+			uci:commit("openclash")
+		end
+	elseif tonumber(state) == 1 then
+		if switch_type == "Official" then
+			uci:set("openclash", "config", "yacd_type", "Official")
+			uci:commit("openclash")
+		else
+			uci:set("openclash", "config", "yacd_type", "Meta")
+			uci:commit("openclash")
+		end
+	end
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		download_state = state;
 	})
 end
 
