@@ -3034,11 +3034,11 @@ msgstr "切换至官方版本"
 msgid "Switch To Meta Version"
 msgstr "切换至 Meta 版本"
 
-msgid "Switch Dashboard Version"
-msgstr "切换 Dashboard 版本"
+msgid "Switch(Update) Dashboard Version"
+msgstr "切换（更新） Dashboard 版本"
 
-msgid "Switch Yacd Version"
-msgstr "切换 Yacd 版本"
+msgid "Switch(Update) Yacd Version"
+msgstr "切换（更新） Yacd 版本"
 
 msgid "Downloading File..."
 msgstr "文件下载中..."
