@@ -1212,6 +1212,14 @@ o.title = translate("Public Dashboard SSL enabled")
 o.default = 0
 o.description = translate("Is SSL enabled For Dashboard Login From Public Network")
 
+o = s:taboption("dashboard", DummyValue, "Dashboard", translate("Switch Dashboard Version"))
+o.template="openclash/switch_dashboard"
+o.rawhtml = true
+
+o = s:taboption("dashboard", DummyValue, "Yacd", translate("Switch Yacd Version"))
+o.template="openclash/switch_dashboard"
+o.rawhtml = true
+
 ---- version update
 core_update = s:taboption("version_update", DummyValue, "", nil)
 core_update.template = "openclash/update"
