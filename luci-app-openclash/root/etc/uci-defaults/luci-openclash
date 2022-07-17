@@ -86,13 +86,21 @@ if [ -f "/tmp/openclash.bak" ]; then
 	cp -rf "/tmp/openclash_proxy_provider/." "/etc/openclash/proxy_provider/" >/dev/null 2>&1
 	cp -rf "/tmp/openclash_rule_provider/." "/etc/openclash/rule_provider/" >/dev/null 2>&1
 	cp -rf "/tmp/openclash_game_rules/." "/etc/openclash/game_rules/" >/dev/null 2>&1
-	cp -rf "/tmp/openclash_yacd/." "/usr/share/openclash/ui/yacd/" >/dev/null 2>&1
-	cp -rf "/tmp/openclash_dashboard/." "/usr/share/openclash/ui/dashboard/" >/dev/null 2>&1
 	mv -f "/tmp/openclash_custom_rules.list.bak" "/etc/openclash/custom/openclash_custom_rules.list" >/dev/null 2>&1
 	mv -f "/tmp/openclash_custom_rules_2.list.bak" "/etc/openclash/custom/openclash_custom_rules_2.list" >/dev/null 2>&1
 	mv -f "/tmp/openclash_custom_hosts.list.bak" "/etc/openclash/custom/openclash_custom_hosts.list" >/dev/null 2>&1
 	mv -f "/tmp/openclash_custom_fake_filter.list.bak" "/etc/openclash/custom/openclash_custom_fake_filter.list" >/dev/null 2>&1
 	mv -f "/tmp/openclash_custom_domain_dns.list.bak" "/etc/openclash/custom/openclash_custom_domain_dns.list" >/dev/null 2>&1
+	if [ -d "/tmp/openclash_dashboard/" ]; then
+		rm -rf "/usr/share/openclash/ui/dashboard/" >/dev/null 2>&1
+		cp -rf "/tmp/openclash_dashboard/." "/usr/share/openclash/ui/dashboard/" >/dev/null 2>&1
+		rm -rf "/tmp/openclash_dashboard/" >/dev/null 2>&1
+	fi
+	if [ -d "/tmp/openclash_yacd/" ]; then
+		rm -rf "/usr/share/openclash/ui/yacd/" >/dev/null 2>&1
+		cp -rf "/tmp/openclash_yacd/." "/usr/share/openclash/ui/yacd/" >/dev/null 2>&1
+		rm -rf "/tmp/openclash_yacd/" >/dev/null 2>&1
+	fi
 	rm -rf "/etc/openclash/openclash" >/dev/null 2>&1
 	rm -rf "/etc/openclash/fake_filter.list" >/dev/null 2>&1
 	rm -rf "/etc/openclash/openclash_servers_fake_filter.conf" >/dev/null 2>&1
