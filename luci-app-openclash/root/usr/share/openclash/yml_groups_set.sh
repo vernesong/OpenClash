@@ -169,6 +169,7 @@ yml_groups_set()
 {
 
    local section="$1"
+   config_get_bool "enabled" "$section" "enabled" "1"
    config_get "config" "$section" "config" ""
    config_get "type" "$section" "type" ""
    config_get "name" "$section" "name" ""
@@ -181,6 +182,10 @@ yml_groups_set()
    config_get "interface_name" "$section" "interface_name" ""
    config_get "routing_mark" "$section" "routing_mark" ""
    config_get "policy_filter" "$section" "policy_filter" ""
+
+   if [ -z "$if_game_group" ] && [ "$enabled" = "0" ]; then
+      return
+   fi
    
    if [ ! -z "$if_game_group" ] && [ "$if_game_group" != "$name" ]; then
       return

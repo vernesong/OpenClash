@@ -60,6 +60,14 @@ function s.create(...)
 	end
 end
 
+---- enable flag
+o = s:option(Flag, "enabled", translate("Enable"))
+o.rmempty     = false
+o.default     = o.enabled
+o.cfgvalue    = function(...)
+    return Flag.cfgvalue(...) or "1"
+end
+
 o = s:option(DummyValue, "config", translate("Config File"))
 function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("all")
