@@ -33,7 +33,7 @@
    
    if [ "$?" -eq "0" ] && [ -s "$DASH_FILE_DIR" ] && [ -z "$(grep "404: Not Found" "$DASH_FILE_DIR")" ] && [ -z "$(grep "Package size exceeded the configured limit" "$DASH_FILE_DIR")" ]; then
       cp -rf  "$UNPACK_FILE_DIR".  "$BACKUP_FILE_DIR" >/dev/null 2>&1
-      rm -rf "$UNPACK_FILE_DIR"* >/dev/null 2>&1
+      rm -rf "$UNPACK_FILE_DIR" >/dev/null 2>&1
       unzip -q "$DASH_FILE_DIR" -d "$DASH_FILE_TMP" >/dev/null 2>&1
       if [ "$?" -eq "0" ] && [ -d "$DASH_FILE_TMP$FILE_PATH_INCLUDE" ]; then
          cp -rf "$DASH_FILE_TMP$FILE_PATH_INCLUDE"/. "$UNPACK_FILE_DIR" >/dev/null 2>&1
