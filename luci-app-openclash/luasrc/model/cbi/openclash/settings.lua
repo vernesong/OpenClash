@@ -728,6 +728,11 @@ o.description = translate("Automatically Expand The Group When Selected")
 o.default = 0
 o:depends("stream_auto_select", "1")
 
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_close_con", translate("Close Old Connections"))
+o.description = translate("Automatically Close Old Connections When New Unlock Node Selected")
+o.default = 1
+o:depends("stream_auto_select", "1")
+
 --Netflix
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_netflix", font_red..translate("Netflix")..font_off)
 o.default = 0

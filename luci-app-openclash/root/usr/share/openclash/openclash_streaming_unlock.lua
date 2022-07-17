@@ -543,6 +543,8 @@ end
 function close_connections()
 	local con
 	local group_cons_id = {}
+	local enable = tonumber(uci:get("openclash", "config", "stream_auto_select_close_con")) or 1
+	if enable == 0 then return end
 	con = luci.sys.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
 	if con then
 		con = json.parse(con)
