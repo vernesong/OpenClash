@@ -168,6 +168,7 @@ do
    uci_set="uci -q set $name.$uci_name_tmp."
    uci_add="uci -q add_list $name.$uci_name_tmp."
    
+   ${uci_set}enabled="1"
    ${uci_set}config="$CONFIG_NAME"
    ${uci_set}name="$group_name"
    ${uci_set}old_name="$group_name"
