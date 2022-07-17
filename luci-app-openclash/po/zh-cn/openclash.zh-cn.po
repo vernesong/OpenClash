@@ -3048,3 +3048,9 @@ msgstr "切换失败"
 
 msgid "Switch Successful"
 msgstr "切换成功"
+
+msgid "Close Old Connections"
+msgstr "关闭旧链接"
+
+msgid "Automatically Close Old Connections When New Unlock Node Selected"
+msgstr "解锁节点切换时关闭对应策略组的所有旧链接"
