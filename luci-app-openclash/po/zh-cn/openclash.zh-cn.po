@@ -2420,7 +2420,7 @@ msgid "Core Log"
 msgstr "内核日志"
 
 msgid "Append Upstream DNS"
-msgstr "追加上游DNS"
+msgstr "追加上游 DNS"
 
 msgid "Append The Upstream Assigned DNS And Gateway IP To The Nameserver"
 msgstr "将上游分配的 DNS 和网关 IP 追加到 Nameserver"
@@ -3054,3 +3054,9 @@ msgstr "关闭旧链接"
 
 msgid "Automatically Close Old Connections When New Unlock Node Selected"
 msgstr "解锁节点切换时关闭对应策略组的所有旧链接"
+
+msgid "Append Default DNS"
+msgstr "追加默认 DNS"
+
+msgid "Automatically Append Compliant DNS to default-nameserver"
+msgstr "自动将符合要求的 DNS 追加到 default-nameserver"
