@@ -9,10 +9,10 @@ STOP=15
 . $IPKG_INSTROOT/usr/share/openclash/log.sh
 
 [ -f /etc/openwrt_release ] && {
-RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
-BACKUP_FILE="/etc/openclash/backup/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
-CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
-TMP_CONFIG_FILE="/tmp/yaml_config_tmp_$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
+   RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
+   BACKUP_FILE="/etc/openclash/backup/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
+   CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
+   TMP_CONFIG_FILE="/tmp/yaml_config_tmp_$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 }
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 CLASH="/etc/openclash/clash"
@@ -66,13 +66,7 @@ add_cron()
 
 del_cron()
 {
-   sed -i '/openclash.sh/d' $CRON_FILE 2>/dev/null
-   sed -i '/openclash_rule.sh/d' $CRON_FILE 2>/dev/null
-   sed -i '/openclash_ipdb.sh/d' $CRON_FILE 2>/dev/null
-   sed -i '/openclash_geoip.sh/d' $CRON_FILE 2>/dev/null
-   sed -i '/openclash_geosite.sh/d' $CRON_FILE 2>/dev/null
-   sed -i '/openclash_chnroute.sh/d' $CRON_FILE 2>/dev/null
-   sed -i '/\/etc\/init.d\/openclash/d' $CRON_FILE 2>/dev/null
+   sed -i '/openclash/gd' $CRON_FILE 2>/dev/null
    /etc/init.d/cron restart
 }
 
@@ -1725,18 +1719,13 @@ stop()
 
    LOG_OUT "Step 6: Delete OpenClash Residue File..."
    if [ "$enable" != "1" ]; then
-      rm -rf /tmp/clash_last_version >/dev/null 2>&1
+      rm -rf /tmp/clash* >/dev/null 2>&1
       rm -rf /tmp/Proxy_Group >/dev/null 2>&1
-      rm -rf /tmp/rules_name >/dev/null 2>&1
-      rm -rf /tmp/rule_providers_name >/dev/null 2>&1
+      rm -rf /tmp/rule* >/dev/null 2>&1
       rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
       rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
-      rm -rf /tmp/openclash_last_version >/dev/null 2>&1
-      rm -rf /tmp/openclash_config.tmp >/dev/null 2>&1
-      rm -rf /tmp/openclash.change >/dev/null 2>&1
-      rm -rf /tmp/openclash_debug.log >/dev/null 2>&1
+      rm -rf /tmp/openclash*
       rm -rf /tmp/etc/openclash >/dev/null 2>&1
-      rm -rf /tmp/openclash_edit_file_name >/dev/null 2>&1
       del_lock
       LOG_OUT "OpenClash Already Stop!"
       sleep 3
