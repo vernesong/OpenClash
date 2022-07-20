@@ -595,24 +595,13 @@ begin
 Thread.new{
    if '$1' == 'fake-ip' then
       if File::exist?('/etc/openclash/custom/openclash_custom_fake_filter.list') then
-         begin
-            Value_4 = YAML.load_file('/etc/openclash/custom/openclash_custom_fake_filter.list');
-            if Value_4 != false and not Value_4['fake-ip-filter'].to_a.empty? then
-               if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-                  Value['dns']['fake-ip-filter'] = Value['dns']['fake-ip-filter'] | Value_4;
-               else
-                  Value['dns']['fake-ip-filter'] = Value_4['fake-ip-filter'];
-               end;
-            end;
-         rescue
-            Value_4 = IO.readlines('/etc/openclash/custom/openclash_custom_fake_filter.list');
-            if not Value_4.empty? then
-               Value_4 = Value_4.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
-               if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-                  Value['dns']['fake-ip-filter'] = Value['dns']['fake-ip-filter'] | Value_4;
-               else
-                  Value['dns']['fake-ip-filter'] = Value_4;
-               end;
+         Value_4 = IO.readlines('/etc/openclash/custom/openclash_custom_fake_filter.list');
+         if not Value_4.empty? then
+            Value_4 = Value_4.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
+            if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+               Value['dns']['fake-ip-filter'] = Value['dns']['fake-ip-filter'] | Value_4;
+            else
+               Value['dns']['fake-ip-filter'] = Value_4;
             end;
          end;
       end;
