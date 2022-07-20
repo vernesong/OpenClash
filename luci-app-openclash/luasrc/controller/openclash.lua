@@ -204,8 +204,8 @@ local function startlog()
 		info = luci.sys.exec("sed -n '$p' /tmp/openclash_start.log 2>/dev/null")
 		line_trans = info
 		if string.len(info) > 0 then
-			if not string.find (info, "【") and not string.find (info, "】") then
-   				line_trans = luci.i18n.translate(string.sub(info, 0, -1))
+			if not string.find (info, "【") or not string.find (info, "】") then
+				line_trans = trans_line_nolabel(info)
    			else
    				line_trans = trans_line(info)
    			end
@@ -1149,13 +1149,13 @@ function action_refresh_log()
     	end
     	if ex_match then break end
     	if not string.find (line, "level=") then
-				if not string.find (line, "【") and not string.find (line, "】") then
-   				line_trans = string.sub(line, 0, 20)..luci.i18n.translate(string.sub(line, 21, -1))
-   			else
-   				line_trans = trans_line(line)
-   			end
+			if not string.find (line, "【") or not string.find (line, "】") then
+				line_trans = trans_line_nolabel(line)
+			else
+				line_trans = trans_line(line)
 			end
-			if data == "" then
+		end
+		if data == "" then
     		data = line_trans
     	elseif log_len == 0 and i == limit then
     		data = data .."\n" .. line_trans .. "\n..."
@@ -1433,11 +1433,11 @@ function manual_stream_unlock_test()
 		while true do
 			local ln = util:read("*l")
 			if ln then
-				if not string.find (ln, "【") and not string.find (ln, "】") then
-   				line_trans = luci.i18n.translate(string.sub(ln, 0, -1))
-   			else
-   				line_trans = trans_line(ln)
-   			end
+				if not string.find (ln, "【") or not string.find (ln, "】") then
+					line_trans = trans_line_nolabel(ln)
+   				else
+   					line_trans = trans_line(ln)
+   				end
 				luci.http.write(line_trans)
 				luci.http.write("\n")
 			end
@@ -1461,11 +1461,11 @@ function all_proxies_stream_test()
 		while true do
 			local ln = util:read("*l")
 			if ln then
-				if not string.find (ln, "【") and not string.find (ln, "】") then
-   				line_trans = luci.i18n.translate(string.sub(ln, 0, -1))
-   			else
-   				line_trans = trans_line(ln)
-   			end
+				if not string.find (ln, "【") or not string.find (ln, "】") then
+					line_trans = trans_line_nolabel(ln)
+   				else
+   					line_trans = trans_line(ln)
+   				end
 				luci.http.write(line_trans)
 				luci.http.write("\n")
 			end
@@ -1477,6 +1477,16 @@ function all_proxies_stream_test()
 		return
 	end
 	luci.http.status(500, "Something Wrong While Testing...")
+end
+
+function trans_line_nolabel(data)
+	local line_trans = "data"
+	if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+		line_trans = string.sub(data, 0, 20)..luci.i18n.translate(string.sub(data, 21, -1))
+	else
+		line_trans = luci.i18n.translate(string.sub(data, 0, -1))
+	end
+	return line_trans
 end
 
 function trans_line(data)
