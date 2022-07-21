@@ -183,7 +183,7 @@ yml_groups_set()
    config_get "routing_mark" "$section" "routing_mark" ""
    config_get "policy_filter" "$section" "policy_filter" ""
 
-   if [ -z "$if_game_group" ] && [ "$enabled" = "0" ]; then
+   if [ "$enabled" = "0" ]; then
       return
    fi
    
