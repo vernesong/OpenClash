@@ -1737,6 +1737,7 @@ stop()
       rm -rf /tmp/openclash_debug.log >/dev/null 2>&1
       rm -rf /tmp/etc/openclash >/dev/null 2>&1
       rm -rf /tmp/openclash_edit_file_name >/dev/null 2>&1
+      rm -rf /tmp/openclash_*_region>/dev/null 2>&1
       del_lock
       LOG_OUT "OpenClash Already Stop!"
       sleep 3
