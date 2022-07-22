@@ -375,11 +375,6 @@ o.description = font_red..bold_on..translate("TCP Concurrent Request IPs, Choose
 o.default = 1
 o:depends("enable_meta_core", "1")
 
-o = s:taboption("meta", Flag, "enable_http3", translate("Enable HTTP/3"))
-o.description = font_red..bold_on..translate("DOH DNS Prefers Using HTTP/3 For Connections")..bold_off..font_off
-o.default = 0
-o:depends("enable_meta_core", "1")
-
 o = s:taboption("meta", Flag, "enable_meta_sniffer", font_red..bold_on..translate("Enable Sniffer")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure")..bold_off..font_off
 o.default = 1
@@ -1289,7 +1284,7 @@ end
 ds = m:section(TypedSection, "dns_servers", translate("Add Custom DNS Servers")..translate("(Take Effect After Choose Above)"))
 ds.anonymous = true
 ds.addremove = true
-ds.sortable = false
+ds.sortable = true
 ds.template = "cbi/tblsection"
 ds.extedit = luci.dispatcher.build_url("admin/services/openclash/custom-dns-edit/%s")
 function ds.create(...)
@@ -1306,14 +1301,6 @@ o.rmempty     = false
 o.default     = o.enabled
 o.cfgvalue    = function(...)
     return Flag.cfgvalue(...) or "1"
-end
-
----- Node Domain Resolve
-o = ds:option(Flag, "node_resolve", translate("Node Domain Resolve"))
-o.rmempty     = false
-o.default     = o.disbled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
 end
 
 ---- group
