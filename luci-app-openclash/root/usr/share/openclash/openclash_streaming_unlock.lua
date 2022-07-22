@@ -1066,10 +1066,11 @@ function ytb_unlock_test()
 	local httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local region = ""
 	local old_region = ""
+	local data, he_data
 	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_ytb") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
-		local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+		data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 		if string.find(data, "is not available in your country") then
 	  		return
 	  	end
@@ -1077,10 +1078,16 @@ function ytb_unlock_test()
 		if region then
 			status = 2
 		else
-			if not string.find(data,"www%.google%.cn") then
+			he_data = luci.sys.exec(string.format("curl -sIL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+			region = string.sub(string.match(he_data, "gl=%a+"), 4, -1)
+			if region then
 				status = 2
-				region = "US"
-	  		end
+			else
+				if not string.find(data,"www%.google%.cn") then
+					status = 2
+					region = "US"
+				end
+			end
 		end
 		if fs.isfile(string.format("/tmp/openclash_%s_region", type)) then
 			old_region = fs.readfile(string.format("/tmp/openclash_%s_region", type))
