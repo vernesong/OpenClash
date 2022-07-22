@@ -2995,6 +2995,9 @@ msgstr "警告：仅 Meta 内核支持设置解析节点域名的 DNS，跳过�
 msgid "Warning: Meta Core not Support Specific Interface, Skip Setting"
 msgstr "警告：Meta 内核不支持设置指定 DNS 的出口，跳过设置"
 
+msgid "Warning: Only Meta Core Support Force HTTP/3 to connect, Skip Setting"
+msgstr "警告：仅 Meta 内核支持 DOH 强制启用 HTTP/3，跳过设置"
+
 msgid "Lan Bypassed Port List"
 msgstr "绕过核心的来源端口"
 
@@ -3013,11 +3016,11 @@ msgstr "目的地为指定地址的流量不会通过核心"
 msgid "Only Meta Core Support SS2022"
 msgstr "仅 Meta 内核支持 SS2022"
 
-msgid "Enable HTTP/3"
-msgstr "启用 HTTP/3"
+msgid "Force HTTP/3"
+msgstr "强制 HTTP/3"
 
-msgid "DOH DNS Prefers Using HTTP/3 For Connections"
-msgstr "DOH 类型的 DNS 优先使用 HTTP/3 进行连接"
+msgid "Force HTTP/3 to connect"
+msgstr "强制使用 HTTP/3 进行连接"
 
 msgid "Control Panel"
 msgstr "控制面板"
