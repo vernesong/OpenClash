@@ -174,6 +174,7 @@ yml_dns_get()
    config_get "interface" "$section" "interface" ""
    config_get "specific_group" "$section" "specific_group" ""
    config_get_bool "node_resolve" "$section" "node_resolve" "0"
+   config_get_bool "http3" "$section" "http3" "0"
 
    if [ "$enabled" = "0" ]; then
       return
@@ -210,15 +211,6 @@ yml_dns_get()
    if [ "$type" == "quic" ] && [ "$enable_meta_core" != "1" ]; then
       LOG_OUT "Warning: Only Meta Core Support QUIC Type DNS, Skip【$dns_type$dns_address】"
       return
-   fi
-
-   if [ "$node_resolve" = "1" ] && [ "$enable_meta_core" = "1" ]; then
-      if [ -z "$(grep "^ \{0,\}proxy-server-nameserver:$" /tmp/yaml_config.proxynamedns.yaml 2>/dev/null)" ]; then
-         echo "  proxy-server-nameserver:" >/tmp/yaml_config.proxynamedns.yaml
-      fi
-      echo "    - \"$dns_type$dns_address\"" >>/tmp/yaml_config.proxynamedns.yaml
-   elif [ "$node_resolve" = "1" ]; then
-      LOG_OUT "Warning: Only Meta Core Support proxy-server-nameserver, Skip Setting【$dns_type$dns_address】"
    fi
 
    if [ "$specific_group" != "Disable" ] && [ -n "$specific_group" ] && [ "$enable_meta_core" = "1" ]; then
@@ -259,7 +251,27 @@ yml_dns_get()
       interface=""
    fi
 
-   dns_address="$dns_address$interface$specific_group"
+   if [ "$http3" = "1" ] && [ "$enable_meta_core" = "1" ] && [ "$interface" != "" ]; then
+      http3="&h3=true"
+   elif [ "$http3" = "1" ] && [ "$enable_meta_core" = "1" ] && [ "$interface" = "" ]; then
+      http3="#h3=true"
+   elif [ "$http3" = "1" ] && [ "$enable_meta_core" != "1" ]; then
+      LOG_OUT "Warning: Only Meta Core Support Force HTTP/3 to connect, Skip Setting【$dns_type$dns_address】"
+      http3=""
+   else
+      http3=""
+   fi
+
+   if [ "$node_resolve" = "1" ] && [ "$enable_meta_core" = "1" ]; then
+      if [ -z "$(grep "^ \{0,\}proxy-server-nameserver:$" /tmp/yaml_config.proxynamedns.yaml 2>/dev/null)" ]; then
+         echo "  proxy-server-nameserver:" >/tmp/yaml_config.proxynamedns.yaml
+      fi
+      echo "    - \"$dns_type$dns_address$specific_group$http3\"" >>/tmp/yaml_config.proxynamedns.yaml
+   elif [ "$node_resolve" = "1" ]; then
+      LOG_OUT "Warning: Only Meta Core Support proxy-server-nameserver, Skip Setting【$dns_type$dns_address$specific_group$http3】"
+   fi
+
+   dns_address="$dns_address$interface$specific_group$http3"
 
    if [ -n "$group" ]; then
       if [ "$group" = "nameserver" ]; then
@@ -360,17 +372,6 @@ Thread.new{
       Value['dns']=Value_1['dns'];
    else
       Value['dns']['enable']=true;
-   end;
-   if ${20} == 1 then
-      if ${28} == 1 then
-         Value['dns']['prefer-h3']=true;
-      else
-         Value['dns']['prefer-h3']=false;
-      end;
-   else
-      if Value['dns'].key?('prefer-h3') then
-         Value['dns'].delete('prefer-h3');
-      end;
    end;
    if ${16} == 1 then
       Value['dns']['ipv6']=true;
@@ -485,9 +486,9 @@ Thread.new{
          Value_1['nameserver'] = Value_1['nameserver'].uniq;
          Value['dns']['nameserver'] = Value_1['nameserver'];
          if File::exist?('/tmp/yaml_config.falldns.yaml') then
-            Value_1 = YAML.load_file('/tmp/yaml_config.falldns.yaml');
-            Value_1['fallback'] = Value_1['fallback'].uniq;
-            Value['dns']['fallback'] = Value_1['fallback'];
+            Value_2 = YAML.load_file('/tmp/yaml_config.falldns.yaml');
+            Value_2['fallback'] = Value_2['fallback'].uniq;
+            Value['dns']['fallback'] = Value_2['fallback'];
          end;
       else
          puts '${LOGTIME} Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers';
@@ -512,7 +513,7 @@ end;
 #default-nameserver
 begin
 Thread.new{
-   if ${29} == 1 then
+   if ${28} == 1 then
       if ${20} == 1 then
          reg = /(^https:\/\/|^tls:\/\/|^quic:\/\/)?((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])(?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?/;
          reg6 = /(^https:\/\/|^tls:\/\/|^quic:\/\/)?(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))|\[(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))\](?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?/i;

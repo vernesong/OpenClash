@@ -72,6 +72,12 @@ o = s:option(Flag, "node_resolve", translate("Node Domain Resolve"), translate("
 o.rmempty     = false
 o.default     = o.disbled
 
+---- Force HTTP/3
+o = s:option(Flag, "http3", translate("Force HTTP/3"), translate("Force HTTP/3 to connect")..translate("(Only Meta Core)"))
+o:depends("type", "https")
+o.rmempty     = false
+o.default     = o.disbled
+
 ---- Proxy group
 o = s:option(Value, "specific_group", translate("Specific Group"))
 o.description = translate("Group Use For Proxy The DNS")..translate("(Only Meta Core)")
