@@ -208,10 +208,10 @@
                     throw error;
                 }),
             parseIPIpip: (ip, elID) => {
-            	  var meta = document.createElement('meta');
-            	  meta.name = "referrer";
-            	  meta.content = "no-referrer-when-downgrade";
-            	  document.getElementsByTagName('head')[0].appendChild(meta);
+                var meta = document.createElement('meta');
+                meta.name = "referrer";
+                meta.content = "no-referrer-when-downgrade";
+                document.getElementsByTagName('head')[0].appendChild(meta);
             	  
                 IP.get(`https://qqwry.api.skk.moe/${ip}`, 'json')
                     .then(resp => {
