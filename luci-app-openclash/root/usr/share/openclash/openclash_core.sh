@@ -72,7 +72,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			         curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
 			      fi
 			      if [ "$?" != "0" ]; then
-			         curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://osdn.net/projects/openclash/storage/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+			         curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
 			      fi
 			   ;;
          "Meta")
@@ -91,7 +91,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
             fi
             if [ "$?" != "0" ]; then
-               curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://osdn.net/projects/openclash/storage/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
+               curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
             fi
 			   ;;
 			   *)
@@ -110,7 +110,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			         curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
 			      fi
 			      if [ "$?" != "0" ]; then
-			         curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://osdn.net/projects/openclash/storage/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
+			         curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
 			      fi
 			esac
 
