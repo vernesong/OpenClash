@@ -39,17 +39,17 @@
 				<%
 					if uci:get("openclash", "config", "enable_meta_core") ~= '1' then
 				%>
-	      				<img id="_logo" src="/luci-static/resources/openclash/img/logo.png?<%=random%>" loading="lazy" onload="return logo_check(this,this.src,'https://osdn.net/projects/openclash/storage/<%=RELEASE_BRANCH%>/img/logo.png')" onerror="return imgerrorfuns(this,'https://osdn.net/projects/openclash/storage/<%=RELEASE_BRANCH%>/img/logo.png')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+	      				<img id="_logo" src="/luci-static/resources/openclash/img/logo.png?<%=random%>" loading="lazy" onload="return logo_check(this,this.src,'https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/logo.png')" onerror="return imgerrorfuns(this,'https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/logo.png')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 				<%
 					else
 				%>
-						<img id="_logo" src="/luci-static/resources/openclash/img/meta.png?<%=random%>" loading="lazy" onload="return logo_check(this,this.src,'https://osdn.net/projects/openclash/storage/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return imgerrorfuns(this,'https://osdn.net/projects/openclash/storage/<%=RELEASE_BRANCH%>/img/meta.png')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+						<img id="_logo" src="/luci-static/resources/openclash/img/meta.png?<%=random%>" loading="lazy" onload="return logo_check(this,this.src,'https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return imgerrorfuns(this,'https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/meta.png')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 				<%
 					end
 				%>
 			</p>
 	  		<p id="_clashversion" style="margin: 10px 0; text-align: center">
-				<img src="/luci-static/resources/openclash/img/version.svg?<%=random%>" onerror="return imgerrorfuns(this,'https://osdn.net/projects/openclash/storage/<%=RELEASE_BRANCH%>/img/version.png')" alt="currentversion" height="21px" onclick="return go_update()">
+				<img src="/luci-static/resources/openclash/img/version.svg?<%=random%>" onerror="return imgerrorfuns(this,'https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/version.png')" alt="currentversion" height="21px" onclick="return go_update()">
 	  		</p>
 	    </td></tr>
 	    <tr><td colspan="4" width="100%">
@@ -900,7 +900,7 @@
 
     function clashversion_error()
     {
-        clashversion.innerHTML = '<img id="clashversion" src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onerror="return imgerrorfuns(this,\'https://osdn.net/projects/openclash/storage/<%=RELEASE_BRANCH%>/img/version.png\')" onclick="return go_update()">';
+        clashversion.innerHTML = '<img id="clashversion" src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onerror="return imgerrorfuns(this,\'https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/version.png\')" onclick="return go_update()">';
     };
     
     function imgerrorfuns(imgobj,imgSrc){
