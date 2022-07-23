@@ -45,7 +45,7 @@ if [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 ] && [ -f "$LAST_OPVER" ]; then
       curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
    fi
    if [ "$?" != "0" ]; then
-      curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://mirror.iscas.ac.cn/osdn/storage/g/o/op/openclash/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
+      curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://osdn.net/projects/openclash/storage/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk >/dev/null 2>&1
    fi
    if [ "$?" == "0" ] && [ -s "/tmp/openclash.ipk" ]; then
       LOG_OUT "【OpenClash - v$LAST_VER】Download Successful, Start Pre Update Test..."

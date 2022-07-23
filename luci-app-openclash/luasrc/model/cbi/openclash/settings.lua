@@ -484,7 +484,7 @@ o.title = translate("Custom GeoIP Dat URL")
 o.rmempty = true
 o.description = translate("Custom GeoIP Dat URL, Click Button Below To Refresh After Edit")
 o:value("https://fastly.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat", translate("Loyalsoldier-Version")..translate("(Default)"))
-o:value("https://mirror.iscas.ac.cn/osdn/storage/g/v/v2/v2raya/dists/v2ray-rules-dat/geoip.dat", translate("OSDN-Version")..translate("(Default)"))
+o:value("https://osdn.net/projects/v2raya/storage/dists/v2ray-rules-dat/geoip.dat", translate("OSDN-Version")..translate("(Default)"))
 o.default = "https://fastly.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat"
 o:depends("geoip_auto_update", "1")
 
@@ -528,7 +528,7 @@ o.title = translate("Custom GeoSite URL")
 o.rmempty = true
 o.description = translate("Custom GeoSite Data URL, Click Button Below To Refresh After Edit")
 o:value("https://fastly.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat", translate("Loyalsoldier-Version")..translate("(Default)"))
-o:value("https://mirror.iscas.ac.cn/osdn/storage/g/v/v2/v2raya/dists/v2ray-rules-dat/geosite.dat", translate("OSDN-Version")..translate("(Default)"))
+o:value("https://osdn.net/projects/v2raya/storage/dists/v2ray-rules-dat/geosite.dat", translate("OSDN-Version")..translate("(Default)"))
 o.default = "https://fastly.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat"
 o:depends("geosite_auto_update", "1")
 
