@@ -32,7 +32,7 @@ if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{prin
    fi
    
    if [ "$?" != "0" ] || [ -n "$(cat $LAST_OPVER |grep '<html>')" ]; then
-      curl -sL -m 10 --retry 2 https://mirror.iscas.ac.cn/osdn/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER >/dev/null 2>&1
+      curl -sL -m 10 --retry 2 https://osdn.net/projects/openclash/storage/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER >/dev/null 2>&1
    fi
    
    if [ "$?" == "0" ] && [ -z "$(cat $LAST_OPVER |grep '<html>')" ]; then

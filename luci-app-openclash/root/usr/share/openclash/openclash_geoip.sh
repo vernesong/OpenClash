@@ -40,7 +40,7 @@
          curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat" -o /tmp/GeoIP.dat >/dev/null 2>&1
       fi
       if [ "$?" -ne "0" ]; then
-         curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://mirror.iscas.ac.cn/osdn/storage/g/v/v2/v2raya/dists/v2ray-rules-dat/geoip.dat" -o /tmp/GeoIP.dat >/dev/null 2>&1
+         curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://osdn.net/projects/v2raya/storage/dists/v2ray-rules-dat/geoip.dat" -o /tmp/GeoIP.dat >/dev/null 2>&1
       fi
    else
       curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$GEOIP_CUSTOM_URL" -o /tmp/GeoIP.dat >/dev/null 2>&1
