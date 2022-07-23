@@ -1070,8 +1070,8 @@ function ytb_unlock_test()
 	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_ytb") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
-		data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
-		if string.find(data, "is not available in your country") then
+		data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' -b 'YSC=BiCUU3-5Gdk; CONSENT=YES+cb.20220301-11-p0.en+FX+700; GPS=1; VISITOR_INFO1_LIVE=4VwPMkB7W5A; PREF=tz=Asia.Shanghai; _gcl_au=1.1.1809531354.1646633279' %s", UA, url))
+		if string.find(data,"www%.google%.cn") or string.find(data, "is not available in your country") then
 	  		return
 	  	end
 	  	region = string.sub(string.match(data, "\"GL\":\"%a+\""), 7, -2)
@@ -1083,10 +1083,7 @@ function ytb_unlock_test()
 			if region then
 				status = 2
 			else
-				if not string.find(data,"www%.google%.cn") then
-					status = 2
-					region = "US"
-				end
+				region = "US"
 			end
 		end
 		if fs.isfile(string.format("/tmp/openclash_%s_region", type)) then
