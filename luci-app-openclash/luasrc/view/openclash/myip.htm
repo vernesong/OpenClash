@@ -11,14 +11,14 @@
     <link rel="dns-prefetch" href="//api-ipv4.ip.sb">
     <link rel="dns-prefetch" href="//api.ipify.org">
     <link rel="dns-prefetch" href="//api.ttt.sh">
-    <link rel="dns-prefetch" href="//api.skk.moe">
+    <link rel="dns-prefetch" href="//qqwry.api.skk.moe">
     <link rel="dns-prefetch" href="//d.skk.moe">
     <link rel="preconnect" href="https://www.taobao.com/help/getip.php">
     <link rel="preconnect" href="https://whois.pconline.com.cn/ipJson.jsp">
     <link rel="preconnect" href="https://api-ipv4.ip.sb">
     <link rel="preconnect" href="https://api.ipify.org">
     <link rel="preconnect" href="https://api.ttt.sh">
-    <link rel="preconnect" href="https://api.skk.moe">
+    <link rel="preconnect" href="https://qqwry.api.skk.moe">
     <link rel="preconnect" href="https://d.skk.moe">
     <meta name="referrer" content="no-referrer">
     <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,minimal-ui">
@@ -208,21 +208,23 @@
                     throw error;
                 }),
             parseIPIpip: (ip, elID) => {
-            	  var meta = document.createElement('meta');
-            	  meta.name = "referrer";
-            	  meta.content = "no-referrer-when-downgrade";
-            	  document.getElementsByTagName('head')[0].appendChild(meta);
-            	  
-                IP.get(`https://qqwry.api.skk.moe/${ip}`, 'json')
+                const v4 = '(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)(?:\\.(?:25[0-5]|2[0-4]\\d|1\\d\\d|[1-9]\\d|\\d)){3}';
+                const v4Exact = new RegExp(`^${v4}$`);
+                const anonymizedIp = (() => {
+                    if (v4Exact.test(ip)) {
+                        const [a, b, c] = ip.split('.');
+                        return `${a}.${b}.${c}.0`;
+                    }
+                    return ip;
+                })();
+
+                  fetch(`https://qqwry.api.skk.moe/${anonymizedIp}`, {
+                    referrerPolicy: 'no-referrer-when-downgrade',
+                  }).then(r => r.json())
                     .then(resp => {
                         $$.getElementById(elID).innerHTML = resp.data.geo;
                         //$$.getElementById(elID).innerHTML = `${resp.data.country} ${resp.data.regionName} ${resp.data.city} ${resp.data.isp}`;
                     })
-                    
-                var meta = document.createElement('meta');
-            	  meta.name = "referrer";
-            	  meta.content = "no-referrer";
-            	  document.getElementsByTagName('head')[0].appendChild(meta); 
             },
             getIpipnetIP: () => {
                 IP.get(window.location.protocol+`//myip.ipip.net/?z=${random}`, 'text')
