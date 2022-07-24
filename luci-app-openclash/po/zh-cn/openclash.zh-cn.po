@@ -2056,8 +2056,8 @@ msgstr "守护程序：已尝试自动重启三次 Clash 内核，为防止频�
 msgid "Watchdog: Log Size Limit, Clean Up All Log Records..."
 msgstr "守护程序：因日志大小限制，清理所有日志内容..."
 
-msgid "Watchdog: Reset Firewall For Enabling Redirect..."
-msgstr "守护程序：检测到转发规则顺序错误，重置插件防火墙规则..."
+msgid "Watchdog: Setting Firewall For Enabling Redirect..."
+msgstr "守护程序：检测到转发规则顺序错误，修改插件防火墙规则..."
 
 msgid "Watchdog: Force Reset DNS Hijack..."
 msgstr "守护程序：重新设置 Dnsmasq 的 DNS 转发选项..."
@@ -2569,6 +2569,9 @@ msgstr "提示：开始自动选择（检测）Paramount Plus 解锁节点..."
 msgid "Tip: Start Auto Select Proxy For Discovery Plus Unlock..."
 msgstr "提示：开始自动选择（检测）Discovery Plus 解锁节点..."
 
+msgid "Tip: Start Auto Select Proxy For Bilibili Unlock..."
+msgstr "提示：开始自动选择（检测）Bilibili 解锁节点..."
+
 msgid "Netflix Group:"
 msgstr "Netflix 策略组："
 
@@ -2601,6 +2604,9 @@ msgstr "Paramount Plus 策略组："
 
 msgid "Discovery Plus Group:"
 msgstr "Discovery Plus 策略组："
+
+msgid "Bilibili Group:"
+msgstr "Bilibili 策略组："
 
 msgid "full support."
 msgstr "完整解锁。"
@@ -3063,3 +3069,12 @@ msgstr "追加默认 DNS"
 
 msgid "Automatically Append Compliant DNS to default-nameserver"
 msgstr "自动将符合要求的 DNS 追加到 default-nameserver"
+
+msgid "China Mainland Only"
+msgstr "大陆限定"
+
+msgid "Hongkong/Macau/Taiwan"
+msgstr "港澳台限定"
+
+msgid "Taiwan Only"
+msgstr "台湾限定"
