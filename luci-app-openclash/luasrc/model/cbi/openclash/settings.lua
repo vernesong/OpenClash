@@ -748,6 +748,12 @@ o.default = ""
 o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_netflix", "1")
+function o.validate(self, value)
+	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_netflix") then
+		fs.unlink("/tmp/openclash_Netflix_region")
+	end
+	return value
+end
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_netflix", translate("Unlock Nodes Filter"))
 o.default = ""
@@ -776,6 +782,12 @@ o.default = ""
 o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_disney", "1")
+function o.validate(self, value)
+	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_disney") then
+		fs.unlink("/tmp/openclash_Disney Plus_region")
+	end
+	return value
+end
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_disney", translate("Unlock Nodes Filter"))
 o.default = ""
@@ -804,6 +816,12 @@ o.default = ""
 o.placeholder = "HK|US"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_ytb", "1")
+function o.validate(self, value)
+	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_ytb") then
+		fs.unlink("/tmp/openclash_YouTube Premium_region")
+	end
+	return value
+end
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_ytb", translate("Unlock Nodes Filter"))
 o.default = ""
@@ -832,6 +850,12 @@ o.default = ""
 o.placeholder = "HK|US|SG"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_prime_video", "1")
+function o.validate(self, value)
+	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_prime_video") then
+		fs.unlink("/tmp/openclash_Amazon Prime Video_region")
+	end
+	return value
+end
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_prime_video", translate("Unlock Nodes Filter"))
 o.default = ""
@@ -882,6 +906,12 @@ o.default = ""
 o.placeholder = "US"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_hbo_max", "1")
+function o.validate(self, value)
+	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_hbo_max") then
+		fs.unlink("/tmp/openclash_HBO Max_region")
+	end
+	return value
+end
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_hbo_max", translate("Unlock Nodes Filter"))
 o.default = ""
@@ -910,6 +940,12 @@ o.default = ""
 o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_hbo_go_asia", "1")
+function o.validate(self, value)
+	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_hbo_go_asia") then
+		fs.unlink("/tmp/openclash_HBO GO Asia_region")
+	end
+	return value
+end
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_hbo_go_asia", translate("Unlock Nodes Filter"))
 o.default = ""
@@ -938,6 +974,12 @@ o.default = ""
 o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_tvb_anywhere", "1")
+function o.validate(self, value)
+	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_tvb_anywhere") then
+		fs.unlink("/tmp/openclash_TVB Anywhere+_region")
+	end
+	return value
+end
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_tvb_anywhere", translate("Unlock Nodes Filter"))
 o.default = ""
@@ -966,6 +1008,12 @@ o.default = ""
 o.placeholder = "DE"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_dazn", "1")
+function o.validate(self, value)
+	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_dazn") then
+		fs.unlink("/tmp/openclash_DAZN_region")
+	end
+	return value
+end
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_dazn", translate("Unlock Nodes Filter"))
 o.default = ""
@@ -994,6 +1042,12 @@ o.default = ""
 o.placeholder = "US"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_paramount_plus", "1")
+function o.validate(self, value)
+	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_paramount_plus") then
+		fs.unlink("/tmp/openclash_Paramount Plus_region")
+	end
+	return value
+end
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_paramount_plus", translate("Unlock Nodes Filter"))
 o.default = ""
@@ -1022,6 +1076,12 @@ o.default = ""
 o.placeholder = "US"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_discovery_plus", "1")
+function o.validate(self, value)
+	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_discovery_plus") then
+		fs.unlink("/tmp/openclash_Discovery Plus_region")
+	end
+	return value
+end
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_discovery_plus", translate("Unlock Nodes Filter"))
 o.default = ""
@@ -1052,6 +1112,12 @@ o:value("HK/MO/TW", translate("Hongkong/Macau/Taiwan"))
 o:value("TW", translate("Taiwan Only"))
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_bilibili", "1")
+function o.validate(self, value)
+	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_bilibili") then
+		fs.unlink("/tmp/openclash_Bilibili_region")
+	end
+	return value
+end
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_bilibili", translate("Unlock Nodes Filter"))
 o.default = ""
