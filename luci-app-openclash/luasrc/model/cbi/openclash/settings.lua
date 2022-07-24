@@ -1034,6 +1034,36 @@ o.template = "openclash/other_stream_option"
 o.value = "Discovery Plus"
 o:depends("stream_auto_select_discovery_plus", "1")
 
+--Bilibili
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_bilibili", font_red..translate("Bilibili")..font_off)
+o.default = 0
+o:depends("stream_auto_select", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_bilibili", translate("Group Filter"))
+o.default = "Bilibili"
+o.placeholder = "Bilibili"
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_bilibili", "1")
+
+o = s:taboption("stream_enhance", ListValue, "stream_auto_select_region_key_bilibili", translate("Unlock Region Filter"))
+o.default = "CN"
+o:value("CN", translate("China Mainland Only"))
+o:value("HK/MO/TW", translate("Hongkong/Macau/Taiwan"))
+o:value("TW", translate("Taiwan Only"))
+o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
+o:depends("stream_auto_select_bilibili", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_bilibili", translate("Unlock Nodes Filter"))
+o.default = ""
+o.description = translate("It Will Be Selected Nodes According To The Regex")
+o:depends("stream_auto_select_bilibili", "1")
+
+o = s:taboption("stream_enhance", DummyValue, "Bilibili", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "Bilibili"
+o:depends("stream_auto_select_bilibili", "1")
+
 ---- update Settings
 o = s:taboption("rules_update", Flag, "other_rule_auto_update", translate("Auto Update"))
 o.description = font_red..bold_on..translate("Auto Update Other Rules")..bold_off..font_off
