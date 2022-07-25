@@ -222,7 +222,7 @@
                     referrerPolicy: 'no-referrer-when-downgrade',
                   }).then(r => r.json())
                     .then(resp => {
-                        $$.getElementById(elID).innerHTML = resp.data.geo;
+                        $$.getElementById(elID).innerHTML = resp.geo;
                         //$$.getElementById(elID).innerHTML = `${resp.data.country} ${resp.data.regionName} ${resp.data.city} ${resp.data.isp}`;
                     })
             },
