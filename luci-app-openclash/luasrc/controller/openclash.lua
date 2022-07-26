@@ -1314,7 +1314,7 @@ end
 
 function action_backup_only_config()
 	local config = luci.sys.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
-	local reader = ltn12_popen("tar -C '/etc/openclash/config' -cz . 2>/dev/null")
+	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './config' 2>/dev/null")
 
 	luci.http.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Config-%s.tar.gz"' %{
@@ -1327,7 +1327,7 @@ end
 
 function action_backup_only_core()
 	local config = luci.sys.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
-	local reader = ltn12_popen("tar -C '/etc/openclash/core' -cz . 2>/dev/null")
+	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './core' 2>/dev/null")
 
 	luci.http.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Cores-%s.tar.gz"' %{
@@ -1340,7 +1340,7 @@ end
 
 function action_backup_only_rule()
 	local config = luci.sys.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
-	local reader = ltn12_popen("tar -C '/etc/openclash/rule_provider' -cz . 2>/dev/null")
+	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './rule_provider' 2>/dev/null")
 
 	luci.http.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Only-Rule-Provider-%s.tar.gz"' %{
@@ -1353,7 +1353,7 @@ end
 
 function action_backup_only_proxy()
 	local config = luci.sys.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
-	local reader = ltn12_popen("tar -C '/etc/openclash/proxy_provider' -cz . 2>/dev/null")
+	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './proxy_provider' 2>/dev/null")
 
 	luci.http.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Proxy-Provider-%s.tar.gz"' %{
