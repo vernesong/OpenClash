@@ -3078,3 +3078,21 @@ msgstr "港澳台限定"
 
 msgid "Taiwan Only"
 msgstr "台湾限定"
+
+msgid "Backup Section"
+msgstr "插件备份"
+
+msgid "Backup Exclude Cores"
+msgstr "不备份内核"
+
+msgid "Backup Core"
+msgstr "仅备份内核"
+
+msgid "Backup Config"
+msgstr "仅备份配置文件"
+
+msgid "Backup Rule Provider"
+msgstr "仅备份规则集"
+
+msgid "Backup Proxy Provider"
+msgstr "仅备份代理集"
