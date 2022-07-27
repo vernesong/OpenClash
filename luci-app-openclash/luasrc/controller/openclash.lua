@@ -39,6 +39,11 @@ function index()
 	entry({"admin", "services", "openclash", "write_netflix_domains"}, call("action_write_netflix_domains"))
 	entry({"admin", "services", "openclash", "restore"}, call("action_restore_config"))
 	entry({"admin", "services", "openclash", "backup"}, call("action_backup"))
+	entry({"admin", "services", "openclash", "backup_ex_core"}, call("action_backup_ex_core"))
+	entry({"admin", "services", "openclash", "backup_only_core"}, call("action_backup_only_core"))
+	entry({"admin", "services", "openclash", "backup_only_config"}, call("action_backup_only_config"))
+	entry({"admin", "services", "openclash", "backup_only_rule"}, call("action_backup_only_rule"))
+	entry({"admin", "services", "openclash", "backup_only_proxy"}, call("action_backup_only_proxy"))
 	entry({"admin", "services", "openclash", "remove_all_core"}, call("action_remove_all_core"))
 	entry({"admin", "services", "openclash", "one_key_update"}, call("action_one_key_update"))
 	entry({"admin", "services", "openclash", "one_key_update_check"}, call("action_one_key_update_check"))
@@ -1287,6 +1292,71 @@ function action_backup()
 
 	luci.http.header(
 		'Content-Disposition', 'attachment; filename="Backup-OpenClash-%s.tar.gz"' %{
+			os.date("%Y-%m-%d-%H-%M-%S")
+		})
+
+	luci.http.prepare_content("application/x-targz")
+	luci.ltn12.pump.all(reader, luci.http.write)
+end
+
+function action_backup_ex_core()
+	local config = luci.sys.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
+	local reader = ltn12_popen("echo 'core' > /tmp/oc_exclude.txt && tar -C '/etc/openclash/' -X '/tmp/oc_exclude.txt' -cz . 2>/dev/null")
+
+	luci.http.header(
+		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Exclude-Cores-%s.tar.gz"' %{
+			os.date("%Y-%m-%d-%H-%M-%S")
+		})
+
+	luci.http.prepare_content("application/x-targz")
+	luci.ltn12.pump.all(reader, luci.http.write)
+end
+
+function action_backup_only_config()
+	local config = luci.sys.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
+	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './config' 2>/dev/null")
+
+	luci.http.header(
+		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Config-%s.tar.gz"' %{
+			os.date("%Y-%m-%d-%H-%M-%S")
+		})
+
+	luci.http.prepare_content("application/x-targz")
+	luci.ltn12.pump.all(reader, luci.http.write)
+end
+
+function action_backup_only_core()
+	local config = luci.sys.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
+	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './core' 2>/dev/null")
+
+	luci.http.header(
+		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Cores-%s.tar.gz"' %{
+			os.date("%Y-%m-%d-%H-%M-%S")
+		})
+
+	luci.http.prepare_content("application/x-targz")
+	luci.ltn12.pump.all(reader, luci.http.write)
+end
+
+function action_backup_only_rule()
+	local config = luci.sys.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
+	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './rule_provider' 2>/dev/null")
+
+	luci.http.header(
+		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Only-Rule-Provider-%s.tar.gz"' %{
+			os.date("%Y-%m-%d-%H-%M-%S")
+		})
+
+	luci.http.prepare_content("application/x-targz")
+	luci.ltn12.pump.all(reader, luci.http.write)
+end
+
+function action_backup_only_proxy()
+	local config = luci.sys.call("cp /etc/config/openclash /etc/openclash/openclash >/dev/null 2>&1")
+	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './proxy_provider' 2>/dev/null")
+
+	luci.http.header(
+		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Proxy-Provider-%s.tar.gz"' %{
 			os.date("%Y-%m-%d-%H-%M-%S")
 		})
 

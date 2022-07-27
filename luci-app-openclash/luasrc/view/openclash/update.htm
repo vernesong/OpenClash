@@ -76,11 +76,6 @@
 	  	   </p>
 	  	</td>
 	  	<td width="25%">
-	  	   <p align="center" id="backup">
-	  		   <%:Collecting data...%>
-	  	   </p>
-	  	</td>
-	  	<td width="25%">
 	  	   <p align="center" id="remove_core">
 	  		   <%:Collecting data...%>
 	  	   </p>
@@ -91,6 +86,49 @@
 	  	   </p>
 	    </td>
 	  </tr>
+	</table>
+</fieldset>
+<fieldset class="cbi-section">
+	<table width="100%">
+		<tr><td width="100%" colspan="4">
+	    <p align="center">
+	  		<b><%:Backup Section%></b>
+	  	</p>
+		</td></tr>
+		<tr>
+	  	<td width="25%">
+	  	   <p align="center" id="backup">
+	  		   <%:Collecting data...%>
+	  	   </p>
+	  	</td>
+	  	<td width="25%">
+	  	   <p align="center" id="backup_ex_core">
+	  		   <%:Collecting data...%>
+	  	   </p>
+	  	</td>
+	  	<td width="25%">
+	  	   <p align="center" id="backup_core_only">
+	  		   <%:Collecting data...%>
+	  	   </p>
+	  	</td>
+		</tr>
+		<tr>
+	  	<td width="25%">
+	  	   <p align="center" id="backup_config_only">
+	  		   <%:Collecting data...%>
+	  	   </p>
+	  	</td>
+	  	<td width="25%">
+	  	   <p align="center" id="backup_rule_only">
+	  		   <%:Collecting data...%>
+	  	   </p>
+	  	</td>
+	  	<td width="25%">
+	  	   <p align="center" id="backup_proxy_only">
+	  		   <%:Collecting data...%>
+	  	   </p>
+	  	</td>
+		</tr>
 	</table>
 </fieldset>
 
@@ -117,6 +155,11 @@
 	var ma_op_up  = document.getElementById('ma_op_up');
 	var restore  = document.getElementById('restore');
 	var backup  = document.getElementById('backup');
+	var backup_ex_core  = document.getElementById('backup_ex_core');
+	var backup_core_only = document.getElementById('backup_core_only');
+	var backup_config_only = document.getElementById('backup_config_only');
+	var backup_rule_only = document.getElementById('backup_rule_only');
+	var backup_proxy_only = document.getElementById('backup_proxy_only');
 	var one_key_update  = document.getElementById('one_key_update');
 	var remove_core  = document.getElementById('remove_core');
 	var release_branch  = document.getElementById('RELEASE_BRANCH');
@@ -132,6 +175,11 @@
 	one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:One Click Check Update%>" onclick="return all_one_key_update(this)"/>';
 	remove_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
 	backup.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup OpenClash%>" onclick="return backup_all_file(this)"/>';
+	backup_ex_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Exclude Cores%>" onclick="return backup_no_core(this)"/>';
+	backup_core_only.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Core%>" onclick="return backup_only_core(this)"/>';
+	backup_config_only.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Config%>" onclick="return backup_only_config(this)"/>';
+	backup_rule_only.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Rule Provider%>" onclick="return backup_only_rule(this)"/>';
+	backup_proxy_only.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Proxy Provider%>" onclick="return backup_only_proxy(this)"/>';
 
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
@@ -406,6 +454,51 @@
 		btn.value    = '<%:Backup OpenClash%>';
 		btn.disabled = true;
 		window.location.href='<%="backup"%>';
+		btn.disabled = false;
+		return false; 
+    }
+
+    function backup_no_core(btn)
+    {
+		btn.value    = '<%:Backup Exclude Cores%>';
+		btn.disabled = true;
+		window.location.href='<%="backup_ex_core"%>';
+		btn.disabled = false;
+		return false; 
+    }
+
+    function backup_only_core(btn)
+    {
+		btn.value    = '<%:Backup Core%>';
+		btn.disabled = true;
+		window.location.href='<%="backup_only_core"%>';
+		btn.disabled = false;
+		return false; 
+    }
+
+    function backup_only_config(btn)
+    {
+		btn.value    = '<%:Backup Config%>';
+		btn.disabled = true;
+		window.location.href='<%="backup_only_config"%>';
+		btn.disabled = false;
+		return false; 
+    }
+
+    function backup_only_rule(btn)
+    {
+		btn.value    = '<%:Backup Rule Provider%>';
+		btn.disabled = true;
+		window.location.href='<%="backup_only_rule"%>';
+		btn.disabled = false;
+		return false; 
+    }
+
+    function backup_only_proxy(btn)
+    {
+		btn.value    = '<%:Backup Proxy Provider%>';
+		btn.disabled = true;
+		window.location.href='<%="backup_only_proxy"%>';
 		btn.disabled = false;
 		return false; 
     }
