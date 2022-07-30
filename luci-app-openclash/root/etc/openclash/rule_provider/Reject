@@ -132,7 +132,6 @@ payload:
   - DOMAIN-SUFFIX,store.videojj.com
   - DOMAIN-SUFFIX,v2.da.mgtv.com
   - DOMAIN-SUFFIX,va.videojj.com
-  - DOMAIN-SUFFIX,videojj.com
   - DOMAIN-SUFFIX,web.da.mgtv.com
   - DOMAIN-SUFFIX,x.da.hunantv.com
   - DOMAIN-SUFFIX,x.da.mgtv.com
@@ -1423,6 +1422,7 @@ payload:
   - DOMAIN-SUFFIX,am.zdnet.com.cn
   - DOMAIN-SUFFIX,am15.net
   - DOMAIN-SUFFIX,amazingmagics.com
+  - DOMAIN-SUFFIX,amazon-adsystem.com
   - DOMAIN-SUFFIX,amdc.m.taobao.com
   - DOMAIN-SUFFIX,amfi.gou.sogou.com
   - DOMAIN-SUFFIX,amiok.org
@@ -1585,6 +1585,7 @@ payload:
   - DOMAIN-SUFFIX,apps2.outfit7.com
   - DOMAIN-SUFFIX,appsdk.tanv.com
   - DOMAIN-SUFFIX,appservices.comcsoft.com
+  - DOMAIN-SUFFIX,appsflyer.com
   - DOMAIN-SUFFIX,appspromote.wostore.cn
   - DOMAIN-SUFFIX,appsrv1.madserving.com
   - DOMAIN-SUFFIX,appsrv4.madserving.com

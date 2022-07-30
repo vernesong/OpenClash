@@ -78,7 +78,6 @@ payload:
   - DOMAIN-SUFFIX,appshike.com
   - DOMAIN-SUFFIX,appstore.com
   - DOMAIN-SUFFIX,autonavi.com
-  - DOMAIN-SUFFIX,aweme.snssdk.com
   - DOMAIN-SUFFIX,bababian.com
   - DOMAIN-SUFFIX,baidu.com
   - DOMAIN-SUFFIX,baidupcs.com
@@ -196,7 +195,6 @@ payload:
   - DOMAIN-SUFFIX,pgyer.com
   - DOMAIN-SUFFIX,pniao.com
   - DOMAIN-SUFFIX,privatehd.to
-  - DOMAIN-SUFFIX,pstatp.com
   - DOMAIN-SUFFIX,qbox.me
   - DOMAIN-SUFFIX,qcloud.com
   - DOMAIN-SUFFIX,qdaily.com
@@ -222,7 +220,6 @@ payload:
   - DOMAIN-SUFFIX,sinaimg.com
   - DOMAIN-SUFFIX,sm.ms
   - DOMAIN-SUFFIX,smzdm.com
-  - DOMAIN-SUFFIX,snssdk.com
   - DOMAIN-SUFFIX,snwx.com
   - DOMAIN-SUFFIX,so.com
   - DOMAIN-SUFFIX,sogou.com
@@ -265,6 +262,7 @@ payload:
   - DOMAIN-SUFFIX,wkcdn.com
   - DOMAIN-SUFFIX,xdrig.com
   - DOMAIN-SUFFIX,xhostfire.com
+  - DOMAIN-SUFFIX,xhscdn.com
   - DOMAIN-SUFFIX,xiami.com
   - DOMAIN-SUFFIX,xiami.net
   - DOMAIN-SUFFIX,xiaohongshu.com

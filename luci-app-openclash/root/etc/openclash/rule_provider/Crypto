@@ -1,0 +1,128 @@
+payload:
+  # > Forum
+  - DOMAIN-SUFFIX,bitcointalk.org
+
+  # > Exchange
+  - DOMAIN-SUFFIX,aex.com
+  - DOMAIN-SUFFIX,bibox.com
+  - DOMAIN-SUFFIX,bitfinex.com
+  - DOMAIN-SUFFIX,bithumb.com
+  - DOMAIN-SUFFIX,bitmex.com
+  - DOMAIN-SUFFIX,bitstamp.net
+  - DOMAIN-SUFFIX,bittrex.com
+  - DOMAIN-SUFFIX,bybit.com
+  - DOMAIN-SUFFIX,coinbase.com
+  - DOMAIN-SUFFIX,coincheck.com
+  - DOMAIN-SUFFIX,coinone.co.kr
+  - DOMAIN-SUFFIX,ftx.com
+  - DOMAIN-SUFFIX,gate.io
+  - DOMAIN-SUFFIX,gemini.com
+  - DOMAIN-SUFFIX,korbit.co.kr
+  - DOMAIN-SUFFIX,kraken.com
+  - DOMAIN-SUFFIX,kucoin.com
+  - DOMAIN-SUFFIX,liquid.com
+  - DOMAIN-SUFFIX,poloniex.com
+  - DOMAIN-SUFFIX,sushi.com
+  - DOMAIN-SUFFIX,uniswap.org
+  - DOMAIN-SUFFIX,bitbank.cc
+  - DOMAIN-SUFFIX,bitcoin.org
+  - DOMAIN-SUFFIX,bitquick.co
+  - DOMAIN-SUFFIX,btcbox.co.jp
+  - DOMAIN-SUFFIX,cex.io
+  - DOMAIN-SUFFIX,dogecoin.com
+  - DOMAIN-SUFFIX,paxful.com
+
+  # > Binance
+  - DOMAIN-SUFFIX,binance.cc
+  - DOMAIN-SUFFIX,binance.cloud
+  - DOMAIN-SUFFIX,binance.com
+  - DOMAIN-SUFFIX,binance.im
+  - DOMAIN-SUFFIX,binance.me
+  - DOMAIN-SUFFIX,binance.us
+  - DOMAIN-SUFFIX,bnappzh.co
+  - DOMAIN-SUFFIX,bnappzh.com
+  - DOMAIN-SUFFIX,bnbstatic.com
+  - DOMAIN-SUFFIX,bntrace.com
+  - DOMAIN-SUFFIX,binance.charity
+  - DOMAIN-SUFFIX,binance.co
+  - DOMAIN-SUFFIX,binance.info
+  - DOMAIN-SUFFIX,binance.net
+  - DOMAIN-SUFFIX,binance.org
+  - DOMAIN-SUFFIX,binance.vision
+  - DOMAIN-SUFFIX,binanceapi.com
+  - DOMAIN-SUFFIX,binancezh.be
+  - DOMAIN-SUFFIX,binancezh.biz
+  - DOMAIN-SUFFIX,binancezh.cc
+  - DOMAIN-SUFFIX,binancezh.co
+  - DOMAIN-SUFFIX,binancezh.com
+  - DOMAIN-SUFFIX,binancezh.info
+  - DOMAIN-SUFFIX,binancezh.ink
+  - DOMAIN-SUFFIX,binancezh.kim
+  - DOMAIN-SUFFIX,binancezh.link
+  - DOMAIN-SUFFIX,binancezh.live
+  - DOMAIN-SUFFIX,binancezh.mobi
+  - DOMAIN-SUFFIX,binancezh.net
+  - DOMAIN-SUFFIX,binancezh.pro
+  - DOMAIN-SUFFIX,binancezh.sh
+  - DOMAIN-SUFFIX,binancezh.top
+
+
+  # > Huobi
+  - DOMAIN-SUFFIX,hbabit.com
+  - DOMAIN-SUFFIX,hbfile.net
+  - DOMAIN-SUFFIX,huobi.com
+  - DOMAIN-SUFFIX,huobi.me
+  - DOMAIN-SUFFIX,huobi.pro
+  - DOMAIN-SUFFIX,huobi.sc
+  - DOMAIN-SUFFIX,huobiasia.vip
+  - DOMAIN-SUFFIX,huobigroup.com
+  - DOMAIN-SUFFIX,huobitoken.com
+  - DOMAIN-SUFFIX,heco-scan.com
+  - DOMAIN-SUFFIX,hecoview.com
+  - DOMAIN-SUFFIX,hbfile.net
+  - DOMAIN-SUFFIX,huobi.br.com
+  - DOMAIN-SUFFIX,bitderiv.com
+
+  # > OKX
+  - DOMAIN-SUFFIX,okex.com
+  - DOMAIN-SUFFIX,okx.com
+  
+  # > asproex
+  - DOMAIN-SUFFIX,asproex.com
+  - DOMAIN-SUFFIX,asproexapi.com
+    
+  # > bitflyer
+  - DOMAIN-SUFFIX,bitflyer.com
+  - DOMAIN-SUFFIX,bitflyer.jp
+    
+  # > bitsquare
+  - DOMAIN-SUFFIX,bisq.io
+  - DOMAIN-SUFFIX,bisq.network
+  - DOMAIN-SUFFIX,bitsquare.io
+    
+  # > coinone
+  - DOMAIN-SUFFIX,coinone.co.kr
+  - DOMAIN-SUFFIX,coinonecore.com
+  - DOMAIN-SUFFIX,coinonecorp.com
+    
+  # > ethereum
+  - DOMAIN-SUFFIX,devcon.org
+  - DOMAIN-SUFFIX,ethereum.foundation
+  - DOMAIN-SUFFIX,ethereum.org
+    
+  # > localbitcoins
+  - DOMAIN-SUFFIX,localbitcoins.com
+  - DOMAIN-SUFFIX,localbitcoinschain.com
+
+  # > zb
+  - DOMAIN-SUFFIX,zb.app
+  - DOMAIN-SUFFIX,zb.com
+  - DOMAIN-SUFFIX,zb.io
+  - DOMAIN-SUFFIX,zb.live
+    
+  # Analysis
+  - DOMAIN-SUFFIX,aicoin.com
+  - DOMAIN-SUFFIX,aimoon.com
+  - DOMAIN-SUFFIX,coingecko.com
+  - DOMAIN-SUFFIX,coinmarketcap.com
+    
