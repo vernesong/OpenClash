@@ -238,7 +238,7 @@ yml_rule_group_get()
    group_check=$(ruby -ryaml -E UTF-8 -e "
    begin
       Thread.new{
-         Value = YAML.load_file('$2');
+         Value = YAML.unsafe_load_file('$2');
          Value['proxy-groups'].each{
             |x|
             if x['name'] == '$group' then
@@ -269,7 +269,7 @@ yml_other_set()
    config_foreach yml_rule_group_get "game_config" "$3"
    ruby -ryaml -E UTF-8 -e "
    begin
-      Value = YAML.load_file('$3');
+      Value = YAML.unsafe_load_file('$3');
    rescue Exception => e
       puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
    end;
@@ -384,7 +384,7 @@ yml_other_set()
    begin
    Thread.new{
       if File::exist?('$RULE_PROVIDER_FILE') then
-         Value_1 = YAML.load_file('$RULE_PROVIDER_FILE');
+         Value_1 = YAML.unsafe_load_file('$RULE_PROVIDER_FILE');
          if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
             Value['rule-providers'].merge!(Value_1);
          else
@@ -411,7 +411,7 @@ yml_other_set()
                end;
             end;
             ruby_add_index ||= -1;
-            Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
+            Value_1 = YAML.unsafe_load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
             if ruby_add_index != -1 then
                Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(ruby_add_index,x)};
             else
@@ -419,7 +419,7 @@ yml_other_set()
             end;
          end;
          if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
-            Value_1 = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml');
+            Value_1 = YAML.unsafe_load_file('/tmp/yaml_rule_set_top_custom.yaml');
             if Value['rules'].to_a.grep(/(?=.*198.18.0)(?=.*REJECT)/).empty? then
                Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(0,x)};
             else
@@ -429,10 +429,10 @@ yml_other_set()
          end;
       else
          if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
-            Value['rules'] = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml')['rules'].uniq;
+            Value['rules'] = YAML.unsafe_load_file('/tmp/yaml_rule_set_top_custom.yaml')['rules'].uniq;
          end;
          if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
-            Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
+            Value_1 = YAML.unsafe_load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
             if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
                Value['rules'] = Value['rules'] | Value_1['rules'].uniq;
             else
@@ -449,7 +449,7 @@ yml_other_set()
    Thread.new{
       if File::exist?('/tmp/yaml_groups.yaml') or File::exist?('/tmp/yaml_servers.yaml') or File::exist?('/tmp/yaml_provider.yaml') then
          if File::exist?('/tmp/yaml_groups.yaml') then
-            Value_1 = YAML.load_file('/tmp/yaml_groups.yaml');
+            Value_1 = YAML.unsafe_load_file('/tmp/yaml_groups.yaml');
             if Value.has_key?('proxy-groups') and not Value['proxy-groups'].to_a.empty? then
                Value['proxy-groups'] = Value['proxy-groups'] + Value_1;
                Value['proxy-groups'].uniq;
@@ -458,7 +458,7 @@ yml_other_set()
             end;
          end;
          if File::exist?('/tmp/yaml_servers.yaml') then
-            Value_2 = YAML.load_file('/tmp/yaml_servers.yaml');
+            Value_2 = YAML.unsafe_load_file('/tmp/yaml_servers.yaml');
             if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
                Value['proxies'] = Value['proxies'] + Value_2['proxies'];
                Value['proxies'].uniq;
@@ -467,7 +467,7 @@ yml_other_set()
             end
          end;
          if File::exist?('/tmp/yaml_provider.yaml') then
-            Value_3 = YAML.load_file('/tmp/yaml_provider.yaml');
+            Value_3 = YAML.unsafe_load_file('/tmp/yaml_provider.yaml');
             if Value.has_key?('proxy-providers') and not Value['proxy-providers'].to_a.empty? then
                Value['proxy-providers'].merge!(Value_3['proxy-providers']);
                Value['proxy-providers'].uniq;
@@ -488,7 +488,7 @@ yml_other_set()
       if ${10} != 1 then
          for i in ['/etc/openclash/custom/openclash_custom_rules.list','/etc/openclash/custom/openclash_custom_rules_2.list'] do
             if File::exist?(i) then
-               Value_1 = YAML.load_file(i);
+               Value_1 = YAML.unsafe_load_file(i);
                if Value_1 != false then
                   if Value_1.class.to_s == 'Hash' then
                      if Value_1['script'] and Value_1['script'].class.to_s != 'Array' then
@@ -537,7 +537,7 @@ yml_other_set()
    #rules
       if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
          if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
+            Value_1 = YAML.unsafe_load_file('/etc/openclash/custom/openclash_custom_rules.list');
             if Value_1 != false then
                if Value_1.class.to_s == 'Hash' then
                   if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
@@ -561,7 +561,7 @@ yml_other_set()
             end;
          end;
          if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-            Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
+            Value_3 = YAML.unsafe_load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
             if Value_3 != false then
                if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
                   ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
@@ -596,7 +596,7 @@ yml_other_set()
          end;
       else
          if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
+            Value_1 = YAML.unsafe_load_file('/etc/openclash/custom/openclash_custom_rules.list');
             if Value_1 != false then
                if Value_1.class.to_s == 'Hash' then
                  if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
@@ -626,7 +626,7 @@ yml_other_set()
             end;
          end;
          if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-            Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
+            Value_2 = YAML.unsafe_load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
             if Value_2 != false then
                if Value['rules'].to_a.empty? then
                   if Value_2.class.to_s == 'Hash' then
@@ -875,8 +875,8 @@ if [ "$1" != "0" ]; then
        if [ "$rule_name" = "lhie1" ]; then
        	   ruby -ryaml -E UTF-8 -e "
        	   begin
-               Value = YAML.load_file('$3');
-               Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
+               Value = YAML.unsafe_load_file('$3');
+               Value_1 = YAML.unsafe_load_file('/usr/share/openclash/res/lhie1.yaml');
                if Value.has_key?('script') then
                   Value.delete('script')
                end;
@@ -958,8 +958,8 @@ if [ "$1" != "0" ]; then
        elif [ "$rule_name" = "ConnersHua" ]; then
             ruby -ryaml -E UTF-8 -e "
             begin
-               Value = YAML.load_file('$3');
-               Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua.yaml');
+               Value = YAML.unsafe_load_file('$3');
+               Value_1 = YAML.unsafe_load_file('/usr/share/openclash/res/ConnersHua.yaml');
                if Value.has_key?('script') then
                   Value.delete('script')
                end;
@@ -991,8 +991,8 @@ if [ "$1" != "0" ]; then
        else
             ruby -ryaml -E UTF-8 -e "
             begin
-               Value = YAML.load_file('$3');
-               Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua_return.yaml');
+               Value = YAML.unsafe_load_file('$3');
+               Value_1 = YAML.unsafe_load_file('/usr/share/openclash/res/ConnersHua_return.yaml');
                if Value.has_key?('script') then
                   Value.delete('script')
                end;

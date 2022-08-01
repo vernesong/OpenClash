@@ -83,7 +83,7 @@
       LOG_OUT "Download Successful, Start Preprocessing Rule File..."
       ruby -ryaml -E UTF-8 -e "
       begin
-      YAML.load_file('/tmp/rules.yaml');
+      YAML.unsafe_load_file('/tmp/rules.yaml');
       rescue Exception => e
       puts '${LOGTIME} Error: Unable To Parse Updated Rules File,【${rule_name}:' + e.message + '】'
       system 'rm -rf /tmp/rules.yaml 2>/dev/null'
@@ -112,8 +112,8 @@
          exit 0
       #校验是否含有新策略组
       elif ! "$(ruby -ryaml -E UTF-8 -e "
-         Value = YAML.load_file('/usr/share/openclash/res/${rule_name}.yaml');
-         Value_1 = YAML.load_file('/tmp/rules.yaml');
+         Value = YAML.unsafe_load_file('/usr/share/openclash/res/${rule_name}.yaml');
+         Value_1 = YAML.unsafe_load_file('/tmp/rules.yaml');
          OLD_GROUP = Value['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;
          NEW_GROUP = Value_1['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;
          puts (OLD_GROUP | NEW_GROUP).eql?(OLD_GROUP)

@@ -213,7 +213,7 @@ if "$provider_path_line"; then
    while :;
    do
       provider_path_check=$(ruby -ryaml -E UTF-8 -e "
-      Value = YAML.load_file('$1');
+      Value = YAML.unsafe_load_file('$1');
       Value['$2'].values.each{|x,v|
       if not x['path'].empty? then
          if x['path'].split('/')[0] == '.' then
@@ -223,7 +223,7 @@ if "$provider_path_line"; then
          end
       end;
       if File::exist?(v) then
-         if not YAML.load_file(v).key?('$3') then
+         if not YAML.unsafe_load_file(v).key?('$3') then
             puts false
             break
          end
@@ -326,7 +326,7 @@ cp "$RAW_CONFIG_FILE" "$TMP_CONFIG_FILE"
 
 ruby -ryaml -E UTF-8 -e "
 begin
-   YAML.load_file('$RAW_CONFIG_FILE');
+   YAML.unsafe_load_file('$RAW_CONFIG_FILE');
 rescue Exception => e
    puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】';
    system 'rm -rf ${TMP_CONFIG_FILE}';
@@ -806,8 +806,8 @@ try_restore_start()
          LOG_OUT "Error: OpenClash Can Not Start, Try Use Backup Rules Start Again..."
          ruby -ryaml -E UTF-8 -e "
          begin
-            Value = YAML.load_file('$RAW_CONFIG_FILE');
-            Value_1 = YAML.load_file('$CONFIG_FILE');
+            Value = YAML.unsafe_load_file('$RAW_CONFIG_FILE');
+            Value_1 = YAML.unsafe_load_file('$CONFIG_FILE');
             if Value.has_key?('rule-providers') then
                Value_1['rule-providers'] = Value.select {|x| 'rule-providers' == x}['rule-providers'];
             end;

@@ -53,7 +53,7 @@ for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
     end
     if e[t].name == m.uci:get(openclash, sid, "config") then
     	filename = e[t].name
-      groupnames = sys.exec(string.format('ruby -ryaml -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',f))
+      groupnames = sys.exec(string.format('ruby -ryaml -E UTF-8 -e "YAML.unsafe_load_file(\'%s\')[\'proxy-groups\'].each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',f))
     end
   end
 end
