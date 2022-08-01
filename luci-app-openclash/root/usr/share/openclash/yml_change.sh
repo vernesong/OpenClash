@@ -217,7 +217,7 @@ yml_dns_get()
       group_check=$(ruby -ryaml -E UTF-8 -e "
       begin
          Thread.new{
-            Value = YAML.load_file('$2');
+            Value = YAML.unsafe_load_file('$2');
             Value['proxy-groups'].each{
                |x|
                if x['name'] == '$specific_group' then
@@ -296,7 +296,7 @@ yml_dns_custom "$enable_custom_dns" "$5" "$append_wan_dns" "${16}"
 
 ruby -ryaml -E UTF-8 -e "
 begin
-   Value = YAML.load_file('$5');
+   Value = YAML.unsafe_load_file('$5');
 rescue Exception => e
    puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
 end;
@@ -396,14 +396,14 @@ Thread.new{
       Value_sniffer={'sniffing'=>['tls','http']};
       Value['sniffer'].merge!(Value_sniffer);
       if File::exist?('/etc/openclash/custom/openclash_force_sniffing_domain.yaml') and ${24} == 1 then
-         Value_7 = YAML.load_file('/etc/openclash/custom/openclash_force_sniffing_domain.yaml');
+         Value_7 = YAML.unsafe_load_file('/etc/openclash/custom/openclash_force_sniffing_domain.yaml');
          if Value_7 != false and not Value_7['force-domain'].to_a.empty? then
             Value['sniffer']['force-domain']=Value_7['force-domain'];
             Value['sniffer']['force-domain']=Value['sniffer']['force-domain'].uniq;
          end
       end;
       if File::exist?('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml') and ${24} == 1 then
-         Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml');
+         Value_7 = YAML.unsafe_load_file('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml');
          if Value_7 != false and not Value_7['skip-sni'].to_a.empty? then
             Value['sniffer']['skip-domain']=Value_7['skip-sni'];
             Value['sniffer']['skip-domain']=Value['sniffer']['skip-domain'].uniq;
@@ -414,7 +414,7 @@ Thread.new{
          end
       end;
       if File::exist?('/etc/openclash/custom/openclash_sniffing_port_filter.yaml') and ${24} == 1 then
-         Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_port_filter.yaml');
+         Value_7 = YAML.unsafe_load_file('/etc/openclash/custom/openclash_sniffing_port_filter.yaml');
          if Value_7 != false and not Value_7['port-whitelist'].to_a.empty? then
             Value['sniffer']['port-whitelist']=Value_7['port-whitelist'];
             Value['sniffer']['port-whitelist']=Value['sniffer']['port-whitelist'].uniq;
@@ -482,11 +482,11 @@ begin
 Thread.new{
    if '$enable_custom_dns' == '1' or '$append_wan_dns' == '1' then
       if File::exist?('/tmp/yaml_config.namedns.yaml') then
-         Value_1 = YAML.load_file('/tmp/yaml_config.namedns.yaml');
+         Value_1 = YAML.unsafe_load_file('/tmp/yaml_config.namedns.yaml');
          Value_1['nameserver'] = Value_1['nameserver'].uniq;
          Value['dns']['nameserver'] = Value_1['nameserver'];
          if File::exist?('/tmp/yaml_config.falldns.yaml') then
-            Value_2 = YAML.load_file('/tmp/yaml_config.falldns.yaml');
+            Value_2 = YAML.unsafe_load_file('/tmp/yaml_config.falldns.yaml');
             Value_2['fallback'] = Value_2['fallback'].uniq;
             Value['dns']['fallback'] = Value_2['fallback'];
          end;
@@ -547,7 +547,7 @@ begin
 Thread.new{
    if '$enable_custom_dns' == '1' then
       if File::exist?('/tmp/yaml_config.proxynamedns.yaml') then
-         Value_1 = YAML.load_file('/tmp/yaml_config.proxynamedns.yaml');
+         Value_1 = YAML.unsafe_load_file('/tmp/yaml_config.proxynamedns.yaml');
          Value_1['proxy-server-nameserver'] = Value_1['proxy-server-nameserver'].uniq;
          Value['dns']['proxy-server-nameserver'] = Value_1['proxy-server-nameserver'];
       end;
@@ -561,10 +561,10 @@ Thread.new{
    if '$custom_fallback_filter' == '1' then
       if not Value['dns'].key?('fallback') then
          puts '${LOGTIME} Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore...';
-      elsif not YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml') then
+      elsif not YAML.unsafe_load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml') then
          puts '${LOGTIME} Error: Unable To Parse Custom Fallback-Filter File, Ignore...';
       else
-         Value['dns']['fallback-filter'] = YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml')['fallback-filter'];
+         Value['dns']['fallback-filter'] = YAML.unsafe_load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml')['fallback-filter'];
       end;
    end;
 }.join;
@@ -575,7 +575,7 @@ begin
 Thread.new{
    if '$dns_advanced_setting' == '1' then
       if File::exist?('/etc/openclash/custom/openclash_custom_domain_dns_policy.list') then
-         Value_6 = YAML.load_file('/etc/openclash/custom/openclash_custom_domain_dns_policy.list');
+         Value_6 = YAML.unsafe_load_file('/etc/openclash/custom/openclash_custom_domain_dns_policy.list');
          if Value_6 != false and not Value_6.nil? then
             if Value['dns'].has_key?('nameserver-policy') and not Value['dns']['nameserver-policy'].to_a.empty? then
                Value['dns']['nameserver-policy'].merge!(Value_6);
@@ -633,7 +633,7 @@ begin
 Thread.new{
    if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
       begin
-         Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_hosts.list');
+         Value_3 = YAML.unsafe_load_file('/etc/openclash/custom/openclash_custom_hosts.list');
          if Value_3 != false and not Value_3.nil? then
             Value['dns']['use-hosts']=true;
             if Value.has_key?('hosts') and not Value['hosts'].to_a.empty? then
@@ -681,7 +681,7 @@ end;
 begin
 Thread.new{
    if File::exist?('/tmp/yaml_openclash_auth') then
-      Value_1 = YAML.load_file('/tmp/yaml_openclash_auth');
+      Value_1 = YAML.unsafe_load_file('/tmp/yaml_openclash_auth');
       Value['authentication']=Value_1
    elsif Value.key?('authentication') then
        Value.delete('authentication');
