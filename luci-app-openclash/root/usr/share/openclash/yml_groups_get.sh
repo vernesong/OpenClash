@@ -15,13 +15,13 @@ del_lock() {
 ruby_read_hash()
 {
    RUBY_YAML_PARSE="Thread.new{Value = $1; puts Value$2}.join"
-   ruby -ryaml -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
+   ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
 ruby_read()
 {
-   RUBY_YAML_PARSE="Thread.new{Value = YAML.unsafe_load_file('$1'); puts Value$2}.join"
-   ruby -ryaml -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
+   RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); puts Value$2}.join"
+   ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
 CFG_FILE="/etc/config/openclash"
@@ -175,7 +175,7 @@ do
    ${uci_set}old_name_cfg="$group_name"
    ${uci_set}type="$group_type"
 
-   ruby -ryaml -E UTF-8 -e "
+   ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
    begin
    Value = ${group_hash};
    Thread.new{
