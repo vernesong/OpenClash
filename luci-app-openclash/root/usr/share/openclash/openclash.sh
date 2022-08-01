@@ -76,9 +76,9 @@ config_cus_up()
 	if [ -z "$subscribe_url_param" ]; then
 	   if [ -n "$key_match_param" ] || [ -n "$key_ex_match_param" ]; then
 	      LOG_OUT "Config File【$name】is Replaced Successfully, Start Picking Nodes..."	      
-	      ruby -ryaml -E UTF-8 -e "
+	      ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
 	      begin
-	         Value = YAML.unsafe_load_file('$CONFIG_FILE');
+	         Value = YAML.load_file('$CONFIG_FILE');
 	         if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
 	            Value['proxies'].reverse.each{
 	            |x|
@@ -170,9 +170,9 @@ config_su_check()
          cp "$CFG_FILE" "$BACKPACK_FILE"
          #保留规则部分
          if [ "$servers_update" -eq 1 ] && [ "$only_download" -eq 0 ]; then
-   	        ruby -ryaml -E UTF-8 -e "
-               Value = YAML.unsafe_load_file('$CONFIG_FILE');
-               Value_1 = YAML.unsafe_load_file('$CFG_FILE');
+   	        ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+               Value = YAML.load_file('$CONFIG_FILE');
+               Value_1 = YAML.load_file('$CFG_FILE');
                if Value.key?('rules') or Value.key?('script') or Value.key?('rule-providers') then
                   if Value.key?('rules') then
                      Value_1['rules'] = Value['rules']
@@ -248,8 +248,8 @@ change_dns()
 field_name_check()
 {
    #检查field名称（不兼容旧写法）
-   ruby -ryaml -E UTF-8 -e "
-      Value = YAML.unsafe_load_file('$CFG_FILE');
+   ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+      Value = YAML.load_file('$CFG_FILE');
       if Value.key?('Proxy') or Value.key?('Proxy Group') or Value.key?('Rule') or Value.key?('rule-provider') then
          if Value.key?('Proxy') then
             Value['proxies'] = Value['Proxy']
@@ -311,9 +311,9 @@ EOF
       config_download
       
       if [ "$?" -eq 0 ] && [ -s "$CFG_FILE" ]; then
-         ruby -ryaml -E UTF-8 -e "
+         ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
          begin
-         YAML.unsafe_load_file('$CFG_FILE');
+         YAML.load_file('$CFG_FILE');
          rescue Exception => e
          puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】'
          system 'rm -rf ${CFG_FILE} 2>/dev/null'
@@ -489,9 +489,9 @@ sub_info_get()
    config_download
 
    if [ "$?" -eq 0 ] && [ -s "$CFG_FILE" ]; then
-   	  ruby -ryaml -E UTF-8 -e "
+   	ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
       begin
-      YAML.unsafe_load_file('$CFG_FILE');
+      YAML.load_file('$CFG_FILE');
       rescue Exception => e
       puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】'
       system 'rm -rf ${CFG_FILE} 2>/dev/null'
