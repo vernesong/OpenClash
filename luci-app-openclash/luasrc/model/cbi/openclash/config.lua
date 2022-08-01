@@ -47,14 +47,14 @@ function default_config_set(f)
 end
 
 function config_check(CONFIG_FILE)
-  local yaml = fs.isfile(CONFIG_FILE)
-  if yaml then
-  	 yaml = SYS.exec(string.format('ruby -ryaml -E UTF-8 -e "puts YAML.load_file(\'%s\')" 2>/dev/null',CONFIG_FILE))
-     if yaml ~= "false\n" and yaml ~= "" then
-        return "Config Normal"
-     else
-        return "Config Abnormal"
-     end
+	local yaml = fs.isfile(CONFIG_FILE)
+	if yaml then
+		yaml = SYS.exec(string.format('ruby -ryaml -E UTF-8 -e "puts YAML.unsafe_load_file(\'%s\')" 2>/dev/null',CONFIG_FILE))
+		if yaml ~= "false\n" and yaml ~= "" then
+			return "Config Normal"
+		else
+			return "Config Abnormal"
+		end
 	elseif (yaml ~= 0) then
 	   return "File Not Exist"
 	end

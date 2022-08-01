@@ -20,7 +20,7 @@ ruby_read_hash()
 
 ruby_read()
 {
-   RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); puts Value$2}.join"
+   RUBY_YAML_PARSE="Thread.new{Value = YAML.unsafe_load_file('$1'); puts Value$2}.join"
    ruby -ryaml -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
