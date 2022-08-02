@@ -279,11 +279,16 @@ yml_dns_get()
             echo "  nameserver:" >/tmp/yaml_config.namedns.yaml
          fi
          echo "    - \"$dns_type$dns_address\"" >>/tmp/yaml_config.namedns.yaml
-      else
+      elif [ "$group" = "fallback" ]; then
          if [ -z "$(grep "^ \{0,\}fallback:$" /tmp/yaml_config.falldns.yaml 2>/dev/null)" ]; then
             echo "  fallback:" >/tmp/yaml_config.falldns.yaml
          fi
          echo "    - \"$dns_type$dns_address\"" >>/tmp/yaml_config.falldns.yaml
+      elif [ "$group" = "default" ]; then
+         if [ -z "$(grep "^ \{0,\}default-nameserver:$" /tmp/yaml_config.defaultdns.yaml 2>/dev/null)" ]; then
+            echo "  default-nameserver:" >/tmp/yaml_config.defaultdns.yaml
+         fi
+         echo "    - \"$dns_type$dns_address\"" >>/tmp/yaml_config.defaultdns.yaml
       fi
    else
       return
@@ -513,6 +518,16 @@ end;
 #default-nameserver
 begin
 Thread.new{
+   if '$enable_custom_dns' == '1' then
+      if File::exist?('/tmp/yaml_config.defaultdns.yaml') then
+         Value_1 = YAML.load_file('/tmp/yaml_config.defaultdns.yaml');
+         if Value['dns'].has_key?('default-nameserver') then
+            Value['dns']['default-nameserver'] = Value['dns']['default-nameserver'] | Value_1['default-nameserver'];
+         else
+            Value['dns']['default-nameserver'] = Value_1['default-nameserver'].uniq;
+         end;
+      end;
+   end;
    if ${28} == 1 then
       if ${20} == 1 then
          reg = /(^https:\/\/|^tls:\/\/|^quic:\/\/)?((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])(?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?/;
