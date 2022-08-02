@@ -172,15 +172,15 @@ o.rmempty = true
 o.description = translate("Required")
 o:depends("type", "hysteria")
 
-o = s:option(Value, "up_mbps", translate("up_mbps"))
-o.rmempty = true
-o.datatype = "uinteger"
-o:depends("type", "hysteria")
+--o = s:option(Value, "up_mbps", translate("up_mbps"))
+--o.rmempty = true
+--o.datatype = "uinteger"
+--o:depends("type", "hysteria")
 
-o = s:option(Value, "down_mbps", translate("down_mbps"))
-o.rmempty = true
-o.datatype = "uinteger"
-o:depends("type", "hysteria")
+--o = s:option(Value, "down_mbps", translate("down_mbps"))
+--o.rmempty = true
+--o.datatype = "uinteger"
+--o:depends("type", "hysteria")
 
 o = s:option(Value, "psk", translate("Psk"))
 o.rmempty = true
@@ -482,10 +482,10 @@ o.placeholder = translate("yourpassword")
 o:depends("type", "hysteria")
 
 -- [[ hysteria_auth ]]--
-o = s:option(Value, "hysteria_auth", translate("auth"))
-o.rmempty = true
-o.placeholder = translate("[BASE64]")
-o:depends("type", "hysteria")
+--o = s:option(Value, "hysteria_auth", translate("auth"))
+--o.rmempty = true
+--o.placeholder = translate("[BASE64]")
+--o:depends("type", "hysteria")
 
 -- [[ hysteria_auth_str ]]--
 o = s:option(Value, "hysteria_auth_str", translate("auth_str"))
