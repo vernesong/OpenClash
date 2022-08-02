@@ -54,6 +54,9 @@ define Build/Prepare
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_sniffing_port_filter.yaml" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_sniffing_port_filter.yaml" >/dev/null 2>&1
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_localnetwork_ipv4.list" >/dev/null 2>&1
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_localnetwork_ipv6.list" >/dev/null 2>&1
+	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_chnroute_pass.list" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_chnroute_pass.list" >/dev/null 2>&1
+	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_chnroute6_pass.list" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_chnroute6_pass.list" >/dev/null 2>&1
+	
 	exit 0
 endef
 
@@ -106,6 +109,8 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /usr/share/openclash/backup >/dev/null 2>&1
 	rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
 	rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
+	rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
+	rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
 	rm -rf /tmp/dler* >/dev/null 2>&1
 	rm -rf /tmp/etc/openclash >/dev/null 2>&1
 	rm -rf /tmp/openclash_edit_file_name >/dev/null 2>&1
