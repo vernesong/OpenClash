@@ -256,7 +256,7 @@ msgid "DNS Server Group"
 msgstr "服务器分组"
 
 msgid "NameServer Group Must Be Set"
-msgstr "NameServer 组必须设置"
+msgstr "NameServer 组必须设置至少一个"
 
 msgid "DNS Server Address"
 msgstr "服务器地址"

@@ -1403,6 +1403,7 @@ end
 o = ds:option(ListValue, "group", translate("DNS Server Group"))
 o:value("nameserver", translate("NameServer "))
 o:value("fallback", translate("FallBack "))
+o:value("default", translate("Default-NameServer"))
 o.default     = "nameserver"
 o.rempty      = false
 
