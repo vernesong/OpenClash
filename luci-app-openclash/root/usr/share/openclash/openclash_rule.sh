@@ -81,7 +81,7 @@
    fi
    if [ "$?" -eq "0" ] && [ -s "/tmp/rules.yaml" ]; then
       LOG_OUT "Download Successful, Start Preprocessing Rule File..."
-      ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+      ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       begin
       YAML.load_file('/tmp/rules.yaml');
       rescue Exception => e
@@ -111,7 +111,7 @@
          del_lock
          exit 0
       #校验是否含有新策略组
-      elif ! "$(ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+      elif ! "$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          Value = YAML.load_file('/usr/share/openclash/res/${rule_name}.yaml');
          Value_1 = YAML.load_file('/tmp/rules.yaml');
          OLD_GROUP = Value['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;

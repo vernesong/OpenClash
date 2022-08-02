@@ -235,7 +235,7 @@ yml_rule_group_get()
       return
    fi
 
-   group_check=$(ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+   group_check=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
       Thread.new{
          Value = YAML.load_file('$2');
@@ -267,7 +267,7 @@ yml_other_set()
    config_foreach yml_rule_group_get "rule_provider_config" "$3"
    config_foreach yml_rule_group_get "rule_providers" "$3"
    config_foreach yml_rule_group_get "game_config" "$3"
-   ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
       Value = YAML.load_file('$3');
    rescue Exception => e
@@ -873,7 +873,7 @@ if [ "$1" != "0" ]; then
       exit 0
    else
        if [ "$rule_name" = "lhie1" ]; then
-       	   ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+       	   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
        	   begin
                Value = YAML.load_file('$3');
                Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
@@ -956,7 +956,7 @@ if [ "$1" != "0" ]; then
        	      puts '${LOGTIME} Error: Set lhie1 Rules Failed,【' + e.message + '】';
        	   end" 2>/dev/null >> $LOG_FILE
        elif [ "$rule_name" = "ConnersHua" ]; then
-            ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+            ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             begin
                Value = YAML.load_file('$3');
                Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua.yaml');
@@ -989,7 +989,7 @@ if [ "$1" != "0" ]; then
        	      puts '${LOGTIME} Error: Set ConnersHua Rules Failed,【' + e.message + '】';
        	    end" 2>/dev/null >> $LOG_FILE
        else
-            ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+            ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             begin
                Value = YAML.load_file('$3');
                Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua_return.yaml');
