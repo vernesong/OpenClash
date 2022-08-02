@@ -240,10 +240,10 @@ msgid "Specify DNS Server For List and Server Nodes With Fake-IP Mode, Only One 
 msgstr "指定下方列表中域名和 Fake-IP 模式下非代理集内节点的DNS服务器，只支持填写一个IP地址"
 
 msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line"
-msgstr "每行请只填写一个域名，列表中的域名在（Fake-IP模式）下查询DNS时将返回真实IP地址，更改后点击上方按钮生效"
+msgstr "每行请只填写一个域名，列表中的域名在（Fake-IP模式）下查询DNS时将返回真实IP地址"
 
-msgid "Domain Names In The List Use The Custom DNS Server, One rule per line"
-msgstr "每行请只填写一个域名，列表中的域名将使用上方指定的DNS进行查询"
+msgid "Domain Names In The List Use The Custom DNS Server, One rule per line, Depend on Dnsmasq"
+msgstr "每行请只填写一个域名，列表中的域名将使用上方指定的DNS进行查询，此功能依赖于 Dnsmasq"
 
 
 msgid "Domain Names In The List Use The Custom DNS Server, But Still Return Fake-IP Results, One rule per line"
@@ -3096,3 +3096,12 @@ msgstr "仅备份规则集"
 
 msgid "Backup Proxy Provider"
 msgstr "仅备份代理集"
+
+msgid "Chnroute Bypassed List"
+msgstr "绕过中国大陆 IPv4 黑名单"
+
+msgid "Chnroute6 Bypassed List"
+msgstr "绕过中国大陆 IPv6 黑名单"
+
+msgid "Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq"
+msgstr "列表中的域名或 IP 将不会受到绕过中国大陆 IP 选项的影响，此功能依赖于 Dnsmasq"

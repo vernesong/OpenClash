@@ -327,7 +327,7 @@ o:depends("dns_advanced_setting", "1")
 
 custom_domain_dns = s:taboption("dns", Value, "custom_domain_dns")
 custom_domain_dns.template = "cbi/tvalue"
-custom_domain_dns.description = translate("Domain Names In The List Use The Custom DNS Server, One rule per line")
+custom_domain_dns.description = translate("Domain Names In The List Use The Custom DNS Server, One rule per line, Depend on Dnsmasq")
 custom_domain_dns.rows = 20
 custom_domain_dns.wrap = "off"
 custom_domain_dns:depends("dns_advanced_setting", "1")
@@ -637,6 +637,45 @@ function o.write(self, section, value)
 	end
 end
 
+if op_mode == "redir-host" then
+o = s:taboption("lan_ac", Value, "chnroute_pass", translate("Chnroute Bypassed List"))
+o.template = "cbi/tvalue"
+o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq")
+o.rows = 20
+o.wrap = "off"
+
+function o.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute_pass.list") or ""
+end
+function o.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute_pass.list")
+	  if value ~= old_value then
+			NXFS.writefile("/etc/openclash/custom/openclash_custom_chnroute_pass.list", value)
+		end
+	end
+end
+
+o = s:taboption("lan_ac", Value, "chnroute6_pass", translate("Chnroute6 Bypassed List"))
+o.template = "cbi/tvalue"
+o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option")
+o.rows = 20
+o.wrap = "off"
+
+function o.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list") or ""
+end
+function o.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list")
+	  if value ~= old_value then
+			NXFS.writefile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list", value)
+		end
+	end
+end
+end
 ---- Rules Settings
 o = s:taboption("rules", Flag, "rule_source", translate("Enable Other Rules"))
 o.description = translate("Use Other Rules")
