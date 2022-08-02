@@ -774,7 +774,7 @@ cat >> "$SERVER_FILE" <<-EOF
     sni: "$sni"
 EOF
       fi
-      if [ -n "$ws_opts_headers" ]; then
+      if [ -n "$http_headers" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     headers:
 EOF
