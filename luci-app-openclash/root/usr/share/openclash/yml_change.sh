@@ -214,7 +214,7 @@ yml_dns_get()
    fi
 
    if [ "$specific_group" != "Disable" ] && [ -n "$specific_group" ] && [ "$enable_meta_core" = "1" ]; then
-      group_check=$(ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+      group_check=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       begin
          Thread.new{
             Value = YAML.load_file('$2');
@@ -294,7 +294,7 @@ config_load "openclash"
 config_foreach yml_auth_get "authentication"
 yml_dns_custom "$enable_custom_dns" "$5" "$append_wan_dns" "${16}"
 
-ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 begin
    Value = YAML.load_file('$5');
 rescue Exception => e

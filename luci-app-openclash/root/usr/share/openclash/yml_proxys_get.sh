@@ -27,13 +27,13 @@ sub_info_get()
 ruby_read_hash()
 {
    RUBY_YAML_PARSE="Thread.new{Value = $1; puts Value$2}.join"
-   ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
+   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
 ruby_read()
 {
    RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); puts Value$2}.join"
-   ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
+   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
 CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
@@ -232,7 +232,7 @@ do
       ${uci_set}name="$provider_name"
       ${uci_set}type="$provider_type"
    fi
-   ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
    Value = $proxy_hash;
    Thread.new{
@@ -312,7 +312,7 @@ do
       config_load "openclash"
       config_list_foreach "config" "new_servers_group" cfg_new_provider_groups_get
    elif [ "$servers_if_update" != "1" ]; then
-      ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+      ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       Thread.new{
       begin
          Value = ${group_hash};
@@ -435,7 +435,7 @@ do
       ${uci_set}type="$server_type"
    fi
 
-   ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
    Value = $proxy_hash;
    Thread.new{
@@ -1090,7 +1090,7 @@ do
       config_load "openclash"
       config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_get
    elif [ "$servers_if_update" != "1" ]; then
-      ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+      ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       Thread.new{
       begin
          Value = ${group_hash};

@@ -49,7 +49,7 @@ end
 function config_check(CONFIG_FILE)
 	local yaml = fs.isfile(CONFIG_FILE)
 	if yaml then
-		yaml = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "puts YAML.load_file(\'%s\')" 2>/dev/null',CONFIG_FILE))
+		yaml = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "puts YAML.load_file(\'%s\')" 2>/dev/null',CONFIG_FILE))
 		if yaml ~= "false\n" and yaml ~= "" then
 			return "Config Normal"
 		else

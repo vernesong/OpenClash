@@ -212,7 +212,7 @@ local provider_path_check
 if "$provider_path_line"; then
    while :;
    do
-      provider_path_check=$(ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+      provider_path_check=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       Value = YAML.load_file('$1');
       Value['$2'].values.each{|x,v|
       if not x['path'].empty? then
@@ -324,7 +324,7 @@ config_check()
 #rm -rf "/etc/openclash/*.y*" 2>/dev/null
 cp "$RAW_CONFIG_FILE" "$TMP_CONFIG_FILE"
 
-ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 begin
    YAML.load_file('$RAW_CONFIG_FILE');
 rescue Exception => e
@@ -804,7 +804,7 @@ try_restore_start()
          raw_config_start
       else
          LOG_OUT "Error: OpenClash Can Not Start, Try Use Backup Rules Start Again..."
-         ruby -ryaml -rYAML -I "/usr/share/openclash/res" -E UTF-8 -e "
+         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          begin
             Value = YAML.load_file('$RAW_CONFIG_FILE');
             Value_1 = YAML.load_file('$CONFIG_FILE');
