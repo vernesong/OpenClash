@@ -163,12 +163,12 @@ o.rmempty = false
 o:depends("type", "hysteria")
 
 o = s:option(Value, "hysteria_up", translate("up"))
-o.rmempty = true
+o.rmempty = false
 o.description = translate("Required")
 o:depends("type", "hysteria")
 
 o = s:option(Value, "hysteria_down", translate("down"))
-o.rmempty = true
+o.rmempty = false
 o.description = translate("Required")
 o:depends("type", "hysteria")
 
@@ -450,7 +450,7 @@ o:depends("type", "trojan")
 
 -- [[ alpn ]]--
 o = s:option(Value, "hysteria_alpn", translate("alpn"))
-o.rmempty = true
+o.rmempty = false
 o.default = "h3"
 o:depends("type", "hysteria")
 
@@ -477,7 +477,7 @@ o:depends("obfs_trojan", "ws")
 
 -- [[ hysteria_obfs ]]--
 o = s:option(Value, "hysteria_obfs", translate("obfs"))
-o.rmempty = false
+o.rmempty = true
 o.placeholder = translate("yourpassword")
 o:depends("type", "hysteria")
 
