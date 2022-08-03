@@ -659,7 +659,7 @@ end
 
 o = s:taboption("lan_ac", Value, "chnroute6_pass", translate("Chnroute6 Bypassed List"))
 o.template = "cbi/tvalue"
-o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option")
+o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq")
 o.rows = 20
 o.wrap = "off"
 
