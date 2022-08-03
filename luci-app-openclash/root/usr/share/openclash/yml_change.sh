@@ -657,6 +657,7 @@ Thread.new{
                Value['hosts']=Value_3;
             end;
             Value['hosts'].uniq;
+            puts '${LOGTIME} Warning: You Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address';
          end;
       rescue
          Value_3 = IO.readlines('/etc/openclash/custom/openclash_custom_hosts.list');
@@ -669,6 +670,7 @@ Thread.new{
                Value_3.each{|x| Value['hosts'].merge!(x)};
             end;
             Value['hosts'].uniq;
+            puts '${LOGTIME} Warning: You Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address';
          end;
       end;
    end;
