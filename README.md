@@ -8,11 +8,11 @@
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.11.4">
     <img src="https://img.shields.io/badge/Clash-v1.11.4-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.45.44-beta">
-    <img src="https://img.shields.io/badge/source code-v0.45.44--beta-green.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.45.45-beta">
+    <img src="https://img.shields.io/badge/source code-v0.45.45--beta-green.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.45.44-beta">
-    <img src="https://img.shields.io/badge/New Release-v0.45.44--beta-orange.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.45.45-beta">
+    <img src="https://img.shields.io/badge/New Release-v0.45.45--beta-orange.svg">
   </a>
   </p>
   
@@ -138,6 +138,11 @@ make menuconfig
 * PayPal
 <p align="left">
     <a href="https://ko-fi.com/vernesong"><img width="300" src="https://www.ko-fi.com/img/githubbutton_sm.svg"> </a>
+</p>
+
+* USDT-TRC20
+<p align="left">
+    <img width="300" src="https://github.com/vernesong/OpenClash/raw/master/img/USDT-Wallet.png">
 </p>
 
 * 比特币-BTC
