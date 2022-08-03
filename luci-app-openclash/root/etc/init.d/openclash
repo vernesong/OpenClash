@@ -1175,7 +1175,7 @@ if [ "$intranet_allowed" -eq 1 ]; then
       iptables -t filter -N openclash_wan_input
       iptables -t filter -F openclash_wan_input
       for wan_int in $wan_ints; do
-         iptables -t filter -I INPUT -i "$wan_int" -j openclash_wan_input
+         iptables -t filter -I INPUT -i "$wan_int" -m set ! --match-set localnetwork src -j openclash_wan_input
       done
       iptables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
       iptables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
@@ -1439,7 +1439,7 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
    ip6tables -t mangle -N openclash
    ip6tables -t mangle -F openclash
    ip6tables -t mangle -A openclash -m set --match-set localnetwork6 dst -j RETURN
-   ip6tables -t mangle -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
+   ip6tables -t mangle -A openclash -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN
    ip6tables -t mangle -A openclash -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
    if [ "$en_mode" == "redir-host" ]; then
       ip6tables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
@@ -1458,8 +1458,8 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
       ip6tables -t mangle -N openclash_output
       ip6tables -t mangle -F openclash_output
       ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
-      ip6tables -t mangle -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
-      ip6tables -t mangle -A openclash_output -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
+      ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN
+      ip6tables -t mangle -A openclash_output -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
       ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
       if [ "$china_ip6_route" = "1" ]; then
          ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip6_route dst -m set ! --match-set china_ip6_route_pass dst -j RETURN >/dev/null 2>&1
@@ -1496,7 +1496,7 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
          ip6tables -t filter -N openclash_wan_input
          ip6tables -t filter -F openclash_wan_input
          for wan6_int in $wan6_ints; do
-            ip6tables -t filter -I INPUT -i "$wan_int" -j openclash_wan_input
+            ip6tables -t filter -I INPUT -i "$wan_int" -m set --match-set localnetwork6 src -j openclash_wan_input
          done
          ip6tables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
          ip6tables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
