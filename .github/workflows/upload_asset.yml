@@ -1,0 +1,19 @@
+name: Upload Asset
+
+on: 
+  push:
+    tags:
+      - v*
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: luci-app-openclash
+          name: luci-app-openclash_${GITHUB_REF##*/}.tar.gz
