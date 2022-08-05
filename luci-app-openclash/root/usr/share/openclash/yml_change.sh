@@ -488,14 +488,20 @@ Thread.new{
    if '$enable_custom_dns' == '1' or '$append_wan_dns' == '1' then
       if File::exist?('/tmp/yaml_config.namedns.yaml') then
          Value_1 = YAML.load_file('/tmp/yaml_config.namedns.yaml');
-         Value_1['nameserver'] = Value_1['nameserver'].uniq;
-         Value['dns']['nameserver'] = Value_1['nameserver'];
-         if File::exist?('/tmp/yaml_config.falldns.yaml') then
-            Value_2 = YAML.load_file('/tmp/yaml_config.falldns.yaml');
-            Value_2['fallback'] = Value_2['fallback'].uniq;
-            Value['dns']['fallback'] = Value_2['fallback'];
+         if '$enable_custom_dns' == '1' then
+            Value['dns']['nameserver'] = Value_1['nameserver'].uniq;
+         elsif '$append_wan_dns' == '1' then
+            if Value['dns'].has_key?('nameserver') then
+               Value['dns']['nameserver'] = Value['dns']['nameserver'] | Value_1['nameserver'];
+            else
+               Value['dns']['nameserver'] = Value_1['nameserver'].uniq;
+            end;
          end;
-      else
+         if File::exist?('/tmp/yaml_config.falldns.yaml') and '$enable_custom_dns' == '1' then
+            Value_2 = YAML.load_file('/tmp/yaml_config.falldns.yaml');
+            Value['dns']['fallback'] = Value_2['fallback'].uniq;
+         end;
+      elsif '$enable_custom_dns' == '1' then
          puts '${LOGTIME} Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers';
       end;
    end;
