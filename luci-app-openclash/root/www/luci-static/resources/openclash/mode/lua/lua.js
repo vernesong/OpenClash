@@ -1,5 +1,5 @@
 // CodeMirror, copyright (c) by Marijn Haverbeke and others
-// Distributed under an MIT license: https://codemirror.net/LICENSE
+// Distributed under an MIT license: https://codemirror.net/5/LICENSE
 
 // LUA mode. Ported to CodeMirror 2 from Franciszek Wawrzak's
 // CodeMirror 1 mode.
@@ -138,7 +138,7 @@ CodeMirror.defineMode("lua", function(config, parserConfig) {
       var word = stream.current();
       //if (style == "variable") {
       //  if (keywords.test(word)) style = "keyword";
-      //  if (builtins.test(word)) style = "builtin";
+      //  else if (builtins.test(word)) style = "builtin";
       //  else if (specials.test(word)) style = "variable-2";
       //}
       if ((style != "comment") && (style != "string")){
