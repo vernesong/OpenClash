@@ -201,7 +201,11 @@ yml_dns_get()
    fi
 
    if [ -n "$port" ] && [ -n "$ip" ]; then
-      dns_address="$ip:$port"
+      if [ ${ip%%/*} != ${ip#*/} ]; then
+         dns_address="${ip%%/*}:$port/${ip#*/}"
+      else
+         dns_address="$ip:$port"
+      fi
    elif [ -z "$port" ] && [ -n "$ip" ]; then
       dns_address="$ip"
    else
