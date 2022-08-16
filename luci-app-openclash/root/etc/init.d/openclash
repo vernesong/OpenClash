@@ -1072,6 +1072,19 @@ if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(iptables -t nat -nL PREROUTING --
    iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
 fi
 
+#lan_google_dns_ac
+if [ -n "$(uci -q get openclash.config.lan_block_google_dns_ips)" ]; then
+   ipset create lan_block_google_dns_ips hash:net
+   ipset create lan_block_google_dns_ipv6s hash:net family inet6
+   config_load "openclash"
+   config_list_foreach "config" "lan_block_google_dns_ips" ac_add "lan_block_google_dns_ips" "lan_block_google_dns_ipv6s"
+fi
+if [ -n "$(uci -q get openclash.config.lan_block_google_dns_macs)" ]; then
+   ipset create lan_block_google_dns_macs hash:mac
+   config_load "openclash"
+   config_list_foreach "config" "lan_block_google_dns_macs" ac_add "lan_block_google_dns_macs"
+fi
+
 #lan_ac
 if [ "$operation_mode" = "redir-host" ] && [ "$en_mode" = "redir-host" ]; then
    if [ "$lan_ac_mode" = "0" ]; then
@@ -1166,6 +1179,16 @@ if [ "$bypass_gateway_compatible" -eq 1 ]; then
       iptables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
    fi
    iptables -t nat -I POSTROUTING -j openclash_post
+fi
+
+#google_dns_block
+if [ -n "$(uci -q get openclash.config.lan_block_google_dns_ips)" ] || [ -n "$(uci -q get openclash.config.lan_block_google_dns_macs)" ]; then
+   ipset create openclash_google_dns_ips hash:net
+   ipset add openclash_google_dns_ips 8.8.8.8
+   ipset add openclash_google_dns_ips 8.8.4.4
+
+   iptables -t filter -I INPUT -m set --match-set lan_block_google_dns_ips src -m set --match-set openclash_google_dns_ips dst -j REJECT >/dev/null 2>&1
+   iptables -t filter -I INPUT -m set --match-set lan_block_google_dns_macs src -m set --match-set openclash_google_dns_ips dst -j REJECT >/dev/null 2>&1
 fi
 
 #intranet allowed
@@ -1487,6 +1510,18 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
       ip6tables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
       ip6tables -t nat -I POSTROUTING -j openclash_post
    fi
+
+   #google_dns_block
+   if [ -n "$(uci -q get openclash.config.lan_block_google_dns_ips)" ] || [ -n "$(uci -q get openclash.config.lan_block_google_dns_macs)" ]; then
+      ipset create openclash_google_dns_ipv6s hash:net family inet6
+      ipset add openclash_google_dns_ipv6s 2001:4860:4860::8888
+      ipset add openclash_google_dns_ipv6s 2001:4860:4860::8844
+      ipset add openclash_google_dns_ipv6s 2001:4860:4860::6464
+      ipset add openclash_google_dns_ipv6s 2001:4860:4860::64
+
+      ip6tables -t filter -I INPUT -m set --match-set lan_block_google_dns_ipv6s src -m set --match-set openclash_google_dns_ipv6s dst -j REJECT >/dev/null 2>&1
+      ip6tables -t filter -I INPUT -m set --match-set lan_block_google_dns_macs src -m set --match-set openclash_google_dns_ipv6s dst -j REJECT >/dev/null 2>&1
+   fi
    
    #intranet allowed
    if [ "$intranet_allowed" -eq 1 ]; then
@@ -1560,7 +1595,9 @@ revert_firewall()
    ipset destroy lan_ac_white_ipv6s >/dev/null 2>&1
    ipset destroy lan_ac_black_ipv6s >/dev/null 2>&1
    ipset destroy wan_ac_black_ipv6s >/dev/null 2>&1
-   
+   ipset destroy openclash_google_dns_ipv6s >/dev/null 2>&1
+   ipset destroy lan_block_google_dns_ipv6s >/dev/null 2>&1
+
    ipset destroy localnetwork >/dev/null 2>&1
    ipset destroy china_ip_route >/dev/null 2>&1
    ipset destroy china_ip_route_pass >/dev/null 2>&1
@@ -1570,6 +1607,9 @@ revert_firewall()
    ipset destroy lan_ac_black_macs >/dev/null 2>&1
    ipset destroy wan_ac_black_ips >/dev/null 2>&1
    ipset destroy common_ports >/dev/null 2>&1
+   ipset destroy lan_block_google_dns_ips >/dev/null 2>&1
+   ipset destroy lan_block_google_dns_macs >/dev/null 2>&1
+   ipset destroy openclash_google_dns_ips >/dev/null 2>&1
 }
 
 get_config()

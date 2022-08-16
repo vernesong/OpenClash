@@ -3108,3 +3108,9 @@ msgstr "列表中的域名或 IP 将不会受到绕过中国大陆 IP 选项的�
 
 msgid "Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address"
 msgstr "警告：Hosts 设置了保留地址时可能需要关闭 dnsmasq 的重绑定保护选项才能生效"
+
+msgid "LAN Block Google DNS IP List"
+msgstr "实验性：屏蔽 Google DNS 的局域网设备 IP"
+
+msgid "LAN Block Google DNS Mac List"
+msgstr "实验性：屏蔽 Google DNS 的局域网设备 Mac"
