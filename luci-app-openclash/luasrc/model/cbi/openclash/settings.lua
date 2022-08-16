@@ -730,6 +730,38 @@ function custom_rules_2.write(self, section, value)
 end
 
 --Stream Enhance
+se_dns_ip = s:taboption("stream_enhance", DynamicList, "lan_block_google_dns_ips", font_red..bold_on..translate("LAN Block Google DNS IP List")..bold_off..font_off)
+se_dns_ip:depends("proxy_mode", "global")
+se_dns_ip:depends("proxy_mode", "direct")
+se_dns_ip:depends("proxy_mode", "script")
+se_dns_ip:depends({router_self_proxy = "1", proxy_mode = "rule"})
+se_dns_ip.datatype = "ipaddr"
+se_dns_ip.rmempty  = true
+
+se_dns_mac = s:taboption("stream_enhance", DynamicList, "lan_block_google_dns_macs", font_red..bold_on..translate("LAN Block Google DNS Mac List")..bold_off..font_off)
+se_dns_mac.datatype = "list(macaddr)"
+se_dns_mac.rmempty  = true
+se_dns_mac:depends("proxy_mode", "global")
+se_dns_mac:depends("proxy_mode", "direct")
+se_dns_mac:depends("proxy_mode", "script")
+se_dns_mac:depends({router_self_proxy = "1", proxy_mode = "rule"})
+
+luci.ip.neighbors({ family = 4 }, function(n)
+	if n.mac and n.dest then
+		se_dns_ip:value(n.dest:string())
+		se_dns_mac:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
+	end
+end)
+
+if string.len(SYS.exec("/usr/share/openclash/openclash_get_network.lua 'gateway6'")) ~= 0 then
+luci.ip.neighbors({ family = 6 }, function(n)
+	if n.mac and n.dest then
+		se_dns_ip:value(n.dest:string())
+		se_dns_mac:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
+	end
+end)
+end
+
 o = s:taboption("stream_enhance", Flag, "stream_domains_prefetch", font_red..bold_on..translate("Prefetch Netflix, Disney Plus Domains")..bold_off..font_off)
 o.description = translate("Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure, Recommend Use meta Sniffer Function")
 o.default = 0
