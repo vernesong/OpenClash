@@ -1179,16 +1179,6 @@ if [ "$bypass_gateway_compatible" -eq 1 ]; then
    iptables -t nat -A POSTROUTING -j openclash_post
 fi
 
-#google_dns_block
-if [ -n "$(uci -q get openclash.config.lan_block_google_dns_ips)" ] || [ -n "$(uci -q get openclash.config.lan_block_google_dns_macs)" ]; then
-   ipset create openclash_google_dns_ips hash:net
-   ipset add openclash_google_dns_ips 8.8.8.8
-   ipset add openclash_google_dns_ips 8.8.4.4
-
-   iptables -t filter -I INPUT -m set --match-set lan_block_google_dns_ips src -m set --match-set openclash_google_dns_ips dst -j REJECT >/dev/null 2>&1
-   iptables -t filter -I INPUT -m set --match-set lan_block_google_dns_macs src -m set --match-set openclash_google_dns_ips dst -j REJECT >/dev/null 2>&1
-fi
-
 #intranet allowed
 if [ "$intranet_allowed" -eq 1 ]; then
    wan_ints=$(iptables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
@@ -1394,6 +1384,20 @@ if [ -n "$en_mode_tun" ]; then
    fi
 fi
 
+#google_dns_block
+if [ -n "$(uci -q get openclash.config.lan_block_google_dns_ips)" ] || [ -n "$(uci -q get openclash.config.lan_block_google_dns_macs)" ]; then
+   ipset create openclash_google_dns_ips hash:net
+   ipset add openclash_google_dns_ips 8.8.8.8
+   ipset add openclash_google_dns_ips 8.8.4.4
+
+   if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
+      iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Block" -m set --match-set lan_block_google_dns_ips src -m set --match-set openclash_google_dns_ips dst -j ACCEPT >/dev/null 2>&1
+      iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Block" -m set --match-set lan_block_google_dns_macs src -m set --match-set openclash_google_dns_ips dst -j ACCEPT >/dev/null 2>&1
+   fi
+   iptables -t filter -I FORWARD -m set --match-set lan_block_google_dns_ips src -m set --match-set openclash_google_dns_ips dst -j REJECT >/dev/null 2>&1
+   iptables -t filter -I FORWARD -m set --match-set lan_block_google_dns_macs src -m set --match-set openclash_google_dns_ips dst -j REJECT >/dev/null 2>&1
+fi
+
 #ipv6
 if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
    if [ "$enable_redirect_dns" -eq 1 ] && [ -z "$(ip6tables -t nat -nL PREROUTING --line-number |grep 'DNS Hijack')"]; then
@@ -1517,8 +1521,10 @@ if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Ch
       ipset add openclash_google_dns_ipv6s 2001:4860:4860::6464
       ipset add openclash_google_dns_ipv6s 2001:4860:4860::64
 
-      ip6tables -t filter -I INPUT -m set --match-set lan_block_google_dns_ipv6s src -m set --match-set openclash_google_dns_ipv6s dst -j REJECT >/dev/null 2>&1
-      ip6tables -t filter -I INPUT -m set --match-set lan_block_google_dns_macs src -m set --match-set openclash_google_dns_ipv6s dst -j REJECT >/dev/null 2>&1
+      ip6tables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Block" -m set --match-set lan_block_google_dns_ipv6s src -m set --match-set openclash_google_dns_ipv6s dst -j ACCEPT
+      ip6tables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Block" -m set --match-set lan_block_google_dns_macs src -m set --match-set openclash_google_dns_ipv6s dst -j ACCEPT
+      ip6tables -t filter -I FORWARD -m set --match-set lan_block_google_dns_ipv6s src -m set --match-set openclash_google_dns_ipv6s dst -j REJECT >/dev/null 2>&1
+      ip6tables -t filter -I FORWARD -m set --match-set lan_block_google_dns_macs src -m set --match-set openclash_google_dns_ipv6s dst -j REJECT >/dev/null 2>&1
    fi
    
    #intranet allowed
