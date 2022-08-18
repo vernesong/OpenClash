@@ -448,6 +448,10 @@ do_run_file()
    #Some MIPS devices file system cound not use db
    source "/etc/openwrt_release"
    [ "$small_flash_memory" == "1" ] || [ -n "$(echo $core_version |grep mips)" ] || [ -n "$(echo $DISTRIB_ARCH |grep mips)" ] || [ -n "$(opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' |grep mips)" ] && mkdir -p /tmp/etc/openclash && CACHE_PATH="/tmp/etc/openclash/cache.db"
+   
+   [ -f "/etc/openclash/geosite.dat" ] && { mv "/etc/openclash/geosite.dat" "/etc/openclash/GeoSite.dat" 2>/dev/null }
+   [ -f "/etc/openclash/geoip.dat" ] && { mv "/etc/openclash/geoip.dat" "/etc/openclash/GeoIP.dat" 2>/dev/null }
+
    if [ "$small_flash_memory" != "1" ]; then
       dev_core_path="/etc/openclash/core/clash"
       tun_core_path="/etc/openclash/core/clash_tun"
