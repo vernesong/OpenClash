@@ -50,6 +50,7 @@
       cmp -s /tmp/GeoSite.dat "$geosite_path"
       if [ "$?" -ne "0" ]; then
          LOG_OUT "GeoSite Database Has Been Updated, Starting To Replace The Old Version..."
+         rm -rf "/etc/openclash/geosite.dat"
          mv /tmp/GeoSite.dat "$geosite_path" >/dev/null 2>&1
          LOG_OUT "GeoSite Database Update Successful!"
          sleep 3
