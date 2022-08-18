@@ -30,18 +30,28 @@
 	fi
    
    curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$DOWNLOAD_PATH" -o "$DASH_FILE_DIR" >/dev/null 2>&1
-   
+
    if [ "$?" -eq "0" ] && [ -s "$DASH_FILE_DIR" ] && [ -z "$(grep "404: Not Found" "$DASH_FILE_DIR")" ] && [ -z "$(grep "Package size exceeded the configured limit" "$DASH_FILE_DIR")" ]; then
-      cp -rf  "$UNPACK_FILE_DIR".  "$BACKUP_FILE_DIR" >/dev/null 2>&1
-      rm -rf "$UNPACK_FILE_DIR" >/dev/null 2>&1
-      unzip -q "$DASH_FILE_DIR" -d "$DASH_FILE_TMP" >/dev/null 2>&1
-      if [ "$?" -eq "0" ] && [ -d "$DASH_FILE_TMP$FILE_PATH_INCLUDE" ]; then
-         cp -rf "$DASH_FILE_TMP$FILE_PATH_INCLUDE"/. "$UNPACK_FILE_DIR" >/dev/null 2>&1
-         rm -rf "$DASH_FILE_DIR" >/dev/null 2>&1
-         rm -rf "$BACKUP_FILE_DIR" >/dev/null 2>&1
-         rm -rf "$DASH_FILE_TMP" >/dev/null 2>&1
-         LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Successful!" && SLOG_CLEAN
-         return 1
+      unzip -qt "$DASH_FILE_DIR" >/dev/null 2>&1
+      if [ "$?" -eq "0" ]; then
+         cp -rf  "$UNPACK_FILE_DIR".  "$BACKUP_FILE_DIR" >/dev/null 2>&1
+         rm -rf "$UNPACK_FILE_DIR" >/dev/null 2>&1
+         unzip -q "$DASH_FILE_DIR" -d "$DASH_FILE_TMP" >/dev/null 2>&1
+         if [ "$?" -eq "0" ] && [ -d "$DASH_FILE_TMP$FILE_PATH_INCLUDE" ]; then
+            cp -rf "$DASH_FILE_TMP$FILE_PATH_INCLUDE"/. "$UNPACK_FILE_DIR" >/dev/null 2>&1
+            rm -rf "$DASH_FILE_DIR" >/dev/null 2>&1
+            rm -rf "$BACKUP_FILE_DIR" >/dev/null 2>&1
+            rm -rf "$DASH_FILE_TMP" >/dev/null 2>&1
+            LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Successful!" && SLOG_CLEAN
+            return 1
+         else
+            LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Unzip Error!" && SLOG_CLEAN
+            cp -rf  "$BACKUP_FILE_DIR".  "$UNPACK_FILE_DIR" >/dev/null 2>&1
+            rm -rf "$DASH_FILE_DIR" >/dev/null 2>&1
+            rm -rf "$BACKUP_FILE_DIR" >/dev/null 2>&1
+            rm -rf "$DASH_FILE_TMP" >/dev/null 2>&1
+            return 2
+         fi
       else
          LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Unzip Error!" && SLOG_CLEAN
          cp -rf  "$BACKUP_FILE_DIR".  "$UNPACK_FILE_DIR" >/dev/null 2>&1
