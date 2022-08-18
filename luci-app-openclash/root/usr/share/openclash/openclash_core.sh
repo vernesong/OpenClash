@@ -69,11 +69,14 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                   curl -sL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
                fi
             else
-			         curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
-			      fi
-			      if [ "$?" != "0" ]; then
-			         curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
-			      fi
+			      curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+			   fi
+            if [ "$?" != "0" ]; then
+               curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+            fi
+            if [ "$?" == "0" ]; then
+               gzip -t /tmp/clash_tun.gz >/dev/null 2>&1
+            fi
 			   ;;
          "Meta")
             LOG_OUT "【Meta】Core Downloading, Please Try to Download and Upload Manually If Fails"
@@ -93,6 +96,9 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             if [ "$?" != "0" ]; then
                curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
             fi
+            if [ "$?" == "0" ]; then
+			      gzip -t /tmp/clash_meta.tar.gz >/dev/null 2>&1
+			   fi
 			   ;;
 			   *)
 			      LOG_OUT "【Dev】Core Downloading, Please Try to Download and Upload Manually If Fails"
@@ -111,6 +117,9 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			      fi
 			      if [ "$?" != "0" ]; then
 			         curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
+			      fi
+               if [ "$?" == "0" ]; then
+			         gzip -t /tmp/clash.tar.gz >/dev/null 2>&1
 			      fi
 			esac
 
@@ -164,17 +173,17 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 			      mv /tmp/clash_tun "$tun_core_path" >/dev/null 2>&1
 			   ;;
          "Meta")
-            mv /tmp/clash_meta "$meta_core_path" >/dev/null 2>&1
+               mv /tmp/clash_meta "$meta_core_path" >/dev/null 2>&1
 			   ;;
          *)
-            mv /tmp/clash "$dev_core_path" >/dev/null 2>&1
+               mv /tmp/clash "$dev_core_path" >/dev/null 2>&1
 			   esac
 			   
          if [ "$?" == "0" ]; then
             LOG_OUT "【"$CORE_TYPE"】Core Update Successful!"
             if [ "$if_restart" -eq 1 ]; then
-               uci -q set openclash.config.config_reload=0
-         	     uci -q commit openclash
+                  uci -q set openclash.config.config_reload=0
+         	      uci -q commit openclash
                if [ -z "$2" ] && [ "$1" != "one_key_update" ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
                   /etc/init.d/openclash restart >/dev/null 2>&1 &
                fi
