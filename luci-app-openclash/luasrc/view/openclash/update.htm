@@ -183,18 +183,22 @@
 
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
-		  if ( status.corever != "0" && status.corever != "" ) {
-		     core_version.value = status.corever;
-		  }
-		  else {
-		     core_version.value = "0";
-		  }
-		  if ( status.release_branch != "" ) {
-		     release_branch.value = status.release_branch;
-		  }
-		  else {
-		     release_branch.value = "master";
-		  }
+			if ( status.corever != "0" && status.corever != "" ) {
+		  		core_version.value = status.corever;
+			}
+			else {
+		  		core_version.value = "0";
+			}
+			if ( status.release_branch != "" ) {
+		  		release_branch.value = status.release_branch;
+			}
+			else {
+		  		release_branch.value = "master";
+			}
+		}
+		else {
+			core_version.value = "0";
+			release_branch.value = "master";
 		}
 	});
 	
