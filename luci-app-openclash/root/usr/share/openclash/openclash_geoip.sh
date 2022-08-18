@@ -50,6 +50,7 @@
       cmp -s /tmp/GeoIP.dat "$geoip_path"
       if [ "$?" -ne "0" ]; then
          LOG_OUT "GeoIP Dat Has Been Updated, Starting To Replace The Old Version..."
+         rm -rf "/etc/openclash/geoip.dat"
          mv /tmp/GeoIP.dat "$geoip_path" >/dev/null 2>&1
          LOG_OUT "GeoIP Dat Update Successful!"
          sleep 3
