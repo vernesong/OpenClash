@@ -3114,3 +3114,12 @@ msgstr "实验性：屏蔽 Google DNS 的局域网设备 IP"
 
 msgid "LAN Block Google DNS Mac List"
 msgstr "实验性：屏蔽 Google DNS 的局域网设备 Mac"
+
+msgid "Auto Select Logic"
+msgstr "自动选择逻辑"
+
+msgid "Urltest"
+msgstr "低延迟优先"
+
+msgid "Random"
+msgstr "随机选择"
