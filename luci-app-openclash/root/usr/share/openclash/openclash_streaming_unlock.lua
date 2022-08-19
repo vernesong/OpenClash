@@ -17,6 +17,7 @@ local now_name, group_name, group_type, group_show, status, ip, port, passwd, gr
 local groups = {}
 local proxies = {}
 local self_status = luci.sys.exec(string.format('ps -w |grep -v grep |grep -c "openclash_streaming_unlock.lua %s"', type))
+local select_logic = uci:get("openclash", "config", "stream_auto_select_logic") or "urltest"
 
 if not type then
 	print(os.date("%Y-%m-%d %H:%M:%S").." ".."Error: Streaming Unlock Has No Parameter of Type, Exiting...")
@@ -204,11 +205,16 @@ function unlock_auto_select()
 				if value.type == "Selector" then
 					--save group current selected
 					proxy_default = value.now
-					--random test
 					if not all_test then
-						value.all = table_rand(value.all)
 						--filter nodes
 						value.all = nodes_filter(value.all, info)
+						if select_logic == "random" then
+							--sort by random
+							value.all = table_rand(value.all)
+						else
+							--sort by urltest
+							value.all = table_sort_by_urltest(value.all)
+						end
 					end
 					if #(value.all) == 0 then
 						print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..value.name.."】"..no_nodes_filter)
@@ -225,13 +231,19 @@ function unlock_auto_select()
 									if group_name == value.all[i] then
 										luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, group_name, ip, port, urlencode(value.name)))
 									end
-									--random test
 									if not all_test then
-										proxies = table_rand(proxies)
 										--filter nodes
 										proxies = nodes_filter(proxies, info)
+										if select_logic == "random" then
+											--sort by random
+											proxies = table_rand(proxies)
+										else
+											--sort by urltest
+											proxies = table_sort_by_urltest(proxies)
+										end
 									end
 									if #(proxies) == 0 then
+										print("2")
 										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.."】"..no_nodes_filter)
 										break
 									end
@@ -488,7 +500,7 @@ end
 
 function urlencode(data)
 	local data = luci.sys.exec(string.format('curl -s -o /dev/null -w %%{url_effective} --get --data-urlencode "key=%s" ""', data))
-	return luci.sys.exec(string.format("echo %s |sed 's/+/%%20/g'", string.match(data, "/%?key=(.+)")))
+	return luci.sys.exec(string.format("echo -n %s |sed 's/+/%%20/g'", string.match(data, "/%?key=(.+)")))
 end
 
 function datamatch(data, regex)
@@ -510,6 +522,66 @@ function table_rand(t)
 		end
 	end
 	return tab
+end
+
+function table_sort_by_urltest(t)
+	local info, get_delay, group_delay
+	local count = 1
+	local tab = {}
+	local result = {}
+
+	if t == nil then
+		return
+	end
+
+	info = luci.sys.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/providers/proxies', passwd, ip, port))
+	if info then
+		info = json.parse(info)
+		if not info or not info.providers then return t end
+	end
+
+	for n = 1, #(t) do
+		get_delay = false
+		for _, value in pairs(info.providers) do
+			if value.proxies and value.name ~= "default" then
+				for _, v in pairs(value.proxies) do
+					if v.name == t[n] then
+						if v.history and #(v.history) ~= 0 and v.history[#(v.history)].delay ~= 0 then
+							table.insert(tab, {v.name, v.history[#(v.history)].delay})
+							get_delay = true
+						end
+					end
+					if get_delay then break end
+				end
+			end
+			if get_delay then break end
+		end
+		if not get_delay then
+			if table_include(groups, t[n]) or t[n] == "DIRECT" then
+				group_delay = luci.sys.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET "http://%s:%s/proxies/%s/delay?timeout=5000&url=http%%3A%%2F%%2F%s"', passwd, ip, port, urlencode(t[n]), "www.gstatic.com%2Fgenerate_204"))
+				if group_delay then
+					group_delay = json.parse(group_delay)
+				end
+				if group_delay.delay and group_delay.delay ~= 0 then
+					table.insert(tab, {t[n], group_delay.delay})
+				else
+					table.insert(tab, {t[n], 123456})
+				end
+			else
+				table.insert(tab, {t[n], 123456})
+			end
+		end
+	end
+
+	table.sort(tab, function(a, b)
+		return a[2] < b[2]
+	end)
+
+	for _, value in pairs(tab) do
+		table.insert(result, value[1])
+	end
+
+	return result
 end
 
 function table_include(table, value)
@@ -876,7 +948,7 @@ function netflix_unlock_test()
 	status = 0
 	local url = "https://www.netflix.com/title/"..filmId
 	local headers = "User-Agent: "..UA
-	local info = luci.sys.exec(string.format('curl -sLI --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H "Content-Type: application/json" -H "%s" -XGET %s', headers, url))
+	local info = luci.sys.exec(string.format('curl -sLI --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H "Content-Type: application/json" -H "%s" -XGET %s', headers, url))
 	local result = {}
 	local region, old_region
 	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_netflix") or ""
@@ -919,7 +991,7 @@ function disney_unlock_test()
 	local region, old_region, assertion, data, preassertion, disneycookie, tokencontent
 	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_disney") or ""
 	
-	preassertion = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 %s -H 'User-Agent: %s' -H 'content-type: application/json; charset=UTF-8' -d '{\"deviceFamily\":\"browser\",\"applicationRuntime\":\"chrome\",\"deviceProfile\":\"windows\",\"attributes\":{}}' -XPOST %s", auth, UA, url))
+	preassertion = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 %s -H 'User-Agent: %s' -H 'content-type: application/json; charset=UTF-8' -d '{\"deviceFamily\":\"browser\",\"applicationRuntime\":\"chrome\",\"deviceProfile\":\"windows\",\"attributes\":{}}' -XPOST %s", auth, UA, url))
 
 	if preassertion and json.parse(preassertion) then
 		assertion = json.parse(preassertion).assertion
@@ -928,7 +1000,7 @@ function disney_unlock_test()
 	if not assertion then return end
 
 	disneycookie = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&latitude=0&longitude=0&platform=browser&subject_token="..assertion.."&subject_token_type=urn%3Abamtech%3Aparams%3Aoauth%3Atoken-type%3Adevice"
-	tokencontent = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 %s -H 'User-Agent: %s' -d '%s' -XPOST %s", auth, UA, disneycookie, url2))
+	tokencontent = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 %s -H 'User-Agent: %s' -d '%s' -XPOST %s", auth, UA, disneycookie, url2))
 
 	if tokencontent and json.parse(tokencontent) then
 		if json.parse(tokencontent).error_description then
@@ -937,7 +1009,7 @@ function disney_unlock_test()
 		end
 	end
 	
-	data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 %s -H 'User-Agent: %s' -d '%s' -XPOST %s", headers, UA, body, url3))
+	data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 %s -H 'User-Agent: %s' -d '%s' -XPOST %s", headers, UA, body, url3))
 
 	if data and json.parse(data) then
 		status = 1
@@ -983,7 +1055,7 @@ end
 function hbo_now_unlock_test()
 	status = 0
 	local url = "https://play.hbonow.com/"
-	local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	if data then
 		data = json.parse(data)
 	end
@@ -1001,7 +1073,7 @@ end
 function hbo_max_unlock_test()
 	status = 0
 	local url = "https://www.hbomax.com/"
-	local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local result = {}
 	local region = ""
 	local old_region = ""
@@ -1039,13 +1111,13 @@ end
 function hbo_go_asia_unlock_test()
 	status = 0
 	local url = "https://api2.hbogoasia.com/v1/geog?lang=undefined&version=0&bundleId=www.hbogoasia.com"
-	local httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_hbo_go_asia") or ""
 	local region = ""
 	local old_region = ""
 	if tonumber(httpcode) == 200 then
 		status = 1
-		local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+		local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 		if data then
 			data = json.parse(data)
 		end
@@ -1076,14 +1148,14 @@ end
 function ytb_unlock_test()
 	status = 0
 	local url = "https://m.youtube.com/premium"
-	local httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local region = ""
 	local old_region = ""
 	local data, he_data
 	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_ytb") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
-		data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' -b 'YSC=BiCUU3-5Gdk; CONSENT=YES+cb.20220301-11-p0.en+FX+700; GPS=1; VISITOR_INFO1_LIVE=4VwPMkB7W5A; PREF=tz=Asia.Shanghai; _gcl_au=1.1.1809531354.1646633279' %s", UA, url))
+		data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' -b 'YSC=BiCUU3-5Gdk; CONSENT=YES+cb.20220301-11-p0.en+FX+700; GPS=1; VISITOR_INFO1_LIVE=4VwPMkB7W5A; PREF=tz=Asia.Shanghai; _gcl_au=1.1.1809531354.1646633279' %s", UA, url))
 		if string.find(data,"www%.google%.cn") or string.find(data, "is not available in your country") then
 	  		return
 	  	end
@@ -1091,7 +1163,7 @@ function ytb_unlock_test()
 		if region then
 			status = 2
 		else
-			he_data = luci.sys.exec(string.format("curl -sIL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+			he_data = luci.sys.exec(string.format("curl -sIL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 			region = string.sub(string.match(he_data, "gl=%a+"), 4, -1)
 			if region then
 				status = 2
@@ -1117,13 +1189,13 @@ end
 function tvb_anywhere_unlock_test()
 	status = 0
 	local url = "https://uapisfm.tvbanywhere.com.sg/geoip/check/platform/android"
-	local httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local region = ""
 	local old_region = ""
 	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_tvb_anywhere") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
-		local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+		local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 		if data then
 			data = json.parse(data)
 		end
@@ -1151,13 +1223,13 @@ end
 function prime_video_unlock_test()
 	status = 0
 	local url = "https://www.primevideo.com"
-	local httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local region
 	local old_region
 	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_prime_video") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
-		local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+		local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 		if data then
 	  	region = string.sub(string.match(data, "\"currentTerritory\":\"%a+\""), 21, -2)
 			if region then
@@ -1184,13 +1256,13 @@ function dazn_unlock_test()
 	status = 0
 	local url = "https://www.dazn.com"
 	local url2 = "https://startup.core.indazn.com/misl/v5/Startup"
-	local httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local region
 	local old_region
 	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_dazn") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
-		local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' -X POST -d '{\"LandingPageKey\":\"generic\",\"Languages\":\"zh-CN,zh,en\",\"Platform\":\"web\",\"PlatformAttributes\":{},\"Manufacturer\":\"\",\"PromoCode\":\"\",\"Version\":\"2\"}' %s", UA, url2))
+		local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' -X POST -d '{\"LandingPageKey\":\"generic\",\"Languages\":\"zh-CN,zh,en\",\"Platform\":\"web\",\"PlatformAttributes\":{},\"Manufacturer\":\"\",\"PromoCode\":\"\",\"Version\":\"2\"}' %s", UA, url2))
 		if data then
 			data = json.parse(data)
 		end
@@ -1221,13 +1293,13 @@ function paramount_plus_unlock_test()
 	local region
 	local old_region
 	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_paramount_plus") or ""
-	local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+	local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	data = json.parse(data)
 	if data and tonumber(data.http_code) == 200 then
 		status = 1
 		if not string.find(data.url_effective, "intl") then
 			status = 2
-			data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
+			data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 			region = string.upper(string.sub(string.match(data, "\"siteEdition\":\"%a+|%a+\""), 19, -1)) or string.upper(string.sub(string.match(data, "property: '%a+'"), 12, -2))
 			if region then
 				if fs.isfile(string.format("/tmp/openclash_%s_region", type)) then
@@ -1253,12 +1325,12 @@ function discovery_plus_unlock_test()
 	local url1 = "https://us1-prod-direct.discoveryplus.com/users/me"
 	local region
 	local regex = uci:get("openclash", "config", "stream_auto_select_region_key_discovery_plus") or ""
-	local token = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))
+	local token = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))
 	if token and json.parse(token) and json.parse(token).data and json.parse(token).data.attributes then
 		status = 1
 		token = json.parse(token).data.attributes.token
 		local cookie = string.format("-b \"_gcl_au=1.1.858579665.1632206782; _rdt_uuid=1632206782474.6a9ad4f2-8ef7-4a49-9d60-e071bce45e88; _scid=d154b864-8b7e-4f46-90e0-8b56cff67d05; _pin_unauth=dWlkPU1qWTRNR1ZoTlRBdE1tSXdNaTAwTW1Nd0xUbGxORFV0WWpZMU0yVXdPV1l6WldFeQ; _sctr=1|1632153600000; aam_fw=aam%%3D9354365%%3Baam%%3D9040990; aam_uuid=24382050115125439381416006538140778858; st=%s; gi_ls=0; _uetvid=a25161a01aa711ec92d47775379d5e4d; AMCV_BC501253513148ED0A490D45%%40AdobeOrg=-1124106680%%7CMCIDTS%%7C18894%%7CMCMID%%7C24223296309793747161435877577673078228%%7CMCAAMLH-1633011393%%7C9%%7CMCAAMB-1633011393%%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%%7CMCOPTOUT-1632413793s%%7CNONE%%7CvVersion%%7C5.2.0; ass=19ef15da-95d6-4b1d-8fa2-e9e099c9cc38.1632408400.1632406594\"", token)
-		local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s %s", UA, cookie, url1))
+		local data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s %s", UA, cookie, url1))
 		if data and json.parse(data) and json.parse(data).data and json.parse(data).data.attributes and json.parse(data).data.attributes.currentLocationSovereignTerritory then
 			region = string.upper(json.parse(data).data.attributes.currentLocationTerritory) or string.upper(json.parse(data).data.attributes.currentLocationSovereignTerritory)
 			if region then
@@ -1295,9 +1367,9 @@ function bilibili_unlock_test()
 		url = string.format("https://api.bilibili.com/pgc/player/web/playurl?avid=82846771&qn=0&type=&otype=json&ep_id=307247&fourk=1&fnver=0&fnval=16&session=%s&module=bangumi", randsession)
 		region = "CN"
 	end
-	httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))
+	httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))
 	if httpcode and tonumber(httpcode) == 200 then
-		data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 15 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))
+		data = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))
 		if data then
 			data = json.parse(data)
 			status = 1

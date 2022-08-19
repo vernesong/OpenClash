@@ -793,6 +793,12 @@ o.default = "30"
 o.datatype = "uinteger"
 o:depends("stream_auto_select", "1")
 
+o = s:taboption("stream_enhance", ListValue, "stream_auto_select_logic", font_red..bold_on..translate("Auto Select Logic")..bold_off..font_off)
+o.default = "urltest"
+o:value("urltest", translate("Urltest"))
+o:value("random", translate("Random"))
+o:depends("stream_auto_select", "1")
+
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_expand_group", font_red..bold_on..translate("Expand Group")..bold_off..font_off)
 o.description = translate("Automatically Expand The Group When Selected")
 o.default = 0
