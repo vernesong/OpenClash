@@ -243,7 +243,6 @@ function unlock_auto_select()
 										end
 									end
 									if #(proxies) == 0 then
-										print("2")
 										print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.."】"..no_nodes_filter)
 										break
 									end
