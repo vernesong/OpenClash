@@ -76,6 +76,7 @@ o.default = "false"
 o.rmempty = false
 
 o = s:option(Value, "test_url", translate("Test URL"))
+o:value("http://cp.cloudflare.com/generate_204")
 o:value("http://www.gstatic.com/generate_204")
 o:value("https://cp.cloudflare.com/generate_204")
 o.rmempty = false
