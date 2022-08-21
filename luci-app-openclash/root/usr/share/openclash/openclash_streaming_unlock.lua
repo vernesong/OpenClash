@@ -525,7 +525,6 @@ end
 
 function table_sort_by_urltest(t)
 	local info, get_delay, group_delay
-	local count = 1
 	local tab = {}
 	local result = {}
 

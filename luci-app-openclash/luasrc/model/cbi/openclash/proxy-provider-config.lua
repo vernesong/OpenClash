@@ -97,6 +97,7 @@ o:value("true", translate("Enable"))
 o.default = true
 
 o = s:option(Value, "health_check_url", translate("Health Check URL"))
+o:value("http://cp.cloudflare.com/generate_204")
 o:value("http://www.gstatic.com/generate_204")
 o:value("https://cp.cloudflare.com/generate_204")
 o.rmempty = false
