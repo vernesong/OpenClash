@@ -1945,6 +1945,9 @@ msgstr "提示: 检测到内核文件不存在，准备开始下载..."
 msgid "Tip: Detected that the Chnroute Cidr List is not Installed, Ready to Download..."
 msgstr "提示: 检测到大陆白名单列表不存在，准备开始下载..."
 
+msgid "Tip: Detected that the Chnroute Cidr List Format is wrong, Ready to Reformat..."
+msgstr "提示: 检测到大陆白名单列表格式错误，准备重新格式化..."
+
 msgid "Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well..."
 msgstr "错误：Capsh 异常，请尝试重新安装依赖【libcap】和相应的Capsh库，终止启动..."
 
@@ -3123,3 +3126,6 @@ msgstr "低延迟优先"
 
 msgid "Random"
 msgstr "随机选择"
+
+msgid "Tip: You have seted the authentication of SOCKS5/HTTP(S) proxy with"
+msgstr "提示：您为 SOCKS5/HTTP(S) 代理设置的账户密码为"

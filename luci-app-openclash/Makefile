@@ -19,8 +19,12 @@ define Package/$(PKG_NAME)
 	SUBMENU:=3. Applications
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
-	DEPENDS:=+iptables +dnsmasq-full +coreutils +coreutils-nohup +bash +curl +ca-certificates +ipset +ip-full \
-	+iptables-mod-tproxy +iptables-mod-extra +libcap +libcap-bin +ruby +ruby-yaml +kmod-tun +unzip
+	DEPENDS:=+dnsmasq-full +coreutils +coreutils-nohup +bash +curl +ca-certificates +ipset +ip-full \
+	+libcap +libcap-bin +ruby +ruby-yaml +kmod-tun +unzip \
+	+PACKAGE_firewall4:kmod-nft-tproxy \
+	+@!PACKAGE_firewall4:kmod-ipt-nat \
+	+@!PACKAGE_firewall4:iptables-mod-tproxy \
+	+@!PACKAGE_firewall4:iptables-mod-extra
 	MAINTAINER:=vernesong
 endef
 

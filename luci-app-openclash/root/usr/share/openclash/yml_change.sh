@@ -81,6 +81,7 @@ yml_auth_get()
    if [ -z "$username" ] || [ -z "$password" ]; then
       return
    else
+      LOG_OUT "Tip: You have seted the authentication of SOCKS5/HTTP(S) proxy with【$username:$password】"
       echo "  - $username:$password" >>/tmp/yaml_openclash_auth
    fi
 }
