@@ -2,6 +2,8 @@
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 
+   FW4="$(command -v fw4)"
+
    set_lock() {
       exec 879>"/tmp/lock/openclash_chn.lock" 2>/dev/null
       flock -x 879 2>/dev/null
@@ -44,8 +46,16 @@
    if [ "$?" -eq "0" ] && [ -s "/tmp/china_ip_route.txt" ]; then
       LOG_OUT "Chnroute Cidr List Download Success, Check Updated..."
       #预处理
-      echo "create china_ip_route hash:net family inet hashsize 1024 maxelem 1000000" >/tmp/china_ip_route.list
-      awk '!/^$/&&!/^#/{printf("add china_ip_route %s'" "'\n",$0)}' /tmp/china_ip_route.txt >>/tmp/china_ip_route.list
+      if [ -n "$FW4" ]; then
+         echo "define china_ip_route = {" >/tmp/china_ip_route.list
+         awk '!/^$/&&!/^#/{printf("    %s,'" "'\n",$0)}' /tmp/china_ip_route.txt >>/tmp/china_ip_route.list
+         echo "}" >>/tmp/china_ip_route.list
+         echo "add set inet fw4 china_ip_route { type ipv4_addr; flags interval; auto-merge; }" >>/tmp/china_ip_route.list
+         echo 'add element inet fw4 china_ip_route $china_ip_route' >>/tmp/china_ip_route.list
+      else
+         echo "create china_ip_route hash:net family inet hashsize 1024 maxelem 1000000" >/tmp/china_ip_route.list
+         awk '!/^$/&&!/^#/{printf("add china_ip_route %s'" "'\n",$0)}' /tmp/china_ip_route.txt >>/tmp/china_ip_route.list
+      fi
       cmp -s /tmp/china_ip_route.list "$chnr_path"
       if [ "$?" -ne "0" ]; then
          LOG_OUT "Chnroute Cidr List Has Been Updated, Starting To Replace The Old Version..."
@@ -74,8 +84,16 @@
    if [ "$?" -eq "0" ] && [ -s "/tmp/china_ip6_route.txt" ]; then
       LOG_OUT "Chnroute6 Cidr List Download Success, Check Updated..."
       #预处理
-      echo "create china_ip6_route hash:net family inet6 hashsize 1024 maxelem 1000000" >/tmp/china_ip6_route.list
-      awk '!/^$/&&!/^#/{printf("add china_ip6_route %s'" "'\n",$0)}' /tmp/china_ip6_route.txt >>/tmp/china_ip6_route.list
+      if [ -n "$FW4" ]; then
+         echo "define china_ip6_route = {" >/tmp/china_ip6_route.list
+         awk '!/^$/&&!/^#/{printf("    %s,'" "'\n",$0)}' /tmp/china_ip6_route.txt >>/tmp/china_ip6_route.list
+         echo "}" >>/tmp/china_ip6_route.list
+         echo "add set inet fw4 china_ip6_route { type ipv6_addr; flags interval; auto-merge; }" >>/tmp/china_ip6_route.list
+         echo 'add element inet fw4 china_ip6_route $china_ip6_route' >>/tmp/china_ip6_route.list
+      else
+         echo "create china_ip6_route hash:net family inet6 hashsize 1024 maxelem 1000000" >/tmp/china_ip6_route.list
+         awk '!/^$/&&!/^#/{printf("add china_ip6_route %s'" "'\n",$0)}' /tmp/china_ip6_route.txt >>/tmp/china_ip6_route.list
+      fi
       cmp -s /tmp/china_ip6_route.list "$chnr6_path"
       if [ "$?" -ne "0" ]; then
          LOG_OUT "Chnroute6 Cidr List Has Been Updated, Starting To Replace The Old Version..."
