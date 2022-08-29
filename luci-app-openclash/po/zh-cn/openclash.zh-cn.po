@@ -2713,7 +2713,7 @@ msgstr "Redir-Host 模式强制进行远程域名解析"
 msgid "Bypass Gateway Compatible"
 msgstr "旁路网关（旁路由）兼容"
 
-msgid "If The Ntwork Cannot be Connected in Bypass Gateway Mode, Please Try to Enable."
+msgid "If The Network Cannot be Connected in Bypass Gateway Mode, Please Try to Enable."
 msgstr "旁路网关（旁路由）模式下网络无法连接时请尝试启用。"
 
 msgid "Suggestion: If The Device Does Not Have WLAN, Please Disable The Lan Interface's Bridge Option"
