@@ -1203,7 +1203,7 @@ if [ -n "$FW4" ]; then
       echo "define china_ip_route_pass = {" >/tmp/openclash_china_ip_route_pass.list
       awk '!/^$/&&!/^#/&&/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("    %s,'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list >>/tmp/openclash_china_ip_route_pass.list 2>/dev/null
       echo "}" >>/tmp/openclash_china_ip_route_pass.list
-      echo "add set inet fw4 china_ip_route_pass { type ipv4_addr; flags interval; auto-merge; }" >>/tmp/openclash_china_ip_route_pass.list
+      echo "add set inet fw4 china_ip_route_pass { type ipv4_addr\; flags interval\; auto-merge\; }" >>/tmp/openclash_china_ip_route_pass.list
       echo 'add element inet fw4 china_ip_route_pass $china_ip_route_pass' >>/tmp/openclash_china_ip_route_pass.list
       awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("nftset=/%s/inet#fw4#china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list >>/tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf 2>/dev/null
       nft 'flush set inet fw4 china_ip_route_pass' 2>/dev/null
@@ -1540,7 +1540,7 @@ if [ -n "$FW4" ]; then
          echo "define china_ip6_route_pass = {" >/tmp/openclash_china_ip6_route_pass.list
          awk '!/^$/&&!/^#/&&!/^(\*?\.?)*[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})*$/{printf("    %s,'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list >>/tmp/openclash_china_ip6_route_pass.list 2>/dev/null
          echo "}" >>/tmp/openclash_china_ip6_route_pass.list
-         echo "add set inet fw4 china_ip6_route_pass { type ipv6_addr; flags interval; auto-merge; }" >>/tmp/openclash_china_ip6_route_pass.list
+         echo "add set inet fw4 china_ip6_route_pass { type ipv6_addr\; flags interval\; auto-merge\; }" >>/tmp/openclash_china_ip6_route_pass.list
          echo 'add element inet fw4 china_ip6_route_pass $china_ip6_route_pass' >>/tmp/openclash_china_ip6_route_pass.list
          awk '!/^$/&&!/^#/&&/^(\*?\.?)*[a-zA-Z0-9][-a-zA-Z0-9]{0,62}(\.[a-zA-Z0-9][-a-zA-Z0-9]{0,62})*$/{printf("nftset=/%s/inet#fw4#china_ip6_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list >>/tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf 2>/dev/null
          
