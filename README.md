@@ -8,8 +8,8 @@
 	<a target="_blank" href="https://github.com/Dreamacro/clash/releases/tag/v1.11.4">
     <img src="https://img.shields.io/badge/Clash-v1.11.4-blue.svg">
   </a>
-  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.45.51-beta">
-    <img src="https://img.shields.io/badge/source code-v0.45.51--beta-green.svg">
+  <a target="_blank" href="https://github.com/vernesong/OpenClash/tree/v0.45.52-beta">
+    <img src="https://img.shields.io/badge/source code-v0.45.52--beta-green.svg">
   </a>
   <a target="_blank" href="https://github.com/vernesong/OpenClash/releases/tag/v0.45.51-beta">
     <img src="https://img.shields.io/badge/New Release-v0.45.51--beta-orange.svg">
@@ -66,6 +66,8 @@
 * luci-compat(Luci-19.07)
 * ip6tables-mod-nat(ipv6)
 * kmod-inet-diag(PROCESS-NAME)
+* kmod-ipt-nat
+* iptables-mod-extra(Firewall4)
 
 
 编译
