@@ -9,7 +9,7 @@ uci -q delete firewall.openclash
 uci -q set firewall.openclash=include
 uci -q set firewall.openclash.type=script
 uci -q set firewall.openclash.path=/var/etc/openclash.include
-uci -q set firewall.openclash.reload=1
+[ -n "$(command -v fw4)" ] || uci -q set firewall.openclash.reload=1
 uci -q commit firewall
 
 mkdir -p /etc/openclash/config
