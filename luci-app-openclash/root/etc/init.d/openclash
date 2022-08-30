@@ -599,6 +599,9 @@ do_run_file()
       if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ]; then
          start_fail
       fi
+      if [ -z "$(cat "$chnr_path" | grep "define china_ip_route")" ] || [ -z "$(cat "$chnr6_path" grep "define china_ip6_route")" ]; then
+         start_fail
+      fi
    fi
 
    [ ! -x "$tun_core_path" ] && chmod 4755 "$tun_core_path" 2>/dev/null
