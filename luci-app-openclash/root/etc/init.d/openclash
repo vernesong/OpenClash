@@ -1383,7 +1383,7 @@ if [ -n "$FW4" ]; then
          nft insert rule inet fw4 dstnat position 0 ip daddr { 8.8.8.8, 8.8.4.4 } tcp dport 53 counter redirect to "$proxy_port" comment \"OpenClash Google DNS Hijack\" 2>/dev/null
          #udp
          if [ "$enable_udp_proxy" -eq 1 ]; then
-            modprobe nft_TPROXY >/dev/null 2>&1
+            modprobe nft_tproxy >/dev/null 2>&1
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             nft 'add chain inet fw4 openclash_mangle' 2>/dev/null
@@ -1409,7 +1409,7 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 mangle_prerouting ip protocol udp counter jump openclash_mangle' 2>/dev/null
             
          elif [ "$en_mode" = "fake-ip" ]; then
-            modprobe nft_TPROXY >/dev/null 2>&1
+            modprobe nft_tproxy >/dev/null 2>&1
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             nft 'add chain inet fw4 openclash_mangle' 2>/dev/null
@@ -1600,7 +1600,7 @@ if [ -n "$FW4" ]; then
          done
       fi
       
-      modprobe nft_TPROXY >/dev/null 2>&1
+      modprobe nft_tproxy >/dev/null 2>&1
       ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
       ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
       
