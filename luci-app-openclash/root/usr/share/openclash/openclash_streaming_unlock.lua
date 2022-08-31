@@ -210,10 +210,10 @@ function unlock_auto_select()
 						value.all = nodes_filter(value.all, info)
 						if select_logic == "random" then
 							--sort by random
-							value.all = table_rand(value.all)
+							value.all = table_rand(value.all, proxy_default)
 						else
 							--sort by urltest
-							value.all = table_sort_by_urltest(value.all)
+							value.all = table_sort_by_urltest(value.all, proxy_default)
 						end
 					end
 					if #(value.all) == 0 then
@@ -507,7 +507,7 @@ function datamatch(data, regex)
 	if result == "true" then return true else return false end
 end
 
-function table_rand(t)
+function table_rand(t, d)
 	if t == nil then
 		return
 	end
@@ -516,14 +516,18 @@ function table_rand(t)
 	while #t ~= 0 do
 		local n = math.random(0, #t)
 		if t[n] ~= nil then
-			table.insert(tab, t[n])
+			if d ~= nil and table_include(groups, d) and d == t[n] then
+				table.insert(tab, 1, t[n])
+			else
+				table.insert(tab, t[n])
+			end
 			table.remove(t, n)
 		end
 	end
 	return tab
 end
 
-function table_sort_by_urltest(t)
+function table_sort_by_urltest(t, d)
 	local info, get_delay, group_delay
 	local tab = {}
 	local result = {}
@@ -576,7 +580,11 @@ function table_sort_by_urltest(t)
 	end)
 
 	for _, value in pairs(tab) do
-		table.insert(result, value[1])
+		if d ~= nil and table_include(groups, d) and d == value[1] then
+			table.insert(result, 1, value[1])
+		else
+			table.insert(result, value[1])
+		end
 	end
 
 	return result

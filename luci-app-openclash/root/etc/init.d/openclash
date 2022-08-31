@@ -1209,6 +1209,12 @@ if [ -n "$FW4" ]; then
    if [ "$china_ip_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
       nft 'flush set inet fw4 china_ip_route'
       nft -f '/etc/openclash/china_ip_route.ipset' 2>/dev/null
+      CHNROUTE_WAIT=0
+      while ( [ -z "$(nft list sets |grep "set china_ip_route {")" ] && [ "$CHNROUTE_WAIT" -le 3 ] )
+      do
+         nft -f '/etc/openclash/china_ip_route.ipset' 2>/dev/null
+      done
+
       mkdir -p /tmp/dnsmasq.d 2>/dev/null
       
       echo "add set inet fw4 china_ip_route_pass { type ipv4_addr; flags interval; auto-merge; }" >>/tmp/openclash_china_ip_route_pass.list
@@ -1377,13 +1383,14 @@ if [ -n "$FW4" ]; then
          nft insert rule inet fw4 dstnat position 0 ip daddr { 8.8.8.8, 8.8.4.4 } tcp dport 53 counter redirect to "$proxy_port" comment \"OpenClash Google DNS Hijack\" 2>/dev/null
          #udp
          if [ "$enable_udp_proxy" -eq 1 ]; then
-            modprobe xt_TPROXY >/dev/null 2>&1
+            modprobe nft_TPROXY >/dev/null 2>&1
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             nft 'add chain inet fw4 openclash_mangle' 2>/dev/null
             nft 'flush chain inet fw4 openclash_mangle' 2>/dev/null
-            nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr {198.18.0.0/16} meta mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return' 2>/dev/null
+            nft 'add rule inet fw4 openclash_mangle udp dport 53 counter return' 2>/dev/null
+            nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr {198.18.0.0/16} mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ip saddr @localnetwork tcp sport @lan_ac_black_ports counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ip saddr @lan_ac_black_ips counter return' 2>/dev/null
@@ -1398,22 +1405,21 @@ if [ -n "$FW4" ]; then
                fi
             fi
 
-            nft 'add rule inet fw4 openclash_mangle udp dport 53 counter return' 2>/dev/null
-            nft add rule inet fw4 openclash_mangle meta l4proto { udp } meta mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
+            nft add rule inet fw4 openclash_mangle meta l4proto { udp } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
             nft 'add rule inet fw4 mangle_prerouting ip protocol udp counter jump openclash_mangle' 2>/dev/null
             
          elif [ "$en_mode" = "fake-ip" ]; then
-            modprobe xt_TPROXY >/dev/null 2>&1
+            modprobe nft_TPROXY >/dev/null 2>&1
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             nft 'add chain inet fw4 openclash_mangle' 2>/dev/null
             nft 'flush chain inet fw4 openclash_mangle' 2>/dev/null
-            nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr {198.18.0.0/16} meta mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
+            nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr {198.18.0.0/16} mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
             nft 'add rule inet fw4 mangle_prerouting ip protocol udp counter jump openclash_mangle' 2>/dev/null
 
             nft 'add chain inet fw4 openclash_mangle_output' 2>/dev/null
             nft 'flush chain inet fw4 openclash_mangle_output' 2>/dev/null
-            nft add rule inet fw4 openclash_mangle_output meta l4proto { udp } ip daddr {198.18.0.0/16} meta mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
+            nft add rule inet fw4 openclash_mangle_output meta l4proto { udp } ip daddr {198.18.0.0/16} mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
             nft 'add rule inet fw4 mangle_output ip protocol udp counter jump openclash_mangle_output' 2>/dev/null
          fi
 
@@ -1469,7 +1475,7 @@ if [ -n "$FW4" ]; then
       nft 'add rule inet fw4 openclash_mangle_output ip saddr @localnetwork meta l4proto {tcp,udp} th sport @lan_ac_black_ports counter return' 2>/dev/null
       if [ "$en_mode" = "fake-ip" ]; then
          if [ "$en_mode_tun" -eq 1 ]; then
-            nft add rule inet fw4 openclash_mangle_output meta l4proto {tcp,udp} th dport { 0-65535 } ip daddr {198.18.0.0/16} meta mark set "$PROXY_FWMARK" 2>/dev/null
+            nft add rule inet fw4 openclash_mangle_output meta l4proto {tcp,udp} th dport { 0-65535 } ip daddr {198.18.0.0/16} mark set "$PROXY_FWMARK" 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle_output meta l4proto {tcp,udp} th dport != @common_ports skuid != 65534 counter return' 2>/dev/null
             nft add rule inet fw4 openclash_mangle_output tcp dport { 0-65535 } skuid != 65534 meta mark set "$PROXY_FWMARK" 2>/dev/null
          else
@@ -1505,14 +1511,14 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 openclash_mangle ip daddr @china_ip_route ip daddr != @china_ip_route_pass counter return' 2>/dev/null
          fi
       fi
-      nft add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} th dport { 0-65535 } meta mark set "$PROXY_FWMARK" 2>/dev/null
+      nft add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} th dport { 0-65535 } mark set "$PROXY_FWMARK" 2>/dev/null
       
       if [ "$en_mode_tun" -eq 1 ]; then
          nft 'insert rule inet fw4 mangle_prerouting position 0 meta l4proto {tcp,udp} counter jump openclash_mangle' 2>/dev/null
          nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv4} tcp dport 53 counter accept comment \"OpenClash TCP DNS Hijack\" 2>/dev/null
       else
          nft 'insert rule inet fw4 mangle_prerouting position 0 meta nfproto {ipv4} tcp dport 53 counter jump openclash_dns_hijack' 2>/dev/null
-         nft add rule inet fw4 openclash_dns_hijack meta nfproto {ipv4} tcp dport 53 meta mark set "$PROXY_FWMARK" comment \"OpenClash TCP DNS Hijack\" 2>/dev/null
+         nft add rule inet fw4 openclash_dns_hijack meta nfproto {ipv4} tcp dport 53 mark set "$PROXY_FWMARK" comment \"OpenClash TCP DNS Hijack\" 2>/dev/null
          nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv4} tcp dport 53 counter accept comment \"OpenClash TCP DNS Hijack\" 2>/dev/null
          nft 'insert rule inet fw4 mangle_prerouting position 0 ip protocol udp counter jump openclash_mangle' 2>/dev/null
       fi
@@ -1548,6 +1554,12 @@ if [ -n "$FW4" ]; then
       if [ "$china_ip6_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
          nft 'flush set inet fw4 china_ip6_route'
          nft -f '/etc/openclash/china_ip6_route.ipset' 2>/dev/null
+         CHNROUTE_WAIT=0
+         while ( [ -z "$(nft list sets |grep "set china_ip6_route {")" ] && [ "$CHNROUTE_WAIT" -le 3 ] )
+         do
+            nft -f '/etc/openclash/china_ip6_route.ipset' 2>/dev/null
+         done
+
          mkdir -p /tmp/dnsmasq.d 2>/dev/null
          
          echo "add set inet fw4 china_ip6_route_pass { type ipv6_addr; flags interval; auto-merge; }" >>/tmp/openclash_china_ip6_route_pass.list
@@ -1588,7 +1600,7 @@ if [ -n "$FW4" ]; then
          done
       fi
       
-      modprobe xt_TPROXY >/dev/null 2>&1
+      modprobe nft_TPROXY >/dev/null 2>&1
       ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
       ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
       
@@ -1611,7 +1623,7 @@ if [ -n "$FW4" ]; then
       if [ "$china_ip6_route" = "1" ]; then
          nft 'add rule inet fw4 openclash_mangle_v6 ip6 daddr @china_ip6_route ip6 daddr != @china_ip6_route_pass counter return' 2>/dev/null
       fi
-      nft add rule inet fw4 openclash_mangle_v6 meta nfproto {ipv6} tcp dport { 0-65535 } meta mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash TCP Tproxy\" 2>/dev/null
+      nft add rule inet fw4 openclash_mangle_v6 meta nfproto {ipv6} tcp dport { 0-65535 } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash TCP Tproxy\" 2>/dev/null
       nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv6} jump openclash_mangle_v6' 2>/dev/null
 
       if [ -z "$_koolshare" ]; then
@@ -1625,13 +1637,13 @@ if [ -n "$FW4" ]; then
          if [ "$china_ip6_route" = "1" ]; then
             nft 'add rule inet fw4 openclash_mangle_output_v6 skuid != 65534 ip6 daddr @china_ip6_route ip6 daddr != @china_ip6_route_pass counter return' 2>/dev/null
          fi
-         nft add rule inet fw4 openclash_mangle_output_v6 meta nfproto {ipv6} skuid != 65534 tcp dport { 0-65535 } meta mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash TCP Tproxy\" 2>/dev/null
+         nft add rule inet fw4 openclash_mangle_output_v6 meta nfproto {ipv6} skuid != 65534 tcp dport { 0-65535 } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash TCP Tproxy\" 2>/dev/null
          nft 'add rule inet fw4 mangle_output meta nfproto {ipv6} counter jump openclash_mangle_output_v6' 2>/dev/null
       fi
       
       #udp
       if [ "$enable_udp_proxy" -eq 1 ] || [ -n "$en_mode_tun" ]; then
-         nft add rule inet fw4 openclash_mangle_v6 meta nfproto {ipv6} udp dport { 0-65535 } meta mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash UDP Tproxy\" 2>/dev/null
+         nft add rule inet fw4 openclash_mangle_v6 meta nfproto {ipv6} udp dport { 0-65535 } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash UDP Tproxy\" 2>/dev/null
       fi
       
       #quic
@@ -1851,8 +1863,9 @@ else
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             iptables -t mangle -N openclash
             iptables -t mangle -F openclash
-            iptables -t mangle -A openclash -p udp -d 198.18.0.0/16 -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
+            iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
+            iptables -t mangle -A openclash -p udp -d 198.18.0.0/16 -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             iptables -t mangle -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
             iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
             iptables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
@@ -1865,7 +1878,7 @@ else
                   iptables -t mangle -A openclash -m set --match-set china_ip_route dst -m set ! --match-set china_ip_route_pass dst -j RETURN >/dev/null 2>&1
                fi
             fi
-            iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
+            
             iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             iptables -t mangle -A PREROUTING -p udp -j openclash
             
