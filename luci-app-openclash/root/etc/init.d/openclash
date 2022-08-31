@@ -2213,14 +2213,11 @@ revert_firewall()
          done
       done >/dev/null 2>&1
 
-      nft 'delete set inet fw4 china_ip_route'  >/dev/null 2>&1
-      nft 'delete set inet fw4 china_ip6_route' >/dev/null 2>&1
-
-      for handle in $(nft -a list ruleset |grep -E "chain (openclash|OpenClash)" |awk -F '# handle ' '{print$2}'); do
+      for handle in $(nft -a list chains |grep -E "chain openclash|OpenClash" |awk -F '# handle ' '{print$2}'); do
          nft delete chain inet fw4 handle ${handle}
       done >/dev/null 2>&1
 
-      for handle in $(nft -a list ruleset |grep -E "set (localnetwork|china_*_route|lan_ac_|wan_ac_black_|_google_dns_|common_ports)" |awk -F '# handle ' '{print$2}'); do
+      for handle in $(nft -a list sets |grep -E "set localnetwork|china_ip|lan_ac_|wan_ac_black_|_google_dns_|common_ports" |awk -F '# handle ' '{print$2}'); do
          nft delete set inet fw4 handle ${handle}
       done >/dev/null 2>&1
    else
