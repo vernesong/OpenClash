@@ -296,7 +296,7 @@ sed -i '/^ \{0,\}secret:/d' "$DEBUG_LOG" 2>/dev/null
 #firewall
 cat >> "$DEBUG_LOG" <<-EOF
 
-#===================== 防火墙设置 =====================#
+#===================== IPTABLES 防火墙设置 =====================#
 
 #IPv4 NAT chain
 
@@ -337,6 +337,17 @@ cat >> "$DEBUG_LOG" <<-EOF
 
 EOF
 ip6tables-save -t filter >> "$DEBUG_LOG" 2>/dev/null
+
+if [ -n "$(command -v fw4)" ]; then
+cat >> "$DEBUG_LOG" <<-EOF
+
+#===================== NFTABLES 防火墙设置 =====================#
+
+EOF
+   for nft in "input" "forward" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
+      nft list chain inet fw4 dstnat >> "$DEBUG_LOG" 2>/dev/null
+   done >/dev/null 2>&1
+fi
 
 cat >> "$DEBUG_LOG" <<-EOF
 
