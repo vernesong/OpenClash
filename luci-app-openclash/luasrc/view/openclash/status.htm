@@ -284,7 +284,7 @@
 			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
 			};
 			
-			if (status.clash) {
+			if (status.clash && status.watchdog) {
 				radio_mode.style.display = "inline-block";
 				radio_de.style.display = "none";
 			}
@@ -294,7 +294,7 @@
 				radio_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
 			};
 			
-			if (status.clash) {
+			if (status.clash && status.watchdog) {
 				radio_ru_mode.style.display = "inline-block";
 			}
 			else {
@@ -451,8 +451,8 @@
 				}
 				for (i=0; i<radio.length; i++) {
 					if (radio[i].value == status.mode && ! radio[i].checked) {
-							radio[i].checked = true;
-							break
+						radio[i].checked = true;
+						break
 					}
 				}
 			}
@@ -480,13 +480,13 @@
 			if (x && x.status == 200 && status.mode) {
 				if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix")
 				{
-			   	mode.innerHTML = status.clash ? "<b style=color:green><%:Fake-IP%></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b style=color:red><%:Not Running%></b>';
-			   	radio_run_normal.innerHTML = "<%:Enhance%>"
+					mode.innerHTML = status.clash && status.watchdog ? "<b style=color:green><%:Fake-IP%></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b style=color:red><%:Not Running%></b>';
+					radio_run_normal.innerHTML = "<%:Enhance%>"
 				}
 				else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix")
 				{
-			  	 mode.innerHTML = status.clash ? "<b style=color:green><%:Redir-Host%></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b style=color:red><%:Not Running%></b>';
-			  	 radio_run_normal.innerHTML = "<%:Compatible%>"
+					mode.innerHTML = status.clash && status.watchdog ? "<b style=color:green><%:Redir-Host%></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b style=color:red><%:Not Running%></b>';
+					radio_run_normal.innerHTML = "<%:Compatible%>"
 				};
 				for (i=0; i<radio_ru.length; i++) {
 					if (radio_ru[i].value == (status["mode"].split("-")[2] == undefined ? "" : ("-" + status["mode"].split("-")[2])) && ! radio_ru[i].checked) {
