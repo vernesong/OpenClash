@@ -700,6 +700,7 @@ function action_get_run_mode()
 		luci.http.prepare_content("application/json")
 		luci.http.write_json({
 			clash = is_running(),
+			watchdog = is_watchdog(),
 			mode = mode();
 		})
 	else
