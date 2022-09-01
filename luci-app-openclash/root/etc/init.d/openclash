@@ -594,18 +594,18 @@ do_run_file()
          /usr/share/openclash/openclash_chnroute.sh
       fi
       if [ -n "$FW4" ]; then
-         if [ -z "$(cat "$chnr_path" | grep "define china_ip_route")" ] || [ -z "$(cat "$chnr6_path" grep "define china_ip6_route")" ]; then
+         if [ -z "$(cat "$chnr_path" |grep "define china_ip_route")" ] || [ -z "$(cat "$chnr6_path" |grep "define china_ip6_route")" ]; then
             LOG_OUT "Tip: Detected that the Chnroute Cidr List Format is wrong, Ready to Reformat..."
             /usr/share/openclash/openclash_chnroute.sh
-            if [ -z "$(cat "$chnr_path" | grep "define china_ip_route")" ] || [ -z "$(cat "$chnr6_path" grep "define china_ip6_route")" ]; then
+            if [ -z "$(cat "$chnr_path" |grep "define china_ip_route")" ] || [ -z "$(cat "$chnr6_path" |grep "define china_ip6_route")" ]; then
                start_fail
             fi
          fi
       else
-         if [ -n "$(cat "$chnr_path" | grep "define china_ip_route")" ] || [ -n "$(cat "$chnr6_path" grep "define china_ip6_route")" ]; then
+         if [ -n "$(cat "$chnr_path" |grep "define china_ip_route")" ] || [ -n "$(cat "$chnr6_path" |grep "define china_ip6_route")" ]; then
             LOG_OUT "Tip: Detected that the Chnroute Cidr List Format is wrong, Ready to Reformat..."
             /usr/share/openclash/openclash_chnroute.sh
-            if [ -n "$(cat "$chnr_path" | grep "define china_ip_route")" ] || [ -n "$(cat "$chnr6_path" grep "define china_ip6_route")" ]; then
+            if [ -n "$(cat "$chnr_path" |grep "define china_ip_route")" ] || [ -n "$(cat "$chnr6_path" |grep "define china_ip6_route")" ]; then
                start_fail
             fi
          fi
