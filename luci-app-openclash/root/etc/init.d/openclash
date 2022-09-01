@@ -1904,7 +1904,7 @@ else
 
             iptables -t mangle -N openclash_output
             iptables -t mangle -F openclash_output
-            iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -d 198.18.0.0/16 -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
+            iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
             iptables -t mangle -A OUTPUT -p udp -j openclash_output
          fi
 
