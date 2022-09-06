@@ -1348,7 +1348,7 @@ if [ -n "$FW4" ]; then
       nft add rule inet fw4 openclash_post meta mark "$PROXY_FWMARK" counter accept 2>/dev/null
       nft 'add rule inet fw4 openclash_post ip daddr @localnetwork counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash_post meta nfproto {ipv4} fib saddr type != { local } meta skuid != 65534 counter masquerade' 2>/dev/null
-      nft add rule inet fw4 srcnat counter jump openclash_post comment \"OpenClash Bypass Gateway Compatible\" 2>/dev/null
+      nft add rule inet fw4 srcnat meta nfproto {ipv4} counter jump openclash_post comment \"OpenClash Bypass Gateway Compatible\" 2>/dev/null
    fi
 
    #intranet allowed
@@ -1402,7 +1402,7 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle udp dport 53 counter return' 2>/dev/null
             nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr {198.18.0.0/16} mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
-            nft 'add rule inet fw4 openclash_mangle ip saddr @localnetwork tcp sport @lan_ac_black_ports counter return' 2>/dev/null
+            nft 'add rule inet fw4 openclash_mangle ip saddr @localnetwork udp sport @lan_ac_black_ports counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ip saddr @lan_ac_black_ips counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ether saddr @lan_ac_black_macs counter return' 2>/dev/null
@@ -1410,7 +1410,7 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 openclash_mangle ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
 
             if [ "$en_mode" = "redir-host" ]; then
-               nft 'add rule inet fw4 openclash_mangle tcp dport != @common_ports counter return' 2>/dev/null
+               nft 'add rule inet fw4 openclash_mangle udp dport != @common_ports counter return' 2>/dev/null
                if [ "$china_ip_route" = "1" ]; then
                   nft 'add rule inet fw4 openclash_mangle ip daddr @china_ip_route ip daddr != @china_ip_route_pass counter return' 2>/dev/null
                fi
@@ -1621,6 +1621,7 @@ if [ -n "$FW4" ]; then
       nft 'add chain inet fw4 openclash_mangle_v6' 2>/dev/null
       nft 'flush chain inet fw4 openclash_mangle_v6' 2>/dev/null
       nft 'add rule inet fw4 openclash_mangle_v6 ip6 daddr @localnetwork6 counter return' 2>/dev/null
+      nft 'add rule inet fw4 openclash_mangle_v6 meta nfproto {ipv6} udp dport 53 counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash_mangle_v6 ip6 saddr @localnetwork6 meta nfproto {ipv6} sport @lan_ac_black_ports counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash_mangle_v6 ip6 daddr @wan_ac_black_ipv6s counter return' 2>/dev/null
 
@@ -2111,6 +2112,7 @@ else
       ip6tables -t mangle -N openclash
       ip6tables -t mangle -F openclash
       ip6tables -t mangle -A openclash -m set --match-set localnetwork6 dst -j RETURN
+      ip6tables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
       ip6tables -t mangle -A openclash -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN
       ip6tables -t mangle -A openclash -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
       if [ "$en_mode" == "redir-host" ]; then
@@ -2141,9 +2143,8 @@ else
       fi
       
       #udp
-      if [ "$enable_udp_proxy" -eq 1 ] || [ -n "$en_mode_tun" ]; then
-         ip6tables -t mangle -A openclash_output -p udp -m owner ! --uid-owner 65534 -j MARK --set-xmark "$PROXY_FWMARK"
-         ip6tables -t mangle -A openclash -p udp -m comment --comment "OpenClash TCP Tproxy" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
+      if [ "$enable_udp_proxy" -eq 1 ]; then
+         ip6tables -t mangle -A openclash -p udp -m comment --comment "OpenClash UDP Tproxy" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
       fi
       
       #quic

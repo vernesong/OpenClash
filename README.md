@@ -46,7 +46,7 @@
 
 * luci
 * luci-base
-* iptables
+* iptables(iptables)
 * dnsmasq-full
 * coreutils
 * coreutils-nohup
@@ -55,19 +55,19 @@
 * ca-certificates
 * ipset
 * ip-full
-* iptables-mod-tproxy
-* iptables-mod-extra
+* iptables-mod-tproxy(iptables)
+* iptables-mod-extra(iptables)
 * libcap
 * libcap-bin
 * ruby
 * ruby-yaml
 * unzip
 * kmod-tun(TUN模式)
-* luci-compat(Luci-19.07)
-* ip6tables-mod-nat(ipv6)
+* luci-compat(Luci >= 19.07)
+* ip6tables-mod-nat(iptables-ipv6)
 * kmod-inet-diag(PROCESS-NAME)
-* kmod-ipt-nat
-* iptables-mod-extra(Firewall4)
+* kmod-ipt-nat(iptables)
+* kmod-nft-tproxy(Firewall4)
 
 
 编译
