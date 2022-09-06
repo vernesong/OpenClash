@@ -24,6 +24,7 @@ dns_port=$(uci -q get openclash.config.dns_port)
 enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
 disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
 default_resolvfile=$(uci -q get openclash.config.default_resolvfile)
+FW4="$(command -v fw4)"
 if_restart=0
 only_download=0
 set_lock
@@ -237,10 +238,24 @@ change_dns()
          uci commit dhcp
          /etc/init.d/dnsmasq restart >/dev/null 2>&1
       fi
-      iptables -t nat -D OUTPUT -j openclash_output >/dev/null 2>&1
-      iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
-      iptables -t nat -I OUTPUT -j openclash_output >/dev/null 2>&1
-      iptables -t mangle -I OUTPUT -j openclash_output >/dev/null 2>&1
+      
+      if [ -n "$FW4" ]; then
+         for nft in "nat_output" "mangle_output"; do
+            local handles=$(nft -a list chain inet fw4 ${nft} |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$2}')
+            local rules=$(nft -a list chain inet fw4 ${nft} |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$1}' |sed 's/^[ \t]*//g')
+            for handle in $handles; do
+               nft delete rule inet fw4 ${nft} handle ${handle}
+            done
+            for rule in $rules; do
+                nft add rule inet fw4 ${nft} ${rule}
+            done
+         done >/dev/null 2>&1
+      else
+         iptables -t nat -D OUTPUT -j openclash_output >/dev/null 2>&1
+         iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
+         iptables -t nat -A OUTPUT -j openclash_output >/dev/null 2>&1
+         iptables -t mangle -A OUTPUT -j openclash_output >/dev/null 2>&1
+      fi
       [ "$(unify_ps_status "openclash_watchdog.sh")" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && nohup /usr/share/openclash/openclash_watchdog.sh &
    fi
 }
@@ -304,8 +319,17 @@ EOF
          uci commit dhcp
          /etc/init.d/dnsmasq restart >/dev/null 2>&1
       fi
-      iptables -t nat -D OUTPUT -j openclash_output >/dev/null 2>&1
-      iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
+      if [ -n "$FW4" ]; then
+         for nft in "nat_output" "mangle_output"; do
+            local handles=$(nft -a list chain inet fw4 ${nft} |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$2}')
+            for handle in $handles; do
+               nft delete rule inet fw4 ${nft} handle ${handle}
+            done
+         done >/dev/null 2>&1
+      else
+         iptables -t nat -D OUTPUT -j openclash_output >/dev/null 2>&1
+         iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
+      fi
       sleep 3
 
       config_download
