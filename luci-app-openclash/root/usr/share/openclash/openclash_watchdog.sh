@@ -6,6 +6,7 @@ CLASH_CONFIG="/etc/openclash"
 LOG_FILE="/tmp/openclash.log"
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
+ipv6_enable=$(uci -q get openclash.config.ipv6_enable)
 enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
 dns_port=$(uci -q get openclash.config.dns_port)
 disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
@@ -23,6 +24,7 @@ CRASH_NUM=0
 CFG_UPDATE_INT=1
 STREAM_DOMAINS_PREFETCH=1
 STREAM_AUTO_SELECT=1
+FW4="$(command -v fw4)"
 sleep 60
 
 while :;
@@ -116,7 +118,64 @@ fi
       iptables -t nat -A PREROUTING -p tcp -j openclash
       LOG_OUT "Watchdog: Setting Firewall For Enabling Redirect..."
    fi
-   
+
+## Localnetwork 刷新
+   lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^198.18" 2>/dev/null)
+   lan_ip6_cidrs=$(ip -6 route | grep "/" | awk '{print $1}' | grep -vE "^unreachable" 2>/dev/null)
+   wan_ip4s=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 | grep -vE "(^198.18|^192.168|^127.0)" 2>/dev/null)
+   if [ -n "$FW4" ]; then
+      if [ -n "$lan_ip_cidrs" ]; then
+         for lan_ip_cidr in $lan_ip_cidrs; do
+            nft add element inet fw4 localnetwork { "$lan_ip_cidr" } 2>/dev/null
+         done
+      fi
+
+      if [ -n "$wan_ip4s" ]; then
+         for wan_ip4 in $wan_ip4s; do
+            nft add element inet fw4 localnetwork { "$wan_ip4" } 2>/dev/null
+         done
+      fi
+
+      if [ "$ipv6_enable" -eq 1 ]; then
+         if [ -n "$lan_ip6_cidrs" ]; then
+            for lan_ip6_cidr in $lan_ip6_cidrs; do
+               nft add element inet fw4 localnetwork6 { "$lan_ip6_cidr" } 2>/dev/null
+            done
+         fi
+
+         if [ -n "$wan_ip6s" ]; then
+            for wan_ip6 in $wan_ip6s; do
+               nft add element inet fw4 localnetwork6 { "$wan_ip6" } 2>/dev/null
+            done
+         fi
+      fi
+   else
+      if [ -n "$lan_ip_cidrs" ]; then
+         for lan_ip_cidr in $lan_ip_cidrs; do
+            ipset add localnetwork "$lan_ip_cidr" 2>/dev/null
+         done
+      fi
+
+      if [ -n "$wan_ip4s" ]; then
+         for wan_ip4 in $wan_ip4s; do
+            ipset add localnetwork "$wan_ip4" 2>/dev/null
+         done
+      fi
+      if [ "$ipv6_enable" -eq 1 ]; then
+         if [ -n "$lan_ip6_cidrs" ]; then
+            for lan_ip6_cidr in $lan_ip6_cidrs; do
+               ipset add localnetwork6 "$lan_ip6_cidr" 2>/dev/null
+            done
+         fi
+
+         if [ -n "$wan_ip6s" ]; then
+            for wan_ip6 in $wan_ip6s; do
+               ipset add localnetwork6 "$wan_ip6" 2>/dev/null
+            done
+         fi
+      fi
+   fi
+
 ## DNS转发劫持
    if [ "$enable_redirect_dns" -ne 0 ]; then
       if [ -z "$(uci -q get dhcp.@dnsmasq[0].server |grep "$dns_port")" ] || [ ! -z "$(uci -q get dhcp.@dnsmasq[0].server |awk -F ' ' '{print $2}')" ]; then
