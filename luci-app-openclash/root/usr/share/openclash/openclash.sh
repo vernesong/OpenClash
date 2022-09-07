@@ -242,13 +242,17 @@ change_dns()
       if [ -n "$FW4" ]; then
          for nft in "nat_output" "mangle_output"; do
             local handles=$(nft -a list chain inet fw4 ${nft} |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$2}')
-            local rules=$(nft -a list chain inet fw4 ${nft} |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$1}' |sed 's/^[ \t]*//g')
             for handle in $handles; do
                nft delete rule inet fw4 ${nft} handle ${handle}
             done
-            for rule in $rules; do
-                nft add rule inet fw4 ${nft} ${rule}
-            done
+         done >/dev/null 2>&1
+         echo "$nat_output_rules" |while read line
+         do >/dev/null 2>&1
+            nft add rule inet fw4 nat_output ${line}
+         done
+         echo "$mangle_output_rules" |while read line
+         do
+            nft add rule inet fw4 mangle_output ${line}
          done >/dev/null 2>&1
       else
          iptables -t nat -D OUTPUT -j openclash_output >/dev/null 2>&1
@@ -320,6 +324,8 @@ EOF
          /etc/init.d/dnsmasq restart >/dev/null 2>&1
       fi
       if [ -n "$FW4" ]; then
+         nat_output_rules=$(nft -a list chain inet fw4 nat_output |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$1}' |sed 's/^[ \t]*//g')
+         mangle_output_rules=$(nft -a list chain inet fw4 mangle_output |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$1}' |sed 's/^[ \t]*//g')
          for nft in "nat_output" "mangle_output"; do
             local handles=$(nft -a list chain inet fw4 ${nft} |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$2}')
             for handle in $handles; do
