@@ -962,19 +962,19 @@ firewall_rule_exclude()
             for i in $dest_port; do
                if $e_tcp ; then
                   if [ -z "$dest_ip" ]; then
-                     nft insert rule inet fw4 openclash_mangle position 0 meta nfproto {ipv6} tcp sport "$i" counter return >/dev/null 2>&1
+                     nft insert rule inet fw4 openclash_mangle_v6 position 0 meta nfproto {ipv6} tcp sport "$i" counter return >/dev/null 2>&1
                   else
-                     nft insert rule inet fw4 openclash_mangle position 0 ip6 saddr { "$dest_ip" } tcp sport "$i" counter return >/dev/null 2>&1
+                     nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$i" counter return >/dev/null 2>&1
                   fi
-                  nft insert rule inet fw4 openclash_mangle_output position 0 meta nfproto {ipv6} tcp sport "$i" counter return >/dev/null 2>&1
+                  nft insert rule inet fw4 openclash_mangle_output_v6 position 0 meta nfproto {ipv6} tcp sport "$i" counter return >/dev/null 2>&1
                fi
                if $e_udp ; then
                   if [ -z "$dest_ip" ]; then
-                     nft insert rule inet fw4 openclash_mangle position 0 meta nfproto {ipv6} udp sport "$i" counter return >/dev/null 2>&1
+                     nft insert rule inet fw4 openclash_mangle_v6 position 0 meta nfproto {ipv6} udp sport "$i" counter return >/dev/null 2>&1
                   else
-                     nft insert rule inet fw4 openclash_mangle position 0 ip6 saddr { "$dest_ip" } udp sport "$i" counter return >/dev/null 2>&1
+                     nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } udp sport "$i" counter return >/dev/null 2>&1
                   fi
-                  nft insert rule inet fw4 openclash_mangle_output position 0 meta nfproto {ipv6} udp sport "$i" counter return >/dev/null 2>&1
+                  nft insert rule inet fw4 openclash_mangle_output_v6 position 0 meta nfproto {ipv6} udp sport "$i" counter return >/dev/null 2>&1
                fi
             done
          fi
@@ -1113,19 +1113,19 @@ firewall_redirect_exclude()
       if [ "$ipv6_enable" -eq 1 ]; then
          if $e_tcp ; then
             if [ -n "$dest_ip" ]; then
-               nft insert rule inet fw4 openclash_mangle position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
-               nft insert rule inet fw4 openclash_mangle position 0 ip6 saddr { "$dest_ip" } tcp dport "$src_dport" counter return >/dev/null 2>&1
+               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
+               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } tcp dport "$src_dport" counter return >/dev/null 2>&1
             fi
-            nft insert rule inet fw4 openclash_mangle_output position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
-            nft insert rule inet fw4 openclash_mangle_output position 0 ip6 saddr { "$dest_ip" } tcp dport "$src_dport" counter return >/dev/null 2>&1
+            nft insert rule inet fw4 openclash_mangle_output_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
+            nft insert rule inet fw4 openclash_mangle_output_v6 position 0 ip6 saddr { "$dest_ip" } tcp dport "$src_dport" counter return >/dev/null 2>&1
          fi
          if $e_udp ; then
             if [ -n "$dest_ip" ]; then
-               nft insert rule inet fw4 openclash_mangle position 0 ip6 saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
-               nft insert rule inet fw4 openclash_mangle position 0 ip6 saddr { "$dest_ip" } udp dport "$src_dport" counter return >/dev/null 2>&1
+               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
+               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } udp dport "$src_dport" counter return >/dev/null 2>&1
             fi
-            nft insert rule inet fw4 openclash_mangle_output position 0 ip6 saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
-            nft insert rule inet fw4 openclash_mangle_output position 0 ip6 saddr { "$dest_ip" } udp dport "$src_dport" counter return >/dev/null 2>&1
+            nft insert rule inet fw4 openclash_mangle_output_v6 position 0 ip6 saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
+            nft insert rule inet fw4 openclash_mangle_output_v6 position 0 ip6 saddr { "$dest_ip" } udp dport "$src_dport" counter return >/dev/null 2>&1
          fi
       fi
    else
