@@ -549,7 +549,7 @@ yml_other_set()
                if defined? Value_2 then
                   Value_2.each{|x|
                      if ${10} != 1 then
-                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
+                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                            puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                            next
                         end;
@@ -583,7 +583,7 @@ yml_other_set()
                   end;
                   Value_4.each{|x|
                      if ${10} != 1 then
-                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
+                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                            puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                            next
                         end;
@@ -602,7 +602,7 @@ yml_other_set()
                  if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
                      Value_1.each{|x|
                      if ${10} != 1 then
-                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
+                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                            puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                            Value_1.delete(x);
                         end;
@@ -614,7 +614,7 @@ yml_other_set()
                elsif Value_1.class.to_s == 'Array' then
                   Value_1.each{|x|
                      if ${10} != 1 then
-                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
+                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                            puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                            Value_1.delete(x);
                         end;
@@ -633,7 +633,7 @@ yml_other_set()
                      if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
                         Value_2.each{|x|
                            if ${10} != 1 then
-                              if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
+                              if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                                  puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                                  Value_2.delete(x);
                               end;
@@ -645,7 +645,7 @@ yml_other_set()
                   elsif Value_2.class.to_s == 'Array' then
                      Value_2.each{|x|
                         if ${10} != 1 then
-                           if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
+                           if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                               puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                               Value_2.delete(x);
                            end;
@@ -675,7 +675,7 @@ yml_other_set()
                      end
                      Value_3.each{|x|
                         if ${10} != 1 then
-                           if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
+                           if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                               puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                               next
                            end;
@@ -687,6 +687,54 @@ yml_other_set()
                end;
             end;
          end;
+      end;
+   #SUB-RULE
+      if ${10} == 1 then
+         if Value.has_key?('sub-rules') and not Value['sub-rules'].to_a.empty? then
+            if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
+               Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
+               if Value_1 != false then
+                  if Value_1.class.to_s == 'Hash' then
+                     if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
+                        Value['sub-rules'] = Value['sub-rules'].merge!(Value_1['sub-rules']);
+                     end;
+                  end;
+               end;
+            end;
+            if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
+               Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
+               if Value_2 != false then
+                  if Value_2.class.to_s == 'Hash' then
+                     if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
+                        Value['sub-rules'] = Value['sub-rules'].merge!(Value_2['sub-rules']);
+                     end;
+                  end;
+               end;
+            end;
+         else
+            if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
+               Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
+               if Value_1 != false then
+                  if Value_1.class.to_s == 'Hash' then
+                     if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
+                        Value['sub-rules'] = Value_1['sub-rules'];
+                     end;
+                  end;
+               end;
+            end;
+            if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
+               Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
+               if Value_2 != false then
+                  if Value_2.class.to_s == 'Hash' then
+                     if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
+                        Value['sub-rules'] = Value_2['sub-rules'];
+                     end;
+                  end;
+               end;
+            end;
+         end;
+      else
+         puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【sub-rules】'
       end;
    end;
    }.join;
