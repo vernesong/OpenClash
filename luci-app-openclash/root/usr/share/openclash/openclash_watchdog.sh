@@ -48,6 +48,7 @@ do
    stream_auto_select_paramount_plus=$(uci -q get openclash.config.stream_auto_select_paramount_plus || echo 0)
    stream_auto_select_discovery_plus=$(uci -q get openclash.config.stream_auto_select_discovery_plus || echo 0)
    stream_auto_select_bilibili=$(uci -q get openclash.config.stream_auto_select_bilibili || echo 0)
+   stream_auto_select_google_not_cn=$(uci -q get openclash.config.stream_auto_select_google_not_cn || echo 0)
    
    enable=$(uci -q get openclash.config.enable)
 
@@ -256,6 +257,10 @@ fi
             if [ "$stream_auto_select_bilibili" -eq 1 ]; then
                LOG_OUT "Tip: Start Auto Select Proxy For Bilibili Unlock..."
                /usr/share/openclash/openclash_streaming_unlock.lua "Bilibili" >> $LOG_FILE
+            fi
+            if [ "$stream_auto_select_google_not_cn" -eq 1 ]; then
+               LOG_OUT "Tip: Start Auto Select Proxy For Google Not CN Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "Google" >> $LOG_FILE
             fi
          fi
       fi
