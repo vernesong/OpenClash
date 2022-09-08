@@ -1207,6 +1207,28 @@ o.template = "openclash/other_stream_option"
 o.value = "Bilibili"
 o:depends("stream_auto_select_bilibili", "1")
 
+--Google not cn
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_google_not_cn", font_red..translate("Google Not CN")..font_off)
+o.default = 0
+o:depends("stream_auto_select", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_google_not_cn", translate("Group Filter"))
+o.default = "Google"
+o.placeholder = "Google"
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_google_not_cn", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_google_not_cn", translate("Unlock Nodes Filter"))
+o.default = ""
+o.description = translate("It Will Be Selected Nodes According To The Regex")
+o:depends("stream_auto_select_google_not_cn", "1")
+
+o = s:taboption("stream_enhance", DummyValue, "Google", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "Google"
+o:depends("stream_auto_select_google_not_cn", "1")
+
 ---- update Settings
 o = s:taboption("rules_update", Flag, "other_rule_auto_update", translate("Auto Update"))
 o.description = font_red..bold_on..translate("Auto Update Other Rules")..bold_off..font_off

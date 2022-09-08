@@ -2575,6 +2575,9 @@ msgstr "提示：开始自动选择（检测）Discovery Plus 解锁节点..."
 msgid "Tip: Start Auto Select Proxy For Bilibili Unlock..."
 msgstr "提示：开始自动选择（检测）Bilibili 解锁节点..."
 
+msgid "Tip: Start Auto Select Proxy For Google Not CN Unlock..."
+msgstr "提示：开始自动选择（检测）Google 非送中节点..."
+
 msgid "Netflix Group:"
 msgstr "Netflix 策略组："
 
@@ -2610,6 +2613,9 @@ msgstr "Discovery Plus 策略组："
 
 msgid "Bilibili Group:"
 msgstr "Bilibili 策略组："
+
+msgid "Google Group:"
+msgstr "Google 策略组："
 
 msgid "full support."
 msgstr "完整解锁。"
@@ -3129,3 +3135,6 @@ msgstr "随机选择"
 
 msgid "Tip: You have seted the authentication of SOCKS5/HTTP(S) proxy with"
 msgstr "提示：您为 SOCKS5/HTTP(S) 代理设置的账户密码为"
+
+msgid "Google Not CN"
+msgstr "Google 非送中"
