@@ -16,6 +16,7 @@ rules:
 - RULE-SET,ABC,Global TV
 - RULE-SET,Abema TV,Global TV
 - RULE-SET,Amazon,Global TV
+- RULE-SET,Apple Music,Global TV
 - RULE-SET,Apple News,Global TV
 - RULE-SET,Apple TV,Global TV
 - RULE-SET,Bahamut,Global TV
@@ -43,7 +44,7 @@ rules:
 - RULE-SET,ViuTV,Global TV
 - RULE-SET,Telegram,Telegram
 - RULE-SET,Crypto,Crypto
-- RULE-SET,Douyin,Douyin
+- RULE-SET,Discord,Discord
 - RULE-SET,Steam,Steam
 - RULE-SET,Speedtest,Speedtest
 - RULE-SET,PayPal,PayPal
@@ -77,6 +78,7 @@ script:
             "ABC": "Global TV",
             "Abema TV": "Global TV",
             "Amazon": "Global TV",
+            "Apple Music": "Global TV",
             "Apple News": "Global TV",
             "Apple TV": "Global TV",
             "Bahamut": "Global TV",
@@ -104,7 +106,7 @@ script:
             "ViuTV": "Global TV",
             "Telegram": "Telegram",
             "Crypto": "Crypto",
-            "Douyin": "Douyin",
+            "Discord": "Discord",
             "Steam": "Steam",
             "Speedtest": "Speedtest",
             "PayPal": "PayPal",
@@ -243,6 +245,12 @@ rule-providers:
     behavior: classical
     url: https://fastly.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Media/Amazon.yaml
     path: "./Rules/Media/Amazon"
+    interval: 86400
+  Apple Music:
+    type: http
+    behavior: classical
+    url: https://fastly.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Media/Apple%20Music.yaml
+    path: "./Rules/Media/Apple_Music"
     interval: 86400
   Apple News:
     type: http
@@ -412,11 +420,11 @@ rule-providers:
     url: https://fastly.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Crypto.yaml
     path: "./Rules/Crypto"
     interval: 86400
-  Douyin:
+  Discord:
     type: http
     behavior: classical
-    url: https://fastly.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Douyin.yaml
-    path: "./Rules/Douyin"
+    url: https://fastly.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Discord.yaml
+    path: "./Rules/Discord"
     interval: 86400
   Steam:
     type: http
