@@ -3138,3 +3138,6 @@ msgstr "提示：您为 SOCKS5/HTTP(S) 代理设置的账户密码为"
 
 msgid "Google Not CN"
 msgstr "Google 非送中"
+
+msgid "In Fake-ip Mode, Even If This Option is Turned Off, Domain Type Connections Still Pass Through The Core For The Availability"
+msgstr "在 Fake-IP 模式时，即使关闭此选项，域名类型的连接仍将通过核心以保证可用性"
