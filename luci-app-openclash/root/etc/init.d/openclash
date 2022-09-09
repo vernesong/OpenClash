@@ -1401,7 +1401,9 @@ if [ -n "$FW4" ]; then
             nft 'flush chain inet fw4 openclash_mangle' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle udp dport 53 counter return' 2>/dev/null
-            nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr {198.18.0.0/16} mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
+            if [ "$en_mode" = "fake-ip" ]; then
+               nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr {198.18.0.0/16} mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
+            fi
             nft 'add rule inet fw4 openclash_mangle ip saddr @localnetwork udp sport @lan_ac_black_ports counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ip saddr @lan_ac_black_ips counter return' 2>/dev/null
@@ -1877,7 +1879,9 @@ else
             iptables -t mangle -F openclash
             iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
             iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
-            iptables -t mangle -A openclash -p udp -d 198.18.0.0/16 -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
+            if [ "$en_mode" = "fake-ip" ]; then
+               iptables -t mangle -A openclash -p udp -d 198.18.0.0/16 -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
+            fi
             iptables -t mangle -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
             iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
             iptables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
