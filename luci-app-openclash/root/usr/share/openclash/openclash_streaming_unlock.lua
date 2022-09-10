@@ -1417,12 +1417,12 @@ function google_not_cn_test()
 	local region
 	local httpcode = luci.sys.exec(string.format("curl -sL --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))
 	if httpcode then
-		if tonumber(httpcode) == 400 then
-			region = "CN"
-			status = 1
-		else
+		if tonumber(httpcode) == 200 then
 			status = 2
 			region = "NOT CN"
+		else
+			region = "CN"
+			status = 1
 		end
 		return region
 	end
