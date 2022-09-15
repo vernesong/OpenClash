@@ -649,7 +649,7 @@ Thread.new{
          else
             Value['dns'].merge!({'fake-ip-filter'=>['+.dns.google']});
          end;
-      fi
+      end;
    elsif ${19} == 1 then
       if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
          Value['dns']['fake-ip-filter'].insert(-1,'+.*');
