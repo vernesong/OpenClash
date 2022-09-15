@@ -13,6 +13,7 @@ ipv6_dns=$(uci -q get openclash.config.ipv6_dns || echo 0)
 tolerance=$(uci -q get openclash.config.tolerance || echo 0)
 custom_fallback_filter=$(uci -q get openclash.config.custom_fallback_filter || echo 0)
 enable_meta_core=$(uci -q get openclash.config.enable_meta_core || echo 0)
+lan_block_google_dns=$(uci -q get openclash.config.lan_block_google_dns_ips || uci -q get openclash.config.lan_block_google_dns_macs || echo 0)
 
 if [ -n "$(ruby_read "$5" "['tun']")" ]; then
    uci -q set openclash.config.config_reload=0
@@ -641,12 +642,14 @@ Thread.new{
             Value['dns'].merge!({'fake-ip-filter'=>['+.nflxvideo.net', '+.media.dssott.com']});
          end;
       end;
-      if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-         Value['dns']['fake-ip-filter'].insert(-1,'+.dns.google');
-         Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
-      else
-         Value['dns'].merge!({'fake-ip-filter'=>['+.dns.google']});
-      end;
+      if '$lan_block_google_dns' != '0' then
+         if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+            Value['dns']['fake-ip-filter'].insert(-1,'+.dns.google');
+            Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
+         else
+            Value['dns'].merge!({'fake-ip-filter'=>['+.dns.google']});
+         end;
+      fi
    elsif ${19} == 1 then
       if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
          Value['dns']['fake-ip-filter'].insert(-1,'+.*');
