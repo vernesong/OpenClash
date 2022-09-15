@@ -218,6 +218,10 @@ fi
                LOG_OUT "Tip: Start Auto Select Proxy For Disney Plus Unlock..."
                /usr/share/openclash/openclash_streaming_unlock.lua "Disney Plus" >> $LOG_FILE
             fi
+            if [ "$stream_auto_select_google_not_cn" -eq 1 ]; then
+               LOG_OUT "Tip: Start Auto Select Proxy For Google Not CN Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "Google" >> $LOG_FILE
+            fi
             if [ "$stream_auto_select_ytb" -eq 1 ]; then
                LOG_OUT "Tip: Start Auto Select Proxy For YouTube Premium Unlock..."
                /usr/share/openclash/openclash_streaming_unlock.lua "YouTube Premium" >> $LOG_FILE
@@ -257,10 +261,6 @@ fi
             if [ "$stream_auto_select_bilibili" -eq 1 ]; then
                LOG_OUT "Tip: Start Auto Select Proxy For Bilibili Unlock..."
                /usr/share/openclash/openclash_streaming_unlock.lua "Bilibili" >> $LOG_FILE
-            fi
-            if [ "$stream_auto_select_google_not_cn" -eq 1 ]; then
-               LOG_OUT "Tip: Start Auto Select Proxy For Google Not CN Unlock..."
-               /usr/share/openclash/openclash_streaming_unlock.lua "Google" >> $LOG_FILE
             fi
          fi
       fi
