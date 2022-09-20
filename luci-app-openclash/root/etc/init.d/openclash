@@ -1345,6 +1345,7 @@ if [ -n "$FW4" ]; then
       #nft 'delete chain inet fw4 openclash_post' 2>/dev/null
       nft 'add chain inet fw4 openclash_post' 2>/dev/null
       nft 'flush chain inet fw4 openclash_post' 2>/dev/null
+      nft 'add rule inet fw4 openclash_post ip saddr @localnetwork tcp sport @lan_ac_black_ports counter return' 2>/dev/null
       nft add rule inet fw4 openclash_post meta mark "$PROXY_FWMARK" counter accept 2>/dev/null
       nft 'add rule inet fw4 openclash_post ip daddr @localnetwork counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash_post meta nfproto {ipv4} fib saddr type != { local } meta skuid != 65534 counter masquerade' 2>/dev/null
@@ -1670,6 +1671,7 @@ if [ -n "$FW4" ]; then
          #nft 'delete chain inet fw4 openclash_post_v6' 2>/dev/null
          nft 'add chain inet fw4 openclash_post_v6' 2>/dev/null
          nft 'flush chain inet fw4 openclash_post_v6' 2>/dev/null
+         nft 'add rule inet fw4 openclash_post_v6 ip6 saddr @localnetwork6 meta nfproto {ipv6} sport @lan_ac_black_ports counter return' 2>/dev/null
          nft add rule inet fw4 openclash_post_v6 meta nfproto {ipv6} meta mark "$PROXY_FWMARK" counter accept 2>/dev/null
          nft 'add rule inet fw4 openclash_post_v6 ip6 daddr @localnetwork6 counter return' 2>/dev/null
          nft 'add rule inet fw4 openclash_post_v6 meta nfproto {ipv6} fib saddr type != { local } meta skuid != 65534 counter masquerade' 2>/dev/null
@@ -1824,10 +1826,11 @@ else
    if [ "$bypass_gateway_compatible" -eq 1 ]; then
       iptables -t nat -N openclash_post
       iptables -t nat -F openclash_post
-      iptables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
-      iptables -t nat -A openclash_post -m comment --comment "OpenClash Bypass Gateway Compatible" -m set --match-set localnetwork dst -j RETURN
-      iptables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
-      iptables -t nat -A POSTROUTING -j openclash_post
+      iptables -t nat -A openclash_post -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
+      iptables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -j ACCEPT
+      iptables -t nat -A openclash_post -m set --match-set localnetwork dst -j RETURN
+      iptables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -j MASQUERADE
+      iptables -t nat -A POSTROUTING -m comment --comment "OpenClash Bypass Gateway Compatible" -j openclash_post
    fi
 
    #intranet allowed
@@ -1852,7 +1855,7 @@ else
       if [ -z "$en_mode_tun" ] && [ "$en_mode" = "fake-ip" ]; then
          iptables -t nat -A openclash -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
       fi
-      iptables -t nat -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
+      iptables -t nat -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
       iptables -t nat -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
       iptables -t nat -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
       iptables -t nat -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
@@ -1882,7 +1885,7 @@ else
             if [ "$en_mode" = "fake-ip" ]; then
                iptables -t mangle -A openclash -p udp -d 198.18.0.0/16 -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             fi
-            iptables -t mangle -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
+            iptables -t mangle -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
             iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
             iptables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
             iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
@@ -1926,7 +1929,7 @@ else
             iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
          fi
          iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
-         iptables -t nat -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
+         iptables -t nat -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
          iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
          if [ "$en_mode" = "redir-host" ]; then
             iptables -t nat -A openclash_output -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
@@ -1940,7 +1943,7 @@ else
             iptables -t nat -N openclash_output
             iptables -t nat -F openclash_output
             iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
-            iptables -t nat -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
+            iptables -t nat -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
             iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
          fi
       fi
@@ -1971,7 +1974,7 @@ else
          iptables -t mangle -N openclash_output
          iptables -t mangle -F openclash_output
          iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
-         iptables -t mangle -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
+         iptables -t mangle -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
          if [ "$en_mode_tun" -eq 1 ]; then
             if [ -z "$_koolshare" ]; then
                iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
@@ -1988,7 +1991,7 @@ else
          iptables -t mangle -N openclash_output
          iptables -t mangle -F openclash_output
          iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
-         iptables -t mangle -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
+         iptables -t mangle -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
          iptables -t mangle -A openclash_output -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
          iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
          if [ "$china_ip_route" = "1" ]; then
@@ -2004,7 +2007,7 @@ else
       iptables -t mangle -F openclash_dns_hijack
       #其他流量
       iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN >/dev/null 2>&1
-      iptables -t mangle -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN
+      iptables -t mangle -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
@@ -2117,7 +2120,7 @@ else
       ip6tables -t mangle -F openclash
       ip6tables -t mangle -A openclash -m set --match-set localnetwork6 dst -j RETURN
       ip6tables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
-      ip6tables -t mangle -A openclash -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN
+      ip6tables -t mangle -A openclash -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
       ip6tables -t mangle -A openclash -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
       if [ "$en_mode" == "redir-host" ]; then
          ip6tables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
@@ -2136,7 +2139,7 @@ else
          ip6tables -t mangle -N openclash_output
          ip6tables -t mangle -F openclash_output
          ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
-         ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN
+         ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
          ip6tables -t mangle -A openclash_output -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
          ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
          if [ "$china_ip6_route" = "1" ]; then
@@ -2160,10 +2163,11 @@ else
       if [ "$bypass_gateway_compatible" -eq 1 ]; then
          ip6tables -t nat -N openclash_post
          ip6tables -t nat -F openclash_post
-         ip6tables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -m comment --comment "OpenClash Bypass Gateway Compatible" -j ACCEPT
-         ip6tables -t nat -A openclash_post -m comment --comment "OpenClash Bypass Gateway Compatible" -m set --match-set localnetwork6 dst -j RETURN
-         ip6tables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -m comment --comment "OpenClash Bypass Gateway Compatible" -j MASQUERADE
-         ip6tables -t nat -A POSTROUTING -j openclash_post
+         ip6tables -t nat -A openclash_post -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
+         ip6tables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -j ACCEPT
+         ip6tables -t nat -A openclash_post -m set --match-set localnetwork6 dst -j RETURN
+         ip6tables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -j MASQUERADE
+         ip6tables -t nat -A POSTROUTING -m comment --comment "OpenClash Bypass Gateway Compatible" -j openclash_post
       fi
 
       #google_dns_block
