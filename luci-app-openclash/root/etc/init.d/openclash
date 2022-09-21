@@ -2288,6 +2288,7 @@ revert_firewall()
       ipset destroy lan_block_google_dns_ips >/dev/null 2>&1
       ipset destroy lan_block_google_dns_macs >/dev/null 2>&1
       ipset destroy openclash_google_dns_ips >/dev/null 2>&1
+      ipset destroy lan_ac_black_ports >/dev/null 2>&1
    fi
 }
 
