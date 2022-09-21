@@ -345,7 +345,7 @@ cat >> "$DEBUG_LOG" <<-EOF
 
 EOF
    for nft in "input" "forward" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
-      nft list chain inet fw4 dstnat >> "$DEBUG_LOG" 2>/dev/null
+      nft list chain inet fw4 "$nft" >> "$DEBUG_LOG" 2>/dev/null
    done >/dev/null 2>&1
 fi
 
