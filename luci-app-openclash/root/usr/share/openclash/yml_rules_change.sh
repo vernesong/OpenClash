@@ -689,52 +689,64 @@ yml_other_set()
          end;
       end;
    #SUB-RULE
-      if ${10} == 1 then
-         if Value.has_key?('sub-rules') and not Value['sub-rules'].to_a.empty? then
-            if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-               Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
-               if Value_1 != false then
-                  if Value_1.class.to_s == 'Hash' then
-                     if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
+      if Value.has_key?('sub-rules') and not Value['sub-rules'].to_a.empty? then
+         if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
+            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
+            if Value_1 != false then
+               if Value_1.class.to_s == 'Hash' then
+                  if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
+                     if ${10} == 1 then
                         Value['sub-rules'] = Value['sub-rules'].merge!(Value_1['sub-rules']);
+                     else
+                        puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【sub-rules】'
                      end;
                   end;
                end;
             end;
-            if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-               Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
-               if Value_2 != false then
-                  if Value_2.class.to_s == 'Hash' then
-                     if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
+         end;
+         if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
+            Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
+            if Value_2 != false then
+               if Value_2.class.to_s == 'Hash' then
+                  if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
+                     if ${10} == 1 then
                         Value['sub-rules'] = Value['sub-rules'].merge!(Value_2['sub-rules']);
-                     end;
-                  end;
-               end;
-            end;
-         else
-            if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-               Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
-               if Value_1 != false then
-                  if Value_1.class.to_s == 'Hash' then
-                     if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
-                        Value['sub-rules'] = Value_1['sub-rules'];
-                     end;
-                  end;
-               end;
-            end;
-            if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-               Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
-               if Value_2 != false then
-                  if Value_2.class.to_s == 'Hash' then
-                     if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
-                        Value['sub-rules'] = Value_2['sub-rules'];
+                     else
+                        puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【sub-rules】'
                      end;
                   end;
                end;
             end;
          end;
       else
-         puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【sub-rules】'
+         if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
+            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
+            if Value_1 != false then
+               if Value_1.class.to_s == 'Hash' then
+                  if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
+                     if ${10} == 1 then
+                        Value['sub-rules'] = Value_1['sub-rules'];
+                     else
+                        puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【sub-rules】'
+                     end;
+                  end;
+               end;
+            end;
+         end;
+         if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
+            Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
+            if Value_2 != false then
+               if Value_2.class.to_s == 'Hash' then
+                  if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
+                     if ${10} == 1 then 
+                        Value['sub-rules'] = Value_2['sub-rules'];
+                     else
+                        puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【sub-rules】'
+                     end;
+                  end;
+               end;
+            end;
+         end;
       end;
    end;
    }.join;
