@@ -44,7 +44,7 @@ EOF
 source "/etc/openwrt_release"
 case "${DISTRIB_ARCH}" in
 	aarch64_*)
-		CORE_ARCH="linux-armv8"
+		CORE_ARCH="linux-arm64"
 		;;
 	arm_*_neon-vfp*)
 		CORE_ARCH="linux-armv7"
