@@ -59,7 +59,7 @@ body:
         - Linux-armv5
         - Linux-armv6
         - Linux-armv7
-        - Linux-armv8
+        - Linux-arm64
         - Linux-mips-hardfloat
         - Linux-mips-softfloat
         - Linux-mips64
