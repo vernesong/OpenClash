@@ -1011,8 +1011,8 @@ end
 
 function disney_unlock_test()
 	status = 0
-	local url = "https://global.edge.bamgrid.com/devices"
-	local url2 = "https://global.edge.bamgrid.com/token"
+	local url = "https://disney.api.edge.bamgrid.com/devices"
+	local url2 = "https://disney.api.edge.bamgrid.com/token"
 	local url3 = "https://disney.api.edge.bamgrid.com/graph/v1/device/graphql"
 	local headers = '-H "Accept-Language: en" -H "Content-Type: application/json" -H "authorization: ZGlzbmV5JmJyb3dzZXImMS4wLjA.Cu56AgSfBTDag5NiRA81oLHkDZfu5L3CKadnefEAY84"'
 	local auth = '-H "authorization: Bearer ZGlzbmV5JmJyb3dzZXImMS4wLjA.Cu56AgSfBTDag5NiRA81oLHkDZfu5L3CKadnefEAY84"'
