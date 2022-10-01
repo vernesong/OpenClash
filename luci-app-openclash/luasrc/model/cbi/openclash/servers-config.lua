@@ -251,6 +251,17 @@ o:depends("type", "socks5")
 o:depends("type", "trojan")
 o:depends({type = "snell", snell_version = "3"})
 
+o = s:option(ListValue, "xudp", translate("XUDP Enable"))
+o.rmempty = true
+o.default = "false"
+o:value("true")
+o:value("false")
+o:depends({type = "vmess", udp = "true"})
+
+o = s:option(Value, "packet_encoding", translate("PacketEncoding"))
+o.rmempty = true
+o:depends({type = "vmess", udp = "true"})
+
 o = s:option(ListValue, "obfs", translate("obfs-mode"))
 o.rmempty = true
 o.default = "none"
@@ -449,9 +460,9 @@ o:value("http/1.1")
 o:depends("type", "trojan")
 
 -- [[ alpn ]]--
-o = s:option(Value, "hysteria_alpn", translate("alpn"))
+o = s:option(DynamicList, "hysteria_alpn", translate("alpn"))
 o.rmempty = false
-o.default = "h3"
+o:value("h3")
 o:depends("type", "hysteria")
 
 -- [[ grpc ]]--

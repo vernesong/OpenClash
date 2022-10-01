@@ -730,6 +730,9 @@ msgstr "混淆参数（可选）"
 msgid "UDP Enable"
 msgstr "UDP 支持"
 
+msgid "XUDP Enable"
+msgstr "XUDP 支持"
+
 msgid "obfs-mode"
 msgstr "传输协议"
 
