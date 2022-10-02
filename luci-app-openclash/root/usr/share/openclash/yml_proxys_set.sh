@@ -253,6 +253,8 @@ yml_servers_set()
    config_get "disable_mtu_discovery" "$section" "disable_mtu_discovery" ""
    config_get "xudp" "$section" "xudp" ""
    config_get "packet_encoding" "$section" "packet_encoding" ""
+   config_get "global_padding" "$section" "global_padding" ""
+   config_get "authenticated_length" "$section" "authenticated_length" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -464,7 +466,17 @@ EOF
       fi
       if [ ! -z "$packet_encoding" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    packet_encoding: $packet_encoding
+    packet-encoding: "$packet_encoding"
+EOF
+      fi
+      if [ ! -z "$global_padding" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    global-padding: $global_padding
+EOF
+      fi
+      if [ ! -z "$authenticated_length" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    authenticated-length: $authenticated_length
 EOF
       fi
       if [ ! -z "$skip_cert_verify" ]; then
