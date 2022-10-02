@@ -615,9 +615,25 @@ do
 
       Thread.new{
       #packet_encoding
-      if Value['proxies'][$count].key?('packet_encoding') then
-         packet_encoding = '${uci_set}packet_encoding=' + Value['proxies'][$count]['packet_encoding'].to_s
+      if Value['proxies'][$count].key?('packet-encoding') then
+         packet_encoding = '${uci_set}packet_encoding=' + Value['proxies'][$count]['packet-encoding'].to_s
          system(packet_encoding)
+      end
+      }.join;
+
+      Thread.new{
+      #GlobalPadding
+      if Value['proxies'][$count].key?('global-padding') then
+         global_padding = '${uci_set}global_padding=' + Value['proxies'][$count]['global-padding'].to_s
+         system(global_padding)
+      end
+      }.join;
+
+      Thread.new{
+      #authenticated_length
+      if Value['proxies'][$count].key?('authenticated-length') then
+         authenticated_length = '${uci_set}authenticated_length=' + Value['proxies'][$count]['authenticated-length'].to_s
+         system(authenticated_length)
       end
       }.join;
       

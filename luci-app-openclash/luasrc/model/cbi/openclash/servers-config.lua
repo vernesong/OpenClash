@@ -251,16 +251,30 @@ o:depends("type", "socks5")
 o:depends("type", "trojan")
 o:depends({type = "snell", snell_version = "3"})
 
-o = s:option(ListValue, "xudp", translate("XUDP Enable"))
+o = s:option(ListValue, "xudp", translate("XUDP Enable")..translate("(Only Meta Core)"))
 o.rmempty = true
 o.default = "false"
 o:value("true")
 o:value("false")
 o:depends({type = "vmess", udp = "true"})
 
-o = s:option(Value, "packet_encoding", translate("PacketEncoding"))
+o = s:option(Value, "packet_encoding", translate("Packet-Encoding")..translate("(Only Meta Core)"))
 o.rmempty = true
-o:depends({type = "vmess", udp = "true"})
+o:depends("type", "vmess")
+
+o = s:option(ListValue, "global_padding", translate("Global-Padding")..translate("(Only Meta Core)"))
+o.rmempty = true
+o.default = "false"
+o:value("true")
+o:value("false")
+o:depends("type", "vmess")
+
+o = s:option(ListValue, "authenticated_length", translate("Authenticated-Length")..translate("(Only Meta Core)"))
+o.rmempty = true
+o.default = "false"
+o:value("true")
+o:value("false")
+o:depends("type", "vmess")
 
 o = s:option(ListValue, "obfs", translate("obfs-mode"))
 o.rmempty = true
