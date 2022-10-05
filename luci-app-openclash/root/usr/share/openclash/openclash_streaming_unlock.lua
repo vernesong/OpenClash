@@ -571,7 +571,7 @@ function table_sort_by_urltest(t, d)
 				if group_delay then
 					group_delay = json.parse(group_delay)
 				end
-				if group_delay.delay and group_delay.delay ~= 0 then
+				if group_delay and group_delay.delay and group_delay.delay ~= 0 then
 					table.insert(tab, {t[n], group_delay.delay})
 				else
 					table.insert(tab, {t[n], 123456})
