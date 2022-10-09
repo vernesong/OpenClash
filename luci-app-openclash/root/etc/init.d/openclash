@@ -2225,6 +2225,11 @@ revert_firewall()
    ip link set dev utun down >/dev/null 2>&1
    ip tuntap del utun mode tun >/dev/null 2>&1
 
+   ip -6 rule del oif utun table 2022 >/dev/null 2>&1
+   ip -6 route del default dev utun table 2022 >/dev/null 2>&1
+   ip -6 link set dev utun down >/dev/null 2>&1
+   ip -6 tuntap del utun mode tun >/dev/null 2>&1
+
    if [ -n "$FW4" ]; then
       for nft in "input" "forward" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
          local handles=$(nft -a list chain inet fw4 ${nft} |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$2}')
