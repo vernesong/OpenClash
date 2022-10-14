@@ -406,6 +406,16 @@ Thread.new{
       Value['sniffer']=Value_sniffer['sniffer'];
       Value_sniffer={'sniffing'=>['tls','http']};
       Value['sniffer'].merge!(Value_sniffer);
+      if '$1' == 'redir-host' then
+         Value['sniffer']['ForceDnsMapping']=true;
+      else
+         Value['sniffer']['ForceDnsMapping']=false;
+      end;
+      if ${29} == 1 then
+         Value['sniffer']['ParsePureIp']=true;
+      else
+         Value['sniffer']['ParsePureIp']=false;
+      end;
       if File::exist?('/etc/openclash/custom/openclash_force_sniffing_domain.yaml') and ${24} == 1 then
          Value_7 = YAML.load_file('/etc/openclash/custom/openclash_force_sniffing_domain.yaml');
          if Value_7 != false and not Value_7['force-domain'].to_a.empty? then
