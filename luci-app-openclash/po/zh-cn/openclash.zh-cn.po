@@ -3145,11 +3145,14 @@ msgstr "Google 非送中"
 msgid "In Fake-ip Mode, Even If This Option is Turned Off, Domain Type Connections Still Pass Through The Core For The Availability"
 msgstr "在 Fake-IP 模式时，即使关闭此选项，域名类型的连接仍将通过核心以保证可用性"
 
-msgid "TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
-msgstr "TUN 接口启动失败，请检查依赖情况或稍后重试！"
+msgid "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
+msgstr "警告：TUN 接口启动失败，请检查依赖情况或稍后重试！"
 
 msgid "Forced Sniff Pure IP Connections"
 msgstr "强制探测（嗅探）所有纯 IP 的连接"
 
 msgid "Forced Sniff Pure IP"
 msgstr "探测（嗅探）纯 IP 连接"
+
+msgid "Download Failed:"
+msgstr "下载失败："

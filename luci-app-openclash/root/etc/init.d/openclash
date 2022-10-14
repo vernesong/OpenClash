@@ -1964,7 +1964,7 @@ else
       done
 
       if [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -gt 10 ]; then
-         LOG_OUT "TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
+         LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
          start_fail
       fi
 
