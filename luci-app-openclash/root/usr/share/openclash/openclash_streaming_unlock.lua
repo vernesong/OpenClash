@@ -8,7 +8,6 @@ local uci = require("luci.model.uci").cursor()
 local fs = require "luci.openclash"
 local json = require "luci.jsonc"
 local UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.61 Safari/537.36"
-local filmId = 70143836
 local class_type = type
 local type = arg[1]
 local all_test
@@ -34,7 +33,7 @@ end
 if arg[2] == "all" then all_test = true else all_test = false end
 
 function unlock_auto_select()
-	local key_group, region, now, proxy, group_match, proxy_default, auto_get_group, info, group_now
+	local key_group, region, old_region, now, proxy, group_match, proxy_default, auto_get_group, info, group_now
 	local original = {}
 	local other_region_unlock = {}
 	local no_old_region_unlock = {}
@@ -58,15 +57,17 @@ function unlock_auto_select()
 	local faild_test_start = "unlock test faild! start auto select unlock proxy..."
 	local area_i18 = ", area:"
 	local select_faild_other_region = "unlock node auto selected failed, no node match the regex, rolled back to other full support node"
-	local other_region_unlock_test = "full support but not match the regex!"
+	local other_region_unlock_test = "but not match the regex!"
 	local other_region_unlock_no_select = "but not match the regex! the type of group is not select, auto select could not work!"
-	local other_region_unlock_test_start = "full support but not match the regex! start auto select unlock proxy..."
+	local other_region_unlock_test_start = "but not match the regex! start auto select unlock proxy..."
 	local select_all_full_support = "unlock node test finished, rolled back to the full support node"
 	local select_all_other_region = "unlock node test finished, no node match the regex, rolled back to other full support node"
 	local select_all_faild = "unlock node test finished, no node available, rolled back to the"
 	local no_nodes_filter = "no nodes name match the regex!"
 	local select_success_no_old_region = "unlock node auto selected successfully, no node match the old region, rolled back to other full support node"
 	local no_old_region_unlock_test = "full support but not match the old region!"
+	local no_old_region_unlock_old_region = "but not match the old region:"
+	local no_old_region_unlock_old_region_no_select = "the type of group is not select, auto select could not work!"
 	local no_old_region_unlock_no_select = "but not match the old region! the type of group is not select, auto select could not work!"
 	local select_all_no_old_region = "unlock node test finished, no node match the old region, rolled back to other full support node"
 
@@ -140,7 +141,7 @@ function unlock_auto_select()
 				table.insert(tested_proxy, now_name)
 				group_match = true
 				--test now proxy
-				region = proxy_unlock_test()
+				region, old_region = proxy_unlock_test()
 				if table_include(groups, now_name) then
 					now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.."】"
 				else
@@ -148,7 +149,7 @@ function unlock_auto_select()
 				end
 				if status ~= 2 and status ~= 4 then
 					os.execute("sleep 3")
-					region = proxy_unlock_test()
+					region, old_region = proxy_unlock_test()
 				end
 				if status == 2 or status == 4 then
 					if region and region ~= "" then
@@ -179,9 +180,17 @@ function unlock_auto_select()
 						table.insert(other_region_unlock, {value.now, value.now, get_group_now(info, value.now)})
 					end
 					if not all_test then
-						print(now..other_region_unlock_test_start)
+						if region and region ~= "" then
+							print(now..full_support.."【"..region.."】"..other_region_unlock_test_start)
+						else
+							print(now..full_support_no_area..other_region_unlock_test_start)
+						end
 					else
-						print(now..other_region_unlock_test)
+						if region and region ~= "" then
+							print(now..full_support.."【"..region.."】"..other_region_unlock_test)
+						else
+							print(now..full_support_no_area..other_region_unlock_test)
+						end
 					end
 				elseif status == 1 then
 					table.insert(original, {value.now, value.now, get_group_now(info, value.now)})
@@ -271,7 +280,7 @@ function unlock_auto_select()
 													break
 												else
 													luci.sys.exec(string.format("curl -sL -m 3 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, proxy, ip, port, urlencode(group_name)))
-													region = proxy_unlock_test()
+													region, old_region = proxy_unlock_test()
 													if status == 2 then
 														if region and region ~= "" then
 															table.insert(full_support_list, {value.all[i], group_name, proxy, region})
@@ -293,17 +302,20 @@ function unlock_auto_select()
 													elseif status == 3 then
 														if region and region ~= "" then
 															table.insert(other_region_unlock, {value.all[i], group_name, proxy, region})
+															print(now..full_support.."【"..region.."】"..other_region_unlock_test)
+															
 														else
 															table.insert(other_region_unlock, {value.all[i], group_name, proxy})
+															print(now..full_support_no_area..other_region_unlock_test)
 														end
-														print(now..other_region_unlock_test)
 													elseif status == 4 then
 														if region and region ~= "" then
 															table.insert(no_old_region_unlock, {value.all[i], group_name, proxy, region})
+															print(now..full_support.."【"..region.."】"..no_old_region_unlock_old_region.."【"..old_region.."】")
 														else
 															table.insert(no_old_region_unlock, {value.all[i], group_name, proxy})
+															print(now..no_old_region_unlock_test)
 														end
-														print(now..no_old_region_unlock_test)
 													elseif status == 1 then
 														table.insert(original, {value.all[i], group_name, proxy})
 														if type == "Netflix" then
@@ -335,7 +347,7 @@ function unlock_auto_select()
 										else
 											table.insert(tested_proxy, now_name)
 										end
-										region = proxy_unlock_test()
+										region, old_region = proxy_unlock_test()
 										if table_include(groups, now_name) then
 											now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.."】"
 										else
@@ -362,17 +374,20 @@ function unlock_auto_select()
 										elseif status == 3 then
 											if region and region ~= "" then
 												table.insert(other_region_unlock, {value.all[i], group_name, value.all[i], region})
+												print(now..full_support.."【"..region.."】"..other_region_unlock_no_select)
 											else
 												table.insert(other_region_unlock, {value.all[i], group_name, value.all[i]})
+												print(now..full_support_no_area..other_region_unlock_no_select)
 											end
-											print(now..full_support.."【"..region.."】"..other_region_unlock_no_select)
+											
 										elseif status == 4 then
 											if region and region ~= "" then
 												table.insert(no_old_region_unlock, {value.all[i], group_name, value.all[i], region})
+												print(now..full_support.."【"..region.."】"..no_old_region_unlock_old_region.."【"..old_region.."】"..no_old_region_unlock_old_region_no_select)
 											else
 												table.insert(no_old_region_unlock, {value.all[i], group_name, value.all[i]})
+												print(now..full_support_no_area..no_old_region_unlock_no_select)
 											end
-											print(now..full_support.."【"..region.."】"..no_old_region_unlock_no_select)
 										elseif status == 1 then
 											table.insert(original, {value.all[i], group_name, value.all[i]})
 											if type == "Netflix" then
@@ -461,7 +476,7 @@ function unlock_auto_select()
 						end
 					end
 				elseif #nodes_filter(get_group_now(info, value.name), info) ~= 0 then
-					region = proxy_unlock_test()
+					region, old_region = proxy_unlock_test()
 					if status == 2 then
 						if region and region ~= "" then
 							if not all_test then
@@ -478,9 +493,17 @@ function unlock_auto_select()
 							break
 						end
 					elseif status == 3 then
-						print(now..full_support.."【"..region.."】"..other_region_unlock_no_select)
+						if region and region ~= "" then
+							print(now..full_support.."【"..region.."】"..other_region_unlock_no_select)
+						else
+							print(now..full_support_no_area..other_region_unlock_no_select)
+						end
 					elseif status == 4 then
-						print(now..full_support.."【"..region.."】"..no_old_region_unlock_no_select)
+						if region and region ~= "" then
+							print(now..full_support.."【"..region.."】"..no_old_region_unlock_old_region.."【"..old_region.."】"..no_old_region_unlock_old_region_no_select)
+						else
+							print(now..full_support_no_area..no_old_region_unlock_no_select)
+						end
 					elseif status == 1 then
 						if type == "Netflix" then
 							print(now..original_no_select)
@@ -719,34 +742,35 @@ function nodes_filter(t, info)
 end
 
 function proxy_unlock_test()
+	local region, old_region
 	if type == "Netflix" then
-		region = netflix_unlock_test()
+		region, old_region = netflix_unlock_test()
 	elseif type == "Disney Plus" then
-		region = disney_unlock_test()
+		region, old_region = disney_unlock_test()
 	elseif type == "HBO Now" then
-		region = hbo_now_unlock_test()
+		region, old_region = hbo_now_unlock_test()
 	elseif type == "HBO Max" then
-		region = hbo_max_unlock_test()
+		region, old_region = hbo_max_unlock_test()
 	elseif type == "HBO GO Asia" then
-		region = hbo_go_asia_unlock_test()
+		region, old_region = hbo_go_asia_unlock_test()
 	elseif type == "YouTube Premium" then
-		region = ytb_unlock_test()
+		region, old_region = ytb_unlock_test()
 	elseif type == "TVB Anywhere+" then
-		region = tvb_anywhere_unlock_test()
+		region, old_region = tvb_anywhere_unlock_test()
 	elseif type == "Amazon Prime Video" then
-		region = prime_video_unlock_test()
+		region, old_region = prime_video_unlock_test()
 	elseif type == "DAZN" then
-		region = dazn_unlock_test()
+		region, old_region = dazn_unlock_test()
 	elseif type == "Paramount Plus" then
-		region = paramount_plus_unlock_test()
+		region, old_region = paramount_plus_unlock_test()
 	elseif type == "Discovery Plus" then
-		region = discovery_plus_unlock_test()
+		region, old_region = discovery_plus_unlock_test()
 	elseif type == "Bilibili" then
-		region = bilibili_unlock_test()
+		region, old_region = bilibili_unlock_test()
 	elseif type == "Google" then
-		region = google_not_cn_test()
+		region, old_region = google_not_cn_test()
 	end
-	return region
+	return region, old_region
 end
 
 function auto_get_policy_group(passwd, ip, port)
@@ -972,6 +996,7 @@ end
 
 function netflix_unlock_test()
 	status = 0
+	local filmId = 70143836
 	local url = "https://www.netflix.com/title/"..filmId
 	local headers = "User-Agent: "..UA
 	local info = luci.sys.exec(string.format('curl -sLI --connect-timeout 5 -m 10 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H "Content-Type: application/json" -H "%s" -XGET %s', headers, url))
@@ -1001,7 +1026,7 @@ function netflix_unlock_test()
 					fs.writefile(string.format("/tmp/openclash_%s_region", type), region)
 				end
 			end
-			return region
+			return region, old_region
 		elseif info.http_code == 404 or info.http_code == 403 then
 			status = 1
 		end
@@ -1054,12 +1079,12 @@ function disney_unlock_test()
 				if not datamatch(region, regex) then
 					status = 3
 				elseif old_region ~= "" and not datamatch(region, old_region) and not all_test then
-					status = 3
+					status = 4
 				end
 				if status == 2 and not all_test and ((old_region ~= "" and not datamatch(region, old_region)) or (old_region == "")) then
 					fs.writefile(string.format("/tmp/openclash_%s_region", type), region)
 				end
-				return region
+				return region, old_region
 			end
 
 			if region and region ~= "" and inSupportedLocation then
@@ -1075,7 +1100,7 @@ function disney_unlock_test()
 				if status == 2 and not all_test and ((old_region ~= "" and not datamatch(region, old_region)) or (old_region == "")) then
 					fs.writefile(string.format("/tmp/openclash_%s_region", type), region)
 				end
-				return region
+				return region, old_region
 			end
 		end
 	end
@@ -1133,7 +1158,7 @@ function hbo_max_unlock_test()
 						fs.writefile(string.format("/tmp/openclash_%s_region", type), region)
 					end
 				end
-				return region
+				return region, old_region
 			end
 		end
 	end
@@ -1172,7 +1197,7 @@ function hbo_go_asia_unlock_test()
 						fs.writefile(string.format("/tmp/openclash_%s_region", type), region)
 					end
 				end
-				return region
+				return region, old_region
 			end
 		end
 	end
@@ -1217,7 +1242,7 @@ function ytb_unlock_test()
 			fs.writefile(string.format("/tmp/openclash_%s_region", type), region)
 		end
 	end
-	return region
+	return region, old_region
 end
 
 function tvb_anywhere_unlock_test()
@@ -1253,7 +1278,7 @@ function tvb_anywhere_unlock_test()
 			end
 		end
 	end
-	return region
+	return region, old_region
 end
 
 function prime_video_unlock_test()
@@ -1281,7 +1306,7 @@ function prime_video_unlock_test()
 				if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
 					fs.writefile(string.format("/tmp/openclash_%s_region", type), region)
 				end
-				return region
+				return region, old_region
 			end
 		end
 	end
@@ -1322,7 +1347,7 @@ function dazn_unlock_test()
 			end
 		end
 	end
-	return region
+	return region, old_region
 end
 
 function paramount_plus_unlock_test()
@@ -1351,7 +1376,7 @@ function paramount_plus_unlock_test()
 				if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
 					fs.writefile(string.format("/tmp/openclash_%s_region", type), region)
 				end
-	  			return region
+				return region, old_region
 	  		end
 		end
 	end
@@ -1385,7 +1410,7 @@ function discovery_plus_unlock_test()
 				if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
 					fs.writefile(string.format("/tmp/openclash_%s_region", type), region)
 				end
-	  			return region
+				return region, old_region
 	  		end
 		end
 	end
@@ -1425,7 +1450,7 @@ function bilibili_unlock_test()
 					if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
 						fs.writefile(string.format("/tmp/openclash_%s_region", type), region)
 					end
-					return region
+					return region, old_region
 				end
 			end
 		end
