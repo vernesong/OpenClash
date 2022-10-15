@@ -1469,12 +1469,18 @@ if [ -n "$FW4" ]; then
       TUN_WAIT=0
       ip link set utun up
 
-      while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 3 ] )
+      LOG_OUT "Tip: Waiting for TUN Interface Start..."
+      while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 10 ] )
       do
          ip link set utun up
          let TUN_WAIT++
          sleep 2
       done
+
+      if [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -gt 10 ]; then
+         LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
+         start_fail
+      fi
 
       ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
       ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
@@ -1956,6 +1962,7 @@ else
       TUN_WAIT=0
       ip link set utun up
 
+      LOG_OUT "Tip: Waiting for TUN Interface Start..."
       while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 10 ] )
       do
          ip link set utun up

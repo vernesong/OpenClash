@@ -2686,20 +2686,26 @@ msgstr "解锁节点自动选择失败，未找到区域匹配的节点，回退
 msgid "unlock node auto selected successfully, no node match the old region, rolled back to other full support node"
 msgstr "解锁节点自动选择成功，未找到与先前解锁区域匹配的节点，回退到其他区域且符合条件的解锁节点"
 
-msgid "full support but not match the regex!"
-msgstr "完整解锁但区域不匹配！"
+msgid "but not match the regex!"
+msgstr "但区域与设置不匹配！"
 
 msgid "full support but not match the old region!"
 msgstr "完整解锁但与先前解锁区域不匹配！"
 
+msgid "but not match the old region:"
+msgstr "但不匹配先前解锁区域："
+
+msgid "the type of group is not select, auto select could not work!"
+msgstr "当前策略组类型非 Select，无法进行自动选择！"
+
 msgid "but not match the regex! the type of group is not select, auto select could not work!"
-msgstr "完整解锁但区域不匹配！当前策略组类型非 Select，无法进行自动选择！"
+msgstr "完整解锁但区域与设置不匹配！当前策略组类型非 Select，无法进行自动选择！"
 
 msgid "but not match the old region! the type of group is not select, auto select could not work!"
 msgstr "完整解锁但与先前解锁区域不匹配！当前策略组类型非 Select，无法进行自动选择！"
 
-msgid "full support but not match the regex! start auto select unlock proxy..."
-msgstr "完整解锁但区域不匹配！开始进行解锁节点自动选择..."
+msgid "but not match the regex! start auto select unlock proxy..."
+msgstr "但区域与设置不匹配！开始进行解锁节点自动选择..."
 
 msgid "unlock node test finished, rolled back to the full support node"
 msgstr "解锁检测完成，回退到完整解锁的节点"
@@ -3156,3 +3162,6 @@ msgstr "探测（嗅探）纯 IP 连接"
 
 msgid "Download Failed:"
 msgstr "下载失败："
+
+msgid "Tip: Waiting for TUN Interface Start..."
+msgstr "提示：正在等待 TUN 接口启动..."
