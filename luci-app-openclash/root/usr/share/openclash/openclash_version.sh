@@ -36,7 +36,7 @@ if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{prin
          sed -i '/^https:/,$d' $LAST_OPVER
       elif [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 ] && [ -n "$OP_LV" ]; then
          sed -i "/^https:/i\CheckTime:${CKTIME}" "$LAST_OPVER" 2>/dev/null
-         return 2
+         exit 2
       fi
    else
       rm -rf "$LAST_OPVER"
@@ -45,5 +45,5 @@ elif [ "$(expr "$OP_CV" \>= "$OP_LV")" -eq 1 ]; then
    sed -i '/^CheckTime:/,$d' $LAST_OPVER
    echo "CheckTime:$CKTIME" >> $LAST_OPVER
 elif [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 ] && [ -n "$OP_LV" ]; then
-   return 2
+   exit 2
 fi 2>/dev/null
