@@ -383,7 +383,7 @@ o:depends("enable_meta_core", "1")
 o = s:taboption("meta", Flag, "enable_meta_sniffer_pure_ip", translate("Forced Sniff Pure IP"))
 o.description = translate("Forced Sniff Pure IP Connections")
 o.default = 1
-o:depends("enable_meta_core", "1")
+o:depends("enable_meta_sniffer", "1")
 
 o = s:taboption("meta", Flag, "enable_meta_sniffer_custom", translate("Custom Sniffer Settings"))
 o.description = translate("Custom The Force and Skip Sniffing Doamin Lists")
