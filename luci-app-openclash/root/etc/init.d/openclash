@@ -571,7 +571,7 @@ do_run_file()
          start_fail
       else
          del_lock
-         restart
+         stop
          exit 0
       fi
    }
