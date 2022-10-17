@@ -202,6 +202,10 @@ start_fail()
    kill_clash
    stop
    del_lock
+   if [ "$PROVIDER_RESTART" == 1 ]; then
+      uci -q set openclash.config.enable_meta_core=0
+      uci -q commit openclash
+   fi
    exit 0
 }
 
@@ -249,7 +253,15 @@ if [ -z "$(pidof clash)" ] && [ "$provider_path_check" == "false" ]; then
       LOG_OUT "Error: Failed To Download Rule-providers, Please Check The Log Page For Detailed error information!"
    fi
    LOG_ALERT
-   start_fail
+   LOG_OUT "Warning: Try to Restart With Meta Core..."
+   PROVIDER_RESTART=1
+   uci -q set openclash.config.enable_meta_core=1
+   uci -q commit openclash
+   del_lock
+   restart
+   uci -q set openclash.config.enable_meta_core=0
+   uci -q commit openclash
+   exit 0
 fi
 }
 
@@ -1467,6 +1479,7 @@ if [ -n "$FW4" ]; then
       #TUN模式
       #启动TUN
       TUN_WAIT=0
+      TUN_RESTART=1
       ip link set utun up
 
       LOG_OUT "Tip: Waiting for TUN Interface Start..."
@@ -1478,8 +1491,19 @@ if [ -n "$FW4" ]; then
       done
 
       if [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -gt 10 ]; then
-         LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
-         start_fail
+         while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_RESTART" -le 3 ] )
+         do
+            LOG_OUT "Warning: TUN Interface Start Failed, Try to Restart Again..."
+            kill_clash
+            sleep 3
+            start_run_core
+            check_core_status
+            sleep 10
+         done
+         if [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_RESTART" -gt 3 ]; then
+            LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
+            start_fail
+         fi
       fi
 
       ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
@@ -1960,6 +1984,7 @@ else
       #TUN模式
       #启动TUN
       TUN_WAIT=0
+      TUN_RESTART=1
       ip link set utun up
 
       LOG_OUT "Tip: Waiting for TUN Interface Start..."
@@ -1971,8 +1996,19 @@ else
       done
 
       if [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -gt 10 ]; then
-         LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
-         start_fail
+         while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_RESTART" -le 3 ] )
+         do
+            LOG_OUT "Warning: TUN Interface Start Failed, Try to Restart Again..."
+            kill_clash
+            sleep 3
+            start_run_core
+            check_core_status
+            sleep 3
+         done
+         if [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_RESTART" -gt 3 ]; then
+            LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
+            start_fail
+         fi
       fi
 
       ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
