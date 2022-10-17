@@ -63,7 +63,7 @@ urlencode() {
 
    if [ -z "$DOWNLOAD_PATH" ]; then
       LOG_OUT "Rule File【$RULE_FILE_NAME】Download Error!" && SLOG_CLEAN
-      return 0
+      exit 0
    fi
 
    TMP_RULE_DIR="/tmp/$RULE_FILE_NAME"
@@ -116,15 +116,15 @@ urlencode() {
             fi
             rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
             LOG_OUT "Rule File【$RULE_FILE_NAME】Download Successful!" && SLOG_CLEAN
-            return 1
+            exit 1
          else
             LOG_OUT "Rule File【$RULE_FILE_NAME】No Change, Do Nothing!" && SLOG_CLEAN
             rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
             rm -rf "$TMP_RULE_DIR_TMP" >/dev/null 2>&1
-            return 2
+            exit 2
          fi
    else
       rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
       LOG_OUT "Rule File【$RULE_FILE_NAME】Download Error!" && SLOG_CLEAN
-      return 0
+      exit 0
    fi

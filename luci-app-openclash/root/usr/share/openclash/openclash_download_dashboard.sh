@@ -44,14 +44,14 @@
             rm -rf "$BACKUP_FILE_DIR" >/dev/null 2>&1
             rm -rf "$DASH_FILE_TMP" >/dev/null 2>&1
             LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Successful!" && SLOG_CLEAN
-            return 1
+            exit 1
          else
             LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Unzip Error!" && SLOG_CLEAN
             cp -rf  "$BACKUP_FILE_DIR".  "$UNPACK_FILE_DIR" >/dev/null 2>&1
             rm -rf "$DASH_FILE_DIR" >/dev/null 2>&1
             rm -rf "$BACKUP_FILE_DIR" >/dev/null 2>&1
             rm -rf "$DASH_FILE_TMP" >/dev/null 2>&1
-            return 2
+            exit 2
          fi
       else
          LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Unzip Error!" && SLOG_CLEAN
@@ -59,7 +59,7 @@
          rm -rf "$DASH_FILE_DIR" >/dev/null 2>&1
          rm -rf "$BACKUP_FILE_DIR" >/dev/null 2>&1
          rm -rf "$DASH_FILE_TMP" >/dev/null 2>&1
-         return 2
+         exit 2
       fi
    else
       cp -rf  "$BACKUP_FILE_DIR".  "$UNPACK_FILE_DIR" >/dev/null 2>&1
@@ -67,5 +67,5 @@
       rm -rf "$DASH_FILE_DIR" >/dev/null 2>&1
       rm -rf "$DASH_FILE_TMP" >/dev/null 2>&1
       LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Error!" && SLOG_CLEAN
-      return 0
+      exit 0
    fi
