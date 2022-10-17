@@ -3154,6 +3154,9 @@ msgstr "在 Fake-IP 模式时，即使关闭此选项，域名类型的连接仍
 msgid "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
 msgstr "警告：TUN 接口启动失败，请检查依赖情况或稍后重试！"
 
+msgid "Warning: TUN Interface Start Failed, Try to Restart Again..."
+msgstr "警告：TUN 接口启动失败，尝试重启内核..."
+
 msgid "Forced Sniff Pure IP Connections"
 msgstr "强制探测（嗅探）所有纯 IP 的连接"
 
@@ -3165,3 +3168,6 @@ msgstr "下载失败："
 
 msgid "Tip: Waiting for TUN Interface Start..."
 msgstr "提示：正在等待 TUN 接口启动..."
+
+msgid "Warning: Try to Restart With Meta Core..."
+msgstr "警告：尝试使用 Meta 内核启动..."
