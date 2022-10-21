@@ -1499,6 +1499,7 @@ if [ -n "$FW4" ]; then
             start_run_core
             check_core_status
             sleep 10
+            let TUN_RESTART++
          done
          if [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_RESTART" -gt 3 ]; then
             LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
@@ -2003,7 +2004,8 @@ else
             sleep 3
             start_run_core
             check_core_status
-            sleep 3
+            sleep 10
+            let TUN_RESTART++
          done
          if [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_RESTART" -gt 3 ]; then
             LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
