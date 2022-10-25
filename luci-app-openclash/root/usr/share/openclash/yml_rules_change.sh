@@ -932,143 +932,143 @@ if [ "$1" != "0" ]; then
       yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"
       exit 0
    else
-       if [ "$rule_name" = "lhie1" ]; then
-             ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-             begin
-               Value = YAML.load_file('$3');
-               Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
-               if Value.has_key?('script') then
-                  Value.delete('script')
-               end;
-               if Value.has_key?('rules') then
-                  Value.delete('rules')
-               end;
-               if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
-                  if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-                     Value['rule-providers'].merge!(Value_1['rule-providers'])
-                  else
-                     Value['rule-providers']=Value_1['rule-providers']
-                  end
-               end;
-               Value['script']=Value_1['script'];
-               Value['rules']=Value_1['rules'];
-               Value['rules'].to_a.collect!{|x|
-               x.to_s.gsub(/,Bilibili,Asian TV$/, ',Bilibili,$Bilibili#delete_')
-               .gsub(/,Bahamut,Global TV$/, ',Bahamut,$Bahamut#delete_')
-               .gsub(/,HBO Max,Global TV$/, ',HBO Max,$HBOMax#delete_')
-               .gsub(/,HBO Go,Global TV$/, ',HBO Go,$HBOGo#delete_')
-               .gsub(/,Discovery Plus,Global TV$/, ',Discovery Plus,$Discovery#delete_')
-               .gsub(/,DAZN,Global TV$/, ',DAZN,$DAZN#delete_')
-               .gsub(/,Pornhub,Global TV$/, ',Pornhub,$Pornhub#delete_')
-               .gsub(/,Global TV$/, ',$GlobalTV#delete_')
-               .gsub(/,Asian TV$/, ',$AsianTV#delete_')
-               .gsub(/,Proxy$/, ',$Proxy#delete_')
-               .gsub(/,YouTube$/, ',$Youtube#delete_')
-               .gsub(/,Apple$/, ',$Apple#delete_')
-               .gsub(/,Scholar$/, ',$Scholar#delete_')
-               .gsub(/,Netflix$/, ',$Netflix#delete_')
-               .gsub(/,Disney$/, ',$Disney#delete_')
-               .gsub(/,Spotify$/, ',$Spotify#delete_')
-               .gsub(/,Steam$/, ',$Steam#delete_')
-               .gsub(/,AdBlock$/, ',$AdBlock#delete_')
-               .gsub(/,Speedtest$/, ',$Speedtest#delete_')
-               .gsub(/,Telegram$/, ',$Telegram#delete_')
-               .gsub(/,Crypto$/, ',$Crypto#delete_')
-               .gsub(/,Discord$/, ',$Discord#delete_')
-               .gsub(/,Microsoft$/, ',$Microsoft#delete_')
-               .to_s.gsub(/,PayPal$/, ',$PayPal#delete_')
-               .gsub(/,Domestic$/, ',$Domestic#delete_')
-               .gsub(/,Others$/, ',$Others#delete_')
-               .gsub(/,Google FCM$/, ',$GoogleFCM#delete_')
-               .gsub(/#delete_/, '')
-               };
-               Value['script']['code'].to_s.gsub!(/\"Bilibili\": \"Asian TV\"/,'\"Bilibili\": \"$Bilibili#delete_\"')
-               .gsub!(/\"Bahamut\": \"Global TV\"/,'\"Bahamut\": \"$Bahamut#delete_\"')
-               .gsub!(/\"HBO Max\": \"Global TV\"/,'\"HBO Max\": \"$HBOMax#delete_\"')
-               .gsub!(/\"HBO Go\": \"Global TV\"/,'\"HBO Go\": \"$HBOGo#delete_\"')
-               .gsub!(/\"Discovery Plus\": \"Global TV\"/,'\"Discovery Plus\": \"$Discovery#delete_\"')
-               .gsub!(/\"DAZN\": \"Global TV\"/,'\"DAZN\": \"$DAZN#delete_\"')
-               .gsub!(/\"Pornhub\": \"Global TV\"/,'\"Pornhub\": \"$Pornhub#delete_\"')
-               .gsub!(/: \"Global TV\"/,': \"$GlobalTV#delete_\"')
-               .gsub!(/: \"Asian TV\"/,': \"$AsianTV#delete_\"')
-               .gsub!(/: \"Proxy\"/,': \"$Proxy#delete_\"')
-               .gsub!(/: \"YouTube\"/,': \"$Youtube#delete_\"')
-               .gsub!(/: \"Apple\"/,': \"$Apple#delete_\"')
-               .gsub!(/: \"Scholar\"/,': \"$Scholar#delete_\"')
-               .gsub!(/: \"Netflix\"/,': \"$Netflix#delete_\"')
-               .gsub!(/: \"Disney\"/,': \"$Disney#delete_\"')
-               .gsub!(/: \"Spotify\"/,': \"$Spotify#delete_\"')
-               .gsub!(/: \"Steam\"/,': \"$Steam#delete_\"')
-               .gsub!(/: \"AdBlock\"/,': \"$AdBlock#delete_\"')
-               .gsub!(/: \"Speedtest\"/,': \"$Speedtest#delete_\"')
-               .gsub!(/: \"Telegram\"/,': \"$Telegram#delete_\"')
-               .gsub!(/: \"Crypto\"/,': \"$Crypto#delete_\"')
-               .gsub!(/: \"Discord\"/,': \"$Discord#delete_\"')
-               .gsub!(/: \"Microsoft\"/,': \"$Microsoft#delete_\"')
-               .gsub!(/: \"PayPal\"/,': \"$PayPal#delete_\"')
-               .gsub!(/: \"Domestic\"/,': \"$Domestic#delete_\"')
-               .gsub!(/: \"Google FCM\"/,': \"$GoogleFCM#delete_\"')
-               .gsub!(/return \"Domestic\"$/, 'return \"$Domestic#delete_\"')
-               .gsub!(/return \"Others\"$/, 'return \"$Others#delete_\"')
-               .gsub!(/#delete_/, '');
-               File.open('$3','w') {|f| YAML.dump(Value, f)};
-             rescue Exception => e
-                puts '${LOGTIME} Error: Set lhie1 Rules Failed,【' + e.message + '】';
-             end" 2>/dev/null >> $LOG_FILE
-       elif [ "$rule_name" = "ConnersHua" ]; then
-            ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-            begin
-               Value = YAML.load_file('$3');
-               Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua.yaml');
-               if Value.has_key?('script') then
-                  Value.delete('script')
-               end;
-               if Value.has_key?('rules') then
-                  Value.delete('rules')
-               end;
-               if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
-                  if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-                     Value['rule-providers'].merge!(Value_1['rule-providers'])
-                  else
-                     Value['rule-providers']=Value_1['rule-providers']
-                  end
-               end;
-               Value['rules']=Value_1['rules'];
-               Value['rules'].to_a.collect!{|x|
-               x.to_s.gsub(/,Streaming$/, ',$GlobalTV#delete_')
-               .gsub(/,StreamingSE$/, ',$AsianTV#delete_')
-               .gsub(/(,PROXY$|,IP-Blackhole$)/, ',$Proxy#delete_')
-               .gsub(/,China,DIRECT$/, ',China,$Domestic#delete_')
-               .gsub(/,ChinaIP,DIRECT$/, ',ChinaIP,$Domestic#delete_')
-               .gsub(/,CN,DIRECT$/, ',CN,$Domestic#delete_')
-               .gsub(/,MATCH$/, ',$Others#delete_')
-               .gsub(/#delete_/, '')
-               };
-               File.open('$3','w') {|f| YAML.dump(Value, f)};
-              rescue Exception => e
-                puts '${LOGTIME} Error: Set ConnersHua Rules Failed,【' + e.message + '】';
-              end" 2>/dev/null >> $LOG_FILE
-       else
-            ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-            begin
-               Value = YAML.load_file('$3');
-               Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua_return.yaml');
-               if Value.has_key?('script') then
-                  Value.delete('script')
-               end;
-               if Value.has_key?('rules') then
-                  Value.delete('rules')
-               end;
-               Value['rules']=Value_1['rules'];
-               Value['rules'].to_a.collect!{|x|
-               x.to_s.gsub(/,PROXY$/, ',$Proxy#delete_')
-               .gsub(/MATCH,DIRECT$/, 'MATCH,$Others#delete_')
-               .gsub(/#delete_/, '')
-               };
-               File.open('$3','w') {|f| YAML.dump(Value, f)};
-             rescue Exception => e
-                puts '${LOGTIME} Error: Set ConnersHua Return Rules Failed,【' + e.message + '】';
-             end" 2>/dev/null >> $LOG_FILE
+      if [ "$rule_name" = "lhie1" ]; then
+         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+         begin
+            Value = YAML.load_file('$3');
+            Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
+            if Value.has_key?('script') then
+               Value.delete('script')
+            end;
+            if Value.has_key?('rules') then
+               Value.delete('rules')
+            end;
+            if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
+               if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+                  Value['rule-providers'].merge!(Value_1['rule-providers'])
+               else
+                  Value['rule-providers']=Value_1['rule-providers']
+               end
+            end;
+            Value['script']=Value_1['script'];
+            Value['rules']=Value_1['rules'];
+            Value['rules'].to_a.collect!{|x|
+            x.to_s.gsub(/,Bilibili,Asian TV$/, ',Bilibili,$Bilibili#delete_')
+            .gsub(/,Bahamut,Global TV$/, ',Bahamut,$Bahamut#delete_')
+            .gsub(/,HBO Max,Global TV$/, ',HBO Max,$HBOMax#delete_')
+            .gsub(/,HBO Go,Global TV$/, ',HBO Go,$HBOGo#delete_')
+            .gsub(/,Discovery Plus,Global TV$/, ',Discovery Plus,$Discovery#delete_')
+            .gsub(/,DAZN,Global TV$/, ',DAZN,$DAZN#delete_')
+            .gsub(/,Pornhub,Global TV$/, ',Pornhub,$Pornhub#delete_')
+            .gsub(/,Global TV$/, ',$GlobalTV#delete_')
+            .gsub(/,Asian TV$/, ',$AsianTV#delete_')
+            .gsub(/,Proxy$/, ',$Proxy#delete_')
+            .gsub(/,YouTube$/, ',$Youtube#delete_')
+            .gsub(/,Apple$/, ',$Apple#delete_')
+            .gsub(/,Scholar$/, ',$Scholar#delete_')
+            .gsub(/,Netflix$/, ',$Netflix#delete_')
+            .gsub(/,Disney$/, ',$Disney#delete_')
+            .gsub(/,Spotify$/, ',$Spotify#delete_')
+            .gsub(/,Steam$/, ',$Steam#delete_')
+            .gsub(/,AdBlock$/, ',$AdBlock#delete_')
+            .gsub(/,Speedtest$/, ',$Speedtest#delete_')
+            .gsub(/,Telegram$/, ',$Telegram#delete_')
+            .gsub(/,Crypto$/, ',$Crypto#delete_')
+            .gsub(/,Discord$/, ',$Discord#delete_')
+            .gsub(/,Microsoft$/, ',$Microsoft#delete_')
+            .to_s.gsub(/,PayPal$/, ',$PayPal#delete_')
+            .gsub(/,Domestic$/, ',$Domestic#delete_')
+            .gsub(/,Others$/, ',$Others#delete_')
+            .gsub(/,Google FCM$/, ',$GoogleFCM#delete_')
+            .gsub(/#delete_/, '')
+            };
+            Value['script']['code'].to_s.gsub!(/\"Bilibili\": \"Asian TV\"/,'\"Bilibili\": \"$Bilibili#delete_\"')
+            .gsub!(/\"Bahamut\": \"Global TV\"/,'\"Bahamut\": \"$Bahamut#delete_\"')
+            .gsub!(/\"HBO Max\": \"Global TV\"/,'\"HBO Max\": \"$HBOMax#delete_\"')
+            .gsub!(/\"HBO Go\": \"Global TV\"/,'\"HBO Go\": \"$HBOGo#delete_\"')
+            .gsub!(/\"Discovery Plus\": \"Global TV\"/,'\"Discovery Plus\": \"$Discovery#delete_\"')
+            .gsub!(/\"DAZN\": \"Global TV\"/,'\"DAZN\": \"$DAZN#delete_\"')
+            .gsub!(/\"Pornhub\": \"Global TV\"/,'\"Pornhub\": \"$Pornhub#delete_\"')
+            .gsub!(/: \"Global TV\"/,': \"$GlobalTV#delete_\"')
+            .gsub!(/: \"Asian TV\"/,': \"$AsianTV#delete_\"')
+            .gsub!(/: \"Proxy\"/,': \"$Proxy#delete_\"')
+            .gsub!(/: \"YouTube\"/,': \"$Youtube#delete_\"')
+            .gsub!(/: \"Apple\"/,': \"$Apple#delete_\"')
+            .gsub!(/: \"Scholar\"/,': \"$Scholar#delete_\"')
+            .gsub!(/: \"Netflix\"/,': \"$Netflix#delete_\"')
+            .gsub!(/: \"Disney\"/,': \"$Disney#delete_\"')
+            .gsub!(/: \"Spotify\"/,': \"$Spotify#delete_\"')
+            .gsub!(/: \"Steam\"/,': \"$Steam#delete_\"')
+            .gsub!(/: \"AdBlock\"/,': \"$AdBlock#delete_\"')
+            .gsub!(/: \"Speedtest\"/,': \"$Speedtest#delete_\"')
+            .gsub!(/: \"Telegram\"/,': \"$Telegram#delete_\"')
+            .gsub!(/: \"Crypto\"/,': \"$Crypto#delete_\"')
+            .gsub!(/: \"Discord\"/,': \"$Discord#delete_\"')
+            .gsub!(/: \"Microsoft\"/,': \"$Microsoft#delete_\"')
+            .gsub!(/: \"PayPal\"/,': \"$PayPal#delete_\"')
+            .gsub!(/: \"Domestic\"/,': \"$Domestic#delete_\"')
+            .gsub!(/: \"Google FCM\"/,': \"$GoogleFCM#delete_\"')
+            .gsub!(/return \"Domestic\"$/, 'return \"$Domestic#delete_\"')
+            .gsub!(/return \"Others\"$/, 'return \"$Others#delete_\"')
+            .gsub!(/#delete_/, '');
+            File.open('$3','w') {|f| YAML.dump(Value, f)};
+         rescue Exception => e
+            puts '${LOGTIME} Error: Set lhie1 Rules Failed,【' + e.message + '】';
+         end" 2>/dev/null >> $LOG_FILE
+      elif [ "$rule_name" = "ConnersHua" ]; then
+         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+         begin
+            Value = YAML.load_file('$3');
+            Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua.yaml');
+            if Value.has_key?('script') then
+               Value.delete('script')
+            end;
+            if Value.has_key?('rules') then
+               Value.delete('rules')
+            end;
+            if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
+               if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+                  Value['rule-providers'].merge!(Value_1['rule-providers'])
+               else
+                  Value['rule-providers']=Value_1['rule-providers']
+               end
+            end;
+            Value['rules']=Value_1['rules'];
+            Value['rules'].to_a.collect!{|x|
+            x.to_s.gsub(/,Streaming$/, ',$GlobalTV#delete_')
+            .gsub(/,StreamingSE$/, ',$AsianTV#delete_')
+            .gsub(/(,PROXY$|,IP-Blackhole$)/, ',$Proxy#delete_')
+            .gsub(/,China,DIRECT$/, ',China,$Domestic#delete_')
+            .gsub(/,ChinaIP,DIRECT$/, ',ChinaIP,$Domestic#delete_')
+            .gsub(/,CN,DIRECT$/, ',CN,$Domestic#delete_')
+            .gsub(/,MATCH$/, ',$Others#delete_')
+            .gsub(/#delete_/, '')
+            };
+            File.open('$3','w') {|f| YAML.dump(Value, f)};
+         rescue Exception => e
+            puts '${LOGTIME} Error: Set ConnersHua Rules Failed,【' + e.message + '】';
+         end" 2>/dev/null >> $LOG_FILE
+      else
+         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+         begin
+            Value = YAML.load_file('$3');
+            Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua_return.yaml');
+            if Value.has_key?('script') then
+               Value.delete('script')
+            end;
+            if Value.has_key?('rules') then
+               Value.delete('rules')
+            end;
+            Value['rules']=Value_1['rules'];
+            Value['rules'].to_a.collect!{|x|
+            x.to_s.gsub(/,PROXY$/, ',$Proxy#delete_')
+            .gsub(/MATCH,DIRECT$/, 'MATCH,$Others#delete_')
+            .gsub(/#delete_/, '')
+            };
+            File.open('$3','w') {|f| YAML.dump(Value, f)};
+         rescue Exception => e
+            puts '${LOGTIME} Error: Set ConnersHua Return Rules Failed,【' + e.message + '】';
+         end" 2>/dev/null >> $LOG_FILE
        fi
    fi
 fi
