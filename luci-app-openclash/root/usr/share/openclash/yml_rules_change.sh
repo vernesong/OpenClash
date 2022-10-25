@@ -793,7 +793,7 @@ yml_other_set()
                   if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
                      x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
                   end;
-	            elsif '$github_address_mod' == 'https://fastly.jsdelivr.net/' then
+               elsif '$github_address_mod' == 'https://fastly.jsdelivr.net/' then
                   if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
                      x['url'] = 'https://fastly.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
                   end;
@@ -878,50 +878,50 @@ if [ "$1" != "0" ]; then
       exit 0
    #判断策略组是否存在
    elif [ "$rule_name" = "ConnersHua_return" ]; then
-	    if [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ];then
+       if [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ];then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"
          exit 0
-	    fi
+       fi
    elif [ "$rule_name" = "ConnersHua" ]; then
        if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
+    || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"
          exit 0
        fi
    elif [ "$rule_name" = "lhie1" ]; then
        if [ -z "$(grep -F "$GlobalTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Youtube" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Bilibili" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Bahamut" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$HBOMax" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$HBOGo" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Pornhub" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Apple" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Scholar" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Netflix" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Disney" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Discovery" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$DAZN" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Spotify" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Steam" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$AdBlock" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Speedtest" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Youtube" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Bilibili" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Bahamut" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$HBOMax" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$HBOGo" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Pornhub" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Apple" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Scholar" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Netflix" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Disney" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Discovery" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$DAZN" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Spotify" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Steam" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$AdBlock" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Speedtest" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Telegram" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Crypto" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Discord" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Microsoft" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
+    || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"
          exit 0
@@ -933,8 +933,8 @@ if [ "$1" != "0" ]; then
       exit 0
    else
        if [ "$rule_name" = "lhie1" ]; then
-       	   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-       	   begin
+             ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+             begin
                Value = YAML.load_file('$3');
                Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
                if Value.has_key?('script') then
@@ -1012,9 +1012,9 @@ if [ "$1" != "0" ]; then
                .gsub!(/return \"Others\"$/, 'return \"$Others#d\"')
                .gsub!(/#d/, '');
                File.open('$3','w') {|f| YAML.dump(Value, f)};
-       	   rescue Exception => e
-       	      puts '${LOGTIME} Error: Set lhie1 Rules Failed,【' + e.message + '】';
-       	   end" 2>/dev/null >> $LOG_FILE
+             rescue Exception => e
+                puts '${LOGTIME} Error: Set lhie1 Rules Failed,【' + e.message + '】';
+             end" 2>/dev/null >> $LOG_FILE
        elif [ "$rule_name" = "ConnersHua" ]; then
             ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             begin
@@ -1045,9 +1045,9 @@ if [ "$1" != "0" ]; then
                .gsub(/#d/, '')
                };
                File.open('$3','w') {|f| YAML.dump(Value, f)};
-       	    rescue Exception => e
-       	      puts '${LOGTIME} Error: Set ConnersHua Rules Failed,【' + e.message + '】';
-       	    end" 2>/dev/null >> $LOG_FILE
+              rescue Exception => e
+                puts '${LOGTIME} Error: Set ConnersHua Rules Failed,【' + e.message + '】';
+              end" 2>/dev/null >> $LOG_FILE
        else
             ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             begin
@@ -1066,9 +1066,9 @@ if [ "$1" != "0" ]; then
                .gsub(/#d/, '')
                };
                File.open('$3','w') {|f| YAML.dump(Value, f)};
-       	   rescue Exception => e
-       	      puts '${LOGTIME} Error: Set ConnersHua Return Rules Failed,【' + e.message + '】';
-       	   end" 2>/dev/null >> $LOG_FILE
+             rescue Exception => e
+                puts '${LOGTIME} Error: Set ConnersHua Return Rules Failed,【' + e.message + '】';
+             end" 2>/dev/null >> $LOG_FILE
        fi
    fi
 fi
