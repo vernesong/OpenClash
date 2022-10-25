@@ -66,6 +66,11 @@ fi
 
 uci commit openclash
 
+for i in `awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list`
+do
+   echo "$i" >> /tmp/openclash_fake_filter_include
+done 2>/dev/null
+
 #获取认证信息
 yml_auth_get()
 {
@@ -634,6 +639,17 @@ Thread.new{
    if '$1' == 'fake-ip' then
       if File::exist?('/etc/openclash/custom/openclash_custom_fake_filter.list') then
          Value_4 = IO.readlines('/etc/openclash/custom/openclash_custom_fake_filter.list');
+         if not Value_4.empty? then
+            Value_4 = Value_4.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
+            if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+               Value['dns']['fake-ip-filter'] = Value['dns']['fake-ip-filter'] | Value_4;
+            else
+               Value['dns']['fake-ip-filter'] = Value_4;
+            end;
+         end;
+      end;
+      if File::exist?('/tmp/openclash_fake_filter_include') then
+         Value_4 = IO.readlines('/tmp/openclash_fake_filter_include');
          if not Value_4.empty? then
             Value_4 = Value_4.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
             if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then

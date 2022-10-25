@@ -366,7 +366,7 @@ yml_other_rules_get()
 check_run_quick()
 {
    quick_start=true
-   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $meta_core_path $ipdb_path $geosite_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /etc/openclash/custom/openclash_force_sniffing_domain.yaml /etc/openclash/custom/openclash_sniffing_domain_filter.yaml /etc/openclash/custom/openclash_sniffing_port_filter.yaml /etc/openclash/custom/openclash_custom_localnetwork_ipv4.list /etc/openclash/custom/openclash_custom_localnetwork_ipv6.list /etc/openclash/custom/openclash_custom_chnroute_pass.list /etc/openclash/custom/openclash_custom_chnroute6_pass.list"
+   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $meta_core_path $ipdb_path $geosite_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /etc/openclash/custom/openclash_force_sniffing_domain.yaml /etc/openclash/custom/openclash_sniffing_domain_filter.yaml /etc/openclash/custom/openclash_sniffing_port_filter.yaml /etc/openclash/custom/openclash_custom_localnetwork_ipv4.list /etc/openclash/custom/openclash_custom_localnetwork_ipv6.list /etc/openclash/custom/openclash_custom_chnroute_pass.list /etc/openclash/custom/openclash_custom_chnroute6_pass.list $cndomain_path"
 	 if [ ! -f "$CONFIG_FILE" ] || [ ! -f "/tmp/openclash_config.tmp" ] || [ ! -f "/tmp/openclash.change" ]; then
 	    quick_start=false
 	    return
@@ -598,7 +598,7 @@ do_run_file()
          LOG_OUT "Tip: Detected that the Chnroute Cidr or CN Domains List is not Installed, Ready to Download..."
          /usr/share/openclash/openclash_chnroute.sh
       fi
-      if [ ! -f "$cndomain_path" ] && [ "$en_mode" = "fake-ip" ] && [ "$disable_udp_quic" != "1" ]; then
+      if [ ! -f "$cndomain_path" ] && [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ]; then
          LOG_OUT "Tip: Detected that the Chnroute Cidr or CN Domains List is not Installed, Ready to Download..."
          /usr/share/openclash/openclash_chnroute.sh
       fi
@@ -619,10 +619,10 @@ do_run_file()
             fi
          fi
       fi
-      if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ] || [ ! -f "$cndomain_path" ]; then
+      if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ]; then
          start_fail
       fi
-      if [ ! -f "$cndomain_path" ] && [ "$en_mode" = "fake-ip" ] && [ "$disable_udp_quic" != "1" ]; then
+      if [ ! -f "$cndomain_path" ] && [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ]; then
          start_fail
       fi
    fi
@@ -1258,9 +1258,13 @@ if [ -n "$FW4" ]; then
       nft -f '/tmp/openclash_china_ip_route_pass.list' 2>/dev/null
       rm -rf /tmp/openclash_china_ip_route_pass.list 2>/dev/null
 
-      if [ "$en_mode" = "fake-ip" ]; then
+      if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ]; then
          cp "$cndomain_path" /tmp/dnsmasq.d/dnsmasq_accelerated-domains.china.conf 2>/dev/null
          sed -i "s/114.114.114.114/${custom_china_domain_dns_server}/g" /tmp/dnsmasq.d/dnsmasq_accelerated-domains.china.conf 2>/dev/null
+         for i in `awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list`
+         do
+            sed -i "/server=\/${i}\//d" /tmp/dnsmasq.d/dnsmasq_accelerated-domains.china.conf 2>/dev/null
+         done 2>/dev/null
       fi
    fi
 
@@ -1763,9 +1767,13 @@ else
       ipset -! restore </tmp/openclash_china_ip_route_pass.list 2>/dev/null
       rm -rf /tmp/openclash_china_ip_route_pass.list 2>/dev/null
 
-      if [ "$en_mode" = "fake-ip" ]; then
+      if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ]; then
          cp "$cndomain_path" /tmp/dnsmasq.d/dnsmasq_accelerated-domains.china.conf 2>/dev/null
          sed -i "s/114.114.114.114/${custom_china_domain_dns_server}/g" /tmp/dnsmasq.d/dnsmasq_accelerated-domains.china.conf 2>/dev/null
+         for i in `awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list`
+         do
+            sed -i "/server=\/${i}\//d" /tmp/dnsmasq.d/dnsmasq_accelerated-domains.china.conf 2>/dev/null
+         done 2>/dev/null
       fi
    fi
 
