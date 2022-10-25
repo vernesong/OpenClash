@@ -793,7 +793,7 @@ yml_other_set()
                   if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
                      x['url'] = 'https://cdn.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
                   end;
-	            elsif '$github_address_mod' == 'https://fastly.jsdelivr.net/' then
+               elsif '$github_address_mod' == 'https://fastly.jsdelivr.net/' then
                   if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
                      x['url'] = 'https://fastly.jsdelivr.net/gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
                   end;
@@ -878,50 +878,50 @@ if [ "$1" != "0" ]; then
       exit 0
    #判断策略组是否存在
    elif [ "$rule_name" = "ConnersHua_return" ]; then
-	    if [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ];then
+       if [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ];then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"
          exit 0
-	    fi
+       fi
    elif [ "$rule_name" = "ConnersHua" ]; then
        if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
+    || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"
          exit 0
        fi
    elif [ "$rule_name" = "lhie1" ]; then
        if [ -z "$(grep -F "$GlobalTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Youtube" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Bilibili" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Bahamut" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$HBOMax" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$HBOGo" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Pornhub" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Apple" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Scholar" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Netflix" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Disney" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Discovery" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$DAZN" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Spotify" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Steam" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$AdBlock" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Speedtest" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Youtube" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Bilibili" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Bahamut" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$HBOMax" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$HBOGo" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Pornhub" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Apple" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Scholar" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Netflix" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Disney" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Discovery" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$DAZN" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Spotify" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Steam" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$AdBlock" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Speedtest" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Telegram" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Crypto" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Discord" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Microsoft" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
-	 || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
+    || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"
          exit 0
@@ -933,8 +933,8 @@ if [ "$1" != "0" ]; then
       exit 0
    else
        if [ "$rule_name" = "lhie1" ]; then
-       	   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-       	   begin
+             ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+             begin
                Value = YAML.load_file('$3');
                Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
                if Value.has_key?('script') then
@@ -953,68 +953,68 @@ if [ "$1" != "0" ]; then
                Value['script']=Value_1['script'];
                Value['rules']=Value_1['rules'];
                Value['rules'].to_a.collect!{|x|
-               x.to_s.gsub(/,Bilibili,Asian TV$/, ',Bilibili,$Bilibili#d')
-               .gsub(/,Bahamut,Global TV$/, ',Bahamut,$Bahamut#d')
-               .gsub(/,HBO Max,Global TV$/, ',HBO Max,$HBOMax#d')
-               .gsub(/,HBO Go,Global TV$/, ',HBO Go,$HBOGo#d')
-               .gsub(/,Discovery Plus,Global TV$/, ',Discovery Plus,$Discovery#d')
-               .gsub(/,DAZN,Global TV$/, ',DAZN,$DAZN#d')
-               .gsub(/,Pornhub,Global TV$/, ',Pornhub,$Pornhub#d')
-               .gsub(/,Global TV$/, ',$GlobalTV#d')
-               .gsub(/,Asian TV$/, ',$AsianTV#d')
-               .gsub(/,Proxy$/, ',$Proxy#d')
-               .gsub(/,YouTube$/, ',$Youtube#d')
-               .gsub(/,Apple$/, ',$Apple#d')
-               .gsub(/,Scholar$/, ',$Scholar#d')
-               .gsub(/,Netflix$/, ',$Netflix#d')
-               .gsub(/,Disney$/, ',$Disney#d')
-               .gsub(/,Spotify$/, ',$Spotify#d')
-               .gsub(/,Steam$/, ',$Steam#d')
-               .gsub(/,AdBlock$/, ',$AdBlock#d')
-               .gsub(/,Speedtest$/, ',$Speedtest#d')
-               .gsub(/,Telegram$/, ',$Telegram#d')
-               .gsub(/,Crypto$/, ',$Crypto#d')
-               .gsub(/,Discord$/, ',$Discord#d')
-               .gsub(/,Microsoft$/, ',$Microsoft#d')
-               .to_s.gsub(/,PayPal$/, ',$PayPal#d')
-               .gsub(/,Domestic$/, ',$Domestic#d')
-               .gsub(/,Others$/, ',$Others#d')
-               .gsub(/,Google FCM$/, ',$GoogleFCM#d')
-               .gsub(/#d/, '')
+               x.to_s.gsub(/,Bilibili,Asian TV$/, ',Bilibili,$Bilibili#delete_')
+               .gsub(/,Bahamut,Global TV$/, ',Bahamut,$Bahamut#delete_')
+               .gsub(/,HBO Max,Global TV$/, ',HBO Max,$HBOMax#delete_')
+               .gsub(/,HBO Go,Global TV$/, ',HBO Go,$HBOGo#delete_')
+               .gsub(/,Discovery Plus,Global TV$/, ',Discovery Plus,$Discovery#delete_')
+               .gsub(/,DAZN,Global TV$/, ',DAZN,$DAZN#delete_')
+               .gsub(/,Pornhub,Global TV$/, ',Pornhub,$Pornhub#delete_')
+               .gsub(/,Global TV$/, ',$GlobalTV#delete_')
+               .gsub(/,Asian TV$/, ',$AsianTV#delete_')
+               .gsub(/,Proxy$/, ',$Proxy#delete_')
+               .gsub(/,YouTube$/, ',$Youtube#delete_')
+               .gsub(/,Apple$/, ',$Apple#delete_')
+               .gsub(/,Scholar$/, ',$Scholar#delete_')
+               .gsub(/,Netflix$/, ',$Netflix#delete_')
+               .gsub(/,Disney$/, ',$Disney#delete_')
+               .gsub(/,Spotify$/, ',$Spotify#delete_')
+               .gsub(/,Steam$/, ',$Steam#delete_')
+               .gsub(/,AdBlock$/, ',$AdBlock#delete_')
+               .gsub(/,Speedtest$/, ',$Speedtest#delete_')
+               .gsub(/,Telegram$/, ',$Telegram#delete_')
+               .gsub(/,Crypto$/, ',$Crypto#delete_')
+               .gsub(/,Discord$/, ',$Discord#delete_')
+               .gsub(/,Microsoft$/, ',$Microsoft#delete_')
+               .to_s.gsub(/,PayPal$/, ',$PayPal#delete_')
+               .gsub(/,Domestic$/, ',$Domestic#delete_')
+               .gsub(/,Others$/, ',$Others#delete_')
+               .gsub(/,Google FCM$/, ',$GoogleFCM#delete_')
+               .gsub(/#delete_/, '')
                };
-               Value['script']['code'].to_s.gsub!(/\"Bilibili\": \"Asian TV\"/,'\"Bilibili\": \"$Bilibili#d\"')
-               .gsub!(/\"Bahamut\": \"Global TV\"/,'\"Bahamut\": \"$Bahamut#d\"')
-               .gsub!(/\"HBO Max\": \"Global TV\"/,'\"HBO Max\": \"$HBOMax#d\"')
-               .gsub!(/\"HBO Go\": \"Global TV\"/,'\"HBO Go\": \"$HBOGo#d\"')
-               .gsub!(/\"Discovery Plus\": \"Global TV\"/,'\"Discovery Plus\": \"$Discovery#d\"')
-               .gsub!(/\"DAZN\": \"Global TV\"/,'\"DAZN\": \"$DAZN#d\"')
-               .gsub!(/\"Pornhub\": \"Global TV\"/,'\"Pornhub\": \"$Pornhub#d\"')
-               .gsub!(/: \"Global TV\"/,': \"$GlobalTV#d\"')
-               .gsub!(/: \"Asian TV\"/,': \"$AsianTV#d\"')
-               .gsub!(/: \"Proxy\"/,': \"$Proxy#d\"')
-               .gsub!(/: \"YouTube\"/,': \"$Youtube#d\"')
-               .gsub!(/: \"Apple\"/,': \"$Apple#d\"')
-               .gsub!(/: \"Scholar\"/,': \"$Scholar#d\"')
-               .gsub!(/: \"Netflix\"/,': \"$Netflix#d\"')
-               .gsub!(/: \"Disney\"/,': \"$Disney#d\"')
-               .gsub!(/: \"Spotify\"/,': \"$Spotify#d\"')
-               .gsub!(/: \"Steam\"/,': \"$Steam#d\"')
-               .gsub!(/: \"AdBlock\"/,': \"$AdBlock#d\"')
-               .gsub!(/: \"Speedtest\"/,': \"$Speedtest#d\"')
-               .gsub!(/: \"Telegram\"/,': \"$Telegram#d\"')
-               .gsub!(/: \"Crypto\"/,': \"$Crypto#d\"')
-               .gsub!(/: \"Discord\"/,': \"$Discord#d\"')
-               .gsub!(/: \"Microsoft\"/,': \"$Microsoft#d\"')
-               .gsub!(/: \"PayPal\"/,': \"$PayPal#d\"')
-               .gsub!(/: \"Domestic\"/,': \"$Domestic#d\"')
-               .gsub!(/: \"Google FCM\"/,': \"$GoogleFCM#d\"')
-               .gsub!(/return \"Domestic\"$/, 'return \"$Domestic#d\"')
-               .gsub!(/return \"Others\"$/, 'return \"$Others#d\"')
-               .gsub!(/#d/, '');
+               Value['script']['code'].to_s.gsub!(/\"Bilibili\": \"Asian TV\"/,'\"Bilibili\": \"$Bilibili#delete_\"')
+               .gsub!(/\"Bahamut\": \"Global TV\"/,'\"Bahamut\": \"$Bahamut#delete_\"')
+               .gsub!(/\"HBO Max\": \"Global TV\"/,'\"HBO Max\": \"$HBOMax#delete_\"')
+               .gsub!(/\"HBO Go\": \"Global TV\"/,'\"HBO Go\": \"$HBOGo#delete_\"')
+               .gsub!(/\"Discovery Plus\": \"Global TV\"/,'\"Discovery Plus\": \"$Discovery#delete_\"')
+               .gsub!(/\"DAZN\": \"Global TV\"/,'\"DAZN\": \"$DAZN#delete_\"')
+               .gsub!(/\"Pornhub\": \"Global TV\"/,'\"Pornhub\": \"$Pornhub#delete_\"')
+               .gsub!(/: \"Global TV\"/,': \"$GlobalTV#delete_\"')
+               .gsub!(/: \"Asian TV\"/,': \"$AsianTV#delete_\"')
+               .gsub!(/: \"Proxy\"/,': \"$Proxy#delete_\"')
+               .gsub!(/: \"YouTube\"/,': \"$Youtube#delete_\"')
+               .gsub!(/: \"Apple\"/,': \"$Apple#delete_\"')
+               .gsub!(/: \"Scholar\"/,': \"$Scholar#delete_\"')
+               .gsub!(/: \"Netflix\"/,': \"$Netflix#delete_\"')
+               .gsub!(/: \"Disney\"/,': \"$Disney#delete_\"')
+               .gsub!(/: \"Spotify\"/,': \"$Spotify#delete_\"')
+               .gsub!(/: \"Steam\"/,': \"$Steam#delete_\"')
+               .gsub!(/: \"AdBlock\"/,': \"$AdBlock#delete_\"')
+               .gsub!(/: \"Speedtest\"/,': \"$Speedtest#delete_\"')
+               .gsub!(/: \"Telegram\"/,': \"$Telegram#delete_\"')
+               .gsub!(/: \"Crypto\"/,': \"$Crypto#delete_\"')
+               .gsub!(/: \"Discord\"/,': \"$Discord#delete_\"')
+               .gsub!(/: \"Microsoft\"/,': \"$Microsoft#delete_\"')
+               .gsub!(/: \"PayPal\"/,': \"$PayPal#delete_\"')
+               .gsub!(/: \"Domestic\"/,': \"$Domestic#delete_\"')
+               .gsub!(/: \"Google FCM\"/,': \"$GoogleFCM#delete_\"')
+               .gsub!(/return \"Domestic\"$/, 'return \"$Domestic#delete_\"')
+               .gsub!(/return \"Others\"$/, 'return \"$Others#delete_\"')
+               .gsub!(/#delete_/, '');
                File.open('$3','w') {|f| YAML.dump(Value, f)};
-       	   rescue Exception => e
-       	      puts '${LOGTIME} Error: Set lhie1 Rules Failed,【' + e.message + '】';
-       	   end" 2>/dev/null >> $LOG_FILE
+             rescue Exception => e
+                puts '${LOGTIME} Error: Set lhie1 Rules Failed,【' + e.message + '】';
+             end" 2>/dev/null >> $LOG_FILE
        elif [ "$rule_name" = "ConnersHua" ]; then
             ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             begin
@@ -1035,19 +1035,19 @@ if [ "$1" != "0" ]; then
                end;
                Value['rules']=Value_1['rules'];
                Value['rules'].to_a.collect!{|x|
-               x.to_s.gsub(/,Streaming$/, ',$GlobalTV#d')
-               .gsub(/,StreamingSE$/, ',$AsianTV#d')
-               .gsub(/(,PROXY$|,IP-Blackhole$)/, ',$Proxy#d')
-               .gsub(/,China,DIRECT$/, ',China,$Domestic#d')
-               .gsub(/,ChinaIP,DIRECT$/, ',ChinaIP,$Domestic#d')
-               .gsub(/,CN,DIRECT$/, ',CN,$Domestic#d')
-               .gsub(/,MATCH$/, ',$Others#d')
-               .gsub(/#d/, '')
+               x.to_s.gsub(/,Streaming$/, ',$GlobalTV#delete_')
+               .gsub(/,StreamingSE$/, ',$AsianTV#delete_')
+               .gsub(/(,PROXY$|,IP-Blackhole$)/, ',$Proxy#delete_')
+               .gsub(/,China,DIRECT$/, ',China,$Domestic#delete_')
+               .gsub(/,ChinaIP,DIRECT$/, ',ChinaIP,$Domestic#delete_')
+               .gsub(/,CN,DIRECT$/, ',CN,$Domestic#delete_')
+               .gsub(/,MATCH$/, ',$Others#delete_')
+               .gsub(/#delete_/, '')
                };
                File.open('$3','w') {|f| YAML.dump(Value, f)};
-       	    rescue Exception => e
-       	      puts '${LOGTIME} Error: Set ConnersHua Rules Failed,【' + e.message + '】';
-       	    end" 2>/dev/null >> $LOG_FILE
+              rescue Exception => e
+                puts '${LOGTIME} Error: Set ConnersHua Rules Failed,【' + e.message + '】';
+              end" 2>/dev/null >> $LOG_FILE
        else
             ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             begin
@@ -1061,14 +1061,14 @@ if [ "$1" != "0" ]; then
                end;
                Value['rules']=Value_1['rules'];
                Value['rules'].to_a.collect!{|x|
-               x.to_s.gsub(/,PROXY$/, ',$Proxy#d')
-               .gsub(/MATCH,DIRECT$/, 'MATCH,$Others#d')
-               .gsub(/#d/, '')
+               x.to_s.gsub(/,PROXY$/, ',$Proxy#delete_')
+               .gsub(/MATCH,DIRECT$/, 'MATCH,$Others#delete_')
+               .gsub(/#delete_/, '')
                };
                File.open('$3','w') {|f| YAML.dump(Value, f)};
-       	   rescue Exception => e
-       	      puts '${LOGTIME} Error: Set ConnersHua Return Rules Failed,【' + e.message + '】';
-       	   end" 2>/dev/null >> $LOG_FILE
+             rescue Exception => e
+                puts '${LOGTIME} Error: Set ConnersHua Return Rules Failed,【' + e.message + '】';
+             end" 2>/dev/null >> $LOG_FILE
        fi
    fi
 fi
