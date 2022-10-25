@@ -3169,5 +3169,12 @@ msgstr "下载失败："
 msgid "Tip: Waiting for TUN Interface Start..."
 msgstr "提示：正在等待 TUN 接口启动..."
 
-msgid "Warning: Try to Restart With Meta Core..."
-msgstr "警告：尝试使用 Meta 内核启动..."
+msgid "Tip: You Can Try to Restart With Meta Core"
+msgstr "提示：您可以尝试使用 Meta 内核启动"
+
+msgid "Warning: DNSMASQ not Support nftset, Use ipset..."
+msgstr "警告：DNSMASQ 不支持 nftset, 使用 ipset 代替..."
+
+msgid "Tip: Firewall4 was Detected, Use NFTABLE Rules..."
+msgstr "提示：检测到 Firewall4，使用 NFTABLE 规则..."
+

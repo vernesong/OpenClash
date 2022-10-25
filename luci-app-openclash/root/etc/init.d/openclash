@@ -202,10 +202,6 @@ start_fail()
    kill_clash
    stop
    del_lock
-   if [ "$PROVIDER_RESTART" == 1 ]; then
-      uci -q set openclash.config.enable_meta_core=0
-      uci -q commit openclash
-   fi
    exit 0
 }
 
@@ -253,15 +249,8 @@ if [ -z "$(pidof clash)" ] && [ "$provider_path_check" == "false" ]; then
       LOG_OUT "Error: Failed To Download Rule-providers, Please Check The Log Page For Detailed error information!"
    fi
    LOG_ALERT
-   LOG_OUT "Warning: Try to Restart With Meta Core..."
-   PROVIDER_RESTART=1
-   uci -q set openclash.config.enable_meta_core=1
-   uci -q commit openclash
-   del_lock
-   restart
-   uci -q set openclash.config.enable_meta_core=0
-   uci -q commit openclash
-   exit 0
+   LOG_OUT "Tip: You Can Try to Restart With Meta Core"
+   start_fail
 fi
 }
 
@@ -1226,9 +1215,11 @@ if dnsmasq --version | grep -q 'Compile time options:.* nftset'; then
    nftflag="inet#fw4#"
 else
    settype="ipset"
+   [ -n "$FW4" ] && LOG_OUT "Warning: DNSMASQ not Support nftset, Use ipset..."
 fi
 
 if [ -n "$FW4" ]; then
+   LOG_OUT "Tip: Firewall4 was Detected, Use NFTABLE Rules..."
    if [ "$china_ip_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
       nft 'flush set inet fw4 china_ip_route'
       nft -f '/etc/openclash/china_ip_route.ipset' 2>/dev/null

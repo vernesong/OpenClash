@@ -38,13 +38,13 @@ fi
 
 set_groups()
 {
-  if [ -z "$1" ]; then
-     return
-  fi
-  
-  if [ "$add_for_this" -eq 1 ]; then
-     return
-  fi
+   if [ -z "$1" ]; then
+      return
+   fi
+   
+   if [ "$add_for_this" -eq 1 ]; then
+      return
+   fi
 
    if [ "$1" = "$3" ] || [ "$1" = "all" ]; then
       set_group=1
@@ -56,25 +56,25 @@ set_groups()
 
 set_relay_groups()
 {
-  if [ -z "$1" ]; then
-     return
-  fi
-  
-  if [ "$add_for_this" -eq 1 ]; then
-     return
-  fi
-  
-  if [ -n "$(echo "$1" |grep "#relay#")" ]; then
-     server_relay_num=$(echo "$1" |awk -F '#relay#' '{print $2}')
-     server_group_name=$(echo "$1" |awk -F '#relay#' '{print $1}')
-  fi
+   if [ -z "$1" ]; then
+      return
+   fi
+   
+   if [ "$add_for_this" -eq 1 ]; then
+      return
+   fi
+   
+   if [ -n "$(echo "$1" |grep "#relay#")" ]; then
+      server_relay_num=$(echo "$1" |awk -F '#relay#' '{print $2}')
+      server_group_name=$(echo "$1" |awk -F '#relay#' '{print $1}')
+   fi
 
-  if [ -n "$server_relay_num" ]; then
-     if [ "$server_group_name" = "$3" ] || [ "$server_group_name" = "all" ]; then
-        set_group=1
-        add_for_this=1
-        echo "$server_relay_num #      - \"${2}\"" >>/tmp/relay_server
-     fi
+   if [ -n "$server_relay_num" ]; then
+      if [ "$server_group_name" = "$3" ] || [ "$server_group_name" = "all" ]; then
+         set_group=1
+         add_for_this=1
+         echo "$server_relay_num #      - \"${2}\"" >>/tmp/relay_server
+      fi
    fi
 }
 
@@ -95,13 +95,13 @@ yml_servers_add()
   
    if [ "$enabled" = "0" ]; then
       return
-  else
-     if [ -z "$4" ] && [ "$3" = "relay" ] && [ -n "$relay_groups" ]; then
+   else
+      if [ -z "$4" ] && [ "$3" = "relay" ] && [ -n "$relay_groups" ]; then
          config_list_foreach "$section" "relay_groups" set_relay_groups "$name" "$2"
       elif [ -z "$4" ]; then
          config_list_foreach "$section" "groups" set_groups "$name" "$2"
-     fi
-      
+      fi
+         
       if [ -n "$if_game_group" ] && [ -z "$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "Value = YAML.load_file('$CONFIG_FILE'); Value['proxies'].each{|x| if x['name'].eql?('$name') then puts x['name'] end}" 2>/dev/null)" ]; then
          /usr/share/openclash/yml_proxys_set.sh "$name" "proxy"
       fi
@@ -117,7 +117,6 @@ set_other_groups()
    fi
    set_group=1
    echo "      - ${1}" >>$GROUP_FILE
-
 }
 
 #加入代理集
@@ -135,10 +134,10 @@ set_proxy_provider()
   
    if [ "$enabled" = "0" ]; then
       return
-  else
-     if [ -z "$3" ]; then
+   else
+      if [ -z "$3" ]; then
          config_list_foreach "$section" "groups" set_provider_groups "$name" "$2"
-     fi
+      fi
       
       if [ -n "$if_game_group" ] && [ -z "$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "Value = YAML.load_file('$CONFIG_FILE'); Value['proxy-providers'].keys.each{|x| if x.eql?('$name') then puts x end}" 2>/dev/null)" ]; then
          /usr/share/openclash/yml_proxys_set.sh "$name" "proxy-provider"
@@ -148,13 +147,13 @@ set_proxy_provider()
 
 set_provider_groups()
 {
-  if [ -z "$1" ]; then
-     return
-  fi
-  
-  if [ "$add_for_this" -eq 1 ]; then
-     return
-  fi
+   if [ -z "$1" ]; then
+      return
+   fi
+   
+   if [ "$add_for_this" -eq 1 ]; then
+      return
+   fi
 
    if [ "$1" = "$3" ] || [ "$1" = "all" ]; then
       set_proxy_provider=1
@@ -245,10 +244,10 @@ yml_groups_set()
    config_foreach yml_servers_add "servers" "$name" "$type" #加入服务器节点
    
    if [ "$type" = "relay" ] && [ -s "/tmp/relay_server" ]; then
-       cat /tmp/relay_server |sort -k 1 |awk -F '#' '{print $2}' > /tmp/relay_server.list 2>/dev/null
-       sed -i "/^ \{0,\}proxies: ${group_name}/r/tmp/relay_server.list" "$GROUP_FILE" 2>/dev/null
-       rm -rf /tmp/relay_server 2>/dev/null
-    fi
+      cat /tmp/relay_server |sort -k 1 |awk -F '#' '{print $2}' > /tmp/relay_server.list 2>/dev/null
+      sed -i "/^ \{0,\}proxies: ${group_name}/r/tmp/relay_server.list" "$GROUP_FILE" 2>/dev/null
+      rm -rf /tmp/relay_server 2>/dev/null
+   fi
 
    echo "    use: $group_name" >>$GROUP_FILE
    
