@@ -143,10 +143,8 @@
       if [ "$?" -ne "0" ]; then
          LOG_OUT "CN Domains List Has Been Updated, Starting To Replace The Old Version..."
          mv /tmp/china_domains.list "$cndomain_path" >/dev/null 2>&1
-         if [ "$china_ip_route" -eq 1 ] || [ "$china_ip6_route" -eq 1 ]; then
-            if [ -z "$(echo "$en_mode" |grep "redir-host")" ]; then
-               [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
-            fi
+         if [ "$china_ip_route" -eq 1 ] && [ -z "$(echo "$en_mode" |grep "redir-host")" ]; then
+            restart=1
          fi
          LOG_OUT "CN Domains List Update Successful!"
          sleep 3
