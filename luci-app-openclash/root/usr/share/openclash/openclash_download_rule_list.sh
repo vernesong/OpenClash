@@ -18,10 +18,8 @@ urlencode() {
    github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
    if [ "$1" == "netflix_domains" ]; then
    	  if [ "$github_address_mod" != "0" ]; then
-         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-            DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
-         elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
-            DOWNLOAD_PATH="https://fastly.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+            DOWNLOAD_PATH="${github_address_mod}gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
          elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
             DOWNLOAD_PATH="https://raw.fastgit.org/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
          else
@@ -35,10 +33,8 @@ urlencode() {
       RULE_TYPE="netflix"
    elif [ "$1" == "disney_domains" ]; then
       if [ "$github_address_mod" != "0" ]; then
-         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-            DOWNLOAD_PATH="https://cdn.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
-         elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
-            DOWNLOAD_PATH="https://fastly.jsdelivr.net/gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+            DOWNLOAD_PATH="${github_address_mod}gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
          elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
             DOWNLOAD_PATH="https://raw.fastgit.org/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
          else
@@ -76,10 +72,10 @@ urlencode() {
       curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
    elif [ "$RULE_TYPE" = "game" ]; then
       if [ "$github_address_mod" != "0" ]; then
-         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://cdn.jsdelivr.net/gh/FQrabbit/SSTap-Rule@master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-         elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
-            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://fastly.jsdelivr.net/gh/FQrabbit/SSTap-Rule@master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"gh/FQrabbit/SSTap-Rule@master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          else
             curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          fi
@@ -88,10 +84,10 @@ urlencode() {
       fi
    elif [ "$RULE_TYPE" = "provider" ]; then
       if [ "$github_address_mod" != "0" ]; then
-         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://cdn.jsdelivr.net/gh/"$(echo "$DOWNLOAD_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"@master"$(echo "$DOWNLOAD_PATH" |awk -F 'master' '{print $2}')" -o "$TMP_RULE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-         elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
-            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://fastly.jsdelivr.net/gh/"$(echo "$DOWNLOAD_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"@master"$(echo "$DOWNLOAD_PATH" |awk -F 'master' '{print $2}')" -o "$TMP_RULE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"gh/"$(echo "$DOWNLOAD_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"@master"$(echo "$DOWNLOAD_PATH" |awk -F 'master' '{print $2}')" -o "$TMP_RULE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod""$(echo "$DOWNLOAD_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"/master"$(echo "$DOWNLOAD_PATH" |awk -F 'master' '{print $2}')" -o "$TMP_RULE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          else
             curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          fi
