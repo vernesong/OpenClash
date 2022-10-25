@@ -118,12 +118,21 @@ o:depends("en_mode", "redir-host")
 o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")
 
-o = s:taboption("op_mode", Flag, "china_ip_route", translate("China IP Route"))
-o.description = translate("Bypass The China Network Flows, Improve Performance")
-o.default = 0
-o:depends("en_mode", "redir-host")
-o:depends("en_mode", "redir-host-tun")
-o:depends("en_mode", "redir-host-mix")
+if op_mode == "redir-host" then
+	o = s:taboption("op_mode", Flag, "china_ip_route", translate("China IP Route"))
+	o.description = translate("Bypass The China Network Flows, Improve Performance")
+	o.default = 0
+else
+	o = s:taboption("op_mode", Flag, "china_ip_route", translate("China IP Route"))
+	o.description = translate("Bypass The China Network Flows, Improve Performance, Depend on Dnsmasq")
+	o.default = 0
+
+	o = s:taboption("op_mode", Value, "custom_china_domain_dns_server", translate("Specify CN DNS Server"))
+	o.description = translate("Specify DNS Server For CN Domain Lists, Only One IP Server Address Support")
+	o.default = "114.114.114.114"
+	o.placeholder = translate("114.114.114.114 or 127.0.0.1#5300")
+	o:depends("china_ip_route", "1")
+end
 
 o = s:taboption("op_mode", Flag, "intranet_allowed", translate("Only intranet allowed"))
 o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network")
@@ -642,7 +651,6 @@ function o.write(self, section, value)
 	end
 end
 
-if op_mode == "redir-host" then
 o = s:taboption("lan_ac", Value, "chnroute_pass", translate("Chnroute Bypassed List"))
 o.template = "cbi/tvalue"
 o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq")
@@ -680,7 +688,7 @@ function o.write(self, section, value)
 		end
 	end
 end
-end
+
 ---- Rules Settings
 o = s:taboption("rules", Flag, "rule_source", translate("Enable Other Rules"))
 o.description = translate("Use Other Rules")
@@ -1351,6 +1359,15 @@ o.rmempty = false
 o.description = translate("Custom Chnroute6 Lists URL, Click Button Below To Refresh After Edit")
 o:value("https://ispip.clang.cn/all_cn_ipv6.txt", translate("Clang-CN-IPV6")..translate("(Default)"))
 o.default = "https://ispip.clang.cn/all_cn_ipv6.txt"
+
+o = s:taboption("chnr_update", Value, "cndomain_custom_url")
+o.title = translate("Custom CN Doamin Lists URL")
+o.rmempty = false
+o.description = translate("Custom CN Doamin Dnsmasq Conf URL, Click Button Below To Refresh After Edit")
+o:value("https://fastly.jsdelivr.net/gh/felixonmars/dnsmasq-china-list@master/accelerated-domains.china.conf", translate("dnsmasq-china-list-jsdelivr")..translate("(Default)"))
+o:value("https://raw.fastgit.org/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf", translate("dnsmasq-china-list-fastgit"))
+o:value("https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf", translate("dnsmasq-china-list-github"))
+o.default = "https://fastly.jsdelivr.net/gh/felixonmars/dnsmasq-china-list@master/accelerated-domains.china.conf"
 
 o = s:taboption("chnr_update", Button, translate("Chnroute Lists Update")) 
 o.title = translate("Update Chnroute Lists")
