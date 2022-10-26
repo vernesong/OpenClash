@@ -157,8 +157,9 @@
       sleep 3
    fi
 
-   [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
+   [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
+
    rm -rf /tmp/china_ip*_route* >/dev/null 2>&1
-   #rm -rf /tmp/china_domains.list >/dev/null 2>&1
+   rm -rf /tmp/china_domains.list >/dev/null 2>&1
    SLOG_CLEAN
    del_lock

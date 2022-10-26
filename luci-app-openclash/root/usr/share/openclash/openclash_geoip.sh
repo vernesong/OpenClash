@@ -53,7 +53,7 @@
          mv /tmp/GeoIP.dat "$geoip_path" >/dev/null 2>&1
          LOG_OUT "GeoIP Dat Update Successful!"
          sleep 3
-         [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
+         [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
       else
          LOG_OUT "Updated GeoIP Dat No Change, Do Nothing..."
          sleep 3

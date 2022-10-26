@@ -560,7 +560,7 @@ config_foreach sub_info_get "config_subscribe"
 uci -q delete openclash.config.config_update_path
 uci commit openclash
 
-if [ "$if_restart" -eq 1 ]; then
+if [ "$if_restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
    /etc/init.d/openclash restart >/dev/null 2>&1 &
 else
    sed -i '/openclash.sh/d' $CRON_FILE 2>/dev/null
