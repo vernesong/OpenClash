@@ -174,7 +174,7 @@
         LOG_OUT "Get Other Rules Settings Faild, Update Stop!"
         sleep 3
       fi
-      if [ "$ifrestart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
+      if [ "$ifrestart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
          /etc/init.d/openclash restart >/dev/null 2>&1 &
       fi
    fi

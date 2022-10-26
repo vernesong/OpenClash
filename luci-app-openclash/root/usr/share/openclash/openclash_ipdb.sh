@@ -11,7 +11,7 @@
       flock -u 880 2>/dev/null
       rm -rf "/tmp/lock/openclash_ipdb.lock"
    }
-
+   
    small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
    GEOIP_CUSTOM_URL=$(uci get openclash.config.geo_custom_url 2>/dev/null)
    github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
@@ -49,7 +49,7 @@
          mv /tmp/Country.mmdb "$geoip_path" >/dev/null 2>&1
          LOG_OUT "Geoip Database Update Successful!"
          sleep 3
-         [ "$(unify_ps_prevent)" -eq 0 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
+         [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
       else
          LOG_OUT "Updated Geoip Database No Change, Do Nothing..."
          sleep 3
