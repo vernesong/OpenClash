@@ -1644,11 +1644,19 @@ if [ -n "$FW4" ]; then
          #Prevent domain repeat
          for i in `grep -wf /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf`
          do
-            sed -i "s:${i}:${i},6#${nftflag}china_ip6_route_pass:g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf
-            sed -i "s/\/${nftflag}/\/4#${nftflag}/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf
+            if [ -n "$nftflag" ]; then
+               sed -i "s:${i}:${i},6#${nftflag}china_ip6_route_pass:g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf
+            else
+               sed -i "s:${i}:${i},china_ip6_route_pass:g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf
+            fi
             sed -i 's:'$i':EXCLUSIVE:;/EXCLUSIVE/d' /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf
          done
-         sed -i "s/${nftflag}china_ip_route_pass/6#${nftflag}china_ip6_route_pass/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf
+         if [ -n "$nftflag" ]; then
+            sed -i "s/\/${nftflag}/\/4#${nftflag}/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf
+            sed -i "s/${nftflag}china_ip_route_pass/6#${nftflag}china_ip6_route_pass/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf
+         else
+            sed -i "s/china_ip_route_pass/china_ip6_route_pass/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf
+         fi
       fi
       
       #local
