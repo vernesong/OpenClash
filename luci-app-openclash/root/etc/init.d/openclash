@@ -1650,12 +1650,12 @@ if [ -n "$FW4" ]; then
                sed -i "s:${i}:${i},china_ip6_route_pass:g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf
             fi
             sed -i 's:'$i':EXCLUSIVE:;/EXCLUSIVE/d' /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf
-         done
+         done 2>/dev/null
          if [ -n "$nftflag" ]; then
-            sed -i "s/\/${nftflag}/\/4#${nftflag}/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf
-            sed -i "s/${nftflag}china_ip_route_pass/6#${nftflag}china_ip6_route_pass/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf
+            sed -i "s/\/${nftflag}/\/4#${nftflag}/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf 2>/dev/null
+            sed -i "s/${nftflag}china_ip_route_pass/6#${nftflag}china_ip6_route_pass/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf 2>/dev/null
          else
-            sed -i "s/china_ip_route_pass/china_ip6_route_pass/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf
+            sed -i "s/china_ip_route_pass/china_ip6_route_pass/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf 2>/dev/null
          fi
       fi
       
@@ -2180,8 +2180,8 @@ else
          do
             sed -i "s:${i}:${i},china_ip6_route_pass:g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf
             sed -i 's:'$i':EXCLUSIVE:;/EXCLUSIVE/d' /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf
-         done
-         sed -i "s/china_ip_route_pass/china_ip6_route_pass/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf
+         done 2>/dev/null
+         sed -i "s/china_ip_route_pass/china_ip6_route_pass/g" /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf 2>/dev/null
       fi
       
       #local
