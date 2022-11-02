@@ -71,7 +71,6 @@
             restart=1
          fi
          LOG_OUT "Chnroute Cidr List Update Successful!"
-         sleep 3
       else
          LOG_OUT "Updated Chnroute Cidr List No Change, Do Nothing..."
          sleep 3
@@ -109,7 +108,6 @@
             restart=1
          fi
          LOG_OUT "Chnroute6 Cidr List Update Successful!"
-         sleep 3
       else
          LOG_OUT "Updated Chnroute6 Cidr List No Change, Do Nothing..."
          sleep 3
@@ -147,7 +145,6 @@
             restart=1
          fi
          LOG_OUT "CN Domains List Update Successful!"
-         sleep 3
       else
          LOG_OUT "Updated CN Domains List No Change, Do Nothing..."
          sleep 3
@@ -157,8 +154,17 @@
       sleep 3
    fi
 
-   [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && /etc/init.d/openclash restart >/dev/null 2>&1 &
-
+   if [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
+      /etc/init.d/openclash restart >/dev/null 2>&1 &
+   elif [ "$restart" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
+      /etc/init.d/openclash restart >/dev/null 2>&1 &
+      uci -q set openclash.config.restart=0
+      uci -q commit openclash
+   elif [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
+      uci -q set openclash.config.restart=1
+      uci -q commit openclash
+   fi
+ 
    rm -rf /tmp/china_ip*_route* >/dev/null 2>&1
    rm -rf /tmp/china_domains.list >/dev/null 2>&1
    SLOG_CLEAN

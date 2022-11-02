@@ -24,8 +24,15 @@ dns_port=$(uci -q get openclash.config.dns_port)
 enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
 disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
 default_resolvfile=$(uci -q get openclash.config.default_resolvfile)
+en_mode=$(uci -q get openclash.config.en_mode)
+china_ip_route=$(uci -q get openclash.config.china_ip_route)
+ipv6_enable=$(uci -q get openclash.config.ipv6_enable)
 FW4="$(command -v fw4)"
-if_restart=0
+DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
+if [ -z "$DNSPORT" ]; then
+   DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
+fi
+restart=0
 only_download=0
 set_lock
 
@@ -131,15 +138,13 @@ config_cus_up()
 	      uci commit openclash
 	      /usr/share/openclash/yml_groups_set.sh
 	      if [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
-	         if_restart=1
+	         restart=1
 	      fi
 	      LOG_OUT "Config File【$name】Update Successful!"
-	      sleep 3
 	      SLOG_CLEAN
 	   elif [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
         LOG_OUT "Config File【$name】Update Successful!"
-        sleep 3
-        if_restart=1
+        restart=1
      else
         LOG_OUT "Config File【$name】Update Successful!"
         sleep 3
@@ -148,8 +153,7 @@ config_cus_up()
   else
      if [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
         LOG_OUT "Config File【$name】Update Successful!"
-        sleep 3
-        if_restart=1
+        restart=1
      else
         LOG_OUT "Config File【$name】Update Successful!"
         sleep 3
@@ -241,7 +245,7 @@ change_dns()
       
       if [ -n "$FW4" ]; then
          for nft in "nat_output" "mangle_output"; do
-            local handles=$(nft -a list chain inet fw4 ${nft} |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$2}')
+            local handles=$(nft -a list chain inet fw4 ${nft} |grep -E "openclash|OpenClash" |grep -v "OpenClash DNS Hijack" |awk -F '# handle ' '{print$2}')
             for handle in $handles; do
                nft delete rule inet fw4 ${nft} handle ${handle}
             done
@@ -257,8 +261,10 @@ change_dns()
       else
          iptables -t nat -D OUTPUT -j openclash_output >/dev/null 2>&1
          iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
+         ip6tables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
          iptables -t nat -A OUTPUT -j openclash_output >/dev/null 2>&1
          iptables -t mangle -A OUTPUT -j openclash_output >/dev/null 2>&1
+         ip6tables -t mangle -A OUTPUT -j openclash_output >/dev/null 2>&1
       fi
       [ "$(unify_ps_status "openclash_watchdog.sh")" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && nohup /usr/share/openclash/openclash_watchdog.sh &
    fi
@@ -332,9 +338,60 @@ EOF
                nft delete rule inet fw4 ${nft} handle ${handle}
             done
          done >/dev/null 2>&1
+         if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ]; then
+            LOG_OUT "Tip: Bypass the China IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
+            handles=$(nft -a list chain inet fw4 dstnat |grep "OpenClash DNS Hijack" |awk -F '# handle ' '{print$2}')
+            for handle in $handles; do
+               nft delete rule inet fw4 dstnat handle ${handle}
+            done >/dev/null 2>&1
+            position=$(nft list chain inet fw4 dstnat |grep "OpenClash" |grep "DNS" |awk -F '# handle ' '{print$2}' |sort -rn |head -1 || ehco 0)
+            nft add rule inet fw4 dstnat position "$position" tcp dport 53 redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+            nft add rule inet fw4 dstnat position "$position" udp dport 53 redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+            nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }' 2>/dev/null
+            nft add rule inet fw4 nat_output position 0 tcp dport 53 meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+            nft add rule inet fw4 nat_output position 0 udp dport 53 meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+            nft add rule inet fw4 nat_output position 0 tcp dport 5353 meta skuid != 65534 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+            nft add rule inet fw4 nat_output position 0 udp dport 5353 meta skuid != 65534 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+            if [ "$ipv6_enable" -eq 1 ]; then
+               nft add rule inet fw4 dstnat position "$position" meta nfproto {ipv6} tcp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               nft add rule inet fw4 dstnat position "$position" meta nfproto {ipv6} udp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} tcp dport 53 meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} udp dport 53 meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+            fi
+         fi
       else
          iptables -t nat -D OUTPUT -j openclash_output >/dev/null 2>&1
          iptables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
+         ip6tables -t mangle -D OUTPUT -j openclash_output >/dev/null 2>&1
+         if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ]; then
+            LOG_OUT "Tip: Bypass the China IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
+            for ipt in "iptables -nvL OUTPUT -t nat" "iptables -nvL PREROUTING -t nat" "ip6tables -nvL PREROUTING -t nat" "ip6tables -nvL OUTPUT -t nat"; do
+               for comment in "OpenClash DNS Hijack"; do
+                  local lines=$($ipt |sed 1,2d |sed -n "/${comment}/=" 2>/dev/null |sort -rn)
+                  if [ -n "$lines" ]; then
+                     for line in $lines; do
+                        $(echo "$ipt" |awk -v OFS=" " '{print $1,$4,$5}' |sed 's/[ ]*$//g') -D $(echo "$ipt" |awk '{print $3}') $line
+                     done
+                  fi
+               done
+            done >/dev/null 2>&1
+            position=$(iptables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1 || ehco 0)
+            [ "$position" -ne 0 ] && let position++
+            iptables -t nat -I PREROUTING "$position" -p udp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+            iptables -t nat -I PREROUTING "$position" -p tcp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+            iptables -t nat -I OUTPUT -p udp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+            iptables -t nat -I OUTPUT -p tcp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+            iptables -t nat -I OUTPUT -p udp --dport 5353 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+            iptables -t nat -I OUTPUT -p tcp --dport 5353 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+            if [ "$ipv6_enable" -eq 1 ]; then
+               position=$(ip6tables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1 || ehco 0)
+               [ "$position" -ne 0 ] && let position++
+               ip6tables -t nat -I PREROUTING "$position" -p udp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               ip6tables -t nat -I PREROUTING "$position" -p tcp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               ip6tables -t nat -I OUTPUT -p udp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               ip6tables -t nat -I OUTPUT -p tcp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+            fi
+         fi
       fi
       sleep 3
 
@@ -560,8 +617,15 @@ config_foreach sub_info_get "config_subscribe"
 uci -q delete openclash.config.config_update_path
 uci commit openclash
 
-if [ "$if_restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
+if [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
    /etc/init.d/openclash restart >/dev/null 2>&1 &
+elif [ "$restart" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
+   /etc/init.d/openclash restart >/dev/null 2>&1 &
+   uci -q set openclash.config.restart=0
+   uci -q commit openclash
+elif [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -gt 1 ]; then
+   uci -q set openclash.config.restart=1
+   uci -q commit openclash
 else
    sed -i '/openclash.sh/d' $CRON_FILE 2>/dev/null
    [ "$(uci -q get openclash.config.auto_update)" -eq 1 ] && [ "$(uci -q get openclash.config.config_auto_update_mode)" -ne 1 ] && echo "0 $(uci -q get openclash.config.auto_update_time) * * $(uci -q get openclash.config.config_update_week_time) /usr/share/openclash/openclash.sh" >> $CRON_FILE
