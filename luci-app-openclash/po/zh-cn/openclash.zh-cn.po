@@ -3210,3 +3210,9 @@ msgstr "大陆域名 DNS 服务器"
 
 msgid "Specify DNS Server For CN Domain Lists, Only One IP Server Address Support"
 msgstr "指定大陆域名的 DNS 服务器，只支持填写一个IP地址"
+
+msgid "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
+msgstr "提示：检测到 DNSMASQ 正常工作，还原防火墙 DNS 劫持规则..."
+
+msgid "Tip: Bypass the China IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
+msgstr "提示：在 FAKE-IP 模式下绕过中国 IP 可能会导致 Dnsmasq 加载时间过长，暂时劫持 DNS 至内核直到 DNSMASQ 正常工作..."

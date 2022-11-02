@@ -1,7 +1,7 @@
 #!/bin/sh
 
 START_LOG="/tmp/openclash_start.log"
-en_mode=$(uci get openclash.config.en_mode 2>/dev/null)
+en_mode=$(uci -q get openclash.config.en_mode)
 
 if pidof clash >/dev/null && [ -z "$(echo "$en_mode" |grep "redir-host")" ]; then
    rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
