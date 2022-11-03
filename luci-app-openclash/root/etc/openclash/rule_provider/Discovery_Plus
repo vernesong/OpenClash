@@ -1,4 +1,4 @@
-payload:  
+payload:
   # > Discovery Plus
   - PROCESS-NAME,com.discovery.discoveryplus.mobile
   - DOMAIN-SUFFIX,content-ause1-ur-discovery1.uplynk.com

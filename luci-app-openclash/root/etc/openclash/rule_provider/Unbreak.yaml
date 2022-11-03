@@ -1,15 +1,5 @@
 payload:
   # Unbreak
-  # > General
-  # USER-AGENT,archero*
-  # USER-AGENT,coffeecorp*
-  # USER-AGENT,Coffee%20Corp*
-  # USER-AGENT,restaurant-mobile*
-  - DOMAIN,app.adjust.com
-  - DOMAIN,bdtj.tagtic.cn
-  # > Alibaba
-  - DOMAIN,log.mmstat.com
-  - DOMAIN,sycm.mmstat.com
   # > Google
   - DOMAIN-SUFFIX,blog.google
   - DOMAIN-SUFFIX,googletraveladservices.com
@@ -18,9 +8,6 @@ payload:
   - DOMAIN,dl.l.google.com
   - DOMAIN,update.googleapis.com
   - DOMAIN,translate.googleapis.com
-  # >> Google Fonts API
-  - DOMAIN,fonts.googleapis.com
-  - DOMAIN,fonts.gstatic.com
   # >> Firebase Cloud Messaging
   - DOMAIN,mtalk.google.com
   - DOMAIN,alt1-mtalk.google.com
@@ -31,14 +18,3 @@ payload:
   - DOMAIN,alt6-mtalk.google.com
   - DOMAIN,alt7-mtalk.google.com
   - DOMAIN,alt8-mtalk.google.com
-  # >> Paramount+
-  - DOMAIN,pubads.g.doubleclick.net
-  # > Tencent
-  - DOMAIN,fairplay.l.qq.com
-  - DOMAIN,livew.l.qq.com
-  - DOMAIN,vd.l.qq.com
-  # > Strava
-  - DOMAIN,analytics.strava.com
-  # > Umeng
-  - DOMAIN,msg.umeng.com
-  - DOMAIN,msg.umengcloud.com
