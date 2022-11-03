@@ -1,4 +1,4 @@
-payload:  
+payload:
   # > WeTV
   - PROCESS-NAME,com.tencent.qqlivei18n
   - DOMAIN-SUFFIX,wetv.vip

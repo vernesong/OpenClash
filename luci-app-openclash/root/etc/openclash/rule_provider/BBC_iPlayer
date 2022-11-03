@@ -1,4 +1,4 @@
-payload:  
+payload:
   # > BBC iPlayer
   - PROCESS-NAME,bbc.iplayer.android
   - DOMAIN-KEYWORD,bbcfmt

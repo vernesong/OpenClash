@@ -1,4 +1,4 @@
-payload:  
+payload:
   # > Apple TV
   - DOMAIN,np-edge.itunes.apple.com
   - DOMAIN,play-edge.itunes.apple.com
