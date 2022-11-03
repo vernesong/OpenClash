@@ -27,6 +27,59 @@ CFG_UPDATE_INT=1
 STREAM_DOMAINS_PREFETCH=1
 STREAM_AUTO_SELECT=1
 FW4="$(command -v fw4)"
+
+check_dnsmasq() {
+   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ]; then
+      if [ "$(nslookup www.baidu.com 127.0.0.1:5353 >/dev/null 2>&1 || echo $?)" != "1" ]; then
+         DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
+         if [ -z "$DNSPORT" ]; then
+            DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
+         fi
+         if [ -n "$FW4" ]; then
+            if [ -n "$(nft list chain inet fw4 nat_output |grep 'OpenClash DNS Hijack')" ]; then
+               LOG_OUT "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
+               for nft in "nat_output" "dstnat"; do
+                  handles=$(nft -a list chain inet fw4 ${nft} |grep "OpenClash DNS Hijack" |awk -F '# handle ' '{print$2}')
+                  for handle in $handles; do
+                     nft delete rule inet fw4 ${nft} handle ${handle}
+                  done
+               done >/dev/null 2>&1
+               position=$(nft list chain inet fw4 dstnat |grep "OpenClash" |grep "DNS" |awk -F '# handle ' '{print$2}' |sort -rn |head -1 || ehco 0)
+               nft add rule inet fw4 dstnat position "$position" tcp dport 53 redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               nft add rule inet fw4 dstnat position "$position" udp dport 53 redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               if [ "$ipv6_enable" -eq 1 ]; then
+                  nft add rule inet fw4 dstnat position "$position" meta nfproto {ipv6} tcp dport 53 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+                  nft add rule inet fw4 dstnat position "$position" meta nfproto {ipv6} udp dport 53 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               fi
+            fi
+         else
+            if [ -n "$(iptables -t nat -nL OUTPUT --line-number |grep 'OpenClash DNS Hijack')" ]; then
+               LOG_OUT "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
+               for ipt in "iptables -nvL OUTPUT -t nat" "iptables -nvL PREROUTING -t nat" "ip6tables -nvL PREROUTING -t nat" "ip6tables -nvL OUTPUT -t nat"; do
+                  lines=$($ipt |sed 1,2d |sed -n "/OpenClash DNS Hijack/=" 2>/dev/null |sort -rn)
+                  if [ -n "$lines" ]; then
+                     for line in $lines; do
+                        $(echo "$ipt" |awk -v OFS=" " '{print $1,$4,$5}' |sed 's/[ ]*$//g') -D $(echo "$ipt" |awk '{print $3}') $line
+                     done
+                  fi
+               done >/dev/null 2>&1
+               position=$(iptables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1 || ehco 0)
+               [ "$position" -ne 0 ] && let position++
+               iptables -t nat -I PREROUTING "$position" -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               iptables -t nat -I PREROUTING "$position" -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               if [ "$ipv6_enable" -eq 1 ]; then
+                  position=$(ip6tables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1 || ehco 0)
+                  [ "$position" -ne 0 ] && let position++
+                  ip6tables -t nat -I PREROUTING "$position" -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+                  ip6tables -t nat -I PREROUTING "$position" -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               fi
+            fi
+         fi
+      fi
+   fi
+}
+
+check_dnsmasq
 sleep 60
 
 while :;
@@ -123,54 +176,7 @@ fi
    fi
 
 ## 防止 DNSMASQ 加载配置时间过长导致 DNS 无法解析
-   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ]; then
-      if [ "$(nslookup www.baidu.com 127.0.0.1:5353 >/dev/null 2>&1 || echo $?)" != "1" ]; then
-         DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
-         if [ -z "$DNSPORT" ]; then
-            DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
-         fi
-         if [ -n "$FW4" ]; then
-            if [ -n "$(nft list chain inet fw4 nat_output |grep 'OpenClash DNS Hijack')" ]; then
-               LOG_OUT "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
-               for nft in "nat_output" "dstnat"; do
-                  handles=$(nft -a list chain inet fw4 ${nft} |grep "OpenClash DNS Hijack" |awk -F '# handle ' '{print$2}')
-                  for handle in $handles; do
-                     nft delete rule inet fw4 ${nft} handle ${handle}
-                  done
-               done >/dev/null 2>&1
-               position=$(nft list chain inet fw4 dstnat |grep "OpenClash" |grep "DNS" |awk -F '# handle ' '{print$2}' |sort -rn |head -1 || ehco 0)
-               nft add rule inet fw4 dstnat position "$position" tcp dport 53 redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
-               nft add rule inet fw4 dstnat position "$position" udp dport 53 redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
-               if [ "$ipv6_enable" -eq 1 ]; then
-                  nft add rule inet fw4 dstnat position "$position" meta nfproto {ipv6} tcp dport 53 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
-                  nft add rule inet fw4 dstnat position "$position" meta nfproto {ipv6} udp dport 53 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
-               fi
-            fi
-         else
-            if [ -n "$(iptables -t nat -nL OUTPUT --line-number |grep 'OpenClash DNS Hijack')" ]; then
-               LOG_OUT "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
-               for ipt in "iptables -nvL OUTPUT -t nat" "iptables -nvL PREROUTING -t nat" "ip6tables -nvL PREROUTING -t nat" "ip6tables -nvL OUTPUT -t nat"; do
-                  lines=$($ipt |sed 1,2d |sed -n "/OpenClash DNS Hijack/=" 2>/dev/null |sort -rn)
-                  if [ -n "$lines" ]; then
-                     for line in $lines; do
-                        $(echo "$ipt" |awk -v OFS=" " '{print $1,$4,$5}' |sed 's/[ ]*$//g') -D $(echo "$ipt" |awk '{print $3}') $line
-                     done
-                  fi
-               done >/dev/null 2>&1
-               position=$(iptables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1 || ehco 0)
-               [ "$position" -ne 0 ] && let position++
-               iptables -t nat -I PREROUTING "$position" -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
-               iptables -t nat -I PREROUTING "$position" -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
-               if [ "$ipv6_enable" -eq 1 ]; then
-                  position=$(ip6tables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1 || ehco 0)
-                  [ "$position" -ne 0 ] && let position++
-                  ip6tables -t nat -I PREROUTING "$position" -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
-                  ip6tables -t nat -I PREROUTING "$position" -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
-               fi
-            fi
-         fi
-      fi
-   fi
+   check_dnsmasq
 
 ## Localnetwork 刷新
    lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^198.18" 2>/dev/null)
