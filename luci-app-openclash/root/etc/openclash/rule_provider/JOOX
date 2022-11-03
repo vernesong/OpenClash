@@ -1,4 +1,4 @@
-payload:  
+payload:
   # > JOOX
   - PROCESS-NAME,com.tencent.ibg.joox
   - PROCESS-NAME,com.tencent.ibg.jooxtv

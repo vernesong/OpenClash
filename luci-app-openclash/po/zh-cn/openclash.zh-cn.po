@@ -2647,8 +2647,8 @@ msgstr "Bilibili 策略组："
 msgid "Google Group:"
 msgstr "Google 策略组："
 
-msgid "full support."
-msgstr "完整解锁。"
+msgid "full support"
+msgstr "完整解锁"
 
 msgid "full support, area:"
 msgstr "完整解锁，区域："
@@ -2659,8 +2659,8 @@ msgstr "仅支持自制剧！"
 msgid "unlock test faild!"
 msgstr "解锁检测失败！"
 
-msgid "the type of group is not select, auto select could not work!"
-msgstr "当前策略组类型非Select，无法进行自动选择！"
+msgid ", the type of group is not select, auto select could not work!"
+msgstr "，当前策略组类型非Select，无法进行自动选择！"
 
 msgid "Start auto select unlock proxy..."
 msgstr "开始进行解锁节点自动选择..."
@@ -2713,26 +2713,26 @@ msgstr "解锁节点自动选择失败，未找到区域匹配的节点，回退
 msgid "unlock node auto selected successfully, no node match the old region, rolled back to other full support node"
 msgstr "解锁节点自动选择成功，未找到与先前解锁区域匹配的节点，回退到其他区域且符合条件的解锁节点"
 
-msgid "but not match the regex!"
-msgstr "但区域与设置不匹配！"
+msgid ", but not match the regex!"
+msgstr "，但区域与设置不匹配！"
 
 msgid "full support but not match the old region!"
 msgstr "完整解锁但与先前解锁区域不匹配！"
 
-msgid "but not match the old region:"
-msgstr "但不匹配先前解锁区域："
+msgid ", but not match the old region:"
+msgstr "，但不匹配先前解锁区域："
 
 msgid "the type of group is not select, auto select could not work!"
 msgstr "当前策略组类型非 Select，无法进行自动选择！"
 
-msgid "but not match the regex! the type of group is not select, auto select could not work!"
+msgid "，but not match the regex! the type of group is not select, auto select could not work!"
 msgstr "完整解锁但区域与设置不匹配！当前策略组类型非 Select，无法进行自动选择！"
 
 msgid "but not match the old region! the type of group is not select, auto select could not work!"
-msgstr "完整解锁但与先前解锁区域不匹配！当前策略组类型非 Select，无法进行自动选择！"
+msgstr "但与先前解锁区域不匹配！当前策略组类型非 Select，无法进行自动选择！"
 
-msgid "but not match the regex! start auto select unlock proxy..."
-msgstr "但区域与设置不匹配！开始进行解锁节点自动选择..."
+msgid ", but not match the regex! start auto select unlock proxy..."
+msgstr "，但区域与设置不匹配！开始进行解锁节点自动选择..."
 
 msgid "unlock node test finished, rolled back to the full support node"
 msgstr "解锁检测完成，回退到完整解锁的节点"
