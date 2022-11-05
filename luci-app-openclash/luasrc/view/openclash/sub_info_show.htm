@@ -39,7 +39,7 @@ sub_info_get_<%=idname%>();
 function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
 		return String.format(
 			'<div style="width:250px; max-width:500px; position:relative; border:1px solid #999999; border-radius: 6px">' +
-			(pc <= 50 ? '<div style="background-color:#9edd9e; width:%d%%; height:36px; border-radius: 6px">' : (pc > 50 && pc <= 80 ? '<div style="background-color:#ffc99f; width:%d%%; height:35px">' : '<div style="background-color:#ffb9b9; width:%d%%; height:35px">')) +
+			(pc >= 50 ? '<div style="background-color:#9edd9e; width:%d%%; height:36px; border-radius: 6px">' : (pc < 50 && pc >= 20 ? '<div style="background-color:#ffc99f; width:%d%%; height:35px">' : '<div style="background-color:#ffb9b9; width:%d%%; height:35px">')) +
 			'<div style="position:absolute; left:0;' + (tr == "null" ? 'top:12px;' : 'top:0;') + 'text-align:center; width:100%%">' +
 			'<small>%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') + (tr == "null" ? '<div style="visibility: hidden;">' : '<div style="visibility: visible;">') + '%s (<%:Remaining%> %s <%:days%>)</small>' +
 			'</div>' +
@@ -60,7 +60,7 @@ function sub_info_get_<%=idname%>()
 		}
 		else {
 			//document.getElementById('<%=idname%>').innerHTML = "<%:Plan Traffic%>" + ": " + "<span style=color:green>" + save_info.used + "</span> | <span style=color:green>" + save_info.total + "</span> <br/> <%:Plan Expiration Time%>: " + "<span style=color:green>" + save_info.expire + "</span>";
-			document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>((save_info.used), (save_info.total), (save_info.percent ? save_info.percent : 0), false, false, (save_info.expire), (save_info.day_left ? save_info.day_left : 0));
+			document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>((save_info.used), (save_info.total), (save_info.percent ? (100-save_info.percent) : 0), false, false, (save_info.expire), (save_info.day_left ? save_info.day_left : 0));
 		}
 	};
 	
@@ -71,7 +71,7 @@ function sub_info_get_<%=idname%>()
 			retry_<%=idname%> = 0;
 			localStorage.setItem("<%=filename%>",JSON.stringify(status));
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
-			document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>((status.used), (status.total), (status.percent), false, false, (status.expire), (status.day_left));
+			document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>((status.used), (status.total), (100-status.percent), false, false, (status.expire), (status.day_left));
 			//document.getElementById('<%=idname%>').innerHTML = "<%:Plan Traffic%>" + ": " + "<span style=color:green>" + status.used + "</span> | <span style=color:green>" + status.total + "</span> <br/> <%:Plan Expiration Time%>: " + "<span style=color:green>" + status.expire + "</span>";
 		}
 		else if ( x && x.status == 200 && status.sub_info == "No Sub Info Found" ) {
