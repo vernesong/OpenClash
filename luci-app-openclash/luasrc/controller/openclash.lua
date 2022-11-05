@@ -616,12 +616,12 @@ function sub_info_get()
 									day_left = 0
 								end
 								
-								if used and total and used <= total then
-									percent = string.format("%.1f",(used/total)*100) or nil
+								if used and total and used < total then
+									percent = string.format("%.1f",((total-used)/total)*100) or nil
 								elseif used == nil or total == nil or total == 0 then
-									percent = 0
-								else
 									percent = 100
+								else
+									percent = 0
 								end
 								total = fs.filesize(total) or "null"
 								used = fs.filesize(used) or "null"
