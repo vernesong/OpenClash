@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 . /lib/functions.sh
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
@@ -10,6 +10,7 @@ small_flash_memory=$(uci -q get openclash.config.small_flash_memory)
 CPU_MODEL=$(uci -q get openclash.config.core_version)
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
 github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
+LOG_FILE="/tmp/openclash.log"
 
 [ ! -f "/tmp/clash_last_version" ] && /usr/share/openclash/clash_version.sh 2>/dev/null
 if [ ! -f "/tmp/clash_last_version" ]; then
@@ -59,66 +60,69 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
          "TUN")
             LOG_OUT "【TUN】Core Downloading, Please Try to Download and Upload Manually If Fails"
             if [ "$github_address_mod" != "0" ]; then
-               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-                  curl -sL -m 30 --speed-time 15 --speed-limit 1 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
-	            elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
-                  curl -sL -m 30 --speed-time 15 --speed-limit 1 https://fastly.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+                  curl -SsL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash_tun.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
                elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
-                  curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.fastgit.org/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+                  curl -SsL -m 30 --speed-time 15 --speed-limit 1 https://raw.fastgit.org/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash_tun.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
                else
-                  curl -sL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+                  curl -SsL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash_tun.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
                fi
             else
-			      curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+			      curl -SsL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash_tun.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
 			   fi
-            if [ "$?" != "0" ]; then
-               curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz >/dev/null 2>&1
+            if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+               curl -SsL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/premium/clash-"$CPU_MODEL"-"$CORE_LV".gz -o /tmp/clash_tun.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash_tun.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+               curl_status=${PIPESTATUS[0]}
+            else
+               curl_status=0
             fi
-            if [ "$?" == "0" ]; then
+            if [ "$curl_status" -eq 0 ]; then
                gzip -t /tmp/clash_tun.gz >/dev/null 2>&1
             fi
 			   ;;
          "Meta")
             LOG_OUT "【Meta】Core Downloading, Please Try to Download and Upload Manually If Fails"
             if [ "$github_address_mod" != "0" ]; then
-               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-                  curl -sL -m 30 --speed-time 15 --speed-limit 1 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
-	            elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
-                  curl -sL -m 30 --speed-time 15 --speed-limit 1 https://fastly.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
+               if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+                  curl -SsL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash_meta.tar.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
                elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
-                  curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.fastgit.org/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
+                  curl -SsL -m 30 --speed-time 15 --speed-limit 1 https://raw.fastgit.org/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash_meta.tar.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
                else
-                  curl -sL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
+                  curl -SsL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash_meta.tar.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
                fi
             else
-               curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
+               curl -SsL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash_meta.tar.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
             fi
-            if [ "$?" != "0" ]; then
-               curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz >/dev/null 2>&1
+            if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+               curl -SsL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/meta/clash-"$CPU_MODEL".tar.gz -o /tmp/clash_meta.tar.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash_meta.tar.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+               curl_status=${PIPESTATUS[0]}
+            else
+               curl_status=0
             fi
-            if [ "$?" == "0" ]; then
+            if [ "$curl_status" -eq 0 ]; then
 			      gzip -t /tmp/clash_meta.tar.gz >/dev/null 2>&1
 			   fi
 			   ;;
 			   *)
 			      LOG_OUT "【Dev】Core Downloading, Please Try to Download and Upload Manually If Fails"
 			      if [ "$github_address_mod" != "0" ]; then
-                  if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-                     curl -sL -m 30 --speed-time 15 --speed-limit 1 https://cdn.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
-                  elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
-                     curl -sL -m 30 --speed-time 15 --speed-limit 1 https://fastly.jsdelivr.net/gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
+                  if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+                     curl -SsL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash.tar.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
                   elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
-                     curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.fastgit.org/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
+                     curl -SsL -m 30 --speed-time 15 --speed-limit 1 https://raw.fastgit.org/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash.tar.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
                   else
-                     curl -sL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
+                     curl -SsL -m 30 --speed-time 15 --speed-limit 1 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash.tar.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
                   fi
                else
-			         curl -sL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
+			         curl -SsL -m 30 --speed-time 15 --speed-limit 1 https://raw.githubusercontent.com/vernesong/OpenClash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash.tar.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
 			      fi
-			      if [ "$?" != "0" ]; then
-			         curl -sL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz >/dev/null 2>&1
-			      fi
-               if [ "$?" == "0" ]; then
+			      if [ "${PIPESTATUS[0]}" -ne 0 ]; then
+			         curl -SsL -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core-lateset/dev/clash-"$CPU_MODEL".tar.gz -o /tmp/clash.tar.gz 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/clash.tar.gz" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+                  curl_status=${PIPESTATUS[0]}
+               else
+                  curl_status=0
+               fi
+               if [ "$curl_status" -eq 0 ]; then
 			         gzip -t /tmp/clash.tar.gz >/dev/null 2>&1
 			      fi
 			esac
@@ -184,7 +188,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             if [ "$if_restart" -eq 1 ]; then
                   uci -q set openclash.config.config_reload=0
          	      uci -q commit openclash
-               if [ -z "$2" ] && [ "$1" != "one_key_update" ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
+               if [ -z "$2" ] && [ "$1" != "one_key_update" ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
                   /etc/init.d/openclash restart >/dev/null 2>&1 &
                fi
             else

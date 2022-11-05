@@ -1,20 +1,33 @@
-payload:  
+payload:
   # > Netflix
-  - DOMAIN-KEYWORD,netflixdnstest
-  - DOMAIN-KEYWORD,dualstack.apiproxy-
-  - DOMAIN-KEYWORD,dualstack.ichnaea-web-
-  - DOMAIN-KEYWORD,apiproxy-device-prod-nlb-
-
-  - DOMAIN,api.fast.com
-  - DOMAIN,netflix.com.edgesuite.net
+  - DOMAIN-SUFFIX,flxvpn.net
+  - DOMAIN-SUFFIX,netflix.ca
   - DOMAIN-SUFFIX,netflix.com
+  - DOMAIN-SUFFIX,netflix.com.au
+  - DOMAIN-SUFFIX,netflixdnstest10.com
+  - DOMAIN-SUFFIX,netflixdnstest1.com
+  - DOMAIN-SUFFIX,netflixdnstest2.com
+  - DOMAIN-SUFFIX,netflixdnstest3.com
+  - DOMAIN-SUFFIX,netflixdnstest4.com
+  - DOMAIN-SUFFIX,netflixdnstest5.com
+  - DOMAIN-SUFFIX,netflixdnstest6.com
+  - DOMAIN-SUFFIX,netflixdnstest7.com
+  - DOMAIN-SUFFIX,netflixdnstest8.com
+  - DOMAIN-SUFFIX,netflixdnstest9.com
+  - DOMAIN-SUFFIX,netflixinvestor.com
   - DOMAIN-SUFFIX,netflix.net
+  - DOMAIN-SUFFIX,netflixstudios.com
+  - DOMAIN-SUFFIX,netflixtechblog.com
   - DOMAIN-SUFFIX,nflxext.com
   - DOMAIN-SUFFIX,nflximg.com
   - DOMAIN-SUFFIX,nflximg.net
-  - DOMAIN-SUFFIX,nflxsearch
   - DOMAIN-SUFFIX,nflxso.net
   - DOMAIN-SUFFIX,nflxvideo.net
+
+  - DOMAIN-SUFFIX,e13252.dscg.akamaiedge.net
+  - DOMAIN-SUFFIX,h-netflix.online-metrix.net
+  - DOMAIN-SUFFIX,onetrust.com
+  - DOMAIN-SUFFIX,cookielaw.org
 
   - IP-CIDR,23.246.0.0/18,no-resolve
   - IP-CIDR,37.77.184.0/21,no-resolve

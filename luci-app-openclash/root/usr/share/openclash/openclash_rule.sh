@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 . /usr/share/openclash/openclash_ps.sh
 . /lib/functions.sh
 . /usr/share/openclash/ruby.sh
@@ -35,51 +35,45 @@
    LOG_OUT "Start Downloading Third Party Rules in Use..."
    if [ "$rule_name" = "lhie1" ]; then
       if [ "$github_address_mod" != "0" ]; then
-         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://cdn.jsdelivr.net/gh/dler-io/Rules@master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
-	      elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://fastly.jsdelivr.net/gh/dler-io/Rules@master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"gh/dler-io/Rules@master/Clash/Rule.yaml -o /tmp/rules.yaml 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/rules.yaml" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.fastgit.org/dler-io/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.fastgit.org/dler-io/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/rules.yaml" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          else
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/dler-io/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/dler-io/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/rules.yaml" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          fi
       else
-         curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/dler-io/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/dler-io/Rules/master/Clash/Rule.yaml -o /tmp/rules.yaml 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/rules.yaml" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
       fi
       sed -i '1i rules:' /tmp/rules.yaml
    elif [ "$rule_name" = "ConnersHua" ]; then
       if [ "$github_address_mod" != "0" ]; then
-         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://cdn.jsdelivr.net/gh/DivineEngine/Profiles@master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
-	      elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://fastly.jsdelivr.net/gh/DivineEngine/Profiles@master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"gh/DivineEngine/Profiles@master/Clash/Outbound.yaml -o /tmp/rules.yaml 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/rules.yaml" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.fastgit.org/DivineEngine/Profiles/master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.fastgit.org/DivineEngine/Profiles/master/Clash/Outbound.yaml -o /tmp/rules.yaml 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/rules.yaml" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          else
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Outbound.yaml -o /tmp/rules.yaml 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/rules.yaml" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          fi
       else
-         curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Outbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Outbound.yaml -o /tmp/rules.yaml 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/rules.yaml" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
       fi
       sed -i "s/# - RULE-SET,ChinaIP,DIRECT/- RULE-SET,ChinaIP,DIRECT/g" /tmp/rules.yaml 2>/dev/null
       sed -i "s/- GEOIP,/#- GEOIP,/g" /tmp/rules.yaml 2>/dev/null
    elif [ "$rule_name" = "ConnersHua_return" ]; then
       if [ "$github_address_mod" != "0" ]; then
-         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ]; then
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://cdn.jsdelivr.net/gh/DivineEngine/Profiles@master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
-	      elif [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ]; then
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://fastly.jsdelivr.net/gh/DivineEngine/Profiles@master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"gh/DivineEngine/Profiles@master/Clash/Inbound.yaml -o /tmp/rules.yaml 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/rules.yaml" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.fastgit.org/DivineEngine/Profiles/master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.fastgit.org/DivineEngine/Profiles/master/Clash/Inbound.yaml -o /tmp/rules.yaml 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/rules.yaml" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          else
-            curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+            curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Inbound.yaml -o /tmp/rules.yaml 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/rules.yaml" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
          fi
       else
-         curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Inbound.yaml -o /tmp/rules.yaml >/dev/null 2>&1
+         curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/DivineEngine/Profiles/master/Clash/Inbound.yaml -o /tmp/rules.yaml 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/rules.yaml" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
       fi
    fi
-   if [ "$?" -eq "0" ] && [ -s "/tmp/rules.yaml" ]; then
+   if [ -s "/tmp/rules.yaml" ]; then
       LOG_OUT "Download Successful, Start Preprocessing Rule File..."
       ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       begin
@@ -117,7 +111,7 @@
          OLD_GROUP = Value['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;
          NEW_GROUP = Value_1['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;
          puts (OLD_GROUP | NEW_GROUP).eql?(OLD_GROUP)
-         ")" ; then
+         ")" && [ -f "/usr/share/openclash/res/${rule_name}.yaml" ]; then
          LOG_OUT "Error: Updated Others Rules【$rule_name】Has Incompatible Proxy-Group, Update Exit, Please Wait For OpenClash Update To Adapt..."
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
          sleep 3
@@ -166,7 +160,7 @@
    
       if [ -z "$CONFIG_FILE" ]; then
          CONFIG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
-	       CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
+	      CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
       fi
 
       if [ -z "$CONFIG_NAME" ]; then
@@ -180,7 +174,7 @@
         LOG_OUT "Get Other Rules Settings Faild, Update Stop!"
         sleep 3
       fi
-      if [ "$ifrestart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
+      if [ "$ifrestart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
          /etc/init.d/openclash restart >/dev/null 2>&1 &
       fi
    fi

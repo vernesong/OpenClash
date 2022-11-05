@@ -20,11 +20,66 @@ NETFLIX_DOMAINS_LIST="/usr/share/openclash/res/Netflix_Domains.list"
 NETFLIX_DOMAINS_CUSTOM_LIST="/etc/openclash/custom/openclash_custom_netflix_domains.list"
 DISNEY_DOMAINS_LIST="/usr/share/openclash/res/Disney_Plus_Domains.list"
 _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
+china_ip_route=$(uci -q get openclash.config.china_ip_route)
+en_mode=$(uci -q get openclash.config.en_mode)
 CRASH_NUM=0
 CFG_UPDATE_INT=1
 STREAM_DOMAINS_PREFETCH=1
 STREAM_AUTO_SELECT=1
 FW4="$(command -v fw4)"
+
+check_dnsmasq() {
+   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ]; then
+      if [ "$(nslookup www.baidu.com 127.0.0.1:5353 >/dev/null 2>&1 || echo $?)" != "1" ]; then
+         DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
+         if [ -z "$DNSPORT" ]; then
+            DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
+         fi
+         if [ -n "$FW4" ]; then
+            if [ -n "$(nft list chain inet fw4 nat_output |grep 'OpenClash DNS Hijack')" ]; then
+               LOG_OUT "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
+               for nft in "nat_output" "dstnat"; do
+                  handles=$(nft -a list chain inet fw4 ${nft} |grep "OpenClash DNS Hijack" |awk -F '# handle ' '{print$2}')
+                  for handle in $handles; do
+                     nft delete rule inet fw4 ${nft} handle ${handle}
+                  done
+               done >/dev/null 2>&1
+               position=$(nft list chain inet fw4 dstnat |grep "OpenClash" |grep "DNS" |awk -F '# handle ' '{print$2}' |sort -rn |head -1 || ehco 0)
+               nft add rule inet fw4 dstnat position "$position" tcp dport 53 redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               nft add rule inet fw4 dstnat position "$position" udp dport 53 redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               if [ "$ipv6_enable" -eq 1 ]; then
+                  nft add rule inet fw4 dstnat position "$position" meta nfproto {ipv6} tcp dport 53 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+                  nft add rule inet fw4 dstnat position "$position" meta nfproto {ipv6} udp dport 53 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               fi
+            fi
+         else
+            if [ -n "$(iptables -t nat -nL OUTPUT --line-number |grep 'OpenClash DNS Hijack')" ]; then
+               LOG_OUT "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
+               for ipt in "iptables -nvL OUTPUT -t nat" "iptables -nvL PREROUTING -t nat" "ip6tables -nvL PREROUTING -t nat" "ip6tables -nvL OUTPUT -t nat"; do
+                  lines=$($ipt |sed 1,2d |sed -n "/OpenClash DNS Hijack/=" 2>/dev/null |sort -rn)
+                  if [ -n "$lines" ]; then
+                     for line in $lines; do
+                        $(echo "$ipt" |awk -v OFS=" " '{print $1,$4,$5}' |sed 's/[ ]*$//g') -D $(echo "$ipt" |awk '{print $3}') $line
+                     done
+                  fi
+               done >/dev/null 2>&1
+               position=$(iptables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1 || ehco 0)
+               [ "$position" -ne 0 ] && let position++
+               iptables -t nat -I PREROUTING "$position" -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               iptables -t nat -I PREROUTING "$position" -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               if [ "$ipv6_enable" -eq 1 ]; then
+                  position=$(ip6tables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1 || ehco 0)
+                  [ "$position" -ne 0 ] && let position++
+                  ip6tables -t nat -I PREROUTING "$position" -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+                  ip6tables -t nat -I PREROUTING "$position" -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               fi
+            fi
+         fi
+      fi
+   fi
+}
+
+check_dnsmasq
 sleep 60
 
 while :;
@@ -99,14 +154,14 @@ if [ "$enable" -eq 1 ]; then
 fi
 
 ## Porxy history
-    /usr/share/openclash/openclash_history_get.sh
+   /usr/share/openclash/openclash_history_get.sh
 
 ## Log File Size Manage:
-    LOGSIZE=`ls -l /tmp/openclash.log |awk '{print int($5/1024)}'`
-    if [ "$LOGSIZE" -gt "$log_size" ]; then
-      : > /tmp/openclash.log
-      LOG_OUT "Watchdog: Log Size Limit, Clean Up All Log Records..."
-    fi
+   LOGSIZE=`ls -l /tmp/openclash.log |awk '{print int($5/1024)}'`
+   if [ "$LOGSIZE" -gt "$log_size" ]; then
+   : > /tmp/openclash.log
+   LOG_OUT "Watchdog: Log Size Limit, Clean Up All Log Records..."
+   fi
 
 ## 端口转发重启
    last_line=$(iptables -t nat -nL PREROUTING --line-number |awk '{print $1}' 2>/dev/null |awk 'END {print}' |sed -n '$p')
@@ -119,6 +174,9 @@ fi
       iptables -t nat -A PREROUTING -p tcp -j openclash
       LOG_OUT "Watchdog: Setting Firewall For Enabling Redirect..."
    fi
+
+## 防止 DNSMASQ 加载配置时间过长导致 DNS 无法解析
+   check_dnsmasq
 
 ## Localnetwork 刷新
    lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^198.18" 2>/dev/null)
@@ -218,6 +276,10 @@ fi
                LOG_OUT "Tip: Start Auto Select Proxy For Disney Plus Unlock..."
                /usr/share/openclash/openclash_streaming_unlock.lua "Disney Plus" >> $LOG_FILE
             fi
+            if [ "$stream_auto_select_google_not_cn" -eq 1 ]; then
+               LOG_OUT "Tip: Start Auto Select Proxy For Google Not CN Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "Google" >> $LOG_FILE
+            fi
             if [ "$stream_auto_select_ytb" -eq 1 ]; then
                LOG_OUT "Tip: Start Auto Select Proxy For YouTube Premium Unlock..."
                /usr/share/openclash/openclash_streaming_unlock.lua "YouTube Premium" >> $LOG_FILE
@@ -257,10 +319,6 @@ fi
             if [ "$stream_auto_select_bilibili" -eq 1 ]; then
                LOG_OUT "Tip: Start Auto Select Proxy For Bilibili Unlock..."
                /usr/share/openclash/openclash_streaming_unlock.lua "Bilibili" >> $LOG_FILE
-            fi
-            if [ "$stream_auto_select_google_not_cn" -eq 1 ]; then
-               LOG_OUT "Tip: Start Auto Select Proxy For Google Not CN Unlock..."
-               /usr/share/openclash/openclash_streaming_unlock.lua "Google" >> $LOG_FILE
             fi
          fi
       fi

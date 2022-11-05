@@ -231,7 +231,13 @@ function line_tolocal(str){
 			var dt = new Date(res[1]);
 		}
 		if (dt && dt != "Invalid Date"){
-		  cstrt[cn]=dt.getFullYear()+"-"+p(dt.getMonth()+1)+"-"+p(dt.getDate())+" "+p(dt.getHours())+":"+p(dt.getMinutes())+":"+p(dt.getSeconds())+v.substring(res[1].length + 7);
+			if (v.indexOf("level=") != -1) {
+				var log_info = v.substring(res[1].length + 7);
+			}
+			else {
+				var log_info = v.substring(res[1].length + 2);
+			}
+			cstrt[cn]=dt.getFullYear()+"-"+p(dt.getMonth()+1)+"-"+p(dt.getDate())+" "+p(dt.getHours())+":"+p(dt.getMinutes())+":"+p(dt.getSeconds())+log_info;
 			cn = cn + 1;
 		}
 		else{
