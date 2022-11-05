@@ -1,4 +1,4 @@
-payload:  
+payload:
   # > Microsoft
   - DOMAIN-SUFFIX,here.com
   - DOMAIN-SUFFIX,here.net

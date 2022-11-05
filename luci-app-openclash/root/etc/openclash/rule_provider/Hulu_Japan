@@ -1,4 +1,4 @@
-payload:  
+payload:
   # > Hulu(フールー)
   - PROCESS-NAME,jp.happyon.android
   - DOMAIN-SUFFIX,happyon.jp

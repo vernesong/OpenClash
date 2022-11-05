@@ -44,7 +44,7 @@ EOF
 source "/etc/openwrt_release"
 case "${DISTRIB_ARCH}" in
 	aarch64_*)
-		CORE_ARCH="linux-armv8"
+		CORE_ARCH="linux-arm64"
 		;;
 	arm_*_neon-vfp*)
 		CORE_ARCH="linux-armv7"
@@ -166,21 +166,11 @@ EOF
 fi
 
 #Set authentication
-
-auth_info_get()
-{
-   local section="$1"
-   config_get_bool "enabled" "$section" "enabled" "1"
-   
-   if [ "$enabled" == "1" ]; then
-      auth_cfg=false
-   fi
-   return
-}
-
-auth_cfg=true
-config_load "openclash"
-config_foreach auth_info_get "authentication"
+if [ -n "$(uci -q get openclash.@authentication[0].enabled)" ]; then
+   auth_cfg=false
+else
+   auth_cfg=true
+fi
 
 if $auth_cfg; then
 	uci_name_tmp=$(uci add openclash authentication)

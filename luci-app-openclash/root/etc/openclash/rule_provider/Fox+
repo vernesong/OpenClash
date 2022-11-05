@@ -1,4 +1,4 @@
-payload:  
+payload:
   # > Fox+ (HK|TW|SG)
   # - USER-AGENT,FOXPlus*
   - DOMAIN-SUFFIX,akamaized.net

@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 . /usr/share/openclash/log.sh
 . /lib/functions.sh
 
@@ -6,6 +6,7 @@
    DASH_TYPE="$2"
    DASH_FILE_DIR="/tmp/dash.zip"
    DASH_FILE_TMP="/tmp/dash/"
+   LOG_FILE="/tmp/openclash.log"
    github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
    if [ "$DASH_NAME" == "Dashboard" ]; then
       UNPACK_FILE_DIR="/usr/share/openclash/ui/dashboard/"
@@ -29,9 +30,9 @@
       fi
 	fi
    
-   curl -sL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$DOWNLOAD_PATH" -o "$DASH_FILE_DIR" >/dev/null 2>&1
+   curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$DOWNLOAD_PATH" -o "$DASH_FILE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$DASH_FILE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
 
-   if [ "$?" -eq "0" ] && [ -s "$DASH_FILE_DIR" ] && [ -z "$(grep "404: Not Found" "$DASH_FILE_DIR")" ] && [ -z "$(grep "Package size exceeded the configured limit" "$DASH_FILE_DIR")" ]; then
+   if [ "${PIPESTATUS[0]}" -eq 0 ] && [ -s "$DASH_FILE_DIR" ] && [ -z "$(grep "404: Not Found" "$DASH_FILE_DIR")" ] && [ -z "$(grep "Package size exceeded the configured limit" "$DASH_FILE_DIR")" ]; then
       unzip -qt "$DASH_FILE_DIR" >/dev/null 2>&1
       if [ "$?" -eq "0" ]; then
          cp -rf  "$UNPACK_FILE_DIR".  "$BACKUP_FILE_DIR" >/dev/null 2>&1
@@ -43,14 +44,14 @@
             rm -rf "$BACKUP_FILE_DIR" >/dev/null 2>&1
             rm -rf "$DASH_FILE_TMP" >/dev/null 2>&1
             LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Successful!" && SLOG_CLEAN
-            return 1
+            exit 1
          else
             LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Unzip Error!" && SLOG_CLEAN
             cp -rf  "$BACKUP_FILE_DIR".  "$UNPACK_FILE_DIR" >/dev/null 2>&1
             rm -rf "$DASH_FILE_DIR" >/dev/null 2>&1
             rm -rf "$BACKUP_FILE_DIR" >/dev/null 2>&1
             rm -rf "$DASH_FILE_TMP" >/dev/null 2>&1
-            return 2
+            exit 2
          fi
       else
          LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Unzip Error!" && SLOG_CLEAN
@@ -58,7 +59,7 @@
          rm -rf "$DASH_FILE_DIR" >/dev/null 2>&1
          rm -rf "$BACKUP_FILE_DIR" >/dev/null 2>&1
          rm -rf "$DASH_FILE_TMP" >/dev/null 2>&1
-         return 2
+         exit 2
       fi
    else
       cp -rf  "$BACKUP_FILE_DIR".  "$UNPACK_FILE_DIR" >/dev/null 2>&1
@@ -66,5 +67,5 @@
       rm -rf "$DASH_FILE_DIR" >/dev/null 2>&1
       rm -rf "$DASH_FILE_TMP" >/dev/null 2>&1
       LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Error!" && SLOG_CLEAN
-      return 0
+      exit 0
    fi

@@ -7,6 +7,7 @@ payload:
   - DOMAIN-SUFFIX,telegram.me
   - DOMAIN-SUFFIX,telegram.org
   - DOMAIN-SUFFIX,telegram-cdn.org
+  - DOMAIN-SUFFIX,telesco.pe
 
   - IP-CIDR,91.105.192.0/23,no-resolve
   - IP-CIDR,91.108.56.0/22,no-resolve

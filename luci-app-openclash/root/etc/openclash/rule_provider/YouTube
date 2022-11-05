@@ -1,15 +1,11 @@
-payload:  
+payload:
   # > Youtube
   - PROCESS-NAME,com.google.android.youtube
   - PROCESS-NAME,com.google.android.youtube.tv
-  - DOMAIN-SUFFIX,ggpht.cn
-  - DOMAIN-SUFFIX,ggpht.com
   - DOMAIN-SUFFIX,googlevideo.com
-  - DOMAIN-SUFFIX,withyoutube.com
+  - DOMAIN-SUFFIX,gvt1.com
+  - DOMAIN-SUFFIX,video.google.com
   - DOMAIN-SUFFIX,youtu.be
-  - DOMAIN-SUFFIX,youtube
-  - DOMAIN-SUFFIX,youtube-nocookie.com
-  - DOMAIN-SUFFIX,youtube-ui.l.google.com
   - DOMAIN-SUFFIX,youtube.ae
   - DOMAIN-SUFFIX,youtube.al
   - DOMAIN-SUFFIX,youtube.am
@@ -164,16 +160,10 @@ payload:
   - DOMAIN-SUFFIX,youtube.vn
   - DOMAIN-SUFFIX,youtubeeducation.com
   - DOMAIN-SUFFIX,youtubeembeddedplayer.googleapis.com
-  - DOMAIN-SUFFIX,youtubefanfest.com
-  - DOMAIN-SUFFIX,youtubegaming.com
-  - DOMAIN-SUFFIX,youtubego.co.id
-  - DOMAIN-SUFFIX,youtubego.co.in
-  - DOMAIN-SUFFIX,youtubego.com
-  - DOMAIN-SUFFIX,youtubego.com.br
-  - DOMAIN-SUFFIX,youtubego.id
-  - DOMAIN-SUFFIX,youtubego.in
   - DOMAIN-SUFFIX,youtubei.googleapis.com
   - DOMAIN-SUFFIX,youtubekids.com
-  - DOMAIN-SUFFIX,youtubemobilesupport.com
+  - DOMAIN-SUFFIX,youtube-nocookie.com
+  - DOMAIN-SUFFIX,youtube-ui.l.google.com
   - DOMAIN-SUFFIX,yt.be
+  - DOMAIN-SUFFIX,yt3.ggpht.com
   - DOMAIN-SUFFIX,ytimg.com

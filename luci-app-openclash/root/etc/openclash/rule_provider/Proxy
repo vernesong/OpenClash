@@ -1,4 +1,10 @@
-payload:  
+payload:
+  # > Duolingo
+  # - USER-AGENT,Duolingo*
+  - DOMAIN-KEYWORD,duolingo
+  - DOMAIN-SUFFIX,duolingo.cn
+  - DOMAIN-SUFFIX,duolingo.com
+  
   # > Line
   - DOMAIN-SUFFIX,lin.ee
   - DOMAIN-SUFFIX,line.me
@@ -67,7 +73,6 @@ payload:
   - DOMAIN-SUFFIX,apkpure.com
   - DOMAIN-SUFFIX,appdownloader.net
   - DOMAIN-SUFFIX,apple-dns.net
-  - DOMAIN-SUFFIX,app-measurement.com
   - DOMAIN-SUFFIX,appshopper.com
   - DOMAIN-SUFFIX,arcgis.com
   - DOMAIN-SUFFIX,archive.is
@@ -682,6 +687,10 @@ payload:
   - DOMAIN-SUFFIX,v2ex.com
   
   - DOMAIN-KEYWORD,dlercloud
+
+  # > VikACG
+  - DOMAIN-SUFFIX,vikacg.com
+  - DOMAIN-SUFFIX,picjs.xyz
 
   # > exception
   - DOMAIN-SUFFIX,wheel-size.cn

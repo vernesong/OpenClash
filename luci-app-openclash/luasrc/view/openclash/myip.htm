@@ -307,10 +307,7 @@
             }
         };
 
-        HTTP.runcheck();
-        IP.getIpifyIP();
-        //IP.getSpeedIP();
-	      
+
         function getPcolIP(data){
             let pcisp = data.addr.split(' ');
             $$.getElementById('ip-pcol').innerHTML = data.ip;
@@ -326,8 +323,6 @@
             $$.getElementById('ip-taobao').innerHTML = data.ip;
             IP.parseIPIpip(data.ip, 'ip-taobao-geo');
         };
-
-        window.onload=myip_Load();
 	      
         function myip_Load()
         {
@@ -350,30 +345,17 @@
             tbipScript.src='https://www.taobao.com/help/getip.php?callback=ipCallback';
             tbip.appendChild(sbipScript);
             
-            const $$ = document;
-            random = parseInt(Math.random() * 100000000);
-            HTTP.runcheck();
+            //HTTP.runcheck();
             IP.getIpifyIP();
             //IP.getSpeedIP();
-		       
-            function getPcolIP(data){
-                let pcisp = data.addr.split(' ');
-                $$.getElementById('ip-pcol').innerHTML = data.ip;
-                $$.getElementById('ip-pcol-geo').innerHTML = `${data.pro}${data.city}${data.region} ${pcisp[1]}`;
-            };
-
-            function getIpsbIP(data){
-                $$.getElementById('ip-ipsb').innerHTML = data.ip;
-                IP.parseIPIpip(data.ip, 'ip-ipsb-geo');
-            };
-		       
-            function ipCallback(data){
-                $$.getElementById('ip-taobao').innerHTML = data.ip;
-                IP.parseIPIpip(data.ip, 'ip-taobao-geo');
-            };
-
-            setTimeout("myip_Load()",Math.floor(Math.random()*(30-10+1)+10)*1000);
         }
+
+        HTTP.runcheck();
+        IP.getIpifyIP();
+        //IP.getSpeedIP();
+        setInterval("HTTP.runcheck()", Math.floor(Math.random()*(10-5+1)+5)*1000);
+        setInterval("myip_Load()", Math.floor(Math.random()*(30-10+1)+10)*1000);
+        
 
     </script>
     <script type="text/javascript">
