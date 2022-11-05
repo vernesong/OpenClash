@@ -251,6 +251,10 @@ yml_servers_set()
    config_get "recv_window_conn" "$section" "recv_window_conn" ""
    config_get "recv_window" "$section" "recv_window" ""
    config_get "disable_mtu_discovery" "$section" "disable_mtu_discovery" ""
+   config_get "xudp" "$section" "xudp" ""
+   config_get "packet_encoding" "$section" "packet_encoding" ""
+   config_get "global_padding" "$section" "global_padding" ""
+   config_get "authenticated_length" "$section" "authenticated_length" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -455,6 +459,26 @@ cat >> "$SERVER_FILE" <<-EOF
     udp: $udp
 EOF
       fi
+      if [ ! -z "$xudp" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    xudp: $xudp
+EOF
+      fi
+      if [ ! -z "$packet_encoding" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    packet-encoding: "$packet_encoding"
+EOF
+      fi
+      if [ ! -z "$global_padding" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    global-padding: $global_padding
+EOF
+      fi
+      if [ ! -z "$authenticated_length" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    authenticated-length: $authenticated_length
+EOF
+      fi
       if [ ! -z "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     skip-cert-verify: $skip_cert_verify
@@ -594,9 +618,17 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
       fi
       if [ -n "$hysteria_alpn" ]; then
+         if [ -z "$(echo $hysteria_alpn |grep ' ')" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    alpn: "$hysteria_alpn"
+    alpn: 
+      - "$hysteria_alpn"
 EOF
+         else
+cat >> "$SERVER_FILE" <<-EOF
+    alpn:
+EOF
+      config_list_foreach "$section" "hysteria_alpn" set_alpn
+         fi
       fi
       if [ -n "$hysteria_obfs" ]; then
 cat >> "$SERVER_FILE" <<-EOF

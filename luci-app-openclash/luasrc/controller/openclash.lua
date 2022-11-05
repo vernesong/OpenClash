@@ -198,7 +198,7 @@ local function db_foward_ssl()
 end
 
 local function check_lastversion()
-	luci.sys.exec("sh /usr/share/openclash/openclash_version.sh 2>/dev/null")
+	luci.sys.exec("bash /usr/share/openclash/openclash_version.sh 2>/dev/null")
 	return luci.sys.exec("sed -n '/^https:/,$p' /tmp/openclash_last_version 2>/dev/null")
 end
 
@@ -223,7 +223,7 @@ local function coremodel()
 	if opkg and opkg.info("libc") and opkg.info("libc")["libc"] then
 		return opkg.info("libc")["libc"]["Architecture"]
 	else
-		return luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
+		return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
 	end
 end
 
@@ -252,7 +252,7 @@ local function coremetacv()
 end
 
 local function corelv()
-	luci.sys.call("sh /usr/share/openclash/clash_version.sh")
+	luci.sys.call("bash /usr/share/openclash/clash_version.sh")
 	local core_lv = luci.sys.exec("sed -n 1p /tmp/clash_last_version 2>/dev/null")
 	local core_tun_lv = luci.sys.exec("sed -n 2p /tmp/clash_last_version 2>/dev/null")
 	local core_meta_lv = luci.sys.exec("sed -n 3p /tmp/clash_last_version 2>/dev/null")
@@ -263,26 +263,26 @@ local function opcv()
 	if opkg and opkg.info("luci-app-openclash") and opkg.info("luci-app-openclash")["luci-app-openclash"] then
 		return "v" .. opkg.info("luci-app-openclash")["luci-app-openclash"]["Version"]
 	else
-		return luci.sys.exec("opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}'")
+		return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}'")
 	end
 end
 
 local function oplv()
-	local new = luci.sys.call(string.format("sh /usr/share/openclash/openclash_version.sh"))
+	local new = luci.sys.call(string.format("bash /usr/share/openclash/openclash_version.sh"))
 	local oplv = luci.sys.exec("sed -n 1p /tmp/openclash_last_version 2>/dev/null")
 	return oplv .. "," .. new
 end
 
 local function opup()
-	luci.sys.call("rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/openclash_version.sh >/dev/null 2>&1")
-	return luci.sys.call("sh /usr/share/openclash/openclash_update.sh >/dev/null 2>&1 &")
+	luci.sys.call("rm -rf /tmp/*_last_version 2>/dev/null && bash /usr/share/openclash/openclash_version.sh >/dev/null 2>&1")
+	return luci.sys.call("bash /usr/share/openclash/openclash_update.sh >/dev/null 2>&1 &")
 end
 
 local function coreup()
 	uci:set("openclash", "config", "enable", "1")
 	uci:commit("openclash")
 	local type = luci.http.formvalue("core_type")
-	luci.sys.call("rm -rf /tmp/*_last_version 2>/dev/null && sh /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
+	luci.sys.call("rm -rf /tmp/*_last_version 2>/dev/null && bash /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
 	return luci.sys.call(string.format("/usr/share/openclash/openclash_core.sh '%s' >/dev/null 2>&1 &", type))
 end
 
@@ -378,7 +378,7 @@ function action_remove_all_core()
 end
 
 function action_one_key_update()
-  return luci.sys.call("sh /usr/share/openclash/openclash_update.sh 'one_key_update' >/dev/null 2>&1 &")
+  return luci.sys.call("bash /usr/share/openclash/openclash_update.sh 'one_key_update' >/dev/null 2>&1 &")
 end
 
 local function dler_login_info_save()
@@ -1145,31 +1145,49 @@ function action_refresh_log()
 		line = log_tb[i]:reverse()
 		line_trans = line
 		ex_match = false
+		core_match = false
+		time_format = false
 		while true do
 			ex_keys = {"UDP%-Receive%-Buffer%-Size", "^Sec%-Fetch%-Mode", "^User%-Agent", "^Access%-Control", "^Accept", "^Origin", "^Referer", "^Connection", "^Pragma", "^Cache-"}
-    	for key=1, #ex_keys do
-    		if string.find (line, ex_keys[key]) then
-    			ex_match = true
-    			break
-    		end
-    	end
-    	if ex_match then break end
-    	if not string.find (line, "level=") then
-			if not string.find (line, "【") or not string.find (line, "】") then
-				line_trans = trans_line_nolabel(line)
-			else
-				line_trans = trans_line(line)
+			for key=1, #ex_keys do
+				if string.find (line, ex_keys[key]) then
+					ex_match = true
+					break
+				end
 			end
-		end
-		if data == "" then
-    		data = line_trans
-    	elseif log_len == 0 and i == limit then
-    		data = data .."\n" .. line_trans .. "\n..."
-    	else
-    		data = data .."\n" .. line_trans
-  		end
-    	break
-    end
+    		if ex_match then break end
+
+			core_keys = {" DBG ", " INF ", "level=", " WRN ", " ERR "}
+			for key=1, #core_keys do
+				if string.find(string.sub(line, 0, 13), core_keys[key]) or (string.find(line, core_keys[key]) and core_keys[key] == "level=") then
+					core_match = true
+					if core_keys[key] ~= "level=" then
+						time_format = true
+					end
+					break
+				end
+			end
+			if time_format then
+				if string.match(string.sub(line, 0, 8), "%d%d:%d%d:%d%d") then
+					line_trans = '"'..os.date("%Y-%m-%d %H:%M:%S", tonumber(string.sub(line, 0, 8)))..'"'..string.sub(line, 9, -1)
+				end
+			end
+			if not core_match then
+				if not string.find (line, "【") or not string.find (line, "】") then
+					line_trans = trans_line_nolabel(line)
+				else
+					line_trans = trans_line(line)
+				end
+			end
+			if data == "" then
+				data = line_trans
+			elseif log_len == 0 and i == limit then
+				data = data .."\n" .. line_trans .. "\n..."
+			else
+				data = data .."\n" .. line_trans
+			end
+    		break
+    	end
 	end
 	luci.http.write_json({
 		len = len,
@@ -1551,7 +1569,7 @@ function all_proxies_stream_test()
 end
 
 function trans_line_nolabel(data)
-	local line_trans = "data"
+	local line_trans = ""
 	if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
 		line_trans = string.sub(data, 0, 20)..luci.i18n.translate(string.sub(data, 21, -1))
 	else

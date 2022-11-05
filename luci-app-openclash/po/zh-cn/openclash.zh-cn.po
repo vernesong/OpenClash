@@ -170,6 +170,9 @@ msgstr "实验性：绕过中国大陆 IPv6"
 msgid "Bypass The China Network Flows, Improve Performance"
 msgstr "启用后中国大陆流量将不再经过内核，提升系统性能"
 
+msgid "Bypass The China Network Flows, Improve Performance, Depend on Dnsmasq"
+msgstr "启用后中国大陆流量将不再经过内核，提升系统性能，此功能依赖于 Dnsmasq"
+
 msgid "Log Level"
 msgstr "日志等级"
 
@@ -729,6 +732,9 @@ msgstr "混淆参数（可选）"
 
 msgid "UDP Enable"
 msgstr "UDP 支持"
+
+msgid "XUDP Enable"
+msgstr "XUDP 支持"
 
 msgid "obfs-mode"
 msgstr "传输协议"
@@ -1450,6 +1456,9 @@ msgstr "大陆IPv6段更新URL"
 msgid "Custom Chnroute Lists URL"
 msgstr "大陆IP段更新URL"
 
+msgid "Custom CN Doamin Lists URL"
+msgstr "大陆域名列表文件更新URL"
+
 msgid "Custom GEOIP Data URL, Click Button Below To Refresh After Edit"
 msgstr "自定义 GEOIP 数据库的更新来源，编辑后点击下方按钮生效"
 
@@ -1461,6 +1470,9 @@ msgstr "自定义大陆 IP 段的更新来源，编辑后点击下方按钮生�
 
 msgid "Custom Chnroute6 Lists URL, Click Button Below To Refresh After Edit"
 msgstr "自定义大陆 IPv6 段的更新来源，编辑后点击下方按钮生效"
+
+msgid "Custom CN Doamin Dnsmasq Conf URL, Click Button Below To Refresh After Edit"
+msgstr "自定义大陆域名列表配置文件（Dnsmasq Conf）的更新来源，编辑后点击下方按钮生效"
 
 msgid "(Default)"
 msgstr "(默认)"
@@ -1720,11 +1732,17 @@ msgstr "开始下载大陆 IP 白名单..."
 msgid "Start Downloading The Chnroute6 Cidr List..."
 msgstr "开始下载大陆 IPv6 白名单..."
 
+msgid "Start Downloading The CN Domains List..."
+msgstr "开始下载大陆域名白名单..."
+
 msgid "Chnroute Cidr List Download Success, Check Updated..."
 msgstr "大陆 IP 白名单下载成功，检查版本是否更新..."
 
 msgid "Chnroute6 Cidr List Download Success, Check Updated..."
 msgstr "大陆 IPv6 白名单下载成功，检查版本是否更新..."
+
+msgid "CN Domains List Download Success, Check Updated..."
+msgstr "大陆域名白名单下载成功，检查版本是否更新..."
 
 msgid "Chnroute Cidr List Has Been Updated, Starting To Replace The Old Version..."
 msgstr "大陆 IP 白名单有更新，开始替换旧版本..."
@@ -1732,11 +1750,17 @@ msgstr "大陆 IP 白名单有更新，开始替换旧版本..."
 msgid "Chnroute6 Cidr List Has Been Updated, Starting To Replace The Old Version..."
 msgstr "大陆 IPv6 白名单有更新，开始替换旧版本..."
 
+msgid "CN Domains List Has Been Updated, Starting To Replace The Old Version..."
+msgstr "大陆域名白名单有更新，开始替换旧版本..."
+
 msgid "Chnroute Cidr List Update Successful!"
 msgstr "大陆 IP 白名单更新成功！"
 
 msgid "Chnroute6 Cidr List Update Successful!"
 msgstr "大陆 IPv6 白名单更新成功！"
+
+msgid "CN Domains List Update Successful!"
+msgstr "大陆域名白名单更新成功！"
 
 msgid "Updated Chnroute Cidr List No Change, Do Nothing..."
 msgstr "大陆 IP 白名单没有更新，停止继续操作..."
@@ -1744,11 +1768,17 @@ msgstr "大陆 IP 白名单没有更新，停止继续操作..."
 msgid "Updated Chnroute6 Cidr List No Change, Do Nothing..."
 msgstr "大陆 IPv6 白名单没有更新，停止继续操作..."
 
+msgid "Updated CN Domains List No Change, Do Nothing..."
+msgstr "大陆域名白名单没有更新，停止继续操作..."
+
 msgid "Chnroute Cidr List Update Error, Please Try Again Later..."
 msgstr "大陆 IP 白名单下载失败，请检查网络或稍后再试..."
 
 msgid "Chnroute6 Cidr List Update Error, Please Try Again Later..."
 msgstr "大陆 IPv6 白名单下载失败，请检查网络或稍后再试..."
+
+msgid "CN Domains List Update Error, Please Try Again Later..."
+msgstr "大陆域名白名单下载失败，请检查网络或稍后再试..."
 
 msgid "Start Downloading GeoSite Database..."
 msgstr "开始下载 GeoSite 数据库..."
@@ -1942,7 +1972,7 @@ msgstr "提示: 检测到 GEOIP Dat 数据库文件不存在，准备开始下�
 msgid "Tip: Detected that the Core is not Installed, Ready to Download..."
 msgstr "提示: 检测到内核文件不存在，准备开始下载..."
 
-msgid "Tip: Detected that the Chnroute Cidr List is not Installed, Ready to Download..."
+msgid "Tip: Detected that the Chnroute Cidr or CN Domains List is not Installed, Ready to Download..."
 msgstr "提示: 检测到大陆白名单列表不存在，准备开始下载..."
 
 msgid "Tip: Detected that the Chnroute Cidr List Format is wrong, Ready to Reformat..."
@@ -2617,8 +2647,8 @@ msgstr "Bilibili 策略组："
 msgid "Google Group:"
 msgstr "Google 策略组："
 
-msgid "full support."
-msgstr "完整解锁。"
+msgid "full support"
+msgstr "完整解锁"
 
 msgid "full support, area:"
 msgstr "完整解锁，区域："
@@ -2629,8 +2659,8 @@ msgstr "仅支持自制剧！"
 msgid "unlock test faild!"
 msgstr "解锁检测失败！"
 
-msgid "the type of group is not select, auto select could not work!"
-msgstr "当前策略组类型非Select，无法进行自动选择！"
+msgid ", the type of group is not select, auto select could not work!"
+msgstr "，当前策略组类型非Select，无法进行自动选择！"
 
 msgid "Start auto select unlock proxy..."
 msgstr "开始进行解锁节点自动选择..."
@@ -2683,20 +2713,26 @@ msgstr "解锁节点自动选择失败，未找到区域匹配的节点，回退
 msgid "unlock node auto selected successfully, no node match the old region, rolled back to other full support node"
 msgstr "解锁节点自动选择成功，未找到与先前解锁区域匹配的节点，回退到其他区域且符合条件的解锁节点"
 
-msgid "full support but not match the regex!"
-msgstr "完整解锁但区域不匹配！"
+msgid ", but not match the regex!"
+msgstr "，但区域与设置不匹配！"
 
 msgid "full support but not match the old region!"
 msgstr "完整解锁但与先前解锁区域不匹配！"
 
-msgid "but not match the regex! the type of group is not select, auto select could not work!"
-msgstr "完整解锁但区域不匹配！当前策略组类型非 Select，无法进行自动选择！"
+msgid ", but not match the old region:"
+msgstr "，但不匹配先前解锁区域："
+
+msgid "the type of group is not select, auto select could not work!"
+msgstr "当前策略组类型非 Select，无法进行自动选择！"
+
+msgid "，but not match the regex! the type of group is not select, auto select could not work!"
+msgstr "完整解锁但区域与设置不匹配！当前策略组类型非 Select，无法进行自动选择！"
 
 msgid "but not match the old region! the type of group is not select, auto select could not work!"
-msgstr "完整解锁但与先前解锁区域不匹配！当前策略组类型非 Select，无法进行自动选择！"
+msgstr "但与先前解锁区域不匹配！当前策略组类型非 Select，无法进行自动选择！"
 
-msgid "full support but not match the regex! start auto select unlock proxy..."
-msgstr "完整解锁但区域不匹配！开始进行解锁节点自动选择..."
+msgid ", but not match the regex! start auto select unlock proxy..."
+msgstr "，但区域与设置不匹配！开始进行解锁节点自动选择..."
 
 msgid "unlock node test finished, rolled back to the full support node"
 msgstr "解锁检测完成，回退到完整解锁的节点"
@@ -3141,3 +3177,42 @@ msgstr "Google 非送中"
 
 msgid "In Fake-ip Mode, Even If This Option is Turned Off, Domain Type Connections Still Pass Through The Core For The Availability"
 msgstr "在 Fake-IP 模式时，即使关闭此选项，域名类型的连接仍将通过核心以保证可用性"
+
+msgid "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
+msgstr "警告：TUN 接口启动失败，请检查依赖情况或稍后重试！"
+
+msgid "Warning: TUN Interface Start Failed, Try to Restart Again..."
+msgstr "警告：TUN 接口启动失败，尝试重启内核..."
+
+msgid "Forced Sniff Pure IP Connections"
+msgstr "强制探测（嗅探）所有纯 IP 的连接"
+
+msgid "Forced Sniff Pure IP"
+msgstr "探测（嗅探）纯 IP 连接"
+
+msgid "Download Failed:"
+msgstr "下载失败："
+
+msgid "Tip: Waiting for TUN Interface Start..."
+msgstr "提示：正在等待 TUN 接口启动..."
+
+msgid "Tip: You Can Try to Restart With Meta Core"
+msgstr "提示：您可以尝试使用 Meta 内核启动"
+
+msgid "Warning: Dnsmasq not Support nftset, Use ipset..."
+msgstr "警告：Dnsmasq 不支持 nftset, 使用 ipset 代替..."
+
+msgid "Tip: Firewall4 was Detected, Use NFTABLE Rules..."
+msgstr "提示：检测到 Firewall4，使用 NFTABLE 规则..."
+
+msgid "Specify CN DNS Server"
+msgstr "大陆域名 DNS 服务器"
+
+msgid "Specify DNS Server For CN Domain Lists, Only One IP Server Address Support"
+msgstr "指定大陆域名的 DNS 服务器，只支持填写一个IP地址"
+
+msgid "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
+msgstr "提示：检测到 Dnsmasq 正常工作，还原防火墙 DNS 劫持规则..."
+
+msgid "Tip: Bypass the China IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
+msgstr "提示：在 FAKE-IP 模式下绕过中国 IP 可能会导致 Dnsmasq 加载时间过长，暂时劫持 DNS 至内核直到 Dnsmasq 正常工作..."

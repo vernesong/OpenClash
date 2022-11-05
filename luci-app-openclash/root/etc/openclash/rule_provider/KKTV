@@ -1,4 +1,4 @@
-payload:  
+payload:
   # > KKTV
   - PROCESS-NAME,com.kktv.kktv
   - DOMAIN-SUFFIX,kktv.me
