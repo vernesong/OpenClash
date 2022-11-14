@@ -821,7 +821,7 @@ do
       #alpn
       if Value['proxies'][$count].key?('alpn') then
          system '${uci_del}hysteria_alpn >/dev/null 2>&1'
-         if Value['proxies'][$count].key?('alpn').class.to_s != 'Array' then
+         if Value['proxies'][$count]['alpn'].class.to_s != 'Array' then
             alpn = '${uci_add}hysteria_alpn=\"' + Value['proxies'][$count]['alpn'].to_s + '\"'
             system(alpn)
          else
