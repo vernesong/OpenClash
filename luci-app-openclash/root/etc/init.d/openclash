@@ -1570,6 +1570,7 @@ if [ -n "$FW4" ]; then
       nft 'flush chain inet fw4 openclash_dns_hijack' 2>/dev/null
 
       #其他流量
+      nft 'add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} iifname utun counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash_mangle ip saddr @localnetwork meta l4proto {tcp,udp} th sport @lan_ac_black_ports counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return' 2>/dev/null
@@ -2128,6 +2129,7 @@ else
       iptables -t mangle -N openclash_dns_hijack
       iptables -t mangle -F openclash_dns_hijack
       #其他流量
+      iptables -t mangle -A openclash -i utun -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
