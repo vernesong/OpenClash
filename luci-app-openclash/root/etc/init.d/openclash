@@ -78,9 +78,9 @@ del_cron()
 }
 
 save_dnsmasq_server() {
-	if [ -z "$1" ] || [ "$1" == "127.0.0.1#${dns_port}" ]; then
+   if [ -z "$1" ] || [ "$1" == "127.0.0.1#${dns_port}" ]; then
      return
-  fi
+   fi
   
   uci -q add_list openclash.config.dnsmasq_server="$1"
 }
@@ -88,7 +88,7 @@ save_dnsmasq_server() {
 set_dnsmasq_server() {
 	if [ -z "$1" ] || [ "$1" == "127.0.0.1#${dns_port}" ]; then
      return
-  fi
+   fi
   
   uci -q add_list dhcp.@dnsmasq[0].server="$1"
 }
@@ -1535,9 +1535,6 @@ if [ -n "$FW4" ]; then
       ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
       ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
 
-      #MTU UP TO 65535
-      ifconfig utun mtu 65535 >/dev/null 2>&1
-
       #设置防火墙
       nft 'add chain inet fw4 openclash_mangle_output' 2>/dev/null
       nft 'flush chain inet fw4 openclash_mangle_output' 2>/dev/null
@@ -2087,9 +2084,6 @@ else
 
       ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
       ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
-
-      #MTU UP TO 65535
-      ifconfig utun mtu 65535 >/dev/null 2>&1
 
       #设置防火墙
       if [ "$en_mode" = "fake-ip" ]; then
