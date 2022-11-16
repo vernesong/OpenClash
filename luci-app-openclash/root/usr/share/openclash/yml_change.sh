@@ -266,9 +266,9 @@ yml_dns_get()
       interface=""
    fi
 
-   if [ "$http3" = "1" ] && [ "$enable_meta_core" = "1" ] && [ "$interface" != "" ]; then
+   if [ "$http3" = "1" ] && [ "$enable_meta_core" = "1" ] && [ -n "$specific_group" ]; then
       http3="&h3=true"
-   elif [ "$http3" = "1" ] && [ "$enable_meta_core" = "1" ] && [ "$interface" = "" ]; then
+   elif [ "$http3" = "1" ] && [ "$enable_meta_core" = "1" ] && [ -z "$specific_group" ]; then
       http3="#h3=true"
    elif [ "$http3" = "1" ] && [ "$enable_meta_core" != "1" ]; then
       LOG_OUT "Warning: Only Meta Core Support Force HTTP/3 to connect, Skip Setting【$dns_type$dns_address】"
@@ -469,6 +469,7 @@ Thread.new{
       Value['tun']['stack']='$stack_type';
       if ${20} == 1 then
          Value['tun']['device']='utun';
+         Value['tun']['mtu']=65535;
       end;
       Value_2={'dns-hijack'=>['tcp://any:53']};
       Value['tun']['auto-route']=false;
