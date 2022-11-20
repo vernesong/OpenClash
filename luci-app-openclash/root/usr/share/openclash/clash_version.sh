@@ -10,14 +10,15 @@ del_lock() {
    rm -rf "/tmp/lock/openclash_clash_version.lock"
 }
 
-CKTIME=$(date "+%Y-%m-%d-%H")
+TIME=$(date "+%Y-%m-%d-%H")
+CHTIME=$(date "+%Y-%m-%d-%H" -r "/tmp/clash_last_version")
 LAST_OPVER="/tmp/clash_last_version"
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
 github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
 LOG_FILE="/tmp/openclash.log"
 set_lock
 
-if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{print $2}')" ]; then
+if [ "$TIME" != "$CHTIME" ]; then
    if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
          curl -SsL -m 10 "$github_address_mod"gh/vernesong/OpenClash@"$RELEASE_BRANCH"/core_version -o $LAST_OPVER 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
@@ -37,9 +38,7 @@ if [ "$CKTIME" != "$(grep "CheckTime" $LAST_OPVER 2>/dev/null |awk -F ':' '{prin
       curl_status=0
    fi
    
-   if [ "$curl_status" -eq 0 ] && [ -z "$(cat $LAST_OPVER |grep '<html>')" ]; then
-      echo "CheckTime:$CKTIME" >>$LAST_OPVER
-   else
+   if [ "$curl_status" -ne 0 ] ; then
       rm -rf $LAST_OPVER
    fi
 fi
