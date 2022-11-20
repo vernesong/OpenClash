@@ -760,6 +760,69 @@ do
       }.join
    end;
 
+   #WireGuard
+   if '$server_type' == 'wireguard' then
+      Thread.new{
+      #wg_ip
+      if Value['proxies'][$count].key?('ip') then
+         wg_ip = '${uci_set}wg_ip=' + Value['proxies'][$count]['ip'].to_s
+         system(wg_ip)
+      end
+      }.join
+
+      Thread.new{
+      #wg_ipv6
+      if Value['proxies'][$count].key?('ipv6') then
+         wg_ipv6 = '${uci_set}wg_ipv6=' + Value['proxies'][$count]['ipv6'].to_s
+         system(wg_ipv6)
+      end
+      }.join
+
+      Thread.new{
+      #private_key
+      if Value['proxies'][$count].key?('private-key') then
+         private_key = '${uci_set}private_key=' + Value['proxies'][$count]['private-key'].to_s
+         system(private_key)
+      end
+      }.join
+
+      Thread.new{
+      #public_key
+      if Value['proxies'][$count].key?('public-key') then
+         public_key = '${uci_set}public_key=' + Value['proxies'][$count]['public-key'].to_s
+         system(public_key)
+      end
+      }.join
+
+      Thread.new{
+      #preshared_key
+      if Value['proxies'][$count].key?('preshared-key') then
+         preshared_key = '${uci_set}preshared_key=' + Value['proxies'][$count]['preshared-key'].to_s
+         system(preshared_key)
+      end
+      }.join
+
+      Thread.new{
+      #pwg_mtu
+      if Value['proxies'][$count].key?('mtu') then
+         wg_mtu = '${uci_set}wg_mtu=' + Value['proxies'][$count]['mtu'].to_s
+         system(wg_mtu)
+      end
+      }.join
+
+      Thread.new{
+      #wg_dns
+      if Value['proxies'][$count].key?('dns') then
+         system '${uci_del}wg_dns >/dev/null 2>&1'
+         Value['proxies'][$count]['dns'].each{
+         |x|
+            wg_dns = '${uci_add}wg_dns=\"' + x.to_s + '\"'
+            system(wg_dns)
+         }
+      end;
+      }.join
+   end;
+
    if '$server_type' == 'hysteria' then
       Thread.new{
       #hysteria_protocol
