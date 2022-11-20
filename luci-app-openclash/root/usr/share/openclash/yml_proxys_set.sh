@@ -255,6 +255,15 @@ yml_servers_set()
    config_get "packet_encoding" "$section" "packet_encoding" ""
    config_get "global_padding" "$section" "global_padding" ""
    config_get "authenticated_length" "$section" "authenticated_length" ""
+   config_get "wg_ip" "$section" "wg_ip" ""
+   config_get "wg_ipv6" "$section" "wg_ipv6" ""
+   config_get "private_key" "$section" "private_key" ""
+   config_get "public_key" "$section" "public_key" ""
+   config_get "preshared_key" "$section" "preshared_key" ""
+   config_get "wg_dns" "$section" "wg_dns" ""
+   config_get "public_key" "$section" "public_key" ""
+   config_get "preshared_key" "$section" "preshared_key" ""
+   config_get "wg_mtu" "$section" "wg_mtu" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -577,7 +586,57 @@ EOF
          fi
       fi
    fi
-
+   
+#WireGuard
+   if [ "$type" = "wireguard" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  - name: "$name"
+    type: $type
+    server: "$server"
+    port: $port
+EOF
+      if [ -n "$wg_ip" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    ip: "$wg_ip"
+EOF
+      fi
+      if [ -n "$wg_ipv6" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    ipv6: "$wg_ipv6"
+EOF
+      fi
+      if [ -n "$private_key" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    private-key: "$private_key"
+EOF
+      fi
+      if [ -n "$public_key" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    public-key: "$public_key"
+EOF
+      fi
+      if [ -n "$preshared_key" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    preshared-key: "$preshared_key"
+EOF
+      fi
+      if [ -n "$preshared_key" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    dns:
+EOF
+      config_list_foreach "$section" "wg_dns" set_alpn
+      fi
+      if [ -n "$wg_mtu" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    mtu: "$wg_mtu"
+EOF
+      fi
+      if [ -n "$udp" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    udp: $udp
+EOF
+      fi
+   fi
 #hysteria
    if [ "$type" = "hysteria" ]; then
 cat >> "$SERVER_FILE" <<-EOF

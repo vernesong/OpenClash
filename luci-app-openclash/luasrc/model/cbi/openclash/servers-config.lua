@@ -132,6 +132,7 @@ o:value("trojan", translate("trojan"))
 o:value("snell", translate("Snell"))
 o:value("socks5", translate("Socks5"))
 o:value("http", translate("HTTP(S)"))
+o:value("wireguard", translate("WireGuard")..translate("(TUN&Meta Core)"))
 o.description = translate("Using incorrect encryption mothod may causes service fail to start")
 
 o = s:option(Value, "name", translate("Server Alias"))
@@ -156,6 +157,46 @@ o.rmempty = false
 o:depends("type", "ss")
 o:depends("type", "ssr")
 o:depends("type", "trojan")
+
+-- [[ Wireguard ]]--
+o = s:option(Value, "wg_ip", translate("IP"))
+o.rmempty = true
+o.placeholder = translate("127.0.0.1")
+o.datatype = "ip4addr"
+o:depends("type", "wireguard")
+
+o = s:option(Value, "wg_ipv6", translate("IPv6"))
+o.rmempty = true
+o.placeholder = translate("your_ipv6")
+o.datatype = "ip6addr"
+o:depends("type", "wireguard")
+
+o = s:option(Value, "private_key", translate("Private Key"))
+o.rmempty = true
+o.placeholder = translate("eCtXsJZ27+4PbhDkHnB923tkUn2Gj59wZw5wFA75MnU=")
+o:depends("type", "wireguard")
+
+o = s:option(Value, "public_key", translate("Public Key"))
+o.rmempty = true
+o.placeholder = translate("Cr8hWlKvtDt7nrvf+f0brNQQzabAqrjfBvas9pmowjo=")
+o:depends("type", "wireguard")
+
+o = s:option(Value, "preshared_key", translate("Preshared Key"))
+o.rmempty = true
+o.placeholder = translate("base64")
+o:depends("type", "wireguard")
+
+o = s:option(DynamicList, "wg_dns", translate("DNS"))
+o.rmempty = true
+o:value("1.1.1.1")
+o:value("8.8.8.8")
+o:depends("type", "wireguard")
+
+o = s:option(Value, "wg_mtu", translate("MTU"))
+o.rmempty = true
+o.default = "1420"
+o.placeholder = translate("1420")
+o:depends("type", "wireguard")
 
 o = s:option(ListValue, "hysteria_protocol", translate("Protocol"))
 for _, v in ipairs(hysteria_protocols) do o:value(v) end
@@ -240,7 +281,7 @@ o:depends("type", "vless")
 
 o = s:option(ListValue, "udp", translate("UDP Enable"))
 o.rmempty = true
-o.default = "false"
+o.default = "true"
 o:value("true")
 o:value("false")
 o:depends("type", "ss")
@@ -250,6 +291,7 @@ o:depends("type", "vless")
 o:depends("type", "socks5")
 o:depends("type", "trojan")
 o:depends({type = "snell", snell_version = "3"})
+o:depends("type", "wireguard")
 
 o = s:option(ListValue, "xudp", translate("XUDP Enable")..translate("(Only Meta Core)"))
 o.rmempty = true
