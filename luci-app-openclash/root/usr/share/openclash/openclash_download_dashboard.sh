@@ -30,7 +30,7 @@
       fi
 	fi
    
-   curl -SsL --connect-timeout 5 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$DOWNLOAD_PATH" -o "$DASH_FILE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$DASH_FILE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+   curl -SsL --connect-timeout 10 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$DOWNLOAD_PATH" -o "$DASH_FILE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$DASH_FILE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
 
    if [ "${PIPESTATUS[0]}" -eq 0 ] && [ -s "$DASH_FILE_DIR" ] && [ -z "$(grep "404: Not Found" "$DASH_FILE_DIR")" ] && [ -z "$(grep "Package size exceeded the configured limit" "$DASH_FILE_DIR")" ]; then
       unzip -qt "$DASH_FILE_DIR" >/dev/null 2>&1
