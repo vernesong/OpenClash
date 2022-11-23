@@ -462,7 +462,7 @@ fi
 
 if [ -n "$wan_ip6" ]; then
 	for i in $wan_ip6; do
-      wanip=$(echo "$i" |awk -F '/' '{print $1}')
+      wanip=$(echo "$i" |awk -F: 'OFS=":",NF-=1')
       sed -i "s/${wanip}/*WAN IP*/g" "$DEBUG_LOG" 2>/dev/null
   done
 fi
