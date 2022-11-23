@@ -143,7 +143,7 @@ end
 if type == "wanip6" then
 	if wan6 then
 		for o = 1, #(rv.wan6) do
-			if rv.wan6[o].proto == "pppoe" then
+			if rv.wan6[o].proto == "pppoe" or rv.wan6[o].proto == "dhcpv6" then
 				print(rv.wan6[o].ip6addr)
 			end
 		end
