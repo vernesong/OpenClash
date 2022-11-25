@@ -760,6 +760,93 @@ do
       }.join
    end;
 
+   #Tuic
+   if '$server_type' == 'tuic' then
+      Thread.new{
+      #tc_ip
+      if Value['proxies'][$count].key?('ip') then
+         tc_ip = '${uci_set}tc_ip=' + Value['proxies'][$count]['ip'].to_s
+         system(tc_ip)
+      end
+      }.join
+
+      Thread.new{
+      #tc_token
+      if Value['proxies'][$count].key?('token') then
+         tc_token = '${uci_set}tc_token=' + Value['proxies'][$count]['token'].to_s
+         system(tc_token)
+      end
+      }.join
+
+      Thread.new{
+      #heartbeat_interval
+      if Value['proxies'][$count].key?('heartbeat_interval') then
+         heartbeat_interval = '${uci_set}heartbeat_interval=' + Value['proxies'][$count]['heartbeat_interval'].to_s
+         system(heartbeat_interval)
+      end
+      }.join
+
+      Thread.new{
+      #tc_alpn
+      if Value['proxies'][$count].key?('alpn') then
+         system '${uci_del}tc_alpn >/dev/null 2>&1'
+         Value['proxies'][$count]['alpn'].each{
+         |x|
+            tc_alpn = '${uci_add}tc_alpn=\"' + x.to_s + '\"'
+            system(tc_alpn)
+         }
+      end;
+      }.join
+
+      Thread.new{
+      #disable_sni
+      if Value['proxies'][$count].key?('disable_sni') then
+         disable_sni = '${uci_set}disable_sni=' + Value['proxies'][$count]['disable_sni'].to_s
+         system(disable_sni)
+      end
+      }.join
+
+      Thread.new{
+      #reduce_rtt
+      if Value['proxies'][$count].key?('reduce_rtt') then
+         reduce_rtt = '${uci_set}reduce_rtt=' + Value['proxies'][$count]['reduce_rtt'].to_s
+         system(reduce_rtt)
+      end
+      }.join
+
+      Thread.new{
+      #request_timeout
+      if Value['proxies'][$count].key?('request_timeout') then
+         request_timeout = '${uci_set}request_timeout=' + Value['proxies'][$count]['request_timeout'].to_s
+         system(request_timeout)
+      end
+      }.join
+
+      Thread.new{
+      #udp_relay_mode
+      if Value['proxies'][$count].key?('udp_relay_mode') then
+         udp_relay_mode = '${uci_set}udp_relay_mode=' + Value['proxies'][$count]['udp_relay_mode'].to_s
+         system(udp_relay_mode)
+      end
+      }.join
+
+      Thread.new{
+      #congestion_controller
+      if Value['proxies'][$count].key?('congestion_controller') then
+         congestion_controller = '${uci_set}congestion_controller=' + Value['proxies'][$count]['congestion_controller'].to_s
+         system(congestion_controller)
+      end
+      }.join
+
+      Thread.new{
+      #max_udp_relay_packet_size
+      if Value['proxies'][$count].key?('max_udp_relay_packet_size') then
+         max_udp_relay_packet_size = '${uci_set}max_udp_relay_packet_size=' + Value['proxies'][$count]['max_udp_relay_packet_size'].to_s
+         system(max_udp_relay_packet_size)
+      end
+      }.join
+   end;
+
    #WireGuard
    if '$server_type' == 'wireguard' then
       Thread.new{
@@ -803,7 +890,7 @@ do
       }.join
 
       Thread.new{
-      #pwg_mtu
+      #wg_mtu
       if Value['proxies'][$count].key?('mtu') then
          wg_mtu = '${uci_set}wg_mtu=' + Value['proxies'][$count]['mtu'].to_s
          system(wg_mtu)
