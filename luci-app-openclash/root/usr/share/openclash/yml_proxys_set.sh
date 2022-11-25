@@ -264,6 +264,16 @@ yml_servers_set()
    config_get "public_key" "$section" "public_key" ""
    config_get "preshared_key" "$section" "preshared_key" ""
    config_get "wg_mtu" "$section" "wg_mtu" ""
+   config_get "tc_ip" "$section" "tc_ip" ""
+   config_get "tc_token" "$section" "tc_token" ""
+   config_get "udp_relay_mode" "$section" "udp_relay_mode" ""
+   config_get "congestion_controller" "$section" "congestion_controller" ""
+   config_get "tc_alpn" "$section" "tc_alpn" ""
+   config_get "disable_sni" "$section" "disable_sni" ""
+   config_get "reduce_rtt" "$section" "reduce_rtt" ""
+   config_get "heartbeat_interval" "$section" "heartbeat_interval" ""
+   config_get "request_timeout" "$section" "request_timeout" ""
+   config_get "max_udp_relay_packet_size" "$section" "max_udp_relay_packet_size" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -586,7 +596,68 @@ EOF
          fi
       fi
    fi
-   
+
+#Tuic
+   if [ "$type" = "tuic" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  - name: "$name"
+    type: $type
+    server: "$server"
+    port: $port
+EOF
+      if [ -n "$tc_ip" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    ip: "$tc_ip"
+EOF
+      fi
+      if [ -n "$tc_token" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    token: "$tc_token"
+EOF
+      fi
+      if [ -n "$udp_relay_mode" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    udp_relay_mode: "$udp_relay_mode"
+EOF
+      fi
+      if [ -n "$congestion_controller" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    congestion_controller: "$congestion_controller"
+EOF
+      fi
+      if [ -n "$tc_alpn" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    alpn:
+EOF
+      config_list_foreach "$section" "tc_alpn" set_alpn
+      fi
+      if [ -n "$disable_sni" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    disable_sni: "$disable_sni"
+EOF
+      fi
+      if [ -n "$reduce_rtt" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    reduce_rtt: $reduce_rtt
+EOF
+      fi
+      if [ -n "$heartbeat_interval" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    heartbeat_interval: $heartbeat_interval
+EOF
+      fi
+      if [ -n "$request_timeout" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    request_timeout: $request_timeout
+EOF
+      fi
+      if [ -n "$max_udp_relay_packet_size" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    max_udp_relay_packet_size: $max_udp_relay_packet_size
+EOF
+      fi
+   fi
+
 #WireGuard
    if [ "$type" = "wireguard" ]; then
 cat >> "$SERVER_FILE" <<-EOF
@@ -637,6 +708,7 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
       fi
    fi
+
 #hysteria
    if [ "$type" = "hysteria" ]; then
 cat >> "$SERVER_FILE" <<-EOF
