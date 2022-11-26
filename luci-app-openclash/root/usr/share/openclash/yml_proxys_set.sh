@@ -238,8 +238,6 @@ yml_servers_set()
    config_get "vless_flow" "$section" "vless_flow" ""
    config_get "http_headers" "$section" "http_headers" ""
    config_get "hysteria_protocol" "$section" "hysteria_protocol" ""
-   config_get "up_mbps" "$section" "up_mbps" ""
-   config_get "down_mbps" "$section" "down_mbps" ""
    config_get "hysteria_up" "$section" "hysteria_up" ""
    config_get "hysteria_down" "$section" "hysteria_down" ""
    config_get "hysteria_alpn" "$section" "hysteria_alpn" ""
@@ -274,6 +272,7 @@ yml_servers_set()
    config_get "heartbeat_interval" "$section" "heartbeat_interval" ""
    config_get "request_timeout" "$section" "request_timeout" ""
    config_get "max_udp_relay_packet_size" "$section" "max_udp_relay_packet_size" ""
+   config_get "fast_open" "$section" "fast_open" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -617,12 +616,12 @@ EOF
       fi
       if [ -n "$udp_relay_mode" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    udp_relay_mode: "$udp_relay_mode"
+    udp-relay-mode: "$udp_relay_mode"
 EOF
       fi
       if [ -n "$congestion_controller" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    congestion_controller: "$congestion_controller"
+    congestion-controller: "$congestion_controller"
 EOF
       fi
       if [ -n "$tc_alpn" ]; then
@@ -633,27 +632,32 @@ EOF
       fi
       if [ -n "$disable_sni" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    disable_sni: "$disable_sni"
+    disable-sni: "$disable_sni"
 EOF
       fi
       if [ -n "$reduce_rtt" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    reduce_rtt: $reduce_rtt
+    reduce-rtt: $reduce_rtt
+EOF
+      fi
+      if [ -n "$fast_open" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    fast-open: $fast_open
 EOF
       fi
       if [ -n "$heartbeat_interval" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    heartbeat_interval: $heartbeat_interval
+    heartbeat-interval: $heartbeat_interval
 EOF
       fi
       if [ -n "$request_timeout" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    request_timeout: $request_timeout
+    request-timeout: $request_timeout
 EOF
       fi
       if [ -n "$max_udp_relay_packet_size" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    max_udp_relay_packet_size: $max_udp_relay_packet_size
+    max-udp-relay-packet-size: $max_udp_relay_packet_size
 EOF
       fi
    fi
@@ -718,22 +722,12 @@ cat >> "$SERVER_FILE" <<-EOF
     port: $port
     protocol: $hysteria_protocol
 EOF
-      if [ -n "$up_mbps" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    up_mbps: "$up_mbps"
-EOF
-      fi
-      if [ -n "$down_mbps" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    down_mbps: "$down_mbps"
-EOF
-      fi
-      if [ -n "$hysteria_up" ] && [ -z "$up_mbps" ]; then
+      if [ -n "$hysteria_up" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     up: "$hysteria_up"
 EOF
       fi
-      if [ -n "$hysteria_down" ] && [ -z "$down_mbps" ]; then
+      if [ -n "$hysteria_down" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     down: "$hysteria_down"
 EOF
@@ -773,7 +767,7 @@ EOF
       fi
       if [ -n "$hysteria_auth_str" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    auth_str: "$hysteria_auth_str"
+    auth-str: "$hysteria_auth_str"
 EOF
       fi
       if [ -n "$hysteria_ca" ]; then
@@ -783,22 +777,27 @@ EOF
       fi
       if [ -n "$hysteria_ca_str" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    ca_str: "$hysteria_ca_str"
+    ca-str: "$hysteria_ca_str"
 EOF
       fi
       if [ -n "$recv_window_conn" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    recv_window_conn: "$recv_window_conn"
+    recv-window-conn: "$recv_window_conn"
 EOF
       fi
       if [ -n "$recv_window" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    recv_window: "$recv_window"
+    recv-window: "$recv_window"
 EOF
       fi
       if [ -n "$disable_mtu_discovery" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    disable_mtu_discovery: $disable_mtu_discovery
+    disable-mtu-discovery: $disable_mtu_discovery
+EOF
+      fi
+      if [ -n "$fast_open" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    fast-open: $fast_open
 EOF
       fi
    fi
