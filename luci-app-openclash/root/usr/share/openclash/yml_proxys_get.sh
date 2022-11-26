@@ -780,8 +780,8 @@ do
 
       Thread.new{
       #heartbeat_interval
-      if Value['proxies'][$count].key?('heartbeat_interval') then
-         heartbeat_interval = '${uci_set}heartbeat_interval=' + Value['proxies'][$count]['heartbeat_interval'].to_s
+      if Value['proxies'][$count].key?('heartbeat-interval') then
+         heartbeat_interval = '${uci_set}heartbeat_interval=' + Value['proxies'][$count]['heartbeat-interval'].to_s
          system(heartbeat_interval)
       end
       }.join
@@ -800,48 +800,56 @@ do
 
       Thread.new{
       #disable_sni
-      if Value['proxies'][$count].key?('disable_sni') then
-         disable_sni = '${uci_set}disable_sni=' + Value['proxies'][$count]['disable_sni'].to_s
+      if Value['proxies'][$count].key?('disable-sni') then
+         disable_sni = '${uci_set}disable_sni=' + Value['proxies'][$count]['disable-sni'].to_s
          system(disable_sni)
       end
       }.join
 
       Thread.new{
       #reduce_rtt
-      if Value['proxies'][$count].key?('reduce_rtt') then
-         reduce_rtt = '${uci_set}reduce_rtt=' + Value['proxies'][$count]['reduce_rtt'].to_s
+      if Value['proxies'][$count].key?('reduce-rtt') then
+         reduce_rtt = '${uci_set}reduce_rtt=' + Value['proxies'][$count]['reduce-rtt'].to_s
          system(reduce_rtt)
       end
       }.join
 
       Thread.new{
+      #fast_open
+      if Value['proxies'][$count].key?('fast-open') then
+         fast_open = '${uci_set}fast_open=' + Value['proxies'][$count]['fast-open'].to_s
+         system(fast_open)
+      end
+      }.join
+
+      Thread.new{
       #request_timeout
-      if Value['proxies'][$count].key?('request_timeout') then
-         request_timeout = '${uci_set}request_timeout=' + Value['proxies'][$count]['request_timeout'].to_s
+      if Value['proxies'][$count].key?('request-timeout') then
+         request_timeout = '${uci_set}request_timeout=' + Value['proxies'][$count]['request-timeout'].to_s
          system(request_timeout)
       end
       }.join
 
       Thread.new{
       #udp_relay_mode
-      if Value['proxies'][$count].key?('udp_relay_mode') then
-         udp_relay_mode = '${uci_set}udp_relay_mode=' + Value['proxies'][$count]['udp_relay_mode'].to_s
+      if Value['proxies'][$count].key?('udp-relay-mode') then
+         udp_relay_mode = '${uci_set}udp_relay_mode=' + Value['proxies'][$count]['udp-relay-mode'].to_s
          system(udp_relay_mode)
       end
       }.join
 
       Thread.new{
       #congestion_controller
-      if Value['proxies'][$count].key?('congestion_controller') then
-         congestion_controller = '${uci_set}congestion_controller=' + Value['proxies'][$count]['congestion_controller'].to_s
+      if Value['proxies'][$count].key?('congestion-controller') then
+         congestion_controller = '${uci_set}congestion_controller=' + Value['proxies'][$count]['congestion-controller'].to_s
          system(congestion_controller)
       end
       }.join
 
       Thread.new{
       #max_udp_relay_packet_size
-      if Value['proxies'][$count].key?('max_udp_relay_packet_size') then
-         max_udp_relay_packet_size = '${uci_set}max_udp_relay_packet_size=' + Value['proxies'][$count]['max_udp_relay_packet_size'].to_s
+      if Value['proxies'][$count].key?('max-udp-relay-packet-size') then
+         max_udp_relay_packet_size = '${uci_set}max_udp_relay_packet_size=' + Value['proxies'][$count]['max-udp-relay-packet-size'].to_s
          system(max_udp_relay_packet_size)
       end
       }.join
@@ -920,22 +928,6 @@ do
       }.join
 
       Thread.new{
-      #up_mbps
-      if Value['proxies'][$count].key?('up_mbps') then
-         up_mbps = '${uci_set}up_mbps=' + Value['proxies'][$count]['up_mbps'].to_s
-         system(up_mbps)
-      end
-      }.join
-
-      Thread.new{
-      #down_mbps
-      if Value['proxies'][$count].key?('down_mbps') then
-         down_mbps = '${uci_set}down_mbps=' + Value['proxies'][$count]['down_mbps'].to_s
-         system(down_mbps)
-      end
-      }.join
-
-      Thread.new{
       #hysteria_up
       if Value['proxies'][$count].key?('up') then
          hysteria_up = '${uci_set}hysteria_up=' + Value['proxies'][$count]['up'].to_s
@@ -986,16 +978,16 @@ do
 
       Thread.new{
       #recv_window_conn
-      if Value['proxies'][$count].key?('recv_window_conn') then
-         recv_window_conn = '${uci_set}recv_window_conn=' + Value['proxies'][$count]['recv_window_conn'].to_s
+      if Value['proxies'][$count].key?('recv-window-conn') then
+         recv_window_conn = '${uci_set}recv_window_conn=' + Value['proxies'][$count]['recv-window-conn'].to_s
          system(recv_window_conn)
       end
       }.join
 
       Thread.new{
       #recv_window
-      if Value['proxies'][$count].key?('recv_window') then
-         recv_window = '${uci_set}recv_window=' + Value['proxies'][$count]['recv_window'].to_s
+      if Value['proxies'][$count].key?('recv-window') then
+         recv_window = '${uci_set}recv_window=' + Value['proxies'][$count]['recv-window'].to_s
          system(recv_window)
       end
       }.join
@@ -1018,8 +1010,8 @@ do
 
       Thread.new{
       #hysteria_auth_str
-      if Value['proxies'][$count].key?('auth_str') then
-         hysteria_auth_str = '${uci_set}hysteria_auth_str=' + Value['proxies'][$count]['auth_str'].to_s
+      if Value['proxies'][$count].key?('auth-str') then
+         hysteria_auth_str = '${uci_set}hysteria_auth_str=' + Value['proxies'][$count]['auth-str'].to_s
          system(hysteria_auth_str)
       end
       }.join
@@ -1034,17 +1026,25 @@ do
 
       Thread.new{
       #hysteria_ca_str
-      if Value['proxies'][$count].key?('ca_str') then
-         hysteria_ca_str = '${uci_set}hysteria_ca_str=' + Value['proxies'][$count]['ca_str'].to_s
+      if Value['proxies'][$count].key?('ca-str') then
+         hysteria_ca_str = '${uci_set}hysteria_ca_str=' + Value['proxies'][$count]['ca-str'].to_s
          system(hysteria_ca_str)
       end
       }.join
 
       Thread.new{
       #disable_mtu_discovery
-      if Value['proxies'][$count].key?('disable_mtu_discovery') then
-         disable_mtu_discovery = '${uci_set}disable_mtu_discovery=' + Value['proxies'][$count]['disable_mtu_discovery'].to_s
+      if Value['proxies'][$count].key?('disable-mtu-discovery') then
+         disable_mtu_discovery = '${uci_set}disable_mtu_discovery=' + Value['proxies'][$count]['disable-mtu-discovery'].to_s
          system(disable_mtu_discovery)
+      end
+      }.join
+
+      Thread.new{
+      #fast_open
+      if Value['proxies'][$count].key?('fast-open') then
+         fast_open = '${uci_set}fast_open=' + Value['proxies'][$count]['fast-open'].to_s
+         system(fast_open)
       end
       }.join
 
