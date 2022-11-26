@@ -1048,6 +1048,14 @@ do
       end
       }.join
 
+      Thread.new{
+      #fingerprint
+      if Value['proxies'][$count].key?('fingerprint') then
+         fingerprint = '${uci_set}fingerprint=' + Value['proxies'][$count]['fingerprint'].to_s
+         system(fingerprint)
+      end
+      }.join
+
    end;
 
    if '$server_type' == 'vless' then

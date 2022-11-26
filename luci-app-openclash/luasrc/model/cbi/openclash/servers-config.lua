@@ -657,6 +657,11 @@ o:value("false")
 o.default = "false"
 o:depends("type", "hysteria")
 
+-- [[ fingerprint ]]--
+o = s:option(Value, "fingerprint", translate("Fingerprint"))
+o.rmempty = true
+o:depends("type", "hysteria")
+
 -- [[ interface-name ]]--
 o = s:option(Value, "interface_name", translate("interface-name"))
 o.rmempty = true

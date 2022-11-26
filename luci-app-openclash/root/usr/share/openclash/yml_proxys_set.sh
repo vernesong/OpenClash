@@ -273,7 +273,8 @@ yml_servers_set()
    config_get "request_timeout" "$section" "request_timeout" ""
    config_get "max_udp_relay_packet_size" "$section" "max_udp_relay_packet_size" ""
    config_get "fast_open" "$section" "fast_open" ""
-
+   config_get "fingerprint" "$section" "fingerprint" ""
+   
    if [ "$enabled" = "0" ]; then
       return
    fi
@@ -798,6 +799,11 @@ EOF
       if [ -n "$fast_open" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     fast-open: $fast_open
+EOF
+      fi
+      if [ -n "$fingerprint" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    fingerprint: $fingerprint
 EOF
       fi
    fi
