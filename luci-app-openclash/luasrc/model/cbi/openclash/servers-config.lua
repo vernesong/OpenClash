@@ -126,14 +126,15 @@ o = s:option(ListValue, "type", translate("Server Node Type"))
 o:value("ss", translate("Shadowsocks"))
 o:value("ssr", translate("ShadowsocksR"))
 o:value("vmess", translate("Vmess"))
+o:value("trojan", translate("trojan"))
 o:value("vless", translate("Vless ")..translate("(Only Meta Core)"))
 o:value("hysteria", translate("Hysteria ")..translate("(Only Meta Core)"))
-o:value("trojan", translate("trojan"))
+o:value("wireguard", translate("WireGuard")..translate("(TUN&Meta Core)"))
+o:value("tuic", translate("Tuic")..translate("(Only Meta Core)"))
 o:value("snell", translate("Snell"))
 o:value("socks5", translate("Socks5"))
 o:value("http", translate("HTTP(S)"))
-o:value("wireguard", translate("WireGuard")..translate("(TUN&Meta Core)"))
-o:value("tuic", translate("Tuic")..translate("(Only Meta Core)"))
+
 o.description = translate("Using incorrect encryption mothod may causes service fail to start")
 
 o = s:option(Value, "name", translate("Server Alias"))
@@ -188,7 +189,7 @@ o:depends("type", "tuic")
 o = s:option(DynamicList, "tc_alpn", translate("Alpn"))
 o.rmempty = true
 o:value("h3")
-o.default = "h3"
+o:value("h2")
 o:depends("type", "tuic")
 
 o = s:option(ListValue, "disable_sni", translate("Disable SNI"))
@@ -274,16 +275,6 @@ o = s:option(Value, "hysteria_down", translate("down"))
 o.rmempty = false
 o.description = translate("Required")
 o:depends("type", "hysteria")
-
---o = s:option(Value, "up_mbps", translate("up_mbps"))
---o.rmempty = true
---o.datatype = "uinteger"
---o:depends("type", "hysteria")
-
---o = s:option(Value, "down_mbps", translate("down_mbps"))
---o.rmempty = true
---o.datatype = "uinteger"
---o:depends("type", "hysteria")
 
 o = s:option(Value, "psk", translate("Psk"))
 o.rmempty = true
@@ -500,6 +491,14 @@ o:depends("type", "vless")
 o:depends("type", "hysteria")
 o:depends("type", "tuic")
 
+o = s:option(ListValue, "fast_open", translate("Fast Open"))
+o.rmempty = true
+o.default = "false"
+o:value("true")
+o:value("false")
+o:depends("type", "hysteria")
+o:depends("type", "tuic")
+
 -- [[ TLS ]]--
 o = s:option(ListValue, "tls", translate("tls"))
 o.rmempty = true
@@ -582,6 +581,7 @@ o:depends("type", "trojan")
 o = s:option(DynamicList, "hysteria_alpn", translate("alpn"))
 o.rmempty = false
 o:value("h3")
+o:value("h2")
 o:depends("type", "hysteria")
 
 -- [[ grpc ]]--
