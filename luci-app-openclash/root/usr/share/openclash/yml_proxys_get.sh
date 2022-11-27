@@ -853,6 +853,14 @@ do
          system(max_udp_relay_packet_size)
       end
       }.join
+
+      Thread.new{
+      #max-open-streams
+      if Value['proxies'][$count].key?('max-open-streams') then
+         max_open_streams = '${uci_set}max_open_streams=' + Value['proxies'][$count]['max-open-streams'].to_s
+         system(max_open_streams)
+      end
+      }.join
    end;
 
    #WireGuard
@@ -1056,6 +1064,21 @@ do
       end
       }.join
 
+      Thread.new{
+      #ports
+      if Value['proxies'][$count].key?('ports') then
+         ports = '${uci_set}ports=' + Value['proxies'][$count]['ports'].to_s
+         system(ports)
+      end
+      }.join
+
+      Thread.new{
+      #hop-interval
+      if Value['proxies'][$count].key?('hop-interval') then
+         hop_interval = '${uci_set}hop_interval=' + Value['proxies'][$count]['hop-interval'].to_s
+         system(hop_interval)
+      end
+      }.join
    end;
 
    if '$server_type' == 'vless' then
