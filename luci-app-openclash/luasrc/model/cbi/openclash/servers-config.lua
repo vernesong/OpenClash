@@ -153,6 +153,13 @@ o.datatype = "port"
 o.rmempty = false
 o.default = "443"
 
+o = s:option(Value, "ports", translate("Port Hopping"))
+o.datatype = "portrange"
+o.rmempty = true
+o.default = "20000-40000"
+o.placeholder = translate("20000-40000")
+o:depends("type", "hysteria")
+
 o = s:option(Value, "password", translate("Password"))
 o.password = true
 o.rmempty = false
@@ -219,6 +226,11 @@ o:depends("type", "tuic")
 o = s:option(Value, "max_udp_relay_packet_size", translate("Max UDP Relay Packet Size"))
 o.rmempty = true
 o.default = "1500"
+o:depends("type", "tuic")
+
+o = s:option(Value, "max_open_streams", translate("Max Open Streams"))
+o.rmempty = true
+o.default = "100"
 o:depends("type", "tuic")
 
 -- [[ Wireguard ]]--
@@ -660,6 +672,11 @@ o:depends("type", "hysteria")
 -- [[ fingerprint ]]--
 o = s:option(Value, "fingerprint", translate("Fingerprint"))
 o.rmempty = true
+o:depends("type", "hysteria")
+
+o = s:option(Value, "hop_interval", translate("Hop Interval"))
+o.rmempty = true
+o.default = "10"
 o:depends("type", "hysteria")
 
 -- [[ interface-name ]]--
