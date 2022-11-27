@@ -274,6 +274,9 @@ yml_servers_set()
    config_get "max_udp_relay_packet_size" "$section" "max_udp_relay_packet_size" ""
    config_get "fast_open" "$section" "fast_open" ""
    config_get "fingerprint" "$section" "fingerprint" ""
+   config_get "ports" "$section" "ports" ""
+   config_get "hop_interval" "$section" "hop_interval" ""
+   config_get "max_open_streams" "$section" "max_open_streams" ""
    
    if [ "$enabled" = "0" ]; then
       return
@@ -661,6 +664,11 @@ cat >> "$SERVER_FILE" <<-EOF
     max-udp-relay-packet-size: $max_udp_relay_packet_size
 EOF
       fi
+      if [ -n "$max_open_streams" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    max-open-streams: $max_open_streams
+EOF
+      fi
    fi
 
 #WireGuard
@@ -804,6 +812,16 @@ EOF
       if [ -n "$fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     fingerprint: $fingerprint
+EOF
+      fi
+      if [ -n "$ports" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    ports: $ports
+EOF
+      fi
+      if [ -n "$hop_interval" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    hop-interval: $hop_interval
 EOF
       fi
    fi
