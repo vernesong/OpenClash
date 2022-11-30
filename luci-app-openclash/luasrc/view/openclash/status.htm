@@ -342,9 +342,14 @@
 
 	XHR.poll(1, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
 	  if ( x && x.status == 200 ) {
-	  	if ( status.startlog.match("level=fatal") ) {
+	  	if ( status.startlog.match("level=fatal") || status.startlog.indexOf("FTL [Config]") != "-1" ) {
 	    	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
-	    	alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('msg=')[1]);
+			if ( status.startlog.match("level=fatal") ) {
+				alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('msg=')[1]);
+			}
+	    	else {
+				alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('FTL [Config] ')[1]);
+			};
 		}
 		else if ( status.startlog != "\n" && status.startlog != "" ) {
 	    	startlog.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
