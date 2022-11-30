@@ -17,10 +17,13 @@
 .cm-s-idea span.cm-string { color: #008000; }
 .cm-s-idea span.cm-string-2 { color: #008000; }
 .cm-s-idea span.cm-qualifier { color: #555; }
-.cm-s-idea span.cm-error { color: #FF0000; }
+.cm-s-idea span.cm-error { line-height: 1em; font-weight: bold; color: #FF0000; }
 .cm-s-idea span.cm-attribute { color: #0000FF; }
 .cm-s-idea span.cm-tag { color: #000080; }
 .cm-s-idea span.cm-link { color: #0000FF; }
+.cm-s-idea span.cm-tip { color: #ff6f00; }
+.cm-s-idea span.cm-watchdog { color: #b300ff; }
+.cm-s-idea span.cm-warn { line-height: 1em; font-weight: bold; color: #ff00bb; }
 .cm-s-idea .CodeMirror-activeline-background { background: #FFFAE3; }
 
 .cm-s-idea span.cm-builtin { color: #30a; }
