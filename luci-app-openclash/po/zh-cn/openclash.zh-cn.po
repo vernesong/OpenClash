@@ -1928,79 +1928,79 @@ msgid "Detected That The nameserver DNS Option Has No Server Set, Starting To Co
 msgstr "检测到DNS选项下的 Nameserver 未设置服务器，开始补全..."
 
 msgid "Error: Failed To Download Proxy-providers, Please Check The Log Page For Detailed error information!"
-msgstr "错误: 代理集文件下载失败，请到日志页面查看详细错误信息！"
+msgstr "错误：代理集文件下载失败，请到日志页面查看详细错误信息！"
 
 msgid "Error: Failed To Download Rule-providers, Please Check The Log Page For Detailed error information!"
-msgstr "错误: 规则集文件下载失败，请到日志页面查看详细错误信息！"
+msgstr "错误：规则集文件下载失败，请到日志页面查看详细错误信息！"
 
 msgid "Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers"
-msgstr "错误: 配置文件DNS选项下的 Nameserver 必须设置服务器，已停止设置自定义DNS服务器！"
+msgstr "错误：配置文件DNS选项下的 Nameserver 必须设置服务器，已停止设置自定义DNS服务器！"
 
 msgid "Config File Does Not Exist, You Have Set Subscription Information, Ready To Download..."
 msgstr "配置文件不存在，您已设置订阅信息，准备开始下载..."
 
 msgid "Error: Config Not Found"
-msgstr "错误: 缺少配置文件，请上传或更新配置文件！"
+msgstr "错误：缺少配置文件，请上传或更新配置文件！"
 
 msgid "Error: Config File Format Validation Failed..."
 msgstr "错误：配置文件格式校验失败..."
 
 msgid "Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
-msgstr "提示: 检测到配置了 TUN 内核专属功能，调用 TUN 内核启动..."
+msgstr "提示：检测到配置了 TUN 内核专属功能，调用 TUN 内核启动..."
 
 msgid "Tip: Detected The Exclusive Function of The Meta Core, Use Meta Core to Start..."
-msgstr "提示: 检测到配置了 Meta 内核专属功能，调用 Meta 内核启动..."
+msgstr "提示：检测到配置了 Meta 内核专属功能，调用 Meta 内核启动..."
 
 msgid "Tip: No Special Configuration Detected, Use Dev Core to Start..."
-msgstr "提示: 未检测到特殊配置，调用 Dev 内核启动..."
+msgstr "提示：未检测到特殊配置，调用 Dev 内核启动..."
 
 msgid "Tip: Detected that the Dev Core is not Installed, Use TUN Core to Start..."
-msgstr "提示: 检测到 Dev 内核未安装，调用 TUN 内核启动..."
+msgstr "提示：检测到 Dev 内核未安装，调用 TUN 内核启动..."
 
 msgid "Tip: Detected that the Dev Core is not Installed, Use Meta Core to Start..."
-msgstr "提示: 检测到 Dev 内核未安装，调用 Meta 内核启动..."
+msgstr "提示：检测到 Dev 内核未安装，调用 Meta 内核启动..."
 
 msgid "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
-msgstr "提示: 检测到 GEOIP 数据库文件不存在，准备开始下载..."
+msgstr "提示：检测到 GEOIP 数据库文件不存在，准备开始下载..."
 
 msgid "Tip: Detected that the GEOSITE Database is not Installed, Ready to Download..."
-msgstr "提示: 检测到 GEOSITE 数据库文件不存在，准备开始下载..."
+msgstr "提示：检测到 GEOSITE 数据库文件不存在，准备开始下载..."
 
 msgid "Tip: Detected that the GEOIP Dat is not Installed, Ready to Download..."
-msgstr "提示: 检测到 GEOIP Dat 数据库文件不存在，准备开始下载..."
+msgstr "提示：检测到 GEOIP Dat 数据库文件不存在，准备开始下载..."
 
 msgid "Tip: Detected that the Core is not Installed, Ready to Download..."
-msgstr "提示: 检测到内核文件不存在，准备开始下载..."
+msgstr "提示：检测到内核文件不存在，准备开始下载..."
 
 msgid "Tip: Detected that the Chnroute Cidr or CN Domains List is not Installed, Ready to Download..."
-msgstr "提示: 检测到大陆白名单列表不存在，准备开始下载..."
+msgstr "提示：检测到大陆白名单列表不存在，准备开始下载..."
 
 msgid "Tip: Detected that the Chnroute Cidr List Format is wrong, Ready to Reformat..."
-msgstr "提示: 检测到大陆白名单列表格式错误，准备重新格式化..."
+msgstr "提示：检测到大陆白名单列表格式错误，准备重新格式化..."
 
 msgid "Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well..."
 msgstr "错误：Capsh 异常，请尝试重新安装依赖【libcap】和相应的Capsh库，终止启动..."
 
 msgid "Tip: You Could Download And Re-Install The libcap & libcap-bin Library From The Address Give"
-msgstr "提示: 你可以尝试从给出的地址中查找、下载并重新安装架构对应的 libcap 和 libcap-bin 依赖"
+msgstr "提示：你可以尝试从给出的地址中查找、下载并重新安装架构对应的 libcap 和 libcap-bin 依赖"
 
 msgid "Error: Get DNS 'listen' Option Error, OpenClash Can Not Start With Raw Config File"
-msgstr "错误: 无法获取 DNS 部分的监听端口设置, OpenClash 使用原始配置文件启动失败"
+msgstr "错误：无法获取 DNS 部分的监听端口设置, OpenClash 使用原始配置文件启动失败"
 
 msgid "Error: Get DNS 'enhanced-mode' Option Error, OpenClash Can Not Start With Raw Config File"
-msgstr "错误: 无法获取 DNS 部分的运行模式设置, OpenClash 使用原始配置文件启动失败"
+msgstr "错误：无法获取 DNS 部分的运行模式设置, OpenClash 使用原始配置文件启动失败"
 
 msgid "Error: Get General 'redir-port' Option Error, OpenClash Can Not Start With Raw Config File"
-msgstr "错误: 无法获取 General 部分的转发端口设置, OpenClash 使用原始配置文件启动失败"
+msgstr "错误：无法获取 General 部分的转发端口设置, OpenClash 使用原始配置文件启动失败"
 
 msgid "Error: OpenClash Can Not Start, Please Check The Error Info And Try Again!"
-msgstr "错误: OpenClash 启动失败，请到日志页面查看详细错误信息！"
+msgstr "错误：OpenClash 启动失败，请到日志页面查看详细错误信息！"
 
 msgid "Error: OpenClash Can Not Start, Try Use Raw Config Restart Again..."
-msgstr "错误: OpenClash 启动失败，尝试使用原始配置文件启动..."
+msgstr "错误：OpenClash 启动失败，尝试使用原始配置文件启动..."
 
 msgid "Error: OpenClash Can Not Start, Try Use Backup Rules Start Again..."
-msgstr "错误: OpenClash 启动失败，尝试还原第三方规则并重新启动 Clash 主程序..."
+msgstr "错误：OpenClash 启动失败，尝试还原第三方规则并重新启动 Clash 主程序..."
 
 msgid "Found 53 Port Hijacked, Clean Up Firewall Rules..."
 msgstr "发现 53 端口被劫持，清理防火墙规则..."
@@ -2465,7 +2465,7 @@ msgid "Are you sure want to switch the running mode?"
 msgstr "确认要切换运行模式吗?"
 
 msgid "Tip: Because of the file"
-msgstr "提示: 由于文件"
+msgstr "提示：由于文件"
 
 msgid "modificated, Pause quick start..."
 msgstr "被修改，暂停快速启动..."
