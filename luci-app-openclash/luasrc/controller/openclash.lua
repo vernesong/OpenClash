@@ -1157,7 +1157,7 @@ function action_refresh_log()
 			end
     		if ex_match then break end
 
-			core_keys = {" DBG ", " INF ", "level=", " WRN ", " ERR "}
+			core_keys = {" DBG ", " INF ", "level=", " WRN ", " ERR ", " FTL "}
 			for key=1, #core_keys do
 				if string.find(string.sub(line, 0, 13), core_keys[key]) or (string.find(line, core_keys[key]) and core_keys[key] == "level=") then
 					core_match = true
