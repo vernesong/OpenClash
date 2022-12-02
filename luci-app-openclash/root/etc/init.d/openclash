@@ -577,7 +577,7 @@ do_run_file()
       fi
    }
    
-   [ ! -f "$geosite_path" ] && {
+   [ ! -f "$geosite_path" ] && [ "$enable_meta_core" = "1" ] && {
       LOG_OUT "Tip: Detected that the GEOSITE Database is not Installed, Ready to Download..."
       /usr/share/openclash/openclash_geosite.sh
       if [ ! -f "$geosite_path" ]; then

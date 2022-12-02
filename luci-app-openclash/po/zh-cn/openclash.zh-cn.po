@@ -2725,7 +2725,7 @@ msgstr "，但不匹配先前解锁区域："
 msgid "the type of group is not select, auto select could not work!"
 msgstr "当前策略组类型非 Select，无法进行自动选择！"
 
-msgid "，but not match the regex! the type of group is not select, auto select could not work!"
+msgid ", but not match the regex! the type of group is not select, auto select could not work!"
 msgstr "完整解锁但区域与设置不匹配！当前策略组类型非 Select，无法进行自动选择！"
 
 msgid "but not match the old region! the type of group is not select, auto select could not work!"
@@ -3216,3 +3216,6 @@ msgstr "提示：检测到 Dnsmasq 正常工作，还原防火墙 DNS 劫持规�
 
 msgid "Tip: Bypass the China IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
 msgstr "提示：在 FAKE-IP 模式下绕过中国 IP 可能会导致 Dnsmasq 加载时间过长，暂时劫持 DNS 至内核直到 Dnsmasq 正常工作..."
+
+msgid "Seconds..."
+msgstr "秒后开始启动..."
