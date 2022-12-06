@@ -559,7 +559,7 @@ function table_rand(t, d)
 end
 
 function table_sort_by_urltest(t, d)
-	local info, get_delay, group_delay
+	local info, get_delay, group_delay, delay_url
 	local tab = {}
 	local result = {}
 
@@ -591,7 +591,10 @@ function table_sort_by_urltest(t, d)
 		end
 		if not get_delay then
 			if table_include(groups, t[n]) or t[n] == "DIRECT" then
-				group_delay = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET "http://%s:%s/proxies/%s/delay?timeout=5000&url=http%%3A%%2F%%2F%s"', passwd, ip, port, urlencode(t[n]), "www.gstatic.com%2Fgenerate_204"))
+				if UCI:get("openclash", "config", "urltest_address_mod") and UCI:get("openclash", "config", "urltest_address_mod") ~= "0" then
+					delay_url = UCI:get("openclash", "config", "urltest_address")
+				end
+				group_delay = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET "http://%s:%s/proxies/%s/delay?timeout=5000&url=%s"', passwd, ip, port, urlencode(t[n]), urlencode(delay_url)))
 				if group_delay then
 					group_delay = JSON.parse(group_delay)
 				end
