@@ -49,6 +49,11 @@ for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
   end
 end
 
+o = s:option(Flag, "manual", translate("Custom Tag"))
+o.rmempty = false
+o.default = "0"
+o.description = translate("Mark as Custom Node to Prevent Retention Nodes from being Deleted When Enabled")
+
 o = s:option(ListValue, "type", translate("Provider Type"))
 o.rmempty = true
 o.description = translate("Choose The Provider Type")
@@ -58,9 +63,6 @@ o:value("file")
 o = s:option(Value, "name", translate("Provider Name"))
 o.rmempty = false
 o.default = "Proxy-provider - "..sid
-if not m.uci:get("openclash", sid, "name") then
-	m.uci:set("openclash", sid, "manual", 1)
-end
 
 o = s:option(ListValue, "path", translate("Provider Path"))
 o.description = translate("Update Your Proxy Provider File From Config Luci Page")

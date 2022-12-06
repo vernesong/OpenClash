@@ -11,6 +11,11 @@ bold_off = [[</strong>]]
 
 m = Map(openclash,  translate("Servers manage and Config create"))
 m.pageaction = false
+m.description=translate("Attention:")..
+"<br/>"..translate("1. Before modifying the configuration file, please click the button below to read the configuration file")..
+"<br/>"..translate("2. Proxy-providers address can be directly filled in the subscription link")..
+"<br/>"..
+"<br/>"..translate("Introduction to proxy usage: https://lancellc.gitbook.io/clash/clash-config-file/proxies")
 
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
@@ -105,6 +110,13 @@ o.cfgvalue    = function(...)
     return Flag.cfgvalue(...) or "1"
 end
 
+o = s:option(Flag, "manual", translate("Custom Tag"))
+o.rmempty = false
+o.default = "0"
+o.cfgvalue    = function(...)
+    return Flag.cfgvalue(...) or "0"
+end
+
 o = s:option(DummyValue, "config", translate("Config File"))
 function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("all")
@@ -141,6 +153,13 @@ o.rmempty     = false
 o.default     = o.enabled
 o.cfgvalue    = function(...)
     return Flag.cfgvalue(...) or "1"
+end
+
+o = s:option(Flag, "manual", translate("Custom Tag"))
+o.rmempty = false
+o.default = "0"
+o.cfgvalue    = function(...)
+    return Flag.cfgvalue(...) or "0"
 end
 
 o = s:option(DummyValue, "config", translate("Config File"))

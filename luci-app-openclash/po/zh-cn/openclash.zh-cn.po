@@ -2128,14 +2128,17 @@ msgstr "2、点击《管理第三方游戏规则》或者《管理第三方规�
 msgid "3. On this page, set the corresponding configuration file and policy group of the rule you have downloaded, and save the settings"
 msgstr "3、在此页面设置您已下载的规则的对应配置文件、策略组并保存设置"
 
-msgid "4. Install the TUN core"
-msgstr "4、安装 TUN 内核"
+msgid "4. Install the TUN or Meta core"
+msgstr "4、安装 TUN 或者 Meta 内核"
 
 msgid "When setting this page, if the groups is empty, please go to the <server and group management> page to add"
 msgstr "本页设置时如策略组为空，请先到《服务器与策略组管理》页面进行添加"
 
 msgid "Introduction to rule set usage: https://lancellc.gitbook.io/clash/clash-config-file/rule-provider"
 msgstr "规则集使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/rule-provider"
+
+msgid "Introduction to proxy usage: https://lancellc.gitbook.io/clash/clash-config-file/proxies"
+msgstr "代理使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/rule-provider"
 
 msgid "Subconverter external configuration (subscription conversion template) Description: https://github.com/tindy2013/subconverter#external-configuration-file"
 msgstr "subconverter 外部配置(订阅转换模板)说明：https://github.com/tindy2013/subconverter#external-configuration-file"
@@ -3219,3 +3222,15 @@ msgstr "提示：在 FAKE-IP 模式下绕过中国 IP 可能会导致 Dnsmasq �
 
 msgid "Seconds..."
 msgstr "秒后开始启动..."
+
+msgid "1. Before modifying the configuration file, please click the button below to read the configuration file"
+msgstr "1. 修改配置文件前，请先点击下方按钮读取配置文件"
+
+msgid "2. Proxy-providers address can be directly filled in the subscription link"
+msgstr "2. 代理集地址可以直接填写订阅链接"
+
+msgid "Custom Tag"
+msgstr "自定义标记"
+
+msgid "Mark as Custom Node to Prevent Retention Nodes from being Deleted When Enabled"
+msgstr "标记为自定义节点，防止保留节点启用时被删除"
