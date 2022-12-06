@@ -254,8 +254,8 @@ o.default = 1
 o:depends("enable_meta_core", 0)
 end
 
-o = s:taboption("dns", Flag, "append_wan_dns", font_red..bold_on..translate("Append Upstream DNS")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Append The Upstream Assigned DNS And Gateway IP To The Nameserver")..bold_off..font_off
+o = s:taboption("dns", Flag, "append_wan_dns", translate("Append Upstream DNS"))
+o.description = translate("Append The Upstream Assigned DNS And Gateway IP To The Nameserver")
 o.default = 1
 
 o = s:taboption("dns", Flag, "append_default_dns", translate("Append Default DNS"))
