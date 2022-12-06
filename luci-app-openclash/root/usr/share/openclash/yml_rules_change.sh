@@ -8,6 +8,7 @@ LOG_FILE="/tmp/openclash.log"
 RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
 GAME_RULE_FILE="/tmp/yaml_game_rule.yaml"
 github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
+urltest_address_mod=$(uci -q get openclash.config.urltest_address_mod || echo 0)
 CONFIG_NAME="$5"
 
 #处理自定义规则集
@@ -809,6 +810,32 @@ yml_other_set()
    }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Edit Provider Path Failed,【' + e.message + '】';
+   end;
+
+   #修改测速地址
+   begin
+   Thread.new{
+      if '$urltest_address_mod' != '0' then
+         if Value.key?('proxy-providers') then
+            Value['proxy-providers'].values.each{
+            |x|
+            if x['health-check'] and x['health-check']['url'] and x['health-check']['url'] != '$urltest_address_mod' then
+               x['health-check']['url']='$urltest_address_mod';
+            end;
+            };
+         end;
+         if Value.key?('proxy-groups') then
+            Value['proxy-groups'].each{
+            |x|
+            if x['url'] and x['url'] != '$urltest_address_mod' then
+               x['url']='$urltest_address_mod';
+            end;
+            };
+         end;
+      end;
+   }.join;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Edit Speedtest URL Failed,【' + e.message + '】';
    ensure
       File.open('$3','w') {|f| YAML.dump(Value, f)};
    end" 2>/dev/null >> $LOG_FILE
