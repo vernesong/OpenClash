@@ -12,18 +12,6 @@ del_lock() {
    rm -rf "/tmp/lock/openclash_proxies_get.lock"
 }
 
-sub_info_get()
-{
-   local section="$1" name
-   config_get "name" "$section" "name" ""
-   
-   if [ -z "$name" ] || [ "$name" != "${CONFIG_NAME%%.*}" ]; then
-      return
-   else
-      sub_cfg=true
-   fi
-}
-
 ruby_read_hash()
 {
    RUBY_YAML_PARSE="Thread.new{Value = $1; puts Value$2}.join"
@@ -67,10 +55,6 @@ if [ ! -s "$CONFIG_FILE" ] && [ ! -s "$BACKUP_FILE" ]; then
 elif [ ! -s "$CONFIG_FILE" ] && [ -s "$BACKUP_FILE" ]; then
    mv "$BACKUP_FILE" "$CONFIG_FILE"
 fi
-
-#判断订阅配置
-config_load "openclash"
-config_foreach sub_info_get "config_subscribe"
 
 #提取节点部分
 proxy_hash=$(ruby_read "$CONFIG_FILE" ".select {|x| 'proxies' == x or 'proxy-providers' == x}")
@@ -223,11 +207,7 @@ do
       else
          ${uci_set}enabled="1"
       fi
-      if [ "$servers_if_update" = "1" ] || "$sub_cfg"; then
-         ${uci_set}manual="0"
-      else
-         ${uci_set}manual="1"
-      fi
+      ${uci_set}manual="0"
       ${uci_set}config="$CONFIG_NAME"
       ${uci_set}name="$provider_name"
       ${uci_set}type="$provider_type"
@@ -342,17 +322,17 @@ done 2>/dev/null
 
 #删除订阅中已不存在的代理集
 if [ "$servers_if_update" = "1" ]; then
-     LOG_OUT "Deleting【$CONFIG_NAME】Proxy-providers That no Longer Exists in Subscription"
-     sed -i '/#match#/d' "$match_provider" 2>/dev/null
-     cat $match_provider 2>/dev/null|awk -F '.' '{print $1}' |sort -rn |while read line
-     do
-        if [ -z "$line" ]; then
-           continue
-        fi
-        if [ "$(uci get openclash.@proxy-provider["$line"].manual)" = "0" ] && [ "$(uci get openclash.@proxy-provider["$line"].config)" = "$CONFIG_NAME" ]; then
-           uci delete openclash.@proxy-provider["$line"] 2>/dev/null
-        fi
-     done
+   LOG_OUT "Deleting【$CONFIG_NAME】Proxy-providers That no Longer Exists in Subscription"
+   sed -i '/#match#/d' "$match_provider" 2>/dev/null
+   cat $match_provider 2>/dev/null|awk -F '.' '{print $1}' |sort -rn |while read line
+   do
+   if [ -z "$line" ]; then
+         continue
+      fi
+      if [ "$(uci get openclash.@proxy-provider["$line"].manual)" = "0" ] && [ "$(uci get openclash.@proxy-provider["$line"].config)" = "$CONFIG_NAME" ]; then
+         uci delete openclash.@proxy-provider["$line"] 2>/dev/null
+      fi
+   done
 fi
 
 
@@ -425,11 +405,7 @@ do
       else
          ${uci_set}enabled="1"
       fi
-      if [ "$servers_if_update" = "1" ] || "$sub_cfg"; then
-         ${uci_set}manual="0"
-      else
-         ${uci_set}manual="1"
-      fi
+      ${uci_set}manual="0"
       ${uci_set}config="$CONFIG_NAME"
       ${uci_set}name="$server_name"
       ${uci_set}type="$server_type"

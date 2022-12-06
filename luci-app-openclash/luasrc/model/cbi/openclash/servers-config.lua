@@ -122,6 +122,11 @@ for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
   end
 end
 
+o = s:option(Flag, "manual", translate("Custom Tag"))
+o.rmempty = false
+o.default = "0"
+o.description = translate("Mark as Custom Node to Prevent Retention Nodes from being Deleted When Enabled")
+
 o = s:option(ListValue, "type", translate("Server Node Type"))
 o:value("ss", translate("Shadowsocks"))
 o:value("ssr", translate("ShadowsocksR"))
@@ -140,9 +145,6 @@ o.description = translate("Using incorrect encryption mothod may causes service 
 o = s:option(Value, "name", translate("Server Alias"))
 o.rmempty = false
 o.default = "Server - "..sid
-if not m.uci:get("openclash", sid, "name") then
-	m.uci:set("openclash", sid, "manual", 1)
-end
 
 o = s:option(Value, "server", translate("Server Address"))
 o.datatype = "host"
