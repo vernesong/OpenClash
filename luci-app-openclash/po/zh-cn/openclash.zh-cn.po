@@ -3232,8 +3232,8 @@ msgstr "2. 代理集地址可以直接填写订阅链接"
 msgid "Custom Tag"
 msgstr "自定义标记"
 
-msgid "Mark as Custom Node to Prevent Retention Nodes from being Deleted When Enabled"
-msgstr "标记为自定义节点，防止保留节点启用时被删除"
+msgid "Mark as Custom Node to Prevent Retention config from being Deleted When Enabled"
+msgstr "标记为自定义节点，防止保留配置启用时被删除"
 
 msgid "Error: Edit Speedtest URL Failed,"
 msgstr "错误：修改测速地址失败，"
