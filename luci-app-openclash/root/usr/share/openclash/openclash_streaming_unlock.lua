@@ -592,7 +592,9 @@ function table_sort_by_urltest(t, d)
 		if not get_delay then
 			if table_include(groups, t[n]) or t[n] == "DIRECT" then
 				if UCI:get("openclash", "config", "urltest_address_mod") and UCI:get("openclash", "config", "urltest_address_mod") ~= "0" then
-					delay_url = UCI:get("openclash", "config", "urltest_address")
+					delay_url = UCI:get("openclash", "config", "urltest_address_mod")
+				else
+					delay_url = "http://www.gstatic.com/generate_204"
 				end
 				group_delay = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET "http://%s:%s/proxies/%s/delay?timeout=5000&url=%s"', passwd, ip, port, urlencode(t[n]), urlencode(delay_url)))
 				if group_delay then
