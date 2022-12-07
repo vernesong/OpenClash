@@ -125,7 +125,7 @@ end
 o = s:option(Flag, "manual", translate("Custom Tag"))
 o.rmempty = false
 o.default = "0"
-o.description = translate("Mark as Custom Node to Prevent Retention Nodes from being Deleted When Enabled")
+o.description = translate("Mark as Custom Node to Prevent Retention config from being Deleted When Enabled")
 
 o = s:option(ListValue, "type", translate("Server Node Type"))
 o:value("ss", translate("Shadowsocks"))
