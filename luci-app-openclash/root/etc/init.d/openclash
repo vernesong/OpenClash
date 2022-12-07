@@ -2624,7 +2624,6 @@ stop()
       del_lock
       LOG_OUT "OpenClash Already Stop!"
       sleep 3
-      rm -rf $LOG_FILE
    fi
    
    del_cron
