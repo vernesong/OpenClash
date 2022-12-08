@@ -734,7 +734,7 @@ start_run_core()
    fi
    config_reload=$(uci -q get openclash.config.config_reload)
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$core_type" != "Meta" ] && [ "$config_reload" != "0" ]; then
-      curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
+      curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs?force=true -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
    else
       kill_clash
       if [ -z "$_koolshare" ]; then
@@ -2653,6 +2653,8 @@ reload()
       revert_firewall 2>/dev/null
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
+      start_run_core
+      check_core_status
       set_firewall 2>/dev/null
       /etc/init.d/dnsmasq restart >/dev/null 2>&1
       SLOG_CLEAN
