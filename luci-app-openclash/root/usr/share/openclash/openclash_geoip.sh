@@ -39,13 +39,13 @@
       else
          curl -SsL --connect-timeout 10 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geoip.dat" -o /tmp/GeoIP.dat 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/GeoIP.dat" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
       fi
-      if [ "$?" -ne "0" ]; then
+      if [ "${PIPESTATUS[0]}" -ne "0" ]; then
          curl -SsL --connect-timeout 10 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/v/v2/v2raya/dists/v2ray-rules-dat/geoip.dat" -o /tmp/GeoIP.dat 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/GeoIP.dat" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
       fi
    else
       curl -SsL --connect-timeout 10 -m 30 --speed-time 15 --speed-limit 1 --retry 2 "$GEOIP_CUSTOM_URL" -o /tmp/GeoIP.dat 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/GeoIP.dat" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
    fi
-   if [ "${PIPESTATUS[0]}" -eq 0 ] && [ -s "/tmp/GeoIP.dat" ]; then
+   if [ "${PIPESTATUS[0]}" -eq "0" ] && [ -s "/tmp/GeoIP.dat" ]; then
       LOG_OUT "GeoIP Dat Download Success, Check Updated..."
       cmp -s /tmp/GeoIP.dat "$geoip_path"
       if [ "$?" -ne "0" ]; then
