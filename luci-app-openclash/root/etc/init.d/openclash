@@ -701,7 +701,7 @@ do_run_file()
        
    if [ -z "$_koolshare" ]; then
       if ! capsh --is-uid=0 >/dev/null || ! capsh --has-ambient >/dev/null; then
-        LOG_OUT "Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well"
+        LOG_OUT "Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well..."
         LOG_OUT "Tip: You Could Download And Re-Install The libcap & libcap-bin Library From The Address Give"
         echo "" >> $LOG_FILE
         echo "---------- https://mirrors.cloud.tencent.com/lede/snapshots/packages/ ----------" >> $LOG_FILE
