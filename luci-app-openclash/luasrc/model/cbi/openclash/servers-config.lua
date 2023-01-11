@@ -362,7 +362,7 @@ o:depends("type", "wireguard")
 
 o = s:option(ListValue, "xudp", translate("XUDP Enable")..translate("(Only Meta Core)"))
 o.rmempty = true
-o.default = "false"
+o.default = "true"
 o:value("true")
 o:value("false")
 o:depends({type = "vmess", udp = "true"})
@@ -392,6 +392,7 @@ o:value("none")
 o:value("tls")
 o:value("http")
 o:value("websocket", translate("websocket (ws)"))
+o:value("shadow-tls", translate("shadow-tls")..translate("(Only Meta Core)"))
 o:depends("type", "ss")
 
 o = s:option(ListValue, "obfs_snell", translate("obfs-mode"))
@@ -435,8 +436,13 @@ o.rmempty = true
 o:depends("obfs", "tls")
 o:depends("obfs", "http")
 o:depends("obfs", "websocket")
+o:depends("obfs", "shadow-tls")
 o:depends("obfs_snell", "tls")
 o:depends("obfs_snell", "http")
+
+o = s:option(Value, "obfs_password", translate("obfs-password"))
+o.rmempty = true
+o:depends("obfs", "shadow-tls")
 
 -- vmess路径
 o = s:option(Value, "path", translate("path"))

@@ -277,6 +277,7 @@ yml_servers_set()
    config_get "ports" "$section" "ports" ""
    config_get "hop_interval" "$section" "hop_interval" ""
    config_get "max_open_streams" "$section" "max_open_streams" ""
+   config_get "obfs_password" "$section" "obfs_password" ""
    
    if [ "$enabled" = "0" ]; then
       return
@@ -336,6 +337,8 @@ yml_servers_set()
    if [ "$obfs" != "none" ] && [ -n "$obfs" ]; then
       if [ "$obfs" = "websocket" ]; then
          obfss="plugin: v2ray-plugin"
+      elif [ "$obfs" = "shadow-tls" ]; then
+        obfss="plugin: shadow-tls"
       else
          obfss="plugin: obfs"
       fi
@@ -398,12 +401,23 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
     $obfss
     plugin-opts:
+EOF
+    if [ "$obfs" != "shadow-tls" ]; then
+cat >> "$SERVER_FILE" <<-EOF
       mode: $obfs
 EOF
+    fi
         if [ ! -z "$host" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       host: "$host"
 EOF
+        fi
+        if [  "$obfss" = "plugin: shadow-tls" ]; then
+           if [ ! -z "$obfs_password" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+      password: $obfs_password
+EOF
+           fi
         fi
         if [  "$obfss" = "plugin: v2ray-plugin" ]; then
            if [ ! -z "$tls" ]; then
