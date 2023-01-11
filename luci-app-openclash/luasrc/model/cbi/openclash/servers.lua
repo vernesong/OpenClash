@@ -280,7 +280,6 @@ o.write = function()
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end
 
-m:append(Template("openclash/server_list"))
 m:append(Template("openclash/toolbar_show"))
 
 return m
