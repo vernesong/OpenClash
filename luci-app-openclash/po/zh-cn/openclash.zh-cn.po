@@ -3243,3 +3243,9 @@ msgstr "测速（连通性）地址修改"
 
 msgid "Modify The Url-Test Address In The Config"
 msgstr "修改配置文件中的测速（连通性）地址"
+
+msgid "Whether to Enable Process Rules, If You Are Not Sure, Please Choose off Which Useful in Router Environment"
+msgstr "是否启用进程规则，在路由环境下保持关闭可以提升性能"
+
+msgid "Enable Process Rule"
+msgstr "启用进程规则"
