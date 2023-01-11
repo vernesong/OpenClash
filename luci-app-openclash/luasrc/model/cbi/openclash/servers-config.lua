@@ -718,7 +718,6 @@ o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
    m.uci:commit(openclash)
-   sys.call("/usr/share/openclash/cfg_servers_address_fake_filter.sh &")
    luci.http.redirect(m.redirect)
 end
 

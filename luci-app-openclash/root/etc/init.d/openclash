@@ -184,7 +184,6 @@ EOF
    
    uci -q commit dhcp
    uci -q commit openclash
-   rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
    rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
 }
 
@@ -2609,7 +2608,6 @@ stop()
       rm -rf /tmp/Proxy_Group >/dev/null 2>&1
       rm -rf /tmp/rules_name >/dev/null 2>&1
       rm -rf /tmp/rule_providers_name >/dev/null 2>&1
-      rm -rf /tmp/dnsmasq.d/dnsmasq_openclash.conf >/dev/null 2>&1
       rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
       rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
       rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
