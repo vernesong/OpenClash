@@ -376,6 +376,7 @@ Thread.new{
       Value['geodata-mode']=$enable_geoip_dat;
       Value['geodata-loader']='${23}';
       Value['tcp-concurrent']=$enable_tcp_concurrent;
+      Value['find-process-mode']='${30}';
    else
       if Value.key?('geodata-mode') then
          Value.delete('geodata-mode');
@@ -385,6 +386,9 @@ Thread.new{
       end;
       if Value.key?('tcp-concurrent') then
          Value.delete('tcp-concurrent');
+      end
+      if Value.key?('find-process-mode') then
+         Value.delete('find-process-mode');
       end
    end;
    if not Value.key?('dns') then
