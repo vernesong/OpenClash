@@ -108,6 +108,8 @@ endef
 
 define Package/$(PKG_NAME)/postrm
 #!/bin/sh
+	dnsmasqconfdir="$(uci -q get dhcp.@dnsmasq[0].confdir || echo '/tmp/dnsmasq.d')"
+	dnsmasqconfdir="${dnsmasqconfdir%*/}"
 	rm -rf /etc/openclash >/dev/null 2>&1
 	rm -rf /tmp/openclash.log >/dev/null 2>&1
 	rm -rf /tmp/openclash_start.log >/dev/null 2>&1
@@ -119,10 +121,10 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /tmp/rule_providers_name >/dev/null 2>&1
 	rm -rf /tmp/clash_last_version >/dev/null 2>&1
 	rm -rf /usr/share/openclash/backup >/dev/null 2>&1
-	rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
-	rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
-	rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
-	rm -rf /tmp/dnsmasq.d/dnsmasq_accelerated-domains.china.conf >/dev/null 2>&1
+	rm -rf ${dnsmasqconfdir}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
+	rm -rf ${dnsmasqconfdir}/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
+	rm -rf ${dnsmasqconfdir}/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
+	rm -rf ${dnsmasqconfdir}/dnsmasq_accelerated-domains.china.conf >/dev/null 2>&1
 	rm -rf /tmp/dler* >/dev/null 2>&1
 	rm -rf /tmp/etc/openclash >/dev/null 2>&1
 	rm -rf /tmp/openclash_edit_file_name >/dev/null 2>&1
