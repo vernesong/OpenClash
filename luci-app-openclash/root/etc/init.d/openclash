@@ -2529,7 +2529,7 @@ revert_firewall()
          nft delete set inet fw4 handle ${handle}
       done >/dev/null 2>&1
    else
-      for ipt in "iptables -nvL INPUT" "iptables -nvL FORWARD" "iptables -nvL POSTROUTING -t nat" "iptables -nvL OUTPUT -t nat" "iptables -nvL OUTPUT -t mangle" "iptables -nvL PREROUTING -t nat" "iptables -nvL PREROUTING -t mangle" "ip6tables -nvL PREROUTING -t mangle" "ip6tables -nvL OUTPUT -t mangle" "ip6tables -nvL PREROUTING -t nat" "ip6tables -nvL INPUT" "ip6tables -nvL POSTROUTING -t nat"; do
+      for ipt in "iptables -nvL INPUT" "iptables -nvL FORWARD" "iptables -nvL POSTROUTING -t nat" "iptables -nvL OUTPUT -t nat" "iptables -nvL OUTPUT -t mangle" "iptables -nvL PREROUTING -t nat" "iptables -nvL PREROUTING -t mangle" "ip6tables -nvL PREROUTING -t mangle" "ip6tables -nvL OUTPUT -t mangle" "ip6tables -nvL PREROUTING -t nat" "ip6tables -nvL INPUT" "ip6tables -nvL POSTROUTING -t nat" "ip6tables -nvL FORWARD" "ip6tables -nvL OUTPUT -t nat"; do
          for comment in "openclash" "OpenClash"; do
             local lines=$($ipt |sed 1,2d |sed -n "/${comment}/=" 2>/dev/null |sort -rn)
             if [ -n "$lines" ]; then
