@@ -14,7 +14,7 @@ del_lock() {
 set_lock
 
 rm -rf /tmp/dnsmasq.d/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
-if [ "$(uci get openclash.config.dns_advanced_setting 2>/dev/null)" -eq 1 ]; then
+if [ "$(uci get openclash.config.dns_advanced_setting 2>/dev/null)" = "1" ] && [ "$(uci get openclash.config.enable_redirect_dns 2>/dev/null)" = "1" ]; then
    LOG_OUT "Setting Secondary DNS Server List..."
 
    custom_domain_dns_server=$(uci get openclash.config.custom_domain_dns_server 2>/dev/null)
