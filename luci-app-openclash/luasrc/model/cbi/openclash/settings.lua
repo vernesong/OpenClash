@@ -126,6 +126,7 @@ else
 	o = s:taboption("op_mode", Flag, "china_ip_route", translate("China IP Route"))
 	o.description = translate("Bypass The China Network Flows, Improve Performance, Depend on Dnsmasq")
 	o.default = 0
+	o:depends("enable_redirect_dns", "1")
 
 	o = s:taboption("op_mode", Value, "custom_china_domain_dns_server", translate("Specify CN DNS Server"))
 	o.description = translate("Specify DNS Server For CN Domain Lists, Only One IP Server Address Support")
@@ -248,9 +249,12 @@ o.rmempty = false
 o.description = translate("Please Make Sure Ports Available")
 
 ---- DNS Settings
-o = s:taboption("dns", Flag, "enable_redirect_dns", font_red..bold_on..translate("Redirect Local DNS Setting")..bold_off..font_off)
+o = s:taboption("dns", ListValue, "enable_redirect_dns", font_red..bold_on..translate("Redirect Local DNS Setting")..bold_off..font_off)
 o.description = translate("Set Local DNS Redirect")
 o.default = 1
+o:value("0", translate("Disable"))
+o:value("1", translate("Dnsmasq Redirect"))
+o:value("2", translate("Firewall Redirect"))
 
 o = s:taboption("dns", Flag, "enable_custom_dns", font_red..bold_on..translate("Custom DNS Setting")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Set OpenClash Upstream DNS Resolve Server")..bold_off..font_off
@@ -287,6 +291,7 @@ o.default = 0
 o = s:taboption("dns", Flag, "disable_masq_cache", translate("Disable Dnsmasq's DNS Cache"))
 o.description = translate("Recommended Enabled For Avoiding Some Connection Errors")..font_red..bold_on..translate("(Maybe Incompatible For Your Firmware)")..bold_off..font_off
 o.default = 0
+o:depends("enable_redirect_dns", "1")
 
 o = s:taboption("dns", Flag, "custom_fallback_filter", translate("Custom Fallback-Filter"))
 o.description = translate("Take Effect If Fallback DNS Setted, Prevent DNS Pollution")
@@ -342,14 +347,14 @@ o = s:taboption("dns", Value, "custom_domain_dns_server", translate("Specify DNS
 o.description = translate("Specify DNS Server For List and Server Nodes With Fake-IP Mode, Only One IP Server Address Support")
 o.default = "114.114.114.114"
 o.placeholder = translate("114.114.114.114 or 127.0.0.1#5300")
-o:depends("dns_advanced_setting", "1")
+o:depends({dns_advanced_setting = "1", enable_redirect_dns = "1"})
 
 custom_domain_dns = s:taboption("dns", Value, "custom_domain_dns")
 custom_domain_dns.template = "cbi/tvalue"
 custom_domain_dns.description = translate("Domain Names In The List Use The Custom DNS Server, One rule per line, Depend on Dnsmasq")
 custom_domain_dns.rows = 20
 custom_domain_dns.wrap = "off"
-custom_domain_dns:depends("dns_advanced_setting", "1")
+custom_domain_dns:depends({dns_advanced_setting = "1", enable_redirect_dns = "1"})
 
 function custom_domain_dns.cfgvalue(self, section)
 	return NXFS.readfile("/etc/openclash/custom/openclash_custom_domain_dns.list") or ""
@@ -579,15 +584,21 @@ end
 o:depends("geosite_auto_update", "1")
 
 ---- Access Control
-if op_mode == "redir-host" then
 o = s:taboption("lan_ac", ListValue, "lan_ac_mode", translate("LAN Access Control Mode"))
 o:value("0", translate("Black List Mode"))
 o:value("1", translate("White List Mode"))
 o.default = "0"
+o:depends("enable_redirect_dns", "2")
+o:depends({en_mode = "redir-host", enable_redirect_dns = "1"})
+o:depends({en_mode = "redir-host-tun", enable_redirect_dns = "1"})
+o:depends({en_mode = "redir-host-mix", enable_redirect_dns = "1"})
 
 ip_b = s:taboption("lan_ac", DynamicList, "lan_ac_black_ips", translate("LAN Bypassed Host List"))
-ip_b:depends("lan_ac_mode", "0")
 ip_b.datatype = "ipaddr"
+ip_b:depends({lan_ac_mode = "0", enable_redirect_dns = "2"})
+ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host", enable_redirect_dns = "1"})
+ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host-tun", enable_redirect_dns = "1"})
+ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host-mix", enable_redirect_dns = "1"})
 
 mac_b = s:taboption("lan_ac", DynamicList, "lan_ac_black_macs", translate("LAN Bypassed Mac List"))
 mac_b.datatype = "list(macaddr)"
@@ -595,8 +606,11 @@ mac_b.rmempty  = true
 mac_b:depends("lan_ac_mode", "0")
 
 ip_w = s:taboption("lan_ac", DynamicList, "lan_ac_white_ips", translate("LAN Proxied Host List"))
-ip_w:depends("lan_ac_mode", "1")
 ip_w.datatype = "ipaddr"
+ip_w:depends({lan_ac_mode = "1", enable_redirect_dns = "2"})
+ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host", enable_redirect_dns = "1"})
+ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host-tun", enable_redirect_dns = "1"})
+ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host-mix", enable_redirect_dns = "1"})
 
 mac_w = s:taboption("lan_ac", DynamicList, "lan_ac_white_macs", translate("LAN Proxied Mac List"))
 mac_w.datatype = "list(macaddr)"
@@ -621,7 +635,6 @@ luci.ip.neighbors({ family = 6 }, function(n)
 		mac_w:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
 	end
 end)
-end
 end
 
 o = s:taboption("lan_ac", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
@@ -676,6 +689,7 @@ o.template = "cbi/tvalue"
 o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq")
 o.rows = 20
 o.wrap = "off"
+o:depends("enable_redirect_dns", "1")
 
 function o.cfgvalue(self, section)
 	return NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute_pass.list") or ""
@@ -695,6 +709,7 @@ o.template = "cbi/tvalue"
 o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq")
 o.rows = 20
 o.wrap = "off"
+o:depends("enable_redirect_dns", "1")
 
 function o.cfgvalue(self, section)
 	return NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list") or ""

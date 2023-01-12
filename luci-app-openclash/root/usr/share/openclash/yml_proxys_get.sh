@@ -1142,6 +1142,30 @@ do
          end
       end
       }.join
+
+      Thread.new{
+      #xudp
+      if Value['proxies'][$count].key?('xudp') then
+         xudp = '${uci_set}xudp=' + Value['proxies'][$count]['xudp'].to_s
+         system(xudp)
+      end
+      }.join;
+
+      Thread.new{
+      #packet-addr
+      if Value['proxies'][$count].key?('packet-addr') then
+         packet_addr = '${uci_set}packet_addr=' + Value['proxies'][$count]['packet-addr'].to_s
+         system(packet_addr)
+      end
+      }.join;
+
+      Thread.new{
+      #packet_encoding
+      if Value['proxies'][$count].key?('packet-encoding') then
+         packet_encoding = '${uci_set}packet_encoding=' + Value['proxies'][$count]['packet-encoding'].to_s
+         system(packet_encoding)
+      end
+      }.join;
    end;
 
    if '$server_type' == 'snell' then
