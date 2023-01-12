@@ -278,6 +278,7 @@ yml_servers_set()
    config_get "hop_interval" "$section" "hop_interval" ""
    config_get "max_open_streams" "$section" "max_open_streams" ""
    config_get "obfs_password" "$section" "obfs_password" ""
+   config_get "packet_addr" "$section" "packet_addr" ""
    
    if [ "$enabled" = "0" ]; then
       return
@@ -852,6 +853,21 @@ EOF
       if [ ! -z "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     udp: $udp
+EOF
+      fi
+      if [ ! -z "$xudp" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    xudp: $xudp
+EOF
+      fi
+      if [ ! -z "$packet_addr" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    packet-addr: $packet_addr
+EOF
+      fi
+      if [ ! -z "$packet_encoding" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    packet-encoding: "$packet_encoding"
 EOF
       fi
       if [ ! -z "$skip_cert_verify" ]; then

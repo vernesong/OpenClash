@@ -204,7 +204,13 @@ msgid "Redirect Local DNS Setting"
 msgstr "*本地 DNS 劫持"
 
 msgid "Set Local DNS Redirect"
-msgstr "默认启用，将自动设置 Dnsmasq 的上游服务器，如和其他插件冲突可停用，但须将 OpenClash 作为冲突插件的唯一上游服务器"
+msgstr "推荐使用 Dnsmasq 转发，兼容性更好，如和其他 DNS 插件冲突可停用，但须保证客户端的查询结果最终由 Clash 给出"
+
+msgid "Dnsmasq Redirect"
+msgstr "使用 Dnsmasq 转发"
+
+msgid "Firewall Redirect"
+msgstr "使用防火墙转发"
 
 msgid "Disable Dnsmasq's DNS Cache"
 msgstr "禁止 Dnsmasq 缓存 DNS"
