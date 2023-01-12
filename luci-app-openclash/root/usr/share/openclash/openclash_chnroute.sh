@@ -2,7 +2,7 @@
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 
-   FW4="$(command -v fw4)"
+   FW4=$(command -v fw4)
 
    set_lock() {
       exec 879>"/tmp/lock/openclash_chn.lock" 2>/dev/null

@@ -26,10 +26,10 @@ CRASH_NUM=0
 CFG_UPDATE_INT=1
 STREAM_DOMAINS_PREFETCH=1
 STREAM_AUTO_SELECT=1
-FW4="$(command -v fw4)"
+FW4=$(command -v fw4)
 
 check_dnsmasq() {
-   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ] && [ "$disable_udp_quic" = "1" ] && [ "$enable_redirect_dns" = "1" ]; then
+   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ] && [ "$enable_redirect_dns" = "1" ]; then
       if [ "$(nslookup www.baidu.com 127.0.0.1:12353 >/dev/null 2>&1 || echo $?)" != "1" ]; then
          DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
          if [ -z "$DNSPORT" ]; then
