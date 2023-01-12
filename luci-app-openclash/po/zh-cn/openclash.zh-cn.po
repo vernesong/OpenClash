@@ -204,7 +204,7 @@ msgid "Redirect Local DNS Setting"
 msgstr "*本地 DNS 劫持"
 
 msgid "Set Local DNS Redirect"
-msgstr "推荐使用 Dnsmasq 转发，兼容性更好，如和其他 DNS 插件冲突可停用，但须保证客户端的查询结果最终由 Clash 给出"
+msgstr "推荐使用 Dnsmasq 转发，兼容性更好，如和其他 DNS 插件冲突可停用，但须保证客户端获取的查询结果与 Clash 给出的一致"
 
 msgid "Dnsmasq Redirect"
 msgstr "使用 Dnsmasq 转发"

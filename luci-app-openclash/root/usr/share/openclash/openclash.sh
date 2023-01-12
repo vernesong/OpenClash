@@ -30,7 +30,7 @@ disable_udp_quic=$(uci -q get openclash.config.disable_udp_quic)
 ipv6_enable=$(uci -q get openclash.config.ipv6_enable)
 router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
 DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
-FW4="$(command -v fw4)"
+FW4=$(command -v fw4)
 DNSMASQ_UID=$(cat /etc/passwd | grep "^dnsmasq:" | awk -F":" '{print $3}')
 if [ -z "$DNSMASQ_UID" ]; then
    DNSMASQ_ARGS=""
