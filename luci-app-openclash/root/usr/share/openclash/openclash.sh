@@ -31,16 +31,6 @@ ipv6_enable=$(uci -q get openclash.config.ipv6_enable)
 router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
 DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
 FW4=$(command -v fw4)
-DNSMASQ_UID=$(cat /etc/passwd | grep "^dnsmasq:" | awk -F":" '{print $3}')
-if [ -z "$DNSMASQ_UID" ]; then
-   DNSMASQ_ARGS=""
-else
-   if [ -n "$FW4" ]; then
-      DNSMASQ_ARGS="meta skuid != $DNSMASQ_UID"
-   else
-      DNSMASQ_ARGS="-m owner ! --uid-owner $DNSMASQ_UID"
-   fi
-fi
 
 if [ -z "$DNSPORT" ]; then
    DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
@@ -269,13 +259,13 @@ change_dns()
          done >/dev/null 2>&1
          if [ "$enable_redirect_dns" = "2" ]; then
             if [ "$router_self_proxy" = 1 ]; then
-               nft add rule inet fw4 nat_output position 0 tcp dport 53 meta skuid != 65534 "$DNSMASQ_ARGS" counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
-               nft add rule inet fw4 nat_output position 0 udp dport 53 meta skuid != 65534 "$DNSMASQ_ARGS" counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               nft add rule inet fw4 nat_output position 0 tcp dport 53 ip daddr {127.0.0.1} meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               nft add rule inet fw4 nat_output position 0 udp dport 53 ip daddr {127.0.0.1} meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
             fi
             if [ "$ipv6_enable" -eq 1 ]; then
                if [ "$router_self_proxy" = 1 ]; then
-                  nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} tcp dport 53 meta skuid != 65534 "$DNSMASQ_ARGS" counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
-                  nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} udp dport 53 meta skuid != 65534 "$DNSMASQ_ARGS" counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+                  nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} tcp dport 53 ip daddr {::/0} meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+                  nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} udp dport 53 ip daddr {::/0} meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
                fi
             fi
          fi
@@ -288,13 +278,13 @@ change_dns()
          ip6tables -t mangle -A OUTPUT -j openclash_output >/dev/null 2>&1
          if [ "$enable_redirect_dns" = "2" ]; then
             if [ "$router_self_proxy" = 1 ]; then
-               iptables -t nat -I OUTPUT -p udp --dport 53 -m owner ! --uid-owner 65534 "$DNSMASQ_ARGS" -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
-               iptables -t nat -I OUTPUT -p tcp --dport 53 -m owner ! --uid-owner 65534 "$DNSMASQ_ARGS" -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               iptables -t nat -I OUTPUT -p udp --dport 53 -d 127.0.0.1 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               iptables -t nat -I OUTPUT -p tcp --dport 53 -d 127.0.0.1 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
             fi
             if [ "$ipv6_enable" -eq 1 ]; then
                if [ "$router_self_proxy" = 1 ]; then
-                  ip6tables -t nat -I OUTPUT -p udp --dport 53 -m owner ! --uid-owner 65534 "$DNSMASQ_ARGS" -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
-                  ip6tables -t nat -I OUTPUT -p tcp --dport 53 -m owner ! --uid-owner 65534 "$DNSMASQ_ARGS" -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+                  ip6tables -t nat -I OUTPUT -p udp --dport 53 -d ::/0 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+                  ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
                fi
             fi
          fi
