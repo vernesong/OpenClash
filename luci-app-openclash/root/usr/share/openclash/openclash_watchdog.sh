@@ -111,6 +111,7 @@ if [ "$enable" -eq 1 ]; then
 	clash_pids=$(pidof clash |sed 's/$//g' |wc -l)
 	if [ "$clash_pids" -gt 1 ]; then
          LOG_OUT "Watchdog: Multiple Clash Processes, Kill All..."
+         clash_pids=$(pidof clash |sed 's/$//g')
          for clash_pid in $clash_pids; do
             kill -9 "$clash_pid" 2>/dev/null
          done >/dev/null 2>&1
@@ -139,7 +140,6 @@ if [ "$enable" -eq 1 ]; then
 	      if [ "$core_type" == "TUN" ] || [ "$core_type" == "Meta" ]; then
 	         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
-            ifconfig utun mtu 65535 >/dev/null 2>&1
 	      fi
 	      sleep 60
 	      continue
