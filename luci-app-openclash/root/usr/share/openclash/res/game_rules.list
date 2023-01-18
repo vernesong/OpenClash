@@ -9,6 +9,7 @@ Apex英雄,Apex.rules
 刺客信条：奥德赛,Assassin's-Creed-Odyssey.rules,Assassins-Creed-Odyssey.rules
 刺客信条：起源,Assassin's-Creed-Origins.rules,Assassins-Creed-Origins.rules
 Atlas-全区,Atlas.rules
+太空狼人杀,Among Us.rules
 战地1,Battlefield-1.rules
 战地4,BattleField-4.rules
 战地5,Battlefield-Ⅴ.rules,Battlefield-5.rules
@@ -25,6 +26,7 @@ Atlas-全区,Atlas.rules
 英雄连2,Company-Of-Heroes-2.rules
 反恐精英:全球攻势,CS-GO.rules
 反恐精英:全球攻势-港服(tx),CSGO-HKtx.rules
+反恐精英:全球攻势-港服(uu),CSGO-HKuu.rules
 反恐精英:全球攻势-日服(tx),CSGO-JPtx.rules
 反恐精英:全球攻势-美服(tx),CSGO-UStx.rules
 黑暗之魂3,Dark-Souls-3.rules
@@ -47,6 +49,7 @@ DOTA2-日服,Dota2-jp.rules
 逃离塔科夫,Escape-from-Tarkov.rules
 欧卡2所有分区-UU,Euro-Truck-Simulator-2.rules
 Eve-online欧服,Eve-online.rules
+鹅鸭杀-港服,Goose-Goose-Duck-HK.rules
 FIFA19,FiFa19-INT.rules
 FIFA20,FIFA20.rules
 最终幻想14国服,FINAL-FANTASY-XIV-cn.rules
@@ -55,9 +58,10 @@ FIFA20,FIFA20.rules
 堡垒之夜-亚服,Fortnite-AS.rules
 堡垒之夜-国服,Fortnite-cn.rules
 极限竞速地平线4,Forza-Horizon-4.rules
+极限竞速地平线5,Forza-Horizon-5.rules
 极限竞速7,Forza-Motorsport-7.rules
 基佬大乱斗Gang-Beasts,Gang-Beasts.rules
-GTA5,GTA-5.rules
+Grand Theft Auto V(GTA5),Grand Theft Auto V.rules
 激战2,Guild-Wars-2.rules
 巫师昆特牌国际服,Gwent_The-Witcher-Card-game.rules
 杀手2外服,HITMAN2.rules
@@ -81,6 +85,7 @@ Kurtzpel,Kurtzpel.rules
 万智牌:竞技场-国际服,MTG-Arena.rules
 奇迹传奇MU2,MU2.rules
 我的世界-地下城,Minecraft-Dungeons.rules
+微软模拟飞行年度版,Microsoft-Flight-Simulator-Game-Of-The-Year-Edition.rules
 NBA-2K19,NBA-2K19.rules
 NBA2K20,NBA2K20.rules
 仁王,NIOH.rules
@@ -127,6 +132,7 @@ Steam-社区(Beta),Steam.rules
 幽灵行动：荒野,Tom-Clancy's-Ghost-Recon-Wildlands.rules,Tom-Clancys-Ghost-Recon-Wildlands.rules
 彩虹六号-围攻-全部,Tom-Clancy's-Rainbow-Six-Siege-all.rules,Tom-Clancys-Rainbow-Six-Siege-all.rules
 彩虹六号-围攻-EAS,Tom-Clancy's-Rainbow-Six-Siege-EAS.rules,Tom-Clancys-Rainbow-Six-Siege-EAS.rules
+彩虹六号-异种-全部,Tom-Clancy's-Rainbow-Six-Extraction-all.rules,Tom-Clancys-Rainbow-Six-Extraction-all.rules
 全境封锁,Tom-clancy's-The-Division-2.rules,Tom-clancys-The-Division-2.rules
 全境封锁2,Tom-clancy's-The-Division.rules,Tom-clancys-The-Division.rules
 未转变者Unturned,Unturned.rules
@@ -144,5 +150,6 @@ Steam-社区(Beta),Steam.rules
 战舰世界-美服,World-of-Warships.rules
 僵尸世界大战,Worldwar-Z.rules
 魔兽世界-欧服,WoW-EU.rules
+战舰世界国服UU,World-of-Warships-CN.rules
 游戏王决斗链接,YO-GI-HO delulinks.rules
 游侠对战平台,YouXiaDuiZhanPingTai.rules
