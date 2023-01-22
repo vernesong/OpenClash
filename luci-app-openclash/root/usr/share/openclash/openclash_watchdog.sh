@@ -104,6 +104,7 @@ do
    stream_auto_select_discovery_plus=$(uci -q get openclash.config.stream_auto_select_discovery_plus || echo 0)
    stream_auto_select_bilibili=$(uci -q get openclash.config.stream_auto_select_bilibili || echo 0)
    stream_auto_select_google_not_cn=$(uci -q get openclash.config.stream_auto_select_google_not_cn || echo 0)
+   upnp_lease_file=$(uci -q get upnpd.config.upnp_lease_file)
    
    enable=$(uci -q get openclash.config.enable)
 
@@ -232,6 +233,58 @@ fi
                ipset add localnetwork6 "$wan_ip6" 2>/dev/null
             done
          fi
+      fi
+   fi
+
+## UPNP
+   if [ -f "$upnp_lease_file" ]; then
+      #del
+      if [ -n "$FW4" ]; then
+         for i in `$(nft list chain inet fw4 openclash_upnp |grep "return")`
+         do
+            upnp_ip=$(echo "$i" |awk -F 'ip saddr \\{ ' '{print $2}' |awk  '{print $1}')
+            upnp_dp=$(echo "$i" |awk -F 'udp sport ' '{print $2}' |awk  '{print $1}')
+            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
+               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
+                  handles=$(nft list chain inet fw4 openclash_upnp |grep "$i" |awk -F '# handle ' '{print$2}')
+                  for handle in $handles; do
+                     nft delete rule inet fw4 openclash_upnp handle ${handle}
+                  done
+               fi
+            fi
+         done >/dev/null 2>&1
+      else
+         for i in `$(iptables -t mangle -nL openclash_upnp |grep "RETURN")`
+         do
+            upnp_ip=$(echo "$i" |awk '{print $4}')
+            upnp_dp=$(echo "$i" |awk -F 'udp spt:' '{print $2}')
+            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
+               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
+                  iptables -t mangle -D openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+               fi
+            fi
+         done >/dev/null 2>&1
+      fi
+      #add
+      if [ -s "$upnp_lease_file" ] && [ -n "$(iptables --line-numbers -t nat -xnvL openclash_upnp 2>/dev/null)"] || [ -n "$(nft list chain inet fw4 openclash_upnp 2>/dev/null)"]; then
+         cat "$upnp_lease_file" |while read -r line
+         do
+            if [ -n "$line" ]; then
+               upnp_ip=$(echo "$line" |awk -F ':' '{print $3}')
+               upnp_dp=$(echo "$line" |awk -F ':' '{print $4}')
+               if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
+                  if [ -n "$FW4" ]; then
+                     if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
+                        nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } udp sport "$upnp_dp" counter return 2>/dev/null
+                     fi
+                  else
+                     if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
+                        iptables -t mangle -A openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                     fi
+                  fi
+               fi
+            fi
+         done >/dev/null 2>&1
       fi
    fi
 

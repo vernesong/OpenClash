@@ -902,6 +902,30 @@ ac_add()
    [ -n "$3" ] && ipset add "$3" "$1" 2>/dev/null
 }
 
+upnp_exclude()
+{
+   if [ -s "$upnp_lease_file" ]; then
+      cat "$upnp_lease_file" |while read -r line
+      do
+         if [ -n "$line" ]; then
+            upnp_ip=$(echo "$line" |awk -F ':' '{print $3}')
+            upnp_dp=$(echo "$line" |awk -F ':' '{print $4}')
+            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
+               if [ -n "$FW4" ]; then
+                  if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
+                     nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } udp sport "$upnp_dp" counter return 2>/dev/null
+                  fi
+               else
+                  if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
+                     iptables -t mangle -A openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                  fi
+               fi
+            fi
+         fi
+      done >/dev/null 2>&1
+   fi
+}
+
 firewall_rule_exclude()
 {
    local section="$1"
@@ -1442,6 +1466,9 @@ if [ -n "$FW4" ]; then
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             nft 'add chain inet fw4 openclash_mangle' 2>/dev/null
             nft 'flush chain inet fw4 openclash_mangle' 2>/dev/null
+            nft 'add chain inet fw4 openclash_upnp' 2>/dev/null
+            nft 'flush chain inet fw4 openclash_upnp' 2>/dev/null
+            upnp_exclude
             nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle udp dport 53 counter return' 2>/dev/null
             if [ "$en_mode" = "fake-ip" ]; then
@@ -1460,6 +1487,8 @@ if [ -n "$FW4" ]; then
             if [ "$china_ip_route" = "1" ]; then
                nft 'add rule inet fw4 openclash_mangle ip daddr @china_ip_route ip daddr != @china_ip_route_pass counter return' 2>/dev/null
             fi
+
+            nft 'add rule inet fw4 openclash_mangle ip protocol udp counter jump openclash_upnp' 2>/dev/null
 
             nft add rule inet fw4 openclash_mangle meta l4proto { udp } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
             nft 'add rule inet fw4 mangle_prerouting ip protocol udp counter jump openclash_mangle' 2>/dev/null
@@ -1579,6 +1608,9 @@ if [ -n "$FW4" ]; then
       nft 'flush chain inet fw4 openclash_mangle' 2>/dev/null
       nft 'add chain inet fw4 openclash_dns_hijack' 2>/dev/null
       nft 'flush chain inet fw4 openclash_dns_hijack' 2>/dev/null
+      nft 'add chain inet fw4 openclash_upnp' 2>/dev/null
+      nft 'flush chain inet fw4 openclash_upnp' 2>/dev/null
+      upnp_exclude
 
       #其他流量
       nft 'add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} iifname utun counter return' 2>/dev/null
@@ -1596,6 +1628,7 @@ if [ -n "$FW4" ]; then
       if [ "$china_ip_route" = "1" ]; then
          nft 'add rule inet fw4 openclash_mangle ip daddr @china_ip_route ip daddr != @china_ip_route_pass counter return' 2>/dev/null
       fi
+      nft 'add rule inet fw4 openclash_mangle ip protocol udp counter jump openclash_upnp' 2>/dev/null
       nft add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} th dport { 0-65535 } mark set "$PROXY_FWMARK" 2>/dev/null
       
       if [ "$en_mode_tun" -eq 1 ]; then
@@ -2050,6 +2083,9 @@ else
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             iptables -t mangle -N openclash
             iptables -t mangle -F openclash
+            iptables -t mangle -N openclash_upnp
+            iptables -t mangle -F openclash_upnp
+            upnp_exclude
             iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
             iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
             if [ "$en_mode" = "fake-ip" ]; then
@@ -2067,7 +2103,7 @@ else
             if [ "$china_ip_route" = "1" ]; then
                iptables -t mangle -A openclash -m set --match-set china_ip_route dst -m set ! --match-set china_ip_route_pass dst -j RETURN >/dev/null 2>&1
             fi
-            
+            iptables -t mangle -A openclash -p udp -j openclash_upnp >/dev/null 2>&1
             iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             iptables -t mangle -A PREROUTING -p udp -j openclash
             
@@ -2203,6 +2239,9 @@ else
       iptables -t mangle -F openclash
       iptables -t mangle -N openclash_dns_hijack
       iptables -t mangle -F openclash_dns_hijack
+      iptables -t mangle -N openclash_upnp
+      iptables -t mangle -F openclash_upnp
+      upnp_exclude
       #其他流量
       iptables -t mangle -A openclash -i utun -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN >/dev/null 2>&1
@@ -2219,6 +2258,9 @@ else
       if [ "$china_ip_route" = "1" ]; then
          iptables -t mangle -A openclash -m set --match-set china_ip_route dst -m set ! --match-set china_ip_route_pass dst -j RETURN >/dev/null 2>&1
       fi
+
+      iptables -t mangle -A openclash -p udp -j openclash_upnp >/dev/null 2>&1
+
       iptables -t mangle -A openclash -j MARK --set-mark "$PROXY_FWMARK"
       
       if [ "$en_mode_tun" -eq 1 ]; then
@@ -2519,7 +2561,7 @@ revert_firewall()
          done
       done >/dev/null 2>&1
       
-      for chain in "openclash" "openclash_output" "openclash_post" "openclash_dns_hijack" "openclash_wan_input" "openclash_dns_redirect"; do
+      for chain in "openclash" "openclash_output" "openclash_post" "openclash_dns_hijack" "openclash_wan_input" "openclash_dns_redirect" "openclash_upnp"; do
          iptables -t nat -F $chain
          iptables -t nat -X $chain
          iptables -t mangle -F $chain
@@ -2611,6 +2653,7 @@ get_config()
    custom_china_domain_dns_server=$(uci -q get openclash.config.custom_china_domain_dns_server || echo 114.114.114.114)
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
    find_process_mode=$(uci -q get openclash.config.find_process_mode || echo off)
+   upnp_lease_file=$(uci -q get upnpd.config.upnp_lease_file)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
 }
