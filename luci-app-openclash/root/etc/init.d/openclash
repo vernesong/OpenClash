@@ -2463,7 +2463,7 @@ else
             ip6tables -t filter -N openclash_wan_input
             ip6tables -t filter -F openclash_wan_input
             for wan6_int in $wan6_ints; do
-               ip6tables -t filter -I INPUT -i "$wan_int" -m set --match-set localnetwork6 src -j openclash_wan_input
+               ip6tables -t filter -I INPUT -i "$wan_int" -m set ! --match-set localnetwork6 src -j openclash_wan_input
             done
             ip6tables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
             ip6tables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
