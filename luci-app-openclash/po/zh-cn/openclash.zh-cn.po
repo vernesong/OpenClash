@@ -3252,3 +3252,15 @@ msgstr "是否启用进程规则，在路由环境下保持关闭可以提升性
 
 msgid "Enable Process Rule"
 msgstr "启用进程规则"
+
+msgid "Warning: Because there is a port range"
+msgstr "警告：因为端口范围"
+
+msgid "in the firewall rule settings"
+msgstr "存在于防火墙规则设置"
+
+msgid "auto bypassing may cause the normal connection of the client not to reach the core, if necessary, please add your own in the access control!"
+msgstr "自动绕过后可能造成客户端的正常连接无法到达内核，如有需要，请在访问控制中自行添加！"
+
+msgid "Tip: Start Add Port Bypassing Rules..."
+msgstr "提示：开始添加端口绕过规则..."
