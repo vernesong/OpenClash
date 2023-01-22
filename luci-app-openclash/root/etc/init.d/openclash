@@ -905,11 +905,10 @@ ac_add()
 firewall_rule_exclude()
 {
    local section="$1"
-   local name src src_port dest dest_port proto target enabled family
+   local name src dest dest_port proto target enabled family
 
    config_get "name" "$section" "name" ""
    config_get "src" "$section" "src" ""
-   config_get "src_port" "$section" "src_port" ""
    config_get "dest" "$section" "dest" ""
    config_get "dest_port" "$section" "dest_port" ""
    config_get "dest_ip" "$section" "dest_ip" ""
@@ -934,6 +933,11 @@ firewall_rule_exclude()
 
    if ! $e_udp && ! $e_tcp ; then
        return
+   fi
+
+   if [ -n "$(echo $dest_port |grep -E '\-|\:'  2>/dev/null)" ]; then
+      LOG_OUT "Warning: Because there is a port range【$dest_port】in the firewall rule settings【$name】auto bypassing may cause the normal connection of the client not to reach the core, if necessary, please add your own in the access control!"
+      return
    fi
    
    if [ -n "$FW4" ]; then
@@ -1075,7 +1079,8 @@ firewall_rule_exclude()
 firewall_redirect_exclude()
 {
    local section="$1"
-   local src_dport dest_port dest_ip proto enabled
+   local name src_dport dest_port dest_ip proto enabled
+   config_get "name" "$section" "name" ""
    config_get "src_dport" "$section" "src_dport" ""
    config_get "dest_port" "$section" "dest_port" ""
    config_get "dest_ip" "$section" "dest_ip" ""
@@ -1085,6 +1090,12 @@ firewall_redirect_exclude()
    if [ -z "$src_dport" ] || [ a"$enabled" == a0 ]; then
       return
    fi
+
+   if [ -n "$(echo $dest_port |grep -E '\-|\:'  2>/dev/null)" ]; then
+      LOG_OUT "Warning: Because there is a port range【$dest_port】in the firewall rule settings【$name】auto bypassing may cause the normal connection of the client not to reach the core, if necessary, please add your own in the access control!"
+      return
+   fi
+
    local e_udp=false
    local e_tcp=false
    for p in $proto; do
@@ -1103,31 +1114,24 @@ firewall_redirect_exclude()
       if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
          if $e_tcp ; then
             nft insert rule inet fw4 openclash_output position 0 ip saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
-            nft insert rule inet fw4 openclash_output position 0 ip saddr { "$dest_ip" } tcp dport "$src_dport" counter return >/dev/null 2>&1
          fi
          if $e_udp ; then
             nft insert rule inet fw4 openclash_mangle_output position 0 ip saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
-            nft insert rule inet fw4 openclash_mangle_output position 0 ip saddr { "$dest_ip" } udp dport "$src_dport" counter return >/dev/null 2>&1
             if [ -n "$dest_ip" ]; then
                nft insert rule inet fw4 openclash_mangle position 0 ip saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
-               nft insert rule inet fw4 openclash_mangle position 0 ip saddr { "$dest_ip" } udp dport "$src_dport" counter return >/dev/null 2>&1
             fi
          fi
       elif [ "$en_mode_tun" -eq 1 ]; then
          if $e_tcp ; then
             nft insert rule inet fw4 openclash_mangle_output position 0 ip saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
-            nft insert rule inet fw4 openclash_mangle_output position 0 ip saddr { "$dest_ip" } tcp dport "$src_dport" counter return >/dev/null 2>&1
             if [ -n "$dest_ip" ]; then
                nft insert rule inet fw4 openclash_mangle position 0  ip saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
-               nft insert rule inet fw4 openclash_mangle position 0 ip saddr { "$dest_ip" } tcp dport "$src_dport" counter return >/dev/null 2>&1
             fi
          fi
          if $e_udp ; then
             nft insert rule inet fw4 openclash_mangle_output position 0 ip saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
-            nft insert rule inet fw4 openclash_mangle_output position 0 ip saddr { "$dest_ip" } udp dport "$src_dport" counter return >/dev/null 2>&1
             if [ -n "$dest_ip" ]; then
                nft insert rule inet fw4 openclash_mangle position 0 ip saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
-               nft insert rule inet fw4 openclash_mangle position 0 ip saddr { "$dest_ip" } udp dport "$src_dport" counter return >/dev/null 2>&1
             fi
          fi
       fi
@@ -1136,53 +1140,41 @@ firewall_redirect_exclude()
          if $e_tcp ; then
             if [ -n "$dest_ip" ]; then
                nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
-               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } tcp dport "$src_dport" counter return >/dev/null 2>&1
             fi
             nft insert rule inet fw4 openclash_mangle_output_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
-            nft insert rule inet fw4 openclash_mangle_output_v6 position 0 ip6 saddr { "$dest_ip" } tcp dport "$src_dport" counter return >/dev/null 2>&1
          fi
          if $e_udp ; then
             if [ -n "$dest_ip" ]; then
                nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
-               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } udp dport "$src_dport" counter return >/dev/null 2>&1
             fi
             nft insert rule inet fw4 openclash_mangle_output_v6 position 0 ip6 saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
-            nft insert rule inet fw4 openclash_mangle_output_v6 position 0 ip6 saddr { "$dest_ip" } udp dport "$src_dport" counter return >/dev/null 2>&1
          fi
       fi
    else
       dest_port=$(echo $dest_port |sed "s/-/:/g" 2>/dev/null)
-      src_dport=$(echo $src_dport |sed "s/-/:/g" 2>/dev/null)
       dest_ip=$(echo $dest_ip |sed "s/ /,/g" 2>/dev/null)
       [ -n "$dest_ip" ] && dest_ip="-s ${dest_ip}"
 
       if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
          if $e_tcp ; then
             iptables -t nat -I openclash_output "$dest_ip" -p tcp --sport "$dest_port" -j RETURN >/dev/null 2>&1
-            iptables -t nat -I openclash_output "$dest_ip" -p tcp --dport "$src_dport" -j RETURN >/dev/null 2>&1
          fi
          if $e_udp ; then
             iptables -t mangle -I openclash_output "$dest_ip" -p udp --sport "$dest_port" -j RETURN >/dev/null 2>&1
-            iptables -t mangle -I openclash_output "$dest_ip" -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
             if [ -n "$dest_ip" ]; then
-               iptables -t mangle -I openclash "$dest_ip" -p udp --dport "$src_dport" -j RETURN >/dev/null 2>&1
                iptables -t mangle -I openclash "$dest_ip" -p udp --sport "$dest_port" -j RETURN >/dev/null 2>&1
             fi
          fi
       elif [ "$en_mode_tun" -eq 1 ]; then
          if $e_tcp ; then
             iptables -t mangle -I openclash_output -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
-            iptables -t mangle -I openclash_output -p tcp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
             if [ -n "$dest_ip" ]; then
-               iptables -t mangle -I openclash -p tcp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
                iptables -t mangle -I openclash -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
             fi
          fi
          if $e_udp ; then
             iptables -t mangle -I openclash_output -p udp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
-            iptables -t mangle -I openclash_output -p udp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
             if [ -n "$dest_ip" ]; then
-               iptables -t mangle -I openclash -p udp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
                iptables -t mangle -I openclash -p udp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
             fi
          fi
@@ -1191,19 +1183,15 @@ firewall_redirect_exclude()
       if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
          if $e_tcp ; then
             if [ -n "$dest_ip" ]; then
-               ip6tables -t mangle -I openclash -p tcp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
                ip6tables -t mangle -I openclash -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
             fi
             ip6tables -t mangle -I openclash_output -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
-            ip6tables -t mangle -I openclash_output -p tcp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
          fi
          if $e_udp ; then
             if [ -n "$dest_ip" ]; then
-               ip6tables -t mangle -I openclash -p udp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
                ip6tables -t mangle -I openclash -p udp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
             fi
             ip6tables -t mangle -I openclash_output -p udp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
-            ip6tables -t mangle -I openclash_output -p udp "$dest_ip" --dport "$src_dport" -j RETURN >/dev/null 2>&1
          fi
       fi
    fi
@@ -2473,6 +2461,7 @@ else
 fi
 
 #端口转发
+LOG_OUT "Tip: Start Add Port Bypassing Rules..."
 config_load "firewall"
 config_foreach firewall_redirect_exclude "redirect"
 config_foreach firewall_rule_exclude "rule"
