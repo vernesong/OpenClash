@@ -2990,13 +2990,13 @@ msgid "Sniffing Ports Filter"
 msgstr "指定探测（嗅探）的端口列表"
 
 msgid "Will Override Dns Queries If Domains in The List"
-msgstr "仅列表中的域名将会使用探测（嗅探）的结果进行连接"
+msgstr "列表中的域名将会强制进行探测（嗅探）"
 
 msgid "Will Disable Sniffing If Domains(sni) in The List"
-msgstr "仅列表中的域名（sni）不会使用探测（嗅探）的结果进行连接"
+msgstr "列表中的域名（sni）不会进行探测（嗅探）"
 
 msgid "Will Only Sniffing If Ports in The List"
-msgstr "仅列表中的端口将会使用探测（嗅探）的结果进行连接"
+msgstr "仅探测（嗅探）列表中指定的协议端口"
 
 msgid "Custom Sniffer Settings"
 msgstr "自定义流量探测（嗅探）设置"
@@ -3262,5 +3262,5 @@ msgstr "存在于防火墙规则设置"
 msgid "auto bypassing may cause the normal connection of the client not to reach the core, if necessary, please add your own in the access control!"
 msgstr "自动绕过后可能造成客户端的正常连接无法到达内核，如有需要，请在访问控制中自行添加！"
 
-msgid "Tip: Start Add Port Bypassing Rules..."
-msgstr "提示：开始添加端口绕过规则..."
+msgid "Tip: Start Add Port Bypassing Rules For Firewall Redirect and Firewall Rules..."
+msgstr "提示：正在根据防火墙端口转发和防火墙通信规则添加端口绕过规则..."
