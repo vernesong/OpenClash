@@ -2503,7 +2503,7 @@ else
 fi
 
 #端口转发
-LOG_OUT "Tip: Start Add Port Bypassing Rules..."
+LOG_OUT "Tip: Start Add Port Bypassing Rules For Firewall Redirect and Firewall Rules..."
 config_load "firewall"
 config_foreach firewall_redirect_exclude "redirect"
 config_foreach firewall_rule_exclude "rule"

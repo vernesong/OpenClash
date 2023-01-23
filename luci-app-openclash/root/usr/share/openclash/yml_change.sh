@@ -417,8 +417,6 @@ Thread.new{
    if ${20} == 1 and ${21} == 1 then
       Value_sniffer={'sniffer'=>{'enable'=>true}};
       Value['sniffer']=Value_sniffer['sniffer'];
-      Value_sniffer={'sniffing'=>['tls','http']};
-      Value['sniffer'].merge!(Value_sniffer);
       if '$1' == 'redir-host' then
          Value['sniffer']['ForceDnsMapping']=true;
       else
@@ -429,30 +427,60 @@ Thread.new{
       else
          Value['sniffer']['ParsePureIp']=false;
       end;
-      if File::exist?('/etc/openclash/custom/openclash_force_sniffing_domain.yaml') and ${24} == 1 then
-         Value_7 = YAML.load_file('/etc/openclash/custom/openclash_force_sniffing_domain.yaml');
-         if Value_7 != false and not Value_7['force-domain'].to_a.empty? then
-            Value['sniffer']['force-domain']=Value_7['force-domain'];
-            Value['sniffer']['force-domain']=Value['sniffer']['force-domain'].uniq;
-         end
+      if File::exist?('/etc/openclash/custom/openclash_force_sniffing_domain.yaml') then
+         if ${24} == 1 then
+            Value_7 = YAML.load_file('/etc/openclash/custom/openclash_force_sniffing_domain.yaml');
+            if Value_7 != false and not Value_7['force-domain'].to_a.empty? then
+               Value['sniffer']['force-domain']=Value_7['force-domain'];
+               Value['sniffer']['force-domain']=Value['sniffer']['force-domain'].uniq;
+            end;
+         else
+            if not Value['sniffer'].key?('force-domain') then
+               Value_force_domain={'force-domain'=>['+.netflix.com', '+.nflxvideo.net', '+.amazonaws.com', '+.media.dssott.com']};
+               Value['sniffer'].merge!(Value_force_domain);
+            end;
+         end;
       end;
-      if File::exist?('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml') and ${24} == 1 then
-         Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml');
-         if Value_7 != false and not Value_7['skip-sni'].to_a.empty? then
-            Value['sniffer']['skip-domain']=Value_7['skip-sni'];
-            Value['sniffer']['skip-domain']=Value['sniffer']['skip-domain'].uniq;
-         end
-         if Value_7 != false and not Value_7['skip-domain'].to_a.empty? then
-            Value['sniffer']['skip-domain']=Value_7['skip-domain'];
-            Value['sniffer']['skip-domain']=Value['sniffer']['skip-domain'].uniq;
-         end
+      if File::exist?('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml') then
+         if ${24} == 1 then
+            Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml');
+            if Value_7 != false and not Value_7['skip-sni'].to_a.empty? then
+               Value['sniffer']['skip-domain']=Value_7['skip-sni'];
+               Value['sniffer']['skip-domain']=Value['sniffer']['skip-domain'].uniq;
+            end;
+            if Value_7 != false and not Value_7['skip-domain'].to_a.empty? then
+               Value['sniffer']['skip-domain']=Value_7['skip-domain'];
+               Value['sniffer']['skip-domain']=Value['sniffer']['skip-domain'].uniq;
+            end;
+         else
+            if not Value['sniffer'].key?('skip-domain') then
+               Value_skip_domain={'skip-domain'=>['+.apple.com', 'Mijia Cloud', '+.jd.com']};
+               Value['sniffer'].merge!(Value_skip_domain);
+            end;
+         end;
       end;
-      if File::exist?('/etc/openclash/custom/openclash_sniffing_port_filter.yaml') and ${24} == 1 then
-         Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_port_filter.yaml');
-         if Value_7 != false and not Value_7['port-whitelist'].to_a.empty? then
-            Value['sniffer']['port-whitelist']=Value_7['port-whitelist'];
-            Value['sniffer']['port-whitelist']=Value['sniffer']['port-whitelist'].uniq;
-         end
+      if File::exist?('/etc/openclash/custom/openclash_sniffing_ports_filter.yaml') then
+         if ${24} == 1 then
+            Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_ports_filter.yaml');
+            if Value_7 != false and not Value_7['sniff'].to_a.empty? then
+               Value['sniffer']['sniff']=Value_7['sniff'];
+            end;
+         else
+            if not Value['sniffer'].key?('sniff') then
+               Value_sniff={'sniff'=>{'TLS'=>nil, 'HTTP'=>{'ports'=>[80, '8080-8880'], 'override-destination'=>true}}};
+               Value['sniffer'].merge!(Value_sniff);
+            end;
+         end;
+      else
+         if File::exist?('/etc/openclash/custom/openclash_sniffing_port_filter.yaml') and ${24} == 1 then
+            Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_port_filter.yaml');
+            if Value_7 != false and not Value_7['port-whitelist'].to_a.empty? then
+               Value['sniffer']['port-whitelist']=Value_7['port-whitelist'];
+               Value['sniffer']['port-whitelist']=Value['sniffer']['port-whitelist'].uniq;
+            end;
+         end;
+         Value_sniffer={'sniffing'=>['tls','http']};
+         Value['sniffer'].merge!(Value_sniffer);
       end;
    else
       if Value.key?('sniffer') then
