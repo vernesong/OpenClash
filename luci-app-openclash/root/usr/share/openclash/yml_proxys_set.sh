@@ -651,7 +651,7 @@ EOF
       fi
       if [ -n "$disable_sni" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    disable-sni: "$disable_sni"
+    disable-sni: $disable_sni
 EOF
       fi
       if [ -n "$reduce_rtt" ]; then
