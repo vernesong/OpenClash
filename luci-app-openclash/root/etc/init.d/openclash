@@ -1445,8 +1445,12 @@ if [ -n "$FW4" ]; then
       nft 'add rule inet fw4 openclash ip daddr @wan_ac_black_ips counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash ip saddr @lan_ac_black_ips counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash ether saddr @lan_ac_black_macs counter return' 2>/dev/null
-      nft 'add rule inet fw4 openclash ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
-      nft 'add rule inet fw4 openclash ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+         nft 'add rule inet fw4 openclash ether saddr != @lan_ac_white_macs ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+      else
+         nft 'add rule inet fw4 openclash ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
+         nft 'add rule inet fw4 openclash ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+      fi
 
       if [ "$en_mode" = "redir-host" ]; then
          nft 'add rule inet fw4 openclash tcp dport != @common_ports counter return' 2>/dev/null
@@ -1478,8 +1482,12 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ip saddr @lan_ac_black_ips counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ether saddr @lan_ac_black_macs counter return' 2>/dev/null
-            nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
-            nft 'add rule inet fw4 openclash_mangle ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+            if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+               nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+            else
+               nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
+               nft 'add rule inet fw4 openclash_mangle ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+            fi
 
             if [ "$en_mode" = "redir-host" ]; then
                nft 'add rule inet fw4 openclash_mangle udp dport != @common_ports counter return' 2>/dev/null
@@ -1619,8 +1627,12 @@ if [ -n "$FW4" ]; then
       nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash_mangle ip saddr @lan_ac_black_ips counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash_mangle ether saddr @lan_ac_black_macs counter return' 2>/dev/null
-      nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
-      nft 'add rule inet fw4 openclash_mangle ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+         nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+      else
+         nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
+         nft 'add rule inet fw4 openclash_mangle ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+      fi
       
       if [ "$en_mode" = "redir-host" ]; then
          nft 'add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} th dport != @common_ports counter return' 2>/dev/null
@@ -1637,8 +1649,12 @@ if [ -n "$FW4" ]; then
          nft 'insert rule inet fw4 mangle_prerouting position 0 meta nfproto {ipv4} tcp dport 53 counter jump openclash_dns_hijack' 2>/dev/null
          nft 'add rule inet fw4 openclash_dns_hijack ip saddr @lan_ac_black_ips counter return' 2>/dev/null
          nft 'add rule inet fw4 openclash_dns_hijack ether saddr @lan_ac_black_macs counter return' 2>/dev/null
-         nft 'add rule inet fw4 openclash_dns_hijack ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
-         nft 'add rule inet fw4 openclash_dns_hijack ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+            nft 'add rule inet fw4 openclash_dns_hijack ether saddr != @lan_ac_white_macs ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+         else
+            nft 'add rule inet fw4 openclash_dns_hijack ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
+            nft 'add rule inet fw4 openclash_dns_hijack ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+         fi
          nft add rule inet fw4 openclash_dns_hijack meta nfproto {ipv4} tcp dport 53 mark set "$PROXY_FWMARK" comment \"OpenClash TCP DNS Hijack\" 2>/dev/null
          nft 'insert rule inet fw4 mangle_prerouting position 0 ip protocol udp counter jump openclash_mangle' 2>/dev/null
       fi
@@ -1663,8 +1679,12 @@ if [ -n "$FW4" ]; then
    if [ "$enable_redirect_dns" -eq 2 ]; then
       nft 'insert rule inet fw4 openclash_dns_redirect position 0 ip saddr @lan_ac_black_ips counter return' 2>/dev/null
       nft 'insert rule inet fw4 openclash_dns_redirect position 0 ether saddr @lan_ac_black_macs counter return' 2>/dev/null
-      nft 'insert rule inet fw4 openclash_dns_redirect position 0 ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
-      nft 'insert rule inet fw4 openclash_dns_redirect position 0 ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+         nft 'insert rule inet fw4 openclash_dns_redirect position 0 ether saddr != @lan_ac_white_macs ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+      else
+         nft 'insert rule inet fw4 openclash_dns_redirect position 0 ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
+         nft 'insert rule inet fw4 openclash_dns_redirect position 0 ip saddr != @lan_ac_white_ips counter return' 2>/dev/null
+      fi
    fi
 
    #google_dns_block
@@ -1793,8 +1813,12 @@ if [ -n "$FW4" ]; then
 
       nft 'add rule inet fw4 openclash_mangle_v6 ip6 saddr @lan_ac_black_ipv6s counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash_mangle_v6 ether saddr @lan_ac_black_macs counter return' 2>/dev/null
-      nft 'add rule inet fw4 openclash_mangle_v6 ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
-      nft 'add rule inet fw4 openclash_mangle_v6 ip6 saddr != @lan_ac_white_ipv6s counter return' 2>/dev/null
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+         nft 'add rule inet fw4 openclash_mangle_v6 ether saddr != @lan_ac_white_macs ip6 saddr != @lan_ac_white_ipv6s counter return' 2>/dev/null
+      else
+         nft 'add rule inet fw4 openclash_mangle_v6 ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
+         nft 'add rule inet fw4 openclash_mangle_v6 ip6 saddr != @lan_ac_white_ipv6s counter return' 2>/dev/null
+      fi
 
       if [ "$china_ip6_route" = "1" ]; then
          nft 'add rule inet fw4 openclash_mangle_v6 ip6 daddr @china_ip6_route ip6 daddr != @china_ip6_route_pass counter return' 2>/dev/null
@@ -1806,8 +1830,12 @@ if [ -n "$FW4" ]; then
       if [ "$enable_redirect_dns" -eq 2 ]; then
          nft 'insert rule inet fw4 openclash_dns_redirect position 0 ip6 saddr @lan_ac_black_ipv6s counter return' 2>/dev/null
          nft 'insert rule inet fw4 openclash_dns_redirect position 0 ether saddr @lan_ac_black_macs counter return' 2>/dev/null
-         nft 'insert rule inet fw4 openclash_dns_redirect position 0 ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
-         nft 'insert rule inet fw4 openclash_dns_redirect position 0 ip6 saddr != @lan_ac_white_ipv6s counter return' 2>/dev/null
+         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+            nft 'insert rule inet fw4 openclash_dns_redirect position 0 ether saddr != @lan_ac_white_macs ip6 saddr != @lan_ac_white_ipv6s counter return' 2>/dev/null
+         else
+            nft 'insert rule inet fw4 openclash_dns_redirect position 0 ether saddr != @lan_ac_white_macs counter return' 2>/dev/null
+            nft 'insert rule inet fw4 openclash_dns_redirect position 0 ip6 saddr != @lan_ac_white_ipv6s counter return' 2>/dev/null
+         fi
       fi
 
       if [ -z "$_koolshare" ]; then
