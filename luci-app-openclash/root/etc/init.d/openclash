@@ -2061,8 +2061,12 @@ else
       iptables -t nat -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
       iptables -t nat -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
       iptables -t nat -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
-      iptables -t nat -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
-      iptables -t nat -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+         iptables -t nat -A openclash -m set ! --match-set lan_ac_white_ips src -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+      else
+         iptables -t nat -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+         iptables -t nat -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+      fi
       if [ "$en_mode" = "redir-host" ]; then
          iptables -t nat -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
       fi
@@ -2095,8 +2099,12 @@ else
             iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
             iptables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
             iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
-            iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
-            iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+            if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+               iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+            else
+               iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+               iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+            fi
             if [ "$en_mode" = "redir-host" ]; then
                iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
             fi
@@ -2249,8 +2257,12 @@ else
       iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
       iptables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
-      iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
-      iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+         iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+      else
+         iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+         iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+      fi
 
       if [ "$en_mode" = "redir-host" ]; then
          iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
@@ -2269,8 +2281,12 @@ else
          iptables -t mangle -I PREROUTING -p tcp --dport 53 -j openclash_dns_hijack
          iptables -t mangle -A openclash_dns_hijack -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
          iptables -t mangle -A openclash_dns_hijack -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
-         iptables -t mangle -A openclash_dns_hijack -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
-         iptables -t mangle -A openclash_dns_hijack -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+            iptables -t mangle -A openclash_dns_hijack -m set ! --match-set lan_ac_white_ips src -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+         else
+            iptables -t mangle -A openclash_dns_hijack -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+            iptables -t mangle -A openclash_dns_hijack -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+         fi
          iptables -t mangle -A openclash_dns_hijack -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j MARK --set-mark "$PROXY_FWMARK"
          iptables -t mangle -I PREROUTING -p udp -j openclash
       fi
@@ -2295,8 +2311,12 @@ else
    if [ "$enable_redirect_dns" -eq 2 ]; then
       iptables -t nat -I openclash_dns_redirect -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
       iptables -t nat -I openclash_dns_redirect -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
-      iptables -t nat -I openclash_dns_redirect -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
-      iptables -t nat -I openclash_dns_redirect -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+         iptables -t nat -I openclash_dns_redirect -m set ! --match-set lan_ac_white_ips src -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+      else
+         iptables -t nat -I openclash_dns_redirect -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+         iptables -t nat -I openclash_dns_redirect -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+      fi
    fi
 
    #google_dns_block
@@ -2414,8 +2434,12 @@ else
       ip6tables -t mangle -A openclash -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
       ip6tables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
       ip6tables -t mangle -A openclash -m set --match-set lan_ac_black_ipv6s src -j RETURN >/dev/null 2>&1
-      ip6tables -t mangle -A openclash -m set ! --match-set lan_ac_white_ipv6s src -j RETURN >/dev/null 2>&1
-      ip6tables -t mangle -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+         ip6tables -t mangle -A openclash -m set ! --match-set lan_ac_white_ipv6s src -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+      else
+         ip6tables -t mangle -A openclash -m set ! --match-set lan_ac_white_ipv6s src -j RETURN >/dev/null 2>&1
+         ip6tables -t mangle -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+      fi
 
       if [ "$en_mode" == "redir-host" ]; then
          ip6tables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
@@ -2431,8 +2455,12 @@ else
       if [ "$enable_redirect_dns" -eq 2 ]; then
          ip6tables -t nat -I openclash_dns_redirect -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
          ip6tables -t nat -I openclash_dns_redirect -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
-         ip6tables -t nat -I openclash_dns_redirect -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
-         ip6tables -t nat -I openclash_dns_redirect -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+            ip6tables -t nat -I openclash_dns_redirect -m set ! --match-set lan_ac_white_ips src -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+         else
+            ip6tables -t nat -I openclash_dns_redirect -m set ! --match-set lan_ac_white_ips src -j RETURN >/dev/null 2>&1
+            ip6tables -t nat -I openclash_dns_redirect -m set ! --match-set lan_ac_white_macs src -j RETURN >/dev/null 2>&1
+         fi
       fi
 
       if [ -z "$_koolshare" ]; then
