@@ -821,7 +821,7 @@ raw_config_start()
          uci -q set openclash.config.en_mode=redir-host
       esac
    elif [ "$en_mode" = "fake-ip" ]; then
-   	  case $en_mode_tun in
+   	case $en_mode_tun in
       "1")
          uci -q set openclash.config.en_mode=fake-ip-tun
       ;;
@@ -1250,6 +1250,17 @@ else
    settype="ipset"
    [ -n "$FW4" ] && LOG_OUT "Warning: Dnsmasq not Support nftset, Use ipset..."
 fi
+
+case $enable_redirect_dns in
+	"1")
+   LOG_OUT "Tip: DNS Hijacking Mode is Dnsmasq Redirect..."
+   ;;
+   "2")
+   LOG_OUT "Tip: DNS Hijacking Mode is Firewall Redirect..."
+   ;;
+   *)
+   LOG_OUT "Tip: DNS Hijacking is Disabled..."
+esac
 
 if [ -n "$FW4" ]; then
    LOG_OUT "Tip: Firewall4 was Detected, Use NFTABLE Rules..."
