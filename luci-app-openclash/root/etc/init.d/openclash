@@ -1882,7 +1882,7 @@ if [ -n "$FW4" ]; then
             nft 'flush chain inet fw4 openclash_mangle_output_v6' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle_output_v6 ip6 daddr @localnetwork6 counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle_output_v6 ip6 saddr @localnetwork6 meta nfproto {ipv6} sport @lan_ac_black_ports counter return' 2>/dev/null
-            nft 'add rule inet fw4 openclash_mangle_output_v6 ip6 daddr @wan_ac_black_ipv6s counter return' 2>/dev/null
+            nft 'add rule inet fw4 openclash_mangle_output_v6 skuid != 65534 ip6 daddr @wan_ac_black_ipv6s counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle_output_v6 meta nfproto {ipv6} th dport != @common_ports skuid != 65534 counter return' 2>/dev/null
 
             if [ "$china_ip6_route" = "1" ]; then
@@ -2563,7 +2563,7 @@ else
             ip6tables -t mangle -F openclash_output
             ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
             ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
-            ip6tables -t mangle -A openclash_output -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
+            ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
             ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
             if [ "$china_ip6_route" = "1" ]; then
                ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip6_route dst -m set ! --match-set china_ip6_route_pass dst -j RETURN >/dev/null 2>&1
