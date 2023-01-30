@@ -3282,3 +3282,20 @@ msgstr "设置 Fake-ip 地址范围 (IPv4 Cidr)"
 
 msgid "IPv6 Settings"
 msgstr "IPv6 设置"
+
+msgid "IPv6 Settings"
+msgstr "IPv6 设置"
+
+msgid "Custom Config Override Script, Any Changes Will Be Restored After The Install of the OC, Please Be Careful, The Wrong Changes May Lead to Exceptions"
+msgstr "自定义配置文件的覆写脚本，任何修改都将在插件重新安装后还原，请谨慎修改，错误的修改可能会导致异常"
+
+msgid "Custom Firewall Rules, Support IPv4 and IPv6, All Rules Will Be Added After The Openclash Rules Completely"
+msgstr "自定义防火墙规则，支持 IPv4 和 IPv6，此脚本规则将在 Openclash 的内置规则完成后执行"
+
+msgid "Tip: Start Add Custom Firewall Rules..."
+msgstr "提示：开始添加自定义防火墙规则..."
+
+msgid "Developer Settings"
+msgstr "开发者选项"
+
+

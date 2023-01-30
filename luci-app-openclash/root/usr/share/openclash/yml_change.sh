@@ -110,7 +110,7 @@ yml_dns_custom()
 sys_dns_append()
 {
    if [ "$1" = 1 ]; then
-   	wan_dns=$(/usr/share/openclash/openclash_get_network.lua "dns")
+      wan_dns=$(/usr/share/openclash/openclash_get_network.lua "dns")
       wan6_dns=$(/usr/share/openclash/openclash_get_network.lua "dns6")
       wan_gate=$(/usr/share/openclash/openclash_get_network.lua "gateway")
       wan6_gate=$(/usr/share/openclash/openclash_get_network.lua "gateway6")
