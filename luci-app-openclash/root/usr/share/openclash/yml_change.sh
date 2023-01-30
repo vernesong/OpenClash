@@ -314,6 +314,7 @@ config_load "openclash"
 config_foreach yml_auth_get "authentication"
 yml_dns_custom "$enable_custom_dns" "$5" "$append_wan_dns" "${16}"
 
+#配置文件覆写部分
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 begin
    Value = YAML.load_file('$5');
@@ -348,6 +349,8 @@ Thread.new{
    end;
 }.join;
 end;
+
+#General
 begin
 Thread.new{
    Value['redir-port']=$4;
@@ -540,7 +543,7 @@ rescue Exception => e
    puts '${LOGTIME} Error: Set General Failed,【' + e.message + '】';
 end;
 
-#custom dns
+#Custom dns
 begin
 Thread.new{
    if '$enable_custom_dns' == '1' or '$append_wan_dns' == '1' then
@@ -762,6 +765,7 @@ rescue Exception => e
    puts '${LOGTIME} Error: Set Hosts Rules Failed,【' + e.message + '】';
 end;
 
+#tolerance
 begin
 Thread.new{
    if '$tolerance' != '0' then

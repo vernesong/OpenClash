@@ -1531,6 +1531,15 @@ function o.write(self, section, value)
 	end
 end
 
+o = s:taboption("developer", Button, translate("Restore Override Script"))
+o.title = translate("Restore Override Script")
+o.inputtitle = translate("Restore")
+o.inputstyle = "reload"
+o.write = function()
+  SYS.call("cp /usr/share/openclash/backup/yml_change.sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "settings"))
+end
+
 ---- debug
 o = s:taboption("debug", DummyValue, "", nil)
 o.template = "openclash/debug"

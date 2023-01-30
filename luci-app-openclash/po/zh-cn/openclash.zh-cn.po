@@ -3298,4 +3298,10 @@ msgstr "提示：开始添加自定义防火墙规则..."
 msgid "Developer Settings"
 msgstr "开发者选项"
 
+msgid "Restore Override Script"
+msgstr "还原覆写脚本"
+
+msgid "Restore"
+msgstr "还原"
+
 
