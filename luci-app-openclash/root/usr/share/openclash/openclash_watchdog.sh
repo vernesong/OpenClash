@@ -22,14 +22,15 @@ DISNEY_DOMAINS_LIST="/usr/share/openclash/res/Disney_Plus_Domains.list"
 _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
 china_ip_route=$(uci -q get openclash.config.china_ip_route)
 en_mode=$(uci -q get openclash.config.en_mode)
+fakeip_range=$(uci -q get openclash.config.fakeip_range || echo "198.18.0.1/16")
 CRASH_NUM=0
 CFG_UPDATE_INT=1
 STREAM_DOMAINS_PREFETCH=1
 STREAM_AUTO_SELECT=1
-FW4="$(command -v fw4)"
+FW4=$(command -v fw4)
 
 check_dnsmasq() {
-   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ]; then
+   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ] && [ "$enable_redirect_dns" = "1" ]; then
       if [ "$(nslookup www.baidu.com 127.0.0.1:12353 >/dev/null 2>&1 || echo $?)" != "1" ]; then
          DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
          if [ -z "$DNSPORT" ]; then
@@ -104,6 +105,7 @@ do
    stream_auto_select_discovery_plus=$(uci -q get openclash.config.stream_auto_select_discovery_plus || echo 0)
    stream_auto_select_bilibili=$(uci -q get openclash.config.stream_auto_select_bilibili || echo 0)
    stream_auto_select_google_not_cn=$(uci -q get openclash.config.stream_auto_select_google_not_cn || echo 0)
+   upnp_lease_file=$(uci -q get upnpd.config.upnp_lease_file)
    
    enable=$(uci -q get openclash.config.enable)
 
@@ -111,6 +113,7 @@ if [ "$enable" -eq 1 ]; then
 	clash_pids=$(pidof clash |sed 's/$//g' |wc -l)
 	if [ "$clash_pids" -gt 1 ]; then
          LOG_OUT "Watchdog: Multiple Clash Processes, Kill All..."
+         clash_pids=$(pidof clash |sed 's/$//g')
          for clash_pid in $clash_pids; do
             kill -9 "$clash_pid" 2>/dev/null
          done >/dev/null 2>&1
@@ -139,7 +142,6 @@ if [ "$enable" -eq 1 ]; then
 	      if [ "$core_type" == "TUN" ] || [ "$core_type" == "Meta" ]; then
 	         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
-            ifconfig utun mtu 65535 >/dev/null 2>&1
 	      fi
 	      sleep 60
 	      continue
@@ -179,9 +181,9 @@ fi
    check_dnsmasq
 
 ## Localnetwork 刷新
-   lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^198.18" 2>/dev/null)
+   lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^$(echo "$fakeip_range"|awk -F '.' '{print $1"."$2}')" 2>/dev/null)
    lan_ip6_cidrs=$(ip -6 route | grep "/" | awk '{print $1}' | grep -vE "^unreachable" 2>/dev/null)
-   wan_ip4s=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 | grep -vE "(^198.18|^192.168|^127.0)" 2>/dev/null)
+   wan_ip4s=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 | grep -vE "(^$(echo "$fakeip_range"|awk -F '.' '{print $1"."$2}')|^192.168|^127.0)" 2>/dev/null)
    if [ -n "$FW4" ]; then
       if [ -n "$lan_ip_cidrs" ]; then
          for lan_ip_cidr in $lan_ip_cidrs; do
@@ -235,8 +237,60 @@ fi
       fi
    fi
 
+## UPNP
+   if [ -f "$upnp_lease_file" ]; then
+      #del
+      if [ -n "$FW4" ]; then
+         for i in `$(nft list chain inet fw4 openclash_upnp |grep "return")`
+         do
+            upnp_ip=$(echo "$i" |awk -F 'ip saddr \\{ ' '{print $2}' |awk  '{print $1}')
+            upnp_dp=$(echo "$i" |awk -F 'udp sport ' '{print $2}' |awk  '{print $1}')
+            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
+               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
+                  handles=$(nft list chain inet fw4 openclash_upnp |grep "$i" |awk -F '# handle ' '{print$2}')
+                  for handle in $handles; do
+                     nft delete rule inet fw4 openclash_upnp handle ${handle}
+                  done
+               fi
+            fi
+         done >/dev/null 2>&1
+      else
+         for i in `$(iptables -t mangle -nL openclash_upnp |grep "RETURN")`
+         do
+            upnp_ip=$(echo "$i" |awk '{print $4}')
+            upnp_dp=$(echo "$i" |awk -F 'udp spt:' '{print $2}')
+            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
+               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
+                  iptables -t mangle -D openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+               fi
+            fi
+         done >/dev/null 2>&1
+      fi
+      #add
+      if [ -s "$upnp_lease_file" ] && [ -n "$(iptables --line-numbers -t nat -xnvL openclash_upnp 2>/dev/null)"] || [ -n "$(nft list chain inet fw4 openclash_upnp 2>/dev/null)"]; then
+         cat "$upnp_lease_file" |while read -r line
+         do
+            if [ -n "$line" ]; then
+               upnp_ip=$(echo "$line" |awk -F ':' '{print $3}')
+               upnp_dp=$(echo "$line" |awk -F ':' '{print $4}')
+               if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
+                  if [ -n "$FW4" ]; then
+                     if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
+                        nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } udp sport "$upnp_dp" counter return 2>/dev/null
+                     fi
+                  else
+                     if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
+                        iptables -t mangle -A openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                     fi
+                  fi
+               fi
+            fi
+         done >/dev/null 2>&1
+      fi
+   fi
+
 ## DNS转发劫持
-   if [ "$enable_redirect_dns" -ne 0 ]; then
+   if [ "$enable_redirect_dns" = "1" ]; then
       if [ -z "$(uci -q get dhcp.@dnsmasq[0].server |grep "$dns_port")" ] || [ ! -z "$(uci -q get dhcp.@dnsmasq[0].server |awk -F ' ' '{print $2}')" ]; then
          LOG_OUT "Watchdog: Force Reset DNS Hijack..."
          uci -q del dhcp.@dnsmasq[-1].server

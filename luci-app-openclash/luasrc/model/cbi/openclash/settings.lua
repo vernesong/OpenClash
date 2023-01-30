@@ -43,11 +43,13 @@ else
 s:tab("rules", translate("Rules Setting"))
 end
 s:tab("dashboard", translate("Dashboard Settings"))
+s:tab("ipv6", translate("IPv6 Settings"))
 s:tab("rules_update", translate("Rules Update"))
 s:tab("geo_update", translate("GEO Update"))
 s:tab("chnr_update", translate("Chnroute Update"))
 s:tab("auto_restart", translate("Auto Restart"))
 s:tab("version_update", translate("Version Update"))
+s:tab("developer", translate("Developer Settings"))
 s:tab("debug", translate("Debug Logs"))
 s:tab("dlercloud", translate("Dler Cloud"))
 
@@ -94,15 +96,6 @@ o.description = translate("Only Supported for Rule Mode")..", "..font_red..bold_
 o.default = 1
 o:depends("proxy_mode", "rule")
 
-o = s:taboption("op_mode", Flag, "ipv6_enable", font_red..bold_on..translate("Proxy IPv6 Traffic")..bold_off..font_off)
-o.description = font_red..bold_on..translate("The Gateway and DNS of The Connected Device Must be The Router IP, Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use")..bold_off..font_off
-o.default = 0
-
-o = s:taboption("op_mode", Flag, "china_ip6_route", translate("China IPv6 Route"))
-o.description = translate("Bypass The China Network Flows, Improve Performance")
-o.default = 0
-o:depends("ipv6_enable", "1")
-
 o = s:taboption("op_mode", Flag, "disable_udp_quic", font_red..bold_on..translate("Disable QUIC")..bold_off..font_off)
 o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic(Not Include CN) On Port 443")..bold_off..font_off
 o.default = 1
@@ -126,6 +119,7 @@ else
 	o = s:taboption("op_mode", Flag, "china_ip_route", translate("China IP Route"))
 	o.description = translate("Bypass The China Network Flows, Improve Performance, Depend on Dnsmasq")
 	o.default = 0
+	o:depends("enable_redirect_dns", "1")
 
 	o = s:taboption("op_mode", Value, "custom_china_domain_dns_server", translate("Specify CN DNS Server"))
 	o.description = translate("Specify DNS Server For CN Domain Lists, Only One IP Server Address Support")
@@ -248,9 +242,12 @@ o.rmempty = false
 o.description = translate("Please Make Sure Ports Available")
 
 ---- DNS Settings
-o = s:taboption("dns", Flag, "enable_redirect_dns", font_red..bold_on..translate("Redirect Local DNS Setting")..bold_off..font_off)
+o = s:taboption("dns", ListValue, "enable_redirect_dns", font_red..bold_on..translate("Redirect Local DNS Setting")..bold_off..font_off)
 o.description = translate("Set Local DNS Redirect")
 o.default = 1
+o:value("0", translate("Disable"))
+o:value("1", translate("Dnsmasq Redirect"))
+o:value("2", translate("Firewall Redirect"))
 
 o = s:taboption("dns", Flag, "enable_custom_dns", font_red..bold_on..translate("Custom DNS Setting")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Set OpenClash Upstream DNS Resolve Server")..bold_off..font_off
@@ -272,6 +269,12 @@ o.description = translate("Automatically Append Compliant DNS to default-nameser
 o.default = 1
 
 if op_mode == "fake-ip" then
+o = s:taboption("dns", Value, "fakeip_range", translate("Fake-ip Range (IPv4 Cidr)"))
+o.description = translate("Set Fake-ip Range (IPv4 Cidr)")
+o.datatype = "cidr4"
+o.default = "198.18.0.1/16"
+o.placeholder = "198.18.0.1/16"
+
 o = s:taboption("dns", Flag, "store_fakeip", font_red..bold_on..translate("Persistence Fake-IP")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Cache Fake-IP DNS Resolution Records To File, Improve The Response Speed After Startup")..bold_off..font_off
 o.default = 1
@@ -280,13 +283,10 @@ o = s:taboption("dns", DummyValue, "flush_fakeip_cache", translate("Flush Fake-I
 o.template = "openclash/flush_fakeip_cache"
 end
 
-o = s:taboption("dns", Flag, "ipv6_dns", translate("IPv6 DNS Resolve"))
-o.description = font_red..bold_on..translate("Enable Clash to Resolve IPv6 DNS Requests")..bold_off..font_off
-o.default = 0
-
 o = s:taboption("dns", Flag, "disable_masq_cache", translate("Disable Dnsmasq's DNS Cache"))
 o.description = translate("Recommended Enabled For Avoiding Some Connection Errors")..font_red..bold_on..translate("(Maybe Incompatible For Your Firmware)")..bold_off..font_off
 o.default = 0
+o:depends("enable_redirect_dns", "1")
 
 o = s:taboption("dns", Flag, "custom_fallback_filter", translate("Custom Fallback-Filter"))
 o.description = translate("Take Effect If Fallback DNS Setted, Prevent DNS Pollution")
@@ -342,14 +342,14 @@ o = s:taboption("dns", Value, "custom_domain_dns_server", translate("Specify DNS
 o.description = translate("Specify DNS Server For List and Server Nodes With Fake-IP Mode, Only One IP Server Address Support")
 o.default = "114.114.114.114"
 o.placeholder = translate("114.114.114.114 or 127.0.0.1#5300")
-o:depends("dns_advanced_setting", "1")
+o:depends({dns_advanced_setting = "1", enable_redirect_dns = "1"})
 
 custom_domain_dns = s:taboption("dns", Value, "custom_domain_dns")
 custom_domain_dns.template = "cbi/tvalue"
 custom_domain_dns.description = translate("Domain Names In The List Use The Custom DNS Server, One rule per line, Depend on Dnsmasq")
 custom_domain_dns.rows = 20
 custom_domain_dns.wrap = "off"
-custom_domain_dns:depends("dns_advanced_setting", "1")
+custom_domain_dns:depends({dns_advanced_setting = "1", enable_redirect_dns = "1"})
 
 function custom_domain_dns.cfgvalue(self, section)
 	return NXFS.readfile("/etc/openclash/custom/openclash_custom_domain_dns.list") or ""
@@ -392,6 +392,14 @@ o.default = 0
 o = s:taboption("meta", Flag, "enable_tcp_concurrent", font_red..bold_on..translate("Enable Tcp Concurrent")..bold_off..font_off)
 o.description = font_red..bold_on..translate("TCP Concurrent Request IPs, Choose The Lowest Latency One To Connection")..bold_off..font_off
 o.default = 1
+o:depends("enable_meta_core", "1")
+
+o = s:taboption("meta", ListValue, "find_process_mode", translate("Enable Process Rule"))
+o.description = translate("Whether to Enable Process Rules, If You Are Not Sure, Please Choose off Which Useful in Router Environment")
+o:value("always")
+o:value("strict")
+o:value("off", translate("off　"))
+o.default = "off"
 o:depends("enable_meta_core", "1")
 
 o = s:taboption("meta", Flag, "enable_meta_sniffer", font_red..bold_on..translate("Enable Sniffer")..bold_off..font_off)
@@ -437,14 +445,14 @@ sniffing_port_filter.rows = 20
 sniffing_port_filter.wrap = "off"
 
 function sniffing_port_filter.cfgvalue(self, section)
-	return NXFS.readfile("/etc/openclash/custom/openclash_sniffing_port_filter.yaml") or ""
+	return NXFS.readfile("/etc/openclash/custom/openclash_sniffing_ports_filter.yaml") or ""
 end
 function sniffing_port_filter.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
-		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_sniffing_port_filter.yaml")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_sniffing_ports_filter.yaml")
 	  if value ~= old_value then
-			NXFS.writefile("/etc/openclash/custom/openclash_sniffing_port_filter.yaml", value)
+			NXFS.writefile("/etc/openclash/custom/openclash_sniffing_ports_filter.yaml", value)
 		end
 	end
 end
@@ -571,15 +579,21 @@ end
 o:depends("geosite_auto_update", "1")
 
 ---- Access Control
-if op_mode == "redir-host" then
 o = s:taboption("lan_ac", ListValue, "lan_ac_mode", translate("LAN Access Control Mode"))
 o:value("0", translate("Black List Mode"))
 o:value("1", translate("White List Mode"))
 o.default = "0"
+o:depends("enable_redirect_dns", "2")
+o:depends({en_mode = "redir-host", enable_redirect_dns = "1"})
+o:depends({en_mode = "redir-host-tun", enable_redirect_dns = "1"})
+o:depends({en_mode = "redir-host-mix", enable_redirect_dns = "1"})
 
 ip_b = s:taboption("lan_ac", DynamicList, "lan_ac_black_ips", translate("LAN Bypassed Host List"))
-ip_b:depends("lan_ac_mode", "0")
 ip_b.datatype = "ipaddr"
+ip_b:depends({lan_ac_mode = "0", enable_redirect_dns = "2"})
+ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host", enable_redirect_dns = "1"})
+ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host-tun", enable_redirect_dns = "1"})
+ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host-mix", enable_redirect_dns = "1"})
 
 mac_b = s:taboption("lan_ac", DynamicList, "lan_ac_black_macs", translate("LAN Bypassed Mac List"))
 mac_b.datatype = "list(macaddr)"
@@ -587,8 +601,11 @@ mac_b.rmempty  = true
 mac_b:depends("lan_ac_mode", "0")
 
 ip_w = s:taboption("lan_ac", DynamicList, "lan_ac_white_ips", translate("LAN Proxied Host List"))
-ip_w:depends("lan_ac_mode", "1")
 ip_w.datatype = "ipaddr"
+ip_w:depends({lan_ac_mode = "1", enable_redirect_dns = "2"})
+ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host", enable_redirect_dns = "1"})
+ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host-tun", enable_redirect_dns = "1"})
+ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host-mix", enable_redirect_dns = "1"})
 
 mac_w = s:taboption("lan_ac", DynamicList, "lan_ac_white_macs", translate("LAN Proxied Mac List"))
 mac_w.datatype = "list(macaddr)"
@@ -614,7 +631,6 @@ luci.ip.neighbors({ family = 6 }, function(n)
 	end
 end)
 end
-end
 
 o = s:taboption("lan_ac", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
 o.datatype = "ipaddr"
@@ -622,6 +638,7 @@ o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Suppor
 
 o = s:taboption("lan_ac", DynamicList, "lan_ac_black_ports", translate("Lan Bypassed Port List"))
 o.datatype = "port"
+o.placeholder = translate("5000 or 1234-2345")
 o:value("5000", translate("5000(NAS)"))
 o.description = "1."..translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails").."<br>".."2."..translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
 
@@ -644,30 +661,12 @@ function o.write(self, section, value)
 	end
 end
 
-o = s:taboption("lan_ac", Value, "local_network6_pass", translate("Local IPv6 Network Bypassed List"))
-o.template = "cbi/tvalue"
-o.description = translate("The Traffic of The Destination For The Specified Address Will Not Pass The Core")
-o.rows = 20
-o.wrap = "off"
-
-function o.cfgvalue(self, section)
-	return NXFS.readfile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list") or ""
-end
-function o.write(self, section, value)
-	if value then
-		value = value:gsub("\r\n?", "\n")
-		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list")
-	  if value ~= old_value then
-			NXFS.writefile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list", value)
-		end
-	end
-end
-
 o = s:taboption("lan_ac", Value, "chnroute_pass", translate("Chnroute Bypassed List"))
 o.template = "cbi/tvalue"
 o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq")
 o.rows = 20
 o.wrap = "off"
+o:depends("enable_redirect_dns", "1")
 
 function o.cfgvalue(self, section)
 	return NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute_pass.list") or ""
@@ -678,25 +677,6 @@ function o.write(self, section, value)
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute_pass.list")
 	  if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_chnroute_pass.list", value)
-		end
-	end
-end
-
-o = s:taboption("lan_ac", Value, "chnroute6_pass", translate("Chnroute6 Bypassed List"))
-o.template = "cbi/tvalue"
-o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq")
-o.rows = 20
-o.wrap = "off"
-
-function o.cfgvalue(self, section)
-	return NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list") or ""
-end
-function o.write(self, section, value)
-	if value then
-		value = value:gsub("\r\n?", "\n")
-		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list")
-	  if value ~= old_value then
-			NXFS.writefile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list", value)
 		end
 	end
 end
@@ -1455,9 +1435,101 @@ o = s:taboption("dashboard", DummyValue, "Yacd", translate("Switch(Update) Yacd 
 o.template="openclash/switch_dashboard"
 o.rawhtml = true
 
+---- ipv6
+o = s:taboption("ipv6", Flag, "ipv6_enable", font_red..bold_on..translate("Proxy IPv6 Traffic")..bold_off..font_off)
+o.description = font_red..bold_on..translate("The Gateway and DNS of The Connected Device Must be The Router IP, Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use")..bold_off..font_off
+o.default = 0
+
+o = s:taboption("ipv6", Flag, "ipv6_dns", translate("IPv6 DNS Resolve"))
+o.description = font_red..bold_on..translate("Enable to Resolve IPv6 DNS Requests, When Using The Meta Core, Enabling This Alone is Not Valid")..bold_off..font_off
+o.default = 0
+
+o = s:taboption("ipv6", Flag, "china_ip6_route", translate("China IPv6 Route"))
+o.description = translate("Bypass The China Network Flows, Improve Performance")
+o.default = 0
+o:depends("ipv6_enable", "1")
+
+o = s:taboption("ipv6", Value, "local_network6_pass", translate("Local IPv6 Network Bypassed List"))
+o.template = "cbi/tvalue"
+o.description = translate("The Traffic of The Destination For The Specified Address Will Not Pass The Core")
+o.rows = 20
+o.wrap = "off"
+
+function o.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list") or ""
+end
+function o.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list")
+	  if value ~= old_value then
+			NXFS.writefile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list", value)
+		end
+	end
+end
+
+o = s:taboption("ipv6", Value, "chnroute6_pass", translate("Chnroute6 Bypassed List"))
+o.template = "cbi/tvalue"
+o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq")
+o.rows = 20
+o.wrap = "off"
+o:depends("enable_redirect_dns", "1")
+
+function o.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list") or ""
+end
+function o.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list")
+		if value ~= old_value then
+			NXFS.writefile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list", value)
+		end
+	end
+end
+
 ---- version update
 core_update = s:taboption("version_update", DummyValue, "", nil)
 core_update.template = "openclash/update"
+
+---- developer
+o = s:taboption("developer", Value, "firewall_custom")
+o.template = "cbi/tvalue"
+o.description = translate("Custom Firewall Rules, Support IPv4 and IPv6, All Rules Will Be Added After The Openclash Rules Completely")
+o.rows = 30
+o.wrap = "off"
+
+function o.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_firewall_rules.sh") or ""
+end
+function o.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_firewall_rules.sh")
+		if value ~= old_value then
+			NXFS.writefile("/etc/openclash/custom/openclash_custom_firewall_rules.sh", value)
+		end
+	end
+end
+
+o = s:taboption("developer", Value, "ymchange_custom")
+o.template = "cbi/tvalue"
+o.description = translate("Custom Config Override Script, Any Changes Will Be Restored After The Install of the OC, Please Be Careful, The Wrong Changes May Lead to Exceptions")
+o.rows = 30
+o.wrap = "off"
+
+function o.cfgvalue(self, section)
+	return NXFS.readfile("/usr/share/openclash/yml_change.sh") or ""
+end
+function o.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/usr/share/openclash/yml_change.sh")
+		if value ~= old_value then
+			NXFS.writefile("/usr/share/openclash/yml_change.sh", value)
+		end
+	end
+end
 
 ---- debug
 o = s:taboption("debug", DummyValue, "", nil)

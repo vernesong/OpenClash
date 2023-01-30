@@ -12,7 +12,7 @@ Apex英雄-uu策略,Apex-uu.rules
 Atlas-全区,Atlas.rules
 战地1,Battlefield-1.rules
 战地4,BattleField-4.rules
-战地5,Battlefield-Ⅴ.rules
+战地5,Battlefield-Ⅴ.rules,Battlefield-5.rules
 黑色沙漠,Black-Desert.rules
 黑色幸存者,BlackSurvivor.rules
 剑灵台服,Blade&Soul TW.rules
@@ -91,6 +91,7 @@ Kurtzpel,Kurtzpel.rules
 万智牌:竞技场-国际服,MTG-Arena.rules
 奇迹传奇MU2,MU2.rules
 我的世界-地下城,Minecraft-Dungeons.rules
+微软模拟飞行年度版,Microsoft-Flight-Simulator-Game-Of-The-Year-Edition.rules
 NBA-2K19,NBA-2K19.rules
 NBA2K20,NBA2K20.rules
 仁王,NIOH.rules
@@ -102,7 +103,7 @@ Osu!,Osu!.rules
 流放之路,PathOfexile.rules
 梦幻之星2-日服(tx),PHANTASY STAR ONLINE2-JPtx.rules
 行星边际2,PlanetSide-2.rules
-绝地求生大逃杀,PlayerUnknown's-Battlegrounds-update.rules
+绝地求生大逃杀,PlayerUnknown's-Battlegrounds-update.rules,PlayerUnknowns-Battlegrounds-update.rules
 实况足球-2018,Pro-Evolution-Soccer-2018.rules
 实况足球-2019,Pro-Evolution-Soccer-2019.rules
 绝地求生亚服-东南亚服,PUBG-Asia&-Southeast-Asia.rules
@@ -157,5 +158,6 @@ Steam-社区,Steam.rules
 战舰世界国服UU,World-of-Warships-CN.rules
 僵尸世界大战,Worldwar-Z.rules
 魔兽世界-欧服,WoW-EU.rules
+战舰世界国服UU,World-of-Warships-CN.rules
 游戏王决斗链接,YO-GI-HO delulinks.rules
 游侠对战平台,YouXiaDuiZhanPingTai.rules

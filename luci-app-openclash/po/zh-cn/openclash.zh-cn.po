@@ -204,7 +204,13 @@ msgid "Redirect Local DNS Setting"
 msgstr "*本地 DNS 劫持"
 
 msgid "Set Local DNS Redirect"
-msgstr "默认启用，将自动设置 Dnsmasq 的上游服务器，如和其他插件冲突可停用，但须将 OpenClash 作为冲突插件的唯一上游服务器"
+msgstr "推荐使用 Dnsmasq 转发，兼容性更好，如和其他 DNS 插件冲突可停用，但须保证客户端获取的查询结果与 Clash 给出的一致"
+
+msgid "Dnsmasq Redirect"
+msgstr "使用 Dnsmasq 转发"
+
+msgid "Firewall Redirect"
+msgstr "使用防火墙转发"
 
 msgid "Disable Dnsmasq's DNS Cache"
 msgstr "禁止 Dnsmasq 缓存 DNS"
@@ -288,8 +294,8 @@ msgstr "连接设备的网关和 DNS 须为路由器 IP，如果您不使用，�
 msgid "IPv6 DNS Resolve"
 msgstr "允许 IPv6 类型 DNS 解析"
 
-msgid "Enable Clash to Resolve IPv6 DNS Requests"
-msgstr "允许解析 IPv6 类型的 DNS 请求"
+msgid "Enable to Resolve IPv6 DNS Requests, When Using The Meta Core, Enabling This Alone is Not Valid"
+msgstr "允许解析 IPv6 类型的 DNS 请求，当使用meta内核时，单独启用此项无效"
 
 msgid "Rules Setting"
 msgstr "规则设置"
@@ -699,9 +705,6 @@ msgstr "服务器端口"
 
 msgid "UDP Support"
 msgstr "UDP支持"
-
-msgid "Ping Latency"
-msgstr "服务器延迟"
 
 msgid "Edit Server"
 msgstr "编辑服务器配置"
@@ -2987,13 +2990,13 @@ msgid "Sniffing Ports Filter"
 msgstr "指定探测（嗅探）的端口列表"
 
 msgid "Will Override Dns Queries If Domains in The List"
-msgstr "仅列表中的域名将会使用探测（嗅探）的结果进行连接"
+msgstr "列表中的域名将会强制进行探测（嗅探）"
 
 msgid "Will Disable Sniffing If Domains(sni) in The List"
-msgstr "仅列表中的域名（sni）不会使用探测（嗅探）的结果进行连接"
+msgstr "列表中的域名（sni）不会进行探测（嗅探）"
 
 msgid "Will Only Sniffing If Ports in The List"
-msgstr "仅列表中的端口将会使用探测（嗅探）的结果进行连接"
+msgstr "仅探测（嗅探）列表中指定的协议端口"
 
 msgid "Custom Sniffer Settings"
 msgstr "自定义流量探测（嗅探）设置"
@@ -3243,3 +3246,56 @@ msgstr "测速（连通性）地址修改"
 
 msgid "Modify The Url-Test Address In The Config"
 msgstr "修改配置文件中的测速（连通性）地址"
+
+msgid "Whether to Enable Process Rules, If You Are Not Sure, Please Choose off Which Useful in Router Environment"
+msgstr "是否启用进程规则，在路由环境下保持关闭可以提升性能"
+
+msgid "Enable Process Rule"
+msgstr "启用进程规则"
+
+msgid "Warning: Because there is a port range"
+msgstr "警告：因为端口范围"
+
+msgid "in the firewall rule settings"
+msgstr "存在于防火墙规则设置"
+
+msgid "auto bypassing may cause the normal connection of the client not to reach the core, if necessary, please add your own in the access control!"
+msgstr "自动绕过后可能造成客户端的正常连接无法到达内核，如有需要，请在访问控制中自行添加！"
+
+msgid "Tip: Start Add Port Bypassing Rules For Firewall Redirect and Firewall Rules..."
+msgstr "提示：正在根据防火墙端口转发和防火墙通信规则添加端口绕过规则..."
+
+msgid "Tip: DNS Hijacking Mode is Dnsmasq Redirect..."
+msgstr "提示：DNS 劫持模式为 Dnsmasq 转发..."
+
+msgid "Tip: DNS Hijacking Mode is Firewall Redirect..."
+msgstr "提示：DNS 劫持模式为防火墙转发..."
+
+msgid "Tip: DNS Hijacking is Disabled..."
+msgstr "提示：DNS 劫持未开启..."
+
+msgid "Fake-ip Range (IPv4 Cidr)"
+msgstr "Fake-ip 地址范围 (IPv4 Cidr)"
+
+msgid "Set Fake-ip Range (IPv4 Cidr)"
+msgstr "设置 Fake-ip 地址范围 (IPv4 Cidr)"
+
+msgid "IPv6 Settings"
+msgstr "IPv6 设置"
+
+msgid "IPv6 Settings"
+msgstr "IPv6 设置"
+
+msgid "Custom Config Override Script, Any Changes Will Be Restored After The Install of the OC, Please Be Careful, The Wrong Changes May Lead to Exceptions"
+msgstr "自定义配置文件的覆写脚本，任何修改都将在插件重新安装后还原，请谨慎修改，错误的修改可能会导致异常"
+
+msgid "Custom Firewall Rules, Support IPv4 and IPv6, All Rules Will Be Added After The Openclash Rules Completely"
+msgstr "自定义防火墙规则，支持 IPv4 和 IPv6，此脚本规则将在 Openclash 的内置规则完成后执行"
+
+msgid "Tip: Start Add Custom Firewall Rules..."
+msgstr "提示：开始添加自定义防火墙规则..."
+
+msgid "Developer Settings"
+msgstr "开发者选项"
+
+

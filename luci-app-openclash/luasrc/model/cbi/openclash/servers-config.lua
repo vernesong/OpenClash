@@ -61,6 +61,7 @@ local encrypt_methods_ssr = {
 local securitys = {
 	"auto",
 	"none",
+	"zero",
 	"aes-128-gcm",
 	"chacha20-poly1305"
 }
@@ -362,14 +363,23 @@ o:depends("type", "wireguard")
 
 o = s:option(ListValue, "xudp", translate("XUDP Enable")..translate("(Only Meta Core)"))
 o.rmempty = true
-o.default = "false"
+o.default = "true"
 o:value("true")
 o:value("false")
 o:depends({type = "vmess", udp = "true"})
+o:depends({type = "vless", udp = "true"})
+
+o = s:option(ListValue, "packet-addr", translate("Packet-Addr")..translate("(Only Meta Core)"))
+o.rmempty = true
+o.default = "true"
+o:value("true")
+o:value("false")
+o:depends({type = "vless", xudp = "false"})
 
 o = s:option(Value, "packet_encoding", translate("Packet-Encoding")..translate("(Only Meta Core)"))
 o.rmempty = true
 o:depends("type", "vmess")
+o:depends("type", "vless")
 
 o = s:option(ListValue, "global_padding", translate("Global-Padding")..translate("(Only Meta Core)"))
 o.rmempty = true
@@ -392,6 +402,7 @@ o:value("none")
 o:value("tls")
 o:value("http")
 o:value("websocket", translate("websocket (ws)"))
+o:value("shadow-tls", translate("shadow-tls")..translate("(Only Meta Core)"))
 o:depends("type", "ss")
 
 o = s:option(ListValue, "obfs_snell", translate("obfs-mode"))
@@ -435,8 +446,13 @@ o.rmempty = true
 o:depends("obfs", "tls")
 o:depends("obfs", "http")
 o:depends("obfs", "websocket")
+o:depends("obfs", "shadow-tls")
 o:depends("obfs_snell", "tls")
 o:depends("obfs_snell", "http")
+
+o = s:option(Value, "obfs_password", translate("obfs-password"))
+o.rmempty = true
+o:depends("obfs", "shadow-tls")
 
 -- vmess路径
 o = s:option(Value, "path", translate("path"))
@@ -712,7 +728,6 @@ o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
    m.uci:commit(openclash)
-   sys.call("/usr/share/openclash/cfg_servers_address_fake_filter.sh &")
    luci.http.redirect(m.redirect)
 end
 

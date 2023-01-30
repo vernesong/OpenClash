@@ -198,10 +198,6 @@ function o.cfgvalue(...)
 	end
 end
 
-o = s:option(DummyValue,"server",translate("Ping Latency"))
-o.template="openclash/ping"
-o.width="10%"
-
 local tt = {
     {Delete_Unused_Servers, Delete_Servers, Delete_Proxy_Provider, Delete_Groups}
 }
@@ -284,7 +280,6 @@ o.write = function()
   luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end
 
-m:append(Template("openclash/server_list"))
 m:append(Template("openclash/toolbar_show"))
 
 return m
