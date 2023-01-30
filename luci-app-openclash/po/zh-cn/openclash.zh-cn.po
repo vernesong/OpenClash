@@ -3279,3 +3279,6 @@ msgstr "Fake-ip 地址范围 (IPv4 Cidr)"
 
 msgid "Set Fake-ip Range (IPv4 Cidr)"
 msgstr "设置 Fake-ip 地址范围 (IPv4 Cidr)"
+
+msgid "IPv6 Settings"
+msgstr "IPv6 设置"
