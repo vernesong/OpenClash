@@ -408,7 +408,7 @@ Thread.new{
       Value['dns']['enhanced-mode']='fake-ip';
    end;
    if '$1' == 'fake-ip' or ${19} == 1 then
-      Value['dns']['fake-ip-range']='198.18.0.1/16';
+      Value['dns']['fake-ip-range']='${31}';
    else
       Value['dns'].delete('fake-ip-range');
    end;

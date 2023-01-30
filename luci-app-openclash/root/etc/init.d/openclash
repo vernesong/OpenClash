@@ -1450,7 +1450,7 @@ if [ -n "$FW4" ]; then
       nft 'flush chain inet fw4 openclash' 2>/dev/null
       nft 'add rule inet fw4 openclash ip daddr @localnetwork counter return' 2>/dev/null
       if [ -z "$en_mode_tun" ] && [ "$en_mode" = "fake-ip" ]; then
-          nft add rule inet fw4 openclash ip protocol tcp ip daddr {198.18.0.0/16} counter redirect to "$proxy_port" 2>/dev/null
+          nft add rule inet fw4 openclash ip protocol tcp ip daddr { "$fakeip_range" } counter redirect to "$proxy_port" 2>/dev/null
       fi
       nft 'add rule inet fw4 openclash ip saddr @localnetwork tcp sport @lan_ac_black_ports counter return' 2>/dev/null
       nft 'add rule inet fw4 openclash ip daddr @wan_ac_black_ips counter return' 2>/dev/null
@@ -1491,7 +1491,7 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle udp dport 53 counter return' 2>/dev/null
             if [ "$en_mode" = "fake-ip" ]; then
-               nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr {198.18.0.0/16} mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
+               nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
             fi
             nft 'add rule inet fw4 openclash_mangle ip saddr @localnetwork udp sport @lan_ac_black_ports counter return' 2>/dev/null
             nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return' 2>/dev/null
@@ -1526,13 +1526,13 @@ if [ -n "$FW4" ]; then
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             nft 'add chain inet fw4 openclash_mangle' 2>/dev/null
             nft 'flush chain inet fw4 openclash_mangle' 2>/dev/null
-            nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr {198.18.0.0/16} mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
+            nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
             nft 'add rule inet fw4 mangle_prerouting ip protocol udp counter jump openclash_mangle' 2>/dev/null
 
             if [ "$enable_redirect_dns" != "2" ] || [ "$router_self_proxy" = "1" ]; then
                nft 'add chain inet fw4 openclash_mangle_output' 2>/dev/null
                nft 'flush chain inet fw4 openclash_mangle_output' 2>/dev/null
-               nft add rule inet fw4 openclash_mangle_output meta l4proto { udp } ip daddr {198.18.0.0/16} mark set "$PROXY_FWMARK" 2>/dev/null
+               nft add rule inet fw4 openclash_mangle_output meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" 2>/dev/null
                nft 'add rule inet fw4 mangle_output ip protocol udp counter jump openclash_mangle_output' 2>/dev/null
             fi
          fi
@@ -1550,7 +1550,7 @@ if [ -n "$FW4" ]; then
          nft 'add rule inet fw4 openclash_output ip saddr @localnetwork tcp sport @lan_ac_black_ports counter return' 2>/dev/null
 
          if [ "$en_mode" = "fake-ip" ]; then
-            nft add rule inet fw4 openclash_output ip protocol tcp ip daddr {198.18.0.0/16} skuid != 65534 counter redirect to "$proxy_port" 2>/dev/null
+            nft add rule inet fw4 openclash_output ip protocol tcp ip daddr { "$fakeip_range" } skuid != 65534 counter redirect to "$proxy_port" 2>/dev/null
          fi
          nft 'add rule inet fw4 openclash_output skuid != 65534 ip daddr @wan_ac_black_ips counter return' 2>/dev/null
          if [ "$en_mode" = "redir-host" ]; then
@@ -1612,7 +1612,7 @@ if [ -n "$FW4" ]; then
          nft 'add rule inet fw4 openclash_mangle_output ip saddr @localnetwork meta l4proto {tcp,udp} th sport @lan_ac_black_ports counter return' 2>/dev/null
          if [ "$en_mode" = "fake-ip" ]; then
             if [ "$en_mode_tun" -eq 1 ]; then
-               nft add rule inet fw4 openclash_mangle_output meta l4proto {tcp,udp} th dport { 0-65535 } ip daddr {198.18.0.0/16} mark set "$PROXY_FWMARK" 2>/dev/null
+               nft add rule inet fw4 openclash_mangle_output meta l4proto {tcp,udp} th dport { 0-65535 } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" 2>/dev/null
                if [ "$china_ip_route" = "1" ]; then
                   if [ "$enable_redirect_dns" = "1" ]; then
                      nft 'add rule inet fw4 openclash_mangle_output skuid != 65534 ip daddr @china_ip_route ip daddr != @china_ip_route_pass counter return' 2>/dev/null
@@ -1629,7 +1629,7 @@ if [ -n "$FW4" ]; then
                      nft 'add rule inet fw4 openclash_mangle_output skuid != 65534 ip daddr @china_ip_route counter return' 2>/dev/null
                   fi
                fi
-               nft add rule inet fw4 openclash_mangle_output skuid != 65534 udp dport { 0-65535 } ip daddr {198.18.0.0/16} meta mark set "$PROXY_FWMARK" 2>/dev/null
+               nft add rule inet fw4 openclash_mangle_output skuid != 65534 udp dport { 0-65535 } ip daddr { "$fakeip_range" } meta mark set "$PROXY_FWMARK" 2>/dev/null
             fi
          elif [ "$en_mode" = "redir-host" ] && [ "$en_mode_tun" -eq 1 ]; then
             nft 'add rule inet fw4 openclash_mangle_output skuid != 65534 ip daddr @wan_ac_black_ips counter return' 2>/dev/null
@@ -2129,7 +2129,7 @@ else
       iptables -t nat -F openclash
       iptables -t nat -A openclash -m set --match-set localnetwork dst -j RETURN
       if [ -z "$en_mode_tun" ] && [ "$en_mode" = "fake-ip" ]; then
-         iptables -t nat -A openclash -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+         iptables -t nat -A openclash -p tcp -d "$fakeip_range" -j REDIRECT --to-ports "$proxy_port"
       fi
       iptables -t nat -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
       iptables -t nat -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
@@ -2171,7 +2171,7 @@ else
             iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
             iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
             if [ "$en_mode" = "fake-ip" ]; then
-               iptables -t mangle -A openclash -p udp -d 198.18.0.0/16 -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
+               iptables -t mangle -A openclash -p udp -d "$fakeip_range" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             fi
             iptables -t mangle -A openclash -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
             iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
@@ -2203,13 +2203,13 @@ else
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             iptables -t mangle -N openclash
             iptables -t mangle -F openclash
-            iptables -t mangle -A openclash -p udp -d 198.18.0.0/16 -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
+            iptables -t mangle -A openclash -p udp -d "$fakeip_range" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             iptables -t mangle -A PREROUTING -p udp -j openclash
 
             if [ "$enable_redirect_dns" != "2" ] || [ "$router_self_proxy" = 1 ]; then
                iptables -t mangle -N openclash_output
                iptables -t mangle -F openclash_output
-               iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
+               iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
                iptables -t mangle -A OUTPUT -p udp -j openclash_output
             fi
          fi
@@ -2225,7 +2225,7 @@ else
             iptables -t nat -N openclash_output
             iptables -t nat -F openclash_output
             if [ "$en_mode" = "fake-ip" ] && [ -z "$en_mode_tun" ]; then
-               iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+               iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d "$fakeip_range" -j REDIRECT --to-ports "$proxy_port"
             fi
             iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
             iptables -t nat -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
@@ -2247,7 +2247,7 @@ else
                iptables -t nat -F openclash_output
                iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
                iptables -t nat -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
-               iptables -t nat -A openclash_output -p tcp -d 198.18.0.0/16 -j REDIRECT --to-ports "$proxy_port"
+               iptables -t nat -A openclash_output -p tcp -d "$fakeip_range" -j REDIRECT --to-ports "$proxy_port"
             fi
          fi
          iptables -t nat -A OUTPUT -j openclash_output >/dev/null 2>&1
@@ -2298,7 +2298,7 @@ else
             iptables -t mangle -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
             if [ "$en_mode_tun" -eq 1 ]; then
                if [ -z "$_koolshare" ]; then
-                  iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
+                  iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
                   iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
                   if [ "$china_ip_route" = "1" ]; then
                      if [ "$enable_redirect_dns" = "1" ]; then
@@ -2309,7 +2309,7 @@ else
                   fi
                   iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j MARK --set-mark "$PROXY_FWMARK"
                else
-                  iptables -t mangle -A openclash_output -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
+                  iptables -t mangle -A openclash_output -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
                fi
             elif [ -z "$_koolshare" ]; then
                if [ "$china_ip_route" = "1" ]; then
@@ -2319,7 +2319,7 @@ else
                      iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
                   fi
                fi
-               iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -d 198.18.0.0/16 -j MARK --set-mark "$PROXY_FWMARK"
+               iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
             fi
             iptables -t mangle -A OUTPUT -j openclash_output
          elif [ -z "$_koolshare" ] && [ "$en_mode" = "redir-host" ] && [ "$en_mode_tun" -eq 1 ]; then
@@ -2663,7 +2663,7 @@ revert_firewall()
    #TUN
    ip route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-   route delete -net 198.18.0.0/16 dev utun >/dev/null 2>&1
+   route delete -net "$fakeip_range" dev utun >/dev/null 2>&1
    ip link set dev utun down >/dev/null 2>&1
    ip tuntap del utun mode tun >/dev/null 2>&1
 
@@ -2753,10 +2753,11 @@ get_config()
    http_port=$(uci -q get openclash.config.http_port)
    socks_port=$(uci -q get openclash.config.socks_port)
    enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
+   fakeip_range=$(uci -q get openclash.config.fakeip_range || echo "198.18.0.1/16")
    lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
-   lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^198.18" 2>/dev/null)
+   lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^$(echo "$fakeip_range"|awk -F '.' '{print $1"."$2}')" 2>/dev/null)
    lan_ip6_cidrs=$(ip -6 route | grep "/" | awk '{print $1}' | grep -vE "^unreachable" 2>/dev/null)
-   wan_ip4s=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 | grep -vE "(^198.18|^192.168|^127.0)" 2>/dev/null)
+   wan_ip4s=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 | grep -vE "(^$(echo "$fakeip_range"|awk -F '.' '{print $1"."$2}')|^192.168|^127.0)" 2>/dev/null)
    wan_ip6s=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
    disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
    log_level=$(uci -q get openclash.config.log_level)
@@ -2788,7 +2789,7 @@ get_config()
    enable_tcp_concurrent=$(uci -q get openclash.config.enable_tcp_concurrent || echo 0)
    append_default_dns=$(uci -q get openclash.config.append_default_dns || echo 1)
    enable_meta_sniffer_pure_ip=$(uci -q get openclash.config.enable_meta_sniffer_pure_ip || echo 1)
-   custom_china_domain_dns_server=$(uci -q get openclash.config.custom_china_domain_dns_server || echo 114.114.114.114)
+   custom_china_domain_dns_server=$(uci -q get openclash.config.custom_china_domain_dns_server || echo "114.114.114.114")
    _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
    find_process_mode=$(uci -q get openclash.config.find_process_mode || echo off)
    upnp_lease_file=$(uci -q get upnpd.config.upnp_lease_file)
@@ -2819,9 +2820,8 @@ start()
    if ! $quick_start; then
       LOG_OUT "Step 3: Modify The Config File..."
       config_check
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote" "$enable_meta_core" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode"
-      /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port" "$enable_meta_core" "$enable_redirect_dns"
-      /usr/share/openclash/openclash_server_fake_filter.sh >/dev/null 2>&1
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$dns_remote" "$enable_meta_core" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range"
+      /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port" "$enable_meta_core" "$enable_redirect_dns" "$fakeip_range"
       /usr/share/openclash/openclash_custom_domain_dns.sh >/dev/null 2>&1
    fi
    
