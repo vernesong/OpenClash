@@ -2645,6 +2645,15 @@ LOG_OUT "Tip: Start Add Port Bypassing Rules For Firewall Redirect and Firewall 
 config_load "firewall"
 config_foreach firewall_redirect_exclude "redirect"
 config_foreach firewall_rule_exclude "rule"
+
+#Custom
+
+if [ -f "/etc/openclash/custom/openclash_custom_firewall_rules.sh" ]; then
+   LOG_OUT "Tip: Start Add Custom Firewall Rules..."
+   chmod +x /etc/openclash/custom/openclash_custom_firewall_rules.sh
+   /etc/openclash/custom/openclash_custom_firewall_rules.sh >> "$LOG_FILE" 2>&1
+fi
+
 }
 
 revert_firewall()

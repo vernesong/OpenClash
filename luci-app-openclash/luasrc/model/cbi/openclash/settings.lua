@@ -49,6 +49,7 @@ s:tab("geo_update", translate("GEO Update"))
 s:tab("chnr_update", translate("Chnroute Update"))
 s:tab("auto_restart", translate("Auto Restart"))
 s:tab("version_update", translate("Version Update"))
+s:tab("developer", translate("Developer Settings"))
 s:tab("debug", translate("Debug Logs"))
 s:tab("dlercloud", translate("Dler Cloud"))
 
@@ -1481,7 +1482,7 @@ function o.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list")
-	  if value ~= old_value then
+		if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list", value)
 		end
 	end
@@ -1490,6 +1491,45 @@ end
 ---- version update
 core_update = s:taboption("version_update", DummyValue, "", nil)
 core_update.template = "openclash/update"
+
+---- developer
+o = s:taboption("developer", Value, "firewall_custom")
+o.template = "cbi/tvalue"
+o.description = translate("Custom Firewall Rules, Support IPv4 and IPv6, All Rules Will Be Added After The Openclash Rules Completely")
+o.rows = 30
+o.wrap = "off"
+
+function o.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_firewall_rules.sh") or ""
+end
+function o.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_firewall_rules.sh")
+		if value ~= old_value then
+			NXFS.writefile("/etc/openclash/custom/openclash_custom_firewall_rules.sh", value)
+		end
+	end
+end
+
+o = s:taboption("developer", Value, "ymchange_custom")
+o.template = "cbi/tvalue"
+o.description = translate("Custom Config Override Script, Any Changes Will Be Restored After The Install of the OC, Please Be Careful, The Wrong Changes May Lead to Exceptions")
+o.rows = 30
+o.wrap = "off"
+
+function o.cfgvalue(self, section)
+	return NXFS.readfile("/usr/share/openclash/yml_change.sh") or ""
+end
+function o.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/usr/share/openclash/yml_change.sh")
+		if value ~= old_value then
+			NXFS.writefile("/usr/share/openclash/yml_change.sh", value)
+		end
+	end
+end
 
 ---- debug
 o = s:taboption("debug", DummyValue, "", nil)
