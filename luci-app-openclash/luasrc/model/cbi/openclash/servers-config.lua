@@ -61,6 +61,7 @@ local encrypt_methods_ssr = {
 local securitys = {
 	"auto",
 	"none",
+	"zero",
 	"aes-128-gcm",
 	"chacha20-poly1305"
 }
