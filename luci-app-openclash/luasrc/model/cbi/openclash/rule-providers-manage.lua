@@ -26,7 +26,8 @@ o = a:option(Button, "Refresh", " ")
 o.inputtitle = translate("Refresh Page")
 o.inputstyle = "apply"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-manage"))
+   SYS.call("rm -rf /tmp/rule_providers_name 2>/dev/null")
+   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-manage"))
 end
 
 o = a:option(Button, "Apply", " ")
