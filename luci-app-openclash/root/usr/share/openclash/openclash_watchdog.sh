@@ -22,6 +22,7 @@ DISNEY_DOMAINS_LIST="/usr/share/openclash/res/Disney_Plus_Domains.list"
 _koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
 china_ip_route=$(uci -q get openclash.config.china_ip_route)
 en_mode=$(uci -q get openclash.config.en_mode)
+fakeip_range=$(uci -q get openclash.config.fakeip_range || echo "198.18.0.1/16")
 CRASH_NUM=0
 CFG_UPDATE_INT=1
 STREAM_DOMAINS_PREFETCH=1
@@ -180,9 +181,9 @@ fi
    check_dnsmasq
 
 ## Localnetwork 刷新
-   lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^198.18" 2>/dev/null)
+   lan_ip_cidrs=$(ip route | grep "/" | awk '{print $1}' | grep -vE "^$(echo "$fakeip_range"|awk -F '.' '{print $1"."$2}')" 2>/dev/null)
    lan_ip6_cidrs=$(ip -6 route | grep "/" | awk '{print $1}' | grep -vE "^unreachable" 2>/dev/null)
-   wan_ip4s=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 | grep -vE "(^198.18|^192.168|^127.0)" 2>/dev/null)
+   wan_ip4s=$(ifconfig | grep 'inet addr' | awk '{print $2}' | cut -d: -f2 | grep -vE "(^$(echo "$fakeip_range"|awk -F '.' '{print $1"."$2}')|^192.168|^127.0)" 2>/dev/null)
    if [ -n "$FW4" ]; then
       if [ -n "$lan_ip_cidrs" ]; then
          for lan_ip_cidr in $lan_ip_cidrs; do
