@@ -17,6 +17,7 @@
 <script src="/luci-static/resources/openclash/lib/codemirror.js"></script>
 <script src="/luci-static/resources/openclash/mode/yaml/yaml.js"></script>
 <script src="/luci-static/resources/openclash/mode/lua/lua.js"></script>
+<script src="/luci-static/resources/openclash/mode/shell/shell.js"></script>
 <script src="/luci-static/resources/openclash/addon/fold/foldcode.js"></script>
 <script src="/luci-static/resources/openclash/addon/fold/foldgutter.js"></script>
 <script src="/luci-static/resources/openclash/addon/fold/indent-fold.js"></script>
@@ -73,6 +74,37 @@ function editor(id, readOnly, wid, height)
 	if (wid && height) {
 		editor.setSize(wid, height);
 	};
+};
+
+function shell_editor(id, readOnly)
+{
+	var editor = CodeMirror.fromTextArea(id, {
+	mode: "shell",
+	autoRefresh: true,
+	styleActiveLine: true,
+	lineNumbers: true,
+	theme: "material",
+	lineWrapping: true,
+	matchBrackets: true,
+	foldGutter: true,
+	gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
+	extraKeys: {
+        "F11": function(cm) {
+          cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+        },
+        "Esc": function(cm) {
+          if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+        },
+        "Tab": function(cm) {
+           if (cm.somethingSelected()) {
+              cm.indentSelection('add')
+           } else {
+              var spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
+              cm.replaceSelection(spaces)
+           }
+        }
+      }
+	});
 };
 
 function other_editor(id, readOnly)
@@ -137,6 +169,16 @@ function other_log_area(id, readOnly, wid, height)
 	};
 	
 	other_log_area.markText({line:0,ch:0},{line:9999,ch:9999}, {css: 'font-size:13px'});
+};
+
+var custom_firewall = document.getElementById("cbid.openclash.config.firewall_custom");
+var custom_ymchange = document.getElementById("cbid.openclash.config.ymchange_custom");
+if (custom_firewall) {
+	shell_editor(custom_firewall, 'false');
+};
+
+if (custom_ymchange) {
+	shell_editor(custom_ymchange, 'false');
 };
 
 var myEditor_use = document.getElementById("cbid.table.1.user");
@@ -257,7 +299,7 @@ if (proxy_mg) {
 	rule_mg.style.textAlign="center";
 	game_mg.style.textAlign="center";
 	Commit.style.textAlign="center";
-  Apply.style.textAlign="center";
+	Apply.style.textAlign="center";
 };
 //]]>
 </script> 
