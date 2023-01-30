@@ -1,15 +1,15 @@
 300英雄,300hero-cn.rules
 永恒之塔-台服,Aion-TW.rules
 美国卡车模拟国际服,American-Truck-Simulator.rules
+太空狼人杀,Among Us.rules
 圣歌,Anthem.rules
-Apex-uu,Apex-uu.rules
 Apex英雄,Apex.rules
-武装突袭(Codefourgaming和官服),Arma3.rules
+Apex英雄-uu策略,Apex-uu.rules
 方舟：生存进化,ARK--Survival-Evolved.rules
+武装突袭(Codefourgaming和官服),Arma3.rules
 刺客信条：奥德赛,Assassin's-Creed-Odyssey.rules,Assassins-Creed-Odyssey.rules
 刺客信条：起源,Assassin's-Creed-Origins.rules,Assassins-Creed-Origins.rules
 Atlas-全区,Atlas.rules
-太空狼人杀,Among Us.rules
 战地1,Battlefield-1.rules
 战地4,BattleField-4.rules
 战地5,Battlefield-Ⅴ.rules,Battlefield-5.rules
@@ -17,16 +17,17 @@ Atlas-全区,Atlas.rules
 黑色幸存者,BlackSurvivor.rules
 剑灵台服,Blade&Soul TW.rules
 剑灵-日服,Blade-&-Soul-jp.rules
-剑灵-国服全部区服（UU规则）,Blood-&-Soul-CN-TestServer-NantianGuo-Alpha.rules
-剑灵-国服-南天国（测试版）,Blood-&-Soul-CN.rules
+剑灵-国服全部区服（UU规则）,Blood-&-Soul-CN.rules
+剑灵-国服-南天国（测试版）,Blood-&-Soul-CN-TestServer-NantianGuo-Alpha.rules
 无主之地3,Borderlands3-asia.rules
 泡泡战士-跑跑卡丁车-韩服,BubbleFighter-KartRider-KR.rules
 使命召唤4：现代战争重置版,Call-Of-Duty-4-Modern-Warfare.rules
 使命召唤15亚服,Call-Of-Duty15-Asia.rules
+使命召唤16&19：现代战争I&II,Call-Of-Duty-Modern-Warfare.rules
 英雄连2,Company-Of-Heroes-2.rules
 反恐精英:全球攻势,CS-GO.rules
-反恐精英:全球攻势-港服(tx),CSGO-HKtx.rules
 反恐精英:全球攻势-港服(uu),CSGO-HKuu.rules
+反恐精英:全球攻势-港服(tx),CSGO-HKtx.rules
 反恐精英:全球攻势-日服(tx),CSGO-JPtx.rules
 反恐精英:全球攻势-美服(tx),CSGO-UStx.rules
 黑暗之魂3,Dark-Souls-3.rules
@@ -44,16 +45,15 @@ DayZ-steam,DayZ.rules
 脏弹-Steam,Dirty-Bomb.rules
 Discord,Discord-All.rules
 饥荒-steam,Don't-Starve-steam.rules,Dont-Starve-steam.rules
-刀塔霸业,Dota-Underlords.rules
 DOTA2-日服,Dota2-jp.rules
+刀塔霸业,Dota-Underlords.rules
 逃离塔科夫,Escape-from-Tarkov.rules
 欧卡2所有分区-UU,Euro-Truck-Simulator-2.rules
 Eve-online欧服,Eve-online.rules
-鹅鸭杀-港服,Goose-Goose-Duck-HK.rules
 FIFA19,FiFa19-INT.rules
 FIFA20,FIFA20.rules
-最终幻想14国服,FINAL-FANTASY-XIV-cn.rules
 最终幻想14,Final-Fantasy-XIV.rules
+最终幻想14国服,FINAL-FANTASY-XIV-cn.rules
 荣耀战魂,For-Honour.rules
 堡垒之夜-亚服,Fortnite-AS.rules
 堡垒之夜-国服,Fortnite-cn.rules
@@ -61,6 +61,7 @@ FIFA20,FIFA20.rules
 极限竞速地平线5,Forza-Horizon-5.rules
 极限竞速7,Forza-Motorsport-7.rules
 基佬大乱斗Gang-Beasts,Gang-Beasts.rules
+鹅鸭杀-港服,Goose-Goose-Duck-HK.rules
 Grand Theft Auto V(GTA5),Grand Theft Auto V.rules
 激战2,Guild-Wars-2.rules
 巫师昆特牌国际服,Gwent_The-Witcher-Card-game.rules
@@ -81,6 +82,11 @@ Kurtzpel,Kurtzpel.rules
 失落的方舟韩服,Lost-Ark.rules
 失落的方舟俄服,Lostark-RU.rules
 冒险岛,Maplestory-us.rules
+心灵终结,MentalOmega.rules
+微软模拟飞行年度版,Microsoft-Flight-Simulator-Game-Of-The-Year-Edition.rules
+微软商店,Microsoft-Srote.rules
+我的世界-地下城,Minecraft-Dungeons.rules
+误造,Miscreated.rules
 怪兽世界猎人steam版,Monster-Hunter-World.rules
 万智牌:竞技场-国际服,MTG-Arena.rules
 奇迹传奇MU2,MU2.rules
@@ -119,7 +125,7 @@ Roblox,Roblox.rules
 星球大战2前线,Star-Wars-BattlefrontII.rules
 StarCraft-亚服,StarCraft-2-asia.rules
 星际争霸2-国服,StarCraftⅡ-cn.rules,StarCraft2-cn.rules
-Steam-社区(Beta),Steam.rules
+Steam-社区,Steam.rules
 极限巅峰,Steep.rules
 街头霸王5,Street-Fighter-V.rules
 神谕之战,TERA.rules
@@ -147,7 +153,9 @@ Steam-社区(Beta),Steam.rules
 坦克世界闪电战,World-of-Tanks-Blitz.rules 
 魔兽世界台服,World-of-warcraft-tw.rules
 战舰世界-亚服,World-of-Warships-US.rules
+战舰世界-欧服,World-of-warships-EU.rules
 战舰世界-美服,World-of-Warships.rules
+战舰世界国服UU,World-of-Warships-CN.rules
 僵尸世界大战,Worldwar-Z.rules
 魔兽世界-欧服,WoW-EU.rules
 战舰世界国服UU,World-of-Warships-CN.rules
