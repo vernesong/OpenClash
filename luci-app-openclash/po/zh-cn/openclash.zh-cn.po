@@ -288,8 +288,8 @@ msgstr "通讯协议"
 msgid "Proxy IPv6 Traffic"
 msgstr "IPv6 流量代理"
 
-msgid "The Gateway and DNS of The Connected Device Must be The Router IP, Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use"
-msgstr "连接设备的网关和 DNS 须为路由器 IP，如果您不使用，请禁用 IPv6 的 DHCP 以避免连接异常"
+msgid "IPv6 ONLY WORK IN FAKE-IP MODE. The Gateway and DNS of The Connected Device Must be The Router IP, Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use"
+msgstr "IPv6 只在 Fake-IP 模式下工作! 连接设备的网关和 DNS 须为路由器 IP，如果您不使用，请禁用 IPv6 的 DHCP 以避免连接异常"
 
 msgid "IPv6 DNS Resolve"
 msgstr "允许 IPv6 类型 DNS 解析"
