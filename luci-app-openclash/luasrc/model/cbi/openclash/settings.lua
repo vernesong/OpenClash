@@ -253,13 +253,6 @@ o = s:taboption("dns", Flag, "enable_custom_dns", font_red..bold_on..translate("
 o.description = font_red..bold_on..translate("Set OpenClash Upstream DNS Resolve Server")..bold_off..font_off
 o.default = 0
 
-if op_mode == "redir-host" then
-o = s:taboption("dns", Flag, "dns_remote", font_red..bold_on..translate("DNS Remote")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Add DNS Remote Support For Redir-Host")..bold_off..font_off
-o.default = 1
-o:depends("enable_meta_core", 0)
-end
-
 o = s:taboption("dns", Flag, "append_wan_dns", translate("Append Upstream DNS"))
 o.description = translate("Append The Upstream Assigned DNS And Gateway IP To The Nameserver")
 o.default = 1
@@ -1454,6 +1447,7 @@ o.template = "cbi/tvalue"
 o.description = translate("The Traffic of The Destination For The Specified Address Will Not Pass The Core")
 o.rows = 20
 o.wrap = "off"
+o:depends("ipv6_enable", "1")
 
 function o.cfgvalue(self, section)
 	return NXFS.readfile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list") or ""
@@ -1473,7 +1467,7 @@ o.template = "cbi/tvalue"
 o.description = translate("Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq")
 o.rows = 20
 o.wrap = "off"
-o:depends("enable_redirect_dns", "1")
+o:depends({ipv6_enable = "1", enable_redirect_dns = "1"})
 
 function o.cfgvalue(self, section)
 	return NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list") or ""
@@ -1495,7 +1489,7 @@ core_update.template = "openclash/update"
 ---- developer
 o = s:taboption("developer", Value, "firewall_custom")
 o.template = "cbi/tvalue"
-o.description = translate("Custom Firewall Rules, Support IPv4 and IPv6, All Rules Will Be Added After The Openclash Rules Completely")
+o.description = translate("Custom Firewall Rules, Support IPv4 and IPv6, All Rules Will Be Added After The OpenClash Rules Completely")
 o.rows = 30
 o.wrap = "off"
 
@@ -1529,6 +1523,15 @@ function o.write(self, section, value)
 			NXFS.writefile("/usr/share/openclash/yml_change.sh", value)
 		end
 	end
+end
+
+o = s:taboption("developer", Button, translate("Restore Override Script"))
+o.title = translate("Restore Override Script")
+o.inputtitle = translate("Restore")
+o.inputstyle = "reload"
+o.write = function()
+  SYS.call("cp /usr/share/openclash/backup/yml_change.sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "settings"))
 end
 
 ---- debug

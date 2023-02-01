@@ -41,7 +41,6 @@ mix_proxies=$(uci -q get openclash.config.mix_proxies)
 op_version=$(opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print "v"$2}')
 china_ip_route=$(uci -q get openclash.config.china_ip_route)
 common_ports=$(uci -q get openclash.config.common_ports)
-dns_remote=$(uci -q -q get openclash.config.dns_remote)
 router_self_proxy=$(uci -q get openclash.config.router_self_proxy)
 
 if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
@@ -68,6 +67,17 @@ ts_re()
 	else
 	   echo "已安装"
   fi
+}
+
+dns_re()
+{
+   if [ "$1" = "1" ]; then
+	   echo "Dnsmasq 转发"
+   elif [ "$1" = "2" ]; then
+	   echo "Firewall 转发"
+   else
+      echo "停用"
+   fi
 }
 
 echo "OpenClash 调试日志" > "$DEBUG_LOG"
@@ -241,7 +251,7 @@ cat >> "$DEBUG_LOG" <<-EOF
 运行模式: $en_mode
 默认代理模式: $proxy_mode
 UDP流量转发(tproxy): $(ts_cf "$enable_udp_proxy")
-DNS劫持: $(ts_cf "$enable_redirect_dns")
+DNS劫持: $(dns_re "$enable_redirect_dns")
 自定义DNS: $(ts_cf "$enable_custom_dns")
 IPV6代理: $(ts_cf "$ipv6_enable")
 IPV6-DNS解析: $(ts_cf "$ipv6_dns")
@@ -251,7 +261,6 @@ IPV6-DNS解析: $(ts_cf "$ipv6_dns")
 仅代理命中规则流量: $(ts_cf "$enable_rule_proxy")
 仅允许常用端口流量: $(ts_cf "$common_ports")
 绕过中国大陆IP: $(ts_cf "$china_ip_route")
-DNS远程解析: $(ts_cf "$dns_remote")
 路由本机代理: $(ts_cf "$router_self_proxy")
 
 #启动异常时建议关闭此项后重试
@@ -294,6 +303,14 @@ fi
 sed -i '/^ \{0,\}secret:/d' "$DEBUG_LOG" 2>/dev/null
 
 #firewall
+cat >> "$DEBUG_LOG" <<-EOF
+
+#===================== 自定义防火墙设置 =====================#
+
+EOF
+
+cat /etc/openclash/custom/openclash_custom_firewall_rules.sh >> "$DEBUG_LOG" 2>/dev/null
+
 cat >> "$DEBUG_LOG" <<-EOF
 
 #===================== IPTABLES 防火墙设置 =====================#
@@ -389,10 +406,17 @@ netstat -nlp |grep clash >> "$DEBUG_LOG" 2>/dev/null
 
 cat >> "$DEBUG_LOG" <<-EOF
 
-#===================== 测试本机DNS查询 =====================#
+#===================== 测试本机DNS查询(www.baidu.com) =====================#
 
 EOF
 nslookup www.baidu.com >> "$DEBUG_LOG" 2>/dev/null
+
+cat >> "$DEBUG_LOG" <<-EOF
+
+#===================== 测试内核DNS查询(www.instagram.com) =====================#
+
+EOF
+/usr/share/openclash/openclash_debug_dns.lua "www.instagram.com" >> "$DEBUG_LOG" 2>/dev/null
 
 if [ -s "/tmp/resolv.conf.auto" ]; then
 cat >> "$DEBUG_LOG" <<-EOF
@@ -414,14 +438,14 @@ fi
 
 cat >> "$DEBUG_LOG" <<-EOF
 
-#===================== 测试本机网络连接 =====================#
+#===================== 测试本机网络连接(www.baidu.com) =====================#
 
 EOF
 curl -SsI -m 5 www.baidu.com >> "$DEBUG_LOG" 2>/dev/null
 
 cat >> "$DEBUG_LOG" <<-EOF
 
-#===================== 测试本机网络下载 =====================#
+#===================== 测试本机网络下载(raw.githubusercontent.com) =====================#
 
 EOF
 VERSION_URL="https://raw.githubusercontent.com/vernesong/OpenClash/master/version"
