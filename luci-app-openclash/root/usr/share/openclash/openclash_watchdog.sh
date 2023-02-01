@@ -19,7 +19,6 @@ stream_auto_select_interval=$(uci -q get openclash.config.stream_auto_select_int
 NETFLIX_DOMAINS_LIST="/usr/share/openclash/res/Netflix_Domains.list"
 NETFLIX_DOMAINS_CUSTOM_LIST="/etc/openclash/custom/openclash_custom_netflix_domains.list"
 DISNEY_DOMAINS_LIST="/usr/share/openclash/res/Disney_Plus_Domains.list"
-_koolshare=$(cat /usr/lib/os-release 2>/dev/null |grep OPENWRT_RELEASE 2>/dev/null |grep -i koolshare 2>/dev/null)
 china_ip_route=$(uci -q get openclash.config.china_ip_route)
 en_mode=$(uci -q get openclash.config.en_mode)
 fakeip_range=$(uci -q get openclash.config.fakeip_range || echo "198.18.0.1/16")
@@ -122,22 +121,18 @@ if [ "$enable" -eq 1 ]; then
 	if ! pidof clash >/dev/null; then
 	   CRASH_NUM=$(expr "$CRASH_NUM" + 1)
 	   if [ "$CRASH_NUM" -le 3 ]; then
-            RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
-            CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
-            LOG_OUT "Watchdog: Clash Core Problem, Restart..."
-            if [ -z "$_koolshare" ]; then
-               touch /tmp/openclash.log 2>/dev/null
-               chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
-               chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
-               chmod o+w /etc/openclash/history/* 2>/dev/null
-               chmod o+w /tmp/openclash.log 2>/dev/null
-               chmod o+w /etc/openclash/cache.db 2>/dev/null
-               chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
-               capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace"
-               capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
-         else
-               nohup $CLASH -d $CLASH_CONFIG -f "$CONFIG_FILE" >> $LOG_FILE 2>&1 &
-         fi
+         RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
+         CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
+         LOG_OUT "Watchdog: Clash Core Problem, Restart..."
+         touch /tmp/openclash.log 2>/dev/null
+         chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
+         chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
+         chmod o+w /etc/openclash/history/* 2>/dev/null
+         chmod o+w /tmp/openclash.log 2>/dev/null
+         chmod o+w /etc/openclash/cache.db 2>/dev/null
+         chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
+         capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace"
+         capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
 	      sleep 3
 	      if [ "$core_type" == "TUN" ] || [ "$core_type" == "Meta" ]; then
 	         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
