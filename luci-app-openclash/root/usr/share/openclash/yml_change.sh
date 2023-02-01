@@ -717,7 +717,7 @@ Thread.new{
             Value['dns'].merge!({'fake-ip-filter'=>['+.dns.google']});
          end;
       end;
-   else
+   elsif ${19} != 1 then
       if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
          Value['dns']['fake-ip-filter'].insert(-1,'+.*');
          Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
