@@ -5,7 +5,38 @@
 
 <%
 local diag_host = "www.instagram.com"
+local dns_host = "www.instagram.com"
 %>
+
+<style>
+#diag-rc-output > pre {
+    background-color: #f5f5f5;
+    display: block;
+    padding: 8.5px;
+    margin: 0 0 18px;
+    line-height: 1.5rem;
+    -moz-border-radius: 3px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 1.4rem;
+    color: #404040;
+}
+
+#dns-rc-output > pre {
+    background-color: #f5f5f5;
+    display: block;
+    padding: 8.5px;
+    margin: 0 0 18px;
+    line-height: 1.5rem;
+    -moz-border-radius: 3px;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 1.4rem;
+    color: #404040;
+}
+
+</style>
+
 
 <script type="text/javascript">//<![CDATA[
 
@@ -80,6 +111,43 @@ local diag_host = "www.instagram.com"
 		HTTP.runcheck();
 	}
 	
+	function diag_dns(field)
+	{
+		var addr = field.value;
+		var legend = document.getElementById('dns-rc-legend');
+		var output = document.getElementById('dns-rc-output');
+		
+		if (legend && output)
+		{
+			output.innerHTML =
+				'<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
+				'<%:Waiting for command to complete...%>';
+
+			legend.parentNode.style.display = 'block';
+			legend.style.display = 'inline';
+		}
+		
+		if (legend && output)
+		{
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "diag_dns")%>', {addr: addr}, function(x, status) {
+				if (x && x.status == 200 && x.responseText != "")
+				{
+					legend.style.display = 'none';
+					output.innerHTML = String.format('<pre>%h</pre>', x.responseText);
+				}
+				else if (x.status == 500)
+				{
+					legend.style.display = 'none';
+					output.innerHTML = '<span class="error"><%:Bad address specified!%></span>';
+				}
+				else
+				{
+					legend.style.display = 'none';
+					output.innerHTML = '<span class="error"><%:No Response Found!%></span>';
+				}
+			});
+		}
+	}
 	
 	function gen_debug_logs()
 	{
@@ -114,12 +182,17 @@ local diag_host = "www.instagram.com"
 
 <form>
 	<fieldset>
-		<div style="width:50%; float: left; text-align: center;">
+		<div style="width:33%; float: left; text-align: center;">
 			<%:Connection Test (Current Browser)%>&nbsp;&nbsp;&nbsp;&nbsp;
 			<input type="text" value="<%=diag_host%>" name="diag" />
 			<input type="button" value="<%:Click to Test%>" class="btn cbi-button cbi-button-apply" onclick="update_status(this.form.diag)" />
 		</div>
-		<div style="width:50%; float: left; text-align: center;">
+		<div style="width:33%; float: left; text-align: center;">
+			<%:DNS Test (Clash Response)%>&nbsp;&nbsp;&nbsp;&nbsp;
+			<input type="text" value="<%=dns_host%>" name="dns_host" />
+			<input type="button" value="<%:Click to Test%>" class="btn cbi-button cbi-button-apply" onclick="diag_dns(this.form.dns_host)" />
+		</div>
+		<div style="width:33%; float: left; text-align: center;">
 			<%:Generate Logs%>&nbsp;&nbsp;&nbsp;&nbsp;
 			<input type="button" value="<%:Click to Generate%>" class="btn cbi-button cbi-button-apply" onclick="gen_debug_logs(this)" />
 		</div>
@@ -129,6 +202,12 @@ local diag_host = "www.instagram.com"
 		<legend id="diag-rc-legend"><%:Collecting data...%></legend>
 		<br />
 		<span id="diag-rc-output"></span>
+	</fieldset>
+
+	<fieldset style="display:none">
+		<legend id="dns-rc-legend"><%:Collecting data...%></legend>
+		<br />
+		<span id="dns-rc-output"></span>
 	</fieldset>
 	
 	<fieldset style="display:none">
