@@ -2416,6 +2416,9 @@ msgstr "内存占用:"
 msgid "CPU:"
 msgstr "CPU占用:"
 
+msgid "Bad address specified!"
+msgstr "输入的地址不合法！"
+
 msgid "Could not find any connection logs!"
 msgstr "找不到任何连接日志！"
 
@@ -3298,4 +3301,9 @@ msgstr "还原覆写脚本"
 msgid "Restore"
 msgstr "还原"
 
+msgid "DNS Test (Clash Response)"
+msgstr "DNS 测试（Clash 查询结果）"
+
+msgid "No Response Found!"
+msgstr "结果获取失败！"
 
