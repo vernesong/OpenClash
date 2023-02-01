@@ -406,11 +406,17 @@ Thread.new{
       Value['dns']['ipv6']=false;
    end;
    
-   #force fake-ip
-   Value['dns']['enhanced-mode']='fake-ip';
-   Value['dns']['fake-ip-range']='${30}';
+   #dev&tun core force fake-ip
+   if ${19} == 1 and '$1' == 'redir-host' then
+      Value['dns']['enhanced-mode']='redir-host';
+      Value['dns'].delete('fake-ip-range');
+   else
+      Value['dns']['enhanced-mode']='fake-ip';
+      Value['dns']['fake-ip-range']='${30}';
+   end;
 
    Value['dns']['listen']='0.0.0.0:${13}';
+   
    #meta only
    if ${19} == 1 and ${20} == 1 then
       Value_sniffer={'sniffer'=>{'enable'=>true}};
