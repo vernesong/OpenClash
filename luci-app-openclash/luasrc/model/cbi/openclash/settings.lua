@@ -395,6 +395,16 @@ o:value("off", translate("off　"))
 o.default = "off"
 o:depends("enable_meta_core", "1")
 
+o = s:taboption("meta", ListValue, "client_fingerprint", translate("Client Fingerprint"))
+o.description = translate("Change The Client Fingerprint, Only Support TLS Transport in TCP/GRPC/WS/HTTP For VLESS/Vmess and Trojan-grpc")
+o:value("0", translate("Disable"))
+o:value("random")
+o:value("chrome")
+o:value("firefox")
+o:value("safari")
+o.default = "0"
+o:depends("enable_meta_core", "1")
+
 o = s:taboption("meta", Flag, "enable_meta_sniffer", font_red..bold_on..translate("Enable Sniffer")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure")..bold_off..font_off
 o.default = 1
