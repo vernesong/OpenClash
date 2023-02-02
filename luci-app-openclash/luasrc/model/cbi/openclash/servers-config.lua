@@ -687,15 +687,49 @@ o:value("false")
 o.default = "false"
 o:depends("type", "hysteria")
 
--- [[ fingerprint ]]--
-o = s:option(Value, "fingerprint", translate("Fingerprint"))
-o.rmempty = true
-o:depends("type", "hysteria")
-
+-- [[ hop_interval ]]--
 o = s:option(Value, "hop_interval", translate("Hop Interval"))
 o.rmempty = true
 o.default = "10"
 o:depends("type", "hysteria")
+
+-- [[ fingerprint ]]--
+o = s:option(Value, "fingerprint", translate("Fingerprint")..translate("(Only Meta Core)"))
+o.rmempty = true
+o:depends("type", "hysteria")
+o:depends("type", "socks5")
+o:depends("type", "trojan")
+o:depends("type", "vless")
+o:depends({type = "ss", obfs = "websocket"})
+o:depends({type = "ss", obfs = "shadow-tls"})
+o:depends({type = "vmess", obfs_vmess = "websocket"})
+o:depends({type = "vmess", obfs_vmess = "h2"})
+o:depends({type = "vmess", obfs_vmess = "grpc"})
+
+-- [[ client-fingerprint ]]--
+o = s:option(ListValue, "client_fingerprint", translate("Client Fingerprint")..translate("(Only Meta Core)"))
+o.rmempty = true
+o:value("random")
+o:value("chrome")
+o:value("firefox")
+o:value("safari")
+o.default = "random"
+o:depends("type", "vless")
+o:depends({type = "trojan", obfs_vmess = "grpc"})
+o:depends({type = "vmess", obfs_vmess = "websocket"})
+o:depends({type = "vmess", obfs_vmess = "http"})
+o:depends({type = "vmess", obfs_vmess = "h2"})
+o:depends({type = "vmess", obfs_vmess = "grpc"})
+
+-- [[ client-fingerprint ]]--
+o = s:option(ListValue, "ip_version", translate("IP Version")..translate("(Only Meta Core)"))
+o.rmempty = true
+o:value("dual")
+o:value("ipv4")
+o:value("ipv4-prefer")
+o:value("ipv6")
+o:value("ipv6-prefer")
+o.default = "dual"
 
 -- [[ interface-name ]]--
 o = s:option(Value, "interface_name", translate("interface-name"))
