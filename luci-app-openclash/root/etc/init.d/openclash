@@ -84,7 +84,7 @@ save_dnsmasq_server() {
      return
    fi
   
-  uci -q add_list openclash.config.dnsmasq_server="$1"
+   uci -q add_list openclash.config.dnsmasq_server="$1"
 }
 
 set_dnsmasq_server() {
@@ -92,14 +92,10 @@ set_dnsmasq_server() {
      return
    fi
   
-  uci -q add_list dhcp.@dnsmasq[0].server="$1"
+   uci -q add_list dhcp.@dnsmasq[0].server="$1"
 }
 
 change_dns() {
-   if [ "$1" -ne 1 ]; then
-      return
-   fi
-
    if [ "$1" -eq 1 ]; then
       uci -q del openclash.config.dnsmasq_server
       config_load "dhcp"
@@ -115,7 +111,7 @@ change_dns() {
       uci -q set openclash.config.redirect_dns=0
    fi
    
-   if [ "$2" -eq 1 ]; then
+   if [ "$1" -eq 1 ] && [ "$2" -eq 1 ]; then
       uci -q set openclash.config.dnsmasq_cachesize="$(uci -q get dhcp.@dnsmasq[0].cachesize)"
       uci -q set dhcp.@dnsmasq[0].cachesize=0
       uci -q set openclash.config.cachesize_dns=1
@@ -123,14 +119,14 @@ change_dns() {
       uci -q set openclash.config.cachesize_dns=0
    fi
    
-   if [ "$ipv6_dns" == 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
+   if [ "$1" -eq 1 ] && [ "$ipv6_dns" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
       #dnsmasq answer ipv6
-       uci -q set openclash.config.dnsmasq_filter_aaaa="$(uci -q get dhcp.@dnsmasq[0].filter_aaaa)"
-	    uci -q set dhcp.@dnsmasq[0].filter_aaaa=0
-	    uci -q set openclash.config.filter_aaaa_dns=1
-	 else
-	    uci -q set openclash.config.filter_aaaa_dns=0
-	 fi
+      uci -q set openclash.config.dnsmasq_filter_aaaa="$(uci -q get dhcp.@dnsmasq[0].filter_aaaa)"
+	   uci -q set dhcp.@dnsmasq[0].filter_aaaa=0
+	   uci -q set openclash.config.filter_aaaa_dns=1
+	else
+	   uci -q set openclash.config.filter_aaaa_dns=0
+	fi
 	 
    uci -q commit dhcp
    uci -q commit openclash
@@ -171,22 +167,19 @@ EOF
    
    [ "$6" -eq 1 ] && {
       uci -q set dhcp.@dnsmasq[0].cachesize="$7"
+      uci -q set openclash.config.cachesize_dns=0
+      uci -q delete openclash.config.dnsmasq_cachesize
    }
    
    [ "$8" -eq 1 ] && {
-     uci -q set dhcp.@dnsmasq[0].filter_aaaa="$9"
+      uci -q set dhcp.@dnsmasq[0].filter_aaaa="$9"
+      uci -q set openclash.config.filter_aaaa_dns=0
+      uci -q delete openclash.config.dnsmasq_filter_aaaa
    }
    	
-   [ "$1" -eq 1 ] && [ "$2" -eq 0 ] && {
+   [ "$1" -eq 1 ] && {
       uci -q set openclash.config.redirect_dns=0
-   }
-   
-   [ "$6" -eq 1 ] && [ "$2" -eq 0 ] && {
-      uci -q set openclash.config.cachesize_dns=0
-   }
-   
-   [ "$8" -eq 1 ] && [ "$2" -eq 0 ] && {
-      uci -q set openclash.config.filter_aaaa_dns=0
+      uci -q del openclash.config.dnsmasq_server
    }
    
    uci -q commit dhcp
