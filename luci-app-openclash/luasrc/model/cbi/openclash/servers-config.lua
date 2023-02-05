@@ -369,32 +369,6 @@ o:value("false")
 o:depends({type = "vmess", udp = "true"})
 o:depends({type = "vless", udp = "true"})
 
-o = s:option(ListValue, "packet-addr", translate("Packet-Addr")..translate("(Only Meta Core)"))
-o.rmempty = true
-o.default = "true"
-o:value("true")
-o:value("false")
-o:depends({type = "vless", xudp = "false"})
-
-o = s:option(Value, "packet_encoding", translate("Packet-Encoding")..translate("(Only Meta Core)"))
-o.rmempty = true
-o:depends("type", "vmess")
-o:depends("type", "vless")
-
-o = s:option(ListValue, "global_padding", translate("Global-Padding")..translate("(Only Meta Core)"))
-o.rmempty = true
-o.default = "false"
-o:value("true")
-o:value("false")
-o:depends("type", "vmess")
-
-o = s:option(ListValue, "authenticated_length", translate("Authenticated-Length")..translate("(Only Meta Core)"))
-o.rmempty = true
-o.default = "false"
-o:value("true")
-o:value("false")
-o:depends("type", "vmess")
-
 o = s:option(ListValue, "obfs", translate("obfs-mode"))
 o.rmempty = true
 o.default = "none"
@@ -530,7 +504,7 @@ o:depends("type", "hysteria")
 o:depends("type", "tuic")
 
 -- [[ TLS ]]--
-o = s:option(ListValue, "tls", translate("tls"))
+o = s:option(ListValue, "tls", translate("TLS"))
 o.rmempty = true
 o.default = "false"
 o:value("true")
@@ -692,6 +666,32 @@ o = s:option(Value, "hop_interval", translate("Hop Interval"))
 o.rmempty = true
 o.default = "10"
 o:depends("type", "hysteria")
+
+o = s:option(ListValue, "packet-addr", translate("Packet-Addr")..translate("(Only Meta Core)"))
+o.rmempty = true
+o.default = "true"
+o:value("true")
+o:value("false")
+o:depends({type = "vless", xudp = "false"})
+
+o = s:option(Value, "packet_encoding", translate("Packet-Encoding")..translate("(Only Meta Core)"))
+o.rmempty = true
+o:depends("type", "vmess")
+o:depends("type", "vless")
+
+o = s:option(ListValue, "global_padding", translate("Global-Padding")..translate("(Only Meta Core)"))
+o.rmempty = true
+o.default = "false"
+o:value("true")
+o:value("false")
+o:depends("type", "vmess")
+
+o = s:option(ListValue, "authenticated_length", translate("Authenticated-Length")..translate("(Only Meta Core)"))
+o.rmempty = true
+o.default = "false"
+o:value("true")
+o:value("false")
+o:depends("type", "vmess")
 
 -- [[ fingerprint ]]--
 o = s:option(Value, "fingerprint", translate("Fingerprint")..translate("(Only Meta Core)"))
