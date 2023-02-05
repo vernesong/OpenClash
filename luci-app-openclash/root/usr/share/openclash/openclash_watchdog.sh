@@ -166,7 +166,7 @@ if [ "$client_fingerprint" != "0" ] && [ "$core_type" == "Meta" ]; then
                   if v.key?('proxies') and not v['proxies'].nil? then
                      v['proxies'].each{
                      |z|
-                        if z['type'] == 'vmess' or z['type'] == 'vless' or (z['type'] == 'trojan' and z['network'] == 'grpc') then
+                        if z['type'] == 'vmess' or z['type'] == 'vless' or z['type'] == 'trojan' then
                            if z['client-fingerprint'] != '${client_fingerprint}' then
                               z['client-fingerprint'] = '${client_fingerprint}';
                            end;
