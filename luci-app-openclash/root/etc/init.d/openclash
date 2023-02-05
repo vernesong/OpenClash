@@ -2621,7 +2621,7 @@ config_foreach firewall_rule_exclude "rule"
 
 if [ -f "/etc/openclash/custom/openclash_custom_firewall_rules.sh" ]; then
    LOG_OUT "Tip: Start Add Custom Firewall Rules..."
-   chmod +x /etc/openclash/custom/openclash_custom_firewall_rules.sh
+   chmod +x /etc/openclash/custom/openclash_custom_firewall_rules.sh >/dev/null 2>&1
    /etc/openclash/custom/openclash_custom_firewall_rules.sh >> "$LOG_FILE" 2>&1
 fi
 
