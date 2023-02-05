@@ -65,11 +65,11 @@ music.migu.cn
 #win10本地连接检测
 +.msftconnecttest.com
 +.msftncsi.com
-msftconnecttest.com
-msftncsi.com
-#QQ快捷登录
+#QQ登录
 localhost.ptlogin2.qq.com
 localhost.sec.qq.com
++.qq.com
++.tencent.com
 #Game
 #Nintendo Switch
 +.srv.nintendo.net

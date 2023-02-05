@@ -2,6 +2,4 @@
 
 # This script is called by /etc/init.d/openclash
 
-
-
-exit 0
+# Add your custom firewall rules here

@@ -38,5 +38,3 @@ fallback-filter:
     - "+.googlevideo.com"
     - "+.msftconnecttest.com"
     - "+.msftncsi.com"
-    - msftconnecttest.com
-    - msftncsi.com
