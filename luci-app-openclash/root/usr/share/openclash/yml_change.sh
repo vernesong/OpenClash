@@ -848,7 +848,7 @@ Thread.new{
       if Value.key?('proxies') and not Value['proxies'].nil? then
          Value['proxies'].each{
          |x|
-            if x['type'] == 'vmess' or x['type'] == 'vless' or (x['type'] == 'trojan' and x['network'] == 'grpc') then
+            if x['type'] == 'vmess' or x['type'] == 'vless' or x['type'] == 'trojan' then
                if x['client-fingerprint'] != '${31}' then
                   x['client-fingerprint'] = '${31}';
                end;
@@ -865,7 +865,7 @@ Thread.new{
                   if v.key?('proxies') and not v['proxies'].nil? then
                      v['proxies'].each{
                      |z|
-                        if z['type'] == 'vmess' or z['type'] == 'vless' or (z['type'] == 'trojan' and z['network'] == 'grpc') then
+                        if z['type'] == 'vmess' or z['type'] == 'vless' or z['type'] == 'trojan' then
                            if z['client-fingerprint'] != '${31}' then
                               z['client-fingerprint'] = '${31}';
                            end;
