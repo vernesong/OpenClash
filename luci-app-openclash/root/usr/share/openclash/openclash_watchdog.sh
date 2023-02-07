@@ -24,7 +24,6 @@ DISNEY_DOMAINS_LIST="/usr/share/openclash/res/Disney_Plus_Domains.list"
 china_ip_route=$(uci -q get openclash.config.china_ip_route)
 en_mode=$(uci -q get openclash.config.en_mode)
 fakeip_range=$(uci -q get openclash.config.fakeip_range || echo "198.18.0.1/16")
-client_fingerprint=$(uci -q get openclash.config.client_fingerprint || echo 0)
 CRASH_NUM=0
 CFG_UPDATE_INT=1
 STREAM_DOMAINS_PREFETCH=1
@@ -149,38 +148,6 @@ if [ "$enable" -eq 1 ]; then
 	else
 	   CRASH_NUM=0
   fi
-fi
-
-##client-fingerprint
-if [ "$client_fingerprint" != "0" ] && [ "$core_type" == "Meta" ]; then
-   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-   begin
-      Value = YAML.load_file('$CONFIG_FILE');
-      if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
-         Value['proxy-providers'].values.each{
-         |x,p,v|
-            if x.key?('path') and not x['path'].empty? then
-               p = '/etc/openclash/proxy_provider/'+File.basename(x['path']);
-               if File::exist?(p) then
-                  v = YAML.load_file(p);
-                  if v.key?('proxies') and not v['proxies'].nil? then
-                     v['proxies'].each{
-                     |z|
-                        if z['type'] == 'vmess' or z['type'] == 'vless' or z['type'] == 'trojan' then
-                           if z['client-fingerprint'] != '${client_fingerprint}' then
-                              z['client-fingerprint'] = '${client_fingerprint}';
-                           end;
-                        end;
-                     };
-                  end;
-                  File.open(p,'w') {|f| YAML.dump(v, f)};
-               end;
-            end;
-         };
-      end;
-   rescue Exception => e
-      puts '${LOGTIME} Watchdog: Edit Client-fingerprint Failed,【' + e.message + '】';
-   end" 2>/dev/null >> $LOG_FILE
 fi
 
 ## Porxy history
