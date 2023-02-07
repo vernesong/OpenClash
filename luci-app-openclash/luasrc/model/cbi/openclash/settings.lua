@@ -395,15 +395,15 @@ o:value("off", translate("off　"))
 o.default = "off"
 o:depends("enable_meta_core", "1")
 
-o = s:taboption("meta", ListValue, "client_fingerprint", translate("Client Fingerprint"))
+o = s:taboption("meta", ListValue, "global_client_fingerprint", translate("Client Fingerprint"))
 o.description = translate("Change The Client Fingerprint, Only Support TLS Transport in TCP/GRPC/WS/HTTP For Vless/Vmess and Trojan")
-o:value("0", translate("Disable"))
+o:value("none", translate("None"))
 o:value("random", translate("Random"))
 o:value("chrome", translate("Chrome"))
 o:value("firefox", translate("Firefox"))
 o:value("safari", translate("Safari"))
 o:value("ios", translate("IOS"))
-o.default = "0"
+o.default = "none"
 o:depends("enable_meta_core", "1")
 
 o = s:taboption("meta", Flag, "enable_meta_sniffer", font_red..bold_on..translate("Enable Sniffer")..bold_off..font_off)

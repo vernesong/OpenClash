@@ -380,6 +380,7 @@ Thread.new{
       Value['geodata-loader']='${22}';
       Value['tcp-concurrent']=$enable_tcp_concurrent;
       Value['find-process-mode']='${29}';
+      Value['global-client-fingerprint']='${31}';
    else
       if Value.key?('geodata-mode') then
          Value.delete('geodata-mode');
@@ -392,6 +393,9 @@ Thread.new{
       end
       if Value.key?('find-process-mode') then
          Value.delete('find-process-mode');
+      end
+      if Value.key?('global-client-fingerprint') then
+         Value.delete('global-client-fingerprint');
       end
    end;
    if not Value.key?('dns') then
@@ -839,48 +843,6 @@ Thread.new{
 }.join;
 rescue Exception => e
    puts '${LOGTIME} Error: Edit Vmess Compatible Failed,【' + e.message + '】';
-end;
-
-#client-fingerprint
-begin
-Thread.new{
-   if '${31}' != '0' and ${19} == 1 then
-      if Value.key?('proxies') and not Value['proxies'].nil? then
-         Value['proxies'].each{
-         |x|
-            if x['type'] == 'vmess' or x['type'] == 'vless' or x['type'] == 'trojan' then
-               if x['client-fingerprint'] != '${31}' then
-                  x['client-fingerprint'] = '${31}';
-               end;
-            end;
-         };
-      end;
-      if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
-         Value['proxy-providers'].values.each{
-         |x,p,v|
-            if x.key?('path') and not x['path'].empty? then
-               p = '/etc/openclash/proxy_provider/'+File.basename(x['path']);
-               if File::exist?(p) then
-                  v = YAML.load_file(p);
-                  if v.key?('proxies') and not v['proxies'].nil? then
-                     v['proxies'].each{
-                     |z|
-                        if z['type'] == 'vmess' or z['type'] == 'vless' or z['type'] == 'trojan' then
-                           if z['client-fingerprint'] != '${31}' then
-                              z['client-fingerprint'] = '${31}';
-                           end;
-                        end;
-                     };
-                  end;
-                  File.open(p,'w') {|f| YAML.dump(v, f)};
-               end;
-            end;
-         };
-      end;
-   end;
-}.join;
-rescue Exception => e
-   puts '${LOGTIME} Error: Edit Client-fingerprint Failed,【' + e.message + '】';
 ensure
    File.open('$5','w') {|f| YAML.dump(Value, f)};
 end" 2>/dev/null >> $LOG_FILE
