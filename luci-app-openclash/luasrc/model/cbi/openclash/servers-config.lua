@@ -709,6 +709,7 @@ o:depends({type = "vmess", obfs_vmess = "grpc"})
 -- [[ client-fingerprint ]]--
 o = s:option(ListValue, "client_fingerprint", translate("Client Fingerprint")..translate("(Only Meta Core)"))
 o.rmempty = true
+o:value("none")
 o:value("random")
 o:value("chrome")
 o:value("firefox")
@@ -721,7 +722,7 @@ o:depends({type = "vmess", obfs_vmess = "http"})
 o:depends({type = "vmess", obfs_vmess = "h2"})
 o:depends({type = "vmess", obfs_vmess = "grpc"})
 
--- [[ client-fingerprint ]]--
+-- [[ ip version ]]--
 o = s:option(ListValue, "ip_version", translate("IP Version")..translate("(Only Meta Core)"))
 o.rmempty = true
 o:value("dual")
