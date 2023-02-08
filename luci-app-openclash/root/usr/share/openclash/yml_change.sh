@@ -426,14 +426,14 @@ Thread.new{
       Value_sniffer={'sniffer'=>{'enable'=>true}};
       Value['sniffer']=Value_sniffer['sniffer'];
       if '$1' == 'redir-host' then
-         Value['sniffer']['ForceDnsMapping']=true;
+         Value['sniffer']['force-dns-mapping']=true;
       else
-         Value['sniffer']['ForceDnsMapping']=false;
+         Value['sniffer']['force-dns-mapping']=false;
       end;
       if ${28} == 1 then
-         Value['sniffer']['ParsePureIp']=true;
+         Value['sniffer']['parse-pure-ip']=true;
       else
-         Value['sniffer']['ParsePureIp']=false;
+         Value['sniffer']['parse-pure-ip']=false;
       end;
       if File::exist?('/etc/openclash/custom/openclash_force_sniffing_domain.yaml') then
          if ${23} == 1 then
