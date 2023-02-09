@@ -588,16 +588,16 @@ o:value("0", translate("Black List Mode"))
 o:value("1", translate("White List Mode"))
 o.default = "0"
 o:depends("enable_redirect_dns", "2")
-o:depends({en_mode = "redir-host", enable_redirect_dns = "1"})
-o:depends({en_mode = "redir-host-tun", enable_redirect_dns = "1"})
-o:depends({en_mode = "redir-host-mix", enable_redirect_dns = "1"})
+o:depends("en_mode", "redir-host")
+o:depends("en_mode", "redir-host-tun")
+o:depends("en_mode", "redir-host-mix")
 
 ip_b = s:taboption("lan_ac", DynamicList, "lan_ac_black_ips", translate("LAN Bypassed Host List"))
 ip_b.datatype = "ipaddr"
 ip_b:depends({lan_ac_mode = "0", enable_redirect_dns = "2"})
-ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host", enable_redirect_dns = "1"})
-ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host-tun", enable_redirect_dns = "1"})
-ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host-mix", enable_redirect_dns = "1"})
+ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host"})
+ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host-tun"})
+ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host-mix"})
 
 mac_b = s:taboption("lan_ac", DynamicList, "lan_ac_black_macs", translate("LAN Bypassed Mac List"))
 mac_b.datatype = "list(macaddr)"
@@ -607,9 +607,9 @@ mac_b:depends("lan_ac_mode", "0")
 ip_w = s:taboption("lan_ac", DynamicList, "lan_ac_white_ips", translate("LAN Proxied Host List"))
 ip_w.datatype = "ipaddr"
 ip_w:depends({lan_ac_mode = "1", enable_redirect_dns = "2"})
-ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host", enable_redirect_dns = "1"})
-ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host-tun", enable_redirect_dns = "1"})
-ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host-mix", enable_redirect_dns = "1"})
+ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host"})
+ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host-tun"})
+ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host-mix"})
 
 mac_w = s:taboption("lan_ac", DynamicList, "lan_ac_white_macs", translate("LAN Proxied Mac List"))
 mac_w.datatype = "list(macaddr)"
