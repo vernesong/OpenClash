@@ -16,9 +16,6 @@ rules:
 - RULE-SET,ABC,Global TV
 - RULE-SET,Abema TV,Global TV
 - RULE-SET,Amazon,Global TV
-- RULE-SET,Apple Music,Global TV
-- RULE-SET,Apple News,Global TV
-- RULE-SET,Apple TV,Global TV
 - RULE-SET,Bahamut,Global TV
 - RULE-SET,BBC iPlayer,Global TV
 - RULE-SET,DAZN,Global TV
@@ -50,6 +47,10 @@ rules:
 - RULE-SET,Speedtest,Speedtest
 - RULE-SET,PayPal,PayPal
 - RULE-SET,Microsoft,Microsoft
+- RULE-SET,ChatGPT,ChatGPT
+- RULE-SET,Apple Music,Apple TV
+- RULE-SET,Apple News,Apple TV
+- RULE-SET,Apple TV,Apple TV
 - RULE-SET,Apple,Apple
 - RULE-SET,Google FCM,Google FCM
 - RULE-SET,Scholar,Scholar
@@ -79,9 +80,6 @@ script:
             "ABC": "Global TV",
             "Abema TV": "Global TV",
             "Amazon": "Global TV",
-            "Apple Music": "Global TV",
-            "Apple News": "Global TV",
-            "Apple TV": "Global TV",
             "Bahamut": "Global TV",
             "BBC iPlayer": "Global TV",
             "DAZN": "Global TV",
@@ -113,6 +111,10 @@ script:
             "Speedtest": "Speedtest",
             "PayPal": "PayPal",
             "Microsoft": "Microsoft",
+            "ChatGPT": "ChatGPT",
+            "Apple Music": "Apple TV",
+            "Apple News": "Apple TV",
+            "Apple TV": "Apple TV",
             "Apple": "Apple",
             "Google FCM": "Google FCM",
             "Scholar": "Scholar",
@@ -454,6 +456,12 @@ rule-providers:
     behavior: classical
     url: https://fastly.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Microsoft.yaml
     path: "./Rules/Microsoft"
+    interval: 86400
+  ChatGPT:
+    type: http
+    behavior: classical
+    url: https://fastly.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/ChatGPT.yaml
+    path: "./Rules/ChatGPT"
     interval: 86400
   PROXY:
     type: http
