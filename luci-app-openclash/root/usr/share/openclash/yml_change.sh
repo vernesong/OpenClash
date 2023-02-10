@@ -9,7 +9,6 @@ dns_advanced_setting=$(uci -q get openclash.config.dns_advanced_setting)
 core_type=$(uci -q get openclash.config.core_type)
 enable_custom_dns=$(uci -q get openclash.config.enable_custom_dns)
 append_wan_dns=$(uci -q get openclash.config.append_wan_dns || echo 1)
-ipv6_dns=$(uci -q get openclash.config.ipv6_dns || echo 0)
 tolerance=$(uci -q get openclash.config.tolerance || echo 0)
 custom_fallback_filter=$(uci -q get openclash.config.custom_fallback_filter || echo 0)
 enable_meta_core=$(uci -q get openclash.config.enable_meta_core || echo 0)
@@ -406,6 +405,10 @@ Thread.new{
    end;
    if ${16} == 1 then
       Value['dns']['ipv6']=true;
+      #meta core v6 DNS
+      if ${19} != 1 then
+         Value['ipv6']=true;
+      end;
    else
       Value['dns']['ipv6']=false;
    end;

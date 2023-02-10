@@ -294,8 +294,8 @@ msgstr "连接设备的网关和 DNS 须为路由器 IP，如果您不使用，�
 msgid "IPv6 DNS Resolve"
 msgstr "允许 IPv6 类型 DNS 解析"
 
-msgid "Enable to Resolve IPv6 DNS Requests, When Using The Meta Core, Enabling This Alone is Not Valid"
-msgstr "允许解析 IPv6 类型的 DNS 请求，当使用 meta 内核时，单独启用此项无效"
+msgid "Enable to Resolve IPv6 DNS Requests"
+msgstr "允许解析 IPv6 类型的 DNS 请求"
 
 msgid "Rules Setting"
 msgstr "规则设置"

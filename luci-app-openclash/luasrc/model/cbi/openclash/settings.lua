@@ -1445,7 +1445,7 @@ o.description = font_red..bold_on..translate("The Gateway and DNS of The Connect
 o.default = 0
 
 o = s:taboption("ipv6", Flag, "ipv6_dns", translate("IPv6 DNS Resolve"))
-o.description = font_red..bold_on..translate("Enable to Resolve IPv6 DNS Requests, When Using The Meta Core, Enabling This Alone is Not Valid")..bold_off..font_off
+o.description = translate("Enable to Resolve IPv6 DNS Requests")
 o.default = 0
 
 o = s:taboption("ipv6", Flag, "china_ip6_route", translate("China IPv6 Route"))
