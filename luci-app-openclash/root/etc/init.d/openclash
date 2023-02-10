@@ -1565,7 +1565,7 @@ if [ -n "$FW4" ]; then
       ip link set utun up
 
       LOG_OUT "Tip: Waiting for TUN Interface Start..."
-      while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 10 ] )
+      while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 30 ] )
       do
          ip link set utun up
          let TUN_WAIT++
@@ -2238,7 +2238,7 @@ else
       ip link set utun up
 
       LOG_OUT "Tip: Waiting for TUN Interface Start..."
-      while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 10 ] )
+      while ( [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ "$TUN_WAIT" -le 30 ] )
       do
          ip link set utun up
          let TUN_WAIT++
