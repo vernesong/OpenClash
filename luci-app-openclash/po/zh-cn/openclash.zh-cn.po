@@ -20,8 +20,8 @@ msgstr "运行状态"
 msgid "Plugin Settings"
 msgstr "插件设置"
 
-msgid "Config Overwrite"
-msgstr "配置覆写"
+msgid "Overwrite Settings"
+msgstr "覆写设置"
 
 msgid "Rule Providers Append"
 msgstr "规则集附加"
