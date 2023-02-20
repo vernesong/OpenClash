@@ -8,8 +8,8 @@ msgstr "OpenClash"
 msgid "A Clash Client For OpenWrt"
 msgstr "一个运行在 OpenWrt 上的 Clash 客户端，兼容 Shadowsocks(R)、Vmess、Trojan、Snell 等协议，根据灵活的规则配置实现策略代理"
 
-msgid "Global Settings(Will Modify The Config File Or Subscribe According To The Settings On This Page)"
-msgstr "全局设置（将按照本页设置自动修改配置文件和获取订阅）"
+msgid "Plugin Settings"
+msgstr "插件设置"
 
 msgid "Credits"
 msgstr "技术支持"
@@ -17,20 +17,23 @@ msgstr "技术支持"
 msgid "Overviews"
 msgstr "运行状态"
 
-msgid "Global Settings"
-msgstr "全局设置"
+msgid "Plugin Settings"
+msgstr "插件设置"
 
-msgid "Rule Providers and Groups"
-msgstr "规则集与策略组管理"
+msgid "Config Overwrite"
+msgstr "配置覆写"
 
-msgid "Game Rules and Groups (Only TUN & Meta Core Support)"
-msgstr "游戏规则与策略组管理（仅 TUN & Meta 内核）"
+msgid "Rule Providers Append"
+msgstr "规则集附加"
 
-msgid "Other Rule Providers and Groups (Only TUN & Meta Core Support)"
-msgstr "第三方规则集与策略组管理（仅 TUN & Meta 内核）"
+msgid "Game Rules Append (Only TUN & Meta Core Support)"
+msgstr "游戏规则附加（仅 TUN & Meta 内核）"
 
-msgid "Custom Rule Providers and Groups (Only TUN & Meta Core Support)"
-msgstr "自定义规则集与策略组管理（仅 TUN & Meta 内核）"
+msgid "Other Rule Providers Append (Only TUN & Meta Core Support)"
+msgstr "第三方规则集附加（仅 TUN & Meta 内核）"
+
+msgid "Custom Rule Providers Append (Only TUN & Meta Core Support)"
+msgstr "自定义规则集附加（仅 TUN & Meta 内核）"
 
 msgid "General Settings"
 msgstr "常规设置"
@@ -236,11 +239,8 @@ msgstr "（在上方设置中启用本功能后生效）"
 msgid "Advanced Setting"
 msgstr "高级设置"
 
-msgid "DNS Advanced Settings"
-msgstr "DNS 高级设置"
-
-msgid "(Please Don't Modify it at Will)"
-msgstr "（如您不知道选项有何用，请不要随意修改）"
+msgid "Enable Specify DNS Server"
+msgstr "启用（第二）DNS 服务器"
 
 msgid "Specify DNS Server"
 msgstr "指定（第二）DNS 服务器"
@@ -299,9 +299,6 @@ msgstr "允许解析 IPv6 类型的 DNS 请求"
 
 msgid "Rules Setting"
 msgstr "规则设置"
-
-msgid "Rules Setting(Access Control)"
-msgstr "规则设置（访问控制）"
 
 msgid "Config Manage"
 msgstr "配置文件管理"
@@ -576,8 +573,8 @@ msgstr "指定流量(策略)的代理方式，只支持选择（策略组），�
 msgid "Custom Clash Rules"
 msgstr "自定义规则"
 
-msgid "Custom Clash Rules(Access Control)"
-msgstr "自定义规则(访问控制)"
+msgid "Custom Clash Rules"
+msgstr "自定义规则"
 
 msgid "Custom Priority Rules Here, For More Go:"
 msgstr "设置自定义规则（优先匹配），详细信息请参阅:"
@@ -594,8 +591,8 @@ msgstr "设置自定义 Hosts，详细信息请参阅:"
 msgid "Set Custom Rules"
 msgstr "设置自定义规则（在上方规则设置中启用本功能后生效）"
 
-msgid "Set Custom Hosts (Does Not Override Config Settings)"
-msgstr "设置自定义 Hosts（不会覆盖配置文件设置）"
+msgid "Custom Hosts"
+msgstr "自定义 Hosts"
 
 msgid "Version Update"
 msgstr "版本更新"
@@ -1042,8 +1039,8 @@ msgstr "切换操作模式"
 msgid "Switch Mode"
 msgstr "切换"
 
-msgid "Access Control"
-msgstr "访问控制"
+msgid "Black&White"
+msgstr "黑白名单"
 
 msgid "LAN Access Control Mode"
 msgstr "局域网访问控制模式"
@@ -2160,6 +2157,12 @@ msgstr "只有在配置文件设置了 Fallback 组的DNS时才会生效，正�
 
 msgid "Custom Fallback-Filter"
 msgstr "自定义 Fallback-Filter"
+
+msgid "Custom Fake-IP-Filter"
+msgstr "自定义 Fake-IP-Filter"
+
+msgid "Custom Nameserver-Policy"
+msgstr "自定义 Nameserver-Policy"
 
 msgid "Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore..."
 msgstr "错误：只有在配置文件设置了 Fallback 组的 DNS 时 Fallback-Filter 才会生效，跳过此项修改..."
@@ -3283,8 +3286,8 @@ msgstr "IPv6 设置"
 msgid "IPv6 Settings"
 msgstr "IPv6 设置"
 
-msgid "Custom Config Override Script, Any Changes Will Be Restored After The Install of the OC, Please Be Careful, The Wrong Changes May Lead to Exceptions"
-msgstr "自定义配置文件的覆写脚本，任何修改都将在插件重新安装后还原，请谨慎修改，错误的修改可能会导致异常"
+msgid "Custom Config Override Script, Please Be Careful, The Wrong Changes May Lead to Exceptions"
+msgstr "自定义配置文件的覆写脚本，请谨慎修改，错误的修改可能会导致异常"
 
 msgid "Custom Firewall Rules, Support IPv4 and IPv6, All Rules Will Be Added After The OpenClash Rules Completely"
 msgstr "自定义防火墙规则，支持 IPv4 和 IPv6，此脚本规则将在 OpenClash 的内置规则完成后执行"
@@ -3292,11 +3295,11 @@ msgstr "自定义防火墙规则，支持 IPv4 和 IPv6，此脚本规则将在 
 msgid "Tip: Start Add Custom Firewall Rules..."
 msgstr "提示：开始添加自定义防火墙规则..."
 
+msgid "Tip: Start Running Custom Overwrite Scripts..."
+msgstr "提示：开始运行自定义覆写脚本..."
+
 msgid "Developer Settings"
 msgstr "开发者选项"
-
-msgid "Restore Override Script"
-msgstr "还原覆写脚本"
 
 msgid "Restore"
 msgstr "还原"
@@ -3318,3 +3321,6 @@ msgstr "守护程序：修改 Client-fingerprint 失败，"
 
 msgid "Error: Edit Client-fingerprint Failed,"
 msgstr "错误：修改 Client-fingerprint 失败，"
+
+msgid "Traffic Control"
+msgstr "流量控制"
