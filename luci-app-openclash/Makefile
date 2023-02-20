@@ -69,7 +69,7 @@ define Build/Prepare
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_chnroute_pass.list" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_chnroute_pass.list" >/dev/null 2>&1
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_chnroute6_pass.list" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_chnroute6_pass.list" >/dev/null 2>&1
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_firewall_rules.sh" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_firewall_rules.sh" >/dev/null 2>&1
-	cp -f "$(PKG_BUILD_DIR)/root/usr/share/openclash/yml_change.sh" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/yml_change.sh" >/dev/null 2>&1
+	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_overwrite.sh" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_overwrite.sh" >/dev/null 2>&1
 	exit 0
 endef
 

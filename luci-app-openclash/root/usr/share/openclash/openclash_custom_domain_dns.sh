@@ -16,7 +16,7 @@ set_lock
 DNSMASQ_CONF_DIR=$(uci -q get dhcp.@dnsmasq[0].confdir || echo '/tmp/dnsmasq.d')
 DNSMASQ_CONF_DIR=${DNSMASQ_CONF_DIR%*/}
 rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
-if [ "$(uci get openclash.config.dns_advanced_setting 2>/dev/null)" = "1" ] && [ "$(uci get openclash.config.enable_redirect_dns 2>/dev/null)" = "1" ]; then
+if [ "$(uci get openclash.config.enable_custom_domain_dns_server 2>/dev/null)" = "1" ] && [ "$(uci get openclash.config.enable_redirect_dns 2>/dev/null)" = "1" ]; then
    LOG_OUT "Setting Secondary DNS Server List..."
 
    custom_domain_dns_server=$(uci get openclash.config.custom_domain_dns_server 2>/dev/null)

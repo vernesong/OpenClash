@@ -36,7 +36,7 @@ cp -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list" "/usr/shar
 cp -f "/etc/openclash/custom/openclash_custom_chnroute_pass.list" "/usr/share/openclash/backup/openclash_custom_chnroute_pass.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_chnroute6_pass.list" "/usr/share/openclash/backup/openclash_custom_chnroute6_pass.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_firewall_rules.sh" "/usr/share/openclash/backup/openclash_custom_firewall_rules.sh" >/dev/null 2>&1
-cp -f "/usr/share/openclash/yml_change.sh" "/usr/share/openclash/backup/yml_change.sh" >/dev/null 2>&1
+cp -f "/etc/openclash/custom/openclash_custom_overwrite.sh" "/usr/share/openclash/backup/openclash_custom_overwrite.sh" >/dev/null 2>&1
 
 mkdir -p /lib/upgrade/keep.d
 cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
