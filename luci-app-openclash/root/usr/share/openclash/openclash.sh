@@ -361,7 +361,7 @@ EOF
                nft delete rule inet fw4 ${nft} handle ${handle}
             done
          done >/dev/null 2>&1
-         if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ] && [ "$enable_redirect_dns" = "1" ]; then
+         if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ] && [ "$enable_redirect_dns" != "2" ]; then
             LOG_OUT "Tip: Bypass the China IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
             handles=$(nft -a list chain inet fw4 dstnat |grep "OpenClash DNS Hijack" |awk -F '# handle ' '{print$2}')
             for handle in $handles; do
@@ -398,7 +398,7 @@ EOF
                fi
             done
          done >/dev/null 2>&1
-         if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ] && [ "$enable_redirect_dns" = "1" ]; then
+         if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ] && [ "$enable_redirect_dns" != "2" ]; then
             LOG_OUT "Tip: Bypass the China IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
             position=$(iptables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1 || ehco 0)
             [ "$position" -ne 0 ] && let position++
