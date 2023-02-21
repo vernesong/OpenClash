@@ -9,10 +9,11 @@
 LOG_OUT "Tip: Start Running Custom Overwrite Scripts..."
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
+CONFIG_FILE="$1" #config path
 
 #ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 #   begin
-#      Value = YAML.load_file('$1');
+#      Value = YAML.load_file('$CONFIG_FILE');
 #   rescue Exception => e
 #      puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
 #   end;
@@ -29,7 +30,7 @@ LOG_FILE="/tmp/openclash.log"
 #   rescue Exception => e
 #      puts '${LOGTIME} Error: Set General Failed,【' + e.message + '】';
 #   ensure
-#      File.open('$5','w') {|f| YAML.dump(Value, f)};
+#      File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)};
 #   end" 2>/dev/null >> $LOG_FILE
 
 exit 0
