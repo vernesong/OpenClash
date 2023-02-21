@@ -2138,7 +2138,10 @@ msgid "Introduction to rule set usage: https://lancellc.gitbook.io/clash/clash-c
 msgstr "规则集使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/rule-provider"
 
 msgid "Introduction to proxy usage: https://lancellc.gitbook.io/clash/clash-config-file/proxies"
-msgstr "代理使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/rule-provider"
+msgstr "代理使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/proxies"
+
+msgid "Introduction to proxy-provider usage: https://lancellc.gitbook.io/clash/clash-config-file/proxy-provider"
+msgstr "代理集使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/proxy-provider"
 
 msgid "Subconverter external configuration (subscription conversion template) Description: https://github.com/tindy2013/subconverter#external-configuration-file"
 msgstr "subconverter 外部配置(订阅转换模板)说明：https://github.com/tindy2013/subconverter#external-configuration-file"
