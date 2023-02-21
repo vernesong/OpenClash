@@ -214,6 +214,17 @@ luci.ip.neighbors({ family = 6 }, function(n)
 end)
 end
 
+o = s:taboption("lan_ac", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
+o.datatype = "ipaddr"
+o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
+
+o = s:taboption("lan_ac", DynamicList, "lan_ac_black_ports", translate("Lan Bypassed Port List"))
+o.datatype = "port"
+o.placeholder = translate("5000 or 1234-2345")
+o:value("5000", translate("5000(NAS)"))
+o.description = "1."..translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails").."<br>".."2."..translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
+
+---- Traffic Control
 o = s:taboption("traffic_control", Flag, "router_self_proxy", font_red..bold_on..translate("Router-Self Proxy")..bold_off..font_off)
 o.description = translate("Only Supported for Rule Mode")..", "..font_red..bold_on..translate("ALL Functions In Stream Enhance Tag Will Not Work After Disable")..bold_off..font_off
 o.default = 1
@@ -250,16 +261,6 @@ end
 o = s:taboption("traffic_control", Flag, "intranet_allowed", translate("Only intranet allowed"))
 o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network")
 o.default = 1
-
-o = s:taboption("traffic_control", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
-o.datatype = "ipaddr"
-o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
-
-o = s:taboption("traffic_control", DynamicList, "lan_ac_black_ports", translate("Lan Bypassed Port List"))
-o.datatype = "port"
-o.placeholder = translate("5000 or 1234-2345")
-o:value("5000", translate("5000(NAS)"))
-o.description = "1."..translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails").."<br>".."2."..translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
 
 o = s:taboption("traffic_control", Value, "local_network_pass", translate("Local IPv4 Network Bypassed List"))
 o.template = "cbi/tvalue"
