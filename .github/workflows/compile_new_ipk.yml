@@ -24,13 +24,13 @@ jobs:
         id: version
         run: |
           echo "version=$(sed -n 1p ./version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
-          echo $(sed -n 1p ./version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')
+          echo "New Version: $(sed -n 1p ./version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')"
 
   Compile:
     runs-on: ubuntu-latest
     needs: Get-Version
     steps:
-      - name: Clone Repository
+      - name: Clone OpenClash Repository
         uses: actions/checkout@v3
         with:
           ref: ${{ github.ref_name }}
@@ -42,7 +42,7 @@ jobs:
           sudo apt-get update
           sudo apt-get -y install curl git tar
 
-      - name: Install SDK
+      - name: Install OpenWrt SDK
         run: |
           cd ..
           mkdir tmp
@@ -51,14 +51,14 @@ jobs:
           tar xjf SDK.tar.bz2
           mv "OpenWrt-SDK-ar71xx-generic_gcc-5.3.0_musl-1.1.16.Linux-x86_64" "SDK"
 
-      - name: Copy Source Code
+      - name: Copy OpenClash Source Codes
         run: |
           cd ..
           mkdir tmp/SDK/package/luci-app-openclash
           cp -rf "./OpenClash/luci-app-openclash/." "./tmp/SDK/package/luci-app-openclash/"
           cp "./OpenClash/version" "./tmp/version"
 
-      - name: Change Version IMG
+      - name: Change OpenClash Source Codes Version
         run: |
           cd ..
           sed -i "/.*PKG_VERSION:=*/c\PKG_VERSION:=${{ needs.Get-Version.outputs.version }}" ./tmp/SDK/package/luci-app-openclash/Makefile
@@ -72,18 +72,18 @@ jobs:
           make && sudo make install
           popd
 
-      - name: Compile IPK
+      - name: Compile OpenClash IPK
         run: |
           cd ..
           cd tmp/SDK
           make package/luci-app-openclash/compile V=99
 
-      - name: Switch Repository
+      - name: Switch OpenClash Repository to Package
         uses: actions/checkout@v3
         with:
           ref: package
 
-      - name: Commit and push
+      - name: Commit and Push New Version
         run: |
           rm -rf ./${{ github.ref_name }}/luci-app-openclash_*
           cd ..
