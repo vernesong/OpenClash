@@ -3,7 +3,8 @@ on:
   push:
     tags:
       - "v*"
-
+  workflow_dispatch:
+  
 jobs:
   Sync_core_to_master:
     runs-on: ubuntu-latest

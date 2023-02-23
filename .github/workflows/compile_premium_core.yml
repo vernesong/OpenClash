@@ -4,7 +4,8 @@ name: Compile The New Clash Premium Core
 on:
   schedule:
     - cron: "0 21 * * 0,2,4,6"
-
+  workflow_dispatch:
+  
 jobs:
   Get-Commit-id:
     runs-on: ubuntu-latest
