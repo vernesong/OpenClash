@@ -1,0 +1,99 @@
+NAME=clash
+BINDIR=bin
+VERSION=alpha-g$(shell git rev-parse --short HEAD)
+BUILDTIME=$(shell date -u)
+GOBUILD=CGO_ENABLED=0 go build -tags with_gvisor -trimpath -ldflags '-X "github.com/Dreamacro/clash/constant.Version=$(VERSION)" \
+		-X "github.com/Dreamacro/clash/constant.BuildTime=$(BUILDTIME)" \
+		-w -s -buildid='
+
+PLATFORM_LIST = \
+	linux-386 \
+	linux-amd64 \
+	linux-amd64-v3 \
+	linux-armv5 \
+	linux-armv6 \
+	linux-armv7 \
+	linux-arm64 \
+	linux-mips-softfloat \
+	linux-mips-hardfloat \
+	linux-mips64 \
+	linux-mips64le
+
+MIPSLE_LIST = \
+	linux-mipsle-softfloat \
+	linux-mipsle-hardfloat
+
+all: linux-amd64 # Most used
+
+linux-386:
+	GOARCH=386 GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+
+linux-amd64:
+	GOARCH=amd64 GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+
+linux-amd64-v3:
+	GOARCH=amd64 GOOS=linux GOAMD64=v3 $(GOBUILD) -o $(BINDIR)/clash
+
+linux-armv5:
+	GOARCH=arm GOOS=linux GOARM=5 $(GOBUILD) -o $(BINDIR)/clash
+
+linux-armv6:
+	GOARCH=arm GOOS=linux GOARM=6 $(GOBUILD) -o $(BINDIR)/clash
+
+linux-armv7:
+	GOARCH=arm GOOS=linux GOARM=7 $(GOBUILD) -o $(BINDIR)/clash
+
+linux-arm64:
+	GOARCH=arm64 GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+
+linux-mips-softfloat:
+	GOARCH=mips GOMIPS=softfloat GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+
+linux-mips-hardfloat:
+	GOARCH=mips GOMIPS=hardfloat GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+
+linux-mipsle-softfloat:
+	GOARCH=mipsle GOMIPS=softfloat GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+
+linux-mipsle-hardfloat:
+	GOARCH=mipsle GOMIPS=hardfloat GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+
+linux-mips64:
+	GOARCH=mips64 GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+
+linux-mips64le:
+	GOARCH=mips64le GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+
+
+gz_releases=$(addsuffix .tar, $(PLATFORM_LIST))
+mipsle_releases=$(addsuffix .tar, $(MIPSLE_LIST))
+
+$(gz_releases): %.tar : %
+	chmod +x $(BINDIR)/clash
+	-${upx} --lzma --best $(BINDIR)/clash
+	tar -zcvf $(BINDIR)/$(NAME)-$(basename $@).tar.gz -C $(BINDIR) clash
+	rm -rf $(BINDIR)/clash
+
+$(mipsle_releases): %.tar : %
+	chmod +x $(BINDIR)/clash
+	-${upx} --best $(BINDIR)/clash
+	tar -zcvf $(BINDIR)/$(NAME)-$(basename $@).tar.gz -C $(BINDIR) clash
+	rm -rf $(BINDIR)/clash
+
+all-arch: $(PLATFORM_LIST)
+
+releases: $(mipsle_releases) $(gz_releases)
+
+lint:
+	golangci-lint run ./...
+
+clean:
+	rm $(BINDIR)/*
+
+CLANG ?= clang-14
+CFLAGS := -O2 -g -Wall -Werror $(CFLAGS)
+
+ebpf: export BPF_CLANG := $(CLANG)
+ebpf: export BPF_CFLAGS := $(CFLAGS)
+ebpf:
+	cd component/ebpf/ && go generate ./...
