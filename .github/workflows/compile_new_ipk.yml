@@ -15,6 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       version: ${{ steps.version.outputs.version }}
+      current_version: ${{ steps.current_version.outputs.version }}
     steps:
       - name: Clone Repository
         uses: actions/checkout@v3
@@ -27,9 +28,21 @@ jobs:
           echo "version=$(grep 'PKG_VERSION:=' ./luci-app-openclash/Makefile |awk -F '=' '{print $2}')" >> $GITHUB_OUTPUT
           echo "New Version: $(grep 'PKG_VERSION:=' ./luci-app-openclash/Makefile |awk -F '=' '{print $2}')"
 
+      - name: Clone Repository
+        uses: actions/checkout@v3
+        with:
+          ref: package
+
+      - name: Current Version
+        id: current_version
+        run: |
+          echo "version=$(sed -n 1p ./${{ github.ref_name }}/version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
+          echo "Current Version: $(sed -n 1p ./${{ github.ref_name }}/version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')"
+
   Compile:
     runs-on: ubuntu-latest
     needs: Get-Version
+    if: ${{ needs.Get-Version.outputs.version != needs.Get-Version.outputs.current_version }}
     steps:
       - name: Clone OpenClash Repository
         uses: actions/checkout@v3
