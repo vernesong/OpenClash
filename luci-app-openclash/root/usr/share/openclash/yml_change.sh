@@ -668,30 +668,32 @@ Thread.new{
                end;
             end;
          end;
-         if ${18} == 1 then
-            if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-               Value['dns']['fake-ip-filter'].insert(-1,'+.nflxvideo.net');
-               Value['dns']['fake-ip-filter'].insert(-1,'+.media.dssott.com');
-               Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
-            else
-               Value['dns'].merge!({'fake-ip-filter'=>['+.nflxvideo.net', '+.media.dssott.com']});
-            end;
-         end;
-         if '$lan_block_google_dns' != '0' then
-            if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-               Value['dns']['fake-ip-filter'].insert(-1,'+.dns.google');
-               Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
-            else
-               Value['dns'].merge!({'fake-ip-filter'=>['+.dns.google']});
-            end;
-         end;
-      elsif ${19} != 1 then
+      end;
+   end;
+   if '$1' == 'fake-ip' then
+      if ${18} == 1 then
          if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-            Value['dns']['fake-ip-filter'].insert(-1,'+.*');
+            Value['dns']['fake-ip-filter'].insert(-1,'+.nflxvideo.net');
+            Value['dns']['fake-ip-filter'].insert(-1,'+.media.dssott.com');
             Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
          else
-            Value['dns'].merge!({'fake-ip-filter'=>['+.*']});
+            Value['dns'].merge!({'fake-ip-filter'=>['+.nflxvideo.net', '+.media.dssott.com']});
          end;
+      end;
+      if '$lan_block_google_dns' != '0' then
+         if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+            Value['dns']['fake-ip-filter'].insert(-1,'+.dns.google');
+            Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
+         else
+            Value['dns'].merge!({'fake-ip-filter'=>['+.dns.google']});
+         end;
+      end;
+   elsif ${19} != 1 then
+      if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+         Value['dns']['fake-ip-filter'].insert(-1,'+.*');
+         Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
+      else
+         Value['dns'].merge!({'fake-ip-filter'=>['+.*']});
       end;
    end;
 }.join;
