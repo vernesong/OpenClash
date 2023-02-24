@@ -7,7 +7,7 @@ on:
       - master
       - dev
     paths:
-      - 'version'
+      - 'luci-app-openclash/Makefile'
   workflow_dispatch:
 
 jobs:
@@ -24,8 +24,8 @@ jobs:
       - name: New Version
         id: version
         run: |
-          echo "version=$(sed -n 1p ./version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
-          echo "New Version: $(sed -n 1p ./version |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}')"
+          echo "version=$(grep 'PKG_VERSION:=' ./luci-app-openclash/Makefile |awk -F '=' '{print $2}')" >> $GITHUB_OUTPUT
+          echo "New Version: $(grep 'PKG_VERSION:=' ./luci-app-openclash/Makefile |awk -F '=' '{print $2}')"
 
   Compile:
     runs-on: ubuntu-latest
