@@ -70,12 +70,10 @@ jobs:
           cd ..
           mkdir tmp/SDK/package/luci-app-openclash
           cp -rf "./OpenClash/luci-app-openclash/." "./tmp/SDK/package/luci-app-openclash/"
-          cp "./OpenClash/version" "./tmp/version"
 
       - name: Change OpenClash Source Codes Version
         run: |
           cd ..
-          sed -i "/.*PKG_VERSION:=*/c\PKG_VERSION:=${{ needs.Get-Version.outputs.version }}" ./tmp/SDK/package/luci-app-openclash/Makefile
           curl -SLk --connect-timeout 30 --retry 2 "https://img.shields.io/badge/Current%20Version-v${{ needs.Get-Version.outputs.version }}--beta-blue.svg" -o "./tmp/SDK/package/luci-app-openclash/root/www/luci-static/resources/openclash/img/version.svg"
 
       - name: Compile po2lmo
@@ -100,8 +98,9 @@ jobs:
       - name: Commit and Push New Version
         run: |
           rm -rf ./${{ github.ref_name }}/luci-app-openclash_*
+          echo "v${{ needs.Get-Version.outputs.version }}-beta" > ./${{ github.ref_name }}/version
+          echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}--beta-orange.svg" >> ./${{ github.ref_name }}/version
           cd ..
-          cp "./tmp/version" "./OpenClash/${{ github.ref_name }}/version"
           cp "./tmp/SDK/bin/ar71xx/packages/base/luci-app-openclash_${{ needs.Get-Version.outputs.version }}-beta_all.ipk" "./OpenClash/${{ github.ref_name }}/luci-app-openclash_${{ needs.Get-Version.outputs.version }}-beta_all.ipk"
           sed -i -E "s/OpenClash\/tree\/v(.*)-beta/OpenClash\/tree\/v${{ needs.Get-Version.outputs.version }}-beta/g" ./OpenClash/${{ github.ref_name }}/README.md
           sed -i -E "s/OpenClash\/releases\/tag\/v(.*)-beta/OpenClash\/releases\/tag\/v${{ needs.Get-Version.outputs.version }}-beta/g" ./OpenClash/${{ github.ref_name }}/README.md
