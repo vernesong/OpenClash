@@ -591,9 +591,6 @@ msgstr "设置自定义 Hosts，详细信息请参阅:"
 msgid "Set Custom Rules"
 msgstr "设置自定义规则（在上方规则设置中启用本功能后生效）"
 
-msgid "Custom Hosts"
-msgstr "自定义 Hosts"
-
 msgid "Version Update"
 msgstr "版本更新"
 
@@ -2008,6 +2005,9 @@ msgstr "发现 53 端口被劫持，清理防火墙规则..."
 msgid "OpenClash Start Running..."
 msgstr "OpenClash 开始启动..."
 
+msgid "OpenClash Restart..."
+msgstr "OpenClash 重新启动中..."
+
 msgid "Step 1: Get The Configuration..."
 msgstr "第一步: 获取配置..."
 
@@ -2157,15 +2157,6 @@ msgstr "注意: 如遇到配置丢失或者需要还原默认配置，请尝试�
 
 msgid "Take Effect If Fallback DNS Setted, Prevent DNS Pollution"
 msgstr "只有在配置文件设置了 Fallback 组的DNS时才会生效，正确设置可以有效防止 DNS 污染"
-
-msgid "Custom Fallback-Filter"
-msgstr "自定义 Fallback-Filter"
-
-msgid "Custom Fake-IP-Filter"
-msgstr "自定义 Fake-IP-Filter"
-
-msgid "Custom Nameserver-Policy"
-msgstr "自定义 Nameserver-Policy"
 
 msgid "Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore..."
 msgstr "错误：只有在配置文件设置了 Fallback 组的 DNS 时 Fallback-Filter 才会生效，跳过此项修改..."

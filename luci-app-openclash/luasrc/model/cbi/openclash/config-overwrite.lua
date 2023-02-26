@@ -158,7 +158,7 @@ o.default = 1
 
 end
 
-o = s:taboption("dns", Flag, "custom_fallback_filter", translate("Custom Fallback-Filter"))
+o = s:taboption("dns", Flag, "custom_fallback_filter", translate("Fallback-Filter"))
 o.description = translate("Take Effect If Fallback DNS Setted, Prevent DNS Pollution")
 o.default = 0
 
@@ -182,7 +182,7 @@ function custom_fallback_filter.write(self, section, value)
 end
 
 if op_mode == "fake-ip" then
-o = s:taboption("dns", Flag, "custom_fakeip_filter", translate("Custom Fake-IP-Filter"))
+o = s:taboption("dns", Flag, "custom_fakeip_filter", translate("Fake-IP-Filter"))
 o.default = 0
 
 custom_fake_black = s:taboption("dns", Value, "custom_fake_filter")
@@ -206,7 +206,7 @@ function custom_fake_black.write(self, section, value)
 end
 end
 
-o = s:taboption("dns", Flag, "custom_name_policy", translate("Custom Nameserver-Policy"))
+o = s:taboption("dns", Flag, "custom_name_policy", translate("Nameserver-Policy"))
 o.default = 0
 
 custom_domain_dns_policy = s:taboption("dns", Value, "custom_domain_dns_core")
@@ -229,7 +229,7 @@ function custom_domain_dns_policy.write(self, section, value)
 	end
 end
 
-o = s:taboption("dns", Flag, "custom_host", translate("Custom Hosts"))
+o = s:taboption("dns", Flag, "custom_host", translate("Hosts"))
 o.default = 0
 
 custom_hosts = s:taboption("dns", Value, "custom_hosts")
