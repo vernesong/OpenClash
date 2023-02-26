@@ -3,7 +3,7 @@ name: Compile The New Clash Premium Core
 
 on:
   schedule:
-    - cron: "0 21 * * 0,2,4,6"
+    - cron: "0 2 * * *"
   workflow_dispatch:
   
 jobs:
