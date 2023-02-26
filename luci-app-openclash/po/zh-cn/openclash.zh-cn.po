@@ -1078,6 +1078,12 @@ msgstr "*仅允许常用端口流量"
 msgid "Only Common Ports, Prevent BT/P2P Passing"
 msgstr "仅允许常用端口的流量经过 Clash，防止 BT、P2P 下载流量经过代理"
 
+msgid "443 or 21-443, Use Space to Separate"
+msgstr "443 or 21-443, 请使用空格分隔"
+
+msgid "Default Common Ports"
+msgstr "默认常用端口"
+
 msgid "Provider File Manage"
 msgstr "代理（规则）集文件管理"
 
