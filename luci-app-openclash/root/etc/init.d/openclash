@@ -2937,6 +2937,8 @@ restart()
    mkdir -p /tmp/lock
    touch $LOCK_FILE
    set_lock
+   echo "OpenClash Restart..."
+   LOG_OUT "OpenClash Restart..."
    stop
    start
    del_lock
