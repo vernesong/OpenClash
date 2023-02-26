@@ -1,4 +1,4 @@
-name: Sync Core When release
+name: Sync Core and Package to Master When release
 on:
   push:
     tags:
