@@ -281,7 +281,7 @@ yml_servers_set()
    config_get "packet_addr" "$section" "packet_addr" ""
    config_get "client_fingerprint" "$section" "client_fingerprint" ""
    config_get "ip_version" "$section" "ip_version" ""
-
+   config_get "tfo" "$section" "tfo" ""
    
    if [ "$enabled" = "0" ]; then
       return
@@ -1133,18 +1133,25 @@ cat >> "$SERVER_FILE" <<-EOF
     ip-version: "$ip_version"
 EOF
    fi
-   
+
+#TFO
+   if [ ! -z "$tfo" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    tfo: $tfo
+EOF
+   fi
+
 #interface-name
    if [ -n "$interface_name" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    interface-name: $interface_name
+    interface-name: "$interface_name"
 EOF
    fi
 
 #routing_mark
    if [ -n "$routing_mark" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    routing-mark: $routing_mark
+    routing-mark: "$routing_mark"
 EOF
    fi
 }
