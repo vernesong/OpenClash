@@ -888,7 +888,7 @@ yml_other_rules_get()
    config_get "Discovery" "$section" "Discovery" "$GlobalTV"
    config_get "DAZN" "$section" "DAZN" "$GlobalTV"
    config_get "ChatGPT" "$section" "ChatGPT" "$Proxy"
-   config_get "Apple_TV" "$section" "Apple_TV" "$GlobalTV"
+   config_get "AppleTV" "$section" "AppleTV" "$GlobalTV"
 }
 
 if [ "$1" != "0" ]; then
@@ -931,7 +931,7 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$HBOGo" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Pornhub" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Apple" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Apple_TV" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$AppleTV" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Scholar" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Netflix" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Disney" /tmp/Proxy_Group)" ]\
@@ -993,7 +993,7 @@ if [ "$1" != "0" ]; then
             .gsub(/,Proxy$/, ',$Proxy#delete_')
             .gsub(/,YouTube$/, ',$Youtube#delete_')
             .gsub(/,Apple$/, ',$Apple#delete_')
-            .gsub(/,Apple TV$/, ',$Apple_TV#delete_')
+            .gsub(/,Apple TV$/, ',$AppleTV#delete_')
             .gsub(/,Scholar$/, ',$Scholar#delete_')
             .gsub(/,Netflix$/, ',$Netflix#delete_')
             .gsub(/,Disney$/, ',$Disney#delete_')
@@ -1024,7 +1024,7 @@ if [ "$1" != "0" ]; then
             .gsub!(/: \"Proxy\"/,': \"$Proxy#delete_\"')
             .gsub!(/: \"YouTube\"/,': \"$Youtube#delete_\"')
             .gsub!(/: \"Apple\"/,': \"$Apple#delete_\"')
-            .gsub!(/: \"Apple TV\"/,': \"$Apple_TV#delete_\"')
+            .gsub!(/: \"Apple TV\"/,': \"$AppleTV#delete_\"')
             .gsub!(/: \"Scholar\"/,': \"$Scholar#delete_\"')
             .gsub!(/: \"Netflix\"/,': \"$Netflix#delete_\"')
             .gsub!(/: \"Disney\"/,': \"$Disney#delete_\"')
