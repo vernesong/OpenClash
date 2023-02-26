@@ -68,7 +68,6 @@ jobs:
         run: |
           echo "v${{ needs.Get-Version.outputs.version }}-beta" > ./version
           echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}--beta-orange.svg" >> ./version
-          curl -SLk --connect-timeout 30 --retry 2 "https://img.shields.io/badge/Current%20Version-v${{ needs.Get-Version.outputs.version }}--beta-blue.svg" -o "./luci-app-openclash/root/www/luci-static/resources/openclash/img/version.svg"
 
       - name: Copy OpenClash Source Codes
         run: |
