@@ -1735,7 +1735,7 @@ ${uci_set}HBOMax="HBO Max"
 ${uci_set}HBOGo="HBO Go"
 ${uci_set}Pornhub="Pornhub"
 ${uci_set}Apple="Apple"
-${uci_set}Apple_TV="Apple_TV"
+${uci_set}AppleTV="Apple TV"
 ${uci_set}GoogleFCM="Google FCM"
 ${uci_set}Scholar="Scholar"
 ${uci_set}Microsoft="Microsoft"
@@ -1772,7 +1772,7 @@ ${uci_set}Others="Others"
 	${UCI_DEL_LIST}="Discovery Plus" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Discovery Plus" >/dev/null 2>&1
 	${UCI_DEL_LIST}="DAZN" >/dev/null 2>&1 && ${UCI_ADD_LIST}="DAZN" >/dev/null 2>&1
   ${UCI_DEL_LIST}="ChatGPT" >/dev/null 2>&1 && ${UCI_ADD_LIST}="ChatGPT" >/dev/null 2>&1
-  ${UCI_DEL_LIST}="Apple_TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Apple_TV" >/dev/null 2>&1
+  ${UCI_DEL_LIST}="Apple TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Apple TV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Google FCM" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Google FCM" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Scholar" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Scholar" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Disney" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Disney" >/dev/null 2>&1
