@@ -189,7 +189,7 @@ end
 o:value("DIRECT")
 o:value("REJECT")
 
-o = s:option(ListValue, "Apple_TV", translate("Apple TV"))
+o = s:option(ListValue, "AppleTV", translate("Apple TV"))
 o:depends("rule_name", "lhie1")
 o.rmempty = true
 for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
