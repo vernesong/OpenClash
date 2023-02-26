@@ -529,6 +529,7 @@ o.rmempty = true
 o.default = "xtls-rprx-direct"
 o:value("xtls-rprx-direct")
 o:value("xtls-rprx-origin")
+o:value("xtls-rprx-vision")
 o:depends("obfs_vless", "none")
 
 o = s:option(Value, "keep_alive", translate("keep-alive"))
