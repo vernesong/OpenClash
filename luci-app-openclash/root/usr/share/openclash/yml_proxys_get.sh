@@ -462,6 +462,14 @@ do
       end
    }.join
    
+   Thread.new{
+      #TFO
+      if Value['proxies'][$count].key?('tfo') then
+         tfo = '${uci_set}tfo=' + Value['proxies'][$count]['tfo'].to_s
+         system(tfo)
+      end
+   }.join
+
    if '$server_type' == 'ss' then
       Thread.new{
       #cipher
