@@ -233,9 +233,12 @@ o = s:taboption("traffic_control", Flag, "disable_udp_quic", font_red..bold_on..
 o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic(Not Include CN) On Port 443")..bold_off..font_off
 o.default = 1
 
-o = s:taboption("traffic_control", Flag, "common_ports", font_red..bold_on..translate("Common Ports Proxy Mode")..bold_off..font_off)
+o = s:taboption("traffic_control", Value, "common_ports", font_red..bold_on..translate("Common Ports Proxy Mode")..bold_off..font_off)
 o.description = translate("Only Common Ports, Prevent BT/P2P Passing")
+o:value("0", translate("Disable"))
+o:value("21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 5222 5228 5229 5230 8080 8443 8880 8888 8889", translate("Default Common Ports"))
 o.default = 0
+o.placeholder = translate("443 or 21-443, Use Space to Separate")
 o:depends("en_mode", "redir-host")
 o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")

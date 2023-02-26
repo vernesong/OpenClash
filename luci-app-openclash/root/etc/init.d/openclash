@@ -1230,6 +1230,15 @@ cat > "/var/etc/openclash.include" <<-EOF
 /etc/init.d/openclash reload "firewall" >/dev/null 2>&1
 EOF
 
+#common ports
+if [ -n "$common_ports" ] && [ "$common_ports" != "0" ]; then
+   if [ "$common_ports" = "1" ]; then
+      common_port="21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 5222 5228 5229 5230 8080 8443 8880 8888 8889"
+   else
+      common_port=$common_ports
+   fi
+fi
+
 local settype nftflag
 if dnsmasq --version | grep -q 'Compile time options:.* nftset'; then
    settype="nftset"
@@ -1397,8 +1406,7 @@ if [ -n "$FW4" ]; then
       fi
 
    #common ports
-   if [ "$common_ports" = "1" ]; then
-      common_port="21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 5222 5228 5229 5230 8080 8443 8880 8888 8889"
+   if [ -n "$common_ports" ] && [ "$common_ports" != "0" ]; then
       nft 'add set inet fw4 common_ports { type inet_service; }'
       for i in $common_port; do
          nft add element inet fw4 common_ports { "$i" }
@@ -2078,8 +2086,7 @@ else
       fi
 
    #common ports
-   if [ "$common_ports" = "1" ]; then
-      common_port="21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 5222 5228 5229 5230 8080 8443 8880 8888 8889"
+   if [ -n "$common_ports" ] && [ "$common_ports" != "0" ]; then
       ipset create common_ports bitmap:port range 0-65535
       for i in $common_port; do
          ipset add common_ports $i
