@@ -585,8 +585,8 @@ msgstr "设置自定义规则（候补匹配），详细信息请参阅:"
 msgid "IP To CIDR:"
 msgstr "在线 IP 段转 CIDR 地址:"
 
-msgid "Custom Hosts Here, For More Go:"
-msgstr "设置自定义 Hosts，详细信息请参阅:"
+msgid "Custom Hosts Here, You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address, For More Go:"
+msgstr "设置自定义 Hosts，设置了保留地址时需要关闭 Dnsmasq 的重绑定保护选项才能生效，详细信息请参阅:"
 
 msgid "Set Custom Rules"
 msgstr "设置自定义规则（在上方规则设置中启用本功能后生效）"
@@ -3158,7 +3158,7 @@ msgid "Domains or IPs in The List Will Not be Affected by The China IP Route Opt
 msgstr "列表中的域名或 IP 将不会受到绕过中国大陆 IP 选项的影响，此功能依赖于 Dnsmasq"
 
 msgid "Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address"
-msgstr "警告：Hosts 设置了保留地址时可能需要关闭 dnsmasq 的重绑定保护选项才能生效"
+msgstr "警告：Hosts 设置了保留地址时需要关闭 Dnsmasq 的重绑定保护选项才能生效"
 
 msgid "LAN Block Google DNS IP List"
 msgstr "实验性：屏蔽 Google DNS 的局域网设备 IP"
