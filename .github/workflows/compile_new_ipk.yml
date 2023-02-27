@@ -95,8 +95,8 @@ jobs:
           cd ..
           cp "./tmp/SDK/bin/ar71xx/packages/base/luci-app-openclash_${{ needs.Get-Version.outputs.version }}-beta_all.ipk" "./OpenClash/luci-app-openclash_${{ needs.Get-Version.outputs.version }}-beta_all.ipk"
           cd \OpenClash
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
           git commit -m "Auto Release: v${{ needs.Get-Version.outputs.version }}-beta"
           git push
@@ -118,8 +118,8 @@ jobs:
           sed -i -E "s/source code-v(.*)--beta-green/source code-v${{ needs.Get-Version.outputs.version }}--beta-green/g" ./OpenClash/${{ github.ref_name }}/README.md
           sed -i -E "s/New Release-v(.*)--beta-orange/New Release-v${{ needs.Get-Version.outputs.version }}--beta-orange/g" ./OpenClash/${{ github.ref_name }}/README.md
           cd \OpenClash
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
           git commit -m "Auto Release: v${{ needs.Get-Version.outputs.version }}-beta"
           git push
