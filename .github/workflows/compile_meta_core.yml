@@ -109,8 +109,8 @@ jobs:
         run: |
           rm -rf ./dev/meta/*
           cp -rf "../tmp/bin/." "./dev/meta/"
-          git config user.name github-actions
-          git config user.email github-actions@github.com
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
           git commit -m "Auto update Meta core: ${{ needs.Get-Commit-id.outputs.upstream_id }}"
           git push
