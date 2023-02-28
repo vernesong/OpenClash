@@ -171,7 +171,7 @@ o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")
 
 ip_b = s:taboption("lan_ac", DynamicList, "lan_ac_black_ips", translate("LAN Bypassed Host List"))
-ip_b.datatype = "ipaddr"
+ip_b.datatype = "ipmask"
 ip_b:depends({lan_ac_mode = "0", enable_redirect_dns = "2"})
 ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host"})
 ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host-tun"})
@@ -183,7 +183,7 @@ mac_b.rmempty  = true
 mac_b:depends("lan_ac_mode", "0")
 
 ip_w = s:taboption("lan_ac", DynamicList, "lan_ac_white_ips", translate("LAN Proxied Host List"))
-ip_w.datatype = "ipaddr"
+ip_w.datatype = "ipmask"
 ip_w:depends({lan_ac_mode = "1", enable_redirect_dns = "2"})
 ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host"})
 ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host-tun"})
@@ -215,7 +215,7 @@ end)
 end
 
 o = s:taboption("lan_ac", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
-o.datatype = "ipaddr"
+o.datatype = "ipmask"
 o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
 
 o = s:taboption("lan_ac", DynamicList, "lan_ac_black_ports", translate("Lan Bypassed Port List"))
@@ -307,7 +307,7 @@ end
 
 --Stream Enhance
 se_dns_ip = s:taboption("stream_enhance", DynamicList, "lan_block_google_dns_ips", font_red..bold_on..translate("LAN Block Google DNS IP List")..bold_off..font_off)
-se_dns_ip.datatype = "ipaddr"
+se_dns_ip.datatype = "ipmask"
 se_dns_ip.rmempty  = true
 
 se_dns_mac = s:taboption("stream_enhance", DynamicList, "lan_block_google_dns_macs", font_red..bold_on..translate("LAN Block Google DNS Mac List")..bold_off..font_off)
