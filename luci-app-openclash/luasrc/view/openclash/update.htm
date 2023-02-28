@@ -437,27 +437,6 @@
         return false; 
     }
     
-    function restore_config(btn)
-    {
-        btn.value    = '<%:Restore Default Config%>';
-        btn.disabled = true;
-        var r = confirm("<%:Are you sure want to restore the default config?%>")
-        if (r == true) {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "restore")%>', null, function(x, status) {
-        	if ( x && x.status == 200 ) {
-        		alert('<%:Restore succeeded!%>')
-        		window.location.href='<%="settings"%>';
-        	}
-        	else {
-				alert('<%:Restore failed!%>')
-				window.location.href='<%="settings"%>';
-           }
-        });
-        }
-        btn.disabled = false;
-        return false; 
-    }
-    
     function backup_all_file(btn)
     {
 		btn.value    = '<%:Backup OpenClash%>';
