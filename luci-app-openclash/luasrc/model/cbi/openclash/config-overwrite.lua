@@ -21,7 +21,7 @@ local lan_ip = SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 
 
 m = Map("openclash", translate("Overwrite Settings"))
 m.pageaction = false
-m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config_(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"
+m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"
 
 s = m:section(TypedSection, "openclash")
 s.anonymous = true

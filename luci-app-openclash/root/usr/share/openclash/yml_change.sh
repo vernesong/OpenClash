@@ -474,7 +474,6 @@ Thread.new{
       Value['tun']['stack']='$stack_type';
       if ${19} == 1 then
          Value['tun']['device']='utun';
-         Value['tun']['mtu']=65535;
       end;
       Value_2={'dns-hijack'=>['tcp://any:53']};
       Value['tun']['auto-route']=false;
