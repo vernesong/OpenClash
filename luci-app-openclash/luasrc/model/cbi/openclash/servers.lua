@@ -9,7 +9,7 @@ font_off = [[</b>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
-m = Map(openclash,  translate("Servers manage and Config create"))
+m = Map(openclash,  translate("Onekey Create (Servers&Groups manage)"))
 m.pageaction = false
 m.description=translate("Attention:")..
 "<br/>"..translate("1. Before modifying the configuration file, please click the button below to read the configuration file")..

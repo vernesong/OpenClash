@@ -14,7 +14,7 @@ font_off = [[</b>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
-m = Map("openclash",  translate("Config Update"))
+m = Map("openclash",  translate("Config Subscribe"))
 m.pageaction = false
 
 s = m:section(TypedSection, "openclash")
