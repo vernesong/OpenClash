@@ -3320,3 +3320,30 @@ msgstr "错误：修改 Client-fingerprint 失败，"
 
 msgid "Traffic Control"
 msgstr "流量控制"
+
+msgid "Hide IP"
+msgstr "隐藏 IP 地址"
+
+msgid "Show IP"
+msgstr "显示 IP 地址"
+
+msgid "Refresh"
+msgstr "刷新"
+
+msgid "Refresh"
+msgstr "刷新"
+
+msgid "Specify URL"
+msgstr "指定订阅信息获取地址"
+
+msgid "Paste the new url of subscribe infos sources here:"
+msgstr "在此处粘贴并指定订阅信息来源的新地址："
+
+msgid "Specify subscribe infos sources url successfully!"
+msgstr "指定新的订阅信息来源地址成功！"
+
+msgid "Delete Specify Subscribe infos sources url successfully!"
+msgstr "已删除指定的订阅信息来源地址！"
+
+msgid "Specify subscribe infos sources url failed:"
+msgstr "指定新的订阅信息来源地址失败："
