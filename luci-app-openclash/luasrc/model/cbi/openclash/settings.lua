@@ -47,6 +47,10 @@ s:tab("developer", translate("Developer Settings"))
 s:tab("debug", translate("Debug Logs"))
 s:tab("dlercloud", translate("Dler Cloud"))
 
+o = s:taboption("op_mode", Flag, "enable_meta_core", font_red..bold_on..translate("Enable Meta Core")..bold_off..font_off)
+o.description = font_red..bold_on..translate("Some Premium Core Features are Unavailable, For Other More Useful Functions Go Wiki:")..bold_off..font_off.." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://clashmeta.gitbook.io/meta/\")'>https://clashmeta.gitbook.io/meta/</a>"
+o.default = 0
+
 o = s:taboption("op_mode", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
 o.description = translate("Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error")
 if op_mode == "redir-host" then
@@ -61,7 +65,7 @@ o:value("fake-ip-mix", translate("fake-ip-mix(tun mix mode)"))
 o.default = "fake-ip"
 end
 
-o = s:taboption("op_mode", Flag, "enable_udp_proxy", font_red..bold_on..translate("Proxy UDP Traffics")..bold_off..font_off)
+o = s:taboption("op_mode", Flag, "enable_udp_proxy", translate("Proxy UDP Traffics"))
 o.description = translate("The Servers Must Support UDP forwarding").."<br>"..font_red..bold_on.."1."..translate("If Docker is Installed, UDP May Not Forward Normally").."<br>2."..translate("In Fake-ip Mode, Even If This Option is Turned Off, Domain Type Connections Still Pass Through The Core For The Availability")..bold_off..font_off
 o:depends("en_mode", "redir-host")
 o:depends("en_mode", "fake-ip")
@@ -77,17 +81,13 @@ o:value("system", translate("System　"))
 o:value("gvisor", translate("Gvisor"))
 o.default = "system"
 
-o = s:taboption("op_mode", ListValue, "proxy_mode", font_red..bold_on..translate("Proxy Mode")..bold_off..font_off)
-o.description = translate("Select Proxy Mode, Use Script Mode Could Prevent Proxy BT traffics If Rules Support, eg.lhie1's")
+o = s:taboption("op_mode", ListValue, "proxy_mode", translate("Proxy Mode"))
+o.description = translate("Select Proxy Mode")
 o:value("rule", translate("Rule Proxy Mode"))
 o:value("global", translate("Global Proxy Mode"))
 o:value("direct", translate("Direct Proxy Mode"))
 o:value("script", translate("Script Proxy Mode (Tun Core Only)"))
 o.default = "rule"
-
-o = s:taboption("op_mode", Flag, "enable_meta_core", font_red..bold_on..translate("Enable Meta Core")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Some Premium Core Features are Unavailable, For Other More Useful Functions Go Wiki:")..bold_off..font_off.." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://clashmeta.gitbook.io/meta/\")'>https://clashmeta.gitbook.io/meta/</a>"
-o.default = 0
 
 o = s:taboption("op_mode", Value, "delay_start", translate("Delay Start (s)"))
 o.description = translate("Delay Start On Boot")
@@ -135,14 +135,14 @@ o:depends("enable_redirect_dns", "1")
 o:depends("enable_redirect_dns", "0")
 
 o = s:taboption("dns", Value, "custom_domain_dns_server", translate("Specify DNS Server"))
-o.description = translate("Specify DNS Server For List and Server Nodes With Fake-IP Mode, Only One IP Server Address Support")
+o.description = translate("Specify DNS Server For List, Only One IP Server Address Support")
 o.default = "114.114.114.114"
 o.placeholder = translate("114.114.114.114 or 127.0.0.1#5300")
 o:depends{enable_redirect_dns = "1", enable_custom_domain_dns_server = "1"}
 
 custom_domain_dns = s:taboption("dns", Value, "custom_domain_dns")
 custom_domain_dns.template = "cbi/tvalue"
-custom_domain_dns.description = translate("Domain Names In The List Use The Custom DNS Server, One rule per line, Depend on Dnsmasq")
+custom_domain_dns.description = translate("Domain Names In The List Do Not Return Fake-IP, One rule per line, Depend on Dnsmasq")
 custom_domain_dns.rows = 20
 custom_domain_dns.wrap = "off"
 custom_domain_dns:depends{enable_redirect_dns = "1", enable_custom_domain_dns_server = "1"}
@@ -306,11 +306,11 @@ function o.write(self, section, value)
 end
 
 --Stream Enhance
-se_dns_ip = s:taboption("stream_enhance", DynamicList, "lan_block_google_dns_ips", font_red..bold_on..translate("LAN Block Google DNS IP List")..bold_off..font_off)
+se_dns_ip = s:taboption("stream_enhance", DynamicList, "lan_block_google_dns_ips", translate("LAN Block Google DNS IP List"))
 se_dns_ip.datatype = "ipmask"
 se_dns_ip.rmempty  = true
 
-se_dns_mac = s:taboption("stream_enhance", DynamicList, "lan_block_google_dns_macs", font_red..bold_on..translate("LAN Block Google DNS Mac List")..bold_off..font_off)
+se_dns_mac = s:taboption("stream_enhance", DynamicList, "lan_block_google_dns_macs", translate("LAN Block Google DNS Mac List"))
 se_dns_mac.datatype = "list(macaddr)"
 se_dns_mac.rmempty  = true
 
@@ -330,7 +330,7 @@ luci.ip.neighbors({ family = 6 }, function(n)
 end)
 end
 
-o = s:taboption("stream_enhance", Flag, "stream_domains_prefetch", font_red..bold_on..translate("Prefetch Netflix, Disney Plus Domains")..bold_off..font_off)
+o = s:taboption("stream_enhance", Flag, "stream_domains_prefetch", translate("Prefetch Netflix, Disney Plus Domains"))
 o.description = translate("Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure, Recommend Use meta Sniffer Function")
 o.default = 0
 o:depends("router_self_proxy", "1")
@@ -797,6 +797,7 @@ o.description = font_red..bold_on..translate("Auto Update Other Rules")..bold_of
 o.default = 0
 
 o = s:taboption("rules_update", ListValue, "other_rule_update_week_time", translate("Update Time (Every Week)"))
+o:depends("other_rule_auto_update", "1")
 o:value("*", translate("Every Day"))
 o:value("1", translate("Every Monday"))
 o:value("2", translate("Every Tuesday"))
@@ -808,12 +809,14 @@ o:value("0", translate("Every Sunday"))
 o.default = "1"
 
 o = s:taboption("rules_update", ListValue, "other_rule_update_day_time", translate("Update time (every day)"))
+o:depends("other_rule_auto_update", "1")
 for t = 0,23 do
 o:value(t, t..":00")
 end
 o.default = "0"
 
 o = s:taboption("rules_update", Button, translate("Other Rules Update")) 
+o:depends("other_rule_auto_update", "1")
 o.title = translate("Update Other Rules")
 o.inputtitle = translate("Check And Update")
 o.description = translate("Other Rules Update(Only in Use)")
@@ -825,8 +828,7 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-o = s:taboption("geo_update", Flag, "geo_auto_update", translate("Auto Update"))
-o.description = translate("Auto Update GEOIP Database")
+o = s:taboption("geo_update", Flag, "geo_auto_update", font_red..bold_on..translate("Auto Update GeoIP MMDB")..bold_off..font_off)
 o.default = 0
 
 o = s:taboption("geo_update", ListValue, "geo_update_week_time", translate("Update Time (Every Week)"))
@@ -847,9 +849,9 @@ end
 o.default = "0"
 
 o = s:taboption("geo_update", Value, "geo_custom_url")
-o.title = translate("Custom GEOIP URL")
+o.title = translate("Custom GeoIP MMDB URL")
 o.rmempty = true
-o.description = translate("Custom GEOIP Data URL, Click Button Below To Refresh After Edit")
+o.description = translate("Custom GeoIP MMDB URL, Click Button Below To Refresh After Edit")
 o:value("https://testingcf.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb", translate("Alecthw-lite-Version")..translate("(Default mmdb)"))
 o:value("https://testingcf.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/Country.mmdb", translate("Alecthw-Version")..translate("(All Info mmdb)"))
 o:value("https://testingcf.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/Country.mmdb", translate("Hackl0us-Version")..translate("(Only CN)"))
@@ -857,7 +859,7 @@ o:value("https://geolite.clash.dev/Country.mmdb", translate("Geolite.clash.dev")
 o.default = "http://www.ideame.top/mmdb/Country.mmdb"
 
 o = s:taboption("geo_update", Button, translate("GEOIP Update")) 
-o.title = translate("Update GEOIP Database")
+o.title = translate("Update GeoIP MMDB")
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
@@ -867,7 +869,7 @@ o.write = function()
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-o = s:taboption("geo_update", Flag, "geoip_auto_update", translate("Auto Update GeoIP Dat"))
+o = s:taboption("geo_update", Flag, "geoip_auto_update", font_red..bold_on..translate("Auto Update GeoIP Dat")..bold_off..font_off)
 o.default = 0
 o:depends("enable_meta_core", "1")
 
@@ -912,7 +914,7 @@ o.write = function()
 end
 o:depends("geoip_auto_update", "1")
 
-o = s:taboption("geo_update", Flag, "geosite_auto_update", translate("Auto Update GeoSite Database"))
+o = s:taboption("geo_update", Flag, "geosite_auto_update", font_red..bold_on..translate("Auto Update GeoSite")..bold_off..font_off)
 o.default = 0
 o:depends("enable_meta_core", "1")
 
@@ -1078,7 +1080,7 @@ o.template="openclash/switch_dashboard"
 o.rawhtml = true
 
 ---- ipv6
-o = s:taboption("ipv6", Flag, "ipv6_enable", font_red..bold_on..translate("Proxy IPv6 Traffic")..bold_off..font_off)
+o = s:taboption("ipv6", Flag, "ipv6_enable", translate("Proxy IPv6 Traffic"))
 o.description = font_red..bold_on..translate("The Gateway and DNS of The Connected Device Must be The Router IP, Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use")..bold_off..font_off
 o.default = 0
 
