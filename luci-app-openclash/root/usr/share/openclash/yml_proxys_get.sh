@@ -478,6 +478,14 @@ do
          system(cipher)
       end
       }.join
+
+      Thread.new{
+      #udp-over-tcp
+      if Value['proxies'][$count].key?('udp-over-tcp') then
+         udp_over_tcp = '${uci_set}udp_over_tcp=' + Value['proxies'][$count]['udp-over-tcp'].to_s
+         system(udp_over_tcp)
+      end
+      }.join
       
       Thread.new{
       #plugin-opts
