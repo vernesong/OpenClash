@@ -361,6 +361,13 @@ o:depends("type", "trojan")
 o:depends({type = "snell", snell_version = "3"})
 o:depends("type", "wireguard")
 
+o = s:option(ListValue, "udp_over_tcp", translate("udp-over-tcp"))
+o.rmempty = true
+o.default = "false"
+o:value("true")
+o:value("false")
+o:depends("type", "ss")
+
 o = s:option(ListValue, "xudp", translate("XUDP Enable")..translate("(Only Meta Core)"))
 o.rmempty = true
 o.default = "true"
