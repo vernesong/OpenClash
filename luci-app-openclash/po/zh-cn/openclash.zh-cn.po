@@ -24,7 +24,7 @@ msgid "Overwrite Settings"
 msgstr "覆写设置"
 
 msgid "Rule Providers Append"
-msgstr "规则集附加"
+msgstr "规则附加"
 
 msgid "Game Rules Append (Only TUN & Meta Core Support)"
 msgstr "游戏规则附加（仅 TUN & Meta 内核）"
@@ -41,8 +41,8 @@ msgstr "常规设置"
 msgid "Settings"
 msgstr "设置"
 
-msgid "Config Update"
-msgstr "配置文件订阅"
+msgid "Config Subscribe"
+msgstr "配置订阅"
 
 msgid "Config Subscribe Edit"
 msgstr "编辑配置文件订阅信息"
@@ -143,8 +143,8 @@ msgstr "选择运行模式，如客户端的网络异常请尝试清除DNS缓存
 msgid "Proxy Mode"
 msgstr "代理模式"
 
-msgid "Select Proxy Mode, Use Script Mode Could Prevent Proxy BT traffics If Rules Support, eg.lhie1's"
-msgstr "选择默认代理模式，如果规则支持，使用脚本模式可以阻止代理BT流量，比如lhie1规则"
+msgid "Select Proxy Mode"
+msgstr "选择默认代理模式"
 
 msgid "Rule Proxy Mode"
 msgstr "Rule【策略代理】"
@@ -225,7 +225,7 @@ msgid "(Maybe Incompatible For Your Firmware)"
 msgstr "（部分固件可能不兼容）"
 
 msgid "Custom DNS Setting"
-msgstr "自定义上游 DNS 服务器"
+msgstr "*自定义上游 DNS 服务器"
 
 msgid "Use Custom Rules"
 msgstr "启用后将把自定义规则增加到配置文件，规则请到下方文本框编辑"
@@ -240,20 +240,16 @@ msgid "Advanced Setting"
 msgstr "高级设置"
 
 msgid "Enable Specify DNS Server"
-msgstr "启用（第二）DNS 服务器"
+msgstr "启用第二 DNS 服务器"
 
 msgid "Specify DNS Server"
-msgstr "指定（第二）DNS 服务器"
+msgstr "指定服务器"
 
-msgid "Specify DNS Server For List and Server Nodes With Fake-IP Mode, Only One IP Server Address Support"
-msgstr "指定下方列表中域名和 Fake-IP 模式下非代理集内节点的DNS服务器，只支持填写一个IP地址"
+msgid "Specify DNS Server For List, Only One IP Server Address Support"
+msgstr "指定下方列表中域名的 DNS 服务器，只支持填写一个IP地址"
 
-msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line"
-msgstr "每行请只填写一个域名，列表中的域名在（Fake-IP模式）下查询DNS时将返回真实IP地址"
-
-msgid "Domain Names In The List Use The Custom DNS Server, One rule per line, Depend on Dnsmasq"
-msgstr "每行请只填写一个域名，列表中的域名将使用上方指定的DNS进行查询，此功能依赖于 Dnsmasq"
-
+msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line, Depend on Dnsmasq"
+msgstr "每行请只填写一个域名，列表中的域名将使用上方指定的 DNS 进行查询并返回真实IP地址，此功能依赖于 Dnsmasq"
 
 msgid "Domain Names In The List Use The Custom DNS Server, But Still Return Fake-IP Results, One rule per line"
 msgstr "每行请只填写一个规则，列表中的域名将使用指定的 DNS 进行查询，但 Fake-IP 模式下仍将返回保留地址"
@@ -301,10 +297,13 @@ msgid "Rules Setting"
 msgstr "规则设置"
 
 msgid "Config Manage"
-msgstr "配置文件管理"
+msgstr "配置管理"
 
 msgid "Upload File Type"
 msgstr "上传文件类型"
+
+msgid "(Click to select)"
+msgstr "(点击选择)"
 
 msgid "Proxy Provider File"
 msgstr "代理集文件"
@@ -441,13 +440,13 @@ msgstr "设置公网协议是否开启了SSL，便于从公网访问时自动登
 msgid "GEO Update"
 msgstr "GEO 数据库订阅"
 
-msgid "Auto Update GEOIP Database"
-msgstr "自动更新 GEOIP 数据库"
+msgid "Auto Update GeoIP MMDB"
+msgstr "自动更新 GeoIP MMDB 数据库"
 
-msgid "Update GEOIP Database"
-msgstr "更新 GEOIP 数据库"
+msgid "Update GeoIP MMDB"
+msgstr "更新 GeoIP MMDB 数据库"
 
-msgid "Auto Update GeoSite Database"
+msgid "Auto Update GeoSite"
 msgstr "自动更新 GeoSite 数据库"
 
 msgid "Update GeoSite Database"
@@ -571,10 +570,7 @@ msgid "Choose Proxy Groups, Base On Your Config File"
 msgstr "指定流量(策略)的代理方式，只支持选择（策略组），信息来源于您的配置文件"
 
 msgid "Custom Clash Rules"
-msgstr "自定义规则"
-
-msgid "Custom Clash Rules"
-msgstr "自定义规则"
+msgstr "*自定义规则"
 
 msgid "Custom Priority Rules Here, For More Go:"
 msgstr "设置自定义规则（优先匹配），详细信息请参阅:"
@@ -631,8 +627,8 @@ msgstr "更新客户端"
 msgid "Only For IPK Install Type Or Not Release Memory"
 msgstr "只支持通过 IPK 安装的版本进行更新，因为随系统编译的版本更新后不会释放旧版本的闪存空间"
 
-msgid "Servers and Groups"
-msgstr "服务器与策略组管理"
+msgid "Onekey Create"
+msgstr "一键生成"
 
 msgid "Read Config"
 msgstr "读取配置"
@@ -655,8 +651,8 @@ msgstr "返回概览"
 msgid "Refresh Page"
 msgstr "刷新页面"
 
-msgid "Servers manage and Config create"
-msgstr "服务器&策略组管理（支持配置文件一键生成）"
+msgid "Onekey Create (Servers&Groups manage)"
+msgstr "一键生成（服务器&策略组管理）"
 
 msgid "Keep Settings"
 msgstr "保留配置"
@@ -998,7 +994,7 @@ msgid "Other Rule Providers List"
 msgstr "第三方规则集列表"
 
 msgid "Proxy UDP Traffics"
-msgstr "*UDP 流量转发"
+msgstr "UDP 流量转发"
 
 msgid "The Servers Must Support UDP forwarding"
 msgstr "启用时服务器必须支持 UDP 转发"
@@ -1067,10 +1063,10 @@ msgid "In The Fake-IP Mode, Only Pure IP Requests Are Supported"
 msgstr "在 Fake-IP 模式下，只支持过滤纯 IP 类型的请求"
 
 msgid "Rule Match Proxy Mode"
-msgstr "*仅代理命中规则流量"
+msgstr "仅代理命中规则流量"
 
-msgid "Only Proxy Rules Match, Prevent BT/P2P Passing"
-msgstr "仅允许代理命中规则的流量，防止 BT、P2P 下载流量经过代理"
+msgid "Append Some Rules to Config, Allow Only Traffic Proxies that Match the Rule, Prevent BT/P2P Passing"
+msgstr "附加规则到配置文件，仅允许匹配规则的流量代理，防止 BT、P2P 下载流量经过代理"
 
 msgid "Common Ports Proxy Mode"
 msgstr "*仅允许常用端口流量"
@@ -1447,23 +1443,23 @@ msgstr "当前系统默认接口:"
 msgid ",Try Enable If Network Loopback"
 msgstr ", 如发生回环死机请尝试启用"
 
-msgid "Custom GEOIP URL"
-msgstr "GEOIP 数据库更新URL"
+msgid "Custom GeoIP MMDB URL"
+msgstr "GeoIP MMDB 数据库更新 URL"
 
 msgid "Custom GeoSite URL"
-msgstr "GeoSite 数据库更新URL"
+msgstr "GeoSite 数据库更新 URL"
 
 msgid "Custom Chnroute6 Lists URL"
-msgstr "大陆IPv6段更新URL"
+msgstr "大陆IPv6段更新 URL"
 
 msgid "Custom Chnroute Lists URL"
-msgstr "大陆IP段更新URL"
+msgstr "大陆IP段更新 URL"
 
 msgid "Custom CN Doamin Lists URL"
-msgstr "大陆域名列表文件更新URL"
+msgstr "大陆域名列表文件更新 URL"
 
-msgid "Custom GEOIP Data URL, Click Button Below To Refresh After Edit"
-msgstr "自定义 GEOIP 数据库的更新来源，编辑后点击下方按钮生效"
+msgid "Custom GeoIP MMDB URL, Click Button Below To Refresh After Edit"
+msgstr "自定义 GeoIP MMDB 数据库的更新来源，编辑后点击下方按钮生效"
 
 msgid "Custom GeoSite Data URL, Click Button Below To Refresh After Edit"
 msgstr "自定义 GeoSite 数据库的更新来源，编辑后点击下方按钮生效"
@@ -2558,7 +2554,7 @@ msgid "Streaming Enhance"
 msgstr "流媒体增强"
 
 msgid "Auto Select Unlock Proxy"
-msgstr "自动选择解锁节点"
+msgstr "*自动选择解锁节点"
 
 msgid "Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc"
 msgstr "自动选择解锁节点，支持 Netflix、Disney Plus、HBO 和 YouTube Premium 等"
@@ -2891,7 +2887,7 @@ msgid "Error: Streaming DNS Prefetch Could not Work Because of Router-Self Proxy
 msgstr "错误：因为禁用了代理路由器自身流量，预解析无法工作，退出..."
 
 msgid "Enable Meta Core"
-msgstr "使用 Meta 内核"
+msgstr "*使用 Meta 内核"
 
 msgid "Some Premium Core Features are Unavailable, For Other More Useful Functions Go Wiki:"
 msgstr "Meta 内核还未支持 Premium 内核的全部功能，要了解其独有功能，请前往Wiki:"
@@ -2933,7 +2929,7 @@ msgid "Auto Update GeoIP Dat"
 msgstr "自动更新 GeoIP Dat 数据库"
 
 msgid "Custom GeoIP Dat URL"
-msgstr "GeoIP Dat 数据库更新URL"
+msgstr "GeoIP Dat 数据库更新 URL"
 
 msgid "Custom GeoIP Dat URL, Click Button Below To Refresh After Edit"
 msgstr "自定义 GeoIP Dat 数据库的更新来源，编辑后点击下方按钮生效"
@@ -3167,7 +3163,7 @@ msgid "LAN Block Google DNS Mac List"
 msgstr "实验性：屏蔽 Google DNS 的局域网设备 Mac"
 
 msgid "Auto Select Logic"
-msgstr "自动选择逻辑"
+msgstr "*自动选择逻辑"
 
 msgid "Urltest"
 msgstr "低延迟优先"
@@ -3182,7 +3178,7 @@ msgid "Google Not CN"
 msgstr "Google 非送中"
 
 msgid "In Fake-ip Mode, Even If This Option is Turned Off, Domain Type Connections Still Pass Through The Core For The Availability"
-msgstr "在 Fake-IP 模式时，即使关闭此选项，域名类型的连接仍将通过核心以保证可用性"
+msgstr "在 Fake-IP 模式时，即使关闭此选项，域名类型的连接可能仍将通过核心以保证可用性"
 
 msgid "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
 msgstr "警告：TUN 接口启动失败，请检查依赖情况或稍后重试！"

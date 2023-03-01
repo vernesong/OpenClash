@@ -33,7 +33,7 @@ s:tab("rules", translate("Rules Setting"))
 s:tab("developer", translate("Developer Settings"))
 
 ----- General Settings
-o = s:taboption("settings", ListValue, "interface_name", font_red..bold_on..translate("Bind Network Interface")..bold_off..font_off)
+o = s:taboption("settings", ListValue, "interface_name", translate("Bind Network Interface"))
 local de_int = SYS.exec("ip route |grep 'default' |awk '{print $5}' 2>/dev/null") or SYS.exec("/usr/share/openclash/openclash_get_network.lua 'dhcp'")
 o.description = translate("Default Interface Name:").." "..font_green..bold_on..de_int..bold_off..font_off..translate(",Try Enable If Network Loopback")
 local interfaces = SYS.exec("ls -l /sys/class/net/ 2>/dev/null |awk '{print $9}' 2>/dev/null")
@@ -43,7 +43,7 @@ end
 o:value("0", translate("Disable"))
 o.default = "0"
 
-o = s:taboption("settings", Value, "tolerance", font_red..bold_on..translate("Url-Test Group Tolerance (ms)")..bold_off..font_off)
+o = s:taboption("settings", Value, "tolerance", translate("Url-Test Group Tolerance (ms)"))
 o.description = translate("Switch To The New Proxy When The Delay Difference Between Old and The Fastest Currently is Greater Than This Value")
 o:value("0", translate("Disable"))
 o:value("100")
@@ -51,7 +51,7 @@ o:value("150")
 o.datatype = "uinteger"
 o.default = "0"
 
-o = s:taboption("settings", Value, "github_address_mod", font_red..bold_on..translate("Github Address Modify")..bold_off..font_off)
+o = s:taboption("settings", Value, "github_address_mod", translate("Github Address Modify"))
 o.description = translate("Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Faild. Format Reference:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://ghproxy.com/\")'>https://ghproxy.com/</a>"
 o:value("0", translate("Disable"))
 o:value("https://fastly.jsdelivr.net/")
@@ -152,7 +152,7 @@ function o.validate(self, value)
 	return "198.18.0.1/16"
 end
 
-o = s:taboption("dns", Flag, "store_fakeip", font_red..bold_on..translate("Persistence Fake-IP")..bold_off..font_off)
+o = s:taboption("dns", Flag, "store_fakeip", translate("Persistence Fake-IP"))
 o.description = font_red..bold_on..translate("Cache Fake-IP DNS Resolution Records To File, Improve The Response Speed After Startup")..bold_off..font_off
 o.default = 1
 
@@ -274,6 +274,10 @@ o:value("chrome", translate("Chrome"))
 o:value("firefox", translate("Firefox"))
 o:value("safari", translate("Safari"))
 o:value("ios", translate("IOS"))
+o:value("android", translate("Android"))
+o:value("edge", translate("Edge"))
+o:value("360", translate("360"))
+o:value("qq", translate("QQ"))
 o.default = "0"
 
 o = s:taboption("meta", Flag, "enable_meta_sniffer", font_red..bold_on..translate("Enable Sniffer")..bold_off..font_off)
@@ -367,10 +371,9 @@ o = s:taboption("rules", Flag, "rule_source", translate("Enable Other Rules"))
 o.description = translate("Use Other Rules")
 o.default = 0
 
-o = s:taboption("rules", Flag, "enable_rule_proxy", font_red..bold_on..translate("Rule Match Proxy Mode")..bold_off..font_off)
-o.description = translate("Only Proxy Rules Match, Prevent BT/P2P Passing")
+o = s:taboption("rules", Flag, "enable_rule_proxy", translate("Rule Match Proxy Mode"))
+o.description = translate("Append Some Rules to Config, Allow Only Traffic Proxies that Match the Rule, Prevent BT/P2P Passing")
 o.default = 0
-
 
 o = s:taboption("rules", Flag, "enable_custom_clash_rules", font_red..bold_on..translate("Custom Clash Rules")..bold_off..font_off)
 o.description = translate("Use Custom Rules")
