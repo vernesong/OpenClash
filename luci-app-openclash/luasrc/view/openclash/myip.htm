@@ -130,7 +130,9 @@
      <tr><td>
     <div style="display: flex">
         <div style="width: 51%">
-            <h3 style="margin: 10px -2% 10px 2%"><%:IP Address%></h3>
+            <h3 style="margin: 10px -2% 10px 2%; width: 90%;"><%:IP Address%>
+                <span style="float: right; margin: 5px 0% 10px 0%;"><img src='/luci-static/resources/openclash/img/eye-light.svg' height="20px" title='<%:Hide IP%>' alt='<%:Hide IP%>' onclick='return privacy_my_ip(this)'></span>
+            </h3>
             <p style="margin: 10px -2% 10px 2%">
                 <span class="ip-title">IP.TB&nbsp;&nbsp;&nbsp;&nbsp;<%:Mainland%>:</span><span class="ip-result" id="ip-taobao"></span> <span class="ip-geo" id="ip-taobao-geo"></span>
             </p>
@@ -174,6 +176,12 @@
         window.open(url2);
        }
         const $$ = document;
+        var ip_pcol_ip;
+        var ip_ipsb_ip;
+        var ip_taobao_ip;
+        var ip_ipify_ip;
+        var refresh_http;
+        var refresh_ip;
         $$.getElementById('ip-pcol').innerHTML = '<%:Querying...%>';
         $$.getElementById('ip-ipify').innerHTML = '<%:Querying...%>';
         $$.getElementById('ip-taobao').innerHTML = '<%:Querying...%>';
@@ -307,7 +315,6 @@
             }
         };
 
-
         function getPcolIP(data){
             let pcisp = data.addr.split(' ');
             $$.getElementById('ip-pcol').innerHTML = data.ip;
@@ -348,15 +355,42 @@
             //HTTP.runcheck();
             IP.getIpifyIP();
             //IP.getSpeedIP();
-        }
+        };
+
+        function privacy_my_ip(imgobj)
+        {
+            if (imgobj.getAttribute("src") == "/luci-static/resources/openclash/img/eye-light.svg") {
+                imgobj.src='/luci-static/resources/openclash/img/eye-slash-light.svg';
+                imgobj.title='<%:Show IP%>';
+                imgobj.alt='<%:Show IP%>';
+                ip_pcol_ip = $$.getElementById('ip-pcol').innerHTML;
+                ip_ipsb_ip = $$.getElementById('ip-ipsb').innerHTML;
+                ip_taobao_ip = $$.getElementById('ip-taobao').innerHTML;
+                ip_ipify_ip = $$.getElementById('ip-ipify').innerHTML;
+                $$.getElementById('ip-pcol').innerHTML = '***.***.***.***';
+                $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
+                $$.getElementById('ip-taobao').innerHTML = '***.***.***.***';
+                $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
+                clearInterval(refresh_ip);
+            }
+            else {
+                imgobj.src='/luci-static/resources/openclash/img/eye-light.svg';
+                imgobj.title='<%:Hide IP%>';
+                imgobj.alt='<%:Hide IP%>';
+                $$.getElementById('ip-pcol').innerHTML = ip_pcol_ip;
+                $$.getElementById('ip-ipsb').innerHTML = ip_ipsb_ip;
+                $$.getElementById('ip-taobao').innerHTML = ip_taobao_ip;
+                $$.getElementById('ip-ipify').innerHTML = ip_ipify_ip;
+                refresh_ip = setInterval("myip_Load()", Math.floor(Math.random()*(30-10+1)+10)*1000);
+            }
+        };
 
         HTTP.runcheck();
         IP.getIpifyIP();
         //IP.getSpeedIP();
-        setInterval("HTTP.runcheck()", Math.floor(Math.random()*(10-5+1)+5)*1000);
-        setInterval("myip_Load()", Math.floor(Math.random()*(30-10+1)+10)*1000);
+        refresh_http = setInterval("HTTP.runcheck()", Math.floor(Math.random()*(10-5+1)+5)*1000);
+        refresh_ip = setInterval("myip_Load()", Math.floor(Math.random()*(30-10+1)+10)*1000);
         
-
     </script>
     <script type="text/javascript">
         document.write('<script defer="defer" src="https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP&z='+parseInt(Math.random() * 100000000)+'" type="text/javascript"><\/script>');
