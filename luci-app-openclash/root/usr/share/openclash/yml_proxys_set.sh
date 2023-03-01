@@ -282,6 +282,7 @@ yml_servers_set()
    config_get "client_fingerprint" "$section" "client_fingerprint" ""
    config_get "ip_version" "$section" "ip_version" ""
    config_get "tfo" "$section" "tfo" ""
+   config_get "udp_over_tcp" "$section" "udp_over_tcp" ""
    
    if [ "$enabled" = "0" ]; then
       return
@@ -399,6 +400,11 @@ EOF
       if [ ! -z "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     udp: $udp
+EOF
+     fi
+     if [ ! -z "$udp_over_tcp" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    udp-over-tcp: $udp_over_tcp
 EOF
      fi
      if [ ! -z "$obfss" ]; then
