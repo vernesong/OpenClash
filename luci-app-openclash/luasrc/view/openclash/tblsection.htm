@@ -213,13 +213,13 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 										<%- if self.extedit then -%>
 											<input class="cbi-button cbi-button-edit" type="button" value="<%:Edit%>"
 											<%- if type(self.extedit) == "string" then
-											%> onclick="location.href='<%=self.extedit:format(section)%>';return switch_to_all<%=sectiontype%>()"
+											%> onclick="location.href='<%=self.extedit:format(section)%>';return switch_to_tab<%=sectiontype%>()"
 											<%- elseif type(self.extedit) == "function" then
-											%> onclick="location.href='<%=self:extedit(section)%>';return switch_to_all<%=sectiontype%>()"
+											%> onclick="location.href='<%=self:extedit(section)%>';return switch_to_tab<%=sectiontype%>()"
 											<%- end
 											%> alt="<%:Edit%>" title="<%:Edit%>" />
 										<%- end; if self.addremove then %>
-											<input class="cbi-button cbi-button-remove" type="submit" value="<%:Delete%>"  onclick="this.form.cbi_state='del-section'; return switch_to_all<%=sectiontype%>()" name="cbi.rts.<%=self.config%>.<%=k%>" alt="<%:Delete%>" title="<%:Delete%>" />
+											<input class="cbi-button cbi-button-remove" type="submit" value="<%:Delete%>"  onclick="this.form.cbi_state='del-section'; return switch_to_tab<%=sectiontype%>()" name="cbi.rts.<%=self.config%>.<%=k%>" alt="<%:Delete%>" title="<%:Delete%>" />
 										<%- end -%>
 									</td>
 								<%- end -%>
@@ -249,7 +249,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 						<% if self.template_addremove then include(self.template_addremove) else -%>
 						<div class="cbi-section-create cbi-tblsection-create">
 							<% if self.anonymous then %>
-								<input class="cbi-button cbi-button-add" type="submit" onclick="return switch_to_all<%=sectiontype%>()" value="<%:Add%>" name="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" title="<%:Add%>" />
+								<input class="cbi-button cbi-button-add" type="submit" onclick="return switch_to_tab<%=sectiontype%>('create')" value="<%:Add%>" name="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" title="<%:Add%>" />
 							<% else %>
 								<% if self.invalid_cts then -%><div class="cbi-section-error"><% end %>
 								<input type="text" class="cbi-section-create-name" id="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" name="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" data-type="uciname" data-optional="true" />
@@ -274,15 +274,17 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 	var titles<%=sectiontype%> = document.getElementsByName('tab-header-<%=self.config%>-<%=self.sectiontype%>');
 	var divs<%=sectiontype%> = document.getElementsByClassName('dom-<%=self.config%>-<%=self.sectiontype%>');
 	
-	function switch_to_all<%=sectiontype%>(){
+	function switch_to_tab<%=sectiontype%>(type){
 		if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
 		for(var j=0; j < titles<%=sectiontype%>.length; j++){
 			titles<%=sectiontype%>[j].className = '';
 			divs<%=sectiontype%>[j].style.display = 'none';
 		}
-		titles<%=sectiontype%>[0].className = 'selected';
-		divs<%=sectiontype%>[0].style.display = 'block';
-		localStorage.setItem("titles<%=sectiontype%>",0);
+		if ( type == 'create' ) {
+			titles<%=sectiontype%>[0].className = 'selected';
+			divs<%=sectiontype%>[0].style.display = 'block';
+			localStorage.setItem("titles<%=sectiontype%>",0);
+		}
 		localStorage.setItem("id<%=sectiontype%>",'cbi-<%=self.config%>-<%=self.sectiontype%>');
 		return true;
 	}

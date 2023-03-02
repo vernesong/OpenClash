@@ -186,13 +186,13 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 										<%- if self.extedit then -%>
 											<input class="cbi-button cbi-button-edit" type="button" value="<%:Edit%>"
 											<%- if type(self.extedit) == "string" then
-											%> onclick="location.href='<%=self.extedit:format(section)%>';return switch_to_all<%=sectiontype%>()"
+											%> onclick="location.href='<%=self.extedit:format(section)%>';return switch_to_tab<%=sectiontype%>()"
 											<%- elseif type(self.extedit) == "function" then
-											%> onclick="location.href='<%=self:extedit(section)%>';return switch_to_all<%=sectiontype%>()"
+											%> onclick="location.href='<%=self:extedit(section)%>';return switch_to_tab<%=sectiontype%>()"
 											<%- end
 											%> alt="<%:Edit%>" title="<%:Edit%>" />
 										<%- end; if self.addremove then %>
-											<input class="cbi-button cbi-button-remove" type="submit" value="<%:Delete%>"  onclick="this.form.cbi_state='del-section';return switch_to_all<%=sectiontype%>()" name="cbi.rts.<%=self.config%>.<%=k%>" alt="<%:Delete%>" title="<%:Delete%>" />
+											<input class="cbi-button cbi-button-remove" type="submit" value="<%:Delete%>"  onclick="this.form.cbi_state='del-section';return switch_to_tab<%=sectiontype%>()" name="cbi.rts.<%=self.config%>.<%=k%>" alt="<%:Delete%>" title="<%:Delete%>" />
 										<%- end -%>
 									</td>
 								<%- end -%>
@@ -222,7 +222,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 						<% if self.template_addremove then include(self.template_addremove) else -%>
 						<div class="cbi-section-create cbi-tblsection-create">
 							<% if self.anonymous then %>
-								<input class="cbi-button cbi-button-add" type="submit" onclick="return switch_to_all<%=sectiontype%>()" value="<%:Add%>" name="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" title="<%:Add%>" />
+								<input class="cbi-button cbi-button-add" type="submit" onclick="return switch_to_tab<%=sectiontype%>('create')" value="<%:Add%>" name="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" title="<%:Add%>" />
 							<% else %>
 								<% if self.invalid_cts then -%><div class="cbi-section-error"><% end %>
 								<input type="text" class="cbi-section-create-name" id="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" name="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" data-type="uciname" data-optional="true" />
@@ -244,64 +244,66 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 <script type="text/javascript">//<![CDATA[
 	window.addEventListener('load', onload<%=sectiontype%>, false);
 
-var titles<%=sectiontype%> = document.getElementsByName('tab-header-<%=self.config%>-<%=self.sectiontype%>');
-var divs<%=sectiontype%> = document.getElementsByClassName('dom-<%=self.config%>-<%=self.sectiontype%>');
+	var titles<%=sectiontype%> = document.getElementsByName('tab-header-<%=self.config%>-<%=self.sectiontype%>');
+	var divs<%=sectiontype%> = document.getElementsByClassName('dom-<%=self.config%>-<%=self.sectiontype%>');
 
-function switch_to_all<%=sectiontype%>(){
-	if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
-	for(var j=0; j < titles<%=sectiontype%>.length; j++){
-		titles<%=sectiontype%>[j].className = '';
-		divs<%=sectiontype%>[j].style.display = 'none';
-	}
-	titles<%=sectiontype%>[0].className = 'selected';
-	divs<%=sectiontype%>[0].style.display = 'block';
-	localStorage.setItem("titles<%=sectiontype%>",0);
-	localStorage.setItem("id<%=sectiontype%>",'cbi-<%=self.config%>-<%=self.sectiontype%>');
-	return true;
-}
-
-function onload<%=sectiontype%>() {
-	if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
-	if (localStorage.getItem("id<%=sectiontype%>")) {
-		document.getElementById(localStorage.getItem("id<%=sectiontype%>")).scrollIntoView();
-		localStorage.removeItem("id<%=sectiontype%>");
-	}
-	if (localStorage.getItem("titles<%=sectiontype%>")) {
+	function switch_to_tab<%=sectiontype%>(type){
+		if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
 		for(var j=0; j < titles<%=sectiontype%>.length; j++){
 			titles<%=sectiontype%>[j].className = '';
 			divs<%=sectiontype%>[j].style.display = 'none';
 		}
-		titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].className = 'selected';
-		divs<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].style.display = 'block';
-		localStorage.removeItem("titles<%=sectiontype%>");
+		if ( type == 'create' ) {
+			titles<%=sectiontype%>[0].className = 'selected';
+			divs<%=sectiontype%>[0].style.display = 'block';
+			localStorage.setItem("titles<%=sectiontype%>",0);
+		}
+		localStorage.setItem("id<%=sectiontype%>",'cbi-<%=self.config%>-<%=self.sectiontype%>');
+		return true;
 	}
 
-	for(var i=0; i < titles<%=sectiontype%>.length; i++){
-		var li<%=sectiontype%> = titles<%=sectiontype%>[i];
-		li<%=sectiontype%>.id = i;
-		
-		li<%=sectiontype%>.onclick = function(){
+	function onload<%=sectiontype%>() {
+		if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
+		if (localStorage.getItem("id<%=sectiontype%>")) {
+			document.getElementById(localStorage.getItem("id<%=sectiontype%>")).scrollIntoView();
+			localStorage.removeItem("id<%=sectiontype%>");
+		}
+		if (localStorage.getItem("titles<%=sectiontype%>")) {
 			for(var j=0; j < titles<%=sectiontype%>.length; j++){
 				titles<%=sectiontype%>[j].className = '';
 				divs<%=sectiontype%>[j].style.display = 'none';
 			}
-			this.className = 'selected';
-			divs<%=sectiontype%>[this.id].style.display = 'block';
-			localStorage.setItem("titles<%=sectiontype%>",this.id);
-			localStorage.setItem("id<%=sectiontype%>","cbi-<%=self.config%>-<%=self.sectiontype%>");
+			titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].className = 'selected';
+			divs<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].style.display = 'block';
+			localStorage.removeItem("titles<%=sectiontype%>");
 		}
 
-		li<%=sectiontype%>.onTouchStart = function(){
-			for(var j=0; j < titles<%=sectiontype%>.length; j++){
-				titles<%=sectiontype%>[j].className = '';
-				divs<%=sectiontype%>[j].style.display = 'none';
+		for(var i=0; i < titles<%=sectiontype%>.length; i++){
+			var li<%=sectiontype%> = titles<%=sectiontype%>[i];
+			li<%=sectiontype%>.id = i;
+			
+			li<%=sectiontype%>.onclick = function(){
+				for(var j=0; j < titles<%=sectiontype%>.length; j++){
+					titles<%=sectiontype%>[j].className = '';
+					divs<%=sectiontype%>[j].style.display = 'none';
+				}
+				this.className = 'selected';
+				divs<%=sectiontype%>[this.id].style.display = 'block';
+				localStorage.setItem("titles<%=sectiontype%>",this.id);
+				localStorage.setItem("id<%=sectiontype%>","cbi-<%=self.config%>-<%=self.sectiontype%>");
 			}
-			this.className = 'selected';
-			divs<%=sectiontype%>[this.id].style.display = 'block';
-			localStorage.setItem("titles<%=sectiontype%>",this.id);
-			localStorage.setItem("id<%=sectiontype%>","cbi-<%=self.config%>-<%=self.sectiontype%>");
+
+			li<%=sectiontype%>.onTouchStart = function(){
+				for(var j=0; j < titles<%=sectiontype%>.length; j++){
+					titles<%=sectiontype%>[j].className = '';
+					divs<%=sectiontype%>[j].style.display = 'none';
+				}
+				this.className = 'selected';
+				divs<%=sectiontype%>[this.id].style.display = 'block';
+				localStorage.setItem("titles<%=sectiontype%>",this.id);
+				localStorage.setItem("id<%=sectiontype%>","cbi-<%=self.config%>-<%=self.sectiontype%>");
+			}
 		}
-	}
-};
+	};
 //]]>
 </script>
