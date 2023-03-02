@@ -46,7 +46,7 @@ s = m:section(TypedSection, "game_config", translate("Game Rules Append (Only TU
 s.anonymous = true
 s.addremove = true
 s.sortable = true
-s.template = "cbi/tblsection"
+s.template = "openclash/tblsection"
 s.rmempty = false
 
 ---- enable flag
@@ -122,7 +122,7 @@ s = m:section(TypedSection, "rule_provider_config", translate("Other Rule Provid
 s.anonymous = true
 s.addremove = true
 s.sortable = true
-s.template = "cbi/tblsection"
+s.template = "openclash/tblsection"
 s.rmempty = false
 
 ---- enable flag
@@ -208,7 +208,7 @@ s = m:section(TypedSection, "rule_providers", translate("Custom Rule Providers A
 s.anonymous = true
 s.addremove = true
 s.sortable = true
-s.template = "cbi/tblsection"
+s.template = "openclash/tblsection"
 s.extedit = luci.dispatcher.build_url("admin/services/openclash/rule-providers-config/%s")
 function s.create(...)
 	local sid = TypedSection.create(...)
