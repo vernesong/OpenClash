@@ -444,7 +444,7 @@ ds = m:section(TypedSection, "dns_servers", translate("Add Custom DNS Servers").
 ds.anonymous = true
 ds.addremove = true
 ds.sortable = true
-ds.template = "cbi/tblsection"
+ds.template = "openclash/tblsection_dns"
 ds.extedit = luci.dispatcher.build_url("admin/services/openclash/custom-dns-edit/%s")
 function ds.create(...)
 	local sid = TypedSection.create(...)
