@@ -871,7 +871,6 @@ end
 
 o = s:taboption("geo_update", Flag, "geoip_auto_update", font_red..bold_on..translate("Auto Update GeoIP Dat")..bold_off..font_off)
 o.default = 0
-o:depends("enable_meta_core", "1")
 
 o = s:taboption("geo_update", ListValue, "geoip_update_week_time", translate("Update Time (Every Week)"))
 o:value("*", translate("Every Day"))
@@ -916,7 +915,6 @@ o:depends("geoip_auto_update", "1")
 
 o = s:taboption("geo_update", Flag, "geosite_auto_update", font_red..bold_on..translate("Auto Update GeoSite")..bold_off..font_off)
 o.default = 0
-o:depends("enable_meta_core", "1")
 
 o = s:taboption("geo_update", ListValue, "geosite_update_week_time", translate("Update Time (Every Week)"))
 o:value("*", translate("Every Day"))
