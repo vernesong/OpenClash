@@ -108,6 +108,9 @@ function sub_info_get_<%=idname%>()
 			//document.getElementById('<%=idname%>').innerHTML = "<%:Plan Traffic%>" + ": " + "<span style=color:green>" + save_info.used + "</span> | <span style=color:green>" + save_info.total + "</span> <br/> <%:Plan Expiration Time%>: " + "<span style=color:green>" + save_info.expire + "</span>";
 			document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>((save_info.used), (save_info.total), (save_info.percent ? save_info.percent : 0), false, false, (save_info.expire), (save_info.day_left ? save_info.day_left : 0));
 		}
+	}
+	else {
+		sub_info_refresh_<%=idname%>();
 	};
 	s_<%=idname%> = setTimeout("sub_info_refresh_<%=idname%>()",1000*30);
 };

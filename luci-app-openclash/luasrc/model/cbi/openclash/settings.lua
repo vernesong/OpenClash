@@ -1138,7 +1138,7 @@ core_update.template = "openclash/update"
 ---- developer
 o = s:taboption("developer", Value, "firewall_custom")
 o.template = "cbi/tvalue"
-o.description = translate("Custom Firewall Rules, Support IPv4 and IPv6, All Rules Will Be Added After The OpenClash Rules Completely")
+o.description = translate("Custom Firewall Rules, Support IPv4 and IPv6, All Rules Will Be Added After Plugin Own Completely")
 o.rows = 30
 o.wrap = "off"
 
