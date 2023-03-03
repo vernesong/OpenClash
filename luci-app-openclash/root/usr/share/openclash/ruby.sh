@@ -30,7 +30,7 @@ local Value RUBY_YAML_PARSE
 if [ -z "$1" ] || [ -z "$2" ]; then
 	return
 fi
-RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); Value$2; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
+RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); Value$2=$3; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
