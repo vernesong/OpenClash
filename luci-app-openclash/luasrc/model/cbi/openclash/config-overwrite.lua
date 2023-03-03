@@ -422,7 +422,7 @@ end
 ---- developer
 o = s:taboption("developer", Value, "ymchange_custom")
 o.template = "cbi/tvalue"
-o.description = translate("Custom Config Override Script, Please Be Careful, The Wrong Changes May Lead to Exceptions")
+o.description = translate("Custom Config Overwrite Scripts Which Will Run After Plugin Own Completely, Please Be Careful, The Wrong Changes May Lead to Exceptions")
 o.rows = 30
 o.wrap = "off"
 
