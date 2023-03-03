@@ -147,7 +147,9 @@
             </p>
         </div>
         <div style="width: 49%">
-            <h3 style="margin: 10px 0 10px 5%"><%:Website Access Check%></h3>
+            <h3 style="margin: 10px 0 10px 5%"><%:Website Access Check%>
+                <span style="float: right; margin: 5px 10% 5px 0%;"><img src='/luci-static/resources/openclash/img/arrow-clockwise-light.svg' height="20px" title='<%:Refresh%>' alt='<%:Refresh%>' onclick='return refresh_myip(this)'></span>
+            </h3>
             <p style="margin: 10px 0 10px 5%">
                 <span class="ip-state_title"><%:Baidu Search%>:</span><span id="http-baidu"></span><span id="ldtime-baidu"></span>
             </p>
@@ -381,8 +383,19 @@
                 $$.getElementById('ip-ipsb').innerHTML = ip_ipsb_ip;
                 $$.getElementById('ip-taobao').innerHTML = ip_taobao_ip;
                 $$.getElementById('ip-ipify').innerHTML = ip_ipify_ip;
+                myip_Load();
                 refresh_ip = setInterval("myip_Load()", Math.floor(Math.random()*(30-10+1)+10)*1000);
             }
+        };
+
+        function refresh_myip(imgobj)
+        {
+            clearInterval(refresh_http);
+            clearInterval(refresh_ip);
+            myip_Load();
+            HTTP.runcheck();
+            refresh_http = setInterval("HTTP.runcheck()", Math.floor(Math.random()*(10-5+1)+5)*1000);
+            refresh_ip = setInterval("myip_Load()", Math.floor(Math.random()*(30-10+1)+10)*1000);
         };
 
         HTTP.runcheck();
