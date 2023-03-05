@@ -66,7 +66,6 @@ LOG_OUT "Start Getting【$CONFIG_NAME】Groups Setting..."
 if [ $? -ne 0 ]; then
 	LOG_OUT "Read Error, Config File【$CONFIG_NAME】Abnormal!"
 	uci commit openclash
-	sleep 5
 	SLOG_CLEAN
 	del_lock
 	exit 0
@@ -141,7 +140,6 @@ num=$(ruby_read_hash "$group_hash" "['proxy-groups'].count")
 
 if [ -z "$num" ]; then
    LOG_OUT "Error: Unable To Parse Config File, Please Check And Try Again!"
-   sleep 3
    del_lock
    exit 0
 fi

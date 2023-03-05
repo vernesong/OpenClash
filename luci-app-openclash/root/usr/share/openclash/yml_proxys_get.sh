@@ -78,14 +78,12 @@ group_hash=$(ruby_read "$CONFIG_FILE" ".select {|x| 'proxy-groups' == x}")
 
 if [ -z "$group_hash" ]; then
 	LOG_OUT "Error: Unable To Parse Config File, Please Check And Try Again!"
-  sleep 3
   del_lock
   exit 0
 fi
 	
 if [ -z "$num" ] && [ -z "$provider_num" ]; then
    LOG_OUT "Error: Unable To Parse Config File, Please Check And Try Again!"
-   sleep 3
    del_lock
    exit 0
 fi

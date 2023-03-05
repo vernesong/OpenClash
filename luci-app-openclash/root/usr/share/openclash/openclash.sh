@@ -79,8 +79,8 @@ fi
 config_cus_up()
 {
 	if [ -z "$CONFIG_PATH" ]; then
-	    CONFIG_PATH="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
-	    uci -q set openclash.config.config_path="$CONFIG_PATH"
+      CONFIG_PATH="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
+      uci -q set openclash.config.config_path="$CONFIG_PATH"
       uci commit openclash
 	fi
 	if [ -z "$subscribe_url_param" ]; then
@@ -145,23 +145,21 @@ config_cus_up()
 	      LOG_OUT "Config File【$name】Update Successful!"
 	      SLOG_CLEAN
 	   elif [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
-        LOG_OUT "Config File【$name】Update Successful!"
-        restart=1
-     else
-        LOG_OUT "Config File【$name】Update Successful!"
-        sleep 3
-        SLOG_CLEAN
-     fi
-  else
-     if [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
-        LOG_OUT "Config File【$name】Update Successful!"
-        restart=1
-     else
-        LOG_OUT "Config File【$name】Update Successful!"
-        sleep 3
-        SLOG_CLEAN
-     fi
-  fi
+         LOG_OUT "Config File【$name】Update Successful!"
+         restart=1
+      else
+         LOG_OUT "Config File【$name】Update Successful!"
+         SLOG_CLEAN
+      fi
+   else
+      if [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
+         LOG_OUT "Config File【$name】Update Successful!"
+         restart=1
+      else
+         LOG_OUT "Config File【$name】Update Successful!"
+         SLOG_CLEAN
+      fi
+   fi
   
   rm -rf /tmp/Proxy_Group 2>/dev/null
 }
@@ -199,13 +197,11 @@ config_su_check()
             config_cus_up
          else
             LOG_OUT "Config File【$name】Update Successful!"
-            sleep 3
             SLOG_CLEAN
          fi
       else
          LOG_OUT "Config File【$name】No Change, Do Nothing!"
          rm -rf "$CFG_FILE"
-         sleep 3
          SLOG_CLEAN
       fi
    else
@@ -216,7 +212,6 @@ config_su_check()
          config_cus_up
       else
          LOG_OUT "Config File【$name】Update Successful!"
-         sleep 3
          SLOG_CLEAN
       fi
    fi
@@ -226,7 +221,6 @@ config_error()
 {
    LOG_OUT "Error:【$name】Update Error, Please Try Again Later..."
    rm -rf "$CFG_FILE" 2>/dev/null
-   sleep 3
    SLOG_CLEAN
 }
 
@@ -449,20 +443,17 @@ EOF
          " 2>/dev/null >> $LOG_FILE
          if [ $? -ne 0 ]; then
             LOG_OUT "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
-            sleep 3
             only_download=1
             change_dns
             config_su_check
          elif [ ! -f "$CFG_FILE" ]; then
             LOG_OUT "Config File Format Validation Failed..."
-            sleep 3
             change_dns
             config_error
          elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
             field_name_check
             if ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
                LOG_OUT "Error: Updated Config【$name】Has No Proxy Field, Update Exit..."
-               sleep 3
                change_dns
                config_error
             else
@@ -601,8 +592,8 @@ sub_info_get()
       fi
       if [ -n "$template_path" ]; then
          template_path_encode=$(urlencode "$template_path")
-      	 [ -n "$key_match_param" ] && key_match_param="(?i)$(urlencode "$key_match_param")"
-      	 [ -n "$key_ex_match_param" ] && key_ex_match_param="(?i)$(urlencode "$key_ex_match_param")"
+         [ -n "$key_match_param" ] && key_match_param="(?i)$(urlencode "$key_match_param")"
+         [ -n "$key_ex_match_param" ] && key_ex_match_param="(?i)$(urlencode "$key_ex_match_param")"
          subscribe_url_param="?target=clash&new_name=true&url=$subscribe_url&config=$template_path_encode&include=$key_match_param&exclude=$key_ex_match_param&emoji=$emoji&list=false&sort=$sort$udp&scv=$skip_cert_verify&append_type=$node_type&fdn=true$rule_provider"
          c_address="$convert_address"
       else
@@ -629,18 +620,15 @@ sub_info_get()
       " 2>/dev/null >> $LOG_FILE
       if [ $? -ne 0 ]; then
          LOG_OUT "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
-         sleep 3
          only_download=1
          config_su_check
       elif [ ! -f "$CFG_FILE" ]; then
          LOG_OUT "Config File Format Validation Failed, Trying To Download Without Agent..."
-         sleep 3
          config_download_direct
       elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
          field_name_check
          if ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
             LOG_OUT "Error: Updated Config【$name】Has No Proxy Field, Trying To Download Without Agent..."
-            sleep 3
             config_download_direct
          else
             config_su_check
