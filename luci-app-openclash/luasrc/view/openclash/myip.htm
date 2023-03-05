@@ -346,27 +346,38 @@
             };
             IP.parseIPIpip(data.ip, 'ip-taobao-geo');
         };
+
+        function delete_ip_script()
+        {
+            var scripts = document.getElementsByTagName('script');
+            for (var i = scripts.length; i--; ) {
+                if (document.getElementsByTagName("script")[i]['src'].indexOf('whois.pconline.com.cn') > -1
+                    || document.getElementsByTagName("script")[i]['src'].indexOf('api-ipv4.ip.sb') > -1
+                    || document.getElementsByTagName("script")[i]['src'].indexOf('www.taobao.com') > -1) {
+                    scripts[i].parentNode.removeChild(scripts[i]);
+                };
+            };
+        };
 	      
         function myip_Load()
         {
-            var pcip = document.getElementsByTagName('HEAD').item(0);
+            delete_ip_script();
+            var mypage = document.getElementsByTagName('HEAD').item(0);
             var pcipScript= document.createElement("script");
             var random = parseInt(Math.random() * 100000000);
             pcipScript.defer = "defer";
             pcipScript.src=`https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP&z=${random}`;
-            pcip.appendChild(pcipScript);
+            mypage.appendChild(pcipScript);
             
-            var sbip = document.getElementsByTagName('HEAD').item(0);
             var sbipScript= document.createElement("script");
             sbipScript.defer = "defer";
             sbipScript.src='https://api-ipv4.ip.sb/jsonip?callback=getIpsbIP';
-            sbip.appendChild(sbipScript);
+            mypage.appendChild(sbipScript);
             
-            var tbip = document.getElementsByTagName('HEAD').item(0);
             var tbipScript= document.createElement("script");
             tbipScript.defer = "defer";
             tbipScript.src='https://www.taobao.com/help/getip.php?callback=ipCallback';
-            tbip.appendChild(tbipScript);
+            mypage.appendChild(tbipScript);
             
             //HTTP.runcheck();
             IP.getIpifyIP();
@@ -397,6 +408,9 @@
         function privacy_my_ip(imgobj)
         {
             if (imgobj.getAttribute("src") == "/luci-static/resources/openclash/img/eye-light.svg") {
+                delete_ip_script();
+                clearInterval(refresh_ip);
+                localStorage.setItem('privacy_my_ip', 'true');
                 imgobj.src='/luci-static/resources/openclash/img/eye-slash-light.svg';
                 imgobj.title='<%:Show IP%>';
                 imgobj.alt='<%:Show IP%>';
@@ -408,8 +422,7 @@
                 $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-taobao').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
-                clearInterval(refresh_ip);
-                localStorage.setItem('privacy_my_ip', 'true');
+                
             }
             else {
                 imgobj.src='/luci-static/resources/openclash/img/eye-light.svg';
