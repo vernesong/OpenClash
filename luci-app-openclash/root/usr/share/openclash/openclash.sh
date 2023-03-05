@@ -130,38 +130,30 @@ config_cus_up()
 	         File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)};
 	      end" 2>/dev/null >> $LOG_FILE
 	   fi
-	   if [ "$servers_update" -eq 1 ]; then
-	      LOG_OUT "Config File【$name】is Replaced Successfully, Start to Reserving..."
-	      uci -q set openclash.config.config_update_path="/etc/openclash/config/$name.yaml"
-	      uci -q set openclash.config.servers_if_update=1
-	      uci commit openclash
-	      /usr/share/openclash/yml_groups_get.sh
-	      uci -q set openclash.config.servers_if_update=1
-	      uci commit openclash
-	      /usr/share/openclash/yml_groups_set.sh
-	      if [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
-	         restart=1
-	      fi
-	      LOG_OUT "Config File【$name】Update Successful!"
-	      SLOG_CLEAN
-	   elif [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
-         LOG_OUT "Config File【$name】Update Successful!"
-         restart=1
-      else
-         LOG_OUT "Config File【$name】Update Successful!"
-         SLOG_CLEAN
-      fi
-   else
-      if [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
-         LOG_OUT "Config File【$name】Update Successful!"
-         restart=1
-      else
-         LOG_OUT "Config File【$name】Update Successful!"
-         SLOG_CLEAN
-      fi
    fi
-  
-  rm -rf /tmp/Proxy_Group 2>/dev/null
+   if [ "$servers_update" -eq 1 ]; then
+      LOG_OUT "Config File【$name】is Replaced Successfully, Start to Reserving..."
+      uci -q set openclash.config.config_update_path="/etc/openclash/config/$name.yaml"
+      uci -q set openclash.config.servers_if_update=1
+      uci commit openclash
+      /usr/share/openclash/yml_groups_get.sh
+      uci -q set openclash.config.servers_if_update=1
+      uci commit openclash
+      /usr/share/openclash/yml_groups_set.sh
+      if [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
+         restart=1
+      fi
+      LOG_OUT "Config File【$name】Update Successful!"
+      SLOG_CLEAN
+   elif [ "$CONFIG_FILE" == "$CONFIG_PATH" ]; then
+      LOG_OUT "Config File【$name】Update Successful!"
+      restart=1
+   else
+      LOG_OUT "Config File【$name】Update Successful!"
+      SLOG_CLEAN
+   fi
+   
+   rm -rf /tmp/Proxy_Group 2>/dev/null
 }
 
 config_su_check()
