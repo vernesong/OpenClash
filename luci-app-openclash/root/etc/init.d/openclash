@@ -312,7 +312,6 @@ if [ ! -f "$RAW_CONFIG_FILE" ]; then
       exit 0
    else
       LOG_OUT "Error: Config Not Found"
-      sleep 3
       del_lock
       exit 0
    fi
@@ -335,11 +334,9 @@ end
 " 2>/dev/null >> $LOG_FILE
 if [ $? -ne 0 ]; then
    LOG_OUT "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
-   sleep 3
    start_fail
 elif [ ! -f "$TMP_CONFIG_FILE" ] || [ ! -s "$TMP_CONFIG_FILE" ]; then
    LOG_OUT "Error: Config File Format Validation Failed..."
-   sleep 3
    start_fail
 fi
 }
@@ -704,7 +701,6 @@ do_run_file()
       echo "" >> $LOG_FILE
       echo "---------- https://mirrors.cloud.tencent.com/lede/snapshots/packages/ ----------" >> $LOG_FILE
       echo "" >> $LOG_FILE
-      sleep 3
       start_fail
    fi
 
@@ -775,15 +771,12 @@ raw_config_start()
    if [ -z "$dns_port" ] || [ -z "$en_mode" ] || [ -z "$proxy_port" ]; then
       if [ -z "$dns_port" ]; then
          LOG_OUT "Error: Get DNS 'listen' Option Error, OpenClash Can Not Start With Raw Config File"
-         sleep 2
       fi
       if [ -z "$en_mode" ]; then
          LOG_OUT "Error: Get DNS 'enhanced-mode' Option Error, OpenClash Can Not Start With Raw Config File"
-         sleep 2
       fi
       if [ -z "$proxy_port" ]; then
          LOG_OUT "Error: Get General 'redir-port' Option Error, OpenClash Can Not Start With Raw Config File"
-         sleep 2
       fi
       start_fail
    fi
@@ -793,7 +786,6 @@ raw_config_start()
    
    if ! pidof clash >/dev/null; then
       LOG_OUT "Error: OpenClash Can Not Start, Please Check The Error Info And Try Again!"
-      sleep 3
       start_fail
    fi
    
@@ -2850,17 +2842,13 @@ start()
    if [ "$(uci -q get openclash.config.restricted_mode)" != "1" ]; then
       if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] || [ "$(uci -q get dhcp.lan.dhcpv6)" == "disabled" ]; then
          LOG_OUT "OpenClash Start Successful!"
-         sleep 3
       elif [ "$ipv6_enable" -eq 0 ]; then
          LOG_OUT "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPv6's DHCP Server"
-         sleep 3
       else
          LOG_OUT "OpenClash Start Successful!"
-         sleep 3
       fi
    else
       LOG_OUT "Warning: OpenClash Start Successful With Raw Config File, Please Note That It's Restricted Mode Now"
-      sleep 3
    fi
    echo "OpenClash Already Start!"
    write_run_quick
@@ -2928,7 +2916,6 @@ stop()
       rm -rf /tmp/openclash_*_region>/dev/null 2>&1
       del_lock
       LOG_OUT "OpenClash Already Stop!"
-      sleep 3
    fi
    
    del_cron

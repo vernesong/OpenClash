@@ -56,11 +56,9 @@
          restart=1
       else
          LOG_OUT "Updated GeoSite Database No Change, Do Nothing..."
-         sleep 3
       fi
    else
       LOG_OUT "GeoSite Database Update Error, Please Try Again Later..."
-      sleep 3
    fi
 
    if [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then

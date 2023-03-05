@@ -57,7 +57,6 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 
          if [ "$(uci -q get openclash.config.config_reload)" -eq 0 ]; then
       	    /etc/init.d/openclash restart >/dev/null 2>&1 &
          else
-            sleep 3
             SLOG_CLEAN
          fi
          del_lock
@@ -92,13 +91,11 @@ opkg install /tmp/openclash.ipk
 if [ "$?" == "0" ]; then
    rm -rf /tmp/openclash.ipk >/dev/null 2>&1
    LOG_OUT "OpenClash Update Successful, About To Restart!"
-   sleep 3
    uci -q set openclash.config.enable=1
    uci -q commit openclash
    /etc/init.d/openclash restart 2>/dev/null
 else
    LOG_OUT "OpenClash Update Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually!"
-   sleep 3
    SLOG_CLEAN
 fi
 EOF
@@ -112,7 +109,6 @@ EOF
       if [ "$(uci -q get openclash.config.config_reload)" -eq 0 ]; then
       	 /etc/init.d/openclash restart >/dev/null 2>&1 &
       else
-         sleep 3
          SLOG_CLEAN
       fi
    fi
@@ -125,7 +121,6 @@ else
    if [ "$(uci -q get openclash.config.config_reload)" -eq 0 ]; then
       /etc/init.d/openclash restart >/dev/null 2>&1 &
    else
-      sleep 3
       SLOG_CLEAN
    fi
 fi
