@@ -3283,7 +3283,7 @@ msgid "Custom Config Overwrite Scripts Which Will Run After Plugin Own Completel
 msgstr "自定义配置文件的覆写脚本，此脚本将在插件覆写完成后执行，请谨慎修改，错误的修改可能会导致异常"
 
 msgid "Custom Firewall Rules, Support IPv4 and IPv6, All Rules Will Be Added After Plugin Own Completely"
-msgstr "自定义防火墙规则，支持 IPv4 和 IPv6，此脚本规则将在 OpenClash 的内置规则完成后执行"
+msgstr "自定义防火墙规则，支持 IPv4 和 IPv6，此脚本将在插件内置规则完成后执行"
 
 msgid "Tip: Start Add Custom Firewall Rules..."
 msgstr "提示：开始添加自定义防火墙规则..."
