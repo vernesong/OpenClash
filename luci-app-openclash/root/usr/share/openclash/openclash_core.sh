@@ -15,7 +15,6 @@ LOG_FILE="/tmp/openclash.log"
 [ ! -f "/tmp/clash_last_version" ] && /usr/share/openclash/clash_version.sh 2>/dev/null
 if [ ! -f "/tmp/clash_last_version" ]; then
    LOG_OUT "Error: 【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
-   sleep 3
    SLOG_CLEAN
    exit 0
 fi
@@ -38,7 +37,6 @@ case $CORE_TYPE in
    CORE_LV=$(sed -n 2p /tmp/clash_last_version 2>/dev/null)
    if [ -z "$CORE_LV" ]; then
       LOG_OUT "Error: 【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
-      sleep 3
       SLOG_CLEAN
       exit 0
    fi
@@ -167,7 +165,6 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             *)
                rm -rf /tmp/clash >/dev/null 2>&1
             esac
-            sleep 3
             SLOG_CLEAN
             exit 0
          fi
@@ -192,27 +189,22 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                   /etc/init.d/openclash restart >/dev/null 2>&1 &
                fi
             else
-               sleep 3
                SLOG_CLEAN
             fi
          else
             LOG_OUT "【"$CORE_TYPE"】Core Update Failed. Please Make Sure Enough Flash Memory Space And Try Again!"
-            sleep 3
             SLOG_CLEAN
          fi
       else
          LOG_OUT "【"$CORE_TYPE"】Core Update Failed, Please Check The Network or Try Again Later!"
-         sleep 3
          SLOG_CLEAN
       fi
    else
       LOG_OUT "No Compiled Version Selected, Please Select In Global Settings And Try Again!"
-      sleep 3
       SLOG_CLEAN
    fi
 else
    LOG_OUT "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation!"
-   sleep 3
    SLOG_CLEAN
 fi
 

@@ -1882,7 +1882,6 @@ if [ -z "$if_game_proxy" ]; then
    rm -rf $PROXY_PROVIDER_FILE 2>/dev/null
    rm -rf /tmp/yaml_groups.yaml 2>/dev/null
    LOG_OUT "Config File【$CONFIG_NAME】Write Successful!"
-   sleep 3
    SLOG_CLEAN
 fi
 rm -rf /tmp/Proxy_Server 2>/dev/null

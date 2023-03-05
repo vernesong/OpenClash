@@ -86,21 +86,18 @@
       if [ $? -ne 0 ]; then
          LOG_OUT "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
-         sleep 3
          SLOG_CLEAN
          del_lock
          exit 0
       elif [ ! -f "/tmp/rules.yaml" ]; then
          LOG_OUT "Error:【$rule_name】Rule File Format Validation Failed, Please Try Again Later..."
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
-         sleep 3
          SLOG_CLEAN
          del_lock
          exit 0
       elif ! "$(ruby_read "/tmp/rules.yaml" ".key?('rules')")" ; then
          LOG_OUT "Error: Updated Others Rules【$rule_name】Has No Rules Field, Update Exit..."
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
-         sleep 3
          SLOG_CLEAN
          del_lock
          exit 0
@@ -114,7 +111,6 @@
          ")" && [ -f "/usr/share/openclash/res/${rule_name}.yaml" ]; then
          LOG_OUT "Error: Updated Others Rules【$rule_name】Has Incompatible Proxy-Group, Update Exit, Please Wait For OpenClash Update To Adapt..."
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
-         sleep 3
          SLOG_CLEAN
          del_lock
          exit 0
@@ -135,11 +131,9 @@
          ifrestart=1
       else
          LOG_OUT "Updated Other Rules【$rule_name】No Change, Do Nothing!"
-         sleep 3
       fi
    else
       LOG_OUT "Other Rules【$rule_name】Update Error, Please Try Again Later..."
-      sleep 3
    fi
    }
    
@@ -151,7 +145,6 @@
    
    if [ "$RUlE_SOURCE" = "0" ]; then
       LOG_OUT "Other Rules Not Enable, Update Stop!"
-      sleep 3
    else
       OTHER_RULE_FILE="/tmp/other_rule.yaml"
       CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
@@ -172,7 +165,6 @@
       config_foreach yml_other_rules_dl "other_rules" "$CONFIG_NAME"
       if [ -z "$rule_name" ]; then
         LOG_OUT "Get Other Rules Settings Faild, Update Stop!"
-        sleep 3
       fi
       if [ "$ifrestart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
          /etc/init.d/openclash restart >/dev/null 2>&1 &

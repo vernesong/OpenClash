@@ -73,11 +73,9 @@
          LOG_OUT "Chnroute Cidr List Update Successful!"
       else
          LOG_OUT "Updated Chnroute Cidr List No Change, Do Nothing..."
-         sleep 3
       fi
    else
       LOG_OUT "Chnroute Cidr List Update Error, Please Try Again Later..."
-      sleep 3
    fi
    
    #ipv6
@@ -110,11 +108,9 @@
          LOG_OUT "Chnroute6 Cidr List Update Successful!"
       else
          LOG_OUT "Updated Chnroute6 Cidr List No Change, Do Nothing..."
-         sleep 3
       fi
    else
       LOG_OUT "Chnroute6 Cidr List Update Error, Please Try Again Later..."
-      sleep 3
    fi
 
    #CN DOMAIN
@@ -147,11 +143,9 @@
          LOG_OUT "CN Domains List Update Successful!"
       else
          LOG_OUT "Updated CN Domains List No Change, Do Nothing..."
-         sleep 3
       fi
    else
       LOG_OUT "CN Domains List Update Error, Please Try Again Later..."
-      sleep 3
    fi
 
    if [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
