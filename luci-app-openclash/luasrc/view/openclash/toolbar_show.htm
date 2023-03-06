@@ -1,21 +1,37 @@
 <head>
 <style>
-.tool_label {
+
+.tabs > li {
+    vertical-align: middle !important;;
+}
+
+.tool_label:hover {
+	border-color: rgba(0, 0, 0, 0) !important;;
+	background-color: unset !important;;
+	color: unset !important;;
+	margin-bottom: unset !important;;
+	cursor: unset !important;;
+}
+
+.tool_label_span {
   display: inline-block;
-  padding: 0.6rem 0rem;
+}
+
+.tool_label_select {
+	width: auto;
 }
 </style>
 </head>
 
-<div id="tool_label" class="tool_label">
-	<span>
+<li id="tool_label" class="tool_label">
+	<span class="tool_label_span">
 	&nbsp;&nbsp;<%:Current Config File%>:&nbsp;
-	<select id="cfg_name">
+	<select class="tool_label_select" id="cfg_name">
 	</select>&nbsp;&nbsp;
 	<input type="button" class="btn cbi-button cbi-button-apply" value="<%:Switch Config%>" onclick="return switch_config(this)" />
 	&nbsp;
 	</span>
-</div>
+</li>
 
 <script type="text/javascript">//<![CDATA[
 
