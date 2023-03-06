@@ -35,23 +35,24 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 	}
 	
 	#tab-header-<%=self.config%>-<%=self.sectiontype%>{
-		height: 33px;
+		height: 35px;
 		text-align: center;
 		position: relative;
 		white-space: nowrap;
 		overflow: hidden;
         text-overflow: ellipsis;
 	}
+
 	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul{
 		position: absolute;
 		left: -1px;
 		width: 100%;
 	}
+
 	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul li{
 		float: left;
 		width: 150px;
-		height: 33px;
-		line-height: 33px;
+		line-height: 35px;
 		padding: 0 1px;
 		white-space: nowrap;
 		overflow: hidden;
@@ -59,15 +60,12 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 		border-bottom: 1px solid #dddddd;
 		border-right: 1px solid #dddddd;
 	}
-	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.selected{
-	  background-color: white;
-	  font-weight: bolder;
-	  border-bottom: 0;
-	  border-right: 1px solid #dddddd;
-	  padding: 0;
+
+	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul li a{
+		float: unset !important;;
 	}
 	 
-	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:hover{
+	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul li a:hover{
 		color: orangered;
 	}
 	
@@ -94,9 +92,9 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 	<%- local count = 0 -%>
 	<div id="tab-header-<%=self.config%>-<%=self.sectiontype%>">
 		<ul class="cbi-tabmenu">
-			<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="selected">NameServer</li>
-			<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>">FallBack</li>
-			<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>">Default-NameServer</li>
+			<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab"><a>NameServer</a></li>
+			<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled"><a>FallBack</a></li>
+			<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled"><a>Default-NameServer</a></li>
 		</ul>
 	</div>
 	<div id="tab-content">
@@ -243,10 +241,10 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 		
 		if ( type == 'create' ) {
 			for(var j=0; j < titles<%=sectiontype%>.length; j++){
-				titles<%=sectiontype%>[j].className = '';
+				titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
 				divs<%=sectiontype%>[j].style.display = 'none';
 			};
-			titles<%=sectiontype%>[0].className = 'selected';
+			titles<%=sectiontype%>[0].className = 'cbi-tab';
 			divs<%=sectiontype%>[0].style.display = 'block';
 			localStorage.setItem("titles<%=sectiontype%>",0);
 		};
@@ -269,10 +267,10 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 		if (localStorage.getItem("titles<%=sectiontype%>")) {
 			if (titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")]) {
 				for(var j=0; j < titles<%=sectiontype%>.length; j++){
-					titles<%=sectiontype%>[j].className = '';
+					titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
 					divs<%=sectiontype%>[j].style.display = 'none';
 				};
-				titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].className = 'selected';
+				titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].className = 'cbi-tab';
 				divs<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].style.display = 'block';
 			};
 			localStorage.removeItem("titles<%=sectiontype%>");
@@ -284,10 +282,10 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 			
 			li<%=sectiontype%>.onclick = function(){
 				for(var j=0; j < titles<%=sectiontype%>.length; j++){
-					titles<%=sectiontype%>[j].className = '';
+					titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
 					divs<%=sectiontype%>[j].style.display = 'none';
 				};
-				this.className = 'selected';
+				this.className = 'cbi-tab';
 				divs<%=sectiontype%>[this.id].style.display = 'block';
 				localStorage.setItem("titles<%=sectiontype%>",this.id);
 				localStorage.setItem("id<%=sectiontype%>","cbi-<%=self.config%>-<%=self.sectiontype%>");
@@ -295,10 +293,10 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 
 			li<%=sectiontype%>.onTouchStart = function(){
 				for(var j=0; j < titles<%=sectiontype%>.length; j++){
-					titles<%=sectiontype%>[j].className = '';
+					titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
 					divs<%=sectiontype%>[j].style.display = 'none';
 				};
-				this.className = 'selected';
+				this.className = 'cbi-tab';
 				divs<%=sectiontype%>[this.id].style.display = 'block';
 				localStorage.setItem("titles<%=sectiontype%>",this.id);
 				localStorage.setItem("id<%=sectiontype%>","cbi-<%=self.config%>-<%=self.sectiontype%>");
