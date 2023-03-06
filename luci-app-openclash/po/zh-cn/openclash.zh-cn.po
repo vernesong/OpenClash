@@ -3246,7 +3246,7 @@ msgstr "修改配置文件中的测速（连通性）地址"
 msgid "URL-Test Interval Modify"
 msgstr "测速（连通性）间隔修改"
 
-msgid "Modify The Url-Test Interval In The Config"
+msgid "Modify The URL-Test Interval In The Config"
 msgstr "修改配置文件中的测速（连通性）间隔"
 
 msgid "Whether to Enable Process Rules, If You Are Not Sure, Please Choose off Which Useful in Router Environment"
