@@ -43,12 +43,29 @@ end
 o:value("0", translate("Disable"))
 o.default = "0"
 
-o = s:taboption("settings", Value, "tolerance", translate("Url-Test Group Tolerance (ms)"))
+o = s:taboption("settings", Value, "tolerance", translate("URL-Test Group Tolerance").."(ms)")
 o.description = translate("Switch To The New Proxy When The Delay Difference Between Old and The Fastest Currently is Greater Than This Value")
 o:value("0", translate("Disable"))
 o:value("100")
 o:value("150")
 o.datatype = "uinteger"
+o.default = "0"
+
+o = s:taboption("settings", Value, "urltest_interval_mod", translate("URL-Test Interval Modify").."(s)")
+o.description = translate("Modify The URL-Test Interval In The Config")
+o:value("0", translate("Disable"))
+o:value("180")
+o:value("300")
+o.datatype = "uinteger"
+o.default = "0"
+
+o = s:taboption("settings", Value, "urltest_address_mod", translate("URL-Test Address Modify"))
+o.description = translate("Modify The URL-Test Address In The Config")
+o:value("0", translate("Disable"))
+o:value("http://www.gstatic.com/generate_204")
+o:value("http://cp.cloudflare.com/generate_204")
+o:value("https://cp.cloudflare.com/generate_204")
+o:value("http://captive.apple.com/generate_204")
 o.default = "0"
 
 o = s:taboption("settings", Value, "github_address_mod", translate("Github Address Modify"))
@@ -58,15 +75,6 @@ o:value("https://fastly.jsdelivr.net/")
 o:value("https://testingcf.jsdelivr.net/")
 o:value("https://raw.fastgit.org/")
 o:value("https://cdn.jsdelivr.net/")
-o.default = "0"
-
-o = s:taboption("settings", Value, "urltest_address_mod", translate("Url-Test Address Modify"))
-o.description = translate("Modify The Url-Test Address In The Config")
-o:value("0", translate("Disable"))
-o:value("http://www.gstatic.com/generate_204")
-o:value("http://cp.cloudflare.com/generate_204")
-o:value("https://cp.cloudflare.com/generate_204")
-o:value("http://captive.apple.com/generate_204")
 o.default = "0"
 
 o = s:taboption("settings", ListValue, "log_level", translate("Log Level"))
