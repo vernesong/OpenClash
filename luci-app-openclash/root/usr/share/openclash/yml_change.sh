@@ -11,7 +11,6 @@ custom_host=$(uci -q get openclash.config.custom_host)
 core_type=$(uci -q get openclash.config.core_type)
 enable_custom_dns=$(uci -q get openclash.config.enable_custom_dns)
 append_wan_dns=$(uci -q get openclash.config.append_wan_dns || echo 0)
-tolerance=$(uci -q get openclash.config.tolerance || echo 0)
 custom_fallback_filter=$(uci -q get openclash.config.custom_fallback_filter || echo 0)
 enable_meta_core=$(uci -q get openclash.config.enable_meta_core || echo 0)
 china_ip_route=$(uci -q get openclash.config.china_ip_route || echo 0)
@@ -736,22 +735,6 @@ Thread.new{
 }.join;
 rescue Exception => e
    puts '${LOGTIME} Error: Set Hosts Rules Failed,【' + e.message + '】';
-end;
-
-#tolerance
-begin
-Thread.new{
-   if '$tolerance' != '0' then
-      Value['proxy-groups'].each{
-         |x|
-            if x['type'] == 'url-test' then
-               x['tolerance']='${tolerance}';
-            end
-         };
-   end;
-}.join;
-rescue Exception => e
-	puts '${LOGTIME} Error: Set Url-Test Group Tolerance Failed,【' + e.message + '】';
 end;
 
 #auth
