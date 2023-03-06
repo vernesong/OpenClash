@@ -37,6 +37,11 @@ else
 	head_width = "120px"
 end
 
+local cfg_name
+if uci:get("openclash", "config", "config_path") then
+	cfg_name = fs.basename(uci:get("openclash", "config", "config_path"))
+end
+
 local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]+") or "self.sectiontype"
 -%>
 
@@ -108,9 +113,11 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 			<%- 
 			if #e ~= 1 then
 				for t,o in ipairs(e)do
-					if o.name == fs.basename(uci:get("openclash", "config", "config_path")) then
+					if o.name == cfg_name and cfg_name then
 				-%>
 					<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab"><a><%=o.name%></a></li>
+					<%- elseif not cfg_name and o.name == "ALL" then -%>
+					<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab"><a>ALL</a></li>
 					<%- else -%>
 					<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled"><a><%=o.name%></a></li>
 					<%- end -%>
@@ -122,10 +129,10 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 	</div>
 	<div id="tab-content">
 		<%- for t,o in ipairs(e)do
-			if uci:get("openclash", "config", "config_path") and o.name == fs.basename(uci:get("openclash", "config", "config_path")) then
+			if #e ~= 1 and o.name == cfg_name and cfg_name then
 			-%>
 			<div class="dom-<%=self.config%>-<%=self.sectiontype%>" style="display: block;">
-			<%- elseif not uci:get("openclash", "config", "config_path") and o.name == "ALL" then -%>
+			<%- elseif #e == 1 then -%>
 			<div class="dom-<%=self.config%>-<%=self.sectiontype%>" style="display: block;">
 			<%- else -%>
 			<div class="dom-<%=self.config%>-<%=self.sectiontype%>">
