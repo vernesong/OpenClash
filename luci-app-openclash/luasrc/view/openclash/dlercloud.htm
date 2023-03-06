@@ -9,6 +9,7 @@
 .center {
   top: 50%;
   left: 50%;
+  min-width: 800px;
 }
 
 .card {
@@ -101,7 +102,6 @@
   z-index: 1;
   box-sizing: border-box;
   overflow: hidden;
-  padding: 1rem;
   padding-top: 0;
 }
 
@@ -113,16 +113,27 @@
 }
 
 .card .general .dler-info {
-	top: 5%;
-  width: auto;
+	top: 20%;
+  width: 90%;
+  height: 70%;
   display: flex;
+  position: absolute;
+  margin: 0 0 0 8%;
+}
+
+.card .general .dler-info p {
+	padding: 8px !important;
+  text-align: center;
+}
+
+.card .general .dler-info div {
   position: relative;
 }
 
 .card .general .dler-title {
   font-weight: bold;
   color: #444;
-  font-size:15px;
+  font-size: 15px;
   display: inline-block;
   width: 45%;
   overflow: hidden;
@@ -169,7 +180,7 @@
   box-shadow: 0 8px 16px -8px rgba(0,0,0,0.4);
   border-radius: 6px;
   width: 90px;
-  height: 90px;
+  height: 90px !important;
   font-size: 15px;
   font-weight: bold;
   display: inline-block;
@@ -179,13 +190,14 @@
 
 .card .general .more {
   float: right;
-  top: 85%;
-  right: 20px;
+  bottom: 0;
+  right: 0;
   font-size: 15px;
-  height: 15%;
+  line-height: 20px;
   position: absolute;
   display: inline-block;
   overflow: hidden;
+  margin: 0 3% 0.5% 0;
 }
 	</style>
 </head>
@@ -210,43 +222,43 @@
     <div class="general">
       <h1 id="dler-plan" ></h1>
       	<div class="dler-info">
-      		<div style="width: 35%">
-            <p style="margin: 10px -22% 10px 22%">
+      		<div style="width: 40%;">
+            <p>
                 <span class="dler-title"><%:Plan Expiration Time%>:</span><span class="dler-result" id="dler-plantime"><%:Collecting data...%></span>
             </p>
-            <p style="margin: 10px -22% 10px 22%">
+            <p>
                 <span class="dler-title"><%:Account Balances%>:</span><span class="dler-result" id="dler-money"><%:Collecting data...%></span>
             </p>
-            <p style="margin: 10px -22% 10px 22%">
+            <p>
                 <span class="dler-title"><%:Aff Balances%>:</span><span class="dler-result" id="dler-affmoney"><%:Collecting data...%></span>
             </p>
-            <p style="margin: 10px -22% 10px 22%">
+            <p>
                 <span class="dler-title"><%:Account Integral%>:</span><span class="dler-result" id="dler-integral"><%:Collecting data...%></span>
             </p>
         	</div>
-        	<div style="width: 35%">
-            <p style="margin: 10px -28% 10px 28%">
+        	<div style="width: 40%;">
+            <p>
                 <span class="dler-title"><%:Today Used%>:</span><span class="dler-result2" id="dler-today-used"><%:Collecting data...%></span>
             </p>
-            <p style="margin: 10px -28% 10px 28%">
+            <p>
                 <span class="dler-title"><%:Plan Used%>:</span><span class="dler-result2" id="dler-used"><%:Collecting data...%></span>
             </p>
-            <p style="margin: 10px -28% 10px 28%">
+            <p>
                 <span class="dler-title"><%:Plan Unused%>:</span><span class="dler-result2" id="dler-unused"><%:Collecting data...%></span>
             </p>
-            <p style="margin: 10px -28% 10px 28%">
+            <p>
                 <span class="dler-title"><%:Plan Traffic%>:</span><span class="dler-result2" id="dler-traffic"><%:Collecting data...%></span>
             </p>
         	</div>
-        	<div style="width: 30%; text-align:center">
-        		<p style="margin: 30px 0 10px 39%">
-        			<input type="button" class="btn" value="<%:Checkin%>" onclick="return dler_checkin_btn(this)"
+        	<div style="width: 20%;">
+        		<p style="margin: 14% 0 0 0">
+        			<input type="button" class="btn" value="<%:Checkin%>" onclick="return dler_checkin_btn(this)">
         		</p>
         	</div>
         </div>
-    		<div>
-       	 <p class="more">Powered by <a style="text-decoration: none; color: #666" onclick="return web_dler()" href="javascript:void(0);">dlercloud.com</a></p>
-    		</div>
+        <div>
+          <p class="more">Powered by <a style="text-decoration: none; color: #666" onclick="return web_dler()" href="javascript:void(0);">dlercloud.com</a></p>
+        </div>
       </div>
     </div>
   </div>
