@@ -1923,8 +1923,8 @@ msgstr "警告：由于第三方规则设置中的策略组名称与配置文件
 msgid "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
 msgstr "错误：丢失或未指定第三方规则中的部分策略组，停止继续设置第三方规则！"
 
-msgid "Detected That The nameserver DNS Option Has No Server Set, Starting To Complete..."
-msgstr "检测到DNS选项下的 Nameserver 未设置服务器，开始补全..."
+msgid "Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete..."
+msgstr "提示：检测到DNS选项下的 Nameserver 未设置服务器，开始补全..."
 
 msgid "Error: Failed To Download Proxy-providers, Please Check The Log Page For Detailed error information!"
 msgstr "错误：代理集文件下载失败，请到日志页面查看详细错误信息！"
