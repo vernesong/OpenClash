@@ -251,6 +251,9 @@ msgstr "指定下方列表中域名的 DNS 服务器，只支持填写一个IP�
 msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line, Depend on Dnsmasq"
 msgstr "每行请只填写一个域名，列表中的域名将使用上方指定的 DNS 进行查询并返回真实IP地址，此功能依赖于 Dnsmasq"
 
+msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line"
+msgstr "每行请只填写一个域名，列表中的域名在 Fake-IP 模式下将返回真实IP地址"
+
 msgid "Domain Names In The List Use The Custom DNS Server, But Still Return Fake-IP Results, One rule per line"
 msgstr "每行请只填写一个规则，列表中的域名将使用指定的 DNS 进行查询，但 Fake-IP 模式下仍将返回保留地址"
 
