@@ -2973,15 +2973,6 @@ msgstr "（TUN&Meta 内核）"
 msgid "Warning: Only Meta Core Support QUIC Type DNS, Skip"
 msgstr "警告：仅 Meta 内核支持 QUIC 类型的 DNS，跳过"
 
-msgid "Force Sniffing Domains Lists"
-msgstr "强制探测（嗅探）的域名列表"
-
-msgid "Force Sniffing Domains(sni) Filter"
-msgstr "忽略探测（嗅探）的域名（sni）列表"
-
-msgid "Sniffing Ports Filter"
-msgstr "指定探测（嗅探）的端口列表"
-
 msgid "Will Override Dns Queries If Domains in The List"
 msgstr "列表中的域名将会强制进行探测（嗅探）"
 

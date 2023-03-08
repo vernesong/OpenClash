@@ -53,7 +53,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 	}
 	
 	#tab-header-<%=self.config%>-<%=self.sectiontype%>{
-		height: 40px;
+		min-height: 35px;
 		text-align: center;
 		position: relative;
 		white-space: nowrap;
@@ -62,25 +62,33 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 	}
 
 	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul{
-		position: absolute;
 		left: -1px;
 		width: 100%;
+		padding: unset !important;
+		margin: unset !important;
 	}
 
 	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul li{
 		float: left;
 		width: <%=head_width%>;
-		line-height: 40px;
+		line-height: 35px;
 		padding: 0 1px;
-		white-space: nowrap;
-		overflow: hidden;
-        text-overflow: ellipsis;
-		border-bottom: 1px solid #dddddd;
 		border-right: 1px solid #dddddd;
+		cursor: pointer;
 	}
 
 	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul li a{
-		float: unset !important;;
+		float: unset !important;
+		padding: unset !important;
+		vertical-align: middle;
+		white-space: nowrap;
+		overflow: hidden;
+        text-overflow: ellipsis;
+	}
+
+	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab > a{
+		font-weight: bolder;
+		color: unset;
 	}
 	 
 	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul li a:hover{
@@ -108,7 +116,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 	<%- end -%>
 	<div class="cbi-section-descr"><%=self.description%></div>
 	<%- local count = 0 -%>
-	<div id="tab-header-<%=self.config%>-<%=self.sectiontype%>">
+	<div id="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tabmenu">
 		<ul class="cbi-tabmenu">
 			<%- 
 			if #e ~= 1 then
@@ -322,7 +330,6 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 				this.className = 'cbi-tab';
 				divs<%=sectiontype%>[this.id].style.display = 'block';
 				localStorage.setItem("titles<%=sectiontype%>",this.id);
-				localStorage.setItem("id<%=sectiontype%>","cbi-<%=self.config%>-<%=self.sectiontype%>");
 			};
 
 			li<%=sectiontype%>.onTouchStart = function(){
@@ -333,7 +340,6 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 				this.className = 'cbi-tab';
 				divs<%=sectiontype%>[this.id].style.display = 'block';
 				localStorage.setItem("titles<%=sectiontype%>",this.id);
-				localStorage.setItem("id<%=sectiontype%>","cbi-<%=self.config%>-<%=self.sectiontype%>");
 			};
 		};
 	};

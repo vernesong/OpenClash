@@ -15,41 +15,45 @@ ul{
 }
 
 #tab-header{
-	background-color: #F7F7F7;
-	height: 33px;
+	min-height: 35px;
 	text-align: center;
 	position: relative;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 #tab-header ul{
-	width: 500px;
-	position: absolute;
 	left: -1px;
+	width: 100%;
+	padding: unset !important;
+	margin: unset !important;
 }
 #tab-header ul li{
 	float: left;
-	width: 120px;
-	height: 33px;
-	line-height: 33px;
+	width: 160px;
+	line-height: 35px;
 	padding: 0 1px;
-	border-bottom: 1px solid #dddddd;
 	border-right: 1px solid #dddddd;
+	cursor: pointer;
 }
-#tab-header ul li.selected{
-  background-color: white;
+#tab-header ul li a{
+	float: unset !important;
+	padding: unset !important;
+	vertical-align: middle;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+#tab-header ul li.cbi-tab > a{
   font-weight: bolder;
-  border-bottom: 0;
-  border-right: 1px solid #dddddd;
-  padding: 0;
+  color: unset;
 }
- 
-#tab-header ul li:hover{
+#tab-header ul li a:hover{
 	color: orangered;
 }
-
 #tab-content .dom{
 	display: none;
 }
- 
 #tab-content .dom ul li{
   float: left;
   margin: 15px 10px;
@@ -85,11 +89,11 @@ ul{
 </style>
 
 <body>
-	<div id="tab">
-		<div id="tab-header">
-			<ul>
-				<li name="tab-header" class="selected"><%:OpenClash Log%></li>
-				<li name="tab-header"><%:Core Log%></li>
+	<div id="tab" class="cbi-section">
+		<div id="tab-header" class="cbi-tabmenu">
+			<ul class="cbi-tabmenu">
+				<li name="tab-header" class="cbi-tab"><a><%:OpenClash Log%></a></li>
+				<li name="tab-header"  class="cbi-tab-disabled"><a><%:Core Log%></a></li>
 			</ul>
 		</div>
 		<div id="tab-content">
@@ -114,8 +118,8 @@ ul{
 		</div>
 	</div>
 
-<fieldset class="cbi-section">
-	<table width="100%">
+<fieldset style="text-align: center; width: 100%" class="cbi-section">
+	<table>
 		<tr>
 			<td style="text-align: center; width: 25%">
 				<input type="button" class="btn cbi-button cbi-button-apply" id="stop_refresh_button" value="<%:Stop Refresh Log%>" onclick=" return stop_refresh() "/>
@@ -140,10 +144,6 @@ var s;
 var log_len = 0;
 var lv = document.getElementById('cbid.openclash.config.clog');
 var cl = document.getElementById('core_log');
-document.getElementById('stop_refresh_button').style.textAlign="center";
-document.getElementById('start_refresh_button').style.textAlign="center";
-document.getElementById('del_log_button').style.textAlign="center";
-document.getElementById('down_log_button').style.textAlign="center";
 
 function get_log_level() {
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "log_level")%>', null, function(x, status) {
@@ -291,18 +291,18 @@ window.onload = function(){
         li.id = i;
         li.onclick = function(){
             for(var j=0; j<titles.length; j++){
-                titles[j].className = '';
+                titles[j].className = 'cbi-tab-disabled';
                 divs[j].style.display = 'none';
             }
-            this.className = 'selected';
+            this.className = 'cbi-tab';
             divs[this.id].style.display = 'block';
         }
         li.onTouchStart = function(){
             for(var j=0; j<titles.length; j++){
-                titles[j].className = '';
+                titles[j].className = 'cbi-tab-disabled';
                 divs[j].style.display = 'none';
             }
-            this.className = 'selected';
+            this.className = 'cbi-tab';
             divs[this.id].style.display = 'block';
         }
     }
