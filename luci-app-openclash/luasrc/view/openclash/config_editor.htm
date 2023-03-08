@@ -5,6 +5,7 @@
 		line-height: 150%;
 		resize: both !important;
 	}
+
 </style>
 <link rel="stylesheet" href="/luci-static/resources/openclash/lib/codemirror.css"/>
 <link rel="stylesheet" href="/luci-static/resources/openclash/theme/material.css"/>
@@ -76,7 +77,7 @@ function editor(id, readOnly, wid, height)
 	};
 };
 
-function shell_editor(id, readOnly)
+function shell_editor(id, readOnly, wid, height)
 {
 	var editor = CodeMirror.fromTextArea(id, {
 	mode: "shell",
@@ -105,9 +106,13 @@ function shell_editor(id, readOnly)
         }
       }
 	});
+
+	if (wid && height) {
+		editor.setSize(wid, height);
+	};
 };
 
-function other_editor(id, readOnly)
+function other_editor(id, readOnly, wid, height)
 {
 	var editor = CodeMirror.fromTextArea(id, {
 	mode: "lua",
@@ -136,6 +141,10 @@ function other_editor(id, readOnly)
         }
       }
 	});
+
+	if (wid && height) {
+		editor.setSize(wid, height);
+	};
 };
 
 function other_log_area(id, readOnly, wid, height)
@@ -174,22 +183,25 @@ function other_log_area(id, readOnly, wid, height)
 var custom_firewall = document.getElementById("cbid.openclash.config.firewall_custom");
 var custom_ymchange = document.getElementById("cbid.openclash.config.ymchange_custom");
 if (custom_firewall) {
-	shell_editor(custom_firewall, 'false');
+	shell_editor(custom_firewall, 'false', "100%", '300px');
 };
 
 if (custom_ymchange) {
-	shell_editor(custom_ymchange, 'false');
+	shell_editor(custom_ymchange, 'false', "100%", '300px');
 };
 
 var myEditor_use = document.getElementById("cbid.table.1.user");
 var myEditor_def = document.getElementById("cbid.table.1.default");
 
 if (myEditor_use && myEditor_def) {
-	var myEditor_use_wid = document.getElementById("cbi-table-1-user").offsetWidth;
-	var myEditor_def_wid = document.getElementById("cbi-table-1-default").offsetWidth;
-
-	editor(myEditor_use, 'false', myEditor_use_wid, '700px');
-	editor(myEditor_def, 'true', myEditor_def_wid, '700px');
+	document.getElementById("cbi-table-1-user").parentNode.className='cbi-value';
+	document.getElementById("cbi-table-1-default").parentNode.className='cbi-value';
+	document.getElementById("cbi-table-1-default").parentNode.style.display="revert"
+	document.getElementById("cbi-table-1-user").parentNode.style.display="revert"
+	document.getElementById("cbi-table-1-default").parentNode.style.width="50%"
+	document.getElementById("cbi-table-1-user").parentNode.style.width="50%"
+	editor(myEditor_use, 'false', 'auto', '700px');
+	editor(myEditor_def, 'true', 'auto', '700px');
 };
 
 var myEditor_hosts = document.getElementById("cbid.openclash.config.custom_hosts");
@@ -205,38 +217,44 @@ var myEditor_sniffing_domain_filter = document.getElementById("cbid.openclash.co
 var myEditor_sniffing_port_filter = document.getElementById("cbid.openclash.config.sniffing_port_filter");
 
 if (myEditor_hosts) {
-	editor(myEditor_hosts, 'false');
+	editor(myEditor_hosts, 'false', '100%', '300px');
 };
 
 if (myEditor_edit_file) {
-	editor(myEditor_edit_file, 'false', "auto", '700px');
+	editor(myEditor_edit_file, 'false', '100%', '700px');
 };
 
 if (myEditor_fall_fil) {
-	editor(myEditor_fall_fil, 'false');
-	editor(myEditor_name_pol, 'false');
-	editor(myEditor_name_cus_r1, 'false');
-	editor(myEditor_name_cus_r2, 'false');
+	editor(myEditor_fall_fil, 'false', '100%', '300px');
+};
+
+if (myEditor_name_pol) {
+	editor(myEditor_name_pol, 'false', '100%', '300px');
+};
+
+if (myEditor_name_cus_r1) {
+	editor(myEditor_name_cus_r1, 'false', '100%', '300px');
+	editor(myEditor_name_cus_r2, 'false', '100%', '300px');
 };
 
 if (myEditor_fake_filter) {
-	other_editor(myEditor_fake_filter, 'false');
+	other_editor(myEditor_fake_filter, 'false', '100%', '300px');
 };
 
 if (myEditor_custom_domain_dns) {
-	other_editor(myEditor_custom_domain_dns, 'false');
+	other_editor(myEditor_custom_domain_dns, 'false', '100%', '300px');
 };
 
 if (myEditor_sniffing_domain_force) {
-	other_editor(myEditor_sniffing_domain_force, 'false');
+	other_editor(myEditor_sniffing_domain_force, 'false', '100%', '300px');
 };
 
 if (myEditor_sniffing_domain_filter) {
-	other_editor(myEditor_sniffing_domain_filter, 'false');
+	other_editor(myEditor_sniffing_domain_filter, 'false', '100%', '300px');
 };
 
 if (myEditor_sniffing_port_filter) {
-	other_editor(myEditor_sniffing_port_filter, 'false');
+	other_editor(myEditor_sniffing_port_filter, 'false', '100%', '300px');
 };
 
 
@@ -282,9 +300,9 @@ if (core_log && oc_log) {
         }
       }
 	});
-	core_editor.setSize("auto", "540px");
+	core_editor.setSize("100%", "540px");
 	core_editor.setOption("readOnly","true");
-	oc_editor.setSize("auto", "540px");
+	oc_editor.setSize("100%", "540px");
 	oc_editor.setOption("readOnly","true");
 };
 
@@ -293,6 +311,7 @@ var rule_mg = document.getElementById('cbi-table-1-rule_mg');
 var game_mg = document.getElementById('cbi-table-1-game_mg');
 var Commit = document.getElementById('cbi-table-1-Commit');
 var Apply = document.getElementById('cbi-table-1-Apply');
+var Create = document.getElementById('cbi-table-1-Create');
 
 if (proxy_mg) {
 	proxy_mg.style.textAlign="center";
@@ -300,6 +319,7 @@ if (proxy_mg) {
 	game_mg.style.textAlign="center";
 	Commit.style.textAlign="center";
 	Apply.style.textAlign="center";
+	Create.style.textAlign="center";
 };
 //]]>
 </script> 

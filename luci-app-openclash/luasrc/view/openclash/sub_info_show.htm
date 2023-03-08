@@ -31,6 +31,10 @@
 	vertical-align: middle;
 }
 
+.sub_div{
+	white-space: nowrap;
+}
+
 </style>
 
 <%
@@ -39,7 +43,7 @@
 	local filename = fs.filename(val)
 	local idname = math.random(1000)..(string.match(filename, "[%w_]+") or "")
 %>
-<div><span id='<%=idname%>' class="sub_tab"></span>&nbsp;&nbsp;&nbsp;<span class="sub_setting"><img src='/luci-static/resources/openclash/img/arrow-clockwise-light.svg' height="20px" title='<%:Refresh%>' alt='<%:Refresh%>' onclick='return sub_info_refresh_<%=idname%>(this)'></span>&nbsp;<span class="sub_setting"><img src='/luci-static/resources/openclash/img/wrench-light.svg' height="20px" title='<%:Specify URL%>' alt='<%:Specify URL%>' onclick='return set_subinfo_url_<%=idname%>(this,"<%=filename%>")'></span><div>
+<div class="sub_div"><span id='<%=idname%>' class="sub_tab"></span>&nbsp;&nbsp;&nbsp;<span class="sub_setting"><img src='/luci-static/resources/openclash/img/arrow-clockwise-light.svg' height="20px" title='<%:Refresh%>' alt='<%:Refresh%>' onclick='return sub_info_refresh_<%=idname%>(this)'></span>&nbsp;<span class="sub_setting"><img src='/luci-static/resources/openclash/img/wrench-light.svg' height="20px" title='<%:Specify URL%>' alt='<%:Specify URL%>' onclick='return set_subinfo_url_<%=idname%>(this,"<%=filename%>")'></span><div>
 
 <script type="text/javascript">//<![CDATA[
 
