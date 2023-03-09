@@ -18,6 +18,19 @@ function width(o)
 	return ''
 end
 
+function table_include(table, value)
+	if table == nil then
+		return false
+	end
+
+	for k, v in pairs(table) do
+		if v == value then
+			return true
+		end
+	end
+	return false
+end
+
 local head_width
 local a={}
 local e={}
@@ -29,7 +42,9 @@ for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
 	end
 end
 
-table.insert(e, 1, {name="ALL"})
+if not table_include(e, "all") then
+	table.insert(e, 1, {name="all"})
+end
 
 if #e > 4 then
 	head_width = (95 / #e).."%"
@@ -124,8 +139,10 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 					if o.name == cfg_name and cfg_name then
 				-%>
 					<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab"><a><%=o.name%></a></li>
-					<%- elseif not cfg_name and o.name == "ALL" then -%>
+					<%- elseif not cfg_name and o.name == "all" then -%>
 					<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab"><a>ALL</a></li>
+					<%- elseif o.name == "all" then -%>
+					<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled"><a>ALL</a></li>
 					<%- else -%>
 					<li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled"><a><%=o.name%></a></li>
 					<%- end -%>
@@ -139,6 +156,8 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 		<%- for t,o in ipairs(e)do
 			if #e ~= 1 and o.name == cfg_name and cfg_name then
 			-%>
+			<div class="dom-<%=self.config%>-<%=self.sectiontype%>" style="display: block;">
+			<%- elseif #e ~= 1 and o.name == "all" and not cfg_name then -%>
 			<div class="dom-<%=self.config%>-<%=self.sectiontype%>" style="display: block;">
 			<%- elseif #e == 1 then -%>
 			<div class="dom-<%=self.config%>-<%=self.sectiontype%>" style="display: block;">
@@ -186,10 +205,12 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 					for i, k in ipairs(self:cfgsections()) do
 						section = k
 						while true do
-							if o.name ~= "ALL" then
-								if uci:get("openclash", section, "config") ~= o.name then
-									break
-								end
+							if not uci:get("openclash", section, "config") then
+								uci:set("openclash", section, "config", "all")
+								uci:save("openclash")
+							end
+							if uci:get("openclash", section, "config") ~= o.name then
+								break
 							end
 							isempty = false
 							scope = { valueheader = "cbi/cell_valueheader", valuefooter = "cbi/cell_valuefooter" }
