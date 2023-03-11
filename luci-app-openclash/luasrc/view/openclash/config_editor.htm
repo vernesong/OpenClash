@@ -5,6 +5,25 @@
 		line-height: 150%;
 		resize: both !important;
 	}
+	.CodeMirror-merge-r-chunk {
+    	background: #0095ff2e !important;
+	}
+	.CodeMirror-merge-r-chunk-end {
+    	border-bottom: unset !important;
+	}
+	.CodeMirror-merge-r-chunk-start {
+    	border-top: unset !important;
+	}
+	.CodeMirror-merge-2pane .CodeMirror-merge-gap {
+		height: 700px !important;
+	}
+	.CodeMirror-merge-r-connect {
+		fill: #0095ff2e !important;
+		stroke: #0095ff2e !important;
+	}
+	.CodeMirror-vscrollbar-oc {
+		display: none !important;
+	}
 
 </style>
 <link rel="stylesheet" href="/luci-static/resources/openclash/lib/codemirror.css"/>
@@ -35,8 +54,125 @@
 <script src="/luci-static/resources/openclash/addon/scroll/annotatescrollbar.js"></script>
 <script src="/luci-static/resources/openclash/addon/search/matchesonscrollbar.js"></script>
 <script src="/luci-static/resources/openclash/addon/search/jump-to-line.js"></script>
+<script src="/luci-static/resources/openclash/addon/merge/diff_match_patch.js"></script>
+<script src="/luci-static/resources/openclash/addon/merge/merge.js"></script>
+<link rel=stylesheet href="/luci-static/resources/openclash/addon/merge/merge.css">
+
+<%-
+local uci = require("luci.model.uci").cursor()
+local fs = require "luci.openclash"
+local conf = uci:get("openclash", "config", "config_path")
+if not conf then conf = "/etc/openclash/config/config.yaml" end
+local conf_name = fs.basename(conf)
+if not conf_name then conf_name = "config.yaml"  end
+local sconf = "/etc/openclash/"..conf_name
+-%>
+
+<table id="my_editor_div" style="width: 100%; text-align: center; display: none;">
+<tr>
+	<td style="width: 50%; overflow: hidden;"><%:Modify Your Config file:%> <b style=color:green><%=conf_name%></b> <%:Here, Except The Settings That Were Taken Over%></td>
+	
+<%-
+	if fs.isfile(sconf) then
+-%>
+		<td style="width: 50%; overflow: hidden;"><%:Config File Edited By OpenClash For Running%></td>
+<%-
+	else
+-%>
+		<td style="width: 50%; overflow: hidden;"><%:Default Config File With Correct Template%></td>
+<%-
+	end
+-%>
+</tr>
+</table>
 
 <script type="text/javascript">//<![CDATA[
+function merge_editor(id, id2, target, target2, readOnly, readOnly2, wid, height)
+{
+	var value, orig1, orig2, merge_editor, descr, gap, vscrollbar, vscrollbar_oc, panes = 2, highlight = true, connect = null, collapse = false;
+	descr = document.getElementById("my_editor_div");
+	target.parentNode.parentNode.parentNode.insertBefore(descr, target.parentNode.parentNode); 
+	descr.style.display="inline-table"
+	value = id.value;
+	if (value == null) {
+		editor(id, readOnly, wid, height);
+		editor(id2, readOnly2, wid, height);
+	}
+	else {
+		target2.parentNode.style.display="none";
+		orig1 = '';
+		orig2 = id2.value;
+		target.style.height= "700px"
+		id.style.display = "none";
+		id2.style.display = "none";
+		merge_editor = CodeMirror.MergeView(target, {
+			mode: "text/yaml",
+			value: value,
+			origLeft: panes == 3 ? orig1 : null,
+			orig: orig2,
+			theme: "material",
+			lineNumbers: true,
+			autoRefresh: true,
+			styleActiveLine: true,
+			lineWrapping: true,
+			matchBrackets: true,
+			foldGutter: true,
+			lint: true,
+			highlightDifferences: highlight,
+			connect: connect,
+			collapseIdentical: collapse,
+			gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "CodeMirror-lint-markers"],
+			extraKeys: {
+				"F10": function() {
+					merge_editor.setShowDifferences(highlight = !highlight);
+				},
+				"F11": function(cm) {
+					cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+					gap = document.getElementsByClassName("CodeMirror-merge-gap")[0];
+					vscrollbar = document.getElementsByClassName("CodeMirror-vscrollbar")[0];
+					vscrollbar_oc = document.getElementsByClassName("CodeMirror-vscrollbar-oc")[0];
+					if (cm.getOption("fullScreen")) {
+						console.log(gap.style.display)
+						gap.style.display = "none";
+						vscrollbar.className = "CodeMirror-vscrollbar-oc";
+					}
+					else {
+						gap.style.display = "";
+						vscrollbar_oc.className = "CodeMirror-vscrollbar";
+					};
+				},
+				"Esc": function(cm) {
+					gap = document.getElementsByClassName("CodeMirror-merge-gap")[0];
+					vscrollbar = document.getElementsByClassName("CodeMirror-vscrollbar")[0];
+					vscrollbar_oc = document.getElementsByClassName("CodeMirror-vscrollbar-oc")[0];
+					if (cm.getOption("fullScreen")) {
+						cm.setOption("fullScreen", false);
+						gap.style.display = "";
+						vscrollbar_oc.className = "CodeMirror-vscrollbar";
+					};
+				},
+				"Tab": function(cm) {
+					if (cm.somethingSelected()) {
+						cm.indentSelection('add')
+					} else {
+						var spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
+						cm.replaceSelection(spaces)
+					}
+				}
+			}
+		});
+
+		merge_editor.edit.on("change", function(cm) {
+            id.value = cm.getValue();
+        });
+
+		if (wid && height) {
+			merge_editor.editor().setSize(wid, height);
+			merge_editor.rightOriginal().setSize(wid, height);
+		};
+	};
+};
+
 function editor(id, readOnly, wid, height)
 {
 	var editor = CodeMirror.fromTextArea(id, {
@@ -194,14 +330,18 @@ var myEditor_use = document.getElementById("cbid.table.1.user");
 var myEditor_def = document.getElementById("cbid.table.1.default");
 
 if (myEditor_use && myEditor_def) {
-	document.getElementById("cbi-table-1-user").parentNode.className='cbi-value';
-	document.getElementById("cbi-table-1-default").parentNode.className='cbi-value';
-	document.getElementById("cbi-table-1-default").parentNode.style.display="revert"
-	document.getElementById("cbi-table-1-user").parentNode.style.display="revert"
-	document.getElementById("cbi-table-1-default").parentNode.style.width="50%"
-	document.getElementById("cbi-table-1-user").parentNode.style.width="50%"
-	editor(myEditor_use, 'false', 'auto', '700px');
-	editor(myEditor_def, 'true', 'auto', '700px');
+	var myEditor_div_use = document.getElementById("cbi-table-1-user");
+	var myEditor_div_def = document.getElementById("cbi-table-1-default");
+	
+	myEditor_div_def.parentNode.parentNode.style.cssText="text-align: left !important"
+	myEditor_div_def.parentNode.className='cbi-value';
+	myEditor_div_def.parentNode.style.display="revert"
+	myEditor_div_def.parentNode.style.width="100%"
+
+	myEditor_div_use.parentNode.className='cbi-value';
+	myEditor_div_use.parentNode.style.display="revert"
+	myEditor_div_use.parentNode.style.width="100%"
+	merge_editor(myEditor_use, myEditor_def, myEditor_div_use, myEditor_div_def, 'true', 'false', 'auto', '700px');
 };
 
 var myEditor_hosts = document.getElementById("cbid.openclash.config.custom_hosts");

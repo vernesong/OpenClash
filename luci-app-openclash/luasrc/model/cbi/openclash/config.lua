@@ -391,7 +391,7 @@ local tab = {
 }
 
 s = m:section(Table, tab)
-s.description = align_mid..translate("Support syntax check, press").." "..font_green..bold_on.."F11"..bold_off..font_off.." "..translate("to enter full screen editing mode")..align_mid_off
+s.description = align_mid..translate("Support syntax check, press").." "..font_green..bold_on.."F10"..bold_off..font_off.." "..translate("to control diff option, press").." "..font_green..bold_on.."F11"..bold_off..font_off.." "..translate("to enter full screen editing mode")..align_mid_off
 s.anonymous = true
 s.addremove = false
 
@@ -403,7 +403,7 @@ if not conf_name then conf_name = "config.yaml"  end
 local sconf = "/etc/openclash/"..conf_name
 
 sev = s:option(TextValue, "user")
-sev.description = align_mid..translate("Modify Your Config file:").." "..font_green..bold_on..conf_name..bold_off..font_off.." "..translate("Here, Except The Settings That Were Taken Over")..align_mid_off
+---sev.description = align_mid..translate("Modify Your Config file:").." "..font_green..bold_on..conf_name..bold_off..font_off.." "..translate("Here, Except The Settings That Were Taken Over")..align_mid_off
 sev.rows = 40
 sev.wrap = "off"
 sev.cfgvalue = function(self, section)
@@ -421,9 +421,9 @@ end
 
 def = s:option(TextValue, "default")
 if fs.isfile(sconf) then
-	def.description = align_mid..translate("Config File Edited By OpenClash For Running")..align_mid_off
+	---def.description = align_mid..translate("Config File Edited By OpenClash For Running")..align_mid_off
 else
-	def.description = align_mid..translate("Default Config File With Correct Template")..align_mid_off
+	---def.description = align_mid..translate("Default Config File With Correct Template")..align_mid_off
 end
 def.rows = 40
 def.wrap = "off"
@@ -445,7 +445,7 @@ o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
 	fs.unlink("/tmp/Proxy_Group")
-  uci:commit("openclash")
+	uci:commit("openclash")
 end
 
 o = a:option(DummyValue, "Create", " ")
@@ -458,10 +458,10 @@ o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
 	fs.unlink("/tmp/Proxy_Group")
-  uci:set("openclash", "config", "enable", 1)
-  uci:commit("openclash")
-  SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+	uci:set("openclash", "config", "enable", 1)
+	uci:commit("openclash")
+	SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 m:append(Template("openclash/config_editor"))
