@@ -1419,7 +1419,7 @@ if [ -n "$FW4" ]; then
 
    #intranet allowed
    if [ "$intranet_allowed" -eq 1 ]; then
-      wan_ints=$(nft list chain inet fw4 input |grep -e "jump input_wan" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /iifname/) {print $(i+1)}}}' 2>/dev/null |sed 's/"//g')
+      wan_ints=$(nft list chain inet fw4 input |grep -e "jump input_wan" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /iifname/) {print $(i+1)}}}' 2>/dev/null |sed 's/"//g'|sed 's/{//g'|sed 's/}//g'|sed 's/,//g')
       if [ -n "$wan_ints" ]; then
          nft 'add chain inet fw4 openclash_wan_input' 2>/dev/null
          nft 'flush chain inet fw4 openclash_wan_input' 2>/dev/null
