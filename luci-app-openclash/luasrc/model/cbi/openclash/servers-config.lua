@@ -396,8 +396,8 @@ o:depends("type", "snell")
 
 o = s:option(ListValue, "obfs_vless", translate("obfs-mode"))
 o.rmempty = true
-o.default = "none"
-o:value("none")
+o.default = "tcp"
+o:value("tcp", translate("tcp"))
 o:value("ws", translate("websocket (ws)"))
 o:value("grpc", translate("grpc"))
 o:depends("type", "vless")
@@ -475,6 +475,37 @@ o.placeholder = translate("Host: v2ray.com")
 o:depends("obfs_vmess", "websocket")
 o:depends("obfs_vless", "ws")
 
+o = s:option(Value, "vless_flow", translate("flow"))
+o.rmempty = true
+o.default = "xtls-rprx-direct"
+o:value("xtls-rprx-direct")
+o:value("xtls-rprx-origin")
+o:value("xtls-rprx-vision")
+o:depends("obfs_vless", "tcp")
+
+-- [[ grpc ]]--
+o = s:option(Value, "grpc_service_name", translate("grpc-service-name"))
+o.rmempty = true
+o.datatype = "host"
+o.placeholder = translate("example")
+o:depends("obfs_trojan", "grpc")
+o:depends("obfs_vmess", "grpc")
+o:depends("obfs_vless", "grpc")
+
+-- [[ reality-public-key ]]--
+o = s:option(Value, "reality_public_key", translate("public-key(reality)"))
+o.rmempty = true
+o.placeholder = translate("CrrQSjAG_YkHLwvM2M-7XkKJilgL5upBKCp0od0tLhE")
+o:depends("obfs_vless", "grpc")
+o:depends("obfs_vless", "tcp")
+
+-- [[ reality-short-id ]]--
+o = s:option(Value, "reality_short_id", translate("short-id(reality)"))
+o.rmempty = true
+o.placeholder = translate("10f897e26c4b9478")
+o:depends("obfs_vless", "grpc")
+o:depends("obfs_vless", "tcp")
+
 o = s:option(Value, "max_early_data", translate("max-early-data"))
 o.rmempty = true
 o.placeholder = translate("2048")
@@ -522,14 +553,6 @@ o:depends({obfs_vmess = "websocket", tls = "true"})
 o:depends({obfs_vmess = "grpc", tls = "true"})
 o:depends({obfs_vmess = "none", tls = "true"})
 o:depends("type", "vless")
-
-o = s:option(Value, "vless_flow", translate("flow"))
-o.rmempty = true
-o.default = "xtls-rprx-direct"
-o:value("xtls-rprx-direct")
-o:value("xtls-rprx-origin")
-o:value("xtls-rprx-vision")
-o:depends("obfs_vless", "none")
 
 o = s:option(Value, "keep_alive", translate("keep-alive"))
 o.rmempty = true
@@ -587,15 +610,6 @@ o.rmempty = false
 o:value("h3")
 o:value("h2")
 o:depends("type", "hysteria")
-
--- [[ grpc ]]--
-o = s:option(Value, "grpc_service_name", translate("grpc-service-name"))
-o.rmempty = true
-o.datatype = "host"
-o.placeholder = translate("example")
-o:depends("obfs_trojan", "grpc")
-o:depends("obfs_vmess", "grpc")
-o:depends("obfs_vless", "grpc")
 
 -- [[ trojan-ws-path ]]--
 o = s:option(Value, "trojan_ws_path", translate("Path"))
