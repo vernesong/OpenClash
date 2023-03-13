@@ -283,6 +283,8 @@ yml_servers_set()
    config_get "ip_version" "$section" "ip_version" ""
    config_get "tfo" "$section" "tfo" ""
    config_get "udp_over_tcp" "$section" "udp_over_tcp" ""
+   config_get "reality_public_key" "$section" "reality_public_key" ""
+   config_get "reality_short_id" "$section" "reality_short_id" ""
    
    if [ "$enabled" = "0" ]; then
       return
@@ -357,6 +359,10 @@ yml_servers_set()
    
    if [ "$obfs_vless" = "grpc" ]; then
       obfs_vless="network: grpc"
+   fi
+
+   if [ "$obfs_vless" = "tcp" ]; then
+      obfs_vless="network: tcp"
    fi
    
    if [ "$obfs_vmess" = "websocket" ]; then
@@ -924,7 +930,7 @@ cat >> "$SERVER_FILE" <<-EOF
     servername: "$servername"
 EOF
       fi
-      if [ "$obfs_vless" != "none" ]; then
+      if [ -n "$obfs_vless" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     $obfs_vless
 EOF
@@ -951,12 +957,43 @@ cat >> "$SERVER_FILE" <<-EOF
     grpc-opts:
       grpc-service-name: "$grpc_service_name"
 EOF
+            if [ -n "$reality_public_key" ] || [ -n "$reality_short_id" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    reality-opts:
+EOF
+            fi
+            if [ -n "$reality_public_key" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+      public-key: "$reality_public_key"
+EOF
+            fi
+            if [ -n "$reality_short_id" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+      short-id: "$reality_short_id"
+EOF
+            fi
          fi
-      else
-         if [ ! -z "$vless_flow" ]; then
+         if [ "$obfs_vless" = "network: tcp" ]; then
+            if [ ! -z "$vless_flow" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     flow: "$vless_flow"
 EOF
+            fi
+            if [ -n "$reality_public_key" ] || [ -n "$reality_short_id" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    reality-opts:
+EOF
+            fi
+            if [ -n "$reality_public_key" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+      public-key: "$reality_public_key"
+EOF
+            fi
+            if [ -n "$reality_short_id" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+      short-id: "$reality_short_id"
+EOF
+            fi
          fi
       fi
    fi
