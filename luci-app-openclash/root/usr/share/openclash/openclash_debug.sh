@@ -42,6 +42,10 @@ op_version=$(opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 
 china_ip_route=$(uci -q get openclash.config.china_ip_route)
 common_ports=$(uci -q get openclash.config.common_ports)
 router_self_proxy=$(uci -q get openclash.config.router_self_proxy)
+core_type=$(uci -q get openclash.config.core_type)
+da_password=$(uci -q get openclash.config.dashboard_password)
+cn_port=$(uci -q get openclash.config.cn_port)
+lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
 
 if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
 	CONFIG_NAME=$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')
@@ -103,7 +107,8 @@ LuCI版本: $(opkg status luci 2>/dev/null |grep 'Version' |awk -F ': ' '{print 
 #此项有值时,如不使用IPv6,建议到网络-接口-lan的设置中禁用IPV6的DHCP
 IPV6-DHCP: $(uci -q get dhcp.lan.dhcpv6)
 
-#此项结果应仅有配置文件的DNS监听地址
+DNS劫持: $(dns_re "$enable_redirect_dns")
+#DNS劫持为Dnsmasq时，此项结果应仅有配置文件的DNS监听地址
 Dnsmasq转发设置: $(uci -q get dhcp.@dnsmasq[0].server)
 EOF
 
@@ -155,6 +160,7 @@ EOF
 if pidof clash >/dev/null; then
 cat >> "$DEBUG_LOG" <<-EOF
 运行状态: 运行中
+内核：$core_type
 进程pid: $(pidof clash)
 运行权限: `getpcaps $(pidof clash)`
 运行用户: $(ps |grep "/etc/openclash/clash" |grep -v grep |awk '{print $2}' 2>/dev/null)
@@ -251,7 +257,6 @@ cat >> "$DEBUG_LOG" <<-EOF
 运行模式: $en_mode
 默认代理模式: $proxy_mode
 UDP流量转发(tproxy): $(ts_cf "$enable_udp_proxy")
-DNS劫持: $(dns_re "$enable_redirect_dns")
 自定义DNS: $(ts_cf "$enable_custom_dns")
 IPV6代理: $(ts_cf "$ipv6_enable")
 IPV6-DNS解析: $(ts_cf "$ipv6_dns")
@@ -301,6 +306,15 @@ else
 fi
 
 sed -i '/^ \{0,\}secret:/d' "$DEBUG_LOG" 2>/dev/null
+
+#custom overwrite
+cat >> "$DEBUG_LOG" <<-EOF
+
+#===================== 自定义覆写设置 =====================#
+
+EOF
+
+cat /etc/openclash/custom/openclash_custom_overwrite.sh >> "$DEBUG_LOG" 2>/dev/null
 
 #firewall
 cat >> "$DEBUG_LOG" <<-EOF
@@ -457,10 +471,23 @@ fi
 
 cat >> "$DEBUG_LOG" <<-EOF
 
-#===================== 最近运行日志 =====================#
+#===================== 最近运行日志(自动切换为Debug模式) =====================#
 
 EOF
-tail -n 50 "/tmp/openclash.log" >> "$DEBUG_LOG" 2>/dev/null
+
+if pidof clash >/dev/null; then
+   curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer ${da_password}" -XPATCH http://${lan_ip}:${cn_port}/configs -d '{"log-level": "debug"}'
+   sleep 10
+fi
+tail -n 100 "/tmp/openclash.log" >> "$DEBUG_LOG" 2>/dev/null
+cat >> "$DEBUG_LOG" <<-EOF
+
+#===================== 最近运行日志获取完成(自动切换为silent模式) =====================#
+
+EOF
+if pidof clash >/dev/null; then
+   curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer ${da_password}" -XPATCH http://${lan_ip}:${cn_port}/configs -d '{"log-level": "silent"}'
+fi
 
 cat >> "$DEBUG_LOG" <<-EOF
 
