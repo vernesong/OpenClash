@@ -135,6 +135,8 @@ change_dns() {
 
 revert_dns() {
 
+   rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
+
    [ "$1" -eq 1 ] && {
       uci -q del dhcp.@dnsmasq[-1].server
       [ -n "${10}" ] && {
@@ -148,11 +150,12 @@ revert_dns() {
             uci -q set dhcp.@dnsmasq[0].resolvfile="$5"
          elif [ -n "$3" ]; then
             uci -q set dhcp.@dnsmasq[0].resolvfile="$3"
-         elif [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.d/resolv.conf.auto)" ]; then
-            uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.d/resolv.conf.auto
-         elif [ -s "/tmp/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.auto)" ]; then
-            uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
-         else
+         fi
+         uci -q commit dhcp
+         /etc/init.d/dnsmasq restart >/dev/null 2>&1
+         masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
+         if [ "$(nslookup www.baidu.com 127.0.0.1:${masq_port} >/dev/null 2>&1 || echo $?)" = "1" ]; then
+            uci -q set openclash.config.default_resolvfile="/tmp/resolv.conf.auto"
             rm -rf /tmp/resolv.conf.auto
             touch /tmp/resolv.conf.auto 2>/dev/null
             cat >> "/tmp/resolv.conf.auto" <<-EOF
@@ -160,7 +163,7 @@ revert_dns() {
 nameserver 114.114.114.114
 nameserver 119.29.29.29
 EOF
-            uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
+            uci -q set dhcp.@dnsmasq[0].resolvfile="/tmp/resolv.conf.auto"
          fi
       fi
    }
@@ -176,7 +179,7 @@ EOF
       uci -q set openclash.config.filter_aaaa_dns=0
       uci -q delete openclash.config.dnsmasq_filter_aaaa
    }
-   	
+
    [ "$1" -eq 1 ] && {
       uci -q set openclash.config.redirect_dns=0
       uci -q del openclash.config.dnsmasq_server
@@ -184,7 +187,7 @@ EOF
    
    uci -q commit dhcp
    uci -q commit openclash
-   rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
+
 }
 
 kill_clash()
@@ -729,7 +732,8 @@ start_run_core()
    config_reload=$(uci -q get openclash.config.config_reload)
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$core_type" != "Meta" ] && [ "$config_reload" != "0" ]; then
       curl -s --connect-timeout 5 -m 5 -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs?force=true -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null
-   else
+   fi
+   if [ "$?" -ne 0 ] || [ -z "$(pidof clash)" ] || [ "$core_type" = "TUN" ] || [ "$core_type" = "Meta" ] || [ "$config_reload" = "0" ]; then
       kill_clash
       #防止赋权失败
       touch "/tmp/openclash.log" 2>/dev/null
@@ -2903,10 +2907,6 @@ stop()
       rm -rf /tmp/Proxy_Group >/dev/null 2>&1
       rm -rf /tmp/rules_name >/dev/null 2>&1
       rm -rf /tmp/rule_providers_name >/dev/null 2>&1
-      rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
-      rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
-      rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
-      rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_accelerated-domains.china.conf >/dev/null 2>&1
       rm -rf /tmp/openclash_last_version >/dev/null 2>&1
       rm -rf /tmp/openclash_config.tmp >/dev/null 2>&1
       rm -rf /tmp/openclash.change >/dev/null 2>&1
@@ -2914,6 +2914,10 @@ stop()
       rm -rf /tmp/etc/openclash >/dev/null 2>&1
       rm -rf /tmp/openclash_edit_file_name >/dev/null 2>&1
       rm -rf /tmp/openclash_*_region>/dev/null 2>&1
+      rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
+      rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
+      rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_accelerated-domains.china.conf >/dev/null 2>&1
+      rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
       del_lock
       LOG_OUT "OpenClash Already Stop!"
    fi
