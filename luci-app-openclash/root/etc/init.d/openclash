@@ -1828,6 +1828,9 @@ if [ -n "$FW4" ]; then
       modprobe nft_tproxy >/dev/null 2>&1
       ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
       ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
+      if [ -n "$en_mode_tun" ]; then
+         ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE"
+      fi
       
       #Google dns
       nft insert rule inet fw4 dstnat position 0 ip6 daddr { 2001:4860:4860::8888, 2001:4860:4860::8844 } tcp dport 53 counter accept comment \"OpenClash Google DNS Hijack\" 2>/dev/null
@@ -2503,6 +2506,9 @@ else
       modprobe xt_TPROXY >/dev/null 2>&1
       ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
       ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
+      if [ -n "$en_mode_tun" ]; then
+         ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE"
+      fi
       
       #Google dns
       ip6tables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Hijack" -p tcp -d 2001:4860:4860::8888 --dport 53 -j ACCEPT
