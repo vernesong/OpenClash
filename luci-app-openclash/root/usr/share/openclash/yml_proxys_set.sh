@@ -285,6 +285,8 @@ yml_servers_set()
    config_get "udp_over_tcp" "$section" "udp_over_tcp" ""
    config_get "reality_public_key" "$section" "reality_public_key" ""
    config_get "reality_short_id" "$section" "reality_short_id" ""
+   config_get "obfs_version_hint" "$section" "obfs_version_hint" ""
+   config_get "obfs_restls_script" "$section" "obfs_restls_script" ""
    
    if [ "$enabled" = "0" ]; then
       return
@@ -346,6 +348,8 @@ yml_servers_set()
          obfss="plugin: v2ray-plugin"
       elif [ "$obfs" = "shadow-tls" ]; then
         obfss="plugin: shadow-tls"
+      elif [ "$obfs" = "restls" ]; then
+        obfss="plugin: restls"
       else
          obfss="plugin: obfs"
       fi
@@ -418,7 +422,7 @@ cat >> "$SERVER_FILE" <<-EOF
     $obfss
     plugin-opts:
 EOF
-    if [ "$obfs" != "shadow-tls" ]; then
+    if [ "$obfs" != "shadow-tls" ] && [ "$obfs" != "restls" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       mode: $obfs
 EOF
@@ -431,12 +435,29 @@ EOF
         if [  "$obfss" = "plugin: shadow-tls" ]; then
            if [ ! -z "$obfs_password" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-      password: $obfs_password
+      password: "$obfs_password"
 EOF
            fi
            if [ ! -z "$fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       fingerprint: "$fingerprint"
+EOF
+           fi
+        fi
+        if [  "$obfss" = "plugin: restls" ]; then
+           if [ ! -z "$obfs_password" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+      password: "$obfs_password"
+EOF
+           fi
+           if [ ! -z "$obfs_version_hint" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+      version-hint: "$obfs_version_hint"
+EOF
+           fi
+           if [ ! -z "$obfs_restls_script" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+      restls-script: "$obfs_restls_script"
 EOF
            fi
         fi

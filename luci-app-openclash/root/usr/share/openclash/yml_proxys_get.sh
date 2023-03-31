@@ -534,7 +534,7 @@ do
                skip_cert_verify = '${uci_set}skip_cert_verify=' + Value['proxies'][$count]['plugin-opts']['skip-cert-verify'].to_s
                system(skip_cert_verify)
             end
-         end
+         end;
          if Value['proxies'][$count]['plugin'].to_s == 'shadow-tls' then
             mode = '${uci_set}obfs=' + Value['proxies'][$count]['plugin'].to_s
             system(mode)
@@ -542,6 +542,25 @@ do
             if Value['proxies'][$count]['plugin-opts'].key?('password') then
                obfs_password = '${uci_set}obfs_password=\"' + Value['proxies'][$count]['plugin-opts']['password'].to_s + '\"'
                system(obfs_password)
+            end
+         end;
+         if Value['proxies'][$count]['plugin'].to_s == 'restls' then
+            mode = '${uci_set}obfs=' + Value['proxies'][$count]['plugin'].to_s
+            system(mode)
+            #password
+            if Value['proxies'][$count]['plugin-opts'].key?('password') then
+               obfs_password = '${uci_set}obfs_password=\"' + Value['proxies'][$count]['plugin-opts']['password'].to_s + '\"'
+               system(obfs_password)
+            end
+            #version-hint
+            if Value['proxies'][$count]['plugin-opts'].key?('version-hint') then
+               obfs_version_hint = '${uci_set}obfs_version_hint=\"' + Value['proxies'][$count]['plugin-opts']['version-hint'].to_s + '\"'
+               system(obfs_version_hint)
+            end
+            #restls-script
+            if Value['proxies'][$count]['plugin-opts'].key?('restls-script') then
+               obfs_restls_script = '${uci_set}obfs_restls_script=\"' + Value['proxies'][$count]['plugin-opts']['restls-script'].to_s + '\"'
+               system(obfs_restls_script)
             end
          end;
       end
