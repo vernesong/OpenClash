@@ -57,15 +57,15 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 		padding: 0 1px;
 		border-right: 1px solid #dddddd;
 		cursor: pointer;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul li a{
 		float: unset !important;
 		padding: unset !important;
 		vertical-align: middle;
-		white-space: nowrap;
-		overflow: hidden;
-        text-overflow: ellipsis;
 	}
 
 	#tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab > a{
