@@ -733,7 +733,7 @@ start_run_core()
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$core_type" != "Meta" ] && [ "$config_reload" != "0" ]; then
       reload_status=$(curl -s --connect-timeout 5 -m 5 -o /dev/null -w %{http_code} -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs?force=true -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null)
    fi
-   if [ "$reload_status" = "400" ] || [ -z "$(pidof clash)" ] || [ "$core_type" = "TUN" ] || [ "$core_type" = "Meta" ] || [ "$config_reload" = "0" ]; then
+   if [ "$reload_status" != "204" ] || [ -z "$(pidof clash)" ] || [ "$core_type" = "TUN" ] || [ "$core_type" = "Meta" ] || [ "$config_reload" = "0" ]; then
       kill_clash
       #防止赋权失败
       touch "/tmp/openclash.log" 2>/dev/null
