@@ -14,6 +14,7 @@ for x,y in ipairs(fs.glob("/etc/openclash/proxy_provider/*"))do
 r=fs.stat(y)
 if r then
 p[x]={}
+p[x].num=string.format(x)
 p[x].name=fs.basename(y)
 p[x].mtime=os.date("%Y-%m-%d %H:%M:%S",r.mtime)
 p[x].size=fs.filesize(r.size)
@@ -26,6 +27,7 @@ proxy_form=SimpleForm("proxy_provider_file_list",translate("Proxy Provider File 
 proxy_form.reset=false
 proxy_form.submit=false
 tb1=proxy_form:section(Table,p)
+nu1=tb1:option(DummyValue,"num",translate("Serial Number"))
 nm1=tb1:option(DummyValue,"name",translate("File Name"))
 mt1=tb1:option(DummyValue,"mtime",translate("Update Time"))
 sz1=tb1:option(DummyValue,"size",translate("Size"))

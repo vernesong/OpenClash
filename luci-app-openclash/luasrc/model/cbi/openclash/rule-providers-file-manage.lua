@@ -14,6 +14,7 @@ for n,m in ipairs(fs.glob("/etc/openclash/rule_provider/*"))do
 h=fs.stat(m)
 if h then
 g[n]={}
+g[n].num=string.format(n)
 g[n].name=fs.basename(m)
 g[n].mtime=os.date("%Y-%m-%d %H:%M:%S",h.mtime)
 g[n].size=fs.filesize(h.size)
@@ -26,6 +27,7 @@ rule_form=SimpleForm("rule_provider_file_list",translate("Rule Providers File Li
 rule_form.reset=false
 rule_form.submit=false
 tb2=rule_form:section(Table,g)
+nu2=tb2:option(DummyValue,"num",translate("Serial Number"))
 nm2=tb2:option(DummyValue,"name",translate("File Name"))
 mt2=tb2:option(DummyValue,"mtime",translate("Update Time"))
 sz2=tb2:option(DummyValue,"size",translate("Size"))
