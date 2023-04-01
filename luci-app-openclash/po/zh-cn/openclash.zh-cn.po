@@ -984,7 +984,7 @@ msgstr "已下载"
 msgid "Not Exist"
 msgstr "未下载"
 
-msgid "Order Number"
+msgid "Serial Number"
 msgstr "序号"
 
 msgid "Game Rules Manage"
