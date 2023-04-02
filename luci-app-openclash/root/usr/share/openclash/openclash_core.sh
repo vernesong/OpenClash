@@ -42,7 +42,7 @@ case $CORE_TYPE in
    fi
    ;;
    "Meta")
-   CORE_CV=$($meta_core_path -v 2>/dev/null |awk -F ' ' '{print $3}')
+   CORE_CV=$($meta_core_path -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1)
    CORE_LV=$(sed -n 3p /tmp/clash_last_version 2>/dev/null)
    ;;
    *)
