@@ -205,6 +205,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 					<%- end -%>
 					</tr>
 					<%- local isempty = true
+						local num = 1
 					for i, k in ipairs(self:cfgsections()) do
 						section = k
 						while true do
@@ -223,7 +224,8 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 								<th><h3><%=(type(self.sectiontitle) == "function") and self:sectiontitle(section) or k%></h3></th>
 							<%- end %>
 							<td class="cbi-section-table-cell">
-								<p><%=i%></p>
+								<p><%=num%></p>
+								<% num = num + 1 -%>
 							</td>
 							<%-
 								for k, node in ipairs(self.children) do

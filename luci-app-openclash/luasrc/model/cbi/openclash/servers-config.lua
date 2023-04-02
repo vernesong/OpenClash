@@ -594,7 +594,6 @@ o:depends("type", "hysteria")
 
 -- [[ headers ]]--
 o = s:option(DynamicList, "http_headers", translate("headers"))
-o.description = translate("Only Meta Core")
 o.rmempty = true
 o.placeholder = translate("User-Agent: okhttp/3.11.0 Dalvik/2.1.0 ...... ")
 o:depends("type", "http")
