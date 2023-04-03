@@ -898,7 +898,7 @@ yml_other_rules_get()
    fi
    
    if [ -n "$rule_name" ]; then
-      LOG_OUT "Warrning: Multiple Other-Rules-Configurations Enabled, Ignore..."
+      LOG_OUT "Warning: Multiple Other-Rules-Configurations Enabled, Ignore..."
       return
    fi
    
