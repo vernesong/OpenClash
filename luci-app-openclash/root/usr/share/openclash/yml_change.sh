@@ -32,7 +32,11 @@ else
 fi
 
 if [ -z "${12}" ]; then
-   stack_type=system
+   if [ -n "${33}" ]; then
+      stack_type=${33}
+   else
+      stack_type=system
+   fi
 else
    stack_type=${12}
 fi
@@ -468,7 +472,7 @@ Thread.new{
       end;
    end;
    Value_2={'tun'=>{'enable'=>true}};
-   if $en_mode_tun != 0 then
+   if $en_mode_tun != 0 or ${32} == 2 then
       Value['tun']=Value_2['tun'];
       Value['tun']['stack']='$stack_type';
       if ${19} == 1 then

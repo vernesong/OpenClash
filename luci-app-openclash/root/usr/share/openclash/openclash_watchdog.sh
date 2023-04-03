@@ -24,6 +24,7 @@ DISNEY_DOMAINS_LIST="/usr/share/openclash/res/Disney_Plus_Domains.list"
 china_ip_route=$(uci -q get openclash.config.china_ip_route)
 en_mode=$(uci -q get openclash.config.en_mode)
 fakeip_range=$(uci -q get openclash.config.fakeip_range || echo "198.18.0.1/16")
+ipv6_mode=$(uci -q get openclash.config.ipv6_mode || echo 0)
 CRASH_NUM=0
 CFG_UPDATE_INT=1
 STREAM_DOMAINS_PREFETCH=1
@@ -137,6 +138,12 @@ if [ "$enable" -eq 1 ]; then
 	      if [ "$core_type" == "TUN" ] || [ "$core_type" == "Meta" ]; then
 	         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
+            if [ "$ipv6_mode" -eq 2 ] && [ "$ipv6_enable" -eq 1 ]; then
+               ip -6 rule del oif utun table 2022 >/dev/null 2>&1
+               ip -6 route del default dev utun table 2022 >/dev/null 2>&1
+               ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+               ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+            fi
 	      fi
 	      sleep 60
 	      continue

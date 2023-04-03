@@ -91,13 +91,23 @@ CodeMirror.defineMode("lua", function(config, parserConfig) {
       stream.skipToEnd();
       return "tip";
     }
-    if (((ch == "守" && stream.eat("护") && stream.eat("程") && stream.eat("序")) || (ch == "W" && stream.eat("a") && stream.eat("t") && stream.eat("c") && stream.eat("h") && stream.eat("d") && stream.eat("o") && stream.eat("g"))) && (stream.eat(":") || stream.eat("："))) {
+    if (ch == "守" && stream.eat("护") && stream.eat("程") && stream.eat("序") && (stream.eat(":") || stream.eat("："))) {
       stream.skipToEnd();
       return "watchdog";
     }
-    if (((ch == "警" && stream.eat("告")) || (ch == "W" && stream.eat("a") && stream.eat("r") && stream.eat("n") && stream.eat("i") && stream.eat("n") && stream.eat("g"))) && (stream.eat(":") || stream.eat("："))) {
+    if (ch == "警" && stream.eat("告") && (stream.eat(":") || stream.eat("："))) {
       stream.skipToEnd();
       return "warn";
+    }
+    if (ch == "W" && stream.eat("a")) {
+      if (stream.eat("t") && stream.eat("c") && stream.eat("h") && stream.eat("d") && stream.eat("o") && stream.eat("g") && (stream.eat(":") || stream.eat("："))) {
+        stream.skipToEnd();
+        return "watchdog";
+      }
+      if (stream.eat("r") && stream.eat("n") && stream.eat("i") && stream.eat("n") && stream.eat("g") && (stream.eat(":") || stream.eat("："))) {
+        stream.skipToEnd();
+        return "warn";
+      }
     }
     if (((ch == "错" && stream.eat("误")) || (ch == "E" && stream.eat("r") && stream.eat("r") && stream.eat("o") && stream.eat("r"))) && (stream.eat(":") || stream.eat("："))) {
       stream.skipToEnd();

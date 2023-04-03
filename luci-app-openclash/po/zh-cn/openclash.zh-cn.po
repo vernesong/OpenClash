@@ -1638,7 +1638,7 @@ msgstr "版本内核没有更新，停止继续操作！"
 msgid "Start Downloading Third Party Rules in Use..."
 msgstr "开始下载使用中的第三方规则..."
 
-msgid "Warrning: Multiple Other-Rules-Configurations Enabled, Ignore..."
+msgid "Warning: Multiple Other-Rules-Configurations Enabled, Ignore..."
 msgstr "警告：检测到启用了多个第三方规则配置，忽略后续配置..."
 
 msgid "Download Successful, Start Preprocessing Rule File..."
@@ -3350,3 +3350,30 @@ msgstr "已删除指定的订阅信息来源地址！"
 
 msgid "Specify subscribe infos sources url failed:"
 msgstr "指定新的订阅信息来源地址失败："
+
+msgid "IPv6 Proxy Mode"
+msgstr "IPv6 代理模式"
+
+msgid "TProxy Mode"
+msgstr "TProxy 模式"
+
+msgid "Redirect Mode"
+msgstr "Redirect 模式"
+
+msgid "TUN Mode"
+msgstr "TUN 模式"
+
+msgid "TUN Mode"
+msgstr "TUN 模式"
+
+msgid "Tip: IPv6 Proxy Mode is Redirect..."
+msgstr "提示：IPv6 代理模式为 Redirect..."
+
+msgid "Tip: IPv6 Proxy Mode is TUN..."
+msgstr "提示：IPv6 代理模式为 TUN..."
+
+msgid "Tip: IPv6 Proxy Mode is TProxy..."
+msgstr "提示：IPv6 代理模式为 TProxy..."
+
+msgid "Warning: Only Meta Core Support IPv6 Tun Mode, Use TProxy Instead..."
+msgstr "警告：只有 Meta 内核支持 IPv6 Tun 模式，使用 TProxy 模式代替..."
