@@ -219,7 +219,7 @@ o.datatype = "ipmask"
 o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
 
 o = s:taboption("lan_ac", DynamicList, "lan_ac_black_ports", translate("Lan Bypassed Port List"))
-o.datatype = "port"
+o.datatype = "or(port, portrange)"
 o.placeholder = translate("5000 or 1234-2345")
 o:value("5000", translate("5000(NAS)"))
 o.description = "1."..translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails").."<br>".."2."..translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
