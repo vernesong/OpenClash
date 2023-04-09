@@ -2736,7 +2736,7 @@ else
          fi
       fi
 
-      ip6tables -t mangle -A PREROUTING -j openclash
+      ip6tables -t mangle -A PREROUTING -j openclash 2>/dev/null
 
       #route
       if [ "$ipv6_mode" -ne 2 ]; then
