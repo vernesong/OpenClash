@@ -2709,7 +2709,9 @@ else
          fi
          ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
          ip6tables -t nat -A PREROUTING -p tcp -j openclash
-
+      fi
+      #tproxy not support output chain
+      if [ "$ipv6_mode" -eq 0 ] || [ "$ipv6_mode" -eq 1 ]; then
          if [ "$enable_redirect_dns" != "2" ] || [ "$router_self_proxy" = 1 ]; then
             ip6tables -t nat -N openclash_output
             ip6tables -t nat -F openclash_output
@@ -2768,28 +2770,26 @@ else
             ip6tables -t mangle -A openclash -p tcp -j MARK --set-mark "$PROXY_FWMARK"
          fi
 
-         if [ "$enable_redirect_dns" != "2" ] || [ "$router_self_proxy" = 1 ]; then
-            ip6tables -t mangle -N openclash_output
-            ip6tables -t mangle -F openclash_output
-            ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
-            ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
-            ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
-            if [ "$en_mode" = "redir-host" ]; then
-               ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
-            fi
-            if [ "$china_ip6_route" = "1" ]; then
-               if [ "$enable_redirect_dns" != "2" ]; then
-                  ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip6_route dst -m set ! --match-set china_ip6_route_pass dst -j RETURN >/dev/null 2>&1
-               else
-                  ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip6_route dst -j RETURN >/dev/null 2>&1
+         if [ "$ipv6_mode" -eq 2 ]; then
+            if [ "$enable_redirect_dns" != "2" ] || [ "$router_self_proxy" = 1 ]; then
+               ip6tables -t mangle -N openclash_output
+               ip6tables -t mangle -F openclash_output
+               ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
+               ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
+               ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
+               if [ "$en_mode" = "redir-host" ]; then
+                  ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
                fi
-            fi
-            if [ "$ipv6_mode" -eq 0 ]; then
-               ip6tables -t mangle -A openclash_output -p tcp -m owner ! --uid-owner 65534 -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
-            elif [ "$ipv6_mode" -eq 2 ]; then
+               if [ "$china_ip6_route" = "1" ]; then
+                  if [ "$enable_redirect_dns" != "2" ]; then
+                     ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip6_route dst -m set ! --match-set china_ip6_route_pass dst -j RETURN >/dev/null 2>&1
+                  else
+                     ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip6_route dst -j RETURN >/dev/null 2>&1
+                  fi
+               fi
                ip6tables -t mangle -A openclash_output -p tcp -m owner ! --uid-owner 65534 -j MARK --set-xmark "$PROXY_FWMARK"
+               ip6tables -t mangle -A OUTPUT -j openclash_output
             fi
-            ip6tables -t mangle -A OUTPUT -j openclash_output
          fi
       fi
 
