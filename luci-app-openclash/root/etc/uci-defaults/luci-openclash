@@ -185,5 +185,13 @@ fi
 uci -q set openclash.config.enable=0
 uci -q commit openclash
 
+#set uhttpd && HTTP_MAX_CONTENT for large file edit
+uci -q set uhttpd.main.max_requests=50
+uci -q set uhttpd.main.max_connections=100
+uci -q set uhttpd.main.script_timeout=3600
+sed -i '/.*kB maximum content size*/c\HTTP_MAX_CONTENT = 1024*1024' /usr/lib/lua/luci/http.lua >/dev/null 2>&1
+
+/etc/init.d/uhttpd restart >/dev/null 2>&1
+
 rm -f /tmp/luci-indexcache
 exit 0
