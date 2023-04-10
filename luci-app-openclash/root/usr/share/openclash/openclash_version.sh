@@ -1,6 +1,6 @@
 #!/bin/bash
 TIME=$(date "+%Y-%m-%d-%H")
-CHTIME=$(date "+%Y-%m-%d-%H" -r "/tmp/openclash_last_version")
+CHTIME=$(date "+%Y-%m-%d-%H" -r "/tmp/openclash_last_version" 2>/dev/null)
 LAST_OPVER="/tmp/openclash_last_version"
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
 OP_CV=$(rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F '-' '{print $1}' |awk -F 'Version: ' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
