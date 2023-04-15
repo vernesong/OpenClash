@@ -3376,4 +3376,16 @@ msgid "Tip: IPv6 Proxy Mode is TProxy..."
 msgstr "提示：IPv6 代理模式为 TProxy..."
 
 msgid "Warning: Only Meta Core Support IPv6 Tun Mode, Use TProxy Instead..."
-msgstr "警告：只有 Meta 内核支持 IPv6 Tun 模式，使用 TProxy 模式代替..."
+msgstr "提示：只有 Meta 内核支持 IPv6 Tun 模式，使用 TProxy 模式代替..."
+
+msgid "Tip: Can't Get IPv4 LAN Interfaces, Please Verify The Firewall's LAN Zone Name is lan..."
+msgstr "提示：无法获取 IPv4 的 LAN 接口名称，请确保防火墙设置中 IPv4 LAN 区域的名称为 lan..."
+
+msgid "Tip: Can't Get IPv6 LAN Interfaces, Please Verify The Firewall's LAN Zone Name is lan..."
+msgstr "提示：无法获取 IPv6 的 LAN 接口名称，请确保防火墙设置中 IPv6 LAN 区域的名称为 lan..."
+
+msgid "Tip: Can't Get IPv4 WAN Interfaces, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
+msgstr "提示：无法获取 IPv4 的 WAN 接口名称，请确保防火墙设置中 IPv6 WAN 区域的名称为 wan，如设备无 WAN 口请忽略此提示..."
+
+msgid "Tip: Can't Get IPv6 WAN Interfaces, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
+msgstr "提示：无法获取 IPv6 的 WAN 接口名称，请确保防火墙设置中 IPv6 WAN 区域的名称为 wan，如设备无 WAN 口请忽略此提示..."
