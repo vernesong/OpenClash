@@ -1363,10 +1363,10 @@ else
    fi
 fi
 if [ -z "$lan_ints" ]; then
-   LOG_OUT "Warning: Can't Get IPv4 LAN Interfaces, Please Verify The Firewall's LAN Zone Name is lan..."
+   LOG_OUT "Tip: Can't Get IPv4 LAN Interfaces, Please Verify The Firewall's LAN Zone Name is lan..."
 fi
 if [ -z "$lan6_ints" ]; then
-   LOG_OUT "Warning: Can't Get IPv6 LAN Interfaces, Please Verify The Firewall's LAN Zone Name is lan..."
+   LOG_OUT "Tip: Can't Get IPv6 LAN Interfaces, Please Verify The Firewall's LAN Zone Name is lan..."
 fi
 
 if [ -n "$FW4" ]; then
