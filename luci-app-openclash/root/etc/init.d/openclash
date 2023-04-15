@@ -1548,6 +1548,7 @@ if [ -n "$FW4" ]; then
       nft 'flush chain inet fw4 openclash' 2>/dev/null
       if [ -n "$lan_ints" ]; then
          for lan_int in $lan_ints; do
+            nft add rule inet fw4 openclash iifname lo ip daddr @localnetwork counter return 2>/dev/null
             nft add rule inet fw4 openclash iifname "$lan_int" ip daddr @localnetwork counter return 2>/dev/null
          done
       fi
@@ -1592,6 +1593,7 @@ if [ -n "$FW4" ]; then
             upnp_exclude
             if [ -n "$lan_ints" ]; then
                for lan_int in $lan_ints; do
+                  nft add rule inet fw4 openclash_mangle iifname lo ip daddr @localnetwork counter return 2>/dev/null
                   nft add rule inet fw4 openclash_mangle iifname "$lan_int" ip daddr @localnetwork counter return 2>/dev/null
                done
             fi
@@ -1734,6 +1736,7 @@ if [ -n "$FW4" ]; then
       nft 'add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} iifname utun counter return' 2>/dev/null
       if [ -n "$lan_ints" ]; then
          for lan_int in $lan_ints; do
+            nft add rule inet fw4 openclash_mangle iifname lo ip daddr @localnetwork counter return 2>/dev/null
             nft add rule inet fw4 openclash_mangle iifname "$lan_int" ip daddr @localnetwork counter return 2>/dev/null
          done
       fi
@@ -1943,6 +1946,7 @@ if [ -n "$FW4" ]; then
          nft 'flush chain inet fw4 openclash_v6' 2>/dev/null
          if [ -n "$lan6_ints" ]; then
             for lan6_int in $lan6_ints; do
+               nft add rule inet fw4 openclash_v6 iifname lo ip6 daddr @localnetwork6 counter return 2>/dev/null
                nft add rule inet fw4 openclash_v6 iifname "$lan6_int" ip6 daddr @localnetwork6 counter return 2>/dev/null
             done
          fi
@@ -2003,6 +2007,7 @@ if [ -n "$FW4" ]; then
          nft 'flush chain inet fw4 openclash_mangle_v6' 2>/dev/null
          if [ -n "$lan6_ints" ]; then
             for lan6_int in $lan6_ints; do
+               nft add rule inet fw4 openclash_mangle_v6 iifname lo ip6 daddr @localnetwork6 counter return 2>/dev/null
                nft add rule inet fw4 openclash_mangle_v6 iifname "$lan6_int" ip6 daddr @localnetwork6 counter return 2>/dev/null
             done
          fi
@@ -2341,6 +2346,7 @@ else
       iptables -t nat -F openclash
       if [ -n "$lan_ints" ]; then
          for lan_int in $lan_ints; do
+            iptables -t nat -A openclash -i lo -m set --match-set localnetwork dst -j RETURN
             iptables -t nat -A openclash -i "$lan_int" -m set --match-set localnetwork dst -j RETURN
          done
       fi
@@ -2386,6 +2392,7 @@ else
             upnp_exclude
             if [ -n "$lan_ints" ]; then
                for lan_int in $lan_ints; do
+                  iptables -t mangle -A openclash -i lo -m set --match-set localnetwork dst -j RETURN
                   iptables -t mangle -A openclash -i "$lan_int" -m set --match-set localnetwork dst -j RETURN
                done
             fi
@@ -2528,6 +2535,7 @@ else
       iptables -t mangle -A openclash -i utun -j RETURN >/dev/null 2>&1
       if [ -n "$lan_ints" ]; then
          for lan_int in $lan_ints; do
+            iptables -t mangle -A openclash -i lo -m set --match-set localnetwork dst -j RETURN
             iptables -t mangle -A openclash -i "$lan_int" -m set --match-set localnetwork dst -j RETURN
          done
       fi
@@ -2732,6 +2740,7 @@ else
          ip6tables -t nat -F openclash
          if [ -n "$lan6_ints" ]; then
             for lan6_int in $lan6_ints; do
+               ip6tables -t nat -A openclash -i lo -m set --match-set localnetwork6 dst -j RETURN
                ip6tables -t nat -A openclash -i "$lan6_int" -m set --match-set localnetwork6 dst -j RETURN
             done
          fi
@@ -2786,6 +2795,7 @@ else
          ip6tables -t mangle -F openclash
          if [ -n "$lan6_ints" ]; then
             for lan6_int in $lan6_ints; do
+               ip6tables -t mangle -A openclash -i lo -m set --match-set localnetwork6 dst -j RETURN
                ip6tables -t mangle -A openclash -i "$lan6_int" -m set --match-set localnetwork6 dst -j RETURN
             done
          fi
