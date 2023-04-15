@@ -787,7 +787,7 @@ yml_other_set()
          if Value.key?(i) then
             Value[i].values.each{
             |x,v|
-            if x['path'] and not x['path'].include? p and not x['path'].include? 'game_rules' then
+            if x['path'] and not x['path'] =~ /.\/#{p}\/*/ and not x['path'] =~ /.\/game_rules\/*/ then
                v=File.basename(x['path']);
                x['path']='./'+p+'/'+v;
             end;

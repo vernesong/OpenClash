@@ -123,6 +123,9 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 						<%- end -%>
 					<%- end -%>
 					<%- for i, k in pairs(self.children) do if not k.optional then -%>
+						<%- if i == 1 then -%>
+							<th class="cbi-section-table-cell"><%:Serial Number%></th>
+						<%- end -%>
 						<th class="cbi-section-table-cell"<%=width(k)%>>
 						<%- if k.titleref then -%><a title="<%=self.titledesc or translate('Go to relevant configuration page')%>" class="cbi-title-ref" href="<%=k.titleref%>"><%- end -%>
 							<%-=k.title-%>
@@ -151,6 +154,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 					<%- end -%>
 					</tr>
 					<%- local isempty = true
+						local num = 1
 					for i, k in ipairs(self:cfgsections()) do
 						section = k
 						while true do
@@ -164,6 +168,10 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 							<% if not self.anonymous then -%>
 								<th><h3><%=(type(self.sectiontitle) == "function") and self:sectiontitle(section) or k%></h3></th>
 							<%- end %>
+							<td class="cbi-section-table-cell">
+								<p><%=num%></p>
+								<% num = num + 1 -%>
+							</td>
 							<%-
 								for k, node in ipairs(self.children) do
 									if not node.optional then
