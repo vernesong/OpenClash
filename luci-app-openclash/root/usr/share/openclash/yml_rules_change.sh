@@ -373,7 +373,7 @@ yml_other_set()
                Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,$7/32,DIRECT');
             end;
          else
-            Value['rules']=%w('SRC-IP-CIDR,${12},DIRECT','SRC-IP-CIDR,$7/32,DIRECT');
+            Value['rules']=['SRC-IP-CIDR,${12},DIRECT','SRC-IP-CIDR,$7/32,DIRECT'];
          end;
       elsif Value.has_key?('rules') and not Value['rules'].to_a.empty? then
          Value['rules'].delete('SRC-IP-CIDR,${12},DIRECT');
