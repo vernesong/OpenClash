@@ -791,6 +791,28 @@ o.template = "openclash/other_stream_option"
 o.value = "Google"
 o:depends("stream_auto_select_google_not_cn", "1")
 
+--ChatGPT
+o = s:taboption("stream_enhance", Flag, "stream_auto_select_chatgpt", font_red..translate("ChatGPT")..font_off)
+o.default = 0
+o:depends("stream_auto_select", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_chatgpt", translate("Group Filter"))
+o.default = "ChatGPT"
+o.placeholder = "ChatGPT"
+o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
+o:depends("stream_auto_select_chatgpt", "1")
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_chatgpt", translate("Unlock Nodes Filter"))
+o.default = ""
+o.description = translate("It Will Be Selected Nodes According To The Regex")
+o:depends("stream_auto_select_chatgpt", "1")
+
+o = s:taboption("stream_enhance", DummyValue, "ChatGPT", translate("Manual Test"))
+o.rawhtml = true
+o.template = "openclash/other_stream_option"
+o.value = "ChatGPT"
+o:depends("stream_auto_select_chatgpt", "1")
+
 ---- update Settings
 o = s:taboption("rules_update", Flag, "other_rule_auto_update", translate("Auto Update"))
 o.description = font_red..bold_on..translate("Auto Update Other Rules")..bold_off..font_off
