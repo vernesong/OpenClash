@@ -2622,6 +2622,9 @@ msgstr "提示：开始自动选择（检测）Bilibili 解锁节点..."
 msgid "Tip: Start Auto Select Proxy For Google Not CN Unlock..."
 msgstr "提示：开始自动选择（检测）Google 非送中节点..."
 
+msgid "Tip: Start Auto Select Proxy For ChatGPT Unlock..."
+msgstr "提示：开始自动选择（检测）ChatGPT 解锁节点..."
+
 msgid "Netflix Group:"
 msgstr "Netflix 策略组："
 
@@ -2660,6 +2663,9 @@ msgstr "Bilibili 策略组："
 
 msgid "Google Group:"
 msgstr "Google 策略组："
+
+msgid "ChatGPT Group:"
+msgstr "ChatGPT 策略组："
 
 msgid "full support"
 msgstr "完整解锁"
