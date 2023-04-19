@@ -802,7 +802,19 @@ o.placeholder = "ChatGPT"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_chatgpt", "1")
 
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_chatgpt", translate("Unlock Nodes Filter"))
+o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_chatgpt", translate("Unlock Region Filter"))
+o.default = ""
+o.placeholder = "US"
+o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
+o:depends("stream_auto_select_chatgpt", "1")
+function o.validate(self, value)
+	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_chatgpt") then
+		fs.unlink("/tmp/openclash_ChatGPT_region")
+	end
+	return value
+end
+
+o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_chatgpt", translate("Unlock Nodes Filter"))
 o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_chatgpt", "1")
