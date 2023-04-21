@@ -1,0 +1,61 @@
+name: Sync Core and Package to Master When release
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+  
+jobs:
+  Sync_core_to_master:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apt Update
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install git
+
+      - name: Clone OpenClash Repository
+        uses: actions/checkout@v3
+        with:
+          ref: core
+
+      - name: Sync dev core to master
+        run: |
+          if [ -n "$(diff -r ./master/ ./dev/)" ]; then
+            rm -rf ./master/premium/*
+            rm -rf ./master/dev/*
+            rm -rf ./master/meta/*
+            rm -rf ./master/core_version
+            cp -rf "./dev/." "./master/"
+            git config user.name 'github-actions[bot]'
+            git config user.email 'github-actions[bot]@users.noreply.github.com'
+            git add .
+            git commit -m "Release: Auto sync dev core"
+            git push
+          else
+            echo "master core already sync to dev, exit"
+          fi
+
+      - name: Clone OpenClash Repository
+        uses: actions/checkout@v3
+        with:
+          ref: package
+
+      - name: Sync dev package to master
+        run: |
+          if [ -n "$(diff -r ./master/ ./dev/)" ]; then
+            rm -rf ./master/README.md
+            rm -rf ./master/luci-app-openclash_*
+            rm -rf ./master/version
+            cp -rf "./dev/." "./master/"
+            git config user.name 'github-actions[bot]'
+            git config user.email 'github-actions[bot]@users.noreply.github.com'
+            git add .
+            git commit -m "Release: Auto sync dev package"
+            git push
+          else
+            echo "master package already sync to dev, exit"
+          fi
+          
