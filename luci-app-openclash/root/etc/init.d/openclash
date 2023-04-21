@@ -146,22 +146,20 @@ revert_dns() {
       
       if [ "$4" == "0" ] || [ -z "$4" ] || [ -z "$(uci -q show dhcp.@dnsmasq[0].server)" ]; then
          uci -q set dhcp.@dnsmasq[0].noresolv=0
-         if [ -n "$5" ]; then
+         if [ -n "$5" ] && [ -n "$(grep nameserver $5)" ]; then
             uci -q set dhcp.@dnsmasq[0].resolvfile="$5"
-         elif [ -n "$3" ]; then
+            uci -q set openclash.config.default_resolvfile="$5"
+         elif [ -n "$3" ] && [ -n "$(grep nameserver $3)" ]; then
             uci -q set dhcp.@dnsmasq[0].resolvfile="$3"
-         fi
-         uci -q commit dhcp
-         /etc/init.d/dnsmasq restart >/dev/null 2>&1
-         masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
-         if [ "$(nslookup www.baidu.com 127.0.0.1:${masq_port} >/dev/null 2>&1 || echo $?)" = "1" ]; then
+            uci -q set openclash.config.default_resolvfile="$3"
+         else
             uci -q set openclash.config.default_resolvfile="/tmp/resolv.conf.auto"
             rm -rf /tmp/resolv.conf.auto
             touch /tmp/resolv.conf.auto 2>/dev/null
             cat >> "/tmp/resolv.conf.auto" <<-EOF
 # Interface lan
-nameserver 114.114.114.114
 nameserver 119.29.29.29
+nameserver 8.8.8.8
 EOF
             uci -q set dhcp.@dnsmasq[0].resolvfile="/tmp/resolv.conf.auto"
          fi
@@ -1477,7 +1475,7 @@ if [ -n "$FW4" ]; then
          nft add rule inet fw4 openclash_wan_input udp dport {$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port} counter reject
          nft add rule inet fw4 openclash_wan_input tcp dport {$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port} counter reject
       else
-         LOG_OUT "Tip: Can't Get IPv4 WAN Interfaces, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
+         LOG_OUT "Warning: Can't Settting Only Intranet Allowed Function, Get IPv4 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
       fi
    fi
 
@@ -2104,7 +2102,7 @@ if [ -n "$FW4" ]; then
             nft add rule inet fw4 openclash_wan6_input udp dport {$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port} counter reject 2>/dev/null
             nft add rule inet fw4 openclash_wan6_input tcp dport {$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port} counter reject 2>/dev/null
          else
-            LOG_OUT "Tip: Can't Get IPv6 WAN Interfaces, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
+            LOG_OUT "Warning: Can't Settting Only Intranet Allowed Function, Get IPv6 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
          fi
       fi
    fi 2>/dev/null
@@ -2226,7 +2224,7 @@ else
          iptables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
          iptables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
       else
-         LOG_OUT "Tip: Can't Get IPv4 WAN Interfaces, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
+         LOG_OUT "Warning: Can't Settting Only Intranet Allowed Function, Get IPv4 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
       fi
    fi
 
@@ -2863,7 +2861,7 @@ else
             ip6tables -t filter -A openclash_wan_input -p udp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
             ip6tables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
          else
-            LOG_OUT "Tip: Can't Get IPv6 WAN Interfaces, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
+            LOG_OUT "Warning: Can't Settting Only Intranet Allowed Function, Get IPv6 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
          fi
       fi
    fi 2>/dev/null
