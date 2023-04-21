@@ -136,7 +136,7 @@ cat >> "$RULE_PROVIDER_FILE" <<-EOF
 EOF
    if [ -z "$3" ]; then
 cat >> "$RULE_PROVIDER_FILE" <<-EOF
-    interval=86400
+    interval: 86400
 EOF
    else
 cat >> "$RULE_PROVIDER_FILE" <<-EOF

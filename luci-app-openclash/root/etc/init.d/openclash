@@ -156,7 +156,7 @@ revert_dns() {
          uci -q commit dhcp
          /etc/init.d/dnsmasq restart >/dev/null 2>&1
          masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
-         if [ "$(nslookup www.bing.com 127.0.0.1:${masq_port} >/dev/null 2>&1 || echo $?)" = "1" ]; then
+         if [ "$(nslookup www.apple.com 127.0.0.1:${masq_port} >/dev/null 2>&1 || echo $?)" = "1" ]; then
             uci -q set openclash.config.default_resolvfile="/tmp/resolv.conf.auto"
             rm -rf /tmp/resolv.conf.auto
             touch /tmp/resolv.conf.auto 2>/dev/null
