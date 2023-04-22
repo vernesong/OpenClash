@@ -21,7 +21,7 @@ local lan_ip = SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 
 
 m = Map("openclash", translate("Overwrite Settings"))
 m.pageaction = false
-m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"
+m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/vpn/openclash/restore</a>"
 
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
@@ -453,7 +453,7 @@ ds.anonymous = true
 ds.addremove = true
 ds.sortable = true
 ds.template = "openclash/tblsection_dns"
-ds.extedit = luci.dispatcher.build_url("admin/services/openclash/custom-dns-edit/%s")
+ds.extedit = luci.dispatcher.build_url("admin/vpn/openclash/custom-dns-edit/%s")
 function ds.create(...)
 	local sid = TypedSection.create(...)
 	if sid then
@@ -505,7 +505,7 @@ ss.anonymous = true
 ss.addremove = true
 ss.sortable = true
 ss.template = "cbi/tblsection"
-ss.extedit = luci.dispatcher.build_url("admin/services/openclash/other-rules-edit/%s")
+ss.extedit = luci.dispatcher.build_url("admin/vpn/openclash/other-rules-edit/%s")
 function ss.create(...)
 	local sid = TypedSection.create(...)
 	if sid then
@@ -590,7 +590,7 @@ o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
   SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash"))
 end
 
 m:append(Template("openclash/config_editor"))

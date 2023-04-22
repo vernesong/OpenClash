@@ -20,8 +20,8 @@ local lan_ip = SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 
 
 m = Map("openclash", translate("Plugin Settings"))
 m.pageaction = false
-m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"..
-"<br/>"..translate("Note: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it")..
+m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/vpn/openclash/restore</a>"..
+"<br/>"..translate("Note: It is not recommended to enable IPv6 and related vpn for routing. Most of the network connection problems reported so far are related to it")..
 "<br/>"..font_green..translate("Note: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off")..font_off..
 "<br/>"..font_green..translate("Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check")..font_off..
 "<br/>"..font_green..translate("Note: Game proxy please use nodes except Vmess")..font_off..
@@ -825,7 +825,7 @@ o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
   SYS.call("/usr/share/openclash/openclash_rule.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash"))
 end
 
 o = s:taboption("geo_update", Flag, "geo_auto_update", font_red..bold_on..translate("Auto Update GeoIP MMDB")..bold_off..font_off)
@@ -866,7 +866,7 @@ o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
   SYS.call("/usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash"))
 end
 
 o = s:taboption("geo_update", Flag, "geoip_auto_update", font_red..bold_on..translate("Auto Update GeoIP Dat")..bold_off..font_off)
@@ -909,7 +909,7 @@ o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
   SYS.call("/usr/share/openclash/openclash_geoip.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash"))
 end
 o:depends("geoip_auto_update", "1")
 
@@ -953,7 +953,7 @@ o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
   SYS.call("/usr/share/openclash/openclash_geosite.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash"))
 end
 o:depends("geosite_auto_update", "1")
 
@@ -1013,7 +1013,7 @@ o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
   SYS.call("/usr/share/openclash/openclash_chnroute.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash"))
 end
 
 o = s:taboption("auto_restart", Flag, "auto_restart", translate("Auto Restart"))
@@ -1248,7 +1248,7 @@ o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
   SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash"))
 end
 
 m:append(Template("openclash/config_editor"))

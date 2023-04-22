@@ -39,7 +39,7 @@ Button.render(p,x,r)
 end
 btned1.write=function(r,x)
 	local file_path = "etc/openclash/proxy_provider/" .. fs.basename(p[x].name)
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "proxy-provider-file-manage", "%s") %file_path)
+	HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "other-file-edit", "proxy-provider-file-manage", "%s") %file_path)
 end
 
 btndl1 = tb1:option(Button,"download1",translate("Download Config"))
@@ -96,7 +96,7 @@ o = a:option(Button, "Refresh", " ")
 o.inputtitle = translate("Refresh Page")
 o.inputstyle = "apply"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "proxy-provider-file-manage"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "proxy-provider-file-manage"))
 end
 
 o = a:option(DummyValue, "Create", " ")
@@ -109,14 +109,14 @@ o.inputtitle = translate("Delete All File")
 o.inputstyle = "remove"
 o.write = function()
   luci.sys.call("rm -rf /etc/openclash/proxy_provider/* >/dev/null 2>&1")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "proxy-provider-file-manage"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "proxy-provider-file-manage"))
 end
 
 o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "config"))
 end
 
 proxy_form:append(Template("openclash/toolbar_show"))

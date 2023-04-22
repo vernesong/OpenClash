@@ -25,7 +25,7 @@ end
 
 m = Map(openclash, translate("Other Rules Edit"))
 m.pageaction = false
-m.redirect = luci.dispatcher.build_url("admin/services/openclash/config-overwrite")
+m.redirect = luci.dispatcher.build_url("admin/vpn/openclash/config-overwrite")
 if m.uci:get(openclash, sid) ~= "other_rules" then
 	luci.http.redirect(m.redirect)
 	return
@@ -65,7 +65,7 @@ o.description = translate("Get Group Names After Select Config File")
 o.inputstyle = "reload"
 o.write = function()
   m.uci:commit("openclash")
-  luci.http.redirect(luci.dispatcher.build_url("admin/services/openclash/other-rules-edit/%s") % sid)
+  luci.http.redirect(luci.dispatcher.build_url("admin/vpn/openclash/other-rules-edit/%s") % sid)
 end
 
 if groupnames ~= nil and filename ~= nil then

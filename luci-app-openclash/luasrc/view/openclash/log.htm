@@ -146,7 +146,7 @@ var lv = document.getElementById('cbid.openclash.config.clog');
 var cl = document.getElementById('core_log');
 
 function get_log_level() {
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "log_level")%>', null, function(x, status) {
+	XHR.get('<%=luci.dispatcher.build_url("admin", "vpn", "openclash", "log_level")%>', null, function(x, status) {
 	if (x && x.status == 200 && status.log_level != "") {
 		var radio = document.getElementsByName("radios");
 		for (i=0; i<radio.length; i++) {
@@ -162,7 +162,7 @@ function get_log_level() {
 function switch_log_level(value)
 {
 	clearTimeout(s);
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_log")%>', {log_level: value}, function(x, status) {
+	XHR.get('<%=luci.dispatcher.build_url("admin", "vpn", "openclash", "switch_log")%>', {log_level: value}, function(x, status) {
 		if (x && x.status == 200) {
     	alert(' <%:Log Level%>: ' + value + ' <%:switching succeeded!%>');
     	get_log_level();
@@ -203,7 +203,7 @@ function download_log(){
 };
 
 function del_log() {
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_log")%>',null,function(x, data){
+	XHR.get('<%=luci.dispatcher.build_url("admin", "vpn", "openclash", "del_log")%>',null,function(x, data){
 		lv.innerHTML="";
 		cl.innerHTML="";
 		log_len = 0;
@@ -249,7 +249,7 @@ function line_tolocal(str){
 };
 
 function poll_log(){
-XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "refresh_log")%>', {log_len: log_len},
+XHR.get('<%=luci.dispatcher.build_url("admin", "vpn", "openclash", "refresh_log")%>', {log_len: log_len},
 	function(x, status) {
 		if ( x && x.status == 200 ) {
 			if (status && status.log != "" && lv && cl) {

@@ -6,7 +6,7 @@
 	{
 		btn.disabled = true;
 		btn.value    = '<%:Flushing...%> ';
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_fakeip_cache")%>',
+		XHR.get('<%=luci.dispatcher.build_url("admin", "vpn", "openclash","flush_fakeip_cache")%>',
 			null,
 			function(x,status)
 			{

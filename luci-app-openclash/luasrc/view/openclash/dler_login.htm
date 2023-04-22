@@ -46,9 +46,9 @@
 				var m = "1";
 			};
 			btn.value = '<%:Login...%>';
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_login_info_save")%>', {email: e[0].value, passwd : p[0].value, checkin: c, interval: i, multiple: m}, function(x, status) {
+			XHR.get('<%=luci.dispatcher.build_url("admin", "vpn", "openclash", "dler_login_info_save")%>', {email: e[0].value, passwd : p[0].value, checkin: c, interval: i, multiple: m}, function(x, status) {
 				if (x && x.status == 200) {
-					XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_login")%>', null, function(x, status) {
+					XHR.get('<%=luci.dispatcher.build_url("admin", "vpn", "openclash", "dler_login")%>', null, function(x, status) {
 					if (s)
 					{
 						if (x && x.status == 200 && status.dler_login == 200) {
@@ -73,7 +73,7 @@
 		if (option == "dler_logout") {
 			var s = document.getElementById('dler_login-status');
 			btn.value = '<%:Logout...%>';
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_logout")%>', null, function(x, status) {
+			XHR.get('<%=luci.dispatcher.build_url("admin", "vpn", "openclash", "dler_logout")%>', null, function(x, status) {
 				if (s)
 				{
 					if (x && x.status == 200 && status.dler_logout == 200) {

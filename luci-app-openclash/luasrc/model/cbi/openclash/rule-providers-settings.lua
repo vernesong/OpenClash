@@ -209,7 +209,7 @@ s.anonymous = true
 s.addremove = true
 s.sortable = true
 s.template = "openclash/tblsection"
-s.extedit = luci.dispatcher.build_url("admin/services/openclash/rule-providers-config/%s")
+s.extedit = luci.dispatcher.build_url("admin/vpn/openclash/rule-providers-config/%s")
 function s.create(...)
 	local sid = TypedSection.create(...)
 	if sid then
@@ -251,14 +251,14 @@ o = rmg:option(Button, "rule_mg", " ")
 o.inputtitle = translate("Game Rules Manage")
 o.inputstyle = "reload"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-manage"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "game-rules-manage"))
 end
 
 o = rmg:option(Button, "pro_mg", " ")
 o.inputtitle = translate("Other Rule Provider Manage")
 o.inputstyle = "reload"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-manage"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "rule-providers-manage"))
 end
 
 local t = {
@@ -281,7 +281,7 @@ o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
   SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash"))
 end
 
 m:append(Template("openclash/toolbar_show"))

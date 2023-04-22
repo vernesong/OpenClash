@@ -39,7 +39,7 @@ Button.render(g,n,h)
 end
 btned1.write=function(h,n)
 	local file_path = "etc/openclash/game_rules/" .. fs.basename(g[n].name)
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "game-rules-file-manage", "%s") %file_path)
+	HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "other-file-edit", "game-rules-file-manage", "%s") %file_path)
 end
 
 btndl2 = tb2:option(Button,"download2",translate("Download Config"))
@@ -96,7 +96,7 @@ o = a:option(Button, "Refresh", " ")
 o.inputtitle = translate("Refresh Page")
 o.inputstyle = "apply"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-file-manage"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "game-rules-file-manage"))
 end
 
 o = a:option(DummyValue, "Create", " ")
@@ -109,14 +109,14 @@ o.inputtitle = translate("Delete All File")
 o.inputstyle = "remove"
 o.write = function()
   luci.sys.call("rm -rf /etc/openclash/game_rules/* >/dev/null 2>&1")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-file-manage"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "game-rules-file-manage"))
 end
 
 o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "config"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "config"))
 end
 
 rule_form:append(Template("openclash/toolbar_show"))

@@ -25,7 +25,7 @@ end
 
 m = Map("openclash", translate("File Edit"))
 m.pageaction = false
-m.redirect = luci.dispatcher.build_url("admin/services/openclash/"..arg[1])
+m.redirect = luci.dispatcher.build_url("admin/vpn/openclash/"..arg[1])
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
 s.addremove=false

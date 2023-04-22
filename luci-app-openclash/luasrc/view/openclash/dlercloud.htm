@@ -288,7 +288,7 @@
   var dler_logo = document.getElementById("dler_logo");
   var showmore=1;
    
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
+	XHR.get('<%=luci.dispatcher.build_url("admin", "vpn", "openclash", "dler_info")%>', null, function(x, status) {
 		if (x && x.status == 200 && status.dler_info != "error") {
 			dler_plan.innerHTML = status.dler_info.plan;
 			dler_plantime.innerHTML = status.dler_info.plan_time;
@@ -306,7 +306,7 @@
 		}
 	});
 	
-	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
+	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "vpn", "openclash", "dler_info")%>', null, function(x, status) {
 		if (x && x.status == 200 && status.dler_info != "error") {
 			dler_plan.innerHTML = status.dler_info.plan;
 			dler_plantime.innerHTML = status.dler_info.plan_time;
@@ -331,7 +331,7 @@
 	
 function dler_checkin_btn(btn)
 {
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_checkin")%>', null, function(x, status) {
+	XHR.get('<%=luci.dispatcher.build_url("admin", "vpn", "openclash", "dler_checkin")%>', null, function(x, status) {
 		if ( x && x.status == 200 && status.dler_checkin != "error") {
 			if (status.dler_checkin.ret == 200) {
 				alert("<%:Dler Cloud Checkin Successful, Result:%>\n\n"+

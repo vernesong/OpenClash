@@ -24,7 +24,7 @@ end
 
 m = Map(openclash, translate("Edit Proxy-Provider"))
 m.pageaction = false
-m.redirect = luci.dispatcher.build_url("admin/services/openclash/servers")
+m.redirect = luci.dispatcher.build_url("admin/vpn/openclash/servers")
 if m.uci:get(openclash, sid) ~= "proxy-provider" then
 	luci.http.redirect(m.redirect)
 	return

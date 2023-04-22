@@ -218,7 +218,7 @@ btnis.write=function(a,t)
 fs.unlink("/tmp/Proxy_Group")
 uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..e[t].name)
 uci:commit("openclash")
-HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
+HTTP.redirect(luci.dispatcher.build_url("admin", "vpn", "openclash", "config"))
 end
 
 btned=tb:option(Button,"edit",translate("Edit"))
@@ -228,7 +228,7 @@ Button.render(o,t,a)
 end
 btned.write=function(a,t)
 	local file_path = "etc/openclash/config/" .. fs.basename(e[t].name)
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "config", "%s") %file_path)
+	HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "other-file-edit", "config", "%s") %file_path)
 end
 
 btncp=tb:option(Button,"copy",translate("Copy Config"))
@@ -252,7 +252,7 @@ btncp.write=function(a,t)
 			break
 		end
 	end
-	HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
+	HTTP.redirect(luci.dispatcher.build_url("admin", "vpn", "openclash", "config"))
 end
 
 btnrn=tb:option(DummyValue,"/etc/openclash/config/",translate("Rename"))
@@ -348,7 +348,7 @@ btnrm.write=function(a,t)
 	local a=fs.unlink("/etc/openclash/config/"..fs.basename(e[t].name))
 	default_config_set(fs.basename(e[t].name))
 	if a then table.remove(e,t)end
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash","config"))
+	HTTP.redirect(DISP.build_url("admin", "vpn", "openclash","config"))
 end
 
 p = SimpleForm("provider_file_manage",translate("Provider File Manage"))
@@ -365,21 +365,21 @@ o = promg:option(Button, "proxy_mg", " ")
 o.inputtitle = translate("Proxy Provider File List")
 o.inputstyle = "reload"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "proxy-provider-file-manage"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "proxy-provider-file-manage"))
 end
 
 o = promg:option(Button, "rule_mg", " ")
 o.inputtitle = translate("Rule Providers File List")
 o.inputstyle = "reload"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-file-manage"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "rule-providers-file-manage"))
 end
 
 o = promg:option(Button, "game_mg", " ")
 o.inputtitle = translate("Game Rules File List")
 o.inputstyle = "reload"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-file-manage"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "game-rules-file-manage"))
 end
 
 m = SimpleForm("openclash",translate("Config File Edit"))
@@ -461,7 +461,7 @@ o.write = function()
 	uci:set("openclash", "config", "enable", 1)
 	uci:commit("openclash")
 	SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+	HTTP.redirect(DISP.build_url("admin", "vpn", "openclash"))
 end
 
 m:append(Template("openclash/config_editor"))

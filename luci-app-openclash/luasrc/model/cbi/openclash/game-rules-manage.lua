@@ -25,14 +25,14 @@ o.inputtitle = translate("Refresh Page")
 o.inputstyle = "apply"
 o.write = function()
    SYS.call("rm -rf /tmp/rules_name 2>/dev/null")
-   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-manage"))
+   HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "game-rules-manage"))
 end
 
 o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-settings"))
+  HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "rule-providers-settings"))
 end
 
 if not NXFS.access("/tmp/rules_name") then
@@ -94,7 +94,7 @@ Button.render(e,t,a)
 end
 btnrm.write=function(a,t)
 fs.unlink("/etc/openclash/game_rules/"..e[t].filename)
-HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-manage"))
+HTTP.redirect(DISP.build_url("admin", "vpn", "openclash", "game-rules-manage"))
 end
 
 return m, form
