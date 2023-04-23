@@ -106,6 +106,7 @@ change_dns() {
       uci -q set openclash.config.dnsmasq_resolvfile="$(uci -q get dhcp.@dnsmasq[0].resolvfile)"
       uci -q delete dhcp.@dnsmasq[0].resolvfile
       uci -q set dhcp.@dnsmasq[0].noresolv=1
+      uci -q set dhcp.@dnsmasq[0].localuse=1
       uci -q set openclash.config.redirect_dns=1
    else
       uci -q set openclash.config.redirect_dns=0
