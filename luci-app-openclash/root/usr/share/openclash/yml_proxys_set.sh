@@ -287,6 +287,14 @@ yml_servers_set()
    config_get "reality_short_id" "$section" "reality_short_id" ""
    config_get "obfs_version_hint" "$section" "obfs_version_hint" ""
    config_get "obfs_restls_script" "$section" "obfs_restls_script" ""
+   config_get "multiplex" "$section" "multiplex" ""
+   config_get "multiplex_protocol" "$section" "multiplex_protocol" ""
+   config_get "multiplex_max_connections" "$section" "multiplex_max_connections" ""
+   config_get "multiplex_min_streams" "$section" "multiplex_min_streams" ""
+   config_get "multiplex_max_streams" "$section" "multiplex_max_streams" ""
+   config_get "multiplex_padding" "$section" "multiplex_padding" ""
+   config_get "multiplex_statistic" "$section" "multiplex_statistic" ""
+   config_get "multiplex_only_tcp" "$section" "multiplex_only_tcp" ""
    
    if [ "$enabled" = "0" ]; then
       return
@@ -338,10 +346,6 @@ yml_servers_set()
       fi
    fi
    LOG_OUT "Start Writing【$CONFIG_NAME - $type - $name】Proxy To Config File..."
-   
-   if [ "$cipher_ssr" == "none" ]; then
-      cipher_ssr="dummy"
-   fi
    
    if [ "$obfs" != "none" ] && [ -n "$obfs" ]; then
       if [ "$obfs" = "websocket" ]; then
@@ -1203,6 +1207,49 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
     tfo: $tfo
 EOF
+   fi
+
+#Multiplex
+   if [ ! -z "$multiplex" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  smux:
+    enabled: $multiplex
+EOF
+      if [ -n "$multiplex_protocol" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    protocol: $multiplex_protocol
+EOF
+      fi
+      if [ -n "$multiplex_max_connections" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    max-connections: $multiplex_max_connections
+EOF
+      fi
+      if [ -n "$multiplex_min_streams" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    min-streams: $multiplex_min_streams
+EOF
+      fi
+      if [ -n "$multiplex_max_streams" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    max-streams: $multiplex_max_streams
+EOF
+      fi
+      if [ -n "$multiplex_padding" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    padding: $multiplex_padding
+EOF
+      fi
+      if [ -n "$multiplex_statistic" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    statistic: $multiplex_statistic
+EOF
+      fi
+      if [ -n "$multiplex_only_tcp" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    only-tcp: $multiplex_only_tcp
+EOF
+      fi
    fi
 
 #interface-name

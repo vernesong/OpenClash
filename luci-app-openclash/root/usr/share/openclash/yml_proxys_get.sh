@@ -468,6 +468,51 @@ do
       end
    }.join
 
+   Thread.new{
+      #Multiplex
+      if Value['proxies'][$count].key?('smux') then
+         if Value['proxies'][$count]['smux'].key?('enabled') then
+            smux = '${uci_set}multiplex=' + Value['proxies'][$count]['smux']['enabled'].to_s
+            system(smux)
+         end;
+         #multiplex_protocol
+         if Value['proxies'][$count]['smux'].key?('protocol') then
+            multiplex_protocol = '${uci_set}multiplex_protocol=' + Value['proxies'][$count]['smux']['protocol'].to_s
+            system(multiplex_protocol)
+         end;
+         #multiplex_max_connections
+         if Value['proxies'][$count]['smux'].key?('max-connections') then
+            multiplex_max_connections = '${uci_set}multiplex_max_connections=' + Value['proxies'][$count]['smux']['max-connections'].to_s
+            system(multiplex_max_connections)
+         end;
+         #multiplex_min_streams
+         if Value['proxies'][$count]['smux'].key?('min-streams') then
+            multiplex_min_streams = '${uci_set}multiplex_min_streams=' + Value['proxies'][$count]['smux']['min-streams'].to_s
+            system(multiplex_min_streams)
+         end;
+         #multiplex_max_streams
+         if Value['proxies'][$count]['smux'].key?('max-streams') then
+            multiplex_max_streams = '${uci_set}multiplex_max_streams=' + Value['proxies'][$count]['smux']['max-streams'].to_s
+            system(multiplex_max_streams)
+         end;
+         #multiplex_padding
+         if Value['proxies'][$count]['smux'].key?('padding') then
+            multiplex_padding = '${uci_set}multiplex_padding=' + Value['proxies'][$count]['smux']['padding'].to_s
+            system(multiplex_padding)
+         end;
+         #multiplex_statistic
+         if Value['proxies'][$count]['smux'].key?('statistic') then
+            multiplex_statistic = '${uci_set}multiplex_statistic=' + Value['proxies'][$count]['smux']['statistic'].to_s
+            system(multiplex_statistic)
+         end;
+         #multiplex_only_tcp
+         if Value['proxies'][$count]['smux'].key?('only-tcp') then
+            multiplex_only_tcp = '${uci_set}multiplex_only_tcp=' + Value['proxies'][$count]['smux']['only-tcp'].to_s
+            system(multiplex_only_tcp)
+         end;
+      end;
+   }.join
+
    if '$server_type' == 'ss' then
       Thread.new{
       #cipher
