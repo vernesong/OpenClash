@@ -785,6 +785,63 @@ o:value("ipv6")
 o:value("ipv6-prefer")
 o.default = "dual"
 
+-- [[ smux ]]--
+o = s:option(ListValue, "multiplex", translate("Multiplex")..translate("(Only Meta Core)"))
+o.rmempty = false
+o:value("true")
+o:value("false")
+o.default = "false"
+
+o = s:option(ListValue, "multiplex_protocol", translate("Protocol"))
+o.rmempty = true
+o:value("smux")
+o:value("yamux")
+o:value("h2mux")
+o.default = "smux"
+o:depends("multiplex", "true")
+
+o = s:option(Value, "multiplex_max_connections", translate("Max-connections"))
+o.rmempty = true
+o.placeholder = "4"
+o.default = "4"
+o.datatype = "uinteger"
+o:depends("multiplex", "true")
+
+o = s:option(Value, "multiplex_min_streams", translate("Min-streams"))
+o.rmempty = true
+o.placeholder = "4"
+o.default = "4"
+o.datatype = "uinteger"
+o:depends("multiplex", "true")
+
+o = s:option(Value, "multiplex_max_streams", translate("Max-streams"))
+o.rmempty = true
+o.placeholder = "0"
+o.default = "0"
+o.datatype = "uinteger"
+o:depends("multiplex", "true")
+
+o = s:option(ListValue, "multiplex_padding", translate("Padding"))
+o.rmempty = false
+o:value("true")
+o:value("false")
+o.default = "false"
+o:depends("multiplex", "true")
+
+o = s:option(ListValue, "multiplex_statistic", translate("Statistic"))
+o.rmempty = false
+o:value("true")
+o:value("false")
+o.default = "false"
+o:depends("multiplex", "true")
+
+o = s:option(ListValue, "multiplex_only_tcp", translate("Only-tcp"))
+o.rmempty = false
+o:value("true")
+o:value("false")
+o.default = "false"
+o:depends("multiplex", "true")
+
 -- [[ interface-name ]]--
 o = s:option(Value, "interface_name", translate("interface-name"))
 o.rmempty = true
