@@ -2059,7 +2059,7 @@ if [ -n "$FW4" ]; then
       #route
       if [ "$ipv6_mode" -ne 2 ]; then
          if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -eq 0 ]; then
-            modprobe xt_TPROXY >/dev/null 2>&1
+            modprobe nft_tproxy >/dev/null 2>&1
             ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
          fi
