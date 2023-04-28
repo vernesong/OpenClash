@@ -153,7 +153,17 @@ revert_dns() {
          elif [ -n "$3" ] && [ -n "$(grep nameserver $3)" ]; then
             uci -q set dhcp.@dnsmasq[0].resolvfile="$3"
             uci -q set openclash.config.default_resolvfile="$3"
+         elif [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.d/resolv.conf.auto)" ]; then
+            uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.d/resolv.conf.auto
+            uci -q set openclash.config.default_resolvfile=/tmp/resolv.conf.d/resolv.conf.auto
+         elif [ -s "/tmp/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.auto)" ]; then
+            uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
+            uci -q set openclash.config.default_resolvfile=/tmp/resolv.conf.auto
+         else
+            uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.auto
+            uci -q set openclash.config.default_resolvfile=/tmp/resolv.conf.auto
          fi
+         uci -q set dhcp.@dnsmasq[0].localuse=1
          uci -q commit dhcp
          /etc/init.d/dnsmasq restart >/dev/null 2>&1
          masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
