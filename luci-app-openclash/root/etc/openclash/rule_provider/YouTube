@@ -162,6 +162,7 @@ payload:
   - DOMAIN-SUFFIX,youtubeembeddedplayer.googleapis.com
   - DOMAIN-SUFFIX,youtubei.googleapis.com
   - DOMAIN-SUFFIX,youtubekids.com
+  - DOMAIN-SUFFIX,youtubego.com
   - DOMAIN-SUFFIX,youtube-nocookie.com
   - DOMAIN-SUFFIX,youtube-ui.l.google.com
   - DOMAIN-SUFFIX,yt.be
