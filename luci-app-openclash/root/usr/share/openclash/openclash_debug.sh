@@ -46,6 +46,7 @@ core_type=$(uci -q get openclash.config.core_type || echo "Dev")
 da_password=$(uci -q get openclash.config.dashboard_password)
 cn_port=$(uci -q get openclash.config.cn_port)
 lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
+dnsmasq_default_resolvfile=$(uci -q get openclash.config.default_resolvfile)
 
 if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
 	CONFIG_NAME=$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')
@@ -376,7 +377,7 @@ EOF
    for nft in "input" "forward" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
       nft list chain inet fw4 "$nft" >> "$DEBUG_LOG" 2>/dev/null
    done >/dev/null 2>&1
-   for nft in "openclash" "openclash_mangle" "openclash_mangle_output" "openclash_output" "openclash_post" "openclash_wan_input" "openclash_dns_hijack" "openclash_mangle_v6" "openclash_mangle_output_v6" "openclash_post_v6" "openclash_wan6_input"; do
+   for nft in "openclash" "openclash_mangle" "openclash_mangle_output" "openclash_output" "openclash_post" "openclash_wan_input" "openclash_dns_hijack" "openclash_dns_redirect" "openclash_mangle_v6" "openclash_mangle_output_v6" "openclash_post_v6" "openclash_wan6_input"; do
       nft list chain inet fw4 "$nft" >> "$DEBUG_LOG" 2>/dev/null
    done >/dev/null 2>&1
 fi
@@ -386,19 +387,34 @@ cat >> "$DEBUG_LOG" <<-EOF
 #===================== IPSET状态 =====================#
 
 EOF
-ipset list |grep "Name:" >> "$DEBUG_LOG"
+ipset list -t >> "$DEBUG_LOG"
 
 cat >> "$DEBUG_LOG" <<-EOF
 
 #===================== 路由表状态 =====================#
 
 EOF
+echo "#IPv4" >> "$DEBUG_LOG"
+echo "" >> "$DEBUG_LOG"
 echo "#route -n" >> "$DEBUG_LOG"
 route -n >> "$DEBUG_LOG" 2>/dev/null
+echo "" >> "$DEBUG_LOG"
 echo "#ip route list" >> "$DEBUG_LOG"
 ip route list >> "$DEBUG_LOG" 2>/dev/null
+echo "" >> "$DEBUG_LOG"
 echo "#ip rule show" >> "$DEBUG_LOG"
 ip rule show >> "$DEBUG_LOG" 2>/dev/null
+echo "" >> "$DEBUG_LOG"
+echo "#IPv6" >> "$DEBUG_LOG"
+echo "" >> "$DEBUG_LOG"
+echo "#route -A inet6" >> "$DEBUG_LOG"
+route -A inet6 >> "$DEBUG_LOG" 2>/dev/null
+echo "" >> "$DEBUG_LOG"
+echo "#ip -6 route list" >> "$DEBUG_LOG"
+ip -6 route list >> "$DEBUG_LOG" 2>/dev/null
+echo "" >> "$DEBUG_LOG"
+echo "#ip -6 rule show" >> "$DEBUG_LOG"
+ip -6 rule show >> "$DEBUG_LOG" 2>/dev/null
 
 if [ "$en_mode" != "fake-ip" ] && [ "$en_mode" != "redir-host" ]; then
 cat >> "$DEBUG_LOG" <<-EOF
@@ -430,10 +446,15 @@ cat >> "$DEBUG_LOG" <<-EOF
 EOF
 /usr/share/openclash/openclash_debug_dns.lua "www.instagram.com" >> "$DEBUG_LOG" 2>/dev/null
 
+cat >> "$DEBUG_LOG" <<-EOF
+
+Dnsmasq 当前默认 resolv 文件：$dnsmasq_default_resolvfile
+EOF
+
 if [ -s "/tmp/resolv.conf.auto" ]; then
 cat >> "$DEBUG_LOG" <<-EOF
 
-#===================== resolv.conf.auto =====================#
+#===================== /tmp/resolv.conf.auto =====================#
 
 EOF
 cat /tmp/resolv.conf.auto >> "$DEBUG_LOG"
@@ -442,7 +463,7 @@ fi
 if [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ]; then
 cat >> "$DEBUG_LOG" <<-EOF
 
-#===================== resolv.conf.d =====================#
+#===================== /tmp/resolv.conf.d/resolv.conf.auto =====================#
 
 EOF
 cat /tmp/resolv.conf.d/resolv.conf.auto >> "$DEBUG_LOG"
