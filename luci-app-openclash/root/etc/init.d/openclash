@@ -149,10 +149,8 @@ revert_dns() {
          uci -q set dhcp.@dnsmasq[0].noresolv=0
          if [ -n "$5" ] && [ -n "$(grep nameserver $5)" ]; then
             uci -q set dhcp.@dnsmasq[0].resolvfile="$5"
-            uci -q set openclash.config.default_resolvfile="$5"
          elif [ -n "$3" ] && [ -n "$(grep nameserver $3)" ]; then
             uci -q set dhcp.@dnsmasq[0].resolvfile="$3"
-            uci -q set openclash.config.default_resolvfile="$3"
          elif [ -s "/tmp/resolv.conf.d/resolv.conf.auto" ] && [ -n "$(grep "nameserver" /tmp/resolv.conf.d/resolv.conf.auto)" ]; then
             uci -q set dhcp.@dnsmasq[0].resolvfile=/tmp/resolv.conf.d/resolv.conf.auto
             uci -q set openclash.config.default_resolvfile=/tmp/resolv.conf.d/resolv.conf.auto
@@ -168,15 +166,15 @@ revert_dns() {
          /etc/init.d/dnsmasq restart >/dev/null 2>&1
          masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
          if [ "$(nslookup www.apple.com 127.0.0.1:${masq_port} >/dev/null 2>&1 || echo $?)" = "1" ]; then
-            uci -q set openclash.config.default_resolvfile="/tmp/resolv.conf.auto"
-            rm -rf /tmp/resolv.conf.auto
-            touch /tmp/resolv.conf.auto 2>/dev/null
-            cat >> "/tmp/resolv.conf.auto" <<-EOF
+            uci -q set openclash.config.default_resolvfile="/tmp/resolv.conf.d/resolv.conf.auto"
+            rm -rf /tmp/resolv.conf.d/resolv.conf.auto
+            touch /tmp/resolv.conf.d/resolv.conf.auto 2>/dev/null
+            cat >> "/tmp/resolv.conf.d/resolv.conf.auto" <<-EOF
 # Interface lan
 nameserver 119.29.29.29
 nameserver 8.8.8.8
 EOF
-            uci -q set dhcp.@dnsmasq[0].resolvfile="/tmp/resolv.conf.auto"
+            uci -q set dhcp.@dnsmasq[0].resolvfile="/tmp/resolv.conf.d/resolv.conf.auto"
          fi
       fi
    }
