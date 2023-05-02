@@ -56,6 +56,7 @@ Bilibili-Intl,ConnersHua,classical,DivineEngine/Profiles/master/Clash/RuleSet/St
 BilibiliHMT,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,BilibiliHMT.yaml
 Blizzard(By ConnersHua),ConnersHua,classical,DivineEngine/Profiles/master/Clash/RuleSet/Extra/Game/,Blizzard.yaml,Blizzard-ConnersHua.yaml
 Blizzard,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,Blizzard.yaml
+ChatGPT,lhie1,classical,dler-io/Rules/master/Clash/Provider/,ChatGPT.yaml
 ChinaCompanyIp,ACL4SSR,ipcidr,ACL4SSR/ACL4SSR/master/Clash/Providers/,ChinaCompanyIp.yaml
 ChinaDomain,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/,ChinaDomain.yaml
 ChinaIp(By ACL4SSR),ACL4SSR,ipcidr,ACL4SSR/ACL4SSR/master/Clash/Providers/,ChinaIp.yaml,ChinaIp-ACL4SSR.yaml
