@@ -185,7 +185,7 @@ fi
 
 ## Localnetwork 刷新
    wan_ip4s=$(/usr/share/openclash/openclash_get_network.lua "wanip" 2>/dev/null)
-   wan_ip6s=$(/usr/share/openclash/openclash_get_network.lua "wanip6" 2>/dev/null)
+   wan_ip6s=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
    if [ -n "$FW4" ]; then
       if [ -n "$wan_ip4s" ]; then
          for wan_ip4 in $wan_ip4s; do
