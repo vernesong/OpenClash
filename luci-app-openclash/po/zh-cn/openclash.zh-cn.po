@@ -1323,8 +1323,8 @@ msgstr "注意：如更新失败可手动下载并上传"
 msgid "Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating"
 msgstr "注意：客户端可能无法更新，因为squashfs格式的固件更新后不会释放闪存空间"
 
-msgid "Compiled Version Selected"
-msgstr "已选择编译版本"
+msgid "Compiled Version Selected (Auto-save when you click to update or download)"
+msgstr "已选择编译版本（点击更新或下载时自动保存）"
 
 msgid "Release Branch Selected"
 msgstr "已选择更新分支"
