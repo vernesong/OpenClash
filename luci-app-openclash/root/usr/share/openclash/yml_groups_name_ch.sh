@@ -26,12 +26,12 @@ cfg_groups_set()
    
    if [ -z "$old_name_cfg" ]; then
       uci -q set openclash."$section".old_name_cfg="$name"
-      uci commit openclash
+      uci -q commit openclash
    fi
    
    if [ -z "$old_name" ]; then
       uci -q set openclash."$section".old_name="$name"
-      uci commit openclash
+      uci -q commit openclash
    fi
    
    #名字变化时处理配置文件
