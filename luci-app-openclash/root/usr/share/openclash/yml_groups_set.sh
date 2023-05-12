@@ -15,10 +15,10 @@ del_lock() {
 set_lock
 GROUP_FILE="/tmp/yaml_groups.yaml"
 CFG_FILE="/etc/config/openclash"
-servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
-CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
+servers_update=$(uci -q get openclash.config.servers_update)
+CONFIG_FILE=$(uci -q get openclash.config.config_path)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
+UPDATE_CONFIG_FILE=$(uci -q get openclash.config.config_update_path)
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 
 if [ -n "$UPDATE_CONFIG_FILE" ]; then
@@ -285,22 +285,20 @@ yml_groups_set()
    }
 }
 
-create_config=$(uci get openclash.config.create_config 2>/dev/null)
-servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
+create_config=$(uci -q get openclash.config.create_config)
+servers_if_update=$(uci -q get openclash.config.servers_if_update)
 if_game_group="$1"
 if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ -n "$if_game_group" ]; then
    /usr/share/openclash/yml_groups_name_get.sh
    if [ $? -ne 0 ]; then
       LOG_OUT "Error: Config File【$CONFIG_NAME】Unable To Parse, Please Choose One-key Function To Create Config File..."
-      uci commit openclash
+      uci -q commit openclash
       SLOG_CLEAN
       del_lock
       exit 0
    else
       if [ -z "$if_game_group" ]; then
          echo "proxy-groups:" >$GROUP_FILE
-      else
-         rm -rf $GROUP_FILE
       fi
       config_load "openclash"
       config_foreach yml_groups_set "groups"

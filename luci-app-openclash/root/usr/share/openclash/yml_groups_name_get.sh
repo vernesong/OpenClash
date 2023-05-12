@@ -1,8 +1,8 @@
 #!/bin/sh
 . /usr/share/openclash/ruby.sh
 
-CFG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
-UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
+CFG_FILE=$(uci -q get openclash.config.config_path)
+UPDATE_CONFIG_FILE=$(uci -q get openclash.config.config_update_path)
 
 if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
    CFG_FILE="$UPDATE_CONFIG_FILE"

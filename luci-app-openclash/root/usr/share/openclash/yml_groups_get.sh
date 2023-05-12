@@ -26,11 +26,11 @@ ruby_read()
 
 CFG_FILE="/etc/config/openclash"
 other_group_file="/tmp/yaml_other_group.yaml"
-servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
-servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
-CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
+servers_update=$(uci -q get openclash.config.servers_update)
+servers_if_update=$(uci -q get openclash.config.servers_if_update)
+CONFIG_FILE=$(uci -q get openclash.config.config_path)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
+UPDATE_CONFIG_FILE=$(uci -q get openclash.config.config_update_path)
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
@@ -65,7 +65,7 @@ LOG_OUT "Start Getting【$CONFIG_NAME】Groups Setting..."
 /usr/share/openclash/yml_groups_name_get.sh
 if [ $? -ne 0 ]; then
 	LOG_OUT "Read Error, Config File【$CONFIG_NAME】Abnormal!"
-	uci commit openclash
+	uci -q commit openclash
 	SLOG_CLEAN
 	del_lock
 	exit 0
@@ -94,19 +94,19 @@ cfg_delete()
    group_num=$(grep "^config groups$" "$CFG_FILE" |wc -l)
    for ((i=$group_num;i>=0;i--))
 	 do
-	    if [ "$(uci get openclash.@groups["$i"].config 2>/dev/null)" = "$CONFIG_NAME" ] || [ "$(uci get openclash.@groups["$i"].config 2>/dev/null)" = "all" ]; then
-	       uci delete openclash.@groups["$i"] 2>/dev/null
-	       uci commit openclash
+	    if [ "$(uci -q get openclash.@groups["$i"].config)" = "$CONFIG_NAME" ] || [ "$(uci -q get openclash.@groups["$i"].config)" = "all" ]; then
+	       uci -q delete openclash.@groups["$i"]
+	       uci -q commit openclash
 	    fi
 	 done
 #删除启用的节点
    server_num=$(grep "^config servers$" "$CFG_FILE" |wc -l)
    for ((i=$server_num;i>=0;i--))
 	 do
-	    if [ "$(uci get openclash.@servers["$i"].config 2>/dev/null)" = "$CONFIG_NAME" ] || [ "$(uci get openclash.@servers["$i"].config 2>/dev/null)" = "all" ]; then
-	    	 if [ "$(uci get openclash.@servers["$i"].enabled 2>/dev/null)" = "1" ] && [ "$(uci get openclash.@servers["$i"].manual 2>/dev/null)" = "0" ]; then
-	          uci delete openclash.@servers["$i"] 2>/dev/null
-	          uci commit openclash
+	    if [ "$(uci -q get openclash.@servers["$i"].config)" = "$CONFIG_NAME" ] || [ "$(uci -q get openclash.@servers["$i"].config)" = "all" ]; then
+	    	 if [ "$(uci -q get openclash.@servers["$i"].enabled)" = "1" ] && [ "$(uci -q get openclash.@servers["$i"].manual)" = "0" ]; then
+	          uci -q delete openclash.@servers["$i"]
+	          uci -q commit openclash
 	       fi
 	    fi
 	 done
@@ -114,10 +114,10 @@ cfg_delete()
    provider_num=$(grep "^config proxy-provider$" "$CFG_FILE" 2>/dev/null |wc -l)
    for ((i=$provider_num;i>=0;i--))
 	 do
-	    if [ "$(uci get openclash.@proxy-provider["$i"].config 2>/dev/null)" = "$CONFIG_NAME" ] || [ "$(uci get openclash.@proxy-provider["$i"].config 2>/dev/null)" = "all" ]; then
-	       if [ "$(uci get openclash.@proxy-provider["$i"].enabled)" = "1" ] && [ "$(uci get openclash.@proxy-provider["$i"].manual)" = "0" ]; then
-	          uci delete openclash.@proxy-provider["$i"] 2>/dev/null
-	          uci commit openclash
+	    if [ "$(uci -q get openclash.@proxy-provider["$i"].config)" = "$CONFIG_NAME" ] || [ "$(uci -q get openclash.@proxy-provider["$i"].config)" = "all" ]; then
+	       if [ "$(uci -q get openclash.@proxy-provider["$i"].enabled)" = "1" ] && [ "$(uci -q get openclash.@proxy-provider["$i"].manual)" = "0" ]; then
+	          uci -q delete openclash.@proxy-provider["$i"]
+	          uci -q commit openclash
 	       fi
 	    fi
 	 done
@@ -162,7 +162,7 @@ do
    LOG_OUT "Start Getting【$CONFIG_NAME - $group_type - $group_name】Group Setting..."
    
    name=openclash
-   uci_name_tmp=$(uci add $name groups)
+   uci_name_tmp=$(uci -q add $name groups)
    uci_set="uci -q set $name.$uci_name_tmp."
    uci_add="uci -q add_list $name.$uci_name_tmp."
    
@@ -262,6 +262,6 @@ do
 done
 
 wait
-uci commit openclash
+uci -q commit openclash
 /usr/share/openclash/yml_proxys_get.sh
 del_lock
