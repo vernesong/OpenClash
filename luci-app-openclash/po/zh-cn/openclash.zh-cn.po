@@ -783,8 +783,14 @@ msgstr "别名（请勿重名）"
 msgid "Rule Behavior"
 msgstr "规则类型"
 
+msgid "Rule Format"
+msgstr "规则格式"
+
 msgid "Choose The Rule Behavior"
 msgstr "选择规则类型"
+
+msgid "Choose The Rule File Format, For More Info:"
+msgstr "选择规则格式, 了解使用方式请前往："
 
 msgid "Rule Providers Path"
 msgstr "规则集路径"
