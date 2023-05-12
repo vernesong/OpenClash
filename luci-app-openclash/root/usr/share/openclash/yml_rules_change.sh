@@ -28,6 +28,7 @@ yml_set_custom_rule_provider()
    config_get "interval" "$section" "interval" ""
    config_get "group" "$section" "group" ""
    config_get "position" "$section" "position" ""
+   config_get "format" "$section" "format" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -69,6 +70,11 @@ cat >> "$RULE_PROVIDER_FILE" <<-EOF
     behavior: $behavior
     path: $path
 EOF
+    if [ -n "$format" ]; then
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
+    format: $format
+EOF
+    fi
     if [ "$type" = "http" ]; then
 cat >> "$RULE_PROVIDER_FILE" <<-EOF
     url: $url
