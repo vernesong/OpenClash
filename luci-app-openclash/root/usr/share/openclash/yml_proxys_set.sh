@@ -15,16 +15,16 @@ del_lock() {
 
 SERVER_FILE="/tmp/yaml_servers.yaml"
 PROXY_PROVIDER_FILE="/tmp/yaml_provider.yaml"
-servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
-config_auto_update=$(uci get openclash.config.auto_update 2>/dev/null)
-CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
+servers_if_update=$(uci -q get openclash.config.servers_if_update)
+config_auto_update=$(uci -q get openclash.config.auto_update)
+CONFIG_FILE=$(uci -q get openclash.config.config_path)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
+UPDATE_CONFIG_FILE=$(uci -q get openclash.config.config_update_path)
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-UCI_DEL_LIST="uci del_list openclash.config.new_servers_group"
-UCI_ADD_LIST="uci add_list openclash.config.new_servers_group"
-UCI_SET="uci set openclash.config."
-MIX_PROXY=$(uci get openclash.config.mix_proxies 2>/dev/null)
+UCI_DEL_LIST="uci -q del_list openclash.config.new_servers_group"
+UCI_ADD_LIST="uci -q add_list openclash.config.new_servers_group"
+UCI_SET="uci -q set openclash.config."
+MIX_PROXY=$(uci -q get openclash.config.mix_proxies)
 servers_name="/tmp/servers_name.list"
 proxy_provider_name="/tmp/provider_name.list"
 set_lock
@@ -55,7 +55,7 @@ yml_other_rules_del()
    if [ "$enabled" = "0" ] || [ "$config" != "$2" ] || [ "$rule_name" != "$3" ]; then
       return
    else
-      uci set openclash."$section".enabled=0 2>/dev/null
+      uci -q set openclash."$section".enabled=0
    fi
 }
 #写入代理集到配置文件
@@ -1325,8 +1325,8 @@ fi
 rm -rf $proxy_provider_name
 
 #proxy
-rule_sources=$(uci get openclash.config.rule_sources 2>/dev/null)
-create_config=$(uci get openclash.config.create_config 2>/dev/null)
+rule_sources=$(uci -q get openclash.config.rule_sources)
+create_config=$(uci -q get openclash.config.create_config)
 LOG_OUT "Start Writing【$CONFIG_NAME】Proxies Setting..."
 echo "proxies:" >$SERVER_FILE
 config_foreach yml_servers_set "servers"
@@ -1417,7 +1417,7 @@ fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
 config_load "openclash"
 config_foreach yml_other_rules_del "other_rules" "$CONFIG_NAME" "ConnersHua"
-uci_name_tmp=$(uci add openclash other_rules)
+uci_name_tmp=$(uci -q add openclash other_rules)
 uci_set="uci -q set openclash.$uci_name_tmp."
 ${UCI_SET}rule_source="1"
 ${uci_set}enable="1"
@@ -1837,7 +1837,7 @@ fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
 config_load "openclash"
 config_foreach yml_other_rules_del "other_rules" "$CONFIG_NAME" "lhie1"
-uci_name_tmp=$(uci add openclash other_rules)
+uci_name_tmp=$(uci -q add openclash other_rules)
 uci_set="uci -q set openclash.$uci_name_tmp."
 ${UCI_SET}rule_source="1"
 ${uci_set}enable="1"
@@ -1948,7 +1948,7 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
 config_load "openclash"
 config_foreach yml_other_rules_del "other_rules" "$CONFIG_NAME" "ConnersHua_return"
-uci_name_tmp=$(uci add openclash other_rules)
+uci_name_tmp=$(uci -q add openclash other_rules)
 uci_set="uci -q set openclash.$uci_name_tmp."
 ${UCI_SET}rule_source="1"
 ${uci_set}enable="1"
@@ -1993,6 +1993,6 @@ rm -rf /tmp/Proxy_Server 2>/dev/null
 rm -rf /tmp/Proxy_Provider 2>/dev/null
 del_lock
 ${UCI_SET}enable=1 2>/dev/null
-[ "$(uci get openclash.config.servers_if_update)" == "0" ] && [ -z "$if_game_proxy" ] && /etc/init.d/openclash restart >/dev/null 2>&1
+[ "$(uci -q get openclash.config.servers_if_update)" == "0" ] && [ -z "$if_game_proxy" ] && /etc/init.d/openclash restart >/dev/null 2>&1
 ${UCI_SET}servers_if_update=0
-uci commit openclash
+uci -q commit openclash

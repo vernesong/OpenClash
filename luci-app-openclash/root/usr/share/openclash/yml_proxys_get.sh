@@ -24,9 +24,9 @@ ruby_read()
    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
-CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
+CONFIG_FILE=$(uci -q get openclash.config.config_path)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-UPDATE_CONFIG_FILE=$(uci get openclash.config.config_update_path 2>/dev/null)
+UPDATE_CONFIG_FILE=$(uci -q get openclash.config.config_update_path)
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
@@ -62,8 +62,8 @@ proxy_hash=$(ruby_read "$CONFIG_FILE" ".select {|x| 'proxies' == x or 'proxy-pro
 CFG_FILE="/etc/config/openclash"
 match_servers="/tmp/match_servers.list"
 match_provider="/tmp/match_provider.list"
-servers_update=$(uci get openclash.config.servers_update 2>/dev/null)
-servers_if_update=$(uci get openclash.config.servers_if_update 2>/dev/null)
+servers_update=$(uci -q get openclash.config.servers_update)
+servers_if_update=$(uci -q get openclash.config.servers_if_update)
 
 #proxy
 num=$(ruby_read_hash "$proxy_hash" "['proxies'].count")
@@ -1541,15 +1541,15 @@ if [ "$servers_if_update" = "1" ]; then
         if [ -z "$line" ]; then
            continue
         fi
-        if [ "$(uci get openclash.@servers["$line"].manual 2>/dev/null)" = "0" ] && [ "$(uci get openclash.@servers["$line"].config 2>/dev/null)" = "$CONFIG_NAME" ]; then
-           uci delete openclash.@servers["$line"] 2>/dev/null
+        if [ "$(uci -q get openclash.@servers["$line"].manual)" = "0" ] && [ "$(uci -q get openclash.@servers["$line"].config)" = "$CONFIG_NAME" ]; then
+           uci -q delete openclash.@servers["$line"]
         fi
      done 2>/dev/null
 fi
 
-uci set openclash.config.servers_if_update=0
+uci -q set openclash.config.servers_if_update=0
 wait
-uci commit openclash
+uci -q commit openclash
 LOG_OUT "Config File【$CONFIG_NAME】Read Successful!"
 sleep 3
 SLOG_CLEAN
