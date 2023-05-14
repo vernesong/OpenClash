@@ -822,7 +822,7 @@ yml_other_set()
          Value['proxy-groups'].each{
             |x|
                if x['type'] == 'url-test' then
-                  x['tolerance']='${tolerance}';
+                  x['tolerance']=${tolerance};
                end
             };
       end;
@@ -839,7 +839,7 @@ yml_other_set()
             Value['proxy-groups'].each{
                |x|
                if x['type'] == 'url-test' or x['type'] == 'fallback' or x['type'] == 'load-balance' then
-                  x['interval']='${urltest_interval_mod}';
+                  x['interval']=${urltest_interval_mod};
                end
             };
          end;
@@ -847,7 +847,7 @@ yml_other_set()
             Value['proxy-providers'].values.each{
                |x|
                if x['health-check'] and x['health-check']['enable'] and x['health-check']['enable'] == 'true' then
-                  x['health-check']['interval']='${urltest_interval_mod}';
+                  x['health-check']['interval']=${urltest_interval_mod};
                end;
             };
          end;
