@@ -1212,7 +1212,7 @@ EOF
 #Multiplex
    if [ ! -z "$multiplex" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-  smux:
+    smux:
     enabled: $multiplex
 EOF
       if [ -n "$multiplex_protocol" ]; then
