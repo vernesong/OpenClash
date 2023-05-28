@@ -34,6 +34,9 @@ DNSMASQ_CONF_DIR=$(uci -q get dhcp.@dnsmasq[0].confdir || echo '/tmp/dnsmasq.d')
 DNSMASQ_CONF_DIR=${DNSMASQ_CONF_DIR%*/}
 custom_china_domain_dns_server=$(uci -q get openclash.config.custom_china_domain_dns_server || echo "114.114.114.114")
 FW4=$(command -v fw4)
+CLASH="/etc/openclash/clash"
+CLASH_CONFIG="/tmp"
+
 
 if [ -z "$DNSPORT" ]; then
    DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
@@ -58,6 +61,28 @@ kill_watchdog() {
    for streaming_unlock_pid in $streaming_unlock_pids; do
       kill -9 "$streaming_unlock_pid" >/dev/null 2>&1
    done >/dev/null 2>&1
+}
+
+config_test()
+{
+   if [ -f "$CLASH" ]; then
+      LOG_OUT "Config File Download Successful, Test If There is Any Errors..."
+      test_info=$(nohup $CLASH -t -d $CLASH_CONFIG -f "$CFG_FILE")
+      local IFS=$'\n'
+      for i in $test_info; do
+         if [ -n "$(echo "$i" |grep "configuration file")" ]; then
+            local info=$(echo "$i" |sed "s# ${CFG_FILE} #【${CONFIG_FILE}】#g")
+            LOG_OUT "$info"
+         else
+            echo "$i" >> "$LOG_FILE"
+         fi
+      done
+      if [ -n "$(echo "$test_info" |grep "test failed")" ]; then
+         return 1
+      fi
+   else
+      return 0
+   fi
 }
 
 config_download()
@@ -158,7 +183,7 @@ config_cus_up()
 
 config_su_check()
 {
-   LOG_OUT "Config File Download Successful, Check If There is Any Update..."
+   LOG_OUT "Config File Test Successful, Check If There is Any Update..."
    sed -i 's/!<str> /!!str /g' "$CFG_FILE" >/dev/null 2>&1
    if [ -f "$CONFIG_FILE" ]; then
       cmp -s "$BACKPACK_FILE" "$CFG_FILE"
@@ -425,6 +450,13 @@ EOF
       if [ "${PIPESTATUS[0]}" -eq 0 ] && [ -s "$CFG_FILE" ]; then
          #prevent ruby unexpected error
          sed -i -E 's/protocol-param: ([^,'"'"'"''}( *#)\n\r]+)/protocol-param: "\1"/g' "$CFG_FILE" 2>/dev/null
+         config_test
+         if [ $? -ne 0 ]; then
+            LOG_OUT "Error: Config File Tested Faild, Please Check The Log Infos!"
+            change_dns
+            config_error
+            return
+         fi
          ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          begin
          YAML.load_file('$CFG_FILE');
@@ -602,7 +634,13 @@ sub_info_get()
    if [ "${PIPESTATUS[0]}" -eq 0 ] && [ -s "$CFG_FILE" ]; then
       #prevent ruby unexpected error
       sed -i -E 's/protocol-param: ([^,'"'"'"''}( *#)\n\r]+)/protocol-param: "\1"/g' "$CFG_FILE" 2>/dev/null
-   	ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+      config_test
+      if [ $? -ne 0 ]; then
+         LOG_OUT "Error: Config File Tested Faild, Please Check The Log Infos!"
+         config_download_direct
+         return
+      fi
+      ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       begin
       YAML.load_file('$CFG_FILE');
       rescue Exception => e
