@@ -1701,8 +1701,8 @@ msgstr "替换成功，检测到已启用节点筛选，开始挑选节点..."
 msgid "is Replaced Successfully, Start to Reserving..."
 msgstr "替换成功，检测到已启用保留配置，开始进行设置..."
 
-msgid "Config File Download Successful, Check If There is Any Update..."
-msgstr "配置文件下载成功，检查是否有更新..."
+msgid "Config File Test Successful, Check If There is Any Update..."
+msgstr "配置文件测试成功，检查是否有更新..."
 
 msgid "Are Updates, Start Replacing..."
 msgstr "有更新，开始替换..."
@@ -3395,3 +3395,21 @@ msgstr "警告：设置仅允许内网功能失败，无法获取 IPv4 的 WAN �
 
 msgid "Warning: Can't Settting Only Intranet Allowed Function, Get IPv6 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
 msgstr "警告：设置仅允许内网功能失败，无法获取 IPv6 的 WAN 接口名称，请确保防火墙设置中 IPv6 WAN 区域的名称为 wan，如设备无 WAN 口请忽略此提示..."
+
+msgid "Config File Download Successful, Test If There is Any Errors..."
+msgstr "配置文件下载成功，使用内核测试是否有错误..."
+
+msgid "configuration file"
+msgstr "配置文件"
+
+msgid "test failed"
+msgstr "测试失败..."
+
+msgid "test is successful"
+msgstr "测试成功..."
+
+msgid "Error: Config File Tested Faild, Please Check The Log Infos!"
+msgstr "错误：配置文件测试失败，请查看《内核日志》排查失败原因！"
+
+msgid "Test The Config File First..."
+msgstr "启动前调用内核测试配置文件..."
