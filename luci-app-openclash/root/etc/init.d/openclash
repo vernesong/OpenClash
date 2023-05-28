@@ -731,6 +731,28 @@ do_run_file()
 
 }
 
+config_test()
+{
+   if [ -f "$CLASH" ]; then
+      LOG_OUT "Test The Config File First..."
+      test_info=$(nohup $CLASH -t -d $CLASH_CONFIG -f "$CONFIG_FILE")
+      local IFS=$'\n'
+      for i in $test_info; do
+         if [ -n "$(echo "$i" |grep "configuration file")" ]; then
+            local info=$(echo "$i" |sed "s# ${CONFIG_FILE} #【${CONFIG_FILE}】#g")
+            LOG_OUT "$info"
+         else
+            echo "$i" >> "$LOG_FILE"
+         fi
+      done
+      if [ -n "$(echo "$test_info" |grep "test failed")" ]; then
+         return 1
+      fi
+   else
+      return 0
+   fi
+}
+
 start_run_core()
 {
    LOG_OUT "$core_start_log"
@@ -740,6 +762,11 @@ start_run_core()
    if ! $quick_start; then
       mv "$TMP_CONFIG_FILE" "$CONFIG_FILE" 2>/dev/null
       rm -rf "$TMP_CONFIG_FILE" 2>/dev/null
+   fi
+   config_test
+   if [ $? -ne 0 ]; then
+      LOG_OUT "Error: Config File Tested Faild, Please Check The Log Infos!"
+      start_fail
    fi
    config_reload=$(uci -q get openclash.config.config_reload)
    if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$core_type" != "Meta" ] && [ "$config_reload" != "0" ]; then
