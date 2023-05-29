@@ -174,7 +174,7 @@ o:depends("type", "trojan")
 o = s:option(Value, "tc_ip", translate("Server IP"))
 o.rmempty = true
 o.placeholder = translate("127.0.0.1")
-o.datatype = "ip4addr"
+o.datatype = "or(ip4addr, ip6addr)"
 o:depends("type", "tuic")
 
 o = s:option(Value, "tc_token", translate("Token"))
