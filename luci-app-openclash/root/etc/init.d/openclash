@@ -1521,17 +1521,19 @@ if [ -n "$FW4" ]; then
          DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
       fi
       if [ -z "$(nft list chain inet fw4 dstnat |grep 'OpenClash DNS Hijack')" ]; then
-         if [ "$lan_ac_mode" = "0" ]; then
+         if [ "$lan_ac_mode" != "1" ]; then
             ACBLACKDNSFILTER=""
-            if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
-               ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ips"
-            fi
-            if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
-               ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
+            if [ "$lan_ac_mode" = "0" ]; then
+               if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+                  ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ips"
+               fi
+               if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+                  ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
+               fi
             fi
             nft insert rule inet fw4 dstnat position 0 tcp dport 53 ${ACBLACKDNSFILTER} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
             nft insert rule inet fw4 dstnat position 0 udp dport 53 ${ACBLACKDNSFILTER} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
-         elif [ "$lan_ac_mode" = "1" ]; then
+         else
             nft insert rule inet fw4 dstnat position 0 tcp dport 53 ip saddr @lan_ac_white_ips counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
             nft insert rule inet fw4 dstnat position 0 udp dport 53 ip saddr @lan_ac_white_ips counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
             nft insert rule inet fw4 dstnat position 0 tcp dport 53 ether saddr @lan_ac_white_macs counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
@@ -1540,17 +1542,19 @@ if [ -n "$FW4" ]; then
       fi
    elif [ "$enable_redirect_dns" -eq 2 ]; then
       nft 'add chain inet fw4 openclash_dns_redirect'
-      if [ "$lan_ac_mode" = "0" ]; then
+      if [ "$lan_ac_mode" != "1" ]; then
          ACBLACKDNSFILTER=""
-         if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
-            ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ips"
-         fi
-         if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
-            ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
+         if [ "$lan_ac_mode" = "0" ]; then
+            if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+               ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ips"
+            fi
+            if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+               ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
+            fi
          fi
          nft add rule inet fw4 openclash_dns_redirect tcp dport 53 ${ACBLACKDNSFILTER} counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
          nft add rule inet fw4 openclash_dns_redirect udp dport 53 ${ACBLACKDNSFILTER} counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
-      elif [ "$lan_ac_mode" = "1" ]; then
+      else
          nft add rule inet fw4 openclash_dns_redirect tcp dport 53 ip saddr @lan_ac_white_ips counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
          nft add rule inet fw4 openclash_dns_redirect udp dport 53 ip saddr @lan_ac_white_ips counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
          nft add rule inet fw4 openclash_dns_redirect tcp dport 53 ether saddr @lan_ac_white_macs counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
@@ -1803,8 +1807,9 @@ if [ -n "$FW4" ]; then
       fi
 
       if [ "$enable_redirect_dns" -eq 2 ]; then
-         local position=$(nft list chain inet fw4 openclash_dns_redirect |grep "DNS" |grep -v "REDIRECT" |awk -F '# handle ' '{print$2}' |sort -rn |head -1 || ehco 0)
-         nft insert rule inet fw4 openclash_dns_redirect "$position" meta nfproto {ipv4} tcp dport 53 counter accept comment \"OpenClash TCP DNS Hijack\"
+         local position=$(nft -a list chain inet fw4 openclash_dns_redirect |grep "DNS" |grep -v "redirect" |awk -F '# handle ' '{print$2}' |sort -rn |head -1)
+         [ -z "$position" ] && position=0
+         nft insert rule inet fw4 openclash_dns_redirect position "$position" meta nfproto {ipv4} tcp dport 53 counter accept comment \"OpenClash TCP DNS Hijack\"
       elif [ "$enable_redirect_dns" -eq 1 ]; then
          nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv4} tcp dport 53 counter accept comment \"OpenClash TCP DNS Hijack\"
       fi
@@ -1834,34 +1839,38 @@ if [ -n "$FW4" ]; then
    if [ "$ipv6_enable" -eq 1 ]; then
       if [ -z "$(nft list chain inet fw4 dstnat |grep 'OpenClash DNS Hijack')" ]; then
          if [ "$enable_redirect_dns" -eq 1 ]; then
-            if [ "$lan_ac_mode" = "0" ]; then
+            if [ "$lan_ac_mode" != "1" ]; then
                ACBLACKDNSFILTER=""
-               if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
-                  ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ipv6s"
-               fi
-               if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
-                  ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
+               if [ "$lan_ac_mode" = "0" ]; then
+                  if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+                     ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ipv6s"
+                  fi
+                  if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+                     ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
+                  fi
                fi
                nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} tcp dport 53 ${ACBLACKDNSFILTER} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
                nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} udp dport 53 ${ACBLACKDNSFILTER} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
-            elif [ "$lan_ac_mode" = "1" ]; then
+            else
                nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} tcp dport 53 ip6 saddr @lan_ac_white_ipv6s counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
                nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} udp dport 53 ip6 saddr @lan_ac_white_ipv6s counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
                nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} tcp dport 53 ether saddr @lan_ac_white_macs counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
                nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} udp dport 53 ether saddr @lan_ac_white_macs counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
             fi
          elif [ "$enable_redirect_dns" -eq 2 ]; then
-            if [ "$lan_ac_mode" = "0" ]; then
+            if [ "$lan_ac_mode" != "1" ]; then
                ACBLACKDNSFILTER=""
-               if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
-                  ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ipv6s"
-               fi
-               if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
-                  ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
+               if [ "$lan_ac_mode" = "0" ]; then
+                  if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+                     ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ipv6s"
+                  fi
+                  if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+                     ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
+                  fi
                fi
                nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv6} tcp dport 53 ${ACBLACKDNSFILTER} counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
                nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv6} udp dport 53 ${ACBLACKDNSFILTER} counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
-            elif [ "$lan_ac_mode" = "1" ]; then
+            else
                nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv6} tcp dport 53 ip6 saddr @lan_ac_white_ipv6s counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
                nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv6} udp dport 53 ip6 saddr @lan_ac_white_ipv6s counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
                nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv6} tcp dport 53 ether saddr @lan_ac_white_macs counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
@@ -2287,17 +2296,19 @@ if [ -z "$FW4" ]; then
          DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
       fi
       if [ -z "$(iptables -t nat -nL PREROUTING --line-number |grep 'OpenClash DNS Hijack')" ]; then
-         if [ "$lan_ac_mode" = "0" ]; then
+         if [ "$lan_ac_mode" != "1" ]; then
             ACBLACKDNSFILTER=""
-            if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
-               ACBLACKDNSFILTER="-m set ! --match-set lan_ac_black_ips src"
-            fi
-            if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
-               ACBLACKDNSFILTER="$ACBLACKDNSFILTER -m set ! --match-set lan_ac_black_macs src"
+            if [ "$lan_ac_mode" = "0" ]; then
+               if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+                  ACBLACKDNSFILTER="-m set ! --match-set lan_ac_black_ips src"
+               fi
+               if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+                  ACBLACKDNSFILTER="$ACBLACKDNSFILTER -m set ! --match-set lan_ac_black_macs src"
+               fi
             fi
             iptables -t nat -I PREROUTING -p udp --dport 53 ${ACBLACKDNSFILTER} -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
             iptables -t nat -I PREROUTING -p tcp --dport 53 ${ACBLACKDNSFILTER} -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
-         elif [ "$lan_ac_mode" = "1" ]; then
+         else
             iptables -t nat -I PREROUTING -p udp --dport 53 -m set --match-set lan_ac_white_ips src -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
             iptables -t nat -I PREROUTING -p tcp --dport 53 -m set --match-set lan_ac_white_ips src -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
             iptables -t nat -I PREROUTING -p udp --dport 53 -m set --match-set lan_ac_white_macs src -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
@@ -2307,17 +2318,19 @@ if [ -z "$FW4" ]; then
    elif [ "$enable_redirect_dns" -eq 2 ]; then
       iptables -t nat -N openclash_dns_redirect
       iptables -t nat -F openclash_dns_redirect
-      if [ "$lan_ac_mode" = "0" ]; then
+      if [ "$lan_ac_mode" != "1" ]; then
          ACBLACKDNSFILTER=""
-         if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
-            ACBLACKDNSFILTER="-m set ! --match-set lan_ac_black_ips src"
-         fi
-         if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
-            ACBLACKDNSFILTER="$ACBLACKDNSFILTER -m set ! --match-set lan_ac_black_macs src"
+         if [ "$lan_ac_mode" = "0" ]; then
+            if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+               ACBLACKDNSFILTER="-m set ! --match-set lan_ac_black_ips src"
+            fi
+            if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+               ACBLACKDNSFILTER="$ACBLACKDNSFILTER -m set ! --match-set lan_ac_black_macs src"
+            fi
          fi
          iptables -t nat -A openclash_dns_redirect -p udp --dport 53 ${ACBLACKDNSFILTER} -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
          iptables -t nat -A openclash_dns_redirect -p tcp --dport 53 ${ACBLACKDNSFILTER} -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
-      elif [ "$lan_ac_mode" = "1" ]; then
+      else
          iptables -t nat -A openclash_dns_redirect -p udp --dport 53 -m set --match-set lan_ac_white_ips src -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
          iptables -t nat -A openclash_dns_redirect -p tcp --dport 53 -m set --match-set lan_ac_white_ips src -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
          iptables -t nat -A openclash_dns_redirect -p udp --dport 53 -m set --match-set lan_ac_white_macs src -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
@@ -2573,7 +2586,7 @@ if [ -z "$FW4" ]; then
       fi
 
       if [ "$enable_redirect_dns" -eq 2 ]; then
-         local position=$(iptables -nvL openclash_dns_redirect -t nat|grep "DNS" |grep -v "REDIRECT" |wc -l)
+         local position=$(iptables -nvL openclash_dns_redirect -t nat |grep "DNS" |grep -v "REDIRECT" |wc -l)
          let position++
          iptables -t nat -I openclash_dns_redirect "$position" -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j ACCEPT
       elif [ "$enable_redirect_dns" -eq 1 ]; then
@@ -2607,17 +2620,19 @@ if [ -z "$FW4" ]; then
    if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
       if [ -z "$(ip6tables -t nat -nL PREROUTING --line-number |grep 'DNS Hijack')" ]; then
          if [ "$enable_redirect_dns" -eq 1 ]; then
-            if [ "$lan_ac_mode" = "0" ]; then
+            if [ "$lan_ac_mode" != "1" ]; then
                ACBLACKDNSFILTER=""
-               if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
-                  ACBLACKDNSFILTER="-m set ! --match-set lan_ac_black_ipv6s src"
-               fi
-               if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
-                  ACBLACKDNSFILTER="$ACBLACKDNSFILTER -m set ! --match-set lan_ac_black_macs src"
+               if [ "$lan_ac_mode" = "0" ]; then
+                  if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+                     ACBLACKDNSFILTER="-m set ! --match-set lan_ac_black_ipv6s src"
+                  fi
+                  if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+                     ACBLACKDNSFILTER="$ACBLACKDNSFILTER -m set ! --match-set lan_ac_black_macs src"
+                  fi
                fi
                ip6tables -t nat -I PREROUTING -p udp --dport 53 ${ACBLACKDNSFILTER} -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
                ip6tables -t nat -I PREROUTING -p tcp --dport 53 ${ACBLACKDNSFILTER} -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
-            elif [ "$lan_ac_mode" = "1" ]; then
+            else
                ip6tables -t nat -I PREROUTING -p udp --dport 53 -m set --match-set lan_ac_white_ipv6s src -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
                ip6tables -t nat -I PREROUTING -p tcp --dport 53 -m set --match-set lan_ac_white_ipv6s src -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
                ip6tables -t nat -I PREROUTING -p udp --dport 53 -m set --match-set lan_ac_white_macs src -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
@@ -2626,17 +2641,19 @@ if [ -z "$FW4" ]; then
          elif [ "$enable_redirect_dns" -eq 2 ]; then
             ip6tables -t nat -N openclash_dns_redirect
             ip6tables -t nat -F openclash_dns_redirect
-            if [ "$lan_ac_mode" = "0" ]; then
+            if [ "$lan_ac_mode" != "1" ]; then
                ACBLACKDNSFILTER=""
-               if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
-                  ACBLACKDNSFILTER="-m set ! --match-set lan_ac_black_ipv6s src"
-               fi
-               if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
-                  ACBLACKDNSFILTER="$ACBLACKDNSFILTER -m set ! --match-set lan_ac_black_macs src"
+               if [ "$lan_ac_mode" = "0" ]; then
+                  if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+                     ACBLACKDNSFILTER="-m set ! --match-set lan_ac_black_ipv6s src"
+                  fi
+                  if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+                     ACBLACKDNSFILTER="$ACBLACKDNSFILTER -m set ! --match-set lan_ac_black_macs src"
+                  fi
                fi
                ip6tables -t nat -A openclash_dns_redirect -p udp --dport 53 ${ACBLACKDNSFILTER} -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
                ip6tables -t nat -A openclash_dns_redirect -p tcp --dport 53 ${ACBLACKDNSFILTER} -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
-            elif [ "$lan_ac_mode" = "1" ]; then
+            else
                ip6tables -t nat -A openclash_dns_redirect -p udp --dport 53 -m set --match-set lan_ac_white_ipv6s src -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
                ip6tables -t nat -A openclash_dns_redirect -p tcp --dport 53 -m set --match-set lan_ac_white_ipv6s src -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
                ip6tables -t nat -A openclash_dns_redirect -p udp --dport 53 -m set --match-set lan_ac_white_macs src -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
