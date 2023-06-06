@@ -47,7 +47,8 @@ check_dnsmasq() {
                      nft delete rule inet fw4 ${nft} handle ${handle}
                   done
                done >/dev/null 2>&1
-               position=$(nft list chain inet fw4 dstnat |grep "OpenClash" |grep "DNS" |awk -F '# handle ' '{print$2}' |sort -rn |head -1 || ehco 0)
+               local position=$(nft -a list chain inet fw4 dstnat |grep "OpenClash" |grep "DNS" |awk -F '# handle ' '{print$2}' |sort -rn |head -1)
+               [ -z "$position" ] && position=0
                nft add rule inet fw4 dstnat position "$position" tcp dport 53 redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
                nft add rule inet fw4 dstnat position "$position" udp dport 53 redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
                if [ "$ipv6_enable" -eq 1 ]; then
@@ -66,12 +67,14 @@ check_dnsmasq() {
                      done
                   fi
                done >/dev/null 2>&1
-               position=$(iptables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1 || ehco 0)
+               local position=$(iptables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1)
+               [ -z "$position" ] && position=0
                [ "$position" -ne 0 ] && let position++
                iptables -t nat -I PREROUTING "$position" -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
                iptables -t nat -I PREROUTING "$position" -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
                if [ "$ipv6_enable" -eq 1 ]; then
-                  position=$(ip6tables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1 || ehco 0)
+                  position=$(ip6tables -nvL PREROUTING -t nat |sed 1,2d |grep "OpenClash" |sed -n "/DNS/=" 2>/dev/null |sort -rn |head -1)
+                  [ -z "$position" ] && position=0
                   [ "$position" -ne 0 ] && let position++
                   ip6tables -t nat -I PREROUTING "$position" -p udp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
                   ip6tables -t nat -I PREROUTING "$position" -p tcp --dport 53 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
