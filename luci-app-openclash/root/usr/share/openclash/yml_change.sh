@@ -384,7 +384,7 @@ Thread.new{
          Value['global-client-fingerprint']='${31}';
       end;
    end;
-   if not Value.key?('dns') then
+   if not Value.key?('dns') or Value['dns'].nil? then
       Value_1={'dns'=>{'enable'=>true}};
       Value['dns']=Value_1['dns'];
    else
@@ -490,7 +490,7 @@ Thread.new{
    if Value.key?('iptables') then
       Value.delete('iptables');
    end;
-   if not Value.key?('profile') then
+   if not Value.key?('profile') or Value['profile'].nil? then
       Value_3={'profile'=>{'store-selected'=>true}};
       Value['profile']=Value_3['profile'];
    else
