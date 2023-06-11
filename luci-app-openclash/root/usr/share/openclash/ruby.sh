@@ -74,7 +74,7 @@ local Value Value_1 RUBY_YAML_PARSE
 if [ -z "$1" ] || [ -z "$2" ]; then
 	return
 fi
-RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); Value_1 = YAML.load_file('$4').reverse!; Value_1$5.each{|x| Value$2.insert($3,x)}; Value$2=Value$2.uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
+RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); Value_1 = YAML.load_file('$4'); Value_1$5.reverse.each{|x| Value$2.insert($3,x)}; Value$2=Value$2.uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
