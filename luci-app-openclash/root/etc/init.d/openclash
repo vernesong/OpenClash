@@ -1843,7 +1843,7 @@ if [ -n "$FW4" ]; then
                ACBLACKDNSFILTER=""
                if [ "$lan_ac_mode" = "0" ]; then
                   if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
-                     ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ipv6s"
+                     ACBLACKDNSFILTER="ip6 saddr != @lan_ac_black_ipv6s"
                   fi
                   if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
                      ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
@@ -1862,7 +1862,7 @@ if [ -n "$FW4" ]; then
                ACBLACKDNSFILTER=""
                if [ "$lan_ac_mode" = "0" ]; then
                   if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
-                     ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ipv6s"
+                     ACBLACKDNSFILTER="ip6 saddr != @lan_ac_black_ipv6s"
                   fi
                   if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
                      ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
