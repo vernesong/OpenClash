@@ -1732,6 +1732,20 @@ EOF
 fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
 cat >> "$SERVER_FILE" <<-EOF
+  - name: miHoYo
+    type: select
+    proxies:
+      - DIRECT
+      - Proxy
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+if [ -f "/tmp/Proxy_Provider" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    use:
+EOF
+fi
+cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
   - name: AdBlock
     type: select
     proxies:
@@ -1864,6 +1878,7 @@ ${uci_set}DAZN="DAZN"
 ${uci_set}Disney="Disney"
 ${uci_set}Spotify="Spotify"
 ${uci_set}Steam="Steam"
+${uci_set}miHoYo="miHoYo"
 ${uci_set}AdBlock="AdBlock"
 ${uci_set}Speedtest="Speedtest"
 ${uci_set}Telegram="Telegram"
@@ -1896,6 +1911,7 @@ ${uci_set}Others="Others"
 	${UCI_DEL_LIST}="Disney" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Disney" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Spotify" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Spotify" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Steam" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Steam" >/dev/null 2>&1
+  ${UCI_DEL_LIST}="miHoYo" >/dev/null 2>&1 && ${UCI_ADD_LIST}="miHoYo" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Telegram" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Telegram" >/dev/null 2>&1
   ${UCI_DEL_LIST}="Crypto" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Crypto" >/dev/null 2>&1
   ${UCI_DEL_LIST}="Discord" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Discord" >/dev/null 2>&1
