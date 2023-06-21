@@ -370,7 +370,7 @@ yml_other_set()
    
    begin
    Thread.new{
-      if $6 == 0 and ${10} != 2 then
+      if $6 == 0 and ${11} != 2 and '${13}' == 'fake-ip' then
          if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
             if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'${fake_ip}')/).empty? then
                Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,${12},DIRECT');
@@ -950,14 +950,14 @@ if [ "$1" != "0" ]; then
    config_load "openclash"
    config_foreach yml_other_rules_get "other_rules" "$5"
    if [ -z "$rule_name" ]; then
-      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
       exit 0
    #判断策略组是否存在
    elif [ "$rule_name" = "ConnersHua_return" ]; then
        if [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ];then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
          exit 0
        fi
    elif [ "$rule_name" = "ConnersHua" ]; then
@@ -967,7 +967,7 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"  "${11}" "${12}"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"  "${11}" "${12}" "${13}"
          exit 0
        fi
    elif [ "$rule_name" = "lhie1" ]; then
@@ -1001,13 +1001,13 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
          exit 0
        fi
    fi
    if [ -z "$Proxy" ]; then
       LOG_OUT "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
-      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
       exit 0
    else
       if [ "$rule_name" = "lhie1" ]; then
@@ -1155,4 +1155,4 @@ if [ "$1" != "0" ]; then
    fi
 fi
 
-yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
+yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
