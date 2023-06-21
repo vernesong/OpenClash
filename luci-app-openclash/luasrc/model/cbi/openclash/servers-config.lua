@@ -852,7 +852,7 @@ o = s:option(Value, "routing_mark", translate("routing-mark"))
 o.rmempty = true
 o.placeholder = translate("2333")
 
-o = s:option(DynamicList, "groups", translate("Proxy Group"))
+o = s:option(DynamicList, "groups", translate("Proxy Group (Support Regex)"))
 o.description = font_red..bold_on..translate("No Need Set when Config Create, The added Proxy Groups Must Exist")..bold_off..font_off
 o.rmempty = true
 o:value("all", translate("All Groups"))
