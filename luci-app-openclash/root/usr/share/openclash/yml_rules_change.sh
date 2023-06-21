@@ -939,6 +939,7 @@ yml_other_rules_get()
    config_get "DAZN" "$section" "DAZN" "$GlobalTV"
    config_get "ChatGPT" "$section" "ChatGPT" "$Proxy"
    config_get "AppleTV" "$section" "AppleTV" "$GlobalTV"
+   config_get "miHoYo" "$section" "miHoYo" "$Domestic"
 }
 
 if [ "$1" != "0" ]; then
@@ -990,6 +991,7 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$ChatGPT" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Spotify" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Steam" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$miHoYo" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$AdBlock" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Speedtest" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Telegram" /tmp/Proxy_Group)" ]\
@@ -1050,6 +1052,7 @@ if [ "$1" != "0" ]; then
             .gsub(/,Spotify$/, ',$Spotify#delete_')
             .gsub(/,ChatGPT$/, ',$ChatGPT#delete_')
             .gsub(/,Steam$/, ',$Steam#delete_')
+            .gsub(/,miHoYo$/, ',$miHoYo#delete_')
             .gsub(/,AdBlock$/, ',$AdBlock#delete_')
             .gsub(/,Speedtest$/, ',$Speedtest#delete_')
             .gsub(/,Telegram$/, ',$Telegram#delete_')
@@ -1081,6 +1084,7 @@ if [ "$1" != "0" ]; then
             .gsub!(/: \"Spotify\"/,': \"$Spotify#delete_\"')
             .gsub!(/: \"ChatGPT\"/,': \"$ChatGPT#delete_\"')
             .gsub!(/: \"Steam\"/,': \"$Steam#delete_\"')
+            .gsub!(/: \"miHoYo\"/,': \"$miHoYo#delete_\"')
             .gsub!(/: \"AdBlock\"/,': \"$AdBlock#delete_\"')
             .gsub!(/: \"Speedtest\"/,': \"$Speedtest#delete_\"')
             .gsub!(/: \"Telegram\"/,': \"$Telegram#delete_\"')
