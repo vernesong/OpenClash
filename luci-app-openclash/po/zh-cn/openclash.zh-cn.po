@@ -663,8 +663,8 @@ msgstr "保留配置"
 msgid "Only Update Servers Below When Subscription"
 msgstr "订阅时仅更新节点和代理集，保留下方策略组设置，不修改顺序"
 
-msgid "New Servers Group"
-msgstr "新节点默认策略组"
+msgid "New Servers Group (Support Regex)"
+msgstr "新节点默认策略组（请勿重复添加，支持正则匹配）"
 
 msgid "Set The New Subscribe Server's Default Proxy Groups"
 msgstr "选择符合订阅要求的新节点的默认策略组（请勿重复添加）"

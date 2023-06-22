@@ -41,7 +41,7 @@ o = s:option(Flag, "servers_update", translate("Keep Settings"))
 o.description = font_red .. bold_on .. translate("Only Update Servers Below When Subscription") .. bold_off .. font_off
 o.default = 0
 
-o = s:option(DynamicList, "new_servers_group", translate("New Servers Group"))
+o = s:option(DynamicList, "new_servers_group", translate("New Servers Group (Support Regex)"))
 o.description = translate("Set The New Subscribe Server's Default Proxy Groups")
 o.rmempty = true
 o:depends("servers_update", 1)
