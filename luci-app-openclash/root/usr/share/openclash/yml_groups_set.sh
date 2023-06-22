@@ -129,6 +129,10 @@ add_other_group()
       return
    fi
 
+   if [ "$3" = "$name" ]; then
+      return
+   fi
+
    if [ "$2" = "all" ] || [[ "$name" =~ ${2} ]]; then
       set_group=1
       echo "      - ${name}" >>$GROUP_FILE
@@ -141,7 +145,7 @@ set_other_groups()
    if [ -z "$1" ]; then
       return
    fi
-   config_foreach add_other_group "groups" "$1" #比对策略组
+   config_foreach add_other_group "groups" "$1" "$2" #比对策略组
 }
 
 #加入代理集
@@ -265,7 +269,7 @@ yml_groups_set()
    set_group=0
    set_proxy_provider=0
    
-   config_list_foreach "$section" "other_group" set_other_groups #加入其他策略组
+   config_list_foreach "$section" "other_group" set_other_groups "$name" #加入其他策略组
    config_foreach yml_servers_add "servers" "$name" "$type" #加入服务器节点
    
    if [ "$type" = "relay" ] && [ -s "/tmp/relay_server" ]; then
