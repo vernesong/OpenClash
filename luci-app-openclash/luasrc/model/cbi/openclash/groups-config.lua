@@ -112,6 +112,7 @@ o.placeholder = translate("2333")
 
 o = s:option(DynamicList, "other_group", translate("Other Group (Support Regex)"))
 o.description = font_red..bold_on..translate("The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT'")..bold_off..font_off
+o:value("all", translate("All Groups"))
 uci:foreach("openclash", "groups",
 		function(s)
 		  if s.name ~= "" and s.name ~= nil and s.name ~= m.uci:get(openclash, sid, "name") then
