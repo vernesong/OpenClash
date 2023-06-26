@@ -145,6 +145,13 @@ set_other_groups()
    if [ -z "$1" ]; then
       return
    fi
+
+   if [ "$1" = "DIRECT" ] || [ "$1" = "REJECT" ]; then
+      set_group=1
+      echo "      - ${1}" >>$GROUP_FILE
+      return
+   fi
+
    config_foreach add_other_group "groups" "$1" "$2" #比对策略组
 }
 
