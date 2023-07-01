@@ -295,7 +295,8 @@ yml_servers_set()
    config_get "multiplex_padding" "$section" "multiplex_padding" ""
    config_get "multiplex_statistic" "$section" "multiplex_statistic" ""
    config_get "multiplex_only_tcp" "$section" "multiplex_only_tcp" ""
-   
+   config_get "other_parameters" "$section" "other_parameters" ""
+
    if [ "$enabled" = "0" ]; then
       return
    fi
@@ -1264,6 +1265,11 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
     routing-mark: "$routing_mark"
 EOF
+   fi
+
+#other_parameters
+   if [ -n "$other_parameters" ]; then
+      echo -e "$other_parameters" >> "$SERVER_FILE"
    fi
 }
 

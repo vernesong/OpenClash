@@ -3413,3 +3413,9 @@ msgstr "错误：配置文件测试失败，请查看《内核日志》排查失
 
 msgid "Test The Config File First..."
 msgstr "启动前调用内核测试配置文件..."
+
+msgid "Other Parameters"
+msgstr "其他附加配置"
+
+msgid "Edit Your Other Parameters Here"
+msgstr "请在此编辑您的附加配置"
