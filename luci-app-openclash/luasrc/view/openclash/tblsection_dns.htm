@@ -181,15 +181,15 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 							-%>
 							<%- if self.sortable then -%>
 								<td class="cbi-section-table-cell">
-									<input class="cbi-button cbi-button-up" type="button" value="<%:Move up%>"  onclick="return cbi_row_swap(this, true, 'cbi.sts.<%=self.config%>.<%=self.sectiontype%>')" alt="<%:Move up%>" title="<%:Move up%>" />
-									<input class="cbi-button cbi-button-down" type="button" value="<%:Move down%>"  onclick="return cbi_row_swap(this, false, 'cbi.sts.<%=self.config%>.<%=self.sectiontype%>')" alt="<%:Move down%>" title="<%:Move down%>" />
+									<input class="cbi-button cbi-button-up" type="button" value="<%:∧%>"  onclick="return cbi_row_swap(this, true, 'cbi.sts.<%=self.config%>.<%=self.sectiontype%>')" alt="<%:Move up%>" title="<%:Move up%>" />
+									<input class="cbi-button cbi-button-down" type="button" value="<%:∨%>"  onclick="return cbi_row_swap(this, false, 'cbi.sts.<%=self.config%>.<%=self.sectiontype%>')" alt="<%:Move down%>" title="<%:Move down%>" />
 								</td>
 							<%- end -%>
 			
 							<%- if self.extedit or self.addremove then -%>
 								<td class="cbi-section-table-cell">
 									<%- if self.extedit then -%>
-										<input class="cbi-button cbi-button-edit" type="button" value="<%:Edit%>"
+										<input class="btn cbi-button cbi-button-edit" type="button" value="<%:Edit%>"
 										<%- if type(self.extedit) == "string" then
 										%> onclick="location.href='<%=self.extedit:format(section)%>';return switch_to_tab<%=sectiontype%>()"
 										<%- elseif type(self.extedit) == "function" then
@@ -197,7 +197,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 										<%- end
 										%> alt="<%:Edit%>" title="<%:Edit%>" />
 									<%- end; if self.addremove then %>
-										<input class="cbi-button cbi-button-remove" type="submit" value="<%:Delete%>"  onclick="this.form.cbi_state='del-section';return switch_to_tab<%=sectiontype%>()" name="cbi.rts.<%=self.config%>.<%=k%>" alt="<%:Delete%>" title="<%:Delete%>" />
+										<input class="btn cbi-button cbi-button-remove" type="submit" value="<%:Delete%>"  onclick="this.form.cbi_state='del-section';return switch_to_tab<%=sectiontype%>()" name="cbi.rts.<%=self.config%>.<%=k%>" alt="<%:Delete%>" title="<%:Delete%>" />
 									<%- end -%>
 								</td>
 							<%- end -%>
