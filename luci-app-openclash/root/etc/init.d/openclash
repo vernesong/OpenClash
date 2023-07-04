@@ -1515,11 +1515,12 @@ if [ -n "$FW4" ]; then
       fi
    fi
 
+   DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
+   if [ -z "$DNSPORT" ]; then
+      DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
+   fi
+
    if [ "$enable_redirect_dns" -eq 1 ]; then
-      DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
-      if [ -z "$DNSPORT" ]; then
-         DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
-      fi
       if [ -z "$(nft list chain inet fw4 dstnat |grep 'OpenClash DNS Hijack')" ]; then
          if [ "$lan_ac_mode" != "1" ]; then
             ACBLACKDNSFILTER=""
@@ -1568,6 +1569,7 @@ if [ -n "$FW4" ]; then
          nft insert rule inet fw4 nat_output position 0 udp dport 53 ip daddr {127.0.0.1} meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
       fi
    fi
+
    if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ] && [ "$enable_redirect_dns" != "2" ]; then
       LOG_OUT "Tip: Bypass the China IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
       nft insert rule inet fw4 dstnat position 0 tcp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
@@ -2288,11 +2290,12 @@ if [ -z "$FW4" ]; then
       fi
    fi
 
+   DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
+   if [ -z "$DNSPORT" ]; then
+      DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
+   fi
+
    if [ "$enable_redirect_dns" -eq 1 ]; then
-      DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
-      if [ -z "$DNSPORT" ]; then
-         DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
-      fi
       if [ -z "$(iptables -t nat -nL PREROUTING --line-number |grep 'OpenClash DNS Hijack')" ]; then
          if [ "$lan_ac_mode" != "1" ]; then
             ACBLACKDNSFILTER=""
@@ -2341,6 +2344,7 @@ if [ -z "$FW4" ]; then
          iptables -t nat -I OUTPUT -p tcp --dport 53 -d 127.0.0.1 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
       fi
    fi
+
    if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ] && [ "$enable_redirect_dns" != "2" ]; then
       LOG_OUT "Tip: Bypass the China IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
       iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
