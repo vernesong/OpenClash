@@ -49,11 +49,15 @@ lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || i
 dnsmasq_default_resolvfile=$(uci -q get openclash.config.default_resolvfile)
 
 if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
-	CONFIG_NAME=$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')
-	if [ ! -z "$CONFIG_NAME" ]; then
-      RAW_CONFIG_FILE="/etc/openclash/config/$CONFIG_NAME"
-      CONFIG_FILE="/etc/openclash/$CONFIG_NAME"
-  fi
+   for file_name in /etc/openclash/config/*
+   do
+      if [ -f "$file_name" ]; then
+         RAW_CONFIG_FILE=$file_name
+         CONFIG_NAME=$(echo "$RAW_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
+         CONFIG_FILE="/etc/openclash/$CONFIG_NAME"
+         break
+      fi
+   done
 fi
 
 ts_cf()

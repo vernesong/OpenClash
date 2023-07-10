@@ -289,48 +289,57 @@ sub_info_get()
    fi
    
    if [ -z "$name" ]; then
-      RAW_CONFIG_FILE="/etc/openclash/config/config.yaml"
+      SUB_CONFIG_FILE="/etc/openclash/config/config.yaml"
    else
-      RAW_CONFIG_FILE="/etc/openclash/config/$name.yaml"
+      SUB_CONFIG_FILE="/etc/openclash/config/$name.yaml"
+   fi
+
+   if [ "$SUB_CONFIG_FILE" != "$2" ]; then
+      return
    fi
    
-   uci -q set openclash.config.config_path="$RAW_CONFIG_FILE"
-   uci -q commit openclash
    subscribe_enable=1
 }
 
 #配置文件选择
 config_choose()
 {
-if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
-   CONFIG_NAME=$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')
-   if [ -n "$CONFIG_NAME" ]; then
-      uci -q set openclash.config.config_path="/etc/openclash/config/$CONFIG_NAME"
-      uci -q commit openclash
-      RAW_CONFIG_FILE="/etc/openclash/config/$CONFIG_NAME"
-      CONFIG_FILE="/etc/openclash/$CONFIG_NAME"
-      TMP_CONFIG_FILE="/tmp/yaml_config_tmp_$CONFIG_NAME"
-      
-   fi
-fi 2>/dev/null
-CONFIG_NAME=$(echo "$RAW_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-HISTORY_PATH_OLD="/etc/openclash/history/${CONFIG_NAME%.*}"
-HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}.db"
-
 if [ ! -f "$RAW_CONFIG_FILE" ]; then
    config_load "openclash"
-   config_foreach sub_info_get "config_subscribe"
+   config_foreach sub_info_get "config_subscribe" "$RAW_CONFIG_FILE"
    if [ "$subscribe_enable" = "1" ]; then
-      LOG_OUT "Config File Does Not Exist, You Have Set Subscription Information, Ready To Download..."
-      nohup /usr/share/openclash/openclash.sh &
-      del_lock
-      exit 0
-   else
-      LOG_OUT "Error: Config Not Found"
+      LOG_OUT "【$RAW_CONFIG_FILE】Config File Does Not Exist, You Have Set Subscription Information, Ready To Download..."
+      nohup /usr/share/openclash/openclash.sh "$RAW_CONFIG_FILE" &
       del_lock
       exit 0
    fi
 fi
+
+if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
+   for file_name in /etc/openclash/config/*
+   do
+      if [ -f "$file_name" ]; then
+         CONFIG_NAME=$(echo "$file_name" |awk -F '/' '{print $5}' 2>/dev/null)
+         uci -q set openclash.config.config_path="/etc/openclash/config/$CONFIG_NAME"
+         uci -q commit openclash
+         RAW_CONFIG_FILE="/etc/openclash/config/$CONFIG_NAME"
+         CONFIG_FILE="/etc/openclash/$CONFIG_NAME"
+         TMP_CONFIG_FILE="/tmp/yaml_config_tmp_$CONFIG_NAME"
+         LOG_OUT "Error: Config Not Found, Switch Config File to【$RAW_CONFIG_FILE】"
+         break
+      fi
+   done
+fi 2>/dev/null
+
+if [ ! -f "$RAW_CONFIG_FILE" ]; then
+   LOG_OUT "Error: Config Not Found"
+   del_lock
+   exit 0
+fi
+
+CONFIG_NAME=$(echo "$RAW_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
+HISTORY_PATH_OLD="/etc/openclash/history/${CONFIG_NAME%.*}"
+HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}.db"
 }
 
 config_check()
