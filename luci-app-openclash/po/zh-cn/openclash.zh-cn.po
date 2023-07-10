@@ -3419,3 +3419,6 @@ msgstr "其他附加配置"
 
 msgid "Edit Your Other Parameters Here"
 msgstr "请在此编辑您的附加配置"
+
+msgid "Error: Config Not Found, Switch Config File to"
+msgstr "错误：未找到配置文件，切换至配置文件"
