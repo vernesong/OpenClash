@@ -9,7 +9,13 @@ if [ ! -z "$UPDATE_CONFIG_FILE" ]; then
 fi
 
 if [ -z "$CFG_FILE" ]; then
-	CFG_FILE="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
+   for file_name in /etc/openclash/config/*
+   do
+      if [ -f "$file_name" ]; then
+         CFG_FILE=$file_name
+         break
+      fi
+   done
 fi
 
 if [ -f "$CFG_FILE" ]; then

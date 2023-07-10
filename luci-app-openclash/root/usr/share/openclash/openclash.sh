@@ -104,7 +104,13 @@ fi
 config_cus_up()
 {
 	if [ -z "$CONFIG_PATH" ]; then
-      CONFIG_PATH="/etc/openclash/config/$(ls -lt /etc/openclash/config/ | grep -E '.yaml|.yml' | head -n 1 |awk '{print $9}')"
+      for file_name in /etc/openclash/config/*
+      do
+         if [ -f "$file_name" ]; then
+            CONFIG_PATH=$file_name
+            break
+         fi
+      done
       uci -q set openclash.config.config_path="$CONFIG_PATH"
       uci commit openclash
 	fi
@@ -585,6 +591,10 @@ sub_info_get()
       CONFIG_FILE="/etc/openclash/config/$name.yaml"
       BACKPACK_FILE="/etc/openclash/backup/$name.yaml"
    fi
+
+   if [ -n "$2" ] && [ "$2" != "$CONFIG_FILE" ]; then
+      return
+   fi
    
    if [ ! -z "$keyword" ] || [ ! -z "$ex_keyword" ]; then
       config_list_foreach "$section" "keyword" server_key_match "keyword"
@@ -674,7 +684,7 @@ sub_info_get()
 
 #分别获取订阅信息进行处理
 config_load "openclash"
-config_foreach sub_info_get "config_subscribe"
+config_foreach sub_info_get "config_subscribe" "$1"
 uci -q delete openclash.config.config_update_path
 uci commit openclash
 
