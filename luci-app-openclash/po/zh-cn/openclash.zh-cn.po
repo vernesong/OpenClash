@@ -3425,3 +3425,9 @@ msgstr "错误：未找到配置文件，切换至配置文件"
 
 msgid "Warning: Skip the nameserver-policy that Core not Support"
 msgstr "警告：跳过核心不支持的 nameserver-policy 规则"
+
+msgid "Enable Unified Delay"
+msgstr "*启用统一延迟"
+
+msgid "Change the delay calculation method to remove extra delays such as handshaking"
+msgstr "更换延迟计算方式，通过去除握手等额外开销来降低延迟数值"

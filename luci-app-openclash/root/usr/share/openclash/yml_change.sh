@@ -368,14 +368,17 @@ Thread.new{
       Value['interface-name']='${24}';
    end;
    if ${19} == 1 then
-      if '${21}' != '0' then
+      if '${21}' == '1' then
          Value['geodata-mode']=true;
       end;
       if '${22}' != '0' then
          Value['geodata-loader']='${22}';
       end;
-      if '${25}' != '0' then
+      if '${25}' == '1' then
          Value['tcp-concurrent']=true;
+      end;
+      if '${34}' == '1' then
+         Value['unified-delay']=true;
       end;
       if '${29}' != '0' then
          Value['find-process-mode']='${29}';
