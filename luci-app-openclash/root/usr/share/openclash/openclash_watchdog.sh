@@ -110,7 +110,7 @@ do
    stream_auto_select_discovery_plus=$(uci -q get openclash.config.stream_auto_select_discovery_plus || echo 0)
    stream_auto_select_bilibili=$(uci -q get openclash.config.stream_auto_select_bilibili || echo 0)
    stream_auto_select_google_not_cn=$(uci -q get openclash.config.stream_auto_select_google_not_cn || echo 0)
-   stream_auto_select_chatgpt=$(uci -q get openclash.config.stream_auto_select_chatgpt || echo 0)
+   stream_auto_select_openai=$(uci -q get openclash.config.stream_auto_select_openai || echo 0)
    upnp_lease_file=$(uci -q get upnpd.config.upnp_lease_file)
    
    enable=$(uci -q get openclash.config.enable)
@@ -355,9 +355,9 @@ fi
                LOG_OUT "Tip: Start Auto Select Proxy For Bilibili Unlock..."
                /usr/share/openclash/openclash_streaming_unlock.lua "Bilibili" >> $LOG_FILE
             fi
-            if [ "$stream_auto_select_chatgpt" -eq 1 ]; then
-               LOG_OUT "Tip: Start Auto Select Proxy For ChatGPT Unlock..."
-               /usr/share/openclash/openclash_streaming_unlock.lua "ChatGPT" >> $LOG_FILE
+            if [ "$stream_auto_select_openai" -eq 1 ]; then
+               LOG_OUT "Tip: Start Auto Select Proxy For OpenAI Unlock..."
+               /usr/share/openclash/openclash_streaming_unlock.lua "OpenAI" >> $LOG_FILE
             fi
          fi
       fi
