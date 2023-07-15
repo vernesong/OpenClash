@@ -265,6 +265,10 @@ o = s:taboption("meta", Flag, "enable_tcp_concurrent", font_red..bold_on..transl
 o.description = font_red..bold_on..translate("TCP Concurrent Request IPs, Choose The Lowest Latency One To Connection")..bold_off..font_off
 o.default = "0"
 
+o = s:taboption("meta", Flag, "enable_unified_delay", font_red..bold_on..translate("Enable Unified Delay")..bold_off..font_off)
+o.description = font_red..bold_on..translate("Change the delay calculation method to remove extra delays such as handshaking")..bold_off..font_off
+o.default = "0"
+
 o = s:taboption("meta", ListValue, "find_process_mode", translate("Enable Process Rule"))
 o.description = translate("Whether to Enable Process Rules, If You Are Not Sure, Please Choose off Which Useful in Router Environment")
 o:value("0", translate("Disable"))
@@ -294,11 +298,9 @@ o:value("memconservative", translate("Memconservative"))
 o:value("standard", translate("Standard"))
 o.default = "0"
 
-o = s:taboption("meta", ListValue, "enable_geoip_dat", translate("Enable GeoIP Dat"))
+o = s:taboption("meta", Flag, "enable_geoip_dat", translate("Enable GeoIP Dat"))
 o.description = translate("Replace GEOIP MMDB With GEOIP Dat, Large Size File")..", "..font_red..bold_on..translate("Need Download First")..bold_off..font_off
 o.default = 0
-o:value("0", translate("Disable"))
-o:value("1", translate("Enable"))
 
 o = s:taboption("meta", Flag, "enable_meta_sniffer", font_red..bold_on..translate("Enable Sniffer")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure")..bold_off..font_off

@@ -559,7 +559,7 @@ yml_other_set()
                if defined? Value_2 then
                   Value_2.each{|x|
                      if ${10} != 1 then
-                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
+                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^IN-USER,|^IN-NAME,|^NETWORK,|^UID,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
                            puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
                            next
                         end;
