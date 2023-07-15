@@ -115,8 +115,8 @@ function unlock_auto_select()
 			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_bilibili") or "bilibili"
 		elseif type == "Google" then
 			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_google_not_cn") or "google|谷歌"
-		elseif type == "ChatGPT" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_chatgpt") or "ChatGPT"
+		elseif type == "OpenAI" then
+			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_openai") or "OpenAI|ChatGPT"
 		end
 		if not key_group then key_group = type end
 	else
@@ -715,8 +715,8 @@ function nodes_filter(t, info)
 		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_bilibili") or ""
 	elseif type == "Google" then
 		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_google_not_cn") or ""
-	elseif type == "ChatGPT" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_chatgpt") or ""
+	elseif type == "OpenAI" then
+		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_openai") or ""
 	end
 
 	if class_type(t) == "table" then
@@ -779,8 +779,8 @@ function proxy_unlock_test()
 		region, old_region = bilibili_unlock_test()
 	elseif type == "Google" then
 		region, old_region = google_not_cn_test()
-	elseif type == "ChatGPT" then
-		region, old_region = chatgpt_unlock_test()
+	elseif type == "OpenAI" then
+		region, old_region = openai_unlock_test()
 	end
 	return region, old_region
 end
@@ -814,7 +814,7 @@ function auto_get_policy_group(passwd, ip, port)
 		SYS.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://www.bilibili.com/ &')
 	elseif type == "Google" then
 		SYS.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://timeline.google.com &')
-	elseif type == "ChatGPT" then
+	elseif type == "OpenAI" then
 		SYS.call('curl -sL -m 5 --limit-rate 1k -o /dev/null https://chat.openai.com/ &')
 	end
 	os.execute("sleep 1")
@@ -889,7 +889,7 @@ function auto_get_policy_group(passwd, ip, port)
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
 				end
-			elseif type == "ChatGPT" then
+			elseif type == "OpenAI" then
 				if string.match(con.connections[i].metadata.host, "chat%.openai%.com") then
 					auto_get_group = con.connections[i].chains[#(con.connections[i].chains)]
 					break
@@ -1496,11 +1496,11 @@ function google_not_cn_test()
 	end
 end
 
-function chatgpt_unlock_test()
+function openai_unlock_test()
 	status = 0
 	local url = "https://chat.openai.com/"
 	local region_url = "https://chat.openai.com/cdn-cgi/trace"
-	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_chatgpt") or ""
+	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_openai") or ""
 	local region = ""
 	local old_region = ""
 	local data = SYS.exec(string.format("curl -sIL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))

@@ -1505,7 +1505,7 @@ cat >> "$SERVER_FILE" <<-EOF
       - Proxy
 EOF
 cat >> "$SERVER_FILE" <<-EOF
-  - name: ChatGPT
+  - name: OpenAI
     type: select
     proxies:
       - Proxy
@@ -1883,7 +1883,7 @@ ${uci_set}AppleTV="Apple TV"
 ${uci_set}GoogleFCM="Google FCM"
 ${uci_set}Scholar="Scholar"
 ${uci_set}Microsoft="Microsoft"
-${uci_set}ChatGPT="ChatGPT"
+${uci_set}OpenAI="OpenAI"
 ${uci_set}Netflix="Netflix"
 ${uci_set}Discovery="Discovery Plus"
 ${uci_set}DAZN="DAZN"
@@ -1916,7 +1916,7 @@ ${uci_set}Others="Others"
 	${UCI_DEL_LIST}="Netflix" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Netflix" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Discovery Plus" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Discovery Plus" >/dev/null 2>&1
 	${UCI_DEL_LIST}="DAZN" >/dev/null 2>&1 && ${UCI_ADD_LIST}="DAZN" >/dev/null 2>&1
-  ${UCI_DEL_LIST}="ChatGPT" >/dev/null 2>&1 && ${UCI_ADD_LIST}="ChatGPT" >/dev/null 2>&1
+  ${UCI_DEL_LIST}="OpenAI" >/dev/null 2>&1 && ${UCI_ADD_LIST}="OpenAI" >/dev/null 2>&1
   ${UCI_DEL_LIST}="Apple TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Apple TV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Google FCM" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Google FCM" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Scholar" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Scholar" >/dev/null 2>&1

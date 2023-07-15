@@ -230,6 +230,9 @@ function line_tolocal(str){
 		if (res) {
 			var dt = new Date(res[1]);
 		}
+		else {
+			var dtt = new Date(v.substring(0,19));
+		}
 		if (dt && dt != "Invalid Date"){
 			if (v.indexOf("level=") != -1) {
 				var log_info = v.substring(res[1].length + 7);
@@ -240,9 +243,13 @@ function line_tolocal(str){
 			cstrt[cn]=dt.getFullYear()+"-"+p(dt.getMonth()+1)+"-"+p(dt.getDate())+" "+p(dt.getHours())+":"+p(dt.getMinutes())+":"+p(dt.getSeconds())+log_info;
 			cn = cn + 1;
 		}
-		else{
+		else if (dtt && dtt != "Invalid Date" && v.substring(28,33).indexOf(" ERR ") == -1) {
 			strt[sn]=v;
 			sn = sn + 1;
+		}
+		else{
+			cstrt[cn]=v;
+			cn = cn + 1;
 		}
 	})
 	return [strt,cstrt]
