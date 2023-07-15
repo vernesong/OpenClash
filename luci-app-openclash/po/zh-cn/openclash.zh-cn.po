@@ -2628,8 +2628,8 @@ msgstr "提示：开始自动选择（检测）Bilibili 解锁节点..."
 msgid "Tip: Start Auto Select Proxy For Google Not CN Unlock..."
 msgstr "提示：开始自动选择（检测）Google 非送中节点..."
 
-msgid "Tip: Start Auto Select Proxy For ChatGPT Unlock..."
-msgstr "提示：开始自动选择（检测）ChatGPT 解锁节点..."
+msgid "Tip: Start Auto Select Proxy For OpenAI Unlock..."
+msgstr "提示：开始自动选择（检测）OpenAI 解锁节点..."
 
 msgid "Netflix Group:"
 msgstr "Netflix 策略组："
@@ -2670,8 +2670,8 @@ msgstr "Bilibili 策略组："
 msgid "Google Group:"
 msgstr "Google 策略组："
 
-msgid "ChatGPT Group:"
-msgstr "ChatGPT 策略组："
+msgid "OpenAI Group:"
+msgstr "OpenAI 策略组："
 
 msgid "full support"
 msgstr "完整解锁"
@@ -3422,3 +3422,6 @@ msgstr "请在此编辑您的附加配置"
 
 msgid "Error: Config Not Found, Switch Config File to"
 msgstr "错误：未找到配置文件，切换至配置文件"
+
+msgid "Warning: Skip the nameserver-policy that Core not Support"
+msgstr "警告：跳过核心不支持的 nameserver-policy 规则"

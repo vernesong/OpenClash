@@ -629,6 +629,14 @@ Thread.new{
       if File::exist?('/etc/openclash/custom/openclash_custom_domain_dns_policy.list') then
          Value_6 = YAML.load_file('/etc/openclash/custom/openclash_custom_domain_dns_policy.list');
          if Value_6 != false and not Value_6.nil? then
+            if ${19} != 1 then
+               Value_6.each{|k,v|
+                  if v.class == "Array" then
+                     Value_6.delete(k);
+                     puts '${LOGTIME} Warning: Skip the nameserver-policy that Core not Support【' + k + '】'
+                  end;
+               }
+            end;
             if Value['dns'].has_key?('nameserver-policy') and not Value['dns']['nameserver-policy'].to_a.empty? then
                Value['dns']['nameserver-policy'].merge!(Value_6);
             else
