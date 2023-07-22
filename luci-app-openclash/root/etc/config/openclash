@@ -231,16 +231,6 @@ config dns_servers
 config dns_servers
 	option enabled '1'
 	option group 'fallback'
-	option ip 'doh.dns.sb/dns-query'
-	option type 'https'
-	option interface 'Disable'
-	option node_resolve '0'
-	option http3 '0'
-	option specific_group 'Disable'
-
-config dns_servers
-	option enabled '1'
-	option group 'fallback'
 	option ip 'dnsforge.de/dns-query'
 	option type 'https'
 	option interface 'Disable'
