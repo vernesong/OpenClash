@@ -456,6 +456,7 @@ EOF
       if [ "${PIPESTATUS[0]}" -eq 0 ] && [ -s "$CFG_FILE" ]; then
          #prevent ruby unexpected error
          sed -i -E 's/protocol-param: ([^,'"'"'"''}( *#)\n\r]+)/protocol-param: "\1"/g' "$CFG_FILE" 2>/dev/null
+         sed -i '/^ \{0,\}enhanced-mode:/d' "$CFG_FILE" >/dev/null 2>&1
          config_test
          if [ $? -ne 0 ]; then
             LOG_OUT "Error: Config File Tested Faild, Please Check The Log Infos!"
