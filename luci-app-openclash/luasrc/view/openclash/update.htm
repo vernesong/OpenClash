@@ -315,7 +315,21 @@
 			};
 		}
 		else if ( status.startlog != "\n" && status.startlog != "" ) {
-	    	update_tip.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
+			if ( status.startlog.match("Tip:") || status.startlog.match("提示：")) {
+				update_tip.innerHTML = '<b style=color:#ff6f00>'+status.startlog+'</b>';
+			}
+			else if ( status.startlog.match("Error:") || status.startlog.match("错误：")) {
+				update_tip.innerHTML = '<b style=color:#FF0000>'+status.startlog+'</b>';
+			}
+			else if ( status.startlog.match("Warning:") || status.startlog.match("警告：")) {
+	    		update_tip.innerHTML = '<b style=color:#ff00bb>'+status.startlog+'</b>';
+			}
+			else if ( status.startlog.match("Watchdog:") || status.startlog.match("守护程序：")) {
+	    		update_tip.innerHTML = '<b style=color:#b300ff>'+status.startlog+'</b>';
+			}
+			else {
+	    		update_tip.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
+			};
 		};
 	  };
 	});

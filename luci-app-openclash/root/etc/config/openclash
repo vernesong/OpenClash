@@ -162,7 +162,7 @@ config dns_servers
 	option group 'fallback'
 	option type 'https'
 	option ip 'public.dns.iij.jp/dns-query'
-	option enabled '0'
+	option enabled '1'
 
 config dns_servers
 	option group 'fallback'
@@ -189,93 +189,43 @@ config dns_servers
 	option enabled '0'
 
 config dns_servers
-	option enabled '1'
+	option enabled '0'
 	option group 'fallback'
 	option type 'https'
-	option interface 'Disable'
-	option node_resolve '0'
-	option http3 '0'
-	option specific_group 'Disable'
 	option ip 'doh.dnslify.com/dns-query'
 
 config dns_servers
-	option enabled '1'
+	option enabled '0'
 	option group 'fallback'
 	option ip 'dns.twnic.tw/dns-query'
 	option type 'https'
-	option interface 'Disable'
-	option node_resolve '0'
-	option http3 '0'
-	option specific_group 'Disable'
 
 config dns_servers
 	option enabled '1'
 	option group 'fallback'
 	option ip 'dns.oszx.co/dns-query'
 	option type 'https'
-	option interface 'Disable'
-	option node_resolve '0'
-	option http3 '0'
-	option specific_group 'Disable'
 
 config dns_servers
-	option enabled '1'
+	option enabled '0'
 	option group 'fallback'
 	option ip 'doh.applied-privacy.net/query'
 	option type 'https'
-	option interface 'Disable'
-	option node_resolve '0'
-	option http3 '0'
-	option specific_group 'Disable'
 
 config dns_servers
-	option enabled '1'
+	option enabled '0'
 	option group 'fallback'
 	option ip 'dnsforge.de/dns-query'
 	option type 'https'
-	option interface 'Disable'
-	option node_resolve '0'
-	option http3 '0'
-	option specific_group 'Disable'
 
 config dns_servers
-	option enabled '1'
+	option enabled '0'
 	option group 'fallback'
 	option ip 'doh.ffmuc.net/dns-query'
 	option type 'https'
-	option interface 'Disable'
-	option node_resolve '0'
-	option http3 '0'
-	option specific_group 'Disable'
 
 config dns_servers
-	option enabled '1'
+	option enabled '0'
 	option group 'fallback'
 	option type 'https'
-	option interface 'Disable'
-	option node_resolve '0'
-	option http3 '0'
-	option specific_group 'Disable'
 	option ip 'doh.mullvad.net/dns-query'
-
-config dns_servers
-	option proxy_server '0'
-	option interface 'Disable'
-	option specific_group 'Disable'
-	option type 'https'
-	option http3 '0'
-	option group 'fallback'
-	option ip 'freedns.controld.com/p0'
-	option node_resolve '0'
-	option enabled '1'
-
-config dns_servers
-	option group 'fallback'
-	option type 'https'
-	option proxy_server '0'
-	option interface 'Disable'
-	option specific_group 'Disable'
-	option http3 '0'
-	option ip 'basic.rethinkdns.com'
-	option node_resolve '0'
-	option enabled '1'
