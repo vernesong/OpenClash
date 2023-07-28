@@ -182,8 +182,6 @@ if $auth_cfg; then
 	${uci_set}password="$(tr -cd 'a-zA-Z0-9' </dev/urandom 2>/dev/null| head -c8 || date +%N| md5sum |head -c8)"
 fi
 
-uci -q set openclash.config.enable=0
-uci -q commit openclash
 
 #set uhttpd && HTTP_MAX_CONTENT for large file edit
 uci -q set uhttpd.main.max_requests=50

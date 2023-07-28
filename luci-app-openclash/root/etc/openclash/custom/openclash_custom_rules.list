@@ -29,7 +29,13 @@ rules:
 ##- SRC-IP-CIDR,192.168.1.201/32,DIRECT #匹配数据发起IP(直连)
 ##- DST-PORT,80,DIRECT #匹配数据目标端口(直连)
 ##- SRC-PORT,7777,DIRECT #匹配数据源端口(直连)
-
+- DOMAIN-SUFFIX,checkip.synology.com,DIRECT
+- DOMAIN-SUFFIX,checkipv6.synology.com,DIRECT
+- DOMAIN-SUFFIX,checkport.synology.com,DIRECT
+- DOMAIN-SUFFIX,ddns.synology.com,DIRECT
+- DOMAIN-SUFFIX,account.synology.com,DIRECT
+- DOMAIN-SUFFIX,checkipv6.quickconnect.to,DIRECT
+- DOMAIN-SUFFIX,global.quickconnect.to,DIRECT
 ##排序在上的规则优先生效,如添加（去除规则前的#号）：
 ##IP段：192.168.1.2-192.168.1.200 直连
 ##- SRC-IP-CIDR,192.168.1.2/31,DIRECT
