@@ -26,7 +26,7 @@ m.description = translate("Note: To restore the default configuration, try acces
 "<br/>"..font_green..translate("Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check")..font_off..
 "<br/>"..font_green..translate("Note: Game proxy please use nodes except Vmess")..font_off..
 "<br/>"..translate("Note: The default proxy routes local traffic, BT, PT download, etc., please use redir mode as much as possible and pay attention to traffic avoidance")..
-"<br/>"..translate("Note: If the connection is abnormal, please follow the steps on this page to check first")..": ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://github.com/vernesong/OpenClash/wiki/%E7%BD%91%E7%BB%9C%E8%BF%9E%E6%8E%A5%E5%BC%82%E5%B8%B8%E6%97%B6%E6%8E%92%E6%9F%A5%E5%8E%9F%E5%9B%A0\")'>"..translate("Click to the page").."</a>"
+"<br/>"..translate("Note: If the connection is abnormal, please follow the steps on this page to check first")..": ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://github.com/vernesong/OpenClash/wiki/%E7%BD%91%E7%BB%9C%E8%BF%9E%E6%8E%A5%E5%BC%82%E5%B8%B8%E6%97%B6%E6%8E%92%E6%9F%A5%E5%8E%9F%E5%9B%A0\")'>"..font_green..bold_on..translate("Click to the page")..bold_off..font_off.."</a>"
 
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
