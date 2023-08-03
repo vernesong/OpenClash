@@ -1256,8 +1256,6 @@ firewall_redirect_exclude()
 set_tun_tap()
 {
       #启动TUN
-      local type=$1
-
       if [ -z "$1" ]; then
          ip_="ip"
       else
@@ -1267,12 +1265,21 @@ set_tun_tap()
       TUN_WAIT=0
       TUN_RESTART=1
 
-      if [ -n "$(pidof clash)" ] && [ -n "$(ip rule show |grep "fwmark 0x162 lookup 354")" ]; then
-         ip -6 rule del oif utun table 2022 >/dev/null 2>&1
-         ip -6 route del default dev utun table 2022 >/dev/null 2>&1
+      if [ -n "$(pidof clash)" ] && [ -n "$1" ] && [ "$(ip -6 route list |grep utun |wc -l)" -ne 2 ] && [ -n "$(ifconfig utun)" ]; then
+         if [ "$enable_meta_core" = "1" ]; then
+            ifconfig utun inet6 add fdfe:dcba:9876::1/126 >/dev/null 2>&1
+            ip -6 route add fdfe:dcba:9876::/126 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
+            ip -6 route add fe80::/64 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
+         fi
          ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
          ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-         return
+      fi
+
+      #prevent lost when v6 utun address conflict added
+      if [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ -n "$(ifconfig utun)" ]; then
+         route add -net "$fakeip_range" dev utun >/dev/null 2>&1
+         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
       fi
 
       $ip_ link set utun up
@@ -1302,7 +1309,7 @@ set_tun_tap()
          fi
       fi
 
-      if [ -n "$1" ]; then
+      if [ -n "$1" ] && [ "$enable_meta_core" = "1" ]; then
          ip -6 rule del oif utun table 2022 >/dev/null 2>&1
          ip -6 route del default dev utun table 2022 >/dev/null 2>&1
       fi
@@ -2961,6 +2968,7 @@ revert_firewall()
    ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip -6 rule del oif utun table 2022 >/dev/null 2>&1
    ip -6 route del default dev utun table 2022 >/dev/null 2>&1
+   ip -6 route del fdfe:dcba:9876::/126 dev utun proto kernel metric 256 >/dev/null 2>&1
    ip -6 link set dev utun down >/dev/null 2>&1
    ip -6 tuntap del utun mode tun >/dev/null 2>&1
 
@@ -3144,7 +3152,6 @@ start()
        
    LOG_OUT "Step 7: Set Firewall Rules..."
    set_firewall
-
    LOG_OUT "Step 8: Restart Dnsmasq..."
    change_dns "$enable_redirect_dns" "$disable_masq_cache"
    
