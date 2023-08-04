@@ -142,7 +142,7 @@ if [ "$enable" -eq 1 ]; then
 	      if [ "$core_type" == "TUN" ] || [ "$core_type" == "Meta" ]; then
 	         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
 	         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
-            if [ "$ipv6_mode" -eq 2 ] && [ "$ipv6_enable" -eq 1 ]; then
+            if [ "$ipv6_mode" -eq 2 ] && [ "$ipv6_enable" -eq 1 ] && [ "$core_type" == "Meta" ]; then
                ip -6 rule del oif utun table 2022 >/dev/null 2>&1
                ip -6 route del default dev utun table 2022 >/dev/null 2>&1
                ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1

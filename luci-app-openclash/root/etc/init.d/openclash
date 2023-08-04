@@ -1275,7 +1275,7 @@ set_tun_tap()
          ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
       fi
 
-      #prevent lost when v6 utun address conflict added
+      #prevent lost when v6 utun address added
       if [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ -n "$(ifconfig utun)" ]; then
          route add -net "$fakeip_range" dev utun >/dev/null 2>&1
          ip route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
