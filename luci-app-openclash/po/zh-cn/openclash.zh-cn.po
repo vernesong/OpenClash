@@ -575,11 +575,14 @@ msgstr "指定流量(策略)的代理方式，只支持选择（策略组），�
 msgid "Custom Clash Rules"
 msgstr "*自定义规则"
 
-msgid "Custom Priority Rules Here, For More Go:"
-msgstr "设置自定义规则（优先匹配），详细信息请参阅:"
+msgid "Custom Rules Here, For More Go:"
+msgstr "在上方设置自定义规则，详细信息请参阅:"
 
-msgid "Custom Extended Rules Here, For More Go:"
-msgstr "设置自定义规则（候补匹配），详细信息请参阅:"
+msgid "(Priority)"
+msgstr "（优先匹配）"
+
+msgid "(Extended)"
+msgstr "（候补匹配）"
 
 msgid "IP To CIDR:"
 msgstr "在线 IP 段转 CIDR 地址:"
@@ -1332,8 +1335,8 @@ msgstr "注意：客户端可能无法更新，因为squashfs格式的固件更�
 msgid "Compiled Version Selected (Auto-save when you click to update or download)"
 msgstr "已选择编译版本（点击更新或下载时自动保存）"
 
-msgid "Release Branch Selected"
-msgstr "已选择更新分支"
+msgid "Release Branch Selected (Auto-save when you click to update or download)"
+msgstr "已选择更新分支（点击更新或下载时自动保存）"
 
 msgid "CPU Architecture"
 msgstr "处理器架构"
@@ -3431,3 +3434,6 @@ msgstr "*启用统一延迟"
 
 msgid "Change the delay calculation method to remove extra delays such as handshaking"
 msgstr "更换延迟计算方式，通过去除握手等额外开销来降低延迟数值"
+
+msgid "Tip: If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
+msgstr "提示：如果下载失败，您可以尝试在覆写设置 - 常规设置 - Github地址修改选项中设置CDN"
