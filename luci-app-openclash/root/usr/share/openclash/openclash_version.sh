@@ -8,6 +8,10 @@ OP_LV=$(sed -n 1p $LAST_OPVER 2>/dev/null |awk -F '-' '{print $1}' |awk -F 'v' '
 github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
 LOG_FILE="/tmp/openclash.log"
 
+if [ "$github_address_mod" = "0" ]; then
+   LOG_OUT "Tip: If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
+fi
+
 if [ "$TIME" != "$CHTIME" ]; then
 	if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
