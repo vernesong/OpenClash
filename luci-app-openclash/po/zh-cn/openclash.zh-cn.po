@@ -1614,8 +1614,8 @@ msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.ipk，请尝试�
 msgid "Download Failed, Please Check The Network or Try Again Later!"
 msgstr "下载失败，请检查网络或稍后再试！"
 
-msgid "Failed to Get Version Information, Please Try Again Later..."
-msgstr "获取版本信息失败，请稍后再试..."
+msgid "Error: Failed to Get Version Information, Please Try Again Later..."
+msgstr "错误：获取版本信息失败，请稍后再试..."
 
 msgid "OpenClash Has not Been Updated, Stop Continuing!"
 msgstr "OpenClash 没有更新，停止继续操作！"
