@@ -3,13 +3,16 @@
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 
+github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
+if [ "$github_address_mod" = "0" ] && [ "$1" != "one_key_update" ] && [ "$2" != "one_key_update" ]; then
+   LOG_OUT "Tip: If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
+fi
 CORE_TYPE="$1"
 C_CORE_TYPE=$(uci -q get openclash.config.core_type)
 [ -z "$CORE_TYPE" ] || [ "$1" = "one_key_update" ] && CORE_TYPE="Dev"
 small_flash_memory=$(uci -q get openclash.config.small_flash_memory)
 CPU_MODEL=$(uci -q get openclash.config.core_version)
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
-github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
 LOG_FILE="/tmp/openclash.log"
 
 [ ! -f "/tmp/clash_last_version" ] && /usr/share/openclash/clash_version.sh 2>/dev/null
