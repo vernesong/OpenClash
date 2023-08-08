@@ -93,7 +93,7 @@ o = s:option(Value, "convert_address", translate("Convert Address"))
 o.rmempty     = true
 o.description = font_red..bold_on..translate("Note: There is A Risk of Privacy Leakage in Online Convert")..bold_off..font_off
 o:depends("sub_convert", "1")
-o:value("https://api.dler.io/sub", translate("api.dler.io")..translate("(Default)"))
+o:value("https://sub.789.st/sub", translate("sub.789.st")..translate("(Default)"))
 o:value("https://subconverter.herokuapp.com/sub", translate("subconverter.herokuapp.com")..translate("(Default)"))
 o:value("https://v.id9.cc/sub", translate("v.id9.cc")..translate("(Support Vless By Pinyun)"))
 o:value("https://sub.id9.cc/sub", translate("sub.id9.cc"))
