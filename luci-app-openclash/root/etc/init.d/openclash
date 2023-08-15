@@ -1267,7 +1267,7 @@ set_tun_tap()
 
       if [ -n "$(pidof clash)" ] && [ -n "$1" ] && [ "$(ip -6 route list |grep utun |wc -l)" -ne 2 ] && [ -n "$(ifconfig utun)" ]; then
          if [ "$enable_meta_core" = "1" ]; then
-            ifconfig utun inet6 add fdfe:dcba:9876::1/126 >/dev/null 2>&1
+            ip -6 addr add fdfe:dcba:9876::1/126 dev utun >/dev/null 2>&1
             ip -6 route add fdfe:dcba:9876::/126 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
             ip -6 route add fe80::/64 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
          fi
