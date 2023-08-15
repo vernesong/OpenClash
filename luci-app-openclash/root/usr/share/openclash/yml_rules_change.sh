@@ -940,6 +940,7 @@ yml_other_rules_get()
    config_get "OpenAI" "$section" "OpenAI" "$Proxy"
    config_get "AppleTV" "$section" "AppleTV" "$GlobalTV"
    config_get "miHoYo" "$section" "miHoYo" "$Domestic"
+   config_get "AntiIP" "$section" "AntiIP" "$Domestic"
 }
 
 if [ "$1" != "0" ]; then
@@ -1001,6 +1002,7 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$AntiIP" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
@@ -1040,6 +1042,7 @@ if [ "$1" != "0" ]; then
             .gsub(/,[\s]?Discovery Plus,[\s]?Global TV$/, ', Discovery Plus, $Discovery#delete_')
             .gsub(/,[\s]?DAZN,[\s]?Global TV$/, ', DAZN, $DAZN#delete_')
             .gsub(/,[\s]?Pornhub,[\s]?Global TV$/, ', Pornhub, $Pornhub#delete_')
+            .gsub(/,[\s]?Anti IP$/, ', $AntiIP#delete_')
             .gsub(/,[\s]?Global TV$/, ', $GlobalTV#delete_')
             .gsub(/,[\s]?Asian TV$/, ', $AsianTV#delete_')
             .gsub(/,[\s]?Proxy$/, ', $Proxy#delete_')
@@ -1094,6 +1097,7 @@ if [ "$1" != "0" ]; then
             .gsub!(/: \'PayPal\'/,': \'$PayPal#delete_\'')
             .gsub!(/: \'Domestic\'/,': \'$Domestic#delete_\'')
             .gsub!(/: \'Google FCM\'/,': \'$GoogleFCM#delete_\'')
+            .gsub!(/: \'Anti IP\'/,': \'$AntiIP#delete_\'')
             .gsub!(/return \'Domestic\'$/, 'return \'$Domestic#delete_\'')
             .gsub!(/return \'Others\'$/, 'return \'$Others#delete_\'')
             .gsub!(/#delete_/, '');

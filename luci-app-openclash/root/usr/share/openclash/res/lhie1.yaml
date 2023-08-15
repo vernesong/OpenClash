@@ -1,7 +1,7 @@
 rules:
-- RULE-SET, Anti IP, DIRECT
 - RULE-SET, Reject, AdBlock
 - RULE-SET, Special, DIRECT
+- RULE-SET, Anti IP, Anti IP
 - RULE-SET, Netflix, Netflix
 - RULE-SET, Disney Plus, Disney
 - RULE-SET, YouTube, YouTube
@@ -66,9 +66,9 @@ script:
   code: |
     def main(ctx, metadata):
         ruleset_action = {
-            'Anti IP': 'DIRECT',
             'Reject': 'AdBlock',
             'Special': 'DIRECT',
+            'Anti IP': 'Anti IP',
             'Netflix': 'Netflix',
             'Disney Plus': 'Disney',
             'YouTube': 'YouTube',
