@@ -32,7 +32,7 @@ define Package/$(PKG_NAME)
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
 	DEPENDS:=+dnsmasq-full +coreutils +coreutils-nohup +bash +curl +ca-certificates +ipset +ip-full \
-	+libcap +libcap-bin +ruby +ruby-yaml +kmod-tun +unzip
+	+libcap +libcap-bin +ruby +ruby-yaml +kmod-tun +unzip +luci-compat
 	MAINTAINER:=vernesong
 endef
 
