@@ -380,6 +380,9 @@ Thread.new{
       if '${34}' == '1' then
          Value['unified-delay']=true;
       end;
+      if '${35}' != '0' then
+         Value['keep-alive-interval']=${35};
+      end;
       if '${29}' != '0' then
          Value['find-process-mode']='${29}';
       end;
