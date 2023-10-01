@@ -13,6 +13,9 @@ define Package/$(PKG_NAME)/config
 	config PACKAGE_kmod-inet-diag
 	default y if PACKAGE_$(PKG_NAME)
 
+	config PACKAGE_luci-compat
+	default y if PACKAGE_$(PKG_NAME)
+
 	config PACKAGE_kmod-nft-tproxy
 	default y if PACKAGE_firewall4
 
