@@ -3443,3 +3443,6 @@ msgstr "更改 TCP Keep-alive 间隔，选择较大数值可以避免异常的�
 
 msgid "TCP Keep-alive Interval(s)"
 msgstr "TCP Keep-alive 间隔（s）"
+
+msgid "Used for Downloading Subscriptions, Defaults to Clash"
+msgstr "用于下载订阅时指定 UA，默认为 Clash"
