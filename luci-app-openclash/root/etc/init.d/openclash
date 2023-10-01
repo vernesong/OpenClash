@@ -25,7 +25,7 @@ CACHE_PATH_OLD="/etc/openclash/.cache"
 CACHE_PATH="/etc/openclash/cache.db"
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
-LOCK_FILE=/tmp/lock/openclash.lock
+LOCK_FILE="/tmp/lock/openclash.lock"
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
 
@@ -2502,7 +2502,6 @@ if [ -z "$FW4" ]; then
       #TUN模式
       #启动TUN
       set_tun_tap
-
       #设置防火墙
       if [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
          if [ "$en_mode" = "fake-ip" ]; then
@@ -2960,17 +2959,9 @@ revert_firewall()
    #TUN
    ip route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-   route delete -net "$fakeip_range" dev utun >/dev/null 2>&1
-   ip link set dev utun down >/dev/null 2>&1
-   ip tuntap del utun mode tun >/dev/null 2>&1
 
    ip -6 route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-   ip -6 rule del oif utun table 2022 >/dev/null 2>&1
-   ip -6 route del default dev utun table 2022 >/dev/null 2>&1
-   ip -6 route del fdfe:dcba:9876::/126 dev utun proto kernel metric 256 >/dev/null 2>&1
-   ip -6 link set dev utun down >/dev/null 2>&1
-   ip -6 tuntap del utun mode tun >/dev/null 2>&1
 
    if [ -n "$FW4" ]; then
       for nft in "input" "forward" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
@@ -3266,10 +3257,11 @@ restart()
 
 reload()
 {
+   [ -f "$LOCK_FILE" ] && exit 0
    enable=$(uci -q get openclash.config.enable)
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "firewall" ]; then
-      LOG_OUT "Reload OpenClash Firewall Rules..."
       set_lock
+      LOG_OUT "Reload OpenClash Firewall Rules..."
       revert_firewall 2>/dev/null
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
