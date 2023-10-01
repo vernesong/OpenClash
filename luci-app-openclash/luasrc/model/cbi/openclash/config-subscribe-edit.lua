@@ -82,7 +82,15 @@ if token then
 		fs.unlink(sub_path)
 	end
 end
-	
+
+---- UA
+o = s:option(Value, "sub_ua", "User-Agent")
+o.description = font_red..bold_on..translate("Used for Downloading Subscriptions, Defaults to Clash")..bold_off..font_off
+o:value("Clash")
+o:value("clash.meta")
+o.default = "Clash"
+o.rmempty = true
+
 ---- subconverter
 o = s:option(Flag, "sub_convert", translate("Subscribe Convert Online"))
 o.description = translate("Convert Subscribe Online With Template")
