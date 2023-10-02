@@ -1024,7 +1024,7 @@ do
       }.join
    end;
 
-   if '$server_type' == 'hysteria' then
+   if '$server_type' == 'hysteria' or '$server_type' == 'hysteria2' then
       Thread.new{
       #hysteria_protocol
       if Value['proxies'][$count].key?('protocol') then
@@ -1103,6 +1103,13 @@ do
       if Value['proxies'][$count].key?('obfs') then
          hysteria_obfs = '${uci_set}hysteria_obfs=' + Value['proxies'][$count]['obfs'].to_s
          system(hysteria_obfs)
+      end
+      }.join
+
+      #hysteria_obfs_password
+      if Value['proxies'][$count].key?('obfs-password') then
+         hysteria_obfs_password = '${uci_set}hysteria_obfs_password=' + Value['proxies'][$count]['obfs-password'].to_s
+         system(hysteria_obfs_password)
       end
       }.join
 
