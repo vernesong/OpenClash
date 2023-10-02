@@ -302,6 +302,7 @@ yml_servers_set()
    config_get "multiplex_statistic" "$section" "multiplex_statistic" ""
    config_get "multiplex_only_tcp" "$section" "multiplex_only_tcp" ""
    config_get "other_parameters" "$section" "other_parameters" ""
+   config_get "hysteria_obfs_password" "$section" "hysteria_obfs_password" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -904,6 +905,75 @@ EOF
       if [ -n "$hop_interval" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     hop-interval: $hop_interval
+EOF
+      fi
+   fi
+
+#hysteria2
+   if [ "$type" = "hysteria2" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  - name: "$name"
+    type: $type
+    server: "$server"
+    port: $port
+    password: "$password"
+EOF
+      if [ -n "$hysteria_up" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    up: "$hysteria_up"
+EOF
+      fi
+      if [ -n "$hysteria_down" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    down: "$hysteria_down"
+EOF
+      fi
+      if [ -n "$skip_cert_verify" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    skip-cert-verify: $skip_cert_verify
+EOF
+      fi
+      if [ -n "$sni" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    sni: "$sni"
+EOF
+      fi
+      if [ -n "$hysteria_alpn" ]; then
+         if [ -z "$(echo $hysteria_alpn |grep ' ')" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    alpn: 
+      - "$hysteria_alpn"
+EOF
+         else
+cat >> "$SERVER_FILE" <<-EOF
+    alpn:
+EOF
+      config_list_foreach "$section" "hysteria_alpn" set_alpn
+         fi
+      fi
+      if [ -n "$hysteria_obfs" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    obfs: "$hysteria_obfs"
+EOF
+      fi
+      if [ -n "$hysteria_obfs_password" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    obfs-password: "$hysteria_obfs_password"
+EOF
+      fi
+      if [ -n "$hysteria_ca" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    ca: "$hysteria_ca"
+EOF
+      fi
+      if [ -n "$hysteria_ca_str" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    ca-str: "$hysteria_ca_str"
+EOF
+      fi
+      if [ -n "$fingerprint" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    fingerprint: "$fingerprint"
 EOF
       fi
    fi
