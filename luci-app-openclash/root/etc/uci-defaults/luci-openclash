@@ -204,7 +204,6 @@ add_utun_firewall_zone()
 	if [ "$name" = "lan" ] && [ -z "$(echo $network |grep utun)" ]; then
 		uci -q set firewall."$section".network="$network utun"
 		uci -q commit firewall
-		/etc/init.d/network restart >/dev/null 2>&1 &
 	fi
 }
 
