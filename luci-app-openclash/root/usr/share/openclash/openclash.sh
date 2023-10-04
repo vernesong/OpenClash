@@ -642,7 +642,6 @@ sub_info_get()
    LOG_OUT "Start Updating Config File【$name】..."
 
    config_download
-   exit 0
    if [ "${PIPESTATUS[0]}" -eq 0 ] && [ -s "$CFG_FILE" ]; then
       #prevent ruby unexpected error
       sed -i -E 's/protocol-param: ([^,'"'"'"''}( *#)\n\r]+)/protocol-param: "\1"/g' "$CFG_FILE" 2>/dev/null
