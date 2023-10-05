@@ -210,6 +210,7 @@ add_utun_firewall_zone()
 uci -q set network.utun=interface
 uci -q set network.utun.proto=none
 uci -q set network.utun.ifname=utun
+uci -q set network.utun.device=utun
 uci -q commit network
 
 config_load "firewall"
