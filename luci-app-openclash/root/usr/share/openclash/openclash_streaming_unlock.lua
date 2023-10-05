@@ -822,7 +822,7 @@ function auto_get_policy_group(passwd, ip, port)
 	if con then
 		con = JSON.parse(con)
 	end
-	if con then
+	if con and con.connections then
 		for i = 1, #(con.connections) do
 			if type == "Netflix" then
 				if string.match(con.connections[i].metadata.host, "www%.netflix%.com") then
