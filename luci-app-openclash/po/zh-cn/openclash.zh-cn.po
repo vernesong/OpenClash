@@ -1167,6 +1167,9 @@ msgstr "Yacd 控制面板"
 msgid "Dashboard Control Panel"
 msgstr "Dashboard 控制面板"
 
+msgid "Metacubexd Control Panel"
+msgstr "Metacubexd 控制面板"
+
 msgid "Control Panel Login IP"
 msgstr "控制面板登录 IP"
 
@@ -1226,9 +1229,6 @@ msgstr "兼容"
 
 msgid "Mix"
 msgstr "混合"
-
-msgid "Open Panel"
-msgstr "打开控制面板"
 
 msgid "Close All Connections"
 msgstr "重置所有链接"
@@ -3108,8 +3108,14 @@ msgstr "切换（更新） Dashboard 版本"
 msgid "Switch(Update) Yacd Version"
 msgstr "切换（更新） Yacd 版本"
 
+msgid "Update Metacubexd Version"
+msgstr "更新 Metacubexd 版本"
+
 msgid "Downloading File..."
 msgstr "文件下载中..."
+
+msgid "Upgrade Failed"
+msgstr "更新失败"
 
 msgid "Switch Failed"
 msgstr "切换失败"
