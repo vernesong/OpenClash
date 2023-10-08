@@ -994,7 +994,7 @@ function action_switch_dashboard()
 			uci:set("openclash", "config", "dashboard_type", "Meta")
 			uci:commit("openclash")
 		end
-	elseif tonumber(state) == 1 then
+	elseif switch_name == "Yacd" and tonumber(state) == 1 then
 		if switch_type == "Official" then
 			uci:set("openclash", "config", "yacd_type", "Official")
 			uci:commit("openclash")

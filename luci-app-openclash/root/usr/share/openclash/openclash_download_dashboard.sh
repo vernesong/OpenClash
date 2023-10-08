@@ -18,7 +18,7 @@
 			DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/Razord-meta/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="Razord-meta-gh-pages"
       fi
-	else
+	elif [ "$DASH_NAME" == "Yacd" ]; then
       UNPACK_FILE_DIR="/usr/share/openclash/ui/yacd/"
       BACKUP_FILE_DIR="/usr/share/openclash/ui/yacd_backup/"
 		if [ "$DASH_TYPE" == "Official" ]; then
@@ -28,6 +28,11 @@
 			DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/Yacd-meta/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="Yacd-meta-gh-pages"
       fi
+   else
+      UNPACK_FILE_DIR="/usr/share/openclash/ui/metacubexd/"
+      BACKUP_FILE_DIR="/usr/share/openclash/ui/metacubexd_backup/"
+		DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/metacubexd/zip/refs/heads/gh-pages"
+      FILE_PATH_INCLUDE="metacubexd-gh-pages"
 	fi
    
    curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$DOWNLOAD_PATH" -o "$DASH_FILE_DIR" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$DASH_FILE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"

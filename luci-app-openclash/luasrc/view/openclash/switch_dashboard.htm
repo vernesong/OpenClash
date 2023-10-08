@@ -24,6 +24,9 @@
 					switch_dashboard_<%=self.option%>.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Switch To Meta Version%>" onclick="return switch_dashboard(this, btn_type_<%=self.option%>, \'Meta\')"/>';
 				}
 			}
+			if ( btn_type_<%=self.option%> == "Metacubexd" ) {
+				switch_dashboard_<%=self.option%>.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Upgrade Metacubexd Version%>" onclick="return switch_dashboard(this, btn_type_<%=self.option%>, \'Official\')"/>';
+			}
         }
 	});
     
@@ -47,9 +50,12 @@
 						if ( name == "Dashboard" ) {
 							document.getElementById("switch_dashboard_"+name).innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Switch Successful%> - <%:Switch To Meta Version%>" onclick="return switch_dashboard(this, \'Dashboard\', \'Meta\')"/>';
 						}
-						else
+						else if ( name == "Yacd" ) 
 						{
 							document.getElementById("switch_dashboard_"+name).innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Switch Successful%> - <%:Switch To Meta Version%>" onclick="return switch_dashboard(this, \'Yacd\', \'Meta\')"/>';
+						}
+						else{
+							document.getElementById("switch_dashboard_"+name).innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Upgrade Successful%> - <%:Upgrade Metacubexd Version%>" onclick="return switch_dashboard(this, \'Metacubexd\', \'Official\')"/>';
 						}
 					}
 				}
@@ -57,7 +63,12 @@
 					btn.value = '<%:Unzip Error%>';
 				}
 				else {
-					btn.value = '<%:Switch Failed%>';
+					if ( name == "Metacubexd" ) {
+						btn.value = '<%:Upgrade Failed%>';
+					}
+					else {
+						btn.value = '<%:Switch Failed%>';
+					}
 				}
 			}
 		});
