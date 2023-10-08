@@ -3114,8 +3114,11 @@ msgstr "更新 Metacubexd 版本"
 msgid "Downloading File..."
 msgstr "文件下载中..."
 
-msgid "Upgrade Failed"
+msgid "Update Failed"
 msgstr "更新失败"
+
+msgid "Update Successful"
+msgstr "更新成功"
 
 msgid "Switch Failed"
 msgstr "切换失败"
