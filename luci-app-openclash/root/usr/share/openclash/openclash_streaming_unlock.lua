@@ -1382,7 +1382,7 @@ function paramount_plus_unlock_test()
 		if not string.find(data.url_effective, "intl") then
 			status = 2
 			data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
-			region = string.upper(string.sub(string.match(data, "\"siteEdition\":\"%a+|%a+\""), 19, -1)) or string.upper(string.sub(string.match(data, "property: '%a+'"), 12, -2))
+			region = string.upper(string.sub(string.match(data, "\"siteEdition\":\"%a+|%a+\""), 19, -2)) or string.upper(string.sub(string.match(data, "property: '%a+'"), 12, -2))
 			if region then
 				if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
 					old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
