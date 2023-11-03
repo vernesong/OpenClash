@@ -224,14 +224,13 @@ fi
       if [ -n "$FW4" ]; then
          for i in `$(nft list chain inet fw4 openclash_upnp |grep "return")`
          do
-            upnp_ip=$(echo "$i" |awk -F 'ip saddr \\{ ' '{print $2}' |awk  '{print $1}')
-            upnp_dp=$(echo "$i" |awk -F 'udp sport ' '{print $2}' |awk  '{print $1}')
-            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
-               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
-                  handles=$(nft list chain inet fw4 openclash_upnp |grep "$i" |awk -F '# handle ' '{print$2}')
-                  for handle in $handles; do
-                     nft delete rule inet fw4 openclash_upnp handle ${handle}
-                  done
+            upnp_ip=$(echo "$i" |awk -F 'ip saddr ' '{print $2}' |awk  '{print $1}')
+            upnp_dp=$(echo "$i" |awk -F 'sport ' '{print $2}' |awk  '{print $1}')
+            upnp_type=$(echo "$i" |awk -F 'sport ' '{print $1}' |awk  '{print $4}' |tr '[a-z]' '[A-Z]')
+            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
+               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                  handle=$(nft -a list chain inet fw4 openclash_upnp |grep "$i" |awk -F '# handle ' '{print$2}')
+                  nft delete rule inet fw4 openclash_upnp handle ${handle}
                fi
             fi
          done >/dev/null 2>&1
@@ -239,10 +238,11 @@ fi
          for i in `$(iptables -t mangle -nL openclash_upnp |grep "RETURN")`
          do
             upnp_ip=$(echo "$i" |awk '{print $4}')
-            upnp_dp=$(echo "$i" |awk -F 'udp spt:' '{print $2}')
-            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
-               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
-                  iptables -t mangle -D openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+            upnp_dp=$(echo "$i" |awk -F 'spt:' '{print $2}')
+            upnp_type=$(echo "$i" |awk '{print $2}' |tr '[a-z]' '[A-Z]')
+            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
+               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                  iptables -t mangle -D openclash_upnp -p "$upnp_type" -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
                fi
             fi
          done >/dev/null 2>&1
@@ -254,14 +254,15 @@ fi
             if [ -n "$line" ]; then
                upnp_ip=$(echo "$line" |awk -F ':' '{print $3}')
                upnp_dp=$(echo "$line" |awk -F ':' '{print $4}')
-               if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
+               upnp_type=$(echo "$line" |awk -F ':' '{print $1}' |tr '[A-Z]' '[a-z]')
+               if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
                   if [ -n "$FW4" ]; then
-                     if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
-                        nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } udp sport "$upnp_dp" counter return 2>/dev/null
+                     if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                        nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } "$upnp_type" sport "$upnp_dp" counter return 2>/dev/null
                      fi
                   else
-                     if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
-                        iptables -t mangle -A openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                     if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                        iptables -t mangle -A openclash_upnp -p "$upnp_type" -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
                      fi
                   fi
                fi
