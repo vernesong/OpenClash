@@ -227,21 +227,22 @@ yml_dns_get()
             Value = YAML.load_file('$2');
             Value['proxy-groups'].each{
                |x|
-               if x['name'] == '$specific_group' then
-                  if (x.key?('use') and not x['use'].to_a.empty?) or (x.key?('proxies') and not x['proxies'].to_a.empty?) then
-                     puts 'return'
-                  end;
+               if x['name'] =~ /${specific_group}/ then
+                  puts x['name'];
+                  break;
                end;
             };
          }.join;
       rescue Exception => e
-         puts 'return'
+         puts 'return';
       end;" 2>/dev/null)
 
-      if [ "$group_check" != "return" ]; then
-         /usr/share/openclash/yml_groups_set.sh >/dev/null 2>&1 "$specific_group"
+      if [ "$group_check" != "return" ] && [ -n "$group_check" ]; then
+         specific_group="#$group_check"
+      else
+         specific_group=""
       fi
-      specific_group="#$specific_group"
+      
    elif [ "$specific_group" != "Disable" ] && [ -n "$specific_group" ]; then
       LOG_OUT "Warning: Only Meta Core Support Specific Group, Skip Setting【$dns_type$dns_address】"
       specific_group=""

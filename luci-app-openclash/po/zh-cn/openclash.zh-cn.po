@@ -3039,8 +3039,8 @@ msgstr "指定接口"
 msgid "DNS Lookup Only Through The Specific Interface"
 msgstr "DNS 仅通过特定接口进行查询"
 
-msgid "Specific Group"
-msgstr "指定策略组"
+msgid "Specific Group (Support Regex)"
+msgstr "指定策略组（支持正则匹配）"
 
 msgid "Group Use For Proxy The DNS"
 msgstr "用于代理此 DNS 的策略组"
