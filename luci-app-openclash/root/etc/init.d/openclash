@@ -942,14 +942,23 @@ upnp_exclude()
          if [ -n "$line" ]; then
             upnp_ip=$(echo "$line" |awk -F ':' '{print $3}')
             upnp_dp=$(echo "$line" |awk -F ':' '{print $4}')
+            upnp_type=$(echo "$line" |awk -F ':' '{print $1}')
             if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
                if [ -n "$FW4" ]; then
                   if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
-                     nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } udp sport "$upnp_dp" counter return 2>/dev/null
+                     if [ "$upnp_type" == "UDP" ]; then
+                        nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } udp sport "$upnp_dp" counter return 2>/dev/null
+                     else
+                        nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } tcp sport "$upnp_dp" counter return 2>/dev/null
+                     fi
                   fi
                else
                   if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
-                     iptables -t mangle -A openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                     if [ "$upnp_type" == "UDP" ]; then
+                        iptables -t mangle -A openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                     else
+                        iptables -t mangle -A openclash_upnp -p tcp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                     fi
                   fi
                fi
             fi
