@@ -191,6 +191,7 @@ uci -q set uhttpd.main.max_connections=100
 uci -q set uhttpd.main.script_timeout=3600
 uci -q commit uhttpd
 sed -i '/.*kB maximum content size*/c\HTTP_MAX_CONTENT = 1024*10240		-- 100 kB maximum content size' /usr/lib/lua/luci/http.lua >/dev/null 2>&1
+sed -i '/.*kB maximum content size*/c\export let HTTP_MAX_CONTENT = 1024*10240;		// 100 kB maximum content size' /usr/lib/lua/luci/http.lua >/dev/null 2>&1
 
 /etc/init.d/uhttpd restart >/dev/null 2>&1
 
