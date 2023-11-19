@@ -159,8 +159,7 @@ HTTP.setfilehandler(
 )
 
 if HTTP.formvalue("upload") then
-	local f = HTTP.formvalue("ulfile")
-	if #f <= 0 then
+	if not um.value then
 		um.value = translate("No Specify Upload File")
 	end
 end
