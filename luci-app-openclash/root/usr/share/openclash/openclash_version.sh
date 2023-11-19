@@ -22,14 +22,7 @@ if [ "$TIME" != "$CHTIME" ]; then
       curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/package/"$RELEASE_BRANCH"/version -o $LAST_OPVER 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
    fi
 
-   if [ "${PIPESTATUS[0]}" -ne 0 ] || [ -n "$(cat $LAST_OPVER |grep '<html>')" ]; then
-      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/version -o $LAST_OPVER 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-      curl_status=${PIPESTATUS[0]}
-   else
-      curl_status=0
-   fi
-
-   if [ "$curl_status" -eq 0 ] && [ -z "$(cat $LAST_OPVER |grep '<html>')" ]; then
+   if [ "${PIPESTATUS[0]}" -eq 0 ] && [ -z "$(cat $LAST_OPVER |grep '<html>')" ]; then
    	OP_LV=$(sed -n 1p $LAST_OPVER 2>/dev/null |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
       if [ "$(expr "$OP_CV" \>= "$OP_LV")" = "1" ]; then
          sed -i '/^https:/,$d' $LAST_OPVER
