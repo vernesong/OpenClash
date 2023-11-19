@@ -31,14 +31,7 @@ if [ "$TIME" != "$CHTIME" ]; then
       curl -SsL -m 60 https://raw.githubusercontent.com/vernesong/OpenClash/core/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
    fi
    
-   if [ "${PIPESTATUS[0]}" -ne 0 ] || [ -n "$(cat $LAST_OPVER |grep '<html>')" ]; then
-      curl -SsL -m 60 --retry 2 https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-      curl_status=${PIPESTATUS[0]}
-   else
-      curl_status=0
-   fi
-   
-   if [ "$curl_status" -ne 0 ] ; then
+   if [ "${PIPESTATUS[0]}" -ne 0 ]; then
       rm -rf $LAST_OPVER
    fi
 fi
