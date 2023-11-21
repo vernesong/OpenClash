@@ -628,8 +628,8 @@ sub_info_get()
       fi
       if [ -n "$template_path" ]; then
          template_path_encode=$(urlencode "$template_path")
-         [ -n "$key_match_param" ] && key_match_param="(?i)$(urlencode "$key_match_param")"
-         [ -n "$key_ex_match_param" ] && key_ex_match_param="(?i)$(urlencode "$key_ex_match_param")"
+         [ -n "$key_match_param" ] && key_match_param="$(urlencode "$key_match_param")"
+         [ -n "$key_ex_match_param" ] && key_ex_match_param="$(urlencode "$key_ex_match_param")"
          subscribe_url_param="?target=clash&new_name=true&url=$subscribe_url&config=$template_path_encode&include=$key_match_param&exclude=$key_ex_match_param&emoji=$emoji&list=false&sort=$sort$udp&scv=$skip_cert_verify&append_type=$node_type&fdn=true$rule_provider"
          c_address="$convert_address"
       else
