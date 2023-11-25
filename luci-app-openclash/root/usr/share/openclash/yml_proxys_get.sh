@@ -1106,6 +1106,7 @@ do
       end
       }.join
 
+      Thread.new{
       #hysteria_obfs_password
       if Value['proxies'][$count].key?('obfs-password') then
          hysteria_obfs_password = '${uci_set}hysteria_obfs_password=' + Value['proxies'][$count]['obfs-password'].to_s
