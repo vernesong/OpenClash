@@ -830,11 +830,11 @@
         btn.disabled = true;
         btn.value    = '<%:Metacubexd Control Panel%>';
         if (status.daip && window.location.hostname == status.daip) {
-            url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/metacubexd/?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+            url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/metacubexd/#/?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
         }
         else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
             var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-            url9='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/metacubexd/?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
+            url9='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/metacubexd/#/?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
         }
         else {
             url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/metacubexd/"%>';
@@ -850,11 +850,11 @@
         btn.disabled = true;
         btn.value    = '<%:Yacd Control Panel%>';
         if (status.daip && window.location.hostname == status.daip) {
-            url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+            url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/#/?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
         }
         else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
             var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-            url1='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/yacd/?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
+            url1='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/yacd/#/?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
         }
         else {
             url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/"%>';
