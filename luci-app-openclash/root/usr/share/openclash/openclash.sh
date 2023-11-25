@@ -89,15 +89,12 @@ config_download()
 {
 if [ -n "$subscribe_url_param" ]; then
    if [ -n "$c_address" ]; then
-      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H 'User-Agent: ${sub_ua}' "$c_address""$subscribe_url_param" -o "$CFG_FILE" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H "$sub_ua" "$c_address""$subscribe_url_param" -o "$CFG_FILE" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
    else
-      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H 'User-Agent: ${sub_ua}' https://api.dler.io/sub"$subscribe_url_param" -o "$CFG_FILE" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-      if [ "$?" -ne 0 ]; then
-         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H 'User-Agent: ${sub_ua}' https://subconverter.herokuapp.com/sub"$subscribe_url_param" -o "$CFG_FILE" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-      fi
+      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H "$sub_ua" https://api.dler.io/sub"$subscribe_url_param" -o "$CFG_FILE" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
    fi
 else
-   curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H 'User-Agent: ${sub_ua}' "$subscribe_url" -o "$CFG_FILE" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+   curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H "$sub_ua" "$subscribe_url" -o "$CFG_FILE" 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
 fi
 }
 
@@ -577,6 +574,10 @@ sub_info_get()
       udp="&udp=true"
    else
       udp=""
+   fi
+
+   if [ -n "$sub_ua" ]; then
+      sub_ua="'User-Agent: "$sub_ua"'"
    fi
    
    if [ "$rule_provider" == "true" ]; then
