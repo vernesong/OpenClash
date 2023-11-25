@@ -747,7 +747,7 @@ o:depends("type", "tuic")
 -- [[ TFO ]]--
 o = s:option(ListValue, "tfo", translate("TFO")..translate("(Only Meta Core)"))
 o.rmempty = true
-o.default = "true"
+o.default = "false"
 o:value("true")
 o:value("false")
 o:depends("type", "http")
@@ -800,7 +800,7 @@ o:value("ipv4")
 o:value("ipv4-prefer")
 o:value("ipv6")
 o:value("ipv6-prefer")
-o.default = "dual"
+o.default = "ipv4-prefer"
 
 -- [[ smux ]]--
 o = s:option(ListValue, "multiplex", translate("Multiplex")..translate("(Only Meta Core)"))

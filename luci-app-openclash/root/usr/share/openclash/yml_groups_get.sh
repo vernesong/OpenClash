@@ -185,7 +185,7 @@ do
    Thread.new{
    #strategy
    if Value['proxy-groups'][$count].key?('strategy') then
-      group_strategy = '${uci_set}strategy=' + Value['proxy-groups'][$count]['strategy'].to_s
+      group_strategy = '${uci_set}strategy=\"' + Value['proxy-groups'][$count]['strategy'].to_s + '\"'
       system(group_strategy)
    end;
    }.join;
@@ -193,7 +193,7 @@ do
    Thread.new{
    #disable-udp
    if Value['proxy-groups'][$count].key?('disable-udp') then
-      group_disable_udp = '${uci_set}disable_udp=' + Value['proxy-groups'][$count]['disable-udp'].to_s
+      group_disable_udp = '${uci_set}disable_udp=\"' + Value['proxy-groups'][$count]['disable-udp'].to_s + '\"'
       system(group_disable_udp)
    end;
    }.join;
@@ -208,14 +208,14 @@ do
 
       #test_interval
       if Value['proxy-groups'][$count].key?('interval') then
-         group_test_interval = '${uci_set}test_interval=' + Value['proxy-groups'][$count]['interval'].to_s
+         group_test_interval = '${uci_set}test_interval=\"' + Value['proxy-groups'][$count]['interval'].to_s + '\"'
          system(group_test_interval)
       end;
 
       #test_tolerance
       if Value['proxy-groups'][$count]['type'] == 'url-test' then
          if Value['proxy-groups'][$count].key?('tolerance') then
-            group_test_tolerance = '${uci_set}tolerance=' + Value['proxy-groups'][$count]['tolerance'].to_s
+            group_test_tolerance = '${uci_set}tolerance=\"' + Value['proxy-groups'][$count]['tolerance'].to_s + '\"'
             system(group_test_tolerance)
          end;
       end;
@@ -225,7 +225,7 @@ do
    Thread.new{
    #Policy Filter
    if Value['proxy-groups'][$count].key?('filter') then
-      policy_filter = '${uci_set}policy_filter=' + Value['proxy-groups'][$count]['filter'].to_s
+      policy_filter = '${uci_set}policy_filter=\"' + Value['proxy-groups'][$count]['filter'].to_s + '\"'
       system(policy_filter)
    end
    }.join;
@@ -233,7 +233,7 @@ do
    Thread.new{
    #interface-name
    if Value['proxy-groups'][$count].key?('interface-name') then
-      interface_name = '${uci_set}interface_name=' + Value['proxy-groups'][$count]['interface-name'].to_s
+      interface_name = '${uci_set}interface_name=\"' + Value['proxy-groups'][$count]['interface-name'].to_s + '\"'
       system(interface_name)
    end
    }.join;
@@ -241,7 +241,7 @@ do
    Thread.new{
    #routing-mark
    if Value['proxy-groups'][$count].key?('routing-mark') then
-      routing_mark = '${uci_set}routing_mark=' + Value['proxy-groups'][$count]['routing-mark'].to_s
+      routing_mark = '${uci_set}routing_mark=\"' + Value['proxy-groups'][$count]['routing-mark'].to_s + '\"'
       system(routing_mark)
    end
    }.join;
