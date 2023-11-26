@@ -577,7 +577,7 @@ sub_info_get()
    fi
 
    if [ -n "$sub_ua" ]; then
-      sub_ua="'User-Agent: "$sub_ua"'"
+      sub_ua="User-Agent: $sub_ua"
    fi
    
    if [ "$rule_provider" == "true" ]; then
