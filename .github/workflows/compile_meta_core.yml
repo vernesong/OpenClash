@@ -34,7 +34,7 @@ jobs:
       - name: Clone Clash Meta Repository
         uses: actions/checkout@v3
         with:
-          repository: MetaCubeX/Clash.Meta
+          repository: MetaCubeX/mihomo
           ref: Alpha
       
       - name: Get Upstream Version
@@ -83,7 +83,7 @@ jobs:
       - name: Clone Clash Meta Repository
         uses: actions/checkout@v3
         with:
-          repository: MetaCubeX/Clash.Meta
+          repository: MetaCubeX/mihomo
           ref: Alpha
       
       - name: Compile Meta Clash
