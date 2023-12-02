@@ -3274,8 +3274,8 @@ reload()
       revert_firewall 2>/dev/null
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
-      start_run_core
-      check_core_status
+      #start_run_core
+      #check_core_status
       set_firewall 2>/dev/null
       /etc/init.d/dnsmasq restart >/dev/null 2>&1
       SLOG_CLEAN
