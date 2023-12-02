@@ -41,58 +41,85 @@ end
 
 local e,a={}
 for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
-a=fs.stat(o)
-if a then
-e[t]={}
-e[t].num=string.format(t)
-e[t].name=fs.basename(o)
-BACKUP_FILE="/etc/openclash/backup/".. e[t].name
-if fs.mtime(BACKUP_FILE) then
-	e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",fs.mtime(BACKUP_FILE))
-else
-	e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
-end
-if uci:get("openclash", "config", "config_path") and string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
-	e[t].state=translate("Enable")
-else
-	e[t].state=translate("Disable")
-end
-e[t].check=translate(config_check(o))
-end
+	a=fs.stat(o)
+	if a then
+		e[t]={}
+		e[t].num=string.format(t)
+		e[t].name=fs.basename(o)
+		BACKUP_FILE="/etc/openclash/backup/".. e[t].name
+		if fs.mtime(BACKUP_FILE) then
+			e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",fs.mtime(BACKUP_FILE))
+		else
+			e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
+		end
+		if uci:get("openclash", "config", "config_path") and string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
+			e[t].state=translate("Enable")
+		else
+			e[t].state=translate("Disable")
+		end
+		e[t].check=translate(config_check(o))
+	end
 end
 
 form = SimpleForm("openclash")
 form.reset = false
 form.submit = false
-tb=form:section(Table,e)
-st=tb:option(DummyValue,"state",translate("State"))
-nm=tb:option(DummyValue,"name",translate("Config Alias"))
-sb=tb:option(DummyValue,"name",translate("Subscription Info"))
-mt=tb:option(DummyValue,"mtime",translate("Update Time"))
-ck=tb:option(DummyValue,"check",translate("Grammar Check"))
-st.template="openclash/cfg_check"
-ck.template="openclash/cfg_check"
-sb.template="openclash/sub_info_show"
+if a then
+	tb=form:section(Table,e)
+	st=tb:option(DummyValue,"state",translate("State"))
+	nm=tb:option(DummyValue,"name",translate("Config Alias"))
+	sb=tb:option(DummyValue,"name",translate("Subscription Info"))
+	mt=tb:option(DummyValue,"mtime",translate("Update Time"))
+	ck=tb:option(DummyValue,"check",translate("Grammar Check"))
+	st.template="openclash/cfg_check"
+	ck.template="openclash/cfg_check"
+	sb.template="openclash/sub_info_show"
 
-btnis=tb:option(Button,"switch",translate("Switch Config"))
-btnis.template="openclash/other_button"
-btnis.render=function(o,t,a)
-if not e[t] then return false end
-if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
-a.display=""
-else
-a.display="none"
+	btnis=tb:option(Button,"switch",translate("Switch Config"))
+	btnis.template="openclash/other_button"
+	btnis.render=function(o,t,a)
+		if not e[t] then return false end
+			if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+				a.display=""
+			else
+				a.display="none"
+			end
+		o.inputstyle="apply"
+		Button.render(o,t,a)
+	end
+	btnis.write=function(a,t)
+		fs.unlink("/tmp/Proxy_Group")
+		uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..e[t].name)
+		uci:set("openclash", "config", "enable", 1)
+		uci:commit("openclash")
+		SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+		HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "client"))
+	end
 end
-o.inputstyle="apply"
-Button.render(o,t,a)
-end
-btnis.write=function(a,t)
-fs.unlink("/tmp/Proxy_Group")
-uci:set("openclash", "config", "config_path", "/etc/openclash/config/"..e[t].name)
-uci:set("openclash", "config", "enable", 1)
-uci:commit("openclash")
-SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "client"))
+
+if not a then
+	local tc = {
+		{create, upload}
+	}
+	tb=form:section(Table,tc)
+	btncr=tb:option(Button,"create",translate("Config Subscribe"))
+	btncr.template="openclash/other_button"
+	btncr.inputstyle="apply"
+	btncr.write=function()
+		local sid = uci:add("openclash", "config_subscribe")
+		if sid then
+			uci:commit("openclash")
+			HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config-subscribe-edit", sid))
+			return
+		end
+	end
+
+	btnup=tb:option(Button,"upload",translate("Upload Config File"))
+	btnup.template="openclash/other_button"
+	btnup.inputstyle="apply"
+	btnup.write=function()
+		HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
+	end
 end
 
 s = SimpleForm("openclash")
