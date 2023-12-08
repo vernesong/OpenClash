@@ -21,14 +21,14 @@ set_lock
 if [ "$TIME" != "$CHTIME" ]; then
    if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
-         curl -SsL -m 60 "$github_address_mod"gh/vernesong/OpenClash@core/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         curl -SsL -m 60 "$github_address_mod"gh/vernesong/OpenClash@core/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
       elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
-         curl -SsL -m 60 https://raw.fastgit.org/vernesong/OpenClash/core/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         curl -SsL -m 60 https://raw.fastgit.org/vernesong/OpenClash/core/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
       else
-         curl -SsL -m 60 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/core/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         curl -SsL -m 60 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/core/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
       fi
    else
-      curl -SsL -m 60 https://raw.githubusercontent.com/vernesong/OpenClash/core/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+      curl -SsL -m 60 https://raw.githubusercontent.com/vernesong/OpenClash/core/"$RELEASE_BRANCH"/core_version -o $LAST_OPVER 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$LAST_OPVER" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
    fi
    
    if [ "${PIPESTATUS[0]}" -ne 0 ]; then
