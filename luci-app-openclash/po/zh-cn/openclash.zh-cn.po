@@ -2971,7 +2971,7 @@ msgid "Note: Some software will modify the device HOSTS, which will cause abnorm
 msgstr "注意: 部分软件会修改设备 HOSTS，会导致分流异常，请注意检查"
 
 msgid "Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance"
-msgstr "注意: 默认代理路由本机流量，BT、PT 下载等请尽量使用 redir 模式并注意进行流量规避"
+msgstr "注意: 默认代理路由本机流量，BT、PT 下载等请尽量使用 Redir-Host 模式并注意进行流量规避"
 
 msgid "Note: Game proxy please use nodes except VMess"
 msgstr "注意: 游戏代理请使用 VMess 以外的节点"
@@ -2980,7 +2980,7 @@ msgid "Note: If the connection is abnormal, please follow the steps on this page
 msgstr "注意: 连接异常时请按照此页步骤先进行检查"
 
 msgid "Note: If you need to perform client access control in Fake-IP mode, please change the DNS hijacking mode to firewall forwarding"
-msgstr "注意: Fake-ip 模式下如需要进行客户端访问控制，请将DNS劫持模式改为防火墙转发"
+msgstr "注意: Fake-IP 模式下如需要进行客户端访问控制，请将DNS劫持模式改为防火墙转发"
 
 msgid "Click to the page"
 msgstr "点击前往"
