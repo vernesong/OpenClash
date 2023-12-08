@@ -49,14 +49,14 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 
    LOG_OUT "Start Downloading【OpenClash - v$LAST_VER】..."
    if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
-         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"gh/vernesong/OpenClash@package/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.ipk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"gh/vernesong/OpenClash@package/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.ipk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
       elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
-         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://raw.fastgit.org/vernesong/OpenClash/package/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.ipk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://raw.fastgit.org/vernesong/OpenClash/package/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.ipk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
       else
-         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/package/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.ipk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/package/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.ipk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
       fi
    else
-      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/package/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk 2>&1 | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.ipk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/package/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.ipk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
    fi
 
    if [ "${PIPESTATUS[0]}" -eq 0 ] && [ -s "/tmp/openclash.ipk" ]; then
