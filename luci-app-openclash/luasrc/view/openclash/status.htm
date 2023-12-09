@@ -39,11 +39,11 @@
 				<%
 					if uci:get("openclash", "config", "enable_meta_core") ~= '1' then
 				%>
-	      				<img id="_logo" src="/luci-static/resources/openclash/img/logo.png?<%=random%>" loading="lazy" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/logo.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/logo.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+	      				<img id="_logo" src="/luci-static/resources/openclash/img/logo.png?<%=random%>" loading="lazy" width="150px" height="150px" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/logo.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/logo.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 				<%
 					else
 				%>
-						<img id="_logo" src="/luci-static/resources/openclash/img/meta.png?<%=random%>" loading="lazy" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/meta.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+						<img id="_logo" src="/luci-static/resources/openclash/img/meta.png?<%=random%>" loading="lazy" width="150px" height="150px" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/meta.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 				<%
 					end
 				%>
