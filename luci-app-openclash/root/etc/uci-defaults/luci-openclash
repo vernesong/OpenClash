@@ -45,7 +45,9 @@ cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
 EOF
 
 #Set Dashboard Secret
-uci -q set openclash.config.dashboard_password="$(tr -cd 'a-zA-Z0-9' </dev/urandom 2>/dev/null| head -c8 || date +%N| md5sum |head -c8)"
+if [ -z "$(uci -q get openclash.config.dashboard_password)" ]; then
+	uci -q set openclash.config.dashboard_password="$(tr -cd 'a-zA-Z0-9' </dev/urandom 2>/dev/null | head -c8 || date +%N | md5sum | head -c8)"
+fi
 
 #Set authentication
 uci_name_tmp=$(uci add openclash authentication)
@@ -129,7 +131,11 @@ if [ -f "/tmp/openclash.bak" ]; then
 	rm -rf "/tmp/openclash.bak" >/dev/null 2>&1
 fi
 
-uci -q set openclash.config.enable=0
+#Set global openclash enable option
+if [ -z "$(uci -q get openclash.config.enable)" ]; then
+	uci -q set openclash.config.enable=0
+fi
+
 uci -q commit openclash
 
 if [ -f "/usr/lib/lua/luci/model/network.lua" ]; then
