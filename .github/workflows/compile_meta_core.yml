@@ -89,7 +89,6 @@ jobs:
       - name: Compile Meta Clash
         run: |
           cp ../tmp/Makefile ./Makefile
-          sed -i 's/ForceColors:     true,/ForceColors:     false,/g' ./log/log.go 2>/dev/null
           make releases
           
       - name: Copy Clash Bin
