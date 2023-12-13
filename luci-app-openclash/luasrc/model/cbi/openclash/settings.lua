@@ -79,7 +79,8 @@ o:depends("en_mode", "fake-ip-tun")
 o:depends("en_mode", "redir-host-mix")
 o:depends("en_mode", "fake-ip-mix")
 o:value("system", translate("System　"))
-o:value("gvisor", translate("Gvisor"))
+o:value("gvisor", translate("gVisor"))
+o:value("mixed", translate("Mixed")..translate("(Only Meta Core)"))
 o.default = "system"
 
 o = s:taboption("op_mode", ListValue, "proxy_mode", translate("Proxy Mode"))
@@ -1131,7 +1132,8 @@ o.description = translate("Select Stack Type For TUN Mode, According To The Runn
 o:depends({ipv6_mode= "2", en_mode = "redir-host"})
 o:depends({ipv6_mode= "2", en_mode = "fake-ip"})
 o:value("system", translate("System　"))
-o:value("gvisor", translate("Gvisor"))
+o:value("gvisor", translate("gVisor"))
+o:value("mixed", translate("Mixed")..translate("(Only Meta Core)"))
 o.default = "system"
 
 o = s:taboption("ipv6", Flag, "enable_v6_udp_proxy", translate("Proxy UDP Traffics"))
