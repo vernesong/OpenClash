@@ -80,7 +80,6 @@ o:depends("en_mode", "redir-host-mix")
 o:depends("en_mode", "fake-ip-mix")
 o:value("system", translate("System　"))
 o:value("gvisor", translate("gVisor"))
-o:value("lwip", translate("LWIP")..translate("(Only Meta Core)"))
 o:value("mixed", translate("Mixed")..translate("(Only Meta Core)"))
 o.default = "system"
 
@@ -1136,7 +1135,6 @@ o:depends({ipv6_mode= "2", en_mode = "redir-host"})
 o:depends({ipv6_mode= "2", en_mode = "fake-ip"})
 o:value("system", translate("System　"))
 o:value("gvisor", translate("gVisor"))
-o:value("lwip", translate("LWIP")..translate("(Only Meta Core)"))
 o:value("mixed", translate("Mixed")..translate("(Only Meta Core)"))
 o.default = "system"
 
