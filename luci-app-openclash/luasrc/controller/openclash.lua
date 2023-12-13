@@ -875,7 +875,7 @@ function action_toolbar_show()
 		if not daip or not cn_port then return end
 		traffic = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/traffic', dase, daip, cn_port)))
 		connections = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/connections', dase, daip, cn_port)))
-		if traffic and connections then
+		if traffic and connections and connections.connections then
 			connection = #(connections.connections)
 			up = s(traffic.up)
 			down = s(traffic.down)
