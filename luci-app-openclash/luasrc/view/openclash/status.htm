@@ -645,15 +645,40 @@
 	
 	function ws_tmessage(event) {
 		var data = JSON.parse(event.data)
-		document.getElementById("upload_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.up)+"/S</font>";
-		document.getElementById("download_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.down)+"/S</font>";
+		if (data.up) {
+			document.getElementById("upload_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.up)+"/S</font>";
+		}
+		else {
+			document.getElementById("upload_").innerHTML = "<font style=\"color:green\">0 B/S</font>";
+		}
+		if (data.down) {
+			document.getElementById("download_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.down)+"/S</font>";
+		}
+		else {
+			document.getElementById("download_").innerHTML = "<font style=\"color:green\">0 B/S</font>";
+		}
 	};
 	
 	function ws_cmessage(event) {
 		var data = JSON.parse(event.data)
-		document.getElementById("uploadtotal_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.uploadTotal)+"</font>";
-		document.getElementById("downloadtotal_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.downloadTotal)+"</font>";
-		document.getElementById("connect_t").innerHTML = "<font style=\"color:green\">"+Object.keys(data.connections).length+"</font>";
+		if (data.uploadTotal) {
+			document.getElementById("uploadtotal_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.uploadTotal)+"</font>";
+		}
+		else {
+			document.getElementById("uploadtotal_").innerHTML = "<font style=\"color:green\">0 KB</font>";
+		}
+		if (data.downloadTotal) {
+			document.getElementById("downloadtotal_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.downloadTotal)+"</font>";
+		}
+		else {
+			document.getElementById("downloadtotal_").innerHTML = "<font style=\"color:green\">0 KB</font>";
+		}
+		if (data.connections) {
+			document.getElementById("connect_t").innerHTML = "<font style=\"color:green\">"+Object.keys(data.connections).length+"</font>";
+		}
+		else {
+			document.getElementById("connect_t").innerHTML = "<font style=\"color:green\">0</font>";
+		}
 		show_sys();
 	};
 	
@@ -921,6 +946,7 @@
 		newimg.src = imgNewSrc;
 		newimg.onload = function() {
     		imgobj.src = imgNewSrc;
+			imgobj.loading = "lazy";
 			imgobj.onload = function() {};
 		};
 		newimg.onerror = function() {
@@ -953,7 +979,8 @@
     
     function imgerrorfuns(imgobj,imgSrc){
     	setTimeout(function(){
-        imgobj.src=imgSrc;
+        imgobj.src = imgSrc;
+		imgobj.loading = "lazy";
       },1000*10);
     };
      

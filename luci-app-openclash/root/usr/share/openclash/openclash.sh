@@ -475,6 +475,7 @@ sub_info_get()
       config_test
       if [ $? -ne 0 ]; then
          LOG_OUT "Error: Config File Tested Faild, Please Check The Log Infos!"
+         LOG_OUT "Error: Config File【$name】Subscribed Failed, Trying to Download Without Agent..."
          config_download_direct
          return
       fi
