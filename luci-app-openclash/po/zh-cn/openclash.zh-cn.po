@@ -3461,3 +3461,6 @@ msgstr "TCP Keep-alive 间隔（s）"
 
 msgid "Used for Downloading Subscriptions, Defaults to Clash"
 msgstr "用于下载订阅时指定 UA，默认为 Clash"
+
+msgid "Error: Set Proxies Address Skip Failed,"
+msgstr "错误：绕过代理服务器地址设置失败，"
