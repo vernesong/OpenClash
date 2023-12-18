@@ -307,7 +307,7 @@ fi
          if Value.key?('proxy-providers') then
             Value['proxy-providers'].values.each do
                |i,path|
-               if not i['path'].empty? then
+               if i['path'] and not i['path'].empty? then
                   if i['path'].split('/')[0] == '.' then
                      path = '/etc/openclash/'+i['path'].split('./')[1]
                   else
