@@ -290,21 +290,23 @@ fi
          end;
          ips = Array.new;
          servers = Array.new;
-         if Value.key?('proxies') then
+         if Value.key?('proxies') and not Value['proxies'].nil? then
             Value['proxies'].each do
                |i|
-               if not i['server'] =~ reg and not i['server'] =~ reg6 and not servers.include?(i['server']) then
-                  servers = servers.push(i['server']).uniq
-                  syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + i['server'] + '\" \"true\"'
-                  if IO.popen(syscall).read.split(/\n+/) then
-                     ips = ips | IO.popen(syscall).read.split(/\n+/)
+               if i['server'] then
+                  if not i['server'] =~ reg and not i['server'] =~ reg6 and not servers.include?(i['server']) then
+                     servers = servers.push(i['server']).uniq
+                     syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + i['server'] + '\" \"true\"'
+                     if IO.popen(syscall).read.split(/\n+/) then
+                        ips = ips | IO.popen(syscall).read.split(/\n+/)
+                     end;
+                  else
+                     ips = ips.push(i['server']).uniq
                   end;
-               else
-                  ips = ips.push(i['server']).uniq
                end;
             end;
          end;
-         if Value.key?('proxy-providers') then
+         if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
             Value['proxy-providers'].values.each do
                |i,path|
                if i['path'] and not i['path'].empty? then
@@ -312,19 +314,21 @@ fi
                      path = '/etc/openclash/'+i['path'].split('./')[1]
                   else
                      path = i['path']
-                  end
+                  end;
                   if File::exist?(path) then
-                     if YAML.load_file(path).key?('proxies') then
+                     if YAML.load_file(path).key?('proxies') and not YAML.load_file(path)['proxies'].nil? then
                         YAML.load_file(path)['proxies'].each do
                            |j|
-                           if not j['server'] =~ reg and not j['server'] =~ reg6 and not servers.include?(j['server']) then
-                              servers = servers.push(j['server']).uniq
-                              syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + j['server'] + '\" \"true\"'
-                              if IO.popen(syscall).read.split(/\n+/) then
-                                 ips = ips | IO.popen(syscall).read.split(/\n+/)
+                           if j['server'] then
+                              if not j['server'] =~ reg and not j['server'] =~ reg6 and not servers.include?(j['server']) then
+                                 servers = servers.push(j['server']).uniq
+                                 syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + j['server'] + '\" \"true\"'
+                                 if IO.popen(syscall).read.split(/\n+/) then
+                                    ips = ips | IO.popen(syscall).read.split(/\n+/)
+                                 end;
+                              else
+                                 ips = ips.push(j['server']).uniq
                               end;
-                           else
-                              ips = ips.push(j['server']).uniq
                            end;
                         end;
                      end;
@@ -333,7 +337,7 @@ fi
             end;
          end;
          #Add ip skip
-         if ips then
+         if ips and not ips.empty? then
             ips.each do
                |ip|
                if ip and ip =~ reg then
