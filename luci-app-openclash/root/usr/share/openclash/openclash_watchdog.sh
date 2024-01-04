@@ -37,9 +37,9 @@ check_dnsmasq() {
       if [ -z "$DNSPORT" ]; then
          DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
       fi
-      if [ "$(nslookup www.baidu.com 127.0.0.1:12353 >/dev/null 2>&1 || echo $?)" = "1" ]; then
+      if [ "$(nslookup www.baidu.com 127.0.0.1:"$DNSPORT" >/dev/null 2>&1 || echo $?)" = "1" ]; then
          if [ -n "$FW4" ]; then
-            if [ -z "$(nft list chain inet fw4 nat_output |grep 'OpenClash DNS Hijack')" ]; then
+            if [ -z "$(nft list chain inet fw4 nat_output |grep '12353')" ]; then
                nft insert rule inet fw4 dstnat position 0 tcp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
                nft insert rule inet fw4 dstnat position 0 udp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
                nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }' 2>/dev/null
@@ -58,7 +58,7 @@ check_dnsmasq() {
                fi
             fi
          else
-            if [ -z "$(iptables -t nat -nL OUTPUT --line-number |grep 'OpenClash DNS Hijack')" ]; then
+            if [ -z "$(iptables -t nat -nL OUTPUT --line-number |grep '12353')" ]; then
                iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
                iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
                iptables -t nat -I OUTPUT -p udp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
