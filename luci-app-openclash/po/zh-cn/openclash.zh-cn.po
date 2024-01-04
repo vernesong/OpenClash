@@ -3464,3 +3464,12 @@ msgstr "用于下载订阅时指定 UA，默认为 Clash"
 
 msgid "Error: Set Proxies Address Skip Failed,"
 msgstr "错误：绕过代理服务器地址设置失败，"
+
+msgid "Flush Failed"
+msgstr "清理失败"
+
+msgid "Flush Successful"
+msgstr "清理成功"
+
+msgid "Flush Timeout"
+msgstr "清理超时"
