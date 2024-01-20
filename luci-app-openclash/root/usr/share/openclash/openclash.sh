@@ -23,7 +23,7 @@ servers_update=$(uci -q get openclash.config.servers_update)
 router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
 FW4=$(command -v fw4)
 CLASH="/etc/openclash/clash"
-CLASH_CONFIG="/tmp"
+CLASH_CONFIG="/etc/openclash"
 restart=0
 only_download=0
 set_lock
