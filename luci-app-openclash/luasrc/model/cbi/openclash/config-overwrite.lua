@@ -151,6 +151,11 @@ if filename then
 	end
 end
 
+o:value("DIRECT")
+o:value("Disable", translate("Disable"))
+o.default = "Disable"
+o.rempty = false
+
 o = s:taboption("dns", Flag, "append_wan_dns", translate("Append Upstream DNS"))
 o.description = translate("Append The Upstream Assigned DNS And Gateway IP To The Nameserver")
 o.default = 1
