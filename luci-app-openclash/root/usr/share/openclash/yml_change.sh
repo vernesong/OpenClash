@@ -563,7 +563,7 @@ end;
 begin
 Thread.new{
    if '${proxy_dns_group}' == 'Disable' or '${proxy_dns_group}'.nil? or ${19} != 1 then
-      return;
+      Thread.exit;
    end;
    if Value.key?('proxy-groups') then
       Value['proxy-groups'].each{|x,y|
