@@ -89,6 +89,7 @@ yml_servers_add()
 {
    
    local section="$1"
+   local enabled config name relay_groups
    add_for_this=0
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "config" "$section" "config" ""
@@ -165,6 +166,7 @@ set_other_groups()
 set_proxy_provider()
 {
    local section="$1"
+   local enabled config name
    add_for_this=0
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "config" "$section" "config" ""
@@ -210,6 +212,7 @@ yml_groups_set()
 {
 
    local section="$1"
+   local enabled config type name disable_udp strategy old_name test_url test_interval tolerance interface_name routing_mark policy_filter
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "config" "$section" "config" ""
    config_get "type" "$section" "type" ""
@@ -251,7 +254,7 @@ yml_groups_set()
    #游戏策略组存在时判断节点是否存在
    if [ -n "$if_game_group" ] && [ -n "$(grep "^$if_game_group$" /tmp/Proxy_Group)" ]; then
       config_foreach yml_servers_add "servers" "$name" "$type" "check" #加入服务器节点
-      config_foreach set_proxy_provider "proxy-provider" "$group_name" "check" #加入代理集
+      config_foreach set_proxy_provider "proxy-provider" "$name" "check" #加入代理集
       return
    fi
    
@@ -267,8 +270,8 @@ yml_groups_set()
    [ -n "$disable_udp" ] && {
       echo "    disable-udp: $disable_udp" >>$GROUP_FILE
    }
-   group_name="$name"
-   echo "    proxies: $group_name" >>$GROUP_FILE
+
+   echo "    proxies: $name" >>$GROUP_FILE
    
    #名字变化时处理规则部分
    if [ "$name" != "$old_name" ] && [ -n "$old_name" ]; then
@@ -287,24 +290,26 @@ yml_groups_set()
    
    if [ "$type" = "relay" ] && [ -s "/tmp/relay_server" ]; then
       cat /tmp/relay_server |sort -k 1 |awk -F '#' '{print $2}' > /tmp/relay_server.list 2>/dev/null
-      sed -i "/^ \{0,\}proxies: ${group_name}/r/tmp/relay_server.list" "$GROUP_FILE" 2>/dev/null
+      sed -i "/^ \{0,\}proxies: ${name}/r/tmp/relay_server.list" "$GROUP_FILE" 2>/dev/null
       rm -rf /tmp/relay_server 2>/dev/null
    fi
 
-   echo "    use: $group_name" >>$GROUP_FILE
+   echo "    use: $name" >>$GROUP_FILE
    
-   config_foreach set_proxy_provider "proxy-provider" "$group_name" #加入代理集
+   config_foreach set_proxy_provider "proxy-provider" "$name" #加入代理集
 
+   #Prevent the un support symbol name
+   name=$(echo "$name" |sed 's/\//\\\//g' 2>/dev/null)
    if [ "$set_group" -eq 1 ]; then
-      sed -i "/^ \{0,\}proxies: ${group_name}/c\    proxies:" $GROUP_FILE
+      sed -i "/^ \{0,\}proxies: ${name}/c\    proxies:" $GROUP_FILE
    else
-      sed -i "/proxies: ${group_name}/d" $GROUP_FILE 2>/dev/null
+      sed -i "/proxies: ${name}/d" $GROUP_FILE 2>/dev/null
    fi
    
    if [ "$set_proxy_provider" -eq 1 ]; then
-      sed -i "/^ \{0,\}use: ${group_name}/c\    use:" $GROUP_FILE
+      sed -i "/^ \{0,\}use: ${name}/c\    use:" $GROUP_FILE
    else
-      sed -i "/use: ${group_name}/d" $GROUP_FILE 2>/dev/null
+      sed -i "/use: ${name}/d" $GROUP_FILE 2>/dev/null
    fi
    
    [ -n "$test_url" ] && {
