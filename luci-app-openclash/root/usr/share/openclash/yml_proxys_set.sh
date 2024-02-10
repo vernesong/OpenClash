@@ -68,6 +68,7 @@ yml_other_rules_del()
 yml_proxy_provider_set()
 {
    local section="$1"
+   local enabled config type name path provider_filter provider_url provider_interval health_check health_check_url health_check_interval
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "config" "$section" "config" ""
    config_get "type" "$section" "type" ""
@@ -115,7 +116,8 @@ yml_proxy_provider_set()
       if [ -n "$(grep -w "path: $path" "$PROXY_PROVIDER_FILE" 2>/dev/null)" ]; then
          return
       elif [ "$(grep -w "^$name$" "$proxy_provider_name" |wc -l 2>/dev/null)" -ge 2 ] && [ -z "$(grep -w "path: $path" "$PROXY_PROVIDER_FILE" 2>/dev/null)" ]; then
-      	 sed -i "1,/^${name}$/{//d}" "$proxy_provider_name" 2>/dev/null
+      	 convert_name=$(echo "$name" |sed 's/\//\\\//g' 2>/dev/null)
+         sed -i "1,/^${convert_name}$/{//d}" "$proxy_provider_name" 2>/dev/null
          return
       fi
    fi
@@ -349,7 +351,8 @@ yml_servers_set()
       if [ -n "$(grep -w "name: \"$name\"" "$SERVER_FILE" 2>/dev/null)" ]; then
          return
       elif [ "$(grep -w "^$name$" "$servers_name" |wc -l 2>/dev/null)" -ge 2 ] && [ -z "$(grep -w "name: \"$name\"" "$SERVER_FILE" 2>/dev/null)" ]; then
-      	 sed -i "1,/^${name}$/{//d}" "$servers_name" 2>/dev/null
+      	 convert_name=$(echo "$name" |sed 's/\//\\\//g' 2>/dev/null)
+         sed -i "1,/^${convert_name}$/{//d}" "$servers_name" 2>/dev/null
          return
       fi
    fi
@@ -1352,6 +1355,7 @@ EOF
 new_servers_group_set()
 {
    local section="$1"
+   local enabled name
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "name" "$section" "name" ""
    
@@ -1370,6 +1374,7 @@ new_servers_group_set()
 yml_servers_name_get()
 {
 	 local section="$1"
+   local name
    config_get "name" "$section" "name" ""
    [ ! -z "$name" ] && {
       echo "$name" >>"$servers_name"
@@ -1379,6 +1384,7 @@ yml_servers_name_get()
 yml_proxy_provider_name_get()
 {
 	 local section="$1"
+   local name
    config_get "name" "$section" "name" ""
    [ ! -z "$name" ] && {
       echo "$name" >>"$proxy_provider_name"

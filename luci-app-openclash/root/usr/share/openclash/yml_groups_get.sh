@@ -81,6 +81,7 @@ fi
 cfg_group_name()
 {
    local section="$1"
+   local config
    config_get "config" "$section" "config" ""
 
    if [ -z "$config" ]; then
