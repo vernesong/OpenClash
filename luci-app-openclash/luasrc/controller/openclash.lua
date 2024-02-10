@@ -74,6 +74,8 @@ function index()
 	entry({"admin", "services", "openclash", "manual_stream_unlock_test"}, call("manual_stream_unlock_test"))
 	entry({"admin", "services", "openclash", "all_proxies_stream_test"}, call("all_proxies_stream_test"))
 	entry({"admin", "services", "openclash", "set_subinfo_url"}, call("set_subinfo_url"))
+	entry({"admin", "services", "openclash", "check_core"}, call("action_check_core"))
+	entry({"admin", "services", "openclash", "core_download"}, call("core_download"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Plugin Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "config-overwrite"},cbi("openclash/config-overwrite"),_("Overwrite Settings"), 40).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Onekey Create"), 50).leaf = true
@@ -229,6 +231,14 @@ local function coremodel()
 	end
 end
 
+local function check_core()
+	if not nixio.fs.access(dev_core_path) and not nixio.fs.access(tun_core_path) and not nixio.fs.access(meta_core_path) then
+		return "0"
+	else
+		return "1"
+	end
+end
+
 local function corecv()
 	if not nixio.fs.access(dev_core_path) then
 		return "0"
@@ -334,6 +344,24 @@ local function historychecktime()
 	end
 end
 
+function core_download()
+	if uci:get("openclash", "config", "github_address_mod") == "0" or not uci:get("openclash", "config", "github_address_mod") then
+		uci:set("openclash", "config", "github_address_mod", "https://testingcf.jsdelivr.net/")
+		uci:commit("openclash")
+		luci.sys.call("rm -rf /tmp/clash_last_version 2>/dev/null && bash /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
+		luci.sys.call("bash /usr/share/openclash/openclash_core.sh 'Dev' >/dev/null 2>&1 &")
+		luci.sys.call("bash /usr/share/openclash/openclash_core.sh 'TUN' >/dev/null 2>&1 &")
+		luci.sys.call("bash /usr/share/openclash/openclash_core.sh 'Meta' >/dev/null 2>&1 &")
+		uci:set("openclash", "config", "github_address_mod", "0")
+		uci:commit("openclash")
+	else
+		luci.sys.call("rm -rf /tmp/clash_last_version 2>/dev/null && bash /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
+		luci.sys.call("bash /usr/share/openclash/openclash_core.sh 'Dev' >/dev/null 2>&1 &")
+		luci.sys.call("bash /usr/share/openclash/openclash_core.sh 'TUN' >/dev/null 2>&1 &")
+		luci.sys.call("bash /usr/share/openclash/openclash_core.sh 'Meta' >/dev/null 2>&1 &")
+	end
+end
+
 function download_rule()
 	local filename = luci.http.formvalue("filename")
 	local state = luci.sys.call(string.format('/usr/share/openclash/openclash_download_rule_list.sh "%s" >/dev/null 2>&1',filename))
@@ -375,7 +403,6 @@ function action_restore_config()
 	luci.sys.call("cp /usr/share/openclash/backup/openclash_sniffing* /etc/openclash/custom/ >/dev/null 2>&1 &")
 	luci.sys.call("cp /usr/share/openclash/backup/yml_change.sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1 &")
 	luci.sys.call("rm -rf /etc/openclash/history/* >/dev/null 2>&1 &")
-	luci.http.redirect(luci.dispatcher.build_url('admin/services/openclash/settings'))
 end
 
 function action_remove_all_core()
@@ -875,7 +902,7 @@ function action_toolbar_show()
 		if not daip or not cn_port then return end
 		traffic = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/traffic', dase, daip, cn_port)))
 		connections = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/connections', dase, daip, cn_port)))
-		if traffic and connections then
+		if traffic and connections and connections.connections then
 			connection = #(connections.connections)
 			up = s(traffic.up)
 			down = s(traffic.down)
@@ -1111,6 +1138,13 @@ function action_opupdate()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 			opup = opup();
+	})
+end
+
+function action_check_core()
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+			core_status = check_core();
 	})
 end
 

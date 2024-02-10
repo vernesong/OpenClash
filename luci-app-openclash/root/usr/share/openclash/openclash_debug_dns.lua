@@ -7,6 +7,7 @@ local uci = require("luci.model.uci").cursor()
 local json = require "luci.jsonc"
 local datatype = require "luci.cbi.datatypes"
 local addr = arg[1]
+local resolve = arg[2]
 
 local function debug_dns()
 	local info, ip, host
@@ -25,7 +26,7 @@ local function debug_dns()
 		if info then
 			info = json.parse(info)
 		end
-		if info then
+		if info and not resolve then
 			print("Status: "..(info.Status))
 			print("TC: "..tostring(info.TC))
 			print("RD: "..tostring(info.RD))
@@ -68,6 +69,15 @@ local function debug_dns()
 					print("  name: "..(v.name))
 					print("  type: "..(v.type))
 					print("")
+				end
+			end
+		end
+		if info and resolve then
+			if info.Answer then
+				for _, v in pairs(info.Answer) do
+					if v.type == 1 then
+						print(v.data)
+					end
 				end
 			end
 		end

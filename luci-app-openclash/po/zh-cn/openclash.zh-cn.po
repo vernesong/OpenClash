@@ -1260,8 +1260,11 @@ msgstr "GEOIP 数据库检查更新"
 msgid "Check GeoSite Data Update"
 msgstr "GeoSite 数据库检查更新"
 
-msgid "Check and update all Cores and plug-ins?"
+msgid "Check and Update all Cores and OpenClash?"
 msgstr "确定要一键检查并更新所有内核及插件吗？"
+
+msgid "You have not installed the core yet, do you want to download and install it now?"
+msgstr "您还未安装内核，是否立即下载安装？"
 
 msgid "Check failed, Please try again later!"
 msgstr "一键检查更新失败,请稍后再试！"
@@ -2962,7 +2965,7 @@ msgid "Update GeoIP Dat"
 msgstr "更新 GeoIP Dat 数据库"
 
 msgid "Note: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it"
-msgstr "注意: 路由不建议开启 IPV6 和相关服务，目前反馈的网络连接问题多数与它有关"
+msgstr "注意: 路由不建议开启 IPv6 和相关服务，目前反馈的网络连接问题多数与它有关"
 
 msgid "Note: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off"
 msgstr "注意: 浏览器开启安全 DNS，会导致分流异常，请注意关闭"
@@ -2970,17 +2973,17 @@ msgstr "注意: 浏览器开启安全 DNS，会导致分流异常，请注意关
 msgid "Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check"
 msgstr "注意: 部分软件会修改设备 HOSTS，会导致分流异常，请注意检查"
 
-msgid "Note: The default proxy routes local traffic, BT, PT download, etc., please use redir mode as much as possible and pay attention to traffic avoidance"
-msgstr "注意: 默认代理路由本机流量，BT、PT 下载等请尽量使用 redir 模式并注意进行流量规避"
+msgid "Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance"
+msgstr "注意: 默认代理路由本机流量，BT、PT 下载等请尽量使用 Redir-Host 模式并注意进行流量规避"
 
-msgid "Note: Game proxy please use nodes except Vmess"
-msgstr "注意: 游戏代理请使用 Vmess 以外的节点"
+msgid "Note: Game proxy please use nodes except VMess"
+msgstr "注意: 游戏代理请使用 VMess 以外的节点"
 
 msgid "Note: If the connection is abnormal, please follow the steps on this page to check first"
 msgstr "注意: 连接异常时请按照此页步骤先进行检查"
 
-msgid "Note: If you need to perform client access control in Fake-ip mode, please change the DNS hijacking mode to firewall forwarding"
-msgstr "注意: Fake-ip 模式下如需要进行客户端访问控制，请将DNS劫持模式改为防火墙转发"
+msgid "Note: If you need to perform client access control in Fake-IP mode, please change the DNS hijacking mode to firewall forwarding"
+msgstr "注意: Fake-IP 模式下如需要进行客户端访问控制，请将DNS劫持模式改为防火墙转发"
 
 msgid "Click to the page"
 msgstr "点击前往"
@@ -3461,3 +3464,27 @@ msgstr "TCP Keep-alive 间隔（s）"
 
 msgid "Used for Downloading Subscriptions, Defaults to Clash"
 msgstr "用于下载订阅时指定 UA，默认为 Clash"
+
+msgid "Error: Set Proxies Address Skip Failed,"
+msgstr "错误：绕过代理服务器地址设置失败，"
+
+msgid "Flush Failed"
+msgstr "清理失败"
+
+msgid "Flush Successful"
+msgstr "清理成功"
+
+msgid "Flush Timeout"
+msgstr "清理超时"
+
+msgid "Fallback DNS Proxy Group (Support Regex)"
+msgstr "Fallback DNS 代理组 (支持正则匹配)"
+
+msgid "Group Use For Proxy The Fallback DNS, Preventing DNS Lookup Failures"
+msgstr "为所有 Fallback DNS 设置代理策略组，防止 DNS 查询失败"
+
+msgid "Error: Set Fallback DNS Proxy Group Failed,"
+msgstr "错误：Fallback DNS 代理策略组设置失败，"
+
+msgid "To Use in Fake-IP Mode, Please Switch The Dns Redirect Mode To Firewall Forwarding"
+msgstr "要在 Fake-IP 模式下使用，请将 Dns 重定向模式切换为防火墙转发模式"

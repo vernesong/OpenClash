@@ -39,17 +39,17 @@
 				<%
 					if uci:get("openclash", "config", "enable_meta_core") ~= '1' then
 				%>
-	      				<img id="_logo" src="/luci-static/resources/openclash/img/logo.png?<%=random%>" loading="lazy" onload="return logo_check(this,this.src,'https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/logo.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/logo.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+	      				<img id="_logo" src="/luci-static/resources/openclash/img/logo.png?<%=random%>" loading="lazy" width="150px" height="150px" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/logo.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/logo.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 				<%
 					else
 				%>
-						<img id="_logo" src="/luci-static/resources/openclash/img/meta.png?<%=random%>" loading="lazy" onload="return logo_check(this,this.src,'https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/meta.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+						<img id="_logo" src="/luci-static/resources/openclash/img/meta.png?<%=random%>" loading="lazy" width="150px" height="150px" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/meta.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 				<%
 					end
 				%>
 			</p>
 	  		<p id="_clashversion" style="margin: 10px 0; text-align: center">
-				<img src="/luci-static/resources/openclash/img/version.svg?<%=random%>" onerror="return imgerrorfuns(this,'https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/version.png')" alt="currentversion" height="21px" onclick="return go_update()">
+				<img src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onclick="return go_update()">
 	  		</p>
 	    </td></tr>
 	    <tr><td colspan="4" width="100%">
@@ -441,7 +441,7 @@
 				}
 				if(rdmdl==16)
 				{
-					startlog.innerHTML = '<b><font><%:Note: The default proxy routes local traffic, BT, PT download, etc., please use redir mode as much as possible and pay attention to traffic avoidance%></font></b>';
+					startlog.innerHTML = '<b><font><%:Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance%></font></b>';
 				}
       		}
 	 	}
@@ -451,6 +451,7 @@
 	get_run_mode();
 	state_get();
 	clashversion_check();
+	check_core();
 
 	function get_rule_mode() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "rule_mode")%>', null, function(x, status) {
@@ -645,15 +646,40 @@
 	
 	function ws_tmessage(event) {
 		var data = JSON.parse(event.data)
-		document.getElementById("upload_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.up)+"/S</font>";
-		document.getElementById("download_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.down)+"/S</font>";
+		if (data.up) {
+			document.getElementById("upload_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.up)+"/S</font>";
+		}
+		else {
+			document.getElementById("upload_").innerHTML = "<font style=\"color:green\">0 B/S</font>";
+		}
+		if (data.down) {
+			document.getElementById("download_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.down)+"/S</font>";
+		}
+		else {
+			document.getElementById("download_").innerHTML = "<font style=\"color:green\">0 B/S</font>";
+		}
 	};
 	
 	function ws_cmessage(event) {
 		var data = JSON.parse(event.data)
-		document.getElementById("uploadtotal_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.uploadTotal)+"</font>";
-		document.getElementById("downloadtotal_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.downloadTotal)+"</font>";
-		document.getElementById("connect_t").innerHTML = "<font style=\"color:green\">"+Object.keys(data.connections).length+"</font>";
+		if (data.uploadTotal) {
+			document.getElementById("uploadtotal_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.uploadTotal)+"</font>";
+		}
+		else {
+			document.getElementById("uploadtotal_").innerHTML = "<font style=\"color:green\">0 KB</font>";
+		}
+		if (data.downloadTotal) {
+			document.getElementById("downloadtotal_").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.downloadTotal)+"</font>";
+		}
+		else {
+			document.getElementById("downloadtotal_").innerHTML = "<font style=\"color:green\">0 KB</font>";
+		}
+		if (data.connections) {
+			document.getElementById("connect_t").innerHTML = "<font style=\"color:green\">"+Object.keys(data.connections).length+"</font>";
+		}
+		else {
+			document.getElementById("connect_t").innerHTML = "<font style=\"color:green\">0</font>";
+		}
 		show_sys();
 	};
 	
@@ -668,28 +694,26 @@
     {
         btn.value    = '<%:Check All Components Update%>';
         btn.disabled = true;
-        var r = confirm("<%:Check and update all Cores and plug-ins?%>")
+        var r = confirm("<%:Check and Update all Cores and OpenClash?%>")
         if (r == true) {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update_check")%>', null, function(x, status) {
-        	if ( x && x.status == 200 ) {
-        		if ( status.corever != "0" ) {
-        			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', null, function(x, status) {
-              	if ( x && x.status != 200 ) {
-            			alert('<%:Check failed, Please try again later!%>')
-           			}
-              });
-						}
-						else {
-							alert('<%:No compiled version is selected. Please configure it in the General Settings tab!%>')
-           	}
-        	}
-          else {
-            alert('<%:Check failed, Please try again later!%>')
-          }
-        });
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update_check")%>', null, function(x, status) {
+				if ( x && x.status == 200 ) {
+					if ( status.corever != "0" ) {
+						XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', null, function(x, status) {
+							if ( x && x.status != 200 ) {
+								alert('<%:Check failed, Please try again later!%>')
+							}
+						});
+					}
+					else {
+						alert('<%:No compiled version is selected. Please configure it in the General Settings tab!%>')
+					}
 				}
 				else {
-        }
+					alert('<%:Check failed, Please try again later!%>')
+				}
+			});
+		}
         btn.disabled = false;
         return false; 
     };
@@ -705,7 +729,7 @@
         }
         else {
         	btn.disabled = false;
-          btn.value    = '<%:Check Third Party Rules Update%>';
+        	btn.value    = '<%:Check Third Party Rules Update%>';
         }
         return false;
         });
@@ -850,11 +874,11 @@
         btn.disabled = true;
         btn.value    = '<%:Yacd Control Panel%>';
         if (status.daip && window.location.hostname == status.daip) {
-            url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/#/?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+            url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
         }
         else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
             var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-            url1='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/yacd/#/?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
+            url1='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/yacd/?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
         }
         else {
             url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/"%>';
@@ -921,6 +945,7 @@
 		newimg.src = imgNewSrc;
 		newimg.onload = function() {
     		imgobj.src = imgNewSrc;
+			imgobj.loading = "lazy";
 			imgobj.onload = function() {};
 		};
 		newimg.onerror = function() {
@@ -943,7 +968,7 @@
 
     function clashversion_error()
     {
-        clashversion.innerHTML = '<img id="clashversion" src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onerror="return imgerrorfuns(this,\'https://ftp.jaist.ac.jp/pub/sourceforge.jp/storage/g/o/op/openclash/<%=RELEASE_BRANCH%>/img/version.png\')" onclick="return go_update()">';
+        clashversion.innerHTML = '<img id="clashversion" src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onclick="return go_update()">';
     };
 
 	function logo_error(imgobj,imgSrc)
@@ -953,7 +978,8 @@
     
     function imgerrorfuns(imgobj,imgSrc){
     	setTimeout(function(){
-        imgobj.src=imgSrc;
+        imgobj.src = imgSrc;
+		imgobj.loading = "lazy";
       },1000*10);
     };
      
@@ -962,5 +988,24 @@
        url4='https://github.com/vernesong/OpenClash/releases';
        winOpen(url4);
     };
+
+	function check_core()
+	{
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "check_core")%>', null, function(x, status) {
+			if ( x && x.status == 200 ) {
+        		if ( status.core_status != "1" )
+        		{
+            		var r = confirm("<%:You have not installed the core yet, do you want to download and install it now?%>")
+					if (r == true) {
+						XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', null, function(x, status) {
+							if ( x && x.status == 200 ) {
+								window.location.href='<%="'+window.location.protocol+'//'+window.location.hostname+'/cgi-bin/luci/admin/services/openclash/log"%>';
+							}
+						});
+					}
+        		}
+    		}
+        });
+	};
 //]]></script>
 
