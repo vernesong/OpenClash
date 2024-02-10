@@ -1260,8 +1260,11 @@ msgstr "GEOIP 数据库检查更新"
 msgid "Check GeoSite Data Update"
 msgstr "GeoSite 数据库检查更新"
 
-msgid "Check and update all Cores and plug-ins?"
+msgid "Check and Update all Cores and OpenClash?"
 msgstr "确定要一键检查并更新所有内核及插件吗？"
+
+msgid "You have not installed the core yet, do you want to download and install it now?"
+msgstr "您还未安装内核，是否立即下载安装？"
 
 msgid "Check failed, Please try again later!"
 msgstr "一键检查更新失败,请稍后再试！"
@@ -3482,3 +3485,6 @@ msgstr "为所有 Fallback DNS 设置代理策略组，防止 DNS 查询失败"
 
 msgid "Error: Set Fallback DNS Proxy Group Failed,"
 msgstr "错误：Fallback DNS 代理策略组设置失败，"
+
+msgid "To Use in Fake-IP Mode, Please Switch The Dns Redirect Mode To Firewall Forwarding"
+msgstr "要在 Fake-IP 模式下使用，请将 Dns 重定向模式切换为防火墙转发模式"
