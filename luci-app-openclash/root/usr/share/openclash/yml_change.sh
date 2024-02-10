@@ -569,7 +569,7 @@ Thread.new{
       Value['proxy-groups'].each{|x,y|
          if x['name'] =~ /${proxy_dns_group}/ then
             y = x['name'];
-            if Value['dns'].has_key?('fallback') then
+            if Value['dns'].has_key?('fallback') and not Value['dns']['fallback'].to_a.empty? then
                Value['dns']['fallback'].each{|z|
                   if z =~ /#h3/ then
                      z.gsub!(/#h3/, '#' + y + '&h3');
