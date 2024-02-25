@@ -3488,3 +3488,9 @@ msgstr "错误：Fallback DNS 代理策略组设置失败，"
 
 msgid "To Use in Fake-IP Mode, Please Switch The Dns Redirect Mode To Firewall Forwarding"
 msgstr "要在 Fake-IP 模式下使用，请将 Dns 重定向模式切换为防火墙转发模式"
+
+msgid "Skip Proxy Address"
+msgstr "绕过服务器地址"
+
+msgid "Bypassing Server Addresses And Preventing Duplicate Proxies"
+msgstr "绕过服务器地址，防止重复代理"
