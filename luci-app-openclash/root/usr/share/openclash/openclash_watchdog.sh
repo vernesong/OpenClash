@@ -34,6 +34,7 @@ STREAM_DOMAINS_PREFETCH=1
 STREAM_AUTO_SELECT=1
 FW4=$(command -v fw4)
 
+
 check_dnsmasq() {
    if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ] && [ "$enable_redirect_dns" != "2" ]; then
       DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
@@ -43,6 +44,7 @@ check_dnsmasq() {
       if [ "$(nslookup www.baidu.com 127.0.0.1:"$DNSPORT" >/dev/null 2>&1 || echo $?)" = "1" ]; then
          if [ -n "$FW4" ]; then
             if [ -z "$(nft list chain inet fw4 nat_output |grep '12353')" ]; then
+               LOG_OUT "Warning: Dnsmasq Work is Unnormal, Setting The Firewall DNS Hijacking Rules..."
                nft insert rule inet fw4 dstnat position 0 tcp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
                nft insert rule inet fw4 dstnat position 0 udp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
                nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }' 2>/dev/null
@@ -62,6 +64,7 @@ check_dnsmasq() {
             fi
          else
             if [ -z "$(iptables -t nat -nL OUTPUT --line-number |grep '12353')" ]; then
+               LOG_OUT "Warning: Dnsmasq Work is Unnormal, Setting The Firewall DNS Hijacking Rules..."
                iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
                iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
                iptables -t nat -I OUTPUT -p udp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
