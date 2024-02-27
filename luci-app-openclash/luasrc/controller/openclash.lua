@@ -714,6 +714,7 @@ function sub_info_get()
 						end
 						surplus = fs.filesize(total - used) or "null"
 						total = fs.filesize(total) or "null"
+						used = fs.filesize(used) or "null"
 						sub_info = "Successful"
 					else
 						sub_info = "No Sub Info Found"
@@ -727,6 +728,7 @@ function sub_info_get()
 		http_code = http_code,
 		sub_info = sub_info,
 		surplus = surplus,
+		used = used,
 		total = total,
 		percent = percent,
 		day_left = day_left,
