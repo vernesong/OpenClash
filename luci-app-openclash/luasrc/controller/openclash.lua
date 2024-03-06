@@ -1072,7 +1072,8 @@ function action_status()
 		db_forward_ssl = db_foward_ssl(),
 		web = is_web(),
 		cn_port = cn_port(),
-		restricted_mode = restricted_mode();
+		restricted_mode = restricted_mode(),
+		core_type = uci:get("openclash", "config", "core_type") or "Dev";
 	})
 end
 
