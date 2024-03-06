@@ -41,7 +41,7 @@ check_dnsmasq() {
       if [ -z "$DNSPORT" ]; then
          DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
       fi
-      if [ "$(nslookup www.baidu.com 127.0.0.1:"$DNSPORT" >/dev/null 2>&1 || echo $?)" = "1" ]; then
+      if [ "$(nslookup www.baidu.com >/dev/null 2>&1 || echo $?)" = "1" ]; then
          if [ -n "$FW4" ]; then
             if [ -z "$(nft list chain inet fw4 nat_output |grep '12353')" ]; then
                LOG_OUT "Warning: Dnsmasq Work is Unnormal, Setting The Firewall DNS Hijacking Rules..."
@@ -131,6 +131,7 @@ check_dnsmasq() {
 }
 
 check_dnsmasq
+SLOG_CLEAN
 sleep 60
 
 while :;
