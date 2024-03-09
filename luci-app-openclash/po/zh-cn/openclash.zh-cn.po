@@ -3240,6 +3240,9 @@ msgstr "大陆域名 DNS 服务器"
 msgid "Specify DNS Server For CN Domain Lists, Only One IP Server Address Support"
 msgstr "指定大陆域名的 DNS 服务器，只支持填写一个IP地址"
 
+msgid "Warning: Dnsmasq Work is Unnormal, Setting The Firewall DNS Hijacking Rules..."
+msgstr "警告：检测到 Dnsmasq 工作异常，设置防火墙 DNS 劫持规则..."
+
 msgid "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
 msgstr "提示：检测到 Dnsmasq 正常工作，还原防火墙 DNS 劫持规则..."
 
@@ -3488,3 +3491,9 @@ msgstr "错误：Fallback DNS 代理策略组设置失败，"
 
 msgid "To Use in Fake-IP Mode, Please Switch The Dns Redirect Mode To Firewall Forwarding"
 msgstr "要在 Fake-IP 模式下使用，请将 Dns 重定向模式切换为防火墙转发模式"
+
+msgid "Skip Proxy Address"
+msgstr "绕过服务器地址"
+
+msgid "Bypassing Server Addresses And Preventing Duplicate Proxies"
+msgstr "绕过服务器地址，防止重复代理"

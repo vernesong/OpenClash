@@ -213,6 +213,7 @@ uci -q set network.utun=interface
 uci -q set network.utun.proto=none
 uci -q set network.utun.ifname=utun
 uci -q set network.utun.device=utun
+uci -q set network.utun.auto='0'
 uci -q commit network
 
 config_load "firewall"
