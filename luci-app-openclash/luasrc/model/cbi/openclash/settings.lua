@@ -236,6 +236,10 @@ o = s:taboption("traffic_control", Flag, "disable_udp_quic", font_red..bold_on..
 o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic(Not Include CN) On Port 443")..bold_off..font_off
 o.default = 1
 
+o = s:taboption("traffic_control", Flag, "skip_proxy_address", translate("Skip Proxy Address"))
+o.description = translate("Bypassing Server Addresses And Preventing Duplicate Proxies")
+o.default = 0
+
 o = s:taboption("traffic_control", Value, "common_ports", font_red..bold_on..translate("Common Ports Proxy Mode")..bold_off..font_off)
 o.description = translate("Only Common Ports, Prevent BT/P2P Passing")
 o:value("0", translate("Disable"))

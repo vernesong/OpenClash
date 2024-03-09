@@ -21,7 +21,7 @@ jobs:
           sudo apt-get -y install git
 
       - name: Clone OpenClash Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: core
       
@@ -32,7 +32,7 @@ jobs:
           echo "current_id: $(sed -n 3p ./dev/core_version)"
 
       - name: Clone Clash Meta Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: MetaCubeX/mihomo
           ref: Alpha
@@ -63,7 +63,7 @@ jobs:
           echo "upx=../upx-3.95-amd64_linux/upx" >> $GITHUB_ENV
 
       - name: Clone OpenClash Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: core
 
@@ -81,7 +81,7 @@ jobs:
           check-latest: true
 
       - name: Clone Clash Meta Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           repository: MetaCubeX/mihomo
           ref: Alpha
@@ -96,7 +96,7 @@ jobs:
           cp -rf "./bin/." "../tmp/bin/"
 
       - name: Clone OpenClash Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: core
 
