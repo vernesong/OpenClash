@@ -252,11 +252,11 @@
 		if ( x && x.status == 200 ) {
 			if ( status.restricted_mode != "1" )
 			{
-			   clash.innerHTML = status.clash ? '<b style=color:green><%:Running%></b>' : '<b style=color:red><%:Not Running%></b>';
+			   clash.innerHTML = status.clash ? '<b style=color:green>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : '<b style=color:red><%:Not Running%></b>';
 			}
 			else
 			{
-			   clash.innerHTML = status.clash ? '<b style=color:green><%:Running%> <%:<Limited State>%></b>' : '<b style=color:red><%:Not Running%></b>';
+			   clash.innerHTML = status.clash ? '<b style=color:green>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%>&nbsp;&nbsp;&nbsp;<%:<Limited State>%></b>' : '<b style=color:red><%:Not Running%></b>';
 			}
 			watchdog.innerHTML = status.watchdog ? '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:green><%:Running%></b>' : '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:red><%:Not Running%></b>';
 			dase.innerHTML = status.dase ? "<b style=color:green>"+status.dase+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";

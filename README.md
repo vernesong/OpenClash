@@ -68,11 +68,13 @@
 ---
 
 
-从 OpenWrt 的 [SDK](https://archive.openwrt.org/snapshots/trunk/ar71xx/generic/OpenWrt-SDK-ar71xx-generic_gcc-5.3.0_musl-1.1.16.Linux-x86_64.tar.bz2) 编译
+从 OpenWrt 的 [SDK](https://archive.openwrt.org/chaos_calmer/15.05.1/ar71xx/generic/OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2) 编译
 ```bash
 # 解压下载好的 SDK
-tar xjf OpenWrt-SDK-ar71xx-generic_gcc-5.3.0_musl-1.1.16.Linux-x86_64.tar.bz2
-cd OpenWrt-SDK-ar71xx-*
+curl -SLk --connect-timeout 30 --retry 2 "https://archive.openwrt.org/chaos_calmer/15.05.1/ar71xx/generic/OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2" -o "/tmp/SDK.tar.bz2"
+cd \tmp
+tar xjf SDK.tar.bz2
+cd OpenWrt-SDK-15.05.1-*
 
 # Clone 项目
 mkdir package/luci-app-openclash
@@ -96,7 +98,7 @@ cd ../..
 make package/luci-app-openclash/luci-app-openclash/compile V=99
 
 # IPK文件位置
-./bin/ar71xx/packages/base/luci-app-openclash_0.39.7-beta_all.ipk
+./bin/ar71xx/packages/base/luci-app-openclash_*-beta_all.ipk
 ```
 
 ```bash
