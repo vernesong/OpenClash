@@ -1027,7 +1027,7 @@ do
       }.join
    end;
 
-   if '$server_type' == 'hysteria' or '$server_type' == 'hysteria2' then
+   if '$server_type' == 'hysteria' then
       #hysteria
       Thread.new{
       #hysteria_protocol
@@ -1037,6 +1037,7 @@ do
       end
       }.join
 
+   if '$server_type' == 'hysteria2' then
       #hysteria2
       Thread.new{
       #hysteria2_protocol
@@ -1046,6 +1047,7 @@ do
       end
       }.join
 
+   if '$server_type' == 'hysteria' or '$server_type' == 'hysteria2' then
       #hysteria  hysteria2
       Thread.new{
       #hysteria_up
