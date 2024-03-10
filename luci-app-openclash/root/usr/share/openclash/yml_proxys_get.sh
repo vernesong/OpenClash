@@ -1027,7 +1027,8 @@ do
       }.join
    end;
 
-   if '$server_type' == 'hysteria' or '$server_type' == 'hysteria2' then
+   if '$server_type' == 'hysteria' then
+      #hysteria
       Thread.new{
       #hysteria_protocol
       if Value['proxies'][$count].key?('protocol') then
@@ -1036,6 +1037,18 @@ do
       end
       }.join
 
+   if '$server_type' == 'hysteria2' then
+      #hysteria2
+      Thread.new{
+      #hysteria2_protocol
+      if Value['proxies'][$count].key?('protocol') then
+         hysteria2_protocol = '${uci_set}hysteria2_protocol=\"' + Value['proxies'][$count]['protocol'].to_s + '\"'
+         system(hysteria2_protocol)
+      end
+      }.join
+
+   if '$server_type' == 'hysteria' or '$server_type' == 'hysteria2' then
+      #hysteria  hysteria2
       Thread.new{
       #hysteria_up
       if Value['proxies'][$count].key?('up') then
@@ -1044,6 +1057,7 @@ do
       end
       }.join
 
+      #hysteria  hysteria2
       Thread.new{
       #hysteria_down
       if Value['proxies'][$count].key?('down') then
@@ -1052,6 +1066,7 @@ do
       end
       }.join
 
+      #hysteria  hysteria2
       Thread.new{
       #skip-cert-verify
       if Value['proxies'][$count].key?('skip-cert-verify') then
@@ -1060,6 +1075,7 @@ do
       end
       }.join
 
+      #hysteria  hysteria2
       Thread.new{
       #sni
       if Value['proxies'][$count].key?('sni') then
@@ -1068,6 +1084,7 @@ do
       end
       }.join
 
+      #hysteria  hysteria2
       Thread.new{
       #alpn
       if Value['proxies'][$count].key?('alpn') then
@@ -1085,6 +1102,7 @@ do
       end;
       }.join
 
+      #hysteria
       Thread.new{
       #recv_window_conn
       if Value['proxies'][$count].key?('recv-window-conn') then
@@ -1093,6 +1111,7 @@ do
       end
       }.join
 
+      #hysteria
       Thread.new{
       #recv_window
       if Value['proxies'][$count].key?('recv-window') then
@@ -1101,6 +1120,7 @@ do
       end
       }.join
 
+      #hysteria  hysteria2
       Thread.new{
       #hysteria_obfs
       if Value['proxies'][$count].key?('obfs') then
@@ -1109,6 +1129,7 @@ do
       end
       }.join
 
+      #hysteria  hysteria2
       Thread.new{
       #hysteria_obfs_password
       if Value['proxies'][$count].key?('obfs-password') then
@@ -1117,6 +1138,7 @@ do
       end
       }.join
 
+      #hysteria
       Thread.new{
       #hysteria_auth
       if Value['proxies'][$count].key?('auth') then
@@ -1125,6 +1147,7 @@ do
       end
       }.join
 
+      #hysteria
       Thread.new{
       #hysteria_auth_str
       if Value['proxies'][$count].key?('auth-str') then
@@ -1133,6 +1156,7 @@ do
       end
       }.join
 
+      #hysteria  hysteria2
       Thread.new{
       #hysteria_ca
       if Value['proxies'][$count].key?('ca') then
@@ -1141,6 +1165,7 @@ do
       end
       }.join
 
+      #hysteria  hysteria2
       Thread.new{
       #hysteria_ca_str
       if Value['proxies'][$count].key?('ca-str') then
@@ -1149,6 +1174,7 @@ do
       end
       }.join
 
+      #hysteria
       Thread.new{
       #disable_mtu_discovery
       if Value['proxies'][$count].key?('disable-mtu-discovery') then
@@ -1157,6 +1183,7 @@ do
       end
       }.join
 
+      #hysteria
       Thread.new{
       #fast_open
       if Value['proxies'][$count].key?('fast-open') then
@@ -1165,6 +1192,7 @@ do
       end
       }.join
 
+      #hysteria  hysteria2
       Thread.new{
       #fingerprint
       if Value['proxies'][$count].key?('fingerprint') then
@@ -1173,6 +1201,7 @@ do
       end
       }.join
 
+      #hysteria  hysteria2
       Thread.new{
       #ports
       if Value['proxies'][$count].key?('ports') then
@@ -1181,6 +1210,7 @@ do
       end
       }.join
 
+      #hysteria  hysteria2
       Thread.new{
       #hop-interval
       if Value['proxies'][$count].key?('hop-interval') then

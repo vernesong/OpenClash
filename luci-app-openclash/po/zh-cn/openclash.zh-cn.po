@@ -765,6 +765,15 @@ msgstr "策略组配置（使用一键生成配置文件功能时无需设置）
 msgid "Proxies"
 msgstr "服务器节点配置"
 
+msgid "Enable Port Hopping"
+msgstr "启用端口跃迁"
+
+msgid "Enable Transport Protocol Settings"
+msgstr "启用传输协议设置"
+
+msgid "Hysterir QUIC parameters"
+msgstr "QUIC 参数"
+
 msgid "Edit Rule Providers"
 msgstr "编辑规则集配置"
 
