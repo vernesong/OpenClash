@@ -297,12 +297,12 @@ o.default = "0"
 
 o = s:option(ListValue, "hysteria_protocol", translate("Protocol"))
 for _, v in ipairs(hysteria_protocols) do o:value(v) end
-o.rmempty = false
+o.rmempty = true
 o:depends({type = "hysteria", flag_transport = true})
 
 o = s:option(ListValue, "hysteria2_protocol", translate("Protocol"))
 for _, v in ipairs(hysteria2_protocols) do o:value(v) end
-o.rmempty = false
+o.rmempty = true
 o:depends({type = "hysteria2", flag_transport = true})
 
 o = s:option(Value, "hysteria_up", translate("up"))
