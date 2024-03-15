@@ -726,7 +726,7 @@ msgstr "协议"
 msgid "Protocol param(optional)"
 msgstr "传输协议参数（可选）"
 
-msgid "Obfs"
+msgid "obfs"
 msgstr "混淆插件"
 
 msgid "Obfs param(optional)"
