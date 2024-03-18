@@ -167,7 +167,7 @@ o:depends("type", "hysteria2")
 o.rmempty = true
 o.default = "0"
 
-o = s:option(Value, "ports", translate("Port Hopping"))
+o = s:option(Value, "ports", translate("Port Range"))
 o.datatype = "portrange"
 o.rmempty = true
 o.default = "20000-40000"
@@ -305,13 +305,13 @@ for _, v in ipairs(hysteria2_protocols) do o:value(v) end
 o.rmempty = true
 o:depends({type = "hysteria2", flag_transport = true})
 
-o = s:option(Value, "hysteria_up", translate("up"))
+o = s:option(Value, "hysteria_up", translate("Uplink Capacity(Default:Mbps)"))
 o.rmempty = false
 o.description = translate("Required")
 o:depends("type", "hysteria")
 o:depends("type", "hysteria2")
 
-o = s:option(Value, "hysteria_down", translate("down"))
+o = s:option(Value, "hysteria_down", translate("Downlink Capacity(Default:Mbps)"))
 o.rmempty = false
 o.description = translate("Required")
 o:depends("type", "hysteria")
@@ -723,7 +723,7 @@ o.datatype = "uinteger"
 o:depends({type = "hysteria", flag_quicparam = true})
 
 -- [[ hop_interval ]]--
-o = s:option(Value, "hop_interval", translate("Hop Interval"))
+o = s:option(Value, "hop_interval", translate("Hop Interval (Unit:second)"))
 o.rmempty = true
 o.default = "10"
 o:depends({type = "hysteria", flag_transport = true, flag_port_hopping = true})
