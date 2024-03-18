@@ -726,7 +726,7 @@ msgstr "协议"
 msgid "Protocol param(optional)"
 msgstr "传输协议参数（可选）"
 
-msgid "Obfs"
+msgid "obfs"
 msgstr "混淆插件"
 
 msgid "Obfs param(optional)"
@@ -767,6 +767,27 @@ msgstr "服务器节点配置"
 
 msgid "Enable Port Hopping"
 msgstr "启用端口跃迁"
+
+msgid "Port Range"
+msgstr "端口范围值"
+
+msgid "Uplink Capacity(Default:Mbps)"
+msgstr "上行链路容量（默认：Mbps）"
+
+msgid "Downlink Capacity(Default:Mbps)"
+msgstr "下行链路容量（默认：Mbps）"
+
+msgid "Hop Interval (Unit:second)"
+msgstr "跳跃间隔（单位：秒）"
+
+msgid "Obfs"
+msgstr "混淆插件"
+
+msgid "Obfs param (optional)"
+msgstr "混淆参数（可选）"
+
+msgid "obfs-password"
+msgstr "混淆密码"
 
 msgid "Enable Transport Protocol Settings"
 msgstr "启用传输协议设置"
