@@ -744,6 +744,7 @@ config_test()
 {
    if [ -f "$CLASH" ]; then
       LOG_OUT "Test The Config File First..."
+      chmod o+w "$CONFIG_FILE" 2>/dev/null
       test_info=$(nohup $CLASH -t -d $CLASH_CONFIG -f "$CONFIG_FILE")
       local IFS=$'\n'
       for i in $test_info; do
