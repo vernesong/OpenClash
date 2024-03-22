@@ -188,7 +188,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
          SLOG_CLEAN
       fi
    else
-      LOG_OUT "No Compiled Version Selected, Please Select In Global Settings And Try Again!"
+      LOG_OUT "No Compiled Version Selected, Please Select In Update Page And Try Again!"
       SLOG_CLEAN
    fi
 else

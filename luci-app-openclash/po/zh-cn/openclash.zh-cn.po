@@ -173,8 +173,8 @@ msgstr "实验性：绕过中国大陆 IPv6"
 msgid "Bypass The China Network Flows, Improve Performance"
 msgstr "启用后中国大陆流量将不再经过内核，提升系统性能"
 
-msgid "Bypass The China Network Flows, Improve Performance, Depend on Dnsmasq"
-msgstr "启用后中国大陆流量将不再经过内核，提升系统性能，此功能依赖于 Dnsmasq"
+msgid "Bypass The China Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option, Depend on Dnsmasq"
+msgstr "启用后中国大陆流量将不再经过内核，提升系统性能，如旁路由遇到无法访问，请尝试启用旁路由兼容模式，此功能依赖于 Dnsmasq"
 
 msgid "Log Level"
 msgstr "日志等级"
@@ -1674,8 +1674,8 @@ msgstr "版本内核更新成功！"
 msgid "Core Update Failed. Please Make Sure Enough Flash Memory Space And Try Again!"
 msgstr "版本内核更新失败，请确认设备闪存空间足够后再试！"
 
-msgid "No Compiled Version Selected, Please Select In Global Settings And Try Again!"
-msgstr "未选择编译版本，请到全局设置中选择后再试！"
+msgid "No Compiled Version Selected, Please Select In Update Page And Try Again!"
+msgstr "未选择编译版本，请到升级页面选择后再试！"
 
 msgid "Core Has Not Been Updated, Stop Continuing Operation!"
 msgstr "版本内核没有更新，停止继续操作！"
