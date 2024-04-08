@@ -110,12 +110,14 @@ jobs:
 
       - name: Setup loongarch abi1 Go
         run: |
+          cd ..
           wget -q https://github.com/xishang0128/loongarch64-golang/releases/download/1.21.5/go1.21.5.linux-amd64-abi1.tar.gz
           sudo tar zxf go1.21.5.linux-amd64-abi1.tar.gz -C /usr/local
           echo "/usr/local/go/bin" >> $GITHUB_PATH
 
       - name: Compile Meta loongarch abi1 Clash
         run: |
+          cd mihomo
           cp ../tmp/loong64_abi1/Makefile ./Makefile
           make releases
 
@@ -126,12 +128,13 @@ jobs:
 
       - name: Setup loongarch abi2 Go
         run: |
+          cd ..
           wget -q https://github.com/xishang0128/loongarch64-golang/releases/download/1.21.5/go1.21.5.linux-amd64-abi2.tar.gz
           sudo tar zxf go1.21.5.linux-amd64-abi2.tar.gz -C /usr/local
-          echo "/usr/local/go/bin" >> $GITHUB_PATH
 
       - name: Compile Meta loongarch abi2 Clash
         run: |
+          cd mihomo
           cp ../tmp/loong64_abi2/Makefile ./Makefile
           make releases
 
