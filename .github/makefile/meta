@@ -14,6 +14,8 @@ PLATFORM_LIST = \
 	linux-armv6 \
 	linux-armv7 \
 	linux-arm64 \
+	linux-riscv64 \
+	linux-s390x \
 	linux-mips-softfloat \
 	linux-mips-hardfloat \
 	linux-mips64 \
@@ -61,8 +63,11 @@ linux-mipsle-hardfloat:
 linux-mips64:
 	GOARCH=mips64 GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
 
-linux-mips64le:
-	GOARCH=mips64le GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+linux-riscv64:
+	GOARCH=riscv64 GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+
+linux-s390x:
+	GOARCH=s390x GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
 
 
 gz_releases=$(addsuffix .tar, $(PLATFORM_LIST))

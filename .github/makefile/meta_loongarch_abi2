@@ -1,0 +1,42 @@
+NAME=clash
+BINDIR=bin
+VERSION=alpha-g$(shell git rev-parse --short HEAD)
+BUILDTIME=$(shell date -u)
+GOBUILD=CGO_ENABLED=0 go build -tags with_gvisor -trimpath -ldflags '-X "github.com/metacubex/mihomo/constant.Version=$(VERSION)" \
+		-X "github.com/metacubex/mihomo/constant.BuildTime=$(BUILDTIME)" \
+		-w -s -buildid='
+
+PLATFORM_LIST = \
+	linux-loong64-abi2
+
+all: linux-loong64-abi2 # Most used
+	
+linux-loong64-abi2:
+	GOARCH=loong64 GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+
+
+gz_releases=$(addsuffix .tar, $(PLATFORM_LIST))
+
+$(gz_releases): %.tar : %
+	chmod +x $(BINDIR)/clash
+	-${upx} --lzma --best $(BINDIR)/clash
+	tar -zcvf $(BINDIR)/$(NAME)-$(basename $@).tar.gz -C $(BINDIR) clash
+	rm -rf $(BINDIR)/clash
+
+all-arch: $(PLATFORM_LIST)
+
+releases: $(gz_releases)
+
+lint:
+	golangci-lint run ./...
+
+clean:
+	rm $(BINDIR)/*
+
+CLANG ?= clang-14
+CFLAGS := -O2 -g -Wall -Werror $(CFLAGS)
+
+ebpf: export BPF_CLANG := $(CLANG)
+ebpf: export BPF_CFLAGS := $(CFLAGS)
+ebpf:
+	cd component/ebpf/ && go generate ./...
