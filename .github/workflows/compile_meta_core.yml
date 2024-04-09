@@ -77,13 +77,13 @@ jobs:
       - name: Copy loongarch abi1 Makefile
         run: |
           cd ..
-          mkdir tmp/loong64_abi1/bin
+          mkdir -p tmp/loong64_abi1/bin
           cp ./OpenClash/.github/makefile/meta_loongarch_abi1 ./tmp/loong64_abi1/Makefile
       
       - name: Copy loongarch abi2 Makefile
         run: |
           cd ..
-          mkdir tmp/loong64_abi2/bin
+          mkdir -p tmp/loong64_abi2/bin
           cp ./OpenClash/.github/makefile/meta_loongarch_abi2 ./tmp/loong64_abi2/Makefile
 
       - name: Setup Go
