@@ -63,6 +63,9 @@ linux-mipsle-hardfloat:
 linux-mips64:
 	GOARCH=mips64 GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
 
+linux-mips64le:
+	GOARCH=mips64le GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
+
 linux-riscv64:
 	GOARCH=riscv64 GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
 
