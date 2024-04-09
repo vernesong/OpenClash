@@ -100,7 +100,6 @@ jobs:
       
       - name: Compile Meta Clash
         run: |
-          pwd
           cp ../tmp/Makefile ./Makefile
           make releases
           
@@ -118,7 +117,7 @@ jobs:
 
       - name: Compile Meta loongarch abi1 Clash
         run: |
-          cd mihomo
+          cd OpenClash
           cp ../tmp/loong64_abi1/Makefile ./Makefile
           make releases
 
@@ -135,7 +134,7 @@ jobs:
 
       - name: Compile Meta loongarch abi2 Clash
         run: |
-          cd mihomo
+          cd OpenClash
           cp ../tmp/loong64_abi2/Makefile ./Makefile
           make releases
 
