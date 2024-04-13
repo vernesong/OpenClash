@@ -1455,12 +1455,6 @@ msgstr "页面已切换为 Redir-Host 模式！"
 msgid "IP Address"
 msgstr "IP 地址"
 
-msgid "Mainland"
-msgstr "国内"
-
-msgid "Abroad"
-msgstr "国外"
-
 msgid "Website Access Check"
 msgstr "网站访问检查"
 
