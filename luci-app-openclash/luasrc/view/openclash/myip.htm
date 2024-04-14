@@ -265,8 +265,8 @@
                         if (localStorage.getItem('privacy_my_ip') != 'true') {
                             $$.getElementById('ip-speedtest').innerHTML = resp.data.ip;
                         };
-                        $$.getElementById('ip-speedtest-geo').innerHTML = resp.data.country + resp.data.province + resp.data.city + (resp.data.distinct == "null" ? '' : resp.data.distinct) + ' '  + (resp.data.isp == "null" ? '' : resp.data.isp);
-                        //IP.parseIPIpip(resp.data.ip, 'ip-speedtest-geo');
+                        //$$.getElementById('ip-speedtest-geo').innerHTML = resp.data.country + resp.data.province + resp.data.city + (resp.data.distinct == "null" ? '' : resp.data.distinct) + ' '  + (resp.data.isp == "null" ? '' : resp.data.isp);
+                        IP.parseIPIpip(resp.data.ip, 'ip-speedtest-geo');
                     })
             },
             getIpifyIP: () => {
