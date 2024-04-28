@@ -115,13 +115,14 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 
       if [ "$?" == "0" ]; then
          LOG_OUT "【"$CORE_TYPE"】Core Download Successful, Start Update..."
-	       case $CORE_TYPE in
+	      case $CORE_TYPE in
          "TUN")
             [ -s "/tmp/clash_tun.gz" ] && {
                gzip -d /tmp/clash_tun.gz >/dev/null 2>&1
                rm -rf /tmp/clash_tun.gz >/dev/null 2>&1
                rm -rf "$tun_core_path" >/dev/null 2>&1
                chmod 4755 /tmp/clash_tun >/dev/null 2>&1
+               /tmp/clash_tun -v >/dev/null 2>&1
             }
 			   ;;
          "Meta")
@@ -131,6 +132,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                mv /tmp/clash /tmp/clash_meta >/dev/null 2>&1
                rm -rf /tmp/clash_meta.tar.gz >/dev/null 2>&1
                chmod 4755 /tmp/clash_meta >/dev/null 2>&1
+               /tmp/clash_meta -v >/dev/null 2>&1
             }
 			   ;;
 			   *)
@@ -139,10 +141,11 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                tar zxvf /tmp/clash.tar.gz -C /tmp
                rm -rf /tmp/clash.tar.gz >/dev/null 2>&1
                chmod 4755 /tmp/clash >/dev/null 2>&1
+               /tmp/clash -v >/dev/null 2>&1
             }
          esac
          if [ "$?" != "0" ]; then
-            LOG_OUT "【"$CORE_TYPE"】Core Update Failed. Please Make Sure Enough Flash Memory Space And Try Again!"
+            LOG_OUT "【"$CORE_TYPE"】Core Update Failed. Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
             case $CORE_TYPE in
             "TUN")
                rm -rf /tmp/clash_tun >/dev/null 2>&1
@@ -157,16 +160,16 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             exit 0
          fi
 
-			   case $CORE_TYPE in
+         case $CORE_TYPE in
          "TUN")
-			      mv /tmp/clash_tun "$tun_core_path" >/dev/null 2>&1
-			   ;;
+            mv /tmp/clash_tun "$tun_core_path" >/dev/null 2>&1
+         ;;
          "Meta")
-               mv /tmp/clash_meta "$meta_core_path" >/dev/null 2>&1
-			   ;;
+            mv /tmp/clash_meta "$meta_core_path" >/dev/null 2>&1
+         ;;
          *)
-               mv /tmp/clash "$dev_core_path" >/dev/null 2>&1
-			   esac
+            mv /tmp/clash "$dev_core_path" >/dev/null 2>&1
+         esac
 			   
          if [ "$?" == "0" ]; then
             LOG_OUT "【"$CORE_TYPE"】Core Update Successful!"
