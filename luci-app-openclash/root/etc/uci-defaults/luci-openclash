@@ -198,28 +198,5 @@ sed -i '/.*kB maximum content size*/c\export let HTTP_MAX_CONTENT = 1024*10240;	
 
 /etc/init.d/uhttpd restart >/dev/null 2>&1
 
-#set tun interface firewall rule
-add_utun_firewall_zone()
-{
-	local section="$1"
-	local name network
-	config_get "name" "$section" "name" ""
-	config_get "network" "$section" "network" ""
-	if [ "$name" = "lan" ] && [ -z "$(echo $network |grep utun)" ]; then
-		uci -q add_list firewall."$section".network="utun"
-		uci -q commit firewall
-	fi
-}
-
-uci -q set network.utun=interface
-uci -q set network.utun.proto=none
-uci -q set network.utun.ifname=utun
-uci -q set network.utun.device=utun
-uci -q set network.utun.auto='0'
-uci -q commit network
-
-config_load "firewall"
-config_foreach add_utun_firewall_zone "zone"
-
 rm -f /tmp/luci-indexcache
 exit 0
