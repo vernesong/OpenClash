@@ -1842,6 +1842,9 @@ if [ -n "$FW4" ]; then
 
       #TUN FORWORD
       nft insert rule inet fw4 forward position 0 meta l4proto {tcp,udp} oifname utun counter accept comment \"OpenClash TUN Forward\"
+      nft insert rule inet fw4 forward position 0 meta l4proto {tcp,udp} iifname utun counter accept comment \"OpenClash TUN Forward\"
+      nft insert rule inet fw4 input position 0 meta l4proto {tcp,udp} iifname utun counter accept comment \"OpenClash TUN Input\"
+      nft insert rule inet fw4 srcnat position 0 meta nfproto {ipv4} oifname utun counter return comment \"OpenClash TUN Postrouting\"
 
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
@@ -2130,9 +2133,21 @@ if [ -n "$FW4" ]; then
          set_tun_tap "v6"
       fi
 
+      #TUN FORWORD
+      if [ "$ipv6_mode" -eq 2 ]; then
+         nft insert rule inet fw4 forward position 0 meta nfproto {ipv6} oifname utun counter accept comment \"OpenClash TUN Forward\"
+         nft insert rule inet fw4 forward position 0 meta nfproto {ipv6} iifname utun counter accept comment \"OpenClash TUN Forward\"
+         nft insert rule inet fw4 input position 0 meta nfproto {ipv6} iifname utun counter accept comment \"OpenClash TUN Input\"
+         nft insert rule inet fw4 srcnat position 0 meta nfproto {ipv6} oifname utun counter return comment \"OpenClash TUN Postrouting\"
+      fi
+
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
-         nft insert rule inet fw4 input position 0 udp dport 443 ip6 daddr != @china_ip6_route counter reject comment \"OpenClash QUIC REJECT\"
+         if [ "$ipv6_mode" -eq 2 ]; then
+            nft insert rule inet fw4 forward position 0 udp dport 443 ip6 daddr != @china_ip6_route counter reject comment \"OpenClash QUIC REJECT\"
+         else
+            nft insert rule inet fw4 input position 0 udp dport 443 ip6 daddr != @china_ip6_route counter reject comment \"OpenClash QUIC REJECT\"
+         fi
       fi
 
       #bypass gateway compatible
@@ -2618,7 +2633,10 @@ if [ -z "$FW4" ]; then
       fi
 
       #TUN FORWORD
-      iptables -I FORWARD -m comment --comment "OpenClash TUN Forward" -o utun -j ACCEPT
+      iptables -I FORWARD -m comment --comment "OpenClash TUN Forward" -o utun -j ACCEPT >/dev/null 2>&1
+      iptables -I FORWARD -m comment --comment "OpenClash TUN Forward" -i utun -j ACCEPT >/dev/null 2>&1
+      iptables -I INPUT -m comment --comment "OpenClash TUN Input" -i utun -j ACCEPT >/dev/null 2>&1
+      iptables -t nat -I POSTROUTING -m comment --comment "OpenClash TUN Postrouting" -o utun -j RETURN >/dev/null 2>&1
 
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
@@ -2890,9 +2908,21 @@ if [ -z "$FW4" ]; then
          set_tun_tap "v6"
       fi
 
+      #TUN FORWORD
+      if [ "$ipv6_mode" -eq 2 ]; then
+         ip6tables -I FORWARD -m comment --comment "OpenClash TUN Forward" -o utun -j ACCEPT >/dev/null 2>&1
+         ip6tables -I FORWARD -m comment --comment "OpenClash TUN Forward" -i utun -j ACCEPT >/dev/null 2>&1
+         ip6tables -I INPUT -m comment --comment "OpenClash TUN Input" -i utun -j ACCEPT >/dev/null 2>&1
+         ip6tables -t nat -I POSTROUTING -m comment --comment "OpenClash TUN Postrouting" -o utun -j RETURN >/dev/null 2>&1
+      fi
+
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
-         ip6tables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip6_route dst -j REJECT >/dev/null 2>&1
+         if [ "$ipv6_mode" -eq 2 ]; then
+            ip6tables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+         else
+            ip6tables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip6_route dst -j REJECT >/dev/null 2>&1
+         fi
       fi
 
       #bypass gateway compatible
