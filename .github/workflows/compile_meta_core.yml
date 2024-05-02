@@ -40,8 +40,8 @@ jobs:
       - name: Get Upstream Version
         id: upstream_id
         run: |
-          echo "upstream_id=alpha-g$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "upstream_id: alpha-g$(git rev-parse --short HEAD)"
+          echo "upstream_id=alpha-$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "upstream_id: alpha-$(git rev-parse --short HEAD)"
 
   Compile:
     runs-on: ubuntu-latest
