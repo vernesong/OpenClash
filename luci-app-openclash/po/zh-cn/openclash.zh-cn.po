@@ -1419,6 +1419,9 @@ msgstr "还原默认配置"
 msgid "One Click Check Update"
 msgstr "一键检查更新"
 
+msgid "One Click Check Update With CDN"
+msgstr "使用CDN一键检查更新"
+
 msgid "Failed to get the latest version. Please try again later!"
 msgstr "最新版本获取失败，请稍后再试！"
 
@@ -3524,3 +3527,15 @@ msgstr "绕过服务器地址，防止重复代理"
 
 msgid "Warning: Unsupported format, Proxies Address Skip Function Ignore Proxy-providers File"
 msgstr "警告：不支持的格式，绕过代理服务器地址功能已忽略代理集文件"
+
+msgid "Choose CDN For Downloading:"
+msgstr "请在下方选择一个 CDN 地址进行加速下载："
+
+msgid "Custom Your CDN URL"
+msgstr "自定义链接地址"
+
+msgid "Type CDN URL, Format Like"
+msgstr "输入链接地址，格式请参考"
+
+msgid "Please enter a valid URL!"
+msgstr "请参考示例输入正确的链接地址！"
