@@ -15,6 +15,9 @@ CHTIME=$(date "+%Y-%m-%d-%H" -r "/tmp/clash_last_version" 2>/dev/null)
 LAST_OPVER="/tmp/clash_last_version"
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
 github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
+if [ -n "$1" ]; then
+   github_address_mod="$1"
+fi
 LOG_FILE="/tmp/openclash.log"
 set_lock
 
