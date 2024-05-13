@@ -506,9 +506,9 @@ Thread.new{
    if ${17} == 1 then
       Value['profile']['store-fake-ip']=true;
    end;
-   if Value.key?('ebpf') then
-      Value.delete('ebpf');
-   end;
+   # if Value.key?('ebpf') then
+   #    Value.delete('ebpf');
+   # end;
    if Value.key?('routing-mark') then
       Value.delete('routing-mark');
    end;
