@@ -16,8 +16,19 @@ bold_off = [[</strong>]]
 
 local op_mode = string.sub(luci.sys.exec('uci get openclash.config.operation_mode 2>/dev/null'),0,-2)
 if not op_mode then op_mode = "redir-host" end
-local lan_ip = SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n' || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w 'inet'  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | tr -d '\n' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
-
+local lan_int_name = uci:get("openclash", "config", "lan_interface_name") or "0"
+local lan_ip
+if lan_int_name == "0" then
+	lan_ip = SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
+else
+	lan_ip = SYS.exec(string.format("ip address show %s | grep -w 'inet' 2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | tr -d '\n'", lan_int_name))
+end
+if not lan_ip or lan_ip == "" then
+	lan_ip = luci.sys.exec("ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w 'inet'  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | tr -d '\n'")
+end
+if not lan_ip or lan_ip == "" then
+	lan_ip = luci.sys.exec("ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
+end
 m = Map("openclash", translate("Plugin Settings"))
 m.pageaction = false
 m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"..
@@ -256,7 +267,7 @@ if op_mode == "redir-host" then
 	o.default = 0
 else
 	o = s:taboption("traffic_control", Flag, "china_ip_route", translate("China IP Route"))
-	o.description = translate("Bypass The China Network Flows, Improve Performance, Depend on Dnsmasq")
+	o.description = translate("Bypass The China Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option, Depend on Dnsmasq")
 	o.default = 0
 	o:depends("enable_redirect_dns", "1")
 	o:depends("enable_redirect_dns", "0")
@@ -271,6 +282,22 @@ end
 o = s:taboption("traffic_control", Flag, "intranet_allowed", translate("Only intranet allowed"))
 o.description = translate("When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network")
 o.default = 1
+
+o = s:taboption("traffic_control", DynamicList, "intranet_allowed_wan_name", translate("WAN Interface Name"))
+o.description = translate("Select WAN Interface Name For The Intranet Allowed")
+o:depends("intranet_allowed", "1")
+local interfaces = SYS.exec("ls -l /sys/class/net/ 2>/dev/null |awk '{print $9}' 2>/dev/null")
+for interface in string.gmatch(interfaces, "%S+") do
+   o:value(interface)
+end
+
+o = s:taboption("traffic_control", ListValue, "lan_interface_name", translate("LAN Interface Name"))
+o.description = translate("Select LAN Interface Name")
+o:value("0", translate("Disable"))
+o.default = "0"
+for interface in string.gmatch(interfaces, "%S+") do
+   o:value(interface)
+end
 
 o = s:taboption("traffic_control", Value, "local_network_pass", translate("Local IPv4 Network Bypassed List"))
 o.template = "cbi/tvalue"
@@ -1297,6 +1324,7 @@ end
 
 m:append(Template("openclash/config_editor"))
 m:append(Template("openclash/toolbar_show"))
+m:append(Template("openclash/select_git_cdn"))
 
 return m
 

@@ -312,8 +312,13 @@ yml_groups_set()
       sed -i "/use: ${name}/d" $GROUP_FILE 2>/dev/null
    fi
    
+   if [ "$set_group" -eq 0 ] && [ "$set_proxy_provider" -eq 0 ]; then
+      echo "    proxies:" >>$GROUP_FILE
+      echo "      - DIRECT" >>$GROUP_FILE
+   fi
+
    [ -n "$test_url" ] && {
-        echo "    url: $test_url" >>$GROUP_FILE
+      echo "    url: $test_url" >>$GROUP_FILE
    }
    [ -n "$test_interval" ] && {
       echo "    interval: \"$test_interval\"" >>$GROUP_FILE

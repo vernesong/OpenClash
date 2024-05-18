@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.46.003
+PKG_VERSION:=0.46.011
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
@@ -145,9 +145,6 @@ define Package/$(PKG_NAME)/postrm
 	uci -q commit firewall
 	uci -q delete ucitrack.@openclash[-1]
 	uci -q commit ucitrack
-	uci -q delete network.utun
-	uci -q commit network
-	/etc/init.d/network restart >/dev/null 2>&1 &
 	rm -rf /tmp/luci-*
 	exit 0
 endef

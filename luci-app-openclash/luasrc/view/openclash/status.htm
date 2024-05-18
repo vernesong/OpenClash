@@ -997,11 +997,7 @@
         		{
             		var r = confirm("<%:You have not installed the core yet, do you want to download and install it now?%>")
 					if (r == true) {
-						XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', null, function(x, status) {
-							if ( x && x.status == 200 ) {
-								window.location.href='<%="'+window.location.protocol+'//'+window.location.hostname+'/cgi-bin/luci/admin/services/openclash/log"%>';
-							}
-						});
+						return select_git_cdn("core_download");
 					}
         		}
     		}
