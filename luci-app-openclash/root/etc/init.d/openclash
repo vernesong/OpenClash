@@ -935,6 +935,32 @@ ac_add()
    [ -n "$3" ] && ipset add "$3" "$1" 2>/dev/null
 }
 
+wan_name_add()
+{
+   if [ -z "$1" ]; then
+      return
+   fi
+
+   if [ -n "$wan_ints" ]; then
+      wan_ints="$wan_ints $1"
+   else
+      wan_ints="$1"
+   fi
+}
+
+wan6_name_add()
+{
+   if [ -z "$1" ]; then
+      return
+   fi
+
+   if [ -n "$wan6_ints" ]; then
+      wan6_ints="$wan6_ints $1"
+   else
+      wan6_ints="$1"
+   fi
+}
+
 upnp_exclude()
 {
    if [ -s "$upnp_lease_file" ]; then
@@ -1526,7 +1552,12 @@ if [ -n "$FW4" ]; then
 
    #intranet allowed
    if [ "$intranet_allowed" -eq 1 ]; then
-      wan_ints=$(nft list chain inet fw4 input |grep -e "jump input_wan" 2>/dev/null |awk '{for (i=1;i<=NF;i++){if ($i ~ /iifname/ && $(i+1) != "{") {print $(i+1)} if ($i ~ /iifname/ && $(i+1) == "{"){for (j=i+1;j<=NF;j++){if ($j~ /}/) {out="";for (k=i+1;k<=j;k++){out=out" "$k};print out}}}}}' 2>/dev/null |sed 's/"//g'|sed 's/{//g'|sed 's/}//g'|sed 's/,//g')
+      if [ -n "$intranet_allowed_wan_name" ]; then
+         config_load "openclash"
+         config_list_foreach "config" "intranet_allowed_wan_name" wan_name_add
+      else
+         wan_ints=$(nft list chain inet fw4 input |grep -e "jump input_wan" 2>/dev/null |awk '{for (i=1;i<=NF;i++){if ($i ~ /iifname/ && $(i+1) != "{") {print $(i+1)} if ($i ~ /iifname/ && $(i+1) == "{"){for (j=i+1;j<=NF;j++){if ($j~ /}/) {out="";for (k=i+1;k<=j;k++){out=out" "$k};print out}}}}}' 2>/dev/null |sed 's/"//g'|sed 's/{//g'|sed 's/}//g'|sed 's/,//g')
+      fi
       if [ -n "$wan_ints" ]; then
          nft 'add chain inet fw4 openclash_wan_input'
          nft 'flush chain inet fw4 openclash_wan_input'
@@ -2174,7 +2205,12 @@ if [ -n "$FW4" ]; then
 
       #intranet allowed
       if [ "$intranet_allowed" -eq 1 ]; then
-         wan6_ints=$(nft list chain inet fw4 input |grep -e "jump input_wan" 2>/dev/null |awk '{for (i=1;i<=NF;i++){if ($i ~ /iifname/ && $(i+1) != "{") {print $(i+1)} if ($i ~ /iifname/ && $(i+1) == "{"){for (j=i+1;j<=NF;j++){if ($j~ /}/) {out="";for (k=i+1;k<=j;k++){out=out" "$k};print out}}}}}' 2>/dev/null |sed 's/"//g'|sed 's/{//g'|sed 's/}//g'|sed 's/,//g')
+         if [ -n "$intranet_allowed_wan_name" ]; then
+            config_load "openclash"
+            config_list_foreach "config" "intranet_allowed_wan_name" wan6_name_add
+         else
+            wan6_ints=$(nft list chain inet fw4 input |grep -e "jump input_wan" 2>/dev/null |awk '{for (i=1;i<=NF;i++){if ($i ~ /iifname/ && $(i+1) != "{") {print $(i+1)} if ($i ~ /iifname/ && $(i+1) == "{"){for (j=i+1;j<=NF;j++){if ($j~ /}/) {out="";for (k=i+1;k<=j;k++){out=out" "$k};print out}}}}}' 2>/dev/null |sed 's/"//g'|sed 's/{//g'|sed 's/}//g'|sed 's/,//g')
+         fi
          if [ -n "$wan6_ints" ]; then
             nft 'add chain inet fw4 openclash_wan6_input'
             nft 'flush chain inet fw4 openclash_wan6_input'
@@ -2294,7 +2330,12 @@ if [ -z "$FW4" ]; then
 
    #intranet allowed
    if [ "$intranet_allowed" -eq 1 ]; then
-      wan_ints=$(iptables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
+      if [ -n "$intranet_allowed_wan_name" ]; then
+         config_load "openclash"
+         config_list_foreach "config" "intranet_allowed_wan_name" wan_name_add
+      else
+         wan_ints=$(iptables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
+      fi
       if [ -n "$wan_ints" ]; then
          iptables -t filter -N openclash_wan_input
          iptables -t filter -F openclash_wan_input
@@ -2952,7 +2993,12 @@ if [ -z "$FW4" ]; then
 
       #intranet allowed
       if [ "$intranet_allowed" -eq 1 ]; then
-         wan6_ints=$(ip6tables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
+         if [ -n "$intranet_allowed_wan_name" ]; then
+            config_load "openclash"
+            config_list_foreach "config" "intranet_allowed_wan_name" wan6_name_add
+         else
+            wan6_ints=$(ip6tables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
+         fi
          if [ -n "$wan6_ints" ]; then
             ip6tables -t filter -N openclash_wan_input
             ip6tables -t filter -F openclash_wan_input
@@ -3092,7 +3138,12 @@ get_config()
       fakeip_range=$(uci -q get openclash.config.fakeip_range)
    fi
    [ -z "$fakeip_range" ] && fakeip_range="198.18.0.1/16"
-   lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
+   lan_interface_name=$(uci -q get openclash.config.lan_interface_name || echo "0")
+   if [ "$lan_interface_name" = "0" ]; then
+      lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
+   else
+      lan_ip=$(ip address show $(uci -q -p $lan_interface_name) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}')
+   fi
    wan_ip4s=$(/usr/share/openclash/openclash_get_network.lua "wanip" 2>/dev/null)
    wan_ip6s=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
    disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
@@ -3132,6 +3183,7 @@ get_config()
    enable_unified_delay=$(uci -q get openclash.config.enable_unified_delay || echo "0")
    keep_alive_interval=$(uci -q get openclash.config.keep_alive_interval || echo "0")
    proxy_dns_group=$(uci -q get openclash.config.proxy_dns_group || echo "Disable")
+   intranet_allowed_wan_name=$(uci -q get openclash.config.intranet_allowed_wan_name || echo "0")
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
 }
