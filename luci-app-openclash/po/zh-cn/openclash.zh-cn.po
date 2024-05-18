@@ -3539,3 +3539,15 @@ msgstr "输入链接地址，格式请参考"
 
 msgid "Please enter a valid URL!"
 msgstr "请参考示例输入正确的链接地址！"
+
+msgid "WAN Interface Name"
+msgstr "WAN 接口名称"
+
+msgid "Select WAN Interface Name For The Intranet Allowed"
+msgstr "为仅允许内网指定正确的 WAN 接口名称"
+
+msgid "LAN Interface Name"
+msgstr "LAN 接口名称"
+
+msgid "Select LAN Interface Name"
+msgstr "指定正确的 LAN 接口名称"
