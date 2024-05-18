@@ -4,18 +4,28 @@
 . /usr/share/openclash/log.sh
 
 github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
-if [ "$github_address_mod" = "0" ] && [ "$1" != "one_key_update" ] && [ "$2" != "one_key_update" ]; then
+if [ "$github_address_mod" = "0" ] && [ -z "$(echo $2 2>/dev/null |grep -E 'http|one_key_update')" ] && [ -z "$(echo $3 2>/dev/null |grep 'http')" ]; then
    LOG_OUT "Tip: If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
+fi
+if [ -n "$3" ] && [ "$2" = "one_key_update" ]; then
+   github_address_mod="$3"
+fi
+if [ -n "$2" ] && [ "$2" != "one_key_update" ]; then
+   github_address_mod="$2"
 fi
 CORE_TYPE="$1"
 C_CORE_TYPE=$(uci -q get openclash.config.core_type)
-[ -z "$CORE_TYPE" ] || [ "$1" = "one_key_update" ] && CORE_TYPE="Dev"
+[ -z "$CORE_TYPE" ] && CORE_TYPE="Dev"
 small_flash_memory=$(uci -q get openclash.config.small_flash_memory)
 CPU_MODEL=$(uci -q get openclash.config.core_version)
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
 LOG_FILE="/tmp/openclash.log"
 
-[ ! -f "/tmp/clash_last_version" ] && /usr/share/openclash/clash_version.sh 2>/dev/null
+if [ "$github_address_mod" != "0" ]; then
+   [ ! -f "/tmp/clash_last_version" ] && /usr/share/openclash/clash_version.sh "$github_address_mod" 2>/dev/null
+else
+   [ ! -f "/tmp/clash_last_version" ] && /usr/share/openclash/clash_version.sh 2>/dev/null
+fi
 if [ ! -f "/tmp/clash_last_version" ]; then
    LOG_OUT "Error: 【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
    SLOG_CLEAN
@@ -115,13 +125,14 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
 
       if [ "$?" == "0" ]; then
          LOG_OUT "【"$CORE_TYPE"】Core Download Successful, Start Update..."
-	       case $CORE_TYPE in
+	      case $CORE_TYPE in
          "TUN")
             [ -s "/tmp/clash_tun.gz" ] && {
                gzip -d /tmp/clash_tun.gz >/dev/null 2>&1
                rm -rf /tmp/clash_tun.gz >/dev/null 2>&1
                rm -rf "$tun_core_path" >/dev/null 2>&1
                chmod 4755 /tmp/clash_tun >/dev/null 2>&1
+               /tmp/clash_tun -v >/dev/null 2>&1
             }
 			   ;;
          "Meta")
@@ -131,6 +142,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                mv /tmp/clash /tmp/clash_meta >/dev/null 2>&1
                rm -rf /tmp/clash_meta.tar.gz >/dev/null 2>&1
                chmod 4755 /tmp/clash_meta >/dev/null 2>&1
+               /tmp/clash_meta -v >/dev/null 2>&1
             }
 			   ;;
 			   *)
@@ -139,10 +151,11 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                tar zxvf /tmp/clash.tar.gz -C /tmp
                rm -rf /tmp/clash.tar.gz >/dev/null 2>&1
                chmod 4755 /tmp/clash >/dev/null 2>&1
+               /tmp/clash -v >/dev/null 2>&1
             }
          esac
          if [ "$?" != "0" ]; then
-            LOG_OUT "【"$CORE_TYPE"】Core Update Failed. Please Make Sure Enough Flash Memory Space And Try Again!"
+            LOG_OUT "【"$CORE_TYPE"】Core Update Failed. Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
             case $CORE_TYPE in
             "TUN")
                rm -rf /tmp/clash_tun >/dev/null 2>&1
@@ -157,23 +170,23 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             exit 0
          fi
 
-			   case $CORE_TYPE in
+         case $CORE_TYPE in
          "TUN")
-			      mv /tmp/clash_tun "$tun_core_path" >/dev/null 2>&1
-			   ;;
+            mv /tmp/clash_tun "$tun_core_path" >/dev/null 2>&1
+         ;;
          "Meta")
-               mv /tmp/clash_meta "$meta_core_path" >/dev/null 2>&1
-			   ;;
+            mv /tmp/clash_meta "$meta_core_path" >/dev/null 2>&1
+         ;;
          *)
-               mv /tmp/clash "$dev_core_path" >/dev/null 2>&1
-			   esac
+            mv /tmp/clash "$dev_core_path" >/dev/null 2>&1
+         esac
 			   
          if [ "$?" == "0" ]; then
             LOG_OUT "【"$CORE_TYPE"】Core Update Successful!"
             if [ "$if_restart" -eq 1 ]; then
                   uci -q set openclash.config.config_reload=0
          	      uci -q commit openclash
-               if [ -z "$2" ] && [ "$1" != "one_key_update" ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
+               if ([ -z "$2" ] || ([ -n "$2" ] && [ "$2" != "one_key_update" ])) && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
                   /etc/init.d/openclash restart >/dev/null 2>&1 &
                fi
             else
@@ -188,7 +201,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
          SLOG_CLEAN
       fi
    else
-      LOG_OUT "No Compiled Version Selected, Please Select In Global Settings And Try Again!"
+      LOG_OUT "No Compiled Version Selected, Please Select In Update Page And Try Again!"
       SLOG_CLEAN
    fi
 else

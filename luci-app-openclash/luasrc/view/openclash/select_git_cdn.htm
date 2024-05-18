@@ -1,0 +1,195 @@
+
+<style type="text/css"> 
+.select-popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border: 3px solid #9e9e9e;
+  border-radius: 5px;
+  padding: 10px;
+  z-index: 1000;
+  max-width: 1000%;
+  min-width: 70%;
+  width: 70%;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.select-popup.hidden {
+  display: none;
+}
+
+.select-popup-header {
+  font-weight: bold;
+  margin-bottom: 10px;
+  font-size: 15px;
+}
+
+.select-popup-body {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.select-option {
+  padding: 5px;
+  cursor: pointer;
+  border-bottom: 1px solid #d7d7d7;
+}
+
+.select-option:hover {
+  background-color: #f0f0f0;
+}
+
+.custom-option-input {
+  margin-top: 5px;
+  padding: 5px;
+  width: 100%;
+}
+</style>
+
+<body>
+	<div id="selectPopup" class="select-popup hidden">
+	<div class="select-popup-header"><%:Choose CDN For Downloading:%></div>
+	<div class="select-popup-body">
+		<div class="select-option" data-value="https://fastly.jsdelivr.net/">https://fastly.jsdelivr.net/</div>
+		<div class="select-option" data-value="https://testingcf.jsdelivr.net/">https://testingcf.jsdelivr.net/</div>
+		<div class="select-option" data-value="https://raw.fastgit.org/">https://raw.fastgit.org/</div>
+		<div class="select-option" data-value="https://cdn.jsdelivr.net/">https://cdn.jsdelivr.net/</div>
+		<div class="select-option" data-value="custom"><%:Custom Your CDN URL%></div>
+		<input type="text" id="customOptionInput" class="custom-option-input"  value="https://mirror.ghproxy.com/" placeholder="<%:Type CDN URL, Format Like%> https://mirror.ghproxy.com/" style="display: none;">
+		<div class="select-option" id="addCustomOption" style="display: none;"><%:Add%></div>
+	</div>
+	</div>
+	
+</body>
+
+<script type="text/javascript">
+//<![CDATA[
+	function isValidURL(str) {
+		var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+			'((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+			'((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+			'(\\:\\d+)?(\\/[-a-z\\d%_.&#126;+]*)*'+ // port and path
+			'(\\?[;&a-z\\d%_.&#126;+=-]*)?'+ // query string
+			'(\\#[-a-z\\d_]*)?'+'\/$','i'); // fragment locator
+		return !!pattern.test(str);
+	};
+	
+	function HTTP_delay(domain, ID) {
+		let img = new Image;
+		let img_start_time = (+new Date());
+		let timeout = setTimeout(() => {
+			img.onerror = img.onload = null;
+			ID.innerHTML = ID.dataset.value + '&nbsp;&nbsp;&nbsp;&nbsp;<font style=\'color:red\'><%:Access Timed Out%></font>'
+		}, 3000);
+
+		img.onerror = () => {
+			clearTimeout(timeout);
+			ID.innerHTML = ID.dataset.value + '&nbsp;&nbsp;&nbsp;&nbsp;<font style=\'color:red\'><%:Access Denied%></font>'
+		};
+
+		img.onload = () => {
+			clearTimeout(timeout);
+			let img_load_time = (new Date())- img_start_time;
+			if (img_load_time <= 500) {
+				ID.innerHTML = ID.dataset.value + '&nbsp;&nbsp;&nbsp;&nbsp;' + '<font style=\'color:#32b643\'>'+img_load_time+'&nbsp;ms</font>'
+			}
+			else if (img_load_time > 500 && img_load_time <= 1000) {
+				ID.innerHTML = ID.dataset.value + '&nbsp;&nbsp;&nbsp;&nbsp;' + '<font style=\'color:orange\'>'+img_load_time+'&nbsp;ms</font>'
+			}
+			else {
+				ID.innerHTML = ID.dataset.value + '&nbsp;&nbsp;&nbsp;&nbsp;' + '<font style=\'color:#e85600\'>'+img_load_time+'&nbsp;ms</font>'
+			}
+		};
+
+		img.src = `${domain}favicon.ico?${+(new Date)}`;
+	};
+
+	function select_git_cdn(btn, type) {
+		var selectPopup = document.getElementById('selectPopup');
+		selectPopup.classList.remove('hidden');
+
+		var customOptionInput = document.getElementById('customOptionInput');
+		var addCustomOption = document.getElementById('addCustomOption');
+		var selectOptions = document.getElementsByClassName('select-option');
+
+		// 隐藏自定义输入和按钮
+		customOptionInput.style.display = 'none';
+		addCustomOption.style.display = 'none';
+
+		// 添加自定义选项的事件监听
+		selectPopup.addEventListener('click', select_window, type);
+
+		//点击弹窗外部关闭弹窗
+		document.addEventListener('click', select_window_close);
+
+		refresh_httpdelay = setInterval(() => {
+			for(var i = 0; i < selectOptions.length; i++) {
+				if (isValidURL(selectOptions[i].dataset.value)) {
+					HTTP_delay(selectOptions[i].dataset.value, selectOptions[i]);
+				};
+			};
+		}, Math.floor(Math.random()*(7-3+1)+3)*1000);
+	};
+	
+	function select_window_close(event) {
+		if (!selectPopup.contains(event.target)) {
+			selectPopup.classList.add('hidden');
+			clearInterval(refresh_httpdelay);
+		}
+	};
+
+	function select_window(event, type) {
+		var selectOptions = document.getElementsByClassName('select-option');
+		var target = event.target;
+		if (target.classList.contains('select-option') && target.dataset.value === 'custom') {
+			// 显示自定义输入和按钮
+			customOptionInput.style.display = 'block';
+			addCustomOption.style.display = 'block';
+		} else if (target === addCustomOption) {
+			// 添加自定义选项到列表中
+			var newValue = customOptionInput.value.trim();
+			if (newValue !== '' && isValidURL(newValue)) {
+				var newOption = document.createElement('div');
+				newOption.classList.add('select-option');
+				newOption.textContent = newValue;
+				newOption.dataset.value = newValue;
+				selectPopup.querySelector('.select-popup-body').insertBefore(newOption, selectPopup.querySelector('.select-popup-body').children[selectOptions.length - 2]);
+
+				// 隐藏自定义输入和按钮
+				customOptionInput.style.display = 'none';
+				addCustomOption.style.display = 'none';
+			}
+			else {
+				alert("<%:Please enter a valid URL!%>");
+			}
+		} else if (target != addCustomOption && target != customOptionInput && target.classList.contains('select-option'))  {
+			customOptionInput.style.display = 'none';
+			addCustomOption.style.display = 'none';
+			if (type === 'core_download') {
+				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', {url: target.dataset.value}, function(x, status) {
+			});
+			}
+			else {
+				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', {url: target.dataset.value}, function(x, status) {
+			});
+			}
+			
+			selectPopup.classList.add('hidden');
+			clearInterval(refresh_httpdelay);
+		}
+		else if (target != addCustomOption && target != customOptionInput) {
+			// 点击其他选项或弹窗外部，隐藏自定义输入和按钮
+			customOptionInput.style.display = 'none';
+			addCustomOption.style.display = 'none';
+		}
+		else {
+			if (target != customOptionInput) {
+				selectPopup.classList.add('hidden');
+				clearInterval(refresh_httpdelay);
+			}
+		};
+	};
+//]]>
+</script>

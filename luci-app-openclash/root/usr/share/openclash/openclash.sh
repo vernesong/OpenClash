@@ -50,6 +50,7 @@ config_test()
 {
    if [ -f "$CLASH" ]; then
       LOG_OUT "Config File Download Successful, Test If There is Any Errors..."
+      chmod o+w "$CFG_FILE" 2>/dev/null
       test_info=$(nohup $CLASH -t -d $CLASH_CONFIG -f "$CFG_FILE")
       local IFS=$'\n'
       for i in $test_info; do
