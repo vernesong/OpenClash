@@ -74,8 +74,20 @@ jobs:
           mkdir tmp/bin
           cp ./OpenClash/.github/makefile/meta ./tmp/Makefile
 
+      - name: Copy loongarch abi1 Makefile
+        run: |
+          cd ..
+          mkdir -p tmp/loong64_abi1/bin
+          cp ./OpenClash/.github/makefile/meta_loongarch_abi1 ./tmp/loong64_abi1/Makefile
+      
+      - name: Copy loongarch abi2 Makefile
+        run: |
+          cd ..
+          mkdir -p tmp/loong64_abi2/bin
+          cp ./OpenClash/.github/makefile/meta_loongarch_abi2 ./tmp/loong64_abi2/Makefile
+
       - name: Setup Go
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: "1.22"
           check-latest: true
@@ -94,6 +106,37 @@ jobs:
       - name: Copy Clash Bin
         run: |
           cp -rf "./bin/." "../tmp/bin/"
+          rm -rf ./bin/*
+
+      - name: Setup loongarch abi1 Go
+        run: |
+          wget -q https://github.com/xishang0128/loongarch64-golang/releases/download/1.21.5/go1.21.5.linux-amd64-abi1.tar.gz
+          sudo tar zxf go1.21.5.linux-amd64-abi1.tar.gz -C /usr/local
+          echo "/usr/local/go/bin" >> $GITHUB_PATH
+
+      - name: Compile Meta loongarch abi1 Clash
+        run: |
+          cp ../tmp/loong64_abi1/Makefile ./Makefile
+          make releases
+
+      - name: Copy loongarch abi1 Clash Bin
+        run: |
+          cp -rf "./bin/." "../tmp/loong64_abi1/bin/"
+          rm -rf ./bin/*
+
+      - name: Setup loongarch abi2 Go
+        run: |
+          wget -q https://github.com/xishang0128/loongarch64-golang/releases/download/1.21.5/go1.21.5.linux-amd64-abi2.tar.gz
+          sudo tar zxf go1.21.5.linux-amd64-abi2.tar.gz -C /usr/local
+
+      - name: Compile Meta loongarch abi2 Clash
+        run: |
+          cp ../tmp/loong64_abi2/Makefile ./Makefile
+          make releases
+
+      - name: Copy loongarch abi2 Clash Bin
+        run: |
+          cp -rf "./bin/." "../tmp/loong64_abi2/bin/"
 
       - name: Clone OpenClash Repository
         uses: actions/checkout@v4
@@ -109,6 +152,8 @@ jobs:
         run: |
           rm -rf ./dev/meta/*
           cp -rf "../tmp/bin/." "./dev/meta/"
+          cp -rf "../tmp/loong64_abi1/bin/." "./dev/meta/"
+          cp -rf "../tmp/loong64_abi2/bin/." "./dev/meta/"
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
