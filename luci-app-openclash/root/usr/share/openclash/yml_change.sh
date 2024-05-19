@@ -18,7 +18,7 @@ proxy_dns_group=${36}
 
 ebpf_action_interface=${37}
 
-kernel_bepf_support=$(bpftool version > /dev/null 2>&1 && echo '1' || echo '0')
+KERNEL_EBPF_SUPPORT=$(bpftool version > /dev/null 2>&1 && echo '1' || echo '0')
 
 lan_block_google_dns=$(uci -q get openclash.config.lan_block_google_dns_ips || uci -q get openclash.config.lan_block_google_dns_macs || echo 0)
 
@@ -517,7 +517,7 @@ Thread.new{
 
    if ${en_mode_tun} == 1 and '${1}' == 'redir-host' and '${ebpf_action_interface}' != '0' then
 
-      if ${kernel_bepf_support} == 1 then
+      if ${KERNEL_EBPF_SUPPORT} == 1 then
          Value_2={'redirect-to-tun'=>['${ebpf_action_interface}']};
          Value['ebpf']=Value_2;
          
