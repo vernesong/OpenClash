@@ -11,7 +11,14 @@ del_lock() {
    rm -rf "/tmp/lock/openclash_update.lock"
 }
 
-[ ! -f "/tmp/openclash_last_version" ] && /usr/share/openclash/openclash_version.sh 2>/dev/null
+if [ -n "$1" ] && [ "$1" != "one_key_update" ]; then
+   [ ! -f "/tmp/openclash_last_version" ] && /usr/share/openclash/openclash_version.sh "$1" 2>/dev/null
+elif [ -n "$2" ]; then
+   [ ! -f "/tmp/openclash_last_version" ] && /usr/share/openclash/openclash_version.sh "$2" 2>/dev/null
+else
+   [ ! -f "/tmp/openclash_last_version" ] && /usr/share/openclash/openclash_version.sh 2>/dev/null
+fi
+
 if [ ! -f "/tmp/openclash_last_version" ]; then
    LOG_OUT "Error: Failed to Get Version Information, Please Try Again Later..."
    SLOG_CLEAN
@@ -30,12 +37,20 @@ github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
 if [ "$1" = "one_key_update" ]; then
    uci -q set openclash.config.enable=1
    uci -q commit openclash
-   if [ "$github_address_mod" = "0" ]; then
+   if [ "$github_address_mod" = "0" ] && [ -z "$2" ]; then
       LOG_OUT "Tip: If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
    fi
-   /usr/share/openclash/openclash_core.sh "$1" >/dev/null 2>&1 &
-   /usr/share/openclash/openclash_core.sh "TUN" "$1" >/dev/null 2>&1 &
-   /usr/share/openclash/openclash_core.sh "Meta" "$1" >/dev/null 2>&1 &
+   if [ -n "$2" ]; then
+      /usr/share/openclash/openclash_core.sh "Dev" "$1" "$2" >/dev/null 2>&1 &
+      /usr/share/openclash/openclash_core.sh "TUN" "$1" "$2" >/dev/null 2>&1 &
+      /usr/share/openclash/openclash_core.sh "Meta" "$1" "$2" >/dev/null 2>&1 &
+      github_address_mod="$2"
+   else
+      /usr/share/openclash/openclash_core.sh "Dev" "$1" >/dev/null 2>&1 &
+      /usr/share/openclash/openclash_core.sh "TUN" "$1" >/dev/null 2>&1 &
+      /usr/share/openclash/openclash_core.sh "Meta" "$1" >/dev/null 2>&1 &
+   fi
+   
    wait
 else
    if [ "$github_address_mod" = "0" ]; then

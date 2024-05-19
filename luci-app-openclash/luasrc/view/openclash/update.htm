@@ -15,6 +15,10 @@
 				<option value="linux-armv6"><%:linux-armv6%></option>
 				<option value="linux-armv7"><%:linux-armv7%></option>
 				<option value="linux-arm64"><%:linux-arm64(armv8)%></option>
+				<option value="linux-loong64-abi1"><%:linux-loong64-abi1%></option>
+				<option value="linux-loong64-abi2"><%:linux-loong64-abi2%></option>
+				<option value="linux-riscv64"><%:linux-riscv64%></option>
+				<option value="linux-s390x"><%:linux-s390x%></option>
 				<option value="linux-mips-hardfloat"><%:linux-mips-hardfloat%></option>
 				<option value="linux-mips-softfloat"><%:linux-mips-softfloat%></option>
 				<option value="linux-mips64"><%:linux-mips64%></option>
@@ -80,6 +84,11 @@
 	  		   <%:Collecting data...%>
 	  	   </p>
 	  	</td>
+		  <td width="25%">
+			<p align="center" id="one_key_update_cdn">
+				<%:Collecting data...%>
+			</p>
+	   </td>
 	    <td width="25%">
 	  	   <p align="center" id="one_key_update">
 	  		   <%:Collecting data...%>
@@ -149,20 +158,21 @@
 	var core_meta_up = document.getElementById('core_meta_up');
 	var op_up = document.getElementById('op_up');
 	var update_tip = document.getElementById('update_tip');
-	var ma_core_up  = document.getElementById('ma_core_up');
-	var ma_core_tun_up  = document.getElementById('ma_core_tun_up');
-	var ma_core_meta_up  = document.getElementById('ma_core_meta_up');
-	var ma_op_up  = document.getElementById('ma_op_up');
-	var restore  = document.getElementById('restore');
-	var backup  = document.getElementById('backup');
-	var backup_ex_core  = document.getElementById('backup_ex_core');
+	var ma_core_up = document.getElementById('ma_core_up');
+	var ma_core_tun_up = document.getElementById('ma_core_tun_up');
+	var ma_core_meta_up = document.getElementById('ma_core_meta_up');
+	var ma_op_up = document.getElementById('ma_op_up');
+	var restore = document.getElementById('restore');
+	var backup = document.getElementById('backup');
+	var backup_ex_core = document.getElementById('backup_ex_core');
 	var backup_core_only = document.getElementById('backup_core_only');
 	var backup_config_only = document.getElementById('backup_config_only');
 	var backup_rule_only = document.getElementById('backup_rule_only');
 	var backup_proxy_only = document.getElementById('backup_proxy_only');
-	var one_key_update  = document.getElementById('one_key_update');
-	var remove_core  = document.getElementById('remove_core');
-	var release_branch  = document.getElementById('RELEASE_BRANCH');
+	var one_key_update = document.getElementById('one_key_update');
+	var one_key_update_cdn = document.getElementById('one_key_update_cdn');
+	var remove_core = document.getElementById('remove_core');
+	var release_branch = document.getElementById('RELEASE_BRANCH');
 	core_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'Dev\')"/>';
 	core_tun_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'TUN\')"/>';
 	core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'Meta\')"/>';
@@ -173,6 +183,7 @@
 	ma_op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_op_update(this)"/>';
 	restore.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Restore Default Config%>" onclick="return restore_config(this)"/>';
 	one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:One Click Check Update%>" onclick="return all_one_key_update(this)"/>';
+	one_key_update_cdn.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:One Click Check Update With CDN%>" onclick="return all_one_key_update_cdn(this)"/>';
 	remove_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
 	backup.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup OpenClash%>" onclick="return backup_all_file(this)"/>';
 	backup_ex_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Exclude Cores%>" onclick="return backup_no_core(this)"/>';
@@ -535,6 +546,27 @@
 				}
 				btn.disabled = false;
 				return false;
+			}
+		});
+    }
+
+	function all_one_key_update_cdn(btn)
+    {
+    	var v = core_version.value;
+		var r = release_branch.value;
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
+			if (x && x.status == 200) {
+				btn.value    = '<%:One Click Check Update With CDN%>';
+				btn.disabled = true;
+				var r = confirm("<%:Check and Update all Cores and OpenClash?%>")
+				if (r == true) {
+					btn.disabled = false;
+					return select_git_cdn("one_key_update");
+				}
+				else {
+					btn.disabled = false;
+					return false;
+				}
 			}
 		});
     }
