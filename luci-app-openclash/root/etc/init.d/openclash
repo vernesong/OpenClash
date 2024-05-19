@@ -1425,7 +1425,7 @@ if [ "$ipv6_enable" -eq 1 ]; then
    esac
 fi
 
-if [[ "${ebpf_int_name}" != "0" ]]; then
+if [[ "${ebpf_int_name}" == "0" ]]; then
    #NFTABLES
    if [ -n "$FW4" ]; then
       LOG_OUT "Tip: Firewall4 was Detected, Use NFTABLE Rules..."
@@ -3018,6 +3018,9 @@ if [[ "${ebpf_int_name}" != "0" ]]; then
          fi
       fi
    fi 2>/dev/null
+else
+   LOG_OUT "Escaping firewall settings due to eBPF interface: ${ebpf_int_name}..."
+
 fi
 
 #端口转发
