@@ -1035,7 +1035,6 @@ if [ "$1" != "0" ]; then
             .gsub(/,[\s]?Discovery Plus,[\s]?Global TV$/, ', Discovery Plus, $Discovery#delete_')
             .gsub(/,[\s]?DAZN,[\s]?Global TV$/, ', DAZN, $DAZN#delete_')
             .gsub(/,[\s]?Pornhub,[\s]?Global TV$/, ', Pornhub, $Pornhub#delete_')
-            .gsub(/,[\s]?Anti IP$/, ', $AntiIP#delete_')
             .gsub(/,[\s]?Global TV$/, ', $GlobalTV#delete_')
             .gsub(/,[\s]?Asian TV$/, ', $AsianTV#delete_')
             .gsub(/,[\s]?Proxy$/, ', $Proxy#delete_')
@@ -1090,7 +1089,6 @@ if [ "$1" != "0" ]; then
             .gsub!(/: \'PayPal\'/,': \'$PayPal#delete_\'')
             .gsub!(/: \'Domestic\'/,': \'$Domestic#delete_\'')
             .gsub!(/: \'Google FCM\'/,': \'$GoogleFCM#delete_\'')
-            .gsub!(/: \'Anti IP\'/,': \'$AntiIP#delete_\'')
             .gsub!(/return \'Domestic\'$/, 'return \'$Domestic#delete_\'')
             .gsub!(/return \'Others\'$/, 'return \'$Others#delete_\'')
             .gsub!(/#delete_/, '');
