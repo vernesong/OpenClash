@@ -104,7 +104,7 @@ o.default = "rule"
 
 -- eBPF support setting
 o = s:taboption("op_mode", ListValue, "ebpf_action_interface", translate("eBPF Action Interface"))
-o.description = translate("Select outbound interface for eBPF to apply traffic management.").."<br>"..font_red..bold_on.."1."..translate("Warning! Highly experimental configs. Will disable default firewall traffic inbound.").."<br>2."..translate("Needs kernel support for eBPF functionality. And it takes about 130MB memory to starts.").."<br>3."..translate("Might imporve direct connection performance.").."<br>4."..translate("Only support redir-host-tun.")..bold_off..font_off
+o.description = translate("Select outbound interface for eBPF to apply traffic management").."<br>"..font_red..bold_on.."1."..translate("Warning! Highly experimental configs. Will disable default firewall traffic inbound").."<br>2."..translate("Needs kernel support for eBPF functionality. And it takes about 130MB memory to starts").."<br>3."..translate("Might improve direct connection performance").."<br>4."..translate("Only support redir-host-tun")..bold_off..font_off
 o:value("0", translate("Disable"))
 o.default = "0"
 local interfaces = SYS.exec("ls -l /sys/class/net/ 2>/dev/null |awk '{print $9}' 2>/dev/null")
