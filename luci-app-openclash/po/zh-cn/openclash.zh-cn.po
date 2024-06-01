@@ -3566,3 +3566,6 @@ msgstr "可提高直连性能"
 
 msgid "Only support redir-host-tun"
 msgstr "仅支持 redir-host（TUN）模式"
+
+msgid "eBPF Action Interface"
+msgstr "eBPF 出站接口"

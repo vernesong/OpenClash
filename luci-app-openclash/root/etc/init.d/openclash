@@ -1425,7 +1425,7 @@ if [ "$ipv6_enable" -eq 1 ]; then
    esac
 fi
 
-if [[ "${ebpf_int_name}" != "0" ]]; then
+if [[ "${ebpf_int_name}" == "0" ]]; then
    #NFTABLES
    if [ -n "$FW4" ]; then
       LOG_OUT "Tip: Firewall4 was Detected, Use NFTABLE Rules..."
@@ -3155,7 +3155,7 @@ get_config()
 
    # eBPF configuration
 
-   if [[ "$en_mode" == "redir-host" && "$en_mode_tun" == "1" && "${KERNEL_EBPF_SUPPORT}" == 1 ]]; then
+   if [[ "$en_mode" == "redir-host" && "$en_mode_tun" == "1" && "${KERNEL_EBPF_SUPPORT}" == "1" ]]; then
       ebpf_int_name=$(uci -q get openclash.config.ebpf_action_interface || echo "0")
    else
       ebpf_int_name=$(echo "0")
