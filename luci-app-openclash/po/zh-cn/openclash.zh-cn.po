@@ -1702,7 +1702,7 @@ msgid "Has No Rules Field, Update Exit..."
 msgstr "规则部分校验失败，请稍后再试..."
 
 msgid "Has Incompatible Proxy-Group, Update Exit, Please Wait For OpenClash Update To Adapt..."
-msgstr "含有未支持的新策略组，更新停止，请等待 OpenClash 版本更新适配..."
+msgstr "含有未支持的策略组，更新停止，请等待 OpenClash 版本更新适配..."
 
 msgid "Check The Downloaded Rule File For Updates..."
 msgstr "检查下载的规则文件是否有更新..."
