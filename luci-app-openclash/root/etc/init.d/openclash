@@ -29,10 +29,18 @@ LOCK_FILE="/tmp/lock/openclash.lock"
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
 
+# Assume we have bpftool sets would set ebpf marker to 1
 KERNEL_EBPF_SUPPORT=$(bpftool version > /dev/null 2>&1 && echo '1' || echo '0')
 
-# Enhanced capbilities
-capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,CAP_PERFMON,cap_bpf,cap_sys_admin"
+if [[ "${KERNEL_EBPF_SUPPORT}" == "1" ]]; then
+   # Enhanced capabilities
+   capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin,CAP_PERFMON,cap_bpf"
+else
+   # Regular capabilities
+   capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin"
+fi
+
+
 
 set_lock() {
    exec 888>"$LOCK_FILE" 2>/dev/null
