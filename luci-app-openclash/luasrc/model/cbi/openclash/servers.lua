@@ -15,8 +15,8 @@ m.description=translate("Attention:")..
 "<br/>"..translate("1. Before modifying the configuration file, please click the button below to read the configuration file")..
 "<br/>"..translate("2. Proxy-providers address can be directly filled in the subscription link")..
 "<br/>"..
-"<br/>"..translate("Introduction to proxy usage: https://lancellc.gitbook.io/clash/clash-config-file/proxies")..
-"<br/>"..translate("Introduction to proxy-provider usage: https://lancellc.gitbook.io/clash/clash-config-file/proxy-provider")
+"<br/>"..translate("Introduction to proxy usage: https://wiki.metacubex.one/config/proxies/")..
+"<br/>"..translate("Introduction to proxy-provider usage: https://wiki.metacubex.one/config/proxy-providers/")
 
 s = m:section(TypedSection, "openclash")
 s.anonymous = true

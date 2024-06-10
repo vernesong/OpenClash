@@ -21,7 +21,7 @@ m.description=translate("Attention:")..
 "<br/>"..
 "<br/>"..translate("When setting this page, if the groups is empty, please go to the <server and group management> page to add")..
 "<br/>"..
-"<br/>"..translate("Introduction to rule set usage: https://lancellc.gitbook.io/clash/clash-config-file/rule-provider")
+"<br/>"..translate("Introduction to rule set usage: https://wiki.metacubex.one/config/rule-providers/content/")
 
 function IsRuleFile(e)
 e=e or""
