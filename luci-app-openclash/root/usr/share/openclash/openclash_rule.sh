@@ -107,7 +107,15 @@
          Value_1 = YAML.load_file('/tmp/rules.yaml');
          OLD_GROUP = Value['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;
          NEW_GROUP = Value_1['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;
-         puts (OLD_GROUP | NEW_GROUP).eql?(OLD_GROUP)
+         if (OLD_GROUP | NEW_GROUP).eql?(OLD_GROUP) then
+            if (OLD_GROUP | NEW_GROUP).eql?(NEW_GROUP) then
+               puts true
+            else
+               puts false
+            end
+         else
+            puts false
+         end
          ")" && [ -f "/usr/share/openclash/res/${rule_name}.yaml" ]; then
          LOG_OUT "Error: Updated Others Rules【$rule_name】Has Incompatible Proxy-Group, Update Exit, Please Wait For OpenClash Update To Adapt..."
          rm -rf /tmp/rules.yaml >/dev/null 2>&1
