@@ -572,10 +572,6 @@ o = ss:option(DummyValue, "rule_name", translate("Other Rules Name"))
 function o.cfgvalue(...)
 	if Value.cfgvalue(...) == "lhie1" then
 		return translate("lhie1 Rules")
-	elseif Value.cfgvalue(...) == "ConnersHua" then
-		return translate("ConnersHua(Provider-type) Rules")
-	elseif Value.cfgvalue(...) == "ConnersHua_return" then
-		return translate("ConnersHua Return Rules")
 	else
 		return translate("None")
 	end
