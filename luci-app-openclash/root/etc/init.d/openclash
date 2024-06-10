@@ -3118,6 +3118,7 @@ revert_firewall()
 
 get_config()
 {
+   enable=$(uci -q get openclash.config.enable)
    rule_source=$(uci -q get openclash.config.rule_source)
    enable_custom_clash_rules=$(uci -q get openclash.config.enable_custom_clash_rules)
    da_password=$(uci -q get openclash.config.dashboard_password)
@@ -3295,17 +3296,7 @@ stop()
    fi
 
    LOG_OUT "Step 5: Restart Dnsmasq..."
-   redirect_dns=$(uci -q get openclash.config.redirect_dns)
-   dnsmasq_server=$(uci -q get openclash.config.dnsmasq_server)
-   dnsmasq_noresolv=$(uci -q get openclash.config.dnsmasq_noresolv)
-   dnsmasq_resolvfile=$(uci -q get openclash.config.dnsmasq_resolvfile)
-   cachesize_dns=$(uci -q get openclash.config.cachesize_dns)
-   dnsmasq_cachesize=$(uci -q get openclash.config.dnsmasq_cachesize)
-   filter_aaaa_dns=$(uci -q get openclash.config.filter_aaaa_dns)
-   dnsmasq_filter_aaaa=$(uci -q get openclash.config.dnsmasq_filter_aaaa)
-   default_resolvfile=$(uci -q get openclash.config.default_resolvfile)
-   revert_dns "$redirect_dns" "$enable" "$default_resolvfile" "$dnsmasq_noresolv" "$dnsmasq_resolvfile" "$cachesize_dns" "$dnsmasq_cachesize" "$filter_aaaa_dns" "$dnsmasq_filter_aaaa" "$dnsmasq_server"
-   /etc/init.d/dnsmasq restart >/dev/null 2>&1
+   revert_dnsmasq
 
    LOG_OUT "Step 6: Delete OpenClash Residue File..."
    if [ "$enable" != "1" ]; then
@@ -3334,6 +3325,21 @@ stop()
    echo "OpenClash Already Stop!"
 }
 
+revert_dnsmasq()
+{
+   get_config
+   redirect_dns=$(uci -q get openclash.config.redirect_dns)
+   dnsmasq_server=$(uci -q get openclash.config.dnsmasq_server)
+   dnsmasq_noresolv=$(uci -q get openclash.config.dnsmasq_noresolv)
+   dnsmasq_resolvfile=$(uci -q get openclash.config.dnsmasq_resolvfile)
+   cachesize_dns=$(uci -q get openclash.config.cachesize_dns)
+   dnsmasq_cachesize=$(uci -q get openclash.config.dnsmasq_cachesize)
+   filter_aaaa_dns=$(uci -q get openclash.config.filter_aaaa_dns)
+   dnsmasq_filter_aaaa=$(uci -q get openclash.config.dnsmasq_filter_aaaa)
+   default_resolvfile=$(uci -q get openclash.config.default_resolvfile)
+   revert_dns "$redirect_dns" "$enable" "$default_resolvfile" "$dnsmasq_noresolv" "$dnsmasq_resolvfile" "$cachesize_dns" "$dnsmasq_cachesize" "$filter_aaaa_dns" "$dnsmasq_filter_aaaa" "$dnsmasq_server"
+   /etc/init.d/dnsmasq restart >/dev/null 2>&1
+}
 
 restart()
 {
@@ -3368,7 +3374,7 @@ reload()
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "revert" ]; then
       set_lock
       revert_firewall 2>/dev/null
-      /etc/init.d/dnsmasq restart >/dev/null 2>&1
+      revert_dnsmasq 2>/dev/null
       SLOG_CLEAN
       del_lock
    fi
@@ -3377,7 +3383,7 @@ reload()
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
       set_firewall 2>/dev/null
-      /etc/init.d/dnsmasq restart >/dev/null 2>&1
+      change_dns "$enable_redirect_dns" "$disable_masq_cache"
       SLOG_CLEAN
       del_lock
    fi
