@@ -113,7 +113,10 @@ uci -q commit openclash
 opkg remove --force-depends --force-remove luci-app-openclash
 LOG_OUT "Installing The New Version, Please Do Not Refresh The Page or Do Other Operations..."
 opkg install /tmp/openclash.ipk
-if [ "$?" == "0" ]; then
+if [ "$?" != "0" ] || [ -z "$(opkg info *openclash |grep Installed-Time)" ]; then
+   opkg install /tmp/openclash.ipk
+fi
+if [ "$?" == "0" ] && [ -n "$(opkg info *openclash |grep Installed-Time)" ]; then
    rm -rf /tmp/openclash.ipk >/dev/null 2>&1
    LOG_OUT "OpenClash Update Successful, About To Restart!"
    uci -q set openclash.config.enable=1
