@@ -12,7 +12,7 @@
       UNPACK_FILE_DIR="/usr/share/openclash/ui/dashboard/"
       BACKUP_FILE_DIR="/usr/share/openclash/ui/dashboard_backup/"
 		if [ "$DASH_TYPE" == "Official" ]; then
-			DOWNLOAD_PATH="https://codeload.github.com/Dreamacro/clash-dashboard/zip/refs/heads/gh-pages"
+			DOWNLOAD_PATH="https://codeload.github.com/ayanamist/clash-dashboard/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="clash-dashboard-gh-pages"
       else
 			DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/Razord-meta/zip/refs/heads/gh-pages"
