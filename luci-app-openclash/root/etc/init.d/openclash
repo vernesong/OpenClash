@@ -2081,7 +2081,7 @@ if [ -n "$FW4" ]; then
                   nft 'add rule inet fw4 openclash_output_v6 skuid != 65534 ip6 daddr @china_ip6_route counter return'
                fi
             fi
-            nft add rule inet fw4 openclash_output_v6 meta nfproto {ipv6} tcp dport { 0-65535 } counter redirect to "$proxy_port"
+            nft add rule inet fw4 openclash_output_v6 meta nfproto {ipv6} skuid != 65534 tcp dport { 0-65535 } counter redirect to "$proxy_port"
             nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
             nft 'add rule inet fw4 nat_output meta nfproto {ipv6} counter jump openclash_output_v6'
          fi
