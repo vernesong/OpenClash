@@ -3192,7 +3192,7 @@ get_config()
    enable_unified_delay=$(uci -q get openclash.config.enable_unified_delay || echo "0")
    keep_alive_interval=$(uci -q get openclash.config.keep_alive_interval || echo "0")
    proxy_dns_group=$(uci -q get openclash.config.proxy_dns_group || echo "Disable")
-   intranet_allowed_wan_name=$(uci -q get openclash.config.intranet_allowed_wan_name || echo "0")
+   intranet_allowed_wan_name=$(uci -q get openclash.config.intranet_allowed_wan_name)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
 }
