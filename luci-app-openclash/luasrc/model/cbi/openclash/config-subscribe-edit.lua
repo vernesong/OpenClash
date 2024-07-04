@@ -177,6 +177,12 @@ o:value("true", translate("Enable"))
 o.default = "false"
 o:depends("sub_convert", "1")
 
+---- custom params
+o = s:option(DynamicList, "custom_params", translate("Custom Params"))
+o.description = font_red..bold_on..translate("eg: \"rename=\\s+([2-9])[xX]@ (HIGH:$1)\"")..bold_off..font_off
+o.rmempty     = false
+o:depends("sub_convert", "1")
+
 ---- key
 o = s:option(DynamicList, "keyword", font_red..bold_on..translate("Keyword Match")..bold_off..font_off)
 o.description = font_red..bold_on..translate("eg: hk or tw&bgp")..bold_off..font_off
