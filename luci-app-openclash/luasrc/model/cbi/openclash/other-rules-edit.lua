@@ -72,12 +72,9 @@ if groupnames ~= nil and filename ~= nil then
 o = s:option(ListValue, "rule_name", translate("Other Rules Name"))
 o.rmempty = true
 o:value("lhie1", translate("lhie1 Rules"))
-o:value("ConnersHua", translate("ConnersHua(Provider-type) Rules"))
-o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
 o = s:option(ListValue, "GlobalTV", translate("GlobalTV"))
 o:depends("rule_name", "lhie1")
-o:depends("rule_name", "ConnersHua")
 o.rmempty = true
 for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
   if groupname ~= nil and groupname ~= "" then
@@ -89,7 +86,6 @@ o:value("REJECT")
 
 o = s:option(ListValue, "AsianTV", translate("AsianTV"))
 o:depends("rule_name", "lhie1")
-o:depends("rule_name", "ConnersHua")
 o.rmempty = true
 for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
   if groupname ~= nil and groupname ~= "" then
@@ -101,8 +97,6 @@ o:value("REJECT")
 
 o = s:option(ListValue, "Proxy", translate("Proxy"))
 o:depends("rule_name", "lhie1")
-o:depends("rule_name", "ConnersHua")
-o:depends("rule_name", "ConnersHua_return")
 o.rmempty = true
 for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
   if groupname ~= nil and groupname ~= "" then
@@ -387,20 +381,8 @@ end
 o:value("DIRECT")
 o:value("REJECT")
 
-o = s:option(ListValue, "AntiIP", translate("Anti IP"))
-o:depends("rule_name", "lhie1")
-o.rmempty = true
-for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
-  if groupname ~= nil and groupname ~= "" then
-    o:value(groupname)
-  end
-end
-o:value("DIRECT")
-o:value("REJECT")
-
 o = s:option(ListValue, "Domestic", translate("Domestic"))
 o:depends("rule_name", "lhie1")
-o:depends("rule_name", "ConnersHua")
 o.rmempty = true
 for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
   if groupname ~= nil and groupname ~= "" then
@@ -412,8 +394,6 @@ o:value("REJECT")
 
 o = s:option(ListValue, "Others", translate("Others"))
 o:depends("rule_name", "lhie1")
-o:depends("rule_name", "ConnersHua")
-o:depends("rule_name", "ConnersHua_return")
 o.rmempty = true
 o.description = translate("Choose Proxy Groups, Base On Your Config File").." ( "..font_green..bold_on..filename..bold_off..font_off.." )"
 for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do

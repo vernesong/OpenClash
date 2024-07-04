@@ -333,16 +333,8 @@ yml_other_set()
                'PROCESS-NAME,transmission-qt,DIRECT',
                'PROCESS-NAME,uTorrent,DIRECT',
                'PROCESS-NAME,WebTorrent,DIRECT',
-               'PROCESS-NAME,aria2c,DIRECT',
-               'PROCESS-NAME,fdm,DIRECT',
                'PROCESS-NAME,Folx,DIRECT',
-               'PROCESS-NAME,NetTransport,DIRECT',
-               'PROCESS-NAME,qbittorrent,DIRECT',
-               'PROCESS-NAME,Thunder,DIRECT',
                'PROCESS-NAME,Transmission,DIRECT',
-               'PROCESS-NAME,transmission,DIRECT',
-               'PROCESS-NAME,uTorrent,DIRECT',
-               'PROCESS-NAME,WebTorrent,DIRECT',
                'PROCESS-NAME,WebTorrent Helper,DIRECT',
                'PROCESS-NAME,v2ray,DIRECT',
                'PROCESS-NAME,ss-local,DIRECT',
@@ -353,6 +345,7 @@ yml_other_set()
                'PROCESS-NAME,trojan-go,DIRECT',
                'PROCESS-NAME,xray,DIRECT',
                'PROCESS-NAME,hysteria,DIRECT',
+               'PROCESS-NAME,singbox,DIRECT',
                'PROCESS-NAME,UUBooster,DIRECT',
                'PROCESS-NAME,uugamebooster,DIRECT',
                'DST-PORT,80,' + common_port_group,
@@ -940,7 +933,6 @@ yml_other_rules_get()
    config_get "OpenAI" "$section" "OpenAI" "$Proxy"
    config_get "AppleTV" "$section" "AppleTV" "$GlobalTV"
    config_get "miHoYo" "$section" "miHoYo" "$Domestic"
-   config_get "AntiIP" "$section" "AntiIP" "$Domestic"
 }
 
 if [ "$1" != "0" ]; then
@@ -955,23 +947,6 @@ if [ "$1" != "0" ]; then
       yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
       exit 0
    #判断策略组是否存在
-   elif [ "$rule_name" = "ConnersHua_return" ]; then
-       if [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ];then
-         LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
-         exit 0
-       fi
-   elif [ "$rule_name" = "ConnersHua" ]; then
-       if [ -z "$(grep "$GlobalTV" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
-         LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}"  "${11}" "${12}" "${13}"
-         exit 0
-       fi
    elif [ "$rule_name" = "lhie1" ]; then
        if [ -z "$(grep -F "$GlobalTV" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
@@ -1002,7 +977,6 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$AntiIP" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
@@ -1042,7 +1016,6 @@ if [ "$1" != "0" ]; then
             .gsub(/,[\s]?Discovery Plus,[\s]?Global TV$/, ', Discovery Plus, $Discovery#delete_')
             .gsub(/,[\s]?DAZN,[\s]?Global TV$/, ', DAZN, $DAZN#delete_')
             .gsub(/,[\s]?Pornhub,[\s]?Global TV$/, ', Pornhub, $Pornhub#delete_')
-            .gsub(/,[\s]?Anti IP$/, ', $AntiIP#delete_')
             .gsub(/,[\s]?Global TV$/, ', $GlobalTV#delete_')
             .gsub(/,[\s]?Asian TV$/, ', $AsianTV#delete_')
             .gsub(/,[\s]?Proxy$/, ', $Proxy#delete_')
@@ -1097,7 +1070,6 @@ if [ "$1" != "0" ]; then
             .gsub!(/: \'PayPal\'/,': \'$PayPal#delete_\'')
             .gsub!(/: \'Domestic\'/,': \'$Domestic#delete_\'')
             .gsub!(/: \'Google FCM\'/,': \'$GoogleFCM#delete_\'')
-            .gsub!(/: \'Anti IP\'/,': \'$AntiIP#delete_\'')
             .gsub!(/return \'Domestic\'$/, 'return \'$Domestic#delete_\'')
             .gsub!(/return \'Others\'$/, 'return \'$Others#delete_\'')
             .gsub!(/#delete_/, '');
@@ -1105,61 +1077,7 @@ if [ "$1" != "0" ]; then
          rescue Exception => e
             puts '${LOGTIME} Error: Set lhie1 Rules Failed,【' + e.message + '】';
          end" 2>/dev/null >> $LOG_FILE
-      elif [ "$rule_name" = "ConnersHua" ]; then
-         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-         begin
-            Value = YAML.load_file('$3');
-            Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua.yaml');
-            if Value.has_key?('script') then
-               Value.delete('script')
-            end;
-            if Value.has_key?('rules') then
-               Value.delete('rules')
-            end;
-            if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
-               if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-                  Value['rule-providers'].merge!(Value_1['rule-providers'])
-               else
-                  Value['rule-providers']=Value_1['rule-providers']
-               end
-            end;
-            Value['rules']=Value_1['rules'];
-            Value['rules'].to_a.collect!{|x|
-            x.to_s.gsub(/,Streaming$/, ',$GlobalTV#delete_')
-            .gsub(/,StreamingSE$/, ',$AsianTV#delete_')
-            .gsub(/(,PROXY$|,IP-Blackhole$)/, ',$Proxy#delete_')
-            .gsub(/,China,DIRECT$/, ',China,$Domestic#delete_')
-            .gsub(/,ChinaIP,DIRECT$/, ',ChinaIP,$Domestic#delete_')
-            .gsub(/,CN,DIRECT$/, ',CN,$Domestic#delete_')
-            .gsub(/,MATCH$/, ',$Others#delete_')
-            .gsub(/#delete_/, '')
-            };
-            File.open('$3','w') {|f| YAML.dump(Value, f)};
-         rescue Exception => e
-            puts '${LOGTIME} Error: Set ConnersHua Rules Failed,【' + e.message + '】';
-         end" 2>/dev/null >> $LOG_FILE
-      else
-         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-         begin
-            Value = YAML.load_file('$3');
-            Value_1 = YAML.load_file('/usr/share/openclash/res/ConnersHua_return.yaml');
-            if Value.has_key?('script') then
-               Value.delete('script')
-            end;
-            if Value.has_key?('rules') then
-               Value.delete('rules')
-            end;
-            Value['rules']=Value_1['rules'];
-            Value['rules'].to_a.collect!{|x|
-            x.to_s.gsub(/,PROXY$/, ',$Proxy#delete_')
-            .gsub(/MATCH,DIRECT$/, 'MATCH,$Others#delete_')
-            .gsub(/#delete_/, '')
-            };
-            File.open('$3','w') {|f| YAML.dump(Value, f)};
-         rescue Exception => e
-            puts '${LOGTIME} Error: Set ConnersHua Return Rules Failed,【' + e.message + '】';
-         end" 2>/dev/null >> $LOG_FILE
-       fi
+      fi
    fi
 fi
 

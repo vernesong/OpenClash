@@ -744,6 +744,7 @@ config_test()
 {
    if [ -f "$CLASH" ]; then
       LOG_OUT "Test The Config File First..."
+      chmod o+w "$CONFIG_FILE" 2>/dev/null
       test_info=$(nohup $CLASH -t -d $CLASH_CONFIG -f "$CONFIG_FILE")
       local IFS=$'\n'
       for i in $test_info; do
@@ -934,6 +935,32 @@ ac_add()
    [ -n "$3" ] && ipset add "$3" "$1" 2>/dev/null
 }
 
+wan_name_add()
+{
+   if [ -z "$1" ]; then
+      return
+   fi
+
+   if [ -n "$wan_ints" ]; then
+      wan_ints="$wan_ints $1"
+   else
+      wan_ints="$1"
+   fi
+}
+
+wan6_name_add()
+{
+   if [ -z "$1" ]; then
+      return
+   fi
+
+   if [ -n "$wan6_ints" ]; then
+      wan6_ints="$wan6_ints $1"
+   else
+      wan6_ints="$1"
+   fi
+}
+
 upnp_exclude()
 {
    if [ -s "$upnp_lease_file" ]; then
@@ -942,14 +969,23 @@ upnp_exclude()
          if [ -n "$line" ]; then
             upnp_ip=$(echo "$line" |awk -F ':' '{print $3}')
             upnp_dp=$(echo "$line" |awk -F ':' '{print $4}')
+            upnp_type=$(echo "$line" |awk -F ':' '{print $1}')
             if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
                if [ -n "$FW4" ]; then
                   if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
-                     nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } udp sport "$upnp_dp" counter return 2>/dev/null
+                     if [ "$upnp_type" == "UDP" ]; then
+                        nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } udp sport "$upnp_dp" counter return 2>/dev/null
+                     else
+                        nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } tcp sport "$upnp_dp" counter return 2>/dev/null
+                     fi
                   fi
                else
                   if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
-                     iptables -t mangle -A openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                     if [ "$upnp_type" == "UDP" ]; then
+                        iptables -t mangle -A openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                     else
+                        iptables -t mangle -A openclash_upnp -p tcp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                     fi
                   fi
                fi
             fi
@@ -1195,15 +1231,20 @@ firewall_redirect_exclude()
       if [ "$ipv6_enable" -eq 1 ]; then
          if $e_tcp ; then
             if [ -n "$dest_ip" ]; then
-               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
+               if [ "$ipv6_mode" -eq 1 ]; then
+                  nft insert rule inet fw4 openclash_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
+                  nft insert rule inet fw4 openclash_output_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
+               else
+                  nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
+                  nft insert rule inet fw4 openclash_mangle_output_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
+               fi
             fi
-            nft insert rule inet fw4 openclash_mangle_output_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
          fi
          if $e_udp ; then
             if [ -n "$dest_ip" ]; then
                nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
+               nft insert rule inet fw4 openclash_mangle_output_v6 position 0 ip6 saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
             fi
-            nft insert rule inet fw4 openclash_mangle_output_v6 position 0 ip6 saddr { "$dest_ip" } udp sport "$dest_port" counter return >/dev/null 2>&1
          fi
       fi
    else
@@ -1239,15 +1280,21 @@ firewall_redirect_exclude()
       if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
          if $e_tcp ; then
             if [ -n "$dest_ip" ]; then
-               ip6tables -t mangle -I openclash -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+                if [ "$ipv6_mode" -eq 1 ]; then
+                  ip6tables -t nat -I openclash -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+                  ip6tables -t nat -I openclash_output -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+                else
+                  ip6tables -t mangle -I openclash -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+                  ip6tables -t mangle -I openclash_output -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+               fi
             fi
-            ip6tables -t mangle -I openclash_output -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+            
          fi
          if $e_udp ; then
             if [ -n "$dest_ip" ]; then
                ip6tables -t mangle -I openclash -p udp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
+               ip6tables -t mangle -I openclash_output -p udp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
             fi
-            ip6tables -t mangle -I openclash_output -p udp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
          fi
       fi
    fi
@@ -1516,7 +1563,12 @@ if [ -n "$FW4" ]; then
 
    #intranet allowed
    if [ "$intranet_allowed" -eq 1 ]; then
-      wan_ints=$(nft list chain inet fw4 input |grep -e "jump input_wan" 2>/dev/null |awk '{for (i=1;i<=NF;i++){if ($i ~ /iifname/ && $(i+1) != "{") {print $(i+1)} if ($i ~ /iifname/ && $(i+1) == "{"){for (j=i+1;j<=NF;j++){if ($j~ /}/) {out="";for (k=i+1;k<=j;k++){out=out" "$k};print out}}}}}' 2>/dev/null |sed 's/"//g'|sed 's/{//g'|sed 's/}//g'|sed 's/,//g')
+      if [ -n "$intranet_allowed_wan_name" ] && [ "$intranet_allowed_wan_name" != "0" ]; then
+         config_load "openclash"
+         config_list_foreach "config" "intranet_allowed_wan_name" wan_name_add
+      else
+         wan_ints=$(nft list chain inet fw4 input |grep -e "jump input_wan" 2>/dev/null |awk '{for (i=1;i<=NF;i++){if ($i ~ /iifname/ && $(i+1) != "{") {print $(i+1)} if ($i ~ /iifname/ && $(i+1) == "{"){for (j=i+1;j<=NF;j++){if ($j~ /}/) {out="";for (k=i+1;k<=j;k++){out=out" "$k};print out}}}}}' 2>/dev/null |sed 's/"//g'|sed 's/{//g'|sed 's/}//g'|sed 's/,//g')
+      fi
       if [ -n "$wan_ints" ]; then
          nft 'add chain inet fw4 openclash_wan_input'
          nft 'flush chain inet fw4 openclash_wan_input'
@@ -1832,6 +1884,9 @@ if [ -n "$FW4" ]; then
 
       #TUN FORWORD
       nft insert rule inet fw4 forward position 0 meta l4proto {tcp,udp} oifname utun counter accept comment \"OpenClash TUN Forward\"
+      nft insert rule inet fw4 forward position 0 meta l4proto {tcp,udp} iifname utun counter accept comment \"OpenClash TUN Forward\"
+      nft insert rule inet fw4 input position 0 meta l4proto {tcp,udp} iifname utun counter accept comment \"OpenClash TUN Input\"
+      nft insert rule inet fw4 srcnat position 0 meta nfproto {ipv4} oifname utun counter return comment \"OpenClash TUN Postrouting\"
 
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
@@ -2005,7 +2060,10 @@ if [ -n "$FW4" ]; then
          fi
          nft add rule inet fw4 openclash_v6 meta nfproto {ipv6} tcp dport { 0-65535 } counter redirect to "$proxy_port"
          nft 'add rule inet fw4 dstnat meta nfproto {ipv6} tcp dport { 0-65535 } counter jump openclash_v6'
+      fi
 
+      #tproxy not support output chain
+      if [ "$ipv6_mode" -eq 0 ] || [ "$ipv6_mode" -eq 1 ]; then
          if [ "$router_self_proxy" = "1" ]; then
             nft 'add chain inet fw4 openclash_output_v6'
             nft 'flush chain inet fw4 openclash_output_v6'
@@ -2023,16 +2081,12 @@ if [ -n "$FW4" ]; then
                   nft 'add rule inet fw4 openclash_output_v6 skuid != 65534 ip6 daddr @china_ip6_route counter return'
                fi
             fi
-            if [ "$ipv6_mode" -eq 2 ]; then
-               nft add rule inet fw4 openclash_output_v6 meta nfproto {ipv6} skuid != 65534 tcp dport { 0-65535 } mark set "$PROXY_FWMARK" counter
-            elif [ "$ipv6_mode" -eq 0 ]; then
-               nft add rule inet fw4 openclash_output_v6 meta nfproto {ipv6} skuid != 65534 tcp dport { 0-65535 } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash TCP Tproxy\"
-            fi
+            nft add rule inet fw4 openclash_output_v6 meta nfproto {ipv6} skuid != 65534 tcp dport { 0-65535 } counter redirect to "$proxy_port"
             nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
-            nft 'add rule inet fw4 nat_output meta nfproto {ipv6} ip protocol tcp counter jump openclash_output_v6'
+            nft 'add rule inet fw4 nat_output meta nfproto {ipv6} counter jump openclash_output_v6'
          fi
       fi
-
+      
       if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -eq 0 ] || [ "$ipv6_mode" -eq 2 ]; then
          nft 'add chain inet fw4 openclash_mangle_v6'
          nft 'flush chain inet fw4 openclash_mangle_v6'
@@ -2073,28 +2127,26 @@ if [ -n "$FW4" ]; then
          fi
 
          if [ "$router_self_proxy" = "1" ]; then
-            nft 'add chain inet fw4 openclash_mangle_output_v6'
-            nft 'flush chain inet fw4 openclash_mangle_output_v6'
-            nft 'add rule inet fw4 openclash_mangle_output_v6 ip6 daddr @localnetwork6 counter return'
-            nft 'add rule inet fw4 openclash_mangle_output_v6 ip6 saddr @localnetwork6 meta nfproto {ipv6} sport @lan_ac_black_ports counter return'
-            nft 'add rule inet fw4 openclash_mangle_output_v6 skuid != 65534 ip6 daddr @wan_ac_black_ipv6s counter return'
-            if [ "$en_mode" = "redir-host" ]; then
-               nft 'add rule inet fw4 openclash_mangle_output_v6 meta nfproto {ipv6} th dport != @common_ports skuid != 65534 counter return'
-            fi
-
-            if [ "$china_ip6_route" = "1" ]; then
-               if [ "$enable_redirect_dns" != "2" ]; then
-                  nft 'add rule inet fw4 openclash_mangle_output_v6 skuid != 65534 ip6 daddr @china_ip6_route ip6 daddr != @china_ip6_route_pass counter return'
-               else
-                  nft 'add rule inet fw4 openclash_mangle_output_v6 skuid != 65534 ip6 daddr @china_ip6_route counter return'
-               fi
-            fi
             if [ "$ipv6_mode" -eq 2 ]; then
+               nft 'add chain inet fw4 openclash_mangle_output_v6'
+               nft 'flush chain inet fw4 openclash_mangle_output_v6'
+               nft 'add rule inet fw4 openclash_mangle_output_v6 ip6 daddr @localnetwork6 counter return'
+               nft 'add rule inet fw4 openclash_mangle_output_v6 ip6 saddr @localnetwork6 meta nfproto {ipv6} sport @lan_ac_black_ports counter return'
+               nft 'add rule inet fw4 openclash_mangle_output_v6 skuid != 65534 ip6 daddr @wan_ac_black_ipv6s counter return'
+               if [ "$en_mode" = "redir-host" ]; then
+                  nft 'add rule inet fw4 openclash_mangle_output_v6 meta nfproto {ipv6} th dport != @common_ports skuid != 65534 counter return'
+               fi
+
+               if [ "$china_ip6_route" = "1" ]; then
+                  if [ "$enable_redirect_dns" != "2" ]; then
+                     nft 'add rule inet fw4 openclash_mangle_output_v6 skuid != 65534 ip6 daddr @china_ip6_route ip6 daddr != @china_ip6_route_pass counter return'
+                  else
+                     nft 'add rule inet fw4 openclash_mangle_output_v6 skuid != 65534 ip6 daddr @china_ip6_route counter return'
+                  fi
+               fi
                nft add rule inet fw4 openclash_mangle_output_v6 meta nfproto {ipv6} skuid != 65534 tcp dport { 0-65535 } mark set "$PROXY_FWMARK" counter
-            elif [ "$ipv6_mode" -eq 0 ]; then
-               nft add rule inet fw4 openclash_mangle_output_v6 meta nfproto {ipv6} skuid != 65534 tcp dport { 0-65535 } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash TCP Tproxy\"
+               nft 'add rule inet fw4 mangle_output meta nfproto {ipv6} counter jump openclash_mangle_output_v6'
             fi
-            nft 'add rule inet fw4 mangle_output meta nfproto {ipv6} counter jump openclash_mangle_output_v6'
          fi
       fi
 
@@ -2120,9 +2172,21 @@ if [ -n "$FW4" ]; then
          set_tun_tap "v6"
       fi
 
+      #TUN FORWORD
+      if [ "$ipv6_mode" -eq 2 ]; then
+         nft insert rule inet fw4 forward position 0 meta nfproto {ipv6} oifname utun counter accept comment \"OpenClash TUN Forward\"
+         nft insert rule inet fw4 forward position 0 meta nfproto {ipv6} iifname utun counter accept comment \"OpenClash TUN Forward\"
+         nft insert rule inet fw4 input position 0 meta nfproto {ipv6} iifname utun counter accept comment \"OpenClash TUN Input\"
+         nft insert rule inet fw4 srcnat position 0 meta nfproto {ipv6} oifname utun counter return comment \"OpenClash TUN Postrouting\"
+      fi
+
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
-         nft insert rule inet fw4 input position 0 udp dport 443 ip6 daddr != @china_ip6_route counter reject comment \"OpenClash QUIC REJECT\"
+         if [ "$ipv6_mode" -eq 2 ]; then
+            nft insert rule inet fw4 forward position 0 udp dport 443 ip6 daddr != @china_ip6_route counter reject comment \"OpenClash QUIC REJECT\"
+         else
+            nft insert rule inet fw4 input position 0 udp dport 443 ip6 daddr != @china_ip6_route counter reject comment \"OpenClash QUIC REJECT\"
+         fi
       fi
 
       #bypass gateway compatible
@@ -2149,7 +2213,12 @@ if [ -n "$FW4" ]; then
 
       #intranet allowed
       if [ "$intranet_allowed" -eq 1 ]; then
-         wan6_ints=$(nft list chain inet fw4 input |grep -e "jump input_wan" 2>/dev/null |awk '{for (i=1;i<=NF;i++){if ($i ~ /iifname/ && $(i+1) != "{") {print $(i+1)} if ($i ~ /iifname/ && $(i+1) == "{"){for (j=i+1;j<=NF;j++){if ($j~ /}/) {out="";for (k=i+1;k<=j;k++){out=out" "$k};print out}}}}}' 2>/dev/null |sed 's/"//g'|sed 's/{//g'|sed 's/}//g'|sed 's/,//g')
+         if [ -n "$intranet_allowed_wan_name" ] && [ "$intranet_allowed_wan_name" != "0" ]; then
+            config_load "openclash"
+            config_list_foreach "config" "intranet_allowed_wan_name" wan6_name_add
+         else
+            wan6_ints=$(nft list chain inet fw4 input |grep -e "jump input_wan" 2>/dev/null |awk '{for (i=1;i<=NF;i++){if ($i ~ /iifname/ && $(i+1) != "{") {print $(i+1)} if ($i ~ /iifname/ && $(i+1) == "{"){for (j=i+1;j<=NF;j++){if ($j~ /}/) {out="";for (k=i+1;k<=j;k++){out=out" "$k};print out}}}}}' 2>/dev/null |sed 's/"//g'|sed 's/{//g'|sed 's/}//g'|sed 's/,//g')
+         fi
          if [ -n "$wan6_ints" ]; then
             nft 'add chain inet fw4 openclash_wan6_input'
             nft 'flush chain inet fw4 openclash_wan6_input'
@@ -2269,7 +2338,12 @@ if [ -z "$FW4" ]; then
 
    #intranet allowed
    if [ "$intranet_allowed" -eq 1 ]; then
-      wan_ints=$(iptables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
+      if [ -n "$intranet_allowed_wan_name" ] && [ "$intranet_allowed_wan_name" != "0" ]; then
+         config_load "openclash"
+         config_list_foreach "config" "intranet_allowed_wan_name" wan_name_add
+      else
+         wan_ints=$(iptables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
+      fi
       if [ -n "$wan_ints" ]; then
          iptables -t filter -N openclash_wan_input
          iptables -t filter -F openclash_wan_input
@@ -2608,7 +2682,10 @@ if [ -z "$FW4" ]; then
       fi
 
       #TUN FORWORD
-      iptables -I FORWARD -m comment --comment "OpenClash TUN Forward" -o utun -j ACCEPT
+      iptables -I FORWARD -m comment --comment "OpenClash TUN Forward" -o utun -j ACCEPT >/dev/null 2>&1
+      iptables -I FORWARD -m comment --comment "OpenClash TUN Forward" -i utun -j ACCEPT >/dev/null 2>&1
+      iptables -I INPUT -m comment --comment "OpenClash TUN Input" -i utun -j ACCEPT >/dev/null 2>&1
+      iptables -t nat -I POSTROUTING -m comment --comment "OpenClash TUN Postrouting" -o utun -j RETURN >/dev/null 2>&1
 
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
@@ -2835,8 +2912,8 @@ if [ -z "$FW4" ]; then
             ip6tables -t mangle -A openclash -p tcp -j MARK --set-mark "$PROXY_FWMARK"
          fi
 
-         if [ "$ipv6_mode" -eq 2 ]; then
-            if [ "$router_self_proxy" = "1" ]; then
+         if [ "$router_self_proxy" = "1" ]; then
+            if [ "$ipv6_mode" -eq 2 ]; then
                ip6tables -t mangle -N openclash_output
                ip6tables -t mangle -F openclash_output
                ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
@@ -2880,16 +2957,28 @@ if [ -z "$FW4" ]; then
          set_tun_tap "v6"
       fi
 
+      #TUN FORWORD
+      if [ "$ipv6_mode" -eq 2 ]; then
+         ip6tables -I FORWARD -m comment --comment "OpenClash TUN Forward" -o utun -j ACCEPT >/dev/null 2>&1
+         ip6tables -I FORWARD -m comment --comment "OpenClash TUN Forward" -i utun -j ACCEPT >/dev/null 2>&1
+         ip6tables -I INPUT -m comment --comment "OpenClash TUN Input" -i utun -j ACCEPT >/dev/null 2>&1
+         ip6tables -t nat -I POSTROUTING -m comment --comment "OpenClash TUN Postrouting" -o utun -j RETURN >/dev/null 2>&1
+      fi
+
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
-         ip6tables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip6_route dst -j REJECT >/dev/null 2>&1
+         if [ "$ipv6_mode" -eq 2 ]; then
+            ip6tables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip6_route dst -j REJECT >/dev/null 2>&1
+         else
+            ip6tables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip6_route dst -j REJECT >/dev/null 2>&1
+         fi
       fi
 
       #bypass gateway compatible
       if [ "$bypass_gateway_compatible" -eq 1 ]; then
          ip6tables -t nat -N openclash_post
          ip6tables -t nat -F openclash_post
-         ip6tables -t nat -A openclash_post -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
+         ip6tables -t nat -A openclash_post -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
          ip6tables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -j ACCEPT
          ip6tables -t nat -A openclash_post -m set --match-set localnetwork6 dst -j RETURN
          ip6tables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -j MASQUERADE
@@ -2912,7 +3001,12 @@ if [ -z "$FW4" ]; then
 
       #intranet allowed
       if [ "$intranet_allowed" -eq 1 ]; then
-         wan6_ints=$(ip6tables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
+         if [ -n "$intranet_allowed_wan_name" ] && [ "$intranet_allowed_wan_name" != "0" ]; then
+            config_load "openclash"
+            config_list_foreach "config" "intranet_allowed_wan_name" wan6_name_add
+         else
+            wan6_ints=$(ip6tables-save -t filter |grep -e "-j zone_wan_input" 2>/dev/null |awk '{for (i=1;i<=NF;i++) {if ($i ~ /-i/) {print $(i+1)}}}' 2>/dev/null)
+         fi
          if [ -n "$wan6_ints" ]; then
             ip6tables -t filter -N openclash_wan_input
             ip6tables -t filter -F openclash_wan_input
@@ -3032,6 +3126,7 @@ revert_firewall()
 
 get_config()
 {
+   enable=$(uci -q get openclash.config.enable)
    rule_source=$(uci -q get openclash.config.rule_source)
    enable_custom_clash_rules=$(uci -q get openclash.config.enable_custom_clash_rules)
    da_password=$(uci -q get openclash.config.dashboard_password)
@@ -3052,7 +3147,12 @@ get_config()
       fakeip_range=$(uci -q get openclash.config.fakeip_range)
    fi
    [ -z "$fakeip_range" ] && fakeip_range="198.18.0.1/16"
-   lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
+   lan_interface_name=$(uci -q get openclash.config.lan_interface_name || echo "0")
+   if [ "$lan_interface_name" = "0" ]; then
+      lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
+   else
+      lan_ip=$(ip address show $(uci -q -p $lan_interface_name) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}')
+   fi
    wan_ip4s=$(/usr/share/openclash/openclash_get_network.lua "wanip" 2>/dev/null)
    wan_ip6s=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
    disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
@@ -3091,6 +3191,8 @@ get_config()
    global_client_fingerprint=$(uci -q get openclash.config.global_client_fingerprint || echo "0")
    enable_unified_delay=$(uci -q get openclash.config.enable_unified_delay || echo "0")
    keep_alive_interval=$(uci -q get openclash.config.keep_alive_interval || echo "0")
+   proxy_dns_group=$(uci -q get openclash.config.proxy_dns_group || echo "Disable")
+   intranet_allowed_wan_name=$(uci -q get openclash.config.intranet_allowed_wan_name || echo "0")
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
 }
@@ -3118,7 +3220,7 @@ start()
    if ! $quick_start; then
       LOG_OUT "Step 3: Modify The Config File..."
       config_check
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$enable_meta_core" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay" "$keep_alive_interval"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$enable_meta_core" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay" "$keep_alive_interval" "$proxy_dns_group"
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port" "$enable_meta_core" "$enable_redirect_dns" "$fakeip_range" "$en_mode"
       /usr/share/openclash/openclash_custom_domain_dns.sh >/dev/null 2>&1
       #Custom overwrite
@@ -3202,17 +3304,7 @@ stop()
    fi
 
    LOG_OUT "Step 5: Restart Dnsmasq..."
-   redirect_dns=$(uci -q get openclash.config.redirect_dns)
-   dnsmasq_server=$(uci -q get openclash.config.dnsmasq_server)
-   dnsmasq_noresolv=$(uci -q get openclash.config.dnsmasq_noresolv)
-   dnsmasq_resolvfile=$(uci -q get openclash.config.dnsmasq_resolvfile)
-   cachesize_dns=$(uci -q get openclash.config.cachesize_dns)
-   dnsmasq_cachesize=$(uci -q get openclash.config.dnsmasq_cachesize)
-   filter_aaaa_dns=$(uci -q get openclash.config.filter_aaaa_dns)
-   dnsmasq_filter_aaaa=$(uci -q get openclash.config.dnsmasq_filter_aaaa)
-   default_resolvfile=$(uci -q get openclash.config.default_resolvfile)
-   revert_dns "$redirect_dns" "$enable" "$default_resolvfile" "$dnsmasq_noresolv" "$dnsmasq_resolvfile" "$cachesize_dns" "$dnsmasq_cachesize" "$filter_aaaa_dns" "$dnsmasq_filter_aaaa" "$dnsmasq_server"
-   /etc/init.d/dnsmasq restart >/dev/null 2>&1
+   revert_dnsmasq
 
    LOG_OUT "Step 6: Delete OpenClash Residue File..."
    if [ "$enable" != "1" ]; then
@@ -3241,6 +3333,21 @@ stop()
    echo "OpenClash Already Stop!"
 }
 
+revert_dnsmasq()
+{
+   get_config
+   redirect_dns=$(uci -q get openclash.config.redirect_dns)
+   dnsmasq_server=$(uci -q get openclash.config.dnsmasq_server)
+   dnsmasq_noresolv=$(uci -q get openclash.config.dnsmasq_noresolv)
+   dnsmasq_resolvfile=$(uci -q get openclash.config.dnsmasq_resolvfile)
+   cachesize_dns=$(uci -q get openclash.config.cachesize_dns)
+   dnsmasq_cachesize=$(uci -q get openclash.config.dnsmasq_cachesize)
+   filter_aaaa_dns=$(uci -q get openclash.config.filter_aaaa_dns)
+   dnsmasq_filter_aaaa=$(uci -q get openclash.config.dnsmasq_filter_aaaa)
+   default_resolvfile=$(uci -q get openclash.config.default_resolvfile)
+   revert_dns "$redirect_dns" "$enable" "$default_resolvfile" "$dnsmasq_noresolv" "$dnsmasq_resolvfile" "$cachesize_dns" "$dnsmasq_cachesize" "$filter_aaaa_dns" "$dnsmasq_filter_aaaa" "$dnsmasq_server"
+   /etc/init.d/dnsmasq restart >/dev/null 2>&1
+}
 
 restart()
 {
@@ -3265,10 +3372,26 @@ reload()
       revert_firewall 2>/dev/null
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
-      start_run_core
-      check_core_status
+      #start_run_core
+      #check_core_status
       set_firewall 2>/dev/null
       /etc/init.d/dnsmasq restart >/dev/null 2>&1
+      SLOG_CLEAN
+      del_lock
+   fi
+   if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "revert" ]; then
+      set_lock
+      revert_firewall 2>/dev/null
+      revert_dnsmasq 2>/dev/null
+      SLOG_CLEAN
+      del_lock
+   fi
+   if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "restore" ]; then
+      set_lock
+      do_run_mode 2>/dev/null
+      get_config 2>/dev/null
+      set_firewall 2>/dev/null
+      change_dns "$enable_redirect_dns" "$disable_masq_cache"
       SLOG_CLEAN
       del_lock
    fi

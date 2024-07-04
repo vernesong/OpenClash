@@ -14,6 +14,7 @@ append_wan_dns=$(uci -q get openclash.config.append_wan_dns || echo 0)
 custom_fallback_filter=$(uci -q get openclash.config.custom_fallback_filter || echo 0)
 enable_meta_core=$(uci -q get openclash.config.enable_meta_core || echo 0)
 china_ip_route=$(uci -q get openclash.config.china_ip_route || echo 0)
+proxy_dns_group=${36}
 
 lan_block_google_dns=$(uci -q get openclash.config.lan_block_google_dns_ips || uci -q get openclash.config.lan_block_google_dns_macs || echo 0)
 
@@ -227,21 +228,24 @@ yml_dns_get()
             Value = YAML.load_file('$2');
             Value['proxy-groups'].each{
                |x|
-               if x['name'] == '$specific_group' then
-                  if (x.key?('use') and not x['use'].to_a.empty?) or (x.key?('proxies') and not x['proxies'].to_a.empty?) then
-                     puts 'return'
-                  end;
+               if x['name'] =~ /${specific_group}/ then
+                  puts x['name'];
+                  break;
                end;
             };
          }.join;
       rescue Exception => e
-         puts 'return'
+         puts 'return';
       end;" 2>/dev/null)
 
-      if [ "$group_check" != "return" ]; then
-         /usr/share/openclash/yml_groups_set.sh >/dev/null 2>&1 "$specific_group"
+      if [ "$group_check" != "return" ] && [ -n "$group_check" ]; then
+         specific_group="#$group_check"
+      elif [ "$proxy_dns_group" != "Disable" ] && [ -n "$proxy_dns_group" ] && [ "$group" = "fallback" ]; then
+         specific_group="#$proxy_dns_group"
+      else
+         specific_group=""
       fi
-      specific_group="#$specific_group"
+      
    elif [ "$specific_group" != "Disable" ] && [ -n "$specific_group" ]; then
       LOG_OUT "Warning: Only Meta Core Support Specific Group, Skip Setting【$dns_type$dns_address】"
       specific_group=""
@@ -553,6 +557,36 @@ Thread.new{
       Value['dns'].merge!(Value_2);
    end;
 }.join;
+end;
+
+# proxy fallback dns
+begin
+Thread.new{
+   if '${proxy_dns_group}' == 'Disable' or '${proxy_dns_group}'.nil? or ${19} != 1 then
+      Thread.exit;
+   end;
+   if Value.key?('proxy-groups') then
+      Value['proxy-groups'].each{|x,y|
+         if x['name'] =~ /${proxy_dns_group}/ then
+            y = x['name'];
+            if Value['dns'].has_key?('fallback') and not Value['dns']['fallback'].to_a.empty? then
+               Value['dns']['fallback'].each{|z|
+                  if z =~ /#h3/ then
+                     z.gsub!(/#h3/, '#' + y + '&h3');
+                  elsif z =~ /#/ then
+                     next;
+                  else
+                     z << '#' + y;
+                  end;
+               };
+            end;
+            break;
+         end;
+      };
+   end;
+}.join;
+rescue Exception => e
+   puts '${LOGTIME} Error: Set Fallback DNS Proxy Group Failed,【' + e.message + '】';
 end;
 
 #default-nameserver

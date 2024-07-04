@@ -173,8 +173,8 @@ msgstr "实验性：绕过中国大陆 IPv6"
 msgid "Bypass The China Network Flows, Improve Performance"
 msgstr "启用后中国大陆流量将不再经过内核，提升系统性能"
 
-msgid "Bypass The China Network Flows, Improve Performance, Depend on Dnsmasq"
-msgstr "启用后中国大陆流量将不再经过内核，提升系统性能，此功能依赖于 Dnsmasq"
+msgid "Bypass The China Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option, Depend on Dnsmasq"
+msgstr "启用后中国大陆流量将不再经过内核，提升系统性能，如旁路由遇到无法访问，请尝试启用旁路由兼容模式，此功能依赖于 Dnsmasq"
 
 msgid "Log Level"
 msgstr "日志等级"
@@ -301,6 +301,9 @@ msgstr "规则设置"
 
 msgid "Config Manage"
 msgstr "配置管理"
+
+msgid "Upload Config File"
+msgstr "上传配置文件"
 
 msgid "Upload File Type"
 msgstr "上传文件类型"
@@ -723,7 +726,7 @@ msgstr "协议"
 msgid "Protocol param(optional)"
 msgstr "传输协议参数（可选）"
 
-msgid "Obfs"
+msgid "obfs"
 msgstr "混淆插件"
 
 msgid "Obfs param(optional)"
@@ -761,6 +764,36 @@ msgstr "策略组配置（使用一键生成配置文件功能时无需设置）
 
 msgid "Proxies"
 msgstr "服务器节点配置"
+
+msgid "Enable Port Hopping"
+msgstr "启用端口跃迁"
+
+msgid "Port Range"
+msgstr "端口范围值"
+
+msgid "Uplink Capacity(Default:Mbps)"
+msgstr "上行链路容量（默认：Mbps）"
+
+msgid "Downlink Capacity(Default:Mbps)"
+msgstr "下行链路容量（默认：Mbps）"
+
+msgid "Hop Interval (Unit:second)"
+msgstr "跳跃间隔（单位：秒）"
+
+msgid "Obfs"
+msgstr "混淆插件"
+
+msgid "Obfs param (optional)"
+msgstr "混淆参数（可选）"
+
+msgid "obfs-password"
+msgstr "混淆密码"
+
+msgid "Enable Transport Protocol Settings"
+msgstr "启用传输协议设置"
+
+msgid "Hysterir QUIC parameters"
+msgstr "QUIC 参数"
 
 msgid "Edit Rule Providers"
 msgstr "编辑规则集配置"
@@ -1257,8 +1290,11 @@ msgstr "GEOIP 数据库检查更新"
 msgid "Check GeoSite Data Update"
 msgstr "GeoSite 数据库检查更新"
 
-msgid "Check and update all Cores and plug-ins?"
+msgid "Check and Update all Cores and OpenClash?"
 msgstr "确定要一键检查并更新所有内核及插件吗？"
+
+msgid "You have not installed the core yet, do you want to download and install it now?"
+msgstr "您还未安装内核，是否立即下载安装？"
 
 msgid "Check failed, Please try again later!"
 msgstr "一键检查更新失败,请稍后再试！"
@@ -1383,6 +1419,9 @@ msgstr "还原默认配置"
 msgid "One Click Check Update"
 msgstr "一键检查更新"
 
+msgid "One Click Check Update With CDN"
+msgstr "使用CDN一键检查更新"
+
 msgid "Failed to get the latest version. Please try again later!"
 msgstr "最新版本获取失败，请稍后再试！"
 
@@ -1418,12 +1457,6 @@ msgstr "页面已切换为 Redir-Host 模式！"
 
 msgid "IP Address"
 msgstr "IP 地址"
-
-msgid "Mainland"
-msgstr "国内"
-
-msgid "Abroad"
-msgstr "国外"
 
 msgid "Website Access Check"
 msgstr "网站访问检查"
@@ -1635,11 +1668,11 @@ msgstr "版本内核更新失败，请检查网络或稍后再试！"
 msgid "Core Update Successful!"
 msgstr "版本内核更新成功！"
 
-msgid "Core Update Failed. Please Make Sure Enough Flash Memory Space And Try Again!"
-msgstr "版本内核更新失败，请确认设备闪存空间足够后再试！"
+msgid "Core Update Failed. Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
+msgstr "版本内核更新失败，请确认设备闪存空间足够或内核平台正确后再试！"
 
-msgid "No Compiled Version Selected, Please Select In Global Settings And Try Again!"
-msgstr "未选择编译版本，请到全局设置中选择后再试！"
+msgid "No Compiled Version Selected, Please Select In Update Page And Try Again!"
+msgstr "未选择编译版本，请到升级页面选择后再试！"
 
 msgid "Core Has Not Been Updated, Stop Continuing Operation!"
 msgstr "版本内核没有更新，停止继续操作！"
@@ -1669,7 +1702,7 @@ msgid "Has No Rules Field, Update Exit..."
 msgstr "规则部分校验失败，请稍后再试..."
 
 msgid "Has Incompatible Proxy-Group, Update Exit, Please Wait For OpenClash Update To Adapt..."
-msgstr "含有未支持的新策略组，更新停止，请等待 OpenClash 版本更新适配..."
+msgstr "含有未支持的策略组，更新停止，请等待 OpenClash 版本更新适配..."
 
 msgid "Check The Downloaded Rule File For Updates..."
 msgstr "检查下载的规则文件是否有更新..."
@@ -2965,7 +2998,7 @@ msgid "Update GeoIP Dat"
 msgstr "更新 GeoIP Dat 数据库"
 
 msgid "Note: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it"
-msgstr "注意: 路由不建议开启 IPV6 和相关服务，目前反馈的网络连接问题多数与它有关"
+msgstr "注意: 路由不建议开启 IPv6 和相关服务，目前反馈的网络连接问题多数与它有关"
 
 msgid "Note: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off"
 msgstr "注意: 浏览器开启安全 DNS，会导致分流异常，请注意关闭"
@@ -2973,17 +3006,17 @@ msgstr "注意: 浏览器开启安全 DNS，会导致分流异常，请注意关
 msgid "Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check"
 msgstr "注意: 部分软件会修改设备 HOSTS，会导致分流异常，请注意检查"
 
-msgid "Note: The default proxy routes local traffic, BT, PT download, etc., please use redir mode as much as possible and pay attention to traffic avoidance"
-msgstr "注意: 默认代理路由本机流量，BT、PT 下载等请尽量使用 redir 模式并注意进行流量规避"
+msgid "Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance"
+msgstr "注意: 默认代理路由本机流量，BT、PT 下载等请尽量使用 Redir-Host 模式并注意进行流量规避"
 
-msgid "Note: Game proxy please use nodes except Vmess"
-msgstr "注意: 游戏代理请使用 Vmess 以外的节点"
+msgid "Note: Game proxy please use nodes except VMess"
+msgstr "注意: 游戏代理请使用 VMess 以外的节点"
 
 msgid "Note: If the connection is abnormal, please follow the steps on this page to check first"
 msgstr "注意: 连接异常时请按照此页步骤先进行检查"
 
-msgid "Note: If you need to perform client access control in Fake-ip mode, please change the DNS hijacking mode to firewall forwarding"
-msgstr "注意: Fake-ip 模式下如需要进行客户端访问控制，请将DNS劫持模式改为防火墙转发"
+msgid "Note: If you need to perform client access control in Fake-IP mode, please change the DNS hijacking mode to firewall forwarding"
+msgstr "注意: Fake-IP 模式下如需要进行客户端访问控制，请将DNS劫持模式改为防火墙转发"
 
 msgid "Click to the page"
 msgstr "点击前往"
@@ -3045,8 +3078,8 @@ msgstr "指定接口"
 msgid "DNS Lookup Only Through The Specific Interface"
 msgstr "DNS 仅通过特定接口进行查询"
 
-msgid "Specific Group"
-msgstr "指定策略组"
+msgid "Specific Group (Support Regex)"
+msgstr "指定策略组（支持正则匹配）"
 
 msgid "Group Use For Proxy The DNS"
 msgstr "用于代理此 DNS 的策略组"
@@ -3239,6 +3272,9 @@ msgstr "大陆域名 DNS 服务器"
 
 msgid "Specify DNS Server For CN Domain Lists, Only One IP Server Address Support"
 msgstr "指定大陆域名的 DNS 服务器，只支持填写一个IP地址"
+
+msgid "Warning: Dnsmasq Work is Unnormal, Setting The Firewall DNS Hijacking Rules..."
+msgstr "警告：检测到 Dnsmasq 工作异常，设置防火墙 DNS 劫持规则..."
 
 msgid "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
 msgstr "提示：检测到 Dnsmasq 正常工作，还原防火墙 DNS 劫持规则..."
@@ -3464,3 +3500,60 @@ msgstr "TCP Keep-alive 间隔（s）"
 
 msgid "Used for Downloading Subscriptions, Defaults to Clash"
 msgstr "用于下载订阅时指定 UA，默认为 Clash"
+
+msgid "Error: Set Proxies Address Skip Failed,"
+msgstr "错误：绕过代理服务器地址设置失败，"
+
+msgid "Flush Failed"
+msgstr "清理失败"
+
+msgid "Flush Successful"
+msgstr "清理成功"
+
+msgid "Flush Timeout"
+msgstr "清理超时"
+
+msgid "Fallback DNS Proxy Group (Support Regex)"
+msgstr "Fallback DNS 代理组 (支持正则匹配)"
+
+msgid "Group Use For Proxy The Fallback DNS, Preventing DNS Lookup Failures"
+msgstr "为所有 Fallback DNS 设置代理策略组，防止 DNS 查询失败"
+
+msgid "Error: Set Fallback DNS Proxy Group Failed,"
+msgstr "错误：Fallback DNS 代理策略组设置失败，"
+
+msgid "To Use in Fake-IP Mode, Please Switch The Dns Redirect Mode To Firewall Forwarding"
+msgstr "要在 Fake-IP 模式下使用，请将 Dns 重定向模式切换为防火墙转发模式"
+
+msgid "Skip Proxy Address"
+msgstr "绕过服务器地址"
+
+msgid "Bypassing Server Addresses And Preventing Duplicate Proxies"
+msgstr "绕过服务器地址，防止重复代理"
+
+msgid "Warning: Unsupported format, Proxies Address Skip Function Ignore Proxy-providers File"
+msgstr "警告：不支持的格式，绕过代理服务器地址功能已忽略代理集文件"
+
+msgid "Choose CDN For Downloading:"
+msgstr "请在下方选择一个 CDN 地址进行加速下载："
+
+msgid "Custom Your CDN URL"
+msgstr "自定义链接地址"
+
+msgid "Type CDN URL, Format Like"
+msgstr "输入链接地址，格式请参考"
+
+msgid "Please enter a valid URL!"
+msgstr "请参考示例输入正确的链接地址！"
+
+msgid "WAN Interface Name"
+msgstr "WAN 接口名称"
+
+msgid "Select WAN Interface Name For The Intranet Allowed"
+msgstr "为仅允许内网指定正确的 WAN 接口名称"
+
+msgid "LAN Interface Name"
+msgstr "LAN 接口名称"
+
+msgid "Select LAN Interface Name"
+msgstr "指定正确的 LAN 接口名称"

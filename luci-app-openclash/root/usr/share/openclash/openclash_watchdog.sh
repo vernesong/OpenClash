@@ -25,19 +25,64 @@ china_ip_route=$(uci -q get openclash.config.china_ip_route)
 en_mode=$(uci -q get openclash.config.en_mode)
 fakeip_range=$(uci -q get openclash.config.fakeip_range || echo "198.18.0.1/16")
 ipv6_mode=$(uci -q get openclash.config.ipv6_mode || echo 0)
+skip_proxy_address=$(uci -q get openclash.config.skip_proxy_address || echo 0)
 CRASH_NUM=0
 CFG_UPDATE_INT=1
+SKIP_PROXY_ADDRESS=1
+SKIP_PROXY_ADDRESS_INTERVAL=30
 STREAM_DOMAINS_PREFETCH=1
 STREAM_AUTO_SELECT=1
 FW4=$(command -v fw4)
 
+
 check_dnsmasq() {
    if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -eq 1 ] && [ "$enable_redirect_dns" != "2" ]; then
-      if [ "$(nslookup www.baidu.com 127.0.0.1:12353 >/dev/null 2>&1 || echo $?)" != "1" ]; then
-         DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
-         if [ -z "$DNSPORT" ]; then
-            DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
+      DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
+      if [ -z "$DNSPORT" ]; then
+         DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
+      fi
+      if [ "$(nslookup www.baidu.com >/dev/null 2>&1 || echo $?)" = "1" ]; then
+         if [ -n "$FW4" ]; then
+            if [ -z "$(nft list chain inet fw4 nat_output |grep '12353')" ]; then
+               LOG_OUT "Warning: Dnsmasq Work is Unnormal, Setting The Firewall DNS Hijacking Rules..."
+               nft insert rule inet fw4 dstnat position 0 tcp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               nft insert rule inet fw4 dstnat position 0 udp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }' 2>/dev/null
+               nft insert rule inet fw4 nat_output position 0 tcp dport 53 meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               nft insert rule inet fw4 nat_output position 0 udp dport 53 meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               nft insert rule inet fw4 nat_output position 0 tcp dport 12353 meta skuid != 65534 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               nft insert rule inet fw4 nat_output position 0 udp dport 12353 meta skuid != 65534 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               if [ "$ipv6_enable" -eq 1 ]; then
+                  nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} tcp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+                  nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} udp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+                  nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }' 2>/dev/null
+                  nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} tcp dport 53 meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+                  nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} udp dport 53 meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\" 2>/dev/null
+                  nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} tcp dport 12353 meta skuid != 65534 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+                  nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} udp dport 12353 meta skuid != 65534 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\" 2>/dev/null
+               fi
+            fi
+         else
+            if [ -z "$(iptables -t nat -nL OUTPUT --line-number |grep '12353')" ]; then
+               LOG_OUT "Warning: Dnsmasq Work is Unnormal, Setting The Firewall DNS Hijacking Rules..."
+               iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               iptables -t nat -I OUTPUT -p udp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               iptables -t nat -I OUTPUT -p tcp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               iptables -t nat -I OUTPUT -p udp --dport 12353 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               iptables -t nat -I OUTPUT -p tcp --dport 12353 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               if [ "$ipv6_enable" -eq 1 ]; then
+                  ip6tables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+                  ip6tables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+                  ip6tables -t nat -I OUTPUT -p udp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+                  ip6tables -t nat -I OUTPUT -p tcp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+                  ip6tables -t nat -I OUTPUT -p udp --dport 12353 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+                  ip6tables -t nat -I OUTPUT -p tcp --dport 12353 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack" 2>/dev/null
+               fi
+            fi
          fi
+      fi
+      if [ "$(nslookup www.baidu.com 127.0.0.1:12353 >/dev/null 2>&1 || echo $?)" != "1" ]; then
          if [ -n "$FW4" ]; then
             if [ -n "$(nft list chain inet fw4 nat_output |grep 'OpenClash DNS Hijack')" ]; then
                LOG_OUT "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
@@ -86,6 +131,7 @@ check_dnsmasq() {
 }
 
 check_dnsmasq
+SLOG_CLEAN
 sleep 60
 
 while :;
@@ -112,7 +158,6 @@ do
    stream_auto_select_google_not_cn=$(uci -q get openclash.config.stream_auto_select_google_not_cn || echo 0)
    stream_auto_select_openai=$(uci -q get openclash.config.stream_auto_select_openai || echo 0)
    upnp_lease_file=$(uci -q get upnpd.config.upnp_lease_file)
-   
    enable=$(uci -q get openclash.config.enable)
 
 if [ "$enable" -eq 1 ]; then
@@ -224,14 +269,13 @@ fi
       if [ -n "$FW4" ]; then
          for i in `$(nft list chain inet fw4 openclash_upnp |grep "return")`
          do
-            upnp_ip=$(echo "$i" |awk -F 'ip saddr \\{ ' '{print $2}' |awk  '{print $1}')
-            upnp_dp=$(echo "$i" |awk -F 'udp sport ' '{print $2}' |awk  '{print $1}')
-            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
-               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
-                  handles=$(nft list chain inet fw4 openclash_upnp |grep "$i" |awk -F '# handle ' '{print$2}')
-                  for handle in $handles; do
-                     nft delete rule inet fw4 openclash_upnp handle ${handle}
-                  done
+            upnp_ip=$(echo "$i" |awk -F 'ip saddr ' '{print $2}' |awk  '{print $1}')
+            upnp_dp=$(echo "$i" |awk -F 'sport ' '{print $2}' |awk  '{print $1}')
+            upnp_type=$(echo "$i" |awk -F 'sport ' '{print $1}' |awk  '{print $4}' |tr '[a-z]' '[A-Z]')
+            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
+               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                  handle=$(nft -a list chain inet fw4 openclash_upnp |grep "$i" |awk -F '# handle ' '{print$2}')
+                  nft delete rule inet fw4 openclash_upnp handle ${handle}
                fi
             fi
          done >/dev/null 2>&1
@@ -239,10 +283,11 @@ fi
          for i in `$(iptables -t mangle -nL openclash_upnp |grep "RETURN")`
          do
             upnp_ip=$(echo "$i" |awk '{print $4}')
-            upnp_dp=$(echo "$i" |awk -F 'udp spt:' '{print $2}')
-            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
-               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
-                  iptables -t mangle -D openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+            upnp_dp=$(echo "$i" |awk -F 'spt:' '{print $2}')
+            upnp_type=$(echo "$i" |awk '{print $2}' |tr '[a-z]' '[A-Z]')
+            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
+               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                  iptables -t mangle -D openclash_upnp -p "$upnp_type" -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
                fi
             fi
          done >/dev/null 2>&1
@@ -254,19 +299,126 @@ fi
             if [ -n "$line" ]; then
                upnp_ip=$(echo "$line" |awk -F ':' '{print $3}')
                upnp_dp=$(echo "$line" |awk -F ':' '{print $4}')
-               if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ]; then
+               upnp_type=$(echo "$line" |awk -F ':' '{print $1}' |tr '[A-Z]' '[a-z]')
+               if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
                   if [ -n "$FW4" ]; then
-                     if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
-                        nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } udp sport "$upnp_dp" counter return 2>/dev/null
+                     if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                        nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } "$upnp_type" sport "$upnp_dp" counter return 2>/dev/null
                      fi
                   else
-                     if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp")" ]; then
-                        iptables -t mangle -A openclash_upnp -p udp -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                     if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                        iptables -t mangle -A openclash_upnp -p "$upnp_type" -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
                      fi
                   fi
                fi
             fi
          done >/dev/null 2>&1
+      fi
+   fi
+
+## Skip Proxies Address
+   if [ "$skip_proxy_address" -eq 1 ]; then
+      if [ "$SKIP_PROXY_ADDRESS" -eq 1 ] || [ "$(expr "$SKIP_PROXY_ADDRESS" % "$SKIP_PROXY_ADDRESS_INTERVAL")" -eq 0 ]; then
+         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+         begin
+            Value = YAML.load_file('$CONFIG_FILE');
+         rescue Exception => e
+            puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
+         end;
+         begin
+         Thread.new{
+            reg = /^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])(?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?$/;
+            reg6 = /^(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))|\[(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))\](?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?$/i;
+            if Value.key?('proxies') or Value.key?('proxy-providers') then
+               firewall_v = '$FW4';
+               if firewall_v.empty? then
+                  firewall_v = 'ipt'
+               else
+                  firewall_v = 'nft'
+               end;
+               ips = Array.new;
+               servers = Array.new;
+               if Value.key?('proxies') and not Value['proxies'].nil? then
+                  Value['proxies'].each do
+                     |i|
+                     if i['server'] then
+                        if not i['server'] =~ reg and not i['server'] =~ reg6 and not servers.include?(i['server']) then
+                           servers = servers.push(i['server']).uniq
+                           syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + i['server'] + '\" \"true\"'
+                           if IO.popen(syscall).read.split(/\n+/) then
+                              ips = ips | IO.popen(syscall).read.split(/\n+/)
+                           end;
+                        else
+                           ips = ips.push(i['server']).uniq
+                        end;
+                     end;
+                  end;
+               end;
+               if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
+                  Value['proxy-providers'].values.each do
+                     |i,path|
+                     if i['path'] and not i['path'].empty? then
+                        if i['path'].split('/')[0] == '.' then
+                           path = '/etc/openclash/'+i['path'].split('./')[1]
+                        else
+                           path = i['path']
+                        end;
+                        if File::exist?(path) then
+                           if YAML.load_file(path).class == String then
+                              puts '${LOGTIME} Warning: Unsupported format, Proxies Address Skip Function Ignore Proxy-providers File【' + path + '】';
+                              next
+                           end;
+                           if YAML.load_file(path).key?('proxies') and not YAML.load_file(path)['proxies'].nil? then
+                              YAML.load_file(path)['proxies'].each do
+                                 |j|
+                                 if j['server'] then
+                                    if not j['server'] =~ reg and not j['server'] =~ reg6 and not servers.include?(j['server']) then
+                                       servers = servers.push(j['server']).uniq
+                                       syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + j['server'] + '\" \"true\"'
+                                       if IO.popen(syscall).read.split(/\n+/) then
+                                          ips = ips | IO.popen(syscall).read.split(/\n+/)
+                                       end;
+                                    else
+                                       ips = ips.push(j['server']).uniq
+                                    end;
+                                 end;
+                              end;
+                           end;
+                        end;
+                     end;
+                  end;
+               end;
+               #Add ip skip
+               if ips and not ips.empty? then
+                  ips.each do
+                     |ip|
+                     if ip and ip =~ reg then
+                        if firewall_v == 'nft' then
+                           syscall = 'nft add element inet fw4 localnetwork { \"' + ip + '\" } 2>/dev/null'
+                           system(syscall)
+                        else
+                           syscall = 'ipset add localnetwork \"' + ip + '\" 2>/dev/null'
+                           system(syscall)
+                        end;
+                     elsif ip and ip =~ reg6 then
+                        if firewall_v == 'nft' then
+                           syscall = 'nft add element inet fw4 localnetwork6 { \"' + ip + '\" } 2>/dev/null'
+                           system(syscall)
+                        else
+                           syscall = 'ipset add localnetwork6 \"' + ip + '\" 2>/dev/null'
+                           system(syscall)
+                        end;
+                     end;
+                  end;
+               end;
+            end;
+         }.join;
+         rescue Exception => e
+            puts '${LOGTIME} Error: Set Proxies Address Skip Failed,【' + e.message + '】';
+         end" >> $LOG_FILE
+         let SKIP_PROXY_ADDRESS++
+      else
+         let SKIP_PROXY_ADDRESS++
       fi
    fi
 

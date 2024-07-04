@@ -21,7 +21,7 @@ jobs:
           sudo apt-get -y install curl git gzip
 
       - name: Clone OpenClash Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: core
       
@@ -63,7 +63,7 @@ jobs:
           echo "upx=../upx-3.95-amd64_linux/upx" >> $GITHUB_ENV
 
       - name: Clone OpenClash Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: core
 
