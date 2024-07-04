@@ -367,9 +367,18 @@ server_key_match()
    fi
 }
 
+convert_custom_param()
+{
+   if ! (echo "$1" | grep -qE "^\w+=.+$") then
+      return
+   fi
+   local p_name="${1%%=*}" p_value="${1#*=}"
+   append_custom_params="${append_custom_params}&${p_name}=$(urlencode "$p_value")"
+}
+
 sub_info_get()
 {
-   local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua
+   local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua append_custom_params
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "name" "$section" "name" ""
    config_get "sub_convert" "$section" "sub_convert" ""
@@ -454,10 +463,11 @@ sub_info_get()
          template_path=$custom_template_url
       fi
       if [ -n "$template_path" ]; then
+         config_list_foreach "$section" "custom_params" convert_custom_param
          template_path_encode=$(urlencode "$template_path")
          [ -n "$key_match_param" ] && key_match_param="$(urlencode "(?i)$key_match_param")"
          [ -n "$key_ex_match_param" ] && key_ex_match_param="$(urlencode "(?i)$key_ex_match_param")"
-         subscribe_url_param="?target=clash&new_name=true&url=$subscribe_url&config=$template_path_encode&include=$key_match_param&exclude=$key_ex_match_param&emoji=$emoji&list=false&sort=$sort$udp&scv=$skip_cert_verify&append_type=$node_type&fdn=true$rule_provider"
+         subscribe_url_param="?target=clash&new_name=true&url=$subscribe_url&config=$template_path_encode&include=$key_match_param&exclude=$key_ex_match_param&emoji=$emoji&list=false&sort=$sort$udp&scv=$skip_cert_verify&append_type=$node_type&fdn=true$rule_provider$append_custom_params"
          c_address="$convert_address"
       else
          subscribe_url=$address
