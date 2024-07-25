@@ -67,7 +67,7 @@
       if [ "$?" -ne "0" ]; then
          LOG_OUT "Chnroute Cidr List Has Been Updated, Starting To Replace The Old Version..."
          mv /tmp/china_ip_route.list "$chnr_path" >/dev/null 2>&1
-         if [ "$china_ip_route" -eq 1 ] || [ "$disable_udp_quic" -eq 1 ]; then
+         if [ "$china_ip_route" -ne 0 ] || [ "$disable_udp_quic" -eq 1 ]; then
             restart=1
          fi
          LOG_OUT "Chnroute Cidr List Update Successful!"
@@ -102,7 +102,7 @@
       if [ "$?" -ne "0" ]; then
          LOG_OUT "Chnroute6 Cidr List Has Been Updated, Starting To Replace The Old Version..."
          mv /tmp/china_ip6_route.list "$chnr6_path" >/dev/null 2>&1
-         if [ "$china_ip6_route" -eq 1 ] || [ "$disable_udp_quic" -eq 1 ]; then
+         if [ "$china_ip6_route" -ne 0 ] || [ "$disable_udp_quic" -eq 1 ]; then
             restart=1
          fi
          LOG_OUT "Chnroute6 Cidr List Update Successful!"
@@ -137,7 +137,7 @@
       if [ "$?" -ne "0" ]; then
          LOG_OUT "CN Domains List Has Been Updated, Starting To Replace The Old Version..."
          mv /tmp/china_domains.list "$cndomain_path" >/dev/null 2>&1
-         if [ "$china_ip_route" -eq 1 ] && [ -z "$(echo "$en_mode" |grep "redir-host")" ]; then
+         if [ "$china_ip_route" -ne 0 ] && [ -z "$(echo "$en_mode" |grep "redir-host")" ]; then
             restart=1
          fi
          LOG_OUT "CN Domains List Update Successful!"

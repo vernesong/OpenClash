@@ -65,7 +65,7 @@ fi
 
 uci commit openclash
 
-if [ "$1" = "fake-ip" ] && [ "$china_ip_route" = "1" ]; then
+if [ "$1" = "fake-ip" ] && [ "$china_ip_route" != "0" ]; then
    for i in `awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list`
    do
       echo "$i" >> /tmp/openclash_fake_filter_include
