@@ -256,7 +256,7 @@ o.description = translate("Only Supported for Rule Mode")..", "..font_red..bold_
 o.default = 1
 
 o = s:taboption("traffic_control", Flag, "disable_udp_quic", font_red..bold_on..translate("Disable QUIC")..bold_off..font_off)
-o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic(Not Include CN) On Port 443")..bold_off..font_off
+o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic(Not Include bypassed regions_Default:CN) On Port 443")..bold_off..font_off
 o.default = 1
 
 o = s:taboption("traffic_control", Flag, "skip_proxy_address", translate("Skip Proxy Address"))
@@ -274,13 +274,19 @@ o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")
 
 if op_mode == "redir-host" then
-	o = s:taboption("traffic_control", Flag, "china_ip_route", translate("China IP Route"))
-	o.description = translate("Bypass The China Network Flows, Improve Performance")
+	o = s:taboption("traffic_control", ListValue, "china_ip_route", translate("China IP Route"))
+	o.description = translate("Bypass Specified Regions Network Flows, Improve Performance")
 	o.default = 0
+	o:value("0", translate("Disable"))
+	o:value("1", translate("Bypass Mainland China"))
+	o:value("2", translate("Bypass Overseas"))
 else
-	o = s:taboption("traffic_control", Flag, "china_ip_route", translate("China IP Route"))
-	o.description = translate("Bypass The China Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option, Depend on Dnsmasq")
+	o = s:taboption("traffic_control", ListValue, "china_ip_route", translate("China IP Route"))
+	o.description = translate("Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option, Depend on Dnsmasq")
 	o.default = 0
+	o:value("0", translate("Disable"))
+	o:value("1", translate("Bypass Mainland China"))
+	o:value("2", translate("Bypass Overseas"))
 	o:depends("enable_redirect_dns", "1")
 	o:depends("enable_redirect_dns", "0")
 
@@ -289,6 +295,7 @@ else
 	o.default = "114.114.114.114"
 	o.placeholder = translate("114.114.114.114 or 127.0.0.1#5300")
 	o:depends("china_ip_route", "1")
+	o:depends("china_ip_route", "2")
 end
 
 o = s:taboption("traffic_control", Flag, "intranet_allowed", translate("Only intranet allowed"))
@@ -1190,9 +1197,12 @@ o = s:taboption("ipv6", Flag, "ipv6_dns", translate("IPv6 DNS Resolve"))
 o.description = translate("Enable to Resolve IPv6 DNS Requests")
 o.default = 0
 
-o = s:taboption("ipv6", Flag, "china_ip6_route", translate("China IPv6 Route"))
-o.description = translate("Bypass The China Network Flows, Improve Performance")
+o = s:taboption("ipv6", ListValue, "china_ip6_route", translate("China IPv6 Route"))
+o.description = translate("Bypass Specified Regions Network Flows, Improve Performance")
 o.default = 0
+o:value("0", translate("Disable"))
+o:value("1", translate("Bypass Mainland China"))
+o:value("2", translate("Bypass Overseas"))
 o:depends("ipv6_enable", "1")
 
 o = s:taboption("ipv6", Value, "local_network6_pass", translate("Local IPv6 Network Bypassed List"))

@@ -626,12 +626,12 @@ do_run_file()
       fi
    }
 
-   if [ "$china_ip_route" = "1" ] || [ "$china_ip6_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
+   if [ "$china_ip_route" != "0" ] || [ "$china_ip6_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
       if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ]; then
          LOG_OUT "Tip: Detected that the Chnroute Cidr or CN Domains List is not Installed, Ready to Download..."
          /usr/share/openclash/openclash_chnroute.sh
       fi
-      if [ ! -f "$cndomain_path" ] && [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ]; then
+      if [ ! -f "$cndomain_path" ] && [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" != "0" ]; then
          LOG_OUT "Tip: Detected that the Chnroute Cidr or CN Domains List is not Installed, Ready to Download..."
          /usr/share/openclash/openclash_chnroute.sh
       fi
@@ -655,7 +655,7 @@ do_run_file()
       if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ]; then
          start_fail
       fi
-      if [ ! -f "$cndomain_path" ] && [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ]; then
+      if [ ! -f "$cndomain_path" ] && [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" != "0" ]; then
          start_fail
       fi
    fi
@@ -1448,7 +1448,7 @@ if [[ "${ebpf_int_name}" == "0" ]]; then
 #NFTABLES
 if [ -n "$FW4" ]; then
    LOG_OUT "Tip: Firewall4 was Detected, Use NFTABLE Rules..."
-   if [ "$china_ip_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
+   if [ "$china_ip_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
       nft 'flush set inet fw4 china_ip_route'
       nft -f '/etc/openclash/china_ip_route.ipset'
       CHNROUTE_WAIT=0
@@ -1471,7 +1471,7 @@ if [ -n "$FW4" ]; then
          nft -f '/tmp/openclash_china_ip_route_pass.list'
          rm -rf /tmp/openclash_china_ip_route_pass.list
 
-         if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ]; then
+         if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" != "0" ]; then
             cat "/etc/openclash/accelerated-domains.china.conf" |awk -v dns="${custom_china_domain_dns_server}" -F '/' '!/^$/&&!/^#/{print $1"/"$2"/"dns}' >${DNSMASQ_CONF_DIR}/dnsmasq_accelerated-domains.china.conf 2>/dev/null
             for i in `awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list`
             do
@@ -1651,8 +1651,8 @@ if [ -n "$FW4" ]; then
       fi
    fi
 
-   if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ] && [ "$enable_redirect_dns" != "2" ]; then
-      LOG_OUT "Tip: Bypass the China IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
+   if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" != "0" ] && [ "$enable_redirect_dns" != "2" ]; then
+      LOG_OUT "Tip: Bypass Specified Regions IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
       nft insert rule inet fw4 dstnat position 0 tcp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
       nft insert rule inet fw4 dstnat position 0 udp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
       nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
@@ -1684,13 +1684,16 @@ if [ -n "$FW4" ]; then
       if [ "$en_mode" = "redir-host" ]; then
          nft 'add rule inet fw4 openclash tcp dport != @common_ports counter return'
       fi
-      if [ "$china_ip_route" = "1" ]; then
-         if [ "$enable_redirect_dns" != "2" ]; then
-            nft 'add rule inet fw4 openclash ip daddr @china_ip_route ip daddr != @china_ip_route_pass counter return'
-         else
-            nft 'add rule inet fw4 openclash ip daddr @china_ip_route counter return'
+      if [ "$china_ip_route" != "0" ]; then
+         if [ "$china_ip_route" = "1" ]; then
+            rule="ip daddr @china_ip_route"
+         elif [ "$china_ip_route" = "2" ]; then
+            rule="ip daddr != @china_ip_route"
          fi
+         [ "$enable_redirect_dns" != "2" ] && rule="$rule ip daddr != @china_ip_route_pass"
+         nft "add rule inet fw4 openclash $rule counter return"
       fi
+
       nft add rule inet fw4 openclash ip protocol tcp counter redirect to "$proxy_port"
       nft 'add rule inet fw4 dstnat meta nfproto {ipv4} ip protocol tcp counter jump openclash'
       if [ -z "$en_mode_tun" ]; then
@@ -1726,12 +1729,14 @@ if [ -n "$FW4" ]; then
             if [ "$en_mode" = "redir-host" ]; then
                nft 'add rule inet fw4 openclash_mangle udp dport != @common_ports counter return'
             fi
-            if [ "$china_ip_route" = "1" ]; then
-               if [ "$enable_redirect_dns" != "2" ]; then
-                  nft 'add rule inet fw4 openclash_mangle ip daddr @china_ip_route ip daddr != @china_ip_route_pass counter return'
-               else
-                  nft 'add rule inet fw4 openclash_mangle ip daddr @china_ip_route counter return'
+            if [ "$china_ip_route" != "0" ]; then
+               if [ "$china_ip_route" = "1" ]; then
+                  rule="ip daddr @china_ip_route"
+               elif [ "$china_ip_route" = "2" ]; then
+                  rule="ip daddr != @china_ip_route"
                fi
+               [ "$enable_redirect_dns" != "2" ] && rule="$rule ip daddr != @china_ip_route_pass"
+               nft "add rule inet fw4 openclash_mangle $rule counter return"
             fi
 
             nft 'add rule inet fw4 openclash_mangle ip protocol udp counter jump openclash_upnp'
@@ -1759,7 +1764,11 @@ if [ -n "$FW4" ]; then
 
          #quic
          if [ "$disable_udp_quic" -eq 1 ]; then
-            nft insert rule inet fw4 input position 0 udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+            if [ "$china_ip_route" = "2" ]; then
+               nft insert rule inet fw4 input position 0 udp dport 443 ip daddr @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+            else
+               nft insert rule inet fw4 input position 0 udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+            fi
          fi
       fi
 
@@ -1777,12 +1786,14 @@ if [ -n "$FW4" ]; then
             if [ "$en_mode" = "redir-host" ]; then
                nft add rule inet fw4 openclash_output tcp dport != @common_ports skuid != 65534 counter return
             fi
-            if [ "$china_ip_route" = "1" ]; then
-               if [ "$enable_redirect_dns" != "2" ]; then
-                  nft 'add rule inet fw4 openclash_output skuid != 65534 ip daddr @china_ip_route ip daddr != @china_ip_route_pass counter return'
-               else
-                  nft 'add rule inet fw4 openclash_output skuid != 65534 ip daddr @china_ip_route counter return'
+            if [ "$china_ip_route" != "0" ]; then
+               if [ "$china_ip_route" = "1" ]; then
+                  rule="ip daddr @china_ip_route"
+               elif [ "$china_ip_route" = "2" ]; then
+                  rule="ip daddr != @china_ip_route"
                fi
+               [ "$enable_redirect_dns" != "2" ] && rule="$rule ip daddr != @china_ip_route_pass"
+               nft "add rule inet fw4 openclash_output skuid != 65534 $rule counter return"
             fi
             nft add rule inet fw4 openclash_output ip protocol tcp skuid != 65534 counter redirect to "$proxy_port"
          fi
@@ -1807,12 +1818,14 @@ if [ -n "$FW4" ]; then
                nft add rule inet fw4 openclash_mangle_output meta l4proto {tcp,udp} th dport { 0-65535 } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" counter
                if [ "$router_self_proxy" = "1" ]; then
                   nft 'add rule inet fw4 openclash_mangle_output skuid != 65534 ip daddr @wan_ac_black_ips counter return'
-                  if [ "$china_ip_route" = "1" ]; then
-                     if [ "$enable_redirect_dns" != "2" ]; then
-                        nft 'add rule inet fw4 openclash_mangle_output skuid != 65534 ip daddr @china_ip_route ip daddr != @china_ip_route_pass counter return'
-                     else
-                        nft 'add rule inet fw4 openclash_mangle_output skuid != 65534 ip daddr @china_ip_route counter return'
+                  if [ "$china_ip_route" != "0" ]; then
+                     if [ "$china_ip_route" = "1" ]; then
+                        rule="ip daddr @china_ip_route"
+                     elif [ "$china_ip_route" = "2" ]; then
+                        rule="ip daddr != @china_ip_route"
                      fi
+                     [ "$enable_redirect_dns" != "2" ] && rule="$rule ip daddr != @china_ip_route_pass"
+                     nft "add rule inet fw4 openclash_mangle_output skuid != 65534 $rule counter return"
                   fi
                   nft add rule inet fw4 openclash_mangle_output tcp dport { 0-65535 } skuid != 65534 meta mark set "$PROXY_FWMARK" counter
                fi
@@ -1822,12 +1835,14 @@ if [ -n "$FW4" ]; then
          elif [ "$en_mode" = "redir-host" ] && [ "$en_mode_tun" -eq 1 ]; then
             nft 'add rule inet fw4 openclash_mangle_output skuid != 65534 ip daddr @wan_ac_black_ips counter return'
             nft 'add rule inet fw4 openclash_mangle_output meta l4proto {tcp,udp} th dport != @common_ports skuid != 65534 counter return'
-            if [ "$china_ip_route" = "1" ]; then
-               if [ "$enable_redirect_dns" != "2" ]; then
-                  nft 'add rule inet fw4 openclash_mangle_output skuid != 65534 ip daddr @china_ip_route ip daddr != @china_ip_route_pass counter return'
-               else
-                  nft 'add rule inet fw4 openclash_mangle_output skuid != 65534 ip daddr @china_ip_route counter return'
+            if [ "$china_ip_route" != "0" ]; then
+               if [ "$china_ip_route" = "1" ]; then
+                  rule="ip daddr @china_ip_route"
+               elif [ "$china_ip_route" = "2" ]; then
+                  rule="ip daddr != @china_ip_route"
                fi
+               [ "$enable_redirect_dns" != "2" ] && rule="$rule ip daddr != @china_ip_route_pass"
+               nft "add rule inet fw4 openclash_mangle_output skuid != 65534 $rule counter return"
             fi
             nft add rule inet fw4 openclash_mangle_output tcp dport { 0-65535 } skuid != 65534 meta mark set "$PROXY_FWMARK" counter
          fi
@@ -1859,12 +1874,14 @@ if [ -n "$FW4" ]; then
       if [ "$en_mode" = "redir-host" ]; then
          nft 'add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} th dport != @common_ports counter return'
       fi
-      if [ "$china_ip_route" = "1" ]; then
-         if [ "$enable_redirect_dns" != "2" ]; then
-            nft 'add rule inet fw4 openclash_mangle ip daddr @china_ip_route ip daddr != @china_ip_route_pass counter return'
-         else
-            nft 'add rule inet fw4 openclash_mangle ip daddr @china_ip_route counter return'
+      if [ "$china_ip_route" != "0" ]; then
+         if [ "$china_ip_route" = "1" ]; then
+            rule="ip daddr @china_ip_route"
+         elif [ "$china_ip_route" = "2" ]; then
+            rule="ip daddr != @china_ip_route"
          fi
+         [ "$enable_redirect_dns" != "2" ] && rule="$rule ip daddr != @china_ip_route_pass"
+         nft "add rule inet fw4 openclash_mangle $rule counter return"
       fi
       nft 'add rule inet fw4 openclash_mangle ip protocol udp counter jump openclash_upnp'
       nft add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} th dport { 0-65535 } mark set "$PROXY_FWMARK" counter
@@ -1903,7 +1920,11 @@ if [ -n "$FW4" ]; then
 
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
-         nft insert rule inet fw4 forward position 0 oifname utun udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+         if [ "$china_ip_route" = "2" ]; then
+            nft insert rule inet fw4 forward position 0 oifname utun udp dport 443 ip daddr @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+         else
+            nft insert rule inet fw4 forward position 0 oifname utun udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+         fi
       fi
    fi
 
@@ -1969,7 +1990,7 @@ if [ -n "$FW4" ]; then
             fi
          fi
       fi
-      if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ] && [ "$enable_redirect_dns" != "2" ]; then
+      if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" != "0" ] && [ "$enable_redirect_dns" != "2" ]; then
          nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} tcp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
          nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} udp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
          nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
@@ -1979,7 +2000,7 @@ if [ -n "$FW4" ]; then
          nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} udp dport 12353 meta skuid != 65534 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
       fi
 
-      if [ "$china_ip6_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
+      if [ "$china_ip6_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
          nft 'flush set inet fw4 china_ip6_route'
          nft -f '/etc/openclash/china_ip6_route.ipset'
          CHNROUTE_WAIT=0
@@ -2064,12 +2085,14 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 openclash_v6 meta nfproto {ipv6} th dport != @common_ports counter return'
          fi
 
-         if [ "$china_ip6_route" = "1" ]; then
-            if [ "$enable_redirect_dns" != "2" ]; then
-               nft 'add rule inet fw4 openclash_v6 ip6 daddr @china_ip6_route ip6 daddr != @china_ip6_route_pass counter return'
-            else
-               nft 'add rule inet fw4 openclash_v6 ip6 daddr @china_ip6_route counter return'
+         if [ "$china_ip6_route" != "0" ]; then
+            if [ "$china_ip6_route" = "1" ]; then
+               rule="ip6 daddr @china_ip6_route"
+            elif [ "$china_ip6_route" = "2" ]; then
+               rule="ip6 daddr != @china_ip6_route"
             fi
+            [ "$enable_redirect_dns" != "2" ] && rule="$rule ip6 daddr != @china_ip6_route_pass"
+            nft "add rule inet fw4 openclash_v6 $rule counter return"
          fi
          nft add rule inet fw4 openclash_v6 meta nfproto {ipv6} tcp dport { 0-65535 } counter redirect to "$proxy_port"
          nft 'add rule inet fw4 dstnat meta nfproto {ipv6} tcp dport { 0-65535 } counter jump openclash_v6'
@@ -2084,12 +2107,14 @@ if [ -n "$FW4" ]; then
                nft 'add rule inet fw4 openclash_output_v6 meta nfproto {ipv6} th dport != @common_ports skuid != 65534 counter return'
             fi
 
-            if [ "$china_ip6_route" = "1" ]; then
-               if [ "$enable_redirect_dns" != "2" ]; then
-                  nft 'add rule inet fw4 openclash_output_v6 skuid != 65534 ip6 daddr @china_ip6_route ip6 daddr != @china_ip6_route_pass counter return'
-               else
-                  nft 'add rule inet fw4 openclash_output_v6 skuid != 65534 ip6 daddr @china_ip6_route counter return'
+            if [ "$china_ip6_route" != "0" ]; then
+               if [ "$china_ip6_route" = "1" ]; then
+                  rule="ip6 daddr @china_ip6_route"
+               elif [ "$china_ip6_route" = "2" ]; then
+                  rule="ip6 daddr != @china_ip6_route"
                fi
+               [ "$enable_redirect_dns" != "2" ] && rule="$rule ip6 daddr != @china_ip6_route_pass"
+               nft "add rule inet fw4 openclash_output_v6 skuid != 65534 $rule counter return"
             fi
             
             if [ "$ipv6_mode" -eq 2 ]; then
@@ -2125,12 +2150,14 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 openclash_mangle_v6 ip6 saddr != @lan_ac_white_ipv6s counter return'
          fi
 
-         if [ "$china_ip6_route" = "1" ]; then
-            if [ "$enable_redirect_dns" != "2" ]; then
-               nft 'add rule inet fw4 openclash_mangle_v6 ip6 daddr @china_ip6_route ip6 daddr != @china_ip6_route_pass counter return'
-            else
-               nft 'add rule inet fw4 openclash_mangle_v6 ip6 daddr @china_ip6_route counter return'
+         if [ "$china_ip6_route" != "0" ]; then
+            if [ "$china_ip6_route" = "1" ]; then
+               rule="ip6 daddr @china_ip6_route"
+            elif [ "$china_ip6_route" = "2" ]; then
+               rule="ip6 daddr != @china_ip6_route"
             fi
+            [ "$enable_redirect_dns" != "2" ] && rule="$rule ip6 daddr != @china_ip6_route_pass"
+            nft "add rule inet fw4 openclash_mangle_v6 $rule counter return"
          fi
       fi
 
@@ -2151,6 +2178,30 @@ if [ -n "$FW4" ]; then
             if [ "$en_mode" = "redir-host" ]; then
                nft 'add rule inet fw4 openclash_mangle_output_v6 meta nfproto {ipv6} th dport != @common_ports skuid != 65534 counter return'
             fi
+
+            if [ "$china_ip6_route" != "0" ]; then
+               if [ "$china_ip6_route" = "1" ]; then
+                  rule="ip6 daddr @china_ip6_route"
+               elif [ "$china_ip6_route" = "2" ]; then
+                  rule="ip6 daddr != @china_ip6_route"
+               fi
+               [ "$enable_redirect_dns" != "2" ] && rule="$rule ip6 daddr != @china_ip6_route_pass"
+               nft 'add rule inet fw4 openclash_mangle_output_v6 skuid != 65534 $rule counter return'
+            fi
+            nft add rule inet fw4 openclash_mangle_output_v6 meta nfproto {ipv6} skuid != 65534 tcp dport { 0-65535 } mark set "$PROXY_FWMARK" counter
+            nft 'add rule inet fw4 mangle_output meta nfproto {ipv6} counter jump openclash_mangle_output_v6'
+
+            if [ "$china_ip6_route" != "0" ]; then
+               if [ "$china_ip6_route" = "1" ]; then
+                  rule="ip6 daddr @china_ip6_route"
+               elif [ "$china_ip6_route" = "2" ]; then
+                  rule="ip6 daddr != @china_ip6_route"
+               fi
+               [ "$enable_redirect_dns" != "2" ] && rule="$rule ip6 daddr != @china_ip6_route_pass"
+               nft 'add rule inet fw4 openclash_mangle_output_v6 skuid != 65534 $rule counter return'
+            fi
+            nft add rule inet fw4 openclash_mangle_output_v6 meta nfproto {ipv6} skuid != 65534 tcp dport { 0-65535 } mark set "$PROXY_FWMARK" counter
+            nft 'add rule inet fw4 mangle_output meta nfproto {ipv6} counter jump openclash_mangle_output_v6'
 
             if [ "$china_ip6_route" = "1" ]; then
                if [ "$enable_redirect_dns" != "2" ]; then
@@ -2201,10 +2252,16 @@ if [ -n "$FW4" ]; then
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
          if [ "$ipv6_mode" -eq 2 ]; then
-            nft insert rule inet fw4 forward position 0 udp dport 443 ip6 daddr != @china_ip6_route counter reject comment \"OpenClash QUIC REJECT\"
+            chain="forward"
          else
-            nft insert rule inet fw4 input position 0 udp dport 443 ip6 daddr != @china_ip6_route counter reject comment \"OpenClash QUIC REJECT\"
+            chain="input"
          fi
+         if [ "$china_ip6_route" = "2" ]; then
+            rule="ip6 daddr @china_ip6_route"
+         else
+            rule="ip6 daddr != @china_ip6_route"
+         fi
+         nft insert rule inet fw4 $chain position 0 udp dport 443 $rule counter reject comment \"OpenClash QUIC REJECT\"
       fi
 
       #bypass gateway compatible
@@ -2375,7 +2432,7 @@ if [ -z "$FW4" ]; then
       fi
    fi
 
-   if [ "$china_ip_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
+   if [ "$china_ip_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
       ipset -! flush china_ip_route
       ipset -! restore </etc/openclash/china_ip_route.ipset
 
@@ -2388,7 +2445,7 @@ if [ -z "$FW4" ]; then
          ipset -! restore </tmp/openclash_china_ip_route_pass.list
          rm -rf /tmp/openclash_china_ip_route_pass.list
 
-         if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ]; then
+         if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" != "0" ]; then
             cat "/etc/openclash/accelerated-domains.china.conf" |awk -v dns="${custom_china_domain_dns_server}" -F '/' '!/^$/&&!/^#/{print $1"/"$2"/"dns}' >${DNSMASQ_CONF_DIR}/dnsmasq_accelerated-domains.china.conf
             for i in `awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list`
             do
@@ -2453,8 +2510,8 @@ if [ -z "$FW4" ]; then
       fi
    fi
 
-   if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ] && [ "$enable_redirect_dns" != "2" ]; then
-      LOG_OUT "Tip: Bypass the China IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
+   if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" != "0" ] && [ "$enable_redirect_dns" != "2" ]; then
+      LOG_OUT "Tip: Bypass Specified Regions IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
       iptables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
       iptables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
       iptables -t nat -I OUTPUT -p udp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
@@ -2484,12 +2541,14 @@ if [ -z "$FW4" ]; then
       if [ "$en_mode" = "redir-host" ]; then
          iptables -t nat -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
       fi
-      if [ "$china_ip_route" = "1" ]; then
-         if [ "$enable_redirect_dns" != "2" ]; then
-            iptables -t nat -A openclash -m set --match-set china_ip_route dst -m set ! --match-set china_ip_route_pass dst -j RETURN >/dev/null 2>&1
-         else
-            iptables -t nat -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
+      if [ "$china_ip_route" != "0" ]; then
+         if [ "$china_ip_route" = "1" ]; then
+            rule="-m set --match-set china_ip_route dst"
+         elif [ "$china_ip_route" = "2" ]; then
+            rule="-m set ! --match-set china_ip_route dst"
          fi
+         [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip_route_pass dst"
+         iptables -t nat -A openclash $rule -j RETURN >/dev/null 2>&1
       fi
       iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
       iptables -t nat -A PREROUTING -p tcp -j openclash
@@ -2528,12 +2587,14 @@ if [ -z "$FW4" ]; then
             if [ "$en_mode" = "redir-host" ]; then
                iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
             fi
-            if [ "$china_ip_route" = "1" ]; then
-               if [ "$enable_redirect_dns" != "2" ]; then
-                  iptables -t mangle -A openclash -m set --match-set china_ip_route dst -m set ! --match-set china_ip_route_pass dst -j RETURN >/dev/null 2>&1
-               else
-                  iptables -t mangle -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
+            if [ "$china_ip_route" != "0" ]; then
+               if [ "$china_ip_route" = "1" ]; then
+                  rule="-m set --match-set china_ip_route dst"
+               elif [ "$china_ip_route" = "2" ]; then
+                  rule="-m set ! --match-set china_ip_route dst"
                fi
+               [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip_route_pass dst"
+               iptables -t mangle -A openclash $rule -j RETURN >/dev/null 2>&1
             fi
             iptables -t mangle -A openclash -p udp -j openclash_upnp >/dev/null 2>&1
             iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
@@ -2560,7 +2621,11 @@ if [ -z "$FW4" ]; then
 
          #quic
          if [ "$disable_udp_quic" -eq 1 ]; then
-            iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+            if [ "$china_ip_route" = "2" ]; then
+               iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+            else
+               iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+            fi
          fi
       fi
 
@@ -2577,12 +2642,14 @@ if [ -z "$FW4" ]; then
             if [ "$en_mode" = "redir-host" ]; then
                iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
             fi
-            if [ "$china_ip_route" = "1" ]; then
-               if [ "$enable_redirect_dns" != "2" ]; then
-                  iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip_route dst -m set ! --match-set china_ip_route_pass dst -j RETURN >/dev/null 2>&1
-               else
-                  iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
+            if [ "$china_ip_route" != "0" ]; then
+               if [ "$china_ip_route" = "1" ]; then
+                  rule="-m set --match-set china_ip_route dst"
+               elif [ "$china_ip_route" = "2" ]; then
+                  rule="-m set ! --match-set china_ip_route dst"
                fi
+               [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip_route_pass dst"
+               iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 $rule -j RETURN >/dev/null 2>&1
             fi
             iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j REDIRECT --to-ports "$proxy_port"
          fi
@@ -2605,12 +2672,14 @@ if [ -z "$FW4" ]; then
                iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
                if [ "$router_self_proxy" = "1" ]; then
                   iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
-                  if [ "$china_ip_route" = "1" ]; then
-                     if [ "$enable_redirect_dns" != "2" ]; then
-                        iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip_route dst -m set ! --match-set china_ip_route_pass dst -j RETURN >/dev/null 2>&1
-                     else
-                        iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
+                  if [ "$china_ip_route" != "0" ]; then
+                     if [ "$china_ip_route" = "1" ]; then
+                        rule="-m set --match-set china_ip_route dst"
+                     elif [ "$china_ip_route" = "2" ]; then
+                        rule="-m set ! --match-set china_ip_route dst"
                      fi
+                     [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip_route_pass dst"
+                     iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 $rule -j RETURN >/dev/null 2>&1
                   fi
                   iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j MARK --set-mark "$PROXY_FWMARK"
                fi
@@ -2625,12 +2694,14 @@ if [ -z "$FW4" ]; then
             iptables -t mangle -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
             iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
             iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
-            if [ "$china_ip_route" = "1" ]; then
-               if [ "$enable_redirect_dns" != "2" ]; then
-                  iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip_route dst -m set ! --match-set china_ip_route_pass dst -j RETURN >/dev/null 2>&1
-               else
-                  iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
+            if [ "$china_ip_route" != "0" ]; then
+               if [ "$china_ip_route" = "1" ]; then
+                  rule="-m set --match-set china_ip_route dst"
+               elif [ "$china_ip_route" = "2" ]; then
+                  rule="-m set ! --match-set china_ip_route dst"
                fi
+               [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip_route_pass dst"
+               iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 $rule -j RETURN >/dev/null 2>&1
             fi
             iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j MARK --set-mark "$PROXY_FWMARK"
             iptables -t mangle -A OUTPUT -j openclash_output
@@ -2661,12 +2732,14 @@ if [ -z "$FW4" ]; then
       if [ "$en_mode" = "redir-host" ]; then
          iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
       fi
-      if [ "$china_ip_route" = "1" ]; then
-         if [ "$enable_redirect_dns" != "2" ]; then
-            iptables -t mangle -A openclash -m set --match-set china_ip_route dst -m set ! --match-set china_ip_route_pass dst -j RETURN >/dev/null 2>&1
-         else
-            iptables -t mangle -A openclash -m set --match-set china_ip_route dst -j RETURN >/dev/null 2>&1
+      if [ "$china_ip_route" != "0" ]; then
+         if [ "$china_ip_route" = "1" ]; then
+            rule="-m set --match-set china_ip_route dst"
+         elif [ "$china_ip_route" = "2" ]; then
+            rule="-m set ! --match-set china_ip_route dst"
          fi
+         [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip_route_pass dst"
+         iptables -t mangle -A openclash $rule -j RETURN >/dev/null 2>&1
       fi
 
       iptables -t mangle -A openclash -p udp -j openclash_upnp >/dev/null 2>&1
@@ -2707,7 +2780,11 @@ if [ -z "$FW4" ]; then
 
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
-         iptables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+         if [ "$china_ip_route" = "2" ]; then
+            iptables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+         else
+            iptables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT >/dev/null 2>&1
+         fi
       fi
    fi
 
@@ -2776,7 +2853,7 @@ if [ -z "$FW4" ]; then
             fi
          fi
       fi
-      if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" = "1" ] && [ "$enable_redirect_dns" != "2" ]; then
+      if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" != "0" ] && [ "$enable_redirect_dns" != "2" ]; then
          ip6tables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
          ip6tables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
          ip6tables -t nat -I OUTPUT -p udp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
@@ -2785,7 +2862,7 @@ if [ -z "$FW4" ]; then
          ip6tables -t nat -I OUTPUT -p tcp --dport 12353 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
       fi
 
-      if [ "$china_ip6_route" = "1" ] || [ "$disable_udp_quic" = "1" ]; then
+      if [ "$china_ip6_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
          ipset -! flush china_ip6_route
          ipset -! restore </etc/openclash/china_ip6_route.ipset
          if [ "$enable_redirect_dns" != "2" ]; then
@@ -2858,12 +2935,14 @@ if [ -z "$FW4" ]; then
          if [ "$en_mode" = "redir-host" ]; then
             ip6tables -t nat -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
          fi
-         if [ "$china_ip6_route" = "1" ]; then
-            if [ "$enable_redirect_dns" != "2" ]; then
-               ip6tables -t nat -A openclash -m set --match-set china_ip6_route dst -m set ! --match-set china_ip6_route_pass dst -j RETURN >/dev/null 2>&1
-            else
-               ip6tables -t nat -A openclash -m set --match-set china_ip6_route dst -j RETURN >/dev/null 2>&1
+         if [ "$china_ip6_route" != "0" ]; then
+            if [ "$china_ip6_route" = "1" ]; then
+               rule="-m set --match-set china_ip6_route dst"
+            elif [ "$china_ip6_route" = "2" ]; then
+               rule="-m set ! --match-set china_ip6_route dst"
             fi
+            [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip6_route_pass dst"
+            ip6tables -t nat -A openclash $rule -j RETURN >/dev/null 2>&1
          fi
          ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
          ip6tables -t nat -A PREROUTING -p tcp -j openclash
@@ -2879,12 +2958,14 @@ if [ -z "$FW4" ]; then
             if [ "$en_mode" = "redir-host" ]; then
                ip6tables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
             fi
-            if [ "$china_ip6_route" = "1" ]; then
-               if [ "$enable_redirect_dns" != "2" ]; then
-                  ip6tables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip6_route dst -m set ! --match-set china_ip6_route_pass dst -j RETURN >/dev/null 2>&1
-               else
-                  ip6tables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip6_route dst -j RETURN >/dev/null 2>&1
+            if [ "$china_ip6_route" != "0" ]; then
+               if [ "$china_ip6_route" = "1" ]; then
+                  rule="-m set --match-set china_ip6_route dst"
+               elif [ "$china_ip6_route" = "2" ]; then
+                  rule="-m set ! --match-set china_ip6_route dst"
                fi
+               [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip6_route_pass dst"
+               ip6tables -t nat -A openclash_output -m owner ! --uid-owner 65534 $rule -j RETURN >/dev/null 2>&1
             fi
             ip6tables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j REDIRECT --to-ports "$proxy_port"
             ip6tables -t nat -A OUTPUT -j openclash_output >/dev/null 2>&1
@@ -2913,12 +2994,14 @@ if [ -z "$FW4" ]; then
             ip6tables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
          fi
 
-         if [ "$china_ip6_route" = "1" ]; then
-            if [ "$enable_redirect_dns" != "2" ]; then
-               ip6tables -t mangle -A openclash -m set --match-set china_ip6_route dst -m set ! --match-set china_ip6_route_pass dst -j RETURN >/dev/null 2>&1
-            else
-               ip6tables -t mangle -A openclash -m set --match-set china_ip6_route dst -j RETURN >/dev/null 2>&1
+         if [ "$china_ip6_route" != "0" ]; then
+            if [ "$china_ip6_route" = "1" ]; then
+               rule="-m set --match-set china_ip6_route dst"
+            elif [ "$china_ip6_route" = "2" ]; then
+               rule="-m set ! --match-set china_ip6_route dst"
             fi
+            [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip6_route_pass dst"
+            ip6tables -t mangle -A openclash $rule -j RETURN >/dev/null 2>&1
          fi
       fi
 
@@ -2940,12 +3023,14 @@ if [ -z "$FW4" ]; then
                if [ "$en_mode" = "redir-host" ]; then
                   ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
                fi
-               if [ "$china_ip6_route" = "1" ]; then
-                  if [ "$enable_redirect_dns" != "2" ]; then
-                     ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip6_route dst -m set ! --match-set china_ip6_route_pass dst -j RETURN >/dev/null 2>&1
-                  else
-                     ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set china_ip6_route dst -j RETURN >/dev/null 2>&1
+               if [ "$china_ip6_route" != "0" ]; then
+                  if [ "$china_ip6_route" = "1" ]; then
+                     rule="-m set --match-set china_ip6_route dst"
+                  elif [ "$china_ip6_route" = "2" ]; then
+                     rule="-m set ! --match-set china_ip6_route dst"
                   fi
+                  [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip6_route_pass dst"
+                  ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 $rule -j RETURN >/dev/null 2>&1
                fi
                ip6tables -t mangle -A openclash_output -p tcp -m owner ! --uid-owner 65534 -j MARK --set-xmark "$PROXY_FWMARK"
                ip6tables -t mangle -A OUTPUT -j openclash_output
@@ -2986,10 +3071,16 @@ if [ -z "$FW4" ]; then
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
          if [ "$ipv6_mode" -eq 2 ]; then
-            ip6tables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip6_route dst -j REJECT >/dev/null 2>&1
+            chain="FORWARD -o utun"
          else
-            ip6tables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip6_route dst -j REJECT >/dev/null 2>&1
+            chain="INPUT"
          fi
+         if [ "$china_ip6_route" = "2" ]; then
+            rule="-m set --match-set china_ip6_route dst"
+         else
+            rule="-m set ! --match-set china_ip6_route dst"
+         fi
+         ip6tables -I $chain -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" $rule -j REJECT >/dev/null 2>&1
       fi
 
       #bypass gateway compatible
@@ -3197,8 +3288,8 @@ get_config()
    enable_rule_proxy=$(uci -q get openclash.config.enable_rule_proxy)
    stack_type=$(uci -q get openclash.config.stack_type)
    stack_type_v6=$(uci -q get openclash.config.stack_type_v6 || echo "system")
-   china_ip_route=$(uci -q get openclash.config.china_ip_route)
-   china_ip6_route=$(uci -q get openclash.config.china_ip6_route)
+   china_ip_route=$(uci -q get openclash.config.china_ip_route); [[ "$china_ip_route" != "0" && "$china_ip_route" != "1" && "$china_ip_route" != "2" ]] && china_ip_route=0
+   china_ip6_route=$(uci -q get openclash.config.china_ip6_route); [[ "$china_ip6_route" != "0" && "$china_ip6_route" != "1" && "$china_ip6_route" != "2" ]] && china_ip6_route=0
    small_flash_memory=$(uci -q get openclash.config.small_flash_memory)
    mixed_port=$(uci -q get openclash.config.mixed_port)
    interface_name=$(uci -q get openclash.config.interface_name || echo 0)

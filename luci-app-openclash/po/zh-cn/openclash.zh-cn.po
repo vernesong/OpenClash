@@ -165,16 +165,22 @@ msgid "Select Stack Type For TUN Mode, According To The Running Speed on Your Ma
 msgstr "请自行根据运行速度为 TUN 模式选择合适的网络栈"
 
 msgid "China IP Route"
-msgstr "实验性：绕过中国大陆 IP"
+msgstr "实验性：绕过指定区域 IP"
 
 msgid "China IPv6 Route"
-msgstr "实验性：绕过中国大陆 IPv6"
+msgstr "实验性：绕过指定区域 IPv6"
 
-msgid "Bypass The China Network Flows, Improve Performance"
-msgstr "启用后中国大陆流量将不再经过内核，提升系统性能"
+msgid "Bypass Mainland China"
+msgstr "绕过中国大陆"
 
-msgid "Bypass The China Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option, Depend on Dnsmasq"
-msgstr "启用后中国大陆流量将不再经过内核，提升系统性能，如旁路由遇到无法访问，请尝试启用旁路由兼容模式，此功能依赖于 Dnsmasq"
+msgid "Bypass Overseas"
+msgstr "绕过海外(回国模式)"
+
+msgid "Bypass Specified Regions Network Flows, Improve Performance"
+msgstr "启用后指定区域流量将不再经过内核，提升系统性能"
+
+msgid "Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option, Depend on Dnsmasq"
+msgstr "启用后指定区域流量将不再经过内核，提升系统性能，如旁路由遇到无法访问，请尝试启用旁路由兼容模式，此功能依赖于 Dnsmasq"
 
 msgid "Log Level"
 msgstr "日志等级"
@@ -1053,8 +1059,8 @@ msgstr "*禁用 QUIC"
 msgid "Prevent YouTube and Others To Use QUIC Transmission"
 msgstr "防止 YouTube 等使用 QUIC 导致速度不佳"
 
-msgid "REJECT UDP Traffic(Not Include CN) On Port 443"
-msgstr "禁用 443 端口 UDP 流量（不包括国内）"
+msgid "REJECT UDP Traffic(Not Include bypassed regions_Default:CN) On Port 443"
+msgstr "禁用 443 端口 UDP 流量（不包括被绕过的指定区域_默认国内）"
 
 msgid "Operation Mode"
 msgstr "模式设置"
@@ -3205,13 +3211,13 @@ msgid "Backup Proxy Provider"
 msgstr "仅备份代理集"
 
 msgid "Chnroute Bypassed List"
-msgstr "绕过中国大陆 IPv4 黑名单"
+msgstr "绕过指定区域 IPv4 黑名单"
 
 msgid "Chnroute6 Bypassed List"
-msgstr "绕过中国大陆 IPv6 黑名单"
+msgstr "绕过指定区域 IPv6 黑名单"
 
 msgid "Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq"
-msgstr "列表中的域名或 IP 将不会受到绕过中国大陆 IP 选项的影响，此功能依赖于 Dnsmasq"
+msgstr "列表中的域名或 IP 将不会受到绕过指定区域 IP 选项的影响，此功能依赖于 Dnsmasq"
 
 msgid "Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address"
 msgstr "警告：Hosts 设置了保留地址时需要关闭 Dnsmasq 的重绑定保护选项才能生效"
@@ -3279,8 +3285,8 @@ msgstr "警告：检测到 Dnsmasq 工作异常，设置防火墙 DNS 劫持规�
 msgid "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
 msgstr "提示：检测到 Dnsmasq 正常工作，还原防火墙 DNS 劫持规则..."
 
-msgid "Tip: Bypass the China IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
-msgstr "提示：在 FAKE-IP 模式下绕过中国 IP 可能会导致 Dnsmasq 加载时间过长，暂时劫持 DNS 至内核直到 Dnsmasq 正常工作..."
+msgid "Tip: Bypass Specified Regions IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
+msgstr "提示：在 FAKE-IP 模式下绕过指定区域 IP 可能会导致 Dnsmasq 加载时间过长，暂时劫持 DNS 至内核直到 Dnsmasq 正常工作..."
 
 msgid "Seconds..."
 msgstr "秒后开始启动..."
