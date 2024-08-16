@@ -2190,14 +2190,14 @@ msgstr "4、安装 TUN 或者 Meta 内核"
 msgid "When setting this page, if the groups is empty, please go to the <server and group management> page to add"
 msgstr "本页设置时如策略组为空，请先到《服务器与策略组管理》页面进行添加"
 
-msgid "Introduction to rule set usage: https://lancellc.gitbook.io/clash/clash-config-file/rule-provider"
-msgstr "规则集使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/rule-provider"
+msgid "Introduction to rule set usage: https://wiki.metacubex.one/config/rule-providers/content/"
+msgstr "规则集使用介绍：https://wiki.metacubex.one/config/rule-providers/content/"
 
-msgid "Introduction to proxy usage: https://lancellc.gitbook.io/clash/clash-config-file/proxies"
+msgid "Introduction to proxy usage: https://wiki.metacubex.one/config/proxies/"
 msgstr "代理使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/proxies"
 
-msgid "Introduction to proxy-provider usage: https://lancellc.gitbook.io/clash/clash-config-file/proxy-provider"
-msgstr "代理集使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/proxy-provider"
+msgid "Introduction to proxy-provider usage: https://wiki.metacubex.one/config/proxy-providers/"
+msgstr "代理集使用介绍：https://wiki.metacubex.one/config/proxy-providers/"
 
 msgid "Subconverter external configuration (subscription conversion template) Description: https://github.com/tindy2013/subconverter#external-configuration-file"
 msgstr "subconverter 外部配置(订阅转换模板)说明：https://github.com/tindy2013/subconverter#external-configuration-file"
@@ -3581,3 +3581,9 @@ msgstr "仅支持 redir-host（TUN）模式"
 
 msgid "eBPF Action Interface"
 msgstr "eBPF 出站接口"
+
+msgid "Error: intend to enable ebpf interface, but no kernel support found. Ignoring..."
+msgstr "错误：固件系统不支持 eBPF，跳过设置..."
+
+msgid "Tip: Escaping firewall settings due to eBPF interface:"
+msgstr "提示：因启用 eBPF 已跳过防火墙设置，eBPF 接口："
