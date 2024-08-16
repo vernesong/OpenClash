@@ -16,6 +16,10 @@ enable_meta_core=$(uci -q get openclash.config.enable_meta_core || echo 0)
 china_ip_route=$(uci -q get openclash.config.china_ip_route || echo 0)
 proxy_dns_group=${36}
 
+ebpf_action_interface=${37}
+
+KERNEL_EBPF_SUPPORT=$(bpftool version > /dev/null 2>&1 && echo '1' || echo '0')
+
 lan_block_google_dns=$(uci -q get openclash.config.lan_block_google_dns_ips || uci -q get openclash.config.lan_block_google_dns_macs || echo 0)
 
 if [ -n "$(ruby_read "$5" "['tun']")" ]; then
@@ -61,7 +65,7 @@ fi
 
 uci commit openclash
 
-if [ "$1" = "fake-ip" ] && [ "$china_ip_route" = "1" ]; then
+if [ "$1" = "fake-ip" ] && [ "$china_ip_route" != "0" ]; then
    for i in `awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list`
    do
       echo "$i" >> /tmp/openclash_fake_filter_include
@@ -506,9 +510,22 @@ Thread.new{
    if ${17} == 1 then
       Value['profile']['store-fake-ip']=true;
    end;
+
    if Value.key?('ebpf') then
       Value.delete('ebpf');
    end;
+
+   if ${en_mode_tun} == 1 and '${1}' == 'redir-host' and '${ebpf_action_interface}' != '0' then
+      if ${KERNEL_EBPF_SUPPORT} == 1 then
+         Value_2={'redirect-to-tun'=>['${ebpf_action_interface}']};
+         Value['ebpf']=Value_2;
+      else
+         puts '${LOGTIME} Error: intend to enable ebpf interface, but no kernel support found. Ignoring...';
+      end;
+   end;
+
+
+
    if Value.key?('routing-mark') then
       Value.delete('routing-mark');
    end;
