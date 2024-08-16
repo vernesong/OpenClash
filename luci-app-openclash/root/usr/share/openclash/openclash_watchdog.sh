@@ -48,7 +48,7 @@ else
 fi
 
 check_dnsmasq() {
-   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -ne 0 ] && [ "$enable_redirect_dns" != "2" ] && [ "${ebpf_int_name}" == "0" ] then
+   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -ne 0 ] && [ "$enable_redirect_dns" != "2" ] && [ "${ebpf_int_name}" == "0" ]; then
       DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
       if [ -z "$DNSPORT" ]; then
          DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
