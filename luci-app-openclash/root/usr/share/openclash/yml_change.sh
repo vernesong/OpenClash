@@ -16,6 +16,10 @@ enable_meta_core=$(uci -q get openclash.config.enable_meta_core || echo 0)
 china_ip_route=$(uci -q get openclash.config.china_ip_route || echo 0)
 proxy_dns_group=${36}
 
+ebpf_action_interface=${37}
+
+KERNEL_EBPF_SUPPORT=$(bpftool version > /dev/null 2>&1 && echo '1' || echo '0')
+
 lan_block_google_dns=$(uci -q get openclash.config.lan_block_google_dns_ips || uci -q get openclash.config.lan_block_google_dns_macs || echo 0)
 
 if [ -n "$(ruby_read "$5" "['tun']")" ]; then
@@ -506,9 +510,24 @@ Thread.new{
    if ${17} == 1 then
       Value['profile']['store-fake-ip']=true;
    end;
+
    if Value.key?('ebpf') then
       Value.delete('ebpf');
    end;
+
+   if ${en_mode_tun} == 1 and '${1}' == 'redir-host' and '${ebpf_action_interface}' != '0' then
+
+      if ${KERNEL_EBPF_SUPPORT} == 1 then
+         Value_2={'redirect-to-tun'=>['${ebpf_action_interface}']};
+         Value['ebpf']=Value_2;
+         
+      else
+         puts '${LOGTIME} : intend to enable ebpf interface ${ebpf_action_interface}, but no kernel support found. Ignoring...';
+      end;
+   end;
+
+
+
    if Value.key?('routing-mark') then
       Value.delete('routing-mark');
    end;

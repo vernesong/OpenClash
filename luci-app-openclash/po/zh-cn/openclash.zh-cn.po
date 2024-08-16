@@ -3557,3 +3557,21 @@ msgstr "LAN 接口名称"
 
 msgid "Select LAN Interface Name"
 msgstr "指定正确的 LAN 接口名称"
+
+msgid "Select outbound interface for eBPF to apply traffic management"
+msgstr "为 eBPF 指定流量出站接口"
+
+msgid "Warning! Highly experimental configs. Will disable default firewall traffic inbound"
+msgstr "警告！高度实验性的配置。将禁用默认防火墙入站流量"
+
+msgid "Needs kernel support for eBPF functionality. And it takes about 130MB memory to starts"
+msgstr "需要内核支持 eBPF 功能。启动时需要大约 130MB 内存"
+
+msgid "Might improve direct connection performance"
+msgstr "可提高直连性能"
+
+msgid "Only support redir-host-tun"
+msgstr "仅支持 redir-host（TUN）模式"
+
+msgid "eBPF Action Interface"
+msgstr "eBPF 出站接口"
