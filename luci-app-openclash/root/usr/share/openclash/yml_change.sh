@@ -516,13 +516,11 @@ Thread.new{
    end;
 
    if ${en_mode_tun} == 1 and '${1}' == 'redir-host' and '${ebpf_action_interface}' != '0' then
-
       if ${KERNEL_EBPF_SUPPORT} == 1 then
          Value_2={'redirect-to-tun'=>['${ebpf_action_interface}']};
          Value['ebpf']=Value_2;
-         
       else
-         puts '${LOGTIME} : intend to enable ebpf interface ${ebpf_action_interface}, but no kernel support found. Ignoring...';
+         puts '${LOGTIME} Error: intend to enable ebpf interface, but no kernel support found. Ignoring...';
       end;
    end;
 
