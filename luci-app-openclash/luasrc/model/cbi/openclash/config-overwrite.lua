@@ -18,6 +18,10 @@ bold_off = [[</strong>]]
 local op_mode = string.sub(luci.sys.exec('uci get openclash.config.operation_mode 2>/dev/null'),0,-2)
 if not op_mode then op_mode = "redir-host" end
 local lan_int_name = uci:get("openclash", "config", "lan_interface_name") or "0"
+
+
+
+
 local lan_ip
 if lan_int_name == "0" then
 	lan_ip = SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
