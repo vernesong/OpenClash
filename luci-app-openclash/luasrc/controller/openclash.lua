@@ -103,6 +103,9 @@ local json = require "luci.jsonc"
 local uci = require("luci.model.uci").cursor()
 local datatype = require "luci.cbi.datatypes"
 local opkg
+local device_name = uci:get("system", "@system[0]", "hostname")
+local device_arh = luci.sys.exec("uname -m |tr -d '\n'")
+
 if pcall(require, "luci.model.ipkg") then
 	opkg = require "luci.model.ipkg"
 end
@@ -1425,8 +1428,8 @@ function action_backup()
 	local reader = ltn12_popen("tar -C '/etc/openclash/' -cz . 2>/dev/null")
 
 	luci.http.header(
-		'Content-Disposition', 'attachment; filename="Backup-OpenClash-%s.tar.gz"' %{
-			os.date("%Y-%m-%d-%H-%M-%S")
+		'Content-Disposition', 'attachment; filename="Backup-OpenClash-%s-%s-%s.tar.gz"' %{
+			device_name, device_arh, os.date("%Y-%m-%d-%H-%M-%S")
 		})
 
 	luci.http.prepare_content("application/x-targz")
@@ -1439,8 +1442,8 @@ function action_backup_ex_core()
 	local reader = ltn12_popen("echo 'core' > /tmp/oc_exclude.txt && tar -C '/etc/openclash/' -X '/tmp/oc_exclude.txt' -cz . 2>/dev/null")
 
 	luci.http.header(
-		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Exclude-Cores-%s.tar.gz"' %{
-			os.date("%Y-%m-%d-%H-%M-%S")
+		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Exclude-Cores-%s-%s-%s.tar.gz"' %{
+			device_name, device_arh, os.date("%Y-%m-%d-%H-%M-%S")
 		})
 
 	luci.http.prepare_content("application/x-targz")
@@ -1452,8 +1455,8 @@ function action_backup_only_config()
 	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './config' 2>/dev/null")
 
 	luci.http.header(
-		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Config-%s.tar.gz"' %{
-			os.date("%Y-%m-%d-%H-%M-%S")
+		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Config-%s-%s-%s.tar.gz"' %{
+			device_name, device_arh, os.date("%Y-%m-%d-%H-%M-%S")
 		})
 
 	luci.http.prepare_content("application/x-targz")
@@ -1464,8 +1467,8 @@ function action_backup_only_core()
 	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './core' 2>/dev/null")
 
 	luci.http.header(
-		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Cores-%s.tar.gz"' %{
-			os.date("%Y-%m-%d-%H-%M-%S")
+		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Cores-%s-%s-%s.tar.gz"' %{
+			device_name, device_arh, os.date("%Y-%m-%d-%H-%M-%S")
 		})
 
 	luci.http.prepare_content("application/x-targz")
@@ -1476,8 +1479,8 @@ function action_backup_only_rule()
 	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './rule_provider' 2>/dev/null")
 
 	luci.http.header(
-		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Only-Rule-Provider-%s.tar.gz"' %{
-			os.date("%Y-%m-%d-%H-%M-%S")
+		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Only-Rule-Provider-%s-%s-%s.tar.gz"' %{
+			device_name, device_arh, os.date("%Y-%m-%d-%H-%M-%S")
 		})
 
 	luci.http.prepare_content("application/x-targz")
@@ -1488,8 +1491,8 @@ function action_backup_only_proxy()
 	local reader = ltn12_popen("tar -C '/etc/openclash' -cz './proxy_provider' 2>/dev/null")
 
 	luci.http.header(
-		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Proxy-Provider-%s.tar.gz"' %{
-			os.date("%Y-%m-%d-%H-%M-%S")
+		'Content-Disposition', 'attachment; filename="Backup-OpenClash-Proxy-Provider-%s-%s-%s.tar.gz"' %{
+			device_name, device_arh, os.date("%Y-%m-%d-%H-%M-%S")
 		})
 
 	luci.http.prepare_content("application/x-targz")

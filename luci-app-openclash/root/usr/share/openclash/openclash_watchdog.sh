@@ -34,12 +34,21 @@ STREAM_DOMAINS_PREFETCH=1
 STREAM_AUTO_SELECT=1
 FW4=$(command -v fw4)
 
-# Enhanced capbilities
-capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,CAP_PERFMON,cap_bpf,cap_sys_admin"
-
+# Assume we have bpftool sets would set ebpf marker to 1
+KERNEL_EBPF_SUPPORT=$(bpftool version > /dev/null 2>&1 && echo '1' || echo '0')
+# eBPF configuration
+if [[ "$en_mode" == "redir-host-tun" && "${KERNEL_EBPF_SUPPORT}" == "1" ]]; then
+   ebpf_int_name=$(uci -q get openclash.config.ebpf_action_interface || echo "0")
+   # Enhanced capabilities
+   capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin,CAP_PERFMON,cap_bpf"
+else
+   ebpf_int_name=$(echo "0")
+   # Regular capabilities
+   capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin"
+fi
 
 check_dnsmasq() {
-   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -ne 0 ] && [ "$enable_redirect_dns" != "2" ]; then
+   if [ -z "$(echo "$en_mode" |grep "redir-host")" ] && [ "$china_ip_route" -ne 0 ] && [ "$enable_redirect_dns" != "2" ] && [ "${ebpf_int_name}" == "0" ] then
       DNSPORT=$(uci -q get dhcp.@dnsmasq[0].port)
       if [ -z "$DNSPORT" ]; then
          DNSPORT=$(netstat -nlp |grep -E '127.0.0.1:.*dnsmasq' |awk -F '127.0.0.1:' '{print $2}' |awk '{print $1}' |head -1 || echo 53)
@@ -222,7 +231,7 @@ fi
 ## 端口转发重启
    last_line=$(iptables -t nat -nL PREROUTING --line-number |awk '{print $1}' 2>/dev/null |awk 'END {print}' |sed -n '$p')
    op_line=$(iptables -t nat -nL PREROUTING --line-number |grep "openclash " 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1)
-   if [ "$last_line" != "$op_line" ] && [ -n "$op_line" ]; then
+   if [ "$last_line" != "$op_line" ] && [ -n "$op_line" ] && [ "${ebpf_int_name}" == "0" ]; then
       pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/openclash /=' 2>/dev/null |sort -rn)
       for pre_line in $pre_lines; do
          iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
@@ -237,90 +246,94 @@ fi
 ## Localnetwork 刷新
    wan_ip4s=$(/usr/share/openclash/openclash_get_network.lua "wanip" 2>/dev/null)
    wan_ip6s=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
-   if [ -n "$FW4" ]; then
-      if [ -n "$wan_ip4s" ]; then
-         for wan_ip4 in $wan_ip4s; do
-            nft add element inet fw4 localnetwork { "$wan_ip4" } 2>/dev/null
-         done
-      fi
-
-      if [ "$ipv6_enable" -eq 1 ]; then
-         if [ -n "$wan_ip6s" ]; then
-            for wan_ip6 in $wan_ip6s; do
-               nft add element inet fw4 localnetwork6 { "$wan_ip6" } 2>/dev/null
+   if [ "${ebpf_int_name}" == "0" ]; then
+      if [ -n "$FW4" ]; then
+         if [ -n "$wan_ip4s" ]; then
+            for wan_ip4 in $wan_ip4s; do
+               nft add element inet fw4 localnetwork { "$wan_ip4" } 2>/dev/null
             done
          fi
-      fi
-   else
-      if [ -n "$wan_ip4s" ]; then
-         for wan_ip4 in $wan_ip4s; do
-            ipset add localnetwork "$wan_ip4" 2>/dev/null
-         done
-      fi
-      if [ "$ipv6_enable" -eq 1 ]; then
-         if [ -n "$wan_ip6s" ]; then
-            for wan_ip6 in $wan_ip6s; do
-               ipset add localnetwork6 "$wan_ip6" 2>/dev/null
+
+         if [ "$ipv6_enable" -eq 1 ]; then
+            if [ -n "$wan_ip6s" ]; then
+               for wan_ip6 in $wan_ip6s; do
+                  nft add element inet fw4 localnetwork6 { "$wan_ip6" } 2>/dev/null
+               done
+            fi
+         fi
+      else
+         if [ -n "$wan_ip4s" ]; then
+            for wan_ip4 in $wan_ip4s; do
+               ipset add localnetwork "$wan_ip4" 2>/dev/null
             done
+         fi
+         if [ "$ipv6_enable" -eq 1 ]; then
+            if [ -n "$wan_ip6s" ]; then
+               for wan_ip6 in $wan_ip6s; do
+                  ipset add localnetwork6 "$wan_ip6" 2>/dev/null
+               done
+            fi
          fi
       fi
    fi
 
 ## UPNP
-   if [ -f "$upnp_lease_file" ]; then
-      #del
-      if [ -n "$FW4" ]; then
-         for i in `$(nft list chain inet fw4 openclash_upnp |grep "return")`
-         do
-            upnp_ip=$(echo "$i" |awk -F 'ip saddr ' '{print $2}' |awk  '{print $1}')
-            upnp_dp=$(echo "$i" |awk -F 'sport ' '{print $2}' |awk  '{print $1}')
-            upnp_type=$(echo "$i" |awk -F 'sport ' '{print $1}' |awk  '{print $4}' |tr '[a-z]' '[A-Z]')
-            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
-               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
-                  handle=$(nft -a list chain inet fw4 openclash_upnp |grep "$i" |awk -F '# handle ' '{print$2}')
-                  nft delete rule inet fw4 openclash_upnp handle ${handle}
-               fi
-            fi
-         done >/dev/null 2>&1
-      else
-         for i in `$(iptables -t mangle -nL openclash_upnp |grep "RETURN")`
-         do
-            upnp_ip=$(echo "$i" |awk '{print $4}')
-            upnp_dp=$(echo "$i" |awk -F 'spt:' '{print $2}')
-            upnp_type=$(echo "$i" |awk '{print $2}' |tr '[a-z]' '[A-Z]')
-            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
-               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
-                  iptables -t mangle -D openclash_upnp -p "$upnp_type" -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
-               fi
-            fi
-         done >/dev/null 2>&1
-      fi
-      #add
-      if [ -s "$upnp_lease_file" ] && [ -n "$(iptables --line-numbers -t nat -xnvL openclash_upnp 2>/dev/null)"] || [ -n "$(nft list chain inet fw4 openclash_upnp 2>/dev/null)"]; then
-         cat "$upnp_lease_file" |while read -r line
-         do
-            if [ -n "$line" ]; then
-               upnp_ip=$(echo "$line" |awk -F ':' '{print $3}')
-               upnp_dp=$(echo "$line" |awk -F ':' '{print $4}')
-               upnp_type=$(echo "$line" |awk -F ':' '{print $1}' |tr '[A-Z]' '[a-z]')
+   if [ "${ebpf_int_name}" == "0" ]; then
+      if [ -f "$upnp_lease_file" ]; then
+         #del
+         if [ -n "$FW4" ]; then
+            for i in `$(nft list chain inet fw4 openclash_upnp |grep "return")`
+            do
+               upnp_ip=$(echo "$i" |awk -F 'ip saddr ' '{print $2}' |awk  '{print $1}')
+               upnp_dp=$(echo "$i" |awk -F 'sport ' '{print $2}' |awk  '{print $1}')
+               upnp_type=$(echo "$i" |awk -F 'sport ' '{print $1}' |awk  '{print $4}' |tr '[a-z]' '[A-Z]')
                if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
-                  if [ -n "$FW4" ]; then
-                     if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
-                        nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } "$upnp_type" sport "$upnp_dp" counter return 2>/dev/null
-                     fi
-                  else
-                     if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
-                        iptables -t mangle -A openclash_upnp -p "$upnp_type" -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                  if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                     handle=$(nft -a list chain inet fw4 openclash_upnp |grep "$i" |awk -F '# handle ' '{print$2}')
+                     nft delete rule inet fw4 openclash_upnp handle ${handle}
+                  fi
+               fi
+            done >/dev/null 2>&1
+         else
+            for i in `$(iptables -t mangle -nL openclash_upnp |grep "RETURN")`
+            do
+               upnp_ip=$(echo "$i" |awk '{print $4}')
+               upnp_dp=$(echo "$i" |awk -F 'spt:' '{print $2}')
+               upnp_type=$(echo "$i" |awk '{print $2}' |tr '[a-z]' '[A-Z]')
+               if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
+                  if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                     iptables -t mangle -D openclash_upnp -p "$upnp_type" -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                  fi
+               fi
+            done >/dev/null 2>&1
+         fi
+         #add
+         if [ -s "$upnp_lease_file" ] && [ -n "$(iptables --line-numbers -t nat -xnvL openclash_upnp 2>/dev/null)"] || [ -n "$(nft list chain inet fw4 openclash_upnp 2>/dev/null)"]; then
+            cat "$upnp_lease_file" |while read -r line
+            do
+               if [ -n "$line" ]; then
+                  upnp_ip=$(echo "$line" |awk -F ':' '{print $3}')
+                  upnp_dp=$(echo "$line" |awk -F ':' '{print $4}')
+                  upnp_type=$(echo "$line" |awk -F ':' '{print $1}' |tr '[A-Z]' '[a-z]')
+                  if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
+                     if [ -n "$FW4" ]; then
+                        if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                           nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } "$upnp_type" sport "$upnp_dp" counter return 2>/dev/null
+                        fi
+                     else
+                        if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                           iptables -t mangle -A openclash_upnp -p "$upnp_type" -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                        fi
                      fi
                   fi
                fi
-            fi
-         done >/dev/null 2>&1
+            done >/dev/null 2>&1
+         fi
       fi
    fi
 
 ## Skip Proxies Address
-   if [ "$skip_proxy_address" -eq 1 ]; then
+   if [ "$skip_proxy_address" -eq 1 ] && [ "${ebpf_int_name}" == "0" ]; then
       if [ "$SKIP_PROXY_ADDRESS" -eq 1 ] || [ "$(expr "$SKIP_PROXY_ADDRESS" % "$SKIP_PROXY_ADDRESS_INTERVAL")" -eq 0 ]; then
          ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          begin
