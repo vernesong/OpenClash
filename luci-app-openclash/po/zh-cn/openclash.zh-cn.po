@@ -2194,7 +2194,7 @@ msgid "Introduction to rule set usage: https://wiki.metacubex.one/config/rule-pr
 msgstr "规则集使用介绍：https://wiki.metacubex.one/config/rule-providers/content/"
 
 msgid "Introduction to proxy usage: https://wiki.metacubex.one/config/proxies/"
-msgstr "代理使用介绍：https://lancellc.gitbook.io/clash/clash-config-file/proxies"
+msgstr "代理使用介绍：https://wiki.metacubex.one/config/proxies/"
 
 msgid "Introduction to proxy-provider usage: https://wiki.metacubex.one/config/proxy-providers/"
 msgstr "代理集使用介绍：https://wiki.metacubex.one/config/proxy-providers/"
