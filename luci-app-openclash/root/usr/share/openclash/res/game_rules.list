@@ -51,7 +51,7 @@ DayZ steam,DayZ.rules
 暗黑破坏神4-港服,DiabloIV-HK.rules
 脏弹-Steam,Dirty-Bomb.rules
 Discord语音,Discord-All.rules
-饥荒-steam,Don't-Starve-steam.rules
+饥荒-steam,Don't-Starve-steam.rules,Dont-Starve-steam.rules
 刀塔霸业,Dota-Underlords.rules
 DOTA2-日服,Dota2-jp.rules
 逃离塔科夫,Escape-from-Tarkov.rules
@@ -115,7 +115,7 @@ Osu!,Osu!.rules
 流放之路,PathOfexile.rules
 梦幻之星2-日服(tx),PHANTASY STAR ONLINE2-JPtx.rules
 行星边际2,PlanetSide-2.rules
-绝地求生大逃杀,PlayerUnknown's-Battlegrounds-update.rules
+绝地求生大逃杀,PlayerUnknown's-Battlegrounds-update.rules,PlayerUnknowns-Battlegrounds-update.rules
 实况足球-2018,Pro-Evolution-Soccer-2018.rules
 实况足球-2019,Pro-Evolution-Soccer-2019.rules
 绝地求生亚服&东南亚服,PUBG-Asia&-Southeast-Asia.rules
@@ -151,12 +151,12 @@ Steam-社区(Beta),Steam.rules
 天涯明月刀-台服,TianYaMingYueDao-tw.rules
 泰坦陨落2,TiTanFall2.rules
 新枫之谷,TMS.rules
-幽灵行动：荒野,Tom-Clancy's-Ghost-Recon-Wildlands.rules
-彩虹六号-异种-全部,Tom-Clancy's-Rainbow-Six-Extraction-all.rules
-彩虹六号-围攻-全部,Tom-Clancy's-Rainbow-Six-Siege-all.rules
-彩虹六号-围攻-EAS,Tom-Clancy's-Rainbow-Six-Siege-EAS.rules
-全境封锁2,Tom-clancy's-The-Division-2.rules
-全境封锁,Tom-clancy's-The-Division.rules
+幽灵行动：荒野,Tom-Clancy's-Ghost-Recon-Wildlands.rules,Tom-Clancys-Ghost-Recon-Wildlands.rules
+彩虹六号-异种-全部,Tom-Clancy's-Rainbow-Six-Extraction-all.rules,Tom-Clancys-Rainbow-Six-Extraction-all.rules
+彩虹六号-围攻-全部,Tom-Clancy's-Rainbow-Six-Siege-all.rules,Tom-Clancys-Rainbow-Six-Siege-all.rules
+彩虹六号-围攻-EAS,Tom-Clancy's-Rainbow-Six-Siege-EAS.rules,Tom-Clancys-Rainbow-Six-Siege-EAS.rules
+全境封锁2,Tom-clancy's-The-Division-2.rules,Tom-clancys-The-Division-2.rules
+全境封锁,Tom-clancy's-The-Division.rules,Tom-clancys-The-Division.rules
 Twitch直播,Twitch.rules
 未转变者Unturned,Unturned.rules
 无畏契约,Valorant.rules
