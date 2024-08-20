@@ -26,14 +26,14 @@ msgstr "覆写设置"
 msgid "Rule Providers Append"
 msgstr "规则附加"
 
-msgid "Game Rules Append (Only TUN & Meta Core Support)"
-msgstr "游戏规则附加（仅 TUN & Meta 内核）"
+msgid "Game Rules Append"
+msgstr "游戏规则附加"
 
-msgid "Other Rule Providers Append (Only TUN & Meta Core Support)"
-msgstr "第三方规则集附加（仅 TUN & Meta 内核）"
+msgid "Other Rule Providers Append"
+msgstr "第三方规则集附加"
 
-msgid "Custom Rule Providers Append (Only TUN & Meta Core Support)"
-msgstr "自定义规则集附加（仅 TUN & Meta 内核）"
+msgid "Custom Rule Providers Append"
+msgstr "自定义规则集附加"
 
 msgid "General Settings"
 msgstr "常规设置"
@@ -154,9 +154,6 @@ msgstr "Global【全局代理（需前往控制面板手动指定节点）】"
 
 msgid "Direct Proxy Mode"
 msgstr "Direct【全局直连】"
-
-msgid "Script Proxy Mode (Tun Core Only)"
-msgstr "Script【脚本模式 - 仅TUN内核】"
 
 msgid "Select Stack Type"
 msgstr "网络栈类型"
@@ -484,15 +481,6 @@ msgstr "将覆盖配置文件内的所有规则 (不包括自定义规则)，启
 
 msgid "lhie1 Rules"
 msgstr "lhie1 规则"
-
-msgid "ConnersHua Rules"
-msgstr "ConnersHua 规则"
-
-msgid "ConnersHua(Provider-type) Rules"
-msgstr "ConnersHua(规则集) 规则"
-
-msgid "ConnersHua Return Rules"
-msgstr "ConnersHua 回国规则"
 
 msgid "Auto Update Other Rules"
 msgstr "正在使用第三方规则时更新设置才会生效"
@@ -1230,9 +1218,6 @@ msgstr "组件的状态显示，运行前请确保各项目显示正常，需要
 msgid "Node Select Backup"
 msgstr "策略组节点选择 备份日期"
 
-msgid "ConnersHua Rule Update"
-msgstr "ConnersHua 规则更新日期"
-
 msgid "Mainland IP Update"
 msgstr "大陆 IP 白名单 更新日期"
 
@@ -1241,9 +1226,6 @@ msgstr "大陆 IPv6 白名单 更新日期"
 
 msgid "lhie1 Rule Update"
 msgstr "lhie1 规则更新日期"
-
-msgid "ConnersHua Return Rule Update"
-msgstr "ConnersHua 回国规则更新日期"
 
 msgid "GEOIP Data Update"
 msgstr "GEOIP 数据库日期"
@@ -1256,9 +1238,6 @@ msgstr "暂未备份"
 
 msgid "Backup"
 msgstr "备份"
-
-msgid "<Limited State>"
-msgstr "<受限状态>"
 
 msgid "Enhance"
 msgstr "增强"
@@ -1956,14 +1935,8 @@ msgstr "读取完成！"
 msgid "Write Successful!"
 msgstr "写入完成！"
 
-msgid "Creating By Using Connershua (rule set) Rules..."
-msgstr "使用 ConnersHua(规则集) 规则创建中..."
-
 msgid "Creating By Using lhie1 Rules..."
 msgstr "使用 lhie1 规则创建中..."
-
-msgid "Creating By Using ConnersHua Return Rules..."
-msgstr "使用 ConnersHua 回国规则创建中..."
 
 msgid "Created Successful, Updating Proxies, Proxy-providers, Groups..."
 msgstr "创建完成，正在更新服务器、代理集、策略组信息..."
@@ -1980,12 +1953,6 @@ msgstr "错误：丢失或未指定第三方规则中的部分策略组，停止
 msgid "Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete..."
 msgstr "提示：检测到DNS选项下的 Nameserver 未设置服务器，开始补全..."
 
-msgid "Error: Failed To Download Proxy-providers, Please Check The Log Page For Detailed error information!"
-msgstr "错误：代理集文件下载失败，请到日志页面查看详细错误信息！"
-
-msgid "Error: Failed To Download Rule-providers, Please Check The Log Page For Detailed error information!"
-msgstr "错误：规则集文件下载失败，请到日志页面查看详细错误信息！"
-
 msgid "Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers"
 msgstr "错误：配置文件DNS选项下的 Nameserver 必须设置服务器，已停止设置自定义DNS服务器！"
 
@@ -1997,21 +1964,6 @@ msgstr "错误：缺少配置文件，请上传或更新配置文件！"
 
 msgid "Error: Config File Format Validation Failed..."
 msgstr "错误：配置文件格式校验失败..."
-
-msgid "Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
-msgstr "提示：检测到配置了 TUN 内核专属功能，调用 TUN 内核启动..."
-
-msgid "Tip: Detected The Exclusive Function of The Meta Core, Use Meta Core to Start..."
-msgstr "提示：检测到配置了 Meta 内核专属功能，调用 Meta 内核启动..."
-
-msgid "Tip: No Special Configuration Detected, Use Dev Core to Start..."
-msgstr "提示：未检测到特殊配置，调用 Dev 内核启动..."
-
-msgid "Tip: Detected that the Dev Core is not Installed, Use TUN Core to Start..."
-msgstr "提示：检测到 Dev 内核未安装，调用 TUN 内核启动..."
-
-msgid "Tip: Detected that the Dev Core is not Installed, Use Meta Core to Start..."
-msgstr "提示：检测到 Dev 内核未安装，调用 Meta 内核启动..."
 
 msgid "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
 msgstr "提示：检测到 GEOIP 数据库文件不存在，准备开始下载..."
@@ -2037,23 +1989,8 @@ msgstr "错误：Capsh 异常，请尝试重新安装依赖【libcap】和相应
 msgid "Tip: You Could Download And Re-Install The libcap & libcap-bin Library From The Address Give"
 msgstr "提示：你可以尝试从给出的地址中查找、下载并重新安装架构对应的 libcap 和 libcap-bin 依赖"
 
-msgid "Error: Get DNS 'listen' Option Error, OpenClash Can Not Start With Raw Config File"
-msgstr "错误：无法获取 DNS 部分的监听端口设置, OpenClash 使用原始配置文件启动失败"
-
-msgid "Error: Get DNS 'enhanced-mode' Option Error, OpenClash Can Not Start With Raw Config File"
-msgstr "错误：无法获取 DNS 部分的运行模式设置, OpenClash 使用原始配置文件启动失败"
-
-msgid "Error: Get General 'redir-port' Option Error, OpenClash Can Not Start With Raw Config File"
-msgstr "错误：无法获取 General 部分的转发端口设置, OpenClash 使用原始配置文件启动失败"
-
 msgid "Error: OpenClash Can Not Start, Please Check The Error Info And Try Again!"
 msgstr "错误：OpenClash 启动失败，请到日志页面查看详细错误信息！"
-
-msgid "Error: OpenClash Can Not Start, Try Use Raw Config Restart Again..."
-msgstr "错误：OpenClash 启动失败，尝试使用原始配置文件启动..."
-
-msgid "Error: OpenClash Can Not Start, Try Use Backup Rules Start Again..."
-msgstr "错误：OpenClash 启动失败，尝试还原第三方规则并重新启动 Clash 主程序..."
 
 msgid "Found 53 Port Hijacked, Clean Up Firewall Rules..."
 msgstr "发现 53 端口被劫持，清理防火墙规则..."
@@ -2079,26 +2016,20 @@ msgstr "第四步: 启动主程序..."
 msgid "Step 5: Check The Core Status..."
 msgstr "第五步: 检查内核启动状态..."
 
-msgid "Step 6: Wait For The File Downloading..."
-msgstr "第六步: 等待主程序下载外部文件..."
+msgid "Step 6: Set Firewall Rules..."
+msgstr "第六步: 设置防火墙规则..."
 
-msgid "Step 7: Set Firewall Rules..."
-msgstr "第七步: 设置防火墙规则..."
+msgid "Step 7: Restart Dnsmasq..."
+msgstr "第七步: 重启 Dnsmasq 程序..."
 
-msgid "Step 8: Restart Dnsmasq..."
-msgstr "第八步: 重启 Dnsmasq 程序..."
-
-msgid "Step 9: Add Cron Rules, Start Daemons..."
-msgstr "第九步: 添加计划任务,启动进程守护程序..."
+msgid "Step 8: Add Cron Rules, Start Daemons..."
+msgstr "第八步: 添加计划任务,启动进程守护程序..."
 
 msgid "OpenClash Start Successful!"
 msgstr "OpenClash 启动成功，请等待服务器上线！"
 
 msgid "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPv6's DHCP Server"
 msgstr "警告：OpenClash 启动成功，检测到您启用了IPv6的DHCP服务，可能会造成连接异常！"
-
-msgid "Warning: OpenClash Start Successful With Raw Config File, Please Note That It's Restricted Mode Now"
-msgstr "警告：OpenClash 使用原始配置文件启动成功，部分设置可能未生效！"
 
 msgid "OpenClash Stoping..."
 msgstr "OpenClash 开始关闭..."
@@ -2391,12 +2322,6 @@ msgstr "错误：设置防回环规则失败，"
 msgid "Error: Set lhie1 Rules Failed,"
 msgstr "错误：设置第三方规则（lhie1）失败，"
 
-msgid "Error: Set ConnersHua Rules Failed,"
-msgstr "错误：设置第三方规则（ConnersHua）失败，"
-
-msgid "Error: Set ConnersHua Return Rules Failed,"
-msgstr "错误：设置第三方规则（ConnersHua 回国）失败，"
-
 msgid "Error: Filter Proxies Failed,"
 msgstr "错误：节点筛选失败，"
 
@@ -2420,9 +2345,6 @@ msgstr "错误：规则集 Rule-Set 规则添加失败，"
 
 msgid "Error: Custom Rule Provider Merge Failed,"
 msgstr "错误：规则集 Rule Provider 合并失败，"
-
-msgid "Error: Restore Backup Rules Failed,"
-msgstr "错误：还原默认规则失败，"
 
 msgid "Error: Resolve Proxy-providers Failed,"
 msgstr "错误：解析代理集失败，"
@@ -2952,12 +2874,6 @@ msgstr "错误：多个脚本运行中，退出..."
 msgid "Error: Streaming DNS Prefetch Could not Work Because of Router-Self Proxy Disabled, Exiting..."
 msgstr "错误：因为禁用了代理路由器自身流量，预解析无法工作，退出..."
 
-msgid "Enable Meta Core"
-msgstr "*使用 Meta 内核"
-
-msgid "Some Premium Core Features are Unavailable, For Other More Useful Functions Go Wiki:"
-msgstr "Meta 内核还未支持 Premium 内核的全部功能，要了解其独有功能，请前往Wiki:"
-
 msgid "Enable Sniffer"
 msgstr "*启用流量（域名）探测"
 
@@ -3039,9 +2955,6 @@ msgstr "（仅 TUN 内核）"
 msgid "(TUN&Meta Core)"
 msgstr "（TUN&Meta 内核）"
 
-msgid "Warning: Only Meta Core Support QUIC Type DNS, Skip"
-msgstr "警告：仅 Meta 内核支持 QUIC 类型的 DNS，跳过"
-
 msgid "Will Override Dns Queries If Domains in The List"
 msgstr "列表中的域名将会强制进行探测（嗅探）"
 
@@ -3075,9 +2988,6 @@ msgstr "天"
 msgid "Douyin"
 msgstr "抖音（Douyin）"
 
-msgid "Warning: Skip the Custom Rule that Core not Support"
-msgstr "警告：跳过核心不支持的自定义规则"
-
 msgid "Specific Interface"
 msgstr "指定接口"
 
@@ -3090,23 +3000,11 @@ msgstr "指定策略组（支持正则匹配）"
 msgid "Group Use For Proxy The DNS"
 msgstr "用于代理此 DNS 的策略组"
 
-msgid "Warning: Only Meta Core Support Specific Group, Skip Setting"
-msgstr "警告：仅 Meta 内核支持指定 DNS 的策略组，跳过设置"
-
 msgid "Node Domain Resolve"
 msgstr "节点域名解析"
 
 msgid "Use For Node Domain Resolve"
 msgstr "用于解析节点域名的 IP 地址"
-
-msgid "Warning: Only Meta Core Support proxy-server-nameserver, Skip Setting"
-msgstr "警告：仅 Meta 内核支持设置解析节点域名的 DNS，跳过设置"
-
-msgid "Warning: Meta Core not Support Specific Interface, Skip Setting"
-msgstr "警告：Meta 内核不支持设置指定 DNS 的出口，跳过设置"
-
-msgid "Warning: Only Meta Core Support Force HTTP/3 to connect, Skip Setting"
-msgstr "警告：仅 Meta 内核支持 DOH 强制启用 HTTP/3，跳过设置"
 
 msgid "Lan Bypassed Port List"
 msgstr "绕过核心的来源端口"
@@ -3263,9 +3161,6 @@ msgstr "下载失败："
 
 msgid "Tip: Waiting for TUN Interface Start..."
 msgstr "提示：正在等待 TUN 接口启动..."
-
-msgid "Tip: You Can Try to Restart With Meta Core"
-msgstr "提示：您可以尝试使用 Meta 内核启动"
 
 msgid "Warning: Dnsmasq not Support nftset, Use ipset..."
 msgstr "警告：Dnsmasq 不支持 nftset, 使用 ipset 代替..."
@@ -3450,9 +3345,6 @@ msgstr "提示：IPv6 代理模式为 TUN..."
 msgid "Tip: IPv6 Proxy Mode is TProxy..."
 msgstr "提示：IPv6 代理模式为 TProxy..."
 
-msgid "Warning: Only Meta Core Support IPv6 Tun Mode, Use TProxy Instead..."
-msgstr "提示：只有 Meta 内核支持 IPv6 Tun 模式，使用 TProxy 模式代替..."
-
 msgid "Warning: Can't Settting Only Intranet Allowed Function, Get IPv4 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
 msgstr "警告：设置仅允许内网功能失败，无法获取 IPv4 的 WAN 接口名称，请确保防火墙设置中 IPv4 WAN 区域的名称为 wan，如设备无 WAN 口请忽略此提示..."
 
@@ -3485,9 +3377,6 @@ msgstr "请在此编辑您的附加配置"
 
 msgid "Error: Config Not Found, Switch Config File to"
 msgstr "错误：未找到配置文件，切换至配置文件"
-
-msgid "Warning: Skip the nameserver-policy that Core not Support"
-msgstr "警告：跳过核心不支持的 nameserver-policy 规则"
 
 msgid "Enable Unified Delay"
 msgstr "*启用统一延迟"
@@ -3563,3 +3452,6 @@ msgstr "LAN 接口名称"
 
 msgid "Select LAN Interface Name"
 msgstr "指定正确的 LAN 接口名称"
+
+msgid "For More Useful Meta Core Functions Go Wiki"
+msgstr "如需要了解更多关于 Meta 内核的功能，请前往 Wiki"

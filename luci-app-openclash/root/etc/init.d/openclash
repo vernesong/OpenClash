@@ -219,55 +219,6 @@ start_fail()
    exit 0
 }
 
-#检查集文件防止启动失败
-yml_provider_check()
-{
-provider_path_line=$(ruby_read "$1" ".key?('$2')")
-local provider_path_check
-if "$provider_path_line"; then
-   while :;
-   do
-      provider_path_check=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-      Value = YAML.load_file('$1');
-      Value['$2'].values.each{|x,v|
-      if not x['path'].empty? then
-         if x['path'].split('/')[0] == '.' then
-            v = '/etc/openclash/'+x['path'].split('./')[1]
-         else
-            v = x['path']
-         end
-      end;
-      if File::exist?(v) then
-         if not YAML.load_file(v).key?('$3') then
-            puts false
-            break
-         end
-      else
-         puts false
-         break
-      end
-      }
-      " 2>/dev/null)
-      if [ "$provider_path_check" == "false" ] && [ -n "$(pidof clash)" ]; then
-         sleep 2
-      else
-         break
-      fi
-   done
-fi
-
-if [ -z "$(pidof clash)" ] && [ "$provider_path_check" == "false" ]; then
-   if [ "$2" = "proxy-providers" ]; then
-      LOG_OUT "Error: Failed To Download Proxy-providers, Please Check The Log Page For Detailed error information!"
-   else
-      LOG_OUT "Error: Failed To Download Rule-providers, Please Check The Log Page For Detailed error information!"
-   fi
-   LOG_ALERT
-   LOG_OUT "Tip: You Can Try to Restart With Meta Core"
-   start_fail
-fi
-}
-
 #获取订阅配置
 sub_info_get()
 {
@@ -365,28 +316,10 @@ elif [ ! -f "$TMP_CONFIG_FILE" ] || [ ! -s "$TMP_CONFIG_FILE" ]; then
 fi
 }
 
-yml_other_rules_get()
-{
-   local section="$1"
-   local enabled config
-   config_get_bool "enabled" "$section" "enabled" "1"
-   config_get "config" "$section" "config" ""
-
-   if [ "$enabled" = "0" ] || [ "$config" != "$2" ]; then
-      return
-   fi
-
-   if [ -n "$rule_name" ]; then
-      return
-   fi
-
-   config_get "rule_name" "$section" "rule_name" ""
-}
-
 check_run_quick()
 {
    quick_start=true
-   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $dev_core_path $tun_core_path $meta_core_path $ipdb_path $geosite_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/ConnersHua.yaml /usr/share/openclash/res/ConnersHua_return.yaml /usr/share/openclash/res/lhie1.yaml /etc/openclash/custom/openclash_force_sniffing_domain.yaml /etc/openclash/custom/openclash_sniffing_domain_filter.yaml /etc/openclash/custom/openclash_sniffing_ports_filter.yaml /etc/openclash/custom/openclash_custom_localnetwork_ipv4.list /etc/openclash/custom/openclash_custom_localnetwork_ipv6.list /etc/openclash/custom/openclash_custom_chnroute_pass.list /etc/openclash/custom/openclash_custom_chnroute6_pass.list $cndomain_path /etc/openclash/custom/openclash_custom_overwrite.sh"
+   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") /etc/openclash/custom/openclash_custom_domain_dns.list /etc/openclash/custom/openclash_custom_domain_dns_policy.list /etc/openclash/custom/openclash_custom_fake_filter.list /etc/openclash/custom/openclash_custom_fallback_filter.yaml /etc/openclash/custom/openclash_custom_hosts.list /etc/openclash/custom/openclash_custom_rules.list /etc/openclash/custom/openclash_custom_rules_2.list $meta_core_path $ipdb_path $geosite_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/lhie1.yaml /etc/openclash/custom/openclash_force_sniffing_domain.yaml /etc/openclash/custom/openclash_sniffing_domain_filter.yaml /etc/openclash/custom/openclash_sniffing_ports_filter.yaml /etc/openclash/custom/openclash_custom_localnetwork_ipv4.list /etc/openclash/custom/openclash_custom_localnetwork_ipv6.list /etc/openclash/custom/openclash_custom_chnroute_pass.list /etc/openclash/custom/openclash_custom_chnroute6_pass.list $cndomain_path /etc/openclash/custom/openclash_custom_overwrite.sh"
 	 if [ ! -f "$CONFIG_FILE" ] || [ ! -f "/tmp/openclash_config.tmp" ] || [ ! -f "/tmp/openclash.change" ]; then
 	    quick_start=false
 	    return
@@ -420,22 +353,6 @@ write_run_quick()
          echo "$i $(date -r "$i")" >> "/tmp/openclash.change"
       done 2>/dev/null
 	 fi
-}
-
-custom_rule_provider()
-{
-   local section="$1"
-   local enabled config
-   config_get "config" "$section" "config" ""
-   config_get_bool "enabled" "$section" "enabled" "1"
-
-   if [ "$enabled" = "0" ]; then
-      return
-   fi
-
-   if [ "$config" = "all" ] || [ "$config" = "$CONFIG_NAME" ]; then
-      config_set_custom_rule_provider=1
-   fi
 }
 
 #运行模式处理
@@ -480,8 +397,6 @@ do_run_file()
    }
 
    if [ "$small_flash_memory" != "1" ]; then
-      dev_core_path="/etc/openclash/core/clash"
-      tun_core_path="/etc/openclash/core/clash_tun"
       meta_core_path="/etc/openclash/core/clash_meta"
       ipdb_path="/etc/openclash/Country.mmdb"
       chnr_path="/etc/openclash/china_ip_route.ipset"
@@ -500,8 +415,6 @@ do_run_file()
          rm -rf "/tmp/etc/openclash" 2>/dev/null
       fi
    else
-      dev_core_path="/tmp/etc/openclash/core/clash"
-      tun_core_path="/tmp/etc/openclash/core/clash_tun"
       meta_core_path="/tmp/etc/openclash/core/clash_meta"
       ipdb_path="/tmp/etc/openclash/Country.mmdb"
       chnr_path="/tmp/etc/openclash/china_ip_route.ipset"
@@ -521,66 +434,14 @@ do_run_file()
    rm -rf "/etc/openclash/cache.db" 2>/dev/null
    rm -rf "/etc/openclash/clash" 2>/dev/null
 
-   if [ "$enable_meta_core" != "1" ]; then
-      if [ -n "$en_mode_tun" ]; then
-         ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
-         core_type="TUN"
-         core_start_log="Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
-      fi
-
-      if [ "$rule_source" != "0" ]; then
-         config_load "openclash"
-         config_foreach yml_other_rules_get "other_rules" "$CONFIG_NAME"
-      fi
-
-      config_load "openclash"
-      config_set_custom_rule_provider=0
-      for i in "rule_provider_config" "rule_provider_config" "rule_providers" "game_config"; do
-         config_foreach custom_rule_provider "$i"
-         if [ "$config_set_custom_rule_provider" -eq 1 ]; then
-         	break
-         fi
-      done 2>/dev/null
-
-      if [ "$proxy_mode" = "script" ] || [ "$config_set_custom_rule_provider" -eq 1 ] || [ "$rule_name" = "ConnersHua" ] || [ "$rule_name" = "lhie1" ] || [ -n "$(ruby_read "$RAW_CONFIG_FILE" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ] || [ -n "$(ruby_read "/etc/openclash/custom/openclash_custom_rules_2.list" "['rules'].grep(/(^RULE-SET,|^SCRIPT,)/)")" ]; then
-         if [ -z "$en_mode_tun" ]; then
-            ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
-            core_type="TUN"
-            core_start_log="Tip: Detected The Exclusive Function of The TUN Core, Use TUN Core to Start..."
-         fi
-      fi
-   else
-      ln -s "$meta_core_path" /etc/openclash/clash 2>/dev/null
-      core_type="Meta"
-      core_start_log="Tip: Detected The Exclusive Function of The Meta Core, Use Meta Core to Start..."
-   fi
-
-   if [ ! -f "/etc/openclash/clash" ] && [ -f "$dev_core_path" ] && [ -z "$core_type" ]; then
-      ln -s "$dev_core_path" /etc/openclash/clash 2>/dev/null
-      core_start_log="Tip: No Special Configuration Detected, Use Dev Core to Start..."
-   fi
-
-   if [ ! -f "/etc/openclash/clash" ] && [ -f "$tun_core_path" ] && [ -z "$core_type" ]; then
-      ln -s "$tun_core_path" /etc/openclash/clash 2>/dev/null
-      core_type="TUN"
-      core_start_log="Tip: Detected that the Dev Core is not Installed, Use TUN Core to Start..."
-   fi
-
-   if [ ! -f "/etc/openclash/clash" ] && [ -f "$meta_core_path" ] && [ -z "$core_type" ]; then
-      ln -s "$meta_core_path" /etc/openclash/clash 2>/dev/null
-      core_type="Meta"
-      core_start_log="Tip: Detected that the Dev Core is not Installed, Use Meta Core to Start..."
-   fi
+   ln -s "$meta_core_path" /etc/openclash/clash 2>/dev/null
+   core_type="Meta"
 
    [ ! -f "$CLASH" ] && {
       LOG_OUT "Tip: Detected that the Core is not Installed, Ready to Download..."
       rm -rf "/tmp/clash_last_version"
       /usr/share/openclash/openclash_core.sh "$core_type"
-      if [ "$core_type" == "TUN" ] && [ ! -f "$tun_core_path" ]; then
-         start_fail
-      elif [ "$core_type" == "Meta" ] && [ ! -f "$meta_core_path" ]; then
-         start_fail
-      elif [ -z "$core_type" ] && [ ! -f "$dev_core_path" ]; then
+      if [ "$core_type" == "Meta" ] && [ ! -f "$meta_core_path" ]; then
          start_fail
       else
          del_lock
@@ -597,7 +458,7 @@ do_run_file()
       fi
    }
 
-   [ ! -f "$geosite_path" ] && [ "$enable_meta_core" = "1" ] && {
+   [ ! -f "$geosite_path" ] && {
       LOG_OUT "Tip: Detected that the GEOSITE Database is not Installed, Ready to Download..."
       /usr/share/openclash/openclash_geosite.sh
       if [ ! -f "$geosite_path" ]; then
@@ -647,8 +508,6 @@ do_run_file()
       fi
    fi
 
-   [ ! -x "$tun_core_path" ] && chmod 4755 "$tun_core_path" 2>/dev/null
-   [ ! -x "$dev_core_path" ] && chmod 4755 "$dev_core_path" 2>/dev/null
    [ ! -x "$meta_core_path" ] && chmod 4755 "$meta_core_path" 2>/dev/null
 
    [ -f "$ipdb_path" ] && [ "$small_flash_memory" = "1" ] && {
@@ -765,7 +624,6 @@ config_test()
 
 start_run_core()
 {
-   LOG_OUT "$core_start_log"
    ulimit -SHn 65535 2>/dev/null
    ulimit -v unlimited 2>/dev/null
    modprobe tun >/dev/null 2>&1
@@ -778,26 +636,20 @@ start_run_core()
       LOG_OUT "Error: Config File Tested Faild, Please Check The Log Infos!"
       start_fail
    fi
-   config_reload=$(uci -q get openclash.config.config_reload)
-   if [ -n "$(pidof clash)" ] && [ "$core_type" != "TUN" ] && [ "$core_type" != "Meta" ] && [ "$config_reload" != "0" ]; then
-      reload_status=$(curl -s --connect-timeout 5 -m 5 -o /dev/null -w %{http_code} -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XPUT http://"$lan_ip":"$cn_port"/configs?force=true -d "{\"path\": \"$CONFIG_FILE\"}" 2>/dev/null)
-   fi
-   if [ "$reload_status" != "204" ] || [ -z "$(pidof clash)" ] || [ "$core_type" = "TUN" ] || [ "$core_type" = "Meta" ] || [ "$config_reload" = "0" ]; then
-      kill_clash
-      #防止赋权失败
-      touch "/tmp/openclash.log" 2>/dev/null
-      chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
-      chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
-      chmod o+w /etc/openclash/history/* 2>/dev/null
-      chmod o+w /etc/openclash/cache.db 2>/dev/null
-      chmod o+w /tmp/openclash.log 2>/dev/null
-      chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
-      #使用nobody启动内核方便代理路由自身流量
-      capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin"
-      capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
-   fi
-   uci -q set openclash.config.config_reload=1
-   uci -q commit openclash
+
+   kill_clash
+   #防止赋权失败
+   touch "/tmp/openclash.log" 2>/dev/null
+   chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
+   chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
+   chmod o+w /etc/openclash/history/* 2>/dev/null
+   chmod o+w /etc/openclash/cache.db 2>/dev/null
+   chmod o+w /tmp/openclash.log 2>/dev/null
+   chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
+   #使用nobody启动内核方便代理路由自身流量
+   capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin"
+   capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
+
 }
 
 check_core_status()
@@ -810,107 +662,6 @@ check_core_status()
    done
    if [ -z "$(pidof clash)" ]; then
       LOG_ALERT
-   fi
-}
-
-#不修改配置文件启动
-raw_config_start()
-{
-   cp "$RAW_CONFIG_FILE" "$CONFIG_FILE"
-   dns_port=$(ruby_read "$CONFIG_FILE" "['dns']['listen'].split(':')[1]")
-   en_mode=$(ruby_read "$CONFIG_FILE" "['dns']['enhanced-mode']")
-   proxy_port=$(ruby_read "$CONFIG_FILE" "['redir-port']")
-
-   if [ -z "$dns_port" ] || [ -z "$en_mode" ] || [ -z "$proxy_port" ]; then
-      if [ -z "$dns_port" ]; then
-         LOG_OUT "Error: Get DNS 'listen' Option Error, OpenClash Can Not Start With Raw Config File"
-      fi
-      if [ -z "$en_mode" ]; then
-         LOG_OUT "Error: Get DNS 'enhanced-mode' Option Error, OpenClash Can Not Start With Raw Config File"
-      fi
-      if [ -z "$proxy_port" ]; then
-         LOG_OUT "Error: Get General 'redir-port' Option Error, OpenClash Can Not Start With Raw Config File"
-      fi
-      start_fail
-   fi
-
-   start_run_core
-   check_core_status
-
-   if ! pidof clash >/dev/null; then
-      LOG_OUT "Error: OpenClash Can Not Start, Please Check The Error Info And Try Again!"
-      start_fail
-   fi
-
-   if [ "$en_mode" = "redir-host" ]; then
-      case $en_mode_tun in
-      "1")
-         uci -q set openclash.config.en_mode=redir-host-tun
-      ;;
-      "2")
-         uci -q set openclash.config.en_mode=redir-host-mix
-      ;;
-      *)
-         uci -q set openclash.config.en_mode=redir-host
-      esac
-   elif [ "$en_mode" = "fake-ip" ]; then
-   	case $en_mode_tun in
-      "1")
-         uci -q set openclash.config.en_mode=fake-ip-tun
-      ;;
-      "2")
-         uci -q set openclash.config.en_mode=fake-ip-mix
-      ;;
-      *)
-         uci -q set openclash.config.en_mode=fake-ip
-      esac
-   fi
-
-   dase=$(ruby_read "$CONFIG_FILE" "['secret']")
-   uci -q set openclash.config.dashboard_password="$dase"
-
-   cn_port=$(ruby_read "$CONFIG_FILE" "['external-controller'].split(':')[1]")
-   uci -q set openclash.config.cn_port="$cn_port"
-
-   uci -q set openclash.config.proxy_port="$proxy_port"
-   uci -q set openclash.config.restricted_mode=1
-
-   uci commit openclash
-}
-
-try_restore_start()
-{
-   if [ -z "$(pidof clash)" ]; then
-      if [ "$rule_source" = 0 ] && [ "$enable_custom_clash_rules" = 0 ]; then
-         LOG_OUT "Error: OpenClash Can Not Start, Try Use Raw Config Restart Again..."
-         raw_config_start
-      else
-         LOG_OUT "Error: OpenClash Can Not Start, Try Use Backup Rules Start Again..."
-         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-         begin
-            Value = YAML.load_file('$RAW_CONFIG_FILE');
-            Value_1 = YAML.load_file('$CONFIG_FILE');
-            if Value.has_key?('rule-providers') then
-               Value_1['rule-providers'] = Value.select {|x| 'rule-providers' == x}['rule-providers'];
-            end;
-            if Value.has_key?('script') then
-               Value_1['script'] = Value.select {|x| 'script' == x}['script'];
-            end;
-            if Value.has_key?('rules') then
-               Value_1['rules'] = Value.select {|x| 'rules' == x}['rules'];
-            end;
-            File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value_1, f)};
-         rescue Exception => e
-            puts '${LOGTIME} Error: Restore Backup Rules Failed,【' + e.message + '】';
-         end
-         " 2>/dev/null >> $LOG_FILE
-         start_run_core
-         check_core_status
-         if ! pidof clash >/dev/null; then
-            LOG_OUT "Error: OpenClash Can Not Start, Try Use Raw Config Restart Again..."
-            raw_config_start
-         fi
-      fi
    fi
 }
 
@@ -1313,11 +1064,9 @@ set_tun_tap()
       TUN_RESTART=1
 
       if [ -n "$(pidof clash)" ] && [ -n "$1" ] && [ "$(ip -6 route list |grep utun |wc -l)" -ne 2 ] && [ -n "$(ifconfig utun)" ]; then
-         if [ "$enable_meta_core" = "1" ]; then
-            ip -6 addr add fdfe:dcba:9876::1/126 dev utun >/dev/null 2>&1
-            ip -6 route add fdfe:dcba:9876::/126 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
-            ip -6 route add fe80::/64 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
-         fi
+         ip -6 addr add fdfe:dcba:9876::1/126 dev utun >/dev/null 2>&1
+         ip -6 route add fdfe:dcba:9876::/126 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
+         ip -6 route add fe80::/64 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
          ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
          ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
       fi
@@ -1356,7 +1105,7 @@ set_tun_tap()
          fi
       fi
 
-      if [ -n "$1" ] && [ "$enable_meta_core" = "1" ]; then
+      if [ -n "$1" ]; then
          ip -6 rule del oif utun table 2022 >/dev/null 2>&1
          ip -6 route del default dev utun table 2022 >/dev/null 2>&1
       fi
@@ -1413,11 +1162,6 @@ case $enable_redirect_dns in
    *)
    LOG_OUT "Tip: DNS Hijacking is Disabled..."
 esac
-
-if [ "$ipv6_mode" -eq 2 ] && [ "$enable_meta_core" -ne 1 ]; then
-   LOG_OUT "Warning: Only Meta Core Support IPv6 Tun Mode, Use TProxy Instead..."
-   ipv6_mode=0
-fi
 
 if [ "$ipv6_enable" -eq 1 ]; then
    case $ipv6_mode in
@@ -3252,7 +2996,6 @@ get_config()
    bypass_gateway_compatible=$(uci -q get openclash.config.bypass_gateway_compatible || echo 0)
    core_version=$(uci -q get openclash.config.core_version || echo 0)
    router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
-   enable_meta_core=$(uci -q get openclash.config.enable_meta_core || echo 0)
    enable_meta_sniffer=$(uci -q get openclash.config.enable_meta_sniffer || echo 0)
    enable_meta_sniffer_custom=$(uci -q get openclash.config.enable_meta_sniffer_custom || echo 0)
    geodata_loader=$(uci -q get openclash.config.geodata_loader || echo 0)
@@ -3269,7 +3012,7 @@ get_config()
    proxy_dns_group=$(uci -q get openclash.config.proxy_dns_group || echo "Disable")
    intranet_allowed_wan_name=$(uci -q get openclash.config.intranet_allowed_wan_name || echo "0")
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
-   uci -q set openclash.config.restricted_mode=0 && uci -q commit openclash
+   uci -q commit openclash
 }
 
 start()
@@ -3295,8 +3038,8 @@ start()
    if ! $quick_start; then
       LOG_OUT "Step 3: Modify The Config File..."
       config_check
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$enable_meta_core" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay" "$keep_alive_interval" "$proxy_dns_group"
-      /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port" "$enable_meta_core" "$enable_redirect_dns" "$fakeip_range" "$en_mode"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay" "$keep_alive_interval" "$proxy_dns_group"
+      /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port" "$enable_redirect_dns" "$fakeip_range" "$en_mode"
       /usr/share/openclash/openclash_custom_domain_dns.sh >/dev/null 2>&1
       #Custom overwrite
       if [ -f "/etc/openclash/custom/openclash_custom_overwrite.sh" ]; then
@@ -3311,12 +3054,6 @@ start()
    LOG_OUT "Step 5: Check The Core Status..."
    check_core_status
 
-   #检测proxy_provider配置文件状态
-   LOG_OUT "Step 6: Wait For The File Downloading..."
-   if [ "$enable_meta_core" != "1" ]; then
-      yml_provider_check "$CONFIG_FILE" "proxy-providers" "proxies"
-      yml_provider_check "$CONFIG_FILE" "rule-providers" "payload"
-   fi
    try_restore_start
 
    LOG_OUT "Step 7: Set Firewall Rules..."
@@ -3326,16 +3063,12 @@ start()
 
    LOG_OUT "Step 9: Add Cron Rules, Start Daemons..."
    add_cron
-   if [ "$(uci -q get openclash.config.restricted_mode)" != "1" ]; then
-      if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] || [ "$(uci -q get dhcp.lan.dhcpv6)" == "disabled" ]; then
-         LOG_OUT "OpenClash Start Successful!"
-      elif [ "$ipv6_enable" -eq 0 ]; then
-         LOG_OUT "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPv6's DHCP Server"
-      else
-         LOG_OUT "OpenClash Start Successful!"
-      fi
+   if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] || [ "$(uci -q get dhcp.lan.dhcpv6)" == "disabled" ]; then
+      LOG_OUT "OpenClash Start Successful!"
+   elif [ "$ipv6_enable" -eq 0 ]; then
+      LOG_OUT "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPv6's DHCP Server"
    else
-      LOG_OUT "Warning: OpenClash Start Successful With Raw Config File, Please Note That It's Restricted Mode Now"
+      LOG_OUT "OpenClash Start Successful!"
    fi
    echo "OpenClash Already Start!"
    write_run_quick
