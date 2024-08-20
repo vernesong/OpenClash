@@ -1,25 +1,4 @@
-script:
-##  shortcuts:
-##    Notice: The core timezone is UTC
-##    CST 20:00-24:00 = time.now().hour > 12 and time.now().hour < 16
-##    内核时区为UTC,故以下time.now()函数的取值需要根据本地时区进行转换
-##    北京时间(CST) 20:00-24:00 = time.now().hour > 12 and time.now().hour < 16
-##    quic: network == 'udp' and dst_port == 443 and (geoip(resolve_ip(host)) != 'CN' or geoip(dst_ip) != 'CN')
-##    time-limit: in_cidr(src_ip,'192.168.1.2/32') and time.now().hour < 20 or time.now().hour > 21
-##    time-limit: src_ip == '192.168.1.2' and time.now().hour < 20 or time.now().hour > 21
-
-##  code: |
-##    def main(ctx, metadata):
-##        directkeywordlist = ["baidu"]
-##        for directkeyword in directkeywordlist:
-##          if directkeyword in metadata["host"]:
-##            ctx.log('[Script] matched keyword %s use direct' % directkeyword)
-##            return "DIRECT"
-
 rules:
-##- SCRIPT,quic,REJECT #shortcuts rule
-##- SCRIPT,time-limit,REJECT #shortcuts rule
-
 ##- PROCESS-NAME,curl,DIRECT #匹配路由自身进程(curl直连)
 ##- DOMAIN-SUFFIX,google.com,Proxy #匹配域名后缀(交由Proxy代理服务器组)
 ##- DOMAIN-KEYWORD,google,Proxy #匹配域名关键字(交由Proxy代理服务器组)
