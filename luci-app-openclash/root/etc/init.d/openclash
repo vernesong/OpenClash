@@ -3137,9 +3137,12 @@ revert_firewall()
    ip route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 
+   ip -6 addr del fdfe:dcba:9876::1/126 dev utun >/dev/null 2>&1
+   ip -6 route del fdfe:dcba:9876::/126 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
+   ip -6 route del fe80::/64 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
    ip -6 route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-
+   
    if [ -n "$FW4" ]; then
       for nft in "input" "forward" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
          local handles=$(nft -a list chain inet fw4 ${nft} |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$2}')
