@@ -276,7 +276,7 @@ yml_other_set()
    config_foreach yml_rule_group_get "rule_provider_config" "$3"
    config_foreach yml_rule_group_get "rule_providers" "$3"
    config_foreach yml_rule_group_get "game_config" "$3"
-   local fake_ip="$(echo "${12}" |awk -F '/' '{print $1}')"
+   local fake_ip="$(echo "${11}" |awk -F '/' '{print $1}')"
    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
       Value = YAML.load_file('$3');
@@ -363,19 +363,19 @@ yml_other_set()
    
    begin
    Thread.new{
-      if $6 == 0 and ${11} != 2 and '${13}' == 'fake-ip' then
+      if $6 == 0 and ${10} != 2 and '${12}' == 'fake-ip' then
          if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
             if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'${fake_ip}')/).empty? then
-               Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,${12},DIRECT');
+               Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,${11},DIRECT');
             end
             if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'$7')/).empty? and not '$7'.empty? then
                Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,$7/32,DIRECT');
             end;
          else
-            Value['rules']=['SRC-IP-CIDR,${12},DIRECT','SRC-IP-CIDR,$7/32,DIRECT'];
+            Value['rules']=['SRC-IP-CIDR,${11},DIRECT','SRC-IP-CIDR,$7/32,DIRECT'];
          end;
       elsif Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-         Value['rules'].delete('SRC-IP-CIDR,${12},DIRECT');
+         Value['rules'].delete('SRC-IP-CIDR,${11},DIRECT');
          Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT');
       end;
    }.join;
@@ -487,56 +487,6 @@ yml_other_set()
    begin
    Thread.new{
    if $2 == 1 then
-   #script
-      if ${10} != 1 then
-         for i in ['/etc/openclash/custom/openclash_custom_rules.list','/etc/openclash/custom/openclash_custom_rules_2.list'] do
-            if File::exist?(i) then
-               Value_1 = YAML.load_file(i);
-               if Value_1 != false then
-                  if Value_1.class.to_s == 'Hash' then
-                     if Value_1['script'] and Value_1['script'].class.to_s != 'Array' then
-                        if Value.key?('script') and not Value_1['script'].to_a.empty? then
-                           if Value['script'].key?('code') and Value_1['script'].key?('code') then
-                              if not Value['script']['code'].include?('def main(ctx, metadata):') then
-                                 Value['script']['code'] = Value_1['script']['code'];
-                              else
-                                 if i == '/etc/openclash/custom/openclash_custom_rules.list' then
-                                    if not Value_1['script']['code'].include?('def main(ctx, metadata):') then
-                                       Value['script']['code'].gsub!('def main(ctx, metadata):', \"def main(ctx, metadata):\n\" + Value_1['script']['code']);
-                                    else
-                                       Value['script']['code'].gsub!('def main(ctx, metadata):', Value_1['script']['code']);
-                                    end;
-                                 else
-                                    insert_index = Value['script']['code'].index(/ctx.geoip/);
-                                    insert_index ||= Value['script']['code'].rindex(/return/);
-                                    insert_index ||= -1;
-                                    if insert_index != -1 then
-                                       insert_index  = Value['script']['code'].rindex(\"\n\", insert_index) + 1;
-                                    end
-                                    if not Value_1['script']['code'].include?('def main(ctx, metadata):') then
-                                       Value['script']['code'].insert(insert_index, Value_1['script']['code']);
-                                    else
-                                       Value['script']['code'].insert(insert_index, Value_1['script']['code'].gsub('def main(ctx, metadata):', ''));
-                                    end;
-                                 end;
-                              end;
-                           elsif Value_1['script'].key?('code') then
-                              Value['script']['code'] = Value_1['script']['code'];
-                           end;
-                           if Value['script'].key?('shortcuts') and Value_1['script'].key?('shortcuts') and not Value_1['script']['shortcuts'].to_a.empty? then
-                              Value['script']['shortcuts'].merge!(Value_1['script']['shortcuts']).uniq;
-                           elsif Value_1['script'].key?('shortcuts') and not Value_1['script']['shortcuts'].to_a.empty? then
-                              Value['script']['shortcuts'] = Value_1['script']['shortcuts'];
-                           end;
-                        else
-                           Value['script'] = Value_1['script'];
-                        end;
-                     end;
-                  end;
-               end;
-            end;
-         end;
-      end;
    #rules
       if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
          if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
@@ -551,12 +501,6 @@ yml_other_set()
                end;
                if defined? Value_2 then
                   Value_2.each{|x|
-                     if ${10} != 1 then
-                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^IN-USER,|^IN-NAME,|^NETWORK,|^UID,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
-                           puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
-                           next
-                        end;
-                     end;
                      Value['rules'].insert(0,x);
                   };
                   Value['rules'] = Value['rules'].uniq;
@@ -585,12 +529,6 @@ yml_other_set()
                      Value_4 = Value_4.reverse!;
                   end;
                   Value_4.each{|x|
-                     if ${10} != 1 then
-                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
-                           puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
-                           next
-                        end;
-                     end;
                      Value['rules'].insert(ruby_add_index,x);
                   };
                   Value['rules'] = Value['rules'].uniq;
@@ -602,27 +540,11 @@ yml_other_set()
             Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
             if Value_1 != false then
                if Value_1.class.to_s == 'Hash' then
-                 if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
-                     Value_1['rules'].each{|x|
-                     if ${10} != 1 then
-                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
-                           puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
-                           Value_1.delete(x);
-                        end;
-                     end;
-                     };
-                    Value['rules'] = Value_1['rules'];
-                    Value['rules'] = Value['rules'].uniq;
-                 end;
+                  if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
+                     Value['rules'] = Value_1['rules'];
+                     Value['rules'] = Value['rules'].uniq;
+                  end;
                elsif Value_1.class.to_s == 'Array' then
-                  Value_1.each{|x|
-                     if ${10} != 1 then
-                        if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
-                           puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
-                           Value_1.delete(x);
-                        end;
-                     end;
-                  };
                   Value['rules'] = Value_1;
                   Value['rules'] = Value['rules'].uniq;
                end;
@@ -634,26 +556,10 @@ yml_other_set()
                if Value['rules'].to_a.empty? then
                   if Value_2.class.to_s == 'Hash' then
                      if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
-                        Value_2['rules'].each{|x|
-                           if ${10} != 1 then
-                              if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
-                                 puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
-                                 Value_2.delete(x);
-                              end;
-                           end;
-                        };
                         Value['rules'] = Value_2['rules'];
                         Value['rules'] = Value['rules'].uniq;
                      end;
                   elsif Value_2.class.to_s == 'Array' then
-                     Value_2.each{|x|
-                        if ${10} != 1 then
-                           if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
-                              puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
-                              Value_2.delete(x);
-                           end;
-                        end;
-                     };
                      Value['rules'] = Value_2;
                      Value['rules'] = Value['rules'].uniq;
                   end;
@@ -677,12 +583,6 @@ yml_other_set()
                         Value_3 = Value_3.reverse!;
                      end
                      Value_3.each{|x|
-                        if ${10} != 1 then
-                           if x =~ /(^GEOSITE,|^AND,|^OR,|^NOT,|^IP-SUFFIX,|^SRC-IP-SUFFIX,|^IN-TYPE,|^SUB-RULE,|PORT,[0-9]+\/+|PORT,[0-9]+-+)/ or x.split(',')[-1] == 'tcp' or x.split(',')[-1] == 'udp' then
-                              puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【' + x + '】'
-                              next
-                           end;
-                        end;
                         Value['rules'].insert(ruby_add_index,x);
                      };
                      Value['rules'] = Value['rules'].uniq;
@@ -698,11 +598,7 @@ yml_other_set()
             if Value_1 != false then
                if Value_1.class.to_s == 'Hash' then
                   if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
-                     if ${10} == 1 then
-                        Value['sub-rules'] = Value['sub-rules'].merge!(Value_1['sub-rules']);
-                     else
-                        puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【sub-rules】'
-                     end;
+                     Value['sub-rules'] = Value['sub-rules'].merge!(Value_1['sub-rules']);
                   end;
                end;
             end;
@@ -712,11 +608,7 @@ yml_other_set()
             if Value_2 != false then
                if Value_2.class.to_s == 'Hash' then
                   if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
-                     if ${10} == 1 then
-                        Value['sub-rules'] = Value['sub-rules'].merge!(Value_2['sub-rules']);
-                     else
-                        puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【sub-rules】'
-                     end;
+                     Value['sub-rules'] = Value['sub-rules'].merge!(Value_2['sub-rules']);
                   end;
                end;
             end;
@@ -727,11 +619,7 @@ yml_other_set()
             if Value_1 != false then
                if Value_1.class.to_s == 'Hash' then
                   if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
-                     if ${10} == 1 then
-                        Value['sub-rules'] = Value_1['sub-rules'];
-                     else
-                        puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【sub-rules】'
-                     end;
+                     Value['sub-rules'] = Value_1['sub-rules'];
                   end;
                end;
             end;
@@ -741,11 +629,7 @@ yml_other_set()
             if Value_2 != false then
                if Value_2.class.to_s == 'Hash' then
                   if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
-                     if ${10} == 1 then 
-                        Value['sub-rules'] = Value_2['sub-rules'];
-                     else
-                        puts '${LOGTIME} Warning: Skip the Custom Rule that Core not Support【sub-rules】'
-                     end;
+                     Value['sub-rules'] = Value_2['sub-rules'];
                   end;
                end;
             end;
@@ -762,7 +646,7 @@ yml_other_set()
    Thread.new{
       if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
          if Value['rules'].to_a.grep(/(?=.*'${fake_ip}')(?=.*REJECT)/).empty? then
-            Value['rules']=Value['rules'].to_a.insert(0,'IP-CIDR,${12},REJECT,no-resolve');
+            Value['rules']=Value['rules'].to_a.insert(0,'IP-CIDR,${11},REJECT,no-resolve');
          end;
          if Value['rules'].to_a.grep(/(?=.*DST-PORT,'$8',REJECT)/).empty? then
             Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$8,REJECT');
@@ -771,7 +655,7 @@ yml_other_set()
             Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$9,REJECT');
          end;
       else
-         Value['rules']=['IP-CIDR,${12},REJECT,no-resolve','DST-PORT,$8,REJECT','DST-PORT,$9,REJECT'];
+         Value['rules']=['IP-CIDR,${11},REJECT,no-resolve','DST-PORT,$8,REJECT','DST-PORT,$9,REJECT'];
       end;
    }.join;
    rescue Exception => e
@@ -944,7 +828,7 @@ if [ "$1" != "0" ]; then
    config_load "openclash"
    config_foreach yml_other_rules_get "other_rules" "$5"
    if [ -z "$rule_name" ]; then
-      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
       exit 0
    #判断策略组是否存在
    elif [ "$rule_name" = "lhie1" ]; then
@@ -979,13 +863,13 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
          exit 0
        fi
    fi
    if [ -z "$Proxy" ]; then
       LOG_OUT "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
-      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
       exit 0
    else
       if [ "$rule_name" = "lhie1" ]; then
@@ -1081,4 +965,4 @@ if [ "$1" != "0" ]; then
    fi
 fi
 
-yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
+yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"

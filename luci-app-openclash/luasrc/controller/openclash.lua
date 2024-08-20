@@ -112,12 +112,8 @@ end
 
 local core_path_mode = uci:get("openclash", "config", "small_flash_memory")
 if core_path_mode ~= "1" then
-	dev_core_path="/etc/openclash/core/clash"
-	tun_core_path="/etc/openclash/core/clash_tun"
 	meta_core_path="/etc/openclash/core/clash_meta"
 else
-	dev_core_path="/tmp/etc/openclash/core/clash"
-	tun_core_path="/tmp/etc/openclash/core/clash_tun"
 	meta_core_path="/tmp/etc/openclash/core/clash_meta"
 end
 
@@ -127,10 +123,6 @@ end
 
 local function is_web()
 	return luci.sys.call("pidof clash >/dev/null") == 0
-end
-
-local function restricted_mode()
-	return uci:get("openclash", "config", "restricted_mode")
 end
 
 local function is_watchdog()
@@ -159,14 +151,6 @@ end
 
 local function lhie1()
 	return os.date("%Y-%m-%d %H:%M:%S",fs.mtime("/usr/share/openclash/res/lhie1.yaml"))
-end
-
-local function ConnersHua()
-	return os.date("%Y-%m-%d %H:%M:%S",fs.mtime("/usr/share/openclash/res/ConnersHua.yaml"))
-end
-
-local function ConnersHua_return()
-	return os.date("%Y-%m-%d %H:%M:%S",fs.mtime("/usr/share/openclash/res/ConnersHua_return.yaml"))
 end
 
 local function chnroute()
@@ -241,26 +225,10 @@ local function coremodel()
 end
 
 local function check_core()
-	if not nixio.fs.access(dev_core_path) and not nixio.fs.access(tun_core_path) and not nixio.fs.access(meta_core_path) then
+	if not nixio.fs.access(meta_core_path) then
 		return "0"
 	else
 		return "1"
-	end
-end
-
-local function corecv()
-	if not nixio.fs.access(dev_core_path) then
-		return "0"
-	else
-		return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $2}'", dev_core_path))
-	end
-end
-
-local function coretuncv()
-	if not nixio.fs.access(tun_core_path) then
-		return "0"
-	else
-		return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $2}'", tun_core_path))
 	end
 end
 
@@ -274,10 +242,8 @@ end
 
 local function corelv()
 	luci.sys.call("bash /usr/share/openclash/clash_version.sh")
-	local core_lv = luci.sys.exec("sed -n 1p /tmp/clash_last_version 2>/dev/null")
-	local core_tun_lv = luci.sys.exec("sed -n 2p /tmp/clash_last_version 2>/dev/null")
 	local core_meta_lv = luci.sys.exec("sed -n 3p /tmp/clash_last_version 2>/dev/null")
-	return core_lv .. "," .. core_tun_lv .. "," .. core_meta_lv
+	return core_meta_lv
 end
 
 local function opcv()
@@ -357,13 +323,9 @@ function core_download()
 	local cdn_url = luci.http.formvalue("url")
 	if cdn_url then
 		luci.sys.call(string.format("rm -rf /tmp/clash_last_version 2>/dev/null && bash /usr/share/openclash/clash_version.sh '%s' >/dev/null 2>&1", cdn_url))
-		luci.sys.call(string.format("bash /usr/share/openclash/openclash_core.sh 'Dev' '%s' >/dev/null 2>&1 &", cdn_url))
-		luci.sys.call(string.format("bash /usr/share/openclash/openclash_core.sh 'TUN' '%s' >/dev/null 2>&1 &", cdn_url))
 		luci.sys.call(string.format("bash /usr/share/openclash/openclash_core.sh 'Meta' '%s' >/dev/null 2>&1 &", cdn_url))
 	else
 		luci.sys.call("rm -rf /tmp/clash_last_version 2>/dev/null && bash /usr/share/openclash/clash_version.sh >/dev/null 2>&1")
-		luci.sys.call("bash /usr/share/openclash/openclash_core.sh 'Dev' >/dev/null 2>&1 &")
-		luci.sys.call("bash /usr/share/openclash/openclash_core.sh 'TUN' >/dev/null 2>&1 &")
 		luci.sys.call("bash /usr/share/openclash/openclash_core.sh 'Meta' >/dev/null 2>&1 &")
 	end
 
@@ -754,7 +716,7 @@ function action_rule_mode()
 		local daip = daip()
 		local dase = dase() or ""
 		local cn_port = cn_port()
-		core_type = uci:get("openclash", "config", "core_type") or "Dev"
+		core_type = uci:get("openclash", "config", "core_type") or "Meta"
 		if not daip or not cn_port then return end
 		info = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/configs', dase, daip, cn_port)))
 		if info then
@@ -776,9 +738,7 @@ function action_switch_rule_mode()
 		local daip = daip()
 		local dase = dase() or ""
 		local cn_port = cn_port()
-		local core_type = uci:get("openclash", "config", "core_type") or "Dev"
 		mode = luci.http.formvalue("rule_mode")
-		if mode == script and core_type ~= "TUN" then luci.http.status(500, "Switch Faild") return end
 		if not daip or not cn_port then luci.http.status(500, "Switch Faild") return end
 		info = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPATCH http://"%s":"%s"/configs -d \'{\"mode\": \"%s\"}\'', dase, daip, cn_port, mode))
 		if info ~= "" then
@@ -1084,8 +1044,7 @@ function action_status()
 		db_forward_ssl = db_foward_ssl(),
 		web = is_web(),
 		cn_port = cn_port(),
-		restricted_mode = restricted_mode(),
-		core_type = uci:get("openclash", "config", "core_type") or "Dev";
+		core_type = uci:get("openclash", "config", "core_type") or "Meta";
 	})
 end
 
@@ -1093,8 +1052,6 @@ function action_state()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 		lhie1 = lhie1(),
-		ConnersHua = ConnersHua(),
-		ConnersHua_return = ConnersHua_return(),
 		ipdb = ipdb(),
 		geosite = geosite(),
 		historychecktime = historychecktime(),
@@ -1120,8 +1077,6 @@ end
 function action_update()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-			corecv = corecv(),
-			coretuncv = coretuncv(),
 			coremetacv = coremetacv(),
 			coremodel = coremodel(),
 			opcv = opcv(),
