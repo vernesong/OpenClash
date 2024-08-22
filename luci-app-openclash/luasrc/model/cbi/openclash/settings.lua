@@ -240,7 +240,7 @@ o.description = translate("Only Supported for Rule Mode")..", "..font_red..bold_
 o.default = 1
 
 o = s:taboption("traffic_control", Flag, "disable_udp_quic", font_red..bold_on..translate("Disable QUIC")..bold_off..font_off)
-o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic(Not Include bypassed regions_Default:CN) On Port 443")..bold_off..font_off
+o.description = translate("Prevent YouTube and Others To Use QUIC Transmission")..", "..font_red..bold_on..translate("REJECT UDP Traffic(Not Include bypassed regions via China IP Route setting) On Port 443")..bold_off..font_off
 o.default = 1
 
 o = s:taboption("traffic_control", Flag, "skip_proxy_address", translate("Skip Proxy Address"))
