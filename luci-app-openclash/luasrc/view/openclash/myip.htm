@@ -181,6 +181,15 @@
 </fieldset>
 </body>
     <script>
+        function addTitleOnOverflow() {
+            document.querySelectorAll('.ip-result, .ip-geo').forEach(function (span) {
+                if (span.scrollWidth > span.clientWidth && localStorage.getItem('privacy_my_ip') !== 'true') {
+                    span.setAttribute('title', span.textContent);
+                } else {
+                    span.removeAttribute('title');
+                }
+            });
+        }
         function ip_skk()
        {
         url2='https://ip.skk.moe';
@@ -248,6 +257,7 @@
                             $$.getElementById('ip-ipipnet').innerHTML = `${data[0]}`;
                         };
                         $$.getElementById('ip-ipipnet-geo').innerHTML = `${data[1]}`;
+                        addTitleOnOverflow();
                     });
             },
             getIPApiIP: () => {
@@ -257,6 +267,7 @@
                             $$.getElementById('ip-ipapi').innerHTML = resp.data.ip;
                         };
                         IP.parseIPIpip(resp.data.ip, 'ip-ipapi-geo');
+                        addTitleOnOverflow();
                     })
             },
             //getSpeedIP: () => {
@@ -277,6 +288,7 @@
                         };
                         $$.getElementById('ip-upaiyun-geo').innerHTML = resp.data.remote_addr_location.country + resp.data.remote_addr_location.province + resp.data.remote_addr_location.city + ' '  + resp.data.remote_addr_location.isp;
                         //IP.parseIPIpip(resp.data.remote_addr, 'ip-upaiyun-geo');
+                        addTitleOnOverflow();
                     })
             },
             getIpifyIP: () => {
@@ -289,6 +301,7 @@
                 })
                 .then(ip => {
                 	IP.parseIPIpip(ip, 'ip-ipify-geo');
+                    addTitleOnOverflow();
                 })
             }
         };
@@ -350,6 +363,7 @@
                 $$.getElementById('ip-pcol').innerHTML = data.ip;
             };
             $$.getElementById('ip-pcol-geo').innerHTML = `${data.pro}${data.city}${data.region} ${pcisp[1]}`;
+            addTitleOnOverflow();
         };
 
         function getIpsbIP(data){
@@ -357,6 +371,7 @@
                 $$.getElementById('ip-ipsb').innerHTML = data.ip;
             };
             IP.parseIPIpip(data.ip, 'ip-ipsb-geo');
+            addTitleOnOverflow();
         };
         
         //function ipCallback(data){
@@ -411,6 +426,7 @@
                 $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
+                addTitleOnOverflow();
             }
             else {
                 refresh_http = setInterval("HTTP.runcheck()", Math.floor(Math.random()*(10-5+1)+5)*1000);
@@ -435,6 +451,7 @@
                 $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
+                addTitleOnOverflow();
             }
             else {
                 imgobj.src='/luci-static/resources/openclash/img/eye-light.svg';
