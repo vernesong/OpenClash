@@ -50,12 +50,22 @@ yml_set_custom_rule_provider()
       return
    fi
 
-   if [ "$path" != "./rule_provider/$name.yaml" ] && [ "$type" = "http" ]; then
-      path="./rule_provider/$name.yaml"
+   if [ -z "$format" ];
+      format="yaml"
+   fi
+
+   if [ -z "$(echo "$path" |grep "./rule_provider/" 2>/dev/null)" ] && [ "$type" = "http" ]; then
+      if [ "$format" == "text" ]; then
+         path="./rule_provider/$name"
+      elif [ "$format" == "text" ]; then
+         path="./rule_provider/$name.mrs"
+      else
+         path="./rule_provider/$name.yaml"
+      fi
    elif [ -z "$path" ]; then
       return
    fi
-  
+
    if [ -n "$(grep "$path" "$RULE_PROVIDER_FILE" 2>/dev/null)" ]; then
       return
    fi
