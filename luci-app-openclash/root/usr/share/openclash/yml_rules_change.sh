@@ -57,7 +57,7 @@ yml_set_custom_rule_provider()
    if [ -z "$(echo "$path" |grep "./rule_provider/" 2>/dev/null)" ] && [ "$type" = "http" ]; then
       if [ "$format" == "text" ]; then
          path="./rule_provider/$name"
-      elif [ "$format" == "text" ]; then
+      elif [ "$format" == "mrs" ]; then
          path="./rule_provider/$name.mrs"
       else
          path="./rule_provider/$name.yaml"
