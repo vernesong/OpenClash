@@ -171,7 +171,7 @@ msgid "Bypass Mainland China"
 msgstr "绕过中国大陆"
 
 msgid "Bypass Overseas"
-msgstr "绕过海外(回国模式)"
+msgstr "海外用户回国模式"
 
 msgid "Bypass Specified Regions Network Flows, Improve Performance"
 msgstr "启用后指定区域流量将不再经过内核，提升系统性能"
@@ -1047,8 +1047,8 @@ msgstr "*禁用 QUIC"
 msgid "Prevent YouTube and Others To Use QUIC Transmission"
 msgstr "防止 YouTube 等使用 QUIC 导致速度不佳"
 
-msgid "REJECT UDP Traffic(Not Include bypassed regions_Default:CN) On Port 443"
-msgstr "禁用 443 端口 UDP 流量（不包括被绕过的指定区域_默认国内）"
+msgid "REJECT UDP Traffic(Not Include bypassed regions via China IP Route setting) On Port 443"
+msgstr "禁用 443 端口 UDP 流量（绕过指定区域IP：启用或绕过中国大陆时禁用海外方向QUIC；回国模式禁用大陆方向QUIC）"
 
 msgid "Operation Mode"
 msgstr "模式设置"
