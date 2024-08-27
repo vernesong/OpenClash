@@ -1186,6 +1186,7 @@ if [ -n "$FW4" ]; then
       while ( [ -z "$(nft list sets |grep "set china_ip_route {")" ] && [ "$CHNROUTE_WAIT" -le 3 ] )
       do
          nft -f '/etc/openclash/china_ip_route.ipset'
+         let CHNROUTE_WAIT++
       done
 
       if [ "$enable_redirect_dns" != "2" ]; then
@@ -1738,6 +1739,7 @@ if [ -n "$FW4" ]; then
          while ( [ -z "$(nft list sets |grep "set china_ip6_route {")" ] && [ "$CHNROUTE_WAIT" -le 3 ] )
          do
             nft -f '/etc/openclash/china_ip6_route.ipset'
+            let CHNROUTE_WAIT++
          done
 
          if [ "$enable_redirect_dns" != "2" ]; then
