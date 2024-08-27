@@ -1829,36 +1829,37 @@ if [ -n "$FW4" ]; then
          fi
          nft add rule inet fw4 openclash_v6 meta nfproto {ipv6} tcp dport { 0-65535 } counter redirect to "$proxy_port"
          nft 'add rule inet fw4 dstnat meta nfproto {ipv6} tcp dport { 0-65535 } counter jump openclash_v6'
+      fi
 
-         #tproxy not support output chain
+      #tproxy not support output chain
       if [ "$ipv6_mode" -eq 0 ] || [ "$ipv6_mode" -eq 1 ]; then
-            if [ "$router_self_proxy" = "1" ]; then
-               nft 'add chain inet fw4 openclash_output_v6'
-               nft 'flush chain inet fw4 openclash_output_v6'
-               nft 'add rule inet fw4 openclash_output_v6 ip6 daddr @localnetwork6 counter return'
-               nft 'add rule inet fw4 openclash_output_v6 ip6 saddr @localnetwork6 meta nfproto {ipv6} sport @lan_ac_black_ports counter return'
-               nft 'add rule inet fw4 openclash_output_v6 skuid != 65534 ip6 daddr @wan_ac_black_ipv6s counter return'
-               if [ "$en_mode" = "redir-host" ]; then
-                  nft 'add rule inet fw4 openclash_output_v6 meta nfproto {ipv6} th dport != @common_ports skuid != 65534 counter return'
-               fi
-
-               if [ "$china_ip6_route" != "0" ]; then
-                  if [ "$china_ip6_route" = "1" ]; then
-                     rule="ip6 daddr @china_ip6_route"
-                  elif [ "$china_ip6_route" = "2" ]; then
-                     rule="ip6 daddr != @china_ip6_route"
-                  fi
-                  [ "$enable_redirect_dns" != "2" ] && rule="$rule ip6 daddr != @china_ip6_route_pass"
-                  nft "add rule inet fw4 openclash_output_v6 skuid != 65534 $rule counter return"
-               fi
-               
-               nft add rule inet fw4 openclash_output_v6 meta nfproto {ipv6} skuid != 65534 tcp dport { 0-65535 } counter redirect to "$proxy_port"
-               nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
-               nft 'add rule inet fw4 nat_output meta nfproto {ipv6} counter jump openclash_output_v6'
+         if [ "$router_self_proxy" = "1" ]; then
+            nft 'add chain inet fw4 openclash_output_v6'
+            nft 'flush chain inet fw4 openclash_output_v6'
+            nft 'add rule inet fw4 openclash_output_v6 ip6 daddr @localnetwork6 counter return'
+            nft 'add rule inet fw4 openclash_output_v6 ip6 saddr @localnetwork6 meta nfproto {ipv6} sport @lan_ac_black_ports counter return'
+            nft 'add rule inet fw4 openclash_output_v6 skuid != 65534 ip6 daddr @wan_ac_black_ipv6s counter return'
+            if [ "$en_mode" = "redir-host" ]; then
+               nft 'add rule inet fw4 openclash_output_v6 meta nfproto {ipv6} th dport != @common_ports skuid != 65534 counter return'
             fi
+
+            if [ "$china_ip6_route" != "0" ]; then
+               if [ "$china_ip6_route" = "1" ]; then
+                  rule="ip6 daddr @china_ip6_route"
+               elif [ "$china_ip6_route" = "2" ]; then
+                  rule="ip6 daddr != @china_ip6_route"
+               fi
+               [ "$enable_redirect_dns" != "2" ] && rule="$rule ip6 daddr != @china_ip6_route_pass"
+               nft "add rule inet fw4 openclash_output_v6 skuid != 65534 $rule counter return"
+            fi
+            
+            nft add rule inet fw4 openclash_output_v6 meta nfproto {ipv6} skuid != 65534 tcp dport { 0-65535 } counter redirect to "$proxy_port"
+            nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
+            nft 'add rule inet fw4 nat_output meta nfproto {ipv6} counter jump openclash_output_v6'
          fi
       fi
 
+      #TProxy & TUN & Redirect udp
       if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -eq 0 ] || [ "$ipv6_mode" -eq 2 ]; then
          nft 'add chain inet fw4 openclash_mangle_v6'
          nft 'flush chain inet fw4 openclash_mangle_v6'
@@ -1892,7 +1893,6 @@ if [ -n "$FW4" ]; then
          fi
       fi
 
-      #TProxy & TUN
       if [ "$ipv6_mode" -ne 1 ]; then
          if [ "$ipv6_mode" -eq 0 ]; then
             nft add rule inet fw4 openclash_mangle_v6 meta nfproto {ipv6} tcp dport { 0-65535 } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash TCP Tproxy\"
@@ -2654,6 +2654,7 @@ if [ -z "$FW4" ]; then
          ip6tables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
          ip6tables -t nat -A PREROUTING -p tcp -j openclash
       fi
+
       #tproxy not support output chain
       if [ "$ipv6_mode" -eq 0 ] || [ "$ipv6_mode" -eq 1 ]; then
          if [ "$router_self_proxy" = "1" ]; then
@@ -2679,6 +2680,7 @@ if [ -z "$FW4" ]; then
          fi
       fi
 
+      #TProxy & TUN
       if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -eq 0 ] || [ "$ipv6_mode" -eq 2 ]; then
          ip6tables -t mangle -N openclash
          ip6tables -t mangle -F openclash
