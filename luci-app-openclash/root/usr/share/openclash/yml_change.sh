@@ -12,7 +12,9 @@ core_type=$(uci -q get openclash.config.core_type)
 enable_custom_dns=$(uci -q get openclash.config.enable_custom_dns)
 append_wan_dns=$(uci -q get openclash.config.append_wan_dns || echo 0)
 custom_fallback_filter=$(uci -q get openclash.config.custom_fallback_filter || echo 0)
-china_ip_route=$(uci -q get openclash.config.china_ip_route || echo 0)
+china_ip_route=$(uci -q get openclash.config.china_ip_route); [[ "$china_ip_route" != "0" && "$china_ip_route" != "1" && "$china_ip_route" != "2" ]] && china_ip_route=0
+china_ip6_route=$(uci -q get openclash.config.china_ip6_route); [[ "$china_ip6_route" != "0" && "$china_ip6_route" != "1" && "$china_ip6_route" != "2" ]] && china_ip6_route=0
+enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
 proxy_dns_group=${35}
 
 lan_block_google_dns=$(uci -q get openclash.config.lan_block_google_dns_ips || uci -q get openclash.config.lan_block_google_dns_macs || echo 0)
@@ -60,11 +62,20 @@ fi
 
 uci commit openclash
 
-if [ "$1" = "fake-ip" ] && [ "$china_ip_route" != "0" ]; then
-   for i in `awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list`
-   do
-      echo "$i" >> /tmp/openclash_fake_filter_include
-   done 2>/dev/null
+#Use filter to generate cn domain router pass list
+if [ "$1" = "fake-ip" ] && [ "$enable_redirect_dns" != "2" ]; then
+   if [ "$china_ip_route" != "0" ]; then
+      for i in `awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list`
+      do
+         echo "$i" >> /tmp/openclash_fake_filter_include
+      done 2>/dev/null
+   fi
+   if [ "$china_ip6_route" != "0" ]; then
+      for i in `awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list`
+      do
+         echo "$i" >> /tmp/openclash_fake_filter_include
+      done 2>/dev/null
+   fi
 fi
 
 #获取认证信息
@@ -707,6 +718,15 @@ Thread.new{
             Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
          else
             Value['dns'].merge!({'fake-ip-filter'=>['+.dns.google']});
+         end;
+      end;
+      if '$china_ip_route' != '0' then
+         if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+            Value['dns']['fake-ip-filter'].insert(-1,'geosite:category-games@cn');
+            Value['dns']['fake-ip-filter'].insert(-1,'geosite:cn');
+            Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
+         else
+            Value['dns'].merge!({'fake-ip-filter'=>['geosite:category-games@cn,geosite:cn']});
          end;
       end;
    end;
