@@ -325,45 +325,6 @@ function o.write(self, section, value)
 end
 
 --Stream Enhance
-se_dns_ip = s:taboption("stream_enhance", DynamicList, "lan_block_google_dns_ips", translate("LAN Block Google DNS IP List"))
-se_dns_ip.datatype = "ipmask"
-se_dns_ip.rmempty  = true
-
-se_dns_mac = s:taboption("stream_enhance", DynamicList, "lan_block_google_dns_macs", translate("LAN Block Google DNS Mac List"))
-se_dns_mac.datatype = "list(macaddr)"
-se_dns_mac.rmempty  = true
-
-luci.ip.neighbors({ family = 4 }, function(n)
-	if n.mac and n.dest then
-		se_dns_ip:value(n.dest:string())
-		se_dns_mac:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
-	end
-end)
-
-if string.len(SYS.exec("/usr/share/openclash/openclash_get_network.lua 'gateway6'")) ~= 0 then
-luci.ip.neighbors({ family = 6 }, function(n)
-	if n.mac and n.dest then
-		se_dns_ip:value(n.dest:string())
-		se_dns_mac:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
-	end
-end)
-end
-
-o = s:taboption("stream_enhance", Flag, "stream_domains_prefetch", translate("Prefetch Netflix, Disney Plus Domains"))
-o.description = translate("Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure, Recommend Use meta Sniffer Function")
-o.default = 0
-o:depends("router_self_proxy", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_domains_prefetch_interval", translate("Domains Prefetch Interval(min)"))
-o.default = "1440"
-o.datatype = "uinteger"
-o.description = translate("Will Run Once Immediately After Started, The Interval Does Not Need To Be Too Short (Take Effect Immediately After Commit)")
-o:depends("stream_domains_prefetch", "1")
-
-o = s:taboption("stream_enhance", DummyValue, "stream_domains_update", translate("Update Preset Domains List"))
-o:depends("stream_domains_prefetch", "1")
-o.template = "openclash/download_stream_domains"
-
 o = s:taboption("stream_enhance", Flag, "stream_auto_select", font_red..bold_on..translate("Auto Select Unlock Proxy")..bold_off..font_off)
 o.description = translate("Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc")
 o.default = 0

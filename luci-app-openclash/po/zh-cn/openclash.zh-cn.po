@@ -2430,62 +2430,11 @@ msgstr "被修改，暂停快速启动..."
 msgid "Click to Update"
 msgstr "点击更新规则"
 
-msgid "Prefetch Netflix, Disney Plus Domains"
-msgstr "实验性：预解析 Netflix、Disney Plus 域名"
-
-msgid "Prevent Some Devices From Directly Using IP Access To Cause Unlocking Failure, Recommend Use meta Sniffer Function"
-msgstr "防止部分设备直接使用IP访问导致DNS解锁失败，建议换用 meta 内核的探测功能"
-
-msgid "Update Preset Domains List"
-msgstr "更新预置域名列表"
-
-msgid "Domains Prefetch Interval(min)"
-msgstr "域名预解析间隔（分钟）"
-
-msgid "Tip: Start Prefetch Netflix Domains..."
-msgstr "提示：开始预解析 Netflix 域名..."
-
-msgid "Tip: Netflix Domains Prefetch Finished!"
-msgstr "提示：Netflix 域名预解析完成!"
-
-msgid "Tip: Start Prefetch Disney Plus Domains..."
-msgstr "提示：开始预解析 Disney Plus 域名..."
-
-msgid "Tip: Disney Plus Domains Prefetch Finished!"
-msgstr "提示：Disney Plus 域名预解析完成!"
-
 msgid "Persistence Fake-IP"
 msgstr "Fake-IP 持久化"
 
 msgid "Cache Fake-IP DNS Resolution Records To File, Improve The Response Speed After Startup"
 msgstr "存储 Fake-IP 的 DNS 解析记录到文件，提升内核启动后的反应速度和稳定性"
-
-msgid "About to open fast.com"
-msgstr "确认后将打开 fast.com 进行测速"
-
-msgid "Please make sure the OpenClash works normally"
-msgstr "请确保 OpenClash 已在正常运行"
-
-msgid "The domains catch time is one minute"
-msgstr "域名抓取功能运行时间为一分钟"
-
-msgid "You can also try to catch while unlocking device playing"
-msgstr "您也可以在正常解锁的设备播放时尝试抓取"
-
-msgid "The catch result will be automatically saved"
-msgstr "抓取结果将自动保存"
-
-msgid "Click to Catch"
-msgstr "手动抓取域名"
-
-msgid "Catch Netflix"
-msgstr "手动抓取 Netflix 域名"
-
-msgid "No domain names were catched..."
-msgstr "未抓取到任何域名..."
-
-msgid "Will Run Once Immediately After Started, The Interval Does Not Need To Be Too Short (Take Effect Immediately After Commit)"
-msgstr "启动后会立即执行一次，间隔无需太短（修改后保存配置即可生效）"
 
 msgid "Test failed"
 msgstr "检测失败"
@@ -2844,9 +2793,6 @@ msgstr "错误：因为禁用了代理路由器自身流量，流媒体解锁无
 msgid "Error: Multiple Scripts Running, Exiting..."
 msgstr "错误：多个脚本运行中，退出..."
 
-msgid "Error: Streaming DNS Prefetch Could not Work Because of Router-Self Proxy Disabled, Exiting..."
-msgstr "错误：因为禁用了代理路由器自身流量，预解析无法工作，退出..."
-
 msgid "Enable Sniffer"
 msgstr "*启用流量（域名）探测"
 
@@ -3092,12 +3038,6 @@ msgstr "列表中的域名或 IP 将不会受到绕过指定区域 IP 选项的�
 
 msgid "Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address"
 msgstr "警告：Hosts 设置了保留地址时需要关闭 Dnsmasq 的重绑定保护选项才能生效"
-
-msgid "LAN Block Google DNS IP List"
-msgstr "实验性：屏蔽 Google DNS 的局域网设备 IP"
-
-msgid "LAN Block Google DNS Mac List"
-msgstr "实验性：屏蔽 Google DNS 的局域网设备 Mac"
 
 msgid "Auto Select Logic"
 msgstr "*自动选择逻辑"
