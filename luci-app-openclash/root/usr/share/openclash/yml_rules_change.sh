@@ -50,7 +50,7 @@ yml_set_custom_rule_provider()
       return
    fi
 
-   if [ -z "$format" ];
+   if [ -z "$format" ]; then
       format="yaml"
    fi
 

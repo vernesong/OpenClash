@@ -35,6 +35,8 @@ rules:
 ##- SRC-IP-CIDR,198.18.0.1/32,DIRECT
 
 ##DDNS
+##- DOMAIN-KEYWORD,synology,DIRECT
+##- DOMAIN-KEYWORD,quickconnect,DIRECT
 ##- DOMAIN-SUFFIX,checkip.dyndns.org,DIRECT
 ##- DOMAIN-SUFFIX,checkipv6.dyndns.org,DIRECT
 ##- DOMAIN-SUFFIX,checkip.synology.com,DIRECT

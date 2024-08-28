@@ -173,11 +173,8 @@ msgstr "绕过中国大陆"
 msgid "Bypass Overseas"
 msgstr "海外用户回国模式"
 
-msgid "Bypass Specified Regions Network Flows, Improve Performance"
-msgstr "启用后指定区域流量将不再经过内核，提升系统性能"
-
-msgid "Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option, Depend on Dnsmasq"
-msgstr "启用后指定区域流量将不再经过内核，提升系统性能，如旁路由遇到无法访问，请尝试启用旁路由兼容模式，此功能依赖于 Dnsmasq"
+msgid "Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option"
+msgstr "启用后指定区域流量将不再经过内核，提升系统性能，如旁路由遇到无法访问，请尝试启用旁路由兼容模式"
 
 msgid "Log Level"
 msgstr "日志等级"
@@ -1227,8 +1224,8 @@ msgstr "大陆 IPv6 白名单 更新日期"
 msgid "lhie1 Rule Update"
 msgstr "lhie1 规则更新日期"
 
-msgid "GEOIP Data Update"
-msgstr "GEOIP 数据库日期"
+msgid "GeoIP Data Update"
+msgstr "GeoIP 数据库日期"
 
 msgid "GeoSite Data Update"
 msgstr "GeoSite 数据库日期"
@@ -1488,9 +1485,6 @@ msgstr "大陆IPv6段更新 URL"
 msgid "Custom Chnroute Lists URL"
 msgstr "大陆IP段更新 URL"
 
-msgid "Custom CN Doamin Lists URL"
-msgstr "大陆域名列表文件更新 URL"
-
 msgid "Custom GeoIP MMDB URL, Click Button Below To Refresh After Edit"
 msgstr "自定义 GeoIP MMDB 数据库的更新来源，编辑后点击下方按钮生效"
 
@@ -1502,9 +1496,6 @@ msgstr "自定义大陆 IP 段的更新来源，编辑后点击下方按钮生�
 
 msgid "Custom Chnroute6 Lists URL, Click Button Below To Refresh After Edit"
 msgstr "自定义大陆 IPv6 段的更新来源，编辑后点击下方按钮生效"
-
-msgid "Custom CN Doamin Dnsmasq Conf URL, Click Button Below To Refresh After Edit"
-msgstr "自定义大陆域名列表配置文件（Dnsmasq Conf）的更新来源，编辑后点击下方按钮生效"
 
 msgid "(Default)"
 msgstr "(默认)"
@@ -1764,17 +1755,11 @@ msgstr "开始下载大陆 IP 白名单..."
 msgid "Start Downloading The Chnroute6 Cidr List..."
 msgstr "开始下载大陆 IPv6 白名单..."
 
-msgid "Start Downloading The CN Domains List..."
-msgstr "开始下载大陆域名白名单..."
-
 msgid "Chnroute Cidr List Download Success, Check Updated..."
 msgstr "大陆 IP 白名单下载成功，检查版本是否更新..."
 
 msgid "Chnroute6 Cidr List Download Success, Check Updated..."
 msgstr "大陆 IPv6 白名单下载成功，检查版本是否更新..."
-
-msgid "CN Domains List Download Success, Check Updated..."
-msgstr "大陆域名白名单下载成功，检查版本是否更新..."
 
 msgid "Chnroute Cidr List Has Been Updated, Starting To Replace The Old Version..."
 msgstr "大陆 IP 白名单有更新，开始替换旧版本..."
@@ -1782,17 +1767,11 @@ msgstr "大陆 IP 白名单有更新，开始替换旧版本..."
 msgid "Chnroute6 Cidr List Has Been Updated, Starting To Replace The Old Version..."
 msgstr "大陆 IPv6 白名单有更新，开始替换旧版本..."
 
-msgid "CN Domains List Has Been Updated, Starting To Replace The Old Version..."
-msgstr "大陆域名白名单有更新，开始替换旧版本..."
-
 msgid "Chnroute Cidr List Update Successful!"
 msgstr "大陆 IP 白名单更新成功！"
 
 msgid "Chnroute6 Cidr List Update Successful!"
 msgstr "大陆 IPv6 白名单更新成功！"
-
-msgid "CN Domains List Update Successful!"
-msgstr "大陆域名白名单更新成功！"
 
 msgid "Updated Chnroute Cidr List No Change, Do Nothing..."
 msgstr "大陆 IP 白名单没有更新，停止继续操作..."
@@ -1800,17 +1779,11 @@ msgstr "大陆 IP 白名单没有更新，停止继续操作..."
 msgid "Updated Chnroute6 Cidr List No Change, Do Nothing..."
 msgstr "大陆 IPv6 白名单没有更新，停止继续操作..."
 
-msgid "Updated CN Domains List No Change, Do Nothing..."
-msgstr "大陆域名白名单没有更新，停止继续操作..."
-
 msgid "Chnroute Cidr List Update Error, Please Try Again Later..."
 msgstr "大陆 IP 白名单下载失败，请检查网络或稍后再试..."
 
 msgid "Chnroute6 Cidr List Update Error, Please Try Again Later..."
 msgstr "大陆 IPv6 白名单下载失败，请检查网络或稍后再试..."
-
-msgid "CN Domains List Update Error, Please Try Again Later..."
-msgstr "大陆域名白名单下载失败，请检查网络或稍后再试..."
 
 msgid "Start Downloading GeoSite Database..."
 msgstr "开始下载 GeoSite 数据库..."
@@ -1977,7 +1950,7 @@ msgstr "提示：检测到 GEOIP Dat 数据库文件不存在，准备开始下�
 msgid "Tip: Detected that the Core is not Installed, Ready to Download..."
 msgstr "提示：检测到内核文件不存在，准备开始下载..."
 
-msgid "Tip: Detected that the Chnroute Cidr or CN Domains List is not Installed, Ready to Download..."
+msgid "Tip: Detected that the Chnroute Cidr is not Installed, Ready to Download..."
 msgstr "提示：检测到大陆白名单列表不存在，准备开始下载..."
 
 msgid "Tip: Detected that the Chnroute Cidr List Format is wrong, Ready to Reformat..."
@@ -3170,18 +3143,6 @@ msgstr "提示：检测到 Firewall4，使用 NFTABLE 规则..."
 
 msgid "Specify CN DNS Server"
 msgstr "大陆域名 DNS 服务器"
-
-msgid "Specify DNS Server For CN Domain Lists, Only One IP Server Address Support"
-msgstr "指定大陆域名的 DNS 服务器，只支持填写一个IP地址"
-
-msgid "Warning: Dnsmasq Work is Unnormal, Setting The Firewall DNS Hijacking Rules..."
-msgstr "警告：检测到 Dnsmasq 工作异常，设置防火墙 DNS 劫持规则..."
-
-msgid "Tip: Dnsmasq Work is Normal, Restore The Firewall DNS Hijacking Rules..."
-msgstr "提示：检测到 Dnsmasq 正常工作，还原防火墙 DNS 劫持规则..."
-
-msgid "Tip: Bypass Specified Regions IP May Cause the Dnsmasq Load For a Long Time After Restart in FAKE-IP Mode, Hijack the DNS to Core Untill the Dnsmasq Works Well..."
-msgstr "提示：在 FAKE-IP 模式下绕过指定区域 IP 可能会导致 Dnsmasq 加载时间过长，暂时劫持 DNS 至内核直到 Dnsmasq 正常工作..."
 
 msgid "Seconds..."
 msgstr "秒后开始启动..."
