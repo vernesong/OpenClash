@@ -1190,19 +1190,6 @@ if [ -n "$FW4" ]; then
       fi
    fi
 
-   #lan_google_dns_ac
-   if [ -n "$(uci -q get openclash.config.lan_block_google_dns_ips)" ]; then
-      nft 'add set inet fw4 lan_block_google_dns_ips { type ipv4_addr; flags interval; auto-merge; }'
-      nft 'add set inet fw4 lan_block_google_dns_ipv6s { type ipv6_addr; flags interval; auto-merge; }'
-      config_load "openclash"
-      config_list_foreach "config" "lan_block_google_dns_ips" nft_ac_add "lan_block_google_dns_ips" "lan_block_google_dns_ipv6s"
-   fi
-   if [ -n "$(uci -q get openclash.config.lan_block_google_dns_macs)" ]; then
-      nft 'add set inet fw4 lan_block_google_dns_macs { type ether_addr; }'
-      config_load "openclash"
-      config_list_foreach "config" "lan_block_google_dns_macs" nft_ac_add "lan_block_google_dns_macs"
-   fi
-
    #lan_ac
    if [ "$lan_ac_mode" = "0" ]; then
       if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
@@ -1626,18 +1613,6 @@ if [ -n "$FW4" ]; then
       fi
    fi
 
-   #google_dns_block
-   if [ -n "$(uci -q get openclash.config.lan_block_google_dns_ips)" ] || [ -n "$(uci -q get openclash.config.lan_block_google_dns_macs)" ]; then
-      nft 'add set inet fw4 openclash_google_dns_ips { type ipv4_addr; flags interval; auto-merge; }'
-      nft 'add element inet fw4 openclash_google_dns_ips { 8.8.8.8, 8.8.4.4 }'
-      if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
-         nft insert rule inet fw4 dstnat position 0 ip saddr @lan_block_google_dns_ips ip daddr @openclash_google_dns_ips counter accept comment \"OpenClash Google DNS Block\"
-         nft insert rule inet fw4 dstnat position 0 ether saddr @lan_block_google_dns_macs ip daddr @openclash_google_dns_ips counter accept comment \"OpenClash Google DNS Block\"
-      fi
-      nft insert rule inet fw4 forward position 0 ip saddr @lan_block_google_dns_ips ip daddr @openclash_google_dns_ips counter reject comment \"OpenClash Google DNS Block\"
-      nft insert rule inet fw4 forward position 0 ether saddr @lan_block_google_dns_macs ip daddr @openclash_google_dns_ips counter reject comment \"OpenClash Google DNS Block\"
-   fi
-
    #ipv6
    if [ "$ipv6_enable" -eq 1 ]; then
       if [ -z "$(nft list chain inet fw4 dstnat |grep 'OpenClash DNS Hijack')" ]; then
@@ -1949,16 +1924,6 @@ if [ -n "$FW4" ]; then
          nft add rule inet fw4 srcnat meta nfproto {ipv6} counter jump openclash_post_v6 comment \"OpenClash Bypass Gateway Compatible\"
       fi
 
-      #google_dns_block
-      if [ -n "$(uci -q get openclash.config.lan_block_google_dns_ips)" ] || [ -n "$(uci -q get openclash.config.lan_block_google_dns_macs)" ]; then
-         nft 'add set inet fw4 openclash_google_dns_ipv6s { type ipv6_addr; flags interval; auto-merge; }'
-         nft 'add element inet fw4 openclash_google_dns_ipv6s { 2001:4860:4860::8888, 2001:4860:4860::8844, 2001:4860:4860::6464, 2001:4860:4860::64 }'
-         nft insert rule inet fw4 dstnat position 0 ip6 saddr @lan_block_google_dns_ipv6s ip6 daddr @openclash_google_dns_ipv6s counter accept comment \"OpenClash Google DNS Block\"
-         nft insert rule inet fw4 dstnat position 0 ether saddr @lan_block_google_dns_macs ip6 daddr @openclash_google_dns_ipv6s counter accept comment \"OpenClash Google DNS Block\"
-         nft insert rule inet fw4 forward position 0 ip6 saddr @lan_block_google_dns_ipv6s ip6 daddr @openclash_google_dns_ipv6s counter reject comment \"OpenClash Google DNS Block\"
-         nft insert rule inet fw4 forward position 0 ether saddr @lan_block_google_dns_macs ip6 daddr @openclash_google_dns_ipv6s counter reject comment \"OpenClash Google DNS Block\"
-      fi
-
       #intranet allowed
       if [ "$intranet_allowed" -eq 1 ]; then
          if [ -n "$intranet_allowed_wan_name" ] && [ "$intranet_allowed_wan_name" != "0" ]; then
@@ -1985,19 +1950,6 @@ fi 2>/dev/null
 
 #IPTABLES
 if [ -z "$FW4" ]; then
-   #lan_google_dns_ac
-   if [ -n "$(uci -q get openclash.config.lan_block_google_dns_ips)" ]; then
-      ipset create lan_block_google_dns_ips hash:net
-      ipset create lan_block_google_dns_ipv6s hash:net family inet6
-      config_load "openclash"
-      config_list_foreach "config" "lan_block_google_dns_ips" ac_add "lan_block_google_dns_ips" "lan_block_google_dns_ipv6s"
-   fi
-   if [ -n "$(uci -q get openclash.config.lan_block_google_dns_macs)" ]; then
-      ipset create lan_block_google_dns_macs hash:mac
-      config_load "openclash"
-      config_list_foreach "config" "lan_block_google_dns_macs" ac_add "lan_block_google_dns_macs"
-   fi
-
    #lan_ac
    if [ "$lan_ac_mode" = "0" ]; then
       if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
@@ -2443,20 +2395,6 @@ if [ -z "$FW4" ]; then
       fi
    fi
 
-   #google_dns_block
-   if [ -n "$(uci -q get openclash.config.lan_block_google_dns_ips)" ] || [ -n "$(uci -q get openclash.config.lan_block_google_dns_macs)" ]; then
-      ipset create openclash_google_dns_ips hash:net
-      ipset add openclash_google_dns_ips 8.8.8.8
-      ipset add openclash_google_dns_ips 8.8.4.4
-
-      if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
-         iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Block" -m set --match-set lan_block_google_dns_ips src -m set --match-set openclash_google_dns_ips dst -j ACCEPT >/dev/null 2>&1
-         iptables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Block" -m set --match-set lan_block_google_dns_macs src -m set --match-set openclash_google_dns_ips dst -j ACCEPT >/dev/null 2>&1
-      fi
-      iptables -t filter -I FORWARD -m set --match-set lan_block_google_dns_ips src -m set --match-set openclash_google_dns_ips dst -j REJECT >/dev/null 2>&1
-      iptables -t filter -I FORWARD -m set --match-set lan_block_google_dns_macs src -m set --match-set openclash_google_dns_ips dst -j REJECT >/dev/null 2>&1
-   fi
-
    #ipv6
    if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
       if [ -z "$(ip6tables -t nat -nL PREROUTING --line-number |grep 'DNS Hijack')" ]; then
@@ -2751,20 +2689,6 @@ if [ -z "$FW4" ]; then
          ip6tables -t nat -A POSTROUTING -m comment --comment "OpenClash Bypass Gateway Compatible" -j openclash_post
       fi
 
-      #google_dns_block
-      if [ -n "$(uci -q get openclash.config.lan_block_google_dns_ips)" ] || [ -n "$(uci -q get openclash.config.lan_block_google_dns_macs)" ]; then
-         ipset create openclash_google_dns_ipv6s hash:net family inet6
-         ipset add openclash_google_dns_ipv6s 2001:4860:4860::8888
-         ipset add openclash_google_dns_ipv6s 2001:4860:4860::8844
-         ipset add openclash_google_dns_ipv6s 2001:4860:4860::6464
-         ipset add openclash_google_dns_ipv6s 2001:4860:4860::64
-
-         ip6tables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Block" -m set --match-set lan_block_google_dns_ipv6s src -m set --match-set openclash_google_dns_ipv6s dst -j ACCEPT
-         ip6tables -t nat -I PREROUTING -m comment --comment "OpenClash Google DNS Block" -m set --match-set lan_block_google_dns_macs src -m set --match-set openclash_google_dns_ipv6s dst -j ACCEPT
-         ip6tables -t filter -I FORWARD -m set --match-set lan_block_google_dns_ipv6s src -m set --match-set openclash_google_dns_ipv6s dst -j REJECT >/dev/null 2>&1
-         ip6tables -t filter -I FORWARD -m set --match-set lan_block_google_dns_macs src -m set --match-set openclash_google_dns_ipv6s dst -j REJECT >/dev/null 2>&1
-      fi
-
       #intranet allowed
       if [ "$intranet_allowed" -eq 1 ]; then
          if [ -n "$intranet_allowed_wan_name" ] && [ "$intranet_allowed_wan_name" != "0" ]; then
@@ -2873,8 +2797,6 @@ revert_firewall()
       ipset destroy lan_ac_white_ipv6s >/dev/null 2>&1
       ipset destroy lan_ac_black_ipv6s >/dev/null 2>&1
       ipset destroy wan_ac_black_ipv6s >/dev/null 2>&1
-      ipset destroy openclash_google_dns_ipv6s >/dev/null 2>&1
-      ipset destroy lan_block_google_dns_ipv6s >/dev/null 2>&1
 
       ipset destroy localnetwork >/dev/null 2>&1
       ipset destroy china_ip_route >/dev/null 2>&1
@@ -2885,8 +2807,6 @@ revert_firewall()
       ipset destroy lan_ac_black_macs >/dev/null 2>&1
       ipset destroy wan_ac_black_ips >/dev/null 2>&1
       ipset destroy common_ports >/dev/null 2>&1
-      ipset destroy lan_block_google_dns_ips >/dev/null 2>&1
-      ipset destroy lan_block_google_dns_macs >/dev/null 2>&1
       ipset destroy openclash_google_dns_ips >/dev/null 2>&1
       ipset destroy lan_ac_black_ports >/dev/null 2>&1
    fi
@@ -2942,7 +2862,6 @@ get_config()
    interface_name=$(uci -q get openclash.config.interface_name || echo 0)
    common_ports=$(uci -q get openclash.config.common_ports)
    dns_port=$(uci -q get openclash.config.dns_port)
-   stream_domains_prefetch=$(uci -q get openclash.config.stream_domains_prefetch || echo 0)
    store_fakeip=$(uci -q get openclash.config.store_fakeip || echo 0)
    bypass_gateway_compatible=$(uci -q get openclash.config.bypass_gateway_compatible || echo 0)
    core_version=$(uci -q get openclash.config.core_version || echo 0)
@@ -2988,7 +2907,7 @@ start()
    if ! $quick_start; then
       LOG_OUT "Step 3: Modify The Config File..."
       config_check
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$stream_domains_prefetch" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay" "$keep_alive_interval" "$proxy_dns_group"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay" "$keep_alive_interval" "$proxy_dns_group"
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port" "$enable_redirect_dns" "$fakeip_range" "$en_mode"
       /usr/share/openclash/openclash_custom_domain_dns.sh >/dev/null 2>&1
       #Custom overwrite
