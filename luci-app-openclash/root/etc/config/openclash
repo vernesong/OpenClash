@@ -65,7 +65,6 @@ config openclash 'config'
 	option geoip_custom_url 'https://testingcf.jsdelivr.net/gh/Loyalsoldier/v2ray-rules-dat@release/geoip.dat'
 	option chnr_custom_url 'https://ispip.clang.cn/all_cn.txt'
 	option chnr6_custom_url 'https://ispip.clang.cn/all_cn_ipv6.txt'
-	option cndomain_custom_url 'https://testingcf.jsdelivr.net/gh/felixonmars/dnsmasq-china-list@master/accelerated-domains.china.conf'
 	
 config dns_servers
 	option type 'udp'
