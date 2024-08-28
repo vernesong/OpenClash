@@ -15,9 +15,7 @@ custom_fallback_filter=$(uci -q get openclash.config.custom_fallback_filter || e
 china_ip_route=$(uci -q get openclash.config.china_ip_route); [[ "$china_ip_route" != "0" && "$china_ip_route" != "1" && "$china_ip_route" != "2" ]] && china_ip_route=0
 china_ip6_route=$(uci -q get openclash.config.china_ip6_route); [[ "$china_ip6_route" != "0" && "$china_ip6_route" != "1" && "$china_ip6_route" != "2" ]] && china_ip6_route=0
 enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
-proxy_dns_group=${35}
-
-lan_block_google_dns=$(uci -q get openclash.config.lan_block_google_dns_ips || uci -q get openclash.config.lan_block_google_dns_macs || echo 0)
+proxy_dns_group=${34}
 
 if [ -n "$(ruby_read "$5" "['tun']")" ]; then
    uci -q set openclash.config.config_reload=0
@@ -34,8 +32,8 @@ else
 fi
 
 if [ -z "${12}" ]; then
-   if [ -n "${32}" ]; then
-      stack_type=${32}
+   if [ -n "${31}" ]; then
+      stack_type=${31}
    else
       stack_type=system
    fi
@@ -367,30 +365,30 @@ Thread.new{
    else
       Value['ipv6']=false;
    end;
-   if '${23}' != '0' then
-      Value['interface-name']='${23}';
+   if '${22}' != '0' then
+      Value['interface-name']='${22}';
    end;
 
-   if '${20}' == '1' then
+   if '${19}' == '1' then
       Value['geodata-mode']=true;
    end;
-   if '${21}' != '0' then
-      Value['geodata-loader']='${21}';
+   if '${20}' != '0' then
+      Value['geodata-loader']='${20}';
    end;
-   if '${24}' == '1' then
+   if '${23}' == '1' then
       Value['tcp-concurrent']=true;
    end;
-   if '${33}' == '1' then
+   if '${32}' == '1' then
       Value['unified-delay']=true;
    end;
-   if '${34}' != '0' then
-      Value['keep-alive-interval']=${34};
+   if '${33}' != '0' then
+      Value['keep-alive-interval']=${33};
    end;
-   if '${28}' != '0' then
-      Value['find-process-mode']='${28}';
+   if '${27}' != '0' then
+      Value['find-process-mode']='${27}';
    end;
-   if '${30}' != '0' then
-      Value['global-client-fingerprint']='${30}';
+   if '${29}' != '0' then
+      Value['global-client-fingerprint']='${29}';
    end;
 
    if not Value.key?('dns') or Value['dns'].nil? then
@@ -411,23 +409,23 @@ Thread.new{
       Value['dns'].delete('fake-ip-range');
    else
       Value['dns']['enhanced-mode']='fake-ip';
-      Value['dns']['fake-ip-range']='${29}';
+      Value['dns']['fake-ip-range']='${28}';
    end;
 
    Value['dns']['listen']='0.0.0.0:${13}';
    
    #meta only
-   if ${19} == 1 then
+   if ${18} == 1 then
       Value_sniffer={'sniffer'=>{'enable'=>true}};
       Value['sniffer']=Value_sniffer['sniffer'];
       if '$1' == 'redir-host' then
          Value['sniffer']['force-dns-mapping']=true;
       end;
-      if ${27} == 1 then
+      if ${26} == 1 then
          Value['sniffer']['parse-pure-ip']=true;
       end;
       if File::exist?('/etc/openclash/custom/openclash_force_sniffing_domain.yaml') then
-         if ${22} == 1 then
+         if ${21} == 1 then
             Value_7 = YAML.load_file('/etc/openclash/custom/openclash_force_sniffing_domain.yaml');
             if Value_7 != false and not Value_7['force-domain'].to_a.empty? then
                Value['sniffer']['force-domain']=Value_7['force-domain'];
@@ -436,7 +434,7 @@ Thread.new{
          end;
       end;
       if File::exist?('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml') then
-         if ${22} == 1 then
+         if ${21} == 1 then
             Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml');
             if Value_7 != false and not Value_7['skip-sni'].to_a.empty? then
                Value['sniffer']['skip-domain']=Value_7['skip-sni'];
@@ -449,14 +447,14 @@ Thread.new{
          end;
       end;
       if File::exist?('/etc/openclash/custom/openclash_sniffing_ports_filter.yaml') then
-         if ${22} == 1 then
+         if ${21} == 1 then
             Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_ports_filter.yaml');
             if Value_7 != false and not Value_7['sniff'].to_a.empty? then
                Value['sniffer']['sniff']=Value_7['sniff'];
             end;
          end;
       else
-         if File::exist?('/etc/openclash/custom/openclash_sniffing_port_filter.yaml') and ${22} == 1 then
+         if File::exist?('/etc/openclash/custom/openclash_sniffing_port_filter.yaml') and ${21} == 1 then
             Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_port_filter.yaml');
             if Value_7 != false and not Value_7['port-whitelist'].to_a.empty? then
                Value['sniffer']['port-whitelist']=Value_7['port-whitelist'];
@@ -467,7 +465,7 @@ Thread.new{
          Value['sniffer'].merge!(Value_sniffer);
       end;
    else
-      if '${25}' == 'TUN' then
+      if '${24}' == 'TUN' then
          Value_tun_sniff={'experimental'=>{'sniff-tls-sni'=>true}};
          Value['experimental'] = Value_tun_sniff['experimental'];
       else
@@ -477,7 +475,7 @@ Thread.new{
       end;
    end;
    Value_2={'tun'=>{'enable'=>true}};
-   if $en_mode_tun != 0 or ${31} == 2 then
+   if $en_mode_tun != 0 or ${30} == 2 then
       Value['tun']=Value_2['tun'];
       Value['tun']['stack']='$stack_type';
       Value['tun']['device']='utun';
@@ -600,7 +598,7 @@ Thread.new{
          end;
       end;
    end;
-   if ${26} == 1 then
+   if ${25} == 1 then
       reg = /(^https:\/\/|^tls:\/\/|^quic:\/\/)?((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])(?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?/;
       reg6 = /(^https:\/\/|^tls:\/\/|^quic:\/\/)?(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))|\[(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))\](?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?/i;
       if Value['dns'].has_key?('fallback') then
@@ -703,23 +701,6 @@ Thread.new{
       end;
    end;
    if '$1' == 'fake-ip' then
-      if ${18} == 1 then
-         if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-            Value['dns']['fake-ip-filter'].insert(-1,'+.nflxvideo.net');
-            Value['dns']['fake-ip-filter'].insert(-1,'+.media.dssott.com');
-            Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
-         else
-            Value['dns'].merge!({'fake-ip-filter'=>['+.nflxvideo.net', '+.media.dssott.com']});
-         end;
-      end;
-      if '$lan_block_google_dns' != '0' then
-         if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-            Value['dns']['fake-ip-filter'].insert(-1,'+.dns.google');
-            Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
-         else
-            Value['dns'].merge!({'fake-ip-filter'=>['+.dns.google']});
-         end;
-      end;
       if '$china_ip_route' != '0' then
          if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
             Value['dns']['fake-ip-filter'].insert(-1,'geosite:category-games@cn');

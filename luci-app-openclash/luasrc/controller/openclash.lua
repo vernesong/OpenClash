@@ -32,10 +32,6 @@ function index()
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
 	entry({"admin", "services", "openclash", "flush_fakeip_cache"}, call("action_flush_fakeip_cache"))
 	entry({"admin", "services", "openclash", "download_rule"}, call("action_download_rule"))
-	entry({"admin", "services", "openclash", "download_netflix_domains"}, call("action_download_netflix_domains"))
-	entry({"admin", "services", "openclash", "download_disney_domains"}, call("action_download_disney_domains"))
-	entry({"admin", "services", "openclash", "catch_netflix_domains"}, call("action_catch_netflix_domains"))
-	entry({"admin", "services", "openclash", "write_netflix_domains"}, call("action_write_netflix_domains"))
 	entry({"admin", "services", "openclash", "restore"}, call("action_restore_config"))
 	entry({"admin", "services", "openclash", "backup"}, call("action_backup"))
 	entry({"admin", "services", "openclash", "backup_ex_core"}, call("action_backup_ex_core"))
@@ -334,16 +330,6 @@ end
 function download_rule()
 	local filename = luci.http.formvalue("filename")
 	local state = luci.sys.call(string.format('/usr/share/openclash/openclash_download_rule_list.sh "%s" >/dev/null 2>&1',filename))
-	return state
-end
-
-function download_disney_domains()
-	local state = luci.sys.call(string.format('/usr/share/openclash/openclash_download_rule_list.sh "%s" >/dev/null 2>&1',"disney_domains"))
-	return state
-end
-
-function download_netflix_domains()
-	local state = luci.sys.call(string.format('/usr/share/openclash/openclash_download_rule_list.sh "%s" >/dev/null 2>&1',"netflix_domains"))
 	return state
 end
 
@@ -1156,20 +1142,6 @@ function action_download_rule()
 	})
 end
 
-function action_download_netflix_domains()
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({
-		rule_download_status = download_netflix_domains();
-	})
-end
-
-function action_download_disney_domains()
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({
-		rule_download_status = download_disney_domains();
-	})
-end
-
 function action_refresh_log()
 	luci.http.prepare_content("application/json")
 	local logfile="/tmp/openclash.log"
@@ -1282,38 +1254,6 @@ function split(str,delimiter)
 		arr[n] = str
 	end
 	return arr
-end
-
-function action_write_netflix_domains()
-	local domains = luci.http.formvalue("domains")
-	local dustom_file = "/etc/openclash/custom/openclash_custom_netflix_domains.list"
-	local file = io.open(dustom_file, "a+")
-	file:seek("set")
-	local domain = file:read("*a")
-	for v, k in pairs(split(domains,"\n")) do
-		if not string.find(domain,k,1,true) then
-			file:write(k.."\n")
-		end
-	end
-	file:close()
-	return
-end
-
-function action_catch_netflix_domains()
-	local cmd = "/usr/share/openclash/openclash_debug_getcon.lua 'netflix-nflxvideo'"
-	luci.http.prepare_content("text/plain")
-	local util = io.popen(cmd)
-	if util and util ~= "" then
-		while true do
-			local ln = util:read("*l")
-			if not ln then break end
-			luci.http.write(ln)
-			luci.http.write(",")
-		end
-		util:close()
-		return
-	end
-	luci.http.status(500, "Bad address")
 end
 
 function action_diag_connection()

@@ -16,18 +16,13 @@ cfg_update_interval=$(uci -q get openclash.config.config_update_interval || echo
 log_size=$(uci -q get openclash.config.log_size || echo 1024)
 core_type=$(uci -q get openclash.config.core_type)
 router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
-stream_domains_prefetch_interval=$(uci -q get openclash.config.stream_domains_prefetch_interval || echo 1440)
 stream_auto_select_interval=$(uci -q get openclash.config.stream_auto_select_interval || echo 30)
-NETFLIX_DOMAINS_LIST="/usr/share/openclash/res/Netflix_Domains.list"
-NETFLIX_DOMAINS_CUSTOM_LIST="/etc/openclash/custom/openclash_custom_netflix_domains.list"
-DISNEY_DOMAINS_LIST="/usr/share/openclash/res/Disney_Plus_Domains.list"
 ipv6_mode=$(uci -q get openclash.config.ipv6_mode || echo 0)
 skip_proxy_address=$(uci -q get openclash.config.skip_proxy_address || echo 0)
 CRASH_NUM=0
 CFG_UPDATE_INT=1
 SKIP_PROXY_ADDRESS=1
 SKIP_PROXY_ADDRESS_INTERVAL=30
-STREAM_DOMAINS_PREFETCH=1
 STREAM_AUTO_SELECT=1
 FW4=$(command -v fw4)
 
@@ -38,8 +33,6 @@ do
    cfg_update=$(uci -q get openclash.config.auto_update)
    cfg_update_mode=$(uci -q get openclash.config.config_auto_update_mode)
    cfg_update_interval_now=$(uci -q get openclash.config.config_update_interval || echo 60)
-   stream_domains_prefetch=$(uci -q get openclash.config.stream_domains_prefetch || echo 0)
-   stream_domains_prefetch_interval_now=$(uci -q get openclash.config.stream_domains_prefetch_interval || echo 1440)
    stream_auto_select=$(uci -q get openclash.config.stream_auto_select || echo 0)
    stream_auto_select_interval_now=$(uci -q get openclash.config.stream_auto_select_interval || echo 30)
    stream_auto_select_netflix=$(uci -q get openclash.config.stream_auto_select_netflix || echo 0)
@@ -416,35 +409,7 @@ fi
    elif [ "$router_self_proxy" != "1" ] && [ "$stream_auto_select" -eq 1 ]; then
       LOG_OUT "Error: Streaming Unlock Could not Work Because of Router-Self Proxy Disabled, Exiting..."
    fi
-
-##STREAM_DNS_PREFETCH
-   if [ "$stream_domains_prefetch" -eq 1 ] && [ "$router_self_proxy" -eq 1 ]; then
-      [ "$stream_domains_prefetch_interval" -ne "$stream_domains_prefetch_interval_now" ] && STREAM_DOMAINS_PREFETCH=1 && stream_domains_prefetch_interval="$stream_domains_prefetch_interval_now"
-      if [ "$STREAM_DOMAINS_PREFETCH" -ne 0 ]; then
-         if [ "$(expr "$STREAM_DOMAINS_PREFETCH" % "$stream_domains_prefetch_interval_now")" -eq 0 ] || [ "$STREAM_DOMAINS_PREFETCH" -eq 1 ]; then
-            LOG_OUT "Tip: Start Prefetch Netflix Domains..."
-            cat "$NETFLIX_DOMAINS_LIST" |while read -r line
-            do
-               [ -n "$line" ] && nslookup $line
-            done >/dev/null 2>&1
-            cat "$NETFLIX_DOMAINS_CUSTOM_LIST" |while read -r line
-            do
-               [ -n "$line" ] && nslookup $line
-            done >/dev/null 2>&1
-            LOG_OUT "Tip: Netflix Domains Prefetch Finished!"
-            LOG_OUT "Tip: Start Prefetch Disney Plus Domains..."
-            cat "$DISNEY_DOMAINS_LIST" |while read -r line
-            do
-               [ -n "$line" ] && nslookup $line
-            done >/dev/null 2>&1
-            LOG_OUT "Tip: Disney Plus Domains Prefetch Finished!"
-         fi
-      fi
-      STREAM_DOMAINS_PREFETCH=$(expr "$STREAM_DOMAINS_PREFETCH" + 1)
-   elif [ "$router_self_proxy" != "1" ] && [ "$stream_domains_prefetch" -eq 1 ]; then
-      LOG_OUT "Error: Streaming DNS Prefetch Could not Work Because of Router-Self Proxy Disabled, Exiting..."
-   fi
-
+   
    SLOG_CLEAN
    sleep 60
 done 2>/dev/null
