@@ -247,6 +247,31 @@ function custom_fake_black.write(self, section, value)
 end
 end
 
+if op_mode == "fake-ip" then
+o = s:taboption("dns", Flag, "custom_fakeip_filter_mode", translate("Fake-IP-Filter-Mode"))
+o.default = 0
+
+custom_fake_black_mode = s:taboption("dns", Value, "custom_fake_ip_filter_mode")
+custom_fake_black_mode.template = "cbi/tvalue"
+custom_fake_black_mode.description = translate("Domain Names In The List Do Not Return Fake-IP, One rule per line")
+custom_fake_black_mode.rows = 20
+custom_fake_black_mode.wrap = "off"
+custom_fake_black_mode:depends("custom_fakeip_filter_mode", "1")
+
+function custom_fake_black_mode.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_ip_filter_mode.list") or ""
+end
+function custom_fake_black_mode.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_ip_filter_mode.list")
+	  if value ~= old_value then
+			NXFS.writefile("/etc/openclash/custom/openclash_custom_fake_ip_filter_mode.list", value)
+		end
+	end
+end
+end
+
 o = s:taboption("dns", Flag, "custom_name_policy", translate("Nameserver-Policy"))
 o.default = 0
 
