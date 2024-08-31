@@ -1,0 +1,3 @@
+# 配置fake-ip-filter的匹配模式，默认为blacklist，即如果匹配成功不返回fake-ip
+# 可设置为whitelist，即只有匹配成功才返回fake-ip
+# fake-ip-filter-mode: blacklist
