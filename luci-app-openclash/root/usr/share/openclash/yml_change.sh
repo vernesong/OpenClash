@@ -716,6 +716,51 @@ rescue Exception => e
    puts '${LOGTIME} Error: Set Fake-IP-Filter Failed,【' + e.message + '】';
 end;
 
+#fake-ip-filter-mode
+begin
+Thread.new{
+   if '$custom_fakeip_filter_mode' == '1' then
+      if '$1' == 'fake-ip' then
+         if File::exist?('/etc/openclash/custom/openclash_custom_fake_ip_filter_mode.list') then
+            Value_4 = IO.readlines('/etc/openclash/custom/openclash_custom_fake_ip_filter_mode.list');
+            if not Value_4.empty? then
+               Value_4 = Value_4.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
+               if Value['dns'].has_key?('fake-ip-filter-mode') and not Value['dns']['fake-ip-filter-mode'].to_a.empty? then
+                  Value['dns']['fake-ip-filter-mode'] = Value['dns']['fake-ip-filter-mode'] | Value_4;
+               else
+                  Value['dns']['fake-ip-filter-mode'] = Value_4;
+               end;
+            end;
+         end;
+         if File::exist?('/tmp/yaml_openclash_fake-ip-filter-mode_include') then
+            Value_4 = IO.readlines('/tmp/yaml_openclash_fake-ip-filter-mode_include');
+            if not Value_4.empty? then
+               Value_4 = Value_4.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
+               if Value['dns'].has_key?('fake-ip-filter-mode') and not Value['dns']['fake-ip-filter-mode'].to_a.empty? then
+                  Value['dns']['fake-ip-filter-mode'] = Value['dns']['fake-ip-filter-mode'] | Value_4;
+               else
+                  Value['dns']['fake-ip-filter-mode'] = Value_4;
+               end;
+            end;
+         end;
+      end;
+   end;
+   if '$1' == 'fake-ip' then
+      if '$china_ip_route' != '0' then
+         if Value['dns'].has_key?('fake-ip-filter-mode') and not Value['dns']['fake-ip-filter-mode'].to_a.empty? then
+            Value['dns']['fake-ip-filter-mode'].insert(-1,'blacklist');
+            Value['dns']['fake-ip-filter-mode'].insert(-1,'whitelist');
+            Value['dns']['fake-ip-filter-mode']=Value['dns']['fake-ip-filter-mode'].uniq;
+         else
+            Value['dns'].merge!({'fake-ip-filter-mode'=>['blacklist,whitelist']});
+         end;
+      end;
+   end;
+}.join;
+rescue Exception => e
+   puts '${LOGTIME} Error: Set fake-ip-filter-mode Failed,【' + e.message + '】';
+end;
+
 #custom hosts
 begin
 Thread.new{
