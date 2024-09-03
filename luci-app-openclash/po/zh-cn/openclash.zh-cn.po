@@ -3356,3 +3356,18 @@ msgstr "指定正确的 LAN 接口名称"
 
 msgid "For More Useful Meta Core Functions Go Wiki"
 msgstr "如需要了解更多关于 Meta 内核的功能，请前往 Wiki"
+
+msgid "Tip: Because Need Ensure Bypassing IP Option Work, Deleted The Fake-IP-Filter Rule"
+msgstr "提示：为保证绕过 IP 正常工作，已在 Fake-IP-Filter 中删除规则"
+
+msgid "Tip: Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule"
+msgstr "提示：为保证绕过 IP 正常工作，已在 Fake-IP-Filter 中添加规则"
+
+msgid "Fake-IP is not returned if the matching succeeds when blacklist mode or Fake-IP is returned if the matching succeeds when whitelist mode"
+msgstr "黑名单模式表示如果匹配成功则不返回 Fake-IP, 白名单模式时只有匹配成功才返回 Fake-IP"
+
+msgid "Blacklist Mode"
+msgstr "黑名单模式"
+
+msgid "Whitelist Mode"
+msgstr "白名单模式"
