@@ -226,6 +226,13 @@ if op_mode == "fake-ip" then
 o = s:taboption("dns", Flag, "custom_fakeip_filter", translate("Fake-IP-Filter"))
 o.default = 0
 
+o = s:taboption("dns", ListValue, "custom_fakeip_filter_mode", translate("Fake-IP-Filter-Mode"))
+o.description = translate("Fake-IP is not returned if the matching succeeds when blacklist mode or Fake-IP is returned if the matching succeeds when whitelist mode")
+o.default = "blacklist"
+o:value("blacklist", translate("Blacklist Mode"))
+o:value("whitelist", translate("Whitelist Mode"))
+o:depends("custom_fakeip_filter", "1")
+
 custom_fake_black = s:taboption("dns", Value, "custom_fake_filter")
 custom_fake_black.template = "cbi/tvalue"
 custom_fake_black.description = translate("Domain Names In The List Do Not Return Fake-IP, One rule per line")
