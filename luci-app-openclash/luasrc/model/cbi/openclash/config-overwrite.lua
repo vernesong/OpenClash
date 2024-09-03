@@ -226,6 +226,13 @@ if op_mode == "fake-ip" then
 o = s:taboption("dns", Flag, "custom_fakeip_filter", translate("Fake-IP-Filter"))
 o.default = 0
 
+o = s:taboption("dns", ListValue, "custom_fakeip_filter_mode", translate("Fake-IP-Filter-Mode"))
+o.description = translate("Fake-IP is not returned if the matching succeeds when blacklist mode or Fake-IP is returned if the matching succeeds when whitelist mode")
+o.default = "blacklist"
+o:value("blacklist", translate("Blacklist Mode"))
+o:value("whitelist", translate("Whitelist Mode"))
+o:depends("custom_fakeip_filter", "1")
+
 custom_fake_black = s:taboption("dns", Value, "custom_fake_filter")
 custom_fake_black.template = "cbi/tvalue"
 custom_fake_black.description = translate("Domain Names In The List Do Not Return Fake-IP, One rule per line")
@@ -242,31 +249,6 @@ function custom_fake_black.write(self, section, value)
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_filter.list")
 	  if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_fake_filter.list", value)
-		end
-	end
-end
-end
-
-if op_mode == "fake-ip" then
-o = s:taboption("dns", Flag, "custom_fakeip_filter_mode", translate("Fake-IP-Filter-Mode"))
-o.default = 0
-
-custom_fake_black_mode = s:taboption("dns", Value, "custom_fake_ip_filter_mode")
-custom_fake_black_mode.template = "cbi/tvalue"
-custom_fake_black_mode.description = translate("Domain Names In The List Do Not Return Fake-IP, One rule per line")
-custom_fake_black_mode.rows = 20
-custom_fake_black_mode.wrap = "off"
-custom_fake_black_mode:depends("custom_fakeip_filter_mode", "1")
-
-function custom_fake_black_mode.cfgvalue(self, section)
-	return NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_ip_filter_mode.list") or ""
-end
-function custom_fake_black_mode.write(self, section, value)
-	if value then
-		value = value:gsub("\r\n?", "\n")
-		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_ip_filter_mode.list")
-	  if value ~= old_value then
-			NXFS.writefile("/etc/openclash/custom/openclash_custom_fake_ip_filter_mode.list", value)
 		end
 	end
 end

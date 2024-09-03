@@ -675,6 +675,11 @@ end;
 begin
 Thread.new{
    if '$custom_fakeip_filter' == '1' then
+      if '${35}' == 'whitelist' then
+      Value['dns']['fake-ip-filter-mode']='whitelist';
+      else
+         Value['dns']['fake-ip-filter-mode']='blacklist';
+      end;
       if '$1' == 'fake-ip' then
          if File::exist?('/etc/openclash/custom/openclash_custom_fake_filter.list') then
             Value_4 = IO.readlines('/etc/openclash/custom/openclash_custom_fake_filter.list');
@@ -702,63 +707,30 @@ Thread.new{
    end;
    if '$1' == 'fake-ip' then
       if '$china_ip_route' != '0' then
-         if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-            Value['dns']['fake-ip-filter'].insert(-1,'geosite:category-games@cn');
-            Value['dns']['fake-ip-filter'].insert(-1,'geosite:cn');
-            Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
+         if Value['dns']['fake-ip-filter-mode'] == 'blacklist' or not Value['dns'].has_key?('fake-ip-filter-mode') then
+            if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+               Value['dns']['fake-ip-filter'].insert(-1,'geosite:category-games@cn');
+               Value['dns']['fake-ip-filter'].insert(-1,'geosite:cn');
+               Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
+            else
+               Value['dns'].merge!({'fake-ip-filter'=>['geosite:category-games@cn,geosite:cn']});
+            end;
+            puts '${LOGTIME} Tip: Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule【 geosite:category-games@cn,geosite:cn 】';
          else
-            Value['dns'].merge!({'fake-ip-filter'=>['geosite:category-games@cn,geosite:cn']});
+            if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+               Value['dns']['fake-ip-filter'].each{|x|
+                  if x =~ /(geosite:?).*(@cn|:cn)/ then
+                     Value['dns']['fake-ip-filter'].delete(x);
+                     puts '${LOGTIME} Tip: Because Need Ensure Bypassing IP Option Work, Deleted The Fake-IP-Filter Rule【' + x + '】';
+                  end;
+               };
+            end;
          end;
       end;
    end;
 }.join;
 rescue Exception => e
    puts '${LOGTIME} Error: Set Fake-IP-Filter Failed,【' + e.message + '】';
-end;
-
-#fake-ip-filter-mode
-begin
-Thread.new{
-   if '$custom_fakeip_filter_mode' == '1' then
-      if '$1' == 'fake-ip' then
-         if File::exist?('/etc/openclash/custom/openclash_custom_fake_ip_filter_mode.list') then
-            Value_4 = IO.readlines('/etc/openclash/custom/openclash_custom_fake_ip_filter_mode.list');
-            if not Value_4.empty? then
-               Value_4 = Value_4.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
-               if Value['dns'].has_key?('fake-ip-filter-mode') and not Value['dns']['fake-ip-filter-mode'].to_a.empty? then
-                  Value['dns']['fake-ip-filter-mode'] = Value['dns']['fake-ip-filter-mode'] | Value_4;
-               else
-                  Value['dns']['fake-ip-filter-mode'] = Value_4;
-               end;
-            end;
-         end;
-         if File::exist?('/tmp/yaml_openclash_fake-ip-filter-mode_include') then
-            Value_4 = IO.readlines('/tmp/yaml_openclash_fake-ip-filter-mode_include');
-            if not Value_4.empty? then
-               Value_4 = Value_4.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
-               if Value['dns'].has_key?('fake-ip-filter-mode') and not Value['dns']['fake-ip-filter-mode'].to_a.empty? then
-                  Value['dns']['fake-ip-filter-mode'] = Value['dns']['fake-ip-filter-mode'] | Value_4;
-               else
-                  Value['dns']['fake-ip-filter-mode'] = Value_4;
-               end;
-            end;
-         end;
-      end;
-   end;
-   if '$1' == 'fake-ip' then
-      if '$china_ip_route' != '0' then
-         if Value['dns'].has_key?('fake-ip-filter-mode') and not Value['dns']['fake-ip-filter-mode'].to_a.empty? then
-            Value['dns']['fake-ip-filter-mode'].insert(-1,'blacklist');
-            Value['dns']['fake-ip-filter-mode'].insert(-1,'whitelist');
-            Value['dns']['fake-ip-filter-mode']=Value['dns']['fake-ip-filter-mode'].uniq;
-         else
-            Value['dns'].merge!({'fake-ip-filter-mode'=>['blacklist,whitelist']});
-         end;
-      end;
-   end;
-}.join;
-rescue Exception => e
-   puts '${LOGTIME} Error: Set fake-ip-filter-mode Failed,【' + e.message + '】';
 end;
 
 #custom hosts
