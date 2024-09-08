@@ -676,7 +676,7 @@ begin
 Thread.new{
    if '$custom_fakeip_filter' == '1' then
       if '${35}' == 'whitelist' then
-      Value['dns']['fake-ip-filter-mode']='whitelist';
+         Value['dns']['fake-ip-filter-mode']='whitelist';
       else
          Value['dns']['fake-ip-filter-mode']='blacklist';
       end;
@@ -713,13 +713,13 @@ Thread.new{
                Value['dns']['fake-ip-filter'].insert(-1,'geosite:cn');
                Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
             else
-               Value['dns'].merge!({'fake-ip-filter'=>['geosite:category-games@cn,geosite:cn']});
+               Value['dns'].merge!({'fake-ip-filter'=>['geosite:category-games@cn','geosite:cn']});
             end;
             puts '${LOGTIME} Tip: Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule【 geosite:category-games@cn,geosite:cn 】';
          else
             if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
                Value['dns']['fake-ip-filter'].each{|x|
-                  if x =~ /(geosite:?).*(@cn|:cn)/ then
+                  if x =~ /(geosite:?).*(@cn|:cn|,cn)/ then
                      Value['dns']['fake-ip-filter'].delete(x);
                      puts '${LOGTIME} Tip: Because Need Ensure Bypassing IP Option Work, Deleted The Fake-IP-Filter Rule【' + x + '】';
                   end;
