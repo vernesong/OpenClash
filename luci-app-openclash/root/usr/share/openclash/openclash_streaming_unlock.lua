@@ -17,6 +17,12 @@ local now_name, group_name, group_type, group_show, status, ip, port, passwd, gr
 local groups = {}
 local proxies = {}
 local tested_proxy = {}
+local unlock_cache_file = "/tmp/openclash_streaming_cache_region"
+local unlock_cache = FS.readfile(unlock_cache_file)
+local unlock_cache_info = {}
+if unlock_cache then
+	unlock_cache_info = JSON.parse(unlock_cache)
+end
 local self_status = SYS.exec(string.format('ps -w |grep -v grep |grep -c "openclash_streaming_unlock.lua %s"', type))
 local select_logic = UCI:get("openclash", "config", "stream_auto_select_logic") or "urltest"
 
@@ -158,19 +164,21 @@ function unlock_auto_select()
 					if region and region ~= "" then
 						table.insert(full_support_list, {value.now, value.now, get_group_now(info, value.now), region})
 						print(now..full_support.."【"..region.."】")
+						write_cache(type, get_group_now(info, value.now), region)
 					else
 						table.insert(full_support_list, {value.now, value.now, get_group_now(info, value.now)})
 						print(now..full_support_no_area)
+						write_cache(type, get_group_now(info, value.now))
 					end
 					if not all_test and #nodes_filter(now_name, info) ~= 0 then
 						if status == 4 then
 							status = 2
 							if region and region ~= "" then
-								FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+								write_cache(type, "old_region", region)
 							end
 						end
 						if status == 2 and type == "Google" then
-							FS.writefile(string.format("/tmp/openclash_%s_region", type), now_name)
+							write_cache(type, "old_region", now_name)
 						end
 						break
 					else
@@ -179,8 +187,10 @@ function unlock_auto_select()
 				elseif status == 3 then
 					if region and region ~= "" then
 						table.insert(other_region_unlock, {value.now, value.now, get_group_now(info, value.now), region})
+						write_cache(type, get_group_now(info, value.now), region)
 					else
 						table.insert(other_region_unlock, {value.now, value.now, get_group_now(info, value.now)})
+						write_cache(type, get_group_now(info, value.now))
 					end
 					if not all_test then
 						if region and region ~= "" then
@@ -210,6 +220,7 @@ function unlock_auto_select()
 							print(now..no_unlock)
 						end
 					end
+					delete_cache(type, get_group_now(info, value.now))
 				else
 					if not all_test then
 						print(now..faild_test_start)
@@ -225,12 +236,16 @@ function unlock_auto_select()
 					if not all_test then
 						--filter nodes
 						value.all = nodes_filter(value.all, info)
-						if select_logic == "random" then
-							--sort by random
-							value.all = table_rand(value.all, proxy_default)
-						else
-							--sort by urltest
-							value.all = table_sort_by_urltest(value.all, proxy_default)
+						if #value.all > 1 then
+							if select_logic == "random" then
+								--sort by random
+								value.all = table_rand(value.all, proxy_default)
+							else
+								--sort by urltest
+								value.all = table_sort_by_urltest(value.all, proxy_default)
+							end
+							--sort by cache
+							value.all = table_sort_by_cache(value.all)
 						end
 					end
 					if #(value.all) == 0 then
@@ -251,12 +266,16 @@ function unlock_auto_select()
 									if not all_test then
 										--filter nodes
 										proxies = nodes_filter(proxies, info)
-										if select_logic == "random" then
-											--sort by random
-											proxies = table_rand(proxies)
-										else
-											--sort by urltest
-											proxies = table_sort_by_urltest(proxies)
+										if #proxies > 1 then
+											if select_logic == "random" then
+												--sort by random
+												proxies = table_rand(proxies)
+											else
+												--sort by urltest
+												proxies = table_sort_by_urltest(proxies)
+											end
+											--sort by cache
+											proxies = table_sort_by_cache(proxies)
 										end
 									end
 									if #(proxies) == 0 then
@@ -293,6 +312,7 @@ function unlock_auto_select()
 															else
 																print(now..full_support.."【"..region.."】")
 															end
+															write_cache(type, proxy, region)
 														else
 															table.insert(full_support_list, {value.all[i], group_name, proxy})
 															if not all_test then
@@ -301,23 +321,27 @@ function unlock_auto_select()
 															else
 																print(now..full_support_no_area)
 															end
+															write_cache(type, proxy)
 														end
 													elseif status == 3 then
 														if region and region ~= "" then
 															table.insert(other_region_unlock, {value.all[i], group_name, proxy, region})
 															print(now..full_support.."【"..region.."】"..other_region_unlock_test)
-															
+															write_cache(type, proxy, region)
 														else
 															table.insert(other_region_unlock, {value.all[i], group_name, proxy})
 															print(now..full_support_no_area..other_region_unlock_test)
+															write_cache(type, proxy)
 														end
 													elseif status == 4 then
 														if region and region ~= "" then
 															table.insert(no_old_region_unlock, {value.all[i], group_name, proxy, region})
 															print(now..full_support.."【"..region.."】"..no_old_region_unlock_old_region.."【"..old_region.."】")
+															write_cache(type, proxy, region)
 														else
 															table.insert(no_old_region_unlock, {value.all[i], group_name, proxy})
 															print(now..no_old_region_unlock_test)
+															write_cache(type, proxy)
 														end
 													elseif status == 1 then
 														table.insert(original, {value.all[i], group_name, proxy})
@@ -326,6 +350,7 @@ function unlock_auto_select()
 														else
 															print(now..no_unlock)
 														end
+														delete_cache(type, proxy)
 													else
 														print(now..test_faild)
 													end
@@ -365,6 +390,7 @@ function unlock_auto_select()
 												else
 													print(now..full_support.."【"..region.."】")
 												end
+												write_cache(type, value.all[i], region)
 											else
 												table.insert(full_support_list, {value.all[i], group_name, value.all[i]})
 												if not all_test then
@@ -373,23 +399,27 @@ function unlock_auto_select()
 												else
 													print(now..full_support_no_area)
 												end
+												write_cache(type, value.all[i])
 											end
 										elseif status == 3 then
 											if region and region ~= "" then
 												table.insert(other_region_unlock, {value.all[i], group_name, value.all[i], region})
 												print(now..full_support.."【"..region.."】"..other_region_unlock_no_select)
+												write_cache(type, value.all[i], region)
 											else
 												table.insert(other_region_unlock, {value.all[i], group_name, value.all[i]})
 												print(now..full_support_no_area..other_region_unlock_no_select)
+												write_cache(type, value.all[i])
 											end
-											
 										elseif status == 4 then
 											if region and region ~= "" then
 												table.insert(no_old_region_unlock, {value.all[i], group_name, value.all[i], region})
 												print(now..full_support.."【"..region.."】"..no_old_region_unlock_old_region.."【"..old_region.."】"..no_old_region_unlock_old_region_no_select)
+												write_cache(type, value.all[i], region)
 											else
 												table.insert(no_old_region_unlock, {value.all[i], group_name, value.all[i]})
 												print(now..full_support_no_area..no_old_region_unlock_no_select)
+												write_cache(type, value.all[i])
 											end
 										elseif status == 1 then
 											table.insert(original, {value.all[i], group_name, value.all[i]})
@@ -398,6 +428,7 @@ function unlock_auto_select()
 											else
 												print(now..no_unlock_no_select)
 											end
+											delete_cache(type, value.all[i])
 										else
 											print(now..faild_no_select)
 										end
@@ -424,7 +455,7 @@ function unlock_auto_select()
 								if #nodes_filter(v[3], info) ~= 0 then
 									if v[4] then 
 										table.insert(fallback_select, 1, {v[1], v[2], v[3], v[4]})
-										FS.writefile(string.format("/tmp/openclash_%s_region", type), v[4])
+										write_cache(type, "old_region", v[4])
 									else
 										table.insert(fallback_select, 1, {v[1], v[2], v[3]})
 									end
@@ -440,8 +471,6 @@ function unlock_auto_select()
 									group_now = "【".. v[3] .. "】"
 								end
 								if v[4] then
-									group_now = group_now .. area_i18 .. "【"..v[4].."】"
-								else
 									group_now = group_now .. area_i18 .. "【"..v[4].."】"
 								end
 								if #full_support_list > 0 then
@@ -526,6 +555,8 @@ function unlock_auto_select()
 	if not group_match and not auto_get_group then
 		print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..key_group.."】"..no_group_find)
 	end
+	--write	cache
+	FS.writefile(unlock_cache_file, JSON.stringify(unlock_cache_info))
 end
 
 function urlencode(data)
@@ -538,6 +569,54 @@ function datamatch(data, regex)
 	if result == "true" then return true else return false end
 end
 
+function get_old_region(stream_type)
+	local old_region = ""
+	if not stream_type then
+		stream_type = type
+	end
+	for k, v in pairs(unlock_cache_info) do
+		if v[1] == stream_type and v[2] == "old_region" and v[3] then
+			old_region = v[3]
+			break
+		end
+	end
+	return old_region
+end
+
+function get_old_regex(stream_type)
+	local old_regex = ""
+	if not stream_type then
+		stream_type = type
+	end
+	for k, v in pairs(unlock_cache_info) do
+		if v[1] == stream_type and v[2] == "old_regex" and v[3] then
+			old_regex = v[3]
+			break
+		end
+	end
+	return old_regex
+end
+
+function write_cache(stream_type, node, region)
+	if not region then
+		region = ""
+	end
+	if not table_include(unlock_cache_info, {stream_type, node, region}) then
+		if table_include(unlock_cache_info, {stream_type, node, "cache"}) then
+			delete_cache(stream_type, node)
+		end
+		table.insert(unlock_cache_info, {stream_type, node, region})
+	end
+end
+
+function delete_cache(stream_type, node)
+	for k, v in pairs(unlock_cache_info) do
+		if v[1] == stream_type and v[2] == node then
+			table.remove(unlock_cache_info, k)
+		end
+	end
+end
+
 function table_rand(t, d)
 	if t == nil then
 		return
@@ -547,7 +626,7 @@ function table_rand(t, d)
 	while #t ~= 0 do
 		local n = math.random(0, #t)
 		if t[n] ~= nil then
-			if type == "YouTube Premium" and FS.isfile("/tmp/openclash_Google_region") and FS.readfile("/tmp/openclash_Google_region") == t[n] then
+			if type == "YouTube Premium" and get_old_region("Google") == t[n] then
 				table.insert(tab, 1, t[n])
 			elseif d ~= nil and table_include(groups, d) and d == t[n] then
 				table.insert(tab, 1, t[n])
@@ -618,7 +697,7 @@ function table_sort_by_urltest(t, d)
 	end)
 
 	for _, value in pairs(tab) do
-		if type == "YouTube Premium" and FS.isfile("/tmp/openclash_Google_region") and FS.readfile("/tmp/openclash_Google_region") == value[1] then
+		if type == "YouTube Premium" and get_old_region("Google") == value[1] then
 			table.insert(result, 1, value[1])
 		elseif d ~= nil and table_include(groups, d) and d == value[1] then
 			table.insert(result, 1, value[1])
@@ -626,8 +705,25 @@ function table_sort_by_urltest(t, d)
 			table.insert(result, value[1])
 		end
 	end
-
 	return result
+end
+
+function table_sort_by_cache(t)
+	local tab = {}
+	local tab_b = {}
+	local old_region = get_old_region()
+	if old_region == "" then
+		old_region = "cache"
+	end
+	for n = 1, #(t) do
+		if table_include(unlock_cache_info, {type, t[n], old_region}) then
+			table.insert(tab, t[n])
+		else
+			table.insert(tab_b, t[n])
+		end
+	end
+	for k,v in pairs(tab_b) do table.insert(tab, v) end
+	return tab
 end
 
 function table_include(table, value)
@@ -636,11 +732,39 @@ function table_include(table, value)
 	end
 
 	for k, v in pairs(table) do
-		if v == value then
-			return true
+		if class_type(v) == "table" and class_type(value) == "table" then
+			if table_eq(v, value) then
+				return true
+			else
+				if v[1] == value[1] and v[2] == value[2] and value[3] == "cache" then
+					return true
+				end
+			end
+		else
+			if v == value then
+				return true
+			end
 		end
 	end
 	return false
+end
+
+function table_eq(t1, t2)
+    if t1 == t2 then return true end
+    if class_type(t1) ~= "table" or class_type(t2) ~= "table" then return false end
+    for k1, v1 in pairs(t1) do
+        local v2 = t2[k1]
+        if v2 == nil or not table_eq(v1, v2) then
+            return false
+        end
+    end
+    for k2, v2 in pairs(t2) do
+        local v1 = t1[k2]
+        if v1 == nil or not table_eq(v1, v2) then
+            return false
+        end
+    end
+    return true
 end
 
 function get_auth_info()
@@ -1026,7 +1150,8 @@ function netflix_unlock_test()
 	local info = SYS.exec(string.format('curl -sLI --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H "Content-Type: application/json" -H "%s" -XGET %s', headers, url))
 	local result = {}
 	local region
-	local old_region = ""
+	local old_region = get_old_region()
+	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_netflix") or ""
 	if info then
 		info = JSON.parse(info)
@@ -1038,16 +1163,18 @@ function netflix_unlock_test()
 			region = string.upper(string.match(result[3], "^%a+"))
 			if region == "TITLE" then region = "US" end
 			if region then
-				if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-					old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-				end
 				if not datamatch(region, regex) then
 					status = 3
+				elseif old_regex ~= regex and not all_test then
+					status = 2
 				elseif old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
-					FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+					write_cache(type, "old_region", region)
+				end
+				if status == 2 and not all_test and regex ~= old_regex then
+					write_cache(type, "old_regex", regex)
 				end
 			end
 			return region, old_region
@@ -1068,7 +1195,8 @@ function disney_unlock_test()
 	local body = '{"query":"mutation registerDevice($input: RegisterDeviceInput!) { registerDevice(registerDevice: $input) { grant { grantType assertion } } }","variables":{"input":{"deviceFamily":"browser","applicationRuntime":"chrome","deviceProfile":"windows","deviceLanguage":"en","attributes":{"osDeviceIds":[],"manufacturer":"microsoft","model":null,"operatingSystem":"windows","operatingSystemVersion":"10.0","browserName":"chrome","browserVersion":"96.0.4606"}}}}'
 	local region, assertion, data, preassertion, disneycookie, tokencontent
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_disney") or ""
-	local old_region = ""
+	local old_region = get_old_region()
+	local old_regex = get_old_regex()
 	
 	preassertion = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 %s -H 'User-Agent: %s' -H 'content-type: application/json; charset=UTF-8' -d '{\"deviceFamily\":\"browser\",\"applicationRuntime\":\"chrome\",\"deviceProfile\":\"windows\",\"attributes\":{}}' -XPOST %s", auth, UA, url))
 
@@ -1097,32 +1225,34 @@ function disney_unlock_test()
 			inSupportedLocation = JSON.parse(data).extensions.sdk.session.inSupportedLocation or ""
 			if region == "JP" then
 				status = 2
-				if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-					old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-				end
 				if not datamatch(region, regex) then
 					status = 3
+				elseif old_regex ~= regex and not all_test then
+					status = 2
 				elseif old_region ~= "" and not datamatch(region, old_region) and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and ((old_region ~= "" and not datamatch(region, old_region)) or (old_region == "")) then
-					FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+					write_cache(type, "old_region", region)
+				end
+				if status == 2 and not all_test and regex ~= old_regex then
+					write_cache(type, "old_regex", regex)
 				end
 				return region, old_region
 			end
 
 			if region and region ~= "" and inSupportedLocation then
 				status = 2
-				if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-					old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-				end
 				if not datamatch(region, regex) then
 					status = 3
 				elseif old_region ~= "" and not datamatch(region, old_region) and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and ((old_region ~= "" and not datamatch(region, old_region)) or (old_region == "")) then
-					FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+					write_cache(type, "old_region", region)
+				end
+				if status == 2 and not all_test and regex ~= old_regex then
+					write_cache(type, "old_regex", regex)
 				end
 				return region, old_region
 			end
@@ -1155,7 +1285,8 @@ function hbo_max_unlock_test()
 	local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local result = {}
 	local region = ""
-	local old_region = ""
+	local old_region = get_old_region()
+	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_hbo_max") or ""
 	if data then
 		data = JSON.parse(data)
@@ -1170,16 +1301,18 @@ function hbo_max_unlock_test()
 					region = string.upper(string.match(result[3], "^%a+"))
 				end
 				if region then
-					if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-						old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-					end
 					if not datamatch(region, regex) then
 						status = 3
+					elseif old_regex ~= regex and not all_test then
+						status = 2
 					elseif old_region ~= "" and region ~= old_region and not all_test then
 						status = 4
 					end
-					if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
-						FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+					if status == 2 and not all_test and region ~= "" and region ~= old_region then
+						write_cache(type, "old_region", region)
+					end
+					if status == 2 and not all_test and regex ~= old_regex then
+						write_cache(type, "old_regex", regex)
 					end
 				end
 				return region, old_region
@@ -1195,7 +1328,8 @@ function hbo_go_asia_unlock_test()
 	local httpcode = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_hbo_go_asia") or ""
 	local region = ""
-	local old_region = ""
+	local old_region = get_old_region()
+	local old_regex = get_old_regex()
 	if tonumber(httpcode) == 200 then
 		status = 1
 		local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
@@ -1209,16 +1343,18 @@ function hbo_go_asia_unlock_test()
 					region = string.upper(data.country)
 				end
 				if region then
-					if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-						old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-					end
 					if not datamatch(region, regex) then
 						status = 3
+					elseif old_regex ~= regex and not all_test then
+						status = 2
 					elseif old_region ~= "" and region ~= old_region and not all_test then
 						status = 4
 					end
-					if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
-						FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+					if status == 2 and not all_test and region ~= "" and region ~= old_region then
+						write_cache(type, "old_region", region)
+					end
+					if status == 2 and not all_test and regex ~= old_regex then
+						write_cache(type, "old_regex", regex)
 					end
 				end
 				return region, old_region
@@ -1233,9 +1369,10 @@ function ytb_unlock_test()
 	local url = "https://m.youtube.com/premium"
 	local httpcode = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local region = ""
-	local old_region = ""
+	local old_region = get_old_region()
 	local data, he_data
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_ytb") or ""
+	local old_regex = get_old_regex()
 	if tonumber(httpcode) == 200 then
 		status = 1
 		data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' -b 'YSC=BiCUU3-5Gdk; CONSENT=YES+cb.20220301-11-p0.en+FX+700; GPS=1; VISITOR_INFO1_LIVE=4VwPMkB7W5A; PREF=tz=Asia.Shanghai; _gcl_au=1.1.1809531354.1646633279' %s", UA, url))
@@ -1254,16 +1391,18 @@ function ytb_unlock_test()
 				region = "US"
 			end
 		end
-		if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-			old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-		end
 		if not datamatch(region, regex) then
 			status = 3
+		elseif old_regex ~= regex and not all_test then
+			status = 2
 		elseif old_region ~= "" and region ~= old_region and not all_test then
 			status = 4
 		end
-		if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
-			FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+		if status == 2 and not all_test and region ~= "" and region ~= old_region then
+			write_cache(type, "old_region", region)
+		end
+		if status == 2 and not all_test and regex ~= old_regex then
+			write_cache(type, "old_regex", regex)
 		end
 	end
 	return region, old_region
@@ -1274,7 +1413,8 @@ function tvb_anywhere_unlock_test()
 	local url = "https://uapisfm.tvbanywhere.com.sg/geoip/check/platform/android"
 	local httpcode = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local region = ""
-	local old_region = ""
+	local old_region = get_old_region()
+	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_tvb_anywhere") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
@@ -1288,16 +1428,18 @@ function tvb_anywhere_unlock_test()
 	  			region = string.upper(data.country)
 	  		end
 			if region then
-				if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-					old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-				end
 				if not datamatch(region, regex) then
 					status = 3
+				elseif old_regex ~= regex and not all_test then
+					status = 2
 				elseif old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
-					FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+					write_cache(type, "old_region", region)
+				end
+				if status == 2 and not all_test and regex ~= old_regex then
+					write_cache(type, "old_regex", regex)
 				end
 			end
 		end
@@ -1310,7 +1452,8 @@ function prime_video_unlock_test()
 	local url = "https://www.primevideo.com"
 	local httpcode = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local region
-	local old_region = ""
+	local old_region = get_old_region()
+	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_prime_video") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
@@ -1319,16 +1462,18 @@ function prime_video_unlock_test()
 	  		region = string.sub(string.match(data, "\"currentTerritory\":\"%a+\""), 21, -2)
 			if region then
 				status = 2
-				if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-					old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-				end
 				if not datamatch(region, regex) then
 					status = 3
+				elseif old_regex ~= regex and not all_test then
+					status = 2
 				elseif old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
-					FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+					write_cache(type, "old_region", region)
+				end
+				if status == 2 and not all_test and regex ~= old_regex then
+					write_cache(type, "old_regex", regex)
 				end
 				return region, old_region
 			end
@@ -1343,7 +1488,8 @@ function dazn_unlock_test()
 	local url2 = "https://startup.core.indazn.com/misl/v5/Startup"
 	local httpcode = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	local region
-	local old_region = ""
+	local old_region = get_old_region()
+	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_dazn") or ""
 	if tonumber(httpcode) == 200 then
 		status = 1
@@ -1357,16 +1503,18 @@ function dazn_unlock_test()
 	  			region = string.upper(data.Region.GeolocatedCountry)
 	  		end
 			if region then
-				if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-					old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-				end
 				if not datamatch(region, regex) then
 					status = 3
+				elseif old_regex ~= regex and not all_test then
+					status = 2
 				elseif old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
-					FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+					write_cache(type, "old_region", region)
+				end
+				if status == 2 and not all_test and regex ~= old_regex then
+					write_cache(type, "old_regex", regex)
 				end
 			end
 		end
@@ -1378,7 +1526,8 @@ function paramount_plus_unlock_test()
 	status = 0
 	local url = "https://www.paramountplus.com/"
 	local region
-	local old_region = ""
+	local old_region = get_old_region()
+	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_paramount_plus") or ""
 	local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	data = JSON.parse(data)
@@ -1389,16 +1538,18 @@ function paramount_plus_unlock_test()
 			data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 			region = string.upper(string.sub(string.match(data, "\"siteEdition\":\"%a+|%a+\""), 19, -2)) or string.upper(string.sub(string.match(data, "property: '%a+'"), 12, -2))
 			if region then
-				if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-					old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-				end
 				if not datamatch(region, regex) then
 					status = 3
+				elseif old_regex ~= regex and not all_test then
+					status = 2
 				elseif old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
-					FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+					write_cache(type, "old_region", region)
+				end
+				if status == 2 and not all_test and regex ~= old_regex then
+					write_cache(type, "old_regex", regex)
 				end
 				return region, old_region
 	  		end
@@ -1411,7 +1562,8 @@ function discovery_plus_unlock_test()
 	local url = "https://us1-prod-direct.discoveryplus.com/token?deviceId=d1a4a5d25212400d1e6985984604d740&realm=go&shortlived=true"
 	local url1 = "https://us1-prod-direct.discoveryplus.com/users/me"
 	local region
-	local old_region = ""
+	local old_region = get_old_region()
+	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_discovery_plus") or ""
 	local token = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))
 	if token and JSON.parse(token) and JSON.parse(token).data and JSON.parse(token).data.attributes then
@@ -1423,16 +1575,18 @@ function discovery_plus_unlock_test()
 			region = string.upper(JSON.parse(data).data.attributes.currentLocationTerritory) or string.upper(JSON.parse(data).data.attributes.currentLocationSovereignTerritory)
 			if region then
 				status = 2
-				if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-					old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-				end
 				if not datamatch(region, regex) then
 					status = 3
+				elseif old_regex ~= regex and not all_test then
+					status = 2
 				elseif old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
-					FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+					write_cache(type, "old_region", region)
+				end
+				if status == 2 and not all_test and regex ~= old_regex then
+					write_cache(type, "old_regex", regex)
 				end
 				return region, old_region
 	  		end
@@ -1445,7 +1599,7 @@ function bilibili_unlock_test()
 	local randsession = SYS.exec("cat /dev/urandom | head -n 32 | md5sum | head -c 32")
 	local region, httpcode, data, url
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_bilibili") or ""
-	local old_region = ""
+	local old_region = get_old_region()
 	if regex == "HK/MO/TW" then
 		url = string.format("https://api.bilibili.com/pgc/player/web/playurl?avid=18281381&cid=29892777&qn=0&type=&otype=json&ep_id=183799&fourk=1&fnver=0&fnval=16&session=%s&module=bangumi", randsession)
 		region = "HK/MO/TW"
@@ -1465,14 +1619,14 @@ function bilibili_unlock_test()
 			if data.code then
 				if data.code == 0 then
 					status = 2
-					if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-						old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-					end
 					if old_region ~= "" and region ~= old_region and not all_test then
 						status = 4
 					end
-					if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
-						FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+					if status == 2 and not all_test and region ~= "" and region ~= old_region then
+						write_cache(type, "old_region", region)
+					end
+					if status == 2 and not all_test and regex ~= old_regex then
+						write_cache(type, "old_regex", regex)
 					end
 					return region, old_region
 				end
@@ -1491,7 +1645,7 @@ function google_not_cn_test()
 			status = 2
 			region = "NOT CN"
 			if not all_test then
-				FS.writefile(string.format("/tmp/openclash_%s_region", type), tested_proxy[-1])
+				write_cache(type, "old_region", tested_proxy[-1])
 			end
 		else
 			region = "CN"
@@ -1507,7 +1661,8 @@ function openai_unlock_test()
 	local region_url = "https://chat.openai.com/cdn-cgi/trace"
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_openai") or ""
 	local region = ""
-	local old_region = ""
+	local old_region = get_old_region()
+	local old_regex = get_old_regex()
 	local data = SYS.exec(string.format("curl -sIL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))
 	if data then
 		if string.find(data, "text/html") then
@@ -1517,16 +1672,18 @@ function openai_unlock_test()
 				region = string.upper(string.sub(string.match(region_data, "loc=%a+"), 5, -1))
 			end
 			if region then
-				if FS.isfile(string.format("/tmp/openclash_%s_region", type)) then
-					old_region = FS.readfile(string.format("/tmp/openclash_%s_region", type))
-				end
 				if not datamatch(region, regex) then
 					status = 3
+				elseif old_regex ~= regex and not all_test then
+					status = 2
 				elseif old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and ((old_region ~= "" and region ~= old_region) or (old_region == "")) then
-					FS.writefile(string.format("/tmp/openclash_%s_region", type), region)
+				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+					write_cache(type, "old_region", region)
+				end
+				if status == 2 and not all_test and regex ~= old_regex then
+					write_cache(type, "old_regex", regex)
 				end
 	  		end
 		else
