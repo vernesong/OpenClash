@@ -3371,3 +3371,12 @@ msgstr "黑名单模式"
 
 msgid "Whitelist Mode"
 msgstr "白名单模式"
+
+msgid "Group Cached Compliant Nodes Number: "
+msgstr "策略组已缓存的符合设置要求的节点数量: "
+
+msgid ", Cached Non-compliant Nodes Number: "
+msgstr "，不符合设置要求的节点数量: "
+
+msgid ", Prioritize Testing With Cached Compliant Nodes ..."
+msgstr "，程序将优先使用符合要求的节点进行测试 ..."
