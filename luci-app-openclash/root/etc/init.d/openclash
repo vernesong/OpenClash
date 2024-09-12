@@ -204,11 +204,16 @@ EOF
 
 kill_clash()
 {
-   clash_pids=$(pidof clash |sed 's/$//g')
-   for clash_pid in $clash_pids; do
-      kill -9 "$clash_pid" 2>/dev/null
+   check_time=1
+   while ( [ "$check_time" -le 10 ] && [ -n "$(pidof clash)" ] )
+   do
+      clash_pids=$(pidof clash |sed 's/$//g')
+      for clash_pid in $clash_pids; do
+         kill -9 "$clash_pid" 2>/dev/null
+      done
+      sleep 1
+      let check_time++
    done >/dev/null 2>&1
-   sleep 1
 }
 
 start_fail()
@@ -1078,10 +1083,9 @@ set_tun_tap()
          do
             LOG_OUT "Warning: TUN Interface Start Failed, Try to Restart Again..."
             kill_clash
-            sleep 3
             start_run_core
+            sleep 5
             check_core_status
-            sleep 10
             let TUN_RESTART++
          done
          if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -gt 3 ]; then
@@ -2878,7 +2882,7 @@ get_config()
    global_client_fingerprint=$(uci -q get openclash.config.global_client_fingerprint || echo "0")
    enable_unified_delay=$(uci -q get openclash.config.enable_unified_delay || echo "0")
    keep_alive_interval=$(uci -q get openclash.config.keep_alive_interval || echo "0")
-   proxy_dns_group=$(uci -q get openclash.config.proxy_dns_group || echo "Disable")
+   enable_respect_rules=$(uci -q get openclash.config.enable_respect_rules || echo "0")
    intranet_allowed_wan_name=$(uci -q get openclash.config.intranet_allowed_wan_name || echo "0")
    custom_fakeip_filter_mode=$(uci -q get openclash.config.custom_fakeip_filter_mode || echo "blacklist")
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
@@ -2908,7 +2912,7 @@ start()
    if ! $quick_start; then
       LOG_OUT "Step 3: Modify The Config File..."
       config_check
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay" "$keep_alive_interval" "$proxy_dns_group" "$custom_fakeip_filter_mode"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay" "$keep_alive_interval" "$enable_respect_rules" "$custom_fakeip_filter_mode"
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port" "$enable_redirect_dns" "$fakeip_range" "$en_mode"
       /usr/share/openclash/openclash_custom_domain_dns.sh >/dev/null 2>&1
       #Custom overwrite
@@ -3046,8 +3050,6 @@ reload()
       revert_firewall 2>/dev/null
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
-      #start_run_core
-      #check_core_status
       set_firewall 2>/dev/null
       /etc/init.d/dnsmasq restart >/dev/null 2>&1
       SLOG_CLEAN
