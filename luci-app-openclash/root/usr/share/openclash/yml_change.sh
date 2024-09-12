@@ -15,7 +15,6 @@ custom_fallback_filter=$(uci -q get openclash.config.custom_fallback_filter || e
 china_ip_route=$(uci -q get openclash.config.china_ip_route); [[ "$china_ip_route" != "0" && "$china_ip_route" != "1" && "$china_ip_route" != "2" ]] && china_ip_route=0
 china_ip6_route=$(uci -q get openclash.config.china_ip6_route); [[ "$china_ip6_route" != "0" && "$china_ip6_route" != "1" && "$china_ip6_route" != "2" ]] && china_ip6_route=0
 enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
-proxy_dns_group=${34}
 
 if [ -n "$(ruby_read "$5" "['tun']")" ]; then
    uci -q set openclash.config.config_reload=0
@@ -243,8 +242,6 @@ yml_dns_get()
 
       if [ "$group_check" != "return" ] && [ -n "$group_check" ]; then
          specific_group="#$group_check"
-      elif [ "$proxy_dns_group" != "Disable" ] && [ -n "$proxy_dns_group" ] && [ "$group" = "fallback" ]; then
-         specific_group="#$proxy_dns_group"
       else
          specific_group=""
       fi
@@ -415,6 +412,10 @@ Thread.new{
    Value['dns']['listen']='0.0.0.0:${13}';
    
    #meta only
+   if '${34}' == '1' then
+      Value['dns']['respect-rules']=true;
+   end;
+   
    if ${18} == 1 then
       Value_sniffer={'sniffer'=>{'enable'=>true}};
       Value['sniffer']=Value_sniffer['sniffer'];
@@ -547,42 +548,12 @@ begin
 Thread.new{
    if not Value['dns'].key?('nameserver') or Value['dns']['nameserver'].to_a.empty? then
       puts '${LOGTIME} Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete...';
-      Value_1={'nameserver'=>['114.114.114.114','119.29.29.29','223.5.5.5','https://doh.pub/dns-query','https://223.5.5.5/dns-query']};
-      Value_2={'fallback'=>['https://dns.cloudflare.com/dns-query','https://public.dns.iij.jp/dns-query','https://jp.tiar.app/dns-query','https://jp.tiarap.org/dns-query']};
+      Value_1={'nameserver'=>['system']};
+      Value_2={'fallback'=>['https://dns.cloudflare.com/dns-query','https://dns.google/dns-query']};
       Value['dns'].merge!(Value_1);
       Value['dns'].merge!(Value_2);
    end;
 }.join;
-end;
-
-# proxy fallback dns
-begin
-Thread.new{
-   if '${proxy_dns_group}' == 'Disable' or '${proxy_dns_group}'.nil? then
-      Thread.exit;
-   end;
-   if Value.key?('proxy-groups') then
-      Value['proxy-groups'].each{|x,y|
-         if x['name'] =~ /${proxy_dns_group}/ then
-            y = x['name'];
-            if Value['dns'].has_key?('fallback') and not Value['dns']['fallback'].to_a.empty? then
-               Value['dns']['fallback'].each{|z|
-                  if z =~ /#h3/ then
-                     z.gsub!(/#h3/, '#' + y + '&h3');
-                  elsif z =~ /#/ then
-                     next;
-                  else
-                     z << '#' + y;
-                  end;
-               };
-            end;
-            break;
-         end;
-      };
-   end;
-}.join;
-rescue Exception => e
-   puts '${LOGTIME} Error: Set Fallback DNS Proxy Group Failed,【' + e.message + '】';
 end;
 
 #default-nameserver
@@ -777,6 +748,11 @@ Thread.new{
    if File::exist?('/tmp/yaml_openclash_auth') then
       Value_1 = YAML.load_file('/tmp/yaml_openclash_auth');
       Value['authentication']=Value_1
+      if Value.key?('skip-auth-prefixes') and not Value['skip-auth-prefixes'].nil? then
+         Value['skip-auth-prefixes'].merge!(['127.0.0.1/8','::1/128','10.0.0.0/8','192.168.0.0/16','172.16.0.0/12']);
+      else
+         Value['skip-auth-prefixes']=['127.0.0.1/8','::1/128','10.0.0.0/8','192.168.0.0/16','172.16.0.0/12'];
+      end;
    elsif Value.key?('authentication') then
        Value.delete('authentication');
    end;
