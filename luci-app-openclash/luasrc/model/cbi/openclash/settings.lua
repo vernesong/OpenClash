@@ -330,6 +330,15 @@ o.description = translate("Auto Select Proxy For Streaming Unlock, Support Netfl
 o.default = 0
 o:depends("router_self_proxy", "1")
 
+o = s:taboption("stream_enhance", Button, translate("Flush Unlock Test Cache")) 
+o.title = translate("Flush Unlock Test Cache")
+o.inputtitle = translate("Flush Cache")
+o.inputstyle = "reload"
+o.write = function()
+  SYS.call("rm -rf /etc/openclash/history/streaming_unlock_cache >/dev/null 2>&1 &")
+end
+o:depends("stream_auto_select", "1")
+
 o = s:taboption("stream_enhance", Value, "stream_auto_select_interval", translate("Auto Select Interval(min)"))
 o.default = "30"
 o.datatype = "uinteger"
