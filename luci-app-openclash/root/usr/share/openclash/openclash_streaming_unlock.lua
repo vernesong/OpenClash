@@ -17,7 +17,7 @@ local now_name, group_name, group_type, group_show, status, ip, port, passwd, gr
 local groups = {}
 local proxies = {}
 local tested_proxy = {}
-local unlock_cache_file = "/tmp/openclash_streaming_cache_region"
+local unlock_cache_file = "/etc/openclash/history/streaming_unlock_cache"
 local unlock_cache = FS.readfile(unlock_cache_file)
 local unlock_cache_info = {}
 if unlock_cache then
