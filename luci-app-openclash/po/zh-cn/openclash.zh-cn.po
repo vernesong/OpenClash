@@ -3383,3 +3383,15 @@ msgstr "清理解锁检测缓存"
 
 msgid "Flush Cache"
 msgstr "清理缓存"
+
+msgid "ECS Subnet"
+msgstr "ECS 区域地址"
+
+msgid "Specify the ECS Subnet Address"
+msgstr "指定 ECS 子网区域地址"
+
+msgid "ECS Override"
+msgstr "ECS 区域地址覆盖"
+
+msgid "Override the ECS Subnet Address"
+msgstr "强制覆盖 DNS 查询的子网区域地址"
