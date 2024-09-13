@@ -176,7 +176,7 @@ sys_dns_append()
 yml_dns_get()
 {
    local section="$1" regex='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
-   local enabled port type ip group dns_type dns_address interface specific_group
+   local enabled port type ip group dns_type dns_address interface specific_group node_resolve http3 ecs_subnet ecs_override
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "port" "$section" "port" ""
    config_get "type" "$section" "type" ""
@@ -186,6 +186,8 @@ yml_dns_get()
    config_get "specific_group" "$section" "specific_group" ""
    config_get_bool "node_resolve" "$section" "node_resolve" "0"
    config_get_bool "http3" "$section" "http3" "0"
+   config_get_bool "ecs_override" "$section" "ecs_override" "0"
+   config_get "ecs_subnet" "$section" "ecs_subnet" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -269,6 +271,22 @@ yml_dns_get()
       http3=""
    fi
 
+   if [ -n "$ecs_subnet" ]; then
+      if [ -n "$specific_group" ] || [ -n "$interface" ] || [ "$http3" = "1" ]; then
+         ecs_subnet="&ecs=$ecs_subnet"
+      else
+         ecs_subnet="#ecs=$ecs_subnet"
+      fi
+      if [ "$ecs_override" = "1" ]; then
+         ecs_override="&ecs-override=true"
+      else
+         ecs_override=""
+      fi
+   else
+      ecs_subnet=""
+      ecs_override=""
+   fi
+
    if [ "$node_resolve" = "1" ]; then
       if [ -z "$(grep "^ \{0,\}proxy-server-nameserver:$" /tmp/yaml_config.proxynamedns.yaml 2>/dev/null)" ]; then
          echo "  proxy-server-nameserver:" >/tmp/yaml_config.proxynamedns.yaml
@@ -276,7 +294,7 @@ yml_dns_get()
       echo "    - \"$dns_type$dns_address$specific_group$http3\"" >>/tmp/yaml_config.proxynamedns.yaml
    fi
 
-   dns_address="$dns_address$specific_group$interface$http3"
+   dns_address="$dns_address$specific_group$interface$http3$ecs_subnet$ecs_override"
 
    if [ -n "$group" ]; then
       if [ "$group" = "nameserver" ]; then
@@ -570,15 +588,14 @@ Thread.new{
       end;
    end;
    if ${25} == 1 then
-      reg = /(^https:\/\/|^tls:\/\/|^quic:\/\/)?((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])(?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?/;
-      reg6 = /(^https:\/\/|^tls:\/\/|^quic:\/\/)?(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))|\[(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))\](?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?/i;
+      reg = /([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/;
       if Value['dns'].has_key?('fallback') then
          Value_1=Value['dns']['nameserver'] | Value['dns']['fallback'];
       else
          Value_1=Value['dns']['nameserver'];
       end;
       Value_1.each{|x|
-         if x =~ reg or x =~ reg6 then
+         if not x =~ reg then
             if Value['dns'].has_key?('default-nameserver') then
                Value['dns']['default-nameserver']=Value['dns']['default-nameserver'].to_a.insert(-1,x).uniq;
             else
