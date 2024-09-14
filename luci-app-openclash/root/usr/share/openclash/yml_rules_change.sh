@@ -298,33 +298,7 @@ yml_other_set()
    Thread.new{
       if $4 == 1 then
          Value['rules']=Value['rules'].to_a.insert(0,
-         'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
-         'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
-         'DOMAIN-SUFFIX,chdbits.co,DIRECT',
-         'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
-         'DOMAIN-SUFFIX,empornium.me,DIRECT',
-         'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
-         'DOMAIN-SUFFIX,hdchina.org,DIRECT',
-         'DOMAIN-SUFFIX,hdsky.me,DIRECT',
-         'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
-         'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
-         'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
-         'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
-         'DOMAIN-SUFFIX,m-team.cc,DIRECT',
-         'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
-         'DOMAIN-SUFFIX,ncore.cc,DIRECT',
-         'DOMAIN-SUFFIX,open.cd,DIRECT',
-         'DOMAIN-SUFFIX,ourbits.club,DIRECT',
-         'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
-         'DOMAIN-SUFFIX,privatehd.to,DIRECT',
-         'DOMAIN-SUFFIX,redacted.ch,DIRECT',
-         'DOMAIN-SUFFIX,springsunday.net,DIRECT',
-         'DOMAIN-SUFFIX,tjupt.org,DIRECT',
-         'DOMAIN-SUFFIX,totheglory.im,DIRECT',
-         'DOMAIN-SUFFIX,smtp,DIRECT',
-         'DOMAIN-KEYWORD,announce,DIRECT',
-         'DOMAIN-KEYWORD,torrent,DIRECT',
-         'DOMAIN-KEYWORD,tracker,DIRECT'
+         'GEOSITE,category-public-tracker,DIRECT'
          );
          match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0];
          if not match_group.nil? then
@@ -359,8 +333,7 @@ yml_other_set()
                'PROCESS-NAME,UUBooster,DIRECT',
                'PROCESS-NAME,uugamebooster,DIRECT',
                'DST-PORT,80,' + common_port_group,
-               'DST-PORT,443,' + common_port_group,
-               'DST-PORT,22,' + common_port_group
+               'DST-PORT,443,' + common_port_group
                );
             end;
          end

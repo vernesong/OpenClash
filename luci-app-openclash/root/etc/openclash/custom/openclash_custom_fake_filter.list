@@ -142,6 +142,6 @@ local.adguard.org
 +.uu.163.com
 ps.res.netease.com
 #GEOSITE(Meta core)
-geosite:category-games@cn
+geosite:category-games
 #geosite:apple-cn
 #geosite:google-cn

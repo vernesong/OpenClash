@@ -697,17 +697,16 @@ Thread.new{
       if '$china_ip_route' != '0' then
          if Value['dns']['fake-ip-filter-mode'] == 'blacklist' or not Value['dns'].has_key?('fake-ip-filter-mode') then
             if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-               Value['dns']['fake-ip-filter'].insert(-1,'geosite:category-games@cn');
                Value['dns']['fake-ip-filter'].insert(-1,'geosite:cn');
                Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
             else
-               Value['dns'].merge!({'fake-ip-filter'=>['geosite:category-games@cn','geosite:cn']});
+               Value['dns'].merge!({'fake-ip-filter'=>['geosite:cn']});
             end;
-            puts '${LOGTIME} Tip: Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule【 geosite:category-games@cn,geosite:cn 】';
+            puts '${LOGTIME} Tip: Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule【 geosite:cn 】';
          else
             if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
                Value['dns']['fake-ip-filter'].each{|x|
-                  if x =~ /(geosite:?).*(@cn|:cn|,cn)/ then
+                  if x =~ /(geosite:?).*(@cn|:cn|,cn|:china)/ then
                      Value['dns']['fake-ip-filter'].delete(x);
                      puts '${LOGTIME} Tip: Because Need Ensure Bypassing IP Option Work, Deleted The Fake-IP-Filter Rule【' + x + '】';
                   end;
