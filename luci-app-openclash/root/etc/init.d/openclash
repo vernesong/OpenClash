@@ -442,12 +442,8 @@ do_run_file()
       LOG_OUT "Tip: Detected that the Core is not Installed, Ready to Download..."
       rm -rf "/tmp/clash_last_version"
       /usr/share/openclash/openclash_core.sh "$core_type"
-      if [ "$core_type" == "Meta" ] && [ ! -f "$meta_core_path" ]; then
+      if [ ! -f "$meta_core_path" ]; then
          start_fail
-      else
-         del_lock
-         stop
-         exit 0
       fi
    }
 
