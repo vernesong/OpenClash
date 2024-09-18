@@ -141,6 +141,8 @@ local.adguard.org
 #UU Plugin
 +.uu.163.com
 ps.res.netease.com
+#Wifi Calling
++.pub.3gppnetwork.org
 #GEOSITE(Meta core)
 geosite:category-games
 #geosite:apple-cn
