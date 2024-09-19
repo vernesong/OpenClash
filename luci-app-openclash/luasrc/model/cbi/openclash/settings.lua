@@ -1124,7 +1124,7 @@ o.description = translate("Enable to Resolve IPv6 DNS Requests")
 o.default = 0
 
 o = s:taboption("ipv6", ListValue, "china_ip6_route", translate("China IPv6 Route"))
-o.description = translate("Bypass Specified Regions Network Flows, Improve Performance")
+o.description = translate("Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option")
 o.default = 0
 o:value("0", translate("Disable"))
 o:value("1", translate("Bypass Mainland China"))
