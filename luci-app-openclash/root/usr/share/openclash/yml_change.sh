@@ -62,15 +62,23 @@ uci commit openclash
 #Use filter to generate cn domain router pass list
 if [ "$1" = "fake-ip" ] && [ "$enable_redirect_dns" != "2" ]; then
    if [ "$china_ip_route" != "0" ]; then
-      for i in `awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list`
+      for i in `awk '!/^$/&&!/^#/&&/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list`
       do
-         echo "$i" >> /tmp/yaml_openclash_fake_filter_include
+         if [[ ${i:0:2} -eq "+." ]] || [[ ${i:0:2} -eq "*." ]] || [[ ${i:0:1} -eq "." ]]; then
+            echo "$i" >> /tmp/yaml_openclash_fake_filter_include
+         else
+            echo "+.$i" >> /tmp/yaml_openclash_fake_filter_include
+         fi
       done 2>/dev/null
    fi
    if [ "$china_ip6_route" != "0" ]; then
-      for i in `awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list`
+      for i in `awk '!/^$/&&!/^#/&&/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("%s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list`
       do
-         echo "$i" >> /tmp/yaml_openclash_fake_filter_include
+         if [[ ${i:0:2} -eq "+." ]] || [[ ${i:0:2} -eq "*." ]] || [[ ${i:0:1} -eq "." ]]; then
+            echo "$i" >> /tmp/yaml_openclash_fake_filter_include
+         else
+            echo "+.$i" >> /tmp/yaml_openclash_fake_filter_include
+         fi
       done 2>/dev/null
    fi
 fi
@@ -499,9 +507,13 @@ Thread.new{
       Value['tun']['stack']='$stack_type';
       Value['tun']['device']='utun';
       Value_2={'dns-hijack'=>['tcp://any:53']};
+      Value['tun'].merge!(Value_2);
+      Value['tun']['gso']=true;
+      Value['tun']['gso-max-size']=65536;
       Value['tun']['auto-route']=false;
       Value['tun']['auto-detect-interface']=false;
-      Value['tun'].merge!(Value_2);
+      Value['tun']['auto-redirect']=false;
+      Value['tun']['strict-route']=false;
    else
       if Value.key?('tun') then
          Value.delete('tun');
