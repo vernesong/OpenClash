@@ -79,6 +79,20 @@ o:depends("type", "https")
 o.rmempty     = false
 o.default     = o.disbled
 
+---- ECS Subnet
+o = s:option(Value, "ecs_subnet", translate("ECS Subnet"),translate("Specify the ECS Subnet Address")..translate("(Only Meta Core)"))
+o:depends("type", "https")
+o.rmempty     = true
+o.datatype	= "ipaddr"
+o:value("1.1.1.1/24")
+
+---- ECS Override
+o = s:option(Flag, "ecs_override", translate("ECS Override"),translate("Override the ECS Subnet Address")..translate("(Only Meta Core)"))
+o:depends("type", "https")
+o.rmempty     = false
+o.datatype	= "ipaddr"
+o.default     = o.disbled
+
 ---- Proxy group
 o = s:option(Value, "specific_group", translate("Specific Group (Support Regex)"))
 o.description = translate("Group Use For Proxy The DNS")..translate("(Only Meta Core)")

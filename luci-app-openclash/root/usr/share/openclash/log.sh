@@ -13,7 +13,7 @@ LOG_OUT()
 
 LOG_ALERT()
 {
-	echo -e "$(tail -n 20 $LOG_FILE |grep -E 'level=fatal|FTL\ \[Config\]' |awk 'END {print}')" > $START_LOG
+	echo -e "$(tail -n 20 $LOG_FILE |grep -E 'level=fatal|level=error|FTL\ \[Config\]' |awk 'END {print}')" > $START_LOG
 	sleep 3
 }
 

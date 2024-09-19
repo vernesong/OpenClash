@@ -69,9 +69,10 @@ o:value("classical")
 
 o = s:option(ListValue, "format", translate("Rule Format")..translate("(TUN&Meta Core)"))
 o.rmempty = true
-o.description = translate("Choose The Rule File Format, For More Info:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://github.com/Dreamacro/clash/wiki/Premium%3A-Rule-Providers\")'>https://github.com/Dreamacro/clash/wiki/</a>"
+o.description = translate("Choose The Rule File Format, For More Info:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/config/rule-providers/content/\")'>https://wiki.metacubex.one/config/rule-providers/content/</a>"
 o:value("yaml")
 o:value("text")
+o:value("mrs")
 
 o = s:option(ListValue, "path", translate("Rule Providers Path"))
 o.description = translate("Update Your Rule Providers File From Config Luci Page")

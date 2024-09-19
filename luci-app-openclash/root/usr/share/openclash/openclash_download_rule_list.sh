@@ -12,37 +12,7 @@ urlencode() {
    LOG_FILE="/tmp/openclash.log"
    RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
    github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
-   if [ "$1" == "netflix_domains" ]; then
-   	  if [ "$github_address_mod" != "0" ]; then
-         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
-            DOWNLOAD_PATH="${github_address_mod}gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
-         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
-            DOWNLOAD_PATH="https://raw.fastgit.org/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
-         else
-            DOWNLOAD_PATH="${github_address_mod}https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
-         fi
-      else
-         DOWNLOAD_PATH="https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Netflix_Domains.list"
-      fi
-      RULE_FILE_DIR="/usr/share/openclash/res/Netflix_Domains.list"
-      RULE_FILE_NAME="Netflix_Domains"
-      RULE_TYPE="netflix"
-   elif [ "$1" == "disney_domains" ]; then
-      if [ "$github_address_mod" != "0" ]; then
-         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
-            DOWNLOAD_PATH="${github_address_mod}gh/vernesong/OpenClash@$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
-         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
-            DOWNLOAD_PATH="https://raw.fastgit.org/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
-         else
-            DOWNLOAD_PATH="${github_address_mod}https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
-         fi
-      else
-         DOWNLOAD_PATH="https://raw.githubusercontent.com/vernesong/OpenClash/$RELEASE_BRANCH/luci-app-openclash/root/usr/share/openclash/res/Disney_Plus_Domains.list"
-      fi
-      RULE_FILE_DIR="/usr/share/openclash/res/Disney_Plus_Domains.list"
-      RULE_FILE_NAME="Disney_Plus_Domains"
-      RULE_TYPE="disney"
-   elif [ -z "$(grep "$RULE_FILE_NAME" /usr/share/openclash/res/rule_providers.list 2>/dev/null)" ]; then
+   if [ -z "$(grep "$RULE_FILE_NAME" /usr/share/openclash/res/rule_providers.list 2>/dev/null)" ]; then
       DOWNLOAD_PATH=$(grep -F "$RULE_FILE_NAME" /usr/share/openclash/res/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null)
       RULE_FILE_DIR="/etc/openclash/game_rules/$RULE_FILE_NAME"
       RULE_TYPE="game"
@@ -60,13 +30,9 @@ urlencode() {
 
    TMP_RULE_DIR="/tmp/$RULE_FILE_NAME"
    TMP_RULE_DIR_TMP="/tmp/$RULE_FILE_NAME.tmp"
-   [ "$RULE_TYPE" != "netflix" ] && [ "$RULE_TYPE" != "disney" ] && DOWNLOAD_PATH=$(urlencode "$DOWNLOAD_PATH")
+   DOWNLOAD_PATH=$(urlencode "$DOWNLOAD_PATH")
    
-   if [ "$RULE_TYPE" = "netflix" ]; then
-      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-   elif [ "$RULE_TYPE" = "disney" ]; then
-      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-   elif [ "$RULE_TYPE" = "game" ]; then
+   if [ "$RULE_TYPE" = "game" ]; then
       if [ "$github_address_mod" != "0" ]; then
          if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
             curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"gh/FQrabbit/SSTap-Rule@master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"

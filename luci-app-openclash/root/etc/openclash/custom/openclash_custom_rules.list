@@ -1,25 +1,4 @@
-script:
-##  shortcuts:
-##    Notice: The core timezone is UTC
-##    CST 20:00-24:00 = time.now().hour > 12 and time.now().hour < 16
-##    内核时区为UTC,故以下time.now()函数的取值需要根据本地时区进行转换
-##    北京时间(CST) 20:00-24:00 = time.now().hour > 12 and time.now().hour < 16
-##    quic: network == 'udp' and dst_port == 443 and (geoip(resolve_ip(host)) != 'CN' or geoip(dst_ip) != 'CN')
-##    time-limit: in_cidr(src_ip,'192.168.1.2/32') and time.now().hour < 20 or time.now().hour > 21
-##    time-limit: src_ip == '192.168.1.2' and time.now().hour < 20 or time.now().hour > 21
-
-##  code: |
-##    def main(ctx, metadata):
-##        directkeywordlist = ["baidu"]
-##        for directkeyword in directkeywordlist:
-##          if directkeyword in metadata["host"]:
-##            ctx.log('[Script] matched keyword %s use direct' % directkeyword)
-##            return "DIRECT"
-
 rules:
-##- SCRIPT,quic,REJECT #shortcuts rule
-##- SCRIPT,time-limit,REJECT #shortcuts rule
-
 ##- PROCESS-NAME,curl,DIRECT #匹配路由自身进程(curl直连)
 ##- DOMAIN-SUFFIX,google.com,Proxy #匹配域名后缀(交由Proxy代理服务器组)
 ##- DOMAIN-KEYWORD,google,Proxy #匹配域名关键字(交由Proxy代理服务器组)
@@ -29,6 +8,34 @@ rules:
 ##- SRC-IP-CIDR,192.168.1.201/32,DIRECT #匹配数据发起IP(直连)
 ##- DST-PORT,80,DIRECT #匹配数据目标端口(直连)
 ##- SRC-PORT,7777,DIRECT #匹配数据源端口(直连)
+##- GEOSITE,category-public-tracker,DIRECT #匹配GEOSITE数据库规则(直连)
+##- DOMAIN-REGEX,^abc.*com,PROXY #正则匹配域名
+##- RULE-SET,providername,PROXY #匹配规则集
+
+##- IP-CIDR6,2620:0:2d0:200::7/32,PROXY
+##- IP-SUFFIX,8.8.8.8/24,PROXY
+##- IP-ASN,13335,DIRECT
+
+##- SRC-GEOIP,cn,DIRECT
+##- SRC-IP-ASN,9808,DIRECT
+##- SRC-IP-SUFFIX,192.168.1.201/8,DIRECT
+
+##- IN-PORT,7890,PROXY
+##- IN-TYPE,SOCKS/HTTP,PROXY
+##- IN-USER,mihomo,PROXY
+##- IN-NAME,ss,PROXY
+
+##- PROCESS-NAME-REGEX,curl$,PROXY
+##- PROCESS-NAME-REGEX,(?i)Telegram,PROXY
+##- PROCESS-NAME-REGEX,.*telegram.*,PROXY
+
+##- NETWORK,udp,DIRECT
+##- DSCP,4,DIRECT
+
+##- AND,((DOMAIN,baidu.com),(NETWORK,UDP)),DIRECT
+##- OR,((NETWORK,UDP),(DOMAIN,baidu.com)),REJECT
+##- NOT,((DOMAIN,baidu.com)),PROXY
+##- SUB-RULE,(NETWORK,tcp),sub-rule
 
 ##排序在上的规则优先生效,如添加（去除规则前的#号）：
 ##IP段：192.168.1.2-192.168.1.200 直连
@@ -56,6 +63,8 @@ rules:
 ##- SRC-IP-CIDR,198.18.0.1/32,DIRECT
 
 ##DDNS
+##- DOMAIN-KEYWORD,synology,DIRECT
+##- DOMAIN-KEYWORD,quickconnect,DIRECT
 ##- DOMAIN-SUFFIX,checkip.dyndns.org,DIRECT
 ##- DOMAIN-SUFFIX,checkipv6.dyndns.org,DIRECT
 ##- DOMAIN-SUFFIX,checkip.synology.com,DIRECT
