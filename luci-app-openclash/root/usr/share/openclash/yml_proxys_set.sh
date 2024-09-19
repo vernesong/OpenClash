@@ -68,7 +68,7 @@ yml_other_rules_del()
 yml_proxy_provider_set()
 {
    local section="$1"
-   local enabled config type name path provider_filter provider_url provider_interval health_check health_check_url health_check_interval
+   local enabled config type name path provider_filter provider_url provider_interval health_check health_check_url health_check_interval other_parameters
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "config" "$section" "config" ""
    config_get "type" "$section" "type" ""
@@ -80,6 +80,7 @@ yml_proxy_provider_set()
    config_get "health_check" "$section" "health_check" ""
    config_get "health_check_url" "$section" "health_check_url" ""
    config_get "health_check_interval" "$section" "health_check_interval" ""
+   config_get "other_parameters" "$section" "other_parameters" ""
    
    if [ "$enabled" = "0" ]; then
       return
@@ -148,6 +149,10 @@ cat >> "$PROXY_PROVIDER_FILE" <<-EOF
       interval: $health_check_interval
 EOF
 
+#other_parameters
+   if [ -n "$other_parameters" ]; then
+      echo -e "$other_parameters" >> "$PROXY_PROVIDER_FILE"
+   fi
 }
 
 set_alpn()
@@ -1444,105 +1449,7 @@ fi
 rm -rf $servers_name
 
 #一键创建配置文件
-if [ "$rule_sources" = "ConnersHua" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
-LOG_OUT "Creating By Using Connershua (rule set) Rules..."
-echo "proxy-groups:" >>$SERVER_FILE
-cat >> "$SERVER_FILE" <<-EOF
-  - name: Auto - UrlTest
-    type: url-test
-EOF
-if [ -f "/tmp/Proxy_Server" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    proxies:
-EOF
-fi
-cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
-if [ -f "/tmp/Proxy_Provider" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    use:
-EOF
-fi
-cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-cat >> "$SERVER_FILE" <<-EOF
-    url: http://cp.cloudflare.com/generate_204
-    interval: "600"
-    tolerance: "150"
-  - name: Proxy
-    type: select
-    proxies:
-      - Auto - UrlTest
-      - DIRECT
-EOF
-cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
-if [ -f "/tmp/Proxy_Provider" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    use:
-EOF
-fi
-cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-cat >> "$SERVER_FILE" <<-EOF
-  - name: Domestic
-    type: select
-    proxies:
-      - DIRECT
-      - Proxy
-  - name: Others
-    type: select
-    proxies:
-      - Proxy
-      - DIRECT
-      - Domestic
-  - name: Asian TV
-    type: select
-    proxies:
-      - DIRECT
-      - Proxy
-EOF
-cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
-if [ -f "/tmp/Proxy_Provider" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    use:
-EOF
-fi
-cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-cat >> "$SERVER_FILE" <<-EOF
-  - name: Global TV
-    type: select
-    proxies:
-      - Proxy
-      - DIRECT
-EOF
-cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
-if [ -f "/tmp/Proxy_Provider" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    use:
-EOF
-fi
-cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-config_load "openclash"
-config_foreach yml_other_rules_del "other_rules" "$CONFIG_NAME" "ConnersHua"
-uci_name_tmp=$(uci -q add openclash other_rules)
-uci_set="uci -q set openclash.$uci_name_tmp."
-${UCI_SET}rule_source="1"
-${uci_set}enable="1"
-${uci_set}rule_name="ConnersHua"
-${uci_set}config="$CONFIG_NAME"
-${uci_set}GlobalTV="Global TV"
-${uci_set}AsianTV="Asian TV"
-${uci_set}Proxy="Proxy"
-${uci_set}AdBlock="AdBlock"
-${uci_set}Domestic="Domestic"
-${uci_set}Others="Others"
-
-[ "$config_auto_update" -eq 1 ] && [ "$new_servers_group_set" -eq 1 ] && {
-	${UCI_SET}servers_update="1"
-	${UCI_DEL_LIST}="all" >/dev/null 2>&1
-	${UCI_DEL_LIST}="Auto - UrlTest" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Auto - UrlTest" >/dev/null 2>&1
-	${UCI_DEL_LIST}="Proxy" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Proxy" >/dev/null 2>&1
-	${UCI_DEL_LIST}="Asian TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Asian TV" >/dev/null 2>&1
-	${UCI_DEL_LIST}="Global TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Global TV" >/dev/null 2>&1
-}
-elif [ "$rule_sources" = "lhie1" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
+if [ "$rule_sources" = "lhie1" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
 LOG_OUT "Creating By Using lhie1 Rules..."
 echo "proxy-groups:" >>$SERVER_FILE
 cat >> "$SERVER_FILE" <<-EOF
@@ -2031,65 +1938,6 @@ ${uci_set}Others="Others"
 	${UCI_DEL_LIST}="PayPal" >/dev/null 2>&1 && ${UCI_ADD_LIST}="PayPal" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Speedtest" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Speedtest" >/dev/null 2>&1
   ${UCI_DEL_LIST}="Others" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Others" >/dev/null 2>&1
-}
-elif [ "$rule_sources" = "ConnersHua_return" ] && [ "$servers_if_update" != "1" ] && [ -z "$if_game_proxy" ]; then
-LOG_OUT "Creating By Using ConnersHua Return Rules..."
-echo "proxy-groups:" >>$SERVER_FILE
-cat >> "$SERVER_FILE" <<-EOF
-  - name: Auto - UrlTest
-    type: url-test
-EOF
-if [ -f "/tmp/Proxy_Server" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    proxies:
-EOF
-fi
-cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
-if [ -f "/tmp/Proxy_Provider" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    use:
-EOF
-fi
-cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-cat >> "$SERVER_FILE" <<-EOF
-    url: http://cp.cloudflare.com/generate_204
-    interval: "600"
-    tolerance: "150"
-  - name: Proxy
-    type: select
-    proxies:
-      - Auto - UrlTest
-      - DIRECT
-EOF
-cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
-if [ -f "/tmp/Proxy_Provider" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    use:
-EOF
-fi
-cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-cat >> "$SERVER_FILE" <<-EOF
-  - name: Others
-    type: select
-    proxies:
-      - Proxy
-      - DIRECT
-EOF
-config_load "openclash"
-config_foreach yml_other_rules_del "other_rules" "$CONFIG_NAME" "ConnersHua_return"
-uci_name_tmp=$(uci -q add openclash other_rules)
-uci_set="uci -q set openclash.$uci_name_tmp."
-${UCI_SET}rule_source="1"
-${uci_set}enable="1"
-${uci_set}rule_name="ConnersHua_return"
-${uci_set}config="$CONFIG_NAME"
-${uci_set}Proxy="Proxy"
-${uci_set}Others="Others"
-[ "$config_auto_update" -eq 1 ] && [ "$new_servers_group_set" -eq 1 ] && {
-	${UCI_SET}servers_update="1"
-	${UCI_DEL_LIST}="all" >/dev/null 2>&1
-	${UCI_DEL_LIST}="Auto - UrlTest" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Auto - UrlTest" >/dev/null 2>&1
-	${UCI_DEL_LIST}="Proxy" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Proxy" >/dev/null 2>&1
 }
 fi
 

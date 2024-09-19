@@ -7,13 +7,13 @@
     <meta http-equiv="x-dns-prefetch-control" content="on">
     <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
     <link rel="dns-prefetch" href="//whois.pconline.com.cn">
-    <link rel="dns-prefetch" href="//forge.speedtest.cn">
+    <link rel="dns-prefetch" href="//pubstatic.b0.upaiyun.com">
     <link rel="dns-prefetch" href="//api-ipv4.ip.sb">
     <link rel="dns-prefetch" href="//api.ipify.org">
     <link rel="dns-prefetch" href="//api.ttt.sh">
     <link rel="dns-prefetch" href="//qqwry.api.skk.moe">
     <link rel="dns-prefetch" href="//d.skk.moe">
-    <link rel="preconnect" href="https://forge.speedtest.cn">
+    <link rel="preconnect" href="https://pubstatic.b0.upaiyun.com">
     <link rel="preconnect" href="https://whois.pconline.com.cn">
     <link rel="preconnect" href="https://api-ipv4.ip.sb">
     <link rel="preconnect" href="https://api.ipify.org">
@@ -143,7 +143,7 @@
                 <span style="float: right;"><img src="/luci-static/resources/openclash/img/eye-light.svg" height="20px" title="<%:Hide IP%>" alt="<%:Hide IP%>" id="eye-icon" onclick="return privacy_my_ip(this)" /></span>
             </p>
             <p style="margin: 10px -2% 0 8%; text-align: left; padding-left: 0px !important; padding-right: 0px !important;">
-                <span class="ip-title">SpeedTest:</span><span class="ip-result" id="ip-speedtest"></span> <span class="ip-geo" id="ip-speedtest-geo"></span>
+                <span class="ip-title">UpaiYun:</span><span class="ip-result" id="ip-upaiyun"></span> <span class="ip-geo" id="ip-upaiyun-geo"></span>
             </p>
             <p style="margin: 10px -2% 0 8%; text-align: left; padding-left: 0px !important; padding-right: 0px !important;">
                 <span class="ip-title">PConline:</span><span class="ip-result" id="ip-pcol"></span> <span class="ip-geo" id="ip-pcol-geo"></span>
@@ -181,6 +181,15 @@
 </fieldset>
 </body>
     <script>
+        function addTitleOnOverflow() {
+            document.querySelectorAll('.ip-result, .ip-geo').forEach(function (span) {
+                if (span.scrollWidth > span.clientWidth && localStorage.getItem('privacy_my_ip') !== 'true') {
+                    span.setAttribute('title', span.textContent);
+                } else {
+                    span.removeAttribute('title');
+                }
+            });
+        }
         function ip_skk()
        {
         url2='https://ip.skk.moe';
@@ -189,13 +198,13 @@
         const $$ = document;
         var ip_pcol_ip;
         var ip_ipsb_ip;
-        var ip_speedtest_ip;
+        var ip_upaiyun_ip;
         var ip_ipify_ip;
         var refresh_http;
         var refresh_ip;
         $$.getElementById('ip-pcol').innerHTML = '<%:Querying...%>';
         $$.getElementById('ip-ipify').innerHTML = '<%:Querying...%>';
-        $$.getElementById('ip-speedtest').innerHTML = '<%:Querying...%>';
+        $$.getElementById('ip-upaiyun').innerHTML = '<%:Querying...%>';
         $$.getElementById('ip-ipsb').innerHTML = '<%:Querying...%>';
         let random = parseInt(Math.random() * 100000000);
         let IP = {
@@ -248,6 +257,7 @@
                             $$.getElementById('ip-ipipnet').innerHTML = `${data[0]}`;
                         };
                         $$.getElementById('ip-ipipnet-geo').innerHTML = `${data[1]}`;
+                        addTitleOnOverflow();
                     });
             },
             getIPApiIP: () => {
@@ -257,16 +267,28 @@
                             $$.getElementById('ip-ipapi').innerHTML = resp.data.ip;
                         };
                         IP.parseIPIpip(resp.data.ip, 'ip-ipapi-geo');
+                        addTitleOnOverflow();
                     })
             },
-            getSpeedIP: () => {
-                IP.get(`https://forge.speedtest.cn/api/location/info?z=${random}`, 'json')
+            //getSpeedIP: () => {
+            //    IP.get(`https://forge.speedtest.cn/api/location/info?z=${random}`, 'json')
+            //        .then(resp => {
+            //            if (localStorage.getItem('privacy_my_ip') != 'true') {
+            //                $$.getElementById('ip-speedtest').innerHTML = resp.data.ip;
+            //            };
+                        //$$.getElementById('ip-speedtest-geo').innerHTML = resp.data.country + resp.data.province + resp.data.city + (resp.data.distinct == "null" ? '' : resp.data.distinct) + ' '  + (resp.data.isp == "null" ? '' : resp.data.isp);
+            //            IP.parseIPIpip(resp.data.ip, 'ip-speedtest-geo');
+            //        })
+            //},
+            getUpaiIP: () => {
+                IP.get(`https://pubstatic.b0.upaiyun.com/?_upnode&z=${random}`, 'json')
                     .then(resp => {
                         if (localStorage.getItem('privacy_my_ip') != 'true') {
-                            $$.getElementById('ip-speedtest').innerHTML = resp.data.ip;
+                            $$.getElementById('ip-upaiyun').innerHTML = resp.data.remote_addr;
                         };
-                        //$$.getElementById('ip-speedtest-geo').innerHTML = resp.data.country + resp.data.province + resp.data.city + (resp.data.distinct == "null" ? '' : resp.data.distinct) + ' '  + (resp.data.isp == "null" ? '' : resp.data.isp);
-                        IP.parseIPIpip(resp.data.ip, 'ip-speedtest-geo');
+                        $$.getElementById('ip-upaiyun-geo').innerHTML = resp.data.remote_addr_location.country + resp.data.remote_addr_location.province + resp.data.remote_addr_location.city + ' '  + resp.data.remote_addr_location.isp;
+                        //IP.parseIPIpip(resp.data.remote_addr, 'ip-upaiyun-geo');
+                        addTitleOnOverflow();
                     })
             },
             getIpifyIP: () => {
@@ -279,6 +301,7 @@
                 })
                 .then(ip => {
                 	IP.parseIPIpip(ip, 'ip-ipify-geo');
+                    addTitleOnOverflow();
                 })
             }
         };
@@ -340,6 +363,7 @@
                 $$.getElementById('ip-pcol').innerHTML = data.ip;
             };
             $$.getElementById('ip-pcol-geo').innerHTML = `${data.pro}${data.city}${data.region} ${pcisp[1]}`;
+            addTitleOnOverflow();
         };
 
         function getIpsbIP(data){
@@ -347,6 +371,7 @@
                 $$.getElementById('ip-ipsb').innerHTML = data.ip;
             };
             IP.parseIPIpip(data.ip, 'ip-ipsb-geo');
+            addTitleOnOverflow();
         };
         
         //function ipCallback(data){
@@ -379,11 +404,11 @@
             
             var sbipScript= document.createElement("script");
             sbipScript.defer = "defer";
-            sbipScript.src='https://api-ipv4.ip.sb/jsonip?callback=getIpsbIP';
+            sbipScript.src=`https://api-ipv4.ip.sb/jsonip?callback=getIpsbIP&z=${random}`;
             mypage.appendChild(sbipScript);
             
             //HTTP.runcheck();
-            IP.getSpeedIP();
+            IP.getUpaiIP();
             IP.getIpifyIP();
         };
 
@@ -395,12 +420,13 @@
                 $$.getElementById('eye-icon').alt='<%:Show IP%>';
                 ip_pcol_ip = $$.getElementById('ip-pcol').innerHTML;
                 ip_ipsb_ip = $$.getElementById('ip-ipsb').innerHTML;
-                ip_speedtest_ip = $$.getElementById('ip-speedtest').innerHTML;
+                ip_upaiyun_ip = $$.getElementById('ip-upaiyun').innerHTML;
                 ip_ipify_ip = $$.getElementById('ip-ipify').innerHTML;
                 $$.getElementById('ip-pcol').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
-                $$.getElementById('ip-speedtest').innerHTML = '***.***.***.***';
+                $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
+                addTitleOnOverflow();
             }
             else {
                 refresh_http = setInterval("HTTP.runcheck()", Math.floor(Math.random()*(10-5+1)+5)*1000);
@@ -419,12 +445,13 @@
                 imgobj.alt='<%:Show IP%>';
                 ip_pcol_ip = $$.getElementById('ip-pcol').innerHTML;
                 ip_ipsb_ip = $$.getElementById('ip-ipsb').innerHTML;
-                ip_speedtest_ip = $$.getElementById('ip-speedtest').innerHTML;
+                ip_upaiyun_ip = $$.getElementById('ip-upaiyun').innerHTML;
                 ip_ipify_ip = $$.getElementById('ip-ipify').innerHTML;
                 $$.getElementById('ip-pcol').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
-                $$.getElementById('ip-speedtest').innerHTML = '***.***.***.***';
+                $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
+                addTitleOnOverflow();
             }
             else {
                 imgobj.src='/luci-static/resources/openclash/img/eye-light.svg';
@@ -432,7 +459,7 @@
                 imgobj.alt='<%:Hide IP%>';
                 $$.getElementById('ip-pcol').innerHTML = ip_pcol_ip;
                 $$.getElementById('ip-ipsb').innerHTML = ip_ipsb_ip;
-                $$.getElementById('ip-speedtest').innerHTML = ip_speedtest_ip;
+                $$.getElementById('ip-upaiyun').innerHTML = ip_upaiyun_ip;
                 $$.getElementById('ip-ipify').innerHTML = ip_ipify_ip;
                 localStorage.removeItem('privacy_my_ip');
                 myip_Load();
@@ -452,11 +479,13 @@
 
         HTTP.runcheck();
         IP.getIpifyIP();
-        IP.getSpeedIP();
+        IP.getUpaiIP();
         show_my_ip();
     </script>
     <script type="text/javascript">
         document.write('<script defer="defer" src="https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP&z='+parseInt(Math.random() * 100000000)+'" type="text/javascript"><\/script>');
     </script>
-    <script defer="defer" src="https://api-ipv4.ip.sb/jsonip?callback=getIpsbIP"></script>
+    <script type="text/javascript">
+        document.write('<script defer="defer" src="https://api-ipv4.ip.sb/jsonip?callback=getIpsbIP&z='+parseInt(Math.random() * 100000000)+'" type="text/javascript"><\/script>');
+    </script>
 </html>
