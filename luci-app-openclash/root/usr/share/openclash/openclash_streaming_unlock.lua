@@ -723,7 +723,7 @@ function table_sort_by_cache(t)
 		end
 	end
 	if #tab > 0 then
-		print(os.date("%Y-%m-%d %H:%M:%S").." 【"..type.."】".."Group Cached Compliant Nodes Number:".."【"..#(tab).."】"..", Cached Non-compliant Nodes Number:".."【"..#(tab_b).."】"..", Prioritize Testing With Cached Compliant Nodes...")
+		print(os.date("%Y-%m-%d %H:%M:%S").." "..type.." Group:".."【"..group_match_name.."】".."Cached Compliant Nodes Number:".."【"..#(tab).."】"..", Cached Non-compliant Nodes Number:".."【"..#(tab_b).."】"..", Prioritize Testing With Cached Compliant Nodes...")
 	end
 	for k,v in pairs(tab_b) do table.insert(tab, v) end
 	return tab
