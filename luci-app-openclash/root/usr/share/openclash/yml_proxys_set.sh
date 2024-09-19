@@ -68,7 +68,7 @@ yml_other_rules_del()
 yml_proxy_provider_set()
 {
    local section="$1"
-   local enabled config type name path provider_filter provider_url provider_interval health_check health_check_url health_check_interval
+   local enabled config type name path provider_filter provider_url provider_interval health_check health_check_url health_check_interval other_parameters
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "config" "$section" "config" ""
    config_get "type" "$section" "type" ""
@@ -80,6 +80,7 @@ yml_proxy_provider_set()
    config_get "health_check" "$section" "health_check" ""
    config_get "health_check_url" "$section" "health_check_url" ""
    config_get "health_check_interval" "$section" "health_check_interval" ""
+   config_get "other_parameters" "$section" "other_parameters" ""
    
    if [ "$enabled" = "0" ]; then
       return
@@ -148,6 +149,10 @@ cat >> "$PROXY_PROVIDER_FILE" <<-EOF
       interval: $health_check_interval
 EOF
 
+#other_parameters
+   if [ -n "$other_parameters" ]; then
+      echo -e "$other_parameters" >> "$PROXY_PROVIDER_FILE"
+   fi
 }
 
 set_alpn()
