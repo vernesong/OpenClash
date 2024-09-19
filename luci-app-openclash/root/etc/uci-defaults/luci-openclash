@@ -30,7 +30,6 @@ cp -f "/etc/openclash/custom/openclash_custom_fake_filter.list" "/usr/share/open
 cp -f "/etc/openclash/custom/openclash_custom_domain_dns.list" "/usr/share/openclash/backup/openclash_custom_domain_dns.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_domain_dns_policy.list" "/usr/share/openclash/backup/openclash_custom_domain_dns_policy.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_fallback_filter.yaml" "/usr/share/openclash/backup/openclash_custom_fallback_filter.yaml" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_netflix_domains.list" "/usr/share/openclash/backup/openclash_custom_netflix_domains.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_force_sniffing_domain.yaml" "/usr/share/openclash/backup/openclash_force_sniffing_domain.yaml" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_sniffing_domain_filter.yaml" "/usr/share/openclash/backup/openclash_sniffing_domain_filter.yaml" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_sniffing_ports_filter.yaml" "/usr/share/openclash/backup/openclash_sniffing_ports_filter.yaml" >/dev/null 2>&1
@@ -127,6 +126,9 @@ if [ -f "/tmp/openclash.bak" ]; then
 	rm -rf "/etc/openclash/openclash" >/dev/null 2>&1
 	rm -rf "/etc/openclash/fake_filter.list" >/dev/null 2>&1
 	rm -rf "/etc/openclash/openclash_servers_fake_filter.conf" >/dev/null 2>&1
+	rm -rf /etc/openclash/core/clash >/dev/null 2>&1
+	rm -rf /etc/openclash/core/clash_tun >/dev/null 2>&1
+	rm -rf /etc/openclash/accelerated-domains.china.conf >/dev/null 2>&1
 	rm -rf "/tmp/openclash" >/dev/null 2>&1
 	rm -rf "/tmp/openclash.bak" >/dev/null 2>&1
 fi

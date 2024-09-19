@@ -36,17 +36,7 @@
 	    <tr>
 	  	<td colspan="4" width="100%">
 	  		<p style="margin: 10px 0; text-align: center">
-				<%
-					if uci:get("openclash", "config", "enable_meta_core") ~= '1' then
-				%>
-	      				<img id="_logo" src="/luci-static/resources/openclash/img/logo.png?<%=random%>" loading="lazy" width="150px" height="150px" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/logo.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/logo.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
-				<%
-					else
-				%>
-						<img id="_logo" src="/luci-static/resources/openclash/img/meta.png?<%=random%>" loading="lazy" width="150px" height="150px" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/meta.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
-				<%
-					end
-				%>
+				<img id="_logo" src="/luci-static/resources/openclash/img/meta.png?<%=random%>" loading="lazy" width="150px" height="150px" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/meta.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 			</p>
 	  		<p id="_clashversion" style="margin: 10px 0; text-align: center">
 				<img src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onclick="return go_update()">
@@ -185,9 +175,8 @@
 			</p>
 		</td></tr>
 		<tr><td width="25%"><%:Node Select Backup%></td><td width="25%" align="left" id="_historychecktime"><%:Collecting data...%></td><td width="25%"><%:lhie1 Rule Update%></td><td width="25%" align="left" id="_lhie1"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"><%:ConnersHua Rule Update%></td><td width="25%" align="left" id="_ConnersHua"><%:Collecting data...%></td><td width="25%"><%:ConnersHua Return Rule Update%></td><td width="25%" align="left" id="_ConnersHua_return"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"><%:Mainland IP Update%></td><td width="25%" align="left" id="_chnroute"><%:Collecting data...%></td><td width="25%"><%: Mainland IPv6 Update%></td><td width="25%" align="left" id="_chnroutev6"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"><%:GEOIP Data Update%></td><td width="25%" align="left" id="_ipdb"><%:Collecting data...%></td><td width="25%"><%:GeoSite Data Update%></td><td width="25%" align="left" id="_geosite"><%:Collecting data...%></td></tr>
+		<tr><td width="25%"><%:GeoIP Data Update%></td><td width="25%" align="left" id="_ipdb"><%:Collecting data...%></td><td width="25%"><%:GeoSite Data Update%></td><td width="25%" align="left" id="_geosite"><%:Collecting data...%></td></tr>
 	</table>
 </fieldset>
 <script type="text/javascript">//<![CDATA[
@@ -213,8 +202,6 @@
 	var ipdb = document.getElementById('_ipdb');
 	var geosite = document.getElementById('_geosite');
 	var lhie1 = document.getElementById('_lhie1');
-	var ConnersHua = document.getElementById('_ConnersHua');
-	var ConnersHua_return = document.getElementById('_ConnersHua_return');
 	var chnroute = document.getElementById('_chnroute');
 	var chnroutev6 = document.getElementById('_chnroutev6');
 	var historychecktime = document.getElementById('_historychecktime');
@@ -250,14 +237,7 @@
 
 	XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
-			if ( status.restricted_mode != "1" )
-			{
-			   clash.innerHTML = status.clash ? '<b style=color:green>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : '<b style=color:red><%:Not Running%></b>';
-			}
-			else
-			{
-			   clash.innerHTML = status.clash ? '<b style=color:green>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%>&nbsp;&nbsp;&nbsp;<%:<Limited State>%></b>' : '<b style=color:red><%:Not Running%></b>';
-			}
+			clash.innerHTML = status.clash ? '<b style=color:green>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : '<b style=color:red><%:Not Running%></b>';
 			watchdog.innerHTML = status.watchdog ? '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:green><%:Running%></b>' : '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:red><%:Not Running%></b>';
 			dase.innerHTML = status.dase ? "<b style=color:green>"+status.dase+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
 			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Yacd Control Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
@@ -346,9 +326,9 @@
 
 	XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
 	  if ( x && x.status == 200 ) {
-	  	if ( status.startlog.match("level=fatal") || status.startlog.indexOf("FTL [Config]") != "-1" ) {
+	  	if ( status.startlog.match("level=fatal") || status.startlog.match("level=error") || status.startlog.indexOf("FTL [Config]") != "-1" ) {
 	    	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
-			if ( status.startlog.match("level=fatal") ) {
+			if ( status.startlog.match("level=fatal") || status.startlog.match("level=error") ) {
 				alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('msg=')[1]);
 			}
 	    	else {
@@ -544,8 +524,6 @@
 				ipdb.innerHTML = status.ipdb ? "<b style=color:green>"+status.ipdb+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				geosite.innerHTML = status.geosite ? "<b style=color:green>"+status.geosite+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				lhie1.innerHTML = status.lhie1 ? "<b style=color:green>"+status.lhie1+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
-				ConnersHua.innerHTML = status.ConnersHua ? "<b style=color:green>"+status.ConnersHua+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
-				ConnersHua_return.innerHTML = status.ConnersHua_return ? "<b style=color:green>"+status.ConnersHua_return+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				chnroute.innerHTML = status.chnroute ? "<b style=color:green>"+status.chnroute+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				chnroutev6.innerHTML = status.chnroutev6 ? "<b style=color:green>"+status.chnroutev6+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				if ( status.historychecktime != "0" ) {
@@ -854,14 +832,14 @@
         btn.disabled = true;
         btn.value    = '<%:Metacubexd Control Panel%>';
         if (status.daip && window.location.hostname == status.daip) {
-            url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/metacubexd/#/?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+            url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/metacubexd/#/setup?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
         }
         else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
             var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-            url9='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/metacubexd/#/?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
+            url9='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/metacubexd/#/setup?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
         }
         else {
-            url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/metacubexd/"%>';
+            url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/metacubexd/#/"%>';
         }
         winOpen(url9);
         return false;
@@ -917,7 +895,7 @@
     
     function gitbookpage()
     {
-        url8='https://lancellc.gitbook.io/clash';
+        url8='https://wiki.metacubex.one';
         winOpen(url8);
     };
     

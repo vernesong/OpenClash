@@ -29,12 +29,10 @@
    if [ "$small_flash_memory" != "1" ]; then
       chnr_path="/etc/openclash/china_ip_route.ipset"
       chnr6_path="/etc/openclash/china_ip6_route.ipset"
-      cndomain_path="/etc/openclash/accelerated-domains.china.conf"
       mkdir -p /etc/openclash
    else
       chnr_path="/tmp/etc/openclash/china_ip_route.ipset"
       chnr6_path="/tmp/etc/openclash/china_ip6_route.ipset"
-      cndomain_path="/tmp/etc/openclash/accelerated-domains.china.conf"
       mkdir -p /tmp/etc/openclash
    fi
 
@@ -67,7 +65,7 @@
       if [ "$?" -ne "0" ]; then
          LOG_OUT "Chnroute Cidr List Has Been Updated, Starting To Replace The Old Version..."
          mv /tmp/china_ip_route.list "$chnr_path" >/dev/null 2>&1
-         if [ "$china_ip_route" -eq 1 ] || [ "$disable_udp_quic" -eq 1 ]; then
+         if [ "$china_ip_route" -ne 0 ] || [ "$disable_udp_quic" -eq 1 ]; then
             restart=1
          fi
          LOG_OUT "Chnroute Cidr List Update Successful!"
@@ -102,7 +100,7 @@
       if [ "$?" -ne "0" ]; then
          LOG_OUT "Chnroute6 Cidr List Has Been Updated, Starting To Replace The Old Version..."
          mv /tmp/china_ip6_route.list "$chnr6_path" >/dev/null 2>&1
-         if [ "$china_ip6_route" -eq 1 ] || [ "$disable_udp_quic" -eq 1 ]; then
+         if [ "$china_ip6_route" -ne 0 ] || [ "$disable_udp_quic" -eq 1 ]; then
             restart=1
          fi
          LOG_OUT "Chnroute6 Cidr List Update Successful!"
@@ -111,41 +109,6 @@
       fi
    else
       LOG_OUT "Chnroute6 Cidr List Update Error, Please Try Again Later..."
-   fi
-
-   #CN DOMAIN
-   LOG_OUT "Start Downloading The CN Domains List..."
-   if [ -n "$CNDOMAIN_CUSTOM_URL" ]; then
-      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$CNDOMAIN_CUSTOM_URL" -o "/tmp/china_domains.list" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/china_domains.list" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-   else
-      if [ "$github_address_mod" != "0" ]; then
-         if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"gh/felixonmars/dnsmasq-china-list@master/accelerated-domains.china.conf -o "/tmp/china_domains.list" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/china_domains.list" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-         elif [ "$github_address_mod" == "https://raw.fastgit.org/" ]; then
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://raw.fastgit.org/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf -o "/tmp/china_domains.list" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/china_domains.list" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-         else
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf -o "/tmp/china_domains.list" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/china_domains.list" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-         fi
-      else
-         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/felixonmars/dnsmasq-china-list/master/accelerated-domains.china.conf -o "/tmp/china_domains.list" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/china_domains.list" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
-      fi
-   fi
-   
-   if [ "${PIPESTATUS[0]}" -eq "0" ] && [ -s "/tmp/china_domains.list" ] && [ -n "$(cat "/tmp/china_domains.list" |head -1 |grep "server=")" ]; then
-      LOG_OUT "CN Domains List Download Success, Check Updated..."
-      cmp -s /tmp/china_domains.list "$cndomain_path"
-      if [ "$?" -ne "0" ]; then
-         LOG_OUT "CN Domains List Has Been Updated, Starting To Replace The Old Version..."
-         mv /tmp/china_domains.list "$cndomain_path" >/dev/null 2>&1
-         if [ "$china_ip_route" -eq 1 ] && [ -z "$(echo "$en_mode" |grep "redir-host")" ]; then
-            restart=1
-         fi
-         LOG_OUT "CN Domains List Update Successful!"
-      else
-         LOG_OUT "Updated CN Domains List No Change, Do Nothing..."
-      fi
-   else
-      LOG_OUT "CN Domains List Update Error, Please Try Again Later..."
    fi
 
    if [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
@@ -160,6 +123,5 @@
    fi
  
    rm -rf /tmp/china_ip*_route* >/dev/null 2>&1
-   rm -rf /tmp/china_domains.list >/dev/null 2>&1
    SLOG_CLEAN
    del_lock
