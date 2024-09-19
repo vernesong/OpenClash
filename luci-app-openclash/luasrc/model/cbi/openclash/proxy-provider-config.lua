@@ -108,6 +108,45 @@ o = s:option(Value, "health_check_interval", translate("Health Check Interval(s)
 o.default = "300"
 o.rmempty = false
 
+-- [[ other-setting ]]--
+o = s:option(Value, "other_parameters", translate("Other Parameters"))
+o.template = "cbi/tvalue"
+o.rows = 20
+o.wrap = "off"
+o.description = font_red..bold_on..translate("Edit Your Other Parameters Here")..bold_off..font_off
+o.rmempty = true
+function o.cfgvalue(self, section)
+	if self.map:get(section, "other_parameters") == nil then
+		return "# Example:\n"..
+		"# Only support YAML, four spaces need to be reserved at the beginning of each line to maintain formatting alignment\n"..
+		"# 示例：\n"..
+		"# 仅支持 YAML, 每行行首需要多保留四个空格以使脚本处理后能够与上方配置保持格式对齐\n"..
+		"#    header:\n"..
+		"#      User-Agent:\n"..
+		"#      - \"Clash/v1.18.0\"\n"..
+		"#      - \"mihomo/1.18.3\"\n"..
+		"#      Authorization:\n"..
+		"#      - \"token 1231231\"\n"..
+		"#    override:\n"..
+		"#      skip-cert-verify: true\n"..
+		"#      additional-prefix: \"provider1 prefix |\"\n"..
+		"#      additional-suffix: \"| provider1 suffix\"\n"..
+		"#      proxy-name:\n"..
+		"#      - pattern: \"IPLC-(.*?)倍\"\n"..
+		"#        target: \"iplc x $1\"\n"..
+		"#    exclude-type: \"ss|http\""
+	else
+		return Value.cfgvalue(self, section)
+	end
+end
+function o.validate(self, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		value = value:gsub("%c*$", "")
+	end
+	return value
+end
+
 o = s:option(DynamicList, "groups", translate("Proxy Group (Support Regex)"))
 o.description = font_red..bold_on..translate("No Need Set when Config Create, The added Proxy Groups Must Exist")..bold_off..font_off
 o.rmempty = true
@@ -141,4 +180,5 @@ o.write = function()
 end
 
 m:append(Template("openclash/toolbar_show"))
+m:append(Template("openclash/config_editor"))
 return m
