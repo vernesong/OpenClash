@@ -143,6 +143,10 @@ yml_gen_rule_provider_file()
       return
    fi
 
+   if [ -z "$RULE_PROVIDER_FILE_NAME" ] || [ -z "$RULE_PROVIDER_FILE_BEHAVIOR" ] || [ -z "$RULE_PROVIDER_FILE_URL" ]; then
+      return
+   fi
+
 cat >> "$RULE_PROVIDER_FILE" <<-EOF
   $1:
     type: http
