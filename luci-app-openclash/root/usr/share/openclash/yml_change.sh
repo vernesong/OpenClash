@@ -706,7 +706,7 @@ Thread.new{
       end;
    end;
    if '$1' == 'fake-ip' then
-      if '$china_ip_route' != '0' then
+      if '$china_ip_route' != '0' or '$china_ip6_route' != '0' then
          if Value['dns']['fake-ip-filter-mode'] == 'blacklist' or not Value['dns'].has_key?('fake-ip-filter-mode') then
             if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
                Value['dns']['fake-ip-filter'].insert(-1,'geosite:cn');
