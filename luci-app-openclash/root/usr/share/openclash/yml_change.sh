@@ -578,7 +578,7 @@ begin
 Thread.new{
    if not Value['dns'].key?('nameserver') or Value['dns']['nameserver'].to_a.empty? then
       puts '${LOGTIME} Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete...';
-      Value_1={'nameserver'=>['system']};
+      Value_1={'nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']};
       Value_2={'fallback'=>['https://dns.cloudflare.com/dns-query','https://dns.google/dns-query']};
       Value['dns'].merge!(Value_1);
       Value['dns'].merge!(Value_2);
@@ -630,6 +630,12 @@ Thread.new{
          Value_1 = YAML.load_file('/tmp/yaml_config.proxynamedns.yaml');
          Value_1['proxy-server-nameserver'] = Value_1['proxy-server-nameserver'].uniq;
          Value['dns']['proxy-server-nameserver'] = Value_1['proxy-server-nameserver'];
+      end;
+   end;
+   if '${34}' == '1' then
+      if not Value['dns'].has_key?('proxy-server-nameserver') or Value['dns']['proxy-server-nameserver'].to_a.empty? then
+         Value['dns'].merge!({'proxy-server-nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']});
+         puts '${LOGTIME} Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】';
       end;
    end;
 }.join;
