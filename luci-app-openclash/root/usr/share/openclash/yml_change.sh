@@ -782,13 +782,6 @@ Thread.new{
    if File::exist?('/tmp/yaml_openclash_auth') then
       Value_1 = YAML.load_file('/tmp/yaml_openclash_auth');
       Value['authentication']=Value_1
-      if Value.key?('skip-auth-prefixes') and not Value['skip-auth-prefixes'].nil? then
-         Value['skip-auth-prefixes'].merge!(['127.0.0.1/8','::1/128','10.0.0.0/8','192.168.0.0/16','172.16.0.0/12']);
-      else
-         Value['skip-auth-prefixes']=['127.0.0.1/8','::1/128','10.0.0.0/8','192.168.0.0/16','172.16.0.0/12'];
-      end;
-   elsif Value.key?('authentication') then
-       Value.delete('authentication');
    end;
 }.join;
 rescue Exception => e
