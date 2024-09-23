@@ -241,11 +241,28 @@
                     return ip;
                 })();
 
-                fetch(`https://qqwry.api.skk.moe/${anonymizedIp}`, {
+                fetch(`https://api.ip.sb/geoip/${anonymizedIp}`, {
                 referrerPolicy: 'no-referrer-when-downgrade',
                 }).then(r => r.json())
                 .then(resp => {
-                    $$.getElementById(elID).innerHTML = resp.geo;
+                    if ( resp.country && resp.country != '' && resp.isp && resp.isp != '' ) {
+                        $$.getElementById(elID).innerHTML = resp.country + ' ' + resp.isp;
+                    }
+                    else {
+                        fetch(`https://qqwry.api.skk.moe/${anonymizedIp}`, {
+                        referrerPolicy: 'no-referrer-when-downgrade',
+                        }).then(r => r.json())
+                        .then(resp => {
+                            if ( resp.geo.indexOf('skk.moe') == -1 ) {
+                                $$.getElementById(elID).innerHTML = resp.geo;
+                            }
+                            else {
+                                $$.getElementById(elID).innerHTML = 'Unknown';
+                            }
+                        })
+                    }
+                    //https://api.ip.sb/geoip/${anonymizedIp}
+                    //http://ip-api.com/json/${anonymizedIp}?lang=zh-CN
                     //$$.getElementById(elID).innerHTML = `${resp.data.country} ${resp.data.regionName} ${resp.data.city} ${resp.data.isp}`;
                 })
             },
@@ -370,7 +387,8 @@
             if (localStorage.getItem('privacy_my_ip') != 'true') {
                 $$.getElementById('ip-ipsb').innerHTML = data.ip;
             };
-            IP.parseIPIpip(data.ip, 'ip-ipsb-geo');
+            //IP.parseIPIpip(data.ip, 'ip-ipsb-geo');
+            $$.getElementById('ip-ipsb-geo').innerHTML = `${data.country} ${data.isp}`;
             addTitleOnOverflow();
         };
         
@@ -404,7 +422,7 @@
             
             var sbipScript= document.createElement("script");
             sbipScript.defer = "defer";
-            sbipScript.src=`https://api-ipv4.ip.sb/jsonip?callback=getIpsbIP&z=${random}`;
+            sbipScript.src=`https://api-ipv4.ip.sb/geoip?callback=getIpsbIP&z=${random}`;
             mypage.appendChild(sbipScript);
             
             //HTTP.runcheck();
@@ -486,6 +504,6 @@
         document.write('<script defer="defer" src="https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP&z='+parseInt(Math.random() * 100000000)+'" type="text/javascript"><\/script>');
     </script>
     <script type="text/javascript">
-        document.write('<script defer="defer" src="https://api-ipv4.ip.sb/jsonip?callback=getIpsbIP&z='+parseInt(Math.random() * 100000000)+'" type="text/javascript"><\/script>');
+        document.write('<script defer="defer" src="https://api-ipv4.ip.sb/geoip?callback=getIpsbIP&z='+parseInt(Math.random() * 100000000)+'" type="text/javascript"><\/script>');
     </script>
 </html>

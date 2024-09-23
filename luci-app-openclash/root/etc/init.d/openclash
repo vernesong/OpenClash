@@ -1596,6 +1596,9 @@ if [ -n "$FW4" ]; then
       elif [ "$enable_redirect_dns" -eq 1 ]; then
          nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv4} tcp dport 53 counter accept comment \"OpenClash TCP DNS Hijack\"
       fi
+      if [ "$router_self_proxy" = 1 ]; then
+         nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv4} tcp dport 53 counter accept comment \"OpenClash TCP DNS Hijack\"
+      fi
 
       #TUN FORWORD
       nft insert rule inet fw4 forward position 0 meta l4proto {tcp,udp} oifname utun counter accept comment \"OpenClash TUN Forward\"
@@ -1663,14 +1666,16 @@ if [ -n "$FW4" ]; then
             fi
          fi
       fi
-      if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" != "0" ] && [ "$enable_redirect_dns" != "2" ]; then
-         nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} tcp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
-         nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} udp dport 53 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
-         nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
-         nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} tcp dport 53 meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
-         nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} udp dport 53 meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
-         nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} tcp dport 12353 meta skuid != 65534 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
-         nft add rule inet fw4 nat_output position 0 meta nfproto {ipv6} udp dport 12353 meta skuid != 65534 counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+
+      if [ "$enable_redirect_dns" -eq 2 ]; then
+         local position=$(nft -a list chain inet fw4 openclash_dns_redirect |grep "DNS" |grep -v "redirect" |awk -F '# handle ' '{print$2}' |sort -rn |head -1)
+         [ -z "$position" ] && position=0
+         nft insert rule inet fw4 openclash_dns_redirect position "$position" meta nfproto {ipv6} tcp dport 53 counter accept comment \"OpenClash TCP DNS Hijack\"
+      elif [ "$enable_redirect_dns" -eq 1 ]; then
+         nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} tcp dport 53 counter accept comment \"OpenClash TCP DNS Hijack\"
+      fi
+      if [ "$router_self_proxy" = 1 ]; then
+         nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv6} tcp dport 53 counter accept comment \"OpenClash TCP DNS Hijack\"
       fi
 
       if [ "$china_ip6_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
@@ -2378,6 +2383,9 @@ if [ -z "$FW4" ]; then
       elif [ "$enable_redirect_dns" -eq 1 ]; then
          iptables -t nat -I PREROUTING -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j ACCEPT
       fi
+      if [ "$router_self_proxy" = 1 ]; then
+         iptables -t nat -I OUTPUT -m owner ! --uid-owner 65534 -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j ACCEPT
+      fi
 
       #TUN FORWORD
       iptables -I FORWARD -m comment --comment "OpenClash TUN Forward" -o utun -j ACCEPT >/dev/null 2>&1
@@ -2446,15 +2454,20 @@ if [ -z "$FW4" ]; then
             fi
          fi
       fi
-      if [ "$en_mode" = "fake-ip" ] && [ "$china_ip_route" != "0" ] && [ "$enable_redirect_dns" != "2" ]; then
-         ip6tables -t nat -I PREROUTING -p udp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
-         ip6tables -t nat -I PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
-         ip6tables -t nat -I OUTPUT -p udp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
-         ip6tables -t nat -I OUTPUT -p tcp --dport 53 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
-         ip6tables -t nat -I OUTPUT -p udp --dport 12353 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
-         ip6tables -t nat -I OUTPUT -p tcp --dport 12353 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
-      fi
 
+      if [ "$ipv6_mode" -eq 2 ]; then
+         if [ "$enable_redirect_dns" -eq 2 ]; then
+            local position=$(ip6tables -nvL openclash_dns_redirect -t nat |grep "DNS" |grep -v "REDIRECT" |wc -l)
+            let position++
+            ip6tables -t nat -I openclash_dns_redirect "$position" -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j ACCEPT
+         elif [ "$enable_redirect_dns" -eq 1 ]; then
+            ip6tables -t nat -I PREROUTING -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j ACCEPT
+         fi
+         if [ "$router_self_proxy" = 1 ]; then
+            ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 -m owner ! --uid-owner 65534 -j ACCEPT -m comment --comment "OpenClash DNS Hijack"
+         fi
+      fi
+      
       if [ "$china_ip6_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
          ipset -! flush china_ip6_route
          ipset -! restore </etc/openclash/china_ip6_route.ipset
