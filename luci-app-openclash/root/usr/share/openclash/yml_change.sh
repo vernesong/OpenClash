@@ -781,7 +781,11 @@ begin
 Thread.new{
    if File::exist?('/tmp/yaml_openclash_auth') then
       Value_1 = YAML.load_file('/tmp/yaml_openclash_auth');
-      Value['authentication']=Value_1
+      if Value.has_key?('authentication') and not Value['authentication'].to_a.empty? then
+         Value['authentication'].merge!(Value_1);
+      else
+         Value['authentication']=Value_1;
+      end;
    end;
 }.join;
 rescue Exception => e
