@@ -600,7 +600,7 @@ Thread.new{
       end;
    end;
    if ${25} == 1 then
-      reg = /(^dhcp://|^system$)|([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/;
+      reg = /(^dhcp:\/\/)|(^system$)|([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/;
       if Value['dns'].has_key?('fallback') then
          Value_1=Value['dns']['nameserver'] | Value['dns']['fallback'];
       else
