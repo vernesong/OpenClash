@@ -1,6 +1,14 @@
 <head>
 <style>
-.dot-typing{position:relative;left:-9999px;width:10px;height:10px;border-radius:5px;background-color:#9880ff;color:#9880ff;box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff;animation:dotTyping 1.5s infinite linear}@keyframes dotTyping{0%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}16.667%{box-shadow:9984px -10px 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}33.333%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}50%{box-shadow:9984px 0 0 0 #9880ff,9999px -10px 0 0 #9880ff,10014px 0 0 0 #9880ff}66.667%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}83.333%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px -10px 0 0 #9880ff}100%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}}
+.arrow-down{
+	display:inline-block;
+	width:0px;
+	height:0px;
+	border-style:solid;
+	border-width:10px;
+	border-color: rgb(65 122 180) transparent transparent transparent;
+}
+
 .radio-button{
 	display: none;
 	white-space: nowrap;
@@ -147,8 +155,8 @@
 </td></tr>
 	<tr height="50px">
 		<td width="100%" colspan="4">
-			<div id="hid_btn" style="height: 25px;width: 100px;margin: 0 auto;" onclick="hid_btn_action()">
-				<div style="margin: 0 auto; top: 50%;" class="dot-typing"></div>
+			<div id="hid_btn" style="text-align: center;" onclick="hid_btn_action()">
+				<div id="hid_icon" class="arrow-down"></div>
 			</div>
 		</td>
 	</tr>
@@ -217,6 +225,7 @@
 	var radio_ru_mode = document.getElementById('radio-ru-mode');
 	var radio_ru = document.getElementsByName("radios-ru");
 	var radio_run_normal = document.getElementById("run_normal");
+	var hid_icon = document.getElementById("hid_icon");
 	var script_radio;
 	var script_radio_label;
 	var hid_btn_if = true;
@@ -542,6 +551,7 @@
 			hid_2.style.display = "";
 			hid_3.style.display = "";
 			state.style.display = "block";
+			hid_icon.style.borderColor = "transparent transparent rgb(65 122 180) transparent";
 			hid_btn_if = false;
 			clearInterval(state_refresh);
 			state_refresh=setInterval("state_get()",1000*2);
@@ -550,6 +560,7 @@
 			hid_2.style.display = "none";
 			hid_3.style.display = "none";
 			state.style.display = "none";
+			hid_icon.style.borderColor = "rgb(65 122 180) transparent transparent transparent";
 			hid_btn_if = true;
 			clearInterval(state_refresh);
 		}
