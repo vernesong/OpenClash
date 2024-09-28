@@ -71,13 +71,17 @@ config_test()
 
 config_download()
 {
+LOG_OUT "Tip: Config File【$name】Downloading User-Agent【$sub_ua】..."
 if [ -n "$subscribe_url_param" ]; then
    if [ -n "$c_address" ]; then
+      LOG_OUT "Tip: Config File【$name】Downloading URL【$c_address$subscribe_url_param】..."
       curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H "$sub_ua" "$c_address""$subscribe_url_param" -o "$CFG_FILE" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
    else
+      LOG_OUT "Tip: Config File【$name】Downloading URL【https://api.dler.io/sub$subscribe_url_param】..."
       curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H "$sub_ua" https://api.dler.io/sub"$subscribe_url_param" -o "$CFG_FILE" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
    fi
 else
+   LOG_OUT "Tip: Config File【$name】Downloading URL【$subscribe_url】..."
    curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H "$sub_ua" "$subscribe_url" -o "$CFG_FILE" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
 fi
 }
