@@ -88,7 +88,7 @@ cfg_group_name()
       return
    fi
 
-   [ "$config" = "$CONFIG_NAME" ] && {
+   [ "$config" = "$CONFIG_NAME" ] || [ "$config" = "all" ] && {
       config_group_exist=1
    }
 }
@@ -101,7 +101,7 @@ cfg_delete()
    group_num=$(grep "^config groups$" "$CFG_FILE" |wc -l)
    for ((i=$group_num;i>=0;i--))
 	 do
-	    if [ "$(uci -q get openclash.@groups["$i"].config)" = "$CONFIG_NAME" ] || [ "$(uci -q get openclash.@groups["$i"].config)" = "all" ]; then
+	    if [ "$(uci -q get openclash.@groups["$i"].config)" = "$CONFIG_NAME" ]; then
 	       uci -q delete openclash.@groups["$i"]
 	       uci -q commit openclash
 	    fi
@@ -110,7 +110,7 @@ cfg_delete()
    server_num=$(grep "^config servers$" "$CFG_FILE" |wc -l)
    for ((i=$server_num;i>=0;i--))
 	 do
-	    if [ "$(uci -q get openclash.@servers["$i"].config)" = "$CONFIG_NAME" ] || [ "$(uci -q get openclash.@servers["$i"].config)" = "all" ]; then
+	    if [ "$(uci -q get openclash.@servers["$i"].config)" = "$CONFIG_NAME" ]; then
 	    	 if [ "$(uci -q get openclash.@servers["$i"].enabled)" = "1" ] && [ "$(uci -q get openclash.@servers["$i"].manual)" = "0" ]; then
 	          uci -q delete openclash.@servers["$i"]
 	          uci -q commit openclash
@@ -121,7 +121,7 @@ cfg_delete()
    provider_num=$(grep "^config proxy-provider$" "$CFG_FILE" 2>/dev/null |wc -l)
    for ((i=$provider_num;i>=0;i--))
 	 do
-	    if [ "$(uci -q get openclash.@proxy-provider["$i"].config)" = "$CONFIG_NAME" ] || [ "$(uci -q get openclash.@proxy-provider["$i"].config)" = "all" ]; then
+	    if [ "$(uci -q get openclash.@proxy-provider["$i"].config)" = "$CONFIG_NAME" ]; then
 	       if [ "$(uci -q get openclash.@proxy-provider["$i"].enabled)" = "1" ] && [ "$(uci -q get openclash.@proxy-provider["$i"].manual)" = "0" ]; then
 	          uci -q delete openclash.@proxy-provider["$i"]
 	          uci -q commit openclash
