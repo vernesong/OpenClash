@@ -3407,3 +3407,12 @@ msgstr "订阅的下载链接为"
 
 msgid "Downloading User-Agent"
 msgstr "订阅的 User-Agent 为"
+
+msgid "Warning: Option"
+msgstr "警告：选项"
+
+msgid "is Setted"
+msgstr "设置了"
+
+msgid "as DNS Server which May Cause DNS Loop, Please Consider Removing It When DNS Works Abnormally..."
+msgstr "作为 DNS 服务器，这可能造成 DNS 回环错误，如发现 DNS 工作异常请考虑移除该设置..."
