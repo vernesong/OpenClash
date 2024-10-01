@@ -236,16 +236,14 @@ yml_dns_get()
    if [ "$specific_group" != "Disable" ] && [ -n "$specific_group" ]; then
       group_check=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       begin
-         Thread.new{
-            Value = YAML.load_file('$2');
-            Value['proxy-groups'].each{
-               |x|
-               if x['name'] =~ /${specific_group}/ then
-                  puts x['name'];
-                  break;
-               end;
-            };
-         }.join;
+         Value = YAML.load_file('$2');
+         Value['proxy-groups'].each{
+            |x|
+            if x['name'] =~ /${specific_group}/ then
+               puts x['name'];
+               break;
+            end;
+         };
       rescue Exception => e
          puts 'return';
       end;" 2>/dev/null)
@@ -338,37 +336,9 @@ rescue Exception => e
    puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
 end;
 
-#field name check
-begin
-Thread.new{
-   if Value.key?('Proxy') or Value.key?('Proxy Group') or Value.key?('Rule') or Value.key?('rule-provider') then
-      if Value.key?('Proxy') then
-         Value['proxies'] = Value['Proxy']
-         Value.delete('Proxy')
-         puts '${LOGTIME} Warning: Proxy is no longer used. Auto replaced by proxies'
-      end
-      if Value.key?('Proxy Group') then
-         Value['proxy-groups'] = Value['Proxy Group']
-         Value.delete('Proxy Group')
-         puts '${LOGTIME} Warning: Proxy Group is no longer used. Auto replaced by proxy-groups'
-      end
-      if Value.key?('Rule') then
-         Value['rules'] = Value['Rule']
-         Value.delete('Rule')
-         puts '${LOGTIME} Warning: Rule is no longer used. Auto replaced by rules'
-      end
-      if Value.key?('rule-provider') then
-         Value['rule-providers'] = Value['rule-provider']
-         Value.delete('rule-provider')
-         puts '${LOGTIME} Warning: rule-provider is no longer used. Auto replaced by rule-providers'
-      end;
-   end;
-}.join;
-end;
-
 #General
+t1=Thread.new{
 begin
-Thread.new{
    Value['redir-port']=$4;
    Value['tproxy-port']=${15};
    Value['port']=$7;
@@ -414,12 +384,6 @@ Thread.new{
       Value['global-client-fingerprint']='${29}';
    end;
 
-   if not Value.key?('dns') or Value['dns'].nil? then
-      Value_1={'dns'=>{'enable'=>true}};
-      Value['dns']=Value_1['dns'];
-   else
-      Value['dns']['enable']=true;
-   end;
    if ${16} == 1 then
       Value['dns']['ipv6']=true;
       Value['ipv6']=true;
@@ -542,14 +506,14 @@ Thread.new{
    if Value.key?('auto-redir') then
       Value.delete('auto-redir');
    end;
-}.join;
 rescue Exception => e
    puts '${LOGTIME} Error: Set General Failed,【' + e.message + '】';
 end;
+};
 
 #Custom dns
+t2=Thread.new{
 begin
-Thread.new{
    if '$enable_custom_dns' == '1' or '$append_wan_dns' == '1' then
       if File::exist?('/tmp/yaml_config.namedns.yaml') then
          Value_1 = YAML.load_file('/tmp/yaml_config.namedns.yaml');
@@ -570,12 +534,12 @@ Thread.new{
          puts '${LOGTIME} Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers';
       end;
    end;
-}.join;
+rescue Exception => e
+   puts '${LOGTIME} Error: Set Custom DNS Failed,【' + e.message + '】';
 end;
 
 #default-nameserver
 begin
-Thread.new{
    if '$enable_custom_dns' == '1' then
       if File::exist?('/tmp/yaml_config.defaultdns.yaml') then
          Value_1 = YAML.load_file('/tmp/yaml_config.defaultdns.yaml');
@@ -604,14 +568,29 @@ Thread.new{
          end;
       };
    end;
-}.join;
 rescue Exception => e
    puts '${LOGTIME} Error: Set default-nameserver Failed,【' + e.message + '】';
 end;
 
-#proxy server dns
+#fallback-filter
 begin
-Thread.new{
+   if '$custom_fallback_filter' == '1' then
+      if not Value['dns'].key?('fallback') then
+         puts '${LOGTIME} Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore...';
+      elsif not YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml') then
+         puts '${LOGTIME} Error: Unable To Parse Custom Fallback-Filter File, Ignore...';
+      else
+         Value['dns']['fallback-filter'] = YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml')['fallback-filter'];
+      end;
+   end;
+rescue Exception => e
+   puts '${LOGTIME} Error: Set fallback-filter Failed,【' + e.message + '】';
+end;
+};
+
+#proxy-server-nameserver
+t3=Thread.new{
+begin
    if '$enable_custom_dns' == '1' then
       if File::exist?('/tmp/yaml_config.proxynamedns.yaml') then
          Value_1 = YAML.load_file('/tmp/yaml_config.proxynamedns.yaml');
@@ -625,12 +604,14 @@ Thread.new{
          puts '${LOGTIME} Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】';
       end;
    end;
-}.join;
+rescue Exception => e
+   puts '${LOGTIME} Error: Set proxy-server-nameserver Failed,【' + e.message + '】';
 end;
+};
 
 #nameserver-policy
+t4=Thread.new{
 begin
-Thread.new{
    if '$custom_name_policy' == '1' then
       if File::exist?('/etc/openclash/custom/openclash_custom_domain_dns_policy.list') then
          Value_6 = YAML.load_file('/etc/openclash/custom/openclash_custom_domain_dns_policy.list');
@@ -644,59 +625,14 @@ Thread.new{
          end;
       end;
    end;
-}.join;
 rescue Exception => e
    puts '${LOGTIME} Error: Set Nameserver-Policy Failed,【' + e.message + '】';
 end;
-
-#dns check
-begin
-Thread.new{
-   if not Value['dns'].key?('nameserver') or Value['dns']['nameserver'].to_a.empty? then
-      puts '${LOGTIME} Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete...';
-      Value_1={'nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']};
-      Value_2={'fallback'=>['https://dns.cloudflare.com/dns-query','https://dns.google/dns-query']};
-      Value['dns'].merge!(Value_1);
-      Value['dns'].merge!(Value_2);
-   end;
-   if '$enable_redirect_dns' != '2' then
-      for x in ['nameserver','fallback','default-nameserver','proxy-server-nameserver','nameserver-policy'] do
-         if not Value['dns'].key?(x) or Value['dns'][x].nil? then
-            next;
-         end;
-         if x != 'nameserver-policy' then
-            if Value['dns'][x].to_a.grep(/^system($|:\/\/)/).empty? then
-               next;
-            end;
-         else
-            if Value['dns'][x].values.flatten.grep(/^system($|:\/\/)/).empty? then
-               next;
-            end;
-         end;
-         puts '${LOGTIME} Warning: Option【' + x + '】is Setted【system】as DNS Server which May Cause DNS Loop, Please Consider Removing It When DNS Works Abnormally...';
-      end;
-   end;
-}.join;
-end;
-
-#fallback-filter
-begin
-Thread.new{
-   if '$custom_fallback_filter' == '1' then
-      if not Value['dns'].key?('fallback') then
-         puts '${LOGTIME} Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore...';
-      elsif not YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml') then
-         puts '${LOGTIME} Error: Unable To Parse Custom Fallback-Filter File, Ignore...';
-      else
-         Value['dns']['fallback-filter'] = YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml')['fallback-filter'];
-      end;
-   end;
-}.join;
-end;
+};
 
 #fake-ip-filter
+t5=Thread.new{
 begin
-Thread.new{
    if '$custom_fakeip_filter' == '1' then
       if '${35}' == 'whitelist' then
          Value['dns']['fake-ip-filter-mode']='whitelist';
@@ -750,14 +686,14 @@ Thread.new{
          end;
       end;
    end;
-}.join;
 rescue Exception => e
    puts '${LOGTIME} Error: Set Fake-IP-Filter Failed,【' + e.message + '】';
 end;
+};
 
 #custom hosts
+t6=Thread.new{
 begin
-Thread.new{
    if '$custom_host' == '1' then
       if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
          begin
@@ -788,14 +724,14 @@ Thread.new{
          end;
       end;
    end;
-}.join;
 rescue Exception => e
    puts '${LOGTIME} Error: Set Hosts Rules Failed,【' + e.message + '】';
 end;
+};
 
 #auth
+t7=Thread.new{
 begin
-Thread.new{
    if File::exist?('/tmp/yaml_openclash_auth') then
       Value_1 = YAML.load_file('/tmp/yaml_openclash_auth');
       if Value.has_key?('authentication') and not Value['authentication'].to_a.empty? then
@@ -804,54 +740,52 @@ Thread.new{
          Value['authentication']=Value_1;
       end;
    end;
-}.join;
 rescue Exception => e
    puts '${LOGTIME} Error: Set authentication Failed,【' + e.message + '】';
 end;
+};
 
-#Vmess-ws formalt check, not support proxy-provider
 begin
-Thread.new{
-   if Value.key?('proxies') and not Value['proxies'].nil? then
-      Value['proxies'].each{
-      |x|
-      if x['type'] != 'vmess' then
-         next
-      end;
-      if x.key?('ws-path') then
-         if not x.key?('ws-opts') then
-            x['ws-opts'] = {'path'=>x['ws-path'].to_s};
-         else
-            if x['ws-opts'].nil? then
-               x['ws-opts'] = {'path'=>x['ws-path'].to_s};
-            elsif x['ws-opts']['path'].nil? then
-               x['ws-opts'].update({'path'=>x['ws-path'].to_s});
-            end
-         end
-         x.delete('ws-path');
-      end;
-      if x.key?('ws-headers') then
-         x['ws-headers'].keys.each{
-         |v|
-            if not x.key?('ws-opts') then
-               x['ws-opts'] = {'headers'=>{v.to_s=>x['ws-headers'][v].to_s}};
-            else
-               if x['ws-opts'].nil? then
-                  x['ws-opts'] = {'headers'=>{v.to_s=>x['ws-headers'][v].to_s}};
-               elsif x['ws-opts']['headers'].nil? then
-                  x['ws-opts'].update({'headers'=>{v.to_s=>x['ws-headers'][v].to_s}});
-               #elsif not x['ws-opts']['headers'].key?(v)
-               #   x['ws-opts']['headers'].update({v.to_s=>x['ws-headers'][v].to_s});
-               end;
-            end;
-         };
-         x.delete('ws-headers');
-      end;
-      };
+   if not Value.key?('dns') or Value['dns'].nil? then
+      Value_1={'dns'=>{'enable'=>true}};
+      Value['dns']=Value_1['dns'];
+   else
+      Value['dns']['enable']=true;
    end;
-}.join;
-rescue Exception => e
-   puts '${LOGTIME} Error: Edit Vmess Compatible Failed,【' + e.message + '】';
+
+   t1.join;
+   t2.join;
+   t3.join;
+   t4.join;
+   t5.join;
+   t6.join;
+   t7.join;
+   
+   #dns check
+   if not Value['dns'].key?('nameserver') or Value['dns']['nameserver'].to_a.empty? then
+      puts '${LOGTIME} Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete...';
+      Value_1={'nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']};
+      Value_2={'fallback'=>['https://dns.cloudflare.com/dns-query','https://dns.google/dns-query']};
+      Value['dns'].merge!(Value_1);
+      Value['dns'].merge!(Value_2);
+   end;
+   if '$enable_redirect_dns' != '2' then
+      for x in ['nameserver','fallback','default-nameserver','proxy-server-nameserver','nameserver-policy'] do
+         if not Value['dns'].key?(x) or Value['dns'][x].nil? then
+            next;
+         end;
+         if x != 'nameserver-policy' then
+            if Value['dns'][x].to_a.grep(/^system($|:\/\/)/).empty? then
+               next;
+            end;
+         else
+            if Value['dns'][x].values.flatten.grep(/^system($|:\/\/)/).empty? then
+               next;
+            end;
+         end;
+         puts '${LOGTIME} Warning: Option【' + x + '】is Setted【system】as DNS Server Which May Cause DNS Loop, Please Consider Removing It When DNS Works Abnormally...';
+      end;
+   end;
 ensure
    File.open('$5','w') {|f| YAML.dump(Value, f)};
 end" 2>/dev/null >> $LOG_FILE

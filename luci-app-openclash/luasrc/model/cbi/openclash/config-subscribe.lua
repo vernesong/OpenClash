@@ -121,7 +121,7 @@ o = a:option(Button, "Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-	fs.unlink("/tmp/Proxy_Group")
+  fs.unlink("/tmp/Proxy_Group")
   m.uci:commit("openclash")
 end
 
@@ -129,7 +129,7 @@ o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Update Config")
 o.inputstyle = "apply"
 o.write = function()
-	fs.unlink("/tmp/Proxy_Group")
+  fs.unlink("/tmp/Proxy_Group")
   m.uci:set("openclash", "config", "enable", 1)
   m.uci:commit("openclash")
   uci:foreach("openclash", "config_subscribe",

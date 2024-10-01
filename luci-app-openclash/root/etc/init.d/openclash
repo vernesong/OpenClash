@@ -589,7 +589,6 @@ config_test()
 {
    if [ -f "$CLASH" ]; then
       LOG_OUT "Test The Config File First..."
-      chmod o+w "$CONFIG_FILE" 2>/dev/null
       test_info=$(nohup $CLASH -t -d $CLASH_CONFIG -f "$CONFIG_FILE")
       local IFS=$'\n'
       for i in $test_info; do
@@ -601,10 +600,9 @@ config_test()
          fi
       done
       if [ -n "$(echo "$test_info" |grep "test failed")" ]; then
-         return 1
+         LOG_OUT "Error: Config File Tested Faild, Please Check The Log Infos!"
+         start_fail
       fi
-   else
-      return 0
    fi
 }
 
@@ -616,39 +614,12 @@ start_run_core()
    if ! $quick_start; then
       mv "$TMP_CONFIG_FILE" "$CONFIG_FILE" 2>/dev/null
       rm -rf "$TMP_CONFIG_FILE" 2>/dev/null
+      config_test
    fi
-   config_test
-   if [ $? -ne 0 ]; then
-      LOG_OUT "Error: Config File Tested Faild, Please Check The Log Infos!"
-      start_fail
-   fi
-
    kill_clash
-   #防止赋权失败
-   touch "/tmp/openclash.log" 2>/dev/null
-   chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
-   chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
-   chmod o+w /etc/openclash/history/* 2>/dev/null
-   chmod o+w /etc/openclash/cache.db 2>/dev/null
-   chmod o+w /tmp/openclash.log 2>/dev/null
-   chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
    #使用nobody启动内核方便代理路由自身流量
    capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin"
    capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
-
-}
-
-check_core_status()
-{
-   check_time=1
-   while ( [ "$check_time" -le 3 ] && [ -n "$(pidof clash)" ] )
-   do
-      sleep 1
-      let check_time++
-   done
-   if [ -z "$(pidof clash)" ]; then
-      LOG_ALERT
-   fi
 }
 
 #防火墙设置部分
@@ -1064,26 +1035,25 @@ set_tun_tap()
          ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
       fi
 
-      $ip_ link set utun up
+      $ip_ link set utun up >/dev/null 2>&1
 
       LOG_OUT "Tip: Waiting for TUN Interface Start..."
       while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -le 30 ] )
       do
          $ip_ link set utun up
          let TUN_WAIT++
-         sleep 2
-      done
+         sleep 1
+      done >/dev/null 2>&1
 
-      if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -gt 10 ]; then
+      if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -gt 30 ]; then
          while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -le 3 ] )
          do
             LOG_OUT "Warning: TUN Interface Start Failed, Try to Restart Again..."
             kill_clash
             start_run_core
             sleep 5
-            check_core_status
             let TUN_RESTART++
-         done
+         done >/dev/null 2>&1
          if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -gt 3 ]; then
             LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
             start_fail
@@ -2905,6 +2875,7 @@ start()
    [ "$enable" != "1" ] && LOG_OUT "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && del_lock && exit 0
 
    LOG_OUT "OpenClash Start Running..."
+
    config_choose
    do_run_mode
 
@@ -2914,9 +2885,6 @@ start()
    LOG_OUT "Step 2: Check The Components..."
    #检查文件是否存在
    do_run_file "$RAW_CONFIG_FILE" "$BACKUP_FILE"
-
-   #快速启动判断
-   check_run_quick
 
    if ! $quick_start; then
       LOG_OUT "Step 3: Modify The Config File..."
@@ -2929,20 +2897,19 @@ start()
          chmod +x /etc/openclash/custom/openclash_custom_overwrite.sh >/dev/null 2>&1
          /etc/openclash/custom/openclash_custom_overwrite.sh 2>/dev/null "$TMP_CONFIG_FILE"
       fi
+   else
+      LOG_OUT "Step 3: Quick Start Mode, Skip Modify The Config File..."
    fi
 
    LOG_OUT "Step 4: Start Running The Clash Core..."
    start_run_core
 
-   LOG_OUT "Step 5: Check The Core Status..."
-   check_core_status
-
-   LOG_OUT "Step 6: Set Firewall Rules..."
+   LOG_OUT "Step 5: Set Firewall Rules..."
    set_firewall
-   LOG_OUT "Step 7: Restart Dnsmasq..."
+   LOG_OUT "Step 6: Restart Dnsmasq..."
    change_dns "$enable_redirect_dns" "$disable_masq_cache"
 
-   LOG_OUT "Step 8: Add Cron Rules, Start Daemons..."
+   LOG_OUT "Step 7: Add Cron Rules, Start Daemons..."
    add_cron
    if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] || [ "$(uci -q get dhcp.lan.dhcpv6)" == "disabled" ]; then
       LOG_OUT "OpenClash Start Successful!"
@@ -3044,6 +3011,8 @@ restart()
    set_lock
    echo "OpenClash Restart..."
    LOG_OUT "OpenClash Restart..."
+   #快速启动判断
+   check_run_quick
    stop
    start
    del_lock

@@ -260,17 +260,15 @@ yml_rule_group_get()
 
    group_check=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
-      Thread.new{
-         Value = YAML.load_file('$2');
-         Value['proxy-groups'].each{
-            |x|
-            if x['name'] == '$group' then
-               if (x.key?('use') and not x['use'].to_a.empty?) or (x.key?('proxies') and not x['proxies'].to_a.empty?) then
-                  puts 'return'
-               end;
+      Value = YAML.load_file('$2');
+      Value['proxy-groups'].each{
+         |x|
+         if x['name'] == '$group' then
+            if (x.key?('use') and not x['use'].to_a.empty?) or (x.key?('proxies') and not x['proxies'].to_a.empty?) then
+               puts 'return'
             end;
-         };
-      }.join;
+         end;
+      };
    rescue Exception => e
       puts 'return'
    end;" 2>/dev/null)
@@ -298,8 +296,9 @@ yml_other_set()
       puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
    end;
 
+   t1=Thread.new{
+   #BT/P2P DIRECT Rules
    begin
-   Thread.new{
       if $4 == 1 then
          Value['rules']=Value['rules'].to_a.insert(0,
          'GEOSITE,category-public-tracker,DIRECT'
@@ -343,13 +342,12 @@ yml_other_set()
          end
          Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')};
       end;
-   }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】';
    end;
-   
+
+   #Router Self Proxy Rule
    begin
-   Thread.new{
       if $6 == 0 and ${10} != 2 and '${12}' == 'fake-ip' then
          if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
             if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'${fake_ip}')/).empty? then
@@ -365,29 +363,12 @@ yml_other_set()
          Value['rules'].delete('SRC-IP-CIDR,${11},DIRECT');
          Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT');
       end;
-   }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Set Router Self Proxy Rule Failed,【' + e.message + '】';
-   end
-
-   #处理规则集
-   begin
-   Thread.new{
-      if File::exist?('$RULE_PROVIDER_FILE') then
-         Value_1 = YAML.load_file('$RULE_PROVIDER_FILE');
-         if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-            Value['rule-providers'].merge!(Value_1);
-         else
-            Value['rule-providers']=Value_1;
-         end;
-      end;
-   }.join;
-   rescue Exception => e
-      puts '${LOGTIME} Error: Custom Rule Provider Merge Failed,【' + e.message + '】';
    end;
-      
+
+   #Custom Rule Set
    begin
-   Thread.new{
       if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
          if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
             if $4 != 1 then
@@ -430,13 +411,205 @@ yml_other_set()
             end;
          end;
       end;
-   }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Rule Set Add Failed,【' + e.message + '】';
    end;
 
+   #Custom Rules
    begin
-   Thread.new{
+      if $2 == 1 then
+      #rules
+         if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+            if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
+               Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
+               if Value_1 != false then
+                  if Value_1.class.to_s == 'Hash' then
+                     if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
+                        Value_2 = Value_1['rules'].to_a.reverse!;
+                     end;
+                  elsif Value_1.class.to_s == 'Array' then
+                     Value_2 = Value_1.reverse!;
+                  end;
+                  if defined? Value_2 then
+                     Value_2.each{|x|
+                        Value['rules'].insert(0,x);
+                     };
+                     Value['rules'] = Value['rules'].uniq;
+                  end;
+               end;
+            end;
+            if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
+               Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
+               if Value_3 != false then
+                  if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
+                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
+                     ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
+                  else
+                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
+                  end;
+                  ruby_add_index ||= -1;
+                  if Value_3.class.to_s == 'Hash' then
+                     if not Value_3['rules'].to_a.empty? and Value_3['rules'].class.to_s == 'Array' then
+                        Value_4 = Value_3['rules'].to_a.reverse!;
+                     end;
+                  elsif Value_3.class.to_s == 'Array' then
+                     Value_4 = Value_3.reverse!;
+                  end;
+                  if defined? Value_4 then
+                     if ruby_add_index == -1 then
+                        Value_4 = Value_4.reverse!;
+                     end;
+                     Value_4.each{|x|
+                        Value['rules'].insert(ruby_add_index,x);
+                     };
+                     Value['rules'] = Value['rules'].uniq;
+                  end;
+               end;
+            end;
+         else
+            if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
+               Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
+               if Value_1 != false then
+                  if Value_1.class.to_s == 'Hash' then
+                     if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
+                        Value['rules'] = Value_1['rules'];
+                        Value['rules'] = Value['rules'].uniq;
+                     end;
+                  elsif Value_1.class.to_s == 'Array' then
+                     Value['rules'] = Value_1;
+                     Value['rules'] = Value['rules'].uniq;
+                  end;
+               end;
+            end;
+            if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
+               Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
+               if Value_2 != false then
+                  if Value['rules'].to_a.empty? then
+                     if Value_2.class.to_s == 'Hash' then
+                        if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
+                           Value['rules'] = Value_2['rules'];
+                           Value['rules'] = Value['rules'].uniq;
+                        end;
+                     elsif Value_2.class.to_s == 'Array' then
+                        Value['rules'] = Value_2;
+                        Value['rules'] = Value['rules'].uniq;
+                     end;
+                  else
+                     if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
+                        ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
+                        ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
+                     else
+                        ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
+                     end;
+                     ruby_add_index ||= -1;
+                     if Value_2.class.to_s == 'Hash' then
+                     if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
+                        Value_3 = Value_2['rules'].to_a.reverse!;
+                     end;
+                     elsif Value_2.class.to_s == 'Array' then
+                        Value_3 = Value_2.reverse!;
+                     end;
+                     if defined? Value_3 then
+                        if ruby_add_index == -1 then
+                           Value_3 = Value_3.reverse!;
+                        end
+                        Value_3.each{|x|
+                           Value['rules'].insert(ruby_add_index,x);
+                        };
+                        Value['rules'] = Value['rules'].uniq;
+                     end;
+                  end;
+               end;
+            end;
+         end;
+      #SUB-RULE
+         if Value.has_key?('sub-rules') and not Value['sub-rules'].to_a.empty? then
+            if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
+               Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
+               if Value_1 != false then
+                  if Value_1.class.to_s == 'Hash' then
+                     if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
+                        Value['sub-rules'] = Value['sub-rules'].merge!(Value_1['sub-rules']);
+                     end;
+                  end;
+               end;
+            end;
+            if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
+               Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
+               if Value_2 != false then
+                  if Value_2.class.to_s == 'Hash' then
+                     if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
+                        Value['sub-rules'] = Value['sub-rules'].merge!(Value_2['sub-rules']);
+                     end;
+                  end;
+               end;
+            end;
+         else
+            if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
+               Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
+               if Value_1 != false then
+                  if Value_1.class.to_s == 'Hash' then
+                     if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
+                        Value['sub-rules'] = Value_1['sub-rules'];
+                     end;
+                  end;
+               end;
+            end;
+            if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
+               Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
+               if Value_2 != false then
+                  if Value_2.class.to_s == 'Hash' then
+                     if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
+                        Value['sub-rules'] = Value_2['sub-rules'];
+                     end;
+                  end;
+               end;
+            end;
+         end;
+      end;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Set Custom Rules Failed,【' + e.message + '】';
+   end;
+
+   #loop prevent
+      Thread.new{
+         begin
+            if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+               if Value['rules'].to_a.grep(/(?=.*'${fake_ip}')(?=.*REJECT)/).empty? then
+                  Value['rules']=Value['rules'].to_a.insert(0,'IP-CIDR,${11},REJECT,no-resolve');
+               end;
+               if Value['rules'].to_a.grep(/(?=.*DST-PORT,'$8',REJECT)/).empty? then
+                  Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$8,REJECT');
+               end;
+               if Value['rules'].to_a.grep(/(?=.*DST-PORT,'$9',REJECT)/).empty? then
+                  Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$9,REJECT');
+               end;
+            else
+               Value['rules']=['IP-CIDR,${11},REJECT,no-resolve','DST-PORT,$8,REJECT','DST-PORT,$9,REJECT'];
+            end;
+         rescue Exception => e
+            puts '${LOGTIME} Error: Set Loop Protect Rules Failed,【' + e.message + '】';
+         end;
+      };
+   };
+
+   t2=Thread.new{
+   #Custom Rule Provider
+   begin
+      if File::exist?('$RULE_PROVIDER_FILE') then
+         Value_1 = YAML.load_file('$RULE_PROVIDER_FILE');
+         if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+            Value['rule-providers'].merge!(Value_1);
+         else
+            Value['rule-providers']=Value_1;
+         end;
+      end;
+   rescue Exception => e
+      puts '${LOGTIME} Error: Custom Rule Provider Merge Failed,【' + e.message + '】';
+   end;
+
+   #Game Proxy
+   begin
       if File::exist?('/tmp/yaml_groups.yaml') or File::exist?('/tmp/yaml_servers.yaml') or File::exist?('/tmp/yaml_provider.yaml') then
          if File::exist?('/tmp/yaml_groups.yaml') then
             Value_1 = YAML.load_file('/tmp/yaml_groups.yaml');
@@ -466,192 +639,12 @@ yml_other_set()
             end;
          end;
       end;
-   }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Game Proxy Merge Failed,【' + e.message + '】';
    end;
 
+   #provider path
    begin
-   Thread.new{
-   if $2 == 1 then
-   #rules
-      if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-         if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
-            if Value_1 != false then
-               if Value_1.class.to_s == 'Hash' then
-                  if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
-                     Value_2 = Value_1['rules'].to_a.reverse!;
-                  end;
-               elsif Value_1.class.to_s == 'Array' then
-                  Value_2 = Value_1.reverse!;
-               end;
-               if defined? Value_2 then
-                  Value_2.each{|x|
-                     Value['rules'].insert(0,x);
-                  };
-                  Value['rules'] = Value['rules'].uniq;
-               end;
-            end;
-         end;
-         if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-            Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
-            if Value_3 != false then
-               if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
-                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
-                  ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
-               else
-                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
-               end;
-               ruby_add_index ||= -1;
-               if Value_3.class.to_s == 'Hash' then
-                  if not Value_3['rules'].to_a.empty? and Value_3['rules'].class.to_s == 'Array' then
-                     Value_4 = Value_3['rules'].to_a.reverse!;
-                  end;
-               elsif Value_3.class.to_s == 'Array' then
-                  Value_4 = Value_3.reverse!;
-               end;
-               if defined? Value_4 then
-                  if ruby_add_index == -1 then
-                     Value_4 = Value_4.reverse!;
-                  end;
-                  Value_4.each{|x|
-                     Value['rules'].insert(ruby_add_index,x);
-                  };
-                  Value['rules'] = Value['rules'].uniq;
-               end;
-            end;
-         end;
-      else
-         if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
-            if Value_1 != false then
-               if Value_1.class.to_s == 'Hash' then
-                  if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
-                     Value['rules'] = Value_1['rules'];
-                     Value['rules'] = Value['rules'].uniq;
-                  end;
-               elsif Value_1.class.to_s == 'Array' then
-                  Value['rules'] = Value_1;
-                  Value['rules'] = Value['rules'].uniq;
-               end;
-            end;
-         end;
-         if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-            Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
-            if Value_2 != false then
-               if Value['rules'].to_a.empty? then
-                  if Value_2.class.to_s == 'Hash' then
-                     if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
-                        Value['rules'] = Value_2['rules'];
-                        Value['rules'] = Value['rules'].uniq;
-                     end;
-                  elsif Value_2.class.to_s == 'Array' then
-                     Value['rules'] = Value_2;
-                     Value['rules'] = Value['rules'].uniq;
-                  end;
-               else
-                  if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
-                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
-                     ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
-                  else
-                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
-                  end;
-                  ruby_add_index ||= -1;
-                  if Value_2.class.to_s == 'Hash' then
-                    if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
-                       Value_3 = Value_2['rules'].to_a.reverse!;
-                    end;
-                  elsif Value_2.class.to_s == 'Array' then
-                     Value_3 = Value_2.reverse!;
-                  end;
-                  if defined? Value_3 then
-                     if ruby_add_index == -1 then
-                        Value_3 = Value_3.reverse!;
-                     end
-                     Value_3.each{|x|
-                        Value['rules'].insert(ruby_add_index,x);
-                     };
-                     Value['rules'] = Value['rules'].uniq;
-                  end;
-               end;
-            end;
-         end;
-      end;
-   #SUB-RULE
-      if Value.has_key?('sub-rules') and not Value['sub-rules'].to_a.empty? then
-         if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
-            if Value_1 != false then
-               if Value_1.class.to_s == 'Hash' then
-                  if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
-                     Value['sub-rules'] = Value['sub-rules'].merge!(Value_1['sub-rules']);
-                  end;
-               end;
-            end;
-         end;
-         if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-            Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
-            if Value_2 != false then
-               if Value_2.class.to_s == 'Hash' then
-                  if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
-                     Value['sub-rules'] = Value['sub-rules'].merge!(Value_2['sub-rules']);
-                  end;
-               end;
-            end;
-         end;
-      else
-         if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-            Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
-            if Value_1 != false then
-               if Value_1.class.to_s == 'Hash' then
-                  if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
-                     Value['sub-rules'] = Value_1['sub-rules'];
-                  end;
-               end;
-            end;
-         end;
-         if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-            Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
-            if Value_2 != false then
-               if Value_2.class.to_s == 'Hash' then
-                  if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
-                     Value['sub-rules'] = Value_2['sub-rules'];
-                  end;
-               end;
-            end;
-         end;
-      end;
-   end;
-   }.join;
-   rescue Exception => e
-      puts '${LOGTIME} Error: Set Custom Rules Failed,【' + e.message + '】';
-   end;
-
-   #loop prevent
-   begin
-   Thread.new{
-      if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-         if Value['rules'].to_a.grep(/(?=.*'${fake_ip}')(?=.*REJECT)/).empty? then
-            Value['rules']=Value['rules'].to_a.insert(0,'IP-CIDR,${11},REJECT,no-resolve');
-         end;
-         if Value['rules'].to_a.grep(/(?=.*DST-PORT,'$8',REJECT)/).empty? then
-            Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$8,REJECT');
-         end;
-         if Value['rules'].to_a.grep(/(?=.*DST-PORT,'$9',REJECT)/).empty? then
-            Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$9,REJECT');
-         end;
-      else
-         Value['rules']=['IP-CIDR,${11},REJECT,no-resolve','DST-PORT,$8,REJECT','DST-PORT,$9,REJECT'];
-      end;
-   }.join;
-   rescue Exception => e
-      puts '${LOGTIME} Error: Set Loop Protect Rules Failed,【' + e.message + '】';
-   end;
-
-   #修改集路径
-   begin
-   Thread.new{
       provider = {'proxy-providers' => 'proxy_provider', 'rule-providers' => 'rule_provider'}
       provider.each{|i, p|
          if Value.key?(i) then
@@ -680,14 +673,12 @@ yml_other_set()
             };
          end;
       };
-   }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Edit Provider Path Failed,【' + e.message + '】';
    end;
 
    #tolerance
    begin
-   Thread.new{
       if '$tolerance' != '0' then
          Value['proxy-groups'].each{
             |x|
@@ -696,14 +687,12 @@ yml_other_set()
                end
             };
       end;
-   }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Edit URL-Test Group Tolerance Option Failed,【' + e.message + '】';
    end;
 
    #URL-Test interval
    begin
-   Thread.new{
       if '$urltest_interval_mod' != '0' then
          if Value.key?('proxy-groups') then
             Value['proxy-groups'].each{
@@ -722,14 +711,12 @@ yml_other_set()
             };
          end;
       end;
-   }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Edit URL-Test Interval Failed,【' + e.message + '】';
    end;
 
-   #修改测速地址
+   #health-check url
    begin
-   Thread.new{
       if '$urltest_address_mod' != '0' then
          if Value.key?('proxy-providers') then
             Value['proxy-providers'].values.each{
@@ -748,9 +735,14 @@ yml_other_set()
             };
          end;
       end;
-   }.join;
    rescue Exception => e
       puts '${LOGTIME} Error: Edit URL-Test URL Failed,【' + e.message + '】';
+   end;
+   };
+   
+   begin
+      t1.join;
+      t2.join;
    ensure
       File.open('$3','w') {|f| YAML.dump(Value, f)};
    end" 2>/dev/null >> $LOG_FILE

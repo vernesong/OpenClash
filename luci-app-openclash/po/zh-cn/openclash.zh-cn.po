@@ -1983,20 +1983,20 @@ msgstr "第二步: 组件运行前检查..."
 msgid "Step 3: Modify The Config File..."
 msgstr "第三步: 修改配置文件..."
 
+msgid "Step 3: Quick Start Mode, Skip Modify The Config File..."
+msgstr "第三步: 快速启动模式，跳过修改配置文件..."
+
 msgid "Step 4: Start Running The Clash Core..."
 msgstr "第四步: 启动主程序..."
 
-msgid "Step 5: Check The Core Status..."
-msgstr "第五步: 检查内核启动状态..."
+msgid "Step 5: Set Firewall Rules..."
+msgstr "第五步: 设置防火墙规则..."
 
-msgid "Step 6: Set Firewall Rules..."
-msgstr "第六步: 设置防火墙规则..."
+msgid "Step 6: Restart Dnsmasq..."
+msgstr "第六步: 重启 Dnsmasq 程序..."
 
-msgid "Step 7: Restart Dnsmasq..."
-msgstr "第七步: 重启 Dnsmasq 程序..."
-
-msgid "Step 8: Add Cron Rules, Start Daemons..."
-msgstr "第八步: 添加计划任务,启动进程守护程序..."
+msgid "Step 7: Add Cron Rules, Start Daemons..."
+msgstr "第七步: 添加计划任务,启动进程守护程序..."
 
 msgid "OpenClash Start Successful!"
 msgstr "OpenClash 启动成功，请等待服务器上线！"
@@ -2760,9 +2760,6 @@ msgstr "发生了一些错误，测试失败..."
 msgid "Network instability may occur during testing, Are you sure want to start test?"
 msgstr "测试过程中可能会造成网络不稳定,确定要开始测试吗？"
 
-msgid "Error: Edit Vmess Compatible Failed,"
-msgstr "错误：Vmess 节点兼容性修改失败，"
-
 msgid "Subscription Info"
 msgstr "订阅信息"
 
@@ -3414,5 +3411,14 @@ msgstr "警告：选项"
 msgid "is Setted"
 msgstr "设置了"
 
-msgid "as DNS Server which May Cause DNS Loop, Please Consider Removing It When DNS Works Abnormally..."
+msgid "as DNS Server Which May Cause DNS Loop, Please Consider Removing It When DNS Works Abnormally..."
 msgstr "作为 DNS 服务器，这可能造成 DNS 回环错误，如发现 DNS 工作异常请考虑移除该设置..."
+
+msgid "Error: Set Custom DNS Failed,"
+msgstr "错误：设置自定义 DNS 错误，"
+
+msgid "Error: Set proxy-server-nameserver Failed,"
+msgstr "错误：设置 proxy-server-nameserver 错误，"
+
+msgid "Error: Set fallback-filter Failed,"
+msgstr "错误：设置 fallback-filter 错误，"
