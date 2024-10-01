@@ -573,19 +573,6 @@ Thread.new{
 }.join;
 end;
 
-# dns check
-begin
-Thread.new{
-   if not Value['dns'].key?('nameserver') or Value['dns']['nameserver'].to_a.empty? then
-      puts '${LOGTIME} Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete...';
-      Value_1={'nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']};
-      Value_2={'fallback'=>['https://dns.cloudflare.com/dns-query','https://dns.google/dns-query']};
-      Value['dns'].merge!(Value_1);
-      Value['dns'].merge!(Value_2);
-   end;
-}.join;
-end;
-
 #default-nameserver
 begin
 Thread.new{
@@ -600,7 +587,7 @@ Thread.new{
       end;
    end;
    if ${25} == 1 then
-      reg = /(^dhcp:\/\/)|(^system$)|([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/;
+      reg = /^dhcp:\/\/|^system($|:\/\/)|([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/;
       if Value['dns'].has_key?('fallback') then
          Value_1=Value['dns']['nameserver'] | Value['dns']['fallback'];
       else
@@ -641,21 +628,6 @@ Thread.new{
 }.join;
 end;
 
-#fallback-filter
-begin
-Thread.new{
-   if '$custom_fallback_filter' == '1' then
-      if not Value['dns'].key?('fallback') then
-         puts '${LOGTIME} Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore...';
-      elsif not YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml') then
-         puts '${LOGTIME} Error: Unable To Parse Custom Fallback-Filter File, Ignore...';
-      else
-         Value['dns']['fallback-filter'] = YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml')['fallback-filter'];
-      end;
-   end;
-}.join;
-end;
-
 #nameserver-policy
 begin
 Thread.new{
@@ -675,6 +647,51 @@ Thread.new{
 }.join;
 rescue Exception => e
    puts '${LOGTIME} Error: Set Nameserver-Policy Failed,【' + e.message + '】';
+end;
+
+#dns check
+begin
+Thread.new{
+   if not Value['dns'].key?('nameserver') or Value['dns']['nameserver'].to_a.empty? then
+      puts '${LOGTIME} Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete...';
+      Value_1={'nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']};
+      Value_2={'fallback'=>['https://dns.cloudflare.com/dns-query','https://dns.google/dns-query']};
+      Value['dns'].merge!(Value_1);
+      Value['dns'].merge!(Value_2);
+   end;
+   if '$enable_redirect_dns' != '2' then
+      for x in ['nameserver','fallback','default-nameserver','proxy-server-nameserver','nameserver-policy'] do
+         if not Value['dns'].key?(x) or Value['dns'][x].nil? then
+            next;
+         end;
+         if x != 'nameserver-policy' then
+            if Value['dns'][x].to_a.grep(/^system($|:\/\/)/).empty? then
+               next;
+            end;
+         else
+            if Value['dns'][x].values.flatten.grep(/^system($|:\/\/)/).empty? then
+               next;
+            end;
+         end;
+         puts '${LOGTIME} Warning: Option【' + x + '】is Setted【system】as DNS Server which May Cause DNS Loop, Please Consider Removing It When DNS Works Abnormally...';
+      end;
+   end;
+}.join;
+end;
+
+#fallback-filter
+begin
+Thread.new{
+   if '$custom_fallback_filter' == '1' then
+      if not Value['dns'].key?('fallback') then
+         puts '${LOGTIME} Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore...';
+      elsif not YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml') then
+         puts '${LOGTIME} Error: Unable To Parse Custom Fallback-Filter File, Ignore...';
+      else
+         Value['dns']['fallback-filter'] = YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml')['fallback-filter'];
+      end;
+   end;
+}.join;
 end;
 
 #fake-ip-filter
