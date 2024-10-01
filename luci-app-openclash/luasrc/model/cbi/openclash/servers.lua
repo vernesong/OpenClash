@@ -265,7 +265,7 @@ o = a:option(Button, "Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-	fs.unlink("/tmp/Proxy_Group")
+  fs.unlink("/tmp/Proxy_Group")
   m.uci:set("openclash", "config", "enable", 0)
   m.uci:commit("openclash")
 end
@@ -274,7 +274,7 @@ o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
-	fs.unlink("/tmp/Proxy_Group")
+  fs.unlink("/tmp/Proxy_Group")
   m.uci:set("openclash", "config", "enable", 0)
   m.uci:commit("openclash")
   luci.sys.call("/usr/share/openclash/yml_groups_set.sh >/dev/null 2>&1 &")
