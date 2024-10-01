@@ -303,7 +303,7 @@
                         if (localStorage.getItem('privacy_my_ip') != 'true') {
                             $$.getElementById('ip-upaiyun').innerHTML = resp.data.remote_addr;
                         };
-                        $$.getElementById('ip-upaiyun-geo').innerHTML = resp.data.remote_addr_location.country + resp.data.remote_addr_location.province + resp.data.remote_addr_location.city + ' '  + resp.data.remote_addr_location.isp;
+                        $$.getElementById('ip-upaiyun-geo').innerHTML = resp.data.remote_addr_location.country + ' '  + resp.data.remote_addr_location.province + ' '  + resp.data.remote_addr_location.city + ' '  + resp.data.remote_addr_location.isp;
                         //IP.parseIPIpip(resp.data.remote_addr, 'ip-upaiyun-geo');
                         addTitleOnOverflow();
                     })
@@ -379,7 +379,7 @@
             if (localStorage.getItem('privacy_my_ip') != 'true') {
                 $$.getElementById('ip-pcol').innerHTML = data.ip;
             };
-            $$.getElementById('ip-pcol-geo').innerHTML = `${data.pro}${data.city}${data.region} ${pcisp[1]}`;
+            $$.getElementById('ip-pcol-geo').innerHTML = `${data.pro} ${data.city} ${data.region} ${pcisp[1]}`;
             addTitleOnOverflow();
         };
 
