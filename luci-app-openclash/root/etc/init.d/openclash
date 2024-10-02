@@ -610,6 +610,7 @@ start_run_core()
 {
    ulimit -SHn 65535 2>/dev/null
    ulimit -v unlimited 2>/dev/null
+   ulimit -u unlimited 2>/dev/null
    modprobe tun >/dev/null 2>&1
    if ! $quick_start; then
       mv "$TMP_CONFIG_FILE" "$CONFIG_FILE" 2>/dev/null
