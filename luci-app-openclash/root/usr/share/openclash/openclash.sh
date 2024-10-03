@@ -103,42 +103,61 @@ config_cus_up()
 	      LOG_OUT "Config File【$name】is Replaced Successfully, Start Picking Nodes..."	      
 	      ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 	      begin
+            threads = [];
 	         Value = YAML.load_file('$CONFIG_FILE');
 	         if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
 	            Value['proxies'].reverse.each{
 	            |x|
-	            if not '$key_match_param'.empty? then
-	               if not /$key_match_param/i =~ x['name'] then
-	                  Value['proxies'].delete(x)
-	                  Value['proxy-groups'].each{
-	                     |g|
-	                     g['proxies'].reverse.each{
-	                        |p|
-	                        if p == x['name'] then
-	                           g['proxies'].delete(p)
-	                        end
-	                     }
-	                  }
-	               end
-	            end;
-	            if not '$key_ex_match_param'.empty? then
-	               if /$key_ex_match_param/i =~ x['name'] then
-	                  if Value['proxies'].include?(x) then
-	                     Value['proxies'].delete(x)
-	                     Value['proxy-groups'].each{
-	                        |g|
-	                        g['proxies'].reverse.each{
-	                           |p|
-	                           if p == x['name'] then
-	                              g['proxies'].delete(p)
-	                           end
-	                        }
-	                     }
-	                  end
-	               end
-	            end;
-	            }
+                  if not '$key_match_param'.empty? then
+                     threads << Thread.new {
+                        if not /$key_match_param/i =~ x['name'] then
+                           Value['proxies'].delete(x)
+                           Value['proxy-groups'].each{
+                              |g|
+                              g['proxies'].reverse.each{
+                                 |p|
+                                 if p == x['name'] then
+                                    g['proxies'].delete(p)
+                                 end;
+                              };
+                           };
+                        end;
+                     };
+                  end;
+                  if not '$key_ex_match_param'.empty? then
+                     threads << Thread.new {
+                        if /$key_ex_match_param/i =~ x['name'] then
+                           if Value['proxies'].include?(x) then
+                              Value['proxies'].delete(x)
+                              Value['proxy-groups'].each{
+                                 |g|
+                                 g['proxies'].reverse.each{
+                                    |p|
+                                    if p == x['name'] then
+                                       g['proxies'].delete(p)
+                                    end;
+                                 };
+                              };
+                           end;
+                        end;
+                     };
+                  end;
+	            };
 	         end;
+            if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
+               Value['proxy-providers'].values.each do
+                  |i|
+                  threads << Thread.new {
+                     if not '$key_match_param'.empty? then
+                        i['filter'] = '(?i)$key_match_param';
+                     end;
+                     if not '$key_ex_match_param'.empty? then
+                        i['exclude-filter'] = '(?i)$key_ex_match_param';
+                     end;
+                  };
+               end;
+            end;
+            threads.each(&:join);
 	      rescue Exception => e
 	         puts '${LOGTIME} Error: Filter Proxies Failed,【' + e.message + '】'
 	      ensure
@@ -239,37 +258,6 @@ change_dns()
    fi
 }
 
-field_name_check()
-{
-   #检查field名称（不兼容旧写法）
-   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-      Value = YAML.load_file('$CFG_FILE');
-      if Value.key?('Proxy') or Value.key?('Proxy Group') or Value.key?('Rule') or Value.key?('rule-provider') then
-         if Value.key?('Proxy') then
-            Value['proxies'] = Value['Proxy']
-            Value.delete('Proxy')
-            puts '${LOGTIME} Warning: Proxy is no longer used. Auto replaced by proxies'
-         end
-         if Value.key?('Proxy Group') then
-            Value['proxy-groups'] = Value['Proxy Group']
-            Value.delete('Proxy Group')
-            puts '${LOGTIME} Warning: Proxy Group is no longer used. Auto replaced by proxy-groups'
-         end
-         if Value.key?('Rule') then
-            Value['rules'] = Value['Rule']
-            Value.delete('Rule')
-            puts '${LOGTIME} Warning: Rule is no longer used. Auto replaced by rules'
-         end
-         if Value.key?('rule-provider') then
-            Value['rule-providers'] = Value['rule-provider']
-            Value.delete('rule-provider')
-             puts '${LOGTIME} Warning: rule-provider is no longer used. Auto replaced by rule-providers'
-         end;
-         File.open('$CFG_FILE','w') {|f| YAML.dump(Value, f)};
-      end;
-   " 2>/dev/null >> $LOG_FILE
-}
-
 config_download_direct()
 {
    if pidof clash >/dev/null && [ "$router_self_proxy" = 1 ]; then
@@ -308,15 +296,9 @@ config_download_direct()
             change_dns
             config_error
          elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
-            field_name_check
-            if ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
-               LOG_OUT "Error: Updated Config【$name】Has No Proxy Field, Update Exit..."
-               change_dns
-               config_error
-            else
-               change_dns
-               config_su_check
-            fi
+            LOG_OUT "Error: Updated Config【$name】Has No Proxy Field, Update Exit..."
+            change_dns
+            config_error
          else
             change_dns
             config_su_check
@@ -509,13 +491,8 @@ sub_info_get()
          LOG_OUT "Config File Format Validation Failed, Trying To Download Without Agent..."
          config_download_direct
       elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
-         field_name_check
-         if ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
             LOG_OUT "Error: Updated Config【$name】Has No Proxy Field, Trying To Download Without Agent..."
             config_download_direct
-         else
-            config_su_check
-         fi
       else
          config_su_check
       fi
