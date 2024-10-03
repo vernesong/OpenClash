@@ -77,7 +77,6 @@ check_tun_status()
    TUN_WAIT=0
    TUN_RESTART=1
    if [ -n "$(echo $en_mode |grep -E '\-mix|\-tun')" ] || [ "$ipv6_mode" -eq 2 ]; then
-      LOG_OUT "Watchdog: Checking TUN Interface Status..."
       if [ "$ipv6_enable" = "0" ]; then
          ip_="ip"
       else
@@ -105,8 +104,6 @@ check_tun_status()
             start_fail
          fi
       fi
-
-      LOG_OUT "Watchdog: TUN Interface Works Fine..."
    fi
 }
 

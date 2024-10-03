@@ -3069,12 +3069,6 @@ msgstr "探测（嗅探）纯 IP 连接"
 msgid "Download Failed:"
 msgstr "下载失败："
 
-msgid "Watchdog: Checking TUN Interface Status..."
-msgstr "守护程序：正在检查 TUN 接口状态..."
-
-msgid "Watchdog: TUN Interface Works Fine..."
-msgstr "守护程序：TUN 接口运行正常..."
-
 msgid "Warning: Dnsmasq not Support nftset, Use ipset..."
 msgstr "警告：Dnsmasq 不支持 nftset, 使用 ipset 代替..."
 
