@@ -15,7 +15,6 @@ dns_port=$(uci -q get openclash.config.dns_port)
 disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
 cfg_update_interval=$(uci -q get openclash.config.config_update_interval || echo 60)
 log_size=$(uci -q get openclash.config.log_size || echo 1024)
-core_type=$(uci -q get openclash.config.core_type)
 router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
 stream_auto_select_interval=$(uci -q get openclash.config.stream_auto_select_interval || echo 30)
 ipv6_mode=$(uci -q get openclash.config.ipv6_mode || echo 0)
@@ -28,87 +27,6 @@ SKIP_PROXY_ADDRESS_INTERVAL=30
 STREAM_AUTO_SELECT=1
 FW4=$(command -v fw4)
 
-kill_clash()
-{
-   check_time=1
-   while ( [ "$check_time" -le 10 ] && [ -n "$(pidof clash)" ] )
-   do
-      clash_pids=$(pidof clash |sed 's/$//g')
-      for clash_pid in $clash_pids; do
-         kill -9 "$clash_pid" 2>/dev/null
-      done
-      sleep 1
-      let check_time++
-   done >/dev/null 2>&1
-}
-
-start_fail()
-{
-   kill_clash
-   /etc/init.d/openclash stop
-   exit 0
-}
-
-start_run_core()
-{
-   ulimit -SHn 65535 2>/dev/null
-   ulimit -v unlimited 2>/dev/null
-   ulimit -u unlimited 2>/dev/null
-   chown root:root /etc/openclash/core/* 2>/dev/null
-   capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin"
-   capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
-   sleep 3
-   if [ "$core_type" == "Meta" ]; then
-      ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
-      ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
-      if [ "$ipv6_mode" -eq 2 ] && [ "$ipv6_enable" -eq 1 ]; then
-         ip -6 rule del oif utun table 2022 >/dev/null 2>&1
-         ip -6 route del default dev utun table 2022 >/dev/null 2>&1
-         ip -6 addr add fdfe:dcba:9876::1/126 dev utun >/dev/null 2>&1
-         ip -6 route add fdfe:dcba:9876::/126 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
-         ip -6 route add fe80::/64 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
-         ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-         ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-      fi
-   fi
-}
-
-check_tun_status()
-{
-   TUN_WAIT=0
-   TUN_RESTART=1
-   if [ -n "$(echo $en_mode |grep -E '\-mix|\-tun')" ] || [ "$ipv6_mode" -eq 2 ]; then
-      if [ "$ipv6_enable" = "0" ]; then
-         ip_="ip"
-      else
-         ip_="ip -6"
-      fi
-      
-      while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -le 30 ] )
-      do
-         $ip_ link set utun up
-         let TUN_WAIT++
-         sleep 1
-      done >/dev/null 2>&1
-
-      if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -gt 30 ]; then
-         while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -le 3 ] )
-         do
-            LOG_OUT "Warning: TUN Interface Start Failed, Try to Restart Again..."
-            kill_clash
-            start_run_core
-            sleep 5
-            let TUN_RESTART++
-         done >/dev/null 2>&1
-         if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -gt 3 ]; then
-            LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
-            start_fail
-         fi
-      fi
-   fi
-}
-
-check_tun_status
 sleep 15
 
 while :;
@@ -149,7 +67,24 @@ if [ "$enable" -eq 1 ]; then
 	   CRASH_NUM=$(expr "$CRASH_NUM" + 1)
 	   if [ "$CRASH_NUM" -le 3 ]; then
          LOG_OUT "Watchdog: Clash Core Problem, Restart..."
-         start_run_core
+         ulimit -SHn 65535 2>/dev/null
+         ulimit -v unlimited 2>/dev/null
+         ulimit -u unlimited 2>/dev/null
+         chown root:root /etc/openclash/core/* 2>/dev/null
+         capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin"
+         capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
+         sleep 3
+         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
+         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
+         if [ "$ipv6_mode" -eq 2 ] && [ "$ipv6_enable" -eq 1 ]; then
+            ip -6 rule del oif utun table 2022 >/dev/null 2>&1
+            ip -6 route del default dev utun table 2022 >/dev/null 2>&1
+            ip -6 addr add fdfe:dcba:9876::1/126 dev utun >/dev/null 2>&1
+            ip -6 route add fdfe:dcba:9876::/126 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
+            ip -6 route add fe80::/64 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
+            ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+            ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+         fi
 	      sleep 60
 	      continue
 	   else

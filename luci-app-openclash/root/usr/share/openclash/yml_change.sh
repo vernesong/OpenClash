@@ -194,6 +194,7 @@ yml_dns_get()
    config_get "specific_group" "$section" "specific_group" ""
    config_get_bool "node_resolve" "$section" "node_resolve" "0"
    config_get_bool "http3" "$section" "http3" "0"
+   config_get_bool "skip_cert_verify" "$section" "skip_cert_verify" "0"
    config_get_bool "ecs_override" "$section" "ecs_override" "0"
    config_get "ecs_subnet" "$section" "ecs_subnet" ""
 
@@ -277,8 +278,18 @@ yml_dns_get()
       http3=""
    fi
 
+   if [ "$skip_cert_verify" = "1" ]; then
+      if [ -n "$specific_group" ] || [ -n "$interface" ] || [ -n "$http3" ]; then
+         skip_cert_verify="&skip-cert-verify=true"
+      else
+         skip_cert_verify="#skip-cert-verify=true"
+      fi
+   else
+      skip_cert_verify=""
+   fi
+
    if [ -n "$ecs_subnet" ]; then
-      if [ -n "$specific_group" ] || [ -n "$interface" ] || [ "$http3" = "1" ]; then
+      if [ -n "$specific_group" ] || [ -n "$interface" ] || [ -n "$http3" ] || [ -n "$skip_cert_verify" ]; then
          ecs_subnet="&ecs=$ecs_subnet"
       else
          ecs_subnet="#ecs=$ecs_subnet"
@@ -297,10 +308,10 @@ yml_dns_get()
       if [ -z "$(grep "^ \{0,\}proxy-server-nameserver:$" /tmp/yaml_config.proxynamedns.yaml 2>/dev/null)" ]; then
          echo "  proxy-server-nameserver:" >/tmp/yaml_config.proxynamedns.yaml
       fi
-      echo "    - \"$dns_type$dns_address$specific_group$http3\"" >>/tmp/yaml_config.proxynamedns.yaml
+      echo "    - \"$dns_type$dns_address$specific_group$interface$http3$skip_cert_verify$ecs_subnet$ecs_override\"" >>/tmp/yaml_config.proxynamedns.yaml
    fi
 
-   dns_address="$dns_address$specific_group$interface$http3$ecs_subnet$ecs_override"
+   dns_address="$dns_address$specific_group$interface$http3$skip_cert_verify$ecs_subnet$ecs_override"
 
    if [ -n "$group" ]; then
       if [ "$group" = "nameserver" ]; then
@@ -454,15 +465,6 @@ begin
          end;
          Value_sniffer={'sniffing'=>['tls','http']};
          Value['sniffer'].merge!(Value_sniffer);
-      end;
-   else
-      if '${24}' == 'TUN' then
-         Value_tun_sniff={'experimental'=>{'sniff-tls-sni'=>true}};
-         Value['experimental'] = Value_tun_sniff['experimental'];
-      else
-         if Value.key?('experimental') then
-            Value.delete('experimental');
-         end;
       end;
    end;
    Value_2={'tun'=>{'enable'=>true}};
