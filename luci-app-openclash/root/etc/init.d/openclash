@@ -617,6 +617,7 @@ start_run_core()
       rm -rf "$TMP_CONFIG_FILE" 2>/dev/null
       config_test
    fi
+   chown root:root /etc/openclash/core/* 2>/dev/null
    kill_clash
    #使用nobody启动内核方便代理路由自身流量
    capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin"
