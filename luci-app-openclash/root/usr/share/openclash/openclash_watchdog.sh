@@ -54,6 +54,7 @@ start_run_core()
    ulimit -SHn 65535 2>/dev/null
    ulimit -v unlimited 2>/dev/null
    ulimit -u unlimited 2>/dev/null
+   chown root:root /etc/openclash/core/* 2>/dev/null
    capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin"
    capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
    sleep 3
