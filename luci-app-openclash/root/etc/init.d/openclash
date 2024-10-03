@@ -1498,7 +1498,6 @@ if [ -n "$FW4" ]; then
       #TUN模式
       #启动TUN
       set_tun_tap
-      check_core_status &
 
       #设置防火墙
       if [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
@@ -1897,7 +1896,6 @@ if [ -n "$FW4" ]; then
          fi
       else
          set_tun_tap "v6"
-         check_core_status &
       fi
 
       #TUN FORWORD
@@ -2293,7 +2291,6 @@ if [ -z "$FW4" ]; then
       #TUN模式
       #启动TUN
       set_tun_tap
-      check_core_status &
       #设置防火墙
       if [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
          if [ "$en_mode" = "fake-ip" ]; then
@@ -2682,7 +2679,6 @@ if [ -z "$FW4" ]; then
          fi
       else
          set_tun_tap "v6"
-         check_core_status &
       fi
 
       #TUN FORWORD
@@ -2953,6 +2949,7 @@ start()
 
    LOG_OUT "Step 5: Set Firewall Rules..."
    set_firewall
+   check_core_status &
    LOG_OUT "Step 6: Restart Dnsmasq..."
    change_dns "$enable_redirect_dns" "$disable_masq_cache"
 
