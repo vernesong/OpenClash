@@ -753,7 +753,7 @@ yml_other_set()
       end;
 
       #Run threads
-      threads.each(&:join)
+      threads.each(&:join);
    };
    
    begin
