@@ -3419,3 +3419,12 @@ msgstr "错误：设置 proxy-server-nameserver 错误，"
 
 msgid "Error: Set fallback-filter Failed,"
 msgstr "错误：设置 fallback-filter 错误，"
+
+msgid "Rule"
+msgstr "规则"
+
+msgid "Global"
+msgstr "全局"
+
+msgid "Direct"
+msgstr "直连"

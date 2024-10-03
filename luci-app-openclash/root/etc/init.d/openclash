@@ -1,5 +1,5 @@
 #!/bin/sh /etc/rc.common
-# Copyright (c) 2019 vernesong
+# Copyright (c) 2019-2024 vernesong
 
 START=99
 STOP=15
@@ -701,6 +701,51 @@ upnp_exclude()
             fi
          fi
       done >/dev/null 2>&1
+   fi
+}
+
+check_core_status()
+{
+   TUN_WAIT=0
+   TUN_RESTART=1
+   if [ -n "$en_mode_tun" ] || [ "$ipv6_mode" -eq 2 ]; then
+      if [ -n "$en_mode_tun" ]; then
+         ip_="ip"
+      else
+         ip_="ip -6"
+      fi
+
+      while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -le 60 ] )
+      do
+         $ip_ link set utun up
+         let TUN_WAIT++
+         sleep 1
+      done >/dev/null 2>&1
+
+      if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -gt 60 ]; then
+         while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -le 3 ] )
+         do
+            LOG_OUT "Warning: TUN Interface Start Failed, Try to Restart Again..."
+            kill_clash
+            start_run_core
+            sleep 15
+            let TUN_RESTART++
+         done >/dev/null 2>&1
+         if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -gt 3 ]; then
+            LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
+            start_fail
+         fi
+      fi
+   else
+      while ( [ -n "$(pidof clash)" ] && [ "$TUN_WAIT" -le 5 ] )
+      do
+         let TUN_WAIT++
+         sleep 5
+      done >/dev/null 2>&1
+   fi
+ 
+   if [ -z "$(pidof clash)" ]; then
+      start_fail
    fi
 }
 
@@ -1453,6 +1498,7 @@ if [ -n "$FW4" ]; then
       #TUN模式
       #启动TUN
       set_tun_tap
+      check_core_status &
 
       #设置防火墙
       if [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
@@ -1851,6 +1897,7 @@ if [ -n "$FW4" ]; then
          fi
       else
          set_tun_tap "v6"
+         check_core_status &
       fi
 
       #TUN FORWORD
@@ -2246,6 +2293,7 @@ if [ -z "$FW4" ]; then
       #TUN模式
       #启动TUN
       set_tun_tap
+      check_core_status &
       #设置防火墙
       if [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
          if [ "$en_mode" = "fake-ip" ]; then
@@ -2634,6 +2682,7 @@ if [ -z "$FW4" ]; then
          fi
       else
          set_tun_tap "v6"
+         check_core_status &
       fi
 
       #TUN FORWORD

@@ -59,7 +59,7 @@ o.rempty      = false
 
 ---- interface
 o = s:option(Value, "interface", translate("Specific Interface"))
-o.description = translate("DNS Lookup Only Through The Specific Interface")..translate("(Only TUN Core)")
+o.description = translate("DNS Lookup Only Through The Specific Interface")
 local interfaces = SYS.exec("ls -l /sys/class/net/ 2>/dev/null |awk '{print $9}' 2>/dev/null")
 for interface in string.gmatch(interfaces, "%S+") do
 	o:value(interface)
@@ -75,6 +75,12 @@ o.default     = o.disbled
 
 ---- Force HTTP/3
 o = s:option(Flag, "http3", translate("Force HTTP/3"), translate("Force HTTP/3 to connect")..translate("(Only Meta Core)"))
+o:depends("type", "https")
+o.rmempty     = false
+o.default     = o.disbled
+
+---- Skip-cert-verify
+o = s:option(Flag, "skip_cert_verify", translate("skip-cert-verify"), translate("skip-cert-verify")..translate("(Only Meta Core)"))
 o:depends("type", "https")
 o.rmempty     = false
 o.default     = o.disbled
