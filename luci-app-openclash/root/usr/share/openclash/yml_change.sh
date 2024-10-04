@@ -15,14 +15,6 @@ china_ip_route=$(uci -q get openclash.config.china_ip_route); [[ "$china_ip_rout
 china_ip6_route=$(uci -q get openclash.config.china_ip6_route); [[ "$china_ip6_route" != "0" && "$china_ip6_route" != "1" && "$china_ip6_route" != "2" ]] && china_ip6_route=0
 enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
 
-if [ -n "$(ruby_read "$5" "['tun']")" ]; then
-   uci -q set openclash.config.config_reload=0
-else
-   if [ -n "${11}" ]; then
-      uci -q set openclash.config.config_reload=0
-   fi
-fi
-
 if [ -z "${11}" ]; then
    en_mode_tun=0
 else
@@ -33,30 +25,11 @@ if [ -z "${12}" ]; then
    if [ -n "${31}" ]; then
       stack_type=${31}
    else
-      stack_type=system
+      stack_type="system"
    fi
 else
    stack_type=${12}
 fi
-
-if [ "$(ruby_read "$5" "['external-controller']")" != "$controller_address:$3" ]; then
-   uci -q set openclash.config.config_reload=0
-fi
-    
-if [ "$(ruby_read "$5" "['secret']")" != "$2" ]; then
-   uci -q set openclash.config.config_reload=0
-fi
-
-if [ "$core_type" != "TUN" ] && [ "${10}" == "script" ]; then
-   rule_mode="rule"
-   uci -q set openclash.config.proxy_mode="$rule_mode"
-   uci -q set openclash.config.router_self_proxy="1"
-   LOG_OUT "Warning: Only TUN Core Support Script Mode, Switch To The Rule Mode!"
-else
-   rule_mode="${10}"
-fi
-
-uci commit openclash
 
 #Use filter to generate cn domain router pass list
 if [ "$1" = "fake-ip" ] && [ "$enable_redirect_dns" != "2" ]; then
@@ -192,6 +165,7 @@ yml_dns_get()
    config_get "interface" "$section" "interface" ""
    config_get "specific_group" "$section" "specific_group" ""
    config_get_bool "node_resolve" "$section" "node_resolve" "0"
+   config_get_bool "direct_nameserver" "$section" "direct_nameserver" "0"
    config_get_bool "http3" "$section" "http3" "0"
    config_get_bool "skip_cert_verify" "$section" "skip_cert_verify" "0"
    config_get_bool "ecs_override" "$section" "ecs_override" "0"
@@ -310,6 +284,13 @@ yml_dns_get()
       echo "    - \"$dns_type$dns_address$specific_group$interface$http3$skip_cert_verify$ecs_subnet$ecs_override\"" >>/tmp/yaml_config.proxynamedns.yaml
    fi
 
+   if [ "$direct_nameserver" = "1" ]; then
+      if [ -z "$(grep "^ \{0,\}direct-nameserver:$" /tmp/yaml_config.directnamedns.yaml 2>/dev/null)" ]; then
+         echo "  direct-nameserver:" >/tmp/yaml_config.directnamedns.yaml
+      fi
+      echo "    - \"$dns_type$dns_address$specific_group$interface$http3$skip_cert_verify$ecs_subnet$ecs_override\"" >>/tmp/yaml_config.directnamedns.yaml
+   fi
+
    dns_address="$dns_address$specific_group$interface$http3$skip_cert_verify$ecs_subnet$ecs_override"
 
    if [ -n "$group" ]; then
@@ -354,7 +335,7 @@ begin
    Value['port']=$7;
    Value['socks-port']=$8;
    Value['mixed-port']=${14};
-   Value['mode']='$rule_mode';
+   Value['mode']='${10}';
    if '$9' != '0' then
       Value['log-level']='$9';
    end;
@@ -595,8 +576,11 @@ begin
    if '$enable_custom_dns' == '1' then
       if File::exist?('/tmp/yaml_config.proxynamedns.yaml') then
          Value_1 = YAML.load_file('/tmp/yaml_config.proxynamedns.yaml');
-         Value_1['proxy-server-nameserver'] = Value_1['proxy-server-nameserver'].uniq;
-         Value['dns']['proxy-server-nameserver'] = Value_1['proxy-server-nameserver'];
+         if Value['dns'].has_key?('proxy-server-nameserver') then
+            Value['dns']['proxy-server-nameserver'] = Value['dns']['proxy-server-nameserver'] | Value_1['proxy-server-nameserver'];
+         else
+            Value['dns']['proxy-server-nameserver'] = Value_1['proxy-server-nameserver'].uniq;
+         end;
       end;
    end;
    if '${34}' == '1' then
@@ -610,8 +594,26 @@ rescue Exception => e
 end;
 };
 
-#nameserver-policy
+#direct-nameserver
 t4=Thread.new{
+begin
+   if '$enable_custom_dns' == '1' then
+      if File::exist?('/tmp/yaml_config.directnamedns.yaml') then
+         Value_1 = YAML.load_file('/tmp/yaml_config.directnamedns.yaml');
+         if Value['dns'].has_key?('direct-nameserver') then
+            Value['dns']['direct-nameserver'] = Value['dns']['direct-nameserver'] | Value_1['direct-nameserver'];
+         else
+            Value['dns']['direct-nameserver'] = Value_1['direct-nameserver'].uniq;
+         end;
+      end;
+   end;
+rescue Exception => e
+   YAML.LOG('Error: Set direct-nameserver Failed,【' + e.message + '】');
+end;
+};
+
+#nameserver-policy
+t5=Thread.new{
 begin
    if '$custom_name_policy' == '1' then
       if File::exist?('/etc/openclash/custom/openclash_custom_domain_dns_policy.list') then
@@ -632,7 +634,7 @@ end;
 };
 
 #fake-ip-filter
-t5=Thread.new{
+t6=Thread.new{
 begin
    if '$custom_fakeip_filter' == '1' then
       if '${35}' == 'whitelist' then
@@ -693,7 +695,7 @@ end;
 };
 
 #custom hosts
-t6=Thread.new{
+t7=Thread.new{
 begin
    if '$custom_host' == '1' then
       if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
@@ -731,7 +733,7 @@ end;
 };
 
 #auth
-t7=Thread.new{
+t8=Thread.new{
 begin
    if File::exist?('/tmp/yaml_openclash_auth') then
       Value_1 = YAML.load_file('/tmp/yaml_openclash_auth');
@@ -761,6 +763,7 @@ begin
    t5.join;
    t6.join;
    t7.join;
+   t8.join;
    
    #dns check
    if not Value['dns'].key?('nameserver') or Value['dns']['nameserver'].to_a.empty? then
@@ -771,21 +774,53 @@ begin
       Value['dns'].merge!(Value_2);
    end;
    if '$enable_redirect_dns' != '2' then
-      for x in ['nameserver','fallback','default-nameserver','proxy-server-nameserver','nameserver-policy'] do
-         if not Value['dns'].key?(x) or Value['dns'][x].nil? then
-            next;
-         end;
-         if x != 'nameserver-policy' then
-            if Value['dns'][x].to_a.grep(/^system($|:\/\/)/).empty? then
-               next;
+      threads = [];
+      dns_option = ['nameserver','fallback','default-nameserver','proxy-server-nameserver','nameserver-policy','direct-nameserver'];
+      dns_option.each do |x|
+         threads << Thread.new {
+            begin
+               if not Value['dns'].key?(x) or Value['dns'][x].nil? then
+                  next;
+               end;
+               if x != 'nameserver-policy' then
+                  Value['dns'][x].each do |v|
+                     if v =~ /^system($|:\/\/)$/ then
+                        Value['dns'][x].delete(v);
+                        YAML.LOG('Tip: Option【' + x + '】is Setted【'+ v +'】as DNS Server Which May Cause DNS Loop, Already Remove It...');
+                     end;
+                  end;
+                  if Value['dns'][x].to_a.grep(/^system($|:\/\/)/).empty? then
+                     next;
+                  end;
+               else
+                  Value['dns'][x].each do |k,v|
+                     if v.class == Array then
+                        v.each do |z|
+                           if z =~ /^system($|:\/\/)$/ then
+                              if v.length > 1 then
+                                 v.delete(z);
+                              else
+                                 Value['dns'][x].delete(k);
+                              end;
+                              YAML.LOG('Tip: Option【' + x + ' - ' + k + '】is Setted【'+ z +'】as DNS Server Which May Cause DNS Loop, Already Remove It...');
+                           end;
+                        end;
+                     else
+                        if v =~ /^system($|:\/\/)$/ then
+                           Value['dns'][x].delete(k);
+                           YAML.LOG('Tip: Option【' + x + ' - ' + k + '】is Setted【'+ v +'】as DNS Server Which May Cause DNS Loop, Already Remove It...');
+                        end;
+                     end;
+                  end;
+                  if Value['dns'][x].values.flatten.grep(/^system($|:\/\/)/).empty? then
+                     next;
+                  end;
+               end;
+               YAML.LOG('Warning: Option【' + x + '】is Setted【system】as DNS Server Which May Cause DNS Loop, Please Consider Removing It When DNS Works Abnormally...');
             end;
-         else
-            if Value['dns'][x].values.flatten.grep(/^system($|:\/\/)/).empty? then
-               next;
-            end;
-         end;
-         YAML.LOG('Warning: Option【' + x + '】is Setted【system】as DNS Server Which May Cause DNS Loop, Please Consider Removing It When DNS Works Abnormally...');
+         };
       end;
+      threads.each(&:join);
    end;
 ensure
    File.open('$5','w') {|f| YAML.dump(Value, f)};
