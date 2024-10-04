@@ -68,6 +68,11 @@ o:value("Disable", translate("Disable"))
 o.default = "Disable"
 o.rempty = false
 
+---- direct-nameserver
+o = s:option(Flag, "direct_nameserver", translate("Direct Nameserver"), translate("Use For Domain Need Direct")..translate("(Only Meta Core)"))
+o.rmempty     = false
+o.default     = o.disbled
+
 ---- Node Domain Resolve
 o = s:option(Flag, "node_resolve", translate("Node Domain Resolve"), translate("Use For Node Domain Resolve")..translate("(Only Meta Core)"))
 o.rmempty     = false

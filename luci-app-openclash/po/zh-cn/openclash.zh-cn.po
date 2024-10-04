@@ -2886,9 +2886,6 @@ msgstr "自定义流量探测（嗅探）设置"
 msgid "Custom The Force and Skip Sniffing Doamin Lists"
 msgstr "自定义强制和忽略流量探测（嗅探）的域名列表"
 
-msgid "Warning: Only TUN Core Support Script Mode, Switch To The Rule Mode!"
-msgstr "警告：仅 TUN 内核支持 Script 模式，已切换为 Rule 模式！"
-
 msgid "Enable Tcp Concurrent"
 msgstr "*启用 TCP 并发"
 
@@ -2915,6 +2912,12 @@ msgstr "指定策略组（支持正则匹配）"
 
 msgid "Group Use For Proxy The DNS"
 msgstr "用于代理此 DNS 的策略组"
+
+msgid "Direct Nameserver"
+msgstr "直连域名解析"
+
+msgid "Use For Domain Need Direct"
+msgstr "用于解析直连域名的 IP 地址"
 
 msgid "Node Domain Resolve"
 msgstr "节点域名解析"
@@ -3405,17 +3408,26 @@ msgstr "订阅的 User-Agent 为"
 msgid "Warning: Option"
 msgstr "警告：选项"
 
+msgid "Tip: Option"
+msgstr "提示：选项"
+
 msgid "is Setted"
 msgstr "设置了"
 
 msgid "as DNS Server Which May Cause DNS Loop, Please Consider Removing It When DNS Works Abnormally..."
 msgstr "作为 DNS 服务器，这可能造成 DNS 回环错误，如发现 DNS 工作异常请考虑移除该设置..."
 
+msgid "as DNS Server Which May Cause DNS Loop, Already Remove It..."
+msgstr "作为 DNS 服务器，这可能造成 DNS 回环错误，已移除该设置..."
+
 msgid "Error: Set Custom DNS Failed,"
 msgstr "错误：设置自定义 DNS 错误，"
 
 msgid "Error: Set proxy-server-nameserver Failed,"
 msgstr "错误：设置 proxy-server-nameserver 错误，"
+
+msgid "Error: Set direct-nameserver Failed,"
+msgstr "错误：设置 direct-nameserver 错误，"
 
 msgid "Error: Set fallback-filter Failed,"
 msgstr "错误：设置 fallback-filter 错误，"
