@@ -3,7 +3,6 @@
 . /usr/share/openclash/ruby.sh
 . /usr/share/openclash/log.sh
 
-LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
 RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
 GAME_RULE_FILE="/tmp/yaml_game_rule.yaml"
@@ -12,6 +11,8 @@ urltest_address_mod=$(uci -q get openclash.config.urltest_address_mod || echo 0)
 tolerance=$(uci -q get openclash.config.tolerance || echo 0)
 urltest_interval_mod=$(uci -q get openclash.config.urltest_interval_mod || echo 0)
 CONFIG_NAME="$5"
+rule_name=""
+SKIP_CUSTOM_OTHER_RULES=0
 
 #处理自定义规则集
 yml_set_custom_rule_provider()
@@ -265,12 +266,11 @@ yml_rule_group_get()
          |x|
          if x['name'] == '$group' then
             if (x.key?('use') and not x['use'].to_a.empty?) or (x.key?('proxies') and not x['proxies'].to_a.empty?) then
-               puts 'return'
+               puts 'return';
+               break;
             end;
          end;
       };
-   rescue Exception => e
-      puts 'return'
    end;" 2>/dev/null)
 
    if [ "$group_check" != "return" ]; then
@@ -293,7 +293,95 @@ yml_other_set()
    begin
       Value = YAML.load_file('$3');
    rescue Exception => e
-      puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
+      YAML.LOG('Error: Load File Failed,【' + e.message + '】');
+   end;
+
+   begin
+      if '$rule_name' == 'lhie1' and '$SKIP_CUSTOM_OTHER_RULES' != 1 then
+         Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
+         if Value.has_key?('script') then
+            Value.delete('script')
+         end;
+         if Value.has_key?('rules') then
+            Value.delete('rules')
+         end;
+         if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
+            if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+               Value['rule-providers'].merge!(Value_1['rule-providers'])
+            else
+               Value['rule-providers']=Value_1['rule-providers']
+            end
+         end;
+         Value['script']=Value_1['script'];
+         Value['rules']=Value_1['rules'];
+         Value['rules'].to_a.collect!{|x|
+         x.to_s.gsub(/,[\s]?Bilibili,[\s]?Asian TV$/, ', Bilibili, $Bilibili#delete_')
+         .gsub(/,[\s]?Bahamut,[\s]?Global TV$/, ', Bahamut, $Bahamut#delete_')
+         .gsub(/,[\s]?HBO Max,[\s]?Global TV$/, ', HBO Max, $HBOMax#delete_')
+         .gsub(/,[\s]?HBO Go,[\s]?Global TV$/, ', HBO Go, $HBOGo#delete_')
+         .gsub(/,[\s]?Discovery Plus,[\s]?Global TV$/, ', Discovery Plus, $Discovery#delete_')
+         .gsub(/,[\s]?DAZN,[\s]?Global TV$/, ', DAZN, $DAZN#delete_')
+         .gsub(/,[\s]?Pornhub,[\s]?Global TV$/, ', Pornhub, $Pornhub#delete_')
+         .gsub(/,[\s]?Global TV$/, ', $GlobalTV#delete_')
+         .gsub(/,[\s]?Asian TV$/, ', $AsianTV#delete_')
+         .gsub(/,[\s]?Proxy$/, ', $Proxy#delete_')
+         .gsub(/,[\s]?YouTube$/, ', $Youtube#delete_')
+         .gsub(/,[\s]?Apple$/, ', $Apple#delete_')
+         .gsub(/,[\s]?Apple TV$/, ', $AppleTV#delete_')
+         .gsub(/,[\s]?Scholar$/, ', $Scholar#delete_')
+         .gsub(/,[\s]?Netflix$/, ', $Netflix#delete_')
+         .gsub(/,[\s]?Disney$/, ', $Disney#delete_')
+         .gsub(/,[\s]?Spotify$/, ', $Spotify#delete_')
+         .gsub(/,[\s]?OpenAI$/, ', $OpenAI#delete_')
+         .gsub(/,[\s]?Steam$/, ', $Steam#delete_')
+         .gsub(/,[\s]?miHoYo$/, ', $miHoYo#delete_')
+         .gsub(/,[\s]?AdBlock$/, ', $AdBlock#delete_')
+         .gsub(/,[\s]?Speedtest$/, ', $Speedtest#delete_')
+         .gsub(/,[\s]?Telegram$/, ', $Telegram#delete_')
+         .gsub(/,[\s]?Crypto$/, ', $Crypto#delete_')
+         .gsub(/,[\s]?Discord$/, ', $Discord#delete_')
+         .gsub(/,[\s]?Microsoft$/, ', $Microsoft#delete_')
+         .to_s.gsub(/,[\s]?PayPal$/, ', $PayPal#delete_')
+         .gsub(/,[\s]?Domestic$/, ', $Domestic#delete_')
+         .gsub(/,[\s]?Others$/, ', $Others#delete_')
+         .gsub(/,[\s]?Google FCM$/, ', $GoogleFCM#delete_')
+         .gsub(/#delete_/, '')
+         };
+         Value['script']['code'].to_s.gsub!(/\'Bilibili\': \'Asian TV\'/,'\'Bilibili\': \'$Bilibili#delete_\'')
+         .gsub!(/\'Bahamut\': \'Global TV\'/,'\'Bahamut\': \'$Bahamut#delete_\'')
+         .gsub!(/\'HBO Max\': \'Global TV\'/,'\'HBO Max\': \'$HBOMax#delete_\'')
+         .gsub!(/\'HBO Go\': \'Global TV\'/,'\'HBO Go\': \'$HBOGo#delete_\'')
+         .gsub!(/\'Discovery Plus\': \'Global TV\'/,'\'Discovery Plus\': \'$Discovery#delete_\'')
+         .gsub!(/\'DAZN\': \'Global TV\'/,'\'DAZN\': \'$DAZN#delete_\'')
+         .gsub!(/\'Pornhub\': \'Global TV\'/,'\'Pornhub\': \'$Pornhub#delete_\'')
+         .gsub!(/: \'Global TV\'/,': \'$GlobalTV#delete_\'')
+         .gsub!(/: \'Asian TV\'/,': \'$AsianTV#delete_\'')
+         .gsub!(/: \'Proxy\'/,': \'$Proxy#delete_\'')
+         .gsub!(/: \'YouTube\'/,': \'$Youtube#delete_\'')
+         .gsub!(/: \'Apple\'/,': \'$Apple#delete_\'')
+         .gsub!(/: \'Apple TV\'/,': \'$AppleTV#delete_\'')
+         .gsub!(/: \'Scholar\'/,': \'$Scholar#delete_\'')
+         .gsub!(/: \'Netflix\'/,': \'$Netflix#delete_\'')
+         .gsub!(/: \'Disney\'/,': \'$Disney#delete_\'')
+         .gsub!(/: \'Spotify\'/,': \'$Spotify#delete_\'')
+         .gsub!(/: \'OpenAI\'/,': \'$OpenAI#delete_\'')
+         .gsub!(/: \'Steam\'/,': \'$Steam#delete_\'')
+         .gsub!(/: \'miHoYo\'/,': \'$miHoYo#delete_\'')
+         .gsub!(/: \'AdBlock\'/,': \'$AdBlock#delete_\'')
+         .gsub!(/: \'Speedtest\'/,': \'$Speedtest#delete_\'')
+         .gsub!(/: \'Telegram\'/,': \'$Telegram#delete_\'')
+         .gsub!(/: \'Crypto\'/,': \'$Crypto#delete_\'')
+         .gsub!(/: \'Discord\'/,': \'$Discord#delete_\'')
+         .gsub!(/: \'Microsoft\'/,': \'$Microsoft#delete_\'')
+         .gsub!(/: \'PayPal\'/,': \'$PayPal#delete_\'')
+         .gsub!(/: \'Domestic\'/,': \'$Domestic#delete_\'')
+         .gsub!(/: \'Google FCM\'/,': \'$GoogleFCM#delete_\'')
+         .gsub!(/return \'Domestic\'$/, 'return \'$Domestic#delete_\'')
+         .gsub!(/return \'Others\'$/, 'return \'$Others#delete_\'')
+         .gsub!(/#delete_/, '');
+      end;
+   rescue Exception => e
+      YAML.LOG('Error: Set lhie1 Rules Failed,【' + e.message + '】');
    end;
 
    t1=Thread.new{
@@ -343,7 +431,7 @@ yml_other_set()
             Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')};
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】';
+         YAML.LOG('Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】');
       end;
 
       #Router Self Proxy Rule
@@ -364,7 +452,7 @@ yml_other_set()
             Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT');
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Set Router Self Proxy Rule Failed,【' + e.message + '】';
+         YAML.LOG('Error: Set Router Self Proxy Rule Failed,【' + e.message + '】');
       end;
 
       #Custom Rule Set
@@ -412,7 +500,7 @@ yml_other_set()
             end;
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Rule Set Add Failed,【' + e.message + '】';
+         YAML.LOG('Error: Rule Set Add Failed,【' + e.message + '】');
       end;
 
       #Custom Rules
@@ -568,7 +656,7 @@ yml_other_set()
             end;
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Set Custom Rules Failed,【' + e.message + '】';
+         YAML.LOG('Error: Set Custom Rules Failed,【' + e.message + '】');
       end;
 
       #loop prevent
@@ -587,7 +675,7 @@ yml_other_set()
             Value['rules']=['IP-CIDR,${11},REJECT,no-resolve','DST-PORT,$8,REJECT','DST-PORT,$9,REJECT'];
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Set Loop Protect Rules Failed,【' + e.message + '】';
+         YAML.LOG('Error: Set Loop Protect Rules Failed,【' + e.message + '】');
       end;
    };
 
@@ -606,7 +694,7 @@ yml_other_set()
             end;
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Custom Rule Provider Merge Failed,【' + e.message + '】';
+         YAML.LOG('Error: Custom Rule Provider Merge Failed,【' + e.message + '】');
       end;
 
       #Game Proxy
@@ -641,7 +729,7 @@ yml_other_set()
             end;
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Game Proxy Merge Failed,【' + e.message + '】';
+         YAML.LOG('Error: Game Proxy Merge Failed,【' + e.message + '】');
       end;
 
       #provider path
@@ -677,7 +765,7 @@ yml_other_set()
             end;
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Edit Provider Path Failed,【' + e.message + '】';
+         YAML.LOG('Error: Edit Provider Path Failed,【' + e.message + '】');
       end;
 
       #tolerance
@@ -693,7 +781,7 @@ yml_other_set()
             };
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Edit URL-Test Group Tolerance Option Failed,【' + e.message + '】';
+         YAML.LOG('Error: Edit URL-Test Group Tolerance Option Failed,【' + e.message + '】');
       end;
 
       #URL-Test interval
@@ -721,7 +809,7 @@ yml_other_set()
             end;
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Edit URL-Test Interval Failed,【' + e.message + '】';
+         YAML.LOG('Error: Edit URL-Test Interval Failed,【' + e.message + '】');
       end;
 
       #health-check url
@@ -749,7 +837,7 @@ yml_other_set()
             end;
          end;
       rescue Exception => e
-         puts '${LOGTIME} Error: Edit URL-Test URL Failed,【' + e.message + '】';
+         YAML.LOG('Error: Edit URL-Test URL Failed,【' + e.message + '】');
       end;
 
       #Run threads
@@ -823,6 +911,7 @@ if [ "$1" != "0" ]; then
    config_load "openclash"
    config_foreach yml_other_rules_get "other_rules" "$5"
    if [ -z "$rule_name" ]; then
+      SKIP_CUSTOM_OTHER_RULES=1
       yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
       exit 0
    #判断策略组是否存在
@@ -858,105 +947,16 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
+         SKIP_CUSTOM_OTHER_RULES=1
          yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
          exit 0
        fi
    fi
    if [ -z "$Proxy" ]; then
       LOG_OUT "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
+      SKIP_CUSTOM_OTHER_RULES=1
       yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
       exit 0
-   else
-      if [ "$rule_name" = "lhie1" ]; then
-         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-         begin
-            Value = YAML.load_file('$3');
-            Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
-            if Value.has_key?('script') then
-               Value.delete('script')
-            end;
-            if Value.has_key?('rules') then
-               Value.delete('rules')
-            end;
-            if Value_1.has_key?('rule-providers') and not Value_1['rule-providers'].to_a.empty? then
-               if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-                  Value['rule-providers'].merge!(Value_1['rule-providers'])
-               else
-                  Value['rule-providers']=Value_1['rule-providers']
-               end
-            end;
-            Value['script']=Value_1['script'];
-            Value['rules']=Value_1['rules'];
-            Value['rules'].to_a.collect!{|x|
-            x.to_s.gsub(/,[\s]?Bilibili,[\s]?Asian TV$/, ', Bilibili, $Bilibili#delete_')
-            .gsub(/,[\s]?Bahamut,[\s]?Global TV$/, ', Bahamut, $Bahamut#delete_')
-            .gsub(/,[\s]?HBO Max,[\s]?Global TV$/, ', HBO Max, $HBOMax#delete_')
-            .gsub(/,[\s]?HBO Go,[\s]?Global TV$/, ', HBO Go, $HBOGo#delete_')
-            .gsub(/,[\s]?Discovery Plus,[\s]?Global TV$/, ', Discovery Plus, $Discovery#delete_')
-            .gsub(/,[\s]?DAZN,[\s]?Global TV$/, ', DAZN, $DAZN#delete_')
-            .gsub(/,[\s]?Pornhub,[\s]?Global TV$/, ', Pornhub, $Pornhub#delete_')
-            .gsub(/,[\s]?Global TV$/, ', $GlobalTV#delete_')
-            .gsub(/,[\s]?Asian TV$/, ', $AsianTV#delete_')
-            .gsub(/,[\s]?Proxy$/, ', $Proxy#delete_')
-            .gsub(/,[\s]?YouTube$/, ', $Youtube#delete_')
-            .gsub(/,[\s]?Apple$/, ', $Apple#delete_')
-            .gsub(/,[\s]?Apple TV$/, ', $AppleTV#delete_')
-            .gsub(/,[\s]?Scholar$/, ', $Scholar#delete_')
-            .gsub(/,[\s]?Netflix$/, ', $Netflix#delete_')
-            .gsub(/,[\s]?Disney$/, ', $Disney#delete_')
-            .gsub(/,[\s]?Spotify$/, ', $Spotify#delete_')
-            .gsub(/,[\s]?OpenAI$/, ', $OpenAI#delete_')
-            .gsub(/,[\s]?Steam$/, ', $Steam#delete_')
-            .gsub(/,[\s]?miHoYo$/, ', $miHoYo#delete_')
-            .gsub(/,[\s]?AdBlock$/, ', $AdBlock#delete_')
-            .gsub(/,[\s]?Speedtest$/, ', $Speedtest#delete_')
-            .gsub(/,[\s]?Telegram$/, ', $Telegram#delete_')
-            .gsub(/,[\s]?Crypto$/, ', $Crypto#delete_')
-            .gsub(/,[\s]?Discord$/, ', $Discord#delete_')
-            .gsub(/,[\s]?Microsoft$/, ', $Microsoft#delete_')
-            .to_s.gsub(/,[\s]?PayPal$/, ', $PayPal#delete_')
-            .gsub(/,[\s]?Domestic$/, ', $Domestic#delete_')
-            .gsub(/,[\s]?Others$/, ', $Others#delete_')
-            .gsub(/,[\s]?Google FCM$/, ', $GoogleFCM#delete_')
-            .gsub(/#delete_/, '')
-            };
-            Value['script']['code'].to_s.gsub!(/\'Bilibili\': \'Asian TV\'/,'\'Bilibili\': \'$Bilibili#delete_\'')
-            .gsub!(/\'Bahamut\': \'Global TV\'/,'\'Bahamut\': \'$Bahamut#delete_\'')
-            .gsub!(/\'HBO Max\': \'Global TV\'/,'\'HBO Max\': \'$HBOMax#delete_\'')
-            .gsub!(/\'HBO Go\': \'Global TV\'/,'\'HBO Go\': \'$HBOGo#delete_\'')
-            .gsub!(/\'Discovery Plus\': \'Global TV\'/,'\'Discovery Plus\': \'$Discovery#delete_\'')
-            .gsub!(/\'DAZN\': \'Global TV\'/,'\'DAZN\': \'$DAZN#delete_\'')
-            .gsub!(/\'Pornhub\': \'Global TV\'/,'\'Pornhub\': \'$Pornhub#delete_\'')
-            .gsub!(/: \'Global TV\'/,': \'$GlobalTV#delete_\'')
-            .gsub!(/: \'Asian TV\'/,': \'$AsianTV#delete_\'')
-            .gsub!(/: \'Proxy\'/,': \'$Proxy#delete_\'')
-            .gsub!(/: \'YouTube\'/,': \'$Youtube#delete_\'')
-            .gsub!(/: \'Apple\'/,': \'$Apple#delete_\'')
-            .gsub!(/: \'Apple TV\'/,': \'$AppleTV#delete_\'')
-            .gsub!(/: \'Scholar\'/,': \'$Scholar#delete_\'')
-            .gsub!(/: \'Netflix\'/,': \'$Netflix#delete_\'')
-            .gsub!(/: \'Disney\'/,': \'$Disney#delete_\'')
-            .gsub!(/: \'Spotify\'/,': \'$Spotify#delete_\'')
-            .gsub!(/: \'OpenAI\'/,': \'$OpenAI#delete_\'')
-            .gsub!(/: \'Steam\'/,': \'$Steam#delete_\'')
-            .gsub!(/: \'miHoYo\'/,': \'$miHoYo#delete_\'')
-            .gsub!(/: \'AdBlock\'/,': \'$AdBlock#delete_\'')
-            .gsub!(/: \'Speedtest\'/,': \'$Speedtest#delete_\'')
-            .gsub!(/: \'Telegram\'/,': \'$Telegram#delete_\'')
-            .gsub!(/: \'Crypto\'/,': \'$Crypto#delete_\'')
-            .gsub!(/: \'Discord\'/,': \'$Discord#delete_\'')
-            .gsub!(/: \'Microsoft\'/,': \'$Microsoft#delete_\'')
-            .gsub!(/: \'PayPal\'/,': \'$PayPal#delete_\'')
-            .gsub!(/: \'Domestic\'/,': \'$Domestic#delete_\'')
-            .gsub!(/: \'Google FCM\'/,': \'$GoogleFCM#delete_\'')
-            .gsub!(/return \'Domestic\'$/, 'return \'$Domestic#delete_\'')
-            .gsub!(/return \'Others\'$/, 'return \'$Others#delete_\'')
-            .gsub!(/#delete_/, '');
-            File.open('$3','w') {|f| YAML.dump(Value, f)};
-         rescue Exception => e
-            puts '${LOGTIME} Error: Set lhie1 Rules Failed,【' + e.message + '】';
-         end" 2>/dev/null >> $LOG_FILE
-      fi
    fi
 fi
 

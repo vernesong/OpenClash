@@ -16,7 +16,6 @@ CONFIG_FILE=$(uci -q get openclash.config.config_path)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci -q get openclash.config.config_update_path)
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
 set_lock
 
@@ -150,7 +149,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
       Value = YAML.load_file('$CONFIG_FILE');
    rescue Exception => e
-      puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
+      YAML.LOG('Error: Load File Failed,【' + e.message + '】');
    end;
 
    threads = [];
@@ -168,7 +167,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    Value['proxy-providers'].each do |x,y|
       threads_pr << Thread.new {
          begin
-            puts '${LOGTIME} Start Getting【${CONFIG_NAME} - ' + y['type'].to_s + ' - ' + x.to_s + '】Proxy-provider Setting...';
+            YAML.LOG('Start Getting【${CONFIG_NAME} - ' + y['type'].to_s + ' - ' + x.to_s + '】Proxy-provider Setting...');
             #代理集存在时获取代理集编号
             cmd = 'grep -E \'\.' + x + '$\' ${match_provider} 2>/dev/null|awk -F \".\" \'{print \$1}\'';
             provider_nums=%x(#{cmd}).chomp;
@@ -309,7 +308,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             };
             threads_prv.each(&:join)
          rescue Exception => e
-            puts '${LOGTIME} Error: Resolve Proxy-providers Failed,【${CONFIG_NAME} - ' + x + ': ' + e.message + '】'
+            YAML.LOG('Error: Resolve Proxy-providers Failed,【${CONFIG_NAME} - ' + x + ': ' + e.message + '】');
          end;
       };
    end;
@@ -317,7 +316,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    Value['proxies'].each do |x|
       threads_pr << Thread.new {
          begin
-            puts '${LOGTIME} Start Getting【${CONFIG_NAME} - ' + x['type'].to_s + ' - ' + x['name'].to_s + '】Proxy Setting...';
+            YAML.LOG('Start Getting【${CONFIG_NAME} - ' + x['type'].to_s + ' - ' + x['name'].to_s + '】Proxy Setting...');
             #节点存在时获取节点编号
             cmd = 'grep -E \'\.' + x['name'].to_s + '$\' ${match_servers} 2>/dev/null|awk -F \".\" \'{print \$1}\'';
             server_num=%x(#{cmd}).chomp;
@@ -1547,7 +1546,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             };
             threads.each(&:join);
          rescue Exception => e
-            puts '${LOGTIME} Error: Resolve Proxies Failed,【${CONFIG_NAME} - '+ x['type'] + ' - ' + x['name'] + ': ' + e.message + '】'
+            YAML.LOG('Error: Resolve Proxies Failed,【${CONFIG_NAME} - '+ x['type'] + ' - ' + x['name'] + ': ' + e.message + '】');
          end;
       };
    end;

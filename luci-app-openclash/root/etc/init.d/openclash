@@ -17,7 +17,6 @@ FW4=$(command -v fw4)
 DNSMASQ_CONF_DIR=$(uci -q get dhcp.@dnsmasq[0].confdir || echo '/tmp/dnsmasq.d')
 DNSMASQ_CONF_DIR=${DNSMASQ_CONF_DIR%*/}
 }
-LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
@@ -308,7 +307,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 begin
    YAML.load_file('$RAW_CONFIG_FILE');
 rescue Exception => e
-   puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】';
+   YAML.LOG('Error: Unable To Parse Config File,【' + e.message + '】');
    system 'rm -rf ${TMP_CONFIG_FILE}';
 end
 " 2>/dev/null >> $LOG_FILE
@@ -2991,12 +2990,15 @@ stop()
       kill -9 "$streaming_unlock_pid" >/dev/null 2>&1
    done >/dev/null 2>&1
 
+   openclash_stop_pids=$(unify_ps_pids "/etc/init.d/openclash stop")
    openclash_pids=$(unify_ps_pids "/etc/init.d/openclash")
-   for openclash_pid in $openclash_pids; do
-      if [ "$openclash_pid" != "$$" ]; then
-         kill -9 "$openclash_pid" >/dev/null 2>&1
-      fi
-   done >/dev/null 2>&1
+   if [ -n "$openclash_stop_pids" ]; then
+      for openclash_pid in $openclash_pids; do
+         if [ "$openclash_pid" != "$$" ] && ! "$start_fail_pid"; then
+            kill -9 "$openclash_pid" >/dev/null 2>&1
+         fi
+      done >/dev/null 2>&1
+   fi
 
    LOG_OUT "Step 4: Close The Clash Core Process..."
    if [ "$enable" != "1" ]; then
@@ -3022,6 +3024,8 @@ stop()
       rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
       rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
       del_lock
+      LOG_OUT "OpenClash Already Stop!"
+   else
       LOG_OUT "OpenClash Already Stop!"
    fi
 
