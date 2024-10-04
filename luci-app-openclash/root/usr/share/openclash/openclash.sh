@@ -159,7 +159,7 @@ config_cus_up()
             end;
             threads.each(&:join);
 	      rescue Exception => e
-	         puts '${LOGTIME} Error: Filter Proxies Failed,【' + e.message + '】'
+	         YAML.LOG('Error: Filter Proxies Failed,【' + e.message + '】');
 	      ensure
 	         File.open('$CONFIG_FILE','w') {|f| YAML.dump(Value, f)};
 	      end" 2>/dev/null >> $LOG_FILE
@@ -282,7 +282,7 @@ config_download_direct()
          begin
          YAML.load_file('$CFG_FILE');
          rescue Exception => e
-         puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】'
+         YAML.LOG('Error: Unable To Parse Config File,【' + e.message + '】');
          system 'rm -rf ${CFG_FILE} 2>/dev/null'
          end
          " 2>/dev/null >> $LOG_FILE
@@ -479,7 +479,7 @@ sub_info_get()
       begin
       YAML.load_file('$CFG_FILE');
       rescue Exception => e
-      puts '${LOGTIME} Error: Unable To Parse Config File,【' + e.message + '】'
+      YAML.LOG('Error: Unable To Parse Config File,【' + e.message + '】');
       system 'rm -rf ${CFG_FILE} 2>/dev/null'
       end
       " 2>/dev/null >> $LOG_FILE

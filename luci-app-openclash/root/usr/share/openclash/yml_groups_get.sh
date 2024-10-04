@@ -20,7 +20,6 @@ CONFIG_FILE=$(uci -q get openclash.config.config_path)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UPDATE_CONFIG_FILE=$(uci -q get openclash.config.config_update_path)
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
 set_lock
 
@@ -133,7 +132,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
       Value = YAML.load_file('$CONFIG_FILE');
    rescue Exception => e
-      puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
+      YAML.LOG('Error: Load File Failed,【' + e.message + '】');
    end;
 
    threads_g = [];
@@ -167,7 +166,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             next;
          end;
 
-         puts '${LOGTIME} Start Getting【${CONFIG_NAME} - ' + x['type'].to_s + ' - ' + x['name'].to_s + '】Group Setting...';
+         YAML.LOG('Start Getting【${CONFIG_NAME} - ' + x['type'].to_s + ' - ' + x['name'].to_s + '】Group Setting...');
 
          threads_g << Thread.new {
             #enabled
@@ -261,7 +260,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          };
          threads_g.each(&:join);
       rescue Exception => e
-         puts '${LOGTIME} Error: Resolve Groups Failed,【${CONFIG_NAME} - ' + x['type'] + ' - ' + x['name'] + ': ' + e.message + '】'
+         YAML.LOG('Error: Resolve Groups Failed,【${CONFIG_NAME} - ' + x['type'] + ' - ' + x['name'] + ': ' + e.message + '】');
       end;
       };
    end;
