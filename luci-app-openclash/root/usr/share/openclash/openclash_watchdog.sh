@@ -202,9 +202,6 @@ if [ "$enable" -eq 1 ]; then
          if [ "$ipv6_mode" -eq 2 ] && [ "$ipv6_enable" -eq 1 ]; then
             ip -6 rule del oif utun table 2022 >/dev/null 2>&1
             ip -6 route del default dev utun table 2022 >/dev/null 2>&1
-            ip -6 addr add fdfe:dcba:9876::1/126 dev utun >/dev/null 2>&1
-            ip -6 route add fdfe:dcba:9876::/126 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
-            ip -6 route add fe80::/64 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
             ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
             ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
          fi
