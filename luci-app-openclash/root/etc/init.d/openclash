@@ -735,6 +735,16 @@ check_core_status()
             start_fail
          fi
       fi
+
+      if [ "$ipv6_mode" -eq 2 ]; then
+         ip -6 rule del oif utun table 2022 >/dev/null 2>&1
+         ip -6 route del default dev utun table 2022 >/dev/null 2>&1
+         ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE"
+         ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+      fi
+
+      ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
+      ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    else
       while ( [ -n "$(pidof clash)" ] && [ "$TUN_WAIT" -le 5 ] )
       do
@@ -1052,40 +1062,6 @@ firewall_redirect_exclude()
          fi
       fi
    fi
-}
-
-set_tun_tap()
-{
-      #启动TUN
-      if [ -z "$1" ]; then
-         ip_="ip"
-      else
-         ip_="ip -6"
-      fi
-
-      if [ -n "$(pidof clash)" ] && [ -n "$1" ] && [ "$(ip -6 route list |grep utun |wc -l)" -ne 2 ] && [ -n "$(ifconfig utun)" ]; then
-         ip -6 addr add fdfe:dcba:9876::1/126 dev utun >/dev/null 2>&1
-         ip -6 route add fdfe:dcba:9876::/126 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
-         ip -6 route add fe80::/64 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
-         ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-         ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-      fi
-
-      #prevent lost when v6 utun address added
-      if [ -n "$(pidof clash)" ] && [ -z "$(ip route list |grep utun)" ] && [ -n "$(ifconfig utun)" ]; then
-         route add -net "$fakeip_range" dev utun >/dev/null 2>&1
-         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-      fi
-
-      $ip_ link set utun up >/dev/null 2>&1
-
-      if [ -n "$1" ]; then
-         ip -6 rule del oif utun table 2022 >/dev/null 2>&1
-         ip -6 route del default dev utun table 2022 >/dev/null 2>&1
-      fi
-      $ip_ route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-      $ip_ rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 }
 
 set_firewall()
@@ -1495,9 +1471,6 @@ if [ -n "$FW4" ]; then
 
    if [ -n "$en_mode_tun" ]; then
       #TUN模式
-      #启动TUN
-      set_tun_tap
-
       #设置防火墙
       if [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
          nft 'add chain inet fw4 openclash_mangle_output'
@@ -1893,8 +1866,6 @@ if [ -n "$FW4" ]; then
             ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
          fi
-      else
-         set_tun_tap "v6"
       fi
 
       #TUN FORWORD
@@ -2288,8 +2259,6 @@ if [ -z "$FW4" ]; then
 
    if [ -n "$en_mode_tun" ]; then
       #TUN模式
-      #启动TUN
-      set_tun_tap
       #设置防火墙
       if [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
          if [ "$en_mode" = "fake-ip" ]; then
@@ -2676,8 +2645,6 @@ if [ -z "$FW4" ]; then
             ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
          fi
-      else
-         set_tun_tap "v6"
       fi
 
       #TUN FORWORD
