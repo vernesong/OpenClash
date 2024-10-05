@@ -583,12 +583,6 @@ begin
          end;
       end;
    end;
-   if '${34}' == '1' then
-      if not Value['dns'].has_key?('proxy-server-nameserver') or Value['dns']['proxy-server-nameserver'].to_a.empty? then
-         Value['dns'].merge!({'proxy-server-nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']});
-         YAML.LOG('Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】');
-      end;
-   end;
 rescue Exception => e
    YAML.LOG('Error: Set proxy-server-nameserver Failed,【' + e.message + '】');
 end;
@@ -766,13 +760,6 @@ begin
    t8.join;
    
    #dns check
-   if not Value['dns'].key?('nameserver') or Value['dns']['nameserver'].to_a.empty? then
-      YAML.LOG('Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete...');
-      Value_1={'nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']};
-      Value_2={'fallback'=>['https://dns.cloudflare.com/dns-query','https://dns.google/dns-query']};
-      Value['dns'].merge!(Value_1);
-      Value['dns'].merge!(Value_2);
-   end;
    if '$enable_redirect_dns' != '2' then
       threads = [];
       dns_option = ['nameserver','fallback','default-nameserver','proxy-server-nameserver','nameserver-policy','direct-nameserver'];
@@ -821,6 +808,19 @@ begin
          };
       end;
       threads.each(&:join);
+   end;
+   if not Value['dns'].key?('nameserver') or Value['dns']['nameserver'].to_a.empty? then
+      YAML.LOG('Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete...');
+      Value_1={'nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']};
+      Value_2={'fallback'=>['https://dns.cloudflare.com/dns-query','https://dns.google/dns-query']};
+      Value['dns'].merge!(Value_1);
+      Value['dns'].merge!(Value_2);
+   end;
+   if '${34}' == '1' then
+      if not Value['dns'].has_key?('proxy-server-nameserver') or Value['dns']['proxy-server-nameserver'].to_a.empty? then
+         Value['dns'].merge!({'proxy-server-nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']});
+         YAML.LOG('Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】');
+      end;
    end;
 ensure
    File.open('$5','w') {|f| YAML.dump(Value, f)};
