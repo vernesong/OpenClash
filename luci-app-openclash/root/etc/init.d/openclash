@@ -746,11 +746,13 @@ check_core_status()
       ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
       ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    else
-      while ( [ -n "$(pidof clash)" ] && [ "$TUN_WAIT" -le 5 ] )
-      do
-         let TUN_WAIT++
-         sleep 5
-      done >/dev/null 2>&1
+      if [ -z "$1" ]; then
+         while ( [ -n "$(pidof clash)" ] && [ "$TUN_WAIT" -le 5 ] )
+         do
+            let TUN_WAIT++
+            sleep 5
+         done >/dev/null 2>&1
+      fi
    fi
  
    if [ -z "$(pidof clash)" ]; then
@@ -2733,13 +2735,7 @@ revert_firewall()
 
    #TUN
    ip route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-   ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-
-   ip -6 addr del fdfe:dcba:9876::1/126 dev utun >/dev/null 2>&1
-   ip -6 route del fdfe:dcba:9876::/126 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
-   ip -6 route del fe80::/64 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
    ip -6 route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-   ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    
    if [ -n "$FW4" ]; then
       for nft in "input" "forward" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
@@ -3044,6 +3040,7 @@ reload()
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
       set_firewall 2>/dev/null
+      check_core_status & "firewall" 2>/dev/null
       /etc/init.d/dnsmasq restart >/dev/null 2>&1
       SLOG_CLEAN
       del_lock
@@ -3060,6 +3057,7 @@ reload()
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
       set_firewall 2>/dev/null
+      check_core_status & "firewall" 2>/dev/null
       change_dns "$enable_redirect_dns" "$disable_masq_cache"
       SLOG_CLEAN
       del_lock
