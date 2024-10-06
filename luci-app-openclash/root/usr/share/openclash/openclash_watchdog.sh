@@ -1,6 +1,7 @@
 #!/bin/sh
 . /usr/share/openclash/log.sh
 . /lib/functions.sh
+. /usr/share/openclash/openclash_ps.sh
 
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
@@ -149,8 +150,11 @@ rescue Exception => e
 end" 2>/dev/null >> $LOG_FILE
 }
 
-skip_proxies_address
-sleep 60
+#wait for core start complete
+while ( [ -n "$(unify_ps_pids "/etc/init.d/openclash")" ] )
+do
+   sleep 1
+done >/dev/null 2>&1
 
 while :;
 do

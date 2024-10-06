@@ -71,7 +71,7 @@ yml_auth_get()
    if [ -z "$username" ] || [ -z "$password" ]; then
       return
    else
-      LOG_OUT "Tip: You have seted the authentication of SOCKS5/HTTP(S) proxy with【$username:$password】"
+      LOG_OUT "Tip: You have seted the authentication of SOCKS5/HTTP(S) proxy with【$username:$password】..."
       echo "  - $username:$password" >>/tmp/yaml_openclash_auth
    fi
 }
@@ -327,419 +327,421 @@ rescue Exception => e
    YAML.LOG('Error: Load File Failed,【' + e.message + '】');
 end;
 
+threads = [];
+
 #General
-t1=Thread.new{
-begin
-   Value['redir-port']=$4;
-   Value['tproxy-port']=${15};
-   Value['port']=$7;
-   Value['socks-port']=$8;
-   Value['mixed-port']=${14};
-   Value['mode']='${10}';
-   if '$9' != '0' then
-      Value['log-level']='$9';
-   end;
-   Value['allow-lan']=true;
-   Value['external-controller']='0.0.0.0:$3';
-   Value['secret']='$2';
-   Value['bind-address']='*';
-   Value['external-ui']='/usr/share/openclash/ui';
-   if $6 == 1 then
-      Value['ipv6']=true;
-   else
-      Value['ipv6']=false;
-   end;
-   if '${22}' != '0' then
-      Value['interface-name']='${22}';
-   end;
-
-   if '${19}' == '1' then
-      Value['geodata-mode']=true;
-   end;
-   if '${20}' != '0' then
-      Value['geodata-loader']='${20}';
-   end;
-   if '${23}' == '1' then
-      Value['tcp-concurrent']=true;
-   end;
-   if '${32}' == '1' then
-      Value['unified-delay']=true;
-   end;
-   if '${33}' != '0' then
-      Value['keep-alive-interval']=${33};
-   end;
-   if '${27}' != '0' then
-      Value['find-process-mode']='${27}';
-   end;
-   if '${29}' != '0' then
-      Value['global-client-fingerprint']='${29}';
-   end;
-
-   if ${16} == 1 then
-      Value['dns']['ipv6']=true;
-      Value['ipv6']=true;
-   else
-      Value['dns']['ipv6']=false;
-   end;
-   
-   if '$1' == 'redir-host' then
-      Value['dns']['enhanced-mode']='redir-host';
-      Value['dns'].delete('fake-ip-range');
-   else
-      Value['dns']['enhanced-mode']='fake-ip';
-      Value['dns']['fake-ip-range']='${28}';
-   end;
-
-   Value['dns']['listen']='0.0.0.0:${13}';
-   
-   #meta only
-   if '${34}' == '1' then
-      Value['dns']['respect-rules']=true;
-   end;
-   
-   if ${18} == 1 then
-      Value_sniffer={'sniffer'=>{'enable'=>true}};
-      Value['sniffer']=Value_sniffer['sniffer'];
-      if '$1' == 'redir-host' then
-         Value['sniffer']['force-dns-mapping']=true;
+threads << Thread.new {
+   begin
+      Value['redir-port']=$4;
+      Value['tproxy-port']=${15};
+      Value['port']=$7;
+      Value['socks-port']=$8;
+      Value['mixed-port']=${14};
+      Value['mode']='${10}';
+      if '$9' != '0' then
+         Value['log-level']='$9';
       end;
-      if ${26} == 1 then
-         Value['sniffer']['parse-pure-ip']=true;
-      end;
-      if File::exist?('/etc/openclash/custom/openclash_force_sniffing_domain.yaml') then
-         if ${21} == 1 then
-            Value_7 = YAML.load_file('/etc/openclash/custom/openclash_force_sniffing_domain.yaml');
-            if Value_7 != false and not Value_7['force-domain'].to_a.empty? then
-               Value['sniffer']['force-domain']=Value_7['force-domain'];
-               Value['sniffer']['force-domain']=Value['sniffer']['force-domain'].uniq;
-            end;
-         end;
-      end;
-      if File::exist?('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml') then
-         if ${21} == 1 then
-            Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml');
-            if Value_7 != false and not Value_7['skip-sni'].to_a.empty? then
-               Value['sniffer']['skip-domain']=Value_7['skip-sni'];
-               Value['sniffer']['skip-domain']=Value['sniffer']['skip-domain'].uniq;
-            end;
-            if Value_7 != false and not Value_7['skip-domain'].to_a.empty? then
-               Value['sniffer']['skip-domain']=Value_7['skip-domain'];
-               Value['sniffer']['skip-domain']=Value['sniffer']['skip-domain'].uniq;
-            end;
-         end;
-      end;
-      if File::exist?('/etc/openclash/custom/openclash_sniffing_ports_filter.yaml') then
-         if ${21} == 1 then
-            Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_ports_filter.yaml');
-            if Value_7 != false and not Value_7['sniff'].to_a.empty? then
-               Value['sniffer']['sniff']=Value_7['sniff'];
-            end;
-         end;
+      Value['allow-lan']=true;
+      Value['external-controller']='0.0.0.0:$3';
+      Value['secret']='$2';
+      Value['bind-address']='*';
+      Value['external-ui']='/usr/share/openclash/ui';
+      if $6 == 1 then
+         Value['ipv6']=true;
       else
-         if File::exist?('/etc/openclash/custom/openclash_sniffing_port_filter.yaml') and ${21} == 1 then
-            Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_port_filter.yaml');
-            if Value_7 != false and not Value_7['port-whitelist'].to_a.empty? then
-               Value['sniffer']['port-whitelist']=Value_7['port-whitelist'];
-               Value['sniffer']['port-whitelist']=Value['sniffer']['port-whitelist'].uniq;
+         Value['ipv6']=false;
+      end;
+      if '${22}' != '0' then
+         Value['interface-name']='${22}';
+      end;
+
+      if '${19}' == '1' then
+         Value['geodata-mode']=true;
+      end;
+      if '${20}' != '0' then
+         Value['geodata-loader']='${20}';
+      end;
+      if '${23}' == '1' then
+         Value['tcp-concurrent']=true;
+      end;
+      if '${32}' == '1' then
+         Value['unified-delay']=true;
+      end;
+      if '${33}' != '0' then
+         Value['keep-alive-interval']=${33};
+      end;
+      if '${27}' != '0' then
+         Value['find-process-mode']='${27}';
+      end;
+      if '${29}' != '0' then
+         Value['global-client-fingerprint']='${29}';
+      end;
+
+      if ${16} == 1 then
+         Value['dns']['ipv6']=true;
+         Value['ipv6']=true;
+      else
+         Value['dns']['ipv6']=false;
+      end;
+      
+      if '$1' == 'redir-host' then
+         Value['dns']['enhanced-mode']='redir-host';
+         Value['dns'].delete('fake-ip-range');
+      else
+         Value['dns']['enhanced-mode']='fake-ip';
+         Value['dns']['fake-ip-range']='${28}';
+      end;
+
+      Value['dns']['listen']='0.0.0.0:${13}';
+      
+      #meta only
+      if '${34}' == '1' then
+         Value['dns']['respect-rules']=true;
+      end;
+      
+      if ${18} == 1 then
+         Value_sniffer={'sniffer'=>{'enable'=>true}};
+         Value['sniffer']=Value_sniffer['sniffer'];
+         if '$1' == 'redir-host' then
+            Value['sniffer']['force-dns-mapping']=true;
+         end;
+         if ${26} == 1 then
+            Value['sniffer']['parse-pure-ip']=true;
+         end;
+         if File::exist?('/etc/openclash/custom/openclash_force_sniffing_domain.yaml') then
+            if ${21} == 1 then
+               Value_7 = YAML.load_file('/etc/openclash/custom/openclash_force_sniffing_domain.yaml');
+               if Value_7 != false and not Value_7['force-domain'].to_a.empty? then
+                  Value['sniffer']['force-domain']=Value_7['force-domain'];
+                  Value['sniffer']['force-domain']=Value['sniffer']['force-domain'].uniq;
+               end;
             end;
          end;
-         Value_sniffer={'sniffing'=>['tls','http']};
-         Value['sniffer'].merge!(Value_sniffer);
+         if File::exist?('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml') then
+            if ${21} == 1 then
+               Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_domain_filter.yaml');
+               if Value_7 != false and not Value_7['skip-sni'].to_a.empty? then
+                  Value['sniffer']['skip-domain']=Value_7['skip-sni'];
+                  Value['sniffer']['skip-domain']=Value['sniffer']['skip-domain'].uniq;
+               end;
+               if Value_7 != false and not Value_7['skip-domain'].to_a.empty? then
+                  Value['sniffer']['skip-domain']=Value_7['skip-domain'];
+                  Value['sniffer']['skip-domain']=Value['sniffer']['skip-domain'].uniq;
+               end;
+            end;
+         end;
+         if File::exist?('/etc/openclash/custom/openclash_sniffing_ports_filter.yaml') then
+            if ${21} == 1 then
+               Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_ports_filter.yaml');
+               if Value_7 != false and not Value_7['sniff'].to_a.empty? then
+                  Value['sniffer']['sniff']=Value_7['sniff'];
+               end;
+            end;
+         else
+            if File::exist?('/etc/openclash/custom/openclash_sniffing_port_filter.yaml') and ${21} == 1 then
+               Value_7 = YAML.load_file('/etc/openclash/custom/openclash_sniffing_port_filter.yaml');
+               if Value_7 != false and not Value_7['port-whitelist'].to_a.empty? then
+                  Value['sniffer']['port-whitelist']=Value_7['port-whitelist'];
+                  Value['sniffer']['port-whitelist']=Value['sniffer']['port-whitelist'].uniq;
+               end;
+            end;
+            Value_sniffer={'sniffing'=>['tls','http']};
+            Value['sniffer'].merge!(Value_sniffer);
+         end;
       end;
-   end;
-   Value_2={'tun'=>{'enable'=>true}};
-   if $en_mode_tun != 0 or ${30} == 2 then
-      Value['tun']=Value_2['tun'];
-      Value['tun']['stack']='$stack_type';
-      Value['tun']['device']='utun';
-      Value_2={'dns-hijack'=>['tcp://any:53']};
-      Value['tun'].merge!(Value_2);
-      Value['tun']['gso']=true;
-      Value['tun']['gso-max-size']=65536;
-      Value['tun']['auto-route']=false;
-      Value['tun']['auto-detect-interface']=false;
-      Value['tun']['auto-redirect']=false;
-      Value['tun']['strict-route']=false;
-   else
-      if Value.key?('tun') then
-         Value.delete('tun');
+      Value_2={'tun'=>{'enable'=>true}};
+      if $en_mode_tun != 0 or ${30} == 2 then
+         Value['tun']=Value_2['tun'];
+         Value['tun']['stack']='$stack_type';
+         Value['tun']['device']='utun';
+         Value_2={'dns-hijack'=>['tcp://any:53']};
+         Value['tun'].merge!(Value_2);
+         Value['tun']['gso']=true;
+         Value['tun']['gso-max-size']=65536;
+         Value['tun']['auto-route']=false;
+         Value['tun']['auto-detect-interface']=false;
+         Value['tun']['auto-redirect']=false;
+         Value['tun']['strict-route']=false;
+      else
+         if Value.key?('tun') then
+            Value.delete('tun');
+         end;
       end;
-   end;
-   if Value.key?('iptables') then
-      Value.delete('iptables');
-   end;
-   if not Value.key?('profile') or Value['profile'].nil? then
-      Value_3={'profile'=>{'store-selected'=>true}};
-      Value['profile']=Value_3['profile'];
-   else
-      Value['profile']['store-selected']=true;
-   end;
-   if ${17} == 1 then
-      Value['profile']['store-fake-ip']=true;
-   end;
+      if Value.key?('iptables') then
+         Value.delete('iptables');
+      end;
+      if not Value.key?('profile') or Value['profile'].nil? then
+         Value_3={'profile'=>{'store-selected'=>true}};
+         Value['profile']=Value_3['profile'];
+      else
+         Value['profile']['store-selected']=true;
+      end;
+      if ${17} == 1 then
+         Value['profile']['store-fake-ip']=true;
+      end;
 
-   if Value.key?('ebpf') then
-      Value.delete('ebpf');
-   end;
+      if Value.key?('ebpf') then
+         Value.delete('ebpf');
+      end;
 
-   if Value.key?('routing-mark') then
-      Value.delete('routing-mark');
+      if Value.key?('routing-mark') then
+         Value.delete('routing-mark');
+      end;
+      if Value.key?('auto-redir') then
+         Value.delete('auto-redir');
+      end;
+   rescue Exception => e
+      YAML.LOG('Error: Set General Failed,【' + e.message + '】');
    end;
-   if Value.key?('auto-redir') then
-      Value.delete('auto-redir');
-   end;
-rescue Exception => e
-   YAML.LOG('Error: Set General Failed,【' + e.message + '】');
-end;
 };
 
 #Custom dns
-t2=Thread.new{
-begin
-   if '$enable_custom_dns' == '1' or '$append_wan_dns' == '1' then
-      if File::exist?('/tmp/yaml_config.namedns.yaml') then
-         Value_1 = YAML.load_file('/tmp/yaml_config.namedns.yaml');
-         if '$enable_custom_dns' == '1' then
-            Value['dns']['nameserver'] = Value_1['nameserver'].uniq;
-         elsif '$append_wan_dns' == '1' then
-            if Value['dns'].has_key?('nameserver') then
-               Value['dns']['nameserver'] = Value['dns']['nameserver'] | Value_1['nameserver'];
-            else
+threads << Thread.new {
+   begin
+      if '$enable_custom_dns' == '1' or '$append_wan_dns' == '1' then
+         if File::exist?('/tmp/yaml_config.namedns.yaml') then
+            Value_1 = YAML.load_file('/tmp/yaml_config.namedns.yaml');
+            if '$enable_custom_dns' == '1' then
                Value['dns']['nameserver'] = Value_1['nameserver'].uniq;
+            elsif '$append_wan_dns' == '1' then
+               if Value['dns'].has_key?('nameserver') then
+                  Value['dns']['nameserver'] = Value['dns']['nameserver'] | Value_1['nameserver'];
+               else
+                  Value['dns']['nameserver'] = Value_1['nameserver'].uniq;
+               end;
             end;
+            if File::exist?('/tmp/yaml_config.falldns.yaml') and '$enable_custom_dns' == '1' then
+               Value_2 = YAML.load_file('/tmp/yaml_config.falldns.yaml');
+               Value['dns']['fallback'] = Value_2['fallback'].uniq;
+            end;
+         elsif '$enable_custom_dns' == '1' then
+            YAML.LOG('Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers');
          end;
-         if File::exist?('/tmp/yaml_config.falldns.yaml') and '$enable_custom_dns' == '1' then
-            Value_2 = YAML.load_file('/tmp/yaml_config.falldns.yaml');
-            Value['dns']['fallback'] = Value_2['fallback'].uniq;
-         end;
-      elsif '$enable_custom_dns' == '1' then
-         YAML.LOG('Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers');
       end;
+   rescue Exception => e
+      YAML.LOG('Error: Set Custom DNS Failed,【' + e.message + '】');
    end;
-rescue Exception => e
-   YAML.LOG('Error: Set Custom DNS Failed,【' + e.message + '】');
-end;
 
-#default-nameserver
-begin
-   if '$enable_custom_dns' == '1' then
-      if File::exist?('/tmp/yaml_config.defaultdns.yaml') then
-         Value_1 = YAML.load_file('/tmp/yaml_config.defaultdns.yaml');
-         if Value['dns'].has_key?('default-nameserver') then
-            Value['dns']['default-nameserver'] = Value['dns']['default-nameserver'] | Value_1['default-nameserver'];
-         else
-            Value['dns']['default-nameserver'] = Value_1['default-nameserver'].uniq;
-         end;
-      end;
-   end;
-   if ${25} == 1 then
-      reg = /^dhcp:\/\/|^system($|:\/\/)|([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/;
-      if Value['dns'].has_key?('fallback') then
-         Value_1=Value['dns']['nameserver'] | Value['dns']['fallback'];
-      else
-         Value_1=Value['dns']['nameserver'];
-      end;
-      Value_1.each{|x|
-         if not x =~ reg then
+   #default-nameserver
+   begin
+      if '$enable_custom_dns' == '1' then
+         if File::exist?('/tmp/yaml_config.defaultdns.yaml') then
+            Value_1 = YAML.load_file('/tmp/yaml_config.defaultdns.yaml');
             if Value['dns'].has_key?('default-nameserver') then
-               Value['dns']['default-nameserver']=Value['dns']['default-nameserver'].to_a.insert(-1,x).uniq;
+               Value['dns']['default-nameserver'] = Value['dns']['default-nameserver'] | Value_1['default-nameserver'];
             else
-               Value_2={'default-nameserver'=>[x]};
-               Value['dns'].merge!(Value_2);
+               Value['dns']['default-nameserver'] = Value_1['default-nameserver'].uniq;
             end;
          end;
-      };
-   end;
-rescue Exception => e
-   YAML.LOG('Error: Set default-nameserver Failed,【' + e.message + '】');
-end;
-
-#fallback-filter
-begin
-   if '$custom_fallback_filter' == '1' then
-      if not Value['dns'].key?('fallback') then
-         YAML.LOG('Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore...');
-      elsif not YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml') then
-         YAML.LOG('Error: Unable To Parse Custom Fallback-Filter File, Ignore...');
-      else
-         Value['dns']['fallback-filter'] = YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml')['fallback-filter'];
       end;
+      if ${25} == 1 then
+         reg = /^dhcp:\/\/|^system($|:\/\/)|([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/;
+         if Value['dns'].has_key?('fallback') then
+            Value_1=Value['dns']['nameserver'] | Value['dns']['fallback'];
+         else
+            Value_1=Value['dns']['nameserver'];
+         end;
+         Value_1.each{|x|
+            if not x =~ reg then
+               if Value['dns'].has_key?('default-nameserver') then
+                  Value['dns']['default-nameserver']=Value['dns']['default-nameserver'].to_a.insert(-1,x).uniq;
+               else
+                  Value_2={'default-nameserver'=>[x]};
+                  Value['dns'].merge!(Value_2);
+               end;
+            end;
+         };
+      end;
+   rescue Exception => e
+      YAML.LOG('Error: Set default-nameserver Failed,【' + e.message + '】');
    end;
-rescue Exception => e
-   YAML.LOG('Error: Set fallback-filter Failed,【' + e.message + '】');
-end;
+
+   #fallback-filter
+   begin
+      if '$custom_fallback_filter' == '1' then
+         if not Value['dns'].key?('fallback') then
+            YAML.LOG('Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore...');
+         elsif not YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml') then
+            YAML.LOG('Error: Unable To Parse Custom Fallback-Filter File, Ignore...');
+         else
+            Value['dns']['fallback-filter'] = YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml')['fallback-filter'];
+         end;
+      end;
+   rescue Exception => e
+      YAML.LOG('Error: Set fallback-filter Failed,【' + e.message + '】');
+   end;
 };
 
 #proxy-server-nameserver
-t3=Thread.new{
-begin
-   if '$enable_custom_dns' == '1' then
-      if File::exist?('/tmp/yaml_config.proxynamedns.yaml') then
-         Value_1 = YAML.load_file('/tmp/yaml_config.proxynamedns.yaml');
-         if Value['dns'].has_key?('proxy-server-nameserver') then
-            Value['dns']['proxy-server-nameserver'] = Value['dns']['proxy-server-nameserver'] | Value_1['proxy-server-nameserver'];
-         else
-            Value['dns']['proxy-server-nameserver'] = Value_1['proxy-server-nameserver'].uniq;
+threads << Thread.new {
+   begin
+      if '$enable_custom_dns' == '1' then
+         if File::exist?('/tmp/yaml_config.proxynamedns.yaml') then
+            Value_1 = YAML.load_file('/tmp/yaml_config.proxynamedns.yaml');
+            if Value['dns'].has_key?('proxy-server-nameserver') then
+               Value['dns']['proxy-server-nameserver'] = Value['dns']['proxy-server-nameserver'] | Value_1['proxy-server-nameserver'];
+            else
+               Value['dns']['proxy-server-nameserver'] = Value_1['proxy-server-nameserver'].uniq;
+            end;
          end;
       end;
+   rescue Exception => e
+      YAML.LOG('Error: Set proxy-server-nameserver Failed,【' + e.message + '】');
    end;
-rescue Exception => e
-   YAML.LOG('Error: Set proxy-server-nameserver Failed,【' + e.message + '】');
-end;
 };
 
 #direct-nameserver
-t4=Thread.new{
-begin
-   if '$enable_custom_dns' == '1' then
-      if File::exist?('/tmp/yaml_config.directnamedns.yaml') then
-         Value_1 = YAML.load_file('/tmp/yaml_config.directnamedns.yaml');
-         if Value['dns'].has_key?('direct-nameserver') then
-            Value['dns']['direct-nameserver'] = Value['dns']['direct-nameserver'] | Value_1['direct-nameserver'];
-         else
-            Value['dns']['direct-nameserver'] = Value_1['direct-nameserver'].uniq;
+threads << Thread.new {
+   begin
+      if '$enable_custom_dns' == '1' then
+         if File::exist?('/tmp/yaml_config.directnamedns.yaml') then
+            Value_1 = YAML.load_file('/tmp/yaml_config.directnamedns.yaml');
+            if Value['dns'].has_key?('direct-nameserver') then
+               Value['dns']['direct-nameserver'] = Value['dns']['direct-nameserver'] | Value_1['direct-nameserver'];
+            else
+               Value['dns']['direct-nameserver'] = Value_1['direct-nameserver'].uniq;
+            end;
          end;
       end;
+   rescue Exception => e
+      YAML.LOG('Error: Set direct-nameserver Failed,【' + e.message + '】');
    end;
-rescue Exception => e
-   YAML.LOG('Error: Set direct-nameserver Failed,【' + e.message + '】');
-end;
 };
 
 #nameserver-policy
-t5=Thread.new{
-begin
-   if '$custom_name_policy' == '1' then
-      if File::exist?('/etc/openclash/custom/openclash_custom_domain_dns_policy.list') then
-         Value_6 = YAML.load_file('/etc/openclash/custom/openclash_custom_domain_dns_policy.list');
-         if Value_6 != false and not Value_6.nil? then
-            if Value['dns'].has_key?('nameserver-policy') and not Value['dns']['nameserver-policy'].to_a.empty? then
-               Value['dns']['nameserver-policy'].merge!(Value_6);
-            else
-               Value['dns']['nameserver-policy']=Value_6;
+threads << Thread.new {
+   begin
+      if '$custom_name_policy' == '1' then
+         if File::exist?('/etc/openclash/custom/openclash_custom_domain_dns_policy.list') then
+            Value_6 = YAML.load_file('/etc/openclash/custom/openclash_custom_domain_dns_policy.list');
+            if Value_6 != false and not Value_6.nil? then
+               if Value['dns'].has_key?('nameserver-policy') and not Value['dns']['nameserver-policy'].to_a.empty? then
+                  Value['dns']['nameserver-policy'].merge!(Value_6);
+               else
+                  Value['dns']['nameserver-policy']=Value_6;
+               end;
+               Value['dns']['nameserver-policy'].uniq;
             end;
-            Value['dns']['nameserver-policy'].uniq;
          end;
       end;
+   rescue Exception => e
+      YAML.LOG('Error: Set Nameserver-Policy Failed,【' + e.message + '】');
    end;
-rescue Exception => e
-   YAML.LOG('Error: Set Nameserver-Policy Failed,【' + e.message + '】');
-end;
 };
 
 #fake-ip-filter
-t6=Thread.new{
-begin
-   if '$custom_fakeip_filter' == '1' then
-      if '${35}' == 'whitelist' then
-         Value['dns']['fake-ip-filter-mode']='whitelist';
-      else
-         Value['dns']['fake-ip-filter-mode']='blacklist';
+threads << Thread.new {
+   begin
+      if '$custom_fakeip_filter' == '1' then
+         if '${35}' == 'whitelist' then
+            Value['dns']['fake-ip-filter-mode']='whitelist';
+         else
+            Value['dns']['fake-ip-filter-mode']='blacklist';
+         end;
+         if '$1' == 'fake-ip' then
+            if File::exist?('/etc/openclash/custom/openclash_custom_fake_filter.list') then
+               Value_4 = IO.readlines('/etc/openclash/custom/openclash_custom_fake_filter.list');
+               if not Value_4.empty? then
+                  Value_4 = Value_4.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
+                  if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+                     Value['dns']['fake-ip-filter'] = Value['dns']['fake-ip-filter'] | Value_4;
+                  else
+                     Value['dns']['fake-ip-filter'] = Value_4;
+                  end;
+               end;
+            end;
+            if File::exist?('/tmp/yaml_openclash_fake_filter_include') then
+               Value_4 = IO.readlines('/tmp/yaml_openclash_fake_filter_include');
+               if not Value_4.empty? then
+                  Value_4 = Value_4.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
+                  if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+                     Value['dns']['fake-ip-filter'] = Value['dns']['fake-ip-filter'] | Value_4;
+                  else
+                     Value['dns']['fake-ip-filter'] = Value_4;
+                  end;
+               end;
+            end;
+         end;
       end;
       if '$1' == 'fake-ip' then
-         if File::exist?('/etc/openclash/custom/openclash_custom_fake_filter.list') then
-            Value_4 = IO.readlines('/etc/openclash/custom/openclash_custom_fake_filter.list');
-            if not Value_4.empty? then
-               Value_4 = Value_4.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
+         if '$china_ip_route' != '0' or '$china_ip6_route' != '0' then
+            if Value['dns']['fake-ip-filter-mode'] == 'blacklist' or not Value['dns'].has_key?('fake-ip-filter-mode') then
                if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-                  Value['dns']['fake-ip-filter'] = Value['dns']['fake-ip-filter'] | Value_4;
+                  Value['dns']['fake-ip-filter'].insert(-1,'geosite:cn');
+                  Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
                else
-                  Value['dns']['fake-ip-filter'] = Value_4;
+                  Value['dns'].merge!({'fake-ip-filter'=>['geosite:cn']});
                end;
-            end;
-         end;
-         if File::exist?('/tmp/yaml_openclash_fake_filter_include') then
-            Value_4 = IO.readlines('/tmp/yaml_openclash_fake_filter_include');
-            if not Value_4.empty? then
-               Value_4 = Value_4.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
-               if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-                  Value['dns']['fake-ip-filter'] = Value['dns']['fake-ip-filter'] | Value_4;
-               else
-                  Value['dns']['fake-ip-filter'] = Value_4;
-               end;
-            end;
-         end;
-      end;
-   end;
-   if '$1' == 'fake-ip' then
-      if '$china_ip_route' != '0' or '$china_ip6_route' != '0' then
-         if Value['dns']['fake-ip-filter-mode'] == 'blacklist' or not Value['dns'].has_key?('fake-ip-filter-mode') then
-            if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-               Value['dns']['fake-ip-filter'].insert(-1,'geosite:cn');
-               Value['dns']['fake-ip-filter']=Value['dns']['fake-ip-filter'].uniq;
+               YAML.LOG('Tip: Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule【geosite:cn】...');
             else
-               Value['dns'].merge!({'fake-ip-filter'=>['geosite:cn']});
-            end;
-            YAML.LOG('Tip: Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule【geosite:cn】');
-         else
-            if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
-               Value['dns']['fake-ip-filter'].each{|x|
-                  if x =~ /(geosite:?).*(@cn|:cn|,cn|:china)/ then
-                     Value['dns']['fake-ip-filter'].delete(x);
-                     YAML.LOG('Tip: Because Need Ensure Bypassing IP Option Work, Deleted The Fake-IP-Filter Rule【' + x + '】');
-                  end;
-               };
+               if Value['dns'].has_key?('fake-ip-filter') and not Value['dns']['fake-ip-filter'].to_a.empty? then
+                  Value['dns']['fake-ip-filter'].each{|x|
+                     if x =~ /(geosite:?).*(@cn|:cn|,cn|:china)/ then
+                        Value['dns']['fake-ip-filter'].delete(x);
+                        YAML.LOG('Tip: Because Need Ensure Bypassing IP Option Work, Deleted The Fake-IP-Filter Rule【' + x + '】...');
+                     end;
+                  };
+               end;
             end;
          end;
       end;
+   rescue Exception => e
+      YAML.LOG('Error: Set Fake-IP-Filter Failed,【' + e.message + '】');
    end;
-rescue Exception => e
-   YAML.LOG('Error: Set Fake-IP-Filter Failed,【' + e.message + '】');
-end;
 };
 
 #custom hosts
-t7=Thread.new{
-begin
-   if '$custom_host' == '1' then
-      if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
-         begin
-            Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_hosts.list');
-            if Value_3 != false and not Value_3.nil? then
-               Value['dns']['use-hosts']=true;
-               if Value.has_key?('hosts') and not Value['hosts'].to_a.empty? then
-                  Value['hosts'].merge!(Value_3);
-               else
-                  Value['hosts']=Value_3;
+threads << Thread.new {
+   begin
+      if '$custom_host' == '1' then
+         if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
+            begin
+               Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_hosts.list');
+               if Value_3 != false and not Value_3.nil? then
+                  Value['dns']['use-hosts']=true;
+                  if Value.has_key?('hosts') and not Value['hosts'].to_a.empty? then
+                     Value['hosts'].merge!(Value_3);
+                  else
+                     Value['hosts']=Value_3;
+                  end;
+                  Value['hosts'].uniq;
+                  YAML.LOG('Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address...');
                end;
-               Value['hosts'].uniq;
-               YAML.LOG('Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address');
-            end;
-         rescue
-            Value_3 = IO.readlines('/etc/openclash/custom/openclash_custom_hosts.list');
-            if not Value_3.empty? then
-               Value_3 = Value_3.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
-               Value['dns']['use-hosts']=true;
-               if Value.has_key?('hosts') and not Value['hosts'].to_a.empty? then
-                  Value_3.each{|x| Value['hosts'].merge!(x)};
-               else
-                  Value_3.each{|x| Value['hosts'].merge!(x)};
+            rescue
+               Value_3 = IO.readlines('/etc/openclash/custom/openclash_custom_hosts.list');
+               if not Value_3.empty? then
+                  Value_3 = Value_3.map!{|x| x.gsub(/#.*$/,'').strip} - ['', nil];
+                  Value['dns']['use-hosts']=true;
+                  if Value.has_key?('hosts') and not Value['hosts'].to_a.empty? then
+                     Value_3.each{|x| Value['hosts'].merge!(x)};
+                  else
+                     Value_3.each{|x| Value['hosts'].merge!(x)};
+                  end;
+                  Value['hosts'].uniq;
+                  YAML.LOG('Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address...');
                end;
-               Value['hosts'].uniq;
-               YAML.LOG('Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address');
             end;
          end;
       end;
+   rescue Exception => e
+      YAML.LOG('Error: Set Hosts Rules Failed,【' + e.message + '】');
    end;
-rescue Exception => e
-   YAML.LOG('Error: Set Hosts Rules Failed,【' + e.message + '】');
-end;
 };
 
 #auth
-t8=Thread.new{
-begin
-   if File::exist?('/tmp/yaml_openclash_auth') then
-      Value_1 = YAML.load_file('/tmp/yaml_openclash_auth');
-      if Value.has_key?('authentication') and not Value['authentication'].to_a.empty? then
-         Value['authentication'].merge!(Value_1);
-      else
-         Value['authentication']=Value_1;
+threads << Thread.new {
+   begin
+      if File::exist?('/tmp/yaml_openclash_auth') then
+         Value_1 = YAML.load_file('/tmp/yaml_openclash_auth');
+         if Value.has_key?('authentication') and not Value['authentication'].to_a.empty? then
+            Value['authentication'] = Value['authentication'] | Value_1;
+         else
+            Value['authentication']=Value_1;
+         end;
       end;
+   rescue Exception => e
+      YAML.LOG('Error: Set authentication Failed,【' + e.message + '】');
    end;
-rescue Exception => e
-   YAML.LOG('Error: Set authentication Failed,【' + e.message + '】');
-end;
 };
 
 begin
@@ -750,18 +752,11 @@ begin
       Value['dns']['enable']=true;
    end;
 
-   t1.join;
-   t2.join;
-   t3.join;
-   t4.join;
-   t5.join;
-   t6.join;
-   t7.join;
-   t8.join;
+   threads.each(&:join);
    
    #dns check
    if '$enable_redirect_dns' != '2' then
-      threads = [];
+      threads.clear;
       dns_option = ['nameserver','fallback','default-nameserver','proxy-server-nameserver','nameserver-policy','direct-nameserver'];
       dns_option.each do |x|
          threads << Thread.new {
@@ -770,8 +765,8 @@ begin
                   next;
                end;
                if x != 'nameserver-policy' then
-                  Value['dns'][x].each do |v|
-                     if v =~ /^system($|:\/\/)$/ then
+                  Value['dns'][x].flatten.each do |v|
+                     if v =~ /^system($|:\/\/$)/ then
                         Value['dns'][x].delete(v);
                         YAML.LOG('Tip: Option【' + x + '】is Setted【'+ v +'】as DNS Server Which May Cause DNS Loop, Already Remove It...');
                      end;
@@ -782,8 +777,8 @@ begin
                else
                   Value['dns'][x].each do |k,v|
                      if v.class == Array then
-                        v.each do |z|
-                           if z =~ /^system($|:\/\/)$/ then
+                        v.flatten.each do |z|
+                           if z =~ /^system($|:\/\/$)/ then
                               if v.length > 1 then
                                  v.delete(z);
                               else
@@ -793,7 +788,7 @@ begin
                            end;
                         end;
                      else
-                        if v =~ /^system($|:\/\/)$/ then
+                        if v =~ /^system($|:\/\/$)/ then
                            Value['dns'][x].delete(k);
                            YAML.LOG('Tip: Option【' + x + ' - ' + k + '】is Setted【'+ v +'】as DNS Server Which May Cause DNS Loop, Already Remove It...');
                         end;
@@ -816,7 +811,7 @@ begin
       Value['dns'].merge!(Value_1);
       Value['dns'].merge!(Value_2);
    end;
-   if '${34}' == '1' then
+   if '${34}' == '1' or Value['dns']['respect-rules'].to_s == 'true' then
       if not Value['dns'].has_key?('proxy-server-nameserver') or Value['dns']['proxy-server-nameserver'].to_a.empty? then
          Value['dns'].merge!({'proxy-server-nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']});
          YAML.LOG('Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】');
