@@ -225,7 +225,7 @@ function line_tolocal(str){
 	var cn = 0;
 	var sn = 0;
 	str.trim().split('\n').forEach(function(v, i) {
-		var regex = /"([^"]*)"/g;
+		var regex = /(time=|msg=)"([^"]*)"/g;
 		var res = regex.exec(v);
 		if (res) {
 			var dt = new Date(res[1]);

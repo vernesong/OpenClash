@@ -3036,8 +3036,8 @@ msgstr "绕过指定区域 IPv6 黑名单"
 msgid "Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq"
 msgstr "列表中的域名或 IP 将不会受到绕过指定区域 IP 选项的影响，此功能依赖于 Dnsmasq"
 
-msgid "Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address"
-msgstr "警告：Hosts 设置了保留地址时需要关闭 Dnsmasq 的重绑定保护选项才能生效"
+msgid "Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address..."
+msgstr "警告：Hosts 设置了保留地址时需要关闭 Dnsmasq 的重绑定保护选项才能生效..."
 
 msgid "Auto Select Logic"
 msgstr "*自动选择逻辑"

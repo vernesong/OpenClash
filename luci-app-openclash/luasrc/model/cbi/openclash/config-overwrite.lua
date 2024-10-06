@@ -33,7 +33,8 @@ if not lan_ip or lan_ip == "" then
 end
 m = Map("openclash", translate("Overwrite Settings"))
 m.pageaction = false
-m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"
+m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"..
+"<br/>"..font_green..translate("For More Useful Meta Core Functions Go Wiki")..": "..font_off.."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/\")'>"..translate("https://wiki.metacubex.one/").."</a>"
 
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
@@ -147,7 +148,7 @@ o = s:taboption("dns", Flag, "enable_custom_dns", font_red..bold_on..translate("
 o.description = font_red..bold_on..translate("Set OpenClash Upstream DNS Resolve Server")..bold_off..font_off
 o.default = 0
 
-o = s:taboption("dns", Flag, "enable_respect_rules", font_red..bold_on..translate("Respect Rules")..bold_off..font_off)
+o = s:taboption("dns", Flag, "enable_respect_rules", font_red..bold_on..translate("Respect Rules").."(respect-rules)"..bold_off..font_off)
 o.description = font_red..bold_on..translate("Whether or not The Connection to the DNS Server Follow the Rules in Config")..bold_off..font_off
 o.default = 0
 

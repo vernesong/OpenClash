@@ -714,20 +714,21 @@ check_core_status()
          ip_="ip -6"
       fi
 
-      while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -le 60 ] )
+      #wait 120s most for tun interface start
+      while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -le 120 ] )
       do
          $ip_ link set utun up
          let TUN_WAIT++
          sleep 1
       done >/dev/null 2>&1
 
-      if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -gt 60 ]; then
+      if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -gt 120 ]; then
          while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -le 3 ] )
          do
             LOG_OUT "Warning: TUN Interface Start Failed, Try to Restart Again..."
             kill_clash
             start_run_core
-            sleep 15
+            sleep 120
             let TUN_RESTART++
          done >/dev/null 2>&1
          if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -gt 3 ]; then
@@ -745,18 +746,6 @@ check_core_status()
 
       ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
       ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
-   else
-      if [ -z "$1" ]; then
-         while ( [ -n "$(pidof clash)" ] && [ "$TUN_WAIT" -le 5 ] )
-         do
-            let TUN_WAIT++
-            sleep 5
-         done >/dev/null 2>&1
-      fi
-   fi
- 
-   if [ -z "$(pidof clash)" ]; then
-      start_fail
    fi
 }
 
@@ -3040,7 +3029,7 @@ reload()
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
       set_firewall 2>/dev/null
-      check_core_status & "firewall" 2>/dev/null
+      check_core_status & 2>/dev/null
       /etc/init.d/dnsmasq restart >/dev/null 2>&1
       SLOG_CLEAN
       del_lock
@@ -3057,7 +3046,7 @@ reload()
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
       set_firewall 2>/dev/null
-      check_core_status & "firewall" 2>/dev/null
+      check_core_status & 2>/dev/null
       change_dns "$enable_redirect_dns" "$disable_masq_cache"
       SLOG_CLEAN
       del_lock
