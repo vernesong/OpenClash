@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.46.039
+PKG_VERSION:=0.46.040
 PKG_RELEASE:=beta
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
