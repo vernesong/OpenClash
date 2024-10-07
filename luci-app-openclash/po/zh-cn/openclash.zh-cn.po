@@ -53,10 +53,10 @@ msgstr "第三方规则订阅"
 msgid "Dashboard Settings"
 msgstr "外部控制"
 
-msgid "Enable"
+msgid "Enabled"
 msgstr "启用"
 
-msgid "Disable"
+msgid "Disabled"
 msgstr "停用"
 
 msgid "Running"
@@ -912,7 +912,7 @@ msgstr "文件名"
 msgid "Grammar Check"
 msgstr "语法检查"
 
-msgid "Switch Config"
+msgid "Switch To Config"
 msgstr "切换"
 
 msgid "Size"
