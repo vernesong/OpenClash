@@ -1,6 +1,6 @@
 放行规则-lhie1(建议置顶并直连),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Special.yaml
 放行规则-ACL4SSR(建议置顶并直连),ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/,UnBan.yaml
-国内IP白名单(By lhie1),lhie1,ipcidr,dler-io/Rules/master/Clash/Provider/,Domestic IPs.yaml
+国内IP白名单(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Domestic IPs.yaml
 国内域名白名单(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Domestic.yaml
 国外常用网站合集(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Proxy.yaml
 广告规则(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Reject.yaml
