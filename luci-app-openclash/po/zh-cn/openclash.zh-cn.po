@@ -2871,20 +2871,11 @@ msgstr "（仅 TUN 内核）"
 msgid "(TUN&Meta Core)"
 msgstr "（TUN&Meta 内核）"
 
-msgid "Will Override Dns Queries If Domains in The List"
-msgstr "列表中的域名将会强制进行探测（嗅探）"
-
-msgid "Will Disable Sniffing If Domains(sni) in The List"
-msgstr "列表中的域名（sni）不会进行探测（嗅探）"
-
-msgid "Will Only Sniffing If Ports in The List"
-msgstr "仅探测（嗅探）列表中指定的协议端口"
-
 msgid "Custom Sniffer Settings"
 msgstr "自定义流量探测（嗅探）设置"
 
 msgid "Custom The Force and Skip Sniffing Doamin Lists"
-msgstr "自定义强制和忽略流量探测（嗅探）的域名列表"
+msgstr "自定义强制和忽略流量探测（嗅探）的域名列表等"
 
 msgid "Enable Tcp Concurrent"
 msgstr "*启用 TCP 并发"
