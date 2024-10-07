@@ -347,7 +347,7 @@ check_run_quick()
 
 write_run_quick()
 {
-   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") $(ls -d /etc/openclash/custom/*) $meta_core_path $ipdb_path $geosite_path $geoip_path $chnr_path $chnr6_path /usr/share/openclash/res/lhie1.yaml"
+   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") $(ls -d /etc/openclash/custom/*) /usr/share/openclash/res/lhie1.yaml"
    cmp -s "/etc/config/openclash" "/tmp/openclash_config.tmp"
 	 if [ "$?" -ne "0" ]; then
 	    cp "/etc/config/openclash" "/tmp/openclash_config.tmp"
