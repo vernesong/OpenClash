@@ -912,7 +912,7 @@ msgstr "文件名"
 msgid "Grammar Check"
 msgstr "语法检查"
 
-msgid "Switch To Config"
+msgid "Switch"
 msgstr "切换"
 
 msgid "Size"
