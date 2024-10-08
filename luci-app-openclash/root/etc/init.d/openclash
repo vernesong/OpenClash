@@ -3052,6 +3052,17 @@ reload()
       SLOG_CLEAN
       del_lock
    fi
+   if [ "$enable" == "1" ] && [ "$1" == "core" ]; then
+      set_lock
+      check_run_quick 2>/dev/null
+      do_run_mode 2>/dev/null
+      get_config 2>/dev/null
+      start_run_core 2>/dev/null
+      check_core_status 2>/dev/null
+      write_run_quick 2>/dev/null
+      SLOG_CLEAN
+      del_lock
+   fi
 }
 
 boot()

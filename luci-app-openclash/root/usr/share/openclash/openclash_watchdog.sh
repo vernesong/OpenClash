@@ -3,11 +3,9 @@
 . /lib/functions.sh
 . /usr/share/openclash/openclash_ps.sh
 
-CLASH="/etc/openclash/clash"
-CLASH_CONFIG="/etc/openclash"
+
+
 LOG_FILE="/tmp/openclash.log"
-PROXY_FWMARK="0x162"
-PROXY_ROUTE_TABLE="0x162"
 CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 ipv6_enable=$(uci -q get openclash.config.ipv6_enable || echo 0)
 enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
@@ -17,9 +15,7 @@ cfg_update_interval=$(uci -q get openclash.config.config_update_interval || echo
 log_size=$(uci -q get openclash.config.log_size || echo 1024)
 router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
 stream_auto_select_interval=$(uci -q get openclash.config.stream_auto_select_interval || echo 30)
-ipv6_mode=$(uci -q get openclash.config.ipv6_mode || echo 0)
 skip_proxy_address=$(uci -q get openclash.config.skip_proxy_address || echo 0)
-en_mode=$(uci -q get openclash.config.en_mode)
 CRASH_NUM=0
 CFG_UPDATE_INT=1
 SKIP_PROXY_ADDRESS=1
@@ -181,44 +177,30 @@ do
    enable=$(uci -q get openclash.config.enable)
 
 if [ "$enable" -eq 1 ]; then
-	clash_pids=$(pidof clash |sed 's/$//g' |wc -l)
-	if [ "$clash_pids" -gt 1 ]; then
+   clash_pids=$(pidof clash |sed 's/$//g' |wc -l)
+   if [ "$clash_pids" -gt 1 ]; then
          LOG_OUT "Watchdog: Multiple Clash Processes, Kill All..."
          clash_pids=$(pidof clash |sed 's/$//g')
          for clash_pid in $clash_pids; do
             kill -9 "$clash_pid" 2>/dev/null
          done >/dev/null 2>&1
          sleep 1
-	fi 2>/dev/null
-	if ! pidof clash >/dev/null; then
+   fi 2>/dev/null
+   if ! pidof clash >/dev/null; then
 	   CRASH_NUM=$(expr "$CRASH_NUM" + 1)
-	   if [ "$CRASH_NUM" -le 3 ]; then
+      if [ "$CRASH_NUM" -le 3 ]; then
          LOG_OUT "Watchdog: Clash Core Problem, Restart..."
-         ulimit -SHn 65535 2>/dev/null
-         ulimit -v unlimited 2>/dev/null
-         ulimit -u unlimited 2>/dev/null
-         chown root:root /etc/openclash/core/* 2>/dev/null
-         capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin"
-         capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
-         sleep 3
-         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
-         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
-         if [ "$ipv6_mode" -eq 2 ] && [ "$ipv6_enable" -eq 1 ]; then
-            ip -6 rule del oif utun table 2022 >/dev/null 2>&1
-            ip -6 route del default dev utun table 2022 >/dev/null 2>&1
-            ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-            ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-         fi
-	      sleep 60
-	      continue
-	   else
-	      LOG_OUT "Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit..."
-	      /etc/init.d/openclash stop
-	      exit 0
-	   fi
-	else
-	   CRASH_NUM=0
-  fi
+         /etc/init.d/openclash reload "core"
+         sleep 10
+         continue
+      else
+         LOG_OUT "Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit..."
+         /etc/init.d/openclash stop
+         exit 0
+      fi
+   else
+      CRASH_NUM=0
+   fi
 fi
 
 ## Porxy history
