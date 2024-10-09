@@ -1,4 +1,4 @@
-import{N as o}from"./index-DACeLBg-.js";/**
+import{N as o}from"./index-BUuZZGdr.js";/**
  * @license @tabler/icons-solidjs v3.19.0 - MIT
  *
  * This source code is licensed under the MIT license.
