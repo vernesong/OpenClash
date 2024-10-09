@@ -3222,8 +3222,8 @@ msgstr "Redirect 模式"
 msgid "TUN Mode"
 msgstr "TUN 模式"
 
-msgid "TUN Mode"
-msgstr "TUN 模式"
+msgid "Mix Mode"
+msgstr "Mix 混合模式【UDP-TUN，TCP-转发】"
 
 msgid "Tip: IPv6 Proxy Mode is Redirect..."
 msgstr "提示：IPv6 代理模式为 Redirect..."
@@ -3233,6 +3233,9 @@ msgstr "提示：IPv6 代理模式为 TUN..."
 
 msgid "Tip: IPv6 Proxy Mode is TProxy..."
 msgstr "提示：IPv6 代理模式为 TProxy..."
+
+msgid "Tip: IPv6 Proxy Mode is Mix..."
+msgstr "提示：IPv6 代理模式为 Mix 混合..."
 
 msgid "Warning: Can't Settting Only Intranet Allowed Function, Get IPv4 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
 msgstr "警告：设置仅允许内网功能失败，无法获取 IPv4 的 WAN 接口名称，请确保防火墙设置中 IPv4 WAN 区域的名称为 wan，如设备无 WAN 口请忽略此提示..."

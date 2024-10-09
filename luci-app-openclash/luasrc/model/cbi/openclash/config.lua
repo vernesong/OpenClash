@@ -177,9 +177,9 @@ else
    e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
 end
 if uci:get("openclash", "config", "config_path") and string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
-   e[t].state=translate("Enable")
+   e[t].state=translate("Enabled")
 else
-   e[t].state=translate("Disable")
+   e[t].state=translate("Disabled")
 end
 e[t].size=fs.filesize(a.size)
 e[t].check=translate(config_check(o))

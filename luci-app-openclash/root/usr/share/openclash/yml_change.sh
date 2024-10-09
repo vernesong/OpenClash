@@ -418,7 +418,7 @@ threads << Thread.new {
          end;
       end;
       Value_2={'tun'=>{'enable'=>true}};
-      if $en_mode_tun != 0 or ${30} == 2 then
+      if $en_mode_tun != 0 or ${30} == 2 or ${30} == 3 then
          Value['tun']=Value_2['tun'];
          Value['tun']['stack']='$stack_type';
          Value['tun']['device']='utun';
