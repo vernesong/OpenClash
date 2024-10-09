@@ -708,7 +708,7 @@ check_core_status()
 {
    TUN_WAIT=0
    TUN_RESTART=1
-   if [ -n "$en_mode_tun" ] || [ "$ipv6_mode" -eq 2 ]; then
+   if [ -n "$en_mode_tun" ] || [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
       if [ -n "$en_mode_tun" ]; then
          ip_="ip"
       else
@@ -738,7 +738,7 @@ check_core_status()
          fi
       fi
 
-      if [ "$ipv6_mode" -eq 2 ]; then
+      if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
          ip -6 rule del oif utun table 2022 >/dev/null 2>&1
          ip -6 route del default dev utun table 2022 >/dev/null 2>&1
          ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE"
@@ -987,7 +987,7 @@ firewall_redirect_exclude()
       if [ "$ipv6_enable" -eq 1 ]; then
          if $e_tcp ; then
             if [ -n "$dest_ip" ]; then
-               if [ "$ipv6_mode" -eq 1 ]; then
+               if [ "$ipv6_mode" -eq 1 ] || [ "$ipv6_mode" -eq 3 ]; then
                   nft insert rule inet fw4 openclash_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
                   nft insert rule inet fw4 openclash_output_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$dest_port" counter return >/dev/null 2>&1
                else
@@ -1036,7 +1036,7 @@ firewall_redirect_exclude()
       if [ "$ipv6_enable" -eq 1 ] && [ -n "$(ip6tables -t mangle -L 2>&1 | grep -o 'Chain')" ]; then
          if $e_tcp ; then
             if [ -n "$dest_ip" ]; then
-                if [ "$ipv6_mode" -eq 1 ]; then
+                if [ "$ipv6_mode" -eq 1 ] || [ "$ipv6_mode" -eq 3 ]; then
                   ip6tables -t nat -I openclash -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
                   ip6tables -t nat -I openclash_output -p tcp "$dest_ip" --sport "$dest_port" -j RETURN >/dev/null 2>&1
                 else
@@ -1113,6 +1113,9 @@ if [ "$ipv6_enable" -eq 1 ]; then
       ;;
       "2")
       LOG_OUT "Tip: IPv6 Proxy Mode is TUN..."
+      ;;
+      "3")
+      LOG_OUT "Tip: IPv6 Proxy Mode is Mix..."
       ;;
       *)
       LOG_OUT "Tip: IPv6 Proxy Mode is TProxy..."
@@ -1593,7 +1596,7 @@ if [ -n "$FW4" ]; then
                      ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
                   fi
                fi
-               if [ "$ipv6_mode" -eq 2 ]; then
+               if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
                   nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} tcp dport 53 ${ACBLACKDNSFILTER} counter accept comment \"OpenClash DNS Hijack\"
                else
                   nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} tcp dport 53 ${ACBLACKDNSFILTER} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
@@ -1607,7 +1610,7 @@ if [ -n "$FW4" ]; then
             fi
             if [ "$router_self_proxy" = 1 ]; then
                nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
-               if [ "$ipv6_mode" -eq 2 ]; then
+               if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
                   nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv6} tcp dport 53 counter accept comment \"OpenClash DNS Hijack\"
                fi
             fi
@@ -1622,7 +1625,7 @@ if [ -n "$FW4" ]; then
                      ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
                   fi
                fi
-               if [ "$ipv6_mode" -eq 2 ]; then
+               if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
                   nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv6} tcp dport 53 ${ACBLACKDNSFILTER} counter accept comment \"OpenClash DNS Hijack\"
                else
                   nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv6} tcp dport 53 ${ACBLACKDNSFILTER} counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
@@ -1638,7 +1641,7 @@ if [ -n "$FW4" ]; then
             nft 'insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} udp dport 53 counter jump openclash_dns_redirect'
             if [ "$router_self_proxy" = 1 ]; then
                nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
-               if [ "$ipv6_mode" -eq 2 ]; then
+               if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
                   nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv6} tcp dport 53 counter accept comment \"OpenClash DNS Hijack\"
                else
                   nft insert rule inet fw4 nat_output position 0 meta nfproto {ipv6} tcp dport 53 ip6 daddr {::/0} meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
@@ -1711,7 +1714,7 @@ if [ -n "$FW4" ]; then
          done
       fi
 
-      if [ "$ipv6_mode" -eq 1 ]; then
+      if [ "$ipv6_mode" -eq 1 ] || [ "$ipv6_mode" -eq 3 ]; then
          #tcp
          nft 'add chain inet fw4 openclash_v6'
          nft 'flush chain inet fw4 openclash_v6'
@@ -1745,7 +1748,7 @@ if [ -n "$FW4" ]; then
       fi
 
       #tproxy not support output chain
-      if [ "$ipv6_mode" -eq 0 ] || [ "$ipv6_mode" -eq 1 ]; then
+      if [ "$ipv6_mode" -ne 2 ]; then
          if [ "$router_self_proxy" = "1" ]; then
             nft 'add chain inet fw4 openclash_output_v6'
             nft 'flush chain inet fw4 openclash_output_v6'
@@ -1773,7 +1776,7 @@ if [ -n "$FW4" ]; then
       fi
 
       #TProxy & TUN & Redirect udp
-      if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -eq 0 ] || [ "$ipv6_mode" -eq 2 ]; then
+      if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -ne 1 ]; then
          nft 'add chain inet fw4 openclash_mangle_v6'
          nft 'flush chain inet fw4 openclash_mangle_v6'
          nft 'add rule inet fw4 openclash_mangle_v6 meta nfproto {ipv6} udp iifname lo counter return'
@@ -1806,10 +1809,11 @@ if [ -n "$FW4" ]; then
          fi
       fi
 
-      if [ "$ipv6_mode" -ne 1 ]; then
+      #tcp Tproxy && TUN
+      if [ "$ipv6_mode" -ne 1 ] && [ "$ipv6_mode" -ne 3 ]; then
          if [ "$ipv6_mode" -eq 0 ]; then
             nft add rule inet fw4 openclash_mangle_v6 meta nfproto {ipv6} tcp dport { 0-65535 } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash TCP Tproxy\"
-         elif [ "$ipv6_mode" -eq 2 ]; then
+         else
             nft add rule inet fw4 openclash_mangle_v6 meta nfproto {ipv6} tcp dport { 0-65535 } mark set "$PROXY_FWMARK" counter
          fi
 
@@ -1841,7 +1845,7 @@ if [ -n "$FW4" ]; then
       fi
 
       #udp
-      if [ "$ipv6_mode" -eq 2 ]; then
+      if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
          nft add rule inet fw4 openclash_mangle_v6 meta nfproto {ipv6} udp dport { 0-65535 } mark set "$PROXY_FWMARK" counter
       else
          if [ "$enable_v6_udp_proxy" -eq 1 ]; then
@@ -1852,7 +1856,7 @@ if [ -n "$FW4" ]; then
       nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv6} counter jump openclash_mangle_v6'
 
       #route
-      if [ "$ipv6_mode" -ne 2 ]; then
+      if [ "$ipv6_mode" -ne 2 ] && [ "$ipv6_mode" -ne 3 ]; then
          if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -eq 0 ]; then
             modprobe nft_tproxy >/dev/null 2>&1
             ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
@@ -1861,7 +1865,7 @@ if [ -n "$FW4" ]; then
       fi
 
       #TUN FORWORD
-      if [ "$ipv6_mode" -eq 2 ]; then
+      if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
          nft insert rule inet fw4 forward position 0 meta nfproto {ipv6} oifname utun counter accept comment \"OpenClash TUN Forward\"
          nft insert rule inet fw4 forward position 0 meta nfproto {ipv6} iifname utun counter accept comment \"OpenClash TUN Forward\"
          nft insert rule inet fw4 input position 0 meta nfproto {ipv6} iifname utun counter accept comment \"OpenClash TUN Input\"
@@ -1870,7 +1874,7 @@ if [ -n "$FW4" ]; then
 
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
-         if [ "$ipv6_mode" -eq 2 ]; then
+         if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
             chain="forward"
          else
             chain="input"
@@ -2388,7 +2392,7 @@ if [ -z "$FW4" ]; then
                   fi
                fi
                ip6tables -t nat -I PREROUTING -p udp --dport 53 ${ACBLACKDNSFILTER} -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
-               if [ "$ipv6_mode" -eq 2 ]; then
+               if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
                   ip6tables -t nat -I PREROUTING -p tcp --dport 53 ${ACBLACKDNSFILTER} -j ACCEPT -m comment --comment "OpenClash DNS Hijack"
                else
                   ip6tables -t nat -I PREROUTING -p tcp --dport 53 ${ACBLACKDNSFILTER} -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
@@ -2400,7 +2404,7 @@ if [ -z "$FW4" ]; then
                ip6tables -t nat -I PREROUTING -p tcp --dport 53 -m set --match-set lan_ac_white_macs src -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
             fi
             if [ "$router_self_proxy" = 1 ]; then
-               if [ "$ipv6_mode" -eq 2 ]; then
+               if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
                   ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 -m owner ! --uid-owner 65534 -j ACCEPT -m comment --comment "OpenClash DNS Hijack"
                fi
             fi
@@ -2418,7 +2422,7 @@ if [ -z "$FW4" ]; then
                   fi
                fi
                ip6tables -t nat -A openclash_dns_redirect -p udp --dport 53 ${ACBLACKDNSFILTER} -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
-               if [ "$ipv6_mode" -eq 2 ]; then
+               if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
                   ip6tables -t nat -A openclash_dns_redirect -p tcp --dport 53 ${ACBLACKDNSFILTER} -j ACCEPT -m comment --comment "OpenClash DNS Hijack"
                else
                   ip6tables -t nat -A openclash_dns_redirect -p tcp --dport 53 ${ACBLACKDNSFILTER} -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
@@ -2433,7 +2437,7 @@ if [ -z "$FW4" ]; then
             ip6tables -t nat -I PREROUTING -p tcp --dport 53 -j openclash_dns_redirect
             if [ "$router_self_proxy" = 1 ]; then
                ip6tables -t nat -I OUTPUT -p udp --dport 53 -d ::/0 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
-               if [ "$ipv6_mode" -eq 2 ]; then
+               if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
                   ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 -m owner ! --uid-owner 65534 -j ACCEPT -m comment --comment "OpenClash DNS Hijack"
                else
                   ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
@@ -2493,7 +2497,7 @@ if [ -z "$FW4" ]; then
          done
       fi
 
-      if [ "$ipv6_mode" -eq 1 ]; then
+      if [ "$ipv6_mode" -eq 1 ] || [ "$ipv6_mode" -eq 3 ]; then
          #tcp
          ip6tables -t nat -N openclash
          ip6tables -t nat -F openclash
@@ -2525,7 +2529,7 @@ if [ -z "$FW4" ]; then
       fi
 
       #tproxy not support output chain
-      if [ "$ipv6_mode" -eq 0 ] || [ "$ipv6_mode" -eq 1 ]; then
+      if [ "$ipv6_mode" -ne 2 ]; then
          if [ "$router_self_proxy" = "1" ]; then
             ip6tables -t nat -N openclash_output
             ip6tables -t nat -F openclash_output
@@ -2550,7 +2554,7 @@ if [ -z "$FW4" ]; then
       fi
 
       #TProxy & TUN
-      if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -eq 0 ] || [ "$ipv6_mode" -eq 2 ]; then
+      if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -ne 1 ]; then
          ip6tables -t mangle -N openclash
          ip6tables -t mangle -F openclash
          #prevent tproxy loop
@@ -2584,10 +2588,10 @@ if [ -z "$FW4" ]; then
       fi
 
       #TProxy & TUN
-      if [ "$ipv6_mode" -ne 1 ]; then
+      if [ "$ipv6_mode" -ne 1 ] && [ "$ipv6_mode" -ne 3 ]; then
          if [ "$ipv6_mode" -eq 0 ]; then
             ip6tables -t mangle -A openclash -p tcp -m comment --comment "OpenClash TCP Tproxy" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
-         elif [ "$ipv6_mode" -eq 2 ]; then
+         else
             ip6tables -t mangle -A openclash -p tcp -j MARK --set-mark "$PROXY_FWMARK"
          fi
 
@@ -2620,7 +2624,7 @@ if [ -z "$FW4" ]; then
       fi
 
       #udp
-      if [ "$ipv6_mode" -eq 2 ]; then
+      if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
          ip6tables -t mangle -A openclash -p udp -m comment --comment "OpenClash UDP TUN" -j MARK --set-xmark "$PROXY_FWMARK"
       else
          if [ "$enable_v6_udp_proxy" -eq 1 ]; then
@@ -2631,7 +2635,7 @@ if [ -z "$FW4" ]; then
       ip6tables -t mangle -A PREROUTING -j openclash
 
       #route
-      if [ "$ipv6_mode" -ne 2 ]; then
+      if [ "$ipv6_mode" -ne 2 ] && [ "$ipv6_mode" -ne 3 ]; then
          if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -eq 0 ]; then
             modprobe xt_TPROXY >/dev/null 2>&1
             ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
@@ -2640,7 +2644,7 @@ if [ -z "$FW4" ]; then
       fi
 
       #TUN FORWORD
-      if [ "$ipv6_mode" -eq 2 ]; then
+      if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
          ip6tables -I FORWARD -m comment --comment "OpenClash TUN Forward" -o utun -j ACCEPT >/dev/null 2>&1
          ip6tables -I FORWARD -m comment --comment "OpenClash TUN Forward" -i utun -j ACCEPT >/dev/null 2>&1
          ip6tables -I INPUT -m comment --comment "OpenClash TUN Input" -i utun -j ACCEPT >/dev/null 2>&1
@@ -2649,7 +2653,7 @@ if [ -z "$FW4" ]; then
 
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
-         if [ "$ipv6_mode" -eq 2 ]; then
+         if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
             chain="FORWARD -o utun"
          else
             chain="INPUT"

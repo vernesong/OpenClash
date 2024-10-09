@@ -1101,6 +1101,7 @@ o = s:taboption("ipv6", ListValue, "ipv6_mode", translate("IPv6 Proxy Mode"))
 o:value("0", translate("TProxy Mode"))
 o:value("1", translate("Redirect Mode"))
 o:value("2", translate("TUN Mode")..translate("(Only Meta Core)"))
+o:value("3", translate("Mix Mode")..translate("(Only Meta Core)"))
 o.default = "0"
 o:depends("ipv6_enable", "1")
 
@@ -1108,6 +1109,8 @@ o = s:taboption("ipv6", ListValue, "stack_type_v6", translate("Select Stack Type
 o.description = translate("Select Stack Type For TUN Mode, According To The Running Speed on Your Machine")
 o:depends({ipv6_mode= "2", en_mode = "redir-host"})
 o:depends({ipv6_mode= "2", en_mode = "fake-ip"})
+o:depends({ipv6_mode= "3", en_mode = "redir-host"})
+o:depends({ipv6_mode= "3", en_mode = "fake-ip"})
 o:value("system", translate("System　"))
 o:value("gvisor", translate("gVisor"))
 o:value("mixed", translate("Mixed")..translate("(Only Meta Core)"))
