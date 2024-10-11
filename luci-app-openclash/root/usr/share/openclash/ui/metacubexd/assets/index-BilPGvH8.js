@@ -1,4 +1,4 @@
-import{N as U,d as Fe,q as L,am as Ie,an as $e}from"./index-Jq4vk9jB.js";/**
+import{N as U,d as Fe,q as L,am as Ie,an as $e}from"./index-Dty2i_OM.js";/**
  * @license @tabler/icons-solidjs v3.19.0 - MIT
  *
  * This source code is licensed under the MIT license.
