@@ -4,16 +4,15 @@
 . /lib/functions.sh
 
 LOG_FILE="/tmp/openclash.log"
-custom_fakeip_filter=$(uci -q get openclash.config.custom_fakeip_filter)
-custom_name_policy=$(uci -q get openclash.config.custom_name_policy)
-custom_host=$(uci -q get openclash.config.custom_host)
-core_type=$(uci -q get openclash.config.core_type)
-enable_custom_dns=$(uci -q get openclash.config.enable_custom_dns)
+custom_fakeip_filter=$(uci -q get openclash.config.custom_fakeip_filter || echo 0)
+custom_name_policy=$(uci -q get openclash.config.custom_name_policy || echo 0)
+custom_host=$(uci -q get openclash.config.custom_host || echo 0)
+enable_custom_dns=$(uci -q get openclash.config.enable_custom_dns || echo 0)
 append_wan_dns=$(uci -q get openclash.config.append_wan_dns || echo 0)
 custom_fallback_filter=$(uci -q get openclash.config.custom_fallback_filter || echo 0)
 china_ip_route=$(uci -q get openclash.config.china_ip_route); [[ "$china_ip_route" != "0" && "$china_ip_route" != "1" && "$china_ip_route" != "2" ]] && china_ip_route=0
 china_ip6_route=$(uci -q get openclash.config.china_ip6_route); [[ "$china_ip6_route" != "0" && "$china_ip6_route" != "1" && "$china_ip6_route" != "2" ]] && china_ip6_route=0
-enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
+enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns || echo 1)
 
 if [ -z "${11}" ]; then
    en_mode_tun=0
@@ -355,16 +354,16 @@ threads << Thread.new {
          Value['interface-name']='${22}';
       end;
 
-      if '${19}' == '1' then
+      if ${19} == 1 then
          Value['geodata-mode']=true;
       end;
       if '${20}' != '0' then
          Value['geodata-loader']='${20}';
       end;
-      if '${23}' == '1' then
+      if ${23} == 1 then
          Value['tcp-concurrent']=true;
       end;
-      if '${32}' == '1' then
+      if ${32} == 1 then
          Value['unified-delay']=true;
       end;
       if '${33}' != '0' then
@@ -395,7 +394,7 @@ threads << Thread.new {
       Value['dns']['listen']='0.0.0.0:${13}';
       
       #meta only
-      if '${34}' == '1' then
+      if ${34} == 1 then
          Value['dns']['respect-rules']=true;
       end;
       
@@ -430,6 +429,10 @@ threads << Thread.new {
          Value['tun']['auto-detect-interface']=false;
          Value['tun']['auto-redirect']=false;
          Value['tun']['strict-route']=false;
+         Value['tun'].delete_if{|x,y| x=='iproute2-table-index'};
+         if ${36} == 1 then
+            Value['tun']['endpoint-independent-nat']=true;
+         end;
       else
          if Value.key?('tun') then
             Value.delete('tun');
@@ -466,23 +469,23 @@ threads << Thread.new {
 #Custom dns
 threads << Thread.new {
    begin
-      if '$enable_custom_dns' == '1' or '$append_wan_dns' == '1' then
+      if $enable_custom_dns == 1 or $append_wan_dns == 1 then
          if File::exist?('/tmp/yaml_config.namedns.yaml') then
             Value_1 = YAML.load_file('/tmp/yaml_config.namedns.yaml');
-            if '$enable_custom_dns' == '1' then
+            if $enable_custom_dns == 1 then
                Value['dns']['nameserver'] = Value_1['nameserver'].uniq;
-            elsif '$append_wan_dns' == '1' then
+            elsif $append_wan_dns == 1 then
                if Value['dns'].has_key?('nameserver') then
                   Value['dns']['nameserver'] = Value['dns']['nameserver'] | Value_1['nameserver'];
                else
                   Value['dns']['nameserver'] = Value_1['nameserver'].uniq;
                end;
             end;
-            if File::exist?('/tmp/yaml_config.falldns.yaml') and '$enable_custom_dns' == '1' then
+            if File::exist?('/tmp/yaml_config.falldns.yaml') and $enable_custom_dns == 1 then
                Value_2 = YAML.load_file('/tmp/yaml_config.falldns.yaml');
                Value['dns']['fallback'] = Value_2['fallback'].uniq;
             end;
-         elsif '$enable_custom_dns' == '1' then
+         elsif $enable_custom_dns == 1 then
             YAML.LOG('Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers');
          end;
       end;
@@ -492,7 +495,7 @@ threads << Thread.new {
 
    #default-nameserver
    begin
-      if '$enable_custom_dns' == '1' then
+      if $enable_custom_dns == 1 then
          if File::exist?('/tmp/yaml_config.defaultdns.yaml') then
             Value_1 = YAML.load_file('/tmp/yaml_config.defaultdns.yaml');
             if Value['dns'].has_key?('default-nameserver') then
@@ -526,7 +529,7 @@ threads << Thread.new {
 
    #fallback-filter
    begin
-      if '$custom_fallback_filter' == '1' then
+      if $custom_fallback_filter == 1 then
          if not Value['dns'].key?('fallback') then
             YAML.LOG('Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore...');
          elsif not YAML.load_file('/etc/openclash/custom/openclash_custom_fallback_filter.yaml') then
@@ -543,7 +546,7 @@ threads << Thread.new {
 #proxy-server-nameserver
 threads << Thread.new {
    begin
-      if '$enable_custom_dns' == '1' then
+      if $enable_custom_dns == 1 then
          if File::exist?('/tmp/yaml_config.proxynamedns.yaml') then
             Value_1 = YAML.load_file('/tmp/yaml_config.proxynamedns.yaml');
             if Value['dns'].has_key?('proxy-server-nameserver') then
@@ -561,7 +564,7 @@ threads << Thread.new {
 #direct-nameserver
 threads << Thread.new {
    begin
-      if '$enable_custom_dns' == '1' then
+      if $enable_custom_dns == 1 then
          if File::exist?('/tmp/yaml_config.directnamedns.yaml') then
             Value_1 = YAML.load_file('/tmp/yaml_config.directnamedns.yaml');
             if Value['dns'].has_key?('direct-nameserver') then
@@ -579,7 +582,7 @@ threads << Thread.new {
 #nameserver-policy
 threads << Thread.new {
    begin
-      if '$custom_name_policy' == '1' then
+      if $custom_name_policy == 1 then
          if File::exist?('/etc/openclash/custom/openclash_custom_domain_dns_policy.list') then
             Value_6 = YAML.load_file('/etc/openclash/custom/openclash_custom_domain_dns_policy.list');
             if Value_6 != false and not Value_6.nil? then
@@ -600,7 +603,7 @@ threads << Thread.new {
 #fake-ip-filter
 threads << Thread.new {
    begin
-      if '$custom_fakeip_filter' == '1' then
+      if $custom_fakeip_filter == 1 then
          if '${35}' == 'whitelist' then
             Value['dns']['fake-ip-filter-mode']='whitelist';
          else
@@ -661,7 +664,7 @@ threads << Thread.new {
 #custom hosts
 threads << Thread.new {
    begin
-      if '$custom_host' == '1' then
+      if $custom_host == 1 then
          if File::exist?('/etc/openclash/custom/openclash_custom_hosts.list') then
             begin
                Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_hosts.list');
@@ -723,7 +726,7 @@ begin
    threads.each(&:join);
    
    #dns check
-   if '$enable_redirect_dns' != '2' then
+   if $enable_redirect_dns != 2 then
       threads.clear;
       dns_option = ['nameserver','fallback','default-nameserver','proxy-server-nameserver','nameserver-policy','direct-nameserver'];
       dns_option.each do |x|
@@ -779,7 +782,7 @@ begin
       Value['dns'].merge!(Value_1);
       Value['dns'].merge!(Value_2);
    end;
-   if '${34}' == '1' or Value['dns']['respect-rules'].to_s == 'true' then
+   if ${34} == 1 or Value['dns']['respect-rules'].to_s == 'true' then
       if not Value['dns'].has_key?('proxy-server-nameserver') or Value['dns']['proxy-server-nameserver'].to_a.empty? then
          Value['dns'].merge!({'proxy-server-nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']});
          YAML.LOG('Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】');
