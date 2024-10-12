@@ -297,7 +297,7 @@ yml_other_set()
    end;
 
    begin
-      if '$rule_name' == 'lhie1' and '$SKIP_CUSTOM_OTHER_RULES' != 1 then
+      if '$rule_name' == 'lhie1' and $SKIP_CUSTOM_OTHER_RULES == 0 then
          Value_1 = YAML.load_file('/usr/share/openclash/res/lhie1.yaml');
          if Value.has_key?('script') then
             Value.delete('script')

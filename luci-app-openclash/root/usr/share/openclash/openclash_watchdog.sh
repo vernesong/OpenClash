@@ -213,16 +213,26 @@ fi
    LOG_OUT "Watchdog: Log Size Limit, Clean Up All Log Records..."
    fi
 
-## 端口转发重启
-   last_line=$(iptables -t nat -nL PREROUTING --line-number |awk '{print $1}' 2>/dev/null |awk 'END {print}' |sed -n '$p')
-   op_line=$(iptables -t nat -nL PREROUTING --line-number |grep "openclash " 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1)
-   if [ "$last_line" != "$op_line" ] && [ -n "$op_line" ]; then
-      pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/openclash /=' 2>/dev/null |sort -rn)
-      for pre_line in $pre_lines; do
-         iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
-      done >/dev/null 2>&1
-      iptables -t nat -A PREROUTING -p tcp -j openclash
-      LOG_OUT "Watchdog: Setting Firewall For Enabling Redirect..."
+## 转发顺序
+   if [ -z "$FW4" ]; then
+      nat_last_line=$(iptables -t nat -nL PREROUTING --line-number |awk '{print $1}' 2>/dev/null |awk 'END {print}' |sed -n '$p')
+      nat_op_line=$(iptables -t nat -nL PREROUTING --line-number |grep -E "openclash|OpenClash" |grep -Ev "DNS|dns" 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1)
+      man_last_line=$(iptables -t mangle -nL PREROUTING --line-number |awk '{print $1}' 2>/dev/null |awk 'END {print}' |sed -n '$p')
+      man_op_line=$(iptables -t mangle -nL PREROUTING --line-number |grep -E "openclash|OpenClash" |grep -Ev "DNS|dns" 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1)
+      if ([ "$nat_last_line" != "$nat_op_line" ] && [ -n "$nat_op_line" ]) || ([ "$man_last_line" != "$man_op_line" ] && [ -n "$man_op_line" ]); then
+         LOG_OUT "Watchdog: Setting Firewall For Rules Order..."
+         /etc/init.d/openclash reload "firewall"
+      fi
+   fi
+   if [ -n "$FW4" ]; then
+      nat_last_handle=$(nft -a list chain inet fw4 dstnat |awk -F '# handle ' '{print$2}' 2>/dev/null |tr -s '\n' |sed -n '$p')
+      nat_op_handle=$(nft -a list chain inet fw4 dstnat |grep -E "openclash|OpenClash" |grep -Ev "DNS|dns" |awk -F '# handle ' '{print$2}' 2>/dev/null |tail -1)
+      man_last_handle=$(nft -a list chain inet fw4 mangle_prerouting |awk -F '# handle ' '{print$2}' 2>/dev/null |tr -s '\n' |sed -n '$p')
+      man_op_handle=$(nft -a list chain inet fw4 mangle_prerouting |grep -E "openclash|OpenClash" |grep -Ev "DNS|dns" |awk -F '# handle ' '{print$2}' 2>/dev/null |tail -1)
+      if ([ "$nat_last_handle" != "$nat_op_handle" ] && [ -n "$nat_op_handle" ]) || ([ "$man_last_handle" != "$man_op_handle" ] && [ -n "$man_op_handle" ]); then
+         LOG_OUT "Watchdog: Setting Firewall For Rules Order..."
+         /etc/init.d/openclash reload "firewall"
+      fi
    fi
 
 ## Localnetwork 刷新

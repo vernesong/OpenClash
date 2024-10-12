@@ -741,12 +741,14 @@ check_core_status()
       if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
          ip -6 rule del oif utun table 2022 >/dev/null 2>&1
          ip -6 route del default dev utun table 2022 >/dev/null 2>&1
-         ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE"
-         ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+         ip -6 route add default dev utun table "$PROXY_ROUTE_TABLE"
+         ip -6 rule add fwmark "$PROXY_FWMARK" ipproto tcp table "$PROXY_ROUTE_TABLE" pref 8000
+         ip -6 rule add fwmark "$PROXY_FWMARK" ipproto udp table "$PROXY_ROUTE_TABLE" pref 8001
       fi
 
-      ip route replace default dev utun table "$PROXY_ROUTE_TABLE"
-      ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+      ip route add default dev utun table "$PROXY_ROUTE_TABLE"
+      ip rule add fwmark "$PROXY_FWMARK" ipproto tcp table "$PROXY_ROUTE_TABLE" pref 8000
+      ip rule add fwmark "$PROXY_FWMARK" ipproto udp table "$PROXY_ROUTE_TABLE" pref 8001
    fi
 }
 
@@ -1549,10 +1551,10 @@ if [ -n "$FW4" ]; then
       nft add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} th dport { 0-65535 } mark set "$PROXY_FWMARK" counter
 
       if [ "$en_mode_tun" -eq 1 ]; then
-         nft 'insert rule inet fw4 mangle_prerouting position 0 meta nfproto {ipv4} meta l4proto {tcp,udp} counter jump openclash_mangle'
+         nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} meta l4proto {tcp,udp} counter jump openclash_mangle'
       else
          if [ "$enable_redirect_dns" -eq 1 ]; then
-            nft 'insert rule inet fw4 mangle_prerouting position 0 meta nfproto {ipv4} tcp dport 53 counter jump openclash_dns_hijack'
+            nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} tcp dport 53 counter jump openclash_dns_hijack'
             nft 'add rule inet fw4 openclash_dns_hijack ip saddr @lan_ac_black_ips counter return'
             nft 'add rule inet fw4 openclash_dns_hijack ether saddr @lan_ac_black_macs counter return'
             if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
@@ -1563,7 +1565,7 @@ if [ -n "$FW4" ]; then
             fi
             nft add rule inet fw4 openclash_dns_hijack meta nfproto {ipv4} tcp dport 53 mark set "$PROXY_FWMARK" comment \"OpenClash TCP DNS Hijack\" counter
          fi
-         nft 'insert rule inet fw4 mangle_prerouting position 0 meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
+         nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
       fi
 
       #TUN FORWORD
@@ -2344,10 +2346,10 @@ if [ -z "$FW4" ]; then
       iptables -t mangle -A openclash -j MARK --set-mark "$PROXY_FWMARK"
 
       if [ "$en_mode_tun" -eq 1 ]; then
-         iptables -t mangle -I PREROUTING -j openclash
+         iptables -t mangle -A PREROUTING -j openclash
       else
          if [ "$enable_redirect_dns" -eq 1 ]; then
-            iptables -t mangle -I PREROUTING -p tcp --dport 53 -j openclash_dns_hijack
+            iptables -t mangle -A PREROUTING -p tcp --dport 53 -j openclash_dns_hijack
             iptables -t mangle -A openclash_dns_hijack -m set --match-set lan_ac_black_ips src -j RETURN >/dev/null 2>&1
             iptables -t mangle -A openclash_dns_hijack -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
             if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
@@ -2358,7 +2360,7 @@ if [ -z "$FW4" ]; then
             fi
             iptables -t mangle -A openclash_dns_hijack -m comment --comment "OpenClash TCP DNS Hijack" -p tcp --dport 53 -j MARK --set-mark "$PROXY_FWMARK"
          fi
-         iptables -t mangle -I PREROUTING -p udp -j openclash
+         iptables -t mangle -A PREROUTING -p udp -j openclash
       fi
 
       #TUN FORWORD
@@ -2728,7 +2730,11 @@ revert_firewall()
    ip -6 route del local ::/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 
    #TUN
+   ip rule del fwmark "$PROXY_FWMARK" ipproto tcp table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+   ip rule del fwmark "$PROXY_FWMARK" ipproto udp table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+   ip -6 rule del fwmark "$PROXY_FWMARK" ipproto tcp table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+   ip -6 rule del fwmark "$PROXY_FWMARK" ipproto udp table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip -6 route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    
    if [ -n "$FW4" ]; then
@@ -2810,14 +2816,14 @@ get_config()
    enable_v6_udp_proxy=$(uci -q get openclash.config.enable_v6_udp_proxy || echo 0)
    http_port=$(uci -q get openclash.config.http_port)
    socks_port=$(uci -q get openclash.config.socks_port)
-   enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
+   enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns || echo 1)
    if [ "$(uci -q get openclash.config.fakeip_range)"  == "0" ]; then
       fakeip_range=$(ruby_read "$CONFIG_FILE" "['dns']['fake-ip-range']")
    else
       fakeip_range=$(uci -q get openclash.config.fakeip_range)
    fi
    [ -z "$fakeip_range" ] && fakeip_range="198.18.0.1/16"
-   lan_interface_name=$(uci -q get openclash.config.lan_interface_name || echo "0")
+   lan_interface_name=$(uci -q get openclash.config.lan_interface_name || echo 0)
 
    if [ "$lan_interface_name" = "0" ]; then
       lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
@@ -2857,11 +2863,11 @@ get_config()
    enable_meta_sniffer_pure_ip=$(uci -q get openclash.config.enable_meta_sniffer_pure_ip || echo 0)
    find_process_mode=$(uci -q get openclash.config.find_process_mode || echo 0)
    upnp_lease_file=$(uci -q get upnpd.config.upnp_lease_file)
-   global_client_fingerprint=$(uci -q get openclash.config.global_client_fingerprint || echo "0")
-   enable_unified_delay=$(uci -q get openclash.config.enable_unified_delay || echo "0")
-   keep_alive_interval=$(uci -q get openclash.config.keep_alive_interval || echo "0")
-   enable_respect_rules=$(uci -q get openclash.config.enable_respect_rules || echo "0")
-   intranet_allowed_wan_name=$(uci -q get openclash.config.intranet_allowed_wan_name || echo "0")
+   global_client_fingerprint=$(uci -q get openclash.config.global_client_fingerprint || echo 0)
+   enable_unified_delay=$(uci -q get openclash.config.enable_unified_delay || echo 0)
+   keep_alive_interval=$(uci -q get openclash.config.keep_alive_interval || echo 0)
+   enable_respect_rules=$(uci -q get openclash.config.enable_respect_rules || echo 0)
+   intranet_allowed_wan_name=$(uci -q get openclash.config.intranet_allowed_wan_name || echo 0)
    custom_fakeip_filter_mode=$(uci -q get openclash.config.custom_fakeip_filter_mode || echo "blacklist")
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q commit openclash
@@ -2888,7 +2894,7 @@ start()
    if ! $quick_start; then
       LOG_OUT "Step 3: Modify The Config File..."
       config_check
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay" "$keep_alive_interval" "$enable_respect_rules" "$custom_fakeip_filter_mode"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay" "$keep_alive_interval" "$enable_respect_rules" "$custom_fakeip_filter_mode" "$bypass_gateway_compatible"
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port" "$enable_redirect_dns" "$fakeip_range" "$en_mode"
       /usr/share/openclash/openclash_custom_domain_dns.sh >/dev/null 2>&1
       #Custom overwrite
@@ -2903,12 +2909,13 @@ start()
    LOG_OUT "Step 4: Start Running The Clash Core..."
    start_run_core
 
-   LOG_OUT "Step 5: Set Firewall Rules..."
-   set_firewall
-   check_core_status &
-   LOG_OUT "Step 6: Restart Dnsmasq..."
+   LOG_OUT "Step 5: Set Dnsmasq..."
    change_dns "$enable_redirect_dns" "$disable_masq_cache"
 
+   LOG_OUT "Step 6: Set Firewall Rules..."
+   set_firewall
+   check_core_status &
+   
    LOG_OUT "Step 7: Add Cron Rules, Start Daemons..."
    add_cron
    if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] || [ "$(uci -q get dhcp.lan.dhcpv6)" == "disabled" ]; then
@@ -3035,7 +3042,6 @@ reload()
       get_config 2>/dev/null
       set_firewall 2>/dev/null
       check_core_status & 2>/dev/null
-      /etc/init.d/dnsmasq restart >/dev/null 2>&1
       SLOG_CLEAN
       del_lock
    fi
@@ -3050,9 +3056,9 @@ reload()
       set_lock
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
+      change_dns "$enable_redirect_dns" "$disable_masq_cache"
       set_firewall 2>/dev/null
       check_core_status & 2>/dev/null
-      change_dns "$enable_redirect_dns" "$disable_masq_cache"
       SLOG_CLEAN
       del_lock
    fi
