@@ -742,13 +742,13 @@ check_core_status()
          ip -6 rule del oif utun table 2022 >/dev/null 2>&1
          ip -6 route del default dev utun table 2022 >/dev/null 2>&1
          ip -6 route add default dev utun table "$PROXY_ROUTE_TABLE"
-         ip -6 rule add fwmark "$PROXY_FWMARK" ipproto tcp table "$PROXY_ROUTE_TABLE" pref 8000
-         ip -6 rule add fwmark "$PROXY_FWMARK" ipproto udp table "$PROXY_ROUTE_TABLE" pref 8001
+         ip -6 rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 8000
+         ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 8001
       fi
 
       ip route add default dev utun table "$PROXY_ROUTE_TABLE"
-      ip rule add fwmark "$PROXY_FWMARK" ipproto tcp table "$PROXY_ROUTE_TABLE" pref 8000
-      ip rule add fwmark "$PROXY_FWMARK" ipproto udp table "$PROXY_ROUTE_TABLE" pref 8001
+      ip rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 8000
+      ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 8001
    fi
 }
 
@@ -2730,11 +2730,11 @@ revert_firewall()
    ip -6 route del local ::/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
 
    #TUN
-   ip rule del fwmark "$PROXY_FWMARK" ipproto tcp table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-   ip rule del fwmark "$PROXY_FWMARK" ipproto udp table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+   ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+   ip rule del fwmark "$PROXY_FWMARK" ipproto icmp table main >/dev/null 2>&1
    ip route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-   ip -6 rule del fwmark "$PROXY_FWMARK" ipproto tcp table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-   ip -6 rule del fwmark "$PROXY_FWMARK" ipproto udp table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+   ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
+   ip -6 rule del fwmark "$PROXY_FWMARK" ipproto icmp table main >/dev/null 2>&1
    ip -6 route del default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    
    if [ -n "$FW4" ]; then
