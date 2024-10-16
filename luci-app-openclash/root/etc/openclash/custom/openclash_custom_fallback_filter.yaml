@@ -14,6 +14,9 @@ fallback-filter:
   geoip: true
   geoip-code: CN
   ipcidr:
+    - ::/128
+    - ::1/128
+    - 2001::/32
     - 0.0.0.0/8
     - 10.0.0.0/8
     - 100.64.0.0/10
