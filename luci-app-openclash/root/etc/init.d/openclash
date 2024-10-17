@@ -95,6 +95,129 @@ set_dnsmasq_server() {
 }
 
 change_dns() {
+   local settype nftflag
+   if dnsmasq --version | grep -q 'Compile time options:.* nftset'; then
+      settype="nftset"
+      nftflag="inet#fw4#"
+   else
+      settype="ipset"
+      [ -n "$FW4" ] && LOG_OUT "Warning: Dnsmasq not Support nftset, Use ipset..."
+   fi
+   if [ -n "$FW4" ]; then
+      if [ "$china_ip_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
+         nft 'flush set inet fw4 china_ip_route'
+         nft -f '/etc/openclash/china_ip_route.ipset'
+         CHNROUTE_WAIT=0
+         while ( [ -z "$(nft list sets |grep "set china_ip_route {")" ] && [ "$CHNROUTE_WAIT" -le 3 ] )
+         do
+            sleep 3
+            nft -f '/etc/openclash/china_ip_route.ipset'
+            let CHNROUTE_WAIT++
+         done
+
+         if [ "$enable_redirect_dns" != "2" ]; then
+            mkdir -p ${DNSMASQ_CONF_DIR}
+            echo "add set inet fw4 china_ip_route_pass { type ipv4_addr; flags interval; auto-merge; }" >/tmp/openclash_china_ip_route_pass.list
+            [ -z `(awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list)` ] || {
+               echo "define china_ip_route_pass = {" >>/tmp/openclash_china_ip_route_pass.list
+               awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s,\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list |sed '$ s/.$//' >>/tmp/openclash_china_ip_route_pass.list 2>/dev/null
+               echo "}" >>/tmp/openclash_china_ip_route_pass.list
+               echo 'add element inet fw4 china_ip_route_pass $china_ip_route_pass' >>/tmp/openclash_china_ip_route_pass.list
+            }
+            awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("'${settype}'=/%s/'${nftflag}'china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf 2>/dev/null
+            nft 'flush set inet fw4 china_ip_route_pass'
+            nft -f '/tmp/openclash_china_ip_route_pass.list'
+            rm -rf /tmp/openclash_china_ip_route_pass.list
+         fi
+      fi
+
+      if [ "$ipv6_enable" -eq 1 ]; then
+         if [ "$china_ip6_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
+            nft 'flush set inet fw4 china_ip6_route'
+            nft -f '/etc/openclash/china_ip6_route.ipset'
+            CHNROUTE_WAIT=0
+            while ( [ -z "$(nft list sets |grep "set china_ip6_route {")" ] && [ "$CHNROUTE_WAIT" -le 3 ] )
+            do
+               sleep 3
+               nft -f '/etc/openclash/china_ip6_route.ipset'
+               let CHNROUTE_WAIT++
+            done
+
+            if [ "$enable_redirect_dns" != "2" ]; then
+               mkdir -p ${DNSMASQ_CONF_DIR}
+               echo "add set inet fw4 china_ip6_route_pass { type ipv6_addr; flags interval; auto-merge; }" >/tmp/openclash_china_ip6_route_pass.list
+               [ -z `(awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s,\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list)` ] || {
+                  echo "define china_ip6_route_pass = {" >>/tmp/openclash_china_ip6_route_pass.list
+                  awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s,\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list |sed '$ s/.$//' >>/tmp/openclash_china_ip6_route_pass.list 2>/dev/null
+                  echo "}" >>/tmp/openclash_china_ip6_route_pass.list
+                  echo 'add element inet fw4 china_ip6_route_pass $china_ip6_route_pass' >>/tmp/openclash_china_ip6_route_pass.list
+               }
+               awk '!/^$/&&!/^#/&&/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("'${settype}'=/%s/'${nftflag}'china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf 2>/dev/null
+
+               nft 'flush set inet fw4 china_ip6_route_pass'
+               nft -f '/tmp/openclash_china_ip6_route_pass.list'
+               rm -rf /tmp/openclash_china_ip6_route_pass.list
+
+               #Prevent domain repeat
+               for i in `grep -wf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf`
+               do
+                  if [ -n "$nftflag" ]; then
+                     sed -i "s:${i}:${i},6#${nftflag}china_ip6_route_pass:g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
+                  else
+                     sed -i "s:${i}:${i},china_ip6_route_pass:g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
+                  fi
+                  sed -i 's:'$i':EXCLUSIVE:;/EXCLUSIVE/d' ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
+               done
+               if [ -n "$nftflag" ]; then
+                  sed -i "s/\/${nftflag}/\/4#${nftflag}/g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
+                  sed -i "s/${nftflag}china_ip_route_pass/6#${nftflag}china_ip6_route_pass/g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
+               else
+                  sed -i "s/china_ip_route_pass/china_ip6_route_pass/g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
+               fi
+            fi
+         fi
+      fi
+   else
+      if [ "$china_ip_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
+         ipset -! flush china_ip_route
+         ipset -! restore </etc/openclash/china_ip_route.ipset
+
+         if [ "$enable_redirect_dns" != "2" ]; then
+            mkdir -p ${DNSMASQ_CONF_DIR}
+            echo "create china_ip_route_pass hash:net family inet hashsize 1024 maxelem 1000000" >/tmp/openclash_china_ip_route_pass.list
+            awk '!/^$/&&!/^#/&&/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("add china_ip_route_pass %s'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list >>/tmp/openclash_china_ip_route_pass.list 2>/dev/null
+            awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("ipset=/%s/china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf 2>/dev/null
+            ipset -! flush china_ip_route_pass
+            ipset -! restore </tmp/openclash_china_ip_route_pass.list
+            rm -rf /tmp/openclash_china_ip_route_pass.list
+         fi
+      fi
+
+      if [ "$ipv6_enable" -eq 1 ]; then
+         if [ "$china_ip6_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
+            ipset -! flush china_ip6_route
+            ipset -! restore </etc/openclash/china_ip6_route.ipset
+            if [ "$enable_redirect_dns" != "2" ]; then
+               mkdir -p ${DNSMASQ_CONF_DIR}
+               echo "create china_ip6_route_pass hash:net family inet6 hashsize 1024 maxelem 1000000" >/tmp/openclash_china_ip6_route_pass.list
+               awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("add china_ip6_route_pass %s'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list >>/tmp/openclash_china_ip6_route_pass.list
+               awk '!/^$/&&!/^#/&&/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("ipset=/%s/china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
+               ipset -! flush china_ip6_route_pass
+               ipset -! restore </tmp/openclash_china_ip6_route_pass.list
+               rm -rf /tmp/openclash_china_ip6_route_pass.list
+
+               #Prevent domain repeat
+               for i in `grep -wf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf`
+               do
+                  sed -i "s:${i}:${i},china_ip6_route_pass:g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
+                  sed -i 's:'$i':EXCLUSIVE:;/EXCLUSIVE/d' ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
+               done
+               sed -i "s/china_ip_route_pass/china_ip6_route_pass/g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
+            fi
+         fi
+      fi
+   fi
+
    if [ "$1" -eq 1 ]; then
       uci -q del openclash.config.dnsmasq_server
       config_load "dhcp"
@@ -136,6 +259,8 @@ change_dns() {
 revert_dns() {
 
    rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
+   rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
+   rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
 
    [ "$1" -eq 1 ] && {
       uci -q del dhcp.@dnsmasq[-1].server
@@ -1088,15 +1213,6 @@ if [ -n "$common_ports" ] && [ "$common_ports" != "0" ]; then
    fi
 fi
 
-local settype nftflag
-if dnsmasq --version | grep -q 'Compile time options:.* nftset'; then
-   settype="nftset"
-   nftflag="inet#fw4#"
-else
-   settype="ipset"
-   [ -n "$FW4" ] && LOG_OUT "Warning: Dnsmasq not Support nftset, Use ipset..."
-fi
-
 case $enable_redirect_dns in
 	"1")
    LOG_OUT "Tip: DNS Hijacking Mode is Dnsmasq Redirect..."
@@ -1127,31 +1243,6 @@ fi
 #NFTABLES
 if [ -n "$FW4" ]; then
    LOG_OUT "Tip: Firewall4 was Detected, Use NFTABLE Rules..."
-   if [ "$china_ip_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
-      nft 'flush set inet fw4 china_ip_route'
-      nft -f '/etc/openclash/china_ip_route.ipset'
-      CHNROUTE_WAIT=0
-      while ( [ -z "$(nft list sets |grep "set china_ip_route {")" ] && [ "$CHNROUTE_WAIT" -le 3 ] )
-      do
-         nft -f '/etc/openclash/china_ip_route.ipset'
-         let CHNROUTE_WAIT++
-      done
-
-      if [ "$enable_redirect_dns" != "2" ]; then
-         mkdir -p ${DNSMASQ_CONF_DIR}
-         echo "add set inet fw4 china_ip_route_pass { type ipv4_addr; flags interval; auto-merge; }" >/tmp/openclash_china_ip_route_pass.list
-         [ -z `(awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list)` ] || {
-            echo "define china_ip_route_pass = {" >>/tmp/openclash_china_ip_route_pass.list
-            awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s,\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list |sed '$ s/.$//' >>/tmp/openclash_china_ip_route_pass.list 2>/dev/null
-            echo "}" >>/tmp/openclash_china_ip_route_pass.list
-            echo 'add element inet fw4 china_ip_route_pass $china_ip_route_pass' >>/tmp/openclash_china_ip_route_pass.list
-         }
-         awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("'${settype}'=/%s/'${nftflag}'china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf 2>/dev/null
-         nft 'flush set inet fw4 china_ip_route_pass'
-         nft -f '/tmp/openclash_china_ip_route_pass.list'
-         rm -rf /tmp/openclash_china_ip_route_pass.list
-      fi
-   fi
 
    #lan_ac
    if [ "$lan_ac_mode" = "0" ]; then
@@ -1653,51 +1744,6 @@ if [ -n "$FW4" ]; then
          fi
       fi
 
-      if [ "$china_ip6_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
-         nft 'flush set inet fw4 china_ip6_route'
-         nft -f '/etc/openclash/china_ip6_route.ipset'
-         CHNROUTE_WAIT=0
-         while ( [ -z "$(nft list sets |grep "set china_ip6_route {")" ] && [ "$CHNROUTE_WAIT" -le 3 ] )
-         do
-            nft -f '/etc/openclash/china_ip6_route.ipset'
-            let CHNROUTE_WAIT++
-         done
-
-         if [ "$enable_redirect_dns" != "2" ]; then
-            mkdir -p ${DNSMASQ_CONF_DIR}
-
-            echo "add set inet fw4 china_ip6_route_pass { type ipv6_addr; flags interval; auto-merge; }" >/tmp/openclash_china_ip6_route_pass.list
-            [ -z `(awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s,\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list)` ] || {
-               echo "define china_ip6_route_pass = {" >>/tmp/openclash_china_ip6_route_pass.list
-               awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s,\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list |sed '$ s/.$//' >>/tmp/openclash_china_ip6_route_pass.list 2>/dev/null
-               echo "}" >>/tmp/openclash_china_ip6_route_pass.list
-               echo 'add element inet fw4 china_ip6_route_pass $china_ip6_route_pass' >>/tmp/openclash_china_ip6_route_pass.list
-            }
-            awk '!/^$/&&!/^#/&&/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("'${settype}'=/%s/'${nftflag}'china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf 2>/dev/null
-
-            nft 'flush set inet fw4 china_ip6_route_pass'
-            nft -f '/tmp/openclash_china_ip6_route_pass.list'
-            rm -rf /tmp/openclash_china_ip6_route_pass.list
-
-            #Prevent domain repeat
-            for i in `grep -wf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf`
-            do
-               if [ -n "$nftflag" ]; then
-                  sed -i "s:${i}:${i},6#${nftflag}china_ip6_route_pass:g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
-               else
-                  sed -i "s:${i}:${i},china_ip6_route_pass:g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
-               fi
-               sed -i 's:'$i':EXCLUSIVE:;/EXCLUSIVE/d' ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
-            done
-            if [ -n "$nftflag" ]; then
-               sed -i "s/\/${nftflag}/\/4#${nftflag}/g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
-               sed -i "s/${nftflag}china_ip_route_pass/6#${nftflag}china_ip6_route_pass/g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
-            else
-               sed -i "s/china_ip_route_pass/china_ip6_route_pass/g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
-            fi
-         fi
-      fi
-
       #local
       nft 'add set inet fw4 localnetwork6 { type ipv6_addr; flags interval; auto-merge; }'
       #nft 'delete set inet fw4 localnetwork6'
@@ -2031,21 +2077,6 @@ if [ -z "$FW4" ]; then
          iptables -t filter -A openclash_wan_input -p tcp -m multiport --dport "$proxy_port,$tproxy_port,$cn_port,$http_port,$socks_port,$mixed_port,$dns_port" -j REJECT >/dev/null 2>&1
       else
          LOG_OUT "Warning: Can't Settting Only Intranet Allowed Function, Get IPv4 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
-      fi
-   fi
-
-   if [ "$china_ip_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
-      ipset -! flush china_ip_route
-      ipset -! restore </etc/openclash/china_ip_route.ipset
-
-      if [ "$enable_redirect_dns" != "2" ]; then
-         mkdir -p ${DNSMASQ_CONF_DIR}
-         echo "create china_ip_route_pass hash:net family inet hashsize 1024 maxelem 1000000" >/tmp/openclash_china_ip_route_pass.list
-         awk '!/^$/&&!/^#/&&/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("add china_ip_route_pass %s'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list >>/tmp/openclash_china_ip_route_pass.list 2>/dev/null
-         awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("ipset=/%s/china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf 2>/dev/null
-         ipset -! flush china_ip_route_pass
-         ipset -! restore </tmp/openclash_china_ip_route_pass.list
-         rm -rf /tmp/openclash_china_ip_route_pass.list
       fi
    fi
 
@@ -2448,28 +2479,6 @@ if [ -z "$FW4" ]; then
          fi
       fi
 
-      if [ "$china_ip6_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
-         ipset -! flush china_ip6_route
-         ipset -! restore </etc/openclash/china_ip6_route.ipset
-         if [ "$enable_redirect_dns" != "2" ]; then
-            mkdir -p ${DNSMASQ_CONF_DIR}
-            echo "create china_ip6_route_pass hash:net family inet6 hashsize 1024 maxelem 1000000" >/tmp/openclash_china_ip6_route_pass.list
-            awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("add china_ip6_route_pass %s'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list >>/tmp/openclash_china_ip6_route_pass.list
-            awk '!/^$/&&!/^#/&&/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("ipset=/%s/china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
-            ipset -! flush china_ip6_route_pass
-            ipset -! restore </tmp/openclash_china_ip6_route_pass.list
-            rm -rf /tmp/openclash_china_ip6_route_pass.list
-
-            #Prevent domain repeat
-            for i in `grep -wf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf`
-            do
-               sed -i "s:${i}:${i},china_ip6_route_pass:g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
-               sed -i 's:'$i':EXCLUSIVE:;/EXCLUSIVE/d' ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
-            done
-            sed -i "s/china_ip_route_pass/china_ip6_route_pass/g" ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
-         fi
-      fi
-
       #local
       ipset create localnetwork6 hash:net family inet6
       if [ -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list" ]; then
@@ -2720,8 +2729,6 @@ fi
 revert_firewall()
 {
    rm -rf /var/etc/openclash.include >/dev/null 2>&1
-   rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
-   rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
 
    ip rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
    ip route del local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
@@ -3042,7 +3049,6 @@ reload()
       get_config 2>/dev/null
       set_firewall 2>/dev/null
       check_core_status & 2>/dev/null
-      /etc/init.d/dnsmasq restart >/dev/null 2>&1
       SLOG_CLEAN
       del_lock
    fi
@@ -3057,9 +3063,9 @@ reload()
       set_lock
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
+      change_dns "$enable_redirect_dns" "$disable_masq_cache"
       set_firewall 2>/dev/null
       check_core_status & 2>/dev/null
-      change_dns "$enable_redirect_dns" "$disable_masq_cache"
       SLOG_CLEAN
       del_lock
    fi
