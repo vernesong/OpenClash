@@ -3042,6 +3042,7 @@ reload()
       get_config 2>/dev/null
       set_firewall 2>/dev/null
       check_core_status & 2>/dev/null
+      /etc/init.d/dnsmasq restart >/dev/null 2>&1
       SLOG_CLEAN
       del_lock
    fi
@@ -3056,9 +3057,9 @@ reload()
       set_lock
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
-      change_dns "$enable_redirect_dns" "$disable_masq_cache"
       set_firewall 2>/dev/null
       check_core_status & 2>/dev/null
+      change_dns "$enable_redirect_dns" "$disable_masq_cache"
       SLOG_CLEAN
       del_lock
    fi
