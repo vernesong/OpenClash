@@ -33,6 +33,9 @@ define Package/$(PKG_NAME)/config
 
 	config PACKAGE_dnsmasq_full_nftset
 	default y if PACKAGE_firewall4
+
+	config PACKAGE_ipset
+	default y if ! PACKAGE_firewall4
 endef
 
 define Package/$(PKG_NAME)
@@ -41,8 +44,7 @@ define Package/$(PKG_NAME)
 	TITLE:=LuCI support for clash
 	PKGARCH:=all
 	DEPENDS:=+dnsmasq-full +coreutils +coreutils-nohup +bash +curl +ca-certificates +ip-full \
-	+libcap +libcap-bin +ruby +ruby-yaml +kmod-tun +unzip \
-	+!PACKAGE_firewall4:ipset
+	+libcap +libcap-bin +ruby +ruby-yaml +kmod-tun +unzip
 	MAINTAINER:=vernesong
 endef
 
