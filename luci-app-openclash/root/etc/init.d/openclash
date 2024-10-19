@@ -1306,7 +1306,7 @@ if [ -n "$FW4" ]; then
 
    #common ports
    if [ -n "$common_ports" ] && [ "$common_ports" != "0" ]; then
-      nft 'add set inet fw4 common_ports { type inet_service; }'
+      nft 'add set inet fw4 common_ports { type inet_service; flags interval; }'
       for i in $common_port; do
          nft add element inet fw4 common_ports { "$i" }
       done
