@@ -153,9 +153,15 @@ set_other_groups()
       return
    fi
 
-   if [ "$1" = "DIRECT" ] || [ "$1" = "REJECT" ]; then
+   if [[ "$1" =~ "DIRECT" ]]; then
       set_group=1
-      echo "      - ${1}" >>$GROUP_FILE
+      echo "      - DIRECT" >>$GROUP_FILE
+      return
+   fi
+
+   if [[ "$1" =~ "REJECT" ]]; then
+      set_group=1
+      echo "      - REJECT" >>$GROUP_FILE
       return
    fi
 
@@ -182,7 +188,7 @@ set_proxy_provider()
       if [ -z "$3" ]; then
          config_list_foreach "$section" "groups" set_provider_groups "$name" "$2"
       fi
-      
+ 
       if [ -n "$if_game_group" ] && [ -z "$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "Value = YAML.load_file('$CONFIG_FILE'); Value['proxy-providers'].keys.each{|x| if x.eql?('$name') then puts x end}" 2>/dev/null)" ]; then
          /usr/share/openclash/yml_proxys_set.sh "$name" "proxy-provider"
       fi
@@ -194,7 +200,7 @@ set_provider_groups()
    if [ -z "$1" ]; then
       return
    fi
-   
+
    if [ "$add_for_this" -eq 1 ]; then
       return
    fi
@@ -204,7 +210,6 @@ set_provider_groups()
       add_for_this=1
       echo "      - ${2}" >>$GROUP_FILE
    fi
-
 }
 
 #创建策略组
