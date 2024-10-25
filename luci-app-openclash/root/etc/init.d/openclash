@@ -1973,6 +1973,14 @@ fi 2>/dev/null
 
 #IPTABLES
 if [ -z "$FW4" ]; then
+   #iptables owner module
+   if [ "$iptables_compat" -eq 0 ]; then
+      owner="-m mark ! --mark 0x1a0a"
+      addr_local="! -i lo"
+   else
+      owner="-m owner ! --uid-owner 65534"
+      addr_local="-m addrtype ! --src-type LOCAL"
+   fi
    #lan_ac
    if [ "$lan_ac_mode" = "0" ]; then
       if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
@@ -2055,7 +2063,7 @@ if [ -z "$FW4" ]; then
       iptables -t nat -A openclash_post -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
       iptables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -j ACCEPT
       iptables -t nat -A openclash_post -m set --match-set localnetwork dst -j RETURN
-      iptables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -j MASQUERADE
+      iptables -t nat -A openclash_post $addr_local $owner -j MASQUERADE
       iptables -t nat -A POSTROUTING -m comment --comment "OpenClash Bypass Gateway Compatible" -j openclash_post
    fi
 
@@ -2112,7 +2120,7 @@ if [ -z "$FW4" ]; then
       fi
       if [ "$router_self_proxy" = 1 ]; then
          if [ -n "$en_mode_tun" ]; then
-            iptables -t nat -I OUTPUT -m owner ! --uid-owner 65534 -m comment --comment "OpenClash DNS Hijack" -p tcp --dport 53 -j ACCEPT
+            iptables -t nat -I OUTPUT $owner -m comment --comment "OpenClash DNS Hijack" -p tcp --dport 53 -j ACCEPT
          fi
       fi
    elif [ "$enable_redirect_dns" -eq 2 ]; then
@@ -2143,11 +2151,11 @@ if [ -z "$FW4" ]; then
       iptables -t nat -I PREROUTING -p udp --dport 53 -j openclash_dns_redirect
       iptables -t nat -I PREROUTING -p tcp --dport 53 -j openclash_dns_redirect
       if [ "$router_self_proxy" = 1 ]; then
-         iptables -t nat -I OUTPUT -p udp --dport 53 -d 127.0.0.1 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
+         iptables -t nat -I OUTPUT -p udp --dport 53 -d 127.0.0.1 $owner -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
          if [ -n "$en_mode_tun" ]; then
-            iptables -t nat -I OUTPUT -m owner ! --uid-owner 65534 -m comment --comment "OpenClash DNS Hijack" -p tcp --dport 53 -j ACCEPT
+            iptables -t nat -I OUTPUT $owner -m comment --comment "OpenClash DNS Hijack" -p tcp --dport 53 -j ACCEPT
          else
-            iptables -t nat -I OUTPUT -p tcp --dport 53 -d 127.0.0.1 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
+            iptables -t nat -I OUTPUT -p tcp --dport 53 -d 127.0.0.1 $owner -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
          fi
       fi
    fi
@@ -2244,7 +2252,7 @@ if [ -z "$FW4" ]; then
          if [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
             iptables -t mangle -N openclash_output
             iptables -t mangle -F openclash_output
-            iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
+            iptables -t mangle -A openclash_output $owner -p udp -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
             iptables -t mangle -A OUTPUT -p udp -j openclash_output
          fi
 
@@ -2262,14 +2270,14 @@ if [ -z "$FW4" ]; then
          iptables -t nat -N openclash_output
          iptables -t nat -F openclash_output
          if [ "$en_mode" = "fake-ip" ] && [ "$en_mode_tun" != "1" ]; then
-            iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -d "$fakeip_range" -j REDIRECT --to-ports "$proxy_port"
+            iptables -t nat -A openclash_output $owner -p tcp -d "$fakeip_range" -j REDIRECT --to-ports "$proxy_port"
          fi
          if [ "$router_self_proxy" = "1" ]; then
             iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
             iptables -t nat -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
-            iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
+            iptables -t nat -A openclash_output $owner -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
             if [ "$en_mode" = "redir-host" ]; then
-               iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
+               iptables -t nat -A openclash_output $owner -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
             fi
             if [ "$china_ip_route" != "0" ]; then
                if [ "$china_ip_route" = "1" ]; then
@@ -2278,9 +2286,9 @@ if [ -z "$FW4" ]; then
                   rule="-m set ! --match-set china_ip_route dst"
                fi
                [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip_route_pass dst"
-               iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 $rule -j RETURN >/dev/null 2>&1
+               iptables -t nat -A openclash_output $owner $rule -j RETURN >/dev/null 2>&1
             fi
-            iptables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j REDIRECT --to-ports "$proxy_port"
+            iptables -t nat -A openclash_output $owner -p tcp -j REDIRECT --to-ports "$proxy_port"
          fi
          iptables -t nat -A OUTPUT -j openclash_output >/dev/null 2>&1
       fi
@@ -2294,14 +2302,14 @@ if [ -z "$FW4" ]; then
             iptables -t mangle -N openclash_output
             iptables -t mangle -F openclash_output
             if [ "$enable_redirect_dns" != "0" ]; then
-               iptables -t mangle -I openclash_output -m owner ! --uid-owner 65534 -p tcp --dport 53 -j MARK --set-mark "$PROXY_FWMARK"
+               iptables -t mangle -I openclash_output $owner -p tcp --dport 53 -j MARK --set-mark "$PROXY_FWMARK"
             fi
             iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
             iptables -t mangle -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
             if [ "$en_mode_tun" -eq 1 ]; then
-               iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
+               iptables -t mangle -A openclash_output $owner -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
                if [ "$router_self_proxy" = "1" ]; then
-                  iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
+                  iptables -t mangle -A openclash_output $owner -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
                   if [ "$china_ip_route" != "0" ]; then
                      if [ "$china_ip_route" = "1" ]; then
                         rule="-m set --match-set china_ip_route dst"
@@ -2309,12 +2317,12 @@ if [ -z "$FW4" ]; then
                         rule="-m set ! --match-set china_ip_route dst"
                      fi
                      [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip_route_pass dst"
-                     iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 $rule -j RETURN >/dev/null 2>&1
+                     iptables -t mangle -A openclash_output $owner $rule -j RETURN >/dev/null 2>&1
                   fi
-                  iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j MARK --set-mark "$PROXY_FWMARK"
+                  iptables -t mangle -A openclash_output $owner -p tcp -j MARK --set-mark "$PROXY_FWMARK"
                fi
             else
-               iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p udp -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
+               iptables -t mangle -A openclash_output $owner -p udp -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
             fi
             iptables -t mangle -A OUTPUT -j openclash_output
          elif [ "$en_mode" = "redir-host" ] && [ "$en_mode_tun" -eq 1 ]; then
@@ -2322,8 +2330,8 @@ if [ -z "$FW4" ]; then
             iptables -t mangle -F openclash_output
             iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
             iptables -t mangle -A openclash_output -m set --match-set localnetwork src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
-            iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
-            iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
+            iptables -t mangle -A openclash_output $owner -m set --match-set wan_ac_black_ips dst -j RETURN >/dev/null 2>&1
+            iptables -t mangle -A openclash_output $owner -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
             if [ "$china_ip_route" != "0" ]; then
                if [ "$china_ip_route" = "1" ]; then
                   rule="-m set --match-set china_ip_route dst"
@@ -2331,9 +2339,9 @@ if [ -z "$FW4" ]; then
                   rule="-m set ! --match-set china_ip_route dst"
                fi
                [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip_route_pass dst"
-               iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 $rule -j RETURN >/dev/null 2>&1
+               iptables -t mangle -A openclash_output $owner $rule -j RETURN >/dev/null 2>&1
             fi
-            iptables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j MARK --set-mark "$PROXY_FWMARK"
+            iptables -t mangle -A openclash_output $owner -p tcp -j MARK --set-mark "$PROXY_FWMARK"
             iptables -t mangle -A OUTPUT -j openclash_output
          fi
       fi
@@ -2438,7 +2446,7 @@ if [ -z "$FW4" ]; then
             fi
             if [ "$router_self_proxy" = 1 ]; then
                if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
-                  ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 -m owner ! --uid-owner 65534 -j ACCEPT -m comment --comment "OpenClash DNS Hijack"
+                  ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 $owner -j ACCEPT -m comment --comment "OpenClash DNS Hijack"
                fi
             fi
          elif [ "$enable_redirect_dns" -eq 2 ]; then
@@ -2469,11 +2477,11 @@ if [ -z "$FW4" ]; then
             ip6tables -t nat -I PREROUTING -p udp --dport 53 -j openclash_dns_redirect
             ip6tables -t nat -I PREROUTING -p tcp --dport 53 -j openclash_dns_redirect
             if [ "$router_self_proxy" = 1 ]; then
-               ip6tables -t nat -I OUTPUT -p udp --dport 53 -d ::/0 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
+               ip6tables -t nat -I OUTPUT -p udp --dport 53 -d ::/0 $owner -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
                if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
-                  ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 -m owner ! --uid-owner 65534 -j ACCEPT -m comment --comment "OpenClash DNS Hijack"
+                  ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 $owner -j ACCEPT -m comment --comment "OpenClash DNS Hijack"
                else
-                  ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 -m owner ! --uid-owner 65534 -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
+                  ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 $owner -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
                fi
             fi
          fi
@@ -2546,9 +2554,9 @@ if [ -z "$FW4" ]; then
             ip6tables -t nat -F openclash_output
             ip6tables -t nat -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
             ip6tables -t nat -A openclash_output -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
-            ip6tables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
+            ip6tables -t nat -A openclash_output $owner -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
             if [ "$en_mode" = "redir-host" ]; then
-               ip6tables -t nat -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
+               ip6tables -t nat -A openclash_output $owner -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
             fi
             if [ "$china_ip6_route" != "0" ]; then
                if [ "$china_ip6_route" = "1" ]; then
@@ -2557,9 +2565,9 @@ if [ -z "$FW4" ]; then
                   rule="-m set ! --match-set china_ip6_route dst"
                fi
                [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip6_route_pass dst"
-               ip6tables -t nat -A openclash_output -m owner ! --uid-owner 65534 $rule -j RETURN >/dev/null 2>&1
+               ip6tables -t nat -A openclash_output $owner $rule -j RETURN >/dev/null 2>&1
             fi
-            ip6tables -t nat -A openclash_output -m owner ! --uid-owner 65534 -p tcp -j REDIRECT --to-ports "$proxy_port"
+            ip6tables -t nat -A openclash_output $owner -p tcp -j REDIRECT --to-ports "$proxy_port"
             ip6tables -t nat -A OUTPUT -j openclash_output >/dev/null 2>&1
          fi
       fi
@@ -2611,13 +2619,13 @@ if [ -z "$FW4" ]; then
                ip6tables -t mangle -N openclash_output
                ip6tables -t mangle -F openclash_output
                if [ "$enable_redirect_dns" != "0" ]; then
-                  ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -p tcp --dport 53 -j MARK --set-mark "$PROXY_FWMARK"
+                  ip6tables -t mangle -A openclash_output $owner -p tcp --dport 53 -j MARK --set-mark "$PROXY_FWMARK"
                fi
                ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
                ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
-               ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
+               ip6tables -t mangle -A openclash_output $owner -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
                if [ "$en_mode" = "redir-host" ]; then
-                  ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
+                  ip6tables -t mangle -A openclash_output $owner -m set ! --match-set common_ports dst -j RETURN >/dev/null 2>&1
                fi
                if [ "$china_ip6_route" != "0" ]; then
                   if [ "$china_ip6_route" = "1" ]; then
@@ -2626,9 +2634,9 @@ if [ -z "$FW4" ]; then
                      rule="-m set ! --match-set china_ip6_route dst"
                   fi
                   [ "$enable_redirect_dns" != "2" ] && rule="$rule -m set ! --match-set china_ip6_route_pass dst"
-                  ip6tables -t mangle -A openclash_output -m owner ! --uid-owner 65534 $rule -j RETURN >/dev/null 2>&1
+                  ip6tables -t mangle -A openclash_output $owner $rule -j RETURN >/dev/null 2>&1
                fi
-               ip6tables -t mangle -A openclash_output -p tcp -m owner ! --uid-owner 65534 -j MARK --set-xmark "$PROXY_FWMARK"
+               ip6tables -t mangle -A openclash_output -p tcp $owner -j MARK --set-xmark "$PROXY_FWMARK"
                ip6tables -t mangle -A OUTPUT -j openclash_output
             fi
          fi
@@ -2684,7 +2692,7 @@ if [ -z "$FW4" ]; then
          ip6tables -t nat -A openclash_post -m set --match-set localnetwork6 src -m set --match-set lan_ac_black_ports src -j RETURN >/dev/null 2>&1
          ip6tables -t nat -A openclash_post -m mark --mark "$PROXY_FWMARK" -j ACCEPT
          ip6tables -t nat -A openclash_post -m set --match-set localnetwork6 dst -j RETURN
-         ip6tables -t nat -A openclash_post -m addrtype ! --src-type LOCAL -m owner ! --uid-owner 65534 -j MASQUERADE
+         ip6tables -t nat -A openclash_post $addr_local $owner -j MASQUERADE
          ip6tables -t nat -A POSTROUTING -m comment --comment "OpenClash Bypass Gateway Compatible" -j openclash_post
       fi
 
@@ -2876,6 +2884,7 @@ get_config()
    enable_respect_rules=$(uci -q get openclash.config.enable_respect_rules || echo 0)
    intranet_allowed_wan_name=$(uci -q get openclash.config.intranet_allowed_wan_name || echo 0)
    custom_fakeip_filter_mode=$(uci -q get openclash.config.custom_fakeip_filter_mode || echo "blacklist")
+   iptables_compat=$(iptables -m owner -h| grep "owner match options" || echo 0)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q commit openclash
 }
@@ -2901,7 +2910,7 @@ start()
    if ! $quick_start; then
       LOG_OUT "Step 3: Modify The Config File..."
       config_check
-      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay" "$keep_alive_interval" "$enable_respect_rules" "$custom_fakeip_filter_mode" "$bypass_gateway_compatible"
+      /usr/share/openclash/yml_change.sh 2>/dev/null "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port" "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns" "$store_fakeip" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom" "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip" "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay" "$keep_alive_interval" "$enable_respect_rules" "$custom_fakeip_filter_mode" "$bypass_gateway_compatible" "$iptables_compat"
       /usr/share/openclash/yml_rules_change.sh 2>/dev/null "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE" "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$proxy_port" "$tproxy_port" "$enable_redirect_dns" "$fakeip_range" "$en_mode"
       /usr/share/openclash/openclash_custom_domain_dns.sh >/dev/null 2>&1
       #Custom overwrite

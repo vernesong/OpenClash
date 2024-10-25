@@ -455,8 +455,12 @@ threads << Thread.new {
          Value.delete('ebpf');
       end;
 
-      if Value.key?('routing-mark') then
-         Value.delete('routing-mark');
+      if '${37}' == '0' then
+         Value['routing-mark']=6666;
+      else
+         if Value.key?('routing-mark') then
+            Value.delete('routing-mark');
+         end;
       end;
       if Value.key?('auto-redir') then
          Value.delete('auto-redir');
