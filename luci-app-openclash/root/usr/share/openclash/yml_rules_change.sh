@@ -332,7 +332,7 @@ yml_other_set()
          .gsub(/,[\s]?Netflix$/, ', $Netflix#delete_')
          .gsub(/,[\s]?Disney$/, ', $Disney#delete_')
          .gsub(/,[\s]?Spotify$/, ', $Spotify#delete_')
-         .gsub(/,[\s]?OpenAI$/, ', $OpenAI#delete_')
+         .gsub(/,[\s]?AI Suite$/, ', $AI_Suite#delete_')
          .gsub(/,[\s]?Steam$/, ', $Steam#delete_')
          .gsub(/,[\s]?miHoYo$/, ', $miHoYo#delete_')
          .gsub(/,[\s]?AdBlock$/, ', $AdBlock#delete_')
@@ -364,7 +364,7 @@ yml_other_set()
          .gsub!(/: \'Netflix\'/,': \'$Netflix#delete_\'')
          .gsub!(/: \'Disney\'/,': \'$Disney#delete_\'')
          .gsub!(/: \'Spotify\'/,': \'$Spotify#delete_\'')
-         .gsub!(/: \'OpenAI\'/,': \'$OpenAI#delete_\'')
+         .gsub!(/: \'AI Suite\'/,': \'$AI_Suite#delete_\'')
          .gsub!(/: \'Steam\'/,': \'$Steam#delete_\'')
          .gsub!(/: \'miHoYo\'/,': \'$miHoYo#delete_\'')
          .gsub!(/: \'AdBlock\'/,': \'$AdBlock#delete_\'')
@@ -897,7 +897,7 @@ yml_other_rules_get()
    config_get "GoogleFCM" "$section" "GoogleFCM" "DIRECT"
    config_get "Discovery" "$section" "Discovery" "$GlobalTV"
    config_get "DAZN" "$section" "DAZN" "$GlobalTV"
-   config_get "OpenAI" "$section" "OpenAI" "$Proxy"
+   config_get "AI_Suite" "$section" "AI_Suite" "$Proxy"
    config_get "AppleTV" "$section" "AppleTV" "$GlobalTV"
    config_get "miHoYo" "$section" "miHoYo" "$Domestic"
 }
@@ -932,7 +932,7 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$Disney" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Discovery" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$DAZN" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$OpenAI" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$AI_Suite" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Spotify" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Steam" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$miHoYo" /tmp/Proxy_Group)" ]\
