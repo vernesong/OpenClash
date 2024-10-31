@@ -146,7 +146,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    Value['proxy-groups'].each do |x|
       threadsp << Thread.new {
       begin
-         uci_name_tmp=%x{uci -q add openclash groups}.chomp
+         uci_name_tmp=%x{uci -q add openclash groups 2>&1}.chomp
          uci_set='uci -q set openclash.' + uci_name_tmp + '.'
          uci_add='uci -q add_list openclash.' + uci_name_tmp + '.'
 
