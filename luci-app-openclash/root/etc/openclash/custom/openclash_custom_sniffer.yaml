@@ -33,6 +33,7 @@ sniffer:
   - dlg.io.mi.com
   - +.oray.com
   - +.sunlogin.net
+  - +.push.apple.com
   #- geosite:cn
   # skip-src-address: # 对于来源ip跳过嗅探
   #   - 192.168.0.3/32
