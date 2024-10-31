@@ -423,8 +423,10 @@ threads << Thread.new {
          Value['tun']['device']='utun';
          Value_2={'dns-hijack'=>['tcp://any:53']};
          Value['tun'].merge!(Value_2);
-         Value['tun']['gso']=true;
-         Value['tun']['gso-max-size']=65536;
+         if '$stack_type' != 'mixed' then
+            Value['tun']['gso']=true;
+            Value['tun']['gso-max-size']=65536;
+         end;
          Value['tun']['auto-route']=false;
          Value['tun']['auto-detect-interface']=false;
          Value['tun']['auto-redirect']=false;
