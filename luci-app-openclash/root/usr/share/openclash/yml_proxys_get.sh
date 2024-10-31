@@ -187,7 +187,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                system(cmd);
             else
                #代理集不存在时添加新代理集
-               uci_name_tmp=%x{uci add openclash proxy-provider}.chomp;
+               uci_name_tmp=%x{uci -q add openclash proxy-provider 2>&1}.chomp;
                uci_set='uci -q set openclash.' + uci_name_tmp + '.';
                uci_add='uci -q add_list openclash.' + uci_name_tmp + '.';
                uci_del='uci -q delete openclash.' + uci_name_tmp + '.';
@@ -335,7 +335,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                end;
             else
                #添加新节点
-               uci_name_tmp=%x{uci add openclash servers}.chomp;
+               uci_name_tmp=%x{uci -q add openclash servers 2>&1}.chomp;
                uci_set='uci -q set openclash.' + uci_name_tmp + '.';
                uci_add='uci -q add_list openclash.' + uci_name_tmp + '.';
                uci_del='uci -q delete openclash.' + uci_name_tmp + '.';
