@@ -137,6 +137,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 
    threads_g = [];
    threadsp = [];
+   uci_commands = [];
 
    if not Value.key?('proxy-groups') or Value['proxy-groups'].nil? then
       proxy-groups = [];
@@ -146,55 +147,49 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    Value['proxy-groups'].each do |x|
       threadsp << Thread.new {
       begin
+         next unless x['name'] && x['type'];
          uci_name_tmp=%x{uci -q add openclash groups 2>&1}.chomp
          uci_set='uci -q set openclash.' + uci_name_tmp + '.'
          uci_add='uci -q add_list openclash.' + uci_name_tmp + '.'
 
-         #name
-         if x.key?('name') and not x['name'].nil? then
-            name = uci_set + 'name=\"' + x['name'].to_s + '\"'
-            system(name)
-         else
-            next;
-         end;
-
-         #type
-         if x.key?('type') and not x['type'].nil? then
-            type = uci_set + 'type=\"' + x['type'].to_s + '\"'
-            system(type)
-         else
-            next;
-         end;
-
          YAML.LOG('Start Getting【${CONFIG_NAME} - ' + x['type'].to_s + ' - ' + x['name'].to_s + '】Group Setting...');
 
          threads_g << Thread.new {
+            #name
+            if x.key?('name') then
+               uci_commands << uci_set + 'name=\"' + x['name'].to_s + '\"'
+            end;
+         };
+
+         threads_g << Thread.new {
+            #type
+            if x.key?('type') then
+               uci_commands << uci_set + 'type=\"' + x['type'].to_s + '\"'
+            end;
+         };
+
+         threads_g << Thread.new {
             #enabled
-            enabled = uci_set + 'enabled=\"1\"'
-            system(enabled)
+            uci_commands << uci_set + 'enabled=\"1\"'
             #config
-            config = uci_set + 'config=\"' + '${CONFIG_NAME}' + '\"'
-            system(config)
+            uci_commands << uci_set + 'config=\"' + '${CONFIG_NAME}' + '\"'
             #old_name
-            old_name = uci_set + 'old_name=\"' + x['name'] + '\"'
-            system(old_name)
+            uci_commands << uci_set + 'old_name=\"' + x['name'] + '\"'
             #old_name_cfg
-            old_name_cfg = uci_set + 'old_name_cfg=\"' + x['name'] + '\"'
+            uci_commands << uci_set + 'old_name_cfg=\"' + x['name'] + '\"'
          };
 
          threads_g << Thread.new {
             #strategy
             if x.key?('strategy') then
-               group_strategy = uci_set + 'strategy=\"' + x['strategy'].to_s + '\"'
-               system(group_strategy)
+               uci_commands << uci_set + 'strategy=\"' + x['strategy'].to_s + '\"'
             end;
          };
 
          threads_g << Thread.new {
             #disable-udp
             if x.key?('disable-udp') then
-               group_disable_udp = uci_set + 'disable_udp=\"' + x['disable-udp'].to_s + '\"'
-               system(group_disable_udp)
+               uci_commands << uci_set + 'disable_udp=\"' + x['disable-udp'].to_s + '\"'
             end;
          };
 
@@ -202,21 +197,18 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             if x['type'] == 'url-test' or x['type'] == 'fallback' or x['type'] == 'load-balance' then
                #test_url
                if x.key?('url') then
-                  group_test_url = uci_set + 'test_url=\"' + x['url'].to_s + '\"'
-                  system(group_test_url)
+                  uci_commands << uci_set + 'test_url=\"' + x['url'].to_s + '\"'
                end;
 
                #test_interval
                if x.key?('interval') then
-                  group_test_interval = uci_set + 'test_interval=\"' + x['interval'].to_s + '\"'
-                  system(group_test_interval)
+                  uci_commands << uci_set + 'test_interval=\"' + x['interval'].to_s + '\"'
                end;
 
                #test_tolerance
                if x['type'] == 'url-test' then
                   if x.key?('tolerance') then
-                     group_test_tolerance = uci_set + 'tolerance=\"' + x['tolerance'].to_s + '\"'
-                     system(group_test_tolerance)
+                     uci_commands << uci_set + 'tolerance=\"' + x['tolerance'].to_s + '\"'
                   end;
                end;
             end;
@@ -225,24 +217,21 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          threads_g << Thread.new {
             #Policy Filter
             if x.key?('filter') then
-               policy_filter = uci_set + 'policy_filter=\"' + x['filter'].to_s + '\"'
-               system(policy_filter)
+               uci_commands << uci_set + 'policy_filter=\"' + x['filter'].to_s + '\"'
             end
          };
 
          threads_g << Thread.new {
             #interface-name
             if x.key?('interface-name') then
-               interface_name = uci_set + 'interface_name=\"' + x['interface-name'].to_s + '\"'
-               system(interface_name)
+               uci_commands << uci_set + 'interface_name=\"' + x['interface-name'].to_s + '\"'
             end
          };
          
          threads_g << Thread.new {
             #routing-mark
             if x.key?('routing-mark') then
-               routing_mark = uci_set + 'routing_mark=\"' + x['routing-mark'].to_s + '\"'
-               system(routing_mark)
+               uci_commands << uci_set + 'routing_mark=\"' + x['routing-mark'].to_s + '\"'
             end
          };
          
@@ -252,8 +241,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                x['proxies'].each{
                |y|
                   if Value_1.include?(y) then
-                     uci = uci_add + 'other_group=\"^' + y.to_s + '$\"'
-                     system(uci)
+                     uci_commands << uci_add + 'other_group=\"^' + y.to_s + '$\"'
                   end
                }
             end
@@ -265,6 +253,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       };
    end;
    threadsp.each(&:join);
+   system(uci_commands.join('; '));
    system('uci -q commit openclash');
    system('rm -rf /tmp/yaml_other_group.yaml 2>/dev/null');
 " 2>/dev/null >> $LOG_FILE

@@ -110,7 +110,7 @@
          LOG_OUT "Detected that The Downloaded Rule File Has Been Updated, Starting To Replace..."
          mv /tmp/rules.yaml /usr/share/openclash/res/"$rule_name".yaml >/dev/null 2>&1
          LOG_OUT "Other Rules【$rule_name】Update Successful!"
-         ifrestart=1
+         restart=1
       else
          LOG_OUT "Updated Other Rules【$rule_name】No Change, Do Nothing!"
       fi
@@ -130,7 +130,7 @@
       OTHER_RULE_FILE="/tmp/other_rule.yaml"
       CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
       CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-      ifrestart=0
+      restart=0
    
       if [ -z "$CONFIG_FILE" ]; then
          for file_name in /etc/openclash/config/*
@@ -153,8 +153,15 @@
       if [ -z "$rule_name" ]; then
         LOG_OUT "Get Other Rules Settings Faild, Update Stop!"
       fi
-      if [ "$ifrestart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
+      if [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
          /etc/init.d/openclash restart >/dev/null 2>&1 &
+      elif [ "$restart" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
+         /etc/init.d/openclash restart >/dev/null 2>&1 &
+         uci -q set openclash.config.restart=0
+         uci -q commit openclash
+      elif [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
+         uci -q set openclash.config.restart=1
+         uci -q commit openclash
       fi
    fi
    rm -rf /tmp/rules.yaml >/dev/null 2>&1
