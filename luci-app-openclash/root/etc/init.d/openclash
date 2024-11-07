@@ -1348,8 +1348,11 @@ if [ -n "$FW4" ]; then
       if [ "$router_self_proxy" = 1 ]; then
          nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
          if [ -n "$en_mode_tun" ]; then
-            nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv4} tcp dport 53 counter accept comment \"OpenClash DNS Hijack\"
+            nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv4} tcp dport 53 ip daddr {127.0.0.1} counter accept comment \"OpenClash DNS Hijack\"
+         else
+            nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv4} tcp dport 53 ip daddr {127.0.0.1} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
          fi
+         nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv4} udp dport 53 ip daddr {127.0.0.1} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
       fi
    elif [ "$enable_redirect_dns" -eq 2 ]; then
       nft 'add chain inet fw4 openclash_dns_redirect'
@@ -1380,7 +1383,7 @@ if [ -n "$FW4" ]; then
       if [ "$router_self_proxy" = 1 ]; then
          nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
          if [ -n "$en_mode_tun" ]; then
-            nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv4} tcp dport 53 counter accept comment \"OpenClash DNS Hijack\"
+            nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv4} tcp dport 53 ip daddr {127.0.0.1} counter accept comment \"OpenClash DNS Hijack\"
          else
             nft insert rule inet fw4 nat_output position 0 tcp dport 53 ip daddr {127.0.0.1} meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
          fi
@@ -1698,8 +1701,11 @@ if [ -n "$FW4" ]; then
             if [ "$router_self_proxy" = 1 ]; then
                nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
                if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
-                  nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv6} tcp dport 53 counter accept comment \"OpenClash DNS Hijack\"
+                  nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv6} tcp dport 53 ip6 daddr {::/0} counter accept comment \"OpenClash DNS Hijack\"
+               else
+                  nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv6} tcp dport 53 ip6 daddr {::/0} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
                fi
+               nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv6} udp dport 53 ip6 daddr {::/0} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
             fi
          elif [ "$enable_redirect_dns" -eq 2 ]; then
             if [ "$lan_ac_mode" != "1" ]; then
@@ -1729,7 +1735,7 @@ if [ -n "$FW4" ]; then
             if [ "$router_self_proxy" = 1 ]; then
                nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
                if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
-                  nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv6} tcp dport 53 counter accept comment \"OpenClash DNS Hijack\"
+                  nft insert rule inet fw4 nat_output position 0 skuid != 65534 meta nfproto {ipv6} tcp dport 53 ip6 daddr {::/0} counter accept comment \"OpenClash DNS Hijack\"
                else
                   nft insert rule inet fw4 nat_output position 0 meta nfproto {ipv6} tcp dport 53 ip6 daddr {::/0} meta skuid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
                fi
@@ -2129,8 +2135,11 @@ if [ -z "$FW4" ]; then
       fi
       if [ "$router_self_proxy" = 1 ]; then
          if [ -n "$en_mode_tun" ]; then
-            iptables -t nat -I OUTPUT $owner -m comment --comment "OpenClash DNS Hijack" -p tcp --dport 53 -j ACCEPT
+            iptables -t nat -I OUTPUT $owner -m comment --comment "OpenClash DNS Hijack" -p tcp --dport 53 -d 127.0.0.1 -j ACCEPT
+         else
+            iptables -t nat -I OUTPUT $owner -m comment --comment "OpenClash DNS Hijack" -p tcp --dport 53 -d 127.0.0.1 -j REDIRECT --to-ports "$DNSPORT"
          fi
+         iptables -t nat -I OUTPUT $owner -m comment --comment "OpenClash DNS Hijack" -p udp --dport 53 -d 127.0.0.1 -j REDIRECT --to-ports "$DNSPORT"
       fi
    elif [ "$enable_redirect_dns" -eq 2 ]; then
       iptables -t nat -N openclash_dns_redirect
@@ -2162,7 +2171,7 @@ if [ -z "$FW4" ]; then
       if [ "$router_self_proxy" = 1 ]; then
          iptables -t nat -I OUTPUT -p udp --dport 53 -d 127.0.0.1 $owner -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
          if [ -n "$en_mode_tun" ]; then
-            iptables -t nat -I OUTPUT $owner -m comment --comment "OpenClash DNS Hijack" -p tcp --dport 53 -j ACCEPT
+            iptables -t nat -I OUTPUT $owner -m comment --comment "OpenClash DNS Hijack" -p tcp --dport 53 -d 127.0.0.1 -j ACCEPT
          else
             iptables -t nat -I OUTPUT -p tcp --dport 53 -d 127.0.0.1 $owner -j REDIRECT --to-ports "$dns_port" -m comment --comment "OpenClash DNS Hijack"
          fi
@@ -2469,7 +2478,10 @@ if [ -z "$FW4" ]; then
             if [ "$router_self_proxy" = 1 ]; then
                if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
                   ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 $owner -j ACCEPT -m comment --comment "OpenClash DNS Hijack"
+               else
+                  ip6tables -t nat -I OUTPUT -p tcp --dport 53 -d ::/0 $owner -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
                fi
+               ip6tables -t nat -I OUTPUT -p udp --dport 53 -d ::/0 $owner -j REDIRECT --to-ports "$DNSPORT" -m comment --comment "OpenClash DNS Hijack"
             fi
          elif [ "$enable_redirect_dns" -eq 2 ]; then
             ip6tables -t nat -N openclash_dns_redirect

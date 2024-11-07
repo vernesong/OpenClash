@@ -137,6 +137,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 
    threads_g = [];
    threadsp = [];
+   threads_uci = [];
    uci_commands = [];
 
    if not Value.key?('proxy-groups') or Value['proxy-groups'].nil? then
@@ -253,7 +254,13 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       };
    end;
    threadsp.each(&:join);
-   system(uci_commands.join('; '));
+   batch_size = 30;
+   (0...uci_commands.length).step(batch_size) do |i|
+      threads_uci << Thread.new{
+         system(uci_commands[i, batch_size].join('; '));
+      };
+   end;
+   threads_uci.each(&:join);
    system('uci -q commit openclash');
    system('rm -rf /tmp/yaml_other_group.yaml 2>/dev/null');
 " 2>/dev/null >> $LOG_FILE
