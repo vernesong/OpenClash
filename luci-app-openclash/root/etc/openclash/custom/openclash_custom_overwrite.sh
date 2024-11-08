@@ -50,6 +50,19 @@ CONFIG_FILE="$1" #config path
     #5--value key name in #4 file
     #ruby_arr_add_file "$CONFIG_FILE" "['dns']['fallback-filter']['ipcidr']" "0" "/etc/openclash/custom/openclash_custom_fallback_filter.yaml" "['fallback-filter']['ipcidr']"
 
+    #Delete Array Value Demo:
+    #1--config path
+    #2--key name
+    #3--value
+    #ruby_delete "$CONFIG_FILE" "['dns']['nameserver']" "114.114.114.114"
+
+    #Delete Key Demo:
+    #1--config path
+    #2--key name
+    #3--key name
+    #ruby_delete "$CONFIG_FILE" "['dns']" "nameserver"
+    #ruby_delete "$CONFIG_FILE" "" "dns"
+
     #Ruby Script Demo:
     #ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
     #   begin
