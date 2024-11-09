@@ -341,6 +341,7 @@ threads << Thread.new {
          Value['log-level']='$9';
       end;
       Value['allow-lan']=true;
+      Value['disable-keep-alive']=true;
       Value['external-controller']='0.0.0.0:$3';
       Value['secret']='$2';
       Value['bind-address']='*';
@@ -365,9 +366,6 @@ threads << Thread.new {
       end;
       if ${32} == 1 then
          Value['unified-delay']=true;
-      end;
-      if '${33}' != '0' then
-         Value['keep-alive-interval']=${33};
       end;
       if '${27}' != '0' then
          Value['find-process-mode']='${27}';
@@ -394,7 +392,7 @@ threads << Thread.new {
       Value['dns']['listen']='0.0.0.0:${13}';
       
       #meta only
-      if ${34} == 1 then
+      if ${33} == 1 then
          Value['dns']['respect-rules']=true;
       end;
       
@@ -432,7 +430,7 @@ threads << Thread.new {
          Value['tun']['auto-redirect']=false;
          Value['tun']['strict-route']=false;
          Value['tun'].delete_if{|x,y| x=='iproute2-table-index'};
-         if ${36} == 1 then
+         if ${35} == 1 then
             Value['tun']['endpoint-independent-nat']=true;
          end;
       else
@@ -610,7 +608,7 @@ threads << Thread.new {
 threads << Thread.new {
    begin
       if $custom_fakeip_filter == 1 then
-         if '${35}' == 'whitelist' then
+         if '${34}' == 'whitelist' then
             Value['dns']['fake-ip-filter-mode']='whitelist';
          else
             Value['dns']['fake-ip-filter-mode']='blacklist';
@@ -788,7 +786,7 @@ begin
       Value['dns'].merge!(Value_1);
       Value['dns'].merge!(Value_2);
    end;
-   if ${34} == 1 or Value['dns']['respect-rules'].to_s == 'true' then
+   if ${33} == 1 or Value['dns']['respect-rules'].to_s == 'true' then
       if not Value['dns'].has_key?('proxy-server-nameserver') or Value['dns']['proxy-server-nameserver'].to_a.empty? then
          Value['dns'].merge!({'proxy-server-nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']});
          YAML.LOG('Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】');

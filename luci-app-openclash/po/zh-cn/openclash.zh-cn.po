@@ -3282,12 +3282,6 @@ msgstr "更换延迟计算方式，通过去除握手等额外开销来降低延
 msgid "Tip: If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
 msgstr "提示：如果下载失败，您可以尝试在覆写设置 - 常规设置 - Github地址修改选项中设置CDN"
 
-msgid "Change The TCP Keep-alive Interval, Selecting a Larger Value Avoids Abnormal Resource Consumption"
-msgstr "更改 TCP Keep-alive 间隔，选择较大数值可以避免异常的资源消耗"
-
-msgid "TCP Keep-alive Interval(s)"
-msgstr "TCP Keep-alive 间隔（s）"
-
 msgid "Used for Downloading Subscriptions, Defaults to Clash"
 msgstr "用于下载订阅时指定 UA，默认为 Clash"
 
