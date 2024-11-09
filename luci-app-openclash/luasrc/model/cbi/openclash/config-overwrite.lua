@@ -33,7 +33,8 @@ if not lan_ip or lan_ip == "" then
 end
 m = Map("openclash", translate("Overwrite Settings"))
 m.pageaction = false
-m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"
+m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"..
+"<br/>"..font_green..translate("For More Useful Meta Core Functions Go Wiki")..": "..font_off.."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/\")'>"..translate("https://wiki.metacubex.one/").."</a>"
 
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
@@ -147,7 +148,7 @@ o = s:taboption("dns", Flag, "enable_custom_dns", font_red..bold_on..translate("
 o.description = font_red..bold_on..translate("Set OpenClash Upstream DNS Resolve Server")..bold_off..font_off
 o.default = 0
 
-o = s:taboption("dns", Flag, "enable_respect_rules", font_red..bold_on..translate("Respect Rules")..bold_off..font_off)
+o = s:taboption("dns", Flag, "enable_respect_rules", font_red..bold_on..translate("Respect Rules").."(respect-rules)"..bold_off..font_off)
 o.description = font_red..bold_on..translate("Whether or not The Connection to the DNS Server Follow the Rules in Config")..bold_off..font_off
 o.default = 0
 
@@ -292,14 +293,6 @@ o = s:taboption("meta", Flag, "enable_unified_delay", font_red..bold_on..transla
 o.description = font_red..bold_on..translate("Change The Delay Calculation Method To Remove Extra Delays Such as Handshaking")..bold_off..font_off
 o.default = "0"
 
-o = s:taboption("meta", ListValue, "keep_alive_interval", font_red..bold_on..translate("TCP Keep-alive Interval(s)")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Change The TCP Keep-alive Interval, Selecting a Larger Value Avoids Abnormal Resource Consumption")..bold_off..font_off
-o:value("0", translate("Disable"))
-o:value("15")
-o:value("1800")
-o:value("3600")
-o.default = "0"
-
 o = s:taboption("meta", ListValue, "find_process_mode", translate("Enable Process Rule"))
 o.description = translate("Whether to Enable Process Rules, If You Are Not Sure, Please Choose off Which Useful in Router Environment")
 o:value("0", translate("Disable"))
@@ -347,62 +340,21 @@ o.description = translate("Custom The Force and Skip Sniffing Doamin Lists")
 o.default = 0
 o:depends("enable_meta_sniffer", "1")
 
-sniffing_domain_force = s:taboption("meta", Value, "sniffing_domain_force")
-sniffing_domain_force:depends("enable_meta_sniffer_custom", "1")
-sniffing_domain_force.template = "cbi/tvalue"
-sniffing_domain_force.description = translate("Will Override Dns Queries If Domains in The List")
-sniffing_domain_force.rows = 20
-sniffing_domain_force.wrap = "off"
+sniffer_custom = s:taboption("meta", Value, "sniffer_custom")
+sniffer_custom:depends("enable_meta_sniffer_custom", "1")
+sniffer_custom.template = "cbi/tvalue"
+sniffer_custom.rows = 20
+sniffer_custom.wrap = "off"
 
-function sniffing_domain_force.cfgvalue(self, section)
-	return NXFS.readfile("/etc/openclash/custom/openclash_force_sniffing_domain.yaml") or ""
+function sniffer_custom.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_sniffer.yaml") or ""
 end
-function sniffing_domain_force.write(self, section, value)
+function sniffer_custom.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
-		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_force_sniffing_domain.yaml")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_sniffer.yaml")
 	  if value ~= old_value then
-			NXFS.writefile("/etc/openclash/custom/openclash_force_sniffing_domain.yaml", value)
-		end
-	end
-end
-
-sniffing_port_filter = s:taboption("meta", Value, "sniffing_port_filter")
-sniffing_port_filter:depends("enable_meta_sniffer_custom", "1")
-sniffing_port_filter.template = "cbi/tvalue"
-sniffing_port_filter.description = translate("Will Only Sniffing If Ports in The List")
-sniffing_port_filter.rows = 20
-sniffing_port_filter.wrap = "off"
-
-function sniffing_port_filter.cfgvalue(self, section)
-	return NXFS.readfile("/etc/openclash/custom/openclash_sniffing_ports_filter.yaml") or ""
-end
-function sniffing_port_filter.write(self, section, value)
-	if value then
-		value = value:gsub("\r\n?", "\n")
-		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_sniffing_ports_filter.yaml")
-	  if value ~= old_value then
-			NXFS.writefile("/etc/openclash/custom/openclash_sniffing_ports_filter.yaml", value)
-		end
-	end
-end
-
-sniffing_domain_filter = s:taboption("meta", Value, "sniffing_domain_filter")
-sniffing_domain_filter:depends("enable_meta_sniffer_custom", "1")
-sniffing_domain_filter.template = "cbi/tvalue"
-sniffing_domain_filter.description = translate("Will Disable Sniffing If Domains(sni) in The List")
-sniffing_domain_filter.rows = 20
-sniffing_domain_filter.wrap = "off"
-
-function sniffing_domain_filter.cfgvalue(self, section)
-	return NXFS.readfile("/etc/openclash/custom/openclash_sniffing_domain_filter.yaml") or ""
-end
-function sniffing_domain_filter.write(self, section, value)
-	if value then
-		value = value:gsub("\r\n?", "\n")
-		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_sniffing_domain_filter.yaml")
-	  if value ~= old_value then
-			NXFS.writefile("/etc/openclash/custom/openclash_sniffing_domain_filter.yaml", value)
+			NXFS.writefile("/etc/openclash/custom/openclash_custom_sniffer.yaml", value)
 		end
 	end
 end

@@ -87,7 +87,7 @@ return r
 end
 
 local t = {
-    {Refresh, Create, Delete_all, Apply}
+	{Refresh, Create, Delete_all, Apply}
 }
 
 a = proxy_form:section(Table, t)

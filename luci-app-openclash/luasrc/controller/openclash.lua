@@ -830,15 +830,12 @@ end
 
 function action_toolbar_show_sys()
 	local pid = luci.sys.exec("pidof clash |head -1 |tr -d '\n' 2>/dev/null")
-	local mem, cpu
+	local cpu
 	if pid and pid ~= "" then
-		mem = tonumber(luci.sys.exec(string.format("cat /proc/%s/status 2>/dev/null |grep -w VmRSS |awk '{print $2}'", pid)))
 		cpu = luci.sys.exec(string.format("top -b -n1 |grep -E '%s' 2>/dev/null |grep -v grep |awk '{for (i=1;i<=NF;i++) {if ($i ~ /clash/) break; else cpu=i}}; {print $cpu}' 2>/dev/null", pid))
-		if mem and cpu then
-			mem = fs.filesize(mem*1024) or "0 KB"
+		if cpu then
 			cpu = string.match(cpu, "%d+") or "0"
 		else
-			mem = "0 KB"
 			cpu = "0"
 		end
 	else
@@ -846,7 +843,6 @@ function action_toolbar_show_sys()
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		mem = mem,
 		cpu = cpu;
 	})
 end

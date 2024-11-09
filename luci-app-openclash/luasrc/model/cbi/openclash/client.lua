@@ -53,9 +53,9 @@ for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
 			e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
 		end
 		if uci:get("openclash", "config", "config_path") and string.sub(uci:get("openclash", "config", "config_path"), 23, -1) == e[t].name then
-			e[t].state=translate("Enable")
+			e[t].state=translate("Enabled")
 		else
-			e[t].state=translate("Disable")
+			e[t].state=translate("Disabled")
 		end
 		e[t].check=translate(config_check(o))
 	end
@@ -75,7 +75,7 @@ if a then
 	ck.template="openclash/cfg_check"
 	sb.template="openclash/sub_info_show"
 
-	btnis=tb:option(Button,"switch",translate("Switch Config"))
+	btnis=tb:option(Button,"switch",translate("Switch"))
 	btnis.template="openclash/other_button"
 	btnis.render=function(o,t,a)
 		if not e[t] then return false end

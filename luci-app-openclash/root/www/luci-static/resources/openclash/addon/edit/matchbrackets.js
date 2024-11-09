@@ -27,7 +27,7 @@
       afterCursor = /(^| )cm-fat-cursor($| )/.test(cm.getWrapperElement().className)
     var re = bracketRegex(config)
 
-    // A cursor is defined as between two characters, but in in vim command mode
+    // A cursor is defined as between two characters, but in vim command mode
     // (i.e. not insert mode), the cursor is visually represented as a
     // highlighted box on top of the 2nd character. Otherwise, we allow matches
     // from before or after the cursor.

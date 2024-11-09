@@ -53,10 +53,10 @@ msgstr "第三方规则订阅"
 msgid "Dashboard Settings"
 msgstr "外部控制"
 
-msgid "Enable"
+msgid "Enabled"
 msgstr "启用"
 
-msgid "Disable"
+msgid "Disabled"
 msgstr "停用"
 
 msgid "Running"
@@ -912,7 +912,7 @@ msgstr "文件名"
 msgid "Grammar Check"
 msgstr "语法检查"
 
-msgid "Switch Config"
+msgid "Switch"
 msgstr "切换"
 
 msgid "Size"
@@ -1647,6 +1647,9 @@ msgstr "版本内核更新成功！"
 msgid "Core Update Failed. Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
 msgstr "版本内核更新失败，请确认设备闪存空间足够或内核平台正确后再试！"
 
+msgid "Core Update Failed. Please Make Sure Enough Flash Memory Space And Try Again!"
+msgstr "版本内核更新失败，请确认设备闪存空间足够后再试！"
+
 msgid "No Compiled Version Selected, Please Select In Update Page And Try Again!"
 msgstr "未选择编译版本，请到升级页面选择后再试！"
 
@@ -1983,20 +1986,20 @@ msgstr "第二步: 组件运行前检查..."
 msgid "Step 3: Modify The Config File..."
 msgstr "第三步: 修改配置文件..."
 
+msgid "Step 3: Quick Start Mode, Skip Modify The Config File..."
+msgstr "第三步: 快速启动模式，跳过修改配置文件..."
+
 msgid "Step 4: Start Running The Clash Core..."
 msgstr "第四步: 启动主程序..."
 
-msgid "Step 5: Check The Core Status..."
-msgstr "第五步: 检查内核启动状态..."
+msgid "Step 5: Set Dnsmasq..."
+msgstr "第五步: 设置 Dnsmasq 程序..."
 
 msgid "Step 6: Set Firewall Rules..."
 msgstr "第六步: 设置防火墙规则..."
 
-msgid "Step 7: Restart Dnsmasq..."
-msgstr "第七步: 重启 Dnsmasq 程序..."
-
-msgid "Step 8: Add Cron Rules, Start Daemons..."
-msgstr "第八步: 添加计划任务,启动进程守护程序..."
+msgid "Step 7: Add Cron Rules, Start Daemons..."
+msgstr "第七步: 添加计划任务,启动进程守护程序..."
 
 msgid "OpenClash Start Successful!"
 msgstr "OpenClash 启动成功，请等待服务器上线！"
@@ -2049,8 +2052,8 @@ msgstr "守护程序：已尝试自动重启三次 Clash 内核，为防止频�
 msgid "Watchdog: Log Size Limit, Clean Up All Log Records..."
 msgstr "守护程序：因日志大小限制，清理所有日志内容..."
 
-msgid "Watchdog: Setting Firewall For Enabling Redirect..."
-msgstr "守护程序：检测到转发规则顺序错误，修改插件防火墙规则..."
+msgid "Watchdog: Setting Firewall For Rules Order..."
+msgstr "守护程序：检测到防火墙规则顺序有误，修改插件防火墙规则..."
 
 msgid "Watchdog: Force Reset DNS Hijack..."
 msgstr "守护程序：重新设置 Dnsmasq 的 DNS 转发选项..."
@@ -2760,9 +2763,6 @@ msgstr "发生了一些错误，测试失败..."
 msgid "Network instability may occur during testing, Are you sure want to start test?"
 msgstr "测试过程中可能会造成网络不稳定,确定要开始测试吗？"
 
-msgid "Error: Edit Vmess Compatible Failed,"
-msgstr "错误：Vmess 节点兼容性修改失败，"
-
 msgid "Subscription Info"
 msgstr "订阅信息"
 
@@ -2874,23 +2874,11 @@ msgstr "（仅 TUN 内核）"
 msgid "(TUN&Meta Core)"
 msgstr "（TUN&Meta 内核）"
 
-msgid "Will Override Dns Queries If Domains in The List"
-msgstr "列表中的域名将会强制进行探测（嗅探）"
-
-msgid "Will Disable Sniffing If Domains(sni) in The List"
-msgstr "列表中的域名（sni）不会进行探测（嗅探）"
-
-msgid "Will Only Sniffing If Ports in The List"
-msgstr "仅探测（嗅探）列表中指定的协议端口"
-
 msgid "Custom Sniffer Settings"
 msgstr "自定义流量探测（嗅探）设置"
 
 msgid "Custom The Force and Skip Sniffing Doamin Lists"
-msgstr "自定义强制和忽略流量探测（嗅探）的域名列表"
-
-msgid "Warning: Only TUN Core Support Script Mode, Switch To The Rule Mode!"
-msgstr "警告：仅 TUN 内核支持 Script 模式，已切换为 Rule 模式！"
+msgstr "自定义强制和忽略流量探测（嗅探）的域名列表等"
 
 msgid "Enable Tcp Concurrent"
 msgstr "*启用 TCP 并发"
@@ -2918,6 +2906,12 @@ msgstr "指定策略组（支持正则匹配）"
 
 msgid "Group Use For Proxy The DNS"
 msgstr "用于代理此 DNS 的策略组"
+
+msgid "Direct Nameserver"
+msgstr "直连域名解析"
+
+msgid "Use For Domain Need Direct"
+msgstr "用于解析直连域名的 IP 地址"
 
 msgid "Node Domain Resolve"
 msgstr "节点域名解析"
@@ -3036,8 +3030,8 @@ msgstr "绕过指定区域 IPv6 黑名单"
 msgid "Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq"
 msgstr "列表中的域名或 IP 将不会受到绕过指定区域 IP 选项的影响，此功能依赖于 Dnsmasq"
 
-msgid "Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address"
-msgstr "警告：Hosts 设置了保留地址时需要关闭 Dnsmasq 的重绑定保护选项才能生效"
+msgid "Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address..."
+msgstr "警告：Hosts 设置了保留地址时需要关闭 Dnsmasq 的重绑定保护选项才能生效..."
 
 msgid "Auto Select Logic"
 msgstr "*自动选择逻辑"
@@ -3071,9 +3065,6 @@ msgstr "探测（嗅探）纯 IP 连接"
 
 msgid "Download Failed:"
 msgstr "下载失败："
-
-msgid "Tip: Waiting for TUN Interface Start..."
-msgstr "提示：正在等待 TUN 接口启动..."
 
 msgid "Warning: Dnsmasq not Support nftset, Use ipset..."
 msgstr "警告：Dnsmasq 不支持 nftset, 使用 ipset 代替..."
@@ -3234,8 +3225,8 @@ msgstr "Redirect 模式"
 msgid "TUN Mode"
 msgstr "TUN 模式"
 
-msgid "TUN Mode"
-msgstr "TUN 模式"
+msgid "Mix Mode"
+msgstr "Mix 混合模式【UDP-TUN，TCP-转发】"
 
 msgid "Tip: IPv6 Proxy Mode is Redirect..."
 msgstr "提示：IPv6 代理模式为 Redirect..."
@@ -3245,6 +3236,9 @@ msgstr "提示：IPv6 代理模式为 TUN..."
 
 msgid "Tip: IPv6 Proxy Mode is TProxy..."
 msgstr "提示：IPv6 代理模式为 TProxy..."
+
+msgid "Tip: IPv6 Proxy Mode is Mix..."
+msgstr "提示：IPv6 代理模式为 Mix 混合..."
 
 msgid "Warning: Can't Settting Only Intranet Allowed Function, Get IPv4 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
 msgstr "警告：设置仅允许内网功能失败，无法获取 IPv4 的 WAN 接口名称，请确保防火墙设置中 IPv4 WAN 区域的名称为 wan，如设备无 WAN 口请忽略此提示..."
@@ -3287,12 +3281,6 @@ msgstr "更换延迟计算方式，通过去除握手等额外开销来降低延
 
 msgid "Tip: If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
 msgstr "提示：如果下载失败，您可以尝试在覆写设置 - 常规设置 - Github地址修改选项中设置CDN"
-
-msgid "Change The TCP Keep-alive Interval, Selecting a Larger Value Avoids Abnormal Resource Consumption"
-msgstr "更改 TCP Keep-alive 间隔，选择较大数值可以避免异常的资源消耗"
-
-msgid "TCP Keep-alive Interval(s)"
-msgstr "TCP Keep-alive 间隔（s）"
 
 msgid "Used for Downloading Subscriptions, Defaults to Clash"
 msgstr "用于下载订阅时指定 UA，默认为 Clash"
@@ -3398,3 +3386,48 @@ msgstr "强制覆盖 DNS 查询的子网区域地址"
 
 msgid "Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to"
 msgstr "提示：使用 Respect-rules 功能时 Proxy-server-nameserver 必须配置，插件将默认将其设置为"
+
+msgid "Tip: Config File"
+msgstr "提示：配置文件"
+
+msgid "Downloading URL"
+msgstr "订阅的下载链接为"
+
+msgid "Downloading User-Agent"
+msgstr "订阅的 User-Agent 为"
+
+msgid "Warning: Option"
+msgstr "警告：选项"
+
+msgid "Tip: Option"
+msgstr "提示：选项"
+
+msgid "is Setted"
+msgstr "设置了"
+
+msgid "as DNS Server Which May Cause DNS Loop, Please Consider Removing It When DNS Works Abnormally..."
+msgstr "作为 DNS 服务器，这可能造成 DNS 回环错误，如发现 DNS 工作异常请考虑移除该设置..."
+
+msgid "as DNS Server Which May Cause DNS Loop, Already Remove It..."
+msgstr "作为 DNS 服务器，这可能造成 DNS 回环错误，已移除该设置..."
+
+msgid "Error: Set Custom DNS Failed,"
+msgstr "错误：设置自定义 DNS 错误，"
+
+msgid "Error: Set proxy-server-nameserver Failed,"
+msgstr "错误：设置 proxy-server-nameserver 错误，"
+
+msgid "Error: Set direct-nameserver Failed,"
+msgstr "错误：设置 direct-nameserver 错误，"
+
+msgid "Error: Set fallback-filter Failed,"
+msgstr "错误：设置 fallback-filter 错误，"
+
+msgid "Rule"
+msgstr "规则"
+
+msgid "Global"
+msgstr "全局"
+
+msgid "Direct"
+msgstr "直连"

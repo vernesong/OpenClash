@@ -1,6 +1,14 @@
 <head>
 <style>
-.dot-typing{position:relative;left:-9999px;width:10px;height:10px;border-radius:5px;background-color:#9880ff;color:#9880ff;box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff;animation:dotTyping 1.5s infinite linear}@keyframes dotTyping{0%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}16.667%{box-shadow:9984px -10px 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}33.333%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}50%{box-shadow:9984px 0 0 0 #9880ff,9999px -10px 0 0 #9880ff,10014px 0 0 0 #9880ff}66.667%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}83.333%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px -10px 0 0 #9880ff}100%{box-shadow:9984px 0 0 0 #9880ff,9999px 0 0 0 #9880ff,10014px 0 0 0 #9880ff}}
+.arrow-down{
+	display:inline-block;
+	width:0px;
+	height:0px;
+	border-style:solid;
+	border-width:10px;
+	border-color: rgb(65 122 180) transparent transparent transparent;
+}
+
 .radio-button{
 	display: none;
 	white-space: nowrap;
@@ -36,7 +44,7 @@
 	    <tr>
 	  	<td colspan="4" width="100%">
 	  		<p style="margin: 10px 0; text-align: center">
-				<img id="_logo" src="/luci-static/resources/openclash/img/meta.png?<%=random%>" loading="lazy" width="150px" height="150px" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/meta.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
+				<img id="_logo" src="/luci-static/resources/openclash/img/logo.png?<%=random%>" loading="lazy" width="150px" height="150px" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/logo.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 			</p>
 	  		<p id="_clashversion" style="margin: 10px 0; text-align: center">
 				<img src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onclick="return go_update()">
@@ -71,11 +79,11 @@
 				</span></td><td width="25%"><%:Control Panel Login Port%></td><td width="25%" align="left" id="_dapo"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"><%:Proxy Mode%></td><td width="25%" align="left"><span id="radio-de"><%:Collecting data...%></span><span id="radio-mode" class="radio-button">
 				<input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/>
-				<label for="rule">Rule</label>
+				<label for="rule"><%:Rule%></label>
 				<input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/>
-				<label for="global">Global</label>
+				<label for="global"><%:Global%></label>
 				<input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/>
-				<label for="direct">Direct</label>
+				<label for="direct"><%:Direct%></label>
 				</span></td><td width="25%"><%:Control Panel Login Secret%></td><td width="25%" align="left" id="_dase"><%:Collecting data...%></td></tr>
 		<tr><td colspan="4"><div style="margin: 10px 0; text-align: center"><span id="_web" style="width: 33%; display: inline-block;"></span><span id="_webm" style="width: 33%; display: inline-block;"><%:Collecting data...%></span><span id="_webo" style="width: 33%; display: inline-block;"></span></div></td></tr>
 		<tr id="tool_label2"><td colspan="4">
@@ -147,8 +155,8 @@
 </td></tr>
 	<tr height="50px">
 		<td width="100%" colspan="4">
-			<div id="hid_btn" style="height: 25px;width: 100px;margin: 0 auto;" onclick="hid_btn_action()">
-				<div style="margin: 0 auto; top: 50%;" class="dot-typing"></div>
+			<div id="hid_btn" style="text-align: center;" onclick="hid_btn_action()">
+				<div id="hid_icon" class="arrow-down"></div>
 			</div>
 		</td>
 	</tr>
@@ -217,6 +225,7 @@
 	var radio_ru_mode = document.getElementById('radio-ru-mode');
 	var radio_ru = document.getElementsByName("radios-ru");
 	var radio_run_normal = document.getElementById("run_normal");
+	var hid_icon = document.getElementById("hid_icon");
 	var script_radio;
 	var script_radio_label;
 	var hid_btn_if = true;
@@ -226,6 +235,7 @@
 	var luci_protocol;
 	var ws_t;
 	var ws_c;
+	var ws_m;
 	var state_refresh;
 	var s;
 	var gr;
@@ -286,10 +296,15 @@
 			};
 			
 			function ws_open() {
+				if (ws_t) {ws_t.close();}
+				if (ws_c) {ws_c.close();}
+				if (ws_m) {ws_m.close();}
 				ws_t = new WebSocket(luci_protocol+"/traffic?token="+status.dase);
 				ws_c = new WebSocket(luci_protocol+"/connections?token="+status.dase);
+				ws_m = new WebSocket(luci_protocol+"/memory?token="+status.dase);
 				ws_t.onmessage = ws_tmessage;
 				ws_c.onmessage = ws_cmessage;
+				ws_m.onmessage = ws_mmessage;
 				ws_t.onerror = ws_terror;
 				ws_t.onopen = function (event) {
 					ws_connect = true;
@@ -542,6 +557,7 @@
 			hid_2.style.display = "";
 			hid_3.style.display = "";
 			state.style.display = "block";
+			hid_icon.style.borderColor = "transparent transparent rgb(65 122 180) transparent";
 			hid_btn_if = false;
 			clearInterval(state_refresh);
 			state_refresh=setInterval("state_get()",1000*2);
@@ -550,6 +566,7 @@
 			hid_2.style.display = "none";
 			hid_3.style.display = "none";
 			state.style.display = "none";
+			hid_icon.style.borderColor = "rgb(65 122 180) transparent transparent transparent";
 			hid_btn_if = true;
 			clearInterval(state_refresh);
 		}
@@ -601,7 +618,6 @@
 	function show_sys() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', null, function(x, status) {
 			if (x && x.status == 200 && x.responseText != "") {
-				document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">"+status.mem+"</font>";
 				if (status.cpu <= 50) {
 					document.getElementById("cpu_t").innerHTML = "<font style=\"color:green\">"+status.cpu+" %</font>";
 				}
@@ -616,7 +632,6 @@
 				}
 			}
 			else {
-				document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">0 KB</font>";
 				document.getElementById("cpu_t").innerHTML = "<font style=\"color:green\">0 %</font>";
 			}
 		});
@@ -657,6 +672,16 @@
 		}
 		else {
 			document.getElementById("connect_t").innerHTML = "<font style=\"color:green\">0</font>";
+		}
+	};
+
+	function ws_mmessage(event) {
+		var data = JSON.parse(event.data)
+		if (data.inuse) {
+			document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.inuse)+"/S</font>";
+		}
+		else {
+			document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">0 KB</font>";
 		}
 		show_sys();
 	};
