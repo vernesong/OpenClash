@@ -30,9 +30,7 @@ cp -f "/etc/openclash/custom/openclash_custom_fake_filter.list" "/usr/share/open
 cp -f "/etc/openclash/custom/openclash_custom_domain_dns.list" "/usr/share/openclash/backup/openclash_custom_domain_dns.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_domain_dns_policy.list" "/usr/share/openclash/backup/openclash_custom_domain_dns_policy.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_fallback_filter.yaml" "/usr/share/openclash/backup/openclash_custom_fallback_filter.yaml" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_force_sniffing_domain.yaml" "/usr/share/openclash/backup/openclash_force_sniffing_domain.yaml" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_sniffing_domain_filter.yaml" "/usr/share/openclash/backup/openclash_sniffing_domain_filter.yaml" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_sniffing_ports_filter.yaml" "/usr/share/openclash/backup/openclash_sniffing_ports_filter.yaml" >/dev/null 2>&1
+cp -f "/etc/openclash/custom/openclash_custom_sniffer.yaml" "/usr/share/openclash/backup/openclash_custom_sniffer.yaml" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list" "/usr/share/openclash/backup/openclash_custom_localnetwork_ipv4.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list" "/usr/share/openclash/backup/openclash_custom_localnetwork_ipv6.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_chnroute_pass.list" "/usr/share/openclash/backup/openclash_custom_chnroute_pass.list" >/dev/null 2>&1
@@ -102,17 +100,6 @@ uci -q commit openclash
 if [ -f "/tmp/openclash.bak" ]; then
 	mv -f "/tmp/openclash.bak" "/etc/config/openclash" >/dev/null 2>&1
 	cp -rf "/tmp/openclash/." "/etc/openclash/" >/dev/null 2>&1
-	cp -rf "/tmp/openclash_config/." "/etc/openclash/config/" >/dev/null 2>&1
-	cp -rf "/tmp/openclash_core/." "/etc/openclash/core/" >/dev/null 2>&1
-	cp -rf "/tmp/openclash_history/." "/etc/openclash/history/" >/dev/null 2>&1
-	cp -rf "/tmp/openclash_proxy_provider/." "/etc/openclash/proxy_provider/" >/dev/null 2>&1
-	cp -rf "/tmp/openclash_rule_provider/." "/etc/openclash/rule_provider/" >/dev/null 2>&1
-	cp -rf "/tmp/openclash_game_rules/." "/etc/openclash/game_rules/" >/dev/null 2>&1
-	mv -f "/tmp/openclash_custom_rules.list.bak" "/etc/openclash/custom/openclash_custom_rules.list" >/dev/null 2>&1
-	mv -f "/tmp/openclash_custom_rules_2.list.bak" "/etc/openclash/custom/openclash_custom_rules_2.list" >/dev/null 2>&1
-	mv -f "/tmp/openclash_custom_hosts.list.bak" "/etc/openclash/custom/openclash_custom_hosts.list" >/dev/null 2>&1
-	mv -f "/tmp/openclash_custom_fake_filter.list.bak" "/etc/openclash/custom/openclash_custom_fake_filter.list" >/dev/null 2>&1
-	mv -f "/tmp/openclash_custom_domain_dns.list.bak" "/etc/openclash/custom/openclash_custom_domain_dns.list" >/dev/null 2>&1
 	if [ -d "/tmp/openclash_dashboard/" ]; then
 		rm -rf "/usr/share/openclash/ui/dashboard/" >/dev/null 2>&1
 		cp -rf "/tmp/openclash_dashboard/." "/usr/share/openclash/ui/dashboard/" >/dev/null 2>&1
@@ -124,13 +111,18 @@ if [ -f "/tmp/openclash.bak" ]; then
 		rm -rf "/tmp/openclash_yacd/" >/dev/null 2>&1
 	fi
 	rm -rf "/etc/openclash/openclash" >/dev/null 2>&1
-	rm -rf "/etc/openclash/fake_filter.list" >/dev/null 2>&1
-	rm -rf "/etc/openclash/openclash_servers_fake_filter.conf" >/dev/null 2>&1
-	rm -rf /etc/openclash/core/clash >/dev/null 2>&1
-	rm -rf /etc/openclash/core/clash_tun >/dev/null 2>&1
-	rm -rf /etc/openclash/accelerated-domains.china.conf >/dev/null 2>&1
 	rm -rf "/tmp/openclash" >/dev/null 2>&1
 	rm -rf "/tmp/openclash.bak" >/dev/null 2>&1
+	#old version files
+	rm -rf "/etc/openclash/fake_filter.list" >/dev/null 2>&1
+	rm -rf "/etc/openclash/openclash_servers_fake_filter.conf" >/dev/null 2>&1
+	rm -rf "/etc/openclash/core/clash" >/dev/null 2>&1
+	rm -rf "/etc/openclash/core/clash_tun" >/dev/null 2>&1
+	rm -rf "/etc/openclash/accelerated-domains.china.conf" >/dev/null 2>&1
+	rm -rf "/etc/openclash/custom/openclash_force_sniffing_domain.yaml" >/dev/null 2>&1
+	rm -rf "/etc/openclash/custom/openclash_sniffing_ports_filter.yaml" >/dev/null 2>&1
+	rm -rf "/etc/openclash/custom/openclash_sniffing_port_filter.yaml" >/dev/null 2>&1
+	rm -rf "/etc/openclash/custom/openclash_sniffing_domain_filter.yaml" >/dev/null 2>&1
 fi
 
 uci -q set openclash.config.enable=0

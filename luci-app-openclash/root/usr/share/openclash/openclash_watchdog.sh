@@ -1,23 +1,20 @@
 #!/bin/sh
 . /usr/share/openclash/log.sh
+. /lib/functions.sh
+. /usr/share/openclash/openclash_ps.sh
 
-CLASH="/etc/openclash/clash"
-CLASH_CONFIG="/etc/openclash"
+
+
 LOG_FILE="/tmp/openclash.log"
-PROXY_FWMARK="0x162"
-PROXY_ROUTE_TABLE="0x162"
-LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
-ipv6_enable=$(uci -q get openclash.config.ipv6_enable)
+ipv6_enable=$(uci -q get openclash.config.ipv6_enable || echo 0)
 enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
 dns_port=$(uci -q get openclash.config.dns_port)
 disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
 cfg_update_interval=$(uci -q get openclash.config.config_update_interval || echo 60)
 log_size=$(uci -q get openclash.config.log_size || echo 1024)
-core_type=$(uci -q get openclash.config.core_type)
 router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
 stream_auto_select_interval=$(uci -q get openclash.config.stream_auto_select_interval || echo 30)
-ipv6_mode=$(uci -q get openclash.config.ipv6_mode || echo 0)
 skip_proxy_address=$(uci -q get openclash.config.skip_proxy_address || echo 0)
 CRASH_NUM=0
 CFG_UPDATE_INT=1
@@ -26,7 +23,132 @@ SKIP_PROXY_ADDRESS_INTERVAL=30
 STREAM_AUTO_SELECT=1
 FW4=$(command -v fw4)
 
-sleep 60
+## Skip Proxies Address
+skip_proxies_address()
+{
+ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+begin
+   Value = YAML.load_file('$CONFIG_FILE');
+rescue Exception => e
+   YAML.LOG('Error: Load File Failed,【' + e.message + '】');
+end;
+begin
+   threads = [];
+   threadsp = [];
+   set_commands = [];
+   reg = /([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/;
+   reg4 = /^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])(?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?$/;
+   reg6 = /^(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))|\[(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))\](?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?$/i;
+   if Value.key?('proxies') or Value.key?('proxy-providers') then
+      firewall_v = '$FW4';
+      if firewall_v.empty? then
+         firewall_v = 'ipt'
+      else
+         firewall_v = 'nft'
+      end;
+      ips = Array.new;
+      servers = Array.new;
+      if Value.key?('proxies') and not Value['proxies'].nil? then
+         Value['proxies'].each do
+            |i|
+            threads << Thread.new {
+               if i['server'] then
+                  if servers.include?(i['server']) then
+                     next;
+                  end; 
+                  if i['server'] =~ reg and not servers.include?(i['server']) then
+                     servers = servers.push(i['server']).uniq
+                     syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + i['server'] + '\" \"true\"'
+                     result = IO.popen(syscall).read.split(/\n+/)
+                     if result then
+                        ips = ips | result
+                     end;
+                  else
+                     ips = ips.push(i['server']).uniq
+                  end;
+               end;
+            };
+         end;
+      end;
+      if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
+         Value['proxy-providers'].values.each do
+            |i,path|
+            threads << Thread.new {
+               if i['path'] and not i['path'].empty? then
+                  if i['path'].split('/')[0] == '.' then
+                     path = '/etc/openclash/'+i['path'].split('./')[1]
+                  else
+                     path = i['path']
+                  end;
+                  if File::exist?(path) then
+                     if YAML.load_file(path).class == String then
+                        YAML.LOG('Warning: Unsupported format, Proxies Address Skip Function Ignore Proxy-providers File【' + path + '】');
+                        next
+                     end;
+                     if YAML.load_file(path).key?('proxies') and not YAML.load_file(path)['proxies'].nil? then
+                        YAML.load_file(path)['proxies'].each do
+                           |j|
+                           if j['server'] then
+                              threadsp << Thread.new {
+                                 if servers.include?(j['server']) then
+                                    next;
+                                 end;
+                                 if j['server'] =~ reg and not servers.include?(j['server']) then
+                                    servers = servers.push(j['server']).uniq
+                                    syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + j['server'] + '\" \"true\"'
+                                    result = IO.popen(syscall).read.split(/\n+/)
+                                    if result then
+                                       ips = ips | result
+                                    end;
+                                 else
+                                    ips = ips.push(j['server']).uniq
+                                 end;
+                              };
+                           end;
+                        end;
+                     end;
+                  end;
+               end;
+               threadsp.each(&:join);
+            };
+         end;
+      end;
+      threads.each(&:join);
+      #Add ip skip
+      if ips and not ips.empty? then
+         threads.clear;
+         ips.each do
+            |ip|
+            threads << Thread.new {
+               if ip and ip =~ reg4 then
+                  if firewall_v == 'nft' then
+                     set_commands << 'nft add element inet fw4 localnetwork { \"' + ip + '\" } 2>/dev/null'
+                  else
+                     set_commands << 'ipset add localnetwork \"' + ip + '\" 2>/dev/null'
+                  end;
+               elsif ip and ip =~ reg6 then
+                  if firewall_v == 'nft' then
+                     set_commands << 'nft add element inet fw4 localnetwork6 { \"' + ip + '\" } 2>/dev/null'
+                  else
+                     set_commands << 'ipset add localnetwork6 \"' + ip + '\" 2>/dev/null'
+                  end;
+               end;
+            };
+         end;
+         threads.each(&:join);
+         system(set_commands.join('; '));
+      end;
+   end;
+rescue Exception => e
+   YAML.LOG('Error: Set Proxies Address Skip Failed,【' + e.message + '】');
+end" 2>/dev/null >> $LOG_FILE
+}
+
+#wait for core start complete
+while ( [ -n "$(unify_ps_pids "/etc/init.d/openclash")" ] )
+do
+   sleep 1
+done >/dev/null 2>&1
 
 while :;
 do
@@ -53,52 +175,30 @@ do
    enable=$(uci -q get openclash.config.enable)
 
 if [ "$enable" -eq 1 ]; then
-	clash_pids=$(pidof clash |sed 's/$//g' |wc -l)
-	if [ "$clash_pids" -gt 1 ]; then
+   clash_pids=$(pidof clash |sed 's/$//g' |wc -l)
+   if [ "$clash_pids" -gt 1 ]; then
          LOG_OUT "Watchdog: Multiple Clash Processes, Kill All..."
          clash_pids=$(pidof clash |sed 's/$//g')
          for clash_pid in $clash_pids; do
             kill -9 "$clash_pid" 2>/dev/null
          done >/dev/null 2>&1
          sleep 1
-	fi 2>/dev/null
-	if ! pidof clash >/dev/null; then
+   fi 2>/dev/null
+   if ! pidof clash >/dev/null; then
 	   CRASH_NUM=$(expr "$CRASH_NUM" + 1)
-	   if [ "$CRASH_NUM" -le 3 ]; then
+      if [ "$CRASH_NUM" -le 3 ]; then
          LOG_OUT "Watchdog: Clash Core Problem, Restart..."
-         touch /tmp/openclash.log 2>/dev/null
-         chmod o+w /etc/openclash/proxy_provider/* 2>/dev/null
-         chmod o+w /etc/openclash/rule_provider/* 2>/dev/null
-         chmod o+w /etc/openclash/history/* 2>/dev/null
-         chmod o+w /tmp/openclash.log 2>/dev/null
-         chmod o+w /etc/openclash/cache.db 2>/dev/null
-         chown nobody:nogroup /etc/openclash/core/* 2>/dev/null
-         capabilties="cap_sys_resource,cap_dac_override,cap_net_raw,cap_net_bind_service,cap_net_admin,cap_sys_ptrace,cap_sys_admin"
-         capsh --caps="${capabilties}+eip" -- -c "capsh --user=nobody --addamb='${capabilties}' -- -c 'nohup $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1 &'" >> $LOG_FILE 2>&1
-	      sleep 3
-	      if [ "$core_type" == "TUN" ] || [ "$core_type" == "Meta" ]; then
-	         ip route replace default dev utun table "$PROXY_ROUTE_TABLE" 2>/dev/null
-	         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" 2>/dev/null
-            if [ "$ipv6_mode" -eq 2 ] && [ "$ipv6_enable" -eq 1 ] && [ "$core_type" == "Meta" ]; then
-               ip -6 rule del oif utun table 2022 >/dev/null 2>&1
-               ip -6 route del default dev utun table 2022 >/dev/null 2>&1
-               ip -6 addr add fdfe:dcba:9876::1/126 dev utun >/dev/null 2>&1
-               ip -6 route add fdfe:dcba:9876::/126 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
-               ip -6 route add fe80::/64 dev utun proto kernel metric 256 pref medium >/dev/null 2>&1
-               ip -6 route replace default dev utun table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-               ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" >/dev/null 2>&1
-            fi
-	      fi
-	      sleep 60
-	      continue
-	   else
-	      LOG_OUT "Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit..."
-	      /etc/init.d/openclash stop
-	      exit 0
-	   fi
-	else
-	   CRASH_NUM=0
-  fi
+         /etc/init.d/openclash reload "core"
+         sleep 10
+         continue
+      else
+         LOG_OUT "Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit..."
+         /etc/init.d/openclash stop
+         exit 0
+      fi
+   else
+      CRASH_NUM=0
+   fi
 fi
 
 ## Porxy history
@@ -111,16 +211,26 @@ fi
    LOG_OUT "Watchdog: Log Size Limit, Clean Up All Log Records..."
    fi
 
-## 端口转发重启
-   last_line=$(iptables -t nat -nL PREROUTING --line-number |awk '{print $1}' 2>/dev/null |awk 'END {print}' |sed -n '$p')
-   op_line=$(iptables -t nat -nL PREROUTING --line-number |grep "openclash " 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1)
-   if [ "$last_line" != "$op_line" ] && [ -n "$op_line" ]; then
-      pre_lines=$(iptables -nvL PREROUTING -t nat |sed 1,2d |sed -n '/openclash /=' 2>/dev/null |sort -rn)
-      for pre_line in $pre_lines; do
-         iptables -t nat -D PREROUTING "$pre_line" >/dev/null 2>&1
-      done >/dev/null 2>&1
-      iptables -t nat -A PREROUTING -p tcp -j openclash
-      LOG_OUT "Watchdog: Setting Firewall For Enabling Redirect..."
+## 转发顺序
+   if [ -z "$FW4" ]; then
+      nat_last_line=$(iptables -t nat -nL PREROUTING --line-number |awk '{print $1}' 2>/dev/null |awk 'END {print}' |sed -n '$p')
+      nat_op_line=$(iptables -t nat -nL PREROUTING --line-number |grep -E "openclash|OpenClash" |grep -Ev "DNS|dns" 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1)
+      man_last_line=$(iptables -t mangle -nL PREROUTING --line-number |awk '{print $1}' 2>/dev/null |awk 'END {print}' |sed -n '$p')
+      man_op_line=$(iptables -t mangle -nL PREROUTING --line-number |grep -E "openclash|OpenClash" |grep -Ev "DNS|dns" 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1)
+      if ([ "$nat_last_line" != "$nat_op_line" ] && [ -n "$nat_op_line" ]) || ([ "$man_last_line" != "$man_op_line" ] && [ -n "$man_op_line" ]); then
+         LOG_OUT "Watchdog: Setting Firewall For Rules Order..."
+         /etc/init.d/openclash reload "firewall"
+      fi
+   fi
+   if [ -n "$FW4" ]; then
+      nat_last_handle=$(nft -a list chain inet fw4 dstnat |awk -F '# handle ' '{print$2}' 2>/dev/null |tr -s '\n' |sed -n '$p')
+      nat_op_handle=$(nft -a list chain inet fw4 dstnat |grep -E "openclash|OpenClash" |grep -Ev "DNS|dns" |awk -F '# handle ' '{print$2}' 2>/dev/null |tail -1)
+      man_last_handle=$(nft -a list chain inet fw4 mangle_prerouting |awk -F '# handle ' '{print$2}' 2>/dev/null |tr -s '\n' |sed -n '$p')
+      man_op_handle=$(nft -a list chain inet fw4 mangle_prerouting |grep -E "openclash|OpenClash" |grep -Ev "DNS|dns" |awk -F '# handle ' '{print$2}' 2>/dev/null |tail -1)
+      if ([ "$nat_last_handle" != "$nat_op_handle" ] && [ -n "$nat_op_handle" ]) || ([ "$man_last_handle" != "$man_op_handle" ] && [ -n "$man_op_handle" ]); then
+         LOG_OUT "Watchdog: Setting Firewall For Rules Order..."
+         /etc/init.d/openclash reload "firewall"
+      fi
    fi
 
 ## Localnetwork 刷新
@@ -211,103 +321,7 @@ fi
 ## Skip Proxies Address
    if [ "$skip_proxy_address" -eq 1 ]; then
       if [ "$SKIP_PROXY_ADDRESS" -eq 1 ] || [ "$(expr "$SKIP_PROXY_ADDRESS" % "$SKIP_PROXY_ADDRESS_INTERVAL")" -eq 0 ]; then
-         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-         begin
-            Value = YAML.load_file('$CONFIG_FILE');
-         rescue Exception => e
-            puts '${LOGTIME} Error: Load File Failed,【' + e.message + '】';
-         end;
-         begin
-         Thread.new{
-            reg = /^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])(?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?$/;
-            reg6 = /^(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))|\[(?:(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}:[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){5}:([0-9A-Fa-f]{1,4}:)?[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){4}:([0-9A-Fa-f]{1,4}:){0,2}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){3}:([0-9A-Fa-f]{1,4}:){0,3}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){2}:([0-9A-Fa-f]{1,4}:){0,4}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){6}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(([0-9A-Fa-f]{1,4}:){0,5}:((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|(::([0-9A-Fa-f]{1,4}:){0,5}((\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b)\.){3}(\b((25[0-5])|(1\d{2})|(2[0-4]\d)|(\d{1,2}))\b))|([0-9A-Fa-f]{1,4}::([0-9A-Fa-f]{1,4}:){0,5}[0-9A-Fa-f]{1,4})|(::([0-9A-Fa-f]{1,4}:){0,6}[0-9A-Fa-f]{1,4})|(([0-9A-Fa-f]{1,4}:){1,7}:))\](?::(?:[0-9]|[1-9][0-9]{1,3}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5]))?$/i;
-            if Value.key?('proxies') or Value.key?('proxy-providers') then
-               firewall_v = '$FW4';
-               if firewall_v.empty? then
-                  firewall_v = 'ipt'
-               else
-                  firewall_v = 'nft'
-               end;
-               ips = Array.new;
-               servers = Array.new;
-               if Value.key?('proxies') and not Value['proxies'].nil? then
-                  Value['proxies'].each do
-                     |i|
-                     if i['server'] then
-                        if not i['server'] =~ reg and not i['server'] =~ reg6 and not servers.include?(i['server']) then
-                           servers = servers.push(i['server']).uniq
-                           syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + i['server'] + '\" \"true\"'
-                           if IO.popen(syscall).read.split(/\n+/) then
-                              ips = ips | IO.popen(syscall).read.split(/\n+/)
-                           end;
-                        else
-                           ips = ips.push(i['server']).uniq
-                        end;
-                     end;
-                  end;
-               end;
-               if Value.key?('proxy-providers') and not Value['proxy-providers'].nil? then
-                  Value['proxy-providers'].values.each do
-                     |i,path|
-                     if i['path'] and not i['path'].empty? then
-                        if i['path'].split('/')[0] == '.' then
-                           path = '/etc/openclash/'+i['path'].split('./')[1]
-                        else
-                           path = i['path']
-                        end;
-                        if File::exist?(path) then
-                           if YAML.load_file(path).class == String then
-                              puts '${LOGTIME} Warning: Unsupported format, Proxies Address Skip Function Ignore Proxy-providers File【' + path + '】';
-                              next
-                           end;
-                           if YAML.load_file(path).key?('proxies') and not YAML.load_file(path)['proxies'].nil? then
-                              YAML.load_file(path)['proxies'].each do
-                                 |j|
-                                 if j['server'] then
-                                    if not j['server'] =~ reg and not j['server'] =~ reg6 and not servers.include?(j['server']) then
-                                       servers = servers.push(j['server']).uniq
-                                       syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + j['server'] + '\" \"true\"'
-                                       if IO.popen(syscall).read.split(/\n+/) then
-                                          ips = ips | IO.popen(syscall).read.split(/\n+/)
-                                       end;
-                                    else
-                                       ips = ips.push(j['server']).uniq
-                                    end;
-                                 end;
-                              end;
-                           end;
-                        end;
-                     end;
-                  end;
-               end;
-               #Add ip skip
-               if ips and not ips.empty? then
-                  ips.each do
-                     |ip|
-                     if ip and ip =~ reg then
-                        if firewall_v == 'nft' then
-                           syscall = 'nft add element inet fw4 localnetwork { \"' + ip + '\" } 2>/dev/null'
-                           system(syscall)
-                        else
-                           syscall = 'ipset add localnetwork \"' + ip + '\" 2>/dev/null'
-                           system(syscall)
-                        end;
-                     elsif ip and ip =~ reg6 then
-                        if firewall_v == 'nft' then
-                           syscall = 'nft add element inet fw4 localnetwork6 { \"' + ip + '\" } 2>/dev/null'
-                           system(syscall)
-                        else
-                           syscall = 'ipset add localnetwork6 \"' + ip + '\" 2>/dev/null'
-                           system(syscall)
-                        end;
-                     end;
-                  end;
-               end;
-            end;
-         }.join;
-         rescue Exception => e
-            puts '${LOGTIME} Error: Set Proxies Address Skip Failed,【' + e.message + '】';
-         end" >> $LOG_FILE
+         skip_proxies_address
          let SKIP_PROXY_ADDRESS++
       else
          let SKIP_PROXY_ADDRESS++

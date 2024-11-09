@@ -482,21 +482,10 @@ cat >> "$DEBUG_LOG" <<-EOF
 \`\`\`
 EOF
 
-wan_ip=$(/usr/share/openclash/openclash_get_network.lua "wanip")
-wan_ip6=$(/usr/share/openclash/openclash_get_network.lua "wanip6")
+sed -i -E 's/(([0-9]{1,3}\.){2})[0-9]{1,3}\.[0-9]{1,3}/\1*\.*/g' "$DEBUG_LOG" 2>/dev/null
 
-if [ -n "$wan_ip" ]; then
-	for i in $wan_ip; do
-      wanip=$(echo "$i" |awk -F '.' '{print $1"."$2"."$3}')
-      sed -i "s/${wanip}/*WAN IP*/g" "$DEBUG_LOG" 2>/dev/null
-  done
-fi
+sed -i -E 's/(:[0-9a-fA-F]{1,4}){3}/:*:*:*/' "$DEBUG_LOG" 2>/dev/null
 
-if [ -n "$wan_ip6" ]; then
-	for i in $wan_ip6; do
-      wanip=$(echo "$i" |awk -F: 'OFS=":",NF-=1')
-      sed -i "s/${wanip}/*WAN IP*/g" "$DEBUG_LOG" 2>/dev/null
-  done
-fi
+sed -i 's/Downloading URL【[^】]*】/Downloading URL【*】/g' "$DEBUG_LOG" 2>/dev/null
 
 del_lock
