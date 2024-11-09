@@ -293,14 +293,6 @@ o = s:taboption("meta", Flag, "enable_unified_delay", font_red..bold_on..transla
 o.description = font_red..bold_on..translate("Change The Delay Calculation Method To Remove Extra Delays Such as Handshaking")..bold_off..font_off
 o.default = "0"
 
-o = s:taboption("meta", ListValue, "keep_alive_interval", font_red..bold_on..translate("TCP Keep-alive Interval(s)")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Change The TCP Keep-alive Interval, Selecting a Larger Value Avoids Abnormal Resource Consumption")..bold_off..font_off
-o:value("0", translate("Disable"))
-o:value("15")
-o:value("1800")
-o:value("3600")
-o.default = "0"
-
 o = s:taboption("meta", ListValue, "find_process_mode", translate("Enable Process Rule"))
 o.description = translate("Whether to Enable Process Rules, If You Are Not Sure, Please Choose off Which Useful in Router Environment")
 o:value("0", translate("Disable"))
