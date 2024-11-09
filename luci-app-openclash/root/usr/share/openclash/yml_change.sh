@@ -430,9 +430,6 @@ threads << Thread.new {
          Value['tun']['auto-redirect']=false;
          Value['tun']['strict-route']=false;
          Value['tun'].delete_if{|x,y| x=='iproute2-table-index'};
-         if ${35} == 1 then
-            Value['tun']['endpoint-independent-nat']=true;
-         end;
       else
          if Value.key?('tun') then
             Value.delete('tun');

@@ -68,7 +68,6 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
       if [ "$?" == "0" ]; then
          LOG_OUT "【"$CORE_TYPE"】Core Download Successful, Start Update..."
          [ -s "/tmp/clash_meta.tar.gz" ] && {
-            rm -rf "$meta_core_path" >/dev/null 2>&1
             tar zxvfo /tmp/clash_meta.tar.gz -C /tmp >/dev/null 2>&1
             mv /tmp/clash /tmp/clash_meta >/dev/null 2>&1
             rm -rf /tmp/clash_meta.tar.gz >/dev/null 2>&1
