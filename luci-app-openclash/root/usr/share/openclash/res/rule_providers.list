@@ -9,6 +9,7 @@ ABC,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,ABC.yaml
 Abema TV,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,Abema TV.yaml
 AbemaTV(By ACL4SSR),ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,AbemaTV.yaml,AbemaTV-ACL4SSR.yaml
 Adobe,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,Adobe.yaml
+AI Suite,lhie1,classical,dler-io/Rules/master/Clash/Provider/,AI Suite.yaml
 Amazon(By ACL4SSR),ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,Amazon.yaml,Amazon-ACL4SSR.yaml
 Amazon,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,Amazon.yaml
 AmazonIp,ACL4SSR,ipcidr,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,AmazonIp.yaml
@@ -28,7 +29,6 @@ Bilibili(By ACL4SSR),ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ru
 Bilibili,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,Bilibili.yaml
 BilibiliHMT,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,BilibiliHMT.yaml
 Blizzard,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,Blizzard.yaml
-ChatGPT,lhie1,classical,dler-io/Rules/master/Clash/Provider/,ChatGPT.yaml
 ChinaCompanyIp,ACL4SSR,ipcidr,ACL4SSR/ACL4SSR/master/Clash/Providers/,ChinaCompanyIp.yaml
 ChinaDomain,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/,ChinaDomain.yaml
 ChinaIp(By ACL4SSR),ACL4SSR,ipcidr,ACL4SSR/ACL4SSR/master/Clash/Providers/,ChinaIp.yaml,ChinaIp-ACL4SSR.yaml
