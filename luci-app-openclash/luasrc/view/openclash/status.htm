@@ -678,7 +678,7 @@
 	function ws_mmessage(event) {
 		var data = JSON.parse(event.data)
 		if (data.inuse) {
-			document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.inuse)+"/S</font>";
+			document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.inuse)+"</font>";
 		}
 		else {
 			document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">0 KB</font>";
