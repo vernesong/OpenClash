@@ -452,7 +452,7 @@ threads << Thread.new {
          Value.delete('ebpf');
       end;
 
-      if '${37}' == '0' then
+      if '${35}' == '0' then
          Value['routing-mark']=6666;
       else
          if Value.key?('routing-mark') then
