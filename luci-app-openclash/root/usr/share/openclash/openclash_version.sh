@@ -4,8 +4,12 @@ TIME=$(date "+%Y-%m-%d-%H")
 CHTIME=$(date "+%Y-%m-%d-%H" -r "/tmp/openclash_last_version" 2>/dev/null)
 LAST_OPVER="/tmp/openclash_last_version"
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
-OP_CV=$(rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F '-' '{print $1}' |awk -F 'Version: ' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
-OP_LV=$(sed -n 1p $LAST_OPVER 2>/dev/null |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
+if [ -x "/bin/opkg" ]; then
+   OP_CV=$(rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
+elif [ -x "/usr/bin/apk" ]; then
+   OP_CV=$(apk list luci-app-openclash |grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1)
+fi
+OP_LV=$(sed -n 1p $LAST_OPVER 2>/dev/null |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
 if [ -n "$1" ]; then
    github_address_mod="$1"
