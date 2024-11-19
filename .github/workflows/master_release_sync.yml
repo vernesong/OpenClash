@@ -47,7 +47,7 @@ jobs:
         run: |
           if [ -n "$(diff -r ./master/ ./dev/)" ]; then
             rm -rf ./master/README.md
-            rm -rf ./master/luci-app-openclash_*
+            rm -rf ./master/luci-app-openclash*
             rm -rf ./master/version
             cp -rf "./dev/." "./master/"
             git config user.name 'github-actions[bot]'

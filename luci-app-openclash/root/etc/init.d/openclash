@@ -466,7 +466,7 @@ do_run_file()
 
    #Some MIPS devices file system cound not use db
    source "/etc/openwrt_release"
-   [ "$small_flash_memory" == "1" ] || [ -n "$(echo $core_version |grep mips)" ] || [ -n "$(echo $DISTRIB_ARCH |grep mips)" ] || [ -n "$(opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' |grep mips)" ] && mkdir -p /tmp/etc/openclash && CACHE_PATH="/tmp/etc/openclash/cache.db"
+   [ "$small_flash_memory" == "1" ] || [ -n "$(echo $core_version |grep mips)" ] || [ -n "$(echo $DISTRIB_ARCH |grep mips)" ] || [ -n "$(opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' |grep mips)" ] || [ -n "$(apk list libc 2>/dev/null |grep mips)" ] && mkdir -p /tmp/etc/openclash && CACHE_PATH="/tmp/etc/openclash/cache.db"
 
    [ -f "/etc/openclash/geosite.dat" ] && {
       mv "/etc/openclash/geosite.dat" "/etc/openclash/GeoSite.dat" 2>/dev/null
