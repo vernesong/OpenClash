@@ -98,6 +98,8 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 
             if [ -z "$(opkg install /tmp/openclash.ipk --noaction 2>/dev/null |grep 'Upgrading luci-app-openclash on root' 2>/dev/null)" ]; then
                LOG_OUT "【OpenClash - v$LAST_VER】Pre Update Test Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually!"
                if [ "$(uci -q get openclash.config.config_reload)" -eq 1 ]; then
+                  uci -q set openclash.config.config_reload=0
+                  uci -q commit openclash
                   /etc/init.d/openclash restart >/dev/null 2>&1 &
                else
                   SLOG_CLEAN
@@ -178,6 +180,8 @@ EOF
       rm -rf /tmp/openclash.ipk >/dev/null 2>&1
       rm -rf /tmp/openclash.apk >/dev/null 2>&1
       if [ "$(uci -q get openclash.config.config_reload)" -eq 1 ]; then
+         uci -q set openclash.config.config_reload=0
+         uci -q commit openclash
          /etc/init.d/openclash restart >/dev/null 2>&1 &
       else
          SLOG_CLEAN
@@ -190,6 +194,8 @@ else
       LOG_OUT "OpenClash Has not Been Updated, Stop Continuing!"
    fi
    if [ "$(uci -q get openclash.config.config_reload)" -eq 1 ]; then
+      uci -q set openclash.config.config_reload=0
+      uci -q commit openclash
       /etc/init.d/openclash restart >/dev/null 2>&1 &
    else
       SLOG_CLEAN
