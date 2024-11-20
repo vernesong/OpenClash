@@ -2933,7 +2933,7 @@ start()
 
    enable=$(uci -q get openclash.config.enable)
    [ "$enable" != "1" ] && LOG_OUT "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && del_lock && exit 0
-
+   service openclash enable
    LOG_OUT "OpenClash Start Running..."
 
    config_choose
@@ -3028,6 +3028,7 @@ stop()
 
    LOG_OUT "Step 6: Delete OpenClash Residue File..."
    if [ "$enable" != "1" ]; then
+      service openclash disable
       rm -rf /tmp/clash_last_version >/dev/null 2>&1
       rm -rf /tmp/Proxy_Group >/dev/null 2>&1
       rm -rf /tmp/rules_name >/dev/null 2>&1

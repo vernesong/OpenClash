@@ -132,8 +132,6 @@ uci -q set openclash.config.enable=0
 uci -q commit openclash
 if [ -x "/bin/opkg" ]; then
    opkg remove --force-depends --force-remove luci-app-openclash
-elif [ -x "/usr/bin/apk" ]; then
-   apk del luci-app-openclash
 fi
 LOG_OUT "Installing The New Version, Please Do Not Refresh The Page or Do Other Operations..."
 if [ -x "/bin/opkg" ]; then
