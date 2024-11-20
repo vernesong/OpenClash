@@ -221,7 +221,7 @@ local function coremodel()
 		if fs.access("/bin/opkg") then
 			return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
 		elseif fs.access("/usr/bin/apk") then
-			return luci.sys.exec("apk list libc |awk '{print $2}'")
+			return luci.sys.exec("apk list libc 2>/dev/null |awk '{print $2}'")
 		end
 	end
 end
@@ -255,7 +255,7 @@ local function opcv()
 		if fs.access("/bin/opkg") then
 			return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}'")
 		elseif fs.access("/usr/bin/apk") then
-			return "v" .. luci.sys.exec("apk list luci-app-openclash |grep 'installed' | grep -oE '\\d+(\\.\\d+)*' | head -1")
+			return "v" .. luci.sys.exec("apk list luci-app-openclash 2>/dev/null |grep 'installed' | grep -oE '\\d+(\\.\\d+)*' | head -1")
 		end
 	end
 end
