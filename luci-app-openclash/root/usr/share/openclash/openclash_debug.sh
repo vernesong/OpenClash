@@ -12,6 +12,15 @@ del_lock() {
    rm -rf "/tmp/lock/openclash_debug.lock"
 }
 
+ipk_v()
+{
+   if [ -x "/bin/opkg" ]; then
+      echo $(opkg status "$1" 2>/dev/null |grep 'Version' |awk -F ': ' '{print $2}' 2>/dev/null)
+   elif [ -x "/usr/bin/apk" ]; then
+      echo $(apk list "$1" 2>/dev/null |grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1)
+   fi
+}
+
 DEBUG_LOG="/tmp/openclash_debug.log"
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 set_lock
@@ -31,11 +40,15 @@ en_mode=$(uci -q get openclash.config.en_mode)
 RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
 CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 core_model=$(uci -q get openclash.config.core_version)
-cpu_model=$(ipk_v libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null)
+if [ -x "/bin/opkg" ]; then
+   cpu_model=$(opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null)
+elif [ -x "/usr/bin/apk" ]; then
+   cpu_model=$(apk list libc 2>/dev/null|awk '{print $2}')
+fi
 core_meta_version=$(/etc/openclash/core/clash_meta -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1 2>/dev/null)
 servers_update=$(uci -q get openclash.config.servers_update)
 mix_proxies=$(uci -q get openclash.config.mix_proxies)
-op_version=$(ipk_v luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print "v"$2}')
+op_version=$(ipk_v "luci-app-openclash")
 china_ip_route=$(uci -q get openclash.config.china_ip_route)
 common_ports=$(uci -q get openclash.config.common_ports)
 router_self_proxy=$(uci -q get openclash.config.router_self_proxy)
@@ -78,15 +91,6 @@ ts_re()
 	else
 	   echo "已安装"
   fi
-}
-
-ipk_v()
-{
-   if [ -x "/bin/opkg" ]; then
-      echo $(opkg status "$1" 2>/dev/null |grep 'Version' |awk -F ': ' '{print $2}' 2>/dev/null)
-   elif [ -x "/usr/bin/apk" ]; then
-      echo $(apk list "$1" |grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1)
-   fi
 }
 
 dns_re()

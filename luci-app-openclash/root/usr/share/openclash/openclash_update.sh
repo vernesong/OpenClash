@@ -30,7 +30,7 @@ LAST_VER=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |sed "s/^v//g" |tr -d "\n")
 if [ -x "/bin/opkg" ]; then
    OP_CV=$(rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 elif [ -x "/usr/bin/apk" ]; then
-   OP_CV=$(apk list luci-app-openclash |grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1)
+   OP_CV=$(apk list luci-app-openclash 2>/dev/null |grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1 |awk -F '.' '{print $2$3}' 2>/dev/null)
 fi
 OP_LV=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
@@ -156,10 +156,10 @@ if [ -x "/bin/opkg" ]; then
       SLOG_CLEAN
    fi
 elif [ -x "/usr/bin/apk" ]; then
-   if [ "$?" != "0" ] || [ -z "$(apk list luci-app-openclash |grep 'installed')" ]; then
+   if [ "$?" != "0" ] || [ -z "$(apk list luci-app-openclash 2>/dev/null |grep 'installed')" ]; then
       apk add --allow-untrusted /tmp/openclash.apk
    fi
-   if [ "$?" != "0" ] || [ -z "$(apk list luci-app-openclash |grep 'installed')" ]; then
+   if [ "$?" != "0" ] || [ -z "$(apk list luci-app-openclash 2>/dev/null |grep 'installed')" ]; then
       rm -rf /tmp/openclash.apk >/dev/null 2>&1
       LOG_OUT "OpenClash Update Successful, About To Restart!"
       uci -q set openclash.config.enable=1
