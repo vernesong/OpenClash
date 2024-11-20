@@ -30,7 +30,7 @@ LAST_VER=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |sed "s/^v//g" |tr -d "\n")
 if [ -x "/bin/opkg" ]; then
    OP_CV=$(rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 elif [ -x "/usr/bin/apk" ]; then
-   OP_CV=$(apk list luci-app-openclash 2>/dev/null |grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1 |awk -F '.' '{print $2$3}' 2>/dev/null)
+   OP_CV=$(apk list luci-app-openclash 2>/dev/null |grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1 |awk -F '.' '{print $2$3}' 2>/dev/null)
 fi
 OP_LV=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
@@ -127,10 +127,10 @@ SLOG_CLEAN()
 	echo "" > $START_LOG
 }
 
-LOG_OUT "Uninstalling The Old Version, Please Do not Refresh The Page or Do Other Operations..."
 uci -q set openclash.config.enable=0
 uci -q commit openclash
 if [ -x "/bin/opkg" ]; then
+   LOG_OUT "Uninstalling The Old Version, Please Do not Refresh The Page or Do Other Operations..."
    opkg remove --force-depends --force-remove luci-app-openclash
 fi
 LOG_OUT "Installing The New Version, Please Do Not Refresh The Page or Do Other Operations..."

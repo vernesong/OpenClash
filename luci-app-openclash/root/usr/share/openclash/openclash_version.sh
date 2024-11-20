@@ -30,7 +30,7 @@ if [ "$TIME" != "$CHTIME" ]; then
    fi
 
    if [ "${PIPESTATUS[0]}" -eq 0 ] && [ -z "$(cat $LAST_OPVER |grep '<html>')" ]; then
-   	OP_LV=$(sed -n 1p $LAST_OPVER 2>/dev/null |awk -F '-' '{print $1}' |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
+   	OP_LV=$(sed -n 1p $LAST_OPVER 2>/dev/null |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
       if [ "$(expr "$OP_CV" \>= "$OP_LV")" = "1" ]; then
          sed -i '/^https:/,$d' $LAST_OPVER
       elif [ "$(expr "$OP_LV" \> "$OP_CV")" = "1" ] && [ -n "$OP_LV" ]; then
