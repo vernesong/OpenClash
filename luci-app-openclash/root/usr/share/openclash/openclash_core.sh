@@ -90,6 +90,8 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                uci -q set openclash.config.config_reload=1
                uci -q commit openclash
                if ([ -z "$2" ] || ([ -n "$2" ] && [ "$2" != "one_key_update" ])) && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
+                  uci -q set openclash.config.config_reload=0
+                  uci -q commit openclash
                   /etc/init.d/openclash restart >/dev/null 2>&1 &
                fi
             else
