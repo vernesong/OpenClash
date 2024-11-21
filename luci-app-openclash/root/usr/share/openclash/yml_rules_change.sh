@@ -336,6 +336,7 @@ yml_other_set()
          .gsub(/,[\s]?Steam$/, ', $Steam#delete_')
          .gsub(/,[\s]?miHoYo$/, ', $miHoYo#delete_')
          .gsub(/,[\s]?AdBlock$/, ', $AdBlock#delete_')
+         .gsub(/,[\s]?HTTPDNS$/, ', $HTTPDNS#delete_')
          .gsub(/,[\s]?Speedtest$/, ', $Speedtest#delete_')
          .gsub(/,[\s]?Telegram$/, ', $Telegram#delete_')
          .gsub(/,[\s]?Crypto$/, ', $Crypto#delete_')
@@ -368,6 +369,7 @@ yml_other_set()
          .gsub!(/: \'Steam\'/,': \'$Steam#delete_\'')
          .gsub!(/: \'miHoYo\'/,': \'$miHoYo#delete_\'')
          .gsub!(/: \'AdBlock\'/,': \'$AdBlock#delete_\'')
+         .gsub!(/: \'HTTPDNS\'/,': \'$HTTPDNS#delete_\'')
          .gsub!(/: \'Speedtest\'/,': \'$Speedtest#delete_\'')
          .gsub!(/: \'Telegram\'/,': \'$Telegram#delete_\'')
          .gsub!(/: \'Crypto\'/,': \'$Crypto#delete_\'')
@@ -885,6 +887,7 @@ yml_other_rules_get()
    config_get "Spotify" "$section" "Spotify" ""
    config_get "Steam" "$section" "Steam" ""
    config_get "AdBlock" "$section" "AdBlock" ""
+   config_get "HTTPDNS" "$section" "HTTPDNS" "REJECT"
    config_get "Netease_Music" "$section" "Netease_Music" ""
    config_get "Speedtest" "$section" "Speedtest" ""
    config_get "Telegram" "$section" "Telegram" ""
@@ -937,6 +940,7 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$Steam" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$miHoYo" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$AdBlock" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$HTTPDNS" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Speedtest" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Telegram" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Crypto" /tmp/Proxy_Group)" ]\
