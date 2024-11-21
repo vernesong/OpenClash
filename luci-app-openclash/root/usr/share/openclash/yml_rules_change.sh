@@ -318,7 +318,6 @@ yml_other_set()
          x.to_s.gsub(/,[\s]?Bilibili,[\s]?Asian TV$/, ', Bilibili, $Bilibili#delete_')
          .gsub(/,[\s]?Bahamut,[\s]?Global TV$/, ', Bahamut, $Bahamut#delete_')
          .gsub(/,[\s]?HBO Max,[\s]?Global TV$/, ', HBO Max, $HBOMax#delete_')
-         .gsub(/,[\s]?HBO Go,[\s]?Global TV$/, ', HBO Go, $HBOGo#delete_')
          .gsub(/,[\s]?Discovery Plus,[\s]?Global TV$/, ', Discovery Plus, $Discovery#delete_')
          .gsub(/,[\s]?DAZN,[\s]?Global TV$/, ', DAZN, $DAZN#delete_')
          .gsub(/,[\s]?Pornhub,[\s]?Global TV$/, ', Pornhub, $Pornhub#delete_')
@@ -351,7 +350,6 @@ yml_other_set()
          Value['script']['code'].to_s.gsub!(/\'Bilibili\': \'Asian TV\'/,'\'Bilibili\': \'$Bilibili#delete_\'')
          .gsub!(/\'Bahamut\': \'Global TV\'/,'\'Bahamut\': \'$Bahamut#delete_\'')
          .gsub!(/\'HBO Max\': \'Global TV\'/,'\'HBO Max\': \'$HBOMax#delete_\'')
-         .gsub!(/\'HBO Go\': \'Global TV\'/,'\'HBO Go\': \'$HBOGo#delete_\'')
          .gsub!(/\'Discovery Plus\': \'Global TV\'/,'\'Discovery Plus\': \'$Discovery#delete_\'')
          .gsub!(/\'DAZN\': \'Global TV\'/,'\'DAZN\': \'$DAZN#delete_\'')
          .gsub!(/\'Pornhub\': \'Global TV\'/,'\'Pornhub\': \'$Pornhub#delete_\'')
@@ -878,7 +876,6 @@ yml_other_rules_get()
    config_get "Bilibili" "$section" "Bilibili" ""
    config_get "Bahamut" "$section" "Bahamut" ""
    config_get "HBOMax" "$section" "HBOMax" "$GlobalTV"
-   config_get "HBOGo" "$section" "HBOGo" "$GlobalTV"
    config_get "Pornhub" "$section" "Pornhub" ""
    config_get "Apple" "$section" "Apple" ""
    config_get "Scholar" "$section" "Scholar" ""
@@ -926,7 +923,6 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$Bilibili" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Bahamut" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$HBOMax" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$HBOGo" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Pornhub" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Apple" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$AppleTV" /tmp/Proxy_Group)" ]\
