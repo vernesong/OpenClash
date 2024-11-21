@@ -1616,20 +1616,6 @@ EOF
 fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
 cat >> "$SERVER_FILE" <<-EOF
-  - name: HBO Go
-    type: select
-    proxies:
-      - Global TV
-      - DIRECT
-EOF
-cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
-if [ -f "/tmp/Proxy_Provider" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    use:
-EOF
-fi
-cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-cat >> "$SERVER_FILE" <<-EOF
   - name: Pornhub
     type: select
     proxies:
@@ -1890,7 +1876,6 @@ ${uci_set}Youtube="Youtube"
 ${uci_set}Bilibili="Bilibili"
 ${uci_set}Bahamut="Bahamut"
 ${uci_set}HBOMax="HBO Max"
-${uci_set}HBOGo="HBO Go"
 ${uci_set}Pornhub="Pornhub"
 ${uci_set}Apple="Apple"
 ${uci_set}AppleTV="Apple TV"
@@ -1924,7 +1909,6 @@ ${uci_set}Others="Others"
 	${UCI_DEL_LIST}="Bilibili" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Bilibili" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Bahamut" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Bahamut" >/dev/null 2>&1
 	${UCI_DEL_LIST}="HBO Max" >/dev/null 2>&1 && ${UCI_ADD_LIST}="HBO Max" >/dev/null 2>&1
-	${UCI_DEL_LIST}="HBO Go" >/dev/null 2>&1 && ${UCI_ADD_LIST}="HBO Go" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Pornhub" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Pornhub" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Asian TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Asian TV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Global TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Global TV" >/dev/null 2>&1

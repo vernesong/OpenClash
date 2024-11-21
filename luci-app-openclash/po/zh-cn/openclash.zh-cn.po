@@ -2487,14 +2487,8 @@ msgstr "提示：开始自动选择（检测）Netflix 解锁节点..."
 msgid "Tip: Start Auto Select Proxy For Disney Plus Unlock..."
 msgstr "提示：开始自动选择（检测）Disney Plus 解锁节点..."
 
-msgid "Tip: Start Auto Select Proxy For HBO Now Unlock..."
-msgstr "提示：开始自动选择（检测）HBO Now 解锁节点..."
-
 msgid "Tip: Start Auto Select Proxy For HBO Max Unlock..."
 msgstr "提示：开始自动选择（检测）HBO Max 解锁节点..."
-
-msgid "Tip: Start Auto Select Proxy For HBO GO Asia Unlock..."
-msgstr "提示：开始自动选择（检测）HBO GO Asia 解锁节点..."
 
 msgid "Tip: Start Auto Select Proxy For YouTube Premium Unlock..."
 msgstr "提示：开始自动选择（检测）YouTube Premium 解锁节点..."
@@ -2529,14 +2523,8 @@ msgstr "Netflix 策略组："
 msgid "Disney Plus Group:"
 msgstr "Disney Plus 策略组："
 
-msgid "HBO Now Group:"
-msgstr "HBO Now 策略组："
-
 msgid "HBO Max Group:"
 msgstr "HBO Max 策略组："
-
-msgid "HBO GO Asia Group:"
-msgstr "HBO GO Asia 策略组："
 
 msgid "TVB Anywhere+ Group:"
 msgstr "TVB Anywhere+ 策略组："
