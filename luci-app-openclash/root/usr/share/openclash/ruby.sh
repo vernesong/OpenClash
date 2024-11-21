@@ -107,7 +107,7 @@ local Value RUBY_YAML_PARSE
 if [ -z "$1" ] || [ -z "$2" ]; then
 	return
 fi
-RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); if not Value.key?($2) or Value$2.nil? then Value$2 = []; end; Value$2=Value$2.insert($3,'$4').uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
+RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); if not Value$2 or Value$2.nil? then Value$2 = []; end; Value$2=Value$2.insert($3,'$4').uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
@@ -118,7 +118,7 @@ local Value RUBY_YAML_PARSE
 if [ -z "$1" ] || [ -z "$2" ]; then
 	return
 fi
-RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); if not Value.key?($2) or Value$2.nil? then Value$2 = []; end; Value$2=Value$2.insert($3,$4).uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
+RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); if not Value$2 or Value$2.nil? then Value$2 = []; end; Value$2=Value$2.insert($3,$4).uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
@@ -129,7 +129,7 @@ local Value RUBY_YAML_PARSE
 if [ -z "$1" ] || [ -z "$2" ]; then
 	return
 fi
-RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); if not Value.key?($2) or Value$2.nil? then Value$2 = []; end; ${4}.reverse.each{|x| Value$2=Value$2.insert($3,x).uniq}; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
+RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); if not Value$2 or Value$2.nil? then Value$2 = []; end; ${4}.reverse.each{|x| Value$2=Value$2.insert($3,x).uniq}; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
