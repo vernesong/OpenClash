@@ -192,5 +192,5 @@ sed -i '/.*kB maximum content size*/c\export let HTTP_MAX_CONTENT = 1024*10240;	
 
 /etc/init.d/uhttpd restart >/dev/null 2>&1
 
-rm -f /tmp/luci-indexcache
+rm -f /tmp/luci-indexcache* >/dev/null 2>&1
 exit 0

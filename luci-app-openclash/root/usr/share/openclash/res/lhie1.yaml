@@ -1,5 +1,6 @@
 rules:
-- RULE-SET, Reject, AdBlock
+- RULE-SET, AdBlock, AdBlock
+- RULE-SET, HTTPDNS, HTTPDNS
 - RULE-SET, Special, DIRECT
 - RULE-SET, Netflix, Netflix
 - RULE-SET, Disney Plus, Disney
@@ -65,7 +66,8 @@ script:
   code: |
     def main(ctx, metadata):
         ruleset_action = {
-            'Reject': 'AdBlock',
+            'AdBlock': 'AdBlock',
+            'HTTPDNS': 'HTTPDNS',
             'Special': 'DIRECT',
             'Netflix': 'Netflix',
             'Disney Plus': 'Disney',
@@ -154,11 +156,17 @@ script:
         ctx.log('[Script] FINAL')
         return 'Others'
 rule-providers:
-  Reject:
+  AdBlock:
     type: http
     behavior: classical
-    url: https://testingcf.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Reject.yaml
-    path: "./Rules/Reject"
+    url: https://testingcf.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/AdBlock.yaml
+    path: "./Rules/AdBlock"
+    interval: 86400
+  HTTPDNS:
+    type: http
+    behavior: classical
+    url: https://testingcf.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/HTTPDNS.yaml
+    path: "./Rules/HTTPDNS"
     interval: 86400
   Special:
     type: http

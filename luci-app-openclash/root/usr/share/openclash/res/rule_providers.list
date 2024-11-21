@@ -3,8 +3,9 @@
 国内IP白名单(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Domestic IPs.yaml
 国内域名白名单(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Domestic.yaml
 国外常用网站合集(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Proxy.yaml
-广告规则(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Reject.yaml
+广告规则(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,AdBlock.yaml
 微软服务,lhie1,classical,dler-io/Rules/master/Clash/Provider/,Microsoft.yaml
+HTTPDNS(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,HTTPDNS.yaml
 ABC,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,ABC.yaml
 Abema TV,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,Abema TV.yaml
 AbemaTV(By ACL4SSR),ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,AbemaTV.yaml,AbemaTV-ACL4SSR.yaml

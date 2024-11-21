@@ -47,7 +47,7 @@ cfg_groups_set()
       sed -i "s/new_servers_group \'${convert_old_name_cfg}\'/new_servers_group \'${convert_name}\'/g" $CFG_FILE 2>/dev/null
       sed -i "s/relay_groups \'${convert_old_name_cfg}\'/relay_groups \'${convert_name}\'/g" $CFG_FILE 2>/dev/null
       #第三方规则处理
-      OTHER_RULE_NAMES=("GlobalTV" "AsianTV" "Proxy" "Youtube" "Bilibili" "Bahamut" "HBOGo" "HBOMax" "Pornhub" "Apple" "GoogleFCM" "Scholar" "Microsoft" "Netflix" "Disney" "Spotify" "Steam" "Speedtest" "Telegram" "PayPal" "Netease_Music" "AdBlock" "Domestic" "Others" "miHoYo" "AI Suite" "AppleTV" "Crypto" "Discord")
+      OTHER_RULE_NAMES=("GlobalTV" "AsianTV" "Proxy" "Youtube" "Bilibili" "Bahamut" "HBOGo" "HBOMax" "Pornhub" "Apple" "GoogleFCM" "Scholar" "Microsoft" "Netflix" "Disney" "Spotify" "Steam" "Speedtest" "Telegram" "PayPal" "Netease_Music" "AdBlock" "Domestic" "Others" "miHoYo" "AI Suite" "AppleTV" "Crypto" "Discord" "HTTPDNS")
       for i in ${OTHER_RULE_NAMES[@]}; do
       	sed -i "s/option ${i} \'${convert_old_name_cfg}\'/option ${i} \'${convert_name}\'/g" $CFG_FILE 2>/dev/null
       done 2>/dev/null

@@ -1763,6 +1763,12 @@ cat >> "$SERVER_FILE" <<-EOF
       - REJECT
       - DIRECT
       - Proxy
+  - name: HTTPDNS
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+      - Proxy
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
 if [ -f "/tmp/Proxy_Provider" ]; then
@@ -1900,6 +1906,7 @@ ${uci_set}Spotify="Spotify"
 ${uci_set}Steam="Steam"
 ${uci_set}miHoYo="miHoYo"
 ${uci_set}AdBlock="AdBlock"
+${uci_set}HTTPDNS="HTTPDNS"
 ${uci_set}Speedtest="Speedtest"
 ${uci_set}Telegram="Telegram"
 ${uci_set}Crypto="Crypto"
