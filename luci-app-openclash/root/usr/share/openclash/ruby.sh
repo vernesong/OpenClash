@@ -67,6 +67,17 @@ RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); Value$2=Value$2.uniq; 
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
+#hash覆盖
+ruby_merge_hash()
+{
+local Value Value_1 RUBY_YAML_PARSE
+if [ -z "$1" ] || [ -z "$2" ]; then
+	return
+fi
+RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); Value$2.merge!($3); File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
+ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
+}
+
 #数组指定位置前添加一组值(不要key)
 ruby_arr_add_file()
 {
@@ -97,6 +108,17 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 	return
 fi
 RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); if not Value.key?($2) or Value$2.nil? then Value$2 = []; end; Value$2=Value$2.insert($3,'$4').uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
+ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
+}
+
+#数组指定位置前增加Hash
+ruby_arr_insert_hash()
+{
+local Value RUBY_YAML_PARSE
+if [ -z "$1" ] || [ -z "$2" ]; then
+	return
+fi
+RUBY_YAML_PARSE="Thread.new{Value = YAML.load_file('$1'); if not Value.key?($2) or Value$2.nil? then Value$2 = []; end; Value$2=Value$2.insert($3,$4).uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}}.join"
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
 
