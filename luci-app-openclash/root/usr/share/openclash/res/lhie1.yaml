@@ -25,8 +25,6 @@ rules:
 - RULE-SET, F1 TV, Global TV
 - RULE-SET, Fox Now, Global TV
 - RULE-SET, Fox+, Global TV
-- RULE-SET, HBO Go, Global TV
-- RULE-SET, HBO Max, Global TV
 - RULE-SET, Hulu Japan, Global TV
 - RULE-SET, Hulu, Global TV
 - RULE-SET, Japonx, Global TV
@@ -34,6 +32,7 @@ rules:
 - RULE-SET, KKBOX, Global TV
 - RULE-SET, KKTV, Global TV
 - RULE-SET, Line TV, Global TV
+- RULE-SET, Max, Global TV
 - RULE-SET, myTV SUPER, Global TV
 - RULE-SET, Niconico, Global TV
 - RULE-SET, Pandora, Global TV
@@ -92,8 +91,6 @@ script:
             'F1 TV': 'Global TV',
             'Fox Now': 'Global TV',
             'Fox+': 'Global TV',
-            'HBO Go': 'Global TV',
-            'HBO Max': 'Global TV',
             'Hulu Japan': 'Global TV',
             'Hulu': 'Global TV',
             'Japonx': 'Global TV',
@@ -101,6 +98,7 @@ script:
             'KKBOX': 'Global TV',
             'KKTV': 'Global TV',
             'Line TV': 'Global TV',
+            'Max': 'Global TV',
             'myTV SUPER': 'Global TV',
             'Niconico': 'Global TV',
             'Pandora': 'Global TV',
@@ -354,18 +352,6 @@ rule-providers:
     url: https://testingcf.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Media/Fox%2B.yaml
     path: "./Rules/Media/Fox+"
     interval: 86400
-  HBO Go:
-    type: http
-    behavior: classical
-    url: https://testingcf.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Media/HBO%20Go.yaml
-    path: "./Rules/Media/HBO_Go"
-    interval: 86400
-  HBO Max:
-    type: http
-    behavior: classical
-    url: https://testingcf.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Media/HBO%20Max.yaml
-    path: "./Rules/Media/HBO_Max"
-    interval: 86400
   Hulu Japan:
     type: http
     behavior: classical
@@ -407,6 +393,12 @@ rule-providers:
     behavior: classical
     url: https://testingcf.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Media/Line%20TV.yaml
     path: "./Rules/Media/Line_TV"
+    interval: 86400
+  Max:
+    type: http
+    behavior: classical
+    url: https://testingcf.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Media/Max.yaml
+    path: "./Rules/Media/Max"
     interval: 86400
   myTV SUPER:
     type: http

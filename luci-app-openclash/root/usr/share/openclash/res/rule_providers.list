@@ -47,7 +47,7 @@ Google,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,Google.
 GoogleCN,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,GoogleCN.yaml
 GoogleFCM,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,GoogleFCM.yaml
 HBO(By ACL4SSR),ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,HBO.yaml,HBO-ACL4SSR.yaml
-HBO(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,HBO.yaml,HBO-lhie1.yaml
+HBO MAX(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,MAX.yaml,MAX-lhie1.yaml
 Hulu Japan,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,Hulu Japan.yaml
 Hulu(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,Hulu.yaml,Hulu-lhie1.yaml
 JOOX(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,JOOX.yaml,JOOX-lhie1.yaml
