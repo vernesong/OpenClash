@@ -789,6 +789,8 @@ begin
          YAML.LOG('Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】');
       end;
    end;
+rescue Exception => e
+      YAML.LOG('Error: Config File Overwrite Failed,【' + e.message + '】');
 ensure
    File.open('$5','w') {|f| YAML.dump(Value, f)};
 end" 2>/dev/null >> $LOG_FILE
