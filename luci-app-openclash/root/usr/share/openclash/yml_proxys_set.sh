@@ -1781,8 +1781,8 @@ cat >> "$SERVER_FILE" <<-EOF
   - name: Asian TV
     type: select
     proxies:
-      - DIRECT
       - Proxy
+      - DIRECT
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
 if [ -f "/tmp/Proxy_Provider" ]; then
