@@ -1577,7 +1577,7 @@ cat >> "$SERVER_FILE" <<-EOF
   - name: Bilibili
     type: select
     proxies:
-      - Asian TV
+      - CN Mainland TV
       - DIRECT
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
@@ -1764,6 +1764,20 @@ EOF
 fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
 cat >> "$SERVER_FILE" <<-EOF
+  - name: CN Mainland TV
+    type: select
+    proxies:
+      - DIRECT
+      - Proxy
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+if [ -f "/tmp/Proxy_Provider" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    use:
+EOF
+fi
+cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
   - name: Asian TV
     type: select
     proxies:
@@ -1871,6 +1885,7 @@ ${uci_set}rule_name="lhie1"
 ${uci_set}config="$CONFIG_NAME"
 ${uci_set}GlobalTV="Global TV"
 ${uci_set}AsianTV="Asian TV"
+${uci_set}MainlandTV="CN Mainland TV"
 ${uci_set}Proxy="Proxy"
 ${uci_set}Youtube="Youtube"
 ${uci_set}Bilibili="Bilibili"
@@ -1911,6 +1926,7 @@ ${uci_set}Others="Others"
 	${UCI_DEL_LIST}="HBO Max" >/dev/null 2>&1 && ${UCI_ADD_LIST}="HBO Max" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Pornhub" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Pornhub" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Asian TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Asian TV" >/dev/null 2>&1
+    ${UCI_DEL_LIST}="CN Mainland TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="CN Mainland TV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Global TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Global TV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Netflix" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Netflix" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Discovery Plus" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Discovery Plus" >/dev/null 2>&1

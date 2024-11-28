@@ -95,6 +95,17 @@ end
 o:value("DIRECT")
 o:value("REJECT")
 
+o = s:option(ListValue, "CN Mainland TV", translate("CN Mainland TV"))
+o:depends("rule_name", "lhie1")
+o.rmempty = true
+for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
+  if groupname ~= nil and groupname ~= "" then
+    o:value(groupname)
+  end
+end
+o:value("DIRECT")
+o:value("REJECT")
+
 o = s:option(ListValue, "Proxy", translate("Proxy"))
 o:depends("rule_name", "lhie1")
 o.rmempty = true
