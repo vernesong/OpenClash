@@ -341,7 +341,6 @@ threads << Thread.new {
          Value['log-level']='$9';
       end;
       Value['allow-lan']=true;
-      Value['disable-keep-alive']=true;
       Value['external-controller']='0.0.0.0:$3';
       Value['secret']='$2';
       Value['bind-address']='*';

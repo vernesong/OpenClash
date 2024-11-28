@@ -518,6 +518,9 @@ msgstr "国际流媒体"
 msgid "AsianTV"
 msgstr "亚洲流媒体"
 
+msgid "CN Mainland TV"
+msgstr "大陆流媒体"
+
 msgid "Proxy"
 msgstr "必须代理的流量"
 
