@@ -769,20 +769,7 @@ end
 function get_auth_info()
 	port = UCI:get("openclash", "config", "cn_port")
 	passwd = UCI:get("openclash", "config", "dashboard_password") or ""
-	local lan_int_name = UCI:get("openclash", "config", "lan_interface_name") or "0"
-	if lan_int_name == "0" then
-		ip = SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
-	else
-		ip = SYS.exec(string.format("ip address show %s | grep -w 'inet' 2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | tr -d '\n'", lan_int_name))
-	end
-
-	if not ip or ip == "" then
-		ip = SYS.exec("ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w 'inet' 2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | tr -d '\n'")
-	end
-	
-	if not ip or ip == "" then
-		ip = SYS.exec("ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
-	end
+	ip = FS.lanip()
 	if not ip or not port then
 		os.exit(0)
 	end
