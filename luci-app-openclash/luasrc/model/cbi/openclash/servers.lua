@@ -255,24 +255,27 @@ o = a:option(Button,"Load_Config", " ")
 o.inputtitle = translate("Read Config")
 o.inputstyle = "apply"
 o.write = function()
-  luci.sys.call("/usr/share/openclash/yml_groups_get.sh 2>/dev/null &")
-  luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
+	m.uci:commit("openclash")
+	luci.sys.call("/usr/share/openclash/yml_groups_get.sh 2>/dev/null &")
+	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end
 
 o = a:option(Button, "Commit", " ") 
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-  fs.unlink("/tmp/Proxy_Group")
+	fs.unlink("/tmp/Proxy_Group")
+	m.uci:commit("openclash")
 end
 
 o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
-  fs.unlink("/tmp/Proxy_Group")
-  luci.sys.call("/usr/share/openclash/yml_groups_set.sh >/dev/null 2>&1 &")
-  luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
+	m.uci:commit("openclash")
+	fs.unlink("/tmp/Proxy_Group")
+	luci.sys.call("/usr/share/openclash/yml_groups_set.sh >/dev/null 2>&1 &")
+	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash"))
 end
 
 m:append(Template("openclash/toolbar_show"))
