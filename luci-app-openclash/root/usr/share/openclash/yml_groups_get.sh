@@ -242,7 +242,8 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                x['proxies'].each{
                |y|
                   if Value_1.include?(y) then
-                     uci_commands << uci_add + 'other_group=\"^' + y.to_s + '$\"'
+                     commands = uci_add + 'other_group=\"^' + y.to_s + '$\"'
+                     system(commands)
                   end
                }
             end
