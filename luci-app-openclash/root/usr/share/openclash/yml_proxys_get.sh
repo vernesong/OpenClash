@@ -171,8 +171,8 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          begin
             YAML.LOG('Start Getting【${CONFIG_NAME} - ' + y['type'].to_s + ' - ' + x.to_s + '】Proxy-provider Setting...');
             #代理集存在时获取代理集编号
-            cmd = 'grep -E \'\.' + x + '$\' ${match_provider} 2>/dev/null|awk -F \".\" \'{print \$1}\'';
-            provider_nums=%x(#{cmd}).chomp;
+            cmd = 'grep -F \'.' + x + '\' ${match_provider} 2>/dev/null |awk -F \".\" \'{print \$1}\'';
+            provider_nums = %x(#{cmd}).chomp;
             if not provider_nums.empty? then
                cmd = 'sed -i \"/^' + provider_nums + '\./c\\#match#\" $match_provider 2>/dev/null';
                system(cmd);
@@ -181,7 +181,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                uci_add='uci -q add_list openclash.@proxy-provider[' + provider_nums + '].';
                uci_del='uci -q delete openclash.@proxy-provider[' + provider_nums + '].';
                cmd = uci_get + 'manual';
-               if not %x(#{cmd}).chomp then
+               if not provider_nums then
                   uci_commands << uci_set + 'manual=0';
                end;
                uci_commands << uci_set + 'type=\"' + y['type'].to_s + '\"';
@@ -269,7 +269,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                   #新代理集且设置默认策略组时加入指定策略组
                   new_provider_groups = %x{uci get openclash.config.new_servers_group}.chomp.split(\"'\").map { |x| x.strip }.reject { |x| x.empty? };
                   new_provider_groups.each do |x|
-                     uci_commands << uci_add + 'groups=\"' + x + '\"'
+                     uci_commands << uci_add + 'groups=\"^' + x + '$\"'
                   end
                elsif '$servers_if_update' != '1' then
                   threads_agr = [];
@@ -304,8 +304,8 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          begin
             YAML.LOG('Start Getting【${CONFIG_NAME} - ' + x['type'].to_s + ' - ' + x['name'].to_s + '】Proxy Setting...');
             #节点存在时获取节点编号
-            cmd = 'grep -E \'\.' + x['name'].to_s + '$\' ${match_servers} 2>/dev/null|awk -F \".\" \'{print \$1}\'';
-            server_num=%x(#{cmd}).chomp;
+            cmd = 'grep -F \'.' + x['name'].to_s + '\' ${match_servers} 2>/dev/null |awk -F \".\" \'{print \$1}\'';
+            server_num = %x(#{cmd}).chomp;
             if not server_num.empty? then
                #更新已有节点
                cmd = 'sed -i \"/^' + server_num + '\./c\\#match#\" $match_servers 2>/dev/null';
@@ -315,7 +315,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                uci_add='uci -q add_list openclash.@servers[' + server_num + '].';
                uci_del='uci -q delete openclash.@servers[' + server_num + '].';
                cmd = uci_get + 'manual';
-               if not %x(#{cmd}).chomp then
+               if not server_num then
                   uci_commands << uci_set + 'manual=0';
                end;
             else
@@ -1329,10 +1329,10 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             threads << Thread.new{
                #加入策略组
                if '$servers_if_update' == '1' and '$config_group_exist' == '1' and '$servers_update' == '1' and server_num.empty? then
-                  #新代理集且设置默认策略组时加入指定策略组
+                  #新代理且设置默认策略组时加入指定策略组
                   new_provider_groups = %x{uci get openclash.config.new_servers_group}.chomp.split(\"'\").map { |x| x.strip }.reject { |x| x.empty? };
                   new_provider_groups.each do |x|
-                     uci_commands << uci_add + 'groups=\"' + x + '\"'
+                     uci_commands << uci_add + 'groups=\"^' + x + '$\"'
                   end
                elsif '$servers_if_update' != '1' then
                   threads_gr = [];
@@ -1345,7 +1345,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                            z['proxies'].each{
                            |v|
                            if v == x['name'] then
-                              uci_commands << uci_add + 'groups=^\"' + z['name'] + '$\"'
+                              uci_commands << uci_add + 'groups=\"^' + z['name'] + '$\"'
                               break
                            end
                            }
