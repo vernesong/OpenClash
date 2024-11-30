@@ -47,7 +47,7 @@ EOF
 uci -q set openclash.config.dashboard_password="$(tr -cd 'a-zA-Z0-9' </dev/urandom 2>/dev/null| head -c8 || date +%N| md5sum |head -c8)"
 
 #Set authentication
-uci_name_tmp=$(uci add openclash authentication)
+uci_name_tmp=$(uci -q add openclash authentication)
 uci_set="uci -q set openclash.$uci_name_tmp."
 ${uci_set}enabled="1"
 ${uci_set}username="Clash"
@@ -123,6 +123,7 @@ if [ -f "/tmp/openclash.bak" ]; then
 	rm -rf "/etc/openclash/custom/openclash_sniffing_ports_filter.yaml" >/dev/null 2>&1
 	rm -rf "/etc/openclash/custom/openclash_sniffing_port_filter.yaml" >/dev/null 2>&1
 	rm -rf "/etc/openclash/custom/openclash_sniffing_domain_filter.yaml" >/dev/null 2>&1
+	rm -rf "/etc/config/openclash.apk-new" >/dev/null 2>&1
 fi
 
 uci -q set openclash.config.enable=0
