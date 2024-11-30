@@ -99,7 +99,7 @@
       fi
       
       #取出规则部分
-      ruby_read "/tmp/rules.yaml" ".select {|x| 'rule-providers' == x or 'script' == x or 'rules' == x }.to_yaml" > "$OTHER_RULE_FILE"
+      ruby_read "/tmp/rules.yaml" ".select {|x| 'rule-providers' == x or 'rules' == x }.to_yaml" > "$OTHER_RULE_FILE"
       #合并
       cat "$OTHER_RULE_FILE" > "/tmp/rules.yaml" 2>/dev/null
       rm -rf /tmp/other_rule* 2>/dev/null
