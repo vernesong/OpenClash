@@ -203,7 +203,7 @@ local function startlog()
 	return line_trans
 end
 
-local funciton pkg_type()
+local function pkg_type()
 	if fs.access("/usr/bin/apk") then
 		return "apk"
 	else
