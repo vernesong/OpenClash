@@ -346,7 +346,12 @@
 					var oplv = status.oplv;
 					var oplvis = oplv.substring(oplv.indexOf("v") + 1,oplv.indexOf(","));
 					if ( oplvis != "" ) {
-						url2='https://raw.githubusercontent.com/vernesong/OpenClash/package/'+r+'/luci-app-openclash_'+oplvis+'_all.ipk';
+						if (status.pkg_type == "apk") {
+							url2='https://raw.githubusercontent.com/vernesong/OpenClash/package/'+r+'/luci-app-openclash-'+oplvis+'.apk';
+						}
+						else {
+							url2='https://raw.githubusercontent.com/vernesong/OpenClash/package/'+r+'/luci-app-openclash_'+oplvis+'_all.ipk';
+						}
 						window.location.href=url2;
 					}
 					else {

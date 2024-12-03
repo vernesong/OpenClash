@@ -345,6 +345,8 @@ threads << Thread.new {
       Value['secret']='$2';
       Value['bind-address']='*';
       Value['external-ui']='/usr/share/openclash/ui';
+      Value['keep-alive-interval']=15;
+      Value['keep-alive-idle']=600;
       if $6 == 1 then
          Value['ipv6']=true;
       else

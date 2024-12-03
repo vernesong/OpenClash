@@ -3051,6 +3051,9 @@ msgstr "警告：TUN 接口启动失败，请检查依赖情况或稍后重试�
 msgid "Warning: TUN Interface Start Failed, Try to Restart Again..."
 msgstr "警告：TUN 接口启动失败，尝试重启内核..."
 
+msgid "Error: Core Start Failed, Please Check The Log Infos!"
+msgstr "错误：内核启动失败，请查看《内核日志》排查失败原因！"
+
 msgid "Forced Sniff Pure IP Connections"
 msgstr "强制探测（嗅探）所有纯 IP 的连接"
 
@@ -3428,3 +3431,9 @@ msgstr "直连"
 
 msgid "Error: Config File Overwrite Failed,"
 msgstr "错误：配置文件覆写失败，"
+
+msgid "Test Config Before Core Start"
+msgstr "启动前调用内核测试配置文件"
+
+msgid "Test Before Start"
+msgstr "启动前测试"
