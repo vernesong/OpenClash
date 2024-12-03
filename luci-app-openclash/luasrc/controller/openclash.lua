@@ -203,6 +203,14 @@ local function startlog()
 	return line_trans
 end
 
+local funciton pkg_type()
+	if fs.access("/usr/bin/apk") then
+		return "apk"
+	else
+		return "opkg"
+	end
+end
+
 local function coremodel()
 	if opkg and opkg.info("libc") and opkg.info("libc")["libc"] then
 		return opkg.info("libc")["libc"]["Architecture"]
@@ -1079,6 +1087,7 @@ function action_update_ma()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 			oplv = oplv(),
+			pkg_type = pkg_type(),
 			corelv = corelv(),
 			corever = corever();
 	})

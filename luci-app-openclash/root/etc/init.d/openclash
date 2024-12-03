@@ -662,7 +662,7 @@ do_run_file()
 
 config_test()
 {
-   if [ -f "$CLASH" ]; then
+   if [ -f "$CLASH" ] && [ "$test_before_start" -eq 1 ]; then
       LOG_OUT "Test The Config File First..."
       test_info=$(nohup $CLASH -t -d $CLASH_CONFIG -f "$CONFIG_FILE")
       local IFS=$'\n'
@@ -783,6 +783,7 @@ check_core_status()
 {
    TUN_WAIT=0
    TUN_RESTART=1
+   CORE_HTTP_CODE=0
    if [ -n "$en_mode_tun" ] || [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
       if [ -n "$en_mode_tun" ]; then
          ip_="ip"
@@ -824,6 +825,17 @@ check_core_status()
       ip route add default dev utun table "$PROXY_ROUTE_TABLE"
       ip rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 8000
       ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 8001
+   else
+      while ( [ -n "$(pidof clash)" ] && [ "$CORE_HTTP_CODE" != "200" ] && [ "$TUN_RESTART" -le 120 ] )
+      do
+         CORE_HTTP_CODE=$(curl -m 5 -o /dev/null -s -w '%{http_code}' -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XGET http://${lan_ip}:${cn_port}/group)
+         let TUN_WAIT++
+         sleep 1
+      done >/dev/null 2>&1
+      if [ -z "$(pidof clash)" ]; then
+         LOG_OUT "Error: Core Start Failed, Please Check The Log Infos!"
+         start_fail
+      fi
    fi
 }
 
@@ -2924,6 +2936,7 @@ get_config()
    intranet_allowed_wan_name=$(uci -q get openclash.config.intranet_allowed_wan_name || echo 0)
    custom_fakeip_filter_mode=$(uci -q get openclash.config.custom_fakeip_filter_mode || echo "blacklist")
    iptables_compat=$(iptables -m owner -h 2>/dev/null | grep "owner match options" || echo 0)
+   test_before_start=$(uci -q get openclash.config.test_before_start || echo 0)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q commit openclash
 }
