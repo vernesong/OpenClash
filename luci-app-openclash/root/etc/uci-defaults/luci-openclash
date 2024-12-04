@@ -98,6 +98,8 @@ uci -q commit openclash
 
 #Restore
 if [ -f "/tmp/openclash.bak" ]; then
+	#delete old geosite database first
+	rm -rf "/tmp/openclash/GeoSite.dat" >/dev/null 2>&1
 	mv -f "/tmp/openclash.bak" "/etc/config/openclash" >/dev/null 2>&1
 	cp -rf "/tmp/openclash/." "/etc/openclash/" >/dev/null 2>&1
 	if [ -d "/tmp/openclash_dashboard/" ]; then
