@@ -1,66 +1,66 @@
 rules:
-- RULE-SET, AdBlock, AdBlock
-- RULE-SET, HTTPDNS, HTTPDNS
-- RULE-SET, Special, DIRECT
-- RULE-SET, Netflix, Netflix
-- RULE-SET, Disney Plus, Disney
-- RULE-SET, YouTube, YouTube
-- RULE-SET, Max, Max
-- RULE-SET, Spotify, Spotify
-- RULE-SET, Bilibili, CN Mainland TV
-- RULE-SET, IQ, CN Mainland TV
-- RULE-SET, IQIYI, CN Mainland TV
-- RULE-SET, Letv, CN Mainland TV
-- RULE-SET, Netease Music, CN Mainland TV
-- RULE-SET, Tencent Video, CN Mainland TV
-- RULE-SET, WeTV, CN Mainland TV
-- RULE-SET, Youku, CN Mainland TV
-- RULE-SET, Abema TV, Asian TV
-- RULE-SET, Bahamut, Asian TV
-- RULE-SET, Fox+, Asian TV
-- RULE-SET, Hulu Japan, Asian TV
-- RULE-SET, Japonx, Asian TV
-- RULE-SET, JOOX, Asian TV
-- RULE-SET, KKBOX, Asian TV
-- RULE-SET, KKTV, Asian TV
-- RULE-SET, Line TV, Asian TV
-- RULE-SET, myTV SUPER, Asian TV
-- RULE-SET, Niconico, Asian TV
-- RULE-SET, ViuTV, Asian TV
-- RULE-SET, ABC, Global TV
-- RULE-SET, Amazon, Global TV
-- RULE-SET, BBC iPlayer, Global TV
-- RULE-SET, DAZN, Global TV
-- RULE-SET, Discovery Plus, Global TV
-- RULE-SET, encoreTVB, Global TV
-- RULE-SET, F1 TV, Global TV
-- RULE-SET, Fox Now, Global TV
-- RULE-SET, Hulu, Global TV
-- RULE-SET, Pandora, Global TV
-- RULE-SET, PBS, Global TV
-- RULE-SET, Pornhub, Global TV
-- RULE-SET, Soundcloud, Global TV
-- RULE-SET, Apple Music, Apple TV
-- RULE-SET, Apple News, Apple TV
-- RULE-SET, Apple TV, Apple TV
-- RULE-SET, Apple, Apple
-- RULE-SET, Telegram, Telegram
-- RULE-SET, Crypto, Crypto
-- RULE-SET, Discord, Discord
-- RULE-SET, Google FCM, Google FCM
-- RULE-SET, Microsoft, Microsoft
-- RULE-SET, AI Suite, AI Suite
-- RULE-SET, PayPal, PayPal
-- RULE-SET, Scholar, Scholar
-- RULE-SET, Speedtest, Speedtest
-- RULE-SET, Steam, Steam
-- RULE-SET, miHoYo, miHoYo
-- RULE-SET, PROXY, Proxy
-- RULE-SET, Domestic, Domestic
-- RULE-SET, Domestic IPs, Domestic
-- RULE-SET, LAN, DIRECT
-- GEOIP, CN, Domestic
-- MATCH, Others
+- RULE-SET,AdBlock,AdBlock
+- RULE-SET,HTTPDNS,HTTPDNS
+- RULE-SET,Special,DIRECT
+- RULE-SET,Netflix,Netflix
+- RULE-SET,Disney Plus,Disney
+- RULE-SET,YouTube,YouTube
+- RULE-SET,Max,Max
+- RULE-SET,Spotify,Spotify
+- RULE-SET,Bilibili,CN Mainland TV
+- RULE-SET,IQ,CN Mainland TV
+- RULE-SET,IQIYI,CN Mainland TV
+- RULE-SET,Letv,CN Mainland TV
+- RULE-SET,Netease Music,CN Mainland TV
+- RULE-SET,Tencent Video,CN Mainland TV
+- RULE-SET,WeTV,CN Mainland TV
+- RULE-SET,Youku,CN Mainland TV
+- RULE-SET,Abema TV,Asian TV
+- RULE-SET,Bahamut,Asian TV
+- RULE-SET,Fox+,Asian TV
+- RULE-SET,Hulu Japan,Asian TV
+- RULE-SET,Japonx,Asian TV
+- RULE-SET,JOOX,Asian TV
+- RULE-SET,KKBOX,Asian TV
+- RULE-SET,KKTV,Asian TV
+- RULE-SET,Line TV,Asian TV
+- RULE-SET,myTV SUPER,Asian TV
+- RULE-SET,Niconico,Asian TV
+- RULE-SET,ViuTV,Asian TV
+- RULE-SET,ABC,Global TV
+- RULE-SET,Amazon,Global TV
+- RULE-SET,BBC iPlayer,Global TV
+- RULE-SET,DAZN,Global TV
+- RULE-SET,Discovery Plus,Global TV
+- RULE-SET,encoreTVB,Global TV
+- RULE-SET,F1 TV,Global TV
+- RULE-SET,Fox Now,Global TV
+- RULE-SET,Hulu,Global TV
+- RULE-SET,Pandora,Global TV
+- RULE-SET,PBS,Global TV
+- RULE-SET,Pornhub,Global TV
+- RULE-SET,Soundcloud,Global TV
+- RULE-SET,Apple Music,Apple TV
+- RULE-SET,Apple News,Apple TV
+- RULE-SET,Apple TV,Apple TV
+- RULE-SET,Apple,Apple
+- RULE-SET,Telegram,Telegram
+- RULE-SET,Crypto,Crypto
+- RULE-SET,Discord,Discord
+- RULE-SET,Google FCM,Google FCM
+- RULE-SET,Microsoft,Microsoft
+- RULE-SET,AI Suite,AI Suite
+- RULE-SET,PayPal,PayPal
+- RULE-SET,Scholar,Scholar
+- RULE-SET,Speedtest,Speedtest
+- RULE-SET,Steam,Steam
+- RULE-SET,miHoYo,miHoYo
+- RULE-SET,PROXY,Proxy
+- RULE-SET,Domestic,Domestic
+- RULE-SET,Domestic IPs,Domestic
+- RULE-SET,LAN,DIRECT
+- GEOIP,CN,Domestic
+- MATCH,Others
 rule-providers:
   AdBlock:
     type: http
