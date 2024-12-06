@@ -79,8 +79,8 @@
       elif ! "$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          Value = YAML.load_file('/usr/share/openclash/res/${rule_name}.yaml');
          Value_1 = YAML.load_file('/tmp/rules.yaml');
-         OLD_GROUP = Value['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;
-         NEW_GROUP = Value_1['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq;
+         OLD_GROUP = Value['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq.map(&:strip);
+         NEW_GROUP = Value_1['rules'].collect{|x| x.split(',')[2] or x.split(',')[1]}.uniq.map(&:strip);
          if (OLD_GROUP | NEW_GROUP).eql?(OLD_GROUP) then
             if (OLD_GROUP | NEW_GROUP).eql?(NEW_GROUP) then
                puts true
