@@ -86,9 +86,10 @@ end
 ---- UA
 o = s:option(Value, "sub_ua", "User-Agent")
 o.description = font_red..bold_on..translate("Used for Downloading Subscriptions, Defaults to Clash")..bold_off..font_off
-o:value("Clash")
 o:value("clash.meta")
-o.default = "Clash"
+o:value("clash-verge/v1.5.1")
+o:value("Clash")
+o.default = "clash.meta"
 o.rmempty = true
 
 ---- subconverter

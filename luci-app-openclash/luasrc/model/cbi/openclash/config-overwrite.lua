@@ -69,11 +69,10 @@ o:value("http://captive.apple.com/generate_204")
 o.default = "0"
 
 o = s:taboption("settings", Value, "github_address_mod", translate("Github Address Modify"))
-o.description = translate("Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Faild. Format Reference:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://mirror.ghproxy.com/\")'>https://mirror.ghproxy.com/</a>"
+o.description = translate("Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Faild. Format Reference:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://ghp.ci/\")'>https://ghp.ci/</a>"
 o:value("0", translate("Disable"))
 o:value("https://fastly.jsdelivr.net/")
 o:value("https://testingcf.jsdelivr.net/")
-o:value("https://raw.fastgit.org/")
 o:value("https://cdn.jsdelivr.net/")
 o.default = "0"
 

@@ -44,14 +44,18 @@ cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
 EOF
 
 #Set Dashboard Secret
-uci -q set openclash.config.dashboard_password="$(tr -cd 'a-zA-Z0-9' </dev/urandom 2>/dev/null| head -c8 || date +%N| md5sum |head -c8)"
+if [ -z "$(uci -q get openclash.config.dashboard_password)" ]; then
+	uci -q set openclash.config.dashboard_password="$(tr -cd 'a-zA-Z0-9' </dev/urandom 2>/dev/null| head -c8 || date +%N| md5sum |head -c8)"
+fi
 
-#Set authentication
-uci_name_tmp=$(uci -q add openclash authentication)
-uci_set="uci -q set openclash.$uci_name_tmp."
-${uci_set}enabled="1"
-${uci_set}username="Clash"
-${uci_set}password="$(tr -cd 'a-zA-Z0-9' </dev/urandom 2>/dev/null| head -c8 || date +%N| md5sum |head -c8)"
+#Set Authentication
+if [ -z "$(uci -q get openclash.@authentication[0])" ]; then
+	uci_name_tmp=$(uci -q add openclash authentication)
+	uci_set="uci -q set openclash.$uci_name_tmp."
+	${uci_set}enabled="1"
+	${uci_set}username="Clash"
+	${uci_set}password="$(tr -cd 'a-zA-Z0-9' </dev/urandom 2>/dev/null| head -c8 || date +%N| md5sum |head -c8)"
+fi
 
 #Set Core Model
 source "/etc/openwrt_release"
