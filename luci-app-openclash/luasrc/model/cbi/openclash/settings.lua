@@ -95,10 +95,6 @@ o = s:taboption("op_mode", Value, "log_size", translate("Log Size (KB)"))
 o.description = translate("Set Log File Size (KB)")
 o.default = "1024"
 
-o = s:taboption("op_mode", Flag, "test_before_start", translate("Test Before Start"))
-o.description = translate("Test Config Before Core Start")
-o.default = 0
-
 o = s:taboption("op_mode", Flag, "bypass_gateway_compatible", translate("Bypass Gateway Compatible"))
 o.description = translate("If The Network Cannot be Connected in Bypass Gateway Mode, Please Try to Enable.")..font_red..bold_on..translate("Suggestion: If The Device Does Not Have WLAN, Please Disable The Lan Interface's Bridge Option")..bold_off..font_off
 o.default = 0

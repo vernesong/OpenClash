@@ -3431,9 +3431,3 @@ msgstr "直连"
 
 msgid "Error: Config File Overwrite Failed,"
 msgstr "错误：配置文件覆写失败，"
-
-msgid "Test Config Before Core Start"
-msgstr "启动前调用内核测试配置文件"
-
-msgid "Test Before Start"
-msgstr "启动前测试"
