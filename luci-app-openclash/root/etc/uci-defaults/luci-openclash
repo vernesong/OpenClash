@@ -103,7 +103,9 @@ uci -q commit openclash
 #Restore
 if [ -f "/tmp/openclash.bak" ]; then
 	#delete old geosite database first
-	rm -rf "/tmp/openclash/GeoSite.dat" >/dev/null 2>&1
+	if [ "/etc/openclash/GeoSite.dat" -nt "/tmp/openclash/GeoSite.dat" ]; then
+		rm -rf "/tmp/openclash/GeoSite.dat" >/dev/null 2>&1
+	fi
 	mv -f "/tmp/openclash.bak" "/etc/config/openclash" >/dev/null 2>&1
 	cp -rf "/tmp/openclash/." "/etc/openclash/" >/dev/null 2>&1
 	if [ -d "/tmp/openclash_dashboard/" ]; then
@@ -129,7 +131,6 @@ if [ -f "/tmp/openclash.bak" ]; then
 	rm -rf "/etc/openclash/custom/openclash_sniffing_ports_filter.yaml" >/dev/null 2>&1
 	rm -rf "/etc/openclash/custom/openclash_sniffing_port_filter.yaml" >/dev/null 2>&1
 	rm -rf "/etc/openclash/custom/openclash_sniffing_domain_filter.yaml" >/dev/null 2>&1
-	rm -rf "/etc/config/openclash.apk-new" >/dev/null 2>&1
 fi
 
 uci -q set openclash.config.enable=0
