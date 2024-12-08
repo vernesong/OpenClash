@@ -3431,3 +3431,6 @@ msgstr "直连"
 
 msgid "Error: Config File Overwrite Failed,"
 msgstr "错误：配置文件覆写失败，"
+
+msgid "Edit"
+msgstr "编辑"
