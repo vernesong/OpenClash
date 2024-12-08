@@ -29,8 +29,6 @@ o = s:option(ListValue, "rule_sources", translate("Choose Template For Create Co
 o.description = translate("Use Other Rules To Create Config")
 o:depends("create_config", 1)
 o:value("lhie1", translate("lhie1 Rules"))
-o:value("ConnersHua", translate("ConnersHua(Provider-type) Rules"))
-o:value("ConnersHua_return", translate("ConnersHua Return Rules"))
 
 o = s:option(Flag, "mix_proxies", translate("Mix Proxies"))
 o.description = font_red .. bold_on .. translate("Mix This Page's Proxies") .. bold_off .. font_off
