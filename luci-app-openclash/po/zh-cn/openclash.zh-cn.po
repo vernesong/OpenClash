@@ -2298,9 +2298,6 @@ msgstr "错误：设置自定义规则失败，"
 msgid "Error: Set BT/P2P DIRECT Rules Failed,"
 msgstr "错误：设置仅代理命中规则流量（BT/P2P直连）失败，"
 
-msgid "Error: Set Loop Protect Rules Failed,"
-msgstr "错误：设置防回环规则失败，"
-
 msgid "Error: Set lhie1 Rules Failed,"
 msgstr "错误：设置第三方规则（lhie1）失败，"
 

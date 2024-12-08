@@ -286,7 +286,6 @@ yml_other_set()
    config_foreach yml_rule_group_get "rule_provider_config" "$3"
    config_foreach yml_rule_group_get "rule_providers" "$3"
    config_foreach yml_rule_group_get "game_config" "$3"
-   local fake_ip="$(echo "${11}" |awk -F '/' '{print $1}')"
    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
       Value = YAML.load_file('$3');
@@ -402,19 +401,15 @@ yml_other_set()
 
       #Router Self Proxy Rule
       begin
-         if $6 == 0 and ${10} != 2 and '${12}' == 'fake-ip' then
+         if $6 == 0 and $8 != 2 and '$9' == 'fake-ip' then
             if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-               if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'${fake_ip}')/).empty? then
-                  Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,${11},DIRECT');
-               end
                if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'$7')/).empty? and not '$7'.empty? then
                   Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,$7/32,DIRECT');
                end;
             else
-               Value['rules']=['SRC-IP-CIDR,${11},DIRECT','SRC-IP-CIDR,$7/32,DIRECT'];
+               Value['rules']=['SRC-IP-CIDR,$7/32,DIRECT'];
             end;
          elsif Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-            Value['rules'].delete('SRC-IP-CIDR,${11},DIRECT');
             Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT');
          end;
       rescue Exception => e
@@ -445,12 +440,7 @@ yml_other_set()
             end;
             if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
                Value_1 = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml');
-               if Value['rules'].to_a.grep(/(?=.*'${fake_ip}')(?=.*REJECT)/).empty? then
-                  Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(0,x)};
-               else
-                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/(?=.*'${fake_ip}')(?=.*REJECT)/).first);
-                  Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(ruby_add_index + 1,x)};
-               end;
+               Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(0,x)};
             end;
          else
             if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
@@ -623,25 +613,6 @@ yml_other_set()
          end;
       rescue Exception => e
          YAML.LOG('Error: Set Custom Rules Failed,【' + e.message + '】');
-      end;
-
-      #loop prevent
-      begin
-         if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-            if Value['rules'].to_a.grep(/(?=.*'${fake_ip}')(?=.*REJECT)/).empty? then
-               Value['rules']=Value['rules'].to_a.insert(0,'IP-CIDR,${11},REJECT,no-resolve');
-            end;
-            if Value['rules'].to_a.grep(/(?=.*DST-PORT,'$8',REJECT)/).empty? then
-               Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$8,REJECT');
-            end;
-            if Value['rules'].to_a.grep(/(?=.*DST-PORT,'$9',REJECT)/).empty? then
-               Value['rules']=Value['rules'].to_a.insert(0,'DST-PORT,$9,REJECT');
-            end;
-         else
-            Value['rules']=['IP-CIDR,${11},REJECT,no-resolve','DST-PORT,$8,REJECT','DST-PORT,$9,REJECT'];
-         end;
-      rescue Exception => e
-         YAML.LOG('Error: Set Loop Protect Rules Failed,【' + e.message + '】');
       end;
    };
 
@@ -875,7 +846,7 @@ if [ "$1" != "0" ]; then
    config_foreach yml_other_rules_get "other_rules" "$5"
    if [ -z "$rule_name" ]; then
       SKIP_CUSTOM_OTHER_RULES=1
-      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
       exit 0
    #判断策略组是否存在
    elif [ "$rule_name" = "lhie1" ]; then
@@ -912,16 +883,16 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
          LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
          SKIP_CUSTOM_OTHER_RULES=1
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
+         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
          exit 0
        fi
    fi
    if [ -z "$Proxy" ]; then
       LOG_OUT "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
       SKIP_CUSTOM_OTHER_RULES=1
-      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
       exit 0
    fi
 fi
 
-yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}"
+yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
