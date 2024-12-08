@@ -14,6 +14,7 @@ BACKUP_FILE="/etc/openclash/backup/$(uci -q get openclash.config.config_path |aw
 CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 TMP_CONFIG_FILE="/tmp/yaml_config_tmp_$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 FW4=$(command -v fw4)
+# 获取默认的 DNSMASQ 配置 ID
 DEFAULT_DNSMASQ_CFGID="$(uci -q show "dhcp.@dnsmasq[0]" | awk 'NR==1 {split($0, conf, /[.=]/); print conf[2]}')"
 # 从 conf-dir 行中提取配置目录路径
 if [ -f "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID" ]; then
@@ -21,6 +22,7 @@ if [ -f "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID" ]; then
 else
    DNSMASQ_CONF_DIR="/tmp/dnsmasq.d"
 fi
+# 设置 DNSMASQ_CONF_DIR，并去除路径末尾的斜杠
 DNSMASQ_CONF_DIR=${DNSMASQ_CONF_DIR%*/}
 }
 CLASH="/etc/openclash/clash"
