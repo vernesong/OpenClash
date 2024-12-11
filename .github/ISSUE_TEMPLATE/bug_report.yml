@@ -1,0 +1,153 @@
+name: Bug报告
+description: Create a Bug report to help us improve
+title: "[Bug] "
+labels: ["bug"]
+body:
+
+  - type: checkboxes
+    id: verify_step
+    attributes:
+      label: Verify Steps
+      description: |
+        在提交之前，请确认 / Please verify that you've followed these steps.
+      options:
+        - label: Tracker 我已经在 [Issue Tracker](……/) 中找过我要提出的问题
+          required: true
+        - label: Branch 我知道 OpenClash 的 Dev 分支切换开关位于插件设置-版本更新中，或者我会手动下载并安装 Dev 分支的 OpenClash
+          required: true
+        - label: Latest 我已经**使用最新 Dev 版本**测试过，问题依旧存在
+          required: true
+        - label: Relevant 我知道 OpenClash 与 内核(Core)、控制面板(Dashboard)、在线订阅转换(Subconverter)等项目之间**无直接关系**，仅相互调用
+          required: true
+        - label: Definite 这确实是 OpenClash 出现的问题
+          required: true
+        - label: Contributors 我有能力协助 OpenClash 开发并解决此问题
+          required: false
+        - label: Meaningless 我提交的**是无意义的**催促更新或修复请求
+          required: false
+
+  - type: input
+    id: openclash_version
+    attributes:
+      label: OpenClash Version
+      description: |
+        OpenClash 版本号
+      placeholder: "v0.0.0-beta"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: bug_os
+    attributes:
+      label: Bug on Environment
+      description: |
+        发现问题所在的系统环境 / System Environment
+      multiple: true
+      options:
+        - Official OpenWrt
+        - Lean
+        - Immortalwrt
+        - Istoreos
+        - Docker
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: openwrt_version
+    attributes:
+      label: OpenWrt Version
+      description: |
+        Openwrt 固件版本
+      placeholder: "OpenWrt 0.0.0 r0-0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: bug_platform
+    attributes:
+      label: Bug on Platform
+      description: |
+        发现问题所在的架构平台 / Platform
+      multiple: true
+      options:
+        - Linux-386
+        - Linux-amd64(x86-64)
+        - Linux-amd64-v3(x86-64)
+        - Linux-armv5
+        - Linux-armv6
+        - Linux-armv7
+        - Linux-arm64
+        - Linux-loong64
+        - Linux-mips-hardfloat
+        - Linux-mips-softfloat
+        - Linux-mips64
+        - Linux-mips64le
+        - Linux-mipsle-hardfloat
+        - Linux-mipsle-softfloat
+        - Linux-riscv64
+        - Other
+        - All
+    validations:
+      required: true
+
+  - type: textarea
+    id: describe_bug
+    attributes:
+      label: Describe the Bug
+      description: |
+        对 Bug 本身清晰而简洁的描述 / Describe the Bug
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce_bug
+    attributes:
+      label: To Reproduce
+      description: |
+        复现此 Bug 的步骤 / How to reproduce?
+    validations:
+      required: true
+
+  - type: textarea
+    id: openclash_log
+    attributes:
+      label: OpenClash Log
+      description: |
+        在下方附上 OpenClash 调试日志 / OpenClash Debug Log
+        调试日志在插件设置-调试日志中生成，**并非只有运行日志**，如调试日志过长，可作为附件在最下方上传
+        **隐私提示: 上传此日志前请注意检查、屏蔽公网IP、节点、密码等相关敏感信息**
+      placeholder: "我已知晓缺失日志可能会导致开发者无法了解我的情况并降低本issue的处理优先级"
+      render: log
+    validations:
+      required: true
+
+  - type: textarea
+    id: openclash_config
+    attributes:
+      label: OpenClash Config
+      description: |
+        在下方附上与 Bug 相关的系统配置、防火墙规则或环境变量 / System config
+        非 Clash Yaml 文件
+        **非必填项**
+      render: shell
+    validations:
+      required: false
+
+  - type: textarea
+    id: excepted_behavior
+    attributes:
+      label: Expected Behavior
+      description: |
+        对预期修复后情况的清晰明了的描述 / Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional_context
+    attributes:
+      label: Additional Context
+      description: |
+        在此处添加其它信息或屏幕截图 / Additional Context
+    validations:
+      required: false

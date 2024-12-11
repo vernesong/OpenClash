@@ -1,0 +1,47 @@
+blank_issues_enabled: false
+
+contact_links:
+
+  - name: 发表Issue前请先在Issues与Discussions中搜索相关内容
+    url: https://github.com/ryanhanwu/How-To-Ask-Questions-The-Smart-Way/blob/main/README-zh_CN.md#在提问之前
+    about: 请有意义且描述明确的描述问题症状而非你的猜测 问题解决后加个简短的补充说明
+
+  - name: 启动成功后无法访问个别网站 | 启动成功后个别网站不想走代理流量
+    url: https://www.bing.com/search?q=clash+rule+写+教&ensearch=1
+    about: 想要了解clash规则编写相关的问题
+
+  - name: CLASH CORE | PERIUM CORE & 内核问题 | 节点协议加密方式 | 规则 | 内核功能建议
+    url: https://github.com/Dreamacro/clash/issues/new/choose
+    about: 原版内核 | P核
+
+  - name: META CORE | MIHOMO CORE & 内核问题 | 节点协议加密方式 | 规则 | 内核功能建议
+    url: https://github.com/MetaCubeX/mihomo/issues/new/choose
+    about: M核
+
+  - name: 在线订阅转换问题 | 在线订阅转换增加节点协议加密方式 | 在线订阅转换功能建议
+    url: https://github.com/tindy2013/subconverter/issues/new/choose
+    about: 提供并增加预设订阅转换服务地址请通过上方 功能请求 发表
+
+  - name: DASHBOARD & 控制面板问题 | 面板功能建议
+    url: https://github.com/Dreamacro/clash-dashboard/issues/new/choose
+    about: 面板问题先请尝试 更换近期未使用过面板设备 或 使用浏览器隐私匿名无痕...模式 访问
+
+  - name: YACD & 控制面板问题 | 面板功能建议
+    url: https://github.com/haishanh/yacd/issues/new/choose
+    about: 面板问题先请尝试 更换近期未使用过面板设备 或 使用浏览器隐私匿名无痕...模式 访问
+
+  - name: METACUBEXD & 控制面板问题 | 面板功能建议
+    url: https://github.com/MetaCubeX/metacubexd/issues/new/choose
+    about: 面板问题先请尝试 更换近期未使用过面板设备 或 使用浏览器隐私匿名无痕...模式 访问
+
+  - name: YACD-META & 控制面板问题 | 面板功能建议
+    url: https://github.com/MetaCubeX/Yacd-meta/issues/new/choose
+    about: 面板问题先请尝试 更换近期未使用过面板设备 或 使用浏览器隐私匿名无痕...模式 访问
+
+  - name: DASHBOARD-META & 控制面板问题 | 面板功能建议
+    url: https://github.com/MetaCubeX/Razord-meta/issues/new/choose
+    about: 面板问题先请尝试 更换近期未使用过面板设备 或 使用浏览器隐私匿名无痕...模式 访问
+
+  - name: 我想讨论OpenClash的某个功能 | 我不确定是什么问题 | 我的问题不属于上述选项 | 我的问题无法得到原作者原仓库的帮助
+    url: https://github.com/vernesong/OpenClash/discussions/new/choose
+    about: 礼多人不怪 而且有时还很有帮助

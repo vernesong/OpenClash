@@ -1,0 +1,40 @@
+name: 功能请求
+description: Suggest an idea for this project
+title: "[Feature] "
+labels: [enhancement]
+body:
+
+  - type: checkboxes
+    id: verify_step
+    attributes:
+      label: Verify Steps
+      description: "在提交之前，请确认 / Please verify that you've followed these steps"
+      options:
+        - label: Tracker 我已经在 [Issue Tracker](……/) 中找过我要提出的问题
+          required: true
+        - label: Latest 我已经**使用最新 Dev 版本**查看过，并不包含该功能特性或者还不完善
+          required: true
+        - label: Relevant 我知道 OpenClash 与 内核(Core)、控制面板(Dashboard)、在线订阅转换(Subconverter)等项目之间**无直接关系**，仅相互调用
+          required: true
+        - label: Definite 这确实是 OpenClash 应包含的特性
+          required: true
+        - label: Contributors 我有能力协助 OpenClash 开发或完善此功能特性
+          required: false
+        - label: Meaningless 我提交的**是无意义的**催促更新或修复请求
+          required: false
+
+  - type: textarea
+    attributes:
+      label: Describe the Feature
+      description: |
+         清晰明了地描述您的想法. 例如你想实现什么 Feature 特性或功能? 如何实现该功能? 目前 OpenClash 的行为是什么?
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Describe Alternatives
+      description: |
+        对您考虑过的任何替代解决方案或备选功能进行清晰、简洁的描述.
+    validations:
+      required: false

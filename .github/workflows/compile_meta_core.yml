@@ -1,0 +1,161 @@
+
+name: Compile The New Clash Meta Core
+
+on:
+  schedule:
+    - cron: "0 20 * * 1,3,5,6"
+  workflow_dispatch:
+  
+jobs:
+  Get-Commit-id:
+    runs-on: ubuntu-latest
+    outputs:
+      current_id: ${{ steps.current_id.outputs.current_id }}
+      upstream_id:  ${{ steps.upstream_id.outputs.upstream_id }}
+    steps:
+      - name: Apt Update
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install git
+
+      - name: Clone OpenClash Repository
+        uses: actions/checkout@v4
+        with:
+          ref: core
+      
+      - name: Get Current Version
+        id: current_id
+        run: |
+          echo "current_id=$(sed -n 3p ./dev/core_version)" >> $GITHUB_OUTPUT
+          echo "current_id: $(sed -n 3p ./dev/core_version)"
+
+      - name: Clone Clash Meta Repository
+        uses: actions/checkout@v4
+        with:
+          repository: MetaCubeX/mihomo
+          ref: Alpha
+      
+      - name: Get Upstream Version
+        id: upstream_id
+        run: |
+          echo "upstream_id=alpha-g$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "upstream_id: alpha-g$(git rev-parse --short HEAD)"
+
+  Compile:
+    runs-on: ubuntu-latest
+    needs: Get-Commit-id
+    if: ${{ needs.Get-Commit-id.outputs.current_id != needs.Get-Commit-id.outputs.upstream_id }}
+    steps:
+      - name: Apt Update
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo apt-get update
+          sudo apt-get -y install wget git tar
+
+      - name: Setup UPX
+        run: |
+          cd ..
+          wget https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+          tar xf upx-3.95-amd64_linux.tar.xz
+          echo "upx=../upx-3.95-amd64_linux/upx" >> $GITHUB_ENV
+
+      - name: Clone OpenClash Repository
+        uses: actions/checkout@v4
+        with:
+          ref: core
+
+      - name: Copy Makefile
+        run: |
+          cd ..
+          mkdir tmp
+          mkdir tmp/bin
+          cp ./OpenClash/.github/makefile/meta ./tmp/Makefile
+
+      - name: Copy loongarch abi1 Makefile
+        run: |
+          cd ..
+          mkdir -p tmp/loong64_abi1/bin
+          cp ./OpenClash/.github/makefile/meta_loongarch_abi1 ./tmp/loong64_abi1/Makefile
+      
+      - name: Copy loongarch abi2 Makefile
+        run: |
+          cd ..
+          mkdir -p tmp/loong64_abi2/bin
+          cp ./OpenClash/.github/makefile/meta_loongarch_abi2 ./tmp/loong64_abi2/Makefile
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.23"
+          check-latest: true
+
+      - name: Clone Clash Meta Repository
+        uses: actions/checkout@v4
+        with:
+          repository: MetaCubeX/mihomo
+          ref: Alpha
+      
+      - name: Compile Meta Clash
+        run: |
+          cp ../tmp/Makefile ./Makefile
+          make releases
+          
+      - name: Copy Clash Bin
+        run: |
+          cp -rf "./bin/." "../tmp/bin/"
+          rm -rf ./bin/*
+
+      - name: Setup loongarch abi1 Go
+        run: |
+          wget -q https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.22.4/go1.22.4.linux-amd64-abi1.tar.gz
+          sudo tar zxf go1.22.4.linux-amd64-abi1.tar.gz -C /usr/local
+          echo "/usr/local/go/bin" >> $GITHUB_PATH
+
+      - name: Compile Meta loongarch abi1 Clash
+        run: |
+          cp ../tmp/loong64_abi1/Makefile ./Makefile
+          make releases
+
+      - name: Copy loongarch abi1 Clash Bin
+        run: |
+          cp -rf "./bin/." "../tmp/loong64_abi1/bin/"
+          rm -rf ./bin/*
+
+      - name: Setup loongarch abi2 Go
+        run: |
+          wget -q https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.22.4/go1.22.4.linux-amd64-abi2.tar.gz
+          sudo tar zxf go1.22.4.linux-amd64-abi2.tar.gz -C /usr/local
+
+      - name: Compile Meta loongarch abi2 Clash
+        run: |
+          cp ../tmp/loong64_abi2/Makefile ./Makefile
+          make releases
+
+      - name: Copy loongarch abi2 Clash Bin
+        run: |
+          cp -rf "./bin/." "../tmp/loong64_abi2/bin/"
+
+      - name: Clone OpenClash Repository
+        uses: actions/checkout@v4
+        with:
+          ref: core
+
+      - name: Change Version
+        run: |
+          sed -i '3d' ./dev/core_version
+          sed -i "2a ${{ needs.Get-Commit-id.outputs.upstream_id }}" ./dev/core_version
+
+      - name: Commit and push
+        run: |
+          rm -rf ./dev/meta/*
+          cp -rf "../tmp/bin/." "./dev/meta/"
+          cp -rf "../tmp/loong64_abi1/bin/." "./dev/meta/"
+          cp -rf "../tmp/loong64_abi2/bin/." "./dev/meta/"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m "Auto update Meta core: ${{ needs.Get-Commit-id.outputs.upstream_id }}"
+          git push
