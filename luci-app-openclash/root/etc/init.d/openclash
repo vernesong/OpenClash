@@ -826,7 +826,7 @@ check_core_status()
 firewall_rule_exclude()
 {
    local section="$1"
-   local name src dest dest_port proto target enabled family
+   local name src dest dest_port dest_ip proto target enabled family
 
    config_get "name" "$section" "name" ""
    config_get "src" "$section" "src" ""
@@ -837,6 +837,18 @@ firewall_rule_exclude()
    config_get "target" "$section" "target" ""
    config_get "enabled" "$section" "enabled" ""
    config_get "family" "$section" "family" ""
+
+   ipv6_suffix_to_nft_format() {
+       local ipv6_with_prefix="$1"
+          if [[ "$ipv6_with_prefix" =~ / ]]; then
+             local suffix="${ipv6_with_prefix%%/*}"
+             local prefix="${ipv6_with_prefix##*/}"
+             echo "& $prefix == $suffix"
+          else
+             echo "$ipv6_with_prefix"
+          fi
+   }
+   nft_ipv6=$(ipv6_suffix_to_nft_format "$dest_ip")
 
    if [ a"$target" != aACCEPT  ] || [ a"$enabled" == a0 ]; then
       return
@@ -862,6 +874,8 @@ firewall_rule_exclude()
    fi
 
    if [ -n "$FW4" ]; then
+      dest_ip=$(echo $dest_ip |sed "s/ /,/g" 2>/dev/null)
+
       if [ -z "$family" ] || [ "$family" == "ipv4" ]; then
          if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
             for i in $dest_port; do
@@ -911,7 +925,11 @@ firewall_rule_exclude()
                   if [ -z "$dest_ip" ]; then
                      nft insert rule inet fw4 openclash_mangle_v6 position 0 meta nfproto {ipv6} tcp sport "$i" counter return >/dev/null 2>&1
                   else
-                     nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$i" counter return >/dev/null 2>&1
+                     if [[ "$dest_ip" =~ , ]]; then
+                        nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } tcp sport "$i" counter return >/dev/null 2>&1
+                     else
+                        nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr "$nft_ipv6" tcp sport "$i" counter return >/dev/null 2>&1
+                     fi
                   fi
                   nft insert rule inet fw4 openclash_mangle_output_v6 position 0 meta nfproto {ipv6} tcp sport "$i" counter return >/dev/null 2>&1
                fi
@@ -919,13 +937,18 @@ firewall_rule_exclude()
                   if [ -z "$dest_ip" ]; then
                      nft insert rule inet fw4 openclash_mangle_v6 position 0 meta nfproto {ipv6} udp sport "$i" counter return >/dev/null 2>&1
                   else
-                     nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } udp sport "$i" counter return >/dev/null 2>&1
+                     if [[ "$dest_ip" =~ , ]]; then
+                        nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr { "$dest_ip" } udp sport "$i" counter return >/dev/null 2>&1
+                     else
+                        nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr "$nft_ipv6" udp sport "$i" counter return >/dev/null 2>&1
+                     fi
                   fi
                   nft insert rule inet fw4 openclash_mangle_output_v6 position 0 meta nfproto {ipv6} udp sport "$i" counter return >/dev/null 2>&1
                fi
             done
          fi
       fi
+
    else
       dest_port=$(echo $dest_port |sed "s/-/:/g" 2>/dev/null)
       dest_ip=$(echo $dest_ip |sed "s/ /,/g" 2>/dev/null)
