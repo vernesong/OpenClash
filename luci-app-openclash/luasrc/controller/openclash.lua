@@ -621,10 +621,18 @@ function set_subinfo_url()
 end
 
 function sub_info_get()
-	local filepath, filename, sub_url, sub_info, info, upload, download, total, expire, http_code, len, percent, day_left, day_expire, surplus, used
+	local sub_ua, filepath, filename, sub_url, sub_info, info, upload, download, total, expire, http_code, len, percent, day_left, day_expire, surplus, used
 	local info_tb = {}
 	filename = luci.http.formvalue("filename")
 	sub_info = ""
+	sub_ua = "Clash"
+	uci:foreach("openclash", "config_subscribe",
+		function(s)
+			if s.name == filename and s.sub_ua then
+				sub_ua = s.sub_ua
+			end
+		end
+	)
 	if filename and not is_start() then
 		uci:foreach("openclash", "subscribe_info",
 			function(s)
@@ -647,7 +655,7 @@ function sub_info_get()
 		if not sub_url then
 			sub_info = "No Sub Info Found"
 		else
-			info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Clash' '%s'", sub_url))
+			info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: %s' '%s'", sub_ua, sub_url))
 			if not info or tonumber(string.sub(string.match(info, "http_code=%d+"), 11, -1)) ~= 200 then
 				info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Quantumultx' '%s'", sub_url))
 			end
