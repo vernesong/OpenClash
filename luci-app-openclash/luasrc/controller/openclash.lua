@@ -621,7 +621,7 @@ function sub_info_get()
 	sub_ua = "Clash"
 	uci:foreach("openclash", "config_subscribe",
 		function(s)
-			if s.name == filename then
+			if s.name == filename and s.sub_ua then
 				sub_ua = s.sub_ua
 			end
 		end
