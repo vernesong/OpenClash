@@ -192,10 +192,61 @@ mac_w.datatype = "list(macaddr)"
 mac_w.rmempty  = true
 mac_w:depends("lan_ac_mode", "1")
 
+o = s:taboption("lan_ac", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
+o.datatype = "ipmask"
+o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
+
+s2 = m:section(TypedSection, "lan_ac_traffic", translate("Lan Traffic Access List"),
+	"1."..translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails").." ".."2."..translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported"))
+
+s2.template  = "cbi/tblsection"
+s2.sortable  = true
+s2.anonymous = true
+s2.addremove = true
+
+s2:option(Value, "comment", translate("Comment"))
+
+o = s2:option(Flag, "enabled", translate("Enable"))
+o.rmempty = false
+o.default = o.enabled
+o.cfgvalue = function(...)
+    return Flag.cfgvalue(...) or "1"
+end
+
+ip_ac = s2:option(Value, "src_ip", translate("Internal addresses"))
+ip_ac.datatype = "ipmask"
+ip_ac.placeholder = "0.0.0.0/0"
+ip_ac.rmempty = true
+
+o = s2:option(Value, "src_port", translate("Internal ports"))
+o.datatype = "or(port, portrange)"
+o.placeholder = translate("5000 or 1234-2345")
+o.rmempty = true
+
+o = s2:option(ListValue, "proto", translate("Proto"))
+o:value("udp", translate("UDP"))
+o:value("tcp", translate("TCP"))
+o:value("both", translate("Both"))
+o.default = "tcp"
+o.rmempty = true
+
+o = s2:option(ListValue, "family", translate("Family"))
+o:value("ipv4", translate("IPv4"))
+o:value("ipv6", translate("IPv6"))
+o:value("both", translate("Both"))
+o.default = "tcp"
+o.rmempty = true
+
+o = s2:option(ListValue, "target", translate("Target"))
+o:value("return", translate("Return"))
+o:value("accept", translate("Accept"))
+o.rmempty = true
+
 luci.ip.neighbors({ family = 4 }, function(n)
 	if n.mac and n.dest then
 		ip_b:value(n.dest:string())
 		ip_w:value(n.dest:string())
+		ip_ac:value(n.dest:string())
 		mac_b:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
 		mac_w:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
 	end
@@ -206,21 +257,12 @@ luci.ip.neighbors({ family = 6 }, function(n)
 	if n.mac and n.dest then
 		ip_b:value(n.dest:string())
 		ip_w:value(n.dest:string())
+		ip_ac:value(n.dest:string())
 		mac_b:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
 		mac_w:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
 	end
 end)
 end
-
-o = s:taboption("lan_ac", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
-o.datatype = "ipmask"
-o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
-
-o = s:taboption("lan_ac", DynamicList, "lan_ac_black_ports", translate("Lan Bypassed Port List"))
-o.datatype = "or(port, portrange)"
-o.placeholder = translate("5000 or 1234-2345")
-o:value("5000", translate("5000(NAS)"))
-o.description = "1."..translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails").."<br>".."2."..translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
 
 ---- Traffic Control
 o = s:taboption("traffic_control", Flag, "router_self_proxy", font_red..bold_on..translate("Router-Self Proxy")..bold_off..font_off)
