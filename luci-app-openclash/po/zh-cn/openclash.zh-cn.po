@@ -3433,10 +3433,10 @@ msgid "Edit"
 msgstr "编辑"
 
 msgid "Proto"
-msgstr "协议"
+msgstr "通讯协议"
 
 msgid "Family"
-msgstr "协议类型"
+msgstr "地址类型"
 
 msgid "Comment"
 msgstr "备注"
