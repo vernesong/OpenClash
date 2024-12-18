@@ -197,14 +197,16 @@ o.datatype = "ipmask"
 o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
 
 s2 = m:section(TypedSection, "lan_ac_traffic", translate("Lan Traffic Access List"),
-	"1."..translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails").." ".."2."..translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported"))
+	"1."..translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails").."; ".."2."..translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported"))
 
 s2.template  = "cbi/tblsection"
 s2.sortable  = true
 s2.anonymous = true
 s2.addremove = true
+s2.rmempty = false
 
-s2:option(Value, "comment", translate("Comment"))
+o = s2:option(Value, "comment", translate("Comment"))
+o.rmempty = true
 
 o = s2:option(Flag, "enabled", translate("Enable"))
 o.rmempty = false
