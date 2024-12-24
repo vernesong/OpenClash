@@ -218,31 +218,31 @@ end
 ip_ac = s2:option(Value, "src_ip", translate("Internal addresses"))
 ip_ac.datatype = "ipmask"
 ip_ac.placeholder = "0.0.0.0/0"
-ip_ac.rmempty = true
+ip_ac.rmempty = false
 
 o = s2:option(Value, "src_port", translate("Internal ports"))
 o.datatype = "or(port, portrange)"
 o.placeholder = translate("5000 or 1234-2345")
-o.rmempty = true
+o.rmempty = false
 
 o = s2:option(ListValue, "proto", translate("Proto"))
 o:value("udp", translate("UDP"))
 o:value("tcp", translate("TCP"))
 o:value("both", translate("Both"))
 o.default = "tcp"
-o.rmempty = true
+o.rmempty = false
 
 o = s2:option(ListValue, "family", translate("Family"))
 o:value("ipv4", translate("IPv4"))
 o:value("ipv6", translate("IPv6"))
 o:value("both", translate("Both"))
 o.default = "tcp"
-o.rmempty = true
+o.rmempty = false
 
 o = s2:option(ListValue, "target", translate("Target"))
 o:value("return", translate("Return"))
 o:value("accept", translate("Accept"))
-o.rmempty = true
+o.rmempty = false
 
 luci.ip.neighbors({ family = 4 }, function(n)
 	if n.mac and n.dest then

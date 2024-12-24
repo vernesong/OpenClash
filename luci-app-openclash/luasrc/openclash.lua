@@ -257,7 +257,7 @@ end
 
 function filesize(e)
 	local t=0
-	local a={' KB',' MB',' GB',' TB'}
+	local a={' KB',' MB',' GB',' TB',' PB'}
 	repeat
 		e=e/1024
 		t=t+1

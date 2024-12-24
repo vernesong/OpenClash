@@ -831,7 +831,7 @@ end
 
 local function s(e)
 local t=0
-local a={' B/S',' KB/S',' MB/S',' GB/S',' TB/S'}
+local a={' B/S',' KB/S',' MB/S',' GB/S',' TB/S',' PB/S'}
 if (e<=1024) then
 	return e..a[1]
 else
