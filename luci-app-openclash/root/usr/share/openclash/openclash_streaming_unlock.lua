@@ -1585,7 +1585,7 @@ function network_test()
 	local httpcode1 = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, test_url1))
 	local httpcode2 = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, test_url2))
 	if httpcode1 or httpcode2 then
-		if tonumber(httpcode1) == 200 or tonumber(httpcode2) == 200 then
+		if tonumber(httpcode1) == 204 or tonumber(httpcode2) == 204 then
 			unlock_auto_select()
 			return
 		end

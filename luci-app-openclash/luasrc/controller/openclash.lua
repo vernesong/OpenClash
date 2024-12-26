@@ -675,20 +675,34 @@ function sub_info_get()
 						expire = os.date("%Y-%m-%d", day_expire) or "null"
 						if day_expire and os.time() <= day_expire then
 							day_left = math.ceil((day_expire - os.time()) / (3600*24))
+							if math.ceil(day_left / 365) > 50 then
+								day_left = "∞"
+							end
 						elseif day_expire == nil then
 							day_left = "null"
 						else
 							day_left = 0
 						end
-						if used and total and used < total then
+						if used and total and used <= total then
 							percent = string.format("%.1f",((total-used)/total)*100) or nil
-						elseif used == nil or total == nil or total == 0 then
+							surplus = fs.filesize(total - used) or "null"
+						elseif used == nil and total and total > 0.0 then
 							percent = 100
+							surplus = total
+						elseif total and total == 0.0 then
+							percent = 100
+							surplus = "∞"
 						else
 							percent = 0
+							surplus = "null"
 						end
-						surplus = fs.filesize(total - used) or "null"
-						total = fs.filesize(total) or "null"
+						if total and total > 0.0 then
+							total = fs.filesize(total) or "null"
+						elseif total and total == 0.0 then
+							total = "∞"
+						else
+							total = "null"
+						end
 						used = fs.filesize(used) or "null"
 						sub_info = "Successful"
 					else
