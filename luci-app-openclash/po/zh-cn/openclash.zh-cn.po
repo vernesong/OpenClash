@@ -915,7 +915,7 @@ msgstr "文件名"
 msgid "Grammar Check"
 msgstr "语法检查"
 
-msgid "Switch"
+msgid "SwiTch"
 msgstr "切换"
 
 msgid "Size"
