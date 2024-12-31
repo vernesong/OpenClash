@@ -1590,7 +1590,7 @@ function network_test()
 			return
 		end
 	end
-	print("Error: Network Anomaly, Suspend Unlock Detection...")
+	print(os.date("%Y-%m-%d %H:%M:%S").." Error: Network Anomaly, Suspend Unlock Detection...")
 end
 
 network_test()

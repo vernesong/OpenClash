@@ -283,14 +283,14 @@
     {
     	var v = core_version.value;
     	var r = release_branch.value;
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
-				if (x && x.status == 200) {
-					XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "coreupdate")%>', {core_type: type}, function(x, status) {
-        	btn.value    = '<%:Check And Update%>';
-        	btn.disabled = false;
-        	return false;
-        	});
-				}
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
+			if (x && x.status == 200) {
+				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "coreupdate")%>', {core_type: type}, function(x, status) {
+					btn.value    = '<%:Check And Update%>';
+					btn.disabled = false;
+					return false;
+				});
+			}
 		});
     }
 
@@ -298,13 +298,13 @@
     {
         var r = release_branch.value;
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {release_branch: r}, function(x, status) {
-		if (x && x.status == 200) {
-           XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', null, function(x, status) {
-           btn.value    = '<%:Check And Update%>';
-           btn.disabled = false;
-           return false;
-           });
-        }
+			if (x && x.status == 200) {
+				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', null, function(x, status) {
+					btn.value    = '<%:Check And Update%>';
+					btn.disabled = false;
+					return false;
+				});
+			}
 		});
     }
     
