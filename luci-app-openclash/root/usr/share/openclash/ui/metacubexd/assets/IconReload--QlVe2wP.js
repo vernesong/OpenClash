@@ -1,5 +1,5 @@
-import{N as o}from"./index-DNc1N1Rv.js";/**
- * @license @tabler/icons-solidjs v3.23.0 - MIT
+import{N as o}from"./index-Csmv4Fkv.js";/**
+ * @license @tabler/icons-solidjs v3.26.0 - MIT
  *
  * This source code is licensed under the MIT license.
  * See the LICENSE file in the root directory of this source tree.
