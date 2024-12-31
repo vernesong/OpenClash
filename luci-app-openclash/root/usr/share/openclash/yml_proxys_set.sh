@@ -1577,7 +1577,7 @@ cat >> "$SERVER_FILE" <<-EOF
   - name: Bilibili
     type: select
     proxies:
-      - Asian TV
+      - CN Mainland TV
       - DIRECT
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
@@ -1603,20 +1603,6 @@ fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
 cat >> "$SERVER_FILE" <<-EOF
   - name: HBO Max
-    type: select
-    proxies:
-      - Global TV
-      - DIRECT
-EOF
-cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
-if [ -f "/tmp/Proxy_Provider" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    use:
-EOF
-fi
-cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
-cat >> "$SERVER_FILE" <<-EOF
-  - name: HBO Go
     type: select
     proxies:
       - Global TV
@@ -1763,6 +1749,26 @@ cat >> "$SERVER_FILE" <<-EOF
       - REJECT
       - DIRECT
       - Proxy
+  - name: HTTPDNS
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+      - Proxy
+EOF
+cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
+if [ -f "/tmp/Proxy_Provider" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    use:
+EOF
+fi
+cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
+cat >> "$SERVER_FILE" <<-EOF
+  - name: CN Mainland TV
+    type: select
+    proxies:
+      - DIRECT
+      - Proxy
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
 if [ -f "/tmp/Proxy_Provider" ]; then
@@ -1775,8 +1781,8 @@ cat >> "$SERVER_FILE" <<-EOF
   - name: Asian TV
     type: select
     proxies:
-      - DIRECT
       - Proxy
+      - DIRECT
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
 if [ -f "/tmp/Proxy_Provider" ]; then
@@ -1879,12 +1885,12 @@ ${uci_set}rule_name="lhie1"
 ${uci_set}config="$CONFIG_NAME"
 ${uci_set}GlobalTV="Global TV"
 ${uci_set}AsianTV="Asian TV"
+${uci_set}MainlandTV="CN Mainland TV"
 ${uci_set}Proxy="Proxy"
 ${uci_set}Youtube="Youtube"
 ${uci_set}Bilibili="Bilibili"
 ${uci_set}Bahamut="Bahamut"
 ${uci_set}HBOMax="HBO Max"
-${uci_set}HBOGo="HBO Go"
 ${uci_set}Pornhub="Pornhub"
 ${uci_set}Apple="Apple"
 ${uci_set}AppleTV="Apple TV"
@@ -1900,6 +1906,7 @@ ${uci_set}Spotify="Spotify"
 ${uci_set}Steam="Steam"
 ${uci_set}miHoYo="miHoYo"
 ${uci_set}AdBlock="AdBlock"
+${uci_set}HTTPDNS="HTTPDNS"
 ${uci_set}Speedtest="Speedtest"
 ${uci_set}Telegram="Telegram"
 ${uci_set}Crypto="Crypto"
@@ -1917,9 +1924,9 @@ ${uci_set}Others="Others"
 	${UCI_DEL_LIST}="Bilibili" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Bilibili" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Bahamut" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Bahamut" >/dev/null 2>&1
 	${UCI_DEL_LIST}="HBO Max" >/dev/null 2>&1 && ${UCI_ADD_LIST}="HBO Max" >/dev/null 2>&1
-	${UCI_DEL_LIST}="HBO Go" >/dev/null 2>&1 && ${UCI_ADD_LIST}="HBO Go" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Pornhub" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Pornhub" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Asian TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Asian TV" >/dev/null 2>&1
+    ${UCI_DEL_LIST}="CN Mainland TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="CN Mainland TV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Global TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Global TV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Netflix" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Netflix" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Discovery Plus" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Discovery Plus" >/dev/null 2>&1

@@ -95,6 +95,17 @@ end
 o:value("DIRECT")
 o:value("REJECT")
 
+o = s:option(ListValue, "MainlandTV", translate("CN Mainland TV"))
+o:depends("rule_name", "lhie1")
+o.rmempty = true
+for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
+  if groupname ~= nil and groupname ~= "" then
+    o:value(groupname)
+  end
+end
+o:value("DIRECT")
+o:value("REJECT")
+
 o = s:option(ListValue, "Proxy", translate("Proxy"))
 o:depends("rule_name", "lhie1")
 o.rmempty = true
@@ -140,17 +151,6 @@ o:value("DIRECT")
 o:value("REJECT")
 
 o = s:option(ListValue, "HBOMax", translate("HBO Max"))
-o:depends("rule_name", "lhie1")
-o.rmempty = true
-for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
-  if groupname ~= nil and groupname ~= "" then
-    o:value(groupname)
-  end
-end
-o:value("DIRECT")
-o:value("REJECT")
-
-o = s:option(ListValue, "HBOGo", translate("HBO Go"))
 o:depends("rule_name", "lhie1")
 o.rmempty = true
 for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
@@ -371,6 +371,17 @@ o:value("DIRECT")
 o:value("REJECT")
 
 o = s:option(ListValue, "AdBlock", translate("AdBlock"))
+o:depends("rule_name", "lhie1")
+o.rmempty = true
+for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
+  if groupname ~= nil and groupname ~= "" then
+    o:value(groupname)
+  end
+end
+o:value("DIRECT")
+o:value("REJECT")
+
+o = s:option(ListValue, "HTTPDNS", translate("HTTPDNS"))
 o:depends("rule_name", "lhie1")
 o.rmempty = true
 for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do

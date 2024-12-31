@@ -201,7 +201,7 @@ st.template="openclash/cfg_check"
 ck.template="openclash/cfg_check"
 sb.template="openclash/sub_info_show"
 
-btnis=tb:option(Button,"switch",translate("Switch"))
+btnis=tb:option(Button,"switch",translate("SwiTch"))
 btnis.template="openclash/other_button"
 btnis.render=function(o,t,a)
 if not e[t] then return false end
