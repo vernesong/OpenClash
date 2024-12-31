@@ -1,8 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.46.050
-PKG_RELEASE:=beta
+PKG_VERSION:=0.46.064
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
@@ -57,7 +56,7 @@ define Build/Prepare
 	$(CP) $(CURDIR)/luasrc $(PKG_BUILD_DIR)
 	$(foreach po,$(wildcard ${CURDIR}/po/zh-cn/*.po), \
 		po2lmo $(po) $(PKG_BUILD_DIR)/$(patsubst %.po,%.lmo,$(notdir $(po)));)
-	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" $(PKG_BUILD_DIR)/root/www/luci-static/resources/openclash/img/version.svg >/dev/null 2>&1
+	sed -i "s/v0.00.00/v$(PKG_VERSION)/g" $(PKG_BUILD_DIR)/root/www/luci-static/resources/openclash/img/version.svg >/dev/null 2>&1
 	chmod 0755 $(PKG_BUILD_DIR)/root/etc/init.d/openclash
 	chmod -R 0755 $(PKG_BUILD_DIR)/root/usr/share/openclash/
 	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/config
@@ -105,7 +104,7 @@ endef
 
 define Package/$(PKG_NAME)/postinst
 #!/bin/sh
-	sed -i "s/v0.00.00-beta/v$(PKG_VERSION)-beta/g" /www/luci-static/resources/openclash/img/version.svg >/dev/null 2>&1
+	sed -i "s/v0.00.00/v$(PKG_VERSION)/g" /www/luci-static/resources/openclash/img/version.svg >/dev/null 2>&1
 	exit 0
 endef
 
@@ -113,6 +112,7 @@ define Package/$(PKG_NAME)/prerm
 #!/bin/sh
 	uci -q set openclash.config.enable=0
 	uci -q commit openclash
+	[ -n "$(pidof clash)" ] && /etc/init.d/openclash stop 2>/dev/null
 	cp -f "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
 	cp -rf "/etc/openclash" "/tmp/openclash" >/dev/null 2>&1
 	cp -rf "/usr/share/openclash/ui/yacd" "/tmp/openclash_yacd" >/dev/null 2>&1
@@ -122,9 +122,15 @@ endef
 
 define Package/$(PKG_NAME)/postrm
 #!/bin/sh
-	dnsmasqconfdir="$(uci -q get dhcp.@dnsmasq[0].confdir || echo '/tmp/dnsmasq.d')"
-	dnsmasqconfdir="${dnsmasqconfdir%*/}"
+	DEFAULT_DNSMASQ_CFGID="$$(uci -q show "dhcp.@dnsmasq[0]" | awk 'NR==1 {split($0, conf, /[.=]/); print conf[2]}')"
+	if [ -f "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID" ]; then
+	   DNSMASQ_CONF_DIR="$$(awk -F '=' '/^conf-dir=/ {print $2}' "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID")"
+	else
+	   DNSMASQ_CONF_DIR="/tmp/dnsmasq.d"
+	fi
+	DNSMASQ_CONF_DIR=$${DNSMASQ_CONF_DIR%*/}
 	rm -rf /etc/openclash >/dev/null 2>&1
+	rm -rf /etc/config/openclash >/dev/null 2>&1
 	rm -rf /tmp/openclash.log >/dev/null 2>&1
 	rm -rf /tmp/openclash_start.log >/dev/null 2>&1
 	rm -rf /tmp/openclash_last_version >/dev/null 2>&1
@@ -135,9 +141,9 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /tmp/rule_providers_name >/dev/null 2>&1
 	rm -rf /tmp/clash_last_version >/dev/null 2>&1
 	rm -rf /usr/share/openclash/backup >/dev/null 2>&1
-	rm -rf ${dnsmasqconfdir}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
-	rm -rf ${dnsmasqconfdir}/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
-	rm -rf ${dnsmasqconfdir}/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
+	rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
+	rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
+	rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
 	rm -rf /tmp/dler* >/dev/null 2>&1
 	rm -rf /tmp/etc/openclash >/dev/null 2>&1
 	rm -rf /tmp/openclash_edit_file_name >/dev/null 2>&1
@@ -146,8 +152,10 @@ define Package/$(PKG_NAME)/postrm
 	sed -i '/.*kB maximum content size*/c\export let HTTP_MAX_CONTENT = 1024*100;		// 100 kB maximum content size' /usr/share/ucode/luci/http.uc >/dev/null 2>&1
 	uci -q delete firewall.openclash
 	uci -q commit firewall
+	[ -f "/etc/config/ucitrack" ] && {
 	uci -q delete ucitrack.@openclash[-1]
 	uci -q commit ucitrack
+	}
 	rm -rf /tmp/luci-*
 	exit 0
 endef

@@ -341,11 +341,12 @@ threads << Thread.new {
          Value['log-level']='$9';
       end;
       Value['allow-lan']=true;
-      Value['disable-keep-alive']=true;
       Value['external-controller']='0.0.0.0:$3';
       Value['secret']='$2';
       Value['bind-address']='*';
       Value['external-ui']='/usr/share/openclash/ui';
+      Value['keep-alive-interval']=15;
+      Value['keep-alive-idle']=600;
       if $6 == 1 then
          Value['ipv6']=true;
       else
@@ -421,10 +422,7 @@ threads << Thread.new {
          Value['tun']['device']='utun';
          Value_2={'dns-hijack'=>['tcp://any:53']};
          Value['tun'].merge!(Value_2);
-         if '$stack_type' != 'mixed' then
-            Value['tun']['gso']=true;
-            Value['tun']['gso-max-size']=65536;
-         end;
+         Value['tun']['endpoint-independent-nat']=true;
          Value['tun']['auto-route']=false;
          Value['tun']['auto-detect-interface']=false;
          Value['tun']['auto-redirect']=false;
@@ -452,7 +450,7 @@ threads << Thread.new {
          Value.delete('ebpf');
       end;
 
-      if '${37}' == '0' then
+      if '${35}' == '0' then
          Value['routing-mark']=6666;
       else
          if Value.key?('routing-mark') then
@@ -789,6 +787,8 @@ begin
          YAML.LOG('Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】');
       end;
    end;
+rescue Exception => e
+      YAML.LOG('Error: Config File Overwrite Failed,【' + e.message + '】');
 ensure
    File.open('$5','w') {|f| YAML.dump(Value, f)};
 end" 2>/dev/null >> $LOG_FILE

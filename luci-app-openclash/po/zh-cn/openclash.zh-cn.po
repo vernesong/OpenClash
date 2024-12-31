@@ -518,6 +518,9 @@ msgstr "国际流媒体"
 msgid "AsianTV"
 msgstr "亚洲流媒体"
 
+msgid "CN Mainland TV"
+msgstr "大陆流媒体"
+
 msgid "Proxy"
 msgstr "必须代理的流量"
 
@@ -912,7 +915,7 @@ msgstr "文件名"
 msgid "Grammar Check"
 msgstr "语法检查"
 
-msgid "Switch"
+msgid "SwiTch"
 msgstr "切换"
 
 msgid "Size"
@@ -1620,6 +1623,9 @@ msgstr "OpenClash 更新成功，即将进行重启！"
 msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually!"
 msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.ipk，请尝试手动更新！"
 
+msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually!"
+msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.apk，请尝试手动更新！"
+
 msgid "Download Failed, Please Check The Network or Try Again Later!"
 msgstr "下载失败，请检查网络或稍后再试！"
 
@@ -2292,9 +2298,6 @@ msgstr "错误：设置自定义规则失败，"
 msgid "Error: Set BT/P2P DIRECT Rules Failed,"
 msgstr "错误：设置仅代理命中规则流量（BT/P2P直连）失败，"
 
-msgid "Error: Set Loop Protect Rules Failed,"
-msgstr "错误：设置防回环规则失败，"
-
 msgid "Error: Set lhie1 Rules Failed,"
 msgstr "错误：设置第三方规则（lhie1）失败，"
 
@@ -2484,14 +2487,8 @@ msgstr "提示：开始自动选择（检测）Netflix 解锁节点..."
 msgid "Tip: Start Auto Select Proxy For Disney Plus Unlock..."
 msgstr "提示：开始自动选择（检测）Disney Plus 解锁节点..."
 
-msgid "Tip: Start Auto Select Proxy For HBO Now Unlock..."
-msgstr "提示：开始自动选择（检测）HBO Now 解锁节点..."
-
 msgid "Tip: Start Auto Select Proxy For HBO Max Unlock..."
 msgstr "提示：开始自动选择（检测）HBO Max 解锁节点..."
-
-msgid "Tip: Start Auto Select Proxy For HBO GO Asia Unlock..."
-msgstr "提示：开始自动选择（检测）HBO GO Asia 解锁节点..."
 
 msgid "Tip: Start Auto Select Proxy For YouTube Premium Unlock..."
 msgstr "提示：开始自动选择（检测）YouTube Premium 解锁节点..."
@@ -2526,14 +2523,8 @@ msgstr "Netflix 策略组："
 msgid "Disney Plus Group:"
 msgstr "Disney Plus 策略组："
 
-msgid "HBO Now Group:"
-msgstr "HBO Now 策略组："
-
 msgid "HBO Max Group:"
 msgstr "HBO Max 策略组："
-
-msgid "HBO GO Asia Group:"
-msgstr "HBO GO Asia 策略组："
 
 msgid "TVB Anywhere+ Group:"
 msgstr "TVB Anywhere+ 策略组："
@@ -2919,8 +2910,8 @@ msgstr "节点域名解析"
 msgid "Use For Node Domain Resolve"
 msgstr "用于解析节点域名的 IP 地址"
 
-msgid "Lan Bypassed Port List"
-msgstr "绕过核心的来源端口"
+msgid "Lan Traffic Access List"
+msgstr "来源流量访问控制"
 
 msgid "The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails"
 msgstr "来自本地指定端口的流量不会通过核心，在旁路网关（旁路由）下转发失败时尝试设置"
@@ -3057,6 +3048,9 @@ msgstr "警告：TUN 接口启动失败，请检查依赖情况或稍后重试�
 msgid "Warning: TUN Interface Start Failed, Try to Restart Again..."
 msgstr "警告：TUN 接口启动失败，尝试重启内核..."
 
+msgid "Error: Core Start Failed, Please Check The Log Infos!"
+msgstr "错误：内核启动失败，请查看《内核日志》排查失败原因！"
+
 msgid "Forced Sniff Pure IP Connections"
 msgstr "强制探测（嗅探）所有纯 IP 的连接"
 
@@ -3121,7 +3115,7 @@ msgid "in the firewall rule settings"
 msgstr "存在于防火墙规则设置"
 
 msgid "auto bypassing may cause the normal connection of the client not to reach the core, if necessary, please add your own in the access control!"
-msgstr "自动绕过后可能造成客户端的正常连接无法到达内核，如有需要，请在访问控制中自行添加！"
+msgstr "自动绕过后可能造成客户端的正常连接无法到达内核，如有需要，请在插件设置-来源流量访问控制中自行添加！"
 
 msgid "Tip: Start Add Port Bypassing Rules For Firewall Redirect and Firewall Rules..."
 msgstr "提示：正在根据防火墙端口转发和防火墙通信规则添加端口绕过规则..."
@@ -3431,3 +3425,30 @@ msgstr "全局"
 
 msgid "Direct"
 msgstr "直连"
+
+msgid "Error: Config File Overwrite Failed,"
+msgstr "错误：配置文件覆写失败，"
+
+msgid "Edit"
+msgstr "编辑"
+
+msgid "Proto"
+msgstr "通讯协议"
+
+msgid "Family"
+msgstr "地址类型"
+
+msgid "Comment"
+msgstr "备注"
+
+msgid "Internal addresses"
+msgstr "内部地址"
+
+msgid "Internal ports"
+msgstr "内部端口"
+
+msgid "Target"
+msgstr "对象"
+
+msgid "Error: Network Anomaly, Suspend Unlock Detection..."
+msgstr "错误：网络异常，暂停解锁检测..."

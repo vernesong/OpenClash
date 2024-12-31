@@ -176,7 +176,7 @@
 </table>
 </fieldset>
 <fieldset id="state" class="cbi-section">
-	<table>
+	<table width="100%">
 		<tr><td width="100%" colspan="4">
 			<p style="margin: 10px 0; text-align: center">
 				<b><%:Please ensure that all items are displayed normally before running. If you need to update, please go to the global settings page%></b>
@@ -678,7 +678,7 @@
 	function ws_mmessage(event) {
 		var data = JSON.parse(event.data)
 		if (data.inuse) {
-			document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.inuse)+"/S</font>";
+			document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">"+bytesToSize(data.inuse)+"</font>";
 		}
 		else {
 			document.getElementById("mem_t").innerHTML = "<font style=\"color:green\">0 KB</font>";
@@ -687,7 +687,7 @@
 	};
 	
 	function bytesToSize(bytes) {
-		var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+		var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
 		if (bytes == 0) return '0 B';
 		var i = Math.floor(Math.log(bytes) / Math.log(1024));
 		return i == 0 ? (bytes / Math.pow(1024, i)) + ' ' + sizes[i] : (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];

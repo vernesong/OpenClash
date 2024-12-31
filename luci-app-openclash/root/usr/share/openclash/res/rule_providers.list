@@ -3,12 +3,14 @@
 国内IP白名单(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Domestic IPs.yaml
 国内域名白名单(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Domestic.yaml
 国外常用网站合集(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Proxy.yaml
-广告规则(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,Reject.yaml
+广告规则(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,AdBlock.yaml
 微软服务,lhie1,classical,dler-io/Rules/master/Clash/Provider/,Microsoft.yaml
+HTTPDNS(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/,HTTPDNS.yaml
 ABC,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,ABC.yaml
 Abema TV,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,Abema TV.yaml
 AbemaTV(By ACL4SSR),ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,AbemaTV.yaml,AbemaTV-ACL4SSR.yaml
 Adobe,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,Adobe.yaml
+AI Suite,lhie1,classical,dler-io/Rules/master/Clash/Provider/,AI Suite.yaml
 Amazon(By ACL4SSR),ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,Amazon.yaml,Amazon-ACL4SSR.yaml
 Amazon,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,Amazon.yaml
 AmazonIp,ACL4SSR,ipcidr,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,AmazonIp.yaml
@@ -28,7 +30,6 @@ Bilibili(By ACL4SSR),ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ru
 Bilibili,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,Bilibili.yaml
 BilibiliHMT,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,BilibiliHMT.yaml
 Blizzard,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,Blizzard.yaml
-ChatGPT,lhie1,classical,dler-io/Rules/master/Clash/Provider/,ChatGPT.yaml
 ChinaCompanyIp,ACL4SSR,ipcidr,ACL4SSR/ACL4SSR/master/Clash/Providers/,ChinaCompanyIp.yaml
 ChinaDomain,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/,ChinaDomain.yaml
 ChinaIp(By ACL4SSR),ACL4SSR,ipcidr,ACL4SSR/ACL4SSR/master/Clash/Providers/,ChinaIp.yaml,ChinaIp-ACL4SSR.yaml
@@ -46,7 +47,7 @@ Google,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,Google.
 GoogleCN,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,GoogleCN.yaml
 GoogleFCM,ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,GoogleFCM.yaml
 HBO(By ACL4SSR),ACL4SSR,classical,ACL4SSR/ACL4SSR/master/Clash/Providers/Ruleset/,HBO.yaml,HBO-ACL4SSR.yaml
-HBO(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,HBO.yaml,HBO-lhie1.yaml
+HBO MAX(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,MAX.yaml,MAX-lhie1.yaml
 Hulu Japan,lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,Hulu Japan.yaml
 Hulu(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,Hulu.yaml,Hulu-lhie1.yaml
 JOOX(By lhie1),lhie1,classical,dler-io/Rules/master/Clash/Provider/Media/,JOOX.yaml,JOOX-lhie1.yaml

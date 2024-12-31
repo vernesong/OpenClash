@@ -13,7 +13,15 @@ del_lock() {
 
 set_lock
 
-DNSMASQ_CONF_DIR=$(uci -q get dhcp.@dnsmasq[0].confdir || echo '/tmp/dnsmasq.d')
+# 获取默认的 DNSMASQ 配置 ID
+DEFAULT_DNSMASQ_CFGID="$(uci -q show "dhcp.@dnsmasq[0]" | awk 'NR==1 {split($0, conf, /[.=]/); print conf[2]}')"
+# 从 conf-dir 行中提取配置目录路径
+if [ -f "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID" ]; then
+   DNSMASQ_CONF_DIR="$(awk -F '=' '/^conf-dir=/ {print $2}' "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID")"
+else
+   DNSMASQ_CONF_DIR="/tmp/dnsmasq.d"
+fi
+# 设置 DNSMASQ_CONF_DIR，并去除路径末尾的斜杠
 DNSMASQ_CONF_DIR=${DNSMASQ_CONF_DIR%*/}
 rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
 if [ "$(uci get openclash.config.enable_custom_domain_dns_server 2>/dev/null)" = "1" ] && [ "$(uci get openclash.config.enable_redirect_dns 2>/dev/null)" = "1" ]; then

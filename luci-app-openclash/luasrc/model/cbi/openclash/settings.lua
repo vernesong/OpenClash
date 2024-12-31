@@ -16,19 +16,7 @@ bold_off = [[</strong>]]
 
 local op_mode = string.sub(luci.sys.exec('uci get openclash.config.operation_mode 2>/dev/null'),0,-2)
 if not op_mode then op_mode = "redir-host" end
-local lan_int_name = uci:get("openclash", "config", "lan_interface_name") or "0"
-local lan_ip
-if lan_int_name == "0" then
-	lan_ip = SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
-else
-	lan_ip = SYS.exec(string.format("ip address show %s | grep -w 'inet' 2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | tr -d '\n'", lan_int_name))
-end
-if not lan_ip or lan_ip == "" then
-	lan_ip = luci.sys.exec("ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w 'inet'  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | tr -d '\n'")
-end
-if not lan_ip or lan_ip == "" then
-	lan_ip = luci.sys.exec("ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n'")
-end
+local lan_ip = fs.lanip()
 m = Map("openclash", translate("Plugin Settings"))
 m.pageaction = false
 m.description = translate("Note: To restore the default configuration, try accessing:").." <a href='javascript:void(0)' onclick='javascript:restore_config(this)'>http://"..lan_ip.."/cgi-bin/luci/admin/services/openclash/restore</a>"..
@@ -204,10 +192,63 @@ mac_w.datatype = "list(macaddr)"
 mac_w.rmempty  = true
 mac_w:depends("lan_ac_mode", "1")
 
+o = s:taboption("lan_ac", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
+o.datatype = "ipmask"
+o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
+
+s2 = m:section(TypedSection, "lan_ac_traffic", translate("Lan Traffic Access List"),
+	"1."..translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails").."; ".."2."..translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported"))
+
+s2.template  = "cbi/tblsection"
+s2.sortable  = true
+s2.anonymous = true
+s2.addremove = true
+s2.rmempty = false
+
+o = s2:option(Value, "comment", translate("Comment"))
+o.rmempty = true
+
+o = s2:option(Flag, "enabled", translate("Enable"))
+o.rmempty = false
+o.default = o.enabled
+o.cfgvalue = function(...)
+    return Flag.cfgvalue(...) or "1"
+end
+
+ip_ac = s2:option(Value, "src_ip", translate("Internal addresses"))
+ip_ac.datatype = "ipmask"
+ip_ac.placeholder = "0.0.0.0/0"
+ip_ac.rmempty = false
+
+o = s2:option(Value, "src_port", translate("Internal ports"))
+o.datatype = "or(port, portrange)"
+o.placeholder = translate("5000 or 1234-2345")
+o.rmempty = false
+
+o = s2:option(ListValue, "proto", translate("Proto"))
+o:value("udp", translate("UDP"))
+o:value("tcp", translate("TCP"))
+o:value("both", translate("Both"))
+o.default = "tcp"
+o.rmempty = false
+
+o = s2:option(ListValue, "family", translate("Family"))
+o:value("ipv4", translate("IPv4"))
+o:value("ipv6", translate("IPv6"))
+o:value("both", translate("Both"))
+o.default = "tcp"
+o.rmempty = false
+
+o = s2:option(ListValue, "target", translate("Target"))
+o:value("return", translate("Return"))
+o:value("accept", translate("Accept"))
+o.rmempty = false
+
 luci.ip.neighbors({ family = 4 }, function(n)
 	if n.mac and n.dest then
 		ip_b:value(n.dest:string())
 		ip_w:value(n.dest:string())
+		ip_ac:value(n.dest:string())
 		mac_b:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
 		mac_w:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
 	end
@@ -218,21 +259,12 @@ luci.ip.neighbors({ family = 6 }, function(n)
 	if n.mac and n.dest then
 		ip_b:value(n.dest:string())
 		ip_w:value(n.dest:string())
+		ip_ac:value(n.dest:string())
 		mac_b:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
 		mac_w:value(n.mac, "%s (%s)" %{ n.mac, n.dest:string() })
 	end
 end)
 end
-
-o = s:taboption("lan_ac", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
-o.datatype = "ipmask"
-o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
-
-o = s:taboption("lan_ac", DynamicList, "lan_ac_black_ports", translate("Lan Bypassed Port List"))
-o.datatype = "or(port, portrange)"
-o.placeholder = translate("5000 or 1234-2345")
-o:value("5000", translate("5000(NAS)"))
-o.description = "1."..translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails").."<br>".."2."..translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
 
 ---- Traffic Control
 o = s:taboption("traffic_control", Flag, "router_self_proxy", font_red..bold_on..translate("Router-Self Proxy")..bold_off..font_off)
@@ -496,28 +528,6 @@ o.template = "openclash/other_stream_option"
 o.value = "Amazon Prime Video"
 o:depends("stream_auto_select_prime_video", "1")
 
---HBO Now
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_now", font_red..translate("HBO Now")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_now", translate("Group Filter"))
-o.default = "HBO|HBONow|HBO Now"
-o.placeholder = "HBO|HBONow|HBO Now"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_hbo_now", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_hbo_now", translate("Unlock Nodes Filter"))
-o.default = ""
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_hbo_now", "1")
-
-o = s:taboption("stream_enhance", DummyValue, "HBO Now", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "HBO Now"
-o:depends("stream_auto_select_hbo_now", "1")
-
 --HBO Max
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_max", font_red..translate("HBO Max")..font_off)
 o.default = 0
@@ -551,40 +561,6 @@ o.rawhtml = true
 o.template = "openclash/other_stream_option"
 o.value = "HBO Max"
 o:depends("stream_auto_select_hbo_max", "1")
-
---HBO GO Asia
-o = s:taboption("stream_enhance", Flag, "stream_auto_select_hbo_go_asia", font_red..translate("HBO GO Asia")..font_off)
-o.default = 0
-o:depends("stream_auto_select", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_go_asia", translate("Group Filter"))
-o.default = "HBO|HBOGO|HBO GO"
-o.placeholder = "HBO|HBOGO|HBO GO"
-o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
-o:depends("stream_auto_select_hbo_go_asia", "1")
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_hbo_go_asia", translate("Unlock Region Filter"))
-o.default = ""
-o.placeholder = "HK|SG|TW"
-o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
-o:depends("stream_auto_select_hbo_go_asia", "1")
-function o.validate(self, value)
-	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_hbo_go_asia") then
-		fs.unlink("/tmp/openclash_HBO GO Asia_region")
-	end
-	return value
-end
-
-o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_hbo_go_asia", translate("Unlock Nodes Filter"))
-o.default = ""
-o.description = translate("It Will Be Selected Nodes According To The Regex")
-o:depends("stream_auto_select_hbo_go_asia", "1")
-
-o = s:taboption("stream_enhance", DummyValue, "HBO GO Asia", translate("Manual Test"))
-o.rawhtml = true
-o.template = "openclash/other_stream_option"
-o.value = "HBO GO Asia"
-o:depends("stream_auto_select_hbo_go_asia", "1")
 
 --TVB Anywhere+
 o = s:taboption("stream_enhance", Flag, "stream_auto_select_tvb_anywhere", font_red..translate("TVB Anywhere+")..font_off)
@@ -787,7 +763,7 @@ o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_openai", translate("Group Filter"))
 o.default = "OpenAI|ChatGPT"
-o.placeholder = "OpenAI|ChatGPT"
+o.placeholder = "OpenAI|ChatGPT|AI"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_openai", "1")
 
