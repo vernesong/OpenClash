@@ -4,207 +4,233 @@
 	<meta charset="UTF-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
 	<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no,minimal-ui">
-	<style>
+  <style>
 
-.center {
-  top: 50%;
-  left: 50%;
-  min-width: 800px;
-}
+  :root[data-darkmode="true"] {
+    .card {
+      background: linear-gradient(rgb(0, 0, 0), rgb(70, 70, 70));
+    }
 
-.card {
-  width: 100%;
-  height: 250px;
-  background-color: #fff;
-  background: linear-gradient(#f8f8f8, #fff);
-  box-shadow: 0 8px 16px -8px rgba(0,0,0,0.4);
-  border-radius: 6px;
-  position: relative;
-}
+    .card .additional {
+      background: linear-gradient(#337ab7, rgb(70, 70, 70));
+    }
+    
+    .card .general .dler-title{
+      color: #ffffff;
+    }
 
-.card h1 {
-  text-align: center;
-}
+    .card .general .dler-result{
+      color: #ffffff;
+    }
 
-.card .additional {
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(#337ab7, #fefefe);
-  transition: width 0.5s;
-  overflow: hidden;
-  z-index: 2;
-}
+    .card .general .dler-result2{
+      color: #ffffff;
+    }
 
-.card .additional .user-card {
-  width: 150px;
-  height: 100%;
-  position: relative;
-  float: left;
-}
+    .card .general h1 {
+      color: #ffffff;
+    }
+  }
 
-.card .additional .user-card::after {
-  content: "";
-  display: block;
-  position: absolute;
-  top: 10%;
-  right: -2px;
-  height: 80%;
-  border-left: 2px solid rgba(0,0,0,0.025);*/
-}
+  .center {
+    top: 50%;
+    left: 50%;
+    min-width: 800px;
+  }
 
-.card .additional .user-card img {
+  .card {
+    width: 100%;
+    height: 250px;
+    background-color: #fff;
+    background: linear-gradient(#f8f8f8, #fff);
+    box-shadow: 0 8px 16px -8px rgba(0,0,0,0.4);
+    border-radius: 6px;
+    position: relative;
+  }
 
-  left: 20%;
-  bottom: 30%;
-  width: 60%;
-  border-radius: 60%;
-  position: absolute;
+  .card h1 {
+    text-align: center;
+  }
 
-}
+  .card .additional {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(#337ab7, #fefefe);
+    transition: width 0.5s;
+    overflow: hidden;
+    z-index: 2;
+  }
 
-.card .additional .more-info {
-  position: relative;
-  top: 28%;
-  height: 50%;
-  margin: 0 auto;
-  width: 50%;
-  padding-left: 150px;
-  padding-top: 1%;
-}
+  .card .additional .user-card {
+    width: 150px;
+    height: 100%;
+    position: relative;
+    float: left;
+  }
 
-.card .additional .more-info h1 {
-  color: #fff;
-  margin-bottom: 0;
-  margin: 0 1rem;
-  font-size: 2rem;
-  position: relative;
-}
+  .card .additional .user-card::after {
+    content: "";
+    display: block;
+    position: absolute;
+    top: 10%;
+    right: -2px;
+    height: 80%;
+    border-left: 2px solid rgba(0,0,0,0.025);*/
+  }
 
-.card .additional .coords {
-  margin: 0 1rem;
-  color: #fff;
-  font-size: 1rem;
-  position: relative;
-  top: 10%;
-  text-align: center;
-  overflow: hidden;
-  line-height: 20px;
-}
+  .card .additional .user-card img {
 
-.card .general {
-  width: auto;
-  height: 100%;
-  position: relative;
-  margin-left: 150px;
-  top: 0;
-  right: 0;
-  z-index: 1;
-  box-sizing: border-box;
-  overflow: hidden;
-  padding-top: 0;
-}
+    left: 20%;
+    bottom: 30%;
+    width: 60%;
+    border-radius: 60%;
+    position: absolute;
 
-.card .general h1 {
-  font-size: 30px;
-  text-align: center;
-  padding-top: 5px;
-  margin: 0 0 0 -12%;
-  line-height: 35px;
-  color: black;
-}
+  }
 
-.card .general .dler-info {
-	top: 22%;
-  width: 90%;
-  height: 70%;
-  display: flex;
-  position: absolute;
-  margin: 0 0 0 8%;
-}
+  .card .additional .more-info {
+    position: relative;
+    top: 28%;
+    height: 50%;
+    margin: 0 auto;
+    width: 50%;
+    padding-left: 150px;
+    padding-top: 1%;
+  }
 
-.card .general .dler-info p {
-	padding: 8px !important;
-  text-align: center;
-  margin-bottom: 0;
-}
+  .card .additional .more-info h1 {
+    color: #fff;
+    margin-bottom: 0;
+    margin: 0 1rem;
+    font-size: 2rem;
+    position: relative;
+  }
 
-.card .general .dler-info div {
-  position: relative;
-}
+  .card .additional .coords {
+    margin: 0 1rem;
+    color: #fff;
+    font-size: 1rem;
+    position: relative;
+    top: 10%;
+    text-align: center;
+    overflow: hidden;
+    line-height: 20px;
+  }
 
-.card .general .dler-title {
-  font-weight: bold;
-  color: #444;
-  font-size: 15px;
-  display: inline-block;
-  width: 45%;
-  overflow: hidden;
-  vertical-align:bottom;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  line-height: 25px;
-  height: 25px;
-  text-align: left;
-}
-        
-.card .general .dler-result {
-  color: #444;
-  font-size:16px;
-  white-space: nowrap;
-  display: inline-block;
-  width: 55%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align:bottom;
-  text-align: right;
-  line-height: 25px;
-  height: 25px;
-}
+  .card .general {
+    width: auto;
+    height: 100%;
+    position: relative;
+    margin-left: 150px;
+    top: 0;
+    right: 0;
+    z-index: 1;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding-top: 0;
+  }
 
-.card .general .dler-result2 {
-  color: #444;
-  font-size:16px;
-  white-space: nowrap;
-  display: inline-block;
-  width: 55%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  vertical-align:bottom;
-  text-align: right;
-  line-height: 25px;
-  height: 25px;
-}
+  .card .general h1 {
+    font-size: 30px;
+    text-align: center;
+    padding-top: 5px;
+    margin: 0 0 0 -12%;
+    line-height: 35px;
+    color: black;
+  }
 
-.card .general .btn {
-  color: #fff;
-  border-color: #337ab7 !important;
-  background: #1473e6;
-  background-color: #1473e6 !important;
-  box-shadow: 0 8px 16px -8px rgba(0,0,0,0.4);
-  border-radius: 6px;
-  width: 90px;
-  height: 90px !important;
-  font-size: 15px;
-  font-weight: bold;
-  display: inline-block;
-  overflow: hidden;
-  -webkit-appearance:button;
-}
+  .card .general .dler-info {
+    top: 22%;
+    width: 90%;
+    height: 70%;
+    display: flex;
+    position: absolute;
+    margin: 0 0 0 8%;
+  }
 
-.card .general .more {
-  float: right;
-  top: 88%;
-  right: 0;
-  font-size: 15px;
-  line-height: 20px;
-  padding: 0;
-  position: absolute;
-  display: inline-block;
-  overflow: hidden;
-  margin: 0 3% 0.5% 0;
-}
-	</style>
+  .card .general .dler-info p {
+    padding: 8px !important;
+    text-align: center;
+    margin-bottom: 0;
+  }
+
+  .card .general .dler-info div {
+    position: relative;
+  }
+
+  .card .general .dler-title {
+    font-weight: bold;
+    color: #444;
+    font-size: 15px;
+    display: inline-block;
+    width: 45%;
+    overflow: hidden;
+    vertical-align:bottom;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 25px;
+    height: 25px;
+    text-align: left;
+  }
+          
+  .card .general .dler-result {
+    color: #444;
+    font-size:16px;
+    white-space: nowrap;
+    display: inline-block;
+    width: 55%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align:bottom;
+    text-align: right;
+    line-height: 25px;
+    height: 25px;
+  }
+
+  .card .general .dler-result2 {
+    color: #444;
+    font-size:16px;
+    white-space: nowrap;
+    display: inline-block;
+    width: 55%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align:bottom;
+    text-align: right;
+    line-height: 25px;
+    height: 25px;
+  }
+
+  .card .general .btn {
+    color: #fff;
+    border-color: #337ab7 !important;
+    background: #1473e6;
+    background-color: #1473e6 !important;
+    box-shadow: 0 8px 16px -8px rgba(0,0,0,0.4);
+    border-radius: 6px;
+    width: 90px;
+    height: 90px !important;
+    font-size: 15px;
+    font-weight: bold;
+    display: inline-block;
+    overflow: hidden;
+    -webkit-appearance:button;
+  }
+
+  .card .general .more {
+    float: right;
+    top: 88%;
+    right: 0;
+    font-size: 15px;
+    line-height: 20px;
+    padding: 0;
+    position: absolute;
+    display: inline-block;
+    overflow: hidden;
+    margin: 0 3% 0.5% 0;
+  }
+  </style>
 </head>
 <body>
 <fieldset class="cbi-section">
@@ -289,6 +315,11 @@
   var more_info = document.getElementById("more_info");
   var dler_logo = document.getElementById("dler_logo");
   var showmore=1;
+  var rootStyles = getComputedStyle(document.documentElement);
+
+  if (rootStyles.getPropertyValue('--bar-bg') == rootStyles.getPropertyValue('--dark-primary') && rootStyles.getPropertyValue('--bar-bg') != "") {
+    document.documentElement.setAttribute('data-darkmode', 'true');
+  }
    
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
 		if (x && x.status == 200 && status.dler_info != "error") {
