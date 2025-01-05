@@ -790,13 +790,13 @@ check_core_status()
          ip -6 rule del oif utun table 2022 >/dev/null 2>&1
          ip -6 route del default dev utun table 2022 >/dev/null 2>&1
          ip -6 route add default dev utun table "$PROXY_ROUTE_TABLE"
-         ip -6 rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 8000
-         ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 8001
+         ip -6 rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 1888
+         ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1889
       fi
 
       ip route add default dev utun table "$PROXY_ROUTE_TABLE"
-      ip rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 8000
-      ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 8001
+      ip rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 1888
+      ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1889
    else
       reg4='^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$'
       while ( [ -n "$(pidof clash)" ] && [ "$CORE_HTTP_CODE" != "200" ] && [ "$TUN_RESTART" -le 120 ] && [[ "$lan_ip" =~ $reg4 ]] )

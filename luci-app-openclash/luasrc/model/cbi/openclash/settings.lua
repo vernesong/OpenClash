@@ -375,6 +375,7 @@ o = s:taboption("stream_enhance", Value, "stream_auto_select_interval", translat
 o.default = "30"
 o.datatype = "uinteger"
 o:depends("stream_auto_select", "1")
+o.rmempty = false
 
 o = s:taboption("stream_enhance", ListValue, "stream_auto_select_logic", font_red..bold_on..translate("Auto Select Logic")..bold_off..font_off)
 o.default = "urltest"
@@ -398,27 +399,21 @@ o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_netflix", translate("Group Filter"))
-o.default = "Netflix|奈飞"
 o.placeholder = "Netflix|奈飞"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_netflix", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_netflix", translate("Unlock Region Filter"))
-o.default = ""
 o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_netflix", "1")
-function o.validate(self, value)
-	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_netflix") then
-		fs.unlink("/tmp/openclash_Netflix_region")
-	end
-	return value
-end
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_netflix", translate("Unlock Nodes Filter"))
-o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_netflix", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", DummyValue, "Netflix", translate("Manual Test"))
 o.rawhtml = true
@@ -432,27 +427,21 @@ o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_disney", translate("Group Filter"))
-o.default = "Disney|迪士尼"
 o.placeholder = "Disney|迪士尼"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_disney", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_disney", translate("Unlock Region Filter"))
-o.default = ""
 o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_disney", "1")
-function o.validate(self, value)
-	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_disney") then
-		fs.unlink("/tmp/openclash_Disney Plus_region")
-	end
-	return value
-end
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_disney", translate("Unlock Nodes Filter"))
-o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_disney", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", DummyValue, "Disney Plus", translate("Manual Test"))
 o.rawhtml = true
@@ -466,27 +455,21 @@ o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_ytb", translate("Group Filter"))
-o.default = "YouTube|油管"
 o.placeholder = "YouTube|油管"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_ytb", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_ytb", translate("Unlock Region Filter"))
-o.default = ""
 o.placeholder = "HK|US"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_ytb", "1")
-function o.validate(self, value)
-	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_ytb") then
-		fs.unlink("/tmp/openclash_YouTube Premium_region")
-	end
-	return value
-end
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_ytb", translate("Unlock Nodes Filter"))
-o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_ytb", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", DummyValue, "YouTube Premium", translate("Manual Test"))
 o.rawhtml = true
@@ -500,27 +483,21 @@ o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_prime_video", translate("Group Filter"))
-o.default = "Amazon|Prime Video"
 o.placeholder = "Amazon|Prime Video"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_prime_video", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_prime_video", translate("Unlock Region Filter"))
-o.default = ""
 o.placeholder = "HK|US|SG"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_prime_video", "1")
-function o.validate(self, value)
-	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_prime_video") then
-		fs.unlink("/tmp/openclash_Amazon Prime Video_region")
-	end
-	return value
-end
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_prime_video", translate("Unlock Nodes Filter"))
-o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_prime_video", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", DummyValue, "Amazon Prime Video", translate("Manual Test"))
 o.rawhtml = true
@@ -534,27 +511,21 @@ o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_hbo_max", translate("Group Filter"))
-o.default = "HBO|HBOMax|HBO Max"
 o.placeholder = "HBO|HBOMax|HBO Max"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_hbo_max", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_hbo_max", translate("Unlock Region Filter"))
-o.default = ""
 o.placeholder = "US"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_hbo_max", "1")
-function o.validate(self, value)
-	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_hbo_max") then
-		fs.unlink("/tmp/openclash_HBO Max_region")
-	end
-	return value
-end
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_hbo_max", translate("Unlock Nodes Filter"))
-o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_hbo_max", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", DummyValue, "HBO Max", translate("Manual Test"))
 o.rawhtml = true
@@ -568,27 +539,21 @@ o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_tvb_anywhere", translate("Group Filter"))
-o.default = "TVB"
 o.placeholder = "TVB"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_tvb_anywhere", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_tvb_anywhere", translate("Unlock Region Filter"))
-o.default = ""
 o.placeholder = "HK|SG|TW"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_tvb_anywhere", "1")
-function o.validate(self, value)
-	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_tvb_anywhere") then
-		fs.unlink("/tmp/openclash_TVB Anywhere+_region")
-	end
-	return value
-end
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_tvb_anywhere", translate("Unlock Nodes Filter"))
-o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_tvb_anywhere", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", DummyValue, "TVB Anywhere+", translate("Manual Test"))
 o.rawhtml = true
@@ -602,27 +567,21 @@ o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_dazn", translate("Group Filter"))
-o.default = "DAZN"
 o.placeholder = "DAZN"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_dazn", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_dazn", translate("Unlock Region Filter"))
-o.default = ""
 o.placeholder = "DE"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_dazn", "1")
-function o.validate(self, value)
-	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_dazn") then
-		fs.unlink("/tmp/openclash_DAZN_region")
-	end
-	return value
-end
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_dazn", translate("Unlock Nodes Filter"))
-o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_dazn", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", DummyValue, "DAZN", translate("Manual Test"))
 o.rawhtml = true
@@ -636,27 +595,21 @@ o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_paramount_plus", translate("Group Filter"))
-o.default = "Paramount"
 o.placeholder = "Paramount"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_paramount_plus", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_paramount_plus", translate("Unlock Region Filter"))
-o.default = ""
 o.placeholder = "US"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_paramount_plus", "1")
-function o.validate(self, value)
-	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_paramount_plus") then
-		fs.unlink("/tmp/openclash_Paramount Plus_region")
-	end
-	return value
-end
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_paramount_plus", translate("Unlock Nodes Filter"))
-o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_paramount_plus", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", DummyValue, "Paramount Plus", translate("Manual Test"))
 o.rawhtml = true
@@ -670,27 +623,21 @@ o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_discovery_plus", translate("Group Filter"))
-o.default = "Discovery"
 o.placeholder = "Discovery"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_discovery_plus", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_discovery_plus", translate("Unlock Region Filter"))
-o.default = ""
 o.placeholder = "US"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_discovery_plus", "1")
-function o.validate(self, value)
-	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_discovery_plus") then
-		fs.unlink("/tmp/openclash_Discovery Plus_region")
-	end
-	return value
-end
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_discovery_plus", translate("Unlock Nodes Filter"))
-o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_discovery_plus", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", DummyValue, "Discovery Plus", translate("Manual Test"))
 o.rawhtml = true
@@ -704,10 +651,10 @@ o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_bilibili", translate("Group Filter"))
-o.default = "Bilibili"
 o.placeholder = "Bilibili"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_bilibili", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", ListValue, "stream_auto_select_region_key_bilibili", translate("Unlock Region Filter"))
 o.default = "CN"
@@ -716,17 +663,12 @@ o:value("HK/MO/TW", translate("Hongkong/Macau/Taiwan"))
 o:value("TW", translate("Taiwan Only"))
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_bilibili", "1")
-function o.validate(self, value)
-	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_bilibili") then
-		fs.unlink("/tmp/openclash_Bilibili_region")
-	end
-	return value
-end
+o.rmempty = false
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_bilibili", translate("Unlock Nodes Filter"))
-o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_bilibili", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", DummyValue, "Bilibili", translate("Manual Test"))
 o.rawhtml = true
@@ -740,15 +682,15 @@ o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_google_not_cn", translate("Group Filter"))
-o.default = "Google"
 o.placeholder = "Google"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_google_not_cn", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_google_not_cn", translate("Unlock Nodes Filter"))
-o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_google_not_cn", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", DummyValue, "Google", translate("Manual Test"))
 o.rawhtml = true
@@ -762,27 +704,21 @@ o.default = 0
 o:depends("stream_auto_select", "1")
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_group_key_openai", translate("Group Filter"))
-o.default = "OpenAI|ChatGPT"
 o.placeholder = "OpenAI|ChatGPT|AI"
 o.description = translate("It Will Be Searched According To The Regex When Auto Search Group Fails")
 o:depends("stream_auto_select_openai", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_region_key_openai", translate("Unlock Region Filter"))
-o.default = ""
 o.placeholder = "US"
 o.description = translate("It Will Be Selected Region(Country Shortcode) According To The Regex")
 o:depends("stream_auto_select_openai", "1")
-function o.validate(self, value)
-	if value ~= m.uci:get("openclash", "config", "stream_auto_select_region_key_openai") then
-		fs.unlink("/tmp/openclash_OpenAI_region")
-	end
-	return value
-end
+o.rmempty = true
 
 o = s:taboption("stream_enhance", Value, "stream_auto_select_node_key_openai", translate("Unlock Nodes Filter"))
-o.default = ""
 o.description = translate("It Will Be Selected Nodes According To The Regex")
 o:depends("stream_auto_select_openai", "1")
+o.rmempty = true
 
 o = s:taboption("stream_enhance", DummyValue, "OpenAI", translate("Manual Test"))
 o.rawhtml = true
