@@ -95,6 +95,9 @@ if a then
 		SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 		HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "client"))
 	end
+	
+	up=tb:option(DummyValue, "name", translate("Update"))
+	up.template = "openclash/update_config"
 end
 
 if not a then

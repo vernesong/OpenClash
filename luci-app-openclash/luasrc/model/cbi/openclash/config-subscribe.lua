@@ -111,6 +111,10 @@ function o.cfgvalue(...)
 	end
 end
 
+---- update
+o = s:option(DummyValue, "name", translate("Update"))
+o.template = "openclash/update_config"
+
 local t = {
     {Commit, Apply}
 }

@@ -727,8 +727,8 @@
         btn.value    = '<%:Checking...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_other_rules")%>', null, function(x, status) {
         if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Check Third Party Rules Update%>';
+           	btn.disabled = false;
+           	btn.value    = '<%:Check Third Party Rules Update%>';
         }
         else {
         	btn.disabled = false;
@@ -744,12 +744,12 @@
         btn.value    = '<%:Checking...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_geoip")%>', null, function(x, status) {
         if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Check GEOIP Data Update%>';
+           	btn.disabled = false;
+           	btn.value    = '<%:Check GEOIP Data Update%>';
         }
         else {
         	btn.disabled = false;
-          btn.value    = '<%:Check GEOIP Data Update%>';
+          	btn.value    = '<%:Check GEOIP Data Update%>';
         }
         return false;
         });
@@ -761,12 +761,12 @@
         btn.value    = '<%:Checking...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_geosite")%>', null, function(x, status) {
         if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Check GeoSite Data Update%>';
+           	btn.disabled = false;
+           	btn.value    = '<%:Check GeoSite Data Update%>';
         }
         else {
         	btn.disabled = false;
-          btn.value    = '<%:Check GeoSite Data Update%>';
+          	btn.value    = '<%:Check GeoSite Data Update%>';
         }
         return false;
         });
@@ -806,12 +806,12 @@
         btn.value    = '<%:Checking...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_subscribe")%>', null, function(x, status) {
         if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Check Config Update%>';
+        	btn.disabled = false;
+        	btn.value    = '<%:Check Config Update%>';
         }
         else {
         	btn.disabled = false;
-          btn.value    = '<%:Check Config Update%>';
+          	btn.value    = '<%:Check Config Update%>';
         }
         return false;
         });
@@ -823,12 +823,12 @@
         btn.value    = '<%:Reloading...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "reload_firewall")%>', null, function(x, status) {
         if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Reload Firewall Rules%>';
+        	btn.disabled = false;
+        	btn.value    = '<%:Reload Firewall Rules%>';
         }
         else {
         	btn.disabled = false;
-          btn.value    = '<%:Firewall Rules Reset Failed%>';
+          	btn.value    = '<%:Firewall Rules Reset Failed%>';
         }
         return false;
         });
@@ -840,12 +840,12 @@
         btn.value    = '<%:Reloading...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "close_all_connection")%>', null, function(x, status) {
         if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Close All Connections%>';
+           	btn.disabled = false;
+           	btn.value    = '<%:Close All Connections%>';
         }
         else {
         	btn.disabled = false;
-          btn.value    = '<%:Close All Connections Failed%>';
+          	btn.value    = '<%:Close All Connections Failed%>';
         }
         return false;
         });
