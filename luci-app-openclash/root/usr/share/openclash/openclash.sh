@@ -383,7 +383,13 @@ sub_info_get()
    config_get "sub_ua" "$section" "sub_ua" "Clash"
    
    if [ "$enabled" -eq 0 ]; then
-      return
+      if [ -n "$2" ]; then
+         if [ "$2" != "$CONFIG_FILE" ] && [ "$2" != "$name" ]; then
+            return
+         fi
+      else
+         return
+      fi
    fi
    
    if [ -z "$address" ]; then
@@ -415,7 +421,7 @@ sub_info_get()
       BACKPACK_FILE="/etc/openclash/backup/$name.yaml"
    fi
 
-   if [ -n "$2" ] && [ "$2" != "$CONFIG_FILE" ]; then
+   if [ -n "$2" ] && [ "$2" != "$CONFIG_FILE" ] && [ "$2" != "$name" ]; then
       return
    fi
    
