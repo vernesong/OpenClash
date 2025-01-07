@@ -79,11 +79,11 @@ if a then
 	btnis.template="openclash/other_button"
 	btnis.render=function(o,t,a)
 		if not e[t] then return false end
-			if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
-				a.display=""
-			else
-				a.display="none"
-			end
+		if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+			a.display=""
+		else
+			a.display="none"
+		end
 		o.inputstyle="apply"
 		Button.render(o,t,a)
 	end
@@ -98,6 +98,17 @@ if a then
 	
 	up=tb:option(DummyValue, "name", translate("Update"))
 	up.template = "openclash/update_config"
+	up.render = function(o,t,a)
+		local display = "none"
+		uci:foreach("openclash", "config_subscribe",
+		function(s)
+			if s.name == fs.filename(e[t].name) then
+				display = ""
+			end
+		end)
+		o.display = display
+		DummyValue.render(o,t,a)
+	end
 end
 
 if not a then
