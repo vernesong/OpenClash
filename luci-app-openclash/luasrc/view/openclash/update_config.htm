@@ -2,6 +2,7 @@
 <%
 	local fs = require "luci.openclash"
 	local filename = fs.filename(self:cfgvalue(section))
+	local display = self.display or ""
 	local idname = math.random(1000)..(string.match(filename, "[%w_]+") or "")
 %>
 <script type="text/javascript">//<![CDATA[
@@ -16,6 +17,11 @@
 	
 //]]></script>
 
-
+<%
+	if display == "" then
+%>
 <input type="button" class="btn cbi-button cbi-input-reload" value="<%:Update%>" onclick="return act_update_config_<%=idname%>(this)" />
+<%
+	end
+%>
 <%+cbi/valuefooter%>
