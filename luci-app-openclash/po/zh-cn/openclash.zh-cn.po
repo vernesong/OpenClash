@@ -3452,3 +3452,6 @@ msgstr "对象"
 
 msgid "Error: Network Anomaly, Suspend Unlock Detection..."
 msgstr "错误：网络异常，暂停解锁检测..."
+
+msgid "(Not Support mrs Format)"
+msgstr "(不支持 mrs 格式)"
