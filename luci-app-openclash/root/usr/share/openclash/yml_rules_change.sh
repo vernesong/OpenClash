@@ -18,7 +18,7 @@ SKIP_CUSTOM_OTHER_RULES=0
 yml_set_custom_rule_provider()
 {
    local section="$1"
-   local enabled name config type behavior path url interval group position
+   local enabled name config type behavior path url interval group position other_parameters
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "name" "$section" "name" ""
    config_get "config" "$section" "config" ""
@@ -30,6 +30,7 @@ yml_set_custom_rule_provider()
    config_get "group" "$section" "group" ""
    config_get "position" "$section" "position" ""
    config_get "format" "$section" "format" ""
+   config_get "other_parameters" "$section" "other_parameters" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -63,7 +64,7 @@ yml_set_custom_rule_provider()
       else
          path="./rule_provider/$name.yaml"
       fi
-   elif [ -z "$path" ]; then
+   elif [ -z "$path" ] && [ "$type" != "inline" ]; then
       return
    fi
 
@@ -79,8 +80,12 @@ cat >> "$RULE_PROVIDER_FILE" <<-EOF
   $name:
     type: $type
     behavior: $behavior
+EOF
+    if [ -n "$path" ]; then
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
     path: $path
 EOF
+    fi
     if [ -n "$format" ]; then
 cat >> "$RULE_PROVIDER_FILE" <<-EOF
     format: $format
@@ -92,6 +97,11 @@ cat >> "$RULE_PROVIDER_FILE" <<-EOF
     interval: $interval
 EOF
     fi
+
+   #other_parameters
+   if [ -n "$other_parameters" ]; then
+      echo -e "$other_parameters" >> "$RULE_PROVIDER_FILE"
+   fi
 
    yml_rule_set_add "$name" "$group" "$position"
 }
