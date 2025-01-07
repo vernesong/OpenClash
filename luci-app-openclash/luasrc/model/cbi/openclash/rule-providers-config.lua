@@ -57,15 +57,9 @@ o.default = "Rule-provider - "..sid
 o = s:option(ListValue, "type", translate("Rule Providers Type"))
 o.rmempty = true
 o.description = translate("Choose The Rule Providers Type")
-o:value("http", translate("http"))
-o:value("file", translate("file"))
-
-o = s:option(ListValue, "behavior", translate("Rule Behavior"))
-o.rmempty = true
-o.description = translate("Choose The Rule Behavior")
-o:value("domain")
-o:value("ipcidr")
-o:value("classical")
+o:value("http")
+o:value("file")
+o:value("inline")
 
 o = s:option(ListValue, "format", translate("Rule Format")..translate("(TUN&Meta Core)"))
 o.rmempty = true
@@ -73,6 +67,15 @@ o.description = translate("Choose The Rule File Format, For More Info:").." ".."
 o:value("yaml")
 o:value("text")
 o:value("mrs")
+o:depends("type", "file")
+o:depends("type", "http")
+
+o = s:option(ListValue, "behavior", translate("Rule Behavior"))
+o.rmempty = true
+o.description = translate("Choose The Rule Behavior")
+o:value("domain")
+o:value("ipcidr")
+o:value("classical", translate("classical").." "..translate("(Not Support mrs Format)"))
 
 o = s:option(ListValue, "path", translate("Rule Providers Path"))
 o.description = translate("Update Your Rule Providers File From Config Luci Page")
@@ -136,6 +139,36 @@ m.uci:foreach("openclash", "groups",
 o:value("DIRECT")
 o:value("REJECT")
 
+-- [[ other-setting ]]--
+o = s:option(Value, "other_parameters", translate("Other Parameters"))
+o.template = "cbi/tvalue"
+o.rows = 20
+o.wrap = "off"
+o.description = font_red..bold_on..translate("Edit Your Other Parameters Here")..bold_off..font_off
+o.rmempty = true
+function o.cfgvalue(self, section)
+	if self.map:get(section, "other_parameters") == nil then
+		return "# Example:\n"..
+		"# Only support YAML, four spaces need to be reserved at the beginning of each line to maintain formatting alignment\n"..
+		"# 示例：\n"..
+		"# 仅支持 YAML, 每行行首需要多保留四个空格以使脚本处理后能够与上方配置保持格式对齐\n"..
+		"# inline Example:\n"..
+		"#    payload:\n"..
+		"#      - '.blogger.com'\n"..
+		"#      - '*.*.microsoft.com'\n"..
+		"#      - 'books.itunes.apple.com'\n"
+	else
+		return Value.cfgvalue(self, section)
+	end
+end
+function o.validate(self, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		value = value:gsub("%c*$", "")
+	end
+	return value
+end
+
 local t = {
     {Commit, Back}
 }
@@ -159,4 +192,5 @@ o.write = function()
 end
 
 m:append(Template("openclash/toolbar_show"))
+m:append(Template("openclash/config_editor"))
 return m

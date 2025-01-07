@@ -59,6 +59,7 @@ o.rmempty = true
 o.description = translate("Choose The Provider Type")
 o:value("http")
 o:value("file")
+o:value("inline")
 
 o = s:option(Value, "name", translate("Provider Name"))
 o.rmempty = false
@@ -134,7 +135,16 @@ function o.cfgvalue(self, section)
 		"#      proxy-name:\n"..
 		"#      - pattern: \"IPLC-(.*?)倍\"\n"..
 		"#        target: \"iplc x $1\"\n"..
-		"#    exclude-type: \"ss|http\""
+		"#    exclude-type: \"ss|http\"\n"..
+		"\n"..
+		"# inline Example:\n"..
+		"#    payload:\n"..
+		"#      - name: \"ss1\"\n"..
+		"#        type: ss\n"..
+		"#        server: server\n"..
+		"#        port: 443\n"..
+		"#        cipher: chacha20-ietf-poly1305\n"..
+		"#        password: \"password\""
 	else
 		return Value.cfgvalue(self, section)
 	end
