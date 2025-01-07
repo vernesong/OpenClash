@@ -259,7 +259,7 @@ btnrn.template="openclash/input_rename"
 btnrn.rawhtml = true
 btnrn.render=function(c,t,a)
 c.value = e[t].name
-Button.render(c,t,a)
+DummyValue.render(c,t,a)
 end
 
 btndl = tb:option(Button,"download",translate("Download Config"))
