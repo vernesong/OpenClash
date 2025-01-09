@@ -1189,13 +1189,16 @@ msgid "Running Mode"
 msgstr "运行模式"
 
 msgid "Yacd Control Panel"
-msgstr "Yacd 控制面板"
+msgstr "Yacd 面板"
 
 msgid "Dashboard Control Panel"
-msgstr "Dashboard 控制面板"
+msgstr "Dashboard 面板"
 
 msgid "Metacubexd Control Panel"
-msgstr "Metacubexd 控制面板"
+msgstr "Metacubexd 面板"
+
+msgid "zashboard Control Panel"
+msgstr "zashboard 面板"
 
 msgid "Control Panel Login IP"
 msgstr "控制面板登录 IP"
@@ -2957,6 +2960,9 @@ msgstr "切换（更新） Yacd 版本"
 
 msgid "Update Metacubexd Version"
 msgstr "更新 Metacubexd 版本"
+
+msgid "Update zashboard Version"
+msgstr "更新 zashboard 版本"
 
 msgid "Downloading File..."
 msgstr "文件下载中..."
