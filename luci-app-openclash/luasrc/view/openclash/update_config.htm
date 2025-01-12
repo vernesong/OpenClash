@@ -9,7 +9,7 @@
 	function act_update_config_<%=idname%>(btn)
 	{
 		btn.disabled = true;
-		btn.value    = '<%:Update%>';
+		btn.value    = '<%:UpDate%>';
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","update_config")%>',{filename: "<%=filename%>"}, function(x,status){});
 		btn.disabled = false;
 		return false;
@@ -20,7 +20,7 @@
 <%
 	if display == "" then
 %>
-<input type="button" class="btn cbi-button cbi-input-reload" value="<%:Update%>" onclick="return act_update_config_<%=idname%>(this)" />
+<input type="button" class="btn cbi-button cbi-input-reload" value="<%:UpDate%>" onclick="return act_update_config_<%=idname%>(this)" />
 <%
 	end
 %>
