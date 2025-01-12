@@ -3455,3 +3455,6 @@ msgstr "错误：网络异常，暂停解锁检测..."
 
 msgid "(Not Support mrs Format)"
 msgstr "(不支持 mrs 格式)"
+
+msgid "UpDate"
+msgstr "更新"
