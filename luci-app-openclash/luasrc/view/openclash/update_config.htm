@@ -1,7 +1,7 @@
 <%+cbi/valueheader%>
 <%
 	local fs = require "luci.openclash"
-	local filename = fs.filename(self:cfgvalue(section))
+	local filename = fs.filename(self:cfgvalue(section)) or "config"
 	local display = self.display or ""
 	local idname = math.random(1000)..(string.match(filename, "[%w_]+") or "")
 %>
