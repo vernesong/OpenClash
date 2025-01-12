@@ -1004,6 +1004,10 @@ o = s:taboption("dashboard", DummyValue, "Metacubexd", translate("Update Metacub
 o.template="openclash/switch_dashboard"
 o.rawhtml = true
 
+o = s:taboption("dashboard", DummyValue, "zashboard", translate("Update zashboard Version"))
+o.template="openclash/switch_dashboard"
+o.rawhtml = true
+
 ---- ipv6
 o = s:taboption("ipv6", Flag, "ipv6_enable", translate("Proxy IPv6 Traffic"))
 o.description = font_red..bold_on..translate("The Gateway and DNS of The Connected Device Must be The Router IP, Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use")..bold_off..font_off
