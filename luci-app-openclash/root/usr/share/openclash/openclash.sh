@@ -358,7 +358,11 @@ convert_custom_param()
       return
    fi
    local p_name="${1%%=*}" p_value="${1#*=}"
-   append_custom_params="${append_custom_params}&${p_name}=$(urlencode "$p_value")"
+   if [ -z "$append_custom_params" ]; then
+      append_custom_params="&${p_name}=$(urlencode "$p_value")"
+   else
+      append_custom_params="${append_custom_params}\`$(urlencode "$p_value")"
+   fi
 }
 
 sub_info_get()

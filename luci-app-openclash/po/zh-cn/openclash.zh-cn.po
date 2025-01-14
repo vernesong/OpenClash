@@ -2724,8 +2724,8 @@ msgstr "未选择上传文件"
 msgid "Custom Params"
 msgstr "自定义参数"
 
-msgid "eg: \"rename=\\s+([2-9])[xX]@ (HIGH:$1)\""
-msgstr "格式示例：\"rename=\\s+([2-9])[xX]@ (高倍率:$1)\""
+msgid "eg: \"rename=match@replace\" , \"rename=\\s+([2-9])[xX]@ (HIGH:$1)\""
+msgstr "格式示例：\"rename=match@replace\" , \"rename=\\s+([2-9])[xX]@ (高倍率:$1)\""
 
 msgid "Use Rule Provider"
 msgstr "使用规则集"
