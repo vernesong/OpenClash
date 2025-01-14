@@ -180,7 +180,7 @@ o:depends("sub_convert", "1")
 
 ---- custom params
 o = s:option(DynamicList, "custom_params", translate("Custom Params"))
-o.description = font_red..bold_on..translate("eg: \"rename=\\s+([2-9])[xX]@ (HIGH:$1)\"")..bold_off..font_off
+o.description = font_red..bold_on..translate("eg: \"rename=match@replace\" , \"rename=\\s+([2-9])[xX]@ (HIGH:$1)\"")..bold_off..font_off
 o.rmempty     = false
 o:depends("sub_convert", "1")
 
