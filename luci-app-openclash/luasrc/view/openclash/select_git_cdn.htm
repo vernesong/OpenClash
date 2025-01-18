@@ -136,11 +136,11 @@
 		}
 		var luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 		return luminance < 128;
- 	}
+ 	};
 
 	if (isDarkBackground(document.body)) {
 		document.documentElement.setAttribute('data-darkmode', 'true');
-	}
+	};
 
 	function get_update_info() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, status) {
