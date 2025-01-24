@@ -392,43 +392,6 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                   uci_commands << uci_set + 'tfo=\"' + x['tfo'].to_s + '\"'
                end
             };
-            
-            threads << Thread.new{
-               #Multiplex
-               if x.key?('smux') then
-                  if x['smux'].key?('enabled') then
-                     uci_commands << uci_set + 'multiplex=\"' + x['smux']['enabled'].to_s + '\"'
-                  end;
-                  #multiplex_protocol
-                  if x['smux'].key?('protocol') then
-                     uci_commands << uci_set + 'multiplex_protocol=\"' + x['smux']['protocol'].to_s + '\"'
-                  end;
-                  #multiplex_max_connections
-                  if x['smux'].key?('max-connections') then
-                     uci_commands << uci_set + 'multiplex_max_connections=\"' + x['smux']['max-connections'].to_s + '\"'
-                  end;
-                  #multiplex_min_streams
-                  if x['smux'].key?('min-streams') then
-                     uci_commands << uci_set + 'multiplex_min_streams=\"' + x['smux']['min-streams'].to_s + '\"'
-                  end;
-                  #multiplex_max_streams
-                  if x['smux'].key?('max-streams') then
-                     uci_commands << uci_set + 'multiplex_max_streams=\"' + x['smux']['max-streams'].to_s + '\"'
-                  end;
-                  #multiplex_padding
-                  if x['smux'].key?('padding') then
-                     uci_commands << uci_set + 'multiplex_padding=\"' + x['smux']['padding'].to_s + '\"'
-                  end;
-                  #multiplex_statistic
-                  if x['smux'].key?('statistic') then
-                     uci_commands << uci_set + 'multiplex_statistic=\"' + x['smux']['statistic'].to_s + '\"'
-                  end;
-                  #multiplex_only_tcp
-                  if x['smux'].key?('only-tcp') then
-                     uci_commands << uci_set + 'multiplex_only_tcp=\"' + x['smux']['only-tcp'].to_s + '\"'
-                  end;
-               end;
-            };
 
             if x['type'] == 'ss' then
                threads << Thread.new{
@@ -443,6 +406,43 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                   if x.key?('udp-over-tcp') then
                      uci_commands << uci_set + 'udp_over_tcp=\"' + x['udp-over-tcp'].to_s + '\"'
                   end
+               };
+
+               threads << Thread.new{
+                  #Multiplex
+                  if x.key?('smux') then
+                     if x['smux'].key?('enabled') then
+                        uci_commands << uci_set + 'multiplex=\"' + x['smux']['enabled'].to_s + '\"'
+                     end;
+                     #multiplex_protocol
+                     if x['smux'].key?('protocol') then
+                        uci_commands << uci_set + 'multiplex_protocol=\"' + x['smux']['protocol'].to_s + '\"'
+                     end;
+                     #multiplex_max_connections
+                     if x['smux'].key?('max-connections') then
+                        uci_commands << uci_set + 'multiplex_max_connections=\"' + x['smux']['max-connections'].to_s + '\"'
+                     end;
+                     #multiplex_min_streams
+                     if x['smux'].key?('min-streams') then
+                        uci_commands << uci_set + 'multiplex_min_streams=\"' + x['smux']['min-streams'].to_s + '\"'
+                     end;
+                     #multiplex_max_streams
+                     if x['smux'].key?('max-streams') then
+                        uci_commands << uci_set + 'multiplex_max_streams=\"' + x['smux']['max-streams'].to_s + '\"'
+                     end;
+                     #multiplex_padding
+                     if x['smux'].key?('padding') then
+                        uci_commands << uci_set + 'multiplex_padding=\"' + x['smux']['padding'].to_s + '\"'
+                     end;
+                     #multiplex_statistic
+                     if x['smux'].key?('statistic') then
+                        uci_commands << uci_set + 'multiplex_statistic=\"' + x['smux']['statistic'].to_s + '\"'
+                     end;
+                     #multiplex_only_tcp
+                     if x['smux'].key?('only-tcp') then
+                        uci_commands << uci_set + 'multiplex_only_tcp=\"' + x['smux']['only-tcp'].to_s + '\"'
+                     end;
+                  end;
                };
 
                threads << Thread.new{
@@ -552,6 +552,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                end
                };
             end;
+
             if x['type'] == 'vmess' then
                threads << Thread.new{
                #uuid
@@ -725,6 +726,37 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                   else
                      uci_commands << uci_set + 'obfs_vmess=none'
                   end
+               end
+               };
+            end;
+
+            #Mieru
+            if x['type'] == 'mieru' then
+               threads << Thread.new{
+               #port-range
+               if x.key?('port-range') then
+                  uci_commands << uci_set + 'port_range=\"' + x['port-range'].to_s + '\"'
+               end
+               };
+
+               threads << Thread.new{
+               #username
+               if x.key?('username') then
+                  uci_commands << uci_set + 'username=\"' + x['username'].to_s + '\"'
+               end
+               };
+
+               threads << Thread.new{
+               #transport
+               if x.key?('transport') then
+                  uci_commands << uci_set + 'transport=\"' + x['transport'].to_s + '\"'
+               end
+               };
+
+               threads << Thread.new{
+               #multiplexing
+               if x.key?('multiplexing') then
+                  uci_commands << uci_set + 'multiplexing=\"' + x['multiplexing'].to_s + '\"'
                end
                };
             end;
@@ -1254,6 +1286,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                end
                };
             end;
+
             if x['type'] == 'http' or x['type'] == 'trojan' then
                threads << Thread.new{
                if x.key?('sni') then
@@ -1261,6 +1294,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                end
                };
             end;
+
             if x['type'] == 'trojan' then
                threads << Thread.new{
                #alpn

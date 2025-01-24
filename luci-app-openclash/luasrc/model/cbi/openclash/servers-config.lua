@@ -143,6 +143,7 @@ o:value("hysteria2", translate("Hysteria2 ")..translate("(Only Meta Core)"))
 o:value("wireguard", translate("WireGuard")..translate("(Only Meta Core)"))
 o:value("tuic", translate("Tuic")..translate("(Only Meta Core)"))
 o:value("snell", translate("Snell"))
+o:value("mieru", translate("Mieru"))
 o:value("socks5", translate("Socks5"))
 o:value("http", translate("HTTP(S)"))
 
@@ -182,6 +183,35 @@ o:depends("type", "ss")
 o:depends("type", "ssr")
 o:depends("type", "trojan")
 o:depends("type", "hysteria2")
+o:depends("type", "mieru")
+
+-- [[ Mieru ]]--
+o = s:option(Value, "port_range", translate("Port Range"))
+o.datatype = "portrange"
+o.rmempty = true
+o.default = "20000-40000"
+o.placeholder = translate("20000-40000")
+o:depends("type", "mieru")
+
+o = s:option(Value, "username", translate("Username"))
+o.rmempty = false
+o.placeholder = "user"
+o:depends("type", "mieru")
+
+o = s:option(ListValue, "transport", translate("Transport"))
+o.rmempty = false
+o.default = "TCP"
+o:value("TCP")
+o:depends("type", "mieru")
+
+o = s:option(ListValue, "multiplexing", translate("Multiplexing"))
+o.rmempty = false
+o.default = "MULTIPLEXING_LOW"
+o:value("MULTIPLEXING_OFF")
+o:value("MULTIPLEXING_LOW")
+o:value("MULTIPLEXING_MIDDLE")
+o:value("MULTIPLEXING_HIGH")
+o:depends("type", "mieru")
 
 -- [[ Tuic ]]--
 o = s:option(Value, "tc_ip", translate("Server IP"))
@@ -836,6 +866,7 @@ o.rmempty = false
 o:value("true")
 o:value("false")
 o.default = "false"
+o:depends({type = "ss", obfs = "none"})
 
 o = s:option(ListValue, "multiplex_protocol", translate("Protocol"))
 o.rmempty = true
