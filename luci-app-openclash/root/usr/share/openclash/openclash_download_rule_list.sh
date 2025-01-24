@@ -2,11 +2,23 @@
 . /usr/share/openclash/log.sh
 . /lib/functions.sh
 
-urlencode() {
-   if [ "$#" -eq 1 ]; then
-      echo "$(/usr/share/openclash/openclash_urlencode.lua "$1")"
-   fi
-}
+   urlencode() {
+      if [ "$#" -eq 1 ]; then
+         echo "$(/usr/share/openclash/openclash_urlencode.lua "$1")"
+      fi
+   }
+
+   set_lock() {
+      exec 870>"/tmp/lock/openclash_rulelist.lock" 2>/dev/null
+      flock -x 870 2>/dev/null
+   }
+
+   del_lock() {
+      flock -u 870 2>/dev/null
+      rm -rf "/tmp/lock/openclash_rulelist.lock" 2>/dev/null
+   }
+
+   set_lock
 
    RULE_FILE_NAME="$1"
    LOG_FILE="/tmp/openclash.log"
@@ -25,6 +37,7 @@ urlencode() {
 
    if [ -z "$DOWNLOAD_PATH" ]; then
       LOG_OUT "Rule File【$RULE_FILE_NAME】Download Error!" && SLOG_CLEAN
+      del_lock
       exit 0
    fi
 
@@ -70,15 +83,20 @@ urlencode() {
             fi
             rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
             LOG_OUT "Rule File【$RULE_FILE_NAME】Download Successful!" && SLOG_CLEAN
+            del_lock
             exit 1
          else
             LOG_OUT "Rule File【$RULE_FILE_NAME】No Change, Do Nothing!" && SLOG_CLEAN
             rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
             rm -rf "$TMP_RULE_DIR_TMP" >/dev/null 2>&1
+            del_lock
             exit 2
          fi
    else
       rm -rf "$TMP_RULE_DIR" >/dev/null 2>&1
       LOG_OUT "Rule File【$RULE_FILE_NAME】Download Error!" && SLOG_CLEAN
+      del_lock
       exit 0
    fi
+
+   del_lock

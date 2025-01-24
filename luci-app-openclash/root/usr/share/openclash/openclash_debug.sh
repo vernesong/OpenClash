@@ -9,7 +9,7 @@ set_lock() {
 
 del_lock() {
    flock -u 885 2>/dev/null
-   rm -rf "/tmp/lock/openclash_debug.lock"
+   rm -rf "/tmp/lock/openclash_debug.lock" 2>/dev/null
 }
 
 ipk_v()
@@ -21,10 +21,10 @@ ipk_v()
    fi
 }
 
-DEBUG_LOG="/tmp/openclash_debug.log"
-LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 set_lock
 
+DEBUG_LOG="/tmp/openclash_debug.log"
+LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 enable_custom_dns=$(uci -q get openclash.config.enable_custom_dns)
 rule_source=$(uci -q get openclash.config.rule_source)
 enable_custom_clash_rules=$(uci -q get openclash.config.enable_custom_clash_rules) 
