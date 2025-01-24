@@ -253,7 +253,7 @@ local function opcv()
 		if fs.access("/bin/opkg") then
 			return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}'")
 		elseif fs.access("/usr/bin/apk") then
-			return "v" .. luci.sys.exec("apk list luci-app-openclash 2>/dev/null |grep 'installed' | grep -oE '\\d+(\\.\\d+)*' | head -1")
+			return "v" .. luci.sys.exec("apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\\.[0-9]+)*' | head -1")
 		end
 	end
 end

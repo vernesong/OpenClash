@@ -7,8 +7,10 @@ set_lock() {
 
 del_lock() {
    flock -u 884 2>/dev/null
-   rm -rf "/tmp/lock/openclash_clash_version.lock"
+   rm -rf "/tmp/lock/openclash_clash_version.lock" 2>/dev/null
 }
+
+set_lock
 
 TIME=$(date "+%Y-%m-%d-%H")
 CHTIME=$(date "+%Y-%m-%d-%H" -r "/tmp/clash_last_version" 2>/dev/null)
@@ -19,7 +21,6 @@ if [ -n "$1" ]; then
    github_address_mod="$1"
 fi
 LOG_FILE="/tmp/openclash.log"
-set_lock
 
 if [ "$TIME" != "$CHTIME" ]; then
    if [ "$github_address_mod" != "0" ]; then

@@ -9,7 +9,7 @@ set_lock() {
 
 del_lock() {
    flock -u 881 2>/dev/null
-   rm -rf "/tmp/lock/openclash_history_get.lock"
+   rm -rf "/tmp/lock/openclash_history_get.lock" 2>/dev/null
 }
 
 close_all_conection() {
@@ -24,8 +24,11 @@ close_all_conection() {
    curl -m 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X DELETE http://"$LAN_IP":"$PORT"/connections >/dev/null 2>&1
 }
 
+set_lock
+
 if [ "$1" = "close_all_conection" ]; then
    close_all_conection
+   del_lock
    exit 0
 fi
 
@@ -37,8 +40,6 @@ HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}.db"
 core_version=$(uci -q get openclash.config.core_version || echo 0)
 CACHE_PATH_OLD="/etc/openclash/.cache"
 source "/etc/openwrt_release"
-
-set_lock
 
 if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
    CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)

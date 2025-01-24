@@ -9,15 +9,16 @@
 
    del_lock() {
       flock -u 880 2>/dev/null
-      rm -rf "/tmp/lock/openclash_ipdb.lock"
+      rm -rf "/tmp/lock/openclash_ipdb.lock" 2>/dev/null
    }
+
+   set_lock
    
    small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
    GEOIP_CUSTOM_URL=$(uci get openclash.config.geo_custom_url 2>/dev/null)
    github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
    LOG_FILE="/tmp/openclash.log"
    restart=0
-   set_lock
    
    if [ "$small_flash_memory" != "1" ]; then
    	  geoip_path="/etc/openclash/Country.mmdb"
