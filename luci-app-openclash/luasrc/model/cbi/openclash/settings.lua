@@ -216,9 +216,10 @@ o.cfgvalue = function(...)
 end
 
 ip_ac = s2:option(Value, "src_ip", translate("Internal addresses"))
-ip_ac.datatype = "ipmask"
+ip_ac.datatype = "or(ipmask, string)"
 ip_ac.placeholder = "0.0.0.0/0"
-ip_ac.rmempty = false
+ip_ac.rmempty = true
+ip_ac:value("localnetwork", translate("Local Network"))
 
 o = s2:option(Value, "src_port", translate("Internal ports"))
 o.datatype = "or(port, portrange)"
@@ -240,8 +241,9 @@ o.default = "tcp"
 o.rmempty = false
 
 o = s2:option(ListValue, "target", translate("Target"))
-o:value("return", translate("Return"))
-o:value("accept", translate("Accept"))
+o:value("return", translate("RETURN"))
+o:value("accept", translate("ACCEPT"))
+o:value("drop", translate("DROP"))
 o.rmempty = false
 
 luci.ip.neighbors({ family = 4 }, function(n)
