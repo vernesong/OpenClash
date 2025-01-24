@@ -168,7 +168,7 @@ elif [ -x "/usr/bin/apk" ]; then
    if [ "$?" != "0" ] || [ -z "$(apk list luci-app-openclash 2>/dev/null |grep 'installed')" ]; then
       apk add -q --clean-protected --allow-untrusted /tmp/openclash.apk
    fi
-   if [ "$?" != "0" ] || [ -z "$(apk list luci-app-openclash 2>/dev/null |grep 'installed')" ]; then
+   if [ "$?" == "0" ] || [ -n "$(apk list luci-app-openclash 2>/dev/null |grep 'installed')" ]; then
       rm -rf /tmp/openclash.apk >/dev/null 2>&1
       LOG_OUT "OpenClash Update Successful, About To Restart!"
       uci -q set openclash.config.enable=1
