@@ -4,6 +4,8 @@ require "nixio"
 require "luci.util"
 require "luci.sys"
 local ntm = require "luci.model.network".init()
+local cidr = require "luci.ip"
+local fs = require "luci.openclash"
 local type = arg[1]
 local rv = {}
 local wan, wan6
@@ -30,6 +32,7 @@ if wan then
 	for i = 1, #wan do
 		rv.wan[i] = {
 			ipaddr  = wan[i]:ipaddr(),
+			ip6addr  = wan[i]:ip6addr(),
 			gwaddr  = wan[i]:gwaddr(),
 			netmask = wan[i]:netmask(),
 			dns     = wan[i]:dnsaddrs(),
@@ -145,6 +148,35 @@ if type == "wanip6" then
 		for o = 1, #(rv.wan6) do
 			if rv.wan6[o].proto == "pppoe" or rv.wan6[o].proto == "dhcpv6" then
 				print(rv.wan6[o].ip6addr)
+			end
+		end
+	end
+end
+
+if type == "lan_cidr" then
+	if wan then
+		for o = 1, #(rv.wan) do
+			if rv.wan[o].proto ~= "pppoe" then
+				if rv.wan[o].ipaddr and rv.wan[o].netmask then
+					local network = cidr.IPv4(rv.wan[o].ipaddr, rv.wan[o].netmask):network():string()
+					local prefix = cidr.IPv4(rv.wan[o].ipaddr, rv.wan[o].netmask):prefix()
+					print(network.."/"..prefix)
+				end
+			end
+		end
+	end
+end
+
+if type == "lan_cidr6" then
+	if wan then
+		for o = 1, #(rv.wan) do
+			if rv.wan[o].proto ~= "pppoe" then
+				if rv.wan[o].ip6addr then
+					local ip6, prefix = rv.wan[o].ip6addr:match("([^/]+)/(%d+)")
+					local network = cidr.IPv6(ip6, tonumber(prefix)):network():string()
+					local prefix = cidr.IPv6(ip6, tonumber(prefix)):prefix()
+					print(network.."/"..prefix)
+				end
 			end
 		end
 	end
