@@ -234,10 +234,17 @@ fi
 ## Localnetwork 刷新
    wan_ip4s=$(/usr/share/openclash/openclash_get_network.lua "wanip" 2>/dev/null)
    wan_ip6s=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
+   lan_ip4s=$(/usr/share/openclash/openclash_get_network.lua "lan_cidr" 2>/dev/null)
+   lan_ip6s=$(/usr/share/openclash/openclash_get_network.lua "lan_cidr6" 2>/dev/null)
    if [ -n "$FW4" ]; then
       if [ -n "$wan_ip4s" ]; then
          for wan_ip4 in $wan_ip4s; do
             nft add element inet fw4 localnetwork { "$wan_ip4" } 2>/dev/null
+         done
+      fi
+      if [ -n "$lan_ip4s" ]; then
+         for lan_ip4 in $lan_ip4s; do
+            nft add element inet fw4 localnetwork { "$lan_ip4" } 2>/dev/null
          done
       fi
 
@@ -247,6 +254,11 @@ fi
                nft add element inet fw4 localnetwork6 { "$wan_ip6" } 2>/dev/null
             done
          fi
+         if [ -n "$lan_ip6s" ]; then
+            for lan_ip6 in $lan_ip6s; do
+               nft add element inet fw4 localnetwork6 { "$lan_ip6" } 2>/dev/null
+            done
+         fi
       fi
    else
       if [ -n "$wan_ip4s" ]; then
@@ -254,10 +266,20 @@ fi
             ipset add localnetwork "$wan_ip4" 2>/dev/null
          done
       fi
+      if [ -n "$lan_ip4s" ]; then
+         for lan_ip4 in $lan_ip4s; do
+            ipset add localnetwork "$lan_ip4" 2>/dev/null
+         done
+      fi
       if [ "$ipv6_enable" -eq 1 ]; then
          if [ -n "$wan_ip6s" ]; then
             for wan_ip6 in $wan_ip6s; do
                ipset add localnetwork6 "$wan_ip6" 2>/dev/null
+            done
+         fi
+         if [ -n "$lan_ip6s" ]; then
+            for lan_ip6 in $lan_ip6s; do
+               ipset add localnetwork6 "$lan_ip6" 2>/dev/null
             done
          fi
       fi
