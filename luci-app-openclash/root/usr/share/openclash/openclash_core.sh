@@ -3,6 +3,18 @@
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 
+set_lock() {
+   exec 872>"/tmp/lock/openclash_core.lock" 2>/dev/null
+   flock -x 872 2>/dev/null
+}
+
+del_lock() {
+   flock -u 872 2>/dev/null
+   rm -rf "/tmp/lock/openclash_core.lock" 2>/dev/null
+}
+
+set_lock
+
 github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
 if [ "$github_address_mod" = "0" ] && [ -z "$(echo $2 2>/dev/null |grep -E 'http|one_key_update')" ] && [ -z "$(echo $3 2>/dev/null |grep 'http')" ]; then
    LOG_OUT "Tip: If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
@@ -29,6 +41,7 @@ fi
 if [ ! -f "/tmp/clash_last_version" ]; then
    LOG_OUT "Error: 【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
    SLOG_CLEAN
+   del_lock
    exit 0
 fi
 
@@ -77,6 +90,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             LOG_OUT "【"$CORE_TYPE"】Core Update Failed. Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
             rm -rf /tmp/clash_meta >/dev/null 2>&1
             SLOG_CLEAN
+            del_lock
             exit 0
          fi
 
@@ -113,4 +127,4 @@ else
 fi
 
 rm -rf /tmp/clash_meta >/dev/null 2>&1
-
+del_lock

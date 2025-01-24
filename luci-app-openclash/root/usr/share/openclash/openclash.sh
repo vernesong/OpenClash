@@ -11,8 +11,10 @@ set_lock() {
 
 del_lock() {
    flock -u 889 2>/dev/null
-   rm -rf "/tmp/lock/openclash_subs.lock"
+   rm -rf "/tmp/lock/openclash_subs.lock" 2>/dev/null
 }
+
+set_lock
 
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
@@ -26,7 +28,6 @@ CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 restart=0
 only_download=0
-set_lock
 
 urlencode() {
    if [ "$#" -eq 1 ]; then

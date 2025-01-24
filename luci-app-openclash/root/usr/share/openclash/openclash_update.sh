@@ -8,8 +8,10 @@ set_lock() {
 
 del_lock() {
    flock -u 878 2>/dev/null
-   rm -rf "/tmp/lock/openclash_update.lock"
+   rm -rf "/tmp/lock/openclash_update.lock" 2>/dev/null
 }
+
+set_lock
 
 if [ -n "$1" ] && [ "$1" != "one_key_update" ]; then
    [ ! -f "/tmp/openclash_last_version" ] && /usr/share/openclash/openclash_version.sh "$1" 2>/dev/null
@@ -22,6 +24,7 @@ fi
 if [ ! -f "/tmp/openclash_last_version" ]; then
    LOG_OUT "Error: Failed to Get Version Information, Please Try Again Later..."
    SLOG_CLEAN
+   del_lock
    exit 0
 fi
 
@@ -30,7 +33,7 @@ LAST_VER=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |sed "s/^v//g" |tr -d "\n")
 if [ -x "/bin/opkg" ]; then
    OP_CV=$(rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 elif [ -x "/usr/bin/apk" ]; then
-   OP_CV=$(apk list luci-app-openclash 2>/dev/null |grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1 |awk -F '.' '{print $2$3}' 2>/dev/null)
+   OP_CV=$(apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 |awk -F '.' '{print $2$3}' 2>/dev/null)
 fi
 OP_LV=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
@@ -57,8 +60,6 @@ else
       LOG_OUT "Tip: If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
    fi
 fi
-
-set_lock
 
 if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 ] && [ -f "$LAST_OPVER" ]; then
    LOG_OUT "Start Downloading【OpenClash - v$LAST_VER】..."
