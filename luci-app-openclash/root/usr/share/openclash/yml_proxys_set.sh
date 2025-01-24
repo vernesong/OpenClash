@@ -311,6 +311,10 @@ yml_servers_set()
    config_get "multiplex_only_tcp" "$section" "multiplex_only_tcp" ""
    config_get "other_parameters" "$section" "other_parameters" ""
    config_get "hysteria_obfs_password" "$section" "hysteria_obfs_password" ""
+   config_get "port_range" "$section" "port_range" ""
+   config_get "username" "$section" "username" ""
+   config_get "transport" "$section" "transport" "TCP"
+   config_get "multiplexing" "$section" "multiplexing" "MULTIPLEXING_LOW"
 
    if [ "$enabled" = "0" ]; then
       return
@@ -689,6 +693,36 @@ cat >> "$SERVER_FILE" <<-EOF
       grpc-service-name: "$grpc_service_name"
 EOF
          fi
+      fi
+   fi
+
+#Mieru
+   if [ "$type" = "mieru" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  - name: "$name"
+    type: $type
+    server: "$server"
+    port: $port
+EOF
+      if [ -n "$port_range" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    port-range: "$port_range"
+EOF
+      fi
+      if [ -n "$username" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    username: "$username"
+EOF
+      fi
+      if [ -n "$transport" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    transport: "$transport"
+EOF
+      fi
+      if [ -n "$multiplexing" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    multiplexing: "$multiplexing"
+EOF
       fi
    fi
 
