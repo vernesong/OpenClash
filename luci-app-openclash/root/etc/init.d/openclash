@@ -900,6 +900,7 @@ firewall_lan_ac_traffic()
       src_port=$(echo $src_port |sed "s/-/:/g" 2>/dev/null)
       if [ $target == "accept" ]; then target="ACCEPT"; fi
       if [ $target == "return" ]; then target="RETURN"; fi
+      if [ $target == "drop" ]; then target="DROP"; fi
 
       if [ "$family" == "both" ] || [ "$family" == "ipv4" ]; then
          if [ -z "$en_mode_tun" ] || [ "$en_mode_tun" -eq 2 ]; then
