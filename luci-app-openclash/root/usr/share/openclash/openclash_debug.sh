@@ -139,15 +139,11 @@ cat >> "$DEBUG_LOG" <<-EOF
 dnsmasq-full: $(ts_re "$(ipk_v "dnsmasq-full")")
 dnsmasq-full(ipset): $(ts_re "$(dnsmasq --version |grep -v no-ipset |grep ipset)")
 dnsmasq-full(nftset): $(ts_re "$(dnsmasq --version |grep nftset)")
-coreutils: $(ts_re "$(ipk_v "coreutils")")
-coreutils-nohup: $(ts_re "$(ipk_v "coreutils-nohup")")
 bash: $(ts_re "$(ipk_v "bash")")
 curl: $(ts_re "$(ipk_v "curl")")
 ca-certificates: $(ts_re "$(ipk_v "ca-certificates")")
 ipset: $(ts_re "$(ipk_v "ipset")")
 ip-full: $(ts_re "$(ipk_v "ip-full")")
-libcap: $(ts_re "$(ipk_v "libcap")")
-libcap-bin: $(ts_re "$(ipk_v "libcap-bin")")
 ruby: $(ts_re "$(ipk_v "ruby")")
 ruby-yaml: $(ts_re "$(ipk_v "ruby-yaml")")
 ruby-psych: $(ts_re "$(ipk_v "ruby-psych")")
@@ -182,7 +178,6 @@ cat >> "$DEBUG_LOG" <<-EOF
 运行状态: 运行中
 运行内核：$core_type
 进程pid: $(pidof clash)
-运行权限: `getpcaps $(pidof clash)`
 运行用户: $(ps |grep "/etc/openclash/clash" |grep -v grep |awk '{print $2}' 2>/dev/null)
 EOF
 else
