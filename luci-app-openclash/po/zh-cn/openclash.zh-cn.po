@@ -1968,12 +1968,6 @@ msgstr "提示：检测到大陆白名单列表不存在，准备开始下载...
 msgid "Tip: Detected that the Chnroute Cidr List Format is wrong, Ready to Reformat..."
 msgstr "提示：检测到大陆白名单列表格式错误，准备重新格式化..."
 
-msgid "Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well..."
-msgstr "错误：Capsh 异常，请尝试重新安装依赖【libcap】和相应的Capsh库，终止启动..."
-
-msgid "Tip: You Could Download And Re-Install The libcap & libcap-bin Library From The Address Give"
-msgstr "提示：你可以尝试从给出的地址中查找、下载并重新安装架构对应的 libcap 和 libcap-bin 依赖"
-
 msgid "Error: OpenClash Can Not Start, Please Check The Error Info And Try Again!"
 msgstr "错误：OpenClash 启动失败，请到日志页面查看详细错误信息！"
 
@@ -2048,15 +2042,6 @@ msgstr "警告：OpenClash 目前处于未启用状态，请从插件页面启�
 
 msgid "Warning: Multiple Restart Scripts Running, Exit..."
 msgstr "警告：多个 OpenClash 启动脚本运行中，此脚本退出..."
-
-msgid "Watchdog: Multiple Clash Processes, Kill All..."
-msgstr "守护程序：检测到多个 Clash 内核运行，清理中..."
-
-msgid "Watchdog: Clash Core Problem, Restart..."
-msgstr "守护程序：检测到 Clash 内核崩溃，重启中..."
-
-msgid "Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit..."
-msgstr "守护程序：已尝试自动重启三次 Clash 内核，为防止频繁重启造成严重后果，OpenClash 将停止运行..."
 
 msgid "Watchdog: Log Size Limit, Clean Up All Log Records..."
 msgstr "守护程序：因日志大小限制，清理所有日志内容..."
