@@ -3,6 +3,7 @@
 . /usr/share/openclash/ruby.sh
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
+. /lib/functions/procd.sh
 
 set_lock() {
    exec 889>"/tmp/lock/openclash_subs.lock" 2>/dev/null
@@ -35,12 +36,7 @@ urlencode() {
    fi
 }
 
-kill_watchdog() {
-   watchdog_pids=$(unify_ps_pids "openclash_watchdog.sh")
-   for watchdog_pid in $watchdog_pids; do
-      kill -9 "$watchdog_pid" >/dev/null 2>&1
-   done
-   
+kill_streaming_unlock() {
    streaming_unlock_pids=$(unify_ps_pids "openclash_streaming_unlock.lua")
    for streaming_unlock_pid in $streaming_unlock_pids; do
       kill -9 "$streaming_unlock_pid" >/dev/null 2>&1
@@ -251,25 +247,19 @@ config_error()
    SLOG_CLEAN
 }
 
-start_watchdog()
-{
-   procd_open_instance "openclash-watchdog"
-	procd_set_param command "/usr/share/openclash/openclash_watchdog.sh"
-	procd_close_instance
-}
-
 change_dns()
 {
    if pidof clash >/dev/null; then
       /etc/init.d/openclash reload "restore" >/dev/null 2>&1
-      [ "$(unify_ps_status "openclash_watchdog.sh")" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && start_watchdog
+      [ "$(unify_ps_status "openclash_watchdog.sh")" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && procd_send_signal "openclash" "openclash-watchdog" CONT
    fi
 }
 
 config_download_direct()
 {
    if pidof clash >/dev/null && [ "$router_self_proxy" = 1 ]; then
-      kill_watchdog
+      kill_streaming_unlock
+      procd_send_signal "openclash" "openclash-watchdog" STOP
       /etc/init.d/openclash reload "revert" >/dev/null 2>&1
       sleep 3
 

@@ -3057,7 +3057,7 @@ stop_service()
    openclash_pids=$(unify_ps_pids "/etc/init.d/openclash")
    if [ -n "$openclash_stop_pids" ]; then
       for openclash_pid in $openclash_pids; do
-         if [ "$openclash_pid" != "$$" ] && ! "$start_fail_pid"; then
+         if [ "$openclash_pid" != "$$" ]; then
             kill -9 "$openclash_pid" >/dev/null 2>&1
          fi
       done >/dev/null 2>&1
