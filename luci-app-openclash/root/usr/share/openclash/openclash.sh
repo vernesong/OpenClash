@@ -51,7 +51,7 @@ config_test()
 {
    if [ -f "$CLASH" ]; then
       LOG_OUT "Config File Download Successful, Test If There is Any Errors..."
-      test_info=$(nohup $CLASH -t -d $CLASH_CONFIG -f "$CFG_FILE")
+      test_info=$($CLASH -t -d $CLASH_CONFIG -f "$CFG_FILE")
       local IFS=$'\n'
       for i in $test_info; do
          if [ -n "$(echo "$i" |grep "configuration file")" ]; then
@@ -251,11 +251,18 @@ config_error()
    SLOG_CLEAN
 }
 
+start_watchdog()
+{
+   procd_open_instance "openclash-watchdog"
+	procd_set_param command "/usr/share/openclash/openclash_watchdog.sh"
+	procd_close_instance
+}
+
 change_dns()
 {
    if pidof clash >/dev/null; then
       /etc/init.d/openclash reload "restore" >/dev/null 2>&1
-      [ "$(unify_ps_status "openclash_watchdog.sh")" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && nohup /usr/share/openclash/openclash_watchdog.sh &
+      [ "$(unify_ps_status "openclash_watchdog.sh")" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && start_watchdog
    fi
 }
 

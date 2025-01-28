@@ -182,7 +182,7 @@ elif [ -x "/usr/bin/apk" ]; then
 fi
 EOF
    chmod 4755 /tmp/openclash_update.sh
-   nohup /tmp/openclash_update.sh &
+   /tmp/openclash_update.sh &
    wait
    rm -rf /tmp/openclash_update.sh
    else

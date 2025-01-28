@@ -1,0 +1,47 @@
+{
+    "permitted": [
+        "CAP_SYS_PTRACE",
+        "CAP_SYS_RESOURCE",
+        "CAP_SYS_ADMIN",
+        "CAP_DAC_OVERRIDE",
+        "CAP_NET_ADMIN",
+        "CAP_NET_BIND_SERVICE",
+        "CAP_NET_RAW"
+    ],
+    "effective": [
+        "CAP_SYS_PTRACE",
+        "CAP_SYS_RESOURCE",
+        "CAP_SYS_ADMIN",
+        "CAP_DAC_OVERRIDE",
+        "CAP_NET_ADMIN",
+        "CAP_NET_BIND_SERVICE",
+        "CAP_NET_RAW"
+    ],
+    "bounding": [
+        "CAP_SYS_PTRACE",
+        "CAP_SYS_RESOURCE",
+        "CAP_SYS_ADMIN",
+        "CAP_DAC_OVERRIDE",
+        "CAP_NET_ADMIN",
+        "CAP_NET_BIND_SERVICE",
+        "CAP_NET_RAW"
+    ],
+    "inheritable": [
+        "CAP_SYS_PTRACE",
+        "CAP_SYS_RESOURCE",
+        "CAP_SYS_ADMIN",
+        "CAP_DAC_OVERRIDE",
+        "CAP_NET_ADMIN",
+        "CAP_NET_BIND_SERVICE",
+        "CAP_NET_RAW"
+    ],
+    "ambient": [
+        "CAP_SYS_PTRACE",
+        "CAP_SYS_RESOURCE",
+        "CAP_SYS_ADMIN",
+        "CAP_DAC_OVERRIDE",
+        "CAP_NET_ADMIN",
+        "CAP_NET_BIND_SERVICE",
+        "CAP_NET_RAW"
+    ]
+}
