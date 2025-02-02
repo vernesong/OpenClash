@@ -55,7 +55,7 @@ begin
                   if servers.include?(i['server']) then
                      next;
                   end; 
-                  if i['server'] =~ reg and not servers.include?(i['server']) then
+                  if i['server'] =~ reg then
                      servers = servers.push(i['server']).uniq
                      syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + i['server'] + '\" \"true\"'
                      result = IO.popen(syscall).read.split(/\n+/)
@@ -92,7 +92,7 @@ begin
                                  if servers.include?(j['server']) then
                                     next;
                                  end;
-                                 if j['server'] =~ reg and not servers.include?(j['server']) then
+                                 if j['server'] =~ reg then
                                     servers = servers.push(j['server']).uniq
                                     syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + j['server'] + '\" \"true\"'
                                     result = IO.popen(syscall).read.split(/\n+/)

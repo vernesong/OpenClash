@@ -2040,9 +2040,6 @@ msgstr "重置 OpenClash 防火墙规则..."
 msgid "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..."
 msgstr "警告：OpenClash 目前处于未启用状态，请从插件页面启动本插件，脚本退出..."
 
-msgid "Warning: Multiple Restart Scripts Running, Exit..."
-msgstr "警告：多个 OpenClash 启动脚本运行中，此脚本退出..."
-
 msgid "Watchdog: Log Size Limit, Clean Up All Log Records..."
 msgstr "守护程序：因日志大小限制，清理所有日志内容..."
 
@@ -3093,8 +3090,8 @@ msgstr "测速（连通性）间隔修改"
 msgid "Modify The URL-Test Interval In The Config"
 msgstr "修改配置文件中的测速（连通性）间隔"
 
-msgid "Whether to Enable Process Rules, If You Are Not Sure, Please Choose off Which Useful in Router Environment"
-msgstr "是否启用进程规则，在路由环境下保持关闭可以提升性能"
+msgid "Whether to Enable Process Rules, Only Works on Routerself, If You Are Not Sure, Please Choose off Which Useful in Router Environment, Depend on kmod-inet-diag"
+msgstr "是否启用进程规则，仅能匹配路由器自身进程，在路由环境下保持关闭可以提升性能，依赖 kmod-inet-diag"
 
 msgid "Enable Process Rule"
 msgstr "启用进程规则"

@@ -99,10 +99,10 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
          if [ "$?" == "0" ]; then
             LOG_OUT "【"$CORE_TYPE"】Core Update Successful!"
             if [ "$if_restart" -eq 1 ]; then
-               uci -q set openclash.config.config_reload=1
+               uci -q set openclash.config.restart=1
                uci -q commit openclash
-               if ([ -z "$2" ] || ([ -n "$2" ] && [ "$2" != "one_key_update" ])) && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
-                  uci -q set openclash.config.config_reload=0
+               if ([ -z "$2" ] || ([ -n "$2" ] && [ "$2" != "one_key_update" ])) && [ "$(unify_ps_prevent)" -eq 0 ]; then
+                  uci -q set openclash.config.restart=0
                   uci -q commit openclash
                   /etc/init.d/openclash restart >/dev/null 2>&1 &
                fi
