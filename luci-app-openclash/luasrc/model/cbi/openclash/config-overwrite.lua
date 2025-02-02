@@ -280,7 +280,7 @@ o.description = font_red..bold_on..translate("Change The Delay Calculation Metho
 o.default = "0"
 
 o = s:taboption("meta", ListValue, "find_process_mode", translate("Enable Process Rule"))
-o.description = translate("Whether to Enable Process Rules, If You Are Not Sure, Please Choose off Which Useful in Router Environment")
+o.description = translate("Whether to Enable Process Rules, Only Works on Routerself, If You Are Not Sure, Please Choose off Which Useful in Router Environment, Depend on kmod-inet-diag")
 o:value("0", translate("Disable"))
 o:value("off", translate("OFF　"))
 o:value("always", translate("Always　"))
