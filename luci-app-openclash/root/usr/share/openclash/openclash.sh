@@ -516,13 +516,13 @@ config_foreach sub_info_get "config_subscribe" "$1"
 uci -q delete openclash.config.config_update_path
 uci commit openclash
 
-if [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
+if [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
    /etc/init.d/openclash restart >/dev/null 2>&1 &
-elif [ "$restart" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
+elif [ "$restart" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
    /etc/init.d/openclash restart >/dev/null 2>&1 &
    uci -q set openclash.config.restart=0
    uci -q commit openclash
-elif [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -gt 1 ]; then
+elif [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
    uci -q set openclash.config.restart=1
    uci -q commit openclash
 else
