@@ -104,9 +104,10 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 
          fi
       elif [ -x "/usr/bin/apk" ]; then
          if [ -s "/tmp/openclash.apk" ]; then
-            apk add -s -q --clean-protected --allow-untrusted /tmp/openclash.apk >/dev/null 2>&1
+            apk update >/dev/null 2>&1
+            apk add -s -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk >/dev/null 2>&1
             if [ "$?" != "0" ]; then
-               LOG_OUT "【OpenClash - v$LAST_VER】Pre Update Test Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually With【apk add -q --clean-protected --allow-untrusted /tmp/openclash.apk】"
+               LOG_OUT "【OpenClash - v$LAST_VER】Pre Update Test Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually With【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】"
                if [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
                   uci -q set openclash.config.restart=0
                   uci -q commit openclash
@@ -149,7 +150,7 @@ LOG_OUT "Installing The New Version, Please Do Not Refresh The Page or Do Other 
 if [ -x "/bin/opkg" ]; then
    opkg install /tmp/openclash.ipk
 elif [ -x "/usr/bin/apk" ]; then
-   apk add -q --clean-protected --allow-untrusted /tmp/openclash.apk
+   apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk
 fi
 if [ -x "/bin/opkg" ]; then
    if [ "$?" != "0" ] || [ -z "$(opkg info *openclash |grep Installed-Time)" ]; then
@@ -162,12 +163,12 @@ if [ -x "/bin/opkg" ]; then
       uci -q commit openclash
       /etc/init.d/openclash restart 2>/dev/null
    else
-      LOG_OUT "OpenClash Update Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually!"
+      LOG_OUT "OpenClash Update Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually With【opkg install /tmp/openclash.ipk】"
       SLOG_CLEAN
    fi
 elif [ -x "/usr/bin/apk" ]; then
    if [ "$?" != "0" ] || [ -z "$(apk list luci-app-openclash 2>/dev/null |grep 'installed')" ]; then
-      apk add -q --clean-protected --allow-untrusted /tmp/openclash.apk
+      apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk
    fi
    if [ "$?" == "0" ] || [ -n "$(apk list luci-app-openclash 2>/dev/null |grep 'installed')" ]; then
       rm -rf /tmp/openclash.apk >/dev/null 2>&1
@@ -176,7 +177,7 @@ elif [ -x "/usr/bin/apk" ]; then
       uci -q commit openclash
       /etc/init.d/openclash restart 2>/dev/null
    else
-      LOG_OUT "OpenClash Update Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually!"
+      LOG_OUT "OpenClash Update Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually With【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】"
       SLOG_CLEAN
    fi
 fi

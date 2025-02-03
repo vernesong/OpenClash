@@ -775,17 +775,19 @@ check_core_status()
          fi
       fi
 
-      if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
-         ip -6 rule del oif utun table 2022 >/dev/null 2>&1
-         ip -6 route del default dev utun table 2022 >/dev/null 2>&1
-         ip -6 route add default dev utun table "$PROXY_ROUTE_TABLE"
-         ip -6 rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 1888
-         ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1889
-      fi
+      if [ -n "$(pidof clash)" ]; then
+         if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
+            ip -6 rule del oif utun table 2022 >/dev/null 2>&1
+            ip -6 route del default dev utun table 2022 >/dev/null 2>&1
+            ip -6 route add default dev utun table "$PROXY_ROUTE_TABLE"
+            ip -6 rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 1888
+            ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1889
+         fi
 
-      ip route add default dev utun table "$PROXY_ROUTE_TABLE"
-      ip rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 1888
-      ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1889
+         ip route add default dev utun table "$PROXY_ROUTE_TABLE"
+         ip rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 1888
+         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1889
+      fi
    else
       reg4='^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$'
       while ( [ -n "$(pidof clash)" ] && [ "$CORE_HTTP_CODE" != "200" ] && [ "$TUN_WAIT" -le 120 ] && [[ "$lan_ip" =~ $reg4 ]] )
@@ -798,10 +800,14 @@ check_core_status()
          LOG_OUT "Error: LAN IP Address Get Error, Please Check The LAN Interface Setting or Choose the Correct Interface in the Setting!"
          sleep 10
       fi
-      if [ -z "$(pidof clash)" ] || [ "$CORE_HTTP_CODE" != "200" ]; then
-         LOG_OUT "Error: Core Start Failed, Please Check The Log Infos!"
+      if [ "$CORE_HTTP_CODE" != "200" ]; then
+         LOG_OUT "Error: Core Status Abnormal, Please Check The Log Infos!"
          start_fail
       fi
+   fi
+   if [ -z "$(pidof clash)" ]; then
+      LOG_OUT "Error: Core Start Failed, Please Check The Log Infos!"
+      start_fail
    fi
 }
 

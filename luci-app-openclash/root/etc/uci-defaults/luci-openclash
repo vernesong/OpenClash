@@ -104,24 +104,32 @@ uci -q commit openclash
 FW4=$(command -v fw4)
 if [ -n "$FW4" ]; then
 	#v4
-	echo "define china_ip_route = {" >/tmp/china_ip_route.list
-	awk '!/^$/&&!/^#/{printf("    %s,'" "'\n",$0)}' /etc/openclash/china_ip_route.ipset >>/tmp/china_ip_route.list
-	echo "}" >>/tmp/china_ip_route.list
-	echo "add set inet fw4 china_ip_route { type ipv4_addr; flags interval; auto-merge; }" >>/tmp/china_ip_route.list
-	echo 'add element inet fw4 china_ip_route $china_ip_route' >>/tmp/china_ip_route.list
+	if [ -z "$(cat "/etc/openclash/china_ip_route.ipset" |grep "define china_ip_route")" ]; then
+		echo "define china_ip_route = {" >/tmp/china_ip_route.list
+		awk '!/^$/&&!/^#/{printf("    %s,'" "'\n",$0)}' /etc/openclash/china_ip_route.ipset >>/tmp/china_ip_route.list
+		echo "}" >>/tmp/china_ip_route.list
+		echo "add set inet fw4 china_ip_route { type ipv4_addr; flags interval; auto-merge; }" >>/tmp/china_ip_route.list
+		echo 'add element inet fw4 china_ip_route $china_ip_route' >>/tmp/china_ip_route.list
+	fi
 	#v6
-	echo "define china_ip6_route = {" >/tmp/china_ip6_route.list
-	awk '!/^$/&&!/^#/{printf("    %s,'" "'\n",$0)}' /etc/openclash/china_ip6_route.ipset >>/tmp/china_ip6_route.list
-	echo "}" >>/tmp/china_ip6_route.list
-	echo "add set inet fw4 china_ip6_route { type ipv6_addr; flags interval; auto-merge; }" >>/tmp/china_ip6_route.list
-	echo 'add element inet fw4 china_ip6_route $china_ip6_route' >>/tmp/china_ip6_route.list
+	if [ -z "$(cat "/etc/openclash/china_ip6_route.ipset" |grep "define china_ip6_route")" ]; then
+		echo "define china_ip6_route = {" >/tmp/china_ip6_route.list
+		awk '!/^$/&&!/^#/{printf("    %s,'" "'\n",$0)}' /etc/openclash/china_ip6_route.ipset >>/tmp/china_ip6_route.list
+		echo "}" >>/tmp/china_ip6_route.list
+		echo "add set inet fw4 china_ip6_route { type ipv6_addr; flags interval; auto-merge; }" >>/tmp/china_ip6_route.list
+		echo 'add element inet fw4 china_ip6_route $china_ip6_route' >>/tmp/china_ip6_route.list
+	fi
 else
 	#v4
-	echo "create china_ip_route hash:net family inet hashsize 1024 maxelem 1000000" >/tmp/china_ip_route.list
-	awk '!/^$/&&!/^#/{printf("add china_ip_route %s'" "'\n",$0)}' /etc/openclash/china_ip_route.ipset >>/tmp/china_ip_route.list
+	if [ -z "$(cat "/etc/openclash/china_ip_route.ipset" |grep "define china_ip_route")" ]; then
+		echo "create china_ip_route hash:net family inet hashsize 1024 maxelem 1000000" >/tmp/china_ip_route.list
+		awk '!/^$/&&!/^#/{printf("add china_ip_route %s'" "'\n",$0)}' /etc/openclash/china_ip_route.ipset >>/tmp/china_ip_route.list
+	fi
 	#v6
-	echo "create china_ip6_route hash:net family inet6 hashsize 1024 maxelem 1000000" >/tmp/china_ip6_route.list
-	awk '!/^$/&&!/^#/{printf("add china_ip6_route %s'" "'\n",$0)}' /etc/openclash/china_ip6_route.ipset >>/tmp/china_ip6_route.list
+	if [ -z "$(cat "/etc/openclash/china_ip6_route.ipset" |grep "define china_ip6_route")" ]; then
+		echo "create china_ip6_route hash:net family inet6 hashsize 1024 maxelem 1000000" >/tmp/china_ip6_route.list
+		awk '!/^$/&&!/^#/{printf("add china_ip6_route %s'" "'\n",$0)}' /etc/openclash/china_ip6_route.ipset >>/tmp/china_ip6_route.list
+	fi
 fi
 mv -f /tmp/china_ip_route.list /etc/openclash/china_ip_route.ipset >/dev/null 2>&1
 mv -f /tmp/china_ip6_route.list /etc/openclash/china_ip6_route.ipset >/dev/null 2>&1
