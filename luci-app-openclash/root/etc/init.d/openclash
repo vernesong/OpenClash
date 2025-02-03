@@ -795,6 +795,7 @@ check_core_status()
          sleep 1
       done >/dev/null 2>&1
       if ! [[ "$lan_ip" =~ $reg4 ]]; then
+         LOG_OUT "Error: LAN IP Address Get Error, Please Check The LAN Interface Setting or Choose the Correct Interface in the Setting!"
          sleep 10
       fi
       if [ -z "$(pidof clash)" ] || [ "$CORE_HTTP_CODE" != "200" ]; then
