@@ -43,7 +43,7 @@
 * dnsmasq-full
 * bash
 * curl
-* ca-certificates
+* ca-bundle
 * ipset
 * ip-full
 * ruby
