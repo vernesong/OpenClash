@@ -377,7 +377,7 @@ o = s:taboption("stream_enhance", Value, "stream_auto_select_interval", translat
 o.default = "30"
 o.datatype = "uinteger"
 o:depends("stream_auto_select", "1")
-o.rmempty = false
+o.rmempty = true
 
 o = s:taboption("stream_enhance", ListValue, "stream_auto_select_logic", font_red..bold_on..translate("Auto Select Logic")..bold_off..font_off)
 o.default = "urltest"

@@ -1626,11 +1626,11 @@ msgstr "正在安装新版本，更新过程请不要刷新页面和进行其他
 msgid "OpenClash Update Successful, About To Restart!"
 msgstr "OpenClash 更新成功，即将进行重启！"
 
-msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually!"
-msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.ipk，请尝试手动更新！"
+msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually With"
+msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.ipk，请尝试以下命令手动更新"
 
-msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually!"
-msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.apk，请尝试手动更新！"
+msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually With"
+msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.apk，请尝试以下命令手动更新"
 
 msgid "Download Failed, Please Check The Network or Try Again Later!"
 msgstr "下载失败，请检查网络或稍后再试！"
@@ -3041,6 +3041,9 @@ msgstr "警告：TUN 接口启动失败，尝试重启内核..."
 
 msgid "Error: Core Start Failed, Please Check The Log Infos!"
 msgstr "错误：内核启动失败，请查看《内核日志》排查失败原因！"
+
+msgid "Error: Core Status Abnormal, Please Check The Log Infos!"
+msgstr "错误：内核状态异常，请查看《内核日志》排查异常原因！"
 
 msgid "Forced Sniff Pure IP Connections"
 msgstr "强制探测（嗅探）所有纯 IP 的连接"
