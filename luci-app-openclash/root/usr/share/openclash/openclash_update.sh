@@ -90,7 +90,7 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 
       if [ -x "/bin/opkg" ]; then
          if [ -s "/tmp/openclash.ipk" ]; then
             if [ -z "$(opkg install /tmp/openclash.ipk --noaction 2>/dev/null |grep 'Upgrading luci-app-openclash on root' 2>/dev/null)" ]; then
-               LOG_OUT "【OpenClash - v$LAST_VER】Pre Update Test Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually!"
+               LOG_OUT "【OpenClash - v$LAST_VER】Pre Update Test Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually With【opkg install /tmp/openclash.ipk】"
                if [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
                   uci -q set openclash.config.restart=0
                   uci -q commit openclash
@@ -106,7 +106,7 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 
          if [ -s "/tmp/openclash.apk" ]; then
             apk add -s -q --clean-protected --allow-untrusted /tmp/openclash.apk >/dev/null 2>&1
             if [ "$?" != "0" ]; then
-               LOG_OUT "【OpenClash - v$LAST_VER】Pre Update Test Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually!"
+               LOG_OUT "【OpenClash - v$LAST_VER】Pre Update Test Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually With【apk add -q --clean-protected --allow-untrusted /tmp/openclash.apk】"
                if [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
                   uci -q set openclash.config.restart=0
                   uci -q commit openclash

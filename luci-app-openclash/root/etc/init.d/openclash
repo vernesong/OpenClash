@@ -2971,7 +2971,7 @@ get_config()
    enable_respect_rules=$(uci -q get openclash.config.enable_respect_rules || echo 0)
    intranet_allowed_wan_name=$(uci -q get openclash.config.intranet_allowed_wan_name || echo 0)
    custom_fakeip_filter_mode=$(uci -q get openclash.config.custom_fakeip_filter_mode || echo "blacklist")
-   iptables_compat=$(iptables -m owner -h 2>/dev/null | grep "owner match options" || echo 0)
+   iptables_compat=$(iptables -m owner -h 2>/dev/null | grep "owner match options" || command -v fw4 || echo 0)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q commit openclash
 }
