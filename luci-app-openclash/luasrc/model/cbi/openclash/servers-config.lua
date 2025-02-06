@@ -736,6 +736,7 @@ o:depends("type", "hysteria2")
 -- [[ recv_window_conn ]]--
 o = s:option(Flag, "flag_quicparam", translate("Hysterir QUIC parameters"))
 o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
 o.rmempty = true
 o.default = "0"
 
@@ -751,6 +752,34 @@ o.rmempty = true
 o.placeholder = translate("QUIC connection receive window")
 o.datatype = "uinteger"
 o:depends({type = "hysteria", flag_quicparam = true})
+
+-- [[ initial_stream_receive_window ]]--
+o = s:option(Value, "initial_stream_receive_window", translate("initial_stream_receive_window"))
+o.rmempty = true
+o.placeholder = translate("QUIC init stream receive window")
+o.datatype = "uinteger"
+o:depends({type = "hysteria2", flag_quicparam = true})
+
+-- [[ max_stream_receive_window ]]--
+o = s:option(Value, "max_stream_receive_window", translate("max_stream_receive_window"))
+o.rmempty = true
+o.placeholder = translate("QUIC max stream receive window")
+o.datatype = "uinteger"
+o:depends({type = "hysteria2", flag_quicparam = true})
+
+-- [[ initial_connection_receive_window ]]--
+o = s:option(Value, "initial_connection_receive_window", translate("initial_connection_receive_window"))
+o.rmempty = true
+o.placeholder = translate("QUIC init connection receive window")
+o.datatype = "uinteger"
+o:depends({type = "hysteria2", flag_quicparam = true})
+
+-- [[ max_connection_receive_window ]]--
+o = s:option(Value, "max_connection_receive_window", translate("max_connection_receive_window"))
+o.rmempty = true
+o.placeholder = translate("QUIC max connection receive window")
+o.datatype = "uinteger"
+o:depends({type = "hysteria2", flag_quicparam = true})
 
 -- [[ hop_interval ]]--
 o = s:option(Value, "hop_interval", translate("Hop Interval (Unit:second)"))
