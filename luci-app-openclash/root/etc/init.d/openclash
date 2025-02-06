@@ -1558,10 +1558,8 @@ if [ -n "$FW4" ]; then
             nft 'add chain inet fw4 openclash_upnp'
             nft 'flush chain inet fw4 openclash_upnp'
             upnp_exclude
-            nft 'add rule inet fw4 openclash_mangle meta l4proto { udp } iifname lo counter return'
             nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return'
             nft 'add rule inet fw4 openclash_mangle ct direction reply counter return'
-            nft 'add rule inet fw4 openclash_mangle udp dport 53 counter return'
             if [ "$en_mode" = "fake-ip" ]; then
                nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
             fi
@@ -1598,7 +1596,6 @@ if [ -n "$FW4" ]; then
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             nft 'add chain inet fw4 openclash_mangle'
             nft 'flush chain inet fw4 openclash_mangle'
-            nft 'add rule inet fw4 openclash_mangle meta l4proto { udp } iifname lo counter return'
             nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept 2>/dev/null
             nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
          fi
@@ -1889,10 +1886,8 @@ if [ -n "$FW4" ]; then
       if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -ne 1 ]; then
          nft 'add chain inet fw4 openclash_mangle_v6'
          nft 'flush chain inet fw4 openclash_mangle_v6'
-         nft 'add rule inet fw4 openclash_mangle_v6 meta nfproto {ipv6} udp iifname lo counter return'
          nft 'add rule inet fw4 openclash_mangle_v6 ip6 daddr @localnetwork6 counter return'
          nft 'add rule inet fw4 openclash_mangle_v6 ct direction reply counter return'
-         nft 'add rule inet fw4 openclash_mangle_v6 meta nfproto {ipv6} udp dport 53 counter return'
          nft 'add rule inet fw4 openclash_mangle_v6 ip6 daddr @wan_ac_black_ipv6s counter return'
 
          if [ "$en_mode" == "redir-host" ]; then
@@ -2300,11 +2295,8 @@ if [ -z "$FW4" ]; then
             iptables -t mangle -N openclash_upnp
             iptables -t mangle -F openclash_upnp
             upnp_exclude
-            #prevent tproxy loop
-            iptables -t mangle -A openclash -i lo -j RETURN
             iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
             iptables -t mangle -A openclash -m conntrack --ctdir REPLY -j RETURN
-            iptables -t mangle -A openclash -p udp --dport 53 -j RETURN >/dev/null 2>&1
             if [ "$en_mode" = "fake-ip" ]; then
                iptables -t mangle -A openclash -p udp -d "$fakeip_range" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             fi
@@ -2340,8 +2332,6 @@ if [ -z "$FW4" ]; then
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             iptables -t mangle -N openclash
             iptables -t mangle -F openclash
-            #prevent tproxy loop
-            iptables -t mangle -A openclash -i lo -j RETURN
             iptables -t mangle -A openclash -p udp -d "$fakeip_range" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             iptables -t mangle -A PREROUTING -p udp -j openclash
          fi
@@ -2639,11 +2629,8 @@ if [ -z "$FW4" ]; then
       if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -ne 1 ]; then
          ip6tables -t mangle -N openclash
          ip6tables -t mangle -F openclash
-         #prevent tproxy loop
-         ip6tables -t mangle -A openclash -i lo -j RETURN
          ip6tables -t mangle -A openclash -m set --match-set localnetwork6 dst -j RETURN
          ip6tables -t mangle -A openclash -m conntrack --ctdir REPLY -j RETURN
-         ip6tables -t mangle -A openclash -p udp --dport 53 -j RETURN
          ip6tables -t mangle -A openclash -m set --match-set wan_ac_black_ipv6s dst -j RETURN >/dev/null 2>&1
          ip6tables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN >/dev/null 2>&1
          ip6tables -t mangle -A openclash -m set --match-set lan_ac_black_ipv6s src -j RETURN >/dev/null 2>&1
