@@ -996,6 +996,38 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                end
                };
 
+               #hysteria2
+               threads << Thread.new{
+               #initial_stream_receive_window
+               if x.key?('initial-stream-receive-window') then
+                  uci_commands << uci_set + 'initial_stream_receive_window=\"' + x['initial-stream-receive-window'].to_s + '\"'
+               end
+               };
+
+               #hysteria2
+               threads << Thread.new{
+               #max_stream_receive_window
+               if x.key?('max-stream-receive-window') then
+                  uci_commands << uci_set + 'max_stream_receive_window=\"' + x['max-stream-receive-window'].to_s + '\"'
+               end
+               };
+
+               #hysteria2
+               threads << Thread.new{
+               #initial_connection_receive_window
+               if x.key?('initial-connection-receive-window') then
+                  uci_commands << uci_set + 'initial_connection_receive_window=\"' + x['initial-connection-receive-window'].to_s + '\"'
+               end
+               };
+
+               #hysteria2
+               threads << Thread.new{
+               #max_connection_receive_window
+               if x.key?('max-connection-receive-window') then
+                  uci_commands << uci_set + 'max_connection_receive_window=\"' + x['max-connection-receive-window'].to_s + '\"'
+               end
+               };
+
                #hysteria  hysteria2
                threads << Thread.new{
                #hysteria_obfs

@@ -789,6 +789,18 @@ msgstr "启用传输协议设置"
 msgid "Hysterir QUIC parameters"
 msgstr "QUIC 参数"
 
+msgid "QUIC init stream receive window"
+msgstr "QUIC 初始流接收窗口大小"
+
+msgid "QUIC max stream receive window"
+msgstr "QUIC 最大的流接收窗口大小"
+
+msgid "QUIC init connection receive window"
+msgstr "QUIC 初始的连接接收窗口大小"
+
+msgid "QUIC max connection receive window"
+msgstr "QUIC 最大的连接接收窗口大小"
+
 msgid "Edit Rule Providers"
 msgstr "编辑规则集配置"
 
