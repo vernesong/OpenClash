@@ -3470,3 +3470,6 @@ msgstr "内部网络地址"
 
 msgid "Error: LAN IP Address Get Error, Please Check The LAN Interface Setting or Choose the Correct Interface in the Setting!"
 msgstr "错误：LAN IP 地址获取失败，请检查 LAN 接口设置或在插件设置中选择正确的 LAN 接口名称"
+
+msgid "Warning: Skiped The Custom Rule Because Group Not Found:"
+msgstr "警告：因为策略组不存在，已跳过此条自定义规则:"
