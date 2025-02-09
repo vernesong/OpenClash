@@ -374,6 +374,13 @@ threads << Thread.new {
       if '${29}' != '0' then
          Value['global-client-fingerprint']='${29}';
       end;
+      if ${36} == 1 then
+         if Value.key?('experimental') then
+            Value['experimental']['quic-go-disable-gso']=true;
+         else
+            Value['experimental']={'quic-go-disable-gso'=>true};
+         end;
+      end;
 
       if ${16} == 1 then
          Value['dns']['ipv6']=true;
