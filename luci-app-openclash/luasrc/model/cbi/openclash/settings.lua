@@ -100,7 +100,7 @@ o.description = translate("If The Network Cannot be Connected in Bypass Gateway 
 o.default = 0
 
 o = s:taboption("op_mode", Flag, "disable_quic_go_gso", translate("Disable quic-go GSO Support"))
-o.description = translate("Disable quic-go GSO Support.")..font_red..bold_on..translate("Suggestion: If Encountering Issues With UDP on The Linux Kernel Version Above 6.6, Please Try to Enable.")..bold_off..font_off
+o.description = font_red..bold_on..translate("Suggestion: If Encountering Issues With QUIC UDP on The Linux Kernel Version Above 6.6, Please Try to Enable.")..bold_off..font_off
 o.default = 0
 
 o = s:taboption("op_mode", Flag, "small_flash_memory", translate("Small Flash Memory"))

@@ -3474,8 +3474,8 @@ msgstr "错误：LAN IP 地址获取失败，请检查 LAN 接口设置或在插
 msgid "Warning: Skiped The Custom Rule Because Group & Proxy Not Found:"
 msgstr "警告：因未找到对应的策略组或代理，为避免启动失败，已跳过此条自定义规则的添加:"
 
-msgid "Disable quic-go GSO Support."
-msgstr "禁用 quic-go GSO 支持。"
+msgid "Disable quic-go GSO Support"
+msgstr "禁用 quic-go GSO 支持"
 
-msgid "Suggestion: If Encountering Issues With UDP on The Linux Kernel Version Above 6.6, Please Try to Enable."
-msgstr "建议： 如果在 6.6 以上的 Linux 核心版本上遇到 UDP 问题，请尝试启用。"
+msgid "Suggestion: If Encountering Issues With QUIC UDP on The Linux Kernel Version Above 6.6, Please Try to Enable."
+msgstr "建议： 如果固件 Linux 核心版本在 6.6 以上时遇到 quic-go 的 UDP 连接问题，请尝试启用。"
