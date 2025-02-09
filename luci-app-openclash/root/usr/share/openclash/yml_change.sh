@@ -398,7 +398,7 @@ threads << Thread.new {
       end;
       
       if ${18} == 1 then
-         Value_sniffer={'sniffer'=>{'enable'=>true}};
+         Value_sniffer={'sniffer'=>{'enable'=>true, 'override-destination'=>true, 'sniff'=>{'QUIC'=>{'ports'=>[443]}, 'TLS'=>{'ports'=>[443, 8443]}, 'HTTP'=>{'ports'=>[80, '8080-8880'], 'override-destination'=>true}}, 'force-domain'=>['+.netflix.com', '+.nflxvideo.net', '+.amazonaws.com', '+.media.dssott.com'], 'skip-domain'=>['+.apple.com', 'Mijia Cloud', 'dlg.io.mi.com', '+.oray.com', '+.sunlogin.net', '+.push.apple.com']}};
          Value['sniffer']=Value_sniffer['sniffer'];
          if '$1' == 'redir-host' then
             Value['sniffer']['force-dns-mapping']=true;
