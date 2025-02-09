@@ -166,6 +166,7 @@ o.inputstyle = "reset"
 o.write = function()
 	uci:set("openclash", "config", "enable", 0)
 	uci:commit("openclash")
+	SYS.call("ps | grep openclash | grep -v grep | awk '{print $1}' | xargs -r kill -9 >/dev/null 2>&1")
 	SYS.call("/etc/init.d/openclash stop >/dev/null 2>&1 &")
 end
 

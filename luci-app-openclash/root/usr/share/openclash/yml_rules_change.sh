@@ -458,7 +458,15 @@ yml_other_set()
       end;
 
       #CONFIG_GROUP
-      CONFIG_GROUP = Value['proxy-groups'].map { |x| x['name'] }.uniq + ['DIRECT', 'REJECT'];
+      CUSTOM_RULE = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
+      CUSTOM_RULE_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list')
+      CONFIG_GROUP = (Value['proxy-groups'].map { |x| x['name'] }\
+      + ['DIRECT', 'REJECT']\
+      + (if Value['proxies'] != nil and not Value['proxies'].empty? then Value['proxies'].map { |x| x['name'] } else [] end)\
+      + (if Value['sub-rules'] != nil and not Value['sub-rules'].empty? then Value['sub-rules'].keys else [] end)\
+      + (if CUSTOM_RULE['sub-rules'] != nil and not CUSTOM_RULE['sub-rules'].empty? then CUSTOM_RULE['sub-rules'].keys else [] end)\
+      + (if CUSTOM_RULE_2['sub-rules'] != nil and not CUSTOM_RULE_2['sub-rules'].empty? then CUSTOM_RULE_2['sub-rules'].keys else [] end)\
+      ).uniq;
 
       #Custom Rule Set
       begin
@@ -482,7 +490,7 @@ yml_other_set()
                      if CONFIG_GROUP.include?(RULE_GROUP) then
                         Value['rules'].insert(ruby_add_index,x);
                      else
-                        YAML.LOG('Warning: Skiped The Custom Rule Because Group Not Found:【' + x + '】');
+                        YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
                      end;
                   };
                else
@@ -491,7 +499,7 @@ yml_other_set()
                      if CONFIG_GROUP.include?(RULE_GROUP) then
                         Value['rules'].insert(ruby_add_index,x);
                      else
-                        YAML.LOG('Warning: Skiped The Custom Rule Because Group Not Found:【' + x + '】');
+                        YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
                      end;
                   };
                end;
@@ -503,7 +511,7 @@ yml_other_set()
                   if CONFIG_GROUP.include?(RULE_GROUP) then
                      Value['rules'].insert(0,x);
                   else
-                     YAML.LOG('Warning: Skiped The Custom Rule Because Group Not Found:【' + x + '】');
+                     YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
                   end;
                };
             end;
@@ -514,7 +522,7 @@ yml_other_set()
                   RULE_GROUP = x.split(',')[2] || RULE_GROUP = x.split(',')[1];
                   if not CONFIG_GROUP.include?(RULE_GROUP) then
                      Value_1.delete(x);
-                     YAML.LOG('Warning: Skiped The Custom Rule Because Group Not Found:【' + x + '】');
+                     YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
                   end;
                };
                Value['rules'] = Value_1;
@@ -525,7 +533,7 @@ yml_other_set()
                   RULE_GROUP = x.split(',')[2] || RULE_GROUP = x.split(',')[1];
                   if not CONFIG_GROUP.include?(RULE_GROUP) then
                      Value_1.delete(x);
-                     YAML.LOG('Warning: Skiped The Custom Rule Because Group Not Found:【' + x + '】');
+                     YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
                   end;
                };
                if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
@@ -560,7 +568,7 @@ yml_other_set()
                            if CONFIG_GROUP.include?(RULE_GROUP) then
                               Value['rules'].insert(0,x);
                            else
-                              YAML.LOG('Warning: Skiped The Custom Rule Because Group Not Found:【' + x + '】');
+                              YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
                            end;
                         };
                         Value['rules'] = Value['rules'].uniq;
@@ -593,7 +601,7 @@ yml_other_set()
                            if CONFIG_GROUP.include?(RULE_GROUP) then
                               Value['rules'].insert(ruby_add_index,x);
                            else
-                              YAML.LOG('Warning: Skiped The Custom Rule Because Group Not Found:【' + x + '】');
+                              YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
                            end;
                         };
                         Value['rules'] = Value['rules'].uniq;
@@ -610,7 +618,7 @@ yml_other_set()
                               RULE_GROUP = x.split(',')[2] || RULE_GROUP = x.split(',')[1];
                               if not CONFIG_GROUP.include?(RULE_GROUP) then
                                  Value_1['rules'].delete(x);
-                                 YAML.LOG('Warning: Skiped The Custom Rule Because Group Not Found:【' + x + '】');
+                                 YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
                               end;
                            };
                            Value['rules'] = Value_1['rules'];
@@ -621,7 +629,7 @@ yml_other_set()
                            RULE_GROUP = x.split(',')[2] || RULE_GROUP = x.split(',')[1];
                            if not CONFIG_GROUP.include?(RULE_GROUP) then
                               Value_1.delete(x);
-                              YAML.LOG('Warning: Skiped The Custom Rule Because Group Not Found:【' + x + '】');
+                              YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
                            end;
                         };
                         Value['rules'] = Value_1;
@@ -639,7 +647,7 @@ yml_other_set()
                                  RULE_GROUP = x.split(',')[2] || RULE_GROUP = x.split(',')[1];
                                  if not CONFIG_GROUP.include?(RULE_GROUP) then
                                     Value_2['rules'].delete(x);
-                                    YAML.LOG('Warning: Skiped The Custom Rule Because Group Not Found:【' + x + '】');
+                                    YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
                                  end;
                               };
                               Value['rules'] = Value_2['rules'];
@@ -650,7 +658,7 @@ yml_other_set()
                               RULE_GROUP = x.split(',')[2] || RULE_GROUP = x.split(',')[1];
                               if not CONFIG_GROUP.include?(RULE_GROUP) then
                                  Value_2.delete(x);
-                                 YAML.LOG('Warning: Skiped The Custom Rule Because Group Not Found:【' + x + '】');
+                                 YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
                               end;
                            };
                            Value['rules'] = Value_2;
@@ -680,7 +688,7 @@ yml_other_set()
                               if CONFIG_GROUP.include?(RULE_GROUP) then
                                  Value['rules'].insert(ruby_add_index,x);
                               else
-                                 YAML.LOG('Warning: Skiped The Custom Rule Because Group Not Found:【' + x + '】');
+                                 YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
                               end;
                            };
                            Value['rules'] = Value['rules'].uniq;
