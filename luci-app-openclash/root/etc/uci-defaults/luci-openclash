@@ -47,12 +47,12 @@ if [ -n "$FW4" ]; then
 	fi
 else
 	#v4
-	if [ -z "$(cat "/etc/openclash/china_ip_route.ipset" |grep "define china_ip_route")" ]; then
+	if [ -z "$(cat "/etc/openclash/china_ip_route.ipset" |grep "create china_ip_route")" ]; then
 		echo "create china_ip_route hash:net family inet hashsize 1024 maxelem 1000000" >/tmp/china_ip_route.list
 		awk '!/^$/&&!/^#/{printf("add china_ip_route %s'" "'\n",$0)}' /etc/openclash/china_ip_route.ipset >>/tmp/china_ip_route.list
 	fi
 	#v6
-	if [ -z "$(cat "/etc/openclash/china_ip6_route.ipset" |grep "define china_ip6_route")" ]; then
+	if [ -z "$(cat "/etc/openclash/china_ip6_route.ipset" |grep "create china_ip6_route")" ]; then
 		echo "create china_ip6_route hash:net family inet6 hashsize 1024 maxelem 1000000" >/tmp/china_ip6_route.list
 		awk '!/^$/&&!/^#/{printf("add china_ip6_route %s'" "'\n",$0)}' /etc/openclash/china_ip6_route.ipset >>/tmp/china_ip6_route.list
 	fi
@@ -142,6 +142,18 @@ if [ -f "/tmp/openclash.bak" ]; then
 	#delete old geosite database first
 	if [ "/etc/openclash/GeoSite.dat" -nt "/tmp/openclash/GeoSite.dat" ]; then
 		rm -rf "/tmp/openclash/GeoSite.dat" >/dev/null 2>&1
+	fi
+	#delete error china_ip_route first
+	if [ -n "$FW4" ]; then
+		if [ -z "$(cat "/tmp/openclash/china_ip_route.ipset" |grep "define china_ip_route")" ]; then
+			rm -f "/tmp/openclash/china_ip_route.ipset" >/dev/null 2>&1
+			rm -f "/tmp/openclash/china_ip6_route.ipset" >/dev/null 2>&1
+		fi
+	else
+		if [ -z "$(cat "/tmp/openclash/china_ip_route.ipset" |grep "create china_ip_route")" ]; then
+			rm -f "/tmp/openclash/china_ip_route.ipset" >/dev/null 2>&1
+			rm -f "/tmp/openclash/china_ip6_route.ipset" >/dev/null 2>&1
+		fi
 	fi
 	mv -f "/tmp/openclash.bak" "/etc/config/openclash" >/dev/null 2>&1
 	cp -rf "/tmp/openclash/." "/etc/openclash/" >/dev/null 2>&1
