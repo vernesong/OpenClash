@@ -143,12 +143,6 @@ rescue Exception => e
 end" 2>/dev/null >> $LOG_FILE
 }
 
-#wait for core start complete
-while ( [ -n "$(unify_ps_pids "/etc/init.d/openclash")" ] )
-do
-   sleep 1
-done >/dev/null 2>&1
-
 while :;
 do
    cfg_update=$(uci -q get openclash.config.auto_update)
@@ -169,6 +163,12 @@ do
    stream_auto_select_google_not_cn=$(uci -q get openclash.config.stream_auto_select_google_not_cn || echo 0)
    stream_auto_select_openai=$(uci -q get openclash.config.stream_auto_select_openai || echo 0)
    upnp_lease_file=$(uci -q get upnpd.config.upnp_lease_file)
+
+#wait for core start complete
+while ( [ -n "$(unify_ps_pids "/etc/init.d/openclash")" ] )
+do
+   sleep 1
+done >/dev/null 2>&1
 
 ## Porxy history
    /usr/share/openclash/openclash_history_get.sh
