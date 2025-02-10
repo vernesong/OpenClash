@@ -1111,7 +1111,7 @@ function netflix_unlock_test()
 	local filmId = 70143836
 	local url = "https://www.netflix.com/title/"..filmId
 	local headers = "User-Agent: "..UA
-	local info = SYS.exec(string.format('curl -sLI --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H "Content-Type: application/json" -H "%s" -XGET %s', headers, url))
+	local info = SYS.exec(string.format('curl -sLI --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H "Content-Type: application/json" -H "host: www.netflix.com" -H "accept-language: en-US,en;q=0.9" -H "sec-ch-ua: Google Chrome;v=125, Chromium;v=125, Not.A/Brand;v=24" -H "sec-ch-ua-mobile: ?0" -H "sec-ch-ua-platform: Windows" -H "sec-fetch-site: none" -H "sec-fetch-mode: navigate" -H "sec-fetch-user: ?1" -H "sec-fetch-dest: document" -H "%s" -XGET %s', headers, url))
 	local result = {}
 	local region
 	local old_region = get_old_region()

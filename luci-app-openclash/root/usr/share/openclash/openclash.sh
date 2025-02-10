@@ -251,7 +251,7 @@ change_dns()
 {
    if pidof clash >/dev/null; then
       /etc/init.d/openclash reload "restore" >/dev/null 2>&1
-      [ "$(unify_ps_status "openclash_watchdog.sh")" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && procd_send_signal "openclash" "openclash-watchdog" CONT
+      procd_send_signal "openclash" "openclash-watchdog" CONT
    fi
 }
 
