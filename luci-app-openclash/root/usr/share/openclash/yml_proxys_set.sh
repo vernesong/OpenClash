@@ -426,6 +426,14 @@ yml_servers_set()
       fi
    fi
 
+   if [ "$client_fingerprint" = "none" ]; then
+        client_fingerprint=""
+   fi
+
+   if [ "$multiplex" = "false" ]; then
+        multiplex=""
+   fi
+
 #ss
    if [ "$type" = "ss" ]; then
 cat >> "$SERVER_FILE" <<-EOF
@@ -1376,37 +1384,37 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
       if [ -n "$multiplex_protocol" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    protocol: $multiplex_protocol
+      protocol: $multiplex_protocol
 EOF
       fi
       if [ -n "$multiplex_max_connections" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    max-connections: $multiplex_max_connections
+      max-connections: $multiplex_max_connections
 EOF
       fi
       if [ -n "$multiplex_min_streams" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    min-streams: $multiplex_min_streams
+      min-streams: $multiplex_min_streams
 EOF
       fi
       if [ -n "$multiplex_max_streams" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    max-streams: $multiplex_max_streams
+      max-streams: $multiplex_max_streams
 EOF
       fi
       if [ -n "$multiplex_padding" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    padding: $multiplex_padding
+      padding: $multiplex_padding
 EOF
       fi
       if [ -n "$multiplex_statistic" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    statistic: $multiplex_statistic
+      statistic: $multiplex_statistic
 EOF
       fi
       if [ -n "$multiplex_only_tcp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    only-tcp: $multiplex_only_tcp
+      only-tcp: $multiplex_only_tcp
 EOF
       fi
    fi
