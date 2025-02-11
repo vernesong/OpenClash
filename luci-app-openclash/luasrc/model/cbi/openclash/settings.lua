@@ -14,7 +14,7 @@ font_off = [[</b>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
-local op_mode = string.sub(luci.sys.exec('uci get openclash.config.operation_mode 2>/dev/null'),0,-2)
+local op_mode = uci:get("openclash", "config", "operation_mode")
 if not op_mode then op_mode = "redir-host" end
 local lan_ip = fs.lanip()
 m = Map("openclash", translate("Plugin Settings"))
