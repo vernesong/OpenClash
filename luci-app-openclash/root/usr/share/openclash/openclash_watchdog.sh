@@ -108,6 +108,28 @@ begin
                      end;
                   end;
                end;
+               if not i['path'] and i['type'] == 'inline' and i['payload'] and not i['payload'].empty? then
+                  Value['payload'].each do
+                     |k|
+                     threadsp << Thread.new {
+                        if k['server'] then
+                           if servers.include?(k['server']) then
+                              next;
+                           end; 
+                           if k['server'] =~ reg then
+                              servers = servers.push(k['server']).uniq
+                              syscall = '/usr/share/openclash/openclash_debug_dns.lua 2>/dev/null \"' + k['server'] + '\" \"true\"'
+                              result = IO.popen(syscall).read.split(/\n+/)
+                              if result then
+                                 ips = ips | result
+                              end;
+                           else
+                              ips = ips.push(k['server']).uniq
+                           end;
+                        end;
+                     };
+                  end;
+               end;
                threadsp.each(&:join);
             };
          end;
