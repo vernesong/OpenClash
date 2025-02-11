@@ -865,6 +865,7 @@ o:depends({type = "vmess", obfs_vmess = "grpc"})
 o = s:option(ListValue, "client_fingerprint", translate("Client Fingerprint")..translate("(Only Meta Core)"))
 o.rmempty = true
 o:value("none")
+o:value("random")
 o:value("chrome")
 o:value("firefox")
 o:value("safari")
