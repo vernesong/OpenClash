@@ -172,15 +172,11 @@ change_dns() {
       uci -q set dhcp.@dnsmasq[0].noresolv=1
       uci -q set dhcp.@dnsmasq[0].localuse=1
       uci -q set openclash.config.redirect_dns=1
-   else
-      uci -q set openclash.config.redirect_dns=0
-   fi
-
-   if [ "$1" -eq 1 ] && [ "$2" -eq 1 ]; then
       uci -q set openclash.config.dnsmasq_cachesize="$(uci -q get dhcp.@dnsmasq[0].cachesize)"
       uci -q set dhcp.@dnsmasq[0].cachesize=0
       uci -q set openclash.config.cachesize_dns=1
    else
+      uci -q set openclash.config.redirect_dns=0
       uci -q set openclash.config.cachesize_dns=0
    fi
 
@@ -2932,7 +2928,6 @@ get_config()
 
    wan_ip4s=$(/usr/share/openclash/openclash_get_network.lua "wanip" 2>/dev/null)
    wan_ip6s=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
-   disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
    log_level=$(uci -q get openclash.config.log_level)
    intranet_allowed=$(uci -q get openclash.config.intranet_allowed)
    enable_udp_proxy=$(uci -q get openclash.config.enable_udp_proxy || echo 1)
@@ -3009,7 +3004,7 @@ start_service()
    start_run_core
 
    LOG_OUT "Step 5: Set Dnsmasq..."
-   change_dns "$enable_redirect_dns" "$disable_masq_cache"
+   change_dns "$enable_redirect_dns"
 
    LOG_OUT "Step 6: Set Firewall Rules..."
    set_firewall
@@ -3140,7 +3135,7 @@ reload_service()
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "restore" ]; then
       do_run_mode 2>/dev/null
       get_config 2>/dev/null
-      change_dns "$enable_redirect_dns" "$disable_masq_cache"
+      change_dns "$enable_redirect_dns"
       set_firewall 2>/dev/null
       check_core_status & 2>/dev/null
       SLOG_CLEAN

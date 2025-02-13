@@ -124,12 +124,6 @@ o = s:taboption("dns", DummyValue, "flush_fakeip_cache", translate("Flush Fake-I
 o.template = "openclash/flush_fakeip_cache"
 end
 
-o = s:taboption("dns", Flag, "disable_masq_cache", translate("Disable Dnsmasq's DNS Cache"))
-o.description = translate("Recommended Enabled For Avoiding Some Connection Errors")..font_red..bold_on..translate("(Maybe Incompatible For Your Firmware)")..bold_off..font_off
-o.default = 0
-o:depends("enable_redirect_dns", "1")
-o:depends("enable_redirect_dns", "0")
-
 o = s:taboption("dns", Flag, "enable_custom_domain_dns_server", translate("Enable Specify DNS Server"))
 o.default = 0
 o:depends("enable_redirect_dns", "1")
