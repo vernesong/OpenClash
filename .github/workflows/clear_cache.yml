@@ -35,7 +35,7 @@ jobs:
 
     - name: Clean jsDelivr Cache
       run: |
-        echo ${{ steps.changed_files.outputs.added_modified }} | jq -r '.[]' | while read file; do
+        echo '${{ steps.changed_files.outputs.added_modified }}' | jq -r '.[]' | while read file; do
             # echo ${{ steps.changed_files.outputs.all }}
             curl -sL --retry 3 "https://purge.jsdelivr.net/gh/vernesong/OpenClash@${{ github.ref_name }}/${file}"
         done
