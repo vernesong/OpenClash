@@ -61,7 +61,7 @@ o:value("http")
 o:value("file")
 o:value("inline")
 
-o = s:option(ListValue, "format", translate("Rule Format")..translate("(TUN&Meta Core)"))
+o = s:option(ListValue, "format", translate("Rule Format"))
 o.rmempty = true
 o.description = translate("Choose The Rule File Format, For More Info:").." ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/config/rule-providers/content/\")'>https://wiki.metacubex.one/config/rule-providers/content/</a>"
 o:value("yaml")

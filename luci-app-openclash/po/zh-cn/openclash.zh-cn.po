@@ -215,15 +215,6 @@ msgstr "使用 Dnsmasq 转发"
 msgid "Firewall Redirect"
 msgstr "使用防火墙转发"
 
-msgid "Disable Dnsmasq's DNS Cache"
-msgstr "禁止 Dnsmasq 缓存 DNS"
-
-msgid "Recommended Enabled For Avoiding Some Connection Errors"
-msgstr "推荐启用，防止因缓存造成连接错误"
-
-msgid "(Maybe Incompatible For Your Firmware)"
-msgstr "（部分固件可能不兼容）"
-
 msgid "Custom DNS Setting"
 msgstr "*自定义上游 DNS 服务器"
 
