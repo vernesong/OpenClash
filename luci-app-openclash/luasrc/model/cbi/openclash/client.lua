@@ -79,11 +79,11 @@ if a then
 	btnis.template="openclash/other_button"
 	btnis.render=function(o,t,a)
 		if not e[t] then return false end
-			if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
-				a.display=""
-			else
-				a.display="none"
-			end
+		if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+			a.display=""
+		else
+			a.display="none"
+		end
 		o.inputstyle="apply"
 		Button.render(o,t,a)
 	end
@@ -94,6 +94,20 @@ if a then
 		uci:commit("openclash")
 		SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 		HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "client"))
+	end
+	
+	up=tb:option(DummyValue, "name", translate("Update"))
+	up.template = "openclash/update_config"
+	up.render = function(o,t,a)
+		local display = "none"
+		uci:foreach("openclash", "config_subscribe",
+		function(s)
+			if s.name == fs.filename(e[t].name) then
+				display = ""
+			end
+		end)
+		o.display = display
+		DummyValue.render(o,t,a)
 	end
 end
 
@@ -152,6 +166,7 @@ o.inputstyle = "reset"
 o.write = function()
 	uci:set("openclash", "config", "enable", 0)
 	uci:commit("openclash")
+	SYS.call("ps | grep openclash | grep -v grep | awk '{print $1}' | xargs -r kill -9 >/dev/null 2>&1")
 	SYS.call("/etc/init.d/openclash stop >/dev/null 2>&1 &")
 end
 

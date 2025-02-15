@@ -18,7 +18,7 @@ SKIP_CUSTOM_OTHER_RULES=0
 yml_set_custom_rule_provider()
 {
    local section="$1"
-   local enabled name config type behavior path url interval group position
+   local enabled name config type behavior path url interval group position other_parameters
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "name" "$section" "name" ""
    config_get "config" "$section" "config" ""
@@ -30,6 +30,7 @@ yml_set_custom_rule_provider()
    config_get "group" "$section" "group" ""
    config_get "position" "$section" "position" ""
    config_get "format" "$section" "format" ""
+   config_get "other_parameters" "$section" "other_parameters" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -63,7 +64,7 @@ yml_set_custom_rule_provider()
       else
          path="./rule_provider/$name.yaml"
       fi
-   elif [ -z "$path" ]; then
+   elif [ -z "$path" ] && [ "$type" != "inline" ]; then
       return
    fi
 
@@ -79,8 +80,12 @@ cat >> "$RULE_PROVIDER_FILE" <<-EOF
   $name:
     type: $type
     behavior: $behavior
+EOF
+    if [ -n "$path" ]; then
+cat >> "$RULE_PROVIDER_FILE" <<-EOF
     path: $path
 EOF
+    fi
     if [ -n "$format" ]; then
 cat >> "$RULE_PROVIDER_FILE" <<-EOF
     format: $format
@@ -92,6 +97,11 @@ cat >> "$RULE_PROVIDER_FILE" <<-EOF
     interval: $interval
 EOF
     fi
+
+   #other_parameters
+   if [ -n "$other_parameters" ]; then
+      echo -e "$other_parameters" >> "$RULE_PROVIDER_FILE"
+   fi
 
    yml_rule_set_add "$name" "$group" "$position"
 }
@@ -136,7 +146,6 @@ yml_gen_rule_provider_file()
       else
          RULE_PROVIDER_FILE_URL="${github_address_mod}https://raw.githubusercontent.com/${RULE_PROVIDER_FILE_URL_PATH}"
       fi
-      
    fi
    if [ -n "$(grep "$RULE_PROVIDER_FILE_URL" $RULE_PROVIDER_FILE 2>/dev/null)" ]; then
       return
@@ -358,7 +367,7 @@ yml_other_set()
             );
             match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0];
             if not match_group.nil? then
-               common_port_group=match_group.split(',')[2] or common_port_group=match_group.split(',')[1];
+               common_port_group = (match_group.split(',')[-1] =~ /^no-resolve$|^src$/) ? match_group.split(',')[-2] : match_group.split(',')[-1];
                if not common_port_group.nil? then
                   ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
                   ruby_add_index ||= -1;
@@ -399,22 +408,65 @@ yml_other_set()
          YAML.LOG('Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】');
       end;
 
-      #Router Self Proxy Rule
+      #Custom Rule Provider
       begin
-         if $6 == 0 and $8 != 2 and '$9' == 'fake-ip' then
-            if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-               if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'$7')/).empty? and not '$7'.empty? then
-                  Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,$7/32,DIRECT');
-               end;
+         if File::exist?('$RULE_PROVIDER_FILE') then
+            Value_1 = YAML.load_file('$RULE_PROVIDER_FILE');
+            if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
+               Value['rule-providers'].merge!(Value_1);
             else
-               Value['rules']=['SRC-IP-CIDR,$7/32,DIRECT'];
+               Value['rule-providers']=Value_1;
             end;
-         elsif Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-            Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT');
          end;
       rescue Exception => e
-         YAML.LOG('Error: Set Router Self Proxy Rule Failed,【' + e.message + '】');
+         YAML.LOG('Error: Custom Rule Provider Merge Failed,【' + e.message + '】');
       end;
+
+      #Game Proxy
+      begin
+         if File::exist?('/tmp/yaml_groups.yaml') or File::exist?('/tmp/yaml_servers.yaml') or File::exist?('/tmp/yaml_provider.yaml') then
+            if File::exist?('/tmp/yaml_groups.yaml') then
+               Value_1 = YAML.load_file('/tmp/yaml_groups.yaml');
+               if Value.has_key?('proxy-groups') and not Value['proxy-groups'].to_a.empty? then
+                  Value['proxy-groups'] = Value['proxy-groups'] + Value_1;
+                  Value['proxy-groups'].uniq;
+               else
+                  Value['proxy-groups'] = Value_1;
+               end;
+            end;
+            if File::exist?('/tmp/yaml_servers.yaml') then
+               Value_2 = YAML.load_file('/tmp/yaml_servers.yaml');
+               if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
+                  Value['proxies'] = Value['proxies'] + Value_2['proxies'];
+                  Value['proxies'].uniq;
+               else
+                  Value['proxies']=Value_2['proxies'];
+               end
+            end;
+            if File::exist?('/tmp/yaml_provider.yaml') then
+               Value_3 = YAML.load_file('/tmp/yaml_provider.yaml');
+               if Value.has_key?('proxy-providers') and not Value['proxy-providers'].to_a.empty? then
+                  Value['proxy-providers'].merge!(Value_3['proxy-providers']);
+                  Value['proxy-providers'].uniq;
+               else
+                  Value['proxy-providers']=Value_3['proxy-providers'];
+               end;
+            end;
+         end;
+      rescue Exception => e
+         YAML.LOG('Error: Game Proxy Merge Failed,【' + e.message + '】');
+      end;
+
+      #CONFIG_GROUP
+      CUSTOM_RULE = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
+      CUSTOM_RULE_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list')
+      CONFIG_GROUP = (Value['proxy-groups'].map { |x| x['name'] }\
+      + ['DIRECT', 'REJECT']\
+      + (if Value['proxies'] != nil and not Value['proxies'].empty? then Value['proxies'].map { |x| x['name'] } else [] end)\
+      + (if Value['sub-rules'] != nil and not Value['sub-rules'].empty? then Value['sub-rules'].keys else [] end)\
+      + (if CUSTOM_RULE['sub-rules'] != nil and not CUSTOM_RULE['sub-rules'].empty? then CUSTOM_RULE['sub-rules'].keys else [] end)\
+      + (if CUSTOM_RULE_2['sub-rules'] != nil and not CUSTOM_RULE_2['sub-rules'].empty? then CUSTOM_RULE_2['sub-rules'].keys else [] end)\
+      ).uniq;
 
       #Custom Rule Set
       begin
@@ -433,25 +485,61 @@ yml_other_set()
                ruby_add_index ||= -1;
                Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
                if ruby_add_index != -1 then
-                  Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(ruby_add_index,x)};
+                  Value_1['rules'].uniq.reverse.each{|x|
+                     RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                     if CONFIG_GROUP.include?(RULE_GROUP) then
+                        Value['rules'].insert(ruby_add_index,x);
+                     else
+                        YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                     end;
+                  };
                else
-                  Value_1['rules'].uniq.each{|x| Value['rules'].insert(ruby_add_index,x)};
+                  Value_1['rules'].uniq.each{|x|
+                     RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                     if CONFIG_GROUP.include?(RULE_GROUP) then
+                        Value['rules'].insert(ruby_add_index,x);
+                     else
+                        YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                     end;
+                  };
                end;
             end;
             if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
                Value_1 = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml');
-               Value_1['rules'].uniq.reverse.each{|x| Value['rules'].insert(0,x)};
+               Value_1['rules'].uniq.reverse.each{|x|
+                  RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                  if CONFIG_GROUP.include?(RULE_GROUP) then
+                     Value['rules'].insert(0,x);
+                  else
+                     YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                  end;
+               };
             end;
          else
             if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
-               Value['rules'] = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml')['rules'].uniq;
+               Value_1 = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml')['rules'].uniq;
+               Value_1.each{|x|
+                  RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                  if not CONFIG_GROUP.include?(RULE_GROUP) then
+                     Value_1.delete(x);
+                     YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                  end;
+               };
+               Value['rules'] = Value_1;
             end;
             if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
-               Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
+               Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml')['rules'].uniq;
+               Value_1.each{|x|
+                  RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                  if not CONFIG_GROUP.include?(RULE_GROUP) then
+                     Value_1.delete(x);
+                     YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                  end;
+               };
                if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
-                  Value['rules'] = Value['rules'] | Value_1['rules'].uniq;
+                  Value['rules'] = Value['rules'] | Value_1;
                else
-                  Value['rules'] = Value_1['rules'].uniq;
+                  Value['rules'] = Value_1;
                end;
             end;
          end;
@@ -476,7 +564,12 @@ yml_other_set()
                      end;
                      if defined? Value_2 then
                         Value_2.each{|x|
-                           Value['rules'].insert(0,x);
+                           RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                           if CONFIG_GROUP.include?(RULE_GROUP) then
+                              Value['rules'].insert(0,x);
+                           else
+                              YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                           end;
                         };
                         Value['rules'] = Value['rules'].uniq;
                      end;
@@ -504,7 +597,12 @@ yml_other_set()
                            Value_4 = Value_4.reverse!;
                         end;
                         Value_4.each{|x|
-                           Value['rules'].insert(ruby_add_index,x);
+                           RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                           if CONFIG_GROUP.include?(RULE_GROUP) then
+                              Value['rules'].insert(ruby_add_index,x);
+                           else
+                              YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                           end;
                         };
                         Value['rules'] = Value['rules'].uniq;
                      end;
@@ -516,10 +614,24 @@ yml_other_set()
                   if Value_1 != false then
                      if Value_1.class.to_s == 'Hash' then
                         if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
+                           Value_1['rules'].to_a.each{|x|
+                              RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                              if not CONFIG_GROUP.include?(RULE_GROUP) then
+                                 Value_1['rules'].delete(x);
+                                 YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                              end;
+                           };
                            Value['rules'] = Value_1['rules'];
                            Value['rules'] = Value['rules'].uniq;
                         end;
                      elsif Value_1.class.to_s == 'Array' then
+                        Value_1.each{|x|
+                           RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                           if not CONFIG_GROUP.include?(RULE_GROUP) then
+                              Value_1.delete(x);
+                              YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                           end;
+                        };
                         Value['rules'] = Value_1;
                         Value['rules'] = Value['rules'].uniq;
                      end;
@@ -531,10 +643,24 @@ yml_other_set()
                      if Value['rules'].to_a.empty? then
                         if Value_2.class.to_s == 'Hash' then
                            if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
+                              Value_2['rules'].to_a.each{|x|
+                                 RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                                 if not CONFIG_GROUP.include?(RULE_GROUP) then
+                                    Value_2['rules'].delete(x);
+                                    YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                                 end;
+                              };
                               Value['rules'] = Value_2['rules'];
                               Value['rules'] = Value['rules'].uniq;
                            end;
                         elsif Value_2.class.to_s == 'Array' then
+                           Value_2.each{|x|
+                              RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                              if not CONFIG_GROUP.include?(RULE_GROUP) then
+                                 Value_2.delete(x);
+                                 YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                              end;
+                           };
                            Value['rules'] = Value_2;
                            Value['rules'] = Value['rules'].uniq;
                         end;
@@ -558,7 +684,12 @@ yml_other_set()
                               Value_3 = Value_3.reverse!;
                            end
                            Value_3.each{|x|
-                              Value['rules'].insert(ruby_add_index,x);
+                              RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                              if CONFIG_GROUP.include?(RULE_GROUP) then
+                                 Value['rules'].insert(ruby_add_index,x);
+                              else
+                                 YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                              end;
                            };
                            Value['rules'] = Value['rules'].uniq;
                         end;
@@ -614,60 +745,28 @@ yml_other_set()
       rescue Exception => e
          YAML.LOG('Error: Set Custom Rules Failed,【' + e.message + '】');
       end;
+
+      #Router Self Proxy Rule
+      begin
+         if $6 == 0 and $8 != 2 and '$9' == 'fake-ip' then
+            if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+               if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'$7')/).empty? and not '$7'.empty? then
+                  Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,$7/32,DIRECT');
+               end;
+            else
+               Value['rules']=['SRC-IP-CIDR,$7/32,DIRECT'];
+            end;
+         elsif Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+            Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT');
+         end;
+      rescue Exception => e
+         YAML.LOG('Error: Set Router Self Proxy Rule Failed,【' + e.message + '】');
+      end;
    };
 
    t2=Thread.new{
       #Create threads
       threads = [];
-      
-      #Custom Rule Provider
-      begin
-         if File::exist?('$RULE_PROVIDER_FILE') then
-            Value_1 = YAML.load_file('$RULE_PROVIDER_FILE');
-            if Value.has_key?('rule-providers') and not Value['rule-providers'].to_a.empty? then
-               Value['rule-providers'].merge!(Value_1);
-            else
-               Value['rule-providers']=Value_1;
-            end;
-         end;
-      rescue Exception => e
-         YAML.LOG('Error: Custom Rule Provider Merge Failed,【' + e.message + '】');
-      end;
-
-      #Game Proxy
-      begin
-         if File::exist?('/tmp/yaml_groups.yaml') or File::exist?('/tmp/yaml_servers.yaml') or File::exist?('/tmp/yaml_provider.yaml') then
-            if File::exist?('/tmp/yaml_groups.yaml') then
-               Value_1 = YAML.load_file('/tmp/yaml_groups.yaml');
-               if Value.has_key?('proxy-groups') and not Value['proxy-groups'].to_a.empty? then
-                  Value['proxy-groups'] = Value['proxy-groups'] + Value_1;
-                  Value['proxy-groups'].uniq;
-               else
-                  Value['proxy-groups'] = Value_1;
-               end;
-            end;
-            if File::exist?('/tmp/yaml_servers.yaml') then
-               Value_2 = YAML.load_file('/tmp/yaml_servers.yaml');
-               if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
-                  Value['proxies'] = Value['proxies'] + Value_2['proxies'];
-                  Value['proxies'].uniq;
-               else
-                  Value['proxies']=Value_2['proxies'];
-               end
-            end;
-            if File::exist?('/tmp/yaml_provider.yaml') then
-               Value_3 = YAML.load_file('/tmp/yaml_provider.yaml');
-               if Value.has_key?('proxy-providers') and not Value['proxy-providers'].to_a.empty? then
-                  Value['proxy-providers'].merge!(Value_3['proxy-providers']);
-                  Value['proxy-providers'].uniq;
-               else
-                  Value['proxy-providers']=Value_3['proxy-providers'];
-               end;
-            end;
-         end;
-      rescue Exception => e
-         YAML.LOG('Error: Game Proxy Merge Failed,【' + e.message + '】');
-      end;
 
       #provider path
       begin
@@ -680,6 +779,9 @@ yml_other_set()
                      if x['path'] and not x['path'] =~ /.\/#{p}\/*/ and not x['path'] =~ /.\/game_rules\/*/ then
                         v=File.basename(x['path']);
                         x['path']='./'+p+'/'+v;
+                     end;
+                     if not x['path'] and x['type'] == 'http' then
+                        x['path']='./'+p+'/'+x['name'];
                      end;
                      #CDN Replace
                      if '$github_address_mod' != '0' then

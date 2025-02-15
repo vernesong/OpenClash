@@ -85,7 +85,7 @@
 				<input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/>
 				<label for="direct"><%:Direct%></label>
 				</span></td><td width="25%"><%:Control Panel Login Secret%></td><td width="25%" align="left" id="_dase"><%:Collecting data...%></td></tr>
-		<tr><td colspan="4"><div style="margin: 10px 0; text-align: center"><span id="_web" style="width: 33%; display: inline-block;"></span><span id="_webm" style="width: 33%; display: inline-block;"><%:Collecting data...%></span><span id="_webo" style="width: 33%; display: inline-block;"></span></div></td></tr>
+		<tr><td colspan="4"><div style="margin: 10px 0; text-align: center"><span id="_web" style="width: 25%; display: inline-block;"></span><span id="_webm" style="width: 25%; display: inline-block;"><%:Collecting data...%></span><span id="_webz" style="width: 25%; display: inline-block;"><%:Collecting data...%></span><span id="_webo" style="width: 25%; display: inline-block;"></span></div></td></tr>
 		<tr id="tool_label2"><td colspan="4">
 			<div style="margin: 10px 0; text-align: center">
 <span>
@@ -193,6 +193,7 @@
 	var web = document.getElementById('_web');
 	var webo = document.getElementById('_webo');
 	var webm = document.getElementById('_webm');
+	var webz = document.getElementById('_webz');
 	var watchdog = document.getElementById('_watchdog');
 	var daip = document.getElementById('_daip');
 	var dase = document.getElementById('_dase');
@@ -253,6 +254,7 @@
 			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Yacd Control Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Dashboard Control Panel%>" onclick="return net_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			webm.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Metacubexd Control Panel%>" onclick="return meta_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
+			webz.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:zashboard Control Panel%>" onclick="return net_zashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			close_all_connection.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			reload_firewall.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Reload Firewall Rules%>" onclick="return b_reload_firewall(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			flush_fakeip_cache.innerHTML = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Flush Fake-IP Cache%>" onclick="return b_flush_fakeip_cache(this)"/>' : '<b style=color:red><%:Not Running%></b>';
@@ -727,8 +729,8 @@
         btn.value    = '<%:Checking...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_other_rules")%>', null, function(x, status) {
         if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Check Third Party Rules Update%>';
+           	btn.disabled = false;
+           	btn.value    = '<%:Check Third Party Rules Update%>';
         }
         else {
         	btn.disabled = false;
@@ -744,12 +746,12 @@
         btn.value    = '<%:Checking...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_geoip")%>', null, function(x, status) {
         if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Check GEOIP Data Update%>';
+           	btn.disabled = false;
+           	btn.value    = '<%:Check GEOIP Data Update%>';
         }
         else {
         	btn.disabled = false;
-          btn.value    = '<%:Check GEOIP Data Update%>';
+          	btn.value    = '<%:Check GEOIP Data Update%>';
         }
         return false;
         });
@@ -761,12 +763,12 @@
         btn.value    = '<%:Checking...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_geosite")%>', null, function(x, status) {
         if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Check GeoSite Data Update%>';
+           	btn.disabled = false;
+           	btn.value    = '<%:Check GeoSite Data Update%>';
         }
         else {
         	btn.disabled = false;
-          btn.value    = '<%:Check GeoSite Data Update%>';
+          	btn.value    = '<%:Check GeoSite Data Update%>';
         }
         return false;
         });
@@ -806,12 +808,12 @@
         btn.value    = '<%:Checking...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_subscribe")%>', null, function(x, status) {
         if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Check Config Update%>';
+        	btn.disabled = false;
+        	btn.value    = '<%:Check Config Update%>';
         }
         else {
         	btn.disabled = false;
-          btn.value    = '<%:Check Config Update%>';
+          	btn.value    = '<%:Check Config Update%>';
         }
         return false;
         });
@@ -823,12 +825,12 @@
         btn.value    = '<%:Reloading...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "reload_firewall")%>', null, function(x, status) {
         if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Reload Firewall Rules%>';
+        	btn.disabled = false;
+        	btn.value    = '<%:Reload Firewall Rules%>';
         }
         else {
         	btn.disabled = false;
-          btn.value    = '<%:Firewall Rules Reset Failed%>';
+          	btn.value    = '<%:Firewall Rules Reset Failed%>';
         }
         return false;
         });
@@ -840,17 +842,38 @@
         btn.value    = '<%:Reloading...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "close_all_connection")%>', null, function(x, status) {
         if ( x && x.status == 200 ) {
-           btn.disabled = false;
-           btn.value    = '<%:Close All Connections%>';
+           	btn.disabled = false;
+           	btn.value    = '<%:Close All Connections%>';
         }
         else {
         	btn.disabled = false;
-          btn.value    = '<%:Close All Connections Failed%>';
+          	btn.value    = '<%:Close All Connections Failed%>';
         }
         return false;
         });
     };
-    
+
+        
+	function net_zashboard(btn)
+    {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
+        btn.disabled = true;
+        btn.value    = '<%:zashboard Control Panel%>';
+        if (status.daip && window.location.hostname == status.daip) {
+            url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/zashboard/#/setup?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+        }
+        else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
+            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+            url9='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/zashboard/#/setup?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
+        }
+        else {
+            url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/zashboard/#/"%>';
+        }
+        winOpen(url9);
+        return false;
+        });
+    };
+
 	function meta_dashboard(btn)
     {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {

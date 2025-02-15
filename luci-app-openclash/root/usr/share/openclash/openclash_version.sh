@@ -1,4 +1,15 @@
 #!/bin/bash
+set_lock() {
+   exec 869>"/tmp/lock/openclash_version.lock" 2>/dev/null
+   flock -x 869 2>/dev/null
+}
+
+del_lock() {
+   flock -u 869 2>/dev/null
+   rm -rf "/tmp/lock/openclash_version.lock" 2>/dev/null
+}
+
+set_lock
 
 TIME=$(date "+%Y-%m-%d-%H")
 CHTIME=$(date "+%Y-%m-%d-%H" -r "/tmp/openclash_last_version" 2>/dev/null)
@@ -7,7 +18,7 @@ RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
 if [ -x "/bin/opkg" ]; then
    OP_CV=$(rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 elif [ -x "/usr/bin/apk" ]; then
-   OP_CV=$(apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1 |awk -F '.' '{print $2$3}' 2>/dev/null)
+   OP_CV=$(apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 |awk -F '.' '{print $2$3}' 2>/dev/null)
 fi
 OP_LV=$(sed -n 1p $LAST_OPVER 2>/dev/null |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
@@ -32,15 +43,20 @@ if [ "$TIME" != "$CHTIME" ]; then
       if [ "$(expr "$OP_CV" \>= "$OP_LV")" = "1" ]; then
          sed -i '/^https:/,$d' $LAST_OPVER
       elif [ "$(expr "$OP_LV" \> "$OP_CV")" = "1" ] && [ -n "$OP_LV" ]; then
+         del_lock
          exit 2
       else
+         del_lock
          exit 0
       fi
    else
       rm -rf "$LAST_OPVER"
    fi
 elif [ "$(expr "$OP_LV" \> "$OP_CV")" = "1" ] && [ -n "$OP_LV" ]; then
+   del_lock
    exit 2
 else
+   del_lock
    exit 0
 fi 2>/dev/null
+del_lock

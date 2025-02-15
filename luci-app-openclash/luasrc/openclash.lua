@@ -247,8 +247,11 @@ unlink = fs.unlink
 readlink = fs.readlink
 
 function filename(str)
+	if not str then
+		return nil
+	end
 	local idx = str:match(".+()%.%w+$")
-	if(idx) then
+	if idx then
 		return str:sub(1, idx-1)
 	else
 		return str

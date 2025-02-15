@@ -100,16 +100,6 @@ o = s:option(Value, "policy_filter", translate("Provider Filter"))
 o.rmempty = true
 o.placeholder = "bgp|sg"
 
--- [[ interface-name ]]--
-o = s:option(Value, "interface_name", translate("interface-name"))
-o.rmempty = true
-o.placeholder = translate("eth0")
-
--- [[ routing-mark ]]--
-o = s:option(Value, "routing_mark", translate("routing-mark"))
-o.rmempty = true
-o.placeholder = translate("2333")
-
 o = s:option(DynamicList, "other_group", translate("Other Group (Support Regex)"))
 o.description = font_red..bold_on..translate("The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT'")..bold_off..font_off
 o:value("all", translate("All Groups"))

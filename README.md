@@ -41,15 +41,11 @@
 * luci
 * luci-base
 * dnsmasq-full
-* coreutils
-* coreutils-nohup
 * bash
 * curl
-* ca-certificates
+* ca-bundle
 * ipset
 * ip-full
-* libcap
-* libcap-bin
 * ruby
 * ruby-yaml
 * unzip

@@ -1,8 +1,6 @@
 name: Clean jsDelivr Cache
 
 on: 
-  # push
-  # https://github.com/qinxs/cdn-assets
   push:
     branches: 
       - master
@@ -18,19 +16,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Apt Update
+      env:
+        DEBIAN_FRONTEND: noninteractive
+      run: |
+        sudo apt-get update
+        sudo apt-get -y install jq
+
     - uses: actions/checkout@v4
 
     # https://github.com/marketplace/actions/git-changesets
     - id: changed_files
       name: git-changesets
-      uses: collin-miller/git-changesets@v0.0.4
+      uses: collin-miller/git-changesets@v1
       with:
           # Default format is 'csv'. Other valid options are 'space-delimited' and 'json'.
-          format: space-delimited
+          format: json
 
     - name: Clean jsDelivr Cache
       run: |
-          for i in ${{ steps.changed_files.outputs.added_modified }}; do
-             # echo ${{ steps.changed_files.outputs.all }}
-             curl -sL --retry 3 https://purge.jsdelivr.net/gh/vernesong/OpenClash@${{ github.ref_name }}/$i
-          done
+        echo '${{ steps.changed_files.outputs.added_modified }}' | jq -r '.[]' | while read file; do
+            # echo ${{ steps.changed_files.outputs.all }}
+            curl -sL --retry 3 "https://purge.jsdelivr.net/gh/vernesong/OpenClash@${{ github.ref_name }}/${file}"
+        done
