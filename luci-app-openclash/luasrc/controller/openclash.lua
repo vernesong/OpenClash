@@ -31,6 +31,7 @@ function index()
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
 	entry({"admin", "services", "openclash", "flush_fakeip_cache"}, call("action_flush_fakeip_cache"))
+	entry({"admin", "services", "openclash", "update_config"}, call("action_update_config"))
 	entry({"admin", "services", "openclash", "download_rule"}, call("action_download_rule"))
 	entry({"admin", "services", "openclash", "restore"}, call("action_restore_config"))
 	entry({"admin", "services", "openclash", "backup"}, call("action_backup"))
@@ -252,7 +253,7 @@ local function opcv()
 		if fs.access("/bin/opkg") then
 			return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}'")
 		elseif fs.access("/usr/bin/apk") then
-			return "v" .. luci.sys.exec("apk list luci-app-openclash 2>/dev/null |grep 'installed' | grep -oE '\\d+(\\.\\d+)*' | head -1")
+			return "v" .. luci.sys.exec("apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\\.[0-9]+)*' | head -1")
 		end
 	end
 end
@@ -347,12 +348,17 @@ function action_flush_fakeip_cache()
 		local dase = dase() or ""
 		local cn_port = cn_port()
 		if not daip or not cn_port then return end
-  	state = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/fakeip/flush', dase, daip, cn_port))
-  end
-  luci.http.prepare_content("application/json")
+		state = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/fakeip/flush', dase, daip, cn_port))
+	end
+	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 		flush_status = state;
 	})
+end
+
+function action_update_config()
+	local filename = luci.http.formvalue("filename") or "config"
+	luci.sys.exec(string.format("/usr/share/openclash/openclash.sh '%s' >/dev/null 2>&1 &", filename))
 end
 
 function action_restore_config()
@@ -364,6 +370,8 @@ function action_restore_config()
 	luci.sys.call("cp /usr/share/openclash/backup/openclash_force_sniffing* /etc/openclash/custom/ >/dev/null 2>&1 &")
 	luci.sys.call("cp /usr/share/openclash/backup/openclash_sniffing* /etc/openclash/custom/ >/dev/null 2>&1 &")
 	luci.sys.call("cp /usr/share/openclash/backup/yml_change.sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1 &")
+	luci.sys.call("cp /usr/share/openclash/backup/china_ip_route.ipset /etc/openclash/china_ip_route.ipset >/dev/null 2>&1 &")
+	luci.sys.call("cp /usr/share/openclash/backup/china_ip6_route.ipset /etc/openclash/china_ip6_route.ipset >/dev/null 2>&1 &")
 	luci.sys.call("rm -rf /etc/openclash/history/* >/dev/null 2>&1 &")
 end
 

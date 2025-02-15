@@ -217,7 +217,7 @@ yml_groups_set()
 {
 
    local section="$1"
-   local enabled config type name disable_udp strategy old_name test_url test_interval tolerance interface_name routing_mark policy_filter
+   local enabled config type name disable_udp strategy old_name test_url test_interval tolerance policy_filter
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "config" "$section" "config" ""
    config_get "type" "$section" "type" ""
@@ -228,8 +228,6 @@ yml_groups_set()
    config_get "test_url" "$section" "test_url" ""
    config_get "test_interval" "$section" "test_interval" ""
    config_get "tolerance" "$section" "tolerance" ""
-   config_get "interface_name" "$section" "interface_name" ""
-   config_get "routing_mark" "$section" "routing_mark" ""
    config_get "policy_filter" "$section" "policy_filter" ""
 
    if [ "$enabled" = "0" ]; then
@@ -333,12 +331,6 @@ yml_groups_set()
    }
    [ -n "$policy_filter" ] && {
       echo "    filter: \"$policy_filter\"" >>$GROUP_FILE
-   }
-   [ -n "$interface_name" ] && {
-      echo "    interface-name: \"$interface_name\"" >>$GROUP_FILE
-   }
-   [ -n "$routing_mark" ] && {
-      echo "    routing-mark: \"$routing_mark\"" >>$GROUP_FILE
    }
 }
 

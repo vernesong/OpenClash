@@ -263,6 +263,10 @@ yml_servers_set()
    config_get "recv_window_conn" "$section" "recv_window_conn" ""
    config_get "recv_window" "$section" "recv_window" ""
    config_get "disable_mtu_discovery" "$section" "disable_mtu_discovery" ""
+   config_get "initial_stream_receive_window" "$section" "initial_stream_receive_window" ""
+   config_get "max_stream_receive_window" "$section" "max_stream_receive_window" ""
+   config_get "initial_connection_receive_window" "$section" "initial_connection_receive_window" ""
+   config_get "max_connection_receive_window" "$section" "max_connection_receive_window" ""
    config_get "xudp" "$section" "xudp" ""
    config_get "packet_encoding" "$section" "packet_encoding" ""
    config_get "global_padding" "$section" "global_padding" ""
@@ -311,6 +315,10 @@ yml_servers_set()
    config_get "multiplex_only_tcp" "$section" "multiplex_only_tcp" ""
    config_get "other_parameters" "$section" "other_parameters" ""
    config_get "hysteria_obfs_password" "$section" "hysteria_obfs_password" ""
+   config_get "port_range" "$section" "port_range" ""
+   config_get "username" "$section" "username" ""
+   config_get "transport" "$section" "transport" "TCP"
+   config_get "multiplexing" "$section" "multiplexing" "MULTIPLEXING_LOW"
 
    if [ "$enabled" = "0" ]; then
       return
@@ -416,6 +424,14 @@ yml_servers_set()
       elif [ "$obfs_vmess" = "network: ws" ]; then
          path="ws-path: \"$path\""
       fi
+   fi
+
+   if [ "$client_fingerprint" = "none" ]; then
+        client_fingerprint=""
+   fi
+
+   if [ "$multiplex" = "false" ]; then
+        multiplex=""
    fi
 
 #ss
@@ -689,6 +705,36 @@ cat >> "$SERVER_FILE" <<-EOF
       grpc-service-name: "$grpc_service_name"
 EOF
          fi
+      fi
+   fi
+
+#Mieru
+   if [ "$type" = "mieru" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  - name: "$name"
+    type: $type
+    server: "$server"
+    port: $port
+EOF
+      if [ -n "$port_range" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    port-range: "$port_range"
+EOF
+      fi
+      if [ -n "$username" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    username: "$username"
+EOF
+      fi
+      if [ -n "$transport" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    transport: "$transport"
+EOF
+      fi
+      if [ -n "$multiplexing" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    multiplexing: "$multiplexing"
+EOF
       fi
    fi
 
@@ -978,6 +1024,26 @@ EOF
       if [ -n "$hysteria_ca_str" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ca-str: "$hysteria_ca_str"
+EOF
+      fi
+      if [ -n "$initial_stream_receive_window" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    initial-stream-receive-window: "$initial_stream_receive_window"
+EOF
+      fi
+      if [ -n "$max_stream_receive_window" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    max_stream_receive_window: "$max_stream_receive_window"
+EOF
+      fi
+      if [ -n "$initial_connection_receive_window" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    initial-connection-receive-window: "$initial_connection_receive_window"
+EOF
+      fi
+      if [ -n "$max_connection_receive_window" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    max-connection-receive-window: "$max_connection_receive_window"
 EOF
       fi
       if [ -n "$fingerprint" ]; then
@@ -1318,37 +1384,37 @@ cat >> "$SERVER_FILE" <<-EOF
 EOF
       if [ -n "$multiplex_protocol" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    protocol: $multiplex_protocol
+      protocol: $multiplex_protocol
 EOF
       fi
       if [ -n "$multiplex_max_connections" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    max-connections: $multiplex_max_connections
+      max-connections: $multiplex_max_connections
 EOF
       fi
       if [ -n "$multiplex_min_streams" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    min-streams: $multiplex_min_streams
+      min-streams: $multiplex_min_streams
 EOF
       fi
       if [ -n "$multiplex_max_streams" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    max-streams: $multiplex_max_streams
+      max-streams: $multiplex_max_streams
 EOF
       fi
       if [ -n "$multiplex_padding" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    padding: $multiplex_padding
+      padding: $multiplex_padding
 EOF
       fi
       if [ -n "$multiplex_statistic" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    statistic: $multiplex_statistic
+      statistic: $multiplex_statistic
 EOF
       fi
       if [ -n "$multiplex_only_tcp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    only-tcp: $multiplex_only_tcp
+      only-tcp: $multiplex_only_tcp
 EOF
       fi
    fi

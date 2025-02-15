@@ -215,15 +215,6 @@ msgstr "使用 Dnsmasq 转发"
 msgid "Firewall Redirect"
 msgstr "使用防火墙转发"
 
-msgid "Disable Dnsmasq's DNS Cache"
-msgstr "禁止 Dnsmasq 缓存 DNS"
-
-msgid "Recommended Enabled For Avoiding Some Connection Errors"
-msgstr "推荐启用，防止因缓存造成连接错误"
-
-msgid "(Maybe Incompatible For Your Firmware)"
-msgstr "（部分固件可能不兼容）"
-
 msgid "Custom DNS Setting"
 msgstr "*自定义上游 DNS 服务器"
 
@@ -789,6 +780,18 @@ msgstr "启用传输协议设置"
 msgid "Hysterir QUIC parameters"
 msgstr "QUIC 参数"
 
+msgid "QUIC init stream receive window"
+msgstr "QUIC 初始流接收窗口大小"
+
+msgid "QUIC max stream receive window"
+msgstr "QUIC 最大的流接收窗口大小"
+
+msgid "QUIC init connection receive window"
+msgstr "QUIC 初始的连接接收窗口大小"
+
+msgid "QUIC max connection receive window"
+msgstr "QUIC 最大的连接接收窗口大小"
+
 msgid "Edit Rule Providers"
 msgstr "编辑规则集配置"
 
@@ -1189,13 +1192,16 @@ msgid "Running Mode"
 msgstr "运行模式"
 
 msgid "Yacd Control Panel"
-msgstr "Yacd 控制面板"
+msgstr "Yacd 面板"
 
 msgid "Dashboard Control Panel"
-msgstr "Dashboard 控制面板"
+msgstr "Dashboard 面板"
 
 msgid "Metacubexd Control Panel"
-msgstr "Metacubexd 控制面板"
+msgstr "Metacubexd 面板"
+
+msgid "zashboard Control Panel"
+msgstr "zashboard 面板"
 
 msgid "Control Panel Login IP"
 msgstr "控制面板登录 IP"
@@ -1605,8 +1611,11 @@ msgstr "开始下载"
 msgid "Download Successful, Start Pre Update Test..."
 msgstr "下载成功，开始进行更新前测试..."
 
-msgid "Pre Update Test Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually!"
-msgstr "更新前测试失败，文件保存在 /tmp/openclash.ipk，请尝试手动更新！"
+msgid "Pre Update Test Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually With"
+msgstr "更新前测试失败，文件保存在 /tmp/openclash.apk，请尝试以下命令手动更新"
+
+msgid "Pre Update Test Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually With"
+msgstr "更新前测试失败，文件保存在 /tmp/openclash.ipk，请尝试以下命令手动更新"
 
 msgid "Pre Update Test Passed, Ready to Update and Please Do not Refresh The Page and Other Operations..."
 msgstr "更新前测试通过，准备开始更新，更新过程请不要刷新页面和进行其他操作..."
@@ -1620,11 +1629,11 @@ msgstr "正在安装新版本，更新过程请不要刷新页面和进行其他
 msgid "OpenClash Update Successful, About To Restart!"
 msgstr "OpenClash 更新成功，即将进行重启！"
 
-msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually!"
-msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.ipk，请尝试手动更新！"
+msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually With"
+msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.ipk，请尝试以下命令手动更新"
 
-msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually!"
-msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.apk，请尝试手动更新！"
+msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually With"
+msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.apk，请尝试以下命令手动更新"
 
 msgid "Download Failed, Please Check The Network or Try Again Later!"
 msgstr "下载失败，请检查网络或稍后再试！"
@@ -1965,12 +1974,6 @@ msgstr "提示：检测到大陆白名单列表不存在，准备开始下载...
 msgid "Tip: Detected that the Chnroute Cidr List Format is wrong, Ready to Reformat..."
 msgstr "提示：检测到大陆白名单列表格式错误，准备重新格式化..."
 
-msgid "Error: Could Not Load The Capsh Library, Please Verify The Capsh Shell Library Work Well..."
-msgstr "错误：Capsh 异常，请尝试重新安装依赖【libcap】和相应的Capsh库，终止启动..."
-
-msgid "Tip: You Could Download And Re-Install The libcap & libcap-bin Library From The Address Give"
-msgstr "提示：你可以尝试从给出的地址中查找、下载并重新安装架构对应的 libcap 和 libcap-bin 依赖"
-
 msgid "Error: OpenClash Can Not Start, Please Check The Error Info And Try Again!"
 msgstr "错误：OpenClash 启动失败，请到日志页面查看详细错误信息！"
 
@@ -2042,18 +2045,6 @@ msgstr "重置 OpenClash 防火墙规则..."
 
 msgid "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..."
 msgstr "警告：OpenClash 目前处于未启用状态，请从插件页面启动本插件，脚本退出..."
-
-msgid "Warning: Multiple Restart Scripts Running, Exit..."
-msgstr "警告：多个 OpenClash 启动脚本运行中，此脚本退出..."
-
-msgid "Watchdog: Multiple Clash Processes, Kill All..."
-msgstr "守护程序：检测到多个 Clash 内核运行，清理中..."
-
-msgid "Watchdog: Clash Core Problem, Restart..."
-msgstr "守护程序：检测到 Clash 内核崩溃，重启中..."
-
-msgid "Watchdog: Already Restart 3 Times With Clash Core Problem, Auto-Exit..."
-msgstr "守护程序：已尝试自动重启三次 Clash 内核，为防止频繁重启造成严重后果，OpenClash 将停止运行..."
 
 msgid "Watchdog: Log Size Limit, Clean Up All Log Records..."
 msgstr "守护程序：因日志大小限制，清理所有日志内容..."
@@ -2721,8 +2712,8 @@ msgstr "未选择上传文件"
 msgid "Custom Params"
 msgstr "自定义参数"
 
-msgid "eg: \"rename=\\s+([2-9])[xX]@ (HIGH:$1)\""
-msgstr "格式示例：\"rename=\\s+([2-9])[xX]@ (高倍率:$1)\""
+msgid "eg: \"rename=match@replace\" , \"rename=\\s+([2-9])[xX]@ (HIGH:$1)\""
+msgstr "格式示例：\"rename=match@replace\" , \"rename=\\s+([2-9])[xX]@ (高倍率:$1)\""
 
 msgid "Use Rule Provider"
 msgstr "使用规则集"
@@ -2958,6 +2949,9 @@ msgstr "切换（更新） Yacd 版本"
 msgid "Update Metacubexd Version"
 msgstr "更新 Metacubexd 版本"
 
+msgid "Update zashboard Version"
+msgstr "更新 zashboard 版本"
+
 msgid "Downloading File..."
 msgstr "文件下载中..."
 
@@ -3051,6 +3045,9 @@ msgstr "警告：TUN 接口启动失败，尝试重启内核..."
 msgid "Error: Core Start Failed, Please Check The Log Infos!"
 msgstr "错误：内核启动失败，请查看《内核日志》排查失败原因！"
 
+msgid "Error: Core Status Abnormal, Please Check The Log Infos!"
+msgstr "错误：内核状态异常，请查看《内核日志》排查异常原因！"
+
 msgid "Forced Sniff Pure IP Connections"
 msgstr "强制探测（嗅探）所有纯 IP 的连接"
 
@@ -3102,8 +3099,8 @@ msgstr "测速（连通性）间隔修改"
 msgid "Modify The URL-Test Interval In The Config"
 msgstr "修改配置文件中的测速（连通性）间隔"
 
-msgid "Whether to Enable Process Rules, If You Are Not Sure, Please Choose off Which Useful in Router Environment"
-msgstr "是否启用进程规则，在路由环境下保持关闭可以提升性能"
+msgid "Whether to Enable Process Rules, Only Works on Routerself, If You Are Not Sure, Please Choose off Which Useful in Router Environment, Depend on kmod-inet-diag"
+msgstr "是否启用进程规则，仅能匹配路由器自身进程，在路由环境下保持关闭可以提升性能，依赖 kmod-inet-diag"
 
 msgid "Enable Process Rule"
 msgstr "启用进程规则"
@@ -3452,3 +3449,24 @@ msgstr "对象"
 
 msgid "Error: Network Anomaly, Suspend Unlock Detection..."
 msgstr "错误：网络异常，暂停解锁检测..."
+
+msgid "(Not Support mrs Format)"
+msgstr "(不支持 mrs 格式)"
+
+msgid "UpDate"
+msgstr "更新"
+
+msgid "Local Network"
+msgstr "内部网络地址"
+
+msgid "Error: LAN IP Address Get Error, Please Check The LAN Interface Setting or Choose the Correct Interface in the Setting!"
+msgstr "错误：LAN IP 地址获取失败，请检查 LAN 接口设置或在插件设置中选择正确的 LAN 接口名称"
+
+msgid "Warning: Skiped The Custom Rule Because Group & Proxy Not Found:"
+msgstr "警告：因未找到对应的策略组或代理，为避免启动失败，已跳过此条自定义规则的添加:"
+
+msgid "Disable quic-go GSO Support"
+msgstr "禁用 quic-go GSO 支持"
+
+msgid "Suggestion: If Encountering Issues With QUIC UDP on The Linux Kernel Version Above 6.6, Please Try to Enable."
+msgstr "建议： 如果固件 Linux 核心版本在 6.6 以上时遇到 quic-go 的 UDP 连接问题，请尝试启用。"

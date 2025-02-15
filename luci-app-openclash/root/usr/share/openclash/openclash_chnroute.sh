@@ -2,7 +2,6 @@
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 
-   FW4=$(command -v fw4)
 
    set_lock() {
       exec 879>"/tmp/lock/openclash_chn.lock" 2>/dev/null
@@ -11,9 +10,12 @@
 
    del_lock() {
       flock -u 879 2>/dev/null
-      rm -rf "/tmp/lock/openclash_chn.lock"
+      rm -rf "/tmp/lock/openclash_chn.lock" 2>/dev/null
    }
 
+   set_lock
+
+   FW4=$(command -v fw4)
    china_ip_route=$(uci -q get openclash.config.china_ip_route)
    china_ip6_route=$(uci -q get openclash.config.china_ip6_route)
    CHNR_CUSTOM_URL=$(uci -q get openclash.config.chnr_custom_url)
@@ -24,7 +26,7 @@
    en_mode=$(uci -q get openclash.config.en_mode)
    LOG_FILE="/tmp/openclash.log"
    restart=0
-   set_lock
+   
    
    if [ "$small_flash_memory" != "1" ]; then
       chnr_path="/etc/openclash/china_ip_route.ipset"
@@ -111,9 +113,9 @@
       LOG_OUT "Chnroute6 Cidr List Update Error, Please Try Again Later..."
    fi
 
-   if [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ]; then
+   if [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
       /etc/init.d/openclash restart >/dev/null 2>&1 &
-   elif [ "$restart" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(find /tmp/lock/ |grep -v "openclash.lock" |grep -c "openclash")" -le 1 ] && [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
+   elif [ "$restart" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
       /etc/init.d/openclash restart >/dev/null 2>&1 &
       uci -q set openclash.config.restart=0
       uci -q commit openclash
