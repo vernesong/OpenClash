@@ -653,7 +653,6 @@ start_run_core()
    procd_set_param group "nogroup"
    procd_set_param limits nproc="unlimited" as="unlimited" memlock="unlimited" nofile="1000000 1000000"
    procd_set_param respawn 3600 3 10
-   procd_set_param capabilities "/etc/capabilities/openclash.json"
    procd_set_param stderr 1
    procd_set_param no_new_privs 1
    procd_close_instance
