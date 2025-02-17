@@ -301,7 +301,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    end;
 
    Value['proxies'].each_with_index do |x, index|
-      uci_name_tmp << %x{uci -q add openclash proxy-provider 2>&1}.chomp;
+      uci_name_tmp << %x{uci -q add openclash servers 2>&1}.chomp;
       threads_pr << Thread.new {
          begin
             YAML.LOG('Start Getting【${CONFIG_NAME} - ' + x['type'].to_s + ' - ' + x['name'].to_s + '】Proxy Setting...');
