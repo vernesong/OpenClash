@@ -4,6 +4,7 @@
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 . /lib/functions/procd.sh
+. /usr/share/openclash/openclash_curl.sh
 
 set_lock() {
    exec 889>"/tmp/lock/openclash_subs.lock" 2>/dev/null
@@ -70,16 +71,20 @@ config_download()
 LOG_OUT "Tip: Config File【$name】Downloading User-Agent【$sub_ua】..."
 if [ -n "$subscribe_url_param" ]; then
    if [ -n "$c_address" ]; then
-      echo "$LOGTIME Tip: Config File【$name】Downloading URL【$c_address$subscribe_url_param】..." >> $LOG_FILE
-      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H "$sub_ua" "$c_address""$subscribe_url_param" -o "$CFG_FILE" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+      LOG_OUT "Tip: Config File【$name】Downloading URL【$c_address$subscribe_url_param】..."
+      DOWNLOAD_URL="${c_address}${subscribe_url_param}"
+      DOWNLOAD_PARAM="$sub_ua"
    else
-      echo "$LOGTIME Tip: Config File【$name】Downloading URL【https://api.dler.io/sub$subscribe_url_param】..." >> $LOG_FILE
-      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H "$sub_ua" https://api.dler.io/sub"$subscribe_url_param" -o "$CFG_FILE" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+      LOG_OUT "Tip: Config File【$name】Downloading URL【https://api.dler.io/sub$subscribe_url_param】..."
+      DOWNLOAD_URL="https://api.dler.io/sub${subscribe_url_param}"
+      DOWNLOAD_PARAM="$sub_ua"
    fi
 else
-   echo "$LOGTIME Tip: Config File【$name】Downloading URL【$subscribe_url】..." >> $LOG_FILE
-   curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 -H "$sub_ua" "$subscribe_url" -o "$CFG_FILE" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$CFG_FILE" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+   LOG_OUT "Tip: Config File【$name】Downloading URL【$subscribe_url】..."
+   DOWNLOAD_URL="${subscribe_url}"
+   DOWNLOAD_PARAM="$sub_ua"
 fi
+DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "$CFG_FILE" "$DOWNLOAD_PARAM"
 }
 
 config_cus_up()
@@ -382,7 +387,7 @@ sub_info_get()
    config_get "rule_provider" "$section" "rule_provider" ""
    config_get "custom_template_url" "$section" "custom_template_url" ""
    config_get "de_ex_keyword" "$section" "de_ex_keyword" ""
-   config_get "sub_ua" "$section" "sub_ua" "Clash"
+   config_get "sub_ua" "$section" "sub_ua" "clash.meta"
    
    if [ "$enabled" -eq 0 ]; then
       if [ -n "$2" ]; then
@@ -402,10 +407,6 @@ sub_info_get()
       udp="&udp=true"
    else
       udp=""
-   fi
-
-   if [ -n "$sub_ua" ]; then
-      sub_ua="User-Agent: $sub_ua"
    fi
    
    if [ "$rule_provider" == "true" ]; then
