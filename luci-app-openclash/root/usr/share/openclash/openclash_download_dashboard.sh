@@ -1,6 +1,7 @@
 #!/bin/bash
 . /usr/share/openclash/log.sh
 . /lib/functions.sh
+. /usr/share/openclash/openclash_curl.sh
 
    set_lock() {
       exec 871>"/tmp/lock/openclash_dashboard.lock" 2>/dev/null
@@ -18,7 +19,6 @@
    DASH_TYPE="$2"
    DASH_FILE_DIR="/tmp/dash.zip"
    DASH_FILE_TMP="/tmp/dash/"
-   LOG_FILE="/tmp/openclash.log"
    github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
    if [ "$DASH_NAME" == "Dashboard" ]; then
       UNPACK_FILE_DIR="/usr/share/openclash/ui/dashboard/"
@@ -51,10 +51,10 @@
 		DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/metacubexd/zip/refs/heads/gh-pages"
       FILE_PATH_INCLUDE="metacubexd-gh-pages"
 	fi
-   
-   curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$DOWNLOAD_PATH" -o "$DASH_FILE_DIR" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$DASH_FILE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
 
-   if [ "${PIPESTATUS[0]}" -eq 0 ] && [ -s "$DASH_FILE_DIR" ] && [ -z "$(grep "404: Not Found" "$DASH_FILE_DIR")" ] && [ -z "$(grep "Package size exceeded the configured limit" "$DASH_FILE_DIR")" ]; then
+   DOWNLOAD_FILE_CURL "$DOWNLOAD_PATH" "$DASH_FILE_DIR"
+
+   if [ "$?" -eq 0 ] && [ -s "$DASH_FILE_DIR" ]; then
       unzip -qt "$DASH_FILE_DIR" >/dev/null 2>&1
       if [ "$?" -eq "0" ]; then
          cp -rf  "$UNPACK_FILE_DIR".  "$BACKUP_FILE_DIR" >/dev/null 2>&1
