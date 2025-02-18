@@ -3378,6 +3378,15 @@ msgstr "强制覆盖 DNS 查询的子网区域地址"
 msgid "Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to"
 msgstr "提示：使用 Respect-rules 功能时 Proxy-server-nameserver 必须配置，插件将默认将其设置为"
 
+msgid "Tip: Nameserver Option Maybe All Setted The Proxy Option, Auto Set Proxy-server-nameserver Option to"
+msgstr "提示：Nameserver 选项可能全部设置了代理选项，插件已自动设置 Proxy-server-nameserver 选项为"
+
+msgid "Tip: Proxy-server-nameserver Option Maybe All Setted The Proxy Option, Auto Set Proxy-server-nameserver Option to"
+msgstr "提示：Proxy-server-nameserver 选项可能全部设置了代理选项，插件已自动为 Proxy-server-nameserver 选项添加设置"
+
+msgid "For Avoiding Proxies Server Resolve Loop..."
+msgstr "以避免代理服务器解析回环..."
+
 msgid "Tip: Config File"
 msgstr "提示：配置文件"
 
