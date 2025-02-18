@@ -9,8 +9,27 @@ local dns_host = "www.instagram.com"
 %>
 
 <style>
+:root[data-darkmode="true"] {
+	.diag-style {
+    	background-color: #404040;
+	}
+
+	#diag-rc-output > pre {
+		background-color: #404040;
+		color: #ffffff;
+	}
+	#dns-rc-output > pre {
+		background-color: #404040;
+		color: #ffffff;
+	}
+}
+
+.diag-style {
+	background-color: #f5f5f5;
+}
+
 #diag-rc-output > pre {
-    background-color: #f5f5f5;
+    background-color: #ffffff;
     display: block;
     padding: 8.5px;
     margin: 0 0 18px;
@@ -23,7 +42,7 @@ local dns_host = "www.instagram.com"
 }
 
 #dns-rc-output > pre {
-    background-color: #f5f5f5;
+    background-color: #ffffff;
     display: block;
     padding: 8.5px;
     margin: 0 0 18px;
@@ -181,7 +200,7 @@ local dns_host = "www.instagram.com"
 //]]></script>
 
 <form>
-	<fieldset>
+	<fieldset class="diag-style">
 		<div style="width:33%; float: left; text-align: center;">
 			<%:Connection Test (Current Browser)%>&nbsp;&nbsp;&nbsp;&nbsp;
 			<input type="text" value="<%=diag_host%>" name="diag" />
@@ -198,19 +217,19 @@ local dns_host = "www.instagram.com"
 		</div>
 	</fieldset>
 
-	<fieldset style="display:none">
+	<fieldset class="diag-style" style="display:none">
 		<legend id="diag-rc-legend"><%:Collecting data...%></legend>
 		<br />
 		<span id="diag-rc-output"></span>
 	</fieldset>
 
-	<fieldset style="display:none">
+	<fieldset class="diag-style" style="display:none">
 		<legend id="dns-rc-legend"><%:Collecting data...%></legend>
 		<br />
 		<span id="dns-rc-output"></span>
 	</fieldset>
 	
-	<fieldset style="display:none">
+	<fieldset class="diag-style" style="display:none">
 		<legend id="debug-rc-legend"><%:Collecting data...%></legend>
 		<br />
 		<span id="debug-rc-output"></span>
