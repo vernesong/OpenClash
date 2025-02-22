@@ -788,8 +788,10 @@ begin
       Value['dns'].merge!(Value_1);
       Value['dns'].merge!(Value_2);
    end;
+   local_interface = (%x{ls -l /sys/class/net/ |awk '{print \$9}'  2>&1}.each_line.map(&:strip) + ['utun', 'tailscale0', 'docker0', 'tun163', 'br-lan', 'mihomo']).uniq.join('|');
+   reg = /^[^#&]+#(?:(?:h3=|skip-cert-verify=|ecs=|ecs-override=|#{local_interface})[^&]*&)*(?:(?!(?:h3=|skip-cert-verify=|ecs=|ecs-override=|#{local_interface}))[^&]+)/;
    if not Value['dns'].has_key?('proxy-server-nameserver') or Value['dns']['proxy-server-nameserver'].to_a.empty? then
-      all_match = Value['dns']['nameserver'].all? { |x| x =~ /^[^#&]+#(?:(?:h3=|skip-cert-verify=|ecs=|ecs-override=)[^&]*&)*(?:(?!(?:h3=|skip-cert-verify=|ecs=|ecs-override=))[^&]+)/ }
+      all_match = Value['dns']['nameserver'].all? { |x| x =~ reg }
       if ${33} == 1 or Value['dns']['respect-rules'].to_s == 'true' or all_match then
          Value['dns'].merge!({'proxy-server-nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']});
          if all_match then
@@ -799,7 +801,7 @@ begin
          end;
       end;
    else
-      all_match = Value['dns']['proxy-server-nameserver'].all? { |x| x =~ /^[^#&]+#(?:(?:h3=|skip-cert-verify=|ecs=|ecs-override=)[^&]*&)*(?:(?!(?:h3=|skip-cert-verify=|ecs=|ecs-override=))[^&]+)/ }
+      all_match = Value['dns']['proxy-server-nameserver'].all? { |x| x =~ reg }
       if all_match then
          Value_1={'proxy-server-nameserver'=>['114.114.114.114','119.29.29.29','8.8.8.8','1.1.1.1']};
          Value['dns']['proxy-server-nameserver'] = Value['dns']['proxy-server-nameserver'] | Value_1['proxy-server-nameserver'];
