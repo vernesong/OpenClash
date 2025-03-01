@@ -784,7 +784,7 @@ check_core_status()
          ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1889
       fi
    else
-      reg4='^((\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])\.){3}(\d|[1-9]\d|1\d\d|2[0-4]\d|25[0-5])$'
+      reg4='^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$'
       while ( [ -n "$(pidof clash)" ] && [ "$CORE_HTTP_CODE" != "200" ] && [ "$TUN_WAIT" -le 120 ] && [[ "$lan_ip" =~ $reg4 ]] )
       do
          CORE_HTTP_CODE=$(curl -m 5 -o /dev/null -s -w '%{http_code}' -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XGET http://${lan_ip}:${cn_port}/group)
@@ -2920,9 +2920,9 @@ get_config()
 
    lan_interface_name=$(uci -q get openclash.config.lan_interface_name || echo 0)
    if [ "$lan_interface_name" = "0" ]; then
-      lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet" 2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' |head -1 || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
+      lan_ip=$(uci -q get network.lan.ipaddr | awk -F '/' '{print $1}' 2>/dev/null | tr -d '\n' || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet" 2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n')
    else
-      lan_ip=$(ip address show $lan_interface_name | grep -w "inet" 2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' |head -1)
+      lan_ip=$(ip address show $lan_interface_name | grep -w "inet" 2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n')
    fi
 
    wan_ip4s=$(/usr/share/openclash/openclash_get_network.lua "wanip" 2>/dev/null)
