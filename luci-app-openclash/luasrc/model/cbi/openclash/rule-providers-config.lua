@@ -114,7 +114,7 @@ o:value("0", translate("Priority Match"))
 o:value("1", translate("Extended Match"))
 
 o = s:option(ListValue, "group", translate("Set Proxy Group"))
-o.description = font_red..bold_on..translate("The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT'")..bold_off..font_off
+o.description = font_red..bold_on..translate("The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT' & 'REJECT-DROP' & 'PASS' & 'GLOBAL'")..bold_off..font_off
 o.rmempty = true
 local groupnames,filename
 filename = m.uci:get(openclash, "config", "config_path")
@@ -138,6 +138,9 @@ m.uci:foreach("openclash", "groups",
 
 o:value("DIRECT")
 o:value("REJECT")
+o:value("REJECT-DROP")
+o:value("PASS")
+o:value("GLOBAL")
 
 -- [[ other-setting ]]--
 o = s:option(Value, "other_parameters", translate("Other Parameters"))
