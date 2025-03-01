@@ -198,6 +198,7 @@ function createAndDownloadFile(fileName, content) {
 function download_log(){
 	var dt = new Date();
 	var timestamp = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getDate()+"-"+dt.getHours()+"-"+dt.getMinutes()+"-"+dt.getSeconds();
+	lv.innerHTML = lv.innerHTML.split('\n').filter(function(line) { return line.indexOf("】订阅的下载链接为【") === -1 && line.indexOf("】Downloading URL【") === -1; }).join('\n');
 	createAndDownloadFile("OpenClash-"+timestamp+".log","<%:OpenClash Log%>:\n"+lv.innerHTML+"\n<%:Core Log%>:\n"+cl.innerHTML)
 	return
 };

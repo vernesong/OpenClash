@@ -71,16 +71,16 @@ config_download()
 LOG_OUT "Tip: Config File【$name】Downloading User-Agent【$sub_ua】..."
 if [ -n "$subscribe_url_param" ]; then
    if [ -n "$c_address" ]; then
-      LOG_OUT "Tip: Config File【$name】Downloading URL【$c_address$subscribe_url_param】..."
+      LOG_INFO "Tip: Config File【$name】Downloading URL【$c_address$subscribe_url_param】..."
       DOWNLOAD_URL="${c_address}${subscribe_url_param}"
       DOWNLOAD_PARAM="$sub_ua"
    else
-      LOG_OUT "Tip: Config File【$name】Downloading URL【https://api.dler.io/sub$subscribe_url_param】..."
+      LOG_INFO "Tip: Config File【$name】Downloading URL【https://api.dler.io/sub$subscribe_url_param】..."
       DOWNLOAD_URL="https://api.dler.io/sub${subscribe_url_param}"
       DOWNLOAD_PARAM="$sub_ua"
    fi
 else
-   LOG_OUT "Tip: Config File【$name】Downloading URL【$subscribe_url】..."
+   LOG_INFO "Tip: Config File【$name】Downloading URL【$subscribe_url】..."
    DOWNLOAD_URL="${subscribe_url}"
    DOWNLOAD_PARAM="$sub_ua"
 fi

@@ -11,6 +11,13 @@ LOG_OUT()
 	fi
 }
 
+LOG_INFO()
+{
+	if [ -n "${1}" ]; then
+		echo -e "$(date "+%Y-%m-%d %H:%M:%S") ${1}" >> $LOG_FILE
+	fi
+}
+
 LOG_ALERT()
 {
 	echo -e "$(tail -n 20 $LOG_FILE |grep -E 'level=fatal|level=error|FTL\ \[Config\]' |awk 'END {print}')" > $START_LOG

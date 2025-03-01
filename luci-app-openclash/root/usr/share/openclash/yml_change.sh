@@ -788,8 +788,8 @@ begin
       Value['dns'].merge!(Value_1);
       Value['dns'].merge!(Value_2);
    end;
-   local_interface = (%x{ls -l /sys/class/net/ |awk '{print \$9}'  2>&1}.each_line.map(&:strip) + ['utun', 'tailscale0', 'docker0', 'tun163', 'br-lan', 'mihomo']).uniq.join('|');
-   reg = /^[^#&]+#(?:(?:h3=|skip-cert-verify=|ecs=|ecs-override=|#{local_interface})[^&]*&)*(?:(?!(?:h3=|skip-cert-verify=|ecs=|ecs-override=|#{local_interface}))[^&]+)/;
+   local_exclude = (%x{ls -l /sys/class/net/ |awk '{print \$9}'  2>&1}.each_line.map(&:strip) + ['h3=', 'skip-cert-verify=', 'ecs=', 'ecs-override='] + ['utun', 'tailscale0', 'docker0', 'tun163', 'br-lan', 'mihomo']).uniq.join('|');
+   reg = /^[^#&]+#(?:(?:#{local_exclude})[^&]*&)*(?:(?!(?:#{local_exclude}))[^&]+)/;
    if not Value['dns'].has_key?('proxy-server-nameserver') or Value['dns']['proxy-server-nameserver'].to_a.empty? then
       all_match = Value['dns']['nameserver'].all? { |x| x =~ reg }
       if ${33} == 1 or Value['dns']['respect-rules'].to_s == 'true' or all_match then
