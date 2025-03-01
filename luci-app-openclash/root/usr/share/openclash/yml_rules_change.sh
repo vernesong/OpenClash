@@ -362,9 +362,41 @@ yml_other_set()
       #BT/P2P DIRECT Rules
       begin
          if $4 == 1 then
-            Value['rules']=Value['rules'].to_a.insert(0,
-            'GEOSITE,category-public-tracker,DIRECT'
-            );
+            if system('strings /etc/openclash/GeoSite.dat /etc/openclash/GeoSite.dat |grep -i category-public-tracker >/dev/null 2>&1') then
+               Value['rules']=Value['rules'].to_a.insert(0,
+               'GEOSITE,category-public-tracker,DIRECT'
+               );
+            else
+               Value['rules']=Value['rules'].to_a.insert(0,
+               'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
+               'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
+               'DOMAIN-SUFFIX,chdbits.co,DIRECT',
+               'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
+               'DOMAIN-SUFFIX,empornium.me,DIRECT',
+               'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
+               'DOMAIN-SUFFIX,hdchina.org,DIRECT',
+               'DOMAIN-SUFFIX,hdsky.me,DIRECT',
+               'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
+               'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
+               'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
+               'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
+               'DOMAIN-SUFFIX,m-team.cc,DIRECT',
+               'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
+               'DOMAIN-SUFFIX,ncore.cc,DIRECT',
+               'DOMAIN-SUFFIX,open.cd,DIRECT',
+               'DOMAIN-SUFFIX,ourbits.club,DIRECT',
+               'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
+               'DOMAIN-SUFFIX,privatehd.to,DIRECT',
+               'DOMAIN-SUFFIX,redacted.ch,DIRECT',
+               'DOMAIN-SUFFIX,springsunday.net,DIRECT',
+               'DOMAIN-SUFFIX,tjupt.org,DIRECT',
+               'DOMAIN-SUFFIX,totheglory.im,DIRECT',
+               'DOMAIN-SUFFIX,smtp,DIRECT',
+               'DOMAIN-KEYWORD,announce,DIRECT',
+               'DOMAIN-KEYWORD,torrent,DIRECT',
+               'DOMAIN-KEYWORD,tracker,DIRECT'
+               );
+            end;
             match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0];
             if not match_group.nil? then
                common_port_group = (match_group.split(',')[-1] =~ /^no-resolve$|^src$/) ? match_group.split(',')[-2] : match_group.split(',')[-1];
@@ -401,8 +433,10 @@ yml_other_set()
                   'DST-PORT,443,' + common_port_group
                   );
                end;
-            end
-            Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')};
+            end;
+            Value['rules'].to_a.collect!{|x|x.to_s
+            .gsub(/GEOIP,([^,]+),([^,]+)(,.*)?/, 'GEOIP,\1,DIRECT\3')
+            .gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')};
          end;
       rescue Exception => e
          YAML.LOG('Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】');
