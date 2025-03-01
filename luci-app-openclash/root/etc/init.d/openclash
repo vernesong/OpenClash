@@ -985,7 +985,7 @@ firewall_rule_exclude()
        return
    fi
 
-   if [ -n "$(echo $dest_port |grep -E '\-|\:'  2>/dev/null)" ]; then
+   if [ -n "$(echo $dest_port |grep -E '\-|\:' 2>/dev/null)" ]; then
       LOG_OUT "Warning: Because there is a port range【$dest_port】in the firewall rule settings【$name】auto bypassing may cause the normal connection of the client not to reach the core, if necessary, please add your own in the access control!"
       return
    fi
@@ -1159,7 +1159,7 @@ firewall_redirect_exclude()
       return
    fi
 
-   if [ -n "$(echo $dest_port |grep -E '\-|\:'  2>/dev/null)" ]; then
+   if [ -n "$(echo $dest_port |grep -E '\-|\:' 2>/dev/null)" ]; then
       LOG_OUT "Warning: Because there is a port range【$dest_port】in the firewall rule settings【$name】auto bypassing may cause the normal connection of the client not to reach the core, if necessary, please add your own in the access control!"
       return
    fi
@@ -2920,9 +2920,9 @@ get_config()
 
    lan_interface_name=$(uci -q get openclash.config.lan_interface_name || echo 0)
    if [ "$lan_interface_name" = "0" ]; then
-      lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' |head -1 || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
+      lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet" 2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' |head -1 || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
    else
-      lan_ip=$(ip address show $lan_interface_name | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' |head -1)
+      lan_ip=$(ip address show $lan_interface_name | grep -w "inet" 2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' |head -1)
    fi
 
    wan_ip4s=$(/usr/share/openclash/openclash_get_network.lua "wanip" 2>/dev/null)
