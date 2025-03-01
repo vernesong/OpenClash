@@ -262,7 +262,7 @@ yml_rule_group_get()
       return
    fi
    
-   if [ -z "$group" ] || [ "$group" = "DIRECT" ] || [ "$group" = "REJECT" ]; then
+   if [ -z "$group" ] || [ "$group" = "DIRECT" ] || [ "$group" = "REJECT" ] || [ "$group" = "REJECT-DROP" ] || [ "$group" = "PASS" ] || [ "$group" = "COMPATIBLE" ] || [ "$group" = "GLOBAL" ]; then
       return
    fi
 
@@ -495,7 +495,7 @@ yml_other_set()
       CUSTOM_RULE = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
       CUSTOM_RULE_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list')
       CONFIG_GROUP = (Value['proxy-groups'].map { |x| x['name'] }\
-      + ['DIRECT', 'REJECT', 'GLOBAL']\
+      + ['DIRECT', 'REJECT', 'GLOBAL', 'REJECT-DROP', 'PASS', 'COMPATIBLE']\
       + (if Value['proxies'] != nil and not Value['proxies'].empty? then Value['proxies'].map { |x| x['name'] } else [] end)\
       + (if Value['sub-rules'] != nil and not Value['sub-rules'].empty? then Value['sub-rules'].keys else [] end)\
       + (if CUSTOM_RULE['sub-rules'] != nil and not CUSTOM_RULE['sub-rules'].empty? then CUSTOM_RULE['sub-rules'].keys else [] end)\
