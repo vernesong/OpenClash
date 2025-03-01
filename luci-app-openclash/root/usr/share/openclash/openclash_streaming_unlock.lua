@@ -251,7 +251,7 @@ function unlock_auto_select()
 					--loop proxy test
 					for i = 1, #(value.all) do
 						while true do
-							if value.all[i] == "REJECT" then
+							if value.all[i] == "REJECT" or value.all[i] == "REJECT-DROP" or value.all[i] == "PASS" then
 								break
 							else
 								get_proxy(info, value.all[i], value.name)
@@ -294,7 +294,7 @@ function unlock_auto_select()
 												table.insert(tested_proxy, proxy)
 											end
 											while true do
-												if proxy == "REJECT" or get_group_now(info, proxy) == "REJECT" then
+												if proxy == "REJECT" or proxy == "REJECT-DROP" or proxy == "PASS" or get_group_now(info, proxy) == "REJECT" or get_group_now(info, proxy) == "REJECT-DROP" or get_group_now(info, proxy) == "PASS" then
 													break
 												else
 													SYS.exec(string.format("curl -sL -m 5 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, proxy, ip, port, urlencode(group_name)))

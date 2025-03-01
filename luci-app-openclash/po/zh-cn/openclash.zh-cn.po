@@ -879,8 +879,8 @@ msgstr "Relay【嵌套中转】"
 msgid "Other Group (Support Regex)"
 msgstr "包含其他策略组（请勿重复添加，支持正则匹配）"
 
-msgid "The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT'"
-msgstr "注意：除'DIRECT'和'REJECT'外，修改配置文件前添加的其他策略组必须已创建"
+msgid "The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT' & 'REJECT-DROP' & 'PASS' & 'GLOBAL'"
+msgstr "注意：除'DIRECT'、'REJECT'、'REJECT-DROP'、'PASS'、'GLOBAL'外，修改配置文件前添加的其他策略组必须已创建"
 
 msgid "The Added Proxy Provider Must Exist"
 msgstr "修改配置文件前添加的代理集必须已创建"
@@ -1248,7 +1248,7 @@ msgstr "备份"
 msgid "Enhance"
 msgstr "增强"
 
-msgid "Compatible"
+msgid "Compat"
 msgstr "兼容"
 
 msgid "Mix"
