@@ -272,9 +272,9 @@ function lanip()
 	local lan_int_name = uci:get("openclash", "config", "lan_interface_name") or "0"
 	local lan_ip
 	if lan_int_name == "0" then
-		lan_ip = SYS.exec("uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
+		lan_ip = SYS.exec("uci -q get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
 	else
-		lan_ip = SYS.exec(string.format("ip address show %s | grep -w 'inet' 2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'", lan_int_name))
+		lan_ip = SYS.exec(string.format("ip address show %s 2>/dev/null | grep -w 'inet' 2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'", lan_int_name))
 	end
 	if not lan_ip or lan_ip == "" then
 		lan_ip = SYS.exec("ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w 'inet'  2>/dev/null | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n'")
