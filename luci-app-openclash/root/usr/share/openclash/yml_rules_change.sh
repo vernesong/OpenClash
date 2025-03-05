@@ -494,13 +494,12 @@ yml_other_set()
       #CONFIG_GROUP
       CUSTOM_RULE = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
       CUSTOM_RULE_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list')
-      CONFIG_GROUP = (Value['proxy-groups'].map { |x| x['name'] }\
-      + ['DIRECT', 'REJECT', 'GLOBAL', 'REJECT-DROP', 'PASS', 'COMPATIBLE']\
-      + (if Value['proxies'] != nil and not Value['proxies'].empty? then Value['proxies'].map { |x| x['name'] } else [] end)\
-      + (if Value['sub-rules'] != nil and not Value['sub-rules'].empty? then Value['sub-rules'].keys else [] end)\
-      + (if CUSTOM_RULE['sub-rules'] != nil and not CUSTOM_RULE['sub-rules'].empty? then CUSTOM_RULE['sub-rules'].keys else [] end)\
-      + (if CUSTOM_RULE_2['sub-rules'] != nil and not CUSTOM_RULE_2['sub-rules'].empty? then CUSTOM_RULE_2['sub-rules'].keys else [] end)\
-      ).uniq;
+      CONFIG_GROUP = (['DIRECT', 'REJECT', 'GLOBAL', 'REJECT-DROP', 'PASS', 'COMPATIBLE'] +
+      (Value['proxy-groups']&.map { |x| x['name'] } || []) +
+      (Value['proxies']&.map { |x| x['name'] } || []) +
+      (Value['sub-rules']&.keys || []) +
+      (CUSTOM_RULE.is_a?(Hash) ? CUSTOM_RULE['sub-rules']&.keys || [] : []) +
+      (CUSTOM_RULE_2.is_a?(Hash) ? CUSTOM_RULE_2['sub-rules']&.keys || [] : [])).uniq;
 
       #Custom Rule Set
       begin
