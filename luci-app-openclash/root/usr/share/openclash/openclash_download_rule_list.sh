@@ -1,6 +1,7 @@
 #!/bin/bash
 . /usr/share/openclash/log.sh
 . /lib/functions.sh
+. /usr/share/openclash/openclash_curl.sh
 
    urlencode() {
       if [ "$#" -eq 1 ]; then
@@ -21,7 +22,6 @@
    set_lock
 
    RULE_FILE_NAME="$1"
-   LOG_FILE="/tmp/openclash.log"
    RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
    github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
    if [ -z "$(grep "$RULE_FILE_NAME" /usr/share/openclash/res/rule_providers.list 2>/dev/null)" ]; then
@@ -48,26 +48,28 @@
    if [ "$RULE_TYPE" = "game" ]; then
       if [ "$github_address_mod" != "0" ]; then
          if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"gh/FQrabbit/SSTap-Rule@master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+            DOWNLOAD_URL="${github_address_mod}gh/FQrabbit/SSTap-Rule@master/rules/${DOWNLOAD_PATH}"
          else
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+            DOWNLOAD_URL="${github_address_mod}https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/${DOWNLOAD_PATH}"
          fi
       else
-         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         DOWNLOAD_URL="https://raw.githubusercontent.com/FQrabbit/SSTap-Rule/master/rules/${DOWNLOAD_PATH}"
       fi
    elif [ "$RULE_TYPE" = "provider" ]; then
       if [ "$github_address_mod" != "0" ]; then
          if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"gh/"$(echo "$DOWNLOAD_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"@master"$(echo "$DOWNLOAD_PATH" |awk -F 'master' '{print $2}')" -o "$TMP_RULE_DIR" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+            DOWNLOAD_URL="${github_address_modgh}/$(echo ${DOWNLOAD_PATH} |awk -F '/master' '{print $1}' 2>/dev/null)@master$(echo ${DOWNLOAD_PATH} |awk -F 'master' '{print $2}')"
          else
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+            DOWNLOAD_URL="${github_address_mod}https://raw.githubusercontent.com/${DOWNLOAD_PATH}"
          fi
       else
-         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/"$DOWNLOAD_PATH" -o "$TMP_RULE_DIR" 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="$TMP_RULE_DIR" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         DOWNLOAD_URL="https://raw.githubusercontent.com/${DOWNLOAD_PATH}"
       fi
    fi
 
-   if [ "${PIPESTATUS[0]}" -eq 0 ] && [ -s "$TMP_RULE_DIR" ] && [ -z "$(grep "404: Not Found" "$TMP_RULE_DIR")" ] && [ -z "$(grep "Package size exceeded the configured limit" "$TMP_RULE_DIR")" ]; then
+   DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "$TMP_RULE_DIR"
+
+   if [ "$?" -eq 0 ] && [ -s "$TMP_RULE_DIR" ]; then
       if [ "$RULE_TYPE" = "game" ]; then
       	cat "$TMP_RULE_DIR" |sed '/^#/d' 2>/dev/null |sed '/^ *$/d' 2>/dev/null |awk '{print "  - "$0}' > "$TMP_RULE_DIR_TMP" 2>/dev/null
       	sed -i '1i\payload:' "$TMP_RULE_DIR_TMP" 2>/dev/null

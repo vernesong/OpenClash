@@ -1,6 +1,7 @@
 #!/bin/bash
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
+. /usr/share/openclash/openclash_curl.sh
 
    set_lock() {
       exec 874>"/tmp/lock/openclash_geosite.lock" 2>/dev/null
@@ -17,7 +18,6 @@
    small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
    GEOSITE_CUSTOM_URL=$(uci get openclash.config.geosite_custom_url 2>/dev/null)
    github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
-   LOG_FILE="/tmp/openclash.log"
    restart=0
    
    if [ "$small_flash_memory" != "1" ]; then
@@ -31,17 +31,18 @@
    if [ -z "$GEOSITE_CUSTOM_URL" ]; then
       if [ "$github_address_mod" != "0" ]; then
          if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat -o /tmp/GeoSite.dat 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/GeoSite.dat" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+            DOWNLOAD_URL="${github_address_mod}gh/Loyalsoldier/v2ray-rules-dat@release/geosite.dat"
          else
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -o /tmp/GeoSite.dat 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/GeoSite.dat" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+            DOWNLOAD_URL="${github_address_mod}https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
          fi
       else
-         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat -o /tmp/GeoSite.dat 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/GeoSite.dat" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         DOWNLOAD_URL="https://github.com/Loyalsoldier/v2ray-rules-dat/releases/latest/download/geosite.dat"
       fi
    else
-      curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$GEOSITE_CUSTOM_URL" -o /tmp/GeoSite.dat 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/GeoSite.dat" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+      DOWNLOAD_URL=$GEOSITE_CUSTOM_URL
    fi
-   if [ "${PIPESTATUS[0]}" -eq "0" ] && [ -s "/tmp/GeoSite.dat" ]; then
+   DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "/tmp/GeoSite.dat"
+   if [ "$?" -eq 0 ] && [ -s "/tmp/GeoSite.dat" ]; then
       LOG_OUT "GeoSite Database Download Success, Check Updated..."
       cmp -s /tmp/GeoSite.dat "$geosite_path"
       if [ "$?" -ne "0" ]; then

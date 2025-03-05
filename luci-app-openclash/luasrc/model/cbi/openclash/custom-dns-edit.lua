@@ -130,7 +130,7 @@ function(s)
 end)
    
 o:value("DIRECT")
-o:value("REJECT")
+o:value("GLOBAL")
 o:value("Disable", translate("Disable"))
 o.default = "Disable"
 o.rempty = false

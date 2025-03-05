@@ -262,7 +262,7 @@ yml_rule_group_get()
       return
    fi
    
-   if [ -z "$group" ] || [ "$group" = "DIRECT" ] || [ "$group" = "REJECT" ]; then
+   if [ -z "$group" ] || [ "$group" = "DIRECT" ] || [ "$group" = "REJECT" ] || [ "$group" = "REJECT-DROP" ] || [ "$group" = "PASS" ] || [ "$group" = "COMPATIBLE" ] || [ "$group" = "GLOBAL" ]; then
       return
    fi
 
@@ -362,9 +362,41 @@ yml_other_set()
       #BT/P2P DIRECT Rules
       begin
          if $4 == 1 then
-            Value['rules']=Value['rules'].to_a.insert(0,
-            'GEOSITE,category-public-tracker,DIRECT'
-            );
+            if system('strings /etc/openclash/GeoSite.dat /etc/openclash/GeoSite.dat |grep -i category-public-tracker >/dev/null 2>&1') then
+               Value['rules']=Value['rules'].to_a.insert(0,
+               'GEOSITE,category-public-tracker,DIRECT'
+               );
+            else
+               Value['rules']=Value['rules'].to_a.insert(0,
+               'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
+               'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
+               'DOMAIN-SUFFIX,chdbits.co,DIRECT',
+               'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
+               'DOMAIN-SUFFIX,empornium.me,DIRECT',
+               'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
+               'DOMAIN-SUFFIX,hdchina.org,DIRECT',
+               'DOMAIN-SUFFIX,hdsky.me,DIRECT',
+               'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
+               'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
+               'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
+               'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
+               'DOMAIN-SUFFIX,m-team.cc,DIRECT',
+               'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
+               'DOMAIN-SUFFIX,ncore.cc,DIRECT',
+               'DOMAIN-SUFFIX,open.cd,DIRECT',
+               'DOMAIN-SUFFIX,ourbits.club,DIRECT',
+               'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
+               'DOMAIN-SUFFIX,privatehd.to,DIRECT',
+               'DOMAIN-SUFFIX,redacted.ch,DIRECT',
+               'DOMAIN-SUFFIX,springsunday.net,DIRECT',
+               'DOMAIN-SUFFIX,tjupt.org,DIRECT',
+               'DOMAIN-SUFFIX,totheglory.im,DIRECT',
+               'DOMAIN-SUFFIX,smtp,DIRECT',
+               'DOMAIN-KEYWORD,announce,DIRECT',
+               'DOMAIN-KEYWORD,torrent,DIRECT',
+               'DOMAIN-KEYWORD,tracker,DIRECT'
+               );
+            end;
             match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0];
             if not match_group.nil? then
                common_port_group = (match_group.split(',')[-1] =~ /^no-resolve$|^src$/) ? match_group.split(',')[-2] : match_group.split(',')[-1];
@@ -401,8 +433,10 @@ yml_other_set()
                   'DST-PORT,443,' + common_port_group
                   );
                end;
-            end
-            Value['rules'].to_a.collect!{|x|x.to_s.gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')};
+            end;
+            Value['rules'].to_a.collect!{|x|x.to_s
+            .gsub(/GEOIP,([^,]+),([^,]+)(,.*)?/, 'GEOIP,\1,DIRECT\3')
+            .gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')};
          end;
       rescue Exception => e
          YAML.LOG('Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】');
@@ -460,13 +494,12 @@ yml_other_set()
       #CONFIG_GROUP
       CUSTOM_RULE = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
       CUSTOM_RULE_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list')
-      CONFIG_GROUP = (Value['proxy-groups'].map { |x| x['name'] }\
-      + ['DIRECT', 'REJECT']\
-      + (if Value['proxies'] != nil and not Value['proxies'].empty? then Value['proxies'].map { |x| x['name'] } else [] end)\
-      + (if Value['sub-rules'] != nil and not Value['sub-rules'].empty? then Value['sub-rules'].keys else [] end)\
-      + (if CUSTOM_RULE['sub-rules'] != nil and not CUSTOM_RULE['sub-rules'].empty? then CUSTOM_RULE['sub-rules'].keys else [] end)\
-      + (if CUSTOM_RULE_2['sub-rules'] != nil and not CUSTOM_RULE_2['sub-rules'].empty? then CUSTOM_RULE_2['sub-rules'].keys else [] end)\
-      ).uniq;
+      CONFIG_GROUP = (['DIRECT', 'REJECT', 'GLOBAL', 'REJECT-DROP', 'PASS', 'COMPATIBLE'] +
+      (Value['proxy-groups']&.map { |x| x['name'] } || []) +
+      (Value['proxies']&.map { |x| x['name'] } || []) +
+      (Value['sub-rules']&.keys || []) +
+      (CUSTOM_RULE.is_a?(Hash) ? CUSTOM_RULE['sub-rules']&.keys || [] : []) +
+      (CUSTOM_RULE_2.is_a?(Hash) ? CUSTOM_RULE_2['sub-rules']&.keys || [] : [])).uniq;
 
       #Custom Rule Set
       begin
@@ -486,7 +519,7 @@ yml_other_set()
                Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
                if ruby_add_index != -1 then
                   Value_1['rules'].uniq.reverse.each{|x|
-                     RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                     RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                      if CONFIG_GROUP.include?(RULE_GROUP) then
                         Value['rules'].insert(ruby_add_index,x);
                      else
@@ -495,7 +528,7 @@ yml_other_set()
                   };
                else
                   Value_1['rules'].uniq.each{|x|
-                     RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                     RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                      if CONFIG_GROUP.include?(RULE_GROUP) then
                         Value['rules'].insert(ruby_add_index,x);
                      else
@@ -507,7 +540,7 @@ yml_other_set()
             if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
                Value_1 = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml');
                Value_1['rules'].uniq.reverse.each{|x|
-                  RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                  RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                   if CONFIG_GROUP.include?(RULE_GROUP) then
                      Value['rules'].insert(0,x);
                   else
@@ -519,7 +552,7 @@ yml_other_set()
             if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
                Value_1 = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml')['rules'].uniq;
                Value_1.each{|x|
-                  RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                  RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                   if not CONFIG_GROUP.include?(RULE_GROUP) then
                      Value_1.delete(x);
                      YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
@@ -530,7 +563,7 @@ yml_other_set()
             if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
                Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml')['rules'].uniq;
                Value_1.each{|x|
-                  RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                  RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                   if not CONFIG_GROUP.include?(RULE_GROUP) then
                      Value_1.delete(x);
                      YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
@@ -564,7 +597,7 @@ yml_other_set()
                      end;
                      if defined? Value_2 then
                         Value_2.each{|x|
-                           RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                           RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                            if CONFIG_GROUP.include?(RULE_GROUP) then
                               Value['rules'].insert(0,x);
                            else
@@ -597,7 +630,7 @@ yml_other_set()
                            Value_4 = Value_4.reverse!;
                         end;
                         Value_4.each{|x|
-                           RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                           RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                            if CONFIG_GROUP.include?(RULE_GROUP) then
                               Value['rules'].insert(ruby_add_index,x);
                            else
@@ -615,7 +648,7 @@ yml_other_set()
                      if Value_1.class.to_s == 'Hash' then
                         if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
                            Value_1['rules'].to_a.each{|x|
-                              RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                              RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                               if not CONFIG_GROUP.include?(RULE_GROUP) then
                                  Value_1['rules'].delete(x);
                                  YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
@@ -626,7 +659,7 @@ yml_other_set()
                         end;
                      elsif Value_1.class.to_s == 'Array' then
                         Value_1.each{|x|
-                           RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                           RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                            if not CONFIG_GROUP.include?(RULE_GROUP) then
                               Value_1.delete(x);
                               YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
@@ -644,7 +677,7 @@ yml_other_set()
                         if Value_2.class.to_s == 'Hash' then
                            if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
                               Value_2['rules'].to_a.each{|x|
-                                 RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                                 RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                                  if not CONFIG_GROUP.include?(RULE_GROUP) then
                                     Value_2['rules'].delete(x);
                                     YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
@@ -655,7 +688,7 @@ yml_other_set()
                            end;
                         elsif Value_2.class.to_s == 'Array' then
                            Value_2.each{|x|
-                              RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                              RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                               if not CONFIG_GROUP.include?(RULE_GROUP) then
                                  Value_2.delete(x);
                                  YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
@@ -684,7 +717,7 @@ yml_other_set()
                               Value_3 = Value_3.reverse!;
                            end
                            Value_3.each{|x|
-                              RULE_GROUP = (x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1];
+                              RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                               if CONFIG_GROUP.include?(RULE_GROUP) then
                                  Value['rules'].insert(ruby_add_index,x);
                               else

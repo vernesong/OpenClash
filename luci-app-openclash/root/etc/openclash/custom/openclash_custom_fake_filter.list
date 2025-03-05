@@ -7,6 +7,36 @@
 *.test
 *.local
 *.home.arpa
+*.direct
+cable.auth.com
+network-test.debian.org
+detectportal.firefox.com
+resolver1.opendns.com
+global.turn.twilio.com
+global.stun.twilio.com
+app.yinxiang.com
+injections.adguard.org
+localhost.*.weixin.qq.com
+*.blzstatic.cn
+*.cmpassport.com
+id6.me
+open.e.189.cn
+opencloud.wostore.cn
+id.mail.wo.cn
+mdn.open.wo.cn
+hmrz.wo.cn
+nishub1.10010.com
+enrichgw.10010.com
+*.wosms.cn
+*.jegotrip.com.cn
+*.icitymobile.mobi
+*.pingan.com.cn
+*.cmbchina.com
+*.10099.com.cn
+*.microdone.cn
+PDC._msDCS.*.*
+DC._msDCS.*.*
+GC._msDCS.*.*
 #放行NTP服务
 time.*.com
 time.*.gov
@@ -83,6 +113,7 @@ xbox.*.*.microsoft.com
 xbox.*.microsoft.com
 xnotify.xboxlive.com
 #Wotgame
++.battle.net
 +.battlenet.com.cn
 +.wotgame.cn
 +.wggames.cn
@@ -144,6 +175,6 @@ ps.res.netease.com
 #Wifi Calling
 +.pub.3gppnetwork.org
 #GEOSITE(Meta core)
-geosite:category-games
+#geosite:category-games
 #geosite:apple-cn
 #geosite:google-cn

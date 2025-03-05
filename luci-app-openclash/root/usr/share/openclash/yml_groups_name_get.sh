@@ -25,6 +25,9 @@ if [ -f "$CFG_FILE" ]; then
    if [ -f "/tmp/Proxy_Group" ]; then
       echo 'DIRECT' >>/tmp/Proxy_Group
       echo 'REJECT' >>/tmp/Proxy_Group
+      echo 'REJECT-DROP' >>/tmp/Proxy_Group
+      echo 'PASS' >>/tmp/Proxy_Group
+      echo 'GLOBAL' >>/tmp/Proxy_Group
    else
       return 1
    fi
