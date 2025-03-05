@@ -52,7 +52,7 @@ set_groups()
       return
    fi
 
-   if [ "$1" = "all" ] || [[ "$3" =~ ${1} ]]; then
+   if [ "$1" = "all" ] || [[ "$3" =~ ${1} ]] || [ -n "$(echo ${3} |grep -Eo ${1})" ]; then
       set_group=1
       add_for_this=1
       echo "      - \"${2}\"" >>$GROUP_FILE
@@ -76,7 +76,7 @@ set_relay_groups()
    fi
 
    if [ -n "$server_relay_num" ]; then
-      if [[ "$3" =~ ${server_group_name} ]] || [ "$server_group_name" = "all" ]; then
+      if [[ "$3" =~ ${server_group_name} ]] || [ -n "$(echo ${3} |grep -Eo ${server_group_name})" ] || [ "$server_group_name" = "all" ]; then
          set_group=1
          add_for_this=1
          echo "$server_relay_num #      - \"${2}\"" >>/tmp/relay_server
@@ -140,7 +140,7 @@ add_other_group()
       return
    fi
 
-   if [ "$2" = "all" ] || [[ "$name" =~ ${2} ]]; then
+   if [ "$2" = "all" ] || [[ "$name" =~ ${2} ]] || [ -n "$(echo ${name} |grep -Eo ${2})" ]; then
       set_group=1
       echo "      - ${name}" >>$GROUP_FILE
    fi
@@ -153,31 +153,31 @@ set_other_groups()
       return
    fi
 
-   if [[ "$1" =~ "DIRECT" ]]; then
+   if [[ "$1" =~ "DIRECT" ]] || [ -n "$(echo ${1} |grep 'DIRECT')" ]; then
       set_group=1
       echo "      - DIRECT" >>$GROUP_FILE
       return
    fi
 
-   if [[ "$1" =~ "REJECT" ]]; then
+   if [[ "$1" =~ "REJECT" ]] || [ -n "$(echo ${1} |grep 'REJECT')" ]; then
       set_group=1
       echo "      - REJECT" >>$GROUP_FILE
       return
    fi
 
-   if [[ "$1" =~ "REJECT-DROP" ]]; then
+   if [[ "$1" =~ "REJECT-DROP" ]] || [ -n "$(echo ${1} |grep 'REJECT-DROP')" ]; then
       set_group=1
       echo "      - REJECT-DROP" >>$GROUP_FILE
       return
    fi
 
-   if [[ "$1" =~ "PASS" ]]; then
+   if [[ "$1" =~ "PASS" ]] || [ -n "$(echo ${1} |grep 'PASS')" ]; then
       set_group=1
       echo "      - PASS" >>$GROUP_FILE
       return
    fi
 
-   if [[ "$1" =~ "GLOBAL" ]]; then
+   if [[ "$1" =~ "GLOBAL" ]] || [ -n "$(echo ${1} |grep 'GLOBAL')" ]; then
       set_group=1
       echo "      - GLOBAL" >>$GROUP_FILE
       return
@@ -223,7 +223,7 @@ set_provider_groups()
       return
    fi
 
-   if [[ "$3" =~ ${1} ]] || [ "$1" = "all" ]; then
+   if [[ "$3" =~ ${1} ]] || [ -n "$(echo ${3} |grep -Eo ${1})" ] || [ "$1" = "all" ]; then
       set_proxy_provider=1
       add_for_this=1
       echo "      - ${2}" >>$GROUP_FILE

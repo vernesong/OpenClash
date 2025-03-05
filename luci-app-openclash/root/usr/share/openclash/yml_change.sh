@@ -178,7 +178,7 @@ yml_dns_get()
       return
    fi
    
-   if [[ "$ip" =~ "$regex" ]]; then
+   if [[ "$ip" =~ "$regex" ]] || [ -n "$(echo ${ip} |grep -Eo ${regex})" ]; then
       ip="[${ip}]"
    fi
 

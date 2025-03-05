@@ -507,7 +507,7 @@
 				else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix")
 				{
 					mode.innerHTML = status.clash && status.watchdog ? "<b style=color:green><%:Redir-Host%></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b style=color:red><%:Not Running%></b>&nbsp;&nbsp;&nbsp;';
-					radio_run_normal.innerHTML = "<%:Compatible%>"
+					radio_run_normal.innerHTML = "<%:Compat%>"
 				};
 				for (i=0; i<radio_ru.length; i++) {
 					if (radio_ru[i].value == (status["mode"].split("-")[2] == undefined ? "" : ("-" + status["mode"].split("-")[2])) && ! radio_ru[i].checked) {
