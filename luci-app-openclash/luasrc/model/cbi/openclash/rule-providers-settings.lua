@@ -115,6 +115,9 @@ uci:foreach("openclash", "groups",
 
 o:value("DIRECT")
 o:value("REJECT")
+o:value("REJECT-DROP")
+o:value("PASS")
+o:value("GLOBAL")
 o.rmempty = true
 
 -- [[ Edit Other Rule Provider ]] --
@@ -191,6 +194,9 @@ uci:foreach("openclash", "groups",
 
 o:value("DIRECT")
 o:value("REJECT")
+o:value("REJECT-DROP")
+o:value("PASS")
+o:value("GLOBAL")
 o.rmempty = true
 
 o = s:option(Value, "interval", translate("Rule Providers Interval(s)"))

@@ -1,5 +1,6 @@
 #!/bin/bash
 . /usr/share/openclash/log.sh
+. /usr/share/openclash/openclash_curl.sh
 
 set_lock() {
    exec 878>"/tmp/lock/openclash_update.lock" 2>/dev/null
@@ -37,7 +38,6 @@ elif [ -x "/usr/bin/apk" ]; then
 fi
 OP_LV=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
 RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
-LOG_FILE="/tmp/openclash.log"
 github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
 
 #一键更新
@@ -66,26 +66,34 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 
    if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
          if [ -x "/bin/opkg" ]; then
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"gh/vernesong/OpenClash@package/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.ipk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+            DOWNLOAD_URL="${github_address_mod}gh/vernesong/OpenClash@package/${RELEASE_BRANCH}/luci-app-openclash_${LAST_VER}_all.ipk"
+            DOWNLOAD_PATH="/tmp/openclash.ipk"
          elif [ -x "/usr/bin/apk" ]; then
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"gh/vernesong/OpenClash@package/"$RELEASE_BRANCH"/luci-app-openclash-"$LAST_VER".apk -o /tmp/openclash.apk 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.apk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+            DOWNLOAD_URL="${github_address_mod}gh/vernesong/OpenClash@package/${RELEASE_BRANCH}/luci-app-openclash-${LAST_VER}.apk"
+            DOWNLOAD_PATH="/tmp/openclash.apk"
          fi
       else
          if [ -x "/bin/opkg" ]; then
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/package/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.ipk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+            DOWNLOAD_URL="${github_address_mod}https://raw.githubusercontent.com/vernesong/OpenClash/package/${RELEASE_BRANCH}/luci-app-openclash_${LAST_VER}_all.ipk"
+            DOWNLOAD_PATH="/tmp/openclash.ipk"
          elif [ -x "/usr/bin/apk" ]; then
-            curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 "$github_address_mod"https://raw.githubusercontent.com/vernesong/OpenClash/package/"$RELEASE_BRANCH"/luci-app-openclash-"$LAST_VER".apk -o /tmp/openclash.apk 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.apk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+            DOWNLOAD_URL="${github_address_mod}https://raw.githubusercontent.com/vernesong/OpenClash/package/${RELEASE_BRANCH}/luci-app-openclash-${LAST_VER}.apk"
+            DOWNLOAD_PATH="/tmp/openclash.apk"
          fi
       fi
    else
       if [ -x "/bin/opkg" ]; then
-         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/package/"$RELEASE_BRANCH"/luci-app-openclash_"$LAST_VER"_all.ipk -o /tmp/openclash.ipk 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.ipk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         DOWNLOAD_URL="https://raw.githubusercontent.com/vernesong/OpenClash/package/${RELEASE_BRANCH}/luci-app-openclash_${LAST_VER}_all.ipk"
+         DOWNLOAD_PATH="/tmp/openclash.ipk"
       elif [ -x "/usr/bin/apk" ]; then
-         curl -SsL --connect-timeout 30 -m 60 --speed-time 30 --speed-limit 1 --retry 2 https://raw.githubusercontent.com/vernesong/OpenClash/package/"$RELEASE_BRANCH"/luci-app-openclash-"$LAST_VER".apk -o /tmp/openclash.apk 2>&1 |sed ':a;N;$!ba; s/\n/ /g' | awk -v time="$(date "+%Y-%m-%d %H:%M:%S")" -v file="/tmp/openclash.apk" '{print time "【" file "】Download Failed:【"$0"】"}' >> "$LOG_FILE"
+         DOWNLOAD_URL="https://raw.githubusercontent.com/vernesong/OpenClash/package/${RELEASE_BRANCH}/luci-app-openclash-${LAST_VER}.apk"
+         DOWNLOAD_PATH="/tmp/openclash.apk"
       fi
    fi
 
-   if [ "${PIPESTATUS[0]}" -eq 0 ]; then
+   DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "$DOWNLOAD_PATH"
+
+   if [ "$?" -eq 0 ]; then
       LOG_OUT "【OpenClash - v$LAST_VER】Download Successful, Start Pre Update Test..."
       if [ -x "/bin/opkg" ]; then
          if [ -s "/tmp/openclash.ipk" ]; then
@@ -106,7 +114,7 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && [ "$(expr "$OP_LV" \> "$OP_CV")" -eq 1 
          if [ -s "/tmp/openclash.apk" ]; then
             apk update >/dev/null 2>&1
             apk add -s -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk >/dev/null 2>&1
-            if [ "$?" != "0" ]; then
+            if [ "$?" -ne 0 ]; then
                LOG_OUT "【OpenClash - v$LAST_VER】Pre Update Test Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually With【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】"
                if [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
                   uci -q set openclash.config.restart=0
@@ -153,10 +161,10 @@ elif [ -x "/usr/bin/apk" ]; then
    apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk
 fi
 if [ -x "/bin/opkg" ]; then
-   if [ "$?" != "0" ] || [ -z "$(opkg info *openclash |grep Installed-Time)" ]; then
+   if [ "$?" -ne 0 ] || [ -z "$(opkg info *openclash |grep Installed-Time)" ]; then
       opkg install /tmp/openclash.ipk
    fi
-   if [ "$?" == "0" ] && [ -n "$(opkg info *openclash |grep Installed-Time)" ]; then
+   if [ "$?" -eq 0 ] && [ -n "$(opkg info *openclash |grep Installed-Time)" ]; then
       rm -rf /tmp/openclash.ipk >/dev/null 2>&1
       LOG_OUT "OpenClash Update Successful, About To Restart!"
       uci -q set openclash.config.enable=1
@@ -167,10 +175,10 @@ if [ -x "/bin/opkg" ]; then
       SLOG_CLEAN
    fi
 elif [ -x "/usr/bin/apk" ]; then
-   if [ "$?" != "0" ] || [ -z "$(apk list luci-app-openclash 2>/dev/null |grep 'installed')" ]; then
+   if [ "$?" -ne 0 ] || [ -z "$(apk list luci-app-openclash 2>/dev/null |grep 'installed')" ]; then
       apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk
    fi
-   if [ "$?" == "0" ] || [ -n "$(apk list luci-app-openclash 2>/dev/null |grep 'installed')" ]; then
+   if [ "$?" -eq 0 ] || [ -n "$(apk list luci-app-openclash 2>/dev/null |grep 'installed')" ]; then
       rm -rf /tmp/openclash.apk >/dev/null 2>&1
       LOG_OUT "OpenClash Update Successful, About To Restart!"
       uci -q set openclash.config.enable=1

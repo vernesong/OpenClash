@@ -101,7 +101,7 @@ o.rmempty = true
 o.placeholder = "bgp|sg"
 
 o = s:option(DynamicList, "other_group", translate("Other Group (Support Regex)"))
-o.description = font_red..bold_on..translate("The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT'")..bold_off..font_off
+o.description = font_red..bold_on..translate("The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT' & 'REJECT-DROP' & 'PASS' & 'GLOBAL'")..bold_off..font_off
 o:value("all", translate("All Groups"))
 uci:foreach("openclash", "groups",
 		function(s)
@@ -111,6 +111,9 @@ uci:foreach("openclash", "groups",
 		end)
 o:value("DIRECT")
 o:value("REJECT")
+o:value("REJECT-DROP")
+o:value("PASS")
+o:value("GLOBAL")
 o.rmempty = true
 
 local t = {
