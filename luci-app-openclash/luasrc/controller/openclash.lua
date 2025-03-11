@@ -680,38 +680,61 @@ function sub_info_get()
 						if string.match(info, "expire=%d+") then
 							day_expire = tonumber(string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
 						end
-						expire = os.date("%Y-%m-%d", day_expire) or "null"
-						if day_expire and os.time() <= day_expire then
+
+						if day_expire and day_expire == 0 then
+							expire = luci.i18n.translate("Long-term")
+						elseif day_expire then
+							expire = os.date("%Y-%m-%d", day_expire) or "null"
+						else
+							expire = "null"
+						end
+
+						if day_expire and day_expire ~= 0 and os.time() <= day_expire then
 							day_left = math.ceil((day_expire - os.time()) / (3600*24))
 							if math.ceil(day_left / 365) > 50 then
 								day_left = "∞"
 							end
+						elseif day_expire and day_expire == 0 then
+							day_left = "∞"
 						elseif day_expire == nil then
 							day_left = "null"
 						else
 							day_left = 0
 						end
-						if used and total and used <= total then
-							percent = string.format("%.1f",((total-used)/total)*100) or nil
-							surplus = fs.filesize(total - used) or "null"
+						
+						if used and total and used <= total and total > 0 then
+							percent = string.format("%.1f",((total-used)/total)*100) or "100"
+							surplus = fs.filesize(total - used)
+						elseif used and total and used > total and total > 0 then
+							percent = "0"
+							surplus = "-"..fs.filesize(total - used)
+						elseif used and total and used < total and total == 0.0 then
+							percent = "0"
+							surplus = fs.filesize(total - used)
+						elseif used and total and used == total and total == 0.0 then
+							percent = "0"
+							surplus = "0.0 KB"
+						elseif used and total and used > total and total == 0.0 then
+							percent = "100"
+							surplus = fs.filesize(total - used)
 						elseif used == nil and total and total > 0.0 then
 							percent = 100
-							surplus = total
-						elseif total and total == 0.0 then
+							surplus = fs.filesize(total)
+						elseif used == nil and total and total == 0.0 then
 							percent = 100
 							surplus = "∞"
 						else
 							percent = 0
 							surplus = "null"
 						end
-						if total and total > 0.0 then
-							total = fs.filesize(total) or "null"
+						if total and total > 0 then
+							total = fs.filesize(total)
 						elseif total and total == 0.0 then
 							total = "∞"
 						else
 							total = "null"
 						end
-						used = fs.filesize(used) or "null"
+						used = fs.filesize(used)
 						sub_info = "Successful"
 					else
 						sub_info = "No Sub Info Found"
@@ -1196,6 +1219,10 @@ function action_refresh_log()
  	if len == log_len then return nil end
 	if log_len == 0 then
 		if len > limit then lens = limit else lens = len end
+	elseif len - log_len > limit then
+		lens = limit
+	elseif len < log_len then
+		lens = len
 	else
 		lens = len - log_len
 	end

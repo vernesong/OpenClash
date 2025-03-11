@@ -261,11 +261,14 @@ end
 function filesize(e)
 	local t=0
 	local a={' KB',' MB',' GB',' TB',' PB'}
+	if e < 0 then
+        e = -e
+    end
 	repeat
 		e=e/1024
 		t=t+1
 	until(e<=1024)
-	return string.format("%.1f",e)..a[t]
+	return string.format("%.1f",e)..a[t] or "0.0 KB"
 end
 
 function lanip()
