@@ -323,6 +323,9 @@ yml_servers_set()
    config_get "private_key_passphrase" "$section" "private_key_passphrase" ""
    config_get "host_key" "$section" "host_key" ""
    config_get "host_key_algorithms" "$section" "host_key_algorithms" ""
+   config_get "idle_session_check_interval" "$section" "idle_session_check_interval" ""
+   config_get "idle_session_timeout" "$section" "idle_session_timeout" ""
+   config_get "min_idle_session" "$section" "min_idle_session" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -439,7 +442,7 @@ yml_servers_set()
    fi
 
 #ss
-   if [ "$type" = "ss" ]; then
+if [ "$type" = "ss" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
@@ -448,95 +451,95 @@ cat >> "$SERVER_FILE" <<-EOF
     cipher: $cipher
     password: "$password"
 EOF
-      if [ ! -z "$udp" ]; then
+    if [ ! -z "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     udp: $udp
 EOF
-     fi
-     if [ ! -z "$udp_over_tcp" ]; then
+    fi
+    if [ ! -z "$udp_over_tcp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     udp-over-tcp: $udp_over_tcp
 EOF
-     fi
-     if [ ! -z "$obfss" ]; then
+    fi
+    if [ ! -z "$obfss" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     $obfss
     plugin-opts:
 EOF
-    if [ "$obfs" != "shadow-tls" ] && [ "$obfs" != "restls" ]; then
+        if [ "$obfs" != "shadow-tls" ] && [ "$obfs" != "restls" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       mode: $obfs
 EOF
-    fi
+        fi
         if [ ! -z "$host" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       host: "$host"
 EOF
         fi
         if [  "$obfss" = "plugin: shadow-tls" ]; then
-           if [ ! -z "$obfs_password" ]; then
+            if [ ! -z "$obfs_password" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       password: "$obfs_password"
 EOF
-           fi
-           if [ ! -z "$fingerprint" ]; then
+            fi
+            if [ ! -z "$fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       fingerprint: "$fingerprint"
 EOF
-           fi
+            fi
         fi
         if [  "$obfss" = "plugin: restls" ]; then
-           if [ ! -z "$obfs_password" ]; then
+            if [ ! -z "$obfs_password" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       password: "$obfs_password"
 EOF
-           fi
-           if [ ! -z "$obfs_version_hint" ]; then
+            fi
+            if [ ! -z "$obfs_version_hint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       version-hint: "$obfs_version_hint"
 EOF
-           fi
-           if [ ! -z "$obfs_restls_script" ]; then
+            fi
+            if [ ! -z "$obfs_restls_script" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       restls-script: "$obfs_restls_script"
 EOF
-           fi
+            fi
         fi
         if [  "$obfss" = "plugin: v2ray-plugin" ]; then
-           if [ ! -z "$tls" ]; then
+            if [ ! -z "$tls" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       tls: $tls
 EOF
-           fi
-           if [ ! -z "$skip_cert_verify" ]; then
+            fi
+            if [ ! -z "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       skip-cert-verify: $skip_cert_verify
 EOF
-           fi
-           if [ ! -z "$path" ]; then
+            fi
+            if [ ! -z "$path" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       $path
 EOF
-           fi
-           if [ ! -z "$mux" ]; then
+            fi
+            if [ ! -z "$mux" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       mux: $mux
 EOF
-           fi
-           if [ ! -z "$custom" ]; then
+            fi
+            if [ ! -z "$custom" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       headers:
         custom: $custom
 EOF
-           fi
-           if [ ! -z "$fingerprint" ]; then
+            fi
+            if [ ! -z "$fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       fingerprint: "$fingerprint"
 EOF
-           fi
+            fi
         fi
-     fi
-   fi
+    fi
+fi
    
 #ssr
 if [ "$type" = "ssr" ]; then
@@ -550,17 +553,17 @@ cat >> "$SERVER_FILE" <<-EOF
     obfs: "$obfs_ssr"
     protocol: "$protocol"
 EOF
-   if [ ! -z "$obfs_param" ]; then
+    if [ ! -z "$obfs_param" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     obfs-param: $obfs_param
 EOF
-   fi
-   if [ ! -z "$protocol_param" ]; then
+    fi
+    if [ ! -z "$protocol_param" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     protocol-param: $protocol_param
 EOF
-   fi
-   if [ ! -z "$udp" ]; then
+    fi
+    if [ ! -z "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     udp: $udp
 EOF
@@ -568,7 +571,7 @@ EOF
 fi
 
 #vmess
-   if [ "$type" = "vmess" ]; then
+if [ "$type" = "vmess" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
@@ -578,61 +581,61 @@ cat >> "$SERVER_FILE" <<-EOF
     alterId: $alterId
     cipher: $securitys
 EOF
-      if [ ! -z "$udp" ]; then
+    if [ ! -z "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     udp: $udp
 EOF
-      fi
-      if [ ! -z "$xudp" ]; then
+    fi
+    if [ ! -z "$xudp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     xudp: $xudp
 EOF
-      fi
-      if [ ! -z "$packet_encoding" ]; then
+    fi
+    if [ ! -z "$packet_encoding" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     packet-encoding: "$packet_encoding"
 EOF
-      fi
-      if [ ! -z "$global_padding" ]; then
+    fi
+    if [ ! -z "$global_padding" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     global-padding: $global_padding
 EOF
-      fi
-      if [ ! -z "$authenticated_length" ]; then
+    fi
+    if [ ! -z "$authenticated_length" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     authenticated-length: $authenticated_length
 EOF
-      fi
-      if [ ! -z "$skip_cert_verify" ]; then
+    fi
+    if [ ! -z "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     skip-cert-verify: $skip_cert_verify
 EOF
-      fi
-      if [ ! -z "$tls" ]; then
+    fi
+    if [ ! -z "$tls" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     tls: $tls
 EOF
-      fi
-      if [ ! -z "$fingerprint" ]; then
+    fi
+    if [ ! -z "$fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     fingerprint: "$fingerprint"
 EOF
-      fi
-      if [ ! -z "$client_fingerprint" ]; then
+    fi
+    if [ ! -z "$client_fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     client-fingerprint: "$client_fingerprint"
 EOF
-      fi
-      if [ ! -z "$servername" ] && [ "$tls" = "true" ]; then
+    fi
+    if [ ! -z "$servername" ] && [ "$tls" = "true" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     servername: "$servername"
 EOF
-      fi
-      if [ "$obfs_vmess" != "none" ]; then
+    fi
+    if [ "$obfs_vmess" != "none" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     $obfs_vmess
 EOF
-         if [ "$obfs_vmess" = "network: ws" ]; then
+        if [ "$obfs_vmess" = "network: ws" ]; then
             if [ ! -z "$path" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     $path
@@ -648,37 +651,37 @@ EOF
 cat >> "$SERVER_FILE" <<-EOF
     ws-opts:
 EOF
-               if [ -n "$ws_opts_path" ]; then
+                if [ -n "$ws_opts_path" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       path: "$ws_opts_path"
 EOF
-               fi
-               if [ -n "$ws_opts_headers" ]; then
+                fi
+                if [ -n "$ws_opts_headers" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       headers:
 EOF
-                  config_list_foreach "$section" "ws_opts_headers" set_ws_headers
-               fi
-               if [ -n "$max_early_data" ]; then
+                    config_list_foreach "$section" "ws_opts_headers" set_ws_headers
+                fi
+                if [ -n "$max_early_data" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       max-early-data: $max_early_data
 EOF
-               fi
-               if [ -n "$early_data_header_name" ]; then
+                fi
+                if [ -n "$early_data_header_name" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       early-data-header-name: "$early_data_header_name"
 EOF
-               fi
+                fi
             fi
-         fi
-         if [ "$obfs_vmess" = "network: http" ]; then
+        fi
+        if [ "$obfs_vmess" = "network: http" ]; then
             if [ ! -z "$http_path" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     http-opts:
       method: "GET"
       path:
 EOF
-               config_list_foreach "$section" "http_path" set_http_path
+                config_list_foreach "$section" "http_path" set_http_path
             fi
             if [ "$keep_alive" = "true" ]; then
 cat >> "$SERVER_FILE" <<-EOF
@@ -687,185 +690,241 @@ cat >> "$SERVER_FILE" <<-EOF
           - keep-alive
 EOF
             fi
-         fi
-         #h2
-         if [ "$obfs_vmess" = "network: h2" ]; then
+        fi
+        #h2
+        if [ "$obfs_vmess" = "network: h2" ]; then
             if [ ! -z "$h2_host" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     h2-opts:
       host:
 EOF
-               config_list_foreach "$section" "h2_host" set_h2_host
+                config_list_foreach "$section" "h2_host" set_h2_host
             fi
             if [ ! -z "$h2_path" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       path: $h2_path
 EOF
             fi
-         fi
-         if [ ! -z "$grpc_service_name" ] && [ "$obfs_vmess" = "network: grpc" ]; then
+        fi
+        if [ ! -z "$grpc_service_name" ] && [ "$obfs_vmess" = "network: grpc" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     grpc-opts:
       grpc-service-name: "$grpc_service_name"
 EOF
-         fi
-      fi
-   fi
+        fi
+    fi
+fi
 
-#Mieru
-   if [ "$type" = "mieru" ]; then
+#anytls
+if [ "$type" = "anytls" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
     server: "$server"
     port: $port
 EOF
-      if [ -n "$port_range" ]; then
+    if [ -n "$password" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    port-range: "$port_range"
+    password: "$password"
 EOF
-      fi
-      if [ -n "$username" ]; then
+    fi
+    if [ -n "$client_fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    username: "$username"
+    client-fingerprint: "$client_fingerprint"
 EOF
-      fi
-      if [ -n "$transport" ]; then
+    fi
+    if [ -n "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    transport: "$transport"
+    udp: "$udp"
 EOF
-      fi
-      if [ -n "$multiplexing" ]; then
+    fi
+    if [ -n "$idle_session_check_interval" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    multiplexing: "$multiplexing"
+    idle-session-check-interval: "$idle_session_check_interval"
 EOF
-      fi
-   fi
-
-#Tuic
-   if [ "$type" = "tuic" ]; then
+    fi
+    if [ -n "$idle_session_timeout" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-  - name: "$name"
-    type: $type
-    server: "$server"
-    port: $port
+    idle-session-timeout: "$idle_session_timeout"
 EOF
-      if [ -n "$tc_ip" ]; then
+    fi
+    if [ -n "$min_idle_session" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    ip: "$tc_ip"
+    min-idle-session: "$min_idle_session"
 EOF
-      fi
-      if [ -n "$tc_token" ]; then
+    fi
+    if [ -n "$sni" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    token: "$tc_token"
+    sni: "$sni"
 EOF
-      fi
-      if [ -n "$udp_relay_mode" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    udp-relay-mode: "$udp_relay_mode"
-EOF
-      fi
-      if [ -n "$congestion_controller" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    congestion-controller: "$congestion_controller"
-EOF
-      fi
-      if [ -n "$tc_alpn" ]; then
+    fi
+    if [ ! -z "$alpn" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     alpn:
 EOF
-      config_list_foreach "$section" "tc_alpn" set_alpn
-      fi
-      if [ -n "$disable_sni" ]; then
+        config_list_foreach "$section" "alpn" set_alpn
+    fi
+    if [ ! -z "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    disable-sni: $disable_sni
+    skip-cert-verify: $skip_cert_verify
 EOF
-      fi
-      if [ -n "$reduce_rtt" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    reduce-rtt: $reduce_rtt
-EOF
-      fi
-      if [ -n "$fast_open" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    fast-open: $fast_open
-EOF
-      fi
-      if [ -n "$heartbeat_interval" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    heartbeat-interval: $heartbeat_interval
-EOF
-      fi
-      if [ -n "$request_timeout" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    request-timeout: $request_timeout
-EOF
-      fi
-      if [ -n "$max_udp_relay_packet_size" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    max-udp-relay-packet-size: $max_udp_relay_packet_size
-EOF
-      fi
-      if [ -n "$max_open_streams" ]; then
-cat >> "$SERVER_FILE" <<-EOF
-    max-open-streams: $max_open_streams
-EOF
-      fi
-   fi
+    fi
+fi
 
-#WireGuard
-   if [ "$type" = "wireguard" ]; then
+#Mieru
+if [ "$type" = "mieru" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
     server: "$server"
     port: $port
 EOF
-      if [ -n "$wg_ip" ]; then
+    if [ -n "$port_range" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    port-range: "$port_range"
+EOF
+    fi
+    if [ -n "$username" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    username: "$username"
+EOF
+    fi
+    if [ -n "$transport" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    transport: "$transport"
+EOF
+    fi
+    if [ -n "$multiplexing" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    multiplexing: "$multiplexing"
+EOF
+    fi
+fi
+
+#Tuic
+if [ "$type" = "tuic" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  - name: "$name"
+    type: $type
+    server: "$server"
+    port: $port
+EOF
+    if [ -n "$tc_ip" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    ip: "$tc_ip"
+EOF
+    fi
+    if [ -n "$tc_token" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    token: "$tc_token"
+EOF
+    fi
+    if [ -n "$udp_relay_mode" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    udp-relay-mode: "$udp_relay_mode"
+EOF
+    fi
+    if [ -n "$congestion_controller" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    congestion-controller: "$congestion_controller"
+EOF
+    fi
+    if [ -n "$tc_alpn" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    alpn:
+EOF
+        config_list_foreach "$section" "tc_alpn" set_alpn
+    fi
+    if [ -n "$disable_sni" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    disable-sni: $disable_sni
+EOF
+    fi
+    if [ -n "$reduce_rtt" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    reduce-rtt: $reduce_rtt
+EOF
+    fi
+    if [ -n "$fast_open" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    fast-open: $fast_open
+EOF
+    fi
+    if [ -n "$heartbeat_interval" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    heartbeat-interval: $heartbeat_interval
+EOF
+    fi
+    if [ -n "$request_timeout" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    request-timeout: $request_timeout
+EOF
+    fi
+    if [ -n "$max_udp_relay_packet_size" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    max-udp-relay-packet-size: $max_udp_relay_packet_size
+EOF
+    fi
+    if [ -n "$max_open_streams" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    max-open-streams: $max_open_streams
+EOF
+    fi
+fi
+
+#WireGuard
+if [ "$type" = "wireguard" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  - name: "$name"
+    type: $type
+    server: "$server"
+    port: $port
+EOF
+    if [ -n "$wg_ip" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ip: "$wg_ip"
 EOF
-      fi
-      if [ -n "$wg_ipv6" ]; then
+    fi
+    if [ -n "$wg_ipv6" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ipv6: "$wg_ipv6"
 EOF
-      fi
-      if [ -n "$private_key" ]; then
+    fi
+    if [ -n "$private_key" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     private-key: "$private_key"
 EOF
-      fi
-      if [ -n "$public_key" ]; then
+    fi
+    if [ -n "$public_key" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     public-key: "$public_key"
 EOF
-      fi
-      if [ -n "$preshared_key" ]; then
+    fi
+    if [ -n "$preshared_key" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     preshared-key: "$preshared_key"
 EOF
-      fi
-      if [ -n "$preshared_key" ]; then
+    fi
+    if [ -n "$preshared_key" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     dns:
 EOF
-      config_list_foreach "$section" "wg_dns" set_alpn
-      fi
-      if [ -n "$wg_mtu" ]; then
+        config_list_foreach "$section" "wg_dns" set_alpn
+    fi
+    if [ -n "$wg_mtu" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     mtu: "$wg_mtu"
 EOF
-      fi
-      if [ -n "$udp" ]; then
+    fi
+    if [ -n "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     udp: $udp
 EOF
-      fi
-   fi
+    fi
+fi
 
 #hysteria
-   if [ "$type" = "hysteria" ]; then
+if [ "$type" = "hysteria" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
@@ -873,103 +932,103 @@ cat >> "$SERVER_FILE" <<-EOF
     port: $port
     protocol: $hysteria_protocol
 EOF
-      if [ -n "$hysteria_up" ]; then
+    if [ -n "$hysteria_up" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     up: "$hysteria_up"
 EOF
-      fi
-      if [ -n "$hysteria_down" ]; then
+    fi
+    if [ -n "$hysteria_down" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     down: "$hysteria_down"
 EOF
-      fi
-      if [ -n "$skip_cert_verify" ]; then
+    fi
+    if [ -n "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     skip-cert-verify: $skip_cert_verify
 EOF
-      fi
-      if [ -n "$sni" ]; then
+    fi
+    if [ -n "$sni" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     sni: "$sni"
 EOF
-      fi
-      if [ -n "$hysteria_alpn" ]; then
-         if [ -z "$(echo $hysteria_alpn |grep ' ')" ]; then
+    fi
+    if [ -n "$hysteria_alpn" ]; then
+        if [ -z "$(echo $hysteria_alpn |grep ' ')" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     alpn: 
       - "$hysteria_alpn"
 EOF
-         else
+        else
 cat >> "$SERVER_FILE" <<-EOF
     alpn:
 EOF
-      config_list_foreach "$section" "hysteria_alpn" set_alpn
-         fi
-      fi
-      if [ -n "$hysteria_obfs" ]; then
+        config_list_foreach "$section" "hysteria_alpn" set_alpn
+        fi
+    fi
+    if [ -n "$hysteria_obfs" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     obfs: "$hysteria_obfs"
 EOF
-      fi
-      if [ -n "$hysteria_auth" ]; then
+    fi
+    if [ -n "$hysteria_auth" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     auth: "$hysteria_auth"
 EOF
-      fi
-      if [ -n "$hysteria_auth_str" ]; then
+    fi
+    if [ -n "$hysteria_auth_str" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     auth-str: "$hysteria_auth_str"
 EOF
-      fi
-      if [ -n "$hysteria_ca" ]; then
+    fi
+    if [ -n "$hysteria_ca" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ca: "$hysteria_ca"
 EOF
-      fi
-      if [ -n "$hysteria_ca_str" ]; then
+    fi
+    if [ -n "$hysteria_ca_str" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ca-str: "$hysteria_ca_str"
 EOF
-      fi
-      if [ -n "$recv_window_conn" ]; then
+    fi
+    if [ -n "$recv_window_conn" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     recv-window-conn: "$recv_window_conn"
 EOF
-      fi
-      if [ -n "$recv_window" ]; then
+    fi
+    if [ -n "$recv_window" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     recv-window: "$recv_window"
 EOF
-      fi
-      if [ -n "$disable_mtu_discovery" ]; then
+    fi
+    if [ -n "$disable_mtu_discovery" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     disable-mtu-discovery: $disable_mtu_discovery
 EOF
-      fi
-      if [ -n "$fast_open" ]; then
+    fi
+    if [ -n "$fast_open" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     fast-open: $fast_open
 EOF
-      fi
-      if [ -n "$fingerprint" ]; then
+    fi
+    if [ -n "$fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     fingerprint: "$fingerprint"
 EOF
-      fi
-      if [ -n "$ports" ]; then
+    fi
+    if [ -n "$ports" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ports: $ports
 EOF
-      fi
-      if [ -n "$hop_interval" ]; then
+    fi
+    if [ -n "$hop_interval" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     hop-interval: $hop_interval
 EOF
-      fi
-   fi
+    fi
+fi
 
 #hysteria2
-   if [ "$type" = "hysteria2" ]; then
+if [ "$type" = "hysteria2" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
@@ -977,103 +1036,103 @@ cat >> "$SERVER_FILE" <<-EOF
     port: $port
     password: "$password"
 EOF
-      if [ -n "$hysteria_up" ]; then
+    if [ -n "$hysteria_up" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     up: "$hysteria_up"
 EOF
-      fi
-      if [ -n "$hysteria_down" ]; then
+    fi
+    if [ -n "$hysteria_down" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     down: "$hysteria_down"
 EOF
-      fi
-      if [ -n "$skip_cert_verify" ]; then
+    fi
+    if [ -n "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     skip-cert-verify: $skip_cert_verify
 EOF
-      fi
-      if [ -n "$sni" ]; then
+    fi
+    if [ -n "$sni" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     sni: "$sni"
 EOF
-      fi
-      if [ -n "$hysteria_alpn" ]; then
-         if [ -z "$(echo $hysteria_alpn |grep ' ')" ]; then
+    fi
+    if [ -n "$hysteria_alpn" ]; then
+        if [ -z "$(echo $hysteria_alpn |grep ' ')" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     alpn: 
       - "$hysteria_alpn"
 EOF
-         else
+        else
 cat >> "$SERVER_FILE" <<-EOF
     alpn:
 EOF
-      config_list_foreach "$section" "hysteria_alpn" set_alpn
-         fi
-      fi
-      if [ -n "$hysteria_obfs" ]; then
+            config_list_foreach "$section" "hysteria_alpn" set_alpn
+        fi
+    fi
+    if [ -n "$hysteria_obfs" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     obfs: "$hysteria_obfs"
 EOF
-      fi
-      if [ -n "$hysteria_obfs_password" ]; then
+    fi
+    if [ -n "$hysteria_obfs_password" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     obfs-password: "$hysteria_obfs_password"
 EOF
-      fi
-      if [ -n "$hysteria_ca" ]; then
+    fi
+    if [ -n "$hysteria_ca" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ca: "$hysteria_ca"
 EOF
-      fi
-      if [ -n "$hysteria_ca_str" ]; then
+    fi
+    if [ -n "$hysteria_ca_str" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ca-str: "$hysteria_ca_str"
 EOF
-      fi
-      if [ -n "$initial_stream_receive_window" ]; then
+    fi
+    if [ -n "$initial_stream_receive_window" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     initial-stream-receive-window: "$initial_stream_receive_window"
 EOF
-      fi
-      if [ -n "$max_stream_receive_window" ]; then
+    fi
+    if [ -n "$max_stream_receive_window" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     max_stream_receive_window: "$max_stream_receive_window"
 EOF
-      fi
-      if [ -n "$initial_connection_receive_window" ]; then
+    fi
+    if [ -n "$initial_connection_receive_window" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     initial-connection-receive-window: "$initial_connection_receive_window"
 EOF
-      fi
-      if [ -n "$max_connection_receive_window" ]; then
+    fi
+    if [ -n "$max_connection_receive_window" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     max-connection-receive-window: "$max_connection_receive_window"
 EOF
-      fi
-      if [ -n "$fingerprint" ]; then
+    fi
+    if [ -n "$fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     fingerprint: "$fingerprint"
 EOF
-      fi
-      if [ -n "$ports" ]; then
+    fi
+    if [ -n "$ports" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ports: $ports
 EOF
-      fi
-     if [ -n "$hysteria2_protocol" ]; then
+    fi
+    if [ -n "$hysteria2_protocol" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     protocol: $hysteria2_protocol
 EOF
-      fi
-      if [ -n "$hop_interval" ]; then
+    fi
+    if [ -n "$hop_interval" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     hop-interval: $hop_interval
 EOF
-      fi
-   fi
+    fi
+fi
 
 #vless
-   if [ "$type" = "vless" ]; then
+if [ "$type" = "vless" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
@@ -1081,74 +1140,74 @@ cat >> "$SERVER_FILE" <<-EOF
     port: $port
     uuid: $uuid
 EOF
-      if [ ! -z "$udp" ]; then
+    if [ ! -z "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     udp: $udp
 EOF
-      fi
-      if [ ! -z "$xudp" ]; then
+    fi
+    if [ ! -z "$xudp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     xudp: $xudp
 EOF
-      fi
-      if [ ! -z "$packet_addr" ]; then
+    fi
+    if [ ! -z "$packet_addr" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     packet-addr: $packet_addr
 EOF
-      fi
-      if [ ! -z "$packet_encoding" ]; then
+    fi
+    if [ ! -z "$packet_encoding" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     packet-encoding: "$packet_encoding"
 EOF
-      fi
-      if [ ! -z "$skip_cert_verify" ]; then
+    fi
+    if [ ! -z "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     skip-cert-verify: $skip_cert_verify
 EOF
-      fi
-      if [ ! -z "$tls" ]; then
+    fi
+    if [ ! -z "$tls" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     tls: $tls
 EOF
-      fi
-      if [ ! -z "$fingerprint" ]; then
+    fi
+    if [ ! -z "$fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     fingerprint: "$fingerprint"
 EOF
-      fi
-      if [ ! -z "$client_fingerprint" ]; then
+    fi
+    if [ ! -z "$client_fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     client-fingerprint: "$client_fingerprint"
 EOF
-      fi
-      if [ ! -z "$servername" ]; then
+    fi
+    if [ ! -z "$servername" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     servername: "$servername"
 EOF
-      fi
-      if [ -n "$obfs_vless" ]; then
+    fi
+    if [ -n "$obfs_vless" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     $obfs_vless
 EOF
-         if [ "$obfs_vless" = "network: ws" ]; then
+        if [ "$obfs_vless" = "network: ws" ]; then
             if [ -n "$ws_opts_path" ] || [ -n "$ws_opts_headers" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ws-opts:
 EOF
-               if [ -n "$ws_opts_path" ]; then
+                if [ -n "$ws_opts_path" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       path: "$ws_opts_path"
 EOF
-               fi
-               if [ -n "$ws_opts_headers" ]; then
+                fi
+                if [ -n "$ws_opts_headers" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       headers:
 EOF
                   config_list_foreach "$section" "ws_opts_headers" set_ws_headers
-               fi
+                fi
             fi
-         fi
-         if [ ! -z "$grpc_service_name" ] && [ "$obfs_vless" = "network: grpc" ]; then
+        fi
+        if [ ! -z "$grpc_service_name" ] && [ "$obfs_vless" = "network: grpc" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     grpc-opts:
       grpc-service-name: "$grpc_service_name"
@@ -1168,8 +1227,8 @@ cat >> "$SERVER_FILE" <<-EOF
       short-id: "$reality_short_id"
 EOF
             fi
-         fi
-         if [ "$obfs_vless" = "network: tcp" ]; then
+        fi
+        if [ "$obfs_vless" = "network: tcp" ]; then
             if [ ! -z "$vless_flow" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     flow: "$vless_flow"
@@ -1190,156 +1249,156 @@ cat >> "$SERVER_FILE" <<-EOF
       short-id: "$reality_short_id"
 EOF
             fi
-         fi
-      fi
-   fi
+        fi
+    fi
+fi
 
 #dns
-   if [ "$type" = "dns" ]; then
+if [ "$type" = "dns" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
 EOF
-    fi
+fi
 
 #direct
-    if [ "$type" = "direct" ]; then
+if [ "$type" = "direct" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
 EOF
-        if [ ! -z "$udp" ]; then
+    if [ ! -z "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     udp: $udp
 EOF
-        fi
     fi
+fi
 
 #ssh
-    if [ "$type" = "ssh" ]; then
+if [ "$type" = "ssh" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
     server: "$server"
     port: $port
 EOF
-        if [ ! -z "$auth_name" ]; then
+    if [ ! -z "$auth_name" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     username: "$auth_name"
 EOF
-        fi
-        if [ ! -z "$auth_pass" ]; then
+    fi
+    if [ ! -z "$auth_pass" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     password: "$auth_pass"
 EOF
-        fi
-        if [ ! -z "$private_key" ]; then
+    fi
+    if [ ! -z "$private_key" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     private-key: "$private_key"
 EOF
-        fi
-        if [ ! -z "$private_key_passphrase" ]; then
+    fi
+    if [ ! -z "$private_key_passphrase" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     private-key-passphrase: "$private_key_passphrase"
 EOF
-        fi
-        if [ ! -z "$host_key" ]; then
+    fi
+    if [ ! -z "$host_key" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     host-key:
 EOF
-      config_list_foreach "$section" "host_key" set_alpn
-        fi
-        if [ ! -z "$host_key_algorithms" ]; then
+        config_list_foreach "$section" "host_key" set_alpn
+    fi
+    if [ ! -z "$host_key_algorithms" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     host-key-algorithms:
 EOF
-      config_list_foreach "$section" "host_key_algorithms" set_alpn
-        fi
+        config_list_foreach "$section" "host_key_algorithms" set_alpn
     fi
+fi
 
 #socks5
-   if [ "$type" = "socks5" ]; then
+if [ "$type" = "socks5" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
     server: "$server"
     port: $port
 EOF
-      if [ ! -z "$auth_name" ]; then
+    if [ ! -z "$auth_name" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     username: "$auth_name"
 EOF
-      fi
-      if [ ! -z "$auth_pass" ]; then
+    fi
+    if [ ! -z "$auth_pass" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     password: "$auth_pass"
 EOF
-      fi
-      if [ ! -z "$udp" ]; then
+    fi
+    if [ ! -z "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     udp: $udp
 EOF
-      fi
-      if [ ! -z "$skip_cert_verify" ]; then
+    fi
+    if [ ! -z "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     skip-cert-verify: $skip_cert_verify
 EOF
-      fi
-      if [ ! -z "$tls" ]; then
+    fi
+    if [ ! -z "$tls" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     tls: $tls
 EOF
-      fi
-      if [ ! -z "$fingerprint" ]; then
+    fi
+    if [ ! -z "$fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     fingerprint: "$fingerprint"
 EOF
-      fi
-   fi
+    fi
+fi
 
 #http
-   if [ "$type" = "http" ]; then
+if [ "$type" = "http" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
     server: "$server"
     port: $port
 EOF
-      if [ ! -z "$auth_name" ]; then
+    if [ ! -z "$auth_name" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     username: "$auth_name"
 EOF
-      fi
-      if [ ! -z "$auth_pass" ]; then
+    fi
+    if [ ! -z "$auth_pass" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     password: "$auth_pass"
 EOF
-      fi
-      if [ ! -z "$skip_cert_verify" ]; then
+    fi
+    if [ ! -z "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     skip-cert-verify: $skip_cert_verify
 EOF
-      fi
-      if [ ! -z "$tls" ]; then
+    fi
+    if [ ! -z "$tls" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     tls: $tls
 EOF
-      fi
-      if [ ! -z "$sni" ]; then
+    fi
+    if [ ! -z "$sni" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     sni: "$sni"
 EOF
-      fi
-      if [ -n "$http_headers" ]; then
+    fi
+    if [ -n "$http_headers" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     headers:
 EOF
       config_list_foreach "$section" "http_headers" set_ws_headers
-      fi
-   fi
+    fi
+fi
 
 #trojan
-   if [ "$type" = "trojan" ]; then
+if [ "$type" = "trojan" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
@@ -1347,67 +1406,67 @@ cat >> "$SERVER_FILE" <<-EOF
     port: $port
     password: "$password"
 EOF
-   if [ ! -z "$udp" ]; then
+    if [ ! -z "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     udp: $udp
 EOF
-   fi
-   if [ ! -z "$sni" ]; then
+    fi
+    if [ ! -z "$sni" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     sni: "$sni"
 EOF
-   fi
-   if [ ! -z "$alpn" ]; then
+    fi
+    if [ ! -z "$alpn" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     alpn:
 EOF
-      config_list_foreach "$section" "alpn" set_alpn
-   fi
-   if [ ! -z "$skip_cert_verify" ]; then
+        config_list_foreach "$section" "alpn" set_alpn
+    fi
+    if [ ! -z "$skip_cert_verify" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     skip-cert-verify: $skip_cert_verify
 EOF
-   fi
-   if [ ! -z "$fingerprint" ]; then
+    fi
+    if [ ! -z "$fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   fingerprint: "$fingerprint"
 EOF
-   fi
-   if [ ! -z "$client_fingerprint" ]; then
+    fi
+    if [ ! -z "$client_fingerprint" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   client-fingerprint: "$client_fingerprint"
 EOF
-   fi
-   if [ ! -z "$grpc_service_name" ]; then
+    fi
+    if [ ! -z "$grpc_service_name" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     network: grpc
     grpc-opts:
       grpc-service-name: "$grpc_service_name"
 EOF
-   fi
-   if [ "$obfs_trojan" = "ws" ]; then
-      if [ -n "$trojan_ws_path" ] || [ -n "$trojan_ws_headers" ]; then
+    fi
+    if [ "$obfs_trojan" = "ws" ]; then
+        if [ -n "$trojan_ws_path" ] || [ -n "$trojan_ws_headers" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     network: ws
     ws-opts:
 EOF
-      fi
-      if [ -n "$trojan_ws_path" ]; then
+        fi
+        if [ -n "$trojan_ws_path" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       path: "$trojan_ws_path"
 EOF
-      fi
-      if [ -n "$trojan_ws_headers" ]; then
+        fi
+        if [ -n "$trojan_ws_headers" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       headers:
 EOF
          config_list_foreach "$section" "trojan_ws_headers" set_ws_headers
-      fi
-   fi
-   fi
+        fi
+    fi
+fi
 
 #snell
-   if [ "$type" = "snell" ]; then
+if [ "$type" = "snell" ]; then
 cat >> "$SERVER_FILE" <<-EOF
   - name: "$name"
     type: $type
@@ -1415,95 +1474,95 @@ cat >> "$SERVER_FILE" <<-EOF
     port: $port
     psk: $psk
 EOF
-   if [ -n "$snell_version" ]; then
+    if [ -n "$snell_version" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     version: "$snell_version"
 EOF
-   fi
-   if [ "$obfs_snell" != "none" ] && [ ! -z "$host" ]; then
+    fi
+    if [ "$obfs_snell" != "none" ] && [ ! -z "$host" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     obfs-opts:
       mode: $obfs_snell
       host: "$host"
 EOF
-   fi
-   fi
+    fi
+fi
 
 #ip_version
-   if [ ! -z "$ip_version" ]; then
+if [ ! -z "$ip_version" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     ip-version: "$ip_version"
 EOF
-   fi
+fi
 
 #TFO
-   if [ ! -z "$tfo" ]; then
+if [ ! -z "$tfo" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     tfo: $tfo
 EOF
-   fi
+fi
 
 #Multiplex
-   if [ ! -z "$multiplex" ]; then
+if [ ! -z "$multiplex" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     smux:
       enabled: $multiplex
 EOF
-      if [ -n "$multiplex_protocol" ]; then
+    if [ -n "$multiplex_protocol" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       protocol: $multiplex_protocol
 EOF
-      fi
-      if [ -n "$multiplex_max_connections" ]; then
+    fi
+    if [ -n "$multiplex_max_connections" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       max-connections: $multiplex_max_connections
 EOF
-      fi
-      if [ -n "$multiplex_min_streams" ]; then
+    fi
+    if [ -n "$multiplex_min_streams" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       min-streams: $multiplex_min_streams
 EOF
-      fi
-      if [ -n "$multiplex_max_streams" ]; then
+    fi
+    if [ -n "$multiplex_max_streams" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       max-streams: $multiplex_max_streams
 EOF
-      fi
-      if [ -n "$multiplex_padding" ]; then
+    fi
+    if [ -n "$multiplex_padding" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       padding: $multiplex_padding
 EOF
-      fi
-      if [ -n "$multiplex_statistic" ]; then
+    fi
+    if [ -n "$multiplex_statistic" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       statistic: $multiplex_statistic
 EOF
-      fi
-      if [ -n "$multiplex_only_tcp" ]; then
+    fi
+    if [ -n "$multiplex_only_tcp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
       only-tcp: $multiplex_only_tcp
 EOF
-      fi
-   fi
+    fi
+fi
 
 #interface-name
-   if [ -n "$interface_name" ]; then
+if [ -n "$interface_name" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     interface-name: "$interface_name"
 EOF
-   fi
+fi
 
 #routing_mark
-   if [ -n "$routing_mark" ]; then
+if [ -n "$routing_mark" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     routing-mark: "$routing_mark"
 EOF
-   fi
+fi
 
 #other_parameters
-   if [ -n "$other_parameters" ]; then
+if [ -n "$other_parameters" ]; then
       echo -e "$other_parameters" >> "$SERVER_FILE"
-   fi
+fi
 }
 
 new_servers_group_set()
