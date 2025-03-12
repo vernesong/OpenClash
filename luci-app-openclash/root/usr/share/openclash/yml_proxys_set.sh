@@ -319,6 +319,10 @@ yml_servers_set()
    config_get "username" "$section" "username" ""
    config_get "transport" "$section" "transport" "TCP"
    config_get "multiplexing" "$section" "multiplexing" "MULTIPLEXING_LOW"
+   config_get "private_key" "$section" "private_key" ""
+   config_get "private_key_passphrase" "$section" "private_key_passphrase" ""
+   config_get "host_key" "$section" "host_key" ""
+   config_get "host_key_algorithms" "$section" "host_key_algorithms" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -332,11 +336,11 @@ yml_servers_set()
       return
    fi
    
-   if [ -z "$server" ]; then
+   if [ -z "$server" ] && [ "$type" != "direct" ] && [ "$type" != "dns" ]; then
       return
    fi
    
-   if [ -z "$port" ]; then
+   if [ -z "$port" ] && [ "$type" != "direct" ] && [ "$type" != "dns" ]; then
       return
    fi
    
@@ -1189,7 +1193,70 @@ EOF
          fi
       fi
    fi
-   
+
+#dns
+   if [ "$type" = "dns" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  - name: "$name"
+    type: $type
+EOF
+    fi
+
+#direct
+    if [ "$type" = "direct" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  - name: "$name"
+    type: $type
+EOF
+        if [ ! -z "$udp" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    udp: $udp
+EOF
+        fi
+    fi
+
+#ssh
+    if [ "$type" = "ssh" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  - name: "$name"
+    type: $type
+    server: "$server"
+    port: $port
+EOF
+        if [ ! -z "$auth_name" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    username: "$auth_name"
+EOF
+        fi
+        if [ ! -z "$auth_pass" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    password: "$auth_pass"
+EOF
+        fi
+        if [ ! -z "$private_key" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    private-key: "$private_key"
+EOF
+        fi
+        if [ ! -z "$private_key_passphrase" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    private-key-passphrase: "$private_key_passphrase"
+EOF
+        fi
+        if [ ! -z "$host_key" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    host-key:
+EOF
+      config_list_foreach "$section" "host_key" set_alpn
+        fi
+        if [ ! -z "$host_key_algorithms" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    host-key-algorithms:
+EOF
+      config_list_foreach "$section" "host_key_algorithms" set_alpn
+        fi
+    fi
+
 #socks5
    if [ "$type" = "socks5" ]; then
 cat >> "$SERVER_FILE" <<-EOF
