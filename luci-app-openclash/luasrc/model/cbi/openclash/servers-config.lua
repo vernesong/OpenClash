@@ -146,6 +146,9 @@ o:value("snell", translate("Snell"))
 o:value("mieru", translate("Mieru"))
 o:value("socks5", translate("Socks5"))
 o:value("http", translate("HTTP(S)"))
+o:value("direct", translate("DIRECT"))
+o:value("dns", translate("DNS"))
+o:value("ssh", translate("SSH"))
 
 o.description = translate("Using incorrect encryption mothod may causes service fail to start")
 
@@ -156,11 +159,39 @@ o.default = "Server - "..sid
 o = s:option(Value, "server", translate("Server Address"))
 o.datatype = "host"
 o.rmempty = true
+o:depends("type", "ss")
+o:depends("type", "ssr")
+o:depends("type", "vmess")
+o:depends("type", "trojan")
+o:depends("type", "vless")
+o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
+o:depends("type", "wireguard")
+o:depends("type", "tuic")
+o:depends("type", "mieru")
+o:depends("type", "snell")
+o:depends("type", "socks5")
+o:depends("type", "http")
+o:depends("type", "ssh")
 
 o = s:option(Value, "port", translate("Server Port"))
 o.datatype = "port"
 o.rmempty = false
 o.default = "443"
+o:depends("type", "ss")
+o:depends("type", "ssr")
+o:depends("type", "vmess")
+o:depends("type", "trojan")
+o:depends("type", "vless")
+o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
+o:depends("type", "wireguard")
+o:depends("type", "tuic")
+o:depends("type", "mieru")
+o:depends("type", "snell")
+o:depends("type", "socks5")
+o:depends("type", "http")
+o:depends("type", "ssh")
 
 o = s:option(Flag, "flag_port_hopping", translate("Enable Port Hopping"))
 o:depends("type", "hysteria")
@@ -415,6 +446,7 @@ o:depends("type", "socks5")
 o:depends("type", "trojan")
 o:depends({type = "snell", snell_version = "3"})
 o:depends("type", "wireguard")
+o:depends("type", "direct")
 
 o = s:option(ListValue, "udp_over_tcp", translate("udp-over-tcp"))
 o.rmempty = true
@@ -659,12 +691,30 @@ o:depends("type", "http")
 o = s:option(Value, "auth_name", translate("Auth Username"))
 o:depends("type", "socks5")
 o:depends("type", "http")
+o:depends("type", "ssh")
 o.rmempty = true
 
 -- 验证密码
 o = s:option(Value, "auth_pass", translate("Auth Password"))
 o:depends("type", "socks5")
 o:depends("type", "http")
+o:depends("type", "ssh")
+o.rmempty = true
+
+o = s:option(Value, "private_key", translate("private-key"))
+o:depends("type", "ssh")
+o.rmempty = true
+
+o = s:option(Value, "private_key_passphrase", translate("private-key-passphrase"))
+o:depends("type", "ssh")
+o.rmempty = true
+
+o = s:option(DynamicList, "host_key", translate("host-key"))
+o:depends("type", "ssh")
+o.rmempty = true
+
+o = s:option(DynamicList, "host_key_algorithms", translate("host-key-algorithms"))
+o:depends("type", "ssh")
 o.rmempty = true
 
 -- [[ alpn ]]--
@@ -889,6 +939,21 @@ o:value("ipv4-prefer")
 o:value("ipv6")
 o:value("ipv6-prefer")
 o.default = "ipv4-prefer"
+o:depends("type", "ss")
+o:depends("type", "ssr")
+o:depends("type", "vmess")
+o:depends("type", "trojan")
+o:depends("type", "vless")
+o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
+o:depends("type", "wireguard")
+o:depends("type", "tuic")
+o:depends("type", "mieru")
+o:depends("type", "snell")
+o:depends("type", "socks5")
+o:depends("type", "http")
+o:depends("type", "ssh")
+o:depends("type", "direct")
 
 -- [[ smux ]]--
 o = s:option(ListValue, "multiplex", translate("Multiplex")..translate("(Only Meta Core)"))
@@ -952,11 +1017,41 @@ o:depends("multiplex", "true")
 o = s:option(Value, "interface_name", translate("interface-name"))
 o.rmempty = true
 o.placeholder = translate("eth0")
+o:depends("type", "ss")
+o:depends("type", "ssr")
+o:depends("type", "vmess")
+o:depends("type", "trojan")
+o:depends("type", "vless")
+o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
+o:depends("type", "wireguard")
+o:depends("type", "tuic")
+o:depends("type", "mieru")
+o:depends("type", "snell")
+o:depends("type", "socks5")
+o:depends("type", "http")
+o:depends("type", "ssh")
+o:depends("type", "direct")
 
 -- [[ routing-mark ]]--
 o = s:option(Value, "routing_mark", translate("routing-mark"))
 o.rmempty = true
 o.placeholder = translate("2333")
+o:depends("type", "ss")
+o:depends("type", "ssr")
+o:depends("type", "vmess")
+o:depends("type", "trojan")
+o:depends("type", "vless")
+o:depends("type", "hysteria")
+o:depends("type", "hysteria2")
+o:depends("type", "wireguard")
+o:depends("type", "tuic")
+o:depends("type", "mieru")
+o:depends("type", "snell")
+o:depends("type", "socks5")
+o:depends("type", "http")
+o:depends("type", "ssh")
+o:depends("type", "direct")
 
 -- [[ other-setting ]]--
 o = s:option(Value, "other_parameters", translate("Other Parameters"))

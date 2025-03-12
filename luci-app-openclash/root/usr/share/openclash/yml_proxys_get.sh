@@ -1266,6 +1266,56 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                };
             end;
 
+            if x['type'] == 'ssh' then
+               threads << Thread.new{
+               if x.key?('username') then
+                  uci_commands << uci_set + 'auth_name=\"' + x['username'].to_s + '\"'
+               end
+               };
+               
+               threads << Thread.new{
+               if x.key?('password') then
+                  uci_commands << uci_set + 'auth_pass=\"' + x['password'].to_s + '\"'
+               end
+               };
+
+               threads << Thread.new{
+               if x.key?('private-key') then
+                  uci_commands << uci_set + 'private_key=\"' + x['private-key'].to_s + '\"'
+               end
+               };
+
+               threads << Thread.new{
+               if x.key?('private-key-passphrase') then
+                  uci_commands << uci_set + 'private_key_passphrase=\"' + x['private-key-passphrase'].to_s + '\"'
+               end
+               };
+
+               threads << Thread.new{
+               #host-key-algorithms
+               if x.key?('host-key-algorithms') then
+                  host_key_algorithms = uci_del + 'host_key_algorithms >/dev/null 2>&1'
+                  system(host_key_algorithms)
+                  x['host-key-algorithms'].each{
+                  |x|
+                     uci_commands << uci_add + 'host_key_algorithms=\"' + x.to_s + '\"'
+                  }
+                  end
+               };
+
+               threads << Thread.new{
+               #host-key
+               if x.key?('host-key') then
+                  host_key = uci_del + 'host_key >/dev/null 2>&1'
+                  system(host_key)
+                  x['host-key'].each{
+                  |x|
+                     uci_commands << uci_add + 'host_key=\"' + x.to_s + '\"'
+                  }
+                  end
+               };
+            end;
+
             if x['type'] == 'socks5' or x['type'] == 'http' then
                threads << Thread.new{
                if x.key?('username') then
