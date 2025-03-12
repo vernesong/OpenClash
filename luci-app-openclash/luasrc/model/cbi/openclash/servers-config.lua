@@ -143,12 +143,13 @@ o:value("hysteria2", translate("Hysteria2 ")..translate("(Only Meta Core)"))
 o:value("wireguard", translate("WireGuard")..translate("(Only Meta Core)"))
 o:value("tuic", translate("Tuic")..translate("(Only Meta Core)"))
 o:value("snell", translate("Snell"))
-o:value("mieru", translate("Mieru"))
+o:value("mieru", translate("Mieru")..translate("(Only Meta Core)"))
+o:value("anytls", translate("AnyTLS")..translate("(Only Meta Core)"))
 o:value("socks5", translate("Socks5"))
 o:value("http", translate("HTTP(S)"))
-o:value("direct", translate("DIRECT"))
-o:value("dns", translate("DNS"))
-o:value("ssh", translate("SSH"))
+o:value("direct", translate("DIRECT")..translate("(Only Meta Core)"))
+o:value("dns", translate("DNS")..translate("(Only Meta Core)"))
+o:value("ssh", translate("SSH")..translate("(Only Meta Core)"))
 
 o.description = translate("Using incorrect encryption mothod may causes service fail to start")
 
@@ -169,6 +170,7 @@ o:depends("type", "hysteria2")
 o:depends("type", "wireguard")
 o:depends("type", "tuic")
 o:depends("type", "mieru")
+o:depends("type", "anytls")
 o:depends("type", "snell")
 o:depends("type", "socks5")
 o:depends("type", "http")
@@ -188,6 +190,7 @@ o:depends("type", "hysteria2")
 o:depends("type", "wireguard")
 o:depends("type", "tuic")
 o:depends("type", "mieru")
+o:depends("type", "anytls")
 o:depends("type", "snell")
 o:depends("type", "socks5")
 o:depends("type", "http")
@@ -215,6 +218,7 @@ o:depends("type", "ssr")
 o:depends("type", "trojan")
 o:depends("type", "hysteria2")
 o:depends("type", "mieru")
+o:depends("type", "anytls")
 
 -- [[ Mieru ]]--
 o = s:option(Value, "port_range", translate("Port Range"))
@@ -447,6 +451,7 @@ o:depends("type", "trojan")
 o:depends({type = "snell", snell_version = "3"})
 o:depends("type", "wireguard")
 o:depends("type", "direct")
+o:depends("type", "anytls")
 
 o = s:option(ListValue, "udp_over_tcp", translate("udp-over-tcp"))
 o.rmempty = true
@@ -634,6 +639,7 @@ o:depends("type", "vless")
 o:depends("type", "hysteria")
 o:depends("type", "hysteria2")
 o:depends("type", "tuic")
+o:depends("type", "anytls")
 
 -- [[ TLS ]]--
 o = s:option(ListValue, "tls", translate("TLS"))
@@ -680,6 +686,7 @@ o:depends("type", "trojan")
 o:depends("type", "http")
 o:depends("type", "hysteria")
 o:depends("type", "hysteria2")
+o:depends("type", "anytls")
 
 -- [[ headers ]]--
 o = s:option(DynamicList, "http_headers", translate("headers"))
@@ -723,6 +730,7 @@ o.rmempty = true
 o:value("h2")
 o:value("http/1.1")
 o:depends("type", "trojan")
+o:depends("type", "anytls")
 
 -- [[ alpn ]]--
 o = s:option(DynamicList, "hysteria_alpn", translate("alpn"))
@@ -872,6 +880,22 @@ o:value("true")
 o:value("false")
 o:depends("type", "vmess")
 
+-- [[ AnyTLS ]]--
+o = s:option(Value, "idle_session_check_interval", translate("idle-session-check-interval"))
+o.rmempty = true
+o.default = "30"
+o:depends("type", "anytls")
+
+o = s:option(Value, "idle_session_timeout", translate("idle-session-timeout"))
+o.rmempty = true
+o.default = "30"
+o:depends("type", "anytls")
+
+o = s:option(Value, "min_idle_session", translate("min-idle-session"))
+o.rmempty = true
+o.default = "0"
+o:depends("type", "anytls")
+
 -- [[ Fast Open ]]--
 o = s:option(ListValue, "fast_open", translate("Fast Open"))
 o.rmempty = true
@@ -929,6 +953,7 @@ o:depends({type = "vmess", obfs_vmess = "websocket"})
 o:depends({type = "vmess", obfs_vmess = "http"})
 o:depends({type = "vmess", obfs_vmess = "h2"})
 o:depends({type = "vmess", obfs_vmess = "grpc"})
+o:depends("type", "anytls")
 
 -- [[ ip version ]]--
 o = s:option(ListValue, "ip_version", translate("IP Version")..translate("(Only Meta Core)"))
