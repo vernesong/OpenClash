@@ -145,7 +145,7 @@ function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
 			(pc >= 50 ? '<div class="progress_bar_high" style="width:%d%%; height:36px; border-radius: 6px">' : 
 			(pc < 50 && pc >= 20 ? '<div class="progress_bar_medium" style="width:%d%%; height:36px; border-radius: 6px">' : 
 			'<div class="progress_bar_low" style="width:%d%%; height:36px; border-radius: 6px">')) +
-			'<div style="position:absolute; left:0;' + (tr == "null" ? 'top:12px;' : 'top:-2px;') + 'text-align:center; width:100%%">' +
+			'<div style="position:absolute; left:0;' + (tr == "null" ? 'top:12px;' : 'top:0px;') + 'text-align:center; width:100%%">' +
 			'<small class="text_show">%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') + 
 			(tr == "null" ? '<div style="visibility: hidden;">' : '<div style="visibility: visible;">') + 
 			'%s (<%:Remaining%> %s <%:days%>)</small>' +
