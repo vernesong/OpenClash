@@ -435,7 +435,7 @@ yml_other_set()
                end;
             end;
             Value['rules'].to_a.collect!{|x|x.to_s
-            .gsub(/GEOIP,([^,]+),([^,]+)(,.*)?/, 'GEOIP,\1,DIRECT\3')
+            .gsub(/GEOIP,([A-Z]{2}),([^,]+)(,.*)?/, 'GEOIP,\1,DIRECT\3')
             .gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')};
          end;
       rescue Exception => e
