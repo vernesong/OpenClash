@@ -1200,85 +1200,87 @@ function action_download_rule()
 end
 
 function action_refresh_log()
-	luci.http.prepare_content("application/json")
-	local logfile="/tmp/openclash.log"
-	local file = io.open(logfile, "r+")
-	local info, len, line, lens, cache, ex_match, line_trans
-	local data = ""
-	local limit = 1000
-	local log_tb = {}
-	local log_len = tonumber(luci.http.formvalue("log_len")) or 0
-	if file == nil then
- 		return nil
- 	end
- 	file:seek("set")
- 	info = file:read("*all")
- 	info = info:reverse()
- 	file:close()
- 	cache, len = string.gsub(info, '[^\n]+', "")
- 	if len == log_len then return nil end
-	if log_len == 0 then
-		if len > limit then lens = limit else lens = len end
-	elseif len - log_len > limit then
-		lens = limit
-	elseif len < log_len then
-		lens = len
-	else
-		lens = len - log_len
-	end
-	string.gsub(info, '[^\n]+', function(w) table.insert(log_tb, w) end, lens)
-	for i=1, lens do
-		line = log_tb[i]:reverse()
-		line_trans = line
-		ex_match = false
-		core_match = false
-		time_format = false
-		while true do
-			ex_keys = {"UDP%-Receive%-Buffer%-Size", "^Sec%-Fetch%-Mode", "^User%-Agent", "^Access%-Control", "^Accept", "^Origin", "^Referer", "^Connection", "^Pragma", "^Cache-"}
-			for key=1, #ex_keys do
-				if string.find (line, ex_keys[key]) then
-					ex_match = true
-					break
-				end
+    luci.http.prepare_content("application/json")
+    local logfile = "/tmp/openclash.log"
+    local log_len = tonumber(luci.http.formvalue("log_len")) or 0
+    
+    if not fs.access(logfile) then
+        luci.http.write_json({
+            len = 0,
+            update = false,
+            core_log = "",
+            oc_log = ""
+        })
+        return
+    end
+    
+    local total_lines = tonumber(luci.sys.exec("wc -l < " .. logfile)) or 0
+    
+    if total_lines == log_len and log_len > 0 then
+        luci.http.write_json({
+            len = total_lines,
+            update = false,
+            core_log = "",
+            oc_log = ""
+        })
+        return
+    end
+    
+    local exclude_pattern = "UDP%-Receive%-Buffer%-Size|^Sec%-Fetch%-Mode|^User%-Agent|^Access%-Control|^Accept|^Origin|^Referer|^Connection|^Pragma|^Cache%-"
+    local core_pattern = " DBG | INF |level=| WRN | ERR | FTL "
+    local limit = 1000
+    local start_line = (log_len > 0 and total_lines > log_len) and (log_len + 1) or 1
+    
+    local core_cmd = string.format(
+        "tail -n +%d '%s' | grep -v -E '%s' | grep -E '%s' | tail -n %d | sed '1!G;h;$!d'",
+        start_line, logfile, exclude_pattern, core_pattern, limit
+    )
+    local core_raw = luci.sys.exec(core_cmd)
+    
+    local oc_cmd = string.format(
+        "tail -n +%d '%s' | grep -v -E '%s' | grep -v -E '%s' | tail -n %d | sed '1!G;h;$!d'",
+        start_line, logfile, exclude_pattern, core_pattern, limit
+    )
+    local oc_raw = luci.sys.exec(oc_cmd)
+    
+    local core_log = ""
+    if core_raw and core_raw ~= "" then
+        local core_logs = {}
+        for line in core_raw:gmatch("[^\n]+") do
+            local line_trans = line
+			if string.match(string.sub(line, 0, 8), "%d%d:%d%d:%d%d") then
+				line_trans = '"'..os.date("%Y-%m-%d", os.time()).. " "..os.date("%H:%M:%S", tonumber(string.sub(line, 0, 8)))..'"'..string.sub(line, 9, -1)
 			end
-    		if ex_match then break end
-
-			core_keys = {" DBG ", " INF ", "level=", " WRN ", " ERR ", " FTL "}
-			for key=1, #core_keys do
-				if string.find(string.sub(line, 0, 13), core_keys[key]) or (string.find(line, core_keys[key]) and core_keys[key] == "level=") then
-					core_match = true
-					if core_keys[key] ~= "level=" then
-						time_format = true
-					end
-					break
-				end
-			end
-			if time_format then
-				if string.match(string.sub(line, 0, 8), "%d%d:%d%d:%d%d") then
-					line_trans = '"'..os.date("%Y-%m-%d %H:%M:%S", tonumber(string.sub(line, 0, 8)))..'"'..string.sub(line, 9, -1)
-				end
-			end
-			if not core_match then
-				if not string.find (line, "【") or not string.find (line, "】") then
-					line_trans = trans_line_nolabel(line)
-				else
-					line_trans = trans_line(line)
-				end
-			end
-			if data == "" then
-				data = line_trans
-			elseif log_len == 0 and i == limit then
-				data = data .."\n" .. line_trans .. "\n..."
-			else
-				data = data .."\n" .. line_trans
-			end
-    		break
-    	end
-	end
-	luci.http.write_json({
-		len = len,
-		log = data;
-	})
+            table.insert(core_logs, line_trans)
+        end
+        if #core_logs > 0 then
+            core_log = table.concat(core_logs, "\n")
+        end
+    end
+    
+    local oc_log = ""
+    if oc_raw and oc_raw ~= "" then
+        local oc_logs = {}
+        for line in oc_raw:gmatch("[^\n]+") do
+            local line_trans
+            if not string.find(line, "【") or not string.find(line, "】") then
+                line_trans = trans_line_nolabel(line)
+            else
+                line_trans = trans_line(line)
+            end
+            table.insert(oc_logs, line_trans)
+        end
+        if #oc_logs > 0 then
+            oc_log = table.concat(oc_logs, "\n")
+        end
+    end
+    
+    luci.http.write_json({
+        len = total_lines,
+        update = true,
+        core_log = core_log,
+        oc_log = oc_log
+    })
 end
 
 function action_del_log()
@@ -1641,68 +1643,101 @@ function all_proxies_stream_test()
 end
 
 function trans_line_nolabel(data)
-	local line_trans = ""
-	if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
-		line_trans = string.sub(data, 0, 20)..luci.i18n.translate(string.sub(data, 21, -1))
-	else
-		line_trans = luci.i18n.translate(string.sub(data, 0, -1))
-	end
-	return line_trans
+    if data == nil or data == "" then
+        return ""
+    end
+    
+    local line_trans = ""
+    if string.len(data) >= 19 and string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+        line_trans = string.sub(data, 0, 20)..luci.i18n.translate(string.sub(data, 21, -1))
+    else
+        line_trans = luci.i18n.translate(data)
+    end
+    return line_trans
 end
 
 function trans_line(data)
-	local no_trans = {}
-	local line_trans = ""
-	local a = string.find (data, "【")
-	local b = string.find (data, "】") + 2
-	local c = 21
-	local d = 0
-	local v
-	local x
-	while true do
-		table.insert(no_trans, a)
-		table.insert(no_trans, b)
-		if string.find (data, "【", b+1) and string.find (data, "】", b+1) then
-			a = string.find (data, "【", b+1)
-			b = string.find (data, "】", b+1) + 2
-		else
-			break
-		end
-	end
-	for k = 1, #no_trans, 2 do
-		x = no_trans[k]
-		v = no_trans[k+1]
-		if x <= 21 or not string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
-			line_trans = line_trans .. luci.i18n.translate(string.sub(data, d, x - 1)) .. string.sub(data, x, v)
-			d = v + 1
-		elseif v <= string.len(data) then
-			line_trans = line_trans .. luci.i18n.translate(string.sub(data, c, x - 1)) .. string.sub(data, x, v)
-		end
-		c = v + 1
-	end
-	if c > string.len(data) then
-		if d == 0 then
-			if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
-				line_trans = string.sub(data, 0, 20) .. line_trans
-			end
-		end
-	else
-		if d == 0 then
-			if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
-				line_trans = string.sub(data, 0, 20) .. line_trans .. luci.i18n.translate(string.sub(data, c, -1))
-			end
-		else
-			line_trans = line_trans .. luci.i18n.translate(string.sub(data, c, -1))
-		end
-	end
-	return line_trans
-end
-
-function process_status(name)
-	local ps_version = luci.sys.exec("ps --version 2>&1 |grep -c procps-ng |tr -d '\n'")
-	if ps_version == "1" then
-		return luci.sys.call(string.format("ps -efw |grep '%s' |grep -v grep >/dev/null", name)) == 0
-	else
-		return luci.sys.call(string.format("ps -w |grep '%s' |grep -v grep >/dev/null", name)) == 0
-	end
+    -- 检查 data 是否为 nil 或空字符串
+    if data == nil or data == "" then
+        return ""
+    end
+    
+    local no_trans = {}
+    local line_trans = ""
+    local a = string.find(data, "【")
+    
+    -- 如果找不到特殊字符，直接翻译整个字符串并返回
+    if not a then
+        if string.len(data) >= 19 and string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+            return string.sub(data, 0, 20) .. luci.i18n.translate(string.sub(data, 21, -1))
+        else
+            return luci.i18n.translate(data)
+        end
+    end
+    
+    local b_pos = string.find(data, "】")
+    -- 如果没有找到结束字符，直接翻译整个字符串并返回
+    if not b_pos then
+        return luci.i18n.translate(data)
+    end
+    
+    local b = b_pos + 2
+    local c = 21
+    local d = 0
+    local v
+    local x
+    
+    while true do
+        table.insert(no_trans, a)
+        table.insert(no_trans, b)
+        
+        -- 安全地查找下一对特殊字符
+        local next_a = string.find(data, "【", b+1)
+        local next_b = string.find(data, "】", b+1)
+        
+        if next_a and next_b then
+            a = next_a
+            b = next_b + 2
+        else
+            break
+        end
+    end
+    
+    -- 确保 no_trans 有偶数个元素
+    if #no_trans % 2 ~= 0 then
+        table.remove(no_trans)
+    end
+    
+    for k = 1, #no_trans, 2 do
+        x = no_trans[k]
+        v = no_trans[k+1]
+        
+        if x and v then  -- 确保 x 和 v 都不是 nil
+            if x <= 21 or not string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+                line_trans = line_trans .. luci.i18n.translate(string.sub(data, d, x - 1)) .. string.sub(data, x, v)
+                d = v + 1
+            elseif v <= string.len(data) then
+                line_trans = line_trans .. luci.i18n.translate(string.sub(data, c, x - 1)) .. string.sub(data, x, v)
+            end
+            c = v + 1
+        end
+    end
+    
+    if c > string.len(data) then
+        if d == 0 then
+            if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+                line_trans = string.sub(data, 0, 20) .. line_trans
+            end
+        end
+    else
+        if d == 0 then
+            if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+                line_trans = string.sub(data, 0, 20) .. line_trans .. luci.i18n.translate(string.sub(data, c, -1))
+            end
+        else
+            line_trans = line_trans .. luci.i18n.translate(string.sub(data, c, -1))
+        end
+    end
+    
+    return line_trans
 end
