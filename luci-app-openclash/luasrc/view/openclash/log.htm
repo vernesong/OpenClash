@@ -92,8 +92,8 @@ ul{
 	<div id="tab" class="cbi-section">
 		<div id="tab-header" class="cbi-tabmenu">
 			<ul class="cbi-tabmenu">
-				<li name="tab-header" class="cbi-tab"><a><%:OpenClash Log%></a></li>
-				<li name="tab-header"  class="cbi-tab-disabled"><a><%:Core Log%></a></li>
+				<li name="tab-header" class="cbi-tab"><a href="#"><%:OpenClash Log%></a></li>
+				<li name="tab-header" class="cbi-tab-disabled"><a href="#"><%:Core Log%></a></li>
 			</ul>
 		</div>
 		<div id="tab-content">
@@ -364,22 +364,30 @@ window.onload = function(){
     for(var i=0; i<titles.length; i++){
         var li = titles[i];
         li.id = i;
-        li.onclick = function(){
-            for(var j=0; j<titles.length; j++){
-                titles[j].className = 'cbi-tab-disabled';
-                divs[j].style.display = 'none';
-            }
-            this.className = 'cbi-tab';
-            divs[this.id].style.display = 'block';
+        function handleTabSwitch(tab) {
+            return function(e) {
+                for(var j=0; j<titles.length; j++){
+                    titles[j].className = 'cbi-tab-disabled';
+                    divs[j].style.display = 'none';
+                }
+                tab.className = 'cbi-tab';
+                divs[tab.id].style.display = 'block';
+                
+                if(tab.id == 0 && typeof oc_editor !== 'undefined') {
+                    setTimeout(function(){
+                        oc_editor.refresh();
+                    }, 10);
+                } else if(tab.id == 1 && typeof core_editor !== 'undefined') {
+                    setTimeout(function(){
+                        core_editor.refresh();
+                    }, 10);
+                }
+            };
         }
-        li.onTouchStart = function(){
-            for(var j=0; j<titles.length; j++){
-                titles[j].className = 'cbi-tab-disabled';
-                divs[j].style.display = 'none';
-            }
-            this.className = 'cbi-tab';
-            divs[this.id].style.display = 'block';
-        }
+        
+        // 正确绑定事件
+        li.onclick = handleTabSwitch(li);
+        li.ontouchstart = handleTabSwitch(li);
     }
     get_log_level();
     poll_log();
