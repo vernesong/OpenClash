@@ -21,7 +21,7 @@ local unlock_cache_file = "/etc/openclash/history/streaming_unlock_cache"
 local unlock_cache = FS.readfile(unlock_cache_file)
 local unlock_cache_info = {}
 if unlock_cache then
-	unlock_cache_info = JSON.parse(unlock_cache)
+	unlock_cache_info = JSON.parse(unlock_cache) or {}
 end
 local self_status = SYS.exec(string.format('ps -w |grep -v grep |grep -c "openclash_streaming_unlock.lua %s"', type))
 local select_logic = UCI:get("openclash", "config", "stream_auto_select_logic") or "urltest"
@@ -570,11 +570,8 @@ function get_old_region(stream_type)
 	if not stream_type then
 		stream_type = type
 	end
-	for k, v in pairs(unlock_cache_info) do
-		if v[1] == stream_type and v[2] == "old_region" and v[3] then
-			old_region = v[3]
-			break
-		end
+	if unlock_cache_info[stream_type] and unlock_cache_info[stream_type]["old_region"] then
+		return unlock_cache_info[stream_type]["old_region"]
 	end
 	return old_region
 end
@@ -584,32 +581,25 @@ function get_old_regex(stream_type)
 	if not stream_type then
 		stream_type = type
 	end
-	for k, v in pairs(unlock_cache_info) do
-		if v[1] == stream_type and v[2] == "old_regex" and v[3] then
-			old_regex = v[3]
-			break
-		end
+	if unlock_cache_info[stream_type] and unlock_cache_info[stream_type]["old_regex"] then
+		return unlock_cache_info[stream_type]["old_regex"]
 	end
 	return old_regex
 end
 
-function write_cache(stream_type, node, region)
-	if not region then
-		region = ""
+function write_cache(stream_type, node, value)
+	if not value then
+		value = ""
 	end
-	if not table_include(unlock_cache_info, {stream_type, node, region}) then
-		if table_include(unlock_cache_info, {stream_type, node, "cache"}) then
-			delete_cache(stream_type, node)
-		end
-		table.insert(unlock_cache_info, {stream_type, node, region})
-	end
+	if not unlock_cache_info[stream_type] then unlock_cache_info[stream_type] = {} end
+	if unlock_cache_info[stream_type][node] ~= value then
+        unlock_cache_info[stream_type][node] = value
+    end
 end
 
 function delete_cache(stream_type, node)
-	for k, v in pairs(unlock_cache_info) do
-		if v[1] == stream_type and v[2] == node then
-			table.remove(unlock_cache_info, k)
-		end
+	if unlock_cache_info[stream_type] and unlock_cache_info[stream_type][node] then
+		unlock_cache_info[stream_type][node] = nil
 	end
 end
 
@@ -708,11 +698,8 @@ function table_sort_by_cache(t)
 	local tab = {}
 	local tab_b = {}
 	local old_region = get_old_region()
-	if old_region == "" then
-		old_region = "cache"
-	end
 	for n = 1, #(t) do
-		if table_include(unlock_cache_info, {type, t[n], old_region}) then
+		if unlock_cache_info and unlock_cache_info[type] and unlock_cache_info[type][t[n]] and unlock_cache_info[type][t[n]] == old_region then
 			table.insert(tab, t[n])
 		else
 			table.insert(tab_b, t[n])
@@ -735,9 +722,12 @@ function table_include(table, value)
 			if table_eq(v, value) then
 				return true
 			else
-				if v[1] == value[1] and v[2] == value[2] and value[3] == "cache" then
-					return true
+				for i = 1, #(v) do
+					if v[i] ~= value[i] then
+						return false
+					end
 				end
+				return true
 			end
 		else
 			if v == value then
