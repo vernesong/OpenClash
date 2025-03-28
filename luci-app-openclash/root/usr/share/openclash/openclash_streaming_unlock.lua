@@ -146,18 +146,17 @@ function unlock_auto_select()
 				table.insert(tested_proxy, now_name)
 				group_match = true
 				--test now proxy
-				region, old_region = proxy_unlock_test()
+				region = proxy_unlock_test()
 				if table_include(groups, now_name) then
 					now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.."】"
 				else
 					now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.." ➟ "..now_name.."】"
 				end
 				if status ~= 2 and status ~= 4 then
-					os.execute("sleep 3")
-					region, old_region = proxy_unlock_test()
+					region = proxy_unlock_test()
 				end
 				if status == 2 or status == 4 then
-					if region and region ~= "" then
+					if region ~= "" then
 						table.insert(full_support_list, {value.now, value.now, get_group_now(info, value.now), region})
 						print(now..full_support.."【"..region.."】")
 						write_cache(type, get_group_now(info, value.now), region)
@@ -169,7 +168,7 @@ function unlock_auto_select()
 					if not all_test and #nodes_filter(now_name, info) ~= 0 then
 						if status == 4 then
 							status = 2
-							if region and region ~= "" then
+							if region ~= "" then
 								write_cache(type, "old_region", region)
 							end
 						end
@@ -181,7 +180,7 @@ function unlock_auto_select()
 						status = 0
 					end
 				elseif status == 3 then
-					if region and region ~= "" then
+					if region ~= "" then
 						table.insert(other_region_unlock, {value.now, value.now, get_group_now(info, value.now), region})
 						write_cache(type, get_group_now(info, value.now), region)
 					else
@@ -189,13 +188,13 @@ function unlock_auto_select()
 						write_cache(type, get_group_now(info, value.now))
 					end
 					if not all_test then
-						if region and region ~= "" then
+						if region ~= "" then
 							print(now..full_support.."【"..region.."】"..other_region_unlock_test_start)
 						else
 							print(now..full_support_no_area..other_region_unlock_test_start)
 						end
 					else
-						if region and region ~= "" then
+						if region ~= "" then
 							print(now..full_support.."【"..region.."】"..other_region_unlock_test)
 						else
 							print(now..full_support_no_area..other_region_unlock_test)
@@ -298,9 +297,9 @@ function unlock_auto_select()
 													break
 												else
 													SYS.exec(string.format("curl -sL -m 5 --retry 2 -w %%{http_code} -o /dev/null -H 'Authorization: Bearer %s' -H 'Content-Type:application/json' -X PUT -d '{\"name\":\"%s\"}' http://%s:%s/proxies/%s", passwd, proxy, ip, port, urlencode(group_name)))
-													region, old_region = proxy_unlock_test()
+													region = proxy_unlock_test()
 													if status == 2 then
-														if region and region ~= "" then
+														if region ~= "" then
 															table.insert(full_support_list, {value.all[i], group_name, proxy, region})
 															if not all_test then
 																print(now..full_support.."【"..region.."】")
@@ -320,7 +319,7 @@ function unlock_auto_select()
 															write_cache(type, proxy)
 														end
 													elseif status == 3 then
-														if region and region ~= "" then
+														if region ~= "" then
 															table.insert(other_region_unlock, {value.all[i], group_name, proxy, region})
 															print(now..full_support.."【"..region.."】"..other_region_unlock_test)
 															write_cache(type, proxy, region)
@@ -330,7 +329,7 @@ function unlock_auto_select()
 															write_cache(type, proxy)
 														end
 													elseif status == 4 then
-														if region and region ~= "" then
+														if region ~= "" then
 															table.insert(no_old_region_unlock, {value.all[i], group_name, proxy, region})
 															print(now..full_support.."【"..region.."】"..no_old_region_unlock_old_region.."【"..old_region.."】")
 															write_cache(type, proxy, region)
@@ -371,14 +370,14 @@ function unlock_auto_select()
 										else
 											table.insert(tested_proxy, now_name)
 										end
-										region, old_region = proxy_unlock_test()
+										region = proxy_unlock_test()
 										if table_include(groups, now_name) then
 											now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.."】"
 										else
 											now = os.date("%Y-%m-%d %H:%M:%S").." "..type.." "..gorup_i18.."【"..group_show.." ➟ "..now_name.."】"
 										end
 										if status == 2 then
-											if region and region ~= "" then
+											if region ~= "" then
 												table.insert(full_support_list, {value.all[i], group_name, value.all[i], region})
 												if not all_test then
 													print(now..full_support.."【"..region.."】")
@@ -398,7 +397,7 @@ function unlock_auto_select()
 												write_cache(type, value.all[i])
 											end
 										elseif status == 3 then
-											if region and region ~= "" then
+											if region ~= "" then
 												table.insert(other_region_unlock, {value.all[i], group_name, value.all[i], region})
 												print(now..full_support.."【"..region.."】"..other_region_unlock_no_select)
 												write_cache(type, value.all[i], region)
@@ -408,7 +407,7 @@ function unlock_auto_select()
 												write_cache(type, value.all[i])
 											end
 										elseif status == 4 then
-											if region and region ~= "" then
+											if region ~= "" then
 												table.insert(no_old_region_unlock, {value.all[i], group_name, value.all[i], region})
 												print(now..full_support.."【"..region.."】"..no_old_region_unlock_old_region.."【"..old_region.."】"..no_old_region_unlock_old_region_no_select)
 												write_cache(type, value.all[i], region)
@@ -504,9 +503,9 @@ function unlock_auto_select()
 						end
 					end
 				elseif #nodes_filter(get_group_now(info, value.name), info) ~= 0 then
-					region, old_region = proxy_unlock_test()
+					region = proxy_unlock_test()
 					if status == 2 then
-						if region and region ~= "" then
+						if region ~= "" then
 							if not all_test then
 								print(now..full_support.."【"..region.."】")
 							end
@@ -521,13 +520,13 @@ function unlock_auto_select()
 							break
 						end
 					elseif status == 3 then
-						if region and region ~= "" then
+						if region ~= "" then
 							print(now..full_support.."【"..region.."】"..other_region_unlock_no_select)
 						else
 							print(now..full_support_no_area..other_region_unlock_no_select)
 						end
 					elseif status == 4 then
-						if region and region ~= "" then
+						if region ~= "" then
 							print(now..full_support.."【"..region.."】"..no_old_region_unlock_old_region.."【"..old_region.."】"..no_old_region_unlock_old_region_no_select)
 						else
 							print(now..full_support_no_area..no_old_region_unlock_no_select)
@@ -853,33 +852,33 @@ function nodes_filter(t, info)
 end
 
 function proxy_unlock_test()
-	local region, old_region
+	local region = ""
 	if type == "Netflix" then
-		region, old_region = netflix_unlock_test()
+		region = netflix_unlock_test()
 	elseif type == "Disney Plus" then
-		region, old_region = disney_unlock_test()
+		region = disney_unlock_test()
 	elseif type == "HBO Max" then
-		region, old_region = hbo_max_unlock_test()
+		region = hbo_max_unlock_test()
 	elseif type == "YouTube Premium" then
-		region, old_region = ytb_unlock_test()
+		region = ytb_unlock_test()
 	elseif type == "TVB Anywhere+" then
-		region, old_region = tvb_anywhere_unlock_test()
+		region = tvb_anywhere_unlock_test()
 	elseif type == "Amazon Prime Video" then
-		region, old_region = prime_video_unlock_test()
+		region = prime_video_unlock_test()
 	elseif type == "DAZN" then
-		region, old_region = dazn_unlock_test()
+		region = dazn_unlock_test()
 	elseif type == "Paramount Plus" then
-		region, old_region = paramount_plus_unlock_test()
+		region = paramount_plus_unlock_test()
 	elseif type == "Discovery Plus" then
-		region, old_region = discovery_plus_unlock_test()
+		region = discovery_plus_unlock_test()
 	elseif type == "Bilibili" then
-		region, old_region = bilibili_unlock_test()
+		region = bilibili_unlock_test()
 	elseif type == "Google" then
-		region, old_region = google_not_cn_test()
+		region = google_not_cn_test()
 	elseif type == "OpenAI" then
-		region, old_region = openai_unlock_test()
+		region = openai_unlock_test()
 	end
-	return region, old_region
+	return region
 end
 
 function auto_get_policy_group(passwd, ip, port)
@@ -1103,7 +1102,7 @@ function netflix_unlock_test()
 	local headers = "User-Agent: "..UA
 	local info = SYS.exec(string.format('curl -sLI --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{json} -H "Content-Type: application/json" -H "host: www.netflix.com" -H "accept-language: en-US,en;q=0.9" -H "sec-ch-ua: Google Chrome;v=125, Chromium;v=125, Not.A/Brand;v=24" -H "sec-ch-ua-mobile: ?0" -H "sec-ch-ua-platform: Windows" -H "sec-fetch-site: none" -H "sec-fetch-mode: navigate" -H "sec-fetch-user: ?1" -H "sec-fetch-dest: document" -H "%s" -XGET %s', headers, url))
 	local result = {}
-	local region
+	local region = ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_netflix") or ""
@@ -1114,9 +1113,8 @@ function netflix_unlock_test()
 		if info.http_code == 200 then
 			status = 2
 			string.gsub(info.url_effective, '[^/]+', function(w) table.insert(result, w) end)
-			region = string.upper(string.match(result[3], "^%a+"))
-			if region == "TITLE" then region = "US" end
-			if region then
+			if string.match(result[3], "^%a+") then
+				region = string.upper(string.match(result[3], "^%a+"))
 				if not datamatch(region, regex) then
 					status = 3
 				elseif old_regex ~= regex and not all_test then
@@ -1124,19 +1122,18 @@ function netflix_unlock_test()
 				elseif old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+				if status == 2 and not all_test and region ~= old_region then
 					write_cache(type, "old_region", region)
 				end
 				if status == 2 and not all_test and regex ~= old_regex then
 					write_cache(type, "old_regex", regex)
 				end
 			end
-			return region, old_region
 		elseif info.http_code == 404 or info.http_code == 403 then
 			status = 1
 		end
 	end
-	return
+	return region
 end
 
 function disney_unlock_test()
@@ -1147,7 +1144,8 @@ function disney_unlock_test()
 	local headers = '-H "Accept-Language: en" -H "Content-Type: application/json" -H "authorization: ZGlzbmV5JmJyb3dzZXImMS4wLjA.Cu56AgSfBTDag5NiRA81oLHkDZfu5L3CKadnefEAY84"'
 	local auth = '-H "authorization: Bearer ZGlzbmV5JmJyb3dzZXImMS4wLjA.Cu56AgSfBTDag5NiRA81oLHkDZfu5L3CKadnefEAY84"'
 	local body = '{"query":"mutation registerDevice($input: RegisterDeviceInput!) { registerDevice(registerDevice: $input) { grant { grantType assertion } } }","variables":{"input":{"deviceFamily":"browser","applicationRuntime":"chrome","deviceProfile":"windows","deviceLanguage":"en","attributes":{"osDeviceIds":[],"manufacturer":"microsoft","model":null,"operatingSystem":"windows","operatingSystemVersion":"10.0","browserName":"chrome","browserVersion":"96.0.4606"}}}}'
-	local region, assertion, data, preassertion, disneycookie, tokencontent
+	local region = ""
+	local assertion, data, preassertion, disneycookie, tokencontent
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_disney") or ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
@@ -1158,7 +1156,7 @@ function disney_unlock_test()
 		assertion = JSON.parse(preassertion).assertion
 	end
 	
-	if not assertion then return end
+	if not assertion then return region end
 
 	disneycookie = "grant_type=urn%3Aietf%3Aparams%3Aoauth%3Agrant-type%3Atoken-exchange&latitude=0&longitude=0&platform=browser&subject_token="..assertion.."&subject_token_type=urn%3Abamtech%3Aparams%3Aoauth%3Atoken-type%3Adevice"
 	tokencontent = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 %s -H 'User-Agent: %s' -d '%s' -XPOST %s", auth, UA, disneycookie, url2))
@@ -1166,7 +1164,7 @@ function disney_unlock_test()
 	if tokencontent and JSON.parse(tokencontent) then
 		if JSON.parse(tokencontent).error_description then
 			status = 1
-			return
+			return region
 		end
 	end
 	
@@ -1174,8 +1172,8 @@ function disney_unlock_test()
 
 	if data and JSON.parse(data) then
 		status = 1
-		if JSON.parse(data).extensions and JSON.parse(data).extensions.sdk and JSON.parse(data).extensions.sdk.session then
-			region = JSON.parse(data).extensions.sdk.session.location.countryCode or ""
+		if JSON.parse(data).extensions and JSON.parse(data).extensions.sdk and JSON.parse(data).extensions.sdk.session and JSON.parse(data).extensions.sdk.session.location.countryCode then
+			region = JSON.parse(data).extensions.sdk.session.location.countryCode
 			inSupportedLocation = JSON.parse(data).extensions.sdk.session.inSupportedLocation or ""
 			if region == "JP" then
 				status = 2
@@ -1192,47 +1190,48 @@ function disney_unlock_test()
 				if status == 2 and not all_test and regex ~= old_regex then
 					write_cache(type, "old_regex", regex)
 				end
-				return region, old_region
+				return region
 			end
 
-			if region and region ~= "" and inSupportedLocation then
+			if region ~= "" and inSupportedLocation then
 				status = 2
 				if not datamatch(region, regex) then
 					status = 3
 				elseif old_region ~= "" and not datamatch(region, old_region) and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+				if status == 2 and not all_test and region ~= old_region then
 					write_cache(type, "old_region", region)
 				end
 				if status == 2 and not all_test and regex ~= old_regex then
 					write_cache(type, "old_regex", regex)
 				end
-				return region, old_region
+				return region
 			end
 		end
 	end
-	return
+	return region
 end
 
 function hbo_max_unlock_test()
 	status = 0
 	local url = "https://www.max.com/"
 	local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -w '_TAG_%%{http_code}_TAG_' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
-	local result = {}
 	local region = ""
+	local outofregion
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_hbo_max") or ""
 	if data and tonumber(string.sub(string.match(data, "_TAG_%d+_TAG_"), 6, 8)) == 200 then
 		status = 1
-		for i in string.gmatch(data, "\"url\":\"/%a+/%a+\"") do
-			table.insert(result, string.sub(string.match(i, "/%a+/"), 2, -2))
+		if string.match(data, "\"isUserOutOfRegion\":%a+") then
+			outofregion = string.lower(string.sub(string.match(data, "\"isUserOutOfRegion\":%a+"), 21, -1))
 		end
-		region = string.sub(string.match(data, "\"countryCode\":\"%a+\""), 16, -2)
-		if region and table_include(result, region) then
+		if string.match(data, "\"userCountry\":\"%a+\"") then
+			region = string.upper(string.sub(string.match(data, "\"userCountry\":\"%a+\""), 16, -2))
+		end
+		if region ~= "" and outofregion == "false" then
 			status = 2
-			region = string.upper(region)
 			if not datamatch(region, regex) then
 				status = 3
 			elseif old_regex ~= regex and not all_test then
@@ -1240,16 +1239,15 @@ function hbo_max_unlock_test()
 			elseif old_region ~= "" and region ~= old_region and not all_test then
 				status = 4
 			end
-			if status == 2 and not all_test and region ~= "" and region ~= old_region then
+			if status == 2 and not all_test and region ~= old_region then
 				write_cache(type, "old_region", region)
 			end
 			if status == 2 and not all_test and regex ~= old_regex then
 				write_cache(type, "old_regex", regex)
 			end
-			return region, old_region
 		end
 	end
-	return
+	return region
 end
 
 function ytb_unlock_test()
@@ -1264,15 +1262,15 @@ function ytb_unlock_test()
 	if data and tonumber(string.sub(string.match(data, "_TAG_%d+_TAG_"), 6, 8)) == 200 then
 		status = 1
 		if string.find(data,"www%.google%.cn") or string.find(data, "is not available in your country") then
-	  		return
+			return region
 	  	end
-	  	region = string.sub(string.match(data, "\"GL\":\"%a+\""), 7, -2)
-		if region then
+		if string.match(data, "\"GL\":\"%a+\"") then
+	  		region = string.sub(string.match(data, "\"GL\":\"%a+\""), 7, -2)
 			status = 2
 		else
 			he_data = SYS.exec(string.format("curl -sIL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
-			region = string.sub(string.match(he_data, "gl=%a+"), 4, -1)
-			if region then
+			if string.match(he_data, "gl=%a+") then
+				region = string.sub(string.match(he_data, "gl=%a+"), 4, -1)
 				status = 2
 			else
 				region = "US"
@@ -1292,7 +1290,7 @@ function ytb_unlock_test()
 			write_cache(type, "old_regex", regex)
 		end
 	end
-	return region, old_region
+	return region
 end
 
 function tvb_anywhere_unlock_test()
@@ -1311,7 +1309,7 @@ function tvb_anywhere_unlock_test()
 			if data.country then
 	  			region = string.upper(data.country)
 	  		end
-			if region then
+			if region ~= "" then
 				if not datamatch(region, regex) then
 					status = 3
 				elseif old_regex ~= regex and not all_test then
@@ -1319,7 +1317,7 @@ function tvb_anywhere_unlock_test()
 				elseif old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+				if status == 2 and not all_test and region ~= old_region then
 					write_cache(type, "old_region", region)
 				end
 				if status == 2 and not all_test and regex ~= old_regex then
@@ -1328,21 +1326,21 @@ function tvb_anywhere_unlock_test()
 			end
 		end
 	end
-	return region, old_region
+	return region
 end
 
 function prime_video_unlock_test()
 	status = 0
 	local url = "https://www.primevideo.com"
-	local region
+	local region = ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_prime_video") or ""
 	local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -w '_TAG_%%{http_code}_TAG_' -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	if data and tonumber(string.sub(string.match(data, "_TAG_%d+_TAG_"), 6, 8)) == 200 then
 		status = 1
-		region = string.sub(string.match(data, "\"currentTerritory\":\"%a+\""), 21, -2)
-		if region then
+		if string.match(data, "\"currentTerritory\":\"%a+\"") then
+			region = string.sub(string.match(data, "\"currentTerritory\":\"%a+\""), 21, -2)
 			status = 2
 			if not datamatch(region, regex) then
 				status = 3
@@ -1351,22 +1349,21 @@ function prime_video_unlock_test()
 			elseif old_region ~= "" and region ~= old_region and not all_test then
 				status = 4
 			end
-			if status == 2 and not all_test and region ~= "" and region ~= old_region then
+			if status == 2 and not all_test and region ~= old_region then
 				write_cache(type, "old_region", region)
 			end
 			if status == 2 and not all_test and regex ~= old_regex then
 				write_cache(type, "old_regex", regex)
 			end
-			return region, old_region
 		end
 	end
-	return
+	return region
 end
 
 function dazn_unlock_test()
 	status = 0
 	local url = "https://startup.core.indazn.com/misl/v5/Startup"
-	local region
+	local region = ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_dazn") or ""
@@ -1379,7 +1376,7 @@ function dazn_unlock_test()
 			if data.Region.GeolocatedCountry then
 	  			region = string.upper(data.Region.GeolocatedCountry)
 	  		end
-			if region then
+			if region ~= "" then
 				if not datamatch(region, regex) then
 					status = 3
 				elseif old_regex ~= regex and not all_test then
@@ -1387,7 +1384,7 @@ function dazn_unlock_test()
 				elseif old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+				if status == 2 and not all_test and region ~= old_region then
 					write_cache(type, "old_region", region)
 				end
 				if status == 2 and not all_test and regex ~= old_regex then
@@ -1396,47 +1393,49 @@ function dazn_unlock_test()
 			end
 		end
 	end
-	return region, old_region
+	return region
 end
 
 function paramount_plus_unlock_test()
 	status = 0
 	local url = "https://www.paramountplus.com/"
-	local region
+	local region = ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_paramount_plus") or ""
 	local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -w '_TAG_%%{http_code}_TAG_%%{url_effective}_TAGS_' -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	if data and tonumber(string.sub(string.match(data, "_TAG_%d+_TAG_"), 6, 8)) == 200 then
 		status = 1
-		if not string.find(string.match(data, "_TAG_[^\n]+_TAGS_"), "intl") then
-			status = 2
-			region = string.upper(string.sub(string.match(data, "\"siteEdition\":\"%a+|%a+\""), 19, -2)) or string.upper(string.sub(string.match(data, "property: '%a+'"), 12, -2))
-			if region then
-				if not datamatch(region, regex) then
-					status = 3
-				elseif old_regex ~= regex and not all_test then
-					status = 2
-				elseif old_region ~= "" and region ~= old_region and not all_test then
-					status = 4
+		if string.match(data, "_TAG_[^\n]+_TAGS_") then
+			if not string.find(string.match(data, "_TAG_[^\n]+_TAGS_"), "intl") then
+				status = 2
+				if string.match(data, "\"siteEdition\":\"%a+|%a+\"") or string.match(data, "property: '%a+'") then
+					region = string.upper(string.sub(string.match(data, "\"siteEdition\":\"%a+|%a+\""), 19, -2)) or string.upper(string.sub(string.match(data, "property: '%a+'"), 12, -2))
+					if not datamatch(region, regex) then
+						status = 3
+					elseif old_regex ~= regex and not all_test then
+						status = 2
+					elseif old_region ~= "" and region ~= old_region and not all_test then
+						status = 4
+					end
+					if status == 2 and not all_test and region ~= old_region then
+						write_cache(type, "old_region", region)
+					end
+					if status == 2 and not all_test and regex ~= old_regex then
+						write_cache(type, "old_regex", regex)
+					end
 				end
-				if status == 2 and not all_test and region ~= "" and region ~= old_region then
-					write_cache(type, "old_region", region)
-				end
-				if status == 2 and not all_test and regex ~= old_regex then
-					write_cache(type, "old_regex", regex)
-				end
-				return region, old_region
-	  		end
+			end
 		end
 	end
+	return region
 end
 
 function discovery_plus_unlock_test()
 	status = 0
 	local url = "https://us1-prod-direct.discoveryplus.com/token?deviceId=d1a4a5d25212400d1e6985984604d740&realm=go&shortlived=true"
 	local url1 = "https://us1-prod-direct.discoveryplus.com/users/me"
-	local region
+	local region = ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_discovery_plus") or ""
@@ -1446,9 +1445,10 @@ function discovery_plus_unlock_test()
 		token = JSON.parse(token).data.attributes.token
 		local cookie = string.format("-b \"_gcl_au=1.1.858579665.1632206782; _rdt_uuid=1632206782474.6a9ad4f2-8ef7-4a49-9d60-e071bce45e88; _scid=d154b864-8b7e-4f46-90e0-8b56cff67d05; _pin_unauth=dWlkPU1qWTRNR1ZoTlRBdE1tSXdNaTAwTW1Nd0xUbGxORFV0WWpZMU0yVXdPV1l6WldFeQ; _sctr=1|1632153600000; aam_fw=aam%%3D9354365%%3Baam%%3D9040990; aam_uuid=24382050115125439381416006538140778858; st=%s; gi_ls=0; _uetvid=a25161a01aa711ec92d47775379d5e4d; AMCV_BC501253513148ED0A490D45%%40AdobeOrg=-1124106680%%7CMCIDTS%%7C18894%%7CMCMID%%7C24223296309793747161435877577673078228%%7CMCAAMLH-1633011393%%7C9%%7CMCAAMB-1633011393%%7CRKhpRz8krg2tLO6pguXWp5olkAcUniQYPHaMWWgdJ3xzPWQmdj0y%%7CMCOPTOUT-1632413793s%%7CNONE%%7CvVersion%%7C5.2.0; ass=19ef15da-95d6-4b1d-8fa2-e9e099c9cc38.1632408400.1632406594\"", token)
 		local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s %s", UA, cookie, url1))
-		if data and JSON.parse(data) and JSON.parse(data).data and JSON.parse(data).data.attributes and JSON.parse(data).data.attributes.currentLocationSovereignTerritory then
-			region = string.upper(JSON.parse(data).data.attributes.currentLocationTerritory) or string.upper(JSON.parse(data).data.attributes.currentLocationSovereignTerritory)
-			if region then
+		if data and JSON.parse(data) and JSON.parse(data).data and JSON.parse(data).data.attributes and (JSON.parse(data).data.attributes.currentLocationSovereignTerritory or JSON.parse(data).data.attributes.currentLocationTerritory) then
+			region = JSON.parse(data).data.attributes.currentLocationTerritory or JSON.parse(data).data.attributes.currentLocationSovereignTerritory
+			if region ~= "" then
+				region = string.upper(region)
 				status = 2
 				if not datamatch(region, regex) then
 					status = 3
@@ -1457,22 +1457,23 @@ function discovery_plus_unlock_test()
 				elseif old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+				if status == 2 and not all_test and region ~= old_region then
 					write_cache(type, "old_region", region)
 				end
 				if status == 2 and not all_test and regex ~= old_regex then
 					write_cache(type, "old_regex", regex)
 				end
-				return region, old_region
 	  		end
 		end
 	end
+	return region
 end
 
 function bilibili_unlock_test()
 	status = 0
 	local randsession = SYS.exec("cat /dev/urandom 2>/dev/null | head -n 32 | md5sum | head -c 32")
-	local region, httpcode, data, url
+	local region = ""
+	local httpcode, data, url
 	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_bilibili") or "CN"
 	local old_region = get_old_region()
 	if regex == "HK/MO/TW" then
@@ -1481,7 +1482,7 @@ function bilibili_unlock_test()
 	elseif regex == "TW" then
 		url = string.format("https://api.bilibili.com/pgc/player/web/playurl?avid=50762638&cid=100279344&qn=0&type=&otype=json&ep_id=268176&fourk=1&fnver=0&fnval=16&session=%s&module=bangumi", randsession)
 		region = "TW"
-	elseif regex == "CN" then
+	else
 		url = string.format("https://api.bilibili.com/pgc/player/web/playurl?avid=82846771&qn=0&type=&otype=json&ep_id=307247&fourk=1&fnver=0&fnval=16&session=%s&module=bangumi", randsession)
 		region = "CN"
 	end
@@ -1495,22 +1496,22 @@ function bilibili_unlock_test()
 				if old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+				if status == 2 and not all_test and region ~= old_region then
 					write_cache(type, "old_region", region)
 				end
 				if status == 2 and not all_test and regex ~= old_regex then
 					write_cache(type, "old_regex", regex)
 				end
-				return region, old_region
 			end
 		end
 	end
+	return region
 end
 
 function google_not_cn_test()
 	status = 0
 	local url = "https://timeline.google.com"
-	local region
+	local region = ""
 	local httpcode = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -o /dev/null -w %%{http_code} -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))
 	if httpcode then
 		if tonumber(httpcode) == 200 then
@@ -1523,8 +1524,8 @@ function google_not_cn_test()
 			region = "CN"
 			status = 1
 		end
-		return region
 	end
+	return region
 end
 
 function openai_unlock_test()
@@ -1548,8 +1549,6 @@ function openai_unlock_test()
 			region_data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, region_url))
 			if region_data and string.match(region_data, "loc=%a+") then
 				region = string.upper(string.sub(string.match(region_data, "loc=%a+"), 5, -1))
-			end
-			if region then
 				if not datamatch(region, regex) then
 					status = 3
 				elseif old_regex ~= regex and not all_test then
@@ -1557,7 +1556,7 @@ function openai_unlock_test()
 				elseif old_region ~= "" and region ~= old_region and not all_test then
 					status = 4
 				end
-				if status == 2 and not all_test and region ~= "" and region ~= old_region then
+				if status == 2 and not all_test and region ~= old_region then
 					write_cache(type, "old_region", region)
 				end
 				if status == 2 and not all_test and regex ~= old_regex then
@@ -1565,8 +1564,8 @@ function openai_unlock_test()
 				end
 	  		end
 		end
-		return region, old_region
 	end
+	return region
 end
 
 function network_test()
