@@ -26,6 +26,7 @@ function index()
 	entry({"admin", "services", "openclash", "lastversion"},call("action_lastversion"))
 	entry({"admin", "services", "openclash", "save_corever_branch"},call("action_save_corever_branch"))
 	entry({"admin", "services", "openclash", "update"},call("action_update"))
+	entry({"admin", "services", "openclash", "get_last_version"},call("action_get_last_version"))
 	entry({"admin", "services", "openclash", "update_info"},call("action_update_info"))
 	entry({"admin", "services", "openclash", "update_ma"},call("action_update_ma"))
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
@@ -216,9 +217,9 @@ local function coremodel()
 	if opkg and opkg.info("libc") and opkg.info("libc")["libc"] then
 		return opkg.info("libc")["libc"]["Architecture"]
 	else
-		if fs.access("/bin/opkg") then
+		if pkg_type() == "opkg" then
 			return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
-		elseif fs.access("/usr/bin/apk") then
+		else
 			return luci.sys.exec("apk list libc 2>/dev/null |awk '{print $2}'")
 		end
 	end
@@ -236,13 +237,23 @@ local function coremetacv()
 	if not nixio.fs.access(meta_core_path) then
 		return "0"
 	else
-		return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1", meta_core_path))
+		return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1 |tr -d '\n'", meta_core_path))
 	end
 end
 
 local function corelv()
-	luci.sys.call("bash /usr/share/openclash/clash_version.sh")
-	local core_meta_lv = luci.sys.exec("sed -n 3p /tmp/clash_last_version 2>/dev/null")
+	local status = process_status("/usr/share/openclash/clash_version.sh")
+    local core_meta_lv = ""
+    if not status then
+		if fs.access("/tmp/clash_last_version") then
+        	core_meta_lv = luci.sys.exec("sed -n 3p /tmp/clash_last_version 2>/dev/null |tr -d '\n'")
+		else
+			action_get_last_version()
+			core_meta_lv = "loading..."
+		end
+	else
+		core_meta_lv = "loading..."
+	end
 	return core_meta_lv
 end
 
@@ -250,18 +261,28 @@ local function opcv()
 	if opkg and opkg.info("luci-app-openclash") and opkg.info("luci-app-openclash")["luci-app-openclash"] then
 		return "v" .. opkg.info("luci-app-openclash")["luci-app-openclash"]["Version"]
 	else
-		if fs.access("/bin/opkg") then
-			return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}'")
-		elseif fs.access("/usr/bin/apk") then
-			return "v" .. luci.sys.exec("apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\\.[0-9]+)*' | head -1")
+		if pkg_type() == "opkg" then
+			return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}' |tr -d '\n'")
+		else
+			return "v" .. luci.sys.exec("apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\\.[0-9]+)*' | head -1 |tr -d '\n'")
 		end
 	end
 end
 
 local function oplv()
-	local new = luci.sys.call(string.format("bash /usr/share/openclash/openclash_version.sh"))
-	local oplv = luci.sys.exec("sed -n 1p /tmp/openclash_last_version 2>/dev/null")
-	return oplv .. "," .. new
+	local status = process_status("/usr/share/openclash/openclash_version.sh")
+    local oplv = ""
+    if not status then
+		if fs.access("/tmp/openclash_last_version") then
+        	oplv = luci.sys.exec("sed -n 1p /tmp/openclash_last_version 2>/dev/null |tr -d '\n'")
+		else
+			action_get_last_version()
+			oplv = "loading..."
+		end
+	else
+		oplv = "loading..."
+    end
+	return oplv
 end
 
 local function opup()
@@ -1113,6 +1134,15 @@ function action_start()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 			startlog = startlog();
+	})
+end
+
+function action_get_last_version()
+	luci.sys.call("bash /usr/share/openclash/clash_version.sh &")
+	luci.sys.call("bash /usr/share/openclash/openclash_version.sh &")
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+			status = "success"
 	})
 end
 

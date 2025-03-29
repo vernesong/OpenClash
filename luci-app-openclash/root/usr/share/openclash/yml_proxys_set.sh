@@ -1692,8 +1692,8 @@ cat >> "$SERVER_FILE" <<-EOF
   - name: Microsoft
     type: select
     proxies:
-      - DIRECT
       - Proxy
+      - DIRECT
 EOF
 cat >> "$SERVER_FILE" <<-EOF
   - name: AI Suite
@@ -1713,8 +1713,8 @@ cat >> "$SERVER_FILE" <<-EOF
   - name: Apple
     type: select
     proxies:
-      - DIRECT
       - Proxy
+      - DIRECT
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
 if [ -f "/tmp/Proxy_Provider" ]; then
@@ -1741,8 +1741,8 @@ cat >> "$SERVER_FILE" <<-EOF
   - name: Google FCM
     type: select
     proxies:
-      - DIRECT
       - Proxy
+      - DIRECT
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
 if [ -f "/tmp/Proxy_Provider" ]; then
@@ -1910,8 +1910,8 @@ cat >> "$SERVER_FILE" <<-EOF
   - name: Steam
     type: select
     proxies:
-      - DIRECT
       - Proxy
+      - DIRECT
 EOF
 cat /tmp/Proxy_Server >> $SERVER_FILE 2>/dev/null
 if [ -f "/tmp/Proxy_Provider" ]; then
