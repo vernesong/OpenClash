@@ -602,6 +602,9 @@ msgstr "查询更新失败"
 msgid "<New>"
 msgstr "<可更新>"
 
+msgid "Getting Last Version..."
+msgstr "最新版本获取中..."
+
 msgid "Update Core File"
 msgstr "更新内核"
 

@@ -186,6 +186,9 @@
 			release_branch.value = "master";
 		}
 	});
+
+	XHR.poll(300, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_last_version")%>', null, function(x, status) {
+	});
 	
 	XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
@@ -206,28 +209,38 @@
 				core_meta_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
 			}
 			var coremetalvis = status.corelv;
-			if (coremetalvis != status.coremetacv && coremetalvis != "" && coremetalvis != "\n") {
+			if (coremetalvis != status.coremetacv && coremetalvis != "" && coremetalvis != "loading...") {
 			   core_meta_lv.innerHTML = "<b style=color:green>"+coremetalvis+"<%:<New>%></b>";
 			}
-			else if (coremetalvis != "" && coremetalvis == status.coremetacv && coremetalvis != "\n") {
+			else if (coremetalvis != "" && coremetalvis == status.coremetacv && coremetalvis != "loading...") {
 			   core_meta_lv.innerHTML = "<b style=color:green>"+coremetalvis+"</b>";
+			}
+			else if (coremetalvis == "loading...") {
+			   core_meta_lv.innerHTML = "<b style=color:green><%:Getting Last Version...%></b>";
 			}
 			else {
 			   core_meta_lv.innerHTML = "<b style=color:red><%:Unknown%></b>";
 			}
 			var oplv = status.oplv;
-			var arr_op = oplv.split(",");
-			var oplvis = arr_op[0];
-			var new_op = arr_op[1];
 			op_cv.innerHTML = status.opcv ? "<b style=color:green>"+status.opcv+"</b>" : "<b style=color:red><%:Unknown%></b>";
-			if ( new_op == "2" && oplvis != "" && oplvis != "\n") {
-			   op_lv.innerHTML = "<b style=color:green>"+oplvis+"<%:<New>%></b>";
+			if (oplv != "" && oplv != "loading..." && status.opcv) {
+				var oplvck = oplv.match(/\d+(\.\d+)+/)[0].replace(/\./g, "")
+				var opcvck = status.opcv.match(/\d+(\.\d+)+/)[0].replace(/\./g, "")
+				if (oplvck > opcvck) {
+					op_lv.innerHTML = "<b style=color:green>"+oplv+"<%:<New>%></b>";
+				}
+				else {
+					op_lv.innerHTML = "<b style=color:green>"+oplv+"</b>";
+				}
 			}
-			else if (oplvis != "" && oplvis != "\n") {
-			   op_lv.innerHTML = "<b style=color:green>"+oplvis+"</b>";
+			else if (oplv != "" && oplv != "loading...") {
+				op_lv.innerHTML = "<b style=color:green>"+oplv+"</b>";
+			}
+			else if (oplv == "loading...") {
+				op_lv.innerHTML = "<b style=color:green><%:Getting Last Version...%></b>";
 			}
 			else {
-			   op_lv.innerHTML = "<b style=color:red><%:Unknown%></b>";
+				op_lv.innerHTML = "<b style=color:red><%:Unknown%></b>";
 			}
 		}
 	});
