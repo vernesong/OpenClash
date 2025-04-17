@@ -449,6 +449,12 @@ msgstr "自动更新 GeoSite 数据库"
 msgid "Update GeoSite Database"
 msgstr "更新 GeoSite 数据库"
 
+msgid "Auto Update Geo ASN"
+msgstr "自动更新 Geo ASN 数据库"
+
+msgid "Update Geo ASN Database"
+msgstr "更新 Geo ASN 数据库"
+
 msgid "Auto Update Chnroute Lists"
 msgstr "自动更新大陆白名单"
 
@@ -1859,6 +1865,24 @@ msgstr "GEOIP 数据库版本没有更新，停止继续操作..."
 
 msgid "Geoip Database Update Error, Please Try Again Later..."
 msgstr "GEOIP 数据库下载失败，请检查网络或稍后再试..."
+
+msgid "Start Downloading Geo ASN Database..."
+msgstr "开始下载 GEO ASN 数据库..."
+
+msgid "Geo ASN Database Download Success, Check Updated..."
+msgstr "GEO ASN 数据库下载成功，检查数据库版本是否更新..."
+
+msgid "Geo ASN Database Has Been Updated, Starting To Replace The Old Version..."
+msgstr "GEO ASN 数据库版本有更新，开始替换数据库版本..."
+
+msgid "Geo ASN Database Update Successful!"
+msgstr "GEO ASN 数据库更新成功！"
+
+msgid "Updated Geo ASN Database No Change, Do Nothing..."
+msgstr "GEO ASN 数据库版本没有更新，停止继续操作..."
+
+msgid "Geo ASN Database Update Error, Please Try Again Later..."
+msgstr "GEO ASN 数据库下载失败，请检查网络或稍后再试..."
 
 msgid "Start Getting"
 msgstr "开始获取"

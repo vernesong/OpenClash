@@ -890,6 +890,49 @@ o.write = function()
 end
 o:depends("geosite_auto_update", "1")
 
+o = s:taboption("geo_update", Flag, "geoasn_auto_update", font_red..bold_on..translate("Auto Update Geo ASN")..bold_off..font_off)
+o.default = 0
+
+o = s:taboption("geo_update", ListValue, "geoasn_update_week_time", translate("Update Time (Every Week)"))
+o:value("*", translate("Every Day"))
+o:value("1", translate("Every Monday"))
+o:value("2", translate("Every Tuesday"))
+o:value("3", translate("Every Wednesday"))
+o:value("4", translate("Every Thursday"))
+o:value("5", translate("Every Friday"))
+o:value("6", translate("Every Saturday"))
+o:value("0", translate("Every Sunday"))
+o.default = "1"
+o:depends("geosite_auto_update", "1")
+
+o = s:taboption("geo_update", ListValue, "geoasn_update_day_time", translate("Update time (every day)"))
+for t = 0,23 do
+o:value(t, t..":00")
+end
+o.default = "0"
+o:depends("geosite_auto_update", "1")
+
+o = s:taboption("geo_update", Value, "geoasn_custom_url")
+o.title = translate("Custom GeoSite URL")
+o.rmempty = true
+o.description = translate("Custom Geo ASN Data URL, Click Button Below To Refresh After Edit")
+o:value("https://testingcf.jsdelivr.net/gh/xishang0128/geoip@release/GeoLite2-ASN.mmdb", translate("xishang0128-testingcf-jsdelivr-Version")..translate("(Default)"))
+o:value("https://fastly.jsdelivr.net/gh/xishang0128/geoip@release/GeoLite2-ASN.mmdb", translate("xishang0128-fastly-jsdelivr-Version"))
+o.default = "https://testingcf.jsdelivr.net/gh/xishang0128/geoip@release/GeoLite2-ASN.mmdb"
+o:depends("geoasn_auto_update", "1")
+
+o = s:taboption("geo_update", Button, translate("ASN Update")) 	
+o.title = translate("Update Geo ASN Database")
+o.inputtitle = translate("Check And Update")
+o.inputstyle = "reload"
+o.write = function()
+  m.uci:set("openclash", "config", "enable", 1)
+  m.uci:commit("openclash")
+  SYS.call("/usr/share/openclash/openclash_geoasn.sh >/dev/null 2>&1 &")
+  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+end
+o:depends("geoasn_auto_update", "1")
+
 o = s:taboption("chnr_update", Flag, "chnr_auto_update", translate("Auto Update"))
 o.description = translate("Auto Update Chnroute Lists")
 o.default = 0
