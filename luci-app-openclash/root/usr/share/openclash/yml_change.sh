@@ -469,6 +469,9 @@ threads << Thread.new {
       if Value.key?('auto-redir') then
          Value.delete('auto-redir');
       end;
+      if Value.key?('geo-auto-update') then
+         Value['geo-auto-update']=false;
+      end;
    rescue Exception => e
       YAML.LOG('Error: Set General Failed,【' + e.message + '】');
    end;
