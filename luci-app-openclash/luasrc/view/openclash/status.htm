@@ -32,6 +32,53 @@
 .radio-button input[type="radio"]:checked+label {
 	background-color: #1080c1;
 }
+
+.announcement-banner {
+    display: none;
+    background-color: #1080c1;
+    color: white;
+    padding: 8px;
+    margin-bottom: 10px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    height: 24px;
+    width: 70%;
+}
+
+.announcement-content {
+    position: absolute;
+    white-space: nowrap;
+    padding-right: 50px;
+    left: 30px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+#megaphone {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%) scaleX(-1);
+    z-index: 2;
+    filter: brightness(0) invert(1);
+}
+
+.megaphone-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    background-color: #1080c1;
+    z-index: 2;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
 </style>
 </head>
 <%
@@ -41,8 +88,12 @@
 %>
 <fieldset class="cbi-section">
 	<table width="100%">
-	    <tr>
 	  	<td colspan="4" width="100%">
+			<div id="announcement-banner" class="announcement-banner">
+				<div class="megaphone-container"></div>
+				<img id="megaphone" src="/luci-static/resources/openclash/img/megaphone-simple.svg?<%=random%>" loading="lazy" alt="megaphone" width="15px" height="15px">
+				<div id="announcement-content" class="announcement-content"></div>
+			</div>
 	  		<p style="margin: 10px 0; text-align: center">
 				<img id="_logo" src="/luci-static/resources/openclash/img/logo.png?<%=random%>" loading="lazy" width="150px" height="150px" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/logo.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
 			</p>
@@ -449,6 +500,105 @@
 	state_get();
 	clashversion_check();
 	check_core();
+
+	document.addEventListener('DOMContentLoaded', function() {
+		var userLang = navigator.language || navigator.userLanguage; 
+		var isChineseUser = userLang.indexOf('zh') === 0;
+		
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "announcement")%>', null, function(x, status) {
+			if (x && x.status == 200) {
+				var banner = document.getElementById('announcement-banner');
+				var content = document.getElementById('announcement-content');
+				var announcements = [];
+				
+				if (status.content) {
+					try {
+						var contentData = status.content;
+						if (typeof contentData === 'string') {
+							contentData = JSON.parse(contentData);
+						}
+						
+						if (Array.isArray(contentData)) {
+							if (contentData.length > 0 && (contentData[0].zh || contentData[0].en)) {
+								contentData.forEach(function(item) {
+									if (isChineseUser && item.zh) {
+										announcements.push(item.zh);
+									} else if (item.en) {
+										announcements.push(item.en);
+									} else if (item.zh) {
+										announcements.push(item.zh);
+									}
+								});
+							} else {
+								announcements = contentData;
+							}
+						} else if (typeof contentData === 'string' && contentData.trim() !== '') {
+							announcements = [contentData];
+						}
+					} catch (e) {
+						if (typeof status.content === 'string' && status.content.trim() !== '') {
+							announcements = [status.content];
+						}
+					}
+				}
+				
+				if (announcements.length === 0) {
+					banner.style.display = 'none';
+					return;
+				}
+				
+				banner.style.display = 'block';
+				var currentIndex = 0;
+				
+				content.textContent = announcements[currentIndex];
+				
+				var isPaused = false;
+				
+				banner.addEventListener('mouseenter', function() {
+					isPaused = true;
+				});
+				
+				banner.addEventListener('mouseleave', function() {
+					isPaused = false;
+				});
+				
+				setTimeout(function() {
+					var bannerWidth = banner.offsetWidth;
+					var contentWidth = content.offsetWidth;
+					content.style.left = bannerWidth + 'px';
+					
+					var speed = 1;
+					var position = bannerWidth;
+					var pauseCounter = 0;
+					var pauseDuration = 100;
+					
+					function moveText() {
+						if (!isPaused) {
+							if (position < -contentWidth && pauseCounter >= pauseDuration) {
+								currentIndex = (currentIndex + 1) % announcements.length;
+								content.textContent = announcements[currentIndex];
+								contentWidth = content.offsetWidth;
+								position = bannerWidth;
+								pauseCounter = 0;
+							} 
+							else if (position < -contentWidth) {
+								pauseCounter++;
+							}
+							else {
+								position -= speed;
+							}
+							
+							content.style.left = position + 'px';
+						}
+						
+						requestAnimationFrame(moveText);
+					}
+					
+					moveText();
+				}, 100);
+			}
+		});
+	});
 
 	function get_rule_mode() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "rule_mode")%>', null, function(x, status) {

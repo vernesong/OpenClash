@@ -74,6 +74,7 @@ function index()
 	entry({"admin", "services", "openclash", "set_subinfo_url"}, call("set_subinfo_url"))
 	entry({"admin", "services", "openclash", "check_core"}, call("action_check_core"))
 	entry({"admin", "services", "openclash", "core_download"}, call("core_download"))
+	entry({"admin", "services", "openclash", "announcement"}, call("action_announcement"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Plugin Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "config-overwrite"},cbi("openclash/config-overwrite"),_("Overwrite Settings"), 40).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Onekey Create"), 50).leaf = true
@@ -1779,4 +1780,15 @@ function process_status(name)
 	else
 		return luci.sys.call(string.format("ps -w |grep '%s' |grep -v grep >/dev/null", name)) == 0
 	end
+end
+
+function action_announcement()
+	if not fs.access("/tmp/openclash_announcement") then
+		luci.sys.exec("curl -SsL -m 5 -o /tmp/openclash_announcement https://raw.githubusercontent.com/vernesong/OpenClash/dev/announcement 2>/dev/null")	
+	end
+	local info = luci.sys.exec("cat /tmp/openclash_announcement 2>/dev/null") or ""
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		content = info;
+	})
 end
