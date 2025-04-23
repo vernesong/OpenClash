@@ -1783,7 +1783,7 @@ function process_status(name)
 end
 
 function action_announcement()
-	if not fs.access("/tmp/openclash_announcement") then
+	if not fs.access("/tmp/openclash_announcement") or fs.mtime("/tmp/openclash_announcement") < (os.time() - 86400) then
 		luci.sys.exec("curl -SsL -m 5 -o /tmp/openclash_announcement https://raw.githubusercontent.com/vernesong/OpenClash/dev/announcement 2>/dev/null")	
 	end
 	local info = luci.sys.exec("cat /tmp/openclash_announcement 2>/dev/null") or ""
