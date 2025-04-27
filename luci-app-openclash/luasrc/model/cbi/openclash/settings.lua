@@ -790,8 +790,7 @@ o.description = translate("Custom GeoIP MMDB URL, Click Button Below To Refresh 
 o:value("https://testingcf.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb", translate("Alecthw-lite-Version")..translate("(Default mmdb)"))
 o:value("https://testingcf.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/Country.mmdb", translate("Alecthw-Version")..translate("(All Info mmdb)"))
 o:value("https://testingcf.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/Country.mmdb", translate("Hackl0us-Version")..translate("(Only CN)"))
-o:value("https://geolite.clash.dev/Country.mmdb", translate("Geolite.clash.dev"))
-o.default = "http://www.ideame.top/mmdb/Country.mmdb"
+o.default = "https://testingcf.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb"
 
 o = s:taboption("geo_update", Button, translate("GEOIP Update")) 
 o.title = translate("Update GeoIP MMDB")
@@ -903,14 +902,14 @@ o:value("5", translate("Every Friday"))
 o:value("6", translate("Every Saturday"))
 o:value("0", translate("Every Sunday"))
 o.default = "1"
-o:depends("geosite_auto_update", "1")
+o:depends("geoasn_auto_update", "1")
 
 o = s:taboption("geo_update", ListValue, "geoasn_update_day_time", translate("Update time (every day)"))
 for t = 0,23 do
 o:value(t, t..":00")
 end
 o.default = "0"
-o:depends("geosite_auto_update", "1")
+o:depends("geoasn_auto_update", "1")
 
 o = s:taboption("geo_update", Value, "geoasn_custom_url")
 o.title = translate("Custom GeoSite URL")
@@ -960,8 +959,8 @@ o.rmempty = false
 o.description = translate("Custom Chnroute Lists URL, Click Button Below To Refresh After Edit")
 o:value("https://ispip.clang.cn/all_cn.txt", translate("Clang-CN")..translate("(Default)"))
 o:value("https://ispip.clang.cn/all_cn_cidr.txt", translate("Clang-CN-CIDR"))
-o:value("https://fastly.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr.txt", translate("Hackl0us-CN-CIDR-fastly-jsdelivr")..translate("(Large Size)"))
-o:value("https://testingcf.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr.txt", translate("Hackl0us-CN-CIDR-testingcf-jsdelivr")..translate("(Large Size)"))
+o:value("https://fastly.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr.txt", translate("Hackl0us-CN-CIDR-fastly-jsdelivr"))
+o:value("https://testingcf.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/CN-ip-cidr.txt", translate("Hackl0us-CN-CIDR-testingcf-jsdelivr"))
 o.default = "https://ispip.clang.cn/all_cn.txt"
 
 o = s:taboption("chnr_update", Value, "chnr6_custom_url")
