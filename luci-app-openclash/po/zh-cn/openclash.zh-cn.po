@@ -1509,6 +1509,9 @@ msgstr "自定义 GeoIP MMDB 数据库的更新来源，编辑后点击下方按
 msgid "Custom GeoSite Data URL, Click Button Below To Refresh After Edit"
 msgstr "自定义 GeoSite 数据库的更新来源，编辑后点击下方按钮生效"
 
+msgid "Custom Geo ASN Data URL, Click Button Below To Refresh After Edit"
+msgstr "自定义 Geo ASN 数据库的更新来源，编辑后点击下方按钮生效"
+
 msgid "Custom Chnroute Lists URL, Click Button Below To Refresh After Edit"
 msgstr "自定义大陆 IP 段的更新来源，编辑后点击下方按钮生效"
 
@@ -1526,9 +1529,6 @@ msgstr "(全部国家且且包含官方全部信息数据)"
 
 msgid "(Only CN)"
 msgstr "(仅中国数据)"
-
-msgid "(Large Size)"
-msgstr "(18MB大文件，请确保足够的剩余空间)"
 
 msgid "Other Rules Edit"
 msgstr "设置第三方规则"
