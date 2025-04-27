@@ -735,22 +735,22 @@ EOF
     fi
     if [ -n "$udp" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    udp: "$udp"
+    udp: $udp
 EOF
     fi
     if [ -n "$idle_session_check_interval" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    idle-session-check-interval: "$idle_session_check_interval"
+    idle-session-check-interval: $idle_session_check_interval
 EOF
     fi
     if [ -n "$idle_session_timeout" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    idle-session-timeout: "$idle_session_timeout"
+    idle-session-timeout: $idle_session_timeout
 EOF
     fi
     if [ -n "$min_idle_session" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-    min-idle-session: "$min_idle_session"
+    min-idle-session: $min_idle_session
 EOF
     fi
     if [ -n "$sni" ]; then
