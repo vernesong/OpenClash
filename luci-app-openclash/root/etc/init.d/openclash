@@ -1978,7 +1978,7 @@ if [ -n "$FW4" ]; then
                rule="ip6 daddr != @china_ip6_route"
             fi
             [ "$enable_redirect_dns" != "2" ] && rule="$rule ip6 daddr != @china_ip6_route_pass"
-            nft 'add rule inet fw4 openclash_mangle_output_v6 $rule counter return'
+            nft "add rule inet fw4 openclash_mangle_output_v6 $rule counter return"
          fi
 
          if ([ "$ipv6_mode" -eq 1 ] && [ "$enable_v6_udp_proxy" -eq 1 ]) || [ "$ipv6_mode" -eq 3 ]; then
