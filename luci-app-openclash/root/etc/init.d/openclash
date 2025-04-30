@@ -624,6 +624,8 @@ do_run_file()
       ln -s "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
    fi
 
+   ln -s "/usr/share/openclash/ui" /etc/openclash/ui 2>/dev/null
+
    #创建原始备份
    if [ ! -f "$2" ]; then
       cp "$1" "$2"
@@ -648,6 +650,7 @@ start_run_core()
    chown root:root /etc/openclash/core/* 2>/dev/null
    kill_clash
    procd_open_instance "openclash"
+   procd_set_param env SKIP_SAFE_PATH_CHECK="$skip_safe_path_check"
    procd_set_param command /bin/sh -c "$CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
    procd_set_param user "root"
    procd_set_param group "nogroup"
@@ -2963,6 +2966,7 @@ get_config()
    custom_fakeip_filter_mode=$(uci -q get openclash.config.custom_fakeip_filter_mode || echo "blacklist")
    iptables_compat=$(iptables -m owner -h 2>/dev/null | grep "owner match options" || command -v fw4 || echo 0)
    disable_quic_go_gso=$(uci -q get openclash.config.disable_quic_go_gso || echo 0)
+   skip_safe_path_check=$(uci -q get openclash.config.skip_safe_path_check || echo 0)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q commit openclash
 }

@@ -103,6 +103,10 @@ o = s:taboption("op_mode", Flag, "disable_quic_go_gso", translate("Disable quic-
 o.description = font_red..bold_on..translate("Suggestion: If Encountering Issues With QUIC UDP on The Linux Kernel Version Above 6.6, Please Try to Enable.")..bold_off..font_off
 o.default = 0
 
+o = s:taboption("op_mode", Flag, "skip_safe_path_check", translate("Skip Safe Path Check"))
+o.description = font_red..bold_on..translate("Enable If You Want Using Files Not in /etc/openclash in You Config")..bold_off..font_off
+o.default = 0
+
 o = s:taboption("op_mode", Flag, "small_flash_memory", translate("Small Flash Memory"))
 o.description = translate("Move Core And GEOIP Data File To /tmp/etc/openclash For Small Flash Memory Device")
 o.default = 0
