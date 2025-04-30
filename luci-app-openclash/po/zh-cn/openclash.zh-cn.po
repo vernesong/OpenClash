@@ -3506,3 +3506,9 @@ msgstr "禁用 quic-go GSO 支持"
 
 msgid "Suggestion: If Encountering Issues With QUIC UDP on The Linux Kernel Version Above 6.6, Please Try to Enable."
 msgstr "建议： 如果固件 Linux 核心版本在 6.6 以上时遇到 quic-go 的 UDP 连接问题，请尝试启用。"
+
+msgid "Skip Safe Path Check"
+msgstr "跳过安全路径检查"
+
+msgid "Enable If You Want Using Files Not in /etc/openclash in You Config"
+msgstr "如果您希望在配置中使用不在 /etc/openclash 中的文件，请启用该选项"
