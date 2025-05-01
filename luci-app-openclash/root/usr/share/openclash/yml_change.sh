@@ -345,7 +345,7 @@ threads << Thread.new {
       Value['secret']='$2';
       Value['bind-address']='*';
       Value['external-ui']='/usr/share/openclash/ui';
-      Value['external-ui-name']='xd';
+      Value['external-ui-name']='metacubexd';
       if Value.key?('external-ui-url') then
          Value.delete('external-ui-url');
       end;
