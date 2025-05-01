@@ -67,11 +67,11 @@ jobs:
       - name: Install OpenWrt SNAPSHPT SDK
         run: |
           cd ..
-          curl -SLk --connect-timeout 30 --retry 2 "https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst" -o "./tmp/SNAPSDK.tar.zst"
+          curl -SLk --connect-timeout 30 --retry 2 "https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-14.2.0_musl.Linux-x86_64.tar.zst" -o "./tmp/SNAPSDK.tar.zst"
           cd \tmp
           zstd -d SNAPSDK.tar.zst
           tar xf SNAPSDK.tar
-          mv "openwrt-sdk-x86-64_gcc-13.3.0_musl.Linux-x86_64" "SNAPSDK"
+          mv "openwrt-sdk-x86-64_gcc-14.2.0_musl.Linux-x86_64" "SNAPSDK"
 
       - name: Copy OpenClash Source Codes
         run: |
