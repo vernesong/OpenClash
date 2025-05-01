@@ -96,8 +96,10 @@ define Package/$(PKG_NAME)/preinst
 	if [ -f "/etc/config/openclash" ]; then
 		cp -f "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
 		cp -rf "/etc/openclash" "/tmp/openclash" >/dev/null 2>&1
-		cp -rf "/usr/share/openclash/ui/yacd" "/tmp/openclash_yacd" >/dev/null 2>&1
-		cp -rf "/usr/share/openclash/ui/dashboard" "/tmp/openclash_dashboard" >/dev/null 2>&1
+		cp -rf "/etc/openclash/ui/yacd" "/tmp/openclash_yacd" >/dev/null 2>&1
+		cp -rf "/etc/openclash/ui/dashboard" "/tmp/openclash_dashboard" >/dev/null 2>&1
+		cp -rf "/etc/openclash/ui/metacubexd" "/tmp/openclash_metacubexd" >/dev/null 2>&1
+		cp -rf "/etc/openclash/ui/zashboard" "/tmp/openclash_zashboard" >/dev/null 2>&1
 	fi
 	exit 0
 endef
@@ -115,8 +117,10 @@ define Package/$(PKG_NAME)/prerm
 	[ -n "$(pidof clash)" ] && /etc/init.d/openclash stop 2>/dev/null
 	cp -f "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
 	cp -rf "/etc/openclash" "/tmp/openclash" >/dev/null 2>&1
-	cp -rf "/usr/share/openclash/ui/yacd" "/tmp/openclash_yacd" >/dev/null 2>&1
-	cp -rf "/usr/share/openclash/ui/dashboard" "/tmp/openclash_dashboard" >/dev/null 2>&1
+	cp -rf "/etc/openclash/ui/yacd" "/tmp/openclash_yacd" >/dev/null 2>&1
+	cp -rf "/etc/openclash/ui/dashboard" "/tmp/openclash_dashboard" >/dev/null 2>&1
+	cp -rf "/etc/openclash/ui/metacubexd" "/tmp/openclash_metacubexd" >/dev/null 2>&1
+	cp -rf "/etc/openclash/ui/zashboard" "/tmp/openclash_zashboard" >/dev/null 2>&1
 	exit 0
 endef
 

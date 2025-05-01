@@ -21,8 +21,8 @@
    DASH_FILE_TMP="/tmp/dash/"
    github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
    if [ "$DASH_NAME" == "Dashboard" ]; then
-      UNPACK_FILE_DIR="/usr/share/openclash/ui/dashboard/"
-      BACKUP_FILE_DIR="/usr/share/openclash/ui/dashboard_backup/"
+      UNPACK_FILE_DIR="/etc/openclash/ui/dashboard/"
+      BACKUP_FILE_DIR="/etc/openclash/ui/dashboard_backup/"
 		if [ "$DASH_TYPE" == "Official" ]; then
 			DOWNLOAD_PATH="https://codeload.github.com/ayanamist/clash-dashboard/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="clash-dashboard-gh-pages"
@@ -31,8 +31,8 @@
          FILE_PATH_INCLUDE="Razord-meta-gh-pages"
       fi
 	elif [ "$DASH_NAME" == "Yacd" ]; then
-      UNPACK_FILE_DIR="/usr/share/openclash/ui/yacd/"
-      BACKUP_FILE_DIR="/usr/share/openclash/ui/yacd_backup/"
+      UNPACK_FILE_DIR="/etc/openclash/ui/yacd/"
+      BACKUP_FILE_DIR="/etc/openclash/ui/yacd_backup/"
 		if [ "$DASH_TYPE" == "Official" ]; then
 			DOWNLOAD_PATH="https://codeload.github.com/haishanh/yacd/zip/refs/heads/gh-pages"
          FILE_PATH_INCLUDE="yacd-gh-pages"
@@ -41,13 +41,13 @@
          FILE_PATH_INCLUDE="Yacd-meta-gh-pages"
       fi
   elif [ "$DASH_NAME" == "zashboard" ]; then
-      UNPACK_FILE_DIR="/usr/share/openclash/ui/zashboard/"
-      BACKUP_FILE_DIR="/usr/share/openclash/ui/zashboard_backup/"
+      UNPACK_FILE_DIR="/etc/openclash/ui/zashboard/"
+      BACKUP_FILE_DIR="/etc/openclash/ui/zashboard_backup/"
 		DOWNLOAD_PATH="https://codeload.github.com/Zephyruso/zashboard/zip/refs/heads/gh-pages"
       FILE_PATH_INCLUDE="zashboard-gh-pages"
    else
-      UNPACK_FILE_DIR="/usr/share/openclash/ui/metacubexd/"
-      BACKUP_FILE_DIR="/usr/share/openclash/ui/metacubexd_backup/"
+      UNPACK_FILE_DIR="/etc/openclash/ui/metacubexd/"
+      BACKUP_FILE_DIR="/etc/openclash/ui/metacubexd_backup/"
 		DOWNLOAD_PATH="https://codeload.github.com/MetaCubeX/metacubexd/zip/refs/heads/gh-pages"
       FILE_PATH_INCLUDE="metacubexd-gh-pages"
 	fi
