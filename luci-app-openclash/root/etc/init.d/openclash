@@ -649,7 +649,7 @@ start_run_core()
    kill_clash
    procd_open_instance "openclash"
    procd_set_param env SKIP_SAFE_PATH_CHECK="$skip_safe_path_check"
-   procd_set_param env SAFE_PATHS=/usr/share/openclash:/etc/ssl
+   procd_append_param env SAFE_PATHS=/usr/share/openclash:/etc/ssl
    procd_set_param command /bin/sh -c "$CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
    procd_set_param user "root"
    procd_set_param group "nogroup"
