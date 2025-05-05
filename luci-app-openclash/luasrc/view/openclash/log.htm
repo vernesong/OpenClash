@@ -144,6 +144,8 @@ var s;
 var log_len = 0;
 var lv = document.getElementById('cbid.openclash.config.clog');
 var cl = document.getElementById('core_log');
+var animatingOC = false;
+var animatingCore = false;
 
 function get_log_level() {
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "log_level")%>', null, function(x, status) {
@@ -271,6 +273,110 @@ function line_tolocal(str) {
     return trans_local;
 };
 
+function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiveTab) {
+    if ((target === oc_editor && animatingOC) || (target === core_editor && animatingCore) || !isActiveTab) {
+        var content = newLines.join("\n") + (currentContent ? "\n" + currentContent : "");
+        var lines = content.split("\n");
+        if (lines.length > 2000) {
+            lines = lines.slice(0, 1999);
+            lines.push("...");
+            content = lines.join("\n");
+        }
+        
+        if (isEditor) {
+            target.setValue(content);
+            target.refresh();
+        } else {
+            target.innerHTML = content;
+        }
+        return;
+    }
+    
+    if (target === oc_editor || target === lv) {
+        animatingOC = true;
+    } else {
+        animatingCore = true;
+    }
+    
+    var totalLines = newLines.length;
+    var batchSize, interval;
+    
+    if (totalLines <= 10) {
+        batchSize = 1;
+        interval = 90;
+    } else if (totalLines <= 50) {
+        batchSize = 3;
+        interval = 60;
+    } else if (totalLines <= 200) {
+        batchSize = 8;
+        interval = 35;
+    } else if (totalLines <= 500) {
+        batchSize = 15;
+        interval = 25;
+    } else if (totalLines <= 1000) {
+        batchSize = 25;
+        interval = 15;
+    } else {
+        batchSize = 40;
+        interval = 10;
+    }
+    
+    var displayedContent = currentContent || "";
+    var reversedLines = newLines.slice().reverse();
+    var currentBatchCount = 0;
+    var accumulatedContent = "";
+    
+    function displayNextBatch() {
+        if (currentBatchCount >= reversedLines.length) {
+            if (target === oc_editor || target === lv) {
+                animatingOC = false;
+            } else {
+                animatingCore = false;
+            }
+            return;
+        }
+        
+        var nextBatchSize = Math.min(batchSize, reversedLines.length - currentBatchCount);
+        
+        var batchLines = reversedLines.slice(currentBatchCount, currentBatchCount + nextBatchSize);
+        currentBatchCount += nextBatchSize;
+        
+        if (accumulatedContent) {
+            accumulatedContent = batchLines.join("\n") + "\n" + accumulatedContent;
+        } else {
+            accumulatedContent = batchLines.join("\n");
+        }
+        
+        var content = accumulatedContent + (displayedContent ? "\n" + displayedContent : "");
+        
+        var lines = content.split("\n");
+        if (lines.length > 2000) {
+            lines = lines.slice(0, 1999);
+            lines.push("...");
+            content = lines.join("\n");
+        }
+        
+        if (isEditor) {
+            target.setValue(content);
+            target.refresh();
+        } else {
+            target.innerHTML = content;
+        }
+        
+        if (currentBatchCount < reversedLines.length) {
+            setTimeout(displayNextBatch, interval);
+        } else {
+            if (target === oc_editor || target === lv) {
+                animatingOC = false;
+            } else {
+                animatingCore = false;
+            }
+        }
+    }
+    
+    displayNextBatch();
+}
+
 function poll_log(){
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "refresh_log")%>', 
         { 
@@ -288,65 +394,39 @@ function poll_log(){
                         log_len = status.len;
                     }
                     
+                    var activeTabId = 0;
+                    var titles = document.getElementsByName('tab-header');
+                    for(var i=0; i<titles.length; i++){
+                        if(titles[i].className === 'cbi-tab') {
+                            activeTabId = i;
+                            break;
+                        }
+                    }
+                    
                     if (status.oc_log && status.oc_log !== "") {
                         var oc_logs = line_tolocal(status.oc_log);
-                        var ocLogStr = "";
                         
                         if (oc_logs && oc_logs.length > 0) {
-                            ocLogStr = oc_logs.join("\n");
-                        }
-                        
-                        if (oc_editor) {
-                            var currentContent = oc_editor.getValue();
-                            var newContent = ocLogStr + (currentContent ? "\n" + currentContent : "");
-                            
-                            var lines = newContent.split("\n");
-                            if (lines.length > 2000) {
-                                lines = lines.slice(0, 1999);
-                                lines.push("...");
-                                newContent = lines.join("\n");
-                            }
-                            
-                            oc_editor.setValue(newContent);
-                            oc_editor.refresh();
-                        } else if (lv) {
-                            lv.innerHTML = ocLogStr + (lv.innerHTML ? "\n" + lv.innerHTML : "");
-                            var lvLines = lv.innerHTML.split('\n');
-                            if (lvLines.length > 2000) {
-                                lvLines = lvLines.slice(0, 1999);
-                                lvLines.push("...");
-                                lv.innerHTML = lvLines.join('\n');
+                            if (oc_editor) {
+                                var currentContent = oc_editor.getValue();
+                                smoothlyDisplayLogs(oc_logs, oc_editor, true, currentContent, activeTabId === 0);
+                            } else if (lv) {
+                                var currentContent = lv.innerHTML;
+                                smoothlyDisplayLogs(oc_logs, lv, false, currentContent, activeTabId === 0);
                             }
                         }
                     }
                     
                     if (status.core_log && status.core_log !== "") {
                         var core_logs = line_tolocal(status.core_log);
-                        var coreLogStr = "";
                         
                         if (core_logs && core_logs.length > 0) {
-                            coreLogStr = core_logs.join("\n");
-                        }
-                        
-                        if (core_editor) {
-                            var currentCoreContent = core_editor.getValue();
-                            var newCoreContent = coreLogStr + (currentCoreContent ? "\n" + currentCoreContent : "");
-                            var coreLines = newCoreContent.split("\n");
-                            if (coreLines.length > 2000) {
-                                coreLines = coreLines.slice(0, 1999);
-                                coreLines.push("...");
-                                newCoreContent = coreLines.join("\n");
-                            }
-                            
-                            core_editor.setValue(newCoreContent);
-                            core_editor.refresh();
-                        } else if (cl) {
-                            cl.innerHTML = coreLogStr + (cl.innerHTML ? "\n" + cl.innerHTML : "");
-                            var clLines = cl.innerHTML.split('\n');
-                            if (clLines.length > 2000) {
-                                clLines = clLines.slice(0, 1999);
-                                clLines.push("...");
-                                cl.innerHTML = clLines.join('\n');
+                            if (core_editor) {
+                                var currentCoreContent = core_editor.getValue();
+                                smoothlyDisplayLogs(core_logs, core_editor, true, currentCoreContent, activeTabId === 1);
+                            } else if (cl) {
+                                var currentCoreContent = cl.innerHTML;
+                                smoothlyDisplayLogs(core_logs, cl, false, currentCoreContent, activeTabId === 1);
                             }
                         }
                     }
