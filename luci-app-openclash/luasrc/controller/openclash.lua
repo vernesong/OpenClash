@@ -1263,13 +1263,13 @@ function action_refresh_log()
     local start_line = (log_len > 0 and total_lines > log_len) and (log_len + 1) or 1
     
     local core_cmd = string.format(
-        "tail -n +%d '%s' | grep -v -E '%s' | grep -E '%s' | tail -n %d | sed '1!G;h;$!d'",
+        "tail -n +%d '%s' | grep -v -E '%s' | grep -E '%s' | tail -n %d",
         start_line, logfile, exclude_pattern, core_pattern, limit
     )
     local core_raw = luci.sys.exec(core_cmd)
     
     local oc_cmd = string.format(
-        "tail -n +%d '%s' | grep -v -E '%s' | grep -v -E '%s' | tail -n %d | sed '1!G;h;$!d'",
+        "tail -n +%d '%s' | grep -v -E '%s' | grep -v -E '%s' | tail -n %d",
         start_line, logfile, exclude_pattern, core_pattern, limit
     )
     local oc_raw = luci.sys.exec(oc_cmd)
