@@ -274,20 +274,44 @@ function line_tolocal(str) {
 };
 
 function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiveTab) {
+    var scrollPosition = null;
+    var isAtTop = false;
+    
+    if (isEditor && target) {
+        scrollPosition = target.getScrollInfo();
+        isAtTop = (scrollPosition.top < 20);
+    } else if (!isEditor && target) {
+        scrollPosition = target.scrollTop;
+        isAtTop = (target.scrollTop < 20);
+    }
+    
     if ((target === oc_editor && animatingOC) || (target === core_editor && animatingCore) || !isActiveTab) {
-        var content = newLines.join("\n") + (currentContent ? "\n" + currentContent : "");
-        var lines = content.split("\n");
-        if (lines.length > 2000) {
-            lines = lines.slice(0, 1999);
-            lines.push("...");
-            content = lines.join("\n");
+        var content = "";
+        var lines = newLines.slice().reverse();
+        for (var i = 0; i < lines.length; i++) {
+            content += lines[i] + "\n";
+        }
+        content = content + (currentContent || "");
+        
+        var allLines = content.split("\n");
+        if (allLines.length > 2000) {
+            allLines = allLines.slice(0, 1999);
+            allLines.push("...");
+            content = allLines.join("\n");
         }
         
         if (isEditor) {
             target.setValue(content);
+            if (!isAtTop && scrollPosition) {
+                target.scrollTo(scrollPosition.left, scrollPosition.top);
+            }
             target.refresh();
         } else {
+            var oldScrollTop = scrollPosition;
             target.innerHTML = content;
+            if (!isAtTop && oldScrollTop) {
+                target.scrollTop = oldScrollTop;
+            }
         }
         return;
     }
@@ -322,12 +346,12 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
     }
     
     var displayedContent = currentContent || "";
-    var reversedLines = newLines.slice().reverse();
+    var logLines = newLines.slice();
     var currentBatchCount = 0;
     var accumulatedContent = "";
     
     function displayNextBatch() {
-        if (currentBatchCount >= reversedLines.length) {
+        if (currentBatchCount >= logLines.length) {
             if (target === oc_editor || target === lv) {
                 animatingOC = false;
             } else {
@@ -336,9 +360,9 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
             return;
         }
         
-        var nextBatchSize = Math.min(batchSize, reversedLines.length - currentBatchCount);
+        var nextBatchSize = Math.min(batchSize, logLines.length - currentBatchCount);
         
-        var batchLines = reversedLines.slice(currentBatchCount, currentBatchCount + nextBatchSize);
+        var batchLines = logLines.slice(currentBatchCount, currentBatchCount + nextBatchSize).reverse();
         currentBatchCount += nextBatchSize;
         
         if (accumulatedContent) {
@@ -349,21 +373,29 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         
         var content = accumulatedContent + (displayedContent ? "\n" + displayedContent : "");
         
-        var lines = content.split("\n");
-        if (lines.length > 2000) {
-            lines = lines.slice(0, 1999);
-            lines.push("...");
-            content = lines.join("\n");
+        var contentLines = content.split("\n");
+        if (contentLines.length > 2000) {
+            contentLines = contentLines.slice(0, 1999);
+            contentLines.push("...");
+            content = contentLines.join("\n");
         }
         
         if (isEditor) {
+            var currentScrollInfo = isAtTop ? null : target.getScrollInfo();
             target.setValue(content);
+            if (!isAtTop && currentScrollInfo) {
+                target.scrollTo(currentScrollInfo.left, currentScrollInfo.top);
+            }
             target.refresh();
         } else {
+            var currentScrollTop = isAtTop ? null : target.scrollTop;
             target.innerHTML = content;
+            if (!isAtTop && currentScrollTop !== null) {
+                target.scrollTop = currentScrollTop;
+            }
         }
         
-        if (currentBatchCount < reversedLines.length) {
+        if (currentBatchCount < logLines.length) {
             setTimeout(displayNextBatch, interval);
         } else {
             if (target === oc_editor || target === lv) {
