@@ -654,7 +654,7 @@ start_run_core()
    procd_set_param user "root"
    procd_set_param group "nogroup"
    procd_set_param limits nproc="unlimited" as="unlimited" memlock="unlimited" nofile="1000000 1000000"
-   procd_set_param respawn 3600 3 10
+   procd_set_param respawn 300 5 3
    procd_set_param stderr 1
    procd_set_param no_new_privs 1
    procd_close_instance
@@ -795,7 +795,6 @@ check_core_status()
       done >/dev/null 2>&1
       if [ -z "$(echo ${lan_ip} | grep -Eo ${reg4})" ]; then
          LOG_OUT "Error: LAN IP Address Get Error, Please Check The LAN Interface Setting or Choose the Correct Interface in the Setting!"
-         sleep 10
       fi
       if [ "$CORE_HTTP_CODE" != "200" ]; then
          LOG_OUT "Error: Core Status Abnormal, Please Check The Log Infos!"
