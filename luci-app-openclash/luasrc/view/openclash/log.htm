@@ -276,10 +276,33 @@ function line_tolocal(str) {
 function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiveTab) {
     var scrollPosition = null;
     var isAtTop = false;
+    var cursorPos = null;
+    var selectionRange = null;
+    
+    var isFirstLoad = !currentContent || currentContent.trim() === "";
     
     if (isEditor && target) {
         scrollPosition = target.getScrollInfo();
         isAtTop = (scrollPosition.top < 20);
+        
+        if (target.hasFocus()) {
+            cursorPos = target.getCursor();
+            
+            if (cursorPos.line === 0) {
+                cursorPos = null;
+                selectionRange = null;
+            } else if (target.somethingSelected()) {
+                selectionRange = {
+                    from: target.getCursor(true),
+                    to: target.getCursor(false)
+                };
+            } else {
+                selectionRange = null;
+            }
+        } else {
+            cursorPos = null;
+            selectionRange = null;
+        }
     } else if (!isEditor && target) {
         scrollPosition = target.scrollTop;
         isAtTop = (target.scrollTop < 20);
@@ -301,10 +324,36 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         }
         
         if (isEditor) {
+            var addedLines = lines.length;
             target.setValue(content);
+            
             if (!isAtTop && scrollPosition) {
-                target.scrollTo(scrollPosition.left, scrollPosition.top);
+                if (cursorPos) {
+                    cursorPos.line += addedLines;
+                    target.setCursor(cursorPos);
+                    
+                    target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
+                } else {
+                    target.scrollTo(scrollPosition.left, scrollPosition.top);
+                }
+                
+                if (selectionRange) {
+                    selectionRange.from.line += addedLines;
+                    selectionRange.to.line += addedLines;
+                    target.setSelection(selectionRange.from, selectionRange.to);
+                    
+                    target.scrollIntoView({
+                        from: selectionRange.from,
+                        to: selectionRange.to
+                    }, 300);
+                }
+            } else if (isAtTop) {
+                target.scrollTo(0, 0);
+                if (isFirstLoad) {
+                    target.setCursor({line: 0, ch: 0});
+                }
             }
+                        
             target.refresh();
         } else {
             var oldScrollTop = scrollPosition;
@@ -357,6 +406,24 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
             } else {
                 animatingCore = false;
             }
+            
+            if (isEditor && !isAtTop && cursorPos) {
+                cursorPos.line += logLines.length;
+                target.setCursor(cursorPos);
+                
+                if (selectionRange) {
+                    selectionRange.from.line += logLines.length;
+                    selectionRange.to.line += logLines.length;
+                    target.setSelection(selectionRange.from, selectionRange.to);
+                    
+                    target.scrollIntoView({
+                        from: selectionRange.from,
+                        to: selectionRange.to
+                    }, 300);
+                } else {
+                    target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
+                }
+            }
             return;
         }
         
@@ -383,6 +450,7 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         if (isEditor) {
             var currentScrollInfo = isAtTop ? null : target.getScrollInfo();
             target.setValue(content);
+            
             if (!isAtTop && currentScrollInfo) {
                 target.scrollTo(currentScrollInfo.left, currentScrollInfo.top);
             }
@@ -402,6 +470,24 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                 animatingOC = false;
             } else {
                 animatingCore = false;
+            }
+            
+            if (isEditor && !isAtTop && cursorPos) {
+                cursorPos.line += logLines.length;
+                target.setCursor(cursorPos);
+                
+                if (selectionRange) {
+                    selectionRange.from.line += logLines.length;
+                    selectionRange.to.line += logLines.length;
+                    target.setSelection(selectionRange.from, selectionRange.to);
+                    
+                    target.scrollIntoView({
+                        from: selectionRange.from,
+                        to: selectionRange.to
+                    }, 300);
+                } else {
+                    target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
+                }
             }
         }
     }
