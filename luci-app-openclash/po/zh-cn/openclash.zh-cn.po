@@ -2106,8 +2106,8 @@ msgstr "游戏代理为测试功能，不保证规则可用性"
 msgid "Preparation steps:"
 msgstr "准备步骤："
 
-msgid "1. In the <server and policy group management> page, create the policy group and node you are going to use, and apply the configuration (when adding nodes, you must select the policy group you want to join). Policy group type suggestion: fallback, game nodes must be support UDP and not a Vmess"
-msgstr "1、在《服务器与策略组管理》页面创建您准备使用的策略组和节点，并应用配置（节点添加时必须选择要加入的策略组），策略组类型建议: FallBack，游戏节点必须支持 UDP 且不是 Vmess 节点"
+msgid "1. Check the policy group and node you are going to use, Policy group type suggestion: fallback, game nodes must be support UDP and not a Vmess"
+msgstr "1、检查您准备使用的策略组和节点，策略组类型建议: FallBack，游戏节点必须支持 UDP 且不是 Vmess 节点"
 
 msgid "2. Click the <manage third party game rules> or <manage third party rule set> button to enter the rule list and download the rules you want to use"
 msgstr "2、点击《管理第三方游戏规则》或者《管理第三方规则集》按钮进入规则列表下载您要使用的规则"
@@ -2118,8 +2118,8 @@ msgstr "3、在此页面设置您已下载的规则的对应配置文件、策�
 msgid "4. Install the TUN or Meta core"
 msgstr "4、安装 TUN 或者 Meta 内核"
 
-msgid "When setting this page, if the groups is empty, please go to the <server and group management> page to add"
-msgstr "本页设置时如策略组为空，请先到《服务器与策略组管理》页面进行添加"
+msgid "When setting this page, if the groups is empty, please go to the <Onekey Create> page to add"
+msgstr "本页设置时如策略组为空，请先到《一键生成》页面进行添加"
 
 msgid "Introduction to rule set usage: https://wiki.metacubex.one/config/rule-providers/content/"
 msgstr "规则集使用介绍：https://wiki.metacubex.one/config/rule-providers/content/"
