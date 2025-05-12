@@ -1836,7 +1836,7 @@ EOF
 fi
 cat /tmp/Proxy_Provider >> $SERVER_FILE 2>/dev/null
 cat >> "$SERVER_FILE" <<-EOF
-  - name: Disney
+  - name: Disney Plus
     type: select
     proxies:
       - Global TV
@@ -2107,7 +2107,7 @@ ${uci_set}AI_Suite="AI Suite"
 ${uci_set}Netflix="Netflix"
 ${uci_set}Discovery="Discovery Plus"
 ${uci_set}DAZN="DAZN"
-${uci_set}Disney="Disney"
+${uci_set}Disney="Disney Plus"
 ${uci_set}Spotify="Spotify"
 ${uci_set}Steam="Steam"
 ${uci_set}TikTok="TikTok"
@@ -2142,7 +2142,7 @@ ${uci_set}Others="Others"
     ${UCI_DEL_LIST}="Apple TV" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Apple TV" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Google FCM" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Google FCM" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Scholar" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Scholar" >/dev/null 2>&1
-	${UCI_DEL_LIST}="Disney" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Disney" >/dev/null 2>&1
+	${UCI_DEL_LIST}="Disney Plus" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Disney Plus" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Spotify" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Spotify" >/dev/null 2>&1
 	${UCI_DEL_LIST}="Steam" >/dev/null 2>&1 && ${UCI_ADD_LIST}="Steam" >/dev/null 2>&1
     ${UCI_DEL_LIST}="TikTok" >/dev/null 2>&1 && ${UCI_ADD_LIST}="TikTok" >/dev/null 2>&1

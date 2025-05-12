@@ -3,7 +3,7 @@ rules:
 - RULE-SET,HTTPDNS,HTTPDNS
 - RULE-SET,Special,DIRECT
 - RULE-SET,Netflix,Netflix
-- RULE-SET,Disney Plus,Disney
+- RULE-SET,Disney Plus,Disney Plus
 - RULE-SET,YouTube,YouTube
 - RULE-SET,Max,Max
 - RULE-SET,Spotify,Spotify
@@ -17,6 +17,7 @@ rules:
 - RULE-SET,Youku,CN Mainland TV
 - RULE-SET,Abema TV,Asian TV
 - RULE-SET,Bahamut,Asian TV
+- RULE-SET,DMM,Asian TV
 - RULE-SET,Fox+,Asian TV
 - RULE-SET,Hulu Japan,Asian TV
 - RULE-SET,Japonx,Asian TV
@@ -242,6 +243,12 @@ rule-providers:
     behavior: classical
     url: https://testingcf.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Media/Disney%20Plus.yaml
     path: "./Rules/Media/Disney_Plus"
+    interval: 86400
+  DMM:
+    type: http
+    behavior: classical
+    url: https://testingcf.jsdelivr.net/gh/dler-io/Rules@main/Clash/Provider/Media/DMM.yaml
+    path: "./Rules/Media/DMM"
     interval: 86400
   encoreTVB:
     type: http
