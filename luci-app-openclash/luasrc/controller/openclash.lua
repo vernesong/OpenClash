@@ -1688,7 +1688,6 @@ function trans_line_nolabel(data)
 end
 
 function trans_line(data)
-    -- 检查 data 是否为 nil 或空字符串
     if data == nil or data == "" then
         return ""
     end
@@ -1697,7 +1696,6 @@ function trans_line(data)
     local line_trans = ""
     local a = string.find(data, "【")
     
-    -- 如果找不到特殊字符，直接翻译整个字符串并返回
     if not a then
         if string.len(data) >= 19 and string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
             return string.sub(data, 0, 20) .. luci.i18n.translate(string.sub(data, 21, -1))
@@ -1707,7 +1705,6 @@ function trans_line(data)
     end
     
     local b_pos = string.find(data, "】")
-    -- 如果没有找到结束字符，直接翻译整个字符串并返回
     if not b_pos then
         return luci.i18n.translate(data)
     end
@@ -1722,7 +1719,6 @@ function trans_line(data)
         table.insert(no_trans, a)
         table.insert(no_trans, b)
         
-        -- 安全地查找下一对特殊字符
         local next_a = string.find(data, "【", b+1)
         local next_b = string.find(data, "】", b+1)
         
@@ -1734,7 +1730,6 @@ function trans_line(data)
         end
     end
     
-    -- 确保 no_trans 有偶数个元素
     if #no_trans % 2 ~= 0 then
         table.remove(no_trans)
     end
@@ -1743,7 +1738,7 @@ function trans_line(data)
         x = no_trans[k]
         v = no_trans[k+1]
         
-        if x and v then  -- 确保 x 和 v 都不是 nil
+        if x and v then
             if x <= 21 or not string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
                 line_trans = line_trans .. luci.i18n.translate(string.sub(data, d, x - 1)) .. string.sub(data, x, v)
                 d = v + 1
@@ -1783,8 +1778,11 @@ function process_status(name)
 end
 
 function action_announcement()
-	if not fs.access("/tmp/openclash_announcement") or fs.mtime("/tmp/openclash_announcement") < (os.time() - 86400) then
-		luci.sys.exec("curl -SsL -m 5 -o /tmp/openclash_announcement https://raw.githubusercontent.com/vernesong/OpenClash/dev/announcement 2>/dev/null")	
+	if not fs.access("/tmp/openclash_announcement") or fs.readfile("/tmp/openclash_announcement") == "" or fs.mtime("/tmp/openclash_announcement") < (os.time() - 86400) then
+		local HTTP_CODE = luci.sys.exec("curl -SsL -m 5 -w '%{http_code}' -o /tmp/openclash_announcement https://raw.githubusercontent.com/vernesong/OpenClash/dev/announcement 2>/dev/null")
+		if HTTP_CODE ~= "200" then
+			fs.unlink("/tmp/openclash_announcement")
+		end
 	end
 	local info = luci.sys.exec("cat /tmp/openclash_announcement 2>/dev/null") or ""
 	luci.http.prepare_content("application/json")
