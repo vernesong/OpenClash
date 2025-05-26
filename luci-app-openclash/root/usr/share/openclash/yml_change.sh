@@ -345,8 +345,14 @@ threads << Thread.new {
       Value['secret']='$2';
       Value['bind-address']='*';
       Value['external-ui']='/usr/share/openclash/ui';
-      Value['keep-alive-interval']=15;
-      Value['keep-alive-idle']=600;
+      Value['external-ui-name']='metacubexd';
+      if Value.key?('external-ui-url') then
+         Value.delete('external-ui-url');
+      end;
+      if not Value.key?('keep-alive-interval') and not Value.key?('keep-alive-idle') then
+         Value['keep-alive-interval']=15;
+         Value['keep-alive-idle']=600;
+      end;
       if $6 == 1 then
          Value['ipv6']=true;
       else
@@ -466,6 +472,9 @@ threads << Thread.new {
       end;
       if Value.key?('auto-redir') then
          Value.delete('auto-redir');
+      end;
+      if Value.key?('geo-auto-update') then
+         Value['geo-auto-update']=false;
       end;
    rescue Exception => e
       YAML.LOG('Error: Set General Failed,【' + e.message + '】');

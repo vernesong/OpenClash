@@ -648,11 +648,13 @@ start_run_core()
    chown root:root /etc/openclash/core/* 2>/dev/null
    kill_clash
    procd_open_instance "openclash"
+   procd_set_param env SKIP_SAFE_PATH_CHECK="$skip_safe_path_check"
+   procd_append_param env SAFE_PATHS=/usr/share/openclash:/etc/ssl
    procd_set_param command /bin/sh -c "$CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
    procd_set_param user "root"
    procd_set_param group "nogroup"
    procd_set_param limits nproc="unlimited" as="unlimited" memlock="unlimited" nofile="1000000 1000000"
-   procd_set_param respawn 3600 3 10
+   procd_set_param respawn 300 5 3
    procd_set_param stderr 1
    procd_set_param no_new_privs 1
    procd_close_instance
@@ -793,7 +795,6 @@ check_core_status()
       done >/dev/null 2>&1
       if [ -z "$(echo ${lan_ip} | grep -Eo ${reg4})" ]; then
          LOG_OUT "Error: LAN IP Address Get Error, Please Check The LAN Interface Setting or Choose the Correct Interface in the Setting!"
-         sleep 10
       fi
       if [ "$CORE_HTTP_CODE" != "200" ]; then
          LOG_OUT "Error: Core Status Abnormal, Please Check The Log Infos!"
@@ -1978,7 +1979,7 @@ if [ -n "$FW4" ]; then
                rule="ip6 daddr != @china_ip6_route"
             fi
             [ "$enable_redirect_dns" != "2" ] && rule="$rule ip6 daddr != @china_ip6_route_pass"
-            nft 'add rule inet fw4 openclash_mangle_output_v6 $rule counter return'
+            nft "add rule inet fw4 openclash_mangle_output_v6 $rule counter return"
          fi
 
          if ([ "$ipv6_mode" -eq 1 ] && [ "$enable_v6_udp_proxy" -eq 1 ]) || [ "$ipv6_mode" -eq 3 ]; then
@@ -2963,6 +2964,7 @@ get_config()
    custom_fakeip_filter_mode=$(uci -q get openclash.config.custom_fakeip_filter_mode || echo "blacklist")
    iptables_compat=$(iptables -m owner -h 2>/dev/null | grep "owner match options" || command -v fw4 || echo 0)
    disable_quic_go_gso=$(uci -q get openclash.config.disable_quic_go_gso || echo 0)
+   skip_safe_path_check=$(uci -q get openclash.config.skip_safe_path_check || echo 0)
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q commit openclash
 }
@@ -3057,7 +3059,6 @@ stop_service()
 
    LOG_OUT "Step 6: Delete OpenClash Residue File..."
    if [ "$enable" != "1" ]; then
-      
       rm -rf /tmp/clash_last_version >/dev/null 2>&1
       rm -rf /tmp/Proxy_Group >/dev/null 2>&1
       rm -rf /tmp/rules_name >/dev/null 2>&1
@@ -3067,6 +3068,7 @@ stop_service()
       rm -rf /tmp/openclash.change >/dev/null 2>&1
       rm -rf /tmp/openclash_debug.log >/dev/null 2>&1
       rm -rf /tmp/openclash_edit_file_name >/dev/null 2>&1
+      rm -rf /tmp/openclash_announcement >/dev/null 2>&1
       rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
       rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
       rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1

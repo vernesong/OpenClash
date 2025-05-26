@@ -449,6 +449,12 @@ msgstr "自动更新 GeoSite 数据库"
 msgid "Update GeoSite Database"
 msgstr "更新 GeoSite 数据库"
 
+msgid "Auto Update Geo ASN"
+msgstr "自动更新 Geo ASN 数据库"
+
+msgid "Update Geo ASN Database"
+msgstr "更新 Geo ASN 数据库"
+
 msgid "Auto Update Chnroute Lists"
 msgstr "自动更新大陆白名单"
 
@@ -601,6 +607,9 @@ msgstr "查询更新失败"
 
 msgid "<New>"
 msgstr "<可更新>"
+
+msgid "Getting Last Version..."
+msgstr "最新版本获取中..."
 
 msgid "Update Core File"
 msgstr "更新内核"
@@ -1500,6 +1509,9 @@ msgstr "自定义 GeoIP MMDB 数据库的更新来源，编辑后点击下方按
 msgid "Custom GeoSite Data URL, Click Button Below To Refresh After Edit"
 msgstr "自定义 GeoSite 数据库的更新来源，编辑后点击下方按钮生效"
 
+msgid "Custom Geo ASN Data URL, Click Button Below To Refresh After Edit"
+msgstr "自定义 Geo ASN 数据库的更新来源，编辑后点击下方按钮生效"
+
 msgid "Custom Chnroute Lists URL, Click Button Below To Refresh After Edit"
 msgstr "自定义大陆 IP 段的更新来源，编辑后点击下方按钮生效"
 
@@ -1517,9 +1529,6 @@ msgstr "(全部国家且且包含官方全部信息数据)"
 
 msgid "(Only CN)"
 msgstr "(仅中国数据)"
-
-msgid "(Large Size)"
-msgstr "(18MB大文件，请确保足够的剩余空间)"
 
 msgid "Other Rules Edit"
 msgstr "设置第三方规则"
@@ -1857,6 +1866,24 @@ msgstr "GEOIP 数据库版本没有更新，停止继续操作..."
 msgid "Geoip Database Update Error, Please Try Again Later..."
 msgstr "GEOIP 数据库下载失败，请检查网络或稍后再试..."
 
+msgid "Start Downloading Geo ASN Database..."
+msgstr "开始下载 GEO ASN 数据库..."
+
+msgid "Geo ASN Database Download Success, Check Updated..."
+msgstr "GEO ASN 数据库下载成功，检查数据库版本是否更新..."
+
+msgid "Geo ASN Database Has Been Updated, Starting To Replace The Old Version..."
+msgstr "GEO ASN 数据库版本有更新，开始替换数据库版本..."
+
+msgid "Geo ASN Database Update Successful!"
+msgstr "GEO ASN 数据库更新成功！"
+
+msgid "Updated Geo ASN Database No Change, Do Nothing..."
+msgstr "GEO ASN 数据库版本没有更新，停止继续操作..."
+
+msgid "Geo ASN Database Update Error, Please Try Again Later..."
+msgstr "GEO ASN 数据库下载失败，请检查网络或稍后再试..."
+
 msgid "Start Getting"
 msgstr "开始获取"
 
@@ -2079,8 +2106,8 @@ msgstr "游戏代理为测试功能，不保证规则可用性"
 msgid "Preparation steps:"
 msgstr "准备步骤："
 
-msgid "1. In the <server and policy group management> page, create the policy group and node you are going to use, and apply the configuration (when adding nodes, you must select the policy group you want to join). Policy group type suggestion: fallback, game nodes must be support UDP and not a Vmess"
-msgstr "1、在《服务器与策略组管理》页面创建您准备使用的策略组和节点，并应用配置（节点添加时必须选择要加入的策略组），策略组类型建议: FallBack，游戏节点必须支持 UDP 且不是 Vmess 节点"
+msgid "1. Check the policy group and node you are going to use, Policy group type suggestion: fallback, game nodes must be support UDP and not a Vmess"
+msgstr "1、检查您准备使用的策略组和节点，策略组类型建议: FallBack，游戏节点必须支持 UDP 且不是 Vmess 节点"
 
 msgid "2. Click the <manage third party game rules> or <manage third party rule set> button to enter the rule list and download the rules you want to use"
 msgstr "2、点击《管理第三方游戏规则》或者《管理第三方规则集》按钮进入规则列表下载您要使用的规则"
@@ -2091,8 +2118,8 @@ msgstr "3、在此页面设置您已下载的规则的对应配置文件、策�
 msgid "4. Install the TUN or Meta core"
 msgstr "4、安装 TUN 或者 Meta 内核"
 
-msgid "When setting this page, if the groups is empty, please go to the <server and group management> page to add"
-msgstr "本页设置时如策略组为空，请先到《服务器与策略组管理》页面进行添加"
+msgid "When setting this page, if the groups is empty, please go to the <Onekey Create> page to add"
+msgstr "本页设置时如策略组为空，请先到《一键生成》页面进行添加"
 
 msgid "Introduction to rule set usage: https://wiki.metacubex.one/config/rule-providers/content/"
 msgstr "规则集使用介绍：https://wiki.metacubex.one/config/rule-providers/content/"
@@ -3479,3 +3506,9 @@ msgstr "禁用 quic-go GSO 支持"
 
 msgid "Suggestion: If Encountering Issues With QUIC UDP on The Linux Kernel Version Above 6.6, Please Try to Enable."
 msgstr "建议： 如果固件 Linux 核心版本在 6.6 以上时遇到 quic-go 的 UDP 连接问题，请尝试启用。"
+
+msgid "Skip Safe Path Check"
+msgstr "跳过安全路径检查"
+
+msgid "Enable If You Want Using Files Not in /etc/openclash in You Config"
+msgstr "如果您希望在配置中使用不在 /etc/openclash 中的文件，请启用该选项"

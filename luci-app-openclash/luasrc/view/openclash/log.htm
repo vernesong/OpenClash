@@ -92,8 +92,8 @@ ul{
 	<div id="tab" class="cbi-section">
 		<div id="tab-header" class="cbi-tabmenu">
 			<ul class="cbi-tabmenu">
-				<li name="tab-header" class="cbi-tab"><a><%:OpenClash Log%></a></li>
-				<li name="tab-header"  class="cbi-tab-disabled"><a><%:Core Log%></a></li>
+				<li name="tab-header" class="cbi-tab"><a href="#"><%:OpenClash Log%></a></li>
+				<li name="tab-header" class="cbi-tab-disabled"><a href="#"><%:Core Log%></a></li>
 			</ul>
 		</div>
 		<div id="tab-content">
@@ -144,6 +144,8 @@ var s;
 var log_len = 0;
 var lv = document.getElementById('cbid.openclash.config.clog');
 var cl = document.getElementById('core_log');
+var animatingOC = false;
+var animatingCore = false;
 
 function get_log_level() {
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "log_level")%>', null, function(x, status) {
@@ -220,76 +222,339 @@ function p(s) {
 	return s < 10 ? '0' + s: s;
 };
 
-function line_tolocal(str){
-	var strt=new Array();
-	var cstrt=new Array();
-	var cn = 0;
-	var sn = 0;
-	str.trim().split('\n').forEach(function(v, i) {
-		var regex = /(time=)"([^"]*)"/g;
-		var res = regex.exec(v);
-		if (res) {
-			var dt = new Date(res[2]);
-		}
-		else {
-			var dtt = new Date(v.substring(0,19));
-		}
-		if (dt && dt != "Invalid Date"){
-			if (v.indexOf("level=") != -1) {
-				var log_info = v.substring(res[2].length + 7);
-			}
-			else {
-				var log_info = v.substring(res[2].length + 2);
-			}
-			cstrt[cn]=dt.getFullYear()+"-"+p(dt.getMonth()+1)+"-"+p(dt.getDate())+" "+p(dt.getHours())+":"+p(dt.getMinutes())+":"+p(dt.getSeconds())+log_info;
-			cn = cn + 1;
-		}
-		else if (dtt && dtt != "Invalid Date" && v.substring(28,33).indexOf(" ERR ") == -1) {
-			strt[sn]=v;
-			sn = sn + 1;
-		}
-		else{
-			cstrt[cn]=v;
-			cn = cn + 1;
-		}
-	})
-	return [strt,cstrt]
+function line_tolocal(str) {
+    var trans_local = new Array();
+    var local_count = 0;
+
+    
+    str.trim().split('\n').forEach(function(v, i) {
+        var regex = /(time=)"([^"]*)"/g;
+        var res = regex.exec(v);
+        
+        try {
+            if (res) {
+                var dt = new Date(res[2]);
+                
+                if (!isNaN(dt.getTime())) {
+                    if (v.indexOf("level=") != -1) {
+                        var log_info = v.substring(res[2].length + 7);
+                    } else {
+                        var log_info = v.substring(res[2].length + 2);
+                    }
+                    trans_local[local_count] = dt.getFullYear() + "-" + p(dt.getMonth() + 1) + "-" + p(dt.getDate()) + " " + 
+                                          p(dt.getHours()) + ":" + p(dt.getMinutes()) + ":" + p(dt.getSeconds()) + log_info;
+                    local_count++;
+                } else {
+                    trans_local[local_count] = v;
+                    local_count++;
+                }
+            } else {
+                try {
+                    var dtt = new Date(v.substring(0, 19));
+                    
+                    if (!isNaN(dtt.getTime()) && v.substring(0, 19).match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)) {
+                        trans_local[local_count] = v;
+                        local_count++;
+                    } else {
+                        trans_local[local_count] = v;
+                        local_count++;
+                    }
+                } catch (e) {
+                    trans_local[local_count] = v;
+                    local_count++;
+                }
+            }
+        } catch (e) {
+            trans_local[local_count] = v;
+            local_count++;
+        }
+    });
+    
+    return trans_local;
 };
 
+function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiveTab) {
+    var scrollPosition = null;
+    var isAtTop = false;
+    var cursorPos = null;
+    var selectionRange = null;
+    
+    var isFirstLoad = !currentContent || currentContent.trim() === "";
+    
+    if (isEditor && target) {
+        scrollPosition = target.getScrollInfo();
+        isAtTop = (scrollPosition.top < 20);
+        
+        if (target.hasFocus()) {
+            cursorPos = target.getCursor();
+            
+            if (cursorPos.line === 0) {
+                cursorPos = null;
+                selectionRange = null;
+            } else if (target.somethingSelected()) {
+                selectionRange = {
+                    from: target.getCursor(true),
+                    to: target.getCursor(false)
+                };
+            } else {
+                selectionRange = null;
+            }
+        } else {
+            cursorPos = null;
+            selectionRange = null;
+        }
+    } else if (!isEditor && target) {
+        scrollPosition = target.scrollTop;
+        isAtTop = (target.scrollTop < 20);
+    }
+    
+    if ((target === oc_editor && animatingOC) || (target === core_editor && animatingCore) || !isActiveTab) {
+        var content = "";
+        var lines = newLines.slice().reverse();
+        for (var i = 0; i < lines.length; i++) {
+            content += lines[i] + "\n";
+        }
+        content = content + (currentContent || "");
+        
+        var allLines = content.split("\n");
+        if (allLines.length > 2000) {
+            allLines = allLines.slice(0, 1999);
+            allLines.push("...");
+            content = allLines.join("\n");
+        }
+        
+        if (isEditor) {
+            var addedLines = lines.length;
+            target.setValue(content);
+            
+            if (!isAtTop && scrollPosition) {
+                if (cursorPos) {
+                    cursorPos.line += addedLines;
+                    target.setCursor(cursorPos);
+                    
+                    target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
+                } else {
+                    target.scrollTo(scrollPosition.left, scrollPosition.top);
+                }
+                
+                if (selectionRange) {
+                    selectionRange.from.line += addedLines;
+                    selectionRange.to.line += addedLines;
+                    target.setSelection(selectionRange.from, selectionRange.to);
+                    
+                    target.scrollIntoView({
+                        from: selectionRange.from,
+                        to: selectionRange.to
+                    }, 300);
+                }
+            } else if (isAtTop) {
+                target.scrollTo(0, 0);
+                if (isFirstLoad) {
+                    target.setCursor({line: 0, ch: 0});
+                }
+            }
+                        
+            target.refresh();
+        } else {
+            var oldScrollTop = scrollPosition;
+            target.innerHTML = content;
+            if (!isAtTop && oldScrollTop) {
+                target.scrollTop = oldScrollTop;
+            }
+        }
+        return;
+    }
+    
+    if (target === oc_editor || target === lv) {
+        animatingOC = true;
+    } else {
+        animatingCore = true;
+    }
+    
+    var totalLines = newLines.length;
+    var batchSize, interval;
+    
+    if (totalLines <= 10) {
+        batchSize = 1;
+        interval = 90;
+    } else if (totalLines <= 50) {
+        batchSize = 3;
+        interval = 60;
+    } else if (totalLines <= 200) {
+        batchSize = 8;
+        interval = 35;
+    } else if (totalLines <= 500) {
+        batchSize = 15;
+        interval = 25;
+    } else if (totalLines <= 1000) {
+        batchSize = 25;
+        interval = 15;
+    } else {
+        batchSize = 40;
+        interval = 10;
+    }
+    
+    var displayedContent = currentContent || "";
+    var logLines = newLines.slice();
+    var currentBatchCount = 0;
+    var accumulatedContent = "";
+    
+    function displayNextBatch() {
+        if (currentBatchCount >= logLines.length) {
+            if (target === oc_editor || target === lv) {
+                animatingOC = false;
+            } else {
+                animatingCore = false;
+            }
+            
+            if (isEditor && !isAtTop && cursorPos) {
+                cursorPos.line += logLines.length;
+                target.setCursor(cursorPos);
+                
+                if (selectionRange) {
+                    selectionRange.from.line += logLines.length;
+                    selectionRange.to.line += logLines.length;
+                    target.setSelection(selectionRange.from, selectionRange.to);
+                    
+                    target.scrollIntoView({
+                        from: selectionRange.from,
+                        to: selectionRange.to
+                    }, 300);
+                } else {
+                    target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
+                }
+            }
+            return;
+        }
+        
+        var nextBatchSize = Math.min(batchSize, logLines.length - currentBatchCount);
+        
+        var batchLines = logLines.slice(currentBatchCount, currentBatchCount + nextBatchSize).reverse();
+        currentBatchCount += nextBatchSize;
+        
+        if (accumulatedContent) {
+            accumulatedContent = batchLines.join("\n") + "\n" + accumulatedContent;
+        } else {
+            accumulatedContent = batchLines.join("\n");
+        }
+        
+        var content = accumulatedContent + (displayedContent ? "\n" + displayedContent : "");
+        
+        var contentLines = content.split("\n");
+        if (contentLines.length > 2000) {
+            contentLines = contentLines.slice(0, 1999);
+            contentLines.push("...");
+            content = contentLines.join("\n");
+        }
+        
+        if (isEditor) {
+            var currentScrollInfo = isAtTop ? null : target.getScrollInfo();
+            target.setValue(content);
+            
+            if (!isAtTop && currentScrollInfo) {
+                target.scrollTo(currentScrollInfo.left, currentScrollInfo.top);
+            }
+            target.refresh();
+        } else {
+            var currentScrollTop = isAtTop ? null : target.scrollTop;
+            target.innerHTML = content;
+            if (!isAtTop && currentScrollTop !== null) {
+                target.scrollTop = currentScrollTop;
+            }
+        }
+        
+        if (currentBatchCount < logLines.length) {
+            setTimeout(displayNextBatch, interval);
+        } else {
+            if (target === oc_editor || target === lv) {
+                animatingOC = false;
+            } else {
+                animatingCore = false;
+            }
+            
+            if (isEditor && !isAtTop && cursorPos) {
+                cursorPos.line += logLines.length;
+                target.setCursor(cursorPos);
+                
+                if (selectionRange) {
+                    selectionRange.from.line += logLines.length;
+                    selectionRange.to.line += logLines.length;
+                    target.setSelection(selectionRange.from, selectionRange.to);
+                    
+                    target.scrollIntoView({
+                        from: selectionRange.from,
+                        to: selectionRange.to
+                    }, 300);
+                } else {
+                    target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
+                }
+            }
+        }
+    }
+    
+    displayNextBatch();
+}
+
 function poll_log(){
-XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "refresh_log")%>', {log_len: log_len},
-	function(x, status) {
-		if ( x && x.status == 200 ) {
-			if (status && status.log != "" && lv && cl) {
-				var log = line_tolocal(status.log);
-				var lines = log[0];
-				var clines = log[1];
-				if (lines != "" || clines != "") {
-					if (lines != "") {
-						lv.innerHTML = lines.join('\n')+ (log_len != 0 ? '\n' : '') + lv.innerHTML;
-						oc_editor.setValue(lv.value);
-						oc_editor.refresh();
-					}
-					if (clines != "") {
-						if (lines[0] != "..." && lines[lines.length-1] != "...") {
-							cl.innerHTML = clines.join('\n') + (log_len != 0 ? '\n' : '') + cl.innerHTML;
-						}
-						else {
-							cl.innerHTML = clines.join('\n') + (log_len != 0 ? '\n' : cl.innerHTML + '\n...');
-						}
-						core_editor.setValue(cl.value);
-						core_editor.refresh();
-					}
-					log_len = status.len;
-					//lv.innerHTML = x.responseText.split('\n').reverse().join('\n')+lv.innerHTML;
-				}
-			}
-		}
-	}
-);
-	r=setTimeout("poll_log()",1000*2);
+    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "refresh_log")%>', 
+        { 
+            log_len: log_len
+        },
+        function(x, status) {
+            if (x && x.status == 200) {
+                if (status) {
+                    if (!status.update) {
+                        r = setTimeout("poll_log()", 2000);
+                        return;
+                    }
+                    
+                    if (status.len) {
+                        log_len = status.len;
+                    }
+                    
+                    var activeTabId = 0;
+                    var titles = document.getElementsByName('tab-header');
+                    for(var i=0; i<titles.length; i++){
+                        if(titles[i].className === 'cbi-tab') {
+                            activeTabId = i;
+                            break;
+                        }
+                    }
+                    
+                    if (status.oc_log && status.oc_log !== "") {
+                        var oc_logs = line_tolocal(status.oc_log);
+                        
+                        if (oc_logs && oc_logs.length > 0) {
+                            if (oc_editor) {
+                                var currentContent = oc_editor.getValue();
+                                smoothlyDisplayLogs(oc_logs, oc_editor, true, currentContent, activeTabId === 0);
+                            } else if (lv) {
+                                var currentContent = lv.innerHTML;
+                                smoothlyDisplayLogs(oc_logs, lv, false, currentContent, activeTabId === 0);
+                            }
+                        }
+                    }
+                    
+                    if (status.core_log && status.core_log !== "") {
+                        var core_logs = line_tolocal(status.core_log);
+                        
+                        if (core_logs && core_logs.length > 0) {
+                            if (core_editor) {
+                                var currentCoreContent = core_editor.getValue();
+                                smoothlyDisplayLogs(core_logs, core_editor, true, currentCoreContent, activeTabId === 1);
+                            } else if (cl) {
+                                var currentCoreContent = cl.innerHTML;
+                                smoothlyDisplayLogs(core_logs, cl, false, currentCoreContent, activeTabId === 1);
+                            }
+                        }
+                    }
+                }
+            }
+            r = setTimeout("poll_log()", 2000);
+        }
+    );
 };
- 
+
 window.onload = function(){
     var titles = document.getElementsByName('tab-header');
     var divs = document.getElementsByClassName('dom');
@@ -297,22 +562,30 @@ window.onload = function(){
     for(var i=0; i<titles.length; i++){
         var li = titles[i];
         li.id = i;
-        li.onclick = function(){
-            for(var j=0; j<titles.length; j++){
-                titles[j].className = 'cbi-tab-disabled';
-                divs[j].style.display = 'none';
-            }
-            this.className = 'cbi-tab';
-            divs[this.id].style.display = 'block';
+        function handleTabSwitch(tab) {
+            return function(e) {
+                for(var j=0; j<titles.length; j++){
+                    titles[j].className = 'cbi-tab-disabled';
+                    divs[j].style.display = 'none';
+                }
+                tab.className = 'cbi-tab';
+                divs[tab.id].style.display = 'block';
+                
+                if(tab.id == 0 && typeof oc_editor !== 'undefined') {
+                    setTimeout(function(){
+                        oc_editor.refresh();
+                    }, 10);
+                } else if(tab.id == 1 && typeof core_editor !== 'undefined') {
+                    setTimeout(function(){
+                        core_editor.refresh();
+                    }, 10);
+                }
+            };
         }
-        li.onTouchStart = function(){
-            for(var j=0; j<titles.length; j++){
-                titles[j].className = 'cbi-tab-disabled';
-                divs[j].style.display = 'none';
-            }
-            this.className = 'cbi-tab';
-            divs[this.id].style.display = 'block';
-        }
+        
+        // 正确绑定事件
+        li.onclick = handleTabSwitch(li);
+        li.ontouchstart = handleTabSwitch(li);
     }
     get_log_level();
     poll_log();

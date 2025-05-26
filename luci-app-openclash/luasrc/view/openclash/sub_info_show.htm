@@ -24,37 +24,73 @@
 }
 
 .sub_setting{
-	display: inline-block;
-	white-space: nowrap;
-	margin: 0 auto;
-	opacity: 1;
-	vertical-align: middle;
+    display: inline-block;
+    white-space: nowrap;
+    margin: 0 auto;
+    opacity: 1;
+    vertical-align: middle;
+    line-height: 0; /* 消除行高影响 */
 }
 
-.sub_div{
-	white-space: nowrap;
+.sub_setting img {
+    vertical-align: middle; /* 确保图标垂直居中 */
+    display: inline-block;
 }
 
+/* 日间模式样式 */
 .text_show{
-	color: #000000;
-  	text-shadow: 
-		-0.7px -0.7px 0 #ffffff,
-		0.7px -0.7px 0 #ffffff,
-		-0.7px  0.7px 0 #ffffff,
-		0.7px  0.7px 0 #ffffff;
+    color: #333333;
 }
 
-:root[data-darkmode="true"] {
+.progress_bar_bg {
+    border: 1px solid #999999;
+    background-color: #f5f5f5;
+}
 
-	#icon_wrench {
-		-webkit-filter: invert(1);
-		filter: invert(1);
-	}
-	
-	#icon_arrow {
-		-webkit-filter: invert(1);
-		filter: invert(1);
-	}
+.progress_bar_high {
+    background-color: #9edd9e;
+}
+
+.progress_bar_medium {
+    background-color: #ffc99f;
+}
+
+.progress_bar_low {
+    background-color: #ffb9b9;
+}
+
+/* 夜间模式样式 */
+:root[data-darkmode="true"] {
+    #icon_wrench {
+        -webkit-filter: invert(1);
+        filter: invert(1);
+    }
+    
+    #icon_arrow {
+        -webkit-filter: invert(1);
+        filter: invert(1);
+    }
+
+    .text_show{
+        color: #e0e0e0;
+    }
+    
+    .progress_bar_bg {
+        border: 1px solid #666666;
+        background-color: #333333;
+    }
+    
+    .progress_bar_high {
+        background-color: #5da05d;
+    }
+    
+    .progress_bar_medium {
+        background-color: #cc8550;
+    }
+    
+    .progress_bar_low {
+        background-color: #cc6262;
+    }
 }
 
 </style>
@@ -105,10 +141,14 @@ if (isDarkBackground(document.body)) {
 
 function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
 		return String.format(
-			'<div style="width:250px; max-width:500px; position:relative; border:1px solid #999999; border-radius: 6px">' +
-			(pc >= 50 ? '<div style="background-color:#9edd9e; width:%d%%; height:36px; border-radius: 6px">' : (pc < 50 && pc >= 20 ? '<div style="background-color:#ffc99f; width:%d%%; height:35px">' : '<div style="background-color:#ffb9b9; width:%d%%; height:35px">')) +
-			'<div style="position:absolute; left:0;' + (tr == "null" ? 'top:12px;' : 'top:0;') + 'text-align:center; width:100%%">' +
-			'<small class="text_show">%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') + (tr == "null" ? '<div style="visibility: hidden;">' : '<div style="visibility: visible;">') + '%s (<%:Remaining%> %s <%:days%>)</small>' +
+			'<div class="progress_bar_bg" style="width:250px; max-width:500px; position:relative; border-radius: 6px">' +
+			(pc >= 50 ? '<div class="progress_bar_high" style="width:%d%%; height:36px; border-radius: 6px">' : 
+			(pc < 50 && pc >= 20 ? '<div class="progress_bar_medium" style="width:%d%%; height:36px; border-radius: 6px">' : 
+			'<div class="progress_bar_low" style="width:%d%%; height:36px; border-radius: 6px">')) +
+			'<div style="position:absolute; left:0;' + (tr == "null" ? 'top:12px;' : 'top:0px;') + 'text-align:center; width:100%%">' +
+			'<small class="text_show">%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') + 
+			(tr == "null" ? '<div style="visibility: hidden;">' : '<div style="visibility: visible;">') + 
+			'%s (<%:Remaining%> %s <%:days%>)</small>' +
 			'</div>' +
 			'</div>' +
 			'</div>', pc, v, m, pc, t, tr

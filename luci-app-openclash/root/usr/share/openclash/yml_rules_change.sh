@@ -335,10 +335,11 @@ yml_other_set()
          .gsub(/,[\s]?Apple TV$/, ',$AppleTV#delete_')
          .gsub(/,[\s]?Scholar$/, ',$Scholar#delete_')
          .gsub(/,[\s]?Netflix$/, ',$Netflix#delete_')
-         .gsub(/,[\s]?Disney$/, ',$Disney#delete_')
+         .gsub(/,[\s]?Disney Plus$/, ',$Disney#delete_')
          .gsub(/,[\s]?Spotify$/, ',$Spotify#delete_')
          .gsub(/,[\s]?AI Suite$/, ',$AI_Suite#delete_')
          .gsub(/,[\s]?Steam$/, ',$Steam#delete_')
+         .gsub(/,[\s]?TikTok$/, ',$TikTok#delete_')
          .gsub(/,[\s]?miHoYo$/, ',$miHoYo#delete_')
          .gsub(/,[\s]?AdBlock$/, ',$AdBlock#delete_')
          .gsub(/,[\s]?HTTPDNS$/, ',$HTTPDNS#delete_')
@@ -435,7 +436,7 @@ yml_other_set()
                end;
             end;
             Value['rules'].to_a.collect!{|x|x.to_s
-            .gsub(/GEOIP,([^,]+),([^,]+)(,.*)?/, 'GEOIP,\1,DIRECT\3')
+            .gsub(/GEOIP,([A-Z]{2}),([^,]+)(,.*)?/, 'GEOIP,\1,DIRECT\3')
             .gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')};
          end;
       rescue Exception => e
@@ -952,6 +953,7 @@ yml_other_rules_get()
    config_get "Disney" "$section" "Disney" ""
    config_get "Spotify" "$section" "Spotify" ""
    config_get "Steam" "$section" "Steam" ""
+   config_get "TikTok" "$section" "TikTok" "$GlobalTV"
    config_get "AdBlock" "$section" "AdBlock" ""
    config_get "HTTPDNS" "$section" "HTTPDNS" "REJECT"
    config_get "Netease_Music" "$section" "Netease_Music" ""
@@ -1004,6 +1006,7 @@ if [ "$1" != "0" ]; then
     || [ -z "$(grep -F "$AI_Suite" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Spotify" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$Steam" /tmp/Proxy_Group)" ]\
+    || [ -z "$(grep -F "$TikTok" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$miHoYo" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$AdBlock" /tmp/Proxy_Group)" ]\
     || [ -z "$(grep -F "$HTTPDNS" /tmp/Proxy_Group)" ]\
