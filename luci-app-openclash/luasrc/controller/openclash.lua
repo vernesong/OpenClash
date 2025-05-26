@@ -26,6 +26,7 @@ function index()
 	entry({"admin", "services", "openclash", "lastversion"},call("action_lastversion"))
 	entry({"admin", "services", "openclash", "save_corever_branch"},call("action_save_corever_branch"))
 	entry({"admin", "services", "openclash", "update"},call("action_update"))
+	entry({"admin", "services", "openclash", "get_last_version"},call("action_get_last_version"))
 	entry({"admin", "services", "openclash", "update_info"},call("action_update_info"))
 	entry({"admin", "services", "openclash", "update_ma"},call("action_update_ma"))
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
@@ -73,6 +74,7 @@ function index()
 	entry({"admin", "services", "openclash", "set_subinfo_url"}, call("set_subinfo_url"))
 	entry({"admin", "services", "openclash", "check_core"}, call("action_check_core"))
 	entry({"admin", "services", "openclash", "core_download"}, call("core_download"))
+	entry({"admin", "services", "openclash", "announcement"}, call("action_announcement"))
 	entry({"admin", "services", "openclash", "settings"},cbi("openclash/settings"),_("Plugin Settings"), 30).leaf = true
 	entry({"admin", "services", "openclash", "config-overwrite"},cbi("openclash/config-overwrite"),_("Overwrite Settings"), 40).leaf = true
 	entry({"admin", "services", "openclash", "servers"},cbi("openclash/servers"),_("Onekey Create"), 50).leaf = true
@@ -216,9 +218,9 @@ local function coremodel()
 	if opkg and opkg.info("libc") and opkg.info("libc")["libc"] then
 		return opkg.info("libc")["libc"]["Architecture"]
 	else
-		if fs.access("/bin/opkg") then
+		if pkg_type() == "opkg" then
 			return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
-		elseif fs.access("/usr/bin/apk") then
+		else
 			return luci.sys.exec("apk list libc 2>/dev/null |awk '{print $2}'")
 		end
 	end
@@ -236,13 +238,23 @@ local function coremetacv()
 	if not nixio.fs.access(meta_core_path) then
 		return "0"
 	else
-		return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1", meta_core_path))
+		return luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1 |tr -d '\n'", meta_core_path))
 	end
 end
 
 local function corelv()
-	luci.sys.call("bash /usr/share/openclash/clash_version.sh")
-	local core_meta_lv = luci.sys.exec("sed -n 3p /tmp/clash_last_version 2>/dev/null")
+	local status = process_status("/usr/share/openclash/clash_version.sh")
+    local core_meta_lv = ""
+    if not status then
+		if fs.access("/tmp/clash_last_version") then
+        	core_meta_lv = luci.sys.exec("sed -n 3p /tmp/clash_last_version 2>/dev/null |tr -d '\n'")
+		else
+			action_get_last_version()
+			core_meta_lv = "loading..."
+		end
+	else
+		core_meta_lv = "loading..."
+	end
 	return core_meta_lv
 end
 
@@ -250,18 +262,28 @@ local function opcv()
 	if opkg and opkg.info("luci-app-openclash") and opkg.info("luci-app-openclash")["luci-app-openclash"] then
 		return "v" .. opkg.info("luci-app-openclash")["luci-app-openclash"]["Version"]
 	else
-		if fs.access("/bin/opkg") then
-			return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}'")
-		elseif fs.access("/usr/bin/apk") then
-			return "v" .. luci.sys.exec("apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\\.[0-9]+)*' | head -1")
+		if pkg_type() == "opkg" then
+			return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print \"v\"$2}' |tr -d '\n'")
+		else
+			return "v" .. luci.sys.exec("apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\\.[0-9]+)*' | head -1 |tr -d '\n'")
 		end
 	end
 end
 
 local function oplv()
-	local new = luci.sys.call(string.format("bash /usr/share/openclash/openclash_version.sh"))
-	local oplv = luci.sys.exec("sed -n 1p /tmp/openclash_last_version 2>/dev/null")
-	return oplv .. "," .. new
+	local status = process_status("/usr/share/openclash/openclash_version.sh")
+    local oplv = ""
+    if not status then
+		if fs.access("/tmp/openclash_last_version") then
+        	oplv = luci.sys.exec("sed -n 1p /tmp/openclash_last_version 2>/dev/null |tr -d '\n'")
+		else
+			action_get_last_version()
+			oplv = "loading..."
+		end
+	else
+		oplv = "loading..."
+    end
+	return oplv
 end
 
 local function opup()
@@ -680,38 +702,61 @@ function sub_info_get()
 						if string.match(info, "expire=%d+") then
 							day_expire = tonumber(string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
 						end
-						expire = os.date("%Y-%m-%d", day_expire) or "null"
-						if day_expire and os.time() <= day_expire then
+
+						if day_expire and day_expire == 0 then
+							expire = luci.i18n.translate("Long-term")
+						elseif day_expire then
+							expire = os.date("%Y-%m-%d", day_expire) or "null"
+						else
+							expire = "null"
+						end
+
+						if day_expire and day_expire ~= 0 and os.time() <= day_expire then
 							day_left = math.ceil((day_expire - os.time()) / (3600*24))
 							if math.ceil(day_left / 365) > 50 then
 								day_left = "∞"
 							end
+						elseif day_expire and day_expire == 0 then
+							day_left = "∞"
 						elseif day_expire == nil then
 							day_left = "null"
 						else
 							day_left = 0
 						end
-						if used and total and used <= total then
-							percent = string.format("%.1f",((total-used)/total)*100) or nil
-							surplus = fs.filesize(total - used) or "null"
+						
+						if used and total and used <= total and total > 0 then
+							percent = string.format("%.1f",((total-used)/total)*100) or "100"
+							surplus = fs.filesize(total - used)
+						elseif used and total and used > total and total > 0 then
+							percent = "0"
+							surplus = "-"..fs.filesize(total - used)
+						elseif used and total and used < total and total == 0.0 then
+							percent = "0"
+							surplus = fs.filesize(total - used)
+						elseif used and total and used == total and total == 0.0 then
+							percent = "0"
+							surplus = "0.0 KB"
+						elseif used and total and used > total and total == 0.0 then
+							percent = "100"
+							surplus = fs.filesize(total - used)
 						elseif used == nil and total and total > 0.0 then
 							percent = 100
-							surplus = total
-						elseif total and total == 0.0 then
+							surplus = fs.filesize(total)
+						elseif used == nil and total and total == 0.0 then
 							percent = 100
 							surplus = "∞"
 						else
 							percent = 0
 							surplus = "null"
 						end
-						if total and total > 0.0 then
-							total = fs.filesize(total) or "null"
+						if total and total > 0 then
+							total = fs.filesize(total)
 						elseif total and total == 0.0 then
 							total = "∞"
 						else
 							total = "null"
 						end
-						used = fs.filesize(used) or "null"
+						used = fs.filesize(used)
 						sub_info = "Successful"
 					else
 						sub_info = "No Sub Info Found"
@@ -1093,6 +1138,15 @@ function action_start()
 	})
 end
 
+function action_get_last_version()
+	luci.sys.call("bash /usr/share/openclash/clash_version.sh &")
+	luci.sys.call("bash /usr/share/openclash/openclash_version.sh &")
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+			status = "success"
+	})
+end
+
 function action_update()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
@@ -1177,81 +1231,87 @@ function action_download_rule()
 end
 
 function action_refresh_log()
-	luci.http.prepare_content("application/json")
-	local logfile="/tmp/openclash.log"
-	local file = io.open(logfile, "r+")
-	local info, len, line, lens, cache, ex_match, line_trans
-	local data = ""
-	local limit = 1000
-	local log_tb = {}
-	local log_len = tonumber(luci.http.formvalue("log_len")) or 0
-	if file == nil then
- 		return nil
- 	end
- 	file:seek("set")
- 	info = file:read("*all")
- 	info = info:reverse()
- 	file:close()
- 	cache, len = string.gsub(info, '[^\n]+', "")
- 	if len == log_len then return nil end
-	if log_len == 0 then
-		if len > limit then lens = limit else lens = len end
-	else
-		lens = len - log_len
-	end
-	string.gsub(info, '[^\n]+', function(w) table.insert(log_tb, w) end, lens)
-	for i=1, lens do
-		line = log_tb[i]:reverse()
-		line_trans = line
-		ex_match = false
-		core_match = false
-		time_format = false
-		while true do
-			ex_keys = {"UDP%-Receive%-Buffer%-Size", "^Sec%-Fetch%-Mode", "^User%-Agent", "^Access%-Control", "^Accept", "^Origin", "^Referer", "^Connection", "^Pragma", "^Cache-"}
-			for key=1, #ex_keys do
-				if string.find (line, ex_keys[key]) then
-					ex_match = true
-					break
-				end
+    luci.http.prepare_content("application/json")
+    local logfile = "/tmp/openclash.log"
+    local log_len = tonumber(luci.http.formvalue("log_len")) or 0
+    
+    if not fs.access(logfile) then
+        luci.http.write_json({
+            len = 0,
+            update = false,
+            core_log = "",
+            oc_log = ""
+        })
+        return
+    end
+    
+    local total_lines = tonumber(luci.sys.exec("wc -l < " .. logfile)) or 0
+    
+    if total_lines == log_len and log_len > 0 then
+        luci.http.write_json({
+            len = total_lines,
+            update = false,
+            core_log = "",
+            oc_log = ""
+        })
+        return
+    end
+    
+    local exclude_pattern = "UDP%-Receive%-Buffer%-Size|^Sec%-Fetch%-Mode|^User%-Agent|^Access%-Control|^Accept|^Origin|^Referer|^Connection|^Pragma|^Cache%-"
+    local core_pattern = " DBG | INF |level=| WRN | ERR | FTL "
+    local limit = 1000
+    local start_line = (log_len > 0 and total_lines > log_len) and (log_len + 1) or 1
+    
+    local core_cmd = string.format(
+        "tail -n +%d '%s' | grep -v -E '%s' | grep -E '%s' | tail -n %d",
+        start_line, logfile, exclude_pattern, core_pattern, limit
+    )
+    local core_raw = luci.sys.exec(core_cmd)
+    
+    local oc_cmd = string.format(
+        "tail -n +%d '%s' | grep -v -E '%s' | grep -v -E '%s' | tail -n %d",
+        start_line, logfile, exclude_pattern, core_pattern, limit
+    )
+    local oc_raw = luci.sys.exec(oc_cmd)
+    
+    local core_log = ""
+    if core_raw and core_raw ~= "" then
+        local core_logs = {}
+        for line in core_raw:gmatch("[^\n]+") do
+            local line_trans = line
+			if string.match(string.sub(line, 0, 8), "%d%d:%d%d:%d%d") then
+				line_trans = '"'..os.date("%Y-%m-%d", os.time()).. " "..os.date("%H:%M:%S", tonumber(string.sub(line, 0, 8)))..'"'..string.sub(line, 9, -1)
 			end
-    		if ex_match then break end
-
-			core_keys = {" DBG ", " INF ", "level=", " WRN ", " ERR ", " FTL "}
-			for key=1, #core_keys do
-				if string.find(string.sub(line, 0, 13), core_keys[key]) or (string.find(line, core_keys[key]) and core_keys[key] == "level=") then
-					core_match = true
-					if core_keys[key] ~= "level=" then
-						time_format = true
-					end
-					break
-				end
-			end
-			if time_format then
-				if string.match(string.sub(line, 0, 8), "%d%d:%d%d:%d%d") then
-					line_trans = '"'..os.date("%Y-%m-%d %H:%M:%S", tonumber(string.sub(line, 0, 8)))..'"'..string.sub(line, 9, -1)
-				end
-			end
-			if not core_match then
-				if not string.find (line, "【") or not string.find (line, "】") then
-					line_trans = trans_line_nolabel(line)
-				else
-					line_trans = trans_line(line)
-				end
-			end
-			if data == "" then
-				data = line_trans
-			elseif log_len == 0 and i == limit then
-				data = data .."\n" .. line_trans .. "\n..."
-			else
-				data = data .."\n" .. line_trans
-			end
-    		break
-    	end
-	end
-	luci.http.write_json({
-		len = len,
-		log = data;
-	})
+            table.insert(core_logs, line_trans)
+        end
+        if #core_logs > 0 then
+            core_log = table.concat(core_logs, "\n")
+        end
+    end
+    
+    local oc_log = ""
+    if oc_raw and oc_raw ~= "" then
+        local oc_logs = {}
+        for line in oc_raw:gmatch("[^\n]+") do
+            local line_trans
+            if not string.find(line, "【") or not string.find(line, "】") then
+                line_trans = trans_line_nolabel(line)
+            else
+                line_trans = trans_line(line)
+            end
+            table.insert(oc_logs, line_trans)
+        end
+        if #oc_logs > 0 then
+            oc_log = table.concat(oc_logs, "\n")
+        end
+    end
+    
+    luci.http.write_json({
+        len = total_lines,
+        update = true,
+        core_log = core_log,
+        oc_log = oc_log
+    })
 end
 
 function action_del_log()
@@ -1614,61 +1674,98 @@ function all_proxies_stream_test()
 end
 
 function trans_line_nolabel(data)
-	local line_trans = ""
-	if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
-		line_trans = string.sub(data, 0, 20)..luci.i18n.translate(string.sub(data, 21, -1))
-	else
-		line_trans = luci.i18n.translate(string.sub(data, 0, -1))
-	end
-	return line_trans
+    if data == nil or data == "" then
+        return ""
+    end
+    
+    local line_trans = ""
+    if string.len(data) >= 19 and string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+        line_trans = string.sub(data, 0, 20)..luci.i18n.translate(string.sub(data, 21, -1))
+    else
+        line_trans = luci.i18n.translate(data)
+    end
+    return line_trans
 end
 
 function trans_line(data)
-	local no_trans = {}
-	local line_trans = ""
-	local a = string.find (data, "【")
-	local b = string.find (data, "】") + 2
-	local c = 21
-	local d = 0
-	local v
-	local x
-	while true do
-		table.insert(no_trans, a)
-		table.insert(no_trans, b)
-		if string.find (data, "【", b+1) and string.find (data, "】", b+1) then
-			a = string.find (data, "【", b+1)
-			b = string.find (data, "】", b+1) + 2
-		else
-			break
-		end
-	end
-	for k = 1, #no_trans, 2 do
-		x = no_trans[k]
-		v = no_trans[k+1]
-		if x <= 21 or not string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
-			line_trans = line_trans .. luci.i18n.translate(string.sub(data, d, x - 1)) .. string.sub(data, x, v)
-			d = v + 1
-		elseif v <= string.len(data) then
-			line_trans = line_trans .. luci.i18n.translate(string.sub(data, c, x - 1)) .. string.sub(data, x, v)
-		end
-		c = v + 1
-	end
-	if c > string.len(data) then
-		if d == 0 then
-			if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
-				line_trans = string.sub(data, 0, 20) .. line_trans
-			end
-		end
-	else
-		if d == 0 then
-			if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
-				line_trans = string.sub(data, 0, 20) .. line_trans .. luci.i18n.translate(string.sub(data, c, -1))
-			end
-		else
-			line_trans = line_trans .. luci.i18n.translate(string.sub(data, c, -1))
-		end
-	end
-	return line_trans
+    if data == nil or data == "" then
+        return ""
+    end
+    
+    local no_trans = {}
+    local line_trans = ""
+    local a = string.find(data, "【")
+    
+    if not a then
+        if string.len(data) >= 19 and string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+            return string.sub(data, 0, 20) .. luci.i18n.translate(string.sub(data, 21, -1))
+        else
+            return luci.i18n.translate(data)
+        end
+    end
+    
+    local b_pos = string.find(data, "】")
+    if not b_pos then
+        return luci.i18n.translate(data)
+    end
+    
+    local b = b_pos + 2
+    local c = 21
+    local d = 0
+    local v
+    local x
+    
+    while true do
+        table.insert(no_trans, a)
+        table.insert(no_trans, b)
+        
+        local next_a = string.find(data, "【", b+1)
+        local next_b = string.find(data, "】", b+1)
+        
+        if next_a and next_b then
+            a = next_a
+            b = next_b + 2
+        else
+            break
+        end
+    end
+    
+    if #no_trans % 2 ~= 0 then
+        table.remove(no_trans)
+    end
+    
+    for k = 1, #no_trans, 2 do
+        x = no_trans[k]
+        v = no_trans[k+1]
+        
+        if x and v then
+            if x <= 21 or not string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+                line_trans = line_trans .. luci.i18n.translate(string.sub(data, d, x - 1)) .. string.sub(data, x, v)
+                d = v + 1
+            elseif v <= string.len(data) then
+                line_trans = line_trans .. luci.i18n.translate(string.sub(data, c, x - 1)) .. string.sub(data, x, v)
+            end
+            c = v + 1
+        end
+    end
+    
+    if c > string.len(data) then
+        if d == 0 then
+            if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+                line_trans = string.sub(data, 0, 20) .. line_trans
+            end
+        end
+    else
+        if d == 0 then
+            if string.match(string.sub(data, 0, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
+                line_trans = string.sub(data, 0, 20) .. line_trans .. luci.i18n.translate(string.sub(data, c, -1))
+            end
+        else
+            line_trans = line_trans .. luci.i18n.translate(string.sub(data, c, -1))
+        end
+    end
+    
+    return line_trans
 end
 
 function process_status(name)
@@ -1678,4 +1775,18 @@ function process_status(name)
 	else
 		return luci.sys.call(string.format("ps -w |grep '%s' |grep -v grep >/dev/null", name)) == 0
 	end
+end
+
+function action_announcement()
+	if not fs.access("/tmp/openclash_announcement") or fs.readfile("/tmp/openclash_announcement") == "" or fs.mtime("/tmp/openclash_announcement") < (os.time() - 86400) then
+		local HTTP_CODE = luci.sys.exec("curl -SsL -m 5 -w '%{http_code}' -o /tmp/openclash_announcement https://raw.githubusercontent.com/vernesong/OpenClash/dev/announcement 2>/dev/null")
+		if HTTP_CODE ~= "200" then
+			fs.unlink("/tmp/openclash_announcement")
+		end
+	end
+	local info = luci.sys.exec("cat /tmp/openclash_announcement 2>/dev/null") or ""
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		content = info;
+	})
 end

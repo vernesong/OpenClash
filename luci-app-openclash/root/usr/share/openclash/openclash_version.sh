@@ -45,19 +45,7 @@ if [ "$TIME" != "$CHTIME" ]; then
    	OP_LV=$(sed -n 1p $DOWNLOAD_FILE 2>/dev/null |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
       if [ "$(expr "$OP_CV" \>= "$OP_LV")" = "1" ]; then
          sed -i '/^https:/,$d' $DOWNLOAD_FILE
-      elif [ "$(expr "$OP_LV" \> "$OP_CV")" = "1" ] && [ -n "$OP_LV" ]; then
-         del_lock
-         exit 2
-      else
-         del_lock
-         exit 0
       fi
    fi
-elif [ "$(expr "$OP_LV" \> "$OP_CV")" = "1" ] && [ -n "$OP_LV" ]; then
-   del_lock
-   exit 2
-else
-   del_lock
-   exit 0
-fi 2>/dev/null
+fi
 del_lock

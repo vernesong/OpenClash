@@ -350,6 +350,12 @@ yml_groups_set()
    [ -n "$policy_filter" ] && {
       echo "    filter: \"$policy_filter\"" >>$GROUP_FILE
    }
+   [ -n "$interface_name" ] && {
+      echo "    interface-name: \"$interface_name\"" >>$GROUP_FILE
+   }
+   [ -n "$routing_mark" ] && {
+      echo "    routing-mark: \"$routing_mark\"" >>$GROUP_FILE
+   }
 }
 
 create_config=$(uci -q get openclash.config.create_config)
