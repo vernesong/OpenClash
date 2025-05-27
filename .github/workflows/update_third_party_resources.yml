@@ -102,7 +102,7 @@ jobs:
         run: |
           echo "Downloading latest Yacd UI from MetaCubeX/metacubexd gh-pages branch..."
           mkdir -p tmp/yacd
-          git clone --depth=1 -b gh-pages https://github.com/MetaCubeX/metacubexd.git tmp/yacd_clone
+          git clone --depth=1 -b gh-pages https://github.com/MetaCubeX/Yacd-meta.git tmp/yacd_clone
           
           mkdir -p "$YACD_PATH"
           
@@ -128,7 +128,7 @@ jobs:
         run: |
           echo "Downloading latest Clash Dashboard UI from gh-pages branch..."
           mkdir -p tmp/zashboard
-          git clone --depth=1 -b gh-pages https://github.com/zzzgydi/clash-dashboard.git tmp/zashboard_clone
+          git clone --depth=1 -b gh-pages https://github.com/Zephyruso/zashboard.git tmp/zashboard_clone
           
           mkdir -p "$ZASHBOARD_PATH"
           
