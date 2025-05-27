@@ -1224,7 +1224,7 @@ EOF
             fi
             if [ -n "$reality_short_id" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-      short-id: "$reality_short_id"
+      short-id: $reality_short_id
 EOF
             fi
         fi
@@ -1246,7 +1246,7 @@ EOF
             fi
             if [ -n "$reality_short_id" ]; then
 cat >> "$SERVER_FILE" <<-EOF
-      short-id: "$reality_short_id"
+      short-id: $reality_short_id
 EOF
             fi
         fi
