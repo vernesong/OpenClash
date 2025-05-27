@@ -82,7 +82,7 @@ jobs:
           mkdir -p "$METACUBEXD_PATH"
           UPDATED=0
           if [ -d "$METACUBEXD_PATH" ]; then
-            if ! diff -r "$METACUBEXD_UNZIP_PATH" "$METACUBEXD_PATH" > /dev/null 2>&1; then
+            if rsync -rc --delete --dry-run "$METACUBEXD_UNZIP_PATH"/ "$METACUBEXD_PATH"/ | grep -q .; then
               echo "MetaCubeXD UI has been updated, replacing old version."
               rm -rf "$METACUBEXD_PATH"/*
               cp -rf "$METACUBEXD_UNZIP_PATH"/* "$METACUBEXD_PATH"
@@ -109,7 +109,7 @@ jobs:
           mkdir -p "$YACD_PATH"
           UPDATED=0
           if [ -d "$YACD_PATH" ]; then
-            if ! diff -r "$YACD_UNZIP_PATH" "$YACD_PATH" > /dev/null 2>&1; then
+            if rsync -rc --delete --dry-run "$YACD_UNZIP_PATH"/ "$YACD_PATH"/ | grep -q .; then
               echo "Yacd UI has been updated, replacing old version."
               rm -rf "$YACD_PATH"/*
               cp -rf "$YACD_UNZIP_PATH"/* "$YACD_PATH"
@@ -135,7 +135,7 @@ jobs:
           mkdir -p "$ZASHBOARD_PATH"
           UPDATED=0
           if [ -d "$ZASHBOARD_PATH" ]; then
-            if ! diff -r tmp/zashboard_zip/dist "$ZASHBOARD_PATH" > /dev/null 2>&1; then
+            if rsync -rc --delete --dry-run tmp/zashboard_zip/dist/ "$ZASHBOARD_PATH"/ | grep -q .; then
               echo "ZashBoard UI has been updated, replacing old version."
               rm -rf "$ZASHBOARD_PATH"/*
               cp -rf tmp/zashboard_zip/dist/* "$ZASHBOARD_PATH"
