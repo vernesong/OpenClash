@@ -126,17 +126,18 @@ jobs:
 
       - name: Update ZashBoard UI
         run: |
-          echo "Downloading latest Clash Dashboard UI from gh-pages branch..."
-          mkdir -p tmp/zashboard
-          git clone --depth=1 -b gh-pages https://github.com/Zephyruso/zashboard.git tmp/zashboard_clone
-          
+          echo "Downloading latest ZashBoard UI release zip..."
+          mkdir -p tmp/zashboard_zip
+          curl -sSL https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip -o tmp/zashboard.zip
+          unzip -q -o tmp/zashboard.zip -d tmp/zashboard_zip
+
           mkdir -p "$ZASHBOARD_PATH"
-          
+
           if [ -d "$ZASHBOARD_PATH" ]; then
-            if ! diff -r tmp/zashboard_clone "$ZASHBOARD_PATH" > /dev/null 2>&1; then
+            if ! diff -r tmp/zashboard_zip "$ZASHBOARD_PATH" > /dev/null 2>&1; then
               echo "ZashBoard UI has been updated, replacing old version."
               rm -rf "$ZASHBOARD_PATH"/*
-              cp -rf tmp/zashboard_clone/* "$ZASHBOARD_PATH"
+              cp -rf tmp/zashboard_zip/* "$ZASHBOARD_PATH"
               echo "ZASHBOARD_UPDATED=1" >> $GITHUB_ENV
             else
               echo "ZashBoard UI is up to date."
@@ -144,10 +145,10 @@ jobs:
           else
             echo "ZashBoard UI directory doesn't exist, creating it."
             mkdir -p "$ZASHBOARD_PATH"
-            cp -rf tmp/zashboard_clone/* "$ZASHBOARD_PATH"
+            cp -rf tmp/zashboard_zip/* "$ZASHBOARD_PATH"
             echo "ZASHBOARD_UPDATED=1" >> $GITHUB_ENV
           fi
-          
+
           echo "ZashBoard UI update check completed."
 
       - name: Update GeoIP and GeoSite files
