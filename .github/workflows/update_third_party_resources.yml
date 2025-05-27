@@ -74,17 +74,19 @@ jobs:
       
       - name: Update MetaCubeXD UI
         run: |
-          echo "Downloading latest MetaCubeXD UI from gh-pages branch..."
-          mkdir -p tmp/metacubexd
-          git clone --depth=1 -b gh-pages https://github.com/MetaCubeX/metacubexd.git tmp/metacubexd_clone
-          
+          echo "Downloading latest MetaCubeXD UI zip from gh-pages branch..."
+          mkdir -p tmp/metacubexd_zip
+          curl -sSL https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip -o tmp/metacubexd.zip
+          unzip -q -o tmp/metacubexd.zip -d tmp/metacubexd_zip
+          METACUBEXD_UNZIP_PATH="tmp/metacubexd_zip/metacubexd-gh-pages"
+
           mkdir -p "$METACUBEXD_PATH"
-          
+
           if [ -d "$METACUBEXD_PATH" ]; then
-            if ! diff -r tmp/metacubexd_clone "$METACUBEXD_PATH" > /dev/null 2>&1; then
+            if ! diff -r "$METACUBEXD_UNZIP_PATH" "$METACUBEXD_PATH" > /dev/null 2>&1; then
               echo "MetaCubeXD UI has been updated, replacing old version."
               rm -rf "$METACUBEXD_PATH"/*
-              cp -rf tmp/metacubexd_clone/* "$METACUBEXD_PATH"
+              cp -rf "$METACUBEXD_UNZIP_PATH"/* "$METACUBEXD_PATH"
               echo "METACUBEXD_UPDATED=1" >> $GITHUB_ENV
             else
               echo "MetaCubeXD UI is up to date."
@@ -92,25 +94,27 @@ jobs:
           else
             echo "MetaCubeXD UI directory doesn't exist, creating it."
             mkdir -p "$METACUBEXD_PATH"
-            cp -rf tmp/metacubexd_clone/* "$METACUBEXD_PATH"
+            cp -rf "$METACUBEXD_UNZIP_PATH"/* "$METACUBEXD_PATH"
             echo "METACUBEXD_UPDATED=1" >> $GITHUB_ENV
           fi
-          
+
           echo "MetaCubeXD UI update check completed."
 
       - name: Update Yacd UI
         run: |
-          echo "Downloading latest Yacd UI from MetaCubeX/metacubexd gh-pages branch..."
-          mkdir -p tmp/yacd
-          git clone --depth=1 -b gh-pages https://github.com/MetaCubeX/Yacd-meta.git tmp/yacd_clone
-          
+          echo "Downloading latest Yacd UI zip from gh-pages branch..."
+          mkdir -p tmp/yacd_zip
+          curl -sSL https://github.com/MetaCubeX/Yacd-meta/archive/refs/heads/gh-pages.zip -o tmp/yacd.zip
+          unzip -q -o tmp/yacd.zip -d tmp/yacd_zip
+          YACD_UNZIP_PATH="tmp/yacd_zip/Yacd-meta-gh-pages"
+
           mkdir -p "$YACD_PATH"
-          
+
           if [ -d "$YACD_PATH" ]; then
-            if ! diff -r tmp/yacd_clone "$YACD_PATH" > /dev/null 2>&1; then
+            if ! diff -r "$YACD_UNZIP_PATH" "$YACD_PATH" > /dev/null 2>&1; then
               echo "Yacd UI has been updated, replacing old version."
               rm -rf "$YACD_PATH"/*
-              cp -rf tmp/yacd_clone/* "$YACD_PATH"
+              cp -rf "$YACD_UNZIP_PATH"/* "$YACD_PATH"
               echo "YACD_UPDATED=1" >> $GITHUB_ENV
             else
               echo "Yacd UI is up to date."
@@ -118,10 +122,10 @@ jobs:
           else
             echo "Yacd UI directory doesn't exist, creating it."
             mkdir -p "$YACD_PATH"
-            cp -rf tmp/yacd_clone/* "$YACD_PATH"
+            cp -rf "$YACD_UNZIP_PATH"/* "$YACD_PATH"
             echo "YACD_UPDATED=1" >> $GITHUB_ENV
           fi
-          
+
           echo "Yacd UI update check completed."
 
       - name: Update ZashBoard UI
