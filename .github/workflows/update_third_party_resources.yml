@@ -210,6 +210,7 @@ jobs:
 
       - name: Commit changes
         run: |
+          rm -rf tmp
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           
@@ -264,5 +265,3 @@ jobs:
           else
             echo "No changes to commit."
           fi
-          
-          rm -rf tmp
