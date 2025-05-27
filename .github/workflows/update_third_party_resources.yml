@@ -134,10 +134,10 @@ jobs:
           mkdir -p "$ZASHBOARD_PATH"
 
           if [ -d "$ZASHBOARD_PATH" ]; then
-            if ! diff -r tmp/zashboard_zip "$ZASHBOARD_PATH" > /dev/null 2>&1; then
+            if ! diff -r tmp/zashboard_zip/dist "$ZASHBOARD_PATH" > /dev/null 2>&1; then
               echo "ZashBoard UI has been updated, replacing old version."
               rm -rf "$ZASHBOARD_PATH"/*
-              cp -rf tmp/zashboard_zip/* "$ZASHBOARD_PATH"
+              cp -rf tmp/zashboard_zip/dist/* "$ZASHBOARD_PATH"
               echo "ZASHBOARD_UPDATED=1" >> $GITHUB_ENV
             else
               echo "ZashBoard UI is up to date."
@@ -145,7 +145,7 @@ jobs:
           else
             echo "ZashBoard UI directory doesn't exist, creating it."
             mkdir -p "$ZASHBOARD_PATH"
-            cp -rf tmp/zashboard_zip/* "$ZASHBOARD_PATH"
+            cp -rf tmp/zashboard_zip/dist/* "$ZASHBOARD_PATH"
             echo "ZASHBOARD_UPDATED=1" >> $GITHUB_ENV
           fi
 
