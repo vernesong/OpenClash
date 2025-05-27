@@ -43,8 +43,8 @@
   elif [ "$DASH_NAME" == "zashboard" ]; then
       UNPACK_FILE_DIR="/usr/share/openclash/ui/zashboard/"
       BACKUP_FILE_DIR="/usr/share/openclash/ui/zashboard_backup/"
-		DOWNLOAD_PATH="https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip"
-      FILE_PATH_INCLUDE="dist-cdn-fonts"
+      DOWNLOAD_PATH="https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip"
+      FILE_PATH_INCLUDE="dist"
    else
       UNPACK_FILE_DIR="/usr/share/openclash/ui/metacubexd/"
       BACKUP_FILE_DIR="/usr/share/openclash/ui/metacubexd_backup/"
