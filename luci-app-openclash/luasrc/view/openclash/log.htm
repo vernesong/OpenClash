@@ -378,20 +378,23 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         batchSize = 1;
         interval = 90;
     } else if (totalLines <= 50) {
-        batchSize = 3;
+        batchSize = 5;
         interval = 60;
     } else if (totalLines <= 200) {
-        batchSize = 8;
+        batchSize = 10;
         interval = 35;
     } else if (totalLines <= 500) {
-        batchSize = 15;
+        batchSize = 25;
         interval = 25;
     } else if (totalLines <= 1000) {
-        batchSize = 25;
+        batchSize = 50;
         interval = 15;
-    } else {
-        batchSize = 40;
+    } else if (totalLines <= 1500) {
+        batchSize = 70;
         interval = 10;
+    } else {
+        batchSize = 80;
+        interval = 5;
     }
     
     var displayedContent = currentContent || "";
