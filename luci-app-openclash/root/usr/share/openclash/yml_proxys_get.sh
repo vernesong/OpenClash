@@ -769,29 +769,29 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                end
                };
                
-               threads << Thread.new{
                #idle-session-check-interval
+               threads << Thread.new{
                if x.key?('idle-session-check-interval') then
                   uci_commands << uci_set + 'idle_session_check_interval=\"' + x['idle-session-check-interval'].to_s + '\"'
                end
                };
 
-               threads << Thread.new{
                #idle-session-timeout
+               threads << Thread.new{
                if x.key?('idle-session-timeout') then
                   uci_commands << uci_set + 'idle_session_timeout=\"' + x['idle-session-timeout'].to_s + '\"'
                end
                };
 
-               threads << Thread.new{
                #min-idle-session
+               threads << Thread.new{
                if x.key?('min-idle-session') then
                   uci_commands << uci_set + 'min_idle_session=\"' + x['min-idle-session'].to_s + '\"'
                end
                };
 
-               threads << Thread.new{
                #alpn
+               threads << Thread.new{
                if x.key?('alpn') then
                   alpn = uci_del + 'alpn >/dev/null 2>&1'
                   system(alpn)
@@ -802,21 +802,22 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                   end
                };
 
-               threads << Thread.new{
                #sni
+               threads << Thread.new{
                if x.key?('sni') then
                   uci_commands << uci_set + 'sni=\"' + x['sni'].to_s + '\"'
                end
                };
 
                #skip-cert-verify
+               threads << Thread.new{
                if x.key?('skip-cert-verify') then
                   uci_commands << uci_set + 'skip_cert_verify=\"' + x['skip-cert-verify'].to_s + '\"'
                end
                };
 
-               threads << Thread.new{
                #client_fingerprint
+               threads << Thread.new{
                if x.key?('client-fingerprint') then
                   uci_commands << uci_set + 'client_fingerprint=\"' + x['client-fingerprint'].to_s + '\"'
                end
