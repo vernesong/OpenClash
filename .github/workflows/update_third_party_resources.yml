@@ -12,7 +12,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
           ref: dev
 
       - name: Set up environment
@@ -32,237 +32,201 @@ jobs:
           echo "COUNTRY_MMDB_PATH=luci-app-openclash/root/etc/openclash/Country.mmdb" >> $GITHUB_ENV
 
       - name: Update China IP Route Files
+        id: chnr
         run: |
           mkdir -p tmp
           echo "Downloading China IP Route files..."
-          
           curl -sSL https://ispip.clang.cn/all_cn.txt -o tmp/china_ip_route.ipset
-          
           mkdir -p $(dirname $CHNR_PATH)
-          
+          UPDATED=0
           if [ -f "$CHNR_PATH" ]; then
             if ! cmp -s tmp/china_ip_route.ipset "$CHNR_PATH"; then
               echo "China IP Route list has been updated, replacing old version."
               cp tmp/china_ip_route.ipset "$CHNR_PATH"
-              echo "CHNR_UPDATED=1" >> $GITHUB_ENV
+              UPDATED=1
             else
               echo "China IP Route list is up to date."
             fi
           else
             echo "China IP Route list file doesn't exist, creating it."
             cp tmp/china_ip_route.ipset "$CHNR_PATH"
-            echo "CHNR_UPDATED=1" >> $GITHUB_ENV
+            UPDATED=1
           fi
-
           curl -sSL https://ispip.clang.cn/all_cn_ipv6.txt -o tmp/china_ip6_route.ipset
-          
           mkdir -p $(dirname $CHNR6_PATH)
-          
+          UPDATED6=0
           if [ -f "$CHNR6_PATH" ]; then
             if ! cmp -s tmp/china_ip6_route.ipset "$CHNR6_PATH"; then
               echo "China IP6 Route list has been updated, replacing old version."
               cp tmp/china_ip6_route.ipset "$CHNR6_PATH"
-              echo "CHNR6_UPDATED=1" >> $GITHUB_ENV
+              UPDATED6=1
             else
               echo "China IP6 Route list is up to date."
             fi
           else
             echo "China IP6 Route list file doesn't exist, creating it."
             cp tmp/china_ip6_route.ipset "$CHNR6_PATH"
-            echo "CHNR6_UPDATED=1" >> $GITHUB_ENV
+            UPDATED6=1
           fi
-      
+          echo "updated=$UPDATED" >> $GITHUB_OUTPUT
+          echo "updated6=$UPDATED6" >> $GITHUB_OUTPUT
+
       - name: Update MetaCubeXD UI
+        id: metacubexd
         run: |
-          echo "Downloading latest MetaCubeXD UI from gh-pages branch..."
-          mkdir -p tmp/metacubexd
-          git clone --depth=1 -b gh-pages https://github.com/MetaCubeX/metacubexd.git tmp/metacubexd_clone
-          
+          echo "Downloading latest MetaCubeXD UI zip from gh-pages branch..."
+          mkdir -p tmp/metacubexd_zip
+          curl -sSL https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip -o tmp/metacubexd.zip
+          unzip -q -o tmp/metacubexd.zip -d tmp/metacubexd_zip
+          METACUBEXD_UNZIP_PATH="tmp/metacubexd_zip/metacubexd-gh-pages"
           mkdir -p "$METACUBEXD_PATH"
-          
+          UPDATED=0
           if [ -d "$METACUBEXD_PATH" ]; then
-            if ! diff -r tmp/metacubexd_clone "$METACUBEXD_PATH" > /dev/null 2>&1; then
+            if rsync -rc --delete --dry-run "$METACUBEXD_UNZIP_PATH"/ "$METACUBEXD_PATH"/ | grep -q .; then
               echo "MetaCubeXD UI has been updated, replacing old version."
               rm -rf "$METACUBEXD_PATH"/*
-              cp -rf tmp/metacubexd_clone/* "$METACUBEXD_PATH"
-              echo "METACUBEXD_UPDATED=1" >> $GITHUB_ENV
+              cp -rf "$METACUBEXD_UNZIP_PATH"/* "$METACUBEXD_PATH"
+              UPDATED=1
             else
               echo "MetaCubeXD UI is up to date."
             fi
           else
             echo "MetaCubeXD UI directory doesn't exist, creating it."
             mkdir -p "$METACUBEXD_PATH"
-            cp -rf tmp/metacubexd_clone/* "$METACUBEXD_PATH"
-            echo "METACUBEXD_UPDATED=1" >> $GITHUB_ENV
+            cp -rf "$METACUBEXD_UNZIP_PATH"/* "$METACUBEXD_PATH"
+            UPDATED=1
           fi
-          
-          echo "MetaCubeXD UI update check completed."
+          echo "updated=$UPDATED" >> $GITHUB_OUTPUT
 
       - name: Update Yacd UI
+        id: yacd
         run: |
-          echo "Downloading latest Yacd UI from MetaCubeX/metacubexd gh-pages branch..."
-          mkdir -p tmp/yacd
-          git clone --depth=1 -b gh-pages https://github.com/MetaCubeX/metacubexd.git tmp/yacd_clone
-          
+          echo "Downloading latest Yacd UI zip from gh-pages branch..."
+          mkdir -p tmp/yacd_zip
+          curl -sSL https://github.com/MetaCubeX/Yacd-meta/archive/refs/heads/gh-pages.zip -o tmp/yacd.zip
+          unzip -q -o tmp/yacd.zip -d tmp/yacd_zip
+          YACD_UNZIP_PATH="tmp/yacd_zip/Yacd-meta-gh-pages"
           mkdir -p "$YACD_PATH"
-          
+          UPDATED=0
           if [ -d "$YACD_PATH" ]; then
-            if ! diff -r tmp/yacd_clone "$YACD_PATH" > /dev/null 2>&1; then
+            if rsync -rc --delete --dry-run "$YACD_UNZIP_PATH"/ "$YACD_PATH"/ | grep -q .; then
               echo "Yacd UI has been updated, replacing old version."
               rm -rf "$YACD_PATH"/*
-              cp -rf tmp/yacd_clone/* "$YACD_PATH"
-              echo "YACD_UPDATED=1" >> $GITHUB_ENV
+              cp -rf "$YACD_UNZIP_PATH"/* "$YACD_PATH"
+              UPDATED=1
             else
               echo "Yacd UI is up to date."
             fi
           else
             echo "Yacd UI directory doesn't exist, creating it."
             mkdir -p "$YACD_PATH"
-            cp -rf tmp/yacd_clone/* "$YACD_PATH"
-            echo "YACD_UPDATED=1" >> $GITHUB_ENV
+            cp -rf "$YACD_UNZIP_PATH"/* "$YACD_PATH"
+            UPDATED=1
           fi
-          
-          echo "Yacd UI update check completed."
+          echo "updated=$UPDATED" >> $GITHUB_OUTPUT
 
       - name: Update ZashBoard UI
+        id: zashboard
         run: |
-          echo "Downloading latest Clash Dashboard UI from gh-pages branch..."
-          mkdir -p tmp/zashboard
-          git clone --depth=1 -b gh-pages https://github.com/zzzgydi/clash-dashboard.git tmp/zashboard_clone
-          
+          echo "Downloading latest ZashBoard UI release zip..."
+          mkdir -p tmp/zashboard_zip
+          curl -sSL https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip -o tmp/zashboard.zip
+          unzip -q -o tmp/zashboard.zip -d tmp/zashboard_zip
           mkdir -p "$ZASHBOARD_PATH"
-          
+          UPDATED=0
           if [ -d "$ZASHBOARD_PATH" ]; then
-            if ! diff -r tmp/zashboard_clone "$ZASHBOARD_PATH" > /dev/null 2>&1; then
+            if rsync -rc --delete --dry-run tmp/zashboard_zip/dist/ "$ZASHBOARD_PATH"/ | grep -q .; then
               echo "ZashBoard UI has been updated, replacing old version."
               rm -rf "$ZASHBOARD_PATH"/*
-              cp -rf tmp/zashboard_clone/* "$ZASHBOARD_PATH"
-              echo "ZASHBOARD_UPDATED=1" >> $GITHUB_ENV
+              cp -rf tmp/zashboard_zip/dist/* "$ZASHBOARD_PATH"
+              UPDATED=1
             else
               echo "ZashBoard UI is up to date."
             fi
           else
             echo "ZashBoard UI directory doesn't exist, creating it."
             mkdir -p "$ZASHBOARD_PATH"
-            cp -rf tmp/zashboard_clone/* "$ZASHBOARD_PATH"
-            echo "ZASHBOARD_UPDATED=1" >> $GITHUB_ENV
+            cp -rf tmp/zashboard_zip/dist/* "$ZASHBOARD_PATH"
+            UPDATED=1
           fi
-          
-          echo "ZashBoard UI update check completed."
+          echo "updated=$UPDATED" >> $GITHUB_OUTPUT
 
       - name: Update GeoIP and GeoSite files
+        id: geo
         run: |
           RULES_RELEASE=$(curl -s https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases/latest | jq -r '.tag_name')
           echo "Latest v2ray-rules-dat version: $RULES_RELEASE"
-          
           curl -sSL "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/${RULES_RELEASE}/geoip.dat" -o tmp/GeoIP.dat
-          
           mkdir -p $(dirname "$GEOIP_PATH")
+          UPDATED_GEOIP=0
           if [ -f "$GEOIP_PATH" ]; then
             if ! cmp -s tmp/GeoIP.dat "$GEOIP_PATH"; then
               echo "GeoIP.dat has been updated, replacing old version."
               cp tmp/GeoIP.dat "$GEOIP_PATH"
-              echo "GEOIP_UPDATED=1" >> $GITHUB_ENV
+              UPDATED_GEOIP=1
             else
               echo "GeoIP.dat is up to date."
             fi
           else
             echo "GeoIP.dat file doesn't exist, creating it."
             cp tmp/GeoIP.dat "$GEOIP_PATH"
-            echo "GEOIP_UPDATED=1" >> $GITHUB_ENV
+            UPDATED_GEOIP=1
           fi
-          
           curl -sSL "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/${RULES_RELEASE}/geosite.dat" -o tmp/GeoSite.dat
-          
           mkdir -p $(dirname "$GEOSITE_PATH")
+          UPDATED_GEOSITE=0
           if [ -f "$GEOSITE_PATH" ]; then
             if ! cmp -s tmp/GeoSite.dat "$GEOSITE_PATH"; then
               echo "GeoSite.dat has been updated, replacing old version."
               cp tmp/GeoSite.dat "$GEOSITE_PATH"
-              echo "GEOSITE_UPDATED=1" >> $GITHUB_ENV
+              UPDATED_GEOSITE=1
             else
               echo "GeoSite.dat is up to date."
             fi
           else
             echo "GeoSite.dat file doesn't exist, creating it."
             cp tmp/GeoSite.dat "$GEOSITE_PATH"
-            echo "GEOSITE_UPDATED=1" >> $GITHUB_ENV
+            UPDATED_GEOSITE=1
           fi
+          echo "geoip=$UPDATED_GEOIP" >> $GITHUB_OUTPUT
+          echo "geosite=$UPDATED_GEOSITE" >> $GITHUB_OUTPUT
 
       - name: Update Country.mmdb
+        id: mmdb
         run: |
           curl -sSL "https://github.com/alecthw/mmdb_china_ip_list/releases/latest/download/Country-lite.mmdb" -o tmp/Country.mmdb
-          
           mkdir -p $(dirname "$COUNTRY_MMDB_PATH")
+          UPDATED=0
           if [ -f "$COUNTRY_MMDB_PATH" ]; then
             if ! cmp -s tmp/Country.mmdb "$COUNTRY_MMDB_PATH"; then
               echo "Country.mmdb has been updated, replacing old version."
               cp tmp/Country.mmdb "$COUNTRY_MMDB_PATH"
-              echo "MMDB_UPDATED=1" >> $GITHUB_ENV
+              UPDATED=1
             else
               echo "Country.mmdb is up to date."
             fi
           else
             echo "Country.mmdb file doesn't exist, creating it."
             cp tmp/Country.mmdb "$COUNTRY_MMDB_PATH"
-            echo "MMDB_UPDATED=1" >> $GITHUB_ENV
+            UPDATED=1
           fi
+          echo "updated=$UPDATED" >> $GITHUB_OUTPUT
 
       - name: Commit changes
+        if: |
+          steps.chnr.outputs.updated == '1' ||
+          steps.chnr.outputs.updated6 == '1' ||
+          steps.metacubexd.outputs.updated == '1' ||
+          steps.yacd.outputs.updated == '1' ||
+          steps.zashboard.outputs.updated == '1' ||
+          steps.geo.outputs.geoip == '1' ||
+          steps.geo.outputs.geosite == '1' ||
+          steps.mmdb.outputs.updated == '1'
         run: |
+          rm -rf tmp
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          
-          UPDATED=0
-          UPDATE_MSG="Chore: update resources:"
-          
-          if [ "${CHNR_UPDATED}" = "1" ]; then
-            UPDATE_MSG="${UPDATE_MSG} china_ip_route.ipset"
-            UPDATED=1
-          fi
-          
-          if [ "${CHNR6_UPDATED}" = "1" ]; then
-            UPDATE_MSG="${UPDATE_MSG} china_ip6_route.ipset"
-            UPDATED=1
-          fi
-          
-          if [ "${GEOIP_UPDATED}" = "1" ]; then
-            UPDATE_MSG="${UPDATE_MSG} GeoIP.dat"
-            UPDATED=1
-          fi
-          
-          if [ "${GEOSITE_UPDATED}" = "1" ]; then
-            UPDATE_MSG="${UPDATE_MSG} GeoSite.dat"
-            UPDATED=1
-          fi
-          
-          if [ "${MMDB_UPDATED}" = "1" ]; then
-            UPDATE_MSG="${UPDATE_MSG} Country.mmdb"
-            UPDATED=1
-          fi
-
-          if [ "${METACUBEXD_UPDATED}" = "1" ]; then
-            UPDATE_MSG="${UPDATE_MSG} MetaCubeXD"
-            UPDATED=1
-          fi
-          
-          if [ "${YACD_UPDATED}" = "1" ]; then
-            UPDATE_MSG="${UPDATE_MSG} Yacd"
-            UPDATED=1
-          fi
-          
-          if [ "${ZASHBOARD_UPDATED}" = "1" ]; then
-            UPDATE_MSG="${UPDATE_MSG} Zashboard"
-            UPDATED=1
-          fi
-          
-          if [ $UPDATED -eq 1 ]; then
-            git add .
-            git commit -m "${UPDATE_MSG}"
-            git push
-            echo "Changes committed and pushed to repository."
-          else
-            echo "No changes to commit."
-          fi
-          
-          rm -rf tmp
+          git add .
+          UPDATE_MSG="Chore: update third-party resources"
+          git commit -m "$UPDATE_MSG"
+          git push
