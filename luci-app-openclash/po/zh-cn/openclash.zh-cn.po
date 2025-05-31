@@ -2811,9 +2811,6 @@ msgstr "流量（域名）探测能有效防止域名分流异常和DNS劫持失
 msgid "Override All Dns Query"
 msgstr "启用后将尽可能的覆盖DNS查询到的域名"
 
-msgid "(Support Vless By Pinyun)"
-msgstr "(由品云提供，支持 Vless)"
-
 msgid "Meta Settings"
 msgstr "Meta 设置"
 
