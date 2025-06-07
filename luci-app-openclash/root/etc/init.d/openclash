@@ -54,6 +54,9 @@ add_cron()
    [ -z "$(grep "openclash_geoip.sh" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci -q get openclash.config.geoip_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geoip_update_day_time) * * $(uci -q get openclash.config.geoip_update_week_time) /usr/share/openclash/openclash_geoip.sh" >> $CRON_FILE
    }
+   [ -z "$(grep "openclash_geoasn.sh" "$CRON_FILE" 2>/dev/null)" ] && {
+      [ "$(uci -q get openclash.config.geoasn_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geoasn_update_day_time) * * $(uci -q get openclash.config.geoasn_update_week_time) /usr/share/openclash/openclash_geoasn.sh" >> $CRON_FILE
+   }
    [ -z "$(grep "openclash_chnroute.sh" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci -q get openclash.config.chnr_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.chnr_update_day_time) * * $(uci -q get openclash.config.chnr_update_week_time) /usr/share/openclash/openclash_chnroute.sh" >> $CRON_FILE
    }
@@ -71,6 +74,7 @@ del_cron()
    sed -i '/openclash_ipdb.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_geoip.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_geosite.sh/d' $CRON_FILE 2>/dev/null
+   sed -i '/openclash_geoasn.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_chnroute.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/\/etc\/init.d\/openclash/d' $CRON_FILE 2>/dev/null
    /etc/init.d/cron restart
