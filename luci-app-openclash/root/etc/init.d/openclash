@@ -514,7 +514,7 @@ do_run_file()
    [ ! -f "$ipdb_path" ] && {
       LOG_OUT "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
       /usr/share/openclash/openclash_ipdb.sh
-      if [ ! -f "$ipdb_path" ]; then
+      if [ ! -f "$ipdb_path" ] && [ "$small_flash_memory" = "1" ]; then
          start_fail
       fi
    }
@@ -522,7 +522,7 @@ do_run_file()
    [ ! -f "$geosite_path" ] && {
       LOG_OUT "Tip: Detected that the GEOSITE Database is not Installed, Ready to Download..."
       /usr/share/openclash/openclash_geosite.sh
-      if [ ! -f "$geosite_path" ]; then
+      if [ ! -f "$geosite_path" ] && [ "$small_flash_memory" = "1" ]; then
          start_fail
       fi
    }
@@ -530,7 +530,7 @@ do_run_file()
    [ ! -f "$geoip_path" ] && [ "$enable_geoip_dat" == "1" ] && {
       LOG_OUT "Tip: Detected that the GEOIP Dat is not Installed, Ready to Download..."
       /usr/share/openclash/openclash_geoip.sh
-      if [ "$enable_geoip_dat" == "1" ] && [ ! -f "$geoip_path" ]; then
+      if [ "$enable_geoip_dat" == "1" ] && [ ! -f "$geoip_path" ] && [ "$small_flash_memory" = "1" ]; then
          start_fail
       fi
    }
