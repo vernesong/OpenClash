@@ -80,13 +80,16 @@ jobs:
 
       - name: Prepare Makefiles and Temp Dirs for Meta
         run: |
-          mkdir -p ${{ github.workspace }}/../tmp
-          cp ${{ github.workspace }}/.github/makefile/meta ${{ github.workspace }}/../tmp/Makefile
-          mkdir -p ${{ github.workspace }}/../tmp/loong64_abi1
-          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi1 ${{ github.workspace }}/../tmp/loong64_abi1/Makefile
-          mkdir -p ${{ github.workspace }}/../tmp/loong64_abi2
-          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi2 ${{ github.workspace }}/../tmp/loong64_abi2/Makefile
-          mkdir -p ${{ github.workspace }}/../tmp/${{ matrix.arch }}/bin
+          mkdir -p ${{ github.workspace }}/build_temp/meta_makefiles/normal
+          cp ${{ github.workspace }}/.github/makefile/meta ${{ github.workspace }}/build_temp/meta_makefiles/normal/Makefile
+
+          mkdir -p ${{ github.workspace }}/build_temp/meta_makefiles/loong64_abi1
+          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi1 ${{ github.workspace }}/build_temp/meta_makefiles/loong64_abi1/Makefile
+
+          mkdir -p ${{ github.workspace }}/build_temp/meta_makefiles/loong64_abi2
+          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi2 ${{ github.workspace }}/build_temp/meta_makefiles/loong64_abi2/Makefile
+          
+          mkdir -p ${{ github.workspace }}/build_temp/meta_output/${{ matrix.arch }}/bin
       
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -134,7 +137,7 @@ jobs:
           case "${{ matrix.arch }}" in
             normal)
               echo "Using default Go and Makefile"
-              cp ../../tmp/Makefile ./Makefile
+              cp ../build_temp/meta_makefiles/normal/Makefile ./Makefile
               ;;
             loongarch_abi1)
               echo "Setup Go for loongarch abi1"
@@ -148,7 +151,7 @@ jobs:
               sudo rm -rf /usr/local/go || true
               sudo tar zxf "$GO_ARCHIVE_DIR/$GO_TAR_FILE" -C /usr/local
               echo "/usr/local/go/bin" >> $GITHUB_PATH
-              cp ../../tmp/loong64_abi1/Makefile ./Makefile
+              cp ../build_temp/meta_makefiles/loong64_abi1/Makefile ./Makefile
               ;;
             loongarch_abi2)
               echo "Setup Go for loongarch abi2"
@@ -162,19 +165,19 @@ jobs:
               sudo rm -rf /usr/local/go || true
               sudo tar zxf "$GO_ARCHIVE_DIR/$GO_TAR_FILE" -C /usr/local
               echo "/usr/local/go/bin" >> $GITHUB_PATH
-              cp ../../tmp/loong64_abi2/Makefile ./Makefile
+              cp ../build_temp/meta_makefiles/loong64_abi2/Makefile ./Makefile
               ;;
           esac
           go version
           make releases
-          cp -rf ./bin/. ../../tmp/${{ matrix.arch }}/bin/
+          cp -rf ./bin/. ../build_temp/meta_output/${{ matrix.arch }}/bin/
           rm -rf ./bin/*
 
       - name: Upload Meta Core Artifact
         uses: actions/upload-artifact@v4
         with:
           name: meta-core-${{ matrix.arch }}
-          path: ${{ github.workspace }}/../tmp/${{ matrix.arch }}/bin
+          path: build_temp/meta_output/${{ matrix.arch }}/bin
 
   Compile_Smart_Core:
     runs-on: ubuntu-latest
@@ -204,18 +207,19 @@ jobs:
 
       - name: Prepare Makefiles and Temp Dirs for Smart
         run: |
-          mkdir -p ${{ github.workspace }}/../tmp
-          cp ${{ github.workspace }}/.github/makefile/meta ${{ github.workspace }}/../tmp/Makefile
-          mkdir -p ${{ github.workspace }}/../tmp/loong64_abi1
-          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi1 ${{ github.workspace }}/../tmp/loong64_abi1/Makefile
-          mkdir -p ${{ github.workspace }}/../tmp/loong64_abi2
-          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi2 ${{ github.workspace }}/../tmp/loong64_abi2/Makefile
+          mkdir -p ${{ github.workspace }}/build_temp/smart_makefiles/normal
+          cp ${{ github.workspace }}/.github/makefile/meta ${{ github.workspace }}/build_temp/smart_makefiles/normal/Makefile
+          sed -i 's/VERSION=alpha-g/VERSION=alpha-smart-g/' ${{ github.workspace }}/build_temp/smart_makefiles/normal/Makefile
 
-          sed -i 's/VERSION=alpha-g/VERSION=alpha-smart-g/' ${{ github.workspace }}/../tmp/Makefile
-          sed -i 's/VERSION=alpha-g/VERSION=alpha-smart-g/' ${{ github.workspace }}/../tmp/loong64_abi1/Makefile
-          sed -i 's/VERSION=alpha-g/VERSION=alpha-smart-g/' ${{ github.workspace }}/../tmp/loong64_abi2/Makefile
+          mkdir -p ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi1
+          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi1 ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi1/Makefile
+          sed -i 's/VERSION=alpha-g/VERSION=alpha-smart-g/' ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi1/Makefile
+
+          mkdir -p ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi2
+          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi2 ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi2/Makefile
+          sed -i 's/VERSION=alpha-g/VERSION=alpha-smart-g/' ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi2/Makefile
           
-          mkdir -p ${{ github.workspace }}/../tmp_smart/${{ matrix.arch }}/bin
+          mkdir -p ${{ github.workspace }}/build_temp/smart_output/${{ matrix.arch }}/bin
       
       - name: Setup Go
         uses: actions/setup-go@v5
@@ -263,7 +267,7 @@ jobs:
           case "${{ matrix.arch }}" in
             normal)
               echo "Using default Go and Makefile"
-              cp ../../tmp/Makefile ./Makefile
+              cp ../build_temp/smart_makefiles/normal/Makefile ./Makefile
               ;;
             loongarch_abi1)
               echo "Setup Go for loongarch abi1"
@@ -279,7 +283,7 @@ jobs:
               sudo rm -rf /usr/local/go || true
               sudo tar zxf "$GO_ARCHIVE_DIR/$GO_TAR_FILE" -C /usr/local
               echo "/usr/local/go/bin" >> $GITHUB_PATH
-              cp ../../tmp/loong64_abi1/Makefile ./Makefile
+              cp ../build_temp/smart_makefiles/loong64_abi1/Makefile ./Makefile
               ;;
             loongarch_abi2)
               echo "Setup Go for loongarch abi2"
@@ -295,19 +299,19 @@ jobs:
               sudo rm -rf /usr/local/go || true
               sudo tar zxf "$GO_ARCHIVE_DIR/$GO_TAR_FILE" -C /usr/local
               echo "/usr/local/go/bin" >> $GITHUB_PATH
-              cp ../../tmp/loong64_abi2/Makefile ./Makefile
+              cp ../build_temp/smart_makefiles/loong64_abi2/Makefile ./Makefile
               ;;
           esac
           go version
           make releases
-          cp -rf ./bin/. ../../tmp_smart/${{ matrix.arch }}/bin/
+          cp -rf ./bin/. ../build_temp/smart_output/${{ matrix.arch }}/bin/
           rm -rf ./bin/*
 
       - name: Upload Smart Core Artifact
         uses: actions/upload-artifact@v4
         with:
           name: smart-core-${{ matrix.arch }}
-          path: ${{ github.workspace }}/../tmp_smart/${{ matrix.arch }}/bin
+          path: build_temp/smart_output/${{ matrix.arch }}/bin
 
   Publish:
     runs-on: ubuntu-latest
@@ -351,7 +355,7 @@ jobs:
                 commit_description="Meta to ${{ needs.Get-Commit-id.outputs.upstream_id }}"
               fi
             else
-              echo "Compile_Meta_Core job did not succeed or was not triggered as expected, skipping meta file organization."
+              echo "Compile_Meta_Core job failed, skipping..."
             fi
           fi
 
@@ -374,7 +378,7 @@ jobs:
                 commit_description="${commit_description}Smart to ${{ needs.Get-Commit-id.outputs.upstream_smart_id }}"
               fi
             else
-              echo "Compile_Smart_Core job did not succeed or was not triggered as expected, skipping smart file organization."
+              echo "Compile_Smart_Core job failed, skipping..."
             fi
           fi
 
