@@ -245,9 +245,14 @@ end
 local function corelv()
 	local status = process_status("/usr/share/openclash/clash_version.sh")
     local core_meta_lv = ""
+	local core_smart_enable = uci:get("openclash", "config", "smart_enable") or "0"
     if not status then
 		if fs.access("/tmp/clash_last_version") then
-        	core_meta_lv = luci.sys.exec("sed -n 3p /tmp/clash_last_version 2>/dev/null |tr -d '\n'")
+			if core_smart_enable == "1" then
+				core_meta_lv = luci.sys.exec("sed -n 2p /tmp/clash_last_version 2>/dev/null |tr -d '\n'")
+			else
+        		core_meta_lv = luci.sys.exec("sed -n 1p /tmp/clash_last_version 2>/dev/null |tr -d '\n'")
+			end
 		else
 			action_get_last_version()
 			core_meta_lv = "loading..."
@@ -307,12 +312,19 @@ local function release_branch()
 	return uci:get("openclash", "config", "release_branch")
 end
 
+local function smart_enable()
+	return uci:get("openclash", "config", "smart_enable")
+end
+
 local function save_corever_branch()
 	if luci.http.formvalue("core_ver") then
 		uci:set("openclash", "config", "core_version", luci.http.formvalue("core_ver"))
 	end
 	if luci.http.formvalue("release_branch") then
 		uci:set("openclash", "config", "release_branch", luci.http.formvalue("release_branch"))
+	end
+	if luci.http.formvalue("smart_enable") then
+		uci:set("openclash", "config", "smart_enable", luci.http.formvalue("smart_enable"))
 	end
 	uci:commit("openclash")
 	return "success"
@@ -1027,12 +1039,9 @@ function action_dler_login()
 end
 
 function action_one_key_update_check()
-	luci.sys.call("rm -rf /tmp/*_last_version 2>/dev/null")
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		corever = corever(),
-		corelv = corelv(),
-		oplv = oplv();
+		corever = corever();
 	})
 end
 
@@ -1163,7 +1172,8 @@ function action_update_info()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 			corever = corever(),
-			release_branch = release_branch();
+			release_branch = release_branch(),
+			smart_enable = smart_enable();
 	})
 end
 

@@ -1368,11 +1368,14 @@ msgstr "注意：如更新失败可手动下载并上传"
 msgid "Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating"
 msgstr "注意：客户端可能无法更新，因为squashfs格式的固件更新后不会释放闪存空间"
 
-msgid "Compiled Version Selected (Auto-save when you click to update or download)"
-msgstr "已选择编译版本（点击更新或下载时自动保存）"
+msgid "Compiled Version"
+msgstr "编译版本"
 
-msgid "Release Branch Selected (Auto-save when you click to update or download)"
-msgstr "已选择更新分支（点击更新或下载时自动保存）"
+msgid "Release Branch"
+msgstr "更新分支"
+
+msgid "Note: options will auto-save when you click to update or download"
+msgstr "注意：以下选项在点击更新或下载时将自动保存"
 
 msgid "CPU Architecture"
 msgstr "处理器架构"
@@ -3515,3 +3518,6 @@ msgstr "跳过安全路径检查"
 
 msgid "Drop The Type of DNS Responsed"
 msgstr "丢弃指定类型的 DNS 回应"
+
+msgid "Smart Group Support"
+msgstr "Smart 策略组支持"
