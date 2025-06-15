@@ -2202,6 +2202,9 @@ msgstr "试试手气"
 msgid "Dler Cloud Account Login Failed! Please Check And Try Again..."
 msgstr "Dler Cloud 账户登录失败！请检查账户信息并重试..."
 
+msgid "Dler Cloud Account Login Failed, The Error Info is"
+msgstr "Dler Cloud 账户登录失败，错误信息"
+
 msgid "Dler Cloud Checkin Failed! Please Check And Try Again..."
 msgstr "Dler Cloud 签到失败，请稍后再试！"
 
