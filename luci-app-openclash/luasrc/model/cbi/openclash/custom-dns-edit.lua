@@ -87,6 +87,7 @@ o.default     = o.disbled
 ---- Skip-cert-verify
 o = s:option(Flag, "skip_cert_verify", translate("skip-cert-verify"), translate("skip-cert-verify")..translate("(Only Meta Core)"))
 o:depends("type", "https")
+o:depends("type", "quic")
 o.rmempty     = false
 o.default     = o.disbled
 
@@ -101,7 +102,16 @@ o:value("1.1.1.1/24")
 o = s:option(Flag, "ecs_override", translate("ECS Override"),translate("Override the ECS Subnet Address")..translate("(Only Meta Core)"))
 o:depends("type", "https")
 o.rmempty     = false
-o.datatype	= "ipaddr"
+o.default     = o.disbled
+
+---- disable-ipv4
+o = s:option(Flag, "disable_ipv4", translate("Disable-IPv4"),translate("Drop The Type of DNS Responsed")..translate("(Only Meta Core)"))
+o.rmempty     = false
+o.default     = o.disbled
+
+---- disable-ipv6
+o = s:option(Flag, "disable_ipv6", translate("Disable-IPv6"),translate("Drop The Type of DNS Responsed")..translate("(Only Meta Core)"))
+o.rmempty     = false
 o.default     = o.disbled
 
 ---- Proxy group
