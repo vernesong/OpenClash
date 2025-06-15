@@ -3509,3 +3509,9 @@ msgstr "跳过安全路径检查"
 
 msgid "Enable If You Want Using Files Not in /etc/openclash in You Config"
 msgstr "如果您希望在配置中使用不在 /etc/openclash 中的文件，请启用该选项"
+
+msgid "Skip Safe Path Check"
+msgstr "跳过安全路径检查"
+
+msgid "Drop The Type of DNS Responsed"
+msgstr "丢弃指定类型的 DNS 回应"

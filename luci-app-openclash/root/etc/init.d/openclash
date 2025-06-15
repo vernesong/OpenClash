@@ -54,6 +54,9 @@ add_cron()
    [ -z "$(grep "openclash_geoip.sh" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci -q get openclash.config.geoip_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geoip_update_day_time) * * $(uci -q get openclash.config.geoip_update_week_time) /usr/share/openclash/openclash_geoip.sh" >> $CRON_FILE
    }
+   [ -z "$(grep "openclash_geoasn.sh" "$CRON_FILE" 2>/dev/null)" ] && {
+      [ "$(uci -q get openclash.config.geoasn_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geoasn_update_day_time) * * $(uci -q get openclash.config.geoasn_update_week_time) /usr/share/openclash/openclash_geoasn.sh" >> $CRON_FILE
+   }
    [ -z "$(grep "openclash_chnroute.sh" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci -q get openclash.config.chnr_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.chnr_update_day_time) * * $(uci -q get openclash.config.chnr_update_week_time) /usr/share/openclash/openclash_chnroute.sh" >> $CRON_FILE
    }
@@ -71,6 +74,7 @@ del_cron()
    sed -i '/openclash_ipdb.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_geoip.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_geosite.sh/d' $CRON_FILE 2>/dev/null
+   sed -i '/openclash_geoasn.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/openclash_chnroute.sh/d' $CRON_FILE 2>/dev/null
    sed -i '/\/etc\/init.d\/openclash/d' $CRON_FILE 2>/dev/null
    /etc/init.d/cron restart
@@ -510,7 +514,7 @@ do_run_file()
    [ ! -f "$ipdb_path" ] && {
       LOG_OUT "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
       /usr/share/openclash/openclash_ipdb.sh
-      if [ ! -f "$ipdb_path" ]; then
+      if [ ! -f "$ipdb_path" ] && [ "$small_flash_memory" = "1" ]; then
          start_fail
       fi
    }
@@ -518,7 +522,7 @@ do_run_file()
    [ ! -f "$geosite_path" ] && {
       LOG_OUT "Tip: Detected that the GEOSITE Database is not Installed, Ready to Download..."
       /usr/share/openclash/openclash_geosite.sh
-      if [ ! -f "$geosite_path" ]; then
+      if [ ! -f "$geosite_path" ] && [ "$small_flash_memory" = "1" ]; then
          start_fail
       fi
    }
@@ -526,7 +530,7 @@ do_run_file()
    [ ! -f "$geoip_path" ] && [ "$enable_geoip_dat" == "1" ] && {
       LOG_OUT "Tip: Detected that the GEOIP Dat is not Installed, Ready to Download..."
       /usr/share/openclash/openclash_geoip.sh
-      if [ "$enable_geoip_dat" == "1" ] && [ ! -f "$geoip_path" ]; then
+      if [ "$enable_geoip_dat" == "1" ] && [ ! -f "$geoip_path" ] && [ "$small_flash_memory" = "1" ]; then
          start_fail
       fi
    }
