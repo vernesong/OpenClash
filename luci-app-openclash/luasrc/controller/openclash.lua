@@ -553,13 +553,15 @@ local function dler_info()
 		if info then
 			info = json.parse(info)
 		end
-		if info and info.ret == 200 then
+		if info and info.ret == 200 and info.data then
 			return info.data
+		elseif info and info.msg then
+			luci.sys.exec(string.format("echo -e %s Dler Cloud Account Login Failed, The Error Info is【%s】 >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S"), info.msg))
 		else
 			fs.unlink(path)
 			luci.sys.exec(string.format("echo -e %s Dler Cloud Account Login Failed! Please Check And Try Again... >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S")))
-			return "error"
 		end
+		return "error"
 	else
 		return "error"
 	end
