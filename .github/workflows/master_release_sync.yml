@@ -24,9 +24,10 @@ jobs:
       - name: Sync dev core to master
         run: |
           if [ -n "$(diff -r ./master/ ./dev/)" ]; then
-            rm -rf ./master/premium/*
-            rm -rf ./master/dev/*
+            rm -rf ./master/premium
+            rm -rf ./master/dev
             rm -rf ./master/meta/*
+            rm -rf ./master/smart/*
             rm -rf ./master/core_version
             cp -rf "./dev/." "./master/"
             git config user.name 'github-actions[bot]'

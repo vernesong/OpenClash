@@ -1,5 +1,4 @@
-
-name: Compile The New Clash Meta Core
+name: Compile The New Clash Core
 
 on:
   schedule:
@@ -11,7 +10,9 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       current_id: ${{ steps.current_id.outputs.current_id }}
-      upstream_id:  ${{ steps.upstream_id.outputs.upstream_id }}
+      current_smart_id: ${{ steps.current_id.outputs.current_smart_id }}
+      upstream_id: ${{ steps.upstream_id.outputs.upstream_id }}
+      upstream_smart_id: ${{ steps.upstream_id.outputs.upstream_smart_id }}
     steps:
       - name: Apt Update
         env:
@@ -28,26 +29,42 @@ jobs:
       - name: Get Current Version
         id: current_id
         run: |
-          echo "current_id=$(sed -n 3p ./dev/core_version)" >> $GITHUB_OUTPUT
-          echo "current_id: $(sed -n 3p ./dev/core_version)"
+          current_meta_ver=$(sed -n '1p' ./dev/core_version 2>/dev/null || echo "null")
+          echo "current_id=$current_meta_ver" >> $GITHUB_OUTPUT
+          echo "current_id: $current_meta_ver"
 
-      - name: Clone Clash Meta Repository
-        uses: actions/checkout@v4
-        with:
-          repository: MetaCubeX/mihomo
-          ref: Alpha
+          current_smart_ver=$(sed -n '2p' ./dev/core_version 2>/dev/null || echo "null")
+          echo "current_smart_id=$current_smart_ver" >> $GITHUB_OUTPUT
+          echo "current_smart_id: $current_smart_ver"
       
       - name: Get Upstream Version
         id: upstream_id
         run: |
+          # MetaCubeX/mihomo
+          git clone --depth=1 --branch=Alpha https://github.com/MetaCubeX/mihomo.git metacubex_mihomo
+          cd metacubex_mihomo
           echo "upstream_id=alpha-g$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "upstream_id: alpha-g$(git rev-parse --short HEAD)"
+          cd ..
+          # vernesong/mihomo
+          git clone --depth=1 --branch=Alpha https://github.com/vernesong/mihomo.git vernesong_mihomo
+          cd vernesong_mihomo
+          echo "upstream_smart_id=alpha-smart-g$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "upstream_smart_id: alpha-smart-g$(git rev-parse --short HEAD)"
 
-  Compile:
+  Compile_Meta_Core:
     runs-on: ubuntu-latest
     needs: Get-Commit-id
     if: ${{ needs.Get-Commit-id.outputs.current_id != needs.Get-Commit-id.outputs.upstream_id }}
+    strategy:
+      matrix:
+        arch: [normal, loongarch_abi1, loongarch_abi2]
     steps:
+      - name: Checkout OpenClash Repository
+        uses: actions/checkout@v4
+        with:
+          ref: core
+
       - name: Apt Update
         env:
           DEBIAN_FRONTEND: noninteractive
@@ -57,105 +74,373 @@ jobs:
 
       - name: Setup UPX
         run: |
-          cd ..
           wget https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
           tar xf upx-3.95-amd64_linux.tar.xz
-          echo "upx=../upx-3.95-amd64_linux/upx" >> $GITHUB_ENV
+          echo "upx=${{ github.workspace }}/upx-3.95-amd64_linux/upx" >> $GITHUB_ENV
 
-      - name: Clone OpenClash Repository
-        uses: actions/checkout@v4
-        with:
-          ref: core
-
-      - name: Copy Makefile
+      - name: Prepare Makefiles and Temp Dirs for Meta
         run: |
-          cd ..
-          mkdir tmp
-          mkdir tmp/bin
-          cp ./OpenClash/.github/makefile/meta ./tmp/Makefile
+          mkdir -p ${{ github.workspace }}/build_temp/meta_makefiles/normal
+          cp ${{ github.workspace }}/.github/makefile/meta ${{ github.workspace }}/build_temp/meta_makefiles/normal/Makefile
 
-      - name: Copy loongarch abi1 Makefile
-        run: |
-          cd ..
-          mkdir -p tmp/loong64_abi1/bin
-          cp ./OpenClash/.github/makefile/meta_loongarch_abi1 ./tmp/loong64_abi1/Makefile
+          mkdir -p ${{ github.workspace }}/build_temp/meta_makefiles/loong64_abi1
+          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi1 ${{ github.workspace }}/build_temp/meta_makefiles/loong64_abi1/Makefile
+
+          mkdir -p ${{ github.workspace }}/build_temp/meta_makefiles/loong64_abi2
+          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi2 ${{ github.workspace }}/build_temp/meta_makefiles/loong64_abi2/Makefile
+          
+          mkdir -p ${{ github.workspace }}/build_temp/meta_output/${{ matrix.arch }}/bin
       
-      - name: Copy loongarch abi2 Makefile
-        run: |
-          cd ..
-          mkdir -p tmp/loong64_abi2/bin
-          cp ./OpenClash/.github/makefile/meta_loongarch_abi2 ./tmp/loong64_abi2/Makefile
-
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
           go-version: "1.24"
           check-latest: true
+      
+      - name: Define Go Archive Directory
+        id: go_paths
+        run: |
+          echo "archive_dir=${{ runner.temp }}/go-archives" >> $GITHUB_OUTPUT
+          mkdir -p ${{ runner.temp }}/go-archives
 
-      - name: Clone Clash Meta Repository
+      - name: Cache Go loongarch abi1 tarball
+        id: cache_go_abi1
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.go_paths.outputs.archive_dir }}/go1.22.4.linux-amd64-abi1.tar.gz
+          key: go-loongarch-abi1-1.22.4-${{ matrix.arch }}
+          restore-keys: |
+            go-loongarch-abi1-1.22.4-
+
+      - name: Cache Go loongarch abi2 tarball
+        id: cache_go_abi2
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.go_paths.outputs.archive_dir }}/go1.22.4.linux-amd64-abi2.tar.gz
+          key: go-loongarch-abi2-1.22.4-${{ matrix.arch }}
+          restore-keys: |
+            go-loongarch-abi2-1.22.4-
+
+      - name: Clone MetaCubeX/mihomo source
         uses: actions/checkout@v4
         with:
           repository: MetaCubeX/mihomo
           ref: Alpha
-      
-      - name: Compile Meta Clash
+          path: ./metacubex_src
+
+      - name: Compile Meta Core for ${{ matrix.arch }}
         run: |
-          cp ../tmp/Makefile ./Makefile
+          set -e
+          cd ./metacubex_src
+          GO_ARCHIVE_DIR="${{ steps.go_paths.outputs.archive_dir }}"
+
+          case "${{ matrix.arch }}" in
+            normal)
+              echo "Using default Go and Makefile"
+              cp ../build_temp/meta_makefiles/normal/Makefile ./Makefile
+              ;;
+            loongarch_abi1)
+              echo "Setup Go for loongarch abi1"
+              GO_TAR_FILE="go1.22.4.linux-amd64-abi1.tar.gz"
+              if [[ "${{ steps.cache_go_abi1.outputs.cache-hit }}" != 'true' ]]; then
+                echo "Cache not found for $GO_TAR_FILE, downloading..."
+                wget -q "https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.22.4/$GO_TAR_FILE" -O "$GO_ARCHIVE_DIR/$GO_TAR_FILE"
+              else
+                echo "Restored $GO_TAR_FILE from cache."
+              fi
+              sudo rm -rf /usr/local/go || true
+              sudo tar zxf "$GO_ARCHIVE_DIR/$GO_TAR_FILE" -C /usr/local
+              echo "/usr/local/go/bin" >> $GITHUB_PATH
+              cp ../build_temp/meta_makefiles/loong64_abi1/Makefile ./Makefile
+              ;;
+            loongarch_abi2)
+              echo "Setup Go for loongarch abi2"
+              GO_TAR_FILE="go1.22.4.linux-amd64-abi2.tar.gz"
+              if [[ "${{ steps.cache_go_abi2.outputs.cache-hit }}" != 'true' ]]; then
+                echo "Cache not found for $GO_TAR_FILE, downloading..."
+                wget -q "https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.22.4/$GO_TAR_FILE" -O "$GO_ARCHIVE_DIR/$GO_TAR_FILE"
+              else
+                echo "Restored $GO_TAR_FILE from cache."
+              fi
+              sudo rm -rf /usr/local/go || true
+              sudo tar zxf "$GO_ARCHIVE_DIR/$GO_TAR_FILE" -C /usr/local
+              echo "/usr/local/go/bin" >> $GITHUB_PATH
+              cp ../build_temp/meta_makefiles/loong64_abi2/Makefile ./Makefile
+              ;;
+          esac
+          go version
           make releases
-          
-      - name: Copy Clash Bin
-        run: |
-          cp -rf "./bin/." "../tmp/bin/"
+          cp -rf ./bin/. ../build_temp/meta_output/${{ matrix.arch }}/bin/
           rm -rf ./bin/*
 
-      - name: Setup loongarch abi1 Go
-        run: |
-          wget -q https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.22.4/go1.22.4.linux-amd64-abi1.tar.gz
-          sudo tar zxf go1.22.4.linux-amd64-abi1.tar.gz -C /usr/local
-          echo "/usr/local/go/bin" >> $GITHUB_PATH
+      - name: Upload Meta Core Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: meta-core-${{ matrix.arch }}
+          path: build_temp/meta_output/${{ matrix.arch }}/bin
 
-      - name: Compile Meta loongarch abi1 Clash
-        run: |
-          cp ../tmp/loong64_abi1/Makefile ./Makefile
-          make releases
-
-      - name: Copy loongarch abi1 Clash Bin
-        run: |
-          cp -rf "./bin/." "../tmp/loong64_abi1/bin/"
-          rm -rf ./bin/*
-
-      - name: Setup loongarch abi2 Go
-        run: |
-          wget -q https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.22.4/go1.22.4.linux-amd64-abi2.tar.gz
-          sudo tar zxf go1.22.4.linux-amd64-abi2.tar.gz -C /usr/local
-
-      - name: Compile Meta loongarch abi2 Clash
-        run: |
-          cp ../tmp/loong64_abi2/Makefile ./Makefile
-          make releases
-
-      - name: Copy loongarch abi2 Clash Bin
-        run: |
-          cp -rf "./bin/." "../tmp/loong64_abi2/bin/"
-
-      - name: Clone OpenClash Repository
+  Compile_Smart_Core:
+    runs-on: ubuntu-latest
+    needs: Get-Commit-id
+    if: ${{ needs.Get-Commit-id.outputs.current_smart_id != needs.Get-Commit-id.outputs.upstream_smart_id }}
+    strategy:
+      matrix:
+        arch: [normal, loongarch_abi1, loongarch_abi2]
+    steps:
+      - name: Checkout OpenClash Repository
         uses: actions/checkout@v4
         with:
           ref: core
 
-      - name: Change Version
+      - name: Apt Update
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
-          sed -i '3d' ./dev/core_version
-          sed -i "2a ${{ needs.Get-Commit-id.outputs.upstream_id }}" ./dev/core_version
+          sudo apt-get update
+          sudo apt-get -y install wget git tar
+
+      - name: Setup UPX
+        run: |
+          wget https://github.com/upx/upx/releases/download/v3.95/upx-3.95-amd64_linux.tar.xz
+          tar xf upx-3.95-amd64_linux.tar.xz
+          echo "upx=${{ github.workspace }}/upx-3.95-amd64_linux/upx" >> $GITHUB_ENV
+
+      - name: Prepare Makefiles and Temp Dirs for Smart
+        run: |
+          mkdir -p ${{ github.workspace }}/build_temp/smart_makefiles/normal
+          cp ${{ github.workspace }}/.github/makefile/meta ${{ github.workspace }}/build_temp/smart_makefiles/normal/Makefile
+          sed -i 's/VERSION=alpha-g/VERSION=alpha-smart-g/' ${{ github.workspace }}/build_temp/smart_makefiles/normal/Makefile
+
+          mkdir -p ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi1
+          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi1 ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi1/Makefile
+          sed -i 's/VERSION=alpha-g/VERSION=alpha-smart-g/' ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi1/Makefile
+
+          mkdir -p ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi2
+          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi2 ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi2/Makefile
+          sed -i 's/VERSION=alpha-g/VERSION=alpha-smart-g/' ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi2/Makefile
+          
+          mkdir -p ${{ github.workspace }}/build_temp/smart_output/${{ matrix.arch }}/bin
+      
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.24"
+          check-latest: true
+      
+      - name: Define Go Archive Directory
+        id: go_paths
+        run: |
+          echo "archive_dir=${{ runner.temp }}/go-archives" >> $GITHUB_OUTPUT
+          mkdir -p ${{ runner.temp }}/go-archives
+
+      - name: Cache Go loongarch abi1 tarball
+        id: cache_go_abi1
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.go_paths.outputs.archive_dir }}/go1.22.4.linux-amd64-abi1.tar.gz
+          key: go-loongarch-abi1-1.22.4-${{ matrix.arch }}
+          restore-keys: |
+            go-loongarch-abi1-1.22.4-
+
+      - name: Cache Go loongarch abi2 tarball
+        id: cache_go_abi2
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.go_paths.outputs.archive_dir }}/go1.22.4.linux-amd64-abi2.tar.gz
+          key: go-loongarch-abi2-1.22.4-${{ matrix.arch }}
+          restore-keys: |
+            go-loongarch-abi2-1.22.4-
+
+      - name: Clone vernesong/mihomo source
+        uses: actions/checkout@v4
+        with:
+          repository: vernesong/mihomo
+          ref: Alpha
+          path: ./vernesong_src
+
+      - name: Compile Smart Core for ${{ matrix.arch }}
+        run: |
+          set -e
+          cd ./vernesong_src
+          GO_ARCHIVE_DIR="${{ steps.go_paths.outputs.archive_dir }}"
+
+          case "${{ matrix.arch }}" in
+            normal)
+              echo "Using default Go and Makefile"
+              cp ../build_temp/smart_makefiles/normal/Makefile ./Makefile
+              ;;
+            loongarch_abi1)
+              echo "Setup Go for loongarch abi1"
+              GO_TAR_FILE="go1.22.4.linux-amd64-abi1.tar.gz"
+              if [ ! -f "$GO_ARCHIVE_DIR/$GO_TAR_FILE" ]; then
+                 echo "CRITICAL: $GO_TAR_FILE not found in $GO_ARCHIVE_DIR. Attempting fallback download."
+                 wget -q "https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.22.4/$GO_TAR_FILE" -O "$GO_ARCHIVE_DIR/$GO_TAR_FILE"
+                 if [ ! -f "$GO_ARCHIVE_DIR/$GO_TAR_FILE" ]; then
+                    echo "ERROR: Fallback download for $GO_TAR_FILE failed. Exiting."
+                    exit 1
+                 fi
+              fi
+              sudo rm -rf /usr/local/go || true
+              sudo tar zxf "$GO_ARCHIVE_DIR/$GO_TAR_FILE" -C /usr/local
+              echo "/usr/local/go/bin" >> $GITHUB_PATH
+              cp ../build_temp/smart_makefiles/loong64_abi1/Makefile ./Makefile
+              ;;
+            loongarch_abi2)
+              echo "Setup Go for loongarch abi2"
+              GO_TAR_FILE="go1.22.4.linux-amd64-abi2.tar.gz"
+              if [ ! -f "$GO_ARCHIVE_DIR/$GO_TAR_FILE" ]; then
+                 echo "CRITICAL: $GO_TAR_FILE not found in $GO_ARCHIVE_DIR. Attempting fallback download."
+                 wget -q "https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.22.4/$GO_TAR_FILE" -O "$GO_ARCHIVE_DIR/$GO_TAR_FILE"
+                 if [ ! -f "$GO_ARCHIVE_DIR/$GO_TAR_FILE" ]; then
+                    echo "ERROR: Fallback download for $GO_TAR_FILE failed. Exiting."
+                    exit 1
+                 fi
+              fi
+              sudo rm -rf /usr/local/go || true
+              sudo tar zxf "$GO_ARCHIVE_DIR/$GO_TAR_FILE" -C /usr/local
+              echo "/usr/local/go/bin" >> $GITHUB_PATH
+              cp ../build_temp/smart_makefiles/loong64_abi2/Makefile ./Makefile
+              ;;
+          esac
+          go version
+          make releases
+          cp -rf ./bin/. ../build_temp/smart_output/${{ matrix.arch }}/bin/
+          rm -rf ./bin/*
+
+      - name: Upload Smart Core Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: smart-core-${{ matrix.arch }}
+          path: build_temp/smart_output/${{ matrix.arch }}/bin
+
+  Publish:
+    runs-on: ubuntu-latest
+    needs: [Get-Commit-id, Compile_Meta_Core, Compile_Smart_Core]
+    if: always() && (needs.Get-Commit-id.outputs.current_id != needs.Get-Commit-id.outputs.upstream_id || needs.Get-Commit-id.outputs.current_smart_id != needs.Get-Commit-id.outputs.upstream_smart_id)
+    steps:
+      - name: Checkout OpenClash Repository
+        uses: actions/checkout@v4
+        with:
+          ref: core
+
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./downloaded-artifacts
+
+      - name: Organize Artifacts, Update Version, and Prepare Commit Data
+        id: organize_commit_data
+        run: |
+          commit_description=""
+          changes_made_to_dev_meta=false
+          changes_made_to_dev_smart=false
+          core_version_updated=false
+
+          mkdir -p ./dev/meta
+          mkdir -p ./dev/smart
+
+          if [ "${{ needs.Get-Commit-id.outputs.current_id }}" != "${{ needs.Get-Commit-id.outputs.upstream_id }}" ]; then
+            echo "Organizing MetaCubeX compiled files..."
+            if [ "${{ needs.Compile_Meta_Core.result }}" == "success" ] || [ "${{ needs.Compile_Meta_Core.result }}" == "skipped" ]; then
+              rm -rf ./dev/meta/*
+              for arch_type in normal loongarch_abi1 loongarch_abi2; do
+                if [ -d ./downloaded-artifacts/meta-core-$arch_type ] && [ -n "$(ls -A ./downloaded-artifacts/meta-core-$arch_type)" ]; then
+                  echo "Copying meta-core-$arch_type files..."
+                  cp -rf ./downloaded-artifacts/meta-core-$arch_type/. ./dev/meta/
+                  changes_made_to_dev_meta=true
+                fi
+              done
+              if [ "$changes_made_to_dev_meta" = true ]; then
+                git add ./dev/meta
+                commit_description="Meta to ${{ needs.Get-Commit-id.outputs.upstream_id }}"
+              fi
+            else
+              echo "Compile_Meta_Core job failed, skipping..."
+            fi
+          fi
+
+          if [ "${{ needs.Get-Commit-id.outputs.current_smart_id }}" != "${{ needs.Get-Commit-id.outputs.upstream_smart_id }}" ]; then
+            echo "Organizing vernesong compiled files..."
+            if [ "${{ needs.Compile_Smart_Core.result }}" == "success" ] || [ "${{ needs.Compile_Smart_Core.result }}" == "skipped" ]; then
+              rm -rf ./dev/smart/*
+              for arch_type in normal loongarch_abi1 loongarch_abi2; do
+                if [ -d ./downloaded-artifacts/smart-core-$arch_type ] && [ -n "$(ls -A ./downloaded-artifacts/smart-core-$arch_type)" ]; then
+                  echo "Copying smart-core-$arch_type files..."
+                  cp -rf ./downloaded-artifacts/smart-core-$arch_type/. ./dev/smart/
+                  changes_made_to_dev_smart=true
+                fi
+              done
+              if [ "$changes_made_to_dev_smart" = true ]; then
+                git add ./dev/smart
+                if [ -n "$commit_description" ]; then
+                  commit_description="$commit_description, "
+                fi
+                commit_description="${commit_description}Smart to ${{ needs.Get-Commit-id.outputs.upstream_smart_id }}"
+              fi
+            else
+              echo "Compile_Smart_Core job failed, skipping..."
+            fi
+          fi
+
+          final_meta_id="${{ needs.Get-Commit-id.outputs.current_id }}"
+          if [ "${{ needs.Get-Commit-id.outputs.current_id }}" != "${{ needs.Get-Commit-id.outputs.upstream_id }}" ] && [ "$changes_made_to_dev_meta" = true ]; then
+            final_meta_id="${{ needs.Get-Commit-id.outputs.upstream_id }}"
+          fi
+
+          final_smart_id="${{ needs.Get-Commit-id.outputs.current_smart_id }}"
+          if [ "${{ needs.Get-Commit-id.outputs.current_smart_id }}" != "${{ needs.Get-Commit-id.outputs.upstream_smart_id }}" ] && [ "$changes_made_to_dev_smart" = true ]; then
+            final_smart_id="${{ needs.Get-Commit-id.outputs.upstream_smart_id }}"
+          fi
+          
+          echo "Updating ./dev/core_version with:"
+          echo "Meta: $final_meta_id"
+          echo "Smart: $final_smart_id"
+
+          current_core_version_content=$(cat ./dev/core_version 2>/dev/null || printf "null\nnull")
+          new_core_version_content=$(printf "%s\n%s" "$final_meta_id" "$final_smart_id")
+
+          if [ "$current_core_version_content" != "$new_core_version_content" ]; then
+            echo "$final_meta_id" > ./dev/core_version
+            echo "$final_smart_id" >> ./dev/core_version
+            git add ./dev/core_version
+            core_version_updated=true
+            echo "./dev/core_version updated."
+          else
+            echo "./dev/core_version is already up to date."
+          fi
+          echo "Content of ./dev/core_version after potential update:"
+          cat ./dev/core_version
+
+          overall_changes_exist=false
+          if [ "$changes_made_to_dev_meta" = true ] || [ "$changes_made_to_dev_smart" = true ] || [ "$core_version_updated" = true ]; then
+            overall_changes_exist=true
+          fi
+
+          echo "commit_description_output=$commit_description" >> $GITHUB_OUTPUT
+          echo "overall_changes_exist_output=$overall_changes_exist" >> $GITHUB_OUTPUT
 
       - name: Commit and push
+        env:
+          COMMIT_DESCRIPTION: ${{ steps.organize_commit_data.outputs.commit_description_output }}
+          OVERALL_CHANGES_EXIST: ${{ steps.organize_commit_data.outputs.overall_changes_exist_output }}
         run: |
-          rm -rf ./dev/meta/*
-          cp -rf "../tmp/bin/." "./dev/meta/"
-          cp -rf "../tmp/loong64_abi1/bin/." "./dev/meta/"
-          cp -rf "../tmp/loong64_abi2/bin/." "./dev/meta/"
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
-          git add .
-          git commit -m "Auto update Meta core: ${{ needs.Get-Commit-id.outputs.upstream_id }}"
-          git push
+          
+          echo "Commit description from output: $COMMIT_DESCRIPTION"
+          echo "Overall changes exist from output: $OVERALL_CHANGES_EXIST"
+
+          if ! git diff --staged --quiet || [ "$OVERALL_CHANGES_EXIST" = "true" ]; then
+            final_commit_message="Auto update"
+            if [ -n "$COMMIT_DESCRIPTION" ]; then
+              final_commit_message="$final_commit_message: $COMMIT_DESCRIPTION"
+            elif [ "$OVERALL_CHANGES_EXIST" = "true" ]; then
+              final_commit_message="$final_commit_message: Update core versions"
+            fi
+            
+            echo "Committing with message: $final_commit_message"
+            git commit -m "$final_commit_message"
+            git push
+          else
+            echo "No changes to commit."
+          fi

@@ -1,13 +1,13 @@
 
 <fieldset class="cbi-section">
 	<table width="100%">
-	  <tr><td width="100%" colspan="4">
+	  <tr><td width="100%" colspan="6">
 	    <p align="center" id="update_tip">
 	  		<b><%:Note: if the update fails, you can manually download and upload%></b>
 	  	</p>
 	  </td></tr>
-	  <tr><td width="25%"><%:Compiled Version Selected (Auto-save when you click to update or download)%></td>
-	  	<td width="25%" align="left"><select id="CORE_VERSION">
+	  <tr><td width="16.6%"><%:Compiled Version%></td>
+	  	<td width="16.6%" align="left"><select id="CORE_VERSION">
 	  		<option value="linux-386"><%:linux-386%></option>
 				<option value="linux-amd64"><%:linux-amd64(x86-64)%></option>
 				<option value="linux-amd64-v3"><%:linux-amd64-v3(x86-64)%></option>
@@ -27,12 +27,20 @@
 				<option value="linux-mipsle-hardfloat"><%:linux-mipsle-hardfloat%></option>
 				<option value="0"><%:Not Set%></option>
 	  	</select></td>
-	  	<td width="25%"><%:Release Branch Selected (Auto-save when you click to update or download)%></td>
-	  	<td width="25%" align="left"><select id="RELEASE_BRANCH">
+	  	<td width="16.6%"><%:Release Branch%></td>
+	  	<td width="16.6%" align="left"><select id="RELEASE_BRANCH">
 	  		<option value="master">Master</option>
-				<option value="dev">Developer</option>
+			<option value="dev">Developer</option>
+	  	</select></td>
+		<td width="16.6%"><%:Smart Group Support%></td>
+	  	<td width="16.6%" align="left"><select id="SMART_ENABLE">
+	  		<option value="0"><%:Disabled%></option>
+			<option value="1"><%:Enable%></option>
 	  	</select></td>
 	  	</tr>
+	</table>
+	<table width="100%">
+	  <tr><td width="100%" colspan="6">
 		<tr>
 			<td width="25%"><%:CPU Architecture%></td><td width="25%" align="left" id="CPU_MODEL"><%:Collecting data...%></td>
 			<td width="25%"><%:Last Check Update%></td><td width="25%" align="left" id="CHECKTIME"><%:Collecting data...%></td>
@@ -151,6 +159,7 @@
 	var one_key_update_cdn = document.getElementById('one_key_update_cdn');
 	var remove_core = document.getElementById('remove_core');
 	var release_branch = document.getElementById('RELEASE_BRANCH');
+	var smart_enable = document.getElementById('SMART_ENABLE');
 	core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'Meta\')"/>';
 	op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return op_update(this)"/>';
 	ma_core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'Meta\')"/>';
@@ -168,22 +177,29 @@
 
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
-			if ( status.corever != "0" && status.corever != "" ) {
+			if ( status.corever && status.corever != "0" && status.corever != "" ) {
 		  		core_version.value = status.corever;
 			}
 			else {
 		  		core_version.value = "0";
 			}
-			if ( status.release_branch != "" ) {
+			if ( status.release_branch && status.release_branch != "" ) {
 		  		release_branch.value = status.release_branch;
 			}
 			else {
 		  		release_branch.value = "master";
 			}
+			if ( status.smart_enable && status.smart_enable != "" ) {
+				smart_enable.value = status.smart_enable;
+			}
+			else {
+				smart_enable.value = "0";
+			}
 		}
 		else {
 			core_version.value = "0";
 			release_branch.value = "master";
+			smart_enable.value = "0";
 		}
 	});
 
@@ -248,7 +264,7 @@
 	XHR.poll(7, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', status.startlog, function(x, status) {
 		if ( x && x.status == 200 ) {
 			if ( status.startlog == "\n" || status.startlog == "" ) {
-		    	var rdmdl=Math.floor(Math.random()*2)+1;
+		    	var rdmdl=Math.floor(Math.random()*3)+1;
 				if(rdmdl==1)
 				{
 					update_tip.innerHTML = '<b><font><%:Note: if the update fails, you can manually download and upload%></font></b>';
@@ -256,6 +272,10 @@
 				if(rdmdl==2)
 				{
 					update_tip.innerHTML = '<b><font><%:Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating%></font></b>';
+				}
+				if(rdmdl==3)
+				{
+					update_tip.innerHTML = '<b><font><%:Note: options will auto-save when you click to update or download%></font></b>';
 				}
       		 }
    		}
@@ -296,7 +316,8 @@
     {
     	var v = core_version.value;
     	var r = release_branch.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
+		var s = smart_enable.value;
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
 				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "coreupdate")%>', {core_type: type}, function(x, status) {
 					btn.value    = '<%:Check And Update%>';
@@ -309,8 +330,10 @@
 
 	function op_update(btn)
     {
-        var r = release_branch.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {release_branch: r}, function(x, status) {
+        var v = core_version.value;
+    	var r = release_branch.value;
+		var s = smart_enable.value;
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
 				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', null, function(x, status) {
 					btn.value    = '<%:Check And Update%>';
@@ -325,7 +348,8 @@
     {
     	var v = core_version.value;
 		var r = release_branch.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
+		var s = smart_enable.value;
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 		if (x && x.status == 200) {
 			btn.value    = '<%:Download%>';
 			btn.disabled = false;
@@ -333,8 +357,14 @@
 			if ( x && x.status == 200 ) {
 				if ( status.corever != "0" ) {
 					if (type == "Meta") {
-						url4='https://raw.githubusercontent.com/vernesong/OpenClash/core/'+r+'/meta/clash-'+status.corever+'.tar.gz';
-						window.location.href=url4;
+						if (s == "1") {
+							url4='https://raw.githubusercontent.com/vernesong/OpenClash/core/'+r+'/smart/clash-'+status.corever+'.tar.gz';
+							window.location.href=url4;
+						}
+						else {
+							url4='https://raw.githubusercontent.com/vernesong/OpenClash/core/'+r+'/meta/clash-'+status.corever+'.tar.gz';
+							window.location.href=url4;
+						}
 					}
 				}
 				else {
@@ -351,8 +381,10 @@
     {
         btn.value    = '<%:Download%>';
         btn.disabled = false;
-        var r = release_branch.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {release_branch: r}, function(x, status) {
+        var v = core_version.value;
+		var r = release_branch.value;
+		var s = smart_enable.value;
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
 			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.oplv, function(x, status) {
 				if ( x && x.status == 200 ) {
@@ -456,7 +488,8 @@
     {
     	var v = core_version.value;
 		var r = release_branch.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
+		var s = smart_enable.value;
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
 				btn.value    = '<%:One Click Check Update%>';
 				btn.disabled = true;
@@ -490,7 +523,8 @@
     {
     	var v = core_version.value;
 		var r = release_branch.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
+		var s = smart_enable.value;
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
 				btn.value    = '<%:One Click Check Update With CDN%>';
 				btn.disabled = true;

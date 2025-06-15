@@ -66,8 +66,8 @@
 <body>
 	<div id="selectPopup" class="select-popup hidden">
 		<table width="100%"><tr>
-			<td width="25%" align="center"><%:Compiled Version Selected (Auto-save when you click to update or download)%></td>
-				<td width="25%" align="center"><select class="select-class" id="CORE_VERSION_CDN">
+			<td width="16.6%" align="center"><%:Compiled Version%></td>
+				<td width="16.6%" align="center"><select class="select-class" id="CORE_VERSION_CDN">
 					<option value="linux-386"><%:linux-386%></option>
 					  <option value="linux-amd64"><%:linux-amd64(x86-64)%></option>
 					  <option value="linux-amd64-v3"><%:linux-amd64-v3(x86-64)%></option>
@@ -87,10 +87,15 @@
 					  <option value="linux-mipsle-hardfloat"><%:linux-mipsle-hardfloat%></option>
 					  <option value="0"><%:Not Set%></option>
 				</select></td>
-				<td width="25%" align="center"><%:Release Branch Selected (Auto-save when you click to update or download)%></td>
-				<td width="25%" align="center"><select class="select-class" id="RELEASE_BRANCH_CDN">
+				<td width="16.6%" align="center"><%:Release Branch%></td>
+				<td width="16.6%" align="center"><select class="select-class" id="RELEASE_BRANCH_CDN">
 					<option value="master">Master</option>
-					  <option value="dev">Developer</option>
+					<option value="dev">Developer</option>
+				</select></td>
+				<td width="16.6%"><%:Smart Group Support%></td>
+				<td width="16.6%" align="left"><select id="SMART_ENABLE_CDN">
+					<option value="0"><%:Disabled%></option>
+					<option value="1"><%:Enable%></option>
 				</select></td>
 			</tr></table>
 	<div class="select-popup-header"><%:Choose CDN For Downloading:%></div>
@@ -111,6 +116,7 @@
 
 	var core_version_cdn = document.getElementById('CORE_VERSION_CDN');
 	var release_branch_cdn = document.getElementById('RELEASE_BRANCH_CDN');
+	var smart_enable_cdn = document.getElementById('SMART_ENABLE_CDN');
 
 	function isDarkBackground(element) {
 		var style = window.getComputedStyle(element);
@@ -145,22 +151,29 @@
 	function get_update_info() {
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, status) {
 			if ( x && x.status == 200 ) {
-				if ( status.corever != "0" && status.corever != "" ) {
+				if ( status.corever && status.corever != "0" && status.corever != "" ) {
 					core_version_cdn.value = status.corever;
 				}
 				else {
 					core_version_cdn.value = "0";
 				}
-				if ( status.release_branch != "" ) {
+				if ( status.release_branch && status.release_branch != "" ) {
 					release_branch_cdn.value = status.release_branch;
 				}
 				else {
 					release_branch_cdn.value = "master";
 				}
+				if ( status.smart_enable && status.smart_enable != "" ) {
+				smart_enable_cdn.value = status.smart_enable;
+				}
+				else {
+					smart_enable_cdn.value = "0";
+				}
 			}
 			else {
 				core_version_cdn.value = "0";
 				release_branch_cdn.value = "master";
+				smart_enable_cdn.value = "0";
 			}
 		});
 	};
@@ -214,14 +227,11 @@
 		var addCustomOption = document.getElementById('addCustomOption');
 		var selectOptions = document.getElementsByClassName('select-option');
 
-		// 隐藏自定义输入和按钮
 		customOptionInput.style.display = 'none';
 		addCustomOption.style.display = 'none';
 
-		// 添加自定义选项的事件监听
 		selectPopup.addEventListener('click', select_window, type);
 
-		//点击弹窗外部关闭弹窗
 		document.addEventListener('click', select_window_close);
 
 		refresh_httpdelay = setInterval(() => {
@@ -243,14 +253,13 @@
 	function select_window(event, type) {
 		var v = core_version_cdn.value;
 		var r = release_branch_cdn.value;
+		var s = smart_enable_cdn.value;
 		var selectOptions = document.getElementsByClassName('select-option');
 		var target = event.target;
 		if (target.classList.contains('select-option') && target.dataset.value === 'custom') {
-			// 显示自定义输入和按钮
 			customOptionInput.style.display = 'block';
 			addCustomOption.style.display = 'block';
 		} else if (target === addCustomOption) {
-			// 添加自定义选项到列表中
 			var newValue = customOptionInput.value.trim();
 			if (newValue !== '' && isValidURL(newValue)) {
 				var newOption = document.createElement('div');
@@ -258,8 +267,6 @@
 				newOption.textContent = newValue;
 				newOption.dataset.value = newValue;
 				selectPopup.querySelector('.select-popup-body').insertBefore(newOption, selectPopup.querySelector('.select-popup-body').children[selectOptions.length - 2]);
-
-				// 隐藏自定义输入和按钮
 				customOptionInput.style.display = 'none';
 				addCustomOption.style.display = 'none';
 			}
@@ -270,14 +277,14 @@
 			customOptionInput.style.display = 'none';
 			addCustomOption.style.display = 'none';
 			if (type === 'core_download') {
-				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
+				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 					if (x && x.status == 200) {
 						XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', {url: target.dataset.value}, function(x, status) {});
 					}
 				});
 			}
 			else {
-				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r}, function(x, status) {
+				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 					if (x && x.status == 200) {
 						XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', {url: target.dataset.value}, function(x, status) {});
 					}
@@ -289,7 +296,6 @@
 			clearInterval(refresh_httpdelay);
 		}
 		else if (target != addCustomOption && target != customOptionInput) {
-			// 点击其他选项或弹窗外部，隐藏自定义输入和按钮
 			customOptionInput.style.display = 'none';
 			addCustomOption.style.display = 'none';
 		}
