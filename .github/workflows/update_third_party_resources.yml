@@ -27,7 +27,6 @@ jobs:
           echo "YACD_PATH=luci-app-openclash/root/usr/share/openclash/ui/yacd" >> $GITHUB_ENV
           echo "ZASHBOARD_PATH=luci-app-openclash/root/usr/share/openclash/ui/zashboard" >> $GITHUB_ENV
           echo "METACUBEXD_PATH=luci-app-openclash/root/usr/share/openclash/ui/metacubexd" >> $GITHUB_ENV
-          echo "GEOIP_PATH=luci-app-openclash/root/etc/openclash/GeoIP.dat" >> $GITHUB_ENV
           echo "GEOSITE_PATH=luci-app-openclash/root/etc/openclash/GeoSite.dat" >> $GITHUB_ENV
           echo "COUNTRY_MMDB_PATH=luci-app-openclash/root/etc/openclash/Country.mmdb" >> $GITHUB_ENV
 
@@ -151,27 +150,11 @@ jobs:
           fi
           echo "updated=$UPDATED" >> $GITHUB_OUTPUT
 
-      - name: Update GeoIP and GeoSite files
+      - name: Update GeoSite files
         id: geo
         run: |
           RULES_RELEASE=$(curl -s https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases/latest | jq -r '.tag_name')
           echo "Latest v2ray-rules-dat version: $RULES_RELEASE"
-          curl -sSL "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/${RULES_RELEASE}/geoip.dat" -o tmp/GeoIP.dat
-          mkdir -p $(dirname "$GEOIP_PATH")
-          UPDATED_GEOIP=0
-          if [ -f "$GEOIP_PATH" ]; then
-            if ! cmp -s tmp/GeoIP.dat "$GEOIP_PATH"; then
-              echo "GeoIP.dat has been updated, replacing old version."
-              cp tmp/GeoIP.dat "$GEOIP_PATH"
-              UPDATED_GEOIP=1
-            else
-              echo "GeoIP.dat is up to date."
-            fi
-          else
-            echo "GeoIP.dat file doesn't exist, creating it."
-            cp tmp/GeoIP.dat "$GEOIP_PATH"
-            UPDATED_GEOIP=1
-          fi
           curl -sSL "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/${RULES_RELEASE}/geosite.dat" -o tmp/GeoSite.dat
           mkdir -p $(dirname "$GEOSITE_PATH")
           UPDATED_GEOSITE=0
@@ -188,7 +171,6 @@ jobs:
             cp tmp/GeoSite.dat "$GEOSITE_PATH"
             UPDATED_GEOSITE=1
           fi
-          echo "geoip=$UPDATED_GEOIP" >> $GITHUB_OUTPUT
           echo "geosite=$UPDATED_GEOSITE" >> $GITHUB_OUTPUT
 
       - name: Update Country.mmdb
@@ -219,7 +201,6 @@ jobs:
           steps.metacubexd.outputs.updated == '1' ||
           steps.yacd.outputs.updated == '1' ||
           steps.zashboard.outputs.updated == '1' ||
-          steps.geo.outputs.geoip == '1' ||
           steps.geo.outputs.geosite == '1' ||
           steps.mmdb.outputs.updated == '1'
         run: |
