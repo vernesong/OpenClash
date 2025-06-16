@@ -191,9 +191,40 @@ elif [ -x "/usr/bin/apk" ]; then
 fi
 EOF
    chmod 4755 /tmp/openclash_update.sh
-   /tmp/openclash_update.sh &
-   wait
-   rm -rf /tmp/openclash_update.sh
+
+   if [ ! -f "/tmp/openclash_update.sh" ] || [ ! -s "/tmp/openclash_update.sh" ] || [ ! -x "/tmp/openclash_update.sh" ]; then
+      LOG_OUT "Error: Failed to create update script!"
+      rm -rf /tmp/openclash_update.sh
+      del_lock
+      exit 1
+   fi
+
+   retry_count=0
+   max_retries=3
+   service_started=false
+
+   while [ $retry_count -lt $max_retries ]; do
+      LOG_OUT "Tip: Attempting to start update service【$((retry_count + 1))/$max_retries】..."
+      
+      ubus call service add '{"name":"openclash_update","instances":{"instance1":{"command":["/tmp/openclash_update.sh"],"stdout":true,"stderr":true}}}' >/dev/null 2>&1
+      
+      sleep 1
+      
+      if ubus call service list '{"name":"openclash_update"}' >/dev/null 2>&1; then
+         service_started=true
+         break
+      else
+         retry_count=$((retry_count + 1))
+         LOG_OUT "Error: Service start failed, retrying in 2 seconds..."
+         sleep 2
+      fi
+   done
+   
+   if [ "$service_started" = false ]; then
+      LOG_OUT "Error: Failed to start update service, please check and try again later..."
+   fi
+
+   (sleep 10; rm -f /tmp/openclash_update.sh) &
    else
       LOG_OUT "【OpenClash - v$LAST_VER】Download Failed, Please Check The Network or Try Again Later!"
       rm -rf /tmp/openclash.ipk >/dev/null 2>&1
