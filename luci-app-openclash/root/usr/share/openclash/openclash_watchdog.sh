@@ -20,6 +20,8 @@ CFG_UPDATE_INT=1
 SKIP_PROXY_ADDRESS=1
 SKIP_PROXY_ADDRESS_INTERVAL=30
 STREAM_AUTO_SELECT=1
+FIREWALL_RELOAD=0
+MAX_FIREWALL_RELOAD=3
 FW4=$(command -v fw4)
 
 ## Skip Proxies Address
@@ -203,24 +205,25 @@ done >/dev/null 2>&1
    fi
 
 ## 转发顺序
-   if [ -z "$FW4" ]; then
-      nat_last_line=$(iptables -t nat -nL PREROUTING --line-number |awk '{print $1}' 2>/dev/null |awk 'END {print}' |sed -n '$p')
-      nat_op_line=$(iptables -t nat -nL PREROUTING --line-number |grep -E "openclash|OpenClash" |grep -Ev "DNS|dns" 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1)
-      man_last_line=$(iptables -t mangle -nL PREROUTING --line-number |awk '{print $1}' 2>/dev/null |awk 'END {print}' |sed -n '$p')
-      man_op_line=$(iptables -t mangle -nL PREROUTING --line-number |grep -E "openclash|OpenClash" |grep -Ev "DNS|dns" 2>/dev/null |awk '{print $1}' 2>/dev/null |head -1)
+   if [ "$FIREWALL_RELOAD" -le "$MAX_FIREWALL_RELOAD" ]; then
+      if [ -z "$FW4" ]; then
+         nat_last_line=$(iptables -t nat -nL PREROUTING --line-number 2>/dev/null | awk 'END {print $1}')
+         man_last_line=$(iptables -t mangle -nL PREROUTING --line-number 2>/dev/null | awk 'END {print $1}')
+         nat_op_line=$(iptables -t nat -nL PREROUTING --line-number 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | awk '{print $1}' | tail -1)
+         man_op_line=$(iptables -t mangle -nL PREROUTING --line-number 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | awk '{print $1}' | tail -1)
+      else
+         nat_last_line=$(nft -a list chain inet fw4 dstnat 2>/dev/null | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
+         man_last_line=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
+         nat_op_line=$(nft -a list chain inet fw4 dstnat 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
+         man_op_line=$(nft -a list chain inet fw4 mangle_prerouting 2>/dev/null | grep -E "openclash|OpenClash" | grep -Ev "DNS|dns" | grep "# handle" | awk -F '# handle ' '{print $2}' | tail -1)
+      fi
+
       if ([ "$nat_last_line" != "$nat_op_line" ] && [ -n "$nat_op_line" ]) || ([ "$man_last_line" != "$man_op_line" ] && [ -n "$man_op_line" ]); then
          LOG_OUT "Watchdog: Setting Firewall For Rules Order..."
          /etc/init.d/openclash reload "firewall"
-      fi
-   fi
-   if [ -n "$FW4" ]; then
-      nat_last_handle=$(nft -a list chain inet fw4 dstnat |awk -F '# handle ' '{print$2}' 2>/dev/null |tr -s '\n' |sed -n '$p')
-      nat_op_handle=$(nft -a list chain inet fw4 dstnat |grep -E "openclash|OpenClash" |grep -Ev "DNS|dns" |awk -F '# handle ' '{print$2}' 2>/dev/null |tail -1)
-      man_last_handle=$(nft -a list chain inet fw4 mangle_prerouting |awk -F '# handle ' '{print$2}' 2>/dev/null |tr -s '\n' |sed -n '$p')
-      man_op_handle=$(nft -a list chain inet fw4 mangle_prerouting |grep -E "openclash|OpenClash" |grep -Ev "DNS|dns" |awk -F '# handle ' '{print$2}' 2>/dev/null |tail -1)
-      if ([ "$nat_last_handle" != "$nat_op_handle" ] && [ -n "$nat_op_handle" ]) || ([ "$man_last_handle" != "$man_op_handle" ] && [ -n "$man_op_handle" ]); then
-         LOG_OUT "Watchdog: Setting Firewall For Rules Order..."
-         /etc/init.d/openclash reload "firewall"
+         let FIREWALL_RELOAD++
+      else
+         FIREWALL_RELOAD=0
       fi
    fi
 
