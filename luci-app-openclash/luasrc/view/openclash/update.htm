@@ -6,7 +6,7 @@
 	  		<b><%:Note: if the update fails, you can manually download and upload%></b>
 	  	</p>
 	  </td></tr>
-	  <tr><td width="16.6%"><%:Compiled Version%></td>
+	  <tr><td width="16.6%" align="right"><%:Compiled Version%></td>
 	  	<td width="16.6%" align="left"><select id="CORE_VERSION">
 	  		<option value="linux-386"><%:linux-386%></option>
 				<option value="linux-amd64"><%:linux-amd64(x86-64)%></option>
@@ -27,29 +27,36 @@
 				<option value="linux-mipsle-hardfloat"><%:linux-mipsle-hardfloat%></option>
 				<option value="0"><%:Not Set%></option>
 	  	</select></td>
-	  	<td width="16.6%"><%:Release Branch%></td>
+	  	<td width="16.6%" align="right"><%:Release Branch%></td>
 	  	<td width="16.6%" align="left"><select id="RELEASE_BRANCH">
 	  		<option value="master">Master</option>
 			<option value="dev">Developer</option>
 	  	</select></td>
-		<td width="16.6%"><%:Smart Group Support%></td>
+		<td width="16.6%" align="right"><%:Smart Core Switch%></td>
 	  	<td width="16.6%" align="left"><select id="SMART_ENABLE">
 	  		<option value="0"><%:Disabled%></option>
 			<option value="1"><%:Enable%></option>
 	  	</select></td>
 	  	</tr>
 	</table>
+</fieldset>
+<fieldset class="cbi-section">
 	<table width="100%">
-	  <tr><td width="100%" colspan="6">
+		<tr><td width="100%" colspan="4">
+	    <p align="center">
+	  		<b><%:Core Update%></b>
+	  	</p>
+	  	</td></tr>
+	  	<tr><td width="100%" colspan="4">
 		<tr>
 			<td width="25%"><%:CPU Architecture%></td><td width="25%" align="left" id="CPU_MODEL"><%:Collecting data...%></td>
 			<td width="25%"><%:Last Check Update%></td><td width="25%" align="left" id="CHECKTIME"><%:Collecting data...%></td>
 		</tr>
-	  <tr><td width="100%" colspan="4">
+	  	<tr><td width="100%" colspan="4">
 	    <p align="center">
 	  		<b><%:Core path:%>/etc/openclash/core/clash_meta</b>
 	  	</p>
-	  </td></tr>
+	  	</td></tr>
 		<tr><td width="25%">[Meta] <%:Current Core%></td><td width="25%" align="left" id="CORE_META_CV"><%:Collecting data...%></td><td width="25%">[Meta] <%:Latest Core%></td><td width="25%" align="left" id="CORE_META_LV"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"><%:Update Core%></td><td width="25%" align="left" id="core_meta_up"><%:Collecting data...%></td><td width="25%"><%:Download Latest Core%></td><td width="25%" align="left" id="ma_core_meta_up"><%:Collecting data...%></td></tr>
 	</table>
@@ -60,9 +67,9 @@
 	    <p align="center">
 	  		<b><%:Client Update%></b>
 	  	</p>
-	  </td></tr>
+	  	</td></tr>
 		<tr><td width="25%"><%:Current Client%></td><td width="25%" align="left" id="OP_CV"><%:Collecting data...%></td><td width="25%"><%:Latest Client%></td><td width="25%" align="left" id="OP_LV"><%:Collecting data...%></td></tr>
-	  <tr><td width="25%"><%:Update Client%></td><td width="25%" align="left" id="op_up"><%:Collecting data...%></td><td width="25%"><%:Download Latest Client%></td><td width="25%" align="left" id="ma_op_up"><%:Collecting data...%></td></tr>
+	  	<tr><td width="25%"><%:Update Client%></td><td width="25%" align="left" id="op_up"><%:Collecting data...%></td><td width="25%"><%:Download Latest Client%></td><td width="25%" align="left" id="ma_op_up"><%:Collecting data...%></td></tr>
 	</table>
 </fieldset>
 <fieldset class="cbi-section">
