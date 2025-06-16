@@ -3522,8 +3522,8 @@ msgstr "跳过安全路径检查"
 msgid "Drop The Type of DNS Responsed"
 msgstr "丢弃指定类型的 DNS 回应"
 
-msgid "Smart Group Support"
-msgstr "Smart 策略组支持"
+msgid "Smart Core Switch"
+msgstr "Smart 内核切换"
 
 msgid "Error: Failed to create update script!"
 msgstr "错误：创建插件升级进程失败！"
@@ -3536,3 +3536,6 @@ msgstr "错误：插件升级进程启动失败，将在 2 秒后重试..."
 
 msgid "Error: Failed to start update service, please check and try again later..."
 msgstr "错误：插件升级进程启动失败，请检查日志并稍后再试..."
+
+msgid "Core Update"
+msgstr "内核版本更新"
