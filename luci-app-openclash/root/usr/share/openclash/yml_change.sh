@@ -410,6 +410,18 @@ threads << Thread.new {
          end;
       end;
 
+      if '${37}' != '0' then
+         if Value.key?('external-controller-cors') then
+            Value['external-controller-cors']['allow-origins'] = ['${37}'];
+            Value['external-controller-cors']['allow-private-network'] = true;
+         else
+            Value['external-controller-cors'] = {
+            'allow-origins' => ['${37}'],
+            'allow-private-network' => true
+            };
+         end;
+      end;
+
       if ${16} == 1 then
          Value['dns']['ipv6']=true;
          Value['ipv6']=true;
