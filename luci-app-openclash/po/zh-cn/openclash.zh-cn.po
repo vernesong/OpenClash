@@ -3524,3 +3524,15 @@ msgstr "丢弃指定类型的 DNS 回应"
 
 msgid "Smart Group Support"
 msgstr "Smart 策略组支持"
+
+msgid "Error: Failed to create update script!"
+msgstr "错误：创建插件升级进程失败！"
+
+msgid "Tip: Attempting to start update service"
+msgstr "提示：正在启动插件升级进程，当前尝试"
+
+msgid "Error: Service start failed, retrying in 2 seconds..."
+msgstr "错误：插件升级进程启动失败，将在 2 秒后重试..."
+
+msgid "Error: Failed to start update service, please check and try again later..."
+msgstr "错误：插件升级进程启动失败，请检查日志并稍后再试..."
