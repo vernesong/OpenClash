@@ -2874,18 +2874,6 @@ msgstr "注意: Fake-IP 模式下如需要进行客户端访问控制，请将DN
 msgid "Click to the page"
 msgstr "点击前往"
 
-msgid "Only Meta Core"
-msgstr "仅 Meta 内核"
-
-msgid "(Only Meta Core)"
-msgstr "（仅 Meta 内核）"
-
-msgid "(Only TUN Core)"
-msgstr "（仅 TUN 内核）"
-
-msgid "(TUN&Meta Core)"
-msgstr "（TUN&Meta 内核）"
-
 msgid "Custom Sniffer Settings"
 msgstr "自定义流量探测（嗅探）设置"
 
@@ -2945,9 +2933,6 @@ msgstr "本地 IPv6 绕过地址"
 
 msgid "The Traffic of The Destination For The Specified Address Will Not Pass The Core"
 msgstr "目的地为指定地址的流量不会通过核心"
-
-msgid "Only Meta Core Support SS2022"
-msgstr "仅 Meta 内核支持 SS2022"
 
 msgid "Force HTTP/3"
 msgstr "强制 HTTP/3"
@@ -3521,6 +3506,12 @@ msgstr "跳过安全路径检查"
 
 msgid "Drop The Type of DNS Responsed"
 msgstr "丢弃指定类型的 DNS 回应"
+
+msgid "Disable-IPv4"
+msgstr "禁用 IPv4"
+
+msgid "Disable-IPv6"
+msgstr "禁用 IPv6"
 
 msgid "Smart Core Switch"
 msgstr "Smart 内核切换"

@@ -53,7 +53,7 @@ o:value("udp", translate("UDP"))
 o:value("tcp", translate("TCP"))
 o:value("tls", translate("TLS"))
 o:value("https", translate("HTTPS"))
-o:value("quic", translate("QUIC ")..translate("(Only Meta Core)"))
+o:value("quic", translate("QUIC"))
 o.default     = "udp"
 o.rempty      = false
 
@@ -69,54 +69,54 @@ o.default = "Disable"
 o.rempty = false
 
 ---- direct-nameserver
-o = s:option(Flag, "direct_nameserver", translate("Direct Nameserver"), translate("Use For Domain Need Direct")..translate("(Only Meta Core)"))
+o = s:option(Flag, "direct_nameserver", translate("Direct Nameserver"), translate("Use For Domain Need Direct"))
 o.rmempty     = false
 o.default     = o.disbled
 
 ---- Node Domain Resolve
-o = s:option(Flag, "node_resolve", translate("Node Domain Resolve"), translate("Use For Node Domain Resolve")..translate("(Only Meta Core)"))
+o = s:option(Flag, "node_resolve", translate("Node Domain Resolve"), translate("Use For Node Domain Resolve"))
 o.rmempty     = false
 o.default     = o.disbled
 
 ---- Force HTTP/3
-o = s:option(Flag, "http3", translate("Force HTTP/3"), translate("Force HTTP/3 to connect")..translate("(Only Meta Core)"))
+o = s:option(Flag, "http3", translate("Force HTTP/3"), translate("Force HTTP/3 to connect"))
 o:depends("type", "https")
 o.rmempty     = false
 o.default     = o.disbled
 
 ---- Skip-cert-verify
-o = s:option(Flag, "skip_cert_verify", translate("skip-cert-verify"), translate("skip-cert-verify")..translate("(Only Meta Core)"))
+o = s:option(Flag, "skip_cert_verify", translate("skip-cert-verify"), translate("skip-cert-verify"))
 o:depends("type", "https")
 o:depends("type", "quic")
 o.rmempty     = false
 o.default     = o.disbled
 
 ---- ECS Subnet
-o = s:option(Value, "ecs_subnet", translate("ECS Subnet"),translate("Specify the ECS Subnet Address")..translate("(Only Meta Core)"))
+o = s:option(Value, "ecs_subnet", translate("ECS Subnet"),translate("Specify the ECS Subnet Address"))
 o:depends("type", "https")
 o.rmempty     = true
 o.datatype	= "ipaddr"
 o:value("1.1.1.1/24")
 
 ---- ECS Override
-o = s:option(Flag, "ecs_override", translate("ECS Override"),translate("Override the ECS Subnet Address")..translate("(Only Meta Core)"))
+o = s:option(Flag, "ecs_override", translate("ECS Override"),translate("Override the ECS Subnet Address"))
 o:depends("type", "https")
 o.rmempty     = false
 o.default     = o.disbled
 
 ---- disable-ipv4
-o = s:option(Flag, "disable_ipv4", translate("Disable-IPv4"),translate("Drop The Type of DNS Responsed")..translate("(Only Meta Core)"))
+o = s:option(Flag, "disable_ipv4", translate("Disable-IPv4"),translate("Drop The Type of DNS Responsed"))
 o.rmempty     = false
 o.default     = o.disbled
 
 ---- disable-ipv6
-o = s:option(Flag, "disable_ipv6", translate("Disable-IPv6"),translate("Drop The Type of DNS Responsed")..translate("(Only Meta Core)"))
+o = s:option(Flag, "disable_ipv6", translate("Disable-IPv6"),translate("Drop The Type of DNS Responsed"))
 o.rmempty     = false
 o.default     = o.disbled
 
 ---- Proxy group
 o = s:option(Value, "specific_group", translate("Specific Group (Support Regex)"))
-o.description = translate("Group Use For Proxy The DNS")..translate("(Only Meta Core)")
+o.description = translate("Group Use For Proxy The DNS")
 o:depends("group", "nameserver")
 o:depends("group", "fallback")
 local groupnames,filename
