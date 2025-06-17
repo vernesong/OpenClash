@@ -29,7 +29,6 @@ DNSMASQ_CONF_DIR=${DNSMASQ_CONF_DIR%*/}
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"
 CRON_FILE="/etc/crontabs/root"
-CACHE_PATH_OLD="/etc/openclash/.cache"
 CACHE_PATH="/etc/openclash/cache.db"
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
@@ -357,7 +356,6 @@ if [ ! -f "$RAW_CONFIG_FILE" ]; then
 fi
 
 CONFIG_NAME=$(echo "$RAW_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-HISTORY_PATH_OLD="/etc/openclash/history/${CONFIG_NAME%.*}"
 HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}.db"
 }
 
@@ -516,30 +514,6 @@ do_run_file()
       fi
    }
 
-   [ ! -f "$ipdb_path" ] && {
-      LOG_OUT "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
-      /usr/share/openclash/openclash_ipdb.sh
-      if [ ! -f "$ipdb_path" ] && [ "$small_flash_memory" = "1" ]; then
-         start_fail
-      fi
-   }
-
-   [ ! -f "$geosite_path" ] && {
-      LOG_OUT "Tip: Detected that the GEOSITE Database is not Installed, Ready to Download..."
-      /usr/share/openclash/openclash_geosite.sh
-      if [ ! -f "$geosite_path" ] && [ "$small_flash_memory" = "1" ]; then
-         start_fail
-      fi
-   }
-
-   [ ! -f "$geoip_path" ] && [ "$enable_geoip_dat" == "1" ] && {
-      LOG_OUT "Tip: Detected that the GEOIP Dat is not Installed, Ready to Download..."
-      /usr/share/openclash/openclash_geoip.sh
-      if [ "$enable_geoip_dat" == "1" ] && [ ! -f "$geoip_path" ] && [ "$small_flash_memory" = "1" ]; then
-         start_fail
-      fi
-   }
-
    if [ "$china_ip_route" != "0" ] || [ "$china_ip6_route" != "0" ] || [ "$disable_udp_quic" = "1" ]; then
       if [ ! -f "$chnr_path" ] || [ ! -f "$chnr6_path" ]; then
          LOG_OUT "Tip: Detected that the Chnroute Cidr is not Installed, Ready to Download..."
@@ -590,37 +564,13 @@ do_run_file()
    }
 
    #Restore history cache
-   if [ -f "$HISTORY_PATH" ] && [ -f "$HISTORY_PATH_OLD" ]; then
-      if [ "$(date -r $HISTORY_PATH +%s)" -ge "$(date -r $HISTORY_PATH_OLD +%s)" ]; then
-         cmp -s "$CACHE_PATH" "$HISTORY_PATH"
-         if [ "$?" -ne "0" ]; then
-            if [ "$CACHE_PATH" != "/tmp/etc/openclash/cache.db" ]; then
-               ln -s "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
-            else
-               cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
-            fi
-         fi
-      else
-         cmp -s "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD"
-         if [ "$?" -ne "0" ]; then
-            cp "$HISTORY_PATH_OLD" "$CACHE_PATH_OLD" 2>/dev/null
-         fi
-      fi
-   else
-      if [ -f "$HISTORY_PATH" ]; then
-         cmp -s "$CACHE_PATH" "$HISTORY_PATH"
-         if [ "$?" -ne "0" ]; then
-            if [ "$CACHE_PATH" != "/tmp/etc/openclash/cache.db" ]; then
-               ln -s "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
-            else
-               cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
-            fi
-         fi
-      fi
-      if [ -f "$HISTORY_PATH_OLD" ]; then
-         cmp -s "$CACHE_PATH_OLD" "$HISTORY_PATH_OLD"
-         if [ "$?" -ne "0" ]; then
-            cp "$HISTORY_PATH_OLD" "$CACHE_PATH_OLD" 2>/dev/null
+   if [ -f "$HISTORY_PATH" ]; then
+      cmp -s "$CACHE_PATH" "$HISTORY_PATH"
+      if [ "$?" -ne "0" ]; then
+         if [ "$CACHE_PATH" != "/tmp/etc/openclash/cache.db" ]; then
+            ln -s "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
+         else
+            cp "$HISTORY_PATH" "$CACHE_PATH" 2>/dev/null
          fi
       fi
    fi
