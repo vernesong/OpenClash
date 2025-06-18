@@ -873,6 +873,9 @@ msgstr "节点切换容忍值（毫秒）"
 msgid "Manual-Select"
 msgstr "Select【手动选择】"
 
+msgid "Smart-Select"
+msgstr "Smart【智能选择】"
+
 msgid "URL-Test"
 msgstr "URL-Test【最低延迟】"
 
@@ -1185,11 +1188,35 @@ msgstr "轮询（轮流使用全部代理）"
 msgid "Consistent-hashing"
 msgstr "哈希匹配（访问相同网站时使用同一个代理）"
 
+msgid "Sticky-sessions"
+msgstr "粘性会话（相同的来源地址-目标地址使用同一个代理）"
+
 msgid "Strategy Type"
 msgstr "策略类型"
 
 msgid "Choose The Load-Balance's Strategy Type"
 msgstr "选择负载均衡的策略类型"
+
+msgid "Choose The Smart's Strategy Type"
+msgstr "选择 Smart 策略组的初始数据收集策略类型"
+
+msgid "Uselightgbm"
+msgstr "Uselightgbm(使用模型)"
+
+msgid "Collectdata"
+msgstr "Collectdata(收集数据)"
+
+msgid "Policy Priority"
+msgstr "Policy Priority(权重加成)"
+
+msgid "Use LightGBM Model For Smart Group Weight Prediction"
+msgstr "使用 LightGBM 模型为 Smart 策略组预测权重"
+
+msgid "Collect Datas For Smart Group Model Training"
+msgstr "收集 Smart 策略组的连接数据，方便用来分析及模型训练"
+
+msgid "The Priority Of The Nodes, The Higher Than 1, The More Likely It Is To Be Selected, The Default Is 1, Support Regex"
+msgstr "自定义 Smart 策略组内节点的权重加成，大于1表示权重加成优先选择，小于1表示权重削减降低使用率，默认为1，支持正则"
 
 msgid "Main Program"
 msgstr "主程序"
@@ -2117,9 +2144,6 @@ msgstr "2、点击《管理第三方游戏规则》或者《管理第三方规�
 
 msgid "3. On this page, set the corresponding configuration file and policy group of the rule you have downloaded, and save the settings"
 msgstr "3、在此页面设置您已下载的规则的对应配置文件、策略组并保存设置"
-
-msgid "4. Install the TUN or Meta core"
-msgstr "4、安装 TUN 或者 Meta 内核"
 
 msgid "When setting this page, if the groups is empty, please go to the <Onekey Create> page to add"
 msgstr "本页设置时如策略组为空，请先到《一键生成》页面进行添加"

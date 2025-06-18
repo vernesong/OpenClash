@@ -247,6 +247,10 @@ yml_groups_set()
    config_get "test_interval" "$section" "test_interval" ""
    config_get "tolerance" "$section" "tolerance" ""
    config_get "policy_filter" "$section" "policy_filter" ""
+   config_get "strategy_smart" "$section" "strategy_smart" ""
+   config_get "uselightgbm" "$section" "uselightgbm" ""
+   config_get "collectdata" "$section" "collectdata" ""
+   config_get "policy_priority" "$section" "policy_priority" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -268,10 +272,6 @@ yml_groups_set()
       return
    fi
    
-   if [ -z "$test_url" ] || [ -z "$test_interval" ] && [ "$type" != "select" ] && [ "$type" != "relay" ]; then
-      return
-   fi
-   
    #游戏策略组存在时判断节点是否存在
    if [ -n "$if_game_group" ] && [ -n "$(grep "^$if_game_group$" /tmp/Proxy_Group)" ]; then
       config_foreach yml_servers_add "servers" "$name" "$type" "check" #加入服务器节点
@@ -283,14 +283,6 @@ yml_groups_set()
    
    echo "  - name: $name" >>$GROUP_FILE
    echo "    type: $type" >>$GROUP_FILE
-   if [ "$type" = "load-balance" ]; then
-      [ -n "$strategy" ] && {
-           echo "    strategy: $strategy" >>$GROUP_FILE
-      }
-   fi
-   [ -n "$disable_udp" ] && {
-      echo "    disable-udp: $disable_udp" >>$GROUP_FILE
-   }
 
    echo "    proxies: $name" >>$GROUP_FILE
    
@@ -338,6 +330,16 @@ yml_groups_set()
       echo "      - DIRECT" >>$GROUP_FILE
    fi
 
+   if [ "$type" = "load-balance" ]; then
+      [ -n "$strategy" ] && {
+           echo "    strategy: $strategy" >>$GROUP_FILE
+      }
+   fi
+
+   [ -n "$disable_udp" ] && {
+      echo "    disable-udp: $disable_udp" >>$GROUP_FILE
+   }
+
    [ -n "$test_url" ] && {
       echo "    url: $test_url" >>$GROUP_FILE
    }
@@ -356,6 +358,21 @@ yml_groups_set()
    [ -n "$routing_mark" ] && {
       echo "    routing-mark: \"$routing_mark\"" >>$GROUP_FILE
    }
+   
+   if [ "$type" = "smart" ]; then
+      [ -n "$strategy_smart" ] && {
+         echo "    strategy: \"$strategy_smart\"" >>$GROUP_FILE
+      }
+      [ -n "$uselightgbm" ] && {
+         echo "    uselightgbm: \"$uselightgbm\"" >>$GROUP_FILE
+      }
+      [ -n "$collectdata" ] && {
+         echo "    collectdata: \"$collectdata\"" >>$GROUP_FILE
+      }
+      [ -n "$policy_priority" ] && {
+         echo "    policy-priority: \"$policy_priority\"" >>$GROUP_FILE
+      }
+   fi
 }
 
 create_config=$(uci -q get openclash.config.create_config)
