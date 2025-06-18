@@ -95,7 +95,6 @@ function index()
 	entry({"admin", "services", "openclash", "rule-providers-config"},cbi("openclash/rule-providers-config"), nil).leaf = true
 	entry({"admin", "services", "openclash", "config"},form("openclash/config"),_("Config Manage"), 80).leaf = true
 	entry({"admin", "services", "openclash", "log"},cbi("openclash/log"),_("Server Logs"), 90).leaf = true
-
 end
 local fs = require "luci.openclash"
 local json = require "luci.jsonc"
@@ -555,8 +554,12 @@ local function dler_info()
 		end
 		if info and info.ret == 200 and info.data then
 			return info.data
-		elseif info and info.msg then
+		elseif info and info.msg and info.msg ~= "api error, ignore" then
 			luci.sys.exec(string.format("echo -e %s Dler Cloud Account Login Failed, The Error Info is【%s】 >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S"), info.msg))
+			info.msg = "api error, ignore"
+			fs.writefile(path, json.stringify(info))
+		elseif info and info.msg and info.msg == "api error, ignore" then
+			return "error"
 		else
 			fs.unlink(path)
 			luci.sys.exec(string.format("echo -e %s Dler Cloud Account Login Failed! Please Check And Try Again... >> /tmp/openclash.log", os.date("%Y-%m-%d %H:%M:%S")))
