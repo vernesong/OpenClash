@@ -3537,8 +3537,8 @@ msgstr "禁用 IPv4"
 msgid "Disable-IPv6"
 msgstr "禁用 IPv6"
 
-msgid "Smart Core Switch"
-msgstr "Smart 内核切换"
+msgid "Smart Core"
+msgstr "Smart 内核"
 
 msgid "Error: Failed to create update script!"
 msgstr "错误：创建插件升级进程失败！"
