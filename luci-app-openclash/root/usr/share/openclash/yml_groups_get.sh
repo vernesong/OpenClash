@@ -183,8 +183,36 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 
          threads_g << Thread.new {
             #strategy
-            if x.key?('strategy') then
+            if x.key?('strategy') and x['type'] == 'load-balance' then
                uci_commands << uci_set + 'strategy=\"' + x['strategy'].to_s + '\"'
+            end;
+         };
+
+         threads_g << Thread.new {
+            #strategy-smart
+            if x.key?('strategy') and x['type'] == 'smart' then
+               uci_commands << uci_set + 'strategy_smart=\"' + x['strategy'].to_s + '\"'
+            end;
+         };
+
+         threads_g << Thread.new {
+            #uselightgbm
+            if x.key?('uselightgbm') and x['type'] == 'smart' then
+               uci_commands << uci_set + 'uselightgbm=\"' + x['uselightgbm'].to_s + '\"'
+            end;
+         };
+
+         threads_g << Thread.new {
+            #collectdata
+            if x.key?('collectdata') and x['type'] == 'smart' then
+               uci_commands << uci_set + 'collectdata=\"' + x['collectdata'].to_s + '\"'
+            end;
+         };
+
+         threads_g << Thread.new {
+            #policy_priority
+            if x.key?('policy-priority') and x['type'] == 'smart' then
+               uci_commands << uci_set + 'policy_priority=\"' + x['policy-priority'].to_s + '\"'
             end;
          };
 
@@ -196,7 +224,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          };
 
          threads_g << Thread.new {
-            if x['type'] == 'url-test' or x['type'] == 'fallback' or x['type'] == 'load-balance' then
+            if x['type'] == 'url-test' or x['type'] == 'fallback' or x['type'] == 'load-balance' or x['type'] == 'smart' then
                #test_url
                if x.key?('url') then
                   uci_commands << uci_set + 'test_url=\"' + x['url'].to_s + '\"'
