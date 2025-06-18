@@ -304,15 +304,15 @@ local function coreup()
 end
 
 local function corever()
-	return uci:get("openclash", "config", "core_version")
+	return uci:get("openclash", "config", "core_version") or "0"
 end
 
 local function release_branch()
-	return uci:get("openclash", "config", "release_branch")
+	return uci:get("openclash", "config", "release_branch") or "master"
 end
 
 local function smart_enable()
-	return uci:get("openclash", "config", "smart_enable")
+	return uci:get("openclash", "config", "smart_enable") or "0"
 end
 
 local function save_corever_branch()
