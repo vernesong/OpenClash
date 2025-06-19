@@ -14,12 +14,31 @@ CONFIG_NAME="$5"
 rule_name=""
 SKIP_CUSTOM_OTHER_RULES=0
 
-#处理自定义规则集
+cache_file_content() {
+    local file="$1"
+    local cache_var="$2"
+    if [ -f "$file" ] && [ -z "$(eval echo \$$cache_var)" ]; then
+        eval "$cache_var=\"\$(cat '$file')\""
+    fi
+}
+
+check_duplicate_url() {
+    [ -n "$1" ] && [ -n "${RULE_PROVIDER_CACHE}" ] && echo "${RULE_PROVIDER_CACHE}" | grep -q "$1"
+}
+
+check_duplicate_path() {
+    [ -n "$1" ] && [ -n "${RULE_PROVIDER_CACHE}" ] && echo "${RULE_PROVIDER_CACHE}" | grep -q "$1"
+}
+
+# Custom rule-provider
 yml_set_custom_rule_provider()
 {
    local section="$1"
-   local enabled name config type behavior path url interval group position other_parameters
+   local enabled name config type behavior path url interval group position other_parameters format
    config_get_bool "enabled" "$section" "enabled" "1"
+   
+   [ "$enabled" = "0" ] && return
+   
    config_get "name" "$section" "name" ""
    config_get "config" "$section" "config" ""
    config_get "type" "$section" "type" ""
@@ -32,145 +51,112 @@ yml_set_custom_rule_provider()
    config_get "format" "$section" "format" ""
    config_get "other_parameters" "$section" "other_parameters" ""
 
-   if [ "$enabled" = "0" ]; then
-      return
-   fi
+   cache_file_content "$RULE_PROVIDER_FILE" "RULE_PROVIDER_CACHE"
 
-   if [ -n "$(grep "$url" "$RULE_PROVIDER_FILE" 2>/dev/null)" ] && [ -n "$url" ]; then
+   if check_duplicate_url "$url" || [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
       return
    fi
    
-   if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
-      return
-   fi
-   
-   if [ -z "$name" ] || [ -z "$type" ] || [ -z "$behavior" ]; then
+   if [ -z "$name" ] || [ -z "$type" ] || [ -z "$behavior" ] || { [ "$type" = "http" ] && [ -z "$url" ]; }; then
       return
    fi
 
-   if [ "$type" = "http" ] && [ -z "$url" ]; then
-      return
-   fi
+   [ -z "$format" ] && format="yaml"
 
-   if [ -z "$format" ]; then
-      format="yaml"
-   fi
-
-   if [ -z "$(echo "$path" |grep "./rule_provider/" 2>/dev/null)" ] && [ "$type" = "http" ]; then
-      if [ "$format" == "text" ]; then
-         path="./rule_provider/$name"
-      elif [ "$format" == "mrs" ]; then
-         path="./rule_provider/$name.mrs"
-      else
-         path="./rule_provider/$name.yaml"
-      fi
+   if [ "$type" = "http" ] && [ -z "$(echo "$path" | grep "./rule_provider/")" ]; then
+      case "$format" in
+         "text") path="./rule_provider/$name" ;;
+         "mrs") path="./rule_provider/$name.mrs" ;;
+         *) path="./rule_provider/$name.yaml" ;;
+      esac
    elif [ -z "$path" ] && [ "$type" != "inline" ]; then
       return
    fi
 
-   if [ -n "$(grep "$path" "$RULE_PROVIDER_FILE" 2>/dev/null)" ]; then
-      return
-   fi
+   check_duplicate_path "$path" && return
 
-   if [ -z "$interval" ] && [ "$type" = "http" ]; then
-      interval=86400
-   fi
+   [ -z "$interval" ] && [ "$type" = "http" ] && interval=86400
 
-cat >> "$RULE_PROVIDER_FILE" <<-EOF
-  $name:
-    type: $type
-    behavior: $behavior
-EOF
-    if [ -n "$path" ]; then
-cat >> "$RULE_PROVIDER_FILE" <<-EOF
-    path: $path
-EOF
-    fi
-    if [ -n "$format" ]; then
-cat >> "$RULE_PROVIDER_FILE" <<-EOF
-    format: $format
-EOF
-    fi
-    if [ "$type" = "http" ]; then
-cat >> "$RULE_PROVIDER_FILE" <<-EOF
-    url: $url
-    interval: $interval
-EOF
-    fi
-
-   #other_parameters
-   if [ -n "$other_parameters" ]; then
-      echo -e "$other_parameters" >> "$RULE_PROVIDER_FILE"
-   fi
+   {
+      echo "  $name:"
+      echo "    type: $type"
+      echo "    behavior: $behavior"
+      [ -n "$path" ] && echo "    path: $path"
+      [ -n "$format" ] && echo "    format: $format"
+      if [ "$type" = "http" ]; then
+         echo "    url: $url"
+         echo "    interval: $interval"
+      fi
+      [ -n "$other_parameters" ] && echo -e "$other_parameters"
+   } >> "$RULE_PROVIDER_FILE"
 
    yml_rule_set_add "$name" "$group" "$position"
 }
 
 yml_rule_set_add()
 {
-   if [ -z "$3" ]; then
-      return
-   fi
+   [ -z "$3" ] && return
 
-   if [ "$3" == "1" ]; then
-      if [ -z "$(grep "^ \{0,\}rules:$" /tmp/yaml_rule_set_bottom_custom.yaml 2>/dev/null)" ]; then
-         echo "rules:" > "/tmp/yaml_rule_set_bottom_custom.yaml"
-      fi
-      echo "- RULE-SET,${1},${2}" >> "/tmp/yaml_rule_set_bottom_custom.yaml"
+   local target_file rule_content
+   if [ "$3" = "1" ]; then
+      target_file="/tmp/yaml_rule_set_bottom_custom.yaml"
    else
-      if [ -z "$(grep "^ \{0,\}rules:$" /tmp/yaml_rule_set_top_custom.yaml 2>/dev/null)" ]; then
-         echo "rules:" > "/tmp/yaml_rule_set_top_custom.yaml"
-      fi
-      echo "- RULE-SET,${1},${2}" >> "/tmp/yaml_rule_set_top_custom.yaml"
+      target_file="/tmp/yaml_rule_set_top_custom.yaml"
    fi
+   
+   rule_content="- RULE-SET,${1},${2}"
+   
+   if [ ! -f "$target_file" ] || [ -z "$(grep "^ \{0,\}rules:$" "$target_file" 2>/dev/null)" ]; then
+      echo "rules:" > "$target_file"
+   fi
+   echo "$rule_content" >> "$target_file"
 }
 
 yml_gen_rule_provider_file()
 {
-   if [ -z "$1" ]; then
-      return
+   [ -z "$1" ] && return
+   
+   if [ -z "$RULE_PROVIDERS_LIST_CACHE" ]; then
+      RULE_PROVIDERS_LIST_CACHE=$(cat /usr/share/openclash/res/rule_providers.list 2>/dev/null)
    fi
    
-   RULE_PROVIDER_FILE_NAME=$(grep "^$1," /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $6}' 2>/dev/null)
-   if [ -z "$RULE_PROVIDER_FILE_NAME" ]; then
-      RULE_PROVIDER_FILE_NAME=$(grep "^$1," /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $5}' 2>/dev/null)
-   fi
-   RULE_PROVIDER_FILE_BEHAVIOR=$(grep ",$RULE_PROVIDER_FILE_NAME$" /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $3}' 2>/dev/null)
+   local rule_line=$(echo "$RULE_PROVIDERS_LIST_CACHE" | grep "^$1,")
+   [ -z "$rule_line" ] && return
+   
+   RULE_PROVIDER_FILE_NAME=$(echo "$rule_line" | awk -F ',' '{print ($6 != "") ? $6 : $5}')
+   RULE_PROVIDER_FILE_BEHAVIOR=$(echo "$rule_line" | awk -F ',' '{print $3}')
    RULE_PROVIDER_FILE_PATH="/etc/openclash/rule_provider/$RULE_PROVIDER_FILE_NAME"
-   RULE_PROVIDER_FILE_URL_PATH="$(grep ",$RULE_PROVIDER_FILE_NAME$" /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $4$5}' 2>/dev/null)"
+   RULE_PROVIDER_FILE_URL_PATH=$(echo "$rule_line" | awk -F ',' '{print $4$5}')
+   
    if [ "$github_address_mod" -eq 0 ]; then
       RULE_PROVIDER_FILE_URL="https://raw.githubusercontent.com/${RULE_PROVIDER_FILE_URL_PATH}"
    else
-      if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
-         RULE_PROVIDER_FILE_URL="${github_address_mod}gh/"$(echo "$RULE_PROVIDER_FILE_URL_PATH" |awk -F '/master' '{print $1}' 2>/dev/null)"@master"$(echo "$RULE_PROVIDER_FILE_URL_PATH" |awk -F 'master' '{print $2}')""
-      else
-         RULE_PROVIDER_FILE_URL="${github_address_mod}https://raw.githubusercontent.com/${RULE_PROVIDER_FILE_URL_PATH}"
-      fi
+      case "$github_address_mod" in
+         "https://cdn.jsdelivr.net/"|"https://fastly.jsdelivr.net/"|"https://testingcf.jsdelivr.net/")
+            local repo_part=$(echo "$RULE_PROVIDER_FILE_URL_PATH" | awk -F '/master' '{print $1}')
+            local path_part=$(echo "$RULE_PROVIDER_FILE_URL_PATH" | awk -F 'master' '{print $2}')
+            RULE_PROVIDER_FILE_URL="${github_address_mod}gh/${repo_part}@master${path_part}"
+            ;;
+         *)
+            RULE_PROVIDER_FILE_URL="${github_address_mod}https://raw.githubusercontent.com/${RULE_PROVIDER_FILE_URL_PATH}"
+            ;;
+      esac
    fi
-   if [ -n "$(grep "$RULE_PROVIDER_FILE_URL" $RULE_PROVIDER_FILE 2>/dev/null)" ]; then
-      return
-   fi
+   
+   cache_file_content "$RULE_PROVIDER_FILE" "RULE_PROVIDER_CACHE"
+   check_duplicate_url "$RULE_PROVIDER_FILE_URL" && return
 
-   if [ -z "$RULE_PROVIDER_FILE_NAME" ] || [ -z "$RULE_PROVIDER_FILE_BEHAVIOR" ] || [ -z "$RULE_PROVIDER_FILE_URL" ]; then
-      return
-   fi
+   [ -z "$RULE_PROVIDER_FILE_NAME" ] || [ -z "$RULE_PROVIDER_FILE_BEHAVIOR" ] || [ -z "$RULE_PROVIDER_FILE_URL" ] && return
 
-cat >> "$RULE_PROVIDER_FILE" <<-EOF
-  $1:
-    type: http
-    behavior: $RULE_PROVIDER_FILE_BEHAVIOR
-    path: $RULE_PROVIDER_FILE_PATH
-    url: $RULE_PROVIDER_FILE_URL
-EOF
-   if [ -z "$3" ]; then
-cat >> "$RULE_PROVIDER_FILE" <<-EOF
-    interval: 86400
-EOF
-   else
-cat >> "$RULE_PROVIDER_FILE" <<-EOF
-    interval: $3
-EOF
-   fi
+   {
+      echo "  $1:"
+      echo "    type: http"
+      echo "    behavior: $RULE_PROVIDER_FILE_BEHAVIOR"
+      echo "    path: $RULE_PROVIDER_FILE_PATH"
+      echo "    url: $RULE_PROVIDER_FILE_URL"
+      echo "    interval: ${3:-86400}"
+   } >> "$RULE_PROVIDER_FILE"
+   
    yml_rule_set_add "$1" "$2" "$4"
 }
 
@@ -179,20 +165,15 @@ yml_get_rule_provider()
    local section="$1"
    local enabled group config interval position
    config_get_bool "enabled" "$section" "enabled" "1"
+   
+   [ "$enabled" = "0" ] && return
+   
    config_get "group" "$section" "group" ""
    config_get "config" "$section" "config" ""
    config_get "interval" "$section" "interval" ""
    config_get "position" "$section" "position" ""
 
-   if [ "$enabled" = "0" ]; then
-      return
-   fi
-   
-   if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
-      return
-   fi
-
-   if [ -z "$group" ]; then
+   if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ] || [ -z "$group" ]; then
       return
    fi
    
@@ -201,26 +182,26 @@ yml_get_rule_provider()
 
 get_rule_file()
 {
-   if [ -z "$1" ]; then
-      return
+   [ -z "$1" ] && return
+   
+   if [ -z "$GAME_RULES_LIST_CACHE" ]; then
+      GAME_RULES_LIST_CACHE=$(cat /usr/share/openclash/res/game_rules.list 2>/dev/null)
    fi
    
-   GAME_RULE_FILE_NAME=$(grep "^$1," /usr/share/openclash/res/game_rules.list |awk -F ',' '{print $3}' 2>/dev/null)
-
-   if [ -z "$GAME_RULE_FILE_NAME" ]; then
-      GAME_RULE_FILE_NAME=$(grep "^$1," /usr/share/openclash/res/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null)
-   fi
+   local game_line=$(echo "$GAME_RULES_LIST_CACHE" | grep "^$1,")
+   [ -z "$game_line" ] && return
    
+   GAME_RULE_FILE_NAME=$(echo "$game_line" | awk -F ',' '{print ($3 != "") ? $3 : $2}')
    GAME_RULE_PATH="./game_rules/$GAME_RULE_FILE_NAME"
 
    yml_rule_set_add "$1" "$2" "1"
 
-cat >> "$RULE_PROVIDER_FILE" <<-EOF
-  $1:
-    type: file
-    behavior: ipcidr
-    path: '${GAME_RULE_PATH}'
-EOF
+   {
+      echo "  $1:"
+      echo "    type: file"
+      echo "    behavior: ipcidr"
+      echo "    path: '${GAME_RULE_PATH}'"
+   } >> "$RULE_PROVIDER_FILE"
 }
 
 yml_game_rule_get()
@@ -228,18 +209,13 @@ yml_game_rule_get()
    local section="$1"
    local enabled group config
    config_get_bool "enabled" "$section" "enabled" "1"
+   
+   [ "$enabled" = "0" ] && return
+   
    config_get "group" "$section" "group" ""
    config_get "config" "$section" "config" ""
 
-   if [ "$enabled" = "0" ]; then
-      return
-   fi
-   
-   if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
-      return
-   fi
-   
-   if [ -z "$group" ]; then
+   if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ] || [ -z "$group" ]; then
       return
    fi
    
@@ -251,18 +227,15 @@ yml_rule_group_get()
    local section="$1"
    local enabled group config
    config_get_bool "enabled" "$section" "enabled" "1"
+   
+   [ "$enabled" = "0" ] && return
+   
    config_get "group" "$section" "group" ""
    config_get "config" "$section" "config" ""
 
-   if [ "$enabled" = "0" ]; then
-      return
-   fi
-   
-   if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
-      return
-   fi
-   
-   if [ -z "$group" ] || [ "$group" = "DIRECT" ] || [ "$group" = "REJECT" ] || [ "$group" = "REJECT-DROP" ] || [ "$group" = "PASS" ] || [ "$group" = "COMPATIBLE" ] || [ "$group" = "GLOBAL" ]; then
+   if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ] || \
+      [ -z "$group" ] || [ "$group" = "DIRECT" ] || [ "$group" = "REJECT" ] || \
+      [ "$group" = "REJECT-DROP" ] || [ "$group" = "PASS" ] || [ "$group" = "COMPATIBLE" ] || [ "$group" = "GLOBAL" ]; then
       return
    fi
 
@@ -291,10 +264,10 @@ yml_other_set()
    config_foreach yml_get_rule_provider "rule_provider_config"
    config_foreach yml_set_custom_rule_provider "rule_providers"
    config_foreach yml_game_rule_get "game_config"
-   #添加缺失的节点与策略组
    config_foreach yml_rule_group_get "rule_provider_config" "$3"
    config_foreach yml_rule_group_get "rule_providers" "$3"
    config_foreach yml_rule_group_get "game_config" "$3"
+   
    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
       Value = YAML.load_file('$3');
@@ -319,130 +292,151 @@ yml_other_set()
             end
          end;
          Value['rules']=Value_1['rules'];
+
+         rule_replacements = {
+            ',[\s]?Bilibili,[\s]?CN Mainland TV$' => ',Bilibili,$Bilibili#delete_',
+            ',[\s]?Bahamut,[\s]?Asian TV$' => ',Bahamut,$Bahamut#delete_',
+            ',[\s]?Max,[\s]?Max$' => ',Max,$HBOMax#delete_',
+            ',[\s]?Discovery Plus,[\s]?Global TV$' => ',Discovery Plus,$Discovery#delete_',
+            ',[\s]?DAZN,[\s]?Global TV$' => ',DAZN,$DAZN#delete_',
+            ',[\s]?Pornhub,[\s]?Global TV$' => ',Pornhub,$Pornhub#delete_',
+            ',[\s]?Global TV$' => ',$GlobalTV#delete_',
+            ',[\s]?Asian TV$' => ',$AsianTV#delete_',
+            ',[\s]?CN Mainland TV$' => ',$MainlandTV#delete_',
+            ',[\s]?Proxy$' => ',$Proxy#delete_',
+            ',[\s]?YouTube$' => ',$Youtube#delete_',
+            ',[\s]?Apple$' => ',$Apple#delete_',
+            ',[\s]?Apple TV$' => ',$AppleTV#delete_',
+            ',[\s]?Scholar$' => ',$Scholar#delete_',
+            ',[\s]?Netflix$' => ',$Netflix#delete_',
+            ',[\s]?Disney Plus$' => ',$Disney#delete_',
+            ',[\s]?Spotify$' => ',$Spotify#delete_',
+            ',[\s]?AI Suite$' => ',$AI_Suite#delete_',
+            ',[\s]?Steam$' => ',$Steam#delete_',
+            ',[\s]?TikTok$' => ',$TikTok#delete_',
+            ',[\s]?miHoYo$' => ',$miHoYo#delete_',
+            ',[\s]?AdBlock$' => ',$AdBlock#delete_',
+            ',[\s]?HTTPDNS$' => ',$HTTPDNS#delete_',
+            ',[\s]?Speedtest$' => ',$Speedtest#delete_',
+            ',[\s]?Telegram$' => ',$Telegram#delete_',
+            ',[\s]?Crypto$' => ',$Crypto#delete_',
+            ',[\s]?Discord$' => ',$Discord#delete_',
+            ',[\s]?Microsoft$' => ',$Microsoft#delete_',
+            ',[\s]?PayPal$' => ',$PayPal#delete_',
+            ',[\s]?Domestic$' => ',$Domestic#delete_',
+            ',[\s]?Others$' => ',$Others#delete_',
+            ',[\s]?Google FCM$' => ',$GoogleFCM#delete_'
+         };
+         
          Value['rules'].to_a.collect!{|x|
-         x.to_s.gsub(/,[\s]?Bilibili,[\s]?CN Mainland TV$/, ',Bilibili,$Bilibili#delete_')
-         .gsub(/,[\s]?Bahamut,[\s]?Asian TV$/, ',Bahamut,$Bahamut#delete_')
-         .gsub(/,[\s]?Max,[\s]?Max$/, ',Max,$HBOMax#delete_')
-         .gsub(/,[\s]?Discovery Plus,[\s]?Global TV$/, ',Discovery Plus,$Discovery#delete_')
-         .gsub(/,[\s]?DAZN,[\s]?Global TV$/, ',DAZN,$DAZN#delete_')
-         .gsub(/,[\s]?Pornhub,[\s]?Global TV$/, ',Pornhub,$Pornhub#delete_')
-         .gsub(/,[\s]?Global TV$/, ',$GlobalTV#delete_')
-         .gsub(/,[\s]?Asian TV$/, ',$AsianTV#delete_')
-         .gsub(/,[\s]?CN Mainland TV$/, ',$MainlandTV#delete_')
-         .gsub(/,[\s]?Proxy$/, ',$Proxy#delete_')
-         .gsub(/,[\s]?YouTube$/, ',$Youtube#delete_')
-         .gsub(/,[\s]?Apple$/, ',$Apple#delete_')
-         .gsub(/,[\s]?Apple TV$/, ',$AppleTV#delete_')
-         .gsub(/,[\s]?Scholar$/, ',$Scholar#delete_')
-         .gsub(/,[\s]?Netflix$/, ',$Netflix#delete_')
-         .gsub(/,[\s]?Disney Plus$/, ',$Disney#delete_')
-         .gsub(/,[\s]?Spotify$/, ',$Spotify#delete_')
-         .gsub(/,[\s]?AI Suite$/, ',$AI_Suite#delete_')
-         .gsub(/,[\s]?Steam$/, ',$Steam#delete_')
-         .gsub(/,[\s]?TikTok$/, ',$TikTok#delete_')
-         .gsub(/,[\s]?miHoYo$/, ',$miHoYo#delete_')
-         .gsub(/,[\s]?AdBlock$/, ',$AdBlock#delete_')
-         .gsub(/,[\s]?HTTPDNS$/, ',$HTTPDNS#delete_')
-         .gsub(/,[\s]?Speedtest$/, ',$Speedtest#delete_')
-         .gsub(/,[\s]?Telegram$/, ',$Telegram#delete_')
-         .gsub(/,[\s]?Crypto$/, ',$Crypto#delete_')
-         .gsub(/,[\s]?Discord$/, ',$Discord#delete_')
-         .gsub(/,[\s]?Microsoft$/, ',$Microsoft#delete_')
-         .to_s.gsub(/,[\s]?PayPal$/, ',$PayPal#delete_')
-         .gsub(/,[\s]?Domestic$/, ',$Domestic#delete_')
-         .gsub(/,[\s]?Others$/, ',$Others#delete_')
-         .gsub(/,[\s]?Google FCM$/, ',$GoogleFCM#delete_')
-         .gsub(/#delete_/, '')
+            result = x.to_s;
+            rule_replacements.each{|pattern, replacement|
+               result = result.gsub(/#{pattern}/, replacement);
+            };
+            result.gsub(/#delete_/, '');
          };
       end;
    rescue Exception => e
       YAML.LOG('Error: Set lhie1 Rules Failed,【' + e.message + '】');
    end;
 
-   t1=Thread.new{
+   thread_pool = [];
+   
+   thread_pool << Thread.new{
       #BT/P2P DIRECT Rules
       begin
          if $4 == 1 then
             if system('strings /etc/openclash/GeoSite.dat /etc/openclash/GeoSite.dat |grep -i category-public-tracker >/dev/null 2>&1') then
-               Value['rules']=Value['rules'].to_a.insert(0,
-               'GEOSITE,category-public-tracker,DIRECT'
-               );
+               bt_rules = ['GEOSITE,category-public-tracker,DIRECT'];
             else
-               Value['rules']=Value['rules'].to_a.insert(0,
-               'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
-               'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
-               'DOMAIN-SUFFIX,chdbits.co,DIRECT',
-               'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
-               'DOMAIN-SUFFIX,empornium.me,DIRECT',
-               'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
-               'DOMAIN-SUFFIX,hdchina.org,DIRECT',
-               'DOMAIN-SUFFIX,hdsky.me,DIRECT',
-               'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
-               'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
-               'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
-               'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
-               'DOMAIN-SUFFIX,m-team.cc,DIRECT',
-               'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
-               'DOMAIN-SUFFIX,ncore.cc,DIRECT',
-               'DOMAIN-SUFFIX,open.cd,DIRECT',
-               'DOMAIN-SUFFIX,ourbits.club,DIRECT',
-               'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
-               'DOMAIN-SUFFIX,privatehd.to,DIRECT',
-               'DOMAIN-SUFFIX,redacted.ch,DIRECT',
-               'DOMAIN-SUFFIX,springsunday.net,DIRECT',
-               'DOMAIN-SUFFIX,tjupt.org,DIRECT',
-               'DOMAIN-SUFFIX,totheglory.im,DIRECT',
-               'DOMAIN-SUFFIX,smtp,DIRECT',
-               'DOMAIN-KEYWORD,announce,DIRECT',
-               'DOMAIN-KEYWORD,torrent,DIRECT',
-               'DOMAIN-KEYWORD,tracker,DIRECT'
-               );
+               bt_rules = [
+                  'DOMAIN-SUFFIX,awesome-hd.me,DIRECT',
+                  'DOMAIN-SUFFIX,broadcasthe.net,DIRECT',
+                  'DOMAIN-SUFFIX,chdbits.co,DIRECT',
+                  'DOMAIN-SUFFIX,classix-unlimited.co.uk,DIRECT',
+                  'DOMAIN-SUFFIX,empornium.me,DIRECT',
+                  'DOMAIN-SUFFIX,gazellegames.net,DIRECT',
+                  'DOMAIN-SUFFIX,hdchina.org,DIRECT',
+                  'DOMAIN-SUFFIX,hdsky.me,DIRECT',
+                  'DOMAIN-SUFFIX,icetorrent.org,DIRECT',
+                  'DOMAIN-SUFFIX,jpopsuki.eu,DIRECT',
+                  'DOMAIN-SUFFIX,keepfrds.com,DIRECT',
+                  'DOMAIN-SUFFIX,madsrevolution.net,DIRECT',
+                  'DOMAIN-SUFFIX,m-team.cc,DIRECT',
+                  'DOMAIN-SUFFIX,nanyangpt.com,DIRECT',
+                  'DOMAIN-SUFFIX,ncore.cc,DIRECT',
+                  'DOMAIN-SUFFIX,open.cd,DIRECT',
+                  'DOMAIN-SUFFIX,ourbits.club,DIRECT',
+                  'DOMAIN-SUFFIX,passthepopcorn.me,DIRECT',
+                  'DOMAIN-SUFFIX,privatehd.to,DIRECT',
+                  'DOMAIN-SUFFIX,redacted.ch,DIRECT',
+                  'DOMAIN-SUFFIX,springsunday.net,DIRECT',
+                  'DOMAIN-SUFFIX,tjupt.org,DIRECT',
+                  'DOMAIN-SUFFIX,totheglory.im,DIRECT',
+                  'DOMAIN-SUFFIX,smtp,DIRECT',
+                  'DOMAIN-KEYWORD,announce,DIRECT',
+                  'DOMAIN-KEYWORD,torrent,DIRECT',
+                  'DOMAIN-KEYWORD,tracker,DIRECT'
+               ];
             end;
+
+            Value['rules'] = bt_rules + Value['rules'].to_a;
+            
             match_group=Value['rules'].grep(/(MATCH|FINAL)/)[0];
             if not match_group.nil? then
                common_port_group = (match_group.split(',')[-1] =~ /^no-resolve$|^src$/) ? match_group.split(',')[-2] : match_group.split(',')[-1];
                if not common_port_group.nil? then
                   ruby_add_index = Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
                   ruby_add_index ||= -1;
-                  Value['rules']=Value['rules'].to_a.insert(ruby_add_index,
-                  'PROCESS-NAME,aria2c,DIRECT',
-                  'PROCESS-NAME,BitComet,DIRECT',
-                  'PROCESS-NAME,fdm,DIRECT',
-                  'PROCESS-NAME,NetTransport,DIRECT',
-                  'PROCESS-NAME,qbittorrent,DIRECT',
-                  'PROCESS-NAME,Thunder,DIRECT',
-                  'PROCESS-NAME,transmission-daemon,DIRECT',
-                  'PROCESS-NAME,transmission-qt,DIRECT',
-                  'PROCESS-NAME,uTorrent,DIRECT',
-                  'PROCESS-NAME,WebTorrent,DIRECT',
-                  'PROCESS-NAME,Folx,DIRECT',
-                  'PROCESS-NAME,Transmission,DIRECT',
-                  'PROCESS-NAME,WebTorrent Helper,DIRECT',
-                  'PROCESS-NAME,v2ray,DIRECT',
-                  'PROCESS-NAME,ss-local,DIRECT',
-                  'PROCESS-NAME,ssr-local,DIRECT',
-                  'PROCESS-NAME,ss-redir,DIRECT',
-                  'PROCESS-NAME,ssr-redir,DIRECT',
-                  'PROCESS-NAME,ss-server,DIRECT',
-                  'PROCESS-NAME,trojan-go,DIRECT',
-                  'PROCESS-NAME,xray,DIRECT',
-                  'PROCESS-NAME,hysteria,DIRECT',
-                  'PROCESS-NAME,singbox,DIRECT',
-                  'PROCESS-NAME,UUBooster,DIRECT',
-                  'PROCESS-NAME,uugamebooster,DIRECT',
-                  'DST-PORT,80,' + common_port_group,
-                  'DST-PORT,443,' + common_port_group
-                  );
+
+                  process_rules = [
+                     'PROCESS-NAME,aria2c,DIRECT',
+                     'PROCESS-NAME,BitComet,DIRECT',
+                     'PROCESS-NAME,fdm,DIRECT',
+                     'PROCESS-NAME,NetTransport,DIRECT',
+                     'PROCESS-NAME,qbittorrent,DIRECT',
+                     'PROCESS-NAME,Thunder,DIRECT',
+                     'PROCESS-NAME,transmission-daemon,DIRECT',
+                     'PROCESS-NAME,transmission-qt,DIRECT',
+                     'PROCESS-NAME,uTorrent,DIRECT',
+                     'PROCESS-NAME,WebTorrent,DIRECT',
+                     'PROCESS-NAME,Folx,DIRECT',
+                     'PROCESS-NAME,Transmission,DIRECT',
+                     'PROCESS-NAME,WebTorrent Helper,DIRECT',
+                     'PROCESS-NAME,v2ray,DIRECT',
+                     'PROCESS-NAME,ss-local,DIRECT',
+                     'PROCESS-NAME,ssr-local,DIRECT',
+                     'PROCESS-NAME,ss-redir,DIRECT',
+                     'PROCESS-NAME,ssr-redir,DIRECT',
+                     'PROCESS-NAME,ss-server,DIRECT',
+                     'PROCESS-NAME,trojan-go,DIRECT',
+                     'PROCESS-NAME,xray,DIRECT',
+                     'PROCESS-NAME,hysteria,DIRECT',
+                     'PROCESS-NAME,singbox,DIRECT',
+                     'PROCESS-NAME,UUBooster,DIRECT',
+                     'PROCESS-NAME,uugamebooster,DIRECT',
+                     'DST-PORT,80,' + common_port_group,
+                     'DST-PORT,443,' + common_port_group
+                  ];
+                  
+                  process_rules.reverse.each{|rule| Value['rules'].insert(ruby_add_index, rule)};
                end;
             end;
-            Value['rules'].to_a.collect!{|x|x.to_s
-            .gsub(/GEOIP,([A-Z]{2}),([^,]+)(,.*)?/, 'GEOIP,\1,DIRECT\3')
-            .gsub(/(^MATCH.*|^FINAL.*)/, 'MATCH,DIRECT')};
+            
+            # GEOIP replace
+            geoip_pattern = /GEOIP,([A-Z]{2}),([^,]+)(,.*)?/;
+            match_pattern = /(^MATCH.*|^FINAL.*)/;
+
+            Value['rules'].to_a.collect!{|x|
+               x.to_s.gsub(geoip_pattern, 'GEOIP,\1,DIRECT\3').gsub(match_pattern, 'MATCH,DIRECT')
+            };
          end;
       rescue Exception => e
          YAML.LOG('Error: Set BT/P2P DIRECT Rules Failed,【' + e.message + '】');
       end;
+   };
 
+   thread_pool << Thread.new{
       #Custom Rule Provider
       begin
          if File::exist?('$RULE_PROVIDER_FILE') then
@@ -459,245 +453,155 @@ yml_other_set()
 
       #Game Proxy
       begin
-         if File::exist?('/tmp/yaml_groups.yaml') or File::exist?('/tmp/yaml_servers.yaml') or File::exist?('/tmp/yaml_provider.yaml') then
-            if File::exist?('/tmp/yaml_groups.yaml') then
-               Value_1 = YAML.load_file('/tmp/yaml_groups.yaml');
-               if Value.has_key?('proxy-groups') and not Value['proxy-groups'].to_a.empty? then
-                  Value['proxy-groups'] = Value['proxy-groups'] + Value_1;
-                  Value['proxy-groups'].uniq;
-               else
-                  Value['proxy-groups'] = Value_1;
+         yaml_files = {
+            '/tmp/yaml_groups.yaml' => 'proxy-groups',
+            '/tmp/yaml_servers.yaml' => 'proxies', 
+            '/tmp/yaml_provider.yaml' => 'proxy-providers'
+         };
+         
+         yaml_files.each{|file, key|
+            if File::exist?(file) then
+               file_data = YAML.load_file(file);
+               case key
+               when 'proxy-groups'
+                  if Value.has_key?(key) and not Value[key].to_a.empty? then
+                     Value[key] = Value[key] + file_data;
+                     Value[key].uniq;
+                  else
+                     Value[key] = file_data;
+                  end;
+               when 'proxies'
+                  if Value.has_key?(key) and not Value[key].to_a.empty? then
+                     Value[key] = Value[key] + file_data[key];
+                     Value[key].uniq;
+                  else
+                     Value[key] = file_data[key];
+                  end;
+               when 'proxy-providers'
+                  if Value.has_key?(key) and not Value[key].to_a.empty? then
+                     Value[key].merge!(file_data[key]);
+                     Value[key].uniq;
+                  else
+                     Value[key] = file_data[key];
+                  end;
                end;
             end;
-            if File::exist?('/tmp/yaml_servers.yaml') then
-               Value_2 = YAML.load_file('/tmp/yaml_servers.yaml');
-               if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
-                  Value['proxies'] = Value['proxies'] + Value_2['proxies'];
-                  Value['proxies'].uniq;
-               else
-                  Value['proxies']=Value_2['proxies'];
-               end
-            end;
-            if File::exist?('/tmp/yaml_provider.yaml') then
-               Value_3 = YAML.load_file('/tmp/yaml_provider.yaml');
-               if Value.has_key?('proxy-providers') and not Value['proxy-providers'].to_a.empty? then
-                  Value['proxy-providers'].merge!(Value_3['proxy-providers']);
-                  Value['proxy-providers'].uniq;
-               else
-                  Value['proxy-providers']=Value_3['proxy-providers'];
-               end;
-            end;
-         end;
+         };
       rescue Exception => e
          YAML.LOG('Error: Game Proxy Merge Failed,【' + e.message + '】');
       end;
+   };
 
-      #CONFIG_GROUP
-      CUSTOM_RULE = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list')
-      CUSTOM_RULE_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list')
+   thread_pool.each(&:join);
+   
+   begin
+      CUSTOM_RULE = File::exist?('/etc/openclash/custom/openclash_custom_rules.list') ? YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list') : {};
+      CUSTOM_RULE_2 = File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') ? YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list') : {};
+      
       CONFIG_GROUP = (['DIRECT', 'REJECT', 'GLOBAL', 'REJECT-DROP', 'PASS', 'COMPATIBLE'] +
       (Value['proxy-groups']&.map { |x| x['name'] } || []) +
       (Value['proxies']&.map { |x| x['name'] } || []) +
       (Value['sub-rules']&.keys || []) +
       (CUSTOM_RULE.is_a?(Hash) ? CUSTOM_RULE['sub-rules']&.keys || [] : []) +
       (CUSTOM_RULE_2.is_a?(Hash) ? CUSTOM_RULE_2['sub-rules']&.keys || [] : [])).uniq;
-
+   rescue Exception => e
+      CONFIG_GROUP = ['DIRECT', 'REJECT', 'GLOBAL', 'REJECT-DROP', 'PASS', 'COMPATIBLE'];
+   end;
+   
+   rule_thread_pool = [];
+   
+   rule_thread_pool << Thread.new{
       #Custom Rule Set
       begin
-         if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-            if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
-               if $4 != 1 then
-                  ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first);
-               else
-                  if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
-                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
-                     ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
-                  else
-                     ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
-                  end;
-               end;
-               ruby_add_index ||= -1;
-               Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml');
-               if ruby_add_index != -1 then
-                  Value_1['rules'].uniq.reverse.each{|x|
-                     RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
-                     if CONFIG_GROUP.include?(RULE_GROUP) then
-                        Value['rules'].insert(ruby_add_index,x);
-                     else
-                        YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
-                     end;
-                  };
-               else
-                  Value_1['rules'].uniq.each{|x|
-                     RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
-                     if CONFIG_GROUP.include?(RULE_GROUP) then
-                        Value['rules'].insert(ruby_add_index,x);
-                     else
-                        YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
-                     end;
-                  };
-               end;
-            end;
-            if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
-               Value_1 = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml');
-               Value_1['rules'].uniq.reverse.each{|x|
+         rule_files = [
+            { file: '/tmp/yaml_rule_set_top_custom.yaml', position: 'top' },
+            { file: '/tmp/yaml_rule_set_bottom_custom.yaml', position: 'bottom' }
+         ];
+         
+         rule_files.each{|rule_file_info|
+            if File::exist?(rule_file_info[:file]) then
+               custom_rules = YAML.load_file(rule_file_info[:file])['rules'].uniq;
+               
+               valid_rules = custom_rules.select{|x|
                   RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                   if CONFIG_GROUP.include?(RULE_GROUP) then
-                     Value['rules'].insert(0,x);
+                     true;
                   else
                      YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                     false;
                   end;
                };
-            end;
-         else
-            if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
-               Value_1 = YAML.load_file('/tmp/yaml_rule_set_top_custom.yaml')['rules'].uniq;
-               Value_1.each{|x|
-                  RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
-                  if not CONFIG_GROUP.include?(RULE_GROUP) then
-                     Value_1.delete(x);
-                     YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+               
+               if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+                  if rule_file_info[:position] == 'top' then
+                     valid_rules.reverse.each{|x| Value['rules'].insert(0,x)};
+                  else
+                     if $4 != 1 then
+                        ruby_add_index = Value['rules'].index(Value['rules'].grep(/(GEOIP|MATCH|FINAL)/).first);
+                     else
+                        if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
+                           ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
+                           ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
+                        else
+                           ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
+                        end;
+                     end;
+                     ruby_add_index ||= -1;
+                     
+                     if ruby_add_index != -1 then
+                        valid_rules.reverse.each{|x| Value['rules'].insert(ruby_add_index,x)};
+                     else
+                        valid_rules.each{|x| Value['rules'].insert(ruby_add_index,x)};
+                     end;
                   end;
-               };
-               Value['rules'] = Value_1;
-            end;
-            if File::exist?('/tmp/yaml_rule_set_bottom_custom.yaml') then
-               Value_1 = YAML.load_file('/tmp/yaml_rule_set_bottom_custom.yaml')['rules'].uniq;
-               Value_1.each{|x|
-                  RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
-                  if not CONFIG_GROUP.include?(RULE_GROUP) then
-                     Value_1.delete(x);
-                     YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
-                  end;
-               };
-               if File::exist?('/tmp/yaml_rule_set_top_custom.yaml') then
-                  Value['rules'] = Value['rules'] | Value_1;
                else
-                  Value['rules'] = Value_1;
+                  Value['rules'] = rule_file_info[:position] == 'top' ? valid_rules : (Value['rules'].to_a | valid_rules);
                end;
             end;
-         end;
+         };
       rescue Exception => e
          YAML.LOG('Error: Rule Set Add Failed,【' + e.message + '】');
       end;
+   };
 
+   rule_thread_pool << Thread.new{
       #Custom Rules
       begin
          if $2 == 1 then
-         #rules
-            if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
-               if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-                  Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
-                  if Value_1 != false then
-                     if Value_1.class.to_s == 'Hash' then
-                        if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
-                           Value_2 = Value_1['rules'].to_a.reverse!;
-                        end;
-                     elsif Value_1.class.to_s == 'Array' then
-                        Value_2 = Value_1.reverse!;
-                     end;
-                     if defined? Value_2 then
-                        Value_2.each{|x|
-                           RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
-                           if CONFIG_GROUP.include?(RULE_GROUP) then
-                              Value['rules'].insert(0,x);
-                           else
-                              YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
-                           end;
-                        };
-                        Value['rules'] = Value['rules'].uniq;
-                     end;
-                  end;
-               end;
-               if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-                  Value_3 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
-                  if Value_3 != false then
-                     if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
-                        ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
-                        ruby_add_index ||= Value['rules'].index(Value['rules'].grep(/(MATCH|FINAL)/).first);
+            custom_files = [
+               { file: '/etc/openclash/custom/openclash_custom_rules.list', position: 'top' },
+               { file: '/etc/openclash/custom/openclash_custom_rules_2.list', position: 'bottom' }
+            ];
+            
+            custom_files.each{|file_info|
+               if File::exist?(file_info[:file]) then
+                  custom_data = YAML.load_file(file_info[:file]);
+                  next if custom_data == false;
+                  
+                  rules_array = case custom_data.class.to_s
+                     when 'Hash'
+                        custom_data['rules'].to_a if custom_data['rules'].class.to_s == 'Array'
+                     when 'Array'
+                        custom_data
                      else
-                        ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
-                     end;
-                     ruby_add_index ||= -1;
-                     if Value_3.class.to_s == 'Hash' then
-                        if not Value_3['rules'].to_a.empty? and Value_3['rules'].class.to_s == 'Array' then
-                           Value_4 = Value_3['rules'].to_a.reverse!;
-                        end;
-                     elsif Value_3.class.to_s == 'Array' then
-                        Value_4 = Value_3.reverse!;
-                     end;
-                     if defined? Value_4 then
-                        if ruby_add_index == -1 then
-                           Value_4 = Value_4.reverse!;
-                        end;
-                        Value_4.each{|x|
-                           RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
-                           if CONFIG_GROUP.include?(RULE_GROUP) then
-                              Value['rules'].insert(ruby_add_index,x);
-                           else
-                              YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
-                           end;
-                        };
-                        Value['rules'] = Value['rules'].uniq;
-                     end;
+                        []
                   end;
-               end;
-            else
-               if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-                  Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
-                  if Value_1 != false then
-                     if Value_1.class.to_s == 'Hash' then
-                        if not Value_1['rules'].to_a.empty? and Value_1['rules'].class.to_s == 'Array' then
-                           Value_1['rules'].to_a.each{|x|
-                              RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
-                              if not CONFIG_GROUP.include?(RULE_GROUP) then
-                                 Value_1['rules'].delete(x);
-                                 YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
-                              end;
-                           };
-                           Value['rules'] = Value_1['rules'];
-                           Value['rules'] = Value['rules'].uniq;
-                        end;
-                     elsif Value_1.class.to_s == 'Array' then
-                        Value_1.each{|x|
-                           RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
-                           if not CONFIG_GROUP.include?(RULE_GROUP) then
-                              Value_1.delete(x);
-                              YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
-                           end;
-                        };
-                        Value['rules'] = Value_1;
-                        Value['rules'] = Value['rules'].uniq;
+                  
+                  next unless rules_array;
+                  
+                  valid_rules = rules_array.select{|x|
+                     RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
+                     if CONFIG_GROUP.include?(RULE_GROUP) then
+                        true;
+                     else
+                        YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
+                        false;
                      end;
-                  end;
-               end;
-               if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-                  Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
-                  if Value_2 != false then
-                     if Value['rules'].to_a.empty? then
-                        if Value_2.class.to_s == 'Hash' then
-                           if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
-                              Value_2['rules'].to_a.each{|x|
-                                 RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
-                                 if not CONFIG_GROUP.include?(RULE_GROUP) then
-                                    Value_2['rules'].delete(x);
-                                    YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
-                                 end;
-                              };
-                              Value['rules'] = Value_2['rules'];
-                              Value['rules'] = Value['rules'].uniq;
-                           end;
-                        elsif Value_2.class.to_s == 'Array' then
-                           Value_2.each{|x|
-                              RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
-                              if not CONFIG_GROUP.include?(RULE_GROUP) then
-                                 Value_2.delete(x);
-                                 YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
-                              end;
-                           };
-                           Value['rules'] = Value_2;
-                           Value['rules'] = Value['rules'].uniq;
-                        end;
+                  };
+                  
+                  if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
+                     if file_info[:position] == 'top' then
+                        valid_rules.reverse.each{|x| Value['rules'].insert(0,x)};
                      else
                         if Value['rules'].grep(/GEOIP/)[0].nil? or Value['rules'].grep(/GEOIP/)[0].empty? then
                            ruby_add_index = Value['rules'].index(Value['rules'].grep(/DST-PORT,80/).last);
@@ -706,75 +610,34 @@ yml_other_set()
                            ruby_add_index = Value['rules'].index(Value['rules'].grep(/GEOIP/).first);
                         end;
                         ruby_add_index ||= -1;
-                        if Value_2.class.to_s == 'Hash' then
-                        if not Value_2['rules'].to_a.empty? and Value_2['rules'].class.to_s == 'Array' then
-                           Value_3 = Value_2['rules'].to_a.reverse!;
-                        end;
-                        elsif Value_2.class.to_s == 'Array' then
-                           Value_3 = Value_2.reverse!;
-                        end;
-                        if defined? Value_3 then
-                           if ruby_add_index == -1 then
-                              Value_3 = Value_3.reverse!;
-                           end
-                           Value_3.each{|x|
-                              RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
-                              if CONFIG_GROUP.include?(RULE_GROUP) then
-                                 Value['rules'].insert(ruby_add_index,x);
-                              else
-                                 YAML.LOG('Warning: Skiped The Custom Rule Because Group & Proxy Not Found:【' + x + '】');
-                              end;
-                           };
-                           Value['rules'] = Value['rules'].uniq;
+                        
+                        insert_rules = ruby_add_index == -1 ? valid_rules : valid_rules.reverse;
+                        insert_rules.each{|x| Value['rules'].insert(ruby_add_index,x)};
+                     end;
+                     Value['rules'] = Value['rules'].uniq;
+                  else
+                     Value['rules'] = valid_rules.uniq;
+                  end;
+               end;
+            };
+            
+            # SUB-RULE
+            ['sub-rules'].each{|key|
+               custom_files.each{|file_info|
+                  if File::exist?(file_info[:file]) then
+                     custom_data = YAML.load_file(file_info[:file]);
+                     if custom_data != false and custom_data.class.to_s == 'Hash' then
+                        if not custom_data[key].to_a.empty? and custom_data[key].class.to_s == 'Hash' then
+                           if Value.has_key?(key) and not Value[key].to_a.empty? then
+                              Value[key] = Value[key].merge!(custom_data[key]);
+                           else
+                              Value[key] = custom_data[key];
+                           end;
                         end;
                      end;
                   end;
-               end;
-            end;
-         #SUB-RULE
-            if Value.has_key?('sub-rules') and not Value['sub-rules'].to_a.empty? then
-               if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-                  Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
-                  if Value_1 != false then
-                     if Value_1.class.to_s == 'Hash' then
-                        if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
-                           Value['sub-rules'] = Value['sub-rules'].merge!(Value_1['sub-rules']);
-                        end;
-                     end;
-                  end;
-               end;
-               if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-                  Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
-                  if Value_2 != false then
-                     if Value_2.class.to_s == 'Hash' then
-                        if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
-                           Value['sub-rules'] = Value['sub-rules'].merge!(Value_2['sub-rules']);
-                        end;
-                     end;
-                  end;
-               end;
-            else
-               if File::exist?('/etc/openclash/custom/openclash_custom_rules.list') then
-                  Value_1 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules.list');
-                  if Value_1 != false then
-                     if Value_1.class.to_s == 'Hash' then
-                        if not Value_1['sub-rules'].to_a.empty? and Value_1['sub-rules'].class.to_s == 'Hash' then
-                           Value['sub-rules'] = Value_1['sub-rules'];
-                        end;
-                     end;
-                  end;
-               end;
-               if File::exist?('/etc/openclash/custom/openclash_custom_rules_2.list') then
-                  Value_2 = YAML.load_file('/etc/openclash/custom/openclash_custom_rules_2.list');
-                  if Value_2 != false then
-                     if Value_2.class.to_s == 'Hash' then
-                        if not Value_2['sub-rules'].to_a.empty? and Value_2['sub-rules'].class.to_s == 'Hash' then
-                           Value['sub-rules'] = Value_2['sub-rules'];
-                        end;
-                     end;
-                  end;
-               end;
-            end;
+               };
+            };
          end;
       rescue Exception => e
          YAML.LOG('Error: Set Custom Rules Failed,【' + e.message + '】');
@@ -783,12 +646,13 @@ yml_other_set()
       #Router Self Proxy Rule
       begin
          if $6 == 0 and $8 != 2 and '$9' == 'fake-ip' then
+            router_rule = 'SRC-IP-CIDR,$7/32,DIRECT';
             if Value.has_key?('rules') and not Value['rules'].to_a.empty? then
                if Value['rules'].to_a.grep(/(?=.*SRC-IP-CIDR,'$7')/).empty? and not '$7'.empty? then
-                  Value['rules']=Value['rules'].to_a.insert(0,'SRC-IP-CIDR,$7/32,DIRECT');
+                  Value['rules']=Value['rules'].to_a.insert(0, router_rule);
                end;
             else
-               Value['rules']=['SRC-IP-CIDR,$7/32,DIRECT'];
+               Value['rules']=[router_rule];
             end;
          elsif Value.has_key?('rules') and not Value['rules'].to_a.empty? then
             Value['rules'].delete('SRC-IP-CIDR,$7/32,DIRECT');
@@ -798,35 +662,41 @@ yml_other_set()
       end;
    };
 
-   t2=Thread.new{
-      #Create threads
+   rule_thread_pool.each(&:join);
+   
+   provider_thread = Thread.new{
       threads = [];
-
+      
       #provider path
       begin
-         provider = {'proxy-providers' => 'proxy_provider', 'rule-providers' => 'rule_provider'}
-         provider.each do |i, p|
-            if Value.key?(i) then
-               Value[i].values.each{
-               |x,v|
+         provider_configs = {'proxy-providers' => 'proxy_provider', 'rule-providers' => 'rule_provider'};
+         provider_configs.each do |provider_type, path_prefix|
+            if Value.key?(provider_type) then
+               Value[provider_type].each{|name, config|
                   threads << Thread.new {
-                     if x['path'] and not x['path'] =~ /.\/#{p}\/*/ and not x['path'] =~ /.\/game_rules\/*/ then
-                        v=File.basename(x['path']);
-                        x['path']='./'+p+'/'+v;
+                     if config['path'] and not config['path'] =~ /.\/#{path_prefix}\/*/ and not config['path'] =~ /.\/game_rules\/*/ then
+                        config['path'] = './'+path_prefix+'/'+File.basename(config['path']);
+                     elsif not config['path'] and config['type'] == 'http' then
+                        config['path'] = './'+path_prefix+'/'+name;
                      end;
-                     if not x['path'] and x['type'] == 'http' then
-                        x['path']='./'+p+'/'+x['name'];
-                     end;
-                     #CDN Replace
-                     if '$github_address_mod' != '0' then
-                        if '$github_address_mod' == 'https://cdn.jsdelivr.net/' or '$github_address_mod' == 'https://fastly.jsdelivr.net/' or '$github_address_mod' == 'https://testingcf.jsdelivr.net/'then
-                           if x['url'] and x['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
-                              x['url'] = '$github_address_mod' + 'gh/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '@' + x['url'].split(x['url'].split('/')[2] + '/' + x['url'].split('/')[3] + '/' + x['url'].split('/')[4] + '/')[1];
+                     
+                     # CDN
+                     if '$github_address_mod' != '0' and config['url'] then
+                        if config['url'] =~ /^https:\/\/raw.githubusercontent.com/ then
+                           if '$github_address_mod' == 'https://cdn.jsdelivr.net/' or 
+                              '$github_address_mod' == 'https://fastly.jsdelivr.net/' or 
+                              '$github_address_mod' == 'https://testingcf.jsdelivr.net/' then
+                              url_parts = config['url'].split('/');
+                              if url_parts.length >= 5 then
+                                 config['url'] = '$github_address_mod' + 'gh/' + url_parts[3] + '/' + 
+                                                url_parts[4] + '@' + config['url'].split(url_parts[2] + 
+                                                '/' + url_parts[3] + '/' + url_parts[4] + '/')[1];
+                              end;
+                           else
+                              config['url'] = '$github_address_mod' + config['url'];
                            end;
-                        else
-                           if x['url'] and x['url'] =~ /^https:\/\/(raw.|gist.)(githubusercontent.com|github.com)/ then
-                              x['url'] = '$github_address_mod' + x['url'];
-                           end;
+                        elsif config['url'] =~ /^https:\/\/(raw.|gist.)(githubusercontent.com|github.com)/ then
+                           config['url'] = '$github_address_mod' + config['url'];
                         end;
                      end;
                   };
@@ -837,15 +707,14 @@ yml_other_set()
          YAML.LOG('Error: Edit Provider Path Failed,【' + e.message + '】');
       end;
 
-      #tolerance
+      # tolerance
       begin
-         if '$tolerance' != '0' then
-            Value['proxy-groups'].each{
-            |x|
+         if '$tolerance' != '0' and Value.key?('proxy-groups') then
+            Value['proxy-groups'].each{|group|
                threads << Thread.new {
-                  if x['type'] == 'url-test' then
-                     x['tolerance']=${tolerance};
-                  end
+                  if group['type'] == 'url-test' then
+                     group['tolerance'] = ${tolerance};
+                  end;
                };
             };
          end;
@@ -853,25 +722,23 @@ yml_other_set()
          YAML.LOG('Error: Edit URL-Test Group Tolerance Option Failed,【' + e.message + '】');
       end;
 
-      #URL-Test interval
+      # URL-Test interval
       begin
          if '$urltest_interval_mod' != '0' then
             if Value.key?('proxy-groups') then
-               Value['proxy-groups'].each{
-                  |x|
+               Value['proxy-groups'].each{|group|
                   threads << Thread.new {
-                     if x['type'] == 'url-test' or x['type'] == 'fallback' or x['type'] == 'load-balance' then
-                        x['interval']=${urltest_interval_mod};
-                     end
+                     if ['url-test', 'fallback', 'load-balance'].include?(group['type']) then
+                        group['interval'] = ${urltest_interval_mod};
+                     end;
                   };
                };
             end;
             if Value.key?('proxy-providers') then
-               Value['proxy-providers'].values.each{
-                  |x|
+               Value['proxy-providers'].each{|name, provider|
                   threads << Thread.new {
-                     if x['health-check'] and x['health-check']['enable'] and x['health-check']['enable'] == 'true' then
-                        x['health-check']['interval']=${urltest_interval_mod};
+                     if provider['health-check'] and provider['health-check']['enable'] == 'true' then
+                        provider['health-check']['interval'] = ${urltest_interval_mod};
                      end;
                   };
                };
@@ -881,25 +748,23 @@ yml_other_set()
          YAML.LOG('Error: Edit URL-Test Interval Failed,【' + e.message + '】');
       end;
 
-      #health-check url
+      # health-check url
       begin
          if '$urltest_address_mod' != '0' then
             if Value.key?('proxy-providers') then
-               Value['proxy-providers'].values.each{
-               |x|
+               Value['proxy-providers'].each{|name, provider|
                   threads << Thread.new {
-                     if x['health-check'] and x['health-check']['enable'] and x['health-check']['enable'] == 'true' then
-                        x['health-check']['url']='$urltest_address_mod';
+                     if provider['health-check'] and provider['health-check']['enable'] == 'true' then
+                        provider['health-check']['url'] = '$urltest_address_mod';
                      end;
                   };
                };
             end;
             if Value.key?('proxy-groups') then
-               Value['proxy-groups'].each{
-               |x|
+               Value['proxy-groups'].each{|group|
                   threads << Thread.new {
-                     if x['type'] == 'url-test' or x['type'] == 'fallback' or x['type'] == 'load-balance' then
-                        x['url']='$urltest_address_mod';
+                     if ['url-test', 'fallback', 'load-balance'].include?(group['type']) then
+                        group['url'] = '$urltest_address_mod';
                      end;
                   };
                };
@@ -908,15 +773,13 @@ yml_other_set()
       rescue Exception => e
          YAML.LOG('Error: Edit URL-Test URL Failed,【' + e.message + '】');
       end;
-
-      #Run threads
+      
       threads.each(&:join);
    };
    
+   provider_thread.join;
+   
    begin
-      t1.join;
-      t2.join;
-   ensure
       File.open('$3','w') {|f| YAML.dump(Value, f)};
    end" 2>/dev/null >> $LOG_FILE
 }
@@ -937,40 +800,25 @@ yml_other_rules_get()
       return
    fi
    
-   config_get "rule_name" "$section" "rule_name" ""
-   config_get "GlobalTV" "$section" "GlobalTV" ""
-   config_get "AsianTV" "$section" "AsianTV" ""
-   config_get "MainlandTV" "$section" "MainlandTV" "DIRECT"
-   config_get "Proxy" "$section" "Proxy" ""
-   config_get "Youtube" "$section" "Youtube" ""
-   config_get "Bilibili" "$section" "Bilibili" ""
-   config_get "Bahamut" "$section" "Bahamut" ""
-   config_get "HBOMax" "$section" "HBOMax" "$GlobalTV"
-   config_get "Pornhub" "$section" "Pornhub" ""
-   config_get "Apple" "$section" "Apple" ""
-   config_get "Scholar" "$section" "Scholar" ""
-   config_get "Netflix" "$section" "Netflix" ""
-   config_get "Disney" "$section" "Disney" ""
-   config_get "Spotify" "$section" "Spotify" ""
-   config_get "Steam" "$section" "Steam" ""
-   config_get "TikTok" "$section" "TikTok" "$GlobalTV"
-   config_get "AdBlock" "$section" "AdBlock" ""
-   config_get "HTTPDNS" "$section" "HTTPDNS" "REJECT"
-   config_get "Netease_Music" "$section" "Netease_Music" ""
-   config_get "Speedtest" "$section" "Speedtest" ""
-   config_get "Telegram" "$section" "Telegram" ""
-   config_get "Crypto" "$section" "Crypto" "$Proxy"
-   config_get "Discord" "$section" "Discord" "$Proxy"
-   config_get "Microsoft" "$section" "Microsoft" ""
-   config_get "PayPal" "$section" "PayPal" ""
-   config_get "Domestic" "$section" "Domestic" ""
-   config_get "Others" "$section" "Others" ""
-   config_get "GoogleFCM" "$section" "GoogleFCM" "DIRECT"
-   config_get "Discovery" "$section" "Discovery" "$GlobalTV"
-   config_get "DAZN" "$section" "DAZN" "$GlobalTV"
-   config_get "AI_Suite" "$section" "AI_Suite" "$Proxy"
-   config_get "AppleTV" "$section" "AppleTV" "$GlobalTV"
-   config_get "miHoYo" "$section" "miHoYo" "$Domestic"
+   local vars="rule_name GlobalTV AsianTV MainlandTV Proxy Youtube Bilibili Bahamut HBOMax Pornhub Apple Scholar Netflix Disney Spotify Steam TikTok AdBlock HTTPDNS Netease_Music Speedtest Telegram Crypto Discord Microsoft PayPal Domestic Others GoogleFCM Discovery DAZN AI_Suite AppleTV miHoYo position format other_parameters"
+   
+   for var in $vars; do
+      case "$var" in
+         "MainlandTV") config_get "$var" "$section" "$var" "DIRECT" ;;
+         "HBOMax") config_get "$var" "$section" "$var" "$GlobalTV" ;;
+         "TikTok") config_get "$var" "$section" "$var" "$GlobalTV" ;;
+         "HTTPDNS") config_get "$var" "$section" "$var" "REJECT" ;;
+         "Crypto") config_get "$var" "$section" "$var" "$Proxy" ;;
+         "Discord") config_get "$var" "$section" "$var" "$Proxy" ;;
+         "GoogleFCM") config_get "$var" "$section" "$var" "DIRECT" ;;
+         "Discovery") config_get "$var" "$section" "$var" "$GlobalTV" ;;
+         "DAZN") config_get "$var" "$section" "$var" "$GlobalTV" ;;
+         "AI_Suite") config_get "$var" "$section" "$var" "$Proxy" ;;
+         "AppleTV") config_get "$var" "$section" "$var" "$GlobalTV" ;;
+         "miHoYo") config_get "$var" "$section" "$var" "$Domestic" ;;
+         *) config_get "$var" "$section" "$var" "" ;;
+      esac
+   done
 }
 
 if [ "$1" != "0" ]; then
@@ -985,45 +833,23 @@ if [ "$1" != "0" ]; then
       SKIP_CUSTOM_OTHER_RULES=1
       yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
       exit 0
-   #判断策略组是否存在
+
    elif [ "$rule_name" = "lhie1" ]; then
-       if [ -z "$(grep -F "$GlobalTV" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$AsianTV" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$MainlandTV" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Proxy" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Youtube" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Bilibili" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Bahamut" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$HBOMax" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Pornhub" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Apple" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$AppleTV" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Scholar" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Netflix" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Disney" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Discovery" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$DAZN" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$AI_Suite" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Spotify" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Steam" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$TikTok" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$miHoYo" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$AdBlock" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$HTTPDNS" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Speedtest" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Telegram" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Crypto" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Discord" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Microsoft" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$PayPal" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Others" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$GoogleFCM" /tmp/Proxy_Group)" ]\
-    || [ -z "$(grep -F "$Domestic" /tmp/Proxy_Group)" ]; then
-         LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
-         SKIP_CUSTOM_OTHER_RULES=1
-         yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
-         exit 0
+
+       if [ -z "$PROXY_GROUP_CACHE" ]; then
+          PROXY_GROUP_CACHE=$(cat /tmp/Proxy_Group 2>/dev/null)
        fi
+       
+       required_groups="$GlobalTV $AsianTV $MainlandTV $Proxy $Youtube $Bilibili $Bahamut $HBOMax $Pornhub $Apple $AppleTV $Scholar $Netflix $Disney $Discovery $DAZN $AI_Suite $Spotify $Steam $TikTok $miHoYo $AdBlock $HTTPDNS $Speedtest $Telegram $Crypto $Discord $Microsoft $PayPal $Others $GoogleFCM $Domestic"
+       
+       for group in $required_groups; do
+          if [ -n "$group" ] && [ -z "$(echo "$PROXY_GROUP_CACHE" | grep -F "$group")" ]; then
+             LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
+             SKIP_CUSTOM_OTHER_RULES=1
+             yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9"
+             exit 0
+          fi
+       done
    fi
    if [ -z "$Proxy" ]; then
       LOG_OUT "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
