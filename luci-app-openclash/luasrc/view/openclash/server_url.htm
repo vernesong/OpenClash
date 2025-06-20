@@ -2,315 +2,1435 @@
 <script type="text/javascript">
 //<![CDATA[
 function padright(str, cnt, pad) {
-	return str + Array(cnt + 1).join(pad);
+    return str + Array(cnt + 1).join(pad);
 }
 
 function b64EncodeUnicode(str) {
-	return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
-		return String.fromCharCode('0x' + p1);
-	}));
+    return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, function (match, p1) {
+        return String.fromCharCode('0x' + p1);
+    }));
 }
 
 function b64encutf8safe(str) {
-	return b64EncodeUnicode(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, '');
+    return b64EncodeUnicode(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, '');
 }
 
 function b64DecodeUnicode(str) {
-	return decodeURIComponent(Array.prototype.map.call(atob(str), function (c) {
-		return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-	}).join(''));
+    return decodeURIComponent(Array.prototype.map.call(atob(str), function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
 }
 
 function b64decutf8safe(str) {
-	var l;
-	str = str.replace(/-/g, "+").replace(/_/g, "/");
-	l = str.length;
-	l = (4 - l % 4) % 4;
-	if (l) str = padright(str, l, "=");
-	return b64DecodeUnicode(str);
+    var l;
+    str = str.replace(/-/g, "+").replace(/_/g, "/");
+    l = str.length;
+    l = (4 - l % 4) % 4;
+    if (l) str = padright(str, l, "=");
+    return b64DecodeUnicode(str);
 }
 
 function b64encsafe(str) {
-	return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, '')
+    return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, '')
 }
 
 function b64decsafe(str) {
-	var l;
-	str = str.replace(/-/g, "+").replace(/_/g, "/");
-	l = str.length;
-	l = (4 - l % 4) % 4;
-	if (l) str = padright(str, l, "=");
-	return atob(str);
+    var l;
+    str = str.replace(/-/g, "+").replace(/_/g, "/");
+    l = str.length;
+    l = (4 - l % 4) % 4;
+    if (l) str = padright(str, l, "=");
+    return atob(str);
 }
 
 function dictvalue(d, key) {
-	var v = d[key];
-	if (typeof (v) == 'undefined' || v == '') return '';
-	return b64decsafe(v);
+    var v = d[key];
+    if (typeof (v) == 'undefined' || v == '') return '';
+    return b64decsafe(v);
 }
 
-function export_ssr_url(btn, urlname, sid) {
-	var s = document.getElementById(urlname + '-status');
-	if (!s) return false;
-	var v_server = document.getElementsByName('cbid.openclash.' + sid + '.server')[0];
-	var v_port = document.getElementsByName('cbid.openclash.' + sid + '.port')[0];
-	var v_protocol = document.getElementsByName('cbid.openclash.' + sid + '.protocol')[0];
-	var v_method = document.getElementsByName('cbid.openclash.' + sid + '.cipher_ssr')[0];
-	var v_obfs = document.getElementsByName('cbid.openclash.' + sid + '.obfs_ssr')[0];
-	var v_password = document.getElementsByName('cbid.openclash.' + sid + '.password')[0];
-	var v_obfs_param = document.getElementsByName('cbid.openclash.' + sid + '.obfs_param')[0];
-	var v_protocol_param = document.getElementsByName('cbid.openclash.' + sid + '.protocol_param')[0];
-	var v_alias = document.getElementsByName('cbid.openclash.' + sid + '.name')[0];
-	var ssr_str = v_server.value + ":" + v_port.value + ":" + v_protocol.value + ":" + v_method.value + ":" + v_obfs.value + ":" + b64encsafe(v_password.value) + "/?obfsparam=" + b64encsafe(v_obfs_param.value) + "&protoparam=" + b64encsafe(v_protocol_param.value) + "&remarks=" + b64encutf8safe(v_alias.value);
-	var textarea = document.createElement("textarea");
-	textarea.textContent = "ssr://" + b64encsafe(ssr_str);
-	textarea.style.position = "fixed";
-	document.body.appendChild(textarea);
-	textarea.select();
-	try {
-		document.execCommand("copy"); // Security exception may be thrown by some browsers.
-		s.innerHTML = "<font style=\"color:green\"><%:Copy SSR to clipboard successfully.%></font>";
-	} catch (ex) {
-		s.innerHTML = "<font style=\"color:red\"><%:Unable to copy SSR to clipboard.%></font>";
-	} finally {
-		document.body.removeChild(textarea);
-	}
-	return false;
+function parseUrl(url) {
+    var m = url.match(/^(([^:\/?#]+:)?(?:\/\/((?:([^\/?#:]*)([^\/?#:]*)@)?([^\/?#:]*)(?::([^\/?#:]*))?)))?([^?#]*)(\?[^#]*)?(#.*)?$/);
+    if (!m) return null;
+    return {
+        hash: m[10] || "",
+        host: m[3] || "",
+        hostname: m[6] || "",
+        href: m[0] || "",
+        origin: m[1] || "",
+        pathname: m[8] || (m[1] ? "/" : ""),
+        port: m[7] || "",
+        protocol: m[2] || "",
+        search: m[9] || "",
+        username: m[4] || "",
+        password: m[5] || ""
+    };
 }
 
-function import_ssr_url(btn, urlname, sid) {
-		var s = document.getElementById(urlname + '-status');
-		if (!s) return false;
-		var ssrurl = prompt("<%:Paste sharing link here%>", "");
-		if (ssrurl == null || ssrurl == "") {
-			s.innerHTML = "<font style=\"color:red\"><%:User cancelled.%></font>";
-			return false;
-		}
-		s.innerHTML = "";
-		//var ssu = ssrurl.match(/ssr:\/\/([A-Za-z0-9_-]+)/i);
-		var ssu = ssrurl.split('://');
-		//console.log(ssu.length);
-		var event = document.createEvent("HTMLEvents");
-		event.initEvent("change", true, true);
-		switch (ssu[0]) {
-		case "ss":
-			var url0, param = "";
-			var sipIndex = ssu[1].indexOf("@");
-			var ploc = ssu[1].indexOf("#");
-			if (ploc > 0) {
-				url0 = ssu[1].substr(0, ploc);
-				param = ssu[1].substr(ploc + 1);
-			} else {
-				url0 = ssu[1];
-			}
-			if (sipIndex != -1) {
-				// SIP002
-				var userInfo = b64decsafe(url0.substr(0, sipIndex));
-				var temp = url0.substr(sipIndex + 1).split("/?");
-				var serverInfo = temp[0].split(":");
-				var server = serverInfo[0];
-				var port = serverInfo[1];
-				var method, password, plugin, pluginOpts, pluginObfs, pluginObfsHost, pluginObfsPath, pluginObfsHeaders;
-				if (temp[1]) {
-					var pluginInfo = decodeURIComponent(temp[1]);
-					var pluginIndex = pluginInfo.indexOf(";");
-					var pluginNameInfo = pluginInfo.substr(0, pluginIndex);
-					plugin = pluginNameInfo.substr(pluginNameInfo.indexOf("=") + 1);
-					pluginOpts = pluginInfo.substr(pluginIndex + 1);
-					if (pluginOpts.indexOf("obfs=") != -1) {
-						pluginObfs = pluginOpts.split("obfs=")[1].split(";")[0];
-						if (pluginObfs == "ws") {
-							   pluginObfs = "websocket"
-							}
-						if (pluginOpts.indexOf("obfs-host=") != -1) {
-							pluginObfsHost = pluginOpts.split("obfs-host=")[1].split("&group=")[0] || pluginOpts.split("obfs-host=")[1].split(";")[0];
-							}
-						if (pluginOpts.indexOf("path=") != -1) {
-							pluginObfsPath = pluginOpts.split("path=")[1].split(";")[0];
-							}
-						if (pluginOpts.indexOf("headers=") != -1) {
-							pluginObfsHeaders = pluginOpts.split("headers=")[1].split(";")[0];
-							}
-					}
-				}
-				var userInfoSplitIndex = userInfo.indexOf(":");
-				if (userInfoSplitIndex != -1) {
-					method = userInfo.substr(0, userInfoSplitIndex);
-					password = userInfo.substr(userInfoSplitIndex + 1);
-				}
-				document.getElementsByName('cbid.openclash.' + sid + '.type')[0].value = ssu[0];
-				document.getElementsByName('cbid.openclash.' + sid + '.type')[0].dispatchEvent(event);
-				document.getElementsByName('cbid.openclash.' + sid + '.server')[0].value = server;
-				document.getElementsByName('cbid.openclash.' + sid + '.port')[0].value = port;
-				document.getElementsByName('cbid.openclash.' + sid + '.password')[0].value = password || "";
-				document.getElementsByName('cbid.openclash.' + sid + '.cipher')[0].value = method || "";
-				document.getElementsByName('cbid.openclash.' + sid + '.obfs')[0].value = pluginObfs || "none";
-				document.getElementsByName('cbid.openclash.' + sid + '.obfs')[0].dispatchEvent(event);
-				if (plugin != undefined) {
-					document.getElementsByName('cbid.openclash.' + sid + '.host')[0].value = pluginObfsHost || "";
-					if (pluginObfs == "websocket") {
-						document.getElementsByName('cbid.openclash.' + sid + '.custom')[0].value = pluginObfsHeaders || "";
-						document.getElementsByName('cbid.openclash.' + sid + '.path')[0].value = pluginObfsPath || "";
-					}
-				}
-				if (param != undefined) {
-					document.getElementsByName('cbid.openclash.' + sid + '.name')[0].value = decodeURI(param);
-				}
-				s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully.%></font>";
-			} else {
-				var sstr = b64decsafe(url0);
-				document.getElementsByName('cbid.openclash.' + sid + '.type')[0].value = ssu[0];
-				document.getElementsByName('cbid.openclash.' + sid + '.type')[0].dispatchEvent(event);
-				var team = sstr.split('@');
-				var part1 = team[0].split(':');
-				var part2 = team[1].split(':');
-				document.getElementsByName('cbid.openclash.' + sid + '.server')[0].value = part2[0];
-				document.getElementsByName('cbid.openclash.' + sid + '.port')[0].value = part2[1];
-				document.getElementsByName('cbid.openclash.' + sid + '.password')[0].value = part1[1];
-				document.getElementsByName('cbid.openclash.' + sid + '.cipher')[0].value = part1[0];
-				if (param != undefined) {
-					document.getElementsByName('cbid.openclash.' + sid + '.name')[0].value = decodeURI(param);
-				}
-				s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully.%></font>";
-			}
-			return false;
-		case "ssr":
-			var sstr = b64decsafe(ssu[1]);
-			var ploc = sstr.indexOf("/?");
-			document.getElementsByName('cbid.openclash.' + sid + '.type')[0].value = ssu[0];
-			document.getElementsByName('cbid.openclash.' + sid + '.type')[0].dispatchEvent(event);
-			var url0, param = "";
-			if (ploc > 0) {
-				url0 = sstr.substr(0, ploc);
-				param = sstr.substr(ploc + 2);
-			}
-			var ssm = url0.match(/^(.+):([^:]+):([^:]*):([^:]+):([^:]*):([^:]+)/);
-			if (!ssm || ssm.length < 7) return false;
-			var pdict = {};
-			if (param.length > 2) {
-				var a = param.split('&');
-				for (var i = 0; i < a.length; i++) {
-					var b = a[i].split('=');
-					pdict[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
-				}
-			}
-			document.getElementsByName('cbid.openclash.' + sid + '.server')[0].value = ssm[1];
-			document.getElementsByName('cbid.openclash.' + sid + '.port')[0].value = ssm[2];
-			document.getElementsByName('cbid.openclash.' + sid + '.protocol')[0].value = ssm[3];
-			document.getElementsByName('cbid.openclash.' + sid + '.cipher_ssr')[0].value = (ssm[4] == "none" ? "dummy" : ssm[4]);
-			document.getElementsByName('cbid.openclash.' + sid + '.obfs_ssr')[0].value = ssm[5];
-			document.getElementsByName('cbid.openclash.' + sid + '.password')[0].value = b64decsafe(ssm[6]);
-			document.getElementsByName('cbid.openclash.' + sid + '.obfs_param')[0].value = dictvalue(pdict, 'obfsparam');
-			document.getElementsByName('cbid.openclash.' + sid + '.protocol_param')[0].value = dictvalue(pdict, 'protoparam');
-			var rem = pdict['remarks'];
-			if (typeof (rem) != 'undefined' && rem != '' && rem.length > 0) document.getElementsByName('cbid.openclash.' + sid + '.name')[0].value = b64decutf8safe(rem);
-			s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully.%></font>";
-			return false;
-		case "trojan":
-			var url0, param = "";
-			var ploc = ssu[1].indexOf("#");
-			if (ploc > 0) {
-				url0 = ssu[1].substr(0, ploc);
-				param = ssu[1].substr(ploc + 1);
-			} else {
-				url0 = ssu[1]
-			}
-			var sstr = url0;
-			document.getElementsByName('cbid.openclash.' + sid + '.type')[0].value = "trojan";
-			document.getElementsByName('cbid.openclash.' + sid + '.type')[0].dispatchEvent(event);
-			var team = sstr.split('@');
-			var password = team[0]
-			var serverPart = team[1].split(':');
-			var others = serverPart[1].split('?');
-			var port = parseInt(others[0]);
-			var queryParam = {}
-			if (others.length > 1) {
-				var queryParams = others[1]
-				var queryArray = queryParams.split('&');
-				for (i = 0; i < queryArray.length; i++) {
-					var params = queryArray[i].split('=');
-					queryParam[decodeURIComponent(params[0])] = decodeURIComponent(params[1] || '');
-				}
-			}
-			document.getElementsByName('cbid.openclash.' + sid + '.server')[0].value = serverPart[0];
-			document.getElementsByName('cbid.openclash.' + sid + '.port')[0].value = port || '443';
-			document.getElementsByName('cbid.openclash.' + sid + '.password')[0].value = password;
-			document.getElementsByName('cbid.openclash.' + sid + '.sni')[0].value = queryParam.sni || '';
-			if (queryParam.type != undefined) {
-				for (i = 0; i < document.getElementById('cbi.combobox.cbid.openclash.' + sid + '.alpn.1').getElementsByTagName("option").length; i++) {
-					if ( document.getElementById('cbi.combobox.cbid.openclash.' + sid + '.alpn.1').getElementsByTagName("option")[i].value == queryParam.type ) {
-						document.getElementById('cbi.combobox.cbid.openclash.' + sid + '.alpn.1').getElementsByTagName("option")[i].selected=true;
-					}
-				}
-		  }
-			if (param != undefined) {
-				document.getElementsByName('cbid.openclash.' + sid + '.name')[0].value = decodeURI(param);
-			}
-			s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully.%></font>";
-			return false;
-		case "vmess":
-			var sstr = b64DecodeUnicode(ssu[1]);
-			var ploc = sstr.indexOf("/?");
-			document.getElementsByName('cbid.openclash.' + sid + '.type')[0].value = "vmess";
-			document.getElementsByName('cbid.openclash.' + sid + '.type')[0].dispatchEvent(event);
-			var url0, param = "";
-			if (ploc > 0) {
-				url0 = sstr.substr(0, ploc);
-				param = sstr.substr(ploc + 2);
-			}
-			var ssm = JSON.parse(sstr);
-			document.getElementsByName('cbid.openclash.' + sid + '.name')[0].value = ssm.ps;
-			document.getElementsByName('cbid.openclash.' + sid + '.server')[0].value = ssm.add;
-			document.getElementsByName('cbid.openclash.' + sid + '.port')[0].value = ssm.port;
-			document.getElementsByName('cbid.openclash.' + sid + '.alterId')[0].value = ssm.aid;
-			document.getElementsByName('cbid.openclash.' + sid + '.uuid')[0].value = ssm.id;
-			document.getElementsByName('cbid.openclash.' + sid + '.obfs_vmess')[0].value = ssm.net;
-			document.getElementsByName('cbid.openclash.' + sid + '.obfs_vmess')[0].dispatchEvent(event);
-			if (ssm.method) {
-					document.getElementsByName('cbid.openclash.' + sid + '.securitys')[0].value = ssm.method;
-			}
-			if (ssm.net == "tcp") {
-				if (ssm.type && ssm.type != "http") {
-					ssm.type = "none"
-					document.getElementsByName('cbid.openclash.' + sid + '.obfs_vmess')[0].value = ssm.type;
-					document.getElementsByName('cbid.openclash.' + sid + '.obfs_vmess')[0].dispatchEvent(event);
-				} else {
-					document.getElementsByName('cbid.openclash.' + sid + '.obfs_vmess')[0].value = "http";
-					document.getElementsByName('cbid.openclash.' + sid + '.obfs_vmess')[0].dispatchEvent(event);
-					document.getElementsByName('cbid.openclash.' + sid + '.http_path')[0].value = ssm.path;
-				}
-			}
-			if (ssm.net == "ws") {
-				document.getElementsByName('cbid.openclash.' + sid + '.obfs_vmess')[0].value = "websocket";
-				document.getElementsByName('cbid.openclash.' + sid + '.obfs_vmess')[0].dispatchEvent(event);
-				document.getElementsByName('cbid.openclash.' + sid + '.ws_opts_path')[0].value = ssm.path;
-				document.getElementsByName('cbid.openclash.' + sid + '.ws_opts_headers')[0].value = "Host: " + ssm.host;
-				if (ssm.maxearlydata) {
-					document.getElementsByName('cbid.openclash.' + sid + '.max_early_data')[0].value = ssm.maxearlydata;
-				}
-				if (ssm.earlydataheadername) {
-					document.getElementsByName('cbid.openclash.' + sid + '.early_data_header_name')[0].value = ssm.earlydataheadername;
-				}
-			}
-			if (ssm.net == "h2") {
-				document.getElementsByName('cbid.openclash.' + sid + '.h2_host')[0].value = ssm.host;
-				document.getElementsByName('cbid.openclash.' + sid + '.h2_path')[0].value = ssm.path;
-			}
-			if (ssm.tls == "tls") {
-				document.getElementsByName('cbid.openclash.' + sid + '.tls')[0].value = "true";
-			}
-			if (ssm.sni) {
-				document.getElementsByName('cbid.openclash.' + sid + '.servername')[0].value = ssm.sni;
-			}
-			s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully.%></font>";
-			return false;
-		default:
-			s.innerHTML = "<font style=\"color:red\"><%:Invalid format.%></font>";
-			return false;
-		}
-	}
-	//]]>
+function decodeFragment(fragment) {
+    if (!fragment) return '';
+    try {
+        var decoded = decodeURIComponent(fragment);
+        while (decoded !== fragment) {
+            fragment = decoded;
+            decoded = decodeURIComponent(fragment);
+        }
+        return fragment;
+    } catch (e) {
+        return fragment;
+    }
+}
+
+function parseQuery(search) {
+    var query = {};
+    if (search && search.length > 1) {
+        var params = search.substring(1).split('&');
+        for (var i = 0; i < params.length; i++) {
+            var eqIndex = params[i].indexOf('=');
+            if (eqIndex !== -1) {
+                var key = params[i].substring(0, eqIndex);
+                var value = params[i].substring(eqIndex + 1);
+                try {
+                    key = decodeURIComponent(key);
+                    query[key] = value;
+                } catch (e) {
+                    query[key] = value;
+                }
+            }
+        }
+    }
+    return query;
+}
+
+function setFormValue(sid, field, value) {
+    var element = document.getElementsByName('cbid.openclash.' + sid + '.' + field)[0];
+    if (element) {
+        element.value = value;
+        var event = document.createEvent("HTMLEvents");
+        event.initEvent("change", true, true);
+        element.dispatchEvent(event);
+    }
+}
+
+function export_url(btn, urlname, sid) {
+    var s = document.getElementById(urlname + '-status');
+    if (!s) return false;
+    
+    var v_type = document.getElementsByName('cbid.openclash.' + sid + '.type')[0];
+    if (!v_type) return false;
+    
+    var type = v_type.value.toLowerCase();
+    var url = null;
+    
+    try {
+        switch (type) {
+            case "ss":
+                url = exportSS(sid);
+                break;
+            case "ssr":
+                url = exportSSR(sid);
+                break;
+            case "vmess":
+                url = exportVmess(sid);
+                break;
+            case "vless":
+                url = exportVless(sid);
+                break;
+            case "trojan":
+                url = exportTrojan(sid);
+                break;
+            case "hysteria":
+                url = exportHysteria(sid);
+                break;
+            case "hysteria2":
+                url = exportHysteria2(sid);
+                break;
+            case "tuic":
+                url = exportTuic(sid);
+                break;
+            case "socks5":
+                url = exportSocks(sid);
+                break;
+            case "http":
+                url = exportHttp(sid);
+                break;
+            case "anytls":
+                url = exportAnyTLS(sid);
+                break;
+            default:
+                s.innerHTML = "<font style=\"color:red\"><%:Unsupported protocol type%></font>";
+                return false;
+        }
+        
+        if (url) {
+            var textarea = document.createElement("textarea");
+            textarea.textContent = url;
+            textarea.style.position = "fixed";
+            document.body.appendChild(textarea);
+            textarea.select();
+            try {
+                document.execCommand("copy");
+                s.innerHTML = "<font style=\"color:green\"><%:Copy%> " + type.toUpperCase() + " <%:to clipboard successfully%></font>";
+            } catch (ex) {
+                s.innerHTML = "<font style=\"color:red\"><%:Unable to copy%> " + type.toUpperCase() + " <%:to clipboard%></font>";
+            } finally {
+                document.body.removeChild(textarea);
+            }
+        } else {
+            s.innerHTML = "<font style=\"color:red\"><%:Export failed%></font>";
+        }
+    } catch (e) {
+        s.innerHTML = "<font style=\"color:red\"><%:Export error%></font>";
+        return false;
+    }
+    
+    return false;
+}
+
+function getFormValue(sid, field) {
+    var element = document.getElementsByName('cbid.openclash.' + sid + '.' + field)[0];
+    return element ? element.value : '';
+}
+
+function exportSS(sid) {
+    var server = getFormValue(sid, 'server');
+    var port = getFormValue(sid, 'port');
+    var password = getFormValue(sid, 'password');
+    var cipher = getFormValue(sid, 'cipher');
+    var name = getFormValue(sid, 'name');
+    var obfs = getFormValue(sid, 'obfs');
+    var host = getFormValue(sid, 'host');
+    var path = getFormValue(sid, 'path');
+    var tls = getFormValue(sid, 'tls');
+    
+    if (!server || !port || !password || !cipher) {
+        return null;
+    }
+    
+    // SIP002 format
+    var userInfo = b64encsafe(cipher + ':' + password);
+    var url = userInfo + '@' + server + ':' + port + '/?';
+    
+    var params = [];
+    
+    if (obfs && obfs !== 'none') {
+        var plugin = '';
+        if (obfs === 'http' || obfs === 'tls') {
+            plugin = 'obfs-local;obfs=' + obfs;
+            if (host) {
+                plugin += ';obfs-host=' + host;
+            }
+        } else if (obfs === 'websocket') {
+            plugin = 'v2ray-plugin;mode=websocket';
+            if (host) {
+                plugin += ';host=' + host;
+            }
+            if (path) {
+                plugin += ';path=' + path;
+            }
+            if (tls === 'true') {
+                plugin += ';tls=true';
+            }
+        }
+        if (plugin) {
+            params.push('plugin=' + encodeURIComponent(plugin));
+        }
+    }
+    
+    url += params.join('&');
+    
+    if (name) {
+        url += '#' + encodeURIComponent(name);
+    }
+    
+    return 'ss://' + url;
+}
+
+function exportSSR(sid) {
+    var server = getFormValue(sid, 'server');
+    var port = getFormValue(sid, 'port');
+    var protocol = getFormValue(sid, 'protocol');
+    var method = getFormValue(sid, 'cipher_ssr');
+    var obfs = getFormValue(sid, 'obfs_ssr');
+    var password = getFormValue(sid, 'password');
+    var obfs_param = getFormValue(sid, 'obfs_param');
+    var protocol_param = getFormValue(sid, 'protocol_param');
+    var name = getFormValue(sid, 'name');
+    
+    if (!server || !port || !password || !method) {
+        return null;
+    }
+    
+    var ssr_str = server + ":" + port + ":" + protocol + ":" + method + ":" + obfs + ":" + 
+                  b64encsafe(password) + "/?obfsparam=" + b64encsafe(obfs_param) + 
+                  "&protoparam=" + b64encsafe(protocol_param) + "&remarks=" + b64encutf8safe(name);
+    
+    return "ssr://" + b64encsafe(ssr_str);
+}
+
+function exportVmess(sid) {
+    var server = getFormValue(sid, 'server');
+    var port = getFormValue(sid, 'port');
+    var uuid = getFormValue(sid, 'uuid');
+    var alterId = getFormValue(sid, 'alterId');
+    var security = getFormValue(sid, 'securitys');
+    var name = getFormValue(sid, 'name');
+    var obfs = getFormValue(sid, 'obfs_vmess');
+    var tls = getFormValue(sid, 'tls');
+    var servername = getFormValue(sid, 'servername');
+    
+    if (!server || !port || !uuid) {
+        return null;
+    }
+    
+    var info = {
+        "v": "2",
+        "ps": name || "",
+        "add": server,
+        "port": port,
+        "id": uuid,
+        "aid": alterId || "0",
+        "scy": security || "auto",
+        "net": "tcp",
+        "type": "none",
+        "host": "",
+        "path": "",
+        "tls": tls === 'true' ? "tls" : ""
+    };
+    
+    if (tls === 'true' && servername) {
+        info.sni = servername;
+    }
+    
+    // Handle network type
+    if (obfs === 'websocket') {
+        info.net = "ws";
+        info.path = getFormValue(sid, 'ws_opts_path') || '/';
+        var headers = getFormValue(sid, 'ws_opts_headers');
+        if (headers && headers.includes('Host:')) {
+            info.host = headers.split('Host:')[1].trim();
+        }
+    } else if (obfs === 'h2') {
+        info.net = "h2";
+        info.path = getFormValue(sid, 'h2_path') || '/';
+        info.host = getFormValue(sid, 'h2_host') || '';
+    } else if (obfs === 'grpc') {
+        info.net = "grpc";
+        info.path = getFormValue(sid, 'grpc_service_name') || '';
+    }
+    
+    return "vmess://" + b64EncodeUnicode(JSON.stringify(info));
+}
+
+function exportVless(sid) {
+    var server = getFormValue(sid, 'server');
+    var port = getFormValue(sid, 'port');
+    var uuid = getFormValue(sid, 'uuid');
+    var name = getFormValue(sid, 'name');
+    var tls = getFormValue(sid, 'tls');
+    var servername = getFormValue(sid, 'servername');
+    var obfs = getFormValue(sid, 'obfs_vless');
+    var flow = getFormValue(sid, 'vless_flow');
+    
+    if (!server || !port || !uuid) {
+        return null;
+    }
+    
+    var url = uuid + '@' + server + ':' + port + '?';
+    var params = [];
+    
+    params.push('encryption=none');
+    
+    if (tls === 'true') {
+        if (flow && flow.includes('xtls')) {
+            params.push('security=xtls');
+            params.push('flow=' + flow);
+        } else {
+            params.push('security=tls');
+        }
+        if (servername) {
+            params.push('sni=' + encodeURIComponent(servername));
+        }
+    }
+    
+    if (obfs === 'ws') {
+        params.push('type=ws');
+        var path = getFormValue(sid, 'ws_opts_path');
+        if (path) {
+            params.push('path=' + encodeURIComponent(path));
+        }
+        var headers = getFormValue(sid, 'ws_opts_headers');
+        if (headers && headers.includes('Host:')) {
+            var host = headers.split('Host:')[1].trim();
+            params.push('host=' + encodeURIComponent(host));
+        }
+    } else if (obfs === 'grpc') {
+        params.push('type=grpc');
+        var serviceName = getFormValue(sid, 'grpc_service_name');
+        if (serviceName) {
+            params.push('serviceName=' + encodeURIComponent(serviceName));
+        }
+    } else {
+        params.push('type=tcp');
+    }
+    
+    url += params.join('&');
+    
+    if (name) {
+        url += '#' + encodeURIComponent(name);
+    }
+    
+    return 'vless://' + url;
+}
+
+function exportTrojan(sid) {
+    var server = getFormValue(sid, 'server');
+    var port = getFormValue(sid, 'port');
+    var password = getFormValue(sid, 'password');
+    var name = getFormValue(sid, 'name');
+    var sni = getFormValue(sid, 'sni');
+    var alpn = getFormValue(sid, 'alpn');
+    var skip_cert = getFormValue(sid, 'skip_cert_verify');
+    
+    if (!server || !port || !password) {
+        return null;
+    }
+    
+    var url = encodeURIComponent(password) + '@' + server + ':' + port + '/?';
+    var params = [];
+    
+    if (sni) {
+        params.push('sni=' + encodeURIComponent(sni));
+    }
+    
+    if (alpn) {
+        params.push('alpn=' + encodeURIComponent(alpn));
+    }
+    
+    if (skip_cert === 'true') {
+        params.push('allowInsecure=1');
+    }
+    
+    url += params.join('&');
+    
+    if (name) {
+        url += '#' + encodeURIComponent(name);
+    }
+    
+    return 'trojan://' + url;
+}
+
+function exportHysteria(sid) {
+    var server = getFormValue(sid, 'server');
+    var port = getFormValue(sid, 'port');
+    var auth = getFormValue(sid, 'hysteria_auth_str');
+    var name = getFormValue(sid, 'name');
+    var protocol = getFormValue(sid, 'hysteria_protocol');
+    var up = getFormValue(sid, 'hysteria_up');
+    var down = getFormValue(sid, 'hysteria_down');
+    var obfs = getFormValue(sid, 'hysteria_obfs');
+    var sni = getFormValue(sid, 'sni');
+    var alpn = getFormValue(sid, 'hysteria_alpn');
+    var skip_cert = getFormValue(sid, 'skip_cert_verify');
+    
+    if (!server || !port) {
+        return null;
+    }
+    
+    var url = server + ':' + port + '?';
+    var params = [];
+    
+    if (auth) {
+        params.push('auth=' + encodeURIComponent(auth));
+    }
+    
+    if (protocol) {
+        params.push('protocol=' + protocol);
+    }
+    
+    if (up) {
+        params.push('up=' + up);
+    }
+    
+    if (down) {
+        params.push('down=' + down);
+    }
+    
+    if (obfs) {
+        params.push('obfsParam=' + encodeURIComponent(obfs));
+    }
+    
+    if (sni) {
+        params.push('peer=' + encodeURIComponent(sni));
+    }
+    
+    if (alpn) {
+        params.push('alpn=' + encodeURIComponent(alpn));
+    }
+    
+    if (skip_cert === 'true') {
+        params.push('insecure=1');
+    }
+    
+    url += params.join('&');
+    
+    if (name) {
+        url += '#' + encodeURIComponent(name);
+    }
+    
+    return 'hysteria://' + url;
+}
+
+function exportHysteria2(sid) {
+    var server = getFormValue(sid, 'server');
+    var port = getFormValue(sid, 'port');
+    var password = getFormValue(sid, 'password');
+    var name = getFormValue(sid, 'name');
+    var obfs = getFormValue(sid, 'hysteria_obfs');
+    var obfs_password = getFormValue(sid, 'hysteria_obfs_password');
+    var up = getFormValue(sid, 'hysteria_up');
+    var down = getFormValue(sid, 'hysteria_down');
+    var sni = getFormValue(sid, 'sni');
+    var alpn = getFormValue(sid, 'hysteria_alpn');
+    var skip_cert = getFormValue(sid, 'skip_cert_verify');
+    
+    if (!server || !port) {
+        return null;
+    }
+    
+    var url = '';
+    if (password) {
+        url += encodeURIComponent(password) + '@';
+    }
+    url += server + ':' + port + '?';
+    
+    var params = [];
+    
+    if (obfs) {
+        params.push('obfs=' + encodeURIComponent(obfs));
+    }
+    
+    if (obfs_password) {
+        params.push('obfs-password=' + encodeURIComponent(obfs_password));
+    }
+    
+    if (up) {
+        params.push('up=' + up);
+    }
+    
+    if (down) {
+        params.push('down=' + down);
+    }
+    
+    if (sni) {
+        params.push('sni=' + encodeURIComponent(sni));
+    }
+    
+    if (alpn) {
+        params.push('alpn=' + encodeURIComponent(alpn));
+    }
+    
+    if (skip_cert === 'true') {
+        params.push('insecure=1');
+    }
+    
+    url += params.join('&');
+    
+    if (name) {
+        url += '#' + encodeURIComponent(name);
+    }
+    
+    return 'hysteria2://' + url;
+}
+
+function exportTuic(sid) {
+    var server = getFormValue(sid, 'server');
+    var port = getFormValue(sid, 'port');
+    var uuid = getFormValue(sid, 'uuid');
+    var password = getFormValue(sid, 'password');
+    var token = getFormValue(sid, 'tc_token');
+    var name = getFormValue(sid, 'name');
+    var cc = getFormValue(sid, 'congestion_controller');
+    var alpn = getFormValue(sid, 'tc_alpn');
+    var sni = getFormValue(sid, 'sni');
+    var disable_sni = getFormValue(sid, 'disable_sni');
+    var udp_relay = getFormValue(sid, 'udp_relay_mode');
+    
+    if (!server || !port) {
+        return null;
+    }
+    
+    var url = '';
+    if (password) {
+        // TUIC v5
+        url += encodeURIComponent(uuid) + ':' + encodeURIComponent(password) + '@';
+    } else if (token) {
+        // TUIC v4
+        url += encodeURIComponent(token) + '@';
+    }
+    
+    url += server + ':' + port + '?';
+    
+    var params = [];
+    
+    if (cc) {
+        params.push('congestion_control=' + encodeURIComponent(cc));
+    }
+    
+    if (alpn) {
+        params.push('alpn=' + encodeURIComponent(alpn));
+    }
+    
+    if (sni) {
+        params.push('sni=' + encodeURIComponent(sni));
+    }
+    
+    if (disable_sni === 'true') {
+        params.push('disable_sni=1');
+    }
+    
+    if (udp_relay) {
+        params.push('udp_relay_mode=' + encodeURIComponent(udp_relay));
+    }
+    
+    url += params.join('&');
+    
+    if (name) {
+        url += '#' + encodeURIComponent(name);
+    }
+    
+    return 'tuic://' + url;
+}
+
+function exportSocks(sid) {
+    var server = getFormValue(sid, 'server');
+    var port = getFormValue(sid, 'port');
+    var username = getFormValue(sid, 'auth_name');
+    var password = getFormValue(sid, 'auth_pass');
+    var name = getFormValue(sid, 'name');
+    
+    if (!server || !port) {
+        return null;
+    }
+    
+    var url = '';
+    if (username && password) {
+        url += encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@';
+    }
+    url += server + ':' + port;
+    
+    if (name) {
+        url += '#' + encodeURIComponent(name);
+    }
+    
+    return 'socks5://' + url;
+}
+
+function exportHttp(sid) {
+    var server = getFormValue(sid, 'server');
+    var port = getFormValue(sid, 'port');
+    var username = getFormValue(sid, 'auth_name');
+    var password = getFormValue(sid, 'auth_pass');
+    var name = getFormValue(sid, 'name');
+    var tls = getFormValue(sid, 'tls');
+    
+    if (!server || !port) {
+        return null;
+    }
+    
+    var scheme = tls === 'true' ? 'https' : 'http';
+    var url = '';
+    
+    if (username && password) {
+        url += encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@';
+    }
+    url += server + ':' + port;
+    
+    if (name) {
+        url += '#' + encodeURIComponent(name);
+    }
+    
+    return scheme + '://' + url;
+}
+
+function exportAnyTLS(sid) {
+    var server = getFormValue(sid, 'server');
+    var port = getFormValue(sid, 'port');
+    var username = getFormValue(sid, 'auth_name');
+    var password = getFormValue(sid, 'password');
+    var name = getFormValue(sid, 'name');
+    var sni = getFormValue(sid, 'sni');
+    var fingerprint = getFormValue(sid, 'fingerprint');
+    var skip_cert = getFormValue(sid, 'skip_cert_verify');
+    
+    if (!server || !port) {
+        return null;
+    }
+    
+    var url = '';
+    if (username) {
+        url += encodeURIComponent(username);
+        if (password) {
+            url += ':' + encodeURIComponent(password);
+        }
+        url += '@';
+    }
+    url += server + ':' + port + '?';
+    
+    var params = [];
+    
+    if (sni) {
+        params.push('sni=' + encodeURIComponent(sni));
+    }
+    
+    if (fingerprint) {
+        params.push('hpkp=' + encodeURIComponent(fingerprint));
+    }
+    
+    if (skip_cert === 'true') {
+        params.push('insecure=1');
+    }
+    
+    url += params.join('&');
+    
+    if (name) {
+        url += '#' + encodeURIComponent(name);
+    }
+    
+    return 'anytls://' + url;
+}
+
+function import_url(btn, urlname, sid) {
+    var s = document.getElementById(urlname + '-status');
+    if (!s) return false;
+    
+    var ssrurl = prompt("<%:Paste sharing link here%>", "");
+    if (ssrurl == null || ssrurl == "") {
+        s.innerHTML = "<font style=\"color:red\"><%:User cancelled%></font>";
+        return false;
+    }
+    s.innerHTML = "";
+    
+    var ssu = ssrurl.split('://');
+    if (ssu.length < 2) {
+        s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+        return false;
+    }
+    
+    var scheme = ssu[0].toLowerCase();
+    var event = document.createEvent("HTMLEvents");
+    event.initEvent("change", true, true);
+    
+    try {
+        switch (scheme) {
+            case "ss":
+                if (parseSS(ssu[1], sid)) {
+                    s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
+                } else {
+                    s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+                }
+                break;
+                
+            case "ssr":
+                if (parseSSR(ssu[1], sid)) {
+                    s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
+                } else {
+                    s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+                }
+                break;
+                
+            case "vmess":
+                if (parseVmess(ssu[1], sid)) {
+                    s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
+                } else {
+                    s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+                }
+                break;
+                
+            case "vless":
+                if (parseVless(ssrurl, sid)) {
+                    s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
+                } else {
+                    s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+                }
+                break;
+                
+            case "trojan":
+                if (parseTrojan(ssrurl, sid)) {
+                    s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
+                } else {
+                    s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+                }
+                break;
+                
+            case "hysteria":
+                if (parseHysteria(ssrurl, sid)) {
+                    s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
+                } else {
+                    s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+                }
+                break;
+                
+            case "hysteria2":
+            case "hy2":
+                if (parseHysteria2(ssrurl, sid)) {
+                    s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
+                } else {
+                    s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+                }
+                break;
+                
+            case "tuic":
+                if (parseTuic(ssrurl, sid)) {
+                    s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
+                } else {
+                    s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+                }
+                break;
+                
+            case "socks":
+            case "socks5":
+            case "socks5h":
+                if (parseSocks(ssrurl, sid)) {
+                    s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
+                } else {
+                    s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+                }
+                break;
+                
+            case "http":
+            case "https":
+                if (parseHttp(ssrurl, sid)) {
+                    s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
+                } else {
+                    s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+                }
+                break;
+                
+            case "anytls":
+                if (parseAnyTLS(ssrurl, sid)) {
+                    s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
+                } else {
+                    s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+                }
+                break;
+                
+            default:
+                s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
+                return false;
+        }
+    } catch (e) {
+        s.innerHTML = "<font style=\"color:red\"><%:Parse error%></font>";
+        return false;
+    }
+    
+    return false;
+}
+
+function parseSS(body, sid) {
+    var url0, param = "";
+    var sipIndex = body.indexOf("@");
+    var ploc = body.indexOf("#");
+    
+    if (ploc > 0) {
+        url0 = body.substr(0, ploc);
+        param = body.substr(ploc + 1);
+    } else {
+        url0 = body;
+    }
+    
+    setFormValue(sid, 'type', 'ss');
+    
+    if (sipIndex !== -1) {
+        // SIP002 format
+        var userInfo = b64decsafe(url0.substr(0, sipIndex));
+        var temp = url0.substr(sipIndex + 1).split("/?");
+        var serverInfo = temp[0].split(":");
+        var server = serverInfo[0];
+        var port = serverInfo[1];
+        var method, password;
+        
+        if (temp[1]) {
+            var query = parseQuery("?" + temp[1]);
+            
+            if (query.plugin) {
+                var decodedPlugin = decodeURIComponent(query.plugin);
+                
+                var pluginParts = decodedPlugin.split(';');
+                var pluginName = pluginParts[0];
+                
+                // obfs-local
+                if (pluginName === 'obfs-local' || pluginName.includes('obfs')) {
+                    var obfsMode = 'http';
+                    var obfsHost = '';
+                    
+                    for (var i = 1; i < pluginParts.length; i++) {
+                        var opt = pluginParts[i];
+                        var eqIndex = opt.indexOf('=');
+                        if (eqIndex !== -1) {
+                            var key = opt.substring(0, eqIndex).trim();
+                            var value = opt.substring(eqIndex + 1).trim();
+                                                        
+                            if (key === 'obfs') {
+                                obfsMode = value;
+                            } else if (key === 'obfs-host') {
+                                obfsHost = value;
+                            }
+                        }
+                    }
+                    
+                    setFormValue(sid, 'obfs', obfsMode);
+                    if (obfsHost) {
+                        setFormValue(sid, 'host', obfsHost);
+                    }
+                }
+                
+                // v2ray-plugin
+                if (pluginName === 'v2ray-plugin') {
+                    var v2rayMode = 'websocket';
+                    var v2rayHost = '';
+                    var v2rayPath = '/';
+                    var v2rayTls = false;
+                    
+                    for (var i = 1; i < pluginParts.length; i++) {
+                        var opt = pluginParts[i];
+                        var eqIndex = opt.indexOf('=');
+                        if (eqIndex !== -1) {
+                            var key = opt.substring(0, eqIndex).trim();
+                            var value = opt.substring(eqIndex + 1).trim();
+                            
+                            if (key === 'mode') {
+                                v2rayMode = value;
+                            } else if (key === 'host') {
+                                v2rayHost = value;
+                            } else if (key === 'path') {
+                                v2rayPath = value;
+                            } else if (key === 'tls') {
+                                v2rayTls = value === 'true' || value === '1';
+                            }
+                        }
+                    }
+                    
+                    setFormValue(sid, 'obfs', 'websocket');
+                    if (v2rayHost) {
+                        setFormValue(sid, 'host', v2rayHost);
+                    }
+                    if (v2rayPath) {
+                        setFormValue(sid, 'path', v2rayPath);
+                    }
+                    if (v2rayTls) {
+                        setFormValue(sid, 'tls', 'true');
+                    }
+                }
+            }
+            
+            if (query['udp-over-tcp'] === 'true' || query['uot'] === '1') {
+                setFormValue(sid, 'udp_over_tcp', 'true');
+            }
+        }
+        
+        var userInfoSplitIndex = userInfo.indexOf(":");
+        if (userInfoSplitIndex !== -1) {
+            method = userInfo.substr(0, userInfoSplitIndex);
+            password = userInfo.substr(userInfoSplitIndex + 1);
+        }
+        
+        setFormValue(sid, 'server', server);
+        setFormValue(sid, 'port', port);
+        setFormValue(sid, 'password', password || "");
+        setFormValue(sid, 'cipher', method || "");
+    } else {
+        // Legacy format
+        var sstr = b64decsafe(url0);
+        var team = sstr.split('@');
+        var part1 = team[0].split(':');
+        var part2 = team[1].split(':');
+        
+        setFormValue(sid, 'server', part2[0]);
+        setFormValue(sid, 'port', part2[1]);
+        setFormValue(sid, 'password', part1[1]);
+        setFormValue(sid, 'cipher', part1[0]);
+    }
+    
+    if (param) {
+        setFormValue(sid, 'name', decodeURIComponent(param));
+    }
+    
+    return true;
+}
+
+function parseSSR(body, sid) {
+    var sstr = b64decsafe(body);
+    var ploc = sstr.indexOf("/?");
+    
+    setFormValue(sid, 'type', 'ssr');
+    
+    var url0, param = "";
+    if (ploc > 0) {
+        url0 = sstr.substr(0, ploc);
+        param = sstr.substr(ploc + 2);
+    } else {
+        url0 = sstr;
+    }
+    
+    var ssm = url0.match(/^(.+):([^:]+):([^:]*):([^:]+):([^:]*):([^:]+)/);
+    if (!ssm || ssm.length < 7) return false;
+    
+    var pdict = {};
+    if (param.length > 2) {
+        var a = param.split('&');
+        for (var i = 0; i < a.length; i++) {
+            var b = a[i].split('=');
+            pdict[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
+        }
+    }
+    
+    setFormValue(sid, 'server', ssm[1]);
+    setFormValue(sid, 'port', ssm[2]);
+    setFormValue(sid, 'protocol', ssm[3]);
+    setFormValue(sid, 'cipher_ssr', ssm[4] === "none" ? "dummy" : ssm[4]);
+    setFormValue(sid, 'obfs_ssr', ssm[5]);
+    setFormValue(sid, 'password', b64decsafe(ssm[6]));
+    setFormValue(sid, 'obfs_param', dictvalue(pdict, 'obfsparam'));
+    setFormValue(sid, 'protocol_param', dictvalue(pdict, 'protoparam'));
+    
+    var rem = pdict['remarks'];
+    if (typeof(rem) !== 'undefined' && rem !== '' && rem.length > 0) {
+        setFormValue(sid, 'name', b64decutf8safe(rem));
+    }
+    
+    return true;
+}
+
+function parseVmess(body, sid) {
+    try {
+        // Try V2rayN format first
+        var sstr = b64DecodeUnicode(body);
+        var ssm = JSON.parse(sstr);
+        
+        setFormValue(sid, 'type', 'vmess');
+        setFormValue(sid, 'name', ssm.ps || '');
+        setFormValue(sid, 'server', ssm.add);
+        setFormValue(sid, 'port', ssm.port);
+        setFormValue(sid, 'alterId', ssm.aid || 0);
+        setFormValue(sid, 'uuid', ssm.id);
+        
+        if (ssm.scy) {
+            setFormValue(sid, 'securitys', ssm.scy);
+        }
+        
+        if (ssm.tls === "tls") {
+            setFormValue(sid, 'tls', 'true');
+            if (ssm.sni) {
+                setFormValue(sid, 'servername', ssm.sni);
+            }
+        }
+        
+        var network = (ssm.net || 'tcp').toLowerCase();
+        if (network === 'ws') {
+            setFormValue(sid, 'obfs_vmess', 'websocket');
+            setFormValue(sid, 'ws_opts_path', ssm.path || '/');
+            if (ssm.host) {
+                setFormValue(sid, 'ws_opts_headers', 'Host: ' + ssm.host);
+            }
+        } else if (network === 'h2') {
+            setFormValue(sid, 'obfs_vmess', 'h2');
+            setFormValue(sid, 'h2_path', ssm.path || '/');
+            if (ssm.host) {
+                setFormValue(sid, 'h2_host', ssm.host);
+            }
+        } else if (network === 'tcp') {
+            if (ssm.type === 'http') {
+                setFormValue(sid, 'obfs_vmess', 'http');
+                if (ssm.path) {
+                    setFormValue(sid, 'http_path', ssm.path);
+                }
+                if (ssm.host) {
+                    setFormValue(sid, 'http_host', ssm.host);
+                }
+            } else {
+                setFormValue(sid, 'obfs_vmess', 'none');
+            }
+        } else if (network === 'grpc') {
+            setFormValue(sid, 'obfs_vmess', 'grpc');
+            setFormValue(sid, 'grpc_service_name', ssm.path || '');
+        }
+        
+        return true;
+    } catch (e) {
+        // Try Xray VMessAEAD format
+        try {
+            var parsed = parseUrl('vmess://' + body);
+            if (!parsed) return false;
+            
+            var query = parseQuery(parsed.search);
+            
+            setFormValue(sid, 'type', 'vmess');
+            setFormValue(sid, 'server', parsed.hostname);
+            setFormValue(sid, 'port', parsed.port || '443');
+            setFormValue(sid, 'uuid', parsed.username);
+            setFormValue(sid, 'alterId', 0);
+            setFormValue(sid, 'securitys', query.encryption || 'auto');
+            
+            if (parsed.hash) {
+                setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
+            }
+            
+            return true;
+        } catch (e2) {
+            return false;
+        }
+    }
+}
+
+function parseVless(url, sid) {
+    var parsed = parseUrl(url);
+    if (!parsed) return false;
+    
+    var query = parseQuery(parsed.search);
+    
+    setFormValue(sid, 'type', 'vless');
+    setFormValue(sid, 'server', parsed.hostname);
+    setFormValue(sid, 'port', parsed.port || '443');
+    setFormValue(sid, 'uuid', parsed.username);
+    
+    if (query.security) {
+        if (query.security === 'tls' || query.security === 'xtls') {
+            setFormValue(sid, 'tls', 'true');
+            if (query.sni) {
+                setFormValue(sid, 'servername', decodeURIComponent(query.sni));
+            }
+            if (query.security === 'xtls') {
+                setFormValue(sid, 'vless_flow', query.flow || 'xtls-rprx-direct');
+            }
+        } else if (query.security === 'reality') {
+            setFormValue(sid, 'tls', 'true');
+            if (query.sni) {
+                setFormValue(sid, 'servername', decodeURIComponent(query.sni));
+            }
+            if (query.pbk || query['public-key']) {
+                setFormValue(sid, 'reality_public_key', query.pbk || query['public-key']);
+            }
+            if (query.sid || query['short-id']) {
+                setFormValue(sid, 'reality_short_id', query.sid || query['short-id']);
+            }
+        }
+    }
+    
+    var network = (query.type || 'tcp').toLowerCase();
+    if (network === 'ws') {
+        setFormValue(sid, 'obfs_vless', 'ws');
+        setFormValue(sid, 'ws_opts_path', decodeURIComponent(query.path || '/'));
+        if (query.host) {
+            setFormValue(sid, 'ws_opts_headers', 'Host: ' + decodeURIComponent(query.host));
+        }
+    } else if (network === 'grpc') {
+        setFormValue(sid, 'obfs_vless', 'grpc');
+        setFormValue(sid, 'grpc_service_name', decodeURIComponent(query.serviceName || query.path || ''));
+    } else {
+        setFormValue(sid, 'obfs_vless', 'tcp');
+    }
+    
+    if (parsed.hash) {
+        setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
+    }
+    
+    return true;
+}
+
+function parseTrojan(url, sid) {
+    var parsed = parseUrl(url);
+    if (!parsed) return false;
+    
+    var query = parseQuery(parsed.search);
+    
+    setFormValue(sid, 'type', 'trojan');
+    setFormValue(sid, 'server', parsed.hostname);
+    setFormValue(sid, 'port', parsed.port || '443');
+    setFormValue(sid, 'password', parsed.username);
+    
+    if (query.sni) {
+        setFormValue(sid, 'sni', decodeURIComponent(query.sni));
+    }
+    
+    if (query.alpn) {
+        // Handle ALPN - multiple values support, decode properly
+        setFormValue(sid, 'alpn', decodeURIComponent(query.alpn));
+    }
+    
+    var network = (query.type || '').toLowerCase();
+    if (network === 'ws') {
+        setFormValue(sid, 'obfs_trojan', 'ws');
+        setFormValue(sid, 'trojan_ws_path', decodeURIComponent(query.path || '/'));
+        if (query.host) {
+            setFormValue(sid, 'trojan_ws_headers', 'Host: ' + decodeURIComponent(query.host));
+        }
+    } else if (network === 'grpc') {
+        setFormValue(sid, 'obfs_trojan', 'grpc');
+        setFormValue(sid, 'grpc_service_name', decodeURIComponent(query.serviceName || ''));
+    }
+    
+    if (query.allowInsecure === '1') {
+        setFormValue(sid, 'skip_cert_verify', 'true');
+    }
+    
+    if (parsed.hash) {
+        setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
+    }
+    
+    return true;
+}
+
+function parseHysteria(url, sid) {
+    var parsed = parseUrl(url);
+    if (!parsed) return false;
+    
+    var query = parseQuery(parsed.search);
+    
+    setFormValue(sid, 'type', 'hysteria');
+    setFormValue(sid, 'server', parsed.hostname);
+    setFormValue(sid, 'port', parsed.port || '443');
+    
+    if (query.auth) {
+        setFormValue(sid, 'hysteria_auth_str', decodeURIComponent(query.auth));
+    }
+    
+    if (query.protocol) {
+        setFormValue(sid, 'flag_transport', '1');
+        setFormValue(sid, 'hysteria_protocol', query.protocol);
+    }
+    
+    if (query.up || query.upmbps) {
+        var upSpeed = decodeURIComponent(query.up || query.upmbps);
+        upSpeed = upSpeed.replace(/[^0-9]/g, '');
+        setFormValue(sid, 'hysteria_up', upSpeed);
+    }
+    
+    if (query.down || query.downmbps) {
+        var downSpeed = decodeURIComponent(query.down || query.downmbps);
+        downSpeed = downSpeed.replace(/[^0-9]/g, '');
+        setFormValue(sid, 'hysteria_down', downSpeed);
+    }
+    
+    if (query.obfs || query.obfsParam) {
+        setFormValue(sid, 'hysteria_obfs', decodeURIComponent(query.obfs || query.obfsParam));
+    }
+    
+    if (query.peer) {
+        setFormValue(sid, 'sni', decodeURIComponent(query.peer));
+    }
+    
+    if (query.alpn) {
+        setFormValue(sid, 'hysteria_alpn', decodeURIComponent(query.alpn));
+    }
+    
+    if (query.insecure === '1') {
+        setFormValue(sid, 'skip_cert_verify', 'true');
+    }
+    
+    if (parsed.hash) {
+        setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
+    }
+    
+    return true;
+}
+
+function parseHysteria2(url, sid) {
+    var parsed = parseUrl(url);
+    if (!parsed) return false;
+    
+    var query = parseQuery(parsed.search);
+    
+    setFormValue(sid, 'type', 'hysteria2');
+    setFormValue(sid, 'server', parsed.hostname);
+    setFormValue(sid, 'port', parsed.port || '443');
+    
+    if (parsed.username) {
+        setFormValue(sid, 'password', parsed.username);
+    }
+    
+    if (query.obfs) {
+        setFormValue(sid, 'hysteria_obfs', decodeURIComponent(query.obfs));
+    }
+    
+    if (query['obfs-password']) {
+        setFormValue(sid, 'hysteria_obfs_password', decodeURIComponent(query['obfs-password']));
+    }
+    
+    if (query.up) {
+        setFormValue(sid, 'hysteria_up', decodeURIComponent(query.up));
+    }
+    
+    if (query.down) {
+        setFormValue(sid, 'hysteria_down', decodeURIComponent(query.down));
+    }
+    
+    if (query.sni) {
+        setFormValue(sid, 'sni', decodeURIComponent(query.sni));
+    }
+    
+    if (query.alpn) {
+        setFormValue(sid, 'hysteria_alpn', decodeURIComponent(query.alpn));
+    }
+    
+    if (query.insecure === '1') {
+        setFormValue(sid, 'skip_cert_verify', 'true');
+    }
+    
+    if (parsed.hash) {
+        setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
+    }
+    
+    return true;
+}
+
+function parseTuic(url, sid) {
+    var parsed = parseUrl(url);
+    if (!parsed) return false;
+    
+    var query = parseQuery(parsed.search);
+    
+    setFormValue(sid, 'type', 'tuic');
+    setFormValue(sid, 'server', parsed.hostname);
+    setFormValue(sid, 'port', parsed.port || '443');
+    
+    // Check if it's v5 (has password) or v4 (token only)
+    if (parsed.password) {
+        setFormValue(sid, 'uuid', parsed.username);
+        setFormValue(sid, 'password', parsed.password);
+    } else {
+        setFormValue(sid, 'tc_token', parsed.username);
+    }
+    
+    if (query.congestion_control) {
+        setFormValue(sid, 'congestion_controller', decodeURIComponent(query.congestion_control));
+    }
+    
+    if (query.alpn) {
+        setFormValue(sid, 'tc_alpn', decodeURIComponent(query.alpn));
+    }
+    
+    if (query.sni) {
+        setFormValue(sid, 'sni', decodeURIComponent(query.sni));
+    }
+    
+    if (query.disable_sni === '1') {
+        setFormValue(sid, 'disable_sni', 'true');
+    }
+    
+    if (query.udp_relay_mode) {
+        setFormValue(sid, 'udp_relay_mode', decodeURIComponent(query.udp_relay_mode));
+    }
+    
+    if (parsed.hash) {
+        setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
+    }
+    
+    return true;
+}
+
+function parseSocks(url, sid) {
+    var parsed = parseUrl(url);
+    if (!parsed) return false;
+    
+    setFormValue(sid, 'type', 'socks5');
+    setFormValue(sid, 'server', parsed.hostname);
+    setFormValue(sid, 'port', parsed.port || '1080');
+    
+    if (parsed.username) {
+        try {
+            var decoded = atob(parsed.username);
+            var parts = decoded.split(':');
+            setFormValue(sid, 'auth_name', parts[0] || '');
+            setFormValue(sid, 'auth_pass', parts[1] || '');
+        } catch (e) {
+            setFormValue(sid, 'auth_name', parsed.username);
+            if (parsed.password) {
+                setFormValue(sid, 'auth_pass', parsed.password);
+            }
+        }
+    }
+    
+    if (parsed.hash) {
+        setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
+    } else {
+        setFormValue(sid, 'name', parsed.hostname + ':' + parsed.port);
+    }
+    
+    return true;
+}
+
+function parseHttp(url, sid) {
+    var parsed = parseUrl(url);
+    if (!parsed) return false;
+    
+    setFormValue(sid, 'type', 'http');
+    setFormValue(sid, 'server', parsed.hostname);
+    setFormValue(sid, 'port', parsed.port || (parsed.protocol === 'https:' ? '443' : '80'));
+    
+    if (parsed.protocol === 'https:') {
+        setFormValue(sid, 'tls', 'true');
+    }
+    
+    if (parsed.username) {
+        try {
+            var decoded = atob(parsed.username);
+            var parts = decoded.split(':');
+            setFormValue(sid, 'auth_name', parts[0] || '');
+            setFormValue(sid, 'auth_pass', parts[1] || '');
+        } catch (e) {
+            setFormValue(sid, 'auth_name', parsed.username);
+            if (parsed.password) {
+                setFormValue(sid, 'auth_pass', parsed.password);
+            }
+        }
+    }
+    
+    if (parsed.hash) {
+        setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
+    } else {
+        setFormValue(sid, 'name', parsed.hostname + ':' + parsed.port);
+    }
+    
+    return true;
+}
+
+function parseAnyTLS(url, sid) {
+    var parsed = parseUrl(url);
+    if (!parsed) return false;
+    
+    var query = parseQuery(parsed.search);
+    
+    setFormValue(sid, 'type', 'anytls');
+    setFormValue(sid, 'server', parsed.hostname);
+    setFormValue(sid, 'port', parsed.port || '443');
+    setFormValue(sid, 'auth_name', parsed.username);
+    setFormValue(sid, 'password', parsed.password || parsed.username);
+    
+    if (query.sni) {
+        setFormValue(sid, 'sni', query.sni);
+    }
+    
+    if (query.hpkp) {
+        setFormValue(sid, 'fingerprint', query.hpkp);
+    }
+    
+    if (query.insecure === '1') {
+        setFormValue(sid, 'skip_cert_verify', 'true');
+    }
+    
+    if (parsed.hash) {
+        setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
+    } else {
+        setFormValue(sid, 'name', parsed.hostname + ':' + parsed.port);
+    }
+    
+    return true;
+}
+
+//]]>
 </script>
-<input type="button" class="btn cbi-button cbi-button-apply" value="<%:Import%>" onclick="return import_ssr_url(this, '<%=self.option%>', '<%=self.value%>')" />
+<input type="button" class="btn cbi-button cbi-button-apply" value="<%:Import%>" onclick="return import_url(this, '<%=self.option%>', '<%=self.value%>')" />
+<input type="button" class="btn cbi-button cbi-button-apply" value="<%:Export%>" onclick="return export_url(this, '<%=self.option%>', '<%=self.value%>')" />
 <span id="<%=self.option%>-status"></span>
 <%+cbi/valuefooter%>

@@ -1620,26 +1620,44 @@ msgstr "删除失败！"
 msgid "Import"
 msgstr "导入配置信息"
 
-msgid "Export SSR"
-msgstr "导出ssr配置信息"
+msgid "Import configuration information successfully"
+msgstr "导入配置信息成功"
 
-msgid "Import configuration information successfully."
-msgstr "导入配置信息成功。"
+msgid "Invalid format"
+msgstr "无效的格式"
 
-msgid "Invalid format."
-msgstr "无效的格式。"
-
-msgid "User cancelled."
-msgstr "用户已取消。"
+msgid "User cancelled"
+msgstr "用户已取消"
 
 msgid "Paste sharing link here"
 msgstr "在此处粘贴分享链接"
 
-msgid "Unable to copy SSR to clipboard."
-msgstr "无法复制 SSR 网址到剪贴板。"
+msgid "Unsupported protocol type"
+msgstr "不支持的协议"
 
-msgid "Copy SSR to clipboard successfully."
-msgstr "成功复制 SSR 网址到剪贴板。"
+msgid "Copy"
+msgstr "复制"
+
+msgid "Export"
+msgstr "导出配置信息"
+
+msgid "Export failed"
+msgstr "导出失败"
+
+msgid "Export error"
+msgstr "导出错误"
+
+msgid "Parse error."
+msgstr "解析错误"
+
+msgid "to clipboard successfully"
+msgstr "到剪贴板成功"
+
+msgid "Unable to copy"
+msgstr "无法复制"
+
+msgid "to clipboard"
+msgstr "到剪贴板"
 
 msgid "Exclude Keyword Match Default"
 msgstr "排除无效节点"
