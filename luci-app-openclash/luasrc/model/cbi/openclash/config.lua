@@ -94,7 +94,7 @@ HTTP.setfilehandler(
 				if meta and chunk then fd = nixio.open(proxy_pro_dir .. meta.file, "w") end
 			elseif fp == "rule-provider" then
 				if meta and chunk then fd = nixio.open(rule_pro_dir .. meta.file, "w") end
-			elseif fp == "clash" or fp == "clash_tun" or fp == "clash_meta" then
+			elseif fp == "clash_meta" then
 				create_core_dir=fs.mkdir(core_dir)
 				if meta and chunk then fd = nixio.open(core_dir .. meta.file, "w") end
 			elseif fp == "backup-file" then
@@ -132,20 +132,37 @@ HTTP.setfilehandler(
 				um.value = translate("File saved to") .. ' "/etc/openclash/proxy_provider/"'
 			elseif fp == "rule-provider" then
 				um.value = translate("File saved to") .. ' "/etc/openclash/rule_provider/"'
-			elseif fp == "clash" or fp == "clash_tun" or fp == "clash_meta" then
+			elseif fp == "clash_meta" then
 				if string.lower(string.sub(meta.file, -7, -1)) == ".tar.gz" then
-					os.execute(string.format("tar -C '/etc/openclash/core/core' -xzf %s >/dev/null 2>&1", (core_dir .. meta.file)))
-					fs.unlink(core_dir .. meta.file)
-					os.execute(string.format("mv $(echo \"/etc/openclash/core/core/$(ls /etc/openclash/core/core/)\") '/etc/openclash/core/%s' >/dev/null 2>&1", fp))
+					-- tar.gz
+					os.execute(string.format("tar -C '/etc/openclash/core/core' -xzf '%s' >/dev/null 2>&1", (core_dir .. meta.file)))
+					local first_file_cmd = "find /etc/openclash/core/core -type f 2>/dev/null | head -1"
+					local first_file = io.popen(first_file_cmd):read("*line")
+					if first_file and first_file ~= "" then
+						os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", first_file, fp))
+					end
+				elseif string.lower(string.sub(meta.file, -4, -1)) == ".tar" then
+					-- tar
+					os.execute(string.format("tar -C '/etc/openclash/core/core' -xf '%s' >/dev/null 2>&1", (core_dir .. meta.file)))
+					local first_file_cmd = "find /etc/openclash/core/core -type f 2>/dev/null | head -1"
+					local first_file = io.popen(first_file_cmd):read("*line")
+					if first_file and first_file ~= "" then
+						os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", first_file, fp))
+					end
 				elseif string.lower(string.sub(meta.file, -3, -1)) == ".gz" then
-					os.execute(string.format("mv %s '/etc/openclash/core/%s.gz' >/dev/null 2>&1", (core_dir .. meta.file), fp))
-					os.execute("gzip -fd '/etc/openclash/core/%s.gz' >/dev/null 2>&1" %fp)
-					fs.unlink("/etc/openclash/core/%s.gz" %fp)
+					-- gz
+					os.execute(string.format("gzip -fd '%s' >/dev/null 2>&1", (core_dir .. meta.file)))
+					local first_file_cmd = "find /etc/openclash/core/core -type f 2>/dev/null | head -1"
+					local first_file = io.popen(first_file_cmd):read("*line")
+					if first_file and first_file ~= "" then
+						os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", first_file, fp))
+					end
 				else
-					os.execute(string.format("mv $(echo \"/etc/openclash/core/core/$(ls /etc/openclash/core/core/)\") '/etc/openclash/core/%s' >/dev/null 2>&1", fp))
+					os.execute(string.format("mv '%s' '/etc/openclash/core/%s' >/dev/null 2>&1", (core_dir .. meta.file), fp))
 				end
-				os.execute("chmod 4755 /etc/openclash/core/%s >/dev/null 2>&1" %fp)
-				os.execute("rm -rf %s >/dev/null 2>&1" %core_dir)
+				
+				os.execute(string.format("chmod 4755 '/etc/openclash/core/%s' >/dev/null 2>&1", fp))
+				os.execute(string.format("rm -rf %s >/dev/null 2>&1", core_dir))
 				um.value = translate("File saved to") .. ' "/etc/openclash/core/"'
 			elseif fp == "backup-file" then
 				os.execute("tar -C '/etc/openclash/' -xzf %s >/dev/null 2>&1" % (backup_dir .. meta.file))
