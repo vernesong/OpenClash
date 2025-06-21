@@ -3575,3 +3575,6 @@ msgstr "错误：插件升级进程启动失败，请检查日志并稍后再试
 
 msgid "Core Update"
 msgstr "内核版本更新"
+
+msgid "View core infos that support smart group"
+msgstr "查看支持 smart 策略组的内核信息"
