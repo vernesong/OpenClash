@@ -40,6 +40,35 @@ function IsYmlFile(e)
    return e == ".yml"
 end
 
+local groupnames, filename
+local group_list = {}
+
+filename = m.uci:get(openclash, "config", "config_path")
+if filename then
+   groupnames = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
+   if groupnames then
+      for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
+         if groupname ~= nil and groupname ~= "" then
+            table.insert(group_list, groupname)
+         end
+      end
+   end
+end
+
+m.uci:foreach("openclash", "groups",
+   function(s)
+      if s.name ~= "" and s.name ~= nil then
+         table.insert(group_list, s.name)
+      end
+   end)
+
+table.sort(group_list)
+table.insert(group_list, "DIRECT")
+table.insert(group_list, "REJECT")
+table.insert(group_list, "REJECT-DROP")
+table.insert(group_list, "PASS")
+table.insert(group_list, "GLOBAL")
+
 -- [[ Edit Game Rule ]] --
 s = m:section(TypedSection, "game_config", translate("Game Rules Append"))
 s.anonymous = true
@@ -92,32 +121,10 @@ o.rmempty = true
 
 ---- Proxy Group
 o = s:option(ListValue, "group", translate("Select Proxy Group"))
-local groupnames,filename
-filename = m.uci:get(openclash, "config", "config_path")
-if filename then
-	groupnames = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
-	if groupnames then
-		for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
-			if groupname ~= nil and groupname ~= "" then
-			  o:value(groupname)
-			end
-		end
-	end
-end
-
-uci:foreach("openclash", "groups",
-    function(s)
-      if s.name ~= "" and s.name ~= nil then
-        o:value(s.name)
-      end
-    end)
-
-o:value("DIRECT")
-o:value("REJECT")
-o:value("REJECT-DROP")
-o:value("PASS")
-o:value("GLOBAL")
 o.rmempty = true
+for _, groupname in ipairs(group_list) do
+   o:value(groupname)
+end
 
 -- [[ Edit Other Rule Provider ]] --
 s = m:section(TypedSection, "rule_provider_config", translate("Other Rule Providers Append"))
@@ -171,32 +178,10 @@ o.rmempty = true
 
 ---- Proxy Group
 o = s:option(ListValue, "group", translate("Select Proxy Group"))
-local groupnames,filename
-filename = m.uci:get(openclash, "config", "config_path")
-if filename then
-	groupnames = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
-	if groupnames then
-		for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
-			if groupname ~= nil and groupname ~= "" then
-			  o:value(groupname)
-			end
-		end
-	end
-end
-
-uci:foreach("openclash", "groups",
-    function(s)
-      if s.name ~= "" and s.name ~= nil then
-        o:value(s.name)
-      end
-    end)
-
-o:value("DIRECT")
-o:value("REJECT")
-o:value("REJECT-DROP")
-o:value("PASS")
-o:value("GLOBAL")
 o.rmempty = true
+for _, groupname in ipairs(group_list) do
+   o:value(groupname)
+end
 
 o = s:option(Value, "interval", translate("Rule Providers Interval(s)"))
 o.default = "86400"
@@ -239,6 +224,13 @@ end
 o = s:option(DummyValue, "name", translate("Rule Providers Name"))
 function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
+end
+
+---- Proxy Group
+o = s:option(ListValue, "group", translate("Select Proxy Group"))
+o.rmempty = true
+for _, groupname in ipairs(group_list) do
+   o:value(groupname)
 end
 
 o = s:option(ListValue, "position", translate("Append Position"))
