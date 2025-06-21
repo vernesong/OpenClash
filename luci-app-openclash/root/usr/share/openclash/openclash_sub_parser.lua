@@ -45,6 +45,74 @@ local function base64_decode_subscription(str)
   return nil
 end
 
+local function url_decode(str)
+  return str:gsub("%%(%x%x)", function(h) return string.char(tonumber(h, 16)) end)
+end
+
+local function parse_query_params(query_string)
+  local params = {}
+  if not query_string then return params end
+  
+  for param in query_string:gmatch("([^&]+)") do
+    local key, value = param:match("([^=]*)=?(.*)")
+    if key then
+      params[key] = url_decode(value or "")
+    end
+  end
+  return params
+end
+
+local function parse_url(url_str)
+  local scheme, rest = url_str:match("^([%w%-]+)://(.+)")
+  if not scheme then return nil end
+  
+  local userinfo, host_part = rest:match("^([^@]+)@(.+)")
+  if not userinfo then
+    userinfo = ""
+    host_part = rest
+  end
+  
+  local path_query_fragment = host_part:match("^[^/]*(.*)") or ""
+  local host_port = host_part:match("^([^/]*)")
+  
+  local host, port = host_port:match("^%[([^%]]+)%]:(%d+)") -- IPv6
+  if not host then
+    host, port = host_port:match("^([^:]+):(%d+)")
+  end
+  if not host then
+    host = host_port
+    port = nil
+  end
+  
+  local path, query_fragment = path_query_fragment:match("^([^?]*)(.*)")
+  path = path or ""
+  
+  local query, fragment
+  if query_fragment then
+    if query_fragment:sub(1,1) == "?" then
+      query, fragment = query_fragment:sub(2):match("^([^#]*)(.*)")
+      if fragment and fragment:sub(1,1) == "#" then
+        fragment = fragment:sub(2)
+      end
+    elseif query_fragment:sub(1,1) == "#" then
+      fragment = query_fragment:sub(2)
+    end
+  end
+  
+  local username, password = userinfo:match("^([^:]*):?(.*)")
+  
+  return {
+    scheme = scheme:lower(),
+    username = username or "",
+    password = password or "",
+    host = host,
+    port = port,
+    path = path,
+    query = query,
+    fragment = fragment
+  }
+end
+
 local function get_server_from_url(line)
     line = util.trim(line)
     local scheme, original_body = line:match("^([%w%-]+)://(.+)")
@@ -52,23 +120,103 @@ local function get_server_from_url(line)
 
     local server = nil
     scheme = scheme:lower()
-    original_body = original_body:match("([^#]+)")
-
-    local body_to_parse = raw_base64_decode(original_body) or original_body
-
+    
     if scheme == "vmess" then
-        local ok, data = pcall(jsonc.parse, body_to_parse)
-        if ok and type(data) == "table" and data.add and data.add ~= "" then
-            server = data.add
+        -- fragment
+        original_body = original_body:match("([^#]+)") or original_body
+        
+        -- base64
+        local decoded = raw_base64_decode(original_body)
+        if decoded then
+            -- V2RayN JSON
+            local ok, data = pcall(jsonc.parse, decoded)
+            if ok and type(data) == "table" and data.add and data.add ~= "" then
+                server = data.add
+            end
+        else
+            -- Xray VMessAEAD
+            local url_parts = parse_url(line)
+            if url_parts and url_parts.host then
+                server = url_parts.host
+            end
         end
+        
+    elseif scheme == "vless" then
+        local url_parts = parse_url(line)
+        if url_parts and url_parts.host then
+            server = url_parts.host
+        end
+        
+    elseif scheme == "trojan" then
+        local url_parts = parse_url(line)
+        if url_parts and url_parts.host then
+            server = url_parts.host
+        end
+        
     elseif scheme == "ss" then
-        server = body_to_parse:match("[^@]+@([^:/]+)")
+        local url_parts = parse_url(line)
+        if url_parts and url_parts.host then
+            server = url_parts.host
+        else
+            -- ss://base64
+            original_body = original_body:match("([^#]+)") or original_body
+            local decoded = raw_base64_decode(original_body)
+            if decoded then
+                server = decoded:match("@([^:/]+)")
+            else
+                server = original_body:match("[^@]+@([^:/]+)")
+            end
+        end
+        
     elseif scheme == "ssr" then
-        server = body_to_parse:match("([^:]+)")
+        original_body = original_body:match("([^#]+)") or original_body
+        local decoded = raw_base64_decode(original_body)
+        if decoded then
+            -- ssr://host:port:protocol:method:obfs:pass/?params
+            local host_info = decoded:match("^([^/]+)")
+            if host_info then
+                local parts = {}
+                for part in host_info:gmatch("([^:]+)") do
+                    table.insert(parts, part)
+                end
+                if #parts >= 1 then
+                    server = parts[1]
+                end
+            end
+        end
+        
+    elseif scheme == "hysteria" or scheme == "hysteria2" or scheme == "hy2" then
+        local url_parts = parse_url(line)
+        if url_parts and url_parts.host then
+            server = url_parts.host
+        end
+        
+    elseif scheme == "tuic" then
+        local url_parts = parse_url(line)
+        if url_parts and url_parts.host then
+            server = url_parts.host
+        end
+        
+    elseif scheme == "socks" or scheme == "socks5" or scheme == "socks5h" or 
+           scheme == "http" or scheme == "https" then
+        local url_parts = parse_url(line)
+        if url_parts and url_parts.host then
+            server = url_parts.host
+        end
+        
+    elseif scheme == "anytls" then
+        local url_parts = parse_url(line)
+        if url_parts and url_parts.host then
+            server = url_parts.host
+        end
     end
     
+    -- fallback
     if not server then
-        server = body_to_parse:match("(?:[^@]+@)?([^:/]+)")
+        local body_to_parse = raw_base64_decode(original_body) or original_body
+        server = body_to_parse:match("@([^:/]+)") or  -- user@host
+                 body_to_parse:match("([^:/]+)") or   -- host
+                 body_to_parse:match("//([^:/]+)")    -- //host
     end
 
     return server
