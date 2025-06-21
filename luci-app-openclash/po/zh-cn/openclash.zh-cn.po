@@ -3240,6 +3240,12 @@ msgstr "隐藏 IP 地址"
 msgid "Show IP"
 msgstr "显示 IP 地址"
 
+msgid "Router Mode"
+msgstr "路由器模式"
+
+msgid "Browser Mode"
+msgstr "浏览器模式"
+
 msgid "Refresh"
 msgstr "刷新"
 
