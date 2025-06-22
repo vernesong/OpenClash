@@ -67,6 +67,11 @@
     filter: brightness(0) invert(1);
 }
 
+#copy_address, #copy_secret, #copy_mix_address, #copy_mix_secret {
+    position: relative;
+    top: 3px;
+}
+
 .megaphone-container {
     position: absolute;
     left: 0;
@@ -77,6 +82,26 @@
     z-index: 2;
     border-top-left-radius: 4px;
     border-bottom-left-radius: 4px;
+}
+
+:root[data-darkmode="true"] #copy_address {
+    -webkit-filter: invert(1);
+    filter: invert(1);
+}
+
+:root[data-darkmode="true"] #copy_secret {
+    -webkit-filter: invert(1);
+    filter: invert(1);
+}
+
+:root[data-darkmode="true"] #copy_mix_address {
+    -webkit-filter: invert(1);
+    filter: invert(1);
+}
+
+:root[data-darkmode="true"] #copy_mix_secret {
+    -webkit-filter: invert(1);
+    filter: invert(1);
 }
 
 </style>
@@ -119,24 +144,89 @@
 	  			<b><%:Tip: after started, please wait patiently until the connection is normal%></b>
 			</div>
 	    </td></tr>
-		<tr><td width="25%"><%:Main Program%></td><td  width="25%" align="left"><span id="_clash"><%:Collecting data...%></span><span id="_watchdog"></span></td><td width="25%"><%:Control Panel Login IP%></td><td width="25%" align="left" id="_daip"><%:Collecting data...%></td></tr>
-		<tr><td width="20%"><%:Running Mode%></td><td  width="30%" align="left"><span id="_mode"><%:Collecting data...%></span><span id="radio-ru-mode" class="radio-button">
-				<input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/>
-				<label for="normal" id="run_normal"><%:Compat%></label>
-				<input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/>
-				<label for="tun"><%:TUN%></label>
-				<input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/>
-				<label for="mix"><%:Mix%></label>
-				</span></td><td width="25%"><%:Control Panel Login Port%></td><td width="25%" align="left" id="_dapo"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"><%:Proxy Mode%></td><td width="25%" align="left"><span id="radio-de"><%:Collecting data...%></span><span id="radio-mode" class="radio-button">
-				<input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/>
-				<label for="rule"><%:Rule%></label>
-				<input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/>
-				<label for="global"><%:Global%></label>
-				<input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/>
-				<label for="direct"><%:Direct%></label>
-				</span></td><td width="25%"><%:Control Panel Login Secret%></td><td width="25%" align="left" id="_dase"><%:Collecting data...%></td></tr>
-		<tr><td colspan="4"><div style="margin: 10px 0; text-align: center"><span id="_web" style="width: 25%; display: inline-block;"></span><span id="_webm" style="width: 25%; display: inline-block;"><%:Collecting data...%></span><span id="_webz" style="width: 25%; display: inline-block;"><%:Collecting data...%></span><span id="_webo" style="width: 25%; display: inline-block;"></span></div></td></tr>
+		<tr>
+            <td width="25%"><%:Main Program%></td>
+            <td  width="25%" align="left"><span id="_clash"><%:Collecting data...%></span><span id="_watchdog"></span></td>
+            <td width="25%"><%:Control Panel Login%></td>
+            <td width="25%" align="left">
+                <span id="_daip"><%:Collecting data...%></span><span id="_dapo"></span>
+                <img src="/luci-static/resources/openclash/img/copy-link.svg" height="16px" title="<%:Copy Address%>" alt="<%:Copy Address%>" id="copy_address" style="margin-left: 5px; cursor: pointer; display: none;" onclick="return copyAddress()" />
+                <img src="/luci-static/resources/openclash/img/password.svg" height="16px" title="<%:Copy Secret%>" alt="<%:Copy Secret%>" id="copy_secret" style="margin-left: 3px; cursor: pointer; display: none;" onclick="return copySecret()" />
+            </td>
+        </tr>
+        <tr>
+            <td width="20%"><%:Running Mode%></td>
+            <td  width="30%" align="left"><span id="_mode"><%:Collecting data...%></span><span id="radio-ru-mode" class="radio-button">
+                <input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/>
+                <label for="normal" id="run_normal"><%:Compat%></label>
+                <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/>
+                <label for="tun"><%:TUN%></label>
+                <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/>
+                <label for="mix"><%:Mix%></label>
+                </span></td>
+            <td width="25%"><%:Mix Proxy Address%></td>
+            <td width="25%" align="left">
+                <span id="_mix_proxy"><%:Collecting data...%></span>
+                <img src="/luci-static/resources/openclash/img/copy-link.svg" height="16px" title="<%:Copy Address%>" alt="<%:Copy Address%>" id="copy_mix_address" style="margin-left: 5px; cursor: pointer; display: none;" onclick="return copyMixAddress()" />
+                <img src="/luci-static/resources/openclash/img/password.svg" height="16px" title="<%:Copy Auth Info%>" alt="<%:Copy Auth Info%>" id="copy_mix_secret" style="margin-left: 3px; cursor: pointer; display: none;" onclick="return copyMixAuth()" />
+            </td>
+        </tr>
+        <tr><td width="25%">
+                <span style="margin-right: 10px;"><%:Proxy Mode%></span>
+                <span>
+					<span id="radio-de"><%:Collecting data...%></span>
+					<span id="radio-mode" class="radio-button">
+						<input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/>
+						<label for="rule"><%:Rule%></label>
+						<input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/>
+						<label for="global"><%:Global%></label>
+						<input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/>
+						<label for="direct"><%:Direct%></label>
+					</span>
+				</span>
+            </td>
+			<td width="25%">
+                <span style="margin-right: 10px;"><%:Area Bypass%></span>
+                <span>
+					<span id="oc-setting-oversea-de"><%:Collecting data...%></span>
+					<span id="oc-setting-oversea" class="radio-button">
+                    <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/>
+                    <label for="oc_setting_oversea_1"><%:Mainland%></label>
+					<input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/>
+                    <label for="oc_setting_oversea_2"><%:Oversea%></label>
+					<input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/>
+                    <label for="oc_setting_oversea_0"><%:Off%></label>
+                    </span>
+				</span>
+            </td>
+            <td width="25%">
+                <span style="margin-right: 10px;"><%:Sniffer%></span>
+                <span>
+					<span id="dns-setting-sniffer-de"><%:Collecting data...%></span>
+					<span id="dns-setting-sniffer" class="radio-button">
+                    <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/>
+                    <label for="meta_sniffer_on"><%:On%></label>
+                    <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/>
+                    <label for="meta_sniffer_off"><%:Off%></label>
+                    </span>
+				</span>
+            </td>
+            <td width="25%">
+                <span style="margin-right: 10px;"><%:DNS Proxy%></span>
+                <span>
+					<span id="dns-setting-respect-de"><%:Collecting data...%></span>
+					<span id="dns-setting-respect" class="radio-button">
+                    <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/>
+                    <label for="respect_rules_on"><%:On%></label>
+                    <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/>
+                    <label for="respect_rules_off"><%:Off%></label>
+                    </span>
+				</span>
+            </td>
+        </tr>
+		<tr>
+			<td colspan="4"><div style="margin: 10px 0; text-align: center"><span id="_web" style="width: 25%; display: inline-block;"></span><span id="_webm" style="width: 25%; display: inline-block;"><%:Collecting data...%></span><span id="_webz" style="width: 25%; display: inline-block;"><%:Collecting data...%></span><span id="_webo" style="width: 25%; display: inline-block;"></span></div></td>
+		</tr>
 		<tr id="tool_label2"><td colspan="4">
 			<div style="margin: 10px 0; text-align: center">
 <span>
@@ -278,6 +368,26 @@
 	var radio_ru = document.getElementsByName("radios-ru");
 	var radio_run_normal = document.getElementById("run_normal");
 	var hid_icon = document.getElementById("hid_icon");
+	var copy_secret = document.getElementById('copy_secret');
+	var copy_address = document.getElementById('copy_address');
+	var copy_mix_address = document.getElementById('copy_mix_address');
+	var copy_mix_secret = document.getElementById('copy_mix_secret');
+	var mix_proxy = document.getElementById('_mix_proxy');
+	var dns_setting_sniffer_de = document.getElementById('dns-setting-sniffer-de');
+	var dns_setting_respect_de = document.getElementById('dns-setting-respect-de');
+	var dns_setting_sniffer = document.getElementById('dns-setting-sniffer');
+ 	var dns_setting_respect = document.getElementById('dns-setting-respect');
+ 	var meta_sniffer_on = document.getElementById('meta_sniffer_on');
+	var meta_sniffer_off = document.getElementById('meta_sniffer_off');
+	var respect_rules_on = document.getElementById('respect_rules_on');
+	var respect_rules_off = document.getElementById('respect_rules_off');
+	var oc_setting_oversea_de = document.getElementById('oc-setting-oversea-de');
+	var oc_setting_oversea = document.getElementById('oc-setting-oversea');
+	var oc_setting_oversea_0 = document.getElementById('oc_setting_oversea_0');
+	var oc_setting_oversea_1 = document.getElementById('oc_setting_oversea_1');
+	var oc_setting_oversea_2 = document.getElementById('oc_setting_oversea_2');
+	var current_status = {};
+	var cached_proxy_info = null;
 	var script_radio;
 	var script_radio_label;
 	var hid_btn_if = true;
@@ -301,7 +411,6 @@
 		if ( x && x.status == 200 ) {
 			clash.innerHTML = status.clash ? '<b style=color:green>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : '<b style=color:red><%:Not Running%></b>';
 			watchdog.innerHTML = status.watchdog ? '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:green><%:Running%></b>' : '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:red><%:Not Running%></b>';
-			dase.innerHTML = status.dase ? "<b style=color:green>"+status.dase+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
 			web.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Yacd Control Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			webo.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Dashboard Control Panel%>" onclick="return net_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
 			webm.innerHTML = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Metacubexd Control Panel%>" onclick="return meta_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
@@ -314,39 +423,88 @@
 			update_other_rules.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Third Party Rules Update%>" onclick="return b_update_other_rules(this)"/>';
 			update_geoip.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GEOIP Data Update%>" onclick="return b_update_geoip(this)"/>';
 			update_geosite.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GeoSite Data Update%>" onclick="return b_update_geosite(this)"/>';
+
 			if (status.daip && window.location.hostname == status.daip) {
-			   daip.innerHTML = status.daip ? "<b style=color:green>"+status.daip+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
-			   dapo.innerHTML = status.cn_port ? "<b style=color:green>"+status.cn_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
-			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
+				luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
 			}
 			else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port)
 			{
-			   daip.innerHTML = status.db_foward_domain ? "<b style=color:green>"+status.db_foward_domain+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
-			   dapo.innerHTML = status.db_foward_port ? "<b style=color:green>"+status.db_foward_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
-			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.db_foward_domain + ":" + status.db_foward_port;
+				luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.db_foward_domain + ":" + status.db_foward_port;
 			}
 			else {
-			   daip.innerHTML = status.daip ? "<b style=color:green>"+status.daip+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
-			   dapo.innerHTML = status.cn_port ? "<b style=color:green>"+status.cn_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
-			   luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
+				luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
 			};
-			
+
 			if (status.clash && status.watchdog) {
+				if (status.daip && window.location.hostname == status.daip) {
+					daip.innerHTML = status.daip ? "<b style=color:green>"+status.daip+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+					dapo.innerHTML = status.cn_port ? "<b style=color:green>:"+status.cn_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+				}
+				else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port)
+				{
+					daip.innerHTML = status.db_foward_domain ? "<b style=color:green>"+status.db_foward_domain+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+					dapo.innerHTML = status.db_foward_port ? "<b style=color:green>:"+status.db_foward_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+				}
+				else {
+					daip.innerHTML = status.daip ? "<b style=color:green>"+status.daip+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+					dapo.innerHTML = status.cn_port ? "<b style=color:green>:"+status.cn_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+				};
 				radio_mode.style.display = "inline-block";
 				radio_de.style.display = "none";
+				radio_ru_mode.style.display = "inline-block";
+				dns_setting_sniffer.style.display = "inline-block";
+				dns_setting_respect.style.display = "inline-block";
+				oc_setting_oversea.style.display = "inline-block";
+				dns_setting_sniffer_de.style.display = "none";
+				dns_setting_respect_de.style.display = "none";
+				oc_setting_oversea_de.style.display = "none";
+				get_oc_settings();
 			}
 			else {
 				radio_mode.style.display = "none";
 				radio_de.style.display = "";
 				radio_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
-			};
-			
-			if (status.clash && status.watchdog) {
-				radio_ru_mode.style.display = "inline-block";
-			}
-			else {
 				radio_ru_mode.style.display = "none";
+				dns_setting_sniffer.style.display = "none";
+				dns_setting_respect.style.display = "none";
+				oc_setting_oversea.style.display = "none";
+				dns_setting_sniffer_de.style.display = "";
+				dns_setting_respect_de.style.display = "";
+				oc_setting_oversea_de.style.display = "";
+				dns_setting_sniffer_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
+				dns_setting_respect_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
+				oc_setting_oversea_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
+				daip.innerHTML = "<b style=color:red><%:Not Running%></b>";
 			};
+
+			current_status = status;
+			
+			if (status.clash && status.daip) {
+				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "proxy_info")%>', null, function(x, proxy_info) {
+					if (x && x.status == 200) {
+						cached_proxy_info = proxy_info;
+						var proxy_ip = status.daip;
+						var mix_addr = proxy_ip + ':' + (proxy_info.mixed_port || '7893');
+						
+						mix_proxy.innerHTML = "<b style=color:green>" + mix_addr + "</b>";
+					} else {
+						cached_proxy_info = null;
+						mix_proxy.innerHTML = "<b style=color:red><%:Not Available%></b>";
+					}
+				});
+				
+				copy_secret.style.display = "inline";
+				copy_address.style.display = "inline";
+				copy_mix_address.style.display = "inline";
+				copy_mix_secret.style.display = "inline";
+			} else {
+				cached_proxy_info = null;
+				mix_proxy.innerHTML = "<b style=color:red><%:Not Running%></b>";
+				copy_secret.style.display = "none";
+				copy_address.style.display = "none";
+				copy_mix_address.style.display = "none";
+				copy_mix_secret.style.display = "none";
+			}
 			
 			function ws_open() {
 				if (ws_t) {ws_t.close();}
@@ -393,13 +551,13 @@
 	});
 
 	XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
-	  if ( x && x.status == 200 ) {
-	  	if ( status.startlog.match("level=fatal") || status.startlog.match("level=error") || status.startlog.indexOf("FTL [Config]") != "-1" ) {
-	    	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
+		if ( x && x.status == 200 ) {
+		if ( status.startlog.match("level=fatal") || status.startlog.match("level=error") || status.startlog.indexOf("FTL [Config]") != "-1" ) {
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
 			if ( status.startlog.match("level=fatal") || status.startlog.match("level=error") ) {
 				alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('msg=')[1]);
 			}
-	    	else {
+			else {
 				alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('FTL [Config] ')[1]);
 			};
 		}
@@ -411,16 +569,16 @@
 				startlog.innerHTML = '<b style=color:#FF0000>'+status.startlog+'</b>';
 			}
 			else if ( status.startlog.match("Warning:") || status.startlog.match("警告：")) {
-	    		startlog.innerHTML = '<b style=color:#ff00bb>'+status.startlog+'</b>';
+				startlog.innerHTML = '<b style=color:#ff00bb>'+status.startlog+'</b>';
 			}
 			else if ( status.startlog.match("Watchdog:") || status.startlog.match("守护程序：")) {
-	    		startlog.innerHTML = '<b style=color:#b300ff>'+status.startlog+'</b>';
+				startlog.innerHTML = '<b style=color:#b300ff>'+status.startlog+'</b>';
 			}
 			else {
-	    		startlog.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
+				startlog.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
 			};
 		};
-	  };
+		};
 	});
 	
 	XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
@@ -491,8 +649,8 @@
 				{
 					startlog.innerHTML = '<b><font><%:Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance%></font></b>';
 				}
-      		}
-	 	}
+			}
+		}
 	});
 
 	get_rule_mode();
@@ -630,14 +788,14 @@
 		});
 		s = setTimeout("get_rule_mode()",5000);
 	};
-	
+
 	function switch_rule_mode(value)
 	{
 		clearTimeout(s);
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_rule_mode")%>', {rule_mode: value}, function(x, status) {
 			if (x && x.status == 200) {
-    		alert(' <%:Proxy Mode%>: ' + value + ' <%:switching succeeded!%>');
-    		get_rule_mode();
+			alert(' <%:Proxy Mode%>: ' + value + ' <%:switching succeeded!%>');
+			get_rule_mode();
 			}
 			else {
 				alert(' <%:Proxy Mode%>: ' + value + ' <%:switching failed!%>');
@@ -668,12 +826,12 @@
 		});
 		gr = setTimeout("get_run_mode()",2000);
 	};
-	
+
 	function switch_run_mode(value)
 	{
 		var r = confirm("<%:Are you sure want to switch the running mode?%>")
-    	if (r == true) {
-    		clearTimeout(gr);
+		if (r == true) {
+			clearTimeout(gr);
 			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_run_mode")%>', {run_mode: value}, function(x, status) {
 			if (x && x.status == 200) {
 				get_run_mode();
@@ -694,11 +852,11 @@
 				chnroute.innerHTML = status.chnroute ? "<b style=color:green>"+status.chnroute+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				chnroutev6.innerHTML = status.chnroutev6 ? "<b style=color:green>"+status.chnroutev6+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>";
 				if ( status.historychecktime != "0" ) {
-				   historychecktime.innerHTML = "<b style=color:green>"+status.historychecktime+"</b>";
+					historychecktime.innerHTML = "<b style=color:green>"+status.historychecktime+"</b>";
 				}
-		  	else {
-		 	 	 historychecktime.innerHTML = "<b style=color:green>"+"<%:No Backup%>"+"</b>";
-		 	 }
+			else {
+					historychecktime.innerHTML = "<b style=color:green>"+"<%:No Backup%>"+"</b>";
+				}
 			}
 		});
 	};
@@ -723,7 +881,7 @@
 			clearInterval(state_refresh);
 		}
 	};
-	
+
 	function winOpen(url)
 	{
 		var winOpen = window.open(url);
@@ -788,7 +946,7 @@
 			}
 		});
 	};
-	
+
 	function ws_tmessage(event) {
 		var data = JSON.parse(event.data)
 		if (data.up) {
@@ -837,7 +995,7 @@
 		}
 		show_sys();
 	};
-	
+
 	function bytesToSize(bytes) {
 		var sizes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB'];
 		if (bytes == 0) return '0 B';
@@ -846,11 +1004,11 @@
 	};
 	  
 	function all_one_key_update(btn)
-    {
-        btn.value    = '<%:Check All Components Update%>';
-        btn.disabled = true;
-        var r = confirm("<%:Check and Update all Cores and OpenClash?%>")
-        if (r == true) {
+	{
+		btn.value    = '<%:Check All Components Update%>';
+		btn.disabled = true;
+		var r = confirm("<%:Check and Update all Cores and OpenClash?%>")
+		if (r == true) {
 			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update_check")%>', null, function(x, status) {
 				if ( x && x.status == 200 ) {
 					if ( status.corever != "0" ) {
@@ -869,63 +1027,63 @@
 				}
 			});
 		}
-        btn.disabled = false;
-        return false; 
-    };
+		btn.disabled = false;
+		return false; 
+	};
     
-    function b_update_other_rules(btn)
-    {
-        btn.disabled = true;
-        btn.value    = '<%:Checking...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_other_rules")%>', null, function(x, status) {
-        if ( x && x.status == 200 ) {
-           	btn.disabled = false;
-           	btn.value    = '<%:Check Third Party Rules Update%>';
-        }
-        else {
-        	btn.disabled = false;
-        	btn.value    = '<%:Check Third Party Rules Update%>';
-        }
-        return false;
-        });
-    };
+	function b_update_other_rules(btn)
+	{
+		btn.disabled = true;
+		btn.value    = '<%:Checking...%>';
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_other_rules")%>', null, function(x, status) {
+		if ( x && x.status == 200 ) {
+			btn.disabled = false;
+			btn.value    = '<%:Check Third Party Rules Update%>';
+		}
+		else {
+			btn.disabled = false;
+			btn.value    = '<%:Check Third Party Rules Update%>';
+		}
+		return false;
+		});
+	};
     
-    function b_update_geoip(btn)
-    {
-        btn.disabled = true;
-        btn.value    = '<%:Checking...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_geoip")%>', null, function(x, status) {
-        if ( x && x.status == 200 ) {
-           	btn.disabled = false;
-           	btn.value    = '<%:Check GEOIP Data Update%>';
-        }
-        else {
-        	btn.disabled = false;
-          	btn.value    = '<%:Check GEOIP Data Update%>';
-        }
-        return false;
-        });
-    };
+	function b_update_geoip(btn)
+	{
+		btn.disabled = true;
+		btn.value    = '<%:Checking...%>';
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_geoip")%>', null, function(x, status) {
+		if ( x && x.status == 200 ) {
+			btn.disabled = false;
+			btn.value    = '<%:Check GEOIP Data Update%>';
+		}
+		else {
+			btn.disabled = false;
+			btn.value    = '<%:Check GEOIP Data Update%>';
+		}
+		return false;
+		});
+	};
     
-    function b_update_geosite(btn)
-    {
-        btn.disabled = true;
-        btn.value    = '<%:Checking...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_geosite")%>', null, function(x, status) {
-        if ( x && x.status == 200 ) {
-           	btn.disabled = false;
-           	btn.value    = '<%:Check GeoSite Data Update%>';
-        }
-        else {
-        	btn.disabled = false;
-          	btn.value    = '<%:Check GeoSite Data Update%>';
-        }
-        return false;
-        });
-    };
+	function b_update_geosite(btn)
+	{
+		btn.disabled = true;
+		btn.value    = '<%:Checking...%>';
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_geosite")%>', null, function(x, status) {
+		if ( x && x.status == 200 ) {
+			btn.disabled = false;
+			btn.value    = '<%:Check GeoSite Data Update%>';
+		}
+		else {
+			btn.disabled = false;
+			btn.value    = '<%:Check GeoSite Data Update%>';
+		}
+		return false;
+		});
+	};
     
-    function b_flush_fakeip_cache(btn)
-    {
+	function b_flush_fakeip_cache(btn)
+	{
 		btn.disabled = true;
 		btn.value    = '<%:Flushing...%> ';
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_fakeip_cache")%>',
@@ -952,175 +1110,174 @@
 		return false;
 	};
     
-    function b_update_subscribe(btn)
-    {
-        btn.disabled = true;
-        btn.value    = '<%:Checking...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_subscribe")%>', null, function(x, status) {
-        if ( x && x.status == 200 ) {
-        	btn.disabled = false;
-        	btn.value    = '<%:Check Config Update%>';
-        }
-        else {
-        	btn.disabled = false;
-          	btn.value    = '<%:Check Config Update%>';
-        }
-        return false;
-        });
-    };
+	function b_update_subscribe(btn)
+	{
+		btn.disabled = true;
+		btn.value    = '<%:Checking...%>';
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_subscribe")%>', null, function(x, status) {
+		if ( x && x.status == 200 ) {
+			btn.disabled = false;
+			btn.value    = '<%:Check Config Update%>';
+		}
+		else {
+			btn.disabled = false;
+			btn.value    = '<%:Check Config Update%>';
+		}
+		return false;
+		});
+	};
     
 	function b_reload_firewall(btn)
-    {
-        btn.disabled = true;
-        btn.value    = '<%:Reloading...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "reload_firewall")%>', null, function(x, status) {
-        if ( x && x.status == 200 ) {
-        	btn.disabled = false;
-        	btn.value    = '<%:Reload Firewall Rules%>';
-        }
-        else {
-        	btn.disabled = false;
-          	btn.value    = '<%:Firewall Rules Reset Failed%>';
-        }
-        return false;
-        });
-    };
-    
+	{
+		btn.disabled = true;
+		btn.value    = '<%:Reloading...%>';
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "reload_firewall")%>', null, function(x, status) {
+		if ( x && x.status == 200 ) {
+			btn.disabled = false;
+			btn.value    = '<%:Reload Firewall Rules%>';
+		}
+		else {
+			btn.disabled = false;
+			btn.value    = '<%:Firewall Rules Reset Failed%>';
+		}
+		return false;
+		});
+	};
+
 	function b_close_all_connection(btn)
-    {
-        btn.disabled = true;
-        btn.value    = '<%:Reloading...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "close_all_connection")%>', null, function(x, status) {
-        if ( x && x.status == 200 ) {
-           	btn.disabled = false;
-           	btn.value    = '<%:Close All Connections%>';
-        }
-        else {
-        	btn.disabled = false;
-          	btn.value    = '<%:Close All Connections Failed%>';
-        }
-        return false;
-        });
-    };
+	{
+		btn.disabled = true;
+		btn.value    = '<%:Reloading...%>';
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "close_all_connection")%>', null, function(x, status) {
+		if ( x && x.status == 200 ) {
+			btn.disabled = false;
+			btn.value    = '<%:Close All Connections%>';
+		}
+		else {
+			btn.disabled = false;
+			btn.value    = '<%:Close All Connections Failed%>';
+		}
+		return false;
+		});
+	};
 
         
 	function net_zashboard(btn)
-    {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
-        btn.disabled = true;
-        btn.value    = '<%:zashboard Control Panel%>';
-        if (status.daip && window.location.hostname == status.daip) {
-            url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/zashboard/#/setup?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
-        }
-        else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-            url9='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/zashboard/#/setup?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
-        }
-        else {
-            url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/zashboard/#/"%>';
-        }
-        winOpen(url9);
-        return false;
-        });
-    };
+	{
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
+		btn.disabled = true;
+		btn.value    = '<%:zashboard Control Panel%>';
+		if (status.daip && window.location.hostname == status.daip) {
+			url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/zashboard/#/setup?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+		}
+		else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
+			var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+			url9='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/zashboard/#/setup?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
+		}
+		else {
+			url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/zashboard/#/"%>';
+		}
+		winOpen(url9);
+		return false;
+		});
+	};
 
 	function meta_dashboard(btn)
-    {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
-        btn.disabled = true;
-        btn.value    = '<%:Metacubexd Control Panel%>';
-        if (status.daip && window.location.hostname == status.daip) {
-            url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/metacubexd/#/setup?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
-        }
-        else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-            url9='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/metacubexd/#/setup?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
-        }
-        else {
-            url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/metacubexd/#/"%>';
-        }
-        winOpen(url9);
-        return false;
-        });
-    };
+	{
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
+		btn.disabled = true;
+		btn.value    = '<%:Metacubexd Control Panel%>';
+		if (status.daip && window.location.hostname == status.daip) {
+			url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/metacubexd/#/setup?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+		}
+		else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
+			var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+			url9='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/metacubexd/#/setup?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
+		}
+		else {
+			url9='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/metacubexd/#/"%>';
+		}
+		winOpen(url9);
+		return false;
+		});
+	};
 
 	function ycad_dashboard(btn)
-    {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
-        btn.disabled = true;
-        btn.value    = '<%:Yacd Control Panel%>';
-        if (status.daip && window.location.hostname == status.daip) {
-            url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
-        }
-        else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-            url1='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/yacd/?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
-        }
-        else {
-            url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/"%>';
-        }
-        winOpen(url1);
-        return false;
-        });
-    };
+	{
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
+		btn.disabled = true;
+		btn.value    = '<%:Yacd Control Panel%>';
+		if (status.daip && window.location.hostname == status.daip) {
+			url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/?hostname='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+		}
+		else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
+			var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+			url1='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/yacd/?hostname='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
+		}
+		else {
+			url1='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/yacd/"%>';
+		}
+		winOpen(url1);
+		return false;
+		});
+	};
     
-    function net_dashboard(btn)
-    {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
-        btn.disabled = true;
-        btn.value    = '<%:Dashboard Control Panel%>';
-        if (status.daip && window.location.hostname == status.daip) {
-            url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/dashboard/#/?host='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
-        }
-        else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-            url2='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/dashboard/#/?host='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
-        }
-        else {
-            url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/dashboard/"%>';
-        }
-        winOpen(url2);
-        return false;
-        });
-    };
+	function net_dashboard(btn)
+	{
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
+		btn.disabled = true;
+		btn.value    = '<%:Dashboard Control Panel%>';
+		if (status.daip && window.location.hostname == status.daip) {
+			url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/dashboard/#/?host='+ window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase +'"%>';
+		}
+		else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
+			var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+			url2='<%="'+ui_proto+status.db_foward_domain+':'+status.db_foward_port+'/ui/dashboard/#/?host='+ status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase +'"%>';
+		}
+		else {
+			url2='<%="http://'+window.location.hostname+':'+status.cn_port+'/ui/dashboard/"%>';
+		}
+		winOpen(url2);
+		return false;
+		});
+	};
     
-    function homepage()
-    {
-        url3='https://github.com/vernesong/OpenClash';
-        winOpen(url3);
-    };
+	function homepage()
+	{
+		url3='https://github.com/vernesong/OpenClash';
+		winOpen(url3);
+	};
     
+	function gitbookpage()
+	{
+		url8='https://wiki.metacubex.one';
+		winOpen(url8);
+	};
+
+	function wikipage()
+	{
+		url5='https://github.com/vernesong/OpenClash/wiki';
+		winOpen(url5);
+	};
     
-    function gitbookpage()
-    {
-        url8='https://wiki.metacubex.one';
-        winOpen(url8);
-    };
+	function telegrampage()
+	{
+		url6='https://t.me/ctcgfw_openwrt_discuss';
+		winOpen(url6);
+	};
     
-    function wikipage()
-    {
-        url5='https://github.com/vernesong/OpenClash/wiki';
-        winOpen(url5);
-    };
-    
-    function telegrampage()
-    {
-        url6='https://t.me/ctcgfw_openwrt_discuss';
-        winOpen(url6);
-    };
-    
-    function sponsorpage()
-    {
-        url7='https://ko-fi.com/vernesong';
-        winOpen(url7);
-    };
+	function sponsorpage()
+	{
+		url7='https://ko-fi.com/vernesong';
+		winOpen(url7);
+	};
 
 	function logo_check(imgobj,imgSrc,imgNewSrc)
-    {
+	{
 		var newimg = new Image();
 		newimg.src = imgNewSrc;
 		newimg.onload = function() {
-    		imgobj.src = imgNewSrc;
+			imgobj.src = imgNewSrc;
 			imgobj.loading = "lazy";
 			imgobj.onload = function() {};
 		};
@@ -1128,42 +1285,42 @@
 			imgobj.onload = function() {};
 			imgerrorfuns(imgobj,imgSrc);
 		};
-    };
+	};
 
-    function clashversion_check()
-    {
-    	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "lastversion")%>', null, function(x, status) {
-    		if ( x && x.status == 200 ) {
-        		if ( status.lastversion != "" )
-        		{
-            		clashversion.innerHTML = '<img id="lastver" src="'+status.lastversion+'" alt="lastversion" onerror="return clashversion_error()" onclick="return go_update()">';
-        		}
-    		}
-    	});
-    };
+	function clashversion_check()
+	{
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "lastversion")%>', null, function(x, status) {
+			if ( x && x.status == 200 ) {
+				if ( status.lastversion != "" )
+				{
+					clashversion.innerHTML = '<img id="lastver" src="'+status.lastversion+'" alt="lastversion" onerror="return clashversion_error()" onclick="return go_update()">';
+				}
+			}
+		});
+	};
 
-    function clashversion_error()
-    {
-        clashversion.innerHTML = '<img id="clashversion" src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onclick="return go_update()">';
-    };
+	function clashversion_error()
+	{
+		clashversion.innerHTML = '<img id="clashversion" src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onclick="return go_update()">';
+	};
 
 	function logo_error(imgobj,imgSrc)
-    {
+	{
 		imgobj.src=imgSrc;
-    };
+	};
     
-    function imgerrorfuns(imgobj,imgSrc){
-    	setTimeout(function(){
-        imgobj.src = imgSrc;
-		imgobj.loading = "lazy";
-      },1000*10);
-    };
+	function imgerrorfuns(imgobj,imgSrc){
+		setTimeout(function(){
+			imgobj.src = imgSrc;
+			imgobj.loading = "lazy";
+		},1000*10);
+	};
      
-    function go_update()
-    {
-       url4='https://github.com/vernesong/OpenClash/releases';
-       winOpen(url4);
-    };
+	function go_update()
+	{
+		url4='https://github.com/vernesong/OpenClash/releases';
+		winOpen(url4);
+	};
 
 	function check_core()
 	{
@@ -1179,5 +1336,192 @@
     		}
         });
 	};
+
+	function copyAddress() {
+		var address = (current_status.daip || 'unknown') + ':' + (current_status.cn_port || '9090');
+		
+		if (navigator.clipboard && window.isSecureContext) {
+			navigator.clipboard.writeText(address).then(function() {
+				alert('<%:Control panel address copied:%> ' + address);
+			}).catch(function(err) {
+				fallbackCopyTextToClipboard(address, '<%:Control panel address copied:%> ');
+			});
+		} else {
+			fallbackCopyTextToClipboard(address, '<%:Control panel address copied:%> ');
+		}
+		return false;
+	}
+
+	function copySecret() {
+		var secret = current_status.dase || '';
+		
+		if (secret === '') {
+			alert('<%:No control panel secret set%>');
+			return false;
+		}
+		
+		if (navigator.clipboard && window.isSecureContext) {
+			navigator.clipboard.writeText(secret).then(function() {
+				alert('<%:Control panel secret copied:%> ' + secret);
+			}).catch(function(err) {
+				fallbackCopyTextToClipboard(secret, '<%:Control panel secret copied:%> ');
+			});
+		} else {
+			fallbackCopyTextToClipboard(secret, '<%:Control panel secret copied:%> ');
+		}
+		return false;
+	}
+
+	function copyMixAuth() {
+		if (cached_proxy_info) {
+			var authText = '';
+			
+			if (cached_proxy_info.auth_user && cached_proxy_info.auth_pass) {
+				authText = cached_proxy_info.auth_user + ':' + cached_proxy_info.auth_pass;
+				
+				if (navigator.clipboard && window.isSecureContext) {
+					navigator.clipboard.writeText(authText).then(function() {
+						alert('<%:Proxy auth info copied:%> ' + authText);
+					}).catch(function(err) {
+						fallbackCopyTextToClipboard(authText, '<%:Proxy auth info copied:%> ');
+					});
+				} else {
+					fallbackCopyTextToClipboard(authText, '<%:Proxy auth info copied:%> ');
+				}
+			} else {
+				alert('<%:No proxy auth info set%>');
+			}
+		} else {
+			alert('<%:Proxy info not available, please try again later%>');
+		}
+		return false;
+    }
+
+	function copyMixAddress() {
+		if (cached_proxy_info && current_status.daip) {
+			var mixPort = cached_proxy_info.mixed_port || '7893';
+			var proxyIp = current_status.daip;
+			var proxyText = proxyIp + ':' + mixPort;
+			
+			if (navigator.clipboard && window.isSecureContext) {
+				navigator.clipboard.writeText(proxyText).then(function() {
+					alert('<%:Mix proxy address copied:%> ' + proxyText);
+				}).catch(function(err) {
+					fallbackCopyTextToClipboard(proxyText, '<%:Mix proxy address copied:%> ');
+				});
+			} else {
+				fallbackCopyTextToClipboard(proxyText, '<%:Mix proxy address copied:%> ');
+			}
+		} else {
+			alert('<%:Proxy info not available, please try again later%>');
+		}
+		return false;
+	}
+
+	function get_oc_settings() {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "oc_settings")%>', null, function(x, info) {
+			if (x && x.status == 200) {
+				if (info.meta_sniffer == "1") {
+					meta_sniffer_on.checked = true;
+				} else {
+					meta_sniffer_off.checked = true;
+				}
+				
+				if (info.respect_rules == "1") {
+					respect_rules_on.checked = true;
+				} else {
+					respect_rules_off.checked = true;
+				}
+				
+				if (info.oversea == "0") {
+					oc_setting_oversea_0.checked = true;
+				} else if (info.oversea == "1") {
+					oc_setting_oversea_1.checked = true;
+				} else if (info.oversea == "2") {
+					oc_setting_oversea_2.checked = true;
+				}
+			}
+		});
+	}
+
+	function switch_oc_setting_oversea(value) {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>', {
+			setting: 'oversea',
+			value: value
+		}, function(x, status) {
+			if (x && x.status == 200) {
+				var statusText = "";
+				if (value == "0") {
+					statusText = "<%:Off%>";
+				} else if (value == "1") {
+					statusText = "<%:Mainland%>";
+				} else if (value == "2") {
+					statusText = "<%:Oversea%>";
+				}
+				alert('<%:Area bypass setting switched to:%> ' + statusText);
+			} else {
+				get_oc_settings();
+				alert('<%:Area bypass setting failed%>');
+			}
+		});
+		return false;
+	}
+
+	function switch_meta_sniffer(value) {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>', {
+			setting: 'meta_sniffer',
+			value: value
+		}, function(x, status) {
+			if (x && x.status == 200) {
+				alert('<%:Sniffer setting%> ' + (value == '1' ? '<%:Enabled%>' : '<%:Disabled%>'));
+			} else {
+				get_oc_settings();
+				alert('<%:Sniffer setting failed%>');
+			}
+		});
+		return false;
+	}
+
+	function switch_respect_rules(value) {
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>', {
+			setting: 'respect_rules',
+			value: value
+		}, function(x, status) {
+			if (x && x.status == 200) {
+				alert('<%:Respect Rules setting%> ' + (value == '1' ? '<%:Enabled%>' : '<%:Disabled%>'));
+			} else {
+				get_oc_settings();
+				alert('<%:Respect Rules setting failed%>');
+			}
+		});
+		return false;
+	}
+
+	function fallbackCopyTextToClipboard(text, successMessage) {
+		var textArea = document.createElement("textarea");
+		textArea.value = text;
+
+		textArea.style.top = "0";
+		textArea.style.left = "0";
+		textArea.style.position = "fixed";
+		textArea.style.opacity = "0";
+		
+		document.body.appendChild(textArea);
+		textArea.focus();
+		textArea.select();
+		
+		try {
+			var successful = document.execCommand('copy');
+			if (successful) {
+				alert(successMessage + text);
+			} else {
+				alert('<%:Copy failed, please copy manually:%> ' + text);
+			}
+		} catch (err) {
+			alert('<%:Copy failed, please copy manually:%> ' + text);
+		}
+		
+		document.body.removeChild(textArea);
+	}
 //]]></script>
 

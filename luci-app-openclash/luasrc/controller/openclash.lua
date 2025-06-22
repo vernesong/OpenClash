@@ -97,7 +97,11 @@ function index()
 	entry({"admin", "services", "openclash", "log"},cbi("openclash/log"),_("Server Logs"), 90).leaf = true
 	entry({"admin", "services", "openclash", "myip_check"}, call("action_myip_check"))
 	entry({"admin", "services", "openclash", "website_check"}, call("action_website_check"))
+	entry({"admin", "services", "openclash", "proxy_info"}, call("action_proxy_info"))
+	entry({"admin", "services", "openclash", "oc_settings"}, call("action_oc_settings"))
+	entry({"admin", "services", "openclash", "switch_oc_setting"}, call("action_switch_oc_setting"))
 end
+
 local fs = require "luci.openclash"
 local json = require "luci.jsonc"
 local uci = require("luci.model.uci").cursor()
@@ -2117,4 +2121,257 @@ function action_website_check()
     
     luci.http.prepare_content("application/json")
     luci.http.write_json(result)
+end
+
+function action_proxy_info()
+    local result = {
+        mixed_port = "",
+        auth_user = "",
+        auth_pass = ""
+    }
+    
+    local mixed_port = uci:get("openclash", "config", "mixed_port")
+    if mixed_port and mixed_port ~= "" then
+        result.mixed_port = mixed_port
+    else
+        result.mixed_port = "7893"
+    end
+    
+    uci:foreach("openclash", "authentication", function(section)
+        if section.enabled == "1" and result.auth_user == "" then
+            if section.username and section.username ~= "" then
+                result.auth_user = section.username
+            end
+            if section.password and section.password ~= "" then
+                result.auth_pass = section.password
+            end
+            return false
+        end
+    end)
+    
+    luci.http.prepare_content("application/json")
+    luci.http.write_json(result)
+end
+
+function action_oc_settings()
+    local result = {
+        meta_sniffer = "0",
+        respect_rules = "0",
+		oversea = "0"
+    }
+
+    local meta_sniffer = uci:get("openclash", "config", "enable_meta_sniffer")
+    if meta_sniffer == "1" then
+        result.meta_sniffer = "1"
+    end
+    
+    local respect_rules = uci:get("openclash", "config", "enable_respect_rules")
+    if respect_rules == "1" then
+        result.respect_rules = "1"
+    end
+
+    local oversea = uci:get("openclash", "config", "china_ip_route")
+    if oversea == "1" then
+        result.oversea = "1"
+    elseif oversea == "2" then
+        result.oversea = "2"
+    else
+        result.oversea = "0"
+    end
+    
+    luci.http.prepare_content("application/json")
+    luci.http.write_json(result)
+end
+
+function action_switch_oc_setting()
+    local setting = luci.http.formvalue("setting")
+    local value = luci.http.formvalue("value")
+    local info = ""
+    
+    if not setting or not value then
+        luci.http.status(400, "Missing parameters")
+        return
+    end
+    
+    if setting == "meta_sniffer" then
+        uci:set("openclash", "config", "enable_meta_sniffer", value)
+        uci:commit("openclash")
+        
+        if is_running() then
+            local config_path = uci:get("openclash", "config", "config_path")
+            if not config_path then
+                luci.http.status(500, "No config path found")
+                return
+            end
+            
+            local config_filename = fs.basename(config_path)
+            local runtime_config_path = "/etc/openclash/" .. config_filename
+            
+            local ruby_cmd
+            if value == "1" then
+                ruby_cmd = string.format([[
+                    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                    begin
+                        config = File.exist?('%s') ? YAML.load_file('%s') : {}
+                        config = {} if config == false
+                        
+                        custom_sniffer_path = '/etc/openclash/custom/openclash_custom_sniffer.yaml'
+                        if File.exist?(custom_sniffer_path)
+                            custom_sniffer = YAML.load_file(custom_sniffer_path)
+                            if custom_sniffer && custom_sniffer['sniffer']
+                                config['sniffer'] = custom_sniffer['sniffer']
+                                unless config['sniffer']['sniff']
+                                    config['sniffer']['sniff'] = {
+                                        'QUIC' => { 'ports' => [443] },
+                                        'TLS' => { 'ports' => [443, '8443'] },
+                                        'HTTP' => { 'ports' => [80, '8080-8880'], 'override-destination' => true }
+                                    }
+                                end
+                            end
+                        end
+                        
+                        unless config['sniffer']
+                            config['sniffer'] = {
+                                'enable' => true,
+                                'override-destination' => false,
+                                'sniff' => {
+                                    'QUIC' => { 'ports' => [443] },
+                                    'TLS' => { 'ports' => [443, '8443'] },
+                                    'HTTP' => { 'ports' => [80, '8080-8880'], 'override-destination' => true }
+                                },
+                                'force-domain' => ['+.netflix.com', '+.nflxvideo.net', '+.amazonaws.com', '+.media.dssott.com'],
+                                'skip-domain' => ['+.apple.com', 'Mijia Cloud', 'dlg.io.mi.com', '+.oray.com', '+.sunlogin.net', '+.push.apple.com'],
+                                'parse-pure-ip' => true
+                            }
+                        else
+                            config['sniffer']['enable'] = true
+                            unless config['sniffer']['sniff']
+                                config['sniffer']['sniff'] = {
+                                    'QUIC' => { 'ports' => [443] },
+                                    'TLS' => { 'ports' => [443, '8443'] },
+                                    'HTTP' => { 'ports' => [80, '8080-8880'], 'override-destination' => true }
+                                }
+                            end
+                        end
+                        
+                        File.write('%s', config.to_yaml)
+                    rescue => e
+                        puts \"Error: #{e.message}\"
+                        exit 1
+                    end
+                    "
+                ]], runtime_config_path, runtime_config_path, runtime_config_path)
+            else
+                ruby_cmd = string.format([[
+                    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                    begin
+                        config = File.exist?('%s') ? YAML.load_file('%s') : {}
+                        config = {} if config == false
+                        
+                        config['sniffer'] = { 'enable' => false }
+                        
+                        File.write('%s', config.to_yaml)
+                    rescue => e
+                        puts \"Error: #{e.message}\"
+                        exit 1
+                    end
+                    "
+                ]], runtime_config_path, runtime_config_path, runtime_config_path)
+            end
+            
+            local ruby_result = luci.sys.call(ruby_cmd)
+            if ruby_result ~= 0 then
+                luci.http.status(500, "Failed to modify config file")
+                return
+            end
+            
+            local daip = daip()
+            local dase = dase() or ""
+            local cn_port = cn_port()
+            if not daip or not cn_port then 
+                luci.http.status(500, "Switch Failed") 
+                return 
+            end
+            
+            info = luci.sys.exec(string.format('curl -sL -m 10 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPUT http://"%s":"%s"/configs?force=true -d \'{"path":"%s"}\' 2>&1', dase, daip, cn_port, runtime_config_path))
+            
+            if info ~= "" then
+                luci.http.status(500, "Switch Failed")
+                return
+            end
+        end
+        
+    elseif setting == "respect_rules" then
+        uci:set("openclash", "config", "enable_respect_rules", value)
+        uci:commit("openclash")
+        
+        if is_running() then
+            local config_path = uci:get("openclash", "config", "config_path")
+            if not config_path then
+                luci.http.status(500, "No config path found")
+                return
+            end
+            
+            local config_filename = fs.basename(config_path)
+            local runtime_config_path = "/etc/openclash/" .. config_filename
+            
+            local ruby_cmd = string.format([[
+                ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                begin
+                    config = File.exist?('%s') ? YAML.load_file('%s') : {}
+                    config = {} if config == false
+                    
+                    config['dns'] = {} unless config['dns']
+                    config['dns']['respect-rules'] = %s
+                    
+                    File.write('%s', config.to_yaml)
+                rescue => e
+                    puts \"Error: #{e.message}\"
+                    exit 1
+                end
+                "
+            ]], runtime_config_path, runtime_config_path, value == "1" and "true" or "false", runtime_config_path)
+            
+            local ruby_result = luci.sys.call(ruby_cmd)
+            if ruby_result ~= 0 then
+                luci.http.status(500, "Failed to modify config file")
+                return
+            end
+            
+            local daip = daip()
+            local dase = dase() or ""
+            local cn_port = cn_port()
+            if not daip or not cn_port then 
+                luci.http.status(500, "Switch Failed") 
+                return 
+            end
+            
+            info = luci.sys.exec(string.format('curl -sL -m 10 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPUT http://"%s":"%s"/configs?force=true -d \'{"path":"%s"}\' 2>&1', dase, daip, cn_port, runtime_config_path))
+            
+            if info ~= "" then
+                luci.http.status(500, "Switch Failed")
+                return
+            end
+        end
+        
+    elseif setting == "oversea" then
+        uci:set("openclash", "config", "china_ip_route", value)
+        uci:commit("openclash")
+        
+        if is_running() then
+            luci.sys.exec("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+        end
+        
+    else
+        luci.http.status(400, "Invalid setting")
+        return
+    end
+    
+    luci.http.prepare_content("application/json")
+    luci.http.write_json({
+        status = "success",
+        setting = setting,
+        value = value,
+        info = info
+    })
 end
