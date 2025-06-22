@@ -960,43 +960,68 @@ function parseSS(body, sid) {
 }
 
 function parseSSR(body, sid) {
-    var sstr = b64decsafe(body);
-    var ploc = sstr.indexOf("/?");
+    var dcBuf;
+    try {
+        dcBuf = b64decsafe(body);
+    } catch (e) {
+        return false;
+    }
     
     setFormValue(sid, 'type', 'ssr');
-    
-    var url0, param = "";
-    if (ploc > 0) {
-        url0 = sstr.substr(0, ploc);
-        param = sstr.substr(ploc + 2);
+
+    // ssr://host:port:protocol:method:obfs:urlsafebase64pass/?obfsparam=...
+    var before, after;
+    var queryIndex = dcBuf.indexOf('/?');
+    if (queryIndex > 0) {
+        before = dcBuf.substr(0, queryIndex);
+        after = dcBuf.substr(queryIndex + 2);
     } else {
-        url0 = sstr;
+        before = dcBuf;
+        after = "";
     }
     
-    var ssm = url0.match(/^(.+):([^:]+):([^:]*):([^:]+):([^:]*):([^:]+)/);
-    if (!ssm || ssm.length < 7) return false;
+    var parts = before.split(':');
+    if (parts.length !== 6) {
+        return false;
+    }
     
-    var pdict = {};
-    if (param.length > 2) {
-        var a = param.split('&');
-        for (var i = 0; i < a.length; i++) {
-            var b = a[i].split('=');
-            pdict[decodeURIComponent(b[0])] = decodeURIComponent(b[1] || '');
+    var host = parts[0];
+    var port = parts[1];
+    var protocol = parts[2];
+    var method = parts[3];
+    var obfs = parts[4];
+    var password = b64decsafe(parts[5]);
+    
+    setFormValue(sid, 'server', host);
+    setFormValue(sid, 'port', port);
+    setFormValue(sid, 'protocol', protocol);
+    setFormValue(sid, 'cipher_ssr', method);
+    setFormValue(sid, 'obfs_ssr', obfs);
+    setFormValue(sid, 'password', password);
+    
+    if (after) {
+        var params = {};
+        var paramPairs = after.split('&');
+        for (var i = 0; i < paramPairs.length; i++) {
+            var pair = paramPairs[i].split('=');
+            if (pair.length === 2) {
+                var key = decodeURIComponent(pair[0]);
+                var value = pair[1];
+                params[key] = value;
+            }
         }
-    }
-    
-    setFormValue(sid, 'server', ssm[1]);
-    setFormValue(sid, 'port', ssm[2]);
-    setFormValue(sid, 'protocol', ssm[3]);
-    setFormValue(sid, 'cipher_ssr', ssm[4] === "none" ? "dummy" : ssm[4]);
-    setFormValue(sid, 'obfs_ssr', ssm[5]);
-    setFormValue(sid, 'password', b64decsafe(ssm[6]));
-    setFormValue(sid, 'obfs_param', dictvalue(pdict, 'obfsparam'));
-    setFormValue(sid, 'protocol_param', dictvalue(pdict, 'protoparam'));
-    
-    var rem = pdict['remarks'];
-    if (typeof(rem) !== 'undefined' && rem !== '' && rem.length > 0) {
-        setFormValue(sid, 'name', b64decutf8safe(rem));
+        
+        if (params.obfsparam) {
+            setFormValue(sid, 'obfs_param', b64decsafe(params.obfsparam));
+        }
+        
+        if (params.protoparam) {
+            setFormValue(sid, 'protocol_param', b64decsafe(params.protoparam));
+        }
+        
+        if (params.remarks) {
+            setFormValue(sid, 'name', b64decutf8safe(params.remarks));
+        }
     }
     
     return true;

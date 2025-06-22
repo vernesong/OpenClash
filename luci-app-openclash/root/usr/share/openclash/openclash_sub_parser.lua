@@ -172,14 +172,15 @@ local function get_server_from_url(line)
         original_body = original_body:match("([^#]+)") or original_body
         local decoded = raw_base64_decode(original_body)
         if decoded then
-            -- ssr://host:port:protocol:method:obfs:pass/?params
-            local host_info = decoded:match("^([^/]+)")
-            if host_info then
+            -- ssr://host:port:protocol:method:obfs:urlsafebase64pass/?params
+            local before_query = decoded:match("^([^/?]+)")
+            if before_query then
                 local parts = {}
-                for part in host_info:gmatch("([^:]+)") do
+                for part in before_query:gmatch("([^:]+)") do
                     table.insert(parts, part)
                 end
-                if #parts >= 1 then
+                -- host:port:protocol:method:obfs:password
+                if #parts == 6 then
                     server = parts[1]
                 end
             end
