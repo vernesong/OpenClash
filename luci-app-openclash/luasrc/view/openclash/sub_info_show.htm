@@ -60,37 +60,35 @@
 }
 
 /* 夜间模式样式 */
-:root[data-darkmode="true"] {
-    #icon_wrench {
-        -webkit-filter: invert(1);
-        filter: invert(1);
-    }
-    
-    #icon_arrow {
-        -webkit-filter: invert(1);
-        filter: invert(1);
-    }
+:root[data-darkmode="true"] #icon_wrench {
+    -webkit-filter: invert(1);
+    filter: invert(1);
+}
 
-    .text_show{
-        color: #e0e0e0;
-    }
-    
-    .progress_bar_bg {
-        border: 1px solid #666666;
-        background-color: #333333;
-    }
-    
-    .progress_bar_high {
-        background-color: #5da05d;
-    }
-    
-    .progress_bar_medium {
-        background-color: #cc8550;
-    }
-    
-    .progress_bar_low {
-        background-color: #cc6262;
-    }
+:root[data-darkmode="true"] #icon_arrow {
+    -webkit-filter: invert(1);
+    filter: invert(1);
+}
+
+:root[data-darkmode="true"] .text_show {
+    color: #e0e0e0;
+}
+
+:root[data-darkmode="true"] .progress_bar_bg {
+    border: 1px solid #666666;
+    background-color: #333333;
+}
+
+:root[data-darkmode="true"] .progress_bar_high {
+    background-color: #5da05d;
+}
+
+:root[data-darkmode="true"] .progress_bar_medium {
+    background-color: #cc8550;
+}
+
+:root[data-darkmode="true"] .progress_bar_low {
+    background-color: #cc6262;
 }
 
 </style>

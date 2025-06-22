@@ -1239,8 +1239,8 @@ msgstr "Metacubexd 面板"
 msgid "zashboard Control Panel"
 msgstr "zashboard 面板"
 
-msgid "Control Panel Login IP"
-msgstr "控制面板登录 IP"
+msgid "Control Panel Login"
+msgstr "控制面板登录地址"
 
 msgid "Control Panel Login Port"
 msgstr "控制面板登录端口"
@@ -3578,3 +3578,81 @@ msgstr "内核版本更新"
 
 msgid "View core infos that support smart group"
 msgstr "查看支持 smart 策略组的内核信息"
+
+msgid "Control panel address copied:"
+msgstr "控制面板地址已复制："
+
+msgid "Control panel secret copied:"
+msgstr "控制面板密钥已复制："
+
+msgid "No control panel secret set"
+msgstr "未设置控制面板密钥"
+
+msgid "Proxy auth info copied:"
+msgstr "代理认证信息已复制："
+
+msgid "No proxy auth info set"
+msgstr "未设置代理认证信息"
+
+msgid "Proxy info not available, please try again later"
+msgstr "获取代理信息失败，请稍后再试"
+
+msgid "Mix proxy address copied:"
+msgstr "混合代理地址已复制："
+
+msgid "Mix Proxy Address"
+msgstr "混合代理地址"
+
+msgid "Area Bypass"
+msgstr "区域绕过"
+
+msgid "Area bypass setting switched to:"
+msgstr "区域绕过设置已切换为："
+
+msgid "Area bypass setting failed"
+msgstr "区域绕过设置失败"
+
+msgid "Sniffer"
+msgstr "域名嗅探"
+
+msgid "Sniffer setting"
+msgstr "域名嗅探已"
+
+msgid "Sniffer setting failed"
+msgstr "域名嗅探设置失败"
+
+msgid "DNS Proxy"
+msgstr "DNS 代理"
+
+msgid "Respect Rules setting"
+msgstr "DNS 代理已"
+
+msgid "Respect Rules setting failed"
+msgstr "DNS 代理设置失败"
+
+msgid "Copy failed, please copy manually:"
+msgstr "复制失败，请手动复制："
+
+msgid "Copy Address"
+msgstr "复制地址"
+
+msgid "Copy Secret"
+msgstr "复制密钥"
+
+msgid "Copy Auth Info"
+msgstr "复制认证信息"
+
+msgid "Not Available"
+msgstr "不可用"
+
+msgid "Off"
+msgstr "停用"
+
+msgid "Mainland"
+msgstr "绕过大陆"
+
+msgid "Oversea"
+msgstr "绕过海外"
+
+msgid "On"
+msgstr "启用"
