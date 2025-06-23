@@ -2157,17 +2157,60 @@ function action_oc_settings()
     local result = {
         meta_sniffer = "0",
         respect_rules = "0",
-		oversea = "0"
+        oversea = "0"
     }
 
-    local meta_sniffer = uci:get("openclash", "config", "enable_meta_sniffer")
-    if meta_sniffer == "1" then
-        result.meta_sniffer = "1"
+    local function get_uci_settings()
+        local meta_sniffer = uci:get("openclash", "config", "enable_meta_sniffer")
+        if meta_sniffer == "1" then
+            result.meta_sniffer = "1"
+        end
+        
+        local respect_rules = uci:get("openclash", "config", "enable_respect_rules")
+        if respect_rules == "1" then
+            result.respect_rules = "1"
+        end
     end
-    
-    local respect_rules = uci:get("openclash", "config", "enable_respect_rules")
-    if respect_rules == "1" then
-        result.respect_rules = "1"
+
+    if is_running() then
+        local config_path = uci:get("openclash", "config", "config_path")
+        if config_path then
+            local config_filename = fs.basename(config_path)
+            local runtime_config_path = "/etc/openclash/" .. config_filename
+            
+            if nixio.fs.access(runtime_config_path) then
+                local ruby_result = luci.sys.exec(string.format([[
+                    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                    begin
+                        config = YAML.load_file('%s')
+                        if config
+                            sniffer_enabled = config['sniffer'] && config['sniffer']['enable'] ? '1' : '0'
+                            respect_rules_enabled = config['dns'] && config['dns']['respect-rules'] == true ? '1' : '0'
+                            puts \"#{sniffer_enabled},#{respect_rules_enabled}\"
+                        else
+                            puts '0,0'
+                        end
+                    rescue
+                        puts '0,0'
+                    end
+                    " 2>/dev/null
+                ]], runtime_config_path)):gsub("%s+", "")
+                
+                local sniffer_result, respect_rules_result = ruby_result:match("(%d),(%d)")
+                if sniffer_result and respect_rules_result then
+                    result.meta_sniffer = sniffer_result
+                    result.respect_rules = respect_rules_result
+                else
+                    get_uci_settings()
+                end
+            else
+                get_uci_settings()
+            end
+        else
+            get_uci_settings()
+        end
+    else
+        get_uci_settings()
     end
 
     local oversea = uci:get("openclash", "config", "china_ip_route")
@@ -2186,28 +2229,61 @@ end
 function action_switch_oc_setting()
     local setting = luci.http.formvalue("setting")
     local value = luci.http.formvalue("value")
-    local info = ""
     
     if not setting or not value then
         luci.http.status(400, "Missing parameters")
         return
     end
     
+    local function get_runtime_config_path()
+        local config_path = uci:get("openclash", "config", "config_path")
+        if not config_path then
+            return nil
+        end
+        local config_filename = fs.basename(config_path)
+        return "/etc/openclash/" .. config_filename
+    end
+    
+    local function update_runtime_config(ruby_cmd)
+        local runtime_config_path = get_runtime_config_path()
+        if not runtime_config_path then
+            luci.http.status(500, "No config path found")
+            return false
+        end
+        
+        local ruby_result = luci.sys.call(ruby_cmd)
+        if ruby_result ~= 0 then
+            luci.http.status(500, "Failed to modify config file")
+            return false
+        end
+        
+        local daip = daip()
+        local dase = dase() or ""
+        local cn_port = cn_port()
+        if not daip or not cn_port then 
+            luci.http.status(500, "Switch Failed") 
+            return false
+        end
+        
+        local reload_result = luci.sys.exec(string.format('curl -sL -m 10 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPUT http://"%s":"%s"/configs?force=true -d \'{"path":"%s"}\' 2>&1', dase, daip, cn_port, runtime_config_path))
+        
+        if reload_result ~= "" then
+            luci.http.status(500, "Switch Failed")
+            return false
+        end
+        
+        return true
+    end
+    
     if setting == "meta_sniffer" then
         uci:set("openclash", "config", "enable_meta_sniffer", value)
+		uci:set("openclash", "config", "enable_meta_sniffer_pure_ip", value)
         uci:commit("openclash")
         
         if is_running() then
-            local config_path = uci:get("openclash", "config", "config_path")
-            if not config_path then
-                luci.http.status(500, "No config path found")
-                return
-            end
-            
-            local config_filename = fs.basename(config_path)
-            local runtime_config_path = "/etc/openclash/" .. config_filename
-            
+            local runtime_config_path = get_runtime_config_path()
             local ruby_cmd
+            
             if value == "1" then
                 ruby_cmd = string.format([[
                     ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
@@ -2245,6 +2321,7 @@ function action_switch_oc_setting()
                             }
                         else
                             config['sniffer']['enable'] = true
+							config['sniffer']['parse-pure-ip'] = true
                             unless config['sniffer']['sniff']
                                 config['sniffer']['sniff'] = {
                                     'QUIC' => { 'ports' => [443] },
@@ -2279,24 +2356,7 @@ function action_switch_oc_setting()
                 ]], runtime_config_path, runtime_config_path, runtime_config_path)
             end
             
-            local ruby_result = luci.sys.call(ruby_cmd)
-            if ruby_result ~= 0 then
-                luci.http.status(500, "Failed to modify config file")
-                return
-            end
-            
-            local daip = daip()
-            local dase = dase() or ""
-            local cn_port = cn_port()
-            if not daip or not cn_port then 
-                luci.http.status(500, "Switch Failed") 
-                return 
-            end
-            
-            info = luci.sys.exec(string.format('curl -sL -m 10 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPUT http://"%s":"%s"/configs?force=true -d \'{"path":"%s"}\' 2>&1', dase, daip, cn_port, runtime_config_path))
-            
-            if info ~= "" then
-                luci.http.status(500, "Switch Failed")
+            if not update_runtime_config(ruby_cmd) then
                 return
             end
         end
@@ -2306,15 +2366,7 @@ function action_switch_oc_setting()
         uci:commit("openclash")
         
         if is_running() then
-            local config_path = uci:get("openclash", "config", "config_path")
-            if not config_path then
-                luci.http.status(500, "No config path found")
-                return
-            end
-            
-            local config_filename = fs.basename(config_path)
-            local runtime_config_path = "/etc/openclash/" .. config_filename
-            
+            local runtime_config_path = get_runtime_config_path()
             local ruby_cmd = string.format([[
                 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                 begin
@@ -2332,24 +2384,7 @@ function action_switch_oc_setting()
                 "
             ]], runtime_config_path, runtime_config_path, value == "1" and "true" or "false", runtime_config_path)
             
-            local ruby_result = luci.sys.call(ruby_cmd)
-            if ruby_result ~= 0 then
-                luci.http.status(500, "Failed to modify config file")
-                return
-            end
-            
-            local daip = daip()
-            local dase = dase() or ""
-            local cn_port = cn_port()
-            if not daip or not cn_port then 
-                luci.http.status(500, "Switch Failed") 
-                return 
-            end
-            
-            info = luci.sys.exec(string.format('curl -sL -m 10 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPUT http://"%s":"%s"/configs?force=true -d \'{"path":"%s"}\' 2>&1', dase, daip, cn_port, runtime_config_path))
-            
-            if info ~= "" then
-                luci.http.status(500, "Switch Failed")
+            if not update_runtime_config(ruby_cmd) then
                 return
             end
         end
@@ -2371,7 +2406,6 @@ function action_switch_oc_setting()
     luci.http.write_json({
         status = "success",
         setting = setting,
-        value = value,
-        info = info
+        value = value
     })
 end
