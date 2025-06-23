@@ -1722,10 +1722,15 @@
                         var translatedWarning = '<%:' + warningMsg + '%>';
                         alert('<%:Warning:%> ' + translatedWarning + '\n\n<%:PAC file URL:%> ' + data.pac_url);
                     } else {
-                        copyToClipboard(data.pac_url, '<%:PAC file URL copied:%> ');
+                        var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+                        if (isSafari) {
+                            prompt('<%:PAC file URL generated, please copy:%>', data.pac_url);
+                        } else {
+                            copyToClipboard(data.pac_url, '<%:PAC file URL copied:%> ');
+                        }
                     }
                 } else if (data.error) {
-                    alert('<%:PAC file generation failed:%> ' + data.error);
+                    alert('<%:PAC file generation failed%>: ' + data.error);
                 } else {
                     alert('<%:PAC file generation failed%>');
                 }
