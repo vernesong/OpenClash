@@ -340,6 +340,10 @@ fake_ip_filter_mode = '${34}'
 routing_mark_setting = '${35}'
 quic_gso = '${36}' == '1'
 cors_origin = '${37}'
+geo_custom_url = '${38}'
+geoip_custom_url = '${39}'
+geosite_custom_url = '${40}'
+geoasn_custom_url = '${41}'
 
 enable_custom_dns = '$enable_custom_dns' == '1'
 append_wan_dns = '$append_wan_dns' == '1'
@@ -385,6 +389,20 @@ threads << Thread.new do
       if cors_origin != '0'
          (Value['external-controller-cors'] ||= {})['allow-origins'] = [cors_origin]
          Value['external-controller-cors']['allow-private-network'] = true
+      end
+
+      Value['geox-url'] ||= {}
+      if geo_custom_url != '0'
+         Value['geox-url']['mmdb'] = geo_custom_url
+      end
+      if geoip_custom_url != '0'
+         Value['geox-url']['geoip'] = geoip_custom_url
+      end
+      if geosite_custom_url != '0'
+         Value['geox-url']['geosite'] = geosite_custom_url
+      end
+      if geoasn_custom_url != '0'
+         Value['geox-url']['asn'] = geoasn_custom_url
       end
 
       Value['dns']['enable'] = true
@@ -439,7 +457,6 @@ threads << Thread.new do
          Value.delete('routing-mark')
       end
       Value.delete('auto-redir')
-      Value['geo-auto-update'] = false if Value.key?('geo-auto-update')
 
    rescue Exception => e
       YAML.LOG('Error: Set General Failed,【%s】' % [e.message])

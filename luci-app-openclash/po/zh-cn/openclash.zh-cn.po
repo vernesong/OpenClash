@@ -1239,14 +1239,8 @@ msgstr "Metacubexd 面板"
 msgid "zashboard Control Panel"
 msgstr "zashboard 面板"
 
-msgid "Control Panel Login"
-msgstr "控制面板登录地址"
-
-msgid "Control Panel Login Port"
-msgstr "控制面板登录端口"
-
-msgid "Control Panel Login Secret"
-msgstr "控制面板登录密钥"
+msgid "Control Panel"
+msgstr "控制面板"
 
 msgid "Dashboard Control Panel"
 msgstr "Dashboard 控制面板"
@@ -1748,6 +1742,9 @@ msgstr "错误："
 
 msgid "Tip:"
 msgstr "提示："
+
+msgid "Warning:"
+msgstr "警告："
 
 msgid "Rule File Format Validation Failed, Please Try Again Later..."
 msgstr "规则文件格式校验失败，请稍后再试..."
@@ -2988,9 +2985,6 @@ msgstr "强制 HTTP/3"
 msgid "Force HTTP/3 to connect"
 msgstr "强制使用 HTTP/3 进行连接"
 
-msgid "Control Panel"
-msgstr "控制面板"
-
 msgid "Unzip Error!"
 msgstr "解压失败！"
 
@@ -3600,8 +3594,8 @@ msgstr "获取代理信息失败，请稍后再试"
 msgid "Mix proxy address copied:"
 msgstr "混合代理地址已复制："
 
-msgid "Mix Proxy Address"
-msgstr "混合代理地址"
+msgid "Mix Proxy"
+msgstr "混合代理"
 
 msgid "Area Bypass"
 msgstr "区域绕过"
@@ -3656,3 +3650,30 @@ msgstr "绕过海外"
 
 msgid "On"
 msgstr "启用"
+
+msgid "Get PAC Config"
+msgstr "获取 PAC 配置"
+
+msgid "PAC file URL copied:"
+msgstr "PAC 文件地址已复制："
+
+msgid "PAC file URL:"
+msgstr "PAC 文件地址："
+
+msgid "PAC file generation failed:"
+msgstr "PAC 文件生成失败：未配置混合代理认证信息"
+
+msgid "PAC file generation failed"
+msgstr "PAC 文件生成失败"
+
+msgid "Proxy service not available, please try again later"
+msgstr "代理服务不可用，请稍后再试"
+
+msgid "No authentication configured, please be aware of the risk of information leakage!"
+msgstr "未设置代理认证信息，请注意信息泄露风险！"
+
+msgid "Other"
+msgstr "其他"
+
+msgid "Apply"
+msgstr "应用"

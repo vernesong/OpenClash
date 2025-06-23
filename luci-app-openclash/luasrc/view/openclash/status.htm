@@ -1,32 +1,129 @@
 <head>
 <style>
-.arrow-down{
-    display:inline-block;
-    width:0px;
-    height:0px;
-    border-style:solid;
-    border-width:10px;
+.arrow-down {
+    display: inline-block;
+    width: 0px;
+    height: 0px;
+    border-style: solid;
+    border-width: 10px;
     border-color: rgb(65 122 180) transparent transparent transparent;
 }
 
-.radio-button{
+.status-table {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: collapse;
+}
+
+.status-table td {
+    padding: 4px 2px;
+    vertical-align: middle;
+    word-wrap: break-word;
+    overflow: hidden;
+}
+
+.status-row {
+    white-space: nowrap;
+    min-height: 40px;
+}
+
+.status-row td {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.no-wrap {
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.label-container {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    width: 100%;
+    min-width: 0;
+}
+
+.label-text {
+    flex-shrink: 0;
+    font-size: clamp(11px, 1.8vw, 14px);
+    margin-right: 5px;
+}
+
+.content-wrapper {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    flex: 1;
+    min-width: 0;
+}
+
+.status-text {
+    flex-shrink: 0;
+}
+
+.action-icons {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 3px;
+    position: relative;
+}
+
+.action-icons img {
+    flex-shrink: 0;
+    vertical-align: middle;
+    position: relative;
+}
+
+.mix-proxy-cell {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    justify-content: flex-start;
+}
+
+.running-mode-cell {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: flex-start;
+}
+
+.running-mode-cell .radio-button {
+    flex-shrink: 0;
+}
+
+.radio-button {
     display: none;
     white-space: nowrap;
     background-color: #d1d1d1;
     border-radius: 4px;
+    width: auto;
+    max-width: 100%;
+    gap: 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .radio-button input[type="radio"] {
     display: none;
 }
-   
+
 .radio-button label {
     display: inline-block;
-    font-size: 14px;
+    font-size: clamp(10px, 2vw, 14px);
     padding: 4px 5px;
     color: white;
     cursor: pointer;
     border-radius: 4px;
+    padding: clamp(2px, 1vw, 4px) clamp(3px, 1.2vw, 5px);
+    min-width: fit-content;
+    text-align: center;
+    flex-shrink: 0;
 }
 
 .radio-button input[type="radio"]:checked+label {
@@ -58,20 +155,6 @@
     z-index: 1;
 }
 
-#megaphone {
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%) scaleX(-1);
-    z-index: 2;
-    filter: brightness(0) invert(1);
-}
-
-#copy_address, #copy_secret, #copy_mix_address, #copy_mix_secret {
-    position: relative;
-    top: 3px;
-}
-
 .megaphone-container {
     position: absolute;
     left: 0;
@@ -84,12 +167,17 @@
     border-bottom-left-radius: 4px;
 }
 
-:root[data-darkmode="true"] #copy_address,
-:root[data-darkmode="true"] #copy_secret,
-:root[data-darkmode="true"] #copy_mix_address,
-:root[data-darkmode="true"] #copy_mix_secret {
-    -webkit-filter: invert(1);
-    filter: invert(1);
+#megaphone {
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%) scaleX(-1);
+    z-index: 2;
+    filter: brightness(0) invert(1);
+}
+
+#copy_address, #copy_secret, #copy_mix_address, #copy_mix_secret, #copy_pac_config {
+    position: relative;
 }
 
 .preload-image {
@@ -98,6 +186,144 @@
     height: 1px;
     opacity: 0;
     pointer-events: none;
+}
+
+:root[data-darkmode="true"] #copy_address,
+:root[data-darkmode="true"] #copy_secret,
+:root[data-darkmode="true"] #copy_mix_address,
+:root[data-darkmode="true"] #copy_mix_secret,
+:root[data-darkmode="true"] #copy_pac_config {
+    -webkit-filter: invert(1);
+    filter: invert(1);
+}
+
+@media screen and (min-width: 1200px) {
+    .radio-button label {
+        font-size: 14px;
+        padding: 4px 6px;
+    }
+}
+
+@media screen and (max-width: 1200px) {
+    .status-table td {
+        font-size: 12px;
+        padding: 3px 1px;
+    }
+    
+    .label-text {
+        font-size: 11px;
+    }
+    
+    .radio-button {
+        display: inline-block;
+        white-space: nowrap;
+        background-color: #d1d1d1;
+        border-radius: 4px;
+        width: auto;
+        max-width: 100%;
+        gap: 2px;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+    
+    .radio-button label {
+        font-size: 10px;
+        padding: 2px 3px;
+        min-width: 25px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .status-table {
+        font-size: 11px;
+    }
+    
+    .status-table td {
+        padding: 2px 1px;
+    }
+    
+    .label-text {
+        font-size: 10px;
+        margin-right: 3px;
+    }
+    
+    .content-wrapper {
+        gap: 2px;
+    }
+    
+    .radio-button {
+        display: inline-block;
+        white-space: nowrap;
+        background-color: #d1d1d1;
+        border-radius: 4px;
+        width: auto;
+        max-width: 100%;
+        gap: 2px;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: thin;
+        scrollbar-color: #1080c1 transparent;
+    }
+    
+    .radio-button::-webkit-scrollbar {
+        height: 4px;
+    }
+    
+    .radio-button::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .radio-button::-webkit-scrollbar-thumb {
+        background-color: #1080c1;
+        border-radius: 2px;
+    }
+    
+    .action-icons {
+        gap: 1px;
+        margin-left: 2px;
+    }
+    
+    .action-icons img {
+        height: 14px !important;
+    }
+    
+    .radio-button label {
+        font-size: 11px;
+        padding: 2px 3px;
+        min-width: 30px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .status-table {
+        font-size: 10px;
+    }
+    
+    .label-text {
+        font-size: 9px;
+    }
+    
+    .radio-button {
+        display: inline-block;
+        white-space: nowrap;
+        background-color: #d1d1d1;
+        border-radius: 4px;
+        width: auto;
+        max-width: 100%;
+        gap: 2px;
+        overflow-x: auto;
+        overflow-y: hidden;
+    }
+    
+    .action-icons img {
+        height: 12px !important;
+    }
+    
+    .radio-button label {
+        font-size: 10px;
+        padding: 2px 2px;
+        min-width: 25px;
+    }
 }
 </style>
 </head>
@@ -119,6 +345,7 @@
                 <img class="preload-image" src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="">
                 <img class="preload-image" src="/luci-static/resources/openclash/img/copy-link.svg" alt="">
                 <img class="preload-image" src="/luci-static/resources/openclash/img/password.svg" alt="">
+                <img class="preload-image" src="/luci-static/resources/openclash/img/globe-hemisphere-east.svg" alt="">
             </p>
       		<p id="_clashversion" style="margin: 10px 0; text-align: center">
                 <img src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onclick="return go_update()">
@@ -142,84 +369,109 @@
       			<b><%:Tip: after started, please wait patiently until the connection is normal%></b>
             </div>
         </td></tr>
-        <tr>
-            <td width="25%"><%:Main Program%></td>
-            <td  width="25%" align="left"><span id="_clash"><%:Collecting data...%></span><span id="_watchdog"></span></td>
-            <td width="25%"><%:Control Panel Login%></td>
-            <td width="25%" align="left">
-                <span id="_daip"><%:Collecting data...%></span><span id="_dapo"></span>
-                <img src="/luci-static/resources/openclash/img/copy-link.svg" height="16px" title="<%:Copy Address%>" alt="<%:Copy Address%>" id="copy_address" style="margin-left: 5px; cursor: pointer; display: none;" onclick="return copyAddress()" />
-                <img src="/luci-static/resources/openclash/img/password.svg" height="16px" title="<%:Copy Secret%>" alt="<%:Copy Secret%>" id="copy_secret" style="margin-left: 3px; cursor: pointer; display: none;" onclick="return copySecret()" />
+        <tr class="status-row">
+            <td width="25%" class="no-wrap"><%:Main Program%></td>
+            <td width="25%" align="left" class="no-wrap">
+                <span id="_clash"><%:Collecting data...%></span><span id="_watchdog"></span>
+            </td>
+            <td width="25%" class="no-wrap"><%:Control Panel%></td>
+            <td width="25%" align="left" class="no-wrap">
+                <div class="content-wrapper">
+                    <span id="_daip"><%:Collecting data...%></span><span id="_dapo"></span>
+                    <div class="action-icons">
+                        <img src="/luci-static/resources/openclash/img/copy-link.svg" height="16px" title="<%:Copy Address%>" alt="<%:Copy Address%>" id="copy_address" style="cursor: pointer; display: none;" onclick="return copyAddress()" />
+                        <img src="/luci-static/resources/openclash/img/password.svg" height="16px" title="<%:Copy Secret%>" alt="<%:Copy Secret%>" id="copy_secret" style="cursor: pointer; display: none;" onclick="return copySecret()" />
+                    </div>
+                </div>
             </td>
         </tr>
-        <tr>
-            <td width="20%"><%:Running Mode%></td>
-            <td  width="30%" align="left"><span id="_mode"><%:Collecting data...%></span><span id="radio-ru-mode" class="radio-button">
-                <input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/>
-                <label for="normal" id="run_normal"><%:Compat%></label>
-                <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/>
-                <label for="tun"><%:TUN%></label>
-                <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/>
-                <label for="mix"><%:Mix%></label>
-                </span></td>
-            <td width="25%"><%:Mix Proxy Address%></td>
+        <tr class="status-row">
+            <td width="20%" class="no-wrap"><%:Running Mode%></td>
+            <td width="30%" align="left">
+                <div class="running-mode-cell">
+                    <span id="_mode"><%:Collecting data...%></span>
+                    <span id="radio-ru-mode" class="radio-button">
+                        <input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/>
+                        <label for="normal" id="run_normal"><%:Compat%></label>
+                        <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/>
+                        <label for="tun"><%:TUN%></label>
+                        <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/>
+                        <label for="mix"><%:Mix%></label>
+                    </span>
+                </div>
+            </td>
+            <td width="25%" class="no-wrap"><%:Mix Proxy%></td>
             <td width="25%" align="left">
-                <span id="_mix_proxy"><%:Collecting data...%></span>
-                <img src="/luci-static/resources/openclash/img/copy-link.svg" height="16px" title="<%:Copy Address%>" alt="<%:Copy Address%>" id="copy_mix_address" style="margin-left: 5px; cursor: pointer; display: none;" onclick="return copyMixAddress()" />
-                <img src="/luci-static/resources/openclash/img/password.svg" height="16px" title="<%:Copy Auth Info%>" alt="<%:Copy Auth Info%>" id="copy_mix_secret" style="margin-left: 3px; cursor: pointer; display: none;" onclick="return copyMixAuth()" />
+                <div class="mix-proxy-cell">
+                    <span id="_mix_proxy"><%:Collecting data...%></span>
+                    <div class="action-icons">
+                        <img src="/luci-static/resources/openclash/img/copy-link.svg" height="16px" title="<%:Copy Address%>" alt="<%:Copy Address%>" id="copy_mix_address" style="cursor: pointer; display: none;" onclick="return copyMixAddress()" />
+                        <img src="/luci-static/resources/openclash/img/globe-hemisphere-east.svg" height="16px" title="<%:Get PAC Config%>" alt="<%:Get PAC Config%>" id="copy_pac_config" style="cursor: pointer; display: none;" onclick="return generatePacConfig()" />
+                        <img src="/luci-static/resources/openclash/img/password.svg" height="16px" title="<%:Copy Auth Info%>" alt="<%:Copy Auth Info%>" id="copy_mix_secret" style="cursor: pointer; display: none;" onclick="return copyMixAuth()" />
+                    </div>
+                </div>
             </td>
         </tr>
-        <tr><td width="25%">
-                <span style="margin-right: 10px;"><%:Proxy Mode%></span>
-                <span>
-                    <span id="radio-de"><%:Collecting data...%></span>
-                    <span id="radio-mode" class="radio-button">
-                        <input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/>
-                        <label for="rule"><%:Rule%></label>
-                        <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/>
-                        <label for="global"><%:Global%></label>
-                        <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/>
-                        <label for="direct"><%:Direct%></label>
-                    </span>
-                </span>
+        <tr class="status-row">
+            <td width="25%">
+                <div class="label-container">
+                    <span class="label-text"><%:Proxy Mode%></span>
+                    <div class="content-wrapper">
+                        <span id="radio-de"><%:Collecting data...%></span>
+                        <span id="radio-mode" class="radio-button">
+                            <input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/>
+                            <label for="rule"><%:Rule%></label>
+                            <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/>
+                            <label for="global"><%:Global%></label>
+                            <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/>
+                            <label for="direct"><%:Direct%></label>
+                        </span>
+                    </div>
+                </div>
             </td>
             <td width="25%">
-                <span style="margin-right: 10px;"><%:Area Bypass%></span>
-                <span>
-                    <span id="oc-setting-oversea-de"><%:Collecting data...%></span>
-                    <span id="oc-setting-oversea" class="radio-button">
-                    <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/>
-                    <label for="oc_setting_oversea_1"><%:Mainland%></label>
-                    <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/>
-                    <label for="oc_setting_oversea_2"><%:Oversea%></label>
-                    <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/>
-                    <label for="oc_setting_oversea_0"><%:Off%></label>
-                    </span>
-                </span>
+                <div class="label-container">
+                    <span class="label-text"><%:Area Bypass%></span>
+                    <div class="content-wrapper">
+                        <span id="oc-setting-oversea-de"><%:Collecting data...%></span>
+                        <span id="oc-setting-oversea" class="radio-button">
+                            <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/>
+                            <label for="oc_setting_oversea_1"><%:Mainland%></label>
+                            <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/>
+                            <label for="oc_setting_oversea_2"><%:Oversea%></label>
+                            <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/>
+                            <label for="oc_setting_oversea_0"><%:Off%></label>
+                        </span>
+                    </div>
+                </div>
             </td>
             <td width="25%">
-                <span style="margin-right: 10px;"><%:Sniffer%></span>
-                <span>
-                    <span id="dns-setting-sniffer-de"><%:Collecting data...%></span>
-                    <span id="dns-setting-sniffer" class="radio-button">
-                    <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/>
-                    <label for="meta_sniffer_on"><%:On%></label>
-                    <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/>
-                    <label for="meta_sniffer_off"><%:Off%></label>
-                    </span>
-                </span>
+                <div class="label-container">
+                    <span class="label-text"><%:Sniffer%></span>
+                    <div class="content-wrapper">
+                        <span id="dns-setting-sniffer-de"><%:Collecting data...%></span>
+                        <span id="dns-setting-sniffer" class="radio-button">
+                            <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/>
+                            <label for="meta_sniffer_on"><%:On%></label>
+                            <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/>
+                            <label for="meta_sniffer_off"><%:Off%></label>
+                        </span>
+                    </div>
+                </div>
             </td>
             <td width="25%">
-                <span style="margin-right: 10px;"><%:DNS Proxy%></span>
-                <span>
-                    <span id="dns-setting-respect-de"><%:Collecting data...%></span>
-                    <span id="dns-setting-respect" class="radio-button">
-                    <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/>
-                    <label for="respect_rules_on"><%:On%></label>
-                    <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/>
-                    <label for="respect_rules_off"><%:Off%></label>
-                    </span>
-                </span>
+                <div class="label-container">
+                    <span class="label-text"><%:DNS Proxy%></span>
+                    <div class="content-wrapper">
+                        <span id="dns-setting-respect-de"><%:Collecting data...%></span>
+                        <span id="dns-setting-respect" class="radio-button">
+                            <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/>
+                            <label for="respect_rules_on"><%:On%></label>
+                            <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/>
+                            <label for="respect_rules_off"><%:Off%></label>
+                        </span>
+                    </div>
+                </div>
             </td>
         </tr>
         <tr>
@@ -372,6 +624,7 @@
         copy_address: document.getElementById('copy_address'),
         copy_mix_address: document.getElementById('copy_mix_address'),
         copy_mix_secret: document.getElementById('copy_mix_secret'),
+        copy_pac_config: document.getElementById('copy_pac_config'),
         mix_proxy: document.getElementById('_mix_proxy'),
         dns_setting_sniffer_de: document.getElementById('dns-setting-sniffer-de'),
         dns_setting_respect_de: document.getElementById('dns-setting-respect-de'),
@@ -629,6 +882,7 @@
                 DOMCache.copy_address.style.display = "inline";
                 DOMCache.copy_mix_address.style.display = "inline";
                 DOMCache.copy_mix_secret.style.display = "inline";
+                DOMCache.copy_pac_config.style.display = "inline";
             } else {
                 StateManager.cached_proxy_info = null;
                 DOMCache.mix_proxy.innerHTML = "<b style=color:red><%:Not Running%></b>";
@@ -636,6 +890,7 @@
                 DOMCache.copy_address.style.display = "none";
                 DOMCache.copy_mix_address.style.display = "none";
                 DOMCache.copy_mix_secret.style.display = "none";
+                DOMCache.copy_pac_config.style.display = "none";
             }
             
             // WebSocket连接管理
@@ -1440,6 +1695,43 @@
                 alert('<%:Respect Rules setting failed%>');
             }
         });
+        return false;
+    }
+
+    function generatePacConfig() {
+        if (StateManager.current_status.clash && StateManager.current_status.daip) {
+            var currentUrl = {
+                protocol: window.location.protocol,
+                hostname: window.location.hostname,
+                host: window.location.host,
+                port: window.location.port,
+                href: window.location.href
+            };
+            
+            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "generate_pac")%>', {
+                client_protocol: currentUrl.protocol.replace(':', ''),
+                client_hostname: currentUrl.hostname,
+                client_host: currentUrl.host,
+                client_port: currentUrl.port || '',
+                client_href: currentUrl.href
+            }, function(x, data) {
+                if (x && x.status == 200 && data.pac_url) {
+                    if (data.error && data.error.indexOf("warning:") === 0) {
+                        var warningMsg = data.error.replace("warning: ", "");
+                        var translatedWarning = '<%:' + warningMsg + '%>';
+                        alert('<%:Warning:%> ' + translatedWarning + '\n\n<%:PAC file URL:%> ' + data.pac_url);
+                    } else {
+                        copyToClipboard(data.pac_url, '<%:PAC file URL copied:%> ');
+                    }
+                } else if (data.error) {
+                    alert('<%:PAC file generation failed:%> ' + data.error);
+                } else {
+                    alert('<%:PAC file generation failed%>');
+                }
+            });
+        } else {
+            alert('<%:Proxy service not available, please try again later%>');
+        }
         return false;
     }
 
