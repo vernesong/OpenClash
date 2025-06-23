@@ -589,8 +589,36 @@ yml_other_set()
                   
                   next unless rules_array;
                   
-                  valid_rules = rules_array.select{|x|
-                     RULE_GROUP = ((x.split(',')[-1] =~ /^no-resolve$|^src$/) ? x.split(',')[-2] : x.split(',')[-1]).strip;
+                  ipv4_regex = /^(\d{1,3}\.){3}\d{1,3}$/;
+                  ipv6_regex = /^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:)|fe80:(:[0-9a-fA-F]{0,4}){0,4}%[0-9a-zA-Z]+|::(ffff(:0{1,4})?:)?((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9])|([0-9a-fA-F]{1,4}:){1,4}:((25[0-5]|(2[0-4]|1?[0-9])?[0-9])\.){3}(25[0-5]|(2[0-4]|1?[0-9])?[0-9]))$/;
+                  cidr_regex = /\/\d+$/;
+                  rule_suffix_regex = /^no-resolve$|^src$/;
+                  
+                  transformed_rules = rules_array.map{|x|
+                     parts = x.split(',');
+                     if parts.length >= 2 then
+                        ip_part = parts[1].strip;
+                        if ip_part !~ cidr_regex then
+                           # IPv4
+                           if ip_part =~ ipv4_regex then
+                              octets = ip_part.split('.');
+                              valid_ipv4 = octets.all? { |octet| octet.to_i >= 0 && octet.to_i <= 255 };
+                              if valid_ipv4 then
+                                 parts[1] = ip_part + '/32';
+                                 x = parts.join(',');
+                              end;
+                           # IPv6
+                           elsif ip_part =~ ipv6_regex then
+                              parts[1] = ip_part + '/128';
+                              x = parts.join(',');
+                           end;
+                        end;
+                     end;
+                     x;
+                  };
+                  
+                  valid_rules = transformed_rules.select{|x|
+                     RULE_GROUP = ((x.split(',')[-1] =~ rule_suffix_regex) ? x.split(',')[-2] : x.split(',')[-1]).strip;
                      if CONFIG_GROUP.include?(RULE_GROUP) then
                         true;
                      else
