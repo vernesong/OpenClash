@@ -1,50 +1,84 @@
 <%+cbi/valueheader%>
 <style>
+.sub_div {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+    width: calc(100% - 24px);
+    box-sizing: border-box;
+    margin: 0 12px;
+}
+
+.sub_div > span:first-child {
+    flex: 1;
+    min-width: 0;
+}
+
 .sub_tab{
-	display: inline-block;
-	white-space: nowrap;
-	font-size: 12px;
-	margin: 0 auto;
-	opacity: 0;
-	vertical-align: middle;
+    display: block;
+    white-space: nowrap;
+    font-size: 12px;
+    margin: 0;
+    opacity: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .sub_tab_show{
-	display: inline-block;
-	white-space: nowrap;
-	font-size: 12px;
-	margin: 0 auto;
-	-webkit-transition: all 1.5s;
-	-moz-transition: all 1.5s;
-	-ms-transition: all 1.5s;
-	-o-transition: all 1.5s;
-	transition: all 1s;
-	opacity: 1;
-	vertical-align: middle;
+    display: block;
+    white-space: nowrap;
+    font-size: 12px;
+    margin: 0;
+    -webkit-transition: all 1s;
+    -moz-transition: all 1s;
+    -ms-transition: all 1s;
+    -o-transition: all 1s;
+    transition: all 1s;
+    opacity: 1;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
 }
 
 .sub_setting{
     display: inline-block;
     white-space: nowrap;
-    margin: 0 auto;
+    margin: 0;
     opacity: 1;
     vertical-align: middle;
-    line-height: 0; /* 消除行高影响 */
+    line-height: 0;
+    flex-shrink: 0;
+    cursor: pointer;
 }
 
 .sub_setting img {
-    vertical-align: middle; /* 确保图标垂直居中 */
+    vertical-align: middle;
     display: inline-block;
+    transition: opacity 0.3s ease;
 }
 
-/* 日间模式样式 */
+.sub_setting:hover img {
+    opacity: 0.7;
+}
+
 .text_show{
     color: #333333;
+    line-height: 1.2;
 }
 
 .progress_bar_bg {
     border: 1px solid #999999;
     background-color: #f5f5f5;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 250px;
+    box-sizing: border-box;
+    border-radius: 6px;
+    height: 36px;
 }
 
 .progress_bar_high {
@@ -59,7 +93,6 @@
     background-color: #ffb9b9;
 }
 
-/* 夜间模式样式 */
 :root[data-darkmode="true"] #icon_wrench {
     -webkit-filter: invert(1);
     filter: invert(1);
@@ -72,6 +105,7 @@
 
 :root[data-darkmode="true"] .text_show {
     color: #e0e0e0;
+    line-height: 1.2;
 }
 
 :root[data-darkmode="true"] .progress_bar_bg {
@@ -91,6 +125,88 @@
     background-color: #cc6262;
 }
 
+@media (max-width: 1024px) {
+    .sub_tab, .sub_tab_show {
+        font-size: 11px;
+    }
+    
+    .progress_bar_bg {
+        min-width: 220px;
+    }
+    
+    .sub_div {
+        gap: 6px;
+        width: calc(100% - 20px);
+        margin: 0 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sub_tab, .sub_tab_show {
+        font-size: 10px;
+    }
+    
+    .progress_bar_bg {
+        min-width: 200px;
+    }
+    
+    .sub_setting img {
+        height: 18px !important;
+    }
+    
+    .sub_div {
+        gap: 4px;
+        width: calc(100% - 16px);
+        margin: 0 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sub_tab, .sub_tab_show {
+        font-size: 9px;
+    }
+    
+    .progress_bar_bg {
+        min-width: 180px !important;
+    }
+    
+    .sub_setting img {
+        height: 16px !important;
+    }
+    
+    .sub_div {
+        gap: 2px;
+        width: calc(100% - 12px);
+        margin: 0 6px;
+    }
+}
+
+@media (max-width: 320px) {
+    .sub_tab, .sub_tab_show {
+        font-size: 8px;
+    }
+    
+    .progress_bar_bg {
+        min-width: 160px !important;
+    }
+    
+    .sub_setting img {
+        height: 14px !important;
+    }
+    
+    .sub_div {
+        width: calc(100% - 8px);
+        margin: 0 4px;
+    }
+}
+
+.sub_div * {
+    flex-shrink: 0;
+}
+
+.sub_div > span:first-child {
+    flex-shrink: 1;
+}
 </style>
 
 <%
@@ -99,7 +215,16 @@
 	local filename = fs.filename(val)
 	local idname = math.random(1000)..(string.match(filename, "[%w_]+") or "")
 %>
-<div class="sub_div"><span id='<%=idname%>' class="sub_tab"></span>&nbsp;&nbsp;&nbsp;<span class="sub_setting"><img id="icon_arrow" src='/luci-static/resources/openclash/img/arrow-clockwise-light.svg' height="20px" title='<%:Refresh%>' alt='<%:Refresh%>' onclick='return sub_info_refresh_<%=idname%>(this)'></span>&nbsp;<span class="sub_setting"><img id="icon_wrench" src='/luci-static/resources/openclash/img/wrench-light.svg' height="20px" title='<%:Specify URL%>' alt='<%:Specify URL%>' onclick='return set_subinfo_url_<%=idname%>(this,"<%=filename%>")'></span></div>
+
+<div class="sub_div">
+    <span id='<%=idname%>' class="sub_tab"></span>
+    <span class="sub_setting">
+        <img id="icon_arrow" src='/luci-static/resources/openclash/img/arrow-clockwise-light.svg' height="20px" title='<%:Refresh%>' alt='<%:Refresh%>' onclick='return sub_info_refresh_<%=idname%>(this)'>
+    </span>
+    <span class="sub_setting">
+        <img id="icon_wrench" src='/luci-static/resources/openclash/img/wrench-light.svg' height="20px" title='<%:Specify URL%>' alt='<%:Specify URL%>' onclick='return set_subinfo_url_<%=idname%>(this,"<%=filename%>")'>
+    </span>
+</div>
 
 <script type="text/javascript">//<![CDATA[
 
@@ -138,20 +263,39 @@ if (isDarkBackground(document.body)) {
 };
 
 function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
-		return String.format(
-			'<div class="progress_bar_bg" style="width:250px; max-width:500px; position:relative; border-radius: 6px">' +
-			(pc >= 50 ? '<div class="progress_bar_high" style="width:%d%%; height:36px; border-radius: 6px">' : 
-			(pc < 50 && pc >= 20 ? '<div class="progress_bar_medium" style="width:%d%%; height:36px; border-radius: 6px">' : 
-			'<div class="progress_bar_low" style="width:%d%%; height:36px; border-radius: 6px">')) +
-			'<div style="position:absolute; left:0;' + (tr == "null" ? 'top:12px;' : 'top:0px;') + 'text-align:center; width:100%%">' +
-			'<small class="text_show">%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') + 
-			(tr == "null" ? '<div style="visibility: hidden;">' : '<div style="visibility: visible;">') + 
-			'%s (<%:Remaining%> %s <%:days%>)</small>' +
-			'</div>' +
-			'</div>' +
-			'</div>', pc, v, m, pc, t, tr
-		);
-	};
+    var screenWidth = window.innerWidth || document.documentElement.clientWidth;
+    var fontSize = '12px';
+    var minWidth = '250px';
+    
+    if (screenWidth <= 320) {
+        fontSize = '8px';
+        minWidth = '160px';
+    } else if (screenWidth <= 480) {
+        fontSize = '9px';
+        minWidth = '180px';
+    } else if (screenWidth <= 768) {
+        fontSize = '10px';
+        minWidth = '200px';
+    } else if (screenWidth <= 1024) {
+        fontSize = '11px';
+        minWidth = '220px';
+    }
+    
+    return String.format(
+        '<div class="progress_bar_bg" style="position:relative; border-radius: 6px; min-width: %s; display: flex; align-items: center; justify-content: center;">' +
+        (pc >= 50 ? '<div class="progress_bar_high" style="position:absolute; top:0; left:0; width:%d%%; height:100%%; border-radius: 6px; z-index:1;">' : 
+        (pc < 50 && pc >= 20 ? '<div class="progress_bar_medium" style="position:absolute; top:0; left:0; width:%d%%; height:100%%; border-radius: 6px; z-index:1;">' : 
+        '<div class="progress_bar_low" style="position:absolute; top:0; left:0; width:%d%%; height:100%%; border-radius: 6px; z-index:1;">')) +
+        '</div>' +
+        '<div style="position:relative; z-index:2; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; width:100%%; height:100%%; padding:0 4px; box-sizing:border-box;">' +
+        '<small class="text_show" style="font-size:%s; line-height:1.2; margin:0;">%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') + '</small>' +
+        (tr == "null" ? '<small class="text_show" style="font-size:%s; line-height:1.2; margin:0; visibility:hidden;">' : '<small class="text_show" style="font-size:%s; line-height:1.2; margin:0;">') + 
+        '%s (<%:Remaining%> %s <%:days%>)</small>' +
+        '</div>' +
+        '</div>', 
+        minWidth, pc, fontSize, v, m, pc, fontSize, t, tr
+    );
+};
 
 function sub_info_refresh_<%=idname%>()
 {

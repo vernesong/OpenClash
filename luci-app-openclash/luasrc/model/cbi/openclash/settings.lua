@@ -837,12 +837,14 @@ o:value("5", translate("Every Friday"))
 o:value("6", translate("Every Saturday"))
 o:value("0", translate("Every Sunday"))
 o.default = "1"
+o:depends("geo_auto_update", "1")
 
 o = s:taboption("geo_update", ListValue, "geo_update_day_time", translate("Update time (every day)"))
 for t = 0,23 do
 o:value(t, t..":00")
 end
 o.default = "0"
+o:depends("geo_auto_update", "1")
 
 o = s:taboption("geo_update", Value, "geo_custom_url")
 o.title = translate("Custom GeoIP MMDB URL")
@@ -852,6 +854,7 @@ o:value("https://testingcf.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/li
 o:value("https://testingcf.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/Country.mmdb", translate("Alecthw-Version")..translate("(All Info mmdb)"))
 o:value("https://testingcf.jsdelivr.net/gh/Hackl0us/GeoIP2-CN@release/Country.mmdb", translate("Hackl0us-Version")..translate("(Only CN)"))
 o.default = "https://testingcf.jsdelivr.net/gh/alecthw/mmdb_china_ip_list@release/lite/Country.mmdb"
+o:depends("geo_auto_update", "1")
 
 o = s:taboption("geo_update", Button, translate("GEOIP Update")) 
 o.title = translate("Update GeoIP MMDB")
@@ -863,6 +866,7 @@ o.write = function()
   SYS.call("/usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
+o:depends("geo_auto_update", "1")
 
 o = s:taboption("geo_update", Flag, "geoip_auto_update", font_red..bold_on..translate("Auto Update GeoIP Dat")..bold_off..font_off)
 o.default = 0
