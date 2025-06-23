@@ -755,7 +755,7 @@
                 },
                 {
                     element: DOMCache.watchdog,
-                    content: status.watchdog ? '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:green><%:Running%></b>' : '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:red><%:Not Running%></b>'
+                    content: status.watchdog ? '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:green><%:Running%></b>' : ''
                 }
             ];
 
@@ -860,6 +860,7 @@
                 DOMCache.dns_setting_respect_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
                 DOMCache.oc_setting_oversea_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
                 DOMCache.daip.innerHTML = "<b style=color:red><%:Not Running%></b>";
+                DOMCache.dapo.innerHTML = "";
             }
 
             StateManager.current_status = status;
