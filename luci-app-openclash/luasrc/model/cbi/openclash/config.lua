@@ -237,134 +237,116 @@ uci:commit("openclash")
 HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
 end
 
-btned=tb:option(Button,"edit",translate("Edit"))
-btned.render=function(o,t,a)
-o.inputstyle="apply"
-Button.render(o,t,a)
-end
-btned.write=function(a,t)
-	local file_path = "etc/openclash/config/" .. fs.basename(e[t].name)
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "config", "%s") %file_path)
-end
-
-btncp=tb:option(Button,"copy",translate("Copy Config"))
-btncp.template="openclash/other_button"
-btncp.render=function(o,t,a)
-if not e[t] then return false end
-if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
-a.display=""
-else
-a.display="none"
-end
-o.inputstyle="apply"
-Button.render(o,t,a)
-end
-btncp.write=function(a,t)
-	local num = 1
-	while true do
-		num = num + 1
-		if not fs.isfile("/etc/openclash/config/"..fs.filename(e[t].name).."("..num..")"..".yaml") then
-			fs.copy("/etc/openclash/config/"..e[t].name, "/etc/openclash/config/"..fs.filename(e[t].name).."("..num..")"..".yaml")
-			break
-		end
-	end
-	HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
-end
-
 btnrn=tb:option(DummyValue,"/etc/openclash/config/",translate("Rename"))
 btnrn.template="openclash/input_rename"
 btnrn.rawhtml = true
 btnrn.render=function(c,t,a)
-c.value = e[t].name
-DummyValue.render(c,t,a)
+    if not e[t] then return end
+    c.value = e[t].name
+    DummyValue.render(c,t,a)
 end
 
-btndl = tb:option(Button,"download",translate("Download Config"))
-btndl.template="openclash/other_button"
-btndl.render=function(e,t,a)
-e.inputstyle="remove"
-Button.render(e,t,a)
-end
-btndl.write = function (a,t)
-	local sPath, sFile, fd, block
-	sPath = "/etc/openclash/config/"..e[t].name
-	sFile = NXFS.basename(sPath)
-	if fs.isdirectory(sPath) then
-		fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
-		sFile = sFile .. ".tar.gz"
-	else
-		fd = nixio.open(sPath, "r")
-	end
-	if not fd then
-		return
-	end
-	HTTP.header('Content-Disposition', 'attachment; filename="%s"' % {sFile})
-	HTTP.prepare_content("application/octet-stream")
-	while true do
-		block = fd:read(nixio.const.buffersize)
-		if (not block) or (#block ==0) then
-			break
-		else
-			HTTP.write(block)
-		end
-	end
-	fd:close()
-	HTTP.close()
+local actions = tb:option(ListValue, "actions", translate("Other"))
+actions.render = function(self, t, a)
+    if not e[t] then return end
+    self.keylist = {}
+    self.vallist = {}
+    -- Edit
+    table.insert(self.keylist, "edit")
+    table.insert(self.vallist, translate("Edit"))
+
+    -- Copy
+    if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+        table.insert(self.keylist, "copy")
+        table.insert(self.vallist, translate("Copy Config"))
+    end
+
+    -- Download
+    table.insert(self.keylist, "download")
+    table.insert(self.vallist, translate("Download Config"))
+
+    -- Download Running
+    if NXFS.access("/etc/openclash/"..e[t].name) then
+        table.insert(self.keylist, "download_run")
+        table.insert(self.vallist, translate("Download Running Config"))
+    end
+
+    -- Remove
+    table.insert(self.keylist, "remove")
+    table.insert(self.vallist, translate("Remove"))
+
+    ListValue.render(self, t, a)
 end
 
-btndlr = tb:option(Button,"download_run",translate("Download Running Config"))
-btndlr.template="openclash/other_button"
-btndlr.render=function(c,t,a)
-	if nixio.fs.access("/etc/openclash/"..e[t].name)  then
-		a.display=""
-	else
-		a.display="none"
-	end
-c.inputstyle="remove"
-Button.render(c,t,a)
-end
-btndlr.write = function (a,t)
-	local sPath, sFile, fd, block
-	sPath = "/etc/openclash/"..e[t].name
-	sFile = NXFS.basename(sPath)
-	if fs.isdirectory(sPath) then
-		fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
-		sFile = sFile .. ".tar.gz"
-	else
-		fd = nixio.open(sPath, "r")
-	end
-	if not fd then
-		return
-	end
-	HTTP.header('Content-Disposition', 'attachment; filename="%s"' % {sFile})
-	HTTP.prepare_content("application/octet-stream")
-	while true do
-		block = fd:read(nixio.const.buffersize)
-		if (not block) or (#block ==0) then
-			break
-		else
-			HTTP.write(block)
-		end
-	end
-	fd:close()
-	HTTP.close()
-end
+local btnapply = tb:option(Button, "apply", translate("Apply"))
+btnapply.inputstyle = "apply"
+btnapply.write = function(self, t)
+    if not e[t] then return end
+    local action = self.map:formvalue("cbid." .. self.map.config .. "." .. t .. ".actions")
 
-btnrm=tb:option(Button,"remove",translate("Remove"))
-btnrm.render=function(e,t,a)
-e.inputstyle="reset"
-Button.render(e,t,a)
-end
-btnrm.write=function(a,t)
-	fs.unlink("/tmp/Proxy_Group")
-	fs.unlink("/etc/openclash/backup/"..fs.basename(e[t].name))
-	fs.unlink("/etc/openclash/history/"..fs.filename(e[t].name))
-	fs.unlink("/etc/openclash/history/"..fs.filename(e[t].name)..".db")
-	fs.unlink("/etc/openclash/"..fs.basename(e[t].name))
-	local a=fs.unlink("/etc/openclash/config/"..fs.basename(e[t].name))
-	default_config_set(fs.basename(e[t].name))
-	if a then table.remove(e,t)end
-	HTTP.redirect(DISP.build_url("admin", "services", "openclash","config"))
+    if action == "edit" then
+        local file_path = "etc/openclash/config/" .. fs.basename(e[t].name)
+        HTTP.redirect(DISP.build_url("admin", "services", "openclash", "other-file-edit", "config", "%s") % file_path)
+    elseif action == "copy" then
+        local num = 1
+        while true do
+            num = num + 1
+            if not fs.isfile("/etc/openclash/config/"..fs.filename(e[t].name).."("..num..")"..".yaml") then
+                fs.copy("/etc/openclash/config/"..e[t].name, "/etc/openclash/config/"..fs.filename(e[t].name).."("..num..")"..".yaml")
+                break
+            end
+        end
+        HTTP.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "config"))
+    elseif action == "download" then
+        local sPath, sFile, fd, block
+        sPath = "/etc/openclash/config/"..e[t].name
+        sFile = NXFS.basename(sPath)
+        if fs.isdirectory(sPath) then
+            fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+            sFile = sFile .. ".tar.gz"
+        else
+            fd = nixio.open(sPath, "r")
+        end
+        if not fd then return end
+        HTTP.header('Content-Disposition', 'attachment; filename="%s"' % {sFile})
+        HTTP.prepare_content("application/octet-stream")
+        while true do
+            block = fd:read(nixio.const.buffersize)
+            if (not block) or (#block == 0) then break end
+            HTTP.write(block)
+        end
+        fd:close()
+        HTTP.close()
+    elseif action == "download_run" then
+        local sPath, sFile, fd, block
+        sPath = "/etc/openclash/"..e[t].name
+        sFile = NXFS.basename(sPath)
+        if fs.isdirectory(sPath) then
+            fd = io.popen('tar -C "%s" -cz .' % {sPath}, "r")
+            sFile = sFile .. ".tar.gz"
+        else
+            fd = nixio.open(sPath, "r")
+        end
+        if not fd then return end
+        HTTP.header('Content-Disposition', 'attachment; filename="%s"' % {sFile})
+        HTTP.prepare_content("application/octet-stream")
+        while true do
+            block = fd:read(nixio.const.buffersize)
+            if (not block) or (#block == 0) then break end
+            HTTP.write(block)
+        end
+        fd:close()
+        HTTP.close()
+    elseif action == "remove" then
+        fs.unlink("/tmp/Proxy_Group")
+        fs.unlink("/etc/openclash/backup/"..fs.basename(e[t].name))
+        fs.unlink("/etc/openclash/history/"..fs.filename(e[t].name)..".db")
+        fs.unlink("/etc/openclash/"..fs.basename(e[t].name))
+        local a=fs.unlink("/etc/openclash/config/"..fs.basename(e[t].name))
+        default_config_set(fs.basename(e[t].name))
+        if a then table.remove(e,t) end
+        HTTP.redirect(DISP.build_url("admin", "services", "openclash","config"))
+    end
 end
 
 p = SimpleForm("provider_file_manage",translate("Provider File Manage"))
