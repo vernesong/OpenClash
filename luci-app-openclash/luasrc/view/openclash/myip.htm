@@ -147,13 +147,12 @@
 
          #mode-icon, #eye-icon, #data-refresh-icon {
             vertical-align: bottom;
-            margin: 0 8px;
+            margin: 0 3px;
             cursor: pointer;
         }
         
         #mode-icon {
             position: relative;
-            top: -2px;
         }
 
         :root[data-darkmode="true"] #eye-icon {
@@ -180,7 +179,6 @@
         <div style="width: 48%">
             <p style="margin: 20px 0 20px 8%; padding: 0px !important; text-align: left; font-size: 25px; font-weight: bold;"><%:IP Address%>
                 <span style="float: right;">
-                    <img src="/luci-static/resources/openclash/img/router-on.svg" height="20px" title="<%:Router Mode%>" alt="<%:Router Mode%>" id="mode-icon" class="mode-icon" onclick="return toggle_mode_by_icon(this)" />
                     <img src="/luci-static/resources/openclash/img/eye-light.svg" height="20px" title="<%:Hide IP%>" alt="<%:Hide IP%>" id="eye-icon" onclick="return privacy_my_ip(this)" />
                 </span>
             </p>
@@ -199,7 +197,8 @@
         </div>
         <div style="width: 52%">
             <p style="margin: 20px 0 20px 8%; padding: 0px !important;text-align: left; font-size: 25px; font-weight: bold;"><%:Website Access Check%>
-                <span style="float: right; margin: 0 10% 0 0;">
+                <span style="float: right; margin: 0 9.5% 0 0;">
+                    <img src="/luci-static/resources/openclash/img/router-on.svg" height="22px" title="<%:Router Mode%>" alt="<%:Router Mode%>" id="mode-icon" class="mode-icon" onclick="return toggle_mode_by_icon(this)" />
                     <img src="/luci-static/resources/openclash/img/arrow-clockwise-light.svg" height="20px" title="<%:Refresh%>" alt="<%:Refresh%>" id="data-refresh-icon" onclick="return refresh_myip(this)" />
                 </span>
             </p>

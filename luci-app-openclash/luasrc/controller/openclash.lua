@@ -2087,33 +2087,73 @@ function action_website_check()
     end
     
     local cmd = string.format(
-        'curl -sL -m 8 -w "%%{http_code},%%{time_total}" "https://%s/favicon.ico" -o /dev/null 2>/dev/null',
+        'curl -sL -m 5 --connect-timeout 3 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" "https://%s/favicon.ico" -o /dev/null 2>/dev/null',
         domain
     )
     
     local output = luci.sys.exec(cmd)
     
     if output and output ~= "" then
-        local http_code, time_total = output:match("(%d+),([%d%.]+)")
+        local http_code, time_total, time_connect, time_appconnect = output:match("(%d+),([%d%.]+),([%d%.]+),([%d%.]+)")
         
         if http_code and tonumber(http_code) then
             local code = tonumber(http_code)
-            local response_time = math.floor((tonumber(time_total) or 0) * 1000)
+            local response_time = 0
+            if time_appconnect and tonumber(time_appconnect) and tonumber(time_appconnect) > 0 then
+                response_time = math.floor(tonumber(time_appconnect) * 1000)
+            elseif time_connect and tonumber(time_connect) then
+                response_time = math.floor(tonumber(time_connect) * 1000)
+            else
+                response_time = math.floor((tonumber(time_total) or 0) * 1000)
+            end
             
             if code >= 200 and code < 400 then
                 result.success = true
                 result.response_time = response_time
-            elseif code == 404 or code == 403 then
+            elseif code == 403 or code == 404 then
                 result.success = true
                 result.response_time = response_time
             else
-                result.success = false
-                result.error = "HTTP " .. code
-                result.response_time = response_time
+                local fallback_cmd = string.format(
+                    'curl -sI -m 3 --connect-timeout 2 -w "%%{http_code},%%{time_total},%%{time_appconnect}" "https://%s/" -o /dev/null 2>/dev/null',
+                    domain
+                )
+                local fallback_output = luci.sys.exec(fallback_cmd)
+                
+                if fallback_output and fallback_output ~= "" then
+                    local fb_code, fb_total, fb_appconnect = fallback_output:match("(%d+),([%d%.]+),([%d%.]+)")
+                    if fb_code and tonumber(fb_code) then
+                        local fb_code_num = tonumber(fb_code)
+                        local fb_response_time = 0
+                        if fb_appconnect and tonumber(fb_appconnect) and tonumber(fb_appconnect) > 0 then
+                            fb_response_time = math.floor(tonumber(fb_appconnect) * 1000)
+                        else
+                            fb_response_time = math.floor((tonumber(fb_total) or 0) * 1000)
+                        end
+                        
+                        if fb_code_num >= 200 and fb_code_num < 400 then
+                            result.success = true
+                            result.response_time = fb_response_time
+                        elseif fb_code_num == 403 or fb_code_num == 404 then
+                            result.success = true
+                            result.response_time = fb_response_time
+                        else
+                            result.success = false
+                            result.error = "HTTP " .. fb_code_num
+                            result.response_time = fb_response_time
+                        end
+                    else
+                        result.success = false
+                        result.error = "Connection failed"
+                    end
+                else
+                    result.success = false
+                    result.error = "Connection failed"
+                end
             end
         else
             result.success = false
-            result.error = "Connection failed"
+            result.error = "Invalid response"
         end
     else
         result.success = false
