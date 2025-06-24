@@ -1583,7 +1583,7 @@
     function copyToClipboard(text, successMessage) {
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(text).then(function() {
-                alert(successMessage + text);
+                prompt(successMessage, text);
             }).catch(function(err) {
                 fallbackCopyTextToClipboard(text, successMessage);
             });
@@ -1753,7 +1753,7 @@
             document.body.removeChild(textArea);
             
             if (successful) {
-                alert(successMessage + text);
+                prompt(successMessage, text);
             } else {
                 prompt('<%:Copy failed, please copy manually:%>', text);
             }
