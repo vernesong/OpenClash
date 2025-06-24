@@ -262,40 +262,39 @@
     </div>
     <div class="general">
       <h1 id="dler-plan" ></h1>
-      	<div class="dler-info">
-      		<div style="width: 40%;">
-            <p>
-                <span class="dler-title"><%:Plan Expiration Time%>:</span><span class="dler-result" id="dler-plantime"><%:Collecting data...%></span>
-            </p>
-            <p>
-                <span class="dler-title"><%:Account Balances%>:</span><span class="dler-result" id="dler-money"><%:Collecting data...%></span>
-            </p>
-            <p>
-                <span class="dler-title"><%:Aff Balances%>:</span><span class="dler-result" id="dler-affmoney"><%:Collecting data...%></span>
-            </p>
-            <p>
-                <span class="dler-title"><%:Account Integral%>:</span><span class="dler-result" id="dler-integral"><%:Collecting data...%></span>
-            </p>
-        	</div>
-        	<div style="width: 40%;">
-            <p>
-                <span class="dler-title"><%:Today Used%>:</span><span class="dler-result2" id="dler-today-used"><%:Collecting data...%></span>
-            </p>
-            <p>
-                <span class="dler-title"><%:Plan Used%>:</span><span class="dler-result2" id="dler-used"><%:Collecting data...%></span>
-            </p>
-            <p>
-                <span class="dler-title"><%:Plan Unused%>:</span><span class="dler-result2" id="dler-unused"><%:Collecting data...%></span>
-            </p>
-            <p>
-                <span class="dler-title"><%:Plan Traffic%>:</span><span class="dler-result2" id="dler-traffic"><%:Collecting data...%></span>
-            </p>
-        	</div>
-        	<div style="width: 20%;">
-        		<p style="margin: 14% 0 0 0">
-        			<input type="button" class="btn" value="<%:Checkin%>" onclick="return dler_checkin_btn(this)">
-        		</p>
-        	</div>
+      <div class="dler-info">
+        <div style="width: 40%;">
+          <p>
+              <span class="dler-title" title="<%:Plan Expiration Time%>"><%:Plan Expiration Time%>:</span><span class="dler-result" id="dler-plantime" title="<%:Collecting data...%>"><%:Collecting data...%></span>
+          </p>
+          <p>
+              <span class="dler-title" title="<%:Account Balances%>"><%:Account Balances%>:</span><span class="dler-result" id="dler-money" title="<%:Collecting data...%>"><%:Collecting data...%></span>
+          </p>
+          <p>
+              <span class="dler-title" title="<%:Aff Balances%>"><%:Aff Balances%>:</span><span class="dler-result" id="dler-affmoney" title="<%:Collecting data...%>"><%:Collecting data...%></span>
+          </p>
+          <p>
+              <span class="dler-title" title="<%:Account Integral%>"><%:Account Integral%>:</span><span class="dler-result" id="dler-integral" title="<%:Collecting data...%>"><%:Collecting data...%></span>
+          </p>
+          </div>
+          <div style="width: 40%;">
+          <p>
+              <span class="dler-title" title="<%:Today Used%>"><%:Today Used%>:</span><span class="dler-result2" id="dler-today-used" title="<%:Collecting data...%>"><%:Collecting data...%></span>
+          </p>
+          <p>
+              <span class="dler-title" title="<%:Plan Used%>"><%:Plan Used%>:</span><span class="dler-result2" id="dler-used" title="<%:Collecting data...%>"><%:Collecting data...%></span>
+          </p>
+          <p>
+              <span class="dler-title" title="<%:Plan Unused%>"><%:Plan Unused%>:</span><span class="dler-result2" id="dler-unused" title="<%:Collecting data...%>"><%:Collecting data...%></span>
+          </p>
+          <p>
+            <span class="dler-title" title="<%:Plan Traffic%>"><%:Plan Traffic%>:</span><span class="dler-result2" id="dler-traffic" title="<%:Collecting data...%>"><%:Collecting data...%></span>
+          </p>
+        </div>
+        <div style="width: 20%;">
+          <p style="margin: 14% 0 0 0">
+            <input type="button" class="btn" value="<%:Checkin%>" onclick="return dler_checkin_btn(this)">
+          </p>
         </div>
         <div>
           <p class="more">Powered by <a style="text-decoration: none; color: #666" onclick="return web_dler()" href="javascript:void(0);">dlercloud.com</a></p>
@@ -327,143 +326,159 @@
   var showmore=1;
    
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
-		if (x && x.status == 200 && status.dler_info != "error") {
-			dler_plan.innerHTML = status.dler_info.plan;
-			dler_plantime.innerHTML = status.dler_info.plan_time;
-			dler_money.innerHTML = status.dler_info.money;
-			dler_affmoney.innerHTML = status.dler_info.aff_money;
-			dler_today_used.innerHTML = status.dler_info.today_used;
-			dler_used.innerHTML = status.dler_info.used;
-			dler_unused.innerHTML = status.dler_info.unused;
-			dler_traffic.innerHTML = status.dler_info.traffic;
-			dler_integral.innerHTML = status.dler_info.integral;
-			show_info();
-		}
-		else {
-			show_less();
-		}
-	});
+    if (x && x.status == 200 && status.dler_info != "error") {
+        dler_plan.innerHTML = status.dler_info.plan;
+        dler_plantime.innerHTML = status.dler_info.plan_time;
+        dler_plantime.title = status.dler_info.plan_time;
+        dler_money.innerHTML = status.dler_info.money;
+        dler_money.title = status.dler_info.money;
+        dler_affmoney.innerHTML = status.dler_info.aff_money;
+        dler_affmoney.title = status.dler_info.aff_money;
+        dler_today_used.innerHTML = status.dler_info.today_used;
+        dler_today_used.title = status.dler_info.today_used;
+        dler_used.innerHTML = status.dler_info.used;
+        dler_used.title = status.dler_info.used;
+        dler_unused.innerHTML = status.dler_info.unused;
+        dler_unused.title = status.dler_info.unused;
+        dler_traffic.innerHTML = status.dler_info.traffic;
+        dler_traffic.title = status.dler_info.traffic;
+        dler_integral.innerHTML = status.dler_info.integral;
+        dler_integral.title = status.dler_info.integral;
+        show_info();
+    }
+    else {
+        show_less();
+    }
+  });
 	
 	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
-		if (x && x.status == 200 && status.dler_info != "error") {
-			dler_plan.innerHTML = status.dler_info.plan;
-			dler_plantime.innerHTML = status.dler_info.plan_time;
-			dler_money.innerHTML = status.dler_info.money;
-			dler_affmoney.innerHTML = status.dler_info.aff_money;
-			dler_today_used.innerHTML = status.dler_info.today_used;
-			dler_used.innerHTML = status.dler_info.used;
-			dler_unused.innerHTML = status.dler_info.unused;
-			dler_traffic.innerHTML = status.dler_info.traffic;
-			dler_integral.innerHTML = status.dler_info.integral;
-			if (showmore != 0) {
-			   show_info();
-			}
-			else {
-			   show_less();
-		  }
-		}
-		else {
-			show_less();
-		}
-	});
-	
-function dler_checkin_btn(btn)
-{
-	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_checkin")%>', null, function(x, status) {
-		if ( x && x.status == 200 && status.dler_checkin != "error") {
-			if (status.dler_checkin.ret == 200) {
-				alert("<%:Dler Cloud Checkin Successful, Result:%>\n\n"+
-				status.dler_checkin.data.checkin);
-			}
-			else if (status.dler_checkin.msg) {
-				alert("<%:Dler Cloud Checkin Failed, Result:%>\n\n"+
-				status.dler_checkin.msg);
-			}
-			else {
-				alert("<%:Dler Cloud Checkin Failed! Please Check And Try Again...%>")
-			}
-		}
-		else {
-			alert("<%:Dler Cloud Checkin Failed! Please Check And Try Again...%>")
-		}
-	});
-}
-	
-function web_dler()
-{
-   url='https://bit.ly/32mrABp';
-   window.open(url);
-}
-       
-function show_more()
-{
-	 if (obj.style.width == "150px") {
-	    show_less();
-	    showmore=0;
-	 }
-	 else {
-	    if (dler_plan.value != "") {
-         show_info();
-         showmore=1;
-		  }
-		  else {
-		     web_dler();
+    if (x && x.status == 200 && status.dler_info != "error") {
+        dler_plan.innerHTML = status.dler_info.plan;
+        dler_plantime.innerHTML = status.dler_info.plan_time;
+        dler_plantime.title = status.dler_info.plan_time;
+        dler_money.innerHTML = status.dler_info.money;
+        dler_money.title = status.dler_info.money;
+        dler_affmoney.innerHTML = status.dler_info.aff_money;
+        dler_affmoney.title = status.dler_info.aff_money;
+        dler_today_used.innerHTML = status.dler_info.today_used;
+        dler_today_used.title = status.dler_info.today_used;
+        dler_used.innerHTML = status.dler_info.used;
+        dler_used.title = status.dler_info.used;
+        dler_unused.innerHTML = status.dler_info.unused;
+        dler_unused.title = status.dler_info.unused;
+        dler_traffic.innerHTML = status.dler_info.traffic;
+        dler_traffic.title = status.dler_info.traffic;
+        dler_integral.innerHTML = status.dler_info.integral;
+        dler_integral.title = status.dler_info.integral;
+        if (showmore != 0) {
+            show_info();
+        }
+        else {
+            show_less();
       }
-	 }
-}
+    }
+    else {
+        show_less();
+    }
+  });
+	
+  function dler_checkin_btn(btn)
+  {
+    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_checkin")%>', null, function(x, status) {
+      if ( x && x.status == 200 && status.dler_checkin != "error") {
+        if (status.dler_checkin.ret == 200) {
+          alert("<%:Dler Cloud Checkin Successful, Result:%>\n\n"+
+          status.dler_checkin.data.checkin);
+        }
+        else if (status.dler_checkin.msg) {
+          alert("<%:Dler Cloud Checkin Failed, Result:%>\n\n"+
+          status.dler_checkin.msg);
+        }
+        else {
+          alert("<%:Dler Cloud Checkin Failed! Please Check And Try Again...%>")
+        }
+      }
+      else {
+        alert("<%:Dler Cloud Checkin Failed! Please Check And Try Again...%>")
+      }
+    });
+  }
+	
+  function web_dler()
+  {
+    url='https://bit.ly/32mrABp';
+    window.open(url);
+  }
+       
+  function show_more()
+  {
+    if (obj.style.width == "150px") {
+        show_less();
+        showmore=0;
+    }
+    else {
+        if (dler_plan.value != "") {
+          show_info();
+          showmore=1;
+        }
+        else {
+          web_dler();
+        }
+    }
+  }
 
-function show_less()
-{
-   if (obj.style.width != "100%") {
-      obj.style.width = "100%";
-      obj.style.borderRadius = "0 5px 5px 0";
-      card.style.height = "250px";
-      more_info.style.display = "";
-      more_info.style.transform = "translateY(11%)";
-   }
-   var rdmdl=Math.floor(Math.random()*6)+1;
-   if(rdmdl==1)
-   {
-      dler_it.innerHTML = '<%:Simple & trustworthy%>';
-   }
-   if(rdmdl==2)
-   {
-      dler_it.innerHTML = '<%:Cross-platform Support%>';
-   }
-   if(rdmdl==3)
-   {
-      dler_it.innerHTML = '<%:Global Acceleration Network%>';
-   }
-   if(rdmdl==4)
-   {
-      dler_it.innerHTML = '<%:Easy to Use%>';
-   }
-   if(rdmdl==5)
-   {
-      dler_it.innerHTML = '<%:Intelligent Shunting%>';
-   }
-   if(rdmdl==6)
-   {
-      dler_it.innerHTML = '<%:Perfect Technical Support%>';
-   }
-}
+  function show_less()
+  {
+    if (obj.style.width != "100%") {
+        obj.style.width = "100%";
+        obj.style.borderRadius = "0 5px 5px 0";
+        card.style.height = "250px";
+        more_info.style.display = "";
+        more_info.style.transform = "translateY(11%)";
+    }
+    var rdmdl=Math.floor(Math.random()*6)+1;
+    if(rdmdl==1)
+    {
+        dler_it.innerHTML = '<%:Simple & trustworthy%>';
+    }
+    if(rdmdl==2)
+    {
+        dler_it.innerHTML = '<%:Cross-platform Support%>';
+    }
+    if(rdmdl==3)
+    {
+        dler_it.innerHTML = '<%:Global Acceleration Network%>';
+    }
+    if(rdmdl==4)
+    {
+        dler_it.innerHTML = '<%:Easy to Use%>';
+    }
+    if(rdmdl==5)
+    {
+        dler_it.innerHTML = '<%:Intelligent Shunting%>';
+    }
+    if(rdmdl==6)
+    {
+        dler_it.innerHTML = '<%:Perfect Technical Support%>';
+    }
+  }
 
-function show_info()
-{
-   if (obj.style.width != "150px") {
-      obj.style.width = "150px";
-      obj.style.borderRadius = "0 0 0 0";
-      card.style.height = "250px";
-      more_info.style.display = "none";
-   }
-}
+  function show_info()
+  {
+    if (obj.style.width != "150px") {
+        obj.style.width = "150px";
+        obj.style.borderRadius = "0 0 0 0";
+        card.style.height = "250px";
+        more_info.style.display = "none";
+    }
+  }
 
-function imgerrorfuns(imgobj,imgSrc)
-{
-   setTimeout(function(){
-      imgobj.src=imgSrc;
-   },1000*10);
-}
+  function imgerrorfuns(imgobj,imgSrc)
+  {
+    setTimeout(function(){
+        imgobj.src=imgSrc;
+    },1000*10);
+  }
 
 //]]></script>
 </html>
