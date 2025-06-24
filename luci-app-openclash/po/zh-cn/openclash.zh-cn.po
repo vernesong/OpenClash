@@ -3657,9 +3657,6 @@ msgstr "获取 PAC 配置"
 msgid "PAC file URL copied:"
 msgstr "PAC 文件地址已复制："
 
-msgid "PAC file URL generated, please copy:"
-msgstr "PAC 文件地址已创建，请复制使用："
-
 msgid "PAC file URL:"
 msgstr "PAC 文件地址："
 

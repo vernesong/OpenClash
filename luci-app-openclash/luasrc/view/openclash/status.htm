@@ -1722,12 +1722,7 @@
                         var translatedWarning = '<%:' + warningMsg + '%>';
                         alert('<%:Warning:%> ' + translatedWarning + '\n\n<%:PAC file URL:%> ' + data.pac_url);
                     } else {
-                        var isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
-                        if (isSafari) {
-                            prompt('<%:PAC file URL generated, please copy:%>', data.pac_url);
-                        } else {
-                            copyToClipboard(data.pac_url, '<%:PAC file URL copied:%> ');
-                        }
+                        copyToClipboard(data.pac_url, '<%:PAC file URL copied:%> ');
                     }
                 } else if (data.error) {
                     alert('<%:PAC file generation failed%>: ' + data.error);
@@ -1755,16 +1750,17 @@
         
         try {
             var successful = document.execCommand('copy');
+            document.body.removeChild(textArea);
+            
             if (successful) {
                 alert(successMessage + text);
             } else {
-                alert('<%:Copy failed, please copy manually:%> ' + text);
+                prompt('<%:Copy failed, please copy manually:%>', text);
             }
         } catch (err) {
-            alert('<%:Copy failed, please copy manually:%> ' + text);
+            document.body.removeChild(textArea);
+            prompt('<%:Copy failed, please copy manually:%>', text);
         }
-        
-        document.body.removeChild(textArea);
     }
 
     function check_guide() {
