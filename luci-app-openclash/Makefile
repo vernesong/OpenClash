@@ -98,6 +98,7 @@ define Package/$(PKG_NAME)/preinst
 		cp -rf "/etc/openclash" "/tmp/openclash" >/dev/null 2>&1
 		cp -rf "/usr/share/openclash/ui/yacd" "/tmp/openclash_yacd" >/dev/null 2>&1
 		cp -rf "/usr/share/openclash/ui/dashboard" "/tmp/openclash_dashboard" >/dev/null 2>&1
+		cp -rf "/www/luci-static/resources/openclash/pac" "/tmp/pac" >/dev/null 2>&1
 	fi
 	exit 0
 endef
@@ -117,6 +118,7 @@ define Package/$(PKG_NAME)/prerm
 	cp -rf "/etc/openclash" "/tmp/openclash" >/dev/null 2>&1
 	cp -rf "/usr/share/openclash/ui/yacd" "/tmp/openclash_yacd" >/dev/null 2>&1
 	cp -rf "/usr/share/openclash/ui/dashboard" "/tmp/openclash_dashboard" >/dev/null 2>&1
+	cp -rf "/www/luci-static/resources/openclash/pac" "/tmp/pac" >/dev/null 2>&1
 	exit 0
 endef
 

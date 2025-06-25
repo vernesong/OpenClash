@@ -96,6 +96,7 @@ jobs:
         with:
           go-version: "1.24"
           check-latest: true
+          cache: false
       
       - name: Define Go Archive Directory
         id: go_paths
@@ -226,6 +227,7 @@ jobs:
         with:
           go-version: "1.24"
           check-latest: true
+          cache: false
       
       - name: Define Go Archive Directory
         id: go_paths

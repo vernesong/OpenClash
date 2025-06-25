@@ -167,6 +167,12 @@ if [ -f "/tmp/openclash.bak" ]; then
 		cp -rf "/tmp/openclash_yacd/." "/usr/share/openclash/ui/yacd/" >/dev/null 2>&1
 		rm -rf "/tmp/openclash_yacd/" >/dev/null 2>&1
 	fi
+	#pac
+	if [ -d "/tmp/pac/" ]; then
+		rm -rf "/www/luci-static/resources/openclash/pac/" >/dev/null 2>&1
+		cp -rf "/tmp/pac/." "/www/luci-static/resources/openclash/pac/" >/dev/null 2>&1
+		rm -rf "/tmp/pac/" >/dev/null 2>&1
+	fi
 	rm -rf "/etc/openclash/openclash" >/dev/null 2>&1
 	rm -rf "/tmp/openclash" >/dev/null 2>&1
 	rm -rf "/tmp/openclash.bak" >/dev/null 2>&1

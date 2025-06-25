@@ -2616,12 +2616,29 @@ function action_generate_pac()
         return random_string
     end
     
+    local function count_pac_lines(content)
+        if not content or content == "" then
+            return 0
+        end
+        local lines = 0
+        for _ in content:gmatch("[^\n]*\n?") do
+            lines = lines + 1
+        end
+        if not content:match("\n$") then
+            lines = lines - 1
+        end
+        return lines
+    end
+    
     local new_proxy_string = string.format("PROXY %s:%s; DIRECT", proxy_ip, mixed_port)
+    local new_pac_content = generate_pac_content(proxy_ip, mixed_port, auth_user, auth_pass)
+    local new_pac_lines = count_pac_lines(new_pac_content)
     
     local pac_dir = "/www/luci-static/resources/openclash/pac/"
     local pac_filename = nil
     local pac_file_path = nil
     local random_suffix = nil
+    local need_update = true
 
     luci.sys.call("mkdir -p " .. pac_dir)
 
@@ -2638,25 +2655,52 @@ function action_generate_pac()
                     end
                     
                     if existing_proxy and existing_proxy == new_proxy_string then
-                        pac_filename = file_path:match("([^/]+)$")
-                        pac_file_path = file_path
-                        random_suffix = pac_filename:match("^pac_(.+)$")
-                        break
-                    elseif existing_proxy and string.find(existing_proxy, "^PROXY%s+[%d%.]+:[%d]+") then
-                        local updated_content = string.gsub(file_content, 
-                            'return%s*"PROXY%s+[^"]*"',
-                            'return "' .. new_proxy_string .. '"')
-                        
-                        if updated_content ~= file_content then
+                        local existing_lines = count_pac_lines(file_content)
+                        if existing_lines == new_pac_lines then
+                            pac_filename = file_path:match("([^/]+)$")
+                            pac_file_path = file_path
+                            random_suffix = pac_filename:match("^pac_(.+)$")
+                            need_update = false
+                            break
+                        else
                             local file = io.open(file_path, "w")
                             if file then
-                                file:write(updated_content)
+                                file:write(new_pac_content)
                                 file:close()
                                 luci.sys.call("chmod 644 " .. file_path)
                                 
                                 pac_filename = file_path:match("([^/]+)$")
                                 pac_file_path = file_path
                                 random_suffix = pac_filename:match("^pac_(.+)$")
+                                need_update = false
+                                break
+                            end
+                        end
+                    elseif existing_proxy and string.find(existing_proxy, "^PROXY%s+[%d%.]+:[%d]+") then
+                        local updated_content = string.gsub(file_content, 
+                            'return%s*"PROXY%s+[^"]*"',
+                            'return "' .. new_proxy_string .. '"')
+                        
+                        if updated_content ~= file_content then
+                            local updated_lines = count_pac_lines(updated_content)
+                            local final_content
+                            
+                            if updated_lines == new_pac_lines then
+                                final_content = updated_content
+                            else
+                                final_content = new_pac_content
+                            end
+                            
+                            local file = io.open(file_path, "w")
+                            if file then
+                                file:write(final_content)
+                                file:close()
+                                luci.sys.call("chmod 644 " .. file_path)
+                                
+                                pac_filename = file_path:match("([^/]+)$")
+                                pac_file_path = file_path
+                                random_suffix = pac_filename:match("^pac_(.+)$")
+                                need_update = false
                                 break
                             end
                         end
@@ -2666,18 +2710,16 @@ function action_generate_pac()
         end
     end
     
-    if not pac_file_path then
+    if need_update then
         luci.sys.call("rm -f " .. pac_dir .. "pac_* 2>/dev/null")
         
         random_suffix = generate_random_string()
         pac_filename = "pac_" .. random_suffix
         pac_file_path = pac_dir .. pac_filename
         
-        local pac_content = generate_pac_content(proxy_ip, mixed_port, auth_user, auth_pass)
-        
         local file = io.open(pac_file_path, "w")
         if file then
-            file:write(pac_content)
+            file:write(new_pac_content)
             file:close()
             
             luci.sys.call("chmod 644 " .. pac_file_path)
