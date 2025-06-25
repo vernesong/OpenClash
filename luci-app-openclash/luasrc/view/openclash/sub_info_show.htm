@@ -290,9 +290,9 @@ function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
     
     return String.format(
         '<div class="progress_bar_bg" style="position:relative; border-radius: 6px; min-width: %s; display: flex; align-items: center;">' +
-        (pc >= 50 ? '<div class="progress_bar_high" style="width:%d%%; height:36px; border-radius: 6px">' : 
-        (pc < 50 && pc >= 20 ? '<div class="progress_bar_medium" style="width:%d%%; height:36px; border-radius: 6px">' : 
-        '<div class="progress_bar_low" style="width:%d%%; height:36px; border-radius: 6px">')) +
+        (pc >= 50 ? '<div class="progress_bar_high" style="width:%d%%; height:34px; border-radius: 6px">' : 
+        (pc < 50 && pc >= 20 ? '<div class="progress_bar_medium" style="width:%d%%; height:34px; border-radius: 6px">' : 
+        '<div class="progress_bar_low" style="width:%d%%; height:34px; border-radius: 6px">')) +
         '<div style="position:absolute; left:0; top:50%%; transform: translateY(-50%%); text-align:center; width:100%%; padding:0 4px; box-sizing:border-box; line-height:1.2;">' +
         '<small class="text_show" style="font-size:%s; line-height:1.2;">%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') + 
         (tr == "null" ? '<div style="visibility: hidden; line-height:1.2;">' : '<div style="visibility: visible; line-height:1.2;">') + 
