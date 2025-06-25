@@ -409,25 +409,25 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
     var batchSize, interval;
     
     if (totalLines <= 10) {
-        batchSize = 1;
+        batchSize = 2;
         interval = 90;
     } else if (totalLines <= 50) {
-        batchSize = 5;
+        batchSize = 10;
         interval = 60;
     } else if (totalLines <= 200) {
-        batchSize = 10;
+        batchSize = 30;
         interval = 35;
     } else if (totalLines <= 500) {
-        batchSize = 25;
+        batchSize = 60;
         interval = 25;
     } else if (totalLines <= 1000) {
-        batchSize = 50;
+        batchSize = 120;
         interval = 15;
     } else if (totalLines <= 1500) {
-        batchSize = 70;
+        batchSize = 180;
         interval = 10;
     } else {
-        batchSize = 80;
+        batchSize = 250;
         interval = 5;
     }
     
@@ -620,7 +620,6 @@ window.onload = function(){
             };
         }
         
-        // 正确绑定事件
         li.onclick = handleTabSwitch(li);
         li.ontouchstart = handleTabSwitch(li);
     }
