@@ -3674,3 +3674,12 @@ msgstr "其他"
 
 msgid "Apply"
 msgstr "应用"
+
+msgid "Proxy service not running"
+msgstr "代理服务未在运行"
+
+msgid "Unable to get proxy IP"
+msgstr "无法获取代理地址"
+
+msgid "Failed to write PAC file"
+msgstr "创建 PAC 文件失败"
