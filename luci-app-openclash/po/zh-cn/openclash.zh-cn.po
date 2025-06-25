@@ -1662,6 +1662,9 @@ msgstr "提示：开始下载"
 msgid "Download successful, start pre update test..."
 msgstr "下载成功，开始进行更新前测试..."
 
+msgid "Pre update test failed..."
+msgstr "更新前测试失败..."
+
 msgid "pre update test failed, the file is saved in /tmp/openclash.apk, please try to update manually with"
 msgstr "更新前测试失败，文件保存在 /tmp/openclash.apk，请尝试以下命令手动更新"
 
@@ -1689,8 +1692,11 @@ msgstr "错误：OpenClash 更新失败，文件保存在 /tmp/openclash.ipk，�
 msgid "Error: OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with"
 msgstr "错误：OpenClash 更新失败，文件保存在 /tmp/openclash.apk，请尝试以下命令手动更新"
 
-msgid "Download Failed, please check the network or try again later!"
+msgid "Download Failed after 3 attempts, please check the network or try again later!"
 msgstr "下载失败，请检查网络或稍后再试！"
+
+msgid "Download failed..."
+msgstr "下载失败..."
 
 msgid "Error: Failed to get version information, please try again later..."
 msgstr "错误：获取版本信息失败，请稍后再试..."
@@ -1707,20 +1713,29 @@ msgstr "版本内核正在下载，如下载失败请尝试手动下载并上传
 msgid "Core Download Successful, Start Update..."
 msgstr "版本内核下载成功，开始更新..."
 
+msgid "Core Download Failed, Please Check The Network or Try Again Later!"
+msgstr "版本内核下载失败，请检查网络情况或稍后再试！"
+
 msgid "Core Update Failed, Please Check The Network or Try Again Later!"
 msgstr "版本内核更新失败，请检查网络或稍后再试！"
 
 msgid "Core Update Successful!"
 msgstr "版本内核更新成功！"
 
-msgid "Core Update Failed. Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
+msgid "Core Update Failed, Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
 msgstr "版本内核更新失败，请确认设备闪存空间足够或内核平台正确后再试！"
 
-msgid "Core Update Failed. Please Make Sure Enough Flash Memory Space And Try Again!"
+msgid "Core Update Failed..."
+msgstr "版本内核更新失败..."
+
+msgid "Core Download Failed..."
+msgstr "版本内核下载失败..."
+
+msgid "Core Update Failed, Please Make Sure Enough Flash Memory Space And Try Again!"
 msgstr "版本内核更新失败，请确认设备闪存空间足够后再试！"
 
-msgid "No Compiled Version Selected, Please Select In Update Page And Try Again!"
-msgstr "未选择编译版本，请到升级页面选择后再试！"
+msgid "Warning: No Compiled Version Selected, Please Select In Update Page And Try Again!"
+msgstr "警告：未选择编译版本，请到升级页面选择后再试！"
 
 msgid "Core Has Not Been Updated, Stop Continuing Operation!"
 msgstr "版本内核没有更新，停止继续操作！"
@@ -3561,10 +3576,10 @@ msgstr "错误：创建插件升级进程失败！"
 msgid "Attempting to start update service..."
 msgstr "正在启动插件升级进程..."
 
-msgid "Error: Service start failed, retrying in 2 seconds..."
-msgstr "错误：插件升级进程启动失败，将在 2 秒后重试..."
+msgid "Service start failed, retrying in 2 seconds..."
+msgstr "插件升级进程启动失败，将在 2 秒后重试..."
 
-msgid "Error: Failed to start update service, please check and try again later..."
+msgid "Error: Failed to start update service after 3 attempts, please check and try again later..."
 msgstr "错误：插件升级进程启动失败，请检查日志并稍后再试..."
 
 msgid "Core Update"
@@ -3683,3 +3698,9 @@ msgstr "无法获取代理地址"
 
 msgid "Failed to write PAC file"
 msgstr "创建 PAC 文件失败"
+
+msgid "Downloading:"
+msgstr "下载进度："
+
+msgid "Downloading..."
+msgstr "下载中..."
