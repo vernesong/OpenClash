@@ -1218,8 +1218,8 @@ msgstr "收集 Smart 策略组的连接数据，方便用来分析及模型训�
 msgid "The Priority Of The Nodes, The Higher Than 1, The More Likely It Is To Be Selected, The Default Is 1, Support Regex"
 msgstr "自定义 Smart 策略组内节点的权重加成，大于1表示权重加成优先选择，小于1表示权重削减降低使用率，默认为1，支持正则"
 
-msgid "Main Program"
-msgstr "主程序"
+msgid "Core Status"
+msgstr "内核状态"
 
 msgid "Daemons"
 msgstr "守护程序"
@@ -3704,3 +3704,9 @@ msgstr "下载进度："
 
 msgid "Downloading..."
 msgstr "下载中..."
+
+msgid "Sniff the domain name of the traffics to avoid rule-based proxy failure"
+msgstr "嗅探流量的域名信息，避免基于规则的代理失败"
+
+msgid "DNS querys respect-rules to preventing access failure"
+msgstr "DNS 查询遵循规则进行代理，防止访问失败"
