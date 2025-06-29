@@ -1,0 +1,896 @@
+<style>
+.oc[data-darkmode="true"] .config-editor-modal .CodeMirror {
+    background: var(--bg-white);
+    color: var(--text-primary);
+}
+
+.oc[data-darkmode="true"] .config-editor-modal .CodeMirror-gutters {
+    background: var(--bg-gray);
+    border-right: 1px solid var(--border-light);
+}
+
+.oc[data-darkmode="true"] .config-editor-modal .CodeMirror-linenumber {
+    color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] .config-editor-modal .CodeMirror-scrollbar-filler,
+.oc[data-darkmode="true"] .config-editor-modal .CodeMirror-gutter-filler {
+    background: var(--bg-gray);
+}
+
+.oc .config-editor-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+.oc .config-editor-modal-overlay.show {
+    display: flex;
+}
+
+.oc .config-editor-modal {
+    background: var(--bg-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    width: 90vw;
+    height: 85vh;
+    max-width: 1200px;
+    min-width: 600px;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.oc .config-editor-modal.maximized {
+    width: 98vw !important;
+    height: 95vh !important;
+    max-width: none !important;
+}
+
+.oc .config-editor-modal.minimized {
+    width: 70vw !important;
+    height: 70vh !important;
+}
+
+.oc .config-editor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-gray);
+    flex-shrink: 0;
+    cursor: move;
+    user-select: none;
+}
+
+.oc .config-editor-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.oc .config-editor-title .config-file-name {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.oc .config-editor-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.oc .config-editor-size-controls {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 8px;
+    background: var(--bg-white);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+}
+
+.oc .size-btn {
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    padding: 0 !important;
+}
+
+.oc .size-btn svg {
+    width: 12px !important;
+    height: 12px !important;
+}
+
+.oc .config-editor-content {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+}
+
+.oc .config-editor-loading {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.oc .loading-spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid var(--border-light);
+    border-top-color: var(--primary-color);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.oc .config-editor-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px;
+    border-top: 1px solid var(--border-light);
+    background: var(--bg-gray);
+    flex-shrink: 0;
+    position: relative;
+}
+
+.oc .config-editor-status {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.oc .config-editor-help {
+    font-size: 11px;
+    color: var(--text-secondary);
+    opacity: 0.8;
+}
+
+.oc .config-editor-resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    cursor: nw-resize;
+    background: linear-gradient(-45deg, 
+        transparent 0%, 
+        transparent 40%, 
+        var(--border-color) 40%, 
+        var(--border-color) 45%, 
+        transparent 45%, 
+        transparent 50%, 
+        var(--border-color) 50%, 
+        var(--border-color) 55%, 
+        transparent 55%, 
+        transparent 60%, 
+        var(--border-color) 60%, 
+        var(--border-color) 65%, 
+        transparent 65%);
+}
+
+.oc #config-editor-textarea {
+    width: 100%;
+    height: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+    padding: 12px;
+    background: var(--bg-white);
+    color: var(--text-primary);
+}
+
+.oc .config-editor-modal .CodeMirror {
+    height: 100%;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.oc .config-editor-modal .CodeMirror.zoom-75 { font-size: 10.5px; }
+.oc .config-editor-modal .CodeMirror.zoom-90 { font-size: 12.6px; }
+.oc .config-editor-modal .CodeMirror.zoom-110 { font-size: 15.4px; }
+.oc .config-editor-modal .CodeMirror.zoom-125 { font-size: 17.5px; }
+.oc .config-editor-modal .CodeMirror.zoom-150 { font-size: 21px; }
+.oc .config-editor-modal .CodeMirror.zoom-200 { font-size: 28px; }
+
+@media screen and (max-width: 768px) {
+    .oc .config-editor-modal {
+        width: 95vw;
+        height: 90vh;
+        min-width: 320px;
+    }
+}
+</style>
+
+<div class="oc">
+    <div class="config-editor-modal-overlay" id="config-editor-overlay">
+        <div class="config-editor-modal" id="config-editor-modal">
+            <div class="config-editor-header">
+                <div class="config-editor-title">
+                    <span><%:File Edit%>: </span>
+                    <span class="config-file-name" id="config-file-name"><%:Loading...%></span>
+                </div>
+                <div class="config-editor-actions">
+                    <div class="config-editor-size-controls">
+                        <button type="button" class="icon-btn size-btn" id="config-editor-minimize" title="<%:Minimize%>">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="4,14 10,14 10,20"></polyline>
+                                <polyline points="20,10 14,10 14,4"></polyline>
+                                <line x1="14" y1="10" x2="21" y2="3"></line>
+                                <line x1="3" y1="21" x2="10" y2="14"></line>
+                            </svg>
+                        </button>
+                        <button type="button" class="icon-btn size-btn" id="config-editor-maximize" title="<%:Maximize%>">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="15,3 21,3 21,9"></polyline>
+                                <polyline points="9,21 3,21 3,15"></polyline>
+                                <line x1="21" y1="3" x2="14" y2="10"></line>
+                                <line x1="3" y1="21" x2="10" y2="14"></line>
+                            </svg>
+                        </button>
+                    </div>
+                    <button type="button" class="icon-btn" id="config-editor-download" title="<%:Download%>">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7,11 12,16 17,11"></polyline>
+                            <line x1="12" y1="2" x2="12" y2="16"></line>
+                        </svg>
+                    </button>
+                    <button type="button" class="icon-btn" id="config-editor-save" title="<%:Save%>">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17,21 17,13 7,13 7,21"></polyline>
+                            <polyline points="7,3 7,8 15,8"></polyline>
+                        </svg>
+                    </button>
+                    <button type="button" class="icon-btn" id="config-editor-close" title="<%:Close%>">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="config-editor-content">
+                <div class="config-editor-loading" id="config-editor-loading">
+                    <div class="loading-spinner"></div>
+                    <span><%:Loading config file...%></span>
+                </div>
+                <textarea id="config-editor-textarea" style="display: none;"></textarea>
+            </div>
+            
+            <div class="config-editor-footer">
+                <div class="config-editor-status">
+                    <span id="config-editor-status-text"><%:Ready%></span>
+                </div>
+                <div class="config-editor-help">
+                    <span><%:Press F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom%></span>
+                </div>
+                <div class="config-editor-resize-handle" id="config-editor-resize-handle"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link rel="stylesheet" href="/luci-static/resources/openclash/lib/codemirror.css"/>
+<link rel="stylesheet" href="/luci-static/resources/openclash/theme/material.css"/>
+<link rel="stylesheet" href="/luci-static/resources/openclash/theme/material-log.css"/>
+<link rel="stylesheet" href="/luci-static/resources/openclash/theme/idea.css"/>
+<link rel="stylesheet" href="/luci-static/resources/openclash/addon/fold/foldgutter.css"/>
+<link rel="stylesheet" href="/luci-static/resources/openclash/addon/lint/lint.css">
+<link rel="stylesheet" href="/luci-static/resources/openclash/addon/display/fullscreen.css">
+<link rel="stylesheet" href="/luci-static/resources/openclash/addon/dialog/dialog.css">
+<link rel="stylesheet" href="/luci-static/resources/openclash/addon/search/matchesonscrollbar.css">
+<script src="/luci-static/resources/openclash/lib/codemirror.js"></script>
+<script src="/luci-static/resources/openclash/mode/yaml/yaml.js"></script>
+<script src="/luci-static/resources/openclash/mode/lua/lua.js"></script>
+<script src="/luci-static/resources/openclash/mode/shell/shell.js"></script>
+<script src="/luci-static/resources/openclash/addon/fold/foldcode.js"></script>
+<script src="/luci-static/resources/openclash/addon/fold/foldgutter.js"></script>
+<script src="/luci-static/resources/openclash/addon/fold/indent-fold.js"></script>
+<script src="/luci-static/resources/openclash/addon/edit/matchbrackets.js"></script>
+<script src="/luci-static/resources/openclash/addon/selection/active-line.js"></script>
+<script src="/luci-static/resources/openclash/addon/lint/lint.js"></script>
+<script src="/luci-static/resources/openclash/addon/lint/yaml-lint.js"></script>
+<script src="/luci-static/resources/openclash/addon/lint/js-yaml.min.js"></script>
+<script src="/luci-static/resources/openclash/addon/display/fullscreen.js"></script>
+<script src="/luci-static/resources/openclash/addon/display/autorefresh.js"></script>
+<script src="/luci-static/resources/openclash/addon/dialog/dialog.js"></script>
+<script src="/luci-static/resources/openclash/addon/search/searchcursor.js"></script>
+<script src="/luci-static/resources/openclash/addon/search/search.js"></script>
+<script src="/luci-static/resources/openclash/addon/scroll/annotatescrollbar.js"></script>
+<script src="/luci-static/resources/openclash/addon/search/matchesonscrollbar.js"></script>
+<script src="/luci-static/resources/openclash/addon/search/jump-to-line.js"></script>
+<script src="/luci-static/resources/openclash/addon/merge/diff_match_patch.js"></script>
+<script src="/luci-static/resources/openclash/addon/merge/merge.js"></script>
+<link rel="stylesheet" href="/luci-static/resources/openclash/addon/merge/merge.css">
+
+<script type="text/javascript">
+var ConfigEditor = {
+    overlay: null,
+    modal: null,
+    editorInstance: null,
+    originalContent: '',
+    isModified: false,
+    currentZoom: 100,
+    isMaximized: false,
+    isMinimized: false,
+    currentConfigFile: '',
+    zoomLevels: [75, 90, 100, 110, 125, 150, 200],
+    
+    init: function() {
+        this.overlay = document.getElementById('config-editor-overlay');
+        this.modal = document.getElementById('config-editor-modal');
+        
+        if (!this.overlay || !this.modal) {
+            return;
+        }
+        
+        this.bindEvents();
+    },
+    
+    bindEvents: function() {
+        var self = this;
+        
+        document.getElementById('config-editor-maximize').addEventListener('click', function() {
+            self.maximizeWindow();
+        });
+        
+        document.getElementById('config-editor-minimize').addEventListener('click', function() {
+            self.minimizeWindow();
+        });
+        
+        document.getElementById('config-editor-save').addEventListener('click', function() {
+            self.saveConfigContent();
+        });
+        
+        document.getElementById('config-editor-download').addEventListener('click', function() {
+            self.downloadConfigContent();
+        });
+        
+        document.getElementById('config-editor-close').addEventListener('click', function() {
+            self.closeEditor();
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (!self.overlay.classList.contains('show')) return;
+            
+            if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
+                e.preventDefault();
+                self.zoomIn();
+            } else if ((e.ctrlKey || e.metaKey) && e.key === '-') {
+                e.preventDefault();
+                self.zoomOut();
+            } else if ((e.ctrlKey || e.metaKey) && e.key === '0') {
+                e.preventDefault();
+                self.resetZoom();
+            } else if (e.key === 'Escape' && (!self.editorInstance || !self.editorInstance.getOption("fullScreen"))) {
+                self.closeEditor();
+            }
+        });
+        
+        this.overlay.addEventListener('wheel', function(e) {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                
+                if (e.deltaY < 0) {
+                    self.zoomIn();
+                } else {
+                    self.zoomOut();
+                }
+            }
+        });
+        
+        this.makeDraggable();
+        this.makeResizable();
+    },
+    
+    show: function(configFile) {
+        if (!configFile) {
+            alert('<%:Please select a config file first%>');
+            return;
+        }
+        
+        this.currentConfigFile = configFile;
+        this.overlay.classList.add('show');
+        
+        var configNameElement = document.getElementById('config-file-name');
+        if (configNameElement) {
+            configNameElement.textContent = this.formatDisplayName(configFile);
+        }
+        
+        this.isModified = false;
+        this.originalContent = '';
+        
+        this.loadConfigContent();
+    },
+    
+    hide: function() {
+        this.overlay.classList.remove('show');
+        
+        if (this.editorInstance) {
+            this.editorInstance.toTextArea();
+            this.editorInstance = null;
+        }
+        
+        this.isModified = false;
+        this.originalContent = '';
+        this.currentConfigFile = '';
+        
+        var loadingDiv = document.getElementById('config-editor-loading');
+        var textarea = document.getElementById('config-editor-textarea');
+        
+        if (loadingDiv) loadingDiv.style.display = 'flex';
+        if (textarea) textarea.style.display = 'none';
+    },
+    
+    formatDisplayName: function(fileName) {
+        if (!fileName) return '<%:Unknown%>';
+        
+        var name = fileName.split('/').pop().split('\\').pop();
+        
+        if (name.length > 30) {
+            name = name.substring(0, 27) + '...';
+        }
+        
+        return name;
+    },
+    
+    loadConfigContent: function() {
+        var self = this;
+        var statusText = document.getElementById('config-editor-status-text');
+        var loadingDiv = document.getElementById('config-editor-loading');
+        var textarea = document.getElementById('config-editor-textarea');
+        
+        statusText.textContent = '<%:Loading...%>';
+        
+        fetch('/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + encodeURIComponent(this.currentConfigFile))
+            .then(function(response) {
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                loadingDiv.style.display = 'none';
+                
+                if (data.content !== undefined) {
+                    self.originalContent = data.content;
+                    textarea.value = self.originalContent;
+                    textarea.style.display = 'block';
+                    
+                    self.editorInstance = CodeMirror.fromTextArea(textarea, {
+                        mode: "text/yaml",
+                        autoRefresh: true,
+                        styleActiveLine: true,
+                        lineNumbers: true,
+                        theme: "material",
+                        lineWrapping: true,
+                        matchBrackets: true,
+                        foldGutter: true,
+                        lint: true,
+                        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "CodeMirror-lint-markers"],
+                        extraKeys: {
+                            "F11": function(cm) {
+                                cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+                            },
+                            "Esc": function(cm) {
+                                if (cm.getOption("fullScreen")) {
+                                    cm.setOption("fullScreen", false);
+                                }
+                            },
+                            "Tab": function(cm) {
+                                if (cm.somethingSelected()) {
+                                    cm.indentSelection('add');
+                                } else {
+                                    var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                                    cm.replaceSelection(spaces);
+                                }
+                            },
+                            "Ctrl-S": function(cm) {
+                                self.saveConfigContent();
+                            }
+                        }
+                    });
+                    
+                    self.editorInstance.setSize('100%', '100%');
+                    
+                    self.editorInstance.on("change", function() {
+                        self.isModified = self.editorInstance.getValue() !== self.originalContent;
+                        self.updateSaveButtonState();
+                    });
+                    
+                    var savedZoom = localStorage.getItem('config-editor-zoom');
+                    if (savedZoom && self.zoomLevels.indexOf(parseInt(savedZoom)) !== -1) {
+                        self.updateZoom(parseInt(savedZoom));
+                    }
+                    
+                    statusText.textContent = '<%:Ready%>';
+                } else {
+                    throw new Error('Invalid response data');
+                }
+            })
+            .catch(function(error) {
+                loadingDiv.querySelector('span').textContent = '<%:Failed to load config file%>';
+                statusText.textContent = '<%:Load failed%>';
+            });
+    },
+    
+    saveConfigContent: function() {
+        if (!this.editorInstance || !this.isModified) {
+            return;
+        }
+        
+        var self = this;
+        var statusText = document.getElementById('config-editor-status-text');
+        var saveBtn = document.getElementById('config-editor-save');
+        
+        statusText.textContent = '<%:Saving...%>';
+        saveBtn.disabled = true;
+        
+        var content = this.editorInstance.getValue();
+        
+        if (!content) {
+            saveBtn.disabled = false;
+            statusText.textContent = '<%:Save failed%>';
+            alert('<%:Config file content is empty%>');
+            return;
+        }
+        
+        var formData = new FormData();
+        formData.append('config_file', this.currentConfigFile);
+        formData.append('content', content);
+        
+        fetch('/cgi-bin/luci/admin/services/openclash/config_file_save', {
+            method: 'POST',
+            body: formData
+        })
+        .then(function(response) {
+            if (!response.ok) {
+                throw new Error('HTTP error! status: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function(data) {
+            saveBtn.disabled = false;
+            
+            if (data.status === 'success') {
+                self.originalContent = content;
+                self.isModified = false;
+                self.updateSaveButtonState();
+                statusText.textContent = '<%:Saved successfully%>';
+                
+                setTimeout(function() {
+                    if (statusText && statusText.textContent === '<%:Saved successfully%>') {
+                        statusText.textContent = '<%:Ready%>';
+                    }
+                }, 3000);
+            } else {
+                statusText.textContent = '<%:Save failed%>';
+                alert('<%:Failed to save config file:%> ' + (data.message || '<%:Unknown error%>'));
+                
+                setTimeout(function() {
+                    if (statusText && statusText.textContent === '<%:Save failed%>') {
+                        statusText.textContent = '<%:Ready%>';
+                    }
+                }, 3000);
+            }
+        })
+        .catch(function(error) {
+            saveBtn.disabled = false;
+            statusText.textContent = '<%:Save failed%>';
+            alert('<%:Save config failed:%> ' + error.message);
+            
+            setTimeout(function() {
+                if (statusText && statusText.textContent === '<%:Save failed%>') {
+                    statusText.textContent = '<%:Ready%>';
+                }
+            }, 3000);
+        });
+    },
+    
+    downloadConfigContent: function() {
+        if (!this.editorInstance) {
+            alert('<%:Editor not ready%>');
+            return;
+        }
+        
+        var content = this.editorInstance.getValue();
+        var filename = this.formatDisplayName(this.currentConfigFile);
+        
+        if (!filename.toLowerCase().endsWith('.yaml') && !filename.toLowerCase().endsWith('.yml')) {
+            filename += '.yaml';
+        }
+        
+        try {
+            var blob = new Blob([content], { type: 'text/yaml;charset=utf-8' });
+            var url = window.URL.createObjectURL(blob);
+            var link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.style.display = 'none';
+            
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+            
+            var statusText = document.getElementById('config-editor-status-text');
+            if (statusText) {
+                var originalText = statusText.textContent;
+                statusText.textContent = '<%:Download started%>';
+                
+                setTimeout(function() {
+                    if (statusText && statusText.textContent === '<%:Download started%>') {
+                        statusText.textContent = originalText;
+                    }
+                }, 2000);
+            }
+            
+        } catch (error) {
+            alert('<%:Download failed:%> ' + error.message);
+        }
+    },
+    
+    updateSaveButtonState: function() {
+        var saveBtn = document.getElementById('config-editor-save');
+        if (saveBtn) {
+            saveBtn.style.opacity = this.isModified ? '1' : '0.5';
+            saveBtn.style.cursor = this.isModified ? 'pointer' : 'not-allowed';
+        }
+    },
+    
+    closeEditor: function() {
+        if (this.isModified) {
+            var r = confirm('<%:You have unsaved changes. Are you sure you want to close?%>');
+            if (!r) {
+                return;
+            }
+        }
+        
+        this.hide();
+    },
+    
+    updateZoom: function(newZoom) {
+        this.currentZoom = newZoom;
+        
+        if (this.editorInstance) {
+            var cmWrapper = this.modal.querySelector('.CodeMirror');
+            if (cmWrapper) {
+                this.zoomLevels.forEach(function(level) {
+                    cmWrapper.classList.remove('zoom-' + level);
+                });
+                
+                if (this.currentZoom !== 100) {
+                    cmWrapper.classList.add('zoom-' + this.currentZoom);
+                }
+                
+                this.editorInstance.refresh();
+            }
+        }
+        
+        localStorage.setItem('config-editor-zoom', this.currentZoom);
+    },
+    
+    zoomIn: function() {
+        var currentIndex = this.zoomLevels.indexOf(this.currentZoom);
+        if (currentIndex < this.zoomLevels.length - 1) {
+            this.updateZoom(this.zoomLevels[currentIndex + 1]);
+        }
+    },
+    
+    zoomOut: function() {
+        var currentIndex = this.zoomLevels.indexOf(this.currentZoom);
+        if (currentIndex > 0) {
+            this.updateZoom(this.zoomLevels[currentIndex - 1]);
+        }
+    },
+    
+    resetZoom: function() {
+        this.updateZoom(100);
+    },
+    
+    maximizeWindow: function() {
+        if (!this.isMaximized) {
+            this.modal.classList.add('maximized');
+            this.modal.classList.remove('minimized');
+            this.isMaximized = true;
+            this.isMinimized = false;
+        } else {
+            this.modal.classList.remove('maximized');
+            this.isMaximized = false;
+        }
+        
+        setTimeout(() => {
+            if (this.editorInstance) {
+                this.editorInstance.refresh();
+            }
+        }, 100);
+    },
+    
+    minimizeWindow: function() {
+        if (!this.isMinimized) {
+            this.modal.classList.add('minimized');
+            this.modal.classList.remove('maximized');
+            this.isMinimized = true;
+            this.isMaximized = false;
+        } else {
+            this.modal.classList.remove('minimized');
+            this.isMinimized = false;
+        }
+        
+        setTimeout(() => {
+            if (this.editorInstance) {
+                this.editorInstance.refresh();
+            }
+        }, 100);
+    },
+    
+    makeDraggable: function() {
+        var self = this;
+        var header = this.modal.querySelector('.config-editor-header');
+        var startX, startY, startLeft, startTop;
+        var isDragging = false;
+        
+        header.addEventListener('mousedown', function(e) {
+            if (e.target.closest('.config-editor-actions')) {
+                return;
+            }
+            
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            var rect = self.modal.getBoundingClientRect();
+            startLeft = rect.left;
+            startTop = rect.top;
+            
+            self.modal.style.position = 'fixed';
+            self.modal.style.left = startLeft + 'px';
+            self.modal.style.top = startTop + 'px';
+            self.modal.style.margin = '0';
+            self.modal.style.transform = 'none';
+            self.modal.style.transition = 'none';
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            
+            e.preventDefault();
+        });
+        
+        function onMouseMove(e) {
+            if (!isDragging) return;
+            
+            var deltaX = e.clientX - startX;
+            var deltaY = e.clientY - startY;
+            
+            var newLeft = startLeft + deltaX;
+            var newTop = startTop + deltaY;
+            
+            var modalRect = self.modal.getBoundingClientRect();
+            var maxLeft = window.innerWidth - modalRect.width;
+            var maxTop = window.innerHeight - modalRect.height;
+            
+            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+            newTop = Math.max(0, Math.min(newTop, maxTop));
+            
+            self.modal.style.left = newLeft + 'px';
+            self.modal.style.top = newTop + 'px';
+        }
+        
+        function onMouseUp() {
+            isDragging = false;
+            
+            setTimeout(function() {
+                self.modal.style.transition = 'all 0.3s ease';
+            }, 50);
+            
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        }
+    },
+    
+    makeResizable: function() {
+        var self = this;
+        var resizeHandle = document.getElementById('config-editor-resize-handle');
+        var isResizing = false;
+        var startX, startY, startWidth, startHeight;
+        
+        resizeHandle.addEventListener('mousedown', function(e) {
+            isResizing = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            var rect = self.modal.getBoundingClientRect();
+            startWidth = rect.width;
+            startHeight = rect.height;
+            
+            self.modal.style.transition = 'none';
+            self.modal.style.width = startWidth + 'px';
+            self.modal.style.height = startHeight + 'px';
+            
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            
+            e.preventDefault();
+        });
+        
+        function onMouseMove(e) {
+            if (!isResizing) return;
+            
+            var deltaX = e.clientX - startX;
+            var deltaY = e.clientY - startY;
+            
+            var newWidth = Math.max(400, startWidth + deltaX);
+            var newHeight = Math.max(300, startHeight + deltaY);
+            
+            var maxWidth = window.innerWidth * 0.98;
+            var maxHeight = window.innerHeight * 0.95;
+            
+            newWidth = Math.min(newWidth, maxWidth);
+            newHeight = Math.min(newHeight, maxHeight);
+            
+            self.modal.style.width = newWidth + 'px';
+            self.modal.style.height = newHeight + 'px';
+            
+            if (self.editorInstance) {
+                requestAnimationFrame(function() {
+                    self.editorInstance.refresh();
+                });
+            }
+        }
+        
+        function onMouseUp() {
+            isResizing = false;
+            
+            self.modal.style.transition = 'all 0.3s ease';
+            
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+            
+            if (self.editorInstance) {
+                setTimeout(function() {
+                    self.editorInstance.refresh();
+                }, 50);
+            }
+        }
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    ConfigEditor.init();
+});
+</script>

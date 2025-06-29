@@ -223,13 +223,10 @@
 				checktime.innerHTML = "<b style=color:red><%:Check Failed%></b>";
 			}
 			if ( status.coremetacv == "0" ) {
-				core_meta_cv.innerHTML = "<b style=color:red><%:File Not Exist%></b>";
-			}
-			else if (status.coremetacv != "") {
-				core_meta_cv.innerHTML = "<b style=color:green>"+status.coremetacv+"</b>";
+				core_meta_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
 			}
 			else {
-				core_meta_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
+				core_meta_cv.innerHTML = "<b style=color:green>"+status.coremetacv+"</b>";
 			}
 			var coremetalvis = status.corelv;
 			if (coremetalvis != status.coremetacv && coremetalvis != "" && coremetalvis != "loading...") {
@@ -245,8 +242,8 @@
 			   core_meta_lv.innerHTML = "<b style=color:red><%:Unknown%></b>";
 			}
 			var oplv = status.oplv;
-			op_cv.innerHTML = status.opcv ? "<b style=color:green>"+status.opcv+"</b>" : "<b style=color:red><%:Unknown%></b>";
-			if (oplv != "" && oplv != "loading..." && status.opcv) {
+			op_cv.innerHTML = status.opcv != "0" ? "<b style=color:green>"+status.opcv+"</b>" : "<b style=color:red><%:Unknown%></b>";
+			if (oplv != "" && oplv != "loading..." && status.opcv != "0") {
                 function compareVersions(v1, v2) {
                     var ver1 = v1.replace(/^v/, '').split('.');
                     var ver2 = v2.replace(/^v/, '').split('.');
@@ -546,16 +543,8 @@
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
 				btn.value    = '<%:One Click Check Update With CDN%>';
-				btn.disabled = true;
-				var r = confirm("<%:Check and Update all Cores and OpenClash?%>");
-				if (r == true) {
-					btn.disabled = false;
-					return select_git_cdn("one_key_update");
-				}
-				else {
-					btn.disabled = false;
-					return false;
-				}
+				btn.disabled = false;
+				return select_git_cdn("one_key_update");
 			}
 		});
     }

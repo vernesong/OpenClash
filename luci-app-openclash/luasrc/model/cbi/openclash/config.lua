@@ -46,20 +46,6 @@ function default_config_set(f)
 	end
 end
 
-function config_check(CONFIG_FILE)
-	local yaml = fs.isfile(CONFIG_FILE)
-	if yaml then
-		yaml = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "puts YAML.load_file(\'%s\')" 2>/dev/null',CONFIG_FILE))
-		if yaml ~= "false\n" and yaml ~= "" then
-			return "Config Normal"
-		else
-			return "Config Abnormal"
-		end
-	elseif (yaml ~= 0) then
-	   return "File Not Exist"
-	end
-end
-
 ful = SimpleForm("upload", translate("Config Manage"), nil)
 ful.reset = false
 ful.submit = false
@@ -199,7 +185,6 @@ else
    e[t].state=translate("Disabled")
 end
 e[t].size=fs.filesize(a.size)
-e[t].check=translate(config_check(o))
 e[t].remove=0
 end
 end
@@ -213,9 +198,7 @@ nm=tb:option(DummyValue,"name",translate("Config Alias"))
 sb=tb:option(DummyValue,"name",translate("Subscription Info"))
 mt=tb:option(DummyValue,"mtime",translate("Update Time"))
 sz=tb:option(DummyValue,"size",translate("Size"))
-ck=tb:option(DummyValue,"check",translate("Grammar Check"))
 st.template="openclash/cfg_check"
-ck.template="openclash/cfg_check"
 sb.template="openclash/sub_info_show"
 
 btnis=tb:option(Button,"switch",translate("SwiTch"))

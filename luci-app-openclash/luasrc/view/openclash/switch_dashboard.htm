@@ -27,8 +27,8 @@
 			if ( btn_type_<%=self.option%> == "Metacubexd" ) {
 				switch_dashboard_<%=self.option%>.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Update Metacubexd Version%>" onclick="return switch_dashboard(this, btn_type_<%=self.option%>, \'Official\')"/>';
 			}
-      if ( btn_type_<%=self.option%> == "zashboard" ) {
-				switch_dashboard_<%=self.option%>.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Update zashboard Version%>" onclick="return switch_dashboard(this, btn_type_<%=self.option%>, \'Official\')"/>';
+      if ( btn_type_<%=self.option%> == "Zashboard" ) {
+				switch_dashboard_<%=self.option%>.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Update Zashboard Version%>" onclick="return switch_dashboard(this, btn_type_<%=self.option%>, \'Official\')"/>';
 			}
         }
 	});
@@ -60,7 +60,7 @@
 						else if ( name == "Metacubexd" ) {
 							document.getElementById("switch_dashboard_"+name).innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Update Successful%> - <%:Update Metacubexd Version%>" onclick="return switch_dashboard(this, \'Metacubexd\', \'Official\')"/>';
 						} else {
-							document.getElementById("switch_dashboard_"+name).innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Update Successful%> - <%:Update zashboard Version%>" onclick="return switch_dashboard(this, \'zashboard\', \'Official\')"/>';
+							document.getElementById("switch_dashboard_"+name).innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Update Successful%> - <%:Update Zashboard Version%>" onclick="return switch_dashboard(this, \'Zashboard\', \'Official\')"/>';
             }
 					}
 				}
@@ -68,7 +68,7 @@
 					btn.value = '<%:Unzip Error%>';
 				}
 				else {
-					if ( name == "Metacubexd" || name == "zashboard" ) {
+					if ( name == "Metacubexd" || name == "Zashboard" ) {
 						btn.value = '<%:Update Failed%>';
 					}
 					else {
