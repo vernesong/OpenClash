@@ -1,310 +1,882 @@
-
 <style type="text/css">
-
-:root[data-darkmode="true"] .select-popup {
-	background-color: #000000;
-
+.oc {
+    --bg-white: #ffffff;
+    --bg-light: #f8fafc;
+    --bg-gray: #f1f5f9;
+    --text-primary: #374151;
+    --text-secondary: #64748b;
+    --text-title: #4d4d4d;
+    --border-color: #b1b1b1;
+    --border-light: #e2e8f0;
+    --hover-bg: #f8fafc;
+    --primary-color: #3b82f6;
+    --success-color: #059669;
+    --success-dark: #047857;
+    --warning-color: #f59e0b;
+    --error-color: #dc2626;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --radius-sm: 6px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    
+    --control-height: 36px;
+    --card-padding: 16px;
+    --gap-size: 16px;
 }
 
-:root[data-darkmode="true"] .select-option:hover {
-  	background-color: #444444;
+.oc[data-darkmode="true"] {
+    --bg-white: #1f2937;
+    --bg-light: #374151;
+    --bg-gray: #4b5563;
+    --text-primary: #ebebeb;
+    --text-secondary: #d0cfcf;
+    --text-title: #e5e7eb;
+    --border-color: #939393;
+    --border-light: #6b7280;
+    --hover-bg: #374151;
+    --primary-color: #3b82f6;
+    --success-color: #34d399;
+    --success-dark: #10b981;
+}
+
+.oc * {
+    box-sizing: border-box;
+}
+
+.oc {
+    font-family: var(--font-family-base);
+    line-height: 1.6;
+    color: var(--text-primary);
+    background-color: var(--bg-light);
 }
 
 .select-popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  border: 3px solid #9e9e9e;
-  border-radius: 5px;
-  padding: 10px;
-  z-index: 1000;
-  max-width: 1000%;
-  min-width: 70%;
-  width: 70%;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    z-index: 1000;
+    max-width: 90%;
+    min-width: 300px;
+    width: 60%;
+    box-shadow: var(--shadow-md);
+    transition: all var(--transition-normal);
 }
 
-.select-class {
-  width: auto !important;
-  min-width: auto !important;
+.close-btn {
+    background: none;
+    border: 1px solid var(--border-light);
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 24px !important;
+    height: 24px !important;
+    min-width: 24px !important;
+    padding: 0 !important;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all var(--transition-fast);
+    line-height: 1;
+    margin-left: 8px;
+}
+
+.close-btn:hover {
+    background-color: var(--hover-bg);
+    color: var(--error-color);
+    border-color: var(--error-color);
+}
+
+.close-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
+    border-color: var(--error-color);
+}
+
+.close-btn svg {
+    width: 14px !important;
+    height: 14px !important;
 }
 
 .select-popup.hidden {
-  display: none;
+    display: none;
 }
 
 .select-popup-header {
-  font-weight: bold;
-  margin-bottom: 10px;
-  font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-gray);
+    flex-shrink: 0;
+}
+
+.select-config-section {
+    background: var(--bg-gray);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--card-padding);
+    margin-bottom: 20px;
+    box-shadow: var(--shadow-sm);
+}
+
+.config-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gap-size);
+    align-items: center;
+}
+
+.config-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+    width: 100%;
+    position: relative;
+}
+
+.config-item::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    bottom: 20px;
+    transform: translateY(50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid var(--text-secondary);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.config-editor-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-align: center;
+    flex: 1;
+}
+
+.config-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: center;
+    position: relative;
+}
+
+.config-label::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 1px;
+    background-color: var(--border-color);
+}
+
+.select-class {
+    width: 100% !important;
+    height: var(--control-height);
+    padding: 8px 32px 8px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    font-size: 13px;
+    appearance: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.select-class:hover {
+    border-color: var(--primary-color);
+}
+
+.select-class:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.help-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--primary-color);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity var(--transition-fast);
+    margin-bottom: 2px;
+    border-radius: var(--radius-sm);
+}
+
+.select-class option {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: var(--bg-white);
+    color: var(--text-primary);
+}
+
+.help-link:hover {
+    opacity: 1;
+    background: rgba(59, 130, 246, 0.1);
 }
 
 .select-popup-body {
-  max-height: 200px;
-  overflow-y: auto;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background: var(--bg-gray);
 }
 
 .select-option {
-  padding: 5px;
-  cursor: pointer;
-  border-bottom: 1px solid #d7d7d7;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border-light);
+    transition: all var(--transition-fast);
+    font-size: 14px;
+    color: var(--text-primary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: row;
+}
+
+.select-option:last-child {
+    border-bottom: none;
 }
 
 .select-option:hover {
-  background-color: #f0f0f0;
+    background-color: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+.select-option[data-value="custom"] {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(99, 102, 241, 0.1));
+    border-color: rgba(59, 130, 246, 0.2);
+    font-weight: 500;
+}
+
+.select-option[data-value="custom"]:hover {
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(99, 102, 241, 0.2));
 }
 
 .custom-option-input {
-  margin-top: 5px;
-  padding: 5px;
-  width: 100%;
+    margin: 12px;
+    padding: 12px;
+    width: calc(100% - 24px);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all var(--transition-fast);
+}
+
+.custom-option-input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.custom-option-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+#addCustomOption {
+    background: var(--primary-color);
+    color: white;
+    font-weight: 500;
+    border-bottom: none !important;
+    margin: 0 12px 12px 12px;
+    border-radius: var(--radius-sm);
+}
+
+#addCustomOption:hover {
+    background: #2563eb;
+    color: white;
+}
+
+.cdn-status {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    margin-left: 8px;
+}
+
+.cdn-status.fast {
+    background: rgba(5, 150, 105, 0.1);
+    color: var(--success-color);
+}
+
+.cdn-status.medium {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning-color);
+}
+
+.cdn-status.slow {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--error-color);
+}
+
+.cdn-status.error {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--error-color);
+}
+
+@media screen and (max-width: 1200px) {
+    .config-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .config-item {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    .select-class {
+        max-width: 100%;
+        font-size: 13px;
+    }
+}
+
+@media screen and (max-width: 768px) {
+    .select-popup {
+        min-width: 95%;
+        width: 95%;
+        padding: 20px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    
+    .config-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .config-item {
+        text-align: center;
+    }
+    
+    .select-popup-header {
+        font-size: 16px;
+        margin-bottom: 16px;
+        padding-bottom: 12px;
+    }
+    
+    .select-config-section {
+        padding: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .select-popup-body {
+        max-height: 200px;
+    }
+    
+    .select-option {
+        padding: 10px 12px;
+        font-size: 13px;
+        align-items: flex-start;
+        gap: 4px;
+    }
+    
+    .custom-option-input {
+        font-size: 13px;
+        padding: 10px;
+    }
+}
+
+@media screen and (max-width: 575px) {
+    .select-popup {
+        min-width: 98%;
+        width: 98%;
+        padding: 16px;
+    }
+    
+    .select-popup-header {
+        font-size: 15px;
+        margin-bottom: 12px;
+    }
+    
+    .select-config-section {
+        padding: 10px;
+    }
+    
+    .config-label {
+        font-size: 12px;
+    }
+    
+    .select-class {
+        font-size: 12px;
+        padding: 6px 28px 6px 10px;
+    }
+    
+    .config-item::after {
+        right: 10px;
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+        border-top: 3px solid var(--text-secondary);
+    }
+    
+    .select-option {
+        padding: 8px 10px;
+        font-size: 12px;
+    }
+}
+
+.oc[data-darkmode="true"] .select-popup {
+    background-color: var(--bg-white);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] .select-option:hover {
+    background-color: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+.oc[data-darkmode="true"] .select-class {
+    background: var(--bg-white) !important;
+    border-color: var(--border-light) !important;
+    color: var(--text-primary) !important;
+}
+
+.oc[data-darkmode="true"] .select-class:hover {
+    border-color: var(--primary-color);
+}
+
+.oc[data-darkmode="true"] .select-class:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.oc[data-darkmode="true"] .select-class option {
+    background: var(--bg-white) !important;
+    color: var(--text-primary) !important;
+}
+
+.oc[data-darkmode="true"] .config-item::after {
+    border-top-color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] .custom-option-input {
+    background: var(--bg-white);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+.oc[data-darkmode="true"] .custom-option-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] .select-config-section {
+    background: var(--bg-gray);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] .select-popup-body {
+    background: var(--bg-gray);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] #addCustomOption {
+    background: var(--primary-color);
+}
+
+.oc[data-darkmode="true"] #addCustomOption:hover {
+    background: #2563eb;
+}
+
+.oc[data-darkmode="true"] .close-btn {
+    color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] .close-btn:hover {
+    background-color: var(--hover-bg);
+    color: var(--error-color);
 }
 </style>
 
 <body>
-	<div id="selectPopup" class="select-popup hidden">
-		<table width="100%"><tr>
-			<td width="16.6%" align="center"><%:Compiled Version%></td>
-				<td width="16.6%" align="center"><select class="select-class" id="CORE_VERSION_CDN">
-					<option value="linux-386"><%:linux-386%></option>
-					  <option value="linux-amd64"><%:linux-amd64(x86-64)%></option>
-					  <option value="linux-amd64-v3"><%:linux-amd64-v3(x86-64)%></option>
-					  <option value="linux-armv5"><%:linux-armv5%></option>
-					  <option value="linux-armv6"><%:linux-armv6%></option>
-					  <option value="linux-armv7"><%:linux-armv7%></option>
-					  <option value="linux-arm64"><%:linux-arm64(armv8)%></option>
-					  <option value="linux-loong64-abi1"><%:linux-loong64-abi1%></option>
-					  <option value="linux-loong64-abi2"><%:linux-loong64-abi2%></option>
-					  <option value="linux-riscv64"><%:linux-riscv64%></option>
-					  <option value="linux-s390x"><%:linux-s390x%></option>
-					  <option value="linux-mips-hardfloat"><%:linux-mips-hardfloat%></option>
-					  <option value="linux-mips-softfloat"><%:linux-mips-softfloat%></option>
-					  <option value="linux-mips64"><%:linux-mips64%></option>
-					  <option value="linux-mips64le"><%:linux-mips64le%></option>
-					  <option value="linux-mipsle-softfloat"><%:linux-mipsle-softfloat%></option>
-					  <option value="linux-mipsle-hardfloat"><%:linux-mipsle-hardfloat%></option>
-					  <option value="0"><%:Not Set%></option>
-				</select></td>
-				<td width="16.6%" align="center"><%:Release Branch%></td>
-				<td width="16.6%" align="center"><select class="select-class" id="RELEASE_BRANCH_CDN">
-					<option value="master">Master</option>
-					<option value="dev">Developer</option>
-				</select></td>
-				<td width="16.6%"><%:Smart Core%> <a href="javascript:void(0);" onclick="window.open('https://github.com/vernesong/mihomo/releases', '_blank');" style="color: #0066cc; text-decoration: none;" title="<%:View core infos that support smart group%>"> (?)</a></td>
-				<td width="16.6%" align="left"><select class="select-class" id="SMART_ENABLE_CDN">
-					<option value="0"><%:Disabled%></option>
-					<option value="1"><%:Enable%></option>
-				</select></td>
-			</tr></table>
-	<div class="select-popup-header"><%:Choose CDN For Downloading:%></div>
-	<div class="select-popup-body">
-		<div class="select-option" data-value="https://fastly.jsdelivr.net/">https://fastly.jsdelivr.net/</div>
-		<div class="select-option" data-value="https://testingcf.jsdelivr.net/">https://testingcf.jsdelivr.net/</div>
-		<div class="select-option" data-value="https://cdn.jsdelivr.net/">https://cdn.jsdelivr.net/</div>
-		<div class="select-option" data-value="custom"><%:Custom Your CDN URL%></div>
-		<input type="text" id="customOptionInput" class="custom-option-input"  value="https://ghp.ci/" placeholder="<%:Type CDN URL, Format Like%> https://ghp.ci/" style="display: none;">
-		<div class="select-option" id="addCustomOption" style="display: none;"><%:Add%></div>
-	</div>
-	</div>
-	
+    <div id="selectPopup" class="oc select-popup hidden">
+        <div class="select-popup-header">
+            <div class="config-editor-title">
+                <%:Choose CDN For Downloading%>
+            </div>
+            <div class="config-editor-actions">
+                <button type="button" class="icon-btn close-btn" onclick="closeSelectPopup()" title="<%:Close%>">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <div class="select-config-section">
+            <div class="config-grid">
+                <div class="config-item">
+                    <div class="config-label"><%:Compiled Version%></div>
+                    <select class="select-class" id="CORE_VERSION_CDN">
+                        <option value="linux-386"><%:linux-386%></option>
+                        <option value="linux-amd64"><%:linux-amd64(x86-64)%></option>
+                        <option value="linux-amd64-v3"><%:linux-amd64-v3(x86-64)%></option>
+                        <option value="linux-armv5"><%:linux-armv5%></option>
+                        <option value="linux-armv6"><%:linux-armv6%></option>
+                        <option value="linux-armv7"><%:linux-armv7%></option>
+                        <option value="linux-arm64"><%:linux-arm64(armv8)%></option>
+                        <option value="linux-loong64-abi1"><%:linux-loong64-abi1%></option>
+                        <option value="linux-loong64-abi2"><%:linux-loong64-abi2%></option>
+                        <option value="linux-riscv64"><%:linux-riscv64%></option>
+                        <option value="linux-s390x"><%:linux-s390x%></option>
+                        <option value="linux-mips-hardfloat"><%:linux-mips-hardfloat%></option>
+                        <option value="linux-mips-softfloat"><%:linux-mips-softfloat%></option>
+                        <option value="linux-mips64"><%:linux-mips64%></option>
+                        <option value="linux-mips64le"><%:linux-mips64le%></option>
+                        <option value="linux-mipsle-softfloat"><%:linux-mipsle-softfloat%></option>
+                        <option value="linux-mipsle-hardfloat"><%:linux-mipsle-hardfloat%></option>
+                        <option value="0"><%:Not Set%></option>
+                    </select>
+                </div>
+                
+                <div class="config-item">
+                    <div class="config-label"><%:Release Branch%></div>
+                    <select class="select-class" id="RELEASE_BRANCH_CDN">
+                        <option value="master">Master</option>
+                        <option value="dev">Developer</option>
+                    </select>
+                </div>
+                
+                <div class="config-item">
+                    <div class="config-label">
+                        <%:Smart Core%>
+                        <a href="javascript:void(0);" onclick="window.open('https://github.com/vernesong/mihomo/releases', '_blank');" class="help-link" title="<%:View core infos that support smart group%>">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                            </svg>
+                        </a>
+                    </div>
+                    <select class="select-class" id="SMART_ENABLE_CDN">
+                        <option value="0"><%:Disabled%></option>
+                        <option value="1"><%:Enable%></option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        
+        <div class="select-popup-body">
+            <div class="select-option" data-value="https://fastly.jsdelivr.net/">
+                <span>https://fastly.jsdelivr.net/</span>
+            </div>
+            <div class="select-option" data-value="https://testingcf.jsdelivr.net/">
+                <span>https://testingcf.jsdelivr.net/</span>
+            </div>
+            <div class="select-option" data-value="https://cdn.jsdelivr.net/">
+                <span>https://cdn.jsdelivr.net/</span>
+            </div>
+            <div class="select-option" data-value="custom">
+                <span><%:Custom Your CDN URL%></span>
+                <span style="font-size: 12px; opacity: 0.7;">→</span>
+            </div>
+            <input type="text" id="customOptionInput" class="custom-option-input" value="https://ghp.ci/" placeholder="<%:Type CDN URL, Format Like%> https://ghp.ci/" style="display: none;">
+            <div class="select-option" id="addCustomOption" style="display: none;"><%:Add%></div>
+        </div>
+    </div>
 </body>
 
 <script type="text/javascript">
 //<![CDATA[
+    var core_version_cdn = document.getElementById('CORE_VERSION_CDN');
+    var release_branch_cdn = document.getElementById('RELEASE_BRANCH_CDN');
+    var smart_enable_cdn = document.getElementById('SMART_ENABLE_CDN');
 
-	var core_version_cdn = document.getElementById('CORE_VERSION_CDN');
-	var release_branch_cdn = document.getElementById('RELEASE_BRANCH_CDN');
-	var smart_enable_cdn = document.getElementById('SMART_ENABLE_CDN');
+    function initDarkMode() {
+        var ocContainer = document.querySelector('.oc');
+        if (!ocContainer) return;
+        
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var isDarkBg = isDarkBackground(document.body);
+        var shouldUseDark = prefersDark || isDarkBg;
+        
+        if (shouldUseDark) {
+            ocContainer.setAttribute('data-darkmode', 'true');
+        } else {
+            ocContainer.removeAttribute('data-darkmode');
+        }
+    }
 
-	function isDarkBackground(element) {
-		var style = window.getComputedStyle(element);
-		var bgColor = style.backgroundColor;
-		let r, g, b;
-		if (/rgb\(/.test(bgColor)) {
-			var rgb = bgColor.match(/\d+/g);
-			r = parseInt(rgb);
-			g = parseInt(rgb);
-			b = parseInt(rgb);
-		} else if (/#/.test(bgColor)) {
-			if (bgColor.length === 4) {
-			r = parseInt(bgColor + bgColor, 16);
-			g = parseInt(bgColor + bgColor, 16);
-			b = parseInt(bgColor + bgColor, 16);
-			} else {
-			r = parseInt(bgColor.slice(1, 3), 16);
-			g = parseInt(bgColor.slice(3, 5), 16);
-			b = parseInt(bgColor.slice(5, 7), 16);
-			}
-		} else {
-			return false;
-		}
-		var luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-		return luminance < 128;
- 	};
+    function isDarkBackground(element) {
+        try {
+            var style = window.getComputedStyle(element);
+            var bgColor = style.backgroundColor;
+            
+            if (!bgColor || bgColor === 'transparent' || bgColor === 'rgba(0, 0, 0, 0)') {
+                var parent = element.parentElement;
+                if (parent && parent !== element) {
+                    return isDarkBackground(parent);
+                }
+                return false;
+            }
+            
+            var r, g, b;
+            
+            if (/rgba?\(/.test(bgColor)) {
+                var rgb = bgColor.match(/[\d.]+/g);
+                r = parseFloat(rgb[0]);
+                g = parseFloat(rgb[1]);
+                b = parseFloat(rgb[2]);
+            } else if (/#/.test(bgColor)) {
+                if (bgColor.length === 4) {
+                    r = parseInt(bgColor[1] + bgColor[1], 16);
+                    g = parseInt(bgColor[2] + bgColor[2], 16);
+                    b = parseInt(bgColor[3] + bgColor[3], 16);
+                } else if (bgColor.length === 7) {
+                    r = parseInt(bgColor.slice(1, 3), 16);
+                    g = parseInt(bgColor.slice(3, 5), 16);
+                    b = parseInt(bgColor.slice(5, 7), 16);
+                }
+            } else {
+                return false;
+            }
+            
+            var luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+            return luminance < 128;
+        } catch (e) {
+            return false;
+        }
+    }
 
-	if (isDarkBackground(document.body)) {
-		document.documentElement.setAttribute('data-darkmode', 'true');
-	};
+    document.addEventListener('DOMContentLoaded', function() {
+        initDarkMode();
+    });
 
-	function get_update_info() {
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, status) {
-			if ( x && x.status == 200 ) {
-				if ( status.corever && status.corever != "0" && status.corever != "" ) {
-					core_version_cdn.value = status.corever;
-				}
-				else {
-					core_version_cdn.value = "0";
-				}
-				if ( status.release_branch && status.release_branch != "" ) {
-					release_branch_cdn.value = status.release_branch;
-				}
-				else {
-					release_branch_cdn.value = "master";
-				}
-				if ( status.smart_enable && status.smart_enable != "" ) {
-				smart_enable_cdn.value = status.smart_enable;
-				}
-				else {
-					smart_enable_cdn.value = "0";
-				}
-			}
-			else {
-				core_version_cdn.value = "0";
-				release_branch_cdn.value = "master";
-				smart_enable_cdn.value = "0";
-			}
-		});
-	};
-	
-	function isValidURL(str) {
-		var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
-			'((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
-			'((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
-			'(\\:\\d+)?(\\/[-a-z\\d%_.&#126;+]*)*'+ // port and path
-			'(\\?[;&a-z\\d%_.&#126;+=-]*)?'+ // query string
-			'(\\#[-a-z\\d_]*)?'+'\/$','i'); // fragment locator
-		return !!pattern.test(str);
-	};
-	
-	function HTTP_delay(domain, ID) {
-		let img = new Image;
-		let img_start_time = (+new Date());
-		let timeout = setTimeout(() => {
-			img.onerror = img.onload = null;
-			ID.innerHTML = ID.dataset.value + '&nbsp;&nbsp;&nbsp;&nbsp;<font style=\'color:red\'><%:Access Timed Out%></font>'
-		}, 3000);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initDarkMode);
+    } else {
+        initDarkMode();
+    }
 
-		img.onerror = () => {
-			clearTimeout(timeout);
-			ID.innerHTML = ID.dataset.value + '&nbsp;&nbsp;&nbsp;&nbsp;<font style=\'color:red\'><%:Access Denied%></font>'
-		};
+    function get_update_info() {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, status) {
+            if ( x && x.status == 200 ) {
+                if ( status.corever && status.corever != "0" && status.corever != "" ) {
+                    core_version_cdn.value = status.corever;
+                }
+                else {
+                    core_version_cdn.value = "0";
+                }
+                if ( status.release_branch && status.release_branch != "" ) {
+                    release_branch_cdn.value = status.release_branch;
+                }
+                else {
+                    release_branch_cdn.value = "master";
+                }
+                if ( status.smart_enable && status.smart_enable != "" ) {
+                smart_enable_cdn.value = status.smart_enable;
+                }
+                else {
+                    smart_enable_cdn.value = "0";
+                }
+            }
+            else {
+                core_version_cdn.value = "0";
+                release_branch_cdn.value = "master";
+                smart_enable_cdn.value = "0";
+            }
+        });
+    }
+    
+    function isValidURL(str) {
+        var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
+            '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // domain name
+            '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
+            '(\\:\\d+)?(\\/[-a-z\\d%_.&#126;+]*)*'+ // port and path
+            '(\\?[;&a-z\\d%_.&#126;+=-]*)?'+ // query string
+            '(\\#[-a-z\\d_]*)?'+'\/$','i'); // fragment locator
+        return !!pattern.test(str);
+    }
+    
+    function HTTP_delay(domain, ID) {
+        let img = new Image;
+        let img_start_time = (+new Date());
+        let timeout = setTimeout(() => {
+            img.onerror = img.onload = null;
+            updateCDNStatus(ID, 'error', '<%:Access Timed Out%>');
+        }, 3000);
 
-		img.onload = () => {
-			clearTimeout(timeout);
-			let img_load_time = (new Date())- img_start_time;
-			if (img_load_time <= 500) {
-				ID.innerHTML = ID.dataset.value + '&nbsp;&nbsp;&nbsp;&nbsp;' + '<font style=\'color:#32b643\'>'+img_load_time+'&nbsp;ms</font>'
-			}
-			else if (img_load_time > 500 && img_load_time <= 1000) {
-				ID.innerHTML = ID.dataset.value + '&nbsp;&nbsp;&nbsp;&nbsp;' + '<font style=\'color:orange\'>'+img_load_time+'&nbsp;ms</font>'
-			}
-			else {
-				ID.innerHTML = ID.dataset.value + '&nbsp;&nbsp;&nbsp;&nbsp;' + '<font style=\'color:#e85600\'>'+img_load_time+'&nbsp;ms</font>'
-			}
-		};
+        img.onerror = () => {
+            clearTimeout(timeout);
+            updateCDNStatus(ID, 'error', '<%:Access Denied%>');
+        };
 
-		img.src = `${domain}favicon.ico?${+(new Date)}`;
-	};
+        img.onload = () => {
+            clearTimeout(timeout);
+            let img_load_time = (new Date())- img_start_time;
+            let status, text;
+            
+            if (img_load_time <= 500) {
+                status = 'fast';
+                text = img_load_time + ' ms';
+            } else if (img_load_time > 500 && img_load_time <= 1000) {
+                status = 'medium';
+                text = img_load_time + ' ms';
+            } else {
+                status = 'slow';
+                text = img_load_time + ' ms';
+            }
+            
+            updateCDNStatus(ID, status, text);
+        };
 
-	function select_git_cdn(btn, type) {
-		var selectPopup = document.getElementById('selectPopup');
-		get_update_info();
-		selectPopup.classList.remove('hidden');
+        img.src = `${domain}favicon.ico?${+(new Date)}`;
+    }
+    
+    function updateCDNStatus(element, status, text) {
+        var existingStatus = element.querySelector('.cdn-status');
+        if (existingStatus) {
+            existingStatus.remove();
+        }
+        
+        var statusSpan = document.createElement('span');
+        statusSpan.className = 'cdn-status ' + status;
+        statusSpan.textContent = text;
+        element.appendChild(statusSpan);
+    }
 
-		var customOptionInput = document.getElementById('customOptionInput');
-		var addCustomOption = document.getElementById('addCustomOption');
-		var selectOptions = document.getElementsByClassName('select-option');
+    function select_git_cdn(btn, type) {
+        var selectPopup = document.getElementById('selectPopup');
+        get_update_info();
+        selectPopup.classList.remove('hidden');
 
-		customOptionInput.style.display = 'none';
-		addCustomOption.style.display = 'none';
+        var customOptionInput = document.getElementById('customOptionInput');
+        var addCustomOption = document.getElementById('addCustomOption');
+        var selectOptions = document.getElementsByClassName('select-option');
 
-		selectPopup.addEventListener('click', select_window, type);
+        customOptionInput.style.display = 'none';
+        addCustomOption.style.display = 'none';
 
-		document.addEventListener('click', select_window_close);
+        selectPopup.addEventListener('click', function(event) {
+            select_window(event, type);
+        });
 
-		refresh_httpdelay = setInterval(() => {
-			for(var i = 0; i < selectOptions.length; i++) {
-				if (isValidURL(selectOptions[i].dataset.value)) {
-					HTTP_delay(selectOptions[i].dataset.value, selectOptions[i]);
-				};
-			};
-		}, Math.floor(Math.random()*(7-3+1)+3)*1000);
-	};
-	
-	function select_window_close(event) {
-		if (!selectPopup.contains(event.target)) {
-			selectPopup.classList.add('hidden');
-			clearInterval(refresh_httpdelay);
-		}
-	};
+        document.addEventListener('click', select_window_close);
 
-	function select_window(event, type) {
-		var v = core_version_cdn.value;
-		var r = release_branch_cdn.value;
-		var s = smart_enable_cdn.value;
-		var selectOptions = document.getElementsByClassName('select-option');
-		var target = event.target;
-		if (target.classList.contains('select-option') && target.dataset.value === 'custom') {
-			customOptionInput.style.display = 'block';
-			addCustomOption.style.display = 'block';
-		} else if (target === addCustomOption) {
-			var newValue = customOptionInput.value.trim();
-			if (newValue !== '' && isValidURL(newValue)) {
-				var newOption = document.createElement('div');
-				newOption.classList.add('select-option');
-				newOption.textContent = newValue;
-				newOption.dataset.value = newValue;
-				selectPopup.querySelector('.select-popup-body').insertBefore(newOption, selectPopup.querySelector('.select-popup-body').children[selectOptions.length - 2]);
-				customOptionInput.style.display = 'none';
-				addCustomOption.style.display = 'none';
-			}
-			else {
-				alert("<%:Please enter a valid URL!%>");
-			}
-		} else if (target != addCustomOption && target != customOptionInput && target.classList.contains('select-option'))  {
-			customOptionInput.style.display = 'none';
-			addCustomOption.style.display = 'none';
-			if (type === 'core_download') {
-				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
-					if (x && x.status == 200) {
-						XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', {url: target.dataset.value}, function(x, status) {});
-					}
-				});
-			}
-			else {
-				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
-					if (x && x.status == 200) {
-						XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', {url: target.dataset.value}, function(x, status) {});
-					}
-				});
-				
-			}
-			
-			selectPopup.classList.add('hidden');
-			clearInterval(refresh_httpdelay);
-		}
-		else if (target != addCustomOption && target != customOptionInput) {
-			customOptionInput.style.display = 'none';
-			addCustomOption.style.display = 'none';
-		}
-		else {
-			if (target != customOptionInput) {
-				selectPopup.classList.add('hidden');
-				clearInterval(refresh_httpdelay);
-			}
-		};
-	};
+        refresh_httpdelay = setInterval(() => {
+            for(var i = 0; i < selectOptions.length; i++) {
+                if (isValidURL(selectOptions[i].dataset.value)) {
+                    HTTP_delay(selectOptions[i].dataset.value, selectOptions[i]);
+                }
+            }
+        }, Math.floor(Math.random()*(7-3+1)+3)*1000);
+    }
+    
+    function select_window_close(event) {
+        var selectPopup = document.getElementById('selectPopup');
+        if (!selectPopup.contains(event.target)) {
+            selectPopup.classList.add('hidden');
+            if (typeof refresh_httpdelay !== 'undefined') {
+                clearInterval(refresh_httpdelay);
+            }
+        }
+    }
+
+    function select_window(event, type) {
+        var v = core_version_cdn.value;
+        var r = release_branch_cdn.value;
+        var s = smart_enable_cdn.value;
+        var selectOptions = document.getElementsByClassName('select-option');
+        var target = event.target;
+        var selectPopup = document.getElementById('selectPopup');
+        var customOptionInput = document.getElementById('customOptionInput');
+        var addCustomOption = document.getElementById('addCustomOption');
+        
+        if (target.classList.contains('select-option') && target.dataset.value === 'custom') {
+            customOptionInput.style.display = 'block';
+            addCustomOption.style.display = 'block';
+            customOptionInput.focus();
+        } else if (target === addCustomOption) {
+            var newValue = customOptionInput.value.trim();
+            if (newValue !== '' && isValidURL(newValue)) {
+                var newOption = document.createElement('div');
+                newOption.classList.add('select-option');
+                newOption.innerHTML = '<span>' + newValue + '</span>';
+                newOption.dataset.value = newValue;
+                selectPopup.querySelector('.select-popup-body').insertBefore(newOption, selectPopup.querySelector('.select-popup-body').children[selectOptions.length - 2]);
+                customOptionInput.style.display = 'none';
+                addCustomOption.style.display = 'none';
+            }
+            else {
+                alert("<%:Please enter a valid URL!%>");
+            }
+        } else if (target != addCustomOption && target != customOptionInput && target.classList.contains('select-option'))  {
+            customOptionInput.style.display = 'none';
+            addCustomOption.style.display = 'none';
+            if (type === 'core_download') {
+                XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
+                    if (x && x.status == 200) {
+                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', {url: target.dataset.value}, function(x, status) {});
+                    }
+                });
+            }
+            else {
+                XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
+                    if (x && x.status == 200) {
+                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', {url: target.dataset.value}, function(x, status) {});
+                    }
+                });
+            }
+            
+            selectPopup.classList.add('hidden');
+            if (typeof refresh_httpdelay !== 'undefined') {
+                clearInterval(refresh_httpdelay);
+            }
+        }
+        else if (target != addCustomOption && target != customOptionInput) {
+            customOptionInput.style.display = 'none';
+            addCustomOption.style.display = 'none';
+        }
+        else {
+            if (target != customOptionInput) {
+                selectPopup.classList.add('hidden');
+                if (typeof refresh_httpdelay !== 'undefined') {
+                    clearInterval(refresh_httpdelay);
+                }
+            }
+        }
+    }
+
+    function closeSelectPopup() {
+        var selectPopup = document.getElementById('selectPopup');
+        selectPopup.classList.add('hidden');
+        if (typeof refresh_httpdelay !== 'undefined') {
+            clearInterval(refresh_httpdelay);
+        }
+    }
 //]]>
 </script>

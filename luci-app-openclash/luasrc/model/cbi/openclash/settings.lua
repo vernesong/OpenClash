@@ -1111,7 +1111,7 @@ o = s:taboption("dashboard", DummyValue, "Metacubexd", translate("Update Metacub
 o.template="openclash/switch_dashboard"
 o.rawhtml = true
 
-o = s:taboption("dashboard", DummyValue, "zashboard", translate("Update zashboard Version"))
+o = s:taboption("dashboard", DummyValue, "Zashboard", translate("Update Zashboard Version"))
 o.template="openclash/switch_dashboard"
 o.rawhtml = true
 

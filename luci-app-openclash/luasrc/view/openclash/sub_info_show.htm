@@ -310,13 +310,13 @@ function sub_info_refresh_<%=idname%>()
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "sub_info_get")%>', {filename: "<%=filename%>"}, function(x, status) {
 		if (x && x.status == 200 && status.sub_info != "" && status.sub_info != "No Sub Info Found") {
 			retry_<%=idname%> = 0;
-			localStorage.setItem("<%=filename%>",JSON.stringify(status));
+			localStorage.setItem("sub_info_<%=filename%>",JSON.stringify(status));
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
 			document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>((status.surplus ? status.surplus : status.used), (status.total), (status.percent), false, false, (status.expire), (status.day_left));
 		}
 		else if ( x && x.status == 200 && status.sub_info == "No Sub Info Found" ) {
 			retry_<%=idname%> = 0;
-			localStorage.setItem("<%=filename%>",JSON.stringify(status));
+			localStorage.setItem("sub_info_<%=filename%>",JSON.stringify(status));
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
 			document.getElementById('<%=idname%>').innerHTML = "<span><%:No Sub Info Found%></span>";
 		}
@@ -327,7 +327,7 @@ function sub_info_refresh_<%=idname%>()
 			}
 			if (retry_<%=idname%> > 2) {
 				retry_<%=idname%> = 0;
-				localStorage.removeItem("<%=filename%>");
+				localStorage.removeItem("sub_info_<%=filename%>");
 			}
 			else {
 				retry_<%=idname%> ++;
@@ -342,8 +342,8 @@ function sub_info_refresh_<%=idname%>()
 
 function sub_info_get_<%=idname%>()
 {
-	if (localStorage.getItem("<%=filename%>")) {
-		var save_info = JSON.parse(localStorage.getItem("<%=filename%>"));
+	if (localStorage.getItem("sub_info_<%=filename%>")) {
+		var save_info = JSON.parse(localStorage.getItem("sub_info_<%=filename%>"));
 		document.getElementById('<%=idname%>').className = "sub_tab_show";
 		if (save_info.sub_info == "No Sub Info Found") {
 			document.getElementById('<%=idname%>').innerHTML = "<span><%:No Sub Info Found%></span>";
