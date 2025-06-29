@@ -1,0 +1,1025 @@
+
+<style>
+.oc[data-darkmode="true"] .config-upload-modal {
+    background: var(--bg-white);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] .config-upload-header,
+.oc[data-darkmode="true"] .config-upload-footer {
+    background: var(--bg-gray);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] .mode-tab {
+    color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] .mode-tab:hover {
+    color: var(--text-primary);
+    background: rgba(96, 165, 250, 0.1);
+}
+
+.oc[data-darkmode="true"] .mode-tab.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.oc[data-darkmode="true"] .upload-zone {
+    border-color: var(--border-color);
+    background: var(--bg-light);
+}
+
+.oc[data-darkmode="true"] .upload-zone:hover {
+    border-color: var(--primary-color);
+    background: rgba(96, 165, 250, 0.05);
+}
+
+.oc[data-darkmode="true"] .upload-zone.dragover {
+    border-color: var(--primary-color);
+    background: rgba(96, 165, 250, 0.1);
+}
+
+.oc[data-darkmode="true"] .upload-zone.has-file {
+    border-color: var(--success-color);
+    background: rgba(52, 211, 153, 0.05);
+}
+
+.oc[data-darkmode="true"] .upload-zone.has-file .upload-icon {
+    color: var(--success-color);
+}
+
+.oc[data-darkmode="true"] .form-input,
+.oc[data-darkmode="true"] .form-select,
+.oc[data-darkmode="true"] .filename-input-container input {
+    background: var(--bg-white);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+    background-color: var(--bg-gray) !important;
+}
+
+.oc[data-darkmode="true"] .form-input:focus,
+.oc[data-darkmode="true"] .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.1);
+}
+
+.oc[data-darkmode="true"] .form-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] .progress-bar {
+    background: var(--bg-gray);
+}
+
+.oc[data-darkmode="true"] .progress-fill {
+    background: var(--primary-color);
+}
+
+.oc[data-darkmode="true"] .cancel-btn {
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] .cancel-btn:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.oc[data-darkmode="true"] .upload-btn {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.oc[data-darkmode="true"] .upload-btn:disabled {
+    background: var(--bg-gray);
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+}
+
+.oc .config-upload-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 10000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+.oc .config-upload-modal-overlay.show {
+    display: flex;
+}
+
+.oc .config-upload-modal {
+    background: var(--bg-white);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    width: 90vw;
+    max-width: 550px;
+    min-width: 400px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border-light);
+    max-height: 85vh;
+    transition: all var(--transition-fast);
+}
+
+.oc .config-upload-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-gray);
+    flex-shrink: 0;
+}
+
+.oc .config-upload-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.oc .config-upload-content {
+    padding: 24px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.oc .upload-mode-selector {
+    margin-bottom: 24px;
+}
+
+.oc .mode-tabs {
+    display: flex;
+    background: var(--bg-gray);
+    border-radius: var(--radius-md);
+    padding: 4px;
+    gap: 4px;
+}
+
+.oc .mode-tab {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border: none;
+    border-radius: calc(var(--radius-md) - 4px);
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.oc .mode-tab:hover {
+    color: var(--text-primary);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.oc .mode-tab.active {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.oc .mode-tab svg {
+    flex-shrink: 0;
+}
+
+.oc .upload-mode-content {
+    transition: all var(--transition-fast);
+}
+
+.oc .upload-zone {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 40px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    background: var(--bg-light);
+}
+
+.oc .upload-zone:hover {
+    border-color: var(--primary-color);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.oc .upload-zone.dragover {
+    border-color: var(--primary-color);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.oc .upload-zone.has-file {
+    border-color: var(--success-color);
+    background: rgba(5, 150, 105, 0.05);
+}
+
+.oc .upload-icon {
+    margin-bottom: 16px;
+    color: var(--text-secondary);
+}
+
+.oc .upload-zone.has-file .upload-icon {
+    color: var(--success-color);
+}
+
+.oc .upload-primary {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0 0 8px 0;
+}
+
+.oc .upload-secondary {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.oc .subscribe-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.oc .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+}
+
+.oc .form-select-wrapper {
+    position: relative;
+}
+
+.oc .form-group label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.oc .form-select-wrapper::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid var(--text-secondary);
+    pointer-events: none;
+}
+
+.oc .form-input, 
+.oc .form-select {
+    width: 100%;
+    height: 40px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all var(--transition-fast);
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.oc .form-input:focus, 
+.oc .form-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.oc .form-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.oc .form-select {
+    cursor: pointer;
+}
+
+.oc .filename-input-container {
+    margin-top: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.oc .filename-input-container label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-primary);
+    white-space: nowrap;
+}
+
+.oc .filename-input-container input {
+    flex: 1;
+    height: 36px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    font-size: 14px;
+    transition: all var(--transition-fast);
+}
+
+.oc .filename-input-container input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.oc .filename-extension {
+    font-size: 14px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.oc .upload-progress {
+    margin-top: 20px;
+}
+
+.oc .progress-bar {
+    height: 8px;
+    background: var(--bg-gray);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.oc .progress-fill {
+    height: 100%;
+    background: var(--primary-color);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+}
+
+.oc .progress-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.oc .config-upload-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-top: 1px solid var(--border-light);
+    background: var(--bg-gray);
+    flex-shrink: 0;
+}
+
+.oc .config-upload-status {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.oc .config-upload-buttons {
+    display: flex;
+    gap: 12px;
+}
+
+.oc .config-upload-buttons .btn {
+    padding: 8px 16px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.oc .cancel-btn {
+    background: var(--bg-white);
+    color: var(--text-secondary);
+}
+
+.oc .cancel-btn:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.oc .upload-btn {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.oc .upload-btn:hover:not(:disabled) {
+    background: var(--primary-color);
+    opacity: 0.9;
+}
+
+.oc .upload-btn:disabled {
+    background: var(--bg-gray);
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+    cursor: not-allowed;
+}
+
+@media screen and (max-width: 500px) {
+    .oc .config-upload-modal {
+        width: 95vw;
+        min-width: 320px;
+    }
+    
+    .oc .config-upload-content {
+        padding: 20px;
+    }
+    
+    .oc .upload-zone {
+        padding: 30px 15px;
+    }
+
+    .oc .mode-tab {
+        padding: 10px 12px;
+        font-size: 13px;
+    }
+
+    .oc .mode-tab svg {
+        width: 14px;
+        height: 14px;
+    }
+}
+</style>
+
+<div class="oc">
+    <div class="config-upload-modal-overlay" id="config-upload-overlay">
+        <div class="config-upload-modal" id="config-upload-modal">
+            <div class="config-upload-header">
+                <div class="config-upload-title">
+                    <span><%:Add Config File%></span>
+                </div>
+                <div class="config-upload-actions">
+                    <button type="button" class="icon-btn" id="config-upload-close" title="<%:Close%>">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="config-upload-content">
+                <div class="upload-mode-selector">
+                    <div class="mode-tabs">
+                        <button type="button" class="mode-tab active" id="upload-mode-file" data-mode="file">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17,11 12,6 7,11"></polyline>
+                                <line x1="12" y1="18" x2="12" y2="6"></line>
+                            </svg>
+                            <%:Upload File%>
+                        </button>
+                        <button type="button" class="mode-tab" id="upload-mode-subscribe" data-mode="subscribe">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                            </svg>
+                            <%:Subscribe Link%>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="upload-mode-content" id="mode-file-content">
+                    <div class="upload-zone" id="upload-zone">
+                        <div class="upload-icon">
+                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17,11 12,6 7,11"></polyline>
+                                <line x1="12" y1="18" x2="12" y2="6"></line>
+                            </svg>
+                        </div>
+                        <div class="upload-text">
+                            <p class="upload-primary"><%:Click to select file or drag and drop%></p>
+                            <p class="upload-secondary"><%:Support YAML files, max size 10MB%></p>
+                        </div>
+                        <input type="file" id="config-file-input" accept=".yaml,.yml" style="display: none;">
+                    </div>
+                </div>
+
+                <div class="upload-mode-content" id="mode-subscribe-content" style="display: none;">
+                    <div class="subscribe-form">
+                        <div class="form-group">
+                            <label for="subscribe-url-input"><%:Subscription URL%>:</label>
+                            <input type="url" id="subscribe-url-input" placeholder="<%:Enter subscription URL (http:// or https://)%>" class="form-input" />
+                        </div>
+                        <div class="form-group">
+                            <label for="subscribe-ua-input"><%:User-Agent%> (<%:Optional%>):</label>
+                            <div class="form-select-wrapper">
+                                <select id="subscribe-ua-input" class="form-select">
+                                    <option value="clash.meta">clash.meta</option>
+                                    <option value="clash-verge/v1.5.1">clash-verge/v1.5.1</option>
+                                    <option value="Clash">clash</option>
+                                    <option value="custom"><%:Custom%></option>
+                                </select>
+                            </div>
+                            <input type="text" id="subscribe-ua-custom" placeholder="<%:Enter custom User Agent%>" class="form-input" style="display: none; margin-top: 8px;" />
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filename-input-container">
+                    <label for="config-filename-input"><%:Config Name%>:</label>
+                    <input type="text" id="config-filename-input" placeholder="<%:Enter config name (without extension)%>" class="form-input"/>
+                    <div class="filename-extension">.yaml</div>
+                </div>
+
+                <div class="upload-progress" id="upload-progress" style="display: none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="upload-progress-fill"></div>
+                    </div>
+                    <div class="progress-text" id="upload-progress-text"><%:Processing...%> 0%</div>
+                </div>
+            </div>
+            <div class="config-upload-footer">
+                <div class="config-upload-status">
+                    <span id="config-upload-status-text"><%:Ready to add config%></span>
+                </div>
+                <div class="config-upload-buttons">
+                    <button type="button" class="btn cancel-btn" id="config-upload-cancel"><%:Cancel%></button>
+                    <button type="button" class="btn upload-btn" id="config-upload-submit" disabled><%:Add Config%></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+var ConfigUploader = {
+    overlay: null,
+    modal: null,
+    selectedFile: null,
+    isProcessing: false,
+    currentMode: 'file',
+    
+    init: function() {
+        this.overlay = document.getElementById('config-upload-overlay');
+        this.modal = document.getElementById('config-upload-modal');
+        
+        if (!this.overlay || !this.modal) {
+            return;
+        }
+        
+        this.bindEvents();
+    },
+    
+    bindEvents: function() {
+        var self = this;
+        
+        document.getElementById('upload-mode-file').addEventListener('click', function() {
+            self.switchMode('file');
+        });
+        
+        document.getElementById('upload-mode-subscribe').addEventListener('click', function() {
+            self.switchMode('subscribe');
+        });
+        
+        var uploadZone = document.getElementById('upload-zone');
+        var fileInput = document.getElementById('config-file-input');
+        
+        uploadZone.addEventListener('click', function() {
+            if (!self.isProcessing && self.currentMode === 'file') {
+                fileInput.click();
+            }
+        });
+        
+        fileInput.addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                self.handleFileSelect(e.target.files[0]);
+            }
+        });
+        
+        uploadZone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            if (!self.isProcessing && self.currentMode === 'file') {
+                uploadZone.classList.add('dragover');
+            }
+        });
+        
+        uploadZone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+        });
+        
+        uploadZone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadZone.classList.remove('dragover');
+            
+            if (!self.isProcessing && self.currentMode === 'file' && e.dataTransfer.files.length > 0) {
+                self.handleFileSelect(e.dataTransfer.files[0]);
+            }
+        });
+        
+        var subscribeUrlInput = document.getElementById('subscribe-url-input');
+        var filenameInput = document.getElementById('config-filename-input');
+        var subscribeUaSelect = document.getElementById('subscribe-ua-input');
+        var subscribeUaCustom = document.getElementById('subscribe-ua-custom');
+        
+        subscribeUrlInput.addEventListener('input', function() {
+            self.updateSubmitButton();
+            self.autoFillConfigName();
+        });
+        
+        filenameInput.addEventListener('input', this.updateSubmitButton.bind(this));
+        
+        subscribeUaSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                subscribeUaCustom.style.display = 'block';
+            } else {
+                subscribeUaCustom.style.display = 'none';
+            }
+        });
+        
+        document.getElementById('config-upload-submit').addEventListener('click', function() {
+            if (self.currentMode === 'file') {
+                self.uploadFile();
+            } else {
+                self.processSubscription();
+            }
+        });
+        
+        document.getElementById('config-upload-cancel').addEventListener('click', function() {
+            if (!self.isProcessing) {
+                self.hide();
+            }
+        });
+        
+        document.getElementById('config-upload-close').addEventListener('click', function() {
+            if (!self.isProcessing) {
+                self.hide();
+            }
+        });
+        
+        this.overlay.addEventListener('click', function(e) {
+            if (e.target === self.overlay && !self.isProcessing) {
+                self.hide();
+            }
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && !self.isProcessing && self.overlay.classList.contains('show')) {
+                self.hide();
+            }
+        });
+    },
+    
+    show: function() {
+        this.overlay.classList.add('show');
+        this.reset();
+    },
+    
+    hide: function() {
+        this.overlay.classList.remove('show');
+        this.reset();
+    },
+    
+    reset: function() {
+        this.selectedFile = null;
+        this.isProcessing = false;
+        this.currentMode = 'file';
+        
+        this.switchMode('file');
+        document.getElementById('config-filename-input').value = '';
+        document.getElementById('subscribe-url-input').value = '';
+        document.getElementById('subscribe-ua-input').value = 'clash.meta';
+        document.getElementById('subscribe-ua-custom').style.display = 'none';
+        document.getElementById('upload-progress').style.display = 'none';
+        document.getElementById('config-upload-status-text').textContent = '<%:Ready to add config%>';
+        this.updateSubmitButton();
+    },
+    
+    switchMode: function(mode) {
+        this.currentMode = mode;
+        
+        var modeFileTab = document.getElementById('upload-mode-file');
+        var modeSubscribeTab = document.getElementById('upload-mode-subscribe');
+        var modeFileContent = document.getElementById('mode-file-content');
+        var modeSubscribeContent = document.getElementById('mode-subscribe-content');
+        var statusText = document.getElementById('config-upload-status-text');
+        var uploadZone = document.getElementById('upload-zone');
+        
+        if (mode === 'file') {
+            modeFileTab.classList.add('active');
+            modeSubscribeTab.classList.remove('active');
+            modeFileContent.style.display = 'block';
+            modeSubscribeContent.style.display = 'none';
+            statusText.textContent = '<%:Ready to upload file%>';
+        } else {
+            modeFileTab.classList.remove('active');
+            modeSubscribeTab.classList.add('active');
+            modeFileContent.style.display = 'none';
+            modeSubscribeContent.style.display = 'block';
+            statusText.textContent = '<%:Ready to add subscription%>';
+        }
+        
+        this.selectedFile = null;
+        uploadZone.classList.remove('has-file');
+        uploadZone.querySelector('.upload-primary').textContent = '<%:Click to select file or drag and drop%>';
+        uploadZone.querySelector('.upload-secondary').textContent = '<%:Support YAML file, max size 10MB%>';
+        
+        this.updateSubmitButton();
+    },
+    
+    handleFileSelect: function(file) {
+        this.selectedFile = file;
+        var uploadZone = document.getElementById('upload-zone');
+        var filenameInput = document.getElementById('config-filename-input');
+        var statusText = document.getElementById('config-upload-status-text');
+        
+        if (!file) {
+            uploadZone.classList.remove('has-file');
+            this.updateSubmitButton();
+            statusText.textContent = '<%:Ready to upload file%>';
+            return;
+        }
+        
+        if (!file.name.match(/\.(yaml|yml)$/i)) {
+            alert('<%:Please select a YAML file%>');
+            return;
+        }
+        
+        if (file.size > 10 * 1024 * 1024) {
+            alert('<%:File size exceeds 10MB limit%>');
+            return;
+        }
+        
+        uploadZone.classList.add('has-file');
+        uploadZone.querySelector('.upload-primary').textContent = '<%:File selected:%> ' + file.name;
+        uploadZone.querySelector('.upload-secondary').textContent = '<%:Size:%> ' + this.formatFileSize(file.size);
+        
+        var defaultName = file.name.replace(/\.(yaml|yml)$/i, '');
+        filenameInput.value = defaultName;
+        
+        this.updateSubmitButton();
+        statusText.textContent = '<%:File ready to upload%>';
+    },
+    
+    formatFileSize: function(bytes) {
+        if (bytes === 0) return '0 B';
+        var k = 1024;
+        var sizes = ['B', 'KB', 'MB', 'GB'];
+        var i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+    },
+    
+    updateSubmitButton: function() {
+        var filename = document.getElementById('config-filename-input').value.trim();
+        var submitBtn = document.getElementById('config-upload-submit');
+        var isValid = false;
+        
+        if (this.currentMode === 'file') {
+            isValid = this.selectedFile && filename;
+        } else if (this.currentMode === 'subscribe') {
+            var url = document.getElementById('subscribe-url-input').value.trim();
+            isValid = url && filename && (url.startsWith('http://') || url.startsWith('https://'));
+        }
+        
+        submitBtn.disabled = !isValid || this.isProcessing;
+    },
+    
+    uploadFile: function() {
+        if (!this.selectedFile || this.isProcessing) return;
+        
+        var filename = document.getElementById('config-filename-input').value.trim();
+        if (!filename) {
+            alert('<%:Please enter a filename%>');
+            return;
+        }
+        
+        if (!/^[a-zA-Z0-9_\-\s\u4e00-\u9fa5\.]+$/.test(filename)) {
+            alert('<%:Filename contains invalid characters%>');
+            return;
+        }
+        
+        var self = this;
+        this.isProcessing = true;
+        
+        var submitBtn = document.getElementById('config-upload-submit');
+        var cancelBtn = document.getElementById('config-upload-cancel');
+        var statusText = document.getElementById('config-upload-status-text');
+        var progressContainer = document.getElementById('upload-progress');
+        var progressFill = document.getElementById('upload-progress-fill');
+        var progressText = document.getElementById('upload-progress-text');
+        
+        submitBtn.disabled = true;
+        cancelBtn.disabled = true;
+        statusText.textContent = '<%:Uploading...%>';
+        progressContainer.style.display = 'block';
+        
+        var progress = 0;
+        var progressInterval = setInterval(function() {
+            if (progress < 90) {
+                progress += Math.random() * 15;
+                progressFill.style.width = Math.min(progress, 90) + '%';
+                progressText.textContent = '<%:Uploading...%> ' + Math.floor(Math.min(progress, 90)) + '%';
+            }
+        }, 100);
+        
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            var fileContent = e.target.result;
+            
+            var formData = new FormData();
+            formData.append('config_file', fileContent);
+            formData.append('filename', filename);
+            
+            fetch('<%=luci.dispatcher.build_url("admin", "services", "openclash", "upload_config")%>', {
+                method: 'POST',
+                body: formData
+            })
+            .then(function(response) {
+                clearInterval(progressInterval);
+                
+                if (!response.ok) {
+                    throw new Error('HTTP error! status: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(function(data) {
+                progressFill.style.width = '100%';
+                progressText.textContent = '<%:Upload completed%> 100%';
+                
+                if (data.status === 'success') {
+                    statusText.textContent = '<%:Upload successful%>';
+                    
+                    setTimeout(function() {
+                        self.hide();
+                        if (typeof ConfigFileManager !== 'undefined' && ConfigFileManager.refreshConfigList) {
+                            ConfigFileManager.refreshConfigList();
+                        }
+                    }, 2000);
+                } else {
+                    throw new Error(data.message || '<%:Upload failed%>');
+                }
+            })
+            .catch(function(error) {
+                self.handleError('<%:Upload failed:%> ' + error.message);
+            });
+        };
+        
+        reader.onerror = function() {
+            clearInterval(progressInterval);
+            self.handleError('<%:Failed to read file%>');
+        };
+        
+        reader.readAsText(this.selectedFile, 'UTF-8');
+    },
+    
+    processSubscription: function() {
+        var url = document.getElementById('subscribe-url-input').value.trim();
+        var filename = document.getElementById('config-filename-input').value.trim();
+        var userAgent = document.getElementById('subscribe-ua-input').value;
+        var subscribeUaCustom = document.getElementById('subscribe-ua-custom');
+        
+        if (userAgent === 'custom') {
+            userAgent = subscribeUaCustom.value.trim() || 'clash.meta';
+        }
+        
+        if (!url || !filename) {
+            alert('<%:Please enter subscription URL and config name%>');
+            return;
+        }
+        
+        if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            alert('<%:Invalid subscription URL format%>');
+            return;
+        }
+        
+        if (!/^[a-zA-Z0-9_\-\s\u4e00-\u9fa5]+$/.test(filename)) {
+            alert('<%:Config name contains invalid characters%>');
+            return;
+        }
+        
+        var self = this;
+        this.isProcessing = true;
+        
+        var submitBtn = document.getElementById('config-upload-submit');
+        var cancelBtn = document.getElementById('config-upload-cancel');
+        var statusText = document.getElementById('config-upload-status-text');
+        var progressContainer = document.getElementById('upload-progress');
+        var progressFill = document.getElementById('upload-progress-fill');
+        var progressText = document.getElementById('upload-progress-text');
+        
+        submitBtn.disabled = true;
+        cancelBtn.disabled = true;
+        statusText.textContent = '<%:Adding subscription...%>';
+        progressContainer.style.display = 'block';
+        
+        var progress = 0;
+        var progressInterval = setInterval(function() {
+            if (progress < 90) {
+                progress += Math.random() * 15;
+                progressFill.style.width = Math.min(progress, 90) + '%';
+                progressText.textContent = '<%:Processing...%> ' + Math.floor(Math.min(progress, 90)) + '%';
+            }
+        }, 100);
+        
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "add_subscription")%>', {
+            name: filename,
+            address: url,
+            sub_ua: userAgent
+        }, function(x, data) {
+            if (x && x.status == 200) {
+                XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_config")%>', {
+                    filename: filename
+                }, function(x2, data2) {
+                    clearInterval(progressInterval);
+                    
+                    if (x2 && x2.status == 200) {
+                        progressFill.style.width = '100%';
+                        progressText.textContent = '<%:Subscription added successfully%> 100%';
+                        statusText.textContent = '<%:Subscription added successfully%>';
+                        
+                        setTimeout(function() {
+                            self.hide();
+                            if (typeof ConfigFileManager !== 'undefined' && ConfigFileManager.refreshConfigList) {
+                                ConfigFileManager.refreshConfigList();
+                            }
+                        }, 2000);
+                    } else {
+                        self.handleError('<%:Failed to download subscription config%>');
+                    }
+                });
+            } else {
+                clearInterval(progressInterval);
+                self.handleError('<%:Failed to add subscription%>');
+            }
+        });
+    },
+
+    autoFillConfigName: function() {
+        var url = document.getElementById('subscribe-url-input').value.trim();
+        var filenameInput = document.getElementById('config-filename-input');
+        
+        if (!filenameInput.value.trim() && url) {
+            try {
+                var urlObj = new URL(url);
+                var hostname = urlObj.hostname;
+                
+                var configName = hostname
+                    .replace(/^(www\.|api\.|sub\.|subscribe\.)/, '')
+                    .replace(/\.(com|net|org|cn|io|me|cc|xyz|top)$/, '')
+                    .replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_')
+                    .replace(/_{2,}/g, '_')
+                    .replace(/^_|_$/g, '');
+                
+                if (!configName || configName.length < 2) {
+                    configName = 'subscription_' + Date.now().toString().slice(-6);
+                }
+                
+                if (configName.length > 30) {
+                    configName = configName.substring(0, 30);
+                }
+                
+                filenameInput.value = configName;
+                this.updateSubmitButton();
+            } catch (e) {
+            }
+        }
+    },
+    
+    handleError: function(message) {
+        var statusText = document.getElementById('config-upload-status-text');
+        var progressText = document.getElementById('upload-progress-text');
+        var progressFill = document.getElementById('upload-progress-fill');
+        var submitBtn = document.getElementById('config-upload-submit');
+        var cancelBtn = document.getElementById('config-upload-cancel');
+        var progressContainer = document.getElementById('upload-progress');
+        
+        statusText.textContent = '<%:Process failed%>';
+        progressText.textContent = '<%:Process failed%>';
+        progressFill.style.width = '0%';
+        
+        alert(message);
+        
+        this.isProcessing = false;
+        submitBtn.disabled = false;
+        cancelBtn.disabled = false;
+        progressContainer.style.display = 'none';
+    }
+};
+
+document.addEventListener('DOMContentLoaded', function() {
+    ConfigUploader.init();
+});
+</script>

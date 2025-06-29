@@ -44,6 +44,9 @@ msgstr "设置"
 msgid "Config Subscribe"
 msgstr "配置订阅"
 
+msgid "Add Config File"
+msgstr "添加配置文件"
+
 msgid "Config Subscribe Edit"
 msgstr "编辑配置文件订阅信息"
 
@@ -927,9 +930,6 @@ msgstr "更新时间"
 msgid "File Name"
 msgstr "文件名"
 
-msgid "Grammar Check"
-msgstr "语法检查"
-
 msgid "SwiTch"
 msgstr "切换"
 
@@ -1218,56 +1218,29 @@ msgstr "收集 Smart 策略组的连接数据，方便用来分析及模型训�
 msgid "The Priority Of The Nodes, The Higher Than 1, The More Likely It Is To Be Selected, The Default Is 1, Support Regex"
 msgstr "自定义 Smart 策略组内节点的权重加成，大于1表示权重加成优先选择，小于1表示权重削减降低使用率，默认为1，支持正则"
 
-msgid "Core Status"
-msgstr "内核状态"
-
-msgid "Daemons"
-msgstr "守护程序"
+msgid "Running Status"
+msgstr "运行状态"
 
 msgid "Running Mode"
 msgstr "运行模式"
 
-msgid "Yacd Control Panel"
-msgstr "Yacd 面板"
+msgid "yacd"
+msgstr "Yacd"
 
-msgid "Dashboard Control Panel"
-msgstr "Dashboard 面板"
+msgid "Dashboard"
+msgstr "Dashboard"
 
-msgid "Metacubexd Control Panel"
-msgstr "Metacubexd 面板"
+msgid "Metacubexd"
+msgstr "Metacubexd"
 
-msgid "zashboard Control Panel"
-msgstr "zashboard 面板"
+msgid "Zashboard"
+msgstr "Zashboard"
 
 msgid "Control Panel"
 msgstr "控制面板"
 
-msgid "Dashboard Control Panel"
-msgstr "Dashboard 控制面板"
-
-msgid "Quick Operation"
-msgstr "常用操作快捷按钮"
-
-msgid "Please ensure that all items are displayed normally before running. If you need to update, please go to the global settings page"
-msgstr "组件的状态显示，运行前请确保各项目显示正常，需要更新请到全局设置页面操作"
-
-msgid "Node Select Backup"
-msgstr "策略组节点选择 备份日期"
-
-msgid "Mainland IP Update"
-msgstr "大陆 IP 白名单 更新日期"
-
-msgid "Mainland IPv6 Update"
-msgstr "大陆 IPv6 白名单 更新日期"
-
-msgid "lhie1 Rule Update"
-msgstr "lhie1 规则更新日期"
-
-msgid "GeoIP Data Update"
-msgstr "GeoIP 数据库日期"
-
-msgid "GeoSite Data Update"
-msgstr "GeoSite 数据库日期"
+msgid "Quick Action"
+msgstr "快捷操作"
 
 msgid "No Backup"
 msgstr "暂未备份"
@@ -1285,7 +1258,10 @@ msgid "Mix"
 msgstr "混合"
 
 msgid "Close All Connections"
-msgstr "重置所有链接"
+msgstr "关闭所有链接"
+
+msgid "Close All Connections Failed"
+msgstr "关闭所有连接失败"
 
 msgid "Restore Nodes Selection"
 msgstr "还原策略组节点选择"
@@ -1293,11 +1269,11 @@ msgstr "还原策略组节点选择"
 msgid "Save Nodes Selection"
 msgstr "保存策略组节点选择"
 
-msgid "Reload Firewall Rules"
+msgid "Reload Firewall"
 msgstr "重置防火墙规则"
 
-msgid "Check All Components Update"
-msgstr "插件和内核检查更新"
+msgid "Check Update"
+msgstr "检查更新"
 
 msgid "Check Config Update"
 msgstr "配置文件检查更新"
@@ -2433,26 +2409,29 @@ msgstr "当前配置文件"
 msgid "Official Website"
 msgstr "官方网站"
 
-msgid "Up:"
-msgstr "上传:"
+msgid "Up"
+msgstr "上传"
 
-msgid "Down:"
-msgstr "下载:"
+msgid "Down"
+msgstr "下载"
 
-msgid "Up Total:"
-msgstr "上传总量:"
+msgid "Up Total"
+msgstr "上传总量"
 
-msgid "Down Total:"
-msgstr "下载总量:"
+msgid "Down Total"
+msgstr "下载总量"
 
-msgid "Connections:"
-msgstr "活动连接:"
+msgid "Connections"
+msgstr "活动连接"
 
-msgid "Ram:"
-msgstr "内存占用:"
+msgid "Ram"
+msgstr "内存占用"
 
-msgid "CPU:"
-msgstr "CPU占用:"
+msgid "CPU"
+msgstr "CPU 占用"
+
+msgid "Load Avg"
+msgstr "系统负载"
 
 msgid "Bad address specified!"
 msgstr "输入的地址不合法！"
@@ -2797,7 +2776,7 @@ msgid "Flush"
 msgstr "清理"
 
 msgid "Flush Fake-IP Cache"
-msgstr "Fake-IP 持久化缓存清理"
+msgstr "Fake-IP 缓存清理"
 
 msgid "No Specify Upload File"
 msgstr "未选择上传文件"
@@ -3021,8 +3000,8 @@ msgstr "切换（更新） Yacd 版本"
 msgid "Update Metacubexd Version"
 msgstr "更新 Metacubexd 版本"
 
-msgid "Update zashboard Version"
-msgstr "更新 zashboard 版本"
+msgid "Update Zashboard Version"
+msgstr "更新 Zashboard 版本"
 
 msgid "Downloading File..."
 msgstr "文件下载中..."
@@ -3384,8 +3363,8 @@ msgstr "绕过服务器地址，防止重复代理"
 msgid "Warning: Unsupported format, Proxies Address Skip Function Ignore Proxy-providers File"
 msgstr "警告：不支持的格式，绕过代理服务器地址功能已忽略代理集文件"
 
-msgid "Choose CDN For Downloading:"
-msgstr "请在下方选择一个 CDN 地址进行加速下载："
+msgid "Choose CDN For Downloading"
+msgstr "选择 CDN 进行加速下载"
 
 msgid "Custom Your CDN URL"
 msgstr "自定义链接地址"
@@ -3710,3 +3689,288 @@ msgstr "嗅探流量的域名信息，避免基于规则的代理失败"
 
 msgid "DNS querys respect-rules to preventing access failure"
 msgstr "DNS 查询遵循规则进行代理，防止访问失败"
+
+msgid "Upload File"
+msgstr "上传文件"
+
+msgid "Subscribe Link"
+msgstr "订阅链接"
+
+msgid "Click to select file or drag and drop"
+msgstr "点击选择文件或拖拽上传"
+
+msgid "Support YAML files, max size 10MB"
+msgstr "支持 YAML 文件，最大 10MB"
+
+msgid "Support YAML file, max size 10MB"
+msgstr "支持 YAML 文件，最大 10MB"
+
+msgid "Subscription URL"
+msgstr "订阅地址"
+
+msgid "Enter subscription URL (http:// or https://)"
+msgstr "请输入订阅地址（http:// 或 https://）"
+
+msgid "User-Agent"
+msgstr "User-Agent"
+
+msgid "Optional"
+msgstr "可选"
+
+msgid "Custom"
+msgstr "自定义"
+
+msgid "Enter custom User-Agent"
+msgstr "输入自定义 User-Agent"
+
+msgid "Config Name"
+msgstr "配置名称"
+
+msgid "Enter config name (without extension)"
+msgstr "输入配置名称（不含扩展名）"
+
+msgid "Processing..."
+msgstr "处理中..."
+
+msgid "Ready to add config"
+msgstr "准备添加配置"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Add Config"
+msgstr "添加配置"
+
+msgid "Ready to upload file"
+msgstr "准备上传文件"
+
+msgid "Ready to add subscription"
+msgstr "准备添加订阅"
+
+msgid "File selected:"
+msgstr "已选择文件："
+
+msgid "Size:"
+msgstr "大小："
+
+msgid "Please select a YAML file"
+msgstr "请选择 YAML 文件"
+
+msgid "File size exceeds 10MB limit"
+msgstr "文件大小超过 10MB 限制"
+
+msgid "File ready to upload"
+msgstr "文件准备就绪"
+
+msgid "Please enter a filename"
+msgstr "请输入文件名"
+
+msgid "Filename contains invalid characters"
+msgstr "文件名包含无效字符"
+
+msgid "Uploading..."
+msgstr "上传中..."
+
+msgid "Upload completed"
+msgstr "上传完成"
+
+msgid "Upload successful"
+msgstr "上传成功"
+
+msgid "Upload failed:"
+msgstr "上传失败："
+
+msgid "Failed to read file"
+msgstr "文件读取失败"
+
+msgid "Please enter subscription URL and config name"
+msgstr "请输入订阅地址和配置名称"
+
+msgid "Invalid subscription URL format"
+msgstr "订阅地址格式无效"
+
+msgid "Config name contains invalid characters"
+msgstr "配置名称包含无效字符"
+
+msgid "Adding subscription..."
+msgstr "添加订阅中..."
+
+msgid "Failed to download subscription config"
+msgstr "订阅配置下载失败"
+
+msgid "Failed to add subscription"
+msgstr "添加订阅失败"
+
+msgid "Subscription added successfully"
+msgstr "订阅添加成功"
+
+msgid "Process failed"
+msgstr "处理失败"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "File Edit"
+msgstr "文件编辑"
+
+msgid "Loading..."
+msgstr "加载中..."
+
+msgid "Minimize"
+msgstr "最小化"
+
+msgid "Maximize"
+msgstr "最大化"
+
+msgid "Download"
+msgstr "下载"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Loading config file..."
+msgstr "正在加载配置文件..."
+
+msgid "Ready"
+msgstr "就绪"
+
+msgid "Press F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom"
+msgstr "按 F11 全屏，Esc 退出全屏，Ctrl+鼠标滚轮缩放"
+
+msgid "Please select a config file first"
+msgstr "请先选择一个配置文件"
+
+msgid "Unknown"
+msgstr "未知"
+
+msgid "Failed to load config file"
+msgstr "配置文件加载失败"
+
+msgid "Load failed"
+msgstr "加载失败"
+
+msgid "Saving..."
+msgstr "保存中..."
+
+msgid "Config file content is empty"
+msgstr "配置文件内容为空"
+
+msgid "Saved successfully"
+msgstr "保存成功"
+
+msgid "Save failed"
+msgstr "保存失败"
+
+msgid "Failed to save config file:"
+msgstr "配置文件保存失败："
+
+msgid "Unknown error"
+msgstr "未知错误"
+
+msgid "Save config failed:"
+msgstr "配置保存失败："
+
+msgid "Editor not ready"
+msgstr "编辑器未准备就绪"
+
+msgid "Download started"
+msgstr "下载已开始"
+
+msgid "Download failed:"
+msgstr "下载失败："
+
+msgid "You have unsaved changes. Are you sure you want to close?"
+msgstr "您有未保存的更改。确定要关闭吗？"
+
+msgid "Restart"
+msgstr "重启"
+
+msgid "No Config Selected"
+msgstr "未选择配置"
+
+msgid "Modified: "
+msgstr "修改时间："
+
+msgid "Update Time: "
+msgstr "更新时间："
+
+msgid "No Config Files Found"
+msgstr "未找到配置文件"
+
+msgid "Please select a config file"
+msgstr "请选择配置文件"
+
+msgid "Failed to load config files"
+msgstr "配置文件加载失败"
+
+msgid "Update"
+msgstr "更新"
+
+msgid "Failed to get startup log after retries"
+msgstr "重试后仍无法获取启动日志"
+
+msgid "Start Failed"
+msgstr "启动失败"
+
+msgid "Starting..."
+msgstr "启动中..."
+
+msgid "Stopping..."
+msgstr "关闭中..."
+
+msgid "Failed to start OpenClash"
+msgstr "OpenClash 启动失败"
+
+msgid "Failed to stop OpenClash"
+msgstr "OpenClash 关闭失败"
+
+msgid "Operation Failed"
+msgstr "操作失败"
+
+msgid "Switching Config..."
+msgstr "切换配置中..."
+
+msgid "Failed to switch config file:"
+msgstr "切换配置文件失败："
+
+msgid "Switch Failed"
+msgstr "切换失败"
+
+msgid "Updating Config..."
+msgstr "更新配置中..."
+
+msgid "Failed to update config file:"
+msgstr "更新配置文件失败："
+
+msgid "Failed to update config file, please try again later"
+msgstr "更新配置文件失败，请稍后再试"
+
+msgid "Restarting..."
+msgstr "重启中..."
+
+msgid "Failed to restart core"
+msgstr "重启内核失败"
+
+msgid "Restart Failed"
+msgstr "重启失败"
+
+msgid "Invalid config file selected"
+msgstr "选择的配置文件无效"
+
+msgid "Config uploader not ready, please try again"
+msgstr "配置上传未就绪，请重试"
+
+msgid "Config editor not ready, please try again"
+msgstr "配置编辑未就绪，请重试"
+
+msgid "New version available"
+msgstr "发现新版本"
+
+msgid "Failed to get subscription config"
+msgstr "获取订阅配置失败"
+
+msgid "Failed to download subscription config"
+msgstr "下载订阅配置失败"
+
+msgid "Expire Date"
+msgstr "到期时间"

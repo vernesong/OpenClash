@@ -1,328 +1,1283 @@
+<html>
 <head>
 <style>
-.arrow-down {
-    display: inline-block;
-    width: 0px;
-    height: 0px;
-    border-style: solid;
-    border-width: 10px;
-    border-color: rgb(65 122 180) transparent transparent transparent;
+.oc {
+    --bg-white: #ffffff;
+    --bg-light: #f8fafc;
+    --bg-gray: #f1f5f9;
+    --text-primary: #374151;
+    --text-secondary: #64748b;
+    --text-title: #4d4d4d;
+    --border-color: #b1b1b1;
+    --border-light: #e2e8f0;
+    --hover-bg: #f8fafc;
+    --primary-color: #3b82f6;
+    --success-color: #059669;
+    --success-dark: #047857;
+    --warning-color: #f59e0b;
+    --error-color: #dc2626;
+    --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --radius-sm: 6px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --transition-fast: 0.15s ease;
+    --transition-normal: 0.3s ease;
+    
+    --control-height: 36px;
+    --card-padding: 16px;
+    --gap-size: 16px;
+    
+    --row-1-height: 160px;
+    --row-2-height: 250px;
+    --row-3-height: 140px;
+    --row-4-height: 140px;
 }
 
-.status-table {
-    width: 100%;
-    table-layout: fixed;
-    border-collapse: collapse;
+.oc[data-darkmode="true"] {
+    --bg-white: #1f2937;
+    --bg-light: #374151;
+    --bg-gray: #4b5563;
+    --text-primary: #ebebeb;
+    --text-secondary: #d0cfcf;
+    --text-title: #e5e7eb;
+    --border-color: #939393;
+    --border-light: #6b7280;
+    --hover-bg: #374151;
+    --primary-color: #3b82f6;
+    --success-color: #34d399;
+    --success-dark: #10b981;
 }
 
-.status-table td {
-    padding: 4px 2px;
-    vertical-align: middle;
-    word-wrap: break-word;
-    overflow: hidden;
+.oc[data-darkmode="true"] .plugin-toggle-slider {
+    background-color: #6b7280;
+    border-color: #6b7280;
 }
 
-.status-row {
-    white-space: nowrap;
-    min-height: 40px;
+.oc[data-darkmode="true"] .plugin-toggle-switch input:checked + .plugin-toggle-slider {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
 }
 
-.status-row td {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.oc[data-darkmode="true"] .plugin-toggle-slider:before {
+    background-color: #f9fafb;
 }
 
-.no-wrap {
-    white-space: nowrap !important;
-    overflow: hidden;
-    text-overflow: ellipsis;
+.oc[data-darkmode="true"] .version-display .update-dot {
+    background: #ff7070;
 }
 
-.label-container {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    width: 100%;
-    min-width: 0;
+.oc[data-darkmode="true"] .announcement-banner {
+    background: linear-gradient(135deg, #6c83c5, #3555bf);
 }
 
-.label-text {
-    flex-shrink: 0;
-    font-size: clamp(11px, 1.8vw, 14px);
-    margin-right: 5px;
+.oc[data-darkmode="true"] .announcement-banner::before {
+    background: linear-gradient(to right, #6c83c5 80%, #6c83c5 100%);
 }
 
-.content-wrapper {
-    display: inline-flex;
-    align-items: center;
-    gap: 3px;
-    flex: 1;
-    min-width: 0;
-}
-
-.status-text {
-    flex-shrink: 0;
-}
-
-.action-icons {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-    margin-left: 3px;
-    position: relative;
-}
-
-.action-icons img {
-    flex-shrink: 0;
-    vertical-align: middle;
-    position: relative;
-}
-
-.mix-proxy-cell {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    justify-content: flex-start;
-}
-
-.running-mode-cell {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    justify-content: flex-start;
-}
-
-.running-mode-cell .radio-button {
-    flex-shrink: 0;
-}
-
-.radio-button {
-    display: none;
-    white-space: nowrap;
-    background-color: #d1d1d1;
-    border-radius: 4px;
-    width: auto;
-    max-width: 100%;
-    gap: 2px;
-    overflow-x: auto;
-    overflow-y: hidden;
-}
-
-.radio-button input[type="radio"] {
-    display: none;
-}
-
-.radio-button label {
-    display: inline-block;
-    font-size: clamp(10px, 2vw, 14px);
-    padding: 4px 5px;
-    color: white;
-    cursor: pointer;
-    border-radius: 4px;
-    padding: clamp(2px, 1vw, 4px) clamp(3px, 1.2vw, 5px);
-    min-width: fit-content;
-    text-align: center;
-    flex-shrink: 0;
-}
-
-.radio-button input[type="radio"]:checked+label {
-    background-color: #1080c1;
-}
-
-.announcement-banner {
-    display: none;
-    background-color: #1080c1;
-    color: white;
-    padding: 8px;
-    margin-bottom: 10px;
-    margin-left: auto;
-    margin-right: auto;
-    border-radius: 4px;
-    overflow: hidden;
-    position: relative;
-    height: 24px;
-    width: 70%;
-}
-
-.announcement-content {
-    position: absolute;
-    white-space: nowrap;
-    padding-right: 50px;
-    left: 30px;
-    top: 50%;
-    transform: translateY(-50%);
-    z-index: 1;
-}
-
-.megaphone-container {
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 30px;
-    background-color: #1080c1;
-    z-index: 2;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-}
-
-#megaphone {
-    position: absolute;
-    left: 8px;
-    top: 50%;
-    transform: translateY(-50%) scaleX(-1);
-    z-index: 2;
+.oc[data-darkmode="true"] #megaphone {
     filter: brightness(0) invert(1);
 }
 
-#copy_address, #copy_secret, #copy_mix_address, #copy_mix_secret, #copy_pac_config {
-    position: relative;
+.oc[data-darkmode="true"] .subscription-progress-bar {
+    background: #374151;
 }
 
-.preload-image {
+.oc[data-darkmode="true"] .subscription-progress-fill.high {
+    background: var(--success-color);
+}
+
+.oc[data-darkmode="true"] .subscription-progress-fill.medium {
+    background: var(--warning-color);
+}
+
+.oc[data-darkmode="true"] .subscription-progress-fill.low {
+    background: var(--error-color);
+}
+
+.oc[data-darkmode="true"] .subscription-loading,
+.oc[data-darkmode="true"] .subscription-error,
+.oc[data-darkmode="true"] .subscription-no-info {
+    color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] .subscription-error {
+    color: var(--error-color);
+}
+
+.oc[data-darkmode="true"] .dashboard-btn {
+    background: var(--primary-color) !important;
+    color: rgb(236, 234, 234) !important;
+}
+
+.oc[data-darkmode="true"] .dashboard-btn:hover {
+    background: #2563eb !important;
+    color: white !important;
+}
+
+.oc[data-darkmode="true"] .dashboard-btn:disabled {
+    background: #4b5563 !important;
+    color: #9ca3af !important;
+}
+
+.oc[data-darkmode="true"] .config-select {
+    background: var(--bg-white) !important;
+    border-color: var(--border-light) !important;
+    color: var(--text-primary) !important;
+}
+
+.oc[data-darkmode="true"] .config-select option {
+    background: var(--bg-white) !important;
+    color: var(--text-primary) !important;
+}
+
+.oc[data-darkmode="true"] .config-select:hover {
+    border-color: var(--primary-color);
+}
+
+.oc[data-darkmode="true"] .config-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.oc[data-darkmode="true"] .config-selector::after {
+    border-top-color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] svg {
+    filter: none;
+}
+
+.oc * {
+    box-sizing: border-box;
+}
+
+.oc {
+    font-family: var(--font-family-base);
+    line-height: 1.6;
+    color: var(--text-primary);
+    background-color: var(--bg-light);
+}
+
+.oc .main-cards-container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: minmax(60px, auto) 1fr;
+    gap: 15px;
+    margin: 0 auto;
+    align-items: start;
+}
+
+.oc .main-card {
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+    display: grid;
+    grid-template-rows: var(--row-1-height) var(--row-2-height) var(--row-3-height) var(--row-4-height);
+    gap: var(--gap-size);
+    overflow: visible;
+    grid-row: 2;
+}
+
+.oc .main-card:first-of-type {
+    grid-column: 1;
+}
+
+.oc .main-card:last-of-type {
+    grid-column: 2;
+}
+
+.oc .card-row {
+    display: flex;
+    gap: var(--gap-size);
+    align-items: stretch;
+    height: 100%;
+}
+
+.oc .card-row:nth-child(1) {
+    min-height: var(--row-1-height);
+}
+
+.oc .card-row:nth-child(2) {
+    min-height: var(--row-2-height);
+}
+
+.oc .card-row:nth-child(3) {
+    min-height: var(--row-3-height);
+}
+
+.oc .card-row:nth-child(4) {
+    min-height: var(--row-4-height);
+}
+
+.oc .card-row.full-width .sub-card {
+    flex: 1;
+}
+
+.oc .card-row.dual-cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--gap-size);
+}
+
+.oc .card-row.triple-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--gap-size);
+}
+
+.oc .card-row.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 2fr);
+    gap: 10px;
+}
+
+.oc .sub-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-gray);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--card-padding);
+    position: relative;
+    height: 100%;
+    min-height: 0;
+    gap: 5px;
+}
+
+.oc .sub-card.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 8px;
+    min-height: 0;
+}
+
+.oc .sub-card.dashboard-container,
+.oc .sub-card.quick-actions-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 0;
+}
+
+.oc .card-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 20px;
+    flex-shrink: 0;
+}
+
+.oc .version-display-container {
     position: absolute;
-    width: 1px;
-    height: 1px;
+    top: 16px;
+    right: 15px;
+    display: flex;
+    gap: 8px;
+    z-index: 2;
+}
+
+.oc .card-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    flex: 1;
+    min-height: 0;
+}
+
+.oc .config-file-content {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+    justify-content: space-between;
+    min-height: 0;
+}
+
+.oc .config-file-top {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+}
+
+.oc .card-value {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+    word-break: break-word;
+    min-height: var(--control-height);
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.oc .card-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    justify-content: center;
+}
+
+.oc .card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: auto;
+    flex-wrap: nowrap;
+    flex-shrink: 0;
+    min-height: 28px;
+    padding-top: 3px;
+}
+
+.oc .core-status-row .card-actions {
+    overflow-x: auto;
+}
+
+.oc .core-status-row .sub-card {
+    gap: 12px;
+}
+
+.oc .core-main-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex: 0 0 auto;
+    min-height: var(--control-height);
+}
+
+.oc .core-status-toggle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.oc .core-control-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    flex-wrap: nowrap;
+}
+
+.oc .mode-row .sub-card {
+    justify-content: flex-start;
+    align-items: stretch;
+}
+
+.oc .mode-row .sub-card .card-title {
+    height: 20px;
+    min-height: 20px;
+    margin-bottom: 12px;
+    flex-shrink: 0;
+}
+
+.oc .mode-row .sub-card:first-child .card-content {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.oc .icon-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    padding: 0;
+    font-size: 0;
+    overflow: hidden;
+}
+
+.oc .icon-btn:hover {
+    background: var(--hover-bg) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-sm) !important;
+}
+
+.oc .icon-btn svg {
+    width: 14px !important;
+    height: 14px !important;
+    flex-shrink: 0 !important;
+}
+
+.oc .version-display {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 2px 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 155px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    height: 20px;
+}
+
+.oc .version-display .version-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.oc .version-display .update-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--error-color);
+    flex-shrink: 0;
+    animation: gentlePulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes gentlePulse {
+    0%, 100% { 
+        opacity: 1; 
+        transform: scale(1);
+    }
+    50% { 
+        opacity: 0.4; 
+        transform: scale(0.9);
+    }
+}
+
+.oc .version-display:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.oc .config-selector {
+    position: relative;
+    flex: 1;
+}
+
+.oc .config-select {
+    width: 100%;
+    height: var(--control-height);
+    padding: 5px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    font-size: 13px;
+    appearance: none;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.oc .config-select:hover {
+    border-color: var(--primary-color);
+}
+
+.oc .config-select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.oc .config-select option {
+    width: 100%;
+    padding: 8px 12px;
+    font-size: 13px;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: var(--bg-white);
+    color: var(--text-primary);
+}
+
+.oc .config-selector::after {
+    content: '';
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid var(--text-secondary);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.oc .config-file-bottom .card-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    flex-shrink: 0;
+    margin: 0;
+    flex-direction: row;
+}
+
+.oc .cbi-button-group {
+    display: inline-flex;
+    background: var(--bg-white);
+    border-radius: var(--radius-sm);
+    padding: 3px;
+    gap: 2px;
+    position: relative;
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-sm);
+    height: var(--control-height);
+    align-items: center;
+    white-space: nowrap;
+    width: fit-content;
+}
+
+.oc .cbi-button-group input[type="radio"] {
+    position: absolute;
     opacity: 0;
     pointer-events: none;
 }
 
-:root[data-darkmode="true"] #copy_address,
-:root[data-darkmode="true"] #copy_secret,
-:root[data-darkmode="true"] #copy_mix_address,
-:root[data-darkmode="true"] #copy_mix_secret,
-:root[data-darkmode="true"] #copy_pac_config {
-    -webkit-filter: invert(1);
-    filter: invert(1);
+.oc .cbi-button-option {
+    padding: 6px 6px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: calc(var(--radius-sm) - 3px);
+    transition: all var(--transition-fast);
+    user-select: none;
+    text-align: center;
+    min-width: 45px;
+    height: calc(var(--control-height) - 6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 
-@media screen and (min-width: 1200px) {
-    .radio-button label {
-        font-size: 14px;
-        padding: 4px 6px;
-    }
+.oc .cbi-button-option:hover {
+    color: var(--text-primary);
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.oc input[type="radio"]:checked + .cbi-button-option {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: var(--shadow-sm);
+}
+
+.oc .value-indicator {
+    font-size: 13px;
+    font-weight: 500;
+    padding: 10px 14px;
+    border-radius: var(--radius-sm);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-light);
+    text-align: center;
+    height: var(--control-height);
+    min-width: 100px;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+.oc .help-link {
+    display: inline-flex;
+    align-items: center;
+    color: var(--primary-color);
+    text-decoration: none;
+    opacity: 0.7;
+    transition: opacity var(--transition-fast);
+    margin-bottom: 2px;
+    border-radius: var(--radius-sm);
+}
+
+.oc .help-link:hover {
+    opacity: 1;
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.oc .help-link svg {
+    width: 12px;
+    height: 12px;
+}
+
+.oc .dashboard-buttons,
+.oc .quick-actions-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    flex: 1;
+}
+
+.oc .dashboard-btn {
+    font-size: 12px !important;
+    font-weight: 500 !important;
+    color: white !important;
+    cursor: pointer !important;
+    border-radius: var(--radius-md) !important;
+    border: none !important;
+    background: var(--primary-color) !important;
+    transition: all var(--transition-fast) !important;
+    white-space: nowrap !important;
+    text-align: center !important;
+    text-decoration: none !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    line-height: 1.2 !important;
+    flex: 1 !important;
+    height: 44px !important;
+    outline: none !important;
+    padding: 8px 6px !important;
+    min-width: 30px;
+}
+
+.oc .dashboard-btn:hover {
+    background: #2563eb !important;
+}
+
+.oc .stat-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: center;
+    position: relative;
+}
+
+.oc .stat-label::after {
+    content: '';
+    position: absolute;
+    bottom: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 1px;
+    background-color: var(--border-color);
+}
+
+.oc .stat-value {
+    font-family: var(--font-family-mono);
+    font-size: clamp(8px, 2.5vw, 12px);
+    font-weight: 700;
+    color: var(--success-color);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    margin-top: 5px;
+}
+
+.oc .plugin-toggle-container {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.oc .plugin-toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 22px;
+    cursor: pointer;
+}
+
+.oc .plugin-toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.oc .plugin-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #e5e7eb;
+    transition: 0.2s;
+    border-radius: 22px;
+    border: 1px solid var(--border-light);
+}
+
+.oc .plugin-toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 2px;
+    top: 2px;
+    background-color: white;
+    transition: 0.2s;
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+.oc .plugin-toggle-switch input:checked + .plugin-toggle-slider {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.oc .plugin-toggle-switch input:checked + .plugin-toggle-slider:before {
+    transform: translateX(22px);
+}
+
+.oc #logo_btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    width: auto !important;
+    padding: 4px 8px !important;
+    gap: 6px !important;
+    font-size: 12px !important;
+}
+
+.oc #logo_btn .logo-text {
+    font-size: 11px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.oc #logo_btn .mihomo-link {
+    color: var(--primary-color);
+    font-weight: 500;
+}
+
+.oc .config-subscription-info {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex: 1;
+    min-width: 0;
+    margin-left: 16px;
+}
+
+.oc .subscription-info-container {
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    box-shadow: var(--shadow-sm);
+    transition: all var(--transition-fast);
+}
+
+.oc .subscription-info-container:hover {
+    border-color: var(--primary-color);
+    box-shadow: var(--shadow-md);
+}
+
+.oc .subscription-info-main {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+}
+
+.oc .subscription-info-header {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    align-items: center;
+    min-height: 24px;
+}
+
+.oc .subscription-info-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-height: 32px;
+}
+
+.oc .subscription-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.oc .subscription-progress-bar {
+    background: var(--bg-gray);
+    border-radius: 4px;
+    height: 10px;
+    position: relative;
+    overflow: hidden;
+}
+
+.oc .subscription-progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.3s ease;
+}
+
+.oc .subscription-progress-fill.high {
+    background: var(--success-color);
+}
+
+.oc .subscription-progress-fill.medium {
+    background: var(--warning-color);
+}
+
+.oc .subscription-progress-fill.low {
+    background: var(--error-color);
+}
+
+.oc .subscription-info-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.oc .subscription-loading,
+.oc .subscription-error,
+.oc .subscription-no-info {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-align: center;
+    min-height: 40px;
+    flex: 1;
+}
+
+.oc .subscription-error {
+    color: var(--error-color);
+}
+
+.oc .config-file-name {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    flex: 1;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 80px);
+}
+
+.oc .config-file-bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    min-height: var(--control-height);
+}
+
+.oc .file-info {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    gap: 16px;
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.oc .file-info-item {
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+}
+
+.oc .announcement-banner {
+    background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+    color: white;
+    padding: 12px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    position: relative;
+    height: 38px;
+    box-shadow: var(--shadow-md);
+    grid-column: 1 / 3;
+    grid-row: 1;
+    width: 80%;
+    justify-self: center;
+    align-self: center;
+}
+
+.oc .announcement-content {
+    position: absolute;
+    white-space: nowrap;
+    padding-right: 50px;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 1;
+    font-weight: 500;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.oc .megaphone-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    background: rgba(255, 255, 255, 0.1);
+    z-index: 2;
+    border-top-left-radius: var(--radius-lg);
+    border-bottom-left-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.oc .announcement-banner::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 45px;
+    background: linear-gradient(to right, rgba(59, 130, 246, 1) 80%, rgba(59, 130, 246, 1) 100%);
+    z-index: 3;
+    pointer-events: none;
+}
+
+.oc #megaphone {
+    position: relative;
+    z-index: 4;
+    filter: brightness(0) invert(1);
+    transform: scaleX(-1);
+}
+
+.oc .card-value.hidden-radio-de,
+.oc #radio-de[style*="display: none"],
+.oc #oc-setting-oversea-de[style*="display: none"],
+.oc #dns-setting-sniffer-de[style*="display: none"],
+.oc #dns-setting-respect-de[style*="display: none"] {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    position: absolute !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    overflow: hidden !important;
+}
+
+.oc .sub-card:has(.hidden-radio-de),
+.oc .sub-card:has([style*="display: none"]) {
+    transform: translateZ(0);
+    will-change: contents;
+}
+
+.oc .sub-card:has(.hidden-radio-de) .card-content,
+.oc .sub-card:has([style*="display: none"]) .card-content {
+    gap: 0 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    align-items: flex-start !important;
+}
+
+.oc .sub-card:has(.hidden-radio-de) .card-controls,
+.oc .sub-card:has([style*="display: none"]) .card-controls {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: var(--control-height) !important;
+    max-height: var(--control-height) !important;
 }
 
 @media screen and (max-width: 1200px) {
-    .status-table td {
+    .oc .main-cards-container {
+        grid-template-columns: 1fr;
+        gap: 13px;
+    }
+    
+    .oc .announcement-banner {
+        grid-column: 1;
+    }
+    
+    .oc .main-card {
+        grid-column: 1;
+        grid-template-rows: auto auto auto auto;
+        margin-bottom: 16px;
+    }
+
+    .oc .main-card:first-of-type {
+        grid-column: 1;
+        grid-row: 2;
+    }
+    
+    .oc .main-card:last-of-type {
+        grid-column: 1;
+        grid-row: 3;
+    }
+
+    .oc .card-row.dual-cards {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+
+    .oc .card-row.triple-cards {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+
+    .oc .card-row.stats-grid {
+        grid-template-columns: repeat(4, 2fr);
+    }
+
+    .oc .config-selector {
+        min-width: 200px;
+        flex: 1;
+    }
+    
+    .oc .config-select {
+        min-width: 200px;
         font-size: 12px;
-        padding: 3px 1px;
     }
     
-    .label-text {
-        font-size: 11px;
-    }
-    
-    .radio-button {
-        display: inline-block;
-        white-space: nowrap;
-        background-color: #d1d1d1;
-        border-radius: 4px;
-        width: auto;
+    .oc .config-select option {
+        font-size: 12px;
         max-width: 100%;
-        gap: 2px;
-        overflow-x: auto;
-        overflow-y: hidden;
     }
     
-    .radio-button label {
-        font-size: 10px;
-        padding: 2px 3px;
-        min-width: 25px;
+    .oc .card-row:nth-child(1),
+    .oc .card-row:nth-child(2),
+    .oc .card-row:nth-child(3),
+    .oc .card-row:nth-child(4) {
+        min-height: auto;
     }
 }
 
 @media screen and (max-width: 768px) {
-    .status-table {
+    .oc .main-card {
+        padding: 16px;
+        grid-template-rows: auto auto auto auto;
+    }
+
+    .oc .sub-card {
+        padding: 14px;
+        min-height: auto;
+    }
+
+    .oc .card-row.stats-grid {
+        grid-template-columns: repeat(3, 2fr);
+    }
+
+    .oc .dashboard-btn {
+        font-size: 10px !important;
+        height: 40px !important;
+        padding: 6px 4px !important;
+    }
+
+    .oc .card-title {
+        font-size: 11px;
+    }
+
+    .oc .card-value {
+        font-size: 13px;
+    }
+
+    .oc .value-indicator {
+        font-size: 11px;
+        padding: 8px 10px;
+    }
+
+    .oc .cbi-button-option {
+        padding: 6px 6px;
         font-size: 11px;
     }
     
-    .status-table td {
-        padding: 2px 1px;
+    .oc .card-row:nth-child(1),
+    .oc .card-row:nth-child(2),
+    .oc .card-row:nth-child(3),
+    .oc .card-row:nth-child(4) {
+        min-height: auto;
+    }
+
+    .oc .config-file-content {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .oc .config-selector {
+        min-width: 150px;
+        flex: 1;
+    }
+
+    .oc .config-select {
+        min-width: 150px;
+        font-size: 11px;
+        padding: 4px 10px;
     }
     
-    .label-text {
-        font-size: 10px;
-        margin-right: 3px;
+    .oc .config-select option {
+        font-size: 11px;
+        padding: 6px 10px;
     }
     
-    .content-wrapper {
-        gap: 2px;
+    .oc .config-selector::after {
+        right: 10px;
+        border-left: 3px solid transparent;
+        border-right: 3px solid transparent;
+        border-top: 3px solid var(--text-secondary);
+    }
+
+    .oc .config-subscription-info {
+        margin-left: 12px;
     }
     
-    .radio-button {
-        display: inline-block;
-        white-space: nowrap;
-        background-color: #d1d1d1;
-        border-radius: 4px;
-        width: auto;
+    .oc .subscription-info-container {
+        padding: 12px;
+    }
+
+    .oc .subscription-info-header {
+        gap: 8px;
+    }
+
+    .oc .config-file-name {
         max-width: 100%;
-        gap: 2px;
-        overflow-x: auto;
-        overflow-y: hidden;
-        scrollbar-width: thin;
-        scrollbar-color: #1080c1 transparent;
+        font-size: 15px;
+    }
+
+    .oc .config-file-bottom {
+        flex-direction: row;
+        align-items: stretch;
+        gap: 12px;
     }
     
-    .radio-button::-webkit-scrollbar {
-        height: 4px;
+    .oc .config-file-bottom .card-actions {
+        justify-content: center;
     }
     
-    .radio-button::-webkit-scrollbar-track {
-        background: transparent;
+    .oc .subscription-info-text {
+        font-size: 9px;
     }
-    
-    .radio-button::-webkit-scrollbar-thumb {
-        background-color: #1080c1;
-        border-radius: 2px;
-    }
-    
-    .action-icons {
-        gap: 1px;
-        margin-left: 2px;
-    }
-    
-    .action-icons img {
-        height: 14px !important;
-    }
-    
-    .radio-button label {
-        font-size: 11px;
-        padding: 2px 3px;
-        min-width: 30px;
+
+    .oc .file-info {
+        font-size: 9px;
     }
 }
 
-@media screen and (max-width: 480px) {
-    .status-table {
-        font-size: 10px;
+@media screen and (max-width: 575px) {
+    .oc .main-cards-container {
+        gap: 10px;
     }
-    
-    .label-text {
+
+    .oc .card-row.dual-cards,
+    .oc .card-row.triple-cards {
+        grid-template-columns: 2fr 2fr;
+    }
+
+    .oc .card-row.stats-grid {
+        grid-template-columns: repeat(2, 2fr);
+    }
+
+    .oc .icon-btn {
+        width: 24px;
+        height: 24px;
+        min-width: 24px;
+    }
+
+    .oc .version-display {
+        max-width: 80px;
         font-size: 9px;
     }
-    
-    .radio-button {
-        display: inline-block;
-        white-space: nowrap;
-        background-color: #d1d1d1;
-        border-radius: 4px;
-        width: auto;
-        max-width: 100%;
-        gap: 2px;
-        overflow-x: auto;
-        overflow-y: hidden;
+
+    .oc .dashboard-btn {
+        font-size: 9px !important;
+        height: 36px !important;
     }
-    
-    .action-icons img {
-        height: 12px !important;
+
+    .oc .cbi-button-group {
+        padding: 2px;
+        gap: 1px;
     }
-    
-    .radio-button label {
+
+    .oc .cbi-button-option {
+        padding: 4px 6px;
         font-size: 10px;
-        padding: 2px 2px;
-        min-width: 25px;
+        min-width: 0;
+    }
+
+    .oc .config-file-top {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 12px;
+    }
+    
+    .oc .config-subscription-info {
+        margin-left: 0;
+        justify-content: center;
+    }
+
+    .oc .subscription-info-header {
+        gap: 6px;
+    }
+    
+    .oc .file-info {
+        gap: 4px;
+    }
+
+    .oc .mode-row .sub-card:first-child .card-content {
+        flex-direction: column;
+    }
+    
+    .oc .card-row:nth-child(1),
+    .oc .card-row:nth-child(2),
+    .oc .card-row:nth-child(3),
+    .oc .card-row:nth-child(4) {
+        min-height: auto;
+    }
+
+    .oc .config-selector {
+        min-width: 120px;
+        flex: 1;
+    }
+    
+    .oc .config-select {
+        min-width: 120px;
+        font-size: 10px;
+        padding: 4px 8px;
+    }
+    
+    .oc .config-select option {
+        font-size: 10px;
+        padding: 5px 8px;
+    }
+    
+    .oc .config-selector::after {
+        right: 8px;
     }
 }
 </style>
@@ -334,249 +1289,257 @@
 %>
 <fieldset class="cbi-section">
     <table width="100%">
-      	<td colspan="4" width="100%">
-            <div id="announcement-banner" class="announcement-banner">
-                <div class="megaphone-container"></div>
-                <img id="megaphone" src="/luci-static/resources/openclash/img/megaphone-simple.svg?<%=random%>" loading="lazy" alt="megaphone" width="15px" height="15px">
-                <div id="announcement-content" class="announcement-content"></div>
-            </div>
-      		<p style="margin: 10px 0; text-align: center">
-                <img id="_logo" src="/luci-static/resources/openclash/img/logo.png?<%=random%>" loading="lazy" width="150px" height="150px" onload="return logo_check(this,this.src,'https://raw.githubusercontent.com/vernesong/OpenClash/<%=RELEASE_BRANCH%>/img/meta.png')" onerror="return logo_error(this,'/luci-static/resources/openclash/img/logo.png?<%=random%>')" title="Hello, World!" alt="OpenClash" onclick="return homepage()" />
-                <img class="preload-image" src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="">
-                <img class="preload-image" src="/luci-static/resources/openclash/img/copy-link.svg" alt="">
-                <img class="preload-image" src="/luci-static/resources/openclash/img/password.svg" alt="">
-                <img class="preload-image" src="/luci-static/resources/openclash/img/globe-hemisphere-east.svg" alt="">
-            </p>
-      		<p id="_clashversion" style="margin: 10px 0; text-align: center">
-                <img src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onclick="return go_update()">
-      		</p>
-        </td></tr>
-        <tr><td colspan="4" width="100%">
-             <p style="margin: 10px 0; text-align: center">
-                <img id="gitbook" src="/luci-static/resources/openclash/img/Wiki.svg?<%=random%>" loading="lazy" alt="GitBook" width="50px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Wiki--lightgrey?logo=GitBook&style=social')" onclick="return gitbookpage()" />
-                &nbsp;&nbsp;&nbsp;
-                <img id="wiki" src="/luci-static/resources/openclash/img/Tutorials.svg?<%=random%>" loading="lazy" alt="Wiki" width="75px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Tutorials--lightgrey?logo=Wikipedia&style=social')" onclick="return wikipage()" />
-                &nbsp;&nbsp;&nbsp;
-                <img id="star" src="/luci-static/resources/openclash/img/Star.svg?<%=random%>g" loading="lazy" alt="star" width="50px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Star--lightgrey?logo=github&style=social')" onclick="return homepage()" />
-                &nbsp;&nbsp;&nbsp;
-                <img id="telegram" src="/luci-static/resources/openclash/img/Telegram.svg?<%=random%>" loading="lazy" alt="Telegram" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Telegram--lightgrey?logo=Telegram&style=social')" onclick="return telegrampage()" />
-                &nbsp;&nbsp;&nbsp;
-                <img id="sponsor" src="/luci-static/resources/openclash/img/Sponsor.svg?<%=random%>" loading="lazy" alt="Sponsor" width="73px" height="20px" onerror="return imgerrorfuns(this,'https://img.shields.io/badge/Sponsor--lightgrey?logo=ko-fi&style=social')" onclick="return sponsorpage()" />
-            </p>
-        </td></tr>
-        <tr><td width="100%" colspan="4">
-      		<div style="margin: 10px 0; text-align: center" id="_clashstart">
-      			<b><%:Tip: after started, please wait patiently until the connection is normal%></b>
-            </div>
-        </td></tr>
-        <tr class="status-row">
-            <td width="25%" class="no-wrap"><%:Core Status%></td>
-            <td width="25%" align="left" class="no-wrap">
-                <span id="_clash"><%:Collecting data...%></span><span id="_watchdog"></span>
-            </td>
-            <td width="25%" class="no-wrap"><%:Control Panel%></td>
-            <td width="25%" align="left" class="no-wrap">
-                <div class="content-wrapper">
-                    <span id="_daip"><%:Collecting data...%></span><span id="_dapo"></span>
-                    <div class="action-icons">
-                        &nbsp;<img src="/luci-static/resources/openclash/img/copy-link.svg" height="16px" title="<%:Copy Address%>" alt="<%:Copy Address%>" id="copy_address" style="cursor: pointer; display: none;" onclick="return copyAddress()" />
-                        &nbsp;<img src="/luci-static/resources/openclash/img/password.svg" height="16px" title="<%:Copy Secret%>" alt="<%:Copy Secret%>" id="copy_secret" style="cursor: pointer; display: none;" onclick="return copySecret()" />
+    <tr>
+        <td colspan="4">
+            <div class="oc">
+                <div class="main-cards-container">
+                    <div id="announcement-banner" class="announcement-banner">
+                        <div class="megaphone-container"></div>
+                        <svg id="megaphone" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 256 256">
+                            <path d="M228.54,86.66l-176.06-54A16,16,0,0,0,32,48V192a16,16,0,0,0,16,16,16,16,0,0,0,4.52-.65L136,181.73V192a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16v-29.9l28.54-8.75A16.09,16.09,0,0,0,240,138V102A16.09,16.09,0,0,0,228.54,86.66ZM136,165,48,192V48l88,27Zm48,27H152V176.82L184,167Zm40-54-.11,0L152,160.08V79.92l71.89,22,.11,0v36Z"></path>
+                        </svg>
+                        <div id="announcement-content" class="announcement-content"></div>
+                    </div>
+                    <div class="main-card">
+                        <!-- Row 1: Running Status -->
+                        <div class="card-row full-width core-status-row">
+                            <div class="sub-card">
+                                <div class="card-title"><%:Running Status%></div>
+                                <div class="version-display-container">
+                                    <div class="version-display" id="plugin-version-display" style="display: none;">
+                                        <span class="version-text" id="plugin-version-text">-</span>
+                                    </div>
+                                    <div class="version-display" id="core-version-display" style="display: none;">
+                                        <span class="version-text" id="core-version-text">-</span>
+                                    </div>
+                                </div>
+                                <div class="core-main-controls">
+                                    <div class="core-status-toggle">
+                                        <span id="_clash" class="value-indicator"><%:Collecting data...%></span>
+                                        <div class="plugin-toggle-container">
+                                            <label class="plugin-toggle-switch">
+                                                <input type="checkbox" id="plugin_toggle" onchange="togglePlugin(this)">
+                                                <span class="plugin-toggle-slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="core-control-buttons">
+                                        <button type="button" class="icon-btn action-btn" id="restart_core" title="<%:Restart%>" onclick="return restartCore()">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    <button type="button" class="icon-btn action-btn" id="go_wiki" title="<%:Wiki%>" onclick="return wikipage()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg></button>
+                                    <button type="button" class="icon-btn action-btn" id="go_tutorials" title="<%:Tutorials%>" onclick="return gitbookpage()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg></button>
+                                    <button type="button" class="icon-btn action-btn" id="go_star" title="<%:Star%>" onclick="return homepage()"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/></svg></button>
+                                    <button type="button" class="icon-btn action-btn" id="go_telegram" title="<%:Telegram%>" onclick="return telegrampage()"><svg width="14" height="14" viewBox="0 0 256 256" fill="none" stroke="currentColor" stroke-width="20"><path d="M80,134.87,170.26,214a8,8,0,0,0,13.09-4.21L224,33.22a1,1,0,0,0-1.34-1.15L20,111.38A6.23,6.23,0,0,0,21,123.3Z" stroke-linecap="round" stroke-linejoin="round"/><line x1="80" y1="134.87" x2="223.41" y2="32.09" stroke-linecap="round" stroke-linejoin="round"/><path d="M124.37,173.78,93.76,205.54A8,8,0,0,1,80,200V134.87" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                                    <button type="button" class="icon-btn action-btn" id="go_sponsor" title="<%:Sponsor%>" onclick="return sponsorpage()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg></button>
+                                    <button type="button" class="icon-btn action-btn" id="logo_btn" title="Mihomo" onclick="return go_mihomo();">
+                                        <img id="_logo" src="/luci-static/resources/openclash/img/logo.png?<%=random%>" loading="lazy" width="14px" height="14px" alt="Mihomo"/>
+                                        <span class="logo-text">Powered by <span class="mihomo-link">Mihomo</span></span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Config File -->
+                        <div class="card-row full-width">
+                            <div class="sub-card">
+                                <div class="card-title"><%:Config File%></div>
+                                <div class="config-file-content">
+                                    <div id="subscription-info-display" class="subscription-info-container" style="display: none;">
+                                        <div class="subscription-info-main">
+                                            <div class="subscription-info-header">
+                                                <div class="config-file-name" id="current-config-name"><%:No Config Selected%></div>
+                                                <div class="file-info" id="file-info-section">
+                                                    <span id="file-modify-time" class="file-info-item"><%:Modified: %> --</span>
+                                                </div>
+                                            </div>
+                                            <div class="subscription-info-details">
+                                                <div class="subscription-progress" id="subscription-progress-section" style="display: none;">
+                                                    <div class="subscription-progress-bar">
+                                                        <div id="subscription-progress-fill" class="subscription-progress-fill high" style="width: 0%"></div>
+                                                    </div>
+                                                    <div id="subscription-info-text" class="subscription-info-text"><%:Collecting data...%></div>
+                                                </div>
+                                                <div class="card-actions">
+                                                    <button type="button" class="icon-btn action-btn" id="refresh-subscription" title="<%:Refresh%>" onclick="return refreshSubscriptionInfo()">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <path d="M23 4v6h-6"></path>
+                                                            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                                                        </svg>
+                                                    </button>
+                                                    <button type="button" class="icon-btn action-btn" id="config-subscription-url" title="<%:Specify URL%>" onclick="return setSubscriptionUrl()">
+                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="config-file-bottom">
+                                        <div class="config-selector">
+                                            <select id="config_file_select" class="config-select"><option value=""><%:Collecting data...%></option></select>
+                                        </div>
+                                        <div class="card-actions">
+                                            <button type="button" class="icon-btn action-btn" id="switch_config" title="<%:SwiTch%>" onclick="return switchConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg></button>
+                                            <button type="button" class="icon-btn action-btn" id="update_config" title="<%:Update%>" onclick="return updateConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M21 21v-5h-5"></path></svg></button>
+                                            <button type="button" class="icon-btn action-btn" id="edit_config" title="<%:Edit%>" onclick="return editConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                                            <button type="button" class="icon-btn action-btn" id="upload_config" title="<%:Upload%>" onclick="return uploadConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Running Mode & Proxy Mode -->
+                        <div class="card-row dual-cards mode-row">
+                            <div class="sub-card">
+                                <div class="card-title"><%:Running Mode%></div>
+                                <div class="card-content">
+                                    <div class="card-value"><span id="_mode" class="value-indicator"><%:Collecting data...%></span></div>
+                                    <div class="running-mode-controls">
+                                        <div id="radio-ru-mode" class="cbi-button-group" style="display: none;">
+                                            <input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/><label for="normal" id="run_normal" class="cbi-button-option"><%:Compat%></label>
+                                            <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/><label for="tun" class="cbi-button-option"><%:TUN%></label>
+                                            <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/><label for="mix" class="cbi-button-option"><%:Mix%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sub-card">
+                                <div class="card-title"><%:Proxy Mode%></div>
+                                <div class="card-content">
+                                    <div class="card-value"><span id="radio-de" class="value-indicator"><%:Collecting data...%></span></div>
+                                    <div class="card-controls">
+                                        <div id="radio-mode" class="cbi-button-group" style="display: none;">
+                                            <input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/><label for="rule" class="cbi-button-option"><%:Rule%></label>
+                                            <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/><label for="global" class="cbi-button-option"><%:Global%></label>
+                                            <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/><label for="direct" class="cbi-button-option"><%:Direct%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Settings -->
+                        <div class="card-row triple-cards">
+                            <div class="sub-card">
+                                <div class="card-title"><%:Area Bypass%><div class="help-link" title="<%:Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div></div>
+                                <div class="card-content">
+                                    <div class="card-value"><span id="oc-setting-oversea-de" class="value-indicator"><%:Collecting data...%></span></div>
+                                    <div class="card-controls">
+                                        <div id="oc-setting-oversea" class="cbi-button-group" style="display: none;">
+                                            <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/><label for="oc_setting_oversea_1" class="cbi-button-option"><%:Mainland%></label>
+                                            <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/><label for="oc_setting_oversea_2" class="cbi-button-option"><%:Oversea%></label>
+                                            <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/><label for="oc_setting_oversea_0" class="cbi-button-option"><%:Off%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sub-card">
+                                <div class="card-title"><%:Sniffer%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/sniff/?h=sniff#_1', '_blank');" class="help-link" title="<%:Sniff the domain name of the traffics to avoid rule-based proxy failure%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></a></div>
+                                <div class="card-content">
+                                    <div class="card-value"><span id="dns-setting-sniffer-de" class="value-indicator"><%:Collecting data...%></span></div>
+                                    <div class="card-controls">
+                                        <div id="dns-setting-sniffer" class="cbi-button-group" style="display: none;">
+                                            <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/><label for="meta_sniffer_on" class="cbi-button-option"><%:On%></label>
+                                            <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/><label for="meta_sniffer_off" class="cbi-button-option"><%:Off%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sub-card">
+                                <div class="card-title"><%:DNS Proxy%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/dns/?h=res#respect-rules', '_blank');" class="help-link" title="<%:DNS querys respect-rules to preventing access failure%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></a></div>
+                                <div class="card-content">
+                                    <div class="card-value"><span id="dns-setting-respect-de" class="value-indicator"><%:Collecting data...%></span></div>
+                                    <div class="card-controls">
+                                        <div id="dns-setting-respect" class="cbi-button-group" style="display: none;">
+                                            <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/><label for="respect_rules_on" class="cbi-button-option"><%:On%></label>
+                                            <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/><label for="respect_rules_off" class="cbi-button-option"><%:Off%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="main-card">
+                        <!-- Row 1: Control Panel & Mix Proxy -->
+                        <div class="card-row dual-cards">
+                            <div class="sub-card">
+                                <div class="card-title"><%:Control Panel%></div>
+                                <div class="card-content">
+                                    <div class="card-value">
+                                        <span id="_daip" class="value-indicator"><%:Collecting data...%></span>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    <button type="button" class="icon-btn copy-btn" id="copy_address" title="<%:Copy Address%>" onclick="return copyAddress()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                                    <button type="button" class="icon-btn copy-btn" id="copy_secret" title="<%:Copy Secret%>" onclick="return copySecret()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><circle cx="12" cy="16" r="1"></circle><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></button>
+                                </div>
+                            </div>
+                            <div class="sub-card">
+                                <div class="card-title"><%:Mix Proxy%></div>
+                                <div class="card-content">
+                                    <div class="card-value">
+                                        <span id="_mix_proxy" class="value-indicator"><%:Collecting data...%></span>
+                                    </div>
+                                </div>
+                                <div class="card-actions">
+                                    <button type="button" class="icon-btn copy-btn" id="copy_mix_address" title="<%:Copy Address%>" onclick="return copyMixAddress()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                                    <button type="button" class="icon-btn action-btn" id="copy_pac_config" title="<%:Get PAC Config%>" onclick="return generatePacConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"></path><path d="M2 12h20"></path></svg></button>
+                                    <button type="button" class="icon-btn copy-btn" id="copy_mix_secret" title="<%:Copy Auth Info%>" onclick="return copyMixAuth()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><circle cx="12" cy="16" r="1"></circle><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Statistics -->
+                        <div class="card-row stats-grid">
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Up%></span><span id="upload_" class="stat-value">0 KB/S</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Down%></span><span id="download_" class="stat-value">0 KB/S</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value">0 KB</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value">0 KB</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Connections%></span><span id="connect_t" class="stat-value">0</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value">0 KB</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value">0 %</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value">0</span></div>
+                        </div>
+
+                        <!-- Row 3: Dashboards -->
+                        <div class="card-row full-width">
+                            <div class="sub-card dashboard-container">
+                                <div class="card-title"><%:Control Panel%></div>
+                                <div class="dashboard-buttons">
+                                    <button class="dashboard-btn" id="_web"><%:Collecting data...%></button>
+                                    <button class="dashboard-btn" id="_webm"><%:Collecting data...%></button>
+                                    <button class="dashboard-btn" id="_webz"><%:Collecting data...%></button>
+                                    <button class="dashboard-btn" id="_webo"><%:Collecting data...%></button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Quick Actions -->
+                        <div class="card-row full-width">
+                            <div class="sub-card quick-actions-container">
+                                <div class="card-title"><%:Quick Action%></div>
+                                <div class="quick-actions-buttons">
+                                    <button class="dashboard-btn" id="_close_all_connection_btn"><%:Collecting data...%></button>
+                                    <button class="dashboard-btn" id="_reload_firewall_btn"><%:Collecting data...%></button>
+                                    <button class="dashboard-btn" id="_flush_fakeip_cache_btn"><%:Collecting data...%></button>
+                                    <button class="dashboard-btn" id="_one_key_update_btn"><%:Collecting data...%></button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </td>
-        </tr>
-        <tr class="status-row">
-            <td width="20%" class="no-wrap"><%:Running Mode%></td>
-            <td width="30%" align="left">
-                <div class="running-mode-cell">
-                    <span id="_mode"><%:Collecting data...%></span>
-                    <span id="radio-ru-mode" class="radio-button">
-                        <input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/>
-                        <label for="normal" id="run_normal"><%:Compat%></label>
-                        <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/>
-                        <label for="tun"><%:TUN%></label>
-                        <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/>
-                        <label for="mix"><%:Mix%></label>
-                    </span>
-                </div>
-            </td>
-            <td width="25%" class="no-wrap"><%:Mix Proxy%></td>
-            <td width="25%" align="left">
-                <div class="mix-proxy-cell">
-                    <span id="_mix_proxy"><%:Collecting data...%></span>
-                    <div class="action-icons">
-                        &nbsp;<img src="/luci-static/resources/openclash/img/copy-link.svg" height="16px" title="<%:Copy Address%>" alt="<%:Copy Address%>" id="copy_mix_address" style="cursor: pointer; display: none;" onclick="return copyMixAddress()" />
-                        &nbsp;<img src="/luci-static/resources/openclash/img/globe-hemisphere-east.svg" height="16px" title="<%:Get PAC Config%>" alt="<%:Get PAC Config%>" id="copy_pac_config" style="cursor: pointer; display: none;" onclick="return generatePacConfig()" />
-                        &nbsp;<img src="/luci-static/resources/openclash/img/password.svg" height="16px" title="<%:Copy Auth Info%>" alt="<%:Copy Auth Info%>" id="copy_mix_secret" style="cursor: pointer; display: none;" onclick="return copyMixAuth()" />
-                    </div>
-                </div>
-            </td>
-        </tr>
-        <tr class="status-row">
-            <td width="25%">
-                <div class="label-container">
-                    <span class="label-text"><%:Proxy Mode%></span>
-                    <div class="content-wrapper">
-                        <span id="radio-de"><%:Collecting data...%></span>
-                        <span id="radio-mode" class="radio-button">
-                            <input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/>
-                            <label for="rule"><%:Rule%></label>
-                            <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/>
-                            <label for="global"><%:Global%></label>
-                            <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/>
-                            <label for="direct"><%:Direct%></label>
-                        </span>
-                    </div>
-                </div>
-            </td>
-            <td width="25%">
-                <div class="label-container">
-                    <span class="label-text"><%:Area Bypass%></span>
-                    <div class="content-wrapper">
-                        <span id="oc-setting-oversea-de"><%:Collecting data...%></span>
-                        <span id="oc-setting-oversea" class="radio-button">
-                            <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/>
-                            <label for="oc_setting_oversea_1"><%:Mainland%></label>
-                            <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/>
-                            <label for="oc_setting_oversea_2"><%:Oversea%></label>
-                            <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/>
-                            <label for="oc_setting_oversea_0"><%:Off%></label>
-                        </span>
-                    </div>
-                </div>
-            </td>
-            <td width="25%">
-                <div class="label-container">
-                    <span class="label-text"><%:Sniffer%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/sniff/?h=sniff#_1', '_blank');" style="color: #0066cc; text-decoration: none;" title="<%:Sniff the domain name of the traffics to avoid rule-based proxy failure%>"> (?)</a></span>
-                    <div class="content-wrapper">
-                        <span id="dns-setting-sniffer-de"><%:Collecting data...%></span>
-                        <span id="dns-setting-sniffer" class="radio-button">
-                            <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/>
-                            <label for="meta_sniffer_on"><%:On%></label>
-                            <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/>
-                            <label for="meta_sniffer_off"><%:Off%></label>
-                        </span>
-                    </div>
-                </div>
-            </td>
-            <td width="25%">
-                <div class="label-container">
-                    <span class="label-text"><%:DNS Proxy%> <a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/dns/?h=res#respect-rules', '_blank');" style="color: #0066cc; text-decoration: none;" title="<%:DNS querys respect-rules to preventing access failure%>"> (?)</a></span>
-                    <div class="content-wrapper">
-                        <span id="dns-setting-respect-de"><%:Collecting data...%></span>
-                        <span id="dns-setting-respect" class="radio-button">
-                            <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/>
-                            <label for="respect_rules_on"><%:On%></label>
-                            <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/>
-                            <label for="respect_rules_off"><%:Off%></label>
-                        </span>
-                    </div>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td colspan="4"><div style="margin: 10px 0; text-align: center"><span id="_web" style="width: 25%; display: inline-block;"></span><span id="_webm" style="width: 25%; display: inline-block;"><%:Collecting data...%></span><span id="_webz" style="width: 25%; display: inline-block;"><%:Collecting data...%></span><span id="_webo" style="width: 25%; display: inline-block;"></span></div></td>
-        </tr>
-        <tr id="tool_label2"><td colspan="4">
-            <div style="margin: 10px 0; text-align: center">
-<span>
-&nbsp;&nbsp;<%:Up:%>&nbsp;
-    <span id="upload_">
-        <font style=color:green>
-        0 KB/S
-        </font>
-    </span>
-</span>
-
-<span>
-&nbsp;&nbsp;<%:Down:%>&nbsp;
-    <span id="download_">
-        <font style=color:green>
-        0 KB/S
-        </font>
-    </span>
-</span>
-
-<span>
-&nbsp;&nbsp;<%:Up Total:%>&nbsp;
-    <span id="uploadtotal_">
-        <font style=color:green>
-        0 KB
-        </font>
-    </span>
-</span>
-
-<span>
-&nbsp;&nbsp;<%:Down Total:%>&nbsp;
-    <span id="downloadtotal_">
-        <font style=color:green>
-        0 KB
-        </font>
-    </span>
-</span>
-
-<span>
-&nbsp;&nbsp;<%:Connections:%>&nbsp;
-    <span id="connect_t">
-        <font style=color:green>
-        0
-        </font>
-    </span>
-</span>
-
-<span>
-&nbsp;&nbsp;<%:Ram:%>&nbsp;
-    <span id="mem_t">
-        <font style=color:green>
-        0 KB
-        </font>
-    </span>
-</span>
-
-<span>
-&nbsp;&nbsp;<%:CPU:%>&nbsp;
-    <span id="cpu_t">
-        <font style=color:green>
-        0 %
-        </font>
-    </span>
-    &nbsp;&nbsp;
-</span>
-</div>
-</td></tr>
-    <tr height="50px">
-        <td width="100%" colspan="4">
-            <div id="hid_btn" style="text-align: center;" onclick="hid_btn_action()">
-                <div id="hid_icon" class="arrow-down"></div>
             </div>
         </td>
     </tr>
-    <tr id="hid_1"><td width="100%" colspan="4"><p style="margin: 10px 0; text-align: center"><b><%:Quick Operation%></b></p></td></tr>
-    <tr id="hid_2">
-        <td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_close_all_connection"><%:Collecting data...%></p></td>
-        <td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_reload_firewall"><%:Collecting data...%></p></td>
-        <td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_flush_fakeip_cache"><%:Collecting data...%></p></td>
-        <td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_update_subscribe"><%:Collecting data...%></p></td>
-    </tr>
-    <tr id="hid_3">
-        <td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_update_other_rules"><%:Collecting data...%></p></td>
-        <td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_update_geoip"><%:Collecting data...%></p></td>
-        <td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_update_geosite"><%:Collecting data...%></p></td>
-        <td width="25%" align="center"><p style="margin: 10px 0; text-align: center" id="_one_key_update"><%:Collecting data...%></p></td>
-    </tr>
 </table>
-</fieldset>
-<fieldset id="state" class="cbi-section">
-    <table width="100%">
-        <tr><td width="100%" colspan="4">
-            <p style="margin: 10px 0; text-align: center">
-                <b><%:Please ensure that all items are displayed normally before running. If you need to update, please go to the global settings page%></b>
-            </p>
-        </td></tr>
-        <tr><td width="25%"><%:Node Select Backup%></td><td width="25%" align="left" id="_historychecktime"><%:Collecting data...%></td><td width="25%"><%:lhie1 Rule Update%></td><td width="25%" align="left" id="_lhie1"><%:Collecting data...%></td></tr>
-        <tr><td width="25%"><%:Mainland IP Update%></td><td width="25%" align="left" id="_chnroute"><%:Collecting data...%></td><td width="25%"><%: Mainland IPv6 Update%></td><td width="25%" align="left" id="_chnroutev6"><%:Collecting data...%></td></tr>
-        <tr><td width="25%"><%:GeoIP Data Update%></td><td width="25%" align="left" id="_ipdb"><%:Collecting data...%></td><td width="25%"><%:GeoSite Data Update%></td><td width="25%" align="left" id="_geosite"><%:Collecting data...%></td></tr>
-    </table>
 </fieldset>
 
 <script type="text/javascript">//<![CDATA[
@@ -587,39 +1550,18 @@
         webo: document.getElementById('_webo'),
         webm: document.getElementById('_webm'),
         webz: document.getElementById('_webz'),
-        watchdog: document.getElementById('_watchdog'),
         daip: document.getElementById('_daip'),
         dase: document.getElementById('_dase'),
-        dapo: document.getElementById('_dapo'),
-        startlog: document.getElementById('_clashstart'),
-        clashversion: document.getElementById('_clashversion'),
         close_all_connection: document.getElementById('_close_all_connection'),
         reload_firewall: document.getElementById('_reload_firewall'),
         one_key_update: document.getElementById('_one_key_update'),
-        update_subscribe: document.getElementById('_update_subscribe'),
-        update_other_rules: document.getElementById('_update_other_rules'),
-        update_geoip: document.getElementById('_update_geoip'),
-        update_geosite: document.getElementById('_update_geosite'),
         flush_fakeip_cache: document.getElementById('_flush_fakeip_cache'),
-        ipdb: document.getElementById('_ipdb'),
-        geosite: document.getElementById('_geosite'),
-        lhie1: document.getElementById('_lhie1'),
-        chnroute: document.getElementById('_chnroute'),
-        chnroutev6: document.getElementById('_chnroutev6'),
-        historychecktime: document.getElementById('_historychecktime'),
-        hid_1: document.getElementById("hid_1"),
-        hid_2: document.getElementById("hid_2"),
-        hid_3: document.getElementById("hid_3"),
-        state: document.getElementById("state"),
-        hid_btn: document.getElementById("hid_btn"),
-        tool_label2: document.getElementById('tool_label2'),
         radio_mode: document.getElementById('radio-mode'),
         radio: document.getElementsByName("radios"),
         radio_de: document.getElementById('radio-de'),
         radio_ru_mode: document.getElementById('radio-ru-mode'),
         radio_ru: document.getElementsByName("radios-ru"),
         radio_run_normal: document.getElementById("run_normal"),
-        hid_icon: document.getElementById("hid_icon"),
         copy_secret: document.getElementById('copy_secret'),
         copy_address: document.getElementById('copy_address'),
         copy_mix_address: document.getElementById('copy_mix_address'),
@@ -638,16 +1580,83 @@
         oc_setting_oversea: document.getElementById('oc-setting-oversea'),
         oc_setting_oversea_0: document.getElementById('oc_setting_oversea_0'),
         oc_setting_oversea_1: document.getElementById('oc_setting_oversea_1'),
-        oc_setting_oversea_2: document.getElementById('oc_setting_oversea_2')
+        oc_setting_oversea_2: document.getElementById('oc_setting_oversea_2'),
+        core_version_display: document.getElementById('core-version-display'),
+        core_version_text: document.getElementById('core-version-text'),
+        plugin_version_display: document.getElementById('plugin-version-display'),
+        plugin_version_text: document.getElementById('plugin-version-text')
     };
 
-    // 状态管理和请求缓存
+    var DarkModeDetector = {
+        init: function() {
+            this.applyDarkMode();
+        },
+        
+        applyDarkMode: function() {
+            var ocContainers = document.querySelectorAll('.oc');
+            if (!ocContainers.length) return;
+            
+            var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            var isDarkBg = this.isDarkBackground(document.body);
+            var shouldUseDark = prefersDark || isDarkBg;
+            
+            ocContainers.forEach(function(ocContainer) {
+                if (shouldUseDark) {
+                    ocContainer.setAttribute('data-darkmode', 'true');
+                } else {
+                    ocContainer.removeAttribute('data-darkmode');
+                }
+            });
+        },
+        
+        isDarkBackground: function(element) {
+            try {
+                var style = window.getComputedStyle(element);
+                var bgColor = style.backgroundColor;
+                
+                if (!bgColor || bgColor === 'transparent' || bgColor === 'rgba(0, 0, 0, 0)') {
+                    var parent = element.parentElement;
+                    if (parent && parent !== element) {
+                        return this.isDarkBackground(parent);
+                    }
+                    return false;
+                }
+                
+                var r, g, b;
+                
+                if (/rgba?\(/.test(bgColor)) {
+                    var rgb = bgColor.match(/[\d.]+/g);
+                    r = parseFloat(rgb[0]);
+                    g = parseFloat(rgb[1]);
+                    b = parseFloat(rgb[2]);
+                } else if (/#/.test(bgColor)) {
+                    if (bgColor.length === 4) {
+                        r = parseInt(bgColor[1] + bgColor[1], 16);
+                        g = parseInt(bgColor[2] + bgColor[2], 16);
+                        b = parseInt(bgColor[3] + bgColor[3], 16);
+                    } else if (bgColor.length === 7) {
+                        r = parseInt(bgColor.slice(1, 3), 16);
+                        g = parseInt(bgColor.slice(3, 5), 16);
+                        b = parseInt(bgColor.slice(5, 7), 16);
+                    }
+                } else {
+                    return false;
+                }
+                
+                var luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+                return luminance < 128;
+            } catch (e) {
+                return false;
+            }
+        }
+    };
+
     var StateManager = {
         current_status: {},
         cached_proxy_info: null,
         last_request_time: {},
         request_cache: {},
-        cache_ttl: 2000, // 2秒缓存
+        cache_ttl: 5000,
         
         cachedXHRGet: function(url, callback, force) {
             var now = Date.now();
@@ -655,17 +1664,96 @@
             
             if (!force && this.request_cache[cacheKey] && 
                 (now - this.last_request_time[cacheKey] < this.cache_ttl)) {
-                callback(null, this.request_cache[cacheKey]);
+                setTimeout(function() {
+                    callback({status: 200, fromCache: true}, StateManager.request_cache[cacheKey]);
+                }, 0);
                 return;
             }
             
+            if (!force && this.request_cache[cacheKey]) {
+                setTimeout(function() {
+                    callback({status: 200, fromCache: true}, StateManager.request_cache[cacheKey]);
+                }, 0);
+            }
+            
             XHR.get(url, null, function(x, data) {
-                if (x && x.status == 200) {
+                if (x && x.status == 200 && data) {
+                    var oldData = StateManager.request_cache[cacheKey];
                     StateManager.request_cache[cacheKey] = data;
                     StateManager.last_request_time[cacheKey] = now;
+                    
+                    if (!oldData || JSON.stringify(oldData) !== JSON.stringify(data)) {
+                        callback(x, data);
+                    }
+                } else {
+                    if (!StateManager.request_cache[cacheKey]) {
+                        callback(x, data);
+                    }
                 }
-                callback(x, data);
             });
+        },
+
+        cachedXHRGetWithParams: function(url, params, callback, force) {
+            var now = Date.now();
+            var cacheKey = url + JSON.stringify(params || {});
+            
+            if (!force && this.request_cache[cacheKey] && 
+                (now - this.last_request_time[cacheKey] < this.cache_ttl)) {
+                setTimeout(function() {
+                    callback({status: 200, fromCache: true}, StateManager.request_cache[cacheKey]);
+                }, 0);
+                return;
+            }
+            
+            if (!force && this.request_cache[cacheKey]) {
+                setTimeout(function() {
+                    callback({status: 200, fromCache: true}, StateManager.request_cache[cacheKey]);
+                }, 0);
+            }
+            
+            XHR.get(url, params, function(x, data) {
+                if (x && x.status == 200 && data) {
+                    var oldData = StateManager.request_cache[cacheKey];
+                    StateManager.request_cache[cacheKey] = data;
+                    StateManager.last_request_time[cacheKey] = now;
+                    
+                    if (!oldData || JSON.stringify(oldData) !== JSON.stringify(data)) {
+                        callback(x, data);
+                    }
+                } else {
+                    if (!StateManager.request_cache[cacheKey]) {
+                        callback(x, data);
+                    }
+                }
+            });
+        },
+        
+        clearCache: function(url, params) {
+            var cacheKey = params ? url + JSON.stringify(params) : url;
+            delete this.request_cache[cacheKey];
+            delete this.last_request_time[cacheKey];
+        },
+        
+        clearAllCache: function() {
+            this.request_cache = {};
+            this.last_request_time = {};
+        },
+        
+        hasCache: function(url, params) {
+            var cacheKey = params ? url + JSON.stringify(params) : url;
+            return !!this.request_cache[cacheKey];
+        },
+        
+        getCacheAge: function(url, params) {
+            var cacheKey = params ? url + JSON.stringify(params) : url;
+            if (!this.last_request_time[cacheKey]) {
+                return null;
+            }
+            return Date.now() - this.last_request_time[cacheKey];
+        },
+        
+        setCacheTTL: function(ttl) {
+            this.cache_ttl = ttl;
         },
         
         batchUpdateDOM: function(updates) {
@@ -676,15 +1764,35 @@
                     update.element.innerHTML = update.content;
                 }
             }
+        },
+        
+        cachedXHRGetWithRetry: function(url, params, callback, force, maxRetries) {
+            maxRetries = maxRetries || 3;
+            var retryCount = 0;
+            var self = this;
+            
+            function attemptRequest() {
+                self.cachedXHRGetWithParams(url, params, function(x, data) {
+                    if (x && x.status == 200) {
+                        callback(x, data);
+                    } else if (retryCount < maxRetries) {
+                        retryCount++;
+                        setTimeout(attemptRequest, 1000 * retryCount);
+                    } else {
+                        callback(x, data);
+                    }
+                }, force && retryCount === 0);
+            }
+            
+            attemptRequest();
         }
     };
 
-    // WebSocket
     var WSManager = {
         connections: {},
         retry_count: 0,
         max_retries: 3,
-        reconnect_delay: 1000,
+        reconnect_delay: 2000,
         
         createConnection: function(type, url, messageHandler) {
             if (this.connections[type]) {
@@ -731,84 +1839,886 @@
         }
     };
 
+    var ConfigFileManager = {
+        configList: [],
+        currentConfig: '',
+        selectElement: null,
+        
+        init: function() {
+            this.selectElement = document.getElementById('config_file_select');
+            if (this.selectElement) {
+                this.loadConfigFileList();
+                this.setupEventListeners();
+            }
+        },
+        
+        setupEventListeners: function() {
+            if (this.selectElement) {
+                this.selectElement.addEventListener('change', this.onConfigChange.bind(this));
+            }
+        },
+        
+        loadConfigFileList: function() {
+            this.updateSelectOptions([{value: '', text: '<%:Collecting data...%>', disabled: true}]);
+            
+            StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "config_file_list")%>', function(x, data) {
+                if (x && x.status == 200) {
+                    ConfigFileManager.handleConfigListResponse(data);
+                } else {
+                    ConfigFileManager.handleConfigListError();
+                }
+            }, true);
+        },
+        
+        handleConfigListResponse: function(data) {
+            try {
+                var configFiles = [];
+                var currentConfigFile = '';
+                var currentFileInfo = null;
+                
+                if (data.config_files && Array.isArray(data.config_files)) {
+                    configFiles = data.config_files;
+                } else if (data.files && Array.isArray(data.files)) {
+                    configFiles = data.files;
+                } else {
+                    configFiles = data.config_list || [];
+                }
+                
+                if (data.current_config) {
+                    currentConfigFile = data.current_config;
+                } else if (data.current) {
+                    currentConfigFile = data.current;
+                }
+                
+                if (currentConfigFile && configFiles.length > 0) {
+                    for (var i = 0; i < configFiles.length; i++) {
+                        var file = configFiles[i];
+                        var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
+                        
+                        if (filePath === currentConfigFile) {
+                            if (typeof file === 'object' && file.mtime && file.size) {
+                                currentFileInfo = {
+                                    mtime: file.mtime,
+                                    size: file.size
+                                };
+                            }
+                            break;
+                        }
+                    }
+                }
+                
+                this.configList = configFiles;
+                this.currentConfig = currentConfigFile;
+                this.updateConfigSelect(configFiles, currentConfigFile);
+                this.updateSubscriptionDisplay(currentConfigFile, currentFileInfo);
+                
+                if (currentConfigFile && SubscriptionManager.currentConfigFile !== currentConfigFile) {
+                    SubscriptionManager.currentConfigFile = currentConfigFile;
+                    SubscriptionManager.getSubscriptionInfo();
+                }
+                
+            } catch (e) {
+                this.handleConfigListError();
+            }
+        },
+        
+        handleConfigListError: function() {
+            this.updateSelectOptions([
+                {value: '', text: '<%:Failed to load config files%>', disabled: true}
+            ]);
+            
+            var subscriptionDisplay = document.getElementById('subscription-info-display');
+            if (subscriptionDisplay) {
+                subscriptionDisplay.style.display = 'none';
+            }
+        },
+        
+        updateConfigSelect: function(configFiles, currentConfig) {
+            var options = [];
+            
+            if (!configFiles || configFiles.length === 0) {
+                options.push({
+                    value: '',
+                    text: '<%:No config files found%>',
+                    disabled: true
+                });
+            } else {
+                options.push({
+                    value: '',
+                    text: '<%:Please select a config file%>',
+                    disabled: false
+                });
+                
+                configFiles.forEach(function(file) {
+                    var fileName, filePath;
+                    
+                    if (typeof file === 'string') {
+                        fileName = file;
+                        filePath = file;
+                    } else {
+                        fileName = file.name || file.filename || file.path || file;
+                        filePath = file.path || file.filepath || file.name || file;
+                    }
+                    
+                    var displayName = fileName;
+                    
+                    options.push({
+                        value: filePath,
+                        text: displayName,
+                        disabled: false,
+                        selected: filePath === currentConfig || fileName === currentConfig
+                    });
+                });
+            }
+            
+            this.updateSelectOptions(options);
+        },
+        
+        updateSelectOptions: function(options) {
+            if (!this.selectElement) return;
+            
+            this.selectElement.innerHTML = '';
+            
+            options.forEach(function(option) {
+                var optionElement = document.createElement('option');
+                optionElement.value = option.value;
+                optionElement.textContent = option.text;
+                optionElement.disabled = option.disabled || false;
+                optionElement.selected = option.selected || false;
+                
+                ConfigFileManager.selectElement.appendChild(optionElement);
+            });
+        },
+
+        updateSubscriptionDisplay: function(configFile, fileInfo) {
+            var container = document.getElementById('subscription-info-display');
+            var configNameElement = document.getElementById('current-config-name');
+            var fileModifyTimeElement = document.getElementById('file-modify-time');
+            var detailsSection = document.getElementById('subscription-info-details');
+            
+            if (!container) return;
+            
+            if (!configFile) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.style.display = 'flex';
+
+            if (configNameElement) {
+                var displayName = this.formatDisplayName(configFile);
+                configNameElement.textContent = displayName;
+            }
+            
+            if (fileInfo) {
+                if (fileModifyTimeElement) {
+                    var modifyTime = this.formatUnixTime(fileInfo.mtime);
+                    fileModifyTimeElement.textContent = '<%:Update Time%>: ' + modifyTime;
+                }
+                
+                if (detailsSection) {
+                    detailsSection.style.display = 'flex';
+                }
+            } else {
+                if (fileModifyTimeElement) {
+                    fileModifyTimeElement.textContent = '<%:Update Time%> --';
+                }
+                
+                if (detailsSection) {
+                    detailsSection.style.display = 'none';
+                }
+            }
+        },
+
+        formatUnixTime: function(unixTimestamp) {
+            if (!unixTimestamp || unixTimestamp === 0) {
+                return '--';
+            }
+            
+            try {
+                var date = new Date(unixTimestamp * 1000);
+                var year = date.getFullYear();
+                var month = String(date.getMonth() + 1).padStart(2, '0');
+                var day = String(date.getDate()).padStart(2, '0');
+                var hour = String(date.getHours()).padStart(2, '0');
+                var minute = String(date.getMinutes()).padStart(2, '0');
+                var second = String(date.getSeconds()).padStart(2, '0');
+                
+                return year + '-' + month + '-' + day + ' ' + hour + ':' + minute + ':' + second;
+            } catch (e) {
+                return '--';
+            }
+        },
+
+        formatFileSize: function(bytes) {
+            if (!bytes || bytes === 0) return '--';
+            
+            var sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+            var i = Math.floor(Math.log(bytes) / Math.log(1024));
+            
+            if (i === 0) {
+                return bytes + ' ' + sizes[i];
+            }
+            
+            return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+        },
+        
+        formatDisplayName: function(fileName) {
+            if (!fileName) return '<%:Unknown%>';
+            
+            var name = fileName.split('/').pop().split('\\').pop();
+            
+            //name = name.replace(/\.(yaml|yml)$/i, '');
+            
+            if (name.length > 30) {
+                name = name.substring(0, 27) + '...';
+            }
+            
+            return name;
+        },
+        
+        onConfigChange: function(event) {
+            var selectedValue = event.target.value;
+            
+            if (selectedValue) {
+                this.currentConfig = selectedValue;
+                
+                var selectedFileInfo = null;
+                for (var i = 0; i < this.configList.length; i++) {
+                    var file = this.configList[i];
+                    var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
+                    
+                    if (filePath === selectedValue) {
+                        if (typeof file === 'object' && file.mtime && file.size) {
+                            selectedFileInfo = {
+                                mtime: file.mtime,
+                                size: file.size
+                            };
+                        }
+                        break;
+                    }
+                }
+                
+                this.updateSubscriptionDisplay(selectedValue, selectedFileInfo);
+                
+                if (SubscriptionManager.currentConfigFile !== selectedValue) {
+                    SubscriptionManager.currentConfigFile = selectedValue;
+                    var detailsSection = document.getElementById('subscription-info-details');
+                    if (detailsSection) {
+                        detailsSection.style.display = 'none';
+                    }
+                    SubscriptionManager.getSubscriptionInfo();
+                }
+            } else {
+                this.currentConfig = '';
+                SubscriptionManager.currentConfigFile = '';
+                var subscriptionDisplay = document.getElementById('subscription-info-display');
+                if (subscriptionDisplay) {
+                    subscriptionDisplay.style.display = 'none';
+                }
+            }
+        },
+        
+        refreshConfigList: function() {
+            this.loadConfigFileList();
+        },
+        
+        getCurrentConfig: function() {
+            return this.currentConfig;
+        },
+        
+        getSelectedConfig: function() {
+            return this.selectElement ? this.selectElement.value : '';
+        }
+    };
+
+    var SubscriptionManager = {
+        currentConfigFile: '',
+        retryCount: 0,
+        maxRetries: 3,
+        updateTimer: null,
+        isInitialized: false,
+        
+        init: function() {
+            if (this.isInitialized) return;
+            this.isInitialized = true;
+            
+            setTimeout(function() {
+                SubscriptionManager.loadSubscriptionInfo();
+                SubscriptionManager.startAutoUpdate();
+            }, 500);
+        },
+        
+        loadSubscriptionInfo: function() {
+            var currentConfig = ConfigFileManager.getCurrentConfig() || ConfigFileManager.getSelectedConfig();
+            if (currentConfig && currentConfig !== this.currentConfigFile) {
+                this.currentConfigFile = currentConfig;
+                this.getSubscriptionInfo();
+            }
+        },
+        
+        getSubscriptionInfo: function() {
+            if (!this.currentConfigFile) return;
+            
+            var filename = this.extractFilename(this.currentConfigFile);
+            if (!filename) return;
+            
+            var cachedData = localStorage.getItem('sub_info_' + filename);
+            var shouldFetchNew = true;
+            
+            if (cachedData) {
+                try {
+                    var parsedData = JSON.parse(cachedData);
+
+                    if (parsedData.sub_info && parsedData.sub_info !== "No Sub Info Found") {
+                        this.displaySubscriptionInfo(parsedData);
+                    } else if (parsedData.sub_info === "No Sub Info Found") {
+                        this.showNoInfo();
+                    }
+                    
+                    if (parsedData.get_time) {
+                        var currentTime = Math.floor(Date.now() / 1000);
+                        var cacheTime = parseInt(parsedData.get_time);
+                        var timeDiff = currentTime - cacheTime;
+                        var halfHourInSeconds = 30 * 60;
+                        
+                        if (timeDiff <= halfHourInSeconds) {
+                            shouldFetchNew = false;
+                        }
+                    }
+                } catch (e) {
+                    shouldFetchNew = true;
+                }
+            }
+            
+            if (shouldFetchNew) {
+                StateManager.cachedXHRGetWithParams('<%=luci.dispatcher.build_url("admin", "services", "openclash", "sub_info_get")%>', {filename: filename}, function(x, status) {
+                    if (x && x.status == 200 && status.sub_info && status.sub_info !== "No Sub Info Found") {
+                        SubscriptionManager.retryCount = 0;
+                        localStorage.setItem('sub_info_' + filename, JSON.stringify(status));
+                        SubscriptionManager.displaySubscriptionInfo(status);
+                    } else if (x && x.status == 200 && status.sub_info === "No Sub Info Found") {
+                        SubscriptionManager.retryCount = 0;
+                        localStorage.setItem('sub_info_' + filename, JSON.stringify(status));
+                        SubscriptionManager.showNoInfo();
+                    } else {
+                        SubscriptionManager.handleError();
+                    }
+                }, true);
+            }
+        },
+        
+        displaySubscriptionInfo: function(data) {
+            var container = document.getElementById('subscription-info-display');
+            var progressSection = document.getElementById('subscription-progress-section');
+            var detailsSection = document.getElementById('subscription-info-details');
+            var progressFill = document.getElementById('subscription-progress-fill');
+            var infoText = document.getElementById('subscription-info-text');
+            
+            if (!container) return;
+
+            container.style.display = 'flex';
+            
+            if (data && data.sub_info && data.sub_info !== "No Sub Info Found") {
+                if (progressSection) {
+                    progressSection.style.display = 'flex';
+                }
+                
+                if (!progressFill || !infoText) return;
+                
+                var percent = data.percent || 0;
+                var used = data.surplus || data.used || '0 B';
+                var total = data.total || '0 B';
+                var expire = data.expire || '';
+                var daysLeft = data.day_left || 0;
+                
+                progressFill.style.width = percent + '%';
+                progressFill.className = 'subscription-progress-fill ' + 
+                    (percent >= 50 ? 'high' : (percent >= 20 ? 'medium' : 'low'));
+                
+                var infoString = used + ' / ' + total + ' (' + percent + '%)';
+                if (expire && daysLeft > 0) {
+                    infoString += ' • ' + '<%:Remaining%> ' + daysLeft + ' <%:days%>';
+                    infoString += ' • ' + '<%:Expire Date%>: ' + expire;
+                }
+                
+                infoText.textContent = infoString;
+            } else {
+                if (progressSection) {
+                    progressSection.style.display = 'none';
+                }
+            }
+            
+            if (detailsSection) {
+                detailsSection.style.display = 'flex';
+            }
+        },
+        
+        showNoInfo: function() {
+            var container = document.getElementById('subscription-info-display');
+            var progressSection = document.getElementById('subscription-progress-section');
+            var detailsSection = document.getElementById('subscription-info-details');
+            
+            if (!container) return;
+            
+            container.style.display = 'flex';
+            
+            if (progressSection) {
+                progressSection.style.display = 'none';
+            }
+            
+            if (detailsSection) {
+                var fileModifyTimeElement = document.getElementById('file-modify-time');
+                
+                var hasFileInfo = false;
+                if (fileModifyTimeElement) {
+                    var modifyTimeText = fileModifyTimeElement.textContent || '';
+                    hasFileInfo = !modifyTimeText.includes('--');
+                }
+                
+                detailsSection.style.display = hasFileInfo ? 'flex' : 'none';
+            }
+        },
+        
+        showError: function() {
+            var container = document.getElementById('subscription-info-display');
+            var progressSection = document.getElementById('subscription-progress-section');
+            var detailsSection = document.getElementById('subscription-info-details');
+            
+            if (!container) return;
+            
+            container.style.display = 'flex';
+            
+            if (progressSection) {
+                progressSection.style.display = 'none';
+            }
+            if (detailsSection) {
+                detailsSection.style.display = 'none';
+            }
+        },
+        
+        handleError: function() {
+            if (this.retryCount >= this.maxRetries) {
+                this.showError();
+                this.retryCount = 0;
+                if (this.currentConfigFile) {
+                    localStorage.removeItem('sub_info_' + this.extractFilename(this.currentConfigFile));
+                }
+            } else {
+                this.retryCount++;
+                setTimeout(function() {
+                    SubscriptionManager.getSubscriptionInfo();
+                }, 2000);
+            }
+        },
+        
+        extractFilename: function(path) {
+            if (!path) return '';
+            var parts = path.split('/');
+            var filename = parts[parts.length - 1];
+            
+            if (filename.endsWith('.yaml')) {
+                filename = filename.slice(0, -5);
+            } else if (filename.endsWith('.yml')) {
+                filename = filename.slice(0, -4);
+            }
+            
+            return filename;
+        },
+        
+        startAutoUpdate: function() {
+            if (this.updateTimer) {
+                clearTimeout(this.updateTimer);
+            }
+            
+            this.updateTimer = setTimeout(function() {
+                SubscriptionManager.getSubscriptionInfo();
+                SubscriptionManager.startAutoUpdate();
+            }, 60000 * 15);
+        },
+        
+        stopAutoUpdate: function() {
+            if (this.updateTimer) {
+                clearTimeout(this.updateTimer);
+                this.updateTimer = null;
+            }
+        }
+    };
+
+    var LogManager = {
+        isPolling: false,
+        pollTimer: null,
+        maxPollTime: 30000,
+        pollInterval: 1000,
+        startTime: 0,
+        lastLogContent: '',
+        retryCount: 0,
+        maxRetries: 3,
+        retryDelay: 1000,
+        
+        startLogDisplay: function(initialMessage) {
+            if (initialMessage && DOMCache.clash) {
+                DOMCache.clash.innerHTML = '<b style="color:orange">' + initialMessage + '</b>';
+            }
+            
+            this.isPolling = true;
+            this.startTime = Date.now();
+            this.lastLogContent = '';
+            this.retryCount = 0;
+            this.pollLog();
+        },
+        
+        stopLogDisplay: function() {
+            this.isPolling = false;
+            if (this.pollTimer) {
+                clearTimeout(this.pollTimer);
+                this.pollTimer = null;
+            }
+            this.lastLogContent = '';
+            this.retryCount = 0;
+        },
+        
+        pollLog: function() {
+            if (!this.isPolling) return;
+            
+            if (Date.now() - this.startTime > this.maxPollTime) {
+                this.stopLogDisplay();
+                return;
+            }
+            
+            var self = this;
+            StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', function(x, status) {
+                if (!self.isPolling) return;
+                
+                if (x && x.status == 200 && status.startlog) {
+                    self.retryCount = 0;
+                    
+                    if (self.checkForErrors(status.startlog)) {
+                        self.stopLogDisplay();
+                        return;
+                    }
+                    
+                    if (status.startlog !== "\n" && status.startlog !== "") {
+                        self.displayLog(status.startlog);
+                    }
+                    
+                    self.pollTimer = setTimeout(function() {
+                        self.pollLog();
+                    }, self.pollInterval);
+                } else {
+                    if (self.retryCount < self.maxRetries) {
+                        self.retryCount++;
+                        
+                        var retryDelay = self.retryDelay * self.retryCount;
+                        
+                        self.pollTimer = setTimeout(function() {
+                            if (self.isPolling) {
+                                self.pollLog();
+                            }
+                        }, retryDelay);
+                    } else {
+                        self.stopLogDisplay();
+                        
+                        if (DOMCache.clash) {
+                            DOMCache.clash.innerHTML = '<b style="color:red"><%:Failed to get startup log after retries%></b>';
+                        }
+                    }
+                }
+            }, true);
+        },
+        
+        checkForErrors: function(log) {
+            if (log.match("level=fatal") || log.match("level=error") || log.indexOf("FTL [Config]") !== -1) {
+                XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
+                
+                var errorMsg;
+                if (log.match("level=fatal") || log.match("level=error")) {
+                    var msgParts = log.split('msg=');
+                    errorMsg = msgParts.length > 1 ? msgParts[1] : log;
+                } else {
+                    var ftlParts = log.split('FTL [Config] ');
+                    errorMsg = ftlParts.length > 1 ? ftlParts[1] : log;
+                }
+                
+                if (DOMCache.clash) {
+                    DOMCache.clash.innerHTML = '<b style="color:red"><%:Start Failed%></b>';
+                }
+                
+                setTimeout(function() {
+                    alert('<%:OpenClash Start Failed%> :\n\n' + errorMsg);
+                }, 500);
+                
+                return true;
+            }
+            return false;
+        },
+        
+        displayLog: function(logContent) {
+            if (!DOMCache.clash || !logContent) return;
+            
+            var cleanLog = this.cleanLogContent(logContent);
+            
+            this.lastLogContent = cleanLog;
+
+            var color = this.getLogColor(cleanLog);
+            var displayText = this.formatLogText(cleanLog);
+            
+            DOMCache.clash.innerHTML = '<b style="color:' + color + '">' + displayText + '</b>';
+        },
+        
+        cleanLogContent: function(content) {
+            if (!content) return '';
+            
+            return content.replace(/\r\n/g, ' ')
+                        .replace(/\n/g, ' ')
+                        .replace(/\r/g, ' ')
+                        .trim();
+        },
+        
+        getLogColor: function(log) {
+            if (log.match("Tip:") || log.match("提示：")) {
+                return '#ff6f00';
+            } else if (log.match("Error:") || log.match("错误：") || log.match("level=error")) {
+                return '#FF0000';
+            } else if (log.match("Warning:") || log.match("警告：") || log.match("level=warning")) {
+                return '#ff00bb';
+            } else if (log.match("Watchdog:") || log.match("守护程序：")) {
+                return '#b300ff';
+            } else if (log.match("level=info") || log.match("Success") || log.match("Started") || log.match("Ready")) {
+                return 'green';
+            } else {
+                return 'green';
+            }
+        },
+        
+        formatLogText: function(log) {
+            if (!log) return '<%:Processing...%>';
+            
+            var cleanText = log.replace(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}[.\d]*Z?\s*/, '')
+                            .replace(/^time="[^"]*"\s*/, '')
+                            .replace(/^level=\w+\s*/, '')
+                            .replace(/^msg="?([^"]*)"?\s*/, '$1');
+            
+            if (cleanText.length > 60) {
+                cleanText = cleanText.substring(0, 57) + '...';
+            }
+            
+            return this.escapeHtml(cleanText) || '<%:Processing...%>';
+        },
+        
+        escapeHtml: function(text) {
+            var div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    };
+
+    var SystemStatusManager = {
+        pollTimer: null,
+        pollInterval: 5000,
+        retryCount: 0,
+        maxRetries: 3,
+        isEnabled: false,
+        
+        start: function() {
+            if (this.isEnabled) return;
+            this.isEnabled = true;
+            this.retryCount = 0;
+            this.poll();
+        },
+        
+        stop: function() {
+            this.isEnabled = false;
+            if (this.pollTimer) {
+                clearTimeout(this.pollTimer);
+                this.pollTimer = null;
+            }
+        },
+        
+        poll: function() {
+            if (!this.isEnabled) return;
+            
+            var self = this;
+            StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', function(x, status) {
+                if (x && x.status == 200 && x.responseText != "") {
+                    self.retryCount = 0;
+                    var cpuColor = status.cpu <= 50 ? "green" : (status.cpu <= 80 ? "orange" : "red");
+                    var cpuValue = status.cpu <= 100 ? status.cpu + " %" : "0 %";
+                    document.getElementById("cpu_t").innerHTML = "<font style=\"color:"+cpuColor+"\">"+cpuValue+"</font>";
+                    
+                    var loadValue = parseFloat(status.load_avg) || 0;
+                    var loadColor = loadValue <= 1.0 ? "green" : (loadValue <= 2.0 ? "orange" : "red");
+                    document.getElementById("load_a").innerHTML = "<font style=\"color:"+loadColor+"\">"+status.load_avg+"</font>";
+                } else {
+                    self.handleError();
+                }
+                
+                if (self.isEnabled) {
+                    self.pollTimer = setTimeout(function() {
+                        self.poll();
+                    }, self.pollInterval);
+                }
+            }, true);
+        },
+        
+        handleError: function() {
+            this.retryCount++;
+            
+            if (this.retryCount >= this.maxRetries) {
+                document.getElementById("cpu_t").innerHTML = "<font style=\"color:green\">0 %</font>";
+                document.getElementById("load_a").innerHTML = "<font style=\"color:green\">0</font>";
+                this.retryCount = 0;
+            }
+        },
+        
+        setPollInterval: function(interval) {
+            this.pollInterval = interval;
+        }
+    };
+
+    var NetworkStatsManager = {
+        pollTimer: null,
+        pollInterval: 3000,
+        retryCount: 0,
+        maxRetries: 3,
+        isEnabled: false,
+        
+        start: function() {
+            if (this.isEnabled) return;
+            this.isEnabled = true;
+            this.retryCount = 0;
+            this.poll();
+        },
+        
+        stop: function() {
+            this.isEnabled = false;
+            if (this.pollTimer) {
+                clearTimeout(this.pollTimer);
+                this.pollTimer = null;
+            }
+        },
+        
+        poll: function() {
+            if (!this.isEnabled) return;
+            
+            var self = this;
+            StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', function(x, status) {
+                if (x && x.status == 200 && x.responseText != "") {
+                    self.retryCount = 0;
+                    self.updateNetworkStats(status);
+                } else {
+                    self.handleError();
+                }
+                
+                if (self.isEnabled) {
+                    self.pollTimer = setTimeout(function() {
+                        self.poll();
+                    }, self.pollInterval);
+                }
+            }, true);
+        },
+        
+        updateNetworkStats: function(status) {
+            var updates = [
+                {element: document.getElementById("upload_"), content: "<font style=\"color:green\">"+status.up+"</font>"},
+                {element: document.getElementById("download_"), content: "<font style=\"color:green\">"+status.down+"</font>"},
+                {element: document.getElementById("uploadtotal_"), content: "<font style=\"color:green\">"+status.up_total+"</font>"},
+                {element: document.getElementById("downloadtotal_"), content: "<font style=\"color:green\">"+status.down_total+"</font>"},
+                {element: document.getElementById("mem_t"), content: "<font style=\"color:green\">"+status.mem+"</font>"},
+                {element: document.getElementById("connect_t"), content: "<font style=\"color:green\">"+status.connections+"</font>"}
+            ];
+            
+            if (!SystemStatusManager.isEnabled) {
+                var cpuColor = status.cpu <= 50 ? "green" : (status.cpu <= 80 ? "orange" : "red");
+                var cpuValue = status.cpu <= 100 ? status.cpu + " %" : "0 %";
+                updates.push({element: document.getElementById("cpu_t"), content: "<font style=\"color:"+cpuColor+"\">"+cpuValue+"</font>"});
+                
+                var loadValue = parseFloat(status.load_avg) || 0;
+                var loadColor = loadValue <= 1.0 ? "green" : (loadValue <= 2.0 ? "orange" : "red");
+                updates.push({element: document.getElementById("load_a"), content: "<font style=\"color:"+loadColor+"\">"+status.load_avg+"</font>"});
+            }
+            
+            StateManager.batchUpdateDOM(updates);
+        },
+        
+        handleError: function() {
+            this.retryCount++;
+            
+            if (this.retryCount >= this.maxRetries) {
+                var fallbackUpdates = [
+                    {element: document.getElementById("upload_"), content: "<font style=\"color:green\">0 B/S</font>"},
+                    {element: document.getElementById("download_"), content: "<font style=\"color:green\">0 B/S</font>"},
+                    {element: document.getElementById("uploadtotal_"), content: "<font style=\"color:green\">0 KB</font>"},
+                    {element: document.getElementById("downloadtotal_"), content: "<font style=\"color:green\">0 KB</font>"},
+                    {element: document.getElementById("mem_t"), content: "<font style=\"color:green\">0 KB</font>"},
+                    {element: document.getElementById("connect_t"), content: "<font style=\"color:green\">0</font>"}
+                ];
+                
+                if (!SystemStatusManager.isEnabled) {
+                    fallbackUpdates.push({element: document.getElementById("cpu_t"), content: "<font style=\"color:green\">0 %</font>"});
+                    fallbackUpdates.push({element: document.getElementById("load_a"), content: "<font style=\"color:green\">0</font>"});
+                }
+                
+                StateManager.batchUpdateDOM(fallbackUpdates);
+                this.retryCount = 0;
+            }
+        },
+        
+        setPollInterval: function(interval) {
+            this.pollInterval = interval;
+        }
+    };
+
     var script_radio, script_radio_label;
-    var hid_btn_if = true;
     var ws_connect = false;
     var ws_error = false;
     var ws_retry = 0;
     var luci_protocol;
-    var state_refresh;
     var s, gr;
-    
-    DOMCache.hid_1.style.display = "none";
-    DOMCache.hid_2.style.display = "none";
-    DOMCache.hid_3.style.display = "none";
-    DOMCache.state.style.display = "none";
+    var pluginToggleUserAction = false;
 
-    // 主状态
     XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
         if (x && x.status == 200) {
-            var updates = [
-                {
+            var updates = [];
+        
+            if (!pluginToggleUserAction) {
+                updates.push({
                     element: DOMCache.clash,
                     content: status.clash ? '<b style=color:green>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : '<b style=color:red><%:Not Running%></b>'
-                },
-                {
-                    element: DOMCache.watchdog,
-                    content: status.watchdog ? '&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;<%:Daemons%>:&nbsp;&nbsp;&nbsp;<b style=color:green><%:Running%></b>' : ''
-                }
-            ];
+                });
+                
+                updatePluginToggleState(status.clash);
+            }
 
 			get_run_mode();
             
-            // 控制面板
-            var webContent = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Yacd Control Panel%>" onclick="return ycad_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
+            var webContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Yacd%>" onclick="return ycad_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Yacd%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: DOMCache.web, content: webContent});
-            
-            var weboContent = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Dashboard Control Panel%>" onclick="return net_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
+
+            var weboContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Dashboard%>" onclick="return net_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Dashboard%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: DOMCache.webo, content: weboContent});
-            
-            var webmContent = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Metacubexd Control Panel%>" onclick="return meta_dashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
+
+            var webmContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Metacubexd%>" onclick="return meta_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Metacubexd%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: DOMCache.webm, content: webmContent});
-            
-            var webzContent = status.web ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:zashboard Control Panel%>" onclick="return net_zashboard(this)"/>' : '<b style=color:red><%:Not Running%></b>';
+
+            var webzContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Zashboard%>" onclick="return net_zashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Zashboard%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: DOMCache.webz, content: webzContent});
 
-            // 快速操作
-            var closeConnContent = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<b style=color:red><%:Not Running%></b>';
-            updates.push({element: DOMCache.close_all_connection, content: closeConnContent});
-            
-            var reloadFwContent = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Reload Firewall Rules%>" onclick="return b_reload_firewall(this)"/>' : '<b style=color:red><%:Not Running%></b>';
-            updates.push({element: DOMCache.reload_firewall, content: reloadFwContent});
-            
-            var flushCacheContent = status.clash ? '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Flush Fake-IP Cache%>" onclick="return b_flush_fakeip_cache(this)"/>' : '<b style=color:red><%:Not Running%></b>';
-            updates.push({element: DOMCache.flush_fakeip_cache, content: flushCacheContent});
 
-            // 更新按钮
-            updates.push({
-                element: DOMCache.one_key_update,
-                content: '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check All Components Update%>" onclick="return all_one_key_update(this)"/>'
-            });
-            updates.push({
-                element: DOMCache.update_subscribe,
-                content: '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Config Update%>" onclick="return b_update_subscribe(this)"/>'
-            });
-            updates.push({
-                element: DOMCache.update_other_rules,
-                content: '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check Third Party Rules Update%>" onclick="return b_update_other_rules(this)"/>'
-            });
-            updates.push({
-                element: DOMCache.update_geoip,
-                content: '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GEOIP Data Update%>" onclick="return b_update_geoip(this)"/>'
-            });
-            updates.push({
-                element: DOMCache.update_geosite,
-                content: '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check GeoSite Data Update%>" onclick="return b_update_geosite(this)"/>'
-            });
+            var closeConnContent = status.clash ? '<input type="button" class="btn dashboard-btn" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="btn dashboard-btn" value="<%:Close All Connections%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            updates.push({element: document.getElementById('_close_all_connection_btn'), content: closeConnContent});
+
+            var reloadFwContent = status.clash ? '<input type="button" class="btn dashboard-btn" value="<%:Reload Firewall%>" onclick="return b_reload_firewall(this)"/>' : '<input type="button" class="btn dashboard-btn" value="<%:Reload Firewall%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            updates.push({element: document.getElementById('_reload_firewall_btn'), content: reloadFwContent});
+
+            var flushCacheContent = status.clash ? '<input type="button" class="btn dashboard-btn" value="<%:Flush Fake-IP Cache%>" onclick="return b_flush_fakeip_cache(this)"/>' : '<input type="button" class="btn dashboard-btn" value="<%:Flush Fake-IP Cache%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            updates.push({element: document.getElementById('_flush_fakeip_cache_btn'), content: flushCacheContent});
+
+            var oneKeyUpdateContent = '<input type="button" class="btn dashboard-btn" value="<%:Check Update%>" onclick="return all_one_key_update(this)"/>';
+            updates.push({element: document.getElementById('_one_key_update_btn'), content: oneKeyUpdateContent});
 
             StateManager.batchUpdateDOM(updates);
 
-            // WebSocket协议
             if (status.daip && window.location.hostname == status.daip) {
                 luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
             } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
@@ -817,30 +2727,40 @@
                 luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
             }
 
-            // 地址和端口
-            if (status.clash && status.watchdog) {
+            if (status.clash) {
                 var daipContent, dapoContent;
                 
                 if (status.daip && window.location.hostname == status.daip) {
-                    daipContent = status.daip ? "<b style=color:green>"+status.daip+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
-                    dapoContent = status.cn_port ? "<b style=color:green>:"+status.cn_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+                    dapoContent = status.cn_port ? ":"+status.cn_port : "";
+                    daipContent = status.daip ? "<b style=color:green>"+status.daip+dapoContent+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
                 } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-                    daipContent = status.db_foward_domain ? "<b style=color:green>"+status.db_foward_domain+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
-                    dapoContent = status.db_foward_port ? "<b style=color:green>:"+status.db_foward_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+                    dapoContent = status.db_foward_port ? ":"+status.db_foward_port : "";
+                    daipContent = status.db_foward_domain ? "<b style=color:green>"+status.db_foward_domain+dapoContent+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
                 } else {
-                    daipContent = status.daip ? "<b style=color:green>"+status.daip+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
-                    dapoContent = status.cn_port ? "<b style=color:green>:"+status.cn_port+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+                    dapoContent = status.cn_port ? ":"+status.cn_port : "";
+                    daipContent = status.daip ? "<b style=color:green>"+status.daip+dapoContent+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
                 }
                 
-                DOMCache.daip.innerHTML = daipContent;
-                DOMCache.dapo.innerHTML = dapoContent;
-                
-                DOMCache.radio_mode.style.display = "inline-block";
+                DOMCache.daip.innerHTML = daipContent;                
+                DOMCache.radio_mode.style.display = "inline-flex";
                 DOMCache.radio_de.style.display = "none";
-                DOMCache.radio_ru_mode.style.display = "inline-block";
-                DOMCache.dns_setting_sniffer.style.display = "inline-block";
-                DOMCache.dns_setting_respect.style.display = "inline-block";
-                DOMCache.oc_setting_oversea.style.display = "inline-block";
+                DOMCache.radio_de.classList.add('hidden-radio-de');
+                if (DOMCache.radio_de.parentElement) {
+                    DOMCache.radio_de.parentElement.classList.add('hidden-radio-de');
+                }
+                var proxyModeCard = document.querySelector('.mode-row .sub-card:nth-child(2)');
+                if (proxyModeCard) {
+                    proxyModeCard.classList.add('hidden-radio-de');
+                }
+                DOMCache.radio_ru_mode.style.display = "inline-flex";
+
+                DOMCache.radio_de.classList.add('hidden-radio-de');
+                DOMCache.radio_de.parentElement.classList.add('hidden-radio-de');
+                DOMCache.radio_de.parentElement.parentElement.classList.add('hidden-radio-de');
+
+                DOMCache.dns_setting_sniffer.style.display = "inline-flex";
+                DOMCache.dns_setting_respect.style.display = "inline-flex";
+                DOMCache.oc_setting_oversea.style.display = "inline-flex";
                 DOMCache.dns_setting_sniffer_de.style.display = "none";
                 DOMCache.dns_setting_respect_de.style.display = "none";
                 DOMCache.oc_setting_oversea_de.style.display = "none";
@@ -848,8 +2768,20 @@
             } else {
                 DOMCache.radio_mode.style.display = "none";
                 DOMCache.radio_de.style.display = "";
-                DOMCache.radio_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
                 DOMCache.radio_ru_mode.style.display = "none";
+
+                DOMCache.radio_de.classList.remove('hidden-radio-de');
+                if (DOMCache.radio_de.parentElement) {
+                    DOMCache.radio_de.parentElement.classList.remove('hidden-radio-de');
+                }
+                var proxyModeCard = document.querySelector('.mode-row .sub-card:nth-child(2)');
+                if (proxyModeCard) {
+                    proxyModeCard.classList.remove('hidden-radio-de');
+                }
+                DOMCache.radio_de.parentElement.classList.remove('hidden-radio-de');
+                DOMCache.radio_de.parentElement.parentElement.classList.remove('hidden-radio-de');
+
+                DOMCache.radio_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
                 DOMCache.dns_setting_sniffer.style.display = "none";
                 DOMCache.dns_setting_respect.style.display = "none";
                 DOMCache.oc_setting_oversea.style.display = "none";
@@ -860,12 +2792,10 @@
                 DOMCache.dns_setting_respect_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
                 DOMCache.oc_setting_oversea_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
                 DOMCache.daip.innerHTML = "<b style=color:red><%:Not Running%></b>";
-                DOMCache.dapo.innerHTML = "";
             }
 
             StateManager.current_status = status;
             
-            // 混合代理信息
             if (status.clash && status.daip) {
                 StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "proxy_info")%>', function(x, proxy_info) {
                     if (x && x.status == 200) {
@@ -894,7 +2824,6 @@
                 DOMCache.copy_pac_config.style.display = "none";
             }
             
-            // WebSocket连接管理
             function ws_open() {
                 WSManager.closeAll();
                 WSManager.createConnection('traffic', luci_protocol+"/traffic?token="+status.dase, ws_tmessage);
@@ -902,7 +2831,7 @@
                 WSManager.createConnection('memory', luci_protocol+"/memory?token="+status.dase, ws_mmessage);
             }
 
-            if (status.watchdog && status.clash) {
+            if (status.clash) {
                 if (!ws_connect) {
                     if (!ws_error) {
                         ws_open();
@@ -910,183 +2839,228 @@
                         ws_retry = ws_retry + 1;
                         ws_open();
                     } else {
-                        ws_terror();
+                        NetworkStatsManager.start();
+                    }
+                } else {
+                    NetworkStatsManager.stop();
+                    
+                    if (!SystemStatusManager.isEnabled) {
+                        SystemStatusManager.start();
                     }
                 }
             } else {
                 ws_connect = false;
                 ws_error = false;
+                
+                SystemStatusManager.stop();
+                NetworkStatsManager.stop();
+                
                 if (status.clash) {
-                    ws_terror();
+                    NetworkStatsManager.start();
                 }
             }
         }
+        clashversion_check();
     });
 
 	get_rule_mode();
-    clashversion_check();
     check_core();
-	state_get();
 
-    // 日志轮询
-    var startlogPolling = {
-        errorCheck: function() {
-            XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
-                if (x && x.status == 200) {
-                    if (status.startlog.match("level=fatal") || status.startlog.match("level=error") || status.startlog.indexOf("FTL [Config]") != "-1") {
-                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
-                        if (status.startlog.match("level=fatal") || status.startlog.match("level=error")) {
-                            alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('msg=')[1]);
-                        } else {
-                            alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('FTL [Config] ')[1]);
-                        }
-                    } else if (status.startlog != "\n" && status.startlog != "") {
-                        startlogPolling.updateDisplay(status.startlog);
-                    }
-                }
-            });
-        },
+    document.addEventListener('DOMContentLoaded', function() {
+        DarkModeDetector.init();
         
-        tipsRotation: function() {
-            XHR.poll(6, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, function(x, status) {
-                if (x && x.status == 200) {
-                    if (status.startlog == "\n" || status.startlog == "") {
-                        startlogPolling.showRandomTip();
-                    }
-                }
-            });
-        },
+        setTimeout(function() {
+            ConfigFileManager.init();
+        }, 100);
         
-        updateDisplay: function(log) {
-            var color = 'green';
-            if (log.match("Tip:") || log.match("提示：")) color = '#ff6f00';
-            else if (log.match("Error:") || log.match("错误：")) color = '#FF0000';
-            else if (log.match("Warning:") || log.match("警告：")) color = '#ff00bb';
-            else if (log.match("Watchdog:") || log.match("守护程序：")) color = '#b300ff';
-            
-            DOMCache.startlog.innerHTML = '<b style=color:' + color + '>' + log + '</b>';
-        },
-        
-        showRandomTip: function() {
-            var tips = [
-                '<%:Tip: You can modify the profile on the profile page (for content that is not taken over)%>',
-                '<%:Tip: click the version icon above to jump to the client publishing page%>',
-                '<%:Tip: do not write configuration files? Try to create one click on the server page%>',
-                '<%:Tip: some website are abnormal? Try switching modes or using third-party rules%>',
-                '<%:Tip: using the fake IP mode can get a faster access experience%>',
-                '<%:Tip: query DNS by TLS & TCP & HTTPS can get better anti pollution effect%>',
-                '<%:Tip: openlash will check the configuration file parameters to ensure that it works properly%>',
-                '<%:Tip: the nameserver group must have at least one server set when using custom DNS%>',
-                '<%:Tip: the website access check shows the connection of the device currently logged in to the Luci page%>',
-                '<%:Tip: after started, please wait patiently until the connection is normal%>',
-                '<%:Tip: if you don not use IPv6, please turn off the DHCP service of IPv6, otherwise the connection will be abnormal%>',
-                '<%:Tip: you can update the version in the global settings page%>',
-                '<%:Note: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it%>',
-                '<%:Note: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off%>',
-                '<%:Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check%>',
-                '<%:Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance%>'
-            ];
-            var randomTip = tips[Math.floor(Math.random() * tips.length)];
-            DOMCache.startlog.innerHTML = '<b><font>' + randomTip + '</font></b>';
-        }
-    };
+        setTimeout(function() {
+            SubscriptionManager.init();
+        }, 800);
+    });
 
-    startlogPolling.errorCheck();
-    startlogPolling.tipsRotation();
+    window.addEventListener('beforeunload', function() {
+        SystemStatusManager.stop();
+        NetworkStatsManager.stop();
+    });
     
-    // 公告
     setTimeout(function() {
         loadAnnouncement();
-    }, 1000);
+    }, 2000);
 
     function loadAnnouncement() {
         var userLang = navigator.language || navigator.userLanguage; 
         var isChineseUser = userLang.indexOf('zh') === 0;
         
+        var tips = [
+            '<%:Tip: You can modify the profile on the profile page (for content that is not taken over)%>',
+            '<%:Tip: click the version icon above to jump to the client publishing page%>',
+            '<%:Tip: do not write configuration files? Try to create one click on the server page%>',
+            '<%:Tip: some website are abnormal? Try switching modes or using third-party rules%>',
+            '<%:Tip: using the fake IP mode can get a faster access experience%>',
+            '<%:Tip: query DNS by TLS & TCP & HTTPS can get better anti pollution effect%>',
+            '<%:Tip: openlash will check the configuration file parameters to ensure that it works properly%>',
+            '<%:Tip: the nameserver group must have at least one server set when using custom DNS%>',
+            '<%:Tip: the website access check shows the connection of the device currently logged in to the Luci page%>',
+            '<%:Tip: after started, please wait patiently until the connection is normal%>',
+            '<%:Tip: if you don not use IPv6, please turn off the DHCP service of IPv6, otherwise the connection will be abnormal%>',
+            '<%:Tip: you can update the version in the global settings page%>',
+            '<%:Note: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it%>',
+            '<%:Note: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off%>',
+            '<%:Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check%>',
+            '<%:Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance%>'
+        ];
+        
+        function getScrollSpeed() {
+            var screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+            
+            if (screenWidth <= 575) {
+                return 1.5;
+            } else if (screenWidth <= 768) {
+                return 2;
+            } else if (screenWidth <= 1200) {
+                return 2.5;
+            } else {
+                return 3;
+            }
+        }
+        
+        function getRandomTips(count) {
+            var shuffled = tips.slice();
+            for (var i = shuffled.length - 1; i > 0; i--) {
+                var j = Math.floor(Math.random() * (i + 1));
+                var temp = shuffled[i];
+                shuffled[i] = shuffled[j];
+                shuffled[j] = temp;
+            }
+            return shuffled.slice(0, count);
+        }
+        
+        function updateIcon(isRandomTips) {
+            var megaphoneElement = document.getElementById('megaphone');
+            if (!megaphoneElement) return;
+            
+            if (isRandomTips) {
+                megaphoneElement.innerHTML = '<path d="M176,232a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h80A8,8,0,0,1,176,232Zm40-128a87.55,87.55,0,0,1-33.64,69.21A16.24,16.24,0,0,0,176,186v6a16,16,0,0,1-16,16H96a16,16,0,0,1-16-16v-6a16,16,0,0,0-6.23-12.66A87.59,87.59,0,0,1,40,104.49C39.74,56.83,78.26,17.14,125.88,16A88,88,0,0,1,216,104Zm-16,0a72,72,0,0,0-73.74-72c-39,.92-70.47,33.39-70.26,72.39a71.65,71.65,0,0,0,27.64,56.3A32,32,0,0,1,96,186v6h64v-6a32.15,32.15,0,0,1,12.47-25.35A71.65,71.65,0,0,0,200,104Zm-16.11-9.34a57.6,57.6,0,0,0-46.56-46.55,8,8,0,0,0-2.66,15.78c16.57,2.79,30.63,16.85,33.44,33.45A8,8,0,0,0,176,104a9,9,0,0,0,1.35-.11A8,8,0,0,0,183.89,94.66Z" stroke-width="2"></path>';
+                megaphoneElement.setAttribute('viewBox', '0 0 256 256');
+                megaphoneElement.setAttribute('stroke-width', '3');
+            } else {
+                megaphoneElement.innerHTML = '<path d="M228.54,86.66l-176.06-54A16,16,0,0,0,32,48V192a16,16,0,0,0,16,16,16,16,0,0,0,4.52-.65L136,181.73V192a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16v-29.9l28.54-8.75A16.09,16.09,0,0,0,240,138V102A16.09,16.09,0,0,0,228.54,86.66ZM136,165,48,192V48l88,27Zm48,27H152V176.82L184,167Zm40-54-.11,0L152,160.08V79.92l71.89,22,.11,0v36Z"></path>';
+                megaphoneElement.setAttribute('viewBox', '0 0 256 256');
+            }
+        }
+        
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "announcement")%>', function(x, status) {
-            if (x && x.status == 200) {
-                var banner = document.getElementById('announcement-banner');
-                var content = document.getElementById('announcement-content');
-                var announcements = [];
-                
-                if (status.content) {
-                    try {
-                        var contentData = status.content;
-                        if (typeof contentData === 'string') {
-                            contentData = JSON.parse(contentData);
+            var banner = document.getElementById('announcement-banner');
+            var content = document.getElementById('announcement-content');
+            var announcements = [];
+            var isRandomTips = false;
+            
+            if (x && x.status == 200 && status.content) {
+                try {
+                    var contentData = status.content;
+                    if (typeof contentData === 'string') {
+                        contentData = JSON.parse(contentData);
+                    }
+                    
+                    if (Array.isArray(contentData)) {
+                        if (contentData.length > 0 && (contentData[0].zh || contentData[0].en)) {
+                            contentData.forEach(function(item) {
+                                if (isChineseUser && item.zh) {
+                                    announcements.push(item.zh);
+                                } else if (item.en) {
+                                    announcements.push(item.en);
+                                } else if (item.zh) {
+                                    announcements.push(item.zh);
+                                }
+                            });
+                        } else {
+                            announcements = contentData.filter(function(item) {
+                                return typeof item === 'string' && item.trim() !== '';
+                            });
                         }
-                        
-                        if (Array.isArray(contentData)) {
-                            if (contentData.length > 0 && (contentData[0].zh || contentData[0].en)) {
-                                contentData.forEach(function(item) {
-                                    if (isChineseUser && item.zh) {
-                                        announcements.push(item.zh);
-                                    } else if (item.en) {
-                                        announcements.push(item.en);
-                                    } else if (item.zh) {
-                                        announcements.push(item.zh);
-                                    }
-                                });
-                            } else {
-                                announcements = contentData;
-                            }
-                        } else if (typeof contentData === 'string' && contentData.trim() !== '') {
-                            announcements = [contentData];
-                        }
-                    } catch (e) {
-                        if (typeof status.content === 'string' && status.content.trim() !== '') {
-                            announcements = [status.content];
-                        }
+                    } else if (typeof contentData === 'string' && contentData.trim() !== '') {
+                        announcements = [contentData];
+                    }
+                } catch (e) {
+                    if (typeof status.content === 'string' && status.content.trim() !== '') {
+                        announcements = [status.content];
                     }
                 }
+            }
+            
+            if (announcements.length === 0) {
+                announcements = getRandomTips(3);
+                isRandomTips = true;
+            }
+            
+            updateIcon(isRandomTips);
+            
+            banner.style.display = 'block';
+            
+            var currentIndex = 0;
+            content.textContent = announcements[currentIndex];
+            
+            var isPaused = false;
+            banner.addEventListener('mouseenter', function() { isPaused = true; });
+            banner.addEventListener('mouseleave', function() { isPaused = false; });
+            
+            setTimeout(function() {
+                var bannerWidth = banner.offsetWidth;
+                var contentWidth = content.offsetWidth;
+                var megaphoneWidth = 40;
                 
-                if (announcements.length === 0) {
-                    banner.style.display = 'none';
-                    return;
-                }
+                var position = bannerWidth;
+                content.style.left = position + 'px';
                 
-                banner.style.display = 'block';
-                var currentIndex = 0;
-                content.textContent = announcements[currentIndex];
+                content.style.opacity = '1';
                 
-                var isPaused = false;
-                banner.addEventListener('mouseenter', function() { isPaused = true; });
-                banner.addEventListener('mouseleave', function() { isPaused = false; });
+                var speed = getScrollSpeed();
+                var pauseCounter = 0;
+                var pauseDuration = 20;
                 
-                setTimeout(function() {
-                    var bannerWidth = banner.offsetWidth;
-                    var contentWidth = content.offsetWidth;
-                    content.style.left = bannerWidth + 'px';
-                    
-                    var speed = 3;
-                    var position = bannerWidth;
-                    var pauseCounter = 0;
-                    var pauseDuration = 20;
-                    
-                    function moveText() {
-                        if (!isPaused) {
-                            if (position < -contentWidth && pauseCounter >= pauseDuration) {
-                                currentIndex = (currentIndex + 1) % announcements.length;
+                var resizeTimer;
+                window.addEventListener('resize', function() {
+                    clearTimeout(resizeTimer);
+                    resizeTimer = setTimeout(function() {
+                        speed = getScrollSpeed();
+                        bannerWidth = banner.offsetWidth;
+                        contentWidth = content.offsetWidth;
+                    }, 250);
+                });
+                
+                function moveText() {
+                    if (!isPaused) {
+                        if (position < -(contentWidth + megaphoneWidth) && pauseCounter >= pauseDuration) {
+                            currentIndex = (currentIndex + 1) % announcements.length;
+                            
+                            if (isRandomTips && currentIndex === 0) {
+                                announcements = getRandomTips(3);
+                            }
+                            
+                            content.style.opacity = '0';
+                            setTimeout(function() {
                                 content.textContent = announcements[currentIndex];
                                 contentWidth = content.offsetWidth;
                                 position = bannerWidth;
+                                content.style.left = position + 'px';
+                                content.style.opacity = '1';
                                 pauseCounter = 0;
-                            } else if (position < -contentWidth) {
-                                pauseCounter++;
-                            } else {
-                                position -= speed;
-                            }
+                            }, 150);
+                        } else if (position < -(contentWidth + megaphoneWidth)) {
+                            pauseCounter++;
+                        } else {
+                            position -= speed;
                             content.style.left = position + 'px';
                         }
-                        requestAnimationFrame(moveText);
                     }
-                    moveText();
-                }, 100);
-            }
+                    requestAnimationFrame(moveText);
+                }
+                
+                setTimeout(moveText, 300);
+            }, 50);
         });
     }
 
-    // 代理模式
     function get_rule_mode() {
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "rule_mode")%>', function(x, status) {
             if (x && x.status == 200 && status.mode != "") {
@@ -1121,7 +3095,6 @@
         clearTimeout(s);
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_rule_mode")%>', {rule_mode: value}, function(x, status) {
             if (x && x.status == 200) {
-                alert(' <%:Proxy Mode%>: ' + value + ' <%:switching succeeded!%>');
                 get_rule_mode();
             } else {
                 alert(' <%:Proxy Mode%>: ' + value + ' <%:switching failed!%>');
@@ -1133,13 +3106,13 @@
     function get_run_mode() {
 		StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_run_mode")%>', function(x, status) {
 			if (x && x.status == 200 && status.mode) {
-				var isRunning = StateManager.current_status.clash && StateManager.current_status.watchdog;
+				var isRunning = StateManager.current_status.clash;
 				
 				if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix") {
-					DOMCache.mode.innerHTML = isRunning ? "<b style=color:green><%:Fake-IP%></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b style=color:red><%:Not Running%></b>&nbsp;&nbsp;&nbsp;';
+					DOMCache.mode.innerHTML = isRunning ? "<b style=color:green><%:Fake-IP%></b>" : '<b style=color:red><%:Not Running%></b>';
 					DOMCache.radio_run_normal.innerHTML = "<%:Enhance%>";
 				} else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix") {
-					DOMCache.mode.innerHTML = isRunning ? "<b style=color:green><%:Redir-Host%></b>&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;" : '<b style=color:red><%:Not Running%></b>&nbsp;&nbsp;&nbsp;';
+					DOMCache.mode.innerHTML = isRunning ? "<b style=color:green><%:Redir-Host%></b>" : '<b style=color:red><%:Not Running%></b>';
 					DOMCache.radio_run_normal.innerHTML = "<%:Compat%>";
 				}
 				
@@ -1153,67 +3126,9 @@
 	}
 
     function switch_run_mode(value) {
-        var r = confirm("<%:Are you sure want to switch the running mode?%>");
-        if (r == true) {
-            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_run_mode")%>', {run_mode: value}, function(x, status) {
-                get_run_mode();
-            });
-        }
-    }
-    
-    function state_get() {
-        StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "state")%>', function(x, status) {
-            if (x && x.status == 200) {
-                var updates = [
-                    {
-                        element: DOMCache.ipdb,
-                        content: status.ipdb ? "<b style=color:green>"+status.ipdb+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>"
-                    },
-                    {
-                        element: DOMCache.geosite,
-                        content: status.geosite ? "<b style=color:green>"+status.geosite+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>"
-                    },
-                    {
-                        element: DOMCache.lhie1,
-                        content: status.lhie1 ? "<b style=color:green>"+status.lhie1+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>"
-                    },
-                    {
-                        element: DOMCache.chnroute,
-                        content: status.chnroute ? "<b style=color:green>"+status.chnroute+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>"
-                    },
-                    {
-                        element: DOMCache.chnroutev6,
-                        content: status.chnroutev6 ? "<b style=color:green>"+status.chnroutev6+"</b>" : "<b style=color:red>"+"<%:File Not Exist%>"+"</b>"
-                    },
-                    {
-                        element: DOMCache.historychecktime,
-                        content: status.historychecktime != "0" ? "<b style=color:green>"+status.historychecktime+"</b>" : "<b style=color:green>"+"<%:No Backup%>"+"</b>"
-                    }
-                ];
-                StateManager.batchUpdateDOM(updates);
-            }
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_run_mode")%>', {run_mode: value}, function(x, status) {
+            get_run_mode();
         });
-    }
-    
-    function hid_btn_action() {
-        if (hid_btn_if) {
-            DOMCache.hid_1.style.display = "";
-            DOMCache.hid_2.style.display = "";
-            DOMCache.hid_3.style.display = "";
-            DOMCache.state.style.display = "block";
-            DOMCache.hid_icon.style.borderColor = "transparent transparent rgb(65 122 180) transparent";
-            hid_btn_if = false;
-            clearInterval(state_refresh);
-            state_refresh = setInterval("state_get()", 2000);
-        } else {
-            DOMCache.hid_1.style.display = "none";
-            DOMCache.hid_2.style.display = "none";
-            DOMCache.hid_3.style.display = "none";
-            DOMCache.state.style.display = "none";
-            DOMCache.hid_icon.style.borderColor = "rgb(65 122 180) transparent transparent transparent";
-            hid_btn_if = true;
-            clearInterval(state_refresh);
-        }
     }
 
     function winOpen(url) {
@@ -1223,50 +3138,10 @@
         }
     }
      
-    // WebSocket消息回退
     function ws_terror() {
         ws_error = true;
-        StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show")%>', function(x, status) {
-            if (x && x.status == 200 && x.responseText != "") {
-                var updates = [
-                    {element: document.getElementById("upload_"), content: "<font style=\"color:green\">"+status.up+"</font>"},
-                    {element: document.getElementById("download_"), content: "<font style=\"color:green\">"+status.down+"</font>"},
-                    {element: document.getElementById("uploadtotal_"), content: "<font style=\"color:green\">"+status.up_total+"</font>"},
-                    {element: document.getElementById("downloadtotal_"), content: "<font style=\"color:green\">"+status.down_total+"</font>"},
-                    {element: document.getElementById("mem_t"), content: "<font style=\"color:green\">"+status.mem+"</font>"},
-                    {element: document.getElementById("connect_t"), content: "<font style=\"color:green\">"+status.connections+"</font>"}
-                ];
-                
-                var cpuColor = status.cpu <= 50 ? "green" : (status.cpu <= 80 ? "orange" : "red");
-                var cpuValue = status.cpu <= 100 ? status.cpu + " %" : "0 %";
-                updates.push({element: document.getElementById("cpu_t"), content: "<font style=\"color:"+cpuColor+"\">"+cpuValue+"</font>"});
-                
-                StateManager.batchUpdateDOM(updates);
-            } else {
-                var fallbackUpdates = [
-                    {element: document.getElementById("upload_"), content: "<font style=\"color:green\">0 B/S</font>"},
-                    {element: document.getElementById("download_"), content: "<font style=\"color:green\">0 B/S</font>"},
-                    {element: document.getElementById("uploadtotal_"), content: "<font style=\"color:green\">0 KB</font>"},
-                    {element: document.getElementById("downloadtotal_"), content: "<font style=\"color:green\">0 KB</font>"},
-                    {element: document.getElementById("mem_t"), content: "<font style=\"color:green\">0 KB</font>"},
-                    {element: document.getElementById("cpu_t"), content: "<font style=\"color:green\">0 %</font>"},
-                    {element: document.getElementById("connect_t"), content: "<font style=\"color:green\">0</font>"}
-                ];
-                StateManager.batchUpdateDOM(fallbackUpdates);
-            }
-        });
-    }
-    
-    function show_sys() {
-        StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', function(x, status) {
-            if (x && x.status == 200 && x.responseText != "") {
-                var cpuColor = status.cpu <= 50 ? "green" : (status.cpu <= 80 ? "orange" : "red");
-                var cpuValue = status.cpu <= 100 ? status.cpu + " %" : "0 %";
-                document.getElementById("cpu_t").innerHTML = "<font style=\"color:"+cpuColor+"\">"+cpuValue+"</font>";
-            } else {
-                document.getElementById("cpu_t").innerHTML = "<font style=\"color:green\">0 %</font>";
-            }
-        });
+        
+        NetworkStatsManager.start();
     }
 
     function ws_tmessage(event) {
@@ -1301,7 +3176,10 @@
         var data = JSON.parse(event.data);
         var memElement = document.getElementById("mem_t");
         memElement.innerHTML = data.inuse ? "<font style=\"color:green\">"+bytesToSize(data.inuse)+"</font>" : "<font style=\"color:green\">0 KB</font>";
-        show_sys();
+        
+        if (!SystemStatusManager.isEnabled) {
+            SystemStatusManager.start();
+        }
     }
 
     function bytesToSize(bytes) {
@@ -1311,7 +3189,6 @@
         return i == 0 ? (bytes / Math.pow(1024, i)) + ' ' + sizes[i] : (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
     }
 
-    // 按钮操作
     var buttonDebounce = {};
     function debounceButton(fn, delay) {
         return function(btn) {
@@ -1323,61 +3200,14 @@
                 fn(btn);
                 delete buttonDebounce[key];
             }, delay || 300);
+            return false; 
         };
     }
       
     var all_one_key_update = debounceButton(function(btn) {
-        btn.value = '<%:Check All Components Update%>';
-        btn.disabled = true;
-        var r = confirm("<%:Check and Update all Cores and OpenClash?%>");
-        if (r == true) {
-            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update_check")%>', null, function(x, status) {
-                if (x && x.status == 200) {
-                    if (status.corever != "0") {
-                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', null, function(x, status) {
-                            if (x && x.status != 200) {
-                                alert('<%:Check failed, Please try again later!%>');
-                            }
-                        });
-                    } else {
-                        alert('<%:No compiled version is selected. Please configure it in the General Settings tab!%>');
-                    }
-                } else {
-                    alert('<%:Check failed, Please try again later!%>');
-                }
-            });
-        }
+        btn.value = '<%:Check Update%>';
         btn.disabled = false;
-        return false; 
-    });
-    
-    var b_update_other_rules = debounceButton(function(btn) {
-        btn.disabled = true;
-        btn.value = '<%:Checking...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_other_rules")%>', null, function(x, status) {
-            btn.disabled = false;
-            btn.value = '<%:Check Third Party Rules Update%>';
-        });
-        return false;
-    });
-    
-    var b_update_geoip = debounceButton(function(btn) {
-        btn.disabled = true;
-        btn.value = '<%:Checking...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_geoip")%>', null, function(x, status) {
-            btn.disabled = false;
-            btn.value = '<%:Check GEOIP Data Update%>';
-        });
-        return false;
-    });
-    
-    var b_update_geosite = debounceButton(function(btn) {
-        btn.disabled = true;
-        btn.value = '<%:Checking...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_geosite")%>', null, function(x, status) {
-            btn.disabled = false;
-            btn.value = '<%:Check GeoSite Data Update%>';
-        });
+        select_git_cdn("core_download");
         return false;
     });
     
@@ -1395,22 +3225,12 @@
         return false;
     });
     
-    var b_update_subscribe = debounceButton(function(btn) {
-        btn.disabled = true;
-        btn.value = '<%:Checking...%>';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_subscribe")%>', null, function(x, status) {
-            btn.disabled = false;
-            btn.value = '<%:Check Config Update%>';
-        });
-        return false;
-    });
-    
     var b_reload_firewall = debounceButton(function(btn) {
         btn.disabled = true;
         btn.value = '<%:Reloading...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "reload_firewall")%>', null, function(x, status) {
             btn.disabled = false;
-            btn.value = (x && x.status == 200) ? '<%:Reload Firewall Rules%>' : '<%:Firewall Rules Reset Failed%>';
+            btn.value = (x && x.status == 200) ? '<%:Reload Firewall%>' : '<%:Firewall Rules Reset Failed%>';
         });
         return false;
     });
@@ -1428,7 +3248,7 @@
     function net_zashboard(btn) {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
             btn.disabled = true;
-            btn.value = '<%:zashboard Control Panel%>';
+            btn.value = '<%:Zashboard%>';
             var url9;
             if (status.daip && window.location.hostname == status.daip) {
                 url9 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/zashboard/#/setup?hostname=' + window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase;
@@ -1446,7 +3266,7 @@
     function meta_dashboard(btn) {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
             btn.disabled = true;
-            btn.value = '<%:Metacubexd Control Panel%>';
+            btn.value = '<%:Metacubexd%>';
             var url9;
             if (status.daip && window.location.hostname == status.daip) {
                 url9 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/metacubexd/#/setup?hostname=' + window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase;
@@ -1464,7 +3284,7 @@
     function ycad_dashboard(btn) {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
             btn.disabled = true;
-            btn.value = '<%:Yacd Control Panel%>';
+            btn.value = '<%:Yacd%>';
             var url1;
             if (status.daip && window.location.hostname == status.daip) {
                 url1 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/yacd/?hostname=' + window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase;
@@ -1482,7 +3302,7 @@
     function net_dashboard(btn) {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
             btn.disabled = true;
-            btn.value = '<%:Dashboard Control Panel%>';
+            btn.value = '<%:Dashboard%>';
             var url2;
             if (status.daip && window.location.hostname == status.daip) {
                 url2 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/dashboard/#/?host=' + window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase;
@@ -1522,33 +3342,88 @@
         winOpen(url7);
     }
 
-    function logo_check(imgobj, imgSrc, imgNewSrc) {
-        var newimg = new Image();
-        newimg.src = imgNewSrc;
-        newimg.onload = function() {
-            imgobj.src = imgNewSrc;
-            imgobj.loading = "lazy";
-            imgobj.onload = function() {};
-        };
-        newimg.onerror = function() {
-            imgobj.onload = function() {};
-            imgerrorfuns(imgobj, imgSrc);
-        };
+    function go_mihomo() {
+        var url4 = 'https://www.github.com/metacubex/mihomo';
+        winOpen(url4);
     }
 
     function clashversion_check() {
-        StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "lastversion")%>', function(x, status) {
+        StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', function(x, status) {
             if (x && x.status == 200) {
-                if (status.lastversion != "") {
-                    DOMCache.clashversion.innerHTML = '<img id="lastver" src="'+status.lastversion+'" alt="lastversion" onerror="return clashversion_error()" onclick="return go_update()">';
+                if (status.coremetacv && status.coremetacv !== "0") {
+                    var coreVersionText = status.coremetacv;
+                    var hasUpdate = false;
+
+                    if (status.corelv && status.corelv !== "" && status.corelv !== "Collecting data..." && status.corelv !== status.coremetacv) {
+                        hasUpdate = true;
+                    }
+                    
+                    DOMCache.core_version_text.textContent = coreVersionText;
+                    DOMCache.core_version_display.style.display = 'flex';
+                    
+                    var existingDot = DOMCache.core_version_display.querySelector('.update-dot');
+                    if (existingDot) {
+                        existingDot.remove();
+                    }
+                    
+                    if (hasUpdate) {
+                        var updateDot = document.createElement('span');
+                        updateDot.className = 'update-dot';
+                        DOMCache.core_version_display.title = '<%:New version available%> ' + status.corelv;
+                        DOMCache.core_version_display.appendChild(updateDot);
+                    }
+                } else {
+                    DOMCache.core_version_display.style.display = 'none';
+                }
+                
+                if (status.opcv && status.opcv !== "0") {
+                    var pluginVersionText = status.opcv;
+                    var hasUpdate = false;
+                    
+                    if (status.oplv && status.oplv !== "" && status.oplv !== "Collecting data...") {
+                        function compareVersions(v1, v2) {
+                            var ver1 = v1.replace(/^v/, '').split('.');
+                            var ver2 = v2.replace(/^v/, '').split('.');
+                            
+                            var maxLen = Math.max(ver1.length, ver2.length);
+                            while (ver1.length < maxLen) ver1.push('0');
+                            while (ver2.length < maxLen) ver2.push('0');
+                            
+                            for (var i = 0; i < maxLen; i++) {
+                                var num1 = parseInt(ver1[i], 10);
+                                var num2 = parseInt(ver2[i], 10);
+                                if (num1 > num2) return 1;
+                                if (num1 < num2) return -1;
+                            }
+                            return 0;
+                        }
+                        
+                        if (compareVersions(status.oplv, status.opcv) > 0) {
+                            hasUpdate = true;
+                        }
+                    }
+                    
+                    DOMCache.plugin_version_text.textContent = pluginVersionText;
+                    DOMCache.plugin_version_display.style.display = 'flex';
+                    
+                    var existingDot = DOMCache.plugin_version_display.querySelector('.update-dot');
+                    if (existingDot) {
+                        existingDot.remove();
+                    }
+                    
+                    if (hasUpdate) {
+                        var updateDot = document.createElement('span');
+                        updateDot.className = 'update-dot';
+                        DOMCache.plugin_version_display.title = '<%:New version available%> ' + status.oplv;
+                        DOMCache.plugin_version_display.appendChild(updateDot);
+                    }
+                } else {
+                    DOMCache.plugin_version_display.style.display = 'none';
                 }
             }
         });
     }
 
-    function clashversion_error() {
-        DOMCache.clashversion.innerHTML = '<img id="clashversion" src="/luci-static/resources/openclash/img/version.svg?<%=random%>" alt="currentversion" height="21px" onclick="return go_update()">';
-    }
 
     function logo_error(imgobj, imgSrc) {
         imgobj.src = imgSrc;
@@ -1559,11 +3434,6 @@
             imgobj.src = imgSrc;
             imgobj.loading = "lazy";
         }, 10000);
-    }
-     
-    function go_update() {
-        url4 = 'https://github.com/vernesong/OpenClash/releases';
-        winOpen(url4);
     }
 
     function check_core() {
@@ -1579,7 +3449,6 @@
         });
     }
 
-    // 复制按钮
     function copyToClipboard(text, successMessage) {
         if (navigator.clipboard && window.isSecureContext) {
             navigator.clipboard.writeText(text).then(function() {
@@ -1660,7 +3529,6 @@
         }, function(x, status) {
             if (x && x.status == 200) {
                 var statusText = value == "0" ? "<%:Off%>" : (value == "1" ? "<%:Mainland%>" : "<%:Oversea%>");
-                alert('<%:Area bypass setting switched to:%> ' + statusText);
             } else {
                 get_oc_settings();
                 alert('<%:Area bypass setting failed%>');
@@ -1674,9 +3542,7 @@
             setting: 'meta_sniffer',
             value: value
         }, function(x, status) {
-            if (x && x.status == 200) {
-                alert('<%:Sniffer setting%> ' + (value == '1' ? '<%:Enabled%>' : '<%:Disabled%>'));
-            } else {
+            if (!x || x.status != 200) {
                 get_oc_settings();
                 alert('<%:Sniffer setting failed%>');
             }
@@ -1689,9 +3555,7 @@
             setting: 'respect_rules',
             value: value
         }, function(x, status) {
-            if (x && x.status == 200) {
-                alert('<%:Respect Rules setting%> ' + (value == '1' ? '<%:Enabled%>' : '<%:Disabled%>'));
-            } else {
+            if (!x || x.status != 200) {
                 get_oc_settings();
                 alert('<%:Respect Rules setting failed%>');
             }
@@ -1771,30 +3635,339 @@
         }
     }
 
-    function check_guide() {
-        StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "check_guide_needed")%>', function(x, status) {
-            if (x && x.status == 200) {
-                if (status.need_guide && !localStorage.getItem('openclash_guide_dismissed')) {
-                    var r = confirm("<%:OpenClash seems to be running for the first time, do you want to use the quick setup guide?%>");
-                    if (r == true) {
-                        return show_guide_window();
-                    } else {
-                        localStorage.setItem('openclash_guide_dismissed', 'true');
-                    }
-                }
+    function togglePlugin(toggleElement) {
+        var isEnabled = toggleElement.checked;
+        
+        if (isEnabled) {
+            var currentConfig = ConfigFileManager.getCurrentConfig() || ConfigFileManager.getSelectedConfig();
+            if (!currentConfig) {
+                toggleElement.checked = false;
+                alert('<%:Please select a config file first%>');
+                return false;
             }
+        }
+
+        toggleElement.disabled = true;
+        pluginToggleUserAction = true;
+        var action = isEnabled ? 'start' : 'stop';
+        var initialMessage = isEnabled ? '<%:Starting...%>' : '<%:Stopping...%>';
+        
+        LogManager.startLogDisplay(initialMessage);
+        
+        var requestParams = { action: action };
+        
+        if (isEnabled) {
+            var currentConfig = ConfigFileManager.getCurrentConfig();
+            var selectedConfig = ConfigFileManager.getSelectedConfig();
+            
+            if (!currentConfig && selectedConfig) {
+                requestParams.config_file = configFileName;
+            }
+        }
+        
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
+            if (x && x.status == 200) {
+                setTimeout(function() {
+                    LogManager.stopLogDisplay();
+                    pluginToggleUserAction = false;
+                    updatePluginToggleState(StateManager.current_status.clash || false);
+                }, 3000);
+            } else {
+                LogManager.stopLogDisplay();
+                toggleElement.checked = !isEnabled;
+                
+                var errorMessage = isEnabled ? 
+                    '<%:Failed to start OpenClash%>' : 
+                    '<%:Failed to stop OpenClash%>';
+                alert(errorMessage);
+
+                if (DOMCache.clash) {
+                    DOMCache.clash.innerHTML = '<b style="color:red"><%:Operation Failed%></b>';
+                }
+                
+                pluginToggleUserAction = false;
+            }
+            toggleElement.disabled = false;
         });
     }
 
-    function show_guide_window() {
-        if (typeof showGuide === 'function') {
-            showGuide();
+    function updatePluginToggleState(isRunning) {
+        if (pluginToggleUserAction) {
+            return;
+        }
+        
+        var toggleElement = document.getElementById('plugin_toggle');
+        if (toggleElement) {
+            toggleElement.checked = isRunning;
+            toggleElement.disabled = false;
+            
+            if (DOMCache.clash && StateManager.current_status) {
+                DOMCache.clash.innerHTML = isRunning ? 
+                    '<b style=color:green>' + (StateManager.current_status.core_type || 'OpenClash') +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : 
+                    '<b style=color:red><%:Not Running%></b>';
+            }
+            
+            if (!isRunning && StateManager.current_status && !StateManager.current_status.clash) {
+                setTimeout(function() {
+                    updatePluginToggleState(StateManager.current_status.clash || false);
+                }, 3000);
+            }
+        }
+    }
+
+    function switchConfig() {
+        var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (!currentConfig) {
+            alert('<%:Please select a config file first%>');
+            return false;
+        }
+        
+        pluginToggleUserAction = true;
+        
+        LogManager.startLogDisplay('<%:Switching Config...%>');
+        
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_config")%>', {
+            config_file: currentConfig
+        }, function(x, status) {
+            if (x && x.status == 200 && status.status === 'success') {
+                ConfigFileManager.refreshConfigList();
+                setTimeout(function() {
+                    LogManager.stopLogDisplay();
+                    pluginToggleUserAction = false;
+                    updatePluginToggleState(StateManager.current_status.clash || false);
+                }, 4000);
+            } else {
+                LogManager.stopLogDisplay();
+                alert('<%:Failed to switch config file:%> ' + (status.message || '<%:Unknown error%>'));
+                
+                if (DOMCache.clash) {
+                    DOMCache.clash.innerHTML = '<b style="color:red"><%:Switch Failed%></b>';
+                }
+                
+                pluginToggleUserAction = false;
+            }
+        });
+
+        return false;
+    }
+    
+    function updateConfig() {
+        var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (!currentConfig) {
+            alert('<%:Please select a config file first%>');
+            return false;
+        }
+        
+        var filename = SubscriptionManager.extractFilename(currentConfig);
+        if (!filename) {
+            alert('<%:Invalid config file selected%>');
+            return false;
+        }
+
+        pluginToggleUserAction = true;
+        
+        LogManager.startLogDisplay('<%:Updating Config...%>');
+
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_config")%>', {
+            filename: filename
+        }, function(x, status) {
+            if (x && x.status == 200) {
+                if (status.status === 'success') {
+                    setTimeout(function() {
+                        LogManager.stopLogDisplay();
+                        
+                        refreshSubscriptionInfo();
+                        
+                        ConfigFileManager.refreshConfigList();
+                        
+                        pluginToggleUserAction = false;
+                        
+                    }, 2000);
+                } else {
+                    LogManager.stopLogDisplay();
+                    pluginToggleUserAction = false;
+                    
+                    if (DOMCache.clash) {
+                        DOMCache.clash.innerHTML = '<b style="color:red"><%:Update Failed%></b>';
+                    }
+                    
+                    alert('<%:Failed to update config file:%> ' + (status.message || status.error || '<%:Unknown error%>'));
+                }
+            } else {
+                LogManager.stopLogDisplay();
+                pluginToggleUserAction = false;
+                
+                if (DOMCache.clash) {
+                    DOMCache.clash.innerHTML = '<b style="color:red"><%:Update Failed%></b>';
+                }
+                
+                alert('<%:Failed to update config file, please try again later%>');
+            }
+        });
+
+        return false;
+    }
+
+    function restartCore() {
+        var currentConfig = ConfigFileManager.getCurrentConfig() || ConfigFileManager.getSelectedConfig();
+        if (!currentConfig) {
+            alert('<%:Please select a config file first%>');
+            return false;
+        }
+
+        pluginToggleUserAction = true;
+        
+        var toggleElement = document.getElementById('plugin_toggle');
+        if (toggleElement) {
+            toggleElement.disabled = true;
+        }
+        
+        LogManager.startLogDisplay('<%:Restarting...%>');
+        
+        var requestParams = { action: 'restart' };
+        
+        var currentConfigValue = ConfigFileManager.getCurrentConfig();
+        var selectedConfig = ConfigFileManager.getSelectedConfig();
+        
+        if (!currentConfigValue && selectedConfig) {
+            requestParams.config_file = configFileName;
+        }
+        
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
+            if (x && x.status == 200) {
+                setTimeout(function() {
+                    LogManager.stopLogDisplay();
+                    pluginToggleUserAction = false;
+                    updatePluginToggleState(StateManager.current_status.clash || false);
+                }, 5000);
+            } else {
+                LogManager.stopLogDisplay();
+                if (toggleElement) {
+                    toggleElement.disabled = false;
+                }
+                alert('<%:Failed to restart core%>');
+                
+                if (DOMCache.clash) {
+                    DOMCache.clash.innerHTML = '<b style="color:red"><%:Restart Failed%></b>';
+                }
+                
+                pluginToggleUserAction = false;
+            }
+        });
+        return false;
+    }
+
+    function refreshSubscriptionInfo() {
+        var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (!currentConfig) {
+            alert('<%:Please select a config file first%>');
+            return false;
+        }
+        
+        SubscriptionManager.currentConfigFile = currentConfig;
+        SubscriptionManager.retryCount = 0;
+        SubscriptionManager.getSubscriptionInfo();
+        return false;
+    }
+    
+    function setSubscriptionUrl() {
+        var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (!currentConfig) {
+            alert('<%:Please select a config file first%>');
+            return false;
+        }
+        
+        var filename = SubscriptionManager.extractFilename(currentConfig);
+        if (!filename) {
+            alert('<%:Invalid config file selected%>');
+            return false;
+        }
+        
+        var newUrl = prompt('<%:Paste the new url of subscribe infos sources here:%>', '');
+        if (newUrl === null) {
+            return false;
+        }
+        
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "set_subinfo_url")%>', {
+            filename: filename,
+            url: newUrl
+        }, function(x, status) {
+            if (x && x.status == 200 && status.info === "Success") {
+                localStorage.removeItem('sub_info_' + filename);
+                refreshSubscriptionInfo();
+            } else if (x && x.status == 200 && status.info === "Delete success") {
+                localStorage.removeItem('sub_info_' + filename);
+                refreshSubscriptionInfo();
+            } else {
+                alert('<%:Specify subscribe infos sources url failed:%>\n' + (status.info || '<%:Unknown error%>'));
+            }
+        });
+        
+        return false;
+    }
+
+    function uploadConfig() {
+        if (typeof ConfigUploader !== 'undefined' && ConfigUploader.show) {
+            ConfigUploader.show();
         } else {
             setTimeout(function() {
-                if (typeof showGuide === 'function') {
-                    showGuide();
+                if (typeof ConfigUploader !== 'undefined' && ConfigUploader.show) {
+                    ConfigUploader.show();
+                } else {
+                    alert('<%:Config uploader not ready, please try again%>');
                 }
             }, 500);
         }
+        
+        return false;
     }
+
+    function editConfig() {
+        var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (!currentConfig) {
+            alert('<%:Please select a config file first%>');
+            return false;
+        }
+        
+        if (typeof ConfigEditor !== 'undefined' && ConfigEditor.show) {
+            ConfigEditor.show(currentConfig);
+        } else {
+            setTimeout(function() {
+                if (typeof ConfigEditor !== 'undefined' && ConfigEditor.show) {
+                    ConfigEditor.show(currentConfig);
+                } else {
+                    alert('<%:Config editor not ready, please try again%>');
+                }
+            }, 500);
+        }
+        
+        return false;
+    }
+
+    function isDarkBackground(element) {
+        var style = window.getComputedStyle(element);
+        var bgColor = style.backgroundColor;
+        let r, g, b;
+        if (/rgb\(/.test(bgColor)) {
+            var rgb = bgColor.match(/\d+/g);
+            r = parseInt(rgb);
+            g = parseInt(rgb);
+            b = parseInt(rgb);
+        } else if (/#/.test(bgColor)) {
+            if (bgColor.length === 4) {
+            r = parseInt(bgColor + bgColor, 16);
+            g = parseInt(bgColor + bgColor, 16);
+            b = parseInt(bgColor + bgColor, 16);
+            } else {
+            r = parseInt(bgColor.slice(1, 3), 16);
+            g = parseInt(bgColor.slice(3, 5), 16);
+            b = parseInt(bgColor.slice(5, 7), 16);
+            }
+        } else {
+            return false;
+        }
+        var luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+        return luminance < 128;
+    };
 //]]></script>
+</html>
