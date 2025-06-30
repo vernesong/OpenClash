@@ -163,7 +163,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             fi
          else
             if [ "$retry_count" -lt "$max_retries" ]; then
-               LOG_OUT "Error:【$retry_count/$max_retries】【"$CORE_TYPE"】Core Download Failed, Please Check The Network or Try Again Later!"
+               LOG_OUT "Error:【$retry_count/$max_retries】【"$CORE_TYPE"】Core Download Failed..."
                sleep 2
                continue
             else

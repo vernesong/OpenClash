@@ -75,26 +75,21 @@
 <fieldset class="cbi-section">
 	<table width="100%">
 	  <tr>
-	  	<td width="25%">
+	  	<td width="33%">
 	  	   <p align="center" id="restore">
 	  		   <%:Collecting data...%>
 	  	   </p>
 	  	</td>
-	  	<td width="25%">
+	  	<td width="33%">
 	  	   <p align="center" id="remove_core">
 	  		   <%:Collecting data...%>
 	  	   </p>
 	  	</td>
-		  <td width="25%">
+		  <td width="33%">
 			<p align="center" id="one_key_update_cdn">
 				<%:Collecting data...%>
 			</p>
 	   </td>
-	    <td width="25%">
-	  	   <p align="center" id="one_key_update">
-	  		   <%:Collecting data...%>
-	  	   </p>
-	    </td>
 	  </tr>
 	</table>
 </fieldset>
@@ -162,7 +157,6 @@
 	var backup_config_only = document.getElementById('backup_config_only');
 	var backup_rule_only = document.getElementById('backup_rule_only');
 	var backup_proxy_only = document.getElementById('backup_proxy_only');
-	var one_key_update = document.getElementById('one_key_update');
 	var one_key_update_cdn = document.getElementById('one_key_update_cdn');
 	var remove_core = document.getElementById('remove_core');
 	var release_branch = document.getElementById('RELEASE_BRANCH');
@@ -172,8 +166,7 @@
 	ma_core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'Meta\')"/>';
 	ma_op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_op_update(this)"/>';
 	restore.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Restore Default Config%>" onclick="return restore_config(this)"/>';
-	one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:One Click Check Update%>" onclick="return all_one_key_update(this)"/>';
-	one_key_update_cdn.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:One Click Check Update With CDN%>" onclick="return all_one_key_update_cdn(this)"/>';
+	one_key_update_cdn.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Check Update%>" onclick="return all_one_key_update_cdn(this)"/>';
 	remove_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
 	backup.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup OpenClash%>" onclick="return backup_all_file(this)"/>';
 	backup_ex_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Exclude Cores%>" onclick="return backup_no_core(this)"/>';
@@ -500,41 +493,6 @@
 		return false; 
     }
 
-    function all_one_key_update(btn)
-    {
-    	var v = core_version.value;
-		var r = release_branch.value;
-		var s = smart_enable.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
-			if (x && x.status == 200) {
-				btn.value    = '<%:One Click Check Update%>';
-				btn.disabled = true;
-				var r = confirm("<%:Check and Update all Cores and OpenClash?%>")
-				if (r == true) {
-					XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update_check")%>', null, function(x, status) {
-						if ( x && x.status == 200 ) {
-							if ( status.corever != "0" ) {
-								XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', null, function(x, status) {
-									if ( x && x.status != 200 ) {
-										alert('<%:Check failed, Please try again later!%>')
-									}
-								});
-								}
-							else {
-								alert('<%:No Compiled Version is Selected, Please Select on The Top and Try Again!%>')
-							}
-						}
-						else {
-							alert('<%:Check failed, Please try again later!%>')
-							}
-					});
-				}
-				btn.disabled = false;
-				return false;
-			}
-		});
-    }
-
 	function all_one_key_update_cdn(btn)
     {
     	var v = core_version.value;
@@ -542,7 +500,7 @@
 		var s = smart_enable.value;
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
-				btn.value    = '<%:One Click Check Update With CDN%>';
+				btn.value    = '<%:Check Update%>';
 				btn.disabled = false;
 				return select_git_cdn("one_key_update");
 			}
