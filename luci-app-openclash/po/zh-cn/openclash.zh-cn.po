@@ -317,6 +317,9 @@ msgstr "内核文件"
 msgid "Upload"
 msgstr "上传"
 
+msgid "Add"
+msgstr "添加"
+
 msgid "File saved to"
 msgstr "文件已成功上传到"
 
@@ -1270,7 +1273,7 @@ msgid "Save Nodes Selection"
 msgstr "保存策略组节点选择"
 
 msgid "Reload Firewall"
-msgstr "重置防火墙规则"
+msgstr "重置防火墙"
 
 msgid "Check Update"
 msgstr "检查更新"
@@ -1287,14 +1290,8 @@ msgstr "GEOIP 数据库检查更新"
 msgid "Check GeoSite Data Update"
 msgstr "GeoSite 数据库检查更新"
 
-msgid "Check and Update all Cores and OpenClash?"
-msgstr "确定要一键检查并更新所有内核及插件吗？"
-
 msgid "You have not installed the core yet, do you want to download and install it now?"
 msgstr "您还未安装内核，是否立即下载安装？"
-
-msgid "Check failed, Please try again later!"
-msgstr "一键检查更新失败,请稍后再试！"
 
 msgid "No Compiled Version is Selected, Please Select on The Top and Try Again!"
 msgstr "未选择编译版本，请到上方标签选择后重试！"
@@ -1415,12 +1412,6 @@ msgstr "下载到本地"
 
 msgid "Restore Default Config"
 msgstr "还原默认配置"
-
-msgid "One Click Check Update"
-msgstr "一键检查更新"
-
-msgid "One Click Check Update With CDN"
-msgstr "使用CDN一键检查更新"
 
 msgid "Failed to get the latest version. Please try again later!"
 msgstr "最新版本获取失败，请稍后再试！"
@@ -2776,7 +2767,7 @@ msgid "Flush"
 msgstr "清理"
 
 msgid "Flush Fake-IP Cache"
-msgstr "Fake-IP 缓存清理"
+msgstr "清理 Fake-IP 缓存"
 
 msgid "No Specify Upload File"
 msgstr "未选择上传文件"
@@ -3637,10 +3628,10 @@ msgid "Off"
 msgstr "停用"
 
 msgid "Mainland"
-msgstr "绕过大陆"
+msgstr "大陆"
 
 msgid "Oversea"
-msgstr "绕过海外"
+msgstr "海外"
 
 msgid "On"
 msgstr "启用"

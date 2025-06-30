@@ -26,7 +26,7 @@
 <style>
 
 .oc {
-    --card-item-padding: 16px 12px;
+    --card-item-padding: 12px 8px;
     --card-item-min-height: 100px;
     --card-item-border-radius: var(--radius-md);
 }
@@ -176,6 +176,7 @@
     min-height: var(--card-item-min-height);
     text-align: center;
     position: relative;
+    max-height: 104px;
 }
 
 .oc .myip-ip-item:hover,
@@ -218,14 +219,14 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 1px;
     flex: 1;
     justify-content: center;
     min-height: 50px;
 }
 
 .oc .ip-result {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text-primary, #111827);
     white-space: nowrap;
     overflow: hidden;
@@ -254,7 +255,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 1px;
     flex: 1;
     justify-content: center;
     min-height: 50px;
@@ -262,7 +263,7 @@
 
 .oc .sk-text-success,
 .oc .sk-text-error {
-    font-size: 14px;
+    font-size: 13px;
     line-height: 18px;
     white-space: nowrap;
     overflow: hidden;
@@ -402,7 +403,7 @@
 
 @media screen and (max-width: 768px) {
     .oc {
-        --card-item-padding: 12px 8px;
+        --card-item-padding: 8px 6px;
         --card-item-min-height: 80px;
     }
     
@@ -439,11 +440,11 @@
     }
     
     .oc .ip-result {
-        font-size: 13px;
+        font-size: 12px;
     }
     
     .oc .ip-geo {
-        font-size: 11px;
+        font-size: 12px;
     }
     
     .oc .sk-text-success, 
@@ -452,7 +453,7 @@
     }
     
     .oc .sk-load-success {
-        font-size: 11px;
+        font-size: 12px;
     }
     
     .oc .myip-footer p {
@@ -463,7 +464,7 @@
 
 @media screen and (max-width: 575px) {
     .oc {
-        --card-item-padding: 10px;
+        --card-item-padding: 6px 4px;
         --card-item-min-height: 70px;
     }
     
@@ -496,11 +497,11 @@
     }
     
     .oc .ip-result {
-        font-size: 12px;
+        font-size: 11px;
     }
     
     .oc .ip-geo {
-        font-size: 10px;
+        font-size: 11px;
     }
     
     .oc .sk-text-success, 
@@ -509,7 +510,7 @@
     }
     
     .oc .sk-load-success {
-        font-size: 10px;
+        font-size: 11px;
     }
     
     .oc .myip-footer p {
