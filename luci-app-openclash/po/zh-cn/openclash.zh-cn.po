@@ -3974,3 +3974,6 @@ msgstr "下载订阅配置失败"
 
 msgid "Expire Date"
 msgstr "到期时间"
+
+msgid "Use RAW address download"
+msgstr "使用原始地址下载"
