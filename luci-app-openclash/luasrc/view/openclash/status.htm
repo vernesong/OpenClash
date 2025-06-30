@@ -25,7 +25,7 @@
     --transition-normal: 0.3s ease;
     
     --control-height: 36px;
-    --card-padding: 5px;
+    --card-padding: 6px 10px;
     --gap-size: 10px;
     
     --row-1-height: 160px;
@@ -368,7 +368,7 @@
 }
 
 .oc .core-status-row .sub-card {
-    gap: 25px;
+    gap: 20px;
 }
 
 .oc .core-main-controls {
@@ -674,7 +674,7 @@
 }
 
 .oc .dashboard-btn {
-    font-size: 12px !important;
+    font-size: 11px !important;
     font-weight: 500 !important;
     color: white !important;
     cursor: pointer !important;
@@ -692,8 +692,9 @@
     flex: 1 !important;
     height: 42px !important;
     outline: none !important;
-    padding: 8px 4px !important;
-    min-width: 30px;
+    padding: 0 !important;
+    min-width: 45px;
+    margin: 0 !important;
 }
 
 .oc .dashboard-btn:hover {
@@ -721,8 +722,8 @@
 
 .oc .stat-value {
     font-family: var(--font-family-mono);
-    font-size: clamp(7px, 2.2vw, 11px);
-    font-weight: 700;
+    font-size: clamp(8px, 2.2vw, 13px);
+    font-weight: 600;
     color: var(--success-color);
     text-align: center;
     white-space: nowrap;
@@ -821,7 +822,7 @@
     background: var(--bg-white);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-sm);
-    padding: 12px;
+    padding: var(--card-padding);
     display: flex;
     flex-direction: column;
     width: 100%;
@@ -1161,7 +1162,7 @@
     .oc .dashboard-btn {
         font-size: 10px !important;
         height: 40px !important;
-        padding: 6px 4px !important;
+        padding: 4px 4px !important;
     }
 
     .oc .card-title {
@@ -1222,7 +1223,7 @@
     }
     
     .oc .subscription-info-container {
-        padding: 12px;
+        padding: 8px;
     }
 
     .oc .subscription-info-header {
@@ -1302,8 +1303,8 @@
     }
 
     .oc .dashboard-btn {
-        font-size: 9px !important;
-        height: 36px !important;
+        font-size: 6px !important;
+        height: 25px !important;
         padding: 6px 4px !important;
     }
 
@@ -1470,6 +1471,7 @@
                                 <div class="core-main-controls">
                                     <div class="core-status-toggle">
                                         <span id="_clash" class="value-indicator"><%:Collecting data...%></span>
+                                        <span id="_oclog" class="value-indicator" style="display: none;"><%:Collecting data...%></span>
                                         <div class="plugin-toggle-container">
                                             <label class="plugin-toggle-switch">
                                                 <input type="checkbox" id="plugin_toggle" onchange="togglePlugin(this)">
@@ -1542,7 +1544,7 @@
                                             <button type="button" class="icon-btn action-btn" id="switch_config" title="<%:SwiTch%>" onclick="return switchConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg></button>
                                             <button type="button" class="icon-btn action-btn" id="update_config" title="<%:Update%>" onclick="return updateConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M21 21v-5h-5"></path></svg></button>
                                             <button type="button" class="icon-btn action-btn" id="edit_config" title="<%:Edit%>" onclick="return editConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
-                                            <button type="button" class="icon-btn action-btn" id="upload_config" title="<%:Upload%>" onclick="return uploadConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
+                                            <button type="button" class="icon-btn action-btn" id="upload_config" title="<%:Add%>" onclick="return uploadConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
                                         </div>
                                     </div>
                                 </div>
@@ -1706,6 +1708,7 @@
         webz: document.getElementById('_webz'),
         daip: document.getElementById('_daip'),
         dase: document.getElementById('_dase'),
+        oclog: document.getElementById('_oclog'),
         close_all_connection: document.getElementById('_close_all_connection'),
         reload_firewall: document.getElementById('_reload_firewall'),
         one_key_update: document.getElementById('_one_key_update'),
@@ -1811,10 +1814,17 @@
         last_request_time: {},
         request_cache: {},
         cache_ttl: 5000,
+        pending_requests: new Map(),
         
         cachedXHRGet: function(url, callback, force) {
             var now = Date.now();
             var cacheKey = url;
+            
+            if (this.pending_requests.has(cacheKey)) {
+                var pendingCallbacks = this.pending_requests.get(cacheKey);
+                pendingCallbacks.push(callback);
+                return;
+            }
             
             if (!force && this.request_cache[cacheKey] && 
                 (now - this.last_request_time[cacheKey] < this.cache_ttl)) {
@@ -1830,18 +1840,34 @@
                 }, 0);
             }
             
+            this.pending_requests.set(cacheKey, [callback]);
+            
+            var self = this;
             XHR.get(url, null, function(x, data) {
+                var callbacks = self.pending_requests.get(cacheKey) || [];
+                self.pending_requests.delete(cacheKey);
+                
                 if (x && x.status == 200 && data) {
-                    var oldData = StateManager.request_cache[cacheKey];
-                    StateManager.request_cache[cacheKey] = data;
-                    StateManager.last_request_time[cacheKey] = now;
+                    var oldData = self.request_cache[cacheKey];
+                    self.request_cache[cacheKey] = data;
+                    self.last_request_time[cacheKey] = now;
                     
                     if (!oldData || JSON.stringify(oldData) !== JSON.stringify(data)) {
-                        callback(x, data);
+                        callbacks.forEach(function(cb) {
+                            try {
+                                cb(x, data);
+                            } catch (e) {
+                            }
+                        });
                     }
                 } else {
-                    if (!StateManager.request_cache[cacheKey]) {
-                        callback(x, data);
+                    if (!self.request_cache[cacheKey]) {
+                        callbacks.forEach(function(cb) {
+                            try {
+                                cb(x, data);
+                            } catch (e) {
+                            }
+                        });
                     }
                 }
             });
@@ -2502,7 +2528,7 @@
     var LogManager = {
         isPolling: false,
         pollTimer: null,
-        maxPollTime: 30000,
+        maxPollTime: 15000,
         pollInterval: 1000,
         startTime: 0,
         lastLogContent: '',
@@ -2511,8 +2537,9 @@
         retryDelay: 1000,
         
         startLogDisplay: function(initialMessage) {
-            if (initialMessage && DOMCache.clash) {
-                DOMCache.clash.innerHTML = '<b style="color:orange">' + initialMessage + '</b>';
+            if (initialMessage && DOMCache.oclog) {
+                DOMCache.oclog.style.display = 'inline-flex';
+                DOMCache.oclog.innerHTML = '<b style="color:orange">' + initialMessage + '</b>';
             }
             
             this.isPolling = true;
@@ -2530,6 +2557,7 @@
             }
             this.lastLogContent = '';
             this.retryCount = 0;
+            DOMCache.oclog.style.display = 'none';
         },
         
         pollLog: function() {
@@ -2563,7 +2591,7 @@
                     if (self.retryCount < self.maxRetries) {
                         self.retryCount++;
                         
-                        var retryDelay = self.retryDelay * self.retryCount;
+                        var retryDelay = Math.min(self.retryDelay * self.retryCount, 5000);
                         
                         self.pollTimer = setTimeout(function() {
                             if (self.isPolling) {
@@ -2571,11 +2599,9 @@
                             }
                         }, retryDelay);
                     } else {
-                        self.stopLogDisplay();
-                        
-                        if (DOMCache.clash) {
-                            DOMCache.clash.innerHTML = '<b style="color:red"><%:Failed to get startup log after retries%></b>';
-                        }
+                        setTimeout(function() {
+                            self.stopLogDisplay();
+                        }, 3000);
                     }
                 }
             }, true);
@@ -2594,8 +2620,8 @@
                     errorMsg = ftlParts.length > 1 ? ftlParts[1] : log;
                 }
                 
-                if (DOMCache.clash) {
-                    DOMCache.clash.innerHTML = '<b style="color:red"><%:Start Failed%></b>';
+                if (DOMCache.oclog) {
+                    DOMCache.oclog.innerHTML = '<b style="color:red"><%:Start Failed%></b>';
                 }
                 
                 setTimeout(function() {
@@ -2608,7 +2634,7 @@
         },
         
         displayLog: function(logContent) {
-            if (!DOMCache.clash || !logContent) return;
+            if (!DOMCache.oclog || !logContent) return;
             
             var cleanLog = this.cleanLogContent(logContent);
             
@@ -2617,7 +2643,7 @@
             var color = this.getLogColor(cleanLog);
             var displayText = this.formatLogText(cleanLog);
             
-            DOMCache.clash.innerHTML = '<b style="color:' + color + '">' + displayText + '</b>';
+            DOMCache.oclog.innerHTML = '<b style="color:' + color + '">' + displayText + '</b>';
         },
         
         cleanLogContent: function(content) {
@@ -2639,9 +2665,9 @@
             } else if (log.match("Watchdog:") || log.match("守护程序：")) {
                 return '#b300ff';
             } else if (log.match("level=info") || log.match("Success") || log.match("Started") || log.match("Ready")) {
-                return 'green';
+                return 'var(--success-color)';
             } else {
-                return 'green';
+                return 'var(--text-secondary)';
             }
         },
         
@@ -2696,12 +2722,12 @@
             StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', function(x, status) {
                 if (x && x.status == 200 && x.responseText != "") {
                     self.retryCount = 0;
-                    var cpuColor = status.cpu <= 50 ? "green" : (status.cpu <= 80 ? "orange" : "red");
+                    var cpuColor = status.cpu <= 50 ? "var(--success-color)" : (status.cpu <= 80 ? "orange" : "red");
                     var cpuValue = status.cpu <= 100 ? status.cpu + " %" : "0 %";
                     document.getElementById("cpu_t").innerHTML = "<font style=\"color:"+cpuColor+"\">"+cpuValue+"</font>";
                     
                     var loadValue = parseFloat(status.load_avg) || 0;
-                    var loadColor = loadValue <= 1.0 ? "green" : (loadValue <= 2.0 ? "orange" : "red");
+                    var loadColor = loadValue <= 1.0 ? "var(--success-color)" : (loadValue <= 2.0 ? "orange" : "red");
                     document.getElementById("load_a").innerHTML = "<font style=\"color:"+loadColor+"\">"+status.load_avg+"</font>";
                 } else {
                     self.handleError();
@@ -2719,8 +2745,8 @@
             this.retryCount++;
             
             if (this.retryCount >= this.maxRetries) {
-                document.getElementById("cpu_t").innerHTML = "<font style=\"color:green\">0 %</font>";
-                document.getElementById("load_a").innerHTML = "<font style=\"color:green\">0</font>";
+                document.getElementById("cpu_t").innerHTML = "<font style=\"color:var(--success-color)\">0 %</font>";
+                document.getElementById("load_a").innerHTML = "<font style=\"color:var(--success-color)\">0</font>";
                 this.retryCount = 0;
             }
         },
@@ -2774,21 +2800,21 @@
         
         updateNetworkStats: function(status) {
             var updates = [
-                {element: document.getElementById("upload_"), content: "<font style=\"color:green\">"+status.up+"</font>"},
-                {element: document.getElementById("download_"), content: "<font style=\"color:green\">"+status.down+"</font>"},
-                {element: document.getElementById("uploadtotal_"), content: "<font style=\"color:green\">"+status.up_total+"</font>"},
-                {element: document.getElementById("downloadtotal_"), content: "<font style=\"color:green\">"+status.down_total+"</font>"},
-                {element: document.getElementById("mem_t"), content: "<font style=\"color:green\">"+status.mem+"</font>"},
-                {element: document.getElementById("connect_t"), content: "<font style=\"color:green\">"+status.connections+"</font>"}
+                {element: document.getElementById("upload_"), content: "<font style=\"color:var(--success-color)\">"+status.up+"</font>"},
+                {element: document.getElementById("download_"), content: "<font style=\"color:var(--success-color)\">"+status.down+"</font>"},
+                {element: document.getElementById("uploadtotal_"), content: "<font style=\"color:var(--success-color)\">"+status.up_total+"</font>"},
+                {element: document.getElementById("downloadtotal_"), content: "<font style=\"color:var(--success-color)\">"+status.down_total+"</font>"},
+                {element: document.getElementById("mem_t"), content: "<font style=\"color:var(--success-color)\">"+status.mem+"</font>"},
+                {element: document.getElementById("connect_t"), content: "<font style=\"color:var(--success-color)\">"+status.connections+"</font>"}
             ];
             
             if (!SystemStatusManager.isEnabled) {
-                var cpuColor = status.cpu <= 50 ? "green" : (status.cpu <= 80 ? "orange" : "red");
+                var cpuColor = status.cpu <= 50 ? "var(--success-color)" : (status.cpu <= 80 ? "orange" : "red");
                 var cpuValue = status.cpu <= 100 ? status.cpu + " %" : "0 %";
                 updates.push({element: document.getElementById("cpu_t"), content: "<font style=\"color:"+cpuColor+"\">"+cpuValue+"</font>"});
                 
                 var loadValue = parseFloat(status.load_avg) || 0;
-                var loadColor = loadValue <= 1.0 ? "green" : (loadValue <= 2.0 ? "orange" : "red");
+                var loadColor = loadValue <= 1.0 ? "var(--success-color)" : (loadValue <= 2.0 ? "orange" : "red");
                 updates.push({element: document.getElementById("load_a"), content: "<font style=\"color:"+loadColor+"\">"+status.load_avg+"</font>"});
             }
             
@@ -2800,17 +2826,17 @@
             
             if (this.retryCount >= this.maxRetries) {
                 var fallbackUpdates = [
-                    {element: document.getElementById("upload_"), content: "<font style=\"color:green\">0 B/S</font>"},
-                    {element: document.getElementById("download_"), content: "<font style=\"color:green\">0 B/S</font>"},
-                    {element: document.getElementById("uploadtotal_"), content: "<font style=\"color:green\">0 KB</font>"},
-                    {element: document.getElementById("downloadtotal_"), content: "<font style=\"color:green\">0 KB</font>"},
-                    {element: document.getElementById("mem_t"), content: "<font style=\"color:green\">0 KB</font>"},
-                    {element: document.getElementById("connect_t"), content: "<font style=\"color:green\">0</font>"}
+                    {element: document.getElementById("upload_"), content: "<font style=\"color:var(--success-color)\">0 B/S</font>"},
+                    {element: document.getElementById("download_"), content: "<font style=\"color:var(--success-color)\">0 B/S</font>"},
+                    {element: document.getElementById("uploadtotal_"), content: "<font style=\"color:var(--success-color)\">0 KB</font>"},
+                    {element: document.getElementById("downloadtotal_"), content: "<font style=\"color:var(--success-color)\">0 KB</font>"},
+                    {element: document.getElementById("mem_t"), content: "<font style=\"color:var(--success-color)\">0 KB</font>"},
+                    {element: document.getElementById("connect_t"), content: "<font style=\"color:var(--success-color)\">0</font>"}
                 ];
                 
                 if (!SystemStatusManager.isEnabled) {
-                    fallbackUpdates.push({element: document.getElementById("cpu_t"), content: "<font style=\"color:green\">0 %</font>"});
-                    fallbackUpdates.push({element: document.getElementById("load_a"), content: "<font style=\"color:green\">0</font>"});
+                    fallbackUpdates.push({element: document.getElementById("cpu_t"), content: "<font style=\"color:var(--success-color)\">0 %</font>"});
+                    fallbackUpdates.push({element: document.getElementById("load_a"), content: "<font style=\"color:var(--success-color)\">0</font>"});
                 }
                 
                 StateManager.batchUpdateDOM(fallbackUpdates);
@@ -2838,7 +2864,7 @@
             if (!pluginToggleUserAction) {
                 updates.push({
                     element: DOMCache.clash,
-                    content: status.clash ? '<b style=color:green>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : '<b style=color:red><%:Not Running%></b>'
+                    content: status.clash ? '<b style=color:var(--success-color)>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : '<b style=color:red><%:Not Running%></b>'
                 });
                 
                 updatePluginToggleState(status.clash);
@@ -2886,13 +2912,13 @@
                 
                 if (status.daip && window.location.hostname == status.daip) {
                     dapoContent = status.cn_port ? ":"+status.cn_port : "";
-                    daipContent = status.daip ? "<b style=color:green>"+status.daip+dapoContent+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+                    daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
                 } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
                     dapoContent = status.db_foward_port ? ":"+status.db_foward_port : "";
-                    daipContent = status.db_foward_domain ? "<b style=color:green>"+status.db_foward_domain+dapoContent+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+                    daipContent = status.db_foward_domain ? "<b style=color:var(--success-color)>"+status.db_foward_domain+dapoContent+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
                 } else {
                     dapoContent = status.cn_port ? ":"+status.cn_port : "";
-                    daipContent = status.daip ? "<b style=color:green>"+status.daip+dapoContent+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+                    daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
                 }
                 
                 DOMCache.daip.innerHTML = daipContent;                
@@ -2956,7 +2982,7 @@
                         StateManager.cached_proxy_info = proxy_info;
                         var proxy_ip = status.daip;
                         var mix_addr = proxy_ip + ':' + (proxy_info.mixed_port || '7893');
-                        DOMCache.mix_proxy.innerHTML = "<b style=color:green>" + mix_addr + "</b>";
+                        DOMCache.mix_proxy.innerHTML = "<b style=color:var(--success-color)>" + mix_addr + "</b>";
                     } else {
                         StateManager.cached_proxy_info = null;
                         DOMCache.mix_proxy.innerHTML = "<b style=color:red><%:Not Available%></b>";
@@ -3018,28 +3044,31 @@
     });
 
 	get_rule_mode();
-    check_core();
 
     document.addEventListener('DOMContentLoaded', function() {
         DarkModeDetector.init();
         
         setTimeout(function() {
             ConfigFileManager.init();
-        }, 100);
+        }, 200);
         
         setTimeout(function() {
             SubscriptionManager.init();
+        }, 600);
+
+        setTimeout(function() {
+            check_core();
         }, 800);
+
+        setTimeout(function() {
+            loadAnnouncement();
+        }, 2000);
     });
 
     window.addEventListener('beforeunload', function() {
         SystemStatusManager.stop();
         NetworkStatsManager.stop();
     });
-    
-    setTimeout(function() {
-        loadAnnouncement();
-    }, 2000);
 
     function loadAnnouncement() {
         var userLang = navigator.language || navigator.userLanguage; 
@@ -3263,10 +3292,10 @@
 				var isRunning = StateManager.current_status.clash;
 				
 				if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix") {
-					DOMCache.mode.innerHTML = isRunning ? "<b style=color:green><%:Fake-IP%></b>" : '<b style=color:red><%:Not Running%></b>';
+					DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Fake-IP%></b>" : '<b style=color:red><%:Not Running%></b>';
 					DOMCache.radio_run_normal.innerHTML = "<%:Enhance%>";
 				} else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix") {
-					DOMCache.mode.innerHTML = isRunning ? "<b style=color:green><%:Redir-Host%></b>" : '<b style=color:red><%:Not Running%></b>';
+					DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Redir-Host%></b>" : '<b style=color:red><%:Not Running%></b>';
 					DOMCache.radio_run_normal.innerHTML = "<%:Compat%>";
 				}
 				
@@ -3303,8 +3332,8 @@
         var uploadElement = document.getElementById("upload_");
         var downloadElement = document.getElementById("download_");
         
-        uploadElement.innerHTML = data.up ? "<font style=\"color:green\">"+bytesToSize(data.up)+"/S</font>" : "<font style=\"color:green\">0 B/S</font>";
-        downloadElement.innerHTML = data.down ? "<font style=\"color:green\">"+bytesToSize(data.down)+"/S</font>" : "<font style=\"color:green\">0 B/S</font>";
+        uploadElement.innerHTML = data.up ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.up)+"/S</font>" : "<font style=\"color:var(--success-color)\">0 B/S</font>";
+        downloadElement.innerHTML = data.down ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.down)+"/S</font>" : "<font style=\"color:var(--success-color)\">0 B/S</font>";
     }
     
     function ws_cmessage(event) {
@@ -3312,15 +3341,15 @@
         var updates = [
             {
                 element: document.getElementById("uploadtotal_"),
-                content: data.uploadTotal ? "<font style=\"color:green\">"+bytesToSize(data.uploadTotal)+"</font>" : "<font style=\"color:green\">0 KB</font>"
+                content: data.uploadTotal ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.uploadTotal)+"</font>" : "<font style=\"color:var(--success-color)\">0 KB</font>"
             },
             {
                 element: document.getElementById("downloadtotal_"),
-                content: data.downloadTotal ? "<font style=\"color:green\">"+bytesToSize(data.downloadTotal)+"</font>" : "<font style=\"color:green\">0 KB</font>"
+                content: data.downloadTotal ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.downloadTotal)+"</font>" : "<font style=\"color:var(--success-color)\">0 KB</font>"
             },
             {
                 element: document.getElementById("connect_t"),
-                content: data.connections ? "<font style=\"color:green\">"+Object.keys(data.connections).length+"</font>" : "<font style=\"color:green\">0</font>"
+                content: data.connections ? "<font style=\"color:var(--success-color)\">"+Object.keys(data.connections).length+"</font>" : "<font style=\"color:var(--success-color)\">0</font>"
             }
         ];
         StateManager.batchUpdateDOM(updates);
@@ -3329,7 +3358,7 @@
     function ws_mmessage(event) {
         var data = JSON.parse(event.data);
         var memElement = document.getElementById("mem_t");
-        memElement.innerHTML = data.inuse ? "<font style=\"color:green\">"+bytesToSize(data.inuse)+"</font>" : "<font style=\"color:green\">0 KB</font>";
+        memElement.innerHTML = data.inuse ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.inuse)+"</font>" : "<font style=\"color:var(--success-color)\">0 KB</font>";
         
         if (!SystemStatusManager.isEnabled) {
             SystemStatusManager.start();
@@ -3382,9 +3411,11 @@
     var b_reload_firewall = debounceButton(function(btn) {
         btn.disabled = true;
         btn.value = '<%:Reloading...%>';
+        LogManager.startLogDisplay('<%:Reloading...%>');
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "reload_firewall")%>', null, function(x, status) {
             btn.disabled = false;
             btn.value = (x && x.status == 200) ? '<%:Reload Firewall%>' : '<%:Firewall Rules Reset Failed%>';
+            LogManager.stopLogDisplay();
         });
         return false;
     });
@@ -3677,6 +3708,7 @@
     }
 
     function switch_oc_setting_oversea(value) {
+        LogManager.startLogDisplay('<%:Saving...%>');
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>', {
             setting: 'oversea',
             value: value
@@ -3687,7 +3719,9 @@
                 get_oc_settings();
                 alert('<%:Area bypass setting failed%>');
             }
+            LogManager.stopLogDisplay();
         });
+        
         return false;
     }
 
@@ -3857,7 +3891,7 @@
             
             if (DOMCache.clash && StateManager.current_status) {
                 DOMCache.clash.innerHTML = isRunning ? 
-                    '<b style=color:green>' + (StateManager.current_status.core_type || 'OpenClash') +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : 
+                    '<b style=color:var(--success-color)>' + (StateManager.current_status.core_type || 'OpenClash') +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : 
                     '<b style=color:red><%:Not Running%></b>';
             }
             
@@ -3894,8 +3928,8 @@
                 LogManager.stopLogDisplay();
                 alert('<%:Failed to switch config file:%> ' + (status.message || '<%:Unknown error%>'));
                 
-                if (DOMCache.clash) {
-                    DOMCache.clash.innerHTML = '<b style="color:red"><%:Switch Failed%></b>';
+                if (DOMCache.oclog) {
+                    DOMCache.oclog.innerHTML = '<b style="color:red"><%:Switch Failed%></b>';
                 }
                 
                 pluginToggleUserAction = false;
@@ -3941,8 +3975,8 @@
                     LogManager.stopLogDisplay();
                     pluginToggleUserAction = false;
                     
-                    if (DOMCache.clash) {
-                        DOMCache.clash.innerHTML = '<b style="color:red"><%:Update Failed%></b>';
+                    if (DOMCache.oclog) {
+                        DOMCache.oclog.innerHTML = '<b style="color:red"><%:Update Failed%></b>';
                     }
                     
                     alert('<%:Failed to update config file:%> ' + (status.message || status.error || '<%:Unknown error%>'));
@@ -3951,8 +3985,8 @@
                 LogManager.stopLogDisplay();
                 pluginToggleUserAction = false;
                 
-                if (DOMCache.clash) {
-                    DOMCache.clash.innerHTML = '<b style="color:red"><%:Update Failed%></b>';
+                if (DOMCache.oclog) {
+                    DOMCache.oclog.innerHTML = '<b style="color:red"><%:Update Failed%></b>';
                 }
                 
                 alert('<%:Failed to update config file, please try again later%>');
@@ -4001,8 +4035,8 @@
                 }
                 alert('<%:Failed to restart core%>');
                 
-                if (DOMCache.clash) {
-                    DOMCache.clash.innerHTML = '<b style="color:red"><%:Restart Failed%></b>';
+                if (DOMCache.oclog) {
+                    DOMCache.oclog.innerHTML = '<b style="color:red"><%:Restart Failed%></b>';
                 }
                 
                 pluginToggleUserAction = false;
