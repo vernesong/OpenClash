@@ -55,7 +55,7 @@
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-md);
-  margin: 0;
+  margin: 16px auto;
   width: 100%;
   transition: all var(--transition-fast);
 }
@@ -66,7 +66,7 @@
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  padding: 20px;
+  padding: 16px;
   transition: all var(--transition-fast);
 }
 
@@ -247,6 +247,7 @@
   overflow-x: hidden;
   padding-right: 4px;
   position: relative;
+  left: 2%
 }
 
 .oc .card .general .dler-info-left {
@@ -425,12 +426,8 @@
 
 @media screen and (max-width: 1200px) {
   .oc .dler-main-container {
-    margin: 0 16px;
+    margin: 11px auto;
     width: calc(100% - 32px);
-  }
-  
-  .oc .center {
-    min-width: 600px;
   }
   
   .oc .card .additional.collapsed {
@@ -456,7 +453,6 @@
   .oc .card .general {
     margin-left: 120px;
     padding-right: 8px;
-    min-width: 650px;
   }
   
   .oc .card .general .more {
@@ -471,12 +467,12 @@
 
 @media screen and (max-width: 768px) {
   .oc .dler-main-container {
-    margin: 0 12px;
-    width: calc(100% - 24px);
+    margin: 10px auto;
+    width: 100%;
   }
   
   .oc .center {
-    min-width: 400px;
+    padding: 14px;
   }
   
   .oc .card .additional.collapsed {
@@ -502,7 +498,6 @@
   .oc .card .general {
     margin-left: 110px;
     padding-right: 6px;
-    min-width: 400px;
   }
   
   .oc .card .general h1 {
@@ -553,7 +548,7 @@
 
 @media screen and (max-width: 575px) {
   .oc .center {
-    min-width: 320px;
+    padding: 12px;
   }
   
   .oc .card .additional.collapsed {
@@ -579,11 +574,10 @@
   .oc .card .general {
     margin-left: 100px;
     padding-right: 4px;
-    min-width: 320px;
   }
   
   .oc .card .general h1 {
-    font-size: 20px;
+    font-size: 18px;
     line-height: 26px;
   }
   

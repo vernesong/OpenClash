@@ -25,8 +25,8 @@
     --transition-normal: 0.3s ease;
     
     --control-height: 36px;
-    --card-padding: 16px;
-    --gap-size: 16px;
+    --card-padding: 5px;
+    --gap-size: 10px;
     
     --row-1-height: 160px;
     --row-2-height: 250px;
@@ -157,29 +157,40 @@
     line-height: 1.6;
     color: var(--text-primary);
     background-color: var(--bg-light);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .oc .main-cards-container {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: minmax(60px, auto) 1fr;
-    gap: 15px;
-    margin: 0 auto;
+    gap: 10px;
+    margin: 16px auto;
     align-items: start;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: visible;
 }
 
 .oc .main-card {
     background: var(--bg-white);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
-    padding: 20px;
+    padding: 16px;
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-fast);
     display: grid;
     grid-template-rows: var(--row-1-height) var(--row-2-height) var(--row-3-height) var(--row-4-height);
-    gap: var(--gap-size);
+    gap: 12px;
     overflow: visible;
     grid-row: 2;
+    max-width: 100%;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .oc .main-card:first-of-type {
@@ -192,9 +203,11 @@
 
 .oc .card-row {
     display: flex;
-    gap: var(--gap-size);
+    gap: 12px;
     align-items: stretch;
     height: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .oc .card-row:nth-child(1) {
@@ -215,24 +228,28 @@
 
 .oc .card-row.full-width .sub-card {
     flex: 1;
+    max-width: 100%;
 }
 
 .oc .card-row.dual-cards {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--gap-size);
+    gap: 12px;
+    max-width: 100%;
 }
 
 .oc .card-row.triple-cards {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--gap-size);
+    gap: 10px;
+    max-width: 100%;
 }
 
 .oc .card-row.stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 2fr);
-    gap: 10px;
+    gap: 6px;
+    max-width: 100%;
 }
 
 .oc .sub-card {
@@ -246,6 +263,8 @@
     height: 100%;
     min-height: 0;
     gap: 5px;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .oc .sub-card.stat-item {
@@ -253,8 +272,8 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    padding: 12px 8px;
+    gap: 8px;
+    padding: 10px 6px;
     min-height: 0;
 }
 
@@ -271,7 +290,7 @@
     font-weight: 800;
     color: var(--text-secondary);
     letter-spacing: 0.5px;
-    margin-bottom: 12px;
+    margin-bottom: 10px;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -292,7 +311,7 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 12px;
+    gap: 10px;
     flex: 1;
     min-height: 0;
 }
@@ -300,7 +319,7 @@
 .oc .config-file-content {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     flex: 1;
     justify-content: space-between;
     min-height: 0;
@@ -328,7 +347,7 @@
 .oc .card-controls {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
     justify-content: center;
 }
 
@@ -336,7 +355,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
+    gap: 6px;
     margin-top: auto;
     flex-wrap: nowrap;
     flex-shrink: 0;
@@ -356,7 +375,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
     flex: 0 0 auto;
     min-height: var(--control-height);
 }
@@ -364,14 +383,14 @@
 .oc .core-status-toggle {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex: 1;
 }
 
 .oc .core-control-buttons {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
     flex-shrink: 0;
     flex-wrap: nowrap;
 }
@@ -393,7 +412,7 @@
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex: 1;
 }
 
@@ -577,7 +596,7 @@
     transition: all var(--transition-fast);
     user-select: none;
     text-align: center;
-    min-width: 45px;
+    min-width: 42px;
     height: calc(var(--control-height) - 6px);
     display: flex;
     align-items: center;
@@ -599,7 +618,7 @@
 .oc .value-indicator {
     font-size: 13px;
     font-weight: 500;
-    padding: 10px 14px;
+    padding: 10px 12px;
     border-radius: var(--radius-sm);
     display: inline-flex;
     align-items: center;
@@ -609,7 +628,7 @@
     border: 1px solid var(--border-light);
     text-align: center;
     height: var(--control-height);
-    min-width: 100px;
+    min-width: 90px;
     white-space: nowrap;
     line-height: 1.2;
 }
@@ -638,7 +657,7 @@
 .oc .dashboard-buttons,
 .oc .quick-actions-buttons {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     justify-content: center;
     align-items: center;
     flex: 1;
@@ -661,9 +680,9 @@
     justify-content: center !important;
     line-height: 1.2 !important;
     flex: 1 !important;
-    height: 44px !important;
+    height: 42px !important;
     outline: none !important;
-    padding: 8px 6px !important;
+    padding: 8px 4px !important;
     min-width: 30px;
 }
 
@@ -692,7 +711,7 @@
 
 .oc .stat-value {
     font-family: var(--font-family-mono);
-    font-size: clamp(8px, 2.5vw, 12px);
+    font-size: clamp(7px, 2.2vw, 11px);
     font-weight: 700;
     color: var(--success-color);
     text-align: center;
@@ -928,8 +947,10 @@
     grid-column: 1 / 3;
     grid-row: 1;
     width: 80%;
+    max-width: 95%;
     justify-self: center;
     align-self: center;
+    box-sizing: border-box;
 }
 
 .oc .announcement-content {
@@ -1020,17 +1041,24 @@
 @media screen and (max-width: 1200px) {
     .oc .main-cards-container {
         grid-template-columns: 1fr;
-        gap: 13px;
+        gap: 11px;
+        max-width: 95%;
+        width: 95%;
     }
     
     .oc .announcement-banner {
         grid-column: 1;
+        width: 80%;
+        max-width: 95%;
     }
     
     .oc .main-card {
         grid-column: 1;
         grid-template-rows: auto auto auto auto;
-        margin-bottom: 16px;
+        margin-bottom: 14px;
+        max-width: 100%;
+        width: 100%;
+        padding: 16px;
     }
 
     .oc .main-card:first-of-type {
@@ -1045,15 +1073,17 @@
 
     .oc .card-row.dual-cards {
         grid-template-columns: 1fr 1fr;
-        gap: 12px;
+        gap: 10px;
     }
 
     .oc .card-row.triple-cards {
-        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 10px;
     }
 
     .oc .card-row.stats-grid {
         grid-template-columns: repeat(4, 2fr);
+        gap: 8px;
     }
 
     .oc .config-selector {
@@ -1080,18 +1110,42 @@
 }
 
 @media screen and (max-width: 768px) {
+    .oc .main-cards-container {
+        max-width: 98%;
+        width: 98%;
+        gap: 10px;
+    }
+
     .oc .main-card {
-        padding: 16px;
+        padding: 14px;
         grid-template-rows: auto auto auto auto;
     }
 
     .oc .sub-card {
-        padding: 14px;
+        padding: 12px;
         min-height: auto;
+    }
+
+    .oc .card-row {
+        gap: 12px;
+    }
+
+    .oc .card-row.dual-cards {
+        gap: 8px;
+    }
+
+    .oc .card-row.triple-cards {
+        gap: 8px;
     }
 
     .oc .card-row.stats-grid {
         grid-template-columns: repeat(3, 2fr);
+        gap: 6px;
+    }
+
+    .oc .announcement-banner {
+        width: 85%;
+        max-width: 98%;
     }
 
     .oc .dashboard-btn {
@@ -1191,16 +1245,33 @@
 
 @media screen and (max-width: 575px) {
     .oc .main-cards-container {
+        gap: 8px;
+        max-width: 100%;
+        width: 100%;
+    }
+
+    .oc .main-card {
+        padding: 12px;
+    }
+
+    .oc .card-row {
         gap: 10px;
     }
 
     .oc .card-row.dual-cards,
     .oc .card-row.triple-cards {
-        grid-template-columns: 2fr 2fr;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
     }
 
     .oc .card-row.stats-grid {
-        grid-template-columns: repeat(2, 2fr);
+        grid-template-columns: repeat(2, 1fr);
+        gap: 5px;
+    }
+
+    .oc .announcement-banner {
+        width: 90%;
+        max-width: 100%;
     }
 
     .oc .icon-btn {
@@ -1209,14 +1280,21 @@
         min-width: 24px;
     }
 
+    .oc .icon-btn svg {
+        width: 12px !important;
+        height: 12px !important;
+    }
+
     .oc .version-display {
         max-width: 80px;
         font-size: 9px;
+        padding: 1px 4px;
     }
 
     .oc .dashboard-btn {
         font-size: 9px !important;
         height: 36px !important;
+        padding: 6px 4px !important;
     }
 
     .oc .cbi-button-group {
@@ -1225,9 +1303,9 @@
     }
 
     .oc .cbi-button-option {
-        padding: 4px 6px;
+        padding: 4px 4px;
         font-size: 10px;
-        min-width: 0;
+        min-width: 35px;
     }
 
     .oc .config-file-top {
@@ -1247,10 +1325,12 @@
     
     .oc .file-info {
         gap: 4px;
+        font-size: 8px;
     }
 
     .oc .mode-row .sub-card:first-child .card-content {
         flex-direction: column;
+        gap: 8px;
     }
     
     .oc .card-row:nth-child(1),
@@ -1278,6 +1358,70 @@
     
     .oc .config-selector::after {
         right: 8px;
+    }
+
+    .oc .card-title {
+        font-size: 10px;
+        margin-bottom: 8px;
+    }
+
+    .oc .card-value {
+        font-size: 11px;
+        min-height: 28px;
+    }
+
+    .oc .value-indicator {
+        font-size: 9px;
+        padding: 6px 8px;
+        min-width: 60px;
+    }
+
+    .oc .stat-label {
+        font-size: 9px;
+    }
+
+    .oc .stat-value {
+        font-size: 8px;
+    }
+
+    .oc .subscription-info-text {
+        font-size: 8px;
+    }
+
+    .oc .config-file-name {
+        font-size: 13px;
+    }
+
+    .oc .sub-card {
+        padding: 8px;
+        gap: 4px;
+    }
+
+    .oc .sub-card.stat-item {
+        padding: 8px 4px;
+        gap: 6px;
+    }
+
+    .oc .card-content {
+        gap: 8px;
+    }
+
+    .oc .card-controls {
+        gap: 8px;
+    }
+
+    .oc .core-main-controls {
+        gap: 8px;
+        min-height: 28px;
+    }
+
+    .oc .core-control-buttons {
+        gap: 6px;
+    }
+
+    .oc .card-actions {
+        gap: 6px;
+        min-height: 24px;
     }
 }
 </style>
