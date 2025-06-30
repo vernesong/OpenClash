@@ -368,7 +368,7 @@
 }
 
 .oc .core-status-row .sub-card {
-    gap: 12px;
+    gap: 25px;
 }
 
 .oc .core-main-controls {
@@ -631,6 +631,16 @@
     min-width: 90px;
     white-space: nowrap;
     line-height: 1.2;
+    max-width: 300px;
+    overflow: hidden;
+}
+
+.oc .value-indicator b {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 100%;
+    display: inline-block;
 }
 
 .oc .help-link {
@@ -3351,7 +3361,7 @@
     var all_one_key_update = debounceButton(function(btn) {
         btn.value = '<%:Check Update%>';
         btn.disabled = false;
-        select_git_cdn("core_download");
+        select_git_cdn();
         return false;
     });
     
