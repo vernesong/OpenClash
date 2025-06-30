@@ -105,7 +105,7 @@
     border-radius: var(--radius-lg);
     padding: var(--card-padding);
     box-shadow: var(--shadow-md);
-    margin: 0;
+    margin: 16px auto;
     width: 100%;
     transition: all var(--transition-fast);
 }
@@ -113,7 +113,7 @@
 .oc .myip-content-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 24px;
+    gap: 18px;
     align-items: start;
 }
 
@@ -133,7 +133,7 @@
     font-size: 25px;
     font-weight: bold;
     color: var(--text-primary, #111827);
-    margin: 0 0 16px 0;
+    margin: 16px;
     padding: 0;
     text-align: left;
     display: flex;
@@ -304,12 +304,12 @@
 
 .oc .myip-footer p {
     position: absolute;
-    right: 0%;
-    top: 0;
-    margin: 0;
-    font-size: 15px;
-    line-height: 10px;
-    padding: 0;
+    right: 0% !important;
+    top: 0 !important;
+    margin: 0 !important;
+    font-size: 15px !important;
+    line-height: 10px !important;
+    padding: 0px 10px !important;
     white-space: nowrap;
     z-index: 1;
     color: var(--text-secondary, #6b7280);
@@ -395,7 +395,7 @@
 
 @media screen and (max-width: 1200px) {
     .oc .myip-main-card {
-        margin: 0 16px;
+        margin: 11px auto;
         width: calc(100% - 32px);
     }
 }
@@ -412,8 +412,8 @@
     }
     
     .oc .myip-main-card {
-        padding: 16px;
-        margin: 0 12px;
+        padding: 14px;
+        margin: 10px auto;
         width: calc(100% - 24px);
     }
     
@@ -475,7 +475,7 @@
     
     .oc .myip-main-card {
         padding: 12px;
-        margin: 0 8px;
+        margin: 8px auto;
         width: calc(100% - 16px);
     }
     
