@@ -3354,7 +3354,7 @@
                     var coreVersionText = status.coremetacv;
                     var hasUpdate = false;
 
-                    if (status.corelv && status.corelv !== "" && status.corelv !== "Collecting data..." && status.corelv !== status.coremetacv) {
+                    if (status.corelv && status.corelv !== "" && status.corelv !== "loading..." && status.corelv !== status.coremetacv) {
                         hasUpdate = true;
                     }
                     
@@ -3380,7 +3380,7 @@
                     var pluginVersionText = status.opcv;
                     var hasUpdate = false;
                     
-                    if (status.oplv && status.oplv !== "" && status.oplv !== "Collecting data...") {
+                    if (status.oplv && status.oplv !== "" && status.oplv !== "loading...") {
                         function compareVersions(v1, v2) {
                             var ver1 = v1.replace(/^v/, '').split('.');
                             var ver2 = v2.replace(/^v/, '').split('.');
