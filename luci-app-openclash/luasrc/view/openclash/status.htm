@@ -287,7 +287,7 @@
 
 .oc .card-title {
     font-size: 14px;
-    font-weight: 800;
+    font-weight: 600;
     color: var(--text-secondary);
     letter-spacing: 0.5px;
     margin-bottom: 10px;
@@ -296,6 +296,7 @@
     gap: 6px;
     height: 20px;
     flex-shrink: 0;
+    padding-left: 5px;
 }
 
 .oc .version-display-container {
@@ -584,6 +585,7 @@
     position: absolute;
     opacity: 0;
     pointer-events: none;
+    height: var(--control-height)-4px;
 }
 
 .oc .cbi-button-option {
@@ -856,6 +858,8 @@
     gap: 8px;
     flex: 1;
     min-height: 32px;
+    padding-left: 5px;
+    padding-right: 5px;
 }
 
 .oc .subscription-progress {
@@ -891,9 +895,12 @@
 }
 
 .oc .subscription-info-text {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--text-secondary);
     line-height: 1.4;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    text-wrap: nowrap;
 }
 
 .oc .subscription-loading,
@@ -920,7 +927,9 @@
     flex: 1;
     white-space: nowrap;
     text-overflow: ellipsis;
-    max-width: calc(100% - 80px);
+    max-width: calc(100% - 200px);
+    padding-left: 5px;
+    overflow: hidden;
 }
 
 .oc .config-file-bottom {
@@ -944,6 +953,8 @@
     display: flex;
     align-items: center;
     white-space: nowrap;
+    padding-right: 5px;
+    font-size: 12px;
 }
 
 .oc .announcement-banner {
@@ -1246,11 +1257,15 @@
     }
     
     .oc .subscription-info-text {
-        font-size: 9px;
+        font-size: 10px;
     }
 
     .oc .file-info {
         font-size: 9px;
+    }
+
+    .oc .file-info-item {
+        font-size: 10px;
     }
 }
 
@@ -1311,6 +1326,11 @@
     .oc .cbi-button-group {
         padding: 2px;
         gap: 1px;
+        height: 28px;
+    }
+
+    .oc input[type="radio"]:checked + .cbi-button-option {
+        height: 24px;
     }
 
     .oc .cbi-button-option {
@@ -1433,6 +1453,18 @@
     .oc .card-actions {
         gap: 6px;
         min-height: 24px;
+    }
+
+    .oc #logo_btn .logo-text {
+        font-size: 8px;
+    }
+
+    .oc #logo_btn .mihomo-link {
+        font-size: 8px;
+    }
+
+    .oc .file-info-item {
+        font-size: 10px;
     }
 }
 </style>
@@ -2188,6 +2220,11 @@
             if (configNameElement) {
                 var displayName = this.formatDisplayName(configFile);
                 configNameElement.textContent = displayName;
+                if (configNameElement.scrollWidth > configNameElement.clientWidth) {
+                    configNameElement.title = displayName;
+                } else {
+                    configNameElement.title = '';
+                }
             }
             
             if (fileInfo) {
@@ -2423,6 +2460,12 @@
                 }
                 
                 infoText.textContent = infoString;
+                if (infoText.scrollWidth > infoText.clientWidth) {
+                    infoText.title = infoString;
+                } else {
+                    infoText.title = '';
+                }
+                
             } else {
                 if (progressSection) {
                     progressSection.style.display = 'none';
@@ -3544,6 +3587,13 @@
                     }
                     
                     DOMCache.core_version_text.textContent = coreVersionText;
+                    
+                    if (DOMCache.core_version_text.scrollWidth > DOMCache.core_version_text.clientWidth) {
+                        DOMCache.core_version_text.title = coreVersionText;
+                    } else {
+                        DOMCache.core_version_text.title = '';
+                    }
+                    
                     DOMCache.core_version_display.style.display = 'flex';
                     
                     var existingDot = DOMCache.core_version_display.querySelector('.update-dot');
@@ -3589,6 +3639,13 @@
                     }
                     
                     DOMCache.plugin_version_text.textContent = pluginVersionText;
+                    
+                    if (DOMCache.plugin_version_text.scrollWidth > DOMCache.plugin_version_text.clientWidth) {
+                        DOMCache.plugin_version_text.title = pluginVersionText;
+                    } else {
+                        DOMCache.plugin_version_text.title = '';
+                    }
+                    
                     DOMCache.plugin_version_display.style.display = 'flex';
                     
                     var existingDot = DOMCache.plugin_version_display.querySelector('.update-dot');
