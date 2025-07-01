@@ -29,9 +29,9 @@
     --gap-size: 10px;
     
     --row-1-height: 160px;
-    --row-2-height: 250px;
+    --row-2-height: 140px;
     --row-3-height: 140px;
-    --row-4-height: 140px;
+    --row-4-height: 250px;
 }
 
 .oc[data-darkmode="true"] {
@@ -1531,7 +1531,78 @@
                             </div>
                         </div>
 
-                        <!-- Row 2: Config File -->
+                        <!-- Row 2: Running Mode & Proxy Mode -->
+                        <div class="card-row dual-cards mode-row">
+                            <div class="sub-card">
+                                <div class="card-title"><%:Running Mode%></div>
+                                <div class="card-content">
+                                    <div class="card-value"><span id="_mode" class="value-indicator"><%:Collecting data...%></span></div>
+                                    <div class="running-mode-controls">
+                                        <div id="radio-ru-mode" class="cbi-button-group" style="display: none;">
+                                            <input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/><label for="normal" id="run_normal" class="cbi-button-option"><%:Compat%></label>
+                                            <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/><label for="tun" class="cbi-button-option"><%:TUN%></label>
+                                            <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/><label for="mix" class="cbi-button-option"><%:Mix%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sub-card">
+                                <div class="card-title"><%:Proxy Mode%></div>
+                                <div class="card-content">
+                                    <div class="card-value"><span id="radio-de" class="value-indicator"><%:Collecting data...%></span></div>
+                                    <div class="card-controls">
+                                        <div id="radio-mode" class="cbi-button-group" style="display: none;">
+                                            <input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/><label for="rule" class="cbi-button-option"><%:Rule%></label>
+                                            <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/><label for="global" class="cbi-button-option"><%:Global%></label>
+                                            <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/><label for="direct" class="cbi-button-option"><%:Direct%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Settings -->
+                        <div class="card-row triple-cards">
+                            <div class="sub-card">
+                                <div class="card-title"><%:Area Bypass%><div class="help-link" title="<%:Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div></div>
+                                <div class="card-content">
+                                    <div class="card-value"><span id="oc-setting-oversea-de" class="value-indicator"><%:Collecting data...%></span></div>
+                                    <div class="card-controls">
+                                        <div id="oc-setting-oversea" class="cbi-button-group" style="display: none;">
+                                            <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/><label for="oc_setting_oversea_1" class="cbi-button-option"><%:Mainland%></label>
+                                            <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/><label for="oc_setting_oversea_2" class="cbi-button-option"><%:Oversea%></label>
+                                            <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/><label for="oc_setting_oversea_0" class="cbi-button-option"><%:Off%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sub-card">
+                                <div class="card-title"><%:Sniffer%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/sniff/?h=sniff#_1', '_blank');" class="help-link" title="<%:Sniff the domain name of the traffics to avoid rule-based proxy failure%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></a></div>
+                                <div class="card-content">
+                                    <div class="card-value"><span id="dns-setting-sniffer-de" class="value-indicator"><%:Collecting data...%></span></div>
+                                    <div class="card-controls">
+                                        <div id="dns-setting-sniffer" class="cbi-button-group" style="display: none;">
+                                            <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/><label for="meta_sniffer_on" class="cbi-button-option"><%:On%></label>
+                                            <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/><label for="meta_sniffer_off" class="cbi-button-option"><%:Off%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sub-card">
+                                <div class="card-title"><%:DNS Proxy%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/dns/?h=res#respect-rules', '_blank');" class="help-link" title="<%:DNS querys respect-rules to preventing access failure%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></a></div>
+                                <div class="card-content">
+                                    <div class="card-value"><span id="dns-setting-respect-de" class="value-indicator"><%:Collecting data...%></span></div>
+                                    <div class="card-controls">
+                                        <div id="dns-setting-respect" class="cbi-button-group" style="display: none;">
+                                            <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/><label for="respect_rules_on" class="cbi-button-option"><%:On%></label>
+                                            <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/><label for="respect_rules_off" class="cbi-button-option"><%:Off%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Config File -->
                         <div class="card-row full-width">
                             <div class="sub-card">
                                 <div class="card-title"><%:Config File%></div>
@@ -1582,77 +1653,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Row 3: Running Mode & Proxy Mode -->
-                        <div class="card-row dual-cards mode-row">
-                            <div class="sub-card">
-                                <div class="card-title"><%:Running Mode%></div>
-                                <div class="card-content">
-                                    <div class="card-value"><span id="_mode" class="value-indicator"><%:Collecting data...%></span></div>
-                                    <div class="running-mode-controls">
-                                        <div id="radio-ru-mode" class="cbi-button-group" style="display: none;">
-                                            <input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/><label for="normal" id="run_normal" class="cbi-button-option"><%:Compat%></label>
-                                            <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/><label for="tun" class="cbi-button-option"><%:TUN%></label>
-                                            <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/><label for="mix" class="cbi-button-option"><%:Mix%></label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="sub-card">
-                                <div class="card-title"><%:Proxy Mode%></div>
-                                <div class="card-content">
-                                    <div class="card-value"><span id="radio-de" class="value-indicator"><%:Collecting data...%></span></div>
-                                    <div class="card-controls">
-                                        <div id="radio-mode" class="cbi-button-group" style="display: none;">
-                                            <input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/><label for="rule" class="cbi-button-option"><%:Rule%></label>
-                                            <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/><label for="global" class="cbi-button-option"><%:Global%></label>
-                                            <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/><label for="direct" class="cbi-button-option"><%:Direct%></label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Row 4: Settings -->
-                        <div class="card-row triple-cards">
-                            <div class="sub-card">
-                                <div class="card-title"><%:Area Bypass%><div class="help-link" title="<%:Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div></div>
-                                <div class="card-content">
-                                    <div class="card-value"><span id="oc-setting-oversea-de" class="value-indicator"><%:Collecting data...%></span></div>
-                                    <div class="card-controls">
-                                        <div id="oc-setting-oversea" class="cbi-button-group" style="display: none;">
-                                            <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/><label for="oc_setting_oversea_1" class="cbi-button-option"><%:Mainland%></label>
-                                            <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/><label for="oc_setting_oversea_2" class="cbi-button-option"><%:Oversea%></label>
-                                            <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/><label for="oc_setting_oversea_0" class="cbi-button-option"><%:Off%></label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="sub-card">
-                                <div class="card-title"><%:Sniffer%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/sniff/?h=sniff#_1', '_blank');" class="help-link" title="<%:Sniff the domain name of the traffics to avoid rule-based proxy failure%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></a></div>
-                                <div class="card-content">
-                                    <div class="card-value"><span id="dns-setting-sniffer-de" class="value-indicator"><%:Collecting data...%></span></div>
-                                    <div class="card-controls">
-                                        <div id="dns-setting-sniffer" class="cbi-button-group" style="display: none;">
-                                            <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/><label for="meta_sniffer_on" class="cbi-button-option"><%:On%></label>
-                                            <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/><label for="meta_sniffer_off" class="cbi-button-option"><%:Off%></label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="sub-card">
-                                <div class="card-title"><%:DNS Proxy%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/dns/?h=res#respect-rules', '_blank');" class="help-link" title="<%:DNS querys respect-rules to preventing access failure%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></a></div>
-                                <div class="card-content">
-                                    <div class="card-value"><span id="dns-setting-respect-de" class="value-indicator"><%:Collecting data...%></span></div>
-                                    <div class="card-controls">
-                                        <div id="dns-setting-respect" class="cbi-button-group" style="display: none;">
-                                            <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/><label for="respect_rules_on" class="cbi-button-option"><%:On%></label>
-                                            <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/><label for="respect_rules_off" class="cbi-button-option"><%:Off%></label>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
 
                     <div class="main-card">
@@ -1685,19 +1685,7 @@
                             </div>
                         </div>
 
-                        <!-- Row 2: Statistics -->
-                        <div class="card-row stats-grid">
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Up%></span><span id="upload_" class="stat-value">0 KB/S</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Down%></span><span id="download_" class="stat-value">0 KB/S</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value">0 KB</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value">0 KB</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Connections%></span><span id="connect_t" class="stat-value">0</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value">0 KB</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value">0 %</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value">0</span></div>
-                        </div>
-
-                        <!-- Row 3: Dashboards -->
+                        <!-- Row 2: Dashboards -->
                         <div class="card-row full-width">
                             <div class="sub-card dashboard-container">
                                 <div class="card-title"><%:Control Panel%></div>
@@ -1710,7 +1698,7 @@
                             </div>
                         </div>
 
-                        <!-- Row 4: Quick Actions -->
+                        <!-- Row 3: Quick Actions -->
                         <div class="card-row full-width">
                             <div class="sub-card quick-actions-container">
                                 <div class="card-title"><%:Quick Action%></div>
@@ -1721,6 +1709,18 @@
                                     <button class="dashboard-btn" id="_one_key_update_btn"><%:Collecting data...%></button>
                                 </div>
                             </div>
+                        </div>
+
+                        <!-- Row 4: Statistics -->
+                        <div class="card-row stats-grid">
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Up%></span><span id="upload_" class="stat-value">0 KB/S</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Down%></span><span id="download_" class="stat-value">0 KB/S</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value">0 KB</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value">0 KB</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Connections%></span><span id="connect_t" class="stat-value">0</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value">0 KB</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value">0 %</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value">0</span></div>
                         </div>
                     </div>
                 </div>
@@ -2578,18 +2578,30 @@
         retryCount: 0,
         maxRetries: 3,
         retryDelay: 1000,
-        
+
         startLogDisplay: function(initialMessage) {
-            if (initialMessage && DOMCache.oclog) {
+            if (this.isPolling) {
+                this.stopLogDisplay();
+            }
+
+            StateManager.clearCache('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>');
+
+            if (DOMCache.oclog) {
                 DOMCache.oclog.style.display = 'inline-flex';
-                DOMCache.oclog.innerHTML = '<b style="color:orange">' + initialMessage + '</b>';
+                DOMCache.oclog.innerHTML = '<b style="color:orange">' + (initialMessage || '<%:Processing...%>') + '</b>';
             }
             
             this.isPolling = true;
             this.startTime = Date.now();
             this.lastLogContent = '';
             this.retryCount = 0;
-            this.pollLog();
+            
+            var self = this;
+            setTimeout(function() {
+                if (self.isPolling) {
+                    self.pollLog();
+                }
+            }, 50);
         },
         
         stopLogDisplay: function() {
@@ -2600,7 +2612,13 @@
             }
             this.lastLogContent = '';
             this.retryCount = 0;
-            DOMCache.oclog.style.display = 'none';
+            if (DOMCache.oclog) {
+                setTimeout(function() {
+                    if (!LogManager.isPolling) {
+                        DOMCache.oclog.style.display = 'none';
+                    }
+                }, 1000);
+            }
         },
         
         pollLog: function() {
@@ -2614,51 +2632,73 @@
             var self = this;
             StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', function(x, status) {
                 if (!self.isPolling) return;
-                
-                if (x && x.status == 200 && status.startlog) {
-                    self.retryCount = 0;
-                    
-                    if (self.checkForErrors(status.startlog)) {
+
+                if (x && x.status == 200 && status && typeof status.startlog !== 'undefined') {
+                    var logContent = (status.startlog || '').trim();
+
+                    if (self.checkForErrors(logContent)) {
                         self.stopLogDisplay();
                         return;
                     }
-                    
-                    if (status.startlog !== "\n" && status.startlog !== "") {
-                        self.displayLog(status.startlog);
+
+                    var contentToDisplay = logContent.replace('##FINISH##', '').trim();
+                    if (contentToDisplay && contentToDisplay !== self.lastLogContent) {
+                        self.displayLog(contentToDisplay);
                     }
-                    
-                    self.pollTimer = setTimeout(function() {
-                        self.pollLog();
-                    }, self.pollInterval);
-                } else {
-                    if (self.retryCount < self.maxRetries) {
-                        self.retryCount++;
-                        
-                        var retryDelay = Math.min(self.retryDelay * self.retryCount, 5000);
-                        
-                        self.pollTimer = setTimeout(function() {
-                            if (self.isPolling) {
-                                self.pollLog();
-                            }
-                        }, retryDelay);
-                    } else {
+
+                    if (logContent.includes('##FINISH##')) {
                         setTimeout(function() {
                             self.stopLogDisplay();
-                        }, 3000);
+                        }, 2000);
+                        return;
                     }
+                    
+                    if (logContent !== '') {
+                        self.retryCount = 0;
+                        self.scheduleNextPoll(self.pollInterval);
+                    } else {
+                        self.handleEmptyResponse();
+                    }
+                } else {
+                    self.handleFailure();
                 }
             }, true);
         },
+
+        handleEmptyResponse: function() {
+            this.scheduleNextPoll(this.pollInterval);
+        },
+
+        handleFailure: function() {
+            if (this.retryCount < this.maxRetries) {
+                this.retryCount++;
+                var delay = Math.min(this.retryDelay * Math.pow(2, this.retryCount - 1), 5000);
+                this.scheduleNextPoll(delay);
+            } else {
+                if (DOMCache.oclog) {
+                    DOMCache.oclog.innerHTML = '<b style="color:red"><%:Log Error%></b>';
+                }
+                this.stopLogDisplay();
+            }
+        },
+
+        scheduleNextPoll: function(delay) {
+            var self = this;
+            this.pollTimer = setTimeout(function() {
+                self.pollLog();
+            }, delay);
+        },
         
         checkForErrors: function(log) {
-            if (log.match("level=fatal") || log.match("level=error") || log.indexOf("FTL [Config]") !== -1) {
+            if (!log) return false;
+            if (log.match(/level=fatal|level=error|FTL \[Config]/)) {
                 XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
                 
                 var errorMsg;
-                if (log.match("level=fatal") || log.match("level=error")) {
+                if (log.match(/level=(fatal|error)/)) {
                     var msgParts = log.split('msg=');
-                    errorMsg = msgParts.length > 1 ? msgParts[1] : log;
-                } else {
+                    errorMsg = msgParts.length > 1 ? msgParts[1].replace(/"/g, '') : log;
+                } else { // FTL [Config]
                     var ftlParts = log.split('FTL [Config] ');
                     errorMsg = ftlParts.length > 1 ? ftlParts[1] : log;
                 }
@@ -2668,7 +2708,7 @@
                 }
                 
                 setTimeout(function() {
-                    alert('<%:OpenClash Start Failed%> :\n\n' + errorMsg);
+                    alert('<%:OpenClash Start Failed%>:\n\n' + errorMsg);
                 }, 500);
                 
                 return true;
@@ -2677,10 +2717,9 @@
         },
         
         displayLog: function(logContent) {
-            if (!DOMCache.oclog || !logContent) return;
+            if (!this.isPolling || !DOMCache.oclog) return;
             
             var cleanLog = this.cleanLogContent(logContent);
-            
             this.lastLogContent = cleanLog;
 
             var color = this.getLogColor(cleanLog);
@@ -2690,24 +2729,19 @@
         },
         
         cleanLogContent: function(content) {
-            if (!content) return '';
-            
-            return content.replace(/\r\n/g, ' ')
-                        .replace(/\n/g, ' ')
-                        .replace(/\r/g, ' ')
-                        .trim();
+            return content ? content.replace(/[\r\n]+/g, ' ').replace('##FINISH##', '').trim() : '';
         },
         
         getLogColor: function(log) {
-            if (log.match("Tip:") || log.match("提示：")) {
+            if (log.includes("Tip:") || log.includes("提示：")) {
                 return '#ff6f00';
-            } else if (log.match("Error:") || log.match("错误：") || log.match("level=error")) {
-                return '#FF0000';
-            } else if (log.match("Warning:") || log.match("警告：") || log.match("level=warning")) {
+            } else if (log.includes("Error:") || log.includes("错误：") || log.includes("level=error")) {
+                return 'var(--error-color)';
+            } else if (log.includes("Warning:") || log.includes("警告：") || log.includes("level=warning")) {
                 return '#ff00bb';
-            } else if (log.match("Watchdog:") || log.match("守护程序：")) {
+            } else if (log.includes("Watchdog:") || log.includes("守护程序：")) {
                 return '#b300ff';
-            } else if (log.match("level=info") || log.match("Success") || log.match("Started") || log.match("Ready")) {
+            } else if (log.match(/level=info|Success|Started|Ready/)) {
                 return 'var(--success-color)';
             } else {
                 return 'var(--text-secondary)';
@@ -3458,7 +3492,6 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "reload_firewall")%>', null, function(x, status) {
             btn.disabled = false;
             btn.value = (x && x.status == 200) ? '<%:Reload Firewall%>' : '<%:Firewall Rules Reset Failed%>';
-            LogManager.stopLogDisplay();
         });
         return false;
     });
@@ -3776,7 +3809,6 @@
                 get_oc_settings();
                 alert('<%:Area bypass setting failed%>');
             }
-            LogManager.stopLogDisplay();
         });
         
         return false;
@@ -3913,12 +3945,10 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
             if (x && x.status == 200) {
                 setTimeout(function() {
-                    LogManager.stopLogDisplay();
                     pluginToggleUserAction = false;
                     updatePluginToggleState(StateManager.current_status.clash || false);
                 }, 3000);
             } else {
-                LogManager.stopLogDisplay();
                 toggleElement.checked = !isEnabled;
                 
                 var errorMessage = isEnabled ? 
@@ -3977,12 +4007,10 @@
             if (x && x.status == 200 && status.status === 'success') {
                 ConfigFileManager.refreshConfigList();
                 setTimeout(function() {
-                    LogManager.stopLogDisplay();
                     pluginToggleUserAction = false;
                     updatePluginToggleState(StateManager.current_status.clash || false);
                 }, 4000);
             } else {
-                LogManager.stopLogDisplay();
                 alert('<%:Failed to switch config file:%> ' + (status.message || '<%:Unknown error%>'));
                 
                 if (DOMCache.oclog) {
@@ -4019,7 +4047,6 @@
             if (x && x.status == 200) {
                 if (status.status === 'success') {
                     setTimeout(function() {
-                        LogManager.stopLogDisplay();
                         
                         refreshSubscriptionInfo();
                         
@@ -4029,7 +4056,6 @@
                         
                     }, 2000);
                 } else {
-                    LogManager.stopLogDisplay();
                     pluginToggleUserAction = false;
                     
                     if (DOMCache.oclog) {
@@ -4039,7 +4065,6 @@
                     alert('<%:Failed to update config file:%> ' + (status.message || status.error || '<%:Unknown error%>'));
                 }
             } else {
-                LogManager.stopLogDisplay();
                 pluginToggleUserAction = false;
                 
                 if (DOMCache.oclog) {
@@ -4081,12 +4106,10 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "action")%>', requestParams, function(x, status) {
             if (x && x.status == 200) {
                 setTimeout(function() {
-                    LogManager.stopLogDisplay();
                     pluginToggleUserAction = false;
                     updatePluginToggleState(StateManager.current_status.clash || false);
                 }, 5000);
             } else {
-                LogManager.stopLogDisplay();
                 if (toggleElement) {
                     toggleElement.disabled = false;
                 }
