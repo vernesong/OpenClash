@@ -1387,7 +1387,7 @@ function action_del_log()
 end
 
 function action_del_start_log()
-	luci.sys.exec(": > /tmp/openclash_start.log")
+	luci.sys.exec("echo "##FINISH##" > /tmp/openclash_start.log")
 	return
 end
 

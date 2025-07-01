@@ -26,5 +26,5 @@ LOG_ALERT()
 
 SLOG_CLEAN()
 {
-	echo "" > $START_LOG
+	echo "##FINISH##" > $START_LOG
 }
