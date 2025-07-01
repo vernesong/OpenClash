@@ -847,20 +847,18 @@
             if (type === 'core_download') {
                 XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
                     if (x && x.status == 200) {
-                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', {url: target.dataset.value}, function(x, status) {});
+                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', {url: target.dataset.value}, function(x, status) {
+                        });
                     }
                 });
             }
             else {
                 XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
                     if (x && x.status == 200) {
-                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', {url: target.dataset.value}, function(x, status) {});
+                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', {url: target.dataset.value}, function(x, status) {
+                        });
                     }
                 });
-            }
-
-            if (LogManager) {
-                LogManager.stopLogDisplay();
             }
 
             selectPopup.classList.add('hidden');
