@@ -1222,11 +1222,15 @@ function action_start()
 end
 
 function action_get_last_version()
-	luci.sys.call("bash /usr/share/openclash/clash_version.sh &")
-	luci.sys.call("bash /usr/share/openclash/openclash_version.sh &")
+    if not process_status("/usr/share/openclash/clash_version.sh") then
+	    luci.sys.call("bash /usr/share/openclash/clash_version.sh &")
+    end
+    if not process_status("/usr/share/openclash/openclash_version.sh") then
+	    luci.sys.call("bash /usr/share/openclash/openclash_version.sh &")
+    end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-			status = "success"
+		status = "success"
 	})
 end
 
