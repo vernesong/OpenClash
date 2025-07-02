@@ -16,6 +16,8 @@
     --success-dark: #047857;
     --warning-color: #f59e0b;
     --error-color: #dc2626;
+    --warning-log: #ff00bb;
+    --watch-log: #b300ff;
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
     --radius-sm: 6px;
@@ -47,6 +49,10 @@
     --primary-color: #3b82f6;
     --success-color: #34d399;
     --success-dark: #10b981;
+    --error-color: #ff7070;
+    --warning-color: #f9bb51;
+    --warning-log: #fa41c8;
+    --watch-log: #c147f5;
 }
 
 .oc[data-darkmode="true"] .plugin-toggle-slider {
@@ -64,7 +70,7 @@
 }
 
 .oc[data-darkmode="true"] .version-display .update-dot {
-    background: #ff7070;
+    background: var(--error-color);
 }
 
 .oc[data-darkmode="true"] .announcement-banner {
@@ -840,7 +846,7 @@
 .oc .subscription-info-main {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 15px;
     flex: 1;
 }
 
@@ -857,7 +863,7 @@
     flex-direction: column;
     gap: 8px;
     flex: 1;
-    min-height: 32px;
+    min-height: 80px;
     padding-left: 5px;
     padding-right: 5px;
 }
@@ -865,7 +871,7 @@
 .oc .subscription-progress {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 10px;
 }
 
 .oc .subscription-progress-bar {
@@ -1058,6 +1064,10 @@
     padding: 0 !important;
     min-height: var(--control-height) !important;
     max-height: var(--control-height) !important;
+}
+
+.oc .sub-card:has([style*="display: none"]) .card-value {
+    min-height: auto;
 }
 
 @media screen and (max-width: 1200px) {
@@ -1848,96 +1858,58 @@
         cache_ttl: 5000,
         pending_requests: new Map(),
         
-        cachedXHRGet: function(url, callback, force) {
+        _cachedXHR: function(url, params, callback, force) {
+            var cacheKey = params ? url + JSON.stringify(params) : url;
             var now = Date.now();
-            var cacheKey = url;
-            
+
             if (this.pending_requests.has(cacheKey)) {
-                var pendingCallbacks = this.pending_requests.get(cacheKey);
-                pendingCallbacks.push(callback);
+                this.pending_requests.get(cacheKey).push(callback);
                 return;
             }
-            
-            if (!force && this.request_cache[cacheKey] && 
-                (now - this.last_request_time[cacheKey] < this.cache_ttl)) {
+
+            var cacheExists = this.request_cache.hasOwnProperty(cacheKey);
+            var isCacheStale = cacheExists && (now - this.last_request_time[cacheKey] >= this.cache_ttl);
+
+            if (!force && cacheExists && !isCacheStale) {
                 setTimeout(function() {
-                    callback({status: 200, fromCache: true}, StateManager.request_cache[cacheKey]);
+                    callback({ status: 200, fromCache: true }, StateManager.request_cache[cacheKey]);
                 }, 0);
                 return;
             }
             
-            if (!force && this.request_cache[cacheKey]) {
+            if (!force && cacheExists && isCacheStale) {
                 setTimeout(function() {
-                    callback({status: 200, fromCache: true}, StateManager.request_cache[cacheKey]);
+                    callback({ status: 200, fromCache: true, stale: true }, StateManager.request_cache[cacheKey]);
                 }, 0);
             }
-            
+
             this.pending_requests.set(cacheKey, [callback]);
-            
             var self = this;
-            XHR.get(url, null, function(x, data) {
+
+            XHR.get(url, params, function(x, data) {
                 var callbacks = self.pending_requests.get(cacheKey) || [];
                 self.pending_requests.delete(cacheKey);
-                
+
                 if (x && x.status == 200 && data) {
-                    var oldData = self.request_cache[cacheKey];
                     self.request_cache[cacheKey] = data;
-                    self.last_request_time[cacheKey] = now;
-                    
-                    if (!oldData || JSON.stringify(oldData) !== JSON.stringify(data)) {
-                        callbacks.forEach(function(cb) {
-                            try {
-                                cb(x, data);
-                            } catch (e) {
-                            }
-                        });
-                    }
-                } else {
-                    if (!self.request_cache[cacheKey]) {
-                        callbacks.forEach(function(cb) {
-                            try {
-                                cb(x, data);
-                            } catch (e) {
-                            }
-                        });
-                    }
+                    self.last_request_time[cacheKey] = Date.now();
                 }
+
+                callbacks.forEach(function(cb) {
+                    try {
+                        cb(x, data);
+                    } catch (e) {
+                    }
+                });
             });
         },
 
+        cachedXHRGet: function(url, callback, force) {
+            this._cachedXHR(url, null, callback, force);
+        },
+
         cachedXHRGetWithParams: function(url, params, callback, force) {
-            var now = Date.now();
-            var cacheKey = url + JSON.stringify(params || {});
-            
-            if (!force && this.request_cache[cacheKey] && 
-                (now - this.last_request_time[cacheKey] < this.cache_ttl)) {
-                setTimeout(function() {
-                    callback({status: 200, fromCache: true}, StateManager.request_cache[cacheKey]);
-                }, 0);
-                return;
-            }
-            
-            if (!force && this.request_cache[cacheKey]) {
-                setTimeout(function() {
-                    callback({status: 200, fromCache: true}, StateManager.request_cache[cacheKey]);
-                }, 0);
-            }
-            
-            XHR.get(url, params, function(x, data) {
-                if (x && x.status == 200 && data) {
-                    var oldData = StateManager.request_cache[cacheKey];
-                    StateManager.request_cache[cacheKey] = data;
-                    StateManager.last_request_time[cacheKey] = now;
-                    
-                    if (!oldData || JSON.stringify(oldData) !== JSON.stringify(data)) {
-                        callback(x, data);
-                    }
-                } else {
-                    if (!StateManager.request_cache[cacheKey]) {
-                        callback(x, data);
-                    }
-                }
-            });
+            this._cachedXHR(url, params, callback, force);
         },
         
         clearCache: function(url, params) {
@@ -2198,8 +2170,8 @@
                 optionElement.disabled = option.disabled || false;
                 optionElement.selected = option.selected || false;
                 
-                ConfigFileManager.selectElement.appendChild(optionElement);
-            });
+                this.selectElement.appendChild(optionElement);
+            }, this);
         },
 
         updateSubscriptionDisplay: function(configFile, fileInfo) {
@@ -2583,12 +2555,16 @@
             if (this.isPolling) {
                 this.stopLogDisplay();
             }
+            if (this.pollTimer) {
+                clearTimeout(this.pollTimer);
+                this.pollTimer = null;
+            }
 
             StateManager.clearCache('<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>');
 
             if (DOMCache.oclog) {
                 DOMCache.oclog.style.display = 'inline-flex';
-                DOMCache.oclog.innerHTML = '<b style="color:orange">' + (initialMessage || '<%:Processing...%>') + '</b>';
+                DOMCache.oclog.innerHTML = '<b style="color:var(--warning-color)">' + (initialMessage || '<%:Processing...%>') + '</b>';
             }
             
             this.isPolling = true;
@@ -2601,7 +2577,7 @@
                 if (self.isPolling) {
                     self.pollLog();
                 }
-            }, 50);
+            }, 2000);
         },
         
         stopLogDisplay: function() {
@@ -2649,7 +2625,7 @@
                     if (logContent.includes('##FINISH##')) {
                         setTimeout(function() {
                             self.stopLogDisplay();
-                        }, 2000);
+                        }, 5000);
                         return;
                     }
                     
@@ -2675,9 +2651,6 @@
                 var delay = Math.min(this.retryDelay * Math.pow(2, this.retryCount - 1), 5000);
                 this.scheduleNextPoll(delay);
             } else {
-                if (DOMCache.oclog) {
-                    DOMCache.oclog.innerHTML = '<b style="color:red"><%:Log Error%></b>';
-                }
                 this.stopLogDisplay();
             }
         },
@@ -2701,10 +2674,6 @@
                 } else { // FTL [Config]
                     var ftlParts = log.split('FTL [Config] ');
                     errorMsg = ftlParts.length > 1 ? ftlParts[1] : log;
-                }
-                
-                if (DOMCache.oclog) {
-                    DOMCache.oclog.innerHTML = '<b style="color:red"><%:Start Failed%></b>';
                 }
                 
                 setTimeout(function() {
@@ -2734,13 +2703,13 @@
         
         getLogColor: function(log) {
             if (log.includes("Tip:") || log.includes("提示：")) {
-                return '#ff6f00';
+                return 'var(--warning-color)';
             } else if (log.includes("Error:") || log.includes("错误：") || log.includes("level=error")) {
                 return 'var(--error-color)';
             } else if (log.includes("Warning:") || log.includes("警告：") || log.includes("level=warning")) {
-                return '#ff00bb';
+                return 'var(--warning-log)';
             } else if (log.includes("Watchdog:") || log.includes("守护程序：")) {
-                return '#b300ff';
+                return 'var(--watch-log)';
             } else if (log.match(/level=info|Success|Started|Ready/)) {
                 return 'var(--success-color)';
             } else {
@@ -2799,12 +2768,12 @@
             StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "toolbar_show_sys")%>', function(x, status) {
                 if (x && x.status == 200 && x.responseText != "") {
                     self.retryCount = 0;
-                    var cpuColor = status.cpu <= 50 ? "var(--success-color)" : (status.cpu <= 80 ? "orange" : "red");
+                    var cpuColor = status.cpu <= 50 ? "var(--success-color)" : (status.cpu <= 80 ? "var(--warning-color)" : "var(--error-color)");
                     var cpuValue = status.cpu <= 100 ? status.cpu + " %" : "0 %";
                     document.getElementById("cpu_t").innerHTML = "<font style=\"color:"+cpuColor+"\">"+cpuValue+"</font>";
                     
                     var loadValue = parseFloat(status.load_avg) || 0;
-                    var loadColor = loadValue <= 1.0 ? "var(--success-color)" : (loadValue <= 2.0 ? "orange" : "red");
+                    var loadColor = loadValue <= 1.0 ? "var(--success-color)" : (loadValue <= 2.0 ? "var(--warning-color)" : "var(--error-color)");
                     document.getElementById("load_a").innerHTML = "<font style=\"color:"+loadColor+"\">"+status.load_avg+"</font>";
                 } else {
                     self.handleError();
@@ -2886,12 +2855,12 @@
             ];
             
             if (!SystemStatusManager.isEnabled) {
-                var cpuColor = status.cpu <= 50 ? "var(--success-color)" : (status.cpu <= 80 ? "orange" : "red");
+                var cpuColor = status.cpu <= 50 ? "var(--success-color)" : (status.cpu <= 80 ? "var(--warning-color)" : "var(--error-color)");
                 var cpuValue = status.cpu <= 100 ? status.cpu + " %" : "0 %";
                 updates.push({element: document.getElementById("cpu_t"), content: "<font style=\"color:"+cpuColor+"\">"+cpuValue+"</font>"});
                 
                 var loadValue = parseFloat(status.load_avg) || 0;
-                var loadColor = loadValue <= 1.0 ? "var(--success-color)" : (loadValue <= 2.0 ? "orange" : "red");
+                var loadColor = loadValue <= 1.0 ? "var(--success-color)" : (loadValue <= 2.0 ? "var(--warning-color)" : "var(--error-color)");
                 updates.push({element: document.getElementById("load_a"), content: "<font style=\"color:"+loadColor+"\">"+status.load_avg+"</font>"});
             }
             
@@ -2941,7 +2910,7 @@
             if (!pluginToggleUserAction) {
                 updates.push({
                     element: DOMCache.clash,
-                    content: status.clash ? '<b style=color:var(--success-color)>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : '<b style=color:red><%:Not Running%></b>'
+                    content: status.clash ? '<b style=color:var(--success-color)>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : '<b style=color:var(--error-color)><%:Not Running%></b>'
                 });
                 
                 updatePluginToggleState(status.clash);
@@ -2989,13 +2958,13 @@
                 
                 if (status.daip && window.location.hostname == status.daip) {
                     dapoContent = status.cn_port ? ":"+status.cn_port : "";
-                    daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+                    daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:var(--error-color)>"+"<%:Not Set%>"+"</b>";
                 } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
                     dapoContent = status.db_foward_port ? ":"+status.db_foward_port : "";
-                    daipContent = status.db_foward_domain ? "<b style=color:var(--success-color)>"+status.db_foward_domain+dapoContent+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+                    daipContent = status.db_foward_domain ? "<b style=color:var(--success-color)>"+status.db_foward_domain+dapoContent+"</b>" : "<b style=color:var(--error-color)>"+"<%:Not Set%>"+"</b>";
                 } else {
                     dapoContent = status.cn_port ? ":"+status.cn_port : "";
-                    daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:red>"+"<%:Not Set%>"+"</b>";
+                    daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:var(--error-color)>"+"<%:Not Set%>"+"</b>";
                 }
                 
                 DOMCache.daip.innerHTML = daipContent;                
@@ -3038,17 +3007,17 @@
                 DOMCache.radio_de.parentElement.classList.remove('hidden-radio-de');
                 DOMCache.radio_de.parentElement.parentElement.classList.remove('hidden-radio-de');
 
-                DOMCache.radio_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
+                DOMCache.radio_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
                 DOMCache.dns_setting_sniffer.style.display = "none";
                 DOMCache.dns_setting_respect.style.display = "none";
                 DOMCache.oc_setting_oversea.style.display = "none";
                 DOMCache.dns_setting_sniffer_de.style.display = "";
                 DOMCache.dns_setting_respect_de.style.display = "";
                 DOMCache.oc_setting_oversea_de.style.display = "";
-                DOMCache.dns_setting_sniffer_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
-                DOMCache.dns_setting_respect_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
-                DOMCache.oc_setting_oversea_de.innerHTML = "<b style=color:red><%:Not Running%></b>";
-                DOMCache.daip.innerHTML = "<b style=color:red><%:Not Running%></b>";
+                DOMCache.dns_setting_sniffer_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
+                DOMCache.dns_setting_respect_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
+                DOMCache.oc_setting_oversea_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
+                DOMCache.daip.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
             }
 
             StateManager.current_status = status;
@@ -3062,7 +3031,7 @@
                         DOMCache.mix_proxy.innerHTML = "<b style=color:var(--success-color)>" + mix_addr + "</b>";
                     } else {
                         StateManager.cached_proxy_info = null;
-                        DOMCache.mix_proxy.innerHTML = "<b style=color:red><%:Not Available%></b>";
+                        DOMCache.mix_proxy.innerHTML = "<b style=color:var(--error-color)><%:Not Available%></b>";
                     }
                 });
                 
@@ -3073,7 +3042,7 @@
                 DOMCache.copy_pac_config.style.display = "inline";
             } else {
                 StateManager.cached_proxy_info = null;
-                DOMCache.mix_proxy.innerHTML = "<b style=color:red><%:Not Running%></b>";
+                DOMCache.mix_proxy.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
                 DOMCache.copy_secret.style.display = "none";
                 DOMCache.copy_address.style.display = "none";
                 DOMCache.copy_mix_address.style.display = "none";
@@ -3369,10 +3338,10 @@
 				var isRunning = StateManager.current_status.clash;
 				
 				if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix") {
-					DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Fake-IP%></b>" : '<b style=color:red><%:Not Running%></b>';
+					DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Fake-IP%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
 					DOMCache.radio_run_normal.innerHTML = "<%:Enhance%>";
 				} else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix") {
-					DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Redir-Host%></b>" : '<b style=color:red><%:Not Running%></b>';
+					DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Redir-Host%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
 					DOMCache.radio_run_normal.innerHTML = "<%:Compat%>";
 				}
 				
@@ -3609,6 +3578,24 @@
     }
 
     function clashversion_check() {
+        function compareVersions(v1, v2) {
+            if (!v1 || !v2) return 0;
+            var ver1 = v1.replace(/^v/, '').split('.');
+            var ver2 = v2.replace(/^v/, '').split('.');
+            
+            var maxLen = Math.max(ver1.length, ver2.length);
+            while (ver1.length < maxLen) ver1.push('0');
+            while (ver2.length < maxLen) ver2.push('0');
+            
+            for (var i = 0; i < maxLen; i++) {
+                var num1 = parseInt(ver1[i], 10) || 0;
+                var num2 = parseInt(ver2[i], 10) || 0;
+                if (num1 > num2) return 1;
+                if (num1 < num2) return -1;
+            }
+            return 0;
+        }
+
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', function(x, status) {
             if (x && x.status == 200) {
                 if (status.coremetacv && status.coremetacv !== "0") {
@@ -3620,13 +3607,6 @@
                     }
                     
                     DOMCache.core_version_text.textContent = coreVersionText;
-                    
-                    if (DOMCache.core_version_text.scrollWidth > DOMCache.core_version_text.clientWidth) {
-                        DOMCache.core_version_text.title = coreVersionText;
-                    } else {
-                        DOMCache.core_version_text.title = '';
-                    }
-                    
                     DOMCache.core_version_display.style.display = 'flex';
                     
                     var existingDot = DOMCache.core_version_display.querySelector('.update-dot');
@@ -3637,11 +3617,15 @@
                     if (hasUpdate) {
                         var updateDot = document.createElement('span');
                         updateDot.className = 'update-dot';
-                        DOMCache.core_version_display.title = '<%:New version available%> ' + status.corelv;
                         DOMCache.core_version_display.appendChild(updateDot);
+                        DOMCache.core_version_display.title = '<%:New version available%> ' + status.corelv;
+                        DOMCache.core_version_text.removeAttribute('title');
+                    } else {
+                        DOMCache.core_version_display.title = '';
                     }
                 } else {
                     DOMCache.core_version_display.style.display = 'none';
+                    DOMCache.core_version_display.title = '';
                 }
                 
                 if (status.opcv && status.opcv !== "0") {
@@ -3649,36 +3633,12 @@
                     var hasUpdate = false;
                     
                     if (status.oplv && status.oplv !== "" && status.oplv !== "loading...") {
-                        function compareVersions(v1, v2) {
-                            var ver1 = v1.replace(/^v/, '').split('.');
-                            var ver2 = v2.replace(/^v/, '').split('.');
-                            
-                            var maxLen = Math.max(ver1.length, ver2.length);
-                            while (ver1.length < maxLen) ver1.push('0');
-                            while (ver2.length < maxLen) ver2.push('0');
-                            
-                            for (var i = 0; i < maxLen; i++) {
-                                var num1 = parseInt(ver1[i], 10);
-                                var num2 = parseInt(ver2[i], 10);
-                                if (num1 > num2) return 1;
-                                if (num1 < num2) return -1;
-                            }
-                            return 0;
-                        }
-                        
                         if (compareVersions(status.oplv, status.opcv) > 0) {
                             hasUpdate = true;
                         }
                     }
                     
                     DOMCache.plugin_version_text.textContent = pluginVersionText;
-                    
-                    if (DOMCache.plugin_version_text.scrollWidth > DOMCache.plugin_version_text.clientWidth) {
-                        DOMCache.plugin_version_text.title = pluginVersionText;
-                    } else {
-                        DOMCache.plugin_version_text.title = '';
-                    }
-                    
                     DOMCache.plugin_version_display.style.display = 'flex';
                     
                     var existingDot = DOMCache.plugin_version_display.querySelector('.update-dot');
@@ -3689,16 +3649,19 @@
                     if (hasUpdate) {
                         var updateDot = document.createElement('span');
                         updateDot.className = 'update-dot';
-                        DOMCache.plugin_version_display.title = '<%:New version available%> ' + status.oplv;
                         DOMCache.plugin_version_display.appendChild(updateDot);
+                        DOMCache.plugin_version_display.title = '<%:New version available%> ' + status.oplv;
+                        DOMCache.plugin_version_text.removeAttribute('title');
+                    } else {
+                        DOMCache.plugin_version_display.title = '';
                     }
                 } else {
                     DOMCache.plugin_version_display.style.display = 'none';
+                    DOMCache.plugin_version_display.title = '';
                 }
             }
         });
     }
-
 
     function logo_error(imgobj, imgSrc) {
         imgobj.src = imgSrc;
@@ -3957,7 +3920,7 @@
                 alert(errorMessage);
 
                 if (DOMCache.clash) {
-                    DOMCache.clash.innerHTML = '<b style="color:red"><%:Operation Failed%></b>';
+                    DOMCache.clash.innerHTML = '<b style="color:var(--error-color)"><%:Operation Failed%></b>';
                 }
                 
                 pluginToggleUserAction = false;
@@ -3979,7 +3942,7 @@
             if (DOMCache.clash && StateManager.current_status) {
                 DOMCache.clash.innerHTML = isRunning ? 
                     '<b style=color:var(--success-color)>' + (StateManager.current_status.core_type || 'OpenClash') +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : 
-                    '<b style=color:red><%:Not Running%></b>';
+                    '<b style=color:var(--error-color)><%:Not Running%></b>';
             }
             
             if (!isRunning && StateManager.current_status && !StateManager.current_status.clash) {
@@ -4014,7 +3977,7 @@
                 alert('<%:Failed to switch config file:%> ' + (status.message || '<%:Unknown error%>'));
                 
                 if (DOMCache.oclog) {
-                    DOMCache.oclog.innerHTML = '<b style="color:red"><%:Switch Failed%></b>';
+                    DOMCache.oclog.innerHTML = '<b style="color:var(--error-color)"><%:Switch Failed%></b>';
                 }
                 
                 pluginToggleUserAction = false;
@@ -4059,7 +4022,7 @@
                     pluginToggleUserAction = false;
                     
                     if (DOMCache.oclog) {
-                        DOMCache.oclog.innerHTML = '<b style="color:red"><%:Update Failed%></b>';
+                        DOMCache.oclog.innerHTML = '<b style="color:var(--error-color)"><%:Update Failed%></b>';
                     }
                     
                     alert('<%:Failed to update config file:%> ' + (status.message || status.error || '<%:Unknown error%>'));
@@ -4068,7 +4031,7 @@
                 pluginToggleUserAction = false;
                 
                 if (DOMCache.oclog) {
-                    DOMCache.oclog.innerHTML = '<b style="color:red"><%:Update Failed%></b>';
+                    DOMCache.oclog.innerHTML = '<b style="color:var(--error-color)"><%:Update Failed%></b>';
                 }
                 
                 alert('<%:Failed to update config file, please try again later%>');
@@ -4114,10 +4077,6 @@
                     toggleElement.disabled = false;
                 }
                 alert('<%:Failed to restart core%>');
-                
-                if (DOMCache.oclog) {
-                    DOMCache.oclog.innerHTML = '<b style="color:red"><%:Restart Failed%></b>';
-                }
                 
                 pluginToggleUserAction = false;
             }
