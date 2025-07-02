@@ -219,10 +219,11 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 1px;
+    gap: 8px;
     flex: 1;
     justify-content: center;
     min-height: 50px;
+    line-height: 15px;
 }
 
 .oc .ip-result {
@@ -807,7 +808,7 @@
                 }
                 else if (img_load_time > 500 && img_load_time <= 1000) {
                     $$.getElementById(cbLoID).innerHTML = '<span class="sk-load-success">' + img_load_time + ' ms</span>'
-                    $$.getElementById(cbLoID).style.color = 'orange';
+                    $$.getElementById(cbLoID).style.color = 'var(--warning-color)';
                 }
                 else {
                     $$.getElementById(cbLoID).innerHTML = '<span class="sk-load-success">' + img_load_time + ' ms</span>'
@@ -844,7 +845,7 @@
                                 }
                                 else if (load_time > 500 && load_time <= 1000) {
                                     $$.getElementById(cbLoID).innerHTML = '<span class="sk-load-success">' + load_time + ' ms</span>'
-                                    $$.getElementById(cbLoID).style.color = 'orange';
+                                    $$.getElementById(cbLoID).style.color = 'var(--warning-color)';
                                 }
                                 else {
                                     $$.getElementById(cbLoID).innerHTML = '<span class="sk-load-success">' + load_time + ' ms</span>'
