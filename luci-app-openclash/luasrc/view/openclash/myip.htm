@@ -533,7 +533,8 @@
                                 <p class="myip-section-title">
                                     <%:IP Address%>
                                     <span class="myip-toolbar">
-                                        <svg id="eye-icon" class="myip-icon-btn" width="20" height="20" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" title="<%:Hide IP%>" onclick="return privacy_my_ip(this)">
+                                        <svg id="eye-icon" class="myip-icon-btn" width="20" height="20" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="return privacy_my_ip(this)">
+                                            <title><%:Hide IP%></title>
                                             <path id="eye-open" d="M128,56C48,56,16,128,16,128s32,72,112,72,112-72,112-72S208,56,128,56Z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></path>
                                             <circle id="eye-open-circle" cx="128" cy="128" r="40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="12"></circle>
                                             <g id="eye-closed" style="display: none;">
@@ -586,14 +587,16 @@
                                 <p class="myip-section-title">
                                     <%:Website Access Check%>
                                     <span class="myip-toolbar">
-                                        <svg id="mode-icon" class="mode-icon myip-icon-btn" width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" title="<%:Router Mode%>" onclick="return toggle_mode_by_icon(this)">
+                                        <svg id="mode-icon" class="mode-icon myip-icon-btn" width="22" height="22" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" onclick="return toggle_mode_by_icon(this)">
+                                            <title><%:Router Mode%></title>
                                             <rect x="4" y="28" width="40" height="14" rx="2" fill="#2F88FF" stroke="#333" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                                             <path d="M14 35L22 35" stroke="#FFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                                             <rect x="30" y="33" width="4" height="4" rx="2" fill="#FFF"/>
                                             <path d="M12 28L12 8" stroke="#333" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                                             <path d="M36 28V8" stroke="#333" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                                         </svg>
-                                        <svg id="data-refresh-icon" class="myip-icon-btn" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" title="<%:Refresh%>" onclick="return refresh_myip(this)">
+                                        <svg id="data-refresh-icon" class="myip-icon-btn" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" onclick="return refresh_myip(this)">
+                                            <title><%:Refresh%></title>
                                             <path d="M23 4v6h-6"></path>
                                             <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
                                         </svg>
@@ -968,17 +971,18 @@
         var eyeOpen = document.getElementById('eye-open');
         var eyeOpenCircle = document.getElementById('eye-open-circle');
         var eyeClosed = document.getElementById('eye-closed');
+        var titleElement = eyeIcon.querySelector('title');
         
         if (isOpen) {
             eyeOpen.style.display = '';
             eyeOpenCircle.style.display = '';
             eyeClosed.style.display = 'none';
-            eyeIcon.setAttribute('title', '<%:Hide IP%>');
+            if (titleElement) titleElement.textContent = '<%:Hide IP%>';
         } else {
             eyeOpen.style.display = 'none';
             eyeOpenCircle.style.display = 'none';
             eyeClosed.style.display = '';
-            eyeIcon.setAttribute('title', '<%:Show IP%>');
+            if (titleElement) titleElement.textContent = '<%:Show IP%>';
         }
     };
 
@@ -1052,6 +1056,7 @@
         var rect = modeIcon.querySelector('rect[x="4"]');
         var paths = modeIcon.querySelectorAll('path');
         var smallRect = modeIcon.querySelector('rect[x="30"]');
+        var titleElement = modeIcon.querySelector('title');
         
         if (use_router_mode) {
             rect.setAttribute('fill', '#2F88FF');
@@ -1060,7 +1065,7 @@
             paths[1].setAttribute('stroke', '#333');
             paths[2].setAttribute('stroke', '#333');
             smallRect.setAttribute('fill', '#FFF');
-            modeIcon.setAttribute('title', '<%:Router Mode%>');
+            if (titleElement) titleElement.textContent = '<%:Router Mode%>';
         } else {
             rect.setAttribute('fill', '#666');
             rect.setAttribute('stroke', '#999');
@@ -1068,7 +1073,7 @@
             paths[1].setAttribute('stroke', '#999');
             paths[2].setAttribute('stroke', '#999');
             smallRect.setAttribute('fill', '#CCC');
-            modeIcon.setAttribute('title', '<%:Browser Mode%>');
+            if (titleElement) titleElement.textContent = '<%:Browser Mode%>';
         }
     }
     
