@@ -2,9 +2,5 @@
   {
     "zh": "Smart 策略组内核现已支持 policy-priority 参数来自定义调整节点权重，请自行替换测试、使用。",
     "en": "The Smart policy group core now supports the policy-priority parameter to customize node weights. Please replace it for testing and use."
-  },
-  {
-    "zh": "如在更新内核后出现【Parse config error: path is not subpath of home directory】的错误时请在最新版插件设置页面启用【跳过安全路径检查】选项。",
-    "en": "If you get [Parse config error: path is not subpath of home directory] after updating the core, please enable [Skip Safe Path Check] option in the settings page of the latest dev version of the OpenClash."
   }
 ]

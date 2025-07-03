@@ -198,11 +198,45 @@ function createAndDownloadFile(fileName, content) {
 };
 
 function download_log(){
-	var dt = new Date();
-	var timestamp = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getDate()+"-"+dt.getHours()+"-"+dt.getMinutes()+"-"+dt.getSeconds();
-	lv.innerHTML = lv.innerHTML.split('\n').filter(function(line) { return line.indexOf("】订阅的下载链接为【") === -1 && line.indexOf("】Downloading URL【") === -1; }).join('\n');
-	createAndDownloadFile("OpenClash-"+timestamp+".log","<%:OpenClash Log%>:\n"+lv.innerHTML+"\n<%:Core Log%>:\n"+cl.innerHTML)
-	return
+    var dt = new Date();
+    var timestamp = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getDate()+"-"+dt.getHours()+"-"+dt.getMinutes()+"-"+dt.getSeconds();
+    
+    var oc_content = "";
+    if (typeof oc_editor !== 'undefined' && oc_editor) {
+        oc_content = oc_editor.getValue();
+    } else if (lv && lv.value) {
+        oc_content = lv.value;
+    } else if (lv && lv.innerHTML) {
+        oc_content = lv.innerHTML;
+    }
+    
+    var core_content = "";
+    if (typeof core_editor !== 'undefined' && core_editor) {
+        core_content = core_editor.getValue();
+    } else if (cl && cl.value) {
+        core_content = cl.value;
+    } else if (cl && cl.innerHTML) {
+        core_content = cl.innerHTML;
+    }
+    
+    oc_content = oc_content.split('\n').filter(function(line) { 
+        return line.indexOf("】订阅的下载链接为【") === -1 && line.indexOf("】Downloading URL【") === -1; 
+    }).join('\n');
+    
+    if (!oc_content.trim() && !core_content.trim()) {
+        return;
+    }
+    
+    var downloadContent = "";
+    if (oc_content.trim()) {
+        downloadContent += "<%:OpenClash Log%>:\n" + oc_content + "\n\n";
+    }
+    if (core_content.trim()) {
+        downloadContent += "<%:Core Log%>:\n" + core_content;
+    }
+    
+    createAndDownloadFile("OpenClash-"+timestamp+".log", downloadContent);
+    return;
 };
 
 function del_log() {
@@ -375,25 +409,25 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
     var batchSize, interval;
     
     if (totalLines <= 10) {
-        batchSize = 1;
+        batchSize = 2;
         interval = 90;
     } else if (totalLines <= 50) {
-        batchSize = 5;
+        batchSize = 10;
         interval = 60;
     } else if (totalLines <= 200) {
-        batchSize = 10;
+        batchSize = 30;
         interval = 35;
     } else if (totalLines <= 500) {
-        batchSize = 25;
+        batchSize = 60;
         interval = 25;
     } else if (totalLines <= 1000) {
-        batchSize = 50;
+        batchSize = 120;
         interval = 15;
     } else if (totalLines <= 1500) {
-        batchSize = 70;
+        batchSize = 180;
         interval = 10;
     } else {
-        batchSize = 80;
+        batchSize = 250;
         interval = 5;
     }
     
@@ -586,7 +620,6 @@ window.onload = function(){
             };
         }
         
-        // 正确绑定事件
         li.onclick = handleTabSwitch(li);
         li.ontouchstart = handleTabSwitch(li);
     }

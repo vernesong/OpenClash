@@ -466,9 +466,14 @@ o:value("udp", translate("UDP"))
 o:value("tcp", translate("TCP"))
 o:value("tls", translate("TLS"))
 o:value("https", translate("HTTPS"))
-o:value("quic", translate("QUIC ")..translate("(Only Meta Core)"))
+o:value("quic", translate("QUIC"))
 o.default     = "udp"
 o.rempty      = false
+
+---- Disable-IPv6
+o = ds:option(Flag, "disable_ipv6", translate("Disable-IPv6"))
+o.rmempty     = false
+o.default     = o.disbled
 
 -- [[ Other Rules Manage ]]--
 ss = m:section(TypedSection, "other_rules", translate("Other Rules Edit")..translate("(Take Effect After Choose Above)"))

@@ -9,19 +9,18 @@ local dns_host = "www.instagram.com"
 %>
 
 <style>
-:root[data-darkmode="true"] {
-	.diag-style {
-    	background-color: #404040;
-	}
+:root[data-darkmode="true"] .diag-style {
+    background-color: #404040;
+}
 
-	#diag-rc-output > pre {
-		background-color: #404040;
-		color: #ffffff;
-	}
-	#dns-rc-output > pre {
-		background-color: #404040;
-		color: #ffffff;
-	}
+:root[data-darkmode="true"] #diag-rc-output > pre {
+	background-color: #404040;
+	color: #ffffff;
+}
+
+:root[data-darkmode="true"] #dns-rc-output > pre {
+	background-color: #404040;
+	color: #ffffff;
 }
 
 .diag-style {
@@ -96,7 +95,7 @@ local dns_host = "www.instagram.com"
 		if (legend && output)
 		{
 			output.innerHTML =
-				'<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
+				'<img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src=\'<%=resource%>/icons/loading.gif\'" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
 				'<%:Waiting for command to complete...%>';
 
 			legend.parentNode.style.display = 'block';
@@ -139,7 +138,7 @@ local dns_host = "www.instagram.com"
 		if (legend && output)
 		{
 			output.innerHTML =
-				'<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
+				'<img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src=\'<%=resource%>/icons/loading.gif\'" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
 				'<%:Waiting for command to complete...%>';
 
 			legend.parentNode.style.display = 'block';
@@ -176,7 +175,7 @@ local dns_host = "www.instagram.com"
 		if (legend && output)
 		{
 			output.innerHTML =
-				'<img src="<%=resource%>/icons/loading.gif" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
+				'<img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src=\'<%=resource%>/icons/loading.gif\'" alt="<%:Loading%>" style="vertical-align:middle" /> ' +
 				'<%:Waiting for command to complete...%>';
 
 			legend.parentNode.style.display = 'block';

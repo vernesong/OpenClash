@@ -6,8 +6,8 @@
 	  		<b><%:Note: if the update fails, you can manually download and upload%></b>
 	  	</p>
 	  </td></tr>
-	  <tr><td width="16.6%"><%:Compiled Version%></td>
-	  	<td width="16.6%" align="left"><select id="CORE_VERSION">
+	  <tr><td width="16.6%" align="right"><%:Compiled Version%></td>
+	  	<td width="16.6%" align="left"><select class="select-class" id="CORE_VERSION">
 	  		<option value="linux-386"><%:linux-386%></option>
 				<option value="linux-amd64"><%:linux-amd64(x86-64)%></option>
 				<option value="linux-amd64-v3"><%:linux-amd64-v3(x86-64)%></option>
@@ -27,29 +27,36 @@
 				<option value="linux-mipsle-hardfloat"><%:linux-mipsle-hardfloat%></option>
 				<option value="0"><%:Not Set%></option>
 	  	</select></td>
-	  	<td width="16.6%"><%:Release Branch%></td>
-	  	<td width="16.6%" align="left"><select id="RELEASE_BRANCH">
+	  	<td width="16.6%" align="right"><%:Release Branch%></td>
+	  	<td width="16.6%" align="left"><select class="select-class" id="RELEASE_BRANCH">
 	  		<option value="master">Master</option>
 			<option value="dev">Developer</option>
 	  	</select></td>
-		<td width="16.6%"><%:Smart Group Support%></td>
-	  	<td width="16.6%" align="left"><select id="SMART_ENABLE">
+		<td width="16.6%" align="right"><%:Smart Core%> <a href="javascript:void(0);" onclick="window.open('https://github.com/vernesong/mihomo/releases', '_blank');" style="color: #0066cc; text-decoration: none;" title="<%:View core infos that support smart group%>"> (?)</a></td>
+	  	<td width="16.6%" align="left"><select class="select-class" id="SMART_ENABLE">
 	  		<option value="0"><%:Disabled%></option>
 			<option value="1"><%:Enable%></option>
 	  	</select></td>
 	  	</tr>
 	</table>
+</fieldset>
+<fieldset class="cbi-section">
 	<table width="100%">
-	  <tr><td width="100%" colspan="6">
+		<tr><td width="100%" colspan="4">
+	    <p align="center">
+	  		<b><%:Core Update%></b>
+	  	</p>
+	  	</td></tr>
+	  	<tr><td width="100%" colspan="4">
 		<tr>
 			<td width="25%"><%:CPU Architecture%></td><td width="25%" align="left" id="CPU_MODEL"><%:Collecting data...%></td>
 			<td width="25%"><%:Last Check Update%></td><td width="25%" align="left" id="CHECKTIME"><%:Collecting data...%></td>
 		</tr>
-	  <tr><td width="100%" colspan="4">
+	  	<tr><td width="100%" colspan="4">
 	    <p align="center">
 	  		<b><%:Core path:%>/etc/openclash/core/clash_meta</b>
 	  	</p>
-	  </td></tr>
+	  	</td></tr>
 		<tr><td width="25%">[Meta] <%:Current Core%></td><td width="25%" align="left" id="CORE_META_CV"><%:Collecting data...%></td><td width="25%">[Meta] <%:Latest Core%></td><td width="25%" align="left" id="CORE_META_LV"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"><%:Update Core%></td><td width="25%" align="left" id="core_meta_up"><%:Collecting data...%></td><td width="25%"><%:Download Latest Core%></td><td width="25%" align="left" id="ma_core_meta_up"><%:Collecting data...%></td></tr>
 	</table>
@@ -60,34 +67,29 @@
 	    <p align="center">
 	  		<b><%:Client Update%></b>
 	  	</p>
-	  </td></tr>
+	  	</td></tr>
 		<tr><td width="25%"><%:Current Client%></td><td width="25%" align="left" id="OP_CV"><%:Collecting data...%></td><td width="25%"><%:Latest Client%></td><td width="25%" align="left" id="OP_LV"><%:Collecting data...%></td></tr>
-	  <tr><td width="25%"><%:Update Client%></td><td width="25%" align="left" id="op_up"><%:Collecting data...%></td><td width="25%"><%:Download Latest Client%></td><td width="25%" align="left" id="ma_op_up"><%:Collecting data...%></td></tr>
+	  	<tr><td width="25%"><%:Update Client%></td><td width="25%" align="left" id="op_up"><%:Collecting data...%></td><td width="25%"><%:Download Latest Client%></td><td width="25%" align="left" id="ma_op_up"><%:Collecting data...%></td></tr>
 	</table>
 </fieldset>
 <fieldset class="cbi-section">
 	<table width="100%">
 	  <tr>
-	  	<td width="25%">
+	  	<td width="33%">
 	  	   <p align="center" id="restore">
 	  		   <%:Collecting data...%>
 	  	   </p>
 	  	</td>
-	  	<td width="25%">
+	  	<td width="33%">
 	  	   <p align="center" id="remove_core">
 	  		   <%:Collecting data...%>
 	  	   </p>
 	  	</td>
-		  <td width="25%">
+		  <td width="33%">
 			<p align="center" id="one_key_update_cdn">
 				<%:Collecting data...%>
 			</p>
 	   </td>
-	    <td width="25%">
-	  	   <p align="center" id="one_key_update">
-	  		   <%:Collecting data...%>
-	  	   </p>
-	    </td>
 	  </tr>
 	</table>
 </fieldset>
@@ -155,7 +157,6 @@
 	var backup_config_only = document.getElementById('backup_config_only');
 	var backup_rule_only = document.getElementById('backup_rule_only');
 	var backup_proxy_only = document.getElementById('backup_proxy_only');
-	var one_key_update = document.getElementById('one_key_update');
 	var one_key_update_cdn = document.getElementById('one_key_update_cdn');
 	var remove_core = document.getElementById('remove_core');
 	var release_branch = document.getElementById('RELEASE_BRANCH');
@@ -165,8 +166,7 @@
 	ma_core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'Meta\')"/>';
 	ma_op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_op_update(this)"/>';
 	restore.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Restore Default Config%>" onclick="return restore_config(this)"/>';
-	one_key_update.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:One Click Check Update%>" onclick="return all_one_key_update(this)"/>';
-	one_key_update_cdn.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:One Click Check Update With CDN%>" onclick="return all_one_key_update_cdn(this)"/>';
+	one_key_update_cdn.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Check Update%>" onclick="return all_one_key_update_cdn(this)"/>';
 	remove_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
 	backup.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup OpenClash%>" onclick="return backup_all_file(this)"/>';
 	backup_ex_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Exclude Cores%>" onclick="return backup_no_core(this)"/>';
@@ -206,7 +206,7 @@
 	XHR.poll(300, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_last_version")%>', null, function(x, status) {
 	});
 	
-	XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
+	XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
 			cpu_model.innerHTML = status.coremodel ? "<b style=color:green>"+status.coremodel+"</b>" : "<b style=color:red><%:Model Not Found%></b>";
 			if ( status.upchecktime != "1" ) {
@@ -216,17 +216,14 @@
 				checktime.innerHTML = "<b style=color:red><%:Check Failed%></b>";
 			}
 			if ( status.coremetacv == "0" ) {
-				core_meta_cv.innerHTML = "<b style=color:red><%:File Not Exist%></b>";
-			}
-			else if (status.coremetacv != "") {
-				core_meta_cv.innerHTML = "<b style=color:green>"+status.coremetacv+"</b>";
+				core_meta_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
 			}
 			else {
-				core_meta_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
+				core_meta_cv.innerHTML = "<b style=color:green>"+status.coremetacv+"</b>";
 			}
 			var coremetalvis = status.corelv;
 			if (coremetalvis != status.coremetacv && coremetalvis != "" && coremetalvis != "loading...") {
-			   core_meta_lv.innerHTML = "<b style=color:green>"+coremetalvis+"<%:<New>%></b>";
+			   core_meta_lv.innerHTML = "<b style=color:green>"+coremetalvis+" <%:<New>%></b>";
 			}
 			else if (coremetalvis != "" && coremetalvis == status.coremetacv && coremetalvis != "loading...") {
 			   core_meta_lv.innerHTML = "<b style=color:green>"+coremetalvis+"</b>";
@@ -238,17 +235,31 @@
 			   core_meta_lv.innerHTML = "<b style=color:red><%:Unknown%></b>";
 			}
 			var oplv = status.oplv;
-			op_cv.innerHTML = status.opcv ? "<b style=color:green>"+status.opcv+"</b>" : "<b style=color:red><%:Unknown%></b>";
-			if (oplv != "" && oplv != "loading..." && status.opcv) {
-				var oplvck = oplv.match(/\d+(\.\d+)+/)[0].replace(/\./g, "")
-				var opcvck = status.opcv.match(/\d+(\.\d+)+/)[0].replace(/\./g, "")
-				if (oplvck > opcvck) {
-					op_lv.innerHTML = "<b style=color:green>"+oplv+"<%:<New>%></b>";
-				}
-				else {
-					op_lv.innerHTML = "<b style=color:green>"+oplv+"</b>";
-				}
-			}
+			op_cv.innerHTML = status.opcv != "0" ? "<b style=color:green>"+status.opcv+"</b>" : "<b style=color:red><%:Unknown%></b>";
+			if (oplv != "" && oplv != "loading..." && status.opcv != "0") {
+                function compareVersions(v1, v2) {
+                    var ver1 = v1.replace(/^v/, '').split('.');
+                    var ver2 = v2.replace(/^v/, '').split('.');
+                    
+                    var maxLen = Math.max(ver1.length, ver2.length);
+                    while (ver1.length < maxLen) ver1.push('0');
+                    while (ver2.length < maxLen) ver2.push('0');
+                    
+                    for (var i = 0; i < maxLen; i++) {
+                        var num1 = parseInt(ver1[i], 10);
+                        var num2 = parseInt(ver2[i], 10);
+                        if (num1 > num2) return 1;
+                        if (num1 < num2) return -1;
+                    }
+                    return 0;
+                }
+                
+                if (compareVersions(oplv, status.opcv) > 0) {
+                    op_lv.innerHTML = "<b style=color:green>"+oplv+" <%:<New>%></b>";
+                } else {
+                    op_lv.innerHTML = "<b style=color:green>"+oplv+"</b>";
+                }
+            }
 			else if (oplv != "" && oplv != "loading...") {
 				op_lv.innerHTML = "<b style=color:green>"+oplv+"</b>";
 			}
@@ -386,24 +397,23 @@
 		var s = smart_enable.value;
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.oplv, function(x, status) {
-				if ( x && x.status == 200 ) {
-					var oplv = status.oplv;
-					var oplvis = oplv.substring(oplv.indexOf("v") + 1,oplv.indexOf(","));
-					if ( oplvis != "" ) {
-						if (status.pkg_type == "apk") {
-							url2='https://raw.githubusercontent.com/vernesong/OpenClash/package/'+r+'/luci-app-openclash-'+oplvis+'.apk';
+				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.oplv, function(x, status) {
+					if ( x && x.status == 200 ) {
+						var oplv = status.oplv.substring(status.oplv.indexOf("v") + 1);
+						if ( oplv != "" && oplv != "loading..." ) {
+							if (status.pkg_type == "apk") {
+								url2='https://raw.githubusercontent.com/vernesong/OpenClash/package/'+r+'/luci-app-openclash-'+oplv+'.apk';
+							}
+							else {
+								url2='https://raw.githubusercontent.com/vernesong/OpenClash/package/'+r+'/luci-app-openclash_'+oplv+'_all.ipk';
+							}
+							window.location.href=url2;
 						}
 						else {
-							url2='https://raw.githubusercontent.com/vernesong/OpenClash/package/'+r+'/luci-app-openclash_'+oplvis+'_all.ipk';
+							alert('<%:Failed to get the latest version. Please try again later!%>')
 						}
-						window.location.href=url2;
 					}
-					else {
-						alert('<%:Failed to get the latest version. Please try again later!%>')
-					}
-				}
-			});
+				});
 			}
         });
         return false; 
@@ -418,7 +428,6 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "remove_all_core")%>', null, function(x, status) {
         	if ( x && x.status == 200 ) {
         		alert('<%:Remove succeeded!%>')
-        		window.location.href='<%="settings?tab.openclash.config=version_update"%>';
         	}
           	else {
             alert('<%:Remove failed!%>')
@@ -484,41 +493,6 @@
 		return false; 
     }
 
-    function all_one_key_update(btn)
-    {
-    	var v = core_version.value;
-		var r = release_branch.value;
-		var s = smart_enable.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
-			if (x && x.status == 200) {
-				btn.value    = '<%:One Click Check Update%>';
-				btn.disabled = true;
-				var r = confirm("<%:Check and Update all Cores and OpenClash?%>")
-				if (r == true) {
-					XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update_check")%>', null, function(x, status) {
-						if ( x && x.status == 200 ) {
-							if ( status.corever != "0" ) {
-								XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', null, function(x, status) {
-									if ( x && x.status != 200 ) {
-										alert('<%:Check failed, Please try again later!%>')
-									}
-								});
-								}
-							else {
-								alert('<%:No Compiled Version is Selected, Please Select on The Top and Try Again!%>')
-							}
-						}
-						else {
-							alert('<%:Check failed, Please try again later!%>')
-							}
-					});
-				}
-				btn.disabled = false;
-				return false;
-			}
-		});
-    }
-
 	function all_one_key_update_cdn(btn)
     {
     	var v = core_version.value;
@@ -526,17 +500,9 @@
 		var s = smart_enable.value;
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
-				btn.value    = '<%:One Click Check Update With CDN%>';
-				btn.disabled = true;
-				var r = confirm("<%:Check and Update all Cores and OpenClash?%>");
-				if (r == true) {
-					btn.disabled = false;
-					return select_git_cdn("one_key_update");
-				}
-				else {
-					btn.disabled = false;
-					return false;
-				}
+				btn.value    = '<%:Check Update%>';
+				btn.disabled = false;
+				return select_git_cdn("one_key_update");
 			}
 		});
     }

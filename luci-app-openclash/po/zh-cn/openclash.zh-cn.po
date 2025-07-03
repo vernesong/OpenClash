@@ -44,6 +44,9 @@ msgstr "设置"
 msgid "Config Subscribe"
 msgstr "配置订阅"
 
+msgid "Add Config File"
+msgstr "添加配置文件"
+
 msgid "Config Subscribe Edit"
 msgstr "编辑配置文件订阅信息"
 
@@ -313,6 +316,9 @@ msgstr "内核文件"
 
 msgid "Upload"
 msgstr "上传"
+
+msgid "Add"
+msgstr "添加"
 
 msgid "File saved to"
 msgstr "文件已成功上传到"
@@ -873,6 +879,9 @@ msgstr "节点切换容忍值（毫秒）"
 msgid "Manual-Select"
 msgstr "Select【手动选择】"
 
+msgid "Smart-Select"
+msgstr "Smart【智能选择】"
+
 msgid "URL-Test"
 msgstr "URL-Test【最低延迟】"
 
@@ -923,9 +932,6 @@ msgstr "更新时间"
 
 msgid "File Name"
 msgstr "文件名"
-
-msgid "Grammar Check"
-msgstr "语法检查"
 
 msgid "SwiTch"
 msgstr "切换"
@@ -1185,68 +1191,59 @@ msgstr "轮询（轮流使用全部代理）"
 msgid "Consistent-hashing"
 msgstr "哈希匹配（访问相同网站时使用同一个代理）"
 
+msgid "Sticky-sessions"
+msgstr "粘性会话（相同的来源地址-目标地址使用同一个代理）"
+
 msgid "Strategy Type"
 msgstr "策略类型"
 
 msgid "Choose The Load-Balance's Strategy Type"
 msgstr "选择负载均衡的策略类型"
 
-msgid "Main Program"
-msgstr "主程序"
+msgid "Choose The Smart's Strategy Type"
+msgstr "选择 Smart 策略组的初始数据收集策略类型"
 
-msgid "Daemons"
-msgstr "守护程序"
+msgid "Uselightgbm"
+msgstr "Uselightgbm(使用模型)"
+
+msgid "Collectdata"
+msgstr "Collectdata(收集数据)"
+
+msgid "Policy Priority"
+msgstr "Policy Priority(权重加成)"
+
+msgid "Use LightGBM Model For Smart Group Weight Prediction"
+msgstr "使用 LightGBM 模型为 Smart 策略组预测权重"
+
+msgid "Collect Datas For Smart Group Model Training"
+msgstr "收集 Smart 策略组的连接数据，方便用来分析及模型训练"
+
+msgid "The Priority Of The Nodes, The Higher Than 1, The More Likely It Is To Be Selected, The Default Is 1, Support Regex"
+msgstr "自定义 Smart 策略组内节点的权重加成，大于1表示权重加成优先选择，小于1表示权重削减降低使用率，默认为1，支持正则"
+
+msgid "Running Status"
+msgstr "运行状态"
 
 msgid "Running Mode"
 msgstr "运行模式"
 
-msgid "Yacd Control Panel"
-msgstr "Yacd 面板"
+msgid "yacd"
+msgstr "Yacd"
 
-msgid "Dashboard Control Panel"
-msgstr "Dashboard 面板"
+msgid "Dashboard"
+msgstr "Dashboard"
 
-msgid "Metacubexd Control Panel"
-msgstr "Metacubexd 面板"
+msgid "Metacubexd"
+msgstr "Metacubexd"
 
-msgid "zashboard Control Panel"
-msgstr "zashboard 面板"
+msgid "Zashboard"
+msgstr "Zashboard"
 
-msgid "Control Panel Login IP"
-msgstr "控制面板登录 IP"
+msgid "Control Panel"
+msgstr "控制面板"
 
-msgid "Control Panel Login Port"
-msgstr "控制面板登录端口"
-
-msgid "Control Panel Login Secret"
-msgstr "控制面板登录密钥"
-
-msgid "Dashboard Control Panel"
-msgstr "Dashboard 控制面板"
-
-msgid "Quick Operation"
-msgstr "常用操作快捷按钮"
-
-msgid "Please ensure that all items are displayed normally before running. If you need to update, please go to the global settings page"
-msgstr "组件的状态显示，运行前请确保各项目显示正常，需要更新请到全局设置页面操作"
-
-msgid "Node Select Backup"
-msgstr "策略组节点选择 备份日期"
-
-msgid "Mainland IP Update"
-msgstr "大陆 IP 白名单 更新日期"
-
-msgid "Mainland IPv6 Update"
-msgstr "大陆 IPv6 白名单 更新日期"
-
-msgid "lhie1 Rule Update"
-msgstr "lhie1 规则更新日期"
-
-msgid "GeoIP Data Update"
-msgstr "GeoIP 数据库日期"
-
-msgid "GeoSite Data Update"
-msgstr "GeoSite 数据库日期"
+msgid "Quick Action"
+msgstr "快捷操作"
 
 msgid "No Backup"
 msgstr "暂未备份"
@@ -1264,7 +1261,10 @@ msgid "Mix"
 msgstr "混合"
 
 msgid "Close All Connections"
-msgstr "重置所有链接"
+msgstr "关闭所有链接"
+
+msgid "Close All Connections Failed"
+msgstr "关闭所有连接失败"
 
 msgid "Restore Nodes Selection"
 msgstr "还原策略组节点选择"
@@ -1272,11 +1272,11 @@ msgstr "还原策略组节点选择"
 msgid "Save Nodes Selection"
 msgstr "保存策略组节点选择"
 
-msgid "Reload Firewall Rules"
-msgstr "重置防火墙规则"
+msgid "Reload Firewall"
+msgstr "重置防火墙"
 
-msgid "Check All Components Update"
-msgstr "插件和内核检查更新"
+msgid "Check Update"
+msgstr "检查更新"
 
 msgid "Check Config Update"
 msgstr "配置文件检查更新"
@@ -1290,14 +1290,8 @@ msgstr "GEOIP 数据库检查更新"
 msgid "Check GeoSite Data Update"
 msgstr "GeoSite 数据库检查更新"
 
-msgid "Check and Update all Cores and OpenClash?"
-msgstr "确定要一键检查并更新所有内核及插件吗？"
-
 msgid "You have not installed the core yet, do you want to download and install it now?"
 msgstr "您还未安装内核，是否立即下载安装？"
-
-msgid "Check failed, Please try again later!"
-msgstr "一键检查更新失败,请稍后再试！"
 
 msgid "No Compiled Version is Selected, Please Select on The Top and Try Again!"
 msgstr "未选择编译版本，请到上方标签选择后重试！"
@@ -1418,12 +1412,6 @@ msgstr "下载到本地"
 
 msgid "Restore Default Config"
 msgstr "还原默认配置"
-
-msgid "One Click Check Update"
-msgstr "一键检查更新"
-
-msgid "One Click Check Update With CDN"
-msgstr "使用CDN一键检查更新"
 
 msgid "Failed to get the latest version. Please try again later!"
 msgstr "最新版本获取失败，请稍后再试！"
@@ -1593,68 +1581,95 @@ msgstr "删除失败！"
 msgid "Import"
 msgstr "导入配置信息"
 
-msgid "Export SSR"
-msgstr "导出ssr配置信息"
+msgid "Import configuration information successfully"
+msgstr "导入配置信息成功"
 
-msgid "Import configuration information successfully."
-msgstr "导入配置信息成功。"
+msgid "Invalid format"
+msgstr "无效的格式"
 
-msgid "Invalid format."
-msgstr "无效的格式。"
-
-msgid "User cancelled."
-msgstr "用户已取消。"
+msgid "User cancelled"
+msgstr "用户已取消"
 
 msgid "Paste sharing link here"
 msgstr "在此处粘贴分享链接"
 
-msgid "Unable to copy SSR to clipboard."
-msgstr "无法复制 SSR 网址到剪贴板。"
+msgid "Unsupported protocol type"
+msgstr "不支持的协议"
 
-msgid "Copy SSR to clipboard successfully."
-msgstr "成功复制 SSR 网址到剪贴板。"
+msgid "Copy"
+msgstr "复制"
+
+msgid "Export"
+msgstr "导出配置信息"
+
+msgid "Export failed"
+msgstr "导出失败"
+
+msgid "Export error"
+msgstr "导出错误"
+
+msgid "Parse error."
+msgstr "解析错误"
+
+msgid "to clipboard successfully"
+msgstr "到剪贴板成功"
+
+msgid "Unable to copy"
+msgstr "无法复制"
+
+msgid "to clipboard"
+msgstr "到剪贴板"
 
 msgid "Exclude Keyword Match Default"
 msgstr "排除无效节点"
 
-msgid "Start Downloading"
-msgstr "开始下载"
+msgid "Tip: Start downloading"
+msgstr "提示：开始下载"
 
-msgid "Download Successful, Start Pre Update Test..."
+msgid "Download successful, start pre update test..."
 msgstr "下载成功，开始进行更新前测试..."
 
-msgid "Pre Update Test Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually With"
-msgstr "更新前测试失败，文件保存在 /tmp/openclash.apk，请尝试以下命令手动更新"
+msgid "Pre update test failed..."
+msgstr "更新前测试失败..."
 
-msgid "Pre Update Test Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually With"
+msgid "pre update test failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with"
 msgstr "更新前测试失败，文件保存在 /tmp/openclash.ipk，请尝试以下命令手动更新"
 
-msgid "Pre Update Test Passed, Ready to Update and Please Do not Refresh The Page and Other Operations..."
+msgid "pre update test failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with"
+msgstr "更新前测试失败，文件保存在 /tmp/openclash.apk，请尝试以下命令手动更新"
+
+msgid "pre update test passed, ready to update and please do not refresh the page and other operations..."
 msgstr "更新前测试通过，准备开始更新，更新过程请不要刷新页面和进行其他操作..."
 
-msgid "Uninstalling The Old Version, Please Do not Refresh The Page or Do Other Operations..."
-msgstr "正在卸载旧版本，更新过程请不要刷新页面和进行其他操作..."
+msgid "Tip: Uninstalling the old version, please do not refresh the page or do other operations..."
+msgstr "提示：正在卸载旧版本，更新过程请不要刷新页面和进行其他操作..."
 
-msgid "Installing The New Version, Please Do Not Refresh The Page or Do Other Operations..."
+msgid "Installing the new version, please do not refresh the page or do other operations..."
 msgstr "正在安装新版本，更新过程请不要刷新页面和进行其他操作..."
 
-msgid "OpenClash Update Successful, About To Restart!"
-msgstr "OpenClash 更新成功，即将进行重启！"
+msgid "Installation failed..."
+msgstr "软件包安装失败..."
 
-msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.ipk, Please Try to Update Manually With"
-msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.ipk，请尝试以下命令手动更新"
+msgid "Tip: OpenClash update successful, about to restart!"
+msgstr "提示：OpenClash 更新成功，即将进行重启！"
 
-msgid "OpenClash Update Failed, The File is Saved in /tmp/openclash.apk, Please Try to Update Manually With"
-msgstr "OpenClash 更新失败，文件保存在 /tmp/openclash.apk，请尝试以下命令手动更新"
+msgid "Error: OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with"
+msgstr "错误：OpenClash 更新失败，文件保存在 /tmp/openclash.ipk，请尝试以下命令手动更新"
 
-msgid "Download Failed, Please Check The Network or Try Again Later!"
+msgid "Error: OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with"
+msgstr "错误：OpenClash 更新失败，文件保存在 /tmp/openclash.apk，请尝试以下命令手动更新"
+
+msgid "Download Failed after 3 attempts, please check the network or try again later!"
 msgstr "下载失败，请检查网络或稍后再试！"
 
-msgid "Error: Failed to Get Version Information, Please Try Again Later..."
+msgid "Download failed..."
+msgstr "下载失败..."
+
+msgid "Error: Failed to get version information, please try again later..."
 msgstr "错误：获取版本信息失败，请稍后再试..."
 
-msgid "OpenClash Has not Been Updated, Stop Continuing!"
-msgstr "OpenClash 没有更新，停止继续操作！"
+msgid "Tip: OpenClash has not been updated, stop continuing!"
+msgstr "提示：OpenClash 没有更新，停止继续操作！"
 
 msgid "Core Version Check Error, Please Try Again Later..."
 msgstr "内核最新版本检测失败，请稍后再试..."
@@ -1665,20 +1680,29 @@ msgstr "版本内核正在下载，如下载失败请尝试手动下载并上传
 msgid "Core Download Successful, Start Update..."
 msgstr "版本内核下载成功，开始更新..."
 
+msgid "Core Download Failed, Please Check The Network or Try Again Later!"
+msgstr "版本内核下载失败，请检查网络情况或稍后再试！"
+
 msgid "Core Update Failed, Please Check The Network or Try Again Later!"
 msgstr "版本内核更新失败，请检查网络或稍后再试！"
 
 msgid "Core Update Successful!"
 msgstr "版本内核更新成功！"
 
-msgid "Core Update Failed. Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
+msgid "Core Update Failed, Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
 msgstr "版本内核更新失败，请确认设备闪存空间足够或内核平台正确后再试！"
 
-msgid "Core Update Failed. Please Make Sure Enough Flash Memory Space And Try Again!"
+msgid "Core Update Failed..."
+msgstr "版本内核更新失败..."
+
+msgid "Core Download Failed..."
+msgstr "版本内核下载失败..."
+
+msgid "Core Update Failed, Please Make Sure Enough Flash Memory Space And Try Again!"
 msgstr "版本内核更新失败，请确认设备闪存空间足够后再试！"
 
-msgid "No Compiled Version Selected, Please Select In Update Page And Try Again!"
-msgstr "未选择编译版本，请到升级页面选择后再试！"
+msgid "Warning: No Compiled Version Selected, Please Select In Update Page And Try Again!"
+msgstr "警告：未选择编译版本，请到升级页面选择后再试！"
 
 msgid "Core Has Not Been Updated, Stop Continuing Operation!"
 msgstr "版本内核没有更新，停止继续操作！"
@@ -1697,6 +1721,12 @@ msgstr "错误：Ruby 依赖异常，无法校验配置文件，请确认ruby依
 
 msgid "Error:"
 msgstr "错误："
+
+msgid "Tip:"
+msgstr "提示："
+
+msgid "Warning:"
+msgstr "警告："
 
 msgid "Rule File Format Validation Failed, Please Try Again Later..."
 msgstr "规则文件格式校验失败，请稍后再试..."
@@ -2118,9 +2148,6 @@ msgstr "2、点击《管理第三方游戏规则》或者《管理第三方规�
 msgid "3. On this page, set the corresponding configuration file and policy group of the rule you have downloaded, and save the settings"
 msgstr "3、在此页面设置您已下载的规则的对应配置文件、策略组并保存设置"
 
-msgid "4. Install the TUN or Meta core"
-msgstr "4、安装 TUN 或者 Meta 内核"
-
 msgid "When setting this page, if the groups is empty, please go to the <Onekey Create> page to add"
 msgstr "本页设置时如策略组为空，请先到《一键生成》页面进行添加"
 
@@ -2201,6 +2228,9 @@ msgstr "试试手气"
 
 msgid "Dler Cloud Account Login Failed! Please Check And Try Again..."
 msgstr "Dler Cloud 账户登录失败！请检查账户信息并重试..."
+
+msgid "Dler Cloud Account Login Failed, The Error Info is"
+msgstr "Dler Cloud 账户登录失败，错误信息"
 
 msgid "Dler Cloud Checkin Failed! Please Check And Try Again..."
 msgstr "Dler Cloud 签到失败，请稍后再试！"
@@ -2370,26 +2400,29 @@ msgstr "当前配置文件"
 msgid "Official Website"
 msgstr "官方网站"
 
-msgid "Up:"
-msgstr "上传:"
+msgid "Up"
+msgstr "上传"
 
-msgid "Down:"
-msgstr "下载:"
+msgid "Down"
+msgstr "下载"
 
-msgid "Up Total:"
-msgstr "上传总量:"
+msgid "Up Total"
+msgstr "上传总量"
 
-msgid "Down Total:"
-msgstr "下载总量:"
+msgid "Down Total"
+msgstr "下载总量"
 
-msgid "Connections:"
-msgstr "活动连接:"
+msgid "Connections"
+msgstr "活动连接"
 
-msgid "Ram:"
-msgstr "内存占用:"
+msgid "Ram"
+msgstr "内存占用"
 
-msgid "CPU:"
-msgstr "CPU占用:"
+msgid "CPU"
+msgstr "CPU 占用"
+
+msgid "Load Avg"
+msgstr "系统负载"
 
 msgid "Bad address specified!"
 msgstr "输入的地址不合法！"
@@ -2734,7 +2767,7 @@ msgid "Flush"
 msgstr "清理"
 
 msgid "Flush Fake-IP Cache"
-msgstr "Fake-IP 持久化缓存清理"
+msgstr "清理 Fake-IP 缓存"
 
 msgid "No Specify Upload File"
 msgstr "未选择上传文件"
@@ -2871,18 +2904,6 @@ msgstr "注意: Fake-IP 模式下如需要进行客户端访问控制，请将DN
 msgid "Click to the page"
 msgstr "点击前往"
 
-msgid "Only Meta Core"
-msgstr "仅 Meta 内核"
-
-msgid "(Only Meta Core)"
-msgstr "（仅 Meta 内核）"
-
-msgid "(Only TUN Core)"
-msgstr "（仅 TUN 内核）"
-
-msgid "(TUN&Meta Core)"
-msgstr "（TUN&Meta 内核）"
-
 msgid "Custom Sniffer Settings"
 msgstr "自定义流量探测（嗅探）设置"
 
@@ -2943,17 +2964,11 @@ msgstr "本地 IPv6 绕过地址"
 msgid "The Traffic of The Destination For The Specified Address Will Not Pass The Core"
 msgstr "目的地为指定地址的流量不会通过核心"
 
-msgid "Only Meta Core Support SS2022"
-msgstr "仅 Meta 内核支持 SS2022"
-
 msgid "Force HTTP/3"
 msgstr "强制 HTTP/3"
 
 msgid "Force HTTP/3 to connect"
 msgstr "强制使用 HTTP/3 进行连接"
-
-msgid "Control Panel"
-msgstr "控制面板"
 
 msgid "Unzip Error!"
 msgstr "解压失败！"
@@ -2976,8 +2991,8 @@ msgstr "切换（更新） Yacd 版本"
 msgid "Update Metacubexd Version"
 msgstr "更新 Metacubexd 版本"
 
-msgid "Update zashboard Version"
-msgstr "更新 zashboard 版本"
+msgid "Update Zashboard Version"
+msgstr "更新 Zashboard 版本"
 
 msgid "Downloading File..."
 msgstr "文件下载中..."
@@ -3210,6 +3225,12 @@ msgstr "隐藏 IP 地址"
 msgid "Show IP"
 msgstr "显示 IP 地址"
 
+msgid "Router Mode"
+msgstr "路由器模式"
+
+msgid "Browser Mode"
+msgstr "浏览器模式"
+
 msgid "Refresh"
 msgstr "刷新"
 
@@ -3332,9 +3353,6 @@ msgstr "绕过服务器地址，防止重复代理"
 
 msgid "Warning: Unsupported format, Proxies Address Skip Function Ignore Proxy-providers File"
 msgstr "警告：不支持的格式，绕过代理服务器地址功能已忽略代理集文件"
-
-msgid "Choose CDN For Downloading:"
-msgstr "请在下方选择一个 CDN 地址进行加速下载："
 
 msgid "Custom Your CDN URL"
 msgstr "自定义链接地址"
@@ -3507,17 +3525,437 @@ msgstr "禁用 quic-go GSO 支持"
 msgid "Suggestion: If Encountering Issues With QUIC UDP on The Linux Kernel Version Above 6.6, Please Try to Enable."
 msgstr "建议： 如果固件 Linux 核心版本在 6.6 以上时遇到 quic-go 的 UDP 连接问题，请尝试启用。"
 
-msgid "Skip Safe Path Check"
-msgstr "跳过安全路径检查"
-
-msgid "Enable If You Want Using Files Not in /etc/openclash in You Config"
-msgstr "如果您希望在配置中使用不在 /etc/openclash 中的文件，请启用该选项"
-
-msgid "Skip Safe Path Check"
-msgstr "跳过安全路径检查"
-
 msgid "Drop The Type of DNS Responsed"
 msgstr "丢弃指定类型的 DNS 回应"
 
-msgid "Smart Group Support"
-msgstr "Smart 策略组支持"
+msgid "Disable-IPv4"
+msgstr "禁用 IPv4"
+
+msgid "Disable-IPv6"
+msgstr "禁用 IPv6"
+
+msgid "Smart Core"
+msgstr "Smart 内核"
+
+msgid "Error: Failed to create update script!"
+msgstr "错误：创建插件升级进程失败！"
+
+msgid "Attempting to start update service..."
+msgstr "正在启动插件升级进程..."
+
+msgid "Service start failed, retrying in 2 seconds..."
+msgstr "插件升级进程启动失败，将在 2 秒后重试..."
+
+msgid "Error: Failed to start update service after 3 attempts, please check and try again later..."
+msgstr "错误：插件升级进程启动失败，请检查日志并稍后再试..."
+
+msgid "Core Update"
+msgstr "内核版本更新"
+
+msgid "View core infos that support smart group"
+msgstr "查看支持 smart 策略组的内核信息"
+
+msgid "Control panel address copied:"
+msgstr "控制面板地址已复制："
+
+msgid "Control panel secret copied:"
+msgstr "控制面板密钥已复制："
+
+msgid "No control panel secret set"
+msgstr "未设置控制面板密钥"
+
+msgid "Proxy auth info copied:"
+msgstr "代理认证信息已复制："
+
+msgid "No proxy auth info set"
+msgstr "未设置代理认证信息"
+
+msgid "Proxy info not available, please try again later"
+msgstr "获取代理信息失败，请稍后再试"
+
+msgid "Mix proxy address copied:"
+msgstr "混合代理地址已复制："
+
+msgid "Mix Proxy"
+msgstr "混合代理"
+
+msgid "Area Bypass"
+msgstr "区域绕过"
+
+msgid "Area bypass setting switched to:"
+msgstr "区域绕过设置已切换为："
+
+msgid "Area bypass setting failed"
+msgstr "区域绕过设置失败"
+
+msgid "Sniffer"
+msgstr "域名嗅探"
+
+msgid "Sniffer setting"
+msgstr "域名嗅探已"
+
+msgid "Sniffer setting failed"
+msgstr "域名嗅探设置失败"
+
+msgid "DNS Proxy"
+msgstr "DNS 代理"
+
+msgid "Respect Rules setting"
+msgstr "DNS 代理已"
+
+msgid "Respect Rules setting failed"
+msgstr "DNS 代理设置失败"
+
+msgid "Copy failed, please copy manually:"
+msgstr "复制失败，请手动复制："
+
+msgid "Copy Address"
+msgstr "复制地址"
+
+msgid "Copy Secret"
+msgstr "复制密钥"
+
+msgid "Copy Auth Info"
+msgstr "复制认证信息"
+
+msgid "Not Available"
+msgstr "不可用"
+
+msgid "Off"
+msgstr "停用"
+
+msgid "Mainland"
+msgstr "大陆"
+
+msgid "Oversea"
+msgstr "海外"
+
+msgid "On"
+msgstr "启用"
+
+msgid "Get PAC Config"
+msgstr "获取 PAC 配置"
+
+msgid "PAC file URL copied:"
+msgstr "PAC 文件地址已复制："
+
+msgid "PAC file URL:"
+msgstr "PAC 文件地址："
+
+msgid "PAC file generation failed"
+msgstr "PAC 文件创建失败"
+
+msgid "Proxy service not available, please try again later"
+msgstr "代理服务不可用，请稍后再试"
+
+msgid "No authentication configured, please be aware of the risk of information leakage!"
+msgstr "未设置代理认证信息，请注意信息泄露风险！"
+
+msgid "Other"
+msgstr "其他"
+
+msgid "Apply"
+msgstr "应用"
+
+msgid "Proxy service not running"
+msgstr "代理服务未在运行"
+
+msgid "Unable to get proxy IP"
+msgstr "无法获取代理地址"
+
+msgid "Failed to write PAC file"
+msgstr "创建 PAC 文件失败"
+
+msgid "Downloading:"
+msgstr "下载进度："
+
+msgid "Downloading..."
+msgstr "下载中..."
+
+msgid "Sniff the domain name of the traffics to avoid rule-based proxy failure"
+msgstr "嗅探流量的域名信息，避免基于规则的代理失败"
+
+msgid "DNS querys respect-rules to preventing access failure"
+msgstr "DNS 查询遵循规则进行代理，防止访问失败"
+
+msgid "Upload File"
+msgstr "上传文件"
+
+msgid "Subscribe Link"
+msgstr "订阅链接"
+
+msgid "Click to select file or drag and drop"
+msgstr "点击选择文件或拖拽上传"
+
+msgid "Support YAML files, max size 10MB"
+msgstr "支持 YAML 文件，最大 10MB"
+
+msgid "Support YAML file, max size 10MB"
+msgstr "支持 YAML 文件，最大 10MB"
+
+msgid "Subscription URL"
+msgstr "订阅地址"
+
+msgid "Enter subscription URL (http:// or https://)"
+msgstr "请输入订阅地址（http:// 或 https://）"
+
+msgid "User-Agent"
+msgstr "User-Agent"
+
+msgid "Optional"
+msgstr "可选"
+
+msgid "Custom"
+msgstr "自定义"
+
+msgid "Enter custom User-Agent"
+msgstr "输入自定义 User-Agent"
+
+msgid "Config Name"
+msgstr "配置名称"
+
+msgid "Enter config name (without extension)"
+msgstr "输入配置名称（不含扩展名）"
+
+msgid "Processing..."
+msgstr "处理中..."
+
+msgid "Ready to add config"
+msgstr "准备添加配置"
+
+msgid "Cancel"
+msgstr "取消"
+
+msgid "Add Config"
+msgstr "添加配置"
+
+msgid "Ready to upload file"
+msgstr "准备上传文件"
+
+msgid "Ready to add subscription"
+msgstr "准备添加订阅"
+
+msgid "File selected:"
+msgstr "已选择文件："
+
+msgid "Size:"
+msgstr "大小："
+
+msgid "Please select a YAML file"
+msgstr "请选择 YAML 文件"
+
+msgid "File size exceeds 10MB limit"
+msgstr "文件大小超过 10MB 限制"
+
+msgid "File ready to upload"
+msgstr "文件准备就绪"
+
+msgid "Please enter a filename"
+msgstr "请输入文件名"
+
+msgid "Filename contains invalid characters"
+msgstr "文件名包含无效字符"
+
+msgid "Uploading..."
+msgstr "上传中..."
+
+msgid "Upload completed"
+msgstr "上传完成"
+
+msgid "Upload successful"
+msgstr "上传成功"
+
+msgid "Upload failed:"
+msgstr "上传失败："
+
+msgid "Failed to read file"
+msgstr "文件读取失败"
+
+msgid "Please enter subscription URL and config name"
+msgstr "请输入订阅地址和配置名称"
+
+msgid "Invalid subscription URL format"
+msgstr "订阅地址格式无效"
+
+msgid "Config name contains invalid characters"
+msgstr "配置名称包含无效字符"
+
+msgid "Adding subscription..."
+msgstr "添加订阅中..."
+
+msgid "Failed to download subscription config"
+msgstr "订阅配置下载失败"
+
+msgid "Failed to add subscription"
+msgstr "添加订阅失败"
+
+msgid "Subscription added successfully"
+msgstr "订阅添加成功"
+
+msgid "Process failed"
+msgstr "处理失败"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "File Edit"
+msgstr "文件编辑"
+
+msgid "Loading..."
+msgstr "加载中..."
+
+msgid "Minimize"
+msgstr "最小化"
+
+msgid "Maximize"
+msgstr "最大化"
+
+msgid "Download"
+msgstr "下载"
+
+msgid "Save"
+msgstr "保存"
+
+msgid "Loading config file..."
+msgstr "正在加载配置文件..."
+
+msgid "Ready"
+msgstr "就绪"
+
+msgid "Press F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom"
+msgstr "按 F11 全屏，Esc 退出全屏，Ctrl+鼠标滚轮缩放"
+
+msgid "Please select a config file first"
+msgstr "请先选择一个配置文件"
+
+msgid "Unknown"
+msgstr "未知"
+
+msgid "Failed to load config file"
+msgstr "配置文件加载失败"
+
+msgid "Load failed"
+msgstr "加载失败"
+
+msgid "Saving..."
+msgstr "保存中..."
+
+msgid "Config file content is empty"
+msgstr "配置文件内容为空"
+
+msgid "Saved successfully"
+msgstr "保存成功"
+
+msgid "Save failed"
+msgstr "保存失败"
+
+msgid "Failed to save config file:"
+msgstr "配置文件保存失败："
+
+msgid "Unknown error"
+msgstr "未知错误"
+
+msgid "Save config failed:"
+msgstr "配置保存失败："
+
+msgid "Editor not ready"
+msgstr "编辑器未准备就绪"
+
+msgid "Download started"
+msgstr "下载已开始"
+
+msgid "Download failed:"
+msgstr "下载失败："
+
+msgid "You have unsaved changes. Are you sure you want to close?"
+msgstr "您有未保存的更改。确定要关闭吗？"
+
+msgid "Restart"
+msgstr "重启"
+
+msgid "No Config Selected"
+msgstr "未选择配置"
+
+msgid "Modified: "
+msgstr "修改时间："
+
+msgid "Update Time: "
+msgstr "更新时间："
+
+msgid "No Config Files Found"
+msgstr "未找到配置文件"
+
+msgid "Please select a config file"
+msgstr "请选择配置文件"
+
+msgid "Failed to load config files"
+msgstr "配置文件加载失败"
+
+msgid "Update"
+msgstr "更新"
+
+msgid "Failed to get startup log after retries"
+msgstr "重试后仍无法获取启动日志"
+
+msgid "Starting..."
+msgstr "启动中..."
+
+msgid "Stopping..."
+msgstr "关闭中..."
+
+msgid "Failed to start OpenClash"
+msgstr "OpenClash 启动失败"
+
+msgid "Failed to stop OpenClash"
+msgstr "OpenClash 关闭失败"
+
+msgid "Operation Failed"
+msgstr "操作失败"
+
+msgid "Switching Config..."
+msgstr "切换配置中..."
+
+msgid "Failed to switch config file:"
+msgstr "切换配置文件失败："
+
+msgid "Switch Failed"
+msgstr "切换失败"
+
+msgid "Updating Config..."
+msgstr "更新配置中..."
+
+msgid "Failed to update config file:"
+msgstr "更新配置文件失败："
+
+msgid "Failed to update config file, please try again later"
+msgstr "更新配置文件失败，请稍后再试"
+
+msgid "Restarting..."
+msgstr "重启中..."
+
+msgid "Failed to restart core"
+msgstr "重启内核失败"
+
+msgid "Invalid config file selected"
+msgstr "选择的配置文件无效"
+
+msgid "Config uploader not ready, please try again"
+msgstr "配置上传未就绪，请重试"
+
+msgid "Config editor not ready, please try again"
+msgstr "配置编辑未就绪，请重试"
+
+msgid "New version available"
+msgstr "发现新版本"
+
+msgid "Failed to get subscription config"
+msgstr "获取订阅配置失败"
+
+msgid "Failed to download subscription config"
+msgstr "下载订阅配置失败"
+
+msgid "Expire Date"
+msgstr "到期时间"
+
+msgid "Use RAW address download"
+msgstr "使用原始地址下载"

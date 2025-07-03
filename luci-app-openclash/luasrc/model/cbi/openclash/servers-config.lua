@@ -24,8 +24,8 @@ function IsYmlFile(e)
 end
 
 local encrypt_methods_ss = {
-
 	-- stream
+	"none",
 	"rc4-md5",
 	"aes-128-cfb",
 	"aes-192-cfb",
@@ -36,26 +36,29 @@ local encrypt_methods_ss = {
 	"aes-128-gcm",
 	"aes-192-gcm",
 	"aes-256-gcm",
+	"aes-128-gcm-siv",
+	"aes-256-gcm-siv",
+	"aes-128-ccm",
+	"aes-192-ccm",
+	"aes-256-ccm",
+	"lea-128-gcm",
+	"lea-192-gcm",
+	"lea-256-gcm",
+	"chacha20",
 	"chacha20-ietf",
 	"xchacha20",
 	"chacha20-ietf-poly1305",
 	"xchacha20-ietf-poly1305",
+	"chacha8-ietf-poly1305",
+	"xchacha8-ietf-poly1305",
 	"2022-blake3-aes-128-gcm",
 	"2022-blake3-aes-256-gcm",
-	"2022-blake3-chacha20-poly1305"
-}
-
-local encrypt_methods_ssr = {
-
-	"rc4-md5",
-	"aes-128-cfb",
-	"aes-192-cfb",
-	"aes-256-cfb",
-	"aes-128-ctr",
-	"aes-192-ctr",
-	"aes-256-ctr",
-	"chacha20-ietf",
-	"xchacha20"
+	"2022-blake3-chacha20-poly1305",
+	"rabbit128-poly1305",
+	"aegis-128l",
+	"aegis-256",
+	"aez-384",
+	"deoxys-ii-256-128"
 }
 
 local securitys = {
@@ -137,19 +140,19 @@ o:value("ss", translate("Shadowsocks"))
 o:value("ssr", translate("ShadowsocksR"))
 o:value("vmess", translate("Vmess"))
 o:value("trojan", translate("trojan"))
-o:value("vless", translate("Vless ")..translate("(Only Meta Core)"))
-o:value("hysteria", translate("Hysteria ")..translate("(Only Meta Core)"))
-o:value("hysteria2", translate("Hysteria2 ")..translate("(Only Meta Core)"))
-o:value("wireguard", translate("WireGuard")..translate("(Only Meta Core)"))
-o:value("tuic", translate("Tuic")..translate("(Only Meta Core)"))
+o:value("vless", translate("Vless"))
+o:value("hysteria", translate("Hysteria"))
+o:value("hysteria2", translate("Hysteria2"))
+o:value("wireguard", translate("WireGuard"))
+o:value("tuic", translate("Tuic"))
 o:value("snell", translate("Snell"))
-o:value("mieru", translate("Mieru")..translate("(Only Meta Core)"))
-o:value("anytls", translate("AnyTLS")..translate("(Only Meta Core)"))
+o:value("mieru", translate("Mieru"))
+o:value("anytls", translate("AnyTLS"))
 o:value("socks5", translate("Socks5"))
 o:value("http", translate("HTTP(S)"))
-o:value("direct", translate("DIRECT")..translate("(Only Meta Core)"))
-o:value("dns", translate("DNS")..translate("(Only Meta Core)"))
-o:value("ssh", translate("SSH")..translate("(Only Meta Core)"))
+o:value("direct", translate("DIRECT"))
+o:value("dns", translate("DNS"))
+o:value("ssh", translate("SSH"))
 
 o.description = translate("Using incorrect encryption mothod may causes service fail to start")
 
@@ -393,13 +396,11 @@ o:depends("type", "snell")
 
 o = s:option(ListValue, "cipher", translate("Encrypt Method"))
 for _, v in ipairs(encrypt_methods_ss) do o:value(v) end
-o.description = translate("Only Meta Core Support SS2022")
 o.rmempty = true
 o:depends("type", "ss")
 
 o = s:option(ListValue, "cipher_ssr", translate("Encrypt Method"))
-for _, v in ipairs(encrypt_methods_ssr) do o:value(v) end
-o:value("dummy", "none")
+for _, v in ipairs(encrypt_methods_ss) do o:value(v) end
 o.rmempty = true
 o:depends("type", "ssr")
 
@@ -460,7 +461,7 @@ o:value("true")
 o:value("false")
 o:depends("type", "ss")
 
-o = s:option(ListValue, "xudp", translate("XUDP Enable")..translate("(Only Meta Core)"))
+o = s:option(ListValue, "xudp", translate("XUDP Enable"))
 o.rmempty = true
 o.default = "true"
 o:value("true")
@@ -475,8 +476,8 @@ o:value("none")
 o:value("tls")
 o:value("http")
 o:value("websocket", translate("websocket (ws)"))
-o:value("shadow-tls", translate("shadow-tls")..translate("(Only Meta Core)"))
-o:value("restls", translate("restls")..translate("(Only Meta Core)"))
+o:value("shadow-tls", translate("shadow-tls"))
+o:value("restls", translate("restls"))
 o:depends("type", "ss")
 
 o = s:option(ListValue, "obfs_snell", translate("obfs-mode"))
@@ -854,26 +855,26 @@ o:value("false")
 o.default = "false"
 o:depends({type = "hysteria", flag_quicparam = true})
 
-o = s:option(ListValue, "packet-addr", translate("Packet-Addr")..translate("(Only Meta Core)"))
+o = s:option(ListValue, "packet-addr", translate("Packet-Addr"))
 o.rmempty = true
 o.default = "true"
 o:value("true")
 o:value("false")
 o:depends({type = "vless", xudp = "false"})
 
-o = s:option(Value, "packet_encoding", translate("Packet-Encoding")..translate("(Only Meta Core)"))
+o = s:option(Value, "packet_encoding", translate("Packet-Encoding"))
 o.rmempty = true
 o:depends("type", "vmess")
 o:depends("type", "vless")
 
-o = s:option(ListValue, "global_padding", translate("Global-Padding")..translate("(Only Meta Core)"))
+o = s:option(ListValue, "global_padding", translate("Global-Padding"))
 o.rmempty = true
 o.default = "false"
 o:value("true")
 o:value("false")
 o:depends("type", "vmess")
 
-o = s:option(ListValue, "authenticated_length", translate("Authenticated-Length")..translate("(Only Meta Core)"))
+o = s:option(ListValue, "authenticated_length", translate("Authenticated-Length"))
 o.rmempty = true
 o.default = "false"
 o:value("true")
@@ -906,7 +907,7 @@ o:depends("type", "hysteria")
 o:depends("type", "tuic")
 
 -- [[ TFO ]]--
-o = s:option(ListValue, "tfo", translate("TFO")..translate("(Only Meta Core)"))
+o = s:option(ListValue, "tfo", translate("TFO"))
 o.rmempty = true
 o.default = "false"
 o:value("true")
@@ -921,7 +922,7 @@ o:depends("type", "ssr")
 o:depends("type", "snell")
 
 -- [[ fingerprint ]]--
-o = s:option(Value, "fingerprint", translate("Fingerprint")..translate("(Only Meta Core)"))
+o = s:option(Value, "fingerprint", translate("Fingerprint"))
 o.rmempty = true
 o:depends("type", "hysteria")
 o:depends("type", "hysteria2")
@@ -936,7 +937,7 @@ o:depends({type = "vmess", obfs_vmess = "h2"})
 o:depends({type = "vmess", obfs_vmess = "grpc"})
 
 -- [[ client-fingerprint ]]--
-o = s:option(ListValue, "client_fingerprint", translate("Client Fingerprint")..translate("(Only Meta Core)"))
+o = s:option(ListValue, "client_fingerprint", translate("Client Fingerprint"))
 o.rmempty = true
 o:value("none")
 o:value("random")
@@ -956,7 +957,7 @@ o:depends({type = "vmess", obfs_vmess = "grpc"})
 o:depends("type", "anytls")
 
 -- [[ ip version ]]--
-o = s:option(ListValue, "ip_version", translate("IP Version")..translate("(Only Meta Core)"))
+o = s:option(ListValue, "ip_version", translate("IP Version"))
 o.rmempty = true
 o:value("dual")
 o:value("ipv4")
@@ -981,7 +982,7 @@ o:depends("type", "ssh")
 o:depends("type", "direct")
 
 -- [[ smux ]]--
-o = s:option(ListValue, "multiplex", translate("Multiplex")..translate("(Only Meta Core)"))
+o = s:option(ListValue, "multiplex", translate("Multiplex"))
 o.rmempty = false
 o:value("true")
 o:value("false")
