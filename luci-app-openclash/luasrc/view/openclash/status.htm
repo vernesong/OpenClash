@@ -74,11 +74,11 @@
 }
 
 .oc[data-darkmode="true"] .announcement-banner {
-    background: linear-gradient(135deg, #6c83c5, #3555bf);
+    background: linear-gradient(135deg, #3555bf, #6c83c5);
 }
 
 .oc[data-darkmode="true"] .announcement-banner::before {
-    background: linear-gradient(to right, #6c83c5 80%, #6c83c5 100%);
+    background: linear-gradient(to right, #3555bf 80%, #3555bf 100%);
 }
 
 .oc[data-darkmode="true"] #megaphone {
@@ -117,7 +117,7 @@
 }
 
 .oc[data-darkmode="true"] .dashboard-btn:hover {
-    background: #2563eb !important;
+    background: var(--primary-color) !important;
     color: white !important;
 }
 
@@ -307,8 +307,7 @@
 
 .oc .version-display-container {
     position: absolute;
-    top: 16px;
-    right: 15px;
+    right: 10px;
     display: flex;
     gap: 8px;
     z-index: 2;
@@ -964,7 +963,7 @@
 }
 
 .oc .announcement-banner {
-    background: linear-gradient(135deg, var(--primary-color), #1d4ed8);
+    background: linear-gradient(275deg, var(--primary-color), #1d4ed8);
     color: white;
     padding: 12px;
     border-radius: var(--radius-lg);
@@ -1016,7 +1015,7 @@
     top: 0;
     bottom: 0;
     width: 45px;
-    background: linear-gradient(to right, rgba(59, 130, 246, 1) 80%, rgba(59, 130, 246, 1) 100%);
+    background: linear-gradient(to right, #1d4ed8 80%, #1d4ed8 100%);
     z-index: 3;
     pointer-events: none;
 }
