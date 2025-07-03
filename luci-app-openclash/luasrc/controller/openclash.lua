@@ -3124,7 +3124,7 @@ function action_upload_config()
         filename = "upload_" .. os.date("%Y%m%d_%H%M%S")
     end
     
-    if not string.match(filename, "^[%w%s%-%_%.\\u4e00-\\u9fa5]+$") then
+    if string.find(filename, "[/\\]") or string.find(filename, "%.%.") then
         luci.http.write_json({
             status = "error",
             message = "Invalid filename characters"
