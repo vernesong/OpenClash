@@ -516,11 +516,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                threads << Thread.new{
                #cipher
                if x.key?('cipher') then
-                  if x['cipher'].to_s == 'none' then
-                     uci_commands << uci_set + 'cipher_ssr=dummy'
-                  else
-                     uci_commands << uci_set + 'cipher_ssr=\"' + x['cipher'].to_s + '\"'
-                  end
+                  uci_commands << uci_set + 'cipher_ssr=\"' + x['cipher'].to_s + '\"'
                end
                };
                
