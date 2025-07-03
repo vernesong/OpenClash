@@ -3354,9 +3354,6 @@ msgstr "绕过服务器地址，防止重复代理"
 msgid "Warning: Unsupported format, Proxies Address Skip Function Ignore Proxy-providers File"
 msgstr "警告：不支持的格式，绕过代理服务器地址功能已忽略代理集文件"
 
-msgid "Choose CDN For Downloading"
-msgstr "选择 CDN 进行加速下载"
-
 msgid "Custom Your CDN URL"
 msgstr "自定义链接地址"
 
