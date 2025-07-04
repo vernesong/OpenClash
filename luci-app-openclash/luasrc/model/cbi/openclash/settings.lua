@@ -866,7 +866,6 @@ o.write = function()
   SYS.call("/usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
-o:depends("geo_auto_update", "1")
 
 o = s:taboption("geo_update", Flag, "geoip_auto_update", font_red..bold_on..translate("Auto Update GeoIP Dat")..bold_off..font_off)
 o.default = 0
@@ -909,7 +908,6 @@ o.write = function()
   SYS.call("/usr/share/openclash/openclash_geoip.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
-o:depends("geoip_auto_update", "1")
 
 o = s:taboption("geo_update", Flag, "geosite_auto_update", font_red..bold_on..translate("Auto Update GeoSite")..bold_off..font_off)
 o.default = 0
@@ -952,7 +950,6 @@ o.write = function()
   SYS.call("/usr/share/openclash/openclash_geosite.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
-o:depends("geosite_auto_update", "1")
 
 o = s:taboption("geo_update", Flag, "geoasn_auto_update", font_red..bold_on..translate("Auto Update Geo ASN")..bold_off..font_off)
 o.default = 0
@@ -995,7 +992,6 @@ o.write = function()
   SYS.call("/usr/share/openclash/openclash_geoasn.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
-o:depends("geoasn_auto_update", "1")
 
 o = s:taboption("chnr_update", Flag, "chnr_auto_update", translate("Auto Update"))
 o.description = translate("Auto Update Chnroute Lists")
@@ -1277,23 +1273,37 @@ local t = {
     {Commit, Apply}
 }
 
+local CORE_VERSION = HTTP.formvalue("CORE_VERSION")
+local RELEASE_BRANCH = HTTP.formvalue("RELEASE_BRANCH")
+local SMART_ENABLE = HTTP.formvalue("SMART_ENABLE")
+
 a = m:section(Table, t)
 
 o = a:option(Button, "Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-  m.uci:commit("openclash")
+    if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE then
+        m.uci:set("openclash", "config", "core_version", CORE_VERSION)
+        m.uci:set("openclash", "config", "release_branch", RELEASE_BRANCH)
+        m.uci:set("openclash", "config", "smart_enable", SMART_ENABLE)
+    end
+    m.uci:commit("openclash")
 end
 
 o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+    if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE then
+        m.uci:set("openclash", "config", "core_version", CORE_VERSION)
+        m.uci:set("openclash", "config", "release_branch", RELEASE_BRANCH)
+        m.uci:set("openclash", "config", "smart_enable", SMART_ENABLE)
+    end
+    m.uci:set("openclash", "config", "enable", 1)
+    m.uci:commit("openclash")
+    SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+    HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 m:append(Template("openclash/config_editor"))
