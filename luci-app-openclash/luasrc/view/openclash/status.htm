@@ -1973,51 +1973,245 @@
 
     var WSManager = {
         connections: {},
-        retry_count: 0,
-        max_retries: 3,
-        reconnect_delay: 2000,
+        connectionStates: {
+            CONNECTING: 0,
+            CONNECTED: 1,
+            DISCONNECTED: 2,
+            ERROR: 3
+        },
+        retryAttempts: {},
+        maxRetries: 3,
+        reconnectDelay: 2000,
+        heartbeatInterval: 30000,
+        heartbeatTimers: {},
         
-        createConnection: function(type, url, messageHandler) {
-            if (this.connections[type]) {
-                this.connections[type].close();
+        createConnection: function(type, url, messageHandler, options) {
+            options = options || {};
+            
+            this.closeConnection(type);
+            
+            try {
+                var ws = new WebSocket(url);
+                
+                this.connections[type] = {
+                    socket: ws,
+                    url: url,
+                    messageHandler: messageHandler,
+                    state: this.connectionStates.CONNECTING,
+                    lastActivity: Date.now(),
+                    options: options
+                };
+                
+                this.retryAttempts[type] = 0;
+                
+                this.bindEventHandlers(type, ws);
+                
+                return ws;
+            } catch (error) {
+                this.handleConnectionError(type, error);
+                return null;
+            }
+        },
+        
+        bindEventHandlers: function(type, ws) {
+            var self = this;
+            var connection = this.connections[type];
+            
+            ws.onopen = function(event) {
+                self.handleOpen(type, event);
+            };
+            
+            ws.onmessage = function(event) {
+                self.handleMessage(type, event);
+            };
+            
+            ws.onerror = function(error) {
+                self.handleError(type, error);
+            };
+            
+            ws.onclose = function(event) {
+                self.handleClose(type, event);
+            };
+        },
+        
+        handleOpen: function(type, event) {            
+            var connection = this.connections[type];
+            if (connection) {
+                connection.state = this.connectionStates.CONNECTED;
+                connection.lastActivity = Date.now();
             }
             
-            var ws = new WebSocket(url);
-            ws.onmessage = messageHandler;
-            ws.onerror = this.handleError.bind(this);
-            ws.onopen = this.handleOpen.bind(this);
-            ws.onclose = this.handleClose.bind(this, type, url, messageHandler);
+            this.retryAttempts[type] = 0;
             
-            this.connections[type] = ws;
-            return ws;
+            this.startHeartbeat(type);
+            
+            if (type === 'traffic' || Object.keys(this.connections).length === 3) {
+                ws_connect = true;
+                ws_error = false;
+                ws_retry = 0;
+            }
         },
         
-        handleOpen: function() {
-            ws_connect = true;
-            ws_error = false;
-            this.retry_count = 0;
+        handleMessage: function(type, event) {
+            var connection = this.connections[type];
+            if (connection && connection.messageHandler) {
+                connection.lastActivity = Date.now();
+                try {
+                    connection.messageHandler(event);
+                } catch (error) {
+                }
+            }
         },
         
-        handleError: function() {
+        handleError: function(type, error) {            
+            var connection = this.connections[type];
+            if (connection) {
+                connection.state = this.connectionStates.ERROR;
+            }
+            
             ws_error = true;
-            ws_terror();
+            this.stopHeartbeat(type);
+            
+            if (type === 'traffic') {
+                this.enableFallbackMode();
+            }
         },
         
-        handleClose: function(type, url, messageHandler) {
-            if (this.retry_count < this.max_retries) {
-                setTimeout(function() {
-                    WSManager.retry_count++;
-                    WSManager.createConnection(type, url, messageHandler);
-                }, this.reconnect_delay);
+        handleClose: function(type, event) {            
+            var connection = this.connections[type];
+            if (connection) {
+                connection.state = this.connectionStates.DISCONNECTED;
+            }
+            
+            this.stopHeartbeat(type);
+            
+            if (event.code !== 1000 && event.code !== 1001) {
+                this.scheduleReconnect(type);
+            }
+        },
+        
+        handleConnectionError: function(type, error) {
+            var connection = this.connections[type];
+            if (connection) {
+                connection.state = this.connectionStates.ERROR;
+            }
+            
+            ws_error = true;
+            this.enableFallbackMode();
+        },
+        
+        scheduleReconnect: function(type) {
+            var self = this;
+            var connection = this.connections[type];
+            
+            if (!connection || this.retryAttempts[type] >= this.maxRetries) {
+                this.enableFallbackMode();
+                return;
+            }
+            
+            this.retryAttempts[type] = (this.retryAttempts[type] || 0) + 1;
+            var delay = this.reconnectDelay * Math.pow(1.5, this.retryAttempts[type] - 1);
+                        
+            setTimeout(function() {
+                if (self.connections[type] && self.connections[type].state !== self.connectionStates.CONNECTED) {
+                    self.createConnection(type, connection.url, connection.messageHandler, connection.options);
+                }
+            }, delay);
+        },
+        
+        startHeartbeat: function(type) {
+            var self = this;
+            
+            this.stopHeartbeat(type);
+            
+            this.heartbeatTimers[type] = setInterval(function() {
+                var connection = self.connections[type];
+                if (connection && connection.socket && connection.state === self.connectionStates.CONNECTED) {
+                    var timeSinceLastActivity = Date.now() - connection.lastActivity;
+                    
+                    if (timeSinceLastActivity > self.heartbeatInterval * 2) {
+                        self.reconnectConnection(type);
+                    }
+                }
+            }, this.heartbeatInterval);
+        },
+        
+        stopHeartbeat: function(type) {
+            if (this.heartbeatTimers[type]) {
+                clearInterval(this.heartbeatTimers[type]);
+                delete this.heartbeatTimers[type];
+            }
+        },
+        
+        reconnectConnection: function(type) {
+            var connection = this.connections[type];
+            if (connection) {
+                this.createConnection(type, connection.url, connection.messageHandler, connection.options);
+            }
+        },
+        
+        closeConnection: function(type) {
+            var connection = this.connections[type];
+            if (connection && connection.socket) {
+                this.stopHeartbeat(type);
+                
+                try {
+                    connection.socket.close(1000, 'Normal closure');
+                } catch (error) {
+                }
+                
+                delete this.connections[type];
             }
         },
         
         closeAll: function() {
+            var types = Object.keys(this.connections);
+            for (var i = 0; i < types.length; i++) {
+                this.closeConnection(types[i]);
+            }
+            
+            ws_connect = false;
+            ws_error = false;
+            ws_retry = 0;
+        },
+        
+        enableFallbackMode: function() {            
+            ws_connect = false;
+            
+            this.closeAll();
+            
+            if (NetworkStatsManager && !NetworkStatsManager.isEnabled) {
+                NetworkStatsManager.start();
+            }
+        },
+        
+        getConnectionState: function(type) {
+            var connection = this.connections[type];
+            return connection ? connection.state : this.connectionStates.DISCONNECTED;
+        },
+        
+        getAllConnectionStates: function() {
+            var states = {};
             for (var type in this.connections) {
-                if (this.connections[type]) {
-                    this.connections[type].close();
-                    delete this.connections[type];
+                states[type] = this.getConnectionState(type);
+            }
+            return states;
+        },
+        
+        hasActiveConnections: function() {
+            for (var type in this.connections) {
+                if (this.getConnectionState(type) === this.connectionStates.CONNECTED) {
+                    return true;
                 }
+            }
+            return false;
+        },
+        
+        resetRetryCount: function(type) {
+            if (type) {
+                this.retryAttempts[type] = 0;
+            } else {
+                this.retryAttempts = {};
             }
         }
     };
@@ -2898,7 +3092,6 @@
     var ws_connect = false;
     var ws_error = false;
     var ws_retry = 0;
-    var luci_protocol;
     var s, gr;
     var pluginToggleUserAction = false;
 
@@ -2943,14 +3136,6 @@
             updates.push({element: document.getElementById('_one_key_update_btn'), content: oneKeyUpdateContent});
 
             StateManager.batchUpdateDOM(updates);
-
-            if (status.daip && window.location.hostname == status.daip) {
-                luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
-            } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-                luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.db_foward_domain + ":" + status.db_foward_port;
-            } else {
-                luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
-            }
 
             if (status.clash) {
                 var daipContent, dapoContent;
@@ -3049,40 +3234,28 @@
                 DOMCache.copy_pac_config.style.display = "none";
             }
             
-            function ws_open() {
-                WSManager.closeAll();
-                WSManager.createConnection('traffic', luci_protocol+"/traffic?token="+status.dase, ws_tmessage);
-                WSManager.createConnection('connections', luci_protocol+"/connections?token="+status.dase, ws_cmessage);
-                WSManager.createConnection('memory', luci_protocol+"/memory?token="+status.dase, ws_mmessage);
-            }
-
-            if (status.clash) {
-                if (!ws_connect) {
-                    if (!ws_error) {
-                        ws_open();
-                    } else if (ws_retry < 3) {
-                        ws_retry = ws_retry + 1;
-                        ws_open();
+            if (status.clash && status.daip) {
+                if (!WSManager.hasActiveConnections()) {
+                    if (!ws_error || ws_retry < 3) {
+                        if (initializeWebSocketConnections(status)) {
+                            ws_retry++;
+                        }
                     } else {
-                        NetworkStatsManager.start();
+                        WSManager.enableFallbackMode();
                     }
                 } else {
-                    NetworkStatsManager.stop();
+                    if (NetworkStatsManager && NetworkStatsManager.isEnabled) {
+                        NetworkStatsManager.stop();
+                    }
                     
-                    if (!SystemStatusManager.isEnabled) {
+                    if (SystemStatusManager && !SystemStatusManager.isEnabled) {
                         SystemStatusManager.start();
                     }
                 }
             } else {
-                ws_connect = false;
-                ws_error = false;
-                
+                WSManager.closeAll();
                 SystemStatusManager.stop();
                 NetworkStatsManager.stop();
-                
-                if (status.clash) {
-                    NetworkStatsManager.start();
-                }
             }
         }
         clashversion_check();
@@ -3111,9 +3284,63 @@
     });
 
     window.addEventListener('beforeunload', function() {
+        WSManager.closeAll();
         SystemStatusManager.stop();
         NetworkStatsManager.stop();
     });
+
+    function initializeWebSocketConnections(status) {
+        if (!status || !status.clash || !status.daip || !status.dase) {
+            return false;
+        }
+        
+        var protocol = getWebSocketProtocol(status);
+        var token = status.dase;
+        
+        var connections = [
+            {
+                type: 'traffic',
+                endpoint: '/traffic',
+                handler: ws_tmessage
+            },
+            {
+                type: 'connections', 
+                endpoint: '/connections',
+                handler: ws_cmessage
+            },
+            {
+                type: 'memory',
+                endpoint: '/memory', 
+                handler: ws_mmessage
+            }
+        ];
+        
+        connections.forEach(function(conn) {
+            var url = protocol + conn.endpoint + '?token=' + token;
+            WSManager.createConnection(conn.type, url, conn.handler);
+        });
+        
+        return true;
+    }
+
+    function getWebSocketProtocol(status) {
+        var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        var host, port;
+        
+        if (status.daip && window.location.hostname === status.daip) {
+            host = status.daip;
+            port = status.cn_port;
+        } else if (status.daip && window.location.hostname !== status.daip && 
+                   status.db_foward_domain && status.db_foward_port) {
+            host = status.db_foward_domain;
+            port = status.db_foward_port;
+        } else {
+            host = status.daip;
+            port = status.cn_port;
+        }
+        
+        return protocol + host + ":" + port;
+    }
 
     function loadAnnouncement() {
         var userLang = navigator.language || navigator.userLanguage; 
