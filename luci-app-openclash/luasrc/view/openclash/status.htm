@@ -3088,6 +3088,186 @@
         }
     };
 
+    var SettingsManager = {
+        pendingOperations: new Set(),
+        pausedPolls: new Set(),
+        
+        pausePoll: function(pollName, duration) {
+            this.pausedPolls.add(pollName);
+            setTimeout(() => {
+                this.pausedPolls.delete(pollName);
+            }, duration || 3000);
+        },
+        
+        isPollPaused: function(pollName) {
+            return this.pausedPolls.has(pollName);
+        },
+        
+        updateUIState: function(setting, value) {
+            setTimeout(() => {
+                switch(setting) {
+                    case 'meta_sniffer':
+                        var metaSnifferOn = document.getElementById('meta_sniffer_on');
+                        var metaSnifferOff = document.getElementById('meta_sniffer_off');
+                        if (metaSnifferOn && metaSnifferOff) {
+                            metaSnifferOn.checked = value === '1';
+                            metaSnifferOff.checked = value !== '1';
+                            
+                            var changeEvent = new Event('change', { bubbles: true });
+                            if (value === '1') {
+                                metaSnifferOn.dispatchEvent(changeEvent);
+                            } else {
+                                metaSnifferOff.dispatchEvent(changeEvent);
+                            }
+                        }
+                        break;
+                        
+                    case 'respect_rules':
+                        var respectRulesOn = document.getElementById('respect_rules_on');
+                        var respectRulesOff = document.getElementById('respect_rules_off');
+                        if (respectRulesOn && respectRulesOff) {
+                            respectRulesOn.checked = value === '1';
+                            respectRulesOff.checked = value !== '1';
+                            
+                            var changeEvent = new Event('change', { bubbles: true });
+                            if (value === '1') {
+                                respectRulesOn.dispatchEvent(changeEvent);
+                            } else {
+                                respectRulesOff.dispatchEvent(changeEvent);
+                            }
+                        }
+                        break;
+                        
+                    case 'oversea':
+                        var oversea0 = document.getElementById('oc_setting_oversea_0');
+                        var oversea1 = document.getElementById('oc_setting_oversea_1');
+                        var oversea2 = document.getElementById('oc_setting_oversea_2');
+                        if (oversea0 && oversea1 && oversea2) {
+                            oversea0.checked = value === '0';
+                            oversea1.checked = value === '1';
+                            oversea2.checked = value === '2';
+                            
+                            var changeEvent = new Event('change', { bubbles: true });
+                            var selectedElement = value === '0' ? oversea0 : (value === '1' ? oversea1 : oversea2);
+                            if (selectedElement) {
+                                selectedElement.dispatchEvent(changeEvent);
+                            }
+                        }
+                        break;
+                        
+                    case 'rule_mode':
+                        var radioElements = document.getElementsByName("radios");
+                        if (radioElements && radioElements.length > 0) {
+                            for (var i = 0; i < radioElements.length; i++) {
+                                var isChecked = radioElements[i].value === value;
+                                radioElements[i].checked = isChecked;
+                                
+                                if (isChecked) {
+                                    var changeEvent = new Event('change', { bubbles: true });
+                                    radioElements[i].dispatchEvent(changeEvent);
+                                }
+                            }
+                        }
+                        break;
+                        
+                    case 'run_mode':
+                        var radioRuElements = document.getElementsByName("radios-ru");
+                        if (radioRuElements && radioRuElements.length > 0) {
+                            var expectedValue = value.split("-")[2] == undefined ? "" : ("-" + value.split("-")[2]);
+                            for (var i = 0; i < radioRuElements.length; i++) {
+                                var isChecked = radioRuElements[i].value === expectedValue;
+                                radioRuElements[i].checked = isChecked;
+                                
+                                if (isChecked) {
+                                    var changeEvent = new Event('change', { bubbles: true });
+                                    radioRuElements[i].dispatchEvent(changeEvent);
+                                }
+                            }
+                        }
+                        break;
+                }
+            }, 10);
+        },
+        
+        switchSetting: function(setting, value, endpoint, additionalParams) {
+            var operationKey = setting + '_' + value;
+            
+            if (this.pendingOperations.has(operationKey)) {
+                return false;
+            }
+                        
+            this.pendingOperations.add(operationKey);
+            
+            try {
+                this.updateUIState(setting, value);
+            } catch (e) {
+            }
+            
+            if (setting === 'rule_mode') {
+                this.pausePoll('rule_mode', 5000);
+                clearTimeout(s);
+            } else if (setting === 'run_mode') {
+                this.pausePoll('run_mode', 5000);
+            } else {
+                this.pausePoll('oc_settings', 5000);
+            }
+            
+            var params = Object.assign({}, additionalParams || {});
+            if (setting !== 'rule_mode' && setting !== 'run_mode') {
+                params.setting = setting;
+                params.value = value;
+            } else if (setting === 'rule_mode') {
+                params.rule_mode = value;
+            } else if (setting === 'run_mode') {
+                params.run_mode = value;
+            }
+            
+            var self = this;
+            
+            XHR.get(endpoint, params, function(x, status) {
+                setTimeout(function() {
+                    self.pendingOperations.delete(operationKey);
+                    
+                    if (!x || x.status !== 200) {
+                        self.revertUIState(setting);
+                        alert(self.getErrorMessage(setting));
+                    }
+                    
+                    if (setting === 'rule_mode' && !self.isPollPaused('rule_mode')) {
+                        get_rule_mode();
+                    } else if (setting === 'run_mode' && !self.isPollPaused('run_mode')) {
+                        get_run_mode();
+                    } else if (setting !== 'rule_mode' && setting !== 'run_mode' && !self.isPollPaused('oc_settings')) {
+                        get_oc_settings();
+                    }
+                }, 1500);
+            });
+            
+            return false;
+        },
+        
+        revertUIState: function(setting) {
+            if (setting === 'rule_mode') {
+                get_rule_mode();
+            } else if (setting === 'run_mode') {
+                get_run_mode();
+            } else {
+                get_oc_settings();
+            }
+        },
+        
+        getErrorMessage: function(setting) {
+            var messages = {
+                'meta_sniffer': '<%:Sniffer setting failed%>',
+                'respect_rules': '<%:Respect Rules setting failed%>',
+                'oversea': '<%:Area bypass setting failed%>',
+                'rule_mode': '<%:Proxy Mode switching failed!%>',
+                'run_mode': '<%:Running Mode switching failed!%>'
+            };
+            return messages[setting] || '<%:Operation failed%>';
+        }
+    };
+
     var script_radio, script_radio_label;
     var ws_connect = false;
     var ws_error = false;
@@ -3517,6 +3697,11 @@
     }
 
     function get_rule_mode() {
+        if (SettingsManager.isPollPaused('rule_mode')) {
+            s = setTimeout("get_rule_mode()", 1000);
+            return;
+        }
+        
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "rule_mode")%>', function(x, status) {
             if (x && x.status == 200 && status.mode != "") {
                 if (status.core_type == "TUN" && DOMCache.radio.length != 4) {
@@ -3528,6 +3713,7 @@
                     script_radio.setAttribute("onclick", "javascript:return switch_rule_mode(this.value);");
                     script_radio_label = document.createElement("label");
                     script_radio_label.setAttribute("for", "script");
+                    script_radio_label.setAttribute("class", "cbi-button-option");
                     script_radio_label.innerHTML = "Script";
                     DOMCache.radio_mode.appendChild(script_radio);
                     DOMCache.radio_mode.appendChild(script_radio_label);
@@ -3535,55 +3721,65 @@
                     DOMCache.radio_mode.removeChild(script_radio);
                     DOMCache.radio_mode.removeChild(script_radio_label);
                 }
-                for (var i = 0; i < DOMCache.radio.length; i++) {
-                    if (DOMCache.radio[i].value == status.mode && !DOMCache.radio[i].checked) {
-                        DOMCache.radio[i].checked = true;
-                        break;
+                
+                if (!SettingsManager.pendingOperations.has('rule_mode_' + status.mode)) {
+                    for (var i = 0; i < DOMCache.radio.length; i++) {
+                        if (DOMCache.radio[i].value == status.mode && !DOMCache.radio[i].checked) {
+                            DOMCache.radio[i].checked = true;
+                            break;
+                        }
                     }
                 }
             }
-        });
+        }, true);
         s = setTimeout("get_rule_mode()", 5000);
     }
 
     function switch_rule_mode(value) {
-        clearTimeout(s);
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_rule_mode")%>', {rule_mode: value}, function(x, status) {
-            if (x && x.status == 200) {
-                get_rule_mode();
-            } else {
-                alert(' <%:Proxy Mode%>: ' + value + ' <%:switching failed!%>');
-                get_rule_mode();
-            }
-        });
+        return SettingsManager.switchSetting(
+            'rule_mode', 
+            value, 
+            '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_rule_mode")%>'
+        );
     }
     
     function get_run_mode() {
-		StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_run_mode")%>', function(x, status) {
-			if (x && x.status == 200 && status.mode) {
-				var isRunning = StateManager.current_status.clash;
-				
-				if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix") {
-					DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Fake-IP%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
-					DOMCache.radio_run_normal.innerHTML = "<%:Enhance%>";
-				} else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix") {
-					DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Redir-Host%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
-					DOMCache.radio_run_normal.innerHTML = "<%:Compat%>";
-				}
-				
-				for (var i = 0; i < DOMCache.radio_ru.length; i++) {
-					if (DOMCache.radio_ru[i].value == (status["mode"].split("-")[2] == undefined ? "" : ("-" + status["mode"].split("-")[2])) && !DOMCache.radio_ru[i].checked) {
-						DOMCache.radio_ru[i].checked = true;
-					}
-				}
-			}
-		});
-	}
+        if (SettingsManager.isPollPaused('run_mode')) {
+            return;
+        }
+        
+        StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_run_mode")%>', function(x, status) {
+            if (x && x.status == 200 && status.mode) {
+                var isRunning = StateManager.current_status.clash;
+                
+                if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix") {
+                    DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Fake-IP%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
+                    DOMCache.radio_run_normal.innerHTML = "<%:Enhance%>";
+                } else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix") {
+                    DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Redir-Host%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
+                    DOMCache.radio_run_normal.innerHTML = "<%:Compat%>";
+                }
+                
+                var expectedValue = status["mode"].split("-")[2] == undefined ? "" : ("-" + status["mode"].split("-")[2]);
+                var operationKey = 'run_mode_' + status.mode;
+                
+                if (!SettingsManager.pendingOperations.has(operationKey)) {
+                    for (var i = 0; i < DOMCache.radio_ru.length; i++) {
+                        if (DOMCache.radio_ru[i].value == expectedValue && !DOMCache.radio_ru[i].checked) {
+                            DOMCache.radio_ru[i].checked = true;
+                        }
+                    }
+                }
+            }
+        }, true);
+    }
 
     function switch_run_mode(value) {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_run_mode")%>', {run_mode: value}, function(x, status) {
-            get_run_mode();
-        });
+        return SettingsManager.switchSetting(
+            'run_mode', 
+            value, 
+            '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_run_mode")%>'
+        );
     }
 
     function winOpen(url) {
@@ -3968,65 +4164,58 @@
     }
 
     function get_oc_settings() {
+        if (SettingsManager.isPollPaused('oc_settings')) {
+            return;
+        }
+        
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "oc_settings")%>', function(x, info) {
             if (x && x.status == 200) {
-                DOMCache.meta_sniffer_on.checked = info.meta_sniffer == "1";
-                DOMCache.meta_sniffer_off.checked = info.meta_sniffer != "1";
-                DOMCache.respect_rules_on.checked = info.respect_rules == "1";
-                DOMCache.respect_rules_off.checked = info.respect_rules != "1";
+                if (!SettingsManager.pendingOperations.has('meta_sniffer_' + info.meta_sniffer)) {
+                    DOMCache.meta_sniffer_on.checked = info.meta_sniffer == "1";
+                    DOMCache.meta_sniffer_off.checked = info.meta_sniffer != "1";
+                }
                 
-                if (info.oversea == "0") {
-                    DOMCache.oc_setting_oversea_0.checked = true;
-                } else if (info.oversea == "1") {
-                    DOMCache.oc_setting_oversea_1.checked = true;
-                } else if (info.oversea == "2") {
-                    DOMCache.oc_setting_oversea_2.checked = true;
+                if (!SettingsManager.pendingOperations.has('respect_rules_' + info.respect_rules)) {
+                    DOMCache.respect_rules_on.checked = info.respect_rules == "1";
+                    DOMCache.respect_rules_off.checked = info.respect_rules != "1";
+                }
+                
+                if (!SettingsManager.pendingOperations.has('oversea_' + info.oversea)) {
+                    if (info.oversea == "0") {
+                        DOMCache.oc_setting_oversea_0.checked = true;
+                    } else if (info.oversea == "1") {
+                        DOMCache.oc_setting_oversea_1.checked = true;
+                    } else if (info.oversea == "2") {
+                        DOMCache.oc_setting_oversea_2.checked = true;
+                    }
                 }
             }
-        });
+        }, true);
     }
 
     function switch_oc_setting_oversea(value) {
         LogManager.startLogDisplay('<%:Saving...%>');
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>', {
-            setting: 'oversea',
-            value: value
-        }, function(x, status) {
-            if (x && x.status == 200) {
-                var statusText = value == "0" ? "<%:Off%>" : (value == "1" ? "<%:Mainland%>" : "<%:Oversea%>");
-            } else {
-                get_oc_settings();
-                alert('<%:Area bypass setting failed%>');
-            }
-        });
-        
-        return false;
+        return SettingsManager.switchSetting(
+            'oversea', 
+            value, 
+            '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>'
+        );
     }
 
     function switch_meta_sniffer(value) {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>', {
-            setting: 'meta_sniffer',
-            value: value
-        }, function(x, status) {
-            if (!x || x.status != 200) {
-                get_oc_settings();
-                alert('<%:Sniffer setting failed%>');
-            }
-        });
-        return false;
+        return SettingsManager.switchSetting(
+            'meta_sniffer', 
+            value, 
+            '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>'
+        );
     }
 
     function switch_respect_rules(value) {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>', {
-            setting: 'respect_rules',
-            value: value
-        }, function(x, status) {
-            if (!x || x.status != 200) {
-                get_oc_settings();
-                alert('<%:Respect Rules setting failed%>');
-            }
-        });
-        return false;
+        return SettingsManager.switchSetting(
+            'respect_rules', 
+            value, 
+            '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>'
+        );
     }
 
     function generatePacConfig() {
