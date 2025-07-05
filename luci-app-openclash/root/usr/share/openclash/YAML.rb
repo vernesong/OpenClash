@@ -16,7 +16,7 @@ module YAML
       yaml_content = temp_io.string
       processed_content = fix_short_id_quotes(yaml_content)
       io.write(processed_content)
-      processed_content
+      io
     else
       yaml_content = original_dump(obj, **options)
       fix_short_id_quotes(yaml_content)
