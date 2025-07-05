@@ -659,7 +659,7 @@ function action_switch_config()
 	uci:set("openclash", "config", "enable", "1")
     uci:commit("openclash")
 
-	luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1")
+	luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
     
     luci.http.prepare_content("application/json")
     luci.http.write_json({
@@ -1291,7 +1291,7 @@ function action_close_all_connection()
 end
 
 function action_reload_firewall()
-	return luci.sys.call("/etc/init.d/openclash reload 'firewall'")
+	return luci.sys.call("/etc/init.d/openclash reload 'firewall' >/dev/null 2>&1 &")
 end
 
 function action_download_rule()
@@ -2428,7 +2428,7 @@ function action_switch_oc_setting()
             return false
         end
         
-        local reload_result = luci.sys.exec(string.format('curl -sL -m 10 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPUT http://"%s":"%s"/configs?force=true -d \'{"path":"%s"}\' 2>&1', dase, daip, cn_port, runtime_config_path))
+        local reload_result = luci.sys.exec(string.format('curl -sL -m 5 --connect-timeout 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPUT http://"%s":"%s"/configs?force=true -d \'{"path":"%s"}\' 2>&1', dase, daip, cn_port, runtime_config_path))
         
         if reload_result ~= "" then
             luci.http.status(500, "Switch Failed")
@@ -2440,7 +2440,7 @@ function action_switch_oc_setting()
     
     if setting == "meta_sniffer" then
         uci:set("openclash", "config", "enable_meta_sniffer", value)
-		uci:set("openclash", "config", "enable_meta_sniffer_pure_ip", value)
+        uci:set("openclash", "config", "enable_meta_sniffer_pure_ip", value)
         uci:commit("openclash")
         
         if is_running() then
@@ -2451,72 +2451,88 @@ function action_switch_oc_setting()
                 ruby_cmd = string.format([[
                     ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                     begin
-                        config = File.exist?('%s') ? YAML.load_file('%s') : {}
-                        config = {} if config == false
+                        config_path = '%s'
+                        
+                        config = File.exist?(config_path) ? YAML.load_file(config_path) : {}
+                        config ||= {}
+                        
+                        if config['sniffer']&.dig('enable') == true && 
+                           config['sniffer']&.dig('parse-pure-ip') == true &&
+                           config['sniffer']&.dig('sniff')
+                            exit 0
+                        end
+                        
+                        config['sniffer'] = {
+                            'enable' => true,
+                            'parse-pure-ip' => true,
+                            'override-destination' => false
+                        }
                         
                         custom_sniffer_path = '/etc/openclash/custom/openclash_custom_sniffer.yaml'
                         if File.exist?(custom_sniffer_path)
-                            custom_sniffer = YAML.load_file(custom_sniffer_path)
-                            if custom_sniffer && custom_sniffer['sniffer']
-                                config['sniffer'] = custom_sniffer['sniffer']
-                                unless config['sniffer']['sniff']
-                                    config['sniffer']['sniff'] = {
-                                        'QUIC' => { 'ports' => [443] },
-                                        'TLS' => { 'ports' => [443, '8443'] },
-                                        'HTTP' => { 'ports' => [80, '8080-8880'], 'override-destination' => true }
-                                    }
+                            begin
+                                custom_sniffer = YAML.load_file(custom_sniffer_path)
+                                if custom_sniffer&.dig('sniffer')
+                                    config['sniffer'].merge!(custom_sniffer['sniffer'])
                                 end
+                            rescue
                             end
                         end
                         
-                        unless config['sniffer']
-                            config['sniffer'] = {
-                                'enable' => true,
-                                'override-destination' => false,
-                                'sniff' => {
-                                    'QUIC' => { 'ports' => [443] },
-                                    'TLS' => { 'ports' => [443, '8443'] },
-                                    'HTTP' => { 'ports' => [80, '8080-8880'], 'override-destination' => true }
-                                },
-                                'force-domain' => ['+.netflix.com', '+.nflxvideo.net', '+.amazonaws.com', '+.media.dssott.com'],
-                                'skip-domain' => ['+.apple.com', 'Mijia Cloud', 'dlg.io.mi.com', '+.oray.com', '+.sunlogin.net', '+.push.apple.com'],
-                                'parse-pure-ip' => true
+                        unless config['sniffer']['sniff']
+                            config['sniffer']['sniff'] = {
+                                'QUIC' => { 'ports' => [443] },
+                                'TLS' => { 'ports' => [443, '8443'] },
+                                'HTTP' => { 'ports' => [80, '8080-8880'], 'override-destination' => true }
                             }
-                        else
-                            config['sniffer']['enable'] = true
-							config['sniffer']['parse-pure-ip'] = true
-                            unless config['sniffer']['sniff']
-                                config['sniffer']['sniff'] = {
-                                    'QUIC' => { 'ports' => [443] },
-                                    'TLS' => { 'ports' => [443, '8443'] },
-                                    'HTTP' => { 'ports' => [80, '8080-8880'], 'override-destination' => true }
-                                }
-                            end
                         end
                         
-                        File.write('%s', config.to_yaml)
+                        unless config['sniffer']['force-domain']
+                            config['sniffer']['force-domain'] = ['+.netflix.com', '+.nflxvideo.net', '+.amazonaws.com']
+                        end
+                        
+                        unless config['sniffer']['skip-domain']
+                            config['sniffer']['skip-domain'] = ['+.apple.com', 'Mijia Cloud', 'dlg.io.mi.com']
+                        end
+                        
+                        temp_path = config_path + '.tmp'
+                        File.open(temp_path, 'w') { |f| YAML.dump(config, f) }
+                        File.rename(temp_path, config_path)
+                        
                     rescue => e
-                        puts \"Error: #{e.message}\"
+                        File.unlink(temp_path) if File.exist?(temp_path)
                         exit 1
                     end
-                    "
-                ]], runtime_config_path, runtime_config_path, runtime_config_path)
+                    " 2>/dev/null
+                ]], runtime_config_path)
             else
                 ruby_cmd = string.format([[
                     ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                     begin
-                        config = File.exist?('%s') ? YAML.load_file('%s') : {}
-                        config = {} if config == false
+                        config_path = '%s'
                         
+                        if File.exist?(config_path)
+                            config = YAML.load_file(config_path)
+                            if config&.dig('sniffer', 'enable') == false
+                                exit 0
+                            end
+                        else
+                            config = {}
+                        end
+                        
+                        config ||= {}
                         config['sniffer'] = { 'enable' => false }
                         
-                        File.write('%s', config.to_yaml)
+                        temp_path = config_path + '.tmp'
+                        File.open(temp_path, 'w') { |f| YAML.dump(config, f) }
+                        File.rename(temp_path, config_path)
+                        
                     rescue => e
-                        puts \"Error: #{e.message}\"
+                        File.unlink(temp_path) if File.exist?(temp_path)
                         exit 1
                     end
-                    "
-                ]], runtime_config_path, runtime_config_path, runtime_config_path)
+                    " 2>/dev/null
+                ]], runtime_config_path)
             end
             
             if not update_runtime_config(ruby_cmd) then
@@ -2530,22 +2546,46 @@ function action_switch_oc_setting()
         
         if is_running() then
             local runtime_config_path = get_runtime_config_path()
+            local target_value = (value == "1") and "true" or "false"
+            
             local ruby_cmd = string.format([[
                 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                 begin
-                    config = File.exist?('%s') ? YAML.load_file('%s') : {}
-                    config = {} if config == false
+                    config_path = '%s'
+                    target_value = %s
                     
-                    config['dns'] = {} unless config['dns']
-                    config['dns']['respect-rules'] = %s
+                    if File.exist?(config_path)
+                        config = YAML.load_file(config_path)
+                        if config&.dig('dns', 'respect-rules') == target_value
+                            if target_value == true && (!config&.dig('dns', 'proxy-server-nameserver') || config['dns']['proxy-server-nameserver'].empty?)
+                            else
+                                exit 0
+                            end
+                        end
+                    else
+                        config = {}
+                    end
                     
-                    File.write('%s', config.to_yaml)
+                    config ||= {}
+                    config['dns'] ||= {}
+                    config['dns']['respect-rules'] = target_value
+                    
+                    if target_value == true
+                        if !config['dns']['proxy-server-nameserver'] || config['dns']['proxy-server-nameserver'].empty?
+                            config['dns']['proxy-server-nameserver'] = ['114.114.114.114', '119.29.29.29', '8.8.8.8', '1.1.1.1']
+                        end
+                    end
+                    
+                    temp_path = config_path + '.tmp'
+                    File.open(temp_path, 'w') { |f| YAML.dump(config, f) }
+                    File.rename(temp_path, config_path)
+                    
                 rescue => e
-                    puts \"Error: #{e.message}\"
+                    File.unlink(temp_path) if File.exist?(temp_path)
                     exit 1
                 end
-                "
-            ]], runtime_config_path, runtime_config_path, value == "1" and "true" or "false", runtime_config_path)
+                " 2>/dev/null
+            ]], runtime_config_path, target_value)
             
             if not update_runtime_config(ruby_cmd) then
                 return
@@ -3047,16 +3087,16 @@ function action_oc_action()
 	if action == "start" then
 		uci:set("openclash", "config", "enable", "1")
 		uci:commit("openclash")
-		luci.sys.call("/etc/init.d/openclash start >/dev/null 2>&1")
+		luci.sys.call("/etc/init.d/openclash start >/dev/null 2>&1 &")
 	elseif action == "stop" then
 		uci:set("openclash", "config", "enable", "0")
 		uci:commit("openclash")
 		luci.sys.call("ps | grep openclash | grep -v grep | awk '{print $1}' | xargs -r kill -9 >/dev/null 2>&1")
-		luci.sys.call("/etc/init.d/openclash stop >/dev/null 2>&1")
+		luci.sys.call("/etc/init.d/openclash stop >/dev/null 2>&1 &")
 	elseif action == "restart" then
 		uci:set("openclash", "config", "enable", "1")
 		uci:commit("openclash")
-		luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1")
+		luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 	else
 		luci.http.status(400, "Invalid action parameter")
 		return
