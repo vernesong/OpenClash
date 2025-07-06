@@ -3548,15 +3548,21 @@
         function getScrollSpeed() {
             var screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
             
+            var baseSpeed;
             if (screenWidth <= 575) {
-                return 1.5;
+                baseSpeed = 1.5;
             } else if (screenWidth <= 768) {
-                return 2;
+                baseSpeed = 2;
             } else if (screenWidth <= 1200) {
-                return 2.5;
+                baseSpeed = 2.5;
             } else {
-                return 3;
+                baseSpeed = 3;
             }
+            
+            var refreshRate = window.screen && window.screen.refreshRate ? window.screen.refreshRate : 60;
+            if (refreshRate <= 0 || refreshRate > 240) refreshRate = 60;
+            
+            return baseSpeed * (60 / refreshRate);
         }
         
         function getRandomTips(count) {
@@ -4040,7 +4046,7 @@
                         var updateDot = document.createElement('span');
                         updateDot.className = 'update-dot';
                         DOMCache.core_version_display.appendChild(updateDot);
-                        DOMCache.core_version_display.title = '<%:New version available%> ' + status.corelv;
+                        DOMCache.core_version_display.title = '<%:New version available%>: ' + status.corelv;
                         DOMCache.core_version_text.removeAttribute('title');
                     } else {
                         DOMCache.core_version_display.title = '';
@@ -4072,7 +4078,7 @@
                         var updateDot = document.createElement('span');
                         updateDot.className = 'update-dot';
                         DOMCache.plugin_version_display.appendChild(updateDot);
-                        DOMCache.plugin_version_display.title = '<%:New version available%> ' + status.oplv;
+                        DOMCache.plugin_version_display.title = '<%:New version available%>: ' + status.oplv;
                         DOMCache.plugin_version_text.removeAttribute('title');
                     } else {
                         DOMCache.plugin_version_display.title = '';
