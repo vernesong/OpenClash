@@ -3959,3 +3959,6 @@ msgstr "到期时间"
 
 msgid "Use RAW address download"
 msgstr "使用原始地址下载"
+
+msgid "Enter custom User-Agent"
+msgstr "输入自定义 User-Agent"
