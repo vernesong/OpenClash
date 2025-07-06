@@ -1471,9 +1471,6 @@ if [ -n "$FW4" ]; then
       #tcp
       nft 'add chain inet fw4 openclash'
       nft 'flush chain inet fw4 openclash'
-      if [ "$en_mode" = "fake-ip" ]; then
-         nft add rule inet fw4 openclash ip protocol icmp icmp type echo-request ip daddr { "$fakeip_range" } counter reject with icmp type admin-prohibited
-      fi
       nft 'add rule inet fw4 openclash ip daddr @localnetwork counter return'
       nft 'add rule inet fw4 openclash ct direction reply counter return'
       if [ -z "$en_mode_tun" ] && [ "$en_mode" = "fake-ip" ]; then
@@ -1503,11 +1500,7 @@ if [ -n "$FW4" ]; then
       fi
 
       nft add rule inet fw4 openclash ip protocol tcp counter redirect to "$proxy_port"
-      if [ "$en_mode" = "fake-ip" ]; then
-         nft 'add rule inet fw4 dstnat meta nfproto {ipv4} ip protocol { tcp, icmp } counter jump openclash'
-      else
-         nft 'add rule inet fw4 dstnat meta nfproto {ipv4} ip protocol tcp counter jump openclash'
-      fi
+      nft 'add rule inet fw4 dstnat meta nfproto {ipv4} ip protocol tcp counter jump openclash'
 
       if [ -z "$en_mode_tun" ]; then
          #udp
@@ -1619,9 +1612,6 @@ if [ -n "$FW4" ]; then
       if [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
          nft 'add chain inet fw4 openclash_output'
          nft 'flush chain inet fw4 openclash_output'
-         if [ "$en_mode" = "fake-ip" ]; then
-            nft add rule inet fw4 openclash_output ip protocol icmp icmp type echo-request ip daddr { "$fakeip_range" } counter reject with icmp type admin-prohibited
-         fi
          nft 'add rule inet fw4 openclash_output skgid == 65534 counter return'
          nft 'add rule inet fw4 openclash_output ip daddr @localnetwork counter return'
          nft 'add rule inet fw4 openclash_output ct direction reply counter return'
@@ -1645,11 +1635,7 @@ if [ -n "$FW4" ]; then
             nft add rule inet fw4 openclash_output ip protocol tcp counter redirect to "$proxy_port"
          fi
          nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
-         if [ "$en_mode" = "fake-ip" ]; then
-            nft 'add rule inet fw4 nat_output meta nfproto {ipv4} ip protocol { tcp, icmp } counter jump openclash_output'
-         else
-            nft 'add rule inet fw4 nat_output meta nfproto {ipv4} ip protocol tcp counter jump openclash_output'
-         fi
+         nft 'add rule inet fw4 nat_output meta nfproto {ipv4} ip protocol tcp counter jump openclash_output'
       fi
    fi
 
@@ -2258,9 +2244,6 @@ if [ -z "$FW4" ]; then
       #tcp
       iptables -t nat -N openclash
       iptables -t nat -F openclash
-      if [ "$en_mode" = "fake-ip" ]; then
-         iptables -t nat -A openclash -p icmp --icmp-type echo-request -d "$fakeip_range" -j REJECT --reject-with icmp-admin-prohibited
-      fi
       iptables -t nat -A openclash -m set --match-set localnetwork dst -j RETURN
       iptables -t nat -A openclash -m conntrack --ctdir REPLY -j RETURN
       if [ -z "$en_mode_tun" ] && [ "$en_mode" = "fake-ip" ]; then
@@ -2289,9 +2272,6 @@ if [ -z "$FW4" ]; then
       fi
       iptables -t nat -A openclash -p tcp -j REDIRECT --to-ports "$proxy_port"
       iptables -t nat -A PREROUTING -p tcp -j openclash
-      if [ "$en_mode" = "fake-ip" ]; then
-         iptables -t nat -A PREROUTING -p icmp -j openclash
-      fi
 
       if [ -z "$en_mode_tun" ]; then
          #udp
@@ -2402,9 +2382,6 @@ if [ -z "$FW4" ]; then
       if [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
          iptables -t nat -N openclash_output
          iptables -t nat -F openclash_output
-         if [ "$en_mode" = "fake-ip" ]; then
-            iptables -t nat -A openclash_output -p icmp --icmp-type echo-request -d "$fakeip_range" -j REJECT --reject-with icmp-admin-prohibited
-         fi
          iptables -t nat -A openclash_output $owner -j RETURN
          if [ "$en_mode" = "fake-ip" ] && [ "$en_mode_tun" != "1" ]; then
             iptables -t nat -A openclash_output -p tcp -d "$fakeip_range" -j REDIRECT --to-ports "$proxy_port"
@@ -2428,9 +2405,6 @@ if [ -z "$FW4" ]; then
             iptables -t nat -A openclash_output -p tcp -j REDIRECT --to-ports "$proxy_port"
          fi
          iptables -t nat -A OUTPUT -j openclash_output
-         if [ "$en_mode" = "fake-ip" ]; then
-            iptables -t nat -A OUTPUT -p icmp -j openclash_output
-         fi
       fi
    fi
 
