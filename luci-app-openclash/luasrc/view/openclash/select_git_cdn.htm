@@ -841,7 +841,7 @@
         } else if (target != addCustomOption && target != customOptionInput && target.classList.contains('select-option'))  {
             customOptionInput.style.display = 'none';
             addCustomOption.style.display = 'none';
-            if (LogManager) {
+            if (typeof LogManager !== 'undefined' && LogManager) {
                 LogManager.startLogDisplay('<%:Checking...%>');
             }
             if (type === 'core_download') {

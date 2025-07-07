@@ -3577,13 +3577,13 @@
             
             var basePixelsPerSecond;
             if (screenWidth <= 575) {
-                basePixelsPerSecond = 120;
+                basePixelsPerSecond = 100;
             } else if (screenWidth <= 768) {
-                basePixelsPerSecond = 160;
+                basePixelsPerSecond = 140;
             } else if (screenWidth <= 1200) {
-                basePixelsPerSecond = 200;
+                basePixelsPerSecond = 180;
             } else {
-                basePixelsPerSecond = 240;
+                basePixelsPerSecond = 220;
             }
             
             var adjustedSpeed = basePixelsPerSecond * (refreshRate / 60);
