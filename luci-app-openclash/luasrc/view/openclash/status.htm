@@ -179,7 +179,8 @@
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
-    overflow: visible;
+    overflow-x: auto;
+    overflow-y: visible;
 }
 
 .oc .main-card {
@@ -991,6 +992,26 @@
     font-weight: 500;
     opacity: 0;
     transition: opacity 0.3s ease;
+    animation-fill-mode: forwards;
+    animation-timing-function: linear;
+}
+
+.oc .announcement-content.scrolling {
+    animation-name: announceScroll;
+    opacity: 1;
+}
+
+.oc .announcement-content.paused {
+    animation-play-state: paused;
+}
+
+@keyframes announceScroll {
+    0% {
+        transform: translateY(-50%) translateX(0);
+    }
+    100% {
+        transform: translateY(-50%) translateX(var(--scroll-distance));
+    }
 }
 
 .oc .megaphone-container {
@@ -1015,6 +1036,8 @@
     top: 0;
     bottom: 0;
     width: 45px;
+    border-top-left-radius: var(--radius-lg);
+    border-bottom-left-radius: var(--radius-lg);
     background: linear-gradient(to right, #1d4ed8 80%, #1d4ed8 100%);
     z-index: 3;
     pointer-events: none;
@@ -1973,51 +1996,245 @@
 
     var WSManager = {
         connections: {},
-        retry_count: 0,
-        max_retries: 3,
-        reconnect_delay: 2000,
+        connectionStates: {
+            CONNECTING: 0,
+            CONNECTED: 1,
+            DISCONNECTED: 2,
+            ERROR: 3
+        },
+        retryAttempts: {},
+        maxRetries: 3,
+        reconnectDelay: 2000,
+        heartbeatInterval: 30000,
+        heartbeatTimers: {},
         
-        createConnection: function(type, url, messageHandler) {
-            if (this.connections[type]) {
-                this.connections[type].close();
+        createConnection: function(type, url, messageHandler, options) {
+            options = options || {};
+            
+            this.closeConnection(type);
+            
+            try {
+                var ws = new WebSocket(url);
+                
+                this.connections[type] = {
+                    socket: ws,
+                    url: url,
+                    messageHandler: messageHandler,
+                    state: this.connectionStates.CONNECTING,
+                    lastActivity: Date.now(),
+                    options: options
+                };
+                
+                this.retryAttempts[type] = 0;
+                
+                this.bindEventHandlers(type, ws);
+                
+                return ws;
+            } catch (error) {
+                this.handleConnectionError(type, error);
+                return null;
+            }
+        },
+        
+        bindEventHandlers: function(type, ws) {
+            var self = this;
+            var connection = this.connections[type];
+            
+            ws.onopen = function(event) {
+                self.handleOpen(type, event);
+            };
+            
+            ws.onmessage = function(event) {
+                self.handleMessage(type, event);
+            };
+            
+            ws.onerror = function(error) {
+                self.handleError(type, error);
+            };
+            
+            ws.onclose = function(event) {
+                self.handleClose(type, event);
+            };
+        },
+        
+        handleOpen: function(type, event) {            
+            var connection = this.connections[type];
+            if (connection) {
+                connection.state = this.connectionStates.CONNECTED;
+                connection.lastActivity = Date.now();
             }
             
-            var ws = new WebSocket(url);
-            ws.onmessage = messageHandler;
-            ws.onerror = this.handleError.bind(this);
-            ws.onopen = this.handleOpen.bind(this);
-            ws.onclose = this.handleClose.bind(this, type, url, messageHandler);
+            this.retryAttempts[type] = 0;
             
-            this.connections[type] = ws;
-            return ws;
+            this.startHeartbeat(type);
+            
+            if (type === 'traffic' || Object.keys(this.connections).length === 3) {
+                ws_connect = true;
+                ws_error = false;
+                ws_retry = 0;
+            }
         },
         
-        handleOpen: function() {
-            ws_connect = true;
-            ws_error = false;
-            this.retry_count = 0;
+        handleMessage: function(type, event) {
+            var connection = this.connections[type];
+            if (connection && connection.messageHandler) {
+                connection.lastActivity = Date.now();
+                try {
+                    connection.messageHandler(event);
+                } catch (error) {
+                }
+            }
         },
         
-        handleError: function() {
+        handleError: function(type, error) {            
+            var connection = this.connections[type];
+            if (connection) {
+                connection.state = this.connectionStates.ERROR;
+            }
+            
             ws_error = true;
-            ws_terror();
+            this.stopHeartbeat(type);
+            
+            if (type === 'traffic') {
+                this.enableFallbackMode();
+            }
         },
         
-        handleClose: function(type, url, messageHandler) {
-            if (this.retry_count < this.max_retries) {
-                setTimeout(function() {
-                    WSManager.retry_count++;
-                    WSManager.createConnection(type, url, messageHandler);
-                }, this.reconnect_delay);
+        handleClose: function(type, event) {            
+            var connection = this.connections[type];
+            if (connection) {
+                connection.state = this.connectionStates.DISCONNECTED;
+            }
+            
+            this.stopHeartbeat(type);
+            
+            if (event.code !== 1000 && event.code !== 1001) {
+                this.scheduleReconnect(type);
+            }
+        },
+        
+        handleConnectionError: function(type, error) {
+            var connection = this.connections[type];
+            if (connection) {
+                connection.state = this.connectionStates.ERROR;
+            }
+            
+            ws_error = true;
+            this.enableFallbackMode();
+        },
+        
+        scheduleReconnect: function(type) {
+            var self = this;
+            var connection = this.connections[type];
+            
+            if (!connection || this.retryAttempts[type] >= this.maxRetries) {
+                this.enableFallbackMode();
+                return;
+            }
+            
+            this.retryAttempts[type] = (this.retryAttempts[type] || 0) + 1;
+            var delay = this.reconnectDelay * Math.pow(1.5, this.retryAttempts[type] - 1);
+                        
+            setTimeout(function() {
+                if (self.connections[type] && self.connections[type].state !== self.connectionStates.CONNECTED) {
+                    self.createConnection(type, connection.url, connection.messageHandler, connection.options);
+                }
+            }, delay);
+        },
+        
+        startHeartbeat: function(type) {
+            var self = this;
+            
+            this.stopHeartbeat(type);
+            
+            this.heartbeatTimers[type] = setInterval(function() {
+                var connection = self.connections[type];
+                if (connection && connection.socket && connection.state === self.connectionStates.CONNECTED) {
+                    var timeSinceLastActivity = Date.now() - connection.lastActivity;
+                    
+                    if (timeSinceLastActivity > self.heartbeatInterval * 2) {
+                        self.reconnectConnection(type);
+                    }
+                }
+            }, this.heartbeatInterval);
+        },
+        
+        stopHeartbeat: function(type) {
+            if (this.heartbeatTimers[type]) {
+                clearInterval(this.heartbeatTimers[type]);
+                delete this.heartbeatTimers[type];
+            }
+        },
+        
+        reconnectConnection: function(type) {
+            var connection = this.connections[type];
+            if (connection) {
+                this.createConnection(type, connection.url, connection.messageHandler, connection.options);
+            }
+        },
+        
+        closeConnection: function(type) {
+            var connection = this.connections[type];
+            if (connection && connection.socket) {
+                this.stopHeartbeat(type);
+                
+                try {
+                    connection.socket.close(1000, 'Normal closure');
+                } catch (error) {
+                }
+                
+                delete this.connections[type];
             }
         },
         
         closeAll: function() {
+            var types = Object.keys(this.connections);
+            for (var i = 0; i < types.length; i++) {
+                this.closeConnection(types[i]);
+            }
+            
+            ws_connect = false;
+            ws_error = false;
+            ws_retry = 0;
+        },
+        
+        enableFallbackMode: function() {            
+            ws_connect = false;
+            
+            this.closeAll();
+            
+            if (NetworkStatsManager && !NetworkStatsManager.isEnabled) {
+                NetworkStatsManager.start();
+            }
+        },
+        
+        getConnectionState: function(type) {
+            var connection = this.connections[type];
+            return connection ? connection.state : this.connectionStates.DISCONNECTED;
+        },
+        
+        getAllConnectionStates: function() {
+            var states = {};
             for (var type in this.connections) {
-                if (this.connections[type]) {
-                    this.connections[type].close();
-                    delete this.connections[type];
+                states[type] = this.getConnectionState(type);
+            }
+            return states;
+        },
+        
+        hasActiveConnections: function() {
+            for (var type in this.connections) {
+                if (this.getConnectionState(type) === this.connectionStates.CONNECTED) {
+                    return true;
                 }
+            }
+            return false;
+        },
+        
+        resetRetryCount: function(type) {
+            if (type) {
+                this.retryAttempts[type] = 0;
+            } else {
+                this.retryAttempts = {};
             }
         }
     };
@@ -2624,7 +2841,7 @@
                     if (logContent.includes('##FINISH##')) {
                         setTimeout(function() {
                             self.stopLogDisplay();
-                        }, 5000);
+                        }, 3000);
                         return;
                     }
                     
@@ -2894,11 +3111,190 @@
         }
     };
 
+    var SettingsManager = {
+        pendingOperations: new Set(),
+        pausedPolls: new Set(),
+        
+        pausePoll: function(pollName, duration) {
+            this.pausedPolls.add(pollName);
+            setTimeout(() => {
+                this.pausedPolls.delete(pollName);
+            }, duration || 3000);
+        },
+        
+        isPollPaused: function(pollName) {
+            return this.pausedPolls.has(pollName);
+        },
+        
+        updateUIState: function(setting, value) {
+            setTimeout(() => {
+                switch(setting) {
+                    case 'meta_sniffer':
+                        var metaSnifferOn = document.getElementById('meta_sniffer_on');
+                        var metaSnifferOff = document.getElementById('meta_sniffer_off');
+                        if (metaSnifferOn && metaSnifferOff) {
+                            metaSnifferOn.checked = value === '1';
+                            metaSnifferOff.checked = value !== '1';
+                            
+                            var changeEvent = new Event('change', { bubbles: true });
+                            if (value === '1') {
+                                metaSnifferOn.dispatchEvent(changeEvent);
+                            } else {
+                                metaSnifferOff.dispatchEvent(changeEvent);
+                            }
+                        }
+                        break;
+                        
+                    case 'respect_rules':
+                        var respectRulesOn = document.getElementById('respect_rules_on');
+                        var respectRulesOff = document.getElementById('respect_rules_off');
+                        if (respectRulesOn && respectRulesOff) {
+                            respectRulesOn.checked = value === '1';
+                            respectRulesOff.checked = value !== '1';
+                            
+                            var changeEvent = new Event('change', { bubbles: true });
+                            if (value === '1') {
+                                respectRulesOn.dispatchEvent(changeEvent);
+                            } else {
+                                respectRulesOff.dispatchEvent(changeEvent);
+                            }
+                        }
+                        break;
+                        
+                    case 'oversea':
+                        var oversea0 = document.getElementById('oc_setting_oversea_0');
+                        var oversea1 = document.getElementById('oc_setting_oversea_1');
+                        var oversea2 = document.getElementById('oc_setting_oversea_2');
+                        if (oversea0 && oversea1 && oversea2) {
+                            oversea0.checked = value === '0';
+                            oversea1.checked = value === '1';
+                            oversea2.checked = value === '2';
+                            
+                            var changeEvent = new Event('change', { bubbles: true });
+                            var selectedElement = value === '0' ? oversea0 : (value === '1' ? oversea1 : oversea2);
+                            if (selectedElement) {
+                                selectedElement.dispatchEvent(changeEvent);
+                            }
+                        }
+                        break;
+                        
+                    case 'rule_mode':
+                        var radioElements = document.getElementsByName("radios");
+                        if (radioElements && radioElements.length > 0) {
+                            for (var i = 0; i < radioElements.length; i++) {
+                                var isChecked = radioElements[i].value === value;
+                                radioElements[i].checked = isChecked;
+                                
+                                if (isChecked) {
+                                    var changeEvent = new Event('change', { bubbles: true });
+                                    radioElements[i].dispatchEvent(changeEvent);
+                                }
+                            }
+                        }
+                        break;
+                        
+                    case 'run_mode':
+                        var radioRuElements = document.getElementsByName("radios-ru");
+                        if (radioRuElements && radioRuElements.length > 0) {
+                            var expectedValue = value.split("-")[2] == undefined ? "" : ("-" + value.split("-")[2]);
+                            for (var i = 0; i < radioRuElements.length; i++) {
+                                var isChecked = radioRuElements[i].value === expectedValue;
+                                radioRuElements[i].checked = isChecked;
+                                
+                                if (isChecked) {
+                                    var changeEvent = new Event('change', { bubbles: true });
+                                    radioRuElements[i].dispatchEvent(changeEvent);
+                                }
+                            }
+                        }
+                        break;
+                }
+            }, 10);
+        },
+        
+        switchSetting: function(setting, value, endpoint, additionalParams) {
+            var operationKey = setting + '_' + value;
+            
+            if (this.pendingOperations.has(operationKey)) {
+                return false;
+            }
+                        
+            this.pendingOperations.add(operationKey);
+            
+            try {
+                this.updateUIState(setting, value);
+            } catch (e) {
+            }
+            
+            if (setting === 'rule_mode') {
+                this.pausePoll('rule_mode', 5000);
+                clearTimeout(s);
+            } else if (setting === 'run_mode') {
+                this.pausePoll('run_mode', 5000);
+            } else {
+                this.pausePoll('oc_settings', 5000);
+            }
+            
+            var params = Object.assign({}, additionalParams || {});
+            if (setting !== 'rule_mode' && setting !== 'run_mode') {
+                params.setting = setting;
+                params.value = value;
+            } else if (setting === 'rule_mode') {
+                params.rule_mode = value;
+            } else if (setting === 'run_mode') {
+                params.run_mode = value;
+            }
+            
+            var self = this;
+            
+            XHR.get(endpoint, params, function(x, status) {
+                setTimeout(function() {
+                    self.pendingOperations.delete(operationKey);
+                    
+                    if (!x || x.status !== 200) {
+                        self.revertUIState(setting);
+                        alert(self.getErrorMessage(setting));
+                    }
+                    
+                    if (setting === 'rule_mode' && !self.isPollPaused('rule_mode')) {
+                        get_rule_mode();
+                    } else if (setting === 'run_mode' && !self.isPollPaused('run_mode')) {
+                        get_run_mode();
+                    } else if (setting !== 'rule_mode' && setting !== 'run_mode' && !self.isPollPaused('oc_settings')) {
+                        get_oc_settings();
+                    }
+                }, 1500);
+            });
+            
+            return false;
+        },
+        
+        revertUIState: function(setting) {
+            if (setting === 'rule_mode') {
+                get_rule_mode();
+            } else if (setting === 'run_mode') {
+                get_run_mode();
+            } else {
+                get_oc_settings();
+            }
+        },
+        
+        getErrorMessage: function(setting) {
+            var messages = {
+                'meta_sniffer': '<%:Sniffer setting failed%>',
+                'respect_rules': '<%:Respect Rules setting failed%>',
+                'oversea': '<%:Area bypass setting failed%>',
+                'rule_mode': '<%:Proxy Mode switching failed!%>',
+                'run_mode': '<%:Running Mode switching failed!%>'
+            };
+            return messages[setting] || '<%:Operation failed%>';
+        }
+    };
+
     var script_radio, script_radio_label;
     var ws_connect = false;
     var ws_error = false;
     var ws_retry = 0;
-    var luci_protocol;
     var s, gr;
     var pluginToggleUserAction = false;
 
@@ -2943,14 +3339,6 @@
             updates.push({element: document.getElementById('_one_key_update_btn'), content: oneKeyUpdateContent});
 
             StateManager.batchUpdateDOM(updates);
-
-            if (status.daip && window.location.hostname == status.daip) {
-                luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
-            } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-                luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.db_foward_domain + ":" + status.db_foward_port;
-            } else {
-                luci_protocol = (window.location.protocol == "http:" ? "ws://" : "wss://") + status.daip + ":" + status.cn_port;
-            }
 
             if (status.clash) {
                 var daipContent, dapoContent;
@@ -3049,40 +3437,28 @@
                 DOMCache.copy_pac_config.style.display = "none";
             }
             
-            function ws_open() {
-                WSManager.closeAll();
-                WSManager.createConnection('traffic', luci_protocol+"/traffic?token="+status.dase, ws_tmessage);
-                WSManager.createConnection('connections', luci_protocol+"/connections?token="+status.dase, ws_cmessage);
-                WSManager.createConnection('memory', luci_protocol+"/memory?token="+status.dase, ws_mmessage);
-            }
-
-            if (status.clash) {
-                if (!ws_connect) {
-                    if (!ws_error) {
-                        ws_open();
-                    } else if (ws_retry < 3) {
-                        ws_retry = ws_retry + 1;
-                        ws_open();
+            if (status.clash && status.daip) {
+                if (!WSManager.hasActiveConnections()) {
+                    if (!ws_error || ws_retry < 3) {
+                        if (initializeWebSocketConnections(status)) {
+                            ws_retry++;
+                        }
                     } else {
-                        NetworkStatsManager.start();
+                        WSManager.enableFallbackMode();
                     }
                 } else {
-                    NetworkStatsManager.stop();
+                    if (NetworkStatsManager && NetworkStatsManager.isEnabled) {
+                        NetworkStatsManager.stop();
+                    }
                     
-                    if (!SystemStatusManager.isEnabled) {
+                    if (SystemStatusManager && !SystemStatusManager.isEnabled) {
                         SystemStatusManager.start();
                     }
                 }
             } else {
-                ws_connect = false;
-                ws_error = false;
-                
+                WSManager.closeAll();
                 SystemStatusManager.stop();
                 NetworkStatsManager.stop();
-                
-                if (status.clash) {
-                    NetworkStatsManager.start();
-                }
             }
         }
         clashversion_check();
@@ -3111,9 +3487,63 @@
     });
 
     window.addEventListener('beforeunload', function() {
+        WSManager.closeAll();
         SystemStatusManager.stop();
         NetworkStatsManager.stop();
     });
+
+    function initializeWebSocketConnections(status) {
+        if (!status || !status.clash || !status.daip || !status.dase) {
+            return false;
+        }
+        
+        var protocol = getWebSocketProtocol(status);
+        var token = status.dase;
+        
+        var connections = [
+            {
+                type: 'traffic',
+                endpoint: '/traffic',
+                handler: ws_tmessage
+            },
+            {
+                type: 'connections', 
+                endpoint: '/connections',
+                handler: ws_cmessage
+            },
+            {
+                type: 'memory',
+                endpoint: '/memory', 
+                handler: ws_mmessage
+            }
+        ];
+        
+        connections.forEach(function(conn) {
+            var url = protocol + conn.endpoint + '?token=' + token;
+            WSManager.createConnection(conn.type, url, conn.handler);
+        });
+        
+        return true;
+    }
+
+    function getWebSocketProtocol(status) {
+        var protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        var host, port;
+        
+        if (status.daip && window.location.hostname === status.daip) {
+            host = status.daip;
+            port = status.cn_port;
+        } else if (status.daip && window.location.hostname !== status.daip && 
+                   status.db_foward_domain && status.db_foward_port) {
+            host = status.db_foward_domain;
+            port = status.db_foward_port;
+        } else {
+            host = status.daip;
+            port = status.cn_port;
+        }
+        
+        return protocol + host + ":" + port;
+    }
 
     function loadAnnouncement() {
         var userLang = navigator.language || navigator.userLanguage; 
@@ -3138,18 +3568,39 @@
             '<%:Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance%>'
         ];
         
-        function getScrollSpeed() {
+        function calculateAnimationDuration(bannerWidth, contentWidth) {
             var screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+            var refreshRate = window.screen && window.screen.refreshRate ? window.screen.refreshRate : 60;
+            if (refreshRate <= 0) refreshRate = 60;
             
+            if (refreshRate > 480) refreshRate = 480;
+            
+            var basePixelsPerSecond;
             if (screenWidth <= 575) {
-                return 1.5;
+                basePixelsPerSecond = 100;
             } else if (screenWidth <= 768) {
-                return 2;
+                basePixelsPerSecond = 140;
             } else if (screenWidth <= 1200) {
-                return 2.5;
+                basePixelsPerSecond = 180;
             } else {
-                return 3;
+                basePixelsPerSecond = 220;
             }
+            
+            var adjustedSpeed = basePixelsPerSecond * (refreshRate / 60);
+            var totalDistance = bannerWidth + contentWidth + 40;
+            var duration = (totalDistance / adjustedSpeed) * 1000;
+            
+            return Math.max(4000, Math.min(duration, 12000));
+        }
+        
+        function updateScrollAnimation(banner, content, duration) {
+            var bannerWidth = banner.offsetWidth;
+            var contentWidth = content.offsetWidth;
+            var scrollDistance = -(contentWidth + bannerWidth);
+            
+            banner.style.setProperty('--scroll-distance', scrollDistance + 'px');
+            
+            content.style.animationDuration = duration + 'ms';
         }
         
         function getRandomTips(count) {
@@ -3182,6 +3633,8 @@
             var content = document.getElementById('announcement-content');
             var announcements = [];
             var isRandomTips = false;
+            
+            if (!banner || !content) return;
             
             if (x && x.status == 200 && status.content) {
                 try {
@@ -3222,74 +3675,89 @@
             }
             
             updateIcon(isRandomTips);
-            
             banner.style.display = 'block';
             
             var currentIndex = 0;
-            content.textContent = announcements[currentIndex];
+            var isHovered = false;
+            var pauseTimeout = null;
+            var nextAnimationTimeout = null;
             
-            var isPaused = false;
-            banner.addEventListener('mouseenter', function() { isPaused = true; });
-            banner.addEventListener('mouseleave', function() { isPaused = false; });
+            banner.addEventListener('mouseenter', function() { 
+                isHovered = true;
+                content.classList.add('paused');
+            });
+            banner.addEventListener('mouseleave', function() { 
+                isHovered = false;
+                content.classList.remove('paused');
+            });
             
-            setTimeout(function() {
-                var bannerWidth = banner.offsetWidth;
-                var contentWidth = content.offsetWidth;
-                var megaphoneWidth = 40;
-                
-                var position = bannerWidth;
-                content.style.left = position + 'px';
-                
-                content.style.opacity = '1';
-                
-                var speed = getScrollSpeed();
-                var pauseCounter = 0;
-                var pauseDuration = 20;
-                
-                var resizeTimer;
-                window.addEventListener('resize', function() {
-                    clearTimeout(resizeTimer);
-                    resizeTimer = setTimeout(function() {
-                        speed = getScrollSpeed();
-                        bannerWidth = banner.offsetWidth;
-                        contentWidth = content.offsetWidth;
-                    }, 250);
-                });
-                
-                function moveText() {
-                    if (!isPaused) {
-                        if (position < -(contentWidth + megaphoneWidth) && pauseCounter >= pauseDuration) {
-                            currentIndex = (currentIndex + 1) % announcements.length;
-                            
-                            if (isRandomTips && currentIndex === 0) {
-                                announcements = getRandomTips(3);
-                            }
-                            
-                            content.style.opacity = '0';
-                            setTimeout(function() {
-                                content.textContent = announcements[currentIndex];
-                                contentWidth = content.offsetWidth;
-                                position = bannerWidth;
-                                content.style.left = position + 'px';
-                                content.style.opacity = '1';
-                                pauseCounter = 0;
-                            }, 150);
-                        } else if (position < -(contentWidth + megaphoneWidth)) {
-                            pauseCounter++;
-                        } else {
-                            position -= speed;
-                            content.style.left = position + 'px';
-                        }
+            var resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(function() {
+                    if (content.classList.contains('scrolling')) {
+                        var duration = calculateAnimationDuration(banner.offsetWidth, content.offsetWidth);
+                        updateScrollAnimation(banner, content, duration);
                     }
-                    requestAnimationFrame(moveText);
+                }, 250);
+            });
+            
+            function startScrollAnimation() {
+                if (nextAnimationTimeout) {
+                    clearTimeout(nextAnimationTimeout);
+                    nextAnimationTimeout = null;
                 }
                 
-                setTimeout(moveText, 300);
-            }, 50);
+                content.textContent = announcements[currentIndex];
+                
+                setTimeout(function() {
+                    var duration = calculateAnimationDuration(banner.offsetWidth, content.offsetWidth);
+                    updateScrollAnimation(banner, content, duration);
+                    
+                    content.classList.remove('scrolling');
+                    content.offsetHeight;
+                    content.classList.add('scrolling');
+                    
+                    var onAnimationEnd = function(e) {
+                        if (e.target === content && e.animationName === 'announceScroll') {
+                            content.removeEventListener('animationend', onAnimationEnd);
+                            
+                            pauseTimeout = setTimeout(function() {
+                                if (!isHovered) {
+                                    currentIndex = (currentIndex + 1) % announcements.length;
+                                    
+                                    if (isRandomTips && currentIndex === 0) {
+                                        announcements = getRandomTips(3);
+                                    }
+                                    
+                                    startScrollAnimation();
+                                }
+                            }, 2000);
+                        }
+                    };
+                    
+                    content.addEventListener('animationend', onAnimationEnd);
+                    
+                }, 50);
+            }
+            
+            setTimeout(function() {
+                startScrollAnimation();
+            }, 300);
+            
+            window.addEventListener('beforeunload', function() {
+                if (pauseTimeout) clearTimeout(pauseTimeout);
+                if (nextAnimationTimeout) clearTimeout(nextAnimationTimeout);
+            });
         });
     }
 
     function get_rule_mode() {
+        if (SettingsManager.isPollPaused('rule_mode')) {
+            s = setTimeout("get_rule_mode()", 1000);
+            return;
+        }
+        
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "rule_mode")%>', function(x, status) {
             if (x && x.status == 200 && status.mode != "") {
                 if (status.core_type == "TUN" && DOMCache.radio.length != 4) {
@@ -3301,6 +3769,7 @@
                     script_radio.setAttribute("onclick", "javascript:return switch_rule_mode(this.value);");
                     script_radio_label = document.createElement("label");
                     script_radio_label.setAttribute("for", "script");
+                    script_radio_label.setAttribute("class", "cbi-button-option");
                     script_radio_label.innerHTML = "Script";
                     DOMCache.radio_mode.appendChild(script_radio);
                     DOMCache.radio_mode.appendChild(script_radio_label);
@@ -3308,55 +3777,65 @@
                     DOMCache.radio_mode.removeChild(script_radio);
                     DOMCache.radio_mode.removeChild(script_radio_label);
                 }
-                for (var i = 0; i < DOMCache.radio.length; i++) {
-                    if (DOMCache.radio[i].value == status.mode && !DOMCache.radio[i].checked) {
-                        DOMCache.radio[i].checked = true;
-                        break;
+                
+                if (!SettingsManager.pendingOperations.has('rule_mode_' + status.mode)) {
+                    for (var i = 0; i < DOMCache.radio.length; i++) {
+                        if (DOMCache.radio[i].value == status.mode && !DOMCache.radio[i].checked) {
+                            DOMCache.radio[i].checked = true;
+                            break;
+                        }
                     }
                 }
             }
-        });
+        }, true);
         s = setTimeout("get_rule_mode()", 5000);
     }
 
     function switch_rule_mode(value) {
-        clearTimeout(s);
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_rule_mode")%>', {rule_mode: value}, function(x, status) {
-            if (x && x.status == 200) {
-                get_rule_mode();
-            } else {
-                alert(' <%:Proxy Mode%>: ' + value + ' <%:switching failed!%>');
-                get_rule_mode();
-            }
-        });
+        return SettingsManager.switchSetting(
+            'rule_mode', 
+            value, 
+            '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_rule_mode")%>'
+        );
     }
     
     function get_run_mode() {
-		StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_run_mode")%>', function(x, status) {
-			if (x && x.status == 200 && status.mode) {
-				var isRunning = StateManager.current_status.clash;
-				
-				if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix") {
-					DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Fake-IP%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
-					DOMCache.radio_run_normal.innerHTML = "<%:Enhance%>";
-				} else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix") {
-					DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Redir-Host%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
-					DOMCache.radio_run_normal.innerHTML = "<%:Compat%>";
-				}
-				
-				for (var i = 0; i < DOMCache.radio_ru.length; i++) {
-					if (DOMCache.radio_ru[i].value == (status["mode"].split("-")[2] == undefined ? "" : ("-" + status["mode"].split("-")[2])) && !DOMCache.radio_ru[i].checked) {
-						DOMCache.radio_ru[i].checked = true;
-					}
-				}
-			}
-		});
-	}
+        if (SettingsManager.isPollPaused('run_mode')) {
+            return;
+        }
+        
+        StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_run_mode")%>', function(x, status) {
+            if (x && x.status == 200 && status.mode) {
+                var isRunning = StateManager.current_status.clash;
+                
+                if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix") {
+                    DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Fake-IP%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
+                    DOMCache.radio_run_normal.innerHTML = "<%:Enhance%>";
+                } else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix") {
+                    DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Redir-Host%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
+                    DOMCache.radio_run_normal.innerHTML = "<%:Compat%>";
+                }
+                
+                var expectedValue = status["mode"].split("-")[2] == undefined ? "" : ("-" + status["mode"].split("-")[2]);
+                var operationKey = 'run_mode_' + status.mode;
+                
+                if (!SettingsManager.pendingOperations.has(operationKey)) {
+                    for (var i = 0; i < DOMCache.radio_ru.length; i++) {
+                        if (DOMCache.radio_ru[i].value == expectedValue && !DOMCache.radio_ru[i].checked) {
+                            DOMCache.radio_ru[i].checked = true;
+                        }
+                    }
+                }
+            }
+        }, true);
+    }
 
     function switch_run_mode(value) {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_run_mode")%>', {run_mode: value}, function(x, status) {
-            get_run_mode();
-        });
+        return SettingsManager.switchSetting(
+            'run_mode', 
+            value, 
+            '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_run_mode")%>'
+        );
     }
 
     function winOpen(url) {
@@ -3617,7 +4096,7 @@
                         var updateDot = document.createElement('span');
                         updateDot.className = 'update-dot';
                         DOMCache.core_version_display.appendChild(updateDot);
-                        DOMCache.core_version_display.title = '<%:New version available%> ' + status.corelv;
+                        DOMCache.core_version_display.title = '<%:New version available%>: ' + status.corelv;
                         DOMCache.core_version_text.removeAttribute('title');
                     } else {
                         DOMCache.core_version_display.title = '';
@@ -3649,7 +4128,7 @@
                         var updateDot = document.createElement('span');
                         updateDot.className = 'update-dot';
                         DOMCache.plugin_version_display.appendChild(updateDot);
-                        DOMCache.plugin_version_display.title = '<%:New version available%> ' + status.oplv;
+                        DOMCache.plugin_version_display.title = '<%:New version available%>: ' + status.oplv;
                         DOMCache.plugin_version_text.removeAttribute('title');
                     } else {
                         DOMCache.plugin_version_display.title = '';
@@ -3741,65 +4220,58 @@
     }
 
     function get_oc_settings() {
+        if (SettingsManager.isPollPaused('oc_settings')) {
+            return;
+        }
+        
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "oc_settings")%>', function(x, info) {
             if (x && x.status == 200) {
-                DOMCache.meta_sniffer_on.checked = info.meta_sniffer == "1";
-                DOMCache.meta_sniffer_off.checked = info.meta_sniffer != "1";
-                DOMCache.respect_rules_on.checked = info.respect_rules == "1";
-                DOMCache.respect_rules_off.checked = info.respect_rules != "1";
+                if (!SettingsManager.pendingOperations.has('meta_sniffer_' + info.meta_sniffer)) {
+                    DOMCache.meta_sniffer_on.checked = info.meta_sniffer == "1";
+                    DOMCache.meta_sniffer_off.checked = info.meta_sniffer != "1";
+                }
                 
-                if (info.oversea == "0") {
-                    DOMCache.oc_setting_oversea_0.checked = true;
-                } else if (info.oversea == "1") {
-                    DOMCache.oc_setting_oversea_1.checked = true;
-                } else if (info.oversea == "2") {
-                    DOMCache.oc_setting_oversea_2.checked = true;
+                if (!SettingsManager.pendingOperations.has('respect_rules_' + info.respect_rules)) {
+                    DOMCache.respect_rules_on.checked = info.respect_rules == "1";
+                    DOMCache.respect_rules_off.checked = info.respect_rules != "1";
+                }
+                
+                if (!SettingsManager.pendingOperations.has('oversea_' + info.oversea)) {
+                    if (info.oversea == "0") {
+                        DOMCache.oc_setting_oversea_0.checked = true;
+                    } else if (info.oversea == "1") {
+                        DOMCache.oc_setting_oversea_1.checked = true;
+                    } else if (info.oversea == "2") {
+                        DOMCache.oc_setting_oversea_2.checked = true;
+                    }
                 }
             }
-        });
+        }, true);
     }
 
     function switch_oc_setting_oversea(value) {
         LogManager.startLogDisplay('<%:Saving...%>');
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>', {
-            setting: 'oversea',
-            value: value
-        }, function(x, status) {
-            if (x && x.status == 200) {
-                var statusText = value == "0" ? "<%:Off%>" : (value == "1" ? "<%:Mainland%>" : "<%:Oversea%>");
-            } else {
-                get_oc_settings();
-                alert('<%:Area bypass setting failed%>');
-            }
-        });
-        
-        return false;
+        return SettingsManager.switchSetting(
+            'oversea', 
+            value, 
+            '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>'
+        );
     }
 
     function switch_meta_sniffer(value) {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>', {
-            setting: 'meta_sniffer',
-            value: value
-        }, function(x, status) {
-            if (!x || x.status != 200) {
-                get_oc_settings();
-                alert('<%:Sniffer setting failed%>');
-            }
-        });
-        return false;
+        return SettingsManager.switchSetting(
+            'meta_sniffer', 
+            value, 
+            '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>'
+        );
     }
 
     function switch_respect_rules(value) {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>', {
-            setting: 'respect_rules',
-            value: value
-        }, function(x, status) {
-            if (!x || x.status != 200) {
-                get_oc_settings();
-                alert('<%:Respect Rules setting failed%>');
-            }
-        });
-        return false;
+        return SettingsManager.switchSetting(
+            'respect_rules', 
+            value, 
+            '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>'
+        );
     }
 
     function generatePacConfig() {
@@ -4092,6 +4564,9 @@
         
         SubscriptionManager.currentConfigFile = currentConfig;
         SubscriptionManager.retryCount = 0;
+        
+        var filename = SubscriptionManager.extractFilename(currentConfig);
+        localStorage.removeItem('sub_info_' + filename);
         SubscriptionManager.getSubscriptionInfo();
         return false;
     }
@@ -4119,10 +4594,8 @@
             url: newUrl
         }, function(x, status) {
             if (x && x.status == 200 && status.info === "Success") {
-                localStorage.removeItem('sub_info_' + filename);
                 refreshSubscriptionInfo();
             } else if (x && x.status == 200 && status.info === "Delete success") {
-                localStorage.removeItem('sub_info_' + filename);
                 refreshSubscriptionInfo();
             } else {
                 alert('<%:Specify subscribe infos sources url failed:%>\n' + (status.info || '<%:Unknown error%>'));
