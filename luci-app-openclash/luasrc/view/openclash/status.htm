@@ -992,6 +992,26 @@
     font-weight: 500;
     opacity: 0;
     transition: opacity 0.3s ease;
+    animation-fill-mode: forwards;
+    animation-timing-function: linear;
+}
+
+.oc .announcement-content.scrolling {
+    animation-name: announceScroll;
+    opacity: 1;
+}
+
+.oc .announcement-content.paused {
+    animation-play-state: paused;
+}
+
+@keyframes announceScroll {
+    0% {
+        transform: translateY(-50%) translateX(0);
+    }
+    100% {
+        transform: translateY(-50%) translateX(var(--scroll-distance));
+    }
 }
 
 .oc .megaphone-container {
@@ -1016,6 +1036,8 @@
     top: 0;
     bottom: 0;
     width: 45px;
+    border-top-left-radius: var(--radius-lg);
+    border-bottom-left-radius: var(--radius-lg);
     background: linear-gradient(to right, #1d4ed8 80%, #1d4ed8 100%);
     z-index: 3;
     pointer-events: none;
@@ -3546,24 +3568,39 @@
             '<%:Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance%>'
         ];
         
-        function getScrollSpeed() {
+        function calculateAnimationDuration(bannerWidth, contentWidth) {
             var screenWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+            var refreshRate = window.screen && window.screen.refreshRate ? window.screen.refreshRate : 60;
+            if (refreshRate <= 0) refreshRate = 60;
             
-            var baseSpeed;
+            if (refreshRate > 480) refreshRate = 480;
+            
+            var basePixelsPerSecond;
             if (screenWidth <= 575) {
-                baseSpeed = 1.5;
+                basePixelsPerSecond = 120;
             } else if (screenWidth <= 768) {
-                baseSpeed = 2;
+                basePixelsPerSecond = 160;
             } else if (screenWidth <= 1200) {
-                baseSpeed = 2.5;
+                basePixelsPerSecond = 200;
             } else {
-                baseSpeed = 3;
+                basePixelsPerSecond = 240;
             }
             
-            var refreshRate = window.screen && window.screen.refreshRate ? window.screen.refreshRate : 60;
-            if (refreshRate <= 0 || refreshRate > 240) refreshRate = 60;
+            var adjustedSpeed = basePixelsPerSecond * (refreshRate / 60);
+            var totalDistance = bannerWidth + contentWidth + 40;
+            var duration = (totalDistance / adjustedSpeed) * 1000;
             
-            return baseSpeed * (60 / refreshRate);
+            return Math.max(4000, Math.min(duration, 12000));
+        }
+        
+        function updateScrollAnimation(banner, content, duration) {
+            var bannerWidth = banner.offsetWidth;
+            var contentWidth = content.offsetWidth;
+            var scrollDistance = -(contentWidth + bannerWidth);
+            
+            banner.style.setProperty('--scroll-distance', scrollDistance + 'px');
+            
+            content.style.animationDuration = duration + 'ms';
         }
         
         function getRandomTips(count) {
@@ -3596,6 +3633,8 @@
             var content = document.getElementById('announcement-content');
             var announcements = [];
             var isRandomTips = false;
+            
+            if (!banner || !content) return;
             
             if (x && x.status == 200 && status.content) {
                 try {
@@ -3636,70 +3675,80 @@
             }
             
             updateIcon(isRandomTips);
-            
             banner.style.display = 'block';
             
             var currentIndex = 0;
-            content.textContent = announcements[currentIndex];
+            var isHovered = false;
+            var pauseTimeout = null;
+            var nextAnimationTimeout = null;
             
-            var isPaused = false;
-            banner.addEventListener('mouseenter', function() { isPaused = true; });
-            banner.addEventListener('mouseleave', function() { isPaused = false; });
+            banner.addEventListener('mouseenter', function() { 
+                isHovered = true;
+                content.classList.add('paused');
+            });
+            banner.addEventListener('mouseleave', function() { 
+                isHovered = false;
+                content.classList.remove('paused');
+            });
             
-            setTimeout(function() {
-                var bannerWidth = banner.offsetWidth;
-                var contentWidth = content.offsetWidth;
-                var megaphoneWidth = 40;
-                
-                var position = bannerWidth;
-                content.style.left = position + 'px';
-                
-                content.style.opacity = '1';
-                
-                var speed = getScrollSpeed();
-                var pauseCounter = 0;
-                var pauseDuration = 20;
-                
-                var resizeTimer;
-                window.addEventListener('resize', function() {
-                    clearTimeout(resizeTimer);
-                    resizeTimer = setTimeout(function() {
-                        speed = getScrollSpeed();
-                        bannerWidth = banner.offsetWidth;
-                        contentWidth = content.offsetWidth;
-                    }, 250);
-                });
-                
-                function moveText() {
-                    if (!isPaused) {
-                        if (position < -(contentWidth + megaphoneWidth) && pauseCounter >= pauseDuration) {
-                            currentIndex = (currentIndex + 1) % announcements.length;
-                            
-                            if (isRandomTips && currentIndex === 0) {
-                                announcements = getRandomTips(3);
-                            }
-                            
-                            content.style.opacity = '0';
-                            setTimeout(function() {
-                                content.textContent = announcements[currentIndex];
-                                contentWidth = content.offsetWidth;
-                                position = bannerWidth;
-                                content.style.left = position + 'px';
-                                content.style.opacity = '1';
-                                pauseCounter = 0;
-                            }, 150);
-                        } else if (position < -(contentWidth + megaphoneWidth)) {
-                            pauseCounter++;
-                        } else {
-                            position -= speed;
-                            content.style.left = position + 'px';
-                        }
+            var resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(function() {
+                    if (content.classList.contains('scrolling')) {
+                        var duration = calculateAnimationDuration(banner.offsetWidth, content.offsetWidth);
+                        updateScrollAnimation(banner, content, duration);
                     }
-                    requestAnimationFrame(moveText);
+                }, 250);
+            });
+            
+            function startScrollAnimation() {
+                if (nextAnimationTimeout) {
+                    clearTimeout(nextAnimationTimeout);
+                    nextAnimationTimeout = null;
                 }
                 
-                setTimeout(moveText, 300);
-            }, 50);
+                content.textContent = announcements[currentIndex];
+                
+                setTimeout(function() {
+                    var duration = calculateAnimationDuration(banner.offsetWidth, content.offsetWidth);
+                    updateScrollAnimation(banner, content, duration);
+                    
+                    content.classList.remove('scrolling');
+                    content.offsetHeight;
+                    content.classList.add('scrolling');
+                    
+                    var onAnimationEnd = function(e) {
+                        if (e.target === content && e.animationName === 'announceScroll') {
+                            content.removeEventListener('animationend', onAnimationEnd);
+                            
+                            pauseTimeout = setTimeout(function() {
+                                if (!isHovered) {
+                                    currentIndex = (currentIndex + 1) % announcements.length;
+                                    
+                                    if (isRandomTips && currentIndex === 0) {
+                                        announcements = getRandomTips(3);
+                                    }
+                                    
+                                    startScrollAnimation();
+                                }
+                            }, 2000);
+                        }
+                    };
+                    
+                    content.addEventListener('animationend', onAnimationEnd);
+                    
+                }, 50);
+            }
+            
+            setTimeout(function() {
+                startScrollAnimation();
+            }, 300);
+            
+            window.addEventListener('beforeunload', function() {
+                if (pauseTimeout) clearTimeout(pauseTimeout);
+                if (nextAnimationTimeout) clearTimeout(nextAnimationTimeout);
+            });
         });
     }
 
