@@ -89,20 +89,23 @@
 }
 
 .close-btn:hover {
-    background-color: var(--hover-bg);
-    color: var(--error-color);
-    border-color: var(--error-color);
+    background: var(--hover-bg) !important;
+    border-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+    transform: translateY(-1px) !important;
+    box-shadow: var(--shadow-sm) !important;
 }
 
 .close-btn:focus {
     outline: none;
-    box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.2);
-    border-color: var(--error-color);
+    box-shadow: var(--shadow-sm) !important;
+    border-color: var(--primary-color) !important;
 }
 
 .close-btn svg {
     width: 14px !important;
     height: 14px !important;
+    flex-shrink: 0 !important;
 }
 
 .select-popup.hidden {
