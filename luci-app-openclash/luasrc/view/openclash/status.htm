@@ -3575,22 +3575,25 @@
             
             if (refreshRate > 480) refreshRate = 480;
             
-            var basePixelsPerSecond;
+            var baseDuration;
             if (screenWidth <= 575) {
-                basePixelsPerSecond = 100;
+                baseDuration = 12000;
             } else if (screenWidth <= 768) {
-                basePixelsPerSecond = 140;
+                baseDuration = 11000;
             } else if (screenWidth <= 1200) {
-                basePixelsPerSecond = 180;
+                baseDuration = 10000;
             } else {
-                basePixelsPerSecond = 220;
+                baseDuration = 9000;
             }
             
-            var adjustedSpeed = basePixelsPerSecond * (refreshRate / 60);
-            var totalDistance = bannerWidth + contentWidth + 40;
-            var duration = (totalDistance / adjustedSpeed) * 1000;
+            var refreshRateMultiplier = 1;
+            if (refreshRate > 60) {
+                refreshRateMultiplier = 1 + (refreshRate - 60) / 240;
+            }
             
-            return Math.max(4000, Math.min(duration, 12000));
+            var duration = baseDuration * refreshRateMultiplier;
+            
+            return Math.max(4000, Math.min(duration, 18000));
         }
         
         function updateScrollAnimation(banner, content, duration) {
