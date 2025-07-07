@@ -9,7 +9,10 @@ module YAML
   end
 
   def self.dump(obj, io = nil, **options)
-    if io
+    if io.nil?
+      yaml_content = original_dump(obj, **options)
+      fix_short_id_quotes(yaml_content)
+    elsif io.respond_to?(:write)
       require 'stringio'
       temp_io = StringIO.new
       original_dump(obj, temp_io, **options)
@@ -18,7 +21,7 @@ module YAML
       io.write(processed_content)
       io
     else
-      yaml_content = original_dump(obj, **options)
+      yaml_content = original_dump(obj, io, **options)
       fix_short_id_quotes(yaml_content)
     end
   end
