@@ -1149,6 +1149,9 @@ msgstr "删除所有文件"
 msgid "SS/SSR/Vmess or Other Link And Subscription Address is Supported When Online Subscription Conversion is Enabled, Multiple Links Should be One Per Line or Separated By |"
 msgstr "在线订阅转换启用时支持：SS/SSR/Vmess 等节点链接和订阅链接，多个链接请每行一个或用 | 分隔"
 
+msgid "URI and subscription address is supported when online subscription conversion enabled, multiple links should be one per line or separated by |"
+msgstr "在线订阅转换启用时支持：节点链接和订阅链接，多个链接请每行一个或用 | 分隔"
+
 msgid "Template Name"
 msgstr "订阅转换模板"
 
@@ -4002,8 +4005,11 @@ msgstr "TG群"
 msgid "Invalid subscription URL format. Support HTTP/HTTPS subscription URLs or protocol links, can be separated by newlines or |"
 msgstr "订阅地址格式无效。支持 HTTP/HTTPS 订阅地址或协议链接，可以用换行符或 | 分隔"
 
+msgid "Invalid subscription URL format. Only single HTTP/HTTPS subscription URL is supported when subscription conversion is disabled"
+msgstr "订阅地址格式无效。未启用订阅转换时仅支持单个 HTTP/HTTPS 订阅地址"
+
 msgid "Advanced Options"
 msgstr "高级选项"
 
-msgid "Show advanced subscription conversion and filtering options"
-msgstr "显示高级订阅转换和筛选选项"
+msgid "Show more subscription options"
+msgstr "显示更多订阅设置"
