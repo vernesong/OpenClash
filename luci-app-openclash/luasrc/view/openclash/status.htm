@@ -111,6 +111,22 @@
     color: var(--error-color);
 }
 
+.oc[data-darkmode="true"] .subscription-nav-arrow.left {
+    border-right-color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] .subscription-nav-arrow.right {
+    border-left-color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] .subscription-nav-arrow.left:hover {
+    border-right-color: var(--primary-color);
+}
+
+.oc[data-darkmode="true"] .subscription-nav-arrow.right:hover {
+    border-left-color: var(--primary-color);
+}
+
 .oc[data-darkmode="true"] .dashboard-btn {
     background: var(--primary-color) !important;
     color: rgb(236, 234, 234) !important;
@@ -829,6 +845,7 @@
     width: 100%;
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-fast);
+    position: relative;
 }
 
 .oc .subscription-info-container:hover {
@@ -857,8 +874,8 @@
     gap: 8px;
     flex: 1;
     min-height: 80px;
-    padding-left: 5px;
-    padding-right: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 .oc .subscription-progress {
@@ -919,6 +936,51 @@
     color: var(--error-color);
 }
 
+.oc .subscription-nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    z-index: 3;
+    opacity: 0.6;
+}
+
+.oc .subscription-nav-arrow:hover {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.2);
+}
+
+.oc .subscription-nav-arrow.disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.oc .subscription-nav-arrow.left {
+    left: 8px;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 8px solid var(--text-secondary);
+}
+
+.oc .subscription-nav-arrow.right {
+    right: 8px;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 8px solid var(--text-secondary);
+}
+
+.oc .subscription-nav-arrow.left:hover {
+    border-right-color: var(--primary-color);
+}
+
+.oc .subscription-nav-arrow.right:hover {
+    border-left-color: var(--primary-color);
+}
+
 .oc .config-file-name {
     font-size: 20px;
     font-weight: 600;
@@ -927,7 +989,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     max-width: calc(100% - 200px);
-    padding-left: 5px;
+    padding-left: 20px;
     overflow: hidden;
 }
 
@@ -937,6 +999,56 @@
     justify-content: space-between;
     gap: 16px;
     min-height: var(--control-height);
+}
+
+.oc .config-file-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.oc .config-file-empty-message {
+    font-size: 16px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.oc .config-upload-btn-large {
+    min-width: 200px !important;
+    height: 60px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    padding: 0 30px !important;
+    border-radius: var(--radius-lg) !important;
+    background: var(--primary-color) !important;
+    color: white !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all var(--transition-fast) !important;
+    box-shadow: var(--shadow-md) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+}
+
+.oc .config-upload-btn-large:hover {
+    background: #2563eb !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3) !important;
+}
+
+.oc .config-upload-btn-large svg {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.oc .config-file-content.empty-state .config-file-bottom {
+    display: none;
 }
 
 .oc .file-info {
@@ -952,7 +1064,7 @@
     display: flex;
     align-items: center;
     white-space: nowrap;
-    padding-right: 5px;
+    padding-right: 20px;
     font-size: 12px;
 }
 
@@ -1283,6 +1395,17 @@
     .oc .file-info-item {
         font-size: 10px;
     }
+
+    .oc .config-upload-btn-large {
+        min-width: 180px !important;
+        height: 50px !important;
+        font-size: 14px !important;
+        padding: 0 24px !important;
+    }
+    
+    .oc .config-file-empty-message {
+        font-size: 14px;
+    }
 }
 
 @media screen and (max-width: 575px) {
@@ -1481,6 +1604,22 @@
     .oc .file-info-item {
         font-size: 10px;
     }
+
+    .oc .config-upload-btn-large {
+        min-width: 160px !important;
+        height: 45px !important;
+        font-size: 13px !important;
+        padding: 0 20px !important;
+    }
+    
+    .oc .config-file-empty-state {
+        padding: 30px 15px;
+        gap: 15px;
+    }
+    
+    .oc .config-file-empty-message {
+        font-size: 13px;
+    }
 }
 </style>
 </head>
@@ -1635,6 +1774,8 @@
                                 <div class="card-title"><%:Config File%></div>
                                 <div class="config-file-content">
                                     <div id="subscription-info-display" class="subscription-info-container" style="display: none;">
+                                        <div class="subscription-nav-arrow left" id="subscription-prev-arrow" onclick="switchToPreviousConfig()" title="<%:Previous%>"></div>
+                                        <div class="subscription-nav-arrow right" id="subscription-next-arrow" onclick="switchToNextConfig()" title="<%:Next%>"></div>
                                         <div class="subscription-info-main">
                                             <div class="subscription-info-header">
                                                 <div class="config-file-name" id="current-config-name"><%:No Config Selected%></div>
@@ -1664,6 +1805,18 @@
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    <div id="config-file-empty-state" class="config-file-empty-state" style="display: none;">
+                                        <div class="config-file-empty-message"><%:No config files found, Please upload a config file to get started%></div>
+                                        <button type="button" class="config-upload-btn-large" id="upload_config_large" onclick="return uploadConfig()">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="17,8 12,3 7,8"></polyline>
+                                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                                            </svg>
+                                            <%:Upload Config File%>
+                                        </button>
                                     </div>
                                     
                                     <div class="config-file-bottom">
@@ -2241,6 +2394,7 @@
     var ConfigFileManager = {
         configList: [],
         currentConfig: '',
+        currentConfigIndex: -1,
         selectElement: null,
         
         init: function() {
@@ -2289,32 +2443,45 @@
                     currentConfigFile = data.current;
                 }
                 
-                if (currentConfigFile && configFiles.length > 0) {
-                    for (var i = 0; i < configFiles.length; i++) {
-                        var file = configFiles[i];
-                        var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
-                        
-                        if (filePath === currentConfigFile) {
-                            if (typeof file === 'object' && file.mtime && file.size) {
-                                currentFileInfo = {
-                                    mtime: file.mtime,
-                                    size: file.size
-                                };
-                            }
-                            break;
-                        }
-                    }
-                }
-                
                 this.configList = configFiles;
                 this.currentConfig = currentConfigFile;
-                this.updateConfigSelect(configFiles, currentConfigFile);
-                this.updateSubscriptionDisplay(currentConfigFile, currentFileInfo);
+                this.currentConfigIndex = -1;
+
+                this.toggleEmptyState(configFiles.length === 0);
                 
-                if (currentConfigFile && SubscriptionManager.currentConfigFile !== currentConfigFile) {
-                    SubscriptionManager.currentConfigFile = currentConfigFile;
-                    SubscriptionManager.getSubscriptionInfo();
+                this.updateConfigSelect(configFiles, currentConfigFile);
+
+                if (configFiles.length > 0) {
+                    if (currentConfigFile) {
+                        for (var i = 0; i < configFiles.length; i++) {
+                            var file = configFiles[i];
+                            var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
+                            
+                            if (filePath === currentConfigFile) {
+                                this.currentConfigIndex = i;
+                                if (typeof file === 'object' && file.mtime && file.size) {
+                                    currentFileInfo = {
+                                        mtime: file.mtime,
+                                        size: file.size
+                                    };
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    
+                    this.updateSubscriptionDisplay(currentConfigFile, currentFileInfo);
+                    
+                    if (currentConfigFile && SubscriptionManager.currentConfigFile !== currentConfigFile) {
+                        SubscriptionManager.currentConfigFile = currentConfigFile;
+                        SubscriptionManager.getSubscriptionInfo();
+                    }
+                } else {
+                    this.hideSubscriptionDisplay();
+                    SubscriptionManager.currentConfigFile = '';
                 }
+                
+                this.updateNavigationArrows();
                 
             } catch (e) {
                 this.handleConfigListError();
@@ -2326,6 +2493,40 @@
                 {value: '', text: '<%:Failed to load config files%>', disabled: true}
             ]);
             
+            this.toggleEmptyState(true);
+            this.hideSubscriptionDisplay();
+        },
+
+        toggleEmptyState: function(isEmpty) {
+            var emptyStateElement = document.getElementById('config-file-empty-state');
+            var configFileBottom = document.querySelector('.config-file-bottom');
+            var configFileContent = document.querySelector('.config-file-content');
+            
+            if (isEmpty) {
+                if (emptyStateElement) {
+                    emptyStateElement.style.display = 'flex';
+                }
+                if (configFileBottom) {
+                    configFileBottom.style.display = 'none';
+                }
+                if (configFileContent) {
+                    configFileContent.classList.add('empty-state');
+                }
+                this.hideSubscriptionDisplay();
+            } else {
+                if (emptyStateElement) {
+                    emptyStateElement.style.display = 'none';
+                }
+                if (configFileBottom) {
+                    configFileBottom.style.display = 'flex';
+                }
+                if (configFileContent) {
+                    configFileContent.classList.remove('empty-state');
+                }
+            }
+        },
+        
+        hideSubscriptionDisplay: function() {
             var subscriptionDisplay = document.getElementById('subscription-info-display');
             if (subscriptionDisplay) {
                 subscriptionDisplay.style.display = 'none';
@@ -2397,7 +2598,18 @@
             
             if (!container) return;
             
+            if (this.configList.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
             if (!configFile) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            var configFileContent = document.querySelector('.config-file-content');
+            if (configFileContent && configFileContent.classList.contains('empty-state')) {
                 container.style.display = 'none';
                 return;
             }
@@ -2487,23 +2699,19 @@
             if (selectedValue) {
                 this.currentConfig = selectedValue;
                 
-                var selectedFileInfo = null;
                 for (var i = 0; i < this.configList.length; i++) {
                     var file = this.configList[i];
                     var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
                     
                     if (filePath === selectedValue) {
-                        if (typeof file === 'object' && file.mtime && file.size) {
-                            selectedFileInfo = {
-                                mtime: file.mtime,
-                                size: file.size
-                            };
-                        }
+                        this.currentConfigIndex = i;
                         break;
                     }
                 }
                 
+                var selectedFileInfo = this.getConfigFileInfo(selectedValue);
                 this.updateSubscriptionDisplay(selectedValue, selectedFileInfo);
+                this.updateNavigationArrows();
                 
                 if (SubscriptionManager.currentConfigFile !== selectedValue) {
                     SubscriptionManager.currentConfigFile = selectedValue;
@@ -2515,12 +2723,89 @@
                 }
             } else {
                 this.currentConfig = '';
+                this.currentConfigIndex = -1;
                 SubscriptionManager.currentConfigFile = '';
-                var subscriptionDisplay = document.getElementById('subscription-info-display');
-                if (subscriptionDisplay) {
-                    subscriptionDisplay.style.display = 'none';
+                this.hideSubscriptionDisplay();
+                this.updateNavigationArrows();
+            }
+        },
+
+        getConfigFileInfo: function(selectedValue) {
+            var selectedFileInfo = null;
+            for (var i = 0; i < this.configList.length; i++) {
+                var file = this.configList[i];
+                var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
+                
+                if (filePath === selectedValue) {
+                    if (typeof file === 'object' && file.mtime && file.size) {
+                        selectedFileInfo = {
+                            mtime: file.mtime,
+                            size: file.size
+                        };
+                    }
+                    break;
                 }
             }
+            return selectedFileInfo;
+        },
+        
+        updateNavigationArrows: function() {
+            var prevArrow = document.getElementById('subscription-prev-arrow');
+            var nextArrow = document.getElementById('subscription-next-arrow');
+            
+            if (!prevArrow || !nextArrow) return;
+            
+            var hasMultipleConfigs = this.configList.length > 1;
+            var currentIndex = this.currentConfigIndex;
+            
+            if (!hasMultipleConfigs || currentIndex === -1) {
+                prevArrow.style.display = 'none';
+                nextArrow.style.display = 'none';
+                return;
+            }
+            
+            prevArrow.style.display = 'block';
+            nextArrow.style.display = 'block';
+            
+            prevArrow.classList.remove('disabled');
+            nextArrow.classList.remove('disabled');
+        },
+        
+        switchToConfigByIndex: function(index) {
+            if (this.configList.length === 0) {
+                return false;
+            }
+            
+            if (index < 0) {
+                index = this.configList.length - 1; 
+            } else if (index >= this.configList.length) {
+                index = 0;
+            }
+            
+            var file = this.configList[index];
+            var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
+            
+            if (this.selectElement) {
+                this.selectElement.value = filePath;
+            }
+            
+            this.currentConfig = filePath;
+            this.currentConfigIndex = index;
+            
+            var fileInfo = this.getConfigFileInfo(filePath);
+            this.updateSubscriptionDisplay(filePath, fileInfo);
+            this.updateNavigationArrows();
+            
+            if (SubscriptionManager.currentConfigFile !== filePath) {
+                SubscriptionManager.currentConfigFile = filePath;
+                var detailsSection = document.getElementById('subscription-info-details');
+                if (detailsSection) {
+                    detailsSection.style.display = 'none';
+                }
+                SubscriptionManager.getSubscriptionInfo();
+            }
+            
+            return true;
         },
         
         refreshConfigList: function() {
@@ -2562,6 +2847,10 @@
         },
         
         getSubscriptionInfo: function() {
+            if (ConfigFileManager.configList.length === 0) {
+                return;
+            }
+            
             if (!this.currentConfigFile) return;
             
             var filename = this.extractFilename(this.currentConfigFile);
@@ -2613,6 +2902,10 @@
         },
         
         displaySubscriptionInfo: function(data) {
+            if (ConfigFileManager.configList.length === 0) {
+                return;
+            }
+            
             var container = document.getElementById('subscription-info-display');
             var progressSection = document.getElementById('subscription-progress-section');
             var detailsSection = document.getElementById('subscription-info-details');
@@ -2620,6 +2913,11 @@
             var infoText = document.getElementById('subscription-info-text');
             
             if (!container) return;
+
+            var configFileContent = document.querySelector('.config-file-content');
+            if (configFileContent && configFileContent.classList.contains('empty-state')) {
+                return;
+            }
 
             container.style.display = 'flex';
             
@@ -2665,11 +2963,20 @@
         },
         
         showNoInfo: function() {
+            if (ConfigFileManager.configList.length === 0) {
+                return;
+            }
+            
             var container = document.getElementById('subscription-info-display');
             var progressSection = document.getElementById('subscription-progress-section');
             var detailsSection = document.getElementById('subscription-info-details');
             
             if (!container) return;
+            
+            var configFileContent = document.querySelector('.config-file-content');
+            if (configFileContent && configFileContent.classList.contains('empty-state')) {
+                return;
+            }
             
             container.style.display = 'flex';
             
@@ -2691,11 +2998,20 @@
         },
         
         showError: function() {
+            if (ConfigFileManager.configList.length === 0) {
+                return;
+            }
+            
             var container = document.getElementById('subscription-info-display');
             var progressSection = document.getElementById('subscription-progress-section');
             var detailsSection = document.getElementById('subscription-info-details');
             
             if (!container) return;
+            
+            var configFileContent = document.querySelector('.config-file-content');
+            if (configFileContent && configFileContent.classList.contains('empty-state')) {
+                return;
+            }
             
             container.style.display = 'flex';
             
@@ -4687,6 +5003,28 @@
             }, 500);
         }
         
+        return false;
+    }
+
+    function switchToPreviousConfig() {
+        if (ConfigFileManager.configList.length > 1) {
+            var newIndex = ConfigFileManager.currentConfigIndex - 1;
+            if (newIndex < 0) {
+                newIndex = ConfigFileManager.configList.length - 1;
+            }
+            ConfigFileManager.switchToConfigByIndex(newIndex);
+        }
+        return false;
+    }
+
+    function switchToNextConfig() {
+        if (ConfigFileManager.configList.length > 1) {
+            var newIndex = ConfigFileManager.currentConfigIndex + 1;
+            if (newIndex >= ConfigFileManager.configList.length) {
+                newIndex = 0;
+            }
+            ConfigFileManager.switchToConfigByIndex(newIndex);
+        }
         return false;
     }
 
