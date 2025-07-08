@@ -245,13 +245,6 @@
     max-width: 100%;
 }
 
-.oc .card-row.triple-cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    max-width: 100%;
-}
-
 .oc .card-row.stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 2fr);
@@ -1130,11 +1123,6 @@
         gap: 10px;
     }
 
-    .oc .card-row.triple-cards {
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 10px;
-    }
-
     .oc .card-row.stats-grid {
         grid-template-columns: repeat(4, 2fr);
         gap: 8px;
@@ -1188,12 +1176,8 @@
         gap: 8px;
     }
 
-    .oc .card-row.triple-cards {
-        gap: 8px;
-    }
-
     .oc .card-row.stats-grid {
-        grid-template-columns: repeat(3, 2fr);
+        grid-template-columns: repeat(2, 2fr);
         gap: 6px;
     }
 
@@ -1316,8 +1300,7 @@
         gap: 10px;
     }
 
-    .oc .card-row.dual-cards,
-    .oc .card-row.triple-cards {
+    .oc .card-row.dual-cards {
         grid-template-columns: 1fr 1fr;
         gap: 6px;
     }
@@ -1594,7 +1577,7 @@
                         </div>
 
                         <!-- Row 3: Settings -->
-                        <div class="card-row triple-cards">
+                        <div class="card-row stats-grid">
                             <div class="sub-card">
                                 <div class="card-title"><%:Area Bypass%><div class="help-link" title="<%:Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div></div>
                                 <div class="card-content">
@@ -1628,6 +1611,18 @@
                                         <div id="dns-setting-respect" class="cbi-button-group" style="display: none;">
                                             <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/><label for="respect_rules_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/><label for="respect_rules_off" class="cbi-button-option"><%:Off%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sub-card">
+                                <div class="card-title"><%:Stream Unlock%><div class="help-link" title="<%:Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div></div>
+                                <div class="card-content">
+                                    <div class="card-value"><span id="stream-unlock-setting-de" class="value-indicator"><%:Collecting data...%></span></div>
+                                    <div class="card-controls">
+                                        <div id="stream-unlock-setting" class="cbi-button-group" style="display: none;">
+                                            <input type="radio" id="stream_unlock_on" name="stream-unlock-radios" value="1" onclick="return switch_stream_unlock('1')"/><label for="stream_unlock_on" class="cbi-button-option"><%:On%></label>
+                                            <input type="radio" id="stream_unlock_off" name="stream-unlock-radios" value="0" onclick="return switch_stream_unlock('0')"/><label for="stream_unlock_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
                                     </div>
                                 </div>
@@ -1802,6 +1797,10 @@
         oc_setting_oversea_0: document.getElementById('oc_setting_oversea_0'),
         oc_setting_oversea_1: document.getElementById('oc_setting_oversea_1'),
         oc_setting_oversea_2: document.getElementById('oc_setting_oversea_2'),
+        stream_unlock_setting_de: document.getElementById('stream-unlock-setting-de'),
+        stream_unlock_setting: document.getElementById('stream-unlock-setting'),
+        stream_unlock_on: document.getElementById('stream_unlock_on'),
+        stream_unlock_off: document.getElementById('stream_unlock_off'),
         core_version_display: document.getElementById('core-version-display'),
         core_version_text: document.getElementById('core-version-text'),
         plugin_version_display: document.getElementById('plugin-version-display'),
@@ -3177,6 +3176,22 @@
                             }
                         }
                         break;
+
+                    case 'stream_unlock':
+                        var streamUnlockOn = document.getElementById('stream_unlock_on');
+                        var streamUnlockOff = document.getElementById('stream_unlock_off');
+                        if (streamUnlockOn && streamUnlockOff) {
+                            streamUnlockOn.checked = value === '1';
+                            streamUnlockOff.checked = value !== '1';
+                            
+                            var changeEvent = new Event('change', { bubbles: true });
+                            if (value === '1') {
+                                streamUnlockOn.dispatchEvent(changeEvent);
+                            } else {
+                                streamUnlockOff.dispatchEvent(changeEvent);
+                            }
+                        }
+                        break;
                         
                     case 'rule_mode':
                         var radioElements = document.getElementsByName("radios");
@@ -3284,6 +3299,7 @@
                 'meta_sniffer': '<%:Sniffer setting failed%>',
                 'respect_rules': '<%:Respect Rules setting failed%>',
                 'oversea': '<%:Area bypass setting failed%>',
+                'stream_unlock': '<%:Stream Unlock setting failed%>',
                 'rule_mode': '<%:Proxy Mode switching failed!%>',
                 'run_mode': '<%:Running Mode switching failed!%>'
             };
@@ -3374,9 +3390,11 @@
                 DOMCache.dns_setting_sniffer.style.display = "inline-flex";
                 DOMCache.dns_setting_respect.style.display = "inline-flex";
                 DOMCache.oc_setting_oversea.style.display = "inline-flex";
+                DOMCache.stream_unlock_setting.style.display = "inline-flex";
                 DOMCache.dns_setting_sniffer_de.style.display = "none";
                 DOMCache.dns_setting_respect_de.style.display = "none";
                 DOMCache.oc_setting_oversea_de.style.display = "none";
+                DOMCache.stream_unlock_setting_de.style.display = "none";
                 get_oc_settings();
             } else {
                 DOMCache.radio_mode.style.display = "none";
@@ -3398,12 +3416,14 @@
                 DOMCache.dns_setting_sniffer.style.display = "none";
                 DOMCache.dns_setting_respect.style.display = "none";
                 DOMCache.oc_setting_oversea.style.display = "none";
+                DOMCache.stream_unlock_setting.style.display = "none";
                 DOMCache.dns_setting_sniffer_de.style.display = "";
                 DOMCache.dns_setting_respect_de.style.display = "";
                 DOMCache.oc_setting_oversea_de.style.display = "";
                 DOMCache.dns_setting_sniffer_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
                 DOMCache.dns_setting_respect_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
                 DOMCache.oc_setting_oversea_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
+                DOMCache.stream_unlock_setting_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
                 DOMCache.daip.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
             }
 
@@ -4259,6 +4279,11 @@
                         DOMCache.oc_setting_oversea_2.checked = true;
                     }
                 }
+
+                if (!SettingsManager.pendingOperations.has('stream_unlock_' + info.stream_unlock)) {
+                    DOMCache.stream_unlock_on.checked = info.stream_unlock === '1';
+                    DOMCache.stream_unlock_off.checked = info.stream_unlock !== '1';
+                }
             }
         }, true);
     }
@@ -4284,6 +4309,14 @@
         return SettingsManager.switchSetting(
             'respect_rules', 
             value, 
+            '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>'
+        );
+    }
+
+    function switch_stream_unlock(value) {
+        return SettingsManager.switchSetting(
+            'stream_unlock',
+            value,
             '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>'
         );
     }
