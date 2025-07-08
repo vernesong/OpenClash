@@ -741,7 +741,7 @@
                         <div class="form-group">
                             <label for="subscribe-url-input"><%:Subscription URL%>:</label>
                             <textarea id="subscribe-url-input" placeholder="<%:Enter subscription URL or multiple links (one per line)%>" class="form-textarea" rows="4"></textarea>
-                            <div class="form-help"><%:SS/SSR/Vmess or Other Link And Subscription Address is Supported When Online Subscription Conversion is Enabled, Multiple Links Should be One Per Line or Separated By |%></div>
+                            <div class="form-help"><%:URI and subscription address is supported when online subscription conversion enabled, multiple links should be one per line or separated by |%></div>
                         </div>
                         
                         <div class="form-group">
@@ -757,19 +757,16 @@
                             <input type="text" id="subscribe-ua-custom" placeholder="<%:Enter custom User-Agent%>" class="form-input" style="display: none; margin-top: 8px;" />
                         </div>
 
-                        <!-- 高级选项开关 -->
                         <div class="form-group">
                             <label class="form-checkbox">
                                 <input type="checkbox" id="advanced-options-enable">
                                 <span class="checkmark"></span>
                                 <%:Advanced Options%>
                             </label>
-                            <div class="form-help"><%:Show advanced subscription conversion and filtering options%></div>
+                            <div class="form-help"><%:Show more subscription options%></div>
                         </div>
 
-                        <!-- 高级选项容器 -->
                         <div class="advanced-options-container" id="advanced-options-container" style="display: none;">
-                            <!-- 订阅转换选项 -->
                             <div class="form-group">
                                 <label class="form-checkbox">
                                     <input type="checkbox" id="sub-convert-enable">
@@ -883,7 +880,6 @@
                                 </div>
                             </div>
 
-                            <!-- 节点筛选选项 -->
                             <div class="form-group">
                                 <label for="keyword-input"><%:Keyword Match%> (<%:Optional%>):</label>
                                 <textarea id="keyword-input" placeholder="<%:Enter keywords to include nodes (one per line)%>" class="form-textarea" rows="2"></textarea>
