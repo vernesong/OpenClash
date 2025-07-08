@@ -3465,6 +3465,19 @@ function action_add_subscription()
     local name = luci.http.formvalue("name")
     local address = luci.http.formvalue("address")
     local sub_ua = luci.http.formvalue("sub_ua") or "clash.meta"
+    local sub_convert = luci.http.formvalue("sub_convert") or "0"
+    local convert_address = luci.http.formvalue("convert_address") or "https://api.dler.io/sub"
+    local template = luci.http.formvalue("template") or ""
+    local emoji = luci.http.formvalue("emoji") or "false"
+    local udp = luci.http.formvalue("udp") or "false"
+    local skip_cert_verify = luci.http.formvalue("skip_cert_verify") or "false"
+    local sort = luci.http.formvalue("sort") or "false"
+    local node_type = luci.http.formvalue("node_type") or "false"
+    local rule_provider = luci.http.formvalue("rule_provider") or "false"
+    local custom_params = luci.http.formvalue("custom_params") or ""
+    local keyword = luci.http.formvalue("keyword") or ""
+    local ex_keyword = luci.http.formvalue("ex_keyword") or ""
+    local de_ex_keyword = luci.http.formvalue("de_ex_keyword") or ""
     
     luci.http.prepare_content("application/json")
     
@@ -3476,10 +3489,54 @@ function action_add_subscription()
         return
     end
     
-    if not string.find(address, "^https?://") then
+    local is_valid_url = false
+    
+    if sub_convert == "1" then
+        if string.find(address, "^https?://") and not string.find(address, "\n") and not string.find(address, "|") then
+            is_valid_url = true
+        elseif string.find(address, "\n") or string.find(address, "|") then
+            local links = {}
+            if string.find(address, "\n") then
+                for line in address:gmatch("[^\n]+") do
+                    table.insert(links, line:match("^%s*(.-)%s*$"))
+                end
+            else
+                for link in address:gmatch("[^|]+") do
+                    table.insert(links, link:match("^%s*(.-)%s*$"))
+                end
+            end
+            
+            for _, link in ipairs(links) do
+                if link and link ~= "" then
+                    if string.find(link, "^https?://") or string.find(link, "^[a-zA-Z]+://") then
+                        is_valid_url = true
+                        break
+                    end
+                end
+            end
+        else
+            if string.find(address, "^[a-zA-Z]+://") and
+               not string.find(address, "\n") and not string.find(address, "|") then
+                is_valid_url = true
+            end
+        end
+    else
+        if string.find(address, "^https?://") and not string.find(address, "\n") and not string.find(address, "|") then
+            is_valid_url = true
+        end
+    end
+    
+    if not is_valid_url then
+        local error_msg
+        if sub_convert == "1" then
+            error_msg = "Invalid subscription URL format. Support: HTTP/HTTPS subscription URLs, or protocol links, can be separated by newlines or |"
+        else
+            error_msg = "Invalid subscription URL format. Only single HTTP/HTTPS subscription URL is supported when subscription conversion is disabled"
+        end
+        
         luci.http.write_json({
             status = "error",
-            message = "Invalid subscription URL format"
+            message = error_msg
         })
         return
     end
@@ -3500,20 +3557,103 @@ function action_add_subscription()
         return
     end
     
+    local normalized_address = address
+    if sub_convert == "1" and (string.find(address, "\n") or string.find(address, "|")) then
+        local links = {}
+        if string.find(address, "\n") then
+            for line in address:gmatch("[^\n]+") do
+                local link = line:match("^%s*(.-)%s*$")
+                if link and link ~= "" then
+                    table.insert(links, link)
+                end
+            end
+        else
+            for link in address:gmatch("[^|]+") do
+                local clean_link = link:match("^%s*(.-)%s*$")
+                if clean_link and clean_link ~= "" then
+                    table.insert(links, clean_link)
+                end
+            end
+        end
+        normalized_address = table.concat(links, "\n")
+    else
+        normalized_address = address:match("^%s*(.-)%s*$")
+    end
+    
     local section_id = uci:add("openclash", "config_subscribe")
     if section_id then
         uci:set("openclash", section_id, "name", name)
-        uci:set("openclash", section_id, "address", address)
+        uci:set("openclash", section_id, "address", normalized_address)
         uci:set("openclash", section_id, "sub_ua", sub_ua)
+        uci:set("openclash", section_id, "sub_convert", sub_convert)
+        uci:set("openclash", section_id, "convert_address", convert_address)
+        uci:set("openclash", section_id, "template", template)
+        uci:set("openclash", section_id, "emoji", emoji)
+        uci:set("openclash", section_id, "udp", udp)
+        uci:set("openclash", section_id, "skip_cert_verify", skip_cert_verify)
+        uci:set("openclash", section_id, "sort", sort)
+        uci:set("openclash", section_id, "node_type", node_type)
+        uci:set("openclash", section_id, "rule_provider", rule_provider)
         
-        uci:set("openclash", section_id, "sub_convert", "0")
-        uci:set("openclash", section_id, "emoji", "false")
-        uci:set("openclash", section_id, "udp", "false")
-        uci:set("openclash", section_id, "skip_cert_verify", "false")
-        uci:set("openclash", section_id, "sort", "false")
-        uci:set("openclash", section_id, "node_type", "false")
-        uci:set("openclash", section_id, "rule_provider", "false")
-        uci:set("openclash", section_id, "convert_address", "https://api.dler.io/sub")
+        if custom_params and custom_params ~= "" then
+            local params = {}
+            for line in custom_params:gmatch("[^\n]+") do
+                local param = line:match("^%s*(.-)%s*$")
+                if param and param ~= "" then
+                    table.insert(params, param)
+                end
+            end
+            if #params > 0 then
+                for i, param in ipairs(params) do
+                    uci:set_list("openclash", section_id, "custom_params", param)
+                end
+            end
+        end
+        
+        if keyword and keyword ~= "" then
+            local keywords = {}
+            for line in keyword:gmatch("[^\n]+") do
+                local kw = line:match("^%s*(.-)%s*$")
+                if kw and kw ~= "" then
+                    table.insert(keywords, kw)
+                end
+            end
+            if #keywords > 0 then
+                for i, kw in ipairs(keywords) do
+                    uci:set_list("openclash", section_id, "keyword", kw)
+                end
+            end
+        end
+        
+        if ex_keyword and ex_keyword ~= "" then
+            local ex_keywords = {}
+            for line in ex_keyword:gmatch("[^\n]+") do
+                local ex_kw = line:match("^%s*(.-)%s*$")
+                if ex_kw and ex_kw ~= "" then
+                    table.insert(ex_keywords, ex_kw)
+                end
+            end
+            if #ex_keywords > 0 then
+                for i, ex_kw in ipairs(ex_keywords) do
+                    uci:set_list("openclash", section_id, "ex_keyword", ex_kw)
+                end
+            end
+        end
+        
+        if de_ex_keyword and de_ex_keyword ~= "" then
+            local de_ex_keywords = {}
+            for line in de_ex_keyword:gmatch("[^\n]+") do
+                local de_ex_kw = line:match("^%s*(.-)%s*$")
+                if de_ex_kw and de_ex_kw ~= "" then
+                    table.insert(de_ex_keywords, de_ex_kw)
+                end
+            end
+            if #de_ex_keywords > 0 then
+                for i, de_ex_kw in ipairs(de_ex_keywords) do
+                    uci:set_list("openclash", section_id, "de_ex_keyword", de_ex_kw)
+                end
+            end
+        end
         
         uci:commit("openclash")
         
@@ -3521,8 +3661,10 @@ function action_add_subscription()
             status = "success",
             message = "Subscription added successfully",
             name = name,
-            address = address,
-            sub_ua = sub_ua
+            address = normalized_address,
+            sub_ua = sub_ua,
+            sub_convert = sub_convert,
+            multiple_links = sub_convert == "1" and (string.find(normalized_address, "\n") and true or false)
         })
     else
         luci.http.write_json({
