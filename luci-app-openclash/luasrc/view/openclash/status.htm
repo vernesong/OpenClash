@@ -4181,7 +4181,18 @@
     }
 
     function copyAddress() {
-        var address = (StateManager.current_status.daip || 'unknown') + ':' + (StateManager.current_status.cn_port || '9090');
+        var status = StateManager.current_status;
+        var address;
+        
+        if (status.daip && window.location.hostname == status.daip) {
+            address = 'http://' + status.daip + ':' + (status.cn_port || '9090') + '/ui/zashboard/#/setup?hostname=' + status.daip + '&port=' + (status.cn_port || '9090') + '&secret=' + (status.dase || '');
+        } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
+            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+            address = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/zashboard/#/setup?hostname=' + status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + (status.dase || '');
+        } else {
+            address = 'http://' + (status.daip || 'unknown') + ':' + (status.cn_port || '9090') + '/ui/zashboard/#/';
+        }
+        
         copyToClipboard(address, '<%:Control panel address copied:%> ');
         return false;
     }
