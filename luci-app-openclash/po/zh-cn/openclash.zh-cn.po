@@ -3962,3 +3962,6 @@ msgstr "使用原始地址下载"
 
 msgid "Enter custom User-Agent"
 msgstr "输入自定义 User-Agent"
+
+msgid "Stream Unlock"
+msgstr "流媒体解锁"

@@ -2320,7 +2320,8 @@ function action_oc_settings()
     local result = {
         meta_sniffer = "0",
         respect_rules = "0",
-        oversea = "0"
+        oversea = "0",
+        stream_unlock = "0"
     }
 
     local function get_uci_settings()
@@ -2383,6 +2384,11 @@ function action_oc_settings()
         result.oversea = "2"
     else
         result.oversea = "0"
+    end
+
+    local stream_unlock = uci:get("openclash", "config", "stream_auto_select")
+    if stream_unlock == "1" then
+        result.stream_unlock = "1"
     end
     
     luci.http.prepare_content("application/json")
@@ -2599,7 +2605,33 @@ function action_switch_oc_setting()
         if is_running() then
             luci.sys.exec("/etc/init.d/openclash restart >/dev/null 2>&1 &")
         end
-        
+    elseif setting == "stream_unlock" then
+        uci:set("openclash", "config", "stream_auto_select", value)
+        if not uci:get("openclash", "config", "stream_auto_select_interval") then
+            uci:set("openclash", "config", "stream_auto_select_interval", "10")
+        end
+        if not uci:get("openclash", "config", "stream_auto_select_logic") then
+            uci:set("openclash", "config", "stream_auto_select_logic", "Urltest")
+        end
+        if not uci:get("openclash", "config", "stream_auto_select_expand_group") then
+            uci:set("openclash", "config", "stream_auto_select_expand_group", "0")
+        end
+
+        uci:set("openclash", "config", "stream_auto_select_netflix", "1")
+        if not uci:get("openclash", "config", "stream_auto_select_group_key_netflix") then
+            uci:set("openclash", "config", "stream_auto_select_group_key_netflix", "Netflix|奈飞")
+        end
+
+        uci:set("openclash", "config", "stream_auto_select_disney", "1")
+        if not uci:get("openclash", "config", "stream_auto_select_group_key_disney") then
+            uci:set("openclash", "config", "stream_auto_select_group_key_disney", "Disney|迪士尼")
+        end
+
+        uci:set("openclash", "config", "stream_auto_select_hbo_max", "1")
+        if not uci:get("openclash", "config", "stream_auto_select_group_key_hbo_max") then
+            uci:set("openclash", "config", "stream_auto_select_group_key_hbo_max", "HBO|HBO Max")
+        end
+        uci:commit("openclash")
     else
         luci.http.status(400, "Invalid setting")
         return
