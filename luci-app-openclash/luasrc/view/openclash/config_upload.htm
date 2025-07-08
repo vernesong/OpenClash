@@ -1,103 +1,4 @@
-
 <style>
-.oc[data-darkmode="true"] .config-upload-modal {
-    background: var(--bg-white);
-    border-color: var(--border-light);
-}
-
-.oc[data-darkmode="true"] .config-upload-header,
-.oc[data-darkmode="true"] .config-upload-footer {
-    background: var(--bg-gray);
-    border-color: var(--border-light);
-}
-
-.oc[data-darkmode="true"] .mode-tab {
-    color: var(--text-secondary);
-}
-
-.oc[data-darkmode="true"] .mode-tab:hover {
-    color: var(--text-primary);
-    background: rgba(96, 165, 250, 0.1);
-}
-
-.oc[data-darkmode="true"] .mode-tab.active {
-    background: var(--primary-color);
-    color: white;
-}
-
-.oc[data-darkmode="true"] .upload-zone {
-    border-color: var(--border-color);
-    background: var(--bg-light);
-}
-
-.oc[data-darkmode="true"] .upload-zone:hover {
-    border-color: var(--primary-color);
-    background: rgba(96, 165, 250, 0.05);
-}
-
-.oc[data-darkmode="true"] .upload-zone.dragover {
-    border-color: var(--primary-color);
-    background: rgba(96, 165, 250, 0.1);
-}
-
-.oc[data-darkmode="true"] .upload-zone.has-file {
-    border-color: var(--success-color);
-    background: rgba(52, 211, 153, 0.05);
-}
-
-.oc[data-darkmode="true"] .upload-zone.has-file .upload-icon {
-    color: var(--success-color);
-}
-
-.oc[data-darkmode="true"] .form-input,
-.oc[data-darkmode="true"] .form-select,
-.oc[data-darkmode="true"] .filename-input-container input {
-    background: var(--bg-white);
-    border-color: var(--border-light);
-    color: var(--text-primary);
-    background-color: var(--bg-gray) !important;
-}
-
-.oc[data-darkmode="true"] .form-input:focus,
-.oc[data-darkmode="true"] .form-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.1);
-}
-
-.oc[data-darkmode="true"] .form-input::placeholder {
-    color: var(--text-secondary);
-}
-
-.oc[data-darkmode="true"] .progress-bar {
-    background: var(--bg-gray);
-}
-
-.oc[data-darkmode="true"] .progress-fill {
-    background: var(--primary-color);
-}
-
-.oc[data-darkmode="true"] .cancel-btn {
-    background: var(--bg-white);
-    color: var(--text-secondary);
-    border-color: var(--border-light);
-}
-
-.oc[data-darkmode="true"] .cancel-btn:hover {
-    background: var(--hover-bg);
-    color: var(--text-primary);
-}
-
-.oc[data-darkmode="true"] .upload-btn {
-    background: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.oc[data-darkmode="true"] .upload-btn:disabled {
-    background: var(--bg-gray);
-    color: var(--text-secondary);
-    border-color: var(--border-light);
-}
-
 .oc .config-upload-modal-overlay {
     position: fixed;
     top: 0;
@@ -145,6 +46,26 @@
     font-size: 16px;
     font-weight: 600;
     color: var(--text-primary);
+}
+
+.oc .config-upload-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-top: 1px solid var(--border-light);
+    background: var(--bg-gray);
+    flex-shrink: 0;
+}
+
+.oc .config-upload-status {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+
+.oc .config-upload-buttons {
+    display: flex;
+    gap: 12px;
 }
 
 .oc .config-upload-content {
@@ -251,7 +172,7 @@
 .oc .subscribe-form {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 15px;
 }
 
 .oc .form-group {
@@ -261,14 +182,14 @@
     position: relative;
 }
 
-.oc .form-select-wrapper {
-    position: relative;
-}
-
 .oc .form-group label {
     font-size: 14px;
     font-weight: 500;
     color: var(--text-primary);
+}
+
+.oc .form-select-wrapper {
+    position: relative;
 }
 
 .oc .form-select-wrapper::after {
@@ -285,7 +206,7 @@
     pointer-events: none;
 }
 
-.oc .form-input, 
+.oc .form-input,
 .oc .form-select {
     width: 100%;
     height: 40px;
@@ -301,7 +222,7 @@
     appearance: none;
 }
 
-.oc .form-input:focus, 
+.oc .form-input:focus,
 .oc .form-select:focus {
     outline: none;
     border-color: var(--primary-color);
@@ -314,6 +235,109 @@
 
 .oc .form-select {
     cursor: pointer;
+}
+
+.oc .form-textarea {
+    width: 100%;
+    min-height: 80px;
+    padding: 10px 12px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    background: var(--bg-white);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    transition: all var(--transition-fast);
+}
+
+.oc .form-textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+}
+
+.oc .form-row {
+    display: flex;
+    gap: 16px;
+    padding-top: 5px;
+}
+
+.oc .form-half {
+    flex: 1;
+}
+
+.oc .form-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-primary);
+    margin-bottom: 5px;
+}
+
+.oc .form-checkbox input[type="checkbox"] {
+    display: none;
+}
+
+.oc .checkmark {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--border-light);
+    border-radius: 3px;
+    background: var(--bg-white);
+    position: relative;
+    transition: all var(--transition-fast);
+    flex-shrink: 0;
+}
+
+.oc .form-checkbox input[type="checkbox"]:checked + .checkmark {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.oc .form-checkbox input[type="checkbox"]:checked + .checkmark::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 0px;
+    width: 4px;
+    height: 8px;
+    border: solid white;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.oc .form-checkbox-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.oc .form-help {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 0%;
+    margin-bottom: 10px;
+    line-height: 1.4;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.oc .form-help::before {
+    content: '';
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    margin-top: 2px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'%3E%3C/path%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: contain;
+    opacity: 0.7;
 }
 
 .oc .filename-input-container {
@@ -380,26 +404,6 @@
     text-align: center;
 }
 
-.oc .config-upload-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 20px;
-    border-top: 1px solid var(--border-light);
-    background: var(--bg-gray);
-    flex-shrink: 0;
-}
-
-.oc .config-upload-status {
-    font-size: 12px;
-    color: var(--text-secondary);
-}
-
-.oc .config-upload-buttons {
-    display: flex;
-    gap: 12px;
-}
-
 .oc .config-upload-buttons .btn {
     padding: 8px 16px;
     border: 1px solid var(--border-light);
@@ -436,6 +440,221 @@
     color: var(--text-secondary);
     border-color: var(--border-light);
     cursor: not-allowed;
+}
+
+.oc .advanced-options-container {
+    padding: 16px;
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    transition: all var(--transition-fast);
+}
+
+.oc .advanced-options-container .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.oc .advanced-options-container .sub-convert-options {
+    margin: 12px auto;
+    margin-left: 0;
+    background: rgba(59, 130, 246, 0.03);
+    border-color: rgba(59, 130, 246, 0.2);
+    max-width: 100%;
+}
+
+.oc .sub-convert-options {
+    margin: 16px auto;
+    padding: 16px;
+    background: var(--bg-light);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-light);
+    max-width: 95%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.oc[data-darkmode="true"] .config-upload-modal {
+    background: var(--bg-white);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] .config-upload-header,
+.oc[data-darkmode="true"] .config-upload-footer {
+    background: var(--bg-gray);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] .mode-tab {
+    color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] .mode-tab:hover {
+    color: var(--text-primary);
+    background: rgba(96, 165, 250, 0.1);
+}
+
+.oc[data-darkmode="true"] .mode-tab.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.oc[data-darkmode="true"] .upload-zone {
+    border-color: var(--border-color);
+    background: var(--bg-light);
+}
+
+.oc[data-darkmode="true"] .upload-zone:hover {
+    border-color: var(--primary-color);
+    background: rgba(96, 165, 250, 0.05);
+}
+
+.oc[data-darkmode="true"] .upload-zone.dragover {
+    border-color: var(--primary-color);
+    background: rgba(96, 165, 250, 0.1);
+}
+
+.oc[data-darkmode="true"] .upload-zone.has-file {
+    border-color: var(--success-color);
+    background: rgba(52, 211, 153, 0.05);
+}
+
+.oc[data-darkmode="true"] .upload-zone.has-file .upload-icon {
+    color: var(--success-color);
+}
+
+.oc[data-darkmode="true"] .form-input,
+.oc[data-darkmode="true"] .form-select,
+.oc[data-darkmode="true"] .filename-input-container input {
+    background: var(--bg-white);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+    background-color: var(--bg-gray) !important;
+}
+
+.oc[data-darkmode="true"] .form-input:focus,
+.oc[data-darkmode="true"] .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.1);
+}
+
+.oc[data-darkmode="true"] .form-input::placeholder {
+    color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] .form-textarea {
+    background: var(--bg-gray);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+
+.oc[data-darkmode="true"] .form-textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(96, 165, 250, 0.1);
+}
+
+.oc[data-darkmode="true"] .checkmark {
+    border-color: var(--border-light);
+    background: var(--bg-gray);
+}
+
+.oc[data-darkmode="true"] .progress-bar {
+    background: var(--bg-gray);
+}
+
+.oc[data-darkmode="true"] .progress-fill {
+    background: var(--primary-color);
+}
+
+.oc[data-darkmode="true"] .cancel-btn {
+    background: var(--bg-white);
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] .cancel-btn:hover {
+    background: var(--hover-bg);
+    color: var(--text-primary);
+}
+
+.oc[data-darkmode="true"] .upload-btn {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+}
+
+.oc[data-darkmode="true"] .upload-btn:disabled {
+    background: var(--bg-gray);
+    color: var(--text-secondary);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] .sub-convert-options {
+    background: rgba(96, 165, 250, 0.05);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] .advanced-options-container {
+    background: rgba(96, 165, 250, 0.05);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] .advanced-options-container .sub-convert-options {
+    background: rgba(96, 165, 250, 0.08);
+    border-color: var(--border-light);
+}
+
+.oc[data-darkmode="true"] .form-help::before {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23d0cfcf' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'%3E%3C/path%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
+    opacity: 0.6;
+}
+
+@media screen and (max-width: 768px) {
+    .oc .form-help {
+        font-size: 11px;
+        margin-bottom: 10px;
+        gap: 5px;
+    }
+    
+    .oc .form-help::before {
+        width: 11px;
+        height: 11px;
+        margin-top: 1px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'%3E%3C/path%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
+    }
+    
+    .oc[data-darkmode="true"] .form-help::before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23d0cfcf' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'%3E%3C/path%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
+    }
+    
+    .oc .sub-convert-options {
+        margin: 12px auto;
+        padding: 12px;
+        max-width: 98%;
+    }
+}
+
+@media screen and (max-width: 575px) {
+    .oc .form-help {
+        font-size: 10px;
+        margin-bottom: 8px;
+        gap: 4px;
+    }
+    
+    .oc .form-help::before {
+        width: 10px;
+        height: 10px;
+        margin-top: 1px;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'%3E%3C/path%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
+    }
+    
+    .oc[data-darkmode="true"] .form-help::before {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23d0cfcf' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'%3E%3C/path%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
+    }
+    
+    .oc .sub-convert-options {
+        margin: 10px auto;
+        padding: 10px;
+        max-width: 100%;
+    }
 }
 
 @media screen and (max-width: 500px) {
@@ -521,8 +740,10 @@
                     <div class="subscribe-form">
                         <div class="form-group">
                             <label for="subscribe-url-input"><%:Subscription URL%>:</label>
-                            <input type="url" id="subscribe-url-input" placeholder="<%:Enter subscription URL (http:// or https://)%>" class="form-input" />
+                            <textarea id="subscribe-url-input" placeholder="<%:Enter subscription URL or multiple links (one per line)%>" class="form-textarea" rows="4"></textarea>
+                            <div class="form-help"><%:SS/SSR/Vmess or Other Link And Subscription Address is Supported When Online Subscription Conversion is Enabled, Multiple Links Should be One Per Line or Separated By |%></div>
                         </div>
+                        
                         <div class="form-group">
                             <label for="subscribe-ua-input"><%:User-Agent%> (<%:Optional%>):</label>
                             <div class="form-select-wrapper">
@@ -534,6 +755,172 @@
                                 </select>
                             </div>
                             <input type="text" id="subscribe-ua-custom" placeholder="<%:Enter custom User-Agent%>" class="form-input" style="display: none; margin-top: 8px;" />
+                        </div>
+
+                        <!-- 高级选项开关 -->
+                        <div class="form-group">
+                            <label class="form-checkbox">
+                                <input type="checkbox" id="advanced-options-enable">
+                                <span class="checkmark"></span>
+                                <%:Advanced Options%>
+                            </label>
+                            <div class="form-help"><%:Show advanced subscription conversion and filtering options%></div>
+                        </div>
+
+                        <!-- 高级选项容器 -->
+                        <div class="advanced-options-container" id="advanced-options-container" style="display: none;">
+                            <!-- 订阅转换选项 -->
+                            <div class="form-group">
+                                <label class="form-checkbox">
+                                    <input type="checkbox" id="sub-convert-enable">
+                                    <span class="checkmark"></span>
+                                    <%:Subscribe Convert Online%>
+                                </label>
+                                <div class="form-help"><%:Convert Subscribe Online With Template%></div>
+                            </div>
+
+                            <div class="sub-convert-options" id="sub-convert-options" style="display: none;">
+                                <div class="form-group">
+                                    <label for="convert-address-input"><%:Convert Address%>:</label>
+                                    <div class="form-select-wrapper">
+                                        <select id="convert-address-input" class="form-select">
+                                            <option value="https://api.dler.io/sub">api.dler.io (<%:Default%>)</option>
+                                            <option value="https://api.wcc.best/sub">api.wcc.best</option>
+                                            <option value="custom"><%:Custom%></option>
+                                        </select>
+                                    </div>
+                                    <input type="text" id="convert-address-custom" placeholder="<%:Enter custom convert address%>" class="form-input" style="display: none; margin-top: 8px;" />
+                                    <div class="form-help"><%:Note: There is A Risk of Privacy Leakage in Online Convert%></div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="template-select"><%:Template Name%>:</label>
+                                    <div class="form-select-wrapper">
+                                        <select id="template-select" class="form-select">
+                                            <%
+                                            local file = io.open("/usr/share/openclash/res/sub_ini.list", "r")
+                                            if file then
+                                                for line in file:lines() do
+                                                    if line ~= "" and line ~= nil then
+                                                        local template_name = string.sub(luci.sys.exec(string.format("echo '%s' |awk -F ',' '{print $1}' 2>/dev/null", line)), 1, -2)
+                                                        if template_name and template_name ~= "" then
+                                            %>
+                                            <option value="<%=template_name%>"><%=template_name%></option>
+                                            <%
+                                                        end
+                                                    end
+                                                end
+                                                file:close()
+                                            %>
+                                            <option value="0"><%:Custom Template%></option>
+                                            <%
+                                            end
+                                            %>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" id="custom-template-group" style="display: none;">
+                                    <label for="custom-template-input"><%:Custom Template URL%>:</label>
+                                    <input type="text" id="custom-template-input" placeholder="<%:Enter custom template URL%>" class="form-input" />
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group form-half">
+                                        <label class="form-checkbox">
+                                            <input type="checkbox" id="emoji-enable">
+                                            <span class="checkmark"></span>
+                                            <%:Emoji%>
+                                        </label>
+                                    </div>
+                                    <div class="form-group form-half">
+                                        <label class="form-checkbox">
+                                            <input type="checkbox" id="udp-enable">
+                                            <span class="checkmark"></span>
+                                            <%:UDP Enable%>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group form-half">
+                                        <label class="form-checkbox">
+                                            <input type="checkbox" id="skip-cert-verify">
+                                            <span class="checkmark"></span>
+                                            <%:skip-cert-verify%>
+                                        </label>
+                                    </div>
+                                    <div class="form-group form-half">
+                                        <label class="form-checkbox">
+                                            <input type="checkbox" id="sort-enable">
+                                            <span class="checkmark"></span>
+                                            <%:Sort%>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-row">
+                                    <div class="form-group form-half">
+                                        <label class="form-checkbox">
+                                            <input type="checkbox" id="node-type-enable">
+                                            <span class="checkmark"></span>
+                                            <%:Append Node Type%>
+                                        </label>
+                                    </div>
+                                    <div class="form-group form-half">
+                                        <label class="form-checkbox">
+                                            <input type="checkbox" id="rule-provider-enable">
+                                            <span class="checkmark"></span>
+                                            <%:Use Rule Provider%>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="custom-params-input"><%:Custom Params%>:</label>
+                                    <textarea id="custom-params-input" placeholder="<%:eg: rename=match@replace, one param per line%>" class="form-textarea" rows="3"></textarea>
+                                    <div class="form-help"><%:eg: "rename=match@replace" , "rename=\\s+([2-9])[xX]@ (HIGH:$1)"%></div>
+                                </div>
+                            </div>
+
+                            <!-- 节点筛选选项 -->
+                            <div class="form-group">
+                                <label for="keyword-input"><%:Keyword Match%> (<%:Optional%>):</label>
+                                <textarea id="keyword-input" placeholder="<%:Enter keywords to include nodes (one per line)%>" class="form-textarea" rows="2"></textarea>
+                                <div class="form-help"><%:eg: hk or tw&bgp%></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="exclude-keyword-input"><%:Exclude Keyword Match%> (<%:Optional%>):</label>
+                                <textarea id="exclude-keyword-input" placeholder="<%:Enter keywords to exclude nodes (one per line)%>" class="form-textarea" rows="2"></textarea>
+                                <div class="form-help"><%:eg: hk or tw&bgp%></div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="exclude-default-select"><%:Exclude Keyword Match Default%>:</label>
+                                <div class="form-checkbox-group">
+                                    <label class="form-checkbox">
+                                        <input type="checkbox" id="exclude-expire" value="过期时间">
+                                        <span class="checkmark"></span>
+                                        <%:Expire Time%>
+                                    </label>
+                                    <label class="form-checkbox">
+                                        <input type="checkbox" id="exclude-traffic" value="剩余流量">
+                                        <span class="checkmark"></span>
+                                        <%:Remaining Traffic%>
+                                    </label>
+                                    <label class="form-checkbox">
+                                        <input type="checkbox" id="exclude-tg" value="TG群">
+                                        <span class="checkmark"></span>
+                                        <%:TG Group%>
+                                    </label>
+                                    <label class="form-checkbox">
+                                        <input type="checkbox" id="exclude-website" value="官网">
+                                        <span class="checkmark"></span>
+                                        <%:Official Website%>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -585,6 +972,8 @@ var ConfigUploader = {
     
     bindEvents: function() {
         var self = this;
+        var uploadZone = document.getElementById('upload-zone');
+        var fileInput = document.getElementById('config-file-input');
         
         document.getElementById('upload-mode-file').addEventListener('click', function() {
             self.switchMode('file');
@@ -593,9 +982,6 @@ var ConfigUploader = {
         document.getElementById('upload-mode-subscribe').addEventListener('click', function() {
             self.switchMode('subscribe');
         });
-        
-        var uploadZone = document.getElementById('upload-zone');
-        var fileInput = document.getElementById('config-file-input');
         
         uploadZone.addEventListener('click', function() {
             if (!self.isProcessing && self.currentMode === 'file') {
@@ -634,7 +1020,15 @@ var ConfigUploader = {
         var filenameInput = document.getElementById('config-filename-input');
         var subscribeUaSelect = document.getElementById('subscribe-ua-input');
         var subscribeUaCustom = document.getElementById('subscribe-ua-custom');
-        
+        var subConvertEnable = document.getElementById('sub-convert-enable');
+        var subConvertOptions = document.getElementById('sub-convert-options');
+        var convertAddressSelect = document.getElementById('convert-address-input');
+        var convertAddressCustom = document.getElementById('convert-address-custom');
+        var templateSelect = document.getElementById('template-select');
+        var customTemplateGroup = document.getElementById('custom-template-group');
+        var advancedOptionsEnable = document.getElementById('advanced-options-enable');
+        var advancedOptionsContainer = document.getElementById('advanced-options-container');
+
         subscribeUrlInput.addEventListener('input', function() {
             self.updateSubmitButton();
             self.autoFillConfigName();
@@ -647,6 +1041,41 @@ var ConfigUploader = {
                 subscribeUaCustom.style.display = 'block';
             } else {
                 subscribeUaCustom.style.display = 'none';
+            }
+        });
+
+        advancedOptionsEnable.addEventListener('change', function() {
+            if (this.checked) {
+                advancedOptionsContainer.style.display = 'block';
+            } else {
+                advancedOptionsContainer.style.display = 'none';
+                self.resetAdvancedOptions();
+            }
+            self.updateSubmitButton();
+        });
+
+        subConvertEnable.addEventListener('change', function() {
+            if (this.checked) {
+                subConvertOptions.style.display = 'block';
+            } else {
+                subConvertOptions.style.display = 'none';
+            }
+            self.updateSubmitButton();
+        });
+
+        convertAddressSelect.addEventListener('change', function() {
+            if (this.value === 'custom') {
+                convertAddressCustom.style.display = 'block';
+            } else {
+                convertAddressCustom.style.display = 'none';
+            }
+        });
+
+        templateSelect.addEventListener('change', function() {
+            if (this.value === '0') {
+                customTemplateGroup.style.display = 'block';
+            } else {
+                customTemplateGroup.style.display = 'none';
             }
         });
         
@@ -692,6 +1121,37 @@ var ConfigUploader = {
         this.overlay.classList.remove('show');
         this.reset();
     },
+
+    resetAdvancedOptions: function() {
+        document.getElementById('sub-convert-enable').checked = false;
+        document.getElementById('sub-convert-options').style.display = 'none';
+        document.getElementById('convert-address-input').value = 'https://api.dler.io/sub';
+        document.getElementById('convert-address-custom').style.display = 'none';
+        document.getElementById('convert-address-custom').value = '';
+        
+        var templateSelect = document.getElementById('template-select');
+        if (templateSelect && templateSelect.options.length > 1) {
+            templateSelect.selectedIndex = 0;
+        }
+        
+        document.getElementById('custom-template-group').style.display = 'none';
+        document.getElementById('custom-template-input').value = '';
+        
+        document.getElementById('emoji-enable').checked = false;
+        document.getElementById('udp-enable').checked = false;
+        document.getElementById('skip-cert-verify').checked = false;
+        document.getElementById('sort-enable').checked = false;
+        document.getElementById('node-type-enable').checked = false;
+        document.getElementById('rule-provider-enable').checked = false;
+        document.getElementById('custom-params-input').value = '';
+        
+        document.getElementById('keyword-input').value = '';
+        document.getElementById('exclude-keyword-input').value = '';
+        document.getElementById('exclude-expire').checked = false;
+        document.getElementById('exclude-traffic').checked = false;
+        document.getElementById('exclude-tg').checked = false;
+        document.getElementById('exclude-website').checked = false;
+    },
     
     reset: function() {
         this.selectedFile = null;
@@ -703,6 +1163,16 @@ var ConfigUploader = {
         document.getElementById('subscribe-url-input').value = '';
         document.getElementById('subscribe-ua-input').value = 'clash.meta';
         document.getElementById('subscribe-ua-custom').style.display = 'none';
+        
+        document.getElementById('advanced-options-enable').checked = false;
+        document.getElementById('advanced-options-container').style.display = 'none';
+        this.resetAdvancedOptions();
+        
+        var templateSelect = document.getElementById('template-select');
+        if (templateSelect && templateSelect.options.length > 1) {
+            templateSelect.selectedIndex = 0;
+        }
+        
         document.getElementById('upload-progress').style.display = 'none';
         document.getElementById('config-upload-status-text').textContent = '<%:Ready to add config%>';
         this.updateSubmitButton();
@@ -791,7 +1261,27 @@ var ConfigUploader = {
             isValid = this.selectedFile && filename;
         } else if (this.currentMode === 'subscribe') {
             var url = document.getElementById('subscribe-url-input').value.trim();
-            isValid = url && filename && (url.startsWith('http://') || url.startsWith('https://'));
+            var advancedEnabled = document.getElementById('advanced-options-enable').checked;
+            var subConvert = advancedEnabled && document.getElementById('sub-convert-enable').checked;
+            
+            if (url && filename) {
+                if (subConvert) {
+                    if (url.indexOf('\n') !== -1 || url.indexOf('|') !== -1) {
+                        var links = url.indexOf('\n') !== -1 ? url.split('\n') : url.split('|');
+                        for (var i = 0; i < links.length; i++) {
+                            var link = links[i].trim();
+                            if (link && (/^https?:\/\//.test(link) || /^[a-zA-Z]+:\/\//.test(link))) {
+                                isValid = true;
+                                break;
+                            }
+                        }
+                    } else {
+                        isValid = /^https?:\/\//.test(url) || /^[a-zA-Z]+:\/\//.test(url);
+                    }
+                } else {
+                    isValid = /^https?:\/\//.test(url) && url.indexOf('\n') === -1 && url.indexOf('|') === -1;
+                }
+            }
         }
         
         submitBtn.disabled = !isValid || this.isProcessing;
@@ -891,6 +1381,51 @@ var ConfigUploader = {
         var userAgent = document.getElementById('subscribe-ua-input').value;
         var subscribeUaCustom = document.getElementById('subscribe-ua-custom');
         
+        var advancedEnabled = document.getElementById('advanced-options-enable').checked;
+        var subConvert = advancedEnabled && document.getElementById('sub-convert-enable').checked;
+        
+        var convertAddress = 'https://api.dler.io/sub';
+        var template = '';
+        var emoji = false;
+        var udp = false;
+        var skipCert = false;
+        var sort = false;
+        var nodeType = false;
+        var ruleProvider = false;
+        var customParams = '';
+        var keywords = '';
+        var excludeKeywords = '';
+        var excludeDefaults = [];
+        
+        if (advancedEnabled) {
+            convertAddress = document.getElementById('convert-address-input').value;
+            var convertAddressCustom = document.getElementById('convert-address-custom').value;
+            template = document.getElementById('template-select').value;
+            var customTemplate = document.getElementById('custom-template-input').value;
+            emoji = document.getElementById('emoji-enable').checked;
+            udp = document.getElementById('udp-enable').checked;
+            skipCert = document.getElementById('skip-cert-verify').checked;
+            sort = document.getElementById('sort-enable').checked;
+            nodeType = document.getElementById('node-type-enable').checked;
+            ruleProvider = document.getElementById('rule-provider-enable').checked;
+            customParams = document.getElementById('custom-params-input').value;
+            keywords = document.getElementById('keyword-input').value;
+            excludeKeywords = document.getElementById('exclude-keyword-input').value;
+            
+            if (document.getElementById('exclude-expire').checked) excludeDefaults.push('过期时间');
+            if (document.getElementById('exclude-traffic').checked) excludeDefaults.push('剩余流量');
+            if (document.getElementById('exclude-tg').checked) excludeDefaults.push('TG群');
+            if (document.getElementById('exclude-website').checked) excludeDefaults.push('官网');
+            
+            if (convertAddress === 'custom') {
+                convertAddress = convertAddressCustom.trim() || 'https://api.dler.io/sub';
+            }
+            
+            if (template === '0') {
+                template = customTemplate.trim();
+            }
+        }
+        
         if (userAgent === 'custom') {
             userAgent = subscribeUaCustom.value.trim() || 'clash.meta';
         }
@@ -900,15 +1435,61 @@ var ConfigUploader = {
             return;
         }
         
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            alert('<%:Invalid subscription URL format%>');
+        var isValidFormat = false;
+        
+        if (subConvert) {
+            if (url.indexOf('\n') !== -1 || url.indexOf('|') !== -1) {
+                var links = [];
+                if (url.indexOf('\n') !== -1) {
+                    links = url.split('\n');
+                } else {
+                    links = url.split('|');
+                }
+                
+                for (var i = 0; i < links.length; i++) {
+                    var link = links[i].trim();
+                    if (link && (/^https?:\/\//.test(link) || /^[a-zA-Z]+:\/\//.test(link))) {
+                        isValidFormat = true;
+                        break;
+                    }
+                }
+            } else {
+                if (/^https?:\/\//.test(url) || /^[a-zA-Z]+:\/\//.test(url)) {
+                    isValidFormat = true;
+                }
+            }
+        } else {
+            if (/^https?:\/\//.test(url) && url.indexOf('\n') === -1 && url.indexOf('|') === -1) {
+                isValidFormat = true;
+            }
+        }
+        
+        if (!isValidFormat) {
+            var errorMsg = subConvert ? 
+                '<%:Invalid subscription URL format. Support HTTP/HTTPS subscription URLs or protocol links, can be separated by newlines or |%>' :
+                '<%:Invalid subscription URL format. Only single HTTP/HTTPS subscription URL is supported when subscription conversion is disabled%>';
+            alert(errorMsg);
             return;
         }
         
-        if (!/^[a-zA-Z0-9_\-\s\u4e00-\u9fa5]+$/.test(filename)) {
-            alert('<%:Config name contains invalid characters%>');
-            return;
-        }
+        var requestData = {
+            name: filename,
+            address: url,
+            sub_ua: userAgent,
+            sub_convert: subConvert ? '1' : '0',
+            convert_address: convertAddress,
+            template: template,
+            emoji: emoji ? 'true' : 'false',
+            udp: udp ? 'true' : 'false',
+            skip_cert_verify: skipCert ? 'true' : 'false',
+            sort: sort ? 'true' : 'false',
+            node_type: nodeType ? 'true' : 'false',
+            rule_provider: ruleProvider ? 'true' : 'false',
+            custom_params: customParams,
+            keyword: keywords,
+            ex_keyword: excludeKeywords,
+            de_ex_keyword: excludeDefaults.join('\n')
+        };
         
         var self = this;
         this.isProcessing = true;
@@ -937,7 +1518,20 @@ var ConfigUploader = {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "add_subscription")%>', {
             name: filename,
             address: url,
-            sub_ua: userAgent
+            sub_ua: userAgent,
+            sub_convert: subConvert ? '1' : '0',
+            convert_address: convertAddress,
+            template: template,
+            emoji: emoji ? 'true' : 'false',
+            udp: udp ? 'true' : 'false',
+            skip_cert_verify: skipCert ? 'true' : 'false',
+            sort: sort ? 'true' : 'false',
+            node_type: nodeType ? 'true' : 'false',
+            rule_provider: ruleProvider ? 'true' : 'false',
+            custom_params: customParams,
+            keyword: keywords,
+            ex_keyword: excludeKeywords,
+            de_ex_keyword: excludeDefaults.join('\n')
         }, function(x, data) {
             if (x && x.status == 200) {
                 XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_config")%>', {

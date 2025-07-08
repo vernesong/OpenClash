@@ -302,7 +302,7 @@
 }
 
 .oc .card-title {
-    font-size: 14px;
+    font-size: clamp(10px, 2.5vw, 14px);
     font-weight: 600;
     color: var(--text-secondary);
     letter-spacing: 0.5px;
@@ -313,6 +313,10 @@
     height: 20px;
     flex-shrink: 0;
     padding-left: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .oc .version-display-container {
@@ -699,7 +703,7 @@
     border: none !important;
     background: var(--primary-color) !important;
     transition: all var(--transition-fast) !important;
-    white-space: nowrap !important;
+    white-space: normal !important;
     text-align: center !important;
     text-decoration: none !important;
     display: flex !important;
@@ -709,7 +713,7 @@
     flex: 1 !important;
     height: 42px !important;
     outline: none !important;
-    padding: 0 !important;
+    padding: 2px 1px !important;
     min-width: 45px;
     margin: 0 !important;
 }
@@ -1301,11 +1305,6 @@
     .oc .dashboard-btn {
         font-size: 10px !important;
         height: 40px !important;
-        padding: 4px 4px !important;
-    }
-
-    .oc .card-title {
-        font-size: 11px;
     }
 
     .oc .card-value {
@@ -1456,9 +1455,8 @@
     }
 
     .oc .dashboard-btn {
-        font-size: 6px !important;
+        font-size: 8px !important;
         height: 25px !important;
-        padding: 6px 4px !important;
     }
 
     .oc .cbi-button-group {
@@ -1527,11 +1525,6 @@
     
     .oc .config-selector::after {
         right: 8px;
-    }
-
-    .oc .card-title {
-        font-size: 10px;
-        margin-bottom: 8px;
     }
 
     .oc .card-value {
@@ -3736,6 +3729,7 @@
                 DOMCache.dns_setting_sniffer_de.style.display = "";
                 DOMCache.dns_setting_respect_de.style.display = "";
                 DOMCache.oc_setting_oversea_de.style.display = "";
+                DOMCache.stream_unlock_setting_de.style.display = "";
                 DOMCache.dns_setting_sniffer_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
                 DOMCache.dns_setting_respect_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
                 DOMCache.oc_setting_oversea_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
