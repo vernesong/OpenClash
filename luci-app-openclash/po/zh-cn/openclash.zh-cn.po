@@ -1149,8 +1149,8 @@ msgstr "删除所有文件"
 msgid "SS/SSR/Vmess or Other Link And Subscription Address is Supported When Online Subscription Conversion is Enabled, Multiple Links Should be One Per Line or Separated By |"
 msgstr "在线订阅转换启用时支持：SS/SSR/Vmess 等节点链接和订阅链接，多个链接请每行一个或用 | 分隔"
 
-msgid "URI and subscription address is supported when online subscription conversion enabled, multiple links should be one per line or separated by |"
-msgstr "在线订阅转换启用时支持：节点链接和订阅链接，多个链接请每行一个或用 | 分隔"
+msgid "URI and subscription address is supported when online subscription conversion enabled, multiple links should be one per line or separated by"
+msgstr "在线订阅转换启用时支持：节点链接和订阅链接，多个链接请每行一个或使用分隔符"
 
 msgid "Template Name"
 msgstr "订阅转换模板"
