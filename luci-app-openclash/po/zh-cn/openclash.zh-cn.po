@@ -3696,9 +3696,6 @@ msgstr "支持 YAML 文件，最大 10MB"
 msgid "Subscription URL"
 msgstr "订阅地址"
 
-msgid "Enter subscription URL (http:// or https://)"
-msgstr "请输入订阅地址（http:// 或 https://）"
-
 msgid "User-Agent"
 msgstr "User-Agent"
 
@@ -3974,3 +3971,39 @@ msgstr "上一个"
 
 msgid "Next"
 msgstr "下一个"
+
+msgid "Enter subscription URL or multiple links (one per line)"
+msgstr "输入订阅地址或多个链接（每行一个）"
+
+msgid "Enter custom convert address"
+msgstr "输入自定义转换地址"
+
+msgid "Enter custom template URL"
+msgstr "输入自定义模板地址"
+
+msgid "eg: rename=match@replace, one param per line"
+msgstr "例如：rename=match@replace，每行一个参数"
+
+msgid "Enter keywords to include nodes (one per line)"
+msgstr "输入包含节点的关键词（每行一个）"
+
+msgid "Enter keywords to exclude nodes (one per line)"
+msgstr "输入排除节点的关键词（每行一个）"
+
+msgid "Expire Time"
+msgstr "过期时间"
+
+msgid "Remaining Traffic"
+msgstr "剩余流量"
+
+msgid "TG Group"
+msgstr "TG群"
+
+msgid "Invalid subscription URL format. Support HTTP/HTTPS subscription URLs or protocol links, can be separated by newlines or |"
+msgstr "订阅地址格式无效。支持 HTTP/HTTPS 订阅地址或协议链接，可以用换行符或 | 分隔"
+
+msgid "Advanced Options"
+msgstr "高级选项"
+
+msgid "Show advanced subscription conversion and filtering options"
+msgstr "显示高级订阅转换和筛选选项"
