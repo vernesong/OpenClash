@@ -3828,6 +3828,9 @@ msgstr "按 F11 全屏，Esc 退出全屏，Ctrl+鼠标滚轮缩放"
 msgid "Please select a config file first"
 msgstr "请先选择一个配置文件"
 
+msgid "No config files found, Please upload a config file to get started"
+msgstr "未找到配置文件，请先上传或订阅一个配置"
+
 msgid "Unknown"
 msgstr "未知"
 
@@ -3965,3 +3968,9 @@ msgstr "输入自定义 User-Agent"
 
 msgid "Stream Unlock"
 msgstr "流媒体解锁"
+
+msgid "Previous"
+msgstr "上一个"
+
+msgid "Next"
+msgstr "下一个"
