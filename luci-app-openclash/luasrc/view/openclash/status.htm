@@ -26,7 +26,7 @@
     --transition-fast: 0.15s ease;
     --transition-normal: 0.3s ease;
     
-    --control-height: 36px;
+    --control-height: 32px;
     --card-padding: 8px 5px;
     --gap-size: 10px;
     
@@ -589,7 +589,7 @@
     display: inline-flex;
     background: var(--bg-white);
     border-radius: var(--radius-sm);
-    padding: 3px;
+    padding: 2px;
     gap: 2px;
     position: relative;
     border: 1px solid var(--border-light);
@@ -608,7 +608,7 @@
 }
 
 .oc .cbi-button-option {
-    padding: 6px 6px;
+    padding: 5px 5px;
     font-size: 12px;
     font-weight: 500;
     color: var(--text-secondary);
@@ -617,7 +617,7 @@
     transition: all var(--transition-fast);
     user-select: none;
     text-align: center;
-    min-width: 42px;
+    min-width: 35px;
     height: calc(var(--control-height) - 6px);
     display: flex;
     align-items: center;
@@ -637,7 +637,6 @@
 }
 
 .oc .value-indicator {
-    font-size: 13px;
     font-weight: 500;
     padding: 10px 12px;
     border-radius: var(--radius-sm);
@@ -657,6 +656,7 @@
 }
 
 .oc .value-indicator b {
+    font-size: 12px;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
@@ -1496,7 +1496,7 @@
     }
 
     .oc .mode-row .sub-card:first-child .card-content {
-        flex-direction: column;
+        flex-direction: row;
         gap: 8px;
     }
     
@@ -1533,9 +1533,13 @@
     }
 
     .oc .value-indicator {
-        font-size: 9px;
-        padding: 6px 8px;
-        min-width: 60px;
+        padding: 5px 5px;
+        min-width: 50px;
+        height: 28px;
+    }
+
+    .oc .value-indicator b {
+        font-size: 10px;
     }
 
     .oc .stat-label {
@@ -3659,16 +3663,16 @@
             updates.push({element: DOMCache.webz, content: webzContent});
 
 
-            var closeConnContent = status.clash ? '<input type="button" class="btn dashboard-btn" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="btn dashboard-btn" value="<%:Close All Connections%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            var closeConnContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Close All Connections%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_close_all_connection_btn'), content: closeConnContent});
 
-            var reloadFwContent = status.clash ? '<input type="button" class="btn dashboard-btn" value="<%:Reload Firewall%>" onclick="return b_reload_firewall(this)"/>' : '<input type="button" class="btn dashboard-btn" value="<%:Reload Firewall%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            var reloadFwContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Reload Firewall%>" onclick="return b_reload_firewall(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Reload Firewall%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_reload_firewall_btn'), content: reloadFwContent});
 
-            var flushCacheContent = status.clash ? '<input type="button" class="btn dashboard-btn" value="<%:Flush Fake-IP Cache%>" onclick="return b_flush_fakeip_cache(this)"/>' : '<input type="button" class="btn dashboard-btn" value="<%:Flush Fake-IP Cache%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            var flushCacheContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Flush Fake-IP Cache%>" onclick="return b_flush_fakeip_cache(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Flush Fake-IP Cache%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_flush_fakeip_cache_btn'), content: flushCacheContent});
 
-            var oneKeyUpdateContent = '<input type="button" class="btn dashboard-btn" value="<%:Check Update%>" onclick="return all_one_key_update(this)"/>';
+            var oneKeyUpdateContent = '<input type="button" class="dashboard-btn" value="<%:Check Update%>" onclick="return all_one_key_update(this)"/>';
             updates.push({element: document.getElementById('_one_key_update_btn'), content: oneKeyUpdateContent});
 
             StateManager.batchUpdateDOM(updates);
