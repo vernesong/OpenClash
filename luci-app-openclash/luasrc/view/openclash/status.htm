@@ -920,7 +920,8 @@
     line-height: 1.4;
     text-overflow: ellipsis;
     overflow: hidden;
-    text-wrap: nowrap;
+    white-space: nowrap;
+    display: block;
 }
 
 .oc .subscription-loading,
@@ -1065,11 +1066,13 @@
 }
 
 .oc .file-info-item {
-    display: flex;
+    display: block;
     align-items: center;
     white-space: nowrap;
     padding-right: 20px;
     font-size: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .oc .announcement-banner {
@@ -1159,48 +1162,6 @@
     transform: scaleX(-1);
 }
 
-.oc .card-value.hidden-radio-de,
-.oc #radio-de[style*="display: none"],
-.oc #oc-setting-oversea-de[style*="display: none"],
-.oc #dns-setting-sniffer-de[style*="display: none"],
-.oc #dns-setting-respect-de[style*="display: none"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    overflow: hidden !important;
-}
-
-.oc .sub-card:has(.hidden-radio-de),
-.oc .sub-card:has([style*="display: none"]) {
-    transform: translateZ(0);
-    will-change: contents;
-}
-
-.oc .sub-card:has(.hidden-radio-de) .card-content,
-.oc .sub-card:has([style*="display: none"]) .card-content {
-    gap: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    align-items: flex-start !important;
-}
-
-.oc .sub-card:has(.hidden-radio-de) .card-controls,
-.oc .sub-card:has([style*="display: none"]) .card-controls {
-    margin: 0 !important;
-    padding: 0 !important;
-    min-height: var(--control-height) !important;
-    max-height: var(--control-height) !important;
-}
-
-.oc .sub-card:has([style*="display: none"]) .card-value {
-    min-height: auto;
-}
-
 @media screen and (max-width: 1200px) {
     .oc .main-cards-container {
         grid-template-columns: 1fr;
@@ -1275,7 +1236,7 @@
     }
 
     .oc .main-card {
-        padding: 14px;
+        padding: 12px;
         grid-template-rows: auto auto auto auto;
     }
 
@@ -1376,11 +1337,12 @@
     .oc .config-file-bottom {
         flex-direction: row;
         align-items: stretch;
-        gap: 12px;
+        gap: 8px;
     }
     
     .oc .config-file-bottom .card-actions {
         justify-content: center;
+        gap: 5px;
     }
     
     .oc .subscription-info-text {
@@ -1415,7 +1377,7 @@
     }
 
     .oc .main-card {
-        padding: 12px;
+        padding: 8px;
     }
 
     .oc .card-row {
@@ -1423,7 +1385,7 @@
     }
 
     .oc .card-row.dual-cards {
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: 1fr;
         gap: 6px;
     }
 
@@ -1508,12 +1470,12 @@
     }
 
     .oc .config-selector {
-        min-width: 120px;
+        min-width: 110px;
         flex: 1;
     }
     
     .oc .config-select {
-        min-width: 120px;
+        min-width: 110px;
         font-size: 10px;
         padding: 4px 8px;
     }
@@ -1552,6 +1514,7 @@
 
     .oc .subscription-info-text {
         font-size: 8px;
+        max-width: 190px;
     }
 
     .oc .config-file-name {
@@ -1600,6 +1563,7 @@
 
     .oc .file-info-item {
         font-size: 10px;
+        max-width: 130px;
     }
 
     .oc .config-upload-btn-large {
@@ -1689,7 +1653,7 @@
                                 <div class="card-content">
                                     <div class="card-value"><span id="_mode" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="running-mode-controls">
-                                        <div id="radio-ru-mode" class="cbi-button-group" style="display: none;">
+                                        <div id="radio-ru-mode" class="cbi-button-group" style="display: inline-flex;">
                                             <input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/><label for="normal" id="run_normal" class="cbi-button-option"><%:Compat%></label>
                                             <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/><label for="tun" class="cbi-button-option"><%:TUN%></label>
                                             <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/><label for="mix" class="cbi-button-option"><%:Mix%></label>
@@ -1700,9 +1664,8 @@
                             <div class="sub-card">
                                 <div class="card-title"><%:Proxy Mode%></div>
                                 <div class="card-content">
-                                    <div class="card-value"><span id="radio-de" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="card-controls">
-                                        <div id="radio-mode" class="cbi-button-group" style="display: none;">
+                                        <div id="radio-mode" class="cbi-button-group" style="display: inline-flex;">
                                             <input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/><label for="rule" class="cbi-button-option"><%:Rule%></label>
                                             <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/><label for="global" class="cbi-button-option"><%:Global%></label>
                                             <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/><label for="direct" class="cbi-button-option"><%:Direct%></label>
@@ -1717,9 +1680,8 @@
                             <div class="sub-card">
                                 <div class="card-title"><%:Area Bypass%><div class="help-link" title="<%:Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div></div>
                                 <div class="card-content">
-                                    <div class="card-value"><span id="oc-setting-oversea-de" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="card-controls">
-                                        <div id="oc-setting-oversea" class="cbi-button-group" style="display: none;">
+                                        <div id="oc-setting-oversea" class="cbi-button-group" style="display: inline-flex;">
                                             <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/><label for="oc_setting_oversea_1" class="cbi-button-option"><%:Mainland%></label>
                                             <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/><label for="oc_setting_oversea_2" class="cbi-button-option"><%:Oversea%></label>
                                             <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/><label for="oc_setting_oversea_0" class="cbi-button-option"><%:Off%></label>
@@ -1730,9 +1692,8 @@
                             <div class="sub-card">
                                 <div class="card-title"><%:Sniffer%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/sniff/?h=sniff#_1', '_blank');" class="help-link" title="<%:Sniff the domain name of the traffics to avoid rule-based proxy failure%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></a></div>
                                 <div class="card-content">
-                                    <div class="card-value"><span id="dns-setting-sniffer-de" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="card-controls">
-                                        <div id="dns-setting-sniffer" class="cbi-button-group" style="display: none;">
+                                        <div id="dns-setting-sniffer" class="cbi-button-group" style="display: inline-flex;">
                                             <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/><label for="meta_sniffer_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/><label for="meta_sniffer_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
@@ -1742,9 +1703,8 @@
                             <div class="sub-card">
                                 <div class="card-title"><%:DNS Proxy%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/dns/?h=res#respect-rules', '_blank');" class="help-link" title="<%:DNS querys respect-rules to preventing access failure%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></a></div>
                                 <div class="card-content">
-                                    <div class="card-value"><span id="dns-setting-respect-de" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="card-controls">
-                                        <div id="dns-setting-respect" class="cbi-button-group" style="display: none;">
+                                        <div id="dns-setting-respect" class="cbi-button-group" style="display: inline-flex;">
                                             <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/><label for="respect_rules_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/><label for="respect_rules_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
@@ -1754,9 +1714,8 @@
                             <div class="sub-card">
                                 <div class="card-title"><%:Stream Unlock%><div class="help-link" title="<%:Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div></div>
                                 <div class="card-content">
-                                    <div class="card-value"><span id="stream-unlock-setting-de" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="card-controls">
-                                        <div id="stream-unlock-setting" class="cbi-button-group" style="display: none;">
+                                        <div id="stream-unlock-setting" class="cbi-button-group" style="display: inline-flex;">
                                             <input type="radio" id="stream_unlock_on" name="stream-unlock-radios" value="1" onclick="return switch_stream_unlock('1')"/><label for="stream_unlock_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="stream_unlock_off" name="stream-unlock-radios" value="0" onclick="return switch_stream_unlock('0')"/><label for="stream_unlock_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
@@ -1924,8 +1883,6 @@
         flush_fakeip_cache: document.getElementById('_flush_fakeip_cache'),
         radio_mode: document.getElementById('radio-mode'),
         radio: document.getElementsByName("radios"),
-        radio_de: document.getElementById('radio-de'),
-        radio_ru_mode: document.getElementById('radio-ru-mode'),
         radio_ru: document.getElementsByName("radios-ru"),
         radio_run_normal: document.getElementById("run_normal"),
         copy_secret: document.getElementById('copy_secret'),
@@ -1934,20 +1891,16 @@
         copy_mix_secret: document.getElementById('copy_mix_secret'),
         copy_pac_config: document.getElementById('copy_pac_config'),
         mix_proxy: document.getElementById('_mix_proxy'),
-        dns_setting_sniffer_de: document.getElementById('dns-setting-sniffer-de'),
-        dns_setting_respect_de: document.getElementById('dns-setting-respect-de'),
         dns_setting_sniffer: document.getElementById('dns-setting-sniffer'),
         dns_setting_respect: document.getElementById('dns-setting-respect'),
         meta_sniffer_on: document.getElementById('meta_sniffer_on'),
         meta_sniffer_off: document.getElementById('meta_sniffer_off'),
         respect_rules_on: document.getElementById('respect_rules_on'),
         respect_rules_off: document.getElementById('respect_rules_off'),
-        oc_setting_oversea_de: document.getElementById('oc-setting-oversea-de'),
         oc_setting_oversea: document.getElementById('oc-setting-oversea'),
         oc_setting_oversea_0: document.getElementById('oc_setting_oversea_0'),
         oc_setting_oversea_1: document.getElementById('oc_setting_oversea_1'),
         oc_setting_oversea_2: document.getElementById('oc_setting_oversea_2'),
-        stream_unlock_setting_de: document.getElementById('stream-unlock-setting-de'),
         stream_unlock_setting: document.getElementById('stream-unlock-setting'),
         stream_unlock_on: document.getElementById('stream_unlock_on'),
         stream_unlock_off: document.getElementById('stream_unlock_off'),
@@ -3532,11 +3485,9 @@
                     case 'run_mode':
                         var radioRuElements = document.getElementsByName("radios-ru");
                         if (radioRuElements && radioRuElements.length > 0) {
-                            var expectedValue = value.split("-")[2] == undefined ? "" : ("-" + value.split("-")[2]);
                             for (var i = 0; i < radioRuElements.length; i++) {
-                                var isChecked = radioRuElements[i].value === expectedValue;
+                                var isChecked = radioRuElements[i].value === value;
                                 radioRuElements[i].checked = isChecked;
-                                
                                 if (isChecked) {
                                     var changeEvent = new Event('change', { bubbles: true });
                                     radioRuElements[i].dispatchEvent(changeEvent);
@@ -3677,7 +3628,11 @@
 
             StateManager.batchUpdateDOM(updates);
 
-            if (status.clash) {
+            get_oc_settings();
+
+            StateManager.current_status = status;
+            
+            if (status.daip) {
                 var daipContent, dapoContent;
                 
                 if (status.daip && window.location.hostname == status.daip) {
@@ -3691,67 +3646,8 @@
                     daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:var(--error-color)>"+"<%:Not Set%>"+"</b>";
                 }
                 
-                DOMCache.daip.innerHTML = daipContent;                
-                DOMCache.radio_mode.style.display = "inline-flex";
-                DOMCache.radio_de.style.display = "none";
-                DOMCache.radio_de.classList.add('hidden-radio-de');
-                if (DOMCache.radio_de.parentElement) {
-                    DOMCache.radio_de.parentElement.classList.add('hidden-radio-de');
-                }
-                var proxyModeCard = document.querySelector('.mode-row .sub-card:nth-child(2)');
-                if (proxyModeCard) {
-                    proxyModeCard.classList.add('hidden-radio-de');
-                }
-                DOMCache.radio_ru_mode.style.display = "inline-flex";
+                DOMCache.daip.innerHTML = daipContent;   
 
-                DOMCache.radio_de.classList.add('hidden-radio-de');
-                DOMCache.radio_de.parentElement.classList.add('hidden-radio-de');
-                DOMCache.radio_de.parentElement.parentElement.classList.add('hidden-radio-de');
-
-                DOMCache.dns_setting_sniffer.style.display = "inline-flex";
-                DOMCache.dns_setting_respect.style.display = "inline-flex";
-                DOMCache.oc_setting_oversea.style.display = "inline-flex";
-                DOMCache.stream_unlock_setting.style.display = "inline-flex";
-                DOMCache.dns_setting_sniffer_de.style.display = "none";
-                DOMCache.dns_setting_respect_de.style.display = "none";
-                DOMCache.oc_setting_oversea_de.style.display = "none";
-                DOMCache.stream_unlock_setting_de.style.display = "none";
-                get_oc_settings();
-            } else {
-                DOMCache.radio_mode.style.display = "none";
-                DOMCache.radio_de.style.display = "";
-                DOMCache.radio_ru_mode.style.display = "none";
-
-                DOMCache.radio_de.classList.remove('hidden-radio-de');
-                if (DOMCache.radio_de.parentElement) {
-                    DOMCache.radio_de.parentElement.classList.remove('hidden-radio-de');
-                }
-                var proxyModeCard = document.querySelector('.mode-row .sub-card:nth-child(2)');
-                if (proxyModeCard) {
-                    proxyModeCard.classList.remove('hidden-radio-de');
-                }
-                DOMCache.radio_de.parentElement.classList.remove('hidden-radio-de');
-                DOMCache.radio_de.parentElement.parentElement.classList.remove('hidden-radio-de');
-
-                DOMCache.radio_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
-                DOMCache.dns_setting_sniffer.style.display = "none";
-                DOMCache.dns_setting_respect.style.display = "none";
-                DOMCache.oc_setting_oversea.style.display = "none";
-                DOMCache.stream_unlock_setting.style.display = "none";
-                DOMCache.dns_setting_sniffer_de.style.display = "";
-                DOMCache.dns_setting_respect_de.style.display = "";
-                DOMCache.oc_setting_oversea_de.style.display = "";
-                DOMCache.stream_unlock_setting_de.style.display = "";
-                DOMCache.dns_setting_sniffer_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
-                DOMCache.dns_setting_respect_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
-                DOMCache.oc_setting_oversea_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
-                DOMCache.stream_unlock_setting_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
-                DOMCache.daip.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
-            }
-
-            StateManager.current_status = status;
-            
-            if (status.clash && status.daip) {
                 StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "proxy_info")%>', function(x, proxy_info) {
                     if (x && x.status == 200) {
                         StateManager.cached_proxy_info = proxy_info;
@@ -3770,8 +3666,9 @@
                 DOMCache.copy_mix_secret.style.display = "inline";
                 DOMCache.copy_pac_config.style.display = "inline";
             } else {
+                DOMCache.daip.innerHTML = "<b style=color:var(--error-color)><%:Not Available%></b>";
                 StateManager.cached_proxy_info = null;
-                DOMCache.mix_proxy.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
+                DOMCache.mix_proxy.innerHTML = "<b style=color:var(--error-color)><%:Not Available%></b>";
                 DOMCache.copy_secret.style.display = "none";
                 DOMCache.copy_address.style.display = "none";
                 DOMCache.copy_mix_address.style.display = "none";
@@ -4151,13 +4048,11 @@
         
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_run_mode")%>', function(x, status) {
             if (x && x.status == 200 && status.mode) {
-                var isRunning = StateManager.current_status.clash;
-                
                 if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix") {
-                    DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Fake-IP%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
+                    DOMCache.mode.innerHTML = "<b style=color:var(--success-color)><%:Fake-IP%></b>";
                     DOMCache.radio_run_normal.innerHTML = "<%:Enhance%>";
                 } else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix") {
-                    DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Redir-Host%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
+                    DOMCache.mode.innerHTML = "<b style=color:var(--success-color)><%:Redir-Host%></b>";
                     DOMCache.radio_run_normal.innerHTML = "<%:Compat%>";
                 }
                 
@@ -4644,7 +4539,7 @@
     }
 
     function generatePacConfig() {
-        if (StateManager.current_status.clash && StateManager.current_status.daip) {
+        if (StateManager.current_status.daip) {
             var currentUrl = {
                 protocol: window.location.protocol,
                 hostname: window.location.hostname,

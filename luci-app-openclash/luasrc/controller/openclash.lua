@@ -854,6 +854,8 @@ function action_rule_mode()
 		else
 			mode = uci:get("openclash", "config", "proxy_mode") or "rule"
 		end
+    else
+        mode = uci:get("openclash", "config", "proxy_mode") or "rule"
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
@@ -864,30 +866,34 @@ end
 
 function action_switch_rule_mode()
 	local mode, info
-	if is_running() then
-		local daip = daip()
-		local dase = dase() or ""
-		local cn_port = cn_port()
-		mode = luci.http.formvalue("rule_mode")
+    local daip = daip()
+    local dase = dase() or ""
+    local cn_port = cn_port()
+    mode = luci.http.formvalue("rule_mode")
+
+    if is_running() then
 		if not daip or not cn_port then luci.http.status(500, "Switch Faild") return end
 		info = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPATCH http://"%s":"%s"/configs -d \'{\"mode\": \"%s\"}\'', dase, daip, cn_port, mode))
 		if info ~= "" then
 			luci.http.status(500, "Switch Faild")
 		end
+        luci.http.prepare_content("application/json")
+        luci.http.write_json({
+            info = info;
+        })
 	else
-		luci.http.status(500, "Switch Faild")
+        if mode then
+		    uci:set("openclash", "config", "proxy_mode", mode)
+            uci:commit("openclash")
+        end
 	end
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({
-		info = info;
-	})
+	
 end
 
 function action_get_run_mode()
 	if mode() then
 		luci.http.prepare_content("application/json")
 		luci.http.write_json({
-			clash = is_running(),
 			mode = mode();
 		})
 	else
@@ -898,19 +904,16 @@ end
 
 function action_switch_run_mode()
 	local mode, operation_mode
-	if is_running() then
-		mode = luci.http.formvalue("run_mode")
-		operation_mode = uci:get("openclash", "config", "operation_mode")
-		if operation_mode == "redir-host" then
-			uci:set("openclash", "config", "en_mode", "redir-host"..mode)
-		elseif operation_mode == "fake-ip" then
-			uci:set("openclash", "config", "en_mode", "fake-ip"..mode)
-		end
-		uci:commit("openclash")
+    mode = luci.http.formvalue("run_mode")
+    operation_mode = uci:get("openclash", "config", "operation_mode")
+    if operation_mode == "redir-host" then
+        uci:set("openclash", "config", "en_mode", "redir-host"..mode)
+    elseif operation_mode == "fake-ip" then
+        uci:set("openclash", "config", "en_mode", "fake-ip"..mode)
+    end
+    uci:commit("openclash")
+    if is_running() then
 		luci.sys.exec("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-	else
-		luci.http.status(500, "Switch Faild")
-		return
 	end
 end
 
@@ -2650,13 +2653,6 @@ function action_generate_pac()
         pac_url = "",
         error = ""
     }
-    
-    if not is_running() then
-        result.error = "Proxy service not running"
-        luci.http.prepare_content("application/json")
-        luci.http.write_json(result)
-        return
-    end
     
     local auth_user = ""
     local auth_pass = ""
