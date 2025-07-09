@@ -2846,6 +2846,7 @@
             
             if (!this.currentConfigFile) return;
             
+            var requestConfigFile = this.currentConfigFile;
             var filename = this.extractFilename(this.currentConfigFile);
             if (!filename) return;
             
@@ -2857,9 +2858,13 @@
                     var parsedData = JSON.parse(cachedData);
 
                     if (parsedData.sub_info && parsedData.sub_info !== "No Sub Info Found") {
-                        this.displaySubscriptionInfo(parsedData);
+                        if (this.currentConfigFile === requestConfigFile) {
+                            this.displaySubscriptionInfo(parsedData);
+                        }
                     } else if (parsedData.sub_info === "No Sub Info Found") {
-                        this.showNoInfo();
+                        if (this.currentConfigFile === requestConfigFile) {
+                            this.showNoInfo();
+                        }
                     }
                     
                     if (parsedData.get_time) {
@@ -2879,6 +2884,9 @@
             
             if (shouldFetchNew) {
                 StateManager.cachedXHRGetWithParams('<%=luci.dispatcher.build_url("admin", "services", "openclash", "sub_info_get")%>', {filename: filename}, function(x, status) {
+                    if (SubscriptionManager.currentConfigFile !== requestConfigFile) {
+                        return;
+                    }
                     if (x && x.status == 200 && status.sub_info && status.sub_info !== "No Sub Info Found") {
                         SubscriptionManager.retryCount = 0;
                         localStorage.setItem('sub_info_' + filename, JSON.stringify(status));
