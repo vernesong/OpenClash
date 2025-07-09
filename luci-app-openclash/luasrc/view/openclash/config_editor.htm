@@ -24,7 +24,14 @@
 	.CodeMirror-vscrollbar-oc {
 		display: none !important;
 	}
-
+	.CodeMirror, .CodeMirror-line {
+		width: 100% !important;
+		max-width: 100% !important;
+		min-width: 0 !important;
+		box-sizing: border-box;
+		word-break: break-all !important;
+		overflow-wrap: break-word !important;
+	}
 </style>
 <link rel="stylesheet" href="/luci-static/resources/openclash/lib/codemirror.css"/>
 <link rel="stylesheet" href="/luci-static/resources/openclash/theme/material.css"/>
