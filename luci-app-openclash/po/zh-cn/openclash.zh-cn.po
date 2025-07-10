@@ -1452,8 +1452,8 @@ msgstr "页面已切换为 Redir-Host 模式！"
 msgid "IP Address"
 msgstr "IP 地址"
 
-msgid "Website Access Check"
-msgstr "网站访问检查"
+msgid "Access Check"
+msgstr "访问检查"
 
 msgid "Baidu Search"
 msgstr "百度搜索"
