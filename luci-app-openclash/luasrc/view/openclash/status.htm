@@ -203,12 +203,12 @@
     background: var(--bg-white);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
-    padding: 16px;
+    padding: 12px;
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-fast);
     display: grid;
     grid-template-rows: var(--row-1-height) var(--row-2-height) var(--row-3-height) var(--row-4-height);
-    gap: 12px;
+    gap: 8px;
     overflow: visible;
     grid-row: 2;
     max-width: 100%;
@@ -257,14 +257,14 @@
 .oc .card-row.dual-cards {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 8px;
     max-width: 100%;
 }
 
 .oc .card-row.stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 2fr);
-    gap: 6px;
+    gap: 8px;
     max-width: 100%;
 }
 
@@ -341,7 +341,6 @@
     flex-direction: column;
     gap: 10px;
     flex: 1;
-    justify-content: space-between;
     min-height: 0;
 }
 
@@ -369,6 +368,7 @@
     flex-direction: column;
     gap: 10px;
     justify-content: center;
+    width: 100%;
 }
 
 .oc .card-actions {
@@ -536,6 +536,7 @@
     transition: all var(--transition-fast);
     box-sizing: border-box;
     min-width: 0;
+    margin: 0 auto;
 }
 
 .oc .config-select:hover {
@@ -586,7 +587,7 @@
 }
 
 .oc .cbi-button-group {
-    display: inline-flex;
+    display: flex;
     background: var(--bg-white);
     border-radius: var(--radius-sm);
     padding: 2px;
@@ -597,7 +598,7 @@
     height: var(--control-height);
     align-items: center;
     white-space: nowrap;
-    width: fit-content;
+    width: 100%;
 }
 
 .oc .cbi-button-group input[type="radio"] {
@@ -608,6 +609,7 @@
 }
 
 .oc .cbi-button-option {
+    flex: 1 1 0;
     padding: 5px 5px;
     font-size: 12px;
     font-weight: 500;
@@ -617,7 +619,7 @@
     transition: all var(--transition-fast);
     user-select: none;
     text-align: center;
-    min-width: 35px;
+    min-width: 0;
     height: calc(var(--control-height) - 6px);
     display: flex;
     align-items: center;
@@ -1182,7 +1184,6 @@
         margin-bottom: 14px;
         max-width: 100%;
         width: 100%;
-        padding: 16px;
     }
 
     .oc .main-card:first-of-type {
@@ -1197,12 +1198,10 @@
 
     .oc .card-row.dual-cards {
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
     }
 
     .oc .card-row.stats-grid {
         grid-template-columns: repeat(4, 2fr);
-        gap: 8px;
     }
 
     .oc .config-selector {
@@ -1236,7 +1235,6 @@
     }
 
     .oc .main-card {
-        padding: 12px;
         grid-template-rows: auto auto auto auto;
     }
 
@@ -1249,13 +1247,8 @@
         gap: 12px;
     }
 
-    .oc .card-row.dual-cards {
-        gap: 8px;
-    }
-
     .oc .card-row.stats-grid {
         grid-template-columns: repeat(2, 2fr);
-        gap: 6px;
     }
 
     .oc .announcement-banner {
@@ -1386,12 +1379,10 @@
 
     .oc .card-row.dual-cards {
         grid-template-columns: 1fr;
-        gap: 6px;
     }
 
     .oc .card-row.stats-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 5px;
     }
 
     .oc .announcement-banner {
@@ -1652,7 +1643,7 @@
                                 <div class="card-title"><%:Running Mode%></div>
                                 <div class="card-content">
                                     <div class="card-value"><span id="_mode" class="value-indicator"><%:Collecting data...%></span></div>
-                                    <div class="running-mode-controls">
+                                    <div class="card-controls">
                                         <div id="radio-ru-mode" class="cbi-button-group" style="display: inline-flex;">
                                             <input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/><label for="normal" id="run_normal" class="cbi-button-option"><%:Compat%></label>
                                             <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/><label for="tun" class="cbi-button-option"><%:TUN%></label>
@@ -3740,7 +3731,7 @@
     });
 
     function initializeWebSocketConnections(status) {
-        if (!status || !status.clash || !status.daip || !status.dase) {
+        if (!status || !status.clash || !status.daip) {
             return false;
         }
         
@@ -3766,7 +3757,7 @@
         ];
         
         connections.forEach(function(conn) {
-            var url = protocol + conn.endpoint + '?token=' + token;
+            var url = protocol + conn.endpoint + (token ? '?token=' + token : '');
             WSManager.createConnection(conn.type, url, conn.handler);
         });
         
