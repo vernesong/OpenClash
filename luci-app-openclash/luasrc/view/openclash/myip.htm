@@ -105,7 +105,7 @@
     border-radius: var(--radius-lg);
     padding: var(--card-padding);
     box-shadow: var(--shadow-md);
-    margin: 16px auto;
+    margin: 12px auto;
     width: 100%;
     transition: all var(--transition-fast);
 }
@@ -113,7 +113,7 @@
 .oc .myip-content-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 18px;
+    gap: 12px;
     align-items: start;
 }
 
@@ -133,7 +133,7 @@
     font-size: 25px;
     font-weight: bold;
     color: var(--text-primary, #111827);
-    margin: 16px;
+    margin: 8px;
     padding: 0;
     text-align: left;
     display: flex;
@@ -154,13 +154,15 @@
 .oc .myip-ip-list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 8px;
+    margin: auto 8px;
 }
 
 .oc .myip-check-list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
-    gap: 12px;
+    gap: 8px;
+    margin: auto 8px;
 }
 
 .oc .myip-ip-item,
@@ -410,11 +412,9 @@
     
     .oc .myip-content-grid {
         grid-template-columns: 1fr;
-        gap: 16px;
     }
     
     .oc .myip-main-card {
-        padding: 14px;
         margin: 10px auto;
         width: calc(100% - 24px);
     }
@@ -427,7 +427,6 @@
     .oc .myip-ip-list,
     .oc .myip-check-list {
         grid-template-columns: repeat(2, 1fr);
-        gap: 10px;
     }
     
     .oc .ip-title,
@@ -469,13 +468,8 @@
         --card-item-min-height: 70px;
     }
     
-    .oc .myip-ip-list,
-    .oc .myip-check-list {
-        gap: 8px;
-    }
-    
     .oc .myip-main-card {
-        padding: 12px;
+        padding: 8px;
         margin: 8px auto;
         width: calc(100% - 16px);
     }
