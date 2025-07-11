@@ -28,21 +28,24 @@ module YAML
 
   private
 
-  SHORT_ID_REGEX = /(\s*short-id:\s*)([^"'\s,}\n]+)/.freeze
+  SHORT_ID_REGEX = /^(\s*short-id:\s*)([^\s"'\n][^\s,}\n]*)$/m.freeze
   QUOTED_VALUE_REGEX = /^["'].*["']$/.freeze
 
   def self.fix_short_id_quotes(yaml_content)
     return yaml_content unless yaml_content.include?('short-id:')
-    
-    yaml_content.gsub(SHORT_ID_REGEX) do
-      field_name = $1
-      value = $2.strip
-      
-      if value !~ QUOTED_VALUE_REGEX
-        "#{field_name}\"#{value}\""
+
+    yaml_content.lines.map do |line|
+      if line =~ SHORT_ID_REGEX
+        field_name = $1
+        value = $2
+        if value !~ QUOTED_VALUE_REGEX
+          "#{field_name}\"#{value}\"\n"
+        else
+          "#{field_name}#{value}\n"
+        end
       else
-        $&
+        line
       end
-    end
+    end.join
   end
 end
