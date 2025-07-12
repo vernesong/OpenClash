@@ -231,6 +231,7 @@
     height: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    min-width: 250px;
 }
 
 .oc .card-row:nth-child(1) {
@@ -530,7 +531,7 @@
     border-radius: var(--radius-sm);
     background: var(--bg-white);
     color: var(--text-primary);
-    font-size: 13px;
+    font-size: 15px;
     appearance: none;
     cursor: pointer;
     transition: all var(--transition-fast);
@@ -552,7 +553,7 @@
 .oc .config-select option {
     width: 100%;
     padding: 8px 12px;
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.4;
     white-space: nowrap;
     overflow: hidden;
@@ -872,6 +873,8 @@
     flex-direction: row;
     align-items: center;
     min-height: 24px;
+    min-width: 0;
+    gap: 8px;
 }
 
 .oc .subscription-info-details {
@@ -917,7 +920,7 @@
 }
 
 .oc .subscription-info-text {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-secondary);
     line-height: 1.4;
     text-overflow: ellipsis;
@@ -992,10 +995,11 @@
     font-size: 20px;
     font-weight: 600;
     color: var(--text-secondary);
-    flex: 1;
+    flex: 1 1 0%;
     white-space: nowrap;
     text-overflow: ellipsis;
-    max-width: calc(100% - 200px);
+    min-width: 0;
+    max-width: 100%;
     padding-left: 20px;
     overflow: hidden;
 }
@@ -1062,9 +1066,12 @@
     display: flex;
     flex-wrap: nowrap;
     flex-direction: row;
-    gap: 16px;
+    gap: 8px;
     font-size: 13px;
     color: var(--text-secondary);
+    min-width: 0;
+    max-width: 30vw;
+    overflow: hidden;
 }
 
 .oc .file-info-item {
@@ -1072,9 +1079,10 @@
     align-items: center;
     white-space: nowrap;
     padding-right: 20px;
-    font-size: 12px;
+    font-size: 13px;
     overflow: hidden;
     text-overflow: ellipsis;
+    max-width: 240px;
 }
 
 .oc .announcement-banner {
@@ -1211,11 +1219,11 @@
     
     .oc .config-select {
         min-width: 200px;
-        font-size: 12px;
+        font-size: 14px;
     }
     
     .oc .config-select option {
-        font-size: 12px;
+        font-size: 14px;
         max-width: 100%;
     }
     
@@ -1294,12 +1302,12 @@
 
     .oc .config-select {
         min-width: 150px;
-        font-size: 11px;
+        font-size: 13px;
         padding: 4px 10px;
     }
     
     .oc .config-select option {
-        font-size: 11px;
+        font-size: 13px;
         padding: 6px 10px;
     }
     
@@ -1324,7 +1332,7 @@
 
     .oc .config-file-name {
         max-width: 100%;
-        font-size: 15px;
+        font-size: 18px;
     }
 
     .oc .config-file-bottom {
@@ -1343,7 +1351,7 @@
     }
 
     .oc .file-info {
-        font-size: 9px;
+        font-size: 10px;
     }
 
     .oc .file-info-item {
@@ -1419,7 +1427,7 @@
     }
 
     .oc input[type="radio"]:checked + .cbi-button-option {
-        height: 24px;
+        height: 22px;
     }
 
     .oc .cbi-button-option {
@@ -1467,12 +1475,12 @@
     
     .oc .config-select {
         min-width: 110px;
-        font-size: 10px;
+        font-size: 12px;
         padding: 4px 8px;
     }
     
     .oc .config-select option {
-        font-size: 10px;
+        font-size: 12px;
         padding: 5px 8px;
     }
     
@@ -1504,12 +1512,11 @@
     }
 
     .oc .subscription-info-text {
-        font-size: 8px;
-        max-width: 190px;
+        font-size: 10px;
     }
 
     .oc .config-file-name {
-        font-size: 13px;
+        font-size: 15px;
     }
 
     .oc .sub-card {
@@ -1554,7 +1561,6 @@
 
     .oc .file-info-item {
         font-size: 10px;
-        max-width: 130px;
     }
 
     .oc .config-upload-btn-large {
@@ -3592,7 +3598,7 @@
             if (!pluginToggleUserAction) {
                 updates.push({
                     element: DOMCache.clash,
-                    content: status.clash ? '<b style=color:var(--success-color)>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : '<b style=color:var(--error-color)><%:Not Running%></b>'
+                    content: status.clash ? '<b style=color:var(--success-color)>' + status.core_type +'&nbsp;<%:Running%></b>' : '<b style=color:var(--error-color)><%:Not Running%></b>'
                 });
                 
                 updatePluginToggleState(status.clash);
@@ -4449,10 +4455,10 @@
         var address;
         
         if (status.daip && window.location.hostname == status.daip) {
-            address = 'http://' + status.daip + ':' + (status.cn_port || '9090') + '/ui/zashboard/#/setup?hostname=' + status.daip + '&port=' + (status.cn_port || '9090') + '&secret=' + (status.dase || '');
+            address = 'http://' + status.daip + ':' + (status.cn_port || '9090') + '/ui/zashboard/#/setup?hostname=' + status.daip + '&port=' + (status.cn_port || '9090') + (status.dase ? '&secret=' + status.dase : '');
         } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
             var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-            address = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/zashboard/#/setup?hostname=' + status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + (status.dase || '');
+            address = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/zashboard/#/setup?hostname=' + status.db_foward_domain + '&port=' + status.db_foward_port + (status.dase ? '&secret=' + status.dase : '');
         } else {
             address = 'http://' + (status.daip || 'unknown') + ':' + (status.cn_port || '9090') + '/ui/zashboard/#/';
         }

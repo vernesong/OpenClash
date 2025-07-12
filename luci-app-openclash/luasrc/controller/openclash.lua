@@ -231,7 +231,7 @@ local function corelv()
     local core_meta_lv = ""
 	local core_smart_enable = uci:get("openclash", "config", "smart_enable") or "0"
     if not status then
-		if fs.access("/tmp/clash_last_version") then
+		if fs.access("/tmp/clash_last_version") and tonumber(os.time() - fs.mtime("/tmp/clash_last_version")) < 1800 then
 			if core_smart_enable == "1" then
 				core_meta_lv = luci.sys.exec("sed -n 2p /tmp/clash_last_version 2>/dev/null |tr -d '\n'")
 			else
@@ -249,15 +249,16 @@ end
 
 local function opcv()
     local v
-	if opkg and opkg.info("luci-app-openclash") and opkg.info("luci-app-openclash")["luci-app-openclash"] then
-		v = opkg.info("luci-app-openclash")["luci-app-openclash"]["Version"]
-	else
-		if pkg_type() == "opkg" then
-			v = luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' |tr -d '\n'")
-		else
-			v = luci.sys.exec("apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\\.[0-9]+)*' | head -1 |tr -d '\n'")
-		end
-	end
+    local info = opkg and opkg.info("luci-app-openclash")
+    if info and info["luci-app-openclash"] and info["luci-app-openclash"]["Version"] then
+        v = info["luci-app-openclash"]["Version"]
+    else
+        if pkg_type() == "opkg" then
+            v = luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' |tr -d '\n'")
+        else
+            v = luci.sys.exec("apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\\.[0-9]+)*' | head -1 |tr -d '\n'")
+        end
+    end
     if v and v ~= "" then
         return "v" .. v
     else
@@ -269,7 +270,7 @@ local function oplv()
 	local status = process_status("/usr/share/openclash/openclash_version.sh")
     local oplv = ""
     if not status then
-		if fs.access("/tmp/openclash_last_version") then
+		if fs.access("/tmp/openclash_last_version") and tonumber(os.time() - fs.mtime("/tmp/openclash_last_version")) < 1800 then
         	oplv = luci.sys.exec("sed -n 1p /tmp/openclash_last_version 2>/dev/null |tr -d '\n'")
 		else
 			action_get_last_version()
@@ -1177,7 +1178,7 @@ function action_op_mode()
 	local op_mode = uci:get("openclash", "config", "operation_mode")
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-	  op_mode = op_mode;
+	    op_mode = op_mode;
 	})
 end
 
@@ -1192,14 +1193,14 @@ function action_switch_mode()
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-	  switch_mode = switch_mode;
+	    switch_mode = switch_mode;
 	})
 end
 
 function action_status()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-	  	clash = is_running(),
+		clash = is_running(),
 		daip = daip(),
 		dase = dase(),
 		db_foward_port = db_foward_port(),
@@ -1226,26 +1227,22 @@ end
 
 function action_get_last_version()
     if not process_status("/usr/share/openclash/clash_version.sh") then
-	    luci.sys.call("bash /usr/share/openclash/clash_version.sh &")
+        luci.sys.call("bash /usr/share/openclash/clash_version.sh &")
     end
     if not process_status("/usr/share/openclash/openclash_version.sh") then
-	    luci.sys.call("bash /usr/share/openclash/openclash_version.sh &")
+        luci.sys.call("bash /usr/share/openclash/openclash_version.sh &")
     end
-	luci.http.prepare_content("application/json")
-	luci.http.write_json({
-		status = "success"
-	})
 end
 
 function action_update()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-			coremetacv = coremetacv(),
-			coremodel = coremodel(),
-			opcv = opcv(),
-			upchecktime = upchecktime(),
-			corelv = corelv(),
-			oplv = oplv();
+		coremodel = coremodel(),
+		coremetacv = coremetacv(),
+		corelv = corelv(),
+		opcv = opcv(),
+		oplv = oplv(),
+		upchecktime = upchecktime();
 	})
 end
 
@@ -1271,21 +1268,21 @@ end
 function action_opupdate()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-			opup = opup();
+        opup = opup();
 	})
 end
 
 function action_check_core()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-			core_status = check_core();
+        core_status = check_core();
 	})
 end
 
 function action_coreupdate()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-			coreup = coreup();
+        coreup = coreup();
 	})
 end
 
