@@ -551,6 +551,7 @@ dec_job_counter_and_restart() {
          [ "$(uci -q get openclash.config.auto_update)" -eq 1 ] && [ "$(uci -q get openclash.config.config_auto_update_mode)" -ne 1 ] && echo "0 $(uci -q get openclash.config.auto_update_time) * * $(uci -q get openclash.config.config_update_week_time) /usr/share/openclash/openclash.sh" >> $CRON_FILE
          /etc/init.d/cron restart
       fi
+      rm -rf "$JOB_COUNTER_FILE" >/dev/null 2>&1
    fi
    flock -u 999
 }
