@@ -2106,6 +2106,9 @@ msgstr "OpenClash 关闭成功！"
 msgid "Reload OpenClash Firewall Rules..."
 msgstr "重置 OpenClash 防火墙规则..."
 
+msgid "Manually Reload Firewall Rules..."
+msgstr "重置 OpenClash 防火墙规则..."
+
 msgid "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..."
 msgstr "警告：OpenClash 目前处于未启用状态，请从插件页面启动本插件，脚本退出..."
 
