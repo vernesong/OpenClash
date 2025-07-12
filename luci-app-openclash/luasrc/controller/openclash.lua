@@ -1840,12 +1840,15 @@ function trans_line(data)
 end
 
 function process_status(name)
-	local ps_version = luci.sys.exec("ps --version 2>&1 |grep -c procps-ng |tr -d '\n'")
-	if ps_version == "1" then
-		return luci.sys.call(string.format("ps -efw |grep '%s' |grep -v grep >/dev/null", name)) == 0
-	else
-		return luci.sys.call(string.format("ps -w |grep '%s' |grep -v grep >/dev/null", name)) == 0
-	end
+    local ps_version = luci.sys.exec("ps --version 2>&1 |grep -c procps-ng |tr -d '\n'")
+    local cmd
+    if ps_version == "1" then
+        cmd = string.format("ps -efw |grep '%s' |grep -v grep", name)
+    else
+        cmd = string.format("ps -w |grep '%s' |grep -v grep", name)
+    end
+    local result = luci.sys.exec(cmd)
+    return result ~= nil and result ~= "" and not result:match("^%s*$")
 end
 
 function action_announcement()
