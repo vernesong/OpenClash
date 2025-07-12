@@ -1291,7 +1291,7 @@ function action_close_all_connection()
 end
 
 function action_reload_firewall()
-	return luci.sys.call("/etc/init.d/openclash reload 'firewall' >/dev/null 2>&1 &")
+	return luci.sys.call("/etc/init.d/openclash reload 'manual' >/dev/null 2>&1 &")
 end
 
 function action_download_rule()
