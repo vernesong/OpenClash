@@ -3100,7 +3100,24 @@ reload_service()
 {
    enable=$(uci -q get openclash.config.enable)
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "firewall" ]; then
+      LAST_RELOAD_TIME=$(grep "Reload OpenClash Firewall Rules..." "$LOG_FILE" | tail -n 1 | awk '{print $1" "$2}')
+      if [ -n "$LAST_RELOAD_TIME" ]; then
+         LAST_RELOAD_TS=$(date -d "$LAST_RELOAD_TIME" +%s 2>/dev/null)
+         NOW_TS=$(date +%s)
+         if [ -n "$LAST_RELOAD_TS" ] && [ $((NOW_TS - LAST_RELOAD_TS)) -lt 300 ]; then
+            exit 0
+         fi
+      fi
       LOG_OUT "Reload OpenClash Firewall Rules..."
+      revert_firewall
+      do_run_mode
+      get_config
+      set_firewall
+      check_core_status &
+      SLOG_CLEAN
+   fi
+   if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "manual" ]; then
+      LOG_OUT "Manually Reload Firewall Rules..."
       revert_firewall
       do_run_mode
       get_config
