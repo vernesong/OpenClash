@@ -81,13 +81,13 @@ jobs:
           mkdir -p "$METACUBEXD_PATH"
           UPDATED=0
           if [ -d "$METACUBEXD_PATH" ]; then
-            if rsync -rc --delete --dry-run "$METACUBEXD_UNZIP_PATH"/ "$METACUBEXD_PATH"/ | grep -q .; then
+            if diff -qr "$METACUBEXD_UNZIP_PATH"/ "$METACUBEXD_PATH"/ >/dev/null; then
+              echo "MetaCubeXD UI is up to date."
+            else
               echo "MetaCubeXD UI has been updated, replacing old version."
               rm -rf "$METACUBEXD_PATH"/*
               cp -rf "$METACUBEXD_UNZIP_PATH"/* "$METACUBEXD_PATH"
               UPDATED=1
-            else
-              echo "MetaCubeXD UI is up to date."
             fi
           else
             echo "MetaCubeXD UI directory doesn't exist, creating it."
@@ -108,13 +108,13 @@ jobs:
           mkdir -p "$YACD_PATH"
           UPDATED=0
           if [ -d "$YACD_PATH" ]; then
-            if rsync -rc --delete --dry-run "$YACD_UNZIP_PATH"/ "$YACD_PATH"/ | grep -q .; then
+            if diff -qr "$YACD_UNZIP_PATH"/ "$YACD_PATH"/ >/dev/null; then
+              echo "Yacd UI is up to date."
+            else
               echo "Yacd UI has been updated, replacing old version."
               rm -rf "$YACD_PATH"/*
               cp -rf "$YACD_UNZIP_PATH"/* "$YACD_PATH"
               UPDATED=1
-            else
-              echo "Yacd UI is up to date."
             fi
           else
             echo "Yacd UI directory doesn't exist, creating it."
@@ -134,13 +134,13 @@ jobs:
           mkdir -p "$ZASHBOARD_PATH"
           UPDATED=0
           if [ -d "$ZASHBOARD_PATH" ]; then
-            if rsync -rc --delete --dry-run tmp/zashboard_zip/dist/ "$ZASHBOARD_PATH"/ | grep -q .; then
+            if diff -qr tmp/zashboard_zip/dist/ "$ZASHBOARD_PATH"/ >/dev/null; then
+              echo "ZashBoard UI is up to date."
+            else
               echo "ZashBoard UI has been updated, replacing old version."
               rm -rf "$ZASHBOARD_PATH"/*
               cp -rf tmp/zashboard_zip/dist/* "$ZASHBOARD_PATH"
               UPDATED=1
-            else
-              echo "ZashBoard UI is up to date."
             fi
           else
             echo "ZashBoard UI directory doesn't exist, creating it."
