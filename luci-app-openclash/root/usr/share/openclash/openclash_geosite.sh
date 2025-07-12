@@ -89,6 +89,7 @@ dec_job_counter_and_restart() {
          uci -q set openclash.config.restart=1
          uci -q commit openclash
       fi
+      rm -rf "$JOB_COUNTER_FILE" >/dev/null 2>&1
    fi
    flock -u 999
 }
