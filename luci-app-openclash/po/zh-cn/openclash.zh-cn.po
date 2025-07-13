@@ -2739,8 +2739,14 @@ msgstr "使用指定代理（CDN）反代插件和配置文件中的 Github 地�
 msgid "File Edit"
 msgstr "文件编辑"
 
+msgid "Overwrite Edit"
+msgstr "覆写设置"
+
 msgid "Create File"
 msgstr "新建文件"
+
+msgid "You are editing the overwrite script, please note that some settings may cause the abnormal, be careful with the modification!"
+msgstr "您正在编辑覆写脚本，请注意某些设置可能会导致异常，请谨慎修改！"
 
 msgid "Paste the name of the new file (including the extension) here:"
 msgstr "请在此输入要新建的文件名称（含扩展名）："
