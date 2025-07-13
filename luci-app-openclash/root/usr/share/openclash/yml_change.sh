@@ -156,7 +156,8 @@ PROXY_GROUPS=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       if Value.key?('proxy-groups') && Value['proxy-groups'].is_a?(Array)
          Value['proxy-groups'].each { |x| puts x['name'] if x.key?('name') }
       end
-   rescue
+   rescue Exception => e
+      YAML.LOG('Error: proxy-groups Get Failed,【%s】' % [e.message])
    end
 " 2>/dev/null)
 
@@ -650,7 +651,8 @@ begin
                         end
                      end
                   end
-               rescue
+            rescue Exception => e
+               YAML.LOG('Error: DNS Loop Check,【%s】' % [e.message])
             end
          end
       end

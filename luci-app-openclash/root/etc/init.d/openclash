@@ -34,6 +34,7 @@ LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
+QUICK_START_CHECK=false
 
 add_cron()
 {
@@ -384,6 +385,11 @@ fi
 
 check_run_quick()
 {
+   if $QUICK_START_CHECK; then
+      return
+   fi
+   
+   QUICK_START_CHECK=true
    quick_start=true
    check_file="$(cat /tmp/openclash.change 2>/dev/null |awk '{print $1}')"
    if [ -z "$check_file" ] || [ ! -f "$CONFIG_FILE" ] || [ ! -f "/tmp/openclash_config.tmp" ]; then
@@ -405,6 +411,7 @@ check_run_quick()
          done
       fi
    fi
+   
 } >/dev/null 2>&1
 
 write_run_quick()
@@ -2940,6 +2947,9 @@ start_service()
    LOG_OUT "OpenClash Start Running..."
 
    {
+      #快速启动判断
+      check_run_quick
+
       config_choose
       do_run_mode
 
@@ -2969,6 +2979,28 @@ start_service()
          if [ -f "/etc/openclash/custom/openclash_custom_overwrite.sh" ]; then
             chmod +x /etc/openclash/custom/openclash_custom_overwrite.sh
             /etc/openclash/custom/openclash_custom_overwrite.sh "$TMP_CONFIG_FILE"
+            if [ -f "/tmp/yaml_openclash_ruby_parse" ]; then
+               sed -n "s/.*yaml_file_path=['\"]\([^'\"]*\)['\"].*/\1/p" /tmp/yaml_openclash_ruby_parse | sort | uniq | while read -r yaml_file; do
+                  [ -z "$yaml_file" ] && continue
+                  ruby_code=$(grep "yaml_file_path=['\"]$yaml_file['\"]" /tmp/yaml_openclash_ruby_parse | sed "s/^threads << Thread.new do //;s/ end$//")
+                  if [ -z "$ruby_code" ]; then
+                     continue
+                  fi
+                  if [ -f "$yaml_file" ]; then
+                     (
+                        ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                        Value = YAML.load_file('$yaml_file');
+                        threads = []
+                        $ruby_code
+                        threads.each(&:join)
+                        File.open('$yaml_file', 'w') do |f|
+                           YAML.dump(Value, f)
+                        end
+                        " >> $LOG_FILE 2>&1
+                     )
+                  fi
+               done
+            fi
          fi
       else
          LOG_OUT "Step 3: Quick Start Mode, Skip Modify The Config File..."
@@ -3083,7 +3115,6 @@ restart()
 {
    echo "OpenClash Restart..."
    LOG_OUT "OpenClash Restart..."
-   #快速启动判断
    check_run_quick
    stop
    start

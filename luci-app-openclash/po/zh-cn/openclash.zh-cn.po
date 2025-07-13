@@ -2340,6 +2340,12 @@ msgstr "错误：修改 General 配置失败，"
 msgid "Error: Set authentication Failed,"
 msgstr "错误：修改 Authentication 配置失败，"
 
+msgid "Error: DNS Loop Check,"
+msgstr "错误：DNS 回环检查失败，"
+
+msgid "Error: proxy-groups Get Failed,"
+msgstr "错误：proxy-groups 获取失败，"
+
 msgid "Error: Set Hosts Rules Failed,"
 msgstr "错误：修改 Hosts 配置失败，"
 
@@ -4016,3 +4022,6 @@ msgstr "高级选项"
 
 msgid "Show more subscription options"
 msgstr "显示更多订阅设置"
+
+msgid "Overwrite"
+msgstr "覆写"
