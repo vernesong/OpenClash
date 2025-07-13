@@ -367,7 +367,7 @@
   padding: 0;
   margin: 0;
   pointer-events: auto;
-  overflow: visible;
+  overflow: hidden;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -379,6 +379,8 @@
   z-index: 10;
   padding-right: 16px;
   padding-bottom: 5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .oc .card .general .more p {
@@ -388,10 +390,11 @@
   color: var(--text-secondary);
   text-align: right;
   white-space: nowrap;
-  overflow: visible;
-  width: auto;
-  min-width: max-content;
-  flex-shrink: 0;
+  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+  flex-shrink: 1;
+  text-overflow: ellipsis;
 }
 
 .oc .card .general .more a {
@@ -400,6 +403,7 @@
   opacity: 0.8;
   transition: opacity var(--transition-fast);
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .oc .card .general .more a:hover {
