@@ -312,11 +312,16 @@
     top: 0 !important;
     margin: 0 !important;
     font-size: 15px !important;
-    line-height: 10px !important;
+    line-height: 20px !important;
     padding: 0px 10px !important;
     white-space: nowrap;
     z-index: 1;
     color: var(--text-secondary, #6b7280);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    box-sizing: border-box;
+    text-align: right;
 }
 
 .oc .myip-footer a {
@@ -400,7 +405,6 @@
 @media screen and (max-width: 1200px) {
     .oc .myip-main-card {
         margin: 11px auto;
-        width: calc(100% - 32px);
     }
 }
 
@@ -416,7 +420,6 @@
     
     .oc .myip-main-card {
         margin: 10px auto;
-        width: calc(100% - 24px);
     }
     
     .oc .myip-section-title {
@@ -471,7 +474,6 @@
     .oc .myip-main-card {
         padding: 8px;
         margin: 8px auto;
-        width: calc(100% - 16px);
     }
     
     .oc .myip-section-title {
