@@ -251,9 +251,19 @@
 <div class="oc">
     <div class="config-editor-modal-overlay" id="config-editor-overlay">
         <div class="config-editor-modal" id="config-editor-modal">
+            <div id="overwrite-banner" style="display:none;justify-content:center;align-items:center;gap:12px;padding:10px 20px;background:rgba(255,80,80,0.12);color:#b71c1c;font-size:14px;border-bottom:1px solid #ffcdd2;text-align:center;">
+                <svg style="flex-shrink:0;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b71c1c" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" stroke="#b71c1c" fill="#ffcdd2"/>
+                    <line x1="12" y1="5" x2="12" y2="13"/>
+                    <circle cx="12" cy="16" r="0.5"/>
+                </svg>
+                <span style="flex:unset;text-align:center;display:inline-block;">
+                    <%:You are editing the overwrite script, please note that some settings may cause the abnormal, be careful with the modification!%>
+                </span>
+            </div>
             <div class="config-editor-header">
                 <div class="config-editor-title">
-                    <span><%:File Edit%>: </span>
+                    <span id="editTitle"><%:File Edit%>: </span>
                     <span class="config-file-name" id="config-file-name"><%:Loading...%></span>
                 </div>
                 <div class="config-editor-actions">
@@ -407,6 +417,9 @@ var ConfigEditor = {
     
     show: function(configFile) {
         this.isOverwrite = false;
+        var banner = document.getElementById('overwrite-banner');
+        if (banner) banner.style.display = 'none';
+
         if (!configFile) {
             alert('<%:Please select a config file first%>');
             return;
@@ -417,6 +430,11 @@ var ConfigEditor = {
 
         this.modal.classList.remove('maximized');
         this.modal.classList.remove('minimized');
+
+        var editTitle = document.getElementById('editTitle');
+        if (editTitle) {
+            editTitle.textContent = '<%:File Edit%>: ';
+        }
         
         var configNameElement = document.getElementById('config-file-name');
         if (configNameElement) {
@@ -431,11 +449,19 @@ var ConfigEditor = {
 
     showOverwrite: function() {
         this.isOverwrite = true;
+        var banner = document.getElementById('overwrite-banner');
+        if (banner) banner.style.display = 'flex';
+
         this.currentConfigFile = '/etc/openclash/custom/openclash_custom_overwrite.sh';
         this.overlay.classList.add('show');
 
         this.modal.classList.remove('maximized');
         this.modal.classList.remove('minimized');
+
+        var editTitle = document.getElementById('editTitle');
+        if (editTitle) {
+            editTitle.textContent = '<%:Overwrite Edit%>: ';
+        }
 
         var configNameElement = document.getElementById('config-file-name');
         if (configNameElement) {
