@@ -1115,6 +1115,9 @@ function netflix_unlock_test()
 			string.gsub(info.url_effective, '[^/]+', function(w) table.insert(result, w) end)
 			if string.match(result[3], "^%a+") then
 				region = string.upper(string.match(result[3], "^%a+"))
+				if region == "TITLE" then
+					region = "US"
+				end
 				if not datamatch(region, regex) then
 					status = 3
 				elseif old_regex ~= regex and not all_test then
