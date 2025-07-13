@@ -134,7 +134,34 @@ local function is_start()
 end
 
 local function cn_port()
-	return uci:get("openclash", "config", "cn_port")
+    if is_running() then
+        local config_path = uci:get("openclash", "config", "config_path")
+        if config_path then
+            local config_filename = fs.basename(config_path)
+            local runtime_config_path = "/etc/openclash/" .. config_filename
+            local ruby_result = luci.sys.exec(string.format([[
+                ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                begin
+                    config = YAML.load_file('%s')
+                    if config
+                        port = config['external-controller']
+                        if port
+                            port = port.to_s
+                            if port:include?(':')
+                                port = port.split(':')[-1]
+                            end
+                            puts port
+                        end
+                    end
+                end
+                " 2>/dev/null
+            ]], runtime_config_path)):gsub("%s+", "")
+            if ruby_result and ruby_result ~= "" then
+                return ruby_result
+            end
+        end
+    end
+    return uci:get("openclash", "config", "cn_port") or "9090"
 end
 
 local function mode()
@@ -142,13 +169,30 @@ local function mode()
 end
 
 local function daip()
-	local daip
-	daip = fs.lanip()
-	return daip
+	return fs.lanip()
 end
 
 local function dase()
-	return uci:get("openclash", "config", "dashboard_password")
+    if is_running() then
+        local config_path = uci:get("openclash", "config", "config_path")
+        if config_path then
+            local config_filename = fs.basename(config_path)
+            local runtime_config_path = "/etc/openclash/" .. config_filename
+            local ruby_result = luci.sys.exec(string.format([[
+                ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                begin
+                    config = YAML.load_file('%s')
+                    if config
+                        dase = config['secret']
+                        puts \"#{dase}\"
+                    end
+                end
+                " 2>/dev/null
+            ]], runtime_config_path)):gsub("%s+", "")
+            return ruby_result
+        end
+    end
+    return uci:get("openclash", "config", "dashboard_password")
 end
 
 local function db_foward_domain()
@@ -3281,21 +3325,25 @@ end
 
 function action_config_file_read()
     local config_file = luci.http.formvalue("config_file")
-    
+
     if not config_file then
         luci.http.status(400, "Missing config_file parameter")
         return
     end
-    
-    if not string.match(config_file, "^/etc/openclash/config/[^/%.]+%.ya?ml$") then
-        luci.http.prepare_content("application/json")
-        luci.http.write_json({
-            status = "error",
-            message = "Invalid config file path"
-        })
-        return
+
+    local is_overwrite = (config_file == "/etc/openclash/custom/openclash_custom_overwrite.sh")
+
+    if not is_overwrite then
+        if not string.match(config_file, "^/etc/openclash/config/[^/%.]+%.ya?ml$") then
+            luci.http.prepare_content("application/json")
+            luci.http.write_json({
+                status = "error",
+                message = "Invalid config file path"
+            })
+            return
+        end
     end
-    
+
     if not nixio.fs.access(config_file) then
         luci.http.prepare_content("application/json")
         luci.http.write_json({
@@ -3304,7 +3352,7 @@ function action_config_file_read()
         })
         return
     end
-    
+
     local stat = nixio.fs.stat(config_file)
     if not stat or stat.type ~= "reg" then
         luci.http.prepare_content("application/json")
@@ -3314,7 +3362,7 @@ function action_config_file_read()
         })
         return
     end
-    
+
     if stat.size > 10 * 1024 * 1024 then
         luci.http.prepare_content("application/json")
         luci.http.write_json({
@@ -3323,7 +3371,7 @@ function action_config_file_read()
         })
         return
     end
-    
+
     local content = fs.readfile(config_file)
     if content == nil then
         luci.http.prepare_content("application/json")
@@ -3333,7 +3381,7 @@ function action_config_file_read()
         })
         return
     end
-    
+
     luci.http.prepare_content("application/json")
     luci.http.write_json({
         status = "success",
@@ -3351,26 +3399,33 @@ end
 function action_config_file_save()
     local config_file = luci.http.formvalue("config_file")
     local content = luci.http.formvalue("content")
-    
+    if content then
+        content = content:gsub("\r\n", "\n"):gsub("\r", "\n")
+    end
+
     if not config_file then
         luci.http.status(400, "Missing config_file parameter")
         return
     end
-    
+
     if not content then
         luci.http.status(400, "Missing content parameter")
         return
     end
-    
-    if not string.match(config_file, "^/etc/openclash/config/[^/%.]+%.ya?ml$") then
-        luci.http.prepare_content("application/json")
-        luci.http.write_json({
-            status = "error",
-            message = "Invalid config file path"
-        })
-        return
+
+    local is_overwrite = (config_file == "/etc/openclash/custom/openclash_custom_overwrite.sh")
+
+    if not is_overwrite then
+        if not string.match(config_file, "^/etc/openclash/config/[^/%.]+%.ya?ml$") then
+            luci.http.prepare_content("application/json")
+            luci.http.write_json({
+                status = "error",
+                message = "Invalid config file path"
+            })
+            return
+        end
     end
-    
+
     if string.len(content) > 10 * 1024 * 1024 then
         luci.http.prepare_content("application/json")
         luci.http.write_json({
@@ -3379,7 +3434,7 @@ function action_config_file_save()
         })
         return
     end
-    
+
     local backup_file = nil
     if nixio.fs.access(config_file) then
         backup_file = config_file .. ".backup." .. os.time()
@@ -3393,13 +3448,13 @@ function action_config_file_save()
             return
         end
     end
-    
+
     local success = fs.writefile(config_file, content)
     if not success then
         if backup_file then
             luci.sys.call(string.format("mv '%s' '%s'", backup_file, config_file))
         end
-        
+
         luci.http.prepare_content("application/json")
         luci.http.write_json({
             status = "error",
@@ -3407,13 +3462,13 @@ function action_config_file_save()
         })
         return
     end
-    
+
     local written_content = fs.readfile(config_file)
     if written_content ~= content then
         if backup_file then
             luci.sys.call(string.format("mv '%s' '%s'", backup_file, config_file))
         end
-        
+
         luci.http.prepare_content("application/json")
         luci.http.write_json({
             status = "error",
@@ -3421,10 +3476,12 @@ function action_config_file_save()
         })
         return
     end
-    
-    luci.sys.call(string.format("chmod 644 '%s'", config_file))
+
+    if not is_overwrite then
+        luci.sys.call(string.format("chmod 644 '%s'", config_file))
+    end
     luci.sys.call(string.format("chown root:root '%s'", config_file))
-    
+
     if backup_file then
         luci.sys.call(string.format([[
             (
@@ -3435,7 +3492,7 @@ function action_config_file_save()
             ) &
         ]], config_file, config_file))
     end
-    
+
     local stat = nixio.fs.stat(config_file)
     local file_info = {}
     if stat then
@@ -3447,7 +3504,7 @@ function action_config_file_save()
             last_modified = os.date("%Y-%m-%d %H:%M:%S", stat.mtime)
         }
     end
-    
+
     luci.http.prepare_content("application/json")
     luci.http.write_json({
         status = "success",

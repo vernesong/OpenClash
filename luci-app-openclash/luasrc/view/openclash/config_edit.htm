@@ -74,6 +74,7 @@
     flex-shrink: 0;
     cursor: move;
     user-select: none;
+    min-width: 0;
 }
 
 .oc .config-editor-title {
@@ -83,27 +84,28 @@
     display: flex;
     align-items: center;
     gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1 1 auto;
 }
 
 .oc .config-editor-title .config-file-name {
     color: var(--primary-color);
     font-weight: 700;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: inline-block;
+    vertical-align: bottom;
+    padding: 0;
 }
 
 .oc .config-editor-actions {
     display: flex;
     align-items: center;
     gap: 12px;
-}
-
-.oc .config-editor-size-controls {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 8px;
-    background: var(--bg-white);
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-light);
 }
 
 .oc .size-btn {
@@ -167,12 +169,20 @@
 .oc .config-editor-status {
     font-size: 12px;
     color: var(--text-secondary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 50%;
 }
 
 .oc .config-editor-help {
     font-size: 11px;
     color: var(--text-secondary);
     opacity: 0.8;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 50%;
 }
 
 .oc .config-editor-resize-handle {
@@ -228,8 +238,12 @@
 @media screen and (max-width: 768px) {
     .oc .config-editor-modal {
         width: 95vw;
-        height: 90vh;
+        height: 80vh;
         min-width: 320px;
+    }
+
+    .oc .config-editor-actions {
+        gap: 5px;
     }
 }
 </style>
@@ -243,24 +257,6 @@
                     <span class="config-file-name" id="config-file-name"><%:Loading...%></span>
                 </div>
                 <div class="config-editor-actions">
-                    <div class="config-editor-size-controls">
-                        <button type="button" class="icon-btn size-btn" id="config-editor-minimize" title="<%:Minimize%>">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="4,14 10,14 10,20"></polyline>
-                                <polyline points="20,10 14,10 14,4"></polyline>
-                                <line x1="14" y1="10" x2="21" y2="3"></line>
-                                <line x1="3" y1="21" x2="10" y2="14"></line>
-                            </svg>
-                        </button>
-                        <button type="button" class="icon-btn size-btn" id="config-editor-maximize" title="<%:Maximize%>">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="15,3 21,3 21,9"></polyline>
-                                <polyline points="9,21 3,21 3,15"></polyline>
-                                <line x1="21" y1="3" x2="14" y2="10"></line>
-                                <line x1="3" y1="21" x2="10" y2="14"></line>
-                            </svg>
-                        </button>
-                    </div>
                     <button type="button" class="icon-btn" id="config-editor-download" title="<%:Download%>">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -346,10 +342,9 @@ var ConfigEditor = {
     originalContent: '',
     isModified: false,
     currentZoom: 100,
-    isMaximized: false,
-    isMinimized: false,
     currentConfigFile: '',
     zoomLevels: [75, 90, 100, 110, 125, 150, 200],
+    isOverwrite: false,
     
     init: function() {
         this.overlay = document.getElementById('config-editor-overlay');
@@ -364,14 +359,6 @@ var ConfigEditor = {
     
     bindEvents: function() {
         var self = this;
-        
-        document.getElementById('config-editor-maximize').addEventListener('click', function() {
-            self.maximizeWindow();
-        });
-        
-        document.getElementById('config-editor-minimize').addEventListener('click', function() {
-            self.minimizeWindow();
-        });
         
         document.getElementById('config-editor-save').addEventListener('click', function() {
             self.saveConfigContent();
@@ -419,6 +406,7 @@ var ConfigEditor = {
     },
     
     show: function(configFile) {
+        this.isOverwrite = false;
         if (!configFile) {
             alert('<%:Please select a config file first%>');
             return;
@@ -426,6 +414,9 @@ var ConfigEditor = {
         
         this.currentConfigFile = configFile;
         this.overlay.classList.add('show');
+
+        this.modal.classList.remove('maximized');
+        this.modal.classList.remove('minimized');
         
         var configNameElement = document.getElementById('config-file-name');
         if (configNameElement) {
@@ -435,6 +426,23 @@ var ConfigEditor = {
         this.isModified = false;
         this.originalContent = '';
         
+        this.loadConfigContent();
+    },
+
+    showOverwrite: function() {
+        this.isOverwrite = true;
+        this.currentConfigFile = '/etc/openclash/custom/openclash_custom_overwrite.sh';
+        this.overlay.classList.add('show');
+
+        this.modal.classList.remove('maximized');
+        this.modal.classList.remove('minimized');
+
+        var configNameElement = document.getElementById('config-file-name');
+        if (configNameElement) {
+            configNameElement.textContent = this.formatDisplayName(this.currentConfigFile);
+        }
+        this.isModified = false;
+        this.originalContent = '';
         this.loadConfigContent();
     },
     
@@ -460,12 +468,12 @@ var ConfigEditor = {
     formatDisplayName: function(fileName) {
         if (!fileName) return '<%:Unknown%>';
         
-        var name = fileName.split('/').pop().split('\\').pop();
-        
-        if (name.length > 30) {
-            name = name.substring(0, 27) + '...';
+        if (this.isOverwrite || fileName === '/etc/openclash/custom/openclash_custom_overwrite.sh') {
+            return 'openclash_custom_overwrite.sh';
         }
-        
+
+        var name = fileName.split('/').pop().split('\\').pop();
+
         return name;
     },
     
@@ -477,6 +485,15 @@ var ConfigEditor = {
         
         statusText.textContent = '<%:Loading...%>';
         
+        var url, mode;
+        if (this.isOverwrite) {
+            url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + encodeURIComponent('/etc/openclash/custom/openclash_custom_overwrite.sh');
+            mode = "text/x-sh";
+        } else {
+            url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + encodeURIComponent(this.currentConfigFile);
+            mode = "text/yaml";
+        }
+
         fetch('/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + encodeURIComponent(this.currentConfigFile))
             .then(function(response) {
                 if (!response.ok) {
@@ -493,7 +510,7 @@ var ConfigEditor = {
                     textarea.style.display = 'block';
                     
                     self.editorInstance = CodeMirror.fromTextArea(textarea, {
-                        mode: "text/yaml",
+                        mode: self.isOverwrite ? "text/x-sh" : "text/yaml",
                         autoRefresh: true,
                         styleActiveLine: true,
                         lineNumbers: true,
@@ -501,8 +518,10 @@ var ConfigEditor = {
                         lineWrapping: true,
                         matchBrackets: true,
                         foldGutter: true,
-                        lint: true,
-                        gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "CodeMirror-lint-markers"],
+                        lint: !self.isOverwrite,
+                        gutters: self.isOverwrite
+                            ? ["CodeMirror-linenumbers", "CodeMirror-foldgutter"]
+                            : ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "CodeMirror-lint-markers"],
                         extraKeys: {
                             "F11": function(cm) {
                                 cm.setOption("fullScreen", !cm.getOption("fullScreen"));
@@ -532,11 +551,6 @@ var ConfigEditor = {
                         self.isModified = self.editorInstance.getValue() !== self.originalContent;
                         self.updateSaveButtonState();
                     });
-                    
-                    var savedZoom = localStorage.getItem('config-editor-zoom');
-                    if (savedZoom && self.zoomLevels.indexOf(parseInt(savedZoom)) !== -1) {
-                        self.updateZoom(parseInt(savedZoom));
-                    }
                     
                     statusText.textContent = '<%:Ready%>';
                 } else {
@@ -571,7 +585,11 @@ var ConfigEditor = {
         }
         
         var formData = new FormData();
-        formData.append('config_file', this.currentConfigFile);
+        if (this.isOverwrite) {
+            formData.append('config_file', '/etc/openclash/custom/openclash_custom_overwrite.sh');
+        } else {
+            formData.append('config_file', this.currentConfigFile);
+        }
         formData.append('content', content);
         
         fetch('/cgi-bin/luci/admin/services/openclash/config_file_save', {
@@ -629,10 +647,14 @@ var ConfigEditor = {
         }
         
         var content = this.editorInstance.getValue();
-        var filename = this.formatDisplayName(this.currentConfigFile);
-        
-        if (!filename.toLowerCase().endsWith('.yaml') && !filename.toLowerCase().endsWith('.yml')) {
-            filename += '.yaml';
+        var filename;
+        if (this.isOverwrite) {
+            filename = 'openclash_custom_overwrite.sh';
+        } else {
+            filename = this.formatDisplayName(this.currentConfigFile);
+            if (!filename.toLowerCase().endsWith('.yaml') && !filename.toLowerCase().endsWith('.yml')) {
+                filename += '.yaml';
+            }
         }
         
         try {
@@ -701,8 +723,6 @@ var ConfigEditor = {
                 this.editorInstance.refresh();
             }
         }
-        
-        localStorage.setItem('config-editor-zoom', this.currentZoom);
     },
     
     zoomIn: function() {
@@ -721,42 +741,6 @@ var ConfigEditor = {
     
     resetZoom: function() {
         this.updateZoom(100);
-    },
-    
-    maximizeWindow: function() {
-        if (!this.isMaximized) {
-            this.modal.classList.add('maximized');
-            this.modal.classList.remove('minimized');
-            this.isMaximized = true;
-            this.isMinimized = false;
-        } else {
-            this.modal.classList.remove('maximized');
-            this.isMaximized = false;
-        }
-        
-        setTimeout(() => {
-            if (this.editorInstance) {
-                this.editorInstance.refresh();
-            }
-        }, 100);
-    },
-    
-    minimizeWindow: function() {
-        if (!this.isMinimized) {
-            this.modal.classList.add('minimized');
-            this.modal.classList.remove('maximized');
-            this.isMinimized = true;
-            this.isMaximized = false;
-        } else {
-            this.modal.classList.remove('minimized');
-            this.isMinimized = false;
-        }
-        
-        setTimeout(() => {
-            if (this.editorInstance) {
-                this.editorInstance.refresh();
-            }
-        }, 100);
     },
     
     makeDraggable: function() {
@@ -821,6 +805,65 @@ var ConfigEditor = {
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
         }
+
+        header.addEventListener('touchstart', function(e) {
+            if (e.target.closest('.config-editor-actions')) {
+                return;
+            }
+            if (e.touches.length !== 1) return;
+
+            isDragging = true;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+
+            var rect = self.modal.getBoundingClientRect();
+            startLeft = rect.left;
+            startTop = rect.top;
+
+            self.modal.style.position = 'fixed';
+            self.modal.style.left = startLeft + 'px';
+            self.modal.style.top = startTop + 'px';
+            self.modal.style.margin = '0';
+            self.modal.style.transform = 'none';
+            self.modal.style.transition = 'none';
+
+            document.addEventListener('touchmove', onTouchMove, {passive: false});
+            document.addEventListener('touchend', onTouchEnd);
+
+            e.preventDefault();
+        });
+
+        function onTouchMove(e) {
+            if (!isDragging || e.touches.length !== 1) return;
+
+            var deltaX = e.touches[0].clientX - startX;
+            var deltaY = e.touches[0].clientY - startY;
+
+            var newLeft = startLeft + deltaX;
+            var newTop = startTop + deltaY;
+
+            var modalRect = self.modal.getBoundingClientRect();
+            var maxLeft = window.innerWidth - modalRect.width;
+            var maxTop = window.innerHeight - modalRect.height;
+
+            newLeft = Math.max(0, Math.min(newLeft, maxLeft));
+            newTop = Math.max(0, Math.min(newTop, maxTop));
+
+            self.modal.style.left = newLeft + 'px';
+            self.modal.style.top = newTop + 'px';
+
+            e.preventDefault();
+        }
+
+        function onTouchEnd() {
+            isDragging = false;
+            setTimeout(function() {
+                self.modal.style.transition = 'all 0.3s ease';
+            }, 50);
+
+            document.removeEventListener('touchmove', onTouchMove);
+            document.removeEventListener('touchend', onTouchEnd);
+        }
     },
     
     makeResizable: function() {
@@ -881,6 +924,67 @@ var ConfigEditor = {
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
             
+            if (self.editorInstance) {
+                setTimeout(function() {
+                    self.editorInstance.refresh();
+                }, 50);
+            }
+        }
+
+        resizeHandle.addEventListener('touchstart', function(e) {
+            if (e.touches.length !== 1) return;
+            isResizing = true;
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+
+            var rect = self.modal.getBoundingClientRect();
+            startWidth = rect.width;
+            startHeight = rect.height;
+
+            self.modal.style.transition = 'none';
+            self.modal.style.width = startWidth + 'px';
+            self.modal.style.height = startHeight + 'px';
+
+            document.addEventListener('touchmove', onTouchMove, {passive: false});
+            document.addEventListener('touchend', onTouchEnd);
+
+            e.preventDefault();
+        });
+
+        function onTouchMove(e) {
+            if (!isResizing || e.touches.length !== 1) return;
+
+            var deltaX = e.touches[0].clientX - startX;
+            var deltaY = e.touches[0].clientY - startY;
+
+            var newWidth = Math.max(320, startWidth + deltaX);
+            var newHeight = Math.max(200, startHeight + deltaY);
+
+            var maxWidth = window.innerWidth * 0.98;
+            var maxHeight = window.innerHeight * 0.95;
+
+            newWidth = Math.min(newWidth, maxWidth);
+            newHeight = Math.min(newHeight, maxHeight);
+
+            self.modal.style.width = newWidth + 'px';
+            self.modal.style.height = newHeight + 'px';
+
+            if (self.editorInstance) {
+                requestAnimationFrame(function() {
+                    self.editorInstance.refresh();
+                });
+            }
+
+            e.preventDefault();
+        }
+
+        function onTouchEnd() {
+            isResizing = false;
+            self.modal.style.transition = 'all 0.3s ease';
+
+            document.removeEventListener('touchmove', onTouchMove);
+            document.removeEventListener('touchend', onTouchEnd);
+
             if (self.editorInstance) {
                 setTimeout(function() {
                     self.editorInstance.refresh();
