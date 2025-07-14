@@ -1644,9 +1644,6 @@ msgstr "更新前测试失败，文件保存在 /tmp/openclash.apk，请尝试�
 msgid "Pre update test passed, ready to update and please do not refresh the page and other operations..."
 msgstr "更新前测试通过，准备开始更新，更新过程请不要刷新页面和进行其他操作..."
 
-msgid "Tip: Uninstalling the old version, please do not refresh the page or do other operations..."
-msgstr "提示：正在卸载旧版本，更新过程请不要刷新页面和进行其他操作..."
-
 msgid "Installing the new version, please do not refresh the page or do other operations..."
 msgstr "正在安装新版本，更新过程请不要刷新页面和进行其他操作..."
 
@@ -4031,3 +4028,12 @@ msgstr "显示更多订阅设置"
 
 msgid "Overwrite"
 msgstr "覆写"
+
+msgid "Original Config"
+msgstr "原始配置"
+
+msgid "Runtime Config"
+msgstr "运行配置"
+
+msgid "Runtime config (read only)"
+msgstr "运行配置（只读）"
