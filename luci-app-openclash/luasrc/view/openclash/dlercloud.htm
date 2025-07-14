@@ -66,7 +66,7 @@
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  padding: 16px;
+  padding: 12px;
   transition: all var(--transition-fast);
 }
 
@@ -349,10 +349,12 @@
   font-weight: bold;
   display: inline-block;
   overflow: hidden;
+  appearance: button;
   -webkit-appearance: button;
-  border: none;
+  border: none !important;
   cursor: pointer;
   transition: all var(--transition-fast);
+  text-shadow: none !important;
 }
 
 .oc .card .general .btn:hover {
@@ -365,7 +367,7 @@
   padding: 0;
   margin: 0;
   pointer-events: auto;
-  overflow: visible;
+  overflow: hidden;
   display: flex;
   justify-content: flex-end;
   align-items: center;
@@ -377,6 +379,8 @@
   z-index: 10;
   padding-right: 16px;
   padding-bottom: 5px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .oc .card .general .more p {
@@ -386,10 +390,11 @@
   color: var(--text-secondary);
   text-align: right;
   white-space: nowrap;
-  overflow: visible;
-  width: auto;
-  min-width: max-content;
-  flex-shrink: 0;
+  overflow: hidden;
+  width: 100%;
+  min-width: 0;
+  flex-shrink: 1;
+  text-overflow: ellipsis;
 }
 
 .oc .card .general .more a {
@@ -398,6 +403,7 @@
   opacity: 0.8;
   transition: opacity var(--transition-fast);
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .oc .card .general .more a:hover {
@@ -466,10 +472,6 @@
     width: 100%;
   }
   
-  .oc .center {
-    padding: 14px;
-  }
-  
   .oc .card .additional.collapsed {
     width: 125px;
   }
@@ -506,7 +508,7 @@
     grid-template-rows: auto auto auto;
     gap: 12px;
     padding-right: 8px;
-    height: 60%;
+    height: 50%;
   }
   
   .oc .card .general .dler-info-right {
@@ -516,9 +518,10 @@
   }
   
   .oc .card .general .btn {
-    width: 80px;
+    width: 80px !important;
     height: 80px !important;
     font-size: 14px;
+    padding: 0 !important;
   }
   
   .oc .card .general .dler-title {
@@ -541,7 +544,7 @@
 
 @media screen and (max-width: 575px) {
   .oc .center {
-    padding: 12px;
+    padding: 8px;
   }
   
   .oc .card .additional.collapsed {
@@ -570,7 +573,7 @@
   }
 
   .oc .card .general .dler-info {
-    height: 60%;
+    height: 50%;
   }
   
   .oc .card .general h1 {
@@ -596,9 +599,10 @@
   }
 
   .oc .card .general .btn {
-    width: 60px;
+    width: 60px !important;
     height: 60px !important;
     font-size: 10px;
+    padding: 0 !important;
   }
 }
 </style>

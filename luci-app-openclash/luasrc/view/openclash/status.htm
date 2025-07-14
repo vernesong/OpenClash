@@ -26,8 +26,8 @@
     --transition-fast: 0.15s ease;
     --transition-normal: 0.3s ease;
     
-    --control-height: 36px;
-    --card-padding: 6px 10px;
+    --control-height: 32px;
+    --card-padding: 8px 5px;
     --gap-size: 10px;
     
     --row-1-height: 160px;
@@ -111,14 +111,20 @@
     color: var(--error-color);
 }
 
-.oc[data-darkmode="true"] .dashboard-btn {
-    background: var(--primary-color) !important;
-    color: rgb(236, 234, 234) !important;
+.oc[data-darkmode="true"] .subscription-nav-arrow.left {
+    border-right-color: var(--text-secondary);
 }
 
-.oc[data-darkmode="true"] .dashboard-btn:hover {
-    background: var(--primary-color) !important;
-    color: white !important;
+.oc[data-darkmode="true"] .subscription-nav-arrow.right {
+    border-left-color: var(--text-secondary);
+}
+
+.oc[data-darkmode="true"] .subscription-nav-arrow.left:hover {
+    border-right-color: var(--primary-color);
+}
+
+.oc[data-darkmode="true"] .subscription-nav-arrow.right:hover {
+    border-left-color: var(--primary-color);
 }
 
 .oc[data-darkmode="true"] .dashboard-btn:disabled {
@@ -187,12 +193,12 @@
     background: var(--bg-white);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
-    padding: 16px;
+    padding: 12px;
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-fast);
     display: grid;
     grid-template-rows: var(--row-1-height) var(--row-2-height) var(--row-3-height) var(--row-4-height);
-    gap: 12px;
+    gap: 8px;
     overflow: visible;
     grid-row: 2;
     max-width: 100%;
@@ -215,6 +221,7 @@
     height: 100%;
     max-width: 100%;
     box-sizing: border-box;
+    min-width: 250px;
 }
 
 .oc .card-row:nth-child(1) {
@@ -241,22 +248,16 @@
 .oc .card-row.dual-cards {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
-    max-width: 100%;
-}
-
-.oc .card-row.triple-cards {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 8px;
     max-width: 100%;
 }
 
 .oc .card-row.stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 2fr);
-    gap: 6px;
+    gap: 8px;
     max-width: 100%;
+    min-width: auto;
 }
 
 .oc .sub-card {
@@ -293,7 +294,7 @@
 }
 
 .oc .card-title {
-    font-size: 14px;
+    font-size: clamp(10px, 2.5vw, 14px);
     font-weight: 600;
     color: var(--text-secondary);
     letter-spacing: 0.5px;
@@ -304,6 +305,10 @@
     height: 20px;
     flex-shrink: 0;
     padding-left: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
 }
 
 .oc .version-display-container {
@@ -328,7 +333,6 @@
     flex-direction: column;
     gap: 10px;
     flex: 1;
-    justify-content: space-between;
     min-height: 0;
 }
 
@@ -356,6 +360,7 @@
     flex-direction: column;
     gap: 10px;
     justify-content: center;
+    width: 100%;
 }
 
 .oc .card-actions {
@@ -385,6 +390,13 @@
     gap: 10px;
     flex: 0 0 auto;
     min-height: var(--control-height);
+    overflow: hidden;
+    min-width: 0; 
+}
+
+.oc .core-status-toggle,
+.oc .core-control-buttons {
+    min-width: 0;
 }
 
 .oc .core-status-toggle {
@@ -485,7 +497,7 @@
     border-radius: 50%;
     background: var(--error-color);
     flex-shrink: 0;
-    animation: gentlePulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: gentlePulse 4s cubic-bezier(.17,.67,.83,.67) infinite;
 }
 
 @keyframes gentlePulse {
@@ -517,12 +529,13 @@
     border-radius: var(--radius-sm);
     background: var(--bg-white);
     color: var(--text-primary);
-    font-size: 13px;
+    font-size: 15px;
     appearance: none;
     cursor: pointer;
     transition: all var(--transition-fast);
     box-sizing: border-box;
     min-width: 0;
+    margin: 0 auto;
 }
 
 .oc .config-select:hover {
@@ -538,7 +551,7 @@
 .oc .config-select option {
     width: 100%;
     padding: 8px 12px;
-    font-size: 13px;
+    font-size: 15px;
     line-height: 1.4;
     white-space: nowrap;
     overflow: hidden;
@@ -573,10 +586,10 @@
 }
 
 .oc .cbi-button-group {
-    display: inline-flex;
+    display: flex;
     background: var(--bg-white);
     border-radius: var(--radius-sm);
-    padding: 3px;
+    padding: 2px;
     gap: 2px;
     position: relative;
     border: 1px solid var(--border-light);
@@ -584,7 +597,7 @@
     height: var(--control-height);
     align-items: center;
     white-space: nowrap;
-    width: fit-content;
+    width: 100%;
 }
 
 .oc .cbi-button-group input[type="radio"] {
@@ -595,7 +608,8 @@
 }
 
 .oc .cbi-button-option {
-    padding: 6px 6px;
+    flex: 1 1 0;
+    padding: 5px 5px;
     font-size: 12px;
     font-weight: 500;
     color: var(--text-secondary);
@@ -604,7 +618,7 @@
     transition: all var(--transition-fast);
     user-select: none;
     text-align: center;
-    min-width: 42px;
+    min-width: 0;
     height: calc(var(--control-height) - 6px);
     display: flex;
     align-items: center;
@@ -624,7 +638,6 @@
 }
 
 .oc .value-indicator {
-    font-size: 13px;
     font-weight: 500;
     padding: 10px 12px;
     border-radius: var(--radius-sm);
@@ -639,11 +652,12 @@
     min-width: 90px;
     white-space: nowrap;
     line-height: 1.2;
-    max-width: 300px;
     overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .oc .value-indicator b {
+    font-size: 12px;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
@@ -688,9 +702,10 @@
     cursor: pointer !important;
     border-radius: var(--radius-md) !important;
     border: none !important;
-    background: var(--primary-color) !important;
+    background: #1473e6;
+    background-color: var(--primary-color) !important;
     transition: all var(--transition-fast) !important;
-    white-space: nowrap !important;
+    white-space: normal !important;
     text-align: center !important;
     text-decoration: none !important;
     display: flex !important;
@@ -700,7 +715,7 @@
     flex: 1 !important;
     height: 42px !important;
     outline: none !important;
-    padding: 0 !important;
+    padding: 2px 1px !important;
     min-width: 45px;
     margin: 0 !important;
 }
@@ -810,6 +825,9 @@
     font-size: 11px;
     color: var(--text-secondary);
     font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .oc #logo_btn .mihomo-link {
@@ -836,6 +854,7 @@
     width: 100%;
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-fast);
+    position: relative;
 }
 
 .oc .subscription-info-container:hover {
@@ -856,6 +875,8 @@
     flex-direction: row;
     align-items: center;
     min-height: 24px;
+    min-width: 0;
+    gap: 8px;
 }
 
 .oc .subscription-info-details {
@@ -864,8 +885,8 @@
     gap: 8px;
     flex: 1;
     min-height: 80px;
-    padding-left: 5px;
-    padding-right: 5px;
+    padding-left: 20px;
+    padding-right: 20px;
 }
 
 .oc .subscription-progress {
@@ -901,12 +922,13 @@
 }
 
 .oc .subscription-info-text {
-    font-size: 12px;
+    font-size: 13px;
     color: var(--text-secondary);
     line-height: 1.4;
     text-overflow: ellipsis;
     overflow: hidden;
-    text-wrap: nowrap;
+    white-space: nowrap;
+    display: block;
 }
 
 .oc .subscription-loading,
@@ -926,15 +948,61 @@
     color: var(--error-color);
 }
 
+.oc .subscription-nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    z-index: 3;
+    opacity: 0.6;
+}
+
+.oc .subscription-nav-arrow:hover {
+    opacity: 1;
+    transform: translateY(-50%) scale(1.2);
+}
+
+.oc .subscription-nav-arrow.disabled {
+    opacity: 0.2;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+.oc .subscription-nav-arrow.left {
+    left: 8px;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 8px solid var(--text-secondary);
+}
+
+.oc .subscription-nav-arrow.right {
+    right: 8px;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 8px solid var(--text-secondary);
+}
+
+.oc .subscription-nav-arrow.left:hover {
+    border-right-color: var(--primary-color);
+}
+
+.oc .subscription-nav-arrow.right:hover {
+    border-left-color: var(--primary-color);
+}
+
 .oc .config-file-name {
     font-size: 20px;
     font-weight: 600;
     color: var(--text-secondary);
-    flex: 1;
+    flex: 1 1 0%;
     white-space: nowrap;
     text-overflow: ellipsis;
-    max-width: calc(100% - 200px);
-    padding-left: 5px;
+    min-width: 0;
+    max-width: 100%;
+    padding-left: 20px;
     overflow: hidden;
 }
 
@@ -946,21 +1014,77 @@
     min-height: var(--control-height);
 }
 
+.oc .config-file-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.oc .config-file-empty-message {
+    font-size: 16px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.oc .config-upload-btn-large {
+    min-width: 200px !important;
+    height: 60px !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    padding: 0 30px !important;
+    border-radius: var(--radius-lg) !important;
+    background: var(--primary-color) !important;
+    color: white !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all var(--transition-fast) !important;
+    box-shadow: var(--shadow-md) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+}
+
+.oc .config-upload-btn-large:hover {
+    background: #2563eb !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3) !important;
+}
+
+.oc .config-upload-btn-large svg {
+    width: 20px !important;
+    height: 20px !important;
+}
+
+.oc .config-file-content.empty-state .config-file-bottom {
+    display: none;
+}
+
 .oc .file-info {
     display: flex;
     flex-wrap: nowrap;
     flex-direction: row;
-    gap: 16px;
+    gap: 8px;
     font-size: 13px;
     color: var(--text-secondary);
+    min-width: 0;
+    max-width: 30vw;
+    overflow: hidden;
 }
 
 .oc .file-info-item {
-    display: flex;
+    display: block;
     align-items: center;
     white-space: nowrap;
-    padding-right: 5px;
-    font-size: 12px;
+    padding-right: 20px;
+    font-size: 13px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 240px;
 }
 
 .oc .announcement-banner {
@@ -1050,48 +1174,6 @@
     transform: scaleX(-1);
 }
 
-.oc .card-value.hidden-radio-de,
-.oc #radio-de[style*="display: none"],
-.oc #oc-setting-oversea-de[style*="display: none"],
-.oc #dns-setting-sniffer-de[style*="display: none"],
-.oc #dns-setting-respect-de[style*="display: none"] {
-    display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    position: absolute !important;
-    height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    border: none !important;
-    overflow: hidden !important;
-}
-
-.oc .sub-card:has(.hidden-radio-de),
-.oc .sub-card:has([style*="display: none"]) {
-    transform: translateZ(0);
-    will-change: contents;
-}
-
-.oc .sub-card:has(.hidden-radio-de) .card-content,
-.oc .sub-card:has([style*="display: none"]) .card-content {
-    gap: 0 !important;
-    padding: 0 !important;
-    margin: 0 !important;
-    align-items: flex-start !important;
-}
-
-.oc .sub-card:has(.hidden-radio-de) .card-controls,
-.oc .sub-card:has([style*="display: none"]) .card-controls {
-    margin: 0 !important;
-    padding: 0 !important;
-    min-height: var(--control-height) !important;
-    max-height: var(--control-height) !important;
-}
-
-.oc .sub-card:has([style*="display: none"]) .card-value {
-    min-height: auto;
-}
-
 @media screen and (max-width: 1200px) {
     .oc .main-cards-container {
         grid-template-columns: 1fr;
@@ -1112,7 +1194,6 @@
         margin-bottom: 14px;
         max-width: 100%;
         width: 100%;
-        padding: 16px;
     }
 
     .oc .main-card:first-of-type {
@@ -1127,17 +1208,10 @@
 
     .oc .card-row.dual-cards {
         grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-
-    .oc .card-row.triple-cards {
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 10px;
     }
 
     .oc .card-row.stats-grid {
         grid-template-columns: repeat(4, 2fr);
-        gap: 8px;
     }
 
     .oc .config-selector {
@@ -1147,11 +1221,11 @@
     
     .oc .config-select {
         min-width: 200px;
-        font-size: 12px;
+        font-size: 14px;
     }
     
     .oc .config-select option {
-        font-size: 12px;
+        font-size: 14px;
         max-width: 100%;
     }
     
@@ -1171,7 +1245,6 @@
     }
 
     .oc .main-card {
-        padding: 14px;
         grid-template-rows: auto auto auto auto;
     }
 
@@ -1184,17 +1257,8 @@
         gap: 12px;
     }
 
-    .oc .card-row.dual-cards {
-        gap: 8px;
-    }
-
-    .oc .card-row.triple-cards {
-        gap: 8px;
-    }
-
     .oc .card-row.stats-grid {
-        grid-template-columns: repeat(3, 2fr);
-        gap: 6px;
+        grid-template-columns: repeat(2, 2fr);
     }
 
     .oc .announcement-banner {
@@ -1205,11 +1269,6 @@
     .oc .dashboard-btn {
         font-size: 10px !important;
         height: 40px !important;
-        padding: 4px 4px !important;
-    }
-
-    .oc .card-title {
-        font-size: 11px;
     }
 
     .oc .card-value {
@@ -1245,12 +1304,12 @@
 
     .oc .config-select {
         min-width: 150px;
-        font-size: 11px;
+        font-size: 13px;
         padding: 4px 10px;
     }
     
     .oc .config-select option {
-        font-size: 11px;
+        font-size: 13px;
         padding: 6px 10px;
     }
     
@@ -1275,17 +1334,18 @@
 
     .oc .config-file-name {
         max-width: 100%;
-        font-size: 15px;
+        font-size: 18px;
     }
 
     .oc .config-file-bottom {
         flex-direction: row;
         align-items: stretch;
-        gap: 12px;
+        gap: 8px;
     }
     
     .oc .config-file-bottom .card-actions {
         justify-content: center;
+        gap: 5px;
     }
     
     .oc .subscription-info-text {
@@ -1293,11 +1353,22 @@
     }
 
     .oc .file-info {
-        font-size: 9px;
+        font-size: 10px;
     }
 
     .oc .file-info-item {
         font-size: 10px;
+    }
+
+    .oc .config-upload-btn-large {
+        min-width: 180px !important;
+        height: 50px !important;
+        font-size: 14px !important;
+        padding: 0 24px !important;
+    }
+    
+    .oc .config-file-empty-message {
+        font-size: 14px;
     }
 }
 
@@ -1309,22 +1380,19 @@
     }
 
     .oc .main-card {
-        padding: 12px;
+        padding: 8px;
     }
 
     .oc .card-row {
         gap: 10px;
     }
 
-    .oc .card-row.dual-cards,
-    .oc .card-row.triple-cards {
-        grid-template-columns: 1fr 1fr;
-        gap: 6px;
+    .oc .card-row.dual-cards {
+        grid-template-columns: 1fr;
     }
 
     .oc .card-row.stats-grid {
         grid-template-columns: repeat(2, 1fr);
-        gap: 5px;
     }
 
     .oc .announcement-banner {
@@ -1350,9 +1418,8 @@
     }
 
     .oc .dashboard-btn {
-        font-size: 6px !important;
+        font-size: 8px !important;
         height: 25px !important;
-        padding: 6px 4px !important;
     }
 
     .oc .cbi-button-group {
@@ -1362,7 +1429,7 @@
     }
 
     .oc input[type="radio"]:checked + .cbi-button-option {
-        height: 24px;
+        height: 22px;
     }
 
     .oc .cbi-button-option {
@@ -1392,7 +1459,7 @@
     }
 
     .oc .mode-row .sub-card:first-child .card-content {
-        flex-direction: column;
+        flex-direction: row;
         gap: 8px;
     }
     
@@ -1404,28 +1471,23 @@
     }
 
     .oc .config-selector {
-        min-width: 120px;
+        min-width: 110px;
         flex: 1;
     }
     
     .oc .config-select {
-        min-width: 120px;
-        font-size: 10px;
+        min-width: 110px;
+        font-size: 12px;
         padding: 4px 8px;
     }
     
     .oc .config-select option {
-        font-size: 10px;
+        font-size: 12px;
         padding: 5px 8px;
     }
     
     .oc .config-selector::after {
         right: 8px;
-    }
-
-    .oc .card-title {
-        font-size: 10px;
-        margin-bottom: 8px;
     }
 
     .oc .card-value {
@@ -1434,9 +1496,13 @@
     }
 
     .oc .value-indicator {
-        font-size: 9px;
-        padding: 6px 8px;
-        min-width: 60px;
+        padding: 5px 5px;
+        min-width: 50px;
+        height: 28px;
+    }
+
+    .oc .value-indicator b {
+        font-size: 10px;
     }
 
     .oc .stat-label {
@@ -1448,11 +1514,11 @@
     }
 
     .oc .subscription-info-text {
-        font-size: 8px;
+        font-size: 10px;
     }
 
     .oc .config-file-name {
-        font-size: 13px;
+        font-size: 15px;
     }
 
     .oc .sub-card {
@@ -1497,6 +1563,22 @@
 
     .oc .file-info-item {
         font-size: 10px;
+    }
+
+    .oc .config-upload-btn-large {
+        min-width: 160px !important;
+        height: 45px !important;
+        font-size: 13px !important;
+        padding: 0 20px !important;
+    }
+    
+    .oc .config-file-empty-state {
+        padding: 30px 15px;
+        gap: 15px;
+    }
+    
+    .oc .config-file-empty-message {
+        font-size: 13px;
     }
 }
 </style>
@@ -1547,6 +1629,11 @@
                                         <button type="button" class="icon-btn action-btn" id="restart_core" title="<%:Restart%>" onclick="return restartCore()">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
                                         </button>
+                                        <button type="button" class="icon-btn action-btn" id="edit_overwrite" title="<%:Overwrite%>" onclick="return editOverwrite()">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256">
+                                            <path d="M12,111l112,64a8,8,0,0,0,7.94,0l112-64a8,8,0,0,0,0-13.9l-112-64a8,8,0,0,0-7.94,0l-112,64A8,8,0,0,0,12,111ZM128,49.21,223.87,104,128,158.79,32.13,104ZM246.94,140A8,8,0,0,1,244,151L132,215a8,8,0,0,1-7.94,0L12,151A8,8,0,0,1,20,137.05l108,61.74,108-61.74A8,8,0,0,1,246.94,140Z"></path>
+                                        </svg>
+                                    </button>
                                     </div>
                                 </div>
                                 <div class="card-actions">
@@ -1569,8 +1656,8 @@
                                 <div class="card-title"><%:Running Mode%></div>
                                 <div class="card-content">
                                     <div class="card-value"><span id="_mode" class="value-indicator"><%:Collecting data...%></span></div>
-                                    <div class="running-mode-controls">
-                                        <div id="radio-ru-mode" class="cbi-button-group" style="display: none;">
+                                    <div class="card-controls">
+                                        <div id="radio-ru-mode" class="cbi-button-group" style="display: inline-flex;">
                                             <input type="radio" id="normal" name="radios-ru" value="" checked onclick="return switch_run_mode(this.value)"/><label for="normal" id="run_normal" class="cbi-button-option"><%:Compat%></label>
                                             <input type="radio" id="tun" name="radios-ru" value="-tun" onclick="return switch_run_mode(this.value)"/><label for="tun" class="cbi-button-option"><%:TUN%></label>
                                             <input type="radio" id="mix" name="radios-ru" value="-mix" onclick="return switch_run_mode(this.value)"/><label for="mix" class="cbi-button-option"><%:Mix%></label>
@@ -1581,9 +1668,8 @@
                             <div class="sub-card">
                                 <div class="card-title"><%:Proxy Mode%></div>
                                 <div class="card-content">
-                                    <div class="card-value"><span id="radio-de" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="card-controls">
-                                        <div id="radio-mode" class="cbi-button-group" style="display: none;">
+                                        <div id="radio-mode" class="cbi-button-group" style="display: inline-flex;">
                                             <input type="radio" id="rule" name="radios" value="rule" checked onclick="return switch_rule_mode(this.value)"/><label for="rule" class="cbi-button-option"><%:Rule%></label>
                                             <input type="radio" id="global" name="radios" value="global" onclick="return switch_rule_mode(this.value)"/><label for="global" class="cbi-button-option"><%:Global%></label>
                                             <input type="radio" id="direct" name="radios" value="direct" onclick="return switch_rule_mode(this.value)"/><label for="direct" class="cbi-button-option"><%:Direct%></label>
@@ -1594,13 +1680,12 @@
                         </div>
 
                         <!-- Row 3: Settings -->
-                        <div class="card-row triple-cards">
+                        <div class="card-row stats-grid">
                             <div class="sub-card">
                                 <div class="card-title"><%:Area Bypass%><div class="help-link" title="<%:Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div></div>
                                 <div class="card-content">
-                                    <div class="card-value"><span id="oc-setting-oversea-de" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="card-controls">
-                                        <div id="oc-setting-oversea" class="cbi-button-group" style="display: none;">
+                                        <div id="oc-setting-oversea" class="cbi-button-group" style="display: inline-flex;">
                                             <input type="radio" id="oc_setting_oversea_1" name="oc-setting-oversea" value="1" onclick="return switch_oc_setting_oversea('1')"/><label for="oc_setting_oversea_1" class="cbi-button-option"><%:Mainland%></label>
                                             <input type="radio" id="oc_setting_oversea_2" name="oc-setting-oversea" value="2" onclick="return switch_oc_setting_oversea('2')"/><label for="oc_setting_oversea_2" class="cbi-button-option"><%:Oversea%></label>
                                             <input type="radio" id="oc_setting_oversea_0" name="oc-setting-oversea" value="0" onclick="return switch_oc_setting_oversea('0')"/><label for="oc_setting_oversea_0" class="cbi-button-option"><%:Off%></label>
@@ -1611,9 +1696,8 @@
                             <div class="sub-card">
                                 <div class="card-title"><%:Sniffer%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/sniff/?h=sniff#_1', '_blank');" class="help-link" title="<%:Sniff the domain name of the traffics to avoid rule-based proxy failure%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></a></div>
                                 <div class="card-content">
-                                    <div class="card-value"><span id="dns-setting-sniffer-de" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="card-controls">
-                                        <div id="dns-setting-sniffer" class="cbi-button-group" style="display: none;">
+                                        <div id="dns-setting-sniffer" class="cbi-button-group" style="display: inline-flex;">
                                             <input type="radio" id="meta_sniffer_on" name="meta-sniffer-radios" value="1" onclick="return switch_meta_sniffer('1')"/><label for="meta_sniffer_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="meta_sniffer_off" name="meta-sniffer-radios" value="0" onclick="return switch_meta_sniffer('0')"/><label for="meta_sniffer_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
@@ -1623,11 +1707,21 @@
                             <div class="sub-card">
                                 <div class="card-title"><%:DNS Proxy%><a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/dns/?h=res#respect-rules', '_blank');" class="help-link" title="<%:DNS querys respect-rules to preventing access failure%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></a></div>
                                 <div class="card-content">
-                                    <div class="card-value"><span id="dns-setting-respect-de" class="value-indicator"><%:Collecting data...%></span></div>
                                     <div class="card-controls">
-                                        <div id="dns-setting-respect" class="cbi-button-group" style="display: none;">
+                                        <div id="dns-setting-respect" class="cbi-button-group" style="display: inline-flex;">
                                             <input type="radio" id="respect_rules_on" name="respect-rules-radios" value="1" onclick="return switch_respect_rules('1')"/><label for="respect_rules_on" class="cbi-button-option"><%:On%></label>
                                             <input type="radio" id="respect_rules_off" name="respect-rules-radios" value="0" onclick="return switch_respect_rules('0')"/><label for="respect_rules_off" class="cbi-button-option"><%:Off%></label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="sub-card">
+                                <div class="card-title"><%:Stream Unlock%><div class="help-link" title="<%:Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc%>"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg></div></div>
+                                <div class="card-content">
+                                    <div class="card-controls">
+                                        <div id="stream-unlock-setting" class="cbi-button-group" style="display: inline-flex;">
+                                            <input type="radio" id="stream_unlock_on" name="stream-unlock-radios" value="1" onclick="return switch_stream_unlock('1')"/><label for="stream_unlock_on" class="cbi-button-option"><%:On%></label>
+                                            <input type="radio" id="stream_unlock_off" name="stream-unlock-radios" value="0" onclick="return switch_stream_unlock('0')"/><label for="stream_unlock_off" class="cbi-button-option"><%:Off%></label>
                                         </div>
                                     </div>
                                 </div>
@@ -1640,6 +1734,8 @@
                                 <div class="card-title"><%:Config File%></div>
                                 <div class="config-file-content">
                                     <div id="subscription-info-display" class="subscription-info-container" style="display: none;">
+                                        <div class="subscription-nav-arrow left" id="subscription-prev-arrow" onclick="switchToPreviousConfig()" title="<%:Previous%>"></div>
+                                        <div class="subscription-nav-arrow right" id="subscription-next-arrow" onclick="switchToNextConfig()" title="<%:Next%>"></div>
                                         <div class="subscription-info-main">
                                             <div class="subscription-info-header">
                                                 <div class="config-file-name" id="current-config-name"><%:No Config Selected%></div>
@@ -1662,13 +1758,26 @@
                                                         </svg>
                                                     </button>
                                                     <button type="button" class="icon-btn action-btn" id="config-subscription-url" title="<%:Specify URL%>" onclick="return setSubscriptionUrl()">
-                                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                                                        <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                            <path d="M18.2838 43.1713C14.9327 42.1736 11.9498 40.3213 9.58787 37.867C10.469 36.8227 11 35.4734 11 34.0001C11 30.6864 8.31371 28.0001 5 28.0001C4.79955 28.0001 4.60139 28.01 4.40599 28.0292C4.13979 26.7277 4 25.3803 4 24.0001C4 21.9095 4.32077 19.8938 4.91579 17.9995C4.94381 17.9999 4.97188 18.0001 5 18.0001C8.31371 18.0001 11 15.3138 11 12.0001C11 11.0488 10.7786 10.1493 10.3846 9.35011C12.6975 7.1995 15.5205 5.59002 18.6521 4.72314C19.6444 6.66819 21.6667 8.00013 24 8.00013C26.3333 8.00013 28.3556 6.66819 29.3479 4.72314C32.4795 5.59002 35.3025 7.1995 37.6154 9.35011C37.2214 10.1493 37 11.0488 37 12.0001C37 15.3138 39.6863 18.0001 43 18.0001C43.0281 18.0001 43.0562 17.9999 43.0842 17.9995C43.6792 19.8938 44 21.9095 44 24.0001C44 25.3803 43.8602 26.7277 43.594 28.0292C43.3986 28.01 43.2005 28.0001 43 28.0001C39.6863 28.0001 37 30.6864 37 34.0001C37 35.4734 37.531 36.8227 38.4121 37.867C36.0502 40.3213 33.0673 42.1736 29.7162 43.1713C28.9428 40.752 26.676 39.0001 24 39.0001C21.324 39.0001 19.0572 40.752 18.2838 43.1713Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+                                                            <path d="M24 31C27.866 31 31 27.866 31 24C31 20.134 27.866 17 24 17C20.134 17 17 20.134 17 24C17 27.866 20.134 31 24 31Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
                                                         </svg>
                                                     </button>
                                                 </div>
                                             </div>
                                         </div>
+                                    </div>
+
+                                    <div id="config-file-empty-state" class="config-file-empty-state" style="display: none;">
+                                        <div class="config-file-empty-message"><%:No config files found, Please upload a config file to get started%></div>
+                                        <button type="button" class="config-upload-btn-large" id="upload_config_large" onclick="return uploadConfig()">
+                                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                                <polyline points="17,8 12,3 7,8"></polyline>
+                                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                                            </svg>
+                                            <%:Upload Config File%>
+                                        </button>
                                     </div>
                                     
                                     <div class="config-file-bottom">
@@ -1779,8 +1888,6 @@
         flush_fakeip_cache: document.getElementById('_flush_fakeip_cache'),
         radio_mode: document.getElementById('radio-mode'),
         radio: document.getElementsByName("radios"),
-        radio_de: document.getElementById('radio-de'),
-        radio_ru_mode: document.getElementById('radio-ru-mode'),
         radio_ru: document.getElementsByName("radios-ru"),
         radio_run_normal: document.getElementById("run_normal"),
         copy_secret: document.getElementById('copy_secret'),
@@ -1789,19 +1896,19 @@
         copy_mix_secret: document.getElementById('copy_mix_secret'),
         copy_pac_config: document.getElementById('copy_pac_config'),
         mix_proxy: document.getElementById('_mix_proxy'),
-        dns_setting_sniffer_de: document.getElementById('dns-setting-sniffer-de'),
-        dns_setting_respect_de: document.getElementById('dns-setting-respect-de'),
         dns_setting_sniffer: document.getElementById('dns-setting-sniffer'),
         dns_setting_respect: document.getElementById('dns-setting-respect'),
         meta_sniffer_on: document.getElementById('meta_sniffer_on'),
         meta_sniffer_off: document.getElementById('meta_sniffer_off'),
         respect_rules_on: document.getElementById('respect_rules_on'),
         respect_rules_off: document.getElementById('respect_rules_off'),
-        oc_setting_oversea_de: document.getElementById('oc-setting-oversea-de'),
         oc_setting_oversea: document.getElementById('oc-setting-oversea'),
         oc_setting_oversea_0: document.getElementById('oc_setting_oversea_0'),
         oc_setting_oversea_1: document.getElementById('oc_setting_oversea_1'),
         oc_setting_oversea_2: document.getElementById('oc_setting_oversea_2'),
+        stream_unlock_setting: document.getElementById('stream-unlock-setting'),
+        stream_unlock_on: document.getElementById('stream_unlock_on'),
+        stream_unlock_off: document.getElementById('stream_unlock_off'),
         core_version_display: document.getElementById('core-version-display'),
         core_version_text: document.getElementById('core-version-text'),
         plugin_version_display: document.getElementById('plugin-version-display'),
@@ -2007,15 +2114,28 @@
         reconnectDelay: 2000,
         heartbeatInterval: 30000,
         heartbeatTimers: {},
-        
+        _ws_connect: false,
+        _ws_error: false,
+        _ws_retry: 0,
+        _allowedCloseCodes: [1000, 1001, 1005, 1006],
+
+        isSupported: function() {
+            return typeof window.WebSocket !== "undefined";
+        },
+
         createConnection: function(type, url, messageHandler, options) {
             options = options || {};
-            
+
             this.closeConnection(type);
-            
+
+            if (!this.isSupported()) {
+                this.enableFallbackMode();
+                return null;
+            }
+
             try {
-                var ws = new WebSocket(url);
-                
+                var ws = new window.WebSocket(url);
+
                 this.connections[type] = {
                     socket: ws,
                     url: url,
@@ -2024,195 +2144,188 @@
                     lastActivity: Date.now(),
                     options: options
                 };
-                
+
                 this.retryAttempts[type] = 0;
-                
-                this.bindEventHandlers(type, ws);
-                
+
+                if (ws.addEventListener) {
+                    ws.addEventListener('open', this.handleOpen.bind(this, type));
+                    ws.addEventListener('message', this.handleMessage.bind(this, type));
+                    ws.addEventListener('error', this.handleError.bind(this, type));
+                    ws.addEventListener('close', this.handleClose.bind(this, type));
+                } else {
+                    ws.onopen = this.handleOpen.bind(this, type);
+                    ws.onmessage = this.handleMessage.bind(this, type);
+                    ws.onerror = this.handleError.bind(this, type);
+                    ws.onclose = this.handleClose.bind(this, type);
+                }
+
                 return ws;
             } catch (error) {
                 this.handleConnectionError(type, error);
                 return null;
             }
         },
-        
-        bindEventHandlers: function(type, ws) {
-            var self = this;
-            var connection = this.connections[type];
-            
-            ws.onopen = function(event) {
-                self.handleOpen(type, event);
-            };
-            
-            ws.onmessage = function(event) {
-                self.handleMessage(type, event);
-            };
-            
-            ws.onerror = function(error) {
-                self.handleError(type, error);
-            };
-            
-            ws.onclose = function(event) {
-                self.handleClose(type, event);
-            };
-        },
-        
-        handleOpen: function(type, event) {            
-            var connection = this.connections[type];
-            if (connection) {
-                connection.state = this.connectionStates.CONNECTED;
-                connection.lastActivity = Date.now();
-            }
-            
-            this.retryAttempts[type] = 0;
-            
-            this.startHeartbeat(type);
-            
-            if (type === 'traffic' || Object.keys(this.connections).length === 3) {
-                ws_connect = true;
-                ws_error = false;
-                ws_retry = 0;
-            }
-        },
-        
-        handleMessage: function(type, event) {
-            var connection = this.connections[type];
-            if (connection && connection.messageHandler) {
-                connection.lastActivity = Date.now();
-                try {
-                    connection.messageHandler(event);
-                } catch (error) {
-                }
-            }
-        },
-        
-        handleError: function(type, error) {            
-            var connection = this.connections[type];
-            if (connection) {
-                connection.state = this.connectionStates.ERROR;
-            }
-            
-            ws_error = true;
-            this.stopHeartbeat(type);
-            
-            if (type === 'traffic') {
-                this.enableFallbackMode();
-            }
-        },
-        
-        handleClose: function(type, event) {            
-            var connection = this.connections[type];
-            if (connection) {
-                connection.state = this.connectionStates.DISCONNECTED;
-            }
-            
-            this.stopHeartbeat(type);
-            
-            if (event.code !== 1000 && event.code !== 1001) {
-                this.scheduleReconnect(type);
-            }
-        },
-        
-        handleConnectionError: function(type, error) {
-            var connection = this.connections[type];
-            if (connection) {
-                connection.state = this.connectionStates.ERROR;
-            }
-            
-            ws_error = true;
-            this.enableFallbackMode();
-        },
-        
-        scheduleReconnect: function(type) {
-            var self = this;
-            var connection = this.connections[type];
-            
-            if (!connection || this.retryAttempts[type] >= this.maxRetries) {
-                this.enableFallbackMode();
-                return;
-            }
-            
-            this.retryAttempts[type] = (this.retryAttempts[type] || 0) + 1;
-            var delay = this.reconnectDelay * Math.pow(1.5, this.retryAttempts[type] - 1);
-                        
-            setTimeout(function() {
-                if (self.connections[type] && self.connections[type].state !== self.connectionStates.CONNECTED) {
-                    self.createConnection(type, connection.url, connection.messageHandler, connection.options);
-                }
-            }, delay);
-        },
-        
+
         startHeartbeat: function(type) {
             var self = this;
-            
             this.stopHeartbeat(type);
-            
+
             this.heartbeatTimers[type] = setInterval(function() {
                 var connection = self.connections[type];
                 if (connection && connection.socket && connection.state === self.connectionStates.CONNECTED) {
                     var timeSinceLastActivity = Date.now() - connection.lastActivity;
-                    
-                    if (timeSinceLastActivity > self.heartbeatInterval * 2) {
+                    if (timeSinceLastActivity > self.heartbeatInterval * 3) {
                         self.reconnectConnection(type);
                     }
                 }
             }, this.heartbeatInterval);
+
+            if (!this._visibilityHandlerAdded) {
+                document.addEventListener('visibilitychange', function() {
+                    if (document.hidden) {
+                        self.stopHeartbeat(type);
+                    } else {
+                        self.startHeartbeat(type);
+                    }
+                });
+                this._visibilityHandlerAdded = true;
+            }
         },
-        
+
         stopHeartbeat: function(type) {
             if (this.heartbeatTimers[type]) {
                 clearInterval(this.heartbeatTimers[type]);
                 delete this.heartbeatTimers[type];
             }
         },
-        
+
         reconnectConnection: function(type) {
             var connection = this.connections[type];
             if (connection) {
                 this.createConnection(type, connection.url, connection.messageHandler, connection.options);
             }
         },
-        
+
         closeConnection: function(type) {
             var connection = this.connections[type];
             if (connection && connection.socket) {
                 this.stopHeartbeat(type);
-                
                 try {
                     connection.socket.close(1000, 'Normal closure');
-                } catch (error) {
-                }
-                
+                } catch (error) {}
                 delete this.connections[type];
             }
         },
-        
+
         closeAll: function() {
             var types = Object.keys(this.connections);
             for (var i = 0; i < types.length; i++) {
                 this.closeConnection(types[i]);
             }
-            
-            ws_connect = false;
-            ws_error = false;
-            ws_retry = 0;
+            this._ws_connect = false;
+            this._ws_error = false;
+            this._ws_retry = 0;
         },
-        
-        enableFallbackMode: function() {            
-            ws_connect = false;
-            
+
+        handleMessage: function(type, event) {
+            var connection = this.connections[type];
+            if (connection && connection.messageHandler) {
+                connection.lastActivity = Date.now();
+                try {
+                    var data;
+                    try {
+                        data = JSON.parse(event.data);
+                    } catch (e) {
+                        data = event.data;
+                    }
+                    connection.messageHandler({ data: data, raw: event.data, event: event });
+                } catch (error) {
+                }
+            }
+        },
+
+        handleOpen: function(type, event) {
+            var connection = this.connections[type];
+            if (connection) {
+                connection.state = this.connectionStates.CONNECTED;
+                connection.lastActivity = Date.now();
+            }
+            this.retryAttempts[type] = 0;
+            this.startHeartbeat(type);
+
+            if (type === 'traffic' || Object.keys(this.connections).length === 3) {
+                this._ws_connect = true;
+                this._ws_error = false;
+                this._ws_retry = 0;
+            }
+        },
+
+        handleError: function(type, error) {
+            var connection = this.connections[type];
+            if (connection) {
+                connection.state = this.connectionStates.ERROR;
+            }
+            this._ws_error = true;
+            this.stopHeartbeat(type);
+
+            if (type === 'traffic') {
+                this.enableFallbackMode();
+            }
+        },
+
+        handleClose: function(type, event) {
+            var connection = this.connections[type];
+            if (connection) {
+                connection.state = this.connectionStates.DISCONNECTED;
+            }
+            this.stopHeartbeat(type);
+
+            if (this._allowedCloseCodes.indexOf(event.code) === -1) {
+                this.scheduleReconnect(type);
+            }
+        },
+
+        handleConnectionError: function(type, error) {
+            var connection = this.connections[type];
+            if (connection) {
+                connection.state = this.connectionStates.ERROR;
+            }
+            this._ws_error = true;
+            this.enableFallbackMode();
+        },
+
+        scheduleReconnect: function(type) {
+            var self = this;
+            var connection = this.connections[type];
+
+            if (!connection || this.retryAttempts[type] >= this.maxRetries) {
+                this.enableFallbackMode();
+                return;
+            }
+
+            this.retryAttempts[type] = (this.retryAttempts[type] || 0) + 1;
+            var delay = this.reconnectDelay * Math.pow(1.5, this.retryAttempts[type] - 1);
+
+            setTimeout(function() {
+                if (self.connections[type] && self.connections[type].state !== self.connectionStates.CONNECTED) {
+                    self.createConnection(type, connection.url, connection.messageHandler, connection.options);
+                }
+            }, delay);
+        },
+
+        enableFallbackMode: function() {
+            this._ws_connect = false;
             this.closeAll();
-            
-            if (NetworkStatsManager && !NetworkStatsManager.isEnabled) {
+            if (typeof NetworkStatsManager !== "undefined" && !NetworkStatsManager.isEnabled) {
                 NetworkStatsManager.start();
             }
         },
-        
+
         getConnectionState: function(type) {
             var connection = this.connections[type];
             return connection ? connection.state : this.connectionStates.DISCONNECTED;
         },
-        
+
         getAllConnectionStates: function() {
             var states = {};
             for (var type in this.connections) {
@@ -2220,7 +2333,7 @@
             }
             return states;
         },
-        
+
         hasActiveConnections: function() {
             for (var type in this.connections) {
                 if (this.getConnectionState(type) === this.connectionStates.CONNECTED) {
@@ -2229,7 +2342,7 @@
             }
             return false;
         },
-        
+
         resetRetryCount: function(type) {
             if (type) {
                 this.retryAttempts[type] = 0;
@@ -2242,6 +2355,7 @@
     var ConfigFileManager = {
         configList: [],
         currentConfig: '',
+        currentConfigIndex: -1,
         selectElement: null,
         
         init: function() {
@@ -2290,32 +2404,45 @@
                     currentConfigFile = data.current;
                 }
                 
-                if (currentConfigFile && configFiles.length > 0) {
-                    for (var i = 0; i < configFiles.length; i++) {
-                        var file = configFiles[i];
-                        var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
-                        
-                        if (filePath === currentConfigFile) {
-                            if (typeof file === 'object' && file.mtime && file.size) {
-                                currentFileInfo = {
-                                    mtime: file.mtime,
-                                    size: file.size
-                                };
-                            }
-                            break;
-                        }
-                    }
-                }
-                
                 this.configList = configFiles;
                 this.currentConfig = currentConfigFile;
-                this.updateConfigSelect(configFiles, currentConfigFile);
-                this.updateSubscriptionDisplay(currentConfigFile, currentFileInfo);
+                this.currentConfigIndex = -1;
+
+                this.toggleEmptyState(configFiles.length === 0);
                 
-                if (currentConfigFile && SubscriptionManager.currentConfigFile !== currentConfigFile) {
-                    SubscriptionManager.currentConfigFile = currentConfigFile;
-                    SubscriptionManager.getSubscriptionInfo();
+                this.updateConfigSelect(configFiles, currentConfigFile);
+
+                if (configFiles.length > 0) {
+                    if (currentConfigFile) {
+                        for (var i = 0; i < configFiles.length; i++) {
+                            var file = configFiles[i];
+                            var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
+                            
+                            if (filePath === currentConfigFile) {
+                                this.currentConfigIndex = i;
+                                if (typeof file === 'object' && file.mtime && file.size) {
+                                    currentFileInfo = {
+                                        mtime: file.mtime,
+                                        size: file.size
+                                    };
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    
+                    this.updateSubscriptionDisplay(currentConfigFile, currentFileInfo);
+                    
+                    if (currentConfigFile && SubscriptionManager.currentConfigFile !== currentConfigFile) {
+                        SubscriptionManager.currentConfigFile = currentConfigFile;
+                        SubscriptionManager.getSubscriptionInfo();
+                    }
+                } else {
+                    this.hideSubscriptionDisplay();
+                    SubscriptionManager.currentConfigFile = '';
                 }
+                
+                this.updateNavigationArrows();
                 
             } catch (e) {
                 this.handleConfigListError();
@@ -2327,6 +2454,40 @@
                 {value: '', text: '<%:Failed to load config files%>', disabled: true}
             ]);
             
+            this.toggleEmptyState(true);
+            this.hideSubscriptionDisplay();
+        },
+
+        toggleEmptyState: function(isEmpty) {
+            var emptyStateElement = document.getElementById('config-file-empty-state');
+            var configFileBottom = document.querySelector('.config-file-bottom');
+            var configFileContent = document.querySelector('.config-file-content');
+            
+            if (isEmpty) {
+                if (emptyStateElement) {
+                    emptyStateElement.style.display = 'flex';
+                }
+                if (configFileBottom) {
+                    configFileBottom.style.display = 'none';
+                }
+                if (configFileContent) {
+                    configFileContent.classList.add('empty-state');
+                }
+                this.hideSubscriptionDisplay();
+            } else {
+                if (emptyStateElement) {
+                    emptyStateElement.style.display = 'none';
+                }
+                if (configFileBottom) {
+                    configFileBottom.style.display = 'flex';
+                }
+                if (configFileContent) {
+                    configFileContent.classList.remove('empty-state');
+                }
+            }
+        },
+        
+        hideSubscriptionDisplay: function() {
             var subscriptionDisplay = document.getElementById('subscription-info-display');
             if (subscriptionDisplay) {
                 subscriptionDisplay.style.display = 'none';
@@ -2398,7 +2559,18 @@
             
             if (!container) return;
             
+            if (this.configList.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
             if (!configFile) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            var configFileContent = document.querySelector('.config-file-content');
+            if (configFileContent && configFileContent.classList.contains('empty-state')) {
                 container.style.display = 'none';
                 return;
             }
@@ -2419,6 +2591,11 @@
                 if (fileModifyTimeElement) {
                     var modifyTime = this.formatUnixTime(fileInfo.mtime);
                     fileModifyTimeElement.textContent = '<%:Update Time%>: ' + modifyTime;
+                    if (fileModifyTimeElement.scrollWidth > fileModifyTimeElement.clientWidth) {
+                        fileModifyTimeElement.title = fileModifyTimeElement.textContent;
+                    } else {
+                        fileModifyTimeElement.title = '';
+                    }
                 }
                 
                 if (detailsSection) {
@@ -2488,23 +2665,19 @@
             if (selectedValue) {
                 this.currentConfig = selectedValue;
                 
-                var selectedFileInfo = null;
                 for (var i = 0; i < this.configList.length; i++) {
                     var file = this.configList[i];
                     var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
                     
                     if (filePath === selectedValue) {
-                        if (typeof file === 'object' && file.mtime && file.size) {
-                            selectedFileInfo = {
-                                mtime: file.mtime,
-                                size: file.size
-                            };
-                        }
+                        this.currentConfigIndex = i;
                         break;
                     }
                 }
                 
+                var selectedFileInfo = this.getConfigFileInfo(selectedValue);
                 this.updateSubscriptionDisplay(selectedValue, selectedFileInfo);
+                this.updateNavigationArrows();
                 
                 if (SubscriptionManager.currentConfigFile !== selectedValue) {
                     SubscriptionManager.currentConfigFile = selectedValue;
@@ -2516,12 +2689,89 @@
                 }
             } else {
                 this.currentConfig = '';
+                this.currentConfigIndex = -1;
                 SubscriptionManager.currentConfigFile = '';
-                var subscriptionDisplay = document.getElementById('subscription-info-display');
-                if (subscriptionDisplay) {
-                    subscriptionDisplay.style.display = 'none';
+                this.hideSubscriptionDisplay();
+                this.updateNavigationArrows();
+            }
+        },
+
+        getConfigFileInfo: function(selectedValue) {
+            var selectedFileInfo = null;
+            for (var i = 0; i < this.configList.length; i++) {
+                var file = this.configList[i];
+                var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
+                
+                if (filePath === selectedValue) {
+                    if (typeof file === 'object' && file.mtime && file.size) {
+                        selectedFileInfo = {
+                            mtime: file.mtime,
+                            size: file.size
+                        };
+                    }
+                    break;
                 }
             }
+            return selectedFileInfo;
+        },
+        
+        updateNavigationArrows: function() {
+            var prevArrow = document.getElementById('subscription-prev-arrow');
+            var nextArrow = document.getElementById('subscription-next-arrow');
+            
+            if (!prevArrow || !nextArrow) return;
+            
+            var hasMultipleConfigs = this.configList.length > 1;
+            var currentIndex = this.currentConfigIndex;
+            
+            if (!hasMultipleConfigs || currentIndex === -1) {
+                prevArrow.style.display = 'none';
+                nextArrow.style.display = 'none';
+                return;
+            }
+            
+            prevArrow.style.display = 'block';
+            nextArrow.style.display = 'block';
+            
+            prevArrow.classList.remove('disabled');
+            nextArrow.classList.remove('disabled');
+        },
+        
+        switchToConfigByIndex: function(index) {
+            if (this.configList.length === 0) {
+                return false;
+            }
+            
+            if (index < 0) {
+                index = this.configList.length - 1; 
+            } else if (index >= this.configList.length) {
+                index = 0;
+            }
+            
+            var file = this.configList[index];
+            var filePath = typeof file === 'string' ? file : (file.path || file.filepath || file);
+            
+            if (this.selectElement) {
+                this.selectElement.value = filePath;
+            }
+            
+            this.currentConfig = filePath;
+            this.currentConfigIndex = index;
+            
+            var fileInfo = this.getConfigFileInfo(filePath);
+            this.updateSubscriptionDisplay(filePath, fileInfo);
+            this.updateNavigationArrows();
+            
+            if (SubscriptionManager.currentConfigFile !== filePath) {
+                SubscriptionManager.currentConfigFile = filePath;
+                var detailsSection = document.getElementById('subscription-info-details');
+                if (detailsSection) {
+                    detailsSection.style.display = 'none';
+                }
+                SubscriptionManager.getSubscriptionInfo();
+            }
+            
+            return true;
         },
         
         refreshConfigList: function() {
@@ -2563,8 +2813,13 @@
         },
         
         getSubscriptionInfo: function() {
+            if (ConfigFileManager.configList.length === 0) {
+                return;
+            }
+            
             if (!this.currentConfigFile) return;
             
+            var requestConfigFile = this.currentConfigFile;
             var filename = this.extractFilename(this.currentConfigFile);
             if (!filename) return;
             
@@ -2576,9 +2831,13 @@
                     var parsedData = JSON.parse(cachedData);
 
                     if (parsedData.sub_info && parsedData.sub_info !== "No Sub Info Found") {
-                        this.displaySubscriptionInfo(parsedData);
+                        if (this.currentConfigFile === requestConfigFile) {
+                            this.displaySubscriptionInfo(parsedData);
+                        }
                     } else if (parsedData.sub_info === "No Sub Info Found") {
-                        this.showNoInfo();
+                        if (this.currentConfigFile === requestConfigFile) {
+                            this.showNoInfo();
+                        }
                     }
                     
                     if (parsedData.get_time) {
@@ -2598,6 +2857,9 @@
             
             if (shouldFetchNew) {
                 StateManager.cachedXHRGetWithParams('<%=luci.dispatcher.build_url("admin", "services", "openclash", "sub_info_get")%>', {filename: filename}, function(x, status) {
+                    if (SubscriptionManager.currentConfigFile !== requestConfigFile) {
+                        return;
+                    }
                     if (x && x.status == 200 && status.sub_info && status.sub_info !== "No Sub Info Found") {
                         SubscriptionManager.retryCount = 0;
                         localStorage.setItem('sub_info_' + filename, JSON.stringify(status));
@@ -2614,6 +2876,10 @@
         },
         
         displaySubscriptionInfo: function(data) {
+            if (ConfigFileManager.configList.length === 0) {
+                return;
+            }
+            
             var container = document.getElementById('subscription-info-display');
             var progressSection = document.getElementById('subscription-progress-section');
             var detailsSection = document.getElementById('subscription-info-details');
@@ -2621,6 +2887,11 @@
             var infoText = document.getElementById('subscription-info-text');
             
             if (!container) return;
+
+            var configFileContent = document.querySelector('.config-file-content');
+            if (configFileContent && configFileContent.classList.contains('empty-state')) {
+                return;
+            }
 
             container.style.display = 'flex';
             
@@ -2666,11 +2937,20 @@
         },
         
         showNoInfo: function() {
+            if (ConfigFileManager.configList.length === 0) {
+                return;
+            }
+            
             var container = document.getElementById('subscription-info-display');
             var progressSection = document.getElementById('subscription-progress-section');
             var detailsSection = document.getElementById('subscription-info-details');
             
             if (!container) return;
+            
+            var configFileContent = document.querySelector('.config-file-content');
+            if (configFileContent && configFileContent.classList.contains('empty-state')) {
+                return;
+            }
             
             container.style.display = 'flex';
             
@@ -2692,11 +2972,20 @@
         },
         
         showError: function() {
+            if (ConfigFileManager.configList.length === 0) {
+                return;
+            }
+            
             var container = document.getElementById('subscription-info-display');
             var progressSection = document.getElementById('subscription-progress-section');
             var detailsSection = document.getElementById('subscription-info-details');
             
             if (!container) return;
+            
+            var configFileContent = document.querySelector('.config-file-content');
+            if (configFileContent && configFileContent.classList.contains('empty-state')) {
+                return;
+            }
             
             container.style.display = 'flex';
             
@@ -3177,6 +3466,22 @@
                             }
                         }
                         break;
+
+                    case 'stream_unlock':
+                        var streamUnlockOn = document.getElementById('stream_unlock_on');
+                        var streamUnlockOff = document.getElementById('stream_unlock_off');
+                        if (streamUnlockOn && streamUnlockOff) {
+                            streamUnlockOn.checked = value === '1';
+                            streamUnlockOff.checked = value !== '1';
+                            
+                            var changeEvent = new Event('change', { bubbles: true });
+                            if (value === '1') {
+                                streamUnlockOn.dispatchEvent(changeEvent);
+                            } else {
+                                streamUnlockOff.dispatchEvent(changeEvent);
+                            }
+                        }
+                        break;
                         
                     case 'rule_mode':
                         var radioElements = document.getElementsByName("radios");
@@ -3196,11 +3501,9 @@
                     case 'run_mode':
                         var radioRuElements = document.getElementsByName("radios-ru");
                         if (radioRuElements && radioRuElements.length > 0) {
-                            var expectedValue = value.split("-")[2] == undefined ? "" : ("-" + value.split("-")[2]);
                             for (var i = 0; i < radioRuElements.length; i++) {
-                                var isChecked = radioRuElements[i].value === expectedValue;
+                                var isChecked = radioRuElements[i].value === value;
                                 radioRuElements[i].checked = isChecked;
-                                
                                 if (isChecked) {
                                     var changeEvent = new Event('change', { bubbles: true });
                                     radioRuElements[i].dispatchEvent(changeEvent);
@@ -3284,6 +3587,7 @@
                 'meta_sniffer': '<%:Sniffer setting failed%>',
                 'respect_rules': '<%:Respect Rules setting failed%>',
                 'oversea': '<%:Area bypass setting failed%>',
+                'stream_unlock': '<%:Stream Unlock setting failed%>',
                 'rule_mode': '<%:Proxy Mode switching failed!%>',
                 'run_mode': '<%:Running Mode switching failed!%>'
             };
@@ -3292,9 +3596,6 @@
     };
 
     var script_radio, script_radio_label;
-    var ws_connect = false;
-    var ws_error = false;
-    var ws_retry = 0;
     var s, gr;
     var pluginToggleUserAction = false;
 
@@ -3305,7 +3606,7 @@
             if (!pluginToggleUserAction) {
                 updates.push({
                     element: DOMCache.clash,
-                    content: status.clash ? '<b style=color:var(--success-color)>' + status.core_type +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : '<b style=color:var(--error-color)><%:Not Running%></b>'
+                    content: status.clash ? '<b style=color:var(--success-color)>' + status.core_type +'&nbsp;<%:Running%></b>' : '<b style=color:var(--error-color)><%:Not Running%></b>'
                 });
                 
                 updatePluginToggleState(status.clash);
@@ -3326,21 +3627,25 @@
             updates.push({element: DOMCache.webz, content: webzContent});
 
 
-            var closeConnContent = status.clash ? '<input type="button" class="btn dashboard-btn" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="btn dashboard-btn" value="<%:Close All Connections%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            var closeConnContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Close All Connections%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_close_all_connection_btn'), content: closeConnContent});
 
-            var reloadFwContent = status.clash ? '<input type="button" class="btn dashboard-btn" value="<%:Reload Firewall%>" onclick="return b_reload_firewall(this)"/>' : '<input type="button" class="btn dashboard-btn" value="<%:Reload Firewall%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            var reloadFwContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Reload Firewall%>" onclick="return b_reload_firewall(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Reload Firewall%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_reload_firewall_btn'), content: reloadFwContent});
 
-            var flushCacheContent = status.clash ? '<input type="button" class="btn dashboard-btn" value="<%:Flush Fake-IP Cache%>" onclick="return b_flush_fakeip_cache(this)"/>' : '<input type="button" class="btn dashboard-btn" value="<%:Flush Fake-IP Cache%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            var flushCacheContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Flush Fake-IP Cache%>" onclick="return b_flush_fakeip_cache(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Flush Fake-IP Cache%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_flush_fakeip_cache_btn'), content: flushCacheContent});
 
-            var oneKeyUpdateContent = '<input type="button" class="btn dashboard-btn" value="<%:Check Update%>" onclick="return all_one_key_update(this)"/>';
+            var oneKeyUpdateContent = '<input type="button" class="dashboard-btn" value="<%:Check Update%>" onclick="return all_one_key_update(this)"/>';
             updates.push({element: document.getElementById('_one_key_update_btn'), content: oneKeyUpdateContent});
 
             StateManager.batchUpdateDOM(updates);
 
-            if (status.clash) {
+            get_oc_settings();
+
+            StateManager.current_status = status;
+            
+            if (status.daip) {
                 var daipContent, dapoContent;
                 
                 if (status.daip && window.location.hostname == status.daip) {
@@ -3354,62 +3659,8 @@
                     daipContent = status.daip ? "<b style=color:var(--success-color)>"+status.daip+dapoContent+"</b>" : "<b style=color:var(--error-color)>"+"<%:Not Set%>"+"</b>";
                 }
                 
-                DOMCache.daip.innerHTML = daipContent;                
-                DOMCache.radio_mode.style.display = "inline-flex";
-                DOMCache.radio_de.style.display = "none";
-                DOMCache.radio_de.classList.add('hidden-radio-de');
-                if (DOMCache.radio_de.parentElement) {
-                    DOMCache.radio_de.parentElement.classList.add('hidden-radio-de');
-                }
-                var proxyModeCard = document.querySelector('.mode-row .sub-card:nth-child(2)');
-                if (proxyModeCard) {
-                    proxyModeCard.classList.add('hidden-radio-de');
-                }
-                DOMCache.radio_ru_mode.style.display = "inline-flex";
+                DOMCache.daip.innerHTML = daipContent;   
 
-                DOMCache.radio_de.classList.add('hidden-radio-de');
-                DOMCache.radio_de.parentElement.classList.add('hidden-radio-de');
-                DOMCache.radio_de.parentElement.parentElement.classList.add('hidden-radio-de');
-
-                DOMCache.dns_setting_sniffer.style.display = "inline-flex";
-                DOMCache.dns_setting_respect.style.display = "inline-flex";
-                DOMCache.oc_setting_oversea.style.display = "inline-flex";
-                DOMCache.dns_setting_sniffer_de.style.display = "none";
-                DOMCache.dns_setting_respect_de.style.display = "none";
-                DOMCache.oc_setting_oversea_de.style.display = "none";
-                get_oc_settings();
-            } else {
-                DOMCache.radio_mode.style.display = "none";
-                DOMCache.radio_de.style.display = "";
-                DOMCache.radio_ru_mode.style.display = "none";
-
-                DOMCache.radio_de.classList.remove('hidden-radio-de');
-                if (DOMCache.radio_de.parentElement) {
-                    DOMCache.radio_de.parentElement.classList.remove('hidden-radio-de');
-                }
-                var proxyModeCard = document.querySelector('.mode-row .sub-card:nth-child(2)');
-                if (proxyModeCard) {
-                    proxyModeCard.classList.remove('hidden-radio-de');
-                }
-                DOMCache.radio_de.parentElement.classList.remove('hidden-radio-de');
-                DOMCache.radio_de.parentElement.parentElement.classList.remove('hidden-radio-de');
-
-                DOMCache.radio_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
-                DOMCache.dns_setting_sniffer.style.display = "none";
-                DOMCache.dns_setting_respect.style.display = "none";
-                DOMCache.oc_setting_oversea.style.display = "none";
-                DOMCache.dns_setting_sniffer_de.style.display = "";
-                DOMCache.dns_setting_respect_de.style.display = "";
-                DOMCache.oc_setting_oversea_de.style.display = "";
-                DOMCache.dns_setting_sniffer_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
-                DOMCache.dns_setting_respect_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
-                DOMCache.oc_setting_oversea_de.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
-                DOMCache.daip.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
-            }
-
-            StateManager.current_status = status;
-            
-            if (status.clash && status.daip) {
                 StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "proxy_info")%>', function(x, proxy_info) {
                     if (x && x.status == 200) {
                         StateManager.cached_proxy_info = proxy_info;
@@ -3428,8 +3679,9 @@
                 DOMCache.copy_mix_secret.style.display = "inline";
                 DOMCache.copy_pac_config.style.display = "inline";
             } else {
+                DOMCache.daip.innerHTML = "<b style=color:var(--error-color)><%:Not Available%></b>";
                 StateManager.cached_proxy_info = null;
-                DOMCache.mix_proxy.innerHTML = "<b style=color:var(--error-color)><%:Not Running%></b>";
+                DOMCache.mix_proxy.innerHTML = "<b style=color:var(--error-color)><%:Not Available%></b>";
                 DOMCache.copy_secret.style.display = "none";
                 DOMCache.copy_address.style.display = "none";
                 DOMCache.copy_mix_address.style.display = "none";
@@ -3439,9 +3691,9 @@
             
             if (status.clash && status.daip) {
                 if (!WSManager.hasActiveConnections()) {
-                    if (!ws_error || ws_retry < 3) {
+                    if (!WSManager._ws_error || WSManager._ws_retry < 3) {
                         if (initializeWebSocketConnections(status)) {
-                            ws_retry++;
+                            WSManager._ws_retry++;
                         }
                     } else {
                         WSManager.enableFallbackMode();
@@ -3493,7 +3745,7 @@
     });
 
     function initializeWebSocketConnections(status) {
-        if (!status || !status.clash || !status.daip || !status.dase) {
+        if (!status || !status.clash || !status.daip) {
             return false;
         }
         
@@ -3519,7 +3771,7 @@
         ];
         
         connections.forEach(function(conn) {
-            var url = protocol + conn.endpoint + '?token=' + token;
+            var url = protocol + conn.endpoint + (token ? '?token=' + token : '');
             WSManager.createConnection(conn.type, url, conn.handler);
         });
         
@@ -3809,13 +4061,11 @@
         
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_run_mode")%>', function(x, status) {
             if (x && x.status == 200 && status.mode) {
-                var isRunning = StateManager.current_status.clash;
-                
                 if (status.mode == "fake-ip" || status.mode == "fake-ip-tun" || status.mode == "fake-ip-mix") {
-                    DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Fake-IP%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
+                    DOMCache.mode.innerHTML = "<b style=color:var(--success-color)><%:Fake-IP%></b>";
                     DOMCache.radio_run_normal.innerHTML = "<%:Enhance%>";
                 } else if (status.mode == "redir-host" || status.mode == "redir-host-tun" ||  status.mode == "redir-host-mix") {
-                    DOMCache.mode.innerHTML = isRunning ? "<b style=color:var(--success-color)><%:Redir-Host%></b>" : '<b style=color:var(--error-color)><%:Not Running%></b>';
+                    DOMCache.mode.innerHTML = "<b style=color:var(--success-color)><%:Redir-Host%></b>";
                     DOMCache.radio_run_normal.innerHTML = "<%:Compat%>";
                 }
                 
@@ -3849,22 +4099,41 @@
     }
      
     function ws_terror() {
-        ws_error = true;
+        WSManager._ws_error = true;
         
         NetworkStatsManager.start();
     }
 
     function ws_tmessage(event) {
-        var data = JSON.parse(event.data);
+        var dataObj = event && event.data !== undefined ? event.data : event;
+        var data;
+        if (typeof dataObj === 'string') {
+            try {
+                data = JSON.parse(dataObj);
+            } catch (e) {
+                data = {};
+            }
+        } else {
+            data = dataObj;
+        }
         var uploadElement = document.getElementById("upload_");
         var downloadElement = document.getElementById("download_");
-        
         uploadElement.innerHTML = data.up ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.up)+"/S</font>" : "<font style=\"color:var(--success-color)\">0 B/S</font>";
         downloadElement.innerHTML = data.down ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.down)+"/S</font>" : "<font style=\"color:var(--success-color)\">0 B/S</font>";
     }
     
     function ws_cmessage(event) {
-        var data = JSON.parse(event.data);
+        var dataObj = event && event.data !== undefined ? event.data : event;
+        var data;
+        if (typeof dataObj === 'string') {
+            try {
+                data = JSON.parse(dataObj);
+            } catch (e) {
+                data = {};
+            }
+        } else {
+            data = dataObj;
+        }
         var updates = [
             {
                 element: document.getElementById("uploadtotal_"),
@@ -3883,10 +4152,19 @@
     }
 
     function ws_mmessage(event) {
-        var data = JSON.parse(event.data);
+        var dataObj = event && event.data !== undefined ? event.data : event;
+        var data;
+        if (typeof dataObj === 'string') {
+            try {
+                data = JSON.parse(dataObj);
+            } catch (e) {
+                data = {};
+            }
+        } else {
+            data = dataObj;
+        }
         var memElement = document.getElementById("mem_t");
         memElement.innerHTML = data.inuse ? "<font style=\"color:var(--success-color)\">"+bytesToSize(data.inuse)+"</font>" : "<font style=\"color:var(--success-color)\">0 KB</font>";
-        
         if (!SystemStatusManager.isEnabled) {
             SystemStatusManager.start();
         }
@@ -4181,7 +4459,18 @@
     }
 
     function copyAddress() {
-        var address = (StateManager.current_status.daip || 'unknown') + ':' + (StateManager.current_status.cn_port || '9090');
+        var status = StateManager.current_status;
+        var address;
+        
+        if (status.daip && window.location.hostname == status.daip) {
+            address = 'http://' + status.daip + ':' + (status.cn_port || '9090') + '/ui/zashboard/#/setup?hostname=' + status.daip + '&port=' + (status.cn_port || '9090') + (status.dase ? '&secret=' + status.dase : '');
+        } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
+            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+            address = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/zashboard/#/setup?hostname=' + status.db_foward_domain + '&port=' + status.db_foward_port + (status.dase ? '&secret=' + status.dase : '');
+        } else {
+            address = 'http://' + (status.daip || 'unknown') + ':' + (status.cn_port || '9090') + '/ui/zashboard/#/';
+        }
+        
         copyToClipboard(address, '<%:Control panel address copied:%> ');
         return false;
     }
@@ -4248,6 +4537,11 @@
                         DOMCache.oc_setting_oversea_2.checked = true;
                     }
                 }
+
+                if (!SettingsManager.pendingOperations.has('stream_unlock_' + info.stream_unlock)) {
+                    DOMCache.stream_unlock_on.checked = info.stream_unlock === '1';
+                    DOMCache.stream_unlock_off.checked = info.stream_unlock !== '1';
+                }
             }
         }, true);
     }
@@ -4277,8 +4571,16 @@
         );
     }
 
+    function switch_stream_unlock(value) {
+        return SettingsManager.switchSetting(
+            'stream_unlock',
+            value,
+            '<%=luci.dispatcher.build_url("admin", "services", "openclash", "switch_oc_setting")%>'
+        );
+    }
+
     function generatePacConfig() {
-        if (StateManager.current_status.clash && StateManager.current_status.daip) {
+        if (StateManager.current_status.daip) {
             var currentUrl = {
                 protocol: window.location.protocol,
                 hostname: window.location.hostname,
@@ -4643,6 +4945,44 @@
             }, 500);
         }
         
+        return false;
+    }
+
+    function editOverwrite() {
+        if (typeof ConfigEditor !== 'undefined' && ConfigEditor.showOverwrite) {
+            ConfigEditor.showOverwrite();
+        } else {
+            setTimeout(function() {
+                if (typeof ConfigEditor !== 'undefined' && ConfigEditor.showOverwrite) {
+                    ConfigEditor.showOverwrite();
+                } else {
+                    alert('<%:Config editor not ready, please try again%>');
+                }
+            }, 500);
+        }
+        
+        return false;
+    }
+
+    function switchToPreviousConfig() {
+        if (ConfigFileManager.configList.length > 1) {
+            var newIndex = ConfigFileManager.currentConfigIndex - 1;
+            if (newIndex < 0) {
+                newIndex = ConfigFileManager.configList.length - 1;
+            }
+            ConfigFileManager.switchToConfigByIndex(newIndex);
+        }
+        return false;
+    }
+
+    function switchToNextConfig() {
+        if (ConfigFileManager.configList.length > 1) {
+            var newIndex = ConfigFileManager.currentConfigIndex + 1;
+            if (newIndex >= ConfigFileManager.configList.length) {
+                newIndex = 0;
+            }
+            ConfigFileManager.switchToConfigByIndex(newIndex);
+        }
         return false;
     }
 
