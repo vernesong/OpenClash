@@ -32,6 +32,28 @@
     color: white;
 }
 
+.oc[data-darkmode="true"] #config-mergeview-container .CodeMirror-merge-gap {
+    background: var(--text-secondary) !important;
+}
+
+.oc[data-darkmode="true"] .oc .config-editor-content {
+    border-bottom: 1px solid var(--border-light);
+    border-top: 1px solid var(--border-light);
+}
+
+.oc[data-darkmode="true"] .overwrite-banner {
+    background: rgba(255,80,80,0.18);
+}
+
+.oc[data-darkmode="true"] .overwrite-banner svg {
+    stroke: var(--error-color);
+}
+
+.oc[data-darkmode="true"] .overwrite-banner svg circle {
+    stroke: var(--error-color);
+    fill: rgba(255,80,80,0.18);
+}
+
 .oc .config-editor-modal-overlay {
     position: fixed;
     top: 0;
@@ -134,10 +156,22 @@
     height: 12px !important;
 }
 
+#config-mergeview-container {
+    width: 100%;
+    height: 100%;
+    display: block;
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: var(--bg-white);
+    z-index: 2;
+}
+
 .oc .config-editor-content {
     flex: 1;
     position: relative;
     overflow: hidden;
+    border-bottom: 1px solid var(--border-light);
+    border-top: 1px solid var(--border-light);
 }
 
 .oc .config-editor-loading {
@@ -174,7 +208,6 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 20px;
-    border-top: 1px solid var(--border-light);
     background: var(--bg-gray);
     flex-shrink: 0;
     position: relative;
@@ -228,7 +261,6 @@
     border: none;
     outline: none;
     resize: none;
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
     font-size: 14px;
     line-height: 1.5;
     padding: 12px;
@@ -246,7 +278,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 0 0 8px 0;
+    padding: 8px;
     background: transparent;
     border: none;
     box-shadow: none;
@@ -294,12 +326,72 @@
     box-shadow: var(--shadow-sm);
 }
 
+.overwrite-banner {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 20px;
+    background: rgba(255,80,80,0.12);
+    font-size: 14px;
+    text-align: center;
+}
+
+.overwrite-banner svg {
+    flex-shrink: 0;
+    display: block;
+}
+
+.overwrite-banner span {
+    flex: unset;
+    text-align: center;
+    display: inline-block;
+    color: var(--error-color);
+    line-height: 1.5;
+    vertical-align: middle;
+}
+
 .oc .config-editor-modal .CodeMirror.zoom-75 { font-size: 10.5px; }
 .oc .config-editor-modal .CodeMirror.zoom-90 { font-size: 12.6px; }
 .oc .config-editor-modal .CodeMirror.zoom-110 { font-size: 15.4px; }
 .oc .config-editor-modal .CodeMirror.zoom-125 { font-size: 17.5px; }
 .oc .config-editor-modal .CodeMirror.zoom-150 { font-size: 21px; }
 .oc .config-editor-modal .CodeMirror.zoom-200 { font-size: 28px; }
+
+#config-mergeview-container .CodeMirror-merge,
+#config-mergeview-container .CodeMirror-merge-pane,
+#config-mergeview-container .CodeMirror,
+#config-mergeview-container .CodeMirror-scroll {
+    height: 100% !important;
+    min-height: 0 !important;
+    box-sizing: border-box;
+}
+
+#config-mergeview-container .CodeMirror-merge-gap {
+    height: 100% !important;
+    min-height: 0 !important;
+}
+
+#config-mergeview-container .CodeMirror-scroll {
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+}
+
+#config-mergeview-container .CodeMirror-merge-pane {
+    overflow: hidden;
+}
+
+#config-mergeview-container .CodeMirror-merge-r-chunk {
+    background: #0095ff2e !important;
+}
+#config-mergeview-container .CodeMirror-merge-r-connect {
+    fill: #0095ff2e !important;
+    stroke: #0095ff2e !important;
+}
+
+#config-mergeview-container  .CodeMirror-merge {
+    border: none !important;
+}
 
 @media screen and (max-width: 768px) {
     .oc .config-editor-modal {
@@ -323,6 +415,12 @@
                     <span class="config-file-name" id="config-file-name"><%:Loading...%></span>
                 </div>
                 <div class="config-editor-actions">
+                    <button type="button" class="icon-btn" id="config-editor-layout" title="<%:Compare%>" style="display:none;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="8" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                            <rect x="13" y="3" width="8" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                        </svg>
+                    </button>
                     <button type="button" class="icon-btn" id="config-editor-download" title="<%:Download%>">
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -346,21 +444,34 @@
                 </div>
             </div>
 
-            <div id="overwrite-banner" style="display:none;justify-content:center;align-items:center;gap:12px;padding:10px 20px;background:rgba(255,80,80,0.12);color:#b71c1c;font-size:14px;border-bottom:1px solid #ffcdd2;text-align:center;">
-                <svg style="flex-shrink:0;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#b71c1c" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" stroke="#b71c1c" fill="#ffcdd2"/>
+            <div id="overwrite-banner" class="overwrite-banner" style="display:none;">
+                <svg style="flex-shrink:0;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--error-color)" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" stroke="var(--error-color)" fill="rgba(255,80,80,0.12)"/>
                     <line x1="12" y1="5" x2="12" y2="13"/>
                     <circle cx="12" cy="16" r="0.5"/>
                 </svg>
-                <span style="flex:unset;text-align:center;display:inline-block;">
+                <span>
                     <%:You are editing the overwrite script, please note that some settings may cause the abnormal, be careful with the modification!%>
                 </span>
             </div>
 
             <div id="config-mode-tabs" style="display:none;">
                 <div class="mode-tabs">
-                    <button type="button" class="mode-tab active" id="tab-original-config" data-mode="original"><%:Original Config%></button>
-                    <button type="button" class="mode-tab" id="tab-runtime-config" data-mode="runtime"><%:Runtime Config%></button>
+                    <button type="button" class="mode-tab active" id="tab-original-config" data-mode="original">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:4px;">
+                            <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+                            <line x1="8" y1="8" x2="16" y2="8" stroke="currentColor" stroke-width="2"/>
+                            <line x1="8" y1="12" x2="16" y2="12" stroke="currentColor" stroke-width="2"/>
+                            <line x1="8" y1="16" x2="12" y2="16" stroke="currentColor" stroke-width="2"/>
+                        </svg>
+                        <%:Original Config%>
+                    </button>
+                    <button type="button" class="mode-tab" id="tab-runtime-config" data-mode="runtime">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:4px;">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 13 10 13 2" stroke="currentColor" stroke-width="2" fill="none"/>
+                        </svg>
+                        <%:Runtime Config%>
+                    </button>
                 </div>
             </div>
             
@@ -370,6 +481,7 @@
                     <span><%:Loading config file...%></span>
                 </div>
                 <textarea id="config-editor-textarea" style="display: none;"></textarea>
+                <div id="config-mergeview-container" style="display:none;width:100%;height:100%;"></div>
             </div>
             
             <div class="config-editor-footer">
@@ -377,7 +489,7 @@
                     <span id="config-editor-status-text"><%:Ready%></span>
                 </div>
                 <div class="config-editor-help">
-                    <span><%:Press F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom%></span>
+                    <span id="config-editor-help"><%:Press F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom%></span>
                 </div>
                 <div class="config-editor-resize-handle" id="config-editor-resize-handle"></div>
             </div>
@@ -431,11 +543,24 @@ var ConfigEditor = {
     isOverwrite: false,
     currentViewMode: 'original',
     runtimeContent: '',
-    
+    mergeViewActive: false,
+    SVG_COMPARE: `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="8" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+            <rect x="13" y="3" width="8" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+    `,
+    SVG_RESTORE: `
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
+        </svg>
+    `,
+
     init: function() {
         this.overlay = document.getElementById('config-editor-overlay');
         this.modal = document.getElementById('config-editor-modal');
-        
+        this.mergeViewActive = false;
+
         if (!this.overlay || !this.modal) {
             return;
         }
@@ -505,6 +630,21 @@ var ConfigEditor = {
                 }
             });
         };
+
+        var layoutBtn = document.getElementById('config-editor-layout');
+        if (layoutBtn) {
+            layoutBtn.addEventListener('click', function() {
+                if (!self.mergeViewActive) {
+                    self.showMergeView();
+                    layoutBtn.title = "<%:Restore%>";
+                    layoutBtn.innerHTML = self.SVG_RESTORE;
+                } else {
+                    self.hideMergeView();
+                    layoutBtn.title = "<%:Compare%>";
+                    layoutBtn.innerHTML = self.SVG_COMPARE;
+                }
+            });
+        };
         
         this.makeDraggable();
         this.makeResizable();
@@ -516,8 +656,11 @@ var ConfigEditor = {
         var banner = document.getElementById('overwrite-banner');
         if (banner) banner.style.display = 'none';
 
-         var tabs = document.getElementById('config-mode-tabs');
+        var tabs = document.getElementById('config-mode-tabs');
         if (tabs) tabs.style.display = 'flex';
+
+        var layoutBtn = document.getElementById('config-editor-layout');
+        if (layoutBtn) layoutBtn.style.display = 'inline-block';
 
         if (!configFile) {
             alert('<%:Please select a config file first%>');
@@ -544,8 +687,9 @@ var ConfigEditor = {
         
         this.isModified = false;
         this.originalContent = '';
-        
-        this.loadConfigContent();
+
+        this.mergeViewActive = false;
+        this.hideMergeView();
         this.updateModeTabs();
     },
 
@@ -557,6 +701,9 @@ var ConfigEditor = {
 
         var tabs = document.getElementById('config-mode-tabs');
         if (tabs) tabs.style.display = 'none';
+
+        var layoutBtn = document.getElementById('config-editor-layout');
+        if (layoutBtn) layoutBtn.style.display = 'none';
 
         this.currentConfigFile = '/etc/openclash/custom/openclash_custom_overwrite.sh';
         this.overlay.classList.add('show');
@@ -575,6 +722,10 @@ var ConfigEditor = {
         }
         this.isModified = false;
         this.originalContent = '';
+
+        this.mergeViewActive = false;
+        this.hideMergeView();
+
         this.loadConfigContent();
     },
     
@@ -582,7 +733,7 @@ var ConfigEditor = {
         this.overlay.classList.remove('show');
         
         if (this.editorInstance) {
-            this.editorInstance.toTextArea();
+            if (this.editorInstance.toTextArea) this.editorInstance.toTextArea();
             this.editorInstance = null;
         }
         
@@ -592,9 +743,16 @@ var ConfigEditor = {
         
         var loadingDiv = document.getElementById('config-editor-loading');
         var textarea = document.getElementById('config-editor-textarea');
+        var mergeview = document.getElementById('config-mergeview-container');
         
         if (loadingDiv) loadingDiv.style.display = 'flex';
         if (textarea) textarea.style.display = 'none';
+        if (mergeview) mergeview.style.display = 'none';
+        if (layoutBtn) {
+            layoutBtn.classList.remove('active');
+            layoutBtn.title = "<%:Compare%>";
+            layoutBtn.innerHTML = this.SVG_COMPARE;
+        }
     },
     
     formatDisplayName: function(fileName) {
@@ -651,6 +809,9 @@ var ConfigEditor = {
         var statusText = document.getElementById('config-editor-status-text');
         var loadingDiv = document.getElementById('config-editor-loading');
         var textarea = document.getElementById('config-editor-textarea');
+        var mergeview = document.getElementById('config-mergeview-container');
+        if (mergeview) mergeview.style.display = 'none';
+        if (textarea) textarea.style.display = 'block';
 
         statusText.textContent = '<%:Loading...%>';
 
@@ -673,7 +834,7 @@ var ConfigEditor = {
             textarea.style.display = 'block';
 
             if (self.editorInstance) {
-                self.editorInstance.toTextArea();
+                if (self.editorInstance.toTextArea) self.editorInstance.toTextArea();
                 self.editorInstance = null;
             }
             self.editorInstance = CodeMirror.fromTextArea(textarea, {
@@ -766,7 +927,132 @@ var ConfigEditor = {
                 statusText.textContent = '<%:Load failed%>';
             });
     },
-    
+
+    showMergeView: function() {
+        var self = this;
+        if (this.isOverwrite) return;
+        var container = document.getElementById('config-mergeview-container');
+        var textarea = document.getElementById('config-editor-textarea');
+        var loadingDiv = document.getElementById('config-editor-loading');
+        var tabs = document.getElementById('config-mode-tabs');
+        var editor_help = document.getElementById('config-editor-help');
+        var statusText = document.getElementById('config-editor-status-text');
+
+        if (tabs) tabs.style.display = 'none';
+        if (textarea) textarea.style.display = 'none';
+        if (loadingDiv) loadingDiv.style.display = 'none';
+        if (container) container.style.display = 'block';
+        if (statusText) statusText.textContent = '<%:Loading...%>';
+        if (editor_help) editor_help.textContent = '<%:Press F10 to toggle differences, F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom%>';
+
+        var getOriginal = function() {
+            return new Promise(function(resolve, reject) {
+                if (self.originalContent) return resolve(self.originalContent);
+                var url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + encodeURIComponent(self.currentConfigFile);
+                fetch(url).then(function(r){return r.json()}).then(function(data){
+                    resolve(data.content || '');
+                }).catch(function(){resolve('')});
+            });
+        };
+        var getRuntime = function() {
+            return new Promise(function(resolve, reject) {
+                if (self.runtimeContent) return resolve(self.runtimeContent);
+                var runtimePath = '/etc/openclash/' + encodeURIComponent(self.formatDisplayName(self.currentConfigFile));
+                var url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + runtimePath;
+                fetch(url).then(function(r){return r.json()}).then(function(data){
+                    resolve(data.content || '');
+                }).catch(function(){resolve('')});
+            });
+        };
+
+        let showDifferences = true;
+
+        Promise.all([getOriginal(), getRuntime()]).then(function(contents){
+            var original = contents[0] || '';
+            var runtime = contents[1] || '';
+            container.innerHTML = '';
+            if (self.editorInstance && self.editorInstance.toTextArea) self.editorInstance.toTextArea();
+            self.editorInstance = CodeMirror.MergeView(container, {
+                value: original,
+                orig: runtime,
+                mode: "text/yaml",
+                theme: "material",
+                lineNumbers: true,
+                autoRefresh: true,
+                styleActiveLine: true,
+                lineWrapping: true,
+                matchBrackets: true,
+                foldGutter: true,
+                lint: true,
+                highlightDifferences: showDifferences,
+                connect: null,
+                collapseIdentical: false,
+                readOnly: false,
+                gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "CodeMirror-lint-markers"],
+                extraKeys: {
+                    "F10": function() {
+                        showDifferences = !showDifferences;
+                        if (self.editorInstance && self.editorInstance.setShowDifferences) {
+                            self.editorInstance.setShowDifferences(showDifferences);
+                        }
+                    },
+                    "F11": function(cm) {
+                        cm.setOption("fullScreen", !cm.getOption("fullScreen"));
+                    },
+                    "Esc": function(cm) {
+                        if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
+                    },
+                    "Tab": function(cm) {
+                        if (cm.somethingSelected()) {
+                            cm.indentSelection('add');
+                        } else {
+                            var spaces = Array(cm.getOption("indentUnit") + 1).join(" ");
+                            cm.replaceSelection(spaces);
+                        }
+                    },
+                    "Ctrl-S": function(cm) {
+                        self.saveConfigContent();
+                    }
+                }
+            });
+            var leftEditor = self.editorInstance.edit;
+            if (leftEditor) {
+                leftEditor.on("change", function() {
+                    self.isModified = leftEditor.getValue() !== self.originalContent;
+                    self.updateSaveButtonState();
+                });
+            }
+            if (self.editorInstance.editor)
+                self.editorInstance.editor().setSize('100%', '100%');
+            if (self.editorInstance.rightOriginal && self.editorInstance.rightOriginal())
+                self.editorInstance.rightOriginal().setSize('100%', '100%');
+            self.mergeViewActive = true;
+            if (statusText) statusText.textContent = '<%:Compare mode: left(Original Config), right(Runtime Config)%>';
+            var layoutBtn = document.getElementById('config-editor-layout');
+            if (layoutBtn) layoutBtn.classList.add('active');
+        });
+    },
+
+    hideMergeView: function() {
+        var container = document.getElementById('config-mergeview-container');
+        var textarea = document.getElementById('config-editor-textarea');
+        var tabs = document.getElementById('config-mode-tabs');
+        if (container) {
+            container.innerHTML = '';
+            container.style.display = 'none';
+        }
+        if (textarea) textarea.style.display = 'block';
+        if (!this.isOverwrite && tabs) tabs.style.display = 'flex';
+        this.mergeViewActive = false;
+        this.loadConfigContent();
+        var layoutBtn = document.getElementById('config-editor-layout');
+        if (layoutBtn) {
+            layoutBtn.classList.remove('active');
+            layoutBtn.title = "<%:Compare%>";
+            layoutBtn.innerHTML = this.SVG_COMPARE;
+        }
+    },
+
     saveConfigContent: function() {
         if (!this.editorInstance || !this.isModified) {
             return;
@@ -778,8 +1064,13 @@ var ConfigEditor = {
         
         statusText.textContent = '<%:Saving...%>';
         saveBtn.disabled = true;
-        
-        var content = this.editorInstance.getValue();
+
+        var content;
+        if (this.mergeViewActive && this.editorInstance && this.editorInstance.edit) {
+            content = this.editorInstance.edit.getValue();
+        } else {
+            content = this.editorInstance.getValue();
+        }
         
         if (!content) {
             saveBtn.disabled = false;
@@ -850,7 +1141,13 @@ var ConfigEditor = {
             return;
         }
         
-        var content = this.editorInstance.getValue();
+        var content;
+        if (this.mergeViewActive && this.editorInstance && this.editorInstance.edit) {
+            content = this.editorInstance.edit.getValue();
+        } else {
+            content = this.editorInstance.getValue();
+        }
+
         var filename;
         if (this.isOverwrite) {
             filename = 'openclash_custom_overwrite.sh';
@@ -902,7 +1199,7 @@ var ConfigEditor = {
                 return;
             }
         }
-        
+        this.hideMergeView();
         this.hide();
     },
     
@@ -1111,7 +1408,13 @@ var ConfigEditor = {
             
             if (self.editorInstance) {
                 requestAnimationFrame(function() {
-                    self.editorInstance.refresh();
+                    if (self.mergeViewActive && self.editorInstance.editor) {
+                        self.editorInstance.editor().refresh();
+                        if (self.editorInstance.rightOriginal)
+                            self.editorInstance.rightOriginal().refresh();
+                    } else {
+                        self.editorInstance.refresh();
+                    }
                 });
             }
         }
@@ -1126,7 +1429,13 @@ var ConfigEditor = {
             
             if (self.editorInstance) {
                 setTimeout(function() {
-                    self.editorInstance.refresh();
+                    if (self.mergeViewActive && self.editorInstance.editor) {
+                        self.editorInstance.editor().refresh();
+                        if (self.editorInstance.rightOriginal)
+                            self.editorInstance.rightOriginal().refresh();
+                    } else {
+                        self.editorInstance.refresh();
+                    }
                 }, 50);
             }
         }
@@ -1171,7 +1480,13 @@ var ConfigEditor = {
 
             if (self.editorInstance) {
                 requestAnimationFrame(function() {
-                    self.editorInstance.refresh();
+                    if (self.mergeViewActive && self.editorInstance.editor) {
+                        self.editorInstance.editor().refresh();
+                        if (self.editorInstance.rightOriginal)
+                            self.editorInstance.rightOriginal().refresh();
+                    } else {
+                        self.editorInstance.refresh();
+                    }
                 });
             }
 
@@ -1187,7 +1502,13 @@ var ConfigEditor = {
 
             if (self.editorInstance) {
                 setTimeout(function() {
-                    self.editorInstance.refresh();
+                    if (self.mergeViewActive && self.editorInstance.editor) {
+                        self.editorInstance.editor().refresh();
+                        if (self.editorInstance.rightOriginal)
+                            self.editorInstance.rightOriginal().refresh();
+                    } else {
+                        self.editorInstance.refresh();
+                    }
                 }, 50);
             }
         }

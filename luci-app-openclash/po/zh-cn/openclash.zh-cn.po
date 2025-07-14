@@ -3828,6 +3828,9 @@ msgstr "下载"
 msgid "Save"
 msgstr "保存"
 
+msgid "Compare"
+msgstr "对比"
+
 msgid "Loading config file..."
 msgstr "正在加载配置文件..."
 
@@ -3836,6 +3839,12 @@ msgstr "就绪"
 
 msgid "Press F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom"
 msgstr "按 F11 全屏，Esc 退出全屏，Ctrl+鼠标滚轮缩放"
+
+msgid "Press F10 to toggle differences, F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom"
+msgstr "按 F10 显示Diff，F11 全屏，Esc 退出全屏，Ctrl+鼠标滚轮缩放"
+
+msgid "Compare mode: left(Original Config), right(Runtime Config)"
+msgstr "对比模式：左侧（原始配置），右侧（运行配置）"
 
 msgid "Please select a config file first"
 msgstr "请先选择一个配置文件"
