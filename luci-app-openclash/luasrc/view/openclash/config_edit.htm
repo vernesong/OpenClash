@@ -744,6 +744,7 @@ var ConfigEditor = {
         var loadingDiv = document.getElementById('config-editor-loading');
         var textarea = document.getElementById('config-editor-textarea');
         var mergeview = document.getElementById('config-mergeview-container');
+        var editor_help = document.getElementById('config-editor-help');
         
         if (loadingDiv) loadingDiv.style.display = 'flex';
         if (textarea) textarea.style.display = 'none';
@@ -753,6 +754,7 @@ var ConfigEditor = {
             layoutBtn.title = "<%:Compare%>";
             layoutBtn.innerHTML = this.SVG_COMPARE;
         }
+        if (editor_help) editor_help.textContent = '<%:Press F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom%>';
     },
     
     formatDisplayName: function(fileName) {
@@ -1037,6 +1039,8 @@ var ConfigEditor = {
         var container = document.getElementById('config-mergeview-container');
         var textarea = document.getElementById('config-editor-textarea');
         var tabs = document.getElementById('config-mode-tabs');
+        var editor_help = document.getElementById('config-editor-help');
+        var layoutBtn = document.getElementById('config-editor-layout');
         if (container) {
             container.innerHTML = '';
             container.style.display = 'none';
@@ -1045,12 +1049,14 @@ var ConfigEditor = {
         if (!this.isOverwrite && tabs) tabs.style.display = 'flex';
         this.mergeViewActive = false;
         this.loadConfigContent();
-        var layoutBtn = document.getElementById('config-editor-layout');
+        
         if (layoutBtn) {
             layoutBtn.classList.remove('active');
             layoutBtn.title = "<%:Compare%>";
             layoutBtn.innerHTML = this.SVG_COMPARE;
         }
+
+        if (editor_help) editor_help.textContent = '<%:Press F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom%>';
     },
 
     saveConfigContent: function() {
