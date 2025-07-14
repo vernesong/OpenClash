@@ -248,11 +248,6 @@ check_install_success()
 uci -q set openclash.config.enable=0
 uci -q commit openclash
 
-if [ -x "/bin/opkg" ]; then
-   LOG_OUT "Tip: Uninstalling the old version, please do not refresh the page or do other operations..."
-   opkg remove --force-depends --force-remove luci-app-openclash
-fi
-
 install_retry_count=0
 max_install_retries=3
 install_success=false

@@ -3334,6 +3334,47 @@ function action_config_file_read()
     local is_overwrite = (config_file == "/etc/openclash/custom/openclash_custom_overwrite.sh")
 
     if not is_overwrite then
+        if string.match(config_file, "^/etc/openclash/[^/%.]+%.ya?ml$") then
+            local stat = nixio.fs.stat(config_file)
+            if stat and stat.type == "reg" then
+                if stat.size > 10 * 1024 * 1024 then
+                    luci.http.prepare_content("application/json")
+                    luci.http.write_json({
+                        status = "error",
+                        message = "Config file too large (max 10MB)"
+                    })
+                    return
+                end
+                local content = fs.readfile(config_file) or ""
+                luci.http.prepare_content("application/json")
+                luci.http.write_json({
+                    status = "success",
+                    content = content,
+                    file_info = {
+                        path = config_file,
+                        size = stat.size,
+                        mtime = stat.mtime,
+                        readable_size = fs.filesize(stat.size),
+                        last_modified = os.date("%Y-%m-%d %H:%M:%S", stat.mtime)
+                    }
+                })
+                return
+            else
+                luci.http.prepare_content("application/json")
+                luci.http.write_json({
+                    status = "success",
+                    content = "",
+                    file_info = {
+                        path = config_file,
+                        size = 0,
+                        mtime = 0,
+                        readable_size = "0 KB",
+                        last_modified = ""
+                    }
+                })
+                return
+            end
+        end
         if not string.match(config_file, "^/etc/openclash/config/[^/%.]+%.ya?ml$") then
             luci.http.prepare_content("application/json")
             luci.http.write_json({
