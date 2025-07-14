@@ -636,6 +636,7 @@ var ConfigEditor = {
             layoutBtn.addEventListener('click', function() {
                 if (!self.mergeViewActive) {
                     self.showMergeView();
+                    self.currentViewMode = 'original';
                     layoutBtn.title = "<%:Restore%>";
                     layoutBtn.innerHTML = self.SVG_RESTORE;
                 } else {
