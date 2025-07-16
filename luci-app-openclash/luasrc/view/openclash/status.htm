@@ -3417,94 +3417,70 @@
         
         updateUIState: function(setting, value) {
             setTimeout(() => {
+                function setCheckedAndDisabled(elements, checkedIndex) {
+                    for (let i = 0; i < elements.length; i++) {
+                        elements[i].checked = (i === checkedIndex);
+                        elements[i].disabled = true;
+                    }
+                }
                 switch(setting) {
                     case 'meta_sniffer':
                         var metaSnifferOn = document.getElementById('meta_sniffer_on');
                         var metaSnifferOff = document.getElementById('meta_sniffer_off');
                         if (metaSnifferOn && metaSnifferOff) {
-                            metaSnifferOn.checked = value === '1';
-                            metaSnifferOff.checked = value !== '1';
-                            
+                            setCheckedAndDisabled([metaSnifferOn, metaSnifferOff], value === '1' ? 0 : 1);
                             var changeEvent = new Event('change', { bubbles: true });
-                            if (value === '1') {
-                                metaSnifferOn.dispatchEvent(changeEvent);
-                            } else {
-                                metaSnifferOff.dispatchEvent(changeEvent);
-                            }
+                            (value === '1' ? metaSnifferOn : metaSnifferOff).dispatchEvent(changeEvent);
                         }
                         break;
-                        
                     case 'respect_rules':
                         var respectRulesOn = document.getElementById('respect_rules_on');
                         var respectRulesOff = document.getElementById('respect_rules_off');
                         if (respectRulesOn && respectRulesOff) {
-                            respectRulesOn.checked = value === '1';
-                            respectRulesOff.checked = value !== '1';
-                            
+                            setCheckedAndDisabled([respectRulesOn, respectRulesOff], value === '1' ? 0 : 1);
                             var changeEvent = new Event('change', { bubbles: true });
-                            if (value === '1') {
-                                respectRulesOn.dispatchEvent(changeEvent);
-                            } else {
-                                respectRulesOff.dispatchEvent(changeEvent);
-                            }
+                            (value === '1' ? respectRulesOn : respectRulesOff).dispatchEvent(changeEvent);
                         }
                         break;
-                        
                     case 'oversea':
                         var oversea0 = document.getElementById('oc_setting_oversea_0');
                         var oversea1 = document.getElementById('oc_setting_oversea_1');
                         var oversea2 = document.getElementById('oc_setting_oversea_2');
                         if (oversea0 && oversea1 && oversea2) {
-                            oversea0.checked = value === '0';
-                            oversea1.checked = value === '1';
-                            oversea2.checked = value === '2';
-                            
+                            setCheckedAndDisabled([oversea0, oversea1, oversea2], value === '0' ? 0 : (value === '1' ? 1 : 2));
                             var changeEvent = new Event('change', { bubbles: true });
-                            var selectedElement = value === '0' ? oversea0 : (value === '1' ? oversea1 : oversea2);
-                            if (selectedElement) {
-                                selectedElement.dispatchEvent(changeEvent);
-                            }
+                            [oversea0, oversea1, oversea2][value === '0' ? 0 : (value === '1' ? 1 : 2)].dispatchEvent(changeEvent);
                         }
                         break;
-
                     case 'stream_unlock':
                         var streamUnlockOn = document.getElementById('stream_unlock_on');
                         var streamUnlockOff = document.getElementById('stream_unlock_off');
                         if (streamUnlockOn && streamUnlockOff) {
-                            streamUnlockOn.checked = value === '1';
-                            streamUnlockOff.checked = value !== '1';
-                            
+                            setCheckedAndDisabled([streamUnlockOn, streamUnlockOff], value === '1' ? 0 : 1);
                             var changeEvent = new Event('change', { bubbles: true });
-                            if (value === '1') {
-                                streamUnlockOn.dispatchEvent(changeEvent);
-                            } else {
-                                streamUnlockOff.dispatchEvent(changeEvent);
-                            }
+                            (value === '1' ? streamUnlockOn : streamUnlockOff).dispatchEvent(changeEvent);
                         }
                         break;
-                        
                     case 'rule_mode':
                         var radioElements = document.getElementsByName("radios");
                         if (radioElements && radioElements.length > 0) {
                             for (var i = 0; i < radioElements.length; i++) {
-                                var isChecked = radioElements[i].value === value;
-                                radioElements[i].checked = isChecked;
-                                
-                                if (isChecked) {
+                                radioElements[i].checked = radioElements[i].value === value;
+                                radioElements[i].disabled = true;
+                                if (radioElements[i].checked) {
                                     var changeEvent = new Event('change', { bubbles: true });
                                     radioElements[i].dispatchEvent(changeEvent);
                                 }
                             }
                         }
                         break;
-                        
                     case 'run_mode':
                         var radioRuElements = document.getElementsByName("radios-ru");
                         if (radioRuElements && radioRuElements.length > 0) {
                             for (var i = 0; i < radioRuElements.length; i++) {
-                                var isChecked = radioRuElements[i].value === value;
-                                radioRuElements[i].checked = isChecked;
-                                if (isChecked) {
+                                radioRuElements[i].checked = radioRuElements[i].value === value;
+                                radioRuElements[i].disabled = true;
+                                if (radioRuElements[i].checked) {
                                     var changeEvent = new Event('change', { bubbles: true });
                                     radioRuElements[i].dispatchEvent(changeEvent);
                                 }
@@ -3513,6 +3489,53 @@
                         break;
                 }
             }, 10);
+
+            setTimeout(() => {
+                switch(setting) {
+                    case 'meta_sniffer':
+                        var metaSnifferOn = document.getElementById('meta_sniffer_on');
+                        var metaSnifferOff = document.getElementById('meta_sniffer_off');
+                        if (metaSnifferOn) metaSnifferOn.disabled = false;
+                        if (metaSnifferOff) metaSnifferOff.disabled = false;
+                        break;
+                    case 'respect_rules':
+                        var respectRulesOn = document.getElementById('respect_rules_on');
+                        var respectRulesOff = document.getElementById('respect_rules_off');
+                        if (respectRulesOn) respectRulesOn.disabled = false;
+                        if (respectRulesOff) respectRulesOff.disabled = false;
+                        break;
+                    case 'oversea':
+                        var oversea0 = document.getElementById('oc_setting_oversea_0');
+                        var oversea1 = document.getElementById('oc_setting_oversea_1');
+                        var oversea2 = document.getElementById('oc_setting_oversea_2');
+                        if (oversea0) oversea0.disabled = false;
+                        if (oversea1) oversea1.disabled = false;
+                        if (oversea2) oversea2.disabled = false;
+                        break;
+                    case 'stream_unlock':
+                        var streamUnlockOn = document.getElementById('stream_unlock_on');
+                        var streamUnlockOff = document.getElementById('stream_unlock_off');
+                        if (streamUnlockOn) streamUnlockOn.disabled = false;
+                        if (streamUnlockOff) streamUnlockOff.disabled = false;
+                        break;
+                    case 'rule_mode':
+                        var radioElements = document.getElementsByName("radios");
+                        if (radioElements && radioElements.length > 0) {
+                            for (var i = 0; i < radioElements.length; i++) {
+                                radioElements[i].disabled = false;
+                            }
+                        }
+                        break;
+                    case 'run_mode':
+                        var radioRuElements = document.getElementsByName("radios-ru");
+                        if (radioRuElements && radioRuElements.length > 0) {
+                            for (var i = 0; i < radioRuElements.length; i++) {
+                                radioRuElements[i].disabled = false;
+                            }
+                        }
+                        break;
+                }
+            }, 3000);
         },
         
         switchSetting: function(setting, value, endpoint, additionalParams) {
@@ -4009,7 +4032,7 @@
 
     function get_rule_mode() {
         if (SettingsManager.isPollPaused('rule_mode')) {
-            s = setTimeout("get_rule_mode()", 1000);
+            s = setTimeout("get_rule_mode()", 5000);
             return;
         }
         
