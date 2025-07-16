@@ -4366,6 +4366,11 @@
                     }
                     
                     DOMCache.core_version_text.textContent = coreVersionText;
+                    if (DOMCache.core_version_text.scrollWidth > DOMCache.core_version_text.clientWidth) {
+                        DOMCache.core_version_text.title = coreVersionText;
+                    } else {
+                        DOMCache.core_version_text.title = '';
+                    }
                     DOMCache.core_version_display.style.display = 'flex';
                     
                     var existingDot = DOMCache.core_version_display.querySelector('.update-dot');
@@ -4398,6 +4403,11 @@
                     }
                     
                     DOMCache.plugin_version_text.textContent = pluginVersionText;
+                    if (DOMCache.plugin_version_text.scrollWidth > DOMCache.plugin_version_text.clientWidth) {
+                        DOMCache.plugin_version_text.title = pluginVersionText;
+                    } else {
+                        DOMCache.plugin_version_text.title = '';
+                    }
                     DOMCache.plugin_version_display.style.display = 'flex';
                     
                     var existingDot = DOMCache.plugin_version_display.querySelector('.update-dot');
