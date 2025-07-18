@@ -3130,14 +3130,20 @@ start_watchdog()
 reload_service()
 {
    enable=$(uci -q get openclash.config.enable)
-   MAX_RELOAD=3
+   MAX_RELOAD=4
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "firewall" ]; then
       NOW_TS=$(date +%s)
-      LAST_LINE=$(grep "Reload OpenClash Firewall Rules..." "$LOG_FILE" | tail -n 1)
+      LAST_LINE=$(grep "Reload OpenClash Firewall Rules...$" "$LOG_FILE" | tail -n 1)
+      LAST_TIME=$(echo "$LAST_LINE" | awk '{print $1" "$2}')
+      LAST_TS=$(date -d "$LAST_TIME" +%s 2>/dev/null)
       CUR_RELOAD_NUM=$(echo "$LAST_LINE" | grep -oE '【[0-9]+/' | grep -oE '[0-9]+')
+      if [ -n "$LAST_TS" ] && [ $((NOW_TS - LAST_TS)) -gt 300 ]; then
+         CUR_RELOAD_NUM=0
+      fi
       [ -z "$CUR_RELOAD_NUM" ] && CUR_RELOAD_NUM=0
       CUR_RELOAD_NUM=$((CUR_RELOAD_NUM+1))
-      RELOAD_COUNT=$(grep "Reload OpenClash Firewall Rules..." "$LOG_FILE" | tail -n "$MAX_RELOAD" | awk '{print $1" "$2}' | while read t; do
+      [ "$CUR_RELOAD_NUM" -gt "$MAX_RELOAD" ] && CUR_RELOAD_NUM=$MAX_RELOAD
+      RELOAD_COUNT=$(grep "Reload OpenClash Firewall Rules...$" "$LOG_FILE" | awk '{print $1" "$2}' | while read t; do
          TS=$(date -d "$t" +%s 2>/dev/null)
          [ -n "$TS" ] && [ $((NOW_TS - TS)) -le 300 ] && echo 1
       done | wc -l)
