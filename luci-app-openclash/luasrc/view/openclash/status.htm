@@ -4084,6 +4084,7 @@
     }
 
     function switch_run_mode(value) {
+        LogManager.startLogDisplay('<%:Saving...%>');
         return SettingsManager.switchSetting(
             'run_mode', 
             value, 
