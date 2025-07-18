@@ -2100,6 +2100,9 @@ msgstr "第六步：删除 OpenClash 残留文件..."
 msgid "OpenClash Already Stop!"
 msgstr "OpenClash 关闭成功！"
 
+msgid "Skip Reload OpenClash Firewall Rules Until 5 Minutes Later..."
+msgstr "5 分钟内重置已超过 3 次，跳过本次 OpenClash 防火墙规则重置..."
+
 msgid "Reload OpenClash Firewall Rules..."
 msgstr "重置 OpenClash 防火墙规则..."
 

@@ -3130,16 +3130,22 @@ start_watchdog()
 reload_service()
 {
    enable=$(uci -q get openclash.config.enable)
+   MAX_RELOAD=3
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "firewall" ]; then
-      LAST_RELOAD_TIME=$(grep "Reload OpenClash Firewall Rules..." "$LOG_FILE" | tail -n 1 | awk '{print $1" "$2}')
-      if [ -n "$LAST_RELOAD_TIME" ]; then
-         LAST_RELOAD_TS=$(date -d "$LAST_RELOAD_TIME" +%s 2>/dev/null)
-         NOW_TS=$(date +%s)
-         if [ -n "$LAST_RELOAD_TS" ] && [ $((NOW_TS - LAST_RELOAD_TS)) -lt 300 ]; then
-            exit 0
-         fi
+      NOW_TS=$(date +%s)
+      LAST_LINE=$(grep "Reload OpenClash Firewall Rules..." "$LOG_FILE" | tail -n 1)
+      CUR_RELOAD_NUM=$(echo "$LAST_LINE" | grep -oE '【[0-9]+/' | grep -oE '[0-9]+')
+      [ -z "$CUR_RELOAD_NUM" ] && CUR_RELOAD_NUM=0
+      CUR_RELOAD_NUM=$((CUR_RELOAD_NUM+1))
+      RELOAD_COUNT=$(grep "Reload OpenClash Firewall Rules..." "$LOG_FILE" | tail -n "$MAX_RELOAD" | awk '{print $1" "$2}' | while read t; do
+         TS=$(date -d "$t" +%s 2>/dev/null)
+         [ -n "$TS" ] && [ $((NOW_TS - TS)) -le 300 ] && echo 1
+      done | wc -l)
+      if [ "$RELOAD_COUNT" -ge "$MAX_RELOAD" ]; then
+         LOG_OUT "【${CUR_RELOAD_NUM}/$MAX_RELOAD】Skip Reload OpenClash Firewall Rules Until 5 Minutes Later..."
+         exit 0
       fi
-      LOG_OUT "Reload OpenClash Firewall Rules..."
+      LOG_OUT "【${CUR_RELOAD_NUM}/$MAX_RELOAD】Reload OpenClash Firewall Rules..."
       revert_firewall
       do_run_mode
       get_config
