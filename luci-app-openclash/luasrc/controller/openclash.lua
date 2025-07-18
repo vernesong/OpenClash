@@ -3159,16 +3159,16 @@ function action_oc_action()
 	if action == "start" then
 		uci:set("openclash", "config", "enable", "1")
 		uci:commit("openclash")
-		luci.sys.call("/etc/init.d/openclash start >/dev/null 2>&1 &")
+		luci.sys.call("/etc/init.d/openclash start >/dev/null 2>&1")
 	elseif action == "stop" then
 		uci:set("openclash", "config", "enable", "0")
 		uci:commit("openclash")
 		luci.sys.call("ps | grep openclash | grep -v grep | awk '{print $1}' | xargs -r kill -9 >/dev/null 2>&1")
-		luci.sys.call("/etc/init.d/openclash stop >/dev/null 2>&1 &")
+		luci.sys.call("/etc/init.d/openclash stop >/dev/null 2>&1")
 	elseif action == "restart" then
 		uci:set("openclash", "config", "enable", "1")
 		uci:commit("openclash")
-		luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+		luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1")
 	else
 		luci.http.status(400, "Invalid action parameter")
 		return
