@@ -3417,94 +3417,70 @@
         
         updateUIState: function(setting, value) {
             setTimeout(() => {
+                function setCheckedAndDisabled(elements, checkedIndex) {
+                    for (let i = 0; i < elements.length; i++) {
+                        elements[i].checked = (i === checkedIndex);
+                        elements[i].disabled = true;
+                    }
+                }
                 switch(setting) {
                     case 'meta_sniffer':
                         var metaSnifferOn = document.getElementById('meta_sniffer_on');
                         var metaSnifferOff = document.getElementById('meta_sniffer_off');
                         if (metaSnifferOn && metaSnifferOff) {
-                            metaSnifferOn.checked = value === '1';
-                            metaSnifferOff.checked = value !== '1';
-                            
+                            setCheckedAndDisabled([metaSnifferOn, metaSnifferOff], value === '1' ? 0 : 1);
                             var changeEvent = new Event('change', { bubbles: true });
-                            if (value === '1') {
-                                metaSnifferOn.dispatchEvent(changeEvent);
-                            } else {
-                                metaSnifferOff.dispatchEvent(changeEvent);
-                            }
+                            (value === '1' ? metaSnifferOn : metaSnifferOff).dispatchEvent(changeEvent);
                         }
                         break;
-                        
                     case 'respect_rules':
                         var respectRulesOn = document.getElementById('respect_rules_on');
                         var respectRulesOff = document.getElementById('respect_rules_off');
                         if (respectRulesOn && respectRulesOff) {
-                            respectRulesOn.checked = value === '1';
-                            respectRulesOff.checked = value !== '1';
-                            
+                            setCheckedAndDisabled([respectRulesOn, respectRulesOff], value === '1' ? 0 : 1);
                             var changeEvent = new Event('change', { bubbles: true });
-                            if (value === '1') {
-                                respectRulesOn.dispatchEvent(changeEvent);
-                            } else {
-                                respectRulesOff.dispatchEvent(changeEvent);
-                            }
+                            (value === '1' ? respectRulesOn : respectRulesOff).dispatchEvent(changeEvent);
                         }
                         break;
-                        
                     case 'oversea':
                         var oversea0 = document.getElementById('oc_setting_oversea_0');
                         var oversea1 = document.getElementById('oc_setting_oversea_1');
                         var oversea2 = document.getElementById('oc_setting_oversea_2');
                         if (oversea0 && oversea1 && oversea2) {
-                            oversea0.checked = value === '0';
-                            oversea1.checked = value === '1';
-                            oversea2.checked = value === '2';
-                            
+                            setCheckedAndDisabled([oversea0, oversea1, oversea2], value === '0' ? 0 : (value === '1' ? 1 : 2));
                             var changeEvent = new Event('change', { bubbles: true });
-                            var selectedElement = value === '0' ? oversea0 : (value === '1' ? oversea1 : oversea2);
-                            if (selectedElement) {
-                                selectedElement.dispatchEvent(changeEvent);
-                            }
+                            [oversea0, oversea1, oversea2][value === '0' ? 0 : (value === '1' ? 1 : 2)].dispatchEvent(changeEvent);
                         }
                         break;
-
                     case 'stream_unlock':
                         var streamUnlockOn = document.getElementById('stream_unlock_on');
                         var streamUnlockOff = document.getElementById('stream_unlock_off');
                         if (streamUnlockOn && streamUnlockOff) {
-                            streamUnlockOn.checked = value === '1';
-                            streamUnlockOff.checked = value !== '1';
-                            
+                            setCheckedAndDisabled([streamUnlockOn, streamUnlockOff], value === '1' ? 0 : 1);
                             var changeEvent = new Event('change', { bubbles: true });
-                            if (value === '1') {
-                                streamUnlockOn.dispatchEvent(changeEvent);
-                            } else {
-                                streamUnlockOff.dispatchEvent(changeEvent);
-                            }
+                            (value === '1' ? streamUnlockOn : streamUnlockOff).dispatchEvent(changeEvent);
                         }
                         break;
-                        
                     case 'rule_mode':
                         var radioElements = document.getElementsByName("radios");
                         if (radioElements && radioElements.length > 0) {
                             for (var i = 0; i < radioElements.length; i++) {
-                                var isChecked = radioElements[i].value === value;
-                                radioElements[i].checked = isChecked;
-                                
-                                if (isChecked) {
+                                radioElements[i].checked = radioElements[i].value === value;
+                                radioElements[i].disabled = true;
+                                if (radioElements[i].checked) {
                                     var changeEvent = new Event('change', { bubbles: true });
                                     radioElements[i].dispatchEvent(changeEvent);
                                 }
                             }
                         }
                         break;
-                        
                     case 'run_mode':
                         var radioRuElements = document.getElementsByName("radios-ru");
                         if (radioRuElements && radioRuElements.length > 0) {
                             for (var i = 0; i < radioRuElements.length; i++) {
-                                var isChecked = radioRuElements[i].value === value;
-                                radioRuElements[i].checked = isChecked;
-                                if (isChecked) {
+                                radioRuElements[i].checked = radioRuElements[i].value === value;
+                                radioRuElements[i].disabled = true;
+                                if (radioRuElements[i].checked) {
                                     var changeEvent = new Event('change', { bubbles: true });
                                     radioRuElements[i].dispatchEvent(changeEvent);
                                 }
@@ -3517,27 +3493,27 @@
         
         switchSetting: function(setting, value, endpoint, additionalParams) {
             var operationKey = setting + '_' + value;
-            
+
             if (this.pendingOperations.has(operationKey)) {
                 return false;
             }
-                        
+
             this.pendingOperations.add(operationKey);
-            
+
             try {
                 this.updateUIState(setting, value);
-            } catch (e) {
-            }
-            
+            } catch (e) {}
+
+            let pollName;
             if (setting === 'rule_mode') {
-                this.pausePoll('rule_mode', 5000);
-                clearTimeout(s);
+                pollName = 'rule_mode';
             } else if (setting === 'run_mode') {
-                this.pausePoll('run_mode', 5000);
+                pollName = 'run_mode';
             } else {
-                this.pausePoll('oc_settings', 5000);
+                pollName = 'oc_settings';
             }
-            
+            this.pausedPolls.add(pollName);
+
             var params = Object.assign({}, additionalParams || {});
             if (setting !== 'rule_mode' && setting !== 'run_mode') {
                 params.setting = setting;
@@ -3547,39 +3523,67 @@
             } else if (setting === 'run_mode') {
                 params.run_mode = value;
             }
-            
+
             var self = this;
-            
+
             XHR.get(endpoint, params, function(x, status) {
                 setTimeout(function() {
                     self.pendingOperations.delete(operationKey);
-                    
-                    if (!x || x.status !== 200) {
-                        self.revertUIState(setting);
-                        alert(self.getErrorMessage(setting));
+
+                    switch(setting) {
+                        case 'meta_sniffer':
+                            var metaSnifferOn = document.getElementById('meta_sniffer_on');
+                            var metaSnifferOff = document.getElementById('meta_sniffer_off');
+                            if (metaSnifferOn) metaSnifferOn.disabled = false;
+                            if (metaSnifferOff) metaSnifferOff.disabled = false;
+                            break;
+                        case 'respect_rules':
+                            var respectRulesOn = document.getElementById('respect_rules_on');
+                            var respectRulesOff = document.getElementById('respect_rules_off');
+                            if (respectRulesOn) respectRulesOn.disabled = false;
+                            if (respectRulesOff) respectRulesOff.disabled = false;
+                            break;
+                        case 'oversea':
+                            var oversea0 = document.getElementById('oc_setting_oversea_0');
+                            var oversea1 = document.getElementById('oc_setting_oversea_1');
+                            var oversea2 = document.getElementById('oc_setting_oversea_2');
+                            if (oversea0) oversea0.disabled = false;
+                            if (oversea1) oversea1.disabled = false;
+                            if (oversea2) oversea2.disabled = false;
+                            break;
+                        case 'stream_unlock':
+                            var streamUnlockOn = document.getElementById('stream_unlock_on');
+                            var streamUnlockOff = document.getElementById('stream_unlock_off');
+                            if (streamUnlockOn) streamUnlockOn.disabled = false;
+                            if (streamUnlockOff) streamUnlockOff.disabled = false;
+                            break;
+                        case 'rule_mode':
+                            var radioElements = document.getElementsByName("radios");
+                            if (radioElements && radioElements.length > 0) {
+                                for (var i = 0; i < radioElements.length; i++) {
+                                    radioElements[i].disabled = false;
+                                }
+                            }
+                            break;
+                        case 'run_mode':
+                            var radioRuElements = document.getElementsByName("radios-ru");
+                            if (radioRuElements && radioRuElements.length > 0) {
+                                for (var i = 0; i < radioRuElements.length; i++) {
+                                    radioRuElements[i].disabled = false;
+                                }
+                            }
+                            break;
                     }
-                    
-                    if (setting === 'rule_mode' && !self.isPollPaused('rule_mode')) {
-                        get_rule_mode();
-                    } else if (setting === 'run_mode' && !self.isPollPaused('run_mode')) {
-                        get_run_mode();
-                    } else if (setting !== 'rule_mode' && setting !== 'run_mode' && !self.isPollPaused('oc_settings')) {
-                        get_oc_settings();
+
+                    self.pausedPolls.delete(pollName);
+
+                    if (!x || x.status !== 200) {
+                        alert(self.getErrorMessage(setting));
                     }
                 }, 1500);
             });
-            
+
             return false;
-        },
-        
-        revertUIState: function(setting) {
-            if (setting === 'rule_mode') {
-                get_rule_mode();
-            } else if (setting === 'run_mode') {
-                get_run_mode();
-            } else {
-                get_oc_settings();
-            }
         },
         
         getErrorMessage: function(setting) {
@@ -3599,6 +3603,26 @@
     var s, gr;
     var pluginToggleUserAction = false;
 
+    document.addEventListener('DOMContentLoaded', function() {
+        DarkModeDetector.init();
+        
+        setTimeout(function() {
+            ConfigFileManager.init();
+        }, 200);
+        
+        setTimeout(function() {
+            SubscriptionManager.init();
+        }, 200);
+
+        setTimeout(function() {
+            check_core();
+        }, 800);
+
+        setTimeout(function() {
+            loadAnnouncement();
+        }, 2000);
+    });
+
     XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
         if (x && x.status == 200) {
             var updates = [];
@@ -3613,6 +3637,8 @@
             }
 
 			get_run_mode();
+            get_rule_mode();
+            get_oc_settings();
             
             var webContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Yacd%>" onclick="return ycad_dashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Yacd%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: DOMCache.web, content: webContent});
@@ -3640,8 +3666,6 @@
             updates.push({element: document.getElementById('_one_key_update_btn'), content: oneKeyUpdateContent});
 
             StateManager.batchUpdateDOM(updates);
-
-            get_oc_settings();
 
             StateManager.current_status = status;
             
@@ -3714,28 +3738,6 @@
             }
         }
         clashversion_check();
-    });
-
-	get_rule_mode();
-
-    document.addEventListener('DOMContentLoaded', function() {
-        DarkModeDetector.init();
-        
-        setTimeout(function() {
-            ConfigFileManager.init();
-        }, 200);
-        
-        setTimeout(function() {
-            SubscriptionManager.init();
-        }, 600);
-
-        setTimeout(function() {
-            check_core();
-        }, 800);
-
-        setTimeout(function() {
-            loadAnnouncement();
-        }, 2000);
     });
 
     window.addEventListener('beforeunload', function() {
@@ -4009,7 +4011,6 @@
 
     function get_rule_mode() {
         if (SettingsManager.isPollPaused('rule_mode')) {
-            s = setTimeout("get_rule_mode()", 1000);
             return;
         }
         
@@ -4043,7 +4044,6 @@
                 }
             }
         }, true);
-        s = setTimeout("get_rule_mode()", 5000);
     }
 
     function switch_rule_mode(value) {
@@ -4084,6 +4084,7 @@
     }
 
     function switch_run_mode(value) {
+        LogManager.startLogDisplay('<%:Saving...%>');
         return SettingsManager.switchSetting(
             'run_mode', 
             value, 
@@ -4366,6 +4367,11 @@
                     }
                     
                     DOMCache.core_version_text.textContent = coreVersionText;
+                    if (DOMCache.core_version_text.scrollWidth > DOMCache.core_version_text.clientWidth) {
+                        DOMCache.core_version_text.title = coreVersionText;
+                    } else {
+                        DOMCache.core_version_text.title = '';
+                    }
                     DOMCache.core_version_display.style.display = 'flex';
                     
                     var existingDot = DOMCache.core_version_display.querySelector('.update-dot');
@@ -4398,6 +4404,11 @@
                     }
                     
                     DOMCache.plugin_version_text.textContent = pluginVersionText;
+                    if (DOMCache.plugin_version_text.scrollWidth > DOMCache.plugin_version_text.clientWidth) {
+                        DOMCache.plugin_version_text.title = pluginVersionText;
+                    } else {
+                        DOMCache.plugin_version_text.title = '';
+                    }
                     DOMCache.plugin_version_display.style.display = 'flex';
                     
                     var existingDot = DOMCache.plugin_version_display.querySelector('.update-dot');
@@ -4717,7 +4728,7 @@
             
             if (DOMCache.clash && StateManager.current_status) {
                 DOMCache.clash.innerHTML = isRunning ? 
-                    '<b style=color:var(--success-color)>' + (StateManager.current_status.core_type || 'OpenClash') +'&nbsp;&nbsp;&nbsp;<%:Running%></b>' : 
+                    '<b style=color:var(--success-color)>' + (StateManager.current_status.core_type || 'OpenClash') +'&nbsp;<%:Running%></b>' : 
                     '<b style=color:var(--error-color)><%:Not Running%></b>';
             }
             
