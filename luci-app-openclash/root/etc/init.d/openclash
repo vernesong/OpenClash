@@ -3130,7 +3130,7 @@ start_watchdog()
 reload_service()
 {
    enable=$(uci -q get openclash.config.enable)
-   MAX_RELOAD=4
+   MAX_RELOAD=10
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "firewall" ]; then
       NOW_TS=$(date +%s)
       LAST_LINE=$(grep "Reload OpenClash Firewall Rules...$" "$LOG_FILE" | tail -n 1)
