@@ -1508,6 +1508,7 @@ if [ -n "$FW4" ]; then
 
       nft add rule inet fw4 openclash ip protocol tcp counter redirect to "$proxy_port"
       nft 'add rule inet fw4 dstnat meta nfproto {ipv4} ip protocol tcp counter jump openclash'
+
       if [ -z "$en_mode_tun" ]; then
          #udp
          if [ "$enable_udp_proxy" -eq 1 ]; then
@@ -1519,6 +1520,9 @@ if [ -n "$FW4" ]; then
             nft 'add chain inet fw4 openclash_upnp'
             nft 'flush chain inet fw4 openclash_upnp'
             upnp_exclude
+            if [ "$en_mode" = "fake-ip" ]; then
+               nft add rule inet fw4 openclash_mangle ip protocol icmp icmp type echo-request ip daddr { "$fakeip_range" } counter reject with icmp type admin-prohibited
+            fi
             nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return'
             nft 'add rule inet fw4 openclash_mangle ct direction reply counter return'
             if [ "$en_mode" = "fake-ip" ]; then
@@ -1549,7 +1553,11 @@ if [ -n "$FW4" ]; then
 
             nft 'add rule inet fw4 openclash_mangle ip protocol udp counter jump openclash_upnp'
             nft add rule inet fw4 openclash_mangle meta l4proto { udp } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
-            nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
+            if [ "$en_mode" = "fake-ip" ]; then
+               nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol { udp, icmp } counter jump openclash_mangle'
+            else
+               nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
+            fi
          fi
          if [ "$enable_udp_proxy" -ne 1 ] && [ "$en_mode" = "fake-ip" ]; then
             modprobe nft_tproxy
@@ -1565,6 +1573,9 @@ if [ -n "$FW4" ]; then
          if ([ "$router_self_proxy" = "1" ] && [ "$enable_udp_proxy" -eq 1 ]) || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
             nft 'add chain inet fw4 openclash_mangle_output'
             nft 'flush chain inet fw4 openclash_mangle_output'
+            if [ "$en_mode" = "fake-ip" ]; then
+               nft add rule inet fw4 openclash_mangle_output ip protocol icmp icmp type echo-request ip daddr { "$fakeip_range" } counter reject with icmp type admin-prohibited
+            fi
             nft 'add rule inet fw4 openclash_mangle_output skgid == 65534 counter return'
             nft 'add rule inet fw4 openclash_mangle_output ip daddr @localnetwork counter return'
             nft 'add rule inet fw4 openclash_mangle_output ct direction reply counter return'
@@ -1587,7 +1598,11 @@ if [ -n "$FW4" ]; then
             if [ "$router_self_proxy" = "1" ] && [ "$enable_udp_proxy" -eq 1 ]; then
                nft add rule inet fw4 openclash_mangle_output mark set "$PROXY_FWMARK" counter accept
             fi
-            nft 'add rule inet fw4 mangle_output meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle_output'
+            if [ "$en_mode" = "fake-ip" ]; then
+               nft 'add rule inet fw4 mangle_output meta nfproto {ipv4} ip protocol { udp, icmp } counter jump openclash_mangle_output'
+            else
+               nft 'add rule inet fw4 mangle_output meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle_output'
+            fi
          fi
 
          #quic
@@ -1638,6 +1653,9 @@ if [ -n "$FW4" ]; then
       if [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
          nft 'add chain inet fw4 openclash_mangle_output'
          nft 'flush chain inet fw4 openclash_mangle_output'
+         if [ "$en_mode" = "fake-ip" ]; then
+            nft add rule inet fw4 openclash_mangle_output ip protocol icmp icmp type echo-request ip daddr { "$fakeip_range" } counter reject with icmp type admin-prohibited
+         fi
          nft 'add rule inet fw4 openclash_mangle_output skgid == 65534 counter return'
          nft 'add rule inet fw4 openclash_mangle_output ip daddr @localnetwork counter return'
          nft 'add rule inet fw4 openclash_mangle_output ct direction reply counter return'
@@ -1662,7 +1680,11 @@ if [ -n "$FW4" ]; then
                nft add rule inet fw4 openclash_mangle_output meta l4proto { udp } meta mark set "$PROXY_FWMARK" counter
             fi
          fi
-         nft 'add rule inet fw4 mangle_output meta nfproto {ipv4} meta l4proto {tcp,udp} counter jump openclash_mangle_output'
+         if [ "$en_mode" = "fake-ip" ]; then
+            nft 'add rule inet fw4 mangle_output meta nfproto {ipv4} meta l4proto {tcp,udp,icmp} counter jump openclash_mangle_output'
+         else
+            nft 'add rule inet fw4 mangle_output meta nfproto {ipv4} meta l4proto {tcp,udp} counter jump openclash_mangle_output'
+         fi
       fi
 
       nft 'add chain inet fw4 openclash_mangle'
@@ -1673,6 +1695,9 @@ if [ -n "$FW4" ]; then
 
       #其他流量
       nft 'add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} iifname utun counter return'
+      if [ "$en_mode" = "fake-ip" ]; then
+         nft add rule inet fw4 openclash_mangle ip protocol icmp icmp type echo-request ip daddr { "$fakeip_range" } counter reject with icmp type admin-prohibited
+      fi
       nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return'
       nft 'add rule inet fw4 openclash_mangle ct direction reply counter return'
       nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return'
@@ -1701,9 +1726,17 @@ if [ -n "$FW4" ]; then
       nft add rule inet fw4 openclash_mangle mark set "$PROXY_FWMARK" counter
 
       if [ "$en_mode_tun" -eq 1 ]; then
-         nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} meta l4proto {tcp,udp} counter jump openclash_mangle'
+         if [ "$en_mode" = "fake-ip" ]; then
+            nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} meta l4proto {tcp,udp,icmp} counter jump openclash_mangle'
+         else
+            nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} meta l4proto {tcp,udp} counter jump openclash_mangle'
+         fi
       else
-         nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
+         if [ "$en_mode" = "fake-ip" ]; then
+            nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol {udp,icmp} counter jump openclash_mangle'
+         else
+            nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
+         fi
       fi
 
       #TUN FORWORD
@@ -2258,6 +2291,9 @@ if [ -z "$FW4" ]; then
             iptables -t mangle -N openclash_upnp
             iptables -t mangle -F openclash_upnp
             upnp_exclude
+            if [ "$en_mode" = "fake-ip" ]; then
+               iptables -t mangle -A openclash -p icmp --icmp-type echo-request -d "$fakeip_range" -j REJECT --reject-with icmp-admin-prohibited
+            fi
             iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
             iptables -t mangle -A openclash -m conntrack --ctdir REPLY -j RETURN
             if [ "$en_mode" = "fake-ip" ]; then
@@ -2287,6 +2323,9 @@ if [ -z "$FW4" ]; then
             iptables -t mangle -A openclash -p udp -j openclash_upnp
             iptables -t mangle -A openclash -p udp -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             iptables -t mangle -A PREROUTING -p udp -j openclash
+            if [ "$en_mode" = "fake-ip" ]; then
+               iptables -t mangle -A PREROUTING -p icmp -j openclash
+            fi
          fi
 
          if [ "$enable_udp_proxy" -ne 1 ] && [ "$en_mode" = "fake-ip" ]; then
@@ -2295,14 +2334,19 @@ if [ -z "$FW4" ]; then
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             iptables -t mangle -N openclash
             iptables -t mangle -F openclash
+            iptables -t mangle -A openclash -p icmp --icmp-type echo-request -d "$fakeip_range" -j REJECT --reject-with icmp-admin-prohibited
             iptables -t mangle -A openclash -p udp -d "$fakeip_range" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             iptables -t mangle -A PREROUTING -p udp -j openclash
+            iptables -t mangle -A PREROUTING -p icmp -j openclash
          fi
 
          #router self proxy udp
          if ([ "$router_self_proxy" = "1" ] && [ "$enable_udp_proxy" -eq 1 ]) || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
             iptables -t mangle -N openclash_output
             iptables -t mangle -F openclash_output
+            if [ "$en_mode" = "fake-ip" ]; then
+               iptables -t mangle -A openclash_output -p icmp --icmp-type echo-request -d "$fakeip_range" -j REJECT --reject-with icmp-admin-prohibited
+            fi
             iptables -t mangle -A openclash_output $owner -j RETURN
             iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
             iptables -t mangle -A openclash_output -m conntrack --ctdir REPLY -j RETURN
@@ -2326,6 +2370,9 @@ if [ -z "$FW4" ]; then
                iptables -t mangle -A openclash_output -p udp -j MARK --set-mark "$PROXY_FWMARK"
             fi
             iptables -t mangle -A OUTPUT -p udp -j openclash_output
+            if [ "$en_mode" = "fake-ip" ]; then
+               iptables -t mangle -A OUTPUT -p icmp -j openclash_output
+            fi
          fi
 
          #quic
@@ -2375,6 +2422,9 @@ if [ -z "$FW4" ]; then
       if [ "$router_self_proxy" = "1" ] || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
          iptables -t mangle -N openclash_output
          iptables -t mangle -F openclash_output
+         if [ "$en_mode" = "fake-ip" ]; then
+            iptables -t mangle -A openclash_output -p icmp --icmp-type echo-request -d "$fakeip_range" -j REJECT --reject-with icmp-admin-prohibited
+         fi
          iptables -t mangle -A openclash_output $owner -j RETURN
          iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
          iptables -t mangle -A openclash_output -m conntrack --ctdir REPLY -j RETURN
@@ -2409,6 +2459,9 @@ if [ -z "$FW4" ]; then
       upnp_exclude
       #其他流量
       iptables -t mangle -A openclash -i utun -j RETURN
+      if [ "$en_mode" = "fake-ip" ]; then
+         iptables -t mangle -A openclash -p icmp --icmp-type echo-request -d "$fakeip_range" -j REJECT --reject-with icmp-admin-prohibited
+      fi
       iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
       iptables -t mangle -A openclash -m conntrack --ctdir REPLY -j RETURN
       iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN
@@ -2442,6 +2495,9 @@ if [ -z "$FW4" ]; then
          iptables -t mangle -A PREROUTING -j openclash
       else
          iptables -t mangle -A PREROUTING -p udp -j openclash
+         if [ "$en_mode" = "fake-ip" ]; then
+            iptables -t mangle -A PREROUTING -p icmp -j openclash
+         fi
       fi
 
       #TUN FORWORD
