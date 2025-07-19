@@ -780,9 +780,9 @@ var ConfigEditor = {
                 tabRuntime.classList.remove('active');
             }
             if (saveBtn) {
-                saveBtn.disabled = false;
-                saveBtn.style.opacity = '1';
-                saveBtn.style.cursor = 'pointer';
+                saveBtn.disabled = !this.isModified;
+                saveBtn.style.opacity = this.isModified ? '1' : '0.5';
+                saveBtn.style.cursor = this.isModified ? 'pointer' : 'not-allowed';
             }
             return;
         }
