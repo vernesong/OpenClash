@@ -318,6 +318,7 @@
     border-bottom: none !important;
     margin: 0 12px 12px 12px;
     border-radius: var(--radius-sm);
+    text-align: center;
 }
 
 #addCustomOption:hover {
@@ -595,8 +596,8 @@
         </div>
         
         <div class="select-popup-body">
-            <div class="select-option" data-value="">
-                <span><%:Use RAW address download%></span>
+            <div class="select-option" data-value="https://raw.githubusercontent.com/">
+                <span>https://raw.githubusercontent.com/ (<%:RAW address%>)</span>
             </div>
             <div class="select-option" data-value="https://fastly.jsdelivr.net/">
                 <span>https://fastly.jsdelivr.net/</span>
@@ -611,7 +612,7 @@
                 <span><%:Custom Your CDN URL%></span>
                 <span style="font-size: 12px; opacity: 0.7;">→</span>
             </div>
-            <input type="text" id="customOptionInput" class="custom-option-input" value="https://ghp.ci/" placeholder="<%:Type CDN URL, Format Like%> https://ghp.ci/" style="display: none;">
+            <input type="text" id="customOptionInput" class="custom-option-input" value="https://ghfast.top/" placeholder="<%:Type CDN URL, Format Like%> https://ghfast.top/" style="display: none;">
             <div class="select-option" id="addCustomOption" style="display: none;"><%:Add%></div>
         </div>
     </div>
@@ -761,7 +762,11 @@
             updateCDNStatus(ID, status, text);
         };
 
-        img.src = `${domain}favicon.ico?${+(new Date)}`;
+        if (domain === 'https://raw.githubusercontent.com/') {
+            img.src = `https://raw.githubusercontent.com/vernesong/OpenClash/dev/img/logo.png?${+(new Date)}`;
+        } else {
+            img.src = `${domain}favicon.ico?${+(new Date)}`;
+        }
     }
     
     function updateCDNStatus(element, status, text) {
@@ -846,6 +851,9 @@
             addCustomOption.style.display = 'none';
             if (typeof LogManager !== 'undefined' && LogManager) {
                 LogManager.startLogDisplay('<%:Checking...%>');
+            }
+            if (target.dataset.value === 'https://raw.githubusercontent.com/') {
+                target.dataset.value = '';
             }
             if (type === 'core_download') {
                 XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
