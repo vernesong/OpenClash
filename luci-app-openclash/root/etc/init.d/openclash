@@ -1260,7 +1260,13 @@ fi
 
 mkdir -p /var/etc
 cat > "/var/etc/openclash.include" <<-EOF
-/etc/init.d/openclash reload "firewall"
+#!/bin/sh
+if pidof clash >/dev/null && [ "\$(uci -q get openclash.config.enable)" = "1" ]; then
+   sleep 2
+   if [ -z "\$(nft list chain inet fw4 openclash 2>/dev/null | grep 'redirect to')" ]; then
+      /etc/init.d/openclash reload "firewall" >/dev/null 2>&1 &
+   fi
+fi
 EOF
 
 #common ports
@@ -3131,6 +3137,7 @@ reload_service()
 {
    enable=$(uci -q get openclash.config.enable)
    MAX_RELOAD=10
+
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "firewall" ]; then
       NOW_TS=$(date +%s)
       LAST_LINE=$(grep "Reload OpenClash Firewall Rules...$" "$LOG_FILE" | tail -n 1)
