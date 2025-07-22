@@ -1263,11 +1263,11 @@ msgstr "兼容"
 msgid "Mix"
 msgstr "混合"
 
-msgid "Close All Connections"
-msgstr "关闭所有链接"
+msgid "Close Connect"
+msgstr "关闭链接"
 
-msgid "Close All Connections Failed"
-msgstr "关闭所有连接失败"
+msgid "Close Connect Failed"
+msgstr "关闭连接失败"
 
 msgid "Restore Nodes Selection"
 msgstr "还原策略组节点选择"
@@ -2101,7 +2101,7 @@ msgid "OpenClash Already Stop!"
 msgstr "OpenClash 关闭成功！"
 
 msgid "Skip Reload OpenClash Firewall Rules Until 5 Minutes Later..."
-msgstr "5 分钟内重置已超过 3 次，跳过本次 OpenClash 防火墙规则重置..."
+msgstr "5 分钟内重置已超过限制次数，跳过本次 OpenClash 防火墙规则重置..."
 
 msgid "Reload OpenClash Firewall Rules..."
 msgstr "重置 OpenClash 防火墙规则..."
@@ -2424,7 +2424,7 @@ msgstr "上传总量"
 msgid "Down Total"
 msgstr "下载总量"
 
-msgid "Connections"
+msgid "Connect"
 msgstr "活动连接"
 
 msgid "Ram"
@@ -2784,8 +2784,8 @@ msgstr "清理超时"
 msgid "Flush"
 msgstr "清理"
 
-msgid "Flush Fake-IP Cache"
-msgstr "清理 Fake-IP 缓存"
+msgid "Flush Fake Cache"
+msgstr "清理 Fake 缓存"
 
 msgid "No Specify Upload File"
 msgstr "未选择上传文件"
