@@ -23,6 +23,9 @@ fi
 if [ -n "$3" ] && [ "$2" = "one_key_update" ]; then
    github_address_mod="$3"
 fi
+if [ -n "$2" ] && [ "$2" = "one_key_update" ] && [ -z "$3" ]; then
+   github_address_mod=0
+fi
 if [ -n "$2" ] && [ "$2" != "one_key_update" ]; then
    github_address_mod="$2"
 fi
