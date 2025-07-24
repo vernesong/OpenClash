@@ -70,6 +70,7 @@ if [ "$1" = "one_key_update" ]; then
       github_address_mod="$2"
    else
       /usr/share/openclash/openclash_core.sh "Meta" "$1" >/dev/null 2>&1 &
+      github_address_mod=0
    fi
    
    wait
