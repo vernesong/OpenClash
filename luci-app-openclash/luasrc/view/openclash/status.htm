@@ -2361,6 +2361,7 @@
         currentConfig: '',
         currentConfigIndex: -1,
         selectElement: null,
+        rawCurrentConfig: '',
         
         init: function() {
             this.selectElement = document.getElementById('config_file_select');
@@ -2408,6 +2409,7 @@
                     currentConfigFile = data.current;
                 }
                 
+                this.rawCurrentConfig = currentConfigFile;
                 this.configList = configFiles;
                 this.currentConfig = currentConfigFile;
                 this.currentConfigIndex = -1;
@@ -2583,7 +2585,14 @@
 
             if (configNameElement) {
                 var displayName = this.formatDisplayName(configFile);
-                configNameElement.textContent = displayName;
+                if (configFile === this.rawCurrentConfig) {
+                    configNameElement.innerHTML =
+                        '<svg width="0.8em" height="0.8em" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:0.3em;margin-bottom: 0.1em;">' +
+                        '<polygon points="13 2 3 14 12 14 11 22 21 10 13 10 13 2" stroke="currentColor" stroke-width="2" fill="currentColor"/>' +
+                        '</svg>' + displayName;
+                } else {
+                    configNameElement.textContent = displayName;
+                }
                 if (configNameElement.scrollWidth > configNameElement.clientWidth) {
                     configNameElement.title = displayName;
                 } else {
