@@ -17,9 +17,6 @@ msgstr "技术支持"
 msgid "Overviews"
 msgstr "运行状态"
 
-msgid "Plugin Settings"
-msgstr "插件设置"
-
 msgid "Overwrite Settings"
 msgstr "覆写设置"
 
@@ -604,9 +601,6 @@ msgstr "当前内核版本"
 
 msgid "Last Core Version"
 msgstr "最新内核版本"
-
-msgid "Unknown"
-msgstr "查询失败"
 
 msgid "Check Failed"
 msgstr "查询更新失败"
@@ -1410,9 +1404,6 @@ msgstr "最新客户端版本"
 msgid "Download Latest Client"
 msgstr "下载最新版本客户端"
 
-msgid "Download"
-msgstr "下载到本地"
-
 msgid "Restore Default Config"
 msgstr "还原默认配置"
 
@@ -1716,9 +1707,6 @@ msgstr "警告：检测到启用了多个第三方规则配置，忽略后续配
 msgid "Download Successful, Start Preprocessing Rule File..."
 msgstr "下载成功，开始预处理规则文件..."
 
-msgid "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
-msgstr "错误：Ruby 依赖异常，无法校验配置文件，请确认ruby依赖工作正常后重试！"
-
 msgid "Error:"
 msgstr "错误："
 
@@ -1940,9 +1928,6 @@ msgstr "的服务器节点配置..."
 
 msgid "Read Error, Config File"
 msgstr "读取错误，配置文件"
-
-msgid "Abnormal!"
-msgstr "异常！"
 
 msgid "Abnormal!"
 msgstr "异常！"
@@ -2276,9 +2261,6 @@ msgstr "规则没有更新"
 
 msgid "Download Timeout"
 msgstr "下载超时"
-
-msgid "Rule Project:"
-msgstr "规则项目:"
 
 msgid "Rule Project:"
 msgstr "规则项目:"
@@ -2772,9 +2754,6 @@ msgstr "正在收集数据..."
 msgid "Flushing..."
 msgstr "清理中..."
 
-msgid "Flush Fail"
-msgstr "清理失败"
-
 msgid "Flush Successful"
 msgstr "清理成功"
 
@@ -3021,9 +3000,6 @@ msgstr "更新失败"
 msgid "Update Successful"
 msgstr "更新成功"
 
-msgid "Switch Failed"
-msgstr "切换失败"
-
 msgid "Switch Successful"
 msgstr "切换成功"
 
@@ -3195,9 +3171,6 @@ msgstr "设置 Fake-IP 地址范围 (IPv4 Cidr)"
 msgid "IPv6 Settings"
 msgstr "IPv6 设置"
 
-msgid "IPv6 Settings"
-msgstr "IPv6 设置"
-
 msgid "Custom Config Overwrite Scripts Which Will Run After Plugin Own Completely, Please Be Careful, The Wrong Changes May Lead to Exceptions"
 msgstr "自定义配置文件的覆写脚本，此脚本将在插件覆写完成后执行，请谨慎修改，错误的修改可能会导致异常"
 
@@ -3248,9 +3221,6 @@ msgstr "路由器模式"
 
 msgid "Browser Mode"
 msgstr "浏览器模式"
-
-msgid "Refresh"
-msgstr "刷新"
 
 msgid "Refresh"
 msgstr "刷新"
@@ -3347,12 +3317,6 @@ msgstr "错误：绕过代理服务器地址设置失败，"
 
 msgid "Flush Failed"
 msgstr "清理失败"
-
-msgid "Flush Successful"
-msgstr "清理成功"
-
-msgid "Flush Timeout"
-msgstr "清理超时"
 
 msgid "Respect Rules"
 msgstr "遵循规则"
@@ -3723,9 +3687,6 @@ msgstr "可选"
 msgid "Custom"
 msgstr "自定义"
 
-msgid "Enter custom User-Agent"
-msgstr "输入自定义 User-Agent"
-
 msgid "Config Name"
 msgstr "配置名称"
 
@@ -3813,9 +3774,6 @@ msgstr "处理失败"
 msgid "Close"
 msgstr "关闭"
 
-msgid "File Edit"
-msgstr "文件编辑"
-
 msgid "Loading..."
 msgstr "加载中..."
 
@@ -3863,9 +3821,6 @@ msgstr "配置文件加载失败"
 
 msgid "Load failed"
 msgstr "加载失败"
-
-msgid "Saving..."
-msgstr "保存中..."
 
 msgid "Config file content is empty"
 msgstr "配置文件内容为空"
@@ -3977,9 +3932,6 @@ msgstr "发现新版本"
 
 msgid "Failed to get subscription config"
 msgstr "获取订阅配置失败"
-
-msgid "Failed to download subscription config"
-msgstr "下载订阅配置失败"
 
 msgid "Expire Date"
 msgstr "到期时间"
