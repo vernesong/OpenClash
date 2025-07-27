@@ -101,11 +101,7 @@
 
 .oc .myip-main-card {
     background: var(--bg-white, #ffffff);
-    border: 1px solid var(--border-light, #e5e7eb);
-    border-radius: var(--radius-lg);
-    padding: var(--card-padding);
-    box-shadow: var(--shadow-md);
-    margin: 12px auto;
+    margin: 0 auto;
     width: 100%;
     transition: all var(--transition-fast);
 }
@@ -113,8 +109,12 @@
 .oc .myip-content-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--border-light, #e5e7eb);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
     gap: 12px;
     align-items: start;
+    padding: var(--card-padding);
 }
 
 .oc .myip-ip-section {
@@ -402,11 +402,6 @@
     color: var(--primary-color, #3b82f6);
 }
 
-@media screen and (max-width: 1200px) {
-    .oc .myip-main-card {
-        margin: 11px auto;
-    }
-}
 
 @media screen and (max-width: 768px) {
     .oc {
@@ -416,10 +411,6 @@
     
     .oc .myip-content-grid {
         grid-template-columns: 1fr;
-    }
-    
-    .oc .myip-main-card {
-        margin: 10px auto;
     }
     
     .oc .myip-section-title {
@@ -471,9 +462,8 @@
         --card-item-min-height: 70px;
     }
     
-    .oc .myip-main-card {
-        padding: 8px;
-        margin: 8px auto;
+    .oc .myip-content-grid {
+        padding: 2px;
     }
     
     .oc .myip-section-title {
