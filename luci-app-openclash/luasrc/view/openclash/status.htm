@@ -313,7 +313,7 @@
 .oc .card-title {
     font-size: clamp(10px, 2.5vw, 14px);
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-title);
     letter-spacing: 0.5px;
     margin-bottom: 10px;
     display: flex;
@@ -1018,7 +1018,7 @@
 .oc .config-file-name {
     font-size: 20px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     flex: 1 1 0%;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -2612,7 +2612,7 @@
                 var displayName = this.formatDisplayName(configFile);
                 if (configFile === this.rawCurrentConfig) {
                     configNameElement.innerHTML =
-                        '<svg width="0.6em" height="0.6em" viewBox="0 0 24 24" fill="var(--primary-color)" style="vertical-align:middle;margin-right:0.1em;margin-bottom:0.2em;">' +
+                        '<svg width="0.6em" height="0.6em" viewBox="0 0 24 24" fill="var(--primary-color)" style="vertical-align:middle;margin-right:0.2em;margin-bottom:0.2em;">' +
                         '<circle cx="12" cy="12" r="8" fill="var(--primary-color)"/>' +
                         '</svg>' + displayName;
                 } else {
