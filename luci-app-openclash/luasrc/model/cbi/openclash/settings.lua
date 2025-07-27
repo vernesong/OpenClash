@@ -120,10 +120,8 @@ o:value("0", translate("Disable"))
 o:value("1", translate("Dnsmasq Redirect"))
 o:value("2", translate("Firewall Redirect"))
 
-if op_mode == "fake-ip" then
-o = s:taboption("dns", DummyValue, "flush_fakeip_cache", translate("Flush Fake-IP Cache"))
-o.template = "openclash/flush_fakeip_cache"
-end
+o = s:taboption("dns", DummyValue, "flush_dns_cache", translate("Flush DNS Cache"))
+o.template = "openclash/flush_dns_cache"
 
 o = s:taboption("dns", Flag, "enable_custom_domain_dns_server", translate("Enable Specify DNS Server"))
 o.default = 0

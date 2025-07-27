@@ -173,6 +173,7 @@
     max-width: 100%;
     box-sizing: border-box;
     overflow-x: hidden;
+    border-radius: var(--radius-lg);
 }
 
 .oc .main-cards-container {
@@ -180,13 +181,29 @@
     grid-template-columns: 1fr 1fr;
     grid-template-rows: minmax(60px, auto) 1fr;
     gap: 10px;
-    margin: 16px auto;
+    margin: 0 auto;
     align-items: start;
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
     overflow-x: auto;
     overflow-y: visible;
+}
+
+.oc .announcement-card {
+    grid-column: 1 / 3;
+    grid-row: 1;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background: var(--bg-white);
+    display: flex;
+    align-items: stretch;
+    margin: 0;
+    padding: 12px;
 }
 
 .oc .main-card {
@@ -1108,6 +1125,7 @@
     justify-self: center;
     align-self: center;
     box-sizing: border-box;
+    margin: 0 auto;
 }
 
 .oc .announcement-content {
@@ -1192,11 +1210,16 @@
         width: 80%;
         max-width: 95%;
     }
+
+    .oc .announcement-card {
+        grid-column: 1;
+        width: 100%;
+        max-width: 100%;
+    }
     
     .oc .main-card {
         grid-column: 1;
         grid-template-rows: auto auto auto auto;
-        margin-bottom: 14px;
         max-width: 100%;
         width: 100%;
     }
@@ -1598,12 +1621,14 @@
         <td colspan="4">
             <div class="oc">
                 <div class="main-cards-container">
-                    <div id="announcement-banner" class="announcement-banner">
-                        <div class="megaphone-container"></div>
-                        <svg id="megaphone" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 256 256">
-                            <path d="M228.54,86.66l-176.06-54A16,16,0,0,0,32,48V192a16,16,0,0,0,16,16,16,16,0,0,0,4.52-.65L136,181.73V192a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16v-29.9l28.54-8.75A16.09,16.09,0,0,0,240,138V102A16.09,16.09,0,0,0,228.54,86.66ZM136,165,48,192V48l88,27Zm48,27H152V176.82L184,167Zm40-54-.11,0L152,160.08V79.92l71.89,22,.11,0v36Z"></path>
-                        </svg>
-                        <div id="announcement-content" class="announcement-content"></div>
+                    <div class="announcement-card">
+                        <div id="announcement-banner" class="announcement-banner">
+                            <div class="megaphone-container"></div>
+                            <svg id="megaphone" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 256 256">
+                                <path d="M228.54,86.66l-176.06-54A16,16,0,0,0,32,48V192a16,16,0,0,0,16,16,16,16,0,0,0,4.52-.65L136,181.73V192a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16v-29.9l28.54-8.75A16.09,16.09,0,0,0,240,138V102A16.09,16.09,0,0,0,228.54,86.66ZM136,165,48,192V48l88,27Zm48,27H152V176.82L184,167Zm40-54-.11,0L152,160.08V79.92l71.89,22,.11,0v36Z"></path>
+                            </svg>
+                            <div id="announcement-content" class="announcement-content"></div>
+                        </div>
                     </div>
                     <div class="main-card">
                         <!-- Row 1: Running Status -->
@@ -1850,7 +1875,7 @@
                                 <div class="quick-actions-buttons">
                                     <button class="dashboard-btn" id="_close_all_connection_btn"><%:Collecting data...%></button>
                                     <button class="dashboard-btn" id="_reload_firewall_btn"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn" id="_flush_fakeip_cache_btn"><%:Collecting data...%></button>
+                                    <button class="dashboard-btn" id="_flush_dns_cache_btn"><%:Collecting data...%></button>
                                     <button class="dashboard-btn" id="_one_key_update_btn"><%:Collecting data...%></button>
                                 </div>
                             </div>
@@ -1889,7 +1914,7 @@
         close_all_connection: document.getElementById('_close_all_connection'),
         reload_firewall: document.getElementById('_reload_firewall'),
         one_key_update: document.getElementById('_one_key_update'),
-        flush_fakeip_cache: document.getElementById('_flush_fakeip_cache'),
+        flush_dns_cache: document.getElementById('_flush_dns_cache'),
         radio_mode: document.getElementById('radio-mode'),
         radio: document.getElementsByName("radios"),
         radio_ru: document.getElementsByName("radios-ru"),
@@ -2587,8 +2612,8 @@
                 var displayName = this.formatDisplayName(configFile);
                 if (configFile === this.rawCurrentConfig) {
                     configNameElement.innerHTML =
-                        '<svg width="0.8em" height="0.8em" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:0.3em;margin-bottom: 0.1em;">' +
-                        '<polygon points="13 2 3 14 12 14 11 22 21 10 13 10 13 2" stroke="currentColor" stroke-width="2" fill="currentColor"/>' +
+                        '<svg width="0.6em" height="0.6em" viewBox="0 0 24 24" fill="var(--primary-color)" style="vertical-align:middle;margin-right:0.1em;margin-bottom:0.2em;">' +
+                        '<circle cx="12" cy="12" r="8" fill="var(--primary-color)"/>' +
                         '</svg>' + displayName;
                 } else {
                     configNameElement.textContent = displayName;
@@ -3672,8 +3697,8 @@
             var reloadFwContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Reload Firewall%>" onclick="return b_reload_firewall(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Reload Firewall%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_reload_firewall_btn'), content: reloadFwContent});
 
-            var flushCacheContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Flush Fake Cache%>" onclick="return b_flush_fakeip_cache(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Flush Fake Cache%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
-            updates.push({element: document.getElementById('_flush_fakeip_cache_btn'), content: flushCacheContent});
+            var flushCacheContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Flush DNS Cache%>" onclick="return b_flush_dns_cache(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Flush DNS Cache%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            updates.push({element: document.getElementById('_flush_dns_cache_btn'), content: flushCacheContent});
 
             var oneKeyUpdateContent = '<input type="button" class="dashboard-btn" value="<%:Check Update%>" onclick="return all_one_key_update(this)"/>';
             updates.push({element: document.getElementById('_one_key_update_btn'), content: oneKeyUpdateContent});
@@ -4213,10 +4238,10 @@
         return false;
     });
     
-    var b_flush_fakeip_cache = debounceButton(function(btn) {
+    var b_flush_dns_cache = debounceButton(function(btn) {
         btn.disabled = true;
         btn.value = '<%:Flushing...%> ';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_fakeip_cache")%>', null, function(x, status) {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_dns_cache")%>', null, function(x, status) {
             if (x && x.status == 200) {
                 btn.value = (status.flush_status == "0" || status.flush_status != "") ? '<%:Flush Failed%>' : '<%:Flush Successful%>';
             } else {
