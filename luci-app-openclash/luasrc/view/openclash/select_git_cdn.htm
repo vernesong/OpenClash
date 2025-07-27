@@ -51,6 +51,7 @@
     line-height: 1.6;
     color: var(--text-primary);
     background-color: var(--bg-light);
+    border-radius: var(--radius-lg);
 }
 
 .select-popup {
@@ -121,6 +122,9 @@
     background: var(--bg-gray);
     flex-shrink: 0;
     margin-bottom: 20px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
 }
 
 .select-config-section {
@@ -269,6 +273,11 @@
     flex-direction: row;
 }
 
+.select-option span {
+    white-space: normal;
+    word-break: break-all;
+}
+
 .select-option:last-child {
     border-bottom: none;
 }
@@ -289,9 +298,9 @@
 }
 
 .custom-option-input {
-    margin: 12px;
+    margin: 12px auto;
     padding: 12px;
-    width: calc(100% - 24px);
+    width: calc(100% - 24px) !important;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-sm);
     background: var(--bg-white);
@@ -332,6 +341,7 @@
     padding: 4px 8px;
     border-radius: var(--radius-sm);
     margin-left: 8px;
+    white-space: nowrap !important;
 }
 
 .cdn-status.fast {
@@ -373,9 +383,9 @@
 
 @media screen and (max-width: 768px) {
     .select-popup {
-        min-width: 95%;
-        width: 95%;
-        padding: 20px;
+        min-width: 80%;
+        width: 80%;
+        padding: 15px;
         max-height: 90vh;
         overflow-y: auto;
     }
@@ -419,9 +429,9 @@
 
 @media screen and (max-width: 575px) {
     .select-popup {
-        min-width: 98%;
-        width: 98%;
-        padding: 16px;
+        min-width: 80%;
+        width: 80%;
+        padding: 12px;
     }
     
     .select-popup-header {

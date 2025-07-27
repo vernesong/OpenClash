@@ -2,11 +2,11 @@
 
 <script type="text/javascript">//<![CDATA[
 
-	function act_flush_fakeip_cache(btn)
+	function act_flush_dns_cache(btn)
 	{
 		btn.disabled = true;
 		btn.value    = '<%:Flushing...%> ';
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_fakeip_cache")%>',
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_dns_cache")%>',
 			null,
 			function(x,status)
 			{
@@ -33,5 +33,5 @@
 //]]></script>
 
 
-<input type="button" class="btn cbi-button cbi-input-reload" value="<%:Flush%>" onclick="return act_flush_fakeip_cache(this)" />
+<input type="button" class="btn cbi-button cbi-input-reload" value="<%:Flush%>" onclick="return act_flush_dns_cache(this)" />
 <%+cbi/valuefooter%>

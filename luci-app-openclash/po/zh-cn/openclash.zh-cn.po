@@ -2784,8 +2784,8 @@ msgstr "清理超时"
 msgid "Flush"
 msgstr "清理"
 
-msgid "Flush Fake Cache"
-msgstr "清理 Fake 缓存"
+msgid "Flush DNS Cache"
+msgstr "清理 DNS 缓存"
 
 msgid "No Specify Upload File"
 msgstr "未选择上传文件"
