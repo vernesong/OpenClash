@@ -102,7 +102,7 @@ case "${DISTRIB_ARCH}" in
 		CORE_ARCH="linux-mipsle-softfloat"
 		;;
 	x86_64)
-		CORE_ARCH="linux-amd64"
+		CORE_ARCH="linux-amd64-v1"
 		;;
 	*)
 		CORE_ARCH="0"
