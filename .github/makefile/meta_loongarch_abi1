@@ -9,7 +9,7 @@ GOBUILD=CGO_ENABLED=0 go build -tags with_gvisor -trimpath -ldflags '-X "github.
 PLATFORM_LIST = \
 	linux-loong64-abi1
 
-all: linux-loong64-abi1 # Most used
+all: linux-loong64-abi1
 	
 linux-loong64-abi1:
 	GOARCH=loong64 GOOS=linux $(GOBUILD) -o $(BINDIR)/clash

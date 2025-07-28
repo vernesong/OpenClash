@@ -8,7 +8,10 @@ GOBUILD=CGO_ENABLED=0 go build -tags with_gvisor -trimpath -ldflags '-X "github.
 
 PLATFORM_LIST = \
 	linux-386 \
+	linux-amd64-compatible \
 	linux-amd64 \
+	linux-amd64-v1 \
+	linux-amd64-v2 \
 	linux-amd64-v3 \
 	linux-armv5 \
 	linux-armv6 \
