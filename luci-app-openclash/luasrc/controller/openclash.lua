@@ -3160,7 +3160,11 @@ function action_oc_action()
 	if action == "start" then
 		uci:set("openclash", "config", "enable", "1")
 		uci:commit("openclash")
-		luci.sys.call("/etc/init.d/openclash start >/dev/null 2>&1")
+        if not is_running() then
+            luci.sys.call("/etc/init.d/openclash start >/dev/null 2>&1")
+        else
+            luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1")
+        end
 	elseif action == "stop" then
 		uci:set("openclash", "config", "enable", "0")
 		uci:commit("openclash")
