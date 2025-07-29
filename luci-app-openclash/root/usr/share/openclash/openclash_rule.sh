@@ -16,18 +16,6 @@ del_lock() {
 }
 
 set_lock
-
-JOB_COUNTER_FILE="/tmp/openclash_jobs"
-
-inc_job_counter() {
-   flock -x 999
-   local cnt=0
-   [ -f "$JOB_COUNTER_FILE" ] && cnt=$(cat "$JOB_COUNTER_FILE")
-   cnt=$((cnt+1))
-   echo "$cnt" > "$JOB_COUNTER_FILE"
-   flock -u 999
-}
-exec 999>"/tmp/lock/openclash_jobs.lock"
 inc_job_counter
 
 yml_other_rules_dl()
@@ -169,30 +157,8 @@ else
    fi
 fi
 
-dec_job_counter_and_restart() {
-   flock -x 999
-   local cnt=0
-   [ -f "$JOB_COUNTER_FILE" ] && cnt=$(cat "$JOB_COUNTER_FILE")
-   cnt=$((cnt-1))
-   [ $cnt -lt 0 ] && cnt=0
-   echo "$cnt" > "$JOB_COUNTER_FILE"
-   if [ $cnt -eq 0 ]; then
-      if [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
-         /etc/init.d/openclash restart >/dev/null 2>&1 &
-      elif [ "$restart" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
-         /etc/init.d/openclash restart >/dev/null 2>&1 &
-         uci -q set openclash.config.restart=0
-         uci -q commit openclash
-      elif [ "$restart" -eq 1 ]; then
-         uci -q set openclash.config.restart=1
-         uci -q commit openclash
-      fi
-      rm -rf "$JOB_COUNTER_FILE" >/dev/null 2>&1
-   fi
-   flock -u 999
-}
-
 rm -rf /tmp/rules.yaml >/dev/null 2>&1
+
 SLOG_CLEAN
-dec_job_counter_and_restart
+dec_job_counter_and_restart "$restart"
 del_lock
