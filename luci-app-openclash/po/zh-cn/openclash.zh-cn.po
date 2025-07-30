@@ -906,13 +906,13 @@ msgstr "指定策略组"
 msgid "No Need Set when Config Create, The added Proxy Groups Must Exist"
 msgstr "注意：使用一键生成配置文件功能时无需设置此项，修改配置文件前添加的策略组必须已创建"
 
-msgid "Clean Log"
+msgid "Clean"
 msgstr "清理日志"
 
-msgid "Stop Refresh Log"
+msgid "Stop Refresh"
 msgstr "停止刷新"
 
-msgid "Start Refresh Log"
+msgid "Start Refresh"
 msgstr "开始刷新"
 
 msgid "Config File"

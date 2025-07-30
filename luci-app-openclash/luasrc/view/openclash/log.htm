@@ -86,6 +86,12 @@ ul{
 	background-color: #1080c1;
 }
 
+.btn-group {
+  display: flex;
+  justify-content: space-between;
+  width: 80%;
+  margin: 10px auto;
+}
 </style>
 
 <body>
@@ -119,22 +125,12 @@ ul{
 	</div>
 
 <fieldset style="text-align: center; width: 100%" class="cbi-section">
-	<table>
-		<tr>
-			<td style="text-align: center; width: 25%">
-				<input type="button" class="btn cbi-button cbi-button-apply" id="stop_refresh_button" value="<%:Stop Refresh Log%>" onclick=" return stop_refresh() "/>
-			</td>
-			<td style="text-align: center; width: 25%">
-				<input type="button" class="btn cbi-button cbi-button-apply" id="start_refresh_button" value="<%:Start Refresh Log%>" onclick=" return start_refresh() "/>
-			</td>
-			<td style="text-align: center; width: 25%">
-				<input type="button" class="btn cbi-button cbi-button-apply" id="del_log_button" value="<%:Clean Log%>" style=" display:inline;" onclick=" return del_log() " />
-			</td>
-			<td style="text-align: center; width: 25%">
-				<input type="button" class="btn cbi-button cbi-button-apply" id="down_log_button" value="<%:Download Log%>" style=" display:inline;" onclick=" return download_log() " />
-			</td>
-		</tr>
-	</table>
+  <div class="btn-group">
+    <input type="button" class="btn cbi-button cbi-button-apply" id="stop_refresh_button" value="<%:Stop Refresh%>" onclick=" return stop_refresh() "/>
+    <input type="button" class="btn cbi-button cbi-button-apply" id="start_refresh_button" value="<%:Start Refresh%>" onclick=" return start_refresh() "/>
+    <input type="button" class="btn cbi-button cbi-button-apply" id="del_log_button" value="<%:Clean%>" onclick=" return del_log() " />
+    <input type="button" class="btn cbi-button cbi-button-apply" id="down_log_button" value="<%:Download Log%>" onclick=" return download_log() " />
+  </div>
 </fieldset>
 </body>
 
