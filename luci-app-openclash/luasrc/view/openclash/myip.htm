@@ -179,6 +179,9 @@
     text-align: center;
     position: relative;
     max-height: 104px;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .oc .myip-ip-item:hover,
@@ -226,6 +229,10 @@
     justify-content: center;
     min-height: 50px;
     line-height: 15px;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0px 6px;
 }
 
 .oc .ip-result {
@@ -237,6 +244,8 @@
     text-align: center;
     font-weight: 500;
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .oc .ip-geo {
@@ -247,6 +256,7 @@
     text-overflow: ellipsis;
     text-align: center;
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     white-space: normal;
@@ -262,6 +272,7 @@
     flex: 1;
     justify-content: center;
     min-height: 50px;
+    padding: 0px 6px;
 }
 
 .oc .sk-text-success,
