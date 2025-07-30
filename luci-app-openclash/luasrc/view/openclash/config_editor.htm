@@ -14,9 +14,6 @@
 	.CodeMirror-merge-2pane .CodeMirror-merge-gap {
 		height: 700px !important;
 	}
-	.CodeMirror-merge-gap {
-		background: #d0cfcf !important;
-	}
 	.CodeMirror-merge-r-connect {
 		fill: #0095ff2e !important;
 		stroke: #0095ff2e !important;
@@ -31,6 +28,9 @@
 		box-sizing: border-box;
 		word-break: break-all !important;
 		overflow-wrap: break-word !important;
+	}
+	:root[data-darkmode="true"] .CodeMirror-merge-gap {
+		background: #d0cfcf !important;
 	}
 </style>
 <link rel="stylesheet" href="/luci-static/resources/openclash/lib/codemirror.css"/>

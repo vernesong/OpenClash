@@ -2474,6 +2474,11 @@
                 }
                 
                 this.updateNavigationArrows();
+
+                if (this._retryGetConfigList) {
+                    clearInterval(this._retryGetConfigList);
+                    this._retryGetConfigList = null;
+                }
                 
             } catch (e) {
                 this.handleConfigListError();
@@ -2487,6 +2492,13 @@
             
             this.toggleEmptyState(true);
             this.hideSubscriptionDisplay();
+
+            if (!this._retryGetConfigList) {
+                var self = this;
+                this._retryGetConfigList = setInterval(function() {
+                    self.loadConfigFileList();
+                }, 5000);
+            }
         },
 
         toggleEmptyState: function(isEmpty) {
@@ -3646,15 +3658,15 @@
         
         setTimeout(function() {
             ConfigFileManager.init();
-        }, 200);
+        }, 100);
         
         setTimeout(function() {
             SubscriptionManager.init();
-        }, 200);
+        }, 300);
 
         setTimeout(function() {
             check_core();
-        }, 800);
+        }, 1000);
 
         setTimeout(function() {
             loadAnnouncement();
