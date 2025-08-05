@@ -350,6 +350,9 @@ msgstr "更新时间(每天)"
 msgid "Update Interval(min)"
 msgstr "更新间隔(分钟)"
 
+msgid "Update Interval(hour)"
+msgstr "更新间隔(小时)"
+
 msgid "Update Mode"
 msgstr "更新模式"
 
@@ -2838,6 +2841,9 @@ msgstr "启用后将尽可能的覆盖DNS查询到的域名"
 msgid "Meta Settings"
 msgstr "Meta 设置"
 
+msgid "Smart Settings"
+msgstr "Smart 设置"
+
 msgid "Geodata Loader Mode"
 msgstr "Geodata 数据加载方式"
 
@@ -3992,3 +3998,60 @@ msgstr "运行配置"
 
 msgid "Runtime config (read only)"
 msgstr "运行配置（只读）"
+
+msgid "Start Downloading LightGBM Model..."
+msgstr "开始下载 LightGBM 模型..."
+
+msgid "LightGBM Model Download Success, Check Updated..."
+msgstr "LightGBM 模型下载成功，检查是否有更新..."
+
+msgid "LightGBM Model Has Been Updated, Starting To Replace The Old Version..."
+msgstr "LightGBM 模型有更新，正在替换旧版本..."
+
+msgid "LightGBM Model Update Successful!"
+msgstr "LightGBM 模型更新成功！"
+
+msgid "Updated LightGBM Model No Change, Do Nothing..."
+msgstr "LightGBM 模型没有更新，停止继续操作..."
+
+msgid "LightGBM Model Update Error, Please Try Again Later..."
+msgstr "LightGBM 模型更新失败，请检查网络或稍后再试..."
+
+msgid "Smart Auto Switch"
+msgstr "Smart 策略自动切换"
+
+msgid "Auto Swith Url-test and Fallback and Load-balance Group to Smart Group"
+msgstr "自动切换 Url-test、Fallback、Load-balance 策略组到 Smart 策略组"
+
+msgid "Auto Update LightGBM Model"
+msgstr "自动更新模型"
+
+msgid "Custom Model URL"
+msgstr "自定义模型更新 URL"
+
+msgid "Custom LightGBM Model URL, Click Button Below To Refresh After Edit"
+msgstr "自定义模型的更新来源，编辑后点击下方按钮生效"
+
+msgid "Colletct Training Data"
+msgstr "收集训练数据"
+
+msgid "Data Colletct File Size (MB)"
+msgstr "数据收集文件大小（MB）"
+
+msgid "Limit The File Size of Collected Data, The Default is 100MB"
+msgstr "限制数据收集文件大小，默认为 100MB"
+
+msgid "Data Colletct Rate"
+msgstr "数据收集采样率"
+
+msgid "Data Acquisition Rate, Desirable Values are 0-1, The Default is 1"
+msgstr "指定数据收集时的采样率，值为 0-1 之间的数字，默认为 1"
+
+msgid "Node Select Strategy"
+msgstr "节点选择策略"
+
+msgid "Before Node Data Collect Completely, The Default is Sticky-sessions"
+msgstr "在收集到足够数据并优选前，使用指定策略选择节点，默认为粘性会话（sticky-sessions）"
+
+msgid "Error: Setting Smart Auto Switch Failed,"
+msgstr "错误：Smart 策略组自动切换失败，"
