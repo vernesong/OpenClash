@@ -813,7 +813,7 @@ o = s:taboption("rules_update", Button, translate("Other Rules Update"))
 o:depends("other_rule_auto_update", "1")
 o.title = translate("Update Other Rules")
 o.inputtitle = translate("Check And Update")
-o.description = translate("Other Rules Update(Only in Use)")
+o.description = translate("Other Rules Update(Only in Use)")..", "..translate("Current Version:").." "..font_green..bold_on..fs.get_resourse_mtime("/usr/share/openclash/res/lhie1.yaml")..bold_off..font_off
 o.inputstyle = "reload"
 o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
@@ -856,6 +856,7 @@ o:depends("geo_auto_update", "1")
 
 o = s:taboption("geo_update", Button, translate("GEOIP Update")) 
 o.title = translate("Update GeoIP MMDB")
+o.description = translate("Current Version:").." "..font_green..bold_on..fs.get_resourse_mtime("/etc/openclash/Country.mmdb")..bold_off..font_off
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
@@ -898,6 +899,7 @@ o:depends("geoip_auto_update", "1")
 
 o = s:taboption("geo_update", Button, translate("GEOIP Dat Update")) 
 o.title = translate("Update GeoIP Dat")
+o.description = translate("Current Version:").." "..font_green..bold_on..fs.get_resourse_mtime("/etc/openclash/GeoIP.dat")..bold_off..font_off
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
@@ -940,6 +942,7 @@ o:depends("geosite_auto_update", "1")
 
 o = s:taboption("geo_update", Button, translate("GEOSITE Update")) 
 o.title = translate("Update GeoSite Database")
+o.description = translate("Current Version:").." "..font_green..bold_on..fs.get_resourse_mtime("/etc/openclash/GeoSite.dat")..bold_off..font_off
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
@@ -982,6 +985,7 @@ o:depends("geoasn_auto_update", "1")
 
 o = s:taboption("geo_update", Button, translate("ASN Update")) 	
 o.title = translate("Update Geo ASN Database")
+o.description = translate("Current Version:").." "..font_green..bold_on..fs.get_resourse_mtime("/etc/openclash/ASN.mmdb")..bold_off..font_off
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()

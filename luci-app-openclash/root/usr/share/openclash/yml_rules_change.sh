@@ -807,7 +807,7 @@ yml_other_set()
          if '${10}' == '1' and Value.key?('proxy-groups') then
             Value['proxy-groups'].each{|group|
                threads << Thread.new {
-                  if ['url-test', 'fallback', 'load-balance'].include?(group['type']) then
+                  if ['url-test', 'load-balance'].include?(group['type']) then
                      group['type'] = 'smart';
                      group['uselightgbm'] = true;
                      group['strategy'] = '${13}';
