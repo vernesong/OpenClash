@@ -27,6 +27,7 @@ function index()
 	entry({"admin", "services", "openclash", "opupdate"},call("action_opupdate"))
 	entry({"admin", "services", "openclash", "coreupdate"},call("action_coreupdate"))
 	entry({"admin", "services", "openclash", "flush_dns_cache"}, call("action_flush_dns_cache"))
+    entry({"admin", "services", "openclash", "flush_smart_cache"}, call("action_flush_smart_cache"))
 	entry({"admin", "services", "openclash", "update_config"}, call("action_update_config"))
 	entry({"admin", "services", "openclash", "download_rule"}, call("action_download_rule"))
 	entry({"admin", "services", "openclash", "restore"}, call("action_restore_config"))
@@ -413,6 +414,21 @@ function action_flush_dns_cache()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 		flush_status = dns_state;
+	})
+end
+
+function action_flush_smart_cache()
+	local state = 0
+	if is_running() then
+		local daip = daip()
+		local dase = dase() or ""
+		local cn_port = cn_port()
+		if not daip or not cn_port then return end
+        flush_state = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/smart/flush', dase, daip, cn_port))
+    end
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		flush_status = flush_state;
 	})
 end
 
