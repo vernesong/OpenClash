@@ -4064,3 +4064,12 @@ msgstr "清理 Smart 缓存"
 
 msgid "Current Version:"
 msgstr "当前版本:"
+
+msgid "Light Version"
+msgstr "轻量版"
+
+msgid "Middle Version"
+msgstr "中等版"
+
+msgid "Large Version"
+msgstr "完整版"
