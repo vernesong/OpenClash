@@ -383,7 +383,7 @@ o = s:taboption("smart", Value, "lgbm_custom_url")
 o.title = translate("Custom Model URL")
 o.rmempty = true
 o.description = translate("Custom LightGBM Model URL, Click Button Below To Refresh After Edit")
-o:value("https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/Model.bin", translate("Light Version")..translate("(Default)"))
+o:value("https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/Model.bin", translate("Light Version").." "..translate("(Default)"))
 o:value("https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/model-middle.bin", translate("Middle Version"))
 o:value("https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/model-large.bin", translate("Large Version"))
 o.default = "https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/Model.bin"
