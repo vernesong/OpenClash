@@ -2232,8 +2232,8 @@ msgstr "签到间隔（小时）"
 msgid "Checkin Multiple"
 msgstr "签到倍数"
 
-msgid "Multiple Must Be a Positive Integer and No More Than 50"
-msgstr "倍数必须是正整数且不大于50"
+msgid "Multiple Must Be a Positive Integer and No More Than 100"
+msgstr "倍数必须是正整数且不大于 100"
 
 msgid "Dler Cloud Checkin Successful, Result:"
 msgstr "Dler Cloud 签到成功，结果："
@@ -4020,7 +4020,7 @@ msgstr "LightGBM 模型更新失败，请检查网络或稍后再试..."
 msgid "Smart Auto Switch"
 msgstr "Smart 策略自动切换"
 
-msgid "Auto Swith Url-test and Fallback and Load-balance Group to Smart Group"
+msgid "Auto Switch Url-test and Fallback and Load-balance Group to Smart Group"
 msgstr "自动切换 Url-test、Fallback、Load-balance 策略组到 Smart 策略组"
 
 msgid "Auto Update LightGBM Model"
@@ -4028,6 +4028,9 @@ msgstr "自动更新模型"
 
 msgid "Custom Model URL"
 msgstr "自定义模型更新 URL"
+
+msgid "Update Model"
+msgstr "更新模型"
 
 msgid "Custom LightGBM Model URL, Click Button Below To Refresh After Edit"
 msgstr "自定义模型的更新来源，编辑后点击下方按钮生效"
