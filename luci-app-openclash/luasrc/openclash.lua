@@ -287,3 +287,17 @@ function lanip()
 	end
 	return lan_ip
 end
+
+function get_resourse_mtime(path)
+	if fs.access(path) then
+		local file = fs.readlink(path) or path
+		local model_version = os.date("%Y-%m-%d %H:%M:%S",mtime(path))
+		if model_version and model_version ~= "" then
+			return model_version
+		else
+			return "Unknown"
+		end
+	else
+		return "File Not Exist"
+	end
+end

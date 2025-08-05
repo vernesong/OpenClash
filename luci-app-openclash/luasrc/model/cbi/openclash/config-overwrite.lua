@@ -348,7 +348,7 @@ end
 
 -- Smart Settings
 o = s:taboption("smart", Flag, "auto_smart_switch", font_red..bold_on..translate("Smart Auto Switch")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Auto Switch Url-test and Fallback and Load-balance Group to Smart Group")..bold_off..font_off
+o.description = font_red..bold_on..translate("Auto Switch Url-test and Load-balance Group to Smart Group")..bold_off..font_off
 o.default = 0
 
 o = s:taboption("smart", ListValue, "smart_strategy", translate("Node Select Strategy"))
@@ -383,11 +383,14 @@ o = s:taboption("smart", Value, "lgbm_custom_url")
 o.title = translate("Custom Model URL")
 o.rmempty = true
 o.description = translate("Custom LightGBM Model URL, Click Button Below To Refresh After Edit")
-o:value("https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/Model.bin", translate("Github-Raw-Version")..translate("(Default)"))
+o:value("https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/Model.bin", translate("Light Version")..translate("(Default)"))
+o:value("https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/model-middle.bin", translate("Middle Version"))
+o:value("https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/model-large.bin", translate("Large Version"))
 o.default = "https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/Model.bin"
 o:depends("lgbm_auto_update", "1")
 
-o = s:taboption("smart", Button, translate("Model Update")) 
+o = s:taboption("smart", Button, translate("Model Update"))
+o.description = translate("Current Version:").." "..font_green..bold_on..fs.get_resourse_mtime("/etc/openclash/model.bin")..bold_off..font_off
 o.title = translate("Update Model")
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
@@ -397,6 +400,9 @@ o.write = function()
   SYS.call("/usr/share/openclash/openclash_lgbm.sh >/dev/null 2>&1 &")
   HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
+
+o = s:taboption("smart", DummyValue, "flush_smart_cache", translate("Flush Smart Cache"))
+o.template = "openclash/flush_smart_cache"
 
 ---- Rules Settings
 o = s:taboption("rules", Flag, "rule_source", translate("Enable Other Rules"))
