@@ -14,89 +14,251 @@ ul{
 	overflow: hidden;
 }
 
-#tab-header{
-	min-height: 35px;
-	text-align: center;
-	position: relative;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+#tab-header {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+    background: var(--bg-gray, #f1f5f9);
+    min-width: 0;
+    box-shadow: none;
+    position: relative;
+    z-index: 1;
 }
-#tab-header ul{
-	left: -1px;
-	width: 100%;
-	padding: unset !important;
-	margin: unset !important;
+
+#tab-header ul.cbi-tabmenu {
+    display: flex;
+    width: 100%;
+    background: #f1f5f9;
+    border-radius: 8px;
+    border-bottom: none !important;
+    border: none !important;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
 }
-#tab-header ul li{
-	float: left;
-	width: 160px;
-	line-height: 35px;
-	padding: 0 1px;
-	border-right: 1px solid #dddddd;
-	cursor: pointer;
+
+#tab-header ul.cbi-tabmenu li {
+    flex: 1 1 0;
+    min-width: 0;
+    width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 0;
+    height: 40px;
+    font-size: 15px;
+    font-weight: 500;
+    color: #64748b;
+    background: transparent;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.18s;
+    margin: 0;
+    user-select: none;
+    position: relative;
+    box-sizing: border-box;
 }
-#tab-header ul li a{
-	float: unset !important;
-	padding: unset !important;
-	vertical-align: middle;
-	white-space: nowrap;
-	overflow: hidden;
-	text-overflow: ellipsis;
+
+#tab-header ul.cbi-tabmenu li.cbi-tab {
+    background: #3b82f6;
+    color: #fff;
+    font-weight: 600;
+    z-index: 2;
+    border-radius: 6px;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.03);
 }
-#tab-header ul li.cbi-tab > a{
-  font-weight: bolder;
-  color: unset;
+
+#tab-header ul.cbi-tabmenu li.cbi-tab a {
+    color: #fff !important;
+    font-weight: 600;
 }
-#tab-header ul li a:hover{
-	color: orangered;
+
+#tab-header ul.cbi-tabmenu li.cbi-tab-disabled {
+    color: #fff;
+    background: #f9f9f9;
+    opacity: 0.7;
+    cursor: pointer;
 }
+
+#tab-header ul.cbi-tabmenu li.cbi-tab-disabled a {
+    color: #000 !important;
+}
+
+#tab-header ul.cbi-tabmenu li:not(.cbi-tab):hover,
+#tab-header ul.cbi-tabmenu li:not(.cbi-tab):focus {
+    color: #3b82f6;
+    background: rgba(59,130,246,0.10);
+}
+
+#tab-header ul.cbi-tabmenu li:not(.cbi-tab):hover a,
+#tab-header ul.cbi-tabmenu li:not(.cbi-tab):focus a {
+    color: #3b82f6 !important;
+}
+
+#tab-header ul.cbi-tabmenu li a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    text-decoration: none;
+    background: none;
+    border: none;
+    outline: none;
+    font: inherit;
+    color: inherit;
+    cursor: inherit;
+    padding: 0;
+    margin: 0;
+    user-select: none;
+    transition: color 0.18s;
+}
+
 #tab-content .dom{
 	display: none;
 }
+
 #tab-content .dom ul li{
   float: left;
   margin: 15px 10px;
   width: 225px;
 }
 
-.radio-button{
-  width: fit-content;
-	text-align: center;
-	overflow: auto;
-	margin: 10px auto;
-	background-color: #d1d1d1;
-	border-radius: 4px;
+.radio-button {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    padding: 6px 10px;
+    margin: 10px auto;
+    width: 100%;
+    max-width: 500px;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.05);
 }
 
 .radio-button input[type="radio"] {
-	display: none;
+    display: none;
 }
    
 .radio-button label {
-	display: inline-block;
-	padding: 4px 11px;
-	font-size: 18px;
-	color: white;
-	cursor: pointer;
-	border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 18px;
+    font-size: 15px;
+    color: #64748b;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+    min-width: 60px;
+    user-select: none;
 }
 
-.radio-button input[type="radio"]:checked+label {
-	background-color: #1080c1;
+.radio-button label:hover {
+    color: #3b82f6;
+    border-color: #3b82f6;
+    background: #f0f6ff;
+}
+
+.radio-button input[type="radio"]:checked + label {
+    background: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
+    box-shadow: 0 1px 2px 0 rgba(59,130,246,0.08);
 }
 
 .btn-group {
-  display: flex;
-  justify-content: space-between;
-  width: 80%;
-  margin: 10px auto;
+    display: flex;
+    justify-content: space-between;
+    width: 80%;
+    margin: 10px auto;
+}
+
+:root[data-darkmode="true"] #tab-header {
+    background: #374151;
+    border-bottom: 1px solid #374151;
+}
+
+:root[data-darkmode="true"] #tab-header ul.cbi-tabmenu {
+    background: #374151;
+}
+
+:root[data-darkmode="true"] #tab-header ul.cbi-tabmenu li {
+    background: #1f2937;
+    color: #a1a1aa;
+    border-color: #374151;
+}
+
+:root[data-darkmode="true"] #tab-header ul.cbi-tabmenu li.cbi-tab {
+    background: #2563eb;
+    color: #fff;
+}
+
+:root[data-darkmode="true"] #tab-header ul.cbi-tabmenu li.cbi-tab a {
+    color: #fff !important;
+}
+
+:root[data-darkmode="true"] #tab-header ul.cbi-tabmenu li.cbi-tab-disabled {
+    color: #1f2937;
+    background: #1f2937;
+    opacity: 0.7;
+}
+
+:root[data-darkmode="true"] #tab-header ul.cbi-tabmenu li.cbi-tab-disabled a {
+    color: #fff !important;
+}
+
+:root[data-darkmode="true"] #tab-header ul.cbi-tabmenu li:not(.cbi-tab):hover,
+:root[data-darkmode="true"] #tab-header ul.cbi-tabmenu li:not(.cbi-tab):focus {
+    color: #3b82f6;
+    border-color: #3b82f6;
+    background: #22304a;
+}
+
+:root[data-darkmode="true"] #tab-header ul.cbi-tabmenu li:not(.cbi-tab):hover a,
+:root[data-darkmode="true"] #tab-header ul.cbi-tabmenu li:not(.cbi-tab):focus a {
+    color: #60a5fa !important;
+}
+
+:root[data-darkmode="true"] {
+  .radio-button {
+    background: #374151;
+    box-shadow: 0 1px 2px 0 rgba(0,0,0,0.15);
+  }
+  .radio-button label {
+    background: #1f2937;
+    color: #d1d5db;
+    border-color: #4b5563;
+  }
+  .radio-button label:hover {
+    color: #3b82f6;
+    border-color: #3b82f6;
+    background: #22304a;
+  }
+  .radio-button input[type="radio"]:checked + label {
+    background: #3b82f6;
+    color: #fff;
+    border-color: #3b82f6;
+    box-shadow: 0 1px 2px 0 rgba(59,130,246,0.18);
+  }
 }
 </style>
 
 <body>
 	<div id="tab" class="cbi-section">
-		<div id="tab-header" class="cbi-tabmenu">
+		<div id="tab-header">
 			<ul class="cbi-tabmenu">
 				<li name="tab-header" class="cbi-tab"><a href="#"><%:OpenClash Log%></a></li>
 				<li name="tab-header" class="cbi-tab-disabled"><a href="#"><%:Core Log%></a></li>
@@ -597,13 +759,14 @@ window.onload = function(){
         li.id = i;
         function handleTabSwitch(tab) {
             return function(e) {
+                if (tab.className === 'cbi-tab') return;
                 for(var j=0; j<titles.length; j++){
                     titles[j].className = 'cbi-tab-disabled';
                     divs[j].style.display = 'none';
                 }
                 tab.className = 'cbi-tab';
                 divs[tab.id].style.display = 'block';
-                
+
                 if(tab.id == 0 && typeof oc_editor !== 'undefined') {
                     setTimeout(function(){
                         oc_editor.refresh();
