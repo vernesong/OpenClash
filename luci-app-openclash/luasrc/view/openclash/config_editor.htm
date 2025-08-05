@@ -476,6 +476,7 @@ if (core_log && oc_log) {
 	if (isDarkBackground(document.body)) {
 		core_editor.setOption('theme', 'material-log');
 		oc_editor.setOption('theme', 'material-log');
+		document.documentElement.setAttribute('data-darkmode', 'true');
 	};
 };
 
