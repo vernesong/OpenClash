@@ -1323,9 +1323,6 @@ msgstr "Tip: OpenClash 成功启动后请耐心等待下方网站访问检查连
 msgid "Tip: You can modify the profile on the profile page (for content that is not taken over)"
 msgstr "Tip: 您可以在配置文件页面直接修改配置文件（适用于没被接管的内容）"
 
-msgid "Tip: click the version icon above to jump to the client publishing page"
-msgstr "Tip: 点击上方版本图标可跳转到客户端发布页面"
-
 msgid "Tip: do not write configuration files? Try to create one click on the server page"
 msgstr "Tip: 不会编写配置文件？试试在【服务器与策略组管理】页面一键创建"
 
@@ -1338,20 +1335,14 @@ msgstr "Tip: 使用 Fake-IP 模式可以获得更加快速的访问体验"
 msgid "Tip: query DNS by TLS & TCP & HTTPS can get better anti pollution effect"
 msgstr "Tip: 使用 TLS & TCP & HTTPS 方式查询DNS可以获得更好的抗污染效果"
 
-msgid "Tip: openlash will check the configuration file parameters to ensure that it works properly"
-msgstr "Tip: OpenClash 启动时会检查配置文件参数【服务器（策略）组、规则、DNS设置】以确保能够正常工作"
-
 msgid "Tip: the nameserver group must have at least one server set when using custom DNS"
 msgstr "Tip: 使用自定义DNS上游服务器时NameServer组必须设置至少一个服务器"
-
-msgid "Tip: the website access check shows the connection of the device currently logged in to the Luci page"
-msgstr "Tip: 网站访问检查展示的是当前登录LUCI页面设备的连接情况"
 
 msgid "Tip: if you don not use IPv6, please turn off the DHCP service of IPv6, otherwise the connection will be abnormal"
 msgstr "Tip: 如果不使用IPv6，请关闭IPv6的DHCP服务，否则会造成连接异常"
 
-msgid "Tip: you can update the version in the global settings page"
-msgstr "Tip: 您可以在全局设置页面进行版本更新操作"
+msgid "Tip: you can update the version in the settings page"
+msgstr "Tip: 您可以在插件设置页面进行版本更新操作"
 
 msgid "Note: if the update fails, you can manually download and upload"
 msgstr "注意：如更新失败可手动下载并上传"
@@ -2142,14 +2133,14 @@ msgstr "3、在此页面设置您已下载的规则的对应配置文件、策�
 msgid "When setting this page, if the groups is empty, please go to the <Onekey Create> page to add"
 msgstr "本页设置时如策略组为空，请先到《一键生成》页面进行添加"
 
-msgid "Introduction to rule set usage: https://wiki.metacubex.one/config/rule-providers/content/"
-msgstr "规则集使用介绍：https://wiki.metacubex.one/config/rule-providers/content/"
+msgid "Introduction to rule set usage:"
+msgstr "规则集使用介绍："
 
-msgid "Introduction to proxy usage: https://wiki.metacubex.one/config/proxies/"
-msgstr "代理使用介绍：https://wiki.metacubex.one/config/proxies/"
+msgid "Introduction to proxy usage:"
+msgstr "代理使用介绍："
 
-msgid "Introduction to proxy-provider usage: https://wiki.metacubex.one/config/proxy-providers/"
-msgstr "代理集使用介绍：https://wiki.metacubex.one/config/proxy-providers/"
+msgid "Introduction to proxy-provider usage:"
+msgstr "代理集使用介绍："
 
 msgid "Subconverter external configuration (subscription conversion template) Description: https://github.com/tindy2013/subconverter#external-configuration-file"
 msgstr "subconverter 外部配置(订阅转换模板)说明：https://github.com/tindy2013/subconverter#external-configuration-file"

@@ -15,8 +15,8 @@ m.description=translate("Attention:")..
 "<br/>"..translate("1. Before modifying the configuration file, please click the button below to read the configuration file")..
 "<br/>"..translate("2. Proxy-providers address can be directly filled in the subscription link")..
 "<br/>"..
-"<br/>"..translate("Introduction to proxy usage: https://wiki.metacubex.one/config/proxies/")..
-"<br/>"..translate("Introduction to proxy-provider usage: https://wiki.metacubex.one/config/proxy-providers/")
+"<br/>"..translate("Introduction to proxy usage:").." <a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/config/proxies/\")'>"..translate("https://wiki.metacubex.one/config/proxies/").."</a>"..
+"<br/>"..translate("Introduction to proxy-provider usage:").." <a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/config/proxy-providers/\")'>"..translate("https://wiki.metacubex.one/config/proxy-providers/").."</a>"
 
 s = m:section(TypedSection, "openclash")
 s.anonymous = true
