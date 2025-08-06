@@ -390,7 +390,7 @@ o.default = "https://github.com/vernesong/mihomo/releases/download/LightGBM-Mode
 o:depends("lgbm_auto_update", "1")
 
 o = s:taboption("smart", Button, translate("Model Update"))
-o.description = translate("Current Version:").." "..font_green..bold_on..translate(fs.get_resourse_mtime("/etc/openclash/model.bin"))..bold_off..font_off
+o.description = translate("Current Version:").." "..font_green..bold_on..translate(fs.get_resourse_mtime("/etc/openclash/Model.bin"))..bold_off..font_off
 o.title = translate("Update Model")
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
