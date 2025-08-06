@@ -742,42 +742,53 @@
     }
     
     function HTTP_delay(domain, ID) {
-        let img = new Image;
-        let img_start_time = (+new Date());
-        let timeout = setTimeout(() => {
-            img.onerror = img.onload = null;
-            updateCDNStatus(ID, 'error', '<%:Access Timed Out%>');
-        }, 3000);
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', '/cgi-bin/luci/admin/services/openclash/website_check?domain=' + encodeURIComponent(domain), true);
+        xhr.timeout = 5000;
 
-        img.onerror = () => {
-            clearTimeout(timeout);
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                let status, text, response_time = 0;
+                if (xhr.status === 200) {
+                    try {
+                        var resp = JSON.parse(xhr.responseText);
+                        response_time = resp.response_time || 0;
+                        if (resp.success) {
+                            if (response_time <= 500) {
+                                status = 'fast';
+                                text = response_time + ' ms';
+                            } else if (response_time > 500 && response_time <= 1000) {
+                                status = 'medium';
+                                text = response_time + ' ms';
+                            } else {
+                                status = 'slow';
+                                text = response_time + ' ms';
+                            }
+                        } else {
+                            status = 'error';
+                            text = resp.error || '<%:Access Denied%>';
+                        }
+                    } catch (e) {
+                        status = 'error';
+                        text = '<%:Access Denied%>';
+                    }
+                } else {
+                    status = 'error';
+                    text = '<%:Access Timed Out%>';
+                }
+                updateCDNStatus(ID, status, text);
+            }
+        };
+
+        xhr.ontimeout = function() {
+            updateCDNStatus(ID, 'error', '<%:Access Timed Out%>');
+        };
+
+        xhr.onerror = function() {
             updateCDNStatus(ID, 'error', '<%:Access Denied%>');
         };
 
-        img.onload = () => {
-            clearTimeout(timeout);
-            let img_load_time = (new Date())- img_start_time;
-            let status, text;
-            
-            if (img_load_time <= 500) {
-                status = 'fast';
-                text = img_load_time + ' ms';
-            } else if (img_load_time > 500 && img_load_time <= 1000) {
-                status = 'medium';
-                text = img_load_time + ' ms';
-            } else {
-                status = 'slow';
-                text = img_load_time + ' ms';
-            }
-            
-            updateCDNStatus(ID, status, text);
-        };
-
-        if (domain === 'https://raw.githubusercontent.com/') {
-            img.src = `https://raw.githubusercontent.com/vernesong/OpenClash/dev/img/logo.png?${+(new Date)}`;
-        } else {
-            img.src = `${domain}favicon.ico?${+(new Date)}`;
-        }
+        xhr.send();
     }
     
     function updateCDNStatus(element, status, text) {
@@ -838,8 +849,10 @@
         var selectPopup = document.getElementById('selectPopup');
         var customOptionInput = document.getElementById('customOptionInput');
         var addCustomOption = document.getElementById('addCustomOption');
-        
-        if (target.classList.contains('select-option') && target.dataset.value === 'custom') {
+
+        var optionElem = target.closest ? target.closest('.select-option') : null;
+
+        if (optionElem && optionElem.dataset.value === 'custom') {
             customOptionInput.style.display = 'block';
             addCustomOption.style.display = 'block';
             customOptionInput.focus();
@@ -857,19 +870,19 @@
             else {
                 alert("<%:Please enter a valid URL!%>");
             }
-        } else if (target != addCustomOption && target != customOptionInput && target.classList.contains('select-option'))  {
+        } else if (optionElem && optionElem != addCustomOption && optionElem != customOptionInput)  {
             customOptionInput.style.display = 'none';
             addCustomOption.style.display = 'none';
             if (typeof LogManager !== 'undefined' && LogManager) {
                 LogManager.startLogDisplay('<%:Checking...%>');
             }
-            if (target.dataset.value === 'https://raw.githubusercontent.com/') {
-                target.dataset.value = '';
+            if (optionElem.dataset.value === 'https://raw.githubusercontent.com/') {
+                optionElem.dataset.value = '';
             }
             if (type === 'core_download') {
                 XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
                     if (x && x.status == 200) {
-                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', {url: target.dataset.value}, function(x, status) {
+                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', {url: optionElem.dataset.value}, function(x, status) {
                         });
                     }
                 });
@@ -877,7 +890,7 @@
             else {
                 XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
                     if (x && x.status == 200) {
-                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', {url: target.dataset.value}, function(x, status) {
+                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', {url: optionElem.dataset.value}, function(x, status) {
                         });
                     }
                 });
