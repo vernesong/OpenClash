@@ -477,13 +477,13 @@ do_run_file()
       chnr6_path="/etc/openclash/china_ip6_route.ipset"
       geosite_path="/etc/openclash/GeoSite.dat"
       geoip_path="/etc/openclash/GeoIP.dat"
-      lgbm_path="/etc/openclash/model.bin"
+      lgbm_path="/etc/openclash/Model.bin"
       mv "/tmp/etc/openclash/Country.mmdb" "$ipdb_path"
       mv "/tmp/etc/openclash/china_ip_route.ipset" "$chnr_path"
       mv "/tmp/etc/openclash/china_ip6_route.ipset" "$chnr6_path"
       mv "/tmp/etc/openclash/GeoSite.dat" "$geosite_path"
       mv "/tmp/etc/openclash/GeoIP.dat" "$geoip_path"
-      mv "/tmp/etc/openclash/model.bin" "$lgbm_path"
+      mv "/tmp/etc/openclash/Model.bin" "$lgbm_path"
       mv "/tmp/etc/openclash/core/" "/etc/openclash"
       if [ "$CACHE_PATH" != "/tmp/etc/openclash/cache.db" ]; then
          rm -rf "/tmp/etc/openclash"
@@ -495,13 +495,13 @@ do_run_file()
       chnr6_path="/tmp/etc/openclash/china_ip6_route.ipset"
       geosite_path="/tmp/etc/openclash/GeoSite.dat"
       geoip_path="/tmp/etc/openclash/GeoIP.dat"
-      lgbm_path="/tmp/etc/openclash/model.bin"
+      lgbm_path="/tmp/etc/openclash/Model.bin"
       [ ! -h "/etc/openclash/Country.mmdb" ] && mv "/etc/openclash/Country.mmdb" "$ipdb_path"
       [ ! -h "/etc/openclash/china_ip_route.ipset" ] && mv "/etc/openclash/china_ip_route.ipset" "$chnr_path"
       [ ! -h "/etc/openclash/china_ip6_route.ipset" ] && mv "/etc/openclash/china_ip6_route.ipset" "$chnr6_path"
       [ ! -h "/etc/openclash/GeoSite.dat" ] && mv "/etc/openclash/GeoSite.dat" "$geosite_path"
       [ ! -h "/etc/openclash/GeoIP.dat" ] && mv "/etc/openclash/GeoIP.dat" "$geoip_path"
-      [ ! -h "/etc/openclash/model.bin" ] && mv "/etc/openclash/model.bin" "$lgbm_path"
+      [ ! -h "/etc/openclash/Model.bin" ] && mv "/etc/openclash/Model.bin" "$lgbm_path"
       mv "/etc/openclash/core/" "/tmp/etc/openclash"
    fi
 
@@ -567,7 +567,7 @@ do_run_file()
    }
 
    [ -f "$lgbm_path" ] && [ "$small_flash_memory" = "1" ] && {
-      ln -s "$lgbm_path" /etc/openclash/model.bin
+      ln -s "$lgbm_path" /etc/openclash/Model.bin
    }
 
    [ -f "$chnr_path" ] && [ "$small_flash_memory" = "1" ] && {
