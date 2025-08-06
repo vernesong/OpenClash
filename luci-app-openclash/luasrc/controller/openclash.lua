@@ -2199,10 +2199,23 @@ function action_website_check()
         luci.http.write_json(result)
         return
     end
-    
+
+    local test_domain = domain
+    local test_url
+
+    if test_domain:match("^https?://") then
+        test_domain = test_domain:gsub("^https?://([^/]+)/?.*$", "%1")
+    end
+
+    if domain == "https://raw.githubusercontent.com/" or test_domain == "raw.githubusercontent.com" then
+        test_url = "https://raw.githubusercontent.com/vernesong/OpenClash/dev/img/logo.png"
+    else
+        test_url = "https://" .. test_domain .. "/favicon.ico"
+    end
+
     local cmd = string.format(
-        'curl -sL -m 5 --connect-timeout 3 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" "https://%s/favicon.ico" -o /dev/null 2>/dev/null',
-        domain
+        'curl -sL -m 5 --connect-timeout 3 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" "%s" -o /dev/null 2>/dev/null',
+        test_url
     )
     
     local output = luci.sys.exec(cmd)
@@ -2228,9 +2241,15 @@ function action_website_check()
                 result.success = true
                 result.response_time = response_time
             else
+                local fallback_url
+                if domain == "https://raw.githubusercontent.com/" or test_domain == "raw.githubusercontent.com" then
+                    fallback_url = "https://raw.githubusercontent.com/vernesong/OpenClash/dev/img/logo.png"
+                else
+                    fallback_url = "https://" .. test_domain .. "/"
+                end
                 local fallback_cmd = string.format(
-                    'curl -sI -m 3 --connect-timeout 2 -w "%%{http_code},%%{time_total},%%{time_appconnect}" "https://%s/" -o /dev/null 2>/dev/null',
-                    domain
+                    'curl -sI -m 5 --connect-timeout 3 -w "%%{http_code},%%{time_total},%%{time_appconnect}" "%s" -o /dev/null 2>/dev/null',
+                    fallback_url
                 )
                 local fallback_output = luci.sys.exec(fallback_cmd)
                 
