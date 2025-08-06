@@ -288,16 +288,37 @@ function lanip()
 	return lan_ip
 end
 
+function find_case_insensitive_path(path)
+    local dir = dirname(path)
+    local base = basename(path)
+    local files = dir and fs.dir(dir)
+    if not files then
+        return nil
+    end
+
+    for f in files do
+        if f:lower() == base:lower() then
+            return dir .. "/" .. f
+        end
+    end
+    return nil
+end
+
 function get_resourse_mtime(path)
-	if fs.access(path) then
-		local file = fs.readlink(path) or path
-		local model_version = os.date("%Y-%m-%d %H:%M:%S",mtime(path))
-		if model_version and model_version ~= "" then
-			return model_version
-		else
-			return "Unknown"
-		end
-	else
-		return "File Not Exist"
-	end
+    local real_path = path
+    if not fs.access(path) then
+        local found = find_case_insensitive_path(path)
+        if found then
+            real_path = found
+        else
+            return "File Not Exist"
+        end
+    end
+    local file = fs.readlink(real_path) or real_path
+    local model_version = os.date("%Y-%m-%d %H:%M:%S", mtime(real_path))
+    if model_version and model_version ~= "" then
+        return model_version
+    else
+        return "Unknown"
+    end
 end
