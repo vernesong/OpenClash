@@ -1353,6 +1353,12 @@ msgstr "注意：如更新失败可手动下载并上传"
 msgid "Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating"
 msgstr "注意：客户端可能无法更新，因为squashfs格式的固件更新后不会释放闪存空间"
 
+msgid "Core Settings"
+msgstr "核心设置"
+
+msgid "General Information"
+msgstr "通用信息"
+
 msgid "Compiled Version"
 msgstr "编译版本"
 
@@ -1374,8 +1380,8 @@ msgstr "当前内核版本"
 msgid "Latest Core"
 msgstr "最新内核版本"
 
-msgid "Core path:"
-msgstr "内核路径："
+msgid "Core Path:"
+msgstr "内核路径 (Core Path):"
 
 msgid "Update Core"
 msgstr "更新内核"
@@ -1397,6 +1403,9 @@ msgstr "最新客户端版本"
 
 msgid "Download Latest Client"
 msgstr "下载最新版本客户端"
+
+msgid "Shortcuts"
+msgstr "快捷方式"
 
 msgid "Restore Default Config"
 msgstr "还原默认配置"
@@ -3038,6 +3047,9 @@ msgstr "仅备份规则集"
 
 msgid "Backup Proxy Provider"
 msgstr "仅备份代理集"
+
+msgid "View Core Path"
+msgstr "查看内核路径"
 
 msgid "Chnroute Bypassed List"
 msgstr "绕过指定区域 IPv4 黑名单"

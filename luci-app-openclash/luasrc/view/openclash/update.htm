@@ -4,150 +4,371 @@
 }
 </style>
 
-<fieldset class="cbi-section">
-	<table width="100%">
-	  <tr><td width="100%" colspan="6">
-	    <p align="center" id="update_tip">
-	  		<b><%:Note: if the update fails, you can manually download and upload%></b>
-	  	</p>
-	  </td></tr>
-	  <tr><td width="16.6%" align="right"><%:Compiled Version%></td>
-	  	<td width="16.6%" align="left">
-			<select class="cbi-input-select" name="CORE_VERSION" id="CORE_VERSION">
-	  			<option value="linux-386"><%:linux-386%></option>
-				<option value="linux-amd64-v1"><%:linux-amd64-v1(x86-64)%></option>
-				<option value="linux-amd64-v2"><%:linux-amd64-v2(x86-64)%></option>
-				<option value="linux-amd64-v3"><%:linux-amd64-v3(x86-64)%></option>
-				<option value="linux-armv5"><%:linux-armv5%></option>
-				<option value="linux-armv6"><%:linux-armv6%></option>
-				<option value="linux-armv7"><%:linux-armv7%></option>
-				<option value="linux-arm64"><%:linux-arm64(armv8)%></option>
-				<option value="linux-loong64-abi1"><%:linux-loong64-abi1%></option>
-				<option value="linux-loong64-abi2"><%:linux-loong64-abi2%></option>
-				<option value="linux-riscv64"><%:linux-riscv64%></option>
-				<option value="linux-s390x"><%:linux-s390x%></option>
-				<option value="linux-mips-hardfloat"><%:linux-mips-hardfloat%></option>
-				<option value="linux-mips-softfloat"><%:linux-mips-softfloat%></option>
-				<option value="linux-mips64"><%:linux-mips64%></option>
-				<option value="linux-mips64le"><%:linux-mips64le%></option>
-				<option value="linux-mipsle-softfloat"><%:linux-mipsle-softfloat%></option>
-				<option value="linux-mipsle-hardfloat"><%:linux-mipsle-hardfloat%></option>
-				<option value="0"><%:Not Set%></option>
-	  		</select>
-		</td>
-	  	<td width="16.6%" align="right"><%:Release Branch%></td>
-	  	<td width="16.6%" align="left"><select class="cbi-input-select" name="RELEASE_BRANCH" id="RELEASE_BRANCH">
-	  		<option value="master">Master</option>
-			<option value="dev">Developer</option>
-	  	</select></td>
-		<td width="16.6%" align="right"><%:Smart Core%> <a href="javascript:void(0);" onclick="window.open('https://github.com/vernesong/mihomo/releases', '_blank');" style="color: #0066cc; text-decoration: none;" title="<%:View core infos that support smart group%>"> (?)</a></td>
-	  	<td width="16.6%" align="left"><select class="cbi-input-select" name="SMART_ENABLE" id="SMART_ENABLE">
-	  		<option value="0"><%:Disabled%></option>
-			<option value="1"><%:Enable%></option>
-	  	</select></td>
-	  	</tr>
-	</table>
-</fieldset>
-<fieldset class="cbi-section">
-	<table width="100%">
-		<tr><td width="100%" colspan="4">
-	    <p align="center">
-	  		<b><%:Core Update%></b>
-	  	</p>
-	  	</td></tr>
-	  	<tr><td width="100%" colspan="4">
-		<tr>
-			<td width="25%"><%:CPU Architecture%></td><td width="25%" align="left" id="CPU_MODEL"><%:Collecting data...%></td>
-			<td width="25%"><%:Last Check Update%></td><td width="25%" align="left" id="CHECKTIME"><%:Collecting data...%></td>
-		</tr>
-	  	<tr><td width="100%" colspan="4">
-	    <p align="center">
-	  		<b><%:Core path:%>/etc/openclash/core/clash_meta</b>
-	  	</p>
-	  	</td></tr>
-		<tr><td width="25%">[Meta] <%:Current Core%></td><td width="25%" align="left" id="CORE_META_CV"><%:Collecting data...%></td><td width="25%">[Meta] <%:Latest Core%></td><td width="25%" align="left" id="CORE_META_LV"><%:Collecting data...%></td></tr>
-		<tr><td width="25%"><%:Update Core%></td><td width="25%" align="left" id="core_meta_up"><%:Collecting data...%></td><td width="25%"><%:Download Latest Core%></td><td width="25%" align="left" id="ma_core_meta_up"><%:Collecting data...%></td></tr>
-	</table>
-</fieldset>
-<fieldset class="cbi-section">
-	<table width="100%">
-		<tr><td width="100%" colspan="4">
-	    <p align="center">
-	  		<b><%:Client Update%></b>
-	  	</p>
-	  	</td></tr>
-		<tr><td width="25%"><%:Current Client%></td><td width="25%" align="left" id="OP_CV"><%:Collecting data...%></td><td width="25%"><%:Latest Client%></td><td width="25%" align="left" id="OP_LV"><%:Collecting data...%></td></tr>
-	  	<tr><td width="25%"><%:Update Client%></td><td width="25%" align="left" id="op_up"><%:Collecting data...%></td><td width="25%"><%:Download Latest Client%></td><td width="25%" align="left" id="ma_op_up"><%:Collecting data...%></td></tr>
-	</table>
-</fieldset>
-<fieldset class="cbi-section">
-	<table width="100%">
-	  <tr>
-	  	<td width="33%">
-	  	   <p align="center" id="restore">
-	  		   <%:Collecting data...%>
-	  	   </p>
-	  	</td>
-	  	<td width="33%">
-	  	   <p align="center" id="remove_core">
-	  		   <%:Collecting data...%>
-	  	   </p>
-	  	</td>
-		  <td width="33%">
-			<p align="center" id="one_key_update_cdn">
-				<%:Collecting data...%>
-			</p>
-	   </td>
-	  </tr>
-	</table>
-</fieldset>
-<fieldset class="cbi-section">
-	<table width="100%">
-		<tr><td width="100%" colspan="4">
-	    <p align="center">
-	  		<b><%:Backup Section%></b>
-	  	</p>
-		</td></tr>
-		<tr>
-	  	<td width="25%">
-	  	   <p align="center" id="backup">
-	  		   <%:Collecting data...%>
-	  	   </p>
-	  	</td>
-	  	<td width="25%">
-	  	   <p align="center" id="backup_ex_core">
-	  		   <%:Collecting data...%>
-	  	   </p>
-	  	</td>
-	  	<td width="25%">
-	  	   <p align="center" id="backup_core_only">
-	  		   <%:Collecting data...%>
-	  	   </p>
-	  	</td>
-		</tr>
-		<tr>
-	  	<td width="25%">
-	  	   <p align="center" id="backup_config_only">
-	  		   <%:Collecting data...%>
-	  	   </p>
-	  	</td>
-	  	<td width="25%">
-	  	   <p align="center" id="backup_rule_only">
-	  		   <%:Collecting data...%>
-	  	   </p>
-	  	</td>
-	  	<td width="25%">
-	  	   <p align="center" id="backup_proxy_only">
-	  		   <%:Collecting data...%>
-	  	   </p>
-	  	</td>
-		</tr>
-	</table>
-</fieldset>
+<style>
+    :root {
+        --card-bg: #ffffff;
+        --text-color: #1f2d3d;
+        --text-color-light: #718096;
+        --cell-bg-color: #f8f9fa;
+        --label-text-color: #343a40;
+        --border-color: #dee2e6;
+        --shadow-color: rgba(0, 0, 0, 0.075);
+        --link-color: #007bff;
+        --title-color: #212529;
+        --tip-bg: #e6f7ff;
+        --tip-border: #91d5ff;
+        --input-bg: #ffffff;
+        --input-border: #ced4da;
+        --btn-primary-bg: #007bff;
+        --btn-primary-hover-bg: #0069d9;
+        --btn-danger-bg: #dc3545;
+        --btn-danger-hover-bg: #c82333;
+        --btn-info-bg: #6c757d;
+        --btn-info-hover-bg: #5a6268;
+        --status-green: #28a745;
+        --status-red: #dc3545;
+    }
 
-<script type="text/javascript">//<![CDATA[
-	var core_version = document.getElementById('CORE_VERSION');
- 	var checktime = document.getElementById('CHECKTIME');
+    .oc-container { display: grid; gap: 1.25rem; }
+
+    .oc-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 0.375rem;
+        box-shadow: 0 0.125rem 0.25rem var(--shadow-color);
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s ease-in-out;
+        padding: 1.25rem;
+    }
+
+    .oc-card-body { flex-grow: 1; display: flex; flex-direction: column; }
+    .oc-card-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--title-color);
+        margin: 0 0 1rem 0;
+        text-align: left;
+    }
+    .oc-card-footer { padding-top: 1rem; margin-top: auto; border-top: 1px solid var(--border-color); text-align: center; }
+    .oc-card-footer:empty { border-top: none; padding: 0; min-height: 57px; box-sizing: border-box; }
+
+    #update_tip { text-align: center; padding: 0.75rem; border-radius: 0.375rem; background-color: var(--tip-bg); font-weight: 500; border: 1px solid var(--tip-border); margin: 0.5rem auto; grid-column: 1 / -1; }
+
+    .form-group { display: flex; flex-direction: column; align-items: stretch; padding: 0.75rem 0; border-bottom: 1px solid var(--border-color); gap: 0.5rem; }
+    .form-group:last-child { border-bottom: none; }
+    .form-group label {
+        color: var(--label-text-color) !important;
+        padding: 0.5rem 0.75rem;
+        text-align: center;
+        flex-shrink: 0;
+    }
+    .form-group .value { font-weight: 600; color: var(--text-color-light); width: 100%; text-align: left; }
+    
+    .cbi-input-select {
+        box-sizing: border-box;
+        width: 100%;
+        padding: 0.375rem;
+        border: 1px solid var(--input-border);
+        border-radius: 0.25rem;
+        background-color: var(--input-bg);
+        color: var(--text-color);
+        line-height: 1.5;
+    }
+
+    .oc-btn { display: inline-block; width: 100%; padding: 0.75rem 1rem; border: 1px solid transparent; border-radius: 0.25rem; font-weight: 600; font-size: 0.9rem; color: #fff !important; text-align: center; cursor: pointer; transition: all 0.2s ease-in-out; }
+    .oc-btn:active { transform: scale(0.98); }
+    
+    .oc-btn-primary { background-color: var(--btn-primary-bg) !important; border-color: var(--btn-primary-bg) !important; }
+    .oc-btn-primary:hover { background-color: var(--btn-primary-hover-bg) !important; border-color: var(--btn-primary-hover-bg) !important; }
+    .oc-btn-danger { background-color: var(--btn-danger-bg) !important; border-color: var(--btn-danger-bg) !important; }
+    .oc-btn-danger:hover { background-color: var(--btn-danger-hover-bg) !important; border-color: var(--btn-danger-hover-bg) !important; }
+    .oc-btn-info { background-color: var(--btn-info-bg) !important; border-color: var(--btn-info-bg) !important; }
+    .oc-btn-info:hover { background-color: var(--btn-info-hover-bg) !important; border-color: var(--btn-info-hover-bg) !important; }
+    
+    .oc-action-grid {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    }
+    #backup-card .oc-action-grid {
+        column-gap: 0.5rem;
+    }
+
+    .info-link { color: var(--link-color); text-decoration: none; font-weight: 600; }
+    
+    .info-cell-value .green { color: var(--status-green) !important; }
+    .info-cell-value .red { color: var(--status-red) !important; }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        grid-auto-rows: 1fr;
+        gap: 1rem;
+        flex-grow: 1;
+    }
+    .info-cell {
+        background-color: var(--cell-bg-color);
+        padding: 1rem;
+        border-radius: 0.375rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    .info-cell-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text-color-light);
+    }
+    .info-cell-value b {
+        display: inline-block;
+        width: auto;
+        padding: 0.4rem 0.8rem;
+        border-radius: 0.375rem;
+        font-weight: 600;
+        line-height: 1.5;
+        background-color: #fff;
+        border: 1px solid var(--border-color);
+        box-sizing: border-box;
+        word-wrap: break-word;
+    }
+    .info-cell-value .oc-btn {
+        width: auto;
+        padding-left: 1.5rem;
+        padding-right: 1.5rem;
+    }
+    .action-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+    }
+    .action-row > div:first-child { flex-grow: 1; }
+    #show-core-path-btn {
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        font-size: 1.2rem;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    @media (min-width: 429px) {
+        .info-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (min-width: 1024px) {
+        .oc-container { grid-template-columns: repeat(2, 1fr); }
+        .form-group { flex-direction: row; justify-content: space-between; align-items: center; gap: 1rem; }
+        .form-group label { flex-basis: 160px; text-align: left; background-color: transparent; }
+        .form-group .value { flex-grow: 1; flex-basis: 0; display: flex; justify-content: flex-end; }
+        .form-group .value .cbi-input-select { width: auto; min-width: 200px; }
+        #CORE_VERSION, #RELEASE_BRANCH { max-width: 350px; }
+        #SMART_ENABLE { max-width: 150px; }
+    }
+    
+    [data-darkmode="true"] {
+        --card-bg: #2d3748;
+        --text-color: #e2e8f0;
+        --text-color-light: #a0aec0;
+        --cell-bg-color: #1a202c;
+        --label-bg-color: transparent;
+        --label-text-color: #e2e8f0;
+        --border-color: #4a5568;
+        --shadow-color: rgba(0, 0, 0, 0.2);
+        --link-color: #63b3ed;
+        --title-color: #e2e8f0;
+        --tip-bg: #2d3748;
+        --tip-border: #4a5568;
+        --input-bg: #222222;
+        --input-border: #4a5568;
+        --btn-primary-bg: #007bff;
+        --btn-primary-hover-bg: #0069d9;
+        --btn-danger-bg: #dc3545;
+        --btn-danger-hover-bg: #c82333;
+        --btn-info-bg: #4a5568;
+        --btn-info-hover-bg: #2c3748;
+        --status-green: #68d391;
+        --status-red: #fc8181;
+    }
+    [data-darkmode="true"] .info-cell-value b { background-color: #000000; border-color: #4a5568; }
+</style>
+
+<p align="center" id="update_tip">
+    <b><%:Note: if the update fails, you can manually download and upload%></b>
+</p>
+
+<div class="oc-container">
+    <div class="oc-card">
+        <h2 class="oc-card-title"><%:Core Settings%></h2>
+        <div class="oc-card-body">
+            <div class="form-group">
+                <label for="CORE_VERSION"><%:Compiled Version%></label>
+                <div class="value">
+                    <select class="cbi-input-select" name="CORE_VERSION" id="CORE_VERSION">
+                        </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="RELEASE_BRANCH"><%:Release Branch%></label>
+                <div class="value">
+                    <select class="cbi-input-select" name="RELEASE_BRANCH" id="RELEASE_BRANCH">
+                        <option value="master">Master</option>
+                        <option value="dev">Developer</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="SMART_ENABLE">
+                    <%:Smart Core%>&nbsp;<a href="javascript:void(0);" onclick="window.open('https://github.com/vernesong/mihomo/releases', '_blank');" class="info-link" title="<%:View core infos that support smart group%>">(?)</a>
+                </label>
+                <div class="value">
+                    <select class="cbi-input-select" name="SMART_ENABLE" id="SMART_ENABLE">
+                        <option value="0"><%:Disabled%></option>
+                        <option value="1"><%:Enable%></option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="oc-card">
+        <h2 class="oc-card-title"><%:General Information%></h2>
+        <div class="oc-card-body">
+            <div class="info-grid">
+                <div class="info-cell">
+                    <div class="info-cell-title"><%:CPU Architecture%></div>
+                    <div class="info-cell-value" id="CPU_MODEL"><%:Collecting data...%></div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-cell-title"><%:Last Check Update%></div>
+                    <div class="info-cell-value" id="CHECKTIME"><%:Collecting data...%></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="oc-card">
+        <h2 class="oc-card-title"><%:Core Update%></h2>
+        <div class="oc-card-body">
+            <div class="info-grid">
+                <div class="info-cell">
+                    <div class="info-cell-title">[Meta] <%:Current Core%></div>
+                    <div class="info-cell-value" id="CORE_META_CV"><%:Collecting data...%></div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-cell-title">[Meta] <%:Latest Core%></div>
+                    <div class="info-cell-value" id="CORE_META_LV"><%:Collecting data...%></div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-cell-title"><%:Update Core%></div>
+                    <div class="info-cell-value" id="core_meta_up"><%:Collecting data...%></div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-cell-title"><%:Download Latest Core%></div>
+                    <div class="info-cell-value">
+                        <div class="action-row">
+                            <div id="ma_core_meta_up"><%:Collecting data...%></div>
+                            <div id="core-path-btn-container"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="oc-card">
+        <h2 class="oc-card-title"><%:Client Update%></h2>
+        <div class="oc-card-body">
+            <div class="info-grid">
+                <div class="info-cell">
+                    <div class="info-cell-title"><%:Current Client%></div>
+                    <div class="info-cell-value" id="OP_CV"><%:Collecting data...%></div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-cell-title"><%:Latest Client%></div>
+                    <div class="info-cell-value" id="OP_LV"><%:Collecting data...%></div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-cell-title"><%:Update Client%></div>
+                    <div class="info-cell-value" id="op_up"><%:Collecting data...%></div>
+                </div>
+                <div class="info-cell">
+                    <div class="info-cell-title"><%:Download Latest Client%></div>
+                    <div class="info-cell-value" id="ma_op_up"><%:Collecting data...%></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="oc-card" id="shortcuts-card">
+        <h2 class="oc-card-title"><%:Shortcuts%></h2>
+        <div class="oc-card-body">
+            <div class="oc-action-grid">
+                <div id="one_key_update_cdn"></div>
+                <div id="restore"></div>
+                <div id="remove_core"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="oc-card" id="backup-card">
+        <h2 class="oc-card-title"><%:Backup%></h2>
+        <div class="oc-card-body">
+            <div class="oc-action-grid">
+                <div id="backup"></div>
+                <div id="backup_ex_core"></div>
+                <div id="backup_core_only"></div>
+                <div id="backup_config_only"></div>
+                <div id="backup_rule_only"></div>
+                <div id="backup_proxy_only"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="text/javascript">
+    function createOptions(selectElement, options) {
+        selectElement.innerHTML = '';
+        options.forEach(function(option) {
+            var opt = document.createElement('option');
+            opt.value = option.value;
+            opt.innerHTML = option.text;
+            selectElement.appendChild(opt);
+        });
+    }
+
+    var coreVersionSelect = document.getElementById('CORE_VERSION');
+    var coreVersionOptions = [
+        {value: "linux-386", text: "<%:linux-386%>"},
+        {value: "linux-amd64-v1", text: "<%:linux-amd64-v1(x86-64)%>"},
+        {value: "linux-amd64-v2", text: "<%:linux-amd64-v2(x86-64)%>"},
+        {value: "linux-amd64-v3", text: "<%:linux-amd64-v3(x86-64)%>"},
+        {value: "linux-armv5", text: "<%:linux-armv5%>"},
+        {value: "linux-armv6", text: "<%:linux-armv6%>"},
+        {value: "linux-armv7", text: "<%:linux-armv7%>"},
+        {value: "linux-arm64", text: "<%:linux-arm64(armv8)%>"},
+        {value: "linux-loong64-abi1", text: "<%:linux-loong64-abi1%>"},
+        {value: "linux-loong64-abi2", text: "<%:linux-loong64-abi2%>"},
+        {value: "linux-riscv64", text: "<%:linux-riscv64%>"},
+        {value: "linux-s390x", text: "<%:linux-s390x%>"},
+        {value: "linux-mips-hardfloat", text: "<%:linux-mips-hardfloat%>"},
+        {value: "linux-mips-softfloat", text: "<%:linux-mips-softfloat%>"},
+        {value: "linux-mips64", text: "<%:linux-mips64%>"},
+        {value: "linux-mips64le", text: "<%:linux-mips64le%>"},
+        {value: "linux-mipsle-softfloat", text: "<%:linux-mipsle-softfloat%>"},
+        {value: "linux-mipsle-hardfloat", text: "<%:linux-mipsle-hardfloat%>"},
+        {value: "0", text: "<%:Not Set%>"}
+    ];
+    createOptions(coreVersionSelect, coreVersionOptions);
+
+	var checktime = document.getElementById('CHECKTIME');
 	var cpu_model = document.getElementById('CPU_MODEL');
 	var core_meta_cv = document.getElementById('CORE_META_CV');
 	var core_meta_lv = document.getElementById('CORE_META_LV');
@@ -169,90 +390,148 @@
 	var remove_core = document.getElementById('remove_core');
 	var release_branch = document.getElementById('RELEASE_BRANCH');
 	var smart_enable = document.getElementById('SMART_ENABLE');
-	core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'Meta\')"/>';
-	op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return op_update(this)"/>';
-	ma_core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'Meta\')"/>';
-	ma_op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_op_update(this)"/>';
-	restore.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Restore Default Config%>" onclick="return restore_config(this)"/>';
-	one_key_update_cdn.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Check Update%>" onclick="return all_one_key_update_cdn(this)"/>';
-	remove_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
-	backup.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup OpenClash%>" onclick="return backup_all_file(this)"/>';
-	backup_ex_core.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Exclude Cores%>" onclick="return backup_no_core(this)"/>';
-	backup_core_only.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Core%>" onclick="return backup_only_core(this)"/>';
-	backup_config_only.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Config%>" onclick="return backup_only_config(this)"/>';
-	backup_rule_only.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Rule Provider%>" onclick="return backup_only_rule(this)"/>';
-	backup_proxy_only.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Backup Proxy Provider%>" onclick="return backup_only_proxy(this)"/>';
+
+	core_meta_up.innerHTML = '<input type="button" class="oc-btn oc-btn-danger" value="<%:Check And Update%>" onclick="return core_update(this,\'Meta\')"/>';
+	op_up.innerHTML = '<input type="button" class="oc-btn oc-btn-danger" value="<%:Check And Update%>" onclick="return op_update(this)"/>';
+	ma_core_meta_up.innerHTML = '<input type="button" class="oc-btn oc-btn-danger" value="<%:Download%>" onclick="return ma_core_update(this,\'Meta\')"/>';
+	ma_op_up.innerHTML = '<input type="button" class="oc-btn oc-btn-danger" value="<%:Download%>" onclick="return ma_op_update(this)"/>';
+	
+	restore.innerHTML = '<input type="button" class="oc-btn oc-btn-primary" value="<%:Restore Default Config%>" onclick="return restore_config(this)"/>';
+	one_key_update_cdn.innerHTML = '<input type="button" class="oc-btn oc-btn-primary" value="<%:Check Update%>" onclick="return all_one_key_update_cdn(this)"/>';
+	remove_core.innerHTML = '<input type="button" class="oc-btn oc-btn-primary" value="<%:Remove Core%>" onclick="return remove_all_core(this)"/>';
+	backup.innerHTML = '<input type="button" class="oc-btn oc-btn-primary" value="<%:Backup OpenClash%>" onclick="return backup_all_file(this)"/>';
+	backup_ex_core.innerHTML = '<input type="button" class="oc-btn oc-btn-primary" value="<%:Backup Exclude Cores%>" onclick="return backup_no_core(this)"/>';
+	backup_core_only.innerHTML = '<input type="button" class="oc-btn oc-btn-primary" value="<%:Backup Core%>" onclick="return backup_only_core(this)"/>';
+	backup_config_only.innerHTML = '<input type="button" class="oc-btn oc-btn-primary" value="<%:Backup Config%>" onclick="return backup_only_config(this)"/>';
+	backup_rule_only.innerHTML = '<input type="button" class="oc-btn oc-btn-primary" value="<%:Backup Rule Provider%>" onclick="return backup_only_rule(this)"/>';
+	backup_proxy_only.innerHTML = '<input type="button" class="oc-btn oc-btn-primary" value="<%:Backup Proxy Provider%>" onclick="return backup_only_proxy(this)"/>';
+
+    var pathBtnContainer = document.getElementById('core-path-btn-container');
+    if (pathBtnContainer) {
+        var pathBtn = document.createElement('button');
+        pathBtn.type = 'button';
+        pathBtn.className = 'oc-btn oc-btn-info';
+        pathBtn.id = 'show-core-path-btn';
+        pathBtn.title = '<%:View Core Path%>';
+        pathBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M4.5 12a.5.5 0 0 0 .5.5h6a.5.5 0 0 0 0-1h-6a.5.5 0 0 0-.5.5zm-2 1.5A2.5 2.5 0 0 1 0 11V5a2.5 2.5 0 0 1 2.5-2.5h11A2.5 2.5 0 0 1 16 5v6a2.5 2.5 0 0 1-2.5 2.5h-11zm11-1a1.5 1.5 0 0 0 1.5-1.5V5a1.5 1.5 0 0 0-1.5-1.5h-11A1.5 1.5 0 0 0 1 5v6a1.5 1.5 0 0 0 1.5 1.5h11z"/><path d="M2.5 4a.5.5 0 0 0-.5.5v1a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 .5-.5v-1a.5.5 0 0 0-.5-.5h-11zm0 3a.5.5 0 0 0 0 1h11a.5.5 0 0 0 0-1h-11z"/></svg>';
+        pathBtn.addEventListener('click', function() {
+    		alert('<%:Core Path:%>\n\n/etc/openclash/core/clash_meta');
+    	});
+        pathBtnContainer.appendChild(pathBtn);
+    }
 
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, status) {
 		if ( x && x.status == 200 ) {
 			if ( status.corever && status.corever != "0" && status.corever != "" ) {
-		  		core_version.value = status.corever;
-			}
-			else {
-		  		core_version.value = "0";
+		  		coreVersionSelect.value = status.corever;
+			} else {
+		  		coreVersionSelect.value = "0";
 			}
 			if ( status.release_branch && status.release_branch != "" ) {
 		  		release_branch.value = status.release_branch;
-			}
-			else {
+			} else {
 		  		release_branch.value = "master";
 			}
 			if ( status.smart_enable && status.smart_enable != "" ) {
 				smart_enable.value = status.smart_enable;
-			}
-			else {
+			} else {
 				smart_enable.value = "0";
 			}
 		}
 		else {
-			core_version.value = "0";
+			coreVersionSelect.value = "0";
 			release_branch.value = "master";
 			smart_enable.value = "0";
 		}
 	});
 
-	XHR.poll(300, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_last_version")%>', null, function(x, status) {
-	});
+	XHR.poll(300, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_last_version")%>', null, function(x, status) {});
 	
 	function updateStatus(x, status) {
         if ( x && x.status == 200 ) {
-            cpu_model.innerHTML = status.coremodel ? "<b style=color:green>"+status.coremodel+"</b>" : "<b style=color:red><%:Model Not Found%></b>";
+            var coreModel = status.coremodel;
+            if (coreModel) {
+                var parts = coreModel.split(' ');
+                if (parts.length >= 2 && parts[0] === parts[1]) {
+                    coreModel = parts[0];
+                }
+            }
+            
+            var elementsToClear = [cpu_model, checktime, core_meta_cv, core_meta_lv, op_cv, op_lv];
+            elementsToClear.forEach(function(el) {
+                while (el.firstChild) {
+                    el.removeChild(el.lastChild);
+                }
+            });
+            
+            var cpu_b = document.createElement('b');
+            if (coreModel) {
+                cpu_b.className = 'green';
+                cpu_b.textContent = coreModel;
+            } else {
+                cpu_b.className = 'red';
+                cpu_b.textContent = '<%:Model Not Found%>';
+            }
+            cpu_model.appendChild(cpu_b);
+
+            var checktime_b = document.createElement('b');
             if ( status.upchecktime != "1" ) {
-                checktime.innerHTML = "<b style=color:green>"+status.upchecktime+"</b>";
+                checktime_b.className = 'green';
+                checktime_b.textContent = status.upchecktime;
+            } else {
+                checktime_b.className = 'red';
+                checktime_b.textContent = '<%:Check Failed%>';
             }
-            else {
-                checktime.innerHTML = "<b style=color:red><%:Check Failed%></b>";
-            }
+            checktime.appendChild(checktime_b);
+
+            var core_meta_cv_b = document.createElement('b');
             if ( status.coremetacv == "0" ) {
-                core_meta_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
+                core_meta_cv_b.className = 'red';
+                core_meta_cv_b.textContent = '<%:Unknown%>';
+            } else {
+                core_meta_cv_b.className = 'green';
+                core_meta_cv_b.textContent = status.coremetacv;
             }
-            else {
-                core_meta_cv.innerHTML = "<b style=color:green>"+status.coremetacv+"</b>";
-            }
+            core_meta_cv.appendChild(core_meta_cv_b);
+
+            var core_meta_lv_b = document.createElement('b');
             var coremetalvis = status.corelv;
             if (coremetalvis != status.coremetacv && coremetalvis != "" && coremetalvis != "loading...") {
-               core_meta_lv.innerHTML = "<b style=color:green>"+coremetalvis+" <%:<New>%></b>";
+               core_meta_lv_b.className = 'green';
+               core_meta_lv_b.innerHTML = coremetalvis + ' <%:<New>%>';
             }
             else if (coremetalvis != "" && coremetalvis == status.coremetacv && coremetalvis != "loading...") {
-               core_meta_lv.innerHTML = "<b style=color:green>"+coremetalvis+"</b>";
+               core_meta_lv_b.className = 'green';
+               core_meta_lv_b.textContent = coremetalvis;
             }
             else if (coremetalvis == "loading...") {
-               core_meta_lv.innerHTML = "<b style=color:green><%:Getting Last Version...%></b>";
+               core_meta_lv_b.textContent = '<%:Getting Last Version...%>';
             }
             else {
-               core_meta_lv.innerHTML = "<b style=color:red><%:Unknown%></b>";
+               core_meta_lv_b.className = 'red';
+               core_meta_lv_b.textContent = '<%:Unknown%>';
             }
+            core_meta_lv.appendChild(core_meta_lv_b);
+
+            var op_cv_b = document.createElement('b');
+            if (status.opcv != "0") {
+                op_cv_b.className = 'green';
+                op_cv_b.textContent = status.opcv;
+            } else {
+                op_cv_b.className = 'red';
+                op_cv_b.textContent = '<%:Unknown%>';
+            }
+            op_cv.appendChild(op_cv_b);
+            
+            var op_lv_b = document.createElement('b');
             var oplv = status.oplv;
-            op_cv.innerHTML = status.opcv != "0" ? "<b style=color:green>"+status.opcv+"</b>" : "<b style=color:red><%:Unknown%></b>";
             if (oplv != "" && oplv != "loading..." && status.opcv != "0") {
                 function compareVersions(v1, v2) {
                     var ver1 = v1.replace(/^v/, '').split('.');
                     var ver2 = v2.replace(/^v/, '').split('.');
-                    
                     var maxLen = Math.max(ver1.length, ver2.length);
                     while (ver1.length < maxLen) ver1.push('0');
                     while (ver2.length < maxLen) ver2.push('0');
-                    
                     for (var i = 0; i < maxLen; i++) {
                         var num1 = parseInt(ver1[i], 10);
                         var num2 = parseInt(ver2[i], 10);
@@ -261,67 +540,69 @@
                     }
                     return 0;
                 }
-                
+                op_lv_b.className = 'green';
                 if (compareVersions(oplv, status.opcv) > 0) {
-                    op_lv.innerHTML = "<b style=color:green>"+oplv+" <%:<New>%></b>";
+                    op_lv_b.innerHTML = oplv + ' <%:<New>%>';
                 } else {
-                    op_lv.innerHTML = "<b style=color:green>"+oplv+"</b>";
+                    op_lv_b.textContent = oplv;
                 }
             }
             else if (oplv != "" && oplv != "loading...") {
-                op_lv.innerHTML = "<b style=color:green>"+oplv+"</b>";
+                op_lv_b.className = 'green';
+                op_lv_b.textContent = oplv;
             }
             else if (oplv == "loading...") {
-                op_lv.innerHTML = "<b style=color:green><%:Getting Last Version...%></b>";
+                op_lv_b.textContent = '<%:Getting Last Version...%>';
             }
             else {
-                op_lv.innerHTML = "<b style=color:red><%:Unknown%></b>";
+                op_lv_b.className = 'red';
+                op_lv_b.textContent = '<%:Unknown%>';
             }
+            op_lv.appendChild(op_lv_b);
         }
     }
 
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, updateStatus);
-    
     XHR.poll(10, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, updateStatus);
 
 	function handleStartLog(x, status) {
         if ( x && x.status == 200 ) {
+            var tipNode = document.getElementById('update_tip');
             if ( status.startlog == "\n" || status.startlog == "" || status.startlog == "##FINISH##\n" ) {
                 var rdmdl = Math.floor(Math.random()*3)+1;
                 if(rdmdl == 1) {
-                    update_tip.innerHTML = '<b><font><%:Note: if the update fails, you can manually download and upload%></font></b>';
+                    tipNode.innerHTML = '<b><font><%:Note: if the update fails, you can manually download and upload%></font></b>';
                 }
                 else if(rdmdl == 2) {
-                    update_tip.innerHTML = '<b><font><%:Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating%></font></b>';
+                    tipNode.innerHTML = '<b><font><%:Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating%></font></b>';
                 }
                 else if(rdmdl == 3) {
-                    update_tip.innerHTML = '<b><font><%:Note: options will auto-save when you click to update or download%></font></b>';
+                    tipNode.innerHTML = '<b><font><%:Note: options will auto-save when you click to update or download%></font></b>';
                 }
             }
             else if ( status.startlog.match("level=fatal") || status.startlog.indexOf("FTL [Config]") != "-1" ) {
                 XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_start_log")%>', null, function(x) {});
                 if ( status.startlog.match("level=fatal") ) {
                     alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('msg=')[1]);
-                }
-                else {
+                } else {
                     alert('<%:OpenClash Start Failed%> :\n\n' + status.startlog.split('FTL [Config] ')[1]);
                 }
             }
             else if ( status.startlog != "\n" && status.startlog != "" && status.startlog != "##FINISH##\n" ) {
-                if ( status.startlog.match("Tip:") || status.startlog.match("提示：")) {
-                    update_tip.innerHTML = '<b style=color:#ff6f00>'+status.startlog+'</b>';
+                if ( status.startlog.match("Tip:") ) {
+                    tipNode.innerHTML = '<b style="color:#ff6f00">'+status.startlog+'</b>';
                 }
-                else if ( status.startlog.match("Error:") || status.startlog.match("错误：")) {
-                    update_tip.innerHTML = '<b style=color:#FF0000>'+status.startlog+'</b>';
+                else if ( status.startlog.match("Error:") ) {
+                    tipNode.innerHTML = '<b style="color:#FF0000">'+status.startlog+'</b>';
                 }
-                else if ( status.startlog.match("Warning:") || status.startlog.match("警告：")) {
-                    update_tip.innerHTML = '<b style=color:#ff00bb>'+status.startlog+'</b>';
+                else if ( status.startlog.match("Warning:") ) {
+                    tipNode.innerHTML = '<b style="color:#ff00bb">'+status.startlog+'</b>';
                 }
-                else if ( status.startlog.match("Watchdog:") || status.startlog.match("守护程序：")) {
-                    update_tip.innerHTML = '<b style=color:#b300ff>'+status.startlog+'</b>';
+                else if ( status.startlog.match("Watchdog:") ) {
+                    tipNode.innerHTML = '<b style="color:#b300ff">'+status.startlog+'</b>';
                 }
                 else {
-                    update_tip.innerHTML = '<b style=color:green>'+status.startlog+'</b>';
+                    tipNode.innerHTML = '<b style="color:green">'+status.startlog+'</b>';
                 }
             }
         }
@@ -329,188 +610,123 @@
 
     XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, handleStartLog);
 	
-	function core_update(btn,type)
-    {
-    	var v = core_version.value;
+	function core_update(btn,type) {
+    	var v = coreVersionSelect.value;
     	var r = release_branch.value;
 		var s = smart_enable.value;
+		btn.disabled = true;
+		btn.value = '<%:Updating...%>';
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
 				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "coreupdate")%>', {core_type: type}, function(x, status) {
-					btn.value    = '<%:Check And Update%>';
+					btn.value = '<%:Check And Update%>';
 					btn.disabled = false;
-					return false;
 				});
+			} else {
+				btn.value = '<%:Check And Update%>';
+				btn.disabled = false;
 			}
 		});
     }
 
-	function op_update(btn)
-    {
-        var v = core_version.value;
+	function op_update(btn) {
+        var v = coreVersionSelect.value;
     	var r = release_branch.value;
 		var s = smart_enable.value;
+		btn.disabled = true;
+		btn.value = '<%:Updating...%>';
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
 				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', null, function(x, status) {
-					btn.value    = '<%:Check And Update%>';
+					btn.value = '<%:Check And Update%>';
 					btn.disabled = false;
-					return false;
 				});
+			} else {
+				btn.value = '<%:Check And Update%>';
+				btn.disabled = false;
 			}
 		});
     }
     
-    function ma_core_update(btn,type)
-    {
-    	var v = core_version.value;
+    function ma_core_update(btn,type) {
+    	var v = coreVersionSelect.value;
 		var r = release_branch.value;
 		var s = smart_enable.value;
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
-		if (x && x.status == 200) {
-			btn.value    = '<%:Download%>';
-			btn.disabled = false;
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.corever, function(x, status) {
-			if ( x && x.status == 200 ) {
-				if ( status.corever != "0" ) {
-					if (type == "Meta") {
+    		if (x && x.status == 200) {
+    			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', {core_type: type}, function(x, status) {
+        			if ( x && x.status == 200 && status.corever && status.corever != "0" ) {
+						var url;
 						if (s == "1") {
-							url4='https://raw.githubusercontent.com/vernesong/OpenClash/core/'+r+'/smart/clash-'+status.corever+'.tar.gz';
-							window.location.href=url4;
+							url ='https://raw.githubusercontent.com/vernesong/OpenClash/core/'+r+'/smart/clash-'+status.corever+'.tar.gz';
+						} else {
+							url ='https://raw.githubusercontent.com/vernesong/OpenClash/core/'+r+'/meta/clash-'+status.corever+'.tar.gz';
 						}
-						else {
-							url4='https://raw.githubusercontent.com/vernesong/OpenClash/core/'+r+'/meta/clash-'+status.corever+'.tar.gz';
-							window.location.href=url4;
-						}
-					}
-				}
-				else {
-					alert('<%:No Compiled Version is Selected, Please Select on The Top and Try Again!%>')
-				}
-			}
-       		});
-        return false;
-    	}
+						window.location.href = url;
+        			} else {
+        				alert('<%:No Compiled Version is Selected, Please Select on The Top and Try Again!%>');
+        			}
+           		});
+    		}
       });
     }
     
-    function ma_op_update(btn)
-    {
-        btn.value    = '<%:Download%>';
-        btn.disabled = false;
-        var v = core_version.value;
+    function ma_op_update(btn) {
+        var v = coreVersionSelect.value;
 		var r = release_branch.value;
 		var s = smart_enable.value;
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
-				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.oplv, function(x, status) {
-					if ( x && x.status == 200 ) {
+				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', null, function(x, status) {
+					if ( x && x.status == 200 && status.oplv && status.oplv != "" && status.oplv != "loading..." ) {
 						var oplv = status.oplv.substring(status.oplv.indexOf("v") + 1);
-						if ( oplv != "" && oplv != "loading..." ) {
-							if (status.pkg_type == "apk") {
-								url2='https://raw.githubusercontent.com/vernesong/OpenClash/package/'+r+'/luci-app-openclash-'+oplv+'.apk';
-							}
-							else {
-								url2='https://raw.githubusercontent.com/vernesong/OpenClash/package/'+r+'/luci-app-openclash_'+oplv+'_all.ipk';
-							}
-							window.location.href=url2;
+						var url;
+						if (status.pkg_type == "apk") {
+							url ='https://raw.githubusercontent.com/vernesong/OpenClash/package/'+r+'/luci-app-openclash-'+oplv+'.apk';
+						} else {
+							url ='https://raw.githubusercontent.com/vernesong/OpenClash/package/'+r+'/luci-app-openclash_'+oplv+'_all.ipk';
 						}
-						else {
-							alert('<%:Failed to get the latest version. Please try again later!%>')
-						}
+						window.location.href = url;
+					} else {
+						alert('<%:Failed to get the latest version. Please try again later!%>');
 					}
 				});
 			}
         });
-        return false; 
     }
     
-    function remove_all_core(btn)
-    {
-        btn.value    = '<%:Remove Core%>';
+    function remove_all_core(btn) {
+		if (!confirm("<%:Are you sure want to remove all core files?%>")) return;
         btn.disabled = true;
-        var r = confirm("<%:Are you sure want to remove all core files?%>")
-        if (r == true) {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "remove_all_core")%>', null, function(x, status) {
         	if ( x && x.status == 200 ) {
-        		alert('<%:Remove succeeded!%>')
-        	}
-          	else {
-            alert('<%:Remove failed!%>')
-           }
+        		alert('<%:Remove succeeded!%>');
+        	} else {
+            	alert('<%:Remove failed!%>');
+           	}
+			btn.disabled = false;
         });
-        } else {
-        }
-        btn.disabled = false;
-        return false; 
     }
     
-    function backup_all_file(btn)
-    {
-		btn.value    = '<%:Backup OpenClash%>';
-		btn.disabled = true;
-		window.location.href='<%="backup"%>';
-		btn.disabled = false;
-		return false; 
-    }
+    function backup_all_file() { window.location.href='<%="backup"%>'; }
+    function backup_no_core() { window.location.href='<%="backup_ex_core"%>'; }
+    function backup_only_core() { window.location.href='<%="backup_only_core"%>'; }
+    function backup_only_config() { window.location.href='<%="backup_only_config"%>'; }
+    function backup_only_rule() { window.location.href='<%="backup_only_rule"%>'; }
+    function backup_only_proxy() { window.location.href='<%="backup_only_proxy"%>'; }
 
-    function backup_no_core(btn)
-    {
-		btn.value    = '<%:Backup Exclude Cores%>';
-		btn.disabled = true;
-		window.location.href='<%="backup_ex_core"%>';
-		btn.disabled = false;
-		return false; 
-    }
-
-    function backup_only_core(btn)
-    {
-		btn.value    = '<%:Backup Core%>';
-		btn.disabled = true;
-		window.location.href='<%="backup_only_core"%>';
-		btn.disabled = false;
-		return false; 
-    }
-
-    function backup_only_config(btn)
-    {
-		btn.value    = '<%:Backup Config%>';
-		btn.disabled = true;
-		window.location.href='<%="backup_only_config"%>';
-		btn.disabled = false;
-		return false; 
-    }
-
-    function backup_only_rule(btn)
-    {
-		btn.value    = '<%:Backup Rule Provider%>';
-		btn.disabled = true;
-		window.location.href='<%="backup_only_rule"%>';
-		btn.disabled = false;
-		return false; 
-    }
-
-    function backup_only_proxy(btn)
-    {
-		btn.value    = '<%:Backup Proxy Provider%>';
-		btn.disabled = true;
-		window.location.href='<%="backup_only_proxy"%>';
-		btn.disabled = false;
-		return false; 
-    }
-
-	function all_one_key_update_cdn(btn)
-    {
-    	var v = core_version.value;
+	function all_one_key_update_cdn(btn) {
+    	var v = coreVersionSelect.value;
 		var r = release_branch.value;
 		var s = smart_enable.value;
+		btn.disabled = true;
+		btn.value = '<%:Checking...%>';
 		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
 			if (x && x.status == 200) {
-				btn.value    = '<%:Check Update%>';
-				btn.disabled = false;
-				return select_git_cdn("one_key_update");
+				select_git_cdn("one_key_update");
 			}
+			btn.value = '<%:Check Update%>';
+			btn.disabled = false;
 		});
     }
-
-//]]></script>
+</script>
