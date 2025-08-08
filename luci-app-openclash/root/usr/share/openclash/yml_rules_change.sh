@@ -562,9 +562,7 @@ yml_other_set()
       rescue Exception => e
          YAML.LOG('Error: Rule Set Add Failed,【' + e.message + '】');
       end;
-   };
 
-   rule_thread_pool << Thread.new{
       #Custom Rules
       begin
          if $2 == 1 then
