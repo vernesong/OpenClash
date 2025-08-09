@@ -692,13 +692,7 @@
 
   document.addEventListener('DOMContentLoaded', function() {
       DarkModeDetector.init();
-  });
-
-  window.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-      obj.classList.add('collapsed');
-      obj.classList.remove('expanded');
-    }, 100);
+      obj.classList.add('expanded');
   });
    
   XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
