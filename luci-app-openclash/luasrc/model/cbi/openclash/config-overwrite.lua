@@ -360,7 +360,6 @@ o.description = translate("Before Node Data Collect Completely, The Default is S
 
 o = s:taboption("smart", Flag, "smart_collect", translate("Colletct Training Data"))
 o.default = 0
-o:depends("auto_smart_switch", "1")
 
 o = s:taboption("smart", Value, "smart_collect_size", translate("Data Colletct File Size (MB)"))
 o.default = 100

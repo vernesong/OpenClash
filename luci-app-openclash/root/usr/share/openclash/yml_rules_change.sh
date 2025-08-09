@@ -802,15 +802,19 @@ yml_other_set()
 
       # smart auto switch
       begin
-         if '${10}' == '1' and Value.key?('proxy-groups') then
+         if ('${10}' == '1' or '${11}' == '1') and Value.key?('proxy-groups') then
             Value['proxy-groups'].each{|group|
                threads << Thread.new {
-                  if ['url-test', 'load-balance'].include?(group['type']) then
+                  if '${10}' == '1' and ['url-test', 'load-balance'].include?(group['type']) then
                      group['type'] = 'smart';
                      group['uselightgbm'] = true;
                      group['strategy'] = '${13}';
                      group['collectdata'] = true if '${11}' == '1';
                      group['sample-rate'] = '${12}'.to_f if '${11}' == '1';
+                  end;
+                  if '${11}' == '1' and group['type'] == 'smart' then
+                     group['collectdata'] = true;
+                     group['sample-rate'] = '${12}'.to_f;
                   end;
                };
             };
