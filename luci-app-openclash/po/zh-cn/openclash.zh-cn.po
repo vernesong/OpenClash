@@ -1374,8 +1374,11 @@ msgstr "当前内核版本"
 msgid "Latest Core"
 msgstr "最新内核版本"
 
-msgid "Core path:"
-msgstr "内核路径："
+msgid "View Core Path"
+msgstr "查看内核路径"
+
+msgid "Core Path:"
+msgstr "内核路径:"
 
 msgid "Update Core"
 msgstr "更新内核"
@@ -4073,3 +4076,27 @@ msgstr "中等版"
 
 msgid "Large Version"
 msgstr "完整版"
+
+msgid "Settings have been saved..."
+msgstr "配置已保存..."
+
+msgid "Core Settings"
+msgstr "核心设置"
+
+msgid "View Core Path"
+msgstr "查看内核路径"
+
+msgid "Core Path:"
+msgstr "内核路径:"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Disable"
+msgstr "停用"
+
+msgid "Core Status"
+msgstr "核心状态"
+
+msgid "Shortcuts"
+msgstr "快捷方式"
