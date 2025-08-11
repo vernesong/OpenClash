@@ -905,12 +905,11 @@ function sub_info_get()
 end
 
 function action_rule_mode()
-	local mode, info, core_type
+	local mode, info
 	if is_running() then
 		local daip = daip()
 		local dase = dase() or ""
 		local cn_port = cn_port()
-		core_type = uci:get("openclash", "config", "core_type") or "Meta"
 		if not daip or not cn_port then return end
 		info = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/configs', dase, daip, cn_port)))
 		if info then
@@ -923,8 +922,7 @@ function action_rule_mode()
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		mode = mode,
-		core_type = core_type;
+		mode = mode;
 	})
 end
 
@@ -1277,14 +1275,14 @@ end
 function action_lastversion()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-			lastversion = check_lastversion();
+		lastversion = check_lastversion();
 	})
 end
 
 function action_start()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-			startlog = startlog();
+		startlog = startlog();
 	})
 end
 
@@ -1312,19 +1310,19 @@ end
 function action_update_info()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-			corever = corever(),
-			release_branch = release_branch(),
-			smart_enable = smart_enable();
+        corever = corever(),
+        release_branch = release_branch(),
+        smart_enable = smart_enable();
 	})
 end
 
 function action_update_ma()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-			oplv = oplv(),
-			pkg_type = pkg_type(),
-			corelv = corelv(),
-			corever = corever();
+        oplv = oplv(),
+        pkg_type = pkg_type(),
+        corelv = corelv(),
+        corever = corever();
 	})
 end
 
