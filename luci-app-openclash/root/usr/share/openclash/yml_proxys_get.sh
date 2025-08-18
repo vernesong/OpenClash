@@ -85,24 +85,23 @@ cfg_group_name()
    fi
 
    if [ "$name" = "$2" ]; then
-      config_group_exist=$(( $config_group_exist + 1 ))
+      if [ -z "$new_server_add_group" ]; then
+         new_server_add_group="$name"
+      else
+         new_server_add_group="$new_server_add_group|||$name"
+      fi
    fi
 }
 
 #判断当前配置文件策略组信息是否包含指定策略组
-config_group_exist=0
-if [ -z "$(uci -q get openclash.config.new_servers_group)" ]; then
-   config_group_exist=2
-elif [ "$(uci -q get openclash.config.new_servers_group)" = "all" ]; then
-   config_group_exist=1
-else
-   config_load "openclash"
-   config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_check
+config_load "openclash"
+config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_check
 
-   if [ "$config_group_exist" -ne 0 ]; then
-      config_group_exist=1
+if [ "$(uci -q get openclash.config.new_servers_group)" = "all" ]; then
+   if [ -z "$new_server_add_group" ]; then
+      new_server_add_group="all"
    else
-      config_group_exist=0
+      new_server_add_group="all|||$new_server_add_group"
    fi
 fi
 
@@ -193,7 +192,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                uci_add='uci -q add_list openclash.' + uci_name_tmp_prv[index] + '.';
                uci_del='uci -q delete openclash.' + uci_name_tmp_prv[index] + '.';
                
-               if '$config_group_exist' == 0 and '$servers_if_update' == '1' and '$servers_update' == 1 then
+               if '$new_server_add_group'.to_s.strip.empty? and '$servers_if_update' == '1' and '$servers_update' == 1 then
                   uci_commands << uci_set + 'enabled=0';
                else
                   uci_commands << uci_set + 'enabled=1';
@@ -266,9 +265,9 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 
             threads_prv << Thread.new{
                #加入策略组
-               if '$servers_if_update' == '1' and '$config_group_exist' == '1' and '$servers_update' == '1' and provider_nums.empty? then
+               if '$servers_if_update' == '1' and ! '$new_server_add_group'.to_s.strip.empty? and '$servers_update' == '1' and provider_nums.empty? then
                   #新代理集且设置默认策略组时加入指定策略组
-                  new_provider_groups = %x{uci get openclash.config.new_servers_group}.chomp.split(\"'\").map { |x| x.strip }.reject { |x| x.empty? };
+                  new_provider_groups = '$new_server_add_group'.to_s.split('|||').map(&:strip).reject(&:empty?);
                   new_provider_groups.each do |x|
                      uci_commands << uci_add + 'groups=\"^' + x + '$\"'
                   end
@@ -324,7 +323,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                uci_set='uci -q set openclash.' + uci_name_tmp[index] + '.';
                uci_add='uci -q add_list openclash.' + uci_name_tmp[index] + '.';
                uci_del='uci -q delete openclash.' + uci_name_tmp[index] + '.';
-               if '$config_group_exist' == 0 and '$servers_if_update' == '1' and '$servers_update' == 1 then
+               if '$new_server_add_group'.to_s.strip.empty? and '$servers_if_update' == '1' and '$servers_update' == 1 then
                   uci_commands << uci_set + 'enabled=0';
                else
                   uci_commands << uci_set + 'enabled=1';
@@ -1503,10 +1502,10 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             #加入策略组
             threads << Thread.new{
                #加入策略组
-               if '$servers_if_update' == '1' and '$config_group_exist' == '1' and '$servers_update' == '1' and server_num.empty? then
+               if '$servers_if_update' == '1' and ! '$new_server_add_group'.to_s.strip.empty? and '$servers_update' == '1' and server_num.empty? then
                   #新代理且设置默认策略组时加入指定策略组
-                  new_provider_groups = %x{uci get openclash.config.new_servers_group}.chomp.split(\"'\").map { |x| x.strip }.reject { |x| x.empty? };
-                  new_provider_groups.each do |x|
+                  new_server_groups = '$new_server_add_group'.to_s.split('|||').map(&:strip).reject(&:empty?);
+                  new_server_groups.each do |x|
                      uci_commands << uci_add + 'groups=\"^' + x + '$\"'
                   end
                elsif '$servers_if_update' != '1' then
