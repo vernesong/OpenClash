@@ -688,7 +688,7 @@ msgid "Mix This Page's Proxies"
 msgstr "一键生成配置文件时合并本页下方的所有代理服务器信息（不区分配置文件）"
 
 msgid "Type"
-msgstr "节点类型"
+msgstr "类型"
 
 msgid "Server Alias"
 msgstr "别名（请勿重名）"
@@ -3666,11 +3666,11 @@ msgstr "订阅链接"
 msgid "Click to select file or drag and drop"
 msgstr "点击选择文件或拖拽上传"
 
-msgid "Support YAML files, max size 10MB"
-msgstr "支持 YAML 文件，最大 10MB"
-
 msgid "Support YAML file, max size 10MB"
 msgstr "支持 YAML 文件，最大 10MB"
+
+msgid "Support txt,conf files, max size 10MB"
+msgstr "支持 txt,conf 文件，最大 10MB"
 
 msgid "Subscription URL"
 msgstr "订阅地址"
@@ -4073,3 +4073,93 @@ msgstr "中等版"
 
 msgid "Large Version"
 msgstr "完整版"
+
+msgid "Add New File"
+msgstr "添加新文件"
+
+msgid "Local File"
+msgstr "本地文件"
+
+msgid "Refresh Subscription"
+msgstr "刷新订阅"
+
+msgid "Refreshing subscription..."
+msgstr "正在刷新订阅..."
+
+msgid "Subscription refreshed successfully"
+msgstr "订阅刷新成功"
+
+msgid "Subscription refresh failed"
+msgstr "订阅刷新失败"
+
+msgid "Edit Subscription Info"
+msgstr "编辑订阅信息"
+
+msgid "Are you sure you want to delete this file and its subscription info?"
+msgstr "确定要删除该文件及其订阅信息吗？"
+
+msgid "Add Overwrite Module"
+msgstr "添加覆写模块"
+
+msgid "Ready to add file"
+msgstr "准备添加文件"
+
+msgid "openclash_custom_overwrite.sh already exists and cannot be added again"
+msgstr "openclash_custom_overwrite.sh 已存在，不能重复添加"
+
+msgid "Created successfully"
+msgstr "新建成功"
+
+msgid "Please enter subscription URL"
+msgstr "请输入订阅URL"
+
+msgid "Invalid subscription URL format, only single HTTP/HTTPS link is supported"
+msgstr "无效的订阅URL格式，仅支持单一HTTP/HTTPS链接"
+
+msgid "Downloading subscription content..."
+msgstr "正在下载订阅内容..."
+
+msgid "Download completed"
+msgstr "下载完成"
+
+msgid "Failed to save subscription info:"
+msgstr "订阅信息保存失败:"
+
+msgid "Overwrite Settings"
+msgstr "覆写文件属性"
+
+msgid "Ready to edit"
+msgstr "准备编辑"
+
+msgid "Subscription saved successfully"
+msgstr "订阅保存成功"
+
+msgid "Failed to save subscription"
+msgstr "订阅保存失败"
+
+msgid "Environment variable"
+msgstr "环境变量"
+
+msgid "Warning: DOWNLOAD FILE no target in"
+msgstr "警告：文件下载未指定目标参数"
+
+msgid "Error: DOWNLOAD FILE failed for"
+msgstr "错误：文件下载失败"
+
+msgid "Warning: skip General key not allowed"
+msgstr "警告：跳过不支持的参数"
+
+msgid "Warning: skip invalid Overwrite command"
+msgstr "警告：跳过不支持的覆写命令"
+
+msgid "Tip: Processing Overwrite Module"
+msgstr "提示：执行覆写模块"
+
+msgid "Delete"
+msgstr "删除"
+
+msgid "Delete failed"
+msgstr "删除失败"
+
+msgid "Overwrite Module Edit"
+msgstr "覆写模块编辑"

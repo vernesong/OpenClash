@@ -60,9 +60,10 @@ define Build/Prepare
 	chmod -R 0755 $(PKG_BUILD_DIR)/root/usr/share/openclash/
 	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/config
 	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/rule_provider
+	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/proxy_provider
 	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/backup
 	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/core
-	mkdir -p $(PKG_BUILD_DIR)/root/usr/share/openclash/backup
+	mkdir -p $(PKG_BUILD_DIR)/root/usr/share/openclash/backup/overwrite
 	cp -f "$(PKG_BUILD_DIR)/root/etc/config/openclash" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash" >/dev/null 2>&1
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_rules.list" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_rules.list" >/dev/null 2>&1
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_rules_2.list" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_rules_2.list" >/dev/null 2>&1
@@ -78,6 +79,7 @@ define Build/Prepare
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_chnroute6_pass.list" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_chnroute6_pass.list" >/dev/null 2>&1
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_firewall_rules.sh" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_firewall_rules.sh" >/dev/null 2>&1
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_overwrite.sh" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_overwrite.sh" >/dev/null 2>&1
+	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/overwrite/default" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/overwrite/default" >/dev/null 2>&1
 	exit 0
 endef
 

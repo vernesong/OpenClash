@@ -103,6 +103,10 @@ function index()
 	entry({"admin", "services", "openclash", "config_file_save"}, call("action_config_file_save"))
 	entry({"admin", "services", "openclash", "upload_config"}, call("action_upload_config"))
 	entry({"admin", "services", "openclash", "add_subscription"}, call("action_add_subscription"))
+    entry({"admin", "services", "openclash", "upload_overwrite"}, call("action_upload_overwrite"))
+    entry({"admin", "services", "openclash", "overwrite_subscribe_info"}, call("action_overwrite_subscribe_info"))
+    entry({"admin", "services", "openclash", "overwrite_file_list"}, call("action_overwrite_file_list"))
+    entry({"admin", "services", "openclash", "delete_overwrite_file"}, call("delete_overwrite_file"))
 end
 
 local fs = require "luci.openclash"
@@ -218,7 +222,7 @@ end
 local function startlog()
 	local info = ""
 	local line_trans = ""
-	if nixio.fs.access("/tmp/openclash_start.log") then
+	if fs.access("/tmp/openclash_start.log") then
 		info = luci.sys.exec("sed -n '$p' /tmp/openclash_start.log 2>/dev/null")
 		line_trans = info
 		if string.len(info) > 0 then
@@ -253,7 +257,7 @@ local function coremodel()
 end
 
 local function check_core()
-	if not nixio.fs.access(meta_core_path) then
+	if not fs.access(meta_core_path) then
 		return "0"
 	else
 		return "1"
@@ -262,7 +266,7 @@ end
 
 local function coremetacv()
     local v = "0"
-	if not nixio.fs.access(meta_core_path) then
+	if not fs.access(meta_core_path) then
 		return v
 	else
 		v = luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1 |tr -d '\n'", meta_core_path))
@@ -470,14 +474,16 @@ end
 function action_restore_config()
 	uci:set("openclash", "config", "enable", "0")
 	uci:commit("openclash")
+    luci.sys.call("mkdir -p /etc/openclash/custom >/dev/null 2>&1")
+    luci.sys.call("mkdir -p /etc/openclash/overwrite >/dev/null 2>&1")
 	luci.sys.call("/etc/init.d/openclash stop >/dev/null 2>&1")
-	luci.sys.call("cp '/usr/share/openclash/backup/openclash' '/etc/config/openclash' >/dev/null 2>&1 &")
+	luci.sys.call("cp /usr/share/openclash/backup/openclash /etc/config/openclash >/dev/null 2>&1 &")
 	luci.sys.call("cp /usr/share/openclash/backup/openclash_custom* /etc/openclash/custom/ >/dev/null 2>&1 &")
 	luci.sys.call("cp /usr/share/openclash/backup/openclash_force_sniffing* /etc/openclash/custom/ >/dev/null 2>&1 &")
 	luci.sys.call("cp /usr/share/openclash/backup/openclash_sniffing* /etc/openclash/custom/ >/dev/null 2>&1 &")
-	luci.sys.call("cp /usr/share/openclash/backup/yml_change.sh /usr/share/openclash/yml_change.sh >/dev/null 2>&1 &")
 	luci.sys.call("cp /usr/share/openclash/backup/china_ip_route.ipset /etc/openclash/china_ip_route.ipset >/dev/null 2>&1 &")
 	luci.sys.call("cp /usr/share/openclash/backup/china_ip6_route.ipset /etc/openclash/china_ip6_route.ipset >/dev/null 2>&1 &")
+    luci.sys.call("cp /usr/share/openclash/backup/overwrite/default /etc/openclash/overwrite/default >/dev/null 2>&1 &")
 	luci.sys.call("rm -rf /etc/openclash/history/* >/dev/null 2>&1 &")
 end
 
@@ -610,7 +616,7 @@ local function dler_info()
 	path = "/tmp/dler_info"
 	if token and email and passwd then
 		get_info = string.format("curl -sL -H 'Content-Type: application/json' -d '{\"email\":\"%s\", \"passwd\":\"%s\"}' -X POST https://dler.cloud/api/v1/information -o %s", email, passwd, path)
-		if not nixio.fs.access(path) then
+		if not fs.access(path) then
 			luci.sys.exec(get_info)
 		else
 			if fs.readfile(path) == "" or not fs.readfile(path) then
@@ -710,7 +716,7 @@ function action_switch_config()
         return
     end
     
-    if not nixio.fs.access(config_file) then
+    if not fs.access(config_file) then
         luci.http.prepare_content("application/json")
         luci.http.write_json({
             status = "error",
@@ -2328,7 +2334,7 @@ function action_proxy_info()
         local config_filename = fs.basename(config_path)
         local runtime_config_path = "/etc/openclash/" .. config_filename
         
-        if nixio.fs.access(runtime_config_path) then
+        if fs.access(runtime_config_path) then
             local ruby_result = luci.sys.exec(string.format([[
                 timeout 5 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                 begin
@@ -2428,7 +2434,7 @@ function action_oc_settings()
             local config_filename = fs.basename(config_path)
             local runtime_config_path = "/etc/openclash/" .. config_filename
             
-            if nixio.fs.access(runtime_config_path) then
+            if fs.access(runtime_config_path) then
                 local ruby_result = luci.sys.exec(string.format([[
                     timeout 5 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                     begin
@@ -2762,7 +2768,7 @@ function action_generate_pac()
         local config_filename = fs.basename(config_path)
         local runtime_config_path = "/etc/openclash/" .. config_filename
         
-        if nixio.fs.access(runtime_config_path) then
+        if fs.access(runtime_config_path) then
             local ruby_result = luci.sys.exec(string.format([[
                 timeout 5 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                 begin
@@ -2845,7 +2851,7 @@ function action_generate_pac()
     local existing_files = luci.sys.exec(find_cmd)
     if existing_files and existing_files ~= "" then
         for file_path in existing_files:gmatch("[^\n]+") do
-            if nixio.fs.access(file_path) then
+            if fs.access(file_path) then
                 local file_content = fs.readfile(file_path)
                 if file_content then
                     local existing_proxy = string.match(file_content, 'return%s+"(PROXY%s+[^"]*)"')
@@ -3020,7 +3026,7 @@ function generate_pac_content(proxy_ip, proxy_port, auth_user, auth_pass)
     
     local ipv4_networks = {}
     local ipv4_file = "/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list"
-    if nixio.fs.access(ipv4_file) then
+    if fs.access(ipv4_file) then
         local content = fs.readfile(ipv4_file)
         if content then
             for line in content:gmatch("[^\r\n]+") do
@@ -3059,7 +3065,7 @@ function generate_pac_content(proxy_ip, proxy_port, auth_user, auth_pass)
     
     local ipv6_networks = {}
     local ipv6_file = "/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list"
-    if nixio.fs.access(ipv6_file) then
+    if fs.access(ipv6_file) then
         local content = fs.readfile(ipv6_file)
         if content then
             for line in content:gmatch("[^\r\n]+") do
@@ -3180,6 +3186,10 @@ function FindProxyForURLEx(url, host) {
     return pac_script
 end
 
+local function is_safe_filename(filename)
+    return filename and filename:match("^[%w%._%-]+$") and not filename:match("^%.")
+end
+
 function action_oc_action()
 	local action = luci.http.formvalue("action")
     local config_file = luci.http.formvalue("config_file")
@@ -3191,7 +3201,7 @@ function action_oc_action()
 
     if config_file and config_file ~= "" then
         local config_path = "/etc/openclash/config/" .. config_file
-        if not nixio.fs.access(config_path) then
+        if not fs.access(config_path) then
             luci.http.status(404, "Config file not found")
             return
         end
@@ -3235,19 +3245,21 @@ function action_config_file_list()
     end
     
     local config_dir = "/etc/openclash/config/"
-    if nixio.fs.access(config_dir) then
-        for file in nixio.fs.dir(config_dir) do
-            local full_path = config_dir .. file
-            local stat = nixio.fs.stat(full_path)
-            
-            if stat and stat.type == "reg" then
-                if string.match(file, "%.ya?ml$") then
-                    table.insert(config_files, {
-                        name = file,
-                        path = full_path,
-                        size = stat.size,
-                        mtime = stat.mtime
-                    })
+    if fs.access(config_dir) then
+        local files = fs.dir(config_dir)
+        if files then
+            for _, file in ipairs(files) do
+                local full_path = config_dir .. file
+                local stat = fs.stat(full_path)
+                if stat and stat.type == "regular" then
+                    if string.match(file, "%.ya?ml$") then
+                        table.insert(config_files, {
+                            name = file,
+                            path = full_path,
+                            size = stat.size,
+                            mtime = stat.mtime
+                        })
+                    end
                 end
             end
         end
@@ -3282,15 +3294,15 @@ function action_upload_config()
     if not filename or filename == "" then
         filename = "upload_" .. os.date("%Y%m%d_%H%M%S")
     end
-    
-    if string.find(filename, "[/\\]") or string.find(filename, "%.%.") then
+
+    if not is_safe_filename(filename) then
         luci.http.write_json({
             status = "error",
-            message = "Invalid filename characters"
+            message = "Invalid filename"
         })
         return
     end
-    
+
     if not string.match(filename, "%.ya?ml$") then
         filename = filename .. ".yaml"
     end
@@ -3346,7 +3358,7 @@ function action_upload_config()
         
         local written_content = fs.readfile(target_path)
         if not written_content or string.len(written_content) ~= file_size then
-            nixio.fs.unlink(target_path)
+            fs.unlink(target_path)
             luci.http.write_json({
                 status = "error",
                 message = "File write verification failed"
@@ -3378,71 +3390,44 @@ function action_config_file_read()
         return
     end
 
-    local is_overwrite = (config_file == "/etc/openclash/custom/openclash_custom_overwrite.sh")
-
-    if not is_overwrite then
-        if string.match(config_file, "^/etc/openclash/[^/%.]+%.ya?ml$") then
-            local stat = nixio.fs.stat(config_file)
-            if stat and stat.type == "reg" then
-                if stat.size > 10 * 1024 * 1024 then
-                    luci.http.prepare_content("application/json")
-                    luci.http.write_json({
-                        status = "error",
-                        message = "Config file too large (max 10MB)"
-                    })
-                    return
-                end
-                local content = fs.readfile(config_file) or ""
-                luci.http.prepare_content("application/json")
-                luci.http.write_json({
-                    status = "success",
-                    content = content,
-                    file_info = {
-                        path = config_file,
-                        size = stat.size,
-                        mtime = stat.mtime,
-                        readable_size = fs.filesize(stat.size),
-                        last_modified = os.date("%Y-%m-%d %H:%M:%S", stat.mtime)
-                    }
-                })
-                return
-            else
-                luci.http.prepare_content("application/json")
-                luci.http.write_json({
-                    status = "success",
-                    content = "",
-                    file_info = {
-                        path = config_file,
-                        size = 0,
-                        mtime = 0,
-                        readable_size = "0 KB",
-                        last_modified = ""
-                    }
-                })
-                return
-            end
-        end
-        if not string.match(config_file, "^/etc/openclash/config/[^/%.]+%.ya?ml$") then
-            luci.http.prepare_content("application/json")
-            luci.http.write_json({
-                status = "error",
-                message = "Invalid config file path"
-            })
-            return
-        end
+    local allow = false
+    if config_file == "/etc/openclash/custom/openclash_custom_overwrite.sh" then
+        allow = true
+    elseif config_file:match("^/etc/openclash/overwrite/[^/]+$") then
+        allow = true
+    elseif config_file:match("^/etc/openclash/[^/]+%.ya?ml$") then
+        allow = true
+    elseif config_file:match("^/etc/openclash/config/[^/]+%.ya?ml$") then
+        allow = true
     end
 
-    if not nixio.fs.access(config_file) then
+    if not allow then
         luci.http.prepare_content("application/json")
         luci.http.write_json({
             status = "error",
-            message = "Config file does not exist: " .. config_file
+            message = "Invalid config file path"
         })
         return
     end
 
-    local stat = nixio.fs.stat(config_file)
-    if not stat or stat.type ~= "reg" then
+    if not fs.access(config_file) then
+        luci.http.prepare_content("application/json")
+        luci.http.write_json({
+            status = "success",
+            content = "",
+            file_info = {
+                path = config_file,
+                size = 0,
+                mtime = 0,
+                readable_size = "0 KB",
+                last_modified = ""
+            }
+        })
+        return
+    end
+
+    local stat = fs.stat(config_file)
+    if not stat or stat.type ~= "regular" then
         luci.http.prepare_content("application/json")
         luci.http.write_json({
             status = "error",
@@ -3501,7 +3486,7 @@ function action_config_file_save()
         return
     end
 
-    local is_overwrite = (config_file == "/etc/openclash/custom/openclash_custom_overwrite.sh")
+    local is_overwrite = (config_file == "/etc/openclash/custom/openclash_custom_overwrite.sh" or config_file:match("^/etc/openclash/overwrite/[^/]+$"))
 
     if not is_overwrite then
         if not string.match(config_file, "^/etc/openclash/config/[^/%.]+%.ya?ml$") then
@@ -3509,6 +3494,15 @@ function action_config_file_save()
             luci.http.write_json({
                 status = "error",
                 message = "Invalid config file path"
+            })
+            return
+        end
+    else
+        if not (config_file == "/etc/openclash/custom/openclash_custom_overwrite.sh" or config_file:match("^/etc/openclash/overwrite/[^/]+$")) then
+            luci.http.prepare_content("application/json")
+            luci.http.write_json({
+                status = "error",
+                message = "Invalid overwrite file path"
             })
             return
         end
@@ -3524,7 +3518,7 @@ function action_config_file_save()
     end
 
     local backup_file = nil
-    if nixio.fs.access(config_file) then
+    if fs.access(config_file) then
         backup_file = config_file .. ".backup." .. os.time()
         local backup_success = luci.sys.call(string.format("cp '%s' '%s'", config_file, backup_file))
         if backup_success ~= 0 then
@@ -3581,7 +3575,7 @@ function action_config_file_save()
         ]], config_file, config_file))
     end
 
-    local stat = nixio.fs.stat(config_file)
+    local stat = fs.stat(config_file)
     local file_info = {}
     if stat then
         file_info = {
@@ -3813,4 +3807,354 @@ function action_add_subscription()
             message = "Failed to add subscription configuration"
         })
     end
+end
+
+function action_upload_overwrite()
+    local upload = luci.http.formvalue("config_file")
+    local filename = luci.http.formvalue("filename")
+    local enable = luci.http.formvalue("enable")
+    luci.http.prepare_content("application/json")
+    if not upload or upload == "" then
+        luci.http.write_json({status = "error", message = "No file uploaded"})
+        return
+    end
+    if not filename or filename == "" then
+        filename = "upload_" .. os.date("%Y%m%d_%H%M%S")
+    end
+    if not is_safe_filename(filename) then
+        luci.http.write_json({status = "error", message = "Invalid filename"})
+        return
+    end
+    local overwrite_dir = "/etc/openclash/overwrite/"
+    luci.sys.call("mkdir -p " .. overwrite_dir)
+    local target_path = overwrite_dir .. filename
+    if string.len(upload) == 0 then
+        luci.http.write_json({status = "error", message = "Uploaded file is empty"})
+        return
+    end
+    local file_size = string.len(upload)
+    if file_size > 10 * 1024 * 1024 then
+        luci.http.write_json({status = "error", message = string.format("File size (%s) exceeds 10MB limit", require("luci.openclash").filesize(file_size))})
+        return
+    end
+    local fp = io.open(target_path, "w")
+    if fp then
+        fp:write(upload)
+        fp:close()
+        luci.sys.call(string.format("chmod 644 '%s'", target_path))
+        luci.sys.call(string.format("chown root:root '%s'", target_path))
+        local written_content = fs.readfile(target_path)
+        if not written_content or string.len(written_content) ~= file_size then
+            fs.unlink(target_path)
+            luci.http.write_json({status = "error", message = "File write verification failed"})
+            return
+        end
+
+        local section_name = filename
+        local found = false
+        if enable == nil or enable == "" then
+            enable = 0
+        end
+        uci:foreach("openclash", "config_overwrite", function(s)
+            if s.name == section_name then
+                found = true
+                if enable ~= nil then
+                    uci:set("openclash", s[".name"], "enable", tostring(enable))
+                end
+            end
+        end)
+        if not found then
+            local sid = uci:add("openclash", "config_overwrite")
+            uci:set("openclash", sid, "name", section_name)
+            uci:set("openclash", sid, "type", "file")
+            if enable ~= nil then
+                uci:set("openclash", sid, "enable", tostring(enable))
+            end
+            uci:commit("openclash")
+        else
+            uci:commit("openclash")
+        end
+
+        luci.http.write_json({
+            status = "success",
+            message = "Overwrite file uploaded successfully",
+            filename = filename,
+            file_path = target_path,
+            file_size = file_size,
+            readable_size = fs.filesize(file_size)
+        })
+    else
+        luci.http.write_json({status = "error", message = "Failed to save file to disk"})
+    end
+end
+
+function action_overwrite_subscribe_info()
+    local method = luci.http.getenv("REQUEST_METHOD")
+    local filename = luci.http.formvalue("filename")
+    local old_filename = luci.http.formvalue("old_filename")
+    local typ = luci.http.formvalue("type") or "file"
+    local section_name = nil
+    local old_section_name = nil
+
+    if filename and not is_safe_filename(filename) then
+        luci.http.prepare_content("application/json")
+        luci.http.write_json({status = "error", message = "Invalid filename"})
+        return
+    end
+
+    if filename then
+        section_name = filename:match("([^/]+)$")
+    end
+    if old_filename then
+        old_section_name = old_filename:match("([^/]+)$")
+    end
+
+    if method == "GET" then
+        local result = {}
+        uci:foreach("openclash", "config_overwrite", function(s)
+            if s.name then
+                result[s.name] = {
+                    url = s.url or "",
+                    update_days = s.update_days or "",
+                    update_hour = s.update_hour or "",
+                    order = tonumber(s.order) or 0,
+                    type = s.type or "file",
+                    param = s.param or "",
+                    enable = tonumber(s.enable) or 0
+                }
+            end
+        end)
+        luci.http.prepare_content("application/json")
+        luci.http.write_json({status="success", data=result})
+        return
+    elseif method == "POST" then
+        if not section_name then
+            luci.http.status(400, "Missing filename")
+            return
+        end
+        local url = luci.http.formvalue("url") or ""
+        local update_days = luci.http.formvalue("update_days") or ""
+        local update_hour = luci.http.formvalue("update_hour") or ""
+        local order = luci.http.formvalue("order") or ""
+        local param = luci.http.formvalue("param") or ""
+        typ = luci.http.formvalue("type") or typ or "file"
+        local enable = luci.http.formvalue("enable")
+
+        if typ == "http" then
+            if not url or url == "" then
+                luci.http.prepare_content("application/json")
+                luci.http.write_json({
+                    status = "error",
+                    message = "Subscribe URL cannot be empty"
+                })
+                return
+            end
+            local is_valid_url = false
+            if url:match("^https?://") and not url:find("\n") and not url:find("|") then
+                is_valid_url = true
+            end
+            if not is_valid_url then
+                luci.http.prepare_content("application/json")
+                luci.http.write_json({
+                    status = "error",
+                    message = "Invalid subscribe URL format, only single HTTP/HTTPS link is supported"
+                })
+                return
+            end
+        end
+
+        local found = false
+        if old_section_name and old_section_name ~= "" and old_section_name ~= section_name then
+            uci:foreach("openclash", "config_overwrite", function(s)
+                if s.name == old_section_name then
+                    uci:set("openclash", s[".name"], "name", section_name)
+                    uci:set("openclash", s[".name"], "url", url)
+                    uci:set("openclash", s[".name"], "update_days", update_days)
+                    uci:set("openclash", s[".name"], "update_hour", update_hour)
+                    uci:set("openclash", s[".name"], "type", typ)
+                    uci:set("openclash", s[".name"], "param", param)
+                    if s.order == nil or (s.order ~= "" and s.order ~= order and order ~= "") then
+                        if order == "" then
+                            local max_order = -1
+                            uci:foreach("openclash", "config_overwrite", function(s)
+                                local o = tonumber(s.order)
+                                if o and o > max_order then max_order = o end
+                            end)
+                            order = tostring(max_order + 1)
+                        end
+                        uci:set("openclash", s[".name"], "order", order)
+                    end
+                    if s.enable == nil or (s.enable ~= nil and enable ~= nil) then
+                        if enable == nil then
+                            enable = 0
+                        end
+                        uci:set("openclash", s[".name"], "enable", tostring(enable))
+                    end
+                    found = true
+                end
+            end)
+            local overwrite_dir = "/etc/openclash/overwrite/"
+            local old_file = overwrite_dir .. old_section_name
+            local new_file = overwrite_dir .. section_name
+            if fs.access(old_file) and not fs.access(new_file) then
+                fs.rename(old_file, new_file)
+            end
+            uci:commit("openclash")
+            luci.http.prepare_content("application/json")
+            luci.http.write_json({status="success"})
+            return
+        end
+        if not found then
+            uci:foreach("openclash", "config_overwrite", function(s)
+                if s.name == section_name then
+                    uci:set("openclash", s[".name"], "url", url)
+                    uci:set("openclash", s[".name"], "update_days", update_days)
+                    uci:set("openclash", s[".name"], "update_hour", update_hour)
+                    uci:set("openclash", s[".name"], "type", typ)
+                    uci:set("openclash", s[".name"], "param", param)
+                    if s.order == nil or (s.order ~= "" and s.order ~= order and order ~= "") then
+                        if order == "" then
+                            local max_order = -1
+                            uci:foreach("openclash", "config_overwrite", function(s)
+                                local o = tonumber(s.order)
+                                if o and o > max_order then max_order = o end
+                            end)
+                            order = tostring(max_order + 1)
+                        end
+                        uci:set("openclash", s[".name"], "order", order)
+                    end
+                    if s.enable == nil or (s.enable ~= nil and enable ~= nil) then
+                        if enable == nil then
+                            enable = 0
+                        end
+                        uci:set("openclash", s[".name"], "enable", tostring(enable))
+                    end
+                    found = true
+                end
+            end)
+        end
+        if not found then
+            local sid = uci:add("openclash", "config_overwrite")
+            uci:set("openclash", sid, "name", section_name)
+            uci:set("openclash", sid, "url", url)
+            uci:set("openclash", sid, "update_days", update_days)
+            uci:set("openclash", sid, "update_hour", update_hour)
+            uci:set("openclash", sid, "type", typ)
+            uci:set("openclash", sid, "param", param)
+            if order == "" then
+                local max_order = -1
+                uci:foreach("openclash", "config_overwrite", function(s)
+                    local o = tonumber(s.order)
+                    if o and o > max_order then max_order = o end
+                end)
+                order = tostring(max_order + 1)
+            end
+            uci:set("openclash", sid, "enable", 1)
+        end
+        uci:commit("openclash")
+
+        if typ == "file" then
+            local overwrite_dir = "/etc/openclash/overwrite/"
+            local file_path = overwrite_dir .. section_name
+            if not fs.access(file_path) then
+                fs.writefile(file_path, "")
+            end
+        elseif typ == "http" then
+            local overwrite_dir = "/etc/openclash/overwrite/"
+            local file_path = overwrite_dir .. section_name
+            if url and url ~= "" then
+                local cmd = string.format('curl -sL --connect-timeout 5 -m 15 "%s" -o "%s"', url, file_path)
+                local ret = luci.sys.call(cmd)
+                if not fs.access(file_path) then
+                    fs.writefile(file_path, "")
+                end
+                if ret ~= 0 or not fs.access(file_path) or fs.stat(file_path).size == 0 then
+                    luci.http.prepare_content("application/json")
+                    luci.http.write_json({status="error", message="Download failed"})
+                    return
+                end
+            else
+                if not fs.access(file_path) then
+                    fs.writefile(file_path, "")
+                end
+            end
+        end
+
+        luci.http.prepare_content("application/json")
+        luci.http.write_json({status="success"})
+        return
+    else
+        luci.http.status(405, "Method Not Allowed")
+    end
+end
+
+function action_overwrite_file_list()
+    local overwrite_files = {}
+    local custom_file = "/etc/openclash/custom/openclash_custom_overwrite.sh"
+
+    if fs.access(custom_file) then
+        local stat = fs.stat(custom_file)
+        if stat and stat.type == "regular" then
+            table.insert(overwrite_files, {
+                name = "openclash_custom_overwrite.sh",
+                path = custom_file,
+                size = stat.size,
+                mtime = stat.mtime
+            })
+        end
+    end
+
+    local overwrite_dir = "/etc/openclash/overwrite/"
+    if fs.access(overwrite_dir) then
+        local files = fs.dir(overwrite_dir)
+        if files then
+            for _, file in ipairs(files) do
+                local full_path = overwrite_dir .. file
+                local stat = fs.stat(full_path)
+                if stat and stat.type == "regular" then
+                    table.insert(overwrite_files, {
+                        name = file,
+                        path = full_path,
+                        size = stat.size,
+                        mtime = stat.mtime
+                    })
+                end
+            end
+        end
+    end
+
+    table.sort(overwrite_files, function(a, b)
+        return (a.mtime or 0) > (b.mtime or 0)
+    end)
+
+    luci.http.prepare_content("application/json")
+    luci.http.write_json({
+        overwrite_files = overwrite_files,
+        total_count = #overwrite_files
+    })
+end
+
+function delete_overwrite_file()
+    local filename = luci.http.formvalue("filename")
+    if not filename or filename == "" then
+        luci.http.prepare_content("application/json")
+        luci.http.write_json({status="error", message="Missing filename"})
+        return
+    end
+    local overwrite_dir = "/etc/openclash/overwrite/"
+    local file_path = overwrite_dir .. filename
+
+    if fs.access(file_path) then
+        fs.unlink(file_path)
+    end
+
+    local uci = require("luci.model.uci").cursor()
+    uci:foreach("openclash", "config_overwrite", function(s)
+        if s.name == filename then
+            uci:delete("openclash", s[".name"])
+        end
+    end)
+    uci:commit("openclash")
+    luci.http.prepare_content("application/json")
+    luci.http.write_json({status="success"})
 end
