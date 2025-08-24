@@ -1,65 +1,51 @@
 <style>
-.oc[data-darkmode="true"] .config-editor-modal .CodeMirror {
+.oc[data-darkmode="true"] .config-editor-model .CodeMirror {
     background: var(--bg-white);
     color: var(--text-primary);
 }
-
-.oc[data-darkmode="true"] .config-editor-modal .CodeMirror-gutters {
+.oc[data-darkmode="true"] .config-editor-model .CodeMirror-gutters {
     background: var(--bg-gray);
     border-right: 1px solid var(--border-light);
 }
-
-.oc[data-darkmode="true"] .config-editor-modal .CodeMirror-linenumber {
+.oc[data-darkmode="true"] .config-editor-model .CodeMirror-linenumber {
     color: var(--text-secondary);
 }
-
-.oc[data-darkmode="true"] .config-editor-modal .CodeMirror-scrollbar-filler,
-.oc[data-darkmode="true"] .config-editor-modal .CodeMirror-gutter-filler {
+.oc[data-darkmode="true"] .config-editor-model .CodeMirror-scrollbar-filler,
+.oc[data-darkmode="true"] .config-editor-model .CodeMirror-gutter-filler {
     background: var(--bg-gray);
 }
-
 .oc[data-darkmode="true"] #config-mode-tabs .mode-tab {
     color: var(--text-secondary);
 }
-
 .oc[data-darkmode="true"] #config-mode-tabs .mode-tab:hover {
     color: var(--text-primary);
     background: rgba(96, 165, 250, 0.1);
 }
-
 .oc[data-darkmode="true"] #config-mode-tabs .mode-tab.active {
     background: var(--primary-color);
     color: white;
 }
-
 .oc[data-darkmode="true"] #config-mergeview-container .CodeMirror-merge-gap {
     background: var(--text-secondary) !important;
 }
-
 .oc[data-darkmode="true"] .oc .config-editor-content {
     border-bottom: 1px solid var(--border-light);
     border-top: 1px solid var(--border-light);
 }
-
 .oc[data-darkmode="true"] .overwrite-banner {
     background: rgba(255,80,80,0.18);
 }
-
 .oc[data-darkmode="true"] .overwrite-banner svg {
     stroke: var(--error-color);
 }
-
 .oc[data-darkmode="true"] .overwrite-banner svg circle {
     stroke: var(--error-color);
     fill: rgba(255,80,80,0.18);
 }
 
-.oc .config-editor-modal-overlay {
+.oc .config-editor-model-overlay {
     position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     z-index: 10000;
     display: none;
@@ -67,12 +53,10 @@
     justify-content: center;
     backdrop-filter: blur(2px);
 }
-
-.oc .config-editor-modal-overlay.show {
+.oc .config-editor-model-overlay.show {
     display: flex;
 }
-
-.oc .config-editor-modal {
+.oc .config-editor-model {
     background: var(--bg-white);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
@@ -88,18 +72,15 @@
     position: relative;
     transition: all 0.3s ease;
 }
-
-.oc .config-editor-modal.maximized {
+.oc .config-editor-model.maximized {
     width: 98vw !important;
     height: 95vh !important;
     max-width: none !important;
 }
-
-.oc .config-editor-modal.minimized {
+.oc .config-editor-model.minimized {
     width: 70vw !important;
     height: 70vh !important;
 }
-
 .oc .config-editor-header {
     display: flex;
     align-items: center;
@@ -112,7 +93,6 @@
     user-select: none;
     min-width: 0;
 }
-
 .oc .config-editor-title {
     font-size: 16px;
     font-weight: 600;
@@ -126,7 +106,6 @@
     white-space: nowrap;
     flex: 1 1 auto;
 }
-
 .oc .config-editor-title .config-file-name {
     color: var(--primary-color);
     font-weight: 700;
@@ -137,25 +116,21 @@
     vertical-align: bottom;
     padding: 0;
 }
-
 .oc .config-editor-actions {
     display: flex;
     align-items: center;
     gap: 12px;
 }
-
 .oc .size-btn {
     width: 24px !important;
     height: 24px !important;
     min-width: 24px !important;
     padding: 0 !important;
 }
-
 .oc .size-btn svg {
     width: 12px !important;
     height: 12px !important;
 }
-
 #config-mergeview-container {
     width: 100%;
     height: 100%;
@@ -165,7 +140,6 @@
     background: var(--bg-white);
     z-index: 2;
 }
-
 .oc .config-editor-content {
     flex: 1;
     position: relative;
@@ -173,13 +147,9 @@
     border-bottom: 1px solid var(--border-light);
     border-top: 1px solid var(--border-light);
 }
-
 .oc .config-editor-loading {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 0; left: 0; right: 0; bottom: 0;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -189,7 +159,6 @@
     color: var(--text-secondary);
     font-size: 14px;
 }
-
 .oc .loading-spinner {
     width: 24px;
     height: 24px;
@@ -198,11 +167,9 @@
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
-
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
-
 .oc .config-editor-footer {
     display: flex;
     align-items: center;
@@ -212,7 +179,6 @@
     flex-shrink: 0;
     position: relative;
 }
-
 .oc .config-editor-status {
     font-size: 12px;
     color: var(--text-secondary);
@@ -221,7 +187,6 @@
     white-space: nowrap;
     max-width: 50%;
 }
-
 .oc .config-editor-help {
     font-size: 11px;
     color: var(--text-secondary);
@@ -231,13 +196,10 @@
     white-space: nowrap;
     max-width: 50%;
 }
-
 .oc .config-editor-resize-handle {
     position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 20px;
-    height: 20px;
+    bottom: 0; right: 0;
+    width: 20px; height: 20px;
     cursor: nw-resize;
     background: linear-gradient(-45deg, 
         transparent 0%, 
@@ -254,7 +216,6 @@
         var(--border-color) 65%, 
         transparent 65%);
 }
-
 .oc #config-editor-textarea {
     width: 100%;
     height: 100%;
@@ -267,13 +228,11 @@
     background: var(--bg-white);
     color: var(--text-primary);
 }
-
-.oc .config-editor-modal .CodeMirror {
+.oc .config-editor-model .CodeMirror {
     height: 100%;
     font-size: 14px;
     line-height: 1.5;
 }
-
 .oc #config-mode-tabs {
     display: flex;
     justify-content: center;
@@ -284,7 +243,6 @@
     box-shadow: none;
     border-radius: var(--radius-md);
 }
-
 .oc #config-mode-tabs .mode-tabs {
     display: flex;
     width: 100%;
@@ -294,7 +252,6 @@
     gap: 4px;
     margin: 0 auto;
 }
-
 .oc #config-mode-tabs .mode-tab {
     flex: 1 1 0;
     min-width: 0;
@@ -314,18 +271,15 @@
     transition: all var(--transition-fast);
     box-sizing: border-box;
 }
-
 .oc #config-mode-tabs .mode-tab:hover {
     color: var(--text-primary);
     background: rgba(59, 130, 246, 0.1);
 }
-
 .oc #config-mode-tabs .mode-tab.active {
     background: var(--primary-color);
     color: white;
     box-shadow: var(--shadow-sm);
 }
-
 .overwrite-banner {
     display: flex;
     justify-content: center;
@@ -336,12 +290,10 @@
     font-size: 14px;
     text-align: center;
 }
-
 .overwrite-banner svg {
     flex-shrink: 0;
     display: block;
 }
-
 .overwrite-banner span {
     flex: unset;
     text-align: center;
@@ -350,14 +302,12 @@
     line-height: 1.5;
     vertical-align: middle;
 }
-
-.oc .config-editor-modal .CodeMirror.zoom-75 { font-size: 10.5px; }
-.oc .config-editor-modal .CodeMirror.zoom-90 { font-size: 12.6px; }
-.oc .config-editor-modal .CodeMirror.zoom-110 { font-size: 15.4px; }
-.oc .config-editor-modal .CodeMirror.zoom-125 { font-size: 17.5px; }
-.oc .config-editor-modal .CodeMirror.zoom-150 { font-size: 21px; }
-.oc .config-editor-modal .CodeMirror.zoom-200 { font-size: 28px; }
-
+.oc .config-editor-model .CodeMirror.zoom-75 { font-size: 10.5px; }
+.oc .config-editor-model .CodeMirror.zoom-90 { font-size: 12.6px; }
+.oc .config-editor-model .CodeMirror.zoom-110 { font-size: 15.4px; }
+.oc .config-editor-model .CodeMirror.zoom-125 { font-size: 17.5px; }
+.oc .config-editor-model .CodeMirror.zoom-150 { font-size: 21px; }
+.oc .config-editor-model .CodeMirror.zoom-200 { font-size: 28px; }
 #config-mergeview-container .CodeMirror-merge,
 #config-mergeview-container .CodeMirror-merge-pane,
 #config-mergeview-container .CodeMirror,
@@ -366,21 +316,17 @@
     min-height: 0 !important;
     box-sizing: border-box;
 }
-
 #config-mergeview-container .CodeMirror-merge-gap {
     height: 100% !important;
     min-height: 0 !important;
 }
-
 #config-mergeview-container .CodeMirror-scroll {
     overflow-y: auto !important;
     overflow-x: hidden !important;
 }
-
 #config-mergeview-container .CodeMirror-merge-pane {
     overflow: hidden;
 }
-
 #config-mergeview-container .CodeMirror-merge-r-chunk {
     background: #0095ff2e !important;
 }
@@ -388,27 +334,180 @@
     fill: #0095ff2e !important;
     stroke: #0095ff2e !important;
 }
-
 #config-mergeview-container  .CodeMirror-merge {
     border: none !important;
 }
-
+.oc .update-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 100%;
+}
+.oc .update-row > .form-select-wrapper {
+    flex: 1 1 0;
+    min-width: 0;
+}
+.oc .update-row .form-select {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+.oc .overwrite-card-row {
+    display: flex;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 12px;
+    padding: 8px;
+    max-width: 100%;
+    min-width: 0;
+    align-items: stretch;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--bg-gray);
+}
+.oc .overwrite-card-row::-webkit-scrollbar {
+    height: 8px;
+}
+.oc .overwrite-card-row::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+.oc .overwrite-card-row::-webkit-scrollbar-track {
+    background: var(--bg-gray);
+    border-radius: 4px;
+}
+.oc .sub-card.overwrite-item {
+    min-width: 180px;
+    max-width: 220px;
+    flex: 0 0 auto;
+    box-sizing: border-box;
+    gap: 12px;
+    height: 75px;
+}
+.oc .sub-card.overwrite-item,
+.oc .sub-card.overwrite-item:active,
+.oc .sub-card.overwrite-item:focus {
+    -webkit-tap-highlight-color: transparent;
+}
+.oc .overwrite-drag-line {
+    display: block;
+    min-width: 4px;
+    width: 4px;
+    background: var(--primary-color);
+    border-radius: 2px;
+    margin: 0 2px;
+    align-self: stretch;
+    height: auto;
+}
+.oc .oc-switch {
+  position: relative;
+  display: inline-block;
+  width: 36px;
+  height: 20px;
+  vertical-align: middle;
+}
+.oc .oc-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.oc .oc-switch-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  border-radius: 20px;
+  transition: .2s;
+}
+.oc .oc-switch-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px; width: 16px;
+  left: 2px; bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: .2s;
+}
+.oc .oc-switch input:checked + .oc-switch-slider {
+  background-color: var(--primary-color, #2196F3);
+}
+.oc .oc-switch input:checked + .oc-switch-slider:before {
+  transform: translateX(16px);
+}
+.overwrite-add-icon {
+    font-size: 32px;
+    text-align: center;
+    color: var(--primary-color);
+}
+.overwrite-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.overwrite-title {
+    font-weight: bold;
+    font-size: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 70%;
+}
+.overwrite-info {
+    font-size: 12px;
+    color: var(--text-secondary);
+}
+.overwrite-refresh-btn {
+    position: absolute;
+    right: 72px;
+    bottom: 8px;
+}
+.overwrite-gear-btn {
+    position: absolute;
+    right: 40px;
+    bottom: 8px;
+}
+.overwrite-del-btn {
+    position: absolute;
+    right: 8px;
+    bottom: 8px;
+}
+.sub-card.overwrite-item.active {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px var(--primary-color);
+}
+.sub-card.overwrite-item.dragging {
+    opacity: 0.5;
+    z-index: 1000;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+    transition: none !important;
+}
 @media screen and (max-width: 768px) {
-    .oc .config-editor-modal {
+    .oc .config-editor-model {
         width: 95vw;
         height: 80vh;
         min-width: 320px;
     }
-
     .oc .config-editor-actions {
         gap: 5px;
+    }
+    .oc .overwrite-card-row {
+        gap: 6px;
+    }
+    .oc .sub-card.overwrite-item {
+        min-width: 160px;
+        max-width: 180px;
+        gap: 10px;
+    }
+    .oc .overwrite-drag-line {
+        margin: -2px;
+        width: 2px;
     }
 }
 </style>
 
 <div class="oc">
-    <div class="config-editor-modal-overlay" id="config-editor-overlay">
-        <div class="config-editor-modal" id="config-editor-modal">
+    <div class="config-editor-model-overlay" id="config-editor-overlay">
+        <div class="config-editor-model" id="config-editor-model">
             <div class="config-editor-header">
                 <div class="config-editor-title">
                     <span id="editTitle"><%:File Edit%>: </span>
@@ -483,6 +582,10 @@
                 <textarea id="config-editor-textarea" style="display: none;"></textarea>
                 <div id="config-mergeview-container" style="display:none;width:100%;height:100%;"></div>
             </div>
+
+            <div id="overwrite-card-bar" style="display:none;position:relative;margin:12px;">
+                <div class="overwrite-card-row" id="overwrite-card-list"></div>
+            </div>
             
             <div class="config-editor-footer">
                 <div class="config-editor-status">
@@ -533,7 +636,7 @@
 <script type="text/javascript">
 var ConfigEditor = {
     overlay: null,
-    modal: null,
+    model: null,
     editorInstance: null,
     originalContent: '',
     isModified: false,
@@ -555,13 +658,26 @@ var ConfigEditor = {
             <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" stroke-width="2" fill="none"/>
         </svg>
     `,
+    overwriteFiles: [],
+    overwriteSubInfo: {},
+    overwriteCardBar: null,
+    overwriteDrag: {
+        dragging: null,
+        startIndex: null,
+        touchTimer: null,
+        isTouchDragging: false,
+        touchDraggingMoved: false,
+        touchDraggingCard: null,
+        startTouch: null
+    },
 
     init: function() {
         this.overlay = document.getElementById('config-editor-overlay');
-        this.modal = document.getElementById('config-editor-modal');
+        this.model = document.getElementById('config-editor-model');
+        this.overwriteCardBar = document.getElementById('overwrite-card-bar');
         this.mergeViewActive = false;
 
-        if (!this.overlay || !this.modal) {
+        if (!this.overlay || !this.model) {
             return;
         }
         
@@ -673,8 +789,8 @@ var ConfigEditor = {
         this.currentConfigFile = configFile;
         this.overlay.classList.add('show');
 
-        this.modal.classList.remove('maximized');
-        this.modal.classList.remove('minimized');
+        this.model.classList.remove('maximized');
+        this.model.classList.remove('minimized');
 
         var editTitle = document.getElementById('editTitle');
         if (editTitle) {
@@ -709,13 +825,16 @@ var ConfigEditor = {
         this.currentConfigFile = '/etc/openclash/custom/openclash_custom_overwrite.sh';
         this.overlay.classList.add('show');
 
-        this.modal.classList.remove('maximized');
-        this.modal.classList.remove('minimized');
+        this.model.classList.remove('maximized');
+        this.model.classList.remove('minimized');
 
         var editTitle = document.getElementById('editTitle');
         if (editTitle) {
             editTitle.textContent = '<%:Overwrite Edit%>: ';
         }
+
+        if (this.overwriteCardBar) this.overwriteCardBar.style.display = 'block';
+        this.loadOverwriteFiles();
 
         var configNameElement = document.getElementById('config-file-name');
         if (configNameElement) {
@@ -746,7 +865,8 @@ var ConfigEditor = {
         var textarea = document.getElementById('config-editor-textarea');
         var mergeview = document.getElementById('config-mergeview-container');
         var editor_help = document.getElementById('config-editor-help');
-        
+        var layoutBtn = document.getElementById('config-editor-layout');
+
         if (loadingDiv) loadingDiv.style.display = 'flex';
         if (textarea) textarea.style.display = 'none';
         if (mergeview) mergeview.style.display = 'none';
@@ -760,13 +880,12 @@ var ConfigEditor = {
     
     formatDisplayName: function(fileName) {
         if (!fileName) return '<%:Unknown%>';
-        
-        if (this.isOverwrite || fileName === '/etc/openclash/custom/openclash_custom_overwrite.sh') {
+
+        if (fileName === '/etc/openclash/custom/openclash_custom_overwrite.sh') {
             return 'openclash_custom_overwrite.sh';
         }
 
         var name = fileName.split('/').pop().split('\\').pop();
-
         return name;
     },
 
@@ -820,8 +939,13 @@ var ConfigEditor = {
 
         var url, mode;
         if (this.isOverwrite) {
-            url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + encodeURIComponent('/etc/openclash/custom/openclash_custom_overwrite.sh');
-            mode = "text/x-sh";
+            var file = this.currentConfigFile || '/etc/openclash/custom/openclash_custom_overwrite.sh';
+            url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + encodeURIComponent(file);
+            if (file.endsWith('.yaml') || file.endsWith('.yml')) {
+                mode = "text/yaml";
+            } else {
+                mode = "text/x-sh";
+            }
         } else if (this.currentViewMode === 'runtime') {
             var runtimePath = '/etc/openclash/' + encodeURIComponent(this.formatDisplayName(this.currentConfigFile));
             url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + runtimePath;
@@ -917,7 +1041,7 @@ var ConfigEditor = {
                         statusText.textContent = '<%:Runtime config (read only)%>';
                     } else {
                         self.originalContent = data.content;
-                        renderEditor(self.originalContent, self.isOverwrite ? "text/x-sh" : "text/yaml", false, !self.isOverwrite);
+                        renderEditor(self.originalContent, mode, self.isOverwrite ? false : false, !self.isOverwrite);
                         statusText.textContent = '<%:Ready%>';
                     }
                     self.updateModeTabs();
@@ -1088,7 +1212,7 @@ var ConfigEditor = {
         
         var formData = new FormData();
         if (this.isOverwrite) {
-            formData.append('config_file', '/etc/openclash/custom/openclash_custom_overwrite.sh');
+            formData.append('config_file', this.currentConfigFile || '/etc/openclash/custom/openclash_custom_overwrite.sh');
         } else {
             formData.append('config_file', this.currentConfigFile);
         }
@@ -1199,6 +1323,1414 @@ var ConfigEditor = {
         this.updateModeTabs();
     },
     
+    loadOverwriteFiles: function() {
+        var self = this;
+        fetch('/cgi-bin/luci/admin/services/openclash/overwrite_file_list')
+        .then(r => r.json())
+        .then(function(data) {
+            var files = [];
+            if (data.overwrite_files) {
+                files = data.overwrite_files.filter(function(f) {
+                    return (f.path && (f.path.indexOf('/etc/openclash/overwrite/') === 0 || f.path === '/etc/openclash/custom/openclash_custom_overwrite.sh'));
+                });
+            }
+            files = files.filter(f => f.path !== '/etc/openclash/custom/openclash_custom_overwrite.sh');
+            files.unshift({
+                path: '/etc/openclash/custom/openclash_custom_overwrite.sh',
+                name: 'openclash_custom_overwrite.sh'
+            });
+            self.overwriteFiles = files;
+            self.loadOverwriteSubInfo();
+        });
+    },
+
+    loadOverwriteSubInfo: function() {
+        var self = this;
+        fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info')
+        .then(r => r.json())
+        .then(function(data) {
+            if (data.status === 'success') {
+                self.overwriteSubInfo = (data && data.data) ? data.data : {};
+                self.overwriteFiles.sort(function(a, b) {
+                    var an = a.name || (a.path ? a.path.split('/').pop() : '');
+                    var bn = b.name || (b.path ? b.path.split('/').pop() : '');
+                    var ao = self.overwriteSubInfo[an] && self.overwriteSubInfo[an].order ? parseInt(self.overwriteSubInfo[an].order) : 0;
+                    var bo = self.overwriteSubInfo[bn] && self.overwriteSubInfo[bn].order ? parseInt(self.overwriteSubInfo[bn].order) : 0;
+                    return ao - bo;
+                });
+                self.renderOverwriteCards();
+            } else {
+                var statusText = document.getElementById('overwrite-edit-status-text');
+                statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
+            }
+        });
+    },
+
+    renderOverwriteCards: function() {
+        var self = this;
+        var bar = this.overwriteCardBar;
+        if (!bar) return;
+        var list = document.getElementById('overwrite-card-list');
+        if (!list) return;
+        list.innerHTML = '';
+
+        var statusText = document.getElementById('config-editor-status-text');
+
+        var addCard = document.createElement('div');
+        addCard.className = 'sub-card overwrite-item';
+        addCard.style.cursor = 'pointer';
+        addCard.innerHTML = '<div class="overwrite-add-icon">+</div>';
+        addCard.title = '<%:Add New File%>';
+        addCard.onclick = function() {
+            ConfigEditor.showAddOverwritemodel();
+        };
+        list.appendChild(addCard);
+
+        var customIdx = self.overwriteFiles.findIndex(f => (f.name === 'openclash_custom_overwrite.sh' || (f.path && f.path.endsWith('/openclash_custom_overwrite.sh'))));
+        var customFile = customIdx !== -1 ? self.overwriteFiles[customIdx] : null;
+
+        if (customFile) {
+            var name = customFile.name || (customFile.path ? customFile.path.split('/').pop() : '');
+            var card = document.createElement('div');
+            card.className = 'sub-card overwrite-item';
+            card.dataset.file = customFile.path;
+            card.dataset.index = 'custom';
+
+            if (self.currentConfigFile === customFile.path) {
+                card.classList.add('active');
+            }
+
+            var titleRow = document.createElement('div');
+            titleRow.className = 'overwrite-title-row';
+
+            var title = document.createElement('div');
+            title.textContent = name;
+            title.className = 'overwrite-title';
+            title.title = name;
+            card.appendChild(title);
+
+            var sub = self.overwriteSubInfo[name] || {};
+            var enable = typeof sub.enable !== 'undefined' ? sub.enable : 1;
+            var switchLabel = document.createElement('label');
+            switchLabel.className = 'oc-switch';
+
+            var switchInput = document.createElement('input');
+            switchInput.type = 'checkbox';
+            switchInput.checked = enable == 1 ? true : false;
+            switchInput.onchange = function(e) {
+                e.stopPropagation();
+                var newEnable = switchInput.checked ? 1 : 0;
+                var formData = new FormData();
+                formData.append('filename', name);
+                formData.append('type', sub.type || 'file');
+                formData.append('url', sub.url || '');
+                formData.append('update_days', sub.update_days || '');
+                formData.append('update_hour', sub.update_hour || '');
+                formData.append('order', sub.order || '');
+                formData.append('param', sub.param || '');
+                formData.append('enable', newEnable);
+                fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                    method: 'POST',
+                    body: formData
+                }).then(r=>r.json()).then(function(data){
+                    if (data.status === 'success') {
+                        self.overwriteSubInfo[name] = self.overwriteSubInfo[name] || {};
+                        self.overwriteSubInfo[name].enable = newEnable;
+                    } else {
+                        statusText.textContent = '<%:Failed to update enable status%>';
+                        switchInput.checked = !switchInput.checked;
+                    }
+                }).catch(function(){
+                    statusText.textContent = '<%:Failed to update enable status%>';
+                    switchInput.checked = !switchInput.checked;
+                });
+            };
+
+            var switchSpan = document.createElement('span');
+            switchSpan.className = 'oc-switch-slider';
+
+            switchLabel.appendChild(switchInput);
+            switchLabel.appendChild(switchSpan);
+
+            titleRow.appendChild(title);
+            titleRow.appendChild(switchLabel);
+            card.appendChild(titleRow);
+
+            var info = document.createElement('div');
+            info.className = 'overwrite-info';
+            info.textContent = sub.url ? 'HTTP' : '<%:Local File%>';
+            card.appendChild(info);
+            card.onclick = function(e) {
+                if (self.currentConfigFile !== customFile.path) {
+                    self.currentConfigFile = customFile.path;
+                    self.loadConfigContent();
+                    self.renderOverwriteCards();
+                    var configNameElement = document.getElementById('config-file-name');
+                    if (configNameElement) {
+                        configNameElement.textContent = self.formatDisplayName(customFile.path);
+                    }
+                }
+            };
+
+            card.draggable = false;
+
+            list.appendChild(card);
+        }
+
+        var files = self.overwriteFiles.filter((f, i) => i !== customIdx);
+        files.forEach(function(file, idx) {
+            var name = file.name || (file.path ? file.path.split('/').pop() : '');
+            var card = document.createElement('div');
+            card.className = 'sub-card overwrite-item';
+            card.dataset.file = file.path;
+            card.dataset.index = idx;
+
+            if (self.currentConfigFile === file.path) {
+                card.classList.add('active');
+            }
+
+            var titleRow = document.createElement('div');
+            titleRow.className = 'overwrite-title-row';
+
+            var title = document.createElement('div');
+            title.textContent = name;
+            title.className = 'overwrite-title';
+            card.appendChild(title);
+
+            var sub = self.overwriteSubInfo[name] || {};
+            var enable = typeof sub.enable !== 'undefined' ? sub.enable : 1;
+            var switchLabel = document.createElement('label');
+            switchLabel.className = 'oc-switch';
+
+            var switchInput = document.createElement('input');
+            switchInput.type = 'checkbox';
+            switchInput.checked = enable == 1 ? true : false;
+            switchInput.onchange = function(e) {
+                e.stopPropagation();
+                var newEnable = switchInput.checked ? 1 : 0;
+                var formData = new FormData();
+                formData.append('filename', name);
+                formData.append('type', sub.type || 'file');
+                formData.append('url', sub.url || '');
+                formData.append('update_days', sub.update_days || '');
+                formData.append('update_hour', sub.update_hour || '');
+                formData.append('order', sub.order || '');
+                formData.append('param', sub.param || '');
+                formData.append('enable', newEnable);
+                fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                    method: 'POST',
+                    body: formData
+                }).then(r=>r.json()).then(function(data){
+                    if (data.status === 'success') {
+                        self.overwriteSubInfo[name] = self.overwriteSubInfo[name] || {};
+                        self.overwriteSubInfo[name].enable = newEnable;
+                    } else {
+                        statusText.textContent = '<%:Failed to update enable status%>';
+                        switchInput.checked = !switchInput.checked;
+                    }
+                }).catch(function(){
+                    statusText.textContent = '<%:Failed to update enable status%>';
+                    switchInput.checked = !switchInput.checked;
+                });
+            };
+
+            var switchSpan = document.createElement('span');
+            switchSpan.className = 'oc-switch-slider';
+
+            switchLabel.appendChild(switchInput);
+            switchLabel.appendChild(switchSpan);
+
+            titleRow.appendChild(title);
+            titleRow.appendChild(switchLabel);
+            card.appendChild(titleRow);
+
+            var info = document.createElement('div');
+            info.className = 'overwrite-info';
+            info.textContent = sub.url ? 'HTTP' : '<%:Local File%>';
+            card.appendChild(info);
+
+            if (sub.type === 'http') {
+                var refresh = document.createElement('button');
+                refresh.className = 'icon-btn overwrite-refresh-btn';
+                refresh.type = 'button';
+                refresh.title = '<%:Refresh Subscription%>';
+                refresh.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.13-3.36L23 10"/><path d="M1 14l4.35 4.35A9 9 0 0 0 20.49 15"/></svg>';
+                refresh.onclick = function(e) {
+                    e.stopPropagation();
+                    var statusText = document.getElementById('config-editor-status-text');
+                    if (statusText) {
+                        statusText.textContent = '<%:Refreshing subscription...%>';
+                    }
+                    refresh.disabled = true;
+                    var formData = new FormData();
+                    formData.append('filename', name);
+                    formData.append('type', sub.type || 'http');
+                    formData.append('url', sub.url || '');
+                    formData.append('update_days', sub.update_days || '');
+                    formData.append('update_hour', sub.update_hour || '');
+                    formData.append('order', sub.order || '');
+                    formData.append('param', sub.param || '');
+                    formData.append('enable', typeof sub.enable !== 'undefined' ? sub.enable : 1);
+                    fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                        method: 'POST',
+                        body: formData
+                    }).then(r=>r.json()).then(function(data){
+                        refresh.disabled = false;
+                        if (statusText) {
+                            if (data.status === 'success') {
+                                statusText.textContent = '<%:Subscription refreshed successfully%>';
+                            } else {
+                                statusText.textContent = '<%:Subscription refresh failed%>: ' + (data.message || '');
+                            }
+                        }
+                        setTimeout(function(){
+                            if (statusText && (statusText.textContent.startsWith('<%:Subscription refreshed successfully%>') || statusText.textContent.startsWith('<%:Subscription refresh failed%>'))) {
+                                statusText.textContent = '<%:Ready%>';
+                            }
+                        }, 2000);
+                    }).catch(function(){
+                        refresh.disabled = false;
+                        if (statusText) statusText.textContent = '<%:Subscription refresh failed%>';
+                        setTimeout(function(){
+                            if (statusText && statusText.textContent.startsWith('<%:Subscription refresh failed%>')) {
+                                statusText.textContent = '<%:Ready%>';
+                            }
+                        }, 2000);
+                    });
+                };
+                card.appendChild(refresh);
+            }
+
+            var gear = document.createElement('button');
+            gear.className = 'icon-btn overwrite-gear-btn';
+            gear.type = 'button';
+            gear.title = '<%:Edit Subscription Info%>';
+            gear.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h.09a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>';
+            gear.onclick = function(e) {
+                e.stopPropagation();
+                ConfigEditor.showOverwriteSubmodel(name, sub, file.path);
+            };
+            card.appendChild(gear);
+
+            var del = document.createElement('button');
+            del.className = 'icon-btn overwrite-del-btn';
+            del.type = 'button';
+            del.title = '<%:Delete%>';
+            del.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/></svg>';
+            del.onclick = function(e) {
+                e.stopPropagation();
+                if (confirm('<%:Are you sure you want to delete this file and its subscription info?%>')) {
+                    fetch('/cgi-bin/luci/admin/services/openclash/delete_overwrite_file', {
+                        method: 'POST',
+                        body: new URLSearchParams({ filename: name })
+                    })
+                    .then(r => r.json())
+                    .then(function(data) {
+                        if (data.status === 'success') {
+                            self.loadOverwriteFiles();
+                            setTimeout(function() {
+                                var files = self.overwriteFiles.filter(f => f.name !== name && f.name !== 'openclash_custom_overwrite.sh');
+                                if (files.length > 0) {
+                                    self.currentConfigFile = files[0].path;
+                                    self.loadConfigContent();
+                                    self.renderOverwriteCards();
+                                    var configNameElement = document.getElementById('config-file-name');
+                                    if (configNameElement) {
+                                        configNameElement.textContent = self.formatDisplayName(files[0].path);
+                                    }
+                                } else {
+                                    self.currentConfigFile = '/etc/openclash/custom/openclash_custom_overwrite.sh';
+                                    self.loadConfigContent();
+                                    self.renderOverwriteCards();
+                                    var configNameElement = document.getElementById('config-file-name');
+                                    if (configNameElement) {
+                                        configNameElement.textContent = self.formatDisplayName(self.currentConfigFile);
+                                    }
+                                }
+                            }, 300);
+                        } else {
+                            statusText.textContent = '<%:Delete failed%>: ' + (data.message || '');
+                        }
+                    });
+                }
+            };
+            card.appendChild(del);
+
+            card.onclick = function(e) {
+                if (self.currentConfigFile !== file.path) {
+                    self.currentConfigFile = file.path;
+                    self.loadConfigContent();
+                    self.renderOverwriteCards();
+                    var configNameElement = document.getElementById('config-file-name');
+                    if (configNameElement) {
+                        configNameElement.textContent = self.formatDisplayName(file.path);
+                    }
+                }
+            };
+
+            card.draggable = true;
+            card.addEventListener('dragstart', function(e) {
+                self.overwriteDrag.dragging = card;
+                self.overwriteDrag.startIndex = idx;
+                card.classList.add('dragging');
+                e.dataTransfer.effectAllowed = 'move';
+            });
+            card.addEventListener('dragend', function(e) {
+                card.classList.remove('dragging');
+                self.overwriteDrag.dragging = null;
+                self.overwriteDrag.startIndex = null;
+                list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
+                self.saveOverwriteSort();
+            });
+            card.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+
+                var rect = card.getBoundingClientRect();
+                var listRect = list.getBoundingClientRect();
+                var cardIndex = parseInt(card.dataset.index);
+
+                var mid = rect.left + rect.width * 0.5;
+
+                let insertPos = null;
+                if (e.clientX < mid) {
+                    insertPos = 'before';
+                } else if (e.clientX >= mid) {
+                    insertPos = 'after';
+                }
+
+                let currentLine = list.querySelector('.overwrite-drag-line');
+
+                if (!currentLine && insertPos) {
+                    var line = document.createElement('div');
+                    line.className = 'overwrite-drag-line';
+                    if (insertPos === 'before') {
+                        list.insertBefore(line, card);
+                    } else if (insertPos === 'after') {
+                        if (card.nextSibling) {
+                            list.insertBefore(line, card.nextSibling);
+                        } else {
+                            list.appendChild(line);
+                        }
+                    }
+                }
+
+                var scrollZone = 40;
+                if (e.clientX - listRect.left < scrollZone) {
+                    list.scrollLeft -= 5;
+                } else if (listRect.right - e.clientX < scrollZone) {
+                    list.scrollLeft += 5;
+                }
+            });
+
+            card.addEventListener('drop', function(e) {
+                e.preventDefault();
+                var dragging = self.overwriteDrag.dragging;
+                if (!dragging || dragging === card) return;
+                var from = parseInt(dragging.dataset.index);
+                var to = parseInt(card.dataset.index);
+                var rect = card.getBoundingClientRect();
+                var midX = rect.left + rect.width / 2;
+                if (e.clientX < midX) {
+                } else {
+                    to++;
+                }
+                if (from === to || from + 1 === to) {
+                    list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
+                    self.saveOverwriteSort();
+                    return;
+                }
+                var arr = files;
+                var moved = arr.splice(from, 1)[0];
+                arr.splice(to > from ? to - 1 : to, 0, moved);
+                var newArr = [];
+                if (customFile) newArr.push(customFile);
+                newArr = newArr.concat(arr);
+                self.overwriteFiles = newArr;
+                self.renderOverwriteCards();
+                self.saveOverwriteSort();
+                list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
+            });
+
+            card.addEventListener('touchstart', function(e) {
+                if (card.dataset.index === 'custom') return;
+                if (e.touches.length !== 1) return;
+
+                var target = e.target;
+                var isButton = target.closest('.overwrite-refresh-btn, .overwrite-gear-btn, .overwrite-del-btn, .oc-switch');
+                if (isButton) return;
+
+                self.overwriteDrag.touchDraggingCard = card;
+                self.overwriteDrag.touchDraggingMoved = false;
+                self.overwriteDrag.isTouchDragging = false;
+
+                self.overwriteDrag.startTouch = {
+                    clientX: e.touches[0].clientX,
+                    clientY: e.touches[0].clientY
+                };
+
+                self.overwriteDrag.touchTimer = setTimeout(function() {
+                    if (!self.overwriteDrag.touchDraggingMoved && self.overwriteDrag.touchDraggingCard === card) {
+                        self.overwriteDrag.isTouchDragging = true;
+                        self.overwriteDrag.dragging = card;
+                        self.overwriteDrag.startIndex = parseInt(card.dataset.index);
+                        card.classList.add('dragging');
+                        
+                        if (navigator.vibrate) {
+                            navigator.vibrate(50);
+                        }
+                    }
+                }, 500);
+            });
+
+            card.addEventListener('touchmove', function(e) {
+                if (card.dataset.index === 'custom') return;
+                if (e.touches.length !== 1) return;
+
+                var touch = e.touches[0];
+
+                if (!self.overwriteDrag.touchDraggingMoved && self.overwriteDrag.startTouch) {
+                    var dx = Math.abs(touch.clientX - self.overwriteDrag.startTouch.clientX);
+                    var dy = Math.abs(touch.clientY - self.overwriteDrag.startTouch.clientY);
+                    if (dx > 15 || dy > 15) {
+                        self.overwriteDrag.touchDraggingMoved = true;
+                    }
+                }
+
+                if (self.overwriteDrag.isTouchDragging) {
+                    list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
+
+                    var elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+                    var targetCard = null;
+                    
+                    if (elementBelow) {
+                        targetCard = elementBelow.closest('.sub-card.overwrite-item');
+                    }
+
+                    if (targetCard && targetCard !== card && targetCard.dataset.index !== 'custom') {
+                        var rect = targetCard.getBoundingClientRect();
+                        var midX = rect.left + rect.width / 2;
+                        
+                        var line = document.createElement('div');
+                        line.className = 'overwrite-drag-line';
+                        
+                        if (touch.clientX < midX) {
+                            list.insertBefore(line, targetCard);
+                        } else {
+                            if (targetCard.nextSibling) {
+                                list.insertBefore(line, targetCard.nextSibling);
+                            } else {
+                                list.appendChild(line);
+                            }
+                        }
+                    }
+
+                    var listRect = list.getBoundingClientRect();
+                    var scrollZone = 60;
+                    if (touch.clientX - listRect.left < scrollZone && list.scrollLeft > 0) {
+                        list.scrollLeft -= 10;
+                    } else if (listRect.right - touch.clientX < scrollZone) {
+                        list.scrollLeft += 10;
+                    }
+
+                    e.preventDefault();
+                }
+            });
+
+            card.addEventListener('touchend', function(e) {
+                if (self.overwriteDrag.touchTimer) {
+                    clearTimeout(self.overwriteDrag.touchTimer);
+                    self.overwriteDrag.touchTimer = null;
+                }
+
+                var wasInDraggingMode = self.overwriteDrag.isTouchDragging;
+
+                if (wasInDraggingMode) {
+                    card.classList.remove('dragging');
+
+                    var line = list.querySelector('.overwrite-drag-line');
+                    if (line) {
+                        var from = parseInt(card.dataset.index);
+                        var allCards = Array.from(list.querySelectorAll('.sub-card.overwrite-item'));
+                        var fileCards = allCards.filter(c => c.dataset && typeof c.dataset.index !== 'undefined' && c.dataset.index !== 'custom');
+                        var lineRect = line.getBoundingClientRect();
+                        var lineCenterX = lineRect.left + lineRect.width / 2;
+
+                        var to = fileCards.length;
+                        for (var i = 0; i < fileCards.length; i++) {
+                            var rect = fileCards[i].getBoundingClientRect();
+                            var cardMid = rect.left + rect.width / 2;
+                            if (lineCenterX < cardMid) {
+                                to = i;
+                                break;
+                            }
+                        }
+
+                        if (!(from === to || from + 1 === to)) {
+                            var arr = self.overwriteFiles.filter(function(f){ return f.name !== 'openclash_custom_overwrite.sh'; });
+                            var customFile = self.overwriteFiles.find(function(f){ return f.name === 'openclash_custom_overwrite.sh'; });
+                            var moved = arr.splice(from, 1)[0];
+                            arr.splice(to > from ? to - 1 : to, 0, moved);
+                            var newArr = [];
+                            if (customFile) newArr.push(customFile);
+                            newArr = newArr.concat(arr);
+                            self.overwriteFiles = newArr;
+                            self.renderOverwriteCards();
+                            self.saveOverwriteSort();
+                        }
+                    }
+
+                    list.querySelectorAll('.overwrite-drag-line').forEach(function(l){ l.remove(); });
+
+                    self.overwriteDrag.dragging = null;
+                    self.overwriteDrag.startIndex = null;
+                    self.overwriteDrag.isTouchDragging = false;
+
+                    if (self.overwriteDrag.touchDraggingMoved) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                }
+
+                self.overwriteDrag.touchDraggingMoved = false;
+                self.overwriteDrag.touchDraggingCard = null;
+                self.overwriteDrag.startTouch = null;
+            });
+
+            card.addEventListener('touchcancel', function() {
+                if (self.overwriteDrag.touchTimer) {
+                    clearTimeout(self.overwriteDrag.touchTimer);
+                    self.overwriteDrag.touchTimer = null;
+                }
+                
+                if (self.overwriteDrag.isTouchDragging) {
+                    card.classList.remove('dragging');
+                    list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
+                    self.overwriteDrag.dragging = null;
+                    self.overwriteDrag.startIndex = null;
+                    self.saveOverwriteSort();
+                }
+                
+                self.overwriteDrag.isTouchDragging = false;
+                self.overwriteDrag.touchDraggingMoved = false;
+                self.overwriteDrag.touchDraggingCard = null;
+                self.overwriteDrag.startTouch = null;
+            });
+
+            list.appendChild(card);
+        });
+
+        list.addEventListener('dragover', function(e) {
+            e.preventDefault();
+
+            const cards = Array.from(list.querySelectorAll('.sub-card.overwrite-item'));
+            if (cards.length === 0) return;
+
+            const realCards = cards.slice(2);
+            if (realCards.length === 0) return;
+
+            const x = e.clientX;
+
+            let insertBefore = null;
+            for (let i = 0; i < realCards.length; i++) {
+                const rect = realCards[i].getBoundingClientRect();
+                if (x < rect.left + rect.width / 2) {
+                    insertBefore = realCards[i];
+                    break;
+                }
+            }
+
+            const line = document.createElement('div');
+            line.className = 'overwrite-drag-line';
+            if (insertBefore) {
+                list.insertBefore(line, insertBefore);
+            } else {
+                list.appendChild(line);
+            }
+
+            const lines = Array.from(list.querySelectorAll('.overwrite-drag-line'));
+            lines.forEach(l => {
+                if (l !== line) l.remove();
+            });
+        });
+
+        list.addEventListener('dragleave', function(e) {
+            if (!list.contains(e.relatedTarget)) {
+                list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
+            }
+        });
+
+        list.addEventListener('drop', function(e) {
+            e.preventDefault();
+            const dragging = ConfigEditor.overwriteDrag.dragging;
+            if (!dragging) return;
+            const from = parseInt(dragging.dataset.index);
+            const lines = Array.from(list.querySelectorAll('.overwrite-drag-line'));
+            if (lines.length === 0) return;
+            const line = lines[0];
+            const allCards = Array.from(list.querySelectorAll('.sub-card.overwrite-item'));
+            const fileCards = allCards.filter(c => typeof c.dataset.index !== 'undefined' && c.dataset.index !== 'custom');
+            let nextNode = line.nextSibling;
+            while (nextNode && !(nextNode.classList && nextNode.classList.contains('sub-card') && typeof nextNode.dataset.index !== 'undefined' && nextNode.dataset.index !== 'custom')) {
+                nextNode = nextNode.nextSibling;
+            }
+            let to = fileCards.indexOf(nextNode);
+            if (to === -1) to = fileCards.length;
+            if (from === to || from + 1 === to) {
+                list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
+                ConfigEditor.saveOverwriteSort();
+                return;
+            }
+            const arr = ConfigEditor.overwriteFiles.filter((f, i) => f.name !== 'openclash_custom_overwrite.sh');
+            const customFile = ConfigEditor.overwriteFiles.find(f => f.name === 'openclash_custom_overwrite.sh');
+            const moved = arr.splice(from, 1)[0];
+            arr.splice(to > from ? to - 1 : to, 0, moved);
+            let newArr = [];
+            if (customFile) newArr.push(customFile);
+            newArr = newArr.concat(arr);
+            ConfigEditor.overwriteFiles = newArr;
+            ConfigEditor.renderOverwriteCards();
+            ConfigEditor.saveOverwriteSort();
+            list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
+        });
+
+        list.addEventListener('touchmove', function(e) {
+            if (!ConfigEditor.overwriteDrag.isTouchDragging) return;
+            const touch = e.touches[0];
+            const cards = Array.from(list.querySelectorAll('.sub-card.overwrite-item'));
+            if (cards.length === 0) return;
+            const realCards = cards.slice(2);
+            if (realCards.length === 0) return;
+
+            let insertBefore = null;
+            for (let i = 0; i < realCards.length; i++) {
+                const rect = realCards[i].getBoundingClientRect();
+                if (touch.clientX < rect.left + rect.width / 2) {
+                    insertBefore = realCards[i];
+                    break;
+                }
+            }
+
+            list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
+
+            if (insertBefore) {
+                const line = document.createElement('div');
+                line.className = 'overwrite-drag-line';
+                list.insertBefore(line, insertBefore);
+            } else {
+                const line = document.createElement('div');
+                line.className = 'overwrite-drag-line';
+                list.appendChild(line);
+            }
+        });
+
+        list.addEventListener('touchend', function(e) {
+            var dragging = ConfigEditor.overwriteDrag.dragging;
+            if (!dragging) {
+                list.querySelectorAll('.overwrite-drag-line').forEach(function(line){ line.remove(); });
+                return;
+            }
+            var from = parseInt(dragging.dataset.index);
+
+            var line = list.querySelector('.overwrite-drag-line');
+            if (!line) {
+                ConfigEditor.overwriteDrag.dragging = null;
+                ConfigEditor.overwriteDrag.startIndex = null;
+                ConfigEditor.overwriteDrag.isTouchDragging = false;
+                return;
+            }
+
+            var allCards = Array.from(list.querySelectorAll('.sub-card.overwrite-item'));
+            var fileCards = allCards.filter(function(c){ return c.dataset && typeof c.dataset.index !== 'undefined' && c.dataset.index !== 'custom'; });
+
+            var lineRect = line.getBoundingClientRect();
+            var lineCenterX = lineRect.left + lineRect.width / 2;
+
+            var to = fileCards.length;
+            for (var i = 0; i < fileCards.length; i++) {
+                var rect = fileCards[i].getBoundingClientRect();
+                var cardMid = rect.left + rect.width / 2;
+                if (lineCenterX < cardMid) {
+                    to = i;
+                    break;
+                }
+            }
+
+            if (!(from === to || from + 1 === to)) {
+                var arr = ConfigEditor.overwriteFiles.filter(function(f){ return f.name !== 'openclash_custom_overwrite.sh'; });
+                var customFile = ConfigEditor.overwriteFiles.find(function(f){ return f.name === 'openclash_custom_overwrite.sh'; });
+                var moved = arr.splice(from, 1)[0];
+                arr.splice(to > from ? to - 1 : to, 0, moved);
+                var newArr = [];
+                if (customFile) newArr.push(customFile);
+                newArr = newArr.concat(arr);
+                ConfigEditor.overwriteFiles = newArr;
+                ConfigEditor.renderOverwriteCards();
+                ConfigEditor.saveOverwriteSort();
+            } else {
+                ConfigEditor.saveOverwriteSort();
+            }
+
+            list.querySelectorAll('.overwrite-drag-line').forEach(function(l){ l.remove(); });
+            ConfigEditor.overwriteDrag.dragging = null;
+            ConfigEditor.overwriteDrag.startIndex = null;
+            ConfigEditor.overwriteDrag.isTouchDragging = false;
+        });
+
+        bar.style.display = self.isOverwrite ? 'block' : 'none';
+    },
+    
+    saveOverwriteSort: function() {
+        var self = this;
+        var reqs = [];
+        this.overwriteFiles.forEach(function(file, idx) {
+            var name = file.name || (file.path ? file.path.split('/').pop() : '');
+            if (name === 'openclash_custom_overwrite.sh') return;
+            var sub = self.overwriteSubInfo[name] || {};
+            var formData = new FormData();
+            formData.append('filename', name);
+            formData.append('type', sub.type || 'file');
+            formData.append('url', sub.url || '');
+            formData.append('update_days', sub.update_days || '');
+            formData.append('update_hour', sub.update_hour || '');
+            formData.append('param', sub.param || '');
+            formData.append('order', idx);
+            reqs.push(fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                method: 'POST',
+                body: formData
+            }));
+        });
+        Promise.all(reqs).then(function() {
+            self.loadOverwriteSubInfo();
+        });
+    },
+
+    renderOverwriteSubForm: function(options) {
+        var name = options.name || '';
+        var sub = options.sub || {};
+        var readonly = !!options.readonly;
+        var showTabs = !!options.showTabs;
+        var activeTab = options.activeTab || 'file';
+
+        var tabsHtml = showTabs ? `
+            <div class="upload-mode-selector">
+                <div class="mode-tabs">
+                    <button type="button" class="mode-tab${activeTab==='file'?' active':''}" id="overwrite-upload-mode-file" data-mode="file">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17,11 12,6 7,11"></polyline>
+                            <line x1="12" y1="18" x2="12" y2="6"></line>
+                        </svg>
+                        <%:Upload File%>
+                    </button>
+                    <button type="button" class="mode-tab${activeTab==='subscribe'?' active':''}" id="overwrite-upload-mode-subscribe" data-mode="subscribe">
+                        <svg width="15" height="15" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M26.2401 16.373L17.1001 7.23303C14.4388 4.57168 10.0653 4.6303 7.33158 7.36397C4.59791 10.0976 4.53929 14.4712 7.20064 17.1325L15.1359 25.0678" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M32.9027 23.0031L40.838 30.9384C43.4994 33.5998 43.4407 37.9733 40.7071 40.707C37.9734 43.4407 33.5999 43.4993 30.9385 40.8379L21.7985 31.6979" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M26.1093 26.1416C28.843 23.4079 28.9016 19.0344 26.2403 16.373" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path d="M21.7989 21.7984C19.0652 24.5321 19.0066 28.9056 21.6679 31.5669" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <%:Subscribe Link%>
+                    </button>
+                </div>
+            </div>
+        ` : '';
+
+        var fileContent = `
+            <form id="overwrite-upload-form-file" style="display:${activeTab==='file'?'block':'none'};">
+                <div class="upload-zone" id="overwrite-upload-zone">
+                    <div class="upload-icon">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="17,11 12,6 7,11"></polyline>
+                            <line x1="12" y1="18" x2="12" y2="6"></line>
+                        </svg>
+                    </div>
+                    <div class="upload-text">
+                        <p class="upload-primary"><%:Click to select file or drag and drop%></p>
+                        <p class="upload-secondary"><%:Support txt,conf files, max size 10MB%></p>
+                    </div>
+                    <input type="file" id="overwrite-upload-file-input" accept=".txt,.conf,*" style="display: none;">
+                </div>
+                <div class="filename-input-container" style="margin-top:20px;">
+                    <label for="overwrite-upload-filename-input"><%:File Name%>:</label>
+                    <input type="text" id="overwrite-upload-filename-input" placeholder="<%:Please enter a filename%>" class="form-input" value="${name}" ${readonly ? 'readonly' : ''}/>
+                </div>
+            </form>
+        `;
+
+        var subscribeContent = `
+            <form id="overwrite-upload-form-subscribe" class="subscribe-form">
+                <div class="form-group">
+                    <label><%:File Name%>:</label>
+                    <input type="text" class="form-input" name="filename" id="overwrite-subscribe-filename" value="${name}" ${readonly ? 'readonly' : ''} placeholder="<%:Please enter a filename%>">
+                </div>
+                <div class="form-group">
+                    <label><%:Type%>:</label>
+                    <div class="form-select-wrapper">
+                        <select class="form-select" name="type" id="overwrite-subscribe-type" ${readonly ? 'disabled' : ''}>
+                            <option value="file" ${(sub.type === 'file' || !sub.type) ? 'selected' : ''}>file</option>
+                            <option value="http" ${sub.type === 'http' ? 'selected' : ''}>http</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group" id="overwrite-subscribe-url-group" style="display:${sub.type === 'http' ? 'block' : 'none'};">
+                    <label><%:Subscription URL%>:</label>
+                    <input type="text" class="form-input" name="url" id="overwrite-subscribe-url" value="${sub.url||''}">
+                </div>
+                <div class="form-group" id="overwrite-subscribe-update-group" style="display:${sub.type === 'http' ? 'block' : 'none'};">
+                    <label><%:Update Time%>:</label>
+                    <div class="update-row">
+                        <div class="form-select-wrapper">
+                            <select class="form-select" name="update_days" id="overwrite-subscribe-update-days">
+                                <option value="off" ${sub.update_days==='off'?'selected':''}><%:OFF%></option>
+                                <option value="*" ${sub.update_days==='*'?'selected':''}><%:Every Day%></option>
+                                <option value="1" ${sub.update_days==='1'?'selected':''}><%:Every Monday%></option>
+                                <option value="2" ${sub.update_days==='2'?'selected':''}><%:Every Tuesday%></option>
+                                <option value="3" ${sub.update_days==='3'?'selected':''}><%:Every Wednesday%></option>
+                                <option value="4" ${sub.update_days==='4'?'selected':''}><%:Every Thursday%></option>
+                                <option value="5" ${sub.update_days==='5'?'selected':''}><%:Every Friday%></option>
+                                <option value="6" ${sub.update_days==='6'?'selected':''}><%:Every Saturday%></option>
+                                <option value="0" ${sub.update_days==='0'?'selected':''}><%:Every Sunday%></option>
+                            </select>
+                        </div>
+                        <div class="form-select-wrapper">
+                            <select class="form-select" name="update_hour" id="overwrite-subscribe-update-hour">
+                                <option value="off" ${sub.update_hour==='off'?'selected':''}><%:OFF%></option>
+                                ${[...Array(24).keys()].map(h=>`<option value="${h}" ${sub.update_hour==h?'selected':''}>${h}:00</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" id="overwrite-subscribe-param-group" style="display:'block';">
+                    <label><%:Environment variable%>:</label>
+                    <input type="text" class="form-input" name="param" id="overwrite-subscribe-param" value="${sub.param||''}" placeholder="key1=value1;key2=value2">
+                </div>
+                <div class="upload-progress" id="overwrite-upload-progress" style="display:none;">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="overwrite-progress-fill" style="width:0%;"></div>
+                    </div>
+                    <div class="progress-text" id="overwrite-progress-text">0%</div>
+                </div>
+            </form>
+        `;
+
+        return `
+            ${tabsHtml}
+            <div class="config-upload-content" id="overwrite-upload-content-file" style="${activeTab==='file'?'':'display:none;'}">
+                ${fileContent}
+            </div>
+            <div class="config-upload-content" id="overwrite-upload-content-subscribe" style="${activeTab==='subscribe'?'':'display:none;'}">
+                ${subscribeContent}
+            </div>
+        `;
+    },
+
+    showAddOverwritemodel: function() {
+        var self = this;
+        if (document.getElementById('overwrite-add-model')) return;
+
+        var ocDiv = document.createElement('div');
+        ocDiv.className = 'oc';
+        var mainOc = document.querySelector('.oc[data-darkmode="true"]');
+        if (mainOc) {
+            ocDiv.setAttribute('data-darkmode', 'true');
+        }
+
+        var overlay = document.createElement('div');
+        overlay.className = 'config-upload-model-overlay show';
+        overlay.style.zIndex = 10001;
+        overlay.id = 'overwrite-add-model';
+
+        var model = document.createElement('div');
+        model.className = 'config-upload-model';
+
+        model.innerHTML = `
+            <div class="config-upload-header">
+                <div class="config-upload-title">
+                    <span><%:Add Overwrite Module%></span>
+                </div>
+                <div class="config-upload-actions">
+                    <button type="button" class="icon-btn" id="overwrite-add-close" title="<%:Close%>">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="config-upload-content">
+                ${self.renderOverwriteSubForm({name:'', sub:{}, readonly:false, showTabs:true, activeTab:'file'})}
+            </div>
+            <div class="config-upload-footer">
+                <div class="config-upload-status">
+                    <span id="overwrite-upload-status-text"><%:Ready to add file%></span>
+                </div>
+                <div class="config-upload-buttons">
+                    <button type="button" class="btn cancel-btn" id="overwrite-upload-cancel"><%:Cancel%></button>
+                    <button type="button" class="btn upload-btn" id="overwrite-upload-submit"><%:Add%></button>
+                </div>
+            </div>
+        `;
+
+        overlay.appendChild(model);
+        ocDiv.appendChild(overlay);
+        document.body.appendChild(ocDiv);
+
+        var tabFile = model.querySelector('#overwrite-upload-mode-file');
+        var tabSub = model.querySelector('#overwrite-upload-mode-subscribe');
+        var contentFile = model.querySelector('#overwrite-upload-content-file');
+        var contentSub = model.querySelector('#overwrite-upload-content-subscribe');
+        tabFile.onclick = function() {
+            tabFile.classList.add('active');
+            tabSub.classList.remove('active');
+            contentFile.style.display = 'block';
+            contentSub.style.display = 'none';
+        };
+        tabSub.onclick = function() {
+            tabFile.classList.remove('active');
+            tabSub.classList.add('active');
+            contentFile.style.display = 'none';
+            contentSub.style.display = 'block';
+        };
+
+        var typeSelect = model.querySelector('#overwrite-subscribe-type');
+        var urlGroup = model.querySelector('#overwrite-subscribe-url-group');
+        var updateGroup = model.querySelector('#overwrite-subscribe-update-group');
+        if (typeSelect) {
+            if (typeSelect.value === 'http') {
+                urlGroup.style.display = 'block';
+                updateGroup.style.display = 'block';
+            } else {
+                urlGroup.style.display = 'none';
+                updateGroup.style.display = 'none';
+            }
+            typeSelect.addEventListener('change', function() {
+                if (typeSelect.value === 'http') {
+                    urlGroup.style.display = 'block';
+                    updateGroup.style.display = 'block';
+                } else {
+                    urlGroup.style.display = 'none';
+                    updateGroup.style.display = 'none';
+                }
+            });
+        }
+
+        var urlInput = model.querySelector('#overwrite-subscribe-url');
+        var filenameInputSub = model.querySelector('#overwrite-subscribe-filename');
+        if (urlInput && filenameInputSub) {
+            urlInput.addEventListener('input', function() {
+                if (!filenameInputSub.value.trim() && urlInput.value.trim()) {
+                    try {
+                        var url = urlInput.value.trim();
+                        var name = url.split('?')[0].split('/').pop();
+                        if (name && /^[\w\.\-\_]+$/.test(name)) {
+                            filenameInputSub.value = name;
+                        }
+                    } catch (e) {}
+                }
+            });
+        }
+
+        model.querySelector('#overwrite-add-close').onclick = function() {
+            document.body.removeChild(ocDiv);
+        };
+        overlay.onclick = function(e) {
+            if (e.target === overlay) {
+                document.body.removeChild(ocDiv);
+            }
+        };
+        model.querySelector('#overwrite-upload-cancel').onclick = function() {
+            document.body.removeChild(ocDiv);
+        };
+
+        var uploadZone = model.querySelector('#overwrite-upload-zone');
+        var fileInput = model.querySelector('#overwrite-upload-file-input');
+        var filenameInput = model.querySelector('#overwrite-upload-filename-input');
+        var statusText = model.querySelector('#overwrite-upload-status-text');
+        var selectedFile = null;
+
+        uploadZone.onclick = function() {
+            fileInput.click();
+        };
+        fileInput.onchange = function(e) {
+            if (e.target.files.length > 0) {
+                selectedFile = e.target.files[0];
+                uploadZone.classList.add('has-file');
+                uploadZone.querySelector('.upload-primary').textContent = '<%:File selected:%> ' + selectedFile.name;
+                uploadZone.querySelector('.upload-secondary').textContent = '<%:Size:%> ' + (selectedFile.size/1024/1024).toFixed(2) + ' MB';
+                filenameInput.value = selectedFile.name;
+            }
+        };
+
+        var submitBtn = model.querySelector('#overwrite-upload-submit');
+        function validateAddOverwriteForm() {
+            if (tabFile.classList.contains('active')) {
+                const filename = filenameInput.value.trim();
+                submitBtn.disabled = !(selectedFile && filename && filename !== 'openclash_custom_overwrite.sh');
+            } else {
+                const filename = model.querySelector('#overwrite-subscribe-filename').value.trim();
+                const type = model.querySelector('#overwrite-subscribe-type').value;
+                const url = model.querySelector('#overwrite-subscribe-url').value.trim();
+                let valid = !!filename && filename !== 'openclash_custom_overwrite.sh';
+                if (type === 'http') {
+                    valid = valid && !!url && /^https?:\/\/[^ \n|]+$/.test(url);
+                }
+                submitBtn.disabled = !valid;
+            }
+        }
+        validateAddOverwriteForm();
+
+        filenameInput.addEventListener('input', validateAddOverwriteForm);
+
+        if (model.querySelector('#overwrite-subscribe-filename')) {
+            model.querySelector('#overwrite-subscribe-filename').addEventListener('input', validateAddOverwriteForm);
+        }
+        if (model.querySelector('#overwrite-subscribe-type')) {
+            model.querySelector('#overwrite-subscribe-type').addEventListener('change', validateAddOverwriteForm);
+        }
+        if (model.querySelector('#overwrite-subscribe-url')) {
+            model.querySelector('#overwrite-subscribe-url').addEventListener('input', validateAddOverwriteForm);
+        }
+        tabFile.addEventListener('click', function() {
+            setTimeout(validateAddOverwriteForm, 0);
+        });
+        tabSub.addEventListener('click', function() {
+            setTimeout(validateAddOverwriteForm, 0);
+        });
+
+
+        fileInput.addEventListener('change', validateAddOverwriteForm);
+
+        model.querySelector('#overwrite-upload-submit').onclick = function() {
+            if (tabFile.classList.contains('active')) {
+                var filename = filenameInput.value.trim();
+                if (!filename) {
+                    alert('<%:Please enter a filename%>');
+                    return;
+                }
+                if (filename === 'openclash_custom_overwrite.sh') {
+                    alert('<%:openclash_custom_overwrite.sh already exists and cannot be added again%>');
+                    return;
+                }
+                if (selectedFile) {
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        var fileContent = e.target.result;
+                        var formData = new FormData();
+                        formData.append('filename', filename);
+                        formData.append('config_file', fileContent);
+
+                        fetch('/cgi-bin/luci/admin/services/openclash/upload_overwrite', {
+                            method: 'POST',
+                            body: formData
+                        }).then(r=>r.json()).then(function(data){
+                            if (data.status === 'success') {
+                                statusText.textContent = '<%:Upload successful%>';
+                                document.body.removeChild(ocDiv);
+                                self.loadOverwriteFiles();
+                                setTimeout(function() {
+                                    self.currentConfigFile = '/etc/openclash/overwrite/' + filename;
+                                    self.isOverwrite = true;
+                                    self.showOverwrite(self.currentConfigFile);
+                                }, 300);
+                            } else {
+                                statusText.textContent = '<%:Upload failed:%> ' + (data.message || '');
+                            }
+                        });
+                    };
+                    reader.onerror = function() {
+                        statusText.textContent = '<%:Failed to read file%>';
+                    };
+                    reader.readAsText(selectedFile, 'UTF-8');
+                } else {
+                    var formData = new FormData();
+                    formData.append('filename', filename);
+                    formData.append('type', 'file');
+                    fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                        method: 'POST',
+                        body: formData
+                    }).then(r=>r.json()).then(function(data){
+                        fetch('/cgi-bin/luci/admin/services/openclash/create_file', {
+                            method: 'POST',
+                            body: new URLSearchParams({
+                                filename: filename,
+                                filepath: '/etc/openclash/overwrite/'
+                            })
+                        }).then(function() {
+                            statusText.textContent = '<%:Created successfully%>';
+                            document.body.removeChild(ocDiv);
+                            self.loadOverwriteFiles();
+                            setTimeout(function() {
+                                self.currentConfigFile = '/etc/openclash/overwrite/' + filename;
+                                self.isOverwrite = true;
+                                self.showOverwrite(self.currentConfigFile);
+                            }, 300);
+                        });
+                    });
+                }
+            } else {
+                var form = model.querySelector('#overwrite-upload-form-subscribe');
+                var filename = form.querySelector('#overwrite-subscribe-filename').value.trim();
+                var url = form.querySelector('#overwrite-subscribe-url').value.trim();
+                var update_days = form.querySelector('#overwrite-subscribe-update-days').value;
+                var update_hour = form.querySelector('#overwrite-subscribe-update-hour').value;
+                var type = form.querySelector('#overwrite-subscribe-type').value;
+                var param = form.querySelector('#overwrite-subscribe-param').value.trim();
+                if (!filename) {
+                    alert('<%:Please enter a filename%>');
+                    return;
+                }
+                if (filename === 'openclash_custom_overwrite.sh') {
+                    alert('<%:openclash_custom_overwrite.sh already exists and cannot be added again%>');
+                    return;
+                }
+                if (type === 'http' && !url) {
+                    alert('<%:Please enter subscription URL%>');
+                    return;
+                }
+                if (type === 'http' && !/^https?:\/\/[^ \n|]+$/.test(url)) {
+                    alert('<%:Invalid subscription URL format, only single HTTP/HTTPS link is supported%>');
+                    return;
+                }
+                var formData = new FormData();
+                formData.append('filename', filename);
+                formData.append('type', type);
+                formData.append('param', param);
+                if (type === 'http') {
+                    formData.append('url', url);
+                    formData.append('update_days', update_days);
+                    formData.append('update_hour', update_hour);
+                }
+                var progressContainer = form.querySelector('#overwrite-upload-progress');
+                var progressFill = form.querySelector('#overwrite-progress-fill');
+                var progressText = form.querySelector('#overwrite-progress-text');
+                if (type === 'http') {
+                    statusText.textContent = '<%:Downloading subscription content...%>';
+                    progressContainer.style.display = 'block';
+                    var progress = 0;
+                    var interval = setInterval(function() {
+                        progress = Math.min(progress + Math.random() * 20, 90);
+                        progressFill.style.width = progress + '%';
+                        progressText.textContent = '<%:Downloading...%> ' + Math.floor(progress) + '%';
+                    }, 200);
+                }
+                fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                    method: 'POST',
+                    body: formData
+                }).then(r=>r.json()).then(function(data){
+                    if (type === 'http') {
+                        clearInterval(interval);
+                        progressFill.style.width = '100%';
+                        progressText.textContent = '<%:Download completed%> 100%';
+                    }
+                    if (data.status === 'success') {
+                        statusText.textContent = '<%:Subscription added successfully%>';
+                        setTimeout(function() {
+                            document.body.removeChild(ocDiv);
+                            self.loadOverwriteFiles();
+                            setTimeout(function() {
+                                self.currentConfigFile = '/etc/openclash/overwrite/' + filename;
+                                self.isOverwrite = true;
+                                self.showOverwrite(self.currentConfigFile);
+                            }, 300);
+                        }, 800);
+                    } else {
+                        statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
+                    }
+                });
+            }
+        };
+    },
+
+    showOverwriteSubmodel: function(name, sub, filePath) {
+        var self = this;
+        if (document.getElementById('overwrite-sub-model')) return;
+
+        var ocDiv = document.createElement('div');
+        ocDiv.className = 'oc';
+        var mainOc = document.querySelector('.oc[data-darkmode="true"]');
+        if (mainOc) {
+            ocDiv.setAttribute('data-darkmode', 'true');
+        }
+
+        var overlay = document.createElement('div');
+        overlay.className = 'config-upload-model-overlay show';
+        overlay.style.zIndex = 10001;
+        overlay.id = 'overwrite-sub-model';
+
+        var model = document.createElement('div');
+        model.className = 'config-upload-model';
+
+        model.innerHTML = `
+            <div class="config-upload-header">
+                <div class="config-upload-title">
+                    <span><%:Overwrite Module Edit%></span>
+                </div>
+                <div class="config-upload-actions">
+                    <button type="button" class="icon-btn" id="overwrite-sub-close" title="<%:Close%>">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="config-upload-content">
+                ${self.renderOverwriteSubForm({name:name, sub:sub, readonly:false, showTabs:false, activeTab:'subscribe'})}
+            </div>
+            <div class="config-upload-footer">
+                <div class="config-upload-status">
+                    <span id="overwrite-edit-status-text"><%:Ready to edit%></span>
+                </div>
+                <div class="config-upload-buttons">
+                    <button type="button" class="btn cancel-btn" id="overwrite-edit-cancel"><%:Cancel%></button>
+                    <button type="button" class="btn upload-btn" id="overwrite-edit-submit"><%:Save%></button>
+                </div>
+            </div>
+        `;
+
+        overlay.appendChild(model);
+        ocDiv.appendChild(overlay);
+        document.body.appendChild(ocDiv);
+
+        var typeSelect = model.querySelector('#overwrite-subscribe-type');
+        var urlGroup = model.querySelector('#overwrite-subscribe-url-group');
+        var updateGroup = model.querySelector('#overwrite-subscribe-update-group');
+        if (typeSelect) {
+            if (typeSelect.value === 'http') {
+                urlGroup.style.display = 'block';
+                updateGroup.style.display = 'block';
+            } else {
+                urlGroup.style.display = 'none';
+                updateGroup.style.display = 'none';
+            }
+            typeSelect.addEventListener('change', function() {
+                if (typeSelect.value === 'http') {
+                    urlGroup.style.display = 'block';
+                    updateGroup.style.display = 'block';
+                } else {
+                    urlGroup.style.display = 'none';
+                    updateGroup.style.display = 'none';
+                }
+            });
+        }
+
+        model.querySelector('#overwrite-sub-close').onclick = function() {
+            document.body.removeChild(ocDiv);
+        };
+        overlay.onclick = function(e) {
+            if (e.target === overlay) {
+                document.body.removeChild(ocDiv);
+            }
+        };
+        model.querySelector('#overwrite-edit-cancel').onclick = function() {
+            document.body.removeChild(ocDiv);
+        };
+
+        var submitBtn = model.querySelector('#overwrite-edit-submit');
+        function validateEditOverwriteForm() {
+            const form = model.querySelector('#overwrite-upload-form-subscribe');
+            const filename = form.querySelector('#overwrite-subscribe-filename').value.trim();
+            const type = form.querySelector('#overwrite-subscribe-type').value;
+            const url = form.querySelector('#overwrite-subscribe-url').value.trim();
+            let valid = !!filename && filename !== 'openclash_custom_overwrite.sh';
+            if (type === 'http') {
+                valid = valid && !!url && /^https?:\/\/[^ \n|]+$/.test(url);
+            }
+            submitBtn.disabled = !valid;
+        }
+
+        validateEditOverwriteForm();
+
+        model.querySelector('#overwrite-subscribe-filename').addEventListener('input', validateEditOverwriteForm);
+        model.querySelector('#overwrite-subscribe-type').addEventListener('change', validateEditOverwriteForm);
+        model.querySelector('#overwrite-subscribe-url').addEventListener('input', validateEditOverwriteForm);
+
+        model.querySelector('#overwrite-edit-submit').onclick = function() {
+            var form = model.querySelector('#overwrite-upload-form-subscribe');
+            var newName = form.querySelector('#overwrite-subscribe-filename').value.trim();
+            var type = form.querySelector('#overwrite-subscribe-type').value;
+            var url = form.querySelector('#overwrite-subscribe-url').value.trim();
+            var param = form.querySelector('#overwrite-subscribe-param').value.trim();
+
+            if (!newName) {
+                alert('<%:Please enter a filename%>');
+                return;
+            }
+            if (newName === 'openclash_custom_overwrite.sh') {
+                alert('<%:openclash_custom_overwrite.sh already exists and cannot be added again%>');
+                return;
+            }
+            if (type === 'http') {
+                if (!url) {
+                    alert('<%:Please enter subscription URL%>');
+                    return;
+                }
+                if (!/^https?:\/\/[^ \n|]+$/.test(url)) {
+                    alert('<%:Invalid subscription URL format, only single HTTP/HTTPS link is supported%>');
+                    return;
+                }
+            }
+
+            var formData = new FormData(form);
+            if (type !== 'http') {
+                formData.delete('url');
+                formData.delete('update_days');
+                formData.delete('update_hour');
+            }
+            if (newName !== name) {
+                formData.append('old_filename', name);
+            }
+            var progressContainer = form.querySelector('#overwrite-upload-progress');
+            var progressFill = form.querySelector('#overwrite-progress-fill');
+            var progressText = form.querySelector('#overwrite-progress-text');
+            var statusText = model.querySelector('#overwrite-edit-status-text');
+            if (type === 'http') {
+                statusText.textContent = '<%:Downloading subscription content...%>';
+                progressContainer.style.display = 'block';
+                var progress = 0;
+                var interval = setInterval(function() {
+                    progress = Math.min(progress + Math.random() * 20, 90);
+                    progressFill.style.width = progress + '%';
+                    progressText.textContent = '<%:Downloading...%> ' + Math.floor(progress) + '%';
+                }, 200);
+            }
+            fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
+                method: 'POST',
+                body: formData
+            }).then(r=>r.json()).then(function(data){
+                if (type === 'http') {
+                    clearInterval(interval);
+                    progressFill.style.width = '100%';
+                    progressText.textContent = '<%:Download completed%> 100%';
+                }
+                if (data.status === 'success') {
+                    statusText.textContent = '<%:Subscription saved successfully%>';
+                    setTimeout(function() {
+                        document.body.removeChild(ocDiv);
+
+                        if (newName !== name) {
+                            self.currentConfigFile = '/etc/openclash/overwrite/' + newName;
+                        }
+
+                        self.loadOverwriteFiles();
+                        setTimeout(function() {
+                            self.loadConfigContent();
+                            var configNameElement = document.getElementById('config-file-name');
+                            if (configNameElement) {
+                                configNameElement.textContent = self.formatDisplayName(self.currentConfigFile);
+                            }
+                        }, 300);
+
+                    }, 800);
+                } else {
+                    statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
+                }
+            });
+        };
+    },
+
     closeEditor: function() {
         if (this.isModified) {
             var r = confirm('<%:You have unsaved changes. Are you sure you want to close?%>');
@@ -1214,7 +2746,7 @@ var ConfigEditor = {
         this.currentZoom = newZoom;
         
         if (this.editorInstance) {
-            var cmWrapper = this.modal.querySelector('.CodeMirror');
+            var cmWrapper = this.model.querySelector('.CodeMirror');
             if (cmWrapper) {
                 this.zoomLevels.forEach(function(level) {
                     cmWrapper.classList.remove('zoom-' + level);
@@ -1249,7 +2781,7 @@ var ConfigEditor = {
     
     makeDraggable: function() {
         var self = this;
-        var header = this.modal.querySelector('.config-editor-header');
+        var header = this.model.querySelector('.config-editor-header');
         var startX, startY, startLeft, startTop;
         var isDragging = false;
         
@@ -1262,16 +2794,16 @@ var ConfigEditor = {
             startX = e.clientX;
             startY = e.clientY;
             
-            var rect = self.modal.getBoundingClientRect();
+            var rect = self.model.getBoundingClientRect();
             startLeft = rect.left;
             startTop = rect.top;
             
-            self.modal.style.position = 'fixed';
-            self.modal.style.left = startLeft + 'px';
-            self.modal.style.top = startTop + 'px';
-            self.modal.style.margin = '0';
-            self.modal.style.transform = 'none';
-            self.modal.style.transition = 'none';
+            self.model.style.position = 'fixed';
+            self.model.style.left = startLeft + 'px';
+            self.model.style.top = startTop + 'px';
+            self.model.style.margin = '0';
+            self.model.style.transform = 'none';
+            self.model.style.transition = 'none';
             
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
@@ -1288,22 +2820,22 @@ var ConfigEditor = {
             var newLeft = startLeft + deltaX;
             var newTop = startTop + deltaY;
             
-            var modalRect = self.modal.getBoundingClientRect();
-            var maxLeft = window.innerWidth - modalRect.width;
-            var maxTop = window.innerHeight - modalRect.height;
+            var modelRect = self.model.getBoundingClientRect();
+            var maxLeft = window.innerWidth - modelRect.width;
+            var maxTop = window.innerHeight - modelRect.height;
             
             newLeft = Math.max(0, Math.min(newLeft, maxLeft));
             newTop = Math.max(0, Math.min(newTop, maxTop));
             
-            self.modal.style.left = newLeft + 'px';
-            self.modal.style.top = newTop + 'px';
+            self.model.style.left = newLeft + 'px';
+            self.model.style.top = newTop + 'px';
         }
         
         function onMouseUp() {
             isDragging = false;
             
             setTimeout(function() {
-                self.modal.style.transition = 'all 0.3s ease';
+                self.model.style.transition = 'all 0.3s ease';
             }, 50);
             
             document.removeEventListener('mousemove', onMouseMove);
@@ -1320,16 +2852,16 @@ var ConfigEditor = {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
 
-            var rect = self.modal.getBoundingClientRect();
+            var rect = self.model.getBoundingClientRect();
             startLeft = rect.left;
             startTop = rect.top;
 
-            self.modal.style.position = 'fixed';
-            self.modal.style.left = startLeft + 'px';
-            self.modal.style.top = startTop + 'px';
-            self.modal.style.margin = '0';
-            self.modal.style.transform = 'none';
-            self.modal.style.transition = 'none';
+            self.model.style.position = 'fixed';
+            self.model.style.left = startLeft + 'px';
+            self.model.style.top = startTop + 'px';
+            self.model.style.margin = '0';
+            self.model.style.transform = 'none';
+            self.model.style.transition = 'none';
 
             document.addEventListener('touchmove', onTouchMove, {passive: false});
             document.addEventListener('touchend', onTouchEnd);
@@ -1346,15 +2878,15 @@ var ConfigEditor = {
             var newLeft = startLeft + deltaX;
             var newTop = startTop + deltaY;
 
-            var modalRect = self.modal.getBoundingClientRect();
-            var maxLeft = window.innerWidth - modalRect.width;
-            var maxTop = window.innerHeight - modalRect.height;
+            var modelRect = self.model.getBoundingClientRect();
+            var maxLeft = window.innerWidth - modelRect.width;
+            var maxTop = window.innerHeight - modelRect.height;
 
             newLeft = Math.max(0, Math.min(newLeft, maxLeft));
             newTop = Math.max(0, Math.min(newTop, maxTop));
 
-            self.modal.style.left = newLeft + 'px';
-            self.modal.style.top = newTop + 'px';
+            self.model.style.left = newLeft + 'px';
+            self.model.style.top = newTop + 'px';
 
             e.preventDefault();
         }
@@ -1362,7 +2894,7 @@ var ConfigEditor = {
         function onTouchEnd() {
             isDragging = false;
             setTimeout(function() {
-                self.modal.style.transition = 'all 0.3s ease';
+                self.model.style.transition = 'all 0.3s ease';
             }, 50);
 
             document.removeEventListener('touchmove', onTouchMove);
@@ -1381,13 +2913,13 @@ var ConfigEditor = {
             startX = e.clientX;
             startY = e.clientY;
             
-            var rect = self.modal.getBoundingClientRect();
+            var rect = self.model.getBoundingClientRect();
             startWidth = rect.width;
             startHeight = rect.height;
             
-            self.modal.style.transition = 'none';
-            self.modal.style.width = startWidth + 'px';
-            self.modal.style.height = startHeight + 'px';
+            self.model.style.transition = 'none';
+            self.model.style.width = startWidth + 'px';
+            self.model.style.height = startHeight + 'px';
             
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
@@ -1410,8 +2942,8 @@ var ConfigEditor = {
             newWidth = Math.min(newWidth, maxWidth);
             newHeight = Math.min(newHeight, maxHeight);
             
-            self.modal.style.width = newWidth + 'px';
-            self.modal.style.height = newHeight + 'px';
+            self.model.style.width = newWidth + 'px';
+            self.model.style.height = newHeight + 'px';
             
             if (self.editorInstance) {
                 requestAnimationFrame(function() {
@@ -1429,7 +2961,7 @@ var ConfigEditor = {
         function onMouseUp() {
             isResizing = false;
             
-            self.modal.style.transition = 'all 0.3s ease';
+            self.model.style.transition = 'all 0.3s ease';
             
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
@@ -1453,13 +2985,13 @@ var ConfigEditor = {
             startX = e.touches[0].clientX;
             startY = e.touches[0].clientY;
 
-            var rect = self.modal.getBoundingClientRect();
+            var rect = self.model.getBoundingClientRect();
             startWidth = rect.width;
             startHeight = rect.height;
 
-            self.modal.style.transition = 'none';
-            self.modal.style.width = startWidth + 'px';
-            self.modal.style.height = startHeight + 'px';
+            self.model.style.transition = 'none';
+            self.model.style.width = startWidth + 'px';
+            self.model.style.height = startHeight + 'px';
 
             document.addEventListener('touchmove', onTouchMove, {passive: false});
             document.addEventListener('touchend', onTouchEnd);
@@ -1482,8 +3014,8 @@ var ConfigEditor = {
             newWidth = Math.min(newWidth, maxWidth);
             newHeight = Math.min(newHeight, maxHeight);
 
-            self.modal.style.width = newWidth + 'px';
-            self.modal.style.height = newHeight + 'px';
+            self.model.style.width = newWidth + 'px';
+            self.model.style.height = newHeight + 'px';
 
             if (self.editorInstance) {
                 requestAnimationFrame(function() {
@@ -1502,7 +3034,7 @@ var ConfigEditor = {
 
         function onTouchEnd() {
             isResizing = false;
-            self.modal.style.transition = 'all 0.3s ease';
+            self.model.style.transition = 'all 0.3s ease';
 
             document.removeEventListener('touchmove', onTouchMove);
             document.removeEventListener('touchend', onTouchEnd);

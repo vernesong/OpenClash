@@ -1,5 +1,5 @@
 <style>
-.oc .config-upload-modal-overlay {
+.oc .config-upload-model-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -13,11 +13,11 @@
     backdrop-filter: blur(2px);
 }
 
-.oc .config-upload-modal-overlay.show {
+.oc .config-upload-model-overlay.show {
     display: flex;
 }
 
-.oc .config-upload-modal {
+.oc .config-upload-model {
     background: var(--bg-white);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
@@ -474,7 +474,7 @@
     box-sizing: border-box;
 }
 
-.oc[data-darkmode="true"] .config-upload-modal {
+.oc[data-darkmode="true"] .config-upload-model {
     background: var(--bg-white);
     border-color: var(--border-light);
 }
@@ -659,7 +659,7 @@
 }
 
 @media screen and (max-width: 500px) {
-    .oc .config-upload-modal {
+    .oc .config-upload-model {
         width: 95vw;
         min-width: 320px;
     }
@@ -685,8 +685,8 @@
 </style>
 
 <div class="oc">
-    <div class="config-upload-modal-overlay" id="config-upload-overlay">
-        <div class="config-upload-modal" id="config-upload-modal">
+    <div class="config-upload-model-overlay" id="config-upload-overlay">
+        <div class="config-upload-model" id="config-upload-model">
             <div class="config-upload-header">
                 <div class="config-upload-title">
                     <span><%:Add Config File%></span>
@@ -734,7 +734,7 @@
                         </div>
                         <div class="upload-text">
                             <p class="upload-primary"><%:Click to select file or drag and drop%></p>
-                            <p class="upload-secondary"><%:Support YAML files, max size 10MB%></p>
+                            <p class="upload-secondary"><%:Support YAML file, max size 10MB%></p>
                         </div>
                         <input type="file" id="config-file-input" accept=".yaml,.yml" style="display: none;">
                     </div>
@@ -954,16 +954,16 @@
 <script type="text/javascript">
 var ConfigUploader = {
     overlay: null,
-    modal: null,
+    model: null,
     selectedFile: null,
     isProcessing: false,
     currentMode: 'file',
     
     init: function() {
         this.overlay = document.getElementById('config-upload-overlay');
-        this.modal = document.getElementById('config-upload-modal');
+        this.model = document.getElementById('config-upload-model');
         
-        if (!this.overlay || !this.modal) {
+        if (!this.overlay || !this.model) {
             return;
         }
         

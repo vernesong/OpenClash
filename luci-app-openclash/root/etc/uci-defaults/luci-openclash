@@ -19,7 +19,7 @@ mkdir -p /etc/openclash/proxy_provider
 mkdir -p /etc/openclash/backup
 mkdir -p /etc/openclash/core
 mkdir -p /etc/openclash/history
-mkdir -p /usr/share/openclash/backup
+mkdir -p /usr/share/openclash/backup/overwrite
 
 mkdir -p /lib/upgrade/keep.d
 cat > "/lib/upgrade/keep.d/luci-app-openclash" <<-EOF
@@ -133,9 +133,9 @@ cp -f "/etc/openclash/custom/openclash_custom_chnroute_pass.list" "/usr/share/op
 cp -f "/etc/openclash/custom/openclash_custom_chnroute6_pass.list" "/usr/share/openclash/backup/openclash_custom_chnroute6_pass.list" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_firewall_rules.sh" "/usr/share/openclash/backup/openclash_custom_firewall_rules.sh" >/dev/null 2>&1
 cp -f "/etc/openclash/custom/openclash_custom_overwrite.sh" "/usr/share/openclash/backup/openclash_custom_overwrite.sh" >/dev/null 2>&1
-cp -f "/etc/openclash/custom/openclash_custom_overwrite.sh" "/usr/share/openclash/backup/openclash_custom_overwrite.sh" >/dev/null 2>&1
 cp -f "/etc/openclash/china_ip_route.ipset" "/usr/share/openclash/backup/china_ip_route.ipset" >/dev/null 2>&1
 cp -f "/etc/openclash/china_ip6_route.ipset" "/usr/share/openclash/backup/china_ip6_route.ipset" >/dev/null 2>&1
+cp -f "/etc/openclash/overwrite/default" "/usr/share/openclash/backup/overwrite/default" >/dev/null 2>&1
 
 #Restore
 if [ -f "/tmp/openclash.bak" ]; then
