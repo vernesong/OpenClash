@@ -3179,6 +3179,7 @@ get_config()
    smart_collect_size=$(uci -q get openclash.config.smart_collect_size || echo 100)
    smart_collect_rate=$(uci -q get openclash.config.smart_collect_rate || echo 1)
    smart_strategy=$(uci -q get openclash.config.smart_strategy || echo "sticky-sessions")
+   smart_policy_priority=$(uci -q get openclash.config.smart_policy_priority || echo 0)
 
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q commit openclash
@@ -3220,7 +3221,7 @@ start_service()
          /usr/share/openclash/yml_rules_change.sh \
          "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE"\
          "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$enable_redirect_dns" "$en_mode"\
-         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_strategy"
+         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_strategy" "$smart_policy_priority"
          
          #Custom overwrite
          if [ -f "/tmp/yaml_overwrite.sh" ]; then
