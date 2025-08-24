@@ -288,3 +288,10 @@ config dns_servers
 	option group 'fallback'
 	option ip 'doh.mullvad.net/dns-query'
 	option type 'https'
+
+config config_overwrite
+	option name 'default'
+	option type 'file'
+	option param 'EN_KEY1=URL1;EN_KEY12=URL2;EN_KEY13=URL3'
+	option order '0'
+	option enable '0'

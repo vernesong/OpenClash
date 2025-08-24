@@ -1,0 +1,116 @@
+
+# =========================
+# --- 以下为插件设置 ---
+
+# CONFIG_FILE (原始配置文件路径)
+# CORE_TYPE (核心类型 Smart or Meta)
+
+# --- 网络与接口 ---
+# LAN_INTERFACE_NAME (LAN 接口名称)
+# LAN_IP (IP 地址)
+# WAN_IP4S (WAN IPv4 地址)
+# WAN_IP6S (WAN IPv6 地址)
+# INTERFACE_NAME (绑定 wan 接口的名称)
+
+# --- 控制面板相关 ---
+# CN_PORT (控制面板端口)
+# DA_PASSWORD (控制面板访问密码)
+
+# --- 端口相关 ---
+# PROXY_PORT (Redir代理端口)
+# TPROXY_PORT (TPROXY代理端口)
+# HTTP_PORT (HTTP 代理端口)
+# SOCKS_PORT (SOCKS 代理端口)
+# MIXED_PORT (混合代理端口)
+# DNS_PORT (DNS 监听端口)
+
+# --- DNS 相关 ---
+# ENABLE_REDIRECT_DNS (DNS 重定向模式，0：禁用，1：Dnsmasq Redirect, 2：Firewall Redirect)
+# ENABLE_CUSTOM_DNS (自定义 DNS, 0: 插件不覆写, 1: 启用，使用插件内置规则)
+# APPEND_DEFAULT_DNS (自动追加 default-nameserver DNS, 0: 插件不覆写, 1: 启用)
+# APPEND_WAN_DNS (追加上游分配 DNS, 0: 插件不覆写, 1: 启用)
+# STORE_FAKEIP (启用 fake-ip 缓存, 0: 插件不覆写, 1: 启用)
+# CUSTOM_FAKEIP_FILTER (启用 Fake-IP-Filter, 0: 插件不覆写, 1: 启用，使用插件内置规则)
+    # CUSTOM_FAKEIP_FILTER_MODE (Fake-IP 过滤模式, blacklist/whitelist)
+# FAKEIP_RANGE (自定义 Fake-IP 地址段, 如 198.18.0.1/16)
+# ENABLE_RESPECT_RULES (DNS 查询是否遵循规则, 0: 插件不覆写, 1: 启用)
+# CUSTOM_NAME_POLICY (自定义 Nameserver-Policy, 0: 插件不覆写, 1: 启用，使用插件内置规则)
+# CUSTOM_HOST (自定义 Hosts, 0: 插件不覆写, 1: 启用，使用插件内置规则)
+# CUSTOM_FALLBACK_FILTER (自定义 Fallback-Filter, 0: 插件不覆写, 1: 启用，使用插件内置规则)
+
+# --- IPv6 相关 ---
+# IPV6_ENABLE (启用 IPv6，0: 禁用, 1: 启用)
+# IPV6_DNS (启用 IPv6 DNS，0: 禁用, 1: 启用)
+# IPV6_MODE (IPv6 代理模式, 0: TProxy Mode, 1: Redirect Mode, 2: TUN Mode, 3: Mix Mode)
+# ENABLE_V6_UDP_PROXY (启用 IPv6 UDP 代理，0: 禁用, 1: 启用, only for Redirect Mode and Redirect Mode)
+
+# --- 代理与模式 ---
+# EN_MODE (插件运行模式：fake-ip/fake-ip-tun/fake-ip-mix or redir-host/redir-host-tun/redir-host-mix)
+# ENABLE_UDP_PROXY (启用 UDP 代理, 0: 禁用, 1: 启用, only for EN_MODE_TUN is nil)
+# DISABLE_UDP_QUIC (禁用 UDP QUIC, 0: 启用, 1: 禁用)
+# ROUTER_SELF_PROXY (路由器自身代理, 0: 禁用, 1: 启用)
+
+# --- 防火墙与访问控制 ---
+# INTRANET_ALLOWED (仅允许内网访问, 0: 禁用, 1: 启用)
+    # INTRANET_ALLOWED_WAN_NAME (仅允许内网时 WAN 接口列表名称)
+# BYPASS_GATEWAY_COMPATIBLE (旁路网关兼容模式, 0: 禁用, 1: 启用)
+# COMMON_PORTS (绕过常用端口的端口列表, 0: 禁用 or "21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 5222 5228 5229 5230 8080 8443 8880 8888 8889")
+
+# --- 分流相关 ---
+
+# CHINA_IP_ROUTE (IPv4 绕过 IP 模式, 0: 禁用, 1: 绕过大陆, 2: 回国)
+# CHINA_IP6_ROUTE (IPv6 绕过 IP 模式, 0: 禁用, 1: 绕过大陆, 2: 回国)
+
+# ENABLE_META_SNIFFER (启用域名嗅探, 0: 插件不覆写, 1: 启用)
+    # ENABLE_META_SNIFFER_CUSTOM (启用自定义嗅探规则, 0: 插件不覆写, 1: 启用，使用插件内置规则)
+    # ENABLE_META_SNIFFER_PURE_IP (强制嗅探纯 IP 连接, 0: 插件不覆写, 1: 启用)
+
+# ENABLE_TCP_CONCURRENT (启用 TCP 并发, 0: 插件不覆写, 1: 启用)
+# FIND_PROCESS_MODE (进程查找模式, 0: 插件不覆写, off: 关闭, always, strict)
+# GLOBAL_CLIENT_FINGERPRINT (全局客户端指纹, none/random/chrome/firefox/safari/ios/android/edge/360/qq/0: 插件不覆写)
+# ENABLE_UNIFIED_DELAY (启用统一延迟计算, 0: 插件不覆写, 1: 启用)
+
+# --- 数据库加载 ---
+# ENABLE_GEOIP_DAT (启用 GEOIP DAT 数据库, 0: 插件不覆写, 1: 启用)
+# GEODATA_LOADER (Geo 数据加载模式, memconservative/standard/0: 插件不覆写)
+
+# --- 其它功能 ---
+# SMALL_FLASH_MEMORY (小闪存模式, 0: 禁用, 1: 启用)
+# DISABLE_QUIC_GO_GSO (禁用 QUIC GO GSO, 0: 插件不覆写, 1: 启用)
+# DELAY_START (延时启动, 0: 禁用 or 秒数)
+# SKIP_PROXY_ADDRESS (跳过代理地址, 0: 禁用, 1: 启用)
+# SUB_INFO_URL (订阅信息 URL)
+# =========================
+
+[General]
+EN_MODE = fake-ip-mix
+DISABLE_UDP_QUIC = 1
+ROUTER_SELF_PROXY = 1
+CHINA_IP_ROUTE = 1
+DISABLE_QUIC_GO_GSO = 1
+CORE_TYPE = Smart
+ENABLE_REDIRECT_DNS = 1
+IPV6_ENABLE = 0
+IPV6_DNS = 0
+#CHINA_IP6_ROUTE = 0
+
+#force: true 代表强制下载，false 代表不强制下载（当文件不存在时会自动下载）
+#cron: 定时下载时间，格式为标准的 cron 表达式，0 代表不启用定时下载
+#示例：每天凌晨6点下载一次
+#cron=0 6 * * *
+#示例：每周一凌晨6点下载一次
+#cron=0 6 * * 1
+DOWNLOAD_FILE = url=https://git.imee.me/https://github.com/666OS/YYDS/raw/main/mihomo/config/OneSmartPro.yaml, path=/etc/openclash/config/OneSmartPro.yaml, cron=0 6 * * *, force=false
+
+#将模板作为默认配置文件
+CONFIG_FILE = /etc/openclash/config/OneSmartPro.yaml
+
+#指定展示订阅信息的 URL 地址
+SUB_INFO_URL = $EN_KEY1
+
+[Overwrite]
+#EN_KEY 为对应模块需要用户指定的环境变量值, EN_KEY1=URL1;EN_KEY2=URL2;EN_KEY3=URL3
+#其他 Ruby 编辑函数请参考 openclash_custom_overwrite.sh
+ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "优质服务商" "['url']" "$EN_KEY1"
+ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "备用服务商" "['url']" "$EN_KEY2"
+ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "落地服务商" "['url']" "$EN_KEY3"

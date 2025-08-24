@@ -63,6 +63,10 @@ add_cron()
    [ -z "$(grep "/etc/init.d/openclash" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci -q get openclash.config.auto_restart)" -eq 1 ] && echo "0 $(uci -q get openclash.config.auto_restart_day_time) * * $(uci -q get openclash.config.auto_restart_week_time) /etc/init.d/openclash restart" >> $CRON_FILE
    }
+
+   config_load "openclash"
+   config_foreach add_overwrite_cron "config_overwrite"
+
    crontab $CRON_FILE
    start_watchdog
 }
@@ -77,6 +81,7 @@ del_cron()
    sed -i '/openclash_geoasn.sh/d' $CRON_FILE
    sed -i '/openclash_chnroute.sh/d' $CRON_FILE
    sed -i '/\/etc\/init.d\/openclash/d' $CRON_FILE
+   sed -i '/#openclash-overwrite-download/d' $CRON_FILE
    /etc/init.d/cron restart
 } >/dev/null 2>&1
 
@@ -289,6 +294,22 @@ start_fail()
    exit 0
 }
 
+sub_info_set()
+{
+   local section="$1" name
+   config_get "name" "$section" "name" ""
+
+   if [ -z "$name" ]; then
+      return
+   fi
+
+   if [ "$name" == "$2" ] && [ -n "$3" ]; then
+      uci -q set openclash.$section.url="$3"
+      uci -q commit openclash
+      sub_info_setted=1
+   fi
+}
+
 #获取订阅配置
 sub_info_get()
 {
@@ -416,7 +437,7 @@ check_run_quick()
 
 write_run_quick()
 {
-   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") $(ls -d /etc/openclash/custom/*) /usr/share/openclash/res/lhie1.yaml"
+   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") $(ls -d /etc/openclash/custom/*) $(ls -d /etc/openclash/overwrite/*) /usr/share/openclash/res/lhie1.yaml"
    cmp -s "/etc/config/openclash" "/tmp/openclash_config.tmp"
 	 if [ "$?" -ne "0" ]; then
 	    cp "/etc/config/openclash" "/tmp/openclash_config.tmp"
@@ -510,13 +531,13 @@ do_run_file()
 
    ln -s "$meta_core_path" /etc/openclash/clash
 
-   if [ "$smart_enable" -eq 1 ]; then
+   if [ "$smart_enable" -eq 1 ] || [ "$core_type" == "Smart" ]; then
       core_type="Smart"
    else
       core_type="Meta"
    fi
 
-   [ ! -f "$CLASH" ] && {
+   [ ! -f "$CLASH" ] || { [ "$core_type" = "Smart" ] && [ -z "$($CLASH -v | grep 'smart')" ]; } && {
       LOG_OUT "Tip: Detected that the Core is not Installed, Ready to Download..."
       rm -rf "/tmp/clash_last_version"
       /usr/share/openclash/openclash_core.sh "$core_type"
@@ -2883,6 +2904,198 @@ revert_firewall()
    fi
 } >/dev/null 2>&1
 
+add_overwrite_cron()
+{
+   local section="$1" enable type day hour url name
+   config_get_bool "enable" "$section" "enable" "1"
+   config_get "type" "$section" "type" "file"
+   config_get "url" "$section" "url" ""
+   config_get "update_days" "$section" "update_days" ""
+   config_get "update_hour" "$section" "update_hour" ""
+   config_get "name" "$section" "name" ""
+
+   if [ "$enable" != "1" ] || [ -z "$name" ] || [ "$type" != "http" ] || [ -z "$url" ] || [ -z "$update_days" ] || [ -z "$update_hour" ] || [ "$update_days" = "off" ] || [ "$update_hour" = "off" ]; then
+      return
+   fi
+
+   echo "0 $update_hour * * $update_days curl -fsSL -m 30 \"$url\" -o \"/etc/openclash/overwrite/$name\" >/dev/null 2>&1 #openclash-overwrite-download" >> $CRON_FILE
+}
+
+overwrite_file()
+{
+   overwrite_script="/tmp/yaml_overwrite.sh"
+   cat > "$overwrite_script" <<'EOF'
+#!/bin/sh
+. /usr/share/openclash/ruby.sh
+. /usr/share/openclash/log.sh
+. /lib/functions.sh
+
+EOF
+
+   allowed_keys="EN_MODE DISABLE_UDP_QUIC ROUTER_SELF_PROXY CHINA_IP_ROUTE CHINA_IP6_ROUTE DISABLE_QUIC_GO_GSO CORE_TYPE ENABLE_REDIRECT_DNS IPV6_ENABLE IPV6_DNS IPV6_MODE ENABLE_V6_UDP_PROXY ENABLE_UDP_PROXY PROXY_PORT\
+      TPROXY_PORT HTTP_PORT SOCKS_PORT MIXED_PORT DNS_PORT INTRANET_ALLOWED INTRANET_ALLOWED_WAN_NAME BYPASS_GATEWAY_COMPATIBLE COMMON_PORTS SMALL_FLASH_MEMORY CONFIG_FILE DOWNLOAD_FILE STORE_FAKEIP ENABLE_META_SNIFFER\
+      ENABLE_GEOIP_DAT GEODATA_LOADER ENABLE_META_SNIFFER_CUSTOM ENABLE_META_SNIFFER_PURE_IP ENABLE_TCP_CONCURRENT APPEND_DEFAULT_DNS FIND_PROCESS_MODE FAKEIP_RANGE GLOBAL_CLIENT_FINGERPRINT ENABLE_UNIFIED_DELAY ENABLE_RESPECT_RULES\
+      CUSTOM_FAKEIP_FILTER_MODE CUSTOM_FAKEIP_FILTER CUSTOM_NAME_POLICY CUSTOM_HOST ENABLE_CUSTOM_DNS APPEND_WAN_DNS CUSTOM_FALLBACK_FILTER DELAY_START SKIP_PROXY_ADDRESS SUB_INFO_URL"
+   allowed_keys_list="$(echo "$allowed_keys" | tr ' ' '\n')"
+
+   overwrite_list=$(uci -q show openclash 2>/dev/null | grep "=config_overwrite" | awk -F'[.=]' '{print $2}' | while read -r sid; do
+      order=$(uci -q get openclash."$sid".order 2>/dev/null)
+      [ -z "$order" ] && order=0
+      name=$(uci -q get openclash."$sid".name 2>/dev/null)
+      enable_flag=$(uci -q get openclash."$sid".enable 2>/dev/null || echo 0)
+      printf "%s|%s|%s|%s\n" "$order" "$name" "$sid" "$enable_flag"
+   done | sort -nr -t'|' -k1,1)
+
+   for entry in $overwrite_list; do
+      name=$(echo "$entry" | cut -d'|' -f2)
+      sid=$(echo "$entry" | cut -d'|' -f3)
+      enabled_flag=$(echo "$entry" | cut -d'|' -f4)
+
+      [ "$enabled_flag" != "1" ] && continue
+      [ -z "$name" ] && continue
+
+      file="/etc/openclash/overwrite/${name}"
+      [ ! -f "$file" ] && continue
+
+      LOG_OUT "Tip: Processing Overwrite Module【$name】"
+
+      echo "# --- overwrite source: ${name} (sid=${sid}) ---" >> "$overwrite_script"
+      echo "export OPENCLASH_OVERWRITE_SID='${sid}'" >> "$overwrite_script"
+      
+      param=$(uci -q get openclash."$sid".param 2>/dev/null || echo '')
+      if [ -n "$param" ]; then
+         OLD_IFS="$IFS"
+         IFS=';'
+         for kv in $param; do
+            [ -z "$kv" ] && continue
+            k="${kv%%=*}"
+            v="${kv#*=}"
+            k=$(printf "%s" "$k" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            v=$(printf "%s" "$v" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            [ -z "$k" ] && continue
+            varname="$k"
+            v_escaped=$(printf "%s" "$v" | sed "s/'/'\"'\"'/g")
+            export ${varname}=${v_escaped}
+         done
+         IFS="$OLD_IFS"
+      fi
+
+      in_general=0
+      in_overwrite=0
+
+      while IFS= read -r line || [ -n "$line" ]; do
+         trimmed=$(printf "%s" "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+         case "$trimmed" in
+               "[General]"*) in_general=1; in_overwrite=0; continue;;
+               "[Overwrite]"*) in_general=0; in_overwrite=1; continue;;
+               "["*"]"*) in_general=0; in_overwrite=0; continue;;
+         esac
+         [ -z "$trimmed" ] && continue
+         echo "$trimmed" | grep -qE '^[#;]' && continue
+
+         if [ "$in_general" -eq 1 ]; then
+               key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
+               val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
+               key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
+               
+               if printf "%s" "$key_u" | grep -q "^DOWNLOAD_FILE$"; then
+                  url=$(echo "$val" | sed -nE 's/.*url[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+                  path=$(echo "$val" | sed -nE 's/.*path[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+                  cron=$(echo "$val" | sed -nE 's/.*cron[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+                  force=$(echo "$val" | sed -nE 's/.*force[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+
+                  [ -z "$cron" ] && cron=0
+
+                  if [ -z "$path" ] || [ -z "$url" ]; then
+                     LOG_OUT "Warning: DOWNLOAD FILE no target in【$file】"
+                     continue 2
+                  fi
+
+                  need_download=0
+
+                  if [ ! -f "$path" ] || [ "$force" = "true" ]; then
+                     need_download=1
+                  fi
+
+                  if [ "$cron" != "0" ]; then
+                     if ! grep -q "$url" $CRON_FILE 2>/dev/null; then
+                        echo "$cron curl -fsSL -m 30 \"$url\" -o \"$path\" >/dev/null 2>&1 #openclash-overwrite-download" >> $CRON_FILE
+                     fi
+                  fi
+
+                  if [ "$need_download" -eq 1 ] && [ -n "$url" ]; then
+                     if command -v curl >/dev/null 2>&1; then
+                           curl -fsSL -m 30 "$url" -o "$path" >/dev/null 2>&1
+                           rc=$?
+                     else
+                           wget -T 30 -qO "$path" "$url" >/dev/null 2>&1
+                           rc=$?
+                     fi
+                     if [ $rc -ne 0 ] && [ ! -f "$path" ]; then
+                           LOG_OUT "Error: DOWNLOAD FILE failed for【$file url=$url path=$path】"
+                           continue 2
+                     fi
+                  fi
+
+               elif printf "%s" "$key_u" | grep -q "^CONFIG_FILE$"; then
+                  RAW_CONFIG_FILE=$(printf "%s" "$val" | sed "s/^['\"]//;s/['\"]$//")
+                  uci -q set openclash.config.config_path="$RAW_CONFIG_FILE"
+                  cfg_name=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
+                  if [ -n "$cfg_name" ]; then
+                     BACKUP_FILE="/etc/openclash/backup/${cfg_name}"
+                     CONFIG_FILE="/etc/openclash/${cfg_name}"
+                     TMP_CONFIG_FILE="/tmp/yaml_config_tmp_${cfg_name}"
+                  fi
+               elif printf "%s" "$key_u" | grep -q "^SUB_INFO_URL$"; then
+                  val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
+                  url_key=$(eval "echo $val_clean")
+                  [ -z "$url_key" ] && continue
+                  config_load "openclash"
+                  config_foreach sub_info_set "subscribe_info" "${cfg_name%.*}" "$url_key"
+                  if [ "$sub_info_setted" != "1" ]; then
+                     uci -q add openclash subscribe_info
+                     uci -q set openclash.@subscribe_info[-1].name="${cfg_name%.*}"
+                     uci -q set openclash.@subscribe_info[-1].url="$url_key"
+                  fi
+               else
+                  if echo "$allowed_keys_list" | grep -xq "$key_u"; then
+                     key_l=$(printf "%s" "$key_u" | tr 'A-Z' 'a-z' | tr -d ' ')
+                     val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
+                     uci -q set openclash.config."$key_l"="${val_clean}"
+                  else
+                     LOG_OUT "Warning: skip General key not allowed【$key_u - $file】"
+                  fi
+               fi
+
+         elif [ "$in_overwrite" -eq 1 ]; then
+               # 只运行 ruby_ 开头
+               if printf "%s" "$trimmed" | grep -qE '^ruby_[a-z_]+\b'; then
+                  echo "$trimmed" >> "$overwrite_script"
+               else
+                  LOG_OUT "Warning: skip invalid Overwrite command【$file: $trimmed】"
+               fi
+         fi
+      done < "$file"
+
+      cat >> "$overwrite_script" <<'EOF'
+if [ -f "/tmp/yaml_openclash_ruby_parts/$OPENCLASH_OVERWRITE_SID" ]; then
+   ruby_code=$(cat "/tmp/yaml_openclash_ruby_parts/$OPENCLASH_OVERWRITE_SID")
+   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+      Value = YAML.load_file('$CONFIG_FILE');
+      threads = []
+      $ruby_code
+      threads.each(&:join)
+      File.open('$CONFIG_FILE', 'w') do |f|
+         YAML.dump(Value, f)
+      end
+   " >> $LOG_FILE 2>&1
+fi
+EOF
+
+      echo "" >> "$overwrite_script"
+   done
+}
+
 get_config()
 {
    enable=$(uci -q get openclash.config.enable)
@@ -2982,11 +3195,11 @@ start_service()
       #快速启动判断
       check_run_quick
 
+      LOG_OUT "Step 1: Get The Configuration..."
+      overwrite_file
+      get_config
       config_choose
       do_run_mode
-
-      LOG_OUT "Step 1: Get The Configuration..."
-      get_config
 
       LOG_OUT "Step 2: Check The Components..."
       do_run_file "$RAW_CONFIG_FILE" "$BACKUP_FILE"
@@ -3010,6 +3223,12 @@ start_service()
          "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_strategy"
          
          #Custom overwrite
+         if [ -f "/tmp/yaml_overwrite.sh" ]; then
+            chmod +x /tmp/yaml_overwrite.sh
+            CONFIG_FILE="${TMP_CONFIG_FILE}" /tmp/yaml_overwrite.sh
+            rm -rf /tmp/yaml_openclash_ruby_parts
+         fi
+
          if [ -f "/etc/openclash/custom/openclash_custom_overwrite.sh" ]; then
             chmod +x /etc/openclash/custom/openclash_custom_overwrite.sh
             /etc/openclash/custom/openclash_custom_overwrite.sh "$TMP_CONFIG_FILE"
@@ -3018,24 +3237,25 @@ start_service()
                   [ -z "$yaml_file" ] && continue
                   ruby_code=$(grep "yaml_file_path=['\"]$yaml_file['\"]" /tmp/yaml_openclash_ruby_parse | sed "s/^threads << Thread.new do //;s/ end$//")
                   if [ -z "$ruby_code" ]; then
-                     continue
+                  continue
                   fi
                   if [ -f "$yaml_file" ]; then
-                     (
-                        ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-                        Value = YAML.load_file('$yaml_file');
-                        threads = []
-                        $ruby_code
-                        threads.each(&:join)
-                        File.open('$yaml_file', 'w') do |f|
-                           YAML.dump(Value, f)
-                        end
-                        " >> $LOG_FILE 2>&1
-                     )
+                  (
+                     ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                     Value = YAML.load_file('$yaml_file');
+                     threads = []
+                     $ruby_code
+                     threads.each(&:join)
+                     File.open('$yaml_file', 'w') do |f|
+                        YAML.dump(Value, f)
+                     end
+                     " >> $LOG_FILE 2>&1
+                  )
                   fi
                done
             fi
          fi
+         get_config
       else
          LOG_OUT "Step 3: Quick Start Mode, Skip Modify The Config File..."
       fi
@@ -3064,7 +3284,7 @@ start_service()
       write_run_quick
       SLOG_CLEAN
       rm -rf /tmp/yaml_*
-   } >/dev/null 2>&1
+   }
 
    echo "OpenClash Already Start!"
 }

@@ -1,11 +1,30 @@
 #!/bin/sh
 
+write_ruby_part()
+{
+  local part="$1" sid="${OPENCLASH_OVERWRITE_SID:-unknown}"
+  if [ -z "$part" ]; then
+    return
+  fi
+  if [ "$OVERWRITE_PARENT" = "yaml_overwrite" ]; then
+    mkdir -p /tmp/yaml_openclash_ruby_parts 2>/dev/null
+    echo "$part" >> "/tmp/yaml_openclash_ruby_parts/$sid"
+  else
+    echo "$part" >> /tmp/yaml_openclash_ruby_parse
+  fi
+}
+
 openclash_custom_overwrite() {
   local pid=$$
   while [ "$pid" != "1" ]; do
     pname=$(tr -d '\0' < /proc/"$pid"/cmdline 2>/dev/null)
     case "$pname" in
       *openclash_custom_overwrite.sh*)
+        OVERWRITE_PARENT="custom"
+        return 0
+        ;;
+      *yaml_overwrite.sh*|*/tmp/yaml_overwrite.sh*)
+        OVERWRITE_PARENT="yaml_overwrite"
         return 0
         ;;
     esac
@@ -56,7 +75,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 if openclash_custom_overwrite; then
   RUBY_YAML_PARSE="yaml_file_path='$1'; Value$2=$3"
-  echo "threads << Thread.new do $RUBY_YAML_PARSE end" >> /tmp/yaml_openclash_ruby_parse
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
   return
 fi
 RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value$2=$3; File.open('$1','w') {|f| YAML.dump(Value, f)}"
@@ -71,7 +90,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 if openclash_custom_overwrite; then
   RUBY_YAML_PARSE="yaml_file_path='$1'; if File::exist?('$3') then Value_1 = YAML.load_file('$3'); if not '$4'.empty? then Value$2=Value_1['$4']; else Value$2=Value_1 end else if not '$4'.empty? then Value.delete('$4'); end; end"
-  echo "threads << Thread.new do $RUBY_YAML_PARSE end" >> /tmp/yaml_openclash_ruby_parse
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
   return
 fi
 RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if File::exist?('$3') then Value_1 = YAML.load_file('$3'); if not '$4'.empty? then Value$2=Value_1['$4']; else Value$2=Value_1 end else if not '$4'.empty? then Value.delete('$4'); end; end; File.open('$1','w') {|f| YAML.dump(Value, f)}"
@@ -86,7 +105,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 if openclash_custom_overwrite; then
   RUBY_YAML_PARSE="yaml_file_path='$1'; Value_1 = YAML.load_file('$3'); Value$2.merge!(Value_1$4)"
-  echo "threads << Thread.new do $RUBY_YAML_PARSE end" >> /tmp/yaml_openclash_ruby_parse
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
   return
 fi
 RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value_1 = YAML.load_file('$3'); Value$2.merge!(Value_1$4); File.open('$1','w') {|f| YAML.dump(Value, f)}"
@@ -101,7 +120,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 if openclash_custom_overwrite; then
   RUBY_YAML_PARSE="yaml_file_path='$1'; Value$2=Value$2.uniq"
-  echo "threads << Thread.new do $RUBY_YAML_PARSE end" >> /tmp/yaml_openclash_ruby_parse
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
   return
 fi
 RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value$2=Value$2.uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}"
@@ -116,7 +135,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 if openclash_custom_overwrite; then
   RUBY_YAML_PARSE="yaml_file_path='$1'; Value$2.merge!($3)"
-  echo "threads << Thread.new do $RUBY_YAML_PARSE end" >> /tmp/yaml_openclash_ruby_parse
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
   return
 fi
 RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value$2.merge!($3); File.open('$1','w') {|f| YAML.dump(Value, f)}"
@@ -131,7 +150,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 if openclash_custom_overwrite; then
   RUBY_YAML_PARSE="yaml_file_path='$1'; Value_1 = YAML.load_file('$4'); Value_1$5.reverse.each{|x| Value$2.insert($3,x)}; Value$2=Value$2.uniq"
-  echo "threads << Thread.new do $RUBY_YAML_PARSE end" >> /tmp/yaml_openclash_ruby_parse
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
   return
 fi
 RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value_1 = YAML.load_file('$4'); Value_1$5.reverse.each{|x| Value$2.insert($3,x)}; Value$2=Value$2.uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}"
@@ -146,7 +165,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 if openclash_custom_overwrite; then
   RUBY_YAML_PARSE="yaml_file_path='$1'; Value_1 = YAML.load_file('$3'); Value$2=(Value_1$4+Value$2).uniq"
-  echo "threads << Thread.new do $RUBY_YAML_PARSE end" >> /tmp/yaml_openclash_ruby_parse
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
   return
 fi
 RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value_1 = YAML.load_file('$3'); Value$2=(Value_1$4+Value$2).uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}"
@@ -161,7 +180,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 if openclash_custom_overwrite; then
   RUBY_YAML_PARSE="yaml_file_path='$1'; if not Value$2 or Value$2.nil? then Value$2 = []; end; Value$2=Value$2.insert($3,'$4').uniq"
-  echo "threads << Thread.new do $RUBY_YAML_PARSE end" >> /tmp/yaml_openclash_ruby_parse
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
   return
 fi
 RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if not Value$2 or Value$2.nil? then Value$2 = []; end; Value$2=Value$2.insert($3,'$4').uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}"
@@ -176,7 +195,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 if openclash_custom_overwrite; then
   RUBY_YAML_PARSE="yaml_file_path='$1'; if not Value$2 or Value$2.nil? then Value$2 = []; end; Value$2=Value$2.insert($3,$4).uniq"
-  echo "threads << Thread.new do $RUBY_YAML_PARSE end" >> /tmp/yaml_openclash_ruby_parse
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
   return
 fi
 RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if not Value$2 or Value$2.nil? then Value$2 = []; end; Value$2=Value$2.insert($3,$4).uniq; File.open('$1','w') {|f| YAML.dump(Value, f)}"
@@ -191,7 +210,7 @@ if [ -z "$1" ] || [ -z "$2" ]; then
 fi
 if openclash_custom_overwrite; then
   RUBY_YAML_PARSE="yaml_file_path='$1'; if not Value$2 or Value$2.nil? then Value$2 = []; end; ${4}.reverse.each{|x| Value$2=Value$2.insert($3,x).uniq}"
-  echo "threads << Thread.new do $RUBY_YAML_PARSE end" >> /tmp/yaml_openclash_ruby_parse
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
   return
 fi
 RUBY_YAML_PARSE="Value = YAML.load_file('$1'); if not Value$2 or Value$2.nil? then Value$2 = []; end; ${4}.reverse.each{|x| Value$2=Value$2.insert($3,x).uniq}; File.open('$1','w') {|f| YAML.dump(Value, f)}"
@@ -206,9 +225,24 @@ if [ -z "$1" ] || [ -z "$3" ]; then
 fi
 if openclash_custom_overwrite; then
   RUBY_YAML_PARSE="yaml_file_path='$1'; Value$2.delete('$3')"
-  echo "threads << Thread.new do $RUBY_YAML_PARSE end" >> /tmp/yaml_openclash_ruby_parse
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
   return
 fi
 RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value$2.delete('$3'); File.open('$1','w') {|f| YAML.dump(Value, f)}"
+ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
+}
+
+ruby_map_edit()
+{
+local RUBY_YAML_PARSE
+if [ -z "$1" ] || [ -z "$2" ]; then
+    return
+fi
+if openclash_custom_overwrite; then
+  RUBY_YAML_PARSE="yaml_file_path='$1'; Value$2.each{|x,y| if x == '$3' then y$4 = '$5' end}"
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
+  return
+fi
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value$2.each{|x,y| if x == '$3' then y$4 = '$5' end}; File.open('$1','w') {|f| YAML.dump(Value, f)}"
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
