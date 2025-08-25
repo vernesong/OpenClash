@@ -246,3 +246,18 @@ fi
 RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value$2.each{|x,y| if x == '$3' then y$4 = '$5' end}; File.open('$1','w') {|f| YAML.dump(Value, f)}"
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
 }
+
+ruby_arr_edit()
+{
+local RUBY_YAML_PARSE
+if [ -z "$1" ] || [ -z "$2" ]; then
+    return
+fi
+if openclash_custom_overwrite; then
+  RUBY_YAML_PARSE="yaml_file_path='$1'; Value$2[$3] = '$4'"
+  write_ruby_part "threads << Thread.new do $RUBY_YAML_PARSE end"
+  return
+fi
+RUBY_YAML_PARSE="Value = YAML.load_file('$1'); Value$2.map!{|x| if x$3 == '$4' then x$5='$6'; x else x end }.uniq!; File.open('$1','w') {|f| YAML.dump(Value, f)}"
+ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "$RUBY_YAML_PARSE" 2>/dev/null
+}

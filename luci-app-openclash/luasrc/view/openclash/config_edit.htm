@@ -769,7 +769,27 @@ var ConfigEditor = {
     
     show: function(configFile) {
         this.isOverwrite = false;
-        
+        this.currentViewMode = 'original';
+        this.currentConfigFile = '';
+        this.originalContent = '';
+        this.runtimeContent = '';
+        this.isModified = false;
+        this.mergeViewActive = false;
+
+        if (this.editorInstance) {
+            if (this.editorInstance.toTextArea) this.editorInstance.toTextArea();
+            this.editorInstance = null;
+        }
+        var textarea = document.getElementById('config-editor-textarea');
+        if (textarea) {
+            textarea.value = '';
+            textarea.style.display = 'none';
+        }
+        var loadingDiv = document.getElementById('config-editor-loading');
+        if (loadingDiv) loadingDiv.style.display = 'flex';
+        var mergeview = document.getElementById('config-mergeview-container');
+        if (mergeview) mergeview.style.display = 'none';
+
         var banner = document.getElementById('overwrite-banner');
         if (banner) banner.style.display = 'none';
 
@@ -784,8 +804,6 @@ var ConfigEditor = {
             return;
         }
 
-        this.currentViewMode = 'original';
-        this.runtimeContent = '';
         this.currentConfigFile = configFile;
         this.overlay.classList.add('show');
 
@@ -801,17 +819,33 @@ var ConfigEditor = {
         if (configNameElement) {
             configNameElement.textContent = this.formatDisplayName(configFile);
         }
-        
-        this.isModified = false;
-        this.originalContent = '';
 
-        this.mergeViewActive = false;
         this.hideMergeView();
         this.updateModeTabs();
+        this.loadConfigContent();
     },
 
     showOverwrite: function() {
         this.isOverwrite = true;
+        this.currentViewMode = 'original';
+        this.originalContent = '';
+        this.runtimeContent = '';
+        this.isModified = false;
+        this.mergeViewActive = false;
+
+        if (this.editorInstance) {
+            if (this.editorInstance.toTextArea) this.editorInstance.toTextArea();
+            this.editorInstance = null;
+        }
+        var textarea = document.getElementById('config-editor-textarea');
+        if (textarea) {
+            textarea.value = '';
+            textarea.style.display = 'none';
+        }
+        var loadingDiv = document.getElementById('config-editor-loading');
+        if (loadingDiv) loadingDiv.style.display = 'flex';
+        var mergeview = document.getElementById('config-mergeview-container');
+        if (mergeview) mergeview.style.display = 'none';
 
         var banner = document.getElementById('overwrite-banner');
         if (banner) banner.style.display = 'flex';
@@ -822,7 +856,9 @@ var ConfigEditor = {
         var layoutBtn = document.getElementById('config-editor-layout');
         if (layoutBtn) layoutBtn.style.display = 'none';
 
-        this.currentConfigFile = '/etc/openclash/custom/openclash_custom_overwrite.sh';
+        if (!this.currentConfigFile) {
+            this.currentConfigFile = '/etc/openclash/custom/openclash_custom_overwrite.sh';
+        }
         this.overlay.classList.add('show');
 
         this.model.classList.remove('maximized');
@@ -840,12 +876,8 @@ var ConfigEditor = {
         if (configNameElement) {
             configNameElement.textContent = this.formatDisplayName(this.currentConfigFile);
         }
-        this.isModified = false;
-        this.originalContent = '';
 
-        this.mergeViewActive = false;
         this.hideMergeView();
-
         this.loadConfigContent();
     },
     
@@ -859,7 +891,10 @@ var ConfigEditor = {
         
         this.isModified = false;
         this.originalContent = '';
-        this.currentConfigFile = '';
+        this.overwriteCardBar.style.display = 'none';
+        if (!this.isOverwrite) {
+            this.currentConfigFile = '';
+        }
         
         var loadingDiv = document.getElementById('config-editor-loading');
         var textarea = document.getElementById('config-editor-textarea');
@@ -1407,59 +1442,16 @@ var ConfigEditor = {
             title.textContent = name;
             title.className = 'overwrite-title';
             title.title = name;
-            card.appendChild(title);
-
-            var sub = self.overwriteSubInfo[name] || {};
-            var enable = typeof sub.enable !== 'undefined' ? sub.enable : 1;
-            var switchLabel = document.createElement('label');
-            switchLabel.className = 'oc-switch';
-
-            var switchInput = document.createElement('input');
-            switchInput.type = 'checkbox';
-            switchInput.checked = enable == 1 ? true : false;
-            switchInput.onchange = function(e) {
-                e.stopPropagation();
-                var newEnable = switchInput.checked ? 1 : 0;
-                var formData = new FormData();
-                formData.append('filename', name);
-                formData.append('type', sub.type || 'file');
-                formData.append('url', sub.url || '');
-                formData.append('update_days', sub.update_days || '');
-                formData.append('update_hour', sub.update_hour || '');
-                formData.append('order', (typeof sub.order !== 'undefined' && sub.order !== null && sub.order !== '') ? sub.order : idx);
-                formData.append('param', sub.param || '');
-                formData.append('enable', newEnable);
-                fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
-                    method: 'POST',
-                    body: formData
-                }).then(r=>r.json()).then(function(data){
-                    if (data.status === 'success') {
-                        self.overwriteSubInfo[name] = self.overwriteSubInfo[name] || {};
-                        self.overwriteSubInfo[name].enable = newEnable;
-                    } else {
-                        statusText.textContent = '<%:Failed to update enable status%>';
-                        switchInput.checked = !switchInput.checked;
-                    }
-                }).catch(function(){
-                    statusText.textContent = '<%:Failed to update enable status%>';
-                    switchInput.checked = !switchInput.checked;
-                });
-            };
-
-            var switchSpan = document.createElement('span');
-            switchSpan.className = 'oc-switch-slider';
-
-            switchLabel.appendChild(switchInput);
-            switchLabel.appendChild(switchSpan);
 
             titleRow.appendChild(title);
-            titleRow.appendChild(switchLabel);
             card.appendChild(titleRow);
 
+            var sub = self.overwriteSubInfo[name] || {};
             var info = document.createElement('div');
             info.className = 'overwrite-info';
             info.textContent = sub.url ? '<%:Subscription%>' : '<%:Local File%>';
             card.appendChild(info);
+
             card.onclick = function(e) {
                 if (self.currentConfigFile !== customFile.path) {
                     self.currentConfigFile = customFile.path;
