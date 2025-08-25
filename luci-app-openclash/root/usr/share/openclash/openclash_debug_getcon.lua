@@ -22,8 +22,8 @@ end
 local function debug_getcon()
 	local info, ip, host, diag_info
 	ip = fs.lanip()
-	local port = uci:get("openclash", "config", "cn_port")
-	local passwd = uci:get("openclash", "config", "dashboard_password") or ""
+	local port = fs.uci_get("config", "cn_port")
+	local passwd = fs.uci_get("config", "dashboard_password") or ""
 	if ip and port then
 		info = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/connections', passwd, ip, port))
 		if info then

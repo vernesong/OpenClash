@@ -13,7 +13,7 @@ m.reset = false
 m.submit = false
 
 m:section(SimpleSection).template  = "openclash/status"
-if uci:get("openclash", "config", "dler_token") then
+if fs.uci_get("config", "dler_token") then
 	m:append(Template("openclash/dlercloud"))
 end
 

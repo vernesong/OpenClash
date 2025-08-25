@@ -1,6 +1,7 @@
 #!/bin/bash
 . /lib/functions.sh
 . /usr/share/openclash/ruby.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 885>"/tmp/lock/openclash_debug.lock" 2>/dev/null
@@ -25,43 +26,43 @@ set_lock
 
 DEBUG_LOG="/tmp/openclash_debug.log"
 LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
-enable_custom_dns=$(uci -q get openclash.config.enable_custom_dns)
-rule_source=$(uci -q get openclash.config.rule_source)
-enable_custom_clash_rules=$(uci -q get openclash.config.enable_custom_clash_rules) 
-ipv6_enable=$(uci -q get openclash.config.ipv6_enable)
-ipv6_dns=$(uci -q get openclash.config.ipv6_dns)
-enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
-disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
-proxy_mode=$(uci -q get openclash.config.proxy_mode)
-intranet_allowed=$(uci -q get openclash.config.intranet_allowed)
-enable_udp_proxy=$(uci -q get openclash.config.enable_udp_proxy)
-enable_rule_proxy=$(uci -q get openclash.config.enable_rule_proxy)
-en_mode=$(uci -q get openclash.config.en_mode)
-RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
-CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
-core_model=$(uci -q get openclash.config.core_version)
+enable_custom_dns=$(uci_get "enable_custom_dns")
+rule_source=$(uci_get "rule_source")
+enable_custom_clash_rules=$(uci_get "enable_custom_clash_rules") 
+ipv6_enable=$(uci_get "ipv6_enable")
+ipv6_dns=$(uci_get "ipv6_dns")
+enable_redirect_dns=$(uci_get "enable_redirect_dns")
+disable_masq_cache=$(uci_get "disable_masq_cache")
+proxy_mode=$(uci_get "proxy_mode")
+intranet_allowed=$(uci_get "intranet_allowed")
+enable_udp_proxy=$(uci_get "enable_udp_proxy")
+enable_rule_proxy=$(uci_get "enable_rule_proxy")
+en_mode=$(uci_get "en_mode")
+RAW_CONFIG_FILE=$(uci_get "config_path")
+CONFIG_FILE="/etc/openclash/$(uci_get "config_path" |awk -F '/' '{print $5}' 2>/dev/null)"
+core_model=$(uci_get "core_version")
 if [ -x "/bin/opkg" ]; then
    cpu_model=$(opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null)
 elif [ -x "/usr/bin/apk" ]; then
    cpu_model=$(apk list libc 2>/dev/null|awk '{print $2}')
 fi
 core_meta_version=$(/etc/openclash/core/clash_meta -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1 2>/dev/null)
-servers_update=$(uci -q get openclash.config.servers_update)
-mix_proxies=$(uci -q get openclash.config.mix_proxies)
+servers_update=$(uci_get "servers_update")
+mix_proxies=$(uci_get "mix_proxies")
 op_version=$(ipk_v "luci-app-openclash")
-china_ip_route=$(uci -q get openclash.config.china_ip_route)
-common_ports=$(uci -q get openclash.config.common_ports)
-router_self_proxy=$(uci -q get openclash.config.router_self_proxy)
-core_type=$(uci -q get openclash.config.core_type || echo "Dev")
-da_password=$(uci -q get openclash.config.dashboard_password)
-cn_port=$(uci -q get openclash.config.cn_port)
-lan_interface_name=$(uci -q get openclash.config.lan_interface_name || echo "0")
+china_ip_route=$(uci_get "china_ip_route")
+common_ports=$(uci_get "common_ports")
+router_self_proxy=$(uci_get "router_self_proxy")
+core_type=$(uci_get "core_type" || echo "Dev")
+da_password=$(uci_get "dashboard_password")
+cn_port=$(uci_get "cn_port")
+lan_interface_name=$(uci_get "lan_interface_name" || echo "0")
 if [ "$lan_interface_name" = "0" ]; then
    lan_ip=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' |head -1 || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
 else
    lan_ip=$(ip address show $lan_interface_name | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' |head -1)
 fi
-dnsmasq_default_resolvfile=$(uci -q get openclash.config.default_resolvfile)
+dnsmasq_default_resolvfile=$(uci_get "default_resolvfile")
 
 if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
    for file_name in /etc/openclash/config/*

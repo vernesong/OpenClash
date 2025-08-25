@@ -2,14 +2,15 @@
 . /lib/functions.sh
 . /usr/share/openclash/ruby.sh
 . /usr/share/openclash/log.sh
+. /usr/share/openclash/uci.sh
 
 LOG_FILE="/tmp/openclash.log"
 RULE_PROVIDER_FILE="/tmp/yaml_rule_provider.yaml"
 GAME_RULE_FILE="/tmp/yaml_game_rule.yaml"
-github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
-urltest_address_mod=$(uci -q get openclash.config.urltest_address_mod || echo 0)
-tolerance=$(uci -q get openclash.config.tolerance || echo 0)
-urltest_interval_mod=$(uci -q get openclash.config.urltest_interval_mod || echo 0)
+github_address_mod=$(uci_get "github_address_mod" || echo 0)
+urltest_address_mod=$(uci_get "urltest_address_mod" || echo 0)
+tolerance=$(uci_get "tolerance" || echo 0)
+urltest_interval_mod=$(uci_get "urltest_interval_mod" || echo 0)
 CONFIG_NAME="$5"
 rule_name=""
 SKIP_CUSTOM_OTHER_RULES=0

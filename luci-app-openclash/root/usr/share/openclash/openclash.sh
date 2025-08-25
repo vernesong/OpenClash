@@ -5,6 +5,7 @@
 . /usr/share/openclash/log.sh
 . /lib/functions/procd.sh
 . /usr/share/openclash/openclash_curl.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 889>"/tmp/lock/openclash_subs.lock" 2>/dev/null
@@ -22,9 +23,9 @@ LOGTIME=$(echo $(date "+%Y-%m-%d %H:%M:%S"))
 LOG_FILE="/tmp/openclash.log"
 CFG_FILE="/tmp/yaml_sub_tmp_config.yaml"
 CRON_FILE="/etc/crontabs/root"
-CONFIG_PATH=$(uci -q get openclash.config.config_path)
-servers_update=$(uci -q get openclash.config.servers_update)
-router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
+CONFIG_PATH=$(uci_get "config_path")
+servers_update=$(uci_get "servers_update")
+router_self_proxy=$(uci_get "router_self_proxy" || echo 1)
 FW4=$(command -v fw4)
 CLASH="/etc/openclash/clash"
 CLASH_CONFIG="/etc/openclash"

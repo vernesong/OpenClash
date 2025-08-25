@@ -2,6 +2,7 @@
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_curl.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 868>"/tmp/lock/openclash_lgbm.lock" 2>/dev/null
@@ -16,8 +17,8 @@ del_lock() {
 set_lock
 inc_job_counter
 
-small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
-LGBM_CUSTOM_URL=$(uci get openclash.config.lgbm_custom_url 2>/dev/null)
+small_flash_memory=$(uci_get "small_flash_memory")
+LGBM_CUSTOM_URL=$(uci_get "lgbm_custom_url")
 restart=0
 
 if [ "$small_flash_memory" != "1" ]; then
