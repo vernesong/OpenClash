@@ -3983,6 +3983,8 @@ function action_overwrite_subscribe_info()
                             order = tostring(max_order + 1)
                         end
                         uci:set("openclash", s[".name"], "order", order)
+                    else
+                        uci:set("openclash", s[".name"], "order", tonumber(order))
                     end
                     if s.enable == nil or (s.enable ~= nil and enable ~= nil) then
                         if enable == nil then
@@ -4022,6 +4024,8 @@ function action_overwrite_subscribe_info()
                             order = tostring(max_order + 1)
                         end
                         uci:set("openclash", s[".name"], "order", order)
+                    else
+                        uci:set("openclash", s[".name"], "order", tonumber(order))
                     end
                     if s.enable == nil or (s.enable ~= nil and enable ~= nil) then
                         if enable == nil then
@@ -4048,7 +4052,10 @@ function action_overwrite_subscribe_info()
                     if o and o > max_order then max_order = o end
                 end)
                 order = tostring(max_order + 1)
+            else
+                order = tostring(order)
             end
+            uci:set("openclash", sid, "order", order)
             uci:set("openclash", sid, "enable", 1)
         end
         uci:commit("openclash")
