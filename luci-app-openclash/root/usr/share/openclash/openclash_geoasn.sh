@@ -2,6 +2,7 @@
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_curl.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 874>"/tmp/lock/openclash_geoasn.lock" 2>/dev/null
@@ -16,9 +17,9 @@ del_lock() {
 set_lock
 inc_job_counter
 
-small_flash_memory=$(uci get openclash.config.small_flash_memory 2>/dev/null)
-GEOASN_CUSTOM_URL=$(uci get openclash.config.geoasn_custom_url 2>/dev/null)
-github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
+small_flash_memory=$(uci_get "small_flash_memory")
+GEOASN_CUSTOM_URL=$(uci_get "geoasn_custom_url")
+github_address_mod=$(uci_get "github_address_mod" || echo 0)
 restart=0
 
 if [ "$small_flash_memory" != "1" ]; then

@@ -2,6 +2,7 @@
 . /usr/share/openclash/log.sh
 . /lib/functions.sh
 . /usr/share/openclash/openclash_curl.sh
+. /usr/share/openclash/uci.sh
 
    urlencode() {
       if [ "$#" -eq 1 ]; then
@@ -22,8 +23,8 @@
    set_lock
 
    RULE_FILE_NAME="$1"
-   RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
-   github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
+   RELEASE_BRANCH=$(uci_get "release_branch" || echo "master")
+   github_address_mod=$(uci_get "github_address_mod" || echo 0)
    if [ -z "$(grep "$RULE_FILE_NAME" /usr/share/openclash/res/rule_providers.list 2>/dev/null)" ]; then
       DOWNLOAD_PATH=$(grep -F "$RULE_FILE_NAME" /usr/share/openclash/res/game_rules.list |awk -F ',' '{print $2}' 2>/dev/null)
       RULE_FILE_DIR="/etc/openclash/game_rules/$RULE_FILE_NAME"

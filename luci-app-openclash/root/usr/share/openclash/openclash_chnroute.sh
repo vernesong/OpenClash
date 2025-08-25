@@ -2,6 +2,7 @@
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_curl.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 879>"/tmp/lock/openclash_chn.lock" 2>/dev/null
@@ -17,14 +18,14 @@ set_lock
 inc_job_counter
 
 FW4=$(command -v fw4)
-china_ip_route=$(uci -q get openclash.config.china_ip_route)
-china_ip6_route=$(uci -q get openclash.config.china_ip6_route)
-CHNR_CUSTOM_URL=$(uci -q get openclash.config.chnr_custom_url)
-CHNR6_CUSTOM_URL=$(uci -q get openclash.config.chnr6_custom_url)
-CNDOMAIN_CUSTOM_URL=$(uci -q get openclash.config.cndomain_custom_url)
-disable_udp_quic=$(uci -q get openclash.config.disable_udp_quic)
-small_flash_memory=$(uci -q get openclash.config.small_flash_memory)
-en_mode=$(uci -q get openclash.config.en_mode)
+china_ip_route=$(uci_get "china_ip_route")
+china_ip6_route=$(uci_get "china_ip6_route")
+CHNR_CUSTOM_URL=$(uci_get "chnr_custom_url")
+CHNR6_CUSTOM_URL=$(uci_get "chnr6_custom_url")
+CNDOMAIN_CUSTOM_URL=$(uci_get "cndomain_custom_url")
+disable_udp_quic=$(uci_get "disable_udp_quic")
+small_flash_memory=$(uci_get "small_flash_memory")
+en_mode=$(uci_get "en_mode")
 restart=0
 
 if [ "$small_flash_memory" != "1" ]; then

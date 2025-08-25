@@ -1,6 +1,7 @@
 #!/bin/bash
 . /lib/functions.sh
 . /usr/share/openclash/log.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 875>"/tmp/lock/openclash_proxies_get.lock" 2>/dev/null
@@ -12,9 +13,9 @@ del_lock() {
    rm -rf "/tmp/lock/openclash_proxies_get.lock"
 }
 
-CONFIG_FILE=$(uci -q get openclash.config.config_path)
+CONFIG_FILE=$(uci_get "config_path")
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-UPDATE_CONFIG_FILE=$(uci -q get openclash.config.config_update_path)
+UPDATE_CONFIG_FILE=$(uci_get "config_update_path")
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 LOG_FILE="/tmp/openclash.log"
 set_lock
@@ -52,8 +53,8 @@ fi
 CFG_FILE="/etc/config/openclash"
 match_servers="/tmp/match_servers.list"
 match_provider="/tmp/match_provider.list"
-servers_update=$(uci -q get openclash.config.servers_update)
-servers_if_update=$(uci -q get openclash.config.servers_if_update)
+servers_update=$(uci_get "servers_update")
+servers_if_update=$(uci_get "servers_if_update")
 
 cfg_new_servers_groups_check()
 {
@@ -97,7 +98,7 @@ cfg_group_name()
 config_load "openclash"
 config_list_foreach "config" "new_servers_group" cfg_new_servers_groups_check
 
-if [ "$(uci -q get openclash.config.new_servers_group)" = "all" ]; then
+if [ "$(uci_get "new_servers_group")" = "all" ]; then
    if [ -z "$new_server_add_group" ]; then
       new_server_add_group="all"
    else

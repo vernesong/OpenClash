@@ -12,7 +12,7 @@ local UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 local class_type = type
 local type = arg[1]
 local all_test
-local router_self_proxy = tonumber(UCI:get("openclash", "config", "router_self_proxy")) or 1
+local router_self_proxy = tonumber(FS.uci_get("config", "router_self_proxy")) or 1
 local now_name, group_name, group_type, group_show, status, ip, port, passwd, group_match_name
 local groups = {}
 local proxies = {}
@@ -24,7 +24,7 @@ if unlock_cache then
 	unlock_cache_info = JSON.parse(unlock_cache) or {}
 end
 local self_status = SYS.exec(string.format('ps -w |grep -v grep |grep -c "openclash_streaming_unlock.lua %s"', type))
-local select_logic = UCI:get("openclash", "config", "stream_auto_select_logic") or "urltest"
+local select_logic = FS.uci_get("config", "stream_auto_select_logic") or "urltest"
 
 if not type then
 	print(os.date("%Y-%m-%d %H:%M:%S").." ".."Error: Streaming Unlock Has No Parameter of Type, Exiting...")
@@ -96,29 +96,29 @@ function unlock_auto_select()
 
 	if not auto_get_group then
 		if type == "Netflix" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_netflix") or "netflix|奈飞"
+			key_group = FS.uci_get("config", "stream_auto_select_group_key_netflix") or "netflix|奈飞"
 		elseif type == "Disney Plus" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_disney") or "disney|迪士尼"
+			key_group = FS.uci_get("config", "stream_auto_select_group_key_disney") or "disney|迪士尼"
 		elseif type == "HBO Max" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_hbo_max") or "hbo|hbomax|hbo max"
+			key_group = FS.uci_get("config", "stream_auto_select_group_key_hbo_max") or "hbo|hbomax|hbo max"
 		elseif type == "YouTube Premium" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_ytb") or "youtobe|油管"
+			key_group = FS.uci_get("config", "stream_auto_select_group_key_ytb") or "youtobe|油管"
 		elseif type == "TVB Anywhere+" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_tvb_anywhere") or "tvb"
+			key_group = FS.uci_get("config", "stream_auto_select_group_key_tvb_anywhere") or "tvb"
 		elseif type == "Amazon Prime Video" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_prime_video") or "prime video|amazon"
+			key_group = FS.uci_get("config", "stream_auto_select_group_key_prime_video") or "prime video|amazon"
 		elseif type == "DAZN" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_dazn") or "dazn"
+			key_group = FS.uci_get("config", "stream_auto_select_group_key_dazn") or "dazn"
 		elseif type == "Paramount Plus" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_paramount_plus") or "paramount"
+			key_group = FS.uci_get("config", "stream_auto_select_group_key_paramount_plus") or "paramount"
 		elseif type == "Discovery Plus" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_discovery_plus") or "discovery"
+			key_group = FS.uci_get("config", "stream_auto_select_group_key_discovery_plus") or "discovery"
 		elseif type == "Bilibili" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_bilibili") or "bilibili"
+			key_group = FS.uci_get("config", "stream_auto_select_group_key_bilibili") or "bilibili"
 		elseif type == "Google" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_google_not_cn") or "google|谷歌"
+			key_group = FS.uci_get("config", "stream_auto_select_group_key_google_not_cn") or "google|谷歌"
 		elseif type == "OpenAI" then
-			key_group = UCI:get("openclash", "config", "stream_auto_select_group_key_openai") or "OpenAI|ChatGPT"
+			key_group = FS.uci_get("config", "stream_auto_select_group_key_openai") or "OpenAI|ChatGPT"
 		end
 		if not key_group then key_group = type end
 	else
@@ -657,8 +657,8 @@ function table_sort_by_urltest(t, d)
 		end
 		if not get_delay then
 			if table_include(groups, t[n]) or t[n] == "DIRECT" then
-				if UCI:get("openclash", "config", "urltest_address_mod") and UCI:get("openclash", "config", "urltest_address_mod") ~= "0" then
-					delay_url = UCI:get("openclash", "config", "urltest_address_mod")
+				if FS.uci_get("config", "urltest_address_mod") and FS.uci_get("config", "urltest_address_mod") ~= "0" then
+					delay_url = FS.uci_get("config", "urltest_address_mod")
 				else
 					delay_url = "http://www.gstatic.com/generate_204"
 				end
@@ -756,8 +756,8 @@ function table_eq(t1, t2)
 end
 
 function get_auth_info()
-	port = UCI:get("openclash", "config", "cn_port")
-	passwd = UCI:get("openclash", "config", "dashboard_password") or ""
+	port = FS.uci_get("config", "cn_port")
+	passwd = FS.uci_get("config", "dashboard_password") or ""
 	ip = FS.lanip()
 	if not ip or not port then
 		os.exit(0)
@@ -767,7 +767,7 @@ end
 function close_connections()
 	local con
 	local group_cons_id = {}
-	local enable = tonumber(UCI:get("openclash", "config", "stream_auto_select_close_con")) or 1
+	local enable = tonumber(FS.uci_get("config", "stream_auto_select_close_con")) or 1
 	if enable == 0 then return end
 	con = SYS.exec(string.format('curl -sL -m 5 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://%s:%s/connections', passwd, ip, port))
 	if con then
@@ -794,29 +794,29 @@ function nodes_filter(t, info)
 	local regex, group_now
 	
 	if type == "Netflix" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_netflix") or ""
+		regex = FS.uci_get("config", "stream_auto_select_node_key_netflix") or ""
 	elseif type == "Disney Plus" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_disney") or ""
+		regex = FS.uci_get("config", "stream_auto_select_node_key_disney") or ""
 	elseif type == "HBO Max" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_hbo_max") or ""
+		regex = FS.uci_get("config", "stream_auto_select_node_key_hbo_max") or ""
 	elseif type == "YouTube Premium" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_ytb") or ""
+		regex = FS.uci_get("config", "stream_auto_select_node_key_ytb") or ""
 	elseif type == "TVB Anywhere+" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_tvb_anywhere") or ""
+		regex = FS.uci_get("config", "stream_auto_select_node_key_tvb_anywhere") or ""
 	elseif type == "Amazon Prime Video" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_prime_video") or ""
+		regex = FS.uci_get("config", "stream_auto_select_node_key_prime_video") or ""
 	elseif type == "DAZN" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_dazn") or ""
+		regex = FS.uci_get("config", "stream_auto_select_node_key_dazn") or ""
 	elseif type == "Paramount Plus" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_paramount_plus") or ""
+		regex = FS.uci_get("config", "stream_auto_select_node_key_paramount_plus") or ""
 	elseif type == "Discovery Plus" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_discovery_plus") or ""
+		regex = FS.uci_get("config", "stream_auto_select_node_key_discovery_plus") or ""
 	elseif type == "Bilibili" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_bilibili") or ""
+		regex = FS.uci_get("config", "stream_auto_select_node_key_bilibili") or ""
 	elseif type == "Google" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_google_not_cn") or ""
+		regex = FS.uci_get("config", "stream_auto_select_node_key_google_not_cn") or ""
 	elseif type == "OpenAI" then
-		regex = UCI:get("openclash", "config", "stream_auto_select_node_key_openai") or ""
+		regex = FS.uci_get("config", "stream_auto_select_node_key_openai") or ""
 	end
 
 	if class_type(t) == "table" then
@@ -1003,7 +1003,7 @@ function get_proxy(info, group, name)
 	--group maybe a proxy
 	proxies = {}
 	group_show = ""
-	local expand_group = tonumber(UCI:get("openclash", "config", "stream_auto_select_expand_group")) or 0
+	local expand_group = tonumber(FS.uci_get("config", "stream_auto_select_expand_group")) or 0
 
 	if expand_group == 1 then
 		if table_include(groups, group) then
@@ -1105,7 +1105,7 @@ function netflix_unlock_test()
 	local region = ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
-	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_netflix") or ""
+	local regex = FS.uci_get("config", "stream_auto_select_region_key_netflix") or ""
 	if info then
 		info = JSON.parse(info)
 	end
@@ -1149,7 +1149,7 @@ function disney_unlock_test()
 	local body = '{"query":"mutation registerDevice($input: RegisterDeviceInput!) { registerDevice(registerDevice: $input) { grant { grantType assertion } } }","variables":{"input":{"deviceFamily":"browser","applicationRuntime":"chrome","deviceProfile":"windows","deviceLanguage":"en","attributes":{"osDeviceIds":[],"manufacturer":"microsoft","model":null,"operatingSystem":"windows","operatingSystemVersion":"10.0","browserName":"chrome","browserVersion":"96.0.4606"}}}}'
 	local region = ""
 	local assertion, data, preassertion, disneycookie, tokencontent
-	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_disney") or ""
+	local regex = FS.uci_get("config", "stream_auto_select_region_key_disney") or ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
 	
@@ -1224,7 +1224,7 @@ function hbo_max_unlock_test()
 	local outofregion
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
-	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_hbo_max") or ""
+	local regex = FS.uci_get("config", "stream_auto_select_region_key_hbo_max") or ""
 	if data and tonumber(string.sub(string.match(data, "_TAG_%d+_TAG_"), 6, 8)) == 200 then
 		status = 1
 		if string.match(data, "\"isUserOutOfRegion\":%a+") then
@@ -1259,7 +1259,7 @@ function ytb_unlock_test()
 	local region = ""
 	local old_region = get_old_region()
 	local data, he_data
-	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_ytb") or ""
+	local regex = FS.uci_get("config", "stream_auto_select_region_key_ytb") or ""
 	local old_regex = get_old_regex()
 	data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -w '_TAG_%%{http_code}_TAG_' -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' -b 'YSC=BiCUU3-5Gdk; CONSENT=YES+cb.20220301-11-p0.en+FX+700; GPS=1; VISITOR_INFO1_LIVE=4VwPMkB7W5A; PREF=tz=Asia.Shanghai; _gcl_au=1.1.1809531354.1646633279' %s", UA, url))
 	if data and tonumber(string.sub(string.match(data, "_TAG_%d+_TAG_"), 6, 8)) == 200 then
@@ -1302,7 +1302,7 @@ function tvb_anywhere_unlock_test()
 	local region = ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
-	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_tvb_anywhere") or ""
+	local regex = FS.uci_get("config", "stream_auto_select_region_key_tvb_anywhere") or ""
 	local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -w '_TAG_%%{http_code}_TAG_' -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	if data and tonumber(string.sub(string.match(data, "_TAG_%d+_TAG_"), 6, 8)) == 200 then
 		status = 1
@@ -1338,7 +1338,7 @@ function prime_video_unlock_test()
 	local region = ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
-	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_prime_video") or ""
+	local regex = FS.uci_get("config", "stream_auto_select_region_key_prime_video") or ""
 	local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -w '_TAG_%%{http_code}_TAG_' -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	if data and tonumber(string.sub(string.match(data, "_TAG_%d+_TAG_"), 6, 8)) == 200 then
 		status = 1
@@ -1369,7 +1369,7 @@ function dazn_unlock_test()
 	local region = ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
-	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_dazn") or ""
+	local regex = FS.uci_get("config", "stream_auto_select_region_key_dazn") or ""
 	local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -w '_TAG_%%{http_code}_TAG_' -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' -X POST -d '{\"LandingPageKey\":\"generic\",\"Languages\":\"zh-CN,zh,en\",\"Platform\":\"web\",\"PlatformAttributes\":{},\"Manufacturer\":\"\",\"PromoCode\":\"\",\"Version\":\"2\"}' %s", UA, url))
 	if data and tonumber(string.sub(string.match(data, "_TAG_%d+_TAG_"), 6, 8)) == 200 then
 		status = 1
@@ -1405,7 +1405,7 @@ function paramount_plus_unlock_test()
 	local region = ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
-	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_paramount_plus") or ""
+	local regex = FS.uci_get("config", "stream_auto_select_region_key_paramount_plus") or ""
 	local data = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -w '_TAG_%%{http_code}_TAG_%%{url_effective}_TAGS_' -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' %s", UA, url))
 	if data and tonumber(string.sub(string.match(data, "_TAG_%d+_TAG_"), 6, 8)) == 200 then
 		status = 1
@@ -1441,7 +1441,7 @@ function discovery_plus_unlock_test()
 	local region = ""
 	local old_region = get_old_region()
 	local old_regex = get_old_regex()
-	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_discovery_plus") or ""
+	local regex = FS.uci_get("config", "stream_auto_select_region_key_discovery_plus") or ""
 	local token = SYS.exec(string.format("curl -sL --connect-timeout 5 -m 5 --speed-time 5 --speed-limit 1 --retry 2 -H 'Accept-Language: en' -H 'Content-Type: application/json' -H 'User-Agent: %s' '%s'", UA, url))
 	if token and JSON.parse(token) and JSON.parse(token).data and JSON.parse(token).data.attributes then
 		status = 1
@@ -1477,7 +1477,7 @@ function bilibili_unlock_test()
 	local randsession = SYS.exec("cat /dev/urandom 2>/dev/null | head -n 32 | md5sum | head -c 32")
 	local region = ""
 	local httpcode, data, url
-	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_bilibili") or "CN"
+	local regex = FS.uci_get("config", "stream_auto_select_region_key_bilibili") or "CN"
 	local old_region = get_old_region()
 	if regex == "HK/MO/TW" then
 		url = string.format("https://api.bilibili.com/pgc/player/web/playurl?avid=18281381&cid=29892777&qn=0&type=&otype=json&ep_id=183799&fourk=1&fnver=0&fnval=16&session=%s&module=bangumi", randsession)
@@ -1537,7 +1537,7 @@ function openai_unlock_test()
 	local url2 = "https://ios.chat.openai.com/"
 	local region_url = "https://chat.openai.com/cdn-cgi/trace"
 	local UA_SEC_CH_UA = '"Google Chrome";v="125", "Chromium";v="125", "Not.A/Brand";v="24"'
-	local regex = UCI:get("openclash", "config", "stream_auto_select_region_key_openai") or ""
+	local regex = FS.uci_get("config", "stream_auto_select_region_key_openai") or ""
 	local region = ""
 	local region_data
 	local old_region = get_old_region()

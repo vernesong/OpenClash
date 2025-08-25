@@ -3,6 +3,7 @@
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_curl.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 872>"/tmp/lock/openclash_core.lock" 2>/dev/null
@@ -16,7 +17,7 @@ del_lock() {
 
 set_lock
 
-github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
+github_address_mod=$(uci_get "github_address_mod" || echo 0)
 if [ "$github_address_mod" = "0" ] && [ -z "$(echo $2 2>/dev/null |grep -E 'http|one_key_update')" ] && [ -z "$(echo $3 2>/dev/null |grep 'http')" ]; then
    LOG_OUT "Tip: If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
 fi
@@ -30,13 +31,13 @@ if [ -n "$2" ] && [ "$2" != "one_key_update" ]; then
    github_address_mod="$2"
 fi
 CORE_TYPE="$1"
-C_CORE_TYPE=$(uci -q get openclash.config.core_type)
-SMART_ENABLE=$(uci -q get openclash.config.smart_enable || echo 0)
+C_CORE_TYPE=$(uci_get "core_type")
+SMART_ENABLE=$(uci_get "smart_enable" || echo 0)
 [ "$SMART_ENABLE" -eq 1 ] && CORE_TYPE="Smart"
 [ -z "$CORE_TYPE" ] && CORE_TYPE="Meta"
-small_flash_memory=$(uci -q get openclash.config.small_flash_memory)
-CPU_MODEL=$(uci -q get openclash.config.core_version)
-RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
+small_flash_memory=$(uci_get "small_flash_memory")
+CPU_MODEL=$(uci_get "core_version")
+RELEASE_BRANCH=$(uci_get "release_branch" || echo "master")
 
 if [ "$github_address_mod" != "0" ]; then
    [ ! -f "/tmp/clash_last_version" ] && /usr/share/openclash/clash_version.sh "$github_address_mod" 2>/dev/null

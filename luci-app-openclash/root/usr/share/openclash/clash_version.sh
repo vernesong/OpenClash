@@ -1,5 +1,6 @@
 #!/bin/bash
 . /usr/share/openclash/openclash_curl.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 884>"/tmp/lock/openclash_clash_version.lock" 2>/dev/null
@@ -16,8 +17,8 @@ set_lock
 TIME=$(date "+%Y-%m-%d-%H")
 CHTIME=$(date "+%Y-%m-%d-%H" -r "/tmp/clash_last_version" 2>/dev/null)
 DOWNLOAD_FILE="/tmp/clash_last_version"
-RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
-github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
+RELEASE_BRANCH=$(uci_get "release_branch" || echo "master")
+github_address_mod=$(uci_get "github_address_mod" || echo 0)
 if [ -n "$1" ]; then
    github_address_mod="$1"
 fi

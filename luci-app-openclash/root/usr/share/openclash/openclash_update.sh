@@ -1,6 +1,7 @@
 #!/bin/bash
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_curl.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 878>"/tmp/lock/openclash_update.lock" 2>/dev/null
@@ -55,8 +56,8 @@ elif [ -x "/usr/bin/apk" ]; then
    OP_CV=$(apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 2>/dev/null)
 fi
 OP_LV=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |sed "s/^v//g" |tr -d "\n")
-RELEASE_BRANCH=$(uci -q get openclash.config.release_branch || echo "master")
-github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
+RELEASE_BRANCH=$(uci_get "release_branch" || echo "master")
+github_address_mod=$(uci_get "github_address_mod" || echo 0)
 
 #一键更新
 if [ "$1" = "one_key_update" ]; then
@@ -157,7 +158,7 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ 
                elif [ -x "/usr/bin/apk" ]; then
                   LOG_OUT "Error:【OpenClash - v$LAST_VER】Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】"
                fi
-               if [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
+               if [ "$(uci_get "restart")" -eq 1 ]; then
                   uci -q set openclash.config.restart=0
                   uci -q commit openclash
                   /etc/init.d/openclash restart >/dev/null 2>&1 &
@@ -177,7 +178,7 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ 
             LOG_OUT "Error:【OpenClash - v$LAST_VER】Download Failed after 3 attempts, please check the network or try again later!"
             rm -rf /tmp/openclash.ipk >/dev/null 2>&1
             rm -rf /tmp/openclash.apk >/dev/null 2>&1
-            if [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
+            if [ "$(uci_get "restart")" -eq 1 ]; then
                uci -q set openclash.config.restart=0
                uci -q commit openclash
                /etc/init.d/openclash restart >/dev/null 2>&1 &
@@ -340,7 +341,7 @@ else
    else
       LOG_OUT "Tip: OpenClash has not been updated, stop continuing!"
    fi
-   if [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
+   if [ "$(uci_get "restart")" -eq 1 ]; then
       uci -q set openclash.config.restart=0
       uci -q commit openclash
       /etc/init.d/openclash restart >/dev/null 2>&1 &
