@@ -2918,7 +2918,14 @@ add_overwrite_cron()
       return
    fi
 
-   echo "0 $update_hour * * $update_days curl -fsSL -m 30 \"$url\" -o \"/etc/openclash/overwrite/$name\" >/dev/null 2>&1 #openclash-overwrite-download" >> $CRON_FILE
+   eval "restart_flag=\${OVERWRITE_RESTART_FLAG_${name}}"
+   cron_cmd="curl -fsSL -m 30 \"$url\" -o \"/etc/openclash/overwrite/$name\" >/dev/null 2>&1"
+   if [ "$restart_flag" = "1" ]; then
+      cron_cmd="$cron_cmd && /etc/init.d/openclash restart"
+   fi
+   cron_cmd="$cron_cmd #openclash-overwrite-download"
+
+   echo "0 $update_hour * * $update_days $cron_cmd" >> $CRON_FILE
 }
 
 overwrite_file()
@@ -2935,7 +2942,7 @@ EOF
    allowed_keys="EN_MODE DISABLE_UDP_QUIC ROUTER_SELF_PROXY CHINA_IP_ROUTE CHINA_IP6_ROUTE DISABLE_QUIC_GO_GSO CORE_TYPE ENABLE_REDIRECT_DNS IPV6_ENABLE IPV6_DNS IPV6_MODE ENABLE_V6_UDP_PROXY ENABLE_UDP_PROXY PROXY_PORT\
       TPROXY_PORT HTTP_PORT SOCKS_PORT MIXED_PORT DNS_PORT INTRANET_ALLOWED INTRANET_ALLOWED_WAN_NAME BYPASS_GATEWAY_COMPATIBLE COMMON_PORTS SMALL_FLASH_MEMORY CONFIG_FILE DOWNLOAD_FILE STORE_FAKEIP ENABLE_META_SNIFFER\
       ENABLE_GEOIP_DAT GEODATA_LOADER ENABLE_META_SNIFFER_CUSTOM ENABLE_META_SNIFFER_PURE_IP ENABLE_TCP_CONCURRENT APPEND_DEFAULT_DNS FIND_PROCESS_MODE FAKEIP_RANGE GLOBAL_CLIENT_FINGERPRINT ENABLE_UNIFIED_DELAY ENABLE_RESPECT_RULES\
-      CUSTOM_FAKEIP_FILTER_MODE CUSTOM_FAKEIP_FILTER CUSTOM_NAME_POLICY CUSTOM_HOST ENABLE_CUSTOM_DNS APPEND_WAN_DNS CUSTOM_FALLBACK_FILTER DELAY_START SKIP_PROXY_ADDRESS SUB_INFO_URL"
+      CUSTOM_FAKEIP_FILTER_MODE CUSTOM_FAKEIP_FILTER CUSTOM_NAME_POLICY CUSTOM_HOST ENABLE_CUSTOM_DNS APPEND_WAN_DNS CUSTOM_FALLBACK_FILTER DELAY_START SKIP_PROXY_ADDRESS SUB_INFO_URL RESTART"
    allowed_keys_list="$(echo "$allowed_keys" | tr ' ' '\n')"
 
    overwrite_list=$(uci -q show openclash 2>/dev/null | grep "=config_overwrite" | awk -F'[.=]' '{print $2}' | while read -r sid; do
@@ -2982,6 +2989,7 @@ EOF
 
       in_general=0
       in_overwrite=0
+      download_file_lines=""
 
       while IFS= read -r line || [ -n "$line" ]; do
          trimmed=$(printf "%s" "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
@@ -2994,86 +3002,122 @@ EOF
          echo "$trimmed" | grep -qE '^[#;]' && continue
 
          if [ "$in_general" -eq 1 ]; then
-               key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
-               val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
-               key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
-               
-               if printf "%s" "$key_u" | grep -q "^DOWNLOAD_FILE$"; then
-                  url=$(echo "$val" | sed -nE 's/.*url[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
-                  path=$(echo "$val" | sed -nE 's/.*path[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
-                  cron=$(echo "$val" | sed -nE 's/.*cron[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
-                  force=$(echo "$val" | sed -nE 's/.*force[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+            key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
+            key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
+            if printf "%s" "$key_u" | grep -q "^DOWNLOAD_FILE$"; then
+               download_file_lines="${download_file_lines}
+${trimmed}"
+            fi
+         fi
+      done < "$file"
 
-                  [ -z "$cron" ] && cron=0
+      download_failed=0
+      echo "$download_file_lines" | sed '/^$/d' | while IFS= read -r trimmed; do
+         key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
+         val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
+         key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
+         url=$(echo "$val" | sed -nE 's/.*url[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+         path=$(echo "$val" | sed -nE 's/.*path[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+         cron=$(echo "$val" | sed -nE 's/.*cron[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+         force=$(echo "$val" | sed -nE 's/.*force[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+         restart=$(echo "$val" | sed -nE 's/.*restart[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+         [ -z "$cron" ] && cron=0
+         if [ -z "$path" ] || [ -z "$url" ]; then
+            LOG_OUT "Warning: DOWNLOAD FILE no target in【$file】"
+            download_failed=1
+            break
+         fi
+         need_download=0
+         if [ ! -f "$path" ] || [ "$force" = "true" ]; then
+            need_download=1
+         fi
+         if [ "$cron" != "0" ]; then
+            if ! grep -q "$url" $CRON_FILE 2>/dev/null; then
+               cron_cmd="$cron curl -fsSL -m 30 \"$url\" -o \"$path\" >/dev/null 2>&1"
+               if [ "$restart" = "1" ] || [ "$restart" = "true" ]; then
+                  cron_cmd="$cron_cmd && /etc/init.d/openclash restart"
+               fi
+               cron_cmd="$cron_cmd #openclash-overwrite-download"
+               echo "$cron_cmd" >> $CRON_FILE
+            fi
+         fi
+         if [ "$need_download" -eq 1 ] && [ -n "$url" ]; then
+            if command -v curl >/dev/null 2>&1; then
+                  curl -fsSL -m 30 "$url" -o "$path" >/dev/null 2>&1
+                  rc=$?
+            else
+                  wget -T 30 -qO "$path" "$url" >/dev/null 2>&1
+                  rc=$?
+            fi
+            if [ $rc -ne 0 ] && [ ! -f "$path" ]; then
+                  LOG_OUT "Error: DOWNLOAD FILE failed for【$file url=$url path=$path】"
+                  download_failed=1
+                  break
+            fi
+         fi
+      done
 
-                  if [ -z "$path" ] || [ -z "$url" ]; then
-                     LOG_OUT "Warning: DOWNLOAD FILE no target in【$file】"
-                     continue 2
-                  fi
+      [ "$download_failed" -eq 1 ] && continue
 
-                  need_download=0
+      in_general=0
+      in_overwrite=0
+      while IFS= read -r line || [ -n "$line" ]; do
+         trimmed=$(printf "%s" "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+         case "$trimmed" in
+               "[General]"*) in_general=1; in_overwrite=0; continue;;
+               "[Overwrite]"*) in_general=0; in_overwrite=1; continue;;
+               "["*"]"*) in_general=0; in_overwrite=0; continue;;
+         esac
+         [ -z "$trimmed" ] && continue
+         echo "$trimmed" | grep -qE '^[#;]' && continue
 
-                  if [ ! -f "$path" ] || [ "$force" = "true" ]; then
-                     need_download=1
-                  fi
-
-                  if [ "$cron" != "0" ]; then
-                     if ! grep -q "$url" $CRON_FILE 2>/dev/null; then
-                        echo "$cron curl -fsSL -m 30 \"$url\" -o \"$path\" >/dev/null 2>&1 #openclash-overwrite-download" >> $CRON_FILE
-                     fi
-                  fi
-
-                  if [ "$need_download" -eq 1 ] && [ -n "$url" ]; then
-                     if command -v curl >/dev/null 2>&1; then
-                           curl -fsSL -m 30 "$url" -o "$path" >/dev/null 2>&1
-                           rc=$?
-                     else
-                           wget -T 30 -qO "$path" "$url" >/dev/null 2>&1
-                           rc=$?
-                     fi
-                     if [ $rc -ne 0 ] && [ ! -f "$path" ]; then
-                           LOG_OUT "Error: DOWNLOAD FILE failed for【$file url=$url path=$path】"
-                           continue 2
-                     fi
-                  fi
-
-               elif printf "%s" "$key_u" | grep -q "^CONFIG_FILE$"; then
-                  RAW_CONFIG_FILE=$(printf "%s" "$val" | sed "s/^['\"]//;s/['\"]$//")
-                  uci -q set openclash.config.config_path="$RAW_CONFIG_FILE"
-                  cfg_name=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
-                  if [ -n "$cfg_name" ]; then
-                     BACKUP_FILE="/etc/openclash/backup/${cfg_name}"
-                     CONFIG_FILE="/etc/openclash/${cfg_name}"
-                     TMP_CONFIG_FILE="/tmp/yaml_config_tmp_${cfg_name}"
-                  fi
-               elif printf "%s" "$key_u" | grep -q "^SUB_INFO_URL$"; then
+         if [ "$in_general" -eq 1 ]; then
+            key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
+            key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
+            if printf "%s" "$key_u" | grep -q "^DOWNLOAD_FILE$"; then
+               continue
+            fi
+            val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
+            if printf "%s" "$key_u" | grep -q "^CONFIG_FILE$"; then
+               RAW_CONFIG_FILE=$(printf "%s" "$val" | sed "s/^['\"]//;s/['\"]$//")
+               uci -q set openclash.config.config_path="$RAW_CONFIG_FILE"
+               cfg_name=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
+               if [ -n "$cfg_name" ]; then
+                  BACKUP_FILE="/etc/openclash/backup/${cfg_name}"
+                  CONFIG_FILE="/etc/openclash/${cfg_name}"
+                  TMP_CONFIG_FILE="/tmp/yaml_config_tmp_${cfg_name}"
+               fi
+            elif printf "%s" "$key_u" | grep -q "^SUB_INFO_URL$"; then
+               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
+               url_key=$(eval "echo $val_clean")
+               [ -z "$url_key" ] && continue
+               config_load "openclash"
+               config_foreach sub_info_set "subscribe_info" "${cfg_name%.*}" "$url_key"
+               if [ "$sub_info_setted" != "1" ]; then
+                  uci -q add openclash subscribe_info
+                  uci -q set openclash.@subscribe_info[-1].name="${cfg_name%.*}"
+                  uci -q set openclash.@subscribe_info[-1].url="$url_key"
+               fi
+            elif printf "%s" "$key_u" | grep -q "^RESTART$"; then
+               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
+               if printf "%s" "$val_clean" | grep -qE '^(1|true|yes)$'; then
+                  eval OVERWRITE_RESTART_FLAG_${name}=1
+               fi
+            else
+               if echo "$allowed_keys_list" | grep -xq "$key_u"; then
+                  key_l=$(printf "%s" "$key_u" | tr 'A-Z' 'a-z' | tr -d ' ')
                   val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-                  url_key=$(eval "echo $val_clean")
-                  [ -z "$url_key" ] && continue
-                  config_load "openclash"
-                  config_foreach sub_info_set "subscribe_info" "${cfg_name%.*}" "$url_key"
-                  if [ "$sub_info_setted" != "1" ]; then
-                     uci -q add openclash subscribe_info
-                     uci -q set openclash.@subscribe_info[-1].name="${cfg_name%.*}"
-                     uci -q set openclash.@subscribe_info[-1].url="$url_key"
-                  fi
+                  uci -q set openclash.config."$key_l"="${val_clean}"
                else
-                  if echo "$allowed_keys_list" | grep -xq "$key_u"; then
-                     key_l=$(printf "%s" "$key_u" | tr 'A-Z' 'a-z' | tr -d ' ')
-                     val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-                     uci -q set openclash.config."$key_l"="${val_clean}"
-                  else
-                     LOG_OUT "Warning: skip General key not allowed【$key_u - $file】"
-                  fi
+                  LOG_OUT "Warning: skip General key not allowed【$key_u - $file】"
                fi
-
+            fi
          elif [ "$in_overwrite" -eq 1 ]; then
-               # 只运行 ruby_ 开头
-               if printf "%s" "$trimmed" | grep -qE '^ruby_[a-z_]+\b'; then
-                  echo "$trimmed" >> "$overwrite_script"
-               else
-                  LOG_OUT "Warning: skip invalid Overwrite command【$file: $trimmed】"
-               fi
+            if printf "%s" "$trimmed" | grep -qE '^ruby_[a-z_]+\b'; then
+               echo "$trimmed" >> "$overwrite_script"
+            else
+               LOG_OUT "Warning: skip invalid Overwrite command【$file: $trimmed】"
+            fi
          fi
       done < "$file"
 
