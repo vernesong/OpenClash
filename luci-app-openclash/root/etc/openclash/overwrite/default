@@ -80,6 +80,7 @@
 # DELAY_START (延时启动, 0: 禁用 or 秒数)
 # SKIP_PROXY_ADDRESS (跳过代理地址, 0: 禁用, 1: 启用)
 # SUB_INFO_URL (订阅信息 URL)
+# RESTART (模块更新后重启插件, true: 启用, false: 禁用)
 # =========================
 
 [General]
@@ -94,6 +95,7 @@ IPV6_ENABLE = 0
 IPV6_DNS = 0
 #CHINA_IP6_ROUTE = 0
 
+#restart: true 代表更新后重启插件，false 代表不重启插件
 #force: true 代表强制下载，false 代表不强制下载（当文件不存在时会自动下载）
 #cron: 定时下载时间，格式为标准的 cron 表达式，0 代表不启用定时下载
 #示例：每天凌晨6点下载一次

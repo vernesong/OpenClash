@@ -4166,3 +4166,6 @@ msgstr "覆写模块编辑"
 
 msgid "Nodes Weight Priority, <1 Means Lower Priority, >1 Means Higher Priority, The Default is 1, Pattern Support Regex and String"
 msgstr "节点权重加成，<1 表示较低优先级，>1 表示较高优先级，默认为 1，匹配模式支持 Regex 和字符串"
+
+msgid "Edit Module Info"
+msgstr "编辑模块信息"
