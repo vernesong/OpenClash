@@ -4169,3 +4169,6 @@ msgstr "节点权重加成，<1 表示较低优先级，>1 表示较高优先级
 
 msgid "Edit Module Info"
 msgstr "编辑模块信息"
+
+msgid "Subscription"
+msgstr "订阅"

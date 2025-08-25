@@ -376,7 +376,7 @@
     border-radius: 4px;
 }
 .oc .sub-card.overwrite-item {
-    min-width: 180px;
+    width: 190px;
     max-width: 220px;
     flex: 0 0 auto;
     box-sizing: border-box;
@@ -494,8 +494,8 @@
         gap: 6px;
     }
     .oc .sub-card.overwrite-item {
-        min-width: 160px;
-        max-width: 180px;
+        width: 185px;
+        max-width: 200px;
         gap: 10px;
     }
     .oc .overwrite-drag-line {
@@ -1426,7 +1426,7 @@ var ConfigEditor = {
                 formData.append('url', sub.url || '');
                 formData.append('update_days', sub.update_days || '');
                 formData.append('update_hour', sub.update_hour || '');
-                formData.append('order', sub.order || '');
+                formData.append('order', (typeof sub.order !== 'undefined' && sub.order !== null && sub.order !== '') ? sub.order : idx);
                 formData.append('param', sub.param || '');
                 formData.append('enable', newEnable);
                 fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
@@ -1458,7 +1458,7 @@ var ConfigEditor = {
 
             var info = document.createElement('div');
             info.className = 'overwrite-info';
-            info.textContent = sub.url ? 'HTTP' : '<%:Local File%>';
+            info.textContent = sub.url ? '<%:Subscription%>' : '<%:Local File%>';
             card.appendChild(info);
             card.onclick = function(e) {
                 if (self.currentConfigFile !== customFile.path) {
@@ -1478,6 +1478,7 @@ var ConfigEditor = {
         }
 
         var files = self.overwriteFiles.filter((f, i) => i !== customIdx);
+        self.overwriteFileCardCount = files.length;
         files.forEach(function(file, idx) {
             var name = file.name || (file.path ? file.path.split('/').pop() : '');
             var card = document.createElement('div');
@@ -1514,7 +1515,7 @@ var ConfigEditor = {
                 formData.append('url', sub.url || '');
                 formData.append('update_days', sub.update_days || '');
                 formData.append('update_hour', sub.update_hour || '');
-                formData.append('order', sub.order || '');
+                formData.append('order', (typeof sub.order !== 'undefined' && sub.order !== null && sub.order !== '') ? sub.order : idx);
                 formData.append('param', sub.param || '');
                 formData.append('enable', newEnable);
                 fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
@@ -1546,7 +1547,7 @@ var ConfigEditor = {
 
             var info = document.createElement('div');
             info.className = 'overwrite-info';
-            info.textContent = sub.url ? 'HTTP' : '<%:Local File%>';
+            info.textContent = sub.url ? '<%:Subscription%>' : '<%:Local File%>';
             card.appendChild(info);
 
             if (sub.type === 'http') {
@@ -1568,7 +1569,7 @@ var ConfigEditor = {
                     formData.append('url', sub.url || '');
                     formData.append('update_days', sub.update_days || '');
                     formData.append('update_hour', sub.update_hour || '');
-                    formData.append('order', sub.order || '');
+                    formData.append('order', (typeof sub.order !== 'undefined' && sub.order !== null && sub.order !== '') ? sub.order : idx);
                     formData.append('param', sub.param || '');
                     formData.append('enable', typeof sub.enable !== 'undefined' ? sub.enable : 1);
                     fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
@@ -2420,6 +2421,7 @@ var ConfigEditor = {
                         var formData = new FormData();
                         formData.append('filename', filename);
                         formData.append('config_file', fileContent);
+                        formData.append('order', self.overwriteFileCardCount + 1);
 
                         fetch('/cgi-bin/luci/admin/services/openclash/upload_overwrite', {
                             method: 'POST',
@@ -2447,6 +2449,7 @@ var ConfigEditor = {
                     var formData = new FormData();
                     formData.append('filename', filename);
                     formData.append('type', 'file');
+                    formData.append('order', self.overwriteFileCardCount + 1);
                     fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
                         method: 'POST',
                         body: formData
@@ -2497,6 +2500,7 @@ var ConfigEditor = {
                 formData.append('filename', filename);
                 formData.append('type', type);
                 formData.append('param', param);
+                formData.append('order', self.overwriteFileCardCount + 1);
                 if (type === 'http') {
                     formData.append('url', url);
                     formData.append('update_days', update_days);
