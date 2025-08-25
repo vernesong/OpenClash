@@ -57,9 +57,15 @@
 # COMMON_PORTS (绕过常用端口的端口列表, 0: 禁用 or "21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 5222 5228 5229 5230 8080 8443 8880 8888 8889")
 
 # --- 分流相关 ---
-
 # CHINA_IP_ROUTE (IPv4 绕过 IP 模式, 0: 禁用, 1: 绕过大陆, 2: 回国)
 # CHINA_IP6_ROUTE (IPv6 绕过 IP 模式, 0: 禁用, 1: 绕过大陆, 2: 回国)
+# CHNR_AUTO_UPDATE (大陆IP自动更新, 0: 禁用, 1: 启用)
+# CHNR_UPDATE_WEEK_TIME (大陆IP更新星期, 0-6 or *, 0代表星期天, *代表每天, default 0)
+# CHNR_UPDATE_DAY_TIME (大陆IP更新小时, 0-23 or *, default 1)
+# CHNR_CUSTOM_URL (大陆IP列表自定义更新地址, URL or default)
+# CHNR6_CUSTOM_URL (大陆IPv6列表自定义更新地址, URL or default)
+# CHINA_IP_ROUTE_PASS (绕过大陆 IP 时排除类别, 域名、IP or 插件内置规则, eg: services.googleapis.cn googleapis.cn 114.114.114.114)
+# CHINA_IP6_ROUTE_PASS (绕过大陆 IPv6 时排除类别, 域名、IP or 插件内置规则)
 
 # ENABLE_META_SNIFFER (启用域名嗅探, 0: 插件不覆写, 1: 启用)
     # ENABLE_META_SNIFFER_CUSTOM (启用自定义嗅探规则, 0: 插件不覆写, 1: 启用，使用插件内置规则)
@@ -70,7 +76,26 @@
 # GLOBAL_CLIENT_FINGERPRINT (全局客户端指纹, none/random/chrome/firefox/safari/ios/android/edge/360/qq/0: 插件不覆写)
 # ENABLE_UNIFIED_DELAY (启用统一延迟计算, 0: 插件不覆写, 1: 启用)
 
-# --- 数据库加载 ---
+# ENABLE_RULE_PROXY (仅代理命中规则流量, 0: 禁用, 1: 启用)
+# ENABLE_CUSTOM_CLASH_RULES (启用用户自定义规则, 0: 禁用, 1: 启用，使用插件规则)
+
+# TOLERANCE (URL-Test 策略组切换灵敏度, 毫秒数 or default 0 不覆写)
+# URLTEST_INTERVAL_MOD (测速（连通性）间隔修改, 秒数 or default 0 不覆写)
+# URLTEST_ADDRESS_MOD (测速（连通性）地址修改, URL or default 0 不覆写)
+# GITHUB_ADDRESS_MOD (GitHub 地址修改, URL or default 0 不覆写)
+
+# --- Smart 相关 ---
+# AUTO_SMART_SWITCH (启用 Smart 自动切换, 0: 插件不覆写, 1: 启用)
+    # SMART_STRATEGY (初始数据收集策略, sticky-sessions or round-robin or default sticky-sessions)
+# SMART_POLICY_PRIORITY (节点权重加成, 正则或字符，格式：Premium:0.9;SG:1.3)
+# SMART_COLLECT (模型训练数据收集, 0: 插件不覆写, 1: 启用)
+    # SMART_COLLECT_SIZE (模型训练数据收集的文件大小, MB, 数值 or default 100)
+    # SMART_COLLECT_RATE (模型训练数据收集的采样率, 0-1 or default 1)
+# LGBM_AUTO_UPDATE (LGBM 模型自动更新, 0: 插件不覆写, 1: 启用)
+    # LGBM_UPDATE_INTERVAL (LGBM 模型更新间隔, 小时数 or default 72)
+    # LGBM_CUSTOM_URL (LGBM 模型自定义下载 URL (URL 地址 or default)
+
+# --- 数据库加载相关 ---
 # ENABLE_GEOIP_DAT (启用 GEOIP DAT 数据库, 0: 插件不覆写, 1: 启用)
 # GEODATA_LOADER (Geo 数据加载模式, memconservative/standard/0: 插件不覆写)
 
