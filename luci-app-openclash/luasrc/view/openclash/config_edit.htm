@@ -1526,6 +1526,12 @@ var ConfigEditor = {
                     switchInput.checked = !switchInput.checked;
                 });
             };
+            switchInput.onclick = function(e) { e.stopPropagation(); };
+            switchInput.onmousedown = function(e) { e.stopPropagation(); };
+            switchInput.ontouchstart = function(e) { e.stopPropagation(); };
+            switchLabel.onclick = function(e) { e.stopPropagation(); };
+            switchLabel.onmousedown = function(e) { e.stopPropagation(); };
+            switchLabel.ontouchstart = function(e) { e.stopPropagation(); };
 
             var switchSpan = document.createElement('span');
             switchSpan.className = 'oc-switch-slider';

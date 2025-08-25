@@ -61,8 +61,8 @@ else
 end
 
 local cfg_name
-if fs.uci_get("config_path") then
-    cfg_name = fs.basename(fs.uci_get("config_path"))
+if fs.uci_get("config", "config_path") then
+    cfg_name = fs.basename(fs.uci_get("config", "config_path"))
 end
 
 local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]+") or "self.sectiontype"

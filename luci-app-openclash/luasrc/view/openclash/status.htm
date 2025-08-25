@@ -4920,6 +4920,7 @@
                     pluginToggleUserAction = false;
                     updatePluginToggleState(StateManager.current_status.clash || false);
                 }, 5000);
+                ConfigFileManager.refreshConfigList();
             } else {
                 if (toggleElement) {
                     toggleElement.disabled = false;
