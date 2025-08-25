@@ -1,4 +1,5 @@
 #!/bin/sh
+. /usr/share/openclash/uci.sh
 
 JOB_COUNTER_FILE="/tmp/openclash_jobs"
 
@@ -61,7 +62,7 @@ dec_job_counter_and_restart() {
    fi
 
    if [ $cnt -eq 0 ]; then
-      if [ "$(uci -q get openclash.config.restart)" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
+      if [ "$(uci_get "restart")" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
          /etc/init.d/openclash restart >/dev/null 2>&1 &
          uci -q set openclash.config.restart=0
          uci -q commit openclash

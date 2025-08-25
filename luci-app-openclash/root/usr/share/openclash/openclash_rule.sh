@@ -4,6 +4,7 @@
 . /usr/share/openclash/ruby.sh
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_curl.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 877>"/tmp/lock/openclash_rule.lock" 2>/dev/null
@@ -123,15 +124,15 @@ yml_other_rules_dl()
 }
 
 LOG_FILE="/tmp/openclash.log"
-RUlE_SOURCE=$(uci get openclash.config.rule_source 2>/dev/null)
-github_address_mod=$(uci -q get openclash.config.github_address_mod || echo 0)
+RUlE_SOURCE=$(uci_get "rule_source")
+github_address_mod=$(uci_get "github_address_mod" || echo 0)
 restart=0
 
 if [ "$RUlE_SOURCE" = "0" ]; then
    LOG_OUT "Other Rules Not Enable, Update Stop!"
 else
    OTHER_RULE_FILE="/tmp/other_rule.yaml"
-   CONFIG_FILE=$(uci get openclash.config.config_path 2>/dev/null)
+   CONFIG_FILE=$(uci_get "config_path")
    CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 
    if [ -z "$CONFIG_FILE" ]; then

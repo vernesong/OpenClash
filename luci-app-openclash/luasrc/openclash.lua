@@ -272,7 +272,7 @@ function filesize(e)
 end
 
 function lanip()
-	local lan_int_name = uci:get("openclash", "config", "lan_interface_name") or "0"
+	local lan_int_name = uci:get("openclash", "@overwrite[0]", "lan_interface_name") or uci:get("openclash", "config", "lan_interface_name") or "0"
 	local lan_ip
 	if lan_int_name == "0" then
 		lan_ip = SYS.exec("uci -q get network.lan.ipaddr 2>/dev/null |awk -F '/' '{print $1}' 2>/dev/null |tr -d '\n'")
@@ -321,4 +321,12 @@ function get_resourse_mtime(path)
     else
         return "Unknown"
     end
+end
+
+function uci_get(section, key)
+    local val = uci:get("openclash", "@overwrite[0]", key)
+    if val == nil then
+    	val = uci:get("openclash", section, key)
+    end
+    return val
 end

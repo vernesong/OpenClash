@@ -12,7 +12,7 @@ cfg_unused_servers_del()
    fi
 
    #删除未选中节点
-   uci delete openclash."$section" 2>/dev/null
+   uci -q delete openclash."$section"
 }
 
    config_load "openclash"

@@ -2,18 +2,19 @@
 . /usr/share/openclash/log.sh
 . /lib/functions.sh
 . /usr/share/openclash/openclash_ps.sh
+. /usr/share/openclash/uci.sh
 
 LOG_FILE="/tmp/openclash.log"
-CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
-ipv6_enable=$(uci -q get openclash.config.ipv6_enable || echo 0)
-enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns)
-dns_port=$(uci -q get openclash.config.dns_port)
-disable_masq_cache=$(uci -q get openclash.config.disable_masq_cache)
-cfg_update_interval=$(uci -q get openclash.config.config_update_interval || echo 60)
-log_size=$(uci -q get openclash.config.log_size || echo 1024)
-router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
-stream_auto_select_interval=$(uci -q get openclash.config.stream_auto_select_interval || echo 30)
-skip_proxy_address=$(uci -q get openclash.config.skip_proxy_address || echo 0)
+CONFIG_FILE="/etc/openclash/$(uci_get "config_path" |awk -F '/' '{print $5}' 2>/dev/null)"
+ipv6_enable=$(uci_get "ipv6_enable" || echo 0)
+enable_redirect_dns=$(uci_get "enable_redirect_dns")
+dns_port=$(uci_get "dns_port")
+disable_masq_cache=$(uci_get "disable_masq_cache")
+cfg_update_interval=$(uci_get "config_update_interval" || echo 60)
+log_size=$(uci_get "log_size" || echo 1024)
+router_self_proxy=$(uci_get "router_self_proxy" || echo 1)
+stream_auto_select_interval=$(uci_get "stream_auto_select_interval" || echo 30)
+skip_proxy_address=$(uci_get "skip_proxy_address" || echo 0)
 CFG_UPDATE_INT=1
 SKIP_PROXY_ADDRESS=1
 SKIP_PROXY_ADDRESS_INTERVAL=30
@@ -154,23 +155,23 @@ end" 2>/dev/null >> $LOG_FILE
 
 while :;
 do
-   cfg_update=$(uci -q get openclash.config.auto_update)
-   cfg_update_mode=$(uci -q get openclash.config.config_auto_update_mode)
-   cfg_update_interval_now=$(uci -q get openclash.config.config_update_interval || echo 60)
-   stream_auto_select=$(uci -q get openclash.config.stream_auto_select || echo 0)
-   stream_auto_select_interval_now=$(uci -q get openclash.config.stream_auto_select_interval || echo 30)
-   stream_auto_select_netflix=$(uci -q get openclash.config.stream_auto_select_netflix || echo 0)
-   stream_auto_select_disney=$(uci -q get openclash.config.stream_auto_select_disney || echo 0)
-   stream_auto_select_hbo_max=$(uci -q get openclash.config.stream_auto_select_hbo_max || echo 0)
-   stream_auto_select_tvb_anywhere=$(uci -q get openclash.config.stream_auto_select_tvb_anywhere || echo 0)
-   stream_auto_select_prime_video=$(uci -q get openclash.config.stream_auto_select_prime_video || echo 0)
-   stream_auto_select_ytb=$(uci -q get openclash.config.stream_auto_select_ytb || echo 0)
-   stream_auto_select_dazn=$(uci -q get openclash.config.stream_auto_select_dazn || echo 0)
-   stream_auto_select_paramount_plus=$(uci -q get openclash.config.stream_auto_select_paramount_plus || echo 0)
-   stream_auto_select_discovery_plus=$(uci -q get openclash.config.stream_auto_select_discovery_plus || echo 0)
-   stream_auto_select_bilibili=$(uci -q get openclash.config.stream_auto_select_bilibili || echo 0)
-   stream_auto_select_google_not_cn=$(uci -q get openclash.config.stream_auto_select_google_not_cn || echo 0)
-   stream_auto_select_openai=$(uci -q get openclash.config.stream_auto_select_openai || echo 0)
+   cfg_update=$(uci_get "auto_update")
+   cfg_update_mode=$(uci_get "config_auto_update_mode")
+   cfg_update_interval_now=$(uci_get "config_update_interval" || echo 60)
+   stream_auto_select=$(uci_get "stream_auto_select" || echo 0)
+   stream_auto_select_interval_now=$(uci_get "stream_auto_select_interval" || echo 30)
+   stream_auto_select_netflix=$(uci_get "stream_auto_select_netflix" || echo 0)
+   stream_auto_select_disney=$(uci_get "stream_auto_select_disney" || echo 0)
+   stream_auto_select_hbo_max=$(uci_get "stream_auto_select_hbo_max" || echo 0)
+   stream_auto_select_tvb_anywhere=$(uci_get "stream_auto_select_tvb_anywhere" || echo 0)
+   stream_auto_select_prime_video=$(uci_get "stream_auto_select_prime_video" || echo 0)
+   stream_auto_select_ytb=$(uci_get "stream_auto_select_ytb" || echo 0)
+   stream_auto_select_dazn=$(uci_get "stream_auto_select_dazn" || echo 0)
+   stream_auto_select_paramount_plus=$(uci_get "stream_auto_select_paramount_plus" || echo 0)
+   stream_auto_select_discovery_plus=$(uci_get "stream_auto_select_discovery_plus" || echo 0)
+   stream_auto_select_bilibili=$(uci_get "stream_auto_select_bilibili" || echo 0)
+   stream_auto_select_google_not_cn=$(uci_get "stream_auto_select_google_not_cn" || echo 0)
+   stream_auto_select_openai=$(uci_get "stream_auto_select_openai" || echo 0)
    upnp_lease_file=$(uci -q get upnpd.config.upnp_lease_file)
 
 #wait for core start complete
