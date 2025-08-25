@@ -324,7 +324,10 @@ function get_resourse_mtime(path)
 end
 
 function uci_get(section, key)
-    local val = uci:get("openclash", "@overwrite[0]", key)
+	local val
+	if section == "config" then
+    	val = uci:get("openclash", "@overwrite[0]", key)
+	end
     if val == nil then
     	val = uci:get("openclash", section, key)
     end
