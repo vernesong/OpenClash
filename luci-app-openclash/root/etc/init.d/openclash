@@ -12,19 +12,17 @@ USE_PROCD=1
 
 [ -f /etc/openwrt_release ] && {
 RAW_CONFIG_FILE=$(uci_get "config_path")
-BACKUP_FILE="/etc/openclash/backup/$(uci_get "config_path" |awk -F '/' '{print $5}' 2>/dev/null)"
-CONFIG_FILE="/etc/openclash/$(uci_get "config_path" |awk -F '/' '{print $5}' 2>/dev/null)"
-TMP_CONFIG_FILE="/tmp/yaml_config_tmp_$(uci_get "config_path" |awk -F '/' '{print $5}' 2>/dev/null)"
+CFG_NAME=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
+BACKUP_FILE="/etc/openclash/backup/${CFG_NAME}"
+CONFIG_FILE="/etc/openclash/${CFG_NAME}"
+TMP_CONFIG_FILE="/tmp/yaml_config_tmp_${CFG_NAME}"
 FW4=$(command -v fw4)
-# 获取默认的 DNSMASQ 配置 ID
 DEFAULT_DNSMASQ_CFGID="$(uci -q show "dhcp.@dnsmasq[0]" | awk 'NR==1 {split($0, conf, /[.=]/); print conf[2]}')"
-# 从 conf-dir 行中提取配置目录路径
 if [ -f "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID" ]; then
    DNSMASQ_CONF_DIR="$(awk -F '=' '/^conf-dir=/ {print $2}' "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID")"
 else
    DNSMASQ_CONF_DIR="/tmp/dnsmasq.d"
 fi
-# 设置 DNSMASQ_CONF_DIR，并去除路径末尾的斜杠
 DNSMASQ_CONF_DIR=${DNSMASQ_CONF_DIR%*/}
 }
 CLASH="/etc/openclash/clash"
@@ -2963,6 +2961,8 @@ add_overwrite_cron()
 
 overwrite_file()
 {
+   clear_overwrite_set
+
    overwrite_script="/tmp/yaml_overwrite.sh"
    cat > "$overwrite_script" <<'EOF'
 #!/bin/sh
@@ -2982,7 +2982,6 @@ EOF
 
    allowed_keys_list="$(echo "$allowed_keys" | tr ' ' '\n')"
 
-   uci -q delete openclash.@overwrite[0]
    uci -q add openclash overwrite
 
    overwrite_list=$(uci -q show openclash 2>/dev/null | grep "=config_overwrite" | awk -F'[.=]' '{print $2}' | while read -r sid; do
@@ -3120,7 +3119,7 @@ ${trimmed}"
             val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
             if printf "%s" "$key_u" | grep -q "^CONFIG_FILE$"; then
                RAW_CONFIG_FILE=$(printf "%s" "$val" | sed "s/^['\"]//;s/['\"]$//")
-               uci -q set openclash.config.config_path="$RAW_CONFIG_FILE"
+               uci -q set openclash.@overwrite[0].config_path="$RAW_CONFIG_FILE"
                cfg_name=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
                if [ -n "$cfg_name" ]; then
                   BACKUP_FILE="/etc/openclash/backup/${cfg_name}"
@@ -3178,6 +3177,12 @@ EOF
 
       echo "" >> "$overwrite_script"
    done
+}
+
+clear_overwrite_set()
+{
+   uci -q delete openclash.@overwrite[0]
+   uci -q commit openclash
 }
 
 get_config()
@@ -3271,6 +3276,8 @@ get_config()
 
 start_service()
 {
+   clear_overwrite_set
+
    enable=$(uci_get "enable")
    [ "$enable" != "1" ] && LOG_OUT "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && exit 0
 
@@ -3281,6 +3288,7 @@ start_service()
       check_run_quick
 
       LOG_OUT "Step 1: Get The Configuration..."
+      
       overwrite_file
       get_config
       config_choose
@@ -3340,7 +3348,6 @@ start_service()
                done
             fi
          fi
-         get_config
       else
          LOG_OUT "Step 3: Quick Start Mode, Skip Modify The Config File..."
       fi
@@ -3427,6 +3434,7 @@ stop_service()
       fi
 
       del_cron
+      clear_overwrite_set
       rm -rf /tmp/yaml_*
       rm -rf $START_LOG
    } >/dev/null 2>&1
