@@ -250,6 +250,13 @@ cat >> "$DEBUG_LOG" <<-EOF
 第三方规则: $(ts_cf "$rule_source")
 EOF
 
+cat >> "$DEBUG_LOG" <<-EOF
+
+#===================== 覆写模块设置 =====================#
+
+$(uci -q show openclash.@overwrite[0])
+
+EOF
 
 if [ "$enable_custom_clash_rules" -eq 1 ]; then
 cat >> "$DEBUG_LOG" <<-EOF

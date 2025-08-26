@@ -3276,8 +3276,6 @@ get_config()
 
 start_service()
 {
-   clear_overwrite_set
-
    enable=$(uci_get "enable")
    [ "$enable" != "1" ] && LOG_OUT "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && exit 0
 
@@ -3288,7 +3286,7 @@ start_service()
       check_run_quick
 
       LOG_OUT "Step 1: Get The Configuration..."
-      
+      clear_overwrite_set
       overwrite_file
       get_config
       config_choose
