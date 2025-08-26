@@ -3813,6 +3813,7 @@ function action_upload_overwrite()
     local upload = luci.http.formvalue("config_file")
     local filename = luci.http.formvalue("filename")
     local enable = luci.http.formvalue("enable")
+    local order = luci.http.formvalue("order")
     luci.http.prepare_content("application/json")
     if not upload or upload == "" then
         luci.http.write_json({status = "error", message = "No file uploaded"})
@@ -3852,14 +3853,28 @@ function action_upload_overwrite()
 
         local section_name = filename
         local found = false
-        if enable == nil or enable == "" then
-            enable = 0
-        end
+
         uci:foreach("openclash", "config_overwrite", function(s)
             if s.name == section_name then
                 found = true
-                if enable ~= nil then
+                if s.enable == nil or (s.enable ~= nil and enable ~= nil) then
+                    if enable == nil then
+                        enable = 0
+                    end
                     uci:set("openclash", s[".name"], "enable", tostring(enable))
+                end
+                if s.order == nil or (s.order ~= nil and s.order ~= order and order ~= nil) then
+                    if order == nil then
+                        local max_order = -1
+                        uci:foreach("openclash", "config_overwrite", function(s)
+                            local o = tonumber(s.order)
+                            if o and o > max_order then max_order = o end
+                        end)
+                        order = tostring(max_order + 1)
+                    end
+                    uci:set("openclash", s[".name"], "order", order)
+                else
+                    uci:set("openclash", s[".name"], "order", tonumber(order))
                 end
             end
         end)
@@ -3869,11 +3884,22 @@ function action_upload_overwrite()
             uci:set("openclash", sid, "type", "file")
             if enable ~= nil then
                 uci:set("openclash", sid, "enable", tostring(enable))
+            else
+                uci:set("openclash", sid, "enable", 0)
             end
-            uci:commit("openclash")
-        else
-            uci:commit("openclash")
+            if order ~= nil then
+                uci:set("openclash", sid, "order", tostring(order))
+            else
+                local max_order = -1
+                uci:foreach("openclash", "config_overwrite", function(s)
+                    local o = tonumber(s.order)
+                    if o and o > max_order then max_order = o end
+                end)
+                uci:set("openclash", sid, "order", tostring(max_order + 1))
+            end
         end
+
+        uci:commit("openclash")
 
         luci.http.write_json({
             status = "success",
@@ -3935,7 +3961,7 @@ function action_overwrite_subscribe_info()
         local url = luci.http.formvalue("url") or ""
         local update_days = luci.http.formvalue("update_days") or ""
         local update_hour = luci.http.formvalue("update_hour") or ""
-        local order = luci.http.formvalue("order") or ""
+        local order = luci.http.formvalue("order")
         local param = luci.http.formvalue("param") or ""
         typ = luci.http.formvalue("type") or typ or "file"
         local enable = luci.http.formvalue("enable")
@@ -3973,8 +3999,8 @@ function action_overwrite_subscribe_info()
                     uci:set("openclash", s[".name"], "update_hour", update_hour)
                     uci:set("openclash", s[".name"], "type", typ)
                     uci:set("openclash", s[".name"], "param", param)
-                    if s.order == nil or (s.order ~= "" and s.order ~= order and order ~= "") then
-                        if order == "" then
+                    if s.order == nil or (s.order ~= nil and s.order ~= order and order ~= nil) then
+                        if order == nil then
                             local max_order = -1
                             uci:foreach("openclash", "config_overwrite", function(s)
                                 local o = tonumber(s.order)
@@ -4014,8 +4040,8 @@ function action_overwrite_subscribe_info()
                     uci:set("openclash", s[".name"], "update_hour", update_hour)
                     uci:set("openclash", s[".name"], "type", typ)
                     uci:set("openclash", s[".name"], "param", param)
-                    if s.order == nil or (s.order ~= "" and s.order ~= order and order ~= "") then
-                        if order == "" then
+                    if s.order == nil or (s.order ~= nil and s.order ~= order and order ~= nil) then
+                        if order == nil then
                             local max_order = -1
                             uci:foreach("openclash", "config_overwrite", function(s)
                                 local o = tonumber(s.order)
@@ -4045,7 +4071,7 @@ function action_overwrite_subscribe_info()
             uci:set("openclash", sid, "update_hour", update_hour)
             uci:set("openclash", sid, "type", typ)
             uci:set("openclash", sid, "param", param)
-            if order == "" then
+            if order == nil then
                 local max_order = -1
                 uci:foreach("openclash", "config_overwrite", function(s)
                     local o = tonumber(s.order)
@@ -4056,7 +4082,7 @@ function action_overwrite_subscribe_info()
                 order = tostring(order)
             end
             uci:set("openclash", sid, "order", order)
-            uci:set("openclash", sid, "enable", 1)
+            uci:set("openclash", sid, "enable", 0)
         end
         uci:commit("openclash")
 
@@ -4155,13 +4181,23 @@ function delete_overwrite_file()
         fs.unlink(file_path)
     end
 
-    local uci = require("luci.model.uci").cursor()
     uci:foreach("openclash", "config_overwrite", function(s)
         if s.name == filename then
             uci:delete("openclash", s[".name"])
         end
     end)
     uci:commit("openclash")
+
+    local order_list = {}
+    uci:foreach("openclash", "config_overwrite", function(s)
+        table.insert(order_list, { section = s[".name"], order = tonumber(s.order) or 0 })
+    end)
+    table.sort(order_list, function(a, b) return a.order < b.order end)
+    for idx, item in ipairs(order_list) do
+        uci:set("openclash", item.section, "order", tostring(idx - 1))
+    end
+    uci:commit("openclash")
+
     luci.http.prepare_content("application/json")
     luci.http.write_json({status="success"})
 end
