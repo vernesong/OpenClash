@@ -37,3 +37,7 @@ ACL4SSR 规则 WithChinaIp,ACL4SSR_WithChinaIp.ini,https://raw.githubusercontent
 ACL4SSR 规则 WithChinaIp WithGFW,ACL4SSR_WithChinaIp_WithGFW.ini,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_WithChinaIp_WithGFW.ini
 ACL4SSR 规则 WithGFW,ACL4SSR_WithGFW.ini,https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_WithGFW.ini
 eHpo1 规则,ehpo1_main.ini,https://gist.githubusercontent.com/tindy2013/1fa08640a9088ac8652dbd40c5d2715b/raw/ehpo1_main.ini
+Aethersailor 规则 标准版 Custom_Clash,Custom_Clash.ini,https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash.ini
+Aethersailor 规则 轻量版 Custom_Clash_Lite,Custom_Clash_Lite.ini,https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash_Lite.ini
+Aethersailor 规则 极简版(GFW) Custom_Clash_GFW,Custom_Clash_GFW.ini,https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash_GFW.ini
+Aethersailor 规则 重度分流版 Custom_Clash_Full,Custom_Clash_Full.ini,https://raw.githubusercontent.com/Aethersailor/Custom_OpenClash_Rules/refs/heads/main/cfg/Custom_Clash_Full.ini
