@@ -1491,7 +1491,7 @@ var ConfigEditor = {
             card.appendChild(title);
 
             var sub = self.overwriteSubInfo[name] || {};
-            var enable = typeof sub.enable !== 'undefined' ? sub.enable : 1;
+            var enable = typeof sub.enable !== 'undefined' ? sub.enable : 0;
             var switchLabel = document.createElement('label');
             switchLabel.className = 'oc-switch';
 
@@ -1596,6 +1596,9 @@ var ConfigEditor = {
                             }
                         }, 2000);
                     });
+                    setTimeout(function(){
+                        self.loadConfigContent();
+                    }, 1000);
                 };
                 card.appendChild(refresh);
             }
@@ -1679,7 +1682,6 @@ var ConfigEditor = {
                 self.overwriteDrag.dragging = null;
                 self.overwriteDrag.startIndex = null;
                 list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
-                self.saveOverwriteSort();
             });
             card.addEventListener('dragover', function(e) {
                 e.preventDefault();
@@ -2420,6 +2422,7 @@ var ConfigEditor = {
                         formData.append('filename', filename);
                         formData.append('config_file', fileContent);
                         formData.append('order', self.overwriteFileCardCount + 1);
+                        formData.append('enable', '0');
 
                         fetch('/cgi-bin/luci/admin/services/openclash/upload_overwrite', {
                             method: 'POST',
@@ -2444,31 +2447,8 @@ var ConfigEditor = {
                     };
                     reader.readAsText(selectedFile, 'UTF-8');
                 } else {
-                    var formData = new FormData();
-                    formData.append('filename', filename);
-                    formData.append('type', 'file');
-                    formData.append('order', self.overwriteFileCardCount + 1);
-                    fetch('/cgi-bin/luci/admin/services/openclash/overwrite_subscribe_info', {
-                        method: 'POST',
-                        body: formData
-                    }).then(r=>r.json()).then(function(data){
-                        fetch('/cgi-bin/luci/admin/services/openclash/create_file', {
-                            method: 'POST',
-                            body: new URLSearchParams({
-                                filename: filename,
-                                filepath: '/etc/openclash/overwrite/'
-                            })
-                        }).then(function() {
-                            statusText.textContent = '<%:Created successfully%>';
-                            document.body.removeChild(ocDiv);
-                            self.loadOverwriteFiles();
-                            setTimeout(function() {
-                                self.currentConfigFile = '/etc/openclash/overwrite/' + filename;
-                                self.isOverwrite = true;
-                                self.showOverwrite(self.currentConfigFile);
-                            }, 300);
-                        });
-                    });
+                    alert('<%:No Specify Upload File%>');
+                    return;
                 }
             } else {
                 var form = model.querySelector('#overwrite-upload-form-subscribe');
@@ -2499,6 +2479,7 @@ var ConfigEditor = {
                 formData.append('type', type);
                 formData.append('param', param);
                 formData.append('order', self.overwriteFileCardCount + 1);
+                formData.append('enable', '0');
                 if (type === 'http') {
                     formData.append('url', url);
                     formData.append('update_days', update_days);
@@ -2523,23 +2504,28 @@ var ConfigEditor = {
                 }).then(r=>r.json()).then(function(data){
                     if (type === 'http') {
                         clearInterval(interval);
-                        progressFill.style.width = '100%';
-                        progressText.textContent = '<%:Download completed%> 100%';
+                        if (data.status !== 'success') {
+                            progressFill.style.width = '0%';
+                            progressText.textContent = '<%:Download failed%> 0%';
+                        } else {
+                            progressFill.style.width = '100%';
+                            progressText.textContent = '<%:Download completed%> 100%';
+                        }
                     }
                     if (data.status === 'success') {
                         statusText.textContent = '<%:Subscription added successfully%>';
-                        setTimeout(function() {
-                            document.body.removeChild(ocDiv);
-                            self.loadOverwriteFiles();
-                            setTimeout(function() {
-                                self.currentConfigFile = '/etc/openclash/overwrite/' + filename;
-                                self.isOverwrite = true;
-                                self.showOverwrite(self.currentConfigFile);
-                            }, 300);
-                        }, 800);
                     } else {
                         statusText.textContent = '<%:Failed to save subscription info:%> ' + (data.message || '');
                     }
+                    setTimeout(function() {
+                        document.body.removeChild(ocDiv);
+                        self.loadOverwriteFiles();
+                        setTimeout(function() {
+                            self.currentConfigFile = '/etc/openclash/overwrite/' + filename;
+                            self.isOverwrite = true;
+                            self.showOverwrite(self.currentConfigFile);
+                        }, 300);
+                    }, 800);
                 });
             }
         };
@@ -2631,6 +2617,7 @@ var ConfigEditor = {
         };
 
         var submitBtn = model.querySelector('#overwrite-edit-submit');
+
         function validateEditOverwriteForm() {
             const form = model.querySelector('#overwrite-upload-form-subscribe');
             const filename = form.querySelector('#overwrite-subscribe-filename').value.trim();
@@ -2684,6 +2671,11 @@ var ConfigEditor = {
             if (newName !== name) {
                 formData.append('old_filename', name);
             }
+            if (typeof sub.enable !== 'undefined') {
+                formData.append('enable', sub.enable);
+            } else {
+                formData.append('enable', '0');
+            }
             var progressContainer = form.querySelector('#overwrite-upload-progress');
             var progressFill = form.querySelector('#overwrite-progress-fill');
             var progressText = form.querySelector('#overwrite-progress-text');
@@ -2708,7 +2700,11 @@ var ConfigEditor = {
                     progressText.textContent = '<%:Download completed%> 100%';
                 }
                 if (data.status === 'success') {
-                    statusText.textContent = '<%:Subscription saved successfully%>';
+                    if (type === 'http') {
+                        statusText.textContent = '<%:Subscription saved successfully%>';
+                    } else {
+                        statusText.textContent = '<%:Saved successfully%>';
+                    }
                     setTimeout(function() {
                         document.body.removeChild(ocDiv);
 
