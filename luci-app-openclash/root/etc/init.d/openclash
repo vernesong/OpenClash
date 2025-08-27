@@ -11,11 +11,6 @@ USE_PROCD=1
 . $IPKG_INSTROOT/usr/share/openclash/uci.sh
 
 [ -f /etc/openwrt_release ] && {
-RAW_CONFIG_FILE=$(uci_get "config_path")
-CFG_NAME=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
-BACKUP_FILE="/etc/openclash/backup/${CFG_NAME}"
-CONFIG_FILE="/etc/openclash/${CFG_NAME}"
-TMP_CONFIG_FILE="/tmp/yaml_config_tmp_${CFG_NAME}"
 FW4=$(command -v fw4)
 DEFAULT_DNSMASQ_CFGID="$(uci -q show "dhcp.@dnsmasq[0]" | awk 'NR==1 {split($0, conf, /[.=]/); print conf[2]}')"
 if [ -f "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID" ]; then
@@ -3154,6 +3149,7 @@ ${trimmed}"
          elif [ "$in_overwrite" -eq 1 ]; then
             if printf "%s" "$trimmed" | grep -qE '^ruby_[a-z_]+\b'; then
                echo "$trimmed" >> "$overwrite_script"
+               LOG_OUT "Tip: Load Overwrite Script【Ruby Script => $trimmed】"
             else
                LOG_OUT "Warning: skip invalid Overwrite command【$file: $trimmed】"
             fi
@@ -3177,6 +3173,21 @@ EOF
 
       echo "" >> "$overwrite_script"
    done
+
+   if [ -n "$(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$')" ]; then
+      eval "$(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$' | sed 's/^openclash\.@overwrite\[0\]\.//g' | sed 's/=/="/;s/$/"/')"
+      while IFS='=' read -r key value; do
+         [ -z "$key" ] && continue
+         key_clean=$(echo "$key" | sed 's/^openclash\.[^.]*\.//')
+         value_clean=$(echo "$value" | sed "s/^'//;s/'$//")
+         [ -z "$key_clean" ] && continue
+         LOG_OUT "Tip: Load Overwrite Script【$key_clean => '$value_clean'】"
+      done <<EOF
+$(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$' | sed 's/^openclash\.@overwrite\[0\]\.//g')
+EOF
+   else
+      clear_overwrite_set
+   fi
 }
 
 clear_overwrite_set()
@@ -3187,6 +3198,11 @@ clear_overwrite_set()
 
 get_config()
 {
+   RAW_CONFIG_FILE=$(uci_get "config_path")
+   CFG_NAME=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
+   BACKUP_FILE="/etc/openclash/backup/${CFG_NAME}"
+   CONFIG_FILE="/etc/openclash/${CFG_NAME}"
+   TMP_CONFIG_FILE="/tmp/yaml_config_tmp_${CFG_NAME}"
    enable=$(uci_get "enable")
    rule_source=$(uci_get "rule_source")
    enable_custom_clash_rules=$(uci_get "enable_custom_clash_rules")
@@ -3286,7 +3302,6 @@ start_service()
       check_run_quick
 
       LOG_OUT "Step 1: Get The Configuration..."
-      clear_overwrite_set
       overwrite_file
       get_config
       config_choose
