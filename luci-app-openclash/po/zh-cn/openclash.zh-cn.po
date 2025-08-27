@@ -4155,6 +4155,9 @@ msgstr "警告：跳过不支持的覆写命令"
 msgid "Tip: Processing Overwrite Module"
 msgstr "提示：执行覆写模块"
 
+msgid "Tip: Load Overwrite Script"
+msgstr "提示：加载覆写命令"
+
 msgid "Delete"
 msgstr "删除"
 
