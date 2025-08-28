@@ -210,7 +210,7 @@ change_dns() {
 
    uci -q commit dhcp
    uci -q commit openclash
-   /etc/init.d/dnsmasq restart
+   /etc/init.d/dnsmasq enabled && /etc/init.d/dnsmasq restart
 } >/dev/null 2>&1
 
 revert_dns() {
@@ -244,7 +244,7 @@ revert_dns() {
          fi
          uci -q set dhcp.@dnsmasq[0].localuse=1
          uci -q commit dhcp
-         /etc/init.d/dnsmasq restart
+         /etc/init.d/dnsmasq enabled && /etc/init.d/dnsmasq restart
          masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
          if [ "$(nslookup www.apple.com 127.0.0.1:${masq_port} >/dev/null 2>&1 || echo $?)" = "1" ]; then
             uci -q set openclash.config.default_resolvfile="/tmp/resolv.conf.d/resolv.conf.auto"
@@ -3468,7 +3468,7 @@ revert_dnsmasq()
    dnsmasq_filter_aaaa=$(uci_get "dnsmasq_filter_aaaa")
    default_resolvfile=$(uci_get "default_resolvfile")
    revert_dns "$redirect_dns" "$enable" "$default_resolvfile" "$dnsmasq_noresolv" "$dnsmasq_resolvfile" "$cachesize_dns" "$dnsmasq_cachesize" "$filter_aaaa_dns" "$dnsmasq_filter_aaaa" "$dnsmasq_server"
-   /etc/init.d/dnsmasq restart
+   /etc/init.d/dnsmasq enabled && /etc/init.d/dnsmasq restart
 } >/dev/null 2>&1
 
 restart()
