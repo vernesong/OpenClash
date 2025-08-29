@@ -1,6 +1,7 @@
 
-# =========================
-# --- 以下为插件设置 ---
+# ==========================================================
+# ==== 以下为可设置的插件配置参数 ====
+# ==========================================================
 
 # CONFIG_FILE (原始配置文件路径)
 # CORE_TYPE (核心类型 Smart or Meta)
@@ -49,6 +50,8 @@
 # ENABLE_UDP_PROXY (启用 UDP 代理, 0: 禁用, 1: 启用, only for EN_MODE_TUN is nil)
 # DISABLE_UDP_QUIC (禁用 UDP QUIC, 0: 启用, 1: 禁用)
 # ROUTER_SELF_PROXY (路由器自身代理, 0: 禁用, 1: 启用)
+# STACK_TYPE (TUN 网络栈类型, system/gvisor/mixed, default is system)
+# PROXY_MODE (代理模式, rule/global/direct, default is rule)
 
 # --- 防火墙与访问控制 ---
 # INTRANET_ALLOWED (仅允许内网访问, 0: 禁用, 1: 启用)
@@ -98,6 +101,22 @@
 # --- 数据库加载相关 ---
 # ENABLE_GEOIP_DAT (启用 GEOIP DAT 数据库, 0: 插件不覆写, 1: 启用)
 # GEODATA_LOADER (Geo 数据加载模式, memconservative/standard/0: 插件不覆写)
+# GEO_AUTO_UPDATE (GeoIP MMDB 数据自动更新, 0: 禁用, 1: 启用)
+# GEO_UPDATE_WEEK_TIME (GeoIP MMDB 数据更新日, 0-6 or *, 0代表星期天, *代表每天, default 0)
+# GEO_UPDATE_DAY_TIME (GeoIP MMDB 数据更新小时, 0-23 or *, default 1)
+# GEO_CUSTOM_URL (GeoIP MMDB 数据自定义更新地址, URL or default)
+# GEOIP_AUTO_UPDATE (GeoIP Dat 数据自动更新, 0: 禁用, 1: 启用)
+# GEOIP_UPDATE_WEEK_TIME (GeoIP Dat 数据更新日, 0-6 or *, 0代表星期天, *代表每天, default 0)
+# GEOIP_UPDATE_DAY_TIME (GeoIP Dat 数据更新小时, 0-23 or *, default 1)
+# GEOIP_CUSTOM_URL (GeoIP Dat 数据自定义更新地址, URL or default)
+# GEOSITE_AUTO_UPDATE (GeoSite 数据自动更新, 0: 禁用, 1: 启用)
+# EOSITE_UPDATE_WEEK_TIME (GeoSite 数据更新日, 0-6 or *, 0代表星期天, *代表每天, default 0)
+# GEOSITE_UPDATE_DAY_TIME (GeoSite 数据更新小时, 0-23 or *, default 1)
+# GEOSITE_CUSTOM_URL (GeoSite 数据自定义更新地址, URL or default)
+# GEOASN_AUTO_UPDATE (GeoASN 数据自动更新, 0: 禁用, 1: 启用)
+# GEOASN_UPDATE_WEEK_TIME (GeoASN 数据更新日, 0-6 or *, 0代表星期天, *代表每天, default 0)
+# GEOASN_UPDATE_DAY_TIME (GeoASN 数据更新小时, 0-23 or *, default 1)
+# GEOASN_CUSTOM_URL (GeoASN 数据自定义更新地址, URL or default)
 
 # --- 其它功能 ---
 # SMALL_FLASH_MEMORY (小闪存模式, 0: 禁用, 1: 启用)
@@ -105,19 +124,24 @@
 # DELAY_START (延时启动, 0: 禁用 or 秒数)
 # SKIP_PROXY_ADDRESS (跳过代理地址, 0: 禁用, 1: 启用)
 # SUB_INFO_URL (订阅信息 URL)
+# DOWNLOAD_FILE (下载外部文件到指定路径, need URL and path)
 # RESTART (模块更新后重启插件, true: 启用, false: 禁用)
 # =========================
 
-[General]
-EN_MODE = fake-ip-mix
-DISABLE_UDP_QUIC = 1
-ROUTER_SELF_PROXY = 1
-CHINA_IP_ROUTE = 1
-DISABLE_QUIC_GO_GSO = 1
-CORE_TYPE = Smart
-ENABLE_REDIRECT_DNS = 1
-IPV6_ENABLE = 0
-IPV6_DNS = 0
+# ==========================================================
+# ==== 以下为调用外部模板作为配置文件示例，用户可以不再需要进行大部分插件设置 ====
+# ==========================================================
+
+#[General]
+#EN_MODE = fake-ip-mix
+#DISABLE_UDP_QUIC = 1
+#ROUTER_SELF_PROXY = 1
+#CHINA_IP_ROUTE = 1
+#DISABLE_QUIC_GO_GSO = 1
+#CORE_TYPE = Smart
+#ENABLE_REDIRECT_DNS = 1
+#IPV6_ENABLE = 0
+#IPV6_DNS = 0
 #CHINA_IP6_ROUTE = 0
 
 #restart: true 代表更新后重启插件，false 代表不重启插件
@@ -127,17 +151,95 @@ IPV6_DNS = 0
 #cron=0 6 * * *
 #示例：每周一凌晨6点下载一次
 #cron=0 6 * * 1
-DOWNLOAD_FILE = url=https://git.imee.me/https://github.com/666OS/YYDS/raw/main/mihomo/config/OneSmartPro.yaml, path=/etc/openclash/config/OneSmartPro.yaml, cron=0 6 * * *, force=false
+#DOWNLOAD_FILE = url=https://git.imee.me/https://github.com/666OS/YYDS/raw/main/mihomo/config/OneSmartPro.yaml, path=/etc/openclash/config/OneSmartPro.yaml, cron=0 6 * * *, force=false
 
 #将模板作为默认配置文件
-CONFIG_FILE = /etc/openclash/config/OneSmartPro.yaml
+#ONFIG_FILE = /etc/openclash/config/OneSmartPro.yaml
 
 #指定展示订阅信息的 URL 地址
-SUB_INFO_URL = $EN_KEY1
+#SUB_INFO_URL = $EN_KEY1
 
-[Overwrite]
+#[Overwrite]
 #EN_KEY 为对应模块需要用户指定的环境变量值, EN_KEY1=URL1;EN_KEY2=URL2;EN_KEY3=URL3
 #其他 Ruby 编辑函数请参考 openclash_custom_overwrite.sh
-ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "优质服务商" "['url']" "$EN_KEY1"
-ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "备用服务商" "['url']" "$EN_KEY2"
-ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "落地服务商" "['url']" "$EN_KEY3"
+#ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "优质服务商" "['url']" "$EN_KEY1"
+#ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "备用服务商" "['url']" "$EN_KEY2"
+#ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "落地服务商" "['url']" "$EN_KEY3"
+
+# ==========================================================
+# ==== 以下为仅修改插件设置示例 ====
+# ==========================================================
+
+[General]
+CORE_TYPE = Meta
+
+# --- DNS 相关 ---
+ENABLE_REDIRECT_DNS = 1
+ENABLE_CUSTOM_DNS = 1
+APPEND_DEFAULT_DNS = 1
+APPEND_WAN_DNS = 0
+STORE_FAKEIP = 1
+CUSTOM_FAKEIP_FILTER = 1
+CUSTOM_FAKEIP_FILTER_MODE = blacklist
+FAKEIP_RANGE = 198.18.0.1/16
+ENABLE_RESPECT_RULES = 1
+CUSTOM_NAME_POLICY = 1
+CUSTOM_HOST = 1
+CUSTOM_FALLBACK_FILTER = 1
+
+# --- IPv6 相关 ---
+IPV6_ENABLE = 0
+IPV6_DNS = 0
+
+# --- 代理与模式 ---
+EN_MODE = fake-ip-mix
+DISABLE_UDP_QUIC = 1
+ROUTER_SELF_PROXY = 1
+PROXY_MODE = rule
+STACK_TYPE = system
+
+# --- 防火墙与访问控制 ---
+INTRANET_ALLOWED = 1
+BYPASS_GATEWAY_COMPATIBLE = 0
+
+# --- 分流相关 ---
+CHINA_IP_ROUTE = 1
+CHINA_IP6_ROUTE = 0
+CHNR_AUTO_UPDATE = 1
+CHNR_UPDATE_WEEK_TIME = *
+CHNR_UPDATE_DAY_TIME = 6
+
+ENABLE_META_SNIFFER = 1
+ENABLE_META_SNIFFER_CUSTOM = 1
+ENABLE_META_SNIFFER_PURE_IP = 1
+
+ENABLE_TCP_CONCURRENT = 1
+FIND_PROCESS_MODE = off
+GLOBAL_CLIENT_FINGERPRINT = random
+
+ENABLE_RULE_PROXY = 0
+ENABLE_CUSTOM_CLASH_RULES = 1
+
+# --- Smart 相关 ---
+AUTO_SMART_SWITCH = 0
+SMART_STRATEGY = sticky-sessions
+LGBM_AUTO_UPDATE = 1
+LGBM_UPDATE_INTERVAL = 72
+LGBM_CUSTOM_URL = https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/Model.bin
+
+# --- 数据库加载相关 ---
+ENABLE_GEOIP_DAT = 1
+GEODATA_LOADER = standard
+GEOIP_AUTO_UPDATE = 1
+GEOIP_UPDATE_WEEK_TIME = *
+GEOIP_UPDATE_DAY_TIME = 5
+GEOSITE_AUTO_UPDATE = 1
+GEOSITE_UPDATE_WEEK_TIME = *
+GEOSITE_UPDATE_DAY_TIME = 5
+
+# --- 其它功能 ---
+SMALL_FLASH_MEMORY = 0
+DISABLE_QUIC_GO_GSO = 1
+DELAY_START = 0
+SKIP_PROXY_ADDRESS = 1
+RESTART = 0

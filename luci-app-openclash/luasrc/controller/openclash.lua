@@ -2541,10 +2541,6 @@ function action_switch_oc_setting()
     end
     
     if setting == "meta_sniffer" then
-        uci:set("openclash", "config", "enable_meta_sniffer", value)
-        uci:set("openclash", "config", "enable_meta_sniffer_pure_ip", value)
-        uci:commit("openclash")
-        
         if is_running() then
             local runtime_config_path = get_runtime_config_path()
             local ruby_cmd
@@ -2640,12 +2636,13 @@ function action_switch_oc_setting()
             if not update_runtime_config(ruby_cmd) then
                 return
             end
+        else
+            uci:set("openclash", "config", "enable_meta_sniffer", value)
+            uci:set("openclash", "config", "enable_meta_sniffer_pure_ip", value)
+            uci:commit("openclash")
         end
         
     elseif setting == "respect_rules" then
-        uci:set("openclash", "config", "enable_respect_rules", value)
-        uci:commit("openclash")
-        
         if is_running() then
             local runtime_config_path = get_runtime_config_path()
             local target_value = (value == "1") and "true" or "false"
@@ -2692,13 +2689,17 @@ function action_switch_oc_setting()
             if not update_runtime_config(ruby_cmd) then
                 return
             end
+        else
+            uci:set("openclash", "config", "enable_respect_rules", value)
+            uci:commit("openclash")
         end
         
     elseif setting == "oversea" then
         uci:set("openclash", "config", "china_ip_route", value)
         uci:commit("openclash")
-        
         if is_running() then
+            uci:set("openclash", "@overwrite[0]", "china_ip_route", value)
+            uci:commit("openclash")
             luci.sys.exec("/etc/init.d/openclash restart >/dev/null 2>&1 &")
         end
     elseif setting == "stream_unlock" then
