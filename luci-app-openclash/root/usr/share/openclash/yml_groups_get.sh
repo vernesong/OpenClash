@@ -1,6 +1,7 @@
 #!/bin/bash
 . /lib/functions.sh
 . /usr/share/openclash/log.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 876>"/tmp/lock/openclash_groups_get.lock" 2>/dev/null
@@ -14,11 +15,11 @@ del_lock() {
 
 CFG_FILE="/etc/config/openclash"
 other_group_file="/tmp/yaml_other_group.yaml"
-servers_update=$(uci -q get openclash.config.servers_update)
-servers_if_update=$(uci -q get openclash.config.servers_if_update)
-CONFIG_FILE=$(uci -q get openclash.config.config_path)
+servers_update=$(uci_get "servers_update")
+servers_if_update=$(uci_get "servers_if_update")
+CONFIG_FILE=$(uci_get "config_path")
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-UPDATE_CONFIG_FILE=$(uci -q get openclash.config.config_update_path)
+UPDATE_CONFIG_FILE=$(uci_get "config_update_path")
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 LOG_FILE="/tmp/openclash.log"
 set_lock

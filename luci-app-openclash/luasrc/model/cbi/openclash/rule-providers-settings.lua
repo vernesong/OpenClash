@@ -20,7 +20,7 @@ m.description=translate("Attention:")..
 "<br/>"..
 "<br/>"..translate("When setting this page, if the groups is empty, please go to the <Onekey Create> page to add")..
 "<br/>"..
-"<br/>"..translate("Introduction to rule set usage: https://wiki.metacubex.one/config/rule-providers/content/")
+"<br/>"..translate("Introduction to rule set usage:").." <a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/config/rule-providers/content/\")'>"..translate("https://wiki.metacubex.one/config/rule-providers/content/").."</a>"
 
 function IsRuleFile(e)
 e=e or""

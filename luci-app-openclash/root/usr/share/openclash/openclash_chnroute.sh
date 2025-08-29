@@ -2,6 +2,7 @@
 . /usr/share/openclash/openclash_ps.sh
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_curl.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 879>"/tmp/lock/openclash_chn.lock" 2>/dev/null
@@ -14,29 +15,17 @@ del_lock() {
 }
 
 set_lock
-
-JOB_COUNTER_FILE="/tmp/openclash_jobs"
-
-inc_job_counter() {
-   flock -x 999
-   local cnt=0
-   [ -f "$JOB_COUNTER_FILE" ] && cnt=$(cat "$JOB_COUNTER_FILE")
-   cnt=$((cnt+1))
-   echo "$cnt" > "$JOB_COUNTER_FILE"
-   flock -u 999
-}
-exec 999>"/tmp/lock/openclash_jobs.lock"
 inc_job_counter
 
 FW4=$(command -v fw4)
-china_ip_route=$(uci -q get openclash.config.china_ip_route)
-china_ip6_route=$(uci -q get openclash.config.china_ip6_route)
-CHNR_CUSTOM_URL=$(uci -q get openclash.config.chnr_custom_url)
-CHNR6_CUSTOM_URL=$(uci -q get openclash.config.chnr6_custom_url)
-CNDOMAIN_CUSTOM_URL=$(uci -q get openclash.config.cndomain_custom_url)
-disable_udp_quic=$(uci -q get openclash.config.disable_udp_quic)
-small_flash_memory=$(uci -q get openclash.config.small_flash_memory)
-en_mode=$(uci -q get openclash.config.en_mode)
+china_ip_route=$(uci_get "china_ip_route")
+china_ip6_route=$(uci_get "china_ip6_route")
+CHNR_CUSTOM_URL=$(uci_get "chnr_custom_url")
+CHNR6_CUSTOM_URL=$(uci_get "chnr6_custom_url")
+CNDOMAIN_CUSTOM_URL=$(uci_get "cndomain_custom_url")
+disable_udp_quic=$(uci_get "disable_udp_quic")
+small_flash_memory=$(uci_get "small_flash_memory")
+en_mode=$(uci_get "en_mode")
 restart=0
 
 if [ "$small_flash_memory" != "1" ]; then
@@ -119,30 +108,8 @@ else
    LOG_OUT "Chnroute6 Cidr List Update Error, Please Try Again Later..."
 fi
 
-dec_job_counter_and_restart() {
-   flock -x 999
-   local cnt=0
-   [ -f "$JOB_COUNTER_FILE" ] && cnt=$(cat "$JOB_COUNTER_FILE")
-   cnt=$((cnt-1))
-   [ $cnt -lt 0 ] && cnt=0
-   echo "$cnt" > "$JOB_COUNTER_FILE"
-   if [ $cnt -eq 0 ]; then
-      if [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
-         /etc/init.d/openclash restart >/dev/null 2>&1 &
-      elif [ "$restart" -eq 0 ] && [ "$(unify_ps_prevent)" -eq 0 ] && [ "$(uci -q get openclash.config.restart)" -eq 1 ]; then
-         /etc/init.d/openclash restart >/dev/null 2>&1 &
-         uci -q set openclash.config.restart=0
-         uci -q commit openclash
-      elif [ "$restart" -eq 1 ]; then
-         uci -q set openclash.config.restart=1
-         uci -q commit openclash
-      fi
-      rm -rf "$JOB_COUNTER_FILE" >/dev/null 2>&1
-   fi
-   flock -u 999
-}
-
 rm -rf /tmp/china_ip*_route* >/dev/null 2>&1
+
 SLOG_CLEAN
-dec_job_counter_and_restart
+dec_job_counter_and_restart "$restart"
 del_lock
