@@ -1,5 +1,6 @@
 #!/bin/sh
 . /usr/share/openclash/log.sh
+. /usr/share/openclash/uci.sh
 
 set_lock() {
    exec 883>"/tmp/lock/openclash_cus_domian.lock" 2>/dev/null
@@ -24,10 +25,10 @@ fi
 # 设置 DNSMASQ_CONF_DIR，并去除路径末尾的斜杠
 DNSMASQ_CONF_DIR=${DNSMASQ_CONF_DIR%*/}
 rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
-if [ "$(uci get openclash.config.enable_custom_domain_dns_server 2>/dev/null)" = "1" ] && [ "$(uci get openclash.config.enable_redirect_dns 2>/dev/null)" = "1" ]; then
+if [ "$(uci_get "enable_custom_domain_dns_server")" = "1" ] && [ "$(uci_get "enable_redirect_dns")" = "1" ]; then
    LOG_OUT "Setting Secondary DNS Server List..."
 
-   custom_domain_dns_server=$(uci get openclash.config.custom_domain_dns_server 2>/dev/null)
+   custom_domain_dns_server=$(uci_get "custom_domain_dns_server")
    [ -z "$custom_domain_dns_server" ] && {
 	   custom_domain_dns_server="114.114.114.114"
 	}

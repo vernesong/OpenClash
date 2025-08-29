@@ -1,5 +1,9 @@
 [
   {
+    "zh": "覆写模块现已支持远程订阅，更加方便插件的远程管理及统一配置、一键订阅，欢迎各位分享配置。",
+    "en": "Overwrite module now supports subscription, more convenient remote management and configuration, one-click subscription, welcome to share the configuration."
+  },
+  {
     "zh": "Smart 策略组内核现已支持 policy-priority 参数来自定义调整节点权重，请自行替换测试、使用。",
     "en": "The Smart policy group core now supports the policy-priority parameter to customize node weights. Please replace it for testing and use."
   }

@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-openclash
-PKG_VERSION:=0.46.137
+PKG_VERSION:=0.47.001
 PKG_MAINTAINER:=vernesong <https://github.com/vernesong/OpenClash>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)
@@ -60,9 +60,10 @@ define Build/Prepare
 	chmod -R 0755 $(PKG_BUILD_DIR)/root/usr/share/openclash/
 	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/config
 	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/rule_provider
+	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/proxy_provider
 	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/backup
 	mkdir -p $(PKG_BUILD_DIR)/root/etc/openclash/core
-	mkdir -p $(PKG_BUILD_DIR)/root/usr/share/openclash/backup
+	mkdir -p $(PKG_BUILD_DIR)/root/usr/share/openclash/backup/overwrite
 	cp -f "$(PKG_BUILD_DIR)/root/etc/config/openclash" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash" >/dev/null 2>&1
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_rules.list" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_rules.list" >/dev/null 2>&1
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_rules_2.list" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_rules_2.list" >/dev/null 2>&1
@@ -78,6 +79,7 @@ define Build/Prepare
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_chnroute6_pass.list" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_chnroute6_pass.list" >/dev/null 2>&1
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_firewall_rules.sh" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_firewall_rules.sh" >/dev/null 2>&1
 	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/custom/openclash_custom_overwrite.sh" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/openclash_custom_overwrite.sh" >/dev/null 2>&1
+	cp -f "$(PKG_BUILD_DIR)/root/etc/openclash/overwrite/default" "$(PKG_BUILD_DIR)/root/usr/share/openclash/backup/overwrite/default" >/dev/null 2>&1
 	exit 0
 endef
 
@@ -92,7 +94,7 @@ endef
 
 define Package/$(PKG_NAME)/preinst
 #!/bin/sh
-	if [ -f "/etc/config/openclash" ]; then
+	if [ -f "/etc/config/openclash" ] && [ ! -f "/tmp/openclash.bak" ]; then
 		cp -f "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
 		cp -rf "/etc/openclash" "/tmp/openclash" >/dev/null 2>&1
 		cp -rf "/usr/share/openclash/ui/yacd" "/tmp/openclash_yacd" >/dev/null 2>&1
@@ -112,11 +114,13 @@ define Package/$(PKG_NAME)/prerm
 	uci -q set openclash.config.enable=0
 	uci -q commit openclash
 	[ -n "$(pidof clash)" ] && /etc/init.d/openclash stop 2>/dev/null
-	cp -f "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
-	cp -rf "/etc/openclash" "/tmp/openclash" >/dev/null 2>&1
-	cp -rf "/usr/share/openclash/ui/yacd" "/tmp/openclash_yacd" >/dev/null 2>&1
-	cp -rf "/usr/share/openclash/ui/dashboard" "/tmp/openclash_dashboard" >/dev/null 2>&1
-	cp -rf "/www/luci-static/resources/openclash/pac" "/tmp/pac" >/dev/null 2>&1
+	if [ -f "/etc/config/openclash" ] && [ ! -f "/tmp/openclash.bak" ]; then
+		cp -f "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
+		cp -rf "/etc/openclash" "/tmp/openclash" >/dev/null 2>&1
+		cp -rf "/usr/share/openclash/ui/yacd" "/tmp/openclash_yacd" >/dev/null 2>&1
+		cp -rf "/usr/share/openclash/ui/dashboard" "/tmp/openclash_dashboard" >/dev/null 2>&1
+		cp -rf "/www/luci-static/resources/openclash/pac" "/tmp/pac" >/dev/null 2>&1
+	fi
 	exit 0
 endef
 
@@ -140,7 +144,7 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /tmp/rules_name >/dev/null 2>&1
 	rm -rf /tmp/rule_providers_name >/dev/null 2>&1
 	rm -rf /tmp/clash_last_version >/dev/null 2>&1
-	rm -rf /usr/share/openclash/backup >/dev/null 2>&1
+	rm -rf /usr/share/openclash >/dev/null 2>&1
 	rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
 	rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf >/dev/null 2>&1
 	rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf >/dev/null 2>&1
@@ -148,8 +152,7 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /tmp/etc/openclash >/dev/null 2>&1
 	rm -rf /tmp/openclash_edit_file_name >/dev/null 2>&1
 	rm -rf /tmp/openclash_announcement >/dev/null 2>&1
-	rm -rf /usr/share/openclash/ui/xd >/dev/null 2>&1
-	rm -rf /www/luci-static/resources/openclash/pac >/dev/null 2>&1
+	rm -rf /www/luci-static/resources/openclash >/dev/null 2>&1
 	sed -i '/OpenClash Append/,/OpenClash Append End/d' "/usr/lib/lua/luci/model/network.lua" >/dev/null 2>&1
 	sed -i '/.*kB maximum content size*/c\HTTP_MAX_CONTENT      = 1024*100		-- 100 kB maximum content size' /usr/lib/lua/luci/http.lua >/dev/null 2>&1
 	sed -i '/.*kB maximum content size*/c\export let HTTP_MAX_CONTENT = 1024*100;		// 100 kB maximum content size' /usr/share/ucode/luci/http.uc >/dev/null 2>&1

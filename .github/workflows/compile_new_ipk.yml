@@ -1,4 +1,3 @@
-
 name: Compile The New Version OpenClash
 
 on: 
@@ -25,7 +24,6 @@ jobs:
         id: version
         run: |
           echo "version=$(grep 'PKG_VERSION:=' ./luci-app-openclash/Makefile |awk -F '=' '{print $2}')" >> $GITHUB_OUTPUT
-          echo "New Version: $(grep 'PKG_VERSION:=' ./luci-app-openclash/Makefile |awk -F '=' '{print $2}')"
 
       - name: Clone Repository
         uses: actions/checkout@v4
@@ -36,99 +34,104 @@ jobs:
         id: current_version
         run: |
           echo "version=$(sed -n 1p ./${{ github.ref_name }}/version |awk -F 'v' '{print $2}')" >> $GITHUB_OUTPUT
-          echo "Current Version: $(sed -n 1p ./${{ github.ref_name }}/version |awk -F 'v' '{print $2}')"
 
   Compile:
     runs-on: ubuntu-latest
     needs: Get-Version
     if: ${{ needs.Get-Version.outputs.version != needs.Get-Version.outputs.current_version }}
+    strategy:
+      matrix:
+        target:
+          - { name: ipk, sdk_url: "https://mirrors.pku.edu.cn/openwrt/releases/22.03.0/targets/x86/64/openwrt-sdk-22.03.0-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz", sdk_tar: "SDK.tar.xz", sdk_dir: "SDK", artifact_pattern: "luci-app-openclash_*.ipk" }
+          - { name: apk, sdk_url: "snapshot", sdk_tar: "SNAPSDK.tar.zst", sdk_dir: "SNAPSDK", artifact_pattern: "luci-app-openclash-*.apk" }
     steps:
-      - name: Clone OpenClash dev Repository
+      - name: Checkout OpenClash Source
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
 
-      - name: Apt Update
+      - name: Install Dependencies
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
           sudo apt-get update
-          sudo apt-get -y install curl git tar zstd
+          sudo apt-get -y install curl git tar zstd python3 python3-pyelftools python3-setuptools
 
-      - name: Install OpenWrt SDK
+      - name: Download SDK
         run: |
-          cd ..
-          mkdir tmp
-          curl -SLk --connect-timeout 30 --retry 2 "https://archive.openwrt.org/chaos_calmer/15.05.1/ar71xx/generic/OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2" -o "./tmp/SDK.tar.bz2"
-          cd \tmp
-          tar xjf SDK.tar.bz2
-          mv "OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64" "SDK"
-      
-      - name: Install OpenWrt SNAPSHPT SDK
-        run: |
-          cd ..
           mkdir -p tmp
-          BASE_URL="https://downloads.openwrt.org/snapshots/targets/x86/64/"
-          SDK_NAME=$(curl -s $BASE_URL | grep -oE 'openwrt-sdk-x86-64[^"]+\.tar\.zst' | head -n 1)
-          curl -SLk --connect-timeout 30 --retry 2 "$BASE_URL/$SDK_NAME" -o "./tmp/SNAPSDK.tar.zst"
-          cd tmp
-          zstd -d SNAPSDK.tar.zst
-          tar xf SNAPSDK.tar
-          SDK_DIR=$(tar tf SNAPSDK.tar | head -n 1 | cut -d/ -f1)
-          mv "$SDK_DIR" "SNAPSDK"
+          if [ "${{ matrix.target.name }}" = "ipk" ]; then
+            curl -SLk --connect-timeout 30 --retry 2 "${{ matrix.target.sdk_url }}" -o "./tmp/${{ matrix.target.sdk_tar }}"
+            cd tmp
+            tar xf ${{ matrix.target.sdk_tar }}
+            mv openwrt-sdk-* ${{ matrix.target.sdk_dir }}
+          else
+            BASE_URL="https://downloads.openwrt.org/snapshots/targets/x86/64/"
+            SDK_NAME=$(curl -s $BASE_URL | grep -oE 'openwrt-sdk-x86-64[^"]+\.tar\.zst' | head -n 1)
+            curl -SLk --connect-timeout 30 --retry 2 "$BASE_URL/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"
+            cd tmp
+            zstd -d ${{ matrix.target.sdk_tar }}
+            tar xf SNAPSDK.tar
+            SDK_DIR=$(tar tf SNAPSDK.tar | head -n 1 | cut -d/ -f1)
+            mv "$SDK_DIR" "${{ matrix.target.sdk_dir }}"
+          fi
 
       - name: Copy OpenClash Source Codes
         run: |
-          cd ..
-          mkdir -p tmp/SDK/package/luci-app-openclash
-          mkdir -p tmp/SNAPSDK/package/luci-app-openclash
-          cp -rf "./OpenClash/luci-app-openclash/." "./tmp/SDK/package/luci-app-openclash/"
-          cp -rf "./OpenClash/luci-app-openclash/." "./tmp/SNAPSDK/package/luci-app-openclash/"
+          mkdir -p tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash
+          cp -rf ./luci-app-openclash/. tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/
 
       - name: Compile po2lmo
         run: |
-          cd ..
-          cd tmp/SDK/package/
-          pushd luci-app-openclash/tools/po2lmo
+          cd tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/tools/po2lmo
           make && sudo make install
-          popd
-          cd ../../..
-          cd tmp/SNAPSDK/package/
-          pushd luci-app-openclash/tools/po2lmo
-          make && sudo make install
-          popd
 
-      - name: Compile OpenClash IPK
+      - name: Compile OpenClash
         run: |
-          cd ..
-          cd tmp/SDK
-          make package/luci-app-openclash/compile V=99
-      
-      - name: Compile OpenClash APK
-        run: |
-          cd ..
-          cd tmp/SNAPSDK
+          cd tmp/${{ matrix.target.sdk_dir }}
           make defconfig
           make package/luci-app-openclash/compile V=99
 
-      - name: Switch OpenClash Repository to Package
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: openclash-${{ matrix.target.name }}
+          path: tmp/${{ matrix.target.sdk_dir }}/bin/packages/x86_64/base/${{ matrix.target.artifact_pattern }}
+
+  Post-Process:
+    runs-on: ubuntu-latest
+    needs: [Compile, Get-Version]
+    steps:
+      - name: Checkout package branch
         uses: actions/checkout@v4
         with:
           ref: package
+
+      - name: Download IPK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openclash-ipk
+          path: ./
+
+      - name: Download APK Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: openclash-apk
+          path: ./
 
       - name: Commit and Push New Version
         run: |
           rm -rf ./${{ github.ref_name }}/luci-app-openclash*
           echo "v${{ needs.Get-Version.outputs.version }}" > ./${{ github.ref_name }}/version
           echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}-orange.svg" >> ./${{ github.ref_name }}/version
-          cd ..
-          cp "./tmp/SDK/bin/ar71xx/packages/base/luci-app-openclash_${{ needs.Get-Version.outputs.version }}_all.ipk" "./OpenClash/${{ github.ref_name }}/luci-app-openclash_${{ needs.Get-Version.outputs.version }}_all.ipk"
-          cp "./tmp/SNAPSDK/bin/packages/x86_64/base/luci-app-openclash-${{ needs.Get-Version.outputs.version }}.apk" "./OpenClash/${{ github.ref_name }}/luci-app-openclash-${{ needs.Get-Version.outputs.version }}.apk"
-          sed -i -E "s/OpenClash\/tree\/v(.*)/OpenClash\/tree\/v${{ needs.Get-Version.outputs.version }}/g" ./OpenClash/${{ github.ref_name }}/README.md
-          sed -i -E "s/OpenClash\/releases\/tag\/v(.*)/OpenClash\/releases\/tag\/v${{ needs.Get-Version.outputs.version }}/g" ./OpenClash/${{ github.ref_name }}/README.md
-          sed -i -E "s/source code-v(.*)-green/source code-v${{ needs.Get-Version.outputs.version }}-green/g" ./OpenClash/${{ github.ref_name }}/README.md
-          sed -i -E "s/New Release-v(.*)-orange/New Release-v${{ needs.Get-Version.outputs.version }}-orange/g" ./OpenClash/${{ github.ref_name }}/README.md
-          cd \OpenClash
+          cp ./luci-app-openclash_*.ipk "./${{ github.ref_name }}/"
+          cp ./luci-app-openclash-*.apk "./${{ github.ref_name }}/"
+          rm -f ./luci-app-openclash_*.ipk
+          rm -f ./luci-app-openclash-*.apk
+          sed -i -E "s/OpenClash\/tree\/v(.*)/OpenClash\/tree\/v${{ needs.Get-Version.outputs.version }}/g" ./${{ github.ref_name }}/README.md
+          sed -i -E "s/OpenClash\/releases\/tag\/v(.*)/OpenClash\/releases\/tag\/v${{ needs.Get-Version.outputs.version }}/g" ./${{ github.ref_name }}/README.md
+          sed -i -E "s/source code-v(.*)-green/source code-v${{ needs.Get-Version.outputs.version }}-green/g" ./${{ github.ref_name }}/README.md
+          sed -i -E "s/New Release-v(.*)-orange/New Release-v${{ needs.Get-Version.outputs.version }}-orange/g" ./${{ github.ref_name }}/README.md
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add .

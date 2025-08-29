@@ -15,7 +15,7 @@ font_off = [[</b>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
-local op_mode = uci:get("openclash", "config", "operation_mode")
+local op_mode = fs.uci_get("config", "operation_mode")
 if not op_mode then op_mode = "redir-host" end
 local lan_ip = fs.lanip()
 m = Map("openclash", translate("Plugin Settings"))
@@ -120,10 +120,8 @@ o:value("0", translate("Disable"))
 o:value("1", translate("Dnsmasq Redirect"))
 o:value("2", translate("Firewall Redirect"))
 
-if op_mode == "fake-ip" then
-o = s:taboption("dns", DummyValue, "flush_fakeip_cache", translate("Flush Fake-IP Cache"))
-o.template = "openclash/flush_fakeip_cache"
-end
+o = s:taboption("dns", DummyValue, "flush_dns_cache", translate("Flush DNS Cache"))
+o.template = "openclash/flush_dns_cache"
 
 o = s:taboption("dns", Flag, "enable_custom_domain_dns_server", translate("Enable Specify DNS Server"))
 o.default = 0
@@ -815,7 +813,7 @@ o = s:taboption("rules_update", Button, translate("Other Rules Update"))
 o:depends("other_rule_auto_update", "1")
 o.title = translate("Update Other Rules")
 o.inputtitle = translate("Check And Update")
-o.description = translate("Other Rules Update(Only in Use)")
+o.description = translate("Other Rules Update(Only in Use)")..", "..translate("Current Version:").." "..font_green..bold_on..translate(fs.get_resourse_mtime("/usr/share/openclash/res/lhie1.yaml"))..bold_off..font_off
 o.inputstyle = "reload"
 o.write = function()
   m.uci:set("openclash", "config", "enable", 1)
@@ -858,6 +856,7 @@ o:depends("geo_auto_update", "1")
 
 o = s:taboption("geo_update", Button, translate("GEOIP Update")) 
 o.title = translate("Update GeoIP MMDB")
+o.description = translate("Current Version:").." "..font_green..bold_on..translate(fs.get_resourse_mtime("/etc/openclash/Country.mmdb"))..bold_off..font_off
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
@@ -900,6 +899,7 @@ o:depends("geoip_auto_update", "1")
 
 o = s:taboption("geo_update", Button, translate("GEOIP Dat Update")) 
 o.title = translate("Update GeoIP Dat")
+o.description = translate("Current Version:").." "..font_green..bold_on..translate(fs.get_resourse_mtime("/etc/openclash/GeoIP.dat"))..bold_off..font_off
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
@@ -942,6 +942,7 @@ o:depends("geosite_auto_update", "1")
 
 o = s:taboption("geo_update", Button, translate("GEOSITE Update")) 
 o.title = translate("Update GeoSite Database")
+o.description = translate("Current Version:").." "..font_green..bold_on..translate(fs.get_resourse_mtime("/etc/openclash/GeoSite.dat"))..bold_off..font_off
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
@@ -984,6 +985,7 @@ o:depends("geoasn_auto_update", "1")
 
 o = s:taboption("geo_update", Button, translate("ASN Update")) 	
 o.title = translate("Update Geo ASN Database")
+o.description = translate("Current Version:").." "..font_green..bold_on..translate(fs.get_resourse_mtime("/etc/openclash/ASN.mmdb"))..bold_off..font_off
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
@@ -1231,7 +1233,7 @@ o.title = translate("Account Password")
 o.password = true
 o.rmempty = true
 
-if m.uci:get("openclash", "config", "dler_token") then
+if fs.uci_get("config", "dler_token") then
 	o = s:taboption("dlercloud", Flag, "dler_checkin")
 	o.title = translate("Checkin")
 	o.default = 0
@@ -1250,20 +1252,20 @@ o.datatype = "uinteger"
 o.default = "1"
 o:depends("dler_checkin", "1")
 o.rmempty = true
-o.description = font_green..bold_on..translate("Multiple Must Be a Positive Integer and No More Than 50")..bold_off..font_off
+o.description = font_green..bold_on..translate("Multiple Must Be a Positive Integer and No More Than 100")..bold_off..font_off
 function o.validate(self, value)
 	if tonumber(value) < 1 then
 		return "1"
 	end
-	if tonumber(value) > 50 then
-		return "50"
+	if tonumber(value) > 100 then
+		return "100"
 	end
 	return value
 end
 
 o = s:taboption("dlercloud", DummyValue, "dler_login", translate("Account Login"))
 o.template = "openclash/dler_login"
-if m.uci:get("openclash", "config", "dler_token") then
+if fs.uci_get("config", "dler_token") then
 	o.value = font_green..bold_on..translate("Account logged in")..bold_off..font_off
 else
 	o.value = font_red..bold_on..translate("Account not logged in")..bold_off..font_off

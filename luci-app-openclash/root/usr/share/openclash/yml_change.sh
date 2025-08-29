@@ -345,6 +345,11 @@ geo_custom_url = '${38}'
 geoip_custom_url = '${39}'
 geosite_custom_url = '${40}'
 geoasn_custom_url = '${41}'
+lgbm_auto_update = '${42}' == '1'
+lgbm_custom_url = '${43}'
+lgbm_update_interval = '${44}'
+smart_collect = '${45}' == '1'
+smart_collect_size = '${46}'
 
 enable_custom_dns = '$enable_custom_dns' == '1'
 append_wan_dns = '$append_wan_dns' == '1'
@@ -386,10 +391,21 @@ threads << Thread.new do
       Value['unified-delay'] = true if unified_delay
       Value['find-process-mode'] = find_process_mode if find_process_mode != '0'
       Value['global-client-fingerprint'] = global_client_fingerprint if global_client_fingerprint != '0'
+      
       (Value['experimental'] ||= {})['quic-go-disable-gso'] = true if quic_gso
       if cors_origin != '0'
          (Value['external-controller-cors'] ||= {})['allow-origins'] = [cors_origin]
          Value['external-controller-cors']['allow-private-network'] = true
+      end
+
+      Value['lgbm-auto-update'] = true if lgbm_auto_update
+      if lgbm_auto_update
+         Value['lgbm-custom-url'] = lgbm_custom_url.strip
+         Value['lgbm-update-interval'] = lgbm_update_interval.to_i
+      end
+
+      if smart_collect
+        (Value['profile'] ||= {})['smart-collector-size'] = smart_collect_size.to_f
       end
 
       Value['geox-url'] ||= {}

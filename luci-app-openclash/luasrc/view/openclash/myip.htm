@@ -101,11 +101,7 @@
 
 .oc .myip-main-card {
     background: var(--bg-white, #ffffff);
-    border: 1px solid var(--border-light, #e5e7eb);
-    border-radius: var(--radius-lg);
-    padding: var(--card-padding);
-    box-shadow: var(--shadow-md);
-    margin: 12px auto;
+    margin: 0 auto;
     width: 100%;
     transition: all var(--transition-fast);
 }
@@ -113,8 +109,12 @@
 .oc .myip-content-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
+    border: 1px solid var(--border-light, #e5e7eb);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
     gap: 12px;
     align-items: start;
+    padding: var(--card-padding);
 }
 
 .oc .myip-ip-section {
@@ -132,7 +132,7 @@
 .oc .myip-section-title {
     font-size: 25px;
     font-weight: bold;
-    color: var(--text-primary, #111827);
+    color: var(--text-title) !important;
     margin: 8px;
     padding: 0;
     text-align: left;
@@ -179,6 +179,9 @@
     text-align: center;
     position: relative;
     max-height: 104px;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .oc .myip-ip-item:hover,
@@ -226,6 +229,10 @@
     justify-content: center;
     min-height: 50px;
     line-height: 15px;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0px 6px;
 }
 
 .oc .ip-result {
@@ -237,6 +244,8 @@
     text-align: center;
     font-weight: 500;
     width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .oc .ip-geo {
@@ -247,6 +256,7 @@
     text-overflow: ellipsis;
     text-align: center;
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     white-space: normal;
@@ -262,6 +272,7 @@
     flex: 1;
     justify-content: center;
     min-height: 50px;
+    padding: 0px 6px;
 }
 
 .oc .sk-text-success,
@@ -402,11 +413,6 @@
     color: var(--primary-color, #3b82f6);
 }
 
-@media screen and (max-width: 1200px) {
-    .oc .myip-main-card {
-        margin: 11px auto;
-    }
-}
 
 @media screen and (max-width: 768px) {
     .oc {
@@ -416,10 +422,6 @@
     
     .oc .myip-content-grid {
         grid-template-columns: 1fr;
-    }
-    
-    .oc .myip-main-card {
-        margin: 10px auto;
     }
     
     .oc .myip-section-title {
@@ -460,8 +462,8 @@
     }
     
     .oc .myip-footer p {
-        font-size: 15px;
-        line-height: 18px;
+        font-size: 13px !important;
+        line-height: 18px !important;
     }
 }
 
@@ -471,9 +473,8 @@
         --card-item-min-height: 70px;
     }
     
-    .oc .myip-main-card {
-        padding: 8px;
-        margin: 8px auto;
+    .oc .myip-content-grid {
+        padding: 2px;
     }
     
     .oc .myip-section-title {
@@ -510,8 +511,8 @@
     }
     
     .oc .myip-footer p {
-        font-size: 14px;
-        line-height: 16px;
+        font-size: 11px !important;
+        line-height: 16px !important;
     }
 }
 </style>

@@ -27,7 +27,7 @@
     --transition-normal: 0.3s ease;
     
     --control-height: 32px;
-    --card-padding: 8px 5px;
+    --card-padding: 6px 8px;
     --gap-size: 10px;
     
     --row-1-height: 160px;
@@ -173,6 +173,7 @@
     max-width: 100%;
     box-sizing: border-box;
     overflow-x: hidden;
+    border-radius: var(--radius-lg);
 }
 
 .oc .main-cards-container {
@@ -180,13 +181,29 @@
     grid-template-columns: 1fr 1fr;
     grid-template-rows: minmax(60px, auto) 1fr;
     gap: 10px;
-    margin: 16px auto;
+    margin: 0 auto;
     align-items: start;
     max-width: 100%;
     width: 100%;
     box-sizing: border-box;
     overflow-x: auto;
     overflow-y: visible;
+}
+
+.oc .announcement-card {
+    grid-column: 1 / 3;
+    grid-row: 1;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    background: var(--bg-white);
+    display: flex;
+    align-items: stretch;
+    margin: 0;
+    padding: 12px;
 }
 
 .oc .main-card {
@@ -280,7 +297,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 8px;
+    gap: 6px;
     padding: 10px 6px;
     min-height: 0;
 }
@@ -296,7 +313,7 @@
 .oc .card-title {
     font-size: clamp(10px, 2.5vw, 14px);
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-title);
     letter-spacing: 0.5px;
     margin-bottom: 10px;
     display: flex;
@@ -478,7 +495,7 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    max-width: 155px;
+    max-width: 160px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -609,7 +626,7 @@
 
 .oc .cbi-button-option {
     flex: 1 1 0;
-    padding: 5px 5px;
+    padding: 5px 10px;
     font-size: 12px;
     font-weight: 500;
     color: var(--text-secondary);
@@ -639,7 +656,7 @@
 
 .oc .value-indicator {
     font-weight: 500;
-    padding: 10px 12px;
+    padding: 6px 6px;
     border-radius: var(--radius-sm);
     display: inline-flex;
     align-items: center;
@@ -715,9 +732,11 @@
     flex: 1 !important;
     height: 42px !important;
     outline: none !important;
-    padding: 2px 1px !important;
+    padding: 2px 2px !important;
     min-width: 45px;
     margin: 0 !important;
+    word-break: normal;
+    overflow-wrap: break-word;
 }
 
 .oc .dashboard-btn:hover {
@@ -730,6 +749,8 @@
     color: var(--text-secondary);
     text-align: center;
     position: relative;
+    white-space: nowrap;
+    margin-top: 15px;
 }
 
 .oc .stat-label::after {
@@ -745,14 +766,15 @@
 
 .oc .stat-value {
     font-family: var(--font-family-mono);
-    font-size: clamp(8px, 2.2vw, 13px);
+    font-size: clamp(9px, 2.2vw, 12px);
     font-weight: 600;
     color: var(--success-color);
     text-align: center;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: clip;
+    white-space: normal;
+    word-break: normal;
+    overflow-wrap: break-word;
     margin-top: 5px;
+    min-height: 38px;
 }
 
 .oc .plugin-toggle-container {
@@ -811,23 +833,26 @@
     transform: translateX(22px);
 }
 
-.oc #logo_btn {
+.oc #logo_btn,
+.oc #edit_overwrite {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: flex-start !important;
     width: auto !important;
-    padding: 4px 8px !important;
+    padding: 2px 6px !important;
     gap: 6px !important;
     font-size: 12px !important;
 }
 
-.oc #logo_btn .logo-text {
+.oc #logo_btn .logo-text,
+.oc #edit_overwrite .btn-text {
     font-size: 11px;
     color: var(--text-secondary);
     font-weight: 500;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    height: 12px;
 }
 
 .oc #logo_btn .mihomo-link {
@@ -996,7 +1021,7 @@
 .oc .config-file-name {
     font-size: 20px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     flex: 1 1 0%;
     white-space: nowrap;
     text-overflow: ellipsis;
@@ -1103,6 +1128,7 @@
     justify-self: center;
     align-self: center;
     box-sizing: border-box;
+    margin: 0 auto;
 }
 
 .oc .announcement-content {
@@ -1187,11 +1213,16 @@
         width: 80%;
         max-width: 95%;
     }
+
+    .oc .announcement-card {
+        grid-column: 1;
+        width: 100%;
+        max-width: 100%;
+    }
     
     .oc .main-card {
         grid-column: 1;
         grid-template-rows: auto auto auto auto;
-        margin-bottom: 14px;
         max-width: 100%;
         width: 100%;
     }
@@ -1277,7 +1308,7 @@
 
     .oc .value-indicator {
         font-size: 11px;
-        padding: 8px 10px;
+        padding: 5px 5px;
     }
 
     .oc .cbi-button-option {
@@ -1412,7 +1443,7 @@
     }
 
     .oc .version-display {
-        max-width: 80px;
+        max-width: 100px;
         font-size: 9px;
         padding: 1px 4px;
     }
@@ -1496,7 +1527,7 @@
     }
 
     .oc .value-indicator {
-        padding: 5px 5px;
+        padding: 4px 4px;
         min-width: 50px;
         height: 28px;
     }
@@ -1510,7 +1541,7 @@
     }
 
     .oc .stat-value {
-        font-size: 8px;
+        min-height: 30px;
     }
 
     .oc .subscription-info-text {
@@ -1528,7 +1559,6 @@
 
     .oc .sub-card.stat-item {
         padding: 8px 4px;
-        gap: 6px;
     }
 
     .oc .card-content {
@@ -1545,6 +1575,7 @@
     }
 
     .oc .core-control-buttons {
+        max-width: 120px;
         gap: 6px;
     }
 
@@ -1553,7 +1584,8 @@
         min-height: 24px;
     }
 
-    .oc #logo_btn .logo-text {
+    .oc #logo_btn .logo-text,
+    .oc #edit_overwrite .btn-text {
         font-size: 8px;
     }
 
@@ -1585,7 +1617,8 @@
 </head>
 <%
     local uci = require("luci.model.uci").cursor()
-    local RELEASE_BRANCH = uci:get("openclash", "config", "release_branch")
+    local fs = require "luci.openclash"
+    local RELEASE_BRANCH = fs.uci_get("config", "release_branch")
     local random = tostring(os.time()):reverse():sub(1, 9)
 %>
 <fieldset class="cbi-section">
@@ -1594,12 +1627,14 @@
         <td colspan="4">
             <div class="oc">
                 <div class="main-cards-container">
-                    <div id="announcement-banner" class="announcement-banner">
-                        <div class="megaphone-container"></div>
-                        <svg id="megaphone" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 256 256">
-                            <path d="M228.54,86.66l-176.06-54A16,16,0,0,0,32,48V192a16,16,0,0,0,16,16,16,16,0,0,0,4.52-.65L136,181.73V192a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16v-29.9l28.54-8.75A16.09,16.09,0,0,0,240,138V102A16.09,16.09,0,0,0,228.54,86.66ZM136,165,48,192V48l88,27Zm48,27H152V176.82L184,167Zm40-54-.11,0L152,160.08V79.92l71.89,22,.11,0v36Z"></path>
-                        </svg>
-                        <div id="announcement-content" class="announcement-content"></div>
+                    <div class="announcement-card">
+                        <div id="announcement-banner" class="announcement-banner">
+                            <div class="megaphone-container"></div>
+                            <svg id="megaphone" xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="currentColor" viewBox="0 0 256 256">
+                                <path d="M228.54,86.66l-176.06-54A16,16,0,0,0,32,48V192a16,16,0,0,0,16,16,16,16,0,0,0,4.52-.65L136,181.73V192a16,16,0,0,0,16,16h32a16,16,0,0,0,16-16v-29.9l28.54-8.75A16.09,16.09,0,0,0,240,138V102A16.09,16.09,0,0,0,228.54,86.66ZM136,165,48,192V48l88,27Zm48,27H152V176.82L184,167Zm40-54-.11,0L152,160.08V79.92l71.89,22,.11,0v36Z"></path>
+                            </svg>
+                            <div id="announcement-content" class="announcement-content"></div>
+                        </div>
                     </div>
                     <div class="main-card">
                         <!-- Row 1: Running Status -->
@@ -1629,11 +1664,12 @@
                                         <button type="button" class="icon-btn action-btn" id="restart_core" title="<%:Restart%>" onclick="return restartCore()">
                                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"></path><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path></svg>
                                         </button>
-                                        <button type="button" class="icon-btn action-btn" id="edit_overwrite" title="<%:Overwrite%>" onclick="return editOverwrite()">
+                                        <button type="button" class="icon-btn action-btn" id="edit_overwrite" title="<%:Overwrite Module%>" onclick="return editOverwrite()">
                                             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" viewBox="0 0 256 256">
-                                            <path d="M12,111l112,64a8,8,0,0,0,7.94,0l112-64a8,8,0,0,0,0-13.9l-112-64a8,8,0,0,0-7.94,0l-112,64A8,8,0,0,0,12,111ZM128,49.21,223.87,104,128,158.79,32.13,104ZM246.94,140A8,8,0,0,1,244,151L132,215a8,8,0,0,1-7.94,0L12,151A8,8,0,0,1,20,137.05l108,61.74,108-61.74A8,8,0,0,1,246.94,140Z"></path>
-                                        </svg>
-                                    </button>
+                                                <path d="M12,111l112,64a8,8,0,0,0,7.94,0l112-64a8,8,0,0,0,0-13.9l-112-64a8,8,0,0,0-7.94,0l-112,64A8,8,0,0,0,12,111ZM128,49.21,223.87,104,128,158.79,32.13,104ZM246.94,140A8,8,0,0,1,244,151L132,215a8,8,0,0,1-7.94,0L12,151A8,8,0,0,1,20,137.05l108,61.74,108-61.74A8,8,0,0,1,246.94,140Z"></path>
+                                            </svg>
+                                            <span class="btn-text"><%:Overwrite Module%></span>
+                                        </button>
                                     </div>
                                 </div>
                                 <div class="card-actions">
@@ -1846,7 +1882,7 @@
                                 <div class="quick-actions-buttons">
                                     <button class="dashboard-btn" id="_close_all_connection_btn"><%:Collecting data...%></button>
                                     <button class="dashboard-btn" id="_reload_firewall_btn"><%:Collecting data...%></button>
-                                    <button class="dashboard-btn" id="_flush_fakeip_cache_btn"><%:Collecting data...%></button>
+                                    <button class="dashboard-btn" id="_flush_dns_cache_btn"><%:Collecting data...%></button>
                                     <button class="dashboard-btn" id="_one_key_update_btn"><%:Collecting data...%></button>
                                 </div>
                             </div>
@@ -1858,7 +1894,7 @@
                             <div class="sub-card stat-item"><span class="stat-label"><%:Down%></span><span id="download_" class="stat-value">0 KB/S</span></div>
                             <div class="sub-card stat-item"><span class="stat-label"><%:Up Total%></span><span id="uploadtotal_" class="stat-value">0 KB</span></div>
                             <div class="sub-card stat-item"><span class="stat-label"><%:Down Total%></span><span id="downloadtotal_" class="stat-value">0 KB</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Connections%></span><span id="connect_t" class="stat-value">0</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Connect%></span><span id="connect_t" class="stat-value">0</span></div>
                             <div class="sub-card stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value">0 KB</span></div>
                             <div class="sub-card stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value">0 %</span></div>
                             <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value">0</span></div>
@@ -1885,7 +1921,7 @@
         close_all_connection: document.getElementById('_close_all_connection'),
         reload_firewall: document.getElementById('_reload_firewall'),
         one_key_update: document.getElementById('_one_key_update'),
-        flush_fakeip_cache: document.getElementById('_flush_fakeip_cache'),
+        flush_dns_cache: document.getElementById('_flush_dns_cache'),
         radio_mode: document.getElementById('radio-mode'),
         radio: document.getElementsByName("radios"),
         radio_ru: document.getElementsByName("radios-ru"),
@@ -2357,6 +2393,7 @@
         currentConfig: '',
         currentConfigIndex: -1,
         selectElement: null,
+        rawCurrentConfig: '',
         
         init: function() {
             this.selectElement = document.getElementById('config_file_select');
@@ -2404,6 +2441,7 @@
                     currentConfigFile = data.current;
                 }
                 
+                this.rawCurrentConfig = currentConfigFile;
                 this.configList = configFiles;
                 this.currentConfig = currentConfigFile;
                 this.currentConfigIndex = -1;
@@ -2443,6 +2481,11 @@
                 }
                 
                 this.updateNavigationArrows();
+
+                if (this._retryGetConfigList) {
+                    clearInterval(this._retryGetConfigList);
+                    this._retryGetConfigList = null;
+                }
                 
             } catch (e) {
                 this.handleConfigListError();
@@ -2456,6 +2499,13 @@
             
             this.toggleEmptyState(true);
             this.hideSubscriptionDisplay();
+
+            if (!this._retryGetConfigList) {
+                var self = this;
+                this._retryGetConfigList = setInterval(function() {
+                    self.loadConfigFileList();
+                }, 5000);
+            }
         },
 
         toggleEmptyState: function(isEmpty) {
@@ -2579,7 +2629,14 @@
 
             if (configNameElement) {
                 var displayName = this.formatDisplayName(configFile);
-                configNameElement.textContent = displayName;
+                if (configFile === this.rawCurrentConfig) {
+                    configNameElement.innerHTML =
+                        '<svg width="0.6em" height="0.6em" viewBox="0 0 24 24" fill="var(--primary-color)" style="vertical-align:middle;margin-right:0.2em;margin-bottom:0.2em;">' +
+                        '<circle cx="12" cy="12" r="8" fill="var(--primary-color)"/>' +
+                        '</svg>' + displayName;
+                } else {
+                    configNameElement.textContent = displayName;
+                }
                 if (configNameElement.scrollWidth > configNameElement.clientWidth) {
                     configNameElement.title = displayName;
                 } else {
@@ -3605,25 +3662,22 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         DarkModeDetector.init();
-        
-        setTimeout(function() {
-            ConfigFileManager.init();
-        }, 200);
-        
+        ConfigFileManager.init();
+
         setTimeout(function() {
             SubscriptionManager.init();
-        }, 200);
+        }, 300);
 
         setTimeout(function() {
             check_core();
-        }, 800);
+        }, 1000);
 
         setTimeout(function() {
             loadAnnouncement();
         }, 2000);
     });
 
-    XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
+    XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
         if (x && x.status == 200) {
             var updates = [];
         
@@ -3653,14 +3707,14 @@
             updates.push({element: DOMCache.webz, content: webzContent});
 
 
-            var closeConnContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Close All Connections%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Close All Connections%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            var closeConnContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_close_all_connection_btn'), content: closeConnContent});
 
             var reloadFwContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Reload Firewall%>" onclick="return b_reload_firewall(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Reload Firewall%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_reload_firewall_btn'), content: reloadFwContent});
 
-            var flushCacheContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Flush Fake-IP Cache%>" onclick="return b_flush_fakeip_cache(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Flush Fake-IP Cache%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
-            updates.push({element: document.getElementById('_flush_fakeip_cache_btn'), content: flushCacheContent});
+            var flushCacheContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Flush DNS Cache%>" onclick="return b_flush_dns_cache(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Flush DNS Cache%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            updates.push({element: document.getElementById('_flush_dns_cache_btn'), content: flushCacheContent});
 
             var oneKeyUpdateContent = '<input type="button" class="dashboard-btn" value="<%:Check Update%>" onclick="return all_one_key_update(this)"/>';
             updates.push({element: document.getElementById('_one_key_update_btn'), content: oneKeyUpdateContent});
@@ -3810,12 +3864,10 @@
             '<%:Tip: some website are abnormal? Try switching modes or using third-party rules%>',
             '<%:Tip: using the fake IP mode can get a faster access experience%>',
             '<%:Tip: query DNS by TLS & TCP & HTTPS can get better anti pollution effect%>',
-            '<%:Tip: openlash will check the configuration file parameters to ensure that it works properly%>',
             '<%:Tip: the nameserver group must have at least one server set when using custom DNS%>',
-            '<%:Tip: the website access check shows the connection of the device currently logged in to the Luci page%>',
             '<%:Tip: after started, please wait patiently until the connection is normal%>',
             '<%:Tip: if you don not use IPv6, please turn off the DHCP service of IPv6, otherwise the connection will be abnormal%>',
-            '<%:Tip: you can update the version in the global settings page%>',
+            '<%:Tip: you can update the version in the settings page%>',
             '<%:Note: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it%>',
             '<%:Note: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off%>',
             '<%:Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check%>',
@@ -4016,24 +4068,6 @@
         
         StateManager.cachedXHRGet('<%=luci.dispatcher.build_url("admin", "services", "openclash", "rule_mode")%>', function(x, status) {
             if (x && x.status == 200 && status.mode != "") {
-                if (status.core_type == "TUN" && DOMCache.radio.length != 4) {
-                    script_radio = document.createElement("input");
-                    script_radio.setAttribute("type", "radio");
-                    script_radio.setAttribute("id", "script");
-                    script_radio.setAttribute("name", "radios");
-                    script_radio.setAttribute("value", "script");
-                    script_radio.setAttribute("onclick", "javascript:return switch_rule_mode(this.value);");
-                    script_radio_label = document.createElement("label");
-                    script_radio_label.setAttribute("for", "script");
-                    script_radio_label.setAttribute("class", "cbi-button-option");
-                    script_radio_label.innerHTML = "Script";
-                    DOMCache.radio_mode.appendChild(script_radio);
-                    DOMCache.radio_mode.appendChild(script_radio_label);
-                } else if (status.core_type != "TUN" && DOMCache.radio.length == 4) {
-                    DOMCache.radio_mode.removeChild(script_radio);
-                    DOMCache.radio_mode.removeChild(script_radio_label);
-                }
-                
                 if (!SettingsManager.pendingOperations.has('rule_mode_' + status.mode)) {
                     for (var i = 0; i < DOMCache.radio.length; i++) {
                         if (DOMCache.radio[i].value == status.mode && !DOMCache.radio[i].checked) {
@@ -4200,10 +4234,10 @@
         return false;
     });
     
-    var b_flush_fakeip_cache = debounceButton(function(btn) {
+    var b_flush_dns_cache = debounceButton(function(btn) {
         btn.disabled = true;
         btn.value = '<%:Flushing...%> ';
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_fakeip_cache")%>', null, function(x, status) {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_dns_cache")%>', null, function(x, status) {
             if (x && x.status == 200) {
                 btn.value = (status.flush_status == "0" || status.flush_status != "") ? '<%:Flush Failed%>' : '<%:Flush Successful%>';
             } else {
@@ -4230,80 +4264,108 @@
         btn.value = '<%:Reloading...%>';
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "close_all_connection")%>', null, function(x, status) {
             btn.disabled = false;
-            btn.value = (x && x.status == 200) ? '<%:Close All Connections%>' : '<%:Close All Connections Failed%>';
+            btn.value = (x && x.status == 200) ? '<%:Close Connect%>' : '<%:Close Connect Failed%>';
         });
         return false;
     });
         
     function net_zashboard(btn) {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
-            btn.disabled = true;
-            btn.value = '<%:Zashboard%>';
-            var url9;
-            if (status.daip && window.location.hostname == status.daip) {
-                url9 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/zashboard/#/setup?hostname=' + window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase;
-            } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-                var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-                url9 = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/zashboard/#/setup?hostname=' + status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase;
-            } else {
-                url9 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/zashboard/#/';
-            }
-            winOpen(url9);
-        });
+        if (StateManager.current_status) {
+            var status = StateManager.current_status;
+        } else {
+            setTimeout(function() {
+                net_zashboard(btn)
+            }, 1000);
+            return false;
+        }
+
+        btn.disabled = true;
+        btn.value = '<%:Zashboard%>';
+        var url9;
+        if (status.daip && window.location.hostname == status.daip) {
+            url9 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/zashboard/#/setup?hostname=' + window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase;
+        } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
+            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+            url9 = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/zashboard/#/setup?hostname=' + status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase;
+        } else {
+            url9 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/zashboard/#/';
+        }
+        winOpen(url9);
         return false;
     }
 
     function meta_dashboard(btn) {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
-            btn.disabled = true;
-            btn.value = '<%:Metacubexd%>';
-            var url9;
-            if (status.daip && window.location.hostname == status.daip) {
-                url9 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/metacubexd/#/setup?hostname=' + window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase;
-            } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-                var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-                url9 = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/metacubexd/#/setup?hostname=' + status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase;
-            } else {
-                url9 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/metacubexd/#/';
-            }
-            winOpen(url9);
-        });
+        if (StateManager.current_status) {
+            var status = StateManager.current_status;
+        } else {
+            setTimeout(function() {
+                meta_dashboard(btn)
+            }, 1000);
+            return false;
+        }
+
+        btn.disabled = true;
+        btn.value = '<%:Metacubexd%>';
+        var url9;
+        if (status.daip && window.location.hostname == status.daip) {
+            url9 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/metacubexd/#/setup?hostname=' + window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase;
+        } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
+            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+            url9 = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/metacubexd/#/setup?hostname=' + status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase;
+        } else {
+            url9 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/metacubexd/#/';
+        }
+        winOpen(url9);
         return false;
     }
 
     function ycad_dashboard(btn) {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
-            btn.disabled = true;
-            btn.value = '<%:Yacd%>';
-            var url1;
-            if (status.daip && window.location.hostname == status.daip) {
-                url1 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/yacd/?hostname=' + window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase;
-            } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-                var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-                url1 = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/yacd/?hostname=' + status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase;
-            } else {
-                url1 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/yacd/';
-            }
-            winOpen(url1);
-        });
+        if (StateManager.current_status) {
+            var status = StateManager.current_status;
+        } else {
+            setTimeout(function() {
+                ycad_dashboard(btn)
+            }, 1000);
+            return false;
+        }
+
+        btn.disabled = true;
+        btn.value = '<%:Yacd%>';
+        var url1;
+        if (status.daip && window.location.hostname == status.daip) {
+            url1 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/yacd/?hostname=' + window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase;
+        } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
+            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+            url1 = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/yacd/?hostname=' + status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase;
+        } else {
+            url1 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/yacd/';
+        }
+        winOpen(url1);
         return false;
     }
     
     function net_dashboard(btn) {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
-            btn.disabled = true;
-            btn.value = '<%:Dashboard%>';
-            var url2;
-            if (status.daip && window.location.hostname == status.daip) {
-                url2 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/dashboard/#/?host=' + window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase;
-            } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-                var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-                url2 = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/dashboard/#/?host=' + status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase;
-            } else {
-                url2 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/dashboard/';
-            }
-            winOpen(url2);
-        });
+        if (StateManager.current_status) {
+            var status = StateManager.current_status;
+        } else {
+            setTimeout(function() {
+                net_dashboard(btn)
+            }, 1000);
+            return false;
+        }
+
+        btn.disabled = true;
+        btn.value = '<%:Dashboard%>';
+        var url2;
+        if (status.daip && window.location.hostname == status.daip) {
+            url2 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/dashboard/#/?host=' + window.location.hostname + '&port=' + status.cn_port + '&secret=' + status.dase;
+        } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
+            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
+            url2 = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/dashboard/#/?host=' + status.db_foward_domain + '&port=' + status.db_foward_port + '&secret=' + status.dase;
+        } else {
+            url2 = 'http://' + window.location.hostname + ':' + status.cn_port + '/ui/dashboard/';
+        }
+        winOpen(url2);
         return false;
     }
     
@@ -4728,7 +4790,7 @@
             
             if (DOMCache.clash && StateManager.current_status) {
                 DOMCache.clash.innerHTML = isRunning ? 
-                    '<b style=color:var(--success-color)>' + (StateManager.current_status.core_type || 'OpenClash') +'&nbsp;<%:Running%></b>' : 
+                    '<b style=color:var(--success-color)>' + StateManager.current_status.core_type +'&nbsp;<%:Running%></b>' : 
                     '<b style=color:var(--error-color)><%:Not Running%></b>';
             }
             
@@ -4859,6 +4921,7 @@
                     pluginToggleUserAction = false;
                     updatePluginToggleState(StateManager.current_status.clash || false);
                 }, 5000);
+                ConfigFileManager.refreshConfigList();
             } else {
                 if (toggleElement) {
                     toggleElement.disabled = false;

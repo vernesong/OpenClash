@@ -8,22 +8,16 @@ USE_PROCD=1
 . $IPKG_INSTROOT/usr/share/openclash/openclash_ps.sh
 . $IPKG_INSTROOT/usr/share/openclash/ruby.sh
 . $IPKG_INSTROOT/usr/share/openclash/log.sh
+. $IPKG_INSTROOT/usr/share/openclash/uci.sh
 
 [ -f /etc/openwrt_release ] && {
-RAW_CONFIG_FILE=$(uci -q get openclash.config.config_path)
-BACKUP_FILE="/etc/openclash/backup/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
-CONFIG_FILE="/etc/openclash/$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
-TMP_CONFIG_FILE="/tmp/yaml_config_tmp_$(uci -q get openclash.config.config_path |awk -F '/' '{print $5}' 2>/dev/null)"
 FW4=$(command -v fw4)
-# 获取默认的 DNSMASQ 配置 ID
 DEFAULT_DNSMASQ_CFGID="$(uci -q show "dhcp.@dnsmasq[0]" | awk 'NR==1 {split($0, conf, /[.=]/); print conf[2]}')"
-# 从 conf-dir 行中提取配置目录路径
 if [ -f "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID" ]; then
    DNSMASQ_CONF_DIR="$(awk -F '=' '/^conf-dir=/ {print $2}' "/tmp/etc/dnsmasq.conf.$DEFAULT_DNSMASQ_CFGID")"
 else
    DNSMASQ_CONF_DIR="/tmp/dnsmasq.d"
 fi
-# 设置 DNSMASQ_CONF_DIR，并去除路径末尾的斜杠
 DNSMASQ_CONF_DIR=${DNSMASQ_CONF_DIR%*/}
 }
 CLASH="/etc/openclash/clash"
@@ -40,29 +34,33 @@ add_cron()
 {
    [ "$(tail -n1 /etc/crontabs/root | wc -l)" -eq 0 ] && [ -n "$(cat /etc/crontabs/root 2>/dev/null)" ] && echo >> /etc/crontabs/root
    [ -z "$(grep "openclash.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci -q get openclash.config.auto_update)" -eq 1 ] && [ "$(uci -q get openclash.config.config_auto_update_mode)" -ne 1 ] && echo "0 $(uci -q get openclash.config.auto_update_time) * * $(uci -q get openclash.config.config_update_week_time) /usr/share/openclash/openclash.sh" >> $CRON_FILE
+      [ "$(uci_get "auto_update")" -eq 1 ] && [ "$(uci_get "config_auto_update_mode")" -ne 1 ] && echo "0 $(uci_get "auto_update_time" || 1) * * $(uci_get "config_update_week_time" || 0) /usr/share/openclash/openclash.sh" >> $CRON_FILE
    }
    [ -z "$(grep "openclash_rule.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci -q get openclash.config.other_rule_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.other_rule_update_day_time) * * $(uci -q get openclash.config.other_rule_update_week_time) /usr/share/openclash/openclash_rule.sh" >> $CRON_FILE
+      [ "$(uci_get "other_rule_auto_update")" -eq 1 ] && echo "0 $(uci_get "other_rule_update_day_time" || 1) * * $(uci_get "other_rule_update_week_time" || 0) /usr/share/openclash/openclash_rule.sh" >> $CRON_FILE
    }
    [ -z "$(grep "openclash_ipdb.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci -q get openclash.config.geo_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geo_update_day_time) * * $(uci -q get openclash.config.geo_update_week_time) /usr/share/openclash/openclash_ipdb.sh" >> $CRON_FILE
+      [ "$(uci_get "geo_auto_update")" -eq 1 ] && echo "0 $(uci_get "geo_update_day_time" || 1) * * $(uci_get "geo_update_week_time" || 0) /usr/share/openclash/openclash_ipdb.sh" >> $CRON_FILE
    }
    [ -z "$(grep "openclash_geosite.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci -q get openclash.config.geosite_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geosite_update_day_time) * * $(uci -q get openclash.config.geosite_update_week_time) /usr/share/openclash/openclash_geosite.sh" >> $CRON_FILE
+      [ "$(uci_get "geosite_auto_update")" -eq 1 ] && echo "0 $(uci_get "geosite_update_day_time" || 1) * * $(uci_get "geosite_update_week_time" || 0) /usr/share/openclash/openclash_geosite.sh" >> $CRON_FILE
    }
    [ -z "$(grep "openclash_geoip.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci -q get openclash.config.geoip_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geoip_update_day_time) * * $(uci -q get openclash.config.geoip_update_week_time) /usr/share/openclash/openclash_geoip.sh" >> $CRON_FILE
+      [ "$(uci_get "geoip_auto_update")" -eq 1 ] && echo "0 $(uci_get "geoip_update_day_time" || 1) * * $(uci_get "geoip_update_week_time" || 0) /usr/share/openclash/openclash_geoip.sh" >> $CRON_FILE
    }
    [ -z "$(grep "openclash_geoasn.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci -q get openclash.config.geoasn_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.geoasn_update_day_time) * * $(uci -q get openclash.config.geoasn_update_week_time) /usr/share/openclash/openclash_geoasn.sh" >> $CRON_FILE
+      [ "$(uci_get "geoasn_auto_update")" -eq 1 ] && echo "0 $(uci_get "geoasn_update_day_time" || 1) * * $(uci_get "geoasn_update_week_time" || 0) /usr/share/openclash/openclash_geoasn.sh" >> $CRON_FILE
    }
    [ -z "$(grep "openclash_chnroute.sh" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci -q get openclash.config.chnr_auto_update)" -eq 1 ] && echo "0 $(uci -q get openclash.config.chnr_update_day_time) * * $(uci -q get openclash.config.chnr_update_week_time) /usr/share/openclash/openclash_chnroute.sh" >> $CRON_FILE
+      [ "$(uci_get "chnr_auto_update")" -eq 1 ] && echo "0 $(uci_get "chnr_update_day_time" || 1) * * $(uci_get "chnr_update_week_time" || 0) /usr/share/openclash/openclash_chnroute.sh" >> $CRON_FILE
    }
    [ -z "$(grep "/etc/init.d/openclash" "$CRON_FILE" 2>/dev/null)" ] && {
-      [ "$(uci -q get openclash.config.auto_restart)" -eq 1 ] && echo "0 $(uci -q get openclash.config.auto_restart_day_time) * * $(uci -q get openclash.config.auto_restart_week_time) /etc/init.d/openclash restart" >> $CRON_FILE
+      [ "$(uci_get "auto_restart")" -eq 1 ] && echo "0 $(uci_get "auto_restart_day_time" || 1) * * $(uci_get "auto_restart_week_time" || 0) /etc/init.d/openclash restart" >> $CRON_FILE
    }
+
+   config_load "openclash"
+   config_foreach add_overwrite_cron "config_overwrite"
+
    crontab $CRON_FILE
    start_watchdog
 }
@@ -77,6 +75,7 @@ del_cron()
    sed -i '/openclash_geoasn.sh/d' $CRON_FILE
    sed -i '/openclash_chnroute.sh/d' $CRON_FILE
    sed -i '/\/etc\/init.d\/openclash/d' $CRON_FILE
+   sed -i '/#openclash-overwrite-download/d' $CRON_FILE
    /etc/init.d/cron restart
 } >/dev/null 2>&1
 
@@ -110,6 +109,10 @@ change_dns() {
          if [ "$enable_redirect_dns" != "2" ]; then
             mkdir -p ${DNSMASQ_CONF_DIR}
             awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("'${settype}'=/%s/'${nftflag}'china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
+            for ip in $(uci_get "china_ip_route_pass"); do
+               [ -z "$ip" ] && continue
+               echo "$ip" | awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("'${settype}'=/%s/'${nftflag}'china_ip_route_pass'" "'\n",$0)}'
+            done >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
          fi
       fi
 
@@ -118,6 +121,10 @@ change_dns() {
             if [ "$enable_redirect_dns" != "2" ]; then
                mkdir -p ${DNSMASQ_CONF_DIR}
                awk '!/^$/&&!/^#/&&/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("'${settype}'=/%s/'${nftflag}'china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
+               for ip in $(uci_get "china_ip6_route_pass"); do
+                  [ -z "$ip" ] && continue
+                  echo "$ip" | awk '!/^$/&&!/^#/&&/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("'${settype}'=/%s/'${nftflag}'china_ip_route_pass'" "'\n",$0)}'
+               done >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
                #Prevent domain repeat
                for i in `grep -wf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf`
                do
@@ -142,6 +149,10 @@ change_dns() {
          if [ "$enable_redirect_dns" != "2" ]; then
             mkdir -p ${DNSMASQ_CONF_DIR}
             awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("ipset=/%s/china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
+            for ip in $(uci_get "china_ip_route_pass"); do
+               [ -z "$ip" ] && continue
+               echo "$ip" | awk '!/^$/&&!/^#/&&!/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("ipset=/%s/china_ip_route_pass'" "'\n",$0)}'
+            done >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
          fi
       fi
 
@@ -150,6 +161,10 @@ change_dns() {
             if [ "$enable_redirect_dns" != "2" ]; then
                mkdir -p ${DNSMASQ_CONF_DIR}
                awk '!/^$/&&!/^#/&&/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("ipset=/%s/china_ip_route_pass'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
+               for ip in $(uci_get "china_ip6_route_pass"); do
+                  [ -z "$ip" ] && continue
+                  echo "$ip" | awk '!/^$/&&!/^#/&&/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("ipset=/%s/china_ip_route_pass'" "'\n",$0)}'
+               done >>${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf
                #Prevent domain repeat
                for i in `grep -wf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf`
                do
@@ -195,7 +210,7 @@ change_dns() {
 
    uci -q commit dhcp
    uci -q commit openclash
-   /etc/init.d/dnsmasq restart
+   /etc/init.d/dnsmasq enabled && /etc/init.d/dnsmasq restart
 } >/dev/null 2>&1
 
 revert_dns() {
@@ -229,7 +244,7 @@ revert_dns() {
          fi
          uci -q set dhcp.@dnsmasq[0].localuse=1
          uci -q commit dhcp
-         /etc/init.d/dnsmasq restart
+         /etc/init.d/dnsmasq enabled && /etc/init.d/dnsmasq restart
          masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
          if [ "$(nslookup www.apple.com 127.0.0.1:${masq_port} >/dev/null 2>&1 || echo $?)" = "1" ]; then
             uci -q set openclash.config.default_resolvfile="/tmp/resolv.conf.d/resolv.conf.auto"
@@ -287,6 +302,22 @@ start_fail()
    kill_clash
    stop
    exit 0
+}
+
+sub_info_set()
+{
+   local section="$1" name
+   config_get "name" "$section" "name" ""
+
+   if [ -z "$name" ]; then
+      return
+   fi
+
+   if [ "$name" == "$2" ] && [ -n "$3" ]; then
+      uci -q set openclash.$section.url="$3"
+      uci -q commit openclash
+      sub_info_setted=1
+   fi
 }
 
 #获取订阅配置
@@ -416,7 +447,7 @@ check_run_quick()
 
 write_run_quick()
 {
-   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") $(ls -d /etc/openclash/custom/*) /usr/share/openclash/res/lhie1.yaml"
+   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") $(ls -d /etc/openclash/custom/*) $(ls -d /etc/openclash/overwrite/*) /usr/share/openclash/res/lhie1.yaml"
    cmp -s "/etc/config/openclash" "/tmp/openclash_config.tmp"
 	 if [ "$?" -ne "0" ]; then
 	    cp "/etc/config/openclash" "/tmp/openclash_config.tmp"
@@ -432,7 +463,7 @@ write_run_quick()
 #运行模式处理
 do_run_mode()
 {
-   en_mode=$(uci -q get openclash.config.en_mode)
+   en_mode=$(uci_get "en_mode")
 
    if [ "$en_mode" = "fake-ip-tun" ]; then
       en_mode_tun="1"
@@ -477,11 +508,13 @@ do_run_file()
       chnr6_path="/etc/openclash/china_ip6_route.ipset"
       geosite_path="/etc/openclash/GeoSite.dat"
       geoip_path="/etc/openclash/GeoIP.dat"
+      lgbm_path="/etc/openclash/Model.bin"
       mv "/tmp/etc/openclash/Country.mmdb" "$ipdb_path"
       mv "/tmp/etc/openclash/china_ip_route.ipset" "$chnr_path"
       mv "/tmp/etc/openclash/china_ip6_route.ipset" "$chnr6_path"
       mv "/tmp/etc/openclash/GeoSite.dat" "$geosite_path"
       mv "/tmp/etc/openclash/GeoIP.dat" "$geoip_path"
+      mv "/tmp/etc/openclash/Model.bin" "$lgbm_path"
       mv "/tmp/etc/openclash/core/" "/etc/openclash"
       if [ "$CACHE_PATH" != "/tmp/etc/openclash/cache.db" ]; then
          rm -rf "/tmp/etc/openclash"
@@ -493,11 +526,13 @@ do_run_file()
       chnr6_path="/tmp/etc/openclash/china_ip6_route.ipset"
       geosite_path="/tmp/etc/openclash/GeoSite.dat"
       geoip_path="/tmp/etc/openclash/GeoIP.dat"
+      lgbm_path="/tmp/etc/openclash/Model.bin"
       [ ! -h "/etc/openclash/Country.mmdb" ] && mv "/etc/openclash/Country.mmdb" "$ipdb_path"
       [ ! -h "/etc/openclash/china_ip_route.ipset" ] && mv "/etc/openclash/china_ip_route.ipset" "$chnr_path"
       [ ! -h "/etc/openclash/china_ip6_route.ipset" ] && mv "/etc/openclash/china_ip6_route.ipset" "$chnr6_path"
       [ ! -h "/etc/openclash/GeoSite.dat" ] && mv "/etc/openclash/GeoSite.dat" "$geosite_path"
       [ ! -h "/etc/openclash/GeoIP.dat" ] && mv "/etc/openclash/GeoIP.dat" "$geoip_path"
+      [ ! -h "/etc/openclash/Model.bin" ] && mv "/etc/openclash/Model.bin" "$lgbm_path"
       mv "/etc/openclash/core/" "/tmp/etc/openclash"
    fi
 
@@ -506,13 +541,18 @@ do_run_file()
 
    ln -s "$meta_core_path" /etc/openclash/clash
 
-   if [ "$smart_enable" -eq 1 ]; then
+   if [ "$smart_enable" -eq 1 ] || [ "$core_type" == "Smart" ]; then
       core_type="Smart"
    else
       core_type="Meta"
    fi
 
-   [ ! -f "$CLASH" ] && {
+   if [ -f "$CLASH" ] && [ ! -x "$CLASH" ]; then
+      chmod 4755 "$CLASH"
+      chown root:root "$CLASH"
+   fi
+
+   [ ! -f "$CLASH" ] || { [ "$core_type" = "Smart" ] && [ -z "$($CLASH -v | grep 'smart')" ]; } && {
       LOG_OUT "Tip: Detected that the Core is not Installed, Ready to Download..."
       rm -rf "/tmp/clash_last_version"
       /usr/share/openclash/openclash_core.sh "$core_type"
@@ -560,6 +600,10 @@ do_run_file()
 
    [ -f "$geoip_path" ] && [ "$small_flash_memory" = "1" ] && {
       ln -s "$geoip_path" /etc/openclash/GeoIP.dat
+   }
+
+   [ -f "$lgbm_path" ] && [ "$small_flash_memory" = "1" ] && {
+      ln -s "$lgbm_path" /etc/openclash/Model.bin
    }
 
    [ -f "$chnr_path" ] && [ "$small_flash_memory" = "1" ] && {
@@ -611,7 +655,7 @@ start_run_core()
       mv "$TMP_CONFIG_FILE" "$CONFIG_FILE"
       rm -rf "$TMP_CONFIG_FILE"
    fi
-   chown root:root /etc/openclash/core/*
+   chown root:root "$CLASH"
    kill_clash
    procd_open_instance "openclash"
    procd_set_param env SAFE_PATHS=/usr/share/openclash:/etc/ssl
@@ -1319,6 +1363,10 @@ if [ -n "$FW4" ]; then
          [ -z `(awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list)` ] || {
             echo "define china_ip_route_pass = {" >>/tmp/openclash_china_ip_route_pass.list
             awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s,\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list |sed '$ s/.$//' >>/tmp/openclash_china_ip_route_pass.list 2>/dev/null
+            for ip in $(uci_get "china_ip_route_pass"); do
+               [ -z "$ip" ] && continue
+               echo "$ip" | awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s,\n",$0)}' |sed '$ s/.$//'
+            done >>/tmp/openclash_china_ip_route_pass.list 2>/dev/null
             echo "}" >>/tmp/openclash_china_ip_route_pass.list
             echo 'add element inet fw4 china_ip_route_pass $china_ip_route_pass' >>/tmp/openclash_china_ip_route_pass.list
          }
@@ -1330,25 +1378,25 @@ if [ -n "$FW4" ]; then
 
    #lan_ac
    if [ "$lan_ac_mode" = "0" ]; then
-      if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+      if [ -n "$(uci_get "lan_ac_black_ips")" ]; then
          nft 'add set inet fw4 lan_ac_black_ips { type ipv4_addr; flags interval; auto-merge; }'
          nft 'add set inet fw4 lan_ac_black_ipv6s { type ipv6_addr; flags interval; auto-merge; }'
          config_load "openclash"
          config_list_foreach "config" "lan_ac_black_ips" nft_ac_add "lan_ac_black_ips" "lan_ac_black_ipv6s"
       fi
-      if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+      if [ -n "$(uci_get "lan_ac_black_macs")" ]; then
          nft 'add set inet fw4 lan_ac_black_macs { type ether_addr; }'
          config_load "openclash"
          config_list_foreach "config" "lan_ac_black_macs" nft_ac_add "lan_ac_black_macs"
       fi
    elif [ "$lan_ac_mode" = "1" ]; then
-      if [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ]; then
+      if [ -n "$(uci_get "lan_ac_white_ips")" ]; then
          nft 'add set inet fw4 lan_ac_white_ips { type ipv4_addr; flags interval; auto-merge; }'
          nft 'add set inet fw4 lan_ac_white_ipv6s { type ipv6_addr; flags interval; auto-merge; }'
          config_load "openclash"
          config_list_foreach "config" "lan_ac_white_ips" nft_ac_add "lan_ac_white_ips" "lan_ac_white_ipv6s"
       fi
-      if [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+      if [ -n "$(uci_get "lan_ac_white_macs")" ]; then
          nft 'add set inet fw4 lan_ac_white_macs { type ether_addr; }'
          config_load "openclash"
          config_list_foreach "config" "lan_ac_white_macs" nft_ac_add "lan_ac_white_macs"
@@ -1356,7 +1404,7 @@ if [ -n "$FW4" ]; then
    fi
 
    #wan ac
-   if [ -n "$(uci -q get openclash.config.wan_ac_black_ips)" ]; then
+   if [ -n "$(uci_get "wan_ac_black_ips")" ]; then
       nft 'add set inet fw4 wan_ac_black_ips { type ipv4_addr; flags interval; auto-merge; }'
       nft 'add set inet fw4 wan_ac_black_ipv6s { type ipv6_addr; flags interval; auto-merge; }'
       config_load "openclash"
@@ -1433,10 +1481,10 @@ if [ -n "$FW4" ]; then
          if [ "$lan_ac_mode" != "1" ]; then
             ACBLACKDNSFILTER=""
             if [ "$lan_ac_mode" = "0" ]; then
-               if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+               if [ -n "$(uci_get "lan_ac_black_ips")" ]; then
                   ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ips"
                fi
-               if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+               if [ -n "$(uci_get "lan_ac_black_macs")" ]; then
                   ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
                fi
             fi
@@ -1455,10 +1503,10 @@ if [ -n "$FW4" ]; then
       if [ "$lan_ac_mode" != "1" ]; then
          ACBLACKDNSFILTER=""
          if [ "$lan_ac_mode" = "0" ]; then
-            if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+            if [ -n "$(uci_get "lan_ac_black_ips")" ]; then
                ACBLACKDNSFILTER="ip saddr != @lan_ac_black_ips"
             fi
-            if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+            if [ -n "$(uci_get "lan_ac_black_macs")" ]; then
                ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
             fi
          fi
@@ -1486,7 +1534,7 @@ if [ -n "$FW4" ]; then
       nft 'add rule inet fw4 openclash ip daddr @wan_ac_black_ips counter return'
       nft 'add rule inet fw4 openclash ip saddr @lan_ac_black_ips counter return'
       nft 'add rule inet fw4 openclash ether saddr @lan_ac_black_macs counter return'
-      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get "lan_ac_white_ips")" ] && [ -n "$(uci_get "lan_ac_white_macs")" ]; then
          nft 'add rule inet fw4 openclash ether saddr != @lan_ac_white_macs ip saddr != @lan_ac_white_ips counter return'
       else
          nft 'add rule inet fw4 openclash ether saddr != @lan_ac_white_macs counter return'
@@ -1508,6 +1556,7 @@ if [ -n "$FW4" ]; then
 
       nft add rule inet fw4 openclash ip protocol tcp counter redirect to "$proxy_port"
       nft 'add rule inet fw4 dstnat meta nfproto {ipv4} ip protocol tcp counter jump openclash'
+
       if [ -z "$en_mode_tun" ]; then
          #udp
          if [ "$enable_udp_proxy" -eq 1 ]; then
@@ -1527,7 +1576,7 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return'
             nft 'add rule inet fw4 openclash_mangle ip saddr @lan_ac_black_ips counter return'
             nft 'add rule inet fw4 openclash_mangle ether saddr @lan_ac_black_macs counter return'
-            if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+            if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get "lan_ac_white_ips")" ] && [ -n "$(uci_get "lan_ac_white_macs")" ]; then
                nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs ip saddr != @lan_ac_white_ips counter return'
             else
                nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs counter return'
@@ -1678,7 +1727,7 @@ if [ -n "$FW4" ]; then
       nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return'
       nft 'add rule inet fw4 openclash_mangle ip saddr @lan_ac_black_ips counter return'
       nft 'add rule inet fw4 openclash_mangle ether saddr @lan_ac_black_macs counter return'
-      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get "lan_ac_white_ips")" ] && [ -n "$(uci_get "lan_ac_white_macs")" ]; then
          nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs ip saddr != @lan_ac_white_ips counter return'
       else
          nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs counter return'
@@ -1740,6 +1789,10 @@ if [ -n "$FW4" ]; then
             [ -z `(awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s,\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list)` ] || {
                echo "define china_ip6_route_pass = {" >>/tmp/openclash_china_ip6_route_pass.list
                awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s,\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list |sed '$ s/.$//' >>/tmp/openclash_china_ip6_route_pass.list 2>/dev/null
+               for ip in $(uci_get "china_ip6_route_pass"); do
+                  [ -z "$ip" ] && continue
+                  echo "$ip" | awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("    %s,\n",$0)}' |sed '$ s/.$//'
+               done >>/tmp/openclash_china_ip6_route_pass.list 2>/dev/null
                echo "}" >>/tmp/openclash_china_ip6_route_pass.list
                echo 'add element inet fw4 china_ip6_route_pass $china_ip6_route_pass' >>/tmp/openclash_china_ip6_route_pass.list
             }
@@ -1754,10 +1807,10 @@ if [ -n "$FW4" ]; then
             if [ "$lan_ac_mode" != "1" ]; then
                ACBLACKDNSFILTER=""
                if [ "$lan_ac_mode" = "0" ]; then
-                  if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+                  if [ -n "$(uci_get "lan_ac_black_ips")" ]; then
                      ACBLACKDNSFILTER="ip6 saddr != @lan_ac_black_ipv6s"
                   fi
-                  if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+                  if [ -n "$(uci_get "lan_ac_black_macs")" ]; then
                      ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
                   fi
                fi
@@ -1774,10 +1827,10 @@ if [ -n "$FW4" ]; then
             if [ "$lan_ac_mode" != "1" ]; then
                ACBLACKDNSFILTER=""
                if [ "$lan_ac_mode" = "0" ]; then
-                  if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+                  if [ -n "$(uci_get "lan_ac_black_ips")" ]; then
                      ACBLACKDNSFILTER="ip6 saddr != @lan_ac_black_ipv6s"
                   fi
-                  if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+                  if [ -n "$(uci_get "lan_ac_black_macs")" ]; then
                      ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
                   fi
                fi
@@ -1821,7 +1874,7 @@ if [ -n "$FW4" ]; then
          nft 'add rule inet fw4 openclash_v6 ip6 daddr @wan_ac_black_ipv6s counter return'
          nft 'add rule inet fw4 openclash_v6 ip6 saddr @lan_ac_black_ipv6s counter return'
          nft 'add rule inet fw4 openclash_v6 ether saddr @lan_ac_black_macs counter return'
-         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get "lan_ac_white_ips")" ] && [ -n "$(uci_get "lan_ac_white_macs")" ]; then
             nft 'add rule inet fw4 openclash_v6 ether saddr != @lan_ac_white_macs ip6 saddr != @lan_ac_white_ipv6s counter return'
          else
             nft 'add rule inet fw4 openclash_v6 ether saddr != @lan_ac_white_macs counter return'
@@ -1859,7 +1912,7 @@ if [ -n "$FW4" ]; then
 
          nft 'add rule inet fw4 openclash_mangle_v6 ip6 saddr @lan_ac_black_ipv6s counter return'
          nft 'add rule inet fw4 openclash_mangle_v6 ether saddr @lan_ac_black_macs counter return'
-         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get "lan_ac_white_ips")" ] && [ -n "$(uci_get "lan_ac_white_macs")" ]; then
             nft 'add rule inet fw4 openclash_mangle_v6 ether saddr != @lan_ac_white_macs ip6 saddr != @lan_ac_white_ipv6s counter return'
          else
             nft 'add rule inet fw4 openclash_mangle_v6 ether saddr != @lan_ac_white_macs counter return'
@@ -2025,6 +2078,13 @@ if [ -n "$FW4" ]; then
          fi
       fi
    fi
+
+   #icmp
+   if [ "$en_mode" = "fake-ip" ]; then
+      nft insert rule inet fw4 input position 0 ip protocol icmp icmp type echo-request ip daddr { $fakeip_range } counter reject comment \"OpenClash ICMP INPUT REJECT\"
+      nft insert rule inet fw4 forward position 0 ip protocol icmp icmp type echo-request ip daddr { $fakeip_range } counter reject comment \"OpenClash ICMP FORWARD REJECT\"
+      nft insert rule inet fw4 output position 0 ip protocol icmp icmp type echo-request ip daddr { $fakeip_range } $noowner counter reject comment \"OpenClash ICMP OUTPUT REJECT\"
+   fi
 fi
 
 #IPTABLES
@@ -2048,6 +2108,10 @@ if [ -z "$FW4" ]; then
       if [ "$enable_redirect_dns" != "2" ]; then
          echo "create china_ip_route_pass hash:net family inet hashsize 1024 maxelem 1000000" >/tmp/openclash_china_ip_route_pass.list
          awk '!/^$/&&!/^#/&&/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("add china_ip_route_pass %s'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute_pass.list >>/tmp/openclash_china_ip_route_pass.list
+         for ip in $(uci_get "china_ip_route_pass"); do
+            [ -z "$ip" ] && continue
+            echo "$ip" | awk '!/^$/&&!/^#/&&/(^([1-9]|1[0-9]|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.)(([0-9]{1,2}|1[1-9]{2}|2[0-4][0-9]|25[0-5])\.){2}([1-9]|[1-9][0-9]|1[0-9]{2}|2[0-5][0-9]|25[0-4])((\/[0-9][0-9])?)$/{printf("add china_ip_route_pass %s'" "'\n",$0)}'
+         done >>/tmp/openclash_china_ip_route_pass.list 2>/dev/null
          ipset -! flush china_ip_route_pass
          ipset -! restore </tmp/openclash_china_ip_route_pass.list
          rm -rf /tmp/openclash_china_ip_route_pass.list
@@ -2056,25 +2120,25 @@ if [ -z "$FW4" ]; then
 
    #lan_ac
    if [ "$lan_ac_mode" = "0" ]; then
-      if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+      if [ -n "$(uci_get "lan_ac_black_ips")" ]; then
          ipset create lan_ac_black_ips hash:net
          ipset create lan_ac_black_ipv6s hash:net family inet6
          config_load "openclash"
          config_list_foreach "config" "lan_ac_black_ips" ac_add "lan_ac_black_ips" "lan_ac_black_ipv6s"
       fi
-      if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+      if [ -n "$(uci_get "lan_ac_black_macs")" ]; then
          ipset create lan_ac_black_macs hash:mac
          config_load "openclash"
          config_list_foreach "config" "lan_ac_black_macs" ac_add "lan_ac_black_macs"
       fi
    elif [ "$lan_ac_mode" = "1" ]; then
-      if [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ]; then
+      if [ -n "$(uci_get "lan_ac_white_ips")" ]; then
          ipset create lan_ac_white_ips hash:net
          ipset create lan_ac_white_ipv6s hash:net family inet6
          config_load "openclash"
          config_list_foreach "config" "lan_ac_white_ips" ac_add "lan_ac_white_ips" "lan_ac_white_ipv6s"
       fi
-      if [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+      if [ -n "$(uci_get "lan_ac_white_macs")" ]; then
          ipset create lan_ac_white_macs hash:mac
          config_load "openclash"
          config_list_foreach "config" "lan_ac_white_macs" ac_add "lan_ac_white_macs"
@@ -2082,7 +2146,7 @@ if [ -z "$FW4" ]; then
    fi
 
    #wan ac
-   if [ -n "$(uci -q get openclash.config.wan_ac_black_ips)" ]; then
+   if [ -n "$(uci_get "wan_ac_black_ips")" ]; then
       ipset create wan_ac_black_ips hash:net
       ipset create wan_ac_black_ipv6s hash:net family inet6
       config_load "openclash"
@@ -2165,10 +2229,10 @@ if [ -z "$FW4" ]; then
          if [ "$lan_ac_mode" != "1" ]; then
             ACBLACKDNSFILTER=""
             if [ "$lan_ac_mode" = "0" ]; then
-               if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+               if [ -n "$(uci_get "lan_ac_black_ips")" ]; then
                   ACBLACKDNSFILTER="-m set ! --match-set lan_ac_black_ips src"
                fi
-               if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+               if [ -n "$(uci_get "lan_ac_black_macs")" ]; then
                   ACBLACKDNSFILTER="$ACBLACKDNSFILTER -m set ! --match-set lan_ac_black_macs src"
                fi
             fi
@@ -2191,10 +2255,10 @@ if [ -z "$FW4" ]; then
       if [ "$lan_ac_mode" != "1" ]; then
          ACBLACKDNSFILTER=""
          if [ "$lan_ac_mode" = "0" ]; then
-            if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+            if [ -n "$(uci_get "lan_ac_black_ips")" ]; then
                ACBLACKDNSFILTER="-m set ! --match-set lan_ac_black_ips src"
             fi
-            if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+            if [ -n "$(uci_get "lan_ac_black_macs")" ]; then
                ACBLACKDNSFILTER="$ACBLACKDNSFILTER -m set ! --match-set lan_ac_black_macs src"
             fi
          fi
@@ -2226,7 +2290,7 @@ if [ -z "$FW4" ]; then
       iptables -t nat -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN
       iptables -t nat -A openclash -m set --match-set lan_ac_black_ips src -j RETURN
       iptables -t nat -A openclash -m set --match-set lan_ac_black_macs src -j RETURN
-      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get "lan_ac_white_ips")" ] && [ -n "$(uci_get "lan_ac_white_macs")" ]; then
          iptables -t nat -A openclash -m set ! --match-set lan_ac_white_ips src -m set ! --match-set lan_ac_white_macs src -j RETURN
       else
          iptables -t nat -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN
@@ -2266,7 +2330,7 @@ if [ -z "$FW4" ]; then
             iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN
             iptables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN
             iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN
-            if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+            if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get "lan_ac_white_ips")" ] && [ -n "$(uci_get "lan_ac_white_macs")" ]; then
                iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -m set ! --match-set lan_ac_white_macs src -j RETURN
             else
                iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN
@@ -2414,7 +2478,7 @@ if [ -z "$FW4" ]; then
       iptables -t mangle -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN
       iptables -t mangle -A openclash -m set --match-set lan_ac_black_ips src -j RETURN
       iptables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN
-      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get "lan_ac_white_ips")" ] && [ -n "$(uci_get "lan_ac_white_macs")" ]; then
          iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -m set ! --match-set lan_ac_white_macs src -j RETURN
       else
          iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN
@@ -2469,6 +2533,10 @@ if [ -z "$FW4" ]; then
          if [ "$enable_redirect_dns" != "2" ]; then
             echo "create china_ip6_route_pass hash:net family inet6 hashsize 1024 maxelem 1000000" >/tmp/openclash_china_ip6_route_pass.list
             awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("add china_ip6_route_pass %s'" "'\n",$0)}' /etc/openclash/custom/openclash_custom_chnroute6_pass.list >>/tmp/openclash_china_ip6_route_pass.list
+            for ip in $(uci_get "china_ip6_route_pass"); do
+               [ -z "$ip" ] && continue
+               echo "$ip" | awk '!/^$/&&!/^#/&&!/([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/{printf("add china_ip6_route_pass %s'" "'\n",$0)}'
+            done >>/tmp/openclash_china_ip6_route_pass.list 2>/dev/null
             ipset -! flush china_ip6_route_pass
             ipset -! restore </tmp/openclash_china_ip6_route_pass.list
             rm -rf /tmp/openclash_china_ip6_route_pass.list
@@ -2480,10 +2548,10 @@ if [ -z "$FW4" ]; then
             if [ "$lan_ac_mode" != "1" ]; then
                ACBLACKDNSFILTER=""
                if [ "$lan_ac_mode" = "0" ]; then
-                  if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+                  if [ -n "$(uci_get "lan_ac_black_ips")" ]; then
                      ACBLACKDNSFILTER="-m set ! --match-set lan_ac_black_ipv6s src"
                   fi
-                  if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+                  if [ -n "$(uci_get "lan_ac_black_macs")" ]; then
                      ACBLACKDNSFILTER="$ACBLACKDNSFILTER -m set ! --match-set lan_ac_black_macs src"
                   fi
                fi
@@ -2505,10 +2573,10 @@ if [ -z "$FW4" ]; then
             if [ "$lan_ac_mode" != "1" ]; then
                ACBLACKDNSFILTER=""
                if [ "$lan_ac_mode" = "0" ]; then
-                  if [ -n "$(uci -q get openclash.config.lan_ac_black_ips)" ]; then
+                  if [ -n "$(uci_get "lan_ac_black_ips")" ]; then
                      ACBLACKDNSFILTER="-m set ! --match-set lan_ac_black_ipv6s src"
                   fi
-                  if [ -n "$(uci -q get openclash.config.lan_ac_black_macs)" ]; then
+                  if [ -n "$(uci_get "lan_ac_black_macs")" ]; then
                      ACBLACKDNSFILTER="$ACBLACKDNSFILTER -m set ! --match-set lan_ac_black_macs src"
                   fi
                fi
@@ -2567,7 +2635,7 @@ if [ -z "$FW4" ]; then
          ip6tables -t nat -A openclash -m set --match-set wan_ac_black_ipv6s dst -j RETURN
          ip6tables -t nat -A openclash -m set --match-set lan_ac_black_ipv6s src -j RETURN
          ip6tables -t nat -A openclash -m set --match-set lan_ac_black_macs src -j RETURN
-         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get "lan_ac_white_ips")" ] && [ -n "$(uci_get "lan_ac_white_macs")" ]; then
             ip6tables -t nat -A openclash -m set ! --match-set lan_ac_white_ipv6s src -m set ! --match-set lan_ac_white_macs src -j RETURN
          else
             ip6tables -t nat -A openclash -m set ! --match-set lan_ac_white_ipv6s src -j RETURN
@@ -2598,7 +2666,7 @@ if [ -z "$FW4" ]; then
          ip6tables -t mangle -A openclash -m set --match-set wan_ac_black_ipv6s dst -j RETURN
          ip6tables -t mangle -A openclash -m set --match-set lan_ac_black_macs src -j RETURN
          ip6tables -t mangle -A openclash -m set --match-set lan_ac_black_ipv6s src -j RETURN
-         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_ips)" ] && [ -n "$(uci -q get openclash.config.lan_ac_white_macs)" ]; then
+         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get "lan_ac_white_ips")" ] && [ -n "$(uci_get "lan_ac_white_macs")" ]; then
             ip6tables -t mangle -A openclash -m set ! --match-set lan_ac_white_ipv6s src -m set ! --match-set lan_ac_white_macs src -j RETURN
          else
             ip6tables -t mangle -A openclash -m set ! --match-set lan_ac_white_ipv6s src -j RETURN
@@ -2763,6 +2831,13 @@ if [ -z "$FW4" ]; then
          fi
       fi
    fi
+
+   #icmp
+   if [ "$en_mode" = "fake-ip" ]; then
+      iptables -t filter -I INPUT   -p icmp --icmp-type echo-request -d "$fakeip_range" -j REJECT --reject-with icmp-admin-prohibited -m comment --comment "OpenClash ICMP INPUT REJECT"
+      iptables -t filter -I FORWARD -p icmp --icmp-type echo-request -d "$fakeip_range" -j REJECT --reject-with icmp-admin-prohibited -m comment --comment "OpenClash ICMP FORWARD REJECT"
+      iptables -t filter -I OUTPUT  -p icmp --icmp-type echo-request -d "$fakeip_range" $noowner -j REJECT --reject-with icmp-admin-prohibited -m comment --comment "OpenClash ICMP OUTPUT REJECT"
+   fi
 fi
 
 #端口转发
@@ -2801,7 +2876,7 @@ revert_firewall()
    ip -6 route del default dev utun table "$PROXY_ROUTE_TABLE"
    
    if [ -n "$FW4" ]; then
-      for nft in "input" "forward" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
+      for nft in "input" "forward" "output" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
          local handles=$(nft -a list chain inet fw4 ${nft} |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$2}')
          for handle in $handles; do
             nft delete rule inet fw4 ${nft} handle ${handle}
@@ -2816,7 +2891,7 @@ revert_firewall()
          nft delete set inet fw4 handle ${handle}
       done
    else
-      for ipt in "iptables -nvL INPUT" "iptables -nvL FORWARD" "iptables -nvL POSTROUTING -t nat" "iptables -nvL OUTPUT -t nat" "iptables -nvL OUTPUT -t mangle" "iptables -nvL PREROUTING -t nat" "iptables -nvL PREROUTING -t mangle" "ip6tables -nvL PREROUTING -t mangle" "ip6tables -nvL OUTPUT -t mangle" "ip6tables -nvL PREROUTING -t nat" "ip6tables -nvL INPUT" "ip6tables -nvL POSTROUTING -t nat" "ip6tables -nvL FORWARD" "ip6tables -nvL OUTPUT -t nat"; do
+      for ipt in "iptables -nvL INPUT" "iptables -nvL FORWARD" "iptables -nvL OUTPUT" "iptables -nvL POSTROUTING -t nat" "iptables -nvL OUTPUT -t nat" "iptables -nvL OUTPUT -t mangle" "iptables -nvL PREROUTING -t nat" "iptables -nvL PREROUTING -t mangle" "ip6tables -nvL PREROUTING -t mangle" "ip6tables -nvL OUTPUT -t mangle" "ip6tables -nvL PREROUTING -t nat" "ip6tables -nvL INPUT" "ip6tables -nvL POSTROUTING -t nat" "ip6tables -nvL FORWARD" "ip6tables -nvL OUTPUT -t nat"; do
          for comment in "openclash" "OpenClash"; do
             local lines=$($ipt |sed 1,2d |sed -n "/${comment}/=" 2>/dev/null |sort -rn)
             if [ -n "$lines" ]; then
@@ -2860,31 +2935,303 @@ revert_firewall()
    fi
 } >/dev/null 2>&1
 
+add_overwrite_cron()
+{
+   local section="$1" enable type day hour url name
+   config_get_bool "enable" "$section" "enable" "1"
+   config_get "type" "$section" "type" "file"
+   config_get "url" "$section" "url" ""
+   config_get "update_days" "$section" "update_days" ""
+   config_get "update_hour" "$section" "update_hour" ""
+   config_get "name" "$section" "name" ""
+
+   if [ "$enable" != "1" ] || [ -z "$name" ] || [ "$type" != "http" ] || [ -z "$url" ] || [ -z "$update_days" ] || [ -z "$update_hour" ] || [ "$update_days" = "off" ] || [ "$update_hour" = "off" ]; then
+      return
+   fi
+
+   eval "restart_flag=\${OVERWRITE_RESTART_FLAG_${name}}"
+   cron_cmd="curl -fsSL -m 30 \"$url\" -o \"/etc/openclash/overwrite/$name\" >/dev/null 2>&1"
+   if [ "$restart_flag" = "1" ]; then
+      cron_cmd="$cron_cmd && /etc/init.d/openclash restart"
+   fi
+   cron_cmd="$cron_cmd #openclash-overwrite-download"
+
+   echo "0 $update_hour * * $update_days $cron_cmd" >> $CRON_FILE
+}
+
+overwrite_file()
+{
+   clear_overwrite_set
+
+   overwrite_script="/tmp/yaml_overwrite.sh"
+   cat > "$overwrite_script" <<'EOF'
+#!/bin/sh
+. /usr/share/openclash/ruby.sh
+. /usr/share/openclash/log.sh
+. /lib/functions.sh
+
+EOF
+
+   allowed_keys="EN_MODE PROXY_MODE STACK_TYPE DISABLE_UDP_QUIC ROUTER_SELF_PROXY CHINA_IP_ROUTE CHINA_IP6_ROUTE DISABLE_QUIC_GO_GSO CORE_TYPE ENABLE_REDIRECT_DNS IPV6_ENABLE IPV6_DNS IPV6_MODE ENABLE_V6_UDP_PROXY ENABLE_UDP_PROXY PROXY_PORT\
+      TPROXY_PORT HTTP_PORT SOCKS_PORT MIXED_PORT DNS_PORT INTRANET_ALLOWED INTRANET_ALLOWED_WAN_NAME BYPASS_GATEWAY_COMPATIBLE COMMON_PORTS SMALL_FLASH_MEMORY CONFIG_FILE DOWNLOAD_FILE STORE_FAKEIP ENABLE_META_SNIFFER\
+      ENABLE_GEOIP_DAT GEODATA_LOADER ENABLE_META_SNIFFER_CUSTOM ENABLE_META_SNIFFER_PURE_IP ENABLE_TCP_CONCURRENT APPEND_DEFAULT_DNS FIND_PROCESS_MODE FAKEIP_RANGE GLOBAL_CLIENT_FINGERPRINT ENABLE_UNIFIED_DELAY ENABLE_RESPECT_RULES\
+      CUSTOM_FAKEIP_FILTER_MODE CUSTOM_FAKEIP_FILTER CUSTOM_NAME_POLICY CUSTOM_HOST ENABLE_CUSTOM_DNS APPEND_WAN_DNS CUSTOM_FALLBACK_FILTER DELAY_START SKIP_PROXY_ADDRESS SUB_INFO_URL RESTART\
+      AUTO_SMART_SWITCH SMART_STRATEGY SMART_POLICY_PRIORITY SMART_COLLECT SMART_COLLECT_SIZE SMART_COLLECT_RATE LGBM_AUTO_UPDATE LGBM_UPDATE_INTERVAL LGBM_CUSTOM_URL\
+      ENABLE_RULE_PROXY ENABLE_CUSTOM_CLASH_RULES TOLERANCE URLTEST_INTERVAL_MOD URLTEST_ADDRESS_MOD GITHUB_ADDRESS_MOD\
+      CHNR_AUTO_UPDATE CHNR_UPDATE_WEEK_TIME CHNR_UPDATE_DAY_TIME CHNR_CUSTOM_URL CHNR6_CUSTOM_URL CHINA_IP_ROUTE_PASS CHINA_IP6_ROUTE_PASS\
+      GEO_AUTO_UPDATE GEO_UPDATE_WEEK_TIME GEO_UPDATE_DAY_TIME GEO_CUSTOM_URL GEOIP_AUTO_UPDATE GEOIP_UPDATE_WEEK_TIME GEOIP_UPDATE_DAY_TIME GEOIP_CUSTOM_URL GEOSITE_AUTO_UPDATE GEOSITE_UPDATE_WEEK_TIME GEOSITE_UPDATE_DAY_TIME GEOSITE_CUSTOM_URL GEOASN_AUTO_UPDATE GEOASN_UPDATE_WEEK_TIME GEOASN_UPDATE_DAY_TIME GEOASN_CUSTOM_URL"
+
+   allowed_keys_list="$(echo "$allowed_keys" | tr ' ' '\n')"
+
+   uci -q add openclash overwrite
+
+   overwrite_list=$(uci -q show openclash 2>/dev/null | grep "=config_overwrite" | awk -F'[.=]' '{print $2}' | while read -r sid; do
+      order=$(uci -q get openclash."$sid".order 2>/dev/null)
+      [ -z "$order" ] && order=0
+      name=$(uci -q get openclash."$sid".name 2>/dev/null)
+      enable_flag=$(uci -q get openclash."$sid".enable 2>/dev/null || echo 0)
+      printf "%s|%s|%s|%s\n" "$order" "$name" "$sid" "$enable_flag"
+   done | sort -nr -t'|' -k1,1)
+
+   for entry in $overwrite_list; do
+      name=$(echo "$entry" | cut -d'|' -f2)
+      sid=$(echo "$entry" | cut -d'|' -f3)
+      enabled_flag=$(echo "$entry" | cut -d'|' -f4)
+
+      [ "$enabled_flag" != "1" ] && continue
+      [ -z "$name" ] && continue
+
+      file="/etc/openclash/overwrite/${name}"
+      [ ! -f "$file" ] && continue
+
+      LOG_OUT "Tip: Processing Overwrite Module【$name】"
+
+      echo "# --- overwrite source: ${name} (sid=${sid}) ---" >> "$overwrite_script"
+      echo "export OPENCLASH_OVERWRITE_SID='${sid}'" >> "$overwrite_script"
+      
+      param=$(uci -q get openclash."$sid".param 2>/dev/null || echo '')
+      if [ -n "$param" ]; then
+         OLD_IFS="$IFS"
+         IFS=';'
+         for kv in $param; do
+            [ -z "$kv" ] && continue
+            k="${kv%%=*}"
+            v="${kv#*=}"
+            k=$(printf "%s" "$k" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            v=$(printf "%s" "$v" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            [ -z "$k" ] && continue
+            varname="$k"
+            v_escaped=$(printf "%s" "$v" | sed "s/'/'\"'\"'/g")
+            export ${varname}=${v_escaped}
+         done
+         IFS="$OLD_IFS"
+      fi
+
+      in_general=0
+      in_overwrite=0
+      download_file_lines=""
+
+      while IFS= read -r line || [ -n "$line" ]; do
+         trimmed=$(printf "%s" "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+         case "$trimmed" in
+               "[General]"*) in_general=1; in_overwrite=0; continue;;
+               "[Overwrite]"*) in_general=0; in_overwrite=1; continue;;
+               "["*"]"*) in_general=0; in_overwrite=0; continue;;
+         esac
+         [ -z "$trimmed" ] && continue
+         echo "$trimmed" | grep -qE '^[#;]' && continue
+
+         if [ "$in_general" -eq 1 ]; then
+            key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
+            key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
+            if printf "%s" "$key_u" | grep -q "^DOWNLOAD_FILE$"; then
+               download_file_lines="${download_file_lines}
+${trimmed}"
+            fi
+         fi
+      done < "$file"
+
+      download_failed=0
+      echo "$download_file_lines" | sed '/^$/d' | while IFS= read -r trimmed; do
+         key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
+         val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
+         key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
+         url=$(echo "$val" | sed -nE 's/.*url[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+         path=$(echo "$val" | sed -nE 's/.*path[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+         cron=$(echo "$val" | sed -nE 's/.*cron[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+         force=$(echo "$val" | sed -nE 's/.*force[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+         restart=$(echo "$val" | sed -nE 's/.*restart[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+         [ -z "$cron" ] && cron=0
+         if [ -z "$path" ] || [ -z "$url" ]; then
+            LOG_OUT "Warning: DOWNLOAD FILE no target in【$file】"
+            download_failed=1
+            break
+         fi
+         need_download=0
+         if [ ! -f "$path" ] || [ "$force" = "true" ]; then
+            need_download=1
+         fi
+         if [ "$cron" != "0" ]; then
+            if ! grep -q "$url" $CRON_FILE 2>/dev/null; then
+               cron_cmd="$cron curl -fsSL -m 30 \"$url\" -o \"$path\" >/dev/null 2>&1"
+               if [ "$restart" = "1" ] || [ "$restart" = "true" ]; then
+                  cron_cmd="$cron_cmd && /etc/init.d/openclash restart"
+               fi
+               cron_cmd="$cron_cmd #openclash-overwrite-download"
+               echo "$cron_cmd" >> $CRON_FILE
+            fi
+         fi
+         if [ "$need_download" -eq 1 ] && [ -n "$url" ]; then
+            if command -v curl >/dev/null 2>&1; then
+                  curl -fsSL -m 30 "$url" -o "$path" >/dev/null 2>&1
+                  rc=$?
+            else
+                  wget -T 30 -qO "$path" "$url" >/dev/null 2>&1
+                  rc=$?
+            fi
+            if [ $rc -ne 0 ] && [ ! -f "$path" ]; then
+                  LOG_OUT "Error: DOWNLOAD FILE failed for【$file url=$url path=$path】"
+                  download_failed=1
+                  break
+            fi
+         fi
+      done
+
+      [ "$download_failed" -eq 1 ] && continue
+
+      in_general=0
+      in_overwrite=0
+      while IFS= read -r line || [ -n "$line" ]; do
+         trimmed=$(printf "%s" "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+         case "$trimmed" in
+               "[General]"*) in_general=1; in_overwrite=0; continue;;
+               "[Overwrite]"*) in_general=0; in_overwrite=1; continue;;
+               "["*"]"*) in_general=0; in_overwrite=0; continue;;
+         esac
+         [ -z "$trimmed" ] && continue
+         echo "$trimmed" | grep -qE '^[#;]' && continue
+
+         if [ "$in_general" -eq 1 ]; then
+            key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
+            key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
+            if printf "%s" "$key_u" | grep -q "^DOWNLOAD_FILE$"; then
+               continue
+            fi
+            val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
+            if printf "%s" "$key_u" | grep -q "^CONFIG_FILE$"; then
+               RAW_CONFIG_FILE=$(printf "%s" "$val" | sed "s/^['\"]//;s/['\"]$//")
+               uci -q set openclash.@overwrite[0].config_path="$RAW_CONFIG_FILE"
+               cfg_name=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
+               if [ -n "$cfg_name" ]; then
+                  BACKUP_FILE="/etc/openclash/backup/${cfg_name}"
+                  CONFIG_FILE="/etc/openclash/${cfg_name}"
+                  TMP_CONFIG_FILE="/tmp/yaml_config_tmp_${cfg_name}"
+               fi
+            elif printf "%s" "$key_u" | grep -q "^SUB_INFO_URL$"; then
+               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
+               url_key=$(eval "echo $val_clean")
+               [ -z "$url_key" ] && continue
+               config_load "openclash"
+               config_foreach sub_info_set "subscribe_info" "${cfg_name%.*}" "$url_key"
+               if [ "$sub_info_setted" != "1" ]; then
+                  uci -q add openclash subscribe_info
+                  uci -q set openclash.@subscribe_info[-1].name="${cfg_name%.*}"
+                  uci -q set openclash.@subscribe_info[-1].url="$url_key"
+               fi
+            elif printf "%s" "$key_u" | grep -q "^RESTART$"; then
+               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
+               if printf "%s" "$val_clean" | grep -qE '^(1|true|yes)$'; then
+                  eval OVERWRITE_RESTART_FLAG_${name}=1
+               fi
+            else
+               if echo "$allowed_keys_list" | grep -xq "$key_u"; then
+                  key_l=$(printf "%s" "$key_u" | tr 'A-Z' 'a-z' | tr -d ' ')
+                  val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
+                  uci -q set openclash.@overwrite[0]."$key_l"="${val_clean}"
+               else
+                  LOG_OUT "Warning: skip General key not allowed【$key_u - $file】"
+               fi
+            fi
+         elif [ "$in_overwrite" -eq 1 ]; then
+            if printf "%s" "$trimmed" | grep -qE '^ruby_[a-z_]+\b'; then
+               echo "$trimmed" >> "$overwrite_script"
+               LOG_OUT "Tip: Load Overwrite Script【Ruby Script => $trimmed】"
+            else
+               LOG_OUT "Warning: skip invalid Overwrite command【$file: $trimmed】"
+            fi
+         fi
+      done < "$file"
+
+      cat >> "$overwrite_script" <<'EOF'
+if [ -f "/tmp/yaml_openclash_ruby_parts/$OPENCLASH_OVERWRITE_SID" ]; then
+   ruby_code=$(cat "/tmp/yaml_openclash_ruby_parts/$OPENCLASH_OVERWRITE_SID")
+   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+      Value = YAML.load_file('$CONFIG_FILE');
+      threads = []
+      $ruby_code
+      threads.each(&:join)
+      File.open('$CONFIG_FILE', 'w') do |f|
+         YAML.dump(Value, f)
+      end
+   " >> $LOG_FILE 2>&1
+fi
+EOF
+
+      echo "" >> "$overwrite_script"
+   done
+
+   if [ -n "$(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$')" ]; then
+      eval "$(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$' | sed 's/^openclash\.@overwrite\[0\]\.//g' | sed 's/=/="/;s/$/"/')"
+      while IFS='=' read -r key value; do
+         [ -z "$key" ] && continue
+         key_clean=$(echo "$key" | sed 's/^openclash\.[^.]*\.//')
+         value_clean=$(echo "$value" | sed "s/^'//;s/'$//")
+         [ -z "$key_clean" ] && continue
+         LOG_OUT "Tip: Load Overwrite Script【$key_clean => '$value_clean'】"
+      done <<EOF
+$(uci -q show openclash.@overwrite[0] | grep -v '=overwrite$' | sed 's/^openclash\.@overwrite\[0\]\.//g')
+EOF
+   else
+      clear_overwrite_set
+   fi
+}
+
+clear_overwrite_set()
+{
+   uci -q delete openclash.@overwrite[0]
+   uci -q commit openclash
+}
+
 get_config()
 {
-   enable=$(uci -q get openclash.config.enable)
-   rule_source=$(uci -q get openclash.config.rule_source)
-   enable_custom_clash_rules=$(uci -q get openclash.config.enable_custom_clash_rules)
-   da_password=$(uci -q get openclash.config.dashboard_password)
-   cn_port=$(uci -q get openclash.config.cn_port)
-   proxy_port=$(uci -q get openclash.config.proxy_port)
-   tproxy_port=$(uci -q get openclash.config.tproxy_port || echo 7895)
-   proxy_mode=$(uci -q get openclash.config.proxy_mode)
-   ipv6_enable=$(uci -q get openclash.config.ipv6_enable)
-   ipv6_dns=$(uci -q get openclash.config.ipv6_dns || echo 0)
-   ipv6_mode=$(uci -q get openclash.config.ipv6_mode || echo 0)
-   enable_v6_udp_proxy=$(uci -q get openclash.config.enable_v6_udp_proxy || echo 0)
-   http_port=$(uci -q get openclash.config.http_port)
-   socks_port=$(uci -q get openclash.config.socks_port)
-   enable_redirect_dns=$(uci -q get openclash.config.enable_redirect_dns || echo 1)
-   if [ "$(uci -q get openclash.config.fakeip_range)"  == "0" ]; then
+   RAW_CONFIG_FILE=$(uci_get "config_path")
+   CFG_NAME=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
+   BACKUP_FILE="/etc/openclash/backup/${CFG_NAME}"
+   CONFIG_FILE="/etc/openclash/${CFG_NAME}"
+   TMP_CONFIG_FILE="/tmp/yaml_config_tmp_${CFG_NAME}"
+   enable=$(uci_get "enable")
+   rule_source=$(uci_get "rule_source")
+   enable_custom_clash_rules=$(uci_get "enable_custom_clash_rules")
+   da_password=$(uci_get "dashboard_password")
+   cn_port=$(uci_get "cn_port")
+   proxy_port=$(uci_get "proxy_port")
+   tproxy_port=$(uci_get "tproxy_port" || echo 7895)
+   proxy_mode=$(uci_get "proxy_mode")
+   ipv6_enable=$(uci_get "ipv6_enable")
+   ipv6_dns=$(uci_get "ipv6_dns" || echo 0)
+   ipv6_mode=$(uci_get "ipv6_mode" || echo 0)
+   enable_v6_udp_proxy=$(uci_get "enable_v6_udp_proxy" || echo 0)
+   http_port=$(uci_get "http_port")
+   socks_port=$(uci_get "socks_port")
+   enable_redirect_dns=$(uci_get "enable_redirect_dns" || echo 1)
+   if [ "$(uci_get "fakeip_range")"  == "0" ]; then
       fakeip_range=$(ruby_read "$CONFIG_FILE" "['dns']['fake-ip-range']")
    else
-      fakeip_range=$(uci -q get openclash.config.fakeip_range)
+      fakeip_range=$(uci_get "fakeip_range")
    fi
    [ -z "$fakeip_range" ] && fakeip_range="198.18.0.1/16"
 
-   lan_interface_name=$(uci -q get openclash.config.lan_interface_name || echo 0)
+   lan_interface_name=$(uci_get "lan_interface_name" || echo 0)
    if [ "$lan_interface_name" = "0" ]; then
       lan_ip=$(uci -q get network.lan.ipaddr 2>/dev/null | awk -F '/' '{print $1}' 2>/dev/null | tr -d '\n' || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet" 2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -1 | tr -d '\n' || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1 | tr -d '\n')
    else
@@ -2893,55 +3240,65 @@ get_config()
 
    wan_ip4s=$(/usr/share/openclash/openclash_get_network.lua "wanip" 2>/dev/null)
    wan_ip6s=$(ifconfig | grep 'inet6 addr' | awk '{print $3}' 2>/dev/null)
-   log_level=$(uci -q get openclash.config.log_level)
-   intranet_allowed=$(uci -q get openclash.config.intranet_allowed)
-   enable_udp_proxy=$(uci -q get openclash.config.enable_udp_proxy || echo 1)
-   disable_udp_quic=$(uci -q get openclash.config.disable_udp_quic)
-   operation_mode=$(uci -q get openclash.config.operation_mode)
-   lan_ac_mode=$(uci -q get openclash.config.lan_ac_mode)
-   enable_rule_proxy=$(uci -q get openclash.config.enable_rule_proxy)
-   stack_type=$(uci -q get openclash.config.stack_type)
-   stack_type_v6=$(uci -q get openclash.config.stack_type_v6 || echo "system")
-   china_ip_route=$(uci -q get openclash.config.china_ip_route); [[ "$china_ip_route" != "0" && "$china_ip_route" != "1" && "$china_ip_route" != "2" ]] && china_ip_route=0
-   china_ip6_route=$(uci -q get openclash.config.china_ip6_route); [[ "$china_ip6_route" != "0" && "$china_ip6_route" != "1" && "$china_ip6_route" != "2" ]] && china_ip6_route=0
-   small_flash_memory=$(uci -q get openclash.config.small_flash_memory)
-   mixed_port=$(uci -q get openclash.config.mixed_port)
-   interface_name=$(uci -q get openclash.config.interface_name || echo 0)
-   common_ports=$(uci -q get openclash.config.common_ports)
-   dns_port=$(uci -q get openclash.config.dns_port)
-   store_fakeip=$(uci -q get openclash.config.store_fakeip || echo 0)
-   bypass_gateway_compatible=$(uci -q get openclash.config.bypass_gateway_compatible || echo 0)
-   core_version=$(uci -q get openclash.config.core_version || echo 0)
-   router_self_proxy=$(uci -q get openclash.config.router_self_proxy || echo 1)
-   enable_meta_sniffer=$(uci -q get openclash.config.enable_meta_sniffer || echo 0)
-   enable_meta_sniffer_custom=$(uci -q get openclash.config.enable_meta_sniffer_custom || echo 0)
-   geodata_loader=$(uci -q get openclash.config.geodata_loader || echo 0)
-   enable_geoip_dat=$(uci -q get openclash.config.enable_geoip_dat || echo 0)
-   enable_tcp_concurrent=$(uci -q get openclash.config.enable_tcp_concurrent || echo 0)
-   append_default_dns=$(uci -q get openclash.config.append_default_dns || echo 0)
-   enable_meta_sniffer_pure_ip=$(uci -q get openclash.config.enable_meta_sniffer_pure_ip || echo 0)
-   find_process_mode=$(uci -q get openclash.config.find_process_mode || echo 0)
+   log_level=$(uci_get "log_level")
+   intranet_allowed=$(uci_get "intranet_allowed")
+   enable_udp_proxy=$(uci_get "enable_udp_proxy" || echo 1)
+   disable_udp_quic=$(uci_get "disable_udp_quic")
+   operation_mode=$(uci_get "operation_mode")
+   lan_ac_mode=$(uci_get "lan_ac_mode")
+   enable_rule_proxy=$(uci_get "enable_rule_proxy")
+   stack_type=$(uci_get "stack_type")
+   stack_type_v6=$(uci_get "stack_type_v6" || echo "system")
+   china_ip_route=$(uci_get "china_ip_route"); [[ "$china_ip_route" != "0" && "$china_ip_route" != "1" && "$china_ip_route" != "2" ]] && china_ip_route=0
+   china_ip6_route=$(uci_get "china_ip6_route"); [[ "$china_ip6_route" != "0" && "$china_ip6_route" != "1" && "$china_ip6_route" != "2" ]] && china_ip6_route=0
+   small_flash_memory=$(uci_get "small_flash_memory")
+   mixed_port=$(uci_get "mixed_port")
+   interface_name=$(uci_get "interface_name" || echo 0)
+   common_ports=$(uci_get "common_ports")
+   dns_port=$(uci_get "dns_port")
+   store_fakeip=$(uci_get "store_fakeip" || echo 0)
+   bypass_gateway_compatible=$(uci_get "bypass_gateway_compatible" || echo 0)
+   core_version=$(uci_get "core_version" || echo 0)
+   router_self_proxy=$(uci_get "router_self_proxy" || echo 1)
+   enable_meta_sniffer=$(uci_get "enable_meta_sniffer" || echo 0)
+   enable_meta_sniffer_custom=$(uci_get "enable_meta_sniffer_custom" || echo 0)
+   geodata_loader=$(uci_get "geodata_loader" || echo 0)
+   enable_geoip_dat=$(uci_get "enable_geoip_dat" || echo 0)
+   enable_tcp_concurrent=$(uci_get "enable_tcp_concurrent" || echo 0)
+   append_default_dns=$(uci_get "append_default_dns" || echo 0)
+   enable_meta_sniffer_pure_ip=$(uci_get "enable_meta_sniffer_pure_ip" || echo 0)
+   find_process_mode=$(uci_get "find_process_mode" || echo 0)
    upnp_lease_file=$(uci -q get upnpd.config.upnp_lease_file)
-   global_client_fingerprint=$(uci -q get openclash.config.global_client_fingerprint || echo 0)
-   enable_unified_delay=$(uci -q get openclash.config.enable_unified_delay || echo 0)
-   enable_respect_rules=$(uci -q get openclash.config.enable_respect_rules || echo 0)
-   intranet_allowed_wan_name=$(uci -q get openclash.config.intranet_allowed_wan_name || echo 0)
-   custom_fakeip_filter_mode=$(uci -q get openclash.config.custom_fakeip_filter_mode || echo "blacklist")
+   global_client_fingerprint=$(uci_get "global_client_fingerprint" || echo 0)
+   enable_unified_delay=$(uci_get "enable_unified_delay" || echo 0)
+   enable_respect_rules=$(uci_get "enable_respect_rules" || echo 0)
+   intranet_allowed_wan_name=$(uci_get "intranet_allowed_wan_name" || echo 0)
+   custom_fakeip_filter_mode=$(uci_get "custom_fakeip_filter_mode" || echo "blacklist")
    iptables_compat=$(iptables -m owner -h 2>/dev/null | grep "owner match options" || command -v fw4 || echo 0)
-   disable_quic_go_gso=$(uci -q get openclash.config.disable_quic_go_gso || echo 0)
-   smart_enable=$(uci -q get openclash.config.smart_enable || echo 0)
-   cors_allow=$(uci -q get openclash.config.dashboard_forward_domain || echo 0)
-   geo_custom_url=$(uci -q get openclash.config.geo_custom_url || echo 0)
-   geoip_custom_url=$(uci -q get openclash.config.geoip_custom_url || echo 0)
-   geosite_custom_url=$(uci -q get openclash.config.geosite_custom_url || echo 0)
-   geoasn_custom_url=$(uci -q get openclash.config.geoasn_custom_url || echo 0)
+   disable_quic_go_gso=$(uci_get "disable_quic_go_gso" || echo 0)
+   smart_enable=$(uci_get "smart_enable" || echo 0)
+   cors_allow=$(uci_get "dashboard_forward_domain" || echo 0)
+   geo_custom_url=$(uci_get "geo_custom_url" || echo 0)
+   geoip_custom_url=$(uci_get "geoip_custom_url" || echo 0)
+   geosite_custom_url=$(uci_get "geosite_custom_url" || echo 0)
+   geoasn_custom_url=$(uci_get "geoasn_custom_url" || echo 0)
+   auto_smart_switch=$(uci_get "auto_smart_switch" || echo 0)
+   lgbm_auto_update=$(uci_get "lgbm_auto_update" || echo 0)
+   lgbm_custom_url=$(uci_get "lgbm_custom_url" || echo "https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/Model.bin")
+   lgbm_update_interval=$(uci_get "lgbm_update_interval" || echo 72)
+   smart_collect=$(uci_get "smart_collect" || echo 0)
+   smart_collect_size=$(uci_get "smart_collect_size" || echo 100)
+   smart_collect_rate=$(uci_get "smart_collect_rate" || echo 1)
+   smart_strategy=$(uci_get "smart_strategy" || echo "sticky-sessions")
+   smart_policy_priority=$(uci_get "smart_policy_priority" || echo 0)
+
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q commit openclash
 }
 
 start_service()
 {
-   enable=$(uci -q get openclash.config.enable)
+   enable=$(uci_get "enable")
    [ "$enable" != "1" ] && LOG_OUT "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && exit 0
 
    LOG_OUT "OpenClash Start Running..."
@@ -2950,11 +3307,11 @@ start_service()
       #快速启动判断
       check_run_quick
 
+      LOG_OUT "Step 1: Get The Configuration..."
+      overwrite_file
+      get_config
       config_choose
       do_run_mode
-
-      LOG_OUT "Step 1: Get The Configuration..."
-      get_config
 
       LOG_OUT "Step 2: Check The Components..."
       do_run_file "$RAW_CONFIG_FILE" "$BACKUP_FILE"
@@ -2969,13 +3326,21 @@ start_service()
          "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip"\
          "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay"\
          "$enable_respect_rules" "$custom_fakeip_filter_mode" "$iptables_compat" "$disable_quic_go_gso" "$cors_allow"\
-         "$geo_custom_url" "$geoip_custom_url" "$geosite_custom_url" "$geoasn_custom_url"
+         "$geo_custom_url" "$geoip_custom_url" "$geosite_custom_url" "$geoasn_custom_url"\
+         "$lgbm_auto_update" "$lgbm_custom_url" "$lgbm_update_interval" "$smart_collect" "$smart_collect_size"
          
          /usr/share/openclash/yml_rules_change.sh \
          "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE"\
-         "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$enable_redirect_dns" "$en_mode"
+         "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$enable_redirect_dns" "$en_mode"\
+         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_strategy" "$smart_policy_priority"
          
          #Custom overwrite
+         if [ -f "/tmp/yaml_overwrite.sh" ]; then
+            chmod +x /tmp/yaml_overwrite.sh
+            CONFIG_FILE="${TMP_CONFIG_FILE}" /tmp/yaml_overwrite.sh
+            rm -rf /tmp/yaml_openclash_ruby_parts
+         fi
+
          if [ -f "/etc/openclash/custom/openclash_custom_overwrite.sh" ]; then
             chmod +x /etc/openclash/custom/openclash_custom_overwrite.sh
             /etc/openclash/custom/openclash_custom_overwrite.sh "$TMP_CONFIG_FILE"
@@ -2984,20 +3349,20 @@ start_service()
                   [ -z "$yaml_file" ] && continue
                   ruby_code=$(grep "yaml_file_path=['\"]$yaml_file['\"]" /tmp/yaml_openclash_ruby_parse | sed "s/^threads << Thread.new do //;s/ end$//")
                   if [ -z "$ruby_code" ]; then
-                     continue
+                  continue
                   fi
                   if [ -f "$yaml_file" ]; then
-                     (
-                        ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-                        Value = YAML.load_file('$yaml_file');
-                        threads = []
-                        $ruby_code
-                        threads.each(&:join)
-                        File.open('$yaml_file', 'w') do |f|
-                           YAML.dump(Value, f)
-                        end
-                        " >> $LOG_FILE 2>&1
-                     )
+                  (
+                     ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                     Value = YAML.load_file('$yaml_file');
+                     threads = []
+                     $ruby_code
+                     threads.each(&:join)
+                     File.open('$yaml_file', 'w') do |f|
+                        YAML.dump(Value, f)
+                     end
+                     " >> $LOG_FILE 2>&1
+                  )
                   fi
                done
             fi
@@ -3030,14 +3395,14 @@ start_service()
       write_run_quick
       SLOG_CLEAN
       rm -rf /tmp/yaml_*
-   } >/dev/null 2>&1
+   }
 
    echo "OpenClash Already Start!"
 }
 
 stop_service()
 {
-   enable=$(uci -q get openclash.config.enable)
+   enable=$(uci_get "enable")
 
    LOG_OUT "OpenClash Stoping..."
    LOG_OUT "Step 1: Backup The Current Groups State..."
@@ -3088,6 +3453,7 @@ stop_service()
       fi
 
       del_cron
+      clear_overwrite_set
       rm -rf /tmp/yaml_*
       rm -rf $START_LOG
    } >/dev/null 2>&1
@@ -3098,17 +3464,17 @@ stop_service()
 revert_dnsmasq()
 {
    get_config
-   redirect_dns=$(uci -q get openclash.config.redirect_dns)
-   dnsmasq_server=$(uci -q get openclash.config.dnsmasq_server)
-   dnsmasq_noresolv=$(uci -q get openclash.config.dnsmasq_noresolv)
-   dnsmasq_resolvfile=$(uci -q get openclash.config.dnsmasq_resolvfile)
-   cachesize_dns=$(uci -q get openclash.config.cachesize_dns)
-   dnsmasq_cachesize=$(uci -q get openclash.config.dnsmasq_cachesize)
-   filter_aaaa_dns=$(uci -q get openclash.config.filter_aaaa_dns)
-   dnsmasq_filter_aaaa=$(uci -q get openclash.config.dnsmasq_filter_aaaa)
-   default_resolvfile=$(uci -q get openclash.config.default_resolvfile)
+   redirect_dns=$(uci_get "redirect_dns")
+   dnsmasq_server=$(uci_get "dnsmasq_server")
+   dnsmasq_noresolv=$(uci_get "dnsmasq_noresolv")
+   dnsmasq_resolvfile=$(uci_get "dnsmasq_resolvfile")
+   cachesize_dns=$(uci_get "cachesize_dns")
+   dnsmasq_cachesize=$(uci_get "dnsmasq_cachesize")
+   filter_aaaa_dns=$(uci_get "filter_aaaa_dns")
+   dnsmasq_filter_aaaa=$(uci_get "dnsmasq_filter_aaaa")
+   default_resolvfile=$(uci_get "default_resolvfile")
    revert_dns "$redirect_dns" "$enable" "$default_resolvfile" "$dnsmasq_noresolv" "$dnsmasq_resolvfile" "$cachesize_dns" "$dnsmasq_cachesize" "$filter_aaaa_dns" "$dnsmasq_filter_aaaa" "$dnsmasq_server"
-   /etc/init.d/dnsmasq restart
+   /etc/init.d/dnsmasq enabled && /etc/init.d/dnsmasq restart
 } >/dev/null 2>&1
 
 restart()
@@ -3129,7 +3495,7 @@ start_watchdog()
 
 reload_service()
 {
-   enable=$(uci -q get openclash.config.enable)
+   enable=$(uci_get "enable")
    MAX_RELOAD=10
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "firewall" ]; then
       NOW_TS=$(date +%s)
@@ -3194,8 +3560,8 @@ reload_service()
 
 boot()
 {
-	delay_start=$(uci -q get openclash.config.delay_start || echo 0)
-	enable=$(uci -q get openclash.config.enable)
+	delay_start=$(uci_get "delay_start" || echo 0)
+	enable=$(uci_get "enable")
 	if [ "$delay_start" -gt 0 ] && [ "$enable" == "1" ]; then
 		LOG_OUT "Enable Delay Start, OpenClash Will Start After【$delay_start】Seconds..."
 		sleep "$delay_start"
