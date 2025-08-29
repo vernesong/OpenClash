@@ -1319,7 +1319,8 @@ var ConfigEditor = {
 
         var filename;
         if (this.isOverwrite) {
-            filename = 'openclash_custom_overwrite.sh';
+            filename = this.formatDisplayName(this.currentConfigFile);
+            if (!filename) filename = 'openclash_custom_overwrite.sh';
         } else {
             filename = this.formatDisplayName(this.currentConfigFile);
             if (!filename.toLowerCase().endsWith('.yaml') && !filename.toLowerCase().endsWith('.yml')) {
