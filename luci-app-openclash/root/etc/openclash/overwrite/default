@@ -129,7 +129,7 @@
 # =========================
 
 # ==========================================================
-# ==== 以下为调用外部模板作为配置文件示例，用户可以不再需要进行大部分插件设置 ====
+# ==== 以下为调用外部第三方模板作为配置文件示例，用户需在添加模块时设置指定环境变量，可以不再需要进行大部分插件设置 ====
 # ==========================================================
 
 #[General]
@@ -165,6 +165,50 @@
 #ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "优质服务商" "['url']" "$EN_KEY1"
 #ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "备用服务商" "['url']" "$EN_KEY2"
 #ruby_map_edit "$CONFIG_FILE" "['proxy-providers']" "落地服务商" "['url']" "$EN_KEY3"
+
+# ==========================================================
+# ==== 以下为向下游客户端下发配置时使用conf形式的示例，直接使用包含节点信息的配置，用户可以不再需要进行大部分插件设置 ====
+# ==========================================================
+
+#[General]
+#CORE_TYPE = Meta
+
+# --- DNS 相关 ---
+#ENABLE_REDIRECT_DNS = 1
+#ENABLE_CUSTOM_DNS = 1
+#APPEND_DEFAULT_DNS = 1
+#APPEND_WAN_DNS = 0
+#STORE_FAKEIP = 1
+#CUSTOM_FAKEIP_FILTER = 1
+#CUSTOM_FAKEIP_FILTER_MODE = blacklist
+#FAKEIP_RANGE = 198.18.0.1/16
+#ENABLE_RESPECT_RULES = 1
+#CUSTOM_NAME_POLICY = 1
+#CUSTOM_HOST = 1
+#CUSTOM_FALLBACK_FILTER = 1
+
+# --- IPv6 相关 ---
+#IPV6_ENABLE = 0
+#IPV6_DNS = 0
+
+# --- 代理与模式 ---
+#EN_MODE = fake-ip-mix
+#DISABLE_UDP_QUIC = 1
+#ROUTER_SELF_PROXY = 1
+#PROXY_MODE = rule
+#STACK_TYPE = system
+
+# --- 模块更新后重启 ---
+#RESTART = true
+
+# --- 下载包含代理节点信息的配置文件 ---
+#DOWNLOAD_FILE = url=https://default-demo.yaml, path=/etc/openclash/config/default-demo.yaml, cron=0 6 * * *, force=true, restart=false
+
+#将配置作为默认配置文件
+#ONFIG_FILE = /etc/openclash/config/default-demo.yaml
+
+#指定展示订阅信息的 URL 地址
+#SUB_INFO_URL = https://default-demo.yaml
 
 # ==========================================================
 # ==== 以下为仅修改插件设置示例 ====
