@@ -4125,9 +4125,6 @@ msgstr "下载完成"
 msgid "Failed to save subscription info:"
 msgstr "订阅信息保存失败:"
 
-msgid "Overwrite Settings"
-msgstr "覆写文件属性"
-
 msgid "Ready to edit"
 msgstr "准备编辑"
 
