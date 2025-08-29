@@ -154,7 +154,7 @@
 #DOWNLOAD_FILE = url=https://git.imee.me/https://github.com/666OS/YYDS/raw/main/mihomo/config/OneSmartPro.yaml, path=/etc/openclash/config/OneSmartPro.yaml, cron=0 6 * * *, force=false
 
 #将模板作为默认配置文件
-#ONFIG_FILE = /etc/openclash/config/OneSmartPro.yaml
+#CONFIG_FILE = /etc/openclash/config/OneSmartPro.yaml
 
 #指定展示订阅信息的 URL 地址
 #SUB_INFO_URL = $EN_KEY1
