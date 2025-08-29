@@ -613,6 +613,7 @@
 <script src="/luci-static/resources/openclash/mode/yaml/yaml.js"></script>
 <script src="/luci-static/resources/openclash/mode/lua/lua.js"></script>
 <script src="/luci-static/resources/openclash/mode/shell/shell.js"></script>
+<script src="/luci-static/resources/openclash/mode/properties/properties.js"></script>
 <script src="/luci-static/resources/openclash/addon/fold/foldcode.js"></script>
 <script src="/luci-static/resources/openclash/addon/fold/foldgutter.js"></script>
 <script src="/luci-static/resources/openclash/addon/fold/indent-fold.js"></script>
@@ -978,8 +979,10 @@ var ConfigEditor = {
             url = '/cgi-bin/luci/admin/services/openclash/config_file_read?config_file=' + encodeURIComponent(file);
             if (file.endsWith('.yaml') || file.endsWith('.yml')) {
                 mode = "text/yaml";
-            } else {
+            } else if (file.endsWith('.sh')) {
                 mode = "text/x-sh";
+            } else {
+                mode = "text/x-properties";
             }
         } else if (this.currentViewMode === 'runtime') {
             var runtimePath = '/etc/openclash/' + encodeURIComponent(this.formatDisplayName(this.currentConfigFile));
