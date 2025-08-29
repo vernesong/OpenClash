@@ -126,6 +126,8 @@ jobs:
           echo "https://img.shields.io/badge/New Release-v${{ needs.Get-Version.outputs.version }}-orange.svg" >> ./${{ github.ref_name }}/version
           cp ./luci-app-openclash_*.ipk "./${{ github.ref_name }}/"
           cp ./luci-app-openclash-*.apk "./${{ github.ref_name }}/"
+          rm -f ./luci-app-openclash_*.ipk
+          rm -f ./luci-app-openclash-*.apk
           sed -i -E "s/OpenClash\/tree\/v(.*)/OpenClash\/tree\/v${{ needs.Get-Version.outputs.version }}/g" ./${{ github.ref_name }}/README.md
           sed -i -E "s/OpenClash\/releases\/tag\/v(.*)/OpenClash\/releases\/tag\/v${{ needs.Get-Version.outputs.version }}/g" ./${{ github.ref_name }}/README.md
           sed -i -E "s/source code-v(.*)-green/source code-v${{ needs.Get-Version.outputs.version }}-green/g" ./${{ github.ref_name }}/README.md
