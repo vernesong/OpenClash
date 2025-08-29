@@ -212,13 +212,13 @@ config dns_servers
 	option type 'https'
 
 config dns_servers
-	option enabled '0'
+	option enabled '1'
 	option group 'fallback'
 	option ip 'dns.google/dns-query'
 	option type 'https'
 
 config dns_servers
-	option enabled '0'
+	option enabled '1'
 	option group 'fallback'
 	option ip 'dns.cloudflare.com/dns-query'
 	option type 'https'
