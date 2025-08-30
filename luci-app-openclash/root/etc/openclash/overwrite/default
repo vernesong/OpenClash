@@ -8,9 +8,6 @@
 
 # --- 网络与接口 ---
 # LAN_INTERFACE_NAME (LAN 接口名称)
-# LAN_IP (IP 地址)
-# WAN_IP4S (WAN IPv4 地址)
-# WAN_IP6S (WAN IPv6 地址)
 # INTERFACE_NAME (绑定 wan 接口的名称)
 
 # --- 控制面板相关 ---
