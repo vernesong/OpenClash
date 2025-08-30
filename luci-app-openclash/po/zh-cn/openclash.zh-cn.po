@@ -4155,6 +4155,12 @@ msgstr "提示：执行覆写模块"
 msgid "Tip: Load Overwrite Script"
 msgstr "提示：加载覆写命令"
 
+msgid "Tip: DOWNLOAD FILE for"
+msgstr "提示：执行文件下载"
+
+msgid "Tip: Add Cron for"
+msgstr "提示：添加计划任务"
+
 msgid "Delete"
 msgstr "删除"
 

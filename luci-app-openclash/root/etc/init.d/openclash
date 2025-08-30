@@ -3060,6 +3060,7 @@ ${trimmed}"
          path=$(echo "$val" | sed -nE 's/.*path[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
          cron=$(echo "$val" | sed -nE 's/.*cron[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
          force=$(echo "$val" | sed -nE 's/.*force[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+         ua=$(echo "$val" | sed -nE 's/.*ua[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
          restart=$(echo "$val" | sed -nE 's/.*restart[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
          [ -z "$cron" ] && cron=0
          if [ -z "$path" ] || [ -z "$url" ]; then
@@ -3071,28 +3072,42 @@ ${trimmed}"
          if [ ! -f "$path" ] || [ "$force" = "true" ]; then
             need_download=1
          fi
+         if [ "$need_download" -eq 1 ] && [ -n "$url" ]; then
+            LOG_OUT "Tip: DOWNLOAD FILE for【$file: url=$url, path=$path】"
+            if command -v curl >/dev/null 2>&1; then
+               if [ -n "$ua" ]; then
+                  curl -fsSL -m 30 -H "User-Agent: $ua" "$url" -o "$path" >/dev/null 2>&1
+               else
+                  curl -fsSL -m 30 "$url" -o "$path" >/dev/null 2>&1
+               fi
+               rc=$?
+            else
+               if [ -n "$ua" ]; then
+                  wget -T 30 --user-agent="$ua" -qO "$path" "$url" >/dev/null 2>&1
+               else
+                  wget -T 30 -qO "$path" "$url" >/dev/null 2>&1
+               fi
+               rc=$?
+            fi
+            if [ $rc -ne 0 ] && [ ! -f "$path" ]; then
+               LOG_OUT "Error: DOWNLOAD FILE failed for【$file: url=$url, path=$path】"
+               download_failed=1
+               break
+            fi
+         fi
          if [ "$cron" != "0" ]; then
+            LOG_OUT "Tip: Add Cron for【url=$url, path=$path, restart=$restart】"
             if ! grep -q "$url" $CRON_FILE 2>/dev/null; then
-               cron_cmd="$cron curl -fsSL -m 30 \"$url\" -o \"$path\" >/dev/null 2>&1"
+               if [ -n "$ua" ]; then
+                  cron_cmd="$cron curl -fsSL -m 30 -H \"User-Agent: $ua\" \"$url\" -o \"$path\" >/dev/null 2>&1"
+               else
+                  cron_cmd="$cron curl -fsSL -m 30 \"$url\" -o \"$path\" >/dev/null 2>&1"
+               fi
                if [ "$restart" = "1" ] || [ "$restart" = "true" ]; then
                   cron_cmd="$cron_cmd && /etc/init.d/openclash restart"
                fi
                cron_cmd="$cron_cmd #openclash-overwrite-download"
                echo "$cron_cmd" >> $CRON_FILE
-            fi
-         fi
-         if [ "$need_download" -eq 1 ] && [ -n "$url" ]; then
-            if command -v curl >/dev/null 2>&1; then
-                  curl -fsSL -m 30 "$url" -o "$path" >/dev/null 2>&1
-                  rc=$?
-            else
-                  wget -T 30 -qO "$path" "$url" >/dev/null 2>&1
-                  rc=$?
-            fi
-            if [ $rc -ne 0 ] && [ ! -f "$path" ]; then
-                  LOG_OUT "Error: DOWNLOAD FILE failed for【$file url=$url path=$path】"
-                  download_failed=1
-                  break
             fi
          fi
       done
@@ -3149,7 +3164,7 @@ ${trimmed}"
                   val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
                   uci -q set openclash.@overwrite[0]."$key_l"="${val_clean}"
                else
-                  LOG_OUT "Warning: skip General key not allowed【$key_u - $file】"
+                  LOG_OUT "Warning: skip General key not allowed【$file: $key_u】"
                fi
             fi
          elif [ "$in_overwrite" -eq 1 ]; then
