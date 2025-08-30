@@ -110,7 +110,7 @@
 # GEOIP_UPDATE_DAY_TIME (GeoIP Dat 数据更新小时, 0-23 or *, default 1)
 # GEOIP_CUSTOM_URL (GeoIP Dat 数据自定义更新地址, URL or default)
 # GEOSITE_AUTO_UPDATE (GeoSite 数据自动更新, 0: 禁用, 1: 启用)
-# EOSITE_UPDATE_WEEK_TIME (GeoSite 数据更新日, 0-6 or *, 0代表星期天, *代表每天, default 0)
+# GEOSITE_UPDATE_WEEK_TIME (GeoSite 数据更新日, 0-6 or *, 0代表星期天, *代表每天, default 0)
 # GEOSITE_UPDATE_DAY_TIME (GeoSite 数据更新小时, 0-23 or *, default 1)
 # GEOSITE_CUSTOM_URL (GeoSite 数据自定义更新地址, URL or default)
 # GEOASN_AUTO_UPDATE (GeoASN 数据自动更新, 0: 禁用, 1: 启用)
@@ -154,7 +154,7 @@
 #DOWNLOAD_FILE = url=https://git.imee.me/https://github.com/666OS/YYDS/raw/main/mihomo/config/OneSmartPro.yaml, path=/etc/openclash/config/OneSmartPro.yaml, cron=0 6 * * *, force=false
 
 #将模板作为默认配置文件
-#ONFIG_FILE = /etc/openclash/config/OneSmartPro.yaml
+#CONFIG_FILE = /etc/openclash/config/OneSmartPro.yaml
 
 #指定展示订阅信息的 URL 地址
 #SUB_INFO_URL = $EN_KEY1
