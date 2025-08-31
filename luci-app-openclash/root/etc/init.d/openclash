@@ -3064,7 +3064,7 @@ ${trimmed}"
          restart=$(echo "$val" | sed -nE 's/.*restart[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
          [ -z "$cron" ] && cron=0
          if [ -z "$path" ] || [ -z "$url" ]; then
-            LOG_OUT "Warning: DOWNLOAD FILE no target in【$file】"
+            LOG_OUT "Warning: DOWNLOAD FILE no target in【Download Job => file: $file】"
             download_failed=1
             break
          fi
@@ -3073,7 +3073,7 @@ ${trimmed}"
             need_download=1
          fi
          if [ "$need_download" -eq 1 ] && [ -n "$url" ]; then
-            LOG_OUT "Tip: DOWNLOAD FILE for【$file: url=$url, path=$path】"
+            LOG_OUT "Tip: DOWNLOAD FILE for【Download Job => file: $file, url: $url, path: $path, ua: ${ua:-null}, force: ${force:-false}】"
             if command -v curl >/dev/null 2>&1; then
                if [ -n "$ua" ]; then
                   curl -fsSL -m 30 -H "User-Agent: $ua" "$url" -o "$path" >/dev/null 2>&1
@@ -3090,13 +3090,13 @@ ${trimmed}"
                rc=$?
             fi
             if [ $rc -ne 0 ] && [ ! -f "$path" ]; then
-               LOG_OUT "Error: DOWNLOAD FILE failed for【$file: url=$url, path=$path】"
+               LOG_OUT "Error: DOWNLOAD FILE failed for【Download Job => file: $file, url: $url, path: $path】"
                download_failed=1
                break
             fi
          fi
          if [ "$cron" != "0" ]; then
-            LOG_OUT "Tip: Add Cron for【url=$url, path=$path, restart=$restart】"
+            LOG_OUT "Tip: Add Cron for【Cron Job => time: $cron, url: $url, path: $path, restart: ${restart:-false}】"
             if ! grep -q "$url" $CRON_FILE 2>/dev/null; then
                if [ -n "$ua" ]; then
                   cron_cmd="$cron curl -fsSL -m 30 -H \"User-Agent: $ua\" \"$url\" -o \"$path\" >/dev/null 2>&1"
@@ -3164,7 +3164,7 @@ ${trimmed}"
                   val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
                   uci -q set openclash.@overwrite[0]."$key_l"="${val_clean}"
                else
-                  LOG_OUT "Warning: skip General key not allowed【$file: $key_u】"
+                  LOG_OUT "Warning: skip General key not allowed【General Key => $name: $key_u】"
                fi
             fi
          elif [ "$in_overwrite" -eq 1 ]; then
@@ -3172,7 +3172,7 @@ ${trimmed}"
                echo "$trimmed" >> "$overwrite_script"
                LOG_OUT "Tip: Load Overwrite Script【Ruby Script => $trimmed】"
             else
-               LOG_OUT "Warning: skip invalid Overwrite command【$file: $trimmed】"
+               LOG_OUT "Warning: skip invalid Overwrite command【Ruby Script => $name: $trimmed】"
             fi
          fi
       done < "$file"
