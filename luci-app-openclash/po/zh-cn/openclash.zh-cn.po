@@ -1476,6 +1476,9 @@ msgstr "GeoIP MMDB 数据库更新 URL"
 msgid "Custom GeoSite URL"
 msgstr "GeoSite 数据库更新 URL"
 
+msgid "Custom Geo ASN URL"
+msgstr "Geo ASN 数据库更新 URL"
+
 msgid "Custom Chnroute6 Lists URL"
 msgstr "大陆 IPv6 段更新 URL"
 
