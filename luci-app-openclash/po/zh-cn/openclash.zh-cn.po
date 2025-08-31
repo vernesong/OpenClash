@@ -138,7 +138,7 @@ msgid "fake-ip-mix(tun mix mode)"
 msgstr "Fake-IP（TUN-混合）模式【UDP-TUN，TCP-转发】"
 
 msgid "Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error"
-msgstr "选择运行模式，如客户端的网络异常请尝试清除DNS缓存"
+msgstr "选择运行模式，如客户端的网络异常请尝试清除 DNS 缓存"
 
 msgid "Proxy Mode"
 msgstr "代理模式"
@@ -237,13 +237,13 @@ msgid "Specify DNS Server"
 msgstr "指定服务器"
 
 msgid "Specify DNS Server For List, Only One IP Server Address Support"
-msgstr "指定下方列表中域名的 DNS 服务器，只支持填写一个IP地址"
+msgstr "指定下方列表中域名的 DNS 服务器，只支持填写一个 IP 地址"
 
 msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line, Depend on Dnsmasq"
-msgstr "每行请只填写一个域名，列表中的域名将使用上方指定的 DNS 进行查询并返回真实IP地址，此功能依赖于 Dnsmasq"
+msgstr "每行请只填写一个域名，列表中的域名将使用上方指定的 DNS 进行查询并返回真实 IP 地址，此功能依赖于 Dnsmasq"
 
 msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line"
-msgstr "每行请只填写一个域名，列表中的域名在 Fake-IP 模式下将返回真实IP地址"
+msgstr "每行请只填写一个域名，列表中的域名在 Fake-IP 模式下将返回真实 IP 地址"
 
 msgid "Domain Names In The List Use The Custom DNS Server, But Still Return Fake-IP Results, One rule per line"
 msgstr "每行请只填写一个规则，列表中的域名将使用指定的 DNS 进行查询，但 Fake-IP 模式下仍将返回保留地址"
@@ -435,10 +435,10 @@ msgid "Port For Dashboard Login From Public Network"
 msgstr "设置映射端口，便于从公网访问时自动登录"
 
 msgid "Public Dashboard SSL enabled"
-msgstr "管理页面公网SSL访问"
+msgstr "管理页面公网 SSL 访问"
 
 msgid "Is SSL enabled For Dashboard Login From Public Network"
-msgstr "设置公网协议是否开启了SSL，便于从公网访问时自动登录"
+msgstr "设置公网协议是否开启了 SSL，便于从公网访问时自动登录"
 
 msgid "GEO Update"
 msgstr "GEO 数据库订阅"
@@ -700,7 +700,7 @@ msgid "Server Port"
 msgstr "服务器端口"
 
 msgid "UDP Support"
-msgstr "UDP支持"
+msgstr "UDP 支持"
 
 msgid "Edit Server"
 msgstr "编辑服务器配置"
@@ -862,7 +862,7 @@ msgid "Group Name"
 msgstr "别名（请勿重名）"
 
 msgid "Disable UDP"
-msgstr "禁用UDP连接"
+msgstr "禁用 UDP 连接"
 
 msgid "Test URL"
 msgstr "检测地址（URL）"
@@ -991,7 +991,7 @@ msgid "Provider Filter"
 msgstr "代理集节点筛选"
 
 msgid "Provider URL"
-msgstr "代理集URL"
+msgstr "代理集 URL"
 
 msgid "Provider Interval(s)"
 msgstr "代理集更新间隔（s）"
@@ -1000,7 +1000,7 @@ msgid "Provider Health Check"
 msgstr "代理集状态检查"
 
 msgid "Health Check URL"
-msgstr "状态检查URL"
+msgstr "状态检查 URL"
 
 msgid "Health Check Interval(s)"
 msgstr "状态检查间隔（s）"
@@ -1162,7 +1162,7 @@ msgid "Custom Template"
 msgstr "自定义模板"
 
 msgid "Emoji"
-msgstr "添加Emoji"
+msgstr "添加 Emoji"
 
 msgid "skip-cert-verify"
 msgstr "跳过证书验证"
@@ -1351,7 +1351,7 @@ msgid "Note: if the update fails, you can manually download and upload"
 msgstr "注意：如更新失败可手动下载并上传"
 
 msgid "Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating"
-msgstr "注意：客户端可能无法更新，因为squashfs格式的固件更新后不会释放闪存空间"
+msgstr "注意：客户端可能无法更新，因为 squashfs 格式的固件更新后不会释放闪存空间"
 
 msgid "Compiled Version"
 msgstr "编译版本"
@@ -1476,11 +1476,14 @@ msgstr "GeoIP MMDB 数据库更新 URL"
 msgid "Custom GeoSite URL"
 msgstr "GeoSite 数据库更新 URL"
 
+msgid "Custom Geo ASN URL"
+msgstr "Geo ASN 数据库更新 URL"
+
 msgid "Custom Chnroute6 Lists URL"
-msgstr "大陆IPv6段更新 URL"
+msgstr "大陆 IPv6 段更新 URL"
 
 msgid "Custom Chnroute Lists URL"
-msgstr "大陆IP段更新 URL"
+msgstr "大陆 IP 段更新 URL"
 
 msgid "Custom GeoIP MMDB URL, Click Button Below To Refresh After Edit"
 msgstr "自定义 GeoIP MMDB 数据库的更新来源，编辑后点击下方按钮生效"
@@ -1984,7 +1987,7 @@ msgid "Tip: Detected That The nameserver DNS Option Has No Server Set, Starting 
 msgstr "提示：检测到DNS选项下的 Nameserver 未设置服务器，开始补全..."
 
 msgid "Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers"
-msgstr "错误：配置文件DNS选项下的 Nameserver 必须设置服务器，已停止设置自定义DNS服务器！"
+msgstr "错误：配置文件 DNS 选项下的 Nameserver 必须设置服务器，已停止设置自定义 DNS 服务器！"
 
 msgid "Config File Does Not Exist, You Have Set Subscription Information, Ready To Download..."
 msgstr "配置文件不存在，您已设置订阅信息，准备开始下载..."
@@ -2758,7 +2761,7 @@ msgid "Flush"
 msgstr "清理"
 
 msgid "Flush DNS Cache"
-msgstr "清理DNS缓存"
+msgstr "清理 DNS 缓存"
 
 msgid "No Specify Upload File"
 msgstr "未选择上传文件"
@@ -2833,10 +2836,10 @@ msgid "Enable Sniffer"
 msgstr "*启用流量（域名）探测"
 
 msgid "Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure"
-msgstr "流量（域名）探测能有效防止域名分流异常和DNS劫持失败"
+msgstr "流量（域名）探测能有效防止域名分流异常和 DNS 劫持失败"
 
 msgid "Override All Dns Query"
-msgstr "启用后将尽可能的覆盖DNS查询到的域名"
+msgstr "启用后将尽可能的覆盖 DNS 查询到的域名"
 
 msgid "Meta Settings"
 msgstr "Meta 设置"
@@ -2893,7 +2896,7 @@ msgid "Note: If the connection is abnormal, please follow the steps on this page
 msgstr "注意: 连接异常时请按照此页步骤先进行检查"
 
 msgid "Note: If you need to perform client access control in Fake-IP mode, please change the DNS hijacking mode to firewall forwarding"
-msgstr "注意: Fake-IP 模式下如需要进行客户端访问控制，请将DNS劫持模式改为防火墙转发"
+msgstr "注意: Fake-IP 模式下如需要进行客户端访问控制，请将 DNS 劫持模式改为防火墙转发"
 
 msgid "Click to the page"
 msgstr "点击前往"
@@ -4111,10 +4114,10 @@ msgid "Created successfully"
 msgstr "新建成功"
 
 msgid "Please enter subscription URL"
-msgstr "请输入订阅URL"
+msgstr "请输入订阅 URL"
 
 msgid "Invalid subscription URL format, only single HTTP/HTTPS link is supported"
-msgstr "无效的订阅URL格式，仅支持单一HTTP/HTTPS链接"
+msgstr "无效的订阅URL格式，仅支持单一 HTTP/HTTPS 链接"
 
 msgid "Downloading subscription content..."
 msgstr "正在下载订阅内容..."
