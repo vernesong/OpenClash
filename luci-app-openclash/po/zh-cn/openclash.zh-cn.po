@@ -4149,6 +4149,9 @@ msgstr "错误：文件下载失败"
 msgid "Warning: skip General key not allowed"
 msgstr "警告：跳过不支持的参数"
 
+msgid "Warning: skip General key type error"
+msgstr "警告：跳过值类型错误的参数"
+
 msgid "Warning: skip invalid Overwrite command"
 msgstr "警告：跳过不支持的覆写命令"
 

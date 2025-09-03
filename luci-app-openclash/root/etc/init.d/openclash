@@ -2959,6 +2959,29 @@ add_overwrite_cron()
    echo "0 $update_hour * * $update_days $cron_cmd" >> $CRON_FILE
 }
 
+check_type() {
+   local key="$1"
+   local value="$2"
+   local type=$(echo "$allowed_types_map" | grep "^${key}:" | cut -d: -f2)
+   case "$type" in
+      int)
+         echo "$value" | grep -Eq '^[0-9]+$'
+         return $?
+         ;;
+      int_bool)
+         [[ "$value" == "0" || "$value" == "1" ]]
+         return $?
+         ;;
+      bool)
+         [[ "$value" == "true" || "$value" == "false" ]]
+         return $?
+         ;;
+      string|*)
+         return 0
+         ;;
+   esac
+}
+
 overwrite_file()
 {
    clear_overwrite_set
@@ -2972,16 +2995,105 @@ overwrite_file()
 
 EOF
 
-   allowed_keys="EN_MODE PROXY_MODE STACK_TYPE DISABLE_UDP_QUIC ROUTER_SELF_PROXY CHINA_IP_ROUTE CHINA_IP6_ROUTE DISABLE_QUIC_GO_GSO CORE_TYPE ENABLE_REDIRECT_DNS IPV6_ENABLE IPV6_DNS IPV6_MODE ENABLE_V6_UDP_PROXY ENABLE_UDP_PROXY PROXY_PORT\
-      TPROXY_PORT HTTP_PORT SOCKS_PORT MIXED_PORT DNS_PORT INTRANET_ALLOWED INTRANET_ALLOWED_WAN_NAME BYPASS_GATEWAY_COMPATIBLE COMMON_PORTS SMALL_FLASH_MEMORY CONFIG_FILE DOWNLOAD_FILE STORE_FAKEIP ENABLE_META_SNIFFER\
-      ENABLE_GEOIP_DAT GEODATA_LOADER ENABLE_META_SNIFFER_CUSTOM ENABLE_META_SNIFFER_PURE_IP ENABLE_TCP_CONCURRENT APPEND_DEFAULT_DNS FIND_PROCESS_MODE FAKEIP_RANGE GLOBAL_CLIENT_FINGERPRINT ENABLE_UNIFIED_DELAY ENABLE_RESPECT_RULES\
-      CUSTOM_FAKEIP_FILTER_MODE CUSTOM_FAKEIP_FILTER CUSTOM_NAME_POLICY CUSTOM_HOST ENABLE_CUSTOM_DNS APPEND_WAN_DNS CUSTOM_FALLBACK_FILTER DELAY_START SKIP_PROXY_ADDRESS SUB_INFO_URL RESTART\
-      AUTO_SMART_SWITCH SMART_STRATEGY SMART_POLICY_PRIORITY SMART_COLLECT SMART_COLLECT_SIZE SMART_COLLECT_RATE LGBM_AUTO_UPDATE LGBM_UPDATE_INTERVAL LGBM_CUSTOM_URL\
-      ENABLE_RULE_PROXY ENABLE_CUSTOM_CLASH_RULES TOLERANCE URLTEST_INTERVAL_MOD URLTEST_ADDRESS_MOD GITHUB_ADDRESS_MOD\
-      CHNR_AUTO_UPDATE CHNR_UPDATE_WEEK_TIME CHNR_UPDATE_DAY_TIME CHNR_CUSTOM_URL CHNR6_CUSTOM_URL CHINA_IP_ROUTE_PASS CHINA_IP6_ROUTE_PASS\
-      GEO_AUTO_UPDATE GEO_UPDATE_WEEK_TIME GEO_UPDATE_DAY_TIME GEO_CUSTOM_URL GEOIP_AUTO_UPDATE GEOIP_UPDATE_WEEK_TIME GEOIP_UPDATE_DAY_TIME GEOIP_CUSTOM_URL GEOSITE_AUTO_UPDATE GEOSITE_UPDATE_WEEK_TIME GEOSITE_UPDATE_DAY_TIME GEOSITE_CUSTOM_URL GEOASN_AUTO_UPDATE GEOASN_UPDATE_WEEK_TIME GEOASN_UPDATE_DAY_TIME GEOASN_CUSTOM_URL"
+   allowed_keys_types="\
+   CONFIG_FILE:string \
+   CORE_TYPE:string \
+   LAN_INTERFACE_NAME:string \
+   INTERFACE_NAME:string \
+   CN_PORT:int \
+   DA_PASSWORD:string \
+   PROXY_PORT:int \
+   TPROXY_PORT:int \
+   HTTP_PORT:int \
+   SOCKS_PORT:int \
+   MIXED_PORT:int \
+   DNS_PORT:int \
+   ENABLE_REDIRECT_DNS:int_bool \
+   ENABLE_CUSTOM_DNS:int_bool \
+   APPEND_DEFAULT_DNS:int_bool \
+   APPEND_WAN_DNS:int_bool \
+   STORE_FAKEIP:int_bool \
+   CUSTOM_FAKEIP_FILTER:int_bool \
+   CUSTOM_FAKEIP_FILTER_MODE:string \
+   FAKEIP_RANGE:string \
+   ENABLE_RESPECT_RULES:int_bool \
+   CUSTOM_NAME_POLICY:int_bool \
+   CUSTOM_HOST:int_bool \
+   CUSTOM_FALLBACK_FILTER:int_bool \
+   IPV6_ENABLE:int_bool \
+   IPV6_DNS:int_bool \
+   IPV6_MODE:int \
+   ENABLE_V6_UDP_PROXY:int_bool \
+   EN_MODE:string \
+   ENABLE_UDP_PROXY:int_bool \
+   DISABLE_UDP_QUIC:int_bool \
+   ROUTER_SELF_PROXY:int_bool \
+   STACK_TYPE:string \
+   PROXY_MODE:string \
+   INTRANET_ALLOWED:int_bool \
+   INTRANET_ALLOWED_WAN_NAME:string \
+   BYPASS_GATEWAY_COMPATIBLE:int_bool \
+   COMMON_PORTS:string \
+   CHINA_IP_ROUTE:int \
+   CHINA_IP6_ROUTE:int \
+   CHNR_AUTO_UPDATE:int_bool \
+   CHNR_UPDATE_WEEK_TIME:string \
+   CHNR_UPDATE_DAY_TIME:string \
+   CHNR_CUSTOM_URL:string \
+   CHNR6_CUSTOM_URL:string \
+   CHINA_IP_ROUTE_PASS:string \
+   CHINA_IP6_ROUTE_PASS:string \
+   ENABLE_META_SNIFFER:int_bool \
+   ENABLE_META_SNIFFER_CUSTOM:int_bool \
+   ENABLE_META_SNIFFER_PURE_IP:int_bool \
+   ENABLE_TCP_CONCURRENT:int_bool \
+   FIND_PROCESS_MODE:string \
+   GLOBAL_CLIENT_FINGERPRINT:string \
+   ENABLE_UNIFIED_DELAY:int_bool \
+   ENABLE_RULE_PROXY:int_bool \
+   ENABLE_CUSTOM_CLASH_RULES:int_bool \
+   TOLERANCE:int \
+   URLTEST_INTERVAL_MOD:int \
+   URLTEST_ADDRESS_MOD:string \
+   GITHUB_ADDRESS_MOD:string \
+   AUTO_SMART_SWITCH:int_bool \
+   SMART_STRATEGY:string \
+   SMART_POLICY_PRIORITY:string \
+   SMART_COLLECT:int_bool \
+   SMART_COLLECT_SIZE:int \
+   SMART_COLLECT_RATE:string \
+   LGBM_AUTO_UPDATE:int_bool \
+   LGBM_UPDATE_INTERVAL:int \
+   LGBM_CUSTOM_URL:string \
+   ENABLE_GEOIP_DAT:int_bool \
+   GEODATA_LOADER:string \
+   GEO_AUTO_UPDATE:int_bool \
+   GEO_UPDATE_WEEK_TIME:string \
+   GEO_UPDATE_DAY_TIME:string \
+   GEO_CUSTOM_URL:string \
+   GEOIP_AUTO_UPDATE:int_bool \
+   GEOIP_UPDATE_WEEK_TIME:string \
+   GEOIP_UPDATE_DAY_TIME:string \
+   GEOIP_CUSTOM_URL:string \
+   GEOSITE_AUTO_UPDATE:int_bool \
+   GEOSITE_UPDATE_WEEK_TIME:string \
+   GEOSITE_UPDATE_DAY_TIME:string \
+   GEOSITE_CUSTOM_URL:string \
+   GEOASN_AUTO_UPDATE:int_bool \
+   GEOASN_UPDATE_WEEK_TIME:string \
+   GEOASN_UPDATE_DAY_TIME:string \
+   GEOASN_CUSTOM_URL:string \
+   SMALL_FLASH_MEMORY:int_bool \
+   DISABLE_QUIC_GO_GSO:int_bool \
+   DELAY_START:int \
+   SKIP_PROXY_ADDRESS:int_bool \
+   SUB_INFO_URL:string \
+   DOWNLOAD_FILE:string \
+   RESTART:bool \
+   "
 
-   allowed_keys_list="$(echo "$allowed_keys" | tr ' ' '\n')"
+   allowed_keys_list=$(echo "$allowed_keys_types" | tr ' ' '\n' | cut -d: -f1)
+   allowed_types_map=$(echo "$allowed_keys_types" | tr ' ' '\n')
 
    uci -q add openclash overwrite
 
@@ -3162,7 +3274,11 @@ ${trimmed}"
                if echo "$allowed_keys_list" | grep -xq "$key_u"; then
                   key_l=$(printf "%s" "$key_u" | tr 'A-Z' 'a-z' | tr -d ' ')
                   val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-                  uci -q set openclash.@overwrite[0]."$key_l"="${val_clean}"
+                  if check_type "$key_u" "$val_clean"; then
+                     uci -q set openclash.@overwrite[0]."$key_l"="${val_clean}"
+                  else
+                     LOG_OUT "Warning: skip General key type error【General Key => $name: $key_u, value: $val_clean】"
+                  fi
                else
                   LOG_OUT "Warning: skip General key not allowed【General Key => $name: $key_u】"
                fi
