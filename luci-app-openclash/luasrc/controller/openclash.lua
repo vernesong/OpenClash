@@ -2068,7 +2068,7 @@ function action_myip_check()
             fdo:close()
             
             local cmd = string.format(
-                'curl -sL -m 10 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "%s" 2>/dev/null',
+                'curl -SsL -m 5 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "%s" 2>/dev/null',
                 service.url
             )
             nixio.exec("/bin/sh", "-c", cmd)
@@ -2100,7 +2100,7 @@ function action_myip_check()
         return
     end
     
-    local max_iterations = 150
+    local max_iterations = 140
     local iteration = 0
     local completed = {}
     
@@ -2152,11 +2152,12 @@ function action_myip_check()
             break
         end
         
-        nixio.nanosleep(0, 100000000)
+        nixio.nanosleep(0, 50000000)
     end
     
     for name, info in pairs(queries) do
         if not completed[name] then
+            result[name] = { ip = "", geo = "", error = "timeout" }
             pcall(nixio.kill, info.query.pid, nixio.const.SIGTERM)
             pcall(nixio.waitpid, info.query.pid, 0)
             pcall(info.query.close)
@@ -2165,7 +2166,7 @@ function action_myip_check()
     
     if result.ipify and result.ipify.ip then
         local geo_cmd = string.format(
-            'curl -sL -m 8 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://api-ipv4.ip.sb/geoip/%s" 2>/dev/null',
+            'curl -sL -m 5 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://api-ipv4.ip.sb/geoip/%s" 2>/dev/null',
             result.ipify.ip
         )
         local geo_data = luci.sys.exec(geo_cmd)
