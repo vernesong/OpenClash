@@ -403,7 +403,7 @@
 .oc .core-main-controls {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: space-between !important;
     gap: 10px;
     flex: 0 0 auto;
     min-height: var(--control-height);
@@ -852,7 +852,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    height: 12px;
+    line-height: 12px !important;
 }
 
 .oc #logo_btn .mihomo-link {
@@ -3750,12 +3750,6 @@
                         DOMCache.mix_proxy.innerHTML = "<b style=color:var(--error-color)><%:Not Available%></b>";
                     }
                 });
-                
-                DOMCache.copy_secret.style.display = "inline";
-                DOMCache.copy_address.style.display = "inline";
-                DOMCache.copy_mix_address.style.display = "inline";
-                DOMCache.copy_mix_secret.style.display = "inline";
-                DOMCache.copy_pac_config.style.display = "inline";
             } else {
                 DOMCache.daip.innerHTML = "<b style=color:var(--error-color)><%:Not Available%></b>";
                 StateManager.cached_proxy_info = null;
