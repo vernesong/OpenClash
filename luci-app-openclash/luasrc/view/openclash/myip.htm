@@ -1013,16 +1013,19 @@
             } else {
                 if (use_router_mode) {
                     get_router_ip_info();
-                    refresh_ip = setInterval("get_router_ip_info()", Math.floor(Math.random()*(40-15+1)+15)*1000);
                 } else {
                     myip_Load();
-                    refresh_ip = setInterval("myip_Load()", Math.floor(Math.random()*(40-15+1)+15)*1000);
                 }
             }
+
+            if (refresh_ip) {
+                clearInterval(refresh_ip);
+                refresh_ip = null;
+            }
             if (use_router_mode) {
-                refresh_ip = setInterval("get_router_ip_info()", Math.floor(Math.random()*(40-15+1)+15)*1000);
+                refresh_ip = setInterval(get_router_ip_info, Math.floor(Math.random() * (40 - 15 + 1) + 15) * 1000);
             } else {
-                refresh_ip = setInterval("myip_Load()", Math.floor(Math.random()*(40-15+1)+15)*1000);
+                refresh_ip = setInterval(myip_Load, Math.floor(Math.random() * (40 - 15 + 1) + 15) * 1000);
             }
             addTitleOnOverflow();
         };
@@ -1123,7 +1126,7 @@
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/cgi-bin/luci/admin/services/openclash/myip_check', true);
         xhr.timeout = 15000;
-        
+
         xhr.onreadystatechange = function() {
             if (xhr.readyState === 4) {
                 if (xhr.status === 200) {
@@ -1132,26 +1135,41 @@
                         if (response && (response.upaiyun || response.pcol || response.ipsb || response.ipify)) {
                             update_ip_display(response);
                         } else {
-                            show_querying_state();
+                            if (!has_ip_cache()) show_querying_state();
                         }
                     } catch (e) {
-                        show_querying_state();
+                        if (!has_ip_cache()) show_querying_state();
                     }
                 } else {
-                    show_querying_state();
+                    if (!has_ip_cache()) show_querying_state();
                 }
             }
         };
-        
+
         xhr.ontimeout = function() {
-            show_querying_state();
+            if (!has_ip_cache()) show_querying_state();
         };
-        
+
         xhr.onerror = function() {
-            show_querying_state();
+            if (!has_ip_cache()) show_querying_state();
         };
-        
+
         xhr.send();
+    }
+
+    function has_ip_cache() {
+        const ip_ids = ['ip-ipip', 'ip-ipsb', 'ip-upaiyun', 'ip-ipify'];
+        for (let id of ip_ids) {
+            let val = document.getElementById(id).innerHTML;
+            if (
+                val &&
+                val !== '<%:Querying...%>' &&
+                val !== '***.***.***.***'
+            ) {
+                return true;
+            }
+        }
+        return false;
     }
 
     function show_querying_state() {
@@ -1173,55 +1191,46 @@
     }
     
     function update_ip_display(data) {
+        const ipFields = [
+            { id: 'ip-upaiyun', geo: 'ip-upaiyun-geo', key: 'upaiyun' },
+            { id: 'ip-ipip', geo: 'ip-ipip-geo', key: 'ipip' },
+            { id: 'ip-ipsb', geo: 'ip-ipsb-geo', key: 'ipsb' },
+            { id: 'ip-ipify', geo: 'ip-ipify-geo', key: 'ipify' }
+        ];
+
         if (localStorage.getItem('privacy_my_ip') === 'true') {
-            $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';
-            $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
-            $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
-            $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
+            ipFields.forEach(f => {
+                $$.getElementById(f.id).innerHTML = '***.***.***.***';
+            });
         } else {
-            if (data.upaiyun && data.upaiyun.ip) {
-                $$.getElementById('ip-upaiyun').innerHTML = data.upaiyun.ip;
-            } else {
-                $$.getElementById('ip-upaiyun').innerHTML = '<%:Querying...%>';
-            }
-            if (data.ipip && data.ipip.ip) {
-                $$.getElementById('ip-ipip').innerHTML = data.ipip.ip;
-            } else {
-                $$.getElementById('ip-ipip').innerHTML = '<%:Querying...%>';
-            }
-            if (data.ipsb && data.ipsb.ip) {
-                $$.getElementById('ip-ipsb').innerHTML = data.ipsb.ip;
-            } else {
-                $$.getElementById('ip-ipsb').innerHTML = '<%:Querying...%>';
-            }
-            if (data.ipify && data.ipify.ip) {
-                $$.getElementById('ip-ipify').innerHTML = data.ipify.ip;
-            } else {
-                $$.getElementById('ip-ipify').innerHTML = '<%:Querying...%>';
-            }
+            ipFields.forEach(f => {
+                let ipVal = '';
+                if (data[f.key] && data[f.key].ip) {
+                    ipVal = data[f.key].ip;
+                } else {
+                    let curVal = $$.getElementById(f.id).innerHTML;
+                    if (curVal && curVal !== '<%:Querying...%>') {
+                        ipVal = curVal;
+                    } else {
+                        ipVal = '<%:Querying...%>';
+                    }
+                }
+                $$.getElementById(f.id).innerHTML = ipVal;
+
+                let geoVal = '';
+                if (data[f.key] && data[f.key].geo) {
+                    geoVal = data[f.key].geo;
+                } else {
+                    let curGeo = $$.getElementById(f.geo).innerHTML;
+                    if (curGeo && curGeo !== '' && ipVal == curVal && curVal !== '<%:Querying...%>') {
+                        geoVal = curGeo;
+                    } else {
+                        geoVal = '';
+                    }
+                }
+                $$.getElementById(f.geo).innerHTML = geoVal;
+            });
         }
-        
-        if (data.upaiyun && data.upaiyun.geo) {
-            $$.getElementById('ip-upaiyun-geo').innerHTML = data.upaiyun.geo;
-        } else {
-            $$.getElementById('ip-upaiyun-geo').innerHTML = '';
-        }
-        if (data.ipip && data.ipip.geo) {
-            $$.getElementById('ip-ipip-geo').innerHTML = data.ipip.geo;
-        } else {
-            $$.getElementById('ip-ipip-geo').innerHTML = '';
-        }
-        if (data.ipsb && data.ipsb.geo) {
-            $$.getElementById('ip-ipsb-geo').innerHTML = data.ipsb.geo;
-        } else {
-            $$.getElementById('ip-ipsb-geo').innerHTML = '';
-        }
-        if (data.ipify && data.ipify.geo) {
-            $$.getElementById('ip-ipify-geo').innerHTML = data.ipify.geo;
-        } else {
-            $$.getElementById('ip-ipify-geo').innerHTML = '';
-        }
-        
         addTitleOnOverflow();
     }
     

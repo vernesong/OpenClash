@@ -1335,9 +1335,6 @@ msgstr "Tip: 某些网站链接出现异常? 试试切换模式或者使用第�
 msgid "Tip: using the fake IP mode can get a faster access experience"
 msgstr "Tip: 使用 Fake-IP 模式可以获得更加快速的访问体验"
 
-msgid "Tip: query DNS by TLS & TCP & HTTPS can get better anti pollution effect"
-msgstr "Tip: 使用 TLS & TCP & HTTPS 方式查询DNS可以获得更好的抗污染效果"
-
 msgid "Tip: the nameserver group must have at least one server set when using custom DNS"
 msgstr "Tip: 使用自定义DNS上游服务器时NameServer组必须设置至少一个服务器"
 
