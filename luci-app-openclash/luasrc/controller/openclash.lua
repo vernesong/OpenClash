@@ -301,7 +301,7 @@ end
 local function opcv()
     local v
     local info = opkg and opkg.info("luci-app-openclash")
-    if info and info["luci-app-openclash"] and info["luci-app-openclash"]["Version"] then
+    if info and info["luci-app-openclash"] and info["luci-app-openclash"]["Version"] and info["luci-app-openclash"]["Installed-Time"] then
         v = info["luci-app-openclash"]["Version"]
     else
         if pkg_type() == "opkg" then
