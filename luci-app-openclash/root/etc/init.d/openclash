@@ -423,7 +423,7 @@ check_run_quick()
    QUICK_START_CHECK=true
    quick_start=true
    check_file="$(cat /tmp/openclash.change 2>/dev/null |awk '{print $1}')"
-   if [ -z "$check_file" ] || [ ! -f "$CONFIG_FILE" ] || [ ! -f "/tmp/openclash_config.tmp" ]; then
+   if [ -z "$check_file" ] || [ ! -f "/tmp/openclash_config.tmp" ]; then
       quick_start=false
       return
    fi
@@ -3435,9 +3435,6 @@ start_service()
    LOG_OUT "OpenClash Start Running..."
 
    {
-      #快速启动判断
-      check_run_quick
-
       LOG_OUT "Step 1: Get The Configuration..."
       overwrite_file
       get_config
