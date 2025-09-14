@@ -3168,12 +3168,12 @@ ${trimmed}"
          key=$(printf "%s" "$trimmed" | awk -F'=' '{gsub(/[[:space:]]+$/,"",$1); print $1}' | sed 's/[[:space:]]*$//;s/ //g')
          val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
          key_u=$(printf "%s" "$key" | tr 'a-z' 'A-Z' | tr -d ' ')
-         url=$(echo "$val" | sed -nE 's/.*url[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
-         path=$(echo "$val" | sed -nE 's/.*path[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
-         cron=$(echo "$val" | sed -nE 's/.*cron[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
-         force=$(echo "$val" | sed -nE 's/.*force[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
-         ua=$(echo "$val" | sed -nE 's/.*ua[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
-         restart=$(echo "$val" | sed -nE 's/.*restart[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')
+         url=$(eval "echo \"$(echo "$val" | sed -nE 's/.*url[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
+         path=$(eval "echo \"$(echo "$val" | sed -nE 's/.*path[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
+         cron=$(eval "echo \"$(echo "$val" | sed -nE 's/.*cron[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
+         force=$(eval "echo \"$(echo "$val" | sed -nE 's/.*force[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
+         ua=$(eval "echo \"$(echo "$val" | sed -nE 's/.*ua[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
+         restart=$(eval "echo \"$(echo "$val" | sed -nE 's/.*restart[[:space:]]*=[[:space:]]*([^,]*).*/\1/p')\"")
          [ -z "$cron" ] && cron=0
          if [ -z "$path" ] || [ -z "$url" ]; then
             LOG_OUT "Warning: DOWNLOAD FILE no target in【Download Job => file: $file】"
@@ -3246,7 +3246,8 @@ ${trimmed}"
             fi
             val=$(echo "$trimmed" | sed 's/^[^=]*=[[:space:]]*//')
             if printf "%s" "$key_u" | grep -q "^CONFIG_FILE$"; then
-               RAW_CONFIG_FILE=$(printf "%s" "$val" | sed "s/^['\"]//;s/['\"]$//")
+               val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
+               RAW_CONFIG_FILE=$(eval "echo \"$val_clean\"")
                uci -q set openclash.@overwrite[0].config_path="$RAW_CONFIG_FILE"
                cfg_name=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
                if [ -n "$cfg_name" ]; then
@@ -3256,7 +3257,7 @@ ${trimmed}"
                fi
             elif printf "%s" "$key_u" | grep -q "^SUB_INFO_URL$"; then
                val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-               url_key=$(eval "echo $val_clean")
+               url_key=$(eval "echo \"$val_clean\"")
                [ -z "$url_key" ] && continue
                config_load "openclash"
                config_foreach sub_info_set "subscribe_info" "${cfg_name%.*}" "$url_key"
@@ -3267,17 +3268,19 @@ ${trimmed}"
                fi
             elif printf "%s" "$key_u" | grep -q "^RESTART$"; then
                val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
-               if printf "%s" "$val_clean" | grep -qE '^(1|true|yes)$'; then
+               val_key=$(eval "echo \"$val_clean\"")
+               if printf "%s" "$val_key" | grep -qE '^(1|true|yes)$'; then
                   eval OVERWRITE_RESTART_FLAG_${name}=1
                fi
             else
                if echo "$allowed_keys_list" | grep -xq "$key_u"; then
                   key_l=$(printf "%s" "$key_u" | tr 'A-Z' 'a-z' | tr -d ' ')
                   val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
+                  val_key=$(eval "echo \"$val_clean\"")
                   if check_type "$key_u" "$val_clean"; then
-                     uci -q set openclash.@overwrite[0]."$key_l"="${val_clean}"
+                     uci -q set openclash.@overwrite[0]."$key_l"="$val_key"
                   else
-                     LOG_OUT "Warning: skip General key type error【General Key => $name: $key_u, value: $val_clean】"
+                     LOG_OUT "Warning: skip General key type error【General Key => $name: $key_u, value: $val_key】"
                   fi
                else
                   LOG_OUT "Warning: skip General key not allowed【General Key => $name: $key_u】"
