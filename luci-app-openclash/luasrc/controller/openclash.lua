@@ -1045,6 +1045,7 @@ end
 function action_toolbar_show_sys()
     local cpu = "0"
     local load_avg = "0"
+    local cpu_count = luci.sys.exec("grep -c ^processor /proc/cpuinfo 2>/dev/null"):gsub("\n", "") or 1
     
     local pid = luci.sys.exec("pgrep -f '^[^ ]*clash' | head -1 | tr -d '\n' 2>/dev/null")
     
@@ -1075,13 +1076,13 @@ function action_toolbar_show_sys()
     luci.http.prepare_content("application/json")
     luci.http.write_json({
         cpu = cpu,
-        load_avg = load_avg
+        load_avg = tostring(math.floor(tonumber(load_avg) / tonumber(cpu_count) * 100));
     })
 end
 
 function action_toolbar_show()
     local pid = luci.sys.exec("pgrep -f '^[^ ]*clash' | head -1 | tr -d '\n' 2>/dev/null")
-    local traffic, connections, connection, up, down, up_total, down_total, mem, cpu, load_avg
+    local traffic, connections, connection, up, down, up_total, down_total, mem, cpu, load_avg, cpu_count
     if pid and pid ~= "" then
         local daip = daip()
         local dase = dase() or ""
@@ -1126,7 +1127,8 @@ function action_toolbar_show()
         end
 
         load_avg = luci.sys.exec("awk '{print $2; exit}' /proc/loadavg 2>/dev/null"):gsub("\n", "") or "0"
-        
+        cpu_count = luci.sys.exec("grep -c ^processor /proc/cpuinfo 2>/dev/null"):gsub("\n", "") or 1
+
         if not string.match(load_avg, "^[0-9]*%.?[0-9]*$") then
             load_avg = "0"
         end
@@ -1143,7 +1145,7 @@ function action_toolbar_show()
         down_total = down_total,
         mem = mem,
         cpu = cpu,
-        load_avg = load_avg
+        load_avg = tostring(math.floor(tonumber(load_avg) / tonumber(cpu_count) * 100));
     })
 end
 

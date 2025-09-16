@@ -1897,7 +1897,7 @@
                             <div class="sub-card stat-item"><span class="stat-label"><%:Connect%></span><span id="connect_t" class="stat-value">0</span></div>
                             <div class="sub-card stat-item"><span class="stat-label"><%:Ram%></span><span id="mem_t" class="stat-value">0 KB</span></div>
                             <div class="sub-card stat-item"><span class="stat-label"><%:CPU%></span><span id="cpu_t" class="stat-value">0 %</span></div>
-                            <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value">0</span></div>
+                            <div class="sub-card stat-item"><span class="stat-label"><%:Load Avg%></span><span id="load_a" class="stat-value">0 %</span></div>
                         </div>
                     </div>
                 </div>
@@ -3335,8 +3335,8 @@
                     document.getElementById("cpu_t").innerHTML = "<font style=\"color:"+cpuColor+"\">"+cpuValue+"</font>";
                     
                     var loadValue = parseFloat(status.load_avg) || 0;
-                    var loadColor = loadValue <= 1.0 ? "var(--success-color)" : (loadValue <= 2.0 ? "var(--warning-color)" : "var(--error-color)");
-                    document.getElementById("load_a").innerHTML = "<font style=\"color:"+loadColor+"\">"+status.load_avg+"</font>";
+                    var loadColor = loadValue <= 50 ? "var(--success-color)" : (loadValue <= 80 ? "var(--warning-color)" : "var(--error-color)");
+                    document.getElementById("load_a").innerHTML = "<font style=\"color:"+loadColor+"\">"+status.load_avg+" %</font>";
                 } else {
                     self.handleError();
                 }
@@ -3354,7 +3354,7 @@
             
             if (this.retryCount >= this.maxRetries) {
                 document.getElementById("cpu_t").innerHTML = "<font style=\"color:var(--success-color)\">0 %</font>";
-                document.getElementById("load_a").innerHTML = "<font style=\"color:var(--success-color)\">0</font>";
+                document.getElementById("load_a").innerHTML = "<font style=\"color:var(--success-color)\">0 %</font>";
                 this.retryCount = 0;
             }
         },
@@ -3422,8 +3422,8 @@
                 updates.push({element: document.getElementById("cpu_t"), content: "<font style=\"color:"+cpuColor+"\">"+cpuValue+"</font>"});
                 
                 var loadValue = parseFloat(status.load_avg) || 0;
-                var loadColor = loadValue <= 1.0 ? "var(--success-color)" : (loadValue <= 2.0 ? "var(--warning-color)" : "var(--error-color)");
-                updates.push({element: document.getElementById("load_a"), content: "<font style=\"color:"+loadColor+"\">"+status.load_avg+"</font>"});
+                var loadColor = loadValue <= 50 ? "var(--success-color)" : (loadValue <= 80 ? "var(--warning-color)" : "var(--error-color)");
+                updates.push({element: document.getElementById("load_a"), content: "<font style=\"color:"+loadColor+"\">"+status.load_avg+" %</font>"});
             }
             
             StateManager.batchUpdateDOM(updates);
@@ -3444,7 +3444,7 @@
                 
                 if (!SystemStatusManager.isEnabled) {
                     fallbackUpdates.push({element: document.getElementById("cpu_t"), content: "<font style=\"color:var(--success-color)\">0 %</font>"});
-                    fallbackUpdates.push({element: document.getElementById("load_a"), content: "<font style=\"color:var(--success-color)\">0</font>"});
+                    fallbackUpdates.push({element: document.getElementById("load_a"), content: "<font style=\"color:var(--success-color)\">0 %</font>"});
                 }
                 
                 StateManager.batchUpdateDOM(fallbackUpdates);
