@@ -2424,8 +2424,8 @@ msgstr "发生了一些错误！"
 msgid "Click to Test"
 msgstr "点击测试"
 
-msgid "Connection Test (Current Browser)"
-msgstr "连接测试（当前浏览器）"
+msgid "Connection Test"
+msgstr "连接测试"
 
 msgid "Backup File"
 msgstr "备份文件"
@@ -3186,8 +3186,8 @@ msgstr "开发者选项"
 msgid "Restore"
 msgstr "还原"
 
-msgid "DNS Test (Clash Response)"
-msgstr "DNS 测试（Clash 查询结果）"
+msgid "DNS Test"
+msgstr "DNS 测试"
 
 msgid "No Response Found!"
 msgstr "结果获取失败！"
