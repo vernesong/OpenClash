@@ -808,7 +808,7 @@ yml_other_set()
                threads << Thread.new {
                   if '${10}' == '1' and ['url-test', 'load-balance'].include?(group['type']) then
                      group['type'] = 'smart';
-                     group['uselightgbm'] = true;
+                     group['uselightgbm'] = true if '${15}' == '1';
                      group['strategy'] = '${13}';
                      group['collectdata'] = true if '${11}' == '1';
                      group['sample-rate'] = '${12}'.to_f if '${11}' == '1';
@@ -819,6 +819,9 @@ yml_other_set()
                   end;
                   if '${14}' != '0' and group['type'] == 'smart' then
                      group['policy-priority'] = '${14}';
+                  end;
+                  if '${15}' == '1' and group['type'] == 'smart' then
+                     group['uselightgbm'] = true if '${15}' == '1';
                   end;
                };
             };
@@ -884,7 +887,7 @@ if [ "$1" != "0" ]; then
    config_foreach yml_other_rules_get "other_rules" "$5"
    if [ -z "$rule_name" ]; then
       SKIP_CUSTOM_OTHER_RULES=1
-      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}"
       exit 0
 
    elif [ "$rule_name" = "lhie1" ]; then
@@ -899,7 +902,7 @@ if [ "$1" != "0" ]; then
           if [ -n "$group" ] && [ -z "$(echo "$PROXY_GROUP_CACHE" | grep -F "$group")" ]; then
              LOG_OUT "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
              SKIP_CUSTOM_OTHER_RULES=1
-             yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}"
+             yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}"
              exit 0
           fi
        done
@@ -907,9 +910,9 @@ if [ "$1" != "0" ]; then
    if [ -z "$Proxy" ]; then
       LOG_OUT "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
       SKIP_CUSTOM_OTHER_RULES=1
-      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}"
+      yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}"
       exit 0
    fi
 fi
 
-yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}"
+yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}" "${15}"

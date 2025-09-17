@@ -3057,6 +3057,7 @@ EOF
    URLTEST_ADDRESS_MOD:string \
    GITHUB_ADDRESS_MOD:string \
    AUTO_SMART_SWITCH:int_bool \
+   SMART_ENABLE_LGBM:int_bool \
    SMART_STRATEGY:string \
    SMART_POLICY_PRIORITY:string \
    SMART_COLLECT:int_bool \
@@ -3425,6 +3426,7 @@ get_config()
    smart_collect_rate=$(uci_get "smart_collect_rate" || echo 1)
    smart_strategy=$(uci_get "smart_strategy" || echo "sticky-sessions")
    smart_policy_priority=$(uci_get "smart_policy_priority" || echo 0)
+   smart_enable_lgbm=$(uci_get "smart_enable_lgbm" || echo 0)
 
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q commit openclash
@@ -3463,7 +3465,7 @@ start_service()
          /usr/share/openclash/yml_rules_change.sh \
          "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE"\
          "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$enable_redirect_dns" "$en_mode"\
-         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_strategy" "$smart_policy_priority"
+         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_strategy" "$smart_policy_priority" "$smart_enable_lgbm"
          
          #Custom overwrite
          if [ -f "/tmp/yaml_overwrite.sh" ]; then

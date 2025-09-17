@@ -376,6 +376,10 @@ o = s:taboption("smart", Flag, "auto_smart_switch", font_red..bold_on..translate
 o.description = font_red..bold_on..translate("Auto Switch Url-test and Load-balance Group to Smart Group")..bold_off..font_off
 o.default = 0
 
+o = s:taboption("smart", Flag, "smart_enable_lgbm", font_red..bold_on..translate("Enable LightGBM Model")..bold_off..font_off)
+o.description = font_red..bold_on..translate("Use LightGBM Model To Predict Weight")..bold_off..font_off
+o.default = 0
+
 o = s:taboption("smart", ListValue, "smart_strategy", translate("Node Select Strategy"))
 o:value("sticky-sessions", translate("Sticky-sessions"))
 o:value("round-robin", translate("Round-robin"))

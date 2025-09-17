@@ -4023,6 +4023,12 @@ msgstr "Smart 策略自动切换"
 msgid "Auto Switch Url-test and Load-balance Group to Smart Group"
 msgstr "自动切换 Url-test、Load-balance 策略组到 Smart 策略组"
 
+msgid "Enable LightGBM Model"
+msgstr "启用 LightGBM 模型"
+
+msgid "Use LightGBM Model To Predict Weight"
+msgstr "使用 LightGBM 模型来预测权重"
+
 msgid "Auto Update LightGBM Model"
 msgstr "自动更新模型"
 
