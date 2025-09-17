@@ -205,17 +205,17 @@ local dns_host = "www.instagram.com"
 
 <form>
 	<fieldset class="diag-style">
-		<div style="width:33%; float: left; text-align: center;">
-			<%:Connection Test (Current Browser)%>&nbsp;&nbsp;&nbsp;&nbsp;
+		<div style="width:33%; float: left; text-align: center; white-space: nowrap;">
+			<%:Connection Test%>&nbsp;&nbsp;&nbsp;&nbsp;
 			<input type="text" value="<%=diag_host%>" name="diag" />
 			<input type="button" value="<%:Click to Test%>" class="btn cbi-button cbi-button-apply" onclick="update_status(this.form.diag)" />
 		</div>
-		<div style="width:33%; float: left; text-align: center;">
-			<%:DNS Test (Clash Response)%>&nbsp;&nbsp;&nbsp;&nbsp;
+		<div style="width:33%; float: left; text-align: center; white-space: nowrap;">
+			<%:DNS Test%>&nbsp;&nbsp;&nbsp;&nbsp;
 			<input type="text" value="<%=dns_host%>" name="dns_host" />
 			<input type="button" value="<%:Click to Test%>" class="btn cbi-button cbi-button-apply" onclick="diag_dns(this.form.dns_host)" />
 		</div>
-		<div style="width:33%; float: left; text-align: center;">
+		<div style="width:33%; float: left; text-align: center; white-space: nowrap;">
 			<%:Generate Logs%>&nbsp;&nbsp;&nbsp;&nbsp;
 			<input type="button" value="<%:Click to Generate%>" class="btn cbi-button cbi-button-apply" onclick="gen_debug_logs(this)" />
 		</div>

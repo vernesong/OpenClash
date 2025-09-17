@@ -97,7 +97,7 @@ local sconf = "/etc/openclash/"..conf_name
 <script type="text/javascript">//<![CDATA[
 
 function isDarkBackground(element) {
-	if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+	if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
 		return true;
 	}
 
