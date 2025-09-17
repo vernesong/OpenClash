@@ -98,7 +98,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 <!-- tblsection -->
 <fieldset class="cbi-section" id="cbi-<%=self.config%>-<%=self.sectiontype%>">
     <% if self.title and #self.title > 0 then -%>
-        <h3><%=self.title%></h3>
+        <legend><%=self.title%></legend>
     <%- end %>
     <%- if self.sortable then -%>
         <input type="hidden" id="cbi.sts.<%=self.config%>.<%=self.sectiontype%>" name="cbi.sts.<%=self.config%>.<%=self.sectiontype%>" value="" />
