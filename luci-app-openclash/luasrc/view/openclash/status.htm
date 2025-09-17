@@ -5013,6 +5013,7 @@
         if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
             return true;
         }
+        
         var style = window.getComputedStyle(element);
         var bgColor = style.backgroundColor;
         let r, g, b;
