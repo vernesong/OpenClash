@@ -16,16 +16,16 @@ del_lock() {
 
 SERVER_FILE="/tmp/yaml_servers.yaml"
 PROXY_PROVIDER_FILE="/tmp/yaml_provider.yaml"
-servers_if_update=$(uci_get "servers_if_update")
-config_auto_update=$(uci_get "auto_update")
-CONFIG_FILE=$(uci_get "config_path")
+servers_if_update=$(uci_get_config "servers_if_update")
+config_auto_update=$(uci_get_config "auto_update")
+CONFIG_FILE=$(uci_get_config "config_path")
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-UPDATE_CONFIG_FILE=$(uci_get "config_update_path")
+UPDATE_CONFIG_FILE=$(uci_get_config "config_update_path")
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 UCI_DEL_LIST="uci -q del_list openclash.config.new_servers_group"
 UCI_ADD_LIST="uci -q add_list openclash.config.new_servers_group"
 UCI_SET="uci -q set openclash.config."
-MIX_PROXY=$(uci_get "mix_proxies")
+MIX_PROXY=$(uci_get_config "mix_proxies")
 servers_name="/tmp/servers_name.list"
 proxy_provider_name="/tmp/provider_name.list"
 set_lock
@@ -1627,8 +1627,8 @@ fi
 rm -rf $proxy_provider_name
 
 #proxy
-rule_sources=$(uci_get "rule_sources")
-create_config=$(uci_get "create_config")
+rule_sources=$(uci_get_config "rule_sources")
+create_config=$(uci_get_config "create_config")
 LOG_OUT "Start Writing【$CONFIG_NAME】Proxies Setting..."
 echo "proxies:" >$SERVER_FILE
 config_foreach yml_servers_set "servers"
@@ -2186,6 +2186,6 @@ rm -rf /tmp/Proxy_Server 2>/dev/null
 rm -rf /tmp/Proxy_Provider 2>/dev/null
 del_lock
 ${UCI_SET}enable=1 2>/dev/null
-[ "$(uci_get "servers_if_update")" == "0" ] && [ -z "$if_game_proxy" ] && /etc/init.d/openclash restart >/dev/null 2>&1
+[ "$(uci_get_config "servers_if_update")" == "0" ] && [ -z "$if_game_proxy" ] && /etc/init.d/openclash restart >/dev/null 2>&1
 ${UCI_SET}servers_if_update=0
 uci -q commit openclash

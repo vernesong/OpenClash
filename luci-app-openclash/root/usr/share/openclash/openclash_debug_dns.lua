@@ -14,8 +14,8 @@ local resolve = arg[2]
 local function debug_dns()
 	local info, ip, host
 	ip = fs.lanip()
-	local port = fs.uci_get("config", "cn_port")
-	local passwd = fs.uci_get("config", "dashboard_password") or ""
+	local port = fs.uci_get_config("config", "cn_port")
+	local passwd = fs.uci_get_config("config", "dashboard_password") or ""
 
 	if datatype.hostname(addr) and ip and port then
 		info_v4 = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/dns/query?name="%s"', passwd, ip, port, addr))

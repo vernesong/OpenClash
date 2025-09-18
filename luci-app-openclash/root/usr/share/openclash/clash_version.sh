@@ -17,8 +17,8 @@ set_lock
 TIME=$(date "+%Y-%m-%d-%H")
 CHTIME=$(date "+%Y-%m-%d-%H" -r "/tmp/clash_last_version" 2>/dev/null)
 DOWNLOAD_FILE="/tmp/clash_last_version"
-RELEASE_BRANCH=$(uci_get "release_branch" || echo "master")
-github_address_mod=$(uci_get "github_address_mod" || echo 0)
+RELEASE_BRANCH=$(uci_get_config "release_branch" || echo "master")
+github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
 if [ -n "$1" ]; then
    github_address_mod="$1"
 fi

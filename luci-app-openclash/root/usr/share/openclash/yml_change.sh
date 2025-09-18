@@ -7,15 +7,15 @@
 LOG_FILE="/tmp/openclash.log"
 CONFIG_FILE="$5"
 
-custom_fakeip_filter=$(uci_get "custom_fakeip_filter" || echo 0)
-custom_name_policy=$(uci_get "custom_name_policy" || echo 0)
-custom_host=$(uci_get "custom_host" || echo 0)
-enable_custom_dns=$(uci_get "enable_custom_dns" || echo 0)
-append_wan_dns=$(uci_get "append_wan_dns" || echo 0)
-custom_fallback_filter=$(uci_get "custom_fallback_filter" || echo 0)
-china_ip_route=$(uci_get "china_ip_route" || echo 0)
-china_ip6_route=$(uci_get "china_ip6_route" || echo 0)
-enable_redirect_dns=$(uci_get "enable_redirect_dns" || echo 1)
+custom_fakeip_filter=$(uci_get_config "custom_fakeip_filter" || echo 0)
+custom_name_policy=$(uci_get_config "custom_name_policy" || echo 0)
+custom_host=$(uci_get_config "custom_host" || echo 0)
+enable_custom_dns=$(uci_get_config "enable_custom_dns" || echo 0)
+append_wan_dns=$(uci_get_config "append_wan_dns" || echo 0)
+custom_fallback_filter=$(uci_get_config "custom_fallback_filter" || echo 0)
+china_ip_route=$(uci_get_config "china_ip_route" || echo 0)
+china_ip6_route=$(uci_get_config "china_ip6_route" || echo 0)
+enable_redirect_dns=$(uci_get_config "enable_redirect_dns" || echo 1)
 
 [ "$china_ip_route" -ne 0 ] && [ "$china_ip_route" -ne 1 ] && [ "$china_ip_route" -ne 2 ] && china_ip_route=0
 [ "$china_ip6_route" -ne 0 ] && [ "$china_ip6_route" -ne 1 ] && [ "$china_ip6_route" -ne 2 ] && china_ip6_route=0
