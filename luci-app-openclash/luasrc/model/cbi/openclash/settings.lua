@@ -40,7 +40,7 @@ font_off = [[</b>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
-local op_mode = fs.uci_get("config", "operation_mode")
+local op_mode = fs.uci_get_config("config", "operation_mode")
 if not op_mode then op_mode = "redir-host" end
 local lan_ip = fs.lanip()
 m = Map("openclash", translate("Plugin Settings"))
@@ -1264,7 +1264,7 @@ o.title = translate("Account Password")
 o.password = true
 o.rmempty = true
 
-if fs.uci_get("config", "dler_token") then
+if fs.uci_get_config("config", "dler_token") then
 	o = s:taboption("dlercloud", Flag, "dler_checkin")
 	o.title = translate("Checkin")
 	o.default = 0
@@ -1296,7 +1296,7 @@ end
 
 o = s:taboption("dlercloud", DummyValue, "dler_login", translate("Account Login"))
 o.template = "openclash/dler_login"
-if fs.uci_get("config", "dler_token") then
+if fs.uci_get_config("config", "dler_token") then
 	o.value = font_green..bold_on..translate("Account logged in")..bold_off..font_off
 else
 	o.value = font_red..bold_on..translate("Account not logged in")..bold_off..font_off

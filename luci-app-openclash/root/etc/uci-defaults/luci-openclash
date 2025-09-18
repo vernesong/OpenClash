@@ -62,7 +62,7 @@ mv -f /tmp/china_ip_route.list /etc/openclash/china_ip_route.ipset >/dev/null 2>
 mv -f /tmp/china_ip6_route.list /etc/openclash/china_ip6_route.ipset >/dev/null 2>&1
 
 #Set Dashboard Secret
-if [ -z "$(uci_get "dashboard_password")" ]; then
+if [ -z "$(uci_get_config "dashboard_password")" ]; then
 	uci -q set openclash.config.dashboard_password="$(tr -cd 'a-zA-Z0-9' </dev/urandom 2>/dev/null| head -c8 || date +%N| md5sum |head -c8)"
 fi
 

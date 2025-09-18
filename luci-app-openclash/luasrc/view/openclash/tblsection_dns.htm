@@ -170,7 +170,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                         local num = 1
                     for i, k in ipairs(self:cfgsections()) do
                         section = k
-                        local section_group = fs.uci_get(section, "group")
+                        local section_group = fs.uci_get_config(section, "group")
                         if section_group == o.group then
                             isempty = false
                             scope = { valueheader = "cbi/cell_valueheader", valuefooter = "cbi/cell_valuefooter" }

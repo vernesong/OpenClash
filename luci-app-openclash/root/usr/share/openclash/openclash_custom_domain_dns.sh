@@ -25,10 +25,10 @@ fi
 # 设置 DNSMASQ_CONF_DIR，并去除路径末尾的斜杠
 DNSMASQ_CONF_DIR=${DNSMASQ_CONF_DIR%*/}
 rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf >/dev/null 2>&1
-if [ "$(uci_get "enable_custom_domain_dns_server")" = "1" ] && [ "$(uci_get "enable_redirect_dns")" = "1" ]; then
+if [ "$(uci_get_config "enable_custom_domain_dns_server")" = "1" ] && [ "$(uci_get_config "enable_redirect_dns")" = "1" ]; then
    LOG_OUT "Setting Secondary DNS Server List..."
 
-   custom_domain_dns_server=$(uci_get "custom_domain_dns_server")
+   custom_domain_dns_server=$(uci_get_config "custom_domain_dns_server")
    [ -z "$custom_domain_dns_server" ] && {
 	   custom_domain_dns_server="114.114.114.114"
 	}

@@ -17,9 +17,9 @@ del_lock() {
 set_lock
 inc_job_counter
 
-small_flash_memory=$(uci_get "small_flash_memory")
-GEOASN_CUSTOM_URL=$(uci_get "geoasn_custom_url")
-github_address_mod=$(uci_get "github_address_mod" || echo 0)
+small_flash_memory=$(uci_get_config "small_flash_memory")
+GEOASN_CUSTOM_URL=$(uci_get_config "geoasn_custom_url")
+github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
 restart=0
 
 if [ "$small_flash_memory" != "1" ]; then

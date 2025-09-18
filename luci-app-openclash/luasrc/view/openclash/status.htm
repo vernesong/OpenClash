@@ -1618,7 +1618,7 @@
 <%
     local uci = require("luci.model.uci").cursor()
     local fs = require "luci.openclash"
-    local RELEASE_BRANCH = fs.uci_get("config", "release_branch")
+    local RELEASE_BRANCH = fs.uci_get_config("config", "release_branch")
     local random = tostring(os.time()):reverse():sub(1, 9)
 %>
 <fieldset class="cbi-section">

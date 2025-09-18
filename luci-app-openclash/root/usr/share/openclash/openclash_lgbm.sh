@@ -17,8 +17,8 @@ del_lock() {
 set_lock
 inc_job_counter
 
-small_flash_memory=$(uci_get "small_flash_memory")
-LGBM_CUSTOM_URL=$(uci_get "lgbm_custom_url")
+small_flash_memory=$(uci_get_config "small_flash_memory")
+LGBM_CUSTOM_URL=$(uci_get_config "lgbm_custom_url")
 restart=0
 
 if [ "$small_flash_memory" != "1" ]; then
