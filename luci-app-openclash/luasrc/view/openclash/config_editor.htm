@@ -69,7 +69,7 @@
 <%-
 local uci = require("luci.model.uci").cursor()
 local fs = require "luci.openclash"
-local conf = fs.uci_get("config", "config_path")
+local conf = fs.uci_get_config("config", "config_path")
 if not conf then conf = "/etc/openclash/config/config.yaml" end
 local conf_name = fs.basename(conf)
 if not conf_name then conf_name = "config.yaml"  end
@@ -97,6 +97,10 @@ local sconf = "/etc/openclash/"..conf_name
 <script type="text/javascript">//<![CDATA[
 
 function isDarkBackground(element) {
+	if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+		return true;
+	}
+
 	var style = window.getComputedStyle(element);
 	var bgColor = style.backgroundColor;
 	let r, g, b;

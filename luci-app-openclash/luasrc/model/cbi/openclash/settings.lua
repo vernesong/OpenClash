@@ -9,13 +9,38 @@ local uci = require "luci.model.uci".cursor()
 local json = require "luci.jsonc"
 local datatypes = require "luci.cbi.datatypes"
 
+-- 优化 CBI UI（新版 LuCI 专用）
+local function optimize_cbi_ui()
+	luci.http.write([[
+		<script type="text/javascript">
+			// 修正上移、下移按钮名称
+			document.querySelectorAll("input.btn.cbi-button.cbi-button-up").forEach(function(btn) {
+				btn.value = "]] .. translate("Move up") .. [[";
+			});
+			document.querySelectorAll("input.btn.cbi-button.cbi-button-down").forEach(function(btn) {
+				btn.value = "]] .. translate("Move down") .. [[";
+			});
+			// 删除控件和说明之间的多余换行
+			document.querySelectorAll("div.cbi-value-description").forEach(function(descDiv) {
+				var prev = descDiv.previousSibling;
+				while (prev && prev.nodeType === Node.TEXT_NODE && prev.textContent.trim() === "") {
+					prev = prev.previousSibling;
+				}
+				if (prev && prev.nodeType === Node.ELEMENT_NODE && prev.tagName === "BR") {
+					prev.remove();
+				}
+			});
+		</script>
+	]])
+end
+
 font_green = [[<b style=color:green>]]
 font_red = [[<b style=color:red>]]
 font_off = [[</b>]]
 bold_on  = [[<strong>]]
 bold_off = [[</strong>]]
 
-local op_mode = fs.uci_get("config", "operation_mode")
+local op_mode = fs.uci_get_config("config", "operation_mode")
 if not op_mode then op_mode = "redir-host" end
 local lan_ip = fs.lanip()
 m = Map("openclash", translate("Plugin Settings"))
@@ -27,7 +52,7 @@ m.description = translate("Note: To restore the default configuration, try acces
 "<br/>"..font_green..translate("Note: Game proxy please use nodes except VMess")..font_off..
 "<br/>"..font_green..translate("Note: If you need to perform client access control in Fake-IP mode, please change the DNS hijacking mode to firewall forwarding")..font_off..
 "<br/>"..translate("Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance")..
-"<br/>"..translate("Note: If the connection is abnormal, please follow the steps on this page to check first")..": ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://github.com/vernesong/OpenClash/wiki/%E7%BD%91%E7%BB%9C%E8%BF%9E%E6%8E%A5%E5%BC%82%E5%B8%B8%E6%97%B6%E6%8E%92%E6%9F%A5%E5%8E%9F%E5%9B%A0\")'>"..translate("Click to the page").."</a>"..
+"<br/>"..translate("Note: If the connection is abnormal, please follow the steps on this page to check first")..": ".."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://github.com/vernesong/OpenClash/wiki/%E7%BD%91%E7%BB%9C%E8%BF%9E%E6%8E%A5%E5%BC%82%E5%B8%B8%E6%97%B6%E6%8E%92%E6%9F%A5%E5%8E%9F%E5%9B%A0\")'>"..font_green..bold_on..translate("Click to the page")..bold_off..font_off.."</a>"..
 "<br/>"..font_green..translate("For More Useful Meta Core Functions Go Wiki")..": "..font_off.."<a href='javascript:void(0)' onclick='javascript:return winOpen(\"https://wiki.metacubex.one/\")'>"..translate("https://wiki.metacubex.one/").."</a>"
 
 s = m:section(TypedSection, "openclash")
@@ -201,6 +226,12 @@ s2.sortable  = true
 s2.anonymous = true
 s2.addremove = true
 s2.rmempty = false
+s2.render = function(self, ...)
+	Map.render(self, ...)
+	if type(optimize_cbi_ui) == "function" then
+		optimize_cbi_ui()
+	end
+end
 
 o = s2:option(Value, "comment", translate("Comment"))
 o.rmempty = true
@@ -975,7 +1006,7 @@ o.default = "0"
 o:depends("geoasn_auto_update", "1")
 
 o = s:taboption("geo_update", Value, "geoasn_custom_url")
-o.title = translate("Custom GeoSite URL")
+o.title = translate("Custom Geo ASN URL")
 o.rmempty = true
 o.description = translate("Custom Geo ASN Data URL, Click Button Below To Refresh After Edit")
 o:value("https://testingcf.jsdelivr.net/gh/xishang0128/geoip@release/GeoLite2-ASN.mmdb", translate("xishang0128-testingcf-jsdelivr-Version")..translate("(Default)"))
@@ -1233,7 +1264,7 @@ o.title = translate("Account Password")
 o.password = true
 o.rmempty = true
 
-if fs.uci_get("config", "dler_token") then
+if fs.uci_get_config("config", "dler_token") then
 	o = s:taboption("dlercloud", Flag, "dler_checkin")
 	o.title = translate("Checkin")
 	o.default = 0
@@ -1265,7 +1296,7 @@ end
 
 o = s:taboption("dlercloud", DummyValue, "dler_login", translate("Account Login"))
 o.template = "openclash/dler_login"
-if fs.uci_get("config", "dler_token") then
+if fs.uci_get_config("config", "dler_token") then
 	o.value = font_green..bold_on..translate("Account logged in")..bold_off..font_off
 else
 	o.value = font_red..bold_on..translate("Account not logged in")..bold_off..font_off
@@ -1313,5 +1344,3 @@ m:append(Template("openclash/toolbar_show"))
 m:append(Template("openclash/select_git_cdn"))
 
 return m
-
-

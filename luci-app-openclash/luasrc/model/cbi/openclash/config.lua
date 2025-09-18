@@ -27,7 +27,7 @@ function IsYmlFile(e)
 end
 
 function default_config_set(f)
-	local cf = fs.uci_get("config", "config_path")
+	local cf = fs.uci_get_config("config", "config_path")
 	if cf == "/etc/openclash/config/"..f or not cf or cf == "" or not fs.isfile(cf) then
 		if CHIF == "1" and cf == "/etc/openclash/config/"..f then
 			return
@@ -183,7 +183,7 @@ if fs.mtime(BACKUP_FILE) then
 else
    e[t].mtime=os.date("%Y-%m-%d %H:%M:%S",a.mtime)
 end
-if fs.uci_get("config", "config_path") and string.sub(fs.uci_get("config", "config_path"), 23, -1) == e[t].name then
+if fs.uci_get_config("config", "config_path") and string.sub(fs.uci_get_config("config", "config_path"), 23, -1) == e[t].name then
    e[t].state=translate("Enabled")
 else
    e[t].state=translate("Disabled")
@@ -380,7 +380,7 @@ s.description = align_mid..translate("Support syntax check, press").." "..font_g
 s.anonymous = true
 s.addremove = false
 
-local conf = fs.uci_get("config", "config_path")
+local conf = fs.uci_get_config("config", "config_path")
 local dconf = "/usr/share/openclash/res/default.yaml"
 if not conf then conf = "/etc/openclash/config/config.yaml" end
 local conf_name = fs.basename(conf)

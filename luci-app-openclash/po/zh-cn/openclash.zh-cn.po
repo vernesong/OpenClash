@@ -138,7 +138,7 @@ msgid "fake-ip-mix(tun mix mode)"
 msgstr "Fake-IP（TUN-混合）模式【UDP-TUN，TCP-转发】"
 
 msgid "Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error"
-msgstr "选择运行模式，如客户端的网络异常请尝试清除DNS缓存"
+msgstr "选择运行模式，如客户端的网络异常请尝试清除 DNS 缓存"
 
 msgid "Proxy Mode"
 msgstr "代理模式"
@@ -237,13 +237,13 @@ msgid "Specify DNS Server"
 msgstr "指定服务器"
 
 msgid "Specify DNS Server For List, Only One IP Server Address Support"
-msgstr "指定下方列表中域名的 DNS 服务器，只支持填写一个IP地址"
+msgstr "指定下方列表中域名的 DNS 服务器，只支持填写一个 IP 地址"
 
 msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line, Depend on Dnsmasq"
-msgstr "每行请只填写一个域名，列表中的域名将使用上方指定的 DNS 进行查询并返回真实IP地址，此功能依赖于 Dnsmasq"
+msgstr "每行请只填写一个域名，列表中的域名将使用上方指定的 DNS 进行查询并返回真实 IP 地址，此功能依赖于 Dnsmasq"
 
 msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line"
-msgstr "每行请只填写一个域名，列表中的域名在 Fake-IP 模式下将返回真实IP地址"
+msgstr "每行请只填写一个域名，列表中的域名在 Fake-IP 模式下将返回真实 IP 地址"
 
 msgid "Domain Names In The List Use The Custom DNS Server, But Still Return Fake-IP Results, One rule per line"
 msgstr "每行请只填写一个规则，列表中的域名将使用指定的 DNS 进行查询，但 Fake-IP 模式下仍将返回保留地址"
@@ -435,10 +435,10 @@ msgid "Port For Dashboard Login From Public Network"
 msgstr "设置映射端口，便于从公网访问时自动登录"
 
 msgid "Public Dashboard SSL enabled"
-msgstr "管理页面公网SSL访问"
+msgstr "管理页面公网 SSL 访问"
 
 msgid "Is SSL enabled For Dashboard Login From Public Network"
-msgstr "设置公网协议是否开启了SSL，便于从公网访问时自动登录"
+msgstr "设置公网协议是否开启了 SSL，便于从公网访问时自动登录"
 
 msgid "GEO Update"
 msgstr "GEO 数据库订阅"
@@ -700,7 +700,7 @@ msgid "Server Port"
 msgstr "服务器端口"
 
 msgid "UDP Support"
-msgstr "UDP支持"
+msgstr "UDP 支持"
 
 msgid "Edit Server"
 msgstr "编辑服务器配置"
@@ -862,7 +862,7 @@ msgid "Group Name"
 msgstr "别名（请勿重名）"
 
 msgid "Disable UDP"
-msgstr "禁用UDP连接"
+msgstr "禁用 UDP 连接"
 
 msgid "Test URL"
 msgstr "检测地址（URL）"
@@ -991,7 +991,7 @@ msgid "Provider Filter"
 msgstr "代理集节点筛选"
 
 msgid "Provider URL"
-msgstr "代理集URL"
+msgstr "代理集 URL"
 
 msgid "Provider Interval(s)"
 msgstr "代理集更新间隔（s）"
@@ -1000,7 +1000,7 @@ msgid "Provider Health Check"
 msgstr "代理集状态检查"
 
 msgid "Health Check URL"
-msgstr "状态检查URL"
+msgstr "状态检查 URL"
 
 msgid "Health Check Interval(s)"
 msgstr "状态检查间隔（s）"
@@ -1063,7 +1063,7 @@ msgid "Prevent YouTube and Others To Use QUIC Transmission"
 msgstr "防止 YouTube 等使用 QUIC 导致速度不佳"
 
 msgid "REJECT UDP Traffic(Not Include bypassed regions via China IP Route setting) On Port 443"
-msgstr "禁用 443 端口 UDP 流量（绕过指定区域IP：启用或绕过中国大陆时禁用海外方向QUIC；回国模式禁用大陆方向QUIC）"
+msgstr "禁用 443 端口 UDP 流量（绕过指定区域 IP：启用或绕过中国大陆时禁用海外方向 QUIC；回国模式禁用大陆方向 QUIC）"
 
 msgid "Operation Mode"
 msgstr "模式设置"
@@ -1162,7 +1162,7 @@ msgid "Custom Template"
 msgstr "自定义模板"
 
 msgid "Emoji"
-msgstr "添加Emoji"
+msgstr "添加 Emoji"
 
 msgid "skip-cert-verify"
 msgstr "跳过证书验证"
@@ -1219,7 +1219,7 @@ msgid "Collect Datas For Smart Group Model Training"
 msgstr "收集 Smart 策略组的连接数据，方便用来分析及模型训练"
 
 msgid "The Priority Of The Nodes, The Higher Than 1, The More Likely It Is To Be Selected, The Default Is 1, Support Regex"
-msgstr "自定义 Smart 策略组内节点的权重加成，大于1表示权重加成优先选择，小于1表示权重削减降低使用率，默认为1，支持正则"
+msgstr "自定义 Smart 策略组内节点的权重加成，大于 1 表示权重加成优先选择，小于 1 表示权重削减降低使用率，默认为 1，支持正则"
 
 msgid "Running Status"
 msgstr "运行状态"
@@ -1335,14 +1335,11 @@ msgstr "Tip: 某些网站链接出现异常? 试试切换模式或者使用第�
 msgid "Tip: using the fake IP mode can get a faster access experience"
 msgstr "Tip: 使用 Fake-IP 模式可以获得更加快速的访问体验"
 
-msgid "Tip: query DNS by TLS & TCP & HTTPS can get better anti pollution effect"
-msgstr "Tip: 使用 TLS & TCP & HTTPS 方式查询DNS可以获得更好的抗污染效果"
-
 msgid "Tip: the nameserver group must have at least one server set when using custom DNS"
-msgstr "Tip: 使用自定义DNS上游服务器时NameServer组必须设置至少一个服务器"
+msgstr "Tip: 使用自定义 DNS 上游服务器时 NameServer 组必须设置至少一个服务器"
 
 msgid "Tip: if you don not use IPv6, please turn off the DHCP service of IPv6, otherwise the connection will be abnormal"
-msgstr "Tip: 如果不使用IPv6，请关闭IPv6的DHCP服务，否则会造成连接异常"
+msgstr "Tip: 如果不使用 IPv6，请关闭 IPv6 的 DHCP 服务，否则会造成连接异常"
 
 msgid "Tip: you can update the version in the settings page"
 msgstr "Tip: 您可以在插件设置页面进行版本更新操作"
@@ -1351,7 +1348,7 @@ msgid "Note: if the update fails, you can manually download and upload"
 msgstr "注意：如更新失败可手动下载并上传"
 
 msgid "Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating"
-msgstr "注意：客户端可能无法更新，因为squashfs格式的固件更新后不会释放闪存空间"
+msgstr "注意：客户端可能无法更新，因为 squashfs 格式的固件更新后不会释放闪存空间"
 
 msgid "Compiled Version"
 msgstr "编译版本"
@@ -1476,11 +1473,14 @@ msgstr "GeoIP MMDB 数据库更新 URL"
 msgid "Custom GeoSite URL"
 msgstr "GeoSite 数据库更新 URL"
 
+msgid "Custom Geo ASN URL"
+msgstr "Geo ASN 数据库更新 URL"
+
 msgid "Custom Chnroute6 Lists URL"
-msgstr "大陆IPv6段更新 URL"
+msgstr "大陆 IPv6 段更新 URL"
 
 msgid "Custom Chnroute Lists URL"
-msgstr "大陆IP段更新 URL"
+msgstr "大陆 IP 段更新 URL"
 
 msgid "Custom GeoIP MMDB URL, Click Button Below To Refresh After Edit"
 msgstr "自定义 GeoIP MMDB 数据库的更新来源，编辑后点击下方按钮生效"
@@ -1501,7 +1501,7 @@ msgid "(Default)"
 msgstr "(默认)"
 
 msgid "(Default mmdb)"
-msgstr "(默认，全部国家且仅写入iso_code和geoname_id)"
+msgstr "(默认，全部国家且仅写入 iso_code 和 geoname_id)"
 
 msgid "(All Info mmdb)"
 msgstr "(全部国家且且包含官方全部信息数据)"
@@ -1537,7 +1537,7 @@ msgid "Restart time (every day)"
 msgstr "重启时间(每天)"
 
 msgid "DNS Port"
-msgstr "DNS监听端口"
+msgstr "DNS 监听端口"
 
 msgid "Log Size (KB)"
 msgstr "日志大小（KB）"
@@ -1981,10 +1981,10 @@ msgid "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
 msgstr "错误：丢失或未指定第三方规则中的部分策略组，停止继续设置第三方规则！"
 
 msgid "Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete..."
-msgstr "提示：检测到DNS选项下的 Nameserver 未设置服务器，开始补全..."
+msgstr "提示：检测到 DNS 选项下的 Nameserver 未设置服务器，开始补全..."
 
 msgid "Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers"
-msgstr "错误：配置文件DNS选项下的 Nameserver 必须设置服务器，已停止设置自定义DNS服务器！"
+msgstr "错误：配置文件 DNS 选项下的 Nameserver 必须设置服务器，已停止设置自定义 DNS 服务器！"
 
 msgid "Config File Does Not Exist, You Have Set Subscription Information, Ready To Download..."
 msgstr "配置文件不存在，您已设置订阅信息，准备开始下载..."
@@ -2053,7 +2053,7 @@ msgid "OpenClash Start Successful!"
 msgstr "OpenClash 启动成功，请等待服务器上线！"
 
 msgid "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPv6's DHCP Server"
-msgstr "警告：OpenClash 启动成功，检测到您启用了IPv6的DHCP服务，可能会造成连接异常！"
+msgstr "警告：OpenClash 启动成功，检测到您启用了 IPv6 的 DHCP 服务，可能会造成连接异常！"
 
 msgid "OpenClash Stoping..."
 msgstr "OpenClash 开始关闭..."
@@ -2152,13 +2152,13 @@ msgid "If you need to customize the external configuration file (subscription co
 msgstr "如需自定义外部配置文件(订阅转换模板)，请按照说明编写后上传至外部网络可访问的位置，并在使用时正确填写地址"
 
 msgid "If you have a recommended external configuration file (subscription conversion template), you can modify by following The file format of /usr/share/openclash/res/sub_ini.list and pr"
-msgstr "如您有值得推荐的外部配置文件(订阅转换模板)，可以按照 /usr/share/openclash/res/sub_ini.list 的文件格式修改后提交PR"
+msgstr "如您有值得推荐的外部配置文件(订阅转换模板)，可以按照 /usr/share/openclash/res/sub_ini.list 的文件格式修改后提交 PR"
 
 msgid "Note: To restore the default configuration, try accessing:"
 msgstr "注意: 如遇到配置丢失或者需要还原默认配置，请尝试访问地址:"
 
 msgid "Take Effect If Fallback DNS Setted, Prevent DNS Pollution"
-msgstr "只有在配置文件设置了 Fallback 组的DNS时才会生效，正确设置可以有效防止 DNS 污染"
+msgstr "只有在配置文件设置了 Fallback 组的 DNS 时才会生效，正确设置可以有效防止 DNS 污染"
 
 msgid "Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore..."
 msgstr "错误：只有在配置文件设置了 Fallback 组的 DNS 时 Fallback-Filter 才会生效，跳过此项修改..."
@@ -2296,16 +2296,16 @@ msgid "Error Login Info"
 msgstr "登录信息错误"
 
 msgid "Warning: Proxy is no longer used. Auto replaced by proxies"
-msgstr "警告：【Proxy】写法已不再支持，自动替换为proxies"
+msgstr "警告：【Proxy】写法已不再支持，自动替换为 proxies"
 
 msgid "Warning: Proxy Group is no longer used. Auto replaced by proxy-groups"
-msgstr "警告：【Proxy Group】写法已不再支持，自动替换为proxy-groups"
+msgstr "警告：【Proxy Group】写法已不再支持，自动替换为 proxy-groups"
 
 msgid "Warning: Rule is no longer used. Auto replaced by rules"
-msgstr "警告：【Rule】写法已不再支持，自动替换为rules"
+msgstr "警告：【Rule】写法已不再支持，自动替换为 rules"
 
 msgid "Warning: rule-provider is no longer used. Auto replaced by rule-providers"
-msgstr "警告：【rule-provider】写法已不再支持，自动替换为rule-providers"
+msgstr "警告：【rule-provider】写法已不再支持，自动替换为 rule-providers"
 
 msgid "Error: Load File Failed,"
 msgstr "错误：文件解析失败，"
@@ -2335,7 +2335,7 @@ msgid "Error: Set Custom Rules Failed,"
 msgstr "错误：设置自定义规则失败，"
 
 msgid "Error: Set BT/P2P DIRECT Rules Failed,"
-msgstr "错误：设置仅代理命中规则流量（BT/P2P直连）失败，"
+msgstr "错误：设置仅代理命中规则流量（BT/P2P 直连）失败，"
 
 msgid "Error: Set lhie1 Rules Failed,"
 msgstr "错误：设置第三方规则（lhie1）失败，"
@@ -2424,8 +2424,8 @@ msgstr "发生了一些错误！"
 msgid "Click to Test"
 msgstr "点击测试"
 
-msgid "Connection Test (Current Browser)"
-msgstr "连接测试（当前浏览器）"
+msgid "Connection Test"
+msgstr "连接测试"
 
 msgid "Backup File"
 msgstr "备份文件"
@@ -2608,7 +2608,7 @@ msgid "unlock test faild!"
 msgstr "解锁检测失败！"
 
 msgid ", the type of group is not select, auto select could not work!"
-msgstr "，当前策略组类型非Select，无法进行自动选择！"
+msgstr "，当前策略组类型非 Select，无法进行自动选择！"
 
 msgid "Start auto select unlock proxy..."
 msgstr "开始进行解锁节点自动选择..."
@@ -2758,7 +2758,7 @@ msgid "Flush"
 msgstr "清理"
 
 msgid "Flush DNS Cache"
-msgstr "清理DNS缓存"
+msgstr "清理 DNS 缓存"
 
 msgid "No Specify Upload File"
 msgstr "未选择上传文件"
@@ -2833,10 +2833,10 @@ msgid "Enable Sniffer"
 msgstr "*启用流量（域名）探测"
 
 msgid "Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure"
-msgstr "流量（域名）探测能有效防止域名分流异常和DNS劫持失败"
+msgstr "流量（域名）探测能有效防止域名分流异常和 DNS 劫持失败"
 
 msgid "Override All Dns Query"
-msgstr "启用后将尽可能的覆盖DNS查询到的域名"
+msgstr "启用后将尽可能的覆盖 DNS 查询到的域名"
 
 msgid "Meta Settings"
 msgstr "Meta 设置"
@@ -2893,7 +2893,7 @@ msgid "Note: If the connection is abnormal, please follow the steps on this page
 msgstr "注意: 连接异常时请按照此页步骤先进行检查"
 
 msgid "Note: If you need to perform client access control in Fake-IP mode, please change the DNS hijacking mode to firewall forwarding"
-msgstr "注意: Fake-IP 模式下如需要进行客户端访问控制，请将DNS劫持模式改为防火墙转发"
+msgstr "注意: Fake-IP 模式下如需要进行客户端访问控制，请将 DNS 劫持模式改为防火墙转发"
 
 msgid "Click to the page"
 msgstr "点击前往"
@@ -3186,8 +3186,8 @@ msgstr "开发者选项"
 msgid "Restore"
 msgstr "还原"
 
-msgid "DNS Test (Clash Response)"
-msgstr "DNS 测试（Clash 查询结果）"
+msgid "DNS Test"
+msgstr "DNS 测试"
 
 msgid "No Response Found!"
 msgstr "结果获取失败！"
@@ -3304,7 +3304,7 @@ msgid "Change The Delay Calculation Method To Remove Extra Delays Such as Handsh
 msgstr "更换延迟计算方式，通过去除握手等额外开销来降低延迟数值"
 
 msgid "Tip: If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
-msgstr "提示：如果下载失败，您可以尝试在覆写设置 - 常规设置 - Github地址修改选项中设置CDN"
+msgstr "提示：如果下载失败，您可以尝试在覆写设置 - 常规设置 - Github 地址修改选项中设置 CDN"
 
 msgid "Used for Downloading Subscriptions, Defaults to Clash"
 msgstr "用于下载订阅时指定 UA，默认为 Clash"
@@ -4023,6 +4023,12 @@ msgstr "Smart 策略自动切换"
 msgid "Auto Switch Url-test and Load-balance Group to Smart Group"
 msgstr "自动切换 Url-test、Load-balance 策略组到 Smart 策略组"
 
+msgid "Enable LightGBM Model"
+msgstr "启用 LightGBM 模型"
+
+msgid "Use LightGBM Model To Predict Weight"
+msgstr "使用 LightGBM 模型来预测权重"
+
 msgid "Auto Update LightGBM Model"
 msgstr "自动更新模型"
 
@@ -4111,10 +4117,10 @@ msgid "Created successfully"
 msgstr "新建成功"
 
 msgid "Please enter subscription URL"
-msgstr "请输入订阅URL"
+msgstr "请输入订阅 URL"
 
 msgid "Invalid subscription URL format, only single HTTP/HTTPS link is supported"
-msgstr "无效的订阅URL格式，仅支持单一HTTP/HTTPS链接"
+msgstr "无效的订阅 URL 格式，仅支持单一 HTTP/HTTPS 链接"
 
 msgid "Downloading subscription content..."
 msgstr "正在下载订阅内容..."
@@ -4146,6 +4152,9 @@ msgstr "错误：文件下载失败"
 msgid "Warning: skip General key not allowed"
 msgstr "警告：跳过不支持的参数"
 
+msgid "Warning: skip General key type error"
+msgstr "警告：跳过值类型错误的参数"
+
 msgid "Warning: skip invalid Overwrite command"
 msgstr "警告：跳过不支持的覆写命令"
 
@@ -4154,6 +4163,12 @@ msgstr "提示：执行覆写模块"
 
 msgid "Tip: Load Overwrite Script"
 msgstr "提示：加载覆写命令"
+
+msgid "Tip: DOWNLOAD FILE for"
+msgstr "提示：执行文件下载"
+
+msgid "Tip: Add Cron for"
+msgstr "提示：添加计划任务"
 
 msgid "Delete"
 msgstr "删除"
