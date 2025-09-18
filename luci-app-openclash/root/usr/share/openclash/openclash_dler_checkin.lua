@@ -9,12 +9,12 @@ local json = require "luci.jsonc"
 
 local function dler_checkin()
 	local info, path, checkin
-	local token = fs.uci_get("config", "dler_token")
-	local email = fs.uci_get("config", "dler_email")
-	local passwd = fs.uci_get("config", "dler_passwd")
-	local enable = fs.uci_get("config", "dler_checkin") or 0
-	local interval = fs.uci_get("config", "dler_checkin_interval") or 1
-	local multiple = fs.uci_get("config", "dler_checkin_multiple") or 1
+	local token = fs.uci_get_config("config", "dler_token")
+	local email = fs.uci_get_config("config", "dler_email")
+	local passwd = fs.uci_get_config("config", "dler_passwd")
+	local enable = fs.uci_get_config("config", "dler_checkin") or 0
+	local interval = fs.uci_get_config("config", "dler_checkin_interval") or 1
+	local multiple = fs.uci_get_config("config", "dler_checkin_multiple") or 1
 	path = "/tmp/dler_checkin"
 	if token and email and passwd and enable == "1" then
 		checkin = string.format("curl -sL -H 'Content-Type: application/json' -d '{\"email\":\"%s\", \"passwd\":\"%s\", \"multiple\":\"%s\"}' -X POST https://dler.cloud/api/v1/checkin -o %s", email, passwd, multiple, path)

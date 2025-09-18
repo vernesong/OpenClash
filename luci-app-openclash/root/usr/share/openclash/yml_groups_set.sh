@@ -16,10 +16,10 @@ del_lock() {
 set_lock
 GROUP_FILE="/tmp/yaml_groups.yaml"
 CFG_FILE="/etc/config/openclash"
-servers_update=$(uci_get "servers_update")
-CONFIG_FILE=$(uci_get "config_path")
+servers_update=$(uci_get_config "servers_update")
+CONFIG_FILE=$(uci_get_config "config_path")
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
-UPDATE_CONFIG_FILE=$(uci_get "config_update_path")
+UPDATE_CONFIG_FILE=$(uci_get_config "config_update_path")
 UPDATE_CONFIG_NAME=$(echo "$UPDATE_CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
 
 if [ -n "$UPDATE_CONFIG_FILE" ]; then
@@ -376,8 +376,8 @@ yml_groups_set()
    fi
 }
 
-create_config=$(uci_get "create_config")
-servers_if_update=$(uci_get "servers_if_update")
+create_config=$(uci_get_config "create_config")
+servers_if_update=$(uci_get_config "servers_if_update")
 if_game_group="$1"
 if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ -n "$if_game_group" ]; then
    /usr/share/openclash/yml_groups_name_get.sh

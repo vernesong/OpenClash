@@ -61,8 +61,8 @@ else
 end
 
 local cfg_name
-if fs.uci_get("config", "config_path") then
-    cfg_name = fs.basename(fs.uci_get("config", "config_path"))
+if fs.uci_get_config("config", "config_path") then
+    cfg_name = fs.basename(fs.uci_get_config("config", "config_path"))
 end
 
 local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]+") or "self.sectiontype"
@@ -139,7 +139,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 <!-- tblsection -->
 <fieldset class="cbi-section" id="cbi-<%=self.config%>-<%=self.sectiontype%>">
     <% if self.title and #self.title > 0 then -%>
-        <h3><%=self.title%></h3>
+        <legend><%=self.title%></legend>
     <%- end %>
     <%- if self.sortable then -%>
         <input type="hidden" id="cbi.sts.<%=self.config%>.<%=self.sectiontype%>" name="cbi.sts.<%=self.config%>.<%=self.sectiontype%>" value="" />
@@ -227,12 +227,12 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                         local num = 1
                     for i, k in ipairs(self:cfgsections()) do
                         local section = k
-                        if not fs.uci_get(section, "config") then
+                        if not fs.uci_get_config(section, "config") then
                             uci:set("openclash", section, "config", "all")
                             uci:save("openclash")
                         end
                         
-                        local section_config = fs.uci_get(section, "config")
+                        local section_config = fs.uci_get_config(section, "config")
                         if section_config == o.name then
                             isempty = false
                             local scope = { valueheader = "cbi/cell_valueheader", valuefooter = "cbi/cell_valuefooter" }
