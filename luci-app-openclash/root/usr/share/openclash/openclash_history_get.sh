@@ -14,14 +14,14 @@ del_lock() {
 }
 
 close_all_conection() {
-   SECRET=$(uci_get "dashboard_password")
-   lan_interface_name=$(uci_get "lan_interface_name" || echo "0")
+   SECRET=$(uci_get_config "dashboard_password")
+   lan_interface_name=$(uci_get_config "lan_interface_name" || echo "0")
    if [ "$lan_interface_name" = "0" ]; then
       LAN_IP=$(uci -q get network.lan.ipaddr |awk -F '/' '{print $1}' 2>/dev/null || ip address show $(uci -q -p /tmp/state get network.lan.ifname || uci -q -p /tmp/state get network.lan.device) | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' |head -1 || ip addr show 2>/dev/null | grep -w 'inet' | grep 'global' | grep 'brd' | grep -Eo 'inet [0-9\.]+' | awk '{print $2}' | head -n 1)
    else
       LAN_IP=$(ip address show $lan_interface_name | grep -w "inet"  2>/dev/null |grep -Eo 'inet [0-9\.]+' | awk '{print $2}' |head -1)
    fi
-   PORT=$(uci_get "cn_port")
+   PORT=$(uci_get_config "cn_port")
    curl -m 2 -H "Authorization: Bearer ${SECRET}" -H "Content-Type:application/json" -X DELETE http://"$LAN_IP":"$PORT"/connections >/dev/null 2>&1
 }
 
@@ -35,15 +35,15 @@ fi
 
 CONFIG_FILE=$(unify_ps_cfgname)
 CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $4}' 2>/dev/null)
-small_flash_memory=$(uci_get "small_flash_memory")
+small_flash_memory=$(uci_get_config "small_flash_memory")
 HISTORY_PATH_OLD="/etc/openclash/history/${CONFIG_NAME%.*}"
 HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}.db"
-core_version=$(uci_get "core_version" || echo 0)
+core_version=$(uci_get_config "core_version" || echo 0)
 CACHE_PATH_OLD="/etc/openclash/.cache"
 source "/etc/openwrt_release"
 
 if [ -z "$CONFIG_FILE" ] || [ ! -f "$CONFIG_FILE" ]; then
-   CONFIG_FILE=$(uci_get "config_path")
+   CONFIG_FILE=$(uci_get_config "config_path")
    CONFIG_NAME=$(echo "$CONFIG_FILE" |awk -F '/' '{print $5}' 2>/dev/null)
    HISTORY_PATH_OLD="/etc/openclash/history/${CONFIG_NAME%.*}"
    HISTORY_PATH="/etc/openclash/history/${CONFIG_NAME%.*}.db"
