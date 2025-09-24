@@ -399,7 +399,7 @@ threads << Thread.new do
 
       Value['lgbm-auto-update'] = true if lgbm_auto_update
       if lgbm_auto_update
-         Value['lgbm-custom-url'] = lgbm_custom_url.strip
+         Value['lgbm-url'] = lgbm_custom_url.strip
          Value['lgbm-update-interval'] = lgbm_update_interval.to_i
       end
 
