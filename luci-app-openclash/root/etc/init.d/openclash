@@ -3631,6 +3631,8 @@ reload_service()
    enable=$(uci_get_config "enable")
    MAX_RELOAD=10
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "firewall" ]; then
+      #sleep for avoiding system unready
+      sleep 5
       NOW_TS=$(date +%s)
       LAST_LINE=$(grep "Reload OpenClash Firewall Rules...$" "$LOG_FILE" | tail -n 1)
       LAST_TIME=$(echo "$LAST_LINE" | awk '{print $1" "$2}')
