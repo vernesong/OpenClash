@@ -376,21 +376,21 @@ o = s:taboption("smart", Flag, "auto_smart_switch", font_red..bold_on..translate
 o.description = font_red..bold_on..translate("Auto Switch Url-test and Load-balance Group to Smart Group")..bold_off..font_off
 o.default = 0
 
-o = s:taboption("smart", Flag, "smart_enable_lgbm", font_red..bold_on..translate("Enable LightGBM Model")..bold_off..font_off)
-o.description = font_red..bold_on..translate("Use LightGBM Model To Predict Weight")..bold_off..font_off
-o.default = 0
-
 o = s:taboption("smart", ListValue, "smart_strategy", translate("Node Select Strategy"))
+o:value("0", translate("Disable"))
 o:value("sticky-sessions", translate("Sticky-sessions"))
 o:value("round-robin", translate("Round-robin"))
-o.default = "sticky-sessions"
-o:depends("auto_smart_switch", "1")
+o.default = "0"
 o.description = translate("Before Node Data Collect Completely, The Default is Sticky-sessions")
 
 o = s:taboption("smart", Value, "smart_policy_priority", translate("Policy Priority"))
 o.default = ""
 o.placeholder = "Premium:0.9;SG:1.3"
 o.description = translate("Nodes Weight Priority, <1 Means Lower Priority, >1 Means Higher Priority, The Default is 1, Pattern Support Regex and String")
+
+o = s:taboption("smart", Flag, "smart_enable_lgbm", font_red..bold_on..translate("Enable LightGBM Model")..bold_off..font_off)
+o.description = font_red..bold_on..translate("Use LightGBM Model To Predict Weight")..bold_off..font_off
+o.default = 0
 
 o = s:taboption("smart", Flag, "smart_collect", translate("Colletct Training Data"))
 o.default = 0
