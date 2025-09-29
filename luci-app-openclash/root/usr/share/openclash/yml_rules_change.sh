@@ -803,7 +803,7 @@ yml_other_set()
 
       # smart auto switch
       begin
-         if ('${10}' == '1' or '${11}' == '1' or '${14}' != '0') and Value.key?('proxy-groups') then
+         if ('${10}' == '1' or '${11}' == '1' or '${14}' != '0' or '${15}' == '1') and Value.key?('proxy-groups') then
             Value['proxy-groups'].each{|group|
                threads << Thread.new {
                   if '${10}' == '1' and ['url-test', 'load-balance'].include?(group['type']) then
@@ -821,7 +821,7 @@ yml_other_set()
                      group['policy-priority'] = '${14}';
                   end;
                   if '${15}' == '1' and group['type'] == 'smart' then
-                     group['uselightgbm'] = true if '${15}' == '1';
+                     group['uselightgbm'] = true;
                   end;
                };
             };
