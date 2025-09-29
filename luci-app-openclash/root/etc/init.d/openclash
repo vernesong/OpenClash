@@ -3424,7 +3424,7 @@ get_config()
    smart_collect=$(uci_get_config "smart_collect" || echo 0)
    smart_collect_size=$(uci_get_config "smart_collect_size" || echo 100)
    smart_collect_rate=$(uci_get_config "smart_collect_rate" || echo 1)
-   smart_strategy=$(uci_get_config "smart_strategy" || echo "sticky-sessions")
+   smart_strategy=$(uci_get_config "smart_strategy" || echo 0)
    smart_policy_priority=$(uci_get_config "smart_policy_priority" || echo 0)
    smart_enable_lgbm=$(uci_get_config "smart_enable_lgbm" || echo 0)
 
