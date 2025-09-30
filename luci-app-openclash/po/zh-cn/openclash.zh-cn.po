@@ -1113,8 +1113,11 @@ msgstr "不走代理的局域网设备 Mac"
 msgid "LAN Proxied Mac List"
 msgstr "走代理的局域网设备 Mac"
 
-msgid "In The Fake-IP Mode, Only Pure IP Requests Are Supported"
-msgstr "在 Fake-IP 模式下，只支持过滤纯 IP 类型的请求"
+msgid "In The Fake-IP Mode, Only Pure IP Requests Are Supported, Please Setting Fake-IP-Filter First If You Need Domain Type Requests"
+msgstr "在 Fake-IP 模式下，只支持过滤纯 IP 类型的请求, 如果涉及域名访问请提前设置 Fake-IP-Filter"
+
+msgid "Warning: iptables DSCP module not available, please try DCSP rule by core instead, skipping DSCP rule for"
+msgstr "警告：iptables 的 DSCP 模块不可用，请尝试改用内核的 DSCP 规则，来源流量访问控制跳过设置 DSCP 规则"
 
 msgid "Rule Match Proxy Mode"
 msgstr "仅代理命中规则流量"
