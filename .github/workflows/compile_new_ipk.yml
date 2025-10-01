@@ -42,8 +42,8 @@ jobs:
     strategy:
       matrix:
         target:
-          - { name: ipk, sdk_url: "https://mirrors.pku.edu.cn/openwrt/releases/22.03.0/targets/x86/64/openwrt-sdk-22.03.0-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz", sdk_tar: "SDK.tar.xz", sdk_dir: "SDK", artifact_pattern: "luci-app-openclash_*.ipk" }
-          - { name: apk, sdk_url: "snapshot", sdk_tar: "SNAPSDK.tar.zst", sdk_dir: "SNAPSDK", artifact_pattern: "luci-app-openclash-*.apk" }
+          - { name: ipk, sdk_url: "https://mirrors.pku.edu.cn/openwrt/releases/22.03.0/targets/x86/64/openwrt-sdk-22.03.0-x86-64_gcc-11.2.0_musl.Linux-x86_64.tar.xz", sdk_tar: "SDK.tar.xz", sdk_backup_tar: "SDK.tar.bz2", sdk_dir: "SDK", artifact_pattern: "luci-app-openclash_*.ipk" }
+          - { name: apk, sdk_url: "snapshot", sdk_tar: "SNAPSDK.tar.zst", sdk_backup_tar: "SNAPSDK.tar.zst", sdk_dir: "SNAPSDK", artifact_pattern: "luci-app-openclash-*.apk" }
     steps:
       - name: Checkout OpenClash Source
         uses: actions/checkout@v4
@@ -61,14 +61,24 @@ jobs:
         run: |
           mkdir -p tmp
           if [ "${{ matrix.target.name }}" = "ipk" ]; then
-            curl -SLk --connect-timeout 30 --retry 2 "${{ matrix.target.sdk_url }}" -o "./tmp/${{ matrix.target.sdk_tar }}"
-            cd tmp
-            tar xf ${{ matrix.target.sdk_tar }}
-            mv openwrt-sdk-* ${{ matrix.target.sdk_dir }}
+            if ! curl -SLk --connect-timeout 30 --retry 2 "${{ matrix.target.sdk_url }}" -o "./tmp/${{ matrix.target.sdk_tar }}"; then
+              curl -SLk --connect-timeout 30 --retry 2 "https://archive.openwrt.org/chaos_calmer/15.05.1/ar71xx/generic/OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2" -o "./tmp/SDK.tar.xz"
+              cd tmp
+              tar xjf ${{ matrix.target.sdk_backup_tar }}
+              mv OpenWrt-SDK-* ${{ matrix.target.sdk_dir }}
+            else
+              cd tmp
+              tar xf ${{ matrix.target.sdk_tar }}
+              mv openwrt-sdk-* ${{ matrix.target.sdk_dir }}
+            fi
           else
             BASE_URL="https://downloads.openwrt.org/snapshots/targets/x86/64/"
             SDK_NAME=$(curl -s $BASE_URL | grep -oE 'openwrt-sdk-x86-64[^"]+\.tar\.zst' | head -n 1)
-            curl -SLk --connect-timeout 30 --retry 2 "$BASE_URL/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"
+            if ! curl -SLk --connect-timeout 30 --retry 2 "$BASE_URL/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"; then
+              BASE_URL2="https://mirrors.pku.edu.cn/files/openwrt/snapshots/targets/x86/64/"
+              SDK_NAME=$(curl -s $BASE_URL2 | grep -oE 'openwrt-sdk-x86-64[^"]+\.tar\.zst' | head -n 1)
+              curl -SLk --connect-timeout 30 --retry 2 "$BASE_URL2/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"
+            fi
             cd tmp
             zstd -d ${{ matrix.target.sdk_tar }}
             tar xf SNAPSDK.tar
@@ -89,7 +99,9 @@ jobs:
       - name: Compile OpenClash
         run: |
           cd tmp/${{ matrix.target.sdk_dir }}
-          make defconfig
+          if [ -f ../${{ matrix.target.sdk_tar }} ]; then
+            make defconfig
+          fi
           make package/luci-app-openclash/compile V=99
 
       - name: Upload Artifact
