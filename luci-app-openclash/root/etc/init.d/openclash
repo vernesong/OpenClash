@@ -818,13 +818,14 @@ check_core_status()
 
 firewall_lan_ac_traffic()
 {
-   local src_port src_ip proto target enabled family comment
+   local src_port src_ip proto target enabled family dscp comment
    config_get "src_port" "$section" "src_port" ""
    config_get "src_ip" "$section" "src_ip" "localnetwork"
    config_get "proto" "$section" "proto" "both"
    config_get "target" "$section" "target" "return"
    config_get "enabled" "$section" "enabled" "0"
    config_get "family" "$section" "family" "both"
+   config_get "dscp" "$section" "dscp" ""
    config_get "comment" "$section" "comment" "lan_ac_traffic"
 
    if [ "${enabled}" == "0" ] || [ -z "${src_port}" ] || [ -z "${src_ip}" ]; then
@@ -837,7 +838,12 @@ firewall_lan_ac_traffic()
    if [ "${proto}" == "udp" ]; then e_udp=true; fi
    if [ "${proto}" == "both" ]; then e_tcp=true; e_udp=true; fi
 
-   if [ -n "${FW4}" ]; then
+   local dscp_rule=""
+   if [ -n "${dscp}" ]; then
+      dscp_rule="dscp ${dscp}"
+   fi
+
+   if [ -n "$FW4" ]; then
       if [ "${src_ip}" == "localnetwork" ]; then
          src_ip="@localnetwork"
          src_ip_v6="@localnetwork6"
@@ -849,44 +855,44 @@ firewall_lan_ac_traffic()
       if [ "${family}" == "both" ] || [ "${family}" == "ipv4" ]; then
          if [ -z "${en_mode_tun}" ] || [ "${en_mode_tun}" -eq 2 ]; then
             if $e_tcp ; then
-               nft insert rule inet fw4 openclash_output position 0 meta nfproto {ipv4} ip daddr != { ${fakeip_range} } ip saddr ${src_ip} tcp sport ${src_port} counter ${target} comment "\"${comment}\""
-               nft insert rule inet fw4 openclash position 0 ip daddr != { ${fakeip_range} } ip saddr ${src_ip} tcp sport ${src_port} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_output position 0 meta nfproto {ipv4} ip daddr != { ${fakeip_range} } ip saddr ${src_ip} tcp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash position 0 ip daddr != { ${fakeip_range} } ip saddr ${src_ip} tcp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
             fi
             if $e_udp ; then
-               nft insert rule inet fw4 openclash_mangle_output position 0 meta nfproto {ipv4} ip daddr != { ${fakeip_range} } ip saddr ${src_ip} udp sport ${src_port} counter ${target} comment "\"${comment}\""
-               nft insert rule inet fw4 openclash_mangle position 0 ip daddr != { ${fakeip_range} } ip saddr ${src_ip} udp sport ${src_port} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_mangle_output position 0 meta nfproto {ipv4} ip daddr != { ${fakeip_range} } ip saddr ${src_ip} udp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_mangle position 0 ip daddr != { ${fakeip_range} } ip saddr ${src_ip} udp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
             fi
          elif [ "${en_mode_tun}" -eq 1 ]; then
             if $e_tcp ; then
-               nft insert rule inet fw4 openclash_mangle_output position 0 meta nfproto {ipv4} ip daddr != { ${fakeip_range} } ip saddr ${src_ip} tcp sport ${src_port} counter ${target} comment "\"${comment}\""
-               nft insert rule inet fw4 openclash_mangle position 0 ip daddr != { ${fakeip_range} } ip saddr ${src_ip} tcp sport ${src_port} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_mangle_output position 0 meta nfproto {ipv4} ip daddr != { ${fakeip_range} } ip saddr ${src_ip} tcp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_mangle position 0 ip daddr != { ${fakeip_range} } ip saddr ${src_ip} tcp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
             fi
             if $e_udp ; then
-               nft insert rule inet fw4 openclash_mangle_output position 0 meta nfproto {ipv4} ip daddr != { ${fakeip_range} } ip saddr ${src_ip} udp sport ${src_port} counter ${target} comment "\"${comment}\""
-               nft insert rule inet fw4 openclash_mangle position 0 ip daddr != { ${fakeip_range} } ip saddr ${src_ip} udp sport ${src_port} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_mangle_output position 0 meta nfproto {ipv4} ip daddr != { ${fakeip_range} } ip saddr ${src_ip} udp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_mangle position 0 ip daddr != { ${fakeip_range} } ip saddr ${src_ip} udp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
             fi
          fi
          if $e_tcp ; then
-            nft insert rule inet fw4 openclash_post position 0 ip daddr != { ${fakeip_range} } ip saddr ${src_ip} tcp sport ${src_port} counter ${target} comment "\"${comment}\""
+            nft insert rule inet fw4 openclash_post position 0 ip daddr != { ${fakeip_range} } ip saddr ${src_ip} tcp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
          fi
          if $e_udp ; then
-            nft insert rule inet fw4 openclash_post position 0 ip daddr != { ${fakeip_range} } ip saddr ${src_ip} udp sport ${src_port} counter ${target} comment "\"${comment}\""
+            nft insert rule inet fw4 openclash_post position 0 ip daddr != { ${fakeip_range} } ip saddr ${src_ip} udp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
          fi
       fi
 
       if [ "${ipv6_enable}" -eq 1 ]; then
          if [ "${family}" == "both" ] || [ "${family}" == "ipv6" ]; then
             if $e_tcp ; then
-               nft insert rule inet fw4 openclash_v6 position 0 ip6 saddr ${src_ip_v6} tcp sport ${src_port} counter ${target} comment "\"${comment}\""
-               nft insert rule inet fw4 openclash_output_v6 position 0 ip6 saddr ${src_ip_v6} tcp sport ${src_port} counter ${target} comment "\"${comment}\""
-               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr ${src_ip_v6} tcp sport ${src_port} counter ${target} comment "\"${comment}\""
-               nft insert rule inet fw4 openclash_mangle_output_v6 position 0 meta nfproto {ipv6} ip6 saddr ${src_ip_v6} tcp sport ${src_port} counter ${target} comment "\"${comment}\""
-               nft insert rule inet fw4 openclash_post_v6 position 0 ip6 saddr ${src_ip_v6} tcp sport ${src_port} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_v6 position 0 ip6 saddr ${src_ip_v6} tcp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_output_v6 position 0 ip6 saddr ${src_ip_v6} tcp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr ${src_ip_v6} tcp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_mangle_output_v6 position 0 meta nfproto {ipv6} ip6 saddr ${src_ip_v6} tcp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_post_v6 position 0 ip6 saddr ${src_ip_v6} tcp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
             fi
             if $e_udp ; then
-               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr ${src_ip_v6} udp sport ${src_port} counter ${target} comment "\"${comment}\""
-               nft insert rule inet fw4 openclash_mangle_output_v6 position 0 meta nfproto {ipv6} ip6 saddr ${src_ip_v6} udp sport ${src_port} counter ${target} comment "\"${comment}\""
-               nft insert rule inet fw4 openclash_post_v6 position 0 ip6 saddr ${src_ip_v6} udp sport ${src_port} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 saddr ${src_ip_v6} udp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_mangle_output_v6 position 0 meta nfproto {ipv6} ip6 saddr ${src_ip_v6} udp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
+               nft insert rule inet fw4 openclash_post_v6 position 0 ip6 saddr ${src_ip_v6} udp sport ${src_port} ${dscp_rule} counter ${target} comment "\"${comment}\""
             fi
          fi
       fi
@@ -903,47 +909,56 @@ firewall_lan_ac_traffic()
       if [ "${target}" == "return" ]; then target="RETURN"; fi
       if [ "${target}" == "drop" ]; then target="DROP"; fi
 
+      local dscp_ipt=""
+      if [ -n "${dscp}" ]; then
+         if iptables -m dscp --help >/dev/null 2>&1; then
+            dscp_ipt="-m dscp --dscp ${dscp}"
+         else
+            LOG_OUT "Warning: iptables DSCP module not available, please try DCSP rule by core instead, skipping DSCP rule for【${comment}】"
+         fi
+      fi
+
       if [ "${family}" == "both" ] || [ "${family}" == "ipv4" ]; then
          if [ -z "${en_mode_tun}" ] || [ "${en_mode_tun}" -eq 2 ]; then
             if $e_tcp ; then
-               iptables -t nat -I openclash_output -p tcp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
-               iptables -t nat -I openclash -p tcp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
+               iptables -t nat -I openclash_output -p tcp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
+               iptables -t nat -I openclash -p tcp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
             fi
             if $e_udp ; then
-               iptables -t mangle -I openclash_output -p udp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
-               iptables -t mangle -I openclash -p udp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
+               iptables -t mangle -I openclash_output -p udp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
+               iptables -t mangle -I openclash -p udp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
             fi
          elif [ "${en_mode_tun}" -eq 1 ]; then
             if $e_tcp ; then
-               iptables -t mangle -I openclash_output -p tcp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
-               iptables -t mangle -I openclash -p tcp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
+               iptables -t mangle -I openclash_output -p tcp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
+               iptables -t mangle -I openclash -p tcp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
             fi
             if $e_udp ; then
-               iptables -t mangle -I openclash_output -p udp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
-               iptables -t mangle -I openclash -p udp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
+               iptables -t mangle -I openclash_output -p udp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
+               iptables -t mangle -I openclash -p udp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
             fi
          fi
          if $e_tcp ; then
-            iptables -t nat -I openclash_post -p tcp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
+            iptables -t nat -I openclash_post -p tcp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
          fi
          if $e_udp ; then
-            iptables -t nat -I openclash_post -p udp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
+            iptables -t nat -I openclash_post -p udp ! -d ${fakeip_range} ${src_ip} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
          fi
       fi
 
       if [ "${ipv6_enable}" -eq 1 ]; then
          if [ "${family}" == "both" ] || [ "${family}" == "ipv6" ]; then
             if $e_tcp ; then
-               ip6tables -t nat -I openclash ${src_ip_v6} -p tcp --sport ${src_port} -j ${target} -m comment --comment "${comment}"
-               ip6tables -t nat -A openclash_output ${src_ip_v6} -p tcp --sport ${src_port} -j ${target} -m comment --comment "${comment}"
-               ip6tables -t mangle -I openclash ${src_ip_v6} -p tcp --sport ${src_port} -j ${target} -m comment --comment "${comment}"
-               ip6tables -t mangle -I openclash_output -p tcp ${src_ip_v6} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
-               ip6tables -t nat -I openclash_post -p tcp ${src_ip_v6} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
+               ip6tables -t nat -I openclash ${src_ip_v6} -p tcp --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
+               ip6tables -t nat -A openclash_output ${src_ip_v6} -p tcp --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
+               ip6tables -t mangle -I openclash ${src_ip_v6} -p tcp --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
+               ip6tables -t mangle -I openclash_output -p tcp ${src_ip_v6} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
+               ip6tables -t nat -I openclash_post -p tcp ${src_ip_v6} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
             fi
             if $e_udp ; then
-               ip6tables -t mangle -I openclash -p udp ${src_ip_v6} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
-               ip6tables -t mangle -I openclash_output -p udp ${src_ip_v6} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
-               ip6tables -t nat -I openclash_post -p udp ${src_ip_v6} --sport ${src_port} -j ${target} -m comment --comment "${comment}"
+               ip6tables -t mangle -I openclash -p udp ${src_ip_v6} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
+               ip6tables -t mangle -I openclash_output -p udp ${src_ip_v6} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
+               ip6tables -t nat -I openclash_post -p udp ${src_ip_v6} --sport ${src_port} ${dscp_ipt} -j ${target} -m comment --comment "${comment}"
             fi
          fi
       fi
@@ -3424,7 +3439,7 @@ get_config()
    smart_collect=$(uci_get_config "smart_collect" || echo 0)
    smart_collect_size=$(uci_get_config "smart_collect_size" || echo 100)
    smart_collect_rate=$(uci_get_config "smart_collect_rate" || echo 1)
-   smart_strategy=$(uci_get_config "smart_strategy" || echo "sticky-sessions")
+   smart_strategy=$(uci_get_config "smart_strategy" || echo 0)
    smart_policy_priority=$(uci_get_config "smart_policy_priority" || echo 0)
    smart_enable_lgbm=$(uci_get_config "smart_enable_lgbm" || echo 0)
 
@@ -3631,6 +3646,8 @@ reload_service()
    enable=$(uci_get_config "enable")
    MAX_RELOAD=10
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "firewall" ]; then
+      #sleep for avoiding system unready
+      sleep 5
       NOW_TS=$(date +%s)
       LAST_LINE=$(grep "Reload OpenClash Firewall Rules...$" "$LOG_FILE" | tail -n 1)
       LAST_TIME=$(echo "$LAST_LINE" | awk '{print $1" "$2}')
