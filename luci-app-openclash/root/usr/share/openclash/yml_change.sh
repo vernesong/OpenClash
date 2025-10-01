@@ -78,7 +78,6 @@ yml_dns_custom()
 {
    if [ "$1" = 1 ] || [ "$3" = 1 ]; then
       sys_dns_append "$3" "$4"
-      config_load "openclash"
       config_foreach yml_dns_get "dns_servers" "$2"
    fi
 }
@@ -278,6 +277,7 @@ yml_dns_get()
    esac
 }
 
+config_load "openclash"
 config_foreach yml_auth_get "authentication"
 yml_dns_custom "$enable_custom_dns" "$5" "$append_wan_dns" "${16}"
 
@@ -399,7 +399,7 @@ threads << Thread.new do
 
       Value['lgbm-auto-update'] = true if lgbm_auto_update
       if lgbm_auto_update
-         Value['lgbm-custom-url'] = lgbm_custom_url.strip
+         Value['lgbm-url'] = lgbm_custom_url.strip
          Value['lgbm-update-interval'] = lgbm_update_interval.to_i
       end
 
@@ -624,7 +624,7 @@ end
 threads << Thread.new do
    begin
       if (auth_config = safe_load_yaml('/tmp/yaml_openclash_auth'))
-         (Value['authentication'] ||= []).concat(auth_config).uniq!
+         Value['authentication'] = auth_config
       end
    rescue Exception => e
       YAML.LOG('Error: Set authentication Failed,【%s】' % [e.message])
