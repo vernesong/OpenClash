@@ -1,5 +1,17 @@
 #!/bin/sh
-. /usr/share/openclash/uci.sh
+: "${IPKG_INSTROOT:=/}"
+
+UCI_SH_PATHS="
+${IPKG_INSTROOT%/}/usr/share/openclash/uci.sh
+/usr/share/openclash/uci.sh
+"
+
+for path in $UCI_SH_PATHS; do
+    if [ -f "$path" ]; then
+        . "$path"
+        break
+    fi
+done
 
 JOB_COUNTER_FILE="/tmp/openclash_jobs"
 
