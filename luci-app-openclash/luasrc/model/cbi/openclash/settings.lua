@@ -269,8 +269,18 @@ o.default = "tcp"
 o.rmempty = false
 
 o = s2:option(Value, "dscp", translate("DSCP"))
-o.datatype = "integer"
-o.rmempty = false
+o.datatype = "range(0,63)"
+o.rmempty = true
+function o.validate(self, value)
+    if value == "" or value == nil then
+        return value
+    end
+    local num = tonumber(value)
+    if not num or num < 0 or num > 63 then
+        return nil, "DSCP must be between 0 and 63"
+    end
+    return value
+end
 
 o = s2:option(ListValue, "target", translate("Target"))
 o:value("return", translate("RETURN"))
