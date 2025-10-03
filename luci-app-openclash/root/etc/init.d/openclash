@@ -840,7 +840,7 @@ firewall_lan_ac_traffic()
 
    local dscp_rule=""
    if [ -n "${dscp}" ]; then
-      dscp_rule="dscp ${dscp}"
+      dscp_rule="ip dscp ${dscp}"
    fi
 
    if [ -n "$FW4" ]; then
