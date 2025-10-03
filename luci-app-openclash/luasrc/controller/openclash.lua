@@ -522,7 +522,7 @@ local function dler_login()
 	local email = fs.uci_get_config("config", "dler_email")
 	local passwd = fs.uci_get_config("config", "dler_passwd")
 	if email and passwd then
-		info = luci.sys.exec(string.format("curl -sL -H 'Content-Type: application/json' -d '{\"email\":\"%s\", \"passwd\":\"%s\"}' -X POST https://dler.cloud/api/v1/login", email, passwd))
+		info = luci.sys.exec(string.format("curl -sL -H 'Content-Type: application/json' -d '{\"email\":\"%s\", \"passwd\":\"%s\", \"token_expire\":\"365\" }' -X POST https://dler.cloud/api/v1/login", email, passwd))
 		if info then
 			info = json.parse(info)
 		end
@@ -611,11 +611,9 @@ end
 local function dler_info()
 	local info, path, get_info
 	local token = fs.uci_get_config("config", "dler_token")
-	local email = fs.uci_get_config("config", "dler_email")
-	local passwd = fs.uci_get_config("config", "dler_passwd")
 	path = "/tmp/dler_info"
-	if token and email and passwd then
-		get_info = string.format("curl -sL -H 'Content-Type: application/json' -d '{\"email\":\"%s\", \"passwd\":\"%s\"}' -X POST https://dler.cloud/api/v1/information -o %s", email, passwd, path)
+	if token then
+		get_info = string.format("curl -sL -H 'Content-Type: application/json' -d '{\"access_token\":\"%s\"}' -X POST https://dler.cloud/api/v1/information -o %s", token, path)
 		if not fs.access(path) then
 			luci.sys.exec(get_info)
 		else
@@ -653,11 +651,9 @@ local function dler_checkin()
 	local info
 	local path = "/tmp/dler_checkin"
 	local token = fs.uci_get_config("config", "dler_token")
-	local email = fs.uci_get_config("config", "dler_email")
-	local passwd = fs.uci_get_config("config", "dler_passwd")
 	local multiple = fs.uci_get_config("config", "dler_checkin_multiple") or 1
-	if token and email and passwd then
-		info = luci.sys.exec(string.format("curl -sL -H 'Content-Type: application/json' -d '{\"email\":\"%s\", \"passwd\":\"%s\", \"multiple\":\"%s\"}' -X POST https://dler.cloud/api/v1/checkin", email, passwd, multiple))
+	if token then
+		info = luci.sys.exec(string.format("curl -sL -H 'Content-Type: application/json' -d '{\"access_token\":\"%s\", \"multiple\":\"%s\"}' -X POST https://dler.cloud/api/v1/checkin", token, multiple))
 		if info then
 			info = json.parse(info)
 		end
