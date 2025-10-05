@@ -145,7 +145,7 @@ local function cn_port()
             local config_filename = fs.basename(config_path)
             local runtime_config_path = "/etc/openclash/" .. config_filename
             local ruby_result = luci.sys.exec(string.format([[
-                timeout 5 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                 begin
                     config = YAML.load_file('%s')
                     if config
@@ -184,7 +184,7 @@ local function dase()
             local config_filename = fs.basename(config_path)
             local runtime_config_path = "/etc/openclash/" .. config_filename
             local ruby_result = luci.sys.exec(string.format([[
-                timeout 5 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                 begin
                     config = YAML.load_file('%s')
                     if config
@@ -2335,7 +2335,7 @@ function action_proxy_info()
         
         if fs.access(runtime_config_path) then
             local ruby_result = luci.sys.exec(string.format([[
-                timeout 5 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                 begin
                     config = YAML.load_file('%s')
                     mixed_port = ''
@@ -2435,11 +2435,11 @@ function action_oc_settings()
             
             if fs.access(runtime_config_path) then
                 local ruby_result = luci.sys.exec(string.format([[
-                    timeout 5 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                     begin
                         config = YAML.load_file('%s')
                         if config
-                            sniffer_enabled = config['sniffer'] && config['sniffer']['enable'] ? '1' : '0'
+                            sniffer_enabled = config['sniffer'] && config['sniffer']['enable'] == true ? '1' : '0'
                             respect_rules_enabled = config['dns'] && config['dns']['respect-rules'] == true ? '1' : '0'
                             puts \"#{sniffer_enabled},#{respect_rules_enabled}\"
                         else
@@ -2635,12 +2635,10 @@ function action_switch_oc_setting()
             if not update_runtime_config(ruby_cmd) then
                 return
             end
-        else
-            uci:set("openclash", "config", "enable_meta_sniffer", value)
-            uci:set("openclash", "config", "enable_meta_sniffer_pure_ip", value)
-            uci:commit("openclash")
         end
-        
+        uci:set("openclash", "config", "enable_meta_sniffer", value)
+        uci:set("openclash", "config", "enable_meta_sniffer_pure_ip", value)
+        uci:commit("openclash")
     elseif setting == "respect_rules" then
         if is_running() then
             local runtime_config_path = get_runtime_config_path()
@@ -2688,11 +2686,9 @@ function action_switch_oc_setting()
             if not update_runtime_config(ruby_cmd) then
                 return
             end
-        else
-            uci:set("openclash", "config", "enable_respect_rules", value)
-            uci:commit("openclash")
         end
-        
+        uci:set("openclash", "config", "enable_respect_rules", value)
+        uci:commit("openclash")
     elseif setting == "oversea" then
         uci:set("openclash", "config", "china_ip_route", value)
         uci:commit("openclash")
@@ -2770,7 +2766,7 @@ function action_generate_pac()
         
         if fs.access(runtime_config_path) then
             local ruby_result = luci.sys.exec(string.format([[
-                timeout 5 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+                ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                 begin
                     config = YAML.load_file('%s')
                     if config && config['authentication'] && config['authentication'].is_a?(Array) && !config['authentication'].empty?
