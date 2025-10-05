@@ -78,7 +78,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
         padding: 12px 0;
         height: 40px;
         font-size: 12px;
-        font-weight: 300;
+        font-weight: 400;
         color: #64748b;
         background: transparent;
         border: 1px solid #e2e8f0;
@@ -105,7 +105,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
         align-items: center;
         justify-content: center;
         width: 100%;
-        height: 100%;
+        height: 110%;
         text-align: center;
         text-decoration: none;
         background: none;
@@ -369,34 +369,6 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
     var titles<%=sectiontype%> = document.getElementsByName('tab-header-<%=self.config%>-<%=self.sectiontype%>');
     var divs<%=sectiontype%> = document.getElementsByClassName('dom-<%=self.config%>-<%=self.sectiontype%>');
 
-    function switch_to_tab<%=sectiontype%>(type, group){
-        if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
-        
-        if ( type == 'create' ) {
-            for(var j=0; j < titles<%=sectiontype%>.length; j++){
-                titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
-                divs<%=sectiontype%>[j].style.display = 'none';
-            };
-            for(var k=0; k < titles<%=sectiontype%>.length; k++){
-                if(titles<%=sectiontype%>[k].getAttribute('data-group') == group){
-                    titles<%=sectiontype%>[k].className = 'cbi-tab';
-                    divs<%=sectiontype%>[k].style.display = 'block';
-                    try {
-                        localStorage.setItem("titles<%=sectiontype%>", k);
-                    } catch(e) {
-                    }
-                    break;
-                }
-            }
-        };
-
-        try {
-            localStorage.setItem("id<%=sectiontype%>",'cbi-<%=self.config%>-<%=self.sectiontype%>');
-        } catch(e) {
-        }
-        return true;
-    };
-
     function isDarkBackground(element) {
 		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
 			return true;
@@ -426,38 +398,55 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 		var luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 		return luminance < 128;
 	};
+    
+    function switch_to_tab<%=sectiontype%>(type){
+        if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
+
+        if ( type == 'create' ) {
+            localStorage.setItem("titles<%=sectiontype%>", 0);
+        } else {
+            for(var j=0; j < titles<%=sectiontype%>.length; j++){
+                if(titles<%=sectiontype%>[j].className === 'cbi-tab'){
+                    localStorage.setItem("titles<%=sectiontype%>", j);
+                    break;
+                }
+            }
+        }
+
+        localStorage.setItem("id<%=sectiontype%>",'cbi-<%=self.config%>-<%=self.sectiontype%>');
+        return true;
+    };
 
     function onload<%=sectiontype%>() {
         if (isDarkBackground(document.body)) {
             document.documentElement.setAttribute('data-darkmode', 'true');
         };
-
-        if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
         
-        try {
-            if (localStorage.getItem("id<%=sectiontype%>")) {
-                var element = document.getElementById(localStorage.getItem("id<%=sectiontype%>"));
-                if (element) {
-                    element.scrollIntoView();
-                }
-                localStorage.removeItem("id<%=sectiontype%>");
-            }
+        if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
 
-            var savedTab = localStorage.getItem("titles<%=sectiontype%>");
-            if (savedTab && titles<%=sectiontype%>[savedTab]) {
+        if (localStorage.getItem("id<%=sectiontype%>")) {
+            if (document.getElementById(localStorage.getItem("id<%=sectiontype%>"))) {
+                document.getElementById(localStorage.getItem("id<%=sectiontype%>")).scrollIntoView();
+            };
+            localStorage.removeItem("id<%=sectiontype%>");
+        };
+
+        if (localStorage.getItem("titles<%=sectiontype%>")) {
+            if (titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")]) {
                 for(var j=0; j < titles<%=sectiontype%>.length; j++){
                     titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
                     divs<%=sectiontype%>[j].style.display = 'none';
-                }
-                titles<%=sectiontype%>[savedTab].className = 'cbi-tab';
-                divs<%=sectiontype%>[savedTab].style.display = 'block';
-                localStorage.removeItem("titles<%=sectiontype%>");
-            }
-        } catch(e) {
-        }
+                };
+                titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].className = 'cbi-tab';
+                divs<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].style.display = 'block';
+            };
+            localStorage.removeItem("titles<%=sectiontype%>");
+        };
 
         for(var i=0; i < titles<%=sectiontype%>.length; i++){
             var li<%=sectiontype%> = titles<%=sectiontype%>[i];
+            li<%=sectiontype%>.id = i;
+
             var a<%=sectiontype%> = li<%=sectiontype%>.querySelector('a');
             if (a<%=sectiontype%>) {
                 if (a<%=sectiontype%>.scrollWidth > a<%=sectiontype%>.clientWidth) {
@@ -468,29 +457,27 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                     a<%=sectiontype%>.style.textAlign = 'center';
                 }
             }
-            li<%=sectiontype%>.id = i;
             
             li<%=sectiontype%>.onclick = function(){
-                switchTab(this.id);
+                for(var j=0; j < titles<%=sectiontype%>.length; j++){
+                    titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
+                    divs<%=sectiontype%>[j].style.display = 'none';
+                };
+                this.className = 'cbi-tab';
+                divs<%=sectiontype%>[this.id].style.display = 'block';
+                localStorage.setItem("titles<%=sectiontype%>",this.id);
             };
 
-            li<%=sectiontype%>.ontouchstart = function(){
-                switchTab(this.id);
+            li<%=sectiontype%>.onTouchStart = function(){
+                for(var j=0; j < titles<%=sectiontype%>.length; j++){
+                    titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
+                    divs<%=sectiontype%>[j].style.display = 'none';
+                };
+                this.className = 'cbi-tab';
+                divs<%=sectiontype%>[this.id].style.display = 'block';
+                localStorage.setItem("titles<%=sectiontype%>",this.id);
             };
-        }
-
-        function switchTab(tabIndex) {
-            for(var j=0; j < titles<%=sectiontype%>.length; j++){
-                titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
-                divs<%=sectiontype%>[j].style.display = 'none';
-            }
-            titles<%=sectiontype%>[tabIndex].className = 'cbi-tab';
-            divs<%=sectiontype%>[tabIndex].style.display = 'block';
-            try {
-                localStorage.setItem("titles<%=sectiontype%>", tabIndex);
-            } catch(e) {
-            }
-        }
+        };
     };
 //]]>
 </script>
