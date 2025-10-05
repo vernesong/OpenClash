@@ -31,7 +31,6 @@ function table_include(table, value)
     return false
 end
 
-local head_width
 local a={}
 local e={}
 for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
@@ -42,27 +41,13 @@ for t,o in ipairs(fs.glob("/etc/openclash/config/*"))do
     end
 end
 
-local has_all = false
-for _, v in ipairs(e) do
-    if v.name == "all" then
-        has_all = true
-        break
-    end
-end
-
-if not has_all then
+if not table_include(e, "all") then
     table.insert(e, 1, {name="all"})
 end
 
-if #e > 4 then
-    head_width = (95 / #e).."%"
-else
-    head_width = "120px"
-end
-
 local cfg_name
-if fs.uci_get_config("config", "config_path") then
-    cfg_name = fs.basename(fs.uci_get_config("config", "config_path"))
+if uci:get("openclash", "config", "config_path") then
+    cfg_name = fs.basename(uci:get("openclash", "config", "config_path"))
 end
 
 local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]+") or "self.sectiontype"
@@ -119,7 +104,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
         padding: 12px 0;
         height: 40px;
         font-size: 12px;
-        font-weight: 300;
+        font-weight: 400;
         color: #64748b;
         background: transparent;
         border: 1px solid #e2e8f0;
@@ -146,7 +131,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
         align-items: center;
         justify-content: center;
         width: 100%;
-        height: 100%;
+        height: 110%;
         text-align: center;
         text-decoration: none;
         background: none;
@@ -263,36 +248,34 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
             <%- 
             if #e ~= 1 then
                 for t,o in ipairs(e)do
-                    local is_active = false
-                    if cfg_name and o.name == cfg_name then
-                        is_active = true
-                    elseif not cfg_name and o.name == "all" then
-                        is_active = true
-                    end
+                    if o.name == cfg_name and cfg_name then
                 -%>
-                    <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="<%=is_active and 'cbi-tab' or 'cbi-tab-disabled'%>" data-config="<%=o.name%>">
-                        <a><%=o.name == "all" and "ALL" or o.name%></a>
-                    </li>
+                    <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab"><a><%=o.name%></a></li>
+                    <%- elseif not cfg_name and o.name == "all" then -%>
+                    <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab"><a>ALL</a></li>
+                    <%- elseif o.name == "all" then -%>
+                    <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled"><a>ALL</a></li>
+                    <%- else -%>
+                    <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab-disabled"><a><%=o.name%></a></li>
+                    <%- end -%>
                 <%- end -%>
             <%- else -%>
-                <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab" data-config="all"><a>ALL</a></li>
+                <li name="tab-header-<%=self.config%>-<%=self.sectiontype%>" class="cbi-tab"><a>ALL</a></li>
             <%- end -%>
         </ul>
     </div>
     <div id="tab-content">
         <%- for t,o in ipairs(e)do
-            local should_display = false
-            if #e ~= 1 then
-                if cfg_name and o.name == cfg_name then
-                    should_display = true
-                elseif not cfg_name and o.name == "all" then
-                    should_display = true
-                end
-            else
-                should_display = true
-            end
+            if #e ~= 1 and o.name == cfg_name and cfg_name then
             -%>
-            <div class="dom-<%=self.config%>-<%=self.sectiontype%>" <%=should_display and 'style="display: block;"' or ''%> data-config="<%=o.name%>">
+            <div class="dom-<%=self.config%>-<%=self.sectiontype%>" style="display: block;">
+            <%- elseif #e ~= 1 and o.name == "all" and not cfg_name then -%>
+            <div class="dom-<%=self.config%>-<%=self.sectiontype%>" style="display: block;">
+            <%- elseif #e == 1 then -%>
+            <div class="dom-<%=self.config%>-<%=self.sectiontype%>" style="display: block;">
+            <%- else -%>
+            <div class="dom-<%=self.config%>-<%=self.sectiontype%>">
+            <%- end -%>
                 <table class="cbi-section-table">
                     <tr class="cbi-section-table-titles">
                     <%- if not self.anonymous then -%>
@@ -324,8 +307,6 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                         <%- else -%>
                             <th></th>
                         <%- end -%>
-                    <%- end; if self.extedit or self.addremove then -%>
-                        <th></th>
                     <%- end -%>
                     <%- for i, k in pairs(self.children) do if not k.optional then -%>
                         <th class="cbi-section-table-cell"<%=width(k)%>><%=k.description%></th>
@@ -338,16 +319,17 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                     <%- local isempty = true
                         local num = 1
                     for i, k in ipairs(self:cfgsections()) do
-                        local section = k
-                        if not fs.uci_get_config(section, "config") then
-                            uci:set("openclash", section, "config", "all")
-                            uci:save("openclash")
-                        end
-                        
-                        local section_config = fs.uci_get_config(section, "config")
-                        if section_config == o.name then
+                        section = k
+                        while true do
+                            if not uci:get("openclash", section, "config") then
+                                uci:set("openclash", section, "config", "all")
+                                uci:save("openclash")
+                            end
+                            if uci:get("openclash", section, "config") ~= o.name then
+                                break
+                            end
                             isempty = false
-                            local scope = { valueheader = "cbi/cell_valueheader", valuefooter = "cbi/cell_valuefooter" }
+                            scope = { valueheader = "cbi/cell_valueheader", valuefooter = "cbi/cell_valuefooter" }
                     -%>
                             <tr class="cbi-section-table-row<% if self.extedit or self.rowcolors then %> cbi-rowstyle-<%=rowstyle()%><% end %>" id="cbi-<%=self.config%>-<%=section%>">
                             <% if not self.anonymous then -%>
@@ -386,8 +368,11 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                                     <%- end -%>
                                 </td>
                             <%- end -%>
+                    <%-
+                            break
+                        end
+                    -%>
                             </tr>
-                    <%- end -%>
                     <%- end -%>
         
                     <%- if isempty then -%>
@@ -412,8 +397,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                             <input class="btn cbi-button cbi-button-add" type="submit" onclick="return switch_to_tab<%=sectiontype%>('create')" value="<%:Add%>" name="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" title="<%:Add%>" />
                         <% else %>
                             <% if self.invalid_cts then -%><div class="cbi-section-error"><% end %>
-                            <input type="text" class="cbi-section-create-name" id="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=o.name%>" name="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=o.name%>" data-type="uciname" data-optional="true" />
-                            <input type="hidden" name="cbi.opt.<%=self.config%>.<%=self.sectiontype%>.config" value="<%=o.name%>" />
+                            <input type="text" class="cbi-section-create-name" id="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" name="cbi.cts.<%=self.config%>.<%=self.sectiontype%>.<%=section%>" data-type="uciname" data-optional="true" />
                             <input class="btn cbi-button cbi-button-add" type="submit" onclick="this.form.cbi_state='add-section'; return true" value="<%:Add%>" title="<%:Add%>" />
                             <% if self.invalid_cts then -%>
                                 <br /><%:Invalid%></div>
@@ -433,42 +417,6 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 
     var titles<%=sectiontype%> = document.getElementsByName('tab-header-<%=self.config%>-<%=self.sectiontype%>');
     var divs<%=sectiontype%> = document.getElementsByClassName('dom-<%=self.config%>-<%=self.sectiontype%>');
-
-    function switch_to_tab<%=sectiontype%>(type){
-        if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
-        
-        if ( type == 'create' ) {
-            for(var j=0; j < titles<%=sectiontype%>.length; j++){
-                titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
-                divs<%=sectiontype%>[j].style.display = 'none';
-            }
-            titles<%=sectiontype%>[0].className = 'cbi-tab';
-            divs<%=sectiontype%>[0].style.display = 'block';
-            try {
-                localStorage.setItem("titles<%=sectiontype%>", 0);
-            } catch(e) {
-            }
-        }
-
-        try {
-            localStorage.setItem("id<%=sectiontype%>", 'cbi-<%=self.config%>-<%=self.sectiontype%>');
-        } catch(e) {
-        }
-        return true;
-    }
-
-    function switchTab<%=sectiontype%>(tabIndex) {
-        for(var j=0; j < titles<%=sectiontype%>.length; j++){
-            titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
-            divs<%=sectiontype%>[j].style.display = 'none';
-        }
-        titles<%=sectiontype%>[tabIndex].className = 'cbi-tab';
-        divs<%=sectiontype%>[tabIndex].style.display = 'block';
-        try {
-            localStorage.setItem("titles<%=sectiontype%>", tabIndex);
-        } catch(e) {
-        }
-    }
 
     function isDarkBackground(element) {
 		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
@@ -500,6 +448,24 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 		return luminance < 128;
 	};
 
+    function switch_to_tab<%=sectiontype%>(type){
+        if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
+
+        if ( type == 'create' ) {
+            localStorage.setItem("titles<%=sectiontype%>", 0);
+        } else {
+            for(var j=0; j < titles<%=sectiontype%>.length; j++){
+                if(titles<%=sectiontype%>[j].className === 'cbi-tab'){
+                    localStorage.setItem("titles<%=sectiontype%>", j);
+                    break;
+                }
+            }
+        }
+
+        localStorage.setItem("id<%=sectiontype%>",'cbi-<%=self.config%>-<%=self.sectiontype%>');
+        return true;
+    };
+
     function onload<%=sectiontype%>() {
         if (isDarkBackground(document.body)) {
             document.documentElement.setAttribute('data-darkmode', 'true');
@@ -507,25 +473,29 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 
         if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
 
-        try {
-            if (localStorage.getItem("id<%=sectiontype%>")) {
-                var element = document.getElementById(localStorage.getItem("id<%=sectiontype%>"));
-                if (element) {
-                    element.scrollIntoView();
-                }
-                localStorage.removeItem("id<%=sectiontype%>");
-            }
+        if (localStorage.getItem("id<%=sectiontype%>")) {
+            if (document.getElementById(localStorage.getItem("id<%=sectiontype%>"))) {
+                document.getElementById(localStorage.getItem("id<%=sectiontype%>")).scrollIntoView();
+            };
+            localStorage.removeItem("id<%=sectiontype%>");
+        };
 
-            var savedTab = localStorage.getItem("titles<%=sectiontype%>");
-            if (savedTab && titles<%=sectiontype%>[savedTab]) {
-                switchTab<%=sectiontype%>(parseInt(savedTab));
-                localStorage.removeItem("titles<%=sectiontype%>");
-            }
-        } catch(e) {
-        }
+        if (localStorage.getItem("titles<%=sectiontype%>")) {
+            if (titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")]) {
+                for(var j=0; j < titles<%=sectiontype%>.length; j++){
+                    titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
+                    divs<%=sectiontype%>[j].style.display = 'none';
+                };
+                titles<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].className = 'cbi-tab';
+                divs<%=sectiontype%>[localStorage.getItem("titles<%=sectiontype%>")].style.display = 'block';
+            };
+            localStorage.removeItem("titles<%=sectiontype%>");
+        };
 
         for(var i=0; i < titles<%=sectiontype%>.length; i++){
             var li<%=sectiontype%> = titles<%=sectiontype%>[i];
+            li<%=sectiontype%>.id = i;
+
             var a<%=sectiontype%> = li<%=sectiontype%>.querySelector('a');
             if (a<%=sectiontype%>) {
                 if (a<%=sectiontype%>.scrollWidth > a<%=sectiontype%>.clientWidth) {
@@ -536,16 +506,27 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                     a<%=sectiontype%>.style.textAlign = 'center';
                 }
             }
-            li<%=sectiontype%>.id = i;
             
             li<%=sectiontype%>.onclick = function(){
-                switchTab<%=sectiontype%>(this.id);
+                for(var j=0; j < titles<%=sectiontype%>.length; j++){
+                    titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
+                    divs<%=sectiontype%>[j].style.display = 'none';
+                };
+                this.className = 'cbi-tab';
+                divs<%=sectiontype%>[this.id].style.display = 'block';
+                localStorage.setItem("titles<%=sectiontype%>",this.id);
             };
 
-            li<%=sectiontype%>.ontouchstart = function(){
-                switchTab<%=sectiontype%>(this.id);
+            li<%=sectiontype%>.onTouchStart = function(){
+                for(var j=0; j < titles<%=sectiontype%>.length; j++){
+                    titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';
+                    divs<%=sectiontype%>[j].style.display = 'none';
+                };
+                this.className = 'cbi-tab';
+                divs<%=sectiontype%>[this.id].style.display = 'block';
+                localStorage.setItem("titles<%=sectiontype%>",this.id);
             };
-        }
-    }
+        };
+    };
 //]]>
 </script>
