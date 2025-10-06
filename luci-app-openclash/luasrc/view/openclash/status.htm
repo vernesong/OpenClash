@@ -2804,7 +2804,7 @@
     var SubscriptionManager = {
         currentConfigFile: '',
         retryCount: 0,
-        maxRetries: 3,
+        maxRetries: 5,
         updateTimer: null,
         isInitialized: false,
         
@@ -3022,7 +3022,7 @@
                 this.retryCount++;
                 setTimeout(function() {
                     SubscriptionManager.getSubscriptionInfo();
-                }, 2000);
+                }, 5000);
             }
         },
         

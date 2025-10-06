@@ -21,19 +21,19 @@
 				if (!m[0].value || !(/(^[1-9]\d*$)/.test(m[0].value)))
 					{
 						btn.disabled = false;
-						s.innerHTML ="<font color='red'><strong>"+"<%:Multiple Must Be a Positive Integer and No More Than 50%>"+"</strong></font>";
+						s.innerHTML ="<font color='red'><strong>"+"<%:Multiple Must Be a Positive Integer and No More Than 100%>"+"</strong></font>";
 						return false;
 					}
 				else if (m[0].value < 1)
 					{
 						btn.disabled = false;
-						s.innerHTML ="<font color='red'><strong>"+"<%:Multiple Must Be a Positive Integer and No More Than 50%>"+"</strong></font>";
+						s.innerHTML ="<font color='red'><strong>"+"<%:Multiple Must Be a Positive Integer and No More Than 100%>"+"</strong></font>";
 						return false;
 					}
-				else if (m[0].value > 50)
+				else if (m[0].value > 100)
 					{
 						btn.disabled = false;
-						s.innerHTML ="<font color='red'><strong>"+"<%:Multiple Must Be a Positive Integer and No More Than 50%>"+"</strong></font>";
+						s.innerHTML ="<font color='red'><strong>"+"<%:Multiple Must Be a Positive Integer and No More Than 100%>"+"</strong></font>";
 						return false;
 					}
 				else {
