@@ -809,7 +809,7 @@ yml_other_set()
                   if '${10}' == '1' and ['url-test', 'load-balance'].include?(group['type']) then
                      group['type'] = 'smart';
                      group['uselightgbm'] = true if '${15}' == '1';
-                     group['strategy'] = '${13}';
+                     group['strategy'] = '${13}' if '${13}' != '0';
                      group['collectdata'] = true if '${11}' == '1';
                      group['sample-rate'] = '${12}'.to_f if '${11}' == '1';
                   end;
