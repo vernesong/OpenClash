@@ -91,6 +91,67 @@ jobs:
           mkdir -p tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash
           cp -rf ./luci-app-openclash/. tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/
 
+      - name: Copy OpenClash Source Codes
+        run: |
+          mkdir -p tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash
+          cp -rf ./luci-app-openclash/. tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/
+
+      - name: Update Third-Party Resources
+        run: |
+          CHNR_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/etc/openclash/china_ip_route.ipset
+          CHNR6_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/etc/openclash/china_ip6_route.ipset
+          YACD_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/usr/share/openclash/ui/yacd
+          ZASHBOARD_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/usr/share/openclash/ui/zashboard
+          METACUBEXD_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/usr/share/openclash/ui/metacubexd
+          GEOSITE_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/etc/openclash/GeoSite.dat
+          COUNTRY_MMDB_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/etc/openclash/Country.mmdb
+
+          # 更新 China IP Route
+          mkdir -p tmp
+          curl -sSL https://ispip.clang.cn/all_cn.txt -o tmp/china_ip_route.ipset
+          mkdir -p $(dirname $CHNR_PATH)
+          cp tmp/china_ip_route.ipset $CHNR_PATH
+          curl -sSL https://ispip.clang.cn/all_cn_ipv6.txt -o tmp/china_ip6_route.ipset
+          mkdir -p $(dirname $CHNR6_PATH)
+          cp tmp/china_ip6_route.ipset $CHNR6_PATH
+
+          # 更新 MetaCubeXD UI
+          mkdir -p tmp/metacubexd_zip
+          curl -sSL https://github.com/MetaCubeX/metacubexd/archive/refs/heads/gh-pages.zip -o tmp/metacubexd.zip
+          unzip -q -o tmp/metacubexd.zip -d tmp/metacubexd_zip
+          METACUBEXD_UNZIP_PATH="tmp/metacubexd_zip/metacubexd-gh-pages"
+          mkdir -p "$METACUBEXD_PATH"
+          rm -rf "$METACUBEXD_PATH"/*
+          cp -rf "$METACUBEXD_UNZIP_PATH"/* "$METACUBEXD_PATH"
+
+          # 更新 Yacd UI
+          mkdir -p tmp/yacd_zip
+          curl -sSL https://github.com/MetaCubeX/Yacd-meta/archive/refs/heads/gh-pages.zip -o tmp/yacd.zip
+          unzip -q -o tmp/yacd.zip -d tmp/yacd_zip
+          YACD_UNZIP_PATH="tmp/yacd_zip/Yacd-meta-gh-pages"
+          mkdir -p "$YACD_PATH"
+          rm -rf "$YACD_PATH"/*
+          cp -rf "$YACD_UNZIP_PATH"/* "$YACD_PATH"
+
+          # 更新 ZashBoard UI
+          mkdir -p tmp/zashboard_zip
+          curl -sSL https://github.com/Zephyruso/zashboard/releases/latest/download/dist-cdn-fonts.zip -o tmp/zashboard.zip
+          unzip -q -o tmp/zashboard.zip -d tmp/zashboard_zip
+          mkdir -p "$ZASHBOARD_PATH"
+          rm -rf "$ZASHBOARD_PATH"/*
+          cp -rf tmp/zashboard_zip/dist/* "$ZASHBOARD_PATH"
+
+          # 更新 GeoSite.dat
+          RULES_RELEASE=$(curl -s https://api.github.com/repos/Loyalsoldier/v2ray-rules-dat/releases/latest | jq -r '.tag_name')
+          curl -sSL "https://github.com/Loyalsoldier/v2ray-rules-dat/releases/download/${RULES_RELEASE}/geosite.dat" -o tmp/GeoSite.dat
+          mkdir -p $(dirname "$GEOSITE_PATH")
+          cp tmp/GeoSite.dat "$GEOSITE_PATH"
+
+          # 更新 Country.mmdb
+          curl -sSL "https://github.com/alecthw/mmdb_china_ip_list/releases/latest/download/Country-lite.mmdb" -o tmp/Country.mmdb
+          mkdir -p $(dirname "$COUNTRY_MMDB_PATH")
+          cp tmp/Country.mmdb "$COUNTRY_MMDB_PATH"
+
       - name: Compile po2lmo
         run: |
           cd tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/tools/po2lmo
