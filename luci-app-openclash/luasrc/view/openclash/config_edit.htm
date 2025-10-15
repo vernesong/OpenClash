@@ -2680,6 +2680,8 @@ var ConfigEditor = {
             } else {
                 formData.append('enable', '0');
             }
+            formData.append('order', sub.order || 1);
+
             var progressContainer = form.querySelector('#overwrite-upload-progress');
             var progressFill = form.querySelector('#overwrite-progress-fill');
             var progressText = form.querySelector('#overwrite-progress-text');

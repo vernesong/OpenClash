@@ -4013,7 +4013,7 @@ function action_overwrite_subscribe_info()
                         end
                         uci:set("openclash", s[".name"], "order", order)
                     else
-                        uci:set("openclash", s[".name"], "order", tonumber(order))
+                        uci:set("openclash", s[".name"], "order", tonumber(order) or 1)
                     end
                     if s.enable == nil or (s.enable ~= nil and enable ~= nil) then
                         if enable == nil then
