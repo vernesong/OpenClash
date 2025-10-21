@@ -95,7 +95,7 @@ set_dnsmasq_server() {
    uci -q add_list dhcp.@dnsmasq[0].server="$1"
 }
 
-change_dns() {
+load_ip_route_pass() {
    local settype nftflag
    if dnsmasq --version | grep -q 'Compile time options:.* nftset'; then
       settype="nftset"
@@ -176,7 +176,13 @@ change_dns() {
          fi
       fi
    fi
+}
 
+change_dns() {
+   # 区域绕过黑名单
+   load_ip_route_pass
+
+   # 第二 DNS 服务
    /usr/share/openclash/openclash_custom_domain_dns.sh
 
    if [ "$1" -eq 1 ]; then
@@ -645,12 +651,104 @@ do_run_file()
 
 } >/dev/null 2>&1
 
+check_core_status()
+{
+   TUN_WAIT=0
+   TUN_RESTART=1
+   CORE_WAIT=0
+   CORE_HTTP_CODE=0
+
+   while ( [ -z "$(pidof clash)" ] && [ "$CORE_WAIT" -le 10 ] )
+   do
+      sleep 1
+      let CORE_WAIT++
+   done
+
+   if [ -n "$en_mode_tun" ] || [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
+      if [ -n "$en_mode_tun" ]; then
+         ip_="ip"
+      else
+         ip_="ip -6"
+      fi
+
+      #wait 120s most for tun interface start
+      while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -le 120 ] )
+      do
+         $ip_ link set utun up
+         let TUN_WAIT++
+         sleep 1
+      done
+
+      if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -gt 120 ]; then
+         while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -le 3 ] )
+         do
+            LOG_OUT "Warning: TUN Interface Start Failed, Try to Restart Again..."
+            kill_clash
+            start_run_core
+            sleep 120
+            let TUN_RESTART++
+         done
+         if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -gt 3 ]; then
+            LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
+            start_fail
+         fi
+      fi
+
+      if [ -n "$(pidof clash)" ]; then
+         if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
+            ip -6 rule del oif utun table 2022
+            ip -6 route del default dev utun table 2022
+            ip -6 route add default dev utun table "$PROXY_ROUTE_TABLE"
+            ip -6 rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 1888
+            ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1889
+         fi
+
+         ip route add default dev utun table "$PROXY_ROUTE_TABLE"
+         ip rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 1888
+         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1889
+      fi
+   else
+      reg4='^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$'
+      while ( [ -n "$(pidof clash)" ] && [ "$CORE_HTTP_CODE" != "200" ] && [ "$TUN_WAIT" -le 120 ] && [ -n "$(echo ${lan_ip} | grep -Eo ${reg4})" ] )
+      do
+         CORE_HTTP_CODE=$(curl -m 5 -o /dev/null -s -w '%{http_code}' -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XGET http://${lan_ip}:${cn_port}/group)
+         let TUN_WAIT++
+         sleep 1
+      done
+      if [ -z "$(echo ${lan_ip} | grep -Eo ${reg4})" ]; then
+         LOG_OUT "Error: LAN IP Address Get Error, Please Check The LAN Interface Setting or Choose the Correct Interface in the Setting!"
+      fi
+      if [ "$CORE_HTTP_CODE" != "200" ]; then
+         LOG_OUT "Error: Core Status Abnormal, Please Check The Log Infos!"
+         start_fail
+      fi
+   fi
+   if [ -z "$(pidof clash)" ]; then
+      LOG_OUT "Error: Core Start Failed, Please Check The Log Infos!"
+      start_fail
+   fi
+
+   # redirect dns setting after core started, prevent core dns lookup failure
+   change_dns "$enable_redirect_dns"
+   set_firewall
+} >/dev/null 2>&1
+
+check_mod()
+{
+   if [ -z "$(lsmod |awk '{print $1}' |grep ^$1$)" ]; then
+      LOG_OUT "Error:【$1】depend not found, please check your system and try again!"
+      start_fail
+   else
+      modprobe $1
+   fi
+} >/dev/null 2>&1
+
 start_run_core()
 {
    ulimit -SHn 1000000
    ulimit -v unlimited
    ulimit -u unlimited
-   modprobe tun
+   check_mod "tun"
    if ! $quick_start; then
       mv "$TMP_CONFIG_FILE" "$CONFIG_FILE"
       rm -rf "$TMP_CONFIG_FILE"
@@ -738,81 +836,6 @@ upnp_exclude()
             fi
          fi
       done
-   fi
-} >/dev/null 2>&1
-
-check_core_status()
-{
-   TUN_WAIT=0
-   TUN_RESTART=1
-   CORE_HTTP_CODE=0
-
-   if [ -z "$(pidof clash)" ]; then
-      sleep 5
-   fi
-
-   if [ -n "$en_mode_tun" ] || [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
-      if [ -n "$en_mode_tun" ]; then
-         ip_="ip"
-      else
-         ip_="ip -6"
-      fi
-
-      #wait 120s most for tun interface start
-      while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -le 120 ] )
-      do
-         $ip_ link set utun up
-         let TUN_WAIT++
-         sleep 1
-      done
-
-      if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_WAIT" -gt 120 ]; then
-         while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -le 3 ] )
-         do
-            LOG_OUT "Warning: TUN Interface Start Failed, Try to Restart Again..."
-            kill_clash
-            start_run_core
-            sleep 120
-            let TUN_RESTART++
-         done
-         if [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -gt 3 ]; then
-            LOG_OUT "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
-            start_fail
-         fi
-      fi
-
-      if [ -n "$(pidof clash)" ]; then
-         if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
-            ip -6 rule del oif utun table 2022
-            ip -6 route del default dev utun table 2022
-            ip -6 route add default dev utun table "$PROXY_ROUTE_TABLE"
-            ip -6 rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 1888
-            ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1889
-         fi
-
-         ip route add default dev utun table "$PROXY_ROUTE_TABLE"
-         ip rule add fwmark "$PROXY_FWMARK" ipproto icmp table main pref 1888
-         ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE" pref 1889
-      fi
-   else
-      reg4='^(([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])$'
-      while ( [ -n "$(pidof clash)" ] && [ "$CORE_HTTP_CODE" != "200" ] && [ "$TUN_WAIT" -le 120 ] && [ -n "$(echo ${lan_ip} | grep -Eo ${reg4})" ] )
-      do
-         CORE_HTTP_CODE=$(curl -m 5 -o /dev/null -s -w '%{http_code}' -H 'Content-Type: application/json' -H "Authorization: Bearer ${da_password}" -XGET http://${lan_ip}:${cn_port}/group)
-         let TUN_WAIT++
-         sleep 1
-      done
-      if [ -z "$(echo ${lan_ip} | grep -Eo ${reg4})" ]; then
-         LOG_OUT "Error: LAN IP Address Get Error, Please Check The LAN Interface Setting or Choose the Correct Interface in the Setting!"
-      fi
-      if [ "$CORE_HTTP_CODE" != "200" ]; then
-         LOG_OUT "Error: Core Status Abnormal, Please Check The Log Infos!"
-         start_fail
-      fi
-   fi
-   if [ -z "$(pidof clash)" ]; then
-      LOG_OUT "Error: Core Start Failed, Please Check The Log Infos!"
-      start_fail
    fi
 } >/dev/null 2>&1
 
@@ -1369,6 +1392,7 @@ if [ -n "$FW4" ]; then
       CHNROUTE_WAIT=0
       while ( [ -z "$(nft list sets |grep "set china_ip_route {")" ] && [ "$CHNROUTE_WAIT" -le 3 ] )
       do
+         sleep 3
          nft -f '/etc/openclash/china_ip_route.ipset'
          let CHNROUTE_WAIT++
       done
@@ -1575,7 +1599,7 @@ if [ -n "$FW4" ]; then
       if [ -z "$en_mode_tun" ]; then
          #udp
          if [ "$enable_udp_proxy" -eq 1 ]; then
-            modprobe nft_tproxy
+            check_mod "nft_tproxy"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             nft 'add chain inet fw4 openclash_mangle'
@@ -1616,7 +1640,7 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
          fi
          if [ "$enable_udp_proxy" -ne 1 ] && [ "$en_mode" = "fake-ip" ]; then
-            modprobe nft_tproxy
+            check_mod "nft_tproxy"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             nft 'add chain inet fw4 openclash_mangle'
@@ -1795,6 +1819,7 @@ if [ -n "$FW4" ]; then
          CHNROUTE_WAIT=0
          while ( [ -z "$(nft list sets |grep "set china_ip6_route {")" ] && [ "$CHNROUTE_WAIT" -le 3 ] )
          do
+            sleep 3
             nft -f '/etc/openclash/china_ip6_route.ipset'
             let CHNROUTE_WAIT++
          done
@@ -2030,7 +2055,7 @@ if [ -n "$FW4" ]; then
       #route
       if [ "$ipv6_mode" -ne 2 ] && [ "$ipv6_mode" -ne 3 ]; then
          if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -eq 0 ]; then
-            modprobe nft_tproxy
+            check_mod "nft_tproxy"
             ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
          fi
@@ -2329,7 +2354,7 @@ if [ -z "$FW4" ]; then
       if [ -z "$en_mode_tun" ]; then
          #udp
          if [ "$enable_udp_proxy" -eq 1 ]; then
-            modprobe xt_TPROXY
+            check_mod "xt_TPROXY"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             iptables -t mangle -N openclash
@@ -2369,7 +2394,7 @@ if [ -z "$FW4" ]; then
          fi
 
          if [ "$enable_udp_proxy" -ne 1 ] && [ "$en_mode" = "fake-ip" ]; then
-            modprobe xt_TPROXY
+            check_mod "xt_TPROXY"
             ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
             iptables -t mangle -N openclash
@@ -2784,7 +2809,7 @@ if [ -z "$FW4" ]; then
       #route
       if [ "$ipv6_mode" -ne 2 ] && [ "$ipv6_mode" -ne 3 ]; then
          if [ "$enable_v6_udp_proxy" -eq 1 ] || [ "$ipv6_mode" -eq 0 ]; then
-            modprobe xt_TPROXY
+            check_mod "xt_TPROXY"
             ip -6 rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
             ip -6 route add local ::/0 dev lo table "$PROXY_ROUTE_TABLE"
          fi
@@ -3522,14 +3547,10 @@ start_service()
       LOG_OUT "Step 4: Start Running The Clash Core..."
       start_run_core
 
-      LOG_OUT "Step 5: Set Dnsmasq..."
-      change_dns "$enable_redirect_dns"
-
-      LOG_OUT "Step 6: Set Firewall Rules..."
-      set_firewall
+      LOG_OUT "Step 5: Core Status Checking and Firewall Rules Setting..."
       check_core_status &
       
-      LOG_OUT "Step 7: Add Cron Rules, Start Daemons..."
+      LOG_OUT "Step 6: Add Cron Rules, Start Daemons..."
       add_cron
       
       if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] || [ "$(uci -q get dhcp.lan.dhcpv6)" == "disabled" ]; then
@@ -3669,18 +3690,18 @@ reload_service()
       fi
       LOG_OUT "【${CUR_RELOAD_NUM}/$MAX_RELOAD】Reload OpenClash Firewall Rules..."
       revert_firewall
+      revert_dnsmasq
       do_run_mode
       get_config
-      set_firewall
       check_core_status &
       SLOG_CLEAN
    fi
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "manual" ]; then
       LOG_OUT "Manually Reload Firewall Rules..."
       revert_firewall
+      revert_dnsmasq
       do_run_mode
       get_config
-      set_firewall
       check_core_status &
       SLOG_CLEAN
    fi
@@ -3692,17 +3713,17 @@ reload_service()
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "restore" ]; then
       do_run_mode
       get_config
-      change_dns "$enable_redirect_dns"
-      set_firewall
       check_core_status &
       SLOG_CLEAN
    fi
    if [ "$enable" == "1" ] && [ "$1" == "core" ]; then
       check_run_quick
+      revert_firewall
+      revert_dnsmasq
       do_run_mode
       get_config
       start_run_core
-      check_core_status
+      check_core_status &
       write_run_quick
       SLOG_CLEAN
    fi

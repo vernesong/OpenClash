@@ -2043,14 +2043,11 @@ msgstr "第三步: 快速启动模式，跳过修改配置文件..."
 msgid "Step 4: Start Running The Clash Core..."
 msgstr "第四步: 启动主程序..."
 
-msgid "Step 5: Set Dnsmasq..."
-msgstr "第五步: 设置 Dnsmasq 程序..."
+msgid "Step 5: Core Status Checking and Firewall Rules Setting..."
+msgstr "第五步: 内核状态检查及防火墙规则设置..."
 
-msgid "Step 6: Set Firewall Rules..."
-msgstr "第六步: 设置防火墙规则..."
-
-msgid "Step 7: Add Cron Rules, Start Daemons..."
-msgstr "第七步: 添加计划任务,启动进程守护程序..."
+msgid "Step 6: Add Cron Rules, Start Daemons..."
+msgstr "第六步: 添加计划任务,启动进程守护程序..."
 
 msgid "OpenClash Start Successful!"
 msgstr "OpenClash 启动成功，请等待服务器上线！"
@@ -4193,3 +4190,6 @@ msgstr "订阅"
 
 msgid "Overwrite Module"
 msgstr "覆写模块"
+
+msgid "depend not found, please check your system and try again!"
+msgstr "依赖未找到，请检查你的固件并重试！"
