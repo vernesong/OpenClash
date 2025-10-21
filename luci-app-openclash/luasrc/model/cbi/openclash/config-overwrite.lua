@@ -388,6 +388,10 @@ o.default = ""
 o.placeholder = "Premium:0.9;SG:1.3"
 o.description = translate("Nodes Weight Priority, <1 Means Lower Priority, >1 Means Higher Priority, The Default is 1, Pattern Support Regex and String")
 
+o = s:taboption("smart", Flag, "smart_prefer_asn", font_red..bold_on..translate("Prefer-ASN")..bold_off..font_off)
+o.description = translate("Select Nodes Force Lookup and Use Target ASN Info First For More Stable Experience")
+o.default = 0
+
 o = s:taboption("smart", Flag, "smart_enable_lgbm", font_red..bold_on..translate("Enable LightGBM Model")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Use LightGBM Model To Predict Weight")..bold_off..font_off
 o.default = 0

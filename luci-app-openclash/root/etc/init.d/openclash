@@ -3467,6 +3467,7 @@ get_config()
    smart_strategy=$(uci_get_config "smart_strategy" || echo 0)
    smart_policy_priority=$(uci_get_config "smart_policy_priority" || echo 0)
    smart_enable_lgbm=$(uci_get_config "smart_enable_lgbm" || echo 0)
+   smart_prefer_asn=$(uci_get_config "smart_prefer_asn" || echo 0)
 
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q commit openclash
@@ -3505,7 +3506,7 @@ start_service()
          /usr/share/openclash/yml_rules_change.sh \
          "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE"\
          "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$enable_redirect_dns" "$en_mode"\
-         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_strategy" "$smart_policy_priority" "$smart_enable_lgbm"
+         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_strategy" "$smart_policy_priority" "$smart_enable_lgbm" "$smart_prefer_asn"
          
          #Custom overwrite
          if [ -f "/tmp/yaml_overwrite.sh" ]; then
