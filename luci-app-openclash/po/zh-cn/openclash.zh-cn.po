@@ -4191,8 +4191,8 @@ msgstr "订阅"
 msgid "Overwrite Module"
 msgstr "覆写模块"
 
-msgid "depend not found, please check your system and try again!"
-msgstr "依赖未找到，请检查你的固件并重试！"
+msgid "module not found, please check your system depends and try again!"
+msgstr "模块未找到，请检查你的固件依赖并重试！"
 
 msgid "Select Nodes Force Lookup and Use Target ASN Info First For More Stable Experience"
 msgstr "选择节点时强制查找并优先使用目标的 ASN 信息，以获得更稳定的体验"

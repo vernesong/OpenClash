@@ -736,7 +736,7 @@ check_core_status()
 check_mod()
 {
    if [ -z "$(lsmod |awk '{print $1}' |grep ^$1$)" ]; then
-      LOG_OUT "Error:【$1】depend not found, please check your system and try again!"
+      LOG_OUT "Error:【$1】module not found, please check your system depends and try again!"
       start_fail
    else
       modprobe $1
