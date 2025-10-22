@@ -3103,6 +3103,7 @@ EOF
    SMART_COLLECT:int_bool \
    SMART_COLLECT_SIZE:int \
    SMART_COLLECT_RATE:string \
+   SMART_PREFER_ASN:int_bool \
    LGBM_AUTO_UPDATE:int_bool \
    LGBM_UPDATE_INTERVAL:int \
    LGBM_CUSTOM_URL:string \
