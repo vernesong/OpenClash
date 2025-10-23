@@ -653,11 +653,10 @@ do_run_file()
 
 check_mod()
 {
+   modprobe $1
    if [ -z "$(lsmod |awk '{print $1}' |grep ^$1$)" ]; then
       LOG_OUT "Error:【$1】module not found, please check your system depends and try again!"
       start_fail
-   else
-      modprobe $1
    fi
 } >/dev/null 2>&1
 
