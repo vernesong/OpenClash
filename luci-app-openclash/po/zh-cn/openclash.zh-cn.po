@@ -2043,17 +2043,14 @@ msgstr "第三步: 快速启动模式，跳过修改配置文件..."
 msgid "Step 4: Start Running The Clash Core..."
 msgstr "第四步: 启动主程序..."
 
-msgid "Step 5: Core Status Checking and Firewall Rules Setting..."
-msgstr "第五步: 内核状态检查及防火墙规则设置..."
+msgid "Step 5: Add Cron Rules, Start Daemons..."
+msgstr "第五步: 添加计划任务,启动进程守护程序..."
 
-msgid "Step 6: Add Cron Rules, Start Daemons..."
-msgstr "第六步: 添加计划任务,启动进程守护程序..."
+msgid "Step 6: Core Status Checking and Firewall Rules Setting..."
+msgstr "第六步: 内核状态检查及防火墙规则设置..."
 
-msgid "OpenClash Start Successful!"
-msgstr "OpenClash 启动成功，请等待服务器上线！"
-
-msgid "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPv6's DHCP Server"
-msgstr "警告：OpenClash 启动成功，检测到您启用了 IPv6 的 DHCP 服务，可能会造成连接异常！"
+msgid "Warning: Please Note That Network May Abnormal With IPv6's DHCP Server"
+msgstr "警告：检测到您启用了 IPv6 的 DHCP 服务，可能会造成连接异常！"
 
 msgid "OpenClash Stoping..."
 msgstr "OpenClash 开始关闭..."

@@ -651,6 +651,16 @@ do_run_file()
 
 } >/dev/null 2>&1
 
+check_mod()
+{
+   if [ -z "$(lsmod |awk '{print $1}' |grep ^$1$)" ]; then
+      LOG_OUT "Error:【$1】module not found, please check your system depends and try again!"
+      start_fail
+   else
+      modprobe $1
+   fi
+} >/dev/null 2>&1
+
 check_core_status()
 {
    TUN_WAIT=0
@@ -665,6 +675,8 @@ check_core_status()
    done
 
    if [ -n "$en_mode_tun" ] || [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
+      check_mod "tun"
+
       if [ -n "$en_mode_tun" ]; then
          ip_="ip"
       else
@@ -733,22 +745,12 @@ check_core_status()
    set_firewall
 } >/dev/null 2>&1
 
-check_mod()
-{
-   if [ -z "$(lsmod |awk '{print $1}' |grep ^$1$)" ]; then
-      LOG_OUT "Error:【$1】module not found, please check your system depends and try again!"
-      start_fail
-   else
-      modprobe $1
-   fi
-} >/dev/null 2>&1
-
 start_run_core()
 {
    ulimit -SHn 1000000
    ulimit -v unlimited
    ulimit -u unlimited
-   check_mod "tun"
+
    if ! $quick_start; then
       mv "$TMP_CONFIG_FILE" "$CONFIG_FILE"
       rm -rf "$TMP_CONFIG_FILE"
@@ -3549,20 +3551,16 @@ start_service()
       LOG_OUT "Step 4: Start Running The Clash Core..."
       start_run_core
 
-      LOG_OUT "Step 5: Core Status Checking and Firewall Rules Setting..."
-      check_core_status &
-      
-      LOG_OUT "Step 6: Add Cron Rules, Start Daemons..."
+      LOG_OUT "Step 5: Add Cron Rules, Start Daemons..."
       add_cron
-      
-      if [ -z "$(uci -q get dhcp.lan.dhcpv6)" ] || [ "$(uci -q get dhcp.lan.dhcpv6)" == "disabled" ]; then
-         LOG_OUT "OpenClash Start Successful!"
-      elif [ "$ipv6_enable" -eq 0 ]; then
-         LOG_OUT "Warning: OpenClash Start Successful, Please Note That Network May Abnormal With IPv6's DHCP Server"
-      else
-         LOG_OUT "OpenClash Start Successful!"
+
+      LOG_OUT "Step 6: Core Status Checking and Firewall Rules Setting..."
+      check_core_status &
+
+      if [ "$ipv6_enable" -eq 0 ] && [ "$(uci -q get dhcp.lan.dhcpv6)" != "disabled" ] && [ -n "$(uci -q get dhcp.lan.dhcpv6)" ]; then
+         LOG_OUT "Warning: Please Note That Network May Abnormal With IPv6's DHCP Server"
       fi
-      
+
       write_run_quick
       SLOG_CLEAN
       rm -rf /tmp/yaml_*
