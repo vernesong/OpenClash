@@ -742,6 +742,12 @@ check_core_status()
    # redirect dns setting after core started, prevent core dns lookup failure
    change_dns "$enable_redirect_dns"
    set_firewall
+
+   if [ "$1" == "start" ]; then
+      LOG_OUT "Tip: OpenClash Start Successful!"
+   else
+      LOG_OUT "Tip: Firewall Reload Successful!"
+   fi
 } >/dev/null 2>&1
 
 start_run_core()
@@ -3480,7 +3486,7 @@ start_service()
    enable=$(uci_get_config "enable")
    [ "$enable" != "1" ] && LOG_OUT "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && exit 0
 
-   LOG_OUT "OpenClash Start Running..."
+   LOG_OUT "Tip: OpenClash Start Running..."
 
    {
       LOG_OUT "Step 1: Get The Configuration..."
@@ -3554,7 +3560,7 @@ start_service()
       add_cron
 
       LOG_OUT "Step 6: Core Status Checking and Firewall Rules Setting..."
-      check_core_status &
+      check_core_status "start" &
 
       if [ "$ipv6_enable" -eq 0 ] && [ "$(uci -q get dhcp.lan.dhcpv6)" != "disabled" ] && [ -n "$(uci -q get dhcp.lan.dhcpv6)" ]; then
          LOG_OUT "Warning: Please Note That Network May Abnormal With IPv6's DHCP Server"
@@ -3572,7 +3578,7 @@ stop_service()
 {
    enable=$(uci_get_config "enable")
 
-   LOG_OUT "OpenClash Stoping..."
+   LOG_OUT "Tip: OpenClash Stoping..."
    LOG_OUT "Step 1: Backup The Current Groups State..."
    
    {
@@ -3614,11 +3620,9 @@ stop_service()
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf
-         
-         LOG_OUT "OpenClash Already Stop!"
-      else
-         LOG_OUT "OpenClash Already Stop!"
       fi
+
+      LOG_OUT "Tip: OpenClash Already Stop!"
 
       del_cron
       clear_overwrite_set
@@ -3648,7 +3652,7 @@ revert_dnsmasq()
 restart()
 {
    echo "OpenClash Restart..."
-   LOG_OUT "OpenClash Restart..."
+   LOG_OUT "Tip: OpenClash Restart..."
    check_run_quick
    stop
    start
@@ -3713,17 +3717,6 @@ reload_service()
       do_run_mode
       get_config
       check_core_status &
-      SLOG_CLEAN
-   fi
-   if [ "$enable" == "1" ] && [ "$1" == "core" ]; then
-      check_run_quick
-      revert_firewall
-      revert_dnsmasq
-      do_run_mode
-      get_config
-      start_run_core
-      check_core_status &
-      write_run_quick
       SLOG_CLEAN
    fi
 } >/dev/null 2>&1

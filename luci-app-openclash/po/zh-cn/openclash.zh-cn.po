@@ -2022,11 +2022,11 @@ msgstr "错误：OpenClash 启动失败，请到日志页面查看详细错误�
 msgid "Found 53 Port Hijacked, Clean Up Firewall Rules..."
 msgstr "发现 53 端口被劫持，清理防火墙规则..."
 
-msgid "OpenClash Start Running..."
-msgstr "OpenClash 开始启动..."
+msgid "Tip: OpenClash Start Running..."
+msgstr "提示：OpenClash 开始启动..."
 
-msgid "OpenClash Restart..."
-msgstr "OpenClash 重新启动中..."
+msgid "Tip: OpenClash Restart..."
+msgstr "提示：OpenClash 重新启动中..."
 
 msgid "Step 1: Get The Configuration..."
 msgstr "第一步: 获取配置..."
@@ -2049,11 +2049,17 @@ msgstr "第五步: 添加计划任务,启动进程守护程序..."
 msgid "Step 6: Core Status Checking and Firewall Rules Setting..."
 msgstr "第六步: 内核状态检查及防火墙规则设置..."
 
+msgid "Tip: OpenClash Start Successful!"
+msgstr "提示：OpenClash 启动成功，请等待服务器上线！"
+
+msgid "Tip: Firewall Reload Successful!"
+msgstr "提示：防火墙重置成功！"
+
 msgid "Warning: Please Note That Network May Abnormal With IPv6's DHCP Server"
 msgstr "警告：检测到您启用了 IPv6 的 DHCP 服务，可能会造成连接异常！"
 
-msgid "OpenClash Stoping..."
-msgstr "OpenClash 开始关闭..."
+msgid "Tip: OpenClash Stoping..."
+msgstr "提示：OpenClash 开始关闭..."
 
 msgid "Step 1: Backup The Current Groups State..."
 msgstr "第一步: 备份当前策略组状态..."
@@ -2073,8 +2079,8 @@ msgstr "第五步: 重启 Dnsmasq 程序..."
 msgid "Step 6: Delete OpenClash Residue File..."
 msgstr "第六步：删除 OpenClash 残留文件..."
 
-msgid "OpenClash Already Stop!"
-msgstr "OpenClash 关闭成功！"
+msgid "Tip: OpenClash Already Stop!"
+msgstr "提示：OpenClash 已关闭！"
 
 msgid "Skip Reload OpenClash Firewall Rules Until 5 Minutes Later..."
 msgstr "5 分钟内重置已超过限制次数，跳过本次 OpenClash 防火墙规则重置..."
