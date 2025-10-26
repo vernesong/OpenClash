@@ -653,6 +653,10 @@ do_run_file()
 
 check_mod()
 {
+   # 容器环境下跳过内核模块检查
+   if grep -qE 'docker|containerd|lxc|podman|kubepods|container' /proc/1/cgroup; then
+      return
+   fi
    modprobe $1
    if [ -z "$(lsmod |awk '{print $1}' |grep ^$1$)" ]; then
       LOG_OUT "Error:【$1】module not found, please check your system depends and try again!"
