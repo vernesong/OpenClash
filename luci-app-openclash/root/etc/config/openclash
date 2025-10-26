@@ -291,7 +291,10 @@ config dns_servers
 
 config config_overwrite
 	option name 'default'
-	option type 'file'
-	option param 'EN_KEY1=URL1;EN_KEY12=URL2;EN_KEY13=URL3'
-	option order '0'
 	option enable '0'
+	option url 'https://raw.githubusercontent.com/vernesong/OpenClash/refs/heads/dev/luci-app-openclash/root/etc/openclash/overwrite/default'
+	option update_days 'off'
+	option update_hour 'off'
+	option type 'http'
+	option order '1'
+
