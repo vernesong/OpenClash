@@ -651,14 +651,21 @@ do_run_file()
 
 } >/dev/null 2>&1
 
+container() {
+   [ -f "/proc/1/cgroup" ] && grep -qiE "(docker|containerd|lxc|podman|kubepods|container)" /proc/1/cgroup 2>/dev/null && return 0
+   [ -f "/proc/1/environ" ] && grep -qiE "(docker|containerd|lxc|podman|kubepods|container)" /proc/1/environ 2>/dev/null && return 0
+   [ -f "/.dockerenv" ] && return 0
+   env | grep -qiE "(docker|kubernetes|container)" && return 0
+   return 1
+}
+
 check_mod()
 {
-   # 容器环境下跳过内核模块检查
-   if grep -qE 'docker|containerd|lxc|podman|kubepods|container' /proc/1/cgroup; then
-      return
+   if container; then
+      return 0
    fi
-   modprobe $1
-   if [ -z "$(lsmod |awk '{print $1}' |grep ^$1$)" ]; then
+   modprobe $1 2>/dev/null
+   if [ $? -ne 0 ]; then
       LOG_OUT "Error:【$1】module not found, please check your system depends and try again!"
       start_fail
    fi
