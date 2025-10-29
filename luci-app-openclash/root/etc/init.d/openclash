@@ -3128,6 +3128,7 @@ EOF
    CUSTOM_FAKEIP_FILTER:int_bool \
    CUSTOM_FAKEIP_FILTER_MODE:string \
    FAKEIP_RANGE:string \
+   FAKEIP_RANGE6:string \
    ENABLE_RESPECT_RULES:int_bool \
    CUSTOM_NAME_POLICY:int_bool \
    CUSTOM_HOST:int_bool \

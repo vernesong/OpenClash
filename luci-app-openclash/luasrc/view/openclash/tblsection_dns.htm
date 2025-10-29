@@ -370,6 +370,13 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
     var divs<%=sectiontype%> = document.getElementsByClassName('dom-<%=self.config%>-<%=self.sectiontype%>');
 
     function isDarkBackground(element) {
+        var cachedTheme = localStorage.getItem('oc-theme');
+        if (cachedTheme === 'dark') {
+            return true;
+        } else if (cachedTheme === 'light') {
+            return false;
+        }
+
 		if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
 			return true;
 		}

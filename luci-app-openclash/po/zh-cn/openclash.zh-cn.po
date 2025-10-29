@@ -4202,3 +4202,6 @@ msgstr "选择节点时强制查找并优先使用目标的 ASN 信息，以获�
 
 msgid "Prefer-ASN"
 msgstr "ASN 优先"
+
+msgid "Theme Switch"
+msgstr "主题切换"
