@@ -3162,11 +3162,11 @@ msgstr "提示：DNS 劫持模式为防火墙转发..."
 msgid "Tip: DNS Hijacking is Disabled..."
 msgstr "提示：DNS 劫持未开启..."
 
-msgid "Fake-IP Range (IPv4 Cidr)"
-msgstr "Fake-IP 地址范围 (IPv4 Cidr)"
+msgid "Fake-IP Range"
+msgstr "Fake-IP 地址范围"
 
-msgid "Set Fake-IP Range (IPv4 Cidr)"
-msgstr "设置 Fake-IP 地址范围 (IPv4 Cidr)"
+msgid "Set Fake-IP Range"
+msgstr "设置 Fake-IP 地址范围"
 
 msgid "IPv6 Settings"
 msgstr "IPv6 设置"

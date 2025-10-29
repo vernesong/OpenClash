@@ -173,8 +173,8 @@ o.description = translate("Automatically Append Compliant DNS to default-nameser
 o.default = 1
 
 if op_mode == "fake-ip" then
-o = s:taboption("dns", Value, "fakeip_range", translate("Fake-IP Range (IPv4 Cidr)"))
-o.description = translate("Set Fake-IP Range (IPv4 Cidr)")
+o = s:taboption("dns", Value, "fakeip_range", translate("Fake-IP Range").." (IPv4 Cidr)")
+o.description = translate("Set Fake-IP Range").." (IPv4 Cidr)"
 o:value("0", translate("Disable"))
 o:value("198.18.0.1/16")
 o.default = "0"
