@@ -664,11 +664,22 @@ check_mod()
    if container; then
       return 0
    fi
-   modprobe $1 2>/dev/null
-   if [ $? -ne 0 ]; then
-      LOG_OUT "Error:【$1】module not found, please check your system depends and try again!"
-      start_fail
+   
+   if [ -f /proc/config.gz ] && zcat /proc/config.gz | grep -q "CONFIG_${1^^}=y"; then
+      return 0
    fi
+   
+   if lsmod | grep -q "^$1 "; then
+      return 0
+   fi
+   
+   modprobe $1 2>/dev/null
+   if [ $? -eq 0 ]; then
+      return 0
+   fi
+   
+   LOG_OUT "Error:【$1】module not found, please check your system depends and try again!"
+   start_fail
 } >/dev/null 2>&1
 
 check_core_status()
