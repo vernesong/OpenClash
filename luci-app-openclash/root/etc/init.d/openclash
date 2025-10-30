@@ -762,12 +762,12 @@ check_core_status()
    fi
 
    # redirect dns setting after core started, prevent core dns lookup failure
-   change_dns "$enable_redirect_dns"
-   set_firewall
-
    if [ "$1" == "start" ]; then
+      change_dns "$enable_redirect_dns"
+      set_firewall
       LOG_OUT "Tip: OpenClash Start Successful!"
    else
+      set_firewall
       LOG_OUT "Tip: Firewall Reload Successful!"
    fi
 } >/dev/null 2>&1
@@ -3777,7 +3777,6 @@ reload_service()
       fi
       LOG_OUT "【${CUR_RELOAD_NUM}/$MAX_RELOAD】Reload OpenClash Firewall Rules..."
       revert_firewall
-      revert_dnsmasq
       do_run_mode
       get_config
       check_core_status &
@@ -3786,7 +3785,6 @@ reload_service()
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "manual" ]; then
       LOG_OUT "Manually Reload Firewall Rules..."
       revert_firewall
-      revert_dnsmasq
       do_run_mode
       get_config
       check_core_status &
