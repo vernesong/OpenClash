@@ -678,8 +678,7 @@ check_mod()
       return 0
    fi
    
-   LOG_OUT "Error:【$1】module not found, please check your system depends and try again!"
-   start_fail
+   LOG_OUT "Error:【$1】module not found, please check your system depends if something abnormal!"
 } >/dev/null 2>&1
 
 check_core_status()
