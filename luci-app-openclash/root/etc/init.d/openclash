@@ -664,8 +664,11 @@ check_mod()
    if container; then
       return 0
    fi
-   
-   if [ -f /proc/config.gz ] && zcat /proc/config.gz | grep -q "CONFIG_${1^^}=y"; then
+
+   # Convert module name to uppercase using POSIX-compatible syntax
+   # BusyBox tr doesn't support [:lower:]/[:upper:], use a-z/A-Z instead
+   module_upper=$(echo "$1" | tr a-z A-Z)
+   if [ -f /proc/config.gz ] && zcat /proc/config.gz | grep -q "CONFIG_${module_upper}=y"; then
       return 0
    fi
    
