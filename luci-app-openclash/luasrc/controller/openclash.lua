@@ -517,7 +517,7 @@ local function dler_login_info_save()
 end
 
 local function dler_login()
-	local info, token, get_sub, sub_info, sub_key, sub_match
+	local info, token, get_sub, sub_info, sub_key, sub_match, sub_convert, sid
 	local sub_path = "/tmp/dler_sub"
 	local email = fs.uci_get_config("config", "dler_email")
 	local passwd = fs.uci_get_config("config", "dler_passwd")
@@ -541,14 +541,25 @@ local function dler_login()
 				for _,v in ipairs(sub_key) do
 					while true do
 						sub_match = false
+						sub_convert = false
 						uci:foreach("openclash", "config_subscribe",
 						function(s)
 							if s.name == "Dler Cloud - " .. v and s.address == sub_info[v] then
-			   				sub_match = true
+								sub_match = true
+							end
+							if s.name == "Dler Cloud - " .. v and s.address ~= sub_info[v] then
+								sub_convert = true
+								sid = s['.name']
 							end
 						end)
 						if sub_match then break end
-						luci.sys.exec(string.format('sid=$(uci -q add openclash config_subscribe) && uci -q set openclash."$sid".name="Dler Cloud - %s" && uci -q set openclash."$sid".address="%s"', v, sub_info[v]))
+						if sub_convert then
+							uci:set("openclash", sid, "address", sub_info[v])
+						else
+							sid = uci:add("openclash", "config_subscribe")
+							uci:set("openclash", sid, "name", "Dler Cloud - " .. v)
+							uci:set("openclash", sid, "address", sub_info[v])
+						end
 						uci:commit("openclash")
 						break
 					end
