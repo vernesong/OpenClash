@@ -956,6 +956,100 @@
     display: block;
 }
 
+/* Multiple Providers Grid Layout */
+.oc .subscription-providers-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.oc .provider-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 12px;
+    transition: all 0.2s ease;
+}
+
+.oc .provider-card:hover {
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+}
+
+.oc .provider-card-header {
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.oc .provider-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--primary-color);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.oc .provider-card-body {
+    font-size: 12px;
+}
+
+.oc .provider-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    gap: 8px;
+}
+
+.oc .provider-info-row:last-child {
+    margin-bottom: 0;
+}
+
+.oc .provider-label {
+    color: var(--text-secondary);
+    font-weight: 500;
+    flex-shrink: 0;
+}
+
+.oc .provider-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.oc .provider-expire {
+    font-size: 11px;
+}
+
+/* Dark mode support for provider cards */
+.oc[data-darkmode="true"] .provider-card {
+    background: var(--card-bg-dark);
+    border-color: var(--border-color-dark);
+}
+
+.oc[data-darkmode="true"] .provider-card:hover {
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.05);
+    border-color: var(--primary-color);
+}
+
+.oc[data-darkmode="true"] .provider-name {
+    color: var(--primary-color);
+}
+
+.oc[data-darkmode="true"] .provider-label {
+    color: var(--text-secondary-dark);
+}
+
+.oc[data-darkmode="true"] .provider-value {
+    color: var(--text-primary-dark);
+}
+
 .oc .subscription-loading,
 .oc .subscription-error,
 .oc .subscription-no-info {
@@ -2921,13 +3015,13 @@
             if (ConfigFileManager.configList.length === 0) {
                 return;
             }
-            
+
             var container = document.getElementById('subscription-info-display');
             var progressSection = document.getElementById('subscription-progress-section');
             var detailsSection = document.getElementById('subscription-info-details');
             var progressFill = document.getElementById('subscription-progress-fill');
             var infoText = document.getElementById('subscription-info-text');
-            
+
             if (!container) return;
 
             var configFileContent = document.querySelector('.config-file-content');
@@ -2936,46 +3030,142 @@
             }
 
             container.style.display = 'flex';
-            
+
             if (data && data.sub_info && data.sub_info !== "No Sub Info Found") {
-                if (progressSection) {
-                    progressSection.style.display = 'flex';
-                }
-                
-                if (!progressFill || !infoText) return;
-                
-                var percent = data.percent || 0;
-                var used = data.surplus || data.used || '0 B';
-                var total = data.total || '0 B';
-                var expire = data.expire || '';
-                var daysLeft = data.day_left || 0;
-                
-                progressFill.style.width = percent + '%';
-                progressFill.className = 'subscription-progress-fill ' + 
-                    (percent >= 50 ? 'high' : (percent >= 20 ? 'medium' : 'low'));
-                
-                var infoString = used + ' / ' + total + ' (' + percent + '%)';
-                if (expire && daysLeft > 0) {
-                    infoString += ' • ' + '<%:Remaining%> ' + daysLeft + ' <%:days%>';
-                    infoString += ' • ' + '<%:Expire Date%>: ' + expire;
-                }
-                
-                infoText.textContent = infoString;
-                if (infoText.scrollWidth > infoText.clientWidth) {
-                    infoText.title = infoString;
+                // Check if data contains multiple providers
+                if (data.providers && Array.isArray(data.providers)) {
+                    if (data.providers.length > 1) {
+                        // Display multiple provider cards
+                        this.displayMultipleProviders(data.providers, progressSection);
+                    } else if (data.providers.length === 1) {
+                        // Display single provider using current single-line format
+                        this.displaySingleProvider(data.providers[0], progressSection, progressFill, infoText);
+                    }
                 } else {
-                    infoText.title = '';
+                    // Backward compatible: single subscription (no providers array)
+                    if (progressSection) {
+                        progressSection.style.display = 'flex';
+                    }
+
+                    if (!progressFill || !infoText) return;
+
+                    var percent = data.percent || 0;
+                    var used = data.surplus || data.used || '0 B';
+                    var total = data.total || '0 B';
+                    var expire = data.expire || '';
+                    var daysLeft = data.day_left || 0;
+
+                    progressFill.style.width = percent + '%';
+                    progressFill.className = 'subscription-progress-fill ' +
+                        (percent >= 50 ? 'high' : (percent >= 20 ? 'medium' : 'low'));
+
+                    var infoString = used + ' / ' + total + ' (' + percent + '%)';
+                    if (expire && daysLeft > 0) {
+                        infoString += ' • ' + '<%:Remaining%> ' + daysLeft + ' <%:days%>';
+                        infoString += ' • ' + '<%:Expire Date%>: ' + expire;
+                    }
+
+                    infoText.textContent = infoString;
+                    if (infoText.scrollWidth > infoText.clientWidth) {
+                        infoText.title = infoString;
+                    } else {
+                        infoText.title = '';
+                    }
                 }
-                
             } else {
                 if (progressSection) {
                     progressSection.style.display = 'none';
                 }
             }
-            
+
             if (detailsSection) {
                 detailsSection.style.display = 'flex';
             }
+        },
+
+        displaySingleProvider: function(provider, progressSection, progressFill, infoText) {
+            if (progressSection) {
+                progressSection.style.display = 'flex';
+            }
+
+            if (!progressFill || !infoText) return;
+
+            var percent = provider.percent || 0;
+            var used = provider.used || '0 B';
+            var total = provider.total || '0 B';
+            var expire = provider.expire || '';
+            var daysLeft = provider.day_left || 0;
+
+            progressFill.style.width = percent + '%';
+            progressFill.className = 'subscription-progress-fill ' +
+                (percent >= 50 ? 'high' : (percent >= 20 ? 'medium' : 'low'));
+
+            var infoString = used + ' / ' + total + ' (' + percent + '%)';
+            if (expire && daysLeft > 0) {
+                infoString += ' • ' + '<%:Remaining%> ' + daysLeft + ' <%:days%>';
+                infoString += ' • ' + '<%:Expire Date%>: ' + expire;
+            }
+
+            infoText.textContent = infoString;
+            if (infoText.scrollWidth > infoText.clientWidth) {
+                infoText.title = infoString;
+            } else {
+                infoText.title = '';
+            }
+        },
+
+        displayMultipleProviders: function(providers, progressSection) {
+            if (!progressSection) return;
+
+            // Clear existing content and replace with provider cards
+            progressSection.innerHTML = '';
+            progressSection.style.display = 'grid';
+            progressSection.className = 'subscription-providers-grid';
+
+            providers.forEach(function(provider) {
+                var card = document.createElement('div');
+                card.className = 'provider-card';
+
+                var providerName = provider.provider_name || 'Unknown';
+                var total = provider.total || 'N/A';
+                var surplus = provider.surplus || 'N/A';
+                var expire = provider.expire || 'N/A';
+                var daysLeft = provider.day_left || 'N/A';
+                var percent = provider.percent || 0;
+
+                var html = '<div class="provider-card-header">' +
+                    '<div class="provider-name" title="' + providerName + '">' + providerName + '</div>' +
+                    '</div>' +
+                    '<div class="provider-card-body">' +
+                    '<div class="provider-info-row">' +
+                    '<span class="provider-label"><%:Total%>:</span>' +
+                    '<span class="provider-value">' + total + '</span>' +
+                    '</div>' +
+                    '<div class="provider-info-row">' +
+                    '<span class="provider-label"><%:Remaining%>:</span>' +
+                    '<span class="provider-value">' + surplus + '</span>' +
+                    '</div>';
+
+                // Only show expiration info if available
+                if (expire !== 'null' && expire !== 'N/A') {
+                    html += '<div class="provider-info-row">' +
+                        '<span class="provider-label"><%:Expire Date%>:</span>' +
+                        '<span class="provider-value provider-expire">' + expire + '</span>' +
+                        '</div>';
+                }
+
+                if (daysLeft !== 'null' && daysLeft !== 'N/A') {
+                    html += '<div class="provider-info-row">' +
+                        '<span class="provider-label"><%:Days Left%>:</span>' +
+                        '<span class="provider-value">' + daysLeft + ' <%:days%></span>' +
+                        '</div>';
+                }
+
+                html += '</div>';
+
+                card.innerHTML = html;
+                progressSection.appendChild(card);
+            });
         },
         
         showNoInfo: function() {

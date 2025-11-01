@@ -788,12 +788,183 @@ function set_subinfo_url()
 	})
 end
 
-function sub_info_get()
-	local sub_ua, filepath, filename, sub_url, sub_info, info, upload, download, total, expire, http_code, len, percent, day_left, day_expire, surplus, used
+-- Fetch subscription info from a single URL with all calculations (complete business logic)
+function fetch_sub_info(sub_url, sub_ua)
+	local info, upload, download, total, day_expire, http_code
+	local used, expire, day_left, percent, surplus
+
+	info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: %s' '%s'", sub_ua, sub_url))
+	if not info or tonumber(string.sub(string.match(info, "http_code=%d+"), 11, -1)) ~= 200 then
+		info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Quantumultx' '%s'", sub_url))
+	end
+
+	if info then
+		http_code=string.sub(string.match(info, "http_code=%d+"), 11, -1)
+		if tonumber(http_code) == 200 then
+			info = string.lower(info)
+			if string.find(info, "subscription%-userinfo") then
+				info = luci.sys.exec("echo '%s' |grep 'subscription-userinfo'" %info)
+				upload = string.sub(string.match(info, "upload=%d+"), 8, -1) or nil
+				download = string.sub(string.match(info, "download=%d+"), 10, -1) or nil
+				total = tonumber(string.format("%.1f",string.sub(string.match(info, "total=%d+"), 7, -1))) or nil
+				used = tonumber(string.format("%.1f",(upload + download))) or nil
+				if string.match(info, "expire=%d+") then
+					day_expire = tonumber(string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
+				end
+
+				-- Calculate expire and day_left
+				if day_expire and day_expire == 0 then
+					expire = luci.i18n.translate("Long-term")
+				elseif day_expire then
+					expire = os.date("%Y-%m-%d %H:%M:%S", day_expire) or "null"
+				else
+					expire = "null"
+				end
+
+				if day_expire and day_expire ~= 0 and os.time() <= day_expire then
+					day_left = math.ceil((day_expire - os.time()) / (3600*24))
+					if math.ceil(day_left / 365) > 50 then
+						day_left = "∞"
+					end
+				elseif day_expire and day_expire == 0 then
+					day_left = "∞"
+				elseif day_expire == nil then
+					day_left = "null"
+				else
+					day_left = 0
+				end
+
+				-- Calculate percent and surplus
+				if used and total and used <= total and total > 0 then
+					percent = string.format("%.1f",((total-used)/total)*100) or "100"
+					surplus = fs.filesize(total - used)
+				elseif used and total and used > total and total > 0 then
+					percent = "0"
+					surplus = "-"..fs.filesize(total - used)
+				elseif used and total and used < total and total == 0.0 then
+					percent = "0"
+					surplus = fs.filesize(total - used)
+				elseif used and total and used == total and total == 0.0 then
+					percent = "0"
+					surplus = "0.0 KB"
+				elseif used and total and used > total and total == 0.0 then
+					percent = "100"
+					surplus = fs.filesize(total - used)
+				elseif used == nil and total and total > 0.0 then
+					percent = 100
+					surplus = fs.filesize(total)
+				elseif used == nil and total and total == 0.0 then
+					percent = 100
+					surplus = "∞"
+				else
+					percent = 0
+					surplus = "null"
+				end
+
+				-- Format total and used for display
+				local total_formatted, used_formatted
+				if total and total > 0 then
+					total_formatted = fs.filesize(total)
+				elseif total and total == 0.0 then
+					total_formatted = "∞"
+				else
+					total_formatted = "null"
+				end
+				used_formatted = fs.filesize(used)
+
+				return {
+					http_code = http_code,
+					surplus = surplus,
+					used = used_formatted,
+					total = total_formatted,
+					percent = percent,
+					day_left = day_left,
+					expire = expire
+				}
+			end
+		end
+	end
+
+	return nil
+end
+
+-- Get subscription URL with priority (Priority 1: subscribe_info, Priority 2: config_subscribe, Priority 3: proxy-providers)
+function get_sub_url(filename)
+	local sub_url = nil
 	local info_tb = {}
+	local providers = {}
+
+	-- Priority 1: subscribe_info table
+	uci:foreach("openclash", "subscribe_info",
+		function(s)
+			if s.name == filename and s.url and string.find(s.url, "http") then
+				string.gsub(s.url, '[^\n]+', function(w) table.insert(info_tb, w) end)
+				sub_url = info_tb[1]
+			end
+		end
+	)
+
+	if sub_url then
+		return {type = "single", url = sub_url}
+	end
+
+	-- Priority 2: config_subscribe table
+	uci:foreach("openclash", "config_subscribe",
+		function(s)
+			if s.name == filename and s.address and string.find(s.address, "http") then
+				string.gsub(s.address, '[^\n]+', function(w) table.insert(info_tb, w) end)
+				sub_url = info_tb[1]
+			end
+		end
+	)
+
+	if sub_url then
+		return {type = "single", url = sub_url}
+	end
+
+	-- Priority 3: YAML proxy-providers
+	local config_path = "/etc/openclash/" .. fs.basename(filename)
+	if fs.access(config_path) then
+		local ruby_result = luci.sys.exec(string.format([[
+			ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+			begin
+				require 'json'
+				config = YAML.load_file('%s')
+				providers = []
+				if config && config['proxy-providers']
+					config['proxy-providers'].each do |name, provider|
+						if provider['type'] == 'http' && provider['url']
+							providers << {'name' => name, 'url' => provider['url']}
+						end
+					end
+				end
+				puts JSON.generate(providers)
+			rescue
+				puts '[]'
+			end
+			" 2>/dev/null || echo "__RUBY_ERROR__"
+		]], config_path)):gsub("\n", "")
+
+		if ruby_result and ruby_result ~= "" and ruby_result ~= "__RUBY_ERROR__" and ruby_result ~= "[]" then
+			providers = json.parse(ruby_result)
+			if providers and #providers > 0 then
+				return {type = "multiple", providers = providers}
+			end
+		end
+	end
+
+	return nil
+end
+
+function sub_info_get()
+	local sub_ua, filename, sub_info, http_code, surplus, used, total, percent, day_left, expire
+	local providers_data = {}
+
 	filename = luci.http.formvalue("filename")
 	sub_info = ""
 	sub_ua = "Clash"
+
+	-- Get User-Agent from config_subscribe
 	uci:foreach("openclash", "config_subscribe",
 		function(s)
 			if s.name == filename and s.sub_ua then
@@ -801,120 +972,69 @@ function sub_info_get()
 			end
 		end
 	)
+
 	if filename and not is_start() then
-		uci:foreach("openclash", "subscribe_info",
-			function(s)
-				if s.name == filename and s.url and string.find(s.url, "http") then
-					string.gsub(s.url, '[^\n]+', function(w) table.insert(info_tb, w) end)
-					sub_url = info_tb[1]
-				end
-			end
-		)
-		if not sub_url then
-			uci:foreach("openclash", "config_subscribe",
-				function(s)
-					if s.name == filename and s.address and string.find(s.address, "http") then
-						string.gsub(s.address, '[^\n]+', function(w) table.insert(info_tb, w) end)
-						sub_url = info_tb[1]
-					end
-				end
-			)
-		end
-		if not sub_url then
+		local url_result = get_sub_url(filename)
+
+		if not url_result then
 			sub_info = "No Sub Info Found"
-		else
-			info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: %s' '%s'", sub_ua, sub_url))
-			if not info or tonumber(string.sub(string.match(info, "http_code=%d+"), 11, -1)) ~= 200 then
-				info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Quantumultx' '%s'", sub_url))
-			end
+		elseif url_result.type == "single" then
+			-- Single subscription URL (Priority 1 or 2)
+			local info = fetch_sub_info(url_result.url, sub_ua)
 			if info then
-				http_code=string.sub(string.match(info, "http_code=%d+"), 11, -1)
-				if tonumber(http_code) == 200 then
-					info = string.lower(info)
-					if string.find(info, "subscription%-userinfo") then
-						info = luci.sys.exec("echo '%s' |grep 'subscription-userinfo'" %info)
-						upload = string.sub(string.match(info, "upload=%d+"), 8, -1) or nil
-						download = string.sub(string.match(info, "download=%d+"), 10, -1) or nil
-						total = tonumber(string.format("%.1f",string.sub(string.match(info, "total=%d+"), 7, -1))) or nil
-						used = tonumber(string.format("%.1f",(upload + download))) or nil
-						if string.match(info, "expire=%d+") then
-							day_expire = tonumber(string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
-						end
-
-						if day_expire and day_expire == 0 then
-							expire = luci.i18n.translate("Long-term")
-						elseif day_expire then
-							expire = os.date("%Y-%m-%d %H:%M:%S", day_expire) or "null"
-						else
-							expire = "null"
-						end
-
-						if day_expire and day_expire ~= 0 and os.time() <= day_expire then
-							day_left = math.ceil((day_expire - os.time()) / (3600*24))
-							if math.ceil(day_left / 365) > 50 then
-								day_left = "∞"
-							end
-						elseif day_expire and day_expire == 0 then
-							day_left = "∞"
-						elseif day_expire == nil then
-							day_left = "null"
-						else
-							day_left = 0
-						end
-						
-						if used and total and used <= total and total > 0 then
-							percent = string.format("%.1f",((total-used)/total)*100) or "100"
-							surplus = fs.filesize(total - used)
-						elseif used and total and used > total and total > 0 then
-							percent = "0"
-							surplus = "-"..fs.filesize(total - used)
-						elseif used and total and used < total and total == 0.0 then
-							percent = "0"
-							surplus = fs.filesize(total - used)
-						elseif used and total and used == total and total == 0.0 then
-							percent = "0"
-							surplus = "0.0 KB"
-						elseif used and total and used > total and total == 0.0 then
-							percent = "100"
-							surplus = fs.filesize(total - used)
-						elseif used == nil and total and total > 0.0 then
-							percent = 100
-							surplus = fs.filesize(total)
-						elseif used == nil and total and total == 0.0 then
-							percent = 100
-							surplus = "∞"
-						else
-							percent = 0
-							surplus = "null"
-						end
-						if total and total > 0 then
-							total = fs.filesize(total)
-						elseif total and total == 0.0 then
-							total = "∞"
-						else
-							total = "null"
-						end
-						used = fs.filesize(used)
-						sub_info = "Successful"
-					else
-						sub_info = "No Sub Info Found"
-					end
+				http_code = info.http_code
+				surplus = info.surplus
+				used = info.used
+				total = info.total
+				percent = info.percent
+				day_left = info.day_left
+				expire = info.expire
+				sub_info = "Successful"
+			else
+				sub_info = "No Sub Info Found"
+			end
+		elseif url_result.type == "multiple" then
+			-- Multiple subscription URLs from proxy-providers (Priority 3)
+			for _, provider in ipairs(url_result.providers) do
+				local info = fetch_sub_info(provider.url, sub_ua)
+				if info then
+					info.provider_name = provider.name
+					table.insert(providers_data, info)
 				end
+			end
+
+			if #providers_data > 0 then
+				sub_info = "Successful"
+			else
+				sub_info = "No Sub Info Found"
 			end
 		end
 	end
+
 	luci.http.prepare_content("application/json")
-	luci.http.write_json({
-		http_code = http_code,
-		sub_info = sub_info,
-		surplus = surplus,
-		used = used,
-		total = total,
-		percent = percent,
-		day_left = day_left,
-		expire = expire,
-		get_time = os.time();
-	})
+
+	-- Return different format based on data type
+	if #providers_data > 0 then
+		-- Multiple providers
+		luci.http.write_json({
+			sub_info = sub_info,
+			providers = providers_data,
+			get_time = os.time();
+		})
+	else
+		-- Single provider or no data (backward compatible)
+		luci.http.write_json({
+			http_code = http_code,
+			sub_info = sub_info,
+			surplus = surplus,
+			used = used,
+			total = total,
+			percent = percent,
+			day_left = day_left,
+			expire = expire,
+			get_time = os.time();
+		})
+	end
 end
 
 function action_rule_mode()
