@@ -1986,6 +1986,9 @@ msgstr "错误：丢失或未指定第三方规则中的部分策略组，停止
 msgid "Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete..."
 msgstr "提示：检测到 DNS 选项下的 Nameserver 未设置服务器，开始补全..."
 
+msgid "Tip: Detected That The default-nameserver DNS Option Has No Server Set, Starting To Complete..."
+msgstr "提示：检测到 DNS 选项下的 Default-nameserver 未设置服务器，开始补全..."
+
 msgid "Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers"
 msgstr "错误：配置文件 DNS 选项下的 Nameserver 必须设置服务器，已停止设置自定义 DNS 服务器！"
 
