@@ -2763,7 +2763,7 @@ msgstr "清理超时"
 msgid "Flush"
 msgstr "清理"
 
-msgid "Flush DNS Cache"
+msgid "Flush DNS"
 msgstr "清理 DNS 缓存"
 
 msgid "No Specify Upload File"

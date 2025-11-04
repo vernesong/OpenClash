@@ -3140,7 +3140,7 @@
     var LogManager = {
         isPolling: false,
         pollTimer: null,
-        maxPollTime: 15000,
+        maxPollTime: 60000,
         pollInterval: 1000,
         startTime: 0,
         lastLogContent: '',
@@ -3750,7 +3750,7 @@
             var reloadFwContent = status.clash ? '<input type="button" class="qucik-action-btn" value="<%:Reload Firewall%>" onclick="return b_reload_firewall(this)"/>' : '<input type="button" class="qucik-action-btn" value="<%:Reload Firewall%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_reload_firewall_btn'), content: reloadFwContent});
 
-            var flushCacheContent = status.clash ? '<input type="button" class="qucik-action-btn" value="<%:Flush DNS Cache%>" onclick="return b_flush_dns_cache(this)"/>' : '<input type="button" class="qucik-action-btn" value="<%:Flush DNS Cache%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
+            var flushCacheContent = status.clash ? '<input type="button" class="qucik-action-btn" value="<%:Flush DNS%>" onclick="return b_flush_dns_cache(this)"/>' : '<input type="button" class="qucik-action-btn" value="<%:Flush DNS Cache%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_flush_dns_cache_btn'), content: flushCacheContent});
 
             var oneKeyUpdateContent = '<input type="button" class="qucik-action-btn" value="<%:Check Update%>" onclick="return all_one_key_update(this)"/>';
