@@ -100,7 +100,6 @@ jobs:
         run: |
           CHNR_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/etc/openclash/china_ip_route.ipset
           CHNR6_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/etc/openclash/china_ip6_route.ipset
-          YACD_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/usr/share/openclash/ui/yacd
           ZASHBOARD_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/usr/share/openclash/ui/zashboard
           METACUBEXD_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/usr/share/openclash/ui/metacubexd
           GEOSITE_PATH=tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/etc/openclash/GeoSite.dat
@@ -123,15 +122,6 @@ jobs:
           mkdir -p "$METACUBEXD_PATH"
           rm -rf "$METACUBEXD_PATH"/*
           cp -rf "$METACUBEXD_UNZIP_PATH"/* "$METACUBEXD_PATH"
-
-          # 更新 Yacd UI
-          mkdir -p tmp/yacd_zip
-          curl -sSL https://github.com/MetaCubeX/Yacd-meta/archive/refs/heads/gh-pages.zip -o tmp/yacd.zip
-          unzip -q -o tmp/yacd.zip -d tmp/yacd_zip
-          YACD_UNZIP_PATH="tmp/yacd_zip/Yacd-meta-gh-pages"
-          mkdir -p "$YACD_PATH"
-          rm -rf "$YACD_PATH"/*
-          cp -rf "$YACD_UNZIP_PATH"/* "$YACD_PATH"
 
           # 更新 ZashBoard UI
           mkdir -p tmp/zashboard_zip

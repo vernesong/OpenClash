@@ -1287,6 +1287,8 @@ function action_status()
 		db_foward_domain = db_foward_domain(),
 		db_forward_ssl = db_foward_ssl(),
 		cn_port = cn_port(),
+        yacd = fs.isdirectory("/usr/share/openclash/ui/yacd") ,
+        dashboard = fs.isdirectory("/usr/share/openclash/ui/dashboard") ,
 		core_type = fs.uci_get_config("config", "core_type") or "Meta";
 	})
 end
