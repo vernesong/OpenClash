@@ -28,7 +28,6 @@ sniffer:
   - "+.media.dssott.com"
   ## 对嗅探结果进行跳过
   skip-domain:
-  - '+.apple.com'
   - Mijia Cloud
   - dlg.io.mi.com
   - +.oray.com
