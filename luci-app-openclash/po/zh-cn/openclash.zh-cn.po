@@ -4205,3 +4205,9 @@ msgstr "ASN 优先"
 
 msgid "Theme Switch"
 msgstr "主题切换"
+
+msgid "Total"
+msgstr "总流量"
+
+msgid "Days Left"
+msgstr "剩余天数"
