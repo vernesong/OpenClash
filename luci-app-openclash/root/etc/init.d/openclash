@@ -772,6 +772,7 @@ check_core_status()
       set_firewall
       LOG_OUT "Tip: Firewall Reload Successful!"
    fi
+   SLOG_CLEAN
 } >/dev/null 2>&1
 
 start_run_core()
@@ -3653,7 +3654,6 @@ start_service()
       fi
 
       write_run_quick
-      SLOG_CLEAN
       rm -rf /tmp/yaml_*
    }
 
@@ -3713,7 +3713,7 @@ stop_service()
       del_cron
       clear_overwrite_set
       rm -rf /tmp/yaml_*
-      rm -rf $START_LOG
+      SLOG_CLEAN
    } >/dev/null 2>&1
 
    echo "OpenClash Already Stop!"
@@ -3782,7 +3782,6 @@ reload_service()
       do_run_mode
       get_config
       check_core_status &
-      SLOG_CLEAN
    fi
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "manual" ]; then
       LOG_OUT "Manually Reload Firewall Rules..."
@@ -3790,7 +3789,6 @@ reload_service()
       do_run_mode
       get_config
       check_core_status &
-      SLOG_CLEAN
    fi
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "revert" ]; then
       revert_firewall
@@ -3801,7 +3799,6 @@ reload_service()
       do_run_mode
       get_config
       check_core_status &
-      SLOG_CLEAN
    fi
 } >/dev/null 2>&1
 
