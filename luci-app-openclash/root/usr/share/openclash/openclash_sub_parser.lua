@@ -16,24 +16,24 @@ end
 
 local function raw_base64_decode(str)
   if not str or str == "" then return nil end
-  
+
   str = str:gsub("-", "+"):gsub("_", "/")
-  
+
   local padding = #str % 4
   if padding > 0 then
     str = str .. string.rep("=", 4 - padding)
   end
-  
+
   local cmd = "printf '%s' '" .. str .. "' | base64 -d 2>/dev/null"
   local f = io.popen(cmd, "r")
   if not f then return nil end
   local result = f:read("*a")
   f:close()
-  
+
   if result and result ~= "" then
     return result
   end
-  
+
   return nil
 end
 
@@ -52,7 +52,7 @@ end
 local function parse_query_params(query_string)
   local params = {}
   if not query_string then return params end
-  
+
   for param in query_string:gmatch("([^&]+)") do
     local key, value = param:match("([^=]*)=?(.*)")
     if key then
@@ -65,16 +65,16 @@ end
 local function parse_url(url_str)
   local scheme, rest = url_str:match("^([%w%-]+)://(.+)")
   if not scheme then return nil end
-  
+
   local userinfo, host_part = rest:match("^([^@]+)@(.+)")
   if not userinfo then
     userinfo = ""
     host_part = rest
   end
-  
+
   local path_query_fragment = host_part:match("^[^/]*(.*)") or ""
   local host_port = host_part:match("^([^/]*)")
-  
+
   local host, port = host_port:match("^%[([^%]]+)%]:(%d+)") -- IPv6
   if not host then
     host, port = host_port:match("^([^:]+):(%d+)")
@@ -83,10 +83,10 @@ local function parse_url(url_str)
     host = host_port
     port = nil
   end
-  
+
   local path, query_fragment = path_query_fragment:match("^([^?]*)(.*)")
   path = path or ""
-  
+
   local query, fragment
   if query_fragment then
     if query_fragment:sub(1,1) == "?" then
@@ -98,9 +98,9 @@ local function parse_url(url_str)
       fragment = query_fragment:sub(2)
     end
   end
-  
+
   local username, password = userinfo:match("^([^:]*):?(.*)")
-  
+
   return {
     scheme = scheme:lower(),
     username = username or "",
@@ -120,11 +120,11 @@ local function get_server_from_url(line)
 
     local server = nil
     scheme = scheme:lower()
-    
+
     if scheme == "vmess" then
         -- fragment
         original_body = original_body:match("([^#]+)") or original_body
-        
+
         -- base64
         local decoded = raw_base64_decode(original_body)
         if decoded then
@@ -140,19 +140,19 @@ local function get_server_from_url(line)
                 server = url_parts.host
             end
         end
-        
+
     elseif scheme == "vless" then
         local url_parts = parse_url(line)
         if url_parts and url_parts.host then
             server = url_parts.host
         end
-        
+
     elseif scheme == "trojan" then
         local url_parts = parse_url(line)
         if url_parts and url_parts.host then
             server = url_parts.host
         end
-        
+
     elseif scheme == "ss" then
         local url_parts = parse_url(line)
         if url_parts and url_parts.host then
@@ -167,7 +167,7 @@ local function get_server_from_url(line)
                 server = original_body:match("[^@]+@([^:/]+)")
             end
         end
-        
+
     elseif scheme == "ssr" then
         original_body = original_body:match("([^#]+)") or original_body
         local decoded = raw_base64_decode(original_body)
@@ -185,33 +185,33 @@ local function get_server_from_url(line)
                 end
             end
         end
-        
+
     elseif scheme == "hysteria" or scheme == "hysteria2" or scheme == "hy2" then
         local url_parts = parse_url(line)
         if url_parts and url_parts.host then
             server = url_parts.host
         end
-        
+
     elseif scheme == "tuic" then
         local url_parts = parse_url(line)
         if url_parts and url_parts.host then
             server = url_parts.host
         end
-        
+
     elseif scheme == "socks" or scheme == "socks5" or scheme == "socks5h" or 
            scheme == "http" or scheme == "https" then
         local url_parts = parse_url(line)
         if url_parts and url_parts.host then
             server = url_parts.host
         end
-        
+
     elseif scheme == "anytls" then
         local url_parts = parse_url(line)
         if url_parts and url_parts.host then
             server = url_parts.host
         end
     end
-    
+
     -- fallback
     if not server then
         local body_to_parse = raw_base64_decode(original_body) or original_body

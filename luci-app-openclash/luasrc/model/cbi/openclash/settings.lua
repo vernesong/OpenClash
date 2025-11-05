@@ -299,10 +299,10 @@ local function ip_compare(a, b)
         end
         return 0
     end
-    
+
     local a_is_ipv4 = datatype.ip4addr(a.dest)
     local b_is_ipv4 = datatype.ip4addr(b.dest)
-    
+
     if a_is_ipv4 and not b_is_ipv4 then
         return true
     elseif not a_is_ipv4 and b_is_ipv4 then

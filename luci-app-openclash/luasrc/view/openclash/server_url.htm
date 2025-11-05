@@ -115,13 +115,13 @@ function setFormValue(sid, field, value) {
 function export_url(btn, urlname, sid) {
     var s = document.getElementById(urlname + '-status');
     if (!s) return false;
-    
+
     var v_type = document.getElementsByName('cbid.openclash.' + sid + '.type')[0];
     if (!v_type) return false;
-    
+
     var type = v_type.value.toLowerCase();
     var url = null;
-    
+
     try {
         switch (type) {
             case "ss":
@@ -161,7 +161,7 @@ function export_url(btn, urlname, sid) {
                 s.innerHTML = "<font style=\"color:red\"><%:Unsupported protocol type%></font>";
                 return false;
         }
-        
+
         if (url) {
             var textarea = document.createElement("textarea");
             textarea.textContent = url;
@@ -183,7 +183,7 @@ function export_url(btn, urlname, sid) {
         s.innerHTML = "<font style=\"color:red\"><%:Export error%></font>";
         return false;
     }
-    
+
     return false;
 }
 
@@ -202,17 +202,17 @@ function exportSS(sid) {
     var host = getFormValue(sid, 'host');
     var path = getFormValue(sid, 'path');
     var tls = getFormValue(sid, 'tls');
-    
+
     if (!server || !port || !password || !cipher) {
         return null;
     }
-    
+
     // SIP002 format
     var userInfo = b64encsafe(cipher + ':' + password);
     var url = userInfo + '@' + server + ':' + port + '/?';
-    
+
     var params = [];
-    
+
     if (obfs && obfs !== 'none') {
         var plugin = '';
         if (obfs === 'http' || obfs === 'tls') {
@@ -236,13 +236,13 @@ function exportSS(sid) {
             params.push('plugin=' + encodeURIComponent(plugin));
         }
     }
-    
+
     url += params.join('&');
-    
+
     if (name) {
         url += '#' + encodeURIComponent(name);
     }
-    
+
     return 'ss://' + url;
 }
 
@@ -256,15 +256,15 @@ function exportSSR(sid) {
     var obfs_param = getFormValue(sid, 'obfs_param');
     var protocol_param = getFormValue(sid, 'protocol_param');
     var name = getFormValue(sid, 'name');
-    
+
     if (!server || !port || !password || !method) {
         return null;
     }
-    
+
     var ssr_str = server + ":" + port + ":" + protocol + ":" + method + ":" + obfs + ":" + 
                   b64encsafe(password) + "/?obfsparam=" + b64encsafe(obfs_param) + 
                   "&protoparam=" + b64encsafe(protocol_param) + "&remarks=" + b64encutf8safe(name);
-    
+
     return "ssr://" + b64encsafe(ssr_str);
 }
 
@@ -278,11 +278,11 @@ function exportVmess(sid) {
     var obfs = getFormValue(sid, 'obfs_vmess');
     var tls = getFormValue(sid, 'tls');
     var servername = getFormValue(sid, 'servername');
-    
+
     if (!server || !port || !uuid) {
         return null;
     }
-    
+
     var info = {
         "v": "2",
         "ps": name || "",
@@ -297,11 +297,11 @@ function exportVmess(sid) {
         "path": "",
         "tls": tls === 'true' ? "tls" : ""
     };
-    
+
     if (tls === 'true' && servername) {
         info.sni = servername;
     }
-    
+
     // Handle network type
     if (obfs === 'websocket') {
         info.net = "ws";
@@ -318,7 +318,7 @@ function exportVmess(sid) {
         info.net = "grpc";
         info.path = getFormValue(sid, 'grpc_service_name') || '';
     }
-    
+
     return "vmess://" + b64EncodeUnicode(JSON.stringify(info));
 }
 
@@ -331,16 +331,16 @@ function exportVless(sid) {
     var servername = getFormValue(sid, 'servername');
     var obfs = getFormValue(sid, 'obfs_vless');
     var flow = getFormValue(sid, 'vless_flow');
-    
+
     if (!server || !port || !uuid) {
         return null;
     }
-    
+
     var url = uuid + '@' + server + ':' + port + '?';
     var params = [];
-    
+
     params.push('encryption=none');
-    
+
     if (tls === 'true') {
         if (flow && flow.includes('xtls')) {
             params.push('security=xtls');
@@ -352,7 +352,7 @@ function exportVless(sid) {
             params.push('sni=' + encodeURIComponent(servername));
         }
     }
-    
+
     if (obfs === 'ws') {
         params.push('type=ws');
         var path = getFormValue(sid, 'ws_opts_path');
@@ -373,13 +373,13 @@ function exportVless(sid) {
     } else {
         params.push('type=tcp');
     }
-    
+
     url += params.join('&');
-    
+
     if (name) {
         url += '#' + encodeURIComponent(name);
     }
-    
+
     return 'vless://' + url;
 }
 
@@ -391,32 +391,32 @@ function exportTrojan(sid) {
     var sni = getFormValue(sid, 'sni');
     var alpn = getFormValue(sid, 'alpn');
     var skip_cert = getFormValue(sid, 'skip_cert_verify');
-    
+
     if (!server || !port || !password) {
         return null;
     }
-    
+
     var url = encodeURIComponent(password) + '@' + server + ':' + port + '/?';
     var params = [];
-    
+
     if (sni) {
         params.push('sni=' + encodeURIComponent(sni));
     }
-    
+
     if (alpn) {
         params.push('alpn=' + encodeURIComponent(alpn));
     }
-    
+
     if (skip_cert === 'true') {
         params.push('allowInsecure=1');
     }
-    
+
     url += params.join('&');
-    
+
     if (name) {
         url += '#' + encodeURIComponent(name);
     }
-    
+
     return 'trojan://' + url;
 }
 
@@ -432,52 +432,52 @@ function exportHysteria(sid) {
     var sni = getFormValue(sid, 'sni');
     var alpn = getFormValue(sid, 'hysteria_alpn');
     var skip_cert = getFormValue(sid, 'skip_cert_verify');
-    
+
     if (!server || !port) {
         return null;
     }
-    
+
     var url = server + ':' + port + '?';
     var params = [];
-    
+
     if (auth) {
         params.push('auth=' + encodeURIComponent(auth));
     }
-    
+
     if (protocol) {
         params.push('protocol=' + protocol);
     }
-    
+
     if (up) {
         params.push('up=' + up);
     }
-    
+
     if (down) {
         params.push('down=' + down);
     }
-    
+
     if (obfs) {
         params.push('obfsParam=' + encodeURIComponent(obfs));
     }
-    
+
     if (sni) {
         params.push('peer=' + encodeURIComponent(sni));
     }
-    
+
     if (alpn) {
         params.push('alpn=' + encodeURIComponent(alpn));
     }
-    
+
     if (skip_cert === 'true') {
         params.push('insecure=1');
     }
-    
+
     url += params.join('&');
-    
+
     if (name) {
         url += '#' + encodeURIComponent(name);
     }
-    
+
     return 'hysteria://' + url;
 }
 
@@ -493,53 +493,53 @@ function exportHysteria2(sid) {
     var sni = getFormValue(sid, 'sni');
     var alpn = getFormValue(sid, 'hysteria_alpn');
     var skip_cert = getFormValue(sid, 'skip_cert_verify');
-    
+
     if (!server || !port) {
         return null;
     }
-    
+
     var url = '';
     if (password) {
         url += encodeURIComponent(password) + '@';
     }
     url += server + ':' + port + '?';
-    
+
     var params = [];
-    
+
     if (obfs) {
         params.push('obfs=' + encodeURIComponent(obfs));
     }
-    
+
     if (obfs_password) {
         params.push('obfs-password=' + encodeURIComponent(obfs_password));
     }
-    
+
     if (up) {
         params.push('up=' + up);
     }
-    
+
     if (down) {
         params.push('down=' + down);
     }
-    
+
     if (sni) {
         params.push('sni=' + encodeURIComponent(sni));
     }
-    
+
     if (alpn) {
         params.push('alpn=' + encodeURIComponent(alpn));
     }
-    
+
     if (skip_cert === 'true') {
         params.push('insecure=1');
     }
-    
+
     url += params.join('&');
-    
+
     if (name) {
         url += '#' + encodeURIComponent(name);
     }
-    
+
     return 'hysteria2://' + url;
 }
 
@@ -555,11 +555,11 @@ function exportTuic(sid) {
     var sni = getFormValue(sid, 'sni');
     var disable_sni = getFormValue(sid, 'disable_sni');
     var udp_relay = getFormValue(sid, 'udp_relay_mode');
-    
+
     if (!server || !port) {
         return null;
     }
-    
+
     var url = '';
     if (password) {
         // TUIC v5
@@ -568,37 +568,37 @@ function exportTuic(sid) {
         // TUIC v4
         url += encodeURIComponent(token) + '@';
     }
-    
+
     url += server + ':' + port + '?';
-    
+
     var params = [];
-    
+
     if (cc) {
         params.push('congestion_control=' + encodeURIComponent(cc));
     }
-    
+
     if (alpn) {
         params.push('alpn=' + encodeURIComponent(alpn));
     }
-    
+
     if (sni) {
         params.push('sni=' + encodeURIComponent(sni));
     }
-    
+
     if (disable_sni === 'true') {
         params.push('disable_sni=1');
     }
-    
+
     if (udp_relay) {
         params.push('udp_relay_mode=' + encodeURIComponent(udp_relay));
     }
-    
+
     url += params.join('&');
-    
+
     if (name) {
         url += '#' + encodeURIComponent(name);
     }
-    
+
     return 'tuic://' + url;
 }
 
@@ -608,21 +608,21 @@ function exportSocks(sid) {
     var username = getFormValue(sid, 'auth_name');
     var password = getFormValue(sid, 'auth_pass');
     var name = getFormValue(sid, 'name');
-    
+
     if (!server || !port) {
         return null;
     }
-    
+
     var url = '';
     if (username && password) {
         url += encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@';
     }
     url += server + ':' + port;
-    
+
     if (name) {
         url += '#' + encodeURIComponent(name);
     }
-    
+
     return 'socks5://' + url;
 }
 
@@ -633,23 +633,23 @@ function exportHttp(sid) {
     var password = getFormValue(sid, 'auth_pass');
     var name = getFormValue(sid, 'name');
     var tls = getFormValue(sid, 'tls');
-    
+
     if (!server || !port) {
         return null;
     }
-    
+
     var scheme = tls === 'true' ? 'https' : 'http';
     var url = '';
-    
+
     if (username && password) {
         url += encodeURIComponent(username) + ':' + encodeURIComponent(password) + '@';
     }
     url += server + ':' + port;
-    
+
     if (name) {
         url += '#' + encodeURIComponent(name);
     }
-    
+
     return scheme + '://' + url;
 }
 
@@ -662,11 +662,11 @@ function exportAnyTLS(sid) {
     var sni = getFormValue(sid, 'sni');
     var fingerprint = getFormValue(sid, 'fingerprint');
     var skip_cert = getFormValue(sid, 'skip_cert_verify');
-    
+
     if (!server || !port) {
         return null;
     }
-    
+
     var url = '';
     if (username) {
         url += encodeURIComponent(username);
@@ -676,51 +676,51 @@ function exportAnyTLS(sid) {
         url += '@';
     }
     url += server + ':' + port + '?';
-    
+
     var params = [];
-    
+
     if (sni) {
         params.push('sni=' + encodeURIComponent(sni));
     }
-    
+
     if (fingerprint) {
         params.push('hpkp=' + encodeURIComponent(fingerprint));
     }
-    
+
     if (skip_cert === 'true') {
         params.push('insecure=1');
     }
-    
+
     url += params.join('&');
-    
+
     if (name) {
         url += '#' + encodeURIComponent(name);
     }
-    
+
     return 'anytls://' + url;
 }
 
 function import_url(btn, urlname, sid) {
     var s = document.getElementById(urlname + '-status');
     if (!s) return false;
-    
+
     var ssrurl = prompt("<%:Paste sharing link here%>", "");
     if (ssrurl == null || ssrurl == "") {
         s.innerHTML = "<font style=\"color:red\"><%:User cancelled%></font>";
         return false;
     }
     s.innerHTML = "";
-    
+
     var ssu = ssrurl.split('://');
     if (ssu.length < 2) {
         s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
         return false;
     }
-    
+
     var scheme = ssu[0].toLowerCase();
     var event = document.createEvent("HTMLEvents");
     event.initEvent("change", true, true);
-    
+
     try {
         switch (scheme) {
             case "ss":
@@ -730,7 +730,7 @@ function import_url(btn, urlname, sid) {
                     s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
                 }
                 break;
-                
+
             case "ssr":
                 if (parseSSR(ssu[1], sid)) {
                     s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
@@ -738,7 +738,7 @@ function import_url(btn, urlname, sid) {
                     s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
                 }
                 break;
-                
+
             case "vmess":
                 if (parseVmess(ssu[1], sid)) {
                     s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
@@ -746,7 +746,7 @@ function import_url(btn, urlname, sid) {
                     s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
                 }
                 break;
-                
+
             case "vless":
                 if (parseVless(ssrurl, sid)) {
                     s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
@@ -754,7 +754,7 @@ function import_url(btn, urlname, sid) {
                     s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
                 }
                 break;
-                
+
             case "trojan":
                 if (parseTrojan(ssrurl, sid)) {
                     s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
@@ -762,7 +762,7 @@ function import_url(btn, urlname, sid) {
                     s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
                 }
                 break;
-                
+
             case "hysteria":
                 if (parseHysteria(ssrurl, sid)) {
                     s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
@@ -770,7 +770,7 @@ function import_url(btn, urlname, sid) {
                     s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
                 }
                 break;
-                
+
             case "hysteria2":
             case "hy2":
                 if (parseHysteria2(ssrurl, sid)) {
@@ -779,7 +779,7 @@ function import_url(btn, urlname, sid) {
                     s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
                 }
                 break;
-                
+
             case "tuic":
                 if (parseTuic(ssrurl, sid)) {
                     s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
@@ -787,7 +787,7 @@ function import_url(btn, urlname, sid) {
                     s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
                 }
                 break;
-                
+
             case "socks":
             case "socks5":
             case "socks5h":
@@ -797,7 +797,7 @@ function import_url(btn, urlname, sid) {
                     s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
                 }
                 break;
-                
+
             case "http":
             case "https":
                 if (parseHttp(ssrurl, sid)) {
@@ -806,7 +806,7 @@ function import_url(btn, urlname, sid) {
                     s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
                 }
                 break;
-                
+
             case "anytls":
                 if (parseAnyTLS(ssrurl, sid)) {
                     s.innerHTML = "<font style=\"color:green\"><%:Import configuration information successfully%></font>";
@@ -814,7 +814,7 @@ function import_url(btn, urlname, sid) {
                     s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
                 }
                 break;
-                
+
             default:
                 s.innerHTML = "<font style=\"color:red\"><%:Invalid format%></font>";
                 return false;
@@ -823,7 +823,7 @@ function import_url(btn, urlname, sid) {
         s.innerHTML = "<font style=\"color:red\"><%:Parse error%></font>";
         return false;
     }
-    
+
     return false;
 }
 
@@ -831,16 +831,16 @@ function parseSS(body, sid) {
     var url0, param = "";
     var sipIndex = body.indexOf("@");
     var ploc = body.indexOf("#");
-    
+
     if (ploc > 0) {
         url0 = body.substr(0, ploc);
         param = body.substr(ploc + 1);
     } else {
         url0 = body;
     }
-    
+
     setFormValue(sid, 'type', 'ss');
-    
+
     if (sipIndex !== -1) {
         // SIP002 format
         var userInfo = b64decsafe(url0.substr(0, sipIndex));
@@ -849,28 +849,28 @@ function parseSS(body, sid) {
         var server = serverInfo[0];
         var port = serverInfo[1];
         var method, password;
-        
+
         if (temp[1]) {
             var query = parseQuery("?" + temp[1]);
-            
+
             if (query.plugin) {
                 var decodedPlugin = decodeURIComponent(query.plugin);
-                
+
                 var pluginParts = decodedPlugin.split(';');
                 var pluginName = pluginParts[0];
-                
+
                 // obfs-local
                 if (pluginName === 'obfs-local' || pluginName.includes('obfs')) {
                     var obfsMode = 'http';
                     var obfsHost = '';
-                    
+
                     for (var i = 1; i < pluginParts.length; i++) {
                         var opt = pluginParts[i];
                         var eqIndex = opt.indexOf('=');
                         if (eqIndex !== -1) {
                             var key = opt.substring(0, eqIndex).trim();
                             var value = opt.substring(eqIndex + 1).trim();
-                                                        
+
                             if (key === 'obfs') {
                                 obfsMode = value;
                             } else if (key === 'obfs-host') {
@@ -878,27 +878,27 @@ function parseSS(body, sid) {
                             }
                         }
                     }
-                    
+
                     setFormValue(sid, 'obfs', obfsMode);
                     if (obfsHost) {
                         setFormValue(sid, 'host', obfsHost);
                     }
                 }
-                
+
                 // v2ray-plugin
                 if (pluginName === 'v2ray-plugin') {
                     var v2rayMode = 'websocket';
                     var v2rayHost = '';
                     var v2rayPath = '/';
                     var v2rayTls = false;
-                    
+
                     for (var i = 1; i < pluginParts.length; i++) {
                         var opt = pluginParts[i];
                         var eqIndex = opt.indexOf('=');
                         if (eqIndex !== -1) {
                             var key = opt.substring(0, eqIndex).trim();
                             var value = opt.substring(eqIndex + 1).trim();
-                            
+
                             if (key === 'mode') {
                                 v2rayMode = value;
                             } else if (key === 'host') {
@@ -910,7 +910,7 @@ function parseSS(body, sid) {
                             }
                         }
                     }
-                    
+
                     setFormValue(sid, 'obfs', 'websocket');
                     if (v2rayHost) {
                         setFormValue(sid, 'host', v2rayHost);
@@ -923,18 +923,18 @@ function parseSS(body, sid) {
                     }
                 }
             }
-            
+
             if (query['udp-over-tcp'] === 'true' || query['uot'] === '1') {
                 setFormValue(sid, 'udp_over_tcp', 'true');
             }
         }
-        
+
         var userInfoSplitIndex = userInfo.indexOf(":");
         if (userInfoSplitIndex !== -1) {
             method = userInfo.substr(0, userInfoSplitIndex);
             password = userInfo.substr(userInfoSplitIndex + 1);
         }
-        
+
         setFormValue(sid, 'server', server);
         setFormValue(sid, 'port', port);
         setFormValue(sid, 'password', password || "");
@@ -945,17 +945,17 @@ function parseSS(body, sid) {
         var team = sstr.split('@');
         var part1 = team[0].split(':');
         var part2 = team[1].split(':');
-        
+
         setFormValue(sid, 'server', part2[0]);
         setFormValue(sid, 'port', part2[1]);
         setFormValue(sid, 'password', part1[1]);
         setFormValue(sid, 'cipher', part1[0]);
     }
-    
+
     if (param) {
         setFormValue(sid, 'name', decodeURIComponent(param));
     }
-    
+
     return true;
 }
 
@@ -966,7 +966,7 @@ function parseSSR(body, sid) {
     } catch (e) {
         return false;
     }
-    
+
     setFormValue(sid, 'type', 'ssr');
 
     // ssr://host:port:protocol:method:obfs:urlsafebase64pass/?obfsparam=...
@@ -979,26 +979,26 @@ function parseSSR(body, sid) {
         before = dcBuf;
         after = "";
     }
-    
+
     var parts = before.split(':');
     if (parts.length !== 6) {
         return false;
     }
-    
+
     var host = parts[0];
     var port = parts[1];
     var protocol = parts[2];
     var method = parts[3];
     var obfs = parts[4];
     var password = b64decsafe(parts[5]);
-    
+
     setFormValue(sid, 'server', host);
     setFormValue(sid, 'port', port);
     setFormValue(sid, 'protocol', protocol);
     setFormValue(sid, 'cipher_ssr', method);
     setFormValue(sid, 'obfs_ssr', obfs);
     setFormValue(sid, 'password', password);
-    
+
     if (after) {
         var params = {};
         var paramPairs = after.split('&');
@@ -1010,20 +1010,20 @@ function parseSSR(body, sid) {
                 params[key] = value;
             }
         }
-        
+
         if (params.obfsparam) {
             setFormValue(sid, 'obfs_param', b64decsafe(params.obfsparam));
         }
-        
+
         if (params.protoparam) {
             setFormValue(sid, 'protocol_param', b64decsafe(params.protoparam));
         }
-        
+
         if (params.remarks) {
             setFormValue(sid, 'name', b64decutf8safe(params.remarks));
         }
     }
-    
+
     return true;
 }
 
@@ -1032,25 +1032,25 @@ function parseVmess(body, sid) {
         // Try V2rayN format first
         var sstr = b64DecodeUnicode(body);
         var ssm = JSON.parse(sstr);
-        
+
         setFormValue(sid, 'type', 'vmess');
         setFormValue(sid, 'name', ssm.ps || '');
         setFormValue(sid, 'server', ssm.add);
         setFormValue(sid, 'port', ssm.port);
         setFormValue(sid, 'alterId', ssm.aid || 0);
         setFormValue(sid, 'uuid', ssm.id);
-        
+
         if (ssm.scy) {
             setFormValue(sid, 'securitys', ssm.scy);
         }
-        
+
         if (ssm.tls === "tls") {
             setFormValue(sid, 'tls', 'true');
             if (ssm.sni) {
                 setFormValue(sid, 'servername', ssm.sni);
             }
         }
-        
+
         var network = (ssm.net || 'tcp').toLowerCase();
         if (network === 'ws') {
             setFormValue(sid, 'obfs_vmess', 'websocket');
@@ -1080,27 +1080,27 @@ function parseVmess(body, sid) {
             setFormValue(sid, 'obfs_vmess', 'grpc');
             setFormValue(sid, 'grpc_service_name', ssm.path || '');
         }
-        
+
         return true;
     } catch (e) {
         // Try Xray VMessAEAD format
         try {
             var parsed = parseUrl('vmess://' + body);
             if (!parsed) return false;
-            
+
             var query = parseQuery(parsed.search);
-            
+
             setFormValue(sid, 'type', 'vmess');
             setFormValue(sid, 'server', parsed.hostname);
             setFormValue(sid, 'port', parsed.port || '443');
             setFormValue(sid, 'uuid', parsed.username);
             setFormValue(sid, 'alterId', 0);
             setFormValue(sid, 'securitys', query.encryption || 'auto');
-            
+
             if (parsed.hash) {
                 setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
             }
-            
+
             return true;
         } catch (e2) {
             return false;
@@ -1111,14 +1111,14 @@ function parseVmess(body, sid) {
 function parseVless(url, sid) {
     var parsed = parseUrl(url);
     if (!parsed) return false;
-    
+
     var query = parseQuery(parsed.search);
-    
+
     setFormValue(sid, 'type', 'vless');
     setFormValue(sid, 'server', parsed.hostname);
     setFormValue(sid, 'port', parsed.port || '443');
     setFormValue(sid, 'uuid', parsed.username);
-    
+
     if (query.security) {
         if (query.security === 'tls' || query.security === 'xtls') {
             setFormValue(sid, 'tls', 'true');
@@ -1141,7 +1141,7 @@ function parseVless(url, sid) {
             }
         }
     }
-    
+
     var network = (query.type || 'tcp').toLowerCase();
     if (network === 'ws') {
         setFormValue(sid, 'obfs_vless', 'ws');
@@ -1155,34 +1155,34 @@ function parseVless(url, sid) {
     } else {
         setFormValue(sid, 'obfs_vless', 'tcp');
     }
-    
+
     if (parsed.hash) {
         setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
     }
-    
+
     return true;
 }
 
 function parseTrojan(url, sid) {
     var parsed = parseUrl(url);
     if (!parsed) return false;
-    
+
     var query = parseQuery(parsed.search);
-    
+
     setFormValue(sid, 'type', 'trojan');
     setFormValue(sid, 'server', parsed.hostname);
     setFormValue(sid, 'port', parsed.port || '443');
     setFormValue(sid, 'password', parsed.username);
-    
+
     if (query.sni) {
         setFormValue(sid, 'sni', decodeURIComponent(query.sni));
     }
-    
+
     if (query.alpn) {
         // Handle ALPN - multiple values support, decode properly
         setFormValue(sid, 'alpn', decodeURIComponent(query.alpn));
     }
-    
+
     var network = (query.type || '').toLowerCase();
     if (network === 'ws') {
         setFormValue(sid, 'obfs_trojan', 'ws');
@@ -1194,131 +1194,131 @@ function parseTrojan(url, sid) {
         setFormValue(sid, 'obfs_trojan', 'grpc');
         setFormValue(sid, 'grpc_service_name', decodeURIComponent(query.serviceName || ''));
     }
-    
+
     if (query.allowInsecure === '1') {
         setFormValue(sid, 'skip_cert_verify', 'true');
     }
-    
+
     if (parsed.hash) {
         setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
     }
-    
+
     return true;
 }
 
 function parseHysteria(url, sid) {
     var parsed = parseUrl(url);
     if (!parsed) return false;
-    
+
     var query = parseQuery(parsed.search);
-    
+
     setFormValue(sid, 'type', 'hysteria');
     setFormValue(sid, 'server', parsed.hostname);
     setFormValue(sid, 'port', parsed.port || '443');
-    
+
     if (query.auth) {
         setFormValue(sid, 'hysteria_auth_str', decodeURIComponent(query.auth));
     }
-    
+
     if (query.protocol) {
         setFormValue(sid, 'flag_transport', '1');
         setFormValue(sid, 'hysteria_protocol', query.protocol);
     }
-    
+
     if (query.up || query.upmbps) {
         var upSpeed = decodeURIComponent(query.up || query.upmbps);
         upSpeed = upSpeed.replace(/[^0-9]/g, '');
         setFormValue(sid, 'hysteria_up', upSpeed);
     }
-    
+
     if (query.down || query.downmbps) {
         var downSpeed = decodeURIComponent(query.down || query.downmbps);
         downSpeed = downSpeed.replace(/[^0-9]/g, '');
         setFormValue(sid, 'hysteria_down', downSpeed);
     }
-    
+
     if (query.obfs || query.obfsParam) {
         setFormValue(sid, 'hysteria_obfs', decodeURIComponent(query.obfs || query.obfsParam));
     }
-    
+
     if (query.peer) {
         setFormValue(sid, 'sni', decodeURIComponent(query.peer));
     }
-    
+
     if (query.alpn) {
         setFormValue(sid, 'hysteria_alpn', decodeURIComponent(query.alpn));
     }
-    
+
     if (query.insecure === '1') {
         setFormValue(sid, 'skip_cert_verify', 'true');
     }
-    
+
     if (parsed.hash) {
         setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
     }
-    
+
     return true;
 }
 
 function parseHysteria2(url, sid) {
     var parsed = parseUrl(url);
     if (!parsed) return false;
-    
+
     var query = parseQuery(parsed.search);
-    
+
     setFormValue(sid, 'type', 'hysteria2');
     setFormValue(sid, 'server', parsed.hostname);
     setFormValue(sid, 'port', parsed.port || '443');
-    
+
     if (parsed.username) {
         setFormValue(sid, 'password', parsed.username);
     }
-    
+
     if (query.obfs) {
         setFormValue(sid, 'hysteria_obfs', decodeURIComponent(query.obfs));
     }
-    
+
     if (query['obfs-password']) {
         setFormValue(sid, 'hysteria_obfs_password', decodeURIComponent(query['obfs-password']));
     }
-    
+
     if (query.up) {
         setFormValue(sid, 'hysteria_up', decodeURIComponent(query.up));
     }
-    
+
     if (query.down) {
         setFormValue(sid, 'hysteria_down', decodeURIComponent(query.down));
     }
-    
+
     if (query.sni) {
         setFormValue(sid, 'sni', decodeURIComponent(query.sni));
     }
-    
+
     if (query.alpn) {
         setFormValue(sid, 'hysteria_alpn', decodeURIComponent(query.alpn));
     }
-    
+
     if (query.insecure === '1') {
         setFormValue(sid, 'skip_cert_verify', 'true');
     }
-    
+
     if (parsed.hash) {
         setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
     }
-    
+
     return true;
 }
 
 function parseTuic(url, sid) {
     var parsed = parseUrl(url);
     if (!parsed) return false;
-    
+
     var query = parseQuery(parsed.search);
-    
+
     setFormValue(sid, 'type', 'tuic');
     setFormValue(sid, 'server', parsed.hostname);
     setFormValue(sid, 'port', parsed.port || '443');
-    
+
     // Check if it's v5 (has password) or v4 (token only)
     if (parsed.password) {
         setFormValue(sid, 'uuid', parsed.username);
@@ -1326,42 +1326,42 @@ function parseTuic(url, sid) {
     } else {
         setFormValue(sid, 'tc_token', parsed.username);
     }
-    
+
     if (query.congestion_control) {
         setFormValue(sid, 'congestion_controller', decodeURIComponent(query.congestion_control));
     }
-    
+
     if (query.alpn) {
         setFormValue(sid, 'tc_alpn', decodeURIComponent(query.alpn));
     }
-    
+
     if (query.sni) {
         setFormValue(sid, 'sni', decodeURIComponent(query.sni));
     }
-    
+
     if (query.disable_sni === '1') {
         setFormValue(sid, 'disable_sni', 'true');
     }
-    
+
     if (query.udp_relay_mode) {
         setFormValue(sid, 'udp_relay_mode', decodeURIComponent(query.udp_relay_mode));
     }
-    
+
     if (parsed.hash) {
         setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
     }
-    
+
     return true;
 }
 
 function parseSocks(url, sid) {
     var parsed = parseUrl(url);
     if (!parsed) return false;
-    
+
     setFormValue(sid, 'type', 'socks5');
     setFormValue(sid, 'server', parsed.hostname);
     setFormValue(sid, 'port', parsed.port || '1080');
-    
+
     if (parsed.username) {
         try {
             var decoded = atob(parsed.username);
@@ -1375,28 +1375,28 @@ function parseSocks(url, sid) {
             }
         }
     }
-    
+
     if (parsed.hash) {
         setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
     } else {
         setFormValue(sid, 'name', parsed.hostname + ':' + parsed.port);
     }
-    
+
     return true;
 }
 
 function parseHttp(url, sid) {
     var parsed = parseUrl(url);
     if (!parsed) return false;
-    
+
     setFormValue(sid, 'type', 'http');
     setFormValue(sid, 'server', parsed.hostname);
     setFormValue(sid, 'port', parsed.port || (parsed.protocol === 'https:' ? '443' : '80'));
-    
+
     if (parsed.protocol === 'https:') {
         setFormValue(sid, 'tls', 'true');
     }
-    
+
     if (parsed.username) {
         try {
             var decoded = atob(parsed.username);
@@ -1410,46 +1410,46 @@ function parseHttp(url, sid) {
             }
         }
     }
-    
+
     if (parsed.hash) {
         setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
     } else {
         setFormValue(sid, 'name', parsed.hostname + ':' + parsed.port);
     }
-    
+
     return true;
 }
 
 function parseAnyTLS(url, sid) {
     var parsed = parseUrl(url);
     if (!parsed) return false;
-    
+
     var query = parseQuery(parsed.search);
-    
+
     setFormValue(sid, 'type', 'anytls');
     setFormValue(sid, 'server', parsed.hostname);
     setFormValue(sid, 'port', parsed.port || '443');
     setFormValue(sid, 'auth_name', parsed.username);
     setFormValue(sid, 'password', parsed.password || parsed.username);
-    
+
     if (query.sni) {
         setFormValue(sid, 'sni', query.sni);
     }
-    
+
     if (query.hpkp) {
         setFormValue(sid, 'fingerprint', query.hpkp);
     }
-    
+
     if (query.insecure === '1') {
         setFormValue(sid, 'skip_cert_verify', 'true');
     }
-    
+
     if (parsed.hash) {
         setFormValue(sid, 'name', decodeFragment(parsed.hash.substr(1)));
     } else {
         setFormValue(sid, 'name', parsed.hostname + ':' + parsed.port);
     }
-    
+
     return true;
 }
 

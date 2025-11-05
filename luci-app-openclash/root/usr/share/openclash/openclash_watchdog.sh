@@ -42,7 +42,7 @@ begin
    require 'thread'
 
    servers_to_process = Array.new
-   
+
    # Servers from proxies
    if Value.key?('proxies') and not Value['proxies'].nil?
       Value['proxies'].each do |p|
@@ -81,7 +81,7 @@ begin
          end
       end
    end
-   
+
    servers_to_process.compact!
    servers_to_process.uniq!
 
@@ -98,7 +98,7 @@ begin
          domains_to_resolve.push(server)
       end
    end
-   
+
    ips.uniq!
    domains_to_resolve.uniq!
 
@@ -106,7 +106,7 @@ begin
       ips_mutex = Mutex.new
       queue = Queue.new
       domains_to_resolve.each{|d| queue << d}
-      
+
       threads = (1..[10, queue.size].min).map do
          Thread.new do
             while domain = queue.pop(true) rescue nil
@@ -423,7 +423,7 @@ fi
    elif [ "$router_self_proxy" != "1" ] && [ "$stream_auto_select" -eq 1 ]; then
       LOG_OUT "Error: Streaming Unlock Could not Work Because of Router-Self Proxy Disabled, Exiting..."
    fi
-   
+
    SLOG_CLEAN
    sleep 60
 done 2>/dev/null

@@ -138,7 +138,7 @@ function(s)
 		o:value(s.name)
 	end
 end)
-   
+
 o:value("DIRECT")
 o:value("GLOBAL")
 o:value("Disable", translate("Disable"))

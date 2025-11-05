@@ -163,13 +163,13 @@ yml_dns_get()
 {
    local section="$1" regex='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
    local enabled port type ip group dns_type dns_address interface specific_group node_resolve http3 ecs_subnet ecs_override
-   
+
    config_get_bool "enabled" "$section" "enabled" "1"
    [ "$enabled" = "0" ] && return
 
    config_get "ip" "$section" "ip" ""
    [ -z "$ip" ] && return
-   
+
    config_get "port" "$section" "port" ""
    config_get "type" "$section" "type" ""
    config_get "group" "$section" "group" ""
@@ -229,7 +229,7 @@ yml_dns_get()
          params="$params$1"
       fi
    }
-   
+
    append_param "$specific_group_param"
    append_param "$interface_param"
    append_param "$http3_param"
@@ -391,7 +391,7 @@ threads << Thread.new do
       Value['unified-delay'] = true if unified_delay
       Value['find-process-mode'] = find_process_mode if find_process_mode != '0'
       Value['global-client-fingerprint'] = global_client_fingerprint if global_client_fingerprint != '0'
-      
+
       (Value['experimental'] ||= {})['quic-go-disable-gso'] = true if quic_gso
       if cors_origin != '0'
          (Value['external-controller-cors'] ||= {})['allow-origins'] = [cors_origin]

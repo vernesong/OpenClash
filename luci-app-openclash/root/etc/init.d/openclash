@@ -355,7 +355,7 @@ sub_info_get()
    if [ "$SUB_CONFIG_FILE" != "$2" ]; then
       return
    fi
-   
+
    subscribe_enable=1
 }
 
@@ -425,7 +425,7 @@ check_run_quick()
    if $QUICK_START_CHECK; then
       return
    fi
-   
+
    QUICK_START_CHECK=true
    quick_start=true
    check_file="$(cat /tmp/openclash.change 2>/dev/null |awk '{print $1}')"
@@ -448,7 +448,7 @@ check_run_quick()
          done
       fi
    fi
-   
+
 } >/dev/null 2>&1
 
 write_run_quick()
@@ -671,16 +671,16 @@ check_mod()
    if [ -f /proc/config.gz ] && zcat /proc/config.gz | grep -q "CONFIG_${module_upper}=y"; then
       return 0
    fi
-   
+
    if lsmod | grep -q "^$1 "; then
       return 0
    fi
-   
+
    modprobe $1 2>/dev/null
    if [ $? -eq 0 ]; then
       return 0
    fi
-   
+
    LOG_OUT "Error:【$1】module not found, please check your system depends if something abnormal!"
 } >/dev/null 2>&1
 
@@ -1344,7 +1344,7 @@ firewall_redirect_exclude()
                   ip6tables -t mangle -I openclash_output -p tcp "$dest_ip" --sport "$dest_port" -j RETURN
                fi
             fi
-            
+
          fi
          if $e_udp ; then
             if [ -n "$dest_ip" ]; then
@@ -2063,7 +2063,7 @@ if [ -n "$FW4" ]; then
                [ "$enable_redirect_dns" != "2" ] && rule="$rule ip6 daddr != @china_ip6_route_pass"
                nft "add rule inet fw4 openclash_output_v6 $rule counter return"
             fi
-            
+
             nft add rule inet fw4 openclash_output_v6 ip6 nexthdr {tcp} counter redirect to "$proxy_port"
             nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
             nft 'add rule inet fw4 nat_output meta nfproto {ipv6} counter jump openclash_output_v6'
@@ -3000,7 +3000,7 @@ revert_firewall()
    ip -6 rule del fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
    ip -6 rule del fwmark "$PROXY_FWMARK" ipproto icmp table main
    ip -6 route del default dev utun table "$PROXY_ROUTE_TABLE"
-   
+
    if [ -n "$FW4" ]; then
       for nft in "input" "forward" "output" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
          local handles=$(nft -a list chain inet fw4 ${nft} |grep -E "openclash|OpenClash" |awk -F '# handle ' '{print$2}')
@@ -3249,7 +3249,7 @@ EOF
 
       echo "# --- overwrite source: ${name} (sid=${sid}) ---" >> "$overwrite_script"
       echo "export OPENCLASH_OVERWRITE_SID='${sid}'" >> "$overwrite_script"
-      
+
       param=$(uci -q get openclash."$sid".param 2>/dev/null || echo '')
       if [ -n "$param" ]; then
          OLD_IFS="$IFS"
@@ -3597,12 +3597,12 @@ start_service()
          "$enable_respect_rules" "$custom_fakeip_filter_mode" "$iptables_compat" "$disable_quic_go_gso" "$cors_allow"\
          "$geo_custom_url" "$geoip_custom_url" "$geosite_custom_url" "$geoasn_custom_url"\
          "$lgbm_auto_update" "$lgbm_custom_url" "$lgbm_update_interval" "$smart_collect" "$smart_collect_size" "$fakeip_range6"
-         
+
          /usr/share/openclash/yml_rules_change.sh \
          "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE"\
          "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$enable_redirect_dns" "$en_mode"\
          "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_strategy" "$smart_policy_priority" "$smart_enable_lgbm" "$smart_prefer_asn"
-         
+
          #Custom overwrite
          if [ -f "/tmp/yaml_overwrite.sh" ]; then
             chmod +x /tmp/yaml_overwrite.sh
@@ -3666,10 +3666,10 @@ stop_service()
 
    LOG_OUT "Tip: OpenClash Stoping..."
    LOG_OUT "Step 1: Backup The Current Groups State..."
-   
+
    {
       /usr/share/openclash/openclash_history_get.sh
-      
+
       LOG_OUT "Step 2: Delete OpenClash Firewall Rules..."
       revert_firewall
 

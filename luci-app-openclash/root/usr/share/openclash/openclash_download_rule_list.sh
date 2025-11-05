@@ -45,7 +45,7 @@
    TMP_RULE_DIR="/tmp/$RULE_FILE_NAME"
    TMP_RULE_DIR_TMP="/tmp/$RULE_FILE_NAME.tmp"
    DOWNLOAD_PATH=$(urlencode "$DOWNLOAD_PATH")
-   
+
    if [ "$RULE_TYPE" = "game" ]; then
       if [ "$github_address_mod" != "0" ]; then
          if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then

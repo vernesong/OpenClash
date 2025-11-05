@@ -94,10 +94,10 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
          retry_count=$((retry_count + 1))
 
          rm -rf "$DOWNLOAD_FILE" "$TMP_FILE" >/dev/null 2>&1
-         
+
          SHOW_DOWNLOAD_PROGRESS=1 DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "$DOWNLOAD_FILE"
          download_result=$?
-         
+
          if [ "$download_result" -eq 0 ]; then
             gzip -t "$DOWNLOAD_FILE" >/dev/null 2>&1
 
@@ -111,7 +111,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                   chmod 4755 "$TMP_FILE" >/dev/null 2>&1 || extract_success=false
                   "$TMP_FILE" -v >/dev/null 2>&1 || extract_success=false
                }
-                  
+
                if [ "$extract_success" != "true" ]; then
                   if [ "$retry_count" -lt "$max_retries" ]; then
                      LOG_OUT "Error:【$retry_count/$max_retries】【"$CORE_TYPE"】Core Update Failed..."

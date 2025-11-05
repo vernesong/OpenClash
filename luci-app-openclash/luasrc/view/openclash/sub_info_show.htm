@@ -131,11 +131,11 @@
     .sub_tab, .sub_tab_show {
         font-size: 11px;
     }
-    
+
     .progress_bar_bg {
         min-width: 220px;
     }
-    
+
     .sub_div {
         gap: 6px;
         width: calc(100% - 20px);
@@ -147,15 +147,15 @@
     .sub_tab, .sub_tab_show {
         font-size: 10px;
     }
-    
+
     .progress_bar_bg {
         min-width: 200px;
     }
-    
+
     .sub_setting img {
         height: 18px !important;
     }
-    
+
     .sub_div {
         gap: 4px;
         width: calc(100% - 16px);
@@ -167,15 +167,15 @@
     .sub_tab, .sub_tab_show {
         font-size: 9px;
     }
-    
+
     .progress_bar_bg {
         min-width: 180px !important;
     }
-    
+
     .sub_setting img {
         height: 16px !important;
     }
-    
+
     .sub_div {
         gap: 2px;
         width: calc(100% - 12px);
@@ -187,15 +187,15 @@
     .sub_tab, .sub_tab_show {
         font-size: 8px;
     }
-    
+
     .progress_bar_bg {
         min-width: 160px !important;
     }
-    
+
     .sub_setting img {
         height: 14px !important;
     }
-    
+
     .sub_div {
         width: calc(100% - 8px);
         margin: 0 4px;
@@ -245,7 +245,7 @@ function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
     var fontSize = '12px';
     var minWidth = '220px';
     var topPosition = tr == "null" ? '6px' : '2px';
-    
+
     if (screenWidth <= 320) {
         fontSize = '8px';
         minWidth = '160px';
@@ -263,7 +263,7 @@ function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
         minWidth = '220px';
         topPosition = tr == "null" ? '6px' : '2px';
     }
-    
+
     return String.format(
         '<div class="progress_bar_bg" style="position:relative; border-radius: 6px; min-width: %s; display: flex; align-items: center;">' +
         (pc >= 50 ? '<div class="progress_bar_high" style="width:%d%%; height:34px; border-radius: 6px">' : 

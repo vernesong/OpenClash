@@ -614,18 +614,18 @@
         margin-bottom: 10px;
         gap: 5px;
     }
-    
+
     .oc .form-help::before {
         width: 11px;
         height: 11px;
         margin-top: 1px;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'%3E%3C/path%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
     }
-    
+
     .oc[data-darkmode="true"] .form-help::before {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='11' height='11' viewBox='0 0 24 24' fill='none' stroke='%23d0cfcf' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'%3E%3C/path%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
     }
-    
+
     .oc .sub-convert-options {
         margin: 12px auto;
         padding: 12px;
@@ -639,18 +639,18 @@
         margin-bottom: 8px;
         gap: 4px;
     }
-    
+
     .oc .form-help::before {
         width: 10px;
         height: 10px;
         margin-top: 1px;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'%3E%3C/path%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
     }
-    
+
     .oc[data-darkmode="true"] .form-help::before {
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='%23d0cfcf' stroke-width='2'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpath d='M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3'%3E%3C/path%3E%3Cline x1='12' y1='17' x2='12.01' y2='17'%3E%3C/line%3E%3C/svg%3E");
     }
-    
+
     .oc .sub-convert-options {
         margin: 10px auto;
         padding: 10px;
@@ -663,11 +663,11 @@
         width: 95vw;
         min-width: 320px;
     }
-    
+
     .oc .config-upload-content {
         padding: 20px;
     }
-    
+
     .oc .upload-zone {
         padding: 30px 15px;
     }
@@ -747,7 +747,7 @@
                             <textarea id="subscribe-url-input" placeholder="<%:Enter subscription URL or multiple links (one per line)%>" class="form-textarea" rows="4"></textarea>
                             <div class="form-help"><%:URI and subscription address is supported when online subscription conversion enabled, multiple links should be one per line or separated by%> |</div>
                         </div>
-                        
+
                         <div class="form-group">
                             <label for="subscribe-ua-input"><%:User-Agent%> (<%:Optional%>):</label>
                             <div class="form-select-wrapper">
@@ -958,64 +958,64 @@ var ConfigUploader = {
     selectedFile: null,
     isProcessing: false,
     currentMode: 'file',
-    
+
     init: function() {
         this.overlay = document.getElementById('config-upload-overlay');
         this.model = document.getElementById('config-upload-model');
-        
+
         if (!this.overlay || !this.model) {
             return;
         }
-        
+
         this.bindEvents();
     },
-    
+
     bindEvents: function() {
         var self = this;
         var uploadZone = document.getElementById('upload-zone');
         var fileInput = document.getElementById('config-file-input');
-        
+
         document.getElementById('upload-mode-file').addEventListener('click', function() {
             self.switchMode('file');
         });
-        
+
         document.getElementById('upload-mode-subscribe').addEventListener('click', function() {
             self.switchMode('subscribe');
         });
-        
+
         uploadZone.addEventListener('click', function() {
             if (!self.isProcessing && self.currentMode === 'file') {
                 fileInput.click();
             }
         });
-        
+
         fileInput.addEventListener('change', function(e) {
             if (e.target.files.length > 0) {
                 self.handleFileSelect(e.target.files[0]);
             }
         });
-        
+
         uploadZone.addEventListener('dragover', function(e) {
             e.preventDefault();
             if (!self.isProcessing && self.currentMode === 'file') {
                 uploadZone.classList.add('dragover');
             }
         });
-        
+
         uploadZone.addEventListener('dragleave', function(e) {
             e.preventDefault();
             uploadZone.classList.remove('dragover');
         });
-        
+
         uploadZone.addEventListener('drop', function(e) {
             e.preventDefault();
             uploadZone.classList.remove('dragover');
-            
+
             if (!self.isProcessing && self.currentMode === 'file' && e.dataTransfer.files.length > 0) {
                 self.handleFileSelect(e.dataTransfer.files[0]);
             }
         });
-        
+
         var subscribeUrlInput = document.getElementById('subscribe-url-input');
         var filenameInput = document.getElementById('config-filename-input');
         var subscribeUaSelect = document.getElementById('subscribe-ua-input');
@@ -1033,9 +1033,9 @@ var ConfigUploader = {
             self.updateSubmitButton();
             self.autoFillConfigName();
         });
-        
+
         filenameInput.addEventListener('input', this.updateSubmitButton.bind(this));
-        
+
         subscribeUaSelect.addEventListener('change', function() {
             if (this.value === 'custom') {
                 subscribeUaCustom.style.display = 'block';
@@ -1078,7 +1078,7 @@ var ConfigUploader = {
                 customTemplateGroup.style.display = 'none';
             }
         });
-        
+
         document.getElementById('config-upload-submit').addEventListener('click', function() {
             if (self.currentMode === 'file') {
                 self.uploadFile();
@@ -1086,37 +1086,37 @@ var ConfigUploader = {
                 self.processSubscription();
             }
         });
-        
+
         document.getElementById('config-upload-cancel').addEventListener('click', function() {
             if (!self.isProcessing) {
                 self.hide();
             }
         });
-        
+
         document.getElementById('config-upload-close').addEventListener('click', function() {
             if (!self.isProcessing) {
                 self.hide();
             }
         });
-        
+
         this.overlay.addEventListener('click', function(e) {
             if (e.target === self.overlay && !self.isProcessing) {
                 self.hide();
             }
         });
-        
+
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape' && !self.isProcessing && self.overlay.classList.contains('show')) {
                 self.hide();
             }
         });
     },
-    
+
     show: function() {
         this.overlay.classList.add('show');
         this.reset();
     },
-    
+
     hide: function() {
         this.overlay.classList.remove('show');
         this.reset();
@@ -1128,15 +1128,15 @@ var ConfigUploader = {
         document.getElementById('convert-address-input').value = 'https://api.dler.io/sub';
         document.getElementById('convert-address-custom').style.display = 'none';
         document.getElementById('convert-address-custom').value = '';
-        
+
         var templateSelect = document.getElementById('template-select');
         if (templateSelect && templateSelect.options.length > 1) {
             templateSelect.selectedIndex = 0;
         }
-        
+
         document.getElementById('custom-template-group').style.display = 'none';
         document.getElementById('custom-template-input').value = '';
-        
+
         document.getElementById('emoji-enable').checked = false;
         document.getElementById('udp-enable').checked = false;
         document.getElementById('skip-cert-verify').checked = false;
@@ -1144,7 +1144,7 @@ var ConfigUploader = {
         document.getElementById('node-type-enable').checked = false;
         document.getElementById('rule-provider-enable').checked = false;
         document.getElementById('custom-params-input').value = '';
-        
+
         document.getElementById('keyword-input').value = '';
         document.getElementById('exclude-keyword-input').value = '';
         document.getElementById('exclude-expire').checked = false;
@@ -1152,42 +1152,42 @@ var ConfigUploader = {
         document.getElementById('exclude-tg').checked = false;
         document.getElementById('exclude-website').checked = false;
     },
-    
+
     reset: function() {
         this.selectedFile = null;
         this.isProcessing = false;
         this.currentMode = 'file';
-        
+
         this.switchMode('file');
         document.getElementById('config-filename-input').value = '';
         document.getElementById('subscribe-url-input').value = '';
         document.getElementById('subscribe-ua-input').value = 'clash.meta';
         document.getElementById('subscribe-ua-custom').style.display = 'none';
-        
+
         document.getElementById('advanced-options-enable').checked = false;
         document.getElementById('advanced-options-container').style.display = 'none';
         this.resetAdvancedOptions();
-        
+
         var templateSelect = document.getElementById('template-select');
         if (templateSelect && templateSelect.options.length > 1) {
             templateSelect.selectedIndex = 0;
         }
-        
+
         document.getElementById('upload-progress').style.display = 'none';
         document.getElementById('config-upload-status-text').textContent = '<%:Ready to add config%>';
         this.updateSubmitButton();
     },
-    
+
     switchMode: function(mode) {
         this.currentMode = mode;
-        
+
         var modeFileTab = document.getElementById('upload-mode-file');
         var modeSubscribeTab = document.getElementById('upload-mode-subscribe');
         var modeFileContent = document.getElementById('mode-file-content');
         var modeSubscribeContent = document.getElementById('mode-subscribe-content');
         var statusText = document.getElementById('config-upload-status-text');
         var uploadZone = document.getElementById('upload-zone');
-        
+
         if (mode === 'file') {
             modeFileTab.classList.add('active');
             modeSubscribeTab.classList.remove('active');
@@ -1201,49 +1201,49 @@ var ConfigUploader = {
             modeSubscribeContent.style.display = 'block';
             statusText.textContent = '<%:Ready to add subscription%>';
         }
-        
+
         this.selectedFile = null;
         uploadZone.classList.remove('has-file');
         uploadZone.querySelector('.upload-primary').textContent = '<%:Click to select file or drag and drop%>';
         uploadZone.querySelector('.upload-secondary').textContent = '<%:Support YAML file, max size 10MB%>';
-        
+
         this.updateSubmitButton();
     },
-    
+
     handleFileSelect: function(file) {
         this.selectedFile = file;
         var uploadZone = document.getElementById('upload-zone');
         var filenameInput = document.getElementById('config-filename-input');
         var statusText = document.getElementById('config-upload-status-text');
-        
+
         if (!file) {
             uploadZone.classList.remove('has-file');
             this.updateSubmitButton();
             statusText.textContent = '<%:Ready to upload file%>';
             return;
         }
-        
+
         if (!file.name.match(/\.(yaml|yml)$/i)) {
             alert('<%:Please select a YAML file%>');
             return;
         }
-        
+
         if (file.size > 10 * 1024 * 1024) {
             alert('<%:File size exceeds 10MB limit%>');
             return;
         }
-        
+
         uploadZone.classList.add('has-file');
         uploadZone.querySelector('.upload-primary').textContent = '<%:File selected:%> ' + file.name;
         uploadZone.querySelector('.upload-secondary').textContent = '<%:Size:%> ' + this.formatFileSize(file.size);
-        
+
         var defaultName = file.name.replace(/\.(yaml|yml)$/i, '');
         filenameInput.value = defaultName;
-        
+
         this.updateSubmitButton();
         statusText.textContent = '<%:File ready to upload%>';
     },
-    
+
     formatFileSize: function(bytes) {
         if (bytes === 0) return '0 B';
         var k = 1024;
@@ -1251,19 +1251,19 @@ var ConfigUploader = {
         var i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
     },
-    
+
     updateSubmitButton: function() {
         var filename = document.getElementById('config-filename-input').value.trim();
         var submitBtn = document.getElementById('config-upload-submit');
         var isValid = false;
-        
+
         if (this.currentMode === 'file') {
             isValid = this.selectedFile && filename;
         } else if (this.currentMode === 'subscribe') {
             var url = document.getElementById('subscribe-url-input').value.trim();
             var advancedEnabled = document.getElementById('advanced-options-enable').checked;
             var subConvert = advancedEnabled && document.getElementById('sub-convert-enable').checked;
-            
+
             if (url && filename) {
                 if (subConvert) {
                     if (url.indexOf('\n') !== -1 || url.indexOf('|') !== -1) {
@@ -1283,39 +1283,39 @@ var ConfigUploader = {
                 }
             }
         }
-        
+
         submitBtn.disabled = !isValid || this.isProcessing;
     },
-    
+
     uploadFile: function() {
         if (!this.selectedFile || this.isProcessing) return;
-        
+
         var filename = document.getElementById('config-filename-input').value.trim();
         if (!filename) {
             alert('<%:Please enter a filename%>');
             return;
         }
-        
+
         if (!/^[a-zA-Z0-9_\-\s\u4e00-\u9fa5\.]+$/.test(filename)) {
             alert('<%:Filename contains invalid characters%>');
             return;
         }
-        
+
         var self = this;
         this.isProcessing = true;
-        
+
         var submitBtn = document.getElementById('config-upload-submit');
         var cancelBtn = document.getElementById('config-upload-cancel');
         var statusText = document.getElementById('config-upload-status-text');
         var progressContainer = document.getElementById('upload-progress');
         var progressFill = document.getElementById('upload-progress-fill');
         var progressText = document.getElementById('upload-progress-text');
-        
+
         submitBtn.disabled = true;
         cancelBtn.disabled = true;
         statusText.textContent = '<%:Uploading...%>';
         progressContainer.style.display = 'block';
-        
+
         var progress = 0;
         var progressInterval = setInterval(function() {
             if (progress < 90) {
@@ -1324,22 +1324,22 @@ var ConfigUploader = {
                 progressText.textContent = '<%:Uploading...%> ' + Math.floor(Math.min(progress, 90)) + '%';
             }
         }, 100);
-        
+
         var reader = new FileReader();
         reader.onload = function(e) {
             var fileContent = e.target.result;
-            
+
             var formData = new FormData();
             formData.append('config_file', fileContent);
             formData.append('filename', filename);
-            
+
             fetch('<%=luci.dispatcher.build_url("admin", "services", "openclash", "upload_config")%>', {
                 method: 'POST',
                 body: formData
             })
             .then(function(response) {
                 clearInterval(progressInterval);
-                
+
                 if (!response.ok) {
                     throw new Error('HTTP error! status: ' + response.status);
                 }
@@ -1348,10 +1348,10 @@ var ConfigUploader = {
             .then(function(data) {
                 progressFill.style.width = '100%';
                 progressText.textContent = '<%:Upload completed%> 100%';
-                
+
                 if (data.status === 'success') {
                     statusText.textContent = '<%:Upload successful%>';
-                    
+
                     setTimeout(function() {
                         self.hide();
                         if (typeof ConfigFileManager !== 'undefined' && ConfigFileManager.refreshConfigList) {
@@ -1366,24 +1366,24 @@ var ConfigUploader = {
                 self.handleError('<%:Upload failed:%> ' + error.message);
             });
         };
-        
+
         reader.onerror = function() {
             clearInterval(progressInterval);
             self.handleError('<%:Failed to read file%>');
         };
-        
+
         reader.readAsText(this.selectedFile, 'UTF-8');
     },
-    
+
     processSubscription: function() {
         var url = document.getElementById('subscribe-url-input').value.trim();
         var filename = document.getElementById('config-filename-input').value.trim();
         var userAgent = document.getElementById('subscribe-ua-input').value;
         var subscribeUaCustom = document.getElementById('subscribe-ua-custom');
-        
+
         var advancedEnabled = document.getElementById('advanced-options-enable').checked;
         var subConvert = advancedEnabled && document.getElementById('sub-convert-enable').checked;
-        
+
         var convertAddress = 'https://api.dler.io/sub';
         var template = '';
         var emoji = false;
@@ -1396,7 +1396,7 @@ var ConfigUploader = {
         var keywords = '';
         var excludeKeywords = '';
         var excludeDefaults = [];
-        
+
         if (advancedEnabled) {
             convertAddress = document.getElementById('convert-address-input').value;
             var convertAddressCustom = document.getElementById('convert-address-custom').value;
@@ -1411,32 +1411,32 @@ var ConfigUploader = {
             customParams = document.getElementById('custom-params-input').value;
             keywords = document.getElementById('keyword-input').value;
             excludeKeywords = document.getElementById('exclude-keyword-input').value;
-            
+
             if (document.getElementById('exclude-expire').checked) excludeDefaults.push('过期时间');
             if (document.getElementById('exclude-traffic').checked) excludeDefaults.push('剩余流量');
             if (document.getElementById('exclude-tg').checked) excludeDefaults.push('TG群');
             if (document.getElementById('exclude-website').checked) excludeDefaults.push('官网');
-            
+
             if (convertAddress === 'custom') {
                 convertAddress = convertAddressCustom.trim() || 'https://api.dler.io/sub';
             }
-            
+
             if (template === '0') {
                 template = customTemplate.trim();
             }
         }
-        
+
         if (userAgent === 'custom') {
             userAgent = subscribeUaCustom.value.trim() || 'clash.meta';
         }
-        
+
         if (!url || !filename) {
             alert('<%:Please enter subscription URL and config name%>');
             return;
         }
-        
+
         var isValidFormat = false;
-        
+
         if (subConvert) {
             if (url.indexOf('\n') !== -1 || url.indexOf('|') !== -1) {
                 var links = [];
@@ -1445,7 +1445,7 @@ var ConfigUploader = {
                 } else {
                     links = url.split('|');
                 }
-                
+
                 for (var i = 0; i < links.length; i++) {
                     var link = links[i].trim();
                     if (link && (/^https?:\/\//.test(link) || /^[a-zA-Z]+:\/\//.test(link))) {
@@ -1463,7 +1463,7 @@ var ConfigUploader = {
                 isValidFormat = true;
             }
         }
-        
+
         if (!isValidFormat) {
             var errorMsg = subConvert ? 
                 '<%:Invalid subscription URL format. Support HTTP/HTTPS subscription URLs or protocol links, can be separated by newlines or |%>' :
@@ -1471,7 +1471,7 @@ var ConfigUploader = {
             alert(errorMsg);
             return;
         }
-        
+
         var requestData = {
             name: filename,
             address: url,
@@ -1490,22 +1490,22 @@ var ConfigUploader = {
             ex_keyword: excludeKeywords,
             de_ex_keyword: excludeDefaults.join('\n')
         };
-        
+
         var self = this;
         this.isProcessing = true;
-        
+
         var submitBtn = document.getElementById('config-upload-submit');
         var cancelBtn = document.getElementById('config-upload-cancel');
         var statusText = document.getElementById('config-upload-status-text');
         var progressContainer = document.getElementById('upload-progress');
         var progressFill = document.getElementById('upload-progress-fill');
         var progressText = document.getElementById('upload-progress-text');
-        
+
         submitBtn.disabled = true;
         cancelBtn.disabled = true;
         statusText.textContent = '<%:Adding subscription...%>';
         progressContainer.style.display = 'block';
-        
+
         var progress = 0;
         var progressInterval = setInterval(function() {
             if (progress < 90) {
@@ -1514,7 +1514,7 @@ var ConfigUploader = {
                 progressText.textContent = '<%:Processing...%> ' + Math.floor(Math.min(progress, 90)) + '%';
             }
         }, 100);
-        
+
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "add_subscription")%>', {
             name: filename,
             address: url,
@@ -1538,12 +1538,12 @@ var ConfigUploader = {
                     filename: filename
                 }, function(x2, data2) {
                     clearInterval(progressInterval);
-                    
+
                     if (x2 && x2.status == 200) {
                         progressFill.style.width = '100%';
                         progressText.textContent = '<%:Subscription added successfully%> 100%';
                         statusText.textContent = '<%:Subscription added successfully%>';
-                        
+
                         setTimeout(function() {
                             self.hide();
                             if (typeof ConfigFileManager !== 'undefined' && ConfigFileManager.refreshConfigList) {
@@ -1564,34 +1564,34 @@ var ConfigUploader = {
     autoFillConfigName: function() {
         var url = document.getElementById('subscribe-url-input').value.trim();
         var filenameInput = document.getElementById('config-filename-input');
-        
+
         if (!filenameInput.value.trim() && url) {
             try {
                 var urlObj = new URL(url);
                 var hostname = urlObj.hostname;
-                
+
                 var configName = hostname
                     .replace(/^(www\.|api\.|sub\.|subscribe\.)/, '')
                     .replace(/\.(com|net|org|cn|io|me|cc|xyz|top)$/, '')
                     .replace(/[^a-zA-Z0-9\u4e00-\u9fa5]/g, '_')
                     .replace(/_{2,}/g, '_')
                     .replace(/^_|_$/g, '');
-                
+
                 if (!configName || configName.length < 2) {
                     configName = 'subscription_' + Date.now().toString().slice(-6);
                 }
-                
+
                 if (configName.length > 30) {
                     configName = configName.substring(0, 30);
                 }
-                
+
                 filenameInput.value = configName;
                 this.updateSubmitButton();
             } catch (e) {
             }
         }
     },
-    
+
     handleError: function(message) {
         var statusText = document.getElementById('config-upload-status-text');
         var progressText = document.getElementById('upload-progress-text');
@@ -1599,13 +1599,13 @@ var ConfigUploader = {
         var submitBtn = document.getElementById('config-upload-submit');
         var cancelBtn = document.getElementById('config-upload-cancel');
         var progressContainer = document.getElementById('upload-progress');
-        
+
         statusText.textContent = '<%:Process failed%>';
         progressText.textContent = '<%:Process failed%>';
         progressFill.style.width = '0%';
-        
+
         alert(message);
-        
+
         this.isProcessing = false;
         submitBtn.disabled = false;
         cancelBtn.disabled = false;
