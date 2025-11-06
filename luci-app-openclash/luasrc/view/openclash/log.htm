@@ -148,7 +148,7 @@ ul{
 .radio-button input[type="radio"] {
     display: none;
 }
-   
+
 .radio-button label {
     display: flex;
     align-items: center;
@@ -358,7 +358,7 @@ function createAndDownloadFile(fileName, content) {
 function download_log(){
     var dt = new Date();
     var timestamp = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getDate()+"-"+dt.getHours()+"-"+dt.getMinutes()+"-"+dt.getSeconds();
-    
+
     var oc_content = "";
     if (typeof oc_editor !== 'undefined' && oc_editor) {
         oc_content = oc_editor.getValue();
@@ -367,7 +367,7 @@ function download_log(){
     } else if (lv && lv.innerHTML) {
         oc_content = lv.innerHTML;
     }
-    
+
     var core_content = "";
     if (typeof core_editor !== 'undefined' && core_editor) {
         core_content = core_editor.getValue();
@@ -376,15 +376,15 @@ function download_log(){
     } else if (cl && cl.innerHTML) {
         core_content = cl.innerHTML;
     }
-    
+
     oc_content = oc_content.split('\n').filter(function(line) { 
         return line.indexOf("】订阅的下载链接为【") === -1 && line.indexOf("】Downloading URL【") === -1; 
     }).join('\n');
-    
+
     if (!oc_content.trim() && !core_content.trim()) {
         return;
     }
-    
+
     var downloadContent = "";
     if (oc_content.trim()) {
         downloadContent += "<%:OpenClash Log%>:\n" + oc_content + "\n\n";
@@ -392,7 +392,7 @@ function download_log(){
     if (core_content.trim()) {
         downloadContent += "<%:Core Log%>:\n" + core_content;
     }
-    
+
     createAndDownloadFile("OpenClash-"+timestamp+".log", downloadContent);
     return;
 };
@@ -418,15 +418,15 @@ function line_tolocal(str) {
     var trans_local = new Array();
     var local_count = 0;
 
-    
+
     str.trim().split('\n').forEach(function(v, i) {
         var regex = /(time=)"([^"]*)"/g;
         var res = regex.exec(v);
-        
+
         try {
             if (res) {
                 var dt = new Date(res[2]);
-                
+
                 if (!isNaN(dt.getTime())) {
                     if (v.indexOf("level=") != -1) {
                         var log_info = v.substring(res[2].length + 7);
@@ -443,7 +443,7 @@ function line_tolocal(str) {
             } else {
                 try {
                     var dtt = new Date(v.substring(0, 19));
-                    
+
                     if (!isNaN(dtt.getTime()) && v.substring(0, 19).match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)) {
                         trans_local[local_count] = v;
                         local_count++;
@@ -461,7 +461,7 @@ function line_tolocal(str) {
             local_count++;
         }
     });
-    
+
     return trans_local;
 };
 
@@ -470,16 +470,16 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
     var isAtTop = false;
     var cursorPos = null;
     var selectionRange = null;
-    
+
     var isFirstLoad = !currentContent || currentContent.trim() === "";
-    
+
     if (isEditor && target) {
         scrollPosition = target.getScrollInfo();
         isAtTop = (scrollPosition.top < 20);
-        
+
         if (target.hasFocus()) {
             cursorPos = target.getCursor();
-            
+
             if (cursorPos.line === 0) {
                 cursorPos = null;
                 selectionRange = null;
@@ -499,7 +499,7 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         scrollPosition = target.scrollTop;
         isAtTop = (target.scrollTop < 20);
     }
-    
+
     if ((target === oc_editor && animatingOC) || (target === core_editor && animatingCore) || !isActiveTab) {
         var content = "";
         var lines = newLines.slice().reverse();
@@ -507,33 +507,33 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
             content += lines[i] + "\n";
         }
         content = content + (currentContent || "");
-        
+
         var allLines = content.split("\n");
         if (allLines.length > 2000) {
             allLines = allLines.slice(0, 1999);
             allLines.push("...");
             content = allLines.join("\n");
         }
-        
+
         if (isEditor) {
             var addedLines = lines.length;
             target.setValue(content);
-            
+
             if (!isAtTop && scrollPosition) {
                 if (cursorPos) {
                     cursorPos.line += addedLines;
                     target.setCursor(cursorPos);
-                    
+
                     target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
                 } else {
                     target.scrollTo(scrollPosition.left, scrollPosition.top);
                 }
-                
+
                 if (selectionRange) {
                     selectionRange.from.line += addedLines;
                     selectionRange.to.line += addedLines;
                     target.setSelection(selectionRange.from, selectionRange.to);
-                    
+
                     target.scrollIntoView({
                         from: selectionRange.from,
                         to: selectionRange.to
@@ -545,7 +545,7 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                     target.setCursor({line: 0, ch: 0});
                 }
             }
-                        
+
             target.refresh();
         } else {
             var oldScrollTop = scrollPosition;
@@ -556,16 +556,16 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         }
         return;
     }
-    
+
     if (target === oc_editor || target === lv) {
         animatingOC = true;
     } else {
         animatingCore = true;
     }
-    
+
     var totalLines = newLines.length;
     var batchSize, interval;
-    
+
     if (totalLines <= 10) {
         batchSize = 2;
         interval = 90;
@@ -588,12 +588,12 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         batchSize = 250;
         interval = 5;
     }
-    
+
     var displayedContent = currentContent || "";
     var logLines = newLines.slice();
     var currentBatchCount = 0;
     var accumulatedContent = "";
-    
+
     function displayNextBatch() {
         if (currentBatchCount >= logLines.length) {
             if (target === oc_editor || target === lv) {
@@ -601,16 +601,16 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
             } else {
                 animatingCore = false;
             }
-            
+
             if (isEditor && !isAtTop && cursorPos) {
                 cursorPos.line += logLines.length;
                 target.setCursor(cursorPos);
-                
+
                 if (selectionRange) {
                     selectionRange.from.line += logLines.length;
                     selectionRange.to.line += logLines.length;
                     target.setSelection(selectionRange.from, selectionRange.to);
-                    
+
                     target.scrollIntoView({
                         from: selectionRange.from,
                         to: selectionRange.to
@@ -621,31 +621,31 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
             }
             return;
         }
-        
+
         var nextBatchSize = Math.min(batchSize, logLines.length - currentBatchCount);
-        
+
         var batchLines = logLines.slice(currentBatchCount, currentBatchCount + nextBatchSize).reverse();
         currentBatchCount += nextBatchSize;
-        
+
         if (accumulatedContent) {
             accumulatedContent = batchLines.join("\n") + "\n" + accumulatedContent;
         } else {
             accumulatedContent = batchLines.join("\n");
         }
-        
+
         var content = accumulatedContent + (displayedContent ? "\n" + displayedContent : "");
-        
+
         var contentLines = content.split("\n");
         if (contentLines.length > 2000) {
             contentLines = contentLines.slice(0, 1999);
             contentLines.push("...");
             content = contentLines.join("\n");
         }
-        
+
         if (isEditor) {
             var currentScrollInfo = isAtTop ? null : target.getScrollInfo();
             target.setValue(content);
-            
+
             if (!isAtTop && currentScrollInfo) {
                 target.scrollTo(currentScrollInfo.left, currentScrollInfo.top);
             }
@@ -657,7 +657,7 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                 target.scrollTop = currentScrollTop;
             }
         }
-        
+
         if (currentBatchCount < logLines.length) {
             setTimeout(displayNextBatch, interval);
         } else {
@@ -666,16 +666,16 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
             } else {
                 animatingCore = false;
             }
-            
+
             if (isEditor && !isAtTop && cursorPos) {
                 cursorPos.line += logLines.length;
                 target.setCursor(cursorPos);
-                
+
                 if (selectionRange) {
                     selectionRange.from.line += logLines.length;
                     selectionRange.to.line += logLines.length;
                     target.setSelection(selectionRange.from, selectionRange.to);
-                    
+
                     target.scrollIntoView({
                         from: selectionRange.from,
                         to: selectionRange.to
@@ -686,7 +686,7 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
             }
         }
     }
-    
+
     displayNextBatch();
 }
 
@@ -702,11 +702,11 @@ function poll_log(){
                         r = setTimeout("poll_log()", 2000);
                         return;
                     }
-                    
+
                     if (status.len) {
                         log_len = status.len;
                     }
-                    
+
                     var activeTabId = 0;
                     var titles = document.getElementsByName('tab-header');
                     for(var i=0; i<titles.length; i++){
@@ -715,10 +715,10 @@ function poll_log(){
                             break;
                         }
                     }
-                    
+
                     if (status.oc_log && status.oc_log !== "") {
                         var oc_logs = line_tolocal(status.oc_log);
-                        
+
                         if (oc_logs && oc_logs.length > 0) {
                             if (oc_editor) {
                                 var currentContent = oc_editor.getValue();
@@ -729,10 +729,10 @@ function poll_log(){
                             }
                         }
                     }
-                    
+
                     if (status.core_log && status.core_log !== "") {
                         var core_logs = line_tolocal(status.core_log);
-                        
+
                         if (core_logs && core_logs.length > 0) {
                             if (core_editor) {
                                 var currentCoreContent = core_editor.getValue();
@@ -778,7 +778,7 @@ window.onload = function(){
                 }
             };
         }
-        
+
         li.onclick = handleTabSwitch(li);
         li.ontouchstart = handleTabSwitch(li);
     }

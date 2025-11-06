@@ -29,7 +29,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 
 <style type="text/css">
     *{margin: 0;padding: 0;}
-    
+
     ul{
         list-style: none;
     }
@@ -41,7 +41,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
     .cbi-value-field .cbi-dropdown, .cbi-value-field .cbi-input-select, .cbi-value input[type="text"], .cbi-value input[type="password"] {
         min-width: auto;
     }
-    
+
     #tab-header-<%=self.config%>-<%=self.sectiontype%>{
         display: flex;
         align-items: center;
@@ -99,7 +99,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
         border-radius: 6px;
         box-shadow: 0 1px 2px 0 rgba(0,0,0,0.03);
     }
-     
+
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li a{
         display: flex;
         align-items: center;
@@ -124,7 +124,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
         color: #fff !important;
         font-weight: 500;
     }
-    
+
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab-disabled{
         color: #fff;
         background: #f9f9f9;
@@ -141,16 +141,16 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
         color: #3b82f6;
         background: rgba(59,130,246,0.10);
     }
-    
+
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):hover a,
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):focus a{
         color: #3b82f6 !important;
     }
-    
+
     #tab-content .dom-<%=self.config%>-<%=self.sectiontype%>{
         display: none;
     }
-     
+
     #tab-content .dom-<%=self.config%>-<%=self.sectiontype%> ul li{
       float: left;
       margin: 15px 10px;
@@ -305,7 +305,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                                     <input class="cbi-button cbi-button-down" type="button" value="<%:∨%>"  onclick="return cbi_row_swap(this, false, 'cbi.sts.<%=self.config%>.<%=self.sectiontype%>')" alt="<%:Move down%>" title="<%:Move down%>" />
                                 </td>
                             <%- end -%>
-            
+
                             <%- if self.extedit or self.addremove then -%>
                                 <td class="cbi-section-table-cell">
                                     <%- if self.extedit then -%>
@@ -324,14 +324,14 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                             </tr>
                     <%- end -%>
                     <%- end -%>
-    
+
                     <%- if isempty then -%>
                     <tr class="cbi-section-table-row">
                         <td colspan="<%=count%>"><em><br /><%:This section contains no values yet%></em></td>
                     </tr>
                     <%- end -%>
                 </table>
-        
+
                 <% if self.error then %>
                     <div class="cbi-section-error">
                         <ul><% for _, c in pairs(self.error) do for _, e in ipairs(c) do -%>
@@ -339,7 +339,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                         <%- end end %></ul>
                     </div>
                 <% end %>
-        
+
                 <%- if self.addremove then -%>
                     <% if self.template_addremove then include(self.template_addremove) else -%>
                     <div class="cbi-section-create cbi-tblsection-create">
@@ -405,7 +405,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 		var luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
 		return luminance < 128;
 	};
-    
+
     function switch_to_tab<%=sectiontype%>(type){
         if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
 
@@ -428,7 +428,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
         if (isDarkBackground(document.body)) {
             document.documentElement.setAttribute('data-darkmode', 'true');
         };
-        
+
         if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
 
         if (localStorage.getItem("id<%=sectiontype%>")) {
@@ -464,7 +464,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
                     a<%=sectiontype%>.style.textAlign = 'center';
                 }
             }
-            
+
             li<%=sectiontype%>.onclick = function(){
                 for(var j=0; j < titles<%=sectiontype%>.length; j++){
                     titles<%=sectiontype%>[j].className = 'cbi-tab-disabled';

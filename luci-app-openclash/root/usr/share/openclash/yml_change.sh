@@ -163,13 +163,13 @@ yml_dns_get()
 {
    local section="$1" regex='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
    local enabled port type ip group dns_type dns_address interface specific_group node_resolve http3 ecs_subnet ecs_override
-   
+
    config_get_bool "enabled" "$section" "enabled" "1"
    [ "$enabled" = "0" ] && return
 
    config_get "ip" "$section" "ip" ""
    [ -z "$ip" ] && return
-   
+
    config_get "port" "$section" "port" ""
    config_get "type" "$section" "type" ""
    config_get "group" "$section" "group" ""
@@ -229,7 +229,7 @@ yml_dns_get()
          params="$params$1"
       fi
    }
-   
+
    append_param "$specific_group_param"
    append_param "$interface_param"
    append_param "$http3_param"
@@ -391,7 +391,7 @@ threads << Thread.new do
       Value['unified-delay'] = true if unified_delay
       Value['find-process-mode'] = find_process_mode if find_process_mode != '0'
       Value['global-client-fingerprint'] = global_client_fingerprint if global_client_fingerprint != '0'
-      
+
       (Value['experimental'] ||= {})['quic-go-disable-gso'] = true if quic_gso
       if cors_origin != '0'
          (Value['external-controller-cors'] ||= {})['allow-origins'] = [cors_origin]
@@ -444,7 +444,7 @@ threads << Thread.new do
             'enable' => true, 'override-destination' => true,
             'sniff' => {'QUIC' => {'ports' => [443]}, 'TLS' => {'ports' => [443, 8443]}, 'HTTP' => {'ports' => [80, '8080-8880'], 'override-destination' => true}},
             'force-domain' => ['+.netflix.com', '+.nflxvideo.net', '+.amazonaws.com', '+.media.dssott.com'],
-            'skip-domain' => ['+.apple.com', 'Mijia Cloud', 'dlg.io.mi.com', '+.oray.com', '+.sunlogin.net', '+.push.apple.com']
+            'skip-domain' => ['Mijia Cloud', 'dlg.io.mi.com', '+.oray.com', '+.sunlogin.net', '+.push.apple.com']
          }
          sniffer_config['force-dns-mapping'] = true if fake_ip_mode == 'redir-host'
          sniffer_config['parse-pure-ip'] = true if sniffer_parse_pure_ip
@@ -682,6 +682,11 @@ begin
       YAML.LOG('Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete...')
       Value['dns']['nameserver'] = ['114.114.114.114', '119.29.29.29', '8.8.8.8', '1.1.1.1']
       Value['dns']['fallback'] ||= ['https://dns.cloudflare.com/dns-query', 'https://dns.google/dns-query']
+   end
+
+   if Value['dns'].key?('default-nameserver') && Value['dns']['default-nameserver'].to_a.empty?
+      YAML.LOG('Tip: Detected That The default-nameserver DNS Option Has No Server Set, Starting To Complete...')
+      Value['dns']['default-nameserver'] = ['114.114.114.114', '119.29.29.29', '8.8.8.8', '1.1.1.1']
    end
 
    # proxy-server-nameserver

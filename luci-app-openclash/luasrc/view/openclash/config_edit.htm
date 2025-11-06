@@ -573,7 +573,7 @@
                     </button>
                 </div>
             </div>
-            
+
             <div class="config-editor-content">
                 <div class="config-editor-loading" id="config-editor-loading">
                     <div class="loading-spinner"></div>
@@ -586,7 +586,7 @@
             <div id="overwrite-card-bar" style="display:none;position:relative;margin:12px;">
                 <div class="overwrite-card-row" id="overwrite-card-list"></div>
             </div>
-            
+
             <div class="config-editor-footer">
                 <div class="config-editor-status">
                     <span id="config-editor-status-text"><%:Ready%></span>
@@ -681,28 +681,28 @@ var ConfigEditor = {
         if (!this.overlay || !this.model) {
             return;
         }
-        
+
         this.bindEvents();
     },
-    
+
     bindEvents: function() {
         var self = this;
-        
+
         document.getElementById('config-editor-save').addEventListener('click', function() {
             self.saveConfigContent();
         });
-        
+
         document.getElementById('config-editor-download').addEventListener('click', function() {
             self.downloadConfigContent();
         });
-        
+
         document.getElementById('config-editor-close').addEventListener('click', function() {
             self.closeEditor();
         });
-        
+
         document.addEventListener('keydown', function(e) {
             if (!self.overlay.classList.contains('show')) return;
-            
+
             if ((e.ctrlKey || e.metaKey) && (e.key === '=' || e.key === '+')) {
                 e.preventDefault();
                 self.zoomIn();
@@ -716,11 +716,11 @@ var ConfigEditor = {
                 self.closeEditor();
             }
         });
-        
+
         this.overlay.addEventListener('wheel', function(e) {
             if (e.ctrlKey || e.metaKey) {
                 e.preventDefault();
-                
+
                 if (e.deltaY < 0) {
                     self.zoomIn();
                 } else {
@@ -763,11 +763,11 @@ var ConfigEditor = {
                 }
             });
         };
-        
+
         this.makeDraggable();
         this.makeResizable();
     },
-    
+
     show: function(configFile) {
         this.isOverwrite = false;
         this.currentViewMode = 'original';
@@ -815,7 +815,7 @@ var ConfigEditor = {
         if (editTitle) {
             editTitle.textContent = '<%:File Edit%>: ';
         }
-        
+
         var configNameElement = document.getElementById('config-file-name');
         if (configNameElement) {
             configNameElement.textContent = this.formatDisplayName(configFile);
@@ -881,22 +881,22 @@ var ConfigEditor = {
         this.hideMergeView();
         this.loadConfigContent();
     },
-    
+
     hide: function() {
         this.overlay.classList.remove('show');
-        
+
         if (this.editorInstance) {
             if (this.editorInstance.toTextArea) this.editorInstance.toTextArea();
             this.editorInstance = null;
         }
-        
+
         this.isModified = false;
         this.originalContent = '';
         this.overwriteCardBar.style.display = 'none';
         if (!this.isOverwrite) {
             this.currentConfigFile = '';
         }
-        
+
         var loadingDiv = document.getElementById('config-editor-loading');
         var textarea = document.getElementById('config-editor-textarea');
         var mergeview = document.getElementById('config-mergeview-container');
@@ -913,7 +913,7 @@ var ConfigEditor = {
         }
         if (editor_help) editor_help.textContent = '<%:Press F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom%>';
     },
-    
+
     formatDisplayName: function(fileName) {
         if (!fileName) return '<%:Unknown%>';
 
@@ -961,7 +961,7 @@ var ConfigEditor = {
             }
         }
     },
-    
+
     loadConfigContent: function() {
         var self = this;
         var statusText = document.getElementById('config-editor-status-text');
@@ -1212,7 +1212,7 @@ var ConfigEditor = {
         if (!this.isOverwrite && tabs) tabs.style.display = 'flex';
         this.mergeViewActive = false;
         this.loadConfigContent();
-        
+
         if (layoutBtn) {
             layoutBtn.classList.remove('active');
             layoutBtn.title = "<%:Compare%>";
@@ -1226,11 +1226,11 @@ var ConfigEditor = {
         if (!this.editorInstance || !this.isModified) {
             return;
         }
-        
+
         var self = this;
         var statusText = document.getElementById('config-editor-status-text');
         var saveBtn = document.getElementById('config-editor-save');
-        
+
         statusText.textContent = '<%:Saving...%>';
         saveBtn.disabled = true;
 
@@ -1240,14 +1240,14 @@ var ConfigEditor = {
         } else {
             content = this.editorInstance.getValue();
         }
-        
+
         if (!content) {
             saveBtn.disabled = false;
             statusText.textContent = '<%:Save failed%>';
             alert('<%:Config file content is empty%>');
             return;
         }
-        
+
         var formData = new FormData();
         if (this.isOverwrite) {
             formData.append('config_file', this.currentConfigFile || '/etc/openclash/custom/openclash_custom_overwrite.sh');
@@ -1255,7 +1255,7 @@ var ConfigEditor = {
             formData.append('config_file', this.currentConfigFile);
         }
         formData.append('content', content);
-        
+
         fetch('/cgi-bin/luci/admin/services/openclash/config_file_save', {
             method: 'POST',
             body: formData
@@ -1268,13 +1268,13 @@ var ConfigEditor = {
         })
         .then(function(data) {
             saveBtn.disabled = false;
-            
+
             if (data.status === 'success') {
                 self.originalContent = content;
                 self.isModified = false;
                 self.updateSaveButtonState();
                 statusText.textContent = '<%:Saved successfully%>';
-                
+
                 setTimeout(function() {
                     if (statusText && statusText.textContent === '<%:Saved successfully%>') {
                         statusText.textContent = '<%:Ready%>';
@@ -1283,7 +1283,7 @@ var ConfigEditor = {
             } else {
                 statusText.textContent = '<%:Save failed%>';
                 alert('<%:Failed to save config file:%> ' + (data.message || '<%:Unknown error%>'));
-                
+
                 setTimeout(function() {
                     if (statusText && statusText.textContent === '<%:Save failed%>') {
                         statusText.textContent = '<%:Ready%>';
@@ -1295,7 +1295,7 @@ var ConfigEditor = {
             saveBtn.disabled = false;
             statusText.textContent = '<%:Save failed%>';
             alert('<%:Save config failed:%> ' + error.message);
-            
+
             setTimeout(function() {
                 if (statusText && statusText.textContent === '<%:Save failed%>') {
                     statusText.textContent = '<%:Ready%>';
@@ -1303,13 +1303,13 @@ var ConfigEditor = {
             }, 3000);
         });
     },
-    
+
     downloadConfigContent: function() {
         if (!this.editorInstance) {
             alert('<%:Editor not ready%>');
             return;
         }
-        
+
         var content;
         if (this.mergeViewActive && this.editorInstance && this.editorInstance.edit) {
             content = this.editorInstance.edit.getValue();
@@ -1327,7 +1327,7 @@ var ConfigEditor = {
                 filename += '.yaml';
             }
         }
-        
+
         try {
             var blob = new Blob([content], { type: 'text/yaml;charset=utf-8' });
             var url = window.URL.createObjectURL(blob);
@@ -1335,33 +1335,33 @@ var ConfigEditor = {
             link.href = url;
             link.download = filename;
             link.style.display = 'none';
-            
+
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
             window.URL.revokeObjectURL(url);
-            
+
             var statusText = document.getElementById('config-editor-status-text');
             if (statusText) {
                 var originalText = statusText.textContent;
                 statusText.textContent = '<%:Download started%>';
-                
+
                 setTimeout(function() {
                     if (statusText && statusText.textContent === '<%:Download started%>') {
                         statusText.textContent = originalText;
                     }
                 }, 2000);
             }
-            
+
         } catch (error) {
             alert('<%:Download failed:%> ' + error.message);
         }
     },
-    
+
     updateSaveButtonState: function() {
         this.updateModeTabs();
     },
-    
+
     loadOverwriteFiles: function() {
         var self = this;
         fetch('/cgi-bin/luci/admin/services/openclash/overwrite_file_list')
@@ -1780,7 +1780,7 @@ var ConfigEditor = {
                         self.overwriteDrag.dragging = card;
                         self.overwriteDrag.startIndex = parseInt(card.dataset.index);
                         card.classList.add('dragging');
-                        
+
                         if (navigator.vibrate) {
                             navigator.vibrate(50);
                         }
@@ -1807,7 +1807,7 @@ var ConfigEditor = {
 
                     var elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
                     var targetCard = null;
-                    
+
                     if (elementBelow) {
                         targetCard = elementBelow.closest('.sub-card.overwrite-item');
                     }
@@ -1815,10 +1815,10 @@ var ConfigEditor = {
                     if (targetCard && targetCard !== card && targetCard.dataset.index !== 'custom') {
                         var rect = targetCard.getBoundingClientRect();
                         var midX = rect.left + rect.width / 2;
-                        
+
                         var line = document.createElement('div');
                         line.className = 'overwrite-drag-line';
-                        
+
                         if (touch.clientX < midX) {
                             list.insertBefore(line, targetCard);
                         } else {
@@ -1907,7 +1907,7 @@ var ConfigEditor = {
                     clearTimeout(self.overwriteDrag.touchTimer);
                     self.overwriteDrag.touchTimer = null;
                 }
-                
+
                 if (self.overwriteDrag.isTouchDragging) {
                     card.classList.remove('dragging');
                     list.querySelectorAll('.overwrite-drag-line').forEach(line => line.remove());
@@ -1915,7 +1915,7 @@ var ConfigEditor = {
                     self.overwriteDrag.startIndex = null;
                     self.saveOverwriteSort();
                 }
-                
+
                 self.overwriteDrag.isTouchDragging = false;
                 self.overwriteDrag.touchDraggingMoved = false;
                 self.overwriteDrag.touchDraggingCard = null;
@@ -2084,7 +2084,7 @@ var ConfigEditor = {
 
         bar.style.display = self.isOverwrite ? 'block' : 'none';
     },
-    
+
     saveOverwriteSort: function() {
         var self = this;
         var reqs = [];
@@ -2745,103 +2745,103 @@ var ConfigEditor = {
         this.hideMergeView();
         this.hide();
     },
-    
+
     updateZoom: function(newZoom) {
         this.currentZoom = newZoom;
-        
+
         if (this.editorInstance) {
             var cmWrapper = this.model.querySelector('.CodeMirror');
             if (cmWrapper) {
                 this.zoomLevels.forEach(function(level) {
                     cmWrapper.classList.remove('zoom-' + level);
                 });
-                
+
                 if (this.currentZoom !== 100) {
                     cmWrapper.classList.add('zoom-' + this.currentZoom);
                 }
-                
+
                 this.editorInstance.refresh();
             }
         }
     },
-    
+
     zoomIn: function() {
         var currentIndex = this.zoomLevels.indexOf(this.currentZoom);
         if (currentIndex < this.zoomLevels.length - 1) {
             this.updateZoom(this.zoomLevels[currentIndex + 1]);
         }
     },
-    
+
     zoomOut: function() {
         var currentIndex = this.zoomLevels.indexOf(this.currentZoom);
         if (currentIndex > 0) {
             this.updateZoom(this.zoomLevels[currentIndex - 1]);
         }
     },
-    
+
     resetZoom: function() {
         this.updateZoom(100);
     },
-    
+
     makeDraggable: function() {
         var self = this;
         var header = this.model.querySelector('.config-editor-header');
         var startX, startY, startLeft, startTop;
         var isDragging = false;
-        
+
         header.addEventListener('mousedown', function(e) {
             if (e.target.closest('.config-editor-actions')) {
                 return;
             }
-            
+
             isDragging = true;
             startX = e.clientX;
             startY = e.clientY;
-            
+
             var rect = self.model.getBoundingClientRect();
             startLeft = rect.left;
             startTop = rect.top;
-            
+
             self.model.style.position = 'fixed';
             self.model.style.left = startLeft + 'px';
             self.model.style.top = startTop + 'px';
             self.model.style.margin = '0';
             self.model.style.transform = 'none';
             self.model.style.transition = 'none';
-            
+
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
-            
+
             e.preventDefault();
         });
-        
+
         function onMouseMove(e) {
             if (!isDragging) return;
-            
+
             var deltaX = e.clientX - startX;
             var deltaY = e.clientY - startY;
-            
+
             var newLeft = startLeft + deltaX;
             var newTop = startTop + deltaY;
-            
+
             var modelRect = self.model.getBoundingClientRect();
             var maxLeft = window.innerWidth - modelRect.width;
             var maxTop = window.innerHeight - modelRect.height;
-            
+
             newLeft = Math.max(0, Math.min(newLeft, maxLeft));
             newTop = Math.max(0, Math.min(newTop, maxTop));
-            
+
             self.model.style.left = newLeft + 'px';
             self.model.style.top = newTop + 'px';
         }
-        
+
         function onMouseUp() {
             isDragging = false;
-            
+
             setTimeout(function() {
                 self.model.style.transition = 'all 0.3s ease';
             }, 50);
-            
+
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
         }
@@ -2905,50 +2905,50 @@ var ConfigEditor = {
             document.removeEventListener('touchend', onTouchEnd);
         }
     },
-    
+
     makeResizable: function() {
         var self = this;
         var resizeHandle = document.getElementById('config-editor-resize-handle');
         var isResizing = false;
         var startX, startY, startWidth, startHeight;
-        
+
         resizeHandle.addEventListener('mousedown', function(e) {
             isResizing = true;
             startX = e.clientX;
             startY = e.clientY;
-            
+
             var rect = self.model.getBoundingClientRect();
             startWidth = rect.width;
             startHeight = rect.height;
-            
+
             self.model.style.transition = 'none';
             self.model.style.width = startWidth + 'px';
             self.model.style.height = startHeight + 'px';
-            
+
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
-            
+
             e.preventDefault();
         });
-        
+
         function onMouseMove(e) {
             if (!isResizing) return;
-            
+
             var deltaX = e.clientX - startX;
             var deltaY = e.clientY - startY;
-            
+
             var newWidth = Math.max(400, startWidth + deltaX);
             var newHeight = Math.max(300, startHeight + deltaY);
-            
+
             var maxWidth = window.innerWidth * 0.98;
             var maxHeight = window.innerHeight * 0.95;
-            
+
             newWidth = Math.min(newWidth, maxWidth);
             newHeight = Math.min(newHeight, maxHeight);
-            
+
             self.model.style.width = newWidth + 'px';
             self.model.style.height = newHeight + 'px';
-            
+
             if (self.editorInstance) {
                 requestAnimationFrame(function() {
                     if (self.mergeViewActive && self.editorInstance.editor) {
@@ -2961,15 +2961,15 @@ var ConfigEditor = {
                 });
             }
         }
-        
+
         function onMouseUp() {
             isResizing = false;
-            
+
             self.model.style.transition = 'all 0.3s ease';
-            
+
             document.removeEventListener('mousemove', onMouseMove);
             document.removeEventListener('mouseup', onMouseUp);
-            
+
             if (self.editorInstance) {
                 setTimeout(function() {
                     if (self.mergeViewActive && self.editorInstance.editor) {

@@ -24,17 +24,17 @@ cfg_groups_set()
    if [ -z "$name" ]; then
       return
    fi
-   
+
    if [ -z "$old_name_cfg" ]; then
       uci -q set openclash."$section".old_name_cfg="$name"
       uci -q commit openclash
    fi
-   
+
    if [ -z "$old_name" ]; then
       uci -q set openclash."$section".old_name="$name"
       uci -q commit openclash
    fi
-   
+
    #名字变化时处理配置文件
    if [ "$name" != "$old_name_cfg" ] && [ ! -z "$old_name_cfg" ]; then
       convert_name=$(echo "$name" | sed 's/\//\\\//g' 2>/dev/null)

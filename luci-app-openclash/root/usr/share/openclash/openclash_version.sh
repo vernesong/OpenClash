@@ -17,7 +17,7 @@ set_lock
 version_compare() {
     local current_ver="$1"
     local latest_ver="$2"
-    
+
     if echo "1.0.0" | sort -V >/dev/null 2>&1; then
         if [ "$(printf '%s\n%s\n' "$current_ver" "$latest_ver" | sort -V | head -n1)" = "$current_ver" ] && [ "$current_ver" != "$latest_ver" ]; then
             return 0

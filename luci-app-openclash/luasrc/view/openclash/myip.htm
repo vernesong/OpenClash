@@ -419,48 +419,48 @@
         --card-item-padding: 8px 6px;
         --card-item-min-height: 80px;
     }
-    
+
     .oc .myip-content-grid {
         grid-template-columns: 1fr;
     }
-    
+
     .oc .myip-section-title {
         font-size: 22px;
         margin-bottom: 12px;
     }
-    
+
     .oc .myip-ip-list,
     .oc .myip-check-list {
         grid-template-columns: repeat(2, 1fr);
     }
-    
+
     .oc .ip-title,
     .oc .ip-state_title {
         font-size: 13px;
     }
-    
+
     .oc .ip-title::after,
     .oc .ip-state_title::after {
         width: 25px;
     }
-    
+
     .oc .ip-result {
         font-size: 12px;
     }
-    
+
     .oc .ip-geo {
         font-size: 12px;
     }
-    
+
     .oc .sk-text-success, 
     .oc .sk-text-error {
         font-size: 12px;
     }
-    
+
     .oc .sk-load-success {
         font-size: 12px;
     }
-    
+
     .oc .myip-footer p {
         font-size: 13px !important;
         line-height: 18px !important;
@@ -472,44 +472,44 @@
         --card-item-padding: 6px 4px;
         --card-item-min-height: 70px;
     }
-    
+
     .oc .myip-content-grid {
         padding: 2px;
     }
-    
+
     .oc .myip-section-title {
         font-size: 20px;
         margin-bottom: 10px;
     }
-    
+
     .oc .ip-title,
     .oc .ip-state_title {
         font-size: 12px;
         margin-bottom: 6px;
     }
-    
+
     .oc .ip-title::after,
     .oc .ip-state_title::after {
         width: 20px;
     }
-    
+
     .oc .ip-result {
         font-size: 11px;
     }
-    
+
     .oc .ip-geo {
         font-size: 11px;
     }
-    
+
     .oc .sk-text-success, 
     .oc .sk-text-error {
         font-size: 11px;
     }
-    
+
     .oc .sk-load-success {
         font-size: 11px;
     }
-    
+
     .oc .myip-footer p {
         font-size: 11px !important;
         line-height: 16px !important;
@@ -543,7 +543,7 @@
                                         </svg>
                                     </span>
                                 </p>
-                                
+
                                 <div class="myip-ip-list">
                                     <div class="myip-ip-item">
                                         <span class="ip-title">UpaiYun</span>
@@ -552,7 +552,7 @@
                                             <span class="ip-geo" id="ip-upaiyun-geo"></span>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="myip-ip-item">
                                         <span class="ip-title">IPIP.NET</span>
                                         <div class="myip-ip-result">
@@ -560,7 +560,7 @@
                                             <span class="ip-geo" id="ip-ipip-geo"></span>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="myip-ip-item">
                                         <span class="ip-title">IP.SB</span>
                                         <div class="myip-ip-result">
@@ -568,7 +568,7 @@
                                             <span class="ip-geo" id="ip-ipsb-geo"></span>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="myip-ip-item">
                                         <span class="ip-title">IPIFY</span>
                                         <div class="myip-ip-result">
@@ -578,7 +578,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="myip-check-section">
                                 <p class="myip-section-title">
                                     <%:Access Check%>
@@ -598,7 +598,7 @@
                                         </svg>
                                     </span>
                                 </p>
-                                
+
                                 <div class="myip-check-list">
                                     <div class="myip-check-item">
                                         <span class="ip-state_title"><%:Baidu Search%></span>
@@ -607,7 +607,7 @@
                                             <span id="ldtime-baidu"></span>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="myip-check-item">
                                         <span class="ip-state_title"><%:NetEase Music%></span>
                                         <div class="myip-status-result">
@@ -615,7 +615,7 @@
                                             <span id="ldtime-163"></span>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="myip-check-item">
                                         <span class="ip-state_title">GitHub</span>
                                         <div class="myip-status-result">
@@ -623,7 +623,7 @@
                                             <span id="ldtime-github"></span>
                                         </div>
                                     </div>
-                                    
+
                                     <div class="myip-check-item">
                                         <span class="ip-state_title">YouTube</span>
                                         <div class="myip-status-result">
@@ -633,7 +633,7 @@
                                     </div>
                                 </div>
                             </div>
-                            
+
                             <div class="myip-footer">
                                 <p>Powered by <a onclick="return ip_skk()" href="javascript:void(0);">ip.skk.moe</a></p>
                             </div>
@@ -743,7 +743,7 @@
             .then(resp => {
                 const ipMatch = resp.data.match(/当前 IP：([0-9.]+)/);
                 const geoMatch = resp.data.match(/来自于：(.+)/);
-                
+
                 if (ipMatch && geoMatch) {
                     if (localStorage.getItem('privacy_my_ip') != 'true') {
                         $$.getElementById('ip-ipip').innerHTML = ipMatch[1];
@@ -767,7 +767,7 @@
             })
         }
     };
-    
+
     $$.getElementById('http-baidu').innerHTML = '<span><%:Testing...%></span>';
     $$.getElementById('http-163').innerHTML =  '<span><%:Testing...%></span>';
     $$.getElementById('http-github').innerHTML = '<span><%:Testing...%></span>';
@@ -820,15 +820,15 @@
         },
         checker_router: (domain, cbElID, cbLoID) => {
             let start_time = (+new Date());
-            
+
             var xhr = new XMLHttpRequest();
             xhr.open('GET', '/cgi-bin/luci/admin/services/openclash/website_check?domain=' + encodeURIComponent(domain), true);
             xhr.timeout = 10000;
-            
+
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
                     let response_time = (new Date()) - start_time;
-                    
+
                     if (xhr.status === 200) {
                         try {
                             var response = JSON.parse(xhr.responseText);
@@ -836,7 +836,7 @@
                                 if ($$.getElementById(cbLoID).style.display == 'none') {
                                     $$.getElementById(cbLoID).style.display = '';
                                 }
-                                
+
                                 let load_time = response.response_time || response_time;
                                 if (load_time <= 500) {
                                     $$.getElementById(cbLoID).innerHTML = '<span class="sk-load-success">' + load_time + ' ms</span>'
@@ -865,17 +865,17 @@
                     }
                 }
             };
-            
+
             xhr.ontimeout = function() {
                 $$.getElementById(cbLoID).style.display = 'none';
                 $$.getElementById(cbElID).innerHTML = '<span class="sk-text-error"><%:Access Timed Out%></span>'
             };
-            
+
             xhr.onerror = function() {
                 $$.getElementById(cbLoID).style.display = 'none';
                 $$.getElementById(cbElID).innerHTML = '<span class="sk-text-error"><%:Access Denied%></span>'
             };
-            
+
             xhr.send();
         },
         runcheck: () => {
@@ -914,7 +914,7 @@
             };
         };
     };
-        
+
     function myip_Load()
     {
         delete_ip_script();
@@ -924,12 +924,12 @@
         //pcipScript.defer = "defer";
         //pcipScript.src=`https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP&z=${random}`;
         //mypage.appendChild(pcipScript);
-        
+
         var sbipScript= document.createElement("script");
         sbipScript.defer = "defer";
         sbipScript.src=`https://api-ipv4.ip.sb/geoip?callback=getIpsbIP&z=${random}`;
         mypage.appendChild(sbipScript);
-        
+
         IP.getUpaiIP();
         IP.getIpipIP();
         IP.getIpifyIP();
@@ -968,7 +968,7 @@
         var eyeOpenCircle = document.getElementById('eye-open-circle');
         var eyeClosed = document.getElementById('eye-closed');
         var titleElement = eyeIcon.querySelector('title');
-        
+
         if (isOpen) {
             eyeOpen.style.display = '';
             eyeOpenCircle.style.display = '';
@@ -984,14 +984,14 @@
 
     function privacy_my_ip(svgElement) {
         var isCurrentlyOpen = document.getElementById('eye-open').style.display !== 'none';
-        
+
         if (isCurrentlyOpen) {
             delete_ip_script();
             clearInterval(refresh_ip);
             refresh_ip = null;
             localStorage.setItem('privacy_my_ip', 'true');
             update_eye_icon(false);
-            
+
             ip_ipip_ip = $$.getElementById('ip-ipip').innerHTML;
             ip_ipsb_ip = $$.getElementById('ip-ipsb').innerHTML;
             ip_upaiyun_ip = $$.getElementById('ip-upaiyun').innerHTML;
@@ -1032,7 +1032,7 @@
     };
 
     var use_router_mode = true;
-    
+
     function toggle_mode_by_icon(svgElement) {
         var rect = svgElement.querySelector('rect[fill="#2F88FF"]');
         if (rect && rect.getAttribute('fill') === '#2F88FF') {
@@ -1049,14 +1049,14 @@
             init_router_mode();
         }
     }
-    
+
     function update_mode_icon() {
         var modeIcon = document.getElementById('mode-icon');
         var rect = modeIcon.querySelector('rect[x="4"]');
         var paths = modeIcon.querySelectorAll('path');
         var smallRect = modeIcon.querySelector('rect[x="30"]');
         var titleElement = modeIcon.querySelector('title');
-        
+
         if (use_router_mode) {
             rect.setAttribute('fill', '#2F88FF');
             rect.setAttribute('stroke', '#333');
@@ -1075,30 +1075,30 @@
             if (titleElement) titleElement.textContent = '<%:Browser Mode%>';
         }
     }
-    
+
     function init_router_mode() {
         if (refresh_ip) {
             clearInterval(refresh_ip);
             refresh_ip = null;
         }
         delete_ip_script();
-        
+
         if (localStorage.getItem('privacy_my_ip') === 'true') {
             $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipsb').innerHTML = '***.***.***.***';
             $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
             $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
         }
-        
+
         get_router_ip_info();
         HTTP.runcheck();
-        
+
         refresh_http = setInterval("HTTP.runcheck()", Math.floor(Math.random()*(10-5+1)+5)*1000);
         if (localStorage.getItem('privacy_my_ip') !== 'true') {
             refresh_ip = setInterval("get_router_ip_info()", Math.floor(Math.random()*(40-15+1)+15)*1000);
         }
     }
-    
+
     function init_browser_mode() {
         if (localStorage.getItem('privacy_my_ip') === 'true') {
             $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';
@@ -1112,16 +1112,16 @@
         } else {
             reset_display();
         }
-        
+
         myip_Load();
         HTTP.runcheck();
-        
+
         refresh_http = setInterval("HTTP.runcheck()", Math.floor(Math.random()*(10-5+1)+5)*1000);
         if (localStorage.getItem('privacy_my_ip') !== 'true') {
             refresh_ip = setInterval("myip_Load()", Math.floor(Math.random()*(40-15+1)+15)*1000);
         }
     }
-    
+
     function get_router_ip_info() {
         var xhr = new XMLHttpRequest();
         xhr.open('GET', '/cgi-bin/luci/admin/services/openclash/myip_check', true);
@@ -1189,7 +1189,7 @@
         $$.getElementById('ip-upaiyun-geo').innerHTML = '';
         $$.getElementById('ip-ipify-geo').innerHTML = '';
     }
-    
+
     function update_ip_display(data) {
         const ipFields = [
             { id: 'ip-upaiyun', geo: 'ip-upaiyun-geo', key: 'upaiyun' },
@@ -1233,19 +1233,19 @@
         }
         addTitleOnOverflow();
     }
-    
+
     function reset_display() {
         $$.getElementById('ip-ipip').innerHTML = '<%:Querying...%>';
         $$.getElementById('ip-ipify').innerHTML = '<%:Querying...%>';
         $$.getElementById('ip-upaiyun').innerHTML = '<%:Querying...%>';
         $$.getElementById('ip-ipsb').innerHTML = '<%:Querying...%>';
-        
+
         $$.getElementById('ip-ipip-geo').innerHTML = '';
         $$.getElementById('ip-ipify-geo').innerHTML = '';
         $$.getElementById('ip-upaiyun-geo').innerHTML = '';
         $$.getElementById('ip-ipsb-geo').innerHTML = '';
     }
-    
+
     function clearAllIntervals() {
         if (refresh_http) {
             clearInterval(refresh_http);
@@ -1256,15 +1256,15 @@
             refresh_ip = null;
         }
     }
-    
+
     function refresh_myip(svgElement) {
         svgElement.style.transform = 'rotate(360deg)';
         setTimeout(function() {
             svgElement.style.transform = '';
         }, 500);
-        
+
         clearAllIntervals();
-        
+
         if (use_router_mode) {
             get_router_ip_info();
             HTTP.runcheck();
@@ -1283,19 +1283,19 @@
                 $$.getElementById('ip-upaiyun').innerHTML = '***.***.***.***';
                 $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
             }
-            
+
             myip_Load();
             HTTP.runcheck();
-            
+
             refresh_http = setInterval("HTTP.runcheck()", Math.floor(Math.random()*(10-5+1)+5)*1000);
             if (localStorage.getItem('privacy_my_ip') !== 'true') {
                 refresh_ip = setInterval("myip_Load()", Math.floor(Math.random()*(40-15+1)+15)*1000);
             }
         }
-        
+
         return false;
     }
-    
+
     function init_page() {
         var saved_mode = localStorage.getItem('myip_check_mode');
         if (saved_mode === 'true' || saved_mode === null) {
@@ -1307,18 +1307,18 @@
             update_mode_icon();
             init_browser_mode();
         }
-        
+
         if (localStorage.getItem('privacy_my_ip') === 'true') {
             update_eye_icon(false);
         } else {
             update_eye_icon(true);
         }
     }
-    
+
     window.addEventListener('load', function() {
         init_page();
     });
-    
+
     window.addEventListener('beforeunload', function() {
         clearAllIntervals();
     });

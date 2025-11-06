@@ -428,28 +428,28 @@
   .oc .dler-main-container {
     width: calc(100% - 32px);
   }
-  
+
   .oc .card .additional.collapsed {
     width: 140px;
   }
-  
+
   .oc .card .additional .user-card {
     width: 140px;
   }
-  
+
   .oc .card .additional .more-info h1 {
     font-size: 1.8rem;
   }
-  
+
   .oc .card .additional .coords {
     font-size: 0.95rem;
   }
-  
+
   .oc .card .general {
     margin-left: 120px;
     padding-right: 8px;
   }
-  
+
   .oc .card .general .more {
     bottom: 6px;
     padding-right: 12px;
@@ -461,34 +461,34 @@
   .oc .dler-main-container {
     width: 100%;
   }
-  
+
   .oc .card .additional.collapsed {
     width: 125px;
   }
-  
+
   .oc .card .additional .user-card {
     width: 125px;
   }
-  
+
   .oc .card .additional .more-info h1 {
     font-size: 1.5rem;
   }
-  
+
   .oc .card .additional .coords {
     font-size: 0.8rem;
   }
-  
+
   .oc .card .general {
     margin-left: 110px;
     padding-right: 6px;
   }
-  
+
   .oc .card .general h1 {
     font-size: 24px;
     line-height: 30px;
     margin: 0;
   }
-  
+
   .oc .card .general .dler-info {
     grid-template-columns: 1fr;
     grid-template-rows: auto auto auto;
@@ -496,31 +496,31 @@
     padding-right: 8px;
     height: 50%;
   }
-  
+
   .oc .card .general .dler-info-right {
     justify-content: flex-start;
     padding-top: 8px;
     gap: 12px;
   }
-  
+
   .oc .card .general .btn {
     width: 80px !important;
     height: 80px !important;
     font-size: 14px;
     padding: 0 !important;
   }
-  
+
   .oc .card .general .dler-title {
     font-size: 14px;
     width: 50%;
   }
-  
+
   .oc .card .general .dler-result,
   .oc .card .general .dler-result2 {
     font-size: 14px;
     width: 50%;
   }
-  
+
   .oc .card .general .more {
     bottom: 4px;
     padding-right: 10px;
@@ -536,23 +536,23 @@
   .oc .center {
     padding: 8px;
   }
-  
+
   .oc .card .additional.collapsed {
     width: 115px;
   }
-  
+
   .oc .card .additional .user-card {
     width: 115px;
   }
-  
+
   .oc .card .additional .more-info h1 {
     font-size: 1.3rem;
   }
-  
+
   .oc .card .additional .coords {
     font-size: 0.7rem;
   }
-  
+
   .oc .card .general {
     margin-left: 120px;
     padding-right: 4px;
@@ -561,7 +561,7 @@
   .oc .card .general .dler-info {
     height: 50%;
   }
-  
+
   .oc .card .general h1 {
     font-size: 18px;
     line-height: 26px;
@@ -578,7 +578,7 @@
     font-size: 12px;
     width: 50%;
   }
-  
+
   .oc .card .general .more {
     bottom: 2px;
     padding-right: 8px;
@@ -637,7 +637,7 @@
                                 </p>
                             </div>
                         </div>
-                        
+
                         <div class="dler-info-center">
                             <div>
                                 <p>
@@ -654,7 +654,7 @@
                                 </p>
                             </div>
                         </div>
-                        
+
                         <div class="dler-info-right">
                             <div class="dler-btn-container">
                                 <input type="button" class="btn" value="<%:Checkin%>" onclick="return dler_checkin_btn(this)">
@@ -695,7 +695,7 @@
       obj.classList.remove('collapsed');
       obj.classList.add('expanded');
   });
-   
+
   XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
     if (x && x.status == 200 && status.dler_info != "error") {
         dler_plan.innerHTML = status.dler_info.plan;
@@ -721,7 +721,7 @@
         show_less();
     }
   });
-    
+
   XHR.poll(5, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_info")%>', null, function(x, status) {
     if (x && x.status == 200 && status.dler_info != "error") {
         dler_plan.innerHTML = status.dler_info.plan;
@@ -752,7 +752,7 @@
         show_less();
     }
   });
-    
+
   function dler_checkin_btn(btn)
   {
     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dler_checkin")%>', null, function(x, status) {
@@ -774,13 +774,13 @@
       }
     });
   }
-    
+
   function web_dler()
   {
     url='https://bit.ly/32mrABp';
     window.open(url);
   }
-       
+
   function show_more()
   {
     if (obj.classList.contains('expanded')) {
@@ -804,7 +804,7 @@
       obj.classList.add('expanded');
       obj.classList.remove('collapsed');
     }
-    
+
     var rdmdl = Math.floor(Math.random() * 6) + 1;
     if (rdmdl == 1) {
       dler_it.innerHTML = '<%:Simple & trustworthy%>';
