@@ -3692,6 +3692,8 @@ stop_service()
       revert_dnsmasq
 
       LOG_OUT "Step 6: Delete OpenClash Residue File..."
+      LOG_OUT "Tip: OpenClash Already Stop!"
+
       if [ "$enable" != "1" ]; then
          rm -rf /tmp/clash_last_version \
                 /tmp/Proxy_Group \
@@ -3706,14 +3708,12 @@ stop_service()
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf
+         SLOG_CLEAN
       fi
-
-      LOG_OUT "Tip: OpenClash Already Stop!"
 
       del_cron
       clear_overwrite_set
       rm -rf /tmp/yaml_*
-      SLOG_CLEAN
    } >/dev/null 2>&1
 
    echo "OpenClash Already Stop!"
