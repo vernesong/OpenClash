@@ -793,24 +793,30 @@ function fetch_sub_info(sub_url, sub_ua)
 	local info, upload, download, total, day_expire, http_code
 	local used, expire, day_left, percent, surplus
 
-	info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: %s' '%s'", sub_ua, sub_url))
-	if not info or tonumber(string.sub(string.match(info, "http_code=%d+"), 11, -1)) ~= 200 then
-		info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Quantumultx' '%s'", sub_url))
+	info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code=%%{http_code}' -H 'User-Agent: %s' '%s'", sub_ua, sub_url))
+	local http_match = string.match(info, "http_code=(%d+)")
+	if not info or not http_match or tonumber(http_match) ~= 200 then
+		info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code=%%{http_code}' -H 'User-Agent: Quantumultx' '%s'", sub_url))
+		http_match = string.match(info, "http_code=(%d+)")
 	end
 
-	if info then
-		http_code=string.sub(string.match(info, "http_code=%d+"), 11, -1)
+	if info and http_match then
+		http_code = http_match
 		if tonumber(http_code) == 200 then
 			info = string.lower(info)
 			if string.find(info, "subscription%-userinfo") then
 				info = luci.sys.exec("echo '%s' |grep 'subscription-userinfo'" %info)
-				upload = string.sub(string.match(info, "upload=%d+"), 8, -1) or nil
-				download = string.sub(string.match(info, "download=%d+"), 10, -1) or nil
-				total = tonumber(string.format("%.1f",string.sub(string.match(info, "total=%d+"), 7, -1))) or nil
-				used = tonumber(string.format("%.1f",(upload + download))) or nil
-				if string.match(info, "expire=%d+") then
-					day_expire = tonumber(string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
-				end
+				local upload_match = string.match(info, "upload=(%d+)")
+				local download_match = string.match(info, "download=(%d+)")
+				local total_match = string.match(info, "total=(%d+)")
+				local expire_match = string.match(info, "expire=(%d+)")
+
+				upload = upload_match and tonumber(upload_match) or nil
+				download = download_match and tonumber(download_match) or nil
+				total = total_match and tonumber(string.format("%.1f", total_match)) or nil
+				used = upload and download and tonumber(string.format("%.1f", upload + download)) or nil
+				day_expire = expire_match and tonumber(expire_match) or nil
+			end
 
 				-- Calculate expire and day_left
 				if day_expire and day_expire == 0 then
@@ -953,44 +959,43 @@ function get_sub_url(filename)
 					-- Trim whitespace
 					line = line:match('^%s*(.-)%s*$') or ''
 
-					if line == '' then goto continue end
-
+					-- Skip empty lines
+					if line == '' then
+						-- continue to next line
 					-- Check for proxy-providers section
-					if not in_providers then
+					elseif not in_providers then
 						if line:match('^proxy%-providers:%s*$') then
 							in_providers = true
 						end
-						goto continue
-					end
+						-- continue to next line
+					else
+						-- Exit proxy-providers section
+						if line:match('^[^%s]:') and not line:match('^proxy%-providers:') then
+							break
+						end
 
-					-- Exit proxy-providers section
-					if line:match('^[^%s]:') and not line:match('^proxy%-providers:') then
-						break
-					end
-
-					-- Parse provider entries
-					local key, value = line:match('^(%s+)([^:]+):%s*(.*)$')
-					if key and value then
-						local current_indent = #key
-						if current_indent == 2 and value ~= '' then
-							-- New provider
-							current_provider = {name = value:match('^%s*(.-)%s*$'), url = nil}
-							table.insert(providers, current_provider)
-						elseif current_provider and current_indent == 4 and value ~= '' then
-							-- Provider property
-							local prop_key = key:match('^%s+(.-)%s*$')
-							if prop_key == 'url' and current_provider then
-								current_provider.url = value:match('^%s*["\']?(.-)["\']?%s*$')
-							elseif prop_key == 'type' and current_provider and current_provider.url then
-								-- Only include if it's an http provider
-								if value ~= 'http' then
-									current_provider.url = nil
+						-- Parse provider entries
+						local key, value = line:match('^(%s+)([^:]+):%s*(.*)$')
+						if key and value then
+							local current_indent = #key
+							if current_indent == 2 and value ~= '' then
+								-- New provider
+								current_provider = {name = value:match('^%s*(.-)%s*$'), url = nil}
+								table.insert(providers, current_provider)
+							elseif current_provider and current_indent == 4 and value ~= '' then
+								-- Provider property
+								local prop_key = key:match('^%s+(.-)%s*$')
+								if prop_key == 'url' and current_provider then
+									current_provider.url = value:match('^%s*["\']?(.-)["\']?%s*$')
+								elseif prop_key == 'type' and current_provider and current_provider.url then
+									-- Only include if it's an http provider
+									if value ~= 'http' then
+										current_provider.url = nil
+									end
 								end
 							end
 						end
 					end
-
-					::continue::
 				end
 
 				-- Generate JSON-like output

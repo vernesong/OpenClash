@@ -3154,11 +3154,21 @@
                 var card = document.createElement('div');
                 card.className = 'provider-card';
 
-                var providerName = provider.provider_name || 'Unknown';
-                var total = provider.total || 'N/A';
-                var surplus = provider.surplus || 'N/A';
-                var expire = provider.expire || 'N/A';
-                var daysLeft = provider.day_left || 'N/A';
+                // Escape HTML to prevent XSS
+                function escapeHtml(unsafe) {
+                    return unsafe
+                        .replace(/&/g, "&amp;")
+                        .replace(/</g, "&lt;")
+                        .replace(/>/g, "&gt;")
+                        .replace(/"/g, "&quot;")
+                        .replace(/'/g, "&#039;");
+                }
+
+                var providerName = escapeHtml(provider.provider_name || 'Unknown');
+                var total = escapeHtml(provider.total || 'N/A');
+                var surplus = escapeHtml(provider.surplus || 'N/A');
+                var expire = escapeHtml(provider.expire || 'N/A');
+                var daysLeft = escapeHtml(provider.day_left || 'N/A');
                 var percent = provider.percent || 0;
 
                 var html = '<div class="provider-card-header">' +
