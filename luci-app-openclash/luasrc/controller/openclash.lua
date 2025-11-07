@@ -923,32 +923,122 @@ function get_sub_url(filename)
 	end
 
 	-- Priority 3: YAML proxy-providers
-	local config_path = "/etc/openclash/" .. fs.basename(filename)
+	-- Ensure filename has extension
+	local config_filename = filename
+	if not string.match(config_filename, "%.ya?ml$") then
+		config_filename = config_filename .. ".yaml"
+	end
+	local config_path = "/etc/openclash/" .. fs.basename(config_filename)
+
 	if fs.access(config_path) then
-		local ruby_result = luci.sys.exec(string.format([[
-			ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-			begin
-				require 'json'
-				config = YAML.load_file('%s')
-				providers = []
-				if config && config['proxy-providers']
-					config['proxy-providers'].each do |name, provider|
-						if provider['type'] == 'http' && provider['url']
-							providers << {'name' => name, 'url' => provider['url']}
+		-- Use Lua YAML parser without external dependencies
+		local lua_yaml_parser = luci.sys.exec(string.format([[
+			lua -e "
+			local function parse_yaml_providers(file_path)
+				local providers = {}
+				local file = io.open(file_path, 'r')
+				if not file then return '[]' end
+
+				local content = file:read('*all')
+				file:close()
+
+				-- Simple YAML parser for proxy-providers section
+				local in_providers = false
+				local current_provider = nil
+				local indent_level = 0
+
+				for line in content:gmatch('[^\r\n]+') do
+					-- Remove comments
+					line = line:gsub('#.*', '')
+					-- Trim whitespace
+					line = line:match('^%s*(.-)%s*$') or ''
+
+					if line == '' then goto continue end
+
+					-- Check for proxy-providers section
+					if not in_providers then
+						if line:match('^proxy%-providers:%s*$') then
+							in_providers = true
+						end
+						goto continue
+					end
+
+					-- Exit proxy-providers section
+					if line:match('^[^%s]:') and not line:match('^proxy%-providers:') then
+						break
+					end
+
+					-- Parse provider entries
+					local key, value = line:match('^(%s+)([^:]+):%s*(.*)$')
+					if key and value then
+						local current_indent = #key
+						if current_indent == 2 and value ~= '' then
+							-- New provider
+							current_provider = {name = value:match('^%s*(.-)%s*$'), url = nil}
+							table.insert(providers, current_provider)
+						elseif current_provider and current_indent == 4 and value ~= '' then
+							-- Provider property
+							local prop_key = key:match('^%s+(.-)%s*$')
+							if prop_key == 'url' and current_provider then
+								current_provider.url = value:match('^%s*["\']?(.-)["\']?%s*$')
+							elseif prop_key == 'type' and current_provider and current_provider.url then
+								-- Only include if it's an http provider
+								if value ~= 'http' then
+									current_provider.url = nil
+								end
+							end
 						end
 					end
+
+					::continue::
 				end
-				puts JSON.generate(providers)
-			rescue
-				puts '[]'
+
+				-- Generate JSON-like output
+				local result = '['
+				for i, provider in ipairs(providers) do
+					if provider.name and provider.url then
+						if i > 1 then result = result .. ',' end
+						result = result .. string.format('{"name":"%s","url":"%s"}',
+							provider.name:gsub('"', '\\"'),
+							provider.url:gsub('"', '\\"'))
+					end
+				end
+				result = result .. ']'
+				return result
 			end
-			" 2>/dev/null || echo "__RUBY_ERROR__"
+
+			print(parse_yaml_providers('%s'))
+			" 2>/dev/null || echo "[]"
 		]], config_path)):gsub("\n", "")
 
-		if ruby_result and ruby_result ~= "" and ruby_result ~= "__RUBY_ERROR__" and ruby_result ~= "[]" then
-			providers = json.parse(ruby_result)
-			if providers and #providers > 0 then
-				return {type = "multiple", providers = providers}
+		if lua_yaml_parser and lua_yaml_parser ~= "" and lua_yaml_parser ~= "[]" then
+			-- Manual JSON parsing since we can't rely on external parsers
+			local success, parsed_providers = pcall(function()
+				-- Simple JSON-like parser for our specific format
+				local providers_list = {}
+				local json_str = lua_yaml_parser
+
+				-- Remove surrounding brackets
+				json_str = json_str:match('^%[(.*)%]$') or json_str
+
+				-- Split by objects
+				for obj_str in json_str:gmatch('{([^{}]*)}') do
+					local provider = {}
+					for key, value in obj_str:gmatch('"([^"]+)":"([^"]+)"') do
+						if key == "name" then provider.name = value
+						elseif key == "url" then provider.url = value
+						end
+					end
+					if provider.name and provider.url then
+						table.insert(providers_list, provider)
+					end
+				end
+
+				return providers_list
+			end)
+
+			if success and parsed_providers and #parsed_providers > 0 then
+				return {type = "multiple", providers = parsed_providers}
 			end
 		end
 	end

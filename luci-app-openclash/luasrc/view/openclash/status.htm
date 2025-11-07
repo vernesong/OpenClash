@@ -960,21 +960,26 @@
 /* Multiple Providers Grid Layout */
 .oc .subscription-providers-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: 12px;
     padding: 8px 0;
+    max-width: 100%;
+    width: 100%;
 }
 
 .oc .provider-card {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
     border-radius: 8px;
     padding: 12px;
     transition: all 0.2s ease;
+    min-width: 0;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .oc .provider-card:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-md);
     border-color: var(--primary-color);
 }
 
@@ -1022,6 +1027,7 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    min-width: 0;
 }
 
 .oc .provider-expire {
@@ -1030,8 +1036,8 @@
 
 /* Dark mode support for provider cards */
 .oc[data-darkmode="true"] .provider-card {
-    background: var(--card-bg-dark);
-    border-color: var(--border-color-dark);
+    background: var(--bg-white);
+    border-color: var(--border-light);
 }
 
 .oc[data-darkmode="true"] .provider-card:hover {
@@ -1044,11 +1050,11 @@
 }
 
 .oc[data-darkmode="true"] .provider-label {
-    color: var(--text-secondary-dark);
+    color: var(--text-secondary);
 }
 
 .oc[data-darkmode="true"] .provider-value {
-    color: var(--text-primary-dark);
+    color: var(--text-primary);
 }
 
 .oc .subscription-loading,
@@ -3090,7 +3096,24 @@
 
         displaySingleProvider: function(provider, progressSection, progressFill, infoText) {
             if (progressSection) {
+                // Reset to single provider layout
+                progressSection.innerHTML = '';
                 progressSection.style.display = 'flex';
+                progressSection.className = '';
+
+                // Recreate progress bar structure
+                var progressBar = document.createElement('div');
+                progressBar.className = 'subscription-progress-bar';
+
+                progressFill = document.createElement('div');
+                progressFill.className = 'subscription-progress-fill';
+                progressBar.appendChild(progressFill);
+
+                infoText = document.createElement('div');
+                infoText.className = 'subscription-info-text';
+
+                progressSection.appendChild(progressBar);
+                progressSection.appendChild(infoText);
             }
 
             if (!progressFill || !infoText) return;
