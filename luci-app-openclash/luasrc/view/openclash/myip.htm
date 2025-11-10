@@ -5,7 +5,7 @@
 <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
 <link rel="dns-prefetch" href="//whois.pconline.com.cn">
 <link rel="dns-prefetch" href="//pubstatic.b0.upaiyun.com">
-<link rel="dns-prefetch" href="//api-ipv4.ip.sb">
+<link rel="dns-prefetch" href="//api.ip.sb">
 <link rel="dns-prefetch" href="//api.ipify.org">
 <link rel="dns-prefetch" href="//api.ttt.sh">
 <link rel="dns-prefetch" href="//myip.ipip.net">
@@ -13,7 +13,7 @@
 <link rel="dns-prefetch" href="//d.skk.moe">
 <link rel="preconnect" href="https://pubstatic.b0.upaiyun.com">
 <link rel="preconnect" href="https://whois.pconline.com.cn">
-<link rel="preconnect" href="https://api-ipv4.ip.sb">
+<link rel="preconnect" href="https://api.ip.sb">
 <link rel="preconnect" href="https://api.ipify.org">
 <link rel="preconnect" href="https://api.ttt.sh">
 <link rel="preconnect" href="https://qqwry.api.skk.moe">
@@ -657,8 +657,8 @@
     }
     function ip_skk()
     {
-    url2='https://ip.skk.moe';
-    window.open(url2);
+        url2='https://ip.skk.moe';
+        window.open(url2);
     }
     const $$ = document;
     var ip_ipip_ip;
@@ -728,6 +728,18 @@
                 }
             })
         },
+        getPcolIP: () => {
+            fetch(`https://whois.pconline.com.cn/ipJson.jsp?z=${random}`)
+                .then(response => response.json())
+                .then(data => {
+                    let pcisp = data.addr.split(' ');
+                    if (localStorage.getItem('privacy_my_ip') != 'true') {
+                        $$.getElementById('ip-pcol').innerHTML = data.ip;
+                    };
+                    $$.getElementById('ip-pcol-geo').innerHTML = `${data.pro} ${data.city} ${data.region} ${pcisp[1]}`;
+                    addTitleOnOverflow();
+                })
+        },
         getUpaiIP: () => {
             IP.get(`https://pubstatic.b0.upaiyun.com/?_upnode&z=${random}`, 'json')
                 .then(resp => {
@@ -765,6 +777,17 @@
                 IP.parseIPIpip(ip, 'ip-ipify-geo');
                 addTitleOnOverflow();
             })
+        },
+        getIpsbIP: () => {
+            fetch(`https://api.ip.sb/geoip?z=${random}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (localStorage.getItem('privacy_my_ip') != 'true') {
+                        $$.getElementById('ip-ipsb').innerHTML = data.ip;
+                    };
+                    $$.getElementById('ip-ipsb-geo').innerHTML = `${data.country} ${data.isp}`;
+                    addTitleOnOverflow();
+                })
         }
     };
 
@@ -896,6 +919,7 @@
     //};
 
     function getIpsbIP(data){
+        console.log("data:"+data);
         if (localStorage.getItem('privacy_my_ip') != 'true') {
             $$.getElementById('ip-ipsb').innerHTML = data.ip;
         };
@@ -903,36 +927,13 @@
         addTitleOnOverflow();
     };
 
-    function delete_ip_script()
-    {
-        var scripts = document.getElementsByTagName('script');
-        for (var i = scripts.length; i--; ) {
-            if (document.getElementsByTagName("script")[i]['src'] && 
-                (document.getElementsByTagName("script")[i]['src'].indexOf('whois.pconline.com.cn') > -1
-                || document.getElementsByTagName("script")[i]['src'].indexOf('api-ipv4.ip.sb') > -1)) {
-                scripts[i].parentNode.removeChild(scripts[i]);
-            };
-        };
-    };
-
     function myip_Load()
     {
-        delete_ip_script();
-        var mypage = document.getElementsByTagName('HEAD').item(0);
-        var random = parseInt(Math.random() * 100000000);
-        //var pcipScript= document.createElement("script");
-        //pcipScript.defer = "defer";
-        //pcipScript.src=`https://whois.pconline.com.cn/ipJson.jsp?callback=getPcolIP&z=${random}`;
-        //mypage.appendChild(pcipScript);
-
-        var sbipScript= document.createElement("script");
-        sbipScript.defer = "defer";
-        sbipScript.src=`https://api-ipv4.ip.sb/geoip?callback=getIpsbIP&z=${random}`;
-        mypage.appendChild(sbipScript);
-
+        //IP.getPcolIP();
         IP.getUpaiIP();
         IP.getIpipIP();
         IP.getIpifyIP();
+        IP.getIpsbIP();
     };
 
     function show_my_ip() {
@@ -986,7 +987,6 @@
         var isCurrentlyOpen = document.getElementById('eye-open').style.display !== 'none';
 
         if (isCurrentlyOpen) {
-            delete_ip_script();
             clearInterval(refresh_ip);
             refresh_ip = null;
             localStorage.setItem('privacy_my_ip', 'true');
@@ -1081,7 +1081,6 @@
             clearInterval(refresh_ip);
             refresh_ip = null;
         }
-        delete_ip_script();
 
         if (localStorage.getItem('privacy_my_ip') === 'true') {
             $$.getElementById('ip-ipip').innerHTML = '***.***.***.***';

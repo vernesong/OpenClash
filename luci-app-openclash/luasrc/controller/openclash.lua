@@ -2007,7 +2007,7 @@ function action_myip_check()
         },
         {
             name = "ipsb",
-            url = string.format("https://api-ipv4.ip.sb/geoip?z=%d", random),
+            url = string.format("https://api.ip.sb/geoip?z=%d", random),
             parser = function(data)
                 if data and data ~= "" then
                     local ok, ipsb_json = pcall(json.parse, data)
@@ -2181,7 +2181,7 @@ function action_myip_check()
 
     if result.ipify and result.ipify.ip then
         local geo_cmd = string.format(
-            'curl -sL -m 5 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://api-ipv4.ip.sb/geoip/%s" 2>/dev/null',
+            'curl -sL -m 5 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://api.ip.sb/geoip/%s" 2>/dev/null',
             result.ipify.ip
         )
         local geo_data = luci.sys.exec(geo_cmd)
