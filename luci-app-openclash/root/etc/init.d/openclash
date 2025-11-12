@@ -3185,7 +3185,6 @@ EOF
    GITHUB_ADDRESS_MOD:string \
    AUTO_SMART_SWITCH:int_bool \
    SMART_ENABLE_LGBM:int_bool \
-   SMART_STRATEGY:string \
    SMART_POLICY_PRIORITY:string \
    SMART_COLLECT:int_bool \
    SMART_COLLECT_SIZE:int \
@@ -3559,7 +3558,6 @@ get_config()
    smart_collect=$(uci_get_config "smart_collect" || echo 0)
    smart_collect_size=$(uci_get_config "smart_collect_size" || echo 100)
    smart_collect_rate=$(uci_get_config "smart_collect_rate" || echo 1)
-   smart_strategy=$(uci_get_config "smart_strategy" || echo 0)
    smart_policy_priority=$(uci_get_config "smart_policy_priority" || echo 0)
    smart_enable_lgbm=$(uci_get_config "smart_enable_lgbm" || echo 0)
    smart_prefer_asn=$(uci_get_config "smart_prefer_asn" || echo 0)
@@ -3601,7 +3599,7 @@ start_service()
          /usr/share/openclash/yml_rules_change.sh \
          "$rule_source" "$enable_custom_clash_rules" "$TMP_CONFIG_FILE"\
          "$enable_rule_proxy" "$CONFIG_NAME" "$router_self_proxy" "$lan_ip" "$enable_redirect_dns" "$en_mode"\
-         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_strategy" "$smart_policy_priority" "$smart_enable_lgbm" "$smart_prefer_asn"
+         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_policy_priority" "$smart_enable_lgbm" "$smart_prefer_asn"
 
          #Custom overwrite
          if [ -f "/tmp/yaml_overwrite.sh" ]; then

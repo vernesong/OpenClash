@@ -4062,12 +4062,6 @@ msgstr "数据收集采样率"
 msgid "Data Acquisition Rate, Desirable Values are 0-1, The Default is 1"
 msgstr "指定数据收集时的采样率，值为 0-1 之间的数字，默认为 1"
 
-msgid "Node Select Strategy"
-msgstr "节点选择策略"
-
-msgid "Before Node Data Collect Completely, The Default is Sticky-sessions"
-msgstr "在收集到足够数据并优选前，使用指定策略选择节点，默认为粘性会话（sticky-sessions）"
-
 msgid "Error: Setting Smart Auto Switch Failed,"
 msgstr "错误：Smart 策略组自动切换失败，"
 

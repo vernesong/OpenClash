@@ -909,24 +909,6 @@
         }
     };
 
-    //function getPcolIP(data){
-    //    let pcisp = data.addr.split(' ');
-    //    if (localStorage.getItem('privacy_my_ip') != 'true') {
-    //        $$.getElementById('ip-pcol').innerHTML = data.ip;
-    //    };
-    //    $$.getElementById('ip-pcol-geo').innerHTML = `${data.pro} ${data.city} ${data.region} ${pcisp[1]}`;
-    //    addTitleOnOverflow();
-    //};
-
-    function getIpsbIP(data){
-        console.log("data:"+data);
-        if (localStorage.getItem('privacy_my_ip') != 'true') {
-            $$.getElementById('ip-ipsb').innerHTML = data.ip;
-        };
-        $$.getElementById('ip-ipsb-geo').innerHTML = `${data.country} ${data.isp}`;
-        addTitleOnOverflow();
-    };
-
     function myip_Load()
     {
         //IP.getPcolIP();
