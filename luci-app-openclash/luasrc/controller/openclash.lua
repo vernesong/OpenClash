@@ -974,16 +974,16 @@ function get_sub_url(filename)
 						end
 
 						-- Parse provider entries
-						local key, value = line:match('^(%s+)([^:]+):%s*(.*)$')
-						if key and value then
-							local current_indent = #key
-							if current_indent == 2 and value ~= '' then
+						local indent, key, value = line:match('^(%s+)([^:]+):%s*(.*)$')
+						if indent and key then
+							local current_indent = #indent
+							if current_indent == 2 and key ~= '' then
 								-- New provider
-								current_provider = {name = value:match('^%s*(.-)%s*$'), url = nil}
+								current_provider = {name = key:match('^%s*(.-)%s*$'), url = nil}
 								table.insert(providers, current_provider)
-							elseif current_provider and current_indent == 4 and value ~= '' then
+							elseif current_provider and current_indent == 4 and key ~= '' then
 								-- Provider property
-								local prop_key = key:match('^%s+(.-)%s*$')
+								local prop_key = key:match('^%s*(.-)%s*$')
 								if prop_key == 'url' and current_provider then
 									current_provider.url = value:match('^%s*["\']?(.-)["\']?%s*$')
 								elseif prop_key == 'type' and current_provider and current_provider.url then
