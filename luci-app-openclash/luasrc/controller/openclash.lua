@@ -937,7 +937,7 @@ function get_sub_url(filename)
 
 	-- Debug: Write to log
 	luci.sys.exec(string.format("logger -t openclash 'get_sub_url: filename=%s, config_path=%s, exists=%s'",
-		filename or "nil", config_path, tostring(fs.access(config_path))))
+		filename or "nil", config_path or "nil", tostring(fs.access(config_path) or false)))
 
 	if fs.access(config_path) then
 		-- Use Lua YAML parser without external dependencies
@@ -1019,8 +1019,9 @@ function get_sub_url(filename)
 			" 2>/dev/null || echo "[]"
 		]], config_path)):gsub("\n", "")
 
-		-- Debug: Log parser result
-		luci.sys.exec(string.format("logger -t openclash 'YAML parser result: %s'", lua_yaml_parser or "nil"))
+		-- Debug: Log parser result (length only to avoid shell escaping issues)
+		luci.sys.exec(string.format("logger -t openclash 'YAML parser result length: %d'",
+			lua_yaml_parser and #lua_yaml_parser or 0))
 
 		if lua_yaml_parser and lua_yaml_parser ~= "" and lua_yaml_parser ~= "[]" then
 			-- Manual JSON parsing since we can't rely on external parsers
