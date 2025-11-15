@@ -935,6 +935,10 @@ function get_sub_url(filename)
 	end
 	local config_path = "/etc/openclash/" .. fs.basename(config_filename)
 
+	-- Debug: Write to log
+	luci.sys.exec(string.format("logger -t openclash 'get_sub_url: filename=%s, config_path=%s, exists=%s'",
+		filename or "nil", config_path, tostring(fs.access(config_path))))
+
 	if fs.access(config_path) then
 		-- Use Lua YAML parser without external dependencies
 		local lua_yaml_parser = luci.sys.exec(string.format([[
@@ -1015,6 +1019,9 @@ function get_sub_url(filename)
 			" 2>/dev/null || echo "[]"
 		]], config_path)):gsub("\n", "")
 
+		-- Debug: Log parser result
+		luci.sys.exec(string.format("logger -t openclash 'YAML parser result: %s'", lua_yaml_parser or "nil"))
+
 		if lua_yaml_parser and lua_yaml_parser ~= "" and lua_yaml_parser ~= "[]" then
 			-- Manual JSON parsing since we can't rely on external parsers
 			local success, parsed_providers = pcall(function()
@@ -1053,6 +1060,7 @@ end
 function sub_info_get()
 	local sub_ua, filename, sub_info, http_code, surplus, used, total, percent, day_left, expire
 	local providers_data = {}
+	local debug_info = {}
 
 	filename = luci.http.formvalue("filename")
 	sub_info = ""
@@ -1067,8 +1075,15 @@ function sub_info_get()
 		end
 	)
 
+	table.insert(debug_info, "filename=" .. (filename or "nil"))
+	table.insert(debug_info, "is_start=" .. tostring(is_start()))
+
 	if filename and not is_start() then
 		local url_result = get_sub_url(filename)
+		table.insert(debug_info, "url_result=" .. (url_result and "exists" or "nil"))
+		if url_result then
+			table.insert(debug_info, "url_result_type=" .. (url_result.type or "nil"))
+		end
 
 		if not url_result then
 			sub_info = "No Sub Info Found"
@@ -1113,7 +1128,8 @@ function sub_info_get()
 		luci.http.write_json({
 			sub_info = sub_info,
 			providers = providers_data,
-			get_time = os.time();
+			get_time = os.time(),
+			debug = table.concat(debug_info, "; ")
 		})
 	else
 		-- Single provider or no data (backward compatible)
@@ -1126,7 +1142,8 @@ function sub_info_get()
 			percent = percent,
 			day_left = day_left,
 			expire = expire,
-			get_time = os.time();
+			get_time = os.time(),
+			debug = table.concat(debug_info, "; ")
 		})
 	end
 end
