@@ -816,7 +816,6 @@ function fetch_sub_info(sub_url, sub_ua)
 				total = total_match and tonumber(string.format("%.1f", total_match)) or nil
 				used = upload and download and tonumber(string.format("%.1f", upload + download)) or nil
 				day_expire = expire_match and tonumber(expire_match) or nil
-			end
 
 				-- Calculate expire and day_left
 				if day_expire and day_expire == 0 then
@@ -887,9 +886,9 @@ function fetch_sub_info(sub_url, sub_ua)
 					day_left = day_left,
 					expire = expire
 				}
-			end
-		end
-	end
+			end -- end of if string.find(info, "subscription%-userinfo")
+		end -- end of if tonumber(http_code) == 200
+	end -- end of if info and http_match
 
 	return nil
 end
