@@ -252,7 +252,7 @@ ip_ac:value("localnetwork", translate("Local Network"))
 o = s2:option(Value, "src_port", translate("Internal ports"))
 o.datatype = "or(port, portrange)"
 o.placeholder = translate("5000 or 1234-2345")
-o.rmempty = false
+o.rmempty = true
 
 o = s2:option(ListValue, "proto", translate("Proto"))
 o:value("udp", translate("UDP"))
@@ -318,14 +318,20 @@ local all_neighbors = {}
 
 luci.ip.neighbors({ family = 4 }, function(n)
     if n.mac and n.dest then
-        table.insert(all_neighbors, {dest = n.dest:string(), mac = n.mac, family = 4})
+        if n.hostname then
+            hostname = " [".. n.hostname .."]"
+        end
+        table.insert(all_neighbors, {dest = n.dest:string(), mac = n.mac, hostname = hostname or "", family = 4})
     end
 end)
 
 if string.len(SYS.exec("/usr/share/openclash/openclash_get_network.lua 'gateway6'")) ~= 0 then
     luci.ip.neighbors({ family = 6 }, function(n)
         if n.mac and n.dest then
-            table.insert(all_neighbors, {dest = n.dest:string(), mac = n.mac, family = 6})
+            if n.hostname then
+                hostname = " [".. n.hostname .."]"
+            end
+            table.insert(all_neighbors, {dest = n.dest:string(), mac = n.mac, hostname = hostname or "", family = 6})
         end
     end)
 end
@@ -334,16 +340,20 @@ table.sort(all_neighbors, ip_compare)
 
 local mac_ip_map = {}
 local mac_order = {}
+local mac_hostname_map = {}
 
 for _, item in ipairs(all_neighbors) do
-    ip_b:value(item.dest)
-    ip_w:value(item.dest)
-    ip_ac:value(item.dest)
+    ip_b:value(item.dest, "%s%s" %{ item.dest, item.hostname })
+    ip_w:value(item.dest, "%s%s" %{ item.dest, item.hostname })
+    ip_ac:value(item.dest, "%s%s" %{ item.dest, item.hostname })
     if not mac_ip_map[item.mac] then
         mac_ip_map[item.mac] = {}
         table.insert(mac_order, item.mac)
     end
     table.insert(mac_ip_map[item.mac], item.dest)
+    if not mac_hostname_map[item.mac] then
+        mac_hostname_map[item.mac] = item.hostname
+    end
 end
 
 for _, mac in ipairs(mac_order) do
@@ -366,8 +376,8 @@ for _, mac in ipairs(mac_order) do
         end
     end)
     local ip_str = table.concat(ips, "|")
-    mac_b:value(mac, "%s (%s)" %{ mac, ip_str })
-    mac_w:value(mac, "%s (%s)" %{ mac, ip_str })
+    mac_b:value(mac, "%s%s (%s)" %{ mac, mac_hostname_map[mac], ip_str })
+    mac_w:value(mac, "%s%s (%s)" %{ mac, mac_hostname_map[mac], ip_str })
 end
 
 ---- Traffic Control
