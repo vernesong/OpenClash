@@ -3344,7 +3344,7 @@ function action_upload_config()
     end
 
     local yaml_valid = false
-    local content_start = string.sub(upload, 1, 1000)
+    local content_start = string.sub(upload, 1, 5000)
 
     if string.find(content_start, "proxy%-providers:") or 
        string.find(content_start, "proxies:") or
