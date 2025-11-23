@@ -478,6 +478,12 @@ threads << Thread.new do
       end
       Value.delete('auto-redir')
 
+      (Value['ntp'] ||= {})['enable'] = true
+      Value['ntp']['server'] = 'time.apple.com' if !Value['ntp'].key?('server')
+      Value['ntp']['port'] = 123 if !Value['ntp'].key?('port')
+      Value['ntp']['interval'] = 30 if !Value['ntp'].key?('interval')
+      Value['ntp']['write-to-system'] = true if !Value['ntp'].key?('write-to-system')
+
    rescue Exception => e
       YAML.LOG('Error: Set General Failed,【%s】' % [e.message])
    end
