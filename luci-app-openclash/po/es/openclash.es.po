@@ -1,0 +1,4209 @@
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: es\n"
+
+msgid "OpenClash"
+msgstr "OpenClash"
+
+msgid "A Clash Client For OpenWrt"
+msgstr "Un cliente Clash para OpenWrt compatible con Shadowsocks(R), Vmess, Trojan, Snell y otros protocolos, que permite el enrutamiento por reglas de forma flexible."
+
+msgid "Plugin Settings"
+msgstr "Ajustes del plugin"
+
+msgid "Credits"
+msgstr "Créditos"
+
+msgid "Overviews"
+msgstr "Resumen"
+
+msgid "Overwrite Settings"
+msgstr "Sobrescribir ajustes"
+
+msgid "Rule Providers Append"
+msgstr "Añadir proveedores de reglas"
+
+msgid "Game Rules Append"
+msgstr "Añadir reglas de juegos"
+
+msgid "Other Rule Providers Append"
+msgstr "Añadir otros proveedores de reglas"
+
+msgid "Custom Rule Providers Append"
+msgstr "Añadir proveedores de reglas personalizados"
+
+msgid "General Settings"
+msgstr "Ajustes generales"
+
+msgid "Settings"
+msgstr "Ajustes"
+
+msgid "Config Subscribe"
+msgstr "Suscripción de configuraciones"
+
+msgid "Add Config File"
+msgstr "Añadir archivo de configuración"
+
+msgid "Config Subscribe Edit"
+msgstr "Editar suscripción de configuración"
+
+msgid "Rules Update"
+msgstr "Actualización de reglas de terceros"
+
+msgid "Dashboard Settings"
+msgstr "Ajustes del panel de control"
+
+msgid "Enabled"
+msgstr "Habilitado"
+
+msgid "Disabled"
+msgstr "Deshabilitado"
+
+msgid "Running"
+msgstr "En ejecución"
+
+msgid "Not Running"
+msgstr "No ejecutándose"
+
+msgid "(Enable or Disable)"
+msgstr "(Habilitar o deshabilitar)"
+
+msgid "Config Normal"
+msgstr "Configuración correcta"
+
+msgid "Config Abnormal"
+msgstr "Configuración incorrecta"
+
+msgid "File Not Exist"
+msgstr "El archivo no existe"
+
+msgid "Not Set"
+msgstr "No configurado"
+
+msgid "Server Logs"
+msgstr "Registros del servidor"
+
+msgid "Debug Logs"
+msgstr "Registros de depuración"
+
+msgid "Generate Logs"
+msgstr "Generar registros"
+
+msgid "Click to Generate"
+msgstr "Haz clic para generar"
+
+msgid "Enable OpenClash"
+msgstr "Activar OpenClash"
+
+msgid "Disable OpenClash"
+msgstr "Desactivar OpenClash"
+
+msgid "Commit Settings"
+msgstr "Guardar ajustes"
+
+msgid "Apply Settings"
+msgstr "Aplicar ajustes"
+
+msgid "Download Config"
+msgstr "Descargar configuración"
+
+msgid "Copy Config"
+msgstr "Copiar configuración"
+
+msgid "Update Config"
+msgstr "Actualizar configuración"
+
+msgid "Download Running Config"
+msgstr "Descargar configuración en ejecución"
+
+msgid "Select Mode"
+msgstr "Seleccionar modo"
+
+msgid "redir-host"
+msgstr "Modo Redir-Host (compatible)"
+
+msgid "fake-ip"
+msgstr "Modo Fake-IP (mejorado)"
+
+msgid "redir-host(tun mode)"
+msgstr "Modo Redir-Host (TUN)"
+
+msgid "fake-ip(tun mode)"
+msgstr "Modo Fake-IP (TUN)"
+
+msgid "redir-host-mix(tun mix mode)"
+msgstr "Modo Redir-Host (TUN mixto) [UDP-TUN, TCP-reenvío]"
+
+msgid "fake-ip-mix(tun mix mode)"
+msgstr "Modo Fake-IP (TUN mixto) [UDP-TUN, TCP-reenvío]"
+
+msgid "Select Mode For OpenClash Work, Try Flush DNS Cache If Network Error"
+msgstr "Selecciona el modo de ejecución; si hay errores de red, prueba a vaciar la caché DNS"
+
+msgid "Proxy Mode"
+msgstr "Modo de proxy"
+
+msgid "Select Proxy Mode"
+msgstr "Selecciona el modo de proxy predeterminado"
+
+msgid "Rule Proxy Mode"
+msgstr "Rule (proxy por reglas)"
+
+msgid "Global Proxy Mode"
+msgstr "Global (proxy total – requiere elegir nodo en el panel de control)"
+
+msgid "Direct Proxy Mode"
+msgstr "Direct (conexión directa total)"
+
+msgid "Select Stack Type"
+msgstr "Tipo de pila de red"
+
+msgid "Select Stack Type For TUN Mode, According To The Running Speed on Your Machine"
+msgstr "Selecciona la pila de red para el modo TUN según el rendimiento de tu dispositivo"
+
+msgid "China IP Route"
+msgstr "Experimental: omitir IP de regiones específicas"
+
+msgid "China IPv6 Route"
+msgstr "Experimental: omitir IPv6 de regiones específicas"
+
+msgid "Bypass Mainland China"
+msgstr "Omitir China continental"
+
+msgid "Bypass Overseas"
+msgstr "Modo regreso a China para usuarios en el extranjero"
+
+msgid "Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option"
+msgstr "Omite el tráfico de regiones especificadas para mejorar el rendimiento. Si usas un router en modo bypass y hay problemas de acceso, habilita la opción de compatibilidad."
+
+msgid "Log Level"
+msgstr "Nivel de registro"
+
+msgid "Info Mode"
+msgstr "Info (información)"
+
+msgid "Warning Mode"
+msgstr "Warning (advertencias)"
+
+msgid "Error Mode"
+msgstr "Error (errores)"
+
+msgid "Debug Mode"
+msgstr "Debug (depuración)"
+
+msgid "Silent Mode"
+msgstr "Silent (silencioso)"
+
+msgid "Select Core's Log Level"
+msgstr "Selecciona el nivel de registro del núcleo"
+
+msgid "Only intranet allowed"
+msgstr "Solo intranet permitida"
+
+msgid "When Enabled, The Control Panel And The Connection Broker Port Will Not Be Accessible From The Public Network"
+msgstr "Si se activa, el panel de control y el puerto del broker no serán accesibles desde Internet"
+
+msgid "Redirect Local DNS Setting"
+msgstr "Redirección del DNS local"
+
+msgid "Set Local DNS Redirect"
+msgstr "Configura la redirección del DNS local; se recomienda Dnsmasq para mejor compatibilidad"
+
+msgid "Dnsmasq Redirect"
+msgstr "Redirección mediante Dnsmasq"
+
+msgid "Firewall Redirect"
+msgstr "Redirección mediante firewall"
+
+msgid "Custom DNS Setting"
+msgstr "DNS ascendente personalizado"
+
+msgid "Use Custom Rules"
+msgstr "Añadir reglas personalizadas al archivo de configuración"
+
+msgid "Add Custom DNS Servers"
+msgstr "Añadir servidores DNS personalizados"
+
+msgid "(Take Effect After Choose Above)"
+msgstr "(Efectivo solo si está activado arriba)"
+
+msgid "Advanced Setting"
+msgstr "Configuración avanzada"
+
+msgid "Enable Specify DNS Server"
+msgstr "Habilitar segundo servidor DNS"
+
+msgid "Specify DNS Server"
+msgstr "Servidor especificado"
+
+msgid "Specify DNS Server For List, Only One IP Server Address Support"
+msgstr "Especifica un único servidor DNS para los dominios listados"
+
+msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line, Depend on Dnsmasq"
+msgstr "Un dominio por línea; estos dominios siempre devolverán IP real (depende de Dnsmasq)"
+
+msgid "Domain Names In The List Do Not Return Fake-IP, One rule per line"
+msgstr "Un dominio por línea; devolverán IP real en modo Fake-IP"
+
+msgid "Domain Names In The List Use The Custom DNS Server, But Still Return Fake-IP Results, One rule per line"
+msgstr "Un dominio por línea; usarán el DNS indicado pero seguirán devolviendo direcciones Fake-IP"
+
+msgid "Set OpenClash Upstream DNS Resolve Server"
+msgstr "Activar para sobrescribir la configuración DNS del archivo; configura los servidores abajo"
+
+msgid "DNS Server Group"
+msgstr "Grupo de servidores DNS"
+
+msgid "NameServer Group Must Be Set"
+msgstr "Debe configurarse al menos un NameServer"
+
+msgid "DNS Server Address"
+msgstr "Dirección del servidor"
+
+msgid "Do Not Add Type Ahead"
+msgstr "No añadas prefijos de tipo"
+
+msgid "DNS Server Port"
+msgstr "Puerto del servidor"
+
+msgid "Require When Use Non-Standard Port"
+msgstr "Obligatorio si se usa un puerto no estándar"
+
+msgid "DNS Server Type"
+msgstr "Tipo de servidor"
+
+msgid "Communication protocol"
+msgstr "Protocolo de comunicación"
+
+msgid "Proxy IPv6 Traffic"
+msgstr "Proxy para tráfico IPv6"
+
+msgid "The Gateway and DNS of The Connected Device Must be The Router IP, Disable IPv6 DHCP To Avoid Abnormal Connection If You Do Not Use"
+msgstr "El dispositivo debe usar como puerta de enlace y DNS la IP del router. Si no usas IPv6, desactiva su DHCP para evitar fallos."
+
+msgid "IPv6 DNS Resolve"
+msgstr "Permitir resolución DNS IPv6"
+
+msgid "Enable to Resolve IPv6 DNS Requests"
+msgstr "Permite procesar peticiones DNS de tipo IPv6"
+
+msgid "Rules Setting"
+msgstr "Ajustes de reglas"
+
+msgid "Config Manage"
+msgstr "Gestión de configuraciones"
+
+msgid "Upload Config File"
+msgstr "Subir archivo de configuración"
+
+msgid "Upload File Type"
+msgstr "Tipo de archivo a subir"
+
+msgid "(Click to select)"
+msgstr "(Haz clic para seleccionar)"
+
+msgid "Proxy Provider File"
+msgstr "Archivo de proveedor de proxies"
+
+msgid "Rule Provider File"
+msgstr "Archivo de proveedor de reglas"
+
+msgid "Core File"
+msgstr "Archivo del núcleo"
+
+msgid "Upload"
+msgstr "Subir"
+
+msgid "Add"
+msgstr "Añadir"
+
+msgid "File saved to"
+msgstr "Archivo guardado en"
+
+msgid "upload file error."
+msgstr "Error al subir el archivo."
+
+msgid "No specify upload file."
+msgstr "No se ha especificado ningún archivo para subir."
+
+msgid "Note: Please Upload File According To File Type, File Will Be Saved To The Prompt Path"
+msgstr "Nota: sube el archivo según su tipo; se guardará en la ruta indicada."
+
+msgid "Proxy Provider File List"
+msgstr "Lista de archivos de proveedores de proxies"
+
+msgid "Rule Providers File List"
+msgstr "Lista de archivos de proveedores de reglas"
+
+msgid "Game Rules File List"
+msgstr "Lista de archivos de reglas de juegos"
+
+msgid "Please Make Sure Ports Available"
+msgstr "Asegúrate de que los puertos estén disponibles"
+
+msgid "Update Subcription"
+msgstr "Actualizar suscripción"
+
+msgid "Update time (every day)"
+msgstr "Hora de actualización (cada día)"
+
+msgid "Update Interval(min)"
+msgstr "Intervalo de actualización (minutos)"
+
+msgid "Update Interval(hour)"
+msgstr "Intervalo de actualización (horas)"
+
+msgid "Update Mode"
+msgstr "Modo de actualización"
+
+msgid "Appointment Mode"
+msgstr "Programado"
+
+msgid "Loop Mode"
+msgstr "Cíclico"
+
+msgid "Auto Update"
+msgstr "Actualización automática"
+
+msgid "Check And Update"
+msgstr "Comprobar y actualizar"
+
+msgid "After clash start running, wait a moment for servers to resolve,enjoy"
+msgstr "Cuando Clash esté ejecutándose, espera unos instantes a que los servidores se resuelvan."
+
+msgid "Redir Port"
+msgstr "Puerto Redir"
+
+msgid "TProxy Port"
+msgstr "Puerto TProxy"
+
+msgid "SOCKS5 Port"
+msgstr "Puerto SOCKS5"
+
+msgid "HTTP(S) Port"
+msgstr "Puerto HTTP(S)"
+
+msgid "Mixed Port"
+msgstr "Puerto mixto HTTP(S) & SOCKS5"
+
+msgid "Set Authentication of SOCKS5/HTTP(S)"
+msgstr "Configurar autenticación para SOCKS5/HTTP(S)"
+
+msgid "Not Null"
+msgstr "No puede estar vacío"
+
+msgid "Server Subscription Address"
+msgstr "Dirección de suscripción de configuración"
+
+msgid "Auto Update Server subscription"
+msgstr "Actualizar suscripción automáticamente"
+
+msgid "Modify Your Config file:"
+msgstr "Puedes modificar tu archivo de configuración:"
+
+msgid "Here, Except The Settings That Were Taken Over"
+msgstr " (solo para parámetros que no estén gestionados por OpenClash)"
+
+msgid "Default Config File With Correct Template"
+msgstr "Archivo de configuración de referencia, con parámetros y comentarios correctos"
+
+msgid "Config File Edited By OpenClash For Running"
+msgstr "Archivo de configuración modificado por OpenClash para ejecutarse"
+
+msgid "Dashboard Secret"
+msgstr "Clave del panel de administración"
+
+msgid "Set Dashboard Secret"
+msgstr "Establecer clave del panel de administración"
+
+msgid "Dashboard Address Example:"
+msgstr "Ejemplo de dirección del panel:"
+
+msgid "Dashboard Port"
+msgstr "Puerto del panel de administración"
+
+msgid "Public Dashboard Address"
+msgstr "Dirección pública del panel"
+
+msgid "Domain Name For Dashboard Login From Public Network"
+msgstr "Dominio para iniciar sesión en el panel desde Internet"
+
+msgid "Public Dashboard Port"
+msgstr "Puerto público del panel"
+
+msgid "Port For Dashboard Login From Public Network"
+msgstr "Puerto usado para iniciar sesión en el panel desde Internet"
+
+msgid "Public Dashboard SSL enabled"
+msgstr "Habilitar SSL para acceso público"
+
+msgid "Is SSL enabled For Dashboard Login From Public Network"
+msgstr "Indica si el acceso al panel desde Internet utiliza SSL"
+
+msgid "GEO Update"
+msgstr "Actualización de bases GEO"
+
+msgid "Auto Update GeoIP MMDB"
+msgstr "Actualizar automáticamente GeoIP MMDB"
+
+msgid "Update GeoIP MMDB"
+msgstr "Actualizar GeoIP MMDB"
+
+msgid "Auto Update GeoSite"
+msgstr "Actualizar automáticamente GeoSite"
+
+msgid "Update GeoSite Database"
+msgstr "Actualizar base de datos GeoSite"
+
+msgid "Auto Update Geo ASN"
+msgstr "Actualizar automáticamente Geo ASN"
+
+msgid "Update Geo ASN Database"
+msgstr "Actualizar base de datos Geo ASN"
+
+msgid "Auto Update Chnroute Lists"
+msgstr "Actualizar automáticamente la lista Chnroute"
+
+msgid "Update Chnroute Lists"
+msgstr "Actualizar lista Chnroute"
+
+msgid "Chnroute Update"
+msgstr "Actualización de Chnroute"
+
+msgid "Other Rules Update(Only in Use)"
+msgstr "Actualización de reglas de terceros (solo si se están usando)"
+
+msgid "Enable Other Rules"
+msgstr "Habilitar reglas de terceros"
+
+msgid "Use Other Rules"
+msgstr "Sobrescribe las reglas del archivo de configuración (excepto personalizadas). Debes crear antes la configuración más abajo."
+
+msgid "lhie1 Rules"
+msgstr "Reglas lhie1"
+
+msgid "Auto Update Other Rules"
+msgstr "La actualización automática solo funciona si se están usando reglas de terceros"
+
+msgid "Update Time (Every Week)"
+msgstr "Hora de actualización (cada semana)"
+
+msgid "Every Day"
+msgstr "Cada día"
+
+msgid "Every Monday"
+msgstr "Cada lunes"
+
+msgid "Every Tuesday"
+msgstr "Cada martes"
+
+msgid "Every Wednesday"
+msgstr "Cada miércoles"
+
+msgid "Every Thursday"
+msgstr "Cada jueves"
+
+msgid "Every Friday"
+msgstr "Cada viernes"
+
+msgid "Every Saturday"
+msgstr "Cada sábado"
+
+msgid "Every Sunday"
+msgstr "Cada domingo"
+
+msgid "Update Other Rules"
+msgstr "Actualizar reglas de terceros"
+
+msgid "GlobalTV"
+msgstr "Streaming internacional"
+
+msgid "AsianTV"
+msgstr "Streaming asiático"
+
+msgid "CN Mainland TV"
+msgstr "Streaming de China continental"
+
+msgid "Proxy"
+msgstr "Tráfico que debe ir por proxy"
+
+msgid "Apple"
+msgstr "Servicios de Apple"
+
+msgid "Google FCM"
+msgstr "Google FCM (notificaciones)"
+
+msgid "Scholar"
+msgstr "Sitios académicos"
+
+msgid "Microsoft"
+msgstr "Servicios de Microsoft"
+
+msgid "Netflix"
+msgstr "Netflix"
+
+msgid "Disney Plus"
+msgstr "Disney+"
+
+msgid "Bilibili"
+msgstr "Bilibili"
+
+msgid "Bahamut"
+msgstr "Bahamut"
+
+msgid "Steam"
+msgstr "Steam (no incluye descargas)"
+
+msgid "Netease Music"
+msgstr "Netease Music"
+
+msgid "Speedtest"
+msgstr "Speedtest (tráfico de prueba)"
+
+msgid "AdBlock"
+msgstr "Publicidad (AdBlock)"
+
+msgid "Domestic"
+msgstr "Tráfico doméstico"
+
+msgid "Others"
+msgstr "Tráfico no coincidente con reglas"
+
+msgid "Choose Proxy Groups, Base On Your Config File"
+msgstr "Selecciona los grupos de proxy para cada categoría; los grupos se toman de tu archivo de configuración"
+
+msgid "Custom Clash Rules"
+msgstr "Reglas personalizadas"
+
+msgid "Custom Rules Here, For More Go:"
+msgstr "Define aquí reglas personalizadas; más información en:"
+
+msgid "(Priority)"
+msgstr "(Prioridad)"
+
+msgid "(Extended)"
+msgstr "(Ampliadas)"
+
+msgid "IP To CIDR:"
+msgstr "Conversor IP a CIDR:"
+
+msgid "Custom Hosts Here, You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address, For More Go:"
+msgstr "Configura Hosts personalizados aquí. Si usas direcciones reservadas, debes desactivar la protección de re-binding de Dnsmasq. Más información en:"
+
+msgid "Set Custom Rules"
+msgstr "Establecer reglas personalizadas (requiere activar la opción en Ajustes de reglas)"
+
+msgid "Version Update"
+msgstr "Actualización de versión"
+
+msgid "Model Not Found"
+msgstr "No se ha podido identificar la arquitectura del procesador"
+
+msgid "Current Core Version"
+msgstr "Versión actual del núcleo"
+
+msgid "Last Core Version"
+msgstr "Última versión del núcleo"
+
+msgid "Check Failed"
+msgstr "Error al comprobar actualización"
+
+msgid "<New>"
+msgstr "<Disponible>"
+
+msgid "Getting Last Version..."
+msgstr "Obteniendo la última versión..."
+
+msgid "Update Core File"
+msgstr "Actualizar núcleo"
+
+msgid "Download Form https://github.com/vernesong/OpenClash/releases/tag/Clash If Fail"
+msgstr "Si falla la descarga, puedes obtenerlo manualmente en https://github.com/vernesong/OpenClash/releases/tag/Clash"
+
+msgid "Last OpenClash Version"
+msgstr "Última versión de OpenClash"
+
+msgid "Current OpenClash Version"
+msgstr "Versión actual de OpenClash"
+
+msgid "Update OpenClash"
+msgstr "Actualizar OpenClash"
+
+msgid "Only For IPK Install Type Or Not Release Memory"
+msgstr "Solo se puede actualizar si se instaló mediante IPK; las versiones compiladas en el sistema no liberarán espacio tras actualizar."
+
+msgid "Onekey Create"
+msgstr "Generar con un clic"
+
+msgid "Read Config"
+msgstr "Leer configuración"
+
+msgid "Delete Unused Servers"
+msgstr "Eliminar nodos no utilizados"
+
+msgid "Delete Servers"
+msgstr "Borrar configuración de servidores"
+
+msgid "Delete Proxy Providers"
+msgstr "Borrar configuración de proveedores de proxy"
+
+msgid "Delete Groups"
+msgstr "Borrar configuración de grupos"
+
+msgid "Back Settings"
+msgstr "Volver al resumen"
+
+msgid "Refresh Page"
+msgstr "Actualizar página"
+
+msgid "Onekey Create (Servers&Groups manage)"
+msgstr "Generación con un clic (gestión de nodos y grupos)"
+
+msgid "Keep Settings"
+msgstr "Conservar ajustes"
+
+msgid "Only Update Servers Below When Subscription"
+msgstr "Al suscribir, solo actualizar nodos y proveedores; mantener grupos sin modificar su orden."
+
+msgid "New Servers Group (Support Regex)"
+msgstr "Grupo predeterminado para nuevos nodos (soporta expresiones regulares)"
+
+msgid "Set The New Subscribe Server's Default Proxy Groups"
+msgstr "Selecciona los grupos predeterminados para los nuevos nodos suscritos (sin duplicados)"
+
+msgid "Choose Template For Create Config"
+msgstr "Selecciona la plantilla para generar la configuración"
+
+msgid "Use Other Rules To Create Config"
+msgstr "Crear configuración usando reglas de terceros (luego podrás ajustar parámetros en Ajustes globales)"
+
+msgid "Disable Create Config"
+msgstr "Solo actualizar nodos de la configuración"
+
+msgid "Mix Proxies"
+msgstr "Mezclar nodos"
+
+msgid "Mix This Page's Proxies"
+msgstr "Al generar la configuración, mezclar todos los servidores listados en esta página (sin importar el archivo original)"
+
+msgid "Type"
+msgstr "Tipo"
+
+msgid "Server Alias"
+msgstr "Alias del servidor (no duplicar)"
+
+msgid "Server Address"
+msgstr "Dirección del servidor"
+
+msgid "Server Port"
+msgstr "Puerto del servidor"
+
+msgid "UDP Support"
+msgstr "Compatible con UDP"
+
+msgid "Edit Server"
+msgstr "Editar servidor"
+
+msgid "Server Node Type"
+msgstr "Tipo de nodo del servidor"
+
+msgid "Using incorrect encryption mothod may causes service fail to start"
+msgstr "Una combinación incorrecta de parámetros puede impedir el inicio del servicio"
+
+msgid "Password"
+msgstr "Contraseña"
+
+msgid "Encrypt Method"
+msgstr "Método de cifrado"
+
+msgid "Protocol"
+msgstr "Protocolo"
+
+msgid "Protocol param(optional)"
+msgstr "Parámetros del protocolo (opcional)"
+
+msgid "obfs"
+msgstr "Plugin de ofuscación"
+
+msgid "Obfs param(optional)"
+msgstr "Parámetros de ofuscación (opcional)"
+
+msgid "UDP Enable"
+msgstr "Habilitar UDP"
+
+msgid "XUDP Enable"
+msgstr "Habilitar XUDP"
+
+msgid "obfs-mode"
+msgstr "Modo de ofuscación"
+
+msgid "obfs-hosts"
+msgstr "Host de ofuscación"
+
+msgid "Auth Username"
+msgstr "Usuario de autenticación"
+
+msgid "Auth Password"
+msgstr "Contraseña de autenticación"
+
+msgid "None"
+msgstr "Sin configuración"
+
+msgid "Create Config"
+msgstr "Generar archivo de configuración"
+
+msgid "Create Config By One-Click Only Need Proxies"
+msgstr "La generación con un clic solo requiere nodos o proveedores configurados"
+
+msgid "Proxy Groups(No Need Set when Config Create)"
+msgstr "Grupos de proxy (no es necesario configurarlos al generar con un clic)"
+
+msgid "Proxies"
+msgstr "Configuración de nodos"
+
+msgid "Enable Port Hopping"
+msgstr "Habilitar cambio dinámico de puertos"
+
+msgid "Port Range"
+msgstr "Rango de puertos"
+
+msgid "Uplink Capacity(Default:Mbps)"
+msgstr "Capacidad de subida (por defecto en Mbps)"
+
+msgid "Downlink Capacity(Default:Mbps)"
+msgstr "Capacidad de bajada (por defecto en Mbps)"
+
+msgid "Hop Interval (Unit:second)"
+msgstr "Intervalo de salto (segundos)"
+
+msgid "Obfs"
+msgstr "Ofuscación"
+
+msgid "Obfs param (optional)"
+msgstr "Parámetro de ofuscación (opcional)"
+
+msgid "obfs-password"
+msgstr "Contraseña de ofuscación"
+
+msgid "Enable Transport Protocol Settings"
+msgstr "Habilitar configuración del protocolo de transporte"
+
+msgid "Hysterir QUIC parameters"
+msgstr "Parámetros QUIC"
+
+msgid "QUIC init stream receive window"
+msgstr "Tamaño inicial de la ventana de recepción de flujo QUIC"
+
+msgid "QUIC max stream receive window"
+msgstr "Tamaño máximo de la ventana de recepción de flujo QUIC"
+
+msgid "QUIC init connection receive window"
+msgstr "Tamaño inicial de la ventana de recepción de conexión QUIC"
+
+msgid "QUIC max connection receive window"
+msgstr "Tamaño máximo de la ventana de recepción de conexión QUIC"
+
+msgid "Edit Rule Providers"
+msgstr "Editar proveedores de reglas"
+
+msgid "Rule Providers Type"
+msgstr "Tipo de proveedor de reglas"
+
+msgid "Choose The Rule Providers Type"
+msgstr "Selecciona el tipo de proveedor de reglas"
+
+msgid "Append Position"
+msgstr "Orden de coincidencia"
+
+msgid "Priority Match"
+msgstr "Prioritario (sobrescribe)"
+
+msgid "Extended Match"
+msgstr "Extendido (complementario)"
+
+msgid "Rule Providers Name"
+msgstr "Alias del proveedor (no duplicar)"
+
+msgid "Rule Behavior"
+msgstr "Tipo de regla"
+
+msgid "Rule Format"
+msgstr "Formato de regla"
+
+msgid "Choose The Rule Behavior"
+msgstr "Selecciona el tipo de regla"
+
+msgid "Choose The Rule File Format, For More Info:"
+msgstr "Selecciona el formato del archivo de reglas. Más información en:"
+
+msgid "Rule Providers Path"
+msgstr "Ruta del proveedor de reglas"
+
+msgid "Update Your Rule Providers File From Config Luci Page"
+msgstr "Primero sube aquí tus archivos de proveedores de reglas en la página de gestión de configuración"
+
+msgid "Rule Providers URL"
+msgstr "URL del proveedor de reglas"
+
+msgid "Rule Providers Interval(s)"
+msgstr "Intervalo de actualización (segundos)"
+
+msgid "Edit Group"
+msgstr "Editar grupo"
+
+msgid "Group Type"
+msgstr "Tipo de grupo"
+
+msgid "Choose The Operation Mode"
+msgstr "Selecciona el modo de funcionamiento del grupo"
+
+msgid "Group Name"
+msgstr "Nombre del grupo (no duplicar)"
+
+msgid "Disable UDP"
+msgstr "Deshabilitar UDP"
+
+msgid "Test URL"
+msgstr "URL de prueba"
+
+msgid "Test Interval(s)"
+msgstr "Intervalo de prueba (segundos)"
+
+msgid "Tolerance(ms)"
+msgstr "Tolerancia para cambio de nodo (ms)"
+
+msgid "Manual-Select"
+msgstr "Select (selección manual)"
+
+msgid "Smart-Select"
+msgstr "Smart (selección inteligente)"
+
+msgid "URL-Test"
+msgstr "URL-Test (menor latencia)"
+
+msgid "Fallback"
+msgstr "Fallback (conmutación por fallo)"
+
+msgid "Load-Balance"
+msgstr "Load-Balance (balanceo de carga)"
+
+msgid "Relay-Traffic"
+msgstr "Relay (encadenado de nodos)"
+
+msgid "Other Group (Support Regex)"
+msgstr "Incluir otros grupos (soporta expresiones regulares; sin duplicados)"
+
+msgid "The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT' & 'REJECT-DROP' & 'PASS' & 'GLOBAL'"
+msgstr "Nota: excepto 'DIRECT', 'REJECT', 'REJECT-DROP', 'PASS' y 'GLOBAL', los demás grupos deben existir antes de añadirlos."
+
+msgid "The Added Proxy Provider Must Exist"
+msgstr "El proveedor de proxy debe existir antes de añadirlo"
+
+msgid "Proxy Group (Support Regex)"
+msgstr "Grupo de proxy (compatible con expresiones regulares)"
+
+msgid "Set Proxy Group"
+msgstr "Asignar grupo de proxy"
+
+msgid "No Need Set when Config Create, The added Proxy Groups Must Exist"
+msgstr "No es necesario configurarlo al generar la configuración; los grupos añadidos deben existir previamente."
+
+msgid "Clean"
+msgstr "Limpiar registros"
+
+msgid "Stop Refresh"
+msgstr "Detener actualización"
+
+msgid "Start Refresh"
+msgstr "Iniciar actualización"
+
+msgid "Config File"
+msgstr "Archivo de configuración"
+
+msgid "State"
+msgstr "Estado"
+
+msgid "Update Time"
+msgstr "Hora de actualización"
+
+msgid "File Name"
+msgstr "Nombre del archivo"
+
+msgid "SwiTch"
+msgstr "Cambiar"
+
+msgid "Size"
+msgstr "Tamaño"
+
+msgid "Remove"
+msgstr "Eliminar"
+
+msgid "(Enable or Disable Subscribe)"
+msgstr "(Habilitar o deshabilitar suscripción)"
+
+msgid "Config Alias"
+msgstr "Alias de configuración"
+
+msgid "Name For Distinguishing"
+msgstr "Nombre identificativo (no duplicar)"
+
+msgid "Subscribe Address"
+msgstr "Dirección de suscripción"
+
+msgid "Keyword Match"
+msgstr "Filtrar nodos por palabra clave"
+
+msgid "Exclude Keyword Match"
+msgstr "Excluir nodos por palabra clave"
+
+msgid "eg: hk or tw&bgp"
+msgstr "Ejemplo: hk o tw&bgp o sg&bgp&netflix"
+
+msgid "Config File List"
+msgstr "Lista de archivos de configuración"
+
+msgid "Use For All Config File"
+msgstr "Aplicar a todos los archivos de configuración"
+
+msgid "Proxy-Provider"
+msgstr "Proveedor de proxies"
+
+msgid "Edit Proxy-Provider"
+msgstr "Editar proveedor de proxies"
+
+msgid "Provider Type"
+msgstr "Tipo de proveedor"
+
+msgid "Choose The Provider Type"
+msgstr "Selecciona el tipo de proveedor"
+
+msgid "Provider Name"
+msgstr "Alias del proveedor (no duplicar)"
+
+msgid "Provider Path"
+msgstr "Ruta del proveedor"
+
+msgid "Update Your Proxy Provider File From Config Luci Page"
+msgstr "Sube primero el archivo del proveedor en la página de gestión de configuración"
+
+msgid "Provider Filter"
+msgstr "Filtro de nodos del proveedor"
+
+msgid "Provider URL"
+msgstr "URL del proveedor"
+
+msgid "Provider Interval(s)"
+msgstr "Intervalo de actualización (s)"
+
+msgid "Provider Health Check"
+msgstr "Comprobación de estado del proveedor"
+
+msgid "Health Check URL"
+msgstr "URL de comprobación de estado"
+
+msgid "Health Check Interval(s)"
+msgstr "Intervalo de comprobación (s)"
+
+msgid "Game Rule's Name"
+msgstr "Nombre de regla de juego"
+
+msgid "Rule Provider's Name"
+msgstr "Nombre del proveedor de reglas (sin duplicados)"
+
+msgid "Select Proxy Group"
+msgstr "Seleccionar grupo de proxy"
+
+msgid "Game Rules List"
+msgstr "Lista de reglas de juegos"
+
+msgid "Rule Name"
+msgstr "Nombre de la regla"
+
+msgid "Rule Type"
+msgstr "Tipo de regla"
+
+msgid "Rule Author"
+msgstr "Autor de la regla"
+
+msgid "Download Rule"
+msgstr "Descargar regla"
+
+msgid "Exist"
+msgstr "Descargado"
+
+msgid "Not Exist"
+msgstr "No descargado"
+
+msgid "Serial Number"
+msgstr "Número de serie"
+
+msgid "Game Rules Manage"
+msgstr "Gestionar reglas de juegos de terceros"
+
+msgid "Other Rule Provider Manage"
+msgstr "Gestionar proveedores de reglas de terceros"
+
+msgid "Other Rule Providers List"
+msgstr "Lista de proveedores de reglas de terceros"
+
+msgid "Proxy UDP Traffics"
+msgstr "Proxy para tráfico UDP"
+
+msgid "The Servers Must Support UDP forwarding"
+msgstr "Los servidores deben soportar reenvío UDP"
+
+msgid "If Docker is Installed, UDP May Not Forward Normally"
+msgstr "Si se usa Docker, utiliza modo TUN; de lo contrario UDP puede fallar en juegos."
+
+msgid "Disable QUIC"
+msgstr "Deshabilitar QUIC"
+
+msgid "Prevent YouTube and Others To Use QUIC Transmission"
+msgstr "Evita que YouTube y otros usen QUIC, lo que puede mejorar la velocidad"
+
+msgid "REJECT UDP Traffic(Not Include bypassed regions via China IP Route setting) On Port 443"
+msgstr "Rechazar tráfico UDP en puerto 443 (excepto regiones omitidas). Evita QUIC según la ruta configurada."
+
+msgid "Operation Mode"
+msgstr "Modo de operación"
+
+msgid "Select Operation Mode"
+msgstr "Seleccionar modo de operación"
+
+msgid "Select Mode For Page Settings, Switch By Click the Button Bellow"
+msgstr "Selecciona el modo de ajustes globales; cambia usando los botones de abajo."
+
+msgid "redir-host mode"
+msgstr "Modo Redir-Host"
+
+msgid "fake-ip mode"
+msgstr "Modo Fake-IP"
+
+msgid "Switch Operation Mode"
+msgstr "Cambiar modo de operación"
+
+msgid "Switch Mode"
+msgstr "Cambiar"
+
+msgid "Black&White"
+msgstr "Listas blanca/negra"
+
+msgid "LAN Access Control Mode"
+msgstr "Modo de control de acceso LAN"
+
+msgid "Black List Mode"
+msgstr "Modo de lista negra"
+
+msgid "White List Mode"
+msgstr "Modo de lista blanca"
+
+msgid "LAN Bypassed Host List"
+msgstr "IPs LAN sin proxy"
+
+msgid "LAN Proxied Host List"
+msgstr "IPs LAN con proxy"
+
+msgid "WAN Bypassed Host List"
+msgstr "IPs WAN sin proxy"
+
+msgid "LAN Bypassed Mac List"
+msgstr "MAC LAN sin proxy"
+
+msgid "LAN Proxied Mac List"
+msgstr "MAC LAN con proxy"
+
+msgid "In The Fake-IP Mode, Only Pure IP Requests Are Supported, Please Setting Fake-IP-Filter First If You Need Domain Type Requests"
+msgstr "En modo Fake-IP solo se filtran peticiones IP puras. Para dominios, configura primero Fake-IP-Filter."
+
+msgid "Warning: iptables DSCP module not available, please try DCSP rule by core instead, skipping DSCP rule for"
+msgstr "Aviso: el módulo DSCP de iptables no está disponible; usa reglas DSCP del núcleo. Se omiten reglas DSCP para:"
+
+msgid "Rule Match Proxy Mode"
+msgstr "Proxy solo para tráfico coincidente con reglas"
+
+msgid "Append Some Rules to Config, Allow Only Traffic Proxies that Match the Rule, Prevent BT/P2P Passing"
+msgstr "Añade reglas para que solo el tráfico coincidente use proxy; evita que BT/P2P pase por el proxy."
+
+msgid "Common Ports Proxy Mode"
+msgstr "Solo puertos comunes por proxy"
+
+msgid "Only Common Ports, Prevent BT/P2P Passing"
+msgstr "Solo tráfico de puertos comunes pasará por Clash; evita BT/P2P."
+
+msgid "443 or 21-443, Use Space to Separate"
+msgstr "443 o 21-443; separa con espacios"
+
+msgid "Default Common Ports"
+msgstr "Puertos comunes por defecto"
+
+msgid "Provider File Manage"
+msgstr "Gestión de archivos de proveedores"
+
+msgid "Config File Edit"
+msgstr "Editar archivo de configuración"
+
+msgid "Delete All File"
+msgstr "Eliminar todos los archivos"
+
+msgid "SS/SSR/Vmess or Other Link And Subscription Address is Supported When Online Subscription Conversion is Enabled, Multiple Links Should be One Per Line or Separated By |"
+msgstr "Si está activada la conversión de suscripción en línea, se admiten enlaces SS/SSR/Vmess y direcciones de suscripción. Coloca cada enlace en una línea o sepáralos con |"
+
+msgid "URI and subscription address is supported when online subscription conversion enabled, multiple links should be one per line or separated by"
+msgstr "Si la conversión está activada, se aceptan URIs y direcciones de suscripción. Varios enlaces: uno por línea o separados por el delimitador."
+
+msgid "Template Name"
+msgstr "Plantilla de conversión"
+
+msgid "Subscribe Convert Online"
+msgstr "Conversión de suscripción online"
+
+msgid "Custom Template URL"
+msgstr "URL de plantilla personalizada"
+
+msgid "Custom Template"
+msgstr "Plantilla personalizada"
+
+msgid "Emoji"
+msgstr "Añadir Emoji"
+
+msgid "skip-cert-verify"
+msgstr "Omitir verificación de certificado"
+
+msgid "Sort"
+msgstr "Ordenar"
+
+msgid "Append Node Type"
+msgstr "Añadir tipo de nodo"
+
+msgid "Convert Subscribe Online With Template"
+msgstr "Convertir suscripción online usando una plantilla"
+
+msgid "Convert Subscribe function of Online is Supported By subconverter Written By tindy X"
+msgstr "La conversión online es posible gracias a subconverter desarrollado por tindy X"
+
+msgid "Small Flash Memory"
+msgstr "Modo de poca memoria flash"
+
+msgid "Move Core And GEOIP Data File To /tmp/etc/openclash For Small Flash Memory Device"
+msgstr "Mover núcleo y base GEOIP a /tmp/etc/openclash en dispositivos con poca memoria flash"
+
+msgid "Round-robin"
+msgstr "Round-robin (rotación)"
+
+msgid "Consistent-hashing"
+msgstr "Hash consistente"
+
+msgid "Sticky-sessions"
+msgstr "Sesiones persistentes"
+
+msgid "Strategy Type"
+msgstr "Tipo de estrategia"
+
+msgid "Choose The Load-Balance's Strategy Type"
+msgstr "Selecciona el tipo de estrategia de balanceo"
+
+msgid "Choose The Smart's Strategy Type"
+msgstr "Selecciona la estrategia inicial para grupos Smart"
+
+msgid "Uselightgbm"
+msgstr "Uselightgbm (usar modelo)"
+
+msgid "Collectdata"
+msgstr "Collectdata (recopilar datos)"
+
+msgid "Policy Priority"
+msgstr "Policy Priority (ajuste de pesos)"
+
+msgid "Use LightGBM Model For Smart Group Weight Prediction"
+msgstr "Usar modelo LightGBM para predecir pesos en grupos Smart"
+
+msgid "Collect Datas For Smart Group Model Training"
+msgstr "Recopilar datos de conexiones para entrenar modelo Smart"
+
+msgid "The Priority Of The Nodes, The Higher Than 1, The More Likely It Is To Be Selected, The Default Is 1, Support Regex"
+msgstr "Ajusta el peso de cada nodo: >1 aumenta selección; <1 reduce uso. Valor por defecto: 1. Compatible con regex."
+
+msgid "Running Status"
+msgstr "Estado de ejecución"
+
+msgid "Running Mode"
+msgstr "Modo de ejecución"
+
+msgid "yacd"
+msgstr "Yacd"
+
+msgid "Dashboard"
+msgstr "Panel"
+
+msgid "Metacubexd"
+msgstr "Metacubexd"
+
+msgid "Zashboard"
+msgstr "Zashboard"
+
+msgid "Control Panel"
+msgstr "Panel de control"
+
+msgid "Quick Action"
+msgstr "Acciones rápidas"
+
+msgid "No Backup"
+msgstr "Sin copia guardada"
+
+msgid "Backup"
+msgstr "Copia de seguridad"
+
+msgid "Enhance"
+msgstr "Mejorado"
+
+msgid "Compat"
+msgstr "Compatible"
+
+msgid "Mix"
+msgstr "Mixto"
+
+msgid "Close Connect"
+msgstr "Cerrar conexión"
+
+msgid "Close Connect Failed"
+msgstr "No se pudo cerrar la conexión"
+
+msgid "Restore Nodes Selection"
+msgstr "Restaurar selección de nodos"
+
+msgid "Save Nodes Selection"
+msgstr "Guardar selección de nodos"
+
+msgid "Reload Firewall"
+msgstr "Recargar firewall"
+
+msgid "Check Update"
+msgstr "Buscar actualización"
+
+msgid "Check Config Update"
+msgstr "Comprobar actualización de configuración"
+
+msgid "Check Third Party Rules Update"
+msgstr "Comprobar actualización de reglas de terceros"
+
+msgid "Check GEOIP Data Update"
+msgstr "Comprobar actualización de GeoIP"
+
+msgid "Check GeoSite Data Update"
+msgstr "Comprobar actualización de GeoSite"
+
+msgid "You have not installed the core yet, do you want to download and install it now?"
+msgstr "Aún no has instalado el núcleo. ¿Deseas descargarlo e instalarlo ahora?"
+
+msgid "No Compiled Version is Selected, Please Select on The Top and Try Again!"
+msgstr "No se ha seleccionado ninguna versión compilada. Selecciónala arriba y vuelve a intentarlo."
+
+msgid "Checking..."
+msgstr "Comprobando..."
+
+msgid "Reloading..."
+msgstr "Recargando..."
+
+msgid "Restoring..."
+msgstr "Restaurando..."
+
+msgid "Saving..."
+msgstr "Guardando..."
+
+msgid "Firewall Rules Reset Failed"
+msgstr "Error al restablecer las reglas del firewall"
+
+msgid "Close All Connections Railed"
+msgstr "Error al cerrar todas las conexiones"
+
+msgid "Restore Nodes Selection Railed"
+msgstr "Error al restaurar la selección de nodos"
+
+msgid "Save Nodes Selection Failed"
+msgstr "Error al guardar la selección de nodos"
+
+msgid "Tip: after started, please wait patiently until the connection is normal"
+msgstr "Consejo: una vez iniciado OpenClash, espera hasta que las pruebas de acceso sean normales."
+
+msgid "Tip: You can modify the profile on the profile page (for content that is not taken over)"
+msgstr "Consejo: puedes modificar el archivo de configuración en la página correspondiente (solo parámetros no gestionados por OpenClash)."
+
+msgid "Tip: do not write configuration files? Try to create one click on the server page"
+msgstr "Consejo: ¿no sabes crear archivos de configuración? Usa la función de generación con un clic en la página de servidores."
+
+msgid "Tip: some website are abnormal? Try switching modes or using third-party rules"
+msgstr "Consejo: si algunas webs funcionan mal, prueba a cambiar de modo o usar reglas de terceros."
+
+msgid "Tip: using the fake IP mode can get a faster access experience"
+msgstr "Consejo: el modo Fake-IP suele ofrecer mejor velocidad."
+
+msgid "Tip: the nameserver group must have at least one server set when using custom DNS"
+msgstr "Consejo: al usar DNS personalizados, el grupo NameServer debe tener al menos un servidor configurado."
+
+msgid "Tip: if you don not use IPv6, please turn off the DHCP service of IPv6, otherwise the connection will be abnormal"
+msgstr "Consejo: si no usas IPv6, desactiva su DHCP para evitar problemas de conexión."
+
+msgid "Tip: you can update the version in the settings page"
+msgstr "Consejo: puedes actualizar el plugin desde la página de ajustes."
+
+msgid "Note: if the update fails, you can manually download and upload"
+msgstr "Nota: si la actualización falla, puedes descargar y subir el archivo manualmente."
+
+msgid "Note: the client may not support update, because the firmware with squashfs format will not release flash space after updating"
+msgstr "Nota: el cliente puede no actualizarse en firmwares squashfs, ya que no liberan espacio tras actualizar."
+
+msgid "Compiled Version"
+msgstr "Versión compilada"
+
+msgid "Release Branch"
+msgstr "Rama de actualización"
+
+msgid "Note: options will auto-save when you click to update or download"
+msgstr "Nota: las opciones se guardarán automáticamente al actualizar o descargar."
+
+msgid "CPU Architecture"
+msgstr "Arquitectura de CPU"
+
+msgid "Last Check Update"
+msgstr "Última comprobación de actualización"
+
+msgid "Current Core"
+msgstr "Versión actual del núcleo"
+
+msgid "Latest Core"
+msgstr "Última versión del núcleo"
+
+msgid "Core path:"
+msgstr "Ruta del núcleo:"
+
+msgid "Update Core"
+msgstr "Actualizar núcleo"
+
+msgid "Download Latest Core"
+msgstr "Descargar última versión del núcleo"
+
+msgid "Client Update"
+msgstr "Actualización del cliente"
+
+msgid "Current Client"
+msgstr "Versión actual del cliente"
+
+msgid "Update Client"
+msgstr "Actualizar cliente"
+
+msgid "Latest Client"
+msgstr "Última versión del cliente"
+
+msgid "Download Latest Client"
+msgstr "Descargar última versión del cliente"
+
+msgid "Restore Default Config"
+msgstr "Restablecer configuración por defecto"
+
+msgid "Failed to get the latest version. Please try again later!"
+msgstr "Error al obtener la última versión. Inténtalo más tarde."
+
+msgid "Are you sure want to restore the default config?"
+msgstr "¿Seguro que deseas restablecer la configuración por defecto?"
+
+msgid "Restore succeeded!"
+msgstr "Restauración completada."
+
+msgid "Restore failed!"
+msgstr "Error al restaurar la configuración."
+
+msgid "Support syntax check, press"
+msgstr "Admite comprobación de sintaxis; pulsa"
+
+msgid "to control diff option, press"
+msgstr "para cambiar la vista de diferencia; pulsa"
+
+msgid "to enter full screen editing mode"
+msgstr "para entrar en modo de edición a pantalla completa"
+
+msgid "Switch page to Fake-IP mode"
+msgstr "Cambiar página a modo Fake-IP"
+
+msgid "Switch page to Redir-Host mode"
+msgstr "Cambiar página a modo Redir-Host"
+
+msgid "Page has been switched to Fake-IP mode!"
+msgstr "¡La página ahora está en modo Fake-IP!"
+
+msgid "Page has been switched to Redir-Host mode!"
+msgstr "¡La página ahora está en modo Redir-Host!"
+
+msgid "IP Address"
+msgstr "Dirección IP"
+
+msgid "Access Check"
+msgstr "Prueba de acceso"
+
+msgid "Baidu Search"
+msgstr "Búsqueda Baidu"
+
+msgid "NetEase Music"
+msgstr "Netease Music"
+
+msgid "Querying..."
+msgstr "Consultando..."
+
+msgid "Testing..."
+msgstr "Probando..."
+
+msgid "Access Timed Out"
+msgstr "Tiempo de conexión agotado"
+
+msgid "Access Normal"
+msgstr "Acceso normal"
+
+msgid "Access Denied"
+msgstr "Acceso denegado"
+
+msgid "Bind Network Interface"
+msgstr "Vincular interfaz de red"
+
+msgid "Default Interface Name:"
+msgstr "Interfaz predeterminada del sistema:"
+
+msgid ",Try Enable If Network Loopback"
+msgstr ", activa esta opción si ocurre un bucle de red"
+
+msgid "Custom GeoIP MMDB URL"
+msgstr "URL personalizada de GeoIP MMDB"
+
+msgid "Custom GeoSite URL"
+msgstr "URL personalizada de GeoSite"
+
+msgid "Custom Geo ASN URL"
+msgstr "URL personalizada de Geo ASN"
+
+msgid "Custom Chnroute6 Lists URL"
+msgstr "URL personalizada de Chnroute IPv6"
+
+msgid "Custom Chnroute Lists URL"
+msgstr "URL personalizada de Chnroute"
+
+msgid "Custom GeoIP MMDB URL, Click Button Below To Refresh After Edit"
+msgstr "Edita la URL y pulsa el botón inferior para actualizar GeoIP MMDB."
+
+msgid "Custom GeoSite Data URL, Click Button Below To Refresh After Edit"
+msgstr "Edita la URL y pulsa el botón inferior para actualizar GeoSite."
+
+msgid "Custom Geo ASN Data URL, Click Button Below To Refresh After Edit"
+msgstr "Edita la URL y pulsa el botón inferior para actualizar Geo ASN."
+
+msgid "Custom Chnroute Lists URL, Click Button Below To Refresh After Edit"
+msgstr "Edita la URL y pulsa el botón inferior para actualizar Chnroute."
+
+msgid "Custom Chnroute6 Lists URL, Click Button Below To Refresh After Edit"
+msgstr "Edita la URL y pulsa el botón inferior para actualizar Chnroute6."
+
+msgid "(Default)"
+msgstr "(Predeterminado)"
+
+msgid "(Default mmdb)"
+msgstr "(Predeterminado: todos los países con iso_code y geoname_id)"
+
+msgid "(All Info mmdb)"
+msgstr "(Todos los países con datos completos oficiales)"
+
+msgid "(Only CN)"
+msgstr "(Solo datos de China)"
+
+msgid "Other Rules Edit"
+msgstr "Edición de reglas de terceros"
+
+msgid "Get Group Names"
+msgstr "Obtener nombres de grupos"
+
+msgid "Get Group Names After Select Config File"
+msgstr "Selecciona un archivo de configuración y luego pulsa para obtener sus grupos"
+
+msgid "Other Rules Name"
+msgstr "Nombre de regla de terceros"
+
+msgid "Note"
+msgstr "Nota"
+
+msgid "Auto Restart"
+msgstr "Reinicio automático"
+
+msgid "Auto Restart OpenClash"
+msgstr "Reinicio automático del plugin"
+
+msgid "Restart Time (Every Week)"
+msgstr "Hora de reinicio (semanal)"
+
+msgid "Restart time (every day)"
+msgstr "Hora de reinicio (diaria)"
+
+msgid "DNS Port"
+msgstr "Puerto DNS"
+
+msgid "Log Size (KB)"
+msgstr "Tamaño del log (KB)"
+
+msgid "Set Log File Size (KB)"
+msgstr "Establecer tamaño del archivo de log (KB)"
+
+msgid "Download Log"
+msgstr "Descargar log"
+
+msgid "Convert Address"
+msgstr "Dirección del convertidor de suscripción"
+
+msgid "Note: There is A Risk of Privacy Leakage in Online Convert"
+msgstr "Nota: la conversión online puede implicar riesgos de privacidad"
+
+msgid "Remove Core"
+msgstr "Eliminar núcleo"
+
+msgid "Are you sure want to remove all core files?"
+msgstr "¿Seguro que deseas eliminar todos los archivos del núcleo?"
+
+msgid "Remove succeeded!"
+msgstr "Eliminación completada."
+
+msgid "Remove failed!"
+msgstr "Error al eliminar."
+
+msgid "Import"
+msgstr "Importar configuración"
+
+msgid "Import configuration information successfully"
+msgstr "Configuración importada correctamente"
+
+msgid "Invalid format"
+msgstr "Formato no válido"
+
+msgid "User cancelled"
+msgstr "Operación cancelada por el usuario"
+
+msgid "Paste sharing link here"
+msgstr "Pega aquí el enlace compartido"
+
+msgid "Unsupported protocol type"
+msgstr "Tipo de protocolo no soportado"
+
+msgid "Copy"
+msgstr "Copiar"
+
+msgid "Export"
+msgstr "Exportar configuración"
+
+msgid "Export failed"
+msgstr "Error al exportar"
+
+msgid "Export error"
+msgstr "Error de exportación"
+
+msgid "Parse error."
+msgstr "Error de análisis"
+
+msgid "to clipboard successfully"
+msgstr "copiado al portapapeles correctamente"
+
+msgid "Unable to copy"
+msgstr "No se pudo copiar"
+
+msgid "to clipboard"
+msgstr "al portapapeles"
+
+msgid "Exclude Keyword Match Default"
+msgstr "Excluir nodos no válidos"
+
+msgid "Tip: Start downloading"
+msgstr "Consejo: iniciando descarga"
+
+msgid "Download successful, start pre update test..."
+msgstr "Descarga completa, iniciando pruebas previas a la actualización..."
+
+msgid "Pre update test failed..."
+msgstr "Las pruebas previas han fallado..."
+
+msgid "Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with"
+msgstr "Pruebas fallidas; archivo guardado en /tmp/openclash.ipk, actualiza manualmente con:"
+
+msgid "Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with"
+msgstr "Pruebas fallidas; archivo guardado en /tmp/openclash.apk, actualiza manualmente con:"
+
+msgid "Pre update test passed, ready to update and please do not refresh the page and other operations..."
+msgstr "Pruebas previas superadas. Preparando actualización, no recargues la página ni realices acciones."
+
+msgid "Installing the new version, please do not refresh the page or do other operations..."
+msgstr "Instalando nueva versión; no recargues la página ni realices acciones."
+
+msgid "Installation failed..."
+msgstr "Instalación fallida..."
+
+msgid "Tip: OpenClash update successful, about to restart!"
+msgstr "Consejo: actualización correcta; OpenClash se reiniciará."
+
+msgid "Error: OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.ipk, please try to update manually with"
+msgstr "Error: actualización fallida; archivo guardado en /tmp/openclash.ipk, intenta actualizar con:"
+
+msgid "Error: OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with"
+msgstr "Error: actualización fallida; archivo guardado en /tmp/openclash.apk, intenta actualizar con:"
+
+msgid "Download Failed after 3 attempts, please check the network or try again later!"
+msgstr "Descarga fallida; revisa la red o inténtalo más tarde."
+
+msgid "Download failed..."
+msgstr "La descarga ha fallado..."
+
+msgid "Error: Failed to get version information, please try again later..."
+msgstr "Error: no se pudo obtener información de versión, inténtalo más tarde..."
+
+msgid "Tip: OpenClash has not been updated, stop continuing!"
+msgstr "Consejo: OpenClash no ha sido actualizado; proceso detenido."
+
+msgid "Core Version Check Error, Please Try Again Later..."
+msgstr "Error al comprobar la versión del núcleo; inténtalo más tarde."
+
+msgid "Core Downloading, Please Try to Download and Upload Manually If Fails"
+msgstr "Descargando núcleo; si falla, descárgalo y súbelo manualmente."
+
+msgid "Core Download Successful, Start Update..."
+msgstr "Núcleo descargado correctamente, iniciando actualización..."
+
+msgid "Core Download Failed, Please Check The Network or Try Again Later!"
+msgstr "Descarga del núcleo fallida; verifica la red o inténtalo más tarde."
+
+msgid "Core Update Failed, Please Check The Network or Try Again Later!"
+msgstr "Actualización del núcleo fallida; revisa la red o inténtalo de nuevo."
+
+msgid "Core Update Successful!"
+msgstr "¡Actualización del núcleo completada!"
+
+msgid "Core Update Failed, Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
+msgstr "Error al actualizar el núcleo: verifica que haya espacio suficiente o que la plataforma seleccionada sea correcta."
+
+msgid "Core Update Failed..."
+msgstr "Error al actualizar el núcleo..."
+
+msgid "Core Download Failed..."
+msgstr "Error al descargar el núcleo..."
+
+msgid "Core Update Failed, Please Make Sure Enough Flash Memory Space And Try Again!"
+msgstr "Error al actualizar el núcleo: comprueba el espacio de flash."
+
+msgid "Warning: No Compiled Version Selected, Please Select In Update Page And Try Again!"
+msgstr "Advertencia: no se ha seleccionado ninguna versión compilada; selecciónala en la página de actualización."
+
+msgid "Core Has Not Been Updated, Stop Continuing Operation!"
+msgstr "El núcleo no ha sido actualizado; proceso detenido."
+
+msgid "Start Downloading Third Party Rules in Use..."
+msgstr "Iniciando descarga de reglas de terceros en uso..."
+
+msgid "Warning: Multiple Other-Rules-Configurations Enabled, Ignore..."
+msgstr "Advertencia: múltiples configuraciones de reglas detectadas; ignorando duplicadas..."
+
+msgid "Download Successful, Start Preprocessing Rule File..."
+msgstr "Descarga correcta; iniciando preprocesamiento del archivo de reglas..."
+
+msgid "Error:"
+msgstr "Error:"
+
+msgid "Tip:"
+msgstr "Consejo:"
+
+msgid "Warning:"
+msgstr "Advertencia:"
+
+msgid "Rule File Format Validation Failed, Please Try Again Later..."
+msgstr "Validación del archivo de reglas fallida; inténtalo más tarde."
+
+msgid "Error: Updated Others Rules"
+msgstr "Error: archivo de reglas actualizado"
+
+msgid "Has No Rules Field, Update Exit..."
+msgstr "El archivo carece de sección de reglas; actualización detenida."
+
+msgid "Has Incompatible Proxy-Group, Update Exit, Please Wait For OpenClash Update To Adapt..."
+msgstr "El archivo contiene grupos no compatibles; espera a una actualización de OpenClash."
+
+msgid "Check The Downloaded Rule File For Updates..."
+msgstr "Comprobando si el archivo de reglas contiene actualizaciones..."
+
+msgid "Detected that The Downloaded Rule File Has Been Updated, Starting To Replace..."
+msgstr "Se detectaron actualizaciones; iniciando reemplazo..."
+
+msgid "Other Rules"
+msgstr "Reglas de terceros"
+
+msgid "Update Successful!"
+msgstr "¡Actualización completada!"
+
+msgid "Updated Other Rules"
+msgstr "Reglas actualizadas"
+
+msgid "No Change, Do Nothing!"
+msgstr "Sin cambios; operación detenida."
+
+msgid "Update Error, Please Try Again Later..."
+msgstr "Error al actualizar; inténtalo más tarde."
+
+msgid "Other Rules Not Enable, Update Stop!"
+msgstr "Las reglas de terceros no están habilitadas; operación detenida."
+
+msgid "Get Other Rules Settings Faild, Update Stop!"
+msgstr "No se encontró configuración de reglas de terceros; operación detenida."
+
+msgid "is Replaced Successfully, Start Picking Nodes..."
+msgstr "Reemplazo correcto; iniciando selección de nodos..."
+
+msgid "is Replaced Successfully, Start to Reserving..."
+msgstr "Reemplazo correcto; aplicando configuraciones reservadas..."
+
+msgid "Config File Test Successful, Check If There is Any Update..."
+msgstr "Archivo de configuración válido; comprobando cambios..."
+
+msgid "Are Updates, Start Replacing..."
+msgstr "Hay cambios; iniciando reemplazo..."
+
+msgid "Download Successful, Start To Create..."
+msgstr "Descarga correcta; no hay archivo previo, creando nuevo..."
+
+msgid "Error: Ruby Works Abnormally, Please Check The Ruby Library Depends!"
+msgstr "Error: Ruby no funciona correctamente; revisa las dependencias."
+
+msgid "Config File Format Validation Failed..."
+msgstr "Validación del archivo de configuración fallida..."
+
+msgid "Error: Updated Config"
+msgstr "Error: archivo de configuración actualizado"
+
+msgid "Has No Proxy Field, Update Exit..."
+msgstr "El archivo no contiene sección de nodos; operación detenida."
+
+msgid "Start Updating Config File"
+msgstr "Iniciando actualización del archivo de configuración"
+
+msgid "Config File Format Validation Failed, Trying To Download Without Agent..."
+msgstr "Validación fallida; intentando descargar sin proxy..."
+
+msgid "Has No Proxy Field, Trying To Download Without Agent..."
+msgstr "Falta sección de nodos; intentando descargar sin proxy..."
+
+msgid "Error: Config File"
+msgstr "Error: archivo de configuración"
+
+msgid "Subscribed Failed, Trying to Download Without Agent..."
+msgstr "Suscripción fallida; intentando descarga directa..."
+
+msgid "Start Downloading The Chnroute Cidr List..."
+msgstr "Descargando lista CIDR de China (IPv4)..."
+
+msgid "Start Downloading The Chnroute6 Cidr List..."
+msgstr "Descargando lista CIDR de China (IPv6)..."
+
+msgid "Chnroute Cidr List Download Success, Check Updated..."
+msgstr "Lista CIDR de China (IPv4) descargada correctamente, comprobando actualizaciones..."
+
+msgid "Chnroute6 Cidr List Download Success, Check Updated..."
+msgstr "Lista CIDR de China (IPv6) descargada correctamente, comprobando actualizaciones..."
+
+msgid "Chnroute Cidr List Has Been Updated, Starting To Replace The Old Version..."
+msgstr "La lista CIDR de China (IPv4) tiene una nueva versión; iniciando reemplazo..."
+
+msgid "Chnroute6 Cidr List Has Been Updated, Starting To Replace The Old Version..."
+msgstr "La lista CIDR de China (IPv6) tiene una nueva versión; iniciando reemplazo..."
+
+msgid "Chnroute Cidr List Update Successful!"
+msgstr "Lista CIDR de China (IPv4) actualizada correctamente."
+
+msgid "Chnroute6 Cidr List Update Successful!"
+msgstr "Lista CIDR de China (IPv6) actualizada correctamente."
+
+msgid "Updated Chnroute Cidr List No Change, Do Nothing..."
+msgstr "La lista CIDR de China (IPv4) no presenta cambios; operación detenida."
+
+msgid "Updated Chnroute6 Cidr List No Change, Do Nothing..."
+msgstr "La lista CIDR de China (IPv6) no presenta cambios; operación detenida."
+
+msgid "Chnroute Cidr List Update Error, Please Try Again Later..."
+msgstr "Error al descargar la lista CIDR de China (IPv4); inténtalo más tarde."
+
+msgid "Chnroute6 Cidr List Update Error, Please Try Again Later..."
+msgstr "Error al descargar la lista CIDR de China (IPv6); inténtalo más tarde."
+
+msgid "Start Downloading GeoSite Database..."
+msgstr "Iniciando descarga de la base de datos GeoSite..."
+
+msgid "GeoSite Database Download Success, Check Updated..."
+msgstr "GeoSite descargado correctamente, comprobando actualizaciones..."
+
+msgid "GeoSite Database Has Been Updated, Starting To Replace The Old Version..."
+msgstr "GeoSite tiene una nueva versión; iniciando reemplazo..."
+
+msgid "GeoSite Database Update Successful!"
+msgstr "Base de datos GeoSite actualizada correctamente."
+
+msgid "Updated GeoSite Database No Change, Do Nothing..."
+msgstr "GeoSite no presenta cambios; operación detenida."
+
+msgid "GeoSite Database Update Error, Please Try Again Later..."
+msgstr "Error al descargar GeoSite; inténtalo más tarde."
+
+msgid "Start Downloading GeoIP Dat..."
+msgstr "Iniciando descarga de GeoIP Dat..."
+
+msgid "GeoIP Dat Download Success, Check Updated..."
+msgstr "GeoIP Dat descargado correctamente, comprobando actualizaciones..."
+
+msgid "GeoIP Dat Has Been Updated, Starting To Replace The Old Version..."
+msgstr "GeoIP Dat tiene una nueva versión; iniciando reemplazo..."
+
+msgid "GeoIP Dat Update Successful!"
+msgstr "GeoIP Dat actualizado correctamente."
+
+msgid "Updated GeoIP Dat No Change, Do Nothing..."
+msgstr "GeoIP Dat no presenta cambios; operación detenida."
+
+msgid "GeoIP Dat Update Error, Please Try Again Later..."
+msgstr "Error al descargar GeoIP Dat; inténtalo más tarde."
+
+msgid "Start Downloading Geoip Database..."
+msgstr "Iniciando descarga de la base de datos GEOIP..."
+
+msgid "Geoip Database Download Success, Check Updated..."
+msgstr "GEOIP descargado correctamente, comprobando actualizaciones..."
+
+msgid "Geoip Database Has Been Updated, Starting To Replace The Old Version..."
+msgstr "GEOIP tiene una nueva versión; iniciando reemplazo..."
+
+msgid "Geoip Database Update Successful!"
+msgstr "Base de datos GEOIP actualizada correctamente."
+
+msgid "Updated Geoip Database No Change, Do Nothing..."
+msgstr "GEOIP no presenta cambios; operación detenida."
+
+msgid "Geoip Database Update Error, Please Try Again Later..."
+msgstr "Error al descargar GEOIP; inténtalo más tarde."
+
+msgid "Start Downloading Geo ASN Database..."
+msgstr "Iniciando descarga de la base de datos GEO ASN..."
+
+msgid "Geo ASN Database Download Success, Check Updated..."
+msgstr "GEO ASN descargado correctamente, comprobando actualizaciones..."
+
+msgid "Geo ASN Database Has Been Updated, Starting To Replace The Old Version..."
+msgstr "GEO ASN tiene una nueva versión; iniciando reemplazo..."
+
+msgid "Geo ASN Database Update Successful!"
+msgstr "Base de datos GEO ASN actualizada correctamente."
+
+msgid "Updated Geo ASN Database No Change, Do Nothing..."
+msgstr "GEO ASN no presenta cambios; operación detenida."
+
+msgid "Geo ASN Database Update Error, Please Try Again Later..."
+msgstr "Error al descargar GEO ASN; inténtalo más tarde."
+
+msgid "Start Getting"
+msgstr "Iniciando obtención de"
+
+msgid "Groups Setting..."
+msgstr "configuración de grupos..."
+
+msgid "Group Setting..."
+msgstr "configuración del grupo..."
+
+msgid "Proxy-providers Setting..."
+msgstr "configuración de proveedores de proxy..."
+
+msgid "Proxy-provider Setting..."
+msgstr "configuración del proveedor de proxy..."
+
+msgid "Proxies Setting..."
+msgstr "configuración de nodos..."
+
+msgid "Proxy Setting..."
+msgstr "configuración del nodo..."
+
+msgid "Read Error, Config File"
+msgstr "Error de lectura, archivo de configuración"
+
+msgid "Abnormal!"
+msgstr "¡Anómalo!"
+
+msgid "Deleting Old Configuration..."
+msgstr "Eliminando configuración anterior..."
+
+msgid "Error: Unable To Parse Config File, Please Check And Try Again!"
+msgstr "Error: no se pudo analizar el archivo de configuración; revísalo y vuelve a intentarlo."
+
+msgid "Start Writing"
+msgstr "Iniciando escritura"
+
+msgid "Group To Config File..."
+msgstr "grupo hacia el archivo de configuración..."
+
+msgid "Proxy To Config File..."
+msgstr "nodo hacia el archivo de configuración..."
+
+msgid "Proxy-provider To Config File..."
+msgstr "proveedor de proxy hacia el archivo de configuración..."
+
+msgid "Unable To Parse, Please Choose One-key Function To Create Config File..."
+msgstr "Error de lectura: usa la función de creación con un clic para generar el archivo de configuración."
+
+msgid "Setting Secondary DNS Server List..."
+msgstr "Configurando la lista de DNS secundarios..."
+
+msgid "Deleting"
+msgstr "Eliminando"
+
+msgid "Proxy-providers That no Longer Exists in Subscription"
+msgstr "Proveedores de proxy que ya no existen en la suscripción"
+
+msgid "Proxies That no Longer Exists in Subscription"
+msgstr "Nodos que ya no existen en la suscripción"
+
+msgid "Read Successful!"
+msgstr "Lectura completada."
+
+msgid "Write Successful!"
+msgstr "Escritura completada."
+
+msgid "Creating By Using lhie1 Rules..."
+msgstr "Creando usando las reglas lhie1..."
+
+msgid "Created Successful, Updating Proxies, Proxy-providers, Groups..."
+msgstr "Creación completada; actualizando nodos, proveedores y grupos..."
+
+msgid "Proxies, Proxy-providers, Groups Edited Successful, Updating Config File"
+msgstr "Edición completada; actualizando archivo de configuración..."
+
+msgid "Warning: Because of The Different Porxy-Group's Name, Stop Setting The Other Rules!"
+msgstr "Advertencia: los nombres de los grupos no coinciden; se detiene la aplicación de reglas de terceros."
+
+msgid "Error: Missing Porxy-Group's Name, Stop Setting The Other Rules!"
+msgstr "Error: faltan grupos requeridos por las reglas de terceros; operación detenida."
+
+msgid "Tip: Detected That The nameserver DNS Option Has No Server Set, Starting To Complete..."
+msgstr "Consejo: detectado Nameserver sin servidores configurados; completando automáticamente..."
+
+msgid "Tip: Detected That The default-nameserver DNS Option Has No Server Set, Starting To Complete..."
+msgstr "Consejo: detectado Default-nameserver sin servidores configurados; completando automáticamente..."
+
+msgid "Error: Nameserver Option Must Be Setted, Stop Customing DNS Servers"
+msgstr "Error: Nameserver debe tener servidores configurados; deteniendo configuración de DNS personalizados."
+
+msgid "Config File Does Not Exist, You Have Set Subscription Information, Ready To Download..."
+msgstr "El archivo de configuración no existe; ya configuraste la suscripción, iniciando descarga..."
+
+msgid "Error: Config Not Found"
+msgstr "Error: archivo de configuración no encontrado"
+
+msgid "Error: Config File Format Validation Failed..."
+msgstr "Error: validación del archivo de configuración fallida."
+
+msgid "Tip: Detected that the GEOIP Database is not Installed, Ready to Download..."
+msgstr "Consejo: la base de datos GEOIP no está instalada; iniciando descarga..."
+
+msgid "Tip: Detected that the GEOSITE Database is not Installed, Ready to Download..."
+msgstr "Consejo: la base de datos GEOSITE no está instalada; iniciando descarga..."
+
+msgid "Tip: Detected that the GEOIP Dat is not Installed, Ready to Download..."
+msgstr "Consejo: la base de datos GEOIP Dat no está instalada; iniciando descarga..."
+
+msgid "Tip: Detected that the Core is not Installed, Ready to Download..."
+msgstr "Consejo: el núcleo no está instalado; iniciando descarga..."
+
+msgid "Tip: Detected that the Chnroute Cidr is not Installed, Ready to Download..."
+msgstr "Consejo: la lista CIDR de China no está instalada; iniciando descarga..."
+
+msgid "Tip: Detected that the Chnroute Cidr List Format is wrong, Ready to Reformat..."
+msgstr "Consejo: formato incorrecto en la lista CIDR de China; iniciando reformateo..."
+
+msgid "Error: OpenClash Can Not Start, Please Check The Error Info And Try Again!"
+msgstr "Error: OpenClash no puede iniciarse; revisa los registros y vuelve a intentarlo."
+
+msgid "Found 53 Port Hijacked, Clean Up Firewall Rules..."
+msgstr "Detectado secuestro del puerto 53; limpiando reglas del firewall..."
+
+msgid "Tip: OpenClash Start Running..."
+msgstr "Consejo: OpenClash está iniciándose..."
+
+msgid "Tip: OpenClash Restart..."
+msgstr "Consejo: OpenClash se está reiniciando..."
+
+msgid "Step 1: Get The Configuration..."
+msgstr "Paso 1: Obtener la configuración..."
+
+msgid "Step 2: Check The Components..."
+msgstr "Paso 2: Verificar componentes..."
+
+msgid "Step 3: Modify The Config File..."
+msgstr "Paso 3: Modificar el archivo de configuración..."
+
+msgid "Step 3: Quick Start Mode, Skip Modify The Config File..."
+msgstr "Paso 3: modo de inicio rápido; omitiendo modificación del archivo."
+
+msgid "Step 4: Start Running The Clash Core..."
+msgstr "Paso 4: Iniciar el núcleo de Clash..."
+
+msgid "Step 5: Add Cron Rules, Start Daemons..."
+msgstr "Paso 5: Añadir tareas programadas e iniciar servicios..."
+
+msgid "Step 6: Core Status Checking and Firewall Rules Setting..."
+msgstr "Paso 6: Comprobar estado del núcleo y configurar reglas del firewall..."
+
+msgid "Tip: OpenClash Start Successful!"
+msgstr "Consejo: OpenClash iniciado correctamente."
+
+msgid "Tip: Firewall Reload Successful!"
+msgstr "Consejo: firewall recargado correctamente."
+
+msgid "Warning: Please Note That Network May Abnormal With IPv6's DHCP Server"
+msgstr "Advertencia: el DHCP IPv6 puede provocar fallos en la conexión."
+
+msgid "Tip: OpenClash Stoping..."
+msgstr "Consejo: OpenClash está deteniéndose..."
+
+msgid "Step 1: Backup The Current Groups State..."
+msgstr "Paso 1: Respaldar estado actual de grupos..."
+
+msgid "Step 2: Delete OpenClash Firewall Rules..."
+msgstr "Paso 2: Eliminar reglas de firewall de OpenClash..."
+
+msgid "Step 3: Close The OpenClash Daemons..."
+msgstr "Paso 3: Detener servicios de OpenClash..."
+
+msgid "Step 4: Close The Clash Core Process..."
+msgstr "Paso 4: Detener el núcleo de Clash..."
+
+msgid "Step 5: Restart Dnsmasq..."
+msgstr "Paso 5: Reiniciar Dnsmasq..."
+
+msgid "Step 6: Delete OpenClash Residue File..."
+msgstr "Paso 6: Eliminar archivos residuales de OpenClash..."
+
+msgid "Tip: OpenClash Already Stop!"
+msgstr "Consejo: OpenClash ya está detenido."
+
+msgid "Skip Reload OpenClash Firewall Rules Until 5 Minutes Later..."
+msgstr "Límite de recargas alcanzado; reintento dentro de 5 minutos."
+
+msgid "Reload OpenClash Firewall Rules..."
+msgstr "Recargando reglas de firewall de OpenClash..."
+
+msgid "Manually Reload Firewall Rules..."
+msgstr "Recargar reglas de firewall manualmente..."
+
+msgid "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..."
+msgstr "Advertencia: OpenClash está deshabilitado; inícialo desde LuCI."
+
+msgid "Watchdog: Log Size Limit, Clean Up All Log Records..."
+msgstr "Watchdog: límite de tamaño alcanzado; limpiando registros..."
+
+msgid "Watchdog: Setting Firewall For Rules Order..."
+msgstr "Watchdog: corrigiendo el orden de las reglas del firewall..."
+
+msgid "Watchdog: Force Reset DNS Hijack..."
+msgstr "Watchdog: restableciendo interceptación DNS..."
+
+msgid "Rule File"
+msgstr "Archivo de reglas"
+
+msgid "Download Error!"
+msgstr "¡Error al descargar!"
+
+msgid "Download Successful!"
+msgstr "Descarga completada."
+
+msgid "Switch To The New Proxy When The Delay Difference Between Old and The Fastest Currently is Greater Than This Value"
+msgstr "Cambiar al nuevo proxy solo si la diferencia de latencia es mayor que este valor."
+
+msgid "URL-Test Group Tolerance"
+msgstr "Tolerancia del grupo URL-Test"
+
+msgid "Attention:"
+msgstr "Atención:"
+
+msgid "The game proxy is a test function and does not guarantee the availability of rules"
+msgstr "El proxy de juegos es experimental y no garantiza que las reglas funcionen."
+
+msgid "Preparation steps:"
+msgstr "Pasos previos:"
+
+msgid "1. Check the policy group and node you are going to use, Policy group type suggestion: fallback, game nodes must be support UDP and not a Vmess"
+msgstr "1. Comprueba el grupo y nodo que usarás. Recomendado: grupo tipo FallBack; el nodo debe soportar UDP y no ser Vmess."
+
+msgid "2. Click the <manage third party game rules> or <manage third party rule set> button to enter the rule list and download the rules you want to use"
+msgstr "2. Entra en «Gestionar reglas de juegos» o «Gestionar reglas de terceros» y descarga las reglas necesarias."
+
+msgid "3. On this page, set the corresponding configuration file and policy group of the rule you have downloaded, and save the settings"
+msgstr "3. Configura aquí el archivo y grupo correspondiente a la regla descargada, y guarda los ajustes."
+
+msgid "When setting this page, if the groups is empty, please go to the <Onekey Create> page to add"
+msgstr "Si no aparecen grupos, ve a «Crear con un clic» para añadirlos."
+
+msgid "Introduction to rule set usage:"
+msgstr "Introducción al uso de conjuntos de reglas:"
+
+msgid "Introduction to proxy usage:"
+msgstr "Introducción al uso de nodos proxy:"
+
+msgid "Introduction to proxy-provider usage:"
+msgstr "Introducción al uso de proveedores de proxy:"
+
+msgid "Subconverter external configuration (subscription conversion template) Description: https://github.com/tindy2013/subconverter#external-configuration-file"
+msgstr "Descripción del archivo de configuración externa para subconverter: https://github.com/tindy2013/subconverter#external-configuration-file"
+
+msgid "If you need to customize the external configuration file (subscription conversion template), please write it according to the instructions, upload it to the accessible location of the external network, and fill in the address correctly when using it"
+msgstr "Para crear una plantilla personalizada, edítala siguiendo las instrucciones, súbela a una URL accesible y usa esa dirección."
+
+msgid "If you have a recommended external configuration file (subscription conversion template), you can modify by following The file format of /usr/share/openclash/res/sub_ini.list and pr"
+msgstr "Si quieres aportar una plantilla recomendada, modifícala siguiendo el formato de /usr/share/openclash/res/sub_ini.list y envía un PR."
+
+msgid "Note: To restore the default configuration, try accessing:"
+msgstr "Nota: para restaurar la configuración por defecto, accede a:"
+
+msgid "Take Effect If Fallback DNS Setted, Prevent DNS Pollution"
+msgstr "Funciona solo si el Fallback DNS está configurado; ayuda a evitar contaminación DNS."
+
+msgid "Error: Fallback-Filter Need fallback of DNS Been Setted, Ignore..."
+msgstr "Error: Fallback-Filter solo funciona con Fallback DNS configurado; ignorado."
+
+msgid "Error: Unable To Parse Custom Fallback-Filter File, Ignore..."
+msgstr "Error: no se pudo leer el archivo Fallback-Filter; ignorado."
+
+msgid "Simple & trustworthy"
+msgstr "Simple y confiable"
+
+msgid "Cross-platform Support"
+msgstr "Compatibilidad multiplataforma"
+
+msgid "Global Acceleration Network"
+msgstr "Red global de aceleración"
+
+msgid "Easy to Use"
+msgstr "Fácil de usar"
+
+msgid "Intelligent Shunting"
+msgstr "Desvío inteligente"
+
+msgid "Perfect Technical Support"
+msgstr "Soporte técnico completo"
+
+msgid "Plan Expiration Time"
+msgstr "Fecha de vencimiento"
+
+msgid "Account Balances"
+msgstr "Saldo de la cuenta"
+
+msgid "Aff Balances"
+msgstr "Saldo de afiliación"
+
+msgid "Account Integral"
+msgstr "Puntos de la cuenta"
+
+msgid "Today Used"
+msgstr "Uso de hoy"
+
+msgid "Plan Used"
+msgstr "Consumo del plan"
+
+msgid "Plan Unused"
+msgstr "Tráfico restante"
+
+msgid "Plan Traffic"
+msgstr "Tráfico del plan"
+
+msgid "Checkin"
+msgstr "Recompensa diaria"
+
+msgid "Dler Cloud Account Login Failed! Please Check And Try Again..."
+msgstr "Error al iniciar sesión en Dler Cloud. Revisa tus datos e inténtalo de nuevo..."
+
+msgid "Dler Cloud Account Login Failed, The Error Info is"
+msgstr "Error al iniciar sesión en Dler Cloud. Información del error:"
+
+msgid "Dler Cloud Checkin Failed! Please Check And Try Again..."
+msgstr "Fallo al realizar el check-in en Dler Cloud; inténtalo de nuevo más tarde."
+
+msgid "Account Email Address"
+msgstr "Correo de la cuenta"
+
+msgid "Account Password"
+msgstr "Contraseña"
+
+msgid "Checkin Interval (hour)"
+msgstr "Intervalo de check-in (horas)"
+
+msgid "Checkin Multiple"
+msgstr "Multiplicador de check-in"
+
+msgid "Multiple Must Be a Positive Integer and No More Than 100"
+msgstr "El multiplicador debe ser un entero positivo y no mayor que 100."
+
+msgid "Dler Cloud Checkin Successful, Result:"
+msgstr "Check-in de Dler Cloud realizado correctamente. Resultado:"
+
+msgid "Dler Cloud Checkin Failed, Result:"
+msgstr "Check-in de Dler Cloud fallido. Resultado:"
+
+msgid "Downloading Rule..."
+msgstr "Descargando regla..."
+
+msgid "Download Failed"
+msgstr "Descarga fallida"
+
+msgid "Download Successful"
+msgstr "Descarga completada"
+
+msgid "Rule No Change"
+msgstr "La regla no ha cambiado"
+
+msgid "Download Timeout"
+msgstr "Tiempo de descarga agotado"
+
+msgid "Rule Project:"
+msgstr "Proyecto de reglas:"
+
+msgid "Login..."
+msgstr "Iniciando sesión..."
+
+msgid "Dler Cloud Login Successful"
+msgstr "Inicio de sesión en Dler Cloud correcto"
+
+msgid "Dler Cloud Login Faild"
+msgstr "Inicio de sesión en Dler Cloud fallido"
+
+msgid "Login Account"
+msgstr "Iniciar sesión"
+
+msgid "Dler Cloud Logout Successful"
+msgstr "Cierre de sesión en Dler Cloud correcto"
+
+msgid "Dler Cloud Logout Faild"
+msgstr "Cierre de sesión en Dler Cloud fallido"
+
+msgid "Logout Account"
+msgstr "Cerrar sesión"
+
+msgid "Account Login"
+msgstr "Inicio de sesión"
+
+msgid "Account logged in"
+msgstr "Sesión iniciada"
+
+msgid "Account not logged in"
+msgstr "Sesión no iniciada"
+
+msgid "Logout..."
+msgstr "Cerrando sesión..."
+
+msgid "Error Login Info"
+msgstr "Datos de acceso incorrectos"
+
+msgid "Warning: Proxy is no longer used. Auto replaced by proxies"
+msgstr "Advertencia: «Proxy» ya no se usa; reemplazado automáticamente por «proxies»."
+
+msgid "Warning: Proxy Group is no longer used. Auto replaced by proxy-groups"
+msgstr "Advertencia: «Proxy Group» ya no se usa; reemplazado por «proxy-groups»."
+
+msgid "Warning: Rule is no longer used. Auto replaced by rules"
+msgstr "Advertencia: «Rule» ya no se usa; reemplazado por «rules»."
+
+msgid "Warning: rule-provider is no longer used. Auto replaced by rule-providers"
+msgstr "Advertencia: «rule-provider» ya no se usa; reemplazado por «rule-providers»."
+
+msgid "Error: Load File Failed,"
+msgstr "Error: fallo al cargar el archivo,"
+
+msgid "Error: Set General Failed,"
+msgstr "Error: fallo al modificar la sección General,"
+
+msgid "Error: Set authentication Failed,"
+msgstr "Error: fallo al modificar Authentication,"
+
+msgid "Error: DNS Loop Check,"
+msgstr "Error: comprobación de bucle DNS fallida,"
+
+msgid "Error: proxy-groups Get Failed,"
+msgstr "Error: fallo al obtener proxy-groups,"
+
+msgid "Error: Set Hosts Rules Failed,"
+msgstr "Error: fallo al modificar Hosts,"
+
+msgid "Error: Set Fake-IP-Filter Failed,"
+msgstr "Error: fallo al modificar Fake-IP-Filter,"
+
+msgid "Error: Set Nameserver-Policy Failed,"
+msgstr "Error: fallo al modificar Nameserver-Policy,"
+
+msgid "Error: Set Custom Rules Failed,"
+msgstr "Error: fallo al aplicar reglas personalizadas,"
+
+msgid "Error: Set BT/P2P DIRECT Rules Failed,"
+msgstr "Error: fallo al aplicar reglas DIRECT para BT/P2P,"
+
+msgid "Error: Set lhie1 Rules Failed,"
+msgstr "Error: fallo al aplicar reglas lhie1,"
+
+msgid "Error: Filter Proxies Failed,"
+msgstr "Error: fallo en el filtrado de nodos,"
+
+msgid "Error: Unable To Parse Config File,"
+msgstr "Error: no se pudo analizar el archivo de configuración,"
+
+msgid "Error: Unable To Parse Updated Rules File,"
+msgstr "Error: no se pudo analizar el archivo de reglas actualizado,"
+
+msgid "Error: Edit Provider Path Failed,"
+msgstr "Error: fallo al modificar la ruta del proveedor,"
+
+msgid "Error: Edit URL-Test Group Tolerance Option Failed,"
+msgstr "Error: fallo al modificar la tolerancia del grupo URL-Test,"
+
+msgid "Error: Game Proxy Merge Failed,"
+msgstr "Error: fallo al combinar reglas de juego,"
+
+msgid "Error: Rule Set Add Failed,"
+msgstr "Error: fallo al añadir reglas al Rule-Set,"
+
+msgid "Error: Custom Rule Provider Merge Failed,"
+msgstr "Error: fallo al combinar proveedores de reglas personalizados,"
+
+msgid "Error: Resolve Proxy-providers Failed,"
+msgstr "Error: fallo al analizar proveedores de proxy,"
+
+msgid "Error: Resolve Proxies Failed,"
+msgstr "Error: fallo al analizar nodos,"
+
+msgid "Error: Resolve Groups Failed,"
+msgstr "Error: fallo al analizar grupos,"
+
+msgid "Error: Set default-nameserver Failed,"
+msgstr "Error: fallo al modificar Default-nameserver,"
+
+msgid "switching succeeded!"
+msgstr "¡Cambio realizado con éxito!"
+
+msgid "switching failed!"
+msgstr "¡El cambio ha fallado!"
+
+msgid "Current Config File"
+msgstr "Archivo de configuración actual"
+
+msgid "Official Website"
+msgstr "Sitio oficial"
+
+msgid "Up"
+msgstr "Subida"
+
+msgid "Down"
+"Descarga"
+
+msgid "Up Total"
+msgstr "Total subido"
+
+msgid "Down Total"
+msgstr "Total descargado"
+
+msgid "Connect"
+msgstr "Conexiones activas"
+
+msgid "Ram"
+msgstr "Uso de RAM"
+
+msgid "CPU"
+msgstr "Uso de CPU"
+
+msgid "Load Avg"
+msgstr "Carga media"
+
+msgid "Bad address specified!"
+msgstr "Dirección no válida."
+
+msgid "Could not find any connection logs!"
+msgstr "No se encontraron registros de conexión."
+
+msgid "Some error occurred!"
+msgstr "Ha ocurrido un error."
+
+msgid "Click to Test"
+msgstr "Hacer prueba"
+
+msgid "Connection Test"
+msgstr "Prueba de conexión"
+
+msgid "Backup File"
+msgstr "Archivo de copia de seguridad"
+
+msgid "Backup File Restore Successful!"
+msgstr "Restauración desde copia de seguridad completada."
+
+msgid "Backup OpenClash"
+msgstr "Respaldar OpenClash"
+
+msgid "Not Select"
+msgstr "Sin seleccionar"
+
+msgid "1. It may be that the plugin is not running"
+msgstr "1. Puede que el plugin no esté en ejecución."
+
+msgid "2. It may be that the cache causes the browser to directly use the IP for access"
+msgstr "2. La caché del navegador podría estar accediendo directamente por IP."
+
+msgid "3. It may be that DNS hijacking did not take effect, so clash unable to reverse the domain name"
+msgstr "3. El secuestro DNS podría no haber funcionado; Clash no puede resolver los dominios."
+
+msgid "4. It may be that the filled address cannot be resolved and connected"
+msgstr "4. La dirección introducida puede ser imposible de resolver."
+
+msgid "OpenClash Log"
+msgstr "Registro del plugin"
+
+msgid "Core Log"
+msgstr "Registro del núcleo"
+
+msgid "Append Upstream DNS"
+msgstr "Añadir DNS ascendente"
+
+msgid "Append The Upstream Assigned DNS And Gateway IP To The Nameserver"
+msgstr "Añadir al Nameserver el DNS y puerta de enlace proporcionados por el upstream"
+
+msgid "All Groups"
+msgstr "Todos los grupos"
+
+msgid "Are you sure want to switch the running mode?"
+msgstr "¿Seguro que deseas cambiar el modo de funcionamiento?"
+
+msgid "Tip: Because of the file"
+msgstr "Consejo: debido a que el archivo"
+
+msgid "modificated, Pause quick start..."
+msgstr "ha sido modificado, pausa del inicio rápido..."
+
+msgid "Click to Update"
+msgstr "Actualizar reglas"
+
+msgid "Persistence Fake-IP"
+msgstr "Persistencia de Fake-IP"
+
+msgid "Cache Fake-IP DNS Resolution Records To File, Improve The Response Speed After Startup"
+msgstr "Guardar en archivo las resoluciones Fake-IP para mejorar la velocidad tras el arranque"
+
+msgid "Test failed"
+msgstr "Prueba fallida"
+
+msgid "OpenClash Start Failed"
+msgstr "Error al iniciar OpenClash"
+
+msgid "interface-name"
+msgstr "Interfaz de salida"
+
+msgid "routing-mark"
+msgstr "Marca de enrutamiento"
+
+msgid "Streaming Enhance"
+msgstr "Mejora de streaming"
+
+msgid "Auto Select Unlock Proxy"
+msgstr "Selección automática de nodo desbloqueado"
+
+msgid "Auto Select Proxy For Streaming Unlock, Support Netflix, Disney Plus, HBO And YouTube Premium, etc"
+msgstr "Selecciona automáticamente nodos que desbloquean streaming (Netflix, Disney+, HBO, YouTube Premium, etc.)"
+
+msgid "Auto Select Interval(min)"
+msgstr "Intervalo de detección (minutos)"
+
+msgid "Expand Group"
+msgstr "Expandir grupo"
+
+msgid "Automatically Expand The Group When Selected"
+msgstr "Expandir grupos anidados al seleccionarlos (puede causar inestabilidad)"
+
+msgid "Group Filter"
+msgstr "Filtro de grupos"
+
+msgid "Unlock Region Filter"
+msgstr "Filtro de regiones"
+
+msgid "Unlock Nodes Filter"
+msgstr "Filtro de nodos desbloqueados"
+
+msgid "Tip: Start Auto Select Proxy For Netflix Unlock..."
+msgstr "Iniciando selección automática de nodo para Netflix..."
+
+msgid "Tip: Start Auto Select Proxy For Disney Plus Unlock..."
+msgstr "Iniciando selección automática de nodo para Disney Plus..."
+
+msgid "Tip: Start Auto Select Proxy For HBO Max Unlock..."
+msgstr "Iniciando selección automática de nodo para HBO Max..."
+
+msgid "Tip: Start Auto Select Proxy For YouTube Premium Unlock..."
+msgstr "Iniciando selección automática de nodo para YouTube Premium..."
+
+msgid "Tip: Start Auto Select Proxy For TVB Anywhere+ Unlock..."
+msgstr "Iniciando selección automática de nodo para TVB Anywhere+..."
+
+msgid "Tip: Start Auto Select Proxy For Amazon Prime Video Unlock..."
+msgstr "Iniciando selección automática de nodo para Amazon Prime Video..."
+
+msgid "Tip: Start Auto Select Proxy For DAZN Unlock..."
+msgstr "Iniciando selección automática de nodo para DAZN..."
+
+msgid "Tip: Start Auto Select Proxy For Paramount Plus Unlock..."
+msgstr "Iniciando selección automática de nodo para Paramount Plus..."
+
+msgid "Tip: Start Auto Select Proxy For Discovery Plus Unlock..."
+msgstr "Iniciando selección automática de nodo para Discovery Plus..."
+
+msgid "Tip: Start Auto Select Proxy For Bilibili Unlock..."
+msgstr "Iniciando selección automática de nodo para Bilibili..."
+
+msgid "Tip: Start Auto Select Proxy For Google Not CN Unlock..."
+msgstr "Iniciando selección automática de nodo para Google fuera de China..."
+
+msgid "Tip: Start Auto Select Proxy For OpenAI Unlock..."
+msgstr "Iniciando selección automática de nodo para OpenAI..."
+
+msgid "Netflix Group:"
+msgstr "Grupo de Netflix:"
+
+msgid "Disney Plus Group:"
+msgstr "Grupo de Disney Plus:"
+
+msgid "HBO Max Group:"
+msgstr "Grupo de HBO Max:"
+
+msgid "TVB Anywhere+ Group:"
+msgstr "Grupo de TVB Anywhere+:"
+
+msgid "Amazon Prime Video Group:"
+msgstr "Grupo de Amazon Prime Video:"
+
+msgid "YouTube Premium Group:"
+msgstr "Grupo de YouTube Premium:"
+
+msgid "DAZN Group:"
+msgstr "Grupo de DAZN:"
+
+msgid "Paramount Plus Group:"
+msgstr "Grupo de Paramount Plus:"
+
+msgid "Discovery Plus Group:"
+msgstr "Grupo de Discovery Plus:"
+
+msgid "Bilibili Group:"
+msgstr "Grupo de Bilibili:"
+
+msgid "Google Group:"
+msgstr "Grupo de Google:"
+
+msgid "OpenAI Group:"
+msgstr "Grupo de OpenAI:"
+
+msgid "full support"
+msgstr "desbloqueo completo"
+
+msgid "full support, area:"
+msgstr "desbloqueo completo, región:"
+
+msgid "only support homemade!"
+msgstr "solo admite contenido propio"
+
+msgid "unlock test faild!"
+msgstr "la prueba de desbloqueo ha fallado"
+
+msgid ", the type of group is not select, auto select could not work!"
+msgstr ", el tipo de grupo no es Select; la selección automática no puede funcionar."
+
+msgid "Start auto select unlock proxy..."
+msgstr "Iniciando selección automática de nodo desbloqueado..."
+
+msgid "only support homemade! the type of group is not select, auto select could not work!"
+msgstr "Solo admite contenido propio. El grupo no es Select; la selección automática no funcionará."
+
+msgid "unlock test faild! the type of group is not select, auto select could not work!"
+msgstr "La prueba de desbloqueo falló. El grupo no es Select; no se puede usar selección automática."
+
+msgid "only support homemade! start auto select unlock proxy..."
+msgstr "Solo admite contenido propio. Iniciando selección automática..."
+
+msgid "unlock test faild! start auto select unlock proxy..."
+msgstr "La prueba falló. Iniciando selección automática..."
+
+msgid "It Will Be Searched According To The Regex When Auto Search Group Fails"
+msgstr "Si no se puede obtener el grupo automáticamente, se usará la expresión regular para buscarlo."
+
+msgid "It Will Be Selected Region(Country Shortcode) According To The Regex"
+msgstr "La región se seleccionará según la expresión regular."
+
+msgid "It Will Be Selected Nodes According To The Regex"
+msgstr "Los nodos se filtrarán según la expresión regular."
+
+msgid "not support unlock!"
+msgstr "no admite desbloqueo"
+
+msgid "not support unlock! the type of group is not select, auto select could not work!"
+msgstr "no admite desbloqueo; el grupo no es Select, no se puede usar selección automática."
+
+msgid "not support unlock! start auto select unlock proxy..."
+msgstr "no admite desbloqueo; iniciando selección automática..."
+
+msgid "unlock node auto selected successfully, the current selected is"
+msgstr "Selección automática completada; nodo actual:"
+
+msgid "unlock node auto selected failed, no node available, rolled back to the"
+msgstr "Fallo en la selección automática; sin nodos disponibles. Revirtiendo al"
+
+msgid ", area:"
+msgstr "，región："
+
+msgid "failed to search based on keywords and automatically obtain the group, please confirm the validity of the regex!"
+msgstr "Fallo al buscar el grupo por palabras clave; revisa tu expresión regular."
+
+msgid "unlock node auto selected failed, no node match the regex, rolled back to other full support node"
+msgstr "Selección automática fallida; ningún nodo coincide. Volviendo a un nodo con desbloqueo completo."
+
+msgid "unlock node auto selected successfully, no node match the old region, rolled back to other full support node"
+msgstr "Selección automática correcta, pero ningún nodo coincide con la región previa; usando otro nodo válido."
+
+msgid ", but not match the regex!"
+msgstr ", pero no coincide con la expresión regular."
+
+msgid "full support but not match the old region!"
+msgstr "desbloqueo completo, pero no coincide con la región anterior"
+
+msgid ", but not match the old region:"
+msgstr ", pero no coincide con la región anterior:"
+
+msgid "the type of group is not select, auto select could not work!"
+msgstr "el grupo no es de tipo Select; no se puede usar selección automática"
+
+msgid ", but not match the regex! the type of group is not select, auto select could not work!"
+msgstr "no coincide con la expresión regular y el grupo no es Select; no se puede usar selección automática"
+
+msgid "but not match the old region! the type of group is not select, auto select could not work!"
+msgstr "no coincide con la región previa y el grupo no es Select; no se puede usar selección automática"
+
+msgid ", but not match the regex! start auto select unlock proxy..."
+msgstr "no coincide con la expresión regular; iniciando selección automática..."
+
+msgid "unlock node test finished, rolled back to the full support node"
+msgstr "Prueba finalizada; revertido a un nodo con desbloqueo completo"
+
+msgid "unlock node test finished, no node match the old region, rolled back to other full support node"
+"Prueba finalizada; ningún nodo coincide con la región previa, revertido a otro nodo válido"
+
+msgid "unlock node test finished, no node match the regex, rolled back to other full support node"
+"Prueba finalizada; ningún nodo coincide con la expresión regular; usando otro nodo válido"
+
+msgid "unlock node test finished, no node available, rolled back to the"
+"Prueba finalizada; sin nodos válidos, revertido al"
+
+msgid "no nodes name match the regex!"
+msgstr "No hay nodos cuyo nombre coincida con la expresión regular."
+
+msgid "Bypass Gateway Compatible"
+msgstr "Compatibilidad con gateway bypass (bypass router)"
+
+msgid "If The Network Cannot be Connected in Bypass Gateway Mode, Please Try to Enable."
+msgstr "Si en modo bypass el dispositivo no tiene conexión, prueba a activar esta opción."
+
+msgid "Suggestion: If The Device Does Not Have WLAN, Please Disable The Lan Interface's Bridge Option"
+msgstr "Sugerencia: si el dispositivo no tiene WLAN, desactiva la opción de puente en la interfaz LAN."
+
+msgid "Github Address Modify"
+msgstr "Modificar dirección de Github"
+
+msgid "Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Faild. Format Reference:"
+msgstr "Permite reemplazar las direcciones de Github en OpenClash y en la configuración utilizando un proxy/CDN para evitar fallos de descarga. Formato de referencia:"
+
+msgid "File Edit"
+msgstr "Edición de archivos"
+
+msgid "Overwrite Edit"
+msgstr "Edición de sobrescritura"
+
+msgid "Create File"
+msgstr "Crear archivo"
+
+msgid "You are editing the overwrite script, please note that some settings may cause the abnormal, be careful with the modification!"
+msgstr "Estás editando el script de sobrescritura; algunos cambios pueden causar fallos. Modifica con precaución."
+
+msgid "Paste the name of the new file (including the extension) here:"
+msgstr "Introduce aquí el nombre del nuevo archivo (con extensión):"
+
+msgid "Delay Start (s)"
+msgstr "Retardo de inicio (segundos)"
+
+msgid "Delay Start On Boot"
+msgstr "Retrasar el inicio tras arrancar"
+
+msgid "Enable Delay Start, OpenClash Will Start After"
+msgstr "Retardo de inicio activado; OpenClash se iniciará dentro de"
+
+msgid "Secends..."
+msgstr "segundos..."
+
+msgid "Waiting for command to complete..."
+msgstr "Esperando a que finalice el comando..."
+
+msgid "Collecting data..."
+msgstr "Recopilando datos..."
+
+msgid "Flushing..."
+msgstr "Vaciando..."
+
+msgid "Flush Successful"
+msgstr "Limpieza completada"
+
+msgid "Flush Timeout"
+msgstr "Tiempo de limpieza agotado"
+
+msgid "Flush"
+msgstr "Limpiar"
+
+msgid "Flush DNS Cache"
+msgstr "Vaciar caché DNS"
+
+msgid "No Specify Upload File"
+msgstr "No se ha seleccionado ningún archivo"
+
+msgid "Custom Params"
+msgstr "Parámetros personalizados"
+
+msgid "eg: \"rename=match@replace\" , \"rename=\\s+([2-9])[xX]@ (HIGH:$1)\""
+msgstr "Ejemplo: \"rename=match@replace\" , \"rename=\\s+([2-9])[xX]@ (ALTO:$1)\""
+
+msgid "Use Rule Provider"
+msgstr "Usar proveedor de reglas"
+
+msgid "Note: Please Make Sure Backend Service Supports This Feature"
+msgstr "Nota: asegúrate de que tu backend admite esta función, de lo contrario podría fallar el inicio del núcleo."
+
+msgid "Rename"
+msgstr "Renombrar"
+
+msgid "Paste the new file name (including the extension) here:"
+msgstr "Introduce el nuevo nombre de archivo (incluida la extensión):"
+
+msgid "Illegal extension!"
+msgstr "Extensión no permitida."
+
+msgid "Manual Test"
+msgstr "Prueba manual"
+
+msgid "Unlock Test(Select)"
+msgstr "Prueba de desbloqueo (selección)"
+
+msgid "All Proxies Test"
+msgstr "Probar todos los nodos"
+
+msgid "Something Wrong While Testing..."
+msgstr "Algo ha fallado durante la prueba..."
+
+msgid "Network instability may occur during testing, Are you sure want to start test?"
+msgstr "La prueba puede causar inestabilidad en la red. ¿Seguro que deseas continuar?"
+
+msgid "Subscription Info"
+msgstr "Información de suscripción"
+
+msgid "No Sub Info Found"
+msgstr "No se ha encontrado información de suscripción"
+
+msgid "Sub Info Get Error"
+msgstr "Error al obtener la información de suscripción"
+
+msgid "Router-Self Proxy"
+msgstr "Proxy para tráfico del propio router"
+
+msgid "Only Supported for Rule Mode"
+msgstr "Solo compatible con el modo Rule; otros modos usarán el flujo por defecto."
+
+msgid "ALL Functions In Stream Enhance Tag Will Not Work After Disable"
+msgstr "Si se desactiva, todas las funciones del apartado «mejora de streaming» dejarán de estar disponibles."
+
+msgid "Error: Set Router Self Proxy Rule Failed,"
+msgstr "Error: fallo al configurar la regla de proxy del router,"
+
+msgid "Error: Streaming Unlock Has No Parameter of Type, Exiting..."
+msgstr "Error: no se especificó el tipo de servicio a desbloquear; abortando..."
+
+msgid "Error: Streaming Unlock Could not Work Because of Router-Self Proxy Disabled, Exiting..."
+msgstr "Error: el proxy del propio router está desactivado; desbloqueo de streaming imposible. Abortando..."
+
+msgid "Error: Multiple Scripts Running, Exiting..."
+msgstr "Error: hay varios scripts ejecutándose; abortando..."
+
+msgid "Enable Sniffer"
+msgstr "Habilitar Sniffer (detección de dominios)"
+
+msgid "Sniffer Will Prevent Domain Name Proxy and DNS Hijack Failure"
+msgstr "El sniffer ayuda a evitar errores de proxy de dominios y fallos de secuestro DNS."
+
+msgid "Override All Dns Query"
+msgstr "Sobrescribir todas las consultas DNS"
+
+msgid "Meta Settings"
+msgstr "Ajustes Meta"
+
+msgid "Smart Settings"
+msgstr "Ajustes Smart"
+
+msgid "Geodata Loader Mode"
+msgstr "Modo de carga de Geodata"
+
+msgid "Memconservative"
+msgstr "Modo de bajo consumo de memoria"
+
+msgid "Standard"
+msgstr "Modo estándar"
+
+msgid "Enable GeoIP Dat"
+msgstr "Usar GeoIP Dat"
+
+msgid "Replace GEOIP MMDB With GEOIP Dat, Large Size File"
+msgstr "Reemplazar GEOIP MMDB por GeoIP Dat (archivo grande, sin datos integrados)."
+
+msgid "Need Download First"
+msgstr "Requiere descarga previa"
+
+msgid "Auto Update GeoIP Dat"
+msgstr "Actualizar GeoIP Dat automáticamente"
+
+msgid "Custom GeoIP Dat URL"
+msgstr "URL personalizada para GeoIP Dat"
+
+msgid "Custom GeoIP Dat URL, Click Button Below To Refresh After Edit"
+msgstr "Tras cambiar la URL, pulsa el botón inferior para actualizar."
+
+msgid "Update GeoIP Dat"
+msgstr "Actualizar GeoIP Dat"
+
+msgid "Note: It is not recommended to enable IPv6 and related services for routing. Most of the network connection problems reported so far are related to it"
+msgstr "Nota: no se recomienda activar IPv6 ni sus servicios en el router; la mayoría de problemas reportados están relacionados con ello."
+
+msgid "Note: Turning on secure DNS in the browser will cause abnormal shunting, please be careful to turn it off"
+msgstr "Nota: activar DNS seguro en el navegador puede causar problemas de enrutamiento; se recomienda desactivarlo."
+
+msgid "Note: Some software will modify the device HOSTS, which will cause abnormal shunt, please pay attention to check"
+msgstr "Nota: algunos programas modifican el archivo HOSTS del dispositivo y causan problemas de enrutamiento. Revisa si es necesario."
+
+msgid "Note: The default proxy routes local traffic, BT, PT download, etc., please use Redir-Host mode as much as possible and pay attention to traffic avoidance"
+msgstr "Nota: el proxy por defecto procesa tráfico local, BT, PT, etc.; usa Redir-Host siempre que sea posible."
+
+msgid "Note: Game proxy please use nodes except VMess"
+msgstr "Nota: para juegos, evita nodos VMess."
+
+msgid "Note: If the connection is abnormal, please follow the steps on this page to check first"
+msgstr "Nota: si la conexión falla, sigue primero los pasos indicados en esta página."
+
+msgid "Note: If you need to perform client access control in Fake-IP mode, please change the DNS hijacking mode to firewall forwarding"
+msgstr "Nota: para control de acceso en modo Fake-IP, cambia el secuestro DNS a reenvío por firewall."
+
+msgid "Click to the page"
+msgstr "Ir a la página"
+
+msgid "Custom Sniffer Settings"
+msgstr "Ajustes personalizados del sniffer"
+
+msgid "Custom The Force and Skip Sniffing Doamin Lists"
+msgstr "Configura listas de dominios forzados o excluidos del sniffer."
+
+msgid "Enable Tcp Concurrent"
+msgstr "Activar concurrencia TCP"
+
+msgid "TCP Concurrent Request IPs, Choose The Lowest Latency One To Connection"
+msgstr "Solicita todas las IP y usa automáticamente la de menor latencia."
+
+msgid "Remaining"
+msgstr "Restantes"
+
+msgid "days"
+msgstr "días"
+
+msgid "Douyin"
+msgstr "Douyin"
+
+msgid "Specific Interface"
+msgstr "Interfaz específica"
+
+msgid "DNS Lookup Only Through The Specific Interface"
+msgstr "Resolver DNS únicamente a través de la interfaz seleccionada"
+
+msgid "Specific Group (Support Regex)"
+msgstr "Grupo específico (soporta regex)"
+
+msgid "Group Use For Proxy The DNS"
+msgstr "Grupo utilizado para proxy DNS"
+
+msgid "Direct Nameserver"
+msgstr "Servidor DNS directo"
+
+msgid "Use For Domain Need Direct"
+msgstr "Usado para dominios que deben resolverse sin proxy"
+
+msgid "Node Domain Resolve"
+msgstr "Resolución de dominios de nodos"
+
+msgid "Use For Node Domain Resolve"
+msgstr "Usado para resolver dominios de nodos"
+
+msgid "Lan Traffic Access List"
+msgstr "Control de acceso del tráfico LAN"
+
+msgid "The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails"
+msgstr "El tráfico proveniente de puertos locales específicos no pasará por el núcleo; útil si el encaminamiento en bypass falla."
+
+msgid "Local IPv4 Network Bypassed List"
+msgstr "Lista de direcciones IPv4 locales omitidas"
+
+msgid "Local IPv6 Network Bypassed List"
+msgstr "Lista de direcciones IPv6 locales omitidas"
+
+msgid "The Traffic of The Destination For The Specified Address Will Not Pass The Core"
+msgstr "El tráfico destinado a estas direcciones no pasará por el núcleo"
+
+msgid "Force HTTP/3"
+msgstr "Forzar HTTP/3"
+
+msgid "Force HTTP/3 to connect"
+msgstr "Forzar conexiones mediante HTTP/3"
+
+msgid "Unzip Error!"
+msgstr "Error al descomprimir."
+
+msgid "Unzip Error"
+msgstr "Error al descomprimir"
+
+msgid "Switch To Official Version"
+msgstr "Cambiar a versión oficial"
+
+msgid "Switch To Meta Version"
+msgstr "Cambiar a versión Meta"
+
+msgid "Switch(Update) Dashboard Version"
+msgstr "Cambiar/actualizar versión del Dashboard"
+
+msgid "Switch(Update) Yacd Version"
+msgstr "Cambiar/actualizar versión de Yacd"
+
+msgid "Update Metacubexd Version"
+msgstr "Actualizar Metacubexd"
+
+msgid "Update Zashboard Version"
+msgstr "Actualizar Zashboard"
+
+msgid "Downloading File..."
+msgstr "Descargando archivo..."
+
+msgid "Update Failed"
+msgstr "Actualización fallida"
+
+msgid "Update Successful"
+msgstr "Actualización realizada"
+
+msgid "Switch Successful"
+msgstr "Cambio realizado con éxito"
+
+msgid "Close Old Connections"
+msgstr "Cerrar conexiones antiguas"
+
+msgid "Automatically Close Old Connections When New Unlock Node Selected"
+msgstr "Cierra automáticamente las conexiones del grupo al seleccionar un nuevo nodo de desbloqueo"
+
+msgid "Append Default DNS"
+msgstr "Añadir DNS predeterminado"
+
+msgid "Automatically Append Compliant DNS to default-nameserver"
+msgstr "Añade automáticamente DNS válidos al default-nameserver"
+
+msgid "China Mainland Only"
+msgstr "Solo China continental"
+
+msgid "Hongkong/Macau/Taiwan"
+msgstr "Hong Kong / Macao / Taiwán"
+
+msgid "Taiwan Only"
+msgstr "Solo Taiwán"
+
+msgid "Backup Section"
+msgstr "Opciones de copia de seguridad"
+
+msgid "Backup Exclude Cores"
+msgstr "Copia sin núcleos"
+
+msgid "Backup Core"
+msgstr "Copiar solo núcleo"
+
+msgid "Backup Config"
+msgstr "Copiar solo configuración"
+
+msgid "Backup Rule Provider"
+msgstr "Copiar solo proveedores de reglas"
+
+msgid "Backup Proxy Provider"
+msgstr "Copiar solo proveedores de proxy"
+
+msgid "Chnroute Bypassed List"
+msgstr "Lista de exclusión IPv4 de China continental"
+
+msgid "Chnroute6 Bypassed List"
+msgstr "Lista de exclusión IPv6 de China continental"
+
+msgid "Domains or IPs in The List Will Not be Affected by The China IP Route Option, Depend on Dnsmasq"
+msgstr "Los dominios o IP de la lista no se verán afectados por la opción China IP Route. Requiere Dnsmasq."
+
+msgid "Warning: You May Need to Turn off The Rebinding Protection Option of Dnsmasq When Hosts Has Set a Reserved Address..."
+msgstr "Advertencia: si HOSTS contiene direcciones reservadas, desactiva la protección de 'rebinding' de Dnsmasq."
+
+msgid "Auto Select Logic"
+msgstr "Lógica de selección automática"
+
+msgid "Urltest"
+msgstr "Baja latencia"
+
+msgid "Random"
+msgstr "Aleatorio"
+
+msgid "Tip: You have seted the authentication of SOCKS5/HTTP(S) proxy with"
+msgstr "Aviso: has configurado autenticación para el proxy SOCKS5/HTTP(S) con"
+
+msgid "Google Not CN"
+msgstr "Google no China"
+
+msgid "In Fake-ip Mode, Even If This Option is Turned Off, Domain Type Connections Still Pass Through The Core For The Availability"
+msgstr "En modo Fake-IP, incluso desactivado, algunas conexiones de dominio seguirán pasando por el núcleo."
+
+msgid "Warning: TUN Interface Start Failed, Please Check The Dependence or Try to Restart Again!"
+msgstr "Advertencia: fallo al iniciar la interfaz TUN; revisa dependencias o intenta reiniciar."
+
+msgid "Warning: TUN Interface Start Failed, Try to Restart Again..."
+msgstr "Advertencia: inicio de TUN fallido; intentando reiniciar..."
+
+msgid "Error: Core Start Failed, Please Check The Log Infos!"
+msgstr "Error: fallo al iniciar el núcleo. Revisa el registro de núcleo."
+
+msgid "Error: Core Status Abnormal, Please Check The Log Infos!"
+msgstr "Error: estado del núcleo anómalo. Consulta el registro de núcleo."
+
+msgid "Forced Sniff Pure IP Connections"
+msgstr "Forzar sniffing de conexiones IP puras"
+
+msgid "Forced Sniff Pure IP"
+msgstr "Forzar sniffing de IP puras"
+
+msgid "Download Failed:"
+msgstr "Descarga fallida:"
+
+msgid "Warning: Dnsmasq not Support nftset, Use ipset..."
+msgstr "Advertencia: Dnsmasq no admite nftset; usando ipset en su lugar."
+
+msgid "Tip: Firewall4 was Detected, Use NFTABLE Rules..."
+msgstr "Aviso: detectado Firewall4; usando reglas NFTABLE..."
+
+msgid "Specify CN DNS Server"
+msgstr "DNS específico para dominios de China"
+
+msgid "Seconds..."
+msgstr "segundos..."
+
+msgid "1. Before modifying the configuration file, please click the button below to read the configuration file"
+msgstr "1. Antes de editar el archivo de configuración, pulsa el botón inferior para cargarlo."
+
+msgid "2. Proxy-providers address can be directly filled in the subscription link"
+msgstr "2. La dirección de un proveedor de proxy puede ser directamente un enlace de suscripción."
+
+msgid "Custom Tag"
+msgstr "Etiqueta personalizada"
+
+msgid "Mark as Custom Node to Prevent Retention config from being Deleted When Enabled"
+msgstr "Marcar como nodo personalizado para evitar que se elimine al usar configuración de retención."
+
+msgid "Error: Edit URL-Test URL Failed,"
+msgstr "Error: fallo al modificar la URL de URL-Test,"
+
+msgid "Error: Edit URL-Test Interval Failed,"
+msgstr "Error: fallo al modificar el intervalo de URL-Test,"
+
+msgid "URL-Test Address Modify"
+msgstr "Modificar dirección de URL-Test"
+
+msgid "Modify The URL-Test Address In The Config"
+msgstr "Modificar en la configuración la dirección de URL-Test"
+
+msgid "URL-Test Interval Modify"
+msgstr "Modificar intervalo de URL-Test"
+
+msgid "Modify The URL-Test Interval In The Config"
+msgstr "Modificar en la configuración el intervalo de URL-Test"
+
+msgid "Whether to Enable Process Rules, Only Works on Routerself, If You Are Not Sure, Please Choose off Which Useful in Router Environment, Depend on kmod-inet-diag"
+msgstr "Habilita reglas por proceso (solo para procesos del router). Si no estás seguro, déjalo desactivado. Requiere kmod-inet-diag."
+
+msgid "Enable Process Rule"
+msgstr "Activar reglas por proceso"
+
+msgid "Warning: Because there is a port range"
+msgstr "Advertencia: debido a que existe un rango de puertos"
+
+msgid "in the firewall rule settings"
+msgstr "en la configuración del firewall"
+
+msgid "auto bypassing may cause the normal connection of the client not to reach the core, if necessary, please add your own in the access control!"
+msgstr "el bypass automático puede impedir que conexiones legítimas lleguen al núcleo. Añade reglas manuales si es necesario."
+
+msgid "Tip: Start Add Port Bypassing Rules For Firewall Redirect and Firewall Rules..."
+msgstr "Aviso: añadiendo reglas de bypass de puertos para redirecciones de firewall..."
+
+msgid "Tip: DNS Hijacking Mode is Dnsmasq Redirect..."
+msgstr "Aviso: modo de secuestro DNS: redirección Dnsmasq..."
+
+msgid "Tip: DNS Hijacking Mode is Firewall Redirect..."
+msgstr "Aviso: modo de secuestro DNS: redirección por firewall..."
+
+msgid "Tip: DNS Hijacking is Disabled..."
+msgstr "Aviso: el secuestro DNS está desactivado..."
+
+msgid "Fake-IP Range"
+msgstr "Rango de direcciones Fake-IP"
+
+msgid "Set Fake-IP Range"
+msgstr "Configurar rango Fake-IP"
+
+msgid "IPv6 Settings"
+msgstr "Configuración IPv6"
+
+msgid "Custom Config Overwrite Scripts Which Will Run After Plugin Own Completely, Please Be Careful, The Wrong Changes May Lead to Exceptions"
+msgstr "Scripts de sobrescritura personalizados (se ejecutan tras las reglas internas). Usa con cuidado; cambios incorrectos pueden causar fallos."
+
+msgid "Custom Firewall Rules, Support IPv4 and IPv6, All Rules Will Be Added After Plugin Own Completely"
+msgstr "Reglas de firewall personalizadas (IPv4/IPv6). Se aplican tras las reglas internas del plugin."
+
+msgid "Tip: Start Add Custom Firewall Rules..."
+msgstr "Aviso: aplicando reglas de firewall personalizadas..."
+
+msgid "Tip: Start Running Custom Overwrite Scripts..."
+msgstr "Aviso: ejecutando scripts de sobrescritura personalizados..."
+
+msgid "Developer Settings"
+msgstr "Opciones de desarrollador"
+
+msgid "Restore"
+msgstr "Restaurar"
+
+msgid "DNS Test"
+msgstr "Prueba DNS"
+
+msgid "No Response Found!"
+msgstr "No se ha obtenido respuesta."
+
+msgid "Client Fingerprint"
+msgstr "Huella del cliente"
+
+msgid "Change The Client Fingerprint, Only Support TLS Transport in TCP/GRPC/WS/HTTP For Vless/Vmess and Trojan"
+msgstr "Cambiar la huella del cliente. Solo compatible con transporte TLS en TCP/GRPC/WS/HTTP para Vless/Vmess y Trojan."
+
+msgid "Watchdog: Edit Client-fingerprint Failed,"
+msgstr "Watchdog: fallo al modificar la huella del cliente,"
+
+msgid "Error: Edit Client-fingerprint Failed,"
+msgstr "Error: fallo al modificar la huella del cliente,"
+
+msgid "Traffic Control"
+msgstr "Control de tráfico"
+
+msgid "Hide IP"
+msgstr "Ocultar IP"
+
+msgid "Show IP"
+msgstr "Mostrar IP"
+
+msgid "Router Mode"
+msgstr "Modo router"
+
+msgid "Browser Mode"
+msgstr "Modo navegador"
+
+msgid "Refresh"
+msgstr "Actualizar"
+
+msgid "Specify URL"
+msgstr "Especificar URL"
+
+msgid "Paste the new url of subscribe infos sources here:"
+msgstr "Pega aquí la nueva URL de origen de la suscripción:"
+
+msgid "Specify subscribe infos sources url successfully!"
+msgstr "La nueva URL de suscripción se ha configurado correctamente."
+
+msgid "Delete Specify Subscribe infos sources url successfully!"
+msgstr "La URL personalizada de suscripción ha sido eliminada."
+
+msgid "Specify subscribe infos sources url failed:"
+msgstr "Error al establecer la nueva URL de suscripción:"
+
+msgid "IPv6 Proxy Mode"
+msgstr "Modo proxy IPv6"
+
+msgid "TProxy Mode"
+msgstr "Modo TProxy"
+
+msgid "Redirect Mode"
+msgstr "Modo Redirect"
+
+msgid "TUN Mode"
+msgstr "Modo TUN"
+
+msgid "Mix Mode"
+msgstr "Modo Mixto (UDP–TUN, TCP–Redirect)"
+
+msgid "Tip: IPv6 Proxy Mode is Redirect..."
+msgstr "Tip: el modo proxy IPv6 es Redirect..."
+
+msgid "Tip: IPv6 Proxy Mode is TUN..."
+msgstr "Tip: el modo proxy IPv6 es TUN..."
+
+msgid "Tip: IPv6 Proxy Mode is TProxy..."
+msgstr "Tip: el modo proxy IPv6 es TProxy..."
+
+msgid "Tip: IPv6 Proxy Mode is Mix..."
+msgstr "Tip: el modo proxy IPv6 es Mixto..."
+
+msgid "Warning: Can't Settting Only Intranet Allowed Function, Get IPv4 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
+msgstr "Advertencia: fallo al activar la función «solo intranet». No se pudo obtener la interfaz WAN IPv4. Comprueba que la zona WAN en el cortafuegos se llama «wan». Si el dispositivo no tiene interfaz WAN, ignora este aviso."
+
+msgid "Warning: Can't Settting Only Intranet Allowed Function, Get IPv6 WAN Interfaces error, Please Verify The Firewall's WAN Zone Name is wan, Ignore This IF The Device Does not Have a WAN Interfaces..."
+msgstr "Advertencia: fallo al activar la función «solo intranet». No se pudo obtener la interfaz WAN IPv6. Comprueba que la zona WAN en el cortafuegos se llama «wan». Si el dispositivo no tiene interfaz WAN, ignora este aviso."
+
+msgid "Config File Download Successful, Test If There is Any Errors..."
+msgstr "Archivo de configuración descargado correctamente. Probando si hay errores..."
+
+msgid "configuration file"
+msgstr "archivo de configuración"
+
+msgid "test failed"
+msgstr "prueba fallida"
+
+msgid "test is successful"
+msgstr "prueba correcta"
+
+msgid "Error: Config File Tested Faild, Please Check The Log Infos!"
+msgstr "Error: la prueba del archivo de configuración ha fallado. Consulta el registro del núcleo."
+
+msgid "Test The Config File First..."
+msgstr "Probando el archivo de configuración antes de iniciar..."
+
+msgid "Other Parameters"
+msgstr "Otros parámetros"
+
+msgid "Edit Your Other Parameters Here"
+msgstr "Edita aquí tus parámetros adicionales"
+
+msgid "Error: Config Not Found, Switch Config File to"
+msgstr "Error: no se encontró el archivo de configuración; cambiando al archivo de configuración"
+
+msgid "Enable Unified Delay"
+msgstr "Activar cálculo unificado de latencia"
+
+msgid "Change The Delay Calculation Method To Remove Extra Delays Such as Handshaking"
+msgstr "Cambia el método de cálculo de latencia para eliminar tiempos extra como el handshake."
+
+msgid "Tip: If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
+msgstr "Tip: si la descarga falla, prueba a configurar un CDN en Sobrescritura → General → Modificar direcciones de Github."
+
+msgid "Used for Downloading Subscriptions, Defaults to Clash"
+msgstr "User-Agent usado para descargar suscripciones (por defecto: Clash)"
+
+msgid "Error: Set Proxies Address Skip Failed,"
+msgstr "Error: fallo al configurar la omisión de direcciones de proxy,"
+
+msgid "Flush Failed"
+msgstr "Limpieza fallida"
+
+msgid "Respect Rules"
+msgstr "Respetar reglas"
+
+msgid "Whether or not The Connection to the DNS Server Follow the Rules in Config"
+msgstr "Indica si la conexión al servidor DNS debe seguir las reglas establecidas en la configuración."
+
+msgid "To Use in Fake-IP Mode, Please Switch The Dns Redirect Mode To Firewall Forwarding"
+msgstr "Para usar esta función en modo Fake-IP, cambia el redireccionamiento DNS a reenvío por firewall."
+
+msgid "Skip Proxy Address"
+msgstr "Omitir direcciones de proxy"
+
+msgid "Bypassing Server Addresses And Preventing Duplicate Proxies"
+msgstr "Omite direcciones de servidores para evitar duplicados de proxy."
+
+msgid "Warning: Unsupported format, Proxies Address Skip Function Ignore Proxy-providers File"
+msgstr "Advertencia: formato no compatible; se omitirá la omisión de direcciones en archivos de proveedores de proxy."
+
+msgid "Custom Your CDN URL"
+msgstr "Configurar URL personalizada de CDN"
+
+msgid "Type CDN URL, Format Like"
+msgstr "Introduce la URL del CDN, con formato tipo"
+
+msgid "Please enter a valid URL!"
+msgstr "Por favor, introduce una URL válida."
+
+msgid "WAN Interface Name"
+msgstr "Nombre de la interfaz WAN"
+
+msgid "Select WAN Interface Name For The Intranet Allowed"
+msgstr "Selecciona la interfaz WAN correcta para la función «solo intranet»."
+
+msgid "LAN Interface Name"
+msgstr "Nombre de la interfaz LAN"
+
+msgid "Select LAN Interface Name"
+msgstr "Selecciona la interfaz LAN adecuada"
+
+msgid "For More Useful Meta Core Functions Go Wiki"
+msgstr "Consulta el Wiki para más funciones del núcleo Meta"
+
+msgid "Tip: Because Need Ensure Bypassing IP Option Work, Deleted The Fake-IP-Filter Rule"
+msgstr "Tip: para garantizar que la omisión IP funcione, se ha eliminado la regla de Fake-IP-Filter."
+
+msgid "Tip: Because Need Ensure Bypassing IP Option Work, Added The Fake-IP-Filter Rule"
+msgstr "Tip: para garantizar que la omisión IP funcione, se ha añadido la regla de Fake-IP-Filter."
+
+msgid "Fake-IP is not returned if the matching succeeds when blacklist mode or Fake-IP is returned if the matching succeeds when whitelist mode"
+msgstr "En modo lista negra: si coincide, no se devuelve Fake-IP. En modo lista blanca: solo si coincide se devuelve Fake-IP."
+
+msgid "Blacklist Mode"
+msgstr "Modo lista negra"
+
+msgid "Whitelist Mode"
+msgstr "Modo lista blanca"
+
+msgid "Cached Compliant Nodes Number:"
+msgstr "Número de nodos compatibles en caché:"
+
+msgid ", Cached Non-compliant Nodes Number:"
+msgstr " nodos no compatibles en caché:"
+
+msgid ", Prioritize Testing With Cached Compliant Nodes..."
+msgstr ", priorizando nodos compatibles para las pruebas..."
+
+msgid "Flush Unlock Test Cache"
+msgstr "Limpiar caché de pruebas de desbloqueo"
+
+msgid "Flush Cache"
+msgstr "Limpiar caché"
+
+msgid "ECS Subnet"
+msgstr "Subred ECS"
+
+msgid "Specify the ECS Subnet Address"
+msgstr "Especificar la subred ECS"
+
+msgid "ECS Override"
+msgstr "Forzar ECS"
+
+msgid "Override the ECS Subnet Address"
+msgstr "Sobrescribir la subred ECS en consultas DNS"
+
+msgid "Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to"
+msgstr "Tip: para usar Respect-rules, proxy-server-nameserver debe estar configurado. Se ajustará automáticamente a"
+
+msgid "Tip: Nameserver Option Maybe All Setted The Proxy Option, Auto Set Proxy-server-nameserver Option to"
+msgstr "Tip: los servidores nameserver podrían estar todos usando proxy. Se ajustará automáticamente proxy-server-nameserver a"
+
+msgid "Tip: Proxy-server-nameserver Option Maybe All Setted The Proxy Option, Auto Set Proxy-server-nameserver Option to"
+msgstr "Tip: proxy-server-nameserver podría estar completamente en modo proxy. Se añadirá configuración automáticamente."
+
+msgid "For Avoiding Proxies Server Resolve Loop..."
+msgstr "Para evitar bucles de resolución en servidores proxy..."
+
+msgid "Tip: Config File"
+msgstr "Tip: archivo de configuración"
+
+msgid "Downloading URL"
+msgstr "URL de descarga de suscripción:"
+
+msgid "Downloading User-Agent"
+msgstr "User-Agent usado para descargar suscripción:"
+
+msgid "Warning: Option"
+msgstr "Advertencia: opción"
+
+msgid "Tip: Option"
+msgstr "Tip: opción"
+
+msgid "is Setted"
+msgstr "ha sido configurada"
+
+msgid "as DNS Server Which May Cause DNS Loop, Please Consider Removing It When DNS Works Abnormally..."
+msgstr "como servidor DNS, lo que puede causar bucles DNS. Elimínalo si detectas fallos de resolución."
+
+msgid "as DNS Server Which May Cause DNS Loop, Already Remove It..."
+msgstr "como servidor DNS (posible bucle). Ha sido eliminado automáticamente."
+
+msgid "Error: Set Custom DNS Failed,"
+msgstr "Error: falla al configurar DNS personalizado,"
+
+msgid "Error: Set proxy-server-nameserver Failed,"
+msgstr "Error: falla al configurar proxy-server-nameserver,"
+
+msgid "Error: Set direct-nameserver Failed,"
+msgstr "Error: falla al configurar direct-nameserver,"
+
+msgid "Error: Set fallback-filter Failed,"
+msgstr "Error: falla al configurar fallback-filter,"
+
+msgid "Rule"
+msgstr "Regla"
+
+msgid "Global"
+msgstr "Global"
+
+msgid "Direct"
+msgstr "Directo"
+
+msgid "Error: Config File Overwrite Failed,"
+msgstr "Error: falla al sobrescribir el archivo de configuración,"
+
+msgid "Edit"
+msgstr "Editar"
+
+msgid "Proto"
+msgstr "Protocolo"
+
+msgid "Family"
+msgstr "Tipo de dirección"
+
+msgid "Comment"
+msgstr "Comentario"
+
+msgid "Internal addresses"
+msgstr "Direcciones internas"
+
+msgid "Internal ports"
+msgstr "Puertos internos"
+
+msgid "Target"
+"Objetivo"
+
+msgid "Error: Network Anomaly, Suspend Unlock Detection..."
+msgstr "Error: anomalía de red, se suspende la detección de desbloqueo..."
+
+msgid "(Not Support mrs Format)"
+msgstr "(Formato mrs no soportado)"
+
+msgid "UpDate"
+msgstr "Actualizar"
+
+msgid "Local Network"
+msgstr "Red local"
+
+msgid "Error: LAN IP Address Get Error, Please Check The LAN Interface Setting or Choose the Correct Interface in the Setting!"
+msgstr "Error: no se pudo obtener la IP LAN. Revisa la interfaz LAN o selecciona la correcta en ajustes."
+
+msgid "Warning: Skiped The Custom Rule Because Group & Proxy Not Found:"
+msgstr "Advertencia: regla personalizada omitida por no encontrar grupo o proxy asociado:"
+
+msgid "Disable quic-go GSO Support"
+msgstr "Desactivar soporte GSO para quic-go"
+
+msgid "Suggestion: If Encountering Issues With QUIC UDP on The Linux Kernel Version Above 6.6, Please Try to Enable."
+msgstr "Sugerencia: si en kernels >6.6 aparecen problemas en QUIC–UDP, activa esta opción."
+
+msgid "Drop The Type of DNS Responsed"
+msgstr "Descartar tipos concretos de respuesta DNS"
+
+msgid "Disable-IPv4"
+msgstr "Desactivar IPv4"
+
+msgid "Disable-IPv6"
+msgstr "Desactivar IPv6"
+
+msgid "Smart Core"
+msgstr "Núcleo Smart"
+
+msgid "Error: Failed to create update script!"
+msgstr "Error: fallo al crear el script de actualización."
+
+msgid "Attempting to start update service..."
+msgstr "Intentando iniciar el servicio de actualización..."
+
+msgid "Service start failed, retrying in 2 seconds..."
+msgstr "No se pudo iniciar el servicio; reintentando en 2 segundos..."
+
+msgid "Error: Failed to start update service after 3 attempts, please check and try again later..."
+msgstr "Error: el servicio de actualización no pudo iniciarse tras 3 intentos. Revisa los registros."
+
+msgid "Core Update"
+msgstr "Actualización del núcleo"
+
+msgid "View core infos that support smart group"
+msgstr "Ver información del núcleo compatible con grupos Smart"
+
+msgid "Control panel address copied:"
+msgstr "Dirección del panel copiada:"
+
+msgid "Control panel secret copied:"
+msgstr "Clave del panel copiada:"
+
+msgid "No control panel secret set"
+msgstr "No se ha configurado clave del panel"
+
+msgid "Proxy auth info copied:"
+msgstr "Información de autenticación del proxy copiada:"
+
+msgid "No proxy auth info set"
+msgstr "No hay información de autenticación configurada"
+
+msgid "Proxy info not available, please try again later"
+msgstr "No se pudo obtener información del proxy; inténtalo más tarde"
+
+msgid "Mix proxy address copied:"
+msgstr "Dirección del proxy mixto copiada:"
+
+msgid "Mix Proxy"
+msgstr "Proxy mixto"
+
+msgid "Area Bypass"
+msgstr "Omisión por región"
+
+msgid "Area bypass setting switched to:"
+msgstr "La omisión por región se ha establecido en:"
+
+msgid "Area bypass setting failed"
+msgstr "Fallo al configurar la omisión por región"
+
+msgid "Sniffer"
+msgstr "Sniffer de dominios"
+
+msgid "Sniffer setting"
+msgstr "Sniffer configurado"
+
+msgid "Sniffer setting failed"
+msgstr "Fallo al configurar Sniffer"
+
+msgid "DNS Proxy"
+msgstr "Proxy DNS"
+
+msgid "Respect Rules setting"
+msgstr "Modo Respect Rules configurado"
+
+msgid "Respect Rules setting failed"
+msgstr "Fallo al configurar Respect Rules"
+
+msgid "Copy failed, please copy manually:"
+msgstr "Copia fallida; copia manualmente:"
+
+msgid "Copy Address"
+msgstr "Copiar dirección"
+
+msgid "Copy Secret"
+msgstr "Copiar clave"
+
+msgid "Copy Auth Info"
+msgstr "Copiar información de autenticación"
+
+msgid "Not Available"
+msgstr "No disponible"
+
+msgid "Off"
+msgstr "Desactivado"
+
+msgid "Mainland"
+msgstr "China continental"
+
+msgid "Oversea"
+msgstr "Internacional"
+
+msgid "On"
+msgstr "Activado"
+
+msgid "Get PAC Config"
+msgstr "Obtener configuración PAC"
+
+msgid "PAC file URL copied:"
+msgstr "URL del archivo PAC copiada:"
+
+msgid "PAC file URL:"
+msgstr "URL del archivo PAC:"
+
+msgid "PAC file generation failed"
+msgstr "Error al generar el archivo PAC"
+
+msgid "Proxy service not available, please try again later"
+msgstr "Servicio proxy no disponible, inténtalo de nuevo más tarde"
+
+msgid "No authentication configured, please be aware of the risk of information leakage!"
+msgstr "No hay autenticación configurada. Ten en cuenta el riesgo de fuga de información."
+
+msgid "Other"
+msgstr "Otros"
+
+msgid "Apply"
+msgstr "Aplicar"
+
+msgid "Proxy service not running"
+msgstr "El servicio proxy no está en ejecución"
+
+msgid "Unable to get proxy IP"
+msgstr "No se pudo obtener la IP del proxy"
+
+msgid "Failed to write PAC file"
+msgstr "Error al escribir el archivo PAC"
+
+msgid "Downloading:"
+msgstr "Descargando:"
+
+msgid "Downloading..."
+msgstr "Descargando..."
+
+msgid "Sniff the domain name of the traffics to avoid rule-based proxy failure"
+msgstr "Analiza los dominios del tráfico para evitar fallos de proxy basados en reglas"
+
+msgid "DNS querys respect-rules to preventing access failure"
+msgstr "Las consultas DNS siguen las reglas para evitar fallos de acceso"
+
+msgid "Upload File"
+msgstr "Subir archivo"
+
+msgid "Subscribe Link"
+msgstr "Enlace de suscripción"
+
+msgid "Click to select file or drag and drop"
+msgstr "Haz clic para seleccionar el archivo o arrástralo aquí"
+
+msgid "Support YAML file, max size 10MB"
+msgstr "Se admiten archivos YAML, tamaño máximo 10 MB"
+
+msgid "Support txt,conf files, max size 10MB"
+msgstr "Se admiten archivos .txt y .conf, tamaño máximo 10 MB"
+
+msgid "Subscription URL"
+msgstr "URL de suscripción"
+
+msgid "User-Agent"
+msgstr "User-Agent"
+
+msgid "Optional"
+msgstr "Opcional"
+
+msgid "Custom"
+msgstr "Personalizado"
+
+msgid "Config Name"
+msgstr "Nombre de configuración"
+
+msgid "Enter config name (without extension)"
+msgstr "Introduzca el nombre de configuración (sin extensión)"
+
+msgid "Processing..."
+msgstr "Procesando..."
+
+msgid "Ready to add config"
+msgstr "Listo para añadir configuración"
+
+msgid "Cancel"
+msgstr "Cancelar"
+
+msgid "Add Config"
+msgstr "Añadir configuración"
+
+msgid "Ready to upload file"
+msgstr "Listo para subir archivo"
+
+msgid "Ready to add subscription"
+msgstr "Listo para añadir suscripción"
+
+msgid "File selected:"
+msgstr "Archivo seleccionado:"
+
+msgid "Size:"
+msgstr "Tamaño:"
+
+msgid "Please select a YAML file"
+msgstr "Por favor, selecciona un archivo YAML"
+
+msgid "File size exceeds 10MB limit"
+msgstr "El tamaño del archivo supera el límite de 10 MB"
+
+msgid "File ready to upload"
+msgstr "Archivo listo para subir"
+
+msgid "Please enter a filename"
+msgstr "Por favor, introduce un nombre de archivo"
+
+msgid "Filename contains invalid characters"
+msgstr "El nombre del archivo contiene caracteres no válidos"
+
+msgid "Uploading..."
+msgstr "Subiendo..."
+
+msgid "Upload completed"
+msgstr "Subida completada"
+
+msgid "Upload successful"
+msgstr "Subida exitosa"
+
+msgid "Upload failed:"
+msgstr "Error en la subida:"
+
+msgid "Failed to read file"
+msgstr "Error al leer el archivo"
+
+msgid "Please enter subscription URL and config name"
+msgstr "Introduce la URL de la suscripción y el nombre de la configuración"
+
+msgid "Invalid subscription URL format"
+msgstr "Formato de URL de suscripción no válido"
+
+msgid "Config name contains invalid characters"
+msgstr "El nombre de la configuración contiene caracteres no válidos"
+
+msgid "Adding subscription..."
+msgstr "Añadiendo suscripción..."
+
+msgid "Failed to download subscription config"
+msgstr "Error al descargar la configuración de la suscripción"
+
+msgid "Failed to add subscription"
+msgstr "Error al añadir la suscripción"
+
+msgid "Subscription added successfully"
+msgstr "Suscripción añadida correctamente"
+
+msgid "Process failed"
+msgstr "Proceso fallido"
+
+msgid "Close"
+msgstr "Cerrar"
+
+msgid "Loading..."
+msgstr "Cargando..."
+
+msgid "Minimize"
+msgstr "Minimizar"
+
+msgid "Maximize"
+msgstr "Maximizar"
+
+msgid "Download"
+msgstr "Descargar"
+
+msgid "Save"
+msgstr "Guardar"
+
+msgid "Compare"
+msgstr "Comparar"
+
+msgid "Loading config file..."
+msgstr "Cargando archivo de configuración..."
+
+msgid "Ready"
+msgstr "Listo"
+
+msgid "Press F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom"
+msgstr "Pulsa F11 para pantalla completa, Esc para salir, Ctrl + rueda del ratón para zoom"
+
+msgid "Press F10 to toggle differences, F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom"
+msgstr "Pulsa F10 para mostrar diferencias, F11 para pantalla completa, Esc para salir, Ctrl + rueda del ratón para zoom"
+
+msgid "Compare mode: left(Original Config), right(Runtime Config)"
+msgstr "Modo comparación: izquierda (configuración original), derecha (configuración en ejecución)"
+
+msgid "Please select a config file first"
+msgstr "Selecciona un archivo de configuración primero"
+
+msgid "No config files found, Please upload a config file to get started"
+msgstr "No se encontraron archivos de configuración, sube uno para comenzar"
+
+msgid "Unknown"
+msgstr "Desconocido"
+
+msgid "Failed to load config file"
+msgstr "Error al cargar el archivo de configuración"
+
+msgid "Load failed"
+msgstr "Error al cargar"
+
+msgid "Config file content is empty"
+msgstr "El archivo de configuración está vacío"
+
+msgid "Saved successfully"
+msgstr "Guardado correctamente"
+
+msgid "Save failed"
+msgstr "Error al guardar"
+
+msgid "Failed to save config file:"
+msgstr "Error al guardar el archivo de configuración:"
+
+msgid "Unknown error"
+msgstr "Error desconocido"
+
+msgid "Save config failed:"
+msgstr "Error al guardar configuración:"
+
+msgid "Editor not ready"
+msgstr "El editor no está listo"
+
+msgid "Download started"
+msgstr "Descarga iniciada"
+
+msgid "Download failed:"
+msgstr "Error en la descarga:"
+
+msgid "You have unsaved changes. Are you sure you want to close?"
+msgstr "Tienes cambios sin guardar. ¿Seguro que quieres salir?"
+
+msgid "Restart"
+msgstr "Reiniciar"
+
+msgid "No Config Selected"
+msgstr "No hay configuración seleccionada"
+
+msgid "Modified: "
+msgstr "Modificado: "
+
+msgid "Update Time: "
+msgstr "Hora de actualización: "
+
+msgid "No Config Files Found"
+msgstr "No se encontraron archivos de configuración"
+
+msgid "Please select a config file"
+msgstr "Selecciona un archivo de configuración"
+
+msgid "Failed to load config files"
+msgstr "Error al cargar archivos de configuración"
+
+msgid "Update"
+msgstr "Actualizar"
+
+msgid "Failed to get startup log after retries"
+msgstr "No se pudo obtener el registro de inicio tras varios intentos"
+
+msgid "Starting..."
+msgstr "Iniciando..."
+
+msgid "Stopping..."
+msgstr "Deteniendo..."
+
+msgid "Failed to start OpenClash"
+msgstr "Error al iniciar OpenClash"
+
+msgid "Failed to stop OpenClash"
+msgstr "Error al detener OpenClash"
+
+msgid "Operation Failed"
+msgstr "Operación fallida"
+
+msgid "Switching Config..."
+msgstr "Cambiando configuración..."
+
+msgid "Failed to switch config file:"
+msgstr "Error al cambiar el archivo de configuración:"
+
+msgid "Switch Failed"
+msgstr "Cambio fallido"
+
+msgid "Updating Config..."
+msgstr "Actualizando configuración..."
+
+msgid "Failed to update config file:"
+msgstr "Error al actualizar archivo de configuración:"
+
+msgid "Failed to update config file, please try again later"
+msgstr "No se pudo actualizar la configuración, inténtalo más tarde"
+
+msgid "Restarting..."
+msgstr "Reiniciando..."
+
+msgid "Failed to restart core"
+msgstr "Error al reiniciar el núcleo"
+
+msgid "Invalid config file selected"
+msgstr "Archivo de configuración no válido"
+
+msgid "Config uploader not ready, please try again"
+msgstr "El cargador de configuraciones no está listo, intenta nuevamente"
+
+msgid "Config editor not ready, please try again"
+msgstr "El editor de configuraciones no está listo, intenta nuevamente"
+
+msgid "New version available"
+msgstr "Nueva versión disponible"
+
+msgid "Failed to get subscription config"
+msgstr "Error al obtener configuración de suscripción"
+
+msgid "Expire Date"
+msgstr "Fecha de caducidad"
+
+msgid "RAW address"
+msgstr "Dirección RAW"
+
+msgid "Enter custom User-Agent"
+msgstr "Introduce un User-Agent personalizado"
+
+msgid "Stream Unlock"
+msgstr "Desbloqueo de streaming"
+
+msgid "Previous"
+msgstr "Anterior"
+
+msgid "Next"
+msgstr "Siguiente"
+
+msgid "Enter subscription URL or multiple links (one per line)"
+msgstr "Introduce una URL de suscripción o varias (una por línea)"
+
+msgid "Enter custom convert address"
+msgstr "Introduce una dirección de conversión personalizada"
+
+msgid "Enter custom template URL"
+msgstr "Introduce una URL de plantilla personalizada"
+
+msgid "eg: rename=match@replace, one param per line"
+msgstr "Ejemplo: rename=buscar@reemplazar, un parámetro por línea"
+
+msgid "Enter keywords to include nodes (one per line)"
+msgstr "Introduce palabras clave para incluir nodos (una por línea)"
+
+msgid "Enter keywords to exclude nodes (one per line)"
+msgstr "Introduce palabras clave para excluir nodos (una por línea)"
+
+msgid "Expire Time"
+msgstr "Tiempo de expiración"
+
+msgid "Remaining Traffic"
+msgstr "Tráfico restante"
+
+msgid "TG Group"
+msgstr "Grupo TG"
+
+msgid "Invalid subscription URL format. Support HTTP/HTTPS subscription URLs or protocol links, can be separated by newlines or |"
+msgstr "Formato de URL no válido. Se admiten direcciones HTTP/HTTPS o enlaces de protocolo, separados por saltos de línea o |"
+
+msgid "Invalid subscription URL format. Only single HTTP/HTTPS subscription URL is supported when subscription conversion is disabled"
+msgstr "URL no válida. Cuando la conversión está deshabilitada solo se admite una única URL HTTP/HTTPS"
+
+msgid "Advanced Options"
+msgstr "Opciones avanzadas"
+
+msgid "Show more subscription options"
+msgstr "Mostrar más opciones de suscripción"
+
+msgid "Overwrite"
+msgstr "Sobrescribir"
+
+msgid "Original Config"
+msgstr "Configuración original"
+
+msgid "Runtime Config"
+msgstr "Configuración en ejecución"
+
+msgid "Runtime config (read only)"
+msgstr "Configuración en ejecución (solo lectura)"
+
+msgid "Start Downloading LightGBM Model..."
+msgstr "Comenzando descarga del modelo LightGBM..."
+
+msgid "LightGBM Model Download Success, Check Updated..."
+msgstr "Modelo LightGBM descargado correctamente, comprobando actualizaciones..."
+
+msgid "LightGBM Model Has Been Updated, Starting To Replace The Old Version..."
+msgstr "Modelo LightGBM actualizado, reemplazando versión anterior..."
+
+msgid "LightGBM Model Update Successful!"
+msgstr "¡Actualización del modelo LightGBM completada!"
+
+msgid "Updated LightGBM Model No Change, Do Nothing..."
+msgstr "No hay cambios en el modelo LightGBM, no se realizan acciones..."
+
+msgid "LightGBM Model Update Error, Please Try Again Later..."
+msgstr "Error al actualizar el modelo LightGBM, inténtalo de nuevo más tarde..."
+
+msgid "Smart Auto Switch"
+msgstr "Cambio automático Smart"
+
+msgid "Auto Switch Url-test and Load-balance Group to Smart Group"
+msgstr "Cambiar automáticamente los grupos Url-test y Load-balance al grupo Smart"
+
+msgid "Enable LightGBM Model"
+msgstr "Habilitar modelo LightGBM"
+
+msgid "Use LightGBM Model To Predict Weight"
+msgstr "Usar modelo LightGBM para predecir pesos"
+
+msgid "Auto Update LightGBM Model"
+msgstr "Actualizar modelo automáticamente"
+
+msgid "Custom Model URL"
+msgstr "URL personalizada del modelo"
+
+msgid "Update Model"
+msgstr "Actualizar modelo"
+
+msgid "Custom LightGBM Model URL, Click Button Below To Refresh After Edit"
+msgstr "Fuente personalizada del modelo; haz clic abajo después de editar para aplicar"
+
+msgid "Colletct Training Data"
+msgstr "Recopilar datos de entrenamiento"
+
+msgid "Data Colletct File Size (MB)"
+msgstr "Tamaño del archivo de datos recopilados (MB)"
+
+msgid "Limit The File Size of Collected Data, The Default is 100MB"
+msgstr "Limita el tamaño máximo del archivo recopilado, por defecto 100MB"
+
+msgid "Data Colletct Rate"
+msgstr "Tasa de muestreo de datos"
+
+msgid "Data Acquisition Rate, Desirable Values are 0-1, The Default is 1"
+msgstr "Tasa de adquisición de datos (0-1), por defecto 1"
+
+msgid "Node Select Strategy"
+msgstr "Estrategia de selección de nodo"
+
+msgid "Before Node Data Collect Completely, The Default is Sticky-sessions"
+msgstr "Hasta recopilar suficientes datos, usar estrategia por defecto: sesiones pegajosas"
+
+msgid "Error: Setting Smart Auto Switch Failed,"
+msgstr "Error: no se pudo activar el cambio automático Smart,"
+
+msgid "Flush Smart Cache"
+msgstr "Limpiar caché Smart"
+
+msgid "Current Version:"
+msgstr "Versión actual:"
+
+msgid "Light Version"
+msgstr "Versión ligera"
+
+msgid "Middle Version"
+msgstr "Versión media"
+
+msgid "Large Version"
+msgstr "Versión completa"
+
+msgid "Add New File"
+msgstr "Añadir nuevo archivo"
+
+msgid "Local File"
+msgstr "Archivo local"
+
+msgid "Refresh Subscription"
+msgstr "Actualizar suscripción"
+
+msgid "Refreshing subscription..."
+msgstr "Actualizando suscripción..."
+
+msgid "Subscription refreshed successfully"
+msgstr "Suscripción actualizada con éxito"
+
+msgid "Subscription refresh failed"
+msgstr "Error al actualizar la suscripción"
+
+msgid "Edit Subscription Info"
+msgstr "Editar información de suscripción"
+
+msgid "Are you sure you want to delete this file and its subscription info?"
+msgstr "¿Seguro que quieres eliminar este archivo y su información de suscripción?"
+
+msgid "Add Overwrite Module"
+msgstr "Añadir módulo de sobrescritura"
+
+msgid "Ready to add file"
+msgstr "Listo para añadir archivo"
+
+msgid "openclash_custom_overwrite.sh already exists and cannot be added again"
+msgstr "openclash_custom_overwrite.sh ya existe, no puede añadirse nuevamente"
+
+msgid "Created successfully"
+msgstr "Creado correctamente"
+
+msgid "Please enter subscription URL"
+msgstr "Introduce la URL de suscripción"
+
+msgid "Invalid subscription URL format, only single HTTP/HTTPS link is supported"
+msgstr "URL no válida, solo se admite un enlace HTTP/HTTPS"
+
+msgid "Downloading subscription content..."
+msgstr "Descargando contenido de la suscripción..."
+
+msgid "Download completed"
+msgstr "Descarga completada"
+
+msgid "Failed to save subscription info:"
+msgstr "Error al guardar la información de suscripción:"
+
+msgid "Ready to edit"
+msgstr "Listo para editar"
+
+msgid "Subscription saved successfully"
+msgstr "Suscripción guardada correctamente"
+
+msgid "Failed to save subscription"
+msgstr "Error al guardar la suscripción"
+
+msgid "Environment variable"
+msgstr "Variable de entorno"
+
+msgid "Warning: DOWNLOAD FILE no target in"
+msgstr "Advertencia: descarga de archivo sin destino especificado en"
+
+msgid "Error: DOWNLOAD FILE failed for"
+msgstr "Error: la descarga falló para"
+
+msgid "Warning: skip General key not allowed"
+msgstr "Advertencia: parámetro General no permitido, ignorado"
+
+msgid "Warning: skip General key type error"
+msgstr "Advertencia: error en tipo de parámetro General, ignorado"
+
+msgid "Warning: skip invalid Overwrite command"
+msgstr "Advertencia: comando de sobrescritura no válido, ignorado"
+
+msgid "Tip: Processing Overwrite Module"
+msgstr "Aviso: procesando módulo de sobrescritura"
+
+msgid "Tip: Load Overwrite Script"
+msgstr "Aviso: cargando script de sobrescritura"
+
+msgid "Tip: DOWNLOAD FILE for"
+msgstr "Aviso: descargando archivo para"
+
+msgid "Tip: Add Cron for"
+msgstr "Aviso: añadiendo tarea programada para"
+
+msgid "Delete"
+msgstr "Eliminar"
+
+msgid "Delete failed"
+msgstr "Error al eliminar"
+
+msgid "Overwrite Module Edit"
+msgstr "Editar módulo de sobrescritura"
+
+msgid "Nodes Weight Priority, <1 Means Lower Priority, >1 Means Higher Priority, The Default is 1, Pattern Support Regex and String"
+msgstr "Prioridad de peso del nodo: <1 = menor prioridad, >1 = mayor prioridad; por defecto 1; admite regex y texto"
+
+msgid "Edit Module Info"
+msgstr "Editar información de módulo"
+
+msgid "Subscription"
+msgstr "Suscripción"
+
+msgid "Overwrite Module"
+msgstr "Módulo de sobrescritura"
+
+msgid "module not found, please check your system depends if something abnormal!"
+msgstr "Módulo no encontrado; si hay errores, revisa las dependencias del sistema"
+
+msgid "Select Nodes Force Lookup and Use Target ASN Info First For More Stable Experience"
+msgstr "Forzar consulta y priorizar ASN de destino al seleccionar nodos para mayor estabilidad"
+
+msgid "Prefer-ASN"
+msgstr "Priorizar ASN"
+
+msgid "Theme Switch"
+msgstr "Cambiar tema"
