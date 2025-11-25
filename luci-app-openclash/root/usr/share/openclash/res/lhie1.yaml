@@ -7,19 +7,12 @@ rules:
 - RULE-SET,YouTube,YouTube
 - RULE-SET,Max,Max
 - RULE-SET,Spotify,Spotify
-- RULE-SET,Bilibili,CN Mainland TV
-- RULE-SET,IQ,CN Mainland TV
-- RULE-SET,IQIYI,CN Mainland TV
-- RULE-SET,Letv,CN Mainland TV
-- RULE-SET,Netease Music,CN Mainland TV
-- RULE-SET,Tencent Video,CN Mainland TV
-- RULE-SET,WeTV,CN Mainland TV
-- RULE-SET,Youku,CN Mainland TV
 - RULE-SET,Abema TV,Asian TV
 - RULE-SET,Bahamut,Asian TV
 - RULE-SET,DMM,Asian TV
 - RULE-SET,Fox+,Asian TV
 - RULE-SET,Hulu Japan,Asian TV
+- RULE-SET,IQ,Asian TV
 - RULE-SET,Japonx,Asian TV
 - RULE-SET,JOOX,Asian TV
 - RULE-SET,KKBOX,Asian TV
@@ -41,6 +34,13 @@ rules:
 - RULE-SET,PBS,Global TV
 - RULE-SET,Pornhub,Global TV
 - RULE-SET,Soundcloud,Global TV
+- RULE-SET,Bilibili,CN Mainland TV
+- RULE-SET,IQIYI,CN Mainland TV
+- RULE-SET,Letv,CN Mainland TV
+- RULE-SET,Netease Music,CN Mainland TV
+- RULE-SET,Tencent Video,CN Mainland TV
+- RULE-SET,WeTV,CN Mainland TV
+- RULE-SET,Youku,CN Mainland TV
 - RULE-SET,Telegram,Telegram
 - RULE-SET,Crypto,Crypto
 - RULE-SET,Discord,Discord
