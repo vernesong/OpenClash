@@ -4749,7 +4749,7 @@
                 setTimeout(function() {
                     pluginToggleUserAction = false;
                     updatePluginToggleState(StateManager.current_status.clash || false);
-                }, 3000);
+                }, 2000);
             } else {
                 toggleElement.checked = !isEnabled;
 
@@ -4787,7 +4787,7 @@
             if (!isRunning && StateManager.current_status && !StateManager.current_status.clash) {
                 setTimeout(function() {
                     updatePluginToggleState(StateManager.current_status.clash || false);
-                }, 3000);
+                }, 2000);
             }
         }
     }
@@ -4811,7 +4811,7 @@
                 setTimeout(function() {
                     pluginToggleUserAction = false;
                     updatePluginToggleState(StateManager.current_status.clash || false);
-                }, 4000);
+                }, 2000);
             } else {
                 alert('<%:Failed to switch config file:%> ' + (status.message || '<%:Unknown error%>'));
 
@@ -4910,7 +4910,7 @@
                 setTimeout(function() {
                     pluginToggleUserAction = false;
                     updatePluginToggleState(StateManager.current_status.clash || false);
-                }, 5000);
+                }, 2000);
                 ConfigFileManager.refreshConfigList();
             } else {
                 if (toggleElement) {

@@ -1280,7 +1280,7 @@ end
 function action_status()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		clash = is_running(),
+		clash = uci:get("openclash", "config", "enable") == "1",
 		daip = daip(),
 		dase = dase(),
 		db_foward_port = db_foward_port(),
@@ -3229,6 +3229,7 @@ function action_oc_action()
 		uci:set("openclash", "config", "enable", "1")
 		uci:commit("openclash")
         if not is_running() then
+            luci.sys.call("ps | grep openclash | grep -v grep | awk '{print $1}' | xargs -r kill -9 >/dev/null 2>&1")
             luci.sys.call("/etc/init.d/openclash start >/dev/null 2>&1")
         else
             luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1")
@@ -3241,6 +3242,7 @@ function action_oc_action()
 	elseif action == "restart" then
 		uci:set("openclash", "config", "enable", "1")
 		uci:commit("openclash")
+        luci.sys.call("ps | grep openclash | grep -v grep | awk '{print $1}' | xargs -r kill -9 >/dev/null 2>&1")
 		luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1")
 	else
 		luci.http.status(400, "Invalid action parameter")
