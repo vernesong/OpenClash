@@ -188,7 +188,9 @@ change_dns() {
    if [ "$1" -eq 1 ]; then
       uci -q del openclash.config.dnsmasq_server
       config_load "dhcp"
-      config_list_foreach "$(uci -q show dhcp.@dnsmasq[0].server |awk -F '.' '{print $2}')" "server" save_dnsmasq_server
+      uci -q show dhcp.@dnsmasq[0].server 2>/dev/null | sed -n "s/.*='\\(.*\\)'/\\1/p" | while read -r server; do
+         save_dnsmasq_server "$server"
+      done
       uci -q del dhcp.@dnsmasq[-1].server
       uci -q add_list dhcp.@dnsmasq[0].server=127.0.0.1#"$dns_port"
       uci -q set openclash.config.dnsmasq_noresolv="$(uci -q get dhcp.@dnsmasq[0].noresolv)"
