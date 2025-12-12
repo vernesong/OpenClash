@@ -1678,8 +1678,9 @@
                                     </div>
                                 </div>
                                 <div class="card-actions">
-                                    <button type="button" class="icon-btn theme-toggle-btn" id="theme-toggle" title="<%:Theme Switch%>" onclick="toggleThemeMode()">
+                                    <button type="button" class="icon-btn theme-toggle-btn" id="theme-toggle" onclick="toggleThemeMode()">
                                         <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <title><%:Light Theme%></title>
                                             <circle cx="12" cy="12" r="5"></circle>
                                             <line x1="12" y1="1" x2="12" y2="3"></line>
                                             <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -1690,8 +1691,16 @@
                                             <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                                             <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                                         </svg>
-                                        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+                                        <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none">
+                                            <title><%:Dark Theme%></title>
                                             <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                                        </svg>
+                                        <svg id="auto-icon" width="14" height="14" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="4" style="display: none">
+                                            <title><%:Auto Theme%></title>
+                                            <path d="M24 44C29.9601 44 26.3359 35.136 30 31C33.1264 27.4709 44 29.0856 44 24C44 12.9543 35.0457 4 24 4C12.9543 4 4 12.9543 4 24C4 35.0457 12.9543 44 24 44Z"/>
+                                            <path d="M28 17C29.6569 17 31 15.6569 31 14C31 12.3431 29.6569 11 28 11C26.3431 11 25 12.3431 25 14C25 15.6569 26.3431 17 28 17Z"/>
+                                            <path d="M16 21C17.6569 21 19 19.6569 19 18C19 16.3431 17.6569 15 16 15C14.3431 15 13 16.3431 13 18C13 19.6569 14.3431 21 16 21Z"/>
+                                            <path d="M17 34C18.6569 34 20 32.6569 20 31C20 29.3431 18.6569 28 17 28C15.3431 28 14 29.3431 14 31C14 32.6569 15.3431 34 17 34Z"/>
                                         </svg>
                                     </button>
                                     <button type="button" class="icon-btn action-btn" id="go_wiki" title="<%:Wiki%>" onclick="return wikipage()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg></button>
@@ -1981,7 +1990,16 @@
             var ocContainers = document.querySelectorAll('.oc');
             if (!ocContainers.length) return;
 
-            var shouldUseDark = isDarkBackground(document.body);
+            var theme = localStorage.getItem('oc-theme') || 'auto';
+            var shouldUseDark;
+
+            if (theme === 'light') {
+                shouldUseDark = false;
+            } else if (theme === 'dark') {
+                shouldUseDark = true;
+            } else {
+                shouldUseDark = isDarkBackground(document.body);
+            }
 
             ocContainers.forEach(function(ocContainer) {
                 if (shouldUseDark) {
@@ -1993,13 +2011,18 @@
 
             var sunIcon = document.getElementById('sun-icon');
             var moonIcon = document.getElementById('moon-icon');
-            if (sunIcon && moonIcon) {
-                if (shouldUseDark) {
-                    sunIcon.style.display = 'none';
+            var autoIcon = document.getElementById('auto-icon');
+            if (sunIcon && moonIcon && autoIcon) {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'none';
+                autoIcon.style.display = 'none';
+
+                if (theme === 'light') {
+                    sunIcon.style.display = 'inline';
+                } else if (theme === 'dark') {
                     moonIcon.style.display = 'inline';
                 } else {
-                    sunIcon.style.display = 'inline';
-                    moonIcon.style.display = 'none';
+                    autoIcon.style.display = 'inline';
                 }
             }
         }
@@ -5088,8 +5111,12 @@
     };
 
     function toggleThemeMode() {
-        var currentTheme = localStorage.getItem('oc-theme') || (isDarkBackground(document.body) ? 'dark' : 'light');
-        var newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        var themes = ['light', 'dark', 'auto'];
+        var currentTheme = localStorage.getItem('oc-theme') || 'auto';
+        var currentIndex = themes.indexOf(currentTheme);
+        if (currentIndex === -1) currentIndex = 2;
+        var newIndex = (currentIndex + 1) % themes.length;
+        var newTheme = themes[newIndex];
         localStorage.setItem('oc-theme', newTheme);
         DarkModeDetector.init();
     }

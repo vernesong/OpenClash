@@ -4205,5 +4205,11 @@ msgstr "Forzar consulta y priorizar ASN de destino al seleccionar nodos para may
 msgid "Prefer-ASN"
 msgstr "Priorizar ASN"
 
-msgid "Theme Switch"
-msgstr "Cambiar tema"
+msgid "Light Theme"
+msgstr "Tema Claro"
+
+msgid "Dark Theme"
+msgstr "Tema Oscuro"
+
+msgid "Auto Theme"
+msgstr "Tema Automático"

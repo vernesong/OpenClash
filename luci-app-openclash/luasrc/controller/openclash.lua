@@ -3240,8 +3240,10 @@ function action_oc_action()
 		luci.sys.call("ps | grep openclash | grep -v grep | awk '{print $1}' | xargs -r kill -9 >/dev/null 2>&1")
 		luci.sys.call("/etc/init.d/openclash stop >/dev/null 2>&1")
 	elseif action == "restart" then
-		uci:set("openclash", "config", "enable", "1")
-		uci:commit("openclash")
+        if uci:get("openclash", "config", "enable") ~= "1" then
+            uci:set("openclash", "config", "enable", "1")
+            uci:commit("openclash")
+        end
         luci.sys.call("ps | grep openclash | grep -v grep | awk '{print $1}' | xargs -r kill -9 >/dev/null 2>&1")
 		luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1")
 	else
