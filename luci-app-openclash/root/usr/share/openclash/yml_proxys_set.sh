@@ -207,6 +207,7 @@ yml_servers_set()
    config_get "name" "$section" "name" ""
    config_get "server" "$section" "server" ""
    config_get "port" "$section" "port" ""
+   config_get "dialer_proxy" "$section" "dialer_proxy" ""
    config_get "cipher" "$section" "cipher" ""
    config_get "cipher_ssr" "$section" "cipher_ssr" ""
    config_get "password" "$section" "password" ""
@@ -327,6 +328,12 @@ yml_servers_set()
    config_get "idle_session_check_interval" "$section" "idle_session_check_interval" ""
    config_get "idle_session_timeout" "$section" "idle_session_timeout" ""
    config_get "min_idle_session" "$section" "min_idle_session" ""
+   config_get "sudoku_key" "$section" "sudoku_key" ""
+   config_get "aead_method" "$section" "aead_method" "none"
+   config_get "padding_min" "$section" "padding_min" ""
+   config_get "padding_max" "$section" "padding_max" ""
+   config_get "table_type" "$section" "table_type" "prefer_ascii"
+   config_get "http_mask" "$section" "http_mask" "true"
 
    if [ "$enabled" = "0" ]; then
       return
@@ -1489,6 +1496,46 @@ EOF
     fi
 fi
 
+#Sudoku
+if [ "$type" = "sudoku" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+  - name: "$name"
+    type: $type
+    server: "$server"
+    port: $port
+EOF
+    if [ -n "$sudoku_key" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    key: "$sudoku_key"
+EOF
+    fi
+    if [ -n "$aead_method" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    aead-method: $aead_method
+EOF
+    fi
+    if [ -n "$padding_min" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    padding-min: $padding_min
+EOF
+    fi
+    if [ -n "$padding_max" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    padding-max: $padding_max
+EOF
+    fi
+    if [ -n "$table_type" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    table-type: $table_type
+EOF
+    fi
+    if [ -n "$http_mask" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    http-mask: $http_mask
+EOF
+    fi
+fi
+
 #ip_version
 if [ ! -z "$ip_version" ]; then
 cat >> "$SERVER_FILE" <<-EOF
@@ -1563,6 +1610,13 @@ fi
 #other_parameters
 if [ -n "$other_parameters" ]; then
       echo -e "$other_parameters" >> "$SERVER_FILE"
+fi
+
+#dialer_proxy
+if [ -n "$dialer_proxy" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    dialer-proxy: "$dialer_proxy"
+EOF
 fi
 }
 

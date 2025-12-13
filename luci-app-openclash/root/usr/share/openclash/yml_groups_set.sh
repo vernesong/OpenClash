@@ -61,41 +61,16 @@ set_groups()
 
 }
 
-set_relay_groups()
-{
-   if [ -z "$1" ]; then
-      return
-   fi
-
-   if [ "$add_for_this" -eq 1 ]; then
-      return
-   fi
-
-   if [ -n "$(echo "$1" |grep "#relay#")" ]; then
-      server_relay_num=$(echo "$1" |awk -F '#relay#' '{print $2}')
-      server_group_name=$(echo "$1" |awk -F '#relay#' '{print $1}')
-   fi
-
-   if [ -n "$server_relay_num" ]; then
-      if [[ "$3" =~ ${server_group_name} ]] || [ -n "$(echo ${3} |grep -Eo ${server_group_name})" ] || [ "$server_group_name" = "all" ]; then
-         set_group=1
-         add_for_this=1
-         echo "$server_relay_num #      - \"${2}\"" >>/tmp/relay_server
-      fi
-   fi
-}
-
 #加入节点
 yml_servers_add()
 {
 
    local section="$1"
-   local enabled config name relay_groups
+   local enabled config name
    add_for_this=0
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "config" "$section" "config" ""
    config_get "name" "$section" "name" ""
-   config_get "relay_groups" "$section" "relay_groups" ""
 
    if [ -n "$config" ] && [ "$config" != "$CONFIG_NAME" ] && [ "$config" != "all" ]; then
       return
@@ -104,9 +79,7 @@ yml_servers_add()
    if [ "$enabled" = "0" ]; then
       return
    else
-      if [ -z "$4" ] && [ "$3" = "relay" ] && [ -n "$relay_groups" ]; then
-         config_list_foreach "$section" "relay_groups" set_relay_groups "$name" "$2"
-      elif [ -z "$4" ]; then
+      if [ -z "$4" ]; then
          config_list_foreach "$section" "groups" set_groups "$name" "$2"
       fi
 
@@ -284,7 +257,6 @@ yml_groups_set()
 
    echo "  - name: $name" >>$GROUP_FILE
    echo "    type: $type" >>$GROUP_FILE
-
    echo "    proxies: $name" >>$GROUP_FILE
 
    #名字变化时处理规则部分
@@ -301,12 +273,6 @@ yml_groups_set()
 
    config_list_foreach "$section" "other_group" set_other_groups "$name" #加入其他策略组
    config_foreach yml_servers_add "servers" "$name" "$type" #加入服务器节点
-
-   if [ "$type" = "relay" ] && [ -s "/tmp/relay_server" ]; then
-      cat /tmp/relay_server |sort -k 1 |awk -F '#' '{print $2}' > /tmp/relay_server.list 2>/dev/null
-      sed -i "/^ \{0,\}proxies: ${name}/r/tmp/relay_server.list" "$GROUP_FILE" 2>/dev/null
-      rm -rf /tmp/relay_server 2>/dev/null
-   fi
 
    echo "    use: $name" >>$GROUP_FILE
 
@@ -394,7 +360,6 @@ if [ "$create_config" = "0" ] || [ "$servers_if_update" = "1" ] || [ -n "$if_gam
       config_load "openclash"
       config_foreach yml_groups_set "groups"
       sed -i "s/#delete_//g" "$CONFIG_FILE" 2>/dev/null
-      rm -rf /tmp/relay_server.list 2>/dev/null
    fi
 fi
 

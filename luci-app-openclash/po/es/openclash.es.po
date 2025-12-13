@@ -887,9 +887,6 @@ msgstr "Fallback (conmutación por fallo)"
 msgid "Load-Balance"
 msgstr "Load-Balance (balanceo de carga)"
 
-msgid "Relay-Traffic"
-msgstr "Relay (encadenado de nodos)"
-
 msgid "Other Group (Support Regex)"
 msgstr "Incluir otros grupos (soporta expresiones regulares; sin duplicados)"
 
@@ -907,6 +904,9 @@ msgstr "Asignar grupo de proxy"
 
 msgid "No Need Set when Config Create, The added Proxy Groups Must Exist"
 msgstr "No es necesario configurarlo al generar la configuración; los grupos añadidos deben existir previamente."
+
+msgid "The added Dialer Proxy or Group Must Exist"
+msgstr "El proxy de marcación o grupo añadido debe existir"
 
 msgid "Clean"
 msgstr "Limpiar registros"

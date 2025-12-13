@@ -888,9 +888,6 @@ msgstr "Fallback【故障切换】"
 msgid "Load-Balance"
 msgstr "Load-Balance【负载均衡】"
 
-msgid "Relay-Traffic"
-msgstr "Relay【嵌套中转】"
-
 msgid "Other Group (Support Regex)"
 msgstr "包含其他策略组（请勿重复添加，支持正则匹配）"
 
@@ -908,6 +905,9 @@ msgstr "指定策略组"
 
 msgid "No Need Set when Config Create, The added Proxy Groups Must Exist"
 msgstr "注意：使用一键生成配置文件功能时无需设置此项，修改配置文件前添加的策略组必须已创建"
+
+msgid "The added Dialer Proxy or Group Must Exist"
+msgstr "注意：修改配置文件前添加的策略组或者节点必须已创建"
 
 msgid "Clean"
 msgstr "清理日志"

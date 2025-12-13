@@ -393,6 +393,13 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                end
             };
 
+            threads << Thread.new{
+               #dialer-proxy
+               if x.key?('dialer-proxy') then
+                  uci_commands << uci_set + 'dialer_proxy=\"' + x['dialer-proxy'].to_s + '\"'
+               end
+            };
+
             if x['type'] == 'ss' then
                threads << Thread.new{
                   #cipher
@@ -1500,6 +1507,50 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                };
             end;
 
+            if x['type'] == 'sudoku' then
+               threads << Thread.new{
+               #key
+               if x.key?('key') then
+                  uci_commands << uci_set + 'sudoku_key=\"' + x['key'].to_s + '\"'
+               end
+               };
+
+               threads << Thread.new{
+               #aead-method
+               if x.key?('aead-method') then
+                  uci_commands << uci_set + 'aead_method=\"' + x['aead-method'].to_s + '\"'
+               end
+               };
+
+               threads << Thread.new{
+               #padding-min
+               if x.key?('padding-min') then
+                  uci_commands << uci_set + 'padding_min=\"' + x['padding-min'].to_s + '\"'
+               end
+               };
+
+               threads << Thread.new{
+               #padding-max
+               if x.key?('padding-max') then
+                  uci_commands << uci_set + 'padding_max=\"' + x['padding-max'].to_s + '\"'
+               end
+               };
+
+               threads << Thread.new{
+               #table-type
+               if x.key?('table-type') then
+                  uci_commands << uci_set + 'table_type=\"' + x['table-type'].to_s + '\"'
+               end
+               };
+
+               threads << Thread.new{
+               #http-mask
+               if x.key?('http-mask') then
+                  uci_commands << uci_set + 'http_mask=\"' + x['http-mask'].to_s + '\"'
+               end
+               };
+            end;
+
             #加入策略组
             threads << Thread.new{
                #加入策略组
@@ -1521,23 +1572,6 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                            |v|
                            if v == x['name'] then
                               uci_commands << uci_add + 'groups=\"^' + z['name'] + '$\"'
-                              break
-                           end
-                           }
-                        end;
-                     };
-                  };
-                  #relay
-                  cmd = uci_del + 'relay_groups >/dev/null 2>&1';
-                  system(cmd);
-                  Value['proxy-groups'].each{
-                  |z|
-                     threads_gr << Thread.new{
-                        if z['type'] == 'relay' and z.key?('proxies') then
-                           z['proxies'].each{
-                           |u|
-                           if u == x['name'] then
-                              uci_commands << uci_add + 'relay_groups=\"' + z['name'] + '#relay#' + z['proxies'].index(x['name']) + '\"'
                               break
                            end
                            }

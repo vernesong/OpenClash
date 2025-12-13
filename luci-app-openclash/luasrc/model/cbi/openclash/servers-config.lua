@@ -148,6 +148,7 @@ o:value("tuic", translate("Tuic"))
 o:value("snell", translate("Snell"))
 o:value("mieru", translate("Mieru"))
 o:value("anytls", translate("AnyTLS"))
+o:value("sudoku", translate("Sudoku"))
 o:value("socks5", translate("Socks5"))
 o:value("http", translate("HTTP(S)"))
 o:value("direct", translate("DIRECT"))
@@ -174,6 +175,7 @@ o:depends("type", "wireguard")
 o:depends("type", "tuic")
 o:depends("type", "mieru")
 o:depends("type", "anytls")
+o:depends("type", "sudoku")
 o:depends("type", "snell")
 o:depends("type", "socks5")
 o:depends("type", "http")
@@ -194,6 +196,7 @@ o:depends("type", "wireguard")
 o:depends("type", "tuic")
 o:depends("type", "mieru")
 o:depends("type", "anytls")
+o:depends("type", "sudoku")
 o:depends("type", "snell")
 o:depends("type", "socks5")
 o:depends("type", "http")
@@ -222,6 +225,46 @@ o:depends("type", "trojan")
 o:depends("type", "hysteria2")
 o:depends("type", "mieru")
 o:depends("type", "anytls")
+
+-- [[ Sudoku ]]--
+o = s:option(Value, "sudoku_key", translate("Key"))
+o.rmempty = true
+o.placeholder = translate("<client_key>")
+o:depends("type", "sudoku")
+
+o = s:option(ListValue, "aead_method", translate("Aead-method"))
+o.rmempty = true
+o.default = "chacha20-poly1305"
+o:value("chacha20-poly1305")
+o:value("aes-128-gcm")
+o:value("none")
+o:depends("type", "sudoku")
+
+o = s:option(Value, "padding_min", translate("Padding-min"))
+o.rmempty = true
+o.datatype = "uinteger"
+o.placeholder = translate("2")
+o:depends("type", "sudoku")
+
+o = s:option(Value, "padding_max", translate("Padding-max"))
+o.rmempty = true
+o.datatype = "uinteger"
+o.placeholder = translate("7")
+o:depends("type", "sudoku")
+
+o = s:option(ListValue, "table_type", translate("Table-type"))
+o.rmempty = true
+o.default = "prefer_ascii"
+o:value("prefer_ascii")
+o:value("prefer_entropy")
+o:depends("type", "sudoku")
+
+o = s:option(ListValue, "http_mask", translate("Http-mask"))
+o.rmempty = true
+o.default = "true"
+o:value("true")
+o:value("false")
+o:depends("type", "sudoku")
 
 -- [[ Mieru ]]--
 o = s:option(Value, "port_range", translate("Port Range"))
@@ -1118,16 +1161,26 @@ function o.validate(self, value)
 	return value
 end
 
+o = s:option(Value, "dialer_proxy", translate("Dialer-proxy"))
+o.rmempty = true
+o.description = font_red..bold_on..translate("The added Dialer Proxy or Group Must Exist")..bold_off..font_off
+m.uci:foreach("openclash", "groups",
+function(s)
+	if s.name ~= "" and s.name ~= nil then
+		o:value(s.name)
+	end
+end)
+
 o = s:option(DynamicList, "groups", translate("Proxy Group (Support Regex)"))
 o.description = font_red..bold_on..translate("No Need Set when Config Create, The added Proxy Groups Must Exist")..bold_off..font_off
 o.rmempty = true
 o:value("all", translate("All Groups"))
 m.uci:foreach("openclash", "groups",
-		function(s)
-			if s.name ~= "" and s.name ~= nil then
-			   o:value(s.name)
-			end
-		end)
+function(s)
+	if s.name ~= "" and s.name ~= nil then
+		o:value(s.name)
+	end
+end)
 		
 local t = {
     {Commit, Back}

@@ -45,7 +45,7 @@ cfg_groups_set()
       sed -i "s/option specific_group '\(\^*\)${convert_old_name_cfg}\(\$*\)'/option specific_group '\1${convert_name}\2'/g" $CFG_FILE 2>/dev/null
       sed -i "s/other_group '\(\^*\)${convert_old_name_cfg}\(\$*\)'/other_group '\1${convert_name}\2'/g" $CFG_FILE 2>/dev/null
       sed -i "s/new_servers_group '\(\^*\)${convert_old_name_cfg}\(\$*\)'/new_servers_group '\1${convert_name}\2'/g" $CFG_FILE 2>/dev/null
-      sed -i "s/relay_groups '\(\^*\)${convert_old_name_cfg}\(\$*\)'/relay_groups '\1${convert_name}\2'/g" $CFG_FILE
+      sed -i "s/dialer_proxy '\(\^*\)${convert_old_name_cfg}\(\$*\)'/dialer_proxy '\1${convert_name}\2'/g" $CFG_FILE
       #第三方规则处理
       OTHER_RULE_NAMES=("GlobalTV" "AsianTV" "MainlandTV" "Proxy" "Youtube" "Bilibili" "Bahamut" "HBOMax" "Pornhub" "Apple" "GoogleFCM" "Scholar" "Microsoft" "Netflix" "Disney Plus" "Spotify" "Steam" "TikTok" "Speedtest" "Telegram" "PayPal" "Netease_Music" "AdBlock" "Domestic" "Others" "miHoYo" "AI_Suite" "AppleTV" "Crypto" "Discord" "HTTPDNS")
       for i in ${OTHER_RULE_NAMES[@]}; do
@@ -53,7 +53,6 @@ cfg_groups_set()
       done 2>/dev/null
       config_load "openclash"
    fi
-
 }
 
 set_lock
