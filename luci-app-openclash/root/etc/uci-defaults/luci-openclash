@@ -116,6 +116,12 @@ if [ -n "$(uci -q get dhcp.@dnsmasq[0].resolvfile)" ]; then
    uci -q set openclash.config.default_resolvfile=$(uci -q get dhcp.@dnsmasq[0].resolvfile)
 fi
 
+# Quic-go GSO Disable
+current_kernel=$(uname -r | cut -d'-' -f1)
+if [ "$(printf '%s\n' "$current_kernel" "6.6" | sort -V | head -n1)" != "$current_kernel" ]; then
+   uci -q set openclash.config.disable_quic_go_gso=1
+fi
+
 uci -q commit openclash
 
 #Backup
