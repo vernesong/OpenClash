@@ -805,7 +805,15 @@ function fetch_sub_info(sub_url, sub_ua)
 		if tonumber(http_code) == 200 then
 			info = string.lower(info)
 			if string.find(info, "subscription%-userinfo") then
-				info = luci.sys.exec("echo '%s' |grep 'subscription-userinfo'" %info)
+				-- Extract subscription-userinfo line using Lua pattern matching (safer than shell command)
+				local sub_info_line = ""
+				for line in info:gmatch("[^\r\n]+") do
+					if string.find(line, "subscription%-userinfo") then
+						sub_info_line = line
+						break
+					end
+				end
+				info = sub_info_line
 				local upload_match = string.match(info, "upload=(%d+)")
 				local download_match = string.match(info, "download=(%d+)")
 				local total_match = string.match(info, "total=(%d+)")
@@ -933,120 +941,50 @@ function get_sub_url(filename)
 	if not string.match(config_filename, "%.ya?ml$") then
 		config_filename = config_filename .. ".yaml"
 	end
-	local config_path = "/etc/openclash/" .. fs.basename(config_filename)
+	local config_path = "/etc/openclash/config/" .. fs.basename(config_filename)
 
 	-- Debug: Write to log
 	luci.sys.exec(string.format("logger -t openclash 'get_sub_url: filename=%s, config_path=%s, exists=%s'",
 		filename or "nil", config_path or "nil", tostring(fs.access(config_path) or false)))
 
 	if fs.access(config_path) then
-		-- Use Lua YAML parser without external dependencies
-		local lua_yaml_parser = luci.sys.exec(string.format([[
-			lua -e "
-			local function parse_yaml_providers(file_path)
-				local providers = {}
-				local file = io.open(file_path, 'r')
-				if not file then return '[]' end
-
-				local content = file:read('*all')
-				file:close()
-
-				-- Simple YAML parser for proxy-providers section
-				local in_providers = false
-				local current_provider = nil
-				local indent_level = 0
-
-				for line in content:gmatch('[^\r\n]+') do
-					-- Remove comments
-					line = line:gsub('#.*', '')
-					-- Trim whitespace
-					line = line:match('^%s*(.-)%s*$') or ''
-
-					-- Skip empty lines
-					if line == '' then
-						-- continue to next line
-					-- Check for proxy-providers section
-					elseif not in_providers then
-						if line:match('^proxy%-providers:%s*$') then
-							in_providers = true
-						end
-						-- continue to next line
-					else
-						-- Exit proxy-providers section
-						if line:match('^[^%s]:') and not line:match('^proxy%-providers:') then
-							break
-						end
-
-						-- Parse provider entries
-						local indent, key, value = line:match('^(%s+)([^:]+):%s*(.*)$')
-						if indent and key then
-							local current_indent = #indent
-							if current_indent == 2 and key ~= '' then
-								-- New provider
-								current_provider = {name = key:match('^%s*(.-)%s*$'), url = nil}
-								table.insert(providers, current_provider)
-							elseif current_provider and current_indent == 4 and key ~= '' then
-								-- Provider property
-								local prop_key = key:match('^%s*(.-)%s*$')
-								if prop_key == 'url' and current_provider then
-									current_provider.url = value:match('^%s*["\']?(.-)["\']?%s*$')
-								elseif prop_key == 'type' and current_provider and current_provider.url then
-									-- Only include if it's an http provider
-									if value ~= 'http' then
-										current_provider.url = nil
-									end
-								end
-							end
+		-- Use Ruby YAML parser (ruby-yaml is already a dependency in Makefile)
+		-- This handles YAML anchors/aliases properly (e.g., <<: *ProxyProviderBase)
+		local ruby_result = luci.sys.exec(string.format([[
+			ruby -ryaml -E UTF-8 -e '
+			begin
+				# Enable aliases to support YAML anchors like *ProxyProviderBase
+				config = YAML.load_file("%s", aliases: true)
+				providers = []
+				if config && config["proxy-providers"]
+					config["proxy-providers"].each do |name, provider|
+						# Only include providers with non-empty URLs
+						if provider && provider["url"] && !provider["url"].to_s.empty?
+							providers << {"name" => name, "url" => provider["url"].to_s}
 						end
 					end
 				end
-
-				-- Generate JSON-like output
-				local result = '['
-				for i, provider in ipairs(providers) do
-					if provider.name and provider.url then
-						if i > 1 then result = result .. ',' end
-						result = result .. string.format('{"name":"%s","url":"%s"}',
-							provider.name:gsub('"', '\\"'),
-							provider.url:gsub('"', '\\"'))
-					end
+				# Manual JSON output (ruby-json is not a dependency)
+				result = "["
+				providers.each_with_index do |p, i|
+					result << "," if i > 0
+					# Escape quotes in name and URL
+					name_escaped = p["name"].gsub("\"", "\\\\\"")
+					url_escaped = p["url"].gsub("\"", "\\\\\"")
+					result << "{\"name\":\"#{name_escaped}\",\"url\":\"#{url_escaped}\"}"
 				end
-				result = result .. ']'
-				return result
+				result << "]"
+				puts result
+			rescue => e
+				STDERR.puts e.message
+				puts "[]"
 			end
-
-			print(parse_yaml_providers('%s'))
-			" 2>/dev/null || echo "[]"
+			' 2>/dev/null || echo '[]'
 		]], config_path)):gsub("\n", "")
 
-		-- Debug: Log parser result (length only to avoid shell escaping issues)
-		luci.sys.exec(string.format("logger -t openclash 'YAML parser result length: %d'",
-			lua_yaml_parser and #lua_yaml_parser or 0))
-
-		if lua_yaml_parser and lua_yaml_parser ~= "" and lua_yaml_parser ~= "[]" then
-			-- Manual JSON parsing since we can't rely on external parsers
+		if ruby_result and ruby_result ~= "" and ruby_result ~= "[]" then
 			local success, parsed_providers = pcall(function()
-				-- Simple JSON-like parser for our specific format
-				local providers_list = {}
-				local json_str = lua_yaml_parser
-
-				-- Remove surrounding brackets
-				json_str = json_str:match('^%[(.*)%]$') or json_str
-
-				-- Split by objects
-				for obj_str in json_str:gmatch('{([^{}]*)}') do
-					local provider = {}
-					for key, value in obj_str:gmatch('"([^"]+)":"([^"]+)"') do
-						if key == "name" then provider.name = value
-						elseif key == "url" then provider.url = value
-						end
-					end
-					if provider.name and provider.url then
-						table.insert(providers_list, provider)
-					end
-				end
-
-				return providers_list
+				return json.parse(ruby_result)
 			end)
 
 			if success and parsed_providers and #parsed_providers > 0 then
@@ -1059,15 +997,13 @@ function get_sub_url(filename)
 end
 
 function sub_info_get()
-	local sub_ua, filename, sub_info, http_code, surplus, used, total, percent, day_left, expire
+	local sub_ua, filename, sub_info
 	local providers_data = {}
-	local debug_info = {}
 
 	filename = luci.http.formvalue("filename")
 	sub_info = ""
 	sub_ua = "Clash"
 
-	-- Get User-Agent from config_subscribe
 	uci:foreach("openclash", "config_subscribe",
 		function(s)
 			if s.name == filename and s.sub_ua then
@@ -1076,36 +1012,22 @@ function sub_info_get()
 		end
 	)
 
-	table.insert(debug_info, "filename=" .. (filename or "nil"))
-	table.insert(debug_info, "is_start=" .. tostring(is_start()))
-
 	if filename and not is_start() then
 		local url_result = get_sub_url(filename)
-		table.insert(debug_info, "url_result=" .. (url_result and "exists" or "nil"))
-		if url_result then
-			table.insert(debug_info, "url_result_type=" .. (url_result.type or "nil"))
-		end
 
 		if not url_result then
 			sub_info = "No Sub Info Found"
 		elseif url_result.type == "single" then
-			-- Single subscription URL (Priority 1 or 2)
 			local info = fetch_sub_info(url_result.url, sub_ua)
 			if info then
-				http_code = info.http_code
-				surplus = info.surplus
-				used = info.used
-				total = info.total
-				percent = info.percent
-				day_left = info.day_left
-				expire = info.expire
+				info.provider_name = "Subscription"
+				table.insert(providers_data, info)
 				sub_info = "Successful"
 			else
 				sub_info = "No Sub Info Found"
 			end
 		elseif url_result.type == "multiple" then
-			-- Multiple subscription URLs from proxy-providers (Priority 3)
-			for _, provider in ipairs(url_result.providers) do
+			for i, provider in ipairs(url_result.providers) do
 				local info = fetch_sub_info(provider.url, sub_ua)
 				if info then
 					info.provider_name = provider.name
@@ -1122,31 +1044,11 @@ function sub_info_get()
 	end
 
 	luci.http.prepare_content("application/json")
-
-	-- Return different format based on data type
-	if #providers_data > 0 then
-		-- Multiple providers
-		luci.http.write_json({
-			sub_info = sub_info,
-			providers = providers_data,
-			get_time = os.time(),
-			debug = table.concat(debug_info, "; ")
-		})
-	else
-		-- Single provider or no data (backward compatible)
-		luci.http.write_json({
-			http_code = http_code,
-			sub_info = sub_info,
-			surplus = surplus,
-			used = used,
-			total = total,
-			percent = percent,
-			day_left = day_left,
-			expire = expire,
-			get_time = os.time(),
-			debug = table.concat(debug_info, "; ")
-		})
-	end
+	luci.http.write_json({
+		sub_info = sub_info,
+		providers = providers_data,
+		get_time = os.time()
+	})
 end
 
 function action_rule_mode()
