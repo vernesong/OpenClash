@@ -3178,16 +3178,15 @@
 
             var onMouseMove = function(e) {
                 if (!isDragging) return;
-                e.preventDefault();
 
                 var x = e.pageX - element.offsetLeft;
                 var walk = (x - startX) * 1.5;
 
                 if (Math.abs(walk) > 5) {
                     hasMoved = true;
+                    e.preventDefault();  // 只在确认拖动时阻止默认行为
+                    element.scrollLeft = scrollLeft - walk;
                 }
-
-                element.scrollLeft = scrollLeft - walk;
             };
 
             var onMouseUp = function() {
@@ -3231,7 +3230,9 @@
             container.style.display = 'flex';
 
             if (progressSection) {
-                progressSection.style.display = 'none';
+                progressSection.innerHTML = '<div class="subscription-no-info"><%:No Sub Info Found%></div>';
+                progressSection.style.display = 'flex';
+                progressSection.className = 'subscription-progress';
             }
 
             if (detailsSection) {

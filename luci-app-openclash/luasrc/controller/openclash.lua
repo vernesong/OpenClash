@@ -853,51 +853,20 @@ function fetch_sub_info(sub_url, sub_ua)
 	return nil
 end
 
--- Get subscription URL with priority (Priority 1: subscribe_info, Priority 2: config_subscribe, Priority 3: proxy-providers)
+-- Get subscription URL with priority (Priority 1: YAML proxy-providers, Priority 2: subscribe_info, Priority 3: config_subscribe)
+-- This prioritizes the actual YAML config content over manual UCI settings
 function get_sub_url(filename)
 	local sub_url = nil
 	local info_tb = {}
 	local providers = {}
 
-	-- Priority 1: subscribe_info table
-	uci:foreach("openclash", "subscribe_info",
-		function(s)
-			if s.name == filename and s.url and string.find(s.url, "http") then
-				string.gsub(s.url, '[^\n]+', function(w) table.insert(info_tb, w) end)
-				sub_url = info_tb[1]
-			end
-		end
-	)
-
-	if sub_url then
-		return {type = "single", url = sub_url}
-	end
-
-	-- Priority 2: config_subscribe table
-	uci:foreach("openclash", "config_subscribe",
-		function(s)
-			if s.name == filename and s.address and string.find(s.address, "http") then
-				string.gsub(s.address, '[^\n]+', function(w) table.insert(info_tb, w) end)
-				sub_url = info_tb[1]
-			end
-		end
-	)
-
-	if sub_url then
-		return {type = "single", url = sub_url}
-	end
-
-	-- Priority 3: YAML proxy-providers
+	-- Priority 1: YAML proxy-providers (use actual config file content first)
 	-- Ensure filename has extension
 	local config_filename = filename
 	if not string.match(config_filename, "%.ya?ml$") then
 		config_filename = config_filename .. ".yaml"
 	end
 	local config_path = "/etc/openclash/config/" .. fs.basename(config_filename)
-
-	-- Debug: Write to log
-	luci.sys.exec(string.format("logger -t openclash 'get_sub_url: filename=%s, config_path=%s, exists=%s'",
-		filename or "nil", config_path or "nil", tostring(fs.access(config_path) or false)))
 
 	if fs.access(config_path) then
 		-- Use Ruby YAML parser (ruby-yaml is already a dependency in Makefile)
@@ -943,6 +912,34 @@ function get_sub_url(filename)
 				return {type = "multiple", providers = parsed_providers}
 			end
 		end
+	end
+
+	-- Priority 2: subscribe_info table (fallback if no YAML proxy-providers)
+	uci:foreach("openclash", "subscribe_info",
+		function(s)
+			if s.name == filename and s.url and string.find(s.url, "http") then
+				string.gsub(s.url, '[^\n]+', function(w) table.insert(info_tb, w) end)
+				sub_url = info_tb[1]
+			end
+		end
+	)
+
+	if sub_url then
+		return {type = "single", url = sub_url}
+	end
+
+	-- Priority 3: config_subscribe table (last fallback)
+	uci:foreach("openclash", "config_subscribe",
+		function(s)
+			if s.name == filename and s.address and string.find(s.address, "http") then
+				string.gsub(s.address, '[^\n]+', function(w) table.insert(info_tb, w) end)
+				sub_url = info_tb[1]
+			end
+		end
+	)
+
+	if sub_url then
+		return {type = "single", url = sub_url}
 	end
 
 	return nil
