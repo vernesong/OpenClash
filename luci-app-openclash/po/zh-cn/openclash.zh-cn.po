@@ -1203,9 +1203,6 @@ msgstr "策略类型"
 msgid "Choose The Load-Balance's Strategy Type"
 msgstr "选择负载均衡的策略类型"
 
-msgid "Choose The Smart's Strategy Type"
-msgstr "选择 Smart 策略组的初始数据收集策略类型"
-
 msgid "Uselightgbm"
 msgstr "Uselightgbm(使用模型)"
 

@@ -94,13 +94,6 @@ o:value("consistent-hashing", translate("Consistent-hashing"))
 o:value("sticky-sessions", translate("Sticky-sessions"))
 o:depends("type", "load-balance")
 
-o = s:option(ListValue, "strategy_smart", translate("Strategy Type"))
-o.rmempty = true
-o.description = translate("Choose The Smart's Strategy Type")
-o:value("round-robin", translate("Round-robin"))
-o:value("sticky-sessions", translate("Sticky-sessions"))
-o:depends("type", "smart")
-
 o = s:option(ListValue, "uselightgbm", translate("Uselightgbm"))
 o.description = translate("Use LightGBM Model For Smart Group Weight Prediction")
 o:value("false", translate("Disable"))

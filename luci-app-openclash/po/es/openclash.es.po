@@ -1202,9 +1202,6 @@ msgstr "Tipo de estrategia"
 msgid "Choose The Load-Balance's Strategy Type"
 msgstr "Selecciona el tipo de estrategia de balanceo"
 
-msgid "Choose The Smart's Strategy Type"
-msgstr "Selecciona la estrategia inicial para grupos Smart"
-
 msgid "Uselightgbm"
 msgstr "Uselightgbm (usar modelo)"
 

@@ -209,7 +209,7 @@ yml_groups_set()
 {
 
    local section="$1"
-   local enabled config type name disable_udp strategy old_name test_url test_interval tolerance policy_filter strategy_smart uselightgbm collectdata policy_priority
+   local enabled config type name disable_udp strategy old_name test_url test_interval tolerance policy_filter uselightgbm collectdata policy_priority
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "config" "$section" "config" ""
    config_get "type" "$section" "type" ""
@@ -221,7 +221,6 @@ yml_groups_set()
    config_get "test_interval" "$section" "test_interval" ""
    config_get "tolerance" "$section" "tolerance" ""
    config_get "policy_filter" "$section" "policy_filter" ""
-   config_get "strategy_smart" "$section" "strategy_smart" ""
    config_get "uselightgbm" "$section" "uselightgbm" ""
    config_get "collectdata" "$section" "collectdata" ""
    config_get "policy_priority" "$section" "policy_priority" ""
@@ -327,9 +326,6 @@ yml_groups_set()
    }
 
    if [ "$type" = "smart" ]; then
-      [ -n "$strategy_smart" ] && {
-         echo "    strategy: $strategy_smart" >>$GROUP_FILE
-      }
       [ -n "$uselightgbm" ] && {
          echo "    uselightgbm: $uselightgbm" >>$GROUP_FILE
       }

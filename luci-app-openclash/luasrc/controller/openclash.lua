@@ -139,33 +139,6 @@ local function is_start()
 end
 
 local function cn_port()
-    if is_running() then
-        local config_path = fs.uci_get_config("config", "config_path")
-        if config_path then
-            local config_filename = fs.basename(config_path)
-            local runtime_config_path = "/etc/openclash/" .. config_filename
-            local ruby_result = luci.sys.exec(string.format([[
-                ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-                begin
-                    config = YAML.load_file('%s')
-                    if config
-                        port = config['external-controller']
-                        if port
-                            port = port.to_s
-                            if port:include?(':')
-                                port = port.split(':')[-1]
-                            end
-                            puts port
-                        end
-                    end
-                end
-                " 2>/dev/null || echo "__RUBY_ERROR__"
-            ]], runtime_config_path)):gsub("\n", "")
-            if ruby_result and ruby_result ~= "" and ruby_result ~= "__RUBY_ERROR__" then
-                return ruby_result
-            end
-        end
-    end
     return fs.uci_get_config("config", "cn_port") or "9090"
 end
 
@@ -178,27 +151,6 @@ local function daip()
 end
 
 local function dase()
-    if is_running() then
-        local config_path = fs.uci_get_config("config", "config_path")
-        if config_path then
-            local config_filename = fs.basename(config_path)
-            local runtime_config_path = "/etc/openclash/" .. config_filename
-            local ruby_result = luci.sys.exec(string.format([[
-                ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-                begin
-                    config = YAML.load_file('%s')
-                    if config
-                        dase = config['secret']
-                        puts \"#{dase}\"
-                    end
-                end
-                " 2>/dev/null || echo "__RUBY_ERROR__"
-            ]], runtime_config_path)):gsub("\n", "")
-            if ruby_result and ruby_result ~= "" and ruby_result ~= "__RUBY_ERROR__" then
-                return ruby_result
-            end
-        end
-    end
     return fs.uci_get_config("config", "dashboard_password")
 end
 
@@ -918,24 +870,9 @@ function sub_info_get()
 end
 
 function action_rule_mode()
-	local mode, info
-	if is_running() then
-		local daip = daip()
-		local dase = dase() or ""
-		local cn_port = cn_port()
-		if not daip or not cn_port then return end
-		info = json.parse(luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XGET http://"%s":"%s"/configs', dase, daip, cn_port)))
-		if info then
-			mode = info["mode"]
-		else
-			mode = fs.uci_get_config("config", "proxy_mode") or "rule"
-		end
-    else
-        mode = fs.uci_get_config("config", "proxy_mode") or "rule"
-	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		mode = mode;
+		mode = fs.uci_get_config("config", "proxy_mode") or "rule";
 	})
 end
 
@@ -1025,7 +962,7 @@ function action_switch_log()
 		local dase = dase() or ""
 		local cn_port = cn_port()
 		level = luci.http.formvalue("log_level")
-		if not daip or not cn_port then luci.http.status(500, "Switch Faild") return end
+		if not daip or not cn_port or not level then luci.http.status(500, "Switch Faild") return end
 		info = luci.sys.exec(string.format('curl -sL -m 3 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPATCH http://"%s":"%s"/configs -d \'{\"log-level\": \"%s\"}\'', dase, daip, cn_port, level))
 		if info ~= "" then
 			luci.http.status(500, "Switch Faild")
@@ -2324,101 +2261,25 @@ function action_proxy_info()
         auth_pass = ""
     }
 
-    local function get_info_from_uci()
-        local mixed_port = fs.uci_get_config("config", "mixed_port")
-        if mixed_port and mixed_port ~= "" then
-            result.mixed_port = mixed_port
-        else
-            result.mixed_port = "7893"
-        end
 
-        uci:foreach("openclash", "authentication", function(section)
-            if section.enabled == "1" and result.auth_user == "" then
-                if section.username and section.username ~= "" then
-                    result.auth_user = section.username
-                end
-                if section.password and section.password ~= "" then
-                    result.auth_pass = section.password
-                end
-                return false
-            end
-        end)
+    local mixed_port = fs.uci_get_config("config", "mixed_port")
+    if mixed_port and mixed_port ~= "" then
+        result.mixed_port = mixed_port
+    else
+        result.mixed_port = "7893"
     end
 
-    local config_path = fs.uci_get_config("config", "config_path")
-    if config_path then
-        local config_filename = fs.basename(config_path)
-        local runtime_config_path = "/etc/openclash/" .. config_filename
-
-        if fs.access(runtime_config_path) then
-            local ruby_result = luci.sys.exec(string.format([[
-                ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-                begin
-                    config = YAML.load_file('%s')
-                    mixed_port = ''
-                    auth_user = ''
-                    auth_pass = ''
-
-                    if config
-                        if config['mixed-port']
-                            mixed_port = config['mixed-port'].to_s
-                        end
-
-                        if config['authentication'] && config['authentication'].is_a?(Array) && !config['authentication'].empty?
-                            auth_entry = config['authentication'][0]
-                            if auth_entry.is_a?(String) && auth_entry.include?(':')
-                                username, password = auth_entry.split(':', 2)
-                                auth_user = username || ''
-                                auth_pass = password || ''
-                            end
-                        end
-                    end
-
-                    puts \"#{mixed_port},#{auth_user},#{auth_pass}\"
-                rescue
-                    puts ',,'
-                end
-                " 2>/dev/null || echo "__RUBY_ERROR__"
-            ]], runtime_config_path)):gsub("\n", "")
-
-            if ruby_result and ruby_result ~= "" and ruby_result ~= "__RUBY_ERROR__" then
-                local runtime_mixed_port, runtime_auth_user, runtime_auth_pass = ruby_result:match("([^,]*),([^,]*),([^,]*)")
-
-                if runtime_mixed_port and runtime_mixed_port ~= "" then
-                    result.mixed_port = runtime_mixed_port
-                else
-                    local uci_mixed_port = fs.uci_get_config("config", "mixed_port")
-                    if uci_mixed_port and uci_mixed_port ~= "" then
-                        result.mixed_port = uci_mixed_port
-                    else
-                        result.mixed_port = "7893"
-                    end
-                end
-
-                if runtime_auth_user and runtime_auth_user ~= "" and runtime_auth_pass and runtime_auth_pass ~= "" then
-                    result.auth_user = runtime_auth_user
-                    result.auth_pass = runtime_auth_pass
-                else
-                    uci:foreach("openclash", "authentication", function(section)
-                        if section.enabled == "1" and result.auth_user == "" then
-                            if section.username and section.username ~= "" then
-                                result.auth_user = section.username
-                            end
-                            if section.password and section.password ~= "" then
-                                result.auth_pass = section.password
-                            end
-                            return false
-                        end
-                    end)
-                end
-                luci.http.prepare_content("application/json")
-                luci.http.write_json(result)
-                return
+    uci:foreach("openclash", "authentication", function(section)
+        if section.enabled == "1" and result.auth_user == "" then
+            if section.username and section.username ~= "" then
+                result.auth_user = section.username
             end
+            if section.password and section.password ~= "" then
+                result.auth_pass = section.password
+            end
+            return false
         end
-    end
-
-    get_info_from_uci()
+    end)
 
     luci.http.prepare_content("application/json")
     luci.http.write_json(result)
@@ -2432,61 +2293,14 @@ function action_oc_settings()
         stream_unlock = "0"
     }
 
-    local function get_uci_settings()
-        local meta_sniffer = fs.uci_get_config("config", "enable_meta_sniffer")
-        if meta_sniffer == "1" then
-            result.meta_sniffer = "1"
-        end
-
-        local respect_rules = fs.uci_get_config("config", "enable_respect_rules")
-        if respect_rules == "1" then
-            result.respect_rules = "1"
-        end
+    local meta_sniffer = fs.uci_get_config("config", "enable_meta_sniffer")
+    if meta_sniffer == "1" then
+        result.meta_sniffer = "1"
     end
 
-    if is_running() then
-        local config_path = fs.uci_get_config("config", "config_path")
-        if config_path then
-            local config_filename = fs.basename(config_path)
-            local runtime_config_path = "/etc/openclash/" .. config_filename
-
-            if fs.access(runtime_config_path) then
-                local ruby_result = luci.sys.exec(string.format([[
-                    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-                    begin
-                        config = YAML.load_file('%s')
-                        if config
-                            sniffer_enabled = config['sniffer'] && config['sniffer']['enable'] == true ? '1' : '0'
-                            respect_rules_enabled = config['dns'] && config['dns']['respect-rules'] == true ? '1' : '0'
-                            puts \"#{sniffer_enabled},#{respect_rules_enabled}\"
-                        else
-                            puts '0,0'
-                        end
-                    rescue
-                        puts '0,0'
-                    end
-                    " 2>/dev/null || echo "__RUBY_ERROR__"
-                ]], runtime_config_path)):gsub("\n", "")
-
-                if ruby_result and ruby_result ~= "" and ruby_result ~= "__RUBY_ERROR__" then
-                    local sniffer_result, respect_rules_result = ruby_result:match("(%d),(%d)")
-                    if sniffer_result and respect_rules_result then
-                        result.meta_sniffer = sniffer_result
-                        result.respect_rules = respect_rules_result
-                    else
-                        get_uci_settings()
-                    end
-                else
-                    get_uci_settings()
-                end
-            else
-                get_uci_settings()
-            end
-        else
-            get_uci_settings()
-        end
-    else
-        get_uci_settings()
+    local respect_rules = fs.uci_get_config("config", "enable_respect_rules")
+    if respect_rules == "1" then
+        result.respect_rules = "1"
     end
 
     local oversea = fs.uci_get_config("config", "china_ip_route")
@@ -2765,61 +2579,15 @@ function action_generate_pac()
 
     local auth_user = ""
     local auth_pass = ""
-    local auth_exists = false
 
-    local function get_auth_from_uci()
-        uci:foreach("openclash", "authentication", function(section)
-            if section.enabled == "1" and section.username and section.username ~= "" 
-               and section.password and section.password ~= "" then
-                auth_user = section.username
-                auth_pass = section.password
-                auth_exists = true
-                return false
-            end
-        end)
-    end
-
-    local config_path = fs.uci_get_config("config", "config_path")
-    if config_path then
-        local config_filename = fs.basename(config_path)
-        local runtime_config_path = "/etc/openclash/" .. config_filename
-
-        if fs.access(runtime_config_path) then
-            local ruby_result = luci.sys.exec(string.format([[
-                ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
-                begin
-                    config = YAML.load_file('%s')
-                    if config && config['authentication'] && config['authentication'].is_a?(Array) && !config['authentication'].empty?
-                        auth_entry = config['authentication'][0]
-                        if auth_entry.is_a?(String) && auth_entry.include?(':')
-                            username, password = auth_entry.split(':', 2)
-                            puts \"#{username},#{password}\"
-                        else
-                            puts ','
-                        end
-                    else
-                        puts ','
-                    end
-                rescue
-                    puts ','
-                end
-                " 2>/dev/null || echo "__RUBY_ERROR__"
-            ]], runtime_config_path)):gsub("\n", "")
-
-            if ruby_result and ruby_result ~= "" and ruby_result ~= "__RUBY_ERROR__" then
-                local runtime_user, runtime_pass = ruby_result:match("([^,]*),([^,]*)")
-                if runtime_user and runtime_user ~= "" and runtime_pass and runtime_pass ~= "" then
-                    auth_user = runtime_user
-                    auth_pass = runtime_pass
-                    auth_exists = true
-                end
-            end
+    uci:foreach("openclash", "authentication", function(section)
+        if section.enabled == "1" and section.username and section.username ~= "" 
+            and section.password and section.password ~= "" then
+            auth_user = section.username
+            auth_pass = section.password
+            return false
         end
-    end
-
-    if not auth_exists then
-        get_auth_from_uci()
-    end
+    end)
 
     local proxy_ip = daip()
     local mixed_port = fs.uci_get_config("config", "mixed_port") or "7893"
