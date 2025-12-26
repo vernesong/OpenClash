@@ -293,8 +293,8 @@ msgstr "规则设置"
 msgid "Config Manage"
 msgstr "配置管理"
 
-msgid "Upload Config File"
-msgstr "上传配置文件"
+msgid "Add Config File"
+msgstr "添加配置文件"
 
 msgid "Upload File Type"
 msgstr "上传文件类型"

@@ -17,7 +17,7 @@
     min-width: 0;
 }
 
-.sub_tab{
+.sub_tab {
     display: block;
     white-space: nowrap;
     font-size: 12px;
@@ -29,7 +29,7 @@
     box-sizing: border-box;
 }
 
-.sub_tab_show{
+.sub_tab_show {
     display: block;
     white-space: nowrap;
     font-size: 12px;
@@ -46,7 +46,7 @@
     box-sizing: border-box;
 }
 
-.sub_setting{
+.sub_setting {
     display: inline-block;
     white-space: nowrap;
     margin: 0;
@@ -67,7 +67,7 @@
     opacity: 0.7;
 }
 
-.text_show{
+.text_show {
     color: #333333;
     line-height: 1.2;
 }
@@ -209,6 +209,169 @@
 .sub_div > span:first-child {
     flex-shrink: 1;
 }
+
+/* Multiple providers container */
+.sub_providers_container {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: thin;
+    cursor: grab;
+    user-select: none;
+}
+
+.sub_providers_container.no-scroll {
+    overflow-x: hidden;
+    cursor: default;
+}
+
+.sub_providers_container::-webkit-scrollbar {
+    height: 4px;
+}
+
+.sub_providers_container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+.sub_providers_container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 2px;
+}
+
+.sub_providers_container::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.sub_providers_container.dragging {
+    cursor: grabbing;
+}
+
+.sub_provider_item {
+    flex: 0 0 auto;
+    width: 100px;
+    position: relative;
+    min-height: 36px;
+    background-color: #f5f5f5;
+    border: 1px solid #999999;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+}
+
+.sub_provider_fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    transition: width 0.3s ease;
+    border-radius: 5px;
+}
+
+.sub_provider_fill.progress_bar_high {
+    background-color: #9edd9e;
+}
+
+.sub_provider_fill.progress_bar_medium {
+    background-color: #ffc99f;
+}
+
+.sub_provider_fill.progress_bar_low {
+    background-color: #ffb9b9;
+}
+
+.sub_provider_name {
+    position: relative;
+    z-index: 1;
+    font-size: 12px;
+    color: #333;
+    font-weight: 500;
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    padding: 0 4px;
+}
+
+/* Dark mode support */
+:root[data-darkmode="true"] .sub_provider_item {
+    background-color: #333333;
+    border-color: #666666;
+}
+
+:root[data-darkmode="true"] .sub_provider_fill.progress_bar_high {
+    background-color: #5da05d;
+}
+
+:root[data-darkmode="true"] .sub_provider_fill.progress_bar_medium {
+    background-color: #cc8550;
+}
+
+:root[data-darkmode="true"] .sub_provider_fill.progress_bar_low {
+    background-color: #cc6262;
+}
+
+:root[data-darkmode="true"] .sub_provider_name {
+    color: #e0e0e0;
+}
+
+/* Responsive adjustments for multiple providers */
+@media (max-width: 1024px) {
+    .sub_providers_container {
+        gap: 3px;
+    }
+
+    .sub_provider_item {
+        width: 90px;
+    }
+
+    .sub_provider_name {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 768px) {
+    .sub_providers_container {
+        gap: 2px;
+    }
+
+    .sub_provider_item {
+        width: 80px;
+        min-height: 32px;
+    }
+
+    .sub_provider_name {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sub_provider_item {
+        width: 70px;
+        min-height: 30px;
+        padding: 0 2px;
+    }
+
+    .sub_provider_name {
+        font-size: 9px;
+    }
+}
+
+@media (max-width: 320px) {
+    .sub_provider_item {
+        width: 60px;
+        min-height: 28px;
+    }
+
+    .sub_provider_name {
+        font-size: 8px;
+    }
+}
 </style>
 
 <%
@@ -280,6 +443,110 @@ function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
     );
 };
 
+function progressbar_multi_<%=idname%>(providers) {
+    if (!providers || !Array.isArray(providers) || providers.length === 0) {
+        return '<span>No Providers</span>';
+    }
+
+    var providerCount = providers.length;
+    var itemWidth;
+    var containerClass = 'sub_providers_container';
+
+    if (providerCount === 2) {
+        itemWidth = 'calc(50% - 2px)';
+        containerClass += ' no-scroll';
+    } else if (providerCount === 3) {
+        itemWidth = 'calc(33.33% - 2.67px)';
+        containerClass += ' no-scroll';
+    } else {
+        itemWidth = '100px';
+    }
+
+    var container = '<div class="' + containerClass + '" id="sub_providers_<%=idname%>">';
+
+    providers.forEach(function(provider) {
+        var percent = parseFloat(provider.percent) || 0;
+        var providerName = provider.provider_name || 'Unknown';
+        var used = provider.used || '0 B';
+        var total = provider.total || 'N/A';
+        var surplus = provider.surplus || used;
+        var expire = provider.expire || 'null';
+        var dayLeft = parseInt(provider.day_left) || 0;
+
+        var bgColorClass = percent >= 50 ? 'progress_bar_high' :
+                          (percent >= 20 ? 'progress_bar_medium' : 'progress_bar_low');
+
+        var titleText = providerName + ': ' + surplus + ' / ' + total + ' (' + percent + '%)';
+        if (expire !== 'null' && dayLeft > 0) {
+            titleText += ' | ' + dayLeft + ' <%:days%>';
+        }
+
+        container += '<div class="sub_provider_item" style="width: ' + itemWidth + '" title="' + titleText + '">' +
+                    '<div class="sub_provider_fill ' + bgColorClass + '" style="width: ' + percent + '%"></div>' +
+                    '<span class="sub_provider_name">' + providerName + '</span>' +
+                    '</div>';
+    });
+
+    container += '</div>';
+
+    if (providerCount > 3) {
+        setTimeout(function() {
+            initDragScroll_<%=idname%>();
+        }, 100);
+    }
+
+    return container;
+}
+
+function initDragScroll_<%=idname%>() {
+    var container = document.getElementById('sub_providers_<%=idname%>');
+    if (!container) return;
+
+    var isDragging = false;
+    var startX;
+    var scrollLeft;
+    var hasMoved = false;
+
+    container.addEventListener('mousedown', function(e) {
+        if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
+            return;
+        }
+
+        isDragging = true;
+        hasMoved = false;
+        startX = e.pageX - container.offsetLeft;
+        scrollLeft = container.scrollLeft;
+        container.classList.add('dragging');
+    });
+
+    container.addEventListener('mousemove', function(e) {
+        if (!isDragging) return;
+
+        var x = e.pageX - container.offsetLeft;
+        var walk = (x - startX) * 2;
+
+        if (Math.abs(walk) > 5) {
+            hasMoved = true;
+            e.preventDefault();
+            container.scrollLeft = scrollLeft - walk;
+        }
+    });
+
+    container.addEventListener('mouseup', function() {
+        isDragging = false;
+        container.classList.remove('dragging');
+    });
+
+    container.addEventListener('mouseleave', function() {
+        isDragging = false;
+        container.classList.remove('dragging');
+    });
+
+    container.addEventListener('dragstart', function(e) {
+        e.preventDefault();
+    });
+}
+
 function sub_info_refresh_<%=idname%>()
 {
 	if (s_<%=idname%>) { clearTimeout(s_<%=idname%>);};
@@ -288,7 +555,31 @@ function sub_info_refresh_<%=idname%>()
 			retry_<%=idname%> = 0;
 			localStorage.setItem("sub_info_<%=filename%>",JSON.stringify(status));
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
-			document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>((status.surplus ? status.surplus : status.used), (status.total), (status.percent), false, false, (status.expire), (status.day_left));
+
+			if (status.providers && Array.isArray(status.providers) && status.providers.length > 0) {
+				if (status.providers.length === 1) {
+					var provider = status.providers[0];
+					document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>(
+						(provider.surplus ? provider.surplus : provider.used),
+						(provider.total),
+						(provider.percent),
+						false, false,
+						(provider.expire),
+						(provider.day_left)
+					);
+				} else {
+					document.getElementById('<%=idname%>').innerHTML = progressbar_multi_<%=idname%>(status.providers);
+				}
+			} else {
+				document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>(
+					(status.surplus ? status.surplus : status.used),
+					(status.total),
+					(status.percent),
+					false, false,
+					(status.expire),
+					(status.day_left)
+				);
+			}
 		}
 		else if ( x && x.status == 200 && status.sub_info == "No Sub Info Found" ) {
 			retry_<%=idname%> = 0;
@@ -310,7 +601,7 @@ function sub_info_refresh_<%=idname%>()
 				s_<%=idname%> = setTimeout("sub_info_refresh_<%=idname%>()",1000*120);
 				return
 			}
-			
+
 		};
 		s_<%=idname%> = setTimeout("sub_info_refresh_<%=idname%>()",1000*1800);
 	});
@@ -325,7 +616,30 @@ function sub_info_get_<%=idname%>()
 			document.getElementById('<%=idname%>').innerHTML = "<span><%:No Sub Info Found%></span>";
 		}
 		else {
-			document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>((save_info.surplus ? save_info.surplus : save_info.used), (save_info.total), (save_info.percent ? save_info.percent : 0), false, false, (save_info.expire), (save_info.day_left ? save_info.day_left : 0));
+			if (save_info.providers && Array.isArray(save_info.providers) && save_info.providers.length > 0) {
+				if (save_info.providers.length === 1) {
+					var provider = save_info.providers[0];
+					document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>(
+						(provider.surplus ? provider.surplus : provider.used),
+						(provider.total),
+						(provider.percent ? provider.percent : 0),
+						false, false,
+						(provider.expire),
+						(provider.day_left ? provider.day_left : 0)
+					);
+				} else {
+					document.getElementById('<%=idname%>').innerHTML = progressbar_multi_<%=idname%>(save_info.providers);
+				}
+			} else {
+				document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>(
+					(save_info.surplus ? save_info.surplus : save_info.used),
+					(save_info.total),
+					(save_info.percent ? save_info.percent : 0),
+					false, false,
+					(save_info.expire),
+					(save_info.day_left ? save_info.day_left : 0)
+				);
+			}
 		}
 	}
 	else {

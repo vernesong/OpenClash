@@ -33,7 +33,7 @@
     --row-1-height: 160px;
     --row-2-height: 140px;
     --row-3-height: 140px;
-    --row-4-height: 250px;
+    --row-4-height: 280px;
 }
 
 .oc[data-darkmode="true"] {
@@ -878,6 +878,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    height: 180px;
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-fast);
     position: relative;
@@ -919,12 +920,13 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin: auto 0;
 }
 
 .oc .subscription-progress-bar {
     background: var(--bg-gray);
     border-radius: 4px;
-    height: 10px;
+    height: 12px;
     position: relative;
     overflow: hidden;
 }
@@ -947,6 +949,17 @@
     background: var(--error-color);
 }
 
+.oc .subscription-info-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    display: block;
+}
+
 .oc .subscription-info-text {
     font-size: 13px;
     color: var(--text-secondary);
@@ -955,6 +968,69 @@
     overflow: hidden;
     white-space: nowrap;
     display: block;
+}
+
+/* Multiple Providers Grid Layout */
+.oc .subscription-providers-grid {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    max-width: 100%;
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    cursor: grab;
+    user-select: none;
+}
+
+.oc .subscription-providers-grid::-webkit-scrollbar {
+    display: none;
+}
+
+.oc .subscription-providers-grid.dragging {
+    cursor: grabbing;
+}
+
+.oc .subscription-providers-grid[data-count="1"] {
+    overflow-x: hidden;
+}
+
+.oc .subscription-providers-grid[data-count="2"],
+.oc .subscription-providers-grid[data-count="3"] {
+    overflow-x: hidden;
+}
+
+.oc .provider-card {
+    background: transparent;
+    padding: 0;
+    transition: all 0.2s ease;
+    min-width: calc(33.333% - 8px);
+    flex: 0 0 calc(33.333% - 8px);
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+/* For 1-2 providers, allow them to fill available space */
+.oc .subscription-providers-grid[data-count="1"] .provider-card {
+    min-width: 100%;
+    flex: 1 1 100%;
+}
+
+.oc .subscription-providers-grid[data-count="2"] .provider-card {
+    min-width: calc(50% - 6px);
+    flex: 1 1 calc(50% - 6px);
+}
+
+/* For 3+ providers, fixed 33.333% width */
+/* data-count="3" uses the base rule: flex: 0 0 calc(33.333% - 8px) */
+
+/* Dark mode support for provider cards */
+.oc[data-darkmode="true"] .provider-card {
+    background: transparent;
 }
 
 .oc .subscription-loading,
@@ -1388,6 +1464,14 @@
         font-size: 10px;
     }
 
+    .oc .subscription-info-title {
+        font-size: 13px;
+    }
+
+    .oc .subscription-progress-bar {
+        height: 10px;
+    }
+
     .oc .file-info {
         font-size: 10px;
     }
@@ -1551,6 +1635,10 @@
 
     .oc .subscription-info-text {
         font-size: 10px;
+    }
+
+    .oc .subscription-info-title {
+        font-size: 13px;
     }
 
     .oc .config-file-name {
@@ -1842,7 +1930,7 @@
                                                 <polyline points="17,8 12,3 7,8"></polyline>
                                                 <line x1="12" y1="3" x2="12" y2="15"></line>
                                             </svg>
-                                            <%:Upload Config File%>
+                                            <%:Add Config File%>
                                         </button>
                                     </div>
 
@@ -2926,6 +3014,8 @@
             }
 
             if (shouldFetchNew) {
+                this.showLoading();
+
                 StateManager.cachedXHRGetWithParams('<%=luci.dispatcher.build_url("admin", "services", "openclash", "sub_info_get")%>', {filename: filename}, function(x, status) {
                     if (SubscriptionManager.currentConfigFile !== requestConfigFile) {
                         return;
@@ -2953,8 +3043,6 @@
             var container = document.getElementById('subscription-info-display');
             var progressSection = document.getElementById('subscription-progress-section');
             var detailsSection = document.getElementById('subscription-info-details');
-            var progressFill = document.getElementById('subscription-progress-fill');
-            var infoText = document.getElementById('subscription-info-text');
 
             if (!container) return;
 
@@ -2966,44 +3054,181 @@
             container.style.display = 'flex';
 
             if (data && data.sub_info && data.sub_info !== "No Sub Info Found") {
-                if (progressSection) {
-                    progressSection.style.display = 'flex';
-                }
-
-                if (!progressFill || !infoText) return;
-
-                var percent = data.percent || 0;
-                var used = data.surplus || data.used || '0 B';
-                var total = data.total || '0 B';
-                var expire = data.expire || '';
-                var daysLeft = data.day_left || 0;
-
-                progressFill.style.width = percent + '%';
-                progressFill.className = 'subscription-progress-fill ' + 
-                    (percent >= 50 ? 'high' : (percent >= 20 ? 'medium' : 'low'));
-
-                var infoString = used + ' / ' + total + ' (' + percent + '%)';
-                if (expire && daysLeft > 0) {
-                    infoString += ' • ' + '<%:Remaining%> ' + daysLeft + ' <%:days%>';
-                    infoString += ' • ' + '<%:Expire Date%>: ' + expire;
-                }
-
-                infoText.textContent = infoString;
-                if (infoText.scrollWidth > infoText.clientWidth) {
-                    infoText.title = infoString;
+                if (data.providers && Array.isArray(data.providers) && data.providers.length > 0) {
+                    if (data.providers.length > 1 || data.providers[0].provider_name) {
+                        this.displayMultipleProviders(data.providers, progressSection);
+                    } else {
+                        this.displaySingleProvider(data.providers[0], progressSection);
+                    }
                 } else {
-                    infoText.title = '';
-                }
-
-            } else {
-                if (progressSection) {
                     progressSection.style.display = 'none';
                 }
+            } else {
+                progressSection.style.display = 'none';
             }
 
             if (detailsSection) {
                 detailsSection.style.display = 'flex';
             }
+        },
+
+        displaySingleProvider: function(provider, progressSection) {
+            if (!progressSection) return;
+
+            progressSection.innerHTML = '';
+            progressSection.style.display = 'flex';
+            progressSection.className = 'subscription-progress';
+
+            var progressBar = document.createElement('div');
+            progressBar.className = 'subscription-progress-bar';
+
+            progressFill = document.createElement('div');
+            progressFill.className = 'subscription-progress-fill';
+            progressBar.appendChild(progressFill);
+
+            infoText = document.createElement('div');
+            infoText.className = 'subscription-info-text';
+
+            progressSection.appendChild(progressBar);
+            progressSection.appendChild(infoText);
+
+            var percent = parseFloat(provider.percent) || 0;
+            var used = String(provider.surplus || provider.used || '0 B');
+            var total = String(provider.total || '0 B');
+            var expire = String(provider.expire || '');
+            var daysLeft = parseInt(provider.day_left, 10);
+            if (isNaN(daysLeft)) daysLeft = 0;
+
+            progressFill.style.width = percent + '%';
+            progressFill.className = 'subscription-progress-fill ' +
+                (percent >= 50 ? 'high' : (percent >= 20 ? 'medium' : 'low'));
+
+            var infoString = used + ' / ' + total + ' (' + percent + '%)';
+            if (expire && expire !== 'null' && daysLeft > 0) {
+                infoString += ' • ' + '<%:Remaining%> ' + daysLeft + ' <%:days%>';
+                infoString += ' • ' + '<%:Expire Date%>: ' + expire;
+            }
+
+            infoText.textContent = infoString;
+            if (infoText.scrollWidth > infoText.clientWidth) {
+                infoText.title = infoString;
+            } else {
+                infoText.title = '';
+            }
+        },
+
+        displayMultipleProviders: function(providers, progressSection) {
+            if (!progressSection) return;
+
+            var displayProviders = providers;
+            var providerCount = displayProviders.length;
+
+            progressSection.innerHTML = '';
+            progressSection.style.display = 'flex';
+            progressSection.className = 'subscription-providers-grid';
+            progressSection.setAttribute('data-count', providerCount);
+
+            displayProviders.forEach(function(provider) {
+                var card = document.createElement('div');
+                card.className = 'provider-card';
+
+                var cardName = document.createElement('div');
+                var providerName = String(provider.provider_name || 'Unknown');
+                cardName.className = 'subscription-info-title';
+                cardName.textContent = providerName;
+                cardName.title = providerName;
+                card.appendChild(cardName);
+
+                var progressBar = document.createElement('div');
+                progressBar.className = 'subscription-progress-bar';
+
+                var progressFill = document.createElement('div');
+                var percent = parseFloat(provider.percent) || 0;
+                progressFill.style.width = percent + '%';
+                progressFill.className = 'subscription-progress-fill ' +
+                    (percent >= 50 ? 'high' : (percent >= 20 ? 'medium' : 'low'));
+
+                progressBar.appendChild(progressFill);
+                card.appendChild(progressBar);
+
+                var infoText = document.createElement('div');
+                infoText.className = 'subscription-info-text';
+
+                var used = String(provider.used || '0 B');
+                var total = String(provider.total || 'N/A');
+                var expire = String(provider.expire || '');
+                var daysLeft = parseInt(provider.day_left, 10);
+                if (isNaN(daysLeft)) daysLeft = 0;
+
+                var infoString = providerName + ': ' + used + ' / ' + total + ' (' + percent + '%)';
+                if (expire && expire !== 'null' && daysLeft > 0) {
+                    infoString += ' • ' + '<%:Remaining%> ' + daysLeft + ' <%:days%>';
+                    infoString += ' • ' + '<%:Expire Date%>: ' + expire;
+                }
+
+                infoText.textContent = infoString;
+                infoText.title = infoString;
+
+                card.appendChild(infoText);
+                progressSection.appendChild(card);
+            });
+
+            if (providerCount > 3) {
+                this.initDragScroll(progressSection);
+            }
+        },
+
+        initDragScroll: function(element) {
+            var isDragging = false;
+            var startX;
+            var scrollLeft;
+            var hasMoved = false;
+
+            var onMouseDown = function(e) {
+                if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
+                    return;
+                }
+
+                isDragging = true;
+                hasMoved = false;
+                startX = e.pageX - element.offsetLeft;
+                scrollLeft = element.scrollLeft;
+                element.classList.add('dragging');
+            };
+
+            var onMouseMove = function(e) {
+                if (!isDragging) return;
+
+                var x = e.pageX - element.offsetLeft;
+                var walk = (x - startX) * 1.5;
+
+                if (Math.abs(walk) > 5) {
+                    hasMoved = true;
+                    e.preventDefault();
+                    element.scrollLeft = scrollLeft - walk;
+                }
+            };
+
+            var onMouseUp = function() {
+                isDragging = false;
+                element.classList.remove('dragging');
+            };
+
+            var onMouseLeave = function() {
+                if (isDragging) {
+                    isDragging = false;
+                    element.classList.remove('dragging');
+                }
+            };
+
+            element.addEventListener('mousedown', onMouseDown);
+            element.addEventListener('mousemove', onMouseMove);
+            element.addEventListener('mouseup', onMouseUp);
+            element.addEventListener('mouseleave', onMouseLeave);
+
+            element.addEventListener('dragstart', function(e) {
+                e.preventDefault();
+            });
         },
 
         showNoInfo: function() {
@@ -3025,7 +3250,9 @@
             container.style.display = 'flex';
 
             if (progressSection) {
-                progressSection.style.display = 'none';
+                progressSection.innerHTML = '<div class="subscription-no-info"><%:No Sub Info Found%></div>';
+                progressSection.style.display = 'flex';
+                progressSection.className = 'subscription-progress';
             }
 
             if (detailsSection) {
@@ -3062,6 +3289,35 @@
             if (progressSection) {
                 progressSection.style.display = 'none';
             }
+            if (detailsSection) {
+                detailsSection.style.display = 'none';
+            }
+        },
+
+        showLoading: function() {
+            if (ConfigFileManager.configList.length === 0) {
+                return;
+            }
+
+            var container = document.getElementById('subscription-info-display');
+            var progressSection = document.getElementById('subscription-progress-section');
+            var detailsSection = document.getElementById('subscription-info-details');
+
+            if (!container) return;
+
+            var configFileContent = document.querySelector('.config-file-content');
+            if (configFileContent && configFileContent.classList.contains('empty-state')) {
+                return;
+            }
+
+            container.style.display = 'flex';
+
+            if (progressSection) {
+                progressSection.innerHTML = '<div class="subscription-loading"><%:Collecting data...%></div>';
+                progressSection.style.display = 'flex';
+                progressSection.className = 'subscription-progress';
+            }
+
             if (detailsSection) {
                 detailsSection.style.display = 'none';
             }

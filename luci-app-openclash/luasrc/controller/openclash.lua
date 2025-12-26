@@ -740,12 +740,204 @@ function set_subinfo_url()
 	})
 end
 
-function sub_info_get()
-	local sub_ua, filepath, filename, sub_url, sub_info, info, upload, download, total, expire, http_code, len, percent, day_left, day_expire, surplus, used
+function fetch_sub_info(sub_url, sub_ua)
+	local info, upload, download, total, day_expire, http_code
+	local used, expire, day_left, percent, surplus
+
+	info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code=%%{http_code}' -H 'User-Agent: %s' '%s'", sub_ua, sub_url))
+	local http_match = string.match(info, "http_code=(%d+)")
+	if not info or not http_match or tonumber(http_match) ~= 200 then
+		info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code=%%{http_code}' -H 'User-Agent: Quantumultx' '%s'", sub_url))
+		http_match = string.match(info, "http_code=(%d+)")
+	end
+
+	if info and http_match then
+		http_code = http_match
+		if tonumber(http_code) == 200 then
+			info = string.lower(info)
+			if string.find(info, "subscription%-userinfo") then
+				local sub_info_line = ""
+				for line in info:gmatch("[^\r\n]+") do
+					if string.find(line, "subscription%-userinfo") then
+						sub_info_line = line
+						break
+					end
+				end
+				info = sub_info_line
+				local upload_match = string.match(info, "upload=(%d+)")
+				local download_match = string.match(info, "download=(%d+)")
+				local total_match = string.match(info, "total=(%d+)")
+				local expire_match = string.match(info, "expire=(%d+)")
+
+				upload = upload_match and tonumber(upload_match) or nil
+				download = download_match and tonumber(download_match) or nil
+				total = total_match and tonumber(string.format("%.1f", total_match)) or nil
+				used = upload and download and tonumber(string.format("%.1f", upload + download)) or nil
+				day_expire = expire_match and tonumber(expire_match) or nil
+
+				if day_expire and day_expire == 0 then
+					expire = luci.i18n.translate("Long-term")
+				elseif day_expire then
+					expire = os.date("%Y-%m-%d %H:%M:%S", day_expire) or "null"
+				else
+					expire = "null"
+				end
+
+				if day_expire and day_expire ~= 0 and os.time() <= day_expire then
+					day_left = math.ceil((day_expire - os.time()) / (3600*24))
+					if math.ceil(day_left / 365) > 50 then
+						day_left = "∞"
+					end
+				elseif day_expire and day_expire == 0 then
+					day_left = "∞"
+				elseif day_expire == nil then
+					day_left = "null"
+				else
+					day_left = 0
+				end
+
+				if used and total and used <= total and total > 0 then
+					percent = string.format("%.1f",((total-used)/total)*100) or "100"
+					surplus = fs.filesize(total - used)
+				elseif used and total and used > total and total > 0 then
+					percent = "0"
+					surplus = "-"..fs.filesize(total - used)
+				elseif used and total and used < total and total == 0.0 then
+					percent = "0"
+					surplus = fs.filesize(total - used)
+				elseif used and total and used == total and total == 0.0 then
+					percent = "0"
+					surplus = "0.0 KB"
+				elseif used and total and used > total and total == 0.0 then
+					percent = "100"
+					surplus = fs.filesize(total - used)
+				elseif used == nil and total and total > 0.0 then
+					percent = 100
+					surplus = fs.filesize(total)
+				elseif used == nil and total and total == 0.0 then
+					percent = 100
+					surplus = "∞"
+				else
+					percent = 0
+					surplus = "null"
+				end
+
+				local total_formatted, used_formatted
+				if total and total > 0 then
+					total_formatted = fs.filesize(total)
+				elseif total and total == 0.0 then
+					total_formatted = "∞"
+				else
+					total_formatted = "null"
+				end
+				used_formatted = fs.filesize(used)
+
+				return {
+					http_code = http_code,
+					surplus = surplus,
+					used = used_formatted,
+					total = total_formatted,
+					percent = percent,
+					day_left = day_left,
+					expire = expire
+				}
+			end
+		end
+	end
+
+	return nil
+end
+
+-- Get subscription URL with priority (Priority 1: subscribe_info, Priority 2: YAML proxy-providers, Priority 3: config_subscribe)
+function get_sub_url(filename)
+	local sub_url = nil
 	local info_tb = {}
+	local providers = {}
+
+    -- Priority 1: subscribe_info
+	uci:foreach("openclash", "subscribe_info",
+		function(s)
+			if s.name == filename and s.url and string.find(s.url, "http") then
+				string.gsub(s.url, '[^\n]+', function(w) table.insert(info_tb, w) end)
+				sub_url = info_tb[1]
+			end
+		end
+	)
+
+	if sub_url then
+		return {type = "single", url = sub_url}
+	end
+
+    -- Priority 2: YAML proxy-providers (use actual config file content first)
+	local config_path = "/etc/openclash/config/" .. fs.basename(filename .. ".yaml")
+
+	if fs.access(config_path) then
+		local ruby_result = luci.sys.exec(string.format([[
+			ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e '
+			begin
+				config = YAML.load_file("%s")
+				providers = []
+				if config && config["proxy-providers"]
+					config["proxy-providers"].each do |name, provider|
+						# Only include providers with non-empty URLs
+						if provider && provider["url"] && !provider["url"].to_s.empty?
+							providers << {"name" => name, "url" => provider["url"].to_s}
+						end
+					end
+				end
+				# Manual JSON output (ruby-json is not a dependency)
+				result = "["
+				providers.each_with_index do |p, i|
+					result << "," if i > 0
+					# Escape quotes in name and URL
+					name_escaped = p["name"].gsub("\"", "\\\\\"")
+					url_escaped = p["url"].gsub("\"", "\\\\\"")
+					result << "{\"name\":\"#{name_escaped}\",\"url\":\"#{url_escaped}\"}"
+				end
+				result << "]"
+				puts result
+			rescue => e
+				puts "[]"
+			end
+			' 2>/dev/null || echo '[]'
+		]], config_path)):gsub("\n", "")
+
+		if ruby_result and ruby_result ~= "" and ruby_result ~= "[]" then
+			local success, parsed_providers = pcall(function()
+				return json.parse(ruby_result)
+			end)
+
+			if success and parsed_providers and #parsed_providers > 0 then
+				return {type = "multiple", providers = parsed_providers}
+			end
+		end
+	end
+
+	-- Priority 3: config_subscribe table (last fallback)
+	uci:foreach("openclash", "config_subscribe",
+		function(s)
+			if s.name == filename and s.address and string.find(s.address, "http") then
+				string.gsub(s.address, '[^\n]+', function(w) table.insert(info_tb, w) end)
+				sub_url = info_tb[1]
+			end
+		end
+	)
+
+	if sub_url then
+		return {type = "single", url = sub_url}
+	end
+
+	return nil
+end
+
+function sub_info_get()
+	local sub_ua, filename, sub_info
+	local providers_data = {}
+
 	filename = luci.http.formvalue("filename")
 	sub_info = ""
 	sub_ua = "Clash"
+
 	uci:foreach("openclash", "config_subscribe",
 		function(s)
 			if s.name == filename and s.sub_ua then
@@ -753,119 +945,42 @@ function sub_info_get()
 			end
 		end
 	)
+
 	if filename and not is_start() then
-		uci:foreach("openclash", "subscribe_info",
-			function(s)
-				if s.name == filename and s.url and string.find(s.url, "http") then
-					string.gsub(s.url, '[^\n]+', function(w) table.insert(info_tb, w) end)
-					sub_url = info_tb[1]
-				end
-			end
-		)
-		if not sub_url then
-			uci:foreach("openclash", "config_subscribe",
-				function(s)
-					if s.name == filename and s.address and string.find(s.address, "http") then
-						string.gsub(s.address, '[^\n]+', function(w) table.insert(info_tb, w) end)
-						sub_url = info_tb[1]
-					end
-				end
-			)
-		end
-		if not sub_url then
+		local url_result = get_sub_url(filename)
+
+		if not url_result then
 			sub_info = "No Sub Info Found"
-		else
-			info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: %s' '%s'", sub_ua, sub_url))
-			if not info or tonumber(string.sub(string.match(info, "http_code=%d+"), 11, -1)) ~= 200 then
-				info = luci.sys.exec(string.format("curl -sLI -X GET -m 10 -w 'http_code='%%{http_code} -H 'User-Agent: Quantumultx' '%s'", sub_url))
-			end
+		elseif url_result.type == "single" then
+			local info = fetch_sub_info(url_result.url, sub_ua)
 			if info then
-				http_code=string.sub(string.match(info, "http_code=%d+"), 11, -1)
-				if tonumber(http_code) == 200 then
-					info = string.lower(info)
-					if string.find(info, "subscription%-userinfo") then
-						info = luci.sys.exec("echo '%s' |grep 'subscription-userinfo'" %info)
-						upload = string.sub(string.match(info, "upload=%d+"), 8, -1) or nil
-						download = string.sub(string.match(info, "download=%d+"), 10, -1) or nil
-						total = tonumber(string.format("%.1f",string.sub(string.match(info, "total=%d+"), 7, -1))) or nil
-						used = tonumber(string.format("%.1f",(upload + download))) or nil
-						if string.match(info, "expire=%d+") then
-							day_expire = tonumber(string.sub(string.match(info, "expire=%d+"), 8, -1)) or nil
-						end
-
-						if day_expire and day_expire == 0 then
-							expire = luci.i18n.translate("Long-term")
-						elseif day_expire then
-							expire = os.date("%Y-%m-%d %H:%M:%S", day_expire) or "null"
-						else
-							expire = "null"
-						end
-
-						if day_expire and day_expire ~= 0 and os.time() <= day_expire then
-							day_left = math.ceil((day_expire - os.time()) / (3600*24))
-							if math.ceil(day_left / 365) > 50 then
-								day_left = "∞"
-							end
-						elseif day_expire and day_expire == 0 then
-							day_left = "∞"
-						elseif day_expire == nil then
-							day_left = "null"
-						else
-							day_left = 0
-						end
-						
-						if used and total and used <= total and total > 0 then
-							percent = string.format("%.1f",((total-used)/total)*100) or "100"
-							surplus = fs.filesize(total - used)
-						elseif used and total and used > total and total > 0 then
-							percent = "0"
-							surplus = "-"..fs.filesize(total - used)
-						elseif used and total and used < total and total == 0.0 then
-							percent = "0"
-							surplus = fs.filesize(total - used)
-						elseif used and total and used == total and total == 0.0 then
-							percent = "0"
-							surplus = "0.0 KB"
-						elseif used and total and used > total and total == 0.0 then
-							percent = "100"
-							surplus = fs.filesize(total - used)
-						elseif used == nil and total and total > 0.0 then
-							percent = 100
-							surplus = fs.filesize(total)
-						elseif used == nil and total and total == 0.0 then
-							percent = 100
-							surplus = "∞"
-						else
-							percent = 0
-							surplus = "null"
-						end
-						if total and total > 0 then
-							total = fs.filesize(total)
-						elseif total and total == 0.0 then
-							total = "∞"
-						else
-							total = "null"
-						end
-						used = fs.filesize(used)
-						sub_info = "Successful"
-					else
-						sub_info = "No Sub Info Found"
-					end
+				table.insert(providers_data, info)
+				sub_info = "Successful"
+			else
+				sub_info = "No Sub Info Found"
+			end
+		elseif url_result.type == "multiple" then
+			for i, provider in ipairs(url_result.providers) do
+				local info = fetch_sub_info(provider.url, sub_ua)
+				if info then
+					info.provider_name = provider.name
+					table.insert(providers_data, info)
 				end
+			end
+
+			if #providers_data > 0 then
+				sub_info = "Successful"
+			else
+				sub_info = "No Sub Info Found"
 			end
 		end
 	end
+
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
-		http_code = http_code,
 		sub_info = sub_info,
-		surplus = surplus,
-		used = used,
-		total = total,
-		percent = percent,
-		day_left = day_left,
-		expire = expire,
-		get_time = os.time();
+		providers = providers_data,
+		get_time = os.time()
 	})
 end
 
@@ -1944,7 +2059,7 @@ function action_myip_check()
         },
         {
             name = "ipsb",
-            url = string.format("https://api.ip.sb/geoip?z=%d", random),
+            url = string.format("https://api-ipv4.ip.sb/geoip?z=%d", random),
             parser = function(data)
                 if data and data ~= "" then
                     local ok, ipsb_json = pcall(json.parse, data)
@@ -2118,7 +2233,7 @@ function action_myip_check()
 
     if result.ipify and result.ipify.ip then
         local geo_cmd = string.format(
-            'curl -sL -m 5 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://api.ip.sb/geoip/%s" 2>/dev/null',
+            'curl -sL -m 5 -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" "https://api-ipv4.ip.sb/geoip/%s" 2>/dev/null',
             result.ipify.ip
         )
         local geo_data = luci.sys.exec(geo_cmd)
