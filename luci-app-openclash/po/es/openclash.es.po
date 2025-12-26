@@ -293,8 +293,8 @@ msgstr "Ajustes de reglas"
 msgid "Config Manage"
 msgstr "Gestión de configuraciones"
 
-msgid "Upload Config File"
-msgstr "Subir archivo de configuración"
+msgid "Add Config File"
+msgstr "Añadir archivo de configuración"
 
 msgid "Upload File Type"
 msgstr "Tipo de archivo a subir"

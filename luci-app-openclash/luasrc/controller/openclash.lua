@@ -740,7 +740,6 @@ function set_subinfo_url()
 	})
 end
 
--- Fetch subscription info from a single URL with all calculations (complete business logic)
 function fetch_sub_info(sub_url, sub_ua)
 	local info, upload, download, total, day_expire, http_code
 	local used, expire, day_left, percent, surplus
@@ -757,7 +756,6 @@ function fetch_sub_info(sub_url, sub_ua)
 		if tonumber(http_code) == 200 then
 			info = string.lower(info)
 			if string.find(info, "subscription%-userinfo") then
-				-- Extract subscription-userinfo line using Lua pattern matching (safer than shell command)
 				local sub_info_line = ""
 				for line in info:gmatch("[^\r\n]+") do
 					if string.find(line, "subscription%-userinfo") then
@@ -777,7 +775,6 @@ function fetch_sub_info(sub_url, sub_ua)
 				used = upload and download and tonumber(string.format("%.1f", upload + download)) or nil
 				day_expire = expire_match and tonumber(expire_match) or nil
 
-				-- Calculate expire and day_left
 				if day_expire and day_expire == 0 then
 					expire = luci.i18n.translate("Long-term")
 				elseif day_expire then
@@ -799,7 +796,6 @@ function fetch_sub_info(sub_url, sub_ua)
 					day_left = 0
 				end
 
-				-- Calculate percent and surplus
 				if used and total and used <= total and total > 0 then
 					percent = string.format("%.1f",((total-used)/total)*100) or "100"
 					surplus = fs.filesize(total - used)
@@ -826,7 +822,6 @@ function fetch_sub_info(sub_url, sub_ua)
 					surplus = "null"
 				end
 
-				-- Format total and used for display
 				local total_formatted, used_formatted
 				if total and total > 0 then
 					total_formatted = fs.filesize(total)
@@ -846,36 +841,41 @@ function fetch_sub_info(sub_url, sub_ua)
 					day_left = day_left,
 					expire = expire
 				}
-			end -- end of if string.find(info, "subscription%-userinfo")
-		end -- end of if tonumber(http_code) == 200
-	end -- end of if info and http_match
+			end
+		end
+	end
 
 	return nil
 end
 
--- Get subscription URL with priority (Priority 1: YAML proxy-providers, Priority 2: subscribe_info, Priority 3: config_subscribe)
--- This prioritizes the actual YAML config content over manual UCI settings
+-- Get subscription URL with priority (Priority 1: subscribe_info, Priority 2: YAML proxy-providers, Priority 3: config_subscribe)
 function get_sub_url(filename)
 	local sub_url = nil
 	local info_tb = {}
 	local providers = {}
 
-	-- Priority 1: YAML proxy-providers (use actual config file content first)
-	-- Ensure filename has extension
-	local config_filename = filename
-	if not string.match(config_filename, "%.ya?ml$") then
-		config_filename = config_filename .. ".yaml"
+    -- Priority 1: subscribe_info
+	uci:foreach("openclash", "subscribe_info",
+		function(s)
+			if s.name == filename and s.url and string.find(s.url, "http") then
+				string.gsub(s.url, '[^\n]+', function(w) table.insert(info_tb, w) end)
+				sub_url = info_tb[1]
+			end
+		end
+	)
+
+	if sub_url then
+		return {type = "single", url = sub_url}
 	end
-	local config_path = "/etc/openclash/config/" .. fs.basename(config_filename)
+
+    -- Priority 2: YAML proxy-providers (use actual config file content first)
+	local config_path = "/etc/openclash/config/" .. fs.basename(filename .. ".yaml")
 
 	if fs.access(config_path) then
-		-- Use Ruby YAML parser (ruby-yaml is already a dependency in Makefile)
-		-- This handles YAML anchors/aliases properly (e.g., <<: *ProxyProviderBase)
 		local ruby_result = luci.sys.exec(string.format([[
-			ruby -ryaml -E UTF-8 -e '
+			ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e '
 			begin
-				# Enable aliases to support YAML anchors like *ProxyProviderBase
-				config = YAML.load_file("%s", aliases: true)
+				config = YAML.load_file("%s")
 				providers = []
 				if config && config["proxy-providers"]
 					config["proxy-providers"].each do |name, provider|
@@ -897,7 +897,6 @@ function get_sub_url(filename)
 				result << "]"
 				puts result
 			rescue => e
-				STDERR.puts e.message
 				puts "[]"
 			end
 			' 2>/dev/null || echo '[]'
@@ -912,20 +911,6 @@ function get_sub_url(filename)
 				return {type = "multiple", providers = parsed_providers}
 			end
 		end
-	end
-
-	-- Priority 2: subscribe_info table (fallback if no YAML proxy-providers)
-	uci:foreach("openclash", "subscribe_info",
-		function(s)
-			if s.name == filename and s.url and string.find(s.url, "http") then
-				string.gsub(s.url, '[^\n]+', function(w) table.insert(info_tb, w) end)
-				sub_url = info_tb[1]
-			end
-		end
-	)
-
-	if sub_url then
-		return {type = "single", url = sub_url}
 	end
 
 	-- Priority 3: config_subscribe table (last fallback)
@@ -969,7 +954,6 @@ function sub_info_get()
 		elseif url_result.type == "single" then
 			local info = fetch_sub_info(url_result.url, sub_ua)
 			if info then
-				info.provider_name = "Subscription"
 				table.insert(providers_data, info)
 				sub_info = "Successful"
 			else

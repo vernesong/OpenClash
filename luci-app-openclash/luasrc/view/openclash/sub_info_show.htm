@@ -17,7 +17,7 @@
     min-width: 0;
 }
 
-.sub_tab{
+.sub_tab {
     display: block;
     white-space: nowrap;
     font-size: 12px;
@@ -29,7 +29,7 @@
     box-sizing: border-box;
 }
 
-.sub_tab_show{
+.sub_tab_show {
     display: block;
     white-space: nowrap;
     font-size: 12px;
@@ -46,7 +46,7 @@
     box-sizing: border-box;
 }
 
-.sub_setting{
+.sub_setting {
     display: inline-block;
     white-space: nowrap;
     margin: 0;
@@ -67,7 +67,7 @@
     opacity: 0.7;
 }
 
-.text_show{
+.text_show {
     color: #333333;
     line-height: 1.2;
 }
@@ -452,15 +452,14 @@ function progressbar_multi_<%=idname%>(providers) {
     var itemWidth;
     var containerClass = 'sub_providers_container';
 
-    // Calculate width based on provider count
     if (providerCount === 2) {
-        itemWidth = 'calc(50% - 2px)';  // 50% minus half of gap
+        itemWidth = 'calc(50% - 2px)';
         containerClass += ' no-scroll';
     } else if (providerCount === 3) {
-        itemWidth = 'calc(33.33% - 2.67px)';  // 33.33% minus gap adjustment
+        itemWidth = 'calc(33.33% - 2.67px)';
         containerClass += ' no-scroll';
     } else {
-        itemWidth = '100px';  // Fixed width for scrolling
+        itemWidth = '100px';
     }
 
     var container = '<div class="' + containerClass + '" id="sub_providers_<%=idname%>">';
@@ -474,11 +473,9 @@ function progressbar_multi_<%=idname%>(providers) {
         var expire = provider.expire || 'null';
         var dayLeft = parseInt(provider.day_left) || 0;
 
-        // Determine background color based on percentage
         var bgColorClass = percent >= 50 ? 'progress_bar_high' :
                           (percent >= 20 ? 'progress_bar_medium' : 'progress_bar_low');
 
-        // Build title for native tooltip
         var titleText = providerName + ': ' + surplus + ' / ' + total + ' (' + percent + '%)';
         if (expire !== 'null' && dayLeft > 0) {
             titleText += ' | ' + dayLeft + ' <%:days%>';
@@ -492,7 +489,6 @@ function progressbar_multi_<%=idname%>(providers) {
 
     container += '</div>';
 
-    // Add drag scroll support after rendering (only for scrollable containers)
     if (providerCount > 3) {
         setTimeout(function() {
             initDragScroll_<%=idname%>();
@@ -512,7 +508,6 @@ function initDragScroll_<%=idname%>() {
     var hasMoved = false;
 
     container.addEventListener('mousedown', function(e) {
-        // 忽略链接和按钮的点击
         if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
             return;
         }
@@ -530,10 +525,9 @@ function initDragScroll_<%=idname%>() {
         var x = e.pageX - container.offsetLeft;
         var walk = (x - startX) * 2;
 
-        // 只有移动距离超过阈值���认为是拖动
         if (Math.abs(walk) > 5) {
             hasMoved = true;
-            e.preventDefault();  // 只在确认拖动时阻止默认行为
+            e.preventDefault();
             container.scrollLeft = scrollLeft - walk;
         }
     });
@@ -562,10 +556,8 @@ function sub_info_refresh_<%=idname%>()
 			localStorage.setItem("sub_info_<%=filename%>",JSON.stringify(status));
 			document.getElementById('<%=idname%>').className = "sub_tab_show";
 
-			// Check if using new providers array format
 			if (status.providers && Array.isArray(status.providers) && status.providers.length > 0) {
 				if (status.providers.length === 1) {
-					// Single provider: use original progressbar format
 					var provider = status.providers[0];
 					document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>(
 						(provider.surplus ? provider.surplus : provider.used),
@@ -576,11 +568,9 @@ function sub_info_refresh_<%=idname%>()
 						(provider.day_left)
 					);
 				} else {
-					// Multiple providers: use new multi-provider layout
 					document.getElementById('<%=idname%>').innerHTML = progressbar_multi_<%=idname%>(status.providers);
 				}
 			} else {
-				// Backward compatibility: old flat format
 				document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>(
 					(status.surplus ? status.surplus : status.used),
 					(status.total),
@@ -626,10 +616,8 @@ function sub_info_get_<%=idname%>()
 			document.getElementById('<%=idname%>').innerHTML = "<span><%:No Sub Info Found%></span>";
 		}
 		else {
-			// Check if using new providers array format
 			if (save_info.providers && Array.isArray(save_info.providers) && save_info.providers.length > 0) {
 				if (save_info.providers.length === 1) {
-					// Single provider: use original progressbar format
 					var provider = save_info.providers[0];
 					document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>(
 						(provider.surplus ? provider.surplus : provider.used),
@@ -640,11 +628,9 @@ function sub_info_get_<%=idname%>()
 						(provider.day_left ? provider.day_left : 0)
 					);
 				} else {
-					// Multiple providers: use new multi-provider layout
 					document.getElementById('<%=idname%>').innerHTML = progressbar_multi_<%=idname%>(save_info.providers);
 				}
 			} else {
-				// Backward compatibility: old flat format
 				document.getElementById('<%=idname%>').innerHTML = progressbar_<%=idname%>(
 					(save_info.surplus ? save_info.surplus : save_info.used),
 					(save_info.total),

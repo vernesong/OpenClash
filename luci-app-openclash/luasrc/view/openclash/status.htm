@@ -33,7 +33,7 @@
     --row-1-height: 160px;
     --row-2-height: 140px;
     --row-3-height: 140px;
-    --row-4-height: 250px;
+    --row-4-height: 280px;
 }
 
 .oc[data-darkmode="true"] {
@@ -878,6 +878,7 @@
     display: flex;
     flex-direction: column;
     width: 100%;
+    height: 180px;
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-fast);
     position: relative;
@@ -919,12 +920,13 @@
     display: flex;
     flex-direction: column;
     gap: 10px;
+    margin: auto 0;
 }
 
 .oc .subscription-progress-bar {
     background: var(--bg-gray);
     border-radius: 4px;
-    height: 10px;
+    height: 12px;
     position: relative;
     overflow: hidden;
 }
@@ -945,6 +947,17 @@
 
 .oc .subscription-progress-fill.low {
     background: var(--error-color);
+}
+
+.oc .subscription-info-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    display: block;
 }
 
 .oc .subscription-info-text {
@@ -981,7 +994,6 @@
 }
 
 .oc .subscription-providers-grid[data-count="1"] {
-    max-width: 400px;
     overflow-x: hidden;
 }
 
@@ -1452,6 +1464,14 @@
         font-size: 10px;
     }
 
+    .oc .subscription-info-title {
+        font-size: 13px;
+    }
+
+    .oc .subscription-progress-bar {
+        height: 10px;
+    }
+
     .oc .file-info {
         font-size: 10px;
     }
@@ -1615,6 +1635,10 @@
 
     .oc .subscription-info-text {
         font-size: 10px;
+    }
+
+    .oc .subscription-info-title {
+        font-size: 13px;
     }
 
     .oc .config-file-name {
@@ -1906,7 +1930,7 @@
                                                 <polyline points="17,8 12,3 7,8"></polyline>
                                                 <line x1="12" y1="3" x2="12" y2="15"></line>
                                             </svg>
-                                            <%:Upload Config File%>
+                                            <%:Add Config File%>
                                         </button>
                                     </div>
 
@@ -2990,7 +3014,6 @@
             }
 
             if (shouldFetchNew) {
-                // Show loading before fetching
                 this.showLoading();
 
                 StateManager.cachedXHRGetWithParams('<%=luci.dispatcher.build_url("admin", "services", "openclash", "sub_info_get")%>', {filename: filename}, function(x, status) {
@@ -3020,8 +3043,6 @@
             var container = document.getElementById('subscription-info-display');
             var progressSection = document.getElementById('subscription-progress-section');
             var detailsSection = document.getElementById('subscription-info-details');
-            var progressFill = document.getElementById('subscription-progress-fill');
-            var infoText = document.getElementById('subscription-info-text');
 
             if (!container) return;
 
@@ -3034,20 +3055,16 @@
 
             if (data && data.sub_info && data.sub_info !== "No Sub Info Found") {
                 if (data.providers && Array.isArray(data.providers) && data.providers.length > 0) {
-                    if (data.providers.length > 1) {
+                    if (data.providers.length > 1 || data.providers[0].provider_name) {
                         this.displayMultipleProviders(data.providers, progressSection);
                     } else {
-                        this.displaySingleProvider(data.providers[0], progressSection, progressFill, infoText);
+                        this.displaySingleProvider(data.providers[0], progressSection);
                     }
                 } else {
-                    if (progressSection) {
-                        progressSection.style.display = 'none';
-                    }
-                }
-            } else {
-                if (progressSection) {
                     progressSection.style.display = 'none';
                 }
+            } else {
+                progressSection.style.display = 'none';
             }
 
             if (detailsSection) {
@@ -3055,27 +3072,25 @@
             }
         },
 
-        displaySingleProvider: function(provider, progressSection, progressFill, infoText) {
-            if (progressSection) {
-                progressSection.innerHTML = '';
-                progressSection.style.display = 'flex';
-                progressSection.className = 'subscription-progress';
+        displaySingleProvider: function(provider, progressSection) {
+            if (!progressSection) return;
 
-                var progressBar = document.createElement('div');
-                progressBar.className = 'subscription-progress-bar';
+            progressSection.innerHTML = '';
+            progressSection.style.display = 'flex';
+            progressSection.className = 'subscription-progress';
 
-                progressFill = document.createElement('div');
-                progressFill.className = 'subscription-progress-fill';
-                progressBar.appendChild(progressFill);
+            var progressBar = document.createElement('div');
+            progressBar.className = 'subscription-progress-bar';
 
-                infoText = document.createElement('div');
-                infoText.className = 'subscription-info-text';
+            progressFill = document.createElement('div');
+            progressFill.className = 'subscription-progress-fill';
+            progressBar.appendChild(progressFill);
 
-                progressSection.appendChild(progressBar);
-                progressSection.appendChild(infoText);
-            }
+            infoText = document.createElement('div');
+            infoText.className = 'subscription-info-text';
 
-            if (!progressFill || !infoText) return;
+            progressSection.appendChild(progressBar);
+            progressSection.appendChild(infoText);
 
             var percent = parseFloat(provider.percent) || 0;
             var used = String(provider.surplus || provider.used || '0 B');
@@ -3117,11 +3132,17 @@
                 var card = document.createElement('div');
                 card.className = 'provider-card';
 
+                var cardName = document.createElement('div');
+                var providerName = String(provider.provider_name || 'Unknown');
+                cardName.className = 'subscription-info-title';
+                cardName.textContent = providerName;
+                cardName.title = providerName;
+                card.appendChild(cardName);
+
                 var progressBar = document.createElement('div');
                 progressBar.className = 'subscription-progress-bar';
 
                 var progressFill = document.createElement('div');
-                progressFill.className = 'subscription-progress-fill';
                 var percent = parseFloat(provider.percent) || 0;
                 progressFill.style.width = percent + '%';
                 progressFill.className = 'subscription-progress-fill ' +
@@ -3133,7 +3154,6 @@
                 var infoText = document.createElement('div');
                 infoText.className = 'subscription-info-text';
 
-                var providerName = String(provider.provider_name || 'Unknown');
                 var used = String(provider.used || '0 B');
                 var total = String(provider.total || 'N/A');
                 var expire = String(provider.expire || '');
@@ -3184,7 +3204,7 @@
 
                 if (Math.abs(walk) > 5) {
                     hasMoved = true;
-                    e.preventDefault();  // 只在确认拖动时阻止默认行为
+                    e.preventDefault();
                     element.scrollLeft = scrollLeft - walk;
                 }
             };
