@@ -2816,6 +2816,9 @@ msgstr "Proxy para tráfico del propio router"
 msgid "Only Supported for Rule Mode"
 msgstr "Solo compatible con el modo Rule; otros modos usarán el flujo por defecto."
 
+msgid "Rule Mode"
+msgstr "Modo de regla"
+
 msgid "ALL Functions In Stream Enhance Tag Will Not Work After Disable"
 msgstr "Si se desactiva, todas las funciones del apartado «mejora de streaming» dejarán de estar disponibles."
 

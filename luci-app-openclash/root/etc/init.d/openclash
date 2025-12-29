@@ -774,6 +774,8 @@ check_core_status()
       set_firewall
       LOG_OUT "Tip: Firewall Reload Successful!"
    fi
+
+   write_run_quick
    SLOG_CLEAN
 } >/dev/null 2>&1
 
@@ -3672,7 +3674,6 @@ start_service()
          LOG_OUT "Warning: Please Note That Network May Abnormal With IPv6's DHCP Server"
       fi
 
-      write_run_quick
       rm -rf /tmp/yaml_*
    }
 

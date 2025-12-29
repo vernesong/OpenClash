@@ -16,6 +16,7 @@ custom_fallback_filter=$(uci_get_config "custom_fallback_filter" || echo 0)
 china_ip_route=$(uci_get_config "china_ip_route" || echo 0)
 china_ip6_route=$(uci_get_config "china_ip6_route" || echo 0)
 enable_redirect_dns=$(uci_get_config "enable_redirect_dns" || echo 1)
+fake_ip_filter_mode=${34}
 
 [ "$china_ip_route" -ne 0 ] && [ "$china_ip_route" -ne 1 ] && [ "$china_ip_route" -ne 2 ] && china_ip_route=0
 [ "$china_ip6_route" -ne 0 ] && [ "$china_ip6_route" -ne 1 ] && [ "$china_ip6_route" -ne 2 ] && china_ip6_route=0
@@ -30,15 +31,25 @@ fi
 if [ "$1" = "fake-ip" ] && [ "$enable_redirect_dns" != "2" ]; then
    TMP_FILTER_FILE="/tmp/yaml_openclash_fake_filter_include"
    > "$TMP_FILTER_FILE"
-
+   
    process_pass_list() {
       [ ! -f "$1" ] && return
-      awk '
+      awk -v mode="$fake_ip_filter_mode" '
          !/^$/ && !/^#/ {
-            if ($0 ~ /^\+?\./ || $0 ~ /^\*\./) {
-               print $0
-            } else {
-               print "+."$0
+            # 跳过IPv4和IPv6地址
+            if ($0 ~ /^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$/ || $0 ~ /:/) {
+               next
+            }
+            if (mode == "blacklist") {
+               if ($0 ~ /^\+?\./ || $0 ~ /^\*\./) {
+                  print $0
+               } else {
+                  print "+."$0
+               }
+            } else if (mode == "rule") {
+               domain = $0
+               sub(/^[\+\*\.]+/, "", domain)
+               print "DOMAIN-SUFFIX," domain ",real-ip"
             }
          }
       ' "$1" >> "$TMP_FILTER_FILE" 2>/dev/null

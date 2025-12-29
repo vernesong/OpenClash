@@ -2817,6 +2817,9 @@ msgstr "*路由本机代理"
 msgid "Only Supported for Rule Mode"
 msgstr "仅支持规则（Rule）模式，其他模式默认分流"
 
+msgid "Rule Mode"
+msgstr "规则模式"
+
 msgid "ALL Functions In Stream Enhance Tag Will Not Work After Disable"
 msgstr "禁用后将无法使用流媒体增强标签中的所有功能"
 

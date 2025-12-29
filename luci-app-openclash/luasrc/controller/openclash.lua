@@ -3105,12 +3105,16 @@ function action_oc_action()
             return
         end
 
-        uci:set("openclash", "config", "config_path", config_path)
+        if uci:get("openclash", "config", "config_path") ~= config_path then
+            uci:set("openclash", "config", "config_path", config_path)
+        end
     end
-	
+
 	if action == "start" then
-		uci:set("openclash", "config", "enable", "1")
-		uci:commit("openclash")
+        if uci:get("openclash", "config", "enable") ~= "1" then
+            uci:set("openclash", "config", "enable", "1")
+            uci:commit("openclash")
+        end
         if not is_running() then
             luci.sys.call("ps | grep openclash | grep -v grep | awk '{print $1}' | xargs -r kill -9 >/dev/null 2>&1")
             luci.sys.call("/etc/init.d/openclash start >/dev/null 2>&1")
@@ -3118,8 +3122,10 @@ function action_oc_action()
             luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1")
         end
 	elseif action == "stop" then
-		uci:set("openclash", "config", "enable", "0")
-		uci:commit("openclash")
+        if uci:get("openclash", "config", "enable") ~= "0" then
+            uci:set("openclash", "config", "enable", "0")
+            uci:commit("openclash")
+        end
 		luci.sys.call("ps | grep openclash | grep -v grep | awk '{print $1}' | xargs -r kill -9 >/dev/null 2>&1")
 		luci.sys.call("/etc/init.d/openclash stop >/dev/null 2>&1")
 	elseif action == "restart" then

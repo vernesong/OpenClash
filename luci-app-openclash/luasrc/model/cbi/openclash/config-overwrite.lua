@@ -227,6 +227,7 @@ o.description = translate("Fake-IP is not returned if the matching succeeds when
 o.default = "blacklist"
 o:value("blacklist", translate("Blacklist Mode"))
 o:value("whitelist", translate("Whitelist Mode"))
+o:value("rule", translate("Rule Mode"))
 o:depends("custom_fakeip_filter", "1")
 
 custom_fake_black = s:taboption("dns", Value, "custom_fake_filter")
