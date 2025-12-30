@@ -3104,17 +3104,14 @@
                 (percent >= 50 ? 'high' : (percent >= 20 ? 'medium' : 'low'));
 
             var infoString = used + ' / ' + total + ' (' + percent + '%)';
+            var tooltipString = infoString;
             if (expire && expire !== 'null' && daysLeft > 0) {
-                infoString += ' • ' + '<%:Remaining%> ' + daysLeft + ' <%:days%>';
-                infoString += ' • ' + '<%:Expire Date%>: ' + expire;
+                infoString += ' • ' + expire + ' (<%:Remaining%> ' + daysLeft + ' <%:days%>)';
+                tooltipString += '\n' + expire + ' (<%:Remaining%> ' + daysLeft + ' <%:days%>)';
             }
 
             infoText.textContent = infoString;
-            if (infoText.scrollWidth > infoText.clientWidth) {
-                infoText.title = infoString;
-            } else {
-                infoText.title = '';
-            }
+            infoText.title = tooltipString;
         },
 
         displayMultipleProviders: function(providers, progressSection) {
@@ -3160,14 +3157,18 @@
                 var daysLeft = parseInt(provider.day_left, 10);
                 if (isNaN(daysLeft)) daysLeft = 0;
 
-                var infoString = providerName + ': ' + used + ' / ' + total + ' (' + percent + '%)';
+                var infoString = used + ' / ' + total + ' (' + percent + '%)';
                 if (expire && expire !== 'null' && daysLeft > 0) {
-                    infoString += ' • ' + '<%:Remaining%> ' + daysLeft + ' <%:days%>';
-                    infoString += ' • ' + '<%:Expire Date%>: ' + expire;
+                    infoString += ' • ' + expire + ' (<%:Remaining%> ' + daysLeft + ' <%:days%>)';
+                }
+
+                var tooltipString = used + ' / ' + total + ' (' + percent + '%)';
+                if (expire && expire !== 'null' && daysLeft > 0) {
+                    tooltipString += '\n' + expire + ' (<%:Remaining%> ' + daysLeft + ' <%:days%>)';
                 }
 
                 infoText.textContent = infoString;
-                infoText.title = infoString;
+                infoText.title = tooltipString;
 
                 card.appendChild(infoText);
                 progressSection.appendChild(card);

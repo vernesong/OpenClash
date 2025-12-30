@@ -427,18 +427,24 @@ function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
         topPosition = tr == "null" ? '6px' : '2px';
     }
 
+    // Build title for native tooltip (format: "v / m (pc%)\nt (Remaining tr days)")
+    var titleText = v + ' / ' + m + ' (' + pc + '%%)';
+    if (t && t !== 'null' && tr && tr !== 'null' && parseInt(tr) > 0) {
+        titleText += '\n' + t + ' (<%:Remaining%> ' + tr + ' <%:days%>)';
+    }
+
     return String.format(
-        '<div class="progress_bar_bg" style="position:relative; border-radius: 6px; min-width: %s; display: flex; align-items: center;">' +
-        (pc >= 50 ? '<div class="progress_bar_high" style="width:%d%%; height:34px; border-radius: 6px">' : 
-        (pc < 50 && pc >= 20 ? '<div class="progress_bar_medium" style="width:%d%%; height:34px; border-radius: 6px">' : 
+        '<div class="progress_bar_bg" title="' + titleText + '" style="position:relative; border-radius: 6px; min-width: %s; display: flex; align-items: center;">' +
+        (pc >= 50 ? '<div class="progress_bar_high" style="width:%d%%; height:34px; border-radius: 6px">' :
+        (pc < 50 && pc >= 20 ? '<div class="progress_bar_medium" style="width:%d%%; height:34px; border-radius: 6px">' :
         '<div class="progress_bar_low" style="width:%d%%; height:34px; border-radius: 6px">')) +
         '<div style="position:absolute; left:0; top:50%%; transform: translateY(-50%%); text-align:center; width:100%%; padding:0 4px; box-sizing:border-box; line-height:1.2;">' +
-        '<small class="text_show" style="font-size:%s; line-height:1.2;">%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') + 
-        (tr == "null" ? '<div style="visibility: hidden; line-height:1.2;">' : '<div style="visibility: visible; line-height:1.2;">') + 
+        '<small class="text_show" style="font-size:%s; line-height:1.2;">%s '+ (f ? f : '/') +' %s ' + (np ? "" : '(%s%%)') +
+        (tr == "null" ? '<div style="visibility: hidden; line-height:1.2;">' : '<div style="visibility: visible; line-height:1.2;">') +
         '%s (<%:Remaining%> %s <%:days%>)</small>' +
         '</div>' +
         '</div>' +
-        '</div>', 
+        '</div>',
         minWidth, pc, fontSize, v, m, pc, t, tr
     );
 };
@@ -473,12 +479,14 @@ function progressbar_multi_<%=idname%>(providers) {
         var expire = provider.expire || 'null';
         var dayLeft = parseInt(provider.day_left) || 0;
 
+        // Determine background color based on percentage
         var bgColorClass = percent >= 50 ? 'progress_bar_high' :
                           (percent >= 20 ? 'progress_bar_medium' : 'progress_bar_low');
 
-        var titleText = providerName + ': ' + surplus + ' / ' + total + ' (' + percent + '%)';
+        // Build title for native tooltip (format: "surplus / total (percent%)\nexpire (Remaining dayLeft days)")
+        var titleText = surplus + ' / ' + total + ' (' + percent + '%)';
         if (expire !== 'null' && dayLeft > 0) {
-            titleText += ' | ' + dayLeft + ' <%:days%>';
+            titleText += '\n' + expire + ' (<%:Remaining%> ' + dayLeft + ' <%:days%>)';
         }
 
         container += '<div class="sub_provider_item" style="width: ' + itemWidth + '" title="' + titleText + '">' +
