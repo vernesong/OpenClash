@@ -22,7 +22,8 @@ PLATFORM_LIST = \
 	linux-mips-softfloat \
 	linux-mips-hardfloat \
 	linux-mips64 \
-	linux-mips64le
+	linux-mips64le \
+	linux-loong64-abi2
 
 MIPSLE_LIST = \
 	linux-mipsle-softfloat \
@@ -84,6 +85,8 @@ linux-riscv64:
 linux-s390x:
 	GOARCH=s390x GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
 
+linux-loong64-abi2:
+	GOARCH=loong64 GOOS=linux $(GOBUILD) -o $(BINDIR)/clash
 
 gz_releases=$(addsuffix .tar, $(PLATFORM_LIST))
 mipsle_releases=$(addsuffix .tar, $(MIPSLE_LIST))
