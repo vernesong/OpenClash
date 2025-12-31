@@ -58,7 +58,7 @@ jobs:
     if: ${{ needs.Get-Commit-id.outputs.current_id != needs.Get-Commit-id.outputs.upstream_id }}
     strategy:
       matrix:
-        arch: [normal, loongarch_abi1, loongarch_abi2]
+        arch: [normal, loongarch_abi1]
     steps:
       - name: Checkout OpenClash Repository
         uses: actions/checkout@v4
@@ -85,16 +85,13 @@ jobs:
 
           mkdir -p ${{ github.workspace }}/build_temp/meta_makefiles/loong64_abi1
           cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi1 ${{ github.workspace }}/build_temp/meta_makefiles/loong64_abi1/Makefile
-
-          mkdir -p ${{ github.workspace }}/build_temp/meta_makefiles/loong64_abi2
-          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi2 ${{ github.workspace }}/build_temp/meta_makefiles/loong64_abi2/Makefile
           
           mkdir -p ${{ github.workspace }}/build_temp/meta_output/${{ matrix.arch }}/bin
       
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: "1.24"
+          go-version: "1.25"
           check-latest: true
           cache: false
       
@@ -108,19 +105,10 @@ jobs:
         id: cache_go_abi1
         uses: actions/cache@v4
         with:
-          path: ${{ steps.go_paths.outputs.archive_dir }}/go1.22.4.linux-amd64-abi1.tar.gz
-          key: go-loongarch-abi1-1.22.4-${{ matrix.arch }}
+          path: ${{ steps.go_paths.outputs.archive_dir }}/go1.24.0.linux-amd64-abi1.tar.gz
+          key: go-loongarch-abi1-1.24.0-${{ matrix.arch }}
           restore-keys: |
-            go-loongarch-abi1-1.22.4-
-
-      - name: Cache Go loongarch abi2 tarball
-        id: cache_go_abi2
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.go_paths.outputs.archive_dir }}/go1.22.4.linux-amd64-abi2.tar.gz
-          key: go-loongarch-abi2-1.22.4-${{ matrix.arch }}
-          restore-keys: |
-            go-loongarch-abi2-1.22.4-
+            go-loongarch-abi1-1.24.0-
 
       - name: Clone MetaCubeX/mihomo source
         uses: actions/checkout@v4
@@ -142,10 +130,10 @@ jobs:
               ;;
             loongarch_abi1)
               echo "Setup Go for loongarch abi1"
-              GO_TAR_FILE="go1.22.4.linux-amd64-abi1.tar.gz"
+              GO_TAR_FILE="go1.24.0.linux-amd64-abi1.tar.gz"
               if [[ "${{ steps.cache_go_abi1.outputs.cache-hit }}" != 'true' ]]; then
                 echo "Cache not found for $GO_TAR_FILE, downloading..."
-                wget -q "https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.22.4/$GO_TAR_FILE" -O "$GO_ARCHIVE_DIR/$GO_TAR_FILE"
+                wget -q "https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.24.0/$GO_TAR_FILE" -O "$GO_ARCHIVE_DIR/$GO_TAR_FILE"
               else
                 echo "Restored $GO_TAR_FILE from cache."
               fi
@@ -153,20 +141,6 @@ jobs:
               sudo tar zxf "$GO_ARCHIVE_DIR/$GO_TAR_FILE" -C /usr/local
               echo "/usr/local/go/bin" >> $GITHUB_PATH
               cp ../build_temp/meta_makefiles/loong64_abi1/Makefile ./Makefile
-              ;;
-            loongarch_abi2)
-              echo "Setup Go for loongarch abi2"
-              GO_TAR_FILE="go1.22.4.linux-amd64-abi2.tar.gz"
-              if [[ "${{ steps.cache_go_abi2.outputs.cache-hit }}" != 'true' ]]; then
-                echo "Cache not found for $GO_TAR_FILE, downloading..."
-                wget -q "https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.22.4/$GO_TAR_FILE" -O "$GO_ARCHIVE_DIR/$GO_TAR_FILE"
-              else
-                echo "Restored $GO_TAR_FILE from cache."
-              fi
-              sudo rm -rf /usr/local/go || true
-              sudo tar zxf "$GO_ARCHIVE_DIR/$GO_TAR_FILE" -C /usr/local
-              echo "/usr/local/go/bin" >> $GITHUB_PATH
-              cp ../build_temp/meta_makefiles/loong64_abi2/Makefile ./Makefile
               ;;
           esac
           go version
@@ -186,7 +160,7 @@ jobs:
     if: ${{ needs.Get-Commit-id.outputs.current_smart_id != needs.Get-Commit-id.outputs.upstream_smart_id }}
     strategy:
       matrix:
-        arch: [normal, loongarch_abi1, loongarch_abi2]
+        arch: [normal, loongarch_abi1]
     steps:
       - name: Checkout OpenClash Repository
         uses: actions/checkout@v4
@@ -215,10 +189,6 @@ jobs:
           mkdir -p ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi1
           cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi1 ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi1/Makefile
           sed -i 's/VERSION=alpha-g/VERSION=alpha-smart-g/' ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi1/Makefile
-
-          mkdir -p ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi2
-          cp ${{ github.workspace }}/.github/makefile/meta_loongarch_abi2 ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi2/Makefile
-          sed -i 's/VERSION=alpha-g/VERSION=alpha-smart-g/' ${{ github.workspace }}/build_temp/smart_makefiles/loong64_abi2/Makefile
           
           mkdir -p ${{ github.workspace }}/build_temp/smart_output/${{ matrix.arch }}/bin
       
@@ -239,19 +209,10 @@ jobs:
         id: cache_go_abi1
         uses: actions/cache@v4
         with:
-          path: ${{ steps.go_paths.outputs.archive_dir }}/go1.22.4.linux-amd64-abi1.tar.gz
-          key: go-loongarch-abi1-1.22.4-${{ matrix.arch }}
+          path: ${{ steps.go_paths.outputs.archive_dir }}/go1.24.0.linux-amd64-abi1.tar.gz
+          key: go-loongarch-abi1-1.24.0-${{ matrix.arch }}
           restore-keys: |
-            go-loongarch-abi1-1.22.4-
-
-      - name: Cache Go loongarch abi2 tarball
-        id: cache_go_abi2
-        uses: actions/cache@v4
-        with:
-          path: ${{ steps.go_paths.outputs.archive_dir }}/go1.22.4.linux-amd64-abi2.tar.gz
-          key: go-loongarch-abi2-1.22.4-${{ matrix.arch }}
-          restore-keys: |
-            go-loongarch-abi2-1.22.4-
+            go-loongarch-abi1-1.24.0-
 
       - name: Clone vernesong/mihomo source
         uses: actions/checkout@v4
@@ -273,10 +234,10 @@ jobs:
               ;;
             loongarch_abi1)
               echo "Setup Go for loongarch abi1"
-              GO_TAR_FILE="go1.22.4.linux-amd64-abi1.tar.gz"
+              GO_TAR_FILE="go1.24.0.linux-amd64-abi1.tar.gz"
               if [ ! -f "$GO_ARCHIVE_DIR/$GO_TAR_FILE" ]; then
                  echo "CRITICAL: $GO_TAR_FILE not found in $GO_ARCHIVE_DIR. Attempting fallback download."
-                 wget -q "https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.22.4/$GO_TAR_FILE" -O "$GO_ARCHIVE_DIR/$GO_TAR_FILE"
+                 wget -q "https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.24.0/$GO_TAR_FILE" -O "$GO_ARCHIVE_DIR/$GO_TAR_FILE"
                  if [ ! -f "$GO_ARCHIVE_DIR/$GO_TAR_FILE" ]; then
                     echo "ERROR: Fallback download for $GO_TAR_FILE failed. Exiting."
                     exit 1
@@ -286,22 +247,6 @@ jobs:
               sudo tar zxf "$GO_ARCHIVE_DIR/$GO_TAR_FILE" -C /usr/local
               echo "/usr/local/go/bin" >> $GITHUB_PATH
               cp ../build_temp/smart_makefiles/loong64_abi1/Makefile ./Makefile
-              ;;
-            loongarch_abi2)
-              echo "Setup Go for loongarch abi2"
-              GO_TAR_FILE="go1.22.4.linux-amd64-abi2.tar.gz"
-              if [ ! -f "$GO_ARCHIVE_DIR/$GO_TAR_FILE" ]; then
-                 echo "CRITICAL: $GO_TAR_FILE not found in $GO_ARCHIVE_DIR. Attempting fallback download."
-                 wget -q "https://github.com/MetaCubeX/loongarch64-golang/releases/download/1.22.4/$GO_TAR_FILE" -O "$GO_ARCHIVE_DIR/$GO_TAR_FILE"
-                 if [ ! -f "$GO_ARCHIVE_DIR/$GO_TAR_FILE" ]; then
-                    echo "ERROR: Fallback download for $GO_TAR_FILE failed. Exiting."
-                    exit 1
-                 fi
-              fi
-              sudo rm -rf /usr/local/go || true
-              sudo tar zxf "$GO_ARCHIVE_DIR/$GO_TAR_FILE" -C /usr/local
-              echo "/usr/local/go/bin" >> $GITHUB_PATH
-              cp ../build_temp/smart_makefiles/loong64_abi2/Makefile ./Makefile
               ;;
           esac
           go version
@@ -345,7 +290,7 @@ jobs:
             echo "Organizing MetaCubeX compiled files..."
             if [ "${{ needs.Compile_Meta_Core.result }}" == "success" ] || [ "${{ needs.Compile_Meta_Core.result }}" == "skipped" ]; then
               rm -rf ./dev/meta/*
-              for arch_type in normal loongarch_abi1 loongarch_abi2; do
+              for arch_type in normal loongarch_abi1; do
                 if [ -d ./downloaded-artifacts/meta-core-$arch_type ] && [ -n "$(ls -A ./downloaded-artifacts/meta-core-$arch_type)" ]; then
                   echo "Copying meta-core-$arch_type files..."
                   cp -rf ./downloaded-artifacts/meta-core-$arch_type/. ./dev/meta/
@@ -365,7 +310,7 @@ jobs:
             echo "Organizing vernesong compiled files..."
             if [ "${{ needs.Compile_Smart_Core.result }}" == "success" ] || [ "${{ needs.Compile_Smart_Core.result }}" == "skipped" ]; then
               rm -rf ./dev/smart/*
-              for arch_type in normal loongarch_abi1 loongarch_abi2; do
+              for arch_type in normal loongarch_abi1; do
                 if [ -d ./downloaded-artifacts/smart-core-$arch_type ] && [ -n "$(ls -A ./downloaded-artifacts/smart-core-$arch_type)" ]; then
                   echo "Copying smart-core-$arch_type files..."
                   cp -rf ./downloaded-artifacts/smart-core-$arch_type/. ./dev/smart/
