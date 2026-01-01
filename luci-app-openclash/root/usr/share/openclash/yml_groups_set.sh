@@ -209,7 +209,7 @@ yml_groups_set()
 {
 
    local section="$1"
-   local enabled config type name disable_udp strategy old_name test_url test_interval tolerance policy_filter uselightgbm collectdata policy_priority
+   local enabled config type name disable_udp strategy old_name test_url test_interval tolerance policy_filter uselightgbm collectdata policy_priority other_parameters icon
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "config" "$section" "config" ""
    config_get "type" "$section" "type" ""
@@ -224,6 +224,8 @@ yml_groups_set()
    config_get "uselightgbm" "$section" "uselightgbm" ""
    config_get "collectdata" "$section" "collectdata" ""
    config_get "policy_priority" "$section" "policy_priority" ""
+   config_get "other_parameters" "$section" "other_parameters" ""
+   config_get "icon" "$section" "icon" ""
 
    if [ "$enabled" = "0" ]; then
       return
@@ -298,7 +300,7 @@ yml_groups_set()
 
    if [ "$type" = "load-balance" ]; then
       [ -n "$strategy" ] && {
-           echo "    strategy: $strategy" >>$GROUP_FILE
+         echo "    strategy: $strategy" >>$GROUP_FILE
       }
    fi
 
@@ -335,6 +337,16 @@ yml_groups_set()
       [ -n "$policy_priority" ] && {
          echo "    policy-priority: \"$policy_priority\"" >>$GROUP_FILE
       }
+   fi
+
+   #icon
+   if [ -n "$icon" ]; then
+      echo "    icon: $icon" >> "$GROUP_FILE"
+   fi
+
+   #other_parameters
+   if [ -n "$other_parameters" ]; then
+      echo -e "$other_parameters" >> "$GROUP_FILE"
    fi
 }
 

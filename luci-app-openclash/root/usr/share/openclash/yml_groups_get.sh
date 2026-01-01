@@ -278,6 +278,13 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                }
             end
          };
+
+         threads_g << Thread.new {
+             #icon
+             if x.key?('icon') then
+                uci_commands << uci_set + 'icon=\"' + x['icon'].to_s + '\"'
+             end
+          };
          threads_g.each(&:join);
       rescue Exception => e
          YAML.LOG('Error: Resolve Groups Failed,【${CONFIG_NAME} - ' + x['type'] + ' - ' + x['name'] + ': ' + e.message + '】');

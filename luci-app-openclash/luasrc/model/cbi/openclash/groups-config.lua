@@ -126,6 +126,58 @@ o = s:option(Value, "policy_filter", translate("Provider Filter"))
 o.rmempty = true
 o.placeholder = "bgp|sg"
 
+o = s:option(Value, "icon", translate("Icon"))
+o.rmempty = true
+
+-- [[ other-setting ]]--
+o = s:option(Value, "other_parameters", translate("Other Parameters"))
+o.template = "cbi/tvalue"
+o.rows = 20
+o.wrap = "off"
+o.description = font_red..bold_on..translate("Edit Your Other Parameters Here")..bold_off..font_off
+o.rmempty = true
+function o.cfgvalue(self, section)
+	if self.map:get(section, "other_parameters") == nil then
+		return "# Example:\n"..
+		"# Only support YAML, four spaces need to be reserved at the beginning of each line to maintain formatting alignment\n"..
+		"# 示例：\n"..
+		"# 仅支持 YAML, 每行行首需要多保留四个空格以使脚本处理后能够与上方配置保持格式对齐\n"..
+		"#      type: select\n"..
+		"#      proxies:\n"..
+		"#      - DIRECT\n"..
+		"#      - ss\n"..
+		"#      use:\n"..
+		"#      - provider1\n"..
+		"#      - provider1\n"..
+		"#      url: 'https://www.gstatic.com/generate_204'\n"..
+		"#      interval: 300\n"..
+		"#      lazy: true\n"..
+		"#      timeout: 5000\n"..
+		"#      max-failed-times: 5\n"..
+		"#      disable-udp: true\n"..
+		"#      interface-name: en0\n"..
+		"#      routing-mark: 11451\n"..
+		"#      include-all: false\n"..
+		"#      include-all-proxies: false\n"..
+		"#      include-all-providers: false\n"..
+		"#      filter: \"(?i)港|hk|hongkong|hong kong\"\n"..
+		"#      exclude-filter: \"美|日\"\n"..
+		"#      exclude-type: \"Shadowsocks|Http\"\n"..
+		"#      expected-status: 204\n"..
+		"#      hidden: true\n"..
+		"#      icon: xxx"
+	else
+		return Value.cfgvalue(self, section)
+	end
+end
+function o.validate(self, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		value = value:gsub("%c*$", "")
+	end
+	return value
+end
+
 o = s:option(DynamicList, "other_group", translate("Other Group (Support Regex)"))
 o.description = font_red..bold_on..translate("The Added Proxy Groups Must Exist Except 'DIRECT' & 'REJECT' & 'REJECT-DROP' & 'PASS' & 'GLOBAL'")..bold_off..font_off
 o:value("all", translate("All Groups"))
@@ -165,4 +217,5 @@ o.write = function()
 end
 
 m:append(Template("openclash/toolbar_show"))
+m:append(Template("openclash/config_editor"))
 return m

@@ -1609,7 +1609,7 @@ fi
 
 #other_parameters
 if [ -n "$other_parameters" ]; then
-      echo -e "$other_parameters" >> "$SERVER_FILE"
+    echo -e "$other_parameters" >> "$SERVER_FILE"
 fi
 
 #dialer_proxy
