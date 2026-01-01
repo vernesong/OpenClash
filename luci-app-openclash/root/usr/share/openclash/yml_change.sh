@@ -707,7 +707,7 @@ begin
    end
 
    # proxy-server-nameserver
-   local_exclude = (%x{ls -l /sys/class/net/ |awk '{print \$9}'  2>&1}.each_line.map(&:strip) + ['h3=', 'skip-cert-verify=', 'ecs=', 'ecs-override='] + ['utun', 'tailscale0', 'docker0', 'tun163', 'br-lan', 'mihomo']).uniq.join('|')
+   local_exclude = (%x{ls -l /sys/class/net/ |awk '{print \$9}'  2>&1}.each_line.map(&:strip) + ['h3=', 'skip-cert-verify=', 'ecs=', 'ecs-override=', 'disable-ipv6=', 'disable-ipv4='] + ['utun', 'tailscale0', 'docker0', 'tun163', 'br-lan', 'mihomo']).uniq.join('|')
    proxied_server_reg = /^[^#&]+#(?:(?:#{local_exclude})[^&]*&)*(?:(?!(?:#{local_exclude}))[^&]+)/
    default_proxy_servers = ['114.114.114.114', '119.29.29.29', '8.8.8.8', '1.1.1.1']
 
