@@ -104,6 +104,7 @@ o.description = font_red..bold_on..translate("Note: There is A Risk of Privacy L
 o:depends("sub_convert", "1")
 o:value("https://api.dler.io/sub", translate("api.dler.io")..translate("(Default)"))
 o:value("https://api.wcc.best/sub", translate("api.wcc.best"))
+o:value("https://api.asailor.org/sub", translate("api.asailor.org"))
 o.default = "https://api.dler.io/sub"
 o.placeholder = "https://api.dler.io/sub"
 
