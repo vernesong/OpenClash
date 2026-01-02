@@ -322,7 +322,9 @@ sub_info_set()
    fi
 
    if [ "$name" == "$2" ] && [ -n "$3" ]; then
-      uci -q delete openclash.$section.url
+      if [ "$sub_info_setted" != "1" ]; then
+         uci -q delete openclash.$section.url
+      fi
       uci -q add_list openclash.$section.url="$3"
       uci -q commit openclash
       sub_info_setted=1
