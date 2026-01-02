@@ -4228,10 +4228,7 @@ msgid "Auto Theme"
 msgstr "自适应主题"
 
 msgid "Set Subscription Info URL"
-msgstr "设置订阅信息获取地址"
+msgstr "设置订阅信息来源地址"
 
-msgid "Set Subscription Info URL"
-msgstr "设置订阅信息获取地址"
-
-msgid "Enter URLs, one per line, use #name=example end for specifing display name'
-msgstr "输入订阅信息获取地址，多个地址请每行一个，在地址最后可以使用 #name=example 指定名字"
+msgid "Enter URLs, one per line, use #name=example end for specifing display name"
+msgstr "输入订阅信息来源地址，多个地址请每行一个，在最后可以使用 #name=example 指定名字"

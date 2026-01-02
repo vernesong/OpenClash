@@ -4226,8 +4226,5 @@ msgstr "Tema Automático"
 msgid "Set Subscription Info URL"
 msgstr "Establecer URL de información de suscripción"
 
-msgid "Set Subscription Info URL"
-msgstr "Establecer URL de información de suscripción"
-
 msgid "Enter URLs, one per line, use #name=example end for specifing display name'"
 msgstr "Introduce URLs, una por línea, usa #name=ejemplo al final para nombre de visualización específico"
