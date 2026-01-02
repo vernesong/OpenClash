@@ -145,7 +145,7 @@ o:value("0", translate("Disable"))
 o:value("1", translate("Dnsmasq Redirect"))
 o:value("2", translate("Firewall Redirect"))
 
-o = s:taboption("dns", DummyValue, "flush_dns_cache", translate("Flush DNS Cache"))
+o = s:taboption("dns", DummyValue, "flush_dns_cache", translate("Flush DNS"))
 o.template = "openclash/flush_dns_cache"
 
 o = s:taboption("dns", Flag, "enable_custom_domain_dns_server", translate("Enable Specify DNS Server"))
