@@ -322,7 +322,8 @@ sub_info_set()
    fi
 
    if [ "$name" == "$2" ] && [ -n "$3" ]; then
-      uci -q set openclash.$section.url="$3"
+      uci -q delete openclash.$section.url
+      uci -q add_list openclash.$section.url="$3"
       uci -q commit openclash
       sub_info_setted=1
    fi
@@ -3415,7 +3416,7 @@ ${trimmed}"
                if [ "$sub_info_setted" != "1" ]; then
                   uci -q add openclash subscribe_info
                   uci -q set openclash.@subscribe_info[-1].name="${cfg_name%.*}"
-                  uci -q set openclash.@subscribe_info[-1].url="$url_key"
+                  uci -q add_list openclash.@subscribe_info[-1].url="$url_key"
                fi
             elif printf "%s" "$key_u" | grep -q "^RESTART$"; then
                val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")

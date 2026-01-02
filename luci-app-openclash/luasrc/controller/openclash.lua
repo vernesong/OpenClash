@@ -725,6 +725,7 @@ function set_subinfo_url()
 								table.insert(url_list, line)
 							end
 						end
+						uci:delete("openclash", s[".name"], "url")
 						uci:set_list("openclash", s[".name"], "url", url_list)
 						uci:commit("openclash")
 						info = "Success"
