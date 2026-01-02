@@ -3708,11 +3708,20 @@ msgstr "取消"
 msgid "Add Config"
 msgstr "添加配置"
 
+msgid "Edit Config"
+msgstr "编辑配置"
+
+msgid "Edit Subscription"
+msgstr "编辑订阅"
+
 msgid "Ready to upload file"
 msgstr "准备上传文件"
 
 msgid "Ready to add subscription"
 msgstr "准备添加订阅"
+
+msgid "Ready to edit subscription"
+msgstr "准备编辑订阅"
 
 msgid "File selected:"
 msgstr "已选择文件："
@@ -3762,14 +3771,26 @@ msgstr "配置名称包含无效字符"
 msgid "Adding subscription..."
 msgstr "添加订阅中..."
 
+msgid "Updating subscription..."
+msgstr "修改订阅中..."
+
 msgid "Failed to download subscription config"
 msgstr "订阅配置下载失败"
 
 msgid "Failed to add subscription"
 msgstr "添加订阅失败"
 
+msgid "Failed to update subscription"
+msgstr "修改订阅失败"
+
 msgid "Subscription added successfully"
 msgstr "订阅添加成功"
+
+msgid "Subscription updated successfully"
+msgstr "订阅修改成功"
+
+msgid "Failed to get subscribe data"
+msgstr "获取订阅信息失败"
 
 msgid "Process failed"
 msgstr "处理失败"
@@ -3923,9 +3944,6 @@ msgstr "重启内核失败"
 
 msgid "Invalid config file selected"
 msgstr "选择的配置文件无效"
-
-msgid "Config uploader not ready, please try again"
-msgstr "配置上传未就绪，请重试"
 
 msgid "Config editor not ready, please try again"
 msgstr "配置编辑未就绪，请重试"
@@ -4208,3 +4226,12 @@ msgstr "暗色主题"
 
 msgid "Auto Theme"
 msgstr "自适应主题"
+
+msgid "Set Subscription Info URL"
+msgstr "设置订阅信息获取地址"
+
+msgid "Set Subscription Info URL"
+msgstr "设置订阅信息获取地址"
+
+msgid "Enter URLs, one per line, use #name=example end for specifing display name'
+msgstr "输入订阅信息获取地址，多个地址请每行一个，在地址最后可以使用 #name=example 指定名字"

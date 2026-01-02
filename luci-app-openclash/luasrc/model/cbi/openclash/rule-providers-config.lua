@@ -8,18 +8,18 @@ local sid = arg[1]
 
 font_red = [[<b style=color:red>]]
 font_off = [[</b>]]
-bold_on  = [[<strong>]]
+bold_on = [[<strong>]]
 bold_off = [[</strong>]]
 
 function IsYamlFile(e)
-   e=e or""
-   local e=string.lower(string.sub(e,-5,-1))
-   return e == ".yaml"
+	e=e or""
+	local e=string.lower(string.sub(e,-5,-1))
+	return e == ".yaml"
 end
 function IsYmlFile(e)
-   e=e or""
-   local e=string.lower(string.sub(e,-4,-1))
-   return e == ".yml"
+	e=e or""
+	local e=string.lower(string.sub(e,-4,-1))
+	return e == ".yml"
 end
 
 m = Map(openclash, translate("Edit Rule Providers"))
@@ -34,7 +34,7 @@ end
 -- [[ Rule Providers Setting ]]--
 s = m:section(NamedSection, sid, "rule_providers")
 s.anonymous = true
-s.addremove   = false
+s.addremove = false
 
 o = s:option(ListValue, "config", translate("Config File"))
 o:value("all", translate("Use For All Config File"))
@@ -42,12 +42,12 @@ local e,a={}
 for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
 	a=fs.stat(f)
 	if a then
-    e[t]={}
-    e[t].name=fs.basename(f)
-    if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
-       o:value(e[t].name)
-    end
-  end
+		e[t]={}
+		e[t].name=fs.basename(f)
+		if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+			o:value(e[t].name)
+		end
+	end
 end
 
 o = s:option(Value, "name", translate("Rule Providers Name"))
@@ -83,18 +83,18 @@ local p,h={}
 for t,f in ipairs(fs.glob("/etc/openclash/rule_provider/*"))do
 	h=fs.stat(f)
 	if h then
-    p[t]={}
-    p[t].name=fs.basename(f)
-    o:value("./rule_provider/"..p[t].name)
-  end
+		p[t]={}
+		p[t].name=fs.basename(f)
+		o:value("./rule_provider/"..p[t].name)
+	end
 end
 for t,f in ipairs(fs.glob("/etc/openclash/game_rules/*"))do
 	h=fs.stat(f)
 	if h then
-    p[t]={}
-    p[t].name=fs.basename(f)
-    o:value("./game_rules/"..p[t].name)
-  end
+		p[t]={}
+		p[t].name=fs.basename(f)
+		o:value("./game_rules/"..p[t].name)
+	end
 end
 o.rmempty = false
 o:depends("type", "file")
@@ -109,7 +109,7 @@ o.rmempty = false
 o:depends("type", "http")
 
 o = s:option(ListValue, "position", translate("Append Position"))
-o.rmempty     = false
+o.rmempty = false
 o:value("0", translate("Priority Match"))
 o:value("1", translate("Extended Match"))
 
@@ -122,27 +122,27 @@ local group_list = {}
 
 filename = m.uci:get(openclash, "config", "config_path")
 if filename then
-   groupnames = sys.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
-   if groupnames then
-      for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
-         if groupname ~= nil and groupname ~= "" then
-            table.insert(group_list, groupname)
-         end
-      end
-   end
+	groupnames = sys.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
+	if groupnames then
+		for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
+			if groupname ~= nil and groupname ~= "" then
+			table.insert(group_list, groupname)
+			end
+		end
+	end
 end
 
 m.uci:foreach("openclash", "groups",
-   function(s)
-      if s.name ~= "" and s.name ~= nil then
-         table.insert(group_list, s.name)
-      end
-   end)
+function(s)
+	if s.name ~= "" and s.name ~= nil then
+		table.insert(group_list, s.name)
+	end
+end)
 
 table.sort(group_list)
 
 for _, groupname in ipairs(group_list) do
-   o:value(groupname)
+	o:value(groupname)
 end
 
 o:value("DIRECT")
@@ -182,7 +182,7 @@ function o.validate(self, value)
 end
 
 local t = {
-    {Commit, Back}
+	{Commit, Back}
 }
 a = m:section(Table, t)
 
@@ -190,17 +190,17 @@ o = a:option(Button,"Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-   m.uci:commit(openclash)
-   sys.call("/usr/share/openclash/yml_groups_name_ch.sh")
-   luci.http.redirect(m.redirect)
+	m.uci:commit(openclash)
+	sys.call("/usr/share/openclash/yml_groups_name_ch.sh")
+	luci.http.redirect(m.redirect)
 end
 
 o = a:option(Button,"Back", " ")
 o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
 o.write = function()
-   m.uci:revert(openclash, sid)
-   luci.http.redirect(m.redirect)
+	m.uci:revert(openclash, sid)
+	luci.http.redirect(m.redirect)
 end
 
 m:append(Template("openclash/toolbar_show"))

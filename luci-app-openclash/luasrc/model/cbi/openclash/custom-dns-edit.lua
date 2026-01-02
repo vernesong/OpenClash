@@ -8,7 +8,7 @@ local sid = arg[1]
 font_red = [[<b style=color:red>]]
 font_green = [[<b style=color:green>]]
 font_off = [[</b>]]
-bold_on  = [[<strong>]]
+bold_on = [[<strong>]]
 bold_off = [[</strong>]]
 
 m = Map(openclash, translate("Add Custom DNS Servers"))
@@ -22,7 +22,7 @@ end
 -- [[ Edit Custom DNS ]] --
 s = m:section(NamedSection, sid, "dns_servers")
 s.anonymous = true
-s.addremove   = false
+s.addremove = false
 
 ---- group
 o = s:option(ListValue, "group", translate("DNS Server Group"))
@@ -30,8 +30,8 @@ o.description = font_red..bold_on..translate("NameServer Group Must Be Set")..bo
 o:value("nameserver", translate("NameServer "))
 o:value("fallback", translate("FallBack "))
 o:value("default", translate("Default-NameServer"))
-o.default     = "nameserver"
-o.rempty      = false
+o.default = "nameserver"
+o.rempty = false
 
 ---- IP address
 o = s:option(Value, "ip", translate("DNS Server Address"))
@@ -43,8 +43,8 @@ o.rmempty = true
 ---- port
 o = s:option(Value, "port", translate("DNS Server Port"))
 o.description = translate("Require When Use Non-Standard Port")
-o.datatype    = "port"
-o.rempty      = true
+o.datatype = "port"
+o.rempty = true
 
 ---- type
 o = s:option(ListValue, "type", translate("DNS Server Type"))
@@ -54,8 +54,8 @@ o:value("tcp", translate("TCP"))
 o:value("tls", translate("TLS"))
 o:value("https", translate("HTTPS"))
 o:value("quic", translate("QUIC"))
-o.default     = "udp"
-o.rempty      = false
+o.default = "udp"
+o.rempty = false
 
 ---- interface
 o = s:option(Value, "interface", translate("Specific Interface"))
@@ -70,49 +70,49 @@ o.rempty = false
 
 ---- direct-nameserver
 o = s:option(Flag, "direct_nameserver", translate("Direct Nameserver"), translate("Use For Domain Need Direct"))
-o.rmempty     = false
-o.default     = o.disbled
+o.rmempty = false
+o.default = o.disbled
 
 ---- Node Domain Resolve
 o = s:option(Flag, "node_resolve", translate("Node Domain Resolve"), translate("Use For Node Domain Resolve"))
-o.rmempty     = false
-o.default     = o.disbled
+o.rmempty = false
+o.default = o.disbled
 
 ---- Force HTTP/3
 o = s:option(Flag, "http3", translate("Force HTTP/3"), translate("Force HTTP/3 to connect"))
 o:depends("type", "https")
-o.rmempty     = false
-o.default     = o.disbled
+o.rmempty = false
+o.default = o.disbled
 
 ---- Skip-cert-verify
 o = s:option(Flag, "skip_cert_verify", translate("skip-cert-verify"), translate("skip-cert-verify"))
 o:depends("type", "https")
 o:depends("type", "quic")
-o.rmempty     = false
-o.default     = o.disbled
+o.rmempty = false
+o.default = o.disbled
 
 ---- ECS Subnet
 o = s:option(Value, "ecs_subnet", translate("ECS Subnet"),translate("Specify the ECS Subnet Address"))
 o:depends("type", "https")
-o.rmempty     = true
+o.rmempty = true
 o.datatype	= "ipaddr"
 o:value("1.1.1.1/24")
 
 ---- ECS Override
 o = s:option(Flag, "ecs_override", translate("ECS Override"),translate("Override the ECS Subnet Address"))
 o:depends("type", "https")
-o.rmempty     = false
-o.default     = o.disbled
+o.rmempty = false
+o.default = o.disbled
 
 ---- disable-ipv4
 o = s:option(Flag, "disable_ipv4", translate("Disable-IPv4"),translate("Drop The Type of DNS Responsed"))
-o.rmempty     = false
-o.default     = o.disbled
+o.rmempty = false
+o.default = o.disbled
 
 ---- disable-ipv6
 o = s:option(Flag, "disable_ipv6", translate("Disable-IPv6"),translate("Drop The Type of DNS Responsed"))
-o.rmempty     = false
-o.default     = o.disbled
+o.rmempty = false
+o.default = o.disbled
 
 ---- Proxy group
 o = s:option(Value, "specific_group", translate("Specific Group (Support Regex)"))
@@ -146,7 +146,7 @@ o.default = "Disable"
 o.rempty = false
 
 local t = {
-    {Commit, Back}
+	{Commit, Back}
 }
 a = m:section(Table, t)
 
@@ -154,16 +154,16 @@ o = a:option(Button,"Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-   m.uci:commit(openclash)
-   luci.http.redirect(m.redirect)
+	m.uci:commit(openclash)
+	luci.http.redirect(m.redirect)
 end
 
 o = a:option(Button,"Back", " ")
 o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
 o.write = function()
-   m.uci:revert(openclash, sid)
-   luci.http.redirect(m.redirect)
+	m.uci:revert(openclash, sid)
+	luci.http.redirect(m.redirect)
 end
 
 m:append(Template("openclash/toolbar_show"))

@@ -2,7 +2,7 @@
 local form, m
 local openclash = "openclash"
 local NXFS = require "nixio.fs"
-local SYS  = require "luci.sys"
+local SYS = require "luci.sys"
 local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
@@ -16,7 +16,7 @@ m.reset = false
 m.submit = false
 
 local t = {
-    {Apply}
+	{Apply}
 }
 
 a = m:section(Table, t)
@@ -25,19 +25,19 @@ o = a:option(Button, "Refresh", " ")
 o.inputtitle = translate("Refresh Page")
 o.inputstyle = "apply"
 o.write = function()
-   SYS.call("rm -rf /tmp/rule_providers_name 2>/dev/null")
-   HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-manage"))
+	SYS.call("rm -rf /tmp/rule_providers_name 2>/dev/null")
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-manage"))
 end
 
 o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-settings"))
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-settings"))
 end
 
 if not NXFS.access("/tmp/rule_providers_name") then
-   SYS.call("awk -v d=',' -F ',' '{print $4d$5}' /usr/share/openclash/res/rule_providers.list > /tmp/rule_providers_name 2>/dev/null")
+	SYS.call("awk -v d=',' -F ',' '{print $4d$5}' /usr/share/openclash/res/rule_providers.list > /tmp/rule_providers_name 2>/dev/null")
 end
 file = io.open("/tmp/rule_providers_name", "r");
 
@@ -67,9 +67,9 @@ e[t].size="/"
 e[t].mtime="/"
 end
 if fs.isfile(RULE_FILE) then
-   e[t].exist=translate("Exist")
+	e[t].exist=translate("Exist")
 else
-   e[t].exist=translate("Not Exist")
+	e[t].exist=translate("Not Exist")
 end
 e[t].remove=0
 end

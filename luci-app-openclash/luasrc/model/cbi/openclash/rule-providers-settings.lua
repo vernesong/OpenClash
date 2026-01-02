@@ -2,14 +2,14 @@
 local m, s, o
 local openclash = "openclash"
 local NXFS = require "nixio.fs"
-local SYS  = require "luci.sys"
+local SYS = require "luci.sys"
 local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
 local fs = require "luci.openclash"
 local uci = require "luci.model.uci".cursor()
 
-m = Map(openclash,  translate("Rule Providers Append"))
+m = Map(openclash, translate("Rule Providers Append"))
 m.pageaction = false
 m.description=translate("Attention:")..
 "<br/>"..translate("The game proxy is a test function and does not guarantee the availability of rules")..
@@ -29,15 +29,15 @@ return e==".rules"
 end
 
 function IsYamlFile(e)
-   e=e or""
-   local e=string.lower(string.sub(e,-5,-1))
-   return e == ".yaml"
+	e=e or""
+	local e=string.lower(string.sub(e,-5,-1))
+	return e == ".yaml"
 end
 
 function IsYmlFile(e)
-   e=e or""
-   local e=string.lower(string.sub(e,-4,-1))
-   return e == ".yml"
+	e=e or""
+	local e=string.lower(string.sub(e,-4,-1))
+	return e == ".yml"
 end
 
 local groupnames, filename
@@ -45,22 +45,22 @@ local group_list = {}
 
 filename = m.uci:get(openclash, "config", "config_path")
 if filename then
-   groupnames = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
-   if groupnames then
-      for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
-         if groupname ~= nil and groupname ~= "" then
-            table.insert(group_list, groupname)
-         end
-      end
-   end
+	groupnames = SYS.exec(string.format('ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "YAML.load_file(\'%s\')[\'proxy-groups\'].each do |i| puts i[\'name\']+\'##\' end" 2>/dev/null',filename))
+	if groupnames then
+		for groupname in string.gmatch(groupnames, "([^'##\n']+)##") do
+			if groupname ~= nil and groupname ~= "" then
+				table.insert(group_list, groupname)
+			end
+		end
+	end
 end
 
 m.uci:foreach("openclash", "groups",
-   function(s)
-      if s.name ~= "" and s.name ~= nil then
-         table.insert(group_list, s.name)
-      end
-   end)
+	function(s)
+		if s.name ~= "" and s.name ~= nil then
+			table.insert(group_list, s.name)
+		end
+	end)
 
 table.sort(group_list)
 table.insert(group_list, "DIRECT")
@@ -79,10 +79,10 @@ s.rmempty = false
 
 ---- enable flag
 o = s:option(Flag, "enabled", translate("Enable"))
-o.rmempty     = false
-o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
+o.rmempty = false
+o.default = o.enabled
+o.cfgvalue = function(...)
+	return Flag.cfgvalue(...) or "1"
 end
 
 ---- config
@@ -92,12 +92,12 @@ local e,a={}
 for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
 	a=fs.stat(f)
 	if a then
-    e[t]={}
-    e[t].name=fs.basename(f)
-    if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
-       o:value(e[t].name)
-    end
-  end
+		e[t]={}
+		e[t].name=fs.basename(f)
+		if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+			o:value(e[t].name)
+		end
+	end
 end
 
 ---- rule name
@@ -106,15 +106,15 @@ local e,a={}
 for t,f in ipairs(fs.glob("/etc/openclash/game_rules/*"))do
 	a=fs.stat(f)
 	if a then
-    e[t]={}
-    e[t].filename=fs.basename(f)
-    if IsRuleFile(e[t].filename) then
-       e[t].name=string.gsub(luci.sys.exec(string.format("grep ',%s$' /usr/share/openclash/res/game_rules.list |awk -F ',' '{print $1}' 2>/dev/null",e[t].filename)), "[\r\n]", "")
-       if e[t].name ~= "" and e[t].name ~= nil then
-          o:value(e[t].name)
-       end
-    end
-  end
+		e[t]={}
+		e[t].filename=fs.basename(f)
+		if IsRuleFile(e[t].filename) then
+			e[t].name=string.gsub(luci.sys.exec(string.format("grep ',%s$' /usr/share/openclash/res/game_rules.list |awk -F ',' '{print $1}' 2>/dev/null",e[t].filename)), "[\r\n]", "")
+			if e[t].name ~= "" and e[t].name ~= nil then
+				o:value(e[t].name)
+			end
+		end
+	end
 end
 
 o.rmempty = true
@@ -123,7 +123,7 @@ o.rmempty = true
 o = s:option(ListValue, "group", translate("Select Proxy Group"))
 o.rmempty = true
 for _, groupname in ipairs(group_list) do
-   o:value(groupname)
+	o:value(groupname)
 end
 
 -- [[ Edit Other Rule Provider ]] --
@@ -136,10 +136,10 @@ s.rmempty = false
 
 ---- enable flag
 o = s:option(Flag, "enabled", translate("Enable"))
-o.rmempty     = false
-o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
+o.rmempty = false
+o.default = o.enabled
+o.cfgvalue = function(...)
+	return Flag.cfgvalue(...) or "1"
 end
 
 ---- config
@@ -149,12 +149,12 @@ local e,a={}
 for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
 	a=fs.stat(f)
 	if a then
-    e[t]={}
-    e[t].name=fs.basename(f)
-    if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
-       o:value(e[t].name)
-    end
-  end
+		e[t]={}
+		e[t].name=fs.basename(f)
+		if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+			o:value(e[t].name)
+		end
+	end
 end
 
 ---- rule name
@@ -163,15 +163,15 @@ local e,a={}
 for t,f in ipairs(fs.glob("/etc/openclash/rule_provider/*"))do
 	a=fs.stat(f)
 	if a then
-    e[t]={}
-    e[t].filename=fs.basename(f)
-    if IsYamlFile(e[t].filename) or IsYmlFile(e[t].filename) then
-       e[t].name=string.gsub(luci.sys.exec(string.format("grep ',%s$' /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $1}' 2>/dev/null",e[t].filename)), "[\r\n]", "")
-       if e[t].name ~= "" and e[t].name ~= nil then
-          o:value(e[t].name)
-       end
-    end
-  end
+		e[t]={}
+		e[t].filename=fs.basename(f)
+		if IsYamlFile(e[t].filename) or IsYmlFile(e[t].filename) then
+			e[t].name=string.gsub(luci.sys.exec(string.format("grep ',%s$' /usr/share/openclash/res/rule_providers.list |awk -F ',' '{print $1}' 2>/dev/null",e[t].filename)), "[\r\n]", "")
+			if e[t].name ~= "" and e[t].name ~= nil then
+				o:value(e[t].name)
+			end
+		end
+	end
 end
 
 o.rmempty = true
@@ -180,7 +180,7 @@ o.rmempty = true
 o = s:option(ListValue, "group", translate("Select Proxy Group"))
 o.rmempty = true
 for _, groupname in ipairs(group_list) do
-   o:value(groupname)
+	o:value(groupname)
 end
 
 o = s:option(Value, "interval", translate("Rule Providers Interval(s)"))
@@ -189,7 +189,7 @@ o.rmempty = false
 
 ---- position
 o = s:option(ListValue, "position", translate("Append Position"))
-o.rmempty     = false
+o.rmempty = false
 o:value("0", translate("Priority Match"))
 o:value("1", translate("Extended Match"))
 
@@ -210,10 +210,10 @@ end
 
 ---- enable flag
 o = s:option(Flag, "enabled", translate("Enable"))
-o.rmempty     = false
-o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
+o.rmempty = false
+o.default = o.enabled
+o.cfgvalue = function(...)
+	return Flag.cfgvalue(...) or "1"
 end
 
 o = s:option(DummyValue, "config", translate("Config File"))
@@ -230,16 +230,16 @@ end
 o = s:option(ListValue, "group", translate("Select Proxy Group"))
 o.rmempty = true
 for _, groupname in ipairs(group_list) do
-   o:value(groupname)
+	o:value(groupname)
 end
 
 o = s:option(ListValue, "position", translate("Append Position"))
-o.rmempty     = false
+o.rmempty = false
 o:value("0", translate("Priority Match"))
 o:value("1", translate("Extended Match"))
 
 local rm = {
-    {rule_mg, pro_mg}
+	{rule_mg, pro_mg}
 }
 
 rmg = m:section(Table, rm)
@@ -248,18 +248,18 @@ o = rmg:option(Button, "rule_mg", " ")
 o.inputtitle = translate("Game Rules Manage")
 o.inputstyle = "reload"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-manage"))
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "game-rules-manage"))
 end
 
 o = rmg:option(Button, "pro_mg", " ")
 o.inputtitle = translate("Other Rule Provider Manage")
 o.inputstyle = "reload"
 o.write = function()
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-manage"))
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash", "rule-providers-manage"))
 end
 
 local t = {
-    {Commit, Apply}
+	{Commit, Apply}
 }
 
 ss = m:section(Table, t)
@@ -268,17 +268,17 @@ o = ss:option(Button, "Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-  m.uci:commit("openclash")
+	m.uci:commit("openclash")
 end
 
 o = ss:option(Button, "Apply", " ")
 o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+	m.uci:set("openclash", "config", "enable", 1)
+	m.uci:commit("openclash")
+	SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 m:append(Template("openclash/toolbar_show"))

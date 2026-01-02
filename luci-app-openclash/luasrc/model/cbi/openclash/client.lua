@@ -1,6 +1,6 @@
 
 local NXFS = require "nixio.fs"
-local SYS  = require "luci.sys"
+local SYS = require "luci.sys"
 local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
@@ -12,7 +12,7 @@ m.description = translate("A Clash Client For OpenWrt")
 m.reset = false
 m.submit = false
 
-m:section(SimpleSection).template  = "openclash/status"
+m:section(SimpleSection).template = "openclash/status"
 if fs.uci_get_config("config", "dler_token") then
 	m:append(Template("openclash/dlercloud"))
 end

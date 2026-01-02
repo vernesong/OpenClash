@@ -1,6 +1,6 @@
 
 local NXFS = require "nixio.fs"
-local SYS  = require "luci.sys"
+local SYS = require "luci.sys"
 local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
@@ -37,7 +37,7 @@ end
 font_green = [[<b style=color:green>]]
 font_red = [[<b style=color:red>]]
 font_off = [[</b>]]
-bold_on  = [[<strong>]]
+bold_on = [[<strong>]]
 bold_off = [[</strong>]]
 
 local op_mode = string.sub(luci.sys.exec('uci get openclash.config.operation_mode 2>/dev/null'),0,-2)
@@ -64,7 +64,7 @@ local de_int = SYS.exec("ip route |grep 'default' |awk '{print $5}' 2>/dev/null"
 o.description = translate("Default Interface Name:").." "..font_green..bold_on..de_int..bold_off..font_off..translate(",Try Enable If Network Loopback")
 local interfaces = SYS.exec("ls -l /sys/class/net/ 2>/dev/null |awk '{print $9}' 2>/dev/null")
 for interface in string.gmatch(interfaces, "%S+") do
-   o:value(interface)
+	o:value(interface)
 end
 o:value("0", translate("Disable"))
 o.default = "0"
@@ -212,7 +212,7 @@ function custom_fallback_filter.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_fallback_filter.yaml")
-	  if value ~= old_value then
+		if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_fallback_filter.yaml", value)
 		end
 	end
@@ -244,7 +244,7 @@ function custom_fake_black.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_fake_filter.list")
-	  if value ~= old_value then
+		if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_fake_filter.list", value)
 		end
 	end
@@ -268,7 +268,7 @@ function custom_domain_dns_policy.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_domain_dns_policy.list")
-	  if value ~= old_value then
+		if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_domain_dns_policy.list", value)
 		end
 	end
@@ -291,7 +291,7 @@ function custom_hosts.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_hosts.list")
-	  if value ~= old_value then
+		if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_hosts.list", value)
 		end
 	end
@@ -366,7 +366,7 @@ function sniffer_custom.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_sniffer.yaml")
-	  if value ~= old_value then
+		if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_sniffer.yaml", value)
 		end
 	end
@@ -426,10 +426,10 @@ o.title = translate("Update Model")
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("/usr/share/openclash/openclash_lgbm.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+	m.uci:set("openclash", "config", "enable", 1)
+	m.uci:commit("openclash")
+	SYS.call("/usr/share/openclash/openclash_lgbm.sh >/dev/null 2>&1 &")
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 o = s:taboption("smart", DummyValue, "flush_smart_cache", translate("Flush Smart Cache"))
@@ -462,7 +462,7 @@ function custom_rules.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_rules.list")
-	  if value ~= old_value then
+		if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_rules.list", value)
 		end
 	end
@@ -482,7 +482,7 @@ function custom_rules_2.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_rules_2.list")
-	  if value ~= old_value then
+		if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_rules_2.list", value)
 		end
 	end
@@ -525,10 +525,10 @@ end
 
 ---- enable flag
 o = ds:option(Flag, "enabled", translate("Enable"))
-o.rmempty     = false
-o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
+o.rmempty = false
+o.default = o.enabled
+o.cfgvalue = function(...)
+	return Flag.cfgvalue(...) or "1"
 end
 
 ---- group
@@ -536,8 +536,8 @@ o = ds:option(ListValue, "group", translate("DNS Server Group"))
 o:value("nameserver", translate("NameServer "))
 o:value("fallback", translate("FallBack "))
 o:value("default", translate("Default-NameServer"))
-o.default     = "nameserver"
-o.rempty      = false
+o.default = "nameserver"
+o.rempty = false
 
 ---- IP address
 o = ds:option(Value, "ip", translate("DNS Server Address"))
@@ -547,8 +547,8 @@ o.rmempty = true
 
 ---- port
 o = ds:option(Value, "port", translate("DNS Server Port"))
-o.datatype    = "port"
-o.rempty      = true
+o.datatype = "port"
+o.rempty = true
 
 ---- type
 o = ds:option(ListValue, "type", translate("DNS Server Type"))
@@ -557,13 +557,13 @@ o:value("tcp", translate("TCP"))
 o:value("tls", translate("TLS"))
 o:value("https", translate("HTTPS"))
 o:value("quic", translate("QUIC"))
-o.default     = "udp"
-o.rempty      = false
+o.default = "udp"
+o.rempty = false
 
 ---- Disable-IPv6
 o = ds:option(Flag, "disable_ipv6", translate("Disable-IPv6"))
-o.rmempty     = false
-o.default     = o.disbled
+o.rmempty = false
+o.default = o.disbled
 
 -- [[ Other Rules Manage ]]--
 ss = m:section(TypedSection, "other_rules", translate("Other Rules Edit")..translate("(Take Effect After Choose Above)"))
@@ -587,10 +587,10 @@ ss.render = function(self, ...)
 end
 
 o = ss:option(Flag, "enabled", translate("Enable"))
-o.rmempty     = false
-o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
+o.rmempty = false
+o.default = o.enabled
+o.cfgvalue = function(...)
+	return Flag.cfgvalue(...) or "1"
 end
 
 o = ss:option(DummyValue, "config", translate("Config File"))
@@ -628,16 +628,16 @@ end
 
 ---- enable flag
 o = s:option(Flag, "enabled", translate("Enable"))
-o.rmempty     = false
-o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
+o.rmempty = false
+o.default = o.enabled
+o.cfgvalue = function(...)
+	return Flag.cfgvalue(...) or "1"
 end
 
 ---- username
 o = s:option(Value, "username", translate("Username"))
 o.placeholder = translate("Not Null")
-o.rempty      = true
+o.rempty = true
 
 ---- password
 o = s:option(Value, "password", translate("Password"))
@@ -645,7 +645,7 @@ o.placeholder = translate("Not Null")
 o.rmempty = true
 
 local t = {
-    {Commit, Apply}
+	{Commit, Apply}
 }
 
 a = m:section(Table, t)
@@ -654,17 +654,17 @@ o = a:option(Button, "Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-  m.uci:commit("openclash")
+	m.uci:commit("openclash")
 end
 
 o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+	m.uci:set("openclash", "config", "enable", 1)
+	m.uci:commit("openclash")
+	SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 m:append(Template("openclash/config_editor"))

@@ -6,10 +6,10 @@ local fs = require "luci.openclash"
 
 font_red = [[<b style=color:red>]]
 font_off = [[</b>]]
-bold_on  = [[<strong>]]
+bold_on = [[<strong>]]
 bold_off = [[</strong>]]
 
-m = Map(openclash,  translate("Onekey Create (Servers&Groups manage)"))
+m = Map(openclash, translate("Onekey Create (Servers&Groups manage)"))
 m.pageaction = false
 m.description=translate("Attention:")..
 "<br/>"..translate("1. Before modifying the configuration file, please click the button below to read the configuration file")..
@@ -66,10 +66,10 @@ end
 
 ---- enable flag
 o = s:option(Flag, "enabled", translate("Enable"))
-o.rmempty     = false
-o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
+o.rmempty = false
+o.default = o.enabled
+o.cfgvalue = function(...)
+	return Flag.cfgvalue(...) or "1"
 end
 
 o = s:option(DummyValue, "config", translate("Config File"))
@@ -103,17 +103,17 @@ function s.create(...)
 end
 
 o = s:option(Flag, "enabled", translate("Enable"))
-o.rmempty     = false
-o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
+o.rmempty = false
+o.default = o.enabled
+o.cfgvalue = function(...)
+	return Flag.cfgvalue(...) or "1"
 end
 
 o = s:option(Flag, "manual", translate("Custom Tag"))
 o.rmempty = false
 o.default = "0"
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
+o.cfgvalue = function(...)
+	return Flag.cfgvalue(...) or "0"
 end
 
 o = s:option(DummyValue, "config", translate("Config File"))
@@ -148,17 +148,17 @@ end
 
 ---- enable flag
 o = s:option(Flag, "enabled", translate("Enable"))
-o.rmempty     = false
-o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
+o.rmempty = false
+o.default = o.enabled
+o.cfgvalue = function(...)
+	return Flag.cfgvalue(...) or "1"
 end
 
 o = s:option(Flag, "manual", translate("Custom Tag"))
 o.rmempty = false
 o.default = "0"
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
+o.cfgvalue = function(...)
+	return Flag.cfgvalue(...) or "0"
 end
 
 o = s:option(DummyValue, "config", translate("Config File"))
@@ -198,7 +198,7 @@ function o.cfgvalue(...)
 end
 
 local tt = {
-    {Delete_Unused_Servers, Delete_Servers, Delete_Proxy_Provider, Delete_Groups}
+	{Delete_Unused_Servers, Delete_Servers, Delete_Proxy_Provider, Delete_Groups}
 }
 
 b = m:section(Table, tt)
@@ -207,44 +207,44 @@ o = b:option(Button,"Delete_Unused_Servers", " ")
 o.inputtitle = translate("Delete Unused Servers")
 o.inputstyle = "reset"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 0)
-  m.uci:commit("openclash")
-  luci.sys.call("sh /usr/share/openclash/cfg_unused_servers_del.sh 2>/dev/null")
-  luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
+	m.uci:set("openclash", "config", "enable", 0)
+	m.uci:commit("openclash")
+	luci.sys.call("sh /usr/share/openclash/cfg_unused_servers_del.sh 2>/dev/null")
+	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
 end
 
 o = b:option(Button,"Delete_Servers", " ")
 o.inputtitle = translate("Delete Servers")
 o.inputstyle = "reset"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 0)
-  m.uci:delete_all("openclash", "servers", function(s) return true end)
-  m.uci:commit("openclash")
-  luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
+	m.uci:set("openclash", "config", "enable", 0)
+	m.uci:delete_all("openclash", "servers", function(s) return true end)
+	m.uci:commit("openclash")
+	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
 end
 
 o = b:option(Button,"Delete_Proxy_Provider", " ")
 o.inputtitle = translate("Delete Proxy Providers")
 o.inputstyle = "reset"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 0)
-  m.uci:delete_all("openclash", "proxy-provider", function(s) return true end)
-  m.uci:commit("openclash")
-  luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
+	m.uci:set("openclash", "config", "enable", 0)
+	m.uci:delete_all("openclash", "proxy-provider", function(s) return true end)
+	m.uci:commit("openclash")
+	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
 end
 
 o = b:option(Button,"Delete_Groups", " ")
 o.inputtitle = translate("Delete Groups")
 o.inputstyle = "reset"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 0)
-  m.uci:delete_all("openclash", "groups", function(s) return true end)
-  m.uci:commit("openclash")
-  luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
+	m.uci:set("openclash", "config", "enable", 0)
+	m.uci:delete_all("openclash", "groups", function(s) return true end)
+	m.uci:commit("openclash")
+	luci.http.redirect(luci.dispatcher.build_url("admin", "services", "openclash", "servers"))
 end
 
 local t = {
-    {Load_Config, Commit, Apply}
+	{Load_Config, Commit, Apply}
 }
 
 a = m:section(Table, t)

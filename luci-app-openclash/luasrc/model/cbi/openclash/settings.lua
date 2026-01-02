@@ -1,6 +1,6 @@
 
 local NXFS = require "nixio.fs"
-local SYS  = require "luci.sys"
+local SYS = require "luci.sys"
 local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local UTIL = require "luci.util"
@@ -37,7 +37,7 @@ end
 font_green = [[<b style=color:green>]]
 font_red = [[<b style=color:red>]]
 font_off = [[</b>]]
-bold_on  = [[<strong>]]
+bold_on = [[<strong>]]
 bold_off = [[</strong>]]
 
 local op_mode = fs.uci_get_config("config", "operation_mode")
@@ -173,7 +173,7 @@ function custom_domain_dns.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_domain_dns.list")
-	  if value ~= old_value then
+	if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_domain_dns.list", value)
 		end
 	end
@@ -199,7 +199,7 @@ ip_b:depends({lan_ac_mode = "0", en_mode = "redir-host-mix"})
 
 mac_b = s:taboption("lan_ac", DynamicList, "lan_ac_black_macs", translate("LAN Bypassed Mac List"))
 mac_b.datatype = "list(macaddr)"
-mac_b.rmempty  = true
+mac_b.rmempty = true
 mac_b:depends("lan_ac_mode", "0")
 
 ip_w = s:taboption("lan_ac", DynamicList, "lan_ac_white_ips", translate("LAN Proxied Host List"))
@@ -211,7 +211,7 @@ ip_w:depends({lan_ac_mode = "1", en_mode = "redir-host-mix"})
 
 mac_w = s:taboption("lan_ac", DynamicList, "lan_ac_white_macs", translate("LAN Proxied Mac List"))
 mac_w.datatype = "list(macaddr)"
-mac_w.rmempty  = true
+mac_w.rmempty = true
 mac_w:depends("lan_ac_mode", "1")
 
 o = s:taboption("lan_ac", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
@@ -221,8 +221,8 @@ o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Suppor
 s2 = m:section(TypedSection, "lan_ac_traffic", translate("Lan Traffic Access List"),
 	"1. "..translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails").."; ".."2. "..translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported, Please Setting Fake-IP-Filter First If You Need Domain Type Requests"))
 
-s2.template  = "cbi/tblsection"
-s2.sortable  = true
+s2.template = "cbi/tblsection"
+s2.sortable = true
 s2.anonymous = true
 s2.addremove = true
 s2.rmempty = false
@@ -240,7 +240,7 @@ o = s2:option(Flag, "enabled", translate("Enable"))
 o.rmempty = false
 o.default = o.enabled
 o.cfgvalue = function(...)
-    return Flag.cfgvalue(...) or "1"
+	return Flag.cfgvalue(...) or "1"
 end
 
 ip_ac = s2:option(Value, "src_ip", translate("Internal addresses"))
@@ -272,14 +272,14 @@ o = s2:option(Value, "dscp", translate("DSCP"))
 o.datatype = "range(0,63)"
 o.rmempty = true
 function o.validate(self, value)
-    if value == "" or value == nil then
-        return value
-    end
-    local num = tonumber(value)
-    if not num or num < 0 or num > 63 then
-        return nil, "DSCP must be between 0 and 63"
-    end
-    return value
+	if value == "" or value == nil then
+		return value
+	end
+	local num = tonumber(value)
+	if not num or num < 0 or num > 63 then
+		return nil, "DSCP must be between 0 and 63"
+	end
+	return value
 end
 
 o = s2:option(ListValue, "target", translate("Target"))
@@ -289,51 +289,51 @@ o:value("drop", translate("DROP"))
 o.rmempty = false
 
 local function ip_compare(a, b)
-    local function ipv4_to_number(ip)
-        local p1, p2, p3, p4 = ip:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")
-        if p1 and p2 and p3 and p4 then
-            local n1, n2, n3, n4 = tonumber(p1), tonumber(p2), tonumber(p3), tonumber(p4)
-            if n1 <= 255 and n2 <= 255 and n3 <= 255 and n4 <= 255 then
-                return n1 * 16777216 + n2 * 65536 + n3 * 256 + n4
-            end
-        end
-        return 0
-    end
+	local function ipv4_to_number(ip)
+		local p1, p2, p3, p4 = ip:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")
+		if p1 and p2 and p3 and p4 then
+			local n1, n2, n3, n4 = tonumber(p1), tonumber(p2), tonumber(p3), tonumber(p4)
+			if n1 <= 255 and n2 <= 255 and n3 <= 255 and n4 <= 255 then
+				return n1 * 16777216 + n2 * 65536 + n3 * 256 + n4
+			end
+		end
+		return 0
+	end
 
-    local a_is_ipv4 = datatype.ip4addr(a.dest)
-    local b_is_ipv4 = datatype.ip4addr(b.dest)
+	local a_is_ipv4 = datatype.ip4addr(a.dest)
+	local b_is_ipv4 = datatype.ip4addr(b.dest)
 
-    if a_is_ipv4 and not b_is_ipv4 then
-        return true
-    elseif not a_is_ipv4 and b_is_ipv4 then
-        return false
-    elseif a_is_ipv4 and b_is_ipv4 then
-        return ipv4_to_number(a.dest) < ipv4_to_number(b.dest)
-    else
-        return a.dest < b.dest
-    end
+	if a_is_ipv4 and not b_is_ipv4 then
+		return true
+	elseif not a_is_ipv4 and b_is_ipv4 then
+		return false
+	elseif a_is_ipv4 and b_is_ipv4 then
+		return ipv4_to_number(a.dest) < ipv4_to_number(b.dest)
+	else
+		return a.dest < b.dest
+	end
 end
 
 local all_neighbors = {}
 
 luci.ip.neighbors({ family = 4 }, function(n)
-    if n.mac and n.dest then
-        if n.hostname then
-            hostname = " [".. n.hostname .."]"
-        end
-        table.insert(all_neighbors, {dest = n.dest:string(), mac = n.mac, hostname = hostname or "", family = 4})
-    end
+	if n.mac and n.dest then
+		if n.hostname then
+			hostname = " [".. n.hostname .."]"
+		end
+		table.insert(all_neighbors, {dest = n.dest:string(), mac = n.mac, hostname = hostname or "", family = 4})
+	end
 end)
 
 if string.len(SYS.exec("/usr/share/openclash/openclash_get_network.lua 'gateway6'")) ~= 0 then
-    luci.ip.neighbors({ family = 6 }, function(n)
-        if n.mac and n.dest then
-            if n.hostname then
-                hostname = " [".. n.hostname .."]"
-            end
-            table.insert(all_neighbors, {dest = n.dest:string(), mac = n.mac, hostname = hostname or "", family = 6})
-        end
-    end)
+	luci.ip.neighbors({ family = 6 }, function(n)
+		if n.mac and n.dest then
+			if n.hostname then
+				hostname = " [".. n.hostname .."]"
+			end
+			table.insert(all_neighbors, {dest = n.dest:string(), mac = n.mac, hostname = hostname or "", family = 6})
+		end
+	end)
 end
 
 table.sort(all_neighbors, ip_compare)
@@ -343,41 +343,41 @@ local mac_order = {}
 local mac_hostname_map = {}
 
 for _, item in ipairs(all_neighbors) do
-    ip_b:value(item.dest, "%s%s" %{ item.dest, item.hostname })
-    ip_w:value(item.dest, "%s%s" %{ item.dest, item.hostname })
-    ip_ac:value(item.dest, "%s%s" %{ item.dest, item.hostname })
-    if not mac_ip_map[item.mac] then
-        mac_ip_map[item.mac] = {}
-        table.insert(mac_order, item.mac)
-    end
-    table.insert(mac_ip_map[item.mac], item.dest)
-    if not mac_hostname_map[item.mac] then
-        mac_hostname_map[item.mac] = item.hostname
-    end
+	ip_b:value(item.dest, "%s%s" %{ item.dest, item.hostname })
+	ip_w:value(item.dest, "%s%s" %{ item.dest, item.hostname })
+	ip_ac:value(item.dest, "%s%s" %{ item.dest, item.hostname })
+	if not mac_ip_map[item.mac] then
+		mac_ip_map[item.mac] = {}
+		table.insert(mac_order, item.mac)
+	end
+	table.insert(mac_ip_map[item.mac], item.dest)
+	if not mac_hostname_map[item.mac] then
+		mac_hostname_map[item.mac] = item.hostname
+	end
 end
 
 for _, mac in ipairs(mac_order) do
-    local ips = mac_ip_map[mac]
-    table.sort(ips, function(a, b)
-        local a_is_ipv4 = datatype.ip4addr(a)
-        local b_is_ipv4 = datatype.ip4addr(b)
-        if a_is_ipv4 and not b_is_ipv4 then
-            return true
-        elseif not a_is_ipv4 and b_is_ipv4 then
-            return false
-        elseif a_is_ipv4 and b_is_ipv4 then
-            local function ipv4_to_number(ip)
-                local p1, p2, p3, p4 = ip:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")
-                return p1 and p2 and p3 and p4 and (tonumber(p1)*16777216+tonumber(p2)*65536+tonumber(p3)*256+tonumber(p4)) or 0
-            end
-            return ipv4_to_number(a) < ipv4_to_number(b)
-        else
-            return a < b
-        end
-    end)
-    local ip_str = table.concat(ips, "|")
-    mac_b:value(mac, "%s%s (%s)" %{ mac, mac_hostname_map[mac], ip_str })
-    mac_w:value(mac, "%s%s (%s)" %{ mac, mac_hostname_map[mac], ip_str })
+	local ips = mac_ip_map[mac]
+	table.sort(ips, function(a, b)
+		local a_is_ipv4 = datatype.ip4addr(a)
+		local b_is_ipv4 = datatype.ip4addr(b)
+		if a_is_ipv4 and not b_is_ipv4 then
+			return true
+		elseif not a_is_ipv4 and b_is_ipv4 then
+			return false
+		elseif a_is_ipv4 and b_is_ipv4 then
+			local function ipv4_to_number(ip)
+				local p1, p2, p3, p4 = ip:match("^(%d+)%.(%d+)%.(%d+)%.(%d+)$")
+				return p1 and p2 and p3 and p4 and (tonumber(p1)*16777216+tonumber(p2)*65536+tonumber(p3)*256+tonumber(p4)) or 0
+			end
+			return ipv4_to_number(a) < ipv4_to_number(b)
+		else
+			return a < b
+		end
+	end)
+	local ip_str = table.concat(ips, "|")
+	mac_b:value(mac, "%s%s (%s)" %{ mac, mac_hostname_map[mac], ip_str })
+	mac_w:value(mac, "%s%s (%s)" %{ mac, mac_hostname_map[mac], ip_str })
 end
 
 ---- Traffic Control
@@ -419,7 +419,7 @@ o.description = translate("Select WAN Interface Name For The Intranet Allowed")
 o:depends("intranet_allowed", "1")
 local interfaces = SYS.exec("ls -l /sys/class/net/ 2>/dev/null |awk '{print $9}' 2>/dev/null")
 for interface in string.gmatch(interfaces, "%S+") do
-   o:value(interface)
+	o:value(interface)
 end
 
 o = s:taboption("traffic_control", ListValue, "lan_interface_name", translate("LAN Interface Name"))
@@ -427,7 +427,7 @@ o.description = translate("Select LAN Interface Name")
 o:value("0", translate("Disable"))
 o.default = "0"
 for interface in string.gmatch(interfaces, "%S+") do
-   o:value(interface)
+	o:value(interface)
 end
 
 o = s:taboption("traffic_control", Value, "local_network_pass", translate("Local IPv4 Network Bypassed List"))
@@ -443,7 +443,7 @@ function o.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list")
-	  if value ~= old_value then
+		if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list", value)
 		end
 	end
@@ -464,9 +464,9 @@ function o.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_chnroute_pass.list")
-	  if value ~= old_value then
-			NXFS.writefile("/etc/openclash/custom/openclash_custom_chnroute_pass.list", value)
-		end
+		if value ~= old_value then
+				NXFS.writefile("/etc/openclash/custom/openclash_custom_chnroute_pass.list", value)
+			end
 	end
 end
 
@@ -481,7 +481,7 @@ o.title = translate("Flush Unlock Test Cache")
 o.inputtitle = translate("Flush Cache")
 o.inputstyle = "reload"
 o.write = function()
-  SYS.call("rm -rf /etc/openclash/history/streaming_unlock_cache >/dev/null 2>&1 &")
+	SYS.call("rm -rf /etc/openclash/history/streaming_unlock_cache >/dev/null 2>&1 &")
 end
 o:depends("stream_auto_select", "1")
 
@@ -871,10 +871,10 @@ o.inputtitle = translate("Check And Update")
 o.description = translate("Other Rules Update(Only in Use)")..", "..translate("Current Version:").." "..font_green..bold_on..translate(fs.get_resourse_mtime("/usr/share/openclash/res/lhie1.yaml"))..bold_off..font_off
 o.inputstyle = "reload"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("/usr/share/openclash/openclash_rule.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+	m.uci:set("openclash", "config", "enable", 1)
+	m.uci:commit("openclash")
+	SYS.call("/usr/share/openclash/openclash_rule.sh >/dev/null 2>&1 &")
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 o = s:taboption("geo_update", Flag, "geo_auto_update", font_red..bold_on..translate("Auto Update GeoIP MMDB")..bold_off..font_off)
@@ -915,10 +915,10 @@ o.description = translate("Current Version:").." "..font_green..bold_on..transla
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("/usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+	m.uci:set("openclash", "config", "enable", 1)
+	m.uci:commit("openclash")
+	SYS.call("/usr/share/openclash/openclash_ipdb.sh >/dev/null 2>&1 &")
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 o = s:taboption("geo_update", Flag, "geoip_auto_update", font_red..bold_on..translate("Auto Update GeoIP Dat")..bold_off..font_off)
@@ -958,10 +958,10 @@ o.description = translate("Current Version:").." "..font_green..bold_on..transla
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("/usr/share/openclash/openclash_geoip.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+	m.uci:set("openclash", "config", "enable", 1)
+	m.uci:commit("openclash")
+	SYS.call("/usr/share/openclash/openclash_geoip.sh >/dev/null 2>&1 &")
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 o = s:taboption("geo_update", Flag, "geosite_auto_update", font_red..bold_on..translate("Auto Update GeoSite")..bold_off..font_off)
@@ -1001,10 +1001,10 @@ o.description = translate("Current Version:").." "..font_green..bold_on..transla
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("/usr/share/openclash/openclash_geosite.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+	m.uci:set("openclash", "config", "enable", 1)
+	m.uci:commit("openclash")
+	SYS.call("/usr/share/openclash/openclash_geosite.sh >/dev/null 2>&1 &")
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 o = s:taboption("geo_update", Flag, "geoasn_auto_update", font_red..bold_on..translate("Auto Update Geo ASN")..bold_off..font_off)
@@ -1044,10 +1044,10 @@ o.description = translate("Current Version:").." "..font_green..bold_on..transla
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("/usr/share/openclash/openclash_geoasn.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+	m.uci:set("openclash", "config", "enable", 1)
+	m.uci:commit("openclash")
+	SYS.call("/usr/share/openclash/openclash_geoasn.sh >/dev/null 2>&1 &")
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 o = s:taboption("chnr_update", Flag, "chnr_auto_update", translate("Auto Update"))
@@ -1093,10 +1093,10 @@ o.title = translate("Update Chnroute Lists")
 o.inputtitle = translate("Check And Update")
 o.inputstyle = "reload"
 o.write = function()
-  m.uci:set("openclash", "config", "enable", 1)
-  m.uci:commit("openclash")
-  SYS.call("/usr/share/openclash/openclash_chnroute.sh >/dev/null 2>&1 &")
-  HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+	m.uci:set("openclash", "config", "enable", 1)
+	m.uci:commit("openclash")
+	SYS.call("/usr/share/openclash/openclash_chnroute.sh >/dev/null 2>&1 &")
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 o = s:taboption("auto_restart", Flag, "auto_restart", translate("Auto Restart"))
@@ -1244,7 +1244,7 @@ function o.write(self, section, value)
 	if value then
 		value = value:gsub("\r\n?", "\n")
 		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list")
-	  if value ~= old_value then
+		if value ~= old_value then
 			NXFS.writefile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list", value)
 		end
 	end
@@ -1347,7 +1347,7 @@ else
 end
 
 local t = {
-    {Commit, Apply}
+	{Commit, Apply}
 }
 
 local CORE_VERSION = HTTP.formvalue("CORE_VERSION")
@@ -1360,27 +1360,27 @@ o = a:option(Button, "Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-    if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE then
-        m.uci:set("openclash", "config", "core_version", CORE_VERSION)
-        m.uci:set("openclash", "config", "release_branch", RELEASE_BRANCH)
-        m.uci:set("openclash", "config", "smart_enable", SMART_ENABLE)
-    end
-    m.uci:commit("openclash")
+	if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE then
+		m.uci:set("openclash", "config", "core_version", CORE_VERSION)
+		m.uci:set("openclash", "config", "release_branch", RELEASE_BRANCH)
+		m.uci:set("openclash", "config", "smart_enable", SMART_ENABLE)
+	end
+	m.uci:commit("openclash")
 end
 
 o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
-    if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE then
-        m.uci:set("openclash", "config", "core_version", CORE_VERSION)
-        m.uci:set("openclash", "config", "release_branch", RELEASE_BRANCH)
-        m.uci:set("openclash", "config", "smart_enable", SMART_ENABLE)
-    end
-    m.uci:set("openclash", "config", "enable", 1)
-    m.uci:commit("openclash")
-    SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
-    HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
+	if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE then
+		m.uci:set("openclash", "config", "core_version", CORE_VERSION)
+		m.uci:set("openclash", "config", "release_branch", RELEASE_BRANCH)
+		m.uci:set("openclash", "config", "smart_enable", SMART_ENABLE)
+	end
+	m.uci:set("openclash", "config", "enable", 1)
+	m.uci:commit("openclash")
+	SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
 m:append(Template("openclash/config_editor"))

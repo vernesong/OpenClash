@@ -9,7 +9,7 @@ local sid = arg[1]
 
 font_red = [[<b style=color:red>]]
 font_off = [[</b>]]
-bold_on  = [[<strong>]]
+bold_on = [[<strong>]]
 bold_off = [[</strong>]]
 
 
@@ -33,7 +33,7 @@ end
 -- [[ Config Subscribe Setting ]]--
 s = m:section(NamedSection, sid, "config_subscribe")
 s.anonymous = true
-s.addremove   = false
+s.addremove = false
 
 ---- name
 o = s:option(Value, "name", translate("Config Alias"))
@@ -99,7 +99,7 @@ o.default = 0
 
 ---- Convert Address
 o = s:option(Value, "convert_address", translate("Convert Address"))
-o.rmempty     = true
+o.rmempty = true
 o.description = font_red..bold_on..translate("Note: There is A Risk of Privacy Leakage in Online Convert")..bold_off..font_off
 o:depends("sub_convert", "1")
 o:value("https://api.dler.io/sub", translate("api.dler.io")..translate("(Default)"))
@@ -110,7 +110,7 @@ o.placeholder = "https://api.dler.io/sub"
 
 ---- Template
 o = s:option(ListValue, "template", translate("Template Name"))
-o.rmempty     = true
+o.rmempty = true
 o:depends("sub_convert", "1")
 file = io.open("/usr/share/openclash/res/sub_ini.list", "r");
 for l in file:lines() do
@@ -123,14 +123,14 @@ o:value("0", translate("Custom Template"))
 
 ---- Custom Template
 o = s:option(Value, "custom_template_url", translate("Custom Template URL"))
-o.rmempty     = true
+o.rmempty = true
 o.placeholder = translate("Not Null")
 o.datatype = "or(host, string)"
 o:depends("template", "0")
 
 ---- emoji
 o = s:option(ListValue, "emoji", translate("Emoji"))
-o.rmempty     = false
+o.rmempty = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
 o.default = "false"
@@ -138,7 +138,7 @@ o:depends("sub_convert", "1")
 
 ---- udp
 o = s:option(ListValue, "udp", translate("UDP Enable"))
-o.rmempty     = false
+o.rmempty = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
 o.default = "false"
@@ -146,7 +146,7 @@ o:depends("sub_convert", "1")
 
 ---- skip-cert-verify
 o = s:option(ListValue, "skip_cert_verify", translate("skip-cert-verify"))
-o.rmempty     = false
+o.rmempty = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
 o.default = "false"
@@ -154,7 +154,7 @@ o:depends("sub_convert", "1")
 
 ---- sort
 o = s:option(ListValue, "sort", translate("Sort"))
-o.rmempty     = false
+o.rmempty = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
 o.default = "false"
@@ -162,7 +162,7 @@ o:depends("sub_convert", "1")
 
 ---- node type
 o = s:option(ListValue, "node_type", translate("Append Node Type"))
-o.rmempty     = false
+o.rmempty = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
 o.default = "false"
@@ -171,7 +171,7 @@ o:depends("sub_convert", "1")
 ---- rule provider
 o = s:option(ListValue, "rule_provider", translate("Use Rule Provider"))
 o.description = font_red..bold_on..translate("Note: Please Make Sure Backend Service Supports This Feature")..bold_off..font_off
-o.rmempty     = false
+o.rmempty = false
 o:value("false", translate("Disable"))
 o:value("true", translate("Enable"))
 o.default = "false"
@@ -180,7 +180,7 @@ o:depends("sub_convert", "1")
 ---- custom params
 o = s:option(DynamicList, "custom_params", translate("Custom Params"))
 o.description = font_red..bold_on..translate("eg: \"rename=match@replace\" , \"rename=\\s+([2-9])[xX]@ (HIGH:$1)\"")..bold_off..font_off
-o.rmempty     = false
+o.rmempty = false
 o:depends("sub_convert", "1")
 
 ---- key
@@ -203,7 +203,7 @@ o:value("TG群")
 o:value("官网")
 
 local t = {
-    {Commit, Back}
+	{Commit, Back}
 }
 a = m:section(Table, t)
 
@@ -211,16 +211,16 @@ o = a:option(Button,"Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-   m.uci:commit(openclash)
-   luci.http.redirect(m.redirect)
+	m.uci:commit(openclash)
+	luci.http.redirect(m.redirect)
 end
 
 o = a:option(Button,"Back", " ")
 o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
 o.write = function()
-   m.uci:revert(openclash, sid)
-   luci.http.redirect(m.redirect)
+	m.uci:revert(openclash, sid)
+	luci.http.redirect(m.redirect)
 end
 
 m:append(Template("openclash/toolbar_show"))

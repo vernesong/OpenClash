@@ -9,18 +9,18 @@ local uuid = luci.sys.exec("cat /proc/sys/kernel/random/uuid")
 
 font_red = [[<b style=color:red>]]
 font_off = [[</b>]]
-bold_on  = [[<strong>]]
+bold_on = [[<strong>]]
 bold_off = [[</strong>]]
 
 function IsYamlFile(e)
-   e=e or""
-   local e=string.lower(string.sub(e,-5,-1))
-   return e == ".yaml"
+	e=e or""
+	local e=string.lower(string.sub(e,-5,-1))
+	return e == ".yaml"
 end
 function IsYmlFile(e)
-   e=e or""
-   local e=string.lower(string.sub(e,-4,-1))
-   return e == ".yml"
+	e=e or""
+	local e=string.lower(string.sub(e,-4,-1))
+	return e == ".yml"
 end
 
 local encrypt_methods_ss = {
@@ -109,7 +109,7 @@ end
 -- [[ Servers Setting ]] --
 s = m:section(NamedSection, sid, "servers")
 s.anonymous = true
-s.addremove   = false
+s.addremove = false
 
 o = s:option(DummyValue, "server_url", "SS/SSR/VMESS/TROJAN URL")
 o.rawhtml = true
@@ -122,12 +122,12 @@ local e,a={}
 for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
 	a=fs.stat(f)
 	if a then
-    e[t]={}
-    e[t].name=fs.basename(f)
-    if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
-       o:value(e[t].name)
-    end
-  end
+		e[t]={}
+		e[t].name=fs.basename(f)
+		if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+			o:value(e[t].name)
+		end
+	end
 end
 
 o = s:option(Flag, "manual", translate("Custom Tag"))
@@ -1183,7 +1183,7 @@ function(s)
 end)
 		
 local t = {
-    {Commit, Back}
+	{Commit, Back}
 }
 a = m:section(Table, t)
 
@@ -1191,16 +1191,16 @@ o = a:option(Button,"Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-   m.uci:commit(openclash)
-   luci.http.redirect(m.redirect)
+	m.uci:commit(openclash)
+	luci.http.redirect(m.redirect)
 end
 
 o = a:option(Button,"Back", " ")
 o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
 o.write = function()
-   m.uci:revert(openclash, sid)
-   luci.http.redirect(m.redirect)
+	m.uci:revert(openclash, sid)
+	luci.http.redirect(m.redirect)
 end
 
 m:append(Template("openclash/toolbar_show"))

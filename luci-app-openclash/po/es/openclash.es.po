@@ -3761,14 +3761,26 @@ msgstr "El nombre de la configuración contiene caracteres no válidos"
 msgid "Adding subscription..."
 msgstr "Añadiendo suscripción..."
 
+msgid "Updating subscription..."
+msgstr "Actualizando suscripción..."
+
 msgid "Failed to download subscription config"
 msgstr "Error al descargar la configuración de la suscripción"
 
 msgid "Failed to add subscription"
 msgstr "Error al añadir la suscripción"
 
+msgid "Failed to update subscription"
+msgstr "Error al actualizar la suscripción"
+
 msgid "Subscription added successfully"
 msgstr "Suscripción añadida correctamente"
+
+msgid "Subscription updated successfully"
+msgstr "Suscripción actualizada correctamente"
+
+msgid "Failed to get subscribe data"
+msgstr "Error al obtener datos de suscripción"
 
 msgid "Process failed"
 msgstr "Proceso fallido"
@@ -3922,9 +3934,6 @@ msgstr "Error al reiniciar el núcleo"
 
 msgid "Invalid config file selected"
 msgstr "Archivo de configuración no válido"
-
-msgid "Config uploader not ready, please try again"
-msgstr "El cargador de configuraciones no está listo, intenta nuevamente"
 
 msgid "Config editor not ready, please try again"
 msgstr "El editor de configuraciones no está listo, intenta nuevamente"
@@ -4213,3 +4222,12 @@ msgstr "Tema Oscuro"
 
 msgid "Auto Theme"
 msgstr "Tema Automático"
+
+msgid "Set Subscription Info URL"
+msgstr "Establecer URL de información de suscripción"
+
+msgid "Set Subscription Info URL"
+msgstr "Establecer URL de información de suscripción"
+
+msgid "Enter URLs, one per line, use #name=example end for specifing display name'"
+msgstr "Introduce URLs, una por línea, usa #name=ejemplo al final para nombre de visualización específico"

@@ -253,6 +253,7 @@ config_error()
    LOG_OUT "Error:【$name】Update Error, Please Try Again Later..."
    rm -rf "$CFG_FILE" 2>/dev/null
    SLOG_CLEAN
+   return 1
 }
 
 change_dns()

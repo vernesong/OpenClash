@@ -96,7 +96,6 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li{
         flex: 1 1 0;
         min-width: 120px;
-        width: 0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -127,11 +126,9 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
     }
 
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li a{
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        display: block;
         width: 100%;
-        height: 110%;
+        height: 130%;
         text-align: center;
         text-decoration: none;
         background: none;
@@ -140,8 +137,8 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
         font: inherit;
         color: inherit;
         cursor: inherit;
-        padding: 0;
-        margin: 5px;
+        padding: 5px;
+        margin: 0;
         user-select: none;
         transition: color 0.18s;
         overflow: hidden;
@@ -506,10 +503,8 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
             var a<%=sectiontype%> = li<%=sectiontype%>.querySelector('a');
             if (a<%=sectiontype%>) {
                 if (a<%=sectiontype%>.scrollWidth > a<%=sectiontype%>.clientWidth) {
-                    a<%=sectiontype%>.style.justifyContent = 'flex-start';
                     a<%=sectiontype%>.style.textAlign = 'left';
                 } else {
-                    a<%=sectiontype%>.style.justifyContent = 'center';
                     a<%=sectiontype%>.style.textAlign = 'center';
                 }
             }

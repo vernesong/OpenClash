@@ -8,18 +8,18 @@ local sid = arg[1]
 
 font_red = [[<b style=color:red>]]
 font_off = [[</b>]]
-bold_on  = [[<strong>]]
+bold_on = [[<strong>]]
 bold_off = [[</strong>]]
 
 function IsYamlFile(e)
-   e=e or""
-   local e=string.lower(string.sub(e,-5,-1))
-   return e == ".yaml"
+	e=e or""
+	local e=string.lower(string.sub(e,-5,-1))
+	return e == ".yaml"
 end
 function IsYmlFile(e)
-   e=e or""
-   local e=string.lower(string.sub(e,-4,-1))
-   return e == ".yml"
+	e=e or""
+	local e=string.lower(string.sub(e,-4,-1))
+	return e == ".yml"
 end
 
 m = Map(openclash, translate("Edit Group"))
@@ -33,7 +33,7 @@ end
 -- [[ Groups Setting ]]--
 s = m:section(NamedSection, sid, "groups")
 s.anonymous = true
-s.addremove   = false
+s.addremove = false
 
 o = s:option(ListValue, "config", translate("Config File"))
 o:value("all", translate("Use For All Config File"))
@@ -41,12 +41,12 @@ local e,a={}
 for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
 	a=fs.stat(f)
 	if a then
-    e[t]={}
-    e[t].name=fs.basename(f)
-    if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
-       o:value(e[t].name)
-    end
-  end
+		e[t]={}
+		e[t].name=fs.basename(f)
+		if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+			
+		end
+	end
 end
 
 o = s:option(ListValue, "type", translate("Group Type"))
@@ -183,8 +183,8 @@ o.description = font_red..bold_on..translate("The Added Proxy Groups Must Exist 
 o:value("all", translate("All Groups"))
 uci:foreach("openclash", "groups",
 		function(s)
-		  if s.name ~= "" and s.name ~= nil and s.name ~= m.uci:get(openclash, sid, "name") then
-			   o:value(s.name)
+			if s.name ~= "" and s.name ~= nil and s.name ~= m.uci:get(openclash, sid, "name") then
+				o:value(s.name)
 			end
 		end)
 o:value("DIRECT")
@@ -195,7 +195,7 @@ o:value("GLOBAL")
 o.rmempty = true
 
 local t = {
-    {Commit, Back}
+	{Commit, Back}
 }
 a = m:section(Table, t)
 
@@ -203,17 +203,17 @@ o = a:option(Button,"Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-   m.uci:commit(openclash)
-   sys.call("/usr/share/openclash/yml_groups_name_ch.sh")
-   luci.http.redirect(m.redirect)
+	m.uci:commit(openclash)
+	sys.call("/usr/share/openclash/yml_groups_name_ch.sh")
+	luci.http.redirect(m.redirect)
 end
 
 o = a:option(Button,"Back", " ")
 o.inputtitle = translate("Back Settings")
 o.inputstyle = "reset"
 o.write = function()
-   m.uci:revert(openclash, sid)
-   luci.http.redirect(m.redirect)
+	m.uci:revert(openclash, sid)
+	luci.http.redirect(m.redirect)
 end
 
 m:append(Template("openclash/toolbar_show"))

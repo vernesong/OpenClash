@@ -1912,9 +1912,11 @@
                                                         </svg>
                                                     </button>
                                                     <button type="button" class="icon-btn action-btn" id="config-subscription-url" title="<%:Specify URL%>" onclick="return setSubscriptionUrl()">
-                                                        <svg width="32" height="32" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                            <path d="M18.2838 43.1713C14.9327 42.1736 11.9498 40.3213 9.58787 37.867C10.469 36.8227 11 35.4734 11 34.0001C11 30.6864 8.31371 28.0001 5 28.0001C4.79955 28.0001 4.60139 28.01 4.40599 28.0292C4.13979 26.7277 4 25.3803 4 24.0001C4 21.9095 4.32077 19.8938 4.91579 17.9995C4.94381 17.9999 4.97188 18.0001 5 18.0001C8.31371 18.0001 11 15.3138 11 12.0001C11 11.0488 10.7786 10.1493 10.3846 9.35011C12.6975 7.1995 15.5205 5.59002 18.6521 4.72314C19.6444 6.66819 21.6667 8.00013 24 8.00013C26.3333 8.00013 28.3556 6.66819 29.3479 4.72314C32.4795 5.59002 35.3025 7.1995 37.6154 9.35011C37.2214 10.1493 37 11.0488 37 12.0001C37 15.3138 39.6863 18.0001 43 18.0001C43.0281 18.0001 43.0562 17.9999 43.0842 17.9995C43.6792 19.8938 44 21.9095 44 24.0001C44 25.3803 43.8602 26.7277 43.594 28.0292C43.3986 28.01 43.2005 28.0001 43 28.0001C39.6863 28.0001 37 30.6864 37 34.0001C37 35.4734 37.531 36.8227 38.4121 37.867C36.0502 40.3213 33.0673 42.1736 29.7162 43.1713C28.9428 40.752 26.676 39.0001 24 39.0001C21.324 39.0001 19.0572 40.752 18.2838 43.1713Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
-                                                            <path d="M24 31C27.866 31 31 27.866 31 24C31 20.134 27.866 17 24 17C20.134 17 17 20.134 17 24C17 27.866 20.134 31 24 31Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
+                                                        <svg width="14" height="14" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4">
+                                                            <path d="M4 6H44V36H29L24 41L19 36H4V6Z"/>
+                                                            <path d="M23 21H25.0025" />
+                                                            <path d="M33.001 21H34.9999"/>
+                                                            <path d="M13.001 21H14.9999"/>
                                                         </svg>
                                                     </button>
                                                 </div>
@@ -1942,6 +1944,7 @@
                                             <button type="button" class="icon-btn action-btn" id="switch_config" title="<%:SwiTch%>" onclick="return switchConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"></polyline><path d="M3 11V9a4 4 0 0 1 4-4h14"></path><polyline points="7 23 3 19 7 15"></polyline><path d="M21 13v2a4 4 0 0 1-4 4H3"></path></svg></button>
                                             <button type="button" class="icon-btn action-btn" id="update_config" title="<%:Update%>" onclick="return updateConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path><path d="M3 3v5h5"></path><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path><path d="M21 21v-5h-5"></path></svg></button>
                                             <button type="button" class="icon-btn action-btn" id="edit_config" title="<%:Edit%>" onclick="return editConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg></button>
+                                            <button type="button" class="icon-btn action-btn" id="edit_subscribe" title="<%:Edit Subscription%>" onclick="return editSubscribe()"><svg width="14" height="14" viewBox="0 0 48 48" fill="none"><path d="M18.2838 43.1713C14.9327 42.1736 11.9498 40.3213 9.58787 37.867C10.469 36.8227 11 35.4734 11 34.0001C11 30.6864 8.31371 28.0001 5 28.0001C4.79955 28.0001 4.60139 28.01 4.40599 28.0292C4.13979 26.7277 4 25.3803 4 24.0001C4 21.9095 4.32077 19.8938 4.91579 17.9995C4.94381 17.9999 4.97188 18.0001 5 18.0001C8.31371 18.0001 11 15.3138 11 12.0001C11 11.0488 10.7786 10.1493 10.3846 9.35011C12.6975 7.1995 15.5205 5.59002 18.6521 4.72314C19.6444 6.66819 21.6667 8.00013 24 8.00013C26.3333 8.00013 28.3556 6.66819 29.3479 4.72314C32.4795 5.59002 35.3025 7.1995 37.6154 9.35011C37.2214 10.1493 37 11.0488 37 12.0001C37 15.3138 39.6863 18.0001 43 18.0001C43.0281 18.0001 43.0562 17.9999 43.0842 17.9995C43.6792 19.8938 44 21.9095 44 24.0001C44 25.3803 43.8602 26.7277 43.594 28.0292C43.3986 28.01 43.2005 28.0001 43 28.0001C39.6863 28.0001 37 30.6864 37 34.0001C37 35.4734 37.531 36.8227 38.4121 37.867C36.0502 40.3213 33.0673 42.1736 29.7162 43.1713C28.9428 40.752 26.676 39.0001 24 39.0001C21.324 39.0001 19.0572 40.752 18.2838 43.1713Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/><path d="M24 31C27.866 31 31 27.866 31 24C31 20.134 27.866 17 24 17C20.134 17 17 20.134 17 24C17 27.866 20.134 31 24 31Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/></svg></button>
                                             <button type="button" class="icon-btn action-btn" id="upload_config" title="<%:Add%>" onclick="return uploadConfig()"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg></button>
                                         </div>
                                     </div>
@@ -2024,6 +2027,32 @@
     </tr>
 </table>
 </fieldset>
+
+<div class="oc">
+    <div class="config-upload-model-overlay" id="subscription-url-overlay" style="display: none;">
+        <div class="config-upload-model" id="subscription-url-model">
+            <div class="config-upload-header">
+                <div class="config-upload-title"><%:Set Subscription Info URL%></div>
+                <button type="button" class="icon-btn" onclick="SubscriptionUrlSetter.hide()">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="config-upload-content">
+                <div class="form-group">
+                    <label><%:Paste the new url of subscribe infos sources here:%></label>
+                    <textarea id="subscription-url-textarea" class="form-textarea" placeholder="<%:Enter URLs, one per line, use #name=example end for specifing display name%> (https://example.com#name=example)" rows="5"></textarea>
+                </div>
+            </div>
+            <div class="config-upload-footer">
+                <div class="config-upload-status"></div>
+                <div class="config-upload-buttons">
+                    <button type="button" class="btn cancel-btn" onclick="SubscriptionUrlSetter.hide()"><%:Cancel%></button>
+                    <button type="button" class="btn upload-btn" onclick="SubscriptionUrlSetter.submit()"><%:Submit%></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
 <script type="text/javascript">//<![CDATA[
     var DOMCache = {
@@ -3369,6 +3398,122 @@
                 clearTimeout(this.updateTimer);
                 this.updateTimer = null;
             }
+        }
+    };
+
+    var SubscriptionUrlSetter = {
+        filename: '',
+
+        show: function(filename) {
+            this.filename = filename;
+            var overlay = document.getElementById('subscription-url-overlay');
+            var textarea = document.getElementById('subscription-url-textarea');
+            if (overlay && textarea) {
+                textarea.value = '';
+                overlay.style.display = 'flex';
+                textarea.focus();
+                this.bindEvents();
+                this.loadUrls();
+            }
+        },
+
+        hide: function() {
+            var overlay = document.getElementById('subscription-url-overlay');
+            if (overlay) {
+                overlay.style.display = 'none';
+            }
+            this.unbindEvents();
+        },
+
+        bindEvents: function() {
+            var self = this;
+            var textarea = document.getElementById('subscription-url-textarea');
+            var overlay = document.getElementById('subscription-url-overlay');
+
+            if (textarea) {
+                textarea.addEventListener('keydown', this.handleKeyDown.bind(this));
+            }
+            if (overlay) {
+                overlay.addEventListener('click', this.handleOverlayClick.bind(this));
+            }
+        },
+
+        unbindEvents: function() {
+            var textarea = document.getElementById('subscription-url-textarea');
+            var overlay = document.getElementById('subscription-url-overlay');
+
+            if (textarea) {
+                textarea.removeEventListener('keydown', this.handleKeyDown.bind(this));
+            }
+            if (overlay) {
+                overlay.removeEventListener('click', this.handleOverlayClick.bind(this));
+            }
+        },
+
+        handleKeyDown: function(event) {
+            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                this.submit();
+            } else if (event.key === 'Escape') {
+                this.hide();
+            }
+        },
+
+        handleOverlayClick: function(event) {
+            if (event.target.id === 'subscription-url-overlay') {
+                this.hide();
+            }
+        },
+
+        submit: function() {
+            var textarea = document.getElementById('subscription-url-textarea');
+            if (!textarea) return;
+
+            var urls = textarea.value.trim();
+
+            var urlList = urls.split('\n').map(function(url) {
+                return url.trim();
+            }).filter(function(url) {
+                return url !== '';
+            });
+
+            var newUrl = urlList.join('\n');
+
+            this.hide();
+
+            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "set_subinfo_url")%>', {
+                filename: this.filename,
+                url: newUrl
+            }, function(x, status) {
+                if (x && x.status == 200 && status.info === "Success") {
+                    refreshSubscriptionInfo();
+                } else if (x && x.status == 200 && status.info === "Delete success") {
+                    refreshSubscriptionInfo();
+                } else {
+                    alert('<%:Specify subscribe infos sources url failed:%>\n' + (status.info || '<%:Unknown error%>'));
+                }
+            });
+        },
+
+        loadUrls: function() {
+            var self = this;
+            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_subscribe_info_data")%>', {
+                filename: this.filename
+            }, function(x, status) {
+                if (x && x.status == 200 && status) {
+                    var textarea = document.getElementById('subscription-url-textarea');
+                    if (textarea) {
+                        var urls = '';
+                        if (status.url) {
+                            if (typeof status.url === 'string') {
+                                urls = status.url;
+                            } else if (Array.isArray(status.url)) {
+                                urls = status.url.join('\n');
+                            }
+                        }
+                        textarea.value = urls;
+                    }
+                }
+            });
         }
     };
 
@@ -5233,24 +5378,7 @@
             return false;
         }
 
-        var newUrl = prompt('<%:Paste the new url of subscribe infos sources here:%>', '');
-        if (newUrl === null) {
-            return false;
-        }
-
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "set_subinfo_url")%>', {
-            filename: filename,
-            url: newUrl
-        }, function(x, status) {
-            if (x && x.status == 200 && status.info === "Success") {
-                refreshSubscriptionInfo();
-            } else if (x && x.status == 200 && status.info === "Delete success") {
-                refreshSubscriptionInfo();
-            } else {
-                alert('<%:Specify subscribe infos sources url failed:%>\n' + (status.info || '<%:Unknown error%>'));
-            }
-        });
-
+        SubscriptionUrlSetter.show(filename);
         return false;
     }
 
@@ -5262,10 +5390,46 @@
                 if (typeof ConfigUploader !== 'undefined' && ConfigUploader.show) {
                     ConfigUploader.show();
                 } else {
-                    alert('<%:Config uploader not ready, please try again%>');
+                    alert('<%:Config editor not ready, please try again%>');
                 }
             }, 500);
         }
+
+        return false;
+    }
+
+    function editSubscribe() {
+        var currentConfig = ConfigFileManager.getSelectedConfig();
+        if (!currentConfig) {
+            alert('<%:Please select a config file first%>');
+            return false;
+        }
+
+        var filename = SubscriptionManager.extractFilename(currentConfig);
+        if (!filename) {
+            alert('<%:Invalid config file selected%>');
+            return false;
+        }
+
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_subscribe_data")%>', {
+            filename: filename
+        }, function(x, status) {
+            if (x.status == 200) {
+                if (typeof ConfigUploader !== 'undefined' && ConfigUploader.showEditSubscribe) {
+                    ConfigUploader.showEditSubscribe(status, filename);
+                } else {
+                    setTimeout(function() {
+                        if (typeof ConfigUploader !== 'undefined' && ConfigUploader.showEditSubscribe) {
+                            ConfigUploader.showEditSubscribe(status, filename);
+                        } else {
+                            alert('<%:Config editor not ready, please try again%>');
+                        }
+                    }, 500);
+                }
+            } else {
+                alert('<%:Failed to get subscribe data%>');
+            }
+        });
 
         return false;
     }
