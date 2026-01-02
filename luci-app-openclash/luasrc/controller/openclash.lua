@@ -3675,7 +3675,6 @@ function action_add_subscription()
 		uci:set("openclash", section_id, "node_type", node_type)
 		uci:set("openclash", section_id, "rule_provider", rule_provider)
 
-		-- Clear and set custom_params
 		uci:delete("openclash", section_id, "custom_params")
 		if custom_params and custom_params ~= "" then
 			local params = {}
@@ -3692,7 +3691,6 @@ function action_add_subscription()
 			end
 		end
 
-		-- Clear and set keyword
 		uci:delete("openclash", section_id, "keyword")
 		if keyword and keyword ~= "" then
 			local keywords = {}
@@ -3709,7 +3707,6 @@ function action_add_subscription()
 			end
 		end
 
-		-- Clear and set ex_keyword
 		uci:delete("openclash", section_id, "ex_keyword")
 		if ex_keyword and ex_keyword ~= "" then
 			local ex_keywords = {}
@@ -3726,22 +3723,7 @@ function action_add_subscription()
 			end
 		end
 
-		-- Clear and set de_ex_keyword
-		uci:delete("openclash", section_id, "de_ex_keyword")
-		if de_ex_keyword and de_ex_keyword ~= "" then
-			local de_ex_keywords = {}
-			for line in de_ex_keyword:gmatch("[^\n]+") do
-				local de_ex_kw = line:match("^%s*(.-)%s*$")
-				if de_ex_kw and de_ex_kw ~= "" then
-					table.insert(de_ex_keywords, de_ex_kw)
-				end
-			end
-			if #de_ex_keywords > 0 then
-				for i, de_ex_kw in ipairs(de_ex_keywords) do
-					uci:set_list("openclash", section_id, "de_ex_keyword", de_ex_kw)
-				end
-			end
-		end
+		uci:set("openclash", section_id, "de_ex_keyword", de_ex_keyword)
 
 		uci:commit("openclash")
 
