@@ -120,7 +120,7 @@ function o.cfgvalue(...)
 end
 
 ---- address
-o = s:option(Value, "address", translate("Subscribe Address"))
+o = s:option(TextValue, "address", translate("Subscribe Address"))
 function o.cfgvalue(...)
 	return Value.cfgvalue(...) or translate("None")
 end
