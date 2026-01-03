@@ -3666,8 +3666,13 @@ function action_add_subscription()
 		uci:set("openclash", section_id, "address", normalized_address)
 		uci:set("openclash", section_id, "sub_ua", sub_ua)
 		uci:set("openclash", section_id, "sub_convert", sub_convert)
-		uci:set("openclash", section_id, "convert_address", convert_address)
-		uci:set("openclash", section_id, "template", template)
+		if sub_convert == "1" then
+			uci:set("openclash", section_id, "convert_address", convert_address)
+			uci:set("openclash", section_id, "template", template)
+		else
+			uci:delete("openclash", section_id, "convert_address")
+			uci:delete("openclash", section_id, "template")
+		end
 		uci:set("openclash", section_id, "emoji", emoji)
 		uci:set("openclash", section_id, "udp", udp)
 		uci:set("openclash", section_id, "skip_cert_verify", skip_cert_verify)
@@ -3676,7 +3681,7 @@ function action_add_subscription()
 		uci:set("openclash", section_id, "rule_provider", rule_provider)
 
 		uci:delete("openclash", section_id, "custom_params")
-		if custom_params and custom_params ~= "" then
+		if custom_params and custom_params ~= "" and sub_convert == "1" then
 			local params = {}
 			for line in custom_params:gmatch("[^\n]+") do
 				local param = line:match("^%s*(.-)%s*$")

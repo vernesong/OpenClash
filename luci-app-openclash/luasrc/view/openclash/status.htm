@@ -2028,32 +2028,6 @@
 </table>
 </fieldset>
 
-<div class="oc">
-    <div class="config-upload-model-overlay" id="subscription-url-overlay" style="display: none;">
-        <div class="config-upload-model" id="subscription-url-model">
-            <div class="config-upload-header">
-                <div class="config-upload-title"><%:Set Subscription Info URL%></div>
-                <button type="button" class="icon-btn" onclick="SubscriptionUrlSetter.hide()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-            </div>
-            <div class="config-upload-content">
-                <div class="form-group">
-                    <label><%:Paste the new url of subscribe infos sources here:%></label>
-                    <textarea id="subscription-url-textarea" class="form-textarea" placeholder="<%:Enter URLs, one per line, use #name=example end for specifing display name%> (https://example.com#name=example)" rows="5"></textarea>
-                </div>
-            </div>
-            <div class="config-upload-footer">
-                <div class="config-upload-status"></div>
-                <div class="config-upload-buttons">
-                    <button type="button" class="btn cancel-btn" onclick="SubscriptionUrlSetter.hide()"><%:Cancel%></button>
-                    <button type="button" class="btn upload-btn" onclick="SubscriptionUrlSetter.submit()"><%:Submit%></button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <script type="text/javascript">//<![CDATA[
     var DOMCache = {
         clash: document.getElementById('_clash'),
