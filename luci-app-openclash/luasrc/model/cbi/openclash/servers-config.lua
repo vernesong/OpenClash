@@ -301,7 +301,15 @@ o.placeholder = translate("127.0.0.1")
 o.datatype = "or(ip4addr, ip6addr)"
 o:depends("type", "tuic")
 
-o = s:option(Value, "tc_token", translate("Token"))
+o = s:option(Value, "tc_token", translate("Token (tuicV4 only)"))
+o.rmempty = true
+o:depends("type", "tuic")
+
+o = s:option(Value, "tc_uuid", translate("UUID (tuicV5 only)"))
+o.rmempty = true
+o:depends("type", "tuic")
+
+o = s:option(Value, "tc_password", translate("Password (tuicV5 only)"))
 o.rmempty = true
 o:depends("type", "tuic")
 

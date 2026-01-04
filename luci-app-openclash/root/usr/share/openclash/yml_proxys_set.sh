@@ -284,6 +284,8 @@ yml_servers_set()
    config_get "wg_mtu" "$section" "wg_mtu" ""
    config_get "tc_ip" "$section" "tc_ip" ""
    config_get "tc_token" "$section" "tc_token" ""
+   config_get "tc_uuid" "$section" "tc_uuid" ""
+   config_get "tc_password" "$section" "tc_password" ""
    config_get "udp_relay_mode" "$section" "udp_relay_mode" ""
    config_get "congestion_controller" "$section" "congestion_controller" ""
    config_get "tc_alpn" "$section" "tc_alpn" ""
@@ -825,6 +827,16 @@ EOF
     if [ -n "$tc_token" ]; then
 cat >> "$SERVER_FILE" <<-EOF
     token: "$tc_token"
+EOF
+    fi
+    if [ -n "$tc_uuid" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    uuid: "$tc_uuid"
+EOF
+    fi
+    if [ -n "$tc_password" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    password: "$tc_password"
 EOF
     fi
     if [ -n "$udp_relay_mode" ]; then

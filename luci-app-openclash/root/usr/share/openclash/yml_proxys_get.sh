@@ -844,6 +844,20 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                };
 
                threads << Thread.new{
+               #tc_uuid
+               if x.key?('uuid') then
+                  uci_commands << uci_set + 'tc_uuid=\"' + x['uuid'].to_s + '\"'
+               end;
+               };
+
+               threads << Thread.new{
+               #tc_password
+               if x.key?('password') then
+                  uci_commands << uci_set + 'tc_password=\"' + x['password'].to_s + '\"'
+               end
+               };
+
+               threads << Thread.new{
                #heartbeat_interval
                if x.key?('heartbeat-interval') then
                   uci_commands << uci_set + 'heartbeat_interval=\"' + x['heartbeat-interval'].to_s + '\"'
