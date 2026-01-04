@@ -2,10 +2,18 @@
 <div class="cbi-value-field" id="switch_dashboard_<%=self.option%>">
 	<%:Collecting data...%>
 </div>
+<div class="cbi-value-field" id="delete_dashboard_<%=self.option%>">
+	<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Delete%>" onclick="return delete_dashboard(this, '<%=self.option%>')"/>
+</div>
+<div class="cbi-value-field" id="default_dashboard_<%=self.option%>">
+	<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Set to Default%>" onclick="return default_dashboard(this, '<%=self.option%>')"/>
+</div>
 
 <script type="text/javascript">//<![CDATA[
 	var btn_type_<%=self.option%> = "<%=self.option%>";
 	var switch_dashboard_<%=self.option%> = document.getElementById('switch_dashboard_<%=self.option%>');
+	var default_dashboard_<%=self.option%> = document.getElementById('default_dashboard_<%=self.option%>');
+	var delete_dashboard_<%=self.option%> = document.getElementById('delete_dashboard_<%=self.option%>');
 	XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dashboard_type")%>', null, function(x, status) {
       	if ( x && x.status == 200 ) {
 			if ( btn_type_<%=self.option%> == "Dashboard" ) {
@@ -27,8 +35,17 @@
 			if ( btn_type_<%=self.option%> == "Metacubexd" ) {
 				switch_dashboard_<%=self.option%>.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Update Metacubexd Version%>" onclick="return switch_dashboard(this, btn_type_<%=self.option%>, \'Official\')"/>';
 			}
-      if ( btn_type_<%=self.option%> == "Zashboard" ) {
+      		if ( btn_type_<%=self.option%> == "Zashboard" ) {
 				switch_dashboard_<%=self.option%>.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Update Zashboard Version%>" onclick="return switch_dashboard(this, btn_type_<%=self.option%>, \'Official\')"/>';
+			}
+
+			if ( status.default_dashboard == btn_type_<%=self.option%>.toLowerCase() ) {
+				default_dashboard_<%=self.option%>.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Default%>" disabled="disabled" onclick="return default_dashboard(this, btn_type_<%=self.option%>)"/>';
+			}
+
+			if ( !status[btn_type_<%=self.option%>.toLowerCase()] ) {
+				default_dashboard_<%=self.option%>.firstElementChild.disabled = true;
+				delete_dashboard_<%=self.option%>.firstElementChild.disabled = true;
 			}
         }
 	});
@@ -61,8 +78,10 @@
 							document.getElementById("switch_dashboard_"+name).innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Update Successful%> - <%:Update Metacubexd Version%>" onclick="return switch_dashboard(this, \'Metacubexd\', \'Official\')"/>';
 						} else {
 							document.getElementById("switch_dashboard_"+name).innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Update Successful%> - <%:Update Zashboard Version%>" onclick="return switch_dashboard(this, \'Zashboard\', \'Official\')"/>';
-            }
+            			}
 					}
+					document.getElementById("default_dashboard_"+name).firstElementChild.disabled = false;
+					document.getElementById("delete_dashboard_"+name).firstElementChild.disabled = false;
 				}
 				else if ( status.download_state == "2" ) {
 					btn.value = '<%:Unzip Error%>';
@@ -78,6 +97,49 @@
 			}
 		});
 		btn.disabled = false;
+		return false; 
+	}
+
+	function delete_dashboard(btn, name)
+	{
+		if ( confirm("<%:Are you sure you want to delete this panel?%>") ) {
+			btn.disabled = true;
+			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "delete_dashboard")%>', {name: name}, function(x, status) {
+				if ( x && x.status == 200 ) {
+					if ( status.delete_state == "1" ) {
+						if ( document.getElementById('default_dashboard_' + name).firstElementChild.disabled ) {
+							document.getElementById('default_dashboard_' + name).firstElementChild.value = '<%:Set to Default%>';
+						}
+						document.getElementById('default_dashboard_' + name).firstElementChild.disabled = true;
+					}
+					else {
+						btn.disabled = false;
+					}
+				}
+			});
+		}
+		return false; 
+	}
+
+	function default_dashboard(btn, name)
+	{
+		btn.disabled = true;
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "default_dashboard")%>', {name: name}, function(x, status) {
+			if ( x && x.status == 200 ) {
+				btn.value = '<%:Default%>';
+				btn.disabled = true;
+				var allBtns = document.querySelectorAll('[id^="default_dashboard_"]');
+				for (var i = 0; i < allBtns.length; i++) {
+					var btnEl = allBtns[i].firstElementChild;
+					if (btnEl && btnEl !== btn && btnEl.value === '<%:Default%>') {
+						btnEl.disabled = false;
+						btnEl.value = '<%:Set to Default%>';
+					}
+				}
+			} else {
+				btn.disabled = false;
+			}
+		});
 		return false; 
 	}
 

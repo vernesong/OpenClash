@@ -4232,3 +4232,9 @@ msgstr "设置订阅信息来源地址"
 
 msgid "Enter URLs, one per line, use #name=example end for specifing display name"
 msgstr "输入订阅信息来源地址，多个地址请每行一个，在最后可以使用 #name=example 指定名字"
+
+msgid "Set to Default"
+msgstr "设为默认"
+
+msgid "Are you sure you want to delete this panel?"
+msgstr "确定要删除此面板吗？"

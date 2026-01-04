@@ -4228,3 +4228,9 @@ msgstr "Establecer URL de información de suscripción"
 
 msgid "Enter URLs, one per line, use #name=example end for specifing display name'"
 msgstr "Introduce URLs, una por línea, usa #name=ejemplo al final para nombre de visualización específico"
+
+msgid "Set to Default"
+msgstr "Establecer por defecto"
+
+msgid "Are you sure you want to delete this panel?"
+msgstr "¿Estás seguro de que quieres eliminar este panel?"

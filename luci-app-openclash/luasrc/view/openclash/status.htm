@@ -3017,7 +3017,9 @@
             }
 
             if (shouldFetchNew) {
-                this.showLoading();
+                if (!cachedData) {
+                    this.showLoading();
+                }
 
                 StateManager.cachedXHRGetWithParams('<%=luci.dispatcher.build_url("admin", "services", "openclash", "sub_info_get")%>', {filename: filename}, function(x, status) {
                     if (SubscriptionManager.currentConfigFile !== requestConfigFile) {
@@ -3272,32 +3274,6 @@
             }
         },
 
-        showError: function() {
-            if (ConfigFileManager.configList.length === 0) {
-                return;
-            }
-
-            var container = document.getElementById('subscription-info-display');
-            var progressSection = document.getElementById('subscription-progress-section');
-            var detailsSection = document.getElementById('subscription-info-details');
-
-            if (!container) return;
-
-            var configFileContent = document.querySelector('.config-file-content');
-            if (configFileContent && configFileContent.classList.contains('empty-state')) {
-                return;
-            }
-
-            container.style.display = 'flex';
-
-            if (progressSection) {
-                progressSection.style.display = 'none';
-            }
-            if (detailsSection) {
-                detailsSection.style.display = 'none';
-            }
-        },
-
         showLoading: function() {
             if (ConfigFileManager.configList.length === 0) {
                 return;
@@ -3329,7 +3305,7 @@
 
         handleError: function() {
             if (this.retryCount >= this.maxRetries) {
-                this.showError();
+                this.showNoInfo();
                 this.retryCount = 0;
                 if (this.currentConfigFile) {
                     localStorage.removeItem('sub_info_' + this.extractFilename(this.currentConfigFile));
@@ -4095,7 +4071,6 @@
             var webzContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Zashboard%>" onclick="return net_zashboard(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Zashboard%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: DOMCache.webz, content: webzContent});
 
-
             var closeConnContent = status.clash ? '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="return b_close_all_connection(this)"/>' : '<input type="button" class="dashboard-btn" value="<%:Close Connect%>" onclick="event.preventDefault(); event.stopPropagation(); return false;"/>';
             updates.push({element: document.getElementById('_close_all_connection_btn'), content: closeConnContent});
 
@@ -4116,6 +4091,14 @@
 
             if (!status.dashboard) {
                 DOMCache.webo.classList.add('hidden');
+            }
+
+            if (!status.metacubexd) {
+                DOMCache.webm.classList.add('hidden');
+            }
+
+            if (!status.zashboard) {
+                DOMCache.webz.classList.add('hidden');
             }
 
             StateManager.current_status = status;
@@ -4921,21 +4904,41 @@
     }
 
     function copyAddress() {
-        var status = StateManager.current_status;
-        var address;
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "dashboard_type")%>', null, function(x, status) {
+            if (x && x.status == 200) {
+                var panel = status.default_dashboard;
+                if (panel && StateManager.current_status[panel]) {
+                    var url;
+                    var currentStatus = StateManager.current_status;
+                    if (currentStatus.daip && window.location.hostname == currentStatus.daip) {
+                        url = 'http://' + window.location.hostname + ':' + currentStatus.cn_port + '/ui/' + panel;
+                    } else if (currentStatus.daip && window.location.hostname != currentStatus.daip && currentStatus.db_foward_domain && currentStatus.db_foward_port) {
+                        var ui_proto = currentStatus.db_forward_ssl == 0 ? 'http://' : 'https://';
+                        url = ui_proto + currentStatus.db_foward_domain + ':' + currentStatus.db_foward_port + '/ui/' + panel;
+                    } else {
+                        url = 'http://' + window.location.hostname + ':' + currentStatus.cn_port + '/ui/' + panel;
+                    }
 
-        if (status.daip && window.location.hostname == status.daip) {
-            address = 'http://' + status.daip + ':' + (status.cn_port || '9090') + '/ui/zashboard/#/setup?hostname=' + status.daip + '&port=' + (status.cn_port || '9090') + (status.dase ? '&secret=' + status.dase : '');
-        } else if (status.daip && window.location.hostname != status.daip && status.db_foward_domain && status.db_foward_port) {
-            var ui_proto = status.db_forward_ssl == 0 ? 'http://' : 'https://';
-            address = ui_proto + status.db_foward_domain + ':' + status.db_foward_port + '/ui/zashboard/#/setup?hostname=' + status.db_foward_domain + '&port=' + status.db_foward_port + (status.dase ? '&secret=' + status.dase : '');
-        } else {
-            address = 'http://' + (status.daip || 'unknown') + ':' + (status.cn_port || '9090') + '/ui/zashboard/#/';
-        }
+                    if (panel === 'zashboard' || panel === 'metacubexd') {
+                        url += '/#/setup?hostname=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? window.location.hostname : (currentStatus.db_foward_domain || window.location.hostname)) + '&port=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? currentStatus.cn_port : (currentStatus.db_foward_port || currentStatus.cn_port)) + (currentStatus.dase ? '&secret=' + currentStatus.dase : '');
+                    } else if (panel === 'yacd') {
+                        url += '/?hostname=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? window.location.hostname : (currentStatus.db_foward_domain || window.location.hostname)) + '&port=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? currentStatus.cn_port : (currentStatus.db_foward_port || currentStatus.cn_port)) + (currentStatus.dase ? '&secret=' + currentStatus.dase : '');
+                    } else if (panel === 'dashboard') {
+                        url += '/#/?host=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? window.location.hostname : (currentStatus.db_foward_domain || window.location.hostname)) + '&port=' + (currentStatus.daip && window.location.hostname == currentStatus.daip ? currentStatus.cn_port : (currentStatus.db_foward_port || currentStatus.cn_port)) + (currentStatus.dase ? '&secret=' + currentStatus.dase : '');
+                    }
 
-        copyToClipboard(address, '<%:Control panel address copied:%> ');
+                    copyToClipboard(url, '<%:Control panel address copied:%> ');
+                } else {
+                    var fallbackUrl = 'http://' + (StateManager.current_status.daip || 'unknown') + ':' + (StateManager.current_status.cn_port || '9090') + '/ui/zashboard/#/';
+                    copyToClipboard(fallbackUrl, '<%:Control panel address copied:%> ');
+                }
+            } else {
+                var fallbackUrl = 'http://' + (StateManager.current_status.daip || 'unknown') + ':' + (StateManager.current_status.cn_port || '9090') + '/ui/zashboard/#/';
+                copyToClipboard(fallbackUrl, '<%:Control panel address copied:%> ');
+            }
+        });
         return false;
-    }
+        }
 
     function copySecret() {
         var secret = StateManager.current_status.dase || '';

@@ -62,6 +62,8 @@ function index()
 	entry({"admin", "services", "openclash", "switch_run_mode"}, call("action_switch_run_mode"))
 	entry({"admin", "services", "openclash", "dashboard_type"}, call("action_dashboard_type"))
 	entry({"admin", "services", "openclash", "switch_dashboard"}, call("action_switch_dashboard"))
+	entry({"admin", "services", "openclash", "delete_dashboard"}, call("action_delete_dashboard"))
+	entry({"admin", "services", "openclash", "default_dashboard"}, call("action_default_dashboard"))
 	entry({"admin", "services", "openclash", "get_run_mode"}, call("action_get_run_mode"))
 	entry({"admin", "services", "openclash", "create_file"}, call("create_file"))
 	entry({"admin", "services", "openclash", "rename_file"}, call("rename_file"))
@@ -1311,10 +1313,37 @@ end
 function action_dashboard_type()
 	local dashboard_type = fs.uci_get_config("config", "dashboard_type") or "Official"
 	local yacd_type = fs.uci_get_config("config", "yacd_type") or "Official"
+	local default_dashboard = fs.uci_get_config("config", "default_dashboard")
+	if not fs.isdirectory("/usr/share/openclash/ui/" .. default_dashboard) then
+		default_dashboard = ""
+	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 		dashboard_type = dashboard_type,
-		yacd_type = yacd_type;
+		yacd_type = yacd_type,
+		yacd = fs.isdirectory("/usr/share/openclash/ui/yacd"),
+		dashboard = fs.isdirectory("/usr/share/openclash/ui/dashboard"),
+		metacubexd = fs.isdirectory("/usr/share/openclash/ui/metacubexd"),
+		zashboard = fs.isdirectory("/usr/share/openclash/ui/zashboard"),
+		default_dashboard = default_dashboard;
+	})
+end
+
+function action_default_dashboard()
+	local default_dashboard = luci.http.formvalue("name")
+	if not default_dashboard or (default_dashboard ~= "Dashboard" and default_dashboard ~= "Yacd" and default_dashboard ~= "Metacubexd" and default_dashboard ~= "Zashboard") then
+		luci.http.status(400, "Set Failed")
+		return
+	end
+	if not fs.isdirectory("/usr/share/openclash/ui/" .. string.lower(default_dashboard)) then
+		luci.http.status(500, "Set Failed")
+		return
+	end
+	uci:set("openclash", "config", "default_dashboard", string.lower(default_dashboard))
+	uci:commit("openclash")
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		default_dashboard = default_dashboard;
 	})
 end
 
@@ -1342,6 +1371,52 @@ function action_switch_dashboard()
 	luci.http.prepare_content("application/json")
 	luci.http.write_json({
 		download_state = state;
+	})
+end
+
+function action_delete_dashboard()
+	local delete_name = luci.http.formvalue("name")
+	local delete_path = string.format("/usr/share/openclash/ui/%s", string.lower(delete_name))
+
+	local panels = {
+		"/usr/share/openclash/ui/dashboard",
+		"/usr/share/openclash/ui/yacd",
+		"/usr/share/openclash/ui/metacubexd",
+		"/usr/share/openclash/ui/zashboard"
+	}
+	local existing_panels = 0
+	for _, path in ipairs(panels) do
+		if fs.isdirectory(path) then
+			existing_panels = existing_panels + 1
+		end
+	end
+
+	if existing_panels <= 1 then
+		luci.http.prepare_content("application/json")
+		luci.http.write_json({
+			delete_state = 0,
+			error = "Cannot delete the last remaining dashboard"
+		})
+		return
+	end
+
+	local state = luci.sys.call(string.format("rm -rf '%s' >/dev/null 2>&1", delete_path)) == 0 and 1 or 0
+	if tonumber(state) == 1 then
+		if delete_name == "Dashboard" then
+			uci:set("openclash", "config", "dashboard_type", "Official")
+			uci:commit("openclash")
+		elseif delete_name == "Yacd" then
+			uci:set("openclash", "config", "yacd_type", "Official")
+			uci:commit("openclash")
+		end
+		if fs.uci_get_config("config", "default_dashboard") == string.lower(delete_name) then
+			uci:set("openclash", "config", "default_dashboard", "")
+			uci:commit("openclash")
+		end
+	end
+	luci.http.prepare_content("application/json")
+	luci.http.write_json({
+		delete_state = state;
 	})
 end
 
@@ -1378,8 +1453,10 @@ function action_status()
 		db_foward_domain = db_foward_domain(),
 		db_forward_ssl = db_foward_ssl(),
 		cn_port = cn_port(),
-		yacd = fs.isdirectory("/usr/share/openclash/ui/yacd") ,
-		dashboard = fs.isdirectory("/usr/share/openclash/ui/dashboard") ,
+		yacd = fs.isdirectory("/usr/share/openclash/ui/yacd"),
+		dashboard = fs.isdirectory("/usr/share/openclash/ui/dashboard"),
+		metacubexd = fs.isdirectory("/usr/share/openclash/ui/metacubexd"),
+		zashboard = fs.isdirectory("/usr/share/openclash/ui/zashboard"),
 		core_type = fs.uci_get_config("config", "core_type") or "Meta";
 	})
 end

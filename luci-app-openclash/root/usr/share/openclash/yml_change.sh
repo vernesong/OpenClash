@@ -17,6 +17,9 @@ china_ip_route=$(uci_get_config "china_ip_route" || echo 0)
 china_ip6_route=$(uci_get_config "china_ip6_route" || echo 0)
 enable_redirect_dns=$(uci_get_config "enable_redirect_dns" || echo 1)
 fake_ip_filter_mode=${34}
+default_dashboard=$(uci_get_config "default_dashboard" || echo "metacubexd")
+yacd_type=$(uci_get_config "yacd_type" || echo "Official")
+dashboard_type=$(uci_get_config "dashboard_type" || echo "Official")
 
 [ "$china_ip_route" -ne 0 ] && [ "$china_ip_route" -ne 1 ] && [ "$china_ip_route" -ne 2 ] && china_ip_route=0
 [ "$china_ip6_route" -ne 0 ] && [ "$china_ip6_route" -ne 1 ] && [ "$china_ip6_route" -ne 2 ] && china_ip6_route=0
@@ -361,6 +364,9 @@ lgbm_update_interval = '${44}'
 smart_collect = '${45}' == '1'
 smart_collect_size = '${46}'
 fake_ip_range6 = '${47}'
+default_dashboard = '$default_dashboard'
+yacd_type = '$yacd_type'
+dashboard_type = '$dashboard_type'
 
 enable_custom_dns = '$enable_custom_dns' == '1'
 append_wan_dns = '$append_wan_dns' == '1'
@@ -388,8 +394,25 @@ threads << Thread.new do
       Value['secret'] = secret
       Value['bind-address'] = '*'
       Value['external-ui'] = '/usr/share/openclash/ui'
-      Value['external-ui-name'] = 'metacubexd'
-      Value.delete('external-ui-url')
+      Value['external-ui-name'] = default_dashboard
+      case default_dashboard
+      when 'dashboard'
+        if dashboard_type == 'Official'
+          Value['external-ui-url'] = 'https://codeload.github.com/ayanamist/clash-dashboard/zip/refs/heads/gh-pages'
+        else
+          Value['external-ui-url'] = 'https://codeload.github.com/MetaCubeX/Razord-meta/zip/refs/heads/gh-pages'
+        end
+      when 'yacd'
+        if yacd_type == 'Official'
+          Value['external-ui-url'] = 'https://codeload.github.com/haishanh/yacd/zip/refs/heads/gh-pages'
+        else
+          Value['external-ui-url'] = 'https://codeload.github.com/MetaCubeX/Yacd-meta/zip/refs/heads/gh-pages'
+        end
+      when 'metacubexd'
+        Value['external-ui-url'] = 'https://codeload.github.com/MetaCubeX/metacubexd/zip/refs/heads/gh-pages'
+      when 'zashboard'
+        Value['external-ui-url'] = 'https://codeload.github.com/Zephyruso/zashboard/zip/refs/heads/gh-pages-cdn-fonts'
+      end
       if !Value.key?('keep-alive-interval') && !Value.key?('keep-alive-idle')
          Value['keep-alive-interval'] = 15
          Value['keep-alive-idle'] = 600
