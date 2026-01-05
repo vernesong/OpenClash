@@ -1650,14 +1650,14 @@ var ConfigUploader = {
             ex_keyword: excludeKeywords,
             de_ex_keyword: excludeDefaults.join(' ')
         }, function(x, data) {
-            if (x && x.status == 200) {
+            if (x && x.status == 200 && data.status === 'success') {
                 XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_config")%>', {
                     filename: filename
                 }, function(x2, data2) {
                     clearInterval(progressInterval);
                     if (x2 && x2.status == 200) {
                         progressFill.style.width = '100%';
-                        if (status.status === 'success') {
+                        if (data2.status === 'success') {
                             progressText.textContent = (this.isEditMode ? '<%:Subscription updated successfully%>' : '<%:Subscription added successfully%>') + ' 100%';
                             statusText.textContent = this.isEditMode ? '<%:Subscription updated successfully%>' : '<%:Subscription added successfully%>';
                             setTimeout(function() {
