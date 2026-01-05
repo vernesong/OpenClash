@@ -471,7 +471,11 @@ threads << Thread.new do
          end
       end
       Value['dns']['listen'] = '0.0.0.0:' + dns_listen_port
-      Value['dns']['respect-rules'] = true if respect_rules
+      if respect_rules
+         Value['dns']['respect-rules'] = true
+      else
+         Value['dns']['respect-rules'] = false
+      end
 
       if enable_sniffer
          sniffer_config = {
