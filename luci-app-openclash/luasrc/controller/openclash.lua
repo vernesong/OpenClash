@@ -1328,7 +1328,7 @@ end
 function action_dashboard_type()
 	local dashboard_type = fs.uci_get_config("config", "dashboard_type") or "Official"
 	local yacd_type = fs.uci_get_config("config", "yacd_type") or "Official"
-	local default_dashboard = fs.uci_get_config("config", "default_dashboard")
+	local default_dashboard = fs.uci_get_config("config", "default_dashboard") or ""
 	if not fs.isdirectory("/usr/share/openclash/ui/" .. default_dashboard) then
 		default_dashboard = ""
 	end

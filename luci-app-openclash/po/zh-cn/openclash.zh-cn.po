@@ -4238,3 +4238,6 @@ msgstr "设为默认"
 
 msgid "Are you sure you want to delete this panel?"
 msgstr "确定要删除此面板吗？"
+
+msgid "Default"
+msgstr "默认"

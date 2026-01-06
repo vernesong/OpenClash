@@ -4234,3 +4234,6 @@ msgstr "Establecer por defecto"
 
 msgid "Are you sure you want to delete this panel?"
 msgstr "¿Estás seguro de que quieres eliminar este panel?"
+
+msgid "Default"
+msgstr "Defecto"
