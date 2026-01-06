@@ -114,6 +114,12 @@ o = s:option(Flag, "disable_ipv6", translate("Disable-IPv6"),translate("Drop The
 o.rmempty = false
 o.default = o.disbled
 
+---- disable-qtype
+o = s:option(DynamicList, "disable_qtype", translate("Disable-Qtype"),translate("Drop The Type of DNS Responsed"))
+o.rmempty = true
+o.datatype = "uinteger"
+o.default = o.disbled
+
 ---- Proxy group
 o = s:option(Value, "specific_group", translate("Specific Group (Support Regex)"))
 o.description = translate("Group Use For Proxy The DNS")

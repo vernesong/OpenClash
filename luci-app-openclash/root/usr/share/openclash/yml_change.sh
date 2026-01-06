@@ -173,10 +173,18 @@ PROXY_GROUPS=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    end
 " 2>/dev/null)
 
+set_disable_qtype()
+{
+   if [ -z "$1" ]; then
+      return
+   fi
+   [ -z "$disable_qtype_param" ] && disable_qtype_param="disable-qtype-$1=true" || disable_qtype_param="$disable_qtype_param&disable-qtype-$1=true"
+}
+
 yml_dns_get()
 {
    local section="$1" regex='^([0-9a-fA-F]{0,4}:){1,7}[0-9a-fA-F]{0,4}$'
-   local enabled port type ip group dns_type dns_address interface specific_group node_resolve http3 ecs_subnet ecs_override
+   local enabled port type ip group dns_type dns_address interface specific_group node_resolve http3 ecs_subnet ecs_override disable_qtype_param
 
    config_get_bool "enabled" "$section" "enabled" "1"
    [ "$enabled" = "0" ] && return
@@ -195,8 +203,9 @@ yml_dns_get()
    config_get_bool "skip_cert_verify" "$section" "skip_cert_verify" "0"
    config_get_bool "ecs_override" "$section" "ecs_override" "0"
    config_get "ecs_subnet" "$section" "ecs_subnet" ""
-   config_get "disable_ipv4" "$section" "disable_ipv4" "0"
-   config_get "disable_ipv6" "$section" "disable_ipv6" "0"
+   config_get_bool "disable_ipv4" "$section" "disable_ipv4" "0"
+   config_get_bool "disable_ipv6" "$section" "disable_ipv6" "0"
+   config_list_foreach "$section" "disable_qtype" set_disable_qtype
 
    if [[ "$ip" =~ "$regex" ]] || [ -n "$(echo "${ip}" | grep -Eo "${regex}")" ]; then
       ip="[${ip}]"
@@ -252,6 +261,7 @@ yml_dns_get()
    append_param "$ecs_override_param"
    append_param "$disable_ipv4_param"
    append_param "$disable_ipv6_param"
+   append_param "$disable_qtype_param"
 
    full_dns_address="$dns_type$dns_address$params"
 

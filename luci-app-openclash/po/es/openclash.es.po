@@ -4237,3 +4237,6 @@ msgstr "¿Estás seguro de que quieres eliminar este panel?"
 
 msgid "Default"
 msgstr "Defecto"
+
+msgid "Disable-Qtype"
+msgstr "Desactivar Qtype"
