@@ -890,6 +890,11 @@ cat >> "$SERVER_FILE" <<-EOF
     max-open-streams: $max_open_streams
 EOF
     fi
+    if [ -n "$skip_cert_verify" ]; then
+cat >> "$SERVER_FILE" <<-EOF
+    skip-cert-verify: $skip_cert_verify
+EOF
+    fi
 fi
 
 #WireGuard
