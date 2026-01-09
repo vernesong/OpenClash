@@ -44,7 +44,7 @@ for t,f in ipairs(fs.glob("/etc/openclash/config/*"))do
 		e[t]={}
 		e[t].name=fs.basename(f)
 		if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
-			
+			o:value(e[t].name)
 		end
 	end
 end
