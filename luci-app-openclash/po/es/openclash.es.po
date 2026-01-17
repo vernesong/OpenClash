@@ -3200,9 +3200,6 @@ msgstr "No se ha obtenido respuesta."
 msgid "Client Fingerprint"
 msgstr "Huella del cliente"
 
-msgid "Change The Client Fingerprint, Only Support TLS Transport in TCP/GRPC/WS/HTTP For Vless/Vmess and Trojan"
-msgstr "Cambiar la huella del cliente. Solo compatible con transporte TLS en TCP/GRPC/WS/HTTP para Vless/Vmess y Trojan."
-
 msgid "Watchdog: Edit Client-fingerprint Failed,"
 msgstr "Watchdog: fallo al modificar la huella del cliente,"
 

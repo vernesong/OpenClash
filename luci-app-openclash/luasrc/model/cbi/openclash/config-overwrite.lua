@@ -314,21 +314,6 @@ o:value("always", translate("Always　"))
 o:value("strict", translate("strict　"))
 o.default = "0"
 
-o = s:taboption("meta", ListValue, "global_client_fingerprint", translate("Client Fingerprint"))
-o.description = translate("Change The Client Fingerprint, Only Support TLS Transport in TCP/GRPC/WS/HTTP For Vless/Vmess and Trojan")
-o:value("0", translate("Disable"))
-o:value("none", translate("None　"))
-o:value("random", translate("Random"))
-o:value("chrome", translate("Chrome"))
-o:value("firefox", translate("Firefox"))
-o:value("safari", translate("Safari"))
-o:value("ios", translate("IOS"))
-o:value("android", translate("Android"))
-o:value("edge", translate("Edge"))
-o:value("360", translate("360"))
-o:value("qq", translate("QQ"))
-o.default = "0"
-
 o = s:taboption("meta", ListValue, "geodata_loader", translate("Geodata Loader Mode"))
 o:value("0", translate("Disable"))
 o:value("memconservative", translate("Memconservative"))

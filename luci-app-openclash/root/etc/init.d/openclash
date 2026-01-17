@@ -3201,7 +3201,6 @@ EOF
    ENABLE_META_SNIFFER_PURE_IP:int_bool \
    ENABLE_TCP_CONCURRENT:int_bool \
    FIND_PROCESS_MODE:string \
-   GLOBAL_CLIENT_FINGERPRINT:string \
    ENABLE_UNIFIED_DELAY:int_bool \
    ENABLE_RULE_PROXY:int_bool \
    ENABLE_CUSTOM_CLASH_RULES:int_bool \
@@ -3564,7 +3563,6 @@ get_config()
    enable_meta_sniffer_pure_ip=$(uci_get_config "enable_meta_sniffer_pure_ip" || echo 0)
    find_process_mode=$(uci_get_config "find_process_mode" || echo 0)
    upnp_lease_file=$(uci -q get upnpd.config.upnp_lease_file)
-   global_client_fingerprint=$(uci_get_config "global_client_fingerprint" || echo 0)
    enable_unified_delay=$(uci_get_config "enable_unified_delay" || echo 0)
    enable_respect_rules=$(uci_get_config "enable_respect_rules" || echo 0)
    intranet_allowed_wan_name=$(uci_get_config "intranet_allowed_wan_name" || echo 0)
@@ -3617,7 +3615,7 @@ start_service()
          "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns"\
          "$store_fakeip" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom"\
          "$interface_name" "$enable_tcp_concurrent" "$core_type" "$append_default_dns" "$enable_meta_sniffer_pure_ip"\
-         "$find_process_mode" "$fakeip_range" "$global_client_fingerprint" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay"\
+         "$find_process_mode" "$fakeip_range" "$ipv6_mode" "$stack_type_v6" "$enable_unified_delay"\
          "$enable_respect_rules" "$custom_fakeip_filter_mode" "$iptables_compat" "$disable_quic_go_gso" "$cors_allow"\
          "$geo_custom_url" "$geoip_custom_url" "$geosite_custom_url" "$geoasn_custom_url"\
          "$lgbm_auto_update" "$lgbm_custom_url" "$lgbm_update_interval" "$smart_collect" "$smart_collect_size" "$fakeip_range6"

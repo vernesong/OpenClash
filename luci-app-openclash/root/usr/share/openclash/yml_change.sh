@@ -356,24 +356,23 @@ add_default_from_dns = '${25}' == '1'
 sniffer_parse_pure_ip = '${26}' == '1'
 find_process_mode = '${27}'
 fake_ip_range = '${28}'
-global_client_fingerprint = '${29}'
-tun_device_setting = '${30}'
-unified_delay = '${32}' == '1'
-respect_rules = '${33}' == '1'
-fake_ip_filter_mode = '${34}'
-routing_mark_setting = '${35}'
-quic_gso = '${36}' == '1'
-cors_origin = '${37}'
-geo_custom_url = '${38}'
-geoip_custom_url = '${39}'
-geosite_custom_url = '${40}'
-geoasn_custom_url = '${41}'
-lgbm_auto_update = '${42}' == '1'
-lgbm_custom_url = '${43}'
-lgbm_update_interval = '${44}'
-smart_collect = '${45}' == '1'
-smart_collect_size = '${46}'
-fake_ip_range6 = '${47}'
+ipv6_mode = '${29}'
+unified_delay = '${31}' == '1'
+respect_rules = '${32}' == '1'
+fake_ip_filter_mode = '${33}'
+routing_mark_setting = '${34}'
+quic_gso = '${35}' == '1'
+cors_origin = '${36}'
+geo_custom_url = '${37}'
+geoip_custom_url = '${38}'
+geosite_custom_url = '${39}'
+geoasn_custom_url = '${40}'
+lgbm_auto_update = '${41}' == '1'
+lgbm_custom_url = '${42}'
+lgbm_update_interval = '${43}'
+smart_collect = '${44}' == '1'
+smart_collect_size = '${45}'
+fake_ip_range6 = '${46}'
 default_dashboard = '$default_dashboard'
 yacd_type = '$yacd_type'
 dashboard_type = '$dashboard_type'
@@ -434,7 +433,6 @@ threads << Thread.new do
       Value['tcp-concurrent'] = true if tcp_concurrent
       Value['unified-delay'] = true if unified_delay
       Value['find-process-mode'] = find_process_mode if find_process_mode != '0'
-      Value['global-client-fingerprint'] = global_client_fingerprint if global_client_fingerprint != '0'
 
       (Value['experimental'] ||= {})['quic-go-disable-gso'] = true if quic_gso
       if cors_origin != '0'
@@ -500,7 +498,7 @@ threads << Thread.new do
          Value['sniffer']['enable'] = false if Value.key?('sniffer')
       end
 
-      if en_mode_tun != '0' || ['2', '3'].include?(tun_device_setting)
+      if en_mode_tun != '0' || ['2', '3'].include?(ipv6_mode)
          Value['tun'] = {
             'enable' => true, 'stack' => stack_type, 'device' => 'utun',
             'dns-hijack' => ['127.0.0.1:53'], 'endpoint-independent-nat' => true,

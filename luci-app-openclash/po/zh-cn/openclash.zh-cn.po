@@ -3201,9 +3201,6 @@ msgstr "结果获取失败！"
 msgid "Client Fingerprint"
 msgstr "客户端指纹"
 
-msgid "Change The Client Fingerprint, Only Support TLS Transport in TCP/GRPC/WS/HTTP For Vless/Vmess and Trojan"
-msgstr "自动修改客户端 TLS 指纹，目前仅支持 Vless/Vmess(TCP/GRPC/WS/HTTP) 和 Trojan"
-
 msgid "Watchdog: Edit Client-fingerprint Failed,"
 msgstr "守护程序：修改 Client-fingerprint 失败，"
 
