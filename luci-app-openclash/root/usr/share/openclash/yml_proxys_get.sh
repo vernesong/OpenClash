@@ -159,6 +159,8 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    uci_commands = [];
    uci_name_tmp_prv = [];
    uci_name_tmp = [];
+   max_threads = 30
+   queue = SizedQueue.new(max_threads)
 
    if not Value.key?('proxy-providers') or Value['proxy-providers'].nil? then
       Value['proxy-providers'] = {};
@@ -170,6 +172,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 
    Value['proxy-providers'].each_with_index do |(x,y), index|
       uci_name_tmp_prv << %x{uci -q add openclash proxy-provider 2>&1}.chomp;
+      queue.push(nil)
       threads_pr << Thread.new {
          begin
             YAML.LOG('Start Getting【${CONFIG_NAME} - ' + y['type'].to_s + ' - ' + x.to_s + '】Proxy-provider Setting...');
@@ -179,8 +182,8 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             if not provider_nums.empty? then
                cmd = 'sed -i \"/^' + provider_nums + '\./c\\#match#\" $match_provider 2>/dev/null';
                system(cmd);
-               uci_set='uci -q set openclash.@proxy-provider[' + provider_nums + '].';
-               uci_add='uci -q add_list openclash.@proxy-provider[' + provider_nums + '].';
+               uci_set='set openclash.@proxy-provider[' + provider_nums + '].';
+               uci_add='add_list openclash.@proxy-provider[' + provider_nums + '].';
                uci_del='uci -q delete openclash.@proxy-provider[' + provider_nums + '].';
                if not provider_nums then
                   uci_commands << uci_set + 'manual=0';
@@ -189,8 +192,8 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                uci_name_tmp_prv[index] = 'uci -q delete openclash.' + uci_name_tmp_prv[index];
             else
                #代理集不存在时添加新代理集
-               uci_set='uci -q set openclash.' + uci_name_tmp_prv[index] + '.';
-               uci_add='uci -q add_list openclash.' + uci_name_tmp_prv[index] + '.';
+               uci_set='set openclash.' + uci_name_tmp_prv[index] + '.';
+               uci_add='add_list openclash.' + uci_name_tmp_prv[index] + '.';
                uci_del='uci -q delete openclash.' + uci_name_tmp_prv[index] + '.';
 
                if '$new_server_add_group'.to_s.strip.empty? and '$servers_if_update' == '1' and '$servers_update' == 1 then
@@ -296,12 +299,15 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             threads_prv.each(&:join);
          rescue Exception => e
             YAML.LOG('Error: Resolve Proxy-providers Failed,【${CONFIG_NAME} - ' + x + ': ' + e.message + '】');
+         ensure
+            queue.pop
          end;
       };
    end;
 
    Value['proxies'].each_with_index do |x, index|
       uci_name_tmp << %x{uci -q add openclash servers 2>&1}.chomp;
+      queue.push(nil)
       threads_pr << Thread.new {
          begin
             YAML.LOG('Start Getting【${CONFIG_NAME} - ' + x['type'].to_s + ' - ' + x['name'].to_s + '】Proxy Setting...');
@@ -312,8 +318,8 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                #更新已有节点
                cmd = 'sed -i \"/^' + server_num + '\./c\\#match#\" $match_servers 2>/dev/null';
                system(cmd);
-               uci_set='uci -q set openclash.@servers[' + server_num + '].';
-               uci_add='uci -q add_list openclash.@servers[' + server_num + '].';
+               uci_set='set openclash.@servers[' + server_num + '].';
+               uci_add='add_list openclash.@servers[' + server_num + '].';
                uci_del='uci -q delete openclash.@servers[' + server_num + '].';
                if not server_num then
                   uci_commands << uci_set + 'manual=0';
@@ -321,8 +327,8 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                uci_name_tmp[index] = 'uci -q delete openclash.' + uci_name_tmp[index];
             else
                #添加新节点
-               uci_set='uci -q set openclash.' + uci_name_tmp[index] + '.';
-               uci_add='uci -q add_list openclash.' + uci_name_tmp[index] + '.';
+               uci_set='set openclash.' + uci_name_tmp[index] + '.';
+               uci_add='add_list openclash.' + uci_name_tmp[index] + '.';
                uci_del='uci -q delete openclash.' + uci_name_tmp[index] + '.';
                if '$new_server_add_group'.to_s.strip.empty? and '$servers_if_update' == '1' and '$servers_update' == 1 then
                   uci_commands << uci_set + 'enabled=0';
@@ -1598,6 +1604,8 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
             threads.each(&:join);
          rescue Exception => e
             YAML.LOG('Error: Resolve Proxies Failed,【${CONFIG_NAME} - '+ x['type'] + ' - ' + x['name'] + ': ' + e.message + '】');
+         ensure
+            queue.pop
          end;
       };
    end;
@@ -1605,7 +1613,9 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    batch_size = 30;
    (0...uci_commands.length).step(batch_size) do |i|
       threads_uci << Thread.new{
-         system(uci_commands[i, batch_size].join('; '));
+         IO.popen('uci -q batch', 'w') do |pipe|
+            uci_commands[i, batch_size].each { |cmd| pipe.puts(cmd) }
+         end
       };
    end;
    threads_uci.each(&:join);
@@ -1620,7 +1630,7 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       end;
    end;
    system('uci -q commit openclash');
-" 2>/dev/null >> $LOG_FILE
+" >> $LOG_FILE
 
 #删除订阅中已不存在的代理集
 if [ "$servers_if_update" = "1" ]; then

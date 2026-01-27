@@ -141,6 +141,8 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    threads_uci = [];
    uci_commands = [];
    uci_name_tmp = [];
+   max_threads = 30
+   queue = SizedQueue.new(max_threads)
 
    if not Value.key?('proxy-groups') or Value['proxy-groups'].nil? then
       proxy-groups = [];
@@ -149,11 +151,12 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 	Value_1 = File.readlines('/tmp/Proxy_Group').map!{|x| x.strip};
    Value['proxy-groups'].each_with_index do |x, index|
       uci_name_tmp << %x{uci -q add openclash groups 2>&1}.chomp
+      queue.push(nil)
       threadsp << Thread.new {
       begin
          next unless x['name'] && x['type'];
-         uci_set='uci -q set openclash.' + uci_name_tmp[index] + '.'
-         uci_add='uci -q add_list openclash.' + uci_name_tmp[index] + '.'
+         uci_set='set openclash.' + uci_name_tmp[index] + '.'
+         uci_add='add_list openclash.' + uci_name_tmp[index] + '.'
 
          YAML.LOG('Start Getting【${CONFIG_NAME} - ' + x['type'].to_s + ' - ' + x['name'].to_s + '】Group Setting...');
 
@@ -253,17 +256,17 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
          };
 
          threads_g << Thread.new {
-             #interface-name
-             if x.key?('interface-name') then
-                uci_commands << uci_set + 'interface_name=\"' + x['interface-name'].to_s + '\"'
-             end
+            #interface-name
+            if x.key?('interface-name') then
+               uci_commands << uci_set + 'interface_name=\"' + x['interface-name'].to_s + '\"'
+            end
           };
 
           threads_g << Thread.new {
-             #routing-mark
-             if x.key?('routing-mark') then
-                uci_commands << uci_set + 'routing_mark=\"' + x['routing-mark'].to_s + '\"'
-             end
+            #routing-mark
+            if x.key?('routing-mark') then
+               uci_commands << uci_set + 'routing_mark=\"' + x['routing-mark'].to_s + '\"'
+            end
           };
 
          threads_g << Thread.new {
@@ -272,22 +275,23 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
                x['proxies'].each{
                |y|
                   if Value_1.include?(y) then
-                     commands = uci_add + 'other_group=\"^' + y.to_s + '$\"'
-                     system(commands)
+                     uci_commands << uci_add + 'other_group=\"^' + y.to_s + '$\"'
                   end
                }
             end
          };
 
          threads_g << Thread.new {
-             #icon
-             if x.key?('icon') then
-                uci_commands << uci_set + 'icon=\"' + x['icon'].to_s + '\"'
-             end
+            #icon
+            if x.key?('icon') then
+               uci_commands << uci_set + 'icon=\"' + x['icon'].to_s + '\"'
+            end
           };
          threads_g.each(&:join);
       rescue Exception => e
          YAML.LOG('Error: Resolve Groups Failed,【${CONFIG_NAME} - ' + x['type'] + ' - ' + x['name'] + ': ' + e.message + '】');
+      ensure
+         queue.pop
       end;
       };
    end;
@@ -295,7 +299,9 @@ ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    batch_size = 30;
    (0...uci_commands.length).step(batch_size) do |i|
       threads_uci << Thread.new{
-         system(uci_commands[i, batch_size].join('; '));
+         IO.popen('uci -q batch', 'w') do |pipe|
+            uci_commands[i, batch_size].each { |cmd| pipe.puts(cmd) }
+         end
       };
    end;
    threads_uci.each(&:join);

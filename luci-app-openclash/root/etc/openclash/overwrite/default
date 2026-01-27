@@ -86,9 +86,9 @@
 
 # --- Smart 相关 ---
 # AUTO_SMART_SWITCH (启用 Smart 自动切换, 0: 插件不覆写, 1: 启用)
-    # SMART_STRATEGY (初始数据收集策略, sticky-sessions or round-robin or default sticky-sessions)
 # SMART_ENABLE_LGBM (启用 LightGBM 模型, 0: 插件不覆写, 1: 启用)
 # SMART_POLICY_PRIORITY (节点权重加成, 正则或字符，格式：Premium:0.9;SG:1.3)
+# SMART_PREFER_ASN (强制查找并使用 ASN 信息, 0: 插件不覆写, 1: 启用)
 # SMART_COLLECT (模型训练数据收集, 0: 插件不覆写, 1: 启用)
     # SMART_COLLECT_SIZE (模型训练数据收集的文件大小, MB, 数值 or default 100)
     # SMART_COLLECT_RATE (模型训练数据收集的采样率, 0-1 or default 1)
@@ -265,7 +265,6 @@ ENABLE_CUSTOM_CLASH_RULES = 1
 
 # --- Smart 相关 ---
 AUTO_SMART_SWITCH = 0
-SMART_STRATEGY = sticky-sessions
 LGBM_AUTO_UPDATE = 1
 LGBM_UPDATE_INTERVAL = 72
 LGBM_CUSTOM_URL = https://github.com/vernesong/mihomo/releases/download/LightGBM-Model/Model.bin
