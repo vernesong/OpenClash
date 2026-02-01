@@ -179,6 +179,10 @@ load_ip_route_pass() {
 }
 
 change_dns() {
+   if ! /etc/init.d/dnsmasq enabled; then
+      return
+   fi
+
    # 区域绕过黑名单
    load_ip_route_pass
 
@@ -216,10 +220,13 @@ change_dns() {
 
    uci -q commit dhcp
    uci -q commit openclash
-   /etc/init.d/dnsmasq enabled && /etc/init.d/dnsmasq restart
+   /etc/init.d/dnsmasq restart
 } >/dev/null 2>&1
 
 revert_dns() {
+   if ! /etc/init.d/dnsmasq enabled; then
+      return
+   fi
 
    rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf
    rm -rf ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf
@@ -249,21 +256,6 @@ revert_dns() {
             uci -q set openclash.config.default_resolvfile=/tmp/resolv.conf.d/resolv.conf.auto
          fi
          uci -q set dhcp.@dnsmasq[0].localuse=1
-         uci -q commit dhcp
-         /etc/init.d/dnsmasq enabled && /etc/init.d/dnsmasq restart
-         masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
-         if [ "$(nslookup www.apple.com 127.0.0.1:${masq_port} >/dev/null 2>&1 || echo $?)" = "1" ]; then
-            uci -q set openclash.config.default_resolvfile="/tmp/resolv.conf.d/resolv.conf.auto"
-            mkdir -p /tmp/resolv.conf.d
-            rm -rf /tmp/resolv.conf.d/resolv.conf.auto
-            touch /tmp/resolv.conf.d/resolv.conf.auto
-            cat >> "/tmp/resolv.conf.d/resolv.conf.auto" <<-EOF
-# Interface lan
-nameserver 119.29.29.29
-nameserver 8.8.8.8
-EOF
-            uci -q set dhcp.@dnsmasq[0].resolvfile="/tmp/resolv.conf.d/resolv.conf.auto"
-         fi
       fi
    }
 
@@ -286,6 +278,38 @@ EOF
 
    uci -q commit dhcp
    uci -q commit openclash
+
+   /etc/init.d/dnsmasq restart
+
+   masq_port=$(uci -q get dhcp.@dnsmasq[0].port)
+   if [ "$(nslookup www.apple.com 127.0.0.1:${masq_port} >/dev/null 2>&1 || echo $?)" = "1" ]; then
+      resolv_file=$(uci -q get dhcp.@dnsmasq[0].resolvfile)
+      wan_dns=$(/usr/share/openclash/openclash_get_network.lua "dns")
+      wan6_dns=$(/usr/share/openclash/openclash_get_network.lua "dns6")
+      mkdir -p "$(dirname "$resolv_file")"
+      touch "$resolv_file"
+      
+      if [ -n "$wan_dns" ]; then
+         echo "# Interface lan" > "$resolv_file"
+         for dns in $wan_dns; do
+            echo "nameserver $dns" >> "$resolv_file"
+         done
+      fi
+      if [ -n "$wan6_dns" ]; then
+         echo "# Interface LAN6" > "$resolv_file"
+         for dns6 in $wan6_dns; do
+            echo "nameserver $dns6" >> "$resolv_file"
+         done
+      fi
+      if [ -z "$wan_dns" ] && [ -z "$wan6_dns" ]; then
+         cat > "$resolv_file" <<-EOF
+# Interface lan
+nameserver 119.29.29.29
+nameserver 8.8.8.8
+EOF
+      fi
+      /etc/init.d/dnsmasq restart
+   fi
 
 } >/dev/null 2>&1
 
@@ -3753,7 +3777,6 @@ revert_dnsmasq()
    dnsmasq_filter_aaaa=$(uci_get_config "dnsmasq_filter_aaaa")
    default_resolvfile=$(uci_get_config "default_resolvfile")
    revert_dns "$redirect_dns" "$enable" "$default_resolvfile" "$dnsmasq_noresolv" "$dnsmasq_resolvfile" "$cachesize_dns" "$dnsmasq_cachesize" "$filter_aaaa_dns" "$dnsmasq_filter_aaaa" "$dnsmasq_server"
-   /etc/init.d/dnsmasq enabled && /etc/init.d/dnsmasq restart
 } >/dev/null 2>&1
 
 restart()
