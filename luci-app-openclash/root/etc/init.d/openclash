@@ -482,12 +482,12 @@ check_run_quick()
 
 write_run_quick()
 {
-   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") $(ls -d /etc/openclash/custom/*) $(ls -d /etc/openclash/overwrite/*) /usr/share/openclash/res/lhie1.yaml"
+   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") $(echo $CONFIG_FILE | tr " " "?") $(ls -d /etc/openclash/custom/*) $(ls -d /etc/openclash/overwrite/*) /usr/share/openclash/res/lhie1.yaml"
    cmp -s "/etc/config/openclash" "/tmp/openclash_config.tmp"
 	 if [ "$?" -ne "0" ]; then
 	    cp "/etc/config/openclash" "/tmp/openclash_config.tmp"
 	 fi
-	 if ! $quick_start; then
+	 if [ "$quick_start" != "true" ]; then
 	    : > "/tmp/openclash.change"
 	    for i in $check_file; do
          echo "$i $(date -r "$i")" >> "/tmp/openclash.change"
@@ -812,7 +812,7 @@ start_run_core()
    ulimit -v unlimited
    ulimit -u unlimited
 
-   if ! $quick_start; then
+   if [ "$quick_start" != "true" ]; then
       mv "$TMP_CONFIG_FILE" "$CONFIG_FILE"
       rm -rf "$TMP_CONFIG_FILE"
    fi
@@ -3619,10 +3619,16 @@ start_service()
    enable=$(uci_get_config "enable")
    [ "$enable" != "1" ] && LOG_OUT "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && exit 0
 
+   if pidof clash >/dev/null 2>&1; then
+      stop
+   fi
+
    LOG_OUT "Tip: OpenClash Start Running..."
 
    {
       LOG_OUT "Step 1: Get The Configuration..."
+      # Check instead of restart
+      check_run_quick
       overwrite_file
       get_config
       config_choose
@@ -3631,7 +3637,7 @@ start_service()
       LOG_OUT "Step 2: Check The Components..."
       do_run_file "$RAW_CONFIG_FILE" "$BACKUP_FILE"
 
-      if ! $quick_start; then
+      if [ "$quick_start" != "true" ]; then
          LOG_OUT "Step 3: Modify The Config File..."
          config_check
          /usr/share/openclash/yml_change.sh \
@@ -3729,9 +3735,7 @@ stop_service()
       done
 
       LOG_OUT "Step 4: Close The Clash Core Process..."
-      if [ "$enable" != "1" ]; then
-         kill_clash
-      fi
+      kill_clash
 
       LOG_OUT "Step 5: Restart Dnsmasq..."
       revert_dnsmasq

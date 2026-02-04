@@ -589,6 +589,7 @@ threads << Thread.new do
    end
 end
 
+# proxy-server-nameserver
 threads << Thread.new do
    begin
       if enable_custom_dns
@@ -599,7 +600,10 @@ threads << Thread.new do
    rescue Exception => e
       YAML.LOG('Error: Set proxy-server-nameserver Failed,【%s】' % [e.message])
    end
+end
 
+# direct-nameserver
+threads << Thread.new do
    begin
       if enable_custom_dns
          if (directdns = safe_load_yaml('/tmp/yaml_config.directnamedns.yaml')) && directdns['direct-nameserver']
@@ -759,9 +763,14 @@ begin
    end
 
    # proxy-server-nameserver
-   local_exclude = (%x{ls -l /sys/class/net/ |awk '{print \$9}'  2>&1}.each_line.map(&:strip) + ['h3=', 'skip-cert-verify=', 'ecs=', 'ecs-override=', 'disable-ipv6=', 'disable-ipv4='] + ['utun', 'tailscale0', 'docker0', 'tun163', 'br-lan', 'mihomo']).uniq.join('|')
+   local_exclude = (%x{ls -l /sys/class/net/ |awk '{print \$9}'  2>&1}.each_line.map(&:strip) + ['h3=', 'skip-cert-verify=', 'ecs=', 'ecs-override=', 'disable-ipv6=', 'disable-ipv4=', 'disable-qtype-'] + ['utun', 'tailscale0', 'docker0', 'tun163', 'br-lan', 'mihomo']).uniq.join('|')
+   non_domain_reg = /^dhcp:\/\/|^system($|:\/\/)|([0-9a-zA-Z-]{1,}\.)+([a-zA-Z]{2,})/
    proxied_server_reg = /^[^#&]+#(?:(?:#{local_exclude})[^&]*&)*(?:(?!(?:#{local_exclude}))[^&]+)/
-   default_proxy_servers = ['114.114.114.114', '119.29.29.29', '8.8.8.8', '1.1.1.1']
+   servers_to_check = Value.dig('dns', 'nameserver').to_a | Value.dig('dns', 'fallback').to_a | Value.dig('dns', 'default-nameserver').to_a
+   default_proxy_servers = servers_to_check.reject { |s| s.match?(non_domain_reg) }
+   if ! default_proxy_servers.any? || default_proxy_servers.all? { |x| x.match?(proxied_server_reg) }
+      default_proxy_servers = ['114.114.114.114', '119.29.29.29', '8.8.8.8', '1.1.1.1']
+   end
    proxy_server_nameserver_policy = Value.dig('dns', 'proxy-server-nameserver-policy') && !Value['dns']['proxy-server-nameserver-policy'].empty?
 
    if Value.dig('dns', 'proxy-server-nameserver').to_a.empty?
@@ -769,18 +778,18 @@ begin
       if respect_rules || Value.dig('dns', 'respect-rules').to_s == 'true' || all_ns_proxied || proxy_server_nameserver_policy
          Value['dns']['proxy-server-nameserver'] = default_proxy_servers
          if all_ns_proxied
-            YAML.LOG('Tip: Nameserver Option Maybe All Setted The Proxy Option, Auto Set Proxy-server-nameserver Option to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】For Avoiding Proxies Server Resolve Loop...')
+            YAML.LOG('Tip: Nameserver Option Maybe All Setted The Proxy Option, Auto Set Proxy-server-nameserver Option to【%s】For Avoiding Proxies Server Resolve Loop...' % [default_proxy_servers.join(', ')])
          elsif proxy_server_nameserver_policy
-            YAML.LOG('Tip:【Proxy-server-nameserver-policy】Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】')
+            YAML.LOG('Tip:【Proxy-server-nameserver-policy】Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【%s】' % [default_proxy_servers.join(', ')])
          else
-            YAML.LOG('Tip:【Respect-rules】Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】')
+            YAML.LOG('Tip:【Respect-rules】Need Proxy-server-nameserver Option Must Be Setted, Auto Set to【%s】' % [default_proxy_servers.join(', ')])
          end
       end
    else
       all_psn_proxied = Value.dig('dns', 'proxy-server-nameserver').to_a.all? { |x| x.match?(proxied_server_reg) }
       if all_psn_proxied
          (Value['dns']['proxy-server-nameserver'] ||= []).concat(default_proxy_servers).uniq!
-         YAML.LOG('Tip: Proxy-server-nameserver Option Maybe All Setted The Proxy Option, Auto Set Proxy-server-nameserver Option to【114.114.114.114, 119.29.29.29, 8.8.8.8, 1.1.1.1】For Avoiding Proxies Server Resolve Loop...')
+         YAML.LOG('Tip: Proxy-server-nameserver Option Maybe All Setted The Proxy Option, Auto Set Proxy-server-nameserver Option to【%s】For Avoiding Proxies Server Resolve Loop...' % [default_proxy_servers.join(', ')])
       end
    end
 
