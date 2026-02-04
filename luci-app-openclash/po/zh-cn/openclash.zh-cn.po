@@ -3403,7 +3403,7 @@ msgid "Override the ECS Subnet Address"
 msgstr "强制覆盖 DNS 查询的子网区域地址"
 
 msgid "Need Proxy-server-nameserver Option Must Be Setted, Auto Set to"
-msgstr "配置时 Proxy-server-nameserver 必须配置，插件将默认将其设置为"
+msgstr "启用时 Proxy-server-nameserver 必须配置，插件将默认将其设置为"
 
 msgid "Tip: Nameserver Option Maybe All Setted The Proxy Option, Auto Set Proxy-server-nameserver Option to"
 msgstr "提示：Nameserver 选项可能全部设置了代理选项，插件已自动设置 Proxy-server-nameserver 选项为"

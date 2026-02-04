@@ -27,7 +27,7 @@ dashboard_type=$(uci_get_config "dashboard_type" || echo "Official")
 
 en_mode_tun=${11:-0}
 if [ -z "${12}" ]; then
-   stack_type=${31:-"system"}
+   stack_type=${30:-"system"}
 else
    stack_type=${12}
 fi

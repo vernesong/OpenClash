@@ -117,7 +117,7 @@ define Package/$(PKG_NAME)/prerm
 	if [ -f "/etc/config/openclash" ] && [ ! -f "/tmp/openclash.bak" ]; then
 		cp -f "/etc/config/openclash" "/tmp/openclash.bak" >/dev/null 2>&1
 		cp -rf "/etc/openclash" "/tmp/openclash" >/dev/null 2>&1
-		cp -rf "/usr/share/openclash/ui/yacd" "/tmp/openclash_ui" >/dev/null 2>&1
+		cp -rf "/usr/share/openclash/ui" "/tmp/openclash_ui" >/dev/null 2>&1
 		cp -rf "/www/luci-static/resources/openclash/pac" "/tmp/pac" >/dev/null 2>&1
 	fi
 	exit 0
