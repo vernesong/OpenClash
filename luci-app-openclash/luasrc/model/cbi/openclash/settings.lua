@@ -216,7 +216,7 @@ mac_w:depends("lan_ac_mode", "1")
 
 o = s:taboption("lan_ac", DynamicList, "wan_ac_black_ips", translate("WAN Bypassed Host List"))
 o.datatype = "ipmask"
-o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported")
+o.description = translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported, Please Setting Fake-IP-Filter First If You Need Domain Type Requests")
 
 s2 = m:section(TypedSection, "lan_ac_traffic", translate("Lan Traffic Access List"),
 	"1. "..translate("The Traffic From The Local Specified Port Will Not Pass The Core, Try To Set When The Bypass Gateway Forwarding Fails").."; ".."2. "..translate("In The Fake-IP Mode, Only Pure IP Requests Are Supported, Please Setting Fake-IP-Filter First If You Need Domain Type Requests"))

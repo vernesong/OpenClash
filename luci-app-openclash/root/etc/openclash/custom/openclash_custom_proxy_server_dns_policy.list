@@ -1,0 +1,5 @@
+#'www.yournode.com': '114.114.114.114'
+#'+.yournode.com': '10.0.0.1'
+#"yournode.com": '127.0.0.1:53'
+#"geosite:cn": [https://doh.pub/dns-query, 114.114.114.114, 223.5.5.5]
+#"geosite:geolocation-!cn": [https://dns.cloudflare.com/dns-query#skip-cert-verify=true,https://dns.google/dns-query#ecs=1.1.1.1/24&ecs-override=true&skip-cert-verify=true]

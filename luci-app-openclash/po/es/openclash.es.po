@@ -3401,8 +3401,8 @@ msgstr "Forzar ECS"
 msgid "Override the ECS Subnet Address"
 msgstr "Sobrescribir la subred ECS en consultas DNS"
 
-msgid "Tip: Respect-rules Option Need Proxy-server-nameserver Option Must Be Setted, Auto Set to"
-msgstr "Tip: para usar Respect-rules, proxy-server-nameserver debe estar configurado. Se ajustará automáticamente a"
+msgid "Need Proxy-server-nameserver Option Must Be Setted, Auto Set to"
+msgstr "necesidad proxy-server-nameserver debe estar configurado. Se ajustará automáticamente a"
 
 msgid "Tip: Nameserver Option Maybe All Setted The Proxy Option, Auto Set Proxy-server-nameserver Option to"
 msgstr "Tip: los servidores nameserver podrían estar todos usando proxy. Se ajustará automáticamente proxy-server-nameserver a"

@@ -404,6 +404,7 @@ var myEditor_fake_filter = document.getElementById("cbid.openclash.config.custom
 var myEditor_custom_domain_dns = document.getElementById("cbid.openclash.config.custom_domain_dns");
 var myEditor_edit_file = document.getElementById("cbid.openclash.config.edit_file");
 var myEditor_custom_sniffer = document.getElementById("cbid.openclash.config.sniffer_custom");
+var myEditor_proxy_name_pol = document.getElementById("cbid.openclash.config.custom_proxy_server_dns_policy");
 
 if (myEditor_hosts) {
 	editor(myEditor_hosts, 'false', '100%', '300px');
@@ -419,6 +420,10 @@ if (myEditor_fall_fil) {
 
 if (myEditor_name_pol) {
 	editor(myEditor_name_pol, 'false', '100%', '300px');
+};
+
+if (myEditor_proxy_name_pol) {
+	editor(myEditor_proxy_name_pol, 'false', '100%', '300px');
 };
 
 if (myEditor_name_cus_r1) {

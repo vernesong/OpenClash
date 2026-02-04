@@ -274,6 +274,29 @@ function custom_domain_dns_policy.write(self, section, value)
 	end
 end
 
+o = s:taboption("dns", Flag, "custom_proxy_server_policy", translate("Proxy-Server-Nameserver-Policy"))
+o.default = 0
+
+custom_proxy_server_dns_policy = s:taboption("dns", Value, "custom_proxy_server_dns_policy")
+custom_proxy_server_dns_policy.template = "cbi/tvalue"
+custom_proxy_server_dns_policy.description = translate("Domain Names In The List Use The Custom DNS Server, But Still Return Fake-IP Results, One rule per line")
+custom_proxy_server_dns_policy.rows = 20
+custom_proxy_server_dns_policy.wrap = "off"
+custom_proxy_server_dns_policy:depends("custom_proxy_server_policy", "1")
+
+function custom_proxy_server_dns_policy.cfgvalue(self, section)
+	return NXFS.readfile("/etc/openclash/custom/openclash_custom_proxy_server_dns_policy.list") or ""
+end
+function custom_proxy_server_dns_policy.write(self, section, value)
+	if value then
+		value = value:gsub("\r\n?", "\n")
+		local old_value = NXFS.readfile("/etc/openclash/custom/openclash_custom_proxy_server_dns_policy.list")
+		if value ~= old_value then
+			NXFS.writefile("/etc/openclash/custom/openclash_custom_proxy_server_dns_policy.list", value)
+		end
+	end
+end
+
 o = s:taboption("dns", Flag, "custom_host", translate("Hosts"))
 o.default = 0
 
