@@ -39,9 +39,10 @@ inc_job_counter() {
    exec 999>"/tmp/lock/openclash_jobs.lock"
    flock -x 999
    local cnt=0
-   [ -f "$JOB_COUNTER_FILE" ] && cnt=$(cat "$JOB_COUNTER_FILE")
+   local restart=0
+   [ -f "$JOB_COUNTER_FILE" ] && cnt=$(cat "$JOB_COUNTER_FILE" | awk '{print $1}') && restart=$(cat "$JOB_COUNTER_FILE" | awk '{print $2}')
    cnt=$((cnt+1))
-   echo "$cnt" > "$JOB_COUNTER_FILE"
+   echo "$cnt $restart" > "$JOB_COUNTER_FILE"
    flock -u 999
 }
 
@@ -50,23 +51,19 @@ dec_job_counter_and_restart() {
    exec 999>"/tmp/lock/openclash_jobs.lock"
    flock -x 999
    local cnt=0
-   [ -f "$JOB_COUNTER_FILE" ] && cnt=$(cat "$JOB_COUNTER_FILE")
+   local restart=0
+   [ -f "$JOB_COUNTER_FILE" ] && cnt=$(cat "$JOB_COUNTER_FILE" | awk '{print $1}') && restart=$(cat "$JOB_COUNTER_FILE" | awk '{print $2}')
    cnt=$((cnt-1))
    [ $cnt -lt 0 ] && cnt=0
 
-   echo "$cnt" > "$JOB_COUNTER_FILE"
-
    if [ "$restart_flag" -eq 1 ]; then
-      uci -q set openclash.config.restart=1
-      uci -q commit openclash
+      restart=1
    fi
 
-   if [ $cnt -eq 0 ]; then
-      if [ "$(uci_get_config "restart")" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
-         /etc/init.d/openclash restart >/dev/null 2>&1 &
-         uci -q set openclash.config.restart=0
-         uci -q commit openclash
-      fi
+   echo "$cnt $restart" > "$JOB_COUNTER_FILE"
+
+   if [ $cnt -eq 0 ] && [ "$restart" -eq 1 ] && [ "$(unify_ps_prevent)" -eq 0 ]; then
+      /etc/init.d/openclash restart >/dev/null 2>&1 &
       rm -rf "$JOB_COUNTER_FILE" >/dev/null 2>&1
    fi
 

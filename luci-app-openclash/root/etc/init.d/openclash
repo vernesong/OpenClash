@@ -747,7 +747,6 @@ check_core_status()
          while ( [ -n "$(pidof clash)" ] && [ -z "$($ip_ route list |grep utun)" ] && [ "$TUN_RESTART" -le 3 ] )
          do
             LOG_OUT "Warning: TUN Interface Start Failed, Try to Restart Again..."
-            kill_clash
             start_run_core
             sleep 120
             let TUN_RESTART++
@@ -3619,8 +3618,9 @@ start_service()
    enable=$(uci_get_config "enable")
    [ "$enable" != "1" ] && LOG_OUT "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && exit 0
 
-   if pidof clash >/dev/null 2>&1; then
-      stop
+   if /etc/init.d/openclash status >/dev/null 2>&1; then
+      echo "OpenClash Already Running, Exit!"
+      exit 0
    fi
 
    LOG_OUT "Tip: OpenClash Start Running..."

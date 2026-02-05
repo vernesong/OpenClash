@@ -504,8 +504,8 @@ sub_info_get()
          LOG_OUT "Config File Format Validation Failed, Trying To Download Without Agent..."
          config_download_direct
       elif ! "$(ruby_read "$CFG_FILE" ".key?('proxies')")" && ! "$(ruby_read "$CFG_FILE" ".key?('proxy-providers')")" ; then
-            LOG_OUT "Error: Updated Config【$name】Has No Proxy Field, Trying To Download Without Agent..."
-            config_download_direct
+         LOG_OUT "Error: Updated Config【$name】Has No Proxy Field, Trying To Download Without Agent..."
+         config_download_direct
       else
          config_su_check
       fi
