@@ -2230,9 +2230,8 @@ if [ -n "$FW4" ]; then
 
    #icmp
    if [ "$en_mode" = "fake-ip" ]; then
-      nft insert rule inet fw4 input position 0 ip protocol icmp icmp type echo-request ip daddr { $fakeip_range } counter reject comment \"OpenClash ICMP INPUT REJECT\"
-      nft insert rule inet fw4 forward position 0 ip protocol icmp icmp type echo-request ip daddr { $fakeip_range } counter reject comment \"OpenClash ICMP FORWARD REJECT\"
-      nft insert rule inet fw4 output position 0 ip protocol icmp icmp type echo-request ip daddr { $fakeip_range } $noowner counter reject comment \"OpenClash ICMP OUTPUT REJECT\"
+      nft insert rule inet fw4 raw_prerouting position 0 ip protocol icmp icmp type echo-request ip daddr { $fakeip_range } counter reject with icmp admin-prohibited comment \"OpenClash ICMP INPUT REJECT\"
+      nft insert rule inet fw4 output position 0 ip protocol icmp icmp type echo-request ip daddr { $fakeip_range } $noowner counter reject with icmp admin-prohibited comment \"OpenClash ICMP OUTPUT REJECT\"
    fi
 fi
 
@@ -3010,8 +3009,7 @@ if [ -z "$FW4" ]; then
 
    #icmp
    if [ "$en_mode" = "fake-ip" ]; then
-      iptables -t filter -I INPUT   -p icmp --icmp-type echo-request -d "$fakeip_range" -j REJECT --reject-with icmp-admin-prohibited -m comment --comment "OpenClash ICMP INPUT REJECT"
-      iptables -t filter -I FORWARD -p icmp --icmp-type echo-request -d "$fakeip_range" -j REJECT --reject-with icmp-admin-prohibited -m comment --comment "OpenClash ICMP FORWARD REJECT"
+      iptables -t raw -I PREROUTING -p icmp --icmp-type echo-request -d "$fakeip_range" -j REJECT --reject-with icmp-admin-prohibited -m comment --comment "OpenClash ICMP INPUT REJECT"
       iptables -t filter -I OUTPUT  -p icmp --icmp-type echo-request -d "$fakeip_range" $noowner -j REJECT --reject-with icmp-admin-prohibited -m comment --comment "OpenClash ICMP OUTPUT REJECT"
    fi
 fi
