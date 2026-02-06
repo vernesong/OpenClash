@@ -137,7 +137,6 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /tmp/openclash.log >/dev/null 2>&1
 	rm -rf /tmp/openclash_start.log >/dev/null 2>&1
 	rm -rf /tmp/openclash_last_version >/dev/null 2>&1
-	rm -rf /tmp/openclash_config.tmp >/dev/null 2>&1
 	rm -rf /tmp/openclash.change >/dev/null 2>&1
 	rm -rf /tmp/Proxy_Group >/dev/null 2>&1
 	rm -rf /tmp/rules_name >/dev/null 2>&1

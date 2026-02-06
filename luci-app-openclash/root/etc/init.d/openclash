@@ -29,6 +29,7 @@ START_LOG="/tmp/openclash_start.log"
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
 QUICK_START_CHECK=false
+QUICK_START=true
 
 add_cron()
 {
@@ -456,43 +457,36 @@ check_run_quick()
    fi
 
    QUICK_START_CHECK=true
-   quick_start=true
-   check_file="$(cat /tmp/openclash.change 2>/dev/null |awk '{print $1}')"
-   if [ -z "$check_file" ] || [ ! -f "/tmp/openclash_config.tmp" ]; then
-      quick_start=false
-      return
-   fi
-   cmp -s "/etc/config/openclash" "/tmp/openclash_config.tmp"
-   if [ "$?" -ne "0" ]; then
-      LOG_OUT "Tip: Because of the file【 /etc/config/openclash 】modificated, Pause quick start..."
-      quick_start=false
-   else
-      if [ -s "/tmp/openclash.change" ]; then
-         for i in $check_file; do
-            if [ -z "$(grep "$i $(date -r "$i")$" "/tmp/openclash.change")" ]; then
-               LOG_OUT "Tip: Because of the file【 $i 】modificated, Pause quick start..."
-               quick_start=false
-               break
-            fi
-         done
-      fi
-   fi
 
+   cat "/tmp/openclash.change" | while read -r i; do
+      file_path=$(echo "$i" |awk -F ' #edited time# ' '{print $1}')
+      if [ -z "$(grep "$file_path #edited time# $(date -r "$file_path")$" "/tmp/openclash.change")" ]; then
+         LOG_OUT "Tip: Because of the file【 $file_path 】modificated, Pause quick start..."
+         rm -rf /tmp/openclash.change
+         break
+      fi
+   done
+
+   if [ ! -f "/tmp/openclash.change" ]; then
+      QUICK_START=false
+   fi
 } >/dev/null 2>&1
 
 write_run_quick()
 {
-   check_file="$(echo $RAW_CONFIG_FILE | tr " " "?") $(echo $CONFIG_FILE | tr " " "?") $(ls -d /etc/openclash/custom/*) $(ls -d /etc/openclash/overwrite/*) /usr/share/openclash/res/lhie1.yaml"
-   cmp -s "/etc/config/openclash" "/tmp/openclash_config.tmp"
-	 if [ "$?" -ne "0" ]; then
-	    cp "/etc/config/openclash" "/tmp/openclash_config.tmp"
-	 fi
-	 if [ "$quick_start" != "true" ]; then
-	    : > "/tmp/openclash.change"
-	    for i in $check_file; do
-         echo "$i $(date -r "$i")" >> "/tmp/openclash.change"
+   if ! $QUICK_START; then
+      : > "/tmp/openclash.change"
+      {
+         echo "/etc/config/openclash"
+         echo "$RAW_CONFIG_FILE"
+         echo "$CONFIG_FILE"
+         ls -d /etc/openclash/custom/* 2>/dev/null
+         ls -d /etc/openclash/overwrite/* 2>/dev/null
+         echo "/usr/share/openclash/res/lhie1.yaml"
+      } | while read -r file; do
+         echo "$file #edited time# $(date -r "$file")" >> "/tmp/openclash.change"
       done
-	 fi
+   fi
 } >/dev/null 2>&1
 
 #运行模式处理
@@ -811,7 +805,7 @@ start_run_core()
    ulimit -v unlimited
    ulimit -u unlimited
 
-   if [ "$quick_start" != "true" ]; then
+   if ! $QUICK_START; then
       mv "$TMP_CONFIG_FILE" "$CONFIG_FILE"
       rm -rf "$TMP_CONFIG_FILE"
    fi
@@ -3635,7 +3629,7 @@ start_service()
       LOG_OUT "Step 2: Check The Components..."
       do_run_file "$RAW_CONFIG_FILE" "$BACKUP_FILE"
 
-      if [ "$quick_start" != "true" ]; then
+      if ! $QUICK_START; then
          LOG_OUT "Step 3: Modify The Config File..."
          config_check
          /usr/share/openclash/yml_change.sh \
@@ -3747,7 +3741,6 @@ stop_service()
                 /tmp/rules_name \
                 /tmp/rule_providers_name \
                 /tmp/openclash_last_version \
-                /tmp/openclash_config.tmp \
                 /tmp/openclash.change \
                 /tmp/openclash_debug.log \
                 /tmp/openclash_edit_file_name \
