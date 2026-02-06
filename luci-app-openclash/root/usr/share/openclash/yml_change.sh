@@ -505,7 +505,7 @@ threads << Thread.new do
             'enable' => true, 'stack' => stack_type, 'device' => 'utun',
             'dns-hijack' => ['127.0.0.1:53'], 'endpoint-independent-nat' => true,
             'auto-route' => false, 'auto-detect-interface' => false,
-            'auto-redirect' => false, 'strict-route' => false
+            'auto-redirect' => false, 'strict-route' => false, 'disable-icmp-forwarding' => false
          }
          Value['tun'].delete('iproute2-table-index')
       else
