@@ -474,19 +474,17 @@ check_run_quick()
 
 write_run_quick()
 {
-   if ! $QUICK_START; then
-      : > "/tmp/openclash.change"
-      {
-         echo "/etc/config/openclash"
-         echo "$RAW_CONFIG_FILE"
-         echo "$CONFIG_FILE"
-         ls -d /etc/openclash/custom/* 2>/dev/null
-         ls -d /etc/openclash/overwrite/* 2>/dev/null
-         echo "/usr/share/openclash/res/lhie1.yaml"
-      } | while read -r file; do
-         echo "$file #edited time# $(date -r "$file")" >> "/tmp/openclash.change"
-      done
-   fi
+   : > "/tmp/openclash.change"
+   {
+      echo "/etc/config/openclash"
+      echo "$RAW_CONFIG_FILE"
+      echo "$CONFIG_FILE"
+      ls -d /etc/openclash/custom/* 2>/dev/null
+      ls -d /etc/openclash/overwrite/* 2>/dev/null
+      echo "/usr/share/openclash/res/lhie1.yaml"
+   } | while read -r file; do
+      echo "$file #edited time# $(date -r "$file")" >> "/tmp/openclash.change"
+   done
 } >/dev/null 2>&1
 
 #运行模式处理
@@ -3610,11 +3608,6 @@ start_service()
    enable=$(uci_get_config "enable")
    [ "$enable" != "1" ] && LOG_OUT "Warning: OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && exit 0
 
-   if /etc/init.d/openclash status >/dev/null 2>&1; then
-      echo "OpenClash Already Running, Exit!"
-      exit 0
-   fi
-
    LOG_OUT "Tip: OpenClash Start Running..."
 
    {
@@ -3837,7 +3830,8 @@ reload_service()
    if pidof clash >/dev/null && [ "$enable" == "1" ] && [ "$1" == "restore" ]; then
       do_run_mode
       get_config
-      check_core_status &
+      # used for config subscribe, not background for avoiding system unready
+      check_core_status
    fi
 } >/dev/null 2>&1
 
