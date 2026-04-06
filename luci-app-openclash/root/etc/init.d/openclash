@@ -29,6 +29,8 @@ LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
+DEFAULT_FAKEIP_RANGE6="2001:2::1/64"
+LEGACY_FAKEIP_RANGE6="fdfe:dcba:9876::1/64"
 QUICK_START_CHECK=false
 QUICK_START=true
 
@@ -1431,7 +1433,9 @@ cat > "/var/etc/openclash.include" <<-EOF
 EOF
 
 #common ports
+common_ports_enable=0
 if [ -n "$common_ports" ] && [ "$common_ports" != "0" ]; then
+   common_ports_enable=1
    if [ "$common_ports" = "1" ]; then
       common_port="21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 5222 5228 5229 5230 8080 8443 8880 8888 8889"
    else
@@ -1560,7 +1564,7 @@ if [ -n "$FW4" ]; then
    fi
 
    #common ports
-   if [ -n "$common_ports" ] && [ "$common_ports" != "0" ]; then
+   if [ "$common_ports_enable" -eq 1 ]; then
       nft 'add set inet fw4 common_ports { type inet_service; flags interval; }'
       for i in $common_port; do
          nft add element inet fw4 common_ports { "$i" }
@@ -1658,6 +1662,9 @@ if [ -n "$FW4" ]; then
       nft 'flush chain inet fw4 openclash'
       nft 'add rule inet fw4 openclash ip daddr @localnetwork counter return'
       nft 'add rule inet fw4 openclash ct direction reply counter return'
+      if [ "$common_ports_enable" -eq 1 ]; then
+         nft 'add rule inet fw4 openclash th dport != @common_ports counter return'
+      fi
       nft add rule inet fw4 openclash ip protocol tcp ip daddr { "$fakeip_range" } counter redirect to "$proxy_port"
       nft 'add rule inet fw4 openclash ip daddr @wan_ac_black_ips counter return'
       nft 'add rule inet fw4 openclash th dport @wan_ac_black_ports counter return'
@@ -1670,9 +1677,6 @@ if [ -n "$FW4" ]; then
          nft 'add rule inet fw4 openclash ip saddr != @lan_ac_white_ips counter return'
       fi
 
-      if [ "$en_mode" = "redir-host" ]; then
-         nft 'add rule inet fw4 openclash th dport != @common_ports counter return'
-      fi
       if [ "$china_ip_route" != "0" ]; then
          if [ "$china_ip_route" = "1" ]; then
             rule="ip daddr @china_ip_route"
@@ -1699,6 +1703,9 @@ if [ -n "$FW4" ]; then
             upnp_exclude
             nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return'
             nft 'add rule inet fw4 openclash_mangle ct direction reply counter return'
+            if [ "$common_ports_enable" -eq 1 ]; then
+               nft 'add rule inet fw4 openclash_mangle th dport != @common_ports counter return'
+            fi
             if [ "$en_mode" = "fake-ip" ]; then
                nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
             fi
@@ -1713,9 +1720,6 @@ if [ -n "$FW4" ]; then
                nft 'add rule inet fw4 openclash_mangle ip saddr != @lan_ac_white_ips counter return'
             fi
 
-            if [ "$en_mode" = "redir-host" ]; then
-               nft 'add rule inet fw4 openclash_mangle th dport != @common_ports counter return'
-            fi
             if [ "$china_ip_route" != "0" ]; then
                if [ "$china_ip_route" = "1" ]; then
                   rule="ip daddr @china_ip_route"
@@ -1730,28 +1734,31 @@ if [ -n "$FW4" ]; then
             nft add rule inet fw4 openclash_mangle meta l4proto { udp } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
             nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
          fi
-         if [ "$enable_udp_proxy" -ne 1 ] && [ "$en_mode" = "fake-ip" ]; then
-            check_mod "nft_tproxy"
-            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
-            ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
-            nft 'add chain inet fw4 openclash_mangle'
-            nft 'flush chain inet fw4 openclash_mangle'
-            nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
-            nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
-         fi
+        if [ "$enable_udp_proxy" -ne 1 ] && [ "$en_mode" = "fake-ip" ]; then
+           check_mod "nft_tproxy"
+           ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+           ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+           nft 'add chain inet fw4 openclash_mangle'
+           nft 'flush chain inet fw4 openclash_mangle'
+           if [ "$common_ports_enable" -eq 1 ]; then
+              nft 'add rule inet fw4 openclash_mangle th dport != @common_ports counter return'
+           fi
+           nft add rule inet fw4 openclash_mangle meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" tproxy ip to 127.0.0.1:"$tproxy_port" counter accept
+           nft 'add rule inet fw4 mangle_prerouting meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle'
+        fi
 
          #router self proxy udp
          if ([ "$router_self_proxy" = "1" ] && [ "$enable_udp_proxy" -eq 1 ]) || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
-            nft 'add chain inet fw4 openclash_mangle_output'
-            nft 'flush chain inet fw4 openclash_mangle_output'
-            nft 'add rule inet fw4 openclash_mangle_output skgid == 65534 counter return'
-            nft 'add rule inet fw4 openclash_mangle_output ip daddr @localnetwork counter return'
-            nft 'add rule inet fw4 openclash_mangle_output ct direction reply counter return'
-            nft 'add rule inet fw4 openclash_mangle_output ip daddr @wan_ac_black_ips counter return'
-            nft 'add rule inet fw4 openclash_mangle_output th dport @wan_ac_black_ports counter return'
-            if [ "$en_mode" = "redir-host" ]; then
+           nft 'add chain inet fw4 openclash_mangle_output'
+           nft 'flush chain inet fw4 openclash_mangle_output'
+           nft 'add rule inet fw4 openclash_mangle_output skgid == 65534 counter return'
+           nft 'add rule inet fw4 openclash_mangle_output ip daddr @localnetwork counter return'
+           nft 'add rule inet fw4 openclash_mangle_output ct direction reply counter return'
+            if [ "$common_ports_enable" -eq 1 ]; then
                nft add rule inet fw4 openclash_mangle_output th dport != @common_ports counter return
             fi
+            nft 'add rule inet fw4 openclash_mangle_output ip daddr @wan_ac_black_ips counter return'
+            nft 'add rule inet fw4 openclash_mangle_output th dport @wan_ac_black_ports counter return'
             if [ "$en_mode" = "fake-ip" ]; then
                nft add rule inet fw4 openclash_mangle_output meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" counter accept
             fi
@@ -1787,15 +1794,15 @@ if [ -n "$FW4" ]; then
          nft 'add rule inet fw4 openclash_output skgid == 65534 counter return'
          nft 'add rule inet fw4 openclash_output ip daddr @localnetwork counter return'
          nft 'add rule inet fw4 openclash_output ct direction reply counter return'
+         if [ "$common_ports_enable" -eq 1 ]; then
+            nft add rule inet fw4 openclash_output th dport != @common_ports counter return
+         fi
          if [ "$en_mode" = "fake-ip" ] && [ "$en_mode_tun" != "1" ]; then
             nft add rule inet fw4 openclash_output ip protocol tcp ip daddr { "$fakeip_range" } counter redirect to "$proxy_port"
          fi
          if [ "$router_self_proxy" = "1" ]; then
             nft 'add rule inet fw4 openclash_output ip daddr @wan_ac_black_ips counter return'
             nft 'add rule inet fw4 openclash_output th dport @wan_ac_black_ports counter return'
-            if [ "$en_mode" = "redir-host" ]; then
-               nft add rule inet fw4 openclash_output th dport != @common_ports counter return
-            fi
             if [ "$china_ip_route" != "0" ]; then
                if [ "$china_ip_route" = "1" ]; then
                   rule="ip daddr @china_ip_route"
@@ -1822,13 +1829,13 @@ if [ -n "$FW4" ]; then
          nft 'add rule inet fw4 openclash_mangle_output skgid == 65534 counter return'
          nft 'add rule inet fw4 openclash_mangle_output ip daddr @localnetwork counter return'
          nft 'add rule inet fw4 openclash_mangle_output ct direction reply counter return'
+         if [ "$common_ports_enable" -eq 1 ]; then
+            nft 'add rule inet fw4 openclash_mangle_output th dport != @common_ports counter return'
+         fi
          if [ "$en_mode_tun" -eq 1 ]; then
             nft add rule inet fw4 openclash_mangle_output meta l4proto {tcp,udp} ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" counter
          else
             nft add rule inet fw4 openclash_mangle_output meta l4proto { udp } ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" counter
-         fi
-         if [ "$en_mode" = "redir-host" ]; then
-            nft 'add rule inet fw4 openclash_mangle_output th dport != @common_ports counter return'
          fi
          if [ "$router_self_proxy" = "1" ]; then
             nft 'add rule inet fw4 openclash_mangle_output ip daddr @wan_ac_black_ips counter return'
@@ -1865,6 +1872,9 @@ if [ -n "$FW4" ]; then
       nft 'add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} iifname utun counter return'
       nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return'
       nft 'add rule inet fw4 openclash_mangle ct direction reply counter return'
+      if [ "$common_ports_enable" -eq 1 ]; then
+         nft 'add rule inet fw4 openclash_mangle th dport != @common_ports counter return'
+      fi
       if [ "$en_mode_tun" -eq 1 ]; then
          nft add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" counter
       else
@@ -1881,9 +1891,6 @@ if [ -n "$FW4" ]; then
          nft 'add rule inet fw4 openclash_mangle ip saddr != @lan_ac_white_ips counter return'
       fi
 
-      if [ "$en_mode" = "redir-host" ]; then
-         nft 'add rule inet fw4 openclash_mangle th dport != @common_ports counter return'
-      fi
       if [ "$china_ip_route" != "0" ]; then
          if [ "$china_ip_route" = "1" ]; then
             rule="ip daddr @china_ip_route"
@@ -2022,9 +2029,12 @@ if [ -n "$FW4" ]; then
          #tcp
          nft 'add chain inet fw4 openclash_v6'
          nft 'flush chain inet fw4 openclash_v6'
-         nft add rule inet fw4 openclash_v6 ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } counter redirect to "$proxy_port"
          nft 'add rule inet fw4 openclash_v6 ip6 daddr @localnetwork6 counter return'
          nft 'add rule inet fw4 openclash_v6 ct direction reply counter return'
+         if [ "$common_ports_enable" -eq 1 ]; then
+            nft 'add rule inet fw4 openclash_v6 th dport != @common_ports counter return'
+         fi
+         nft add rule inet fw4 openclash_v6 ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } counter redirect to "$proxy_port"
          nft 'add rule inet fw4 openclash_v6 ip6 daddr @wan_ac_black_ipv6s counter return'
          nft 'add rule inet fw4 openclash_v6 th dport @wan_ac_black_ports counter return'
          nft 'add rule inet fw4 openclash_v6 ip6 saddr @lan_ac_black_ipv6s counter return'
@@ -2034,10 +2044,6 @@ if [ -n "$FW4" ]; then
          else
             nft 'add rule inet fw4 openclash_v6 ether saddr != @lan_ac_white_macs counter return'
             nft 'add rule inet fw4 openclash_v6 ip6 saddr != @lan_ac_white_ipv6s counter return'
-         fi
-
-         if [ "$en_mode" = "redir-host" ]; then
-            nft 'add rule inet fw4 openclash_v6 th dport != @common_ports counter return'
          fi
 
          if [ "$china_ip6_route" != "0" ]; then
@@ -2059,6 +2065,9 @@ if [ -n "$FW4" ]; then
          nft 'flush chain inet fw4 openclash_mangle_v6'
          nft 'add rule inet fw4 openclash_mangle_v6 ip6 daddr @localnetwork6 counter return'
          nft 'add rule inet fw4 openclash_mangle_v6 ct direction reply counter return'
+         if [ "$common_ports_enable" -eq 1 ]; then
+            nft 'add rule inet fw4 openclash_mangle_v6 th dport != @common_ports counter return'
+         fi
          if [ "$ipv6_mode" -ne 1 ] && [ "$ipv6_mode" -ne 3 ]; then
             if [ "$ipv6_mode" -eq 0 ]; then
                nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept
@@ -2076,9 +2085,6 @@ if [ -n "$FW4" ]; then
          fi
          nft 'add rule inet fw4 openclash_mangle_v6 ip6 daddr @wan_ac_black_ipv6s counter return'
          nft 'add rule inet fw4 openclash_mangle_v6 th dport @wan_ac_black_ports counter return'
-         if [ "$en_mode" == "redir-host" ]; then
-            nft 'add rule inet fw4 openclash_mangle_v6 th dport != @common_ports counter return'
-         fi
 
          nft 'add rule inet fw4 openclash_mangle_v6 ip6 saddr @lan_ac_black_ipv6s counter return'
          nft 'add rule inet fw4 openclash_mangle_v6 ether saddr @lan_ac_black_macs counter return'
@@ -2143,17 +2149,17 @@ if [ -n "$FW4" ]; then
             #tcp Redirect Mode
             nft 'add chain inet fw4 openclash_output_v6'
             nft 'flush chain inet fw4 openclash_output_v6'
-            if [ "$en_mode" = "fake-ip" ]; then
-               nft add rule inet fw4 openclash_output ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } counter redirect to "$proxy_port"
-            fi
             nft 'add rule inet fw4 openclash_output_v6 skgid == 65534 counter return'
             nft 'add rule inet fw4 openclash_output_v6 ip6 daddr @localnetwork6 counter return'
             nft 'add rule inet fw4 openclash_output_v6 ct direction reply counter return'
-            nft 'add rule inet fw4 openclash_output_v6 ip6 daddr @wan_ac_black_ipv6s counter return'
-            nft 'add rule inet fw4 openclash_output_v6 th dport @wan_ac_black_ports counter return'
-            if [ "$en_mode" = "redir-host" ]; then
+            if [ "$common_ports_enable" -eq 1 ]; then
                nft 'add rule inet fw4 openclash_output_v6 th dport != @common_ports counter return'
             fi
+            if [ "$en_mode" = "fake-ip" ]; then
+               nft add rule inet fw4 openclash_output_v6 ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } counter redirect to "$proxy_port"
+            fi
+            nft 'add rule inet fw4 openclash_output_v6 ip6 daddr @wan_ac_black_ipv6s counter return'
+            nft 'add rule inet fw4 openclash_output_v6 th dport @wan_ac_black_ports counter return'
 
             if [ "$china_ip6_route" != "0" ]; then
                if [ "$china_ip6_route" = "1" ]; then
@@ -2176,6 +2182,9 @@ if [ -n "$FW4" ]; then
          nft 'add rule inet fw4 openclash_mangle_output_v6 skgid == 65534 counter return'
          nft 'add rule inet fw4 openclash_mangle_output_v6 ip6 daddr @localnetwork6 counter return'
          nft 'add rule inet fw4 openclash_mangle_output_v6 ct direction reply counter return'
+         if [ "$common_ports_enable" -eq 1 ]; then
+            nft 'add rule inet fw4 openclash_mangle_output_v6 th dport != @common_ports counter return'
+         fi
          if ([ "$ipv6_mode" -eq 1 ] && [ "$enable_v6_udp_proxy" -eq 1 ]) || [ "$ipv6_mode" -eq 3 ]; then
             nft add rule inet fw4 openclash_mangle_output_v6 ip6 nexthdr {udp} ip6 daddr { "$fakeip_range6" } mark set "$PROXY_FWMARK" counter
          fi
@@ -2191,9 +2200,6 @@ if [ -n "$FW4" ]; then
          fi
          nft 'add rule inet fw4 openclash_mangle_output_v6 ip6 daddr @wan_ac_black_ipv6s counter return'
          nft 'add rule inet fw4 openclash_mangle_output_v6 th dport @wan_ac_black_ports counter return'
-         if [ "$en_mode" = "redir-host" ]; then
-            nft 'add rule inet fw4 openclash_mangle_output_v6 th dport != @common_ports counter return'
-         fi
 
          if [ "$china_ip6_route" != "0" ]; then
             if [ "$china_ip6_route" = "1" ]; then
@@ -2404,7 +2410,7 @@ if [ -z "$FW4" ]; then
    fi
 
    #common ports
-   if [ -n "$common_ports" ] && [ "$common_ports" != "0" ]; then
+   if [ "$common_ports_enable" -eq 1 ]; then
       ipset create common_ports bitmap:port range 0-65535
       for i in $common_port; do
          ipset add common_ports $i
@@ -2509,6 +2515,9 @@ if [ -z "$FW4" ]; then
       iptables -t nat -F openclash
       iptables -t nat -A openclash -m set --match-set localnetwork dst -j RETURN
       iptables -t nat -A openclash -m conntrack --ctdir REPLY -j RETURN
+      if [ "$common_ports_enable" -eq 1 ]; then
+         iptables -t nat -A openclash -m set ! --match-set common_ports dst -j RETURN
+      fi
       iptables -t nat -A openclash -p tcp -d "$fakeip_range" -j REDIRECT --to-ports "$proxy_port"
       iptables -t nat -A openclash -m set --match-set wan_ac_black_ips dst -j RETURN
       iptables -t nat -A openclash -m set --match-set wan_ac_black_ports dst -j RETURN
@@ -2519,9 +2528,6 @@ if [ -z "$FW4" ]; then
       else
          iptables -t nat -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN
          iptables -t nat -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN
-      fi
-      if [ "$en_mode" = "redir-host" ]; then
-         iptables -t nat -A openclash -m set ! --match-set common_ports dst -j RETURN
       fi
       if [ "$china_ip_route" != "0" ]; then
          if [ "$china_ip_route" = "1" ]; then
@@ -2548,6 +2554,9 @@ if [ -z "$FW4" ]; then
             upnp_exclude
             iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
             iptables -t mangle -A openclash -m conntrack --ctdir REPLY -j RETURN
+            if [ "$common_ports_enable" -eq 1 ]; then
+               iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN
+            fi
             if [ "$en_mode" = "fake-ip" ]; then
                iptables -t mangle -A openclash -p udp -d "$fakeip_range" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
             fi
@@ -2560,9 +2569,6 @@ if [ -z "$FW4" ]; then
             else
                iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_ips src -j RETURN
                iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN
-            fi
-            if [ "$en_mode" = "redir-host" ]; then
-               iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN
             fi
             if [ "$china_ip_route" != "0" ]; then
                if [ "$china_ip_route" = "1" ]; then
@@ -2578,32 +2584,35 @@ if [ -z "$FW4" ]; then
             iptables -t mangle -A PREROUTING -p udp -j openclash
          fi
 
-         if [ "$enable_udp_proxy" -ne 1 ] && [ "$en_mode" = "fake-ip" ]; then
-            check_mod "xt_TPROXY"
-            ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
-            ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
-            iptables -t mangle -N openclash
-            iptables -t mangle -F openclash
-            iptables -t mangle -A openclash -p udp -d "$fakeip_range" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
-            iptables -t mangle -A PREROUTING -p udp -j openclash
-         fi
+        if [ "$enable_udp_proxy" -ne 1 ] && [ "$en_mode" = "fake-ip" ]; then
+           check_mod "xt_TPROXY"
+           ip rule add fwmark "$PROXY_FWMARK" table "$PROXY_ROUTE_TABLE"
+           ip route add local 0.0.0.0/0 dev lo table "$PROXY_ROUTE_TABLE"
+           iptables -t mangle -N openclash
+           iptables -t mangle -F openclash
+           if [ "$common_ports_enable" -eq 1 ]; then
+              iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN
+           fi
+           iptables -t mangle -A openclash -p udp -d "$fakeip_range" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
+           iptables -t mangle -A PREROUTING -p udp -j openclash
+        fi
 
          #router self proxy udp
          if ([ "$router_self_proxy" = "1" ] && [ "$enable_udp_proxy" -eq 1 ]) || ([ "$enable_redirect_dns" != "2" ] && [ "$en_mode" = "fake-ip" ]); then
-            iptables -t mangle -N openclash_output
-            iptables -t mangle -F openclash_output
-            iptables -t mangle -A openclash_output $owner -j RETURN
-            iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
-            iptables -t mangle -A openclash_output -m conntrack --ctdir REPLY -j RETURN
-            iptables -t mangle -A openclash_output -m set --match-set wan_ac_black_ips dst -j RETURN
-            iptables -t mangle -A openclash_output -m set --match-set wan_ac_black_ports dst -j RETURN
-            if [ "$en_mode" = "fake-ip" ]; then
-               iptables -t mangle -A openclash_output -p udp -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
-            fi
-            if [ "$en_mode" = "redir-host" ]; then
-               iptables -t mangle -A openclash_output -m set ! --match-set common_ports dst -j RETURN
-            fi
-            if [ "$china_ip_route" != "0" ]; then
+           iptables -t mangle -N openclash_output
+           iptables -t mangle -F openclash_output
+           iptables -t mangle -A openclash_output $owner -j RETURN
+           iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
+           iptables -t mangle -A openclash_output -m conntrack --ctdir REPLY -j RETURN
+           if [ "$common_ports_enable" -eq 1 ]; then
+              iptables -t mangle -A openclash_output -m set ! --match-set common_ports dst -j RETURN
+           fi
+           iptables -t mangle -A openclash_output -m set --match-set wan_ac_black_ips dst -j RETURN
+           iptables -t mangle -A openclash_output -m set --match-set wan_ac_black_ports dst -j RETURN
+           if [ "$en_mode" = "fake-ip" ]; then
+              iptables -t mangle -A openclash_output -p udp -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
+           fi
+           if [ "$china_ip_route" != "0" ]; then
                if [ "$china_ip_route" = "1" ]; then
                   rule="-m set --match-set china_ip_route dst"
                elif [ "$china_ip_route" = "2" ]; then
@@ -2633,17 +2642,17 @@ if [ -z "$FW4" ]; then
          iptables -t nat -N openclash_output
          iptables -t nat -F openclash_output
          iptables -t nat -A openclash_output $owner -j RETURN
+         iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
+         iptables -t nat -A openclash_output -m conntrack --ctdir REPLY -j RETURN
+         if [ "$common_ports_enable" -eq 1 ]; then
+            iptables -t nat -A openclash_output -m set ! --match-set common_ports dst -j RETURN
+         fi
          if [ "$en_mode" = "fake-ip" ] && [ "$en_mode_tun" != "1" ]; then
             iptables -t nat -A openclash_output -p tcp -d "$fakeip_range" -j REDIRECT --to-ports "$proxy_port"
          fi
          if [ "$router_self_proxy" = "1" ]; then
-            iptables -t nat -A openclash_output -m set --match-set localnetwork dst -j RETURN
-            iptables -t nat -A openclash_output -m conntrack --ctdir REPLY -j RETURN
             iptables -t nat -A openclash_output -m set --match-set wan_ac_black_ips dst -j RETURN
             iptables -t nat -A openclash_output -m set --match-set wan_ac_black_ports dst -j RETURN
-            if [ "$en_mode" = "redir-host" ]; then
-               iptables -t nat -A openclash_output -m set ! --match-set common_ports dst -j RETURN
-            fi
             if [ "$china_ip_route" != "0" ]; then
                if [ "$china_ip_route" = "1" ]; then
                   rule="-m set --match-set china_ip_route dst"
@@ -2669,13 +2678,13 @@ if [ -z "$FW4" ]; then
          iptables -t mangle -A openclash_output $owner -j RETURN
          iptables -t mangle -A openclash_output -m set --match-set localnetwork dst -j RETURN
          iptables -t mangle -A openclash_output -m conntrack --ctdir REPLY -j RETURN
+         if [ "$common_ports_enable" -eq 1 ]; then
+            iptables -t mangle -A openclash_output -m set ! --match-set common_ports dst -j RETURN
+         fi
          if [ "$en_mode_tun" -eq 1 ]; then
             iptables -t mangle -A openclash_output -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
          else
             iptables -t mangle -A openclash_output -p udp -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
-         fi
-         if [ "$en_mode" = "redir-host" ]; then
-            iptables -t mangle -A openclash_output -m set ! --match-set common_ports dst -j RETURN
          fi
          if [ "$router_self_proxy" = "1" ]; then
             iptables -t mangle -A openclash_output -m set --match-set wan_ac_black_ips dst -j RETURN
@@ -2709,6 +2718,9 @@ if [ -z "$FW4" ]; then
       iptables -t mangle -A openclash -i utun -j RETURN
       iptables -t mangle -A openclash -m set --match-set localnetwork dst -j RETURN
       iptables -t mangle -A openclash -m conntrack --ctdir REPLY -j RETURN
+      if [ "$common_ports_enable" -eq 1 ]; then
+         iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN
+      fi
       if [ "$en_mode_tun" -eq 1 ]; then
          iptables -t mangle -A openclash -d "$fakeip_range" -j MARK --set-mark "$PROXY_FWMARK"
       else
@@ -2725,9 +2737,6 @@ if [ -z "$FW4" ]; then
          iptables -t mangle -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN
       fi
 
-      if [ "$en_mode" = "redir-host" ]; then
-         iptables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN
-      fi
       if [ "$china_ip_route" != "0" ]; then
          if [ "$china_ip_route" = "1" ]; then
             rule="-m set --match-set china_ip_route dst"
@@ -2871,6 +2880,9 @@ if [ -z "$FW4" ]; then
          #tcp
          ip6tables -t nat -N openclash
          ip6tables -t nat -F openclash
+         if [ "$common_ports_enable" -eq 1 ]; then
+            ip6tables -t nat -A openclash -m set ! --match-set common_ports dst -j RETURN
+         fi
          ip6tables -t nat -A openclash -p tcp -d "$fakeip_range6" -j REDIRECT --to-ports "$proxy_port"
          ip6tables -t nat -A openclash -m set --match-set localnetwork6 dst -j RETURN
          ip6tables -t nat -A openclash -m conntrack --ctdir REPLY -j RETURN
@@ -2883,9 +2895,6 @@ if [ -z "$FW4" ]; then
          else
             ip6tables -t nat -A openclash -m set ! --match-set lan_ac_white_ipv6s src -j RETURN
             ip6tables -t nat -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN
-         fi
-         if [ "$en_mode" = "redir-host" ]; then
-            ip6tables -t nat -A openclash -m set ! --match-set common_ports dst -j RETURN
          fi
          if [ "$china_ip6_route" != "0" ]; then
             if [ "$china_ip6_route" = "1" ]; then
@@ -2906,6 +2915,9 @@ if [ -z "$FW4" ]; then
          ip6tables -t mangle -F openclash
          ip6tables -t mangle -A openclash -m set --match-set localnetwork6 dst -j RETURN
          ip6tables -t mangle -A openclash -m conntrack --ctdir REPLY -j RETURN
+         if [ "$common_ports_enable" -eq 1 ]; then
+            ip6tables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN
+         fi
          if [ "$ipv6_mode" -ne 1 ] && [ "$ipv6_mode" -ne 3 ]; then
             if [ "$ipv6_mode" -eq 0 ]; then
                ip6tables -t mangle -A openclash -p tcp -d "$fakeip_range6" -j TPROXY --on-port "$tproxy_port" --tproxy-mark "$PROXY_FWMARK"
@@ -2929,10 +2941,6 @@ if [ -z "$FW4" ]; then
          else
             ip6tables -t mangle -A openclash -m set ! --match-set lan_ac_white_ipv6s src -j RETURN
             ip6tables -t mangle -A openclash -m set ! --match-set lan_ac_white_macs src -j RETURN
-         fi
-
-         if [ "$en_mode" == "redir-host" ]; then
-            ip6tables -t mangle -A openclash -m set ! --match-set common_ports dst -j RETURN
          fi
 
          if [ "$china_ip6_route" != "0" ]; then
@@ -2977,17 +2985,17 @@ if [ -z "$FW4" ]; then
             #tcp Redirect Mode
             ip6tables -t nat -N openclash_output
             ip6tables -t nat -F openclash_output
-            if [ "$en_mode" = "fake-ip" ]; then
-               ip6tables -t nat -A openclash_output -p tcp -d "$fakeip_range6" -j REDIRECT --to-ports "$proxy_port"
-            fi
             ip6tables -t nat -A openclash_output $owner -j RETURN
             ip6tables -t nat -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
             ip6tables -t nat -A openclash_output -m conntrack --ctdir REPLY -j RETURN
-            ip6tables -t nat -A openclash_output -m set --match-set wan_ac_black_ipv6s dst -j RETURN
-            ip6tables -t nat -A openclash_output -m set --match-set wan_ac_black_ports dst -j RETURN
-            if [ "$en_mode" = "redir-host" ]; then
+            if [ "$common_ports_enable" -eq 1 ]; then
                ip6tables -t nat -A openclash_output -m set ! --match-set common_ports dst -j RETURN
             fi
+            if [ "$en_mode" = "fake-ip" ]; then
+               ip6tables -t nat -A openclash_output -p tcp -d "$fakeip_range6" -j REDIRECT --to-ports "$proxy_port"
+            fi
+            ip6tables -t nat -A openclash_output -m set --match-set wan_ac_black_ipv6s dst -j RETURN
+            ip6tables -t nat -A openclash_output -m set --match-set wan_ac_black_ports dst -j RETURN
             if [ "$china_ip6_route" != "0" ]; then
                if [ "$china_ip6_route" = "1" ]; then
                   rule="-m set --match-set china_ip6_route dst"
@@ -3007,6 +3015,9 @@ if [ -z "$FW4" ]; then
          ip6tables -t mangle -A openclash_output $owner -j RETURN
          ip6tables -t mangle -A openclash_output -m set --match-set localnetwork6 dst -j RETURN
          ip6tables -t mangle -A openclash_output -m conntrack --ctdir REPLY -j RETURN
+         if [ "$common_ports_enable" -eq 1 ]; then
+            ip6tables -t mangle -A openclash_output -m set ! --match-set common_ports dst -j RETURN
+         fi
          if ([ "$ipv6_mode" -eq 1 ] && [ "$enable_v6_udp_proxy" -eq 1 ]) || [ "$ipv6_mode" -eq 3 ]; then
             ip6tables -t mangle -A openclash_output -p udp -d "$fakeip_range6" -j MARK --set-xmark "$PROXY_FWMARK"
          fi
@@ -3019,9 +3030,6 @@ if [ -z "$FW4" ]; then
          fi
          ip6tables -t mangle -A openclash_output -m set --match-set wan_ac_black_ipv6s dst -j RETURN
          ip6tables -t mangle -A openclash_output -m set --match-set wan_ac_black_ports dst -j RETURN
-         if [ "$en_mode" = "redir-host" ]; then
-            ip6tables -t mangle -A openclash_output -m set ! --match-set common_ports dst -j RETURN
-         fi
          if [ "$china_ip6_route" != "0" ]; then
             if [ "$china_ip6_route" = "1" ]; then
                rule="-m set --match-set china_ip6_route dst"
@@ -3689,12 +3697,19 @@ get_config()
    fi
    [ -z "$fakeip_range" ] && fakeip_range="198.18.0.1/16"
 
-   if [ "$(uci_get_config "fakeip_range6")"  == "0" ]; then
+   fakeip_range6_cfg=$(uci_get_config "fakeip_range6")
+   if [ "$fakeip_range6_cfg"  == "0" ]; then
       fakeip_range6=$(ruby_read "$RAW_CONFIG_FILE" "['dns']['fake-ip-range6']")
    else
-      fakeip_range6=$(uci_get_config "fakeip_range6")
+      fakeip_range6="$fakeip_range6_cfg"
    fi
-   [ -z "$fakeip_range6" ] && fakeip_range6="fdfe:dcba:9876::1/64"
+   [ -z "$fakeip_range6" ] && fakeip_range6="$DEFAULT_FAKEIP_RANGE6"
+   if [ "$fakeip_range6" = "$LEGACY_FAKEIP_RANGE6" ]; then
+      fakeip_range6="$DEFAULT_FAKEIP_RANGE6"
+      if [ "$fakeip_range6_cfg" = "$LEGACY_FAKEIP_RANGE6" ]; then
+         uci -q set openclash.config.fakeip_range6="$DEFAULT_FAKEIP_RANGE6"
+      fi
+   fi
 
    lan_interface_name=$(uci_get_config "lan_interface_name" || echo 0)
    if [ "$lan_interface_name" = "0" ]; then
@@ -3989,11 +4004,11 @@ reload_service()
 
 boot()
 {
-   delay_start=$(uci_get_config "delay_start" || echo 0)
-   enable=$(uci_get_config "enable")
-   if [ "$delay_start" -gt 0 ] && [ "$enable" == "1" ]; then
-      LOG_OUT "Enable Delay Start, OpenClash Will Start After【$delay_start】Seconds..."
-      sleep "$delay_start"
-   fi
-   restart
+	delay_start=$(uci_get_config "delay_start" || echo 0)
+	enable=$(uci_get_config "enable")
+	if [ "$delay_start" -gt 0 ] && [ "$enable" == "1" ]; then
+		LOG_OUT "Enable Delay Start, OpenClash Will Start After【$delay_start】Seconds..."
+		sleep "$delay_start"
+	fi
+	restart
 }

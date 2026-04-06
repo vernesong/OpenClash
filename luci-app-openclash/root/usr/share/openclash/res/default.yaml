@@ -259,7 +259,7 @@ dns:
   enhanced-mode: fake-ip # or redir-host
 
   fake-ip-range: 198.18.0.1/16 # fake-ip 池设置
-  # fake-ip-range6: fdfe:dcba:9876::1/64 # fake-ip6 池设置
+  # fake-ip-range6: 2001:2::1/64 # fake-ip6 池设置
 
   # 配置不使用 fake-ip 的域名
   fake-ip-filter:

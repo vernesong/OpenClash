@@ -9,6 +9,7 @@ local uci = require "luci.model.uci".cursor()
 local json = require "luci.jsonc"
 local datatype = require "luci.cbi.datatypes"
 local net = require "luci.model.network".init()
+local default_fakeip_range6 = "2001:2::1/64"
 local devices = {}
 for _, iface in ipairs(net:get_interfaces()) do
 	if iface:name() then
@@ -448,6 +449,9 @@ o.placeholder = translate("443 or 21-443, Use Space to Separate")
 o:depends("en_mode", "redir-host")
 o:depends("en_mode", "redir-host-tun")
 o:depends("en_mode", "redir-host-mix")
+o:depends("en_mode", "fake-ip")
+o:depends("en_mode", "fake-ip-tun")
+o:depends("en_mode", "fake-ip-mix")
 
 o = s:taboption("traffic_control", ListValue, "china_ip_route", translate("China IP Route"))
 o.description = translate("Bypass Specified Regions Network Flows, Improve Performance, If Inaccessibility on Bypass Gateway, Try to Enable Bypass Gateway Compatible Option")
@@ -1217,9 +1221,9 @@ o = s:taboption("ipv6", Value, "fakeip_range6", translate("Fake-IP Range").." (I
 o.description = translate("Set Fake-IP Range").. " (IPv6 Cidr)"
 o:depends("ipv6_dns", "1")
 o:value("0", translate("Disable"))
-o:value("fdfe:dcba:9876::1/64")
+o:value(default_fakeip_range6)
 o.default = "0"
-o.placeholder = "fdfe:dcba:9876::1/64"
+o.placeholder = default_fakeip_range6
 function o.validate(self, value)
 	if value == "0" then
 		return "0"
@@ -1227,7 +1231,7 @@ function o.validate(self, value)
 	if datatype.cidr6(value) then
 		return value
 	end
-	return "fdfe:dcba:9876::1/64"
+	return default_fakeip_range6
 end
 end
 
