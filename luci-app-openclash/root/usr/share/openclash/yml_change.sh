@@ -501,7 +501,7 @@ begin
                Value['sniffer'].merge!(custom_sniffer['sniffer']) if custom_sniffer && custom_sniffer['sniffer']
             end
          else
-            Value['sniffer']['enable'] = false if Value.key?('sniffer')
+            # enable_sniffer 未勾选时，保留原始配置文件中的 sniffer 设置
          end
 
          if en_mode_tun != '0' || ['2', '3'].include?(ipv6_mode)
