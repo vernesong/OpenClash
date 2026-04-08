@@ -870,13 +870,7 @@ upnp_exclude()
 ipv6_suffix_to_nft_format()
 {
    local ipv6_with_prefix="$1"
-   if [[ "$ipv6_with_prefix" =~ / ]] || [ -n "$(echo ${ipv6_with_prefix} | grep '/')" ]; then
-      local suffix="${ipv6_with_prefix%%/*}"
-      local prefix="${ipv6_with_prefix##*/}"
-      echo "& $prefix == $suffix"
-   else
-      echo "$ipv6_with_prefix"
-   fi
+   echo "$ipv6_with_prefix"
 } 2>/dev/null
 
 firewall_lan_ac_traffic()
