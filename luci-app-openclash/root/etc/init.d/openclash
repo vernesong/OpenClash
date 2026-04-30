@@ -3232,6 +3232,8 @@ revert_firewall()
       ipset destroy wan_ac_black_ports
       ipset destroy common_ports
    fi
+
+   conntrack -F 2>/dev/null
 } >/dev/null 2>&1
 
 add_overwrite_cron()
