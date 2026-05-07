@@ -62,17 +62,14 @@ OP_LV=$(sed -n 1p "$LAST_OPVER" 2>/dev/null |sed "s/^v//g" |tr -d "\n")
 RELEASE_BRANCH=$(uci_get_config "release_branch" || echo "master")
 github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
 
-#一键更新
+# One Key Update
+# NOTE: Do not update core before IPK/APK install, otherwise the package upgrade may overwrite/delete the updated core/Geo database files.
 if [ "$1" = "one_key_update" ]; then
    if [ "$github_address_mod" = "0" ] && [ -z "$2" ]; then
       LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
    fi
    if [ -n "$2" ]; then
-      /usr/share/openclash/openclash_core.sh "Meta" "$1" "$2" >/dev/null 2>&1
       github_address_mod="$2"
-   else
-      /usr/share/openclash/openclash_core.sh "Meta" "$1" >/dev/null 2>&1
-      github_address_mod=0
    fi
 else
    if [ "$github_address_mod" = "0" ]; then
@@ -194,6 +191,7 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ 
          fi
       fi
    done
+
    cat > /tmp/openclash_update.sh <<"EOF"
 #!/bin/sh
 . /usr/share/openclash/log.sh
@@ -235,6 +233,32 @@ check_install_success()
    else
       return 1
    fi
+}
+
+backup_geo_files() {
+   BACKUP_DIR="/tmp/openclash_geo_backup"
+   mkdir -p "$BACKUP_DIR" 2>/dev/null
+
+   for f in "/etc/openclash/GeoSite.dat" "/etc/openclash/GeoIP.dat" "/etc/openclash/Country.mmdb" "/etc/openclash/Model.bin"; do
+      if [ -f "$f" ] && [ -s "$f" ]; then
+         cp -f "$f" "$BACKUP_DIR/" >/dev/null 2>&1
+      fi
+   done
+}
+
+restore_geo_files() {
+   BACKUP_DIR="/tmp/openclash_geo_backup"
+   [ ! -d "$BACKUP_DIR" ] && return
+
+   mkdir -p /etc/openclash 2>/dev/null
+
+   for f in "GeoSite.dat" "GeoIP.dat" "Country.mmdb" "Model.bin"; do
+      if [ -f "$BACKUP_DIR/$f" ] && [ -s "$BACKUP_DIR/$f" ]; then
+         cp -f "$BACKUP_DIR/$f" "/etc/openclash/$f" >/dev/null 2>&1
+      fi
+   done
+
+   rm -rf "$BACKUP_DIR" >/dev/null 2>&1
 }
 
 install_missing_packages() {
@@ -283,6 +307,9 @@ install_retry_count=0
 max_install_retries=3
 install_success=false
 
+# Backup Geo* and DB files before installing IPK/APK, and restore them after install to avoid being deleted/overwritten by package upgrade.
+backup_geo_files
+
 while [ $install_retry_count -lt $max_install_retries ]; do
    install_retry_count=$((install_retry_count + 1))
    LOG_TIP "【$install_retry_count/$max_install_retries】Installing the new version, please do not refresh the page or do other operations..."
@@ -317,7 +344,10 @@ while [ $install_retry_count -lt $max_install_retries ]; do
          sleep 3
       fi
    fi
-done
+ done
+
+# Restore Geo* and DB files after installation (cover) to keep them available for subscription tests.
+restore_geo_files
 
 if [ "$install_success" = true ]; then
    if [ -x "/bin/opkg" ]; then
@@ -332,10 +362,17 @@ else
       LOG_ERROR "OpenClash update failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】"
    fi
 fi
+
+# If this is one_key_update and plugin installation succeeded, update core AFTER IPK/APK install.
+if [ "$install_success" = true ] && [ "$ONE_KEY_UPDATE" = "1" ]; then
+   /usr/share/openclash/openclash_core.sh "Meta" "one_key_update" "$GITHUB_ADDRESS_MOD" >/dev/null 2>&1
+fi
+
 dec_job_counter_and_restart "0"
 SLOG_CLEAN
 del_update_lock
 EOF
+
    chmod 4755 /tmp/openclash_update.sh
 
    if [ ! -f "/tmp/openclash_update.sh" ] || [ ! -s "/tmp/openclash_update.sh" ] || [ ! -x "/tmp/openclash_update.sh" ]; then
@@ -355,7 +392,7 @@ EOF
       retry_count=$((retry_count + 1))
       LOG_TIP "【$retry_count/$max_retries】Attempting to start update service..."
 
-      ubus call service add '{"name":"openclash_update","instances":{"update":{"command":["/tmp/openclash_update.sh"],"stdout":true,"stderr":true,"env":{"LAST_VER":"'"$LAST_VER"'"}}}}' >/dev/null 2>&1
+      ubus call service add '{"name":"openclash_update","instances":{"update":{"command":["/tmp/openclash_update.sh"],"stdout":true,"stderr":true,"env":{"LAST_VER":"'"$LAST_VER"'","ONE_KEY_UPDATE":"'"$([ "$1" = "one_key_update" ] && echo 1 || echo 0)"'","GITHUB_ADDRESS_MOD":"'"$github_address_mod"'"}}}}' >/dev/null 2>&1
 
       sleep 3
 
