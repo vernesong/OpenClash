@@ -40,7 +40,7 @@ else
    RUST_LV=$(curl -sL --connect-timeout 5 -m 30 --retry 2 "https://raw.githubusercontent.com/Watfaq/clash-rs/master/clash-bin/Cargo.toml" |grep "^version =" |awk -F '"' '{print $2}' |head -1)
 fi
 if [ -n "$RUST_LV" ]; then
-   sed -i "3i\v$RUST_LV" "$DOWNLOAD_FILE" 2>/dev/null || echo "v$RUST_LV" >> "$DOWNLOAD_FILE"
+   sed -i "3i$RUST_LV" "$DOWNLOAD_FILE" 2>/dev/null || echo "$RUST_LV" >> "$DOWNLOAD_FILE"
 fi
 
 del_lock

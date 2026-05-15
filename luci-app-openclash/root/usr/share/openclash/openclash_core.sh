@@ -66,7 +66,7 @@ else
 fi
 
 if [ "$CORE_TYPE" = "Rust" ]; then
-   CORE_CV=$($rust_core_path -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1)
+   CORE_CV=$($rust_core_path -v 2>/dev/null |awk -F ' ' '{print $2}' |head -1)
    DOWNLOAD_FILE="/tmp/clash_rs"
    TMP_FILE="/tmp/clash_rs_tmp"
    TARGET_CORE_PATH="$rust_core_path"
@@ -123,9 +123,9 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                ;;
          esac
          if [ "$github_address_mod" != "0" ]; then
-            DOWNLOAD_URL="${github_address_mod}https://github.com/Watfaq/clash-rs/releases/download/${CORE_LV}/clash-rs-${RUST_ARCH}"
+            DOWNLOAD_URL="${github_address_mod}https://github.com/Watfaq/clash-rs/releases/download/latest/clash-rs-${RUST_ARCH}"
          else
-            DOWNLOAD_URL="https://github.com/Watfaq/clash-rs/releases/download/${CORE_LV}/clash-rs-${RUST_ARCH}"
+            DOWNLOAD_URL="https://github.com/Watfaq/clash-rs/releases/download/latest/clash-rs-${RUST_ARCH}"
          fi
       else
          if [ "$github_address_mod" != "0" ]; then

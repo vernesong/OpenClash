@@ -796,7 +796,7 @@ start_run_core()
    fi
    chown root:root "$CLASH"
    local rust_comp=""
-   [ "$core_type" = "Rust" ] && rust_comp="--compatibility"
+   [ "$core_type" = "Rust" ] && rust_comp="--compatibility true"
    procd_open_instance "openclash"
    procd_set_param env SAFE_PATHS=/usr/share/openclash:/etc/ssl
    procd_set_param command /bin/sh -c "$CLASH $rust_comp -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
