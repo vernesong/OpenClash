@@ -66,7 +66,7 @@ else
 fi
 
 if [ "$CORE_TYPE" = "Rust" ]; then
-   CORE_CV=$($rust_core_path -v 2>/dev/null |awk -F ' ' '{print $2}' |head -1)
+   CORE_CV="v$($rust_core_path -v 2>/dev/null |awk -F ' ' '{print $2}' |head -1)"
    DOWNLOAD_FILE="/tmp/clash_rs"
    TMP_FILE="/tmp/clash_rs_tmp"
    TARGET_CORE_PATH="$rust_core_path"

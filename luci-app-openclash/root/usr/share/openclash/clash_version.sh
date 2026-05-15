@@ -34,13 +34,10 @@ fi
 DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "$DOWNLOAD_FILE" "$DOWNLOAD_FILE"
 
 #Clash Rust
-if [ "$github_address_mod" != "0" ]; then
-   RUST_LV=$(curl -sL --connect-timeout 5 -m 30 --retry 2 "${github_address_mod}https://raw.githubusercontent.com/Watfaq/clash-rs/master/clash-bin/Cargo.toml" |grep "^version =" |awk -F '"' '{print $2}' |head -1)
-else
-   RUST_LV=$(curl -sL --connect-timeout 5 -m 30 --retry 2 "https://raw.githubusercontent.com/Watfaq/clash-rs/master/clash-bin/Cargo.toml" |grep "^version =" |awk -F '"' '{print $2}' |head -1)
-fi
+RUST_LV=$(curl -sLI -o /dev/null -w '%{url_effective}' https://github.com/Watfaq/clash-rs/releases/latest | awk -F '/' '{print $NF}')
 if [ -n "$RUST_LV" ]; then
-   sed -i "3i$RUST_LV" "$DOWNLOAD_FILE" 2>/dev/null || echo "$RUST_LV" >> "$DOWNLOAD_FILE"
+   sed -i '3d' "$DOWNLOAD_FILE" 2>/dev/null
+   echo "$RUST_LV" >> "$DOWNLOAD_FILE"
 fi
 
 del_lock

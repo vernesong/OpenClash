@@ -224,9 +224,11 @@ local function corerustcv()
 	if not fs.access(rust_core_path) then
 		return v
 	else
-		v = luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1 |tr -d '\n'", rust_core_path))
+		v = luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $2}' |head -1 |tr -d '\n'", rust_core_path))
 		if not v or v == "" then
 			return "0"
+		else
+			return "v" .. v
 		end
 	end
 	return v
