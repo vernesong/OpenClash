@@ -120,8 +120,10 @@ end
 local core_path_mode = fs.uci_get_config("config", "small_flash_memory")
 if core_path_mode ~= "1" then
 	meta_core_path="/etc/openclash/core/clash_meta"
+	rust_core_path="/etc/openclash/core/clash_rs"
 else
 	meta_core_path="/tmp/etc/openclash/core/clash_meta"
+	rust_core_path="/tmp/etc/openclash/core/clash_rs"
 end
 
 local function is_running()
@@ -217,6 +219,19 @@ local function coremetacv()
 	return v
 end
 
+local function corerustcv()
+	local v = "0"
+	if not fs.access(rust_core_path) then
+		return v
+	else
+		v = luci.sys.exec(string.format("%s -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1 |tr -d '\n'", rust_core_path))
+		if not v or v == "" then
+			return "0"
+		end
+	end
+	return v
+end
+
 local function corelv()
 	local core_meta_lv = ""
 	local core_smart_enable = fs.uci_get_config("config", "smart_enable") or "0"
@@ -232,6 +247,18 @@ local function corelv()
 
 	action_get_last_version()
 	return core_meta_lv
+end
+
+local function corerustlv()
+	local corerust_lv = ""
+	if fs.access("/tmp/clash_last_version") then
+		corerust_lv = luci.sys.exec("sed -n 3p /tmp/clash_last_version 2>/dev/null |tr -d '\n'")
+	else
+		corerust_lv = "loading..."
+	end
+
+	action_get_last_version()
+	return corerust_lv
 end
 
 local function opcv()
@@ -289,6 +316,10 @@ local function smart_enable()
 	return fs.uci_get_config("config", "smart_enable") or "0"
 end
 
+local function rust_enable()
+	return fs.uci_get_config("config", "rust_enable") or "0"
+end
+
 local function save_corever_branch()
 	if luci.http.formvalue("core_ver") then
 		uci:set("openclash", "config", "core_version", luci.http.formvalue("core_ver"))
@@ -298,6 +329,9 @@ local function save_corever_branch()
 	end
 	if luci.http.formvalue("smart_enable") then
 		uci:set("openclash", "config", "smart_enable", luci.http.formvalue("smart_enable"))
+	end
+	if luci.http.formvalue("rust_enable") then
+		uci:set("openclash", "config", "rust_enable", luci.http.formvalue("rust_enable"))
 	end
 	uci:commit("openclash")
 	return "success"
@@ -1260,6 +1294,8 @@ function action_update()
 		coremodel = coremodel(),
 		coremetacv = coremetacv(),
 		corelv = corelv(),
+		corerustcv = corerustcv(),
+		corerustlv = corerustlv(),
 		opcv = opcv(),
 		oplv = oplv(),
 		upchecktime = upchecktime();
@@ -1271,7 +1307,8 @@ function action_update_info()
 	luci.http.write_json({
 		corever = corever(),
 		release_branch = release_branch(),
-		smart_enable = smart_enable();
+		smart_enable = smart_enable(),
+		rust_enable = rust_enable();
 	})
 end
 
@@ -1281,6 +1318,7 @@ function action_update_ma()
 		oplv = oplv(),
 		pkg_type = pkg_type(),
 		corelv = corelv(),
+		corerustlv = corerustlv(),
 		corever = corever();
 	})
 end

@@ -3093,6 +3093,18 @@ msgstr "禁用 IPv6"
 msgid "Smart Core"
 msgstr "Smart 内核"
 
+msgid "Rust Core"
+msgstr "Rust 内核"
+
+msgid "Meta Core"
+msgstr "Meta 内核"
+
+msgid "Core Selection"
+msgstr "*内核选择"
+
+msgid "Unsupported Architecture for Rust Core!"
+msgstr "Rust 内核不支持当前处理器架构！"
+
 msgid "Failed to create update script!"
 msgstr "创建插件升级进程失败！"
 

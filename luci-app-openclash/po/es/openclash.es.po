@@ -3089,6 +3089,18 @@ msgstr "Desactivar IPv6"
 msgid "Smart Core"
 msgstr "Núcleo Smart"
 
+msgid "Rust Core"
+msgstr "Núcleo Rust"
+
+msgid "Meta Core"
+msgstr "Núcleo Meta"
+
+msgid "Core Selection"
+msgstr "Selección de núcleo"
+
+msgid "Unsupported Architecture for Rust Core!"
+msgstr "¡Arquitectura no soportada para el núcleo Rust!"
+
 msgid "Failed to create update script!"
 msgstr "Fallo al crear el script de actualización."
 

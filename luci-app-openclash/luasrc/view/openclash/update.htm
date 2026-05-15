@@ -45,20 +45,15 @@
 					<option value="dev">Developer</option>
 				</select>
 			</td>
-			<td width="16.6%" align="right"><%:Smart Core%> 
-				<a href="javascript:void(0);" onclick="window.open('https://github.com/vernesong/mihomo/releases', '_blank');" style="color: #0066cc; text-decoration: none;" title="<%:View core infos that support smart group%>">
-					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<circle cx="12" cy="12" r="10"></circle>
-						<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-						<line x1="12" y1="17" x2="12.01" y2="17"></line>
-					</svg>
-				</a>
-			</td>
+			<td width="16.6%" align="right"><%:Core Selection%></td>
 			<td width="16.6%" align="left">
-				<select class="cbi-input-select" name="SMART_ENABLE" id="SMART_ENABLE">
-					<option value="0"><%:Disabled%></option>
-					<option value="1"><%:Enable%></option>
+				<select class="cbi-input-select" name="CORE_TYPE_SELECT" id="CORE_TYPE_SELECT" onchange="core_type_change(this.value)">
+					<option value="Meta"><%:Meta Core%></option>
+					<option value="Smart"><%:Smart Core%></option>
+					<option value="Rust"><%:Rust Core%></option>
 				</select>
+				<input type="hidden" name="SMART_ENABLE" id="SMART_ENABLE" value="0">
+				<input type="hidden" name="RUST_ENABLE" id="RUST_ENABLE" value="0">
 			</td>
 		</tr>
 	</table>
@@ -85,6 +80,8 @@
 		</tr>
 		<tr><td width="25%">[Meta] <%:Current Core%></td><td width="25%" align="left" id="CORE_META_CV"><%:Collecting data...%></td><td width="25%">[Meta] <%:Latest Core%></td><td width="25%" align="left" id="CORE_META_LV"><%:Collecting data...%></td></tr>
 		<tr><td width="25%"><%:Update Core%></td><td width="25%" align="left" id="core_meta_up"><%:Collecting data...%></td><td width="25%"><%:Download Latest Core%></td><td width="25%" align="left" id="ma_core_meta_up"><%:Collecting data...%></td></tr>
+		<tr><td width="25%">[Rust] <%:Current Core%></td><td width="25%" align="left" id="CORE_RUST_CV"><%:Collecting data...%></td><td width="25%">[Rust] <%:Latest Core%></td><td width="25%" align="left" id="CORE_RUST_LV"><%:Collecting data...%></td></tr>
+		<tr><td width="25%"><%:Update Core%></td><td width="25%" align="left" id="core_rust_up"><%:Collecting data...%></td><td width="25%"><%:Download Latest Core%></td><td width="25%" align="left" id="ma_core_rust_up"><%:Collecting data...%></td></tr>
 	</table>
 </fieldset>
 <fieldset class="cbi-section">
@@ -150,10 +147,18 @@
 	var one_key_update_cdn = document.getElementById('one_key_update_cdn');
 	var remove_core = document.getElementById('remove_core');
 	var release_branch = document.getElementById('RELEASE_BRANCH');
+	var core_type_select = document.getElementById('CORE_TYPE_SELECT');
 	var smart_enable = document.getElementById('SMART_ENABLE');
+	var rust_enable = document.getElementById('RUST_ENABLE');
+	var core_rust_cv = document.getElementById('CORE_RUST_CV');
+	var core_rust_lv = document.getElementById('CORE_RUST_LV');
+	var core_rust_up = document.getElementById('core_rust_up');
+	var ma_core_rust_up = document.getElementById('ma_core_rust_up');
 	core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'Meta\')"/>';
+	core_rust_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return core_update(this,\'Rust\')"/>';
 	op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Check And Update%>" onclick="return op_update(this)"/>';
 	ma_core_meta_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'Meta\')"/>';
+	ma_core_rust_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_core_update(this,\'Rust\')"/>';
 	ma_op_up.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reload" value="<%:Download%>" onclick="return ma_op_update(this)"/>';
 	restore.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Restore Default%>" onclick="return restore_config(this)"/>';
 	one_key_update_cdn.innerHTML = '<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Check Update%>" onclick="return all_one_key_update_cdn(this)"/>';
@@ -174,17 +179,28 @@
 			else {
 					release_branch.value = "master";
 			}
-			if ( status.smart_enable && status.smart_enable != "" ) {
-				smart_enable.value = status.smart_enable;
+			if ( status.smart_enable == "1" ) {
+				core_type_select.value = "Smart";
+				smart_enable.value = "1";
+				rust_enable.value = "0";
+			}
+			else if ( status.rust_enable == "1" ) {
+				core_type_select.value = "Rust";
+				smart_enable.value = "0";
+				rust_enable.value = "1";
 			}
 			else {
+				core_type_select.value = "Meta";
 				smart_enable.value = "0";
+				rust_enable.value = "0";
 			}
 		}
 		else {
 			core_version.value = "0";
 			release_branch.value = "master";
+			core_type_select.value = "Meta";
 			smart_enable.value = "0";
+			rust_enable.value = "0";
 		}
 	});
 
@@ -206,7 +222,14 @@
 				core_meta_cv.innerHTML = "<b style=color:green>"+status.coremetacv+"</b>";
 			}
 
+			if ( status.corerustcv == "0" ) {
+				core_rust_cv.innerHTML = "<b style=color:red><%:Unknown%></b>";
+			} else {
+				core_rust_cv.innerHTML = "<b style=color:green>"+status.corerustcv+"</b>";
+			}
+
 			var coremetalvis = status.corelv;
+			var corerustlvis = status.corerustlv;
 
 			if (coremetalvis != status.coremetacv && coremetalvis != "" && coremetalvis != "loading...") {
 				core_meta_lv.innerHTML = "<b style=color:green>"+coremetalvis+" <%:<New>%></b>";
@@ -216,6 +239,16 @@
 				core_meta_lv.innerHTML = "<b style=color:green><%:Getting Last Version...%></b>";
 			} else {
 				core_meta_lv.innerHTML = "<b style=color:red><%:Unknown%></b>";
+			}
+
+			if (corerustlvis != status.corerustcv && corerustlvis != "" && corerustlvis != "loading...") {
+				core_rust_lv.innerHTML = "<b style=color:green>"+corerustlvis+" <%:<New>%></b>";
+			} else if (corerustlvis != "" && corerustlvis == status.corerustcv && corerustlvis != "loading...") {
+				core_rust_lv.innerHTML = "<b style=color:green>"+corerustlvis+"</b>";
+			} else if (corerustlvis == "loading...") {
+				core_rust_lv.innerHTML = "<b style=color:green><%:Getting Last Version...%></b>";
+			} else {
+				core_rust_lv.innerHTML = "<b style=color:red><%:Unknown%></b>";
 			}
 
 			var oplv = status.oplv;
@@ -290,12 +323,28 @@
 	}
 
 	XHR.poll(3, '<%=luci.dispatcher.build_url("admin", "services", "openclash", "startlog")%>', null, handleStartLog);
+
+	function core_type_change(val) {
+		if ( val == "Smart" ) {
+			smart_enable.value = "1";
+			rust_enable.value = "0";
+		}
+		else if ( val == "Rust" ) {
+			smart_enable.value = "0";
+			rust_enable.value = "1";
+		}
+		else {
+			smart_enable.value = "0";
+			rust_enable.value = "0";
+		}
+	}
 	
 	function core_update(btn,type) {
 		var v = core_version.value;
 		var r = release_branch.value;
-		var s = smart_enable.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
+		var s = core_type_select.value == "Smart" ? "1" : "0";
+		var rs = core_type_select.value == "Rust" ? "1" : "0";
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s, rust_enable: rs}, function(x, status) {
 			if (x && x.status == 200) {
 				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "coreupdate")%>', {core_type: type}, function(x, status) {
 					btn.value = '<%:Check And Update%>';
@@ -309,8 +358,9 @@
 	function op_update(btn) {
 		var v = core_version.value;
 		var r = release_branch.value;
-		var s = smart_enable.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
+		var s = core_type_select.value == "Smart" ? "1" : "0";
+		var rs = core_type_select.value == "Rust" ? "1" : "0";
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s, rust_enable: rs}, function(x, status) {
 			if (x && x.status == 200) {
 				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "opupdate")%>', null, function(x, status) {
 					btn.value = '<%:Check And Update%>';
@@ -324,8 +374,9 @@
 	function ma_core_update(btn,type) {
 		var v = core_version.value;
 		var r = release_branch.value;
-		var s = smart_enable.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
+		var s = core_type_select.value == "Smart" ? "1" : "0";
+		var rs = core_type_select.value == "Rust" ? "1" : "0";
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s, rust_enable: rs}, function(x, status) {
 			if (x && x.status == 200) {
 				btn.value = '<%:Download%>';
 				btn.disabled = false;
@@ -339,6 +390,41 @@
 								} else {
 									url4='https://raw.githubusercontent.com/vernesong/OpenClash/core/'+r+'/meta/clash-'+status.corever+'.tar.gz';
 									window.location.href=url4;
+								}
+							} else if (type == "Rust") {
+								var rust_arch = "";
+								switch(status.corever) {
+									case "linux-amd64-v1":
+									case "linux-amd64-v2":
+									case "linux-amd64-v3":
+										rust_arch = "x86_64-unknown-linux-musl";
+										break;
+									case "linux-arm64":
+										rust_arch = "aarch64-unknown-linux-musl";
+										break;
+									case "linux-armv7":
+										rust_arch = "armv7-unknown-linux-musleabihf";
+										break;
+									case "linux-386":
+										rust_arch = "i686-unknown-linux-musl";
+										break;
+									case "linux-mipsle-softfloat":
+									case "linux-mipsle-hardfloat":
+										rust_arch = "mipsel-unknown-linux-musl";
+										break;
+									case "linux-mips-softfloat":
+									case "linux-mips-hardfloat":
+										rust_arch = "mips-unknown-linux-musl";
+										break;
+									case "linux-riscv64":
+										rust_arch = "riscv64gc-unknown-linux-gnu";
+										break;
+								}
+								if (rust_arch != "") {
+									url4='https://github.com/Watfaq/clash-rs/releases/download/'+status.corerustlv+'/clash-rs-'+rust_arch;
+									window.location.href=url4;
+								} else {
+									alert('<%:Unsupported Architecture for Rust Core!%>')
 								}
 							}
 						} else {
@@ -356,8 +442,9 @@
 		btn.disabled = false;
 		var v = core_version.value;
 		var r = release_branch.value;
-		var s = smart_enable.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
+		var s = core_type_select.value == "Smart" ? "1" : "0";
+		var rs = core_type_select.value == "Rust" ? "1" : "0";
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s, rust_enable: rs}, function(x, status) {
 			if (x && x.status == 200) {
 				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.oplv, function(x, status) {
 					if ( x && x.status == 200 ) {
@@ -407,8 +494,9 @@
 	function all_one_key_update_cdn(btn) {
 		var v = core_version.value;
 		var r = release_branch.value;
-		var s = smart_enable.value;
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
+		var s = core_type_select.value == "Smart" ? "1" : "0";
+		var rs = core_type_select.value == "Rust" ? "1" : "0";
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s, rust_enable: rs}, function(x, status) {
 			if (x && x.status == 200) {
 				btn.value = '<%:Check Update%>';
 				btn.disabled = false;

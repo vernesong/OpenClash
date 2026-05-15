@@ -1315,6 +1315,7 @@ local t = {
 local CORE_VERSION = HTTP.formvalue("CORE_VERSION")
 local RELEASE_BRANCH = HTTP.formvalue("RELEASE_BRANCH")
 local SMART_ENABLE = HTTP.formvalue("SMART_ENABLE")
+local RUST_ENABLE = HTTP.formvalue("RUST_ENABLE")
 
 a = m:section(Table, t)
 
@@ -1322,10 +1323,11 @@ o = a:option(Button, "Commit", " ")
 o.inputtitle = translate("Commit Settings")
 o.inputstyle = "apply"
 o.write = function()
-	if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE then
+	if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE and RUST_ENABLE then
 		m.uci:set("openclash", "config", "core_version", CORE_VERSION)
 		m.uci:set("openclash", "config", "release_branch", RELEASE_BRANCH)
 		m.uci:set("openclash", "config", "smart_enable", SMART_ENABLE)
+		m.uci:set("openclash", "config", "rust_enable", RUST_ENABLE)
 	end
 	m.uci:commit("openclash")
 end
@@ -1334,10 +1336,11 @@ o = a:option(Button, "Apply", " ")
 o.inputtitle = translate("Apply Settings")
 o.inputstyle = "apply"
 o.write = function()
-	if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE then
+	if CORE_VERSION and RELEASE_BRANCH and SMART_ENABLE and RUST_ENABLE then
 		m.uci:set("openclash", "config", "core_version", CORE_VERSION)
 		m.uci:set("openclash", "config", "release_branch", RELEASE_BRANCH)
 		m.uci:set("openclash", "config", "smart_enable", SMART_ENABLE)
+		m.uci:set("openclash", "config", "rust_enable", RUST_ENABLE)
 	end
 	m.uci:set("openclash", "config", "enable", 1)
 	m.uci:commit("openclash")

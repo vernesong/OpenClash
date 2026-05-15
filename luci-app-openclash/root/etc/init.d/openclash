@@ -505,6 +505,7 @@ do_run_file()
 
    if [ "$small_flash_memory" != "1" ]; then
       meta_core_path="/etc/openclash/core/clash_meta"
+      rust_core_path="/etc/openclash/core/clash_rs"
       ipdb_path="/etc/openclash/Country.mmdb"
       chnr_path="/etc/openclash/china_ip_route.ipset"
       chnr6_path="/etc/openclash/china_ip6_route.ipset"
@@ -523,6 +524,7 @@ do_run_file()
       fi
    else
       meta_core_path="/tmp/etc/openclash/core/clash_meta"
+      rust_core_path="/tmp/etc/openclash/core/clash_rs"
       ipdb_path="/tmp/etc/openclash/Country.mmdb"
       chnr_path="/tmp/etc/openclash/china_ip_route.ipset"
       chnr6_path="/tmp/etc/openclash/china_ip6_route.ipset"
@@ -541,12 +543,15 @@ do_run_file()
    rm -rf "/etc/openclash/cache.db"
    rm -rf "/etc/openclash/clash"
 
-   ln -s "$meta_core_path" /etc/openclash/clash
-
    if [ "$smart_enable" -eq 1 ] || [ "$core_type" == "Smart" ]; then
       core_type="Smart"
+      ln -s "$meta_core_path" /etc/openclash/clash
+   elif [ "$rust_enable" -eq 1 ] || [ "$core_type" == "Rust" ]; then
+      core_type="Rust"
+      ln -s "$rust_core_path" /etc/openclash/clash
    else
       core_type="Meta"
+      ln -s "$meta_core_path" /etc/openclash/clash
    fi
 
    if [ -f "$CLASH" ] && [ ! -x "$CLASH" ]; then
@@ -554,12 +559,19 @@ do_run_file()
       chown root:root "$CLASH"
    fi
 
-   [ ! -f "$CLASH" ] || { [ "$core_type" = "Smart" ] && [ -z "$($CLASH -v | grep 'smart')" ]; } && {
+   [ ! -f "$CLASH" ] || { [ "$core_type" = "Smart" ] && [ -z "$($CLASH -v | grep 'smart')" ]; } \
+   || { [ "$core_type" = "Rust" ] && [ -z "$($CLASH -v | grep 'clash-rs')" ]; } && {
       LOG_TIP "Detected that the Core is not Installed, Ready to Download..."
       rm -rf "/tmp/clash_last_version"
       /usr/share/openclash/openclash_core.sh "$core_type"
-      if [ ! -f "$meta_core_path" ]; then
-         start_fail
+      if [ "$core_type" = "Rust" ]; then
+         if [ ! -f "$rust_core_path" ]; then
+            start_fail
+         fi
+      else
+         if [ ! -f "$meta_core_path" ]; then
+            start_fail
+         fi
       fi
    }
 
@@ -783,9 +795,11 @@ start_run_core()
       rm -rf "$TMP_CONFIG_FILE"
    fi
    chown root:root "$CLASH"
+   local rust_comp=""
+   [ "$core_type" = "Rust" ] && rust_comp="--compatibility"
    procd_open_instance "openclash"
    procd_set_param env SAFE_PATHS=/usr/share/openclash:/etc/ssl
-   procd_set_param command /bin/sh -c "$CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
+   procd_set_param command /bin/sh -c "$CLASH $rust_comp -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
    procd_set_param user "root"
    procd_set_param group "nogroup"
    procd_set_param limits nproc="unlimited" as="unlimited" memlock="unlimited" nofile="1000000 1000000"
@@ -3778,6 +3792,7 @@ get_config()
    iptables_compat=$(iptables -m owner -h 2>/dev/null | grep "owner match options" || command -v fw4 || echo 0)
    disable_quic_go_gso=$(uci_get_config "disable_quic_go_gso" || echo 0)
    smart_enable=$(uci_get_config "smart_enable" || echo 0)
+   rust_enable=$(uci_get_config "rust_enable" || echo 0)
    cors_allow=$(uci_get_config "dashboard_forward_domain" || echo 0)
    geo_custom_url=$(uci_get_config "geo_custom_url" || echo 0)
    geoip_custom_url=$(uci_get_config "geoip_custom_url" || echo 0)
