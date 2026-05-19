@@ -2,10 +2,10 @@
 <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px;">
     <div class="cbi-value-field" id="switch_dashboard_<%=self.option%>"><%:Collecting data...%></div>
     <div class="cbi-value-field" id="delete_dashboard_<%=self.option%>">
-        <input type="button" class="btn cbi-button-reset" value="<%:Delete%>" onclick="return delete_dashboard(this, '<%=self.option%>')"/>
+        <input type="button" class="btn cbi-button cbi-button-reset" value="<%:Delete%>" onclick="return delete_dashboard(this, '<%=self.option%>')"/>
     </div>
     <div class="cbi-value-field" id="default_dashboard_<%=self.option%>">
-        <input type="button" class="btn cbi-button-apply" value="<%:Set to Default%>" onclick="return default_dashboard(this, '<%=self.option%>')"/>
+        <input type="button" class="btn cbi-button cbi-button-apply" value="<%:Set to Default%>" onclick="return default_dashboard(this, '<%=self.option%>')"/>
     </div>
 </div>
 
@@ -15,7 +15,7 @@
 
     function makeBtn(label, fn, args) {
         var argStr = args.map(function(a){ return "'" + a + "'"; }).join(', ');
-        return '<input type="button" class="btn cbi-button-apply" value="' + label + '" onclick="return ' + fn + '(this, ' + argStr + ')"/>';
+        return '<input type="button" class="btn cbi-button cbi-button-apply" value="' + label + '" onclick="return ' + fn + '(this, ' + argStr + ')"/>';
     }
 
     var switchEl   = document.getElementById('switch_dashboard_'   + name);
