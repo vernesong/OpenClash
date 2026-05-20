@@ -3797,3 +3797,27 @@ msgstr "依赖正在重新安装..."
 
 msgid "failed to install, please try to install it manually..."
 msgstr "依赖安装失败，请重试手动安装..."
+
+msgid "GeoIP Dat Download Failed: HTML Response Detected, Abort Update..."
+msgstr "GeoIP Dat 下载失败：响应内容为 HTML（可能为 CDN 错误页面），中止更新..."
+
+msgid "GeoIP Dat Download Failed: File Size Too Small, Abort Update..."
+msgstr "GeoIP Dat 下载失败：文件大小小于 1MB（可能被截断），中止更新..."
+
+msgid "GeoSite Database Download Failed: HTML Response Detected, Abort Update..."
+msgstr "GeoSite 数据库下载失败：响应内容为 HTML（可能为 CDN 错误页面），中止更新..."
+
+msgid "GeoSite Database Download Failed: File Size Too Small, Abort Update..."
+msgstr "GeoSite 数据库下载失败：文件大小小于 1MB（可能被截断），中止更新..."
+
+msgid "Geo ASN Database Download Failed: HTML Response Detected, Abort Update..."
+msgstr "Geo ASN 数据库下载失败：响应内容为 HTML（可能为 CDN 错误页面），中止更新..."
+
+msgid "Geo ASN Database Download Failed: File Size Too Small, Abort Update..."
+msgstr "Geo ASN 数据库下载失败：文件大小小于 10KB（可能被截断），中止更新..."
+
+msgid "Geoip Database Download Failed: HTML Response Detected, Abort Update..."
+msgstr "Geoip 数据库下载失败：响应内容为 HTML（可能为 CDN 错误页面），中止更新..."
+
+msgid "Geoip Database Download Failed: File Size Too Small, Abort Update..."
+msgstr "Geoip 数据库下载失败：文件大小小于 10KB（可能被截断），中止更新..."

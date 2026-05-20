@@ -46,6 +46,15 @@ fi
 DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "/tmp/GeoLite2-ASN.mmdb" "$geoasn_path"
 DOWNLOAD_RESULT=$?
 if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "/tmp/GeoLite2-ASN.mmdb" ]; then
+   # Guard against HTML error pages (e.g. Cloudflare returning 200 for rate-limit page)
+   if head -c 512 "/tmp/GeoLite2-ASN.mmdb" | grep -qiE "<!doctype|<html|<head|<body"; then
+      LOG_OUT "Geo ASN Database Download Failed: HTML Response Detected, Abort Update..."
+      rm -rf /tmp/GeoLite2-ASN.mmdb
+   # Validate minimum file size to guard against truncated/corrupt downloads
+   elif [ $(stat -c%s "/tmp/GeoLite2-ASN.mmdb" 2>/dev/null || echo 0) -lt 10240 ]; then
+      LOG_OUT "Geo ASN Database Download Failed: File Size Too Small, Abort Update..."
+      rm -rf /tmp/GeoLite2-ASN.mmdb
+   else
    LOG_OUT "Geo ASN Database Download Success, Check Updated..."
    cmp -s /tmp/GeoLite2-ASN.mmdb "$geoasn_path"
    if [ "$?" -ne "0" ]; then
@@ -56,6 +65,7 @@ if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "/tmp/GeoLite2-ASN.mmdb" ]; then
       restart=1
    else
       LOG_OUT "Updated Geo ASN Database No Change, Do Nothing..."
+      fi
    fi
 elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
    LOG_OUT "Updated Geo ASN Database No Change, Do Nothing..."

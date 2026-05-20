@@ -3790,3 +3790,27 @@ msgstr "reinstalando paquete dependiente..."
 
 msgid "failed to install, please try to install it manually..."
 msgstr "no se pudo instalar; por favor, intenta instalarlo manualmente."
+
+msgid "GeoIP Dat Download Failed: HTML Response Detected, Abort Update..."
+msgstr "Descarga de GeoIP Dat fallida: Respuesta HTML detectada, actualización abortada..."
+
+msgid "GeoIP Dat Download Failed: File Size Too Small, Abort Update..."
+msgstr "Descarga de GeoIP Dat fallida: Archivo demasiado pequeño, actualización abortada..."
+
+msgid "GeoSite Database Download Failed: HTML Response Detected, Abort Update..."
+msgstr "Descarga de GeoSite fallida: Respuesta HTML detectada, actualización abortada..."
+
+msgid "GeoSite Database Download Failed: File Size Too Small, Abort Update..."
+msgstr "Descarga de GeoSite fallida: Archivo demasiado pequeño, actualización abortada..."
+
+msgid "Geo ASN Database Download Failed: HTML Response Detected, Abort Update..."
+msgstr "Descarga de Geo ASN fallida: Respuesta HTML detectada, actualización abortada..."
+
+msgid "Geo ASN Database Download Failed: File Size Too Small, Abort Update..."
+msgstr "Descarga de Geo ASN fallida: Archivo demasiado pequeño, actualización abortada..."
+
+msgid "Geoip Database Download Failed: HTML Response Detected, Abort Update..."
+msgstr "Descarga de Geoip fallida: Respuesta HTML detectada, actualización abortada..."
+
+msgid "Geoip Database Download Failed: File Size Too Small, Abort Update..."
+msgstr "Descarga de Geoip fallida: Archivo demasiado pequeño, actualización abortada..."

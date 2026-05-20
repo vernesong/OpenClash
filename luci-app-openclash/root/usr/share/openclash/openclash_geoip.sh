@@ -46,6 +46,15 @@ fi
 DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "/tmp/GeoIP.dat" "$geoip_path"
 DOWNLOAD_RESULT=$?
 if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "/tmp/GeoIP.dat" ]; then
+   # Guard against HTML error pages (e.g. Cloudflare returning 200 for rate-limit page)
+   if head -c 512 "/tmp/GeoIP.dat" | grep -qiE "<!doctype|<html|<head|<body"; then
+      LOG_OUT "GeoIP Dat Download Failed: HTML Response Detected, Abort Update..."
+      rm -rf /tmp/GeoIP.dat
+   # Validate minimum file size to guard against truncated/corrupt downloads
+   elif [ $(stat -c%s "/tmp/GeoIP.dat" 2>/dev/null || echo 0) -lt 1048576 ]; then
+      LOG_OUT "GeoIP Dat Download Failed: File Size Too Small, Abort Update..."
+      rm -rf /tmp/GeoIP.dat
+   else
    LOG_OUT "GeoIP Dat Download Success, Check Updated..."
    cmp -s /tmp/GeoIP.dat "$geoip_path"
    if [ "$?" -ne "0" ]; then
@@ -56,6 +65,7 @@ if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "/tmp/GeoIP.dat" ]; then
       restart=1
    else
       LOG_OUT "Updated GeoIP Dat No Change, Do Nothing..."
+      fi
    fi
 elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
    LOG_OUT "Updated GeoIP Dat No Change, Do Nothing..."

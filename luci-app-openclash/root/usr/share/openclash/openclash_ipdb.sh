@@ -46,6 +46,15 @@ fi
 DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "/tmp/Country.mmdb" "$geoip_path"
 DOWNLOAD_RESULT=$?
 if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "/tmp/Country.mmdb" ]; then
+   # Guard against HTML error pages (e.g. Cloudflare returning 200 for rate-limit page)
+   if head -c 512 "/tmp/Country.mmdb" | grep -qiE "<!doctype|<html|<head|<body"; then
+      LOG_OUT "Geoip Database Download Failed: HTML Response Detected, Abort Update..."
+      rm -rf /tmp/Country.mmdb
+   # Validate minimum file size to guard against truncated/corrupt downloads
+   elif [ $(stat -c%s "/tmp/Country.mmdb" 2>/dev/null || echo 0) -lt 10240 ]; then
+      LOG_OUT "Geoip Database Download Failed: File Size Too Small, Abort Update..."
+      rm -rf /tmp/Country.mmdb
+   else
    LOG_OUT "Geoip Database Download Success, Check Updated..."
    cmp -s /tmp/Country.mmdb "$geoip_path"
    if [ "$?" -ne 0 ]; then
@@ -55,6 +64,7 @@ if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "/tmp/Country.mmdb" ]; then
       restart=1
    else
       LOG_OUT "Updated Geoip Database No Change, Do Nothing..."
+      fi
    fi
 elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
    LOG_OUT "Updated Geoip Database No Change, Do Nothing..."
