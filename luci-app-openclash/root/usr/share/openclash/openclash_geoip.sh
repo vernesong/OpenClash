@@ -55,16 +55,16 @@ if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "/tmp/GeoIP.dat" ]; then
       LOG_OUT "GeoIP Dat Download Failed: File Size Too Small, Abort Update..."
       rm -rf /tmp/GeoIP.dat
    else
-   LOG_OUT "GeoIP Dat Download Success, Check Updated..."
-   cmp -s /tmp/GeoIP.dat "$geoip_path"
-   if [ "$?" -ne "0" ]; then
-      LOG_OUT "GeoIP Dat Has Been Updated, Starting To Replace The Old Version..."
-      rm -rf "/etc/openclash/geoip.dat"
-      mv /tmp/GeoIP.dat "$geoip_path" >/dev/null 2>&1
-      LOG_OUT "GeoIP Dat Update Successful!"
-      restart=1
-   else
-      LOG_OUT "Updated GeoIP Dat No Change, Do Nothing..."
+      LOG_OUT "GeoIP Dat Download Success, Check Updated..."
+      cmp -s /tmp/GeoIP.dat "$geoip_path"
+      if [ "$?" -ne "0" ]; then
+         LOG_OUT "GeoIP Dat Has Been Updated, Starting To Replace The Old Version..."
+         rm -rf "/etc/openclash/geoip.dat"
+         mv /tmp/GeoIP.dat "$geoip_path" >/dev/null 2>&1
+         LOG_OUT "GeoIP Dat Update Successful!"
+         restart=1
+      else
+         LOG_OUT "Updated GeoIP Dat No Change, Do Nothing..."
       fi
    fi
 elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then

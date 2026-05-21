@@ -55,16 +55,16 @@ if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "/tmp/GeoLite2-ASN.mmdb" ]; then
       LOG_OUT "Geo ASN Database Download Failed: File Size Too Small, Abort Update..."
       rm -rf /tmp/GeoLite2-ASN.mmdb
    else
-   LOG_OUT "Geo ASN Database Download Success, Check Updated..."
-   cmp -s /tmp/GeoLite2-ASN.mmdb "$geoasn_path"
-   if [ "$?" -ne "0" ]; then
-      LOG_OUT "Geo ASN Database Has Been Updated, Starting To Replace The Old Version..."
-      rm -rf "/etc/openclash/GeoLite2-ASN.mmdb"
-      mv /tmp/GeoLite2-ASN.mmdb "$geoasn_path" >/dev/null 2>&1
-      LOG_OUT "Geo ASN Database Update Successful!"
-      restart=1
-   else
-      LOG_OUT "Updated Geo ASN Database No Change, Do Nothing..."
+      LOG_OUT "Geo ASN Database Download Success, Check Updated..."
+      cmp -s /tmp/GeoLite2-ASN.mmdb "$geoasn_path"
+      if [ "$?" -ne "0" ]; then
+         LOG_OUT "Geo ASN Database Has Been Updated, Starting To Replace The Old Version..."
+         rm -rf "/etc/openclash/GeoLite2-ASN.mmdb"
+         mv /tmp/GeoLite2-ASN.mmdb "$geoasn_path" >/dev/null 2>&1
+         LOG_OUT "Geo ASN Database Update Successful!"
+         restart=1
+      else
+         LOG_OUT "Updated Geo ASN Database No Change, Do Nothing..."
       fi
    fi
 elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then

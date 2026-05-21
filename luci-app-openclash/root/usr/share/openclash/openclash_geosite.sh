@@ -55,16 +55,16 @@ if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "/tmp/GeoSite.dat" ]; then
       LOG_OUT "GeoSite Database Download Failed: File Size Too Small, Abort Update..."
       rm -rf /tmp/GeoSite.dat
    else
-   LOG_OUT "GeoSite Database Download Success, Check Updated..."
-   cmp -s /tmp/GeoSite.dat "$geosite_path"
-   if [ "$?" -ne "0" ]; then
-      LOG_OUT "GeoSite Database Has Been Updated, Starting To Replace The Old Version..."
-      rm -rf "/etc/openclash/geosite.dat"
-      mv /tmp/GeoSite.dat "$geosite_path" >/dev/null 2>&1
-      LOG_OUT "GeoSite Database Update Successful!"
-      restart=1
-   else
-      LOG_OUT "Updated GeoSite Database No Change, Do Nothing..."
+      LOG_OUT "GeoSite Database Download Success, Check Updated..."
+      cmp -s /tmp/GeoSite.dat "$geosite_path"
+      if [ "$?" -ne "0" ]; then
+         LOG_OUT "GeoSite Database Has Been Updated, Starting To Replace The Old Version..."
+         rm -rf "/etc/openclash/geosite.dat"
+         mv /tmp/GeoSite.dat "$geosite_path" >/dev/null 2>&1
+         LOG_OUT "GeoSite Database Update Successful!"
+         restart=1
+      else
+         LOG_OUT "Updated GeoSite Database No Change, Do Nothing..."
       fi
    fi
 elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then

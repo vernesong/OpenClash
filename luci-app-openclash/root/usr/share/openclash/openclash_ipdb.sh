@@ -55,15 +55,15 @@ if [ "$DOWNLOAD_RESULT" -eq 0 ] && [ -s "/tmp/Country.mmdb" ]; then
       LOG_OUT "Geoip Database Download Failed: File Size Too Small, Abort Update..."
       rm -rf /tmp/Country.mmdb
    else
-   LOG_OUT "Geoip Database Download Success, Check Updated..."
-   cmp -s /tmp/Country.mmdb "$geoip_path"
-   if [ "$?" -ne 0 ]; then
-      LOG_OUT "Geoip Database Has Been Updated, Starting To Replace The Old Version..."
-      mv /tmp/Country.mmdb "$geoip_path" >/dev/null 2>&1
-      LOG_OUT "Geoip Database Update Successful!"
-      restart=1
-   else
-      LOG_OUT "Updated Geoip Database No Change, Do Nothing..."
+      LOG_OUT "Geoip Database Download Success, Check Updated..."
+      cmp -s /tmp/Country.mmdb "$geoip_path"
+      if [ "$?" -ne 0 ]; then
+         LOG_OUT "Geoip Database Has Been Updated, Starting To Replace The Old Version..."
+         mv /tmp/Country.mmdb "$geoip_path" >/dev/null 2>&1
+         LOG_OUT "Geoip Database Update Successful!"
+         restart=1
+      else
+         LOG_OUT "Updated Geoip Database No Change, Do Nothing..."
       fi
    fi
 elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
