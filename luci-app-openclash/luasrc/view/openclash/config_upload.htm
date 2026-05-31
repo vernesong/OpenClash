@@ -1243,7 +1243,7 @@ var ConfigUploader = {
             }
         }
 
-        if (data.sub_convert === '1' || data.convert_address || data.template || data.emoji === 'true' || data.udp === 'true' || data.skip_cert_verify === 'true' || data.sort === 'true' || data.node_type === 'true' || data.rule_provider === 'true' || data.custom_params || data.keyword || data.ex_keyword || data.de_ex_keyword) {
+        if (data.sub_convert === '1' || data.convert_address || data.template || data.custom_template_url || data.emoji === 'true' || data.udp === 'true' || data.skip_cert_verify === 'true' || data.sort === 'true' || data.node_type === 'true' || data.rule_provider === 'true' || data.custom_params || data.keyword || data.ex_keyword || data.de_ex_keyword) {
             document.getElementById('advanced-options-enable').checked = true;
             document.getElementById('advanced-options-container').style.display = 'block';
 
@@ -1282,7 +1282,7 @@ var ConfigUploader = {
                     } else if (data.template === '0') {
                         templateSelect.value = '0';
                         document.getElementById('custom-template-group').style.display = 'block';
-                        document.getElementById('custom-template-input').value = data.custom_template || '';
+                        document.getElementById('custom-template-input').value = data.custom_template_url || data.custom_template || '';
                     }
                 }
 
@@ -1535,6 +1535,7 @@ var ConfigUploader = {
         var sort = false;
         var nodeType = false;
         var ruleProvider = false;
+        var customTemplateUrl = '';
         var customParams = '';
         var keywords = '';
         var excludeKeywords = '';
@@ -1565,7 +1566,7 @@ var ConfigUploader = {
             }
 
             if (template === '0') {
-                template = customTemplate.trim();
+                customTemplateUrl = customTemplate.trim();
             }
         }
 
@@ -1640,6 +1641,7 @@ var ConfigUploader = {
             sub_convert: subConvert ? '1' : '0',
             convert_address: convertAddress,
             template: template,
+            custom_template_url: customTemplateUrl,
             emoji: emoji ? 'true' : 'false',
             udp: udp ? 'true' : 'false',
             skip_cert_verify: skipCert ? 'true' : 'false',
