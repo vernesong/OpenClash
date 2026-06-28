@@ -25,7 +25,12 @@ if [ -n "$1" ]; then
 fi
 
 if [ "$CORE_TYPE" = "Oix" ] || [ -n "$OIX_TOKEN" ]; then
-   DOWNLOAD_URL="https://dl.dler.io/mihomo-oix/version.txt?tag=Pre-Alpha"
+   OIX_VERSION_URL="https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/version.txt"
+   if [ "$github_address_mod" != "0" ] && [ "$github_address_mod" != "https://cdn.jsdelivr.net/" ] && [ "$github_address_mod" != "https://fastly.jsdelivr.net/" ] && [ "$github_address_mod" != "https://testingcf.jsdelivr.net/" ]; then
+      DOWNLOAD_URL="${github_address_mod}${OIX_VERSION_URL}"
+   else
+      DOWNLOAD_URL="$OIX_VERSION_URL"
+   fi
 else
    if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then

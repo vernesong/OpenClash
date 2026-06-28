@@ -87,7 +87,12 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
    if [ "$CPU_MODEL" != 0 ]; then
       LOG_TIP "【$CORE_TYPE】Core Downloading, Please Try to Download and Upload Manually If Fails"
       if [ "$CORE_TYPE" = "Oix" ]; then
-         DOWNLOAD_URL="https://dl.dler.io/mihomo-oix/mihomo-${CPU_MODEL}-${CORE_LV}.gz?tag=Pre-Alpha"
+         OIX_CORE_URL="https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/mihomo-${CPU_MODEL}-${CORE_LV}.gz"
+         if [ "$github_address_mod" != "0" ] && [ "$github_address_mod" != "https://cdn.jsdelivr.net/" ] && [ "$github_address_mod" != "https://fastly.jsdelivr.net/" ] && [ "$github_address_mod" != "https://testingcf.jsdelivr.net/" ]; then
+            DOWNLOAD_URL="${github_address_mod}${OIX_CORE_URL}"
+         else
+            DOWNLOAD_URL="$OIX_CORE_URL"
+         fi
       else
          if [ "$github_address_mod" != "0" ]; then
             if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
