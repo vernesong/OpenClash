@@ -17,6 +17,7 @@ FW4=$(command -v fw4)
 ## Skip Proxies Address
 skip_proxies_address()
 {
+OPENCLASH_CORE_TYPE="$core_type" OPENCLASH_DASHBOARD_PASSWORD="$da_password" OPENCLASH_CN_PORT="$cn_port" \
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 begin
    Value = YAML.load_file('$CONFIG_FILE');
@@ -26,6 +27,43 @@ rescue Exception => e
 end;
 
 begin
+   def escape_path_component(value)
+      value.to_s.bytes.map{|byte|
+         char = byte.chr
+         char =~ /[A-Za-z0-9._~-]/ ? char : '%%%02X' % byte
+      }.join
+   end
+
+   def parse_json_string_array_member(json, key)
+      pattern = Regexp.new('\x22' + Regexp.escape(key) + '\x22\s*:\s*\[(.*?)\]', Regexp::MULTILINE)
+      match = json.to_s.match(pattern)
+      return [] if match.nil?
+
+      values = []
+      match[1].scan(/\x22((?:[^\x22\\]|\\.)*)\x22/m) do |item|
+         values.push(item[0].gsub(/\\([\x22\\\/])/, '\1').gsub('\\n', 10.chr).gsub('\\r', 13.chr).gsub('\\t', 9.chr))
+      end
+      values
+   end
+
+   def read_oix_provider_servers(name)
+      return [] unless ENV['OPENCLASH_CORE_TYPE'].to_s == 'Oix'
+
+      port = ENV['OPENCLASH_CN_PORT'].to_s
+      port = '9090' if port.empty?
+      url = 'http://127.0.0.1:' + port + '/providers/proxies/' + escape_path_component(name) + '/servers'
+      cmd = ['curl', '-s', '-m', '2']
+
+      password = ENV['OPENCLASH_DASHBOARD_PASSWORD'].to_s
+      cmd += ['-H', 'Authorization: Bearer ' + password] unless password.empty?
+      cmd << url
+
+      response = IO.popen(cmd).read
+      parse_json_string_array_member(response, 'servers').map{|s| s.to_s}.reject{|s| s.empty?}
+   rescue Exception
+      []
+   end
+
    if not (Value.key?('proxies') or Value.key?('proxy-providers')) then
       exit;
    end
@@ -47,6 +85,14 @@ begin
             if File.exist?(path)
                file_is_age_encrypted = File.read(path, 512).include?('BEGIN AGE ENCRYPTED FILE') rescue false
                begin
+                  if file_is_age_encrypted
+                     oix_servers = read_oix_provider_servers(name)
+                     unless oix_servers.empty?
+                        servers_to_process.concat(oix_servers)
+                        next
+                     end
+                  end
+
                   if provider.key?('age-secret-key') and not provider['age-secret-key'].to_s.empty?
                      begin
                         provider_config = YAML.load_file(path, secret: provider['age-secret-key']) rescue nil
@@ -55,10 +101,6 @@ begin
                         continue
                      end
                   else
-                     if file_is_age_encrypted
-                        YAML.LOG_WARN('Set Proxies Address Skip Failed,【' + path + ': File is AGE encrypted but no secret key provided】')
-                        next
-                     end
                      provider_config = YAML.load_file(path)
                   end
 
@@ -80,6 +122,12 @@ begin
                      rescue Exception => e
                         YAML.LOG_WARN('Failed to parse config file with Lua helper【' + path + ': ' + e.message+'】')
                      end
+                  end
+               rescue Exception => e
+                  if file_is_age_encrypted and ENV['OPENCLASH_CORE_TYPE'].to_s == 'Oix'
+                     YAML.LOG_WARN('Skip OIX Provider Servers Address Extraction,【' + path + ': OIX core server list unavailable】')
+                  else
+                     YAML.LOG_WARN('Set Proxies Address Skip Failed,【' + path + ': ' + e.message+'】')
                   end
                end
             end
@@ -173,6 +221,9 @@ do
    log_size=$(uci_get_config "log_size" || echo 1024)
    router_self_proxy=$(uci_get_config "router_self_proxy" || echo 1)
    skip_proxy_address=$(uci_get_config "skip_proxy_address" || echo 0)
+   core_type=$(uci_get_config "core_type" || echo 0)
+   da_password=$(uci_get_config "dashboard_password")
+   cn_port=$(uci_get_config "cn_port" || echo 9090)
 
    cfg_update=$(uci_get_config "auto_update")
    cfg_update_mode=$(uci_get_config "config_auto_update_mode")
