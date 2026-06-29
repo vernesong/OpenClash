@@ -83,7 +83,11 @@ RUBY
 printf '%s\n' "$*" >> "$OC_CURL_LOG"
 case "$*" in
   *"/providers/proxies/oixCloud/servers"*)
-    printf '{"servers":["198.51.100.9","node.example.com"]}'
+    if [ "${OC_CURL_MODE:-servers}" = "empty" ]; then
+      printf '{"servers":[]}'
+    else
+      printf '{"servers":["198.51.100.9","node.example.com"]}'
+    fi
     ;;
   *)
     printf '{}'
@@ -94,7 +98,7 @@ SH
 }
 
 run_skip_proxy_ruby() {
-  local tmp_dir="$1" provider_name="$2" provider_mode="$3" core_type="$4"
+  local tmp_dir="$1" provider_name="$2" provider_mode="$3" core_type="$4" curl_mode="${5:-servers}"
   local clash_dir="$tmp_dir/openclash"
   local provider_dir="$clash_dir/proxy_provider"
   local fake_dir="$tmp_dir/fake_ruby"
@@ -138,6 +142,7 @@ EOF_PROVIDER
   OPENCLASH_CN_PORT="9090" \
   OC_LOG_FILE="$tmp_dir/openclash.log" \
   OC_SYSTEM_LOG="$tmp_dir/system.log" \
+  OC_CURL_MODE="$curl_mode" \
   OC_CURL_LOG="$tmp_dir/curl.log" \
     ruby -ryaml -e "load '$fake_dir/openclash_test_yaml.rb'; load '$ruby_file'"
 }
@@ -164,7 +169,8 @@ assert_not_contains() {
 
 tmp_auto="$(mktemp -d)"
 tmp_oix=""
-trap 'rm -rf "$tmp_auto" "$tmp_oix"' EXIT
+tmp_oix_unavailable=""
+trap 'rm -rf "$tmp_auto" "$tmp_oix" "$tmp_oix_unavailable"' EXIT
 run_skip_proxy_ruby "$tmp_auto" "secureProvider" "auto_decrypt" "Meta"
 assert_contains "$tmp_auto/system.log" 'ipset add localnetwork "203.0.113.7"' \
   "encrypted providers that YAML.load_file can decrypt should still feed skip_proxy_address"
@@ -172,12 +178,21 @@ assert_not_contains "$tmp_auto/openclash.log" "File is AGE encrypted but no secr
   "watchdog should not reject encrypted providers before YAML.load_file auto key lookup"
 
 tmp_oix="$(mktemp -d)"
-run_skip_proxy_ruby "$tmp_oix" "oixCloud" "decrypt_fail" "Oix"
+tmp_oix_unavailable="$(mktemp -d)"
+run_skip_proxy_ruby "$tmp_oix" "oixCloud" "decrypt_fail" "Oix" "servers"
 assert_contains "$tmp_oix/curl.log" "/providers/proxies/oixCloud/servers" \
   "OIX provider servers should be requested from the OIX core API"
 assert_contains "$tmp_oix/system.log" 'ipset add localnetwork "198.51.100.9"' \
   "OIX provider servers returned by the core API should feed skip_proxy_address"
 assert_not_contains "$tmp_oix/openclash.log" "Set Proxies Address Skip Failed" \
   "OIX managed encrypted providers should not be reported as OpenClash skip_proxy_address failures"
+
+run_skip_proxy_ruby "$tmp_oix_unavailable" "oixCloud" "decrypt_fail" "Oix" "empty"
+assert_contains "$tmp_oix_unavailable/curl.log" "/providers/proxies/oixCloud/servers" \
+  "OIX provider servers should still be requested when the core API returns no hosts"
+assert_contains "$tmp_oix_unavailable/openclash.log" "Skip OIX Provider Servers Address Extraction" \
+  "OIX encrypted providers should report address extraction as unavailable when the core API has no hosts"
+assert_not_contains "$tmp_oix_unavailable/openclash.log" "Set Proxies Address Skip Failed" \
+  "OIX encrypted providers without core API hosts should not be reported as OpenClash skip_proxy_address failures"
 
 echo "openclash_watchdog tests passed"
