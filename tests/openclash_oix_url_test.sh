@@ -22,6 +22,7 @@ actual:   $actual"
 raw_version="https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/version.txt"
 raw_core="https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/mihomo-linux-arm64-2026.06.30.gz"
 
+# jsDelivr /gh paths serve repository files, not GitHub Release assets, so OIX uses raw fallback.
 assert_eq "$raw_version" \
    "$(OPENCLASH_TEST_ONLY=1 bash "$CLASH_VERSION" build_oix_version_url "")" \
    "empty CDN should use raw OIX version URL"
@@ -30,15 +31,15 @@ assert_eq "$raw_version" \
    "$(OPENCLASH_TEST_ONLY=1 bash "$CLASH_VERSION" build_oix_version_url "0")" \
    "CDN value 0 should use raw OIX version URL"
 
-assert_eq "https://fastly.jsdelivr.net/gh/vernesong/mihomo-oix@Pre-Alpha/version.txt" \
+assert_eq "$raw_version" \
    "$(OPENCLASH_TEST_ONLY=1 bash "$CLASH_VERSION" build_oix_version_url "https://fastly.jsdelivr.net/")" \
    "fastly jsDelivr OIX version URL mismatch"
 
-assert_eq "https://testingcf.jsdelivr.net/gh/vernesong/mihomo-oix@Pre-Alpha/version.txt" \
+assert_eq "$raw_version" \
    "$(OPENCLASH_TEST_ONLY=1 bash "$CLASH_VERSION" build_oix_version_url "https://testingcf.jsdelivr.net/")" \
    "testingcf jsDelivr OIX version URL mismatch"
 
-assert_eq "https://cdn.jsdelivr.net/gh/vernesong/mihomo-oix@Pre-Alpha/version.txt" \
+assert_eq "$raw_version" \
    "$(OPENCLASH_TEST_ONLY=1 bash "$CLASH_VERSION" build_oix_version_url "https://cdn.jsdelivr.net/")" \
    "cdn jsDelivr OIX version URL mismatch"
 
@@ -50,15 +51,15 @@ assert_eq "$raw_core" \
    "$(OPENCLASH_TEST_ONLY=1 bash "$OPENCLASH_CORE" build_oix_core_url "" "linux-arm64" "2026.06.30")" \
    "empty CDN should use raw OIX core URL"
 
-assert_eq "https://fastly.jsdelivr.net/gh/vernesong/mihomo-oix@Pre-Alpha/mihomo-linux-arm64-2026.06.30.gz" \
+assert_eq "$raw_core" \
    "$(OPENCLASH_TEST_ONLY=1 bash "$OPENCLASH_CORE" build_oix_core_url "https://fastly.jsdelivr.net/" "linux-arm64" "2026.06.30")" \
    "fastly jsDelivr OIX core URL mismatch"
 
-assert_eq "https://testingcf.jsdelivr.net/gh/vernesong/mihomo-oix@Pre-Alpha/mihomo-linux-arm64-2026.06.30.gz" \
+assert_eq "$raw_core" \
    "$(OPENCLASH_TEST_ONLY=1 bash "$OPENCLASH_CORE" build_oix_core_url "https://testingcf.jsdelivr.net/" "linux-arm64" "2026.06.30")" \
    "testingcf jsDelivr OIX core URL mismatch"
 
-assert_eq "https://cdn.jsdelivr.net/gh/vernesong/mihomo-oix@Pre-Alpha/mihomo-linux-arm64-2026.06.30.gz" \
+assert_eq "$raw_core" \
    "$(OPENCLASH_TEST_ONLY=1 bash "$OPENCLASH_CORE" build_oix_core_url "https://cdn.jsdelivr.net/" "linux-arm64" "2026.06.30")" \
    "cdn jsDelivr OIX core URL mismatch"
 
