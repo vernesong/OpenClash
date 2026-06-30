@@ -387,11 +387,12 @@ yml_other_set()
 
          # smart auto switch
          begin
-            if ('${8}' == '1' or '${9}' == '1' or '${11}' != '0' or '${12}' != '0' or '${12}' == '1' or '${13}' == '1') and Value.key?('proxy-groups') and Value['proxy-groups'].is_a?(Array) then
+            if ('${8}' == '1' or '${9}' == '1' or '${11}' != '0' or '${12}' != '0' or '${12}' == '1' or '${13}' == '1' or '${14}' == 'sticky-sessions') and Value.key?('proxy-groups') and Value['proxy-groups'].is_a?(Array) then
                Value['proxy-groups'].each{|group|
                   threads << Thread.new {
                      if '${8}' == '1' and ['url-test', 'load-balance'].include?(group['type']) then
                         group['type'] = 'smart';
+                        group['strategy'] = '${14}' if '${14}' == 'sticky-sessions';
                         group['uselightgbm'] = true if '${12}' == '1';
                         group['collectdata'] = true if '${9}' == '1';
                         group['sample-rate'] = '${10}'.to_f if '${9}' == '1';
@@ -428,4 +429,4 @@ yml_other_set()
    end" 2>/dev/null >> $LOG_FILE
 }
 
-yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
+yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}"

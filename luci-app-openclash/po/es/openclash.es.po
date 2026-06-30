@@ -1083,6 +1083,9 @@ msgstr "Sesiones persistentes"
 msgid "Strategy Type"
 msgstr "Tipo de estrategia"
 
+msgid "Requires Smart core support for sticky-sessions strategy"
+msgstr "Requiere un núcleo Smart compatible con la estrategia sticky-sessions"
+
 msgid "Choose The Load-Balance's Strategy Type"
 msgstr "Selecciona el tipo de estrategia de balanceo"
 

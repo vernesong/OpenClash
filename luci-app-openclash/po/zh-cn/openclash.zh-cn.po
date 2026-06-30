@@ -1083,6 +1083,9 @@ msgstr "粘性会话（相同的来源地址-目标地址使用同一个代理�
 msgid "Strategy Type"
 msgstr "策略类型"
 
+msgid "Requires Smart core support for sticky-sessions strategy"
+msgstr "需要支持 sticky-sessions 策略的 Smart 内核"
+
 msgid "Choose The Load-Balance's Strategy Type"
 msgstr "选择负载均衡的策略类型"
 
