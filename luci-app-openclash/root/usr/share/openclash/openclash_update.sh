@@ -17,6 +17,14 @@ del_lock() {
 set_lock
 inc_job_counter
 
+finish_openclash_update() {
+   local status="$1"
+   dec_job_counter_and_restart "0"
+   SLOG_CLEAN
+   del_lock
+   exit "$status"
+}
+
 if [ -n "$1" ] && [ "$1" != "one_key_update" ]; then
    /usr/share/openclash/openclash_version.sh "$1" 2>/dev/null
 elif [ -n "$2" ]; then
@@ -27,10 +35,7 @@ fi
 
 if [ ! -f "/tmp/openclash_last_version" ]; then
    LOG_ERROR "Failed to get version information, please try again later..."
-   SLOG_CLEAN
-   dec_job_counter_and_restart "0"
-   del_lock
-   exit 0
+   finish_openclash_update 1
 fi
 
 version_compare() {
@@ -88,10 +93,16 @@ if [ "$1" = "one_key_update" ]; then
    fi
    if [ -n "$2" ]; then
       /usr/share/openclash/openclash_core.sh "Meta" "$1" "$2" >/dev/null 2>&1
+      core_update_status=$?
       github_address_mod="$2"
    else
       /usr/share/openclash/openclash_core.sh "Meta" "$1" >/dev/null 2>&1
+      core_update_status=$?
       github_address_mod=0
+   fi
+   if [ "${OPENCLASH_AUTO_UPDATE:-0}" = "1" ] && [ "$core_update_status" -ne 0 ]; then
+      LOG_ERROR "Automatic version update stopped because core update failed."
+      finish_openclash_update 1
    fi
 else
    if [ "$github_address_mod" = "0" ]; then
@@ -212,10 +223,7 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ 
                elif [ -x "/usr/bin/apk" ]; then
                   LOG_ERROR "【OpenClash - v$LAST_VER】Pre update test failed after 3 attempts, the file is saved in /tmp/openclash.apk, please try to update manually with【apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk】"
                fi
-               SLOG_CLEAN
-               dec_job_counter_and_restart "0"
-               del_lock
-               exit 0
+               finish_openclash_update 1
             fi
          fi
       else
@@ -227,10 +235,7 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ 
             LOG_ERROR "【OpenClash - v$LAST_VER】Download Failed after 3 attempts, please check the network or try again later!"
             rm -rf /tmp/openclash.ipk >/dev/null 2>&1
             rm -rf /tmp/openclash.apk >/dev/null 2>&1
-            dec_job_counter_and_restart "0"
-            SLOG_CLEAN
-            del_lock
-            exit 0
+            finish_openclash_update 1
          fi
       fi
    done
@@ -379,10 +384,7 @@ EOF
    if [ ! -f "/tmp/openclash_update.sh" ] || [ ! -s "/tmp/openclash_update.sh" ] || [ ! -x "/tmp/openclash_update.sh" ]; then
       LOG_ERROR "Failed to create update script!"
       rm -rf /tmp/openclash_update.sh
-      dec_job_counter_and_restart "0"
-      SLOG_CLEAN
-      del_lock
-      exit 1
+      finish_openclash_update 1
    fi
 
    retry_count=0
@@ -410,17 +412,18 @@ EOF
 
    if [ "$service_started" = false ]; then
       LOG_ERROR "Failed to start update service after 3 attempts, please check and try again later..."
+      finish_openclash_update 1
    fi
 
    (sleep 15; rm -f /tmp/openclash_update.sh) &
+   del_lock
+   exit 2
 else
    if [ ! -f "$LAST_OPVER" ] || [ -z "$OP_CV" ] || [ -z "$OP_LV" ]; then
       LOG_ERROR "Failed to get version information, please try again later..."
+      finish_openclash_update 1
    else
       LOG_TIP "OpenClash has not been updated, stop continuing!"
+      finish_openclash_update 0
    fi
-   dec_job_counter_and_restart "0"
-   SLOG_CLEAN
 fi
-
-del_lock

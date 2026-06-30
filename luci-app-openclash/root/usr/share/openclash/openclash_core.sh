@@ -50,6 +50,17 @@ set_lock
 inc_job_counter
 
 restart=0
+core_update_status=0
+TMP_FILE="/tmp/clash_meta"
+
+finish_core_update() {
+   local status="$1"
+   rm -rf "$TMP_FILE" >/dev/null 2>&1
+   dec_job_counter_and_restart "$restart"
+   del_lock
+   exit "$status"
+}
+
 github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
 if [ "$github_address_mod" = "0" ] && [ -z "$(echo $2 2>/dev/null |grep -E 'http|one_key_update')" ] && [ -z "$(echo $3 2>/dev/null |grep 'http')" ]; then
    LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
@@ -82,8 +93,7 @@ fi
 if [ ! -f "/tmp/clash_last_version" ]; then
    LOG_ERROR "【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
    SLOG_CLEAN
-   del_lock
-   exit 0
+   finish_core_update 1
 fi
 
 if [ "$small_flash_memory" != "1" ]; then
@@ -95,7 +105,6 @@ else
 fi
 
 CORE_CV=$($meta_core_path -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1)
-TMP_FILE="/tmp/clash_meta"
 TARGET_CORE_PATH="$meta_core_path"
 
 if [ "$CORE_TYPE" = "Oix" ]; then
@@ -170,8 +179,8 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                      LOG_ERROR "【"$CORE_TYPE"】Core Update Failed, Please Make Sure Enough Flash Memory Space or Selected Correct Core Platform And Try Again!"
                      rm -rf "$TMP_FILE" >/dev/null 2>&1
                      SLOG_CLEAN
-                     del_lock
-                     exit 0
+                     core_update_status=1
+                     break
                   fi
                fi
 
@@ -190,6 +199,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                   else
                      LOG_ERROR "【"$CORE_TYPE"】Core Update Failed, Please Make Sure Enough Flash Memory Space And Try Again!"
                      SLOG_CLEAN
+                     core_update_status=1
                      break
                   fi
                fi
@@ -201,12 +211,14 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                else
                   LOG_ERROR "【"$CORE_TYPE"】Core Update Failed, Please Check The Network or Try Again Later!"
                   SLOG_CLEAN
+                  core_update_status=1
                   break
                fi
             fi
          elif [ "$DOWNLOAD_RESULT" -eq 2 ]; then
             LOG_TIP "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation!"
             SLOG_CLEAN
+            break
          else
             if [ "$retry_count" -lt "$max_retries" ]; then
                LOG_ERROR "【$retry_count/$max_retries】【"$CORE_TYPE"】Core Download Failed..."
@@ -215,6 +227,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
             else
                LOG_ERROR "【"$CORE_TYPE"】Core Download Failed, Please Check The Network or Try Again Later!"
                SLOG_CLEAN
+               core_update_status=1
                break
             fi
          fi
@@ -222,12 +235,12 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
    else
       LOG_WARN "No Compiled Version Selected, Please Select In Update Page And Try Again!"
       SLOG_CLEAN
+      core_update_status=1
    fi
 else
    LOG_TIP "【"$CORE_TYPE"】Core Has Not Been Updated, Stop Continuing Operation!"
    SLOG_CLEAN
 fi
 
-rm -rf "$TMP_FILE" >/dev/null 2>&1
-dec_job_counter_and_restart "$restart"
-del_lock
+SLOG_CLEAN
+finish_core_update "$core_update_status"
