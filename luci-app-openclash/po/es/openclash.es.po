@@ -534,6 +534,12 @@ msgstr "Actualizar lista Chnroute"
 msgid "Chnroute Update"
 msgstr "Actualización de Chnroute"
 
+msgid "Automatic Version Update"
+msgstr "Actualización automática de versión"
+
+msgid "Automatically check and update OpenClash client and core versions"
+msgstr "Comprobar y actualizar automáticamente las versiones del cliente y del núcleo de OpenClash"
+
 msgid "Update Time (Every Week)"
 msgstr "Hora de actualización (cada semana)"
 

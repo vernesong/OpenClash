@@ -1392,6 +1392,29 @@ end
 core_update = s:taboption("version_update", DummyValue, "", nil)
 core_update.template = "openclash/update"
 
+o = s:taboption("version_update", Flag, "auto_version_update", translate("Automatic Version Update"))
+o.description = translate("Automatically check and update OpenClash client and core versions")
+o.default = 0
+
+o = s:taboption("version_update", ListValue, "auto_version_update_week_time", translate("Update Time (Every Week)"))
+o:value("*", translate("Every Day"))
+o:value("1", translate("Every Monday"))
+o:value("2", translate("Every Tuesday"))
+o:value("3", translate("Every Wednesday"))
+o:value("4", translate("Every Thursday"))
+o:value("5", translate("Every Friday"))
+o:value("6", translate("Every Saturday"))
+o:value("0", translate("Every Sunday"))
+o.default = "1"
+o:depends("auto_version_update", "1")
+
+o = s:taboption("version_update", ListValue, "auto_version_update_day_time", translate("Update time (every day)"))
+for t = 0,23 do
+o:value(t, t..":00")
+end
+o.default = "0"
+o:depends("auto_version_update", "1")
+
 ---- developer
 o = s:taboption("developer", Value, "firewall_custom")
 o.template = "cbi/tvalue"

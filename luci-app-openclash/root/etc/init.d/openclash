@@ -50,6 +50,9 @@ add_cron()
    [ -z "$(grep "/etc/init.d/openclash" "$CRON_FILE" 2>/dev/null)" ] && {
       [ "$(uci_get_config "auto_restart")" -eq 1 ] && echo "0 $(uci_get_config "auto_restart_day_time" || 1) * * $(uci_get_config "auto_restart_week_time" || 0) /etc/init.d/openclash restart #openclash-cron-task" >> $CRON_FILE
    }
+   [ -z "$(grep "openclash_auto_update.sh" "$CRON_FILE" 2>/dev/null)" ] && {
+      [ "$(uci_get_config "auto_version_update")" -eq 1 ] && echo "0 $(uci_get_config "auto_version_update_day_time" || 0) * * $(uci_get_config "auto_version_update_week_time" || 1) /usr/share/openclash/openclash_auto_update.sh #openclash-cron-task" >> $CRON_FILE
+   }
 
    config_load "openclash"
    config_foreach add_overwrite_cron "config_overwrite"
