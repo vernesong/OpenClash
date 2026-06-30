@@ -23,6 +23,7 @@ must_not_contain() {
    local file="$1"
    local text="$2"
    grep -F "$text" "$file" >/dev/null 2>&1 && fail "Did not expect '$text' in $file"
+   return 0
 }
 
 must_have_translation() {
