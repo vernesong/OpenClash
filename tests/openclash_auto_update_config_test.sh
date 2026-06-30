@@ -27,9 +27,10 @@ must_not_contain() {
 
 must_have_translation() {
    local file="$1"
-   local text="$2"
-   must_contain "$file" "msgid \"$text\""
-   must_contain "$file" "msgstr \"$text\""
+   local msgid="$2"
+   local msgstr="$3"
+   must_contain "$file" "msgid \"$msgid\""
+   must_contain "$file" "msgstr \"$msgstr\""
 }
 
 must_contain "$CONFIG" "option auto_version_update '0'"
@@ -37,33 +38,42 @@ must_contain "$CONFIG" "option auto_version_update_week_time '1'"
 must_contain "$CONFIG" "option auto_version_update_day_time '0'"
 
 must_contain "$SETTINGS" "auto_version_update"
-must_contain "$SETTINGS" "自动版本更新"
-must_contain "$SETTINGS" "自动检查并更新 OpenClash 客户端和内核版本"
-must_contain "$SETTINGS" "更新时间（每周）"
-must_contain "$SETTINGS" "更新时间（每天）"
-must_not_contain "$SETTINGS" "Auto Version Update"
+must_contain "$SETTINGS" "Automatic Version Update"
+must_contain "$SETTINGS" "Automatically check and update OpenClash client and core versions"
+must_contain "$SETTINGS" "Update Time (Every Week)"
+must_contain "$SETTINGS" "Update time (every day)"
+must_not_contain "$SETTINGS" "自动版本更新"
 
 must_contain "$INIT" "openclash_auto_update.sh"
 must_contain "$INIT" "auto_version_update_week_time"
 must_contain "$INIT" "auto_version_update_day_time"
 
-# New UI labels intentionally use Chinese source keys and identical Chinese
-# translations in every catalog so this feature displays Chinese in all locales.
-for text in \
-   "自动版本更新" \
-   "自动检查并更新 OpenClash 客户端和内核版本" \
-   "更新时间（每周）" \
-   "更新时间（每天）" \
-   "每天" \
-   "每周一" \
-   "每周二" \
-   "每周三" \
-   "每周四" \
-   "每周五" \
-   "每周六" \
-   "每周日"; do
-   must_have_translation "$ZH_PO" "$text"
-   must_have_translation "$ES_PO" "$text"
-done
+# UI source strings follow the existing LuCI pattern: English msgid keys with
+# locale-specific msgstr values. Chinese UI displays Chinese through zh-cn.
+must_have_translation "$ZH_PO" "Automatic Version Update" "自动版本更新"
+must_have_translation "$ZH_PO" "Automatically check and update OpenClash client and core versions" "自动检查并更新 OpenClash 客户端和内核版本"
+must_have_translation "$ZH_PO" "Update Time (Every Week)" "更新时间(每周)"
+must_have_translation "$ZH_PO" "Update time (every day)" "更新时间(每天)"
+must_have_translation "$ZH_PO" "Every Day" "每天"
+must_have_translation "$ZH_PO" "Every Monday" "每周一"
+must_have_translation "$ZH_PO" "Every Tuesday" "每周二"
+must_have_translation "$ZH_PO" "Every Wednesday" "每周三"
+must_have_translation "$ZH_PO" "Every Thursday" "每周四"
+must_have_translation "$ZH_PO" "Every Friday" "每周五"
+must_have_translation "$ZH_PO" "Every Saturday" "每周六"
+must_have_translation "$ZH_PO" "Every Sunday" "每周日"
+
+must_have_translation "$ES_PO" "Automatic Version Update" "Actualización automática de versión"
+must_have_translation "$ES_PO" "Automatically check and update OpenClash client and core versions" "Comprobar y actualizar automáticamente las versiones del cliente y del núcleo de OpenClash"
+must_have_translation "$ES_PO" "Update Time (Every Week)" "Hora de actualización (cada semana)"
+must_have_translation "$ES_PO" "Update time (every day)" "Hora de actualización (cada día)"
+must_have_translation "$ES_PO" "Every Day" "Cada día"
+must_have_translation "$ES_PO" "Every Monday" "Cada lunes"
+must_have_translation "$ES_PO" "Every Tuesday" "Cada martes"
+must_have_translation "$ES_PO" "Every Wednesday" "Cada miércoles"
+must_have_translation "$ES_PO" "Every Thursday" "Cada jueves"
+must_have_translation "$ES_PO" "Every Friday" "Cada viernes"
+must_have_translation "$ES_PO" "Every Saturday" "Cada sábado"
+must_have_translation "$ES_PO" "Every Sunday" "Cada domingo"
 
 echo "openclash_auto_update_config_test.sh: PASS"

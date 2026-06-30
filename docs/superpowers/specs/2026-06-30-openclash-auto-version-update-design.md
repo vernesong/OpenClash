@@ -32,7 +32,7 @@ OpenClash 已支持 OIXCLOUD 专用加解密核心（OIX 核心）。由于 OIX 
 - `auto_version_update_week_time`：ListValue，界面标题显示为“更新时间（每周）”，选项与 `auto_restart_week_time` 一致：每天、周一到周日。
 - `auto_version_update_day_time`：ListValue，界面标题显示为“更新时间（每天）”，选项为 `0:00` 到 `23:00`。
 
-用户界面中新增功能的标题、说明、选项和日志提示均应以中文显示。内部 UCI option 名称继续使用英文小写加下划线，保持与现有配置风格一致。翻译文件中需同步新增 msgid 和 zh-cn msgstr；若需要兼容其他语言包，可保留英文 msgid，但中文界面必须显示中文文案。
+用户界面中新增功能的标题、说明和选项遵循现有 LuCI 多语言模式：`settings.lua` 使用英文 `msgid`，中文界面通过 `zh-cn` 翻译显示中文文案，已有其他语言包保持对应语言翻译。内部 UCI option 名称继续使用英文小写加下划线，保持与现有配置风格一致。自动任务日志提示使用中文，便于中文用户排查定时更新状态。
 
 默认值：
 
