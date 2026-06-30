@@ -90,10 +90,10 @@ all_proxy=socks5h://127.0.0.1:<port>
 - `https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/version.txt`
 - `https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/mihomo-<arch>-<version>.gz`
 
-自动任务需要让 OIX 下载也参与同一套源轮询：
+自动任务需要让 OIX 下载参与同一套网络路径轮询，但 OIX 文件是 GitHub Release assets，不是仓库文件：
 
 - 原始地址使用 GitHub Release 原 URL。
-- jsDelivr 系列使用 `gh/vernesong/mihomo-oix@Pre-Alpha/...` 形式拼接。
+- jsDelivr 系列不能使用 `gh/vernesong/mihomo-oix@Pre-Alpha/...` 形式服务这些 Release assets；对 OIX 版本文件和核心包应回退 GitHub Release 原 URL，避免生成 404 地址。
 - 非 jsDelivr 自定义前缀仍按现有逻辑拼接完整 GitHub URL。
 
 该补强应放在 `clash_version.sh` 和 `openclash_core.sh` 的 URL 生成处，保证手动和自动路径使用一致的地址转换规则。
