@@ -2841,11 +2841,11 @@ msgstr "Si la descarga falla, prueba a configurar un CDN en Sobrescritura → Ge
 msgid "Used for Downloading Subscriptions, Defaults to"
 msgstr "User-Agent usado para descargar suscripciones, por defecto:"
 
-msgid "Set Proxies Address Skip Failed,"
-msgstr "Fallo al configurar la omisión de direcciones de proxy,"
+msgid "Set Proxies Address Skip: Bypass"
+msgstr "Configurar omisión de direcciones proxy: Omitido"
 
-msgid "Age decrypt failed,"
-msgstr "Error al descifrar con Age para，"
+msgid "Set Proxies Address Skip: Failed"
+msgstr "Configurar omisión de direcciones proxy: Fallido"
 
 msgid "Failed to parse config file with Lua helper"
 msgstr "Error al analizar el archivo de configuración con el auxiliar Lua"

@@ -14,7 +14,7 @@
 ---
 
 
-* [Wiki](https://github.com/vernesong/OpenClash/wiki)
+* [Wiki](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/SKILL.md)
 
 
 下载地址
@@ -116,7 +116,7 @@ make menuconfig
 
 * PayPal
 <p align="left">
-    <a href="https://ko-fi.com/vernesong"><img width="300" src="https://www.ko-fi.com/img/githubbutton_sm.svg"> </a>
+    <a href='https://ko-fi.com/H2H41G5LS' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 </p>
 
 * USDT-BSC

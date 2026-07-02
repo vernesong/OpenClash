@@ -612,13 +612,14 @@ iptables -t mangle -A PREROUTING -p udp -j openclash
 | **`common_ports`** (仅允许常用端口流量 / Common Ports Proxy Mode) | `非0` | 插入 `th dport != @common_ports counter return` — 仅代理指定端口，P2P/BT 端口被绕过。仅 redir-host 模式生效 |
 | **`router_self_proxy`** (路由本机代理 / Router-Self Proxy) | `1` | 创建 OUTPUT 链 (`openclash_output` + `openclash_mangle_output`)，路由器自身流量被重定向/标记 |
 | | `0` | 删除 OUTPUT 链，路由器自身流量走原始路由 |
-| **`intranet_allowed`** (仅允许内网 / Only Intranet Allowed) | `1` | 创建 `openclash_wan_input` 链，DROP 来自 WAN 口对 `$cn_port`(9090) 及代理端口的访问 |
+| **`intranet_allowed`** (仅允许内网 / Only Intranet Allowed) | `1` | 创建 `openclash_wan_input` 链，REJECT 来自 WAN 口对全部服务端口的访问：`$proxy_port`(7892)、`$tproxy_port`(7895)、`$cn_port`(9090)、`$http_port`(7890)、`$socks_port`(7891)、`$mixed_port`(7893)、`$dns_port`(7874) |
 | **`bypass_gateway_compatible`** (旁路网关（旁路由）兼容 / Bypass Gateway Compatible) | `1` | 创建 `openclash_post` 链，对已标记流量执行 MASQUERADE SNAT，解决旁路由回流问题 |
-| **`skip_proxy_address`** (绕过服务器地址 / Skip Proxy Address) | `1` | 创建 `openclash_proxy_server_ip` nft set，在代理规则前插入 `ip daddr @openclash_proxy_server_ip counter return`，防止代理嵌套 |
+| **`skip_proxy_address`** (绕过服务器地址 / Skip Proxy Address) | `1` | 看门狗定时调用 `skip_proxies_address()` 通过内核 API 解析代理节点 `server` 地址并加入 `localnetwork` nft set，复用链首 RETURN 规则跳过代理，防止代理嵌套 |
 | **`enable_redirect_dns`** (本地 DNS 劫持 / Redirect Local DNS Setting) | `1` | 在 `dstnat` 插入 DNS 53 端口 REDIRECT 规则到 dnsmasq 端口 |
 | | `2` | 创建 `openclash_dns_redirect` 链，DNS 流量直接 DNAT 到 `dns_port`(7874) |
 | **`local_network_pass`** (本地 IPv4 绕过地址 / Local IPv4 Network Bypassed List) | 已配置 | 创建 `localnetwork` nft set，在 `openclash` 链规则 #1 中匹配本地 IP 段 RETURN 跳过代理 |
 | **`chnroute_pass`** (绕过指定区域 IPv4 黑名单 / Chnroute Bypassed List) | 已配置 | 创建 `china_ip_route_pass` nft set，配合 dnsmasq 将指定域名解析的 IP 加入 set，防火墙规则中优先于 `china_ip_route` 匹配（确保这些 IP 不被绕行规则跳过） |
+| **UPNP 流量排除**（无 UCI 选项，自动检测 `/etc/config/upnpd` 租约文件） | 系统已安装 upnpd | 创建 `openclash_upnp` 链，看门狗自动同步 upnpd 租约中的端口映射，匹配的 UDP 流量 RETURN 跳过代理，防止 BT/游戏等 UPnP 端口被错误代理 |
 | **`ipv6_enable`** (IPv6 流量代理 / Proxy IPv6 Traffic) | `1` | 创建完整的 IPv6 防火墙链：`openclash_v6`(TCP REDIRECT)、`openclash_mangle_v6`(UDP TPROXY)、`openclash_output_v6`(路由自身)、`openclash_post_v6`(旁路由 SNAT) |
 | **`local_network6_pass`** (本地 IPv6 绕过地址 / Local IPv6 Network Bypassed List) | 已配置 | 创建 IPv6 `localnetwork` nft set，IPv6 链中匹配本地 IPv6 段 RETURN |
 | **ICMP/Ping 处理**（无 UCI 选项，由运行模式决定） | Redir-Host / Fake-IP（非 TUN） | ICMP echo-request 仅标记 fwmark `0x162` 后 accept，**不被代理**（只有 TCP/UDP 被重定向到内核）；Fake-IP 非 TUN 模式下对 `198.18.0.0/16` 的 ping 被防火墙 REJECT（INPUT/FORWARD/OUTPUT 三链阻断） |
@@ -864,7 +865,7 @@ fi
 | 错误关键字 | 问题位置 | 原因 | 排查方法 | 来源 |
 |-----------|---------|------|----------|------|
 | `/tmp/openclash_last_version` 下载失败 | 「运行日志」/ 启动流程 | ① curl SSL 证书验证失败（`BADCERT_CN_MISMATCH` / `self signed certificate`）；② GitHub Raw 域名被 DNS 污染或不可达；③ curl 超时（`Operation timed out`）；④ 缺少 `libmbedtls` 库 | ①「覆写设置→常规」设置 **Github 地址修改 (github_address_mod)** 为 CDN（推荐 `https://fastly.jsdelivr.net/` 或 `https://testingcf.jsdelivr.net/`）；②「系统→软件包」确认 `ca-bundle` 已安装；③ Fake-IP 模式在「覆写设置→DNS」的 fake-ip-filter 中排除 `raw.githubusercontent.com`；④ 修改 `/usr/share/openclash/openclash_core.sh` 中 curl 的超时参数 `-m 60` 改为 `-m 300`；⑤ 终端执行 `opkg install libmbedtls` 修复 curl 库依赖 | [#2791](https://github.com/vernesong/OpenClash/issues/2791) |
-| **Update Core** (更新内核) 点击后重启失败 | 「运行状态」页面 | v0.47.052 重启流程中 stop→start 间隔不足，旧核心进程未完全退出即启动新核心，触发「内核启动失败」 | ① 更新到 v0.47.054+（已在 Developer 分支修复）；② 临时解决：编辑 `/etc/init.d/openclash`，在 restart 函数的 stop 和 start 之间加 `sleep 5`；③ 如更新后仍失败，检查内存是否不足（小型设备建议增加 swap） | [#4969](https://github.com/vernesong/OpenClash/issues/4969) |
+| **更新内核 (Update Core)** 点击后重启失败 | 「运行状态」页面 | v0.47.052 重启流程中 stop→start 间隔不足，旧核心进程未完全退出即启动新核心，触发「内核启动失败」 | ① 更新到 v0.47.054+（已在 Developer 分支修复）；② 临时解决：编辑 `/etc/init.d/openclash`，在 restart 函数的 stop 和 start 之间加 `sleep 5`；③ 如更新后仍失败，检查内存是否不足（小型设备建议增加 swap） | [#4969](https://github.com/vernesong/OpenClash/issues/4969) |
 | 升级后依赖检查异常，无法启动 | 「运行日志」启动流程 | 更新后 `check_mod()` 或依赖检测逻辑误报 | ①「插件设置→调试日志」生成调试日志检查依赖段；②「系统→软件包」确认 `kmod-nft-tproxy`/`kmod-ipt-tproxy` 已安装；③ 切换 Dev 分支获取最新修复；④ 重装 `luci-app-openclash` | [#4807](https://github.com/vernesong/OpenClash/issues/4807) |
 | v0.47.052/055 无法开机自启 | 「运行状态」启动流程 | 启动时序竞争条件，procd respawn 在某些固件上触发过快 | ① 更新到最新 Dev 版本；②「插件设置→模式设置」设置 `delay_start` (启动延迟) 30-60 秒；③ 确保路由器有足够内存供启动时使用 | [#4973](https://github.com/vernesong/OpenClash/issues/4973) |
 
@@ -923,9 +924,9 @@ fi
 
 | 模式 | UCI `en_mode` 值 | 说明 |
 |------|-----------------|------|
-| **Compat** (兼容) | `redir-host` | Redir-Host 模式，使用 iptables redirect 转发流量 |
+| **兼容 (Compat)** | `redir-host` | Redir-Host 模式，使用 iptables redirect 转发流量 |
 | **TUN 模式** | `redir-host-tun` / `fake-ip-tun` | 使用 TUN 虚拟网卡接管所有流量 |
-| **Mix** (混合) | `redir-host-mix` / `fake-ip-mix` | TUN + Redirect 混合，TCP 走 system 栈、UDP 走 gvisor 栈 |
+| **混合 (Mix)** | `redir-host-mix` / `fake-ip-mix` | TUN + Redirect 混合，TCP 走 system 栈、UDP 走 gvisor 栈 |
 
 > 切换触发: `action_switch_run_mode` → 修改 UCI `en_mode`，若运行中则自动重启
 
@@ -933,9 +934,9 @@ fi
 
 | 模式 | Mihomo `mode` 值 | 效果 |
 |------|-----------------|------|
-| **Rule** (策略代理) | `rule` | 按 YAML 中 `rules:` 规则集合分流 |
-| **Global** (全局代理) | `global` | 所有流量走 GLOBAL 策略组所选代理 |
-| **Direct** (全局直连) | `direct` | 所有流量直连，不经过任何代理 |
+| **策略代理 (Rule)** | `rule` | 按 YAML 中 `rules:` 规则集合分流 |
+| **全局代理 (Global)** | `global` | 所有流量走 GLOBAL 策略组所选代理 |
+| **全局直连 (Direct)** | `direct` | 所有流量直连，不经过任何代理 |
 
 > 切换触发: `action_switch_rule_mode` → PATCH Mihomo API `/configs` 的 `mode` 字段，同时更新 UCI `proxy_mode`
 
@@ -943,19 +944,19 @@ fi
 
 | 设置项 | 功能 | UCI 选项 | 触发函数 |
 |--------|------|----------|----------|
-| **Area Bypass** (地区绕行) | 切换中国 IP/海外绕行 | `china_ip_route` (0/1/2) | `action_switch_oc_setting` → 修改 UCI + 重启 |
-| **Sniffer** (域名嗅探) | 是否启用 Mihomo 域名嗅探 | `enable_meta_sniffer` | `action_switch_oc_setting` → 动态修改运行时 YAML `sniffer.enable` |
-| **DNS Proxy** (DNS尊重规则) | DNS 查询是否遵守路由规则 | `enable_respect_rules` | `action_switch_oc_setting` → 动态修改 YAML `dns.respect-rules` |
-| **Stream Unlock** (流媒体解锁) | 一键启用流媒体解锁 | `stream_auto_select` | `action_switch_oc_setting` → 设置 `stream_auto_select=1` 及 Netflix/Disney/HBO 默认参数 |
+| **地区绕行 (Area Bypass)** | 切换中国 IP/海外绕行 | `china_ip_route` (0/1/2) | `action_switch_oc_setting` → 修改 UCI + 重启 |
+| **域名嗅探 (Sniffer)** | 是否启用 Mihomo 域名嗅探 | `enable_meta_sniffer` | `action_switch_oc_setting` → 动态修改运行时 YAML `sniffer.enable` |
+| **DNS 尊重规则 (DNS Proxy)** | DNS 查询是否遵守路由规则 | `enable_respect_rules` | `action_switch_oc_setting` → 动态修改 YAML `dns.respect-rules` |
+| **流媒体解锁 (Stream Unlock)** | 一键启用流媒体解锁 | `stream_auto_select` | `action_switch_oc_setting` → 设置 `stream_auto_select=1` 及 Netflix/Disney/HBO 默认参数 |
 
 ## 1.5 配置文件卡片
 
 | 操作 | 功能 | 后端路由 |
 |------|------|----------|
 | **配置文件选择器** | 下拉切换当前使用的 YAML 配置 | `action_switch_config` → 更新 `config_path` + 自动重启 |
-| **SwiTch** (切换) | 切换到选中的配置 | 同上 |
+| **切换 (Switch)** | 切换到选中的配置 | 同上 |
 | **更新配置** | 重新下载订阅并更新 | `action_update_config` → 调用 `openclash.sh` |
-| **Edit** (编辑) | 在线编辑 YAML 配置文件 | 弹出 `config_edit` 模态框 (基于 CodeMirror，支持原始/运行时视图切换、合并视图对比、覆写卡片栏) |
+| **编辑 (Edit)** | 在线编辑 YAML 配置文件 | 弹出 `config_edit` 模态框 (基于 CodeMirror，支持原始/运行时视图切换、合并视图对比、覆写卡片栏) |
 | **编辑订阅** | 修改该配置的订阅参数 | 跳转到 `config-subscribe-edit` |
 | **上传** | 上传新的 YAML 配置文件 | 弹出 `config_upload` 模态框 (支持文件上传 + 订阅链接两个标签页) |
 | **刷新订阅按钮** | 手动刷新当前配置的订阅信息 | `/sub_info_get` 端点 |
@@ -983,15 +984,20 @@ fi
 - 对应 Mihomo `external-ui` 配置
 - 切换触发: `action_switch_dashboard` → `openclash_download_dashboard.sh`
 - 默认仪表盘: UCI `default_dashboard`
+- **前端访问地址**（`status.htm` JS 按 3 种场景构造）：
+  - **本地访问**（浏览器 hostname 匹配 LAN IP）：`http://<lan_ip>:<cn_port>/ui/<dashboard>/`
+  - **公网访问**（设置了 `dashboard_forward_domain` + `dashboard_forward_port`）：`http[s]://<domain>:<port>/ui/<dashboard>/`（协议由 `dashboard_forward_ssl` 决定）
+  - **其他情况**：取当前页面协议 + `lan_ip` + `cn_port`
+- 各仪表盘子路径：`/ui/dashboard/`、`/ui/yacd/`、`/ui/metacubexd/`、`/ui/zashboard/`
 
 ## 1.9 快捷操作按钮 (Quick Action)
 
 | 操作 | 功能 | 后端 |
 |------|------|------|
-| **Close Connect** (关闭链接) | 断开所有代理连接 | `openclash_history_get.sh 'close_all_conection'` |
-| **Reload Firewall** (重置防火墙) | 重新应用 iptables/nftables 规则 | `/etc/init.d/openclash reload 'manual'` |
+| **关闭链接 (Close Connect)** | 断开所有代理连接 | `openclash_history_get.sh 'close_all_conection'` |
+| **重置防火墙 (Reload Firewall)** | 重新应用 iptables/nftables 规则 | `/etc/init.d/openclash reload 'manual'` |
 | **清空 DNS 缓存** | 刷新 Fake-IP 和 DNS 缓存 | POST `/cache/fakeip/flush` + `/cache/dns/flush` |
-| **Check Update** (检查更新) | 同时更新插件 + 核心 + 订阅 + GEO | `openclash_update.sh 'one_key_update'` |
+| **检查更新 (Check Update)** | 同时更新插件 + 核心 + 订阅 + GEO | `openclash_update.sh 'one_key_update'` |
 
 ## 1.10 统计信息
 
@@ -1066,7 +1072,7 @@ fi
 
 ### 插件强制覆盖/禁用的设置（用户不可修改）
 
-> **重要**：以下设置由 `yml_change.sh` 在每次启动时**无条件硬编码**写入 YAML，用户在 LuCI 中**无法修改或关闭**。即使通过覆写模块的 `[YAML]` 段尝试覆盖，也会被后续脚本覆盖（覆写模块先于 `yml_change.sh` 执行）。
+> **重要**：以下设置由 `yml_change.sh` 在每次启动时**无条件硬编码**写入 YAML，用户在 LuCI 中**无法修改或关闭**。但可以通过覆写模块的 `[YAML]` 段和 `[Overwrite]` 段尝试覆盖，插件不保证覆写后的效果及工作逻辑正常。
 
 | 强制设置 | 硬编码值 | 说明 |
 |----------|----------|------|
@@ -1252,7 +1258,7 @@ fi
 - **UCI 选项**: `openclash.@openclash[0].skip_proxy_address`
 - **默认**: 0 (关闭)
 - **说明**: 绕过配置中服务器地址的代理，防止重复代理 (代理嵌套)
-- **实现细节**: 开启后 `set_firewall()` 解析 YAML 中所有代理节点的 `server` 地址，生成 nftables set（`openclash_proxy_server_ip`）或 ipset（`proxy_server_ip`），在 redirect/TPROXY 规则前插入 `return` 跳过规则，防止代理节点本身的连接被二次代理。
+- **实现细节**: 开启后看门狗脚本 `openclash_watchdog.sh` 中的 `skip_proxies_address()` 函数（每 30 个看门狗周期执行一次）解析 YAML 中所有代理节点（`proxies` 和 `proxy-providers`）的 `server` 地址，域名通过 `openclash_debug_dns.lua` 调用 Mihomo 内核 API（`/dns/query`）解析为 IP 后，加入已存在的 `localnetwork` nft set（或 ipset）。由于 `openclash` 链首条规则为 `ip daddr @localnetwork counter return`，这些代理服务器 IP 自动被跳过代理，防止代理嵌套。
 
 ### common_ports — 仅允许常用端口流量 (Common Ports Proxy Mode)
 - **UCI 选项**: `openclash.@openclash[0].common_ports`
@@ -1269,16 +1275,17 @@ fi
   - `0` — 关闭
   - `1` — 绕过中国大陆 IP (将国内 IP 直连，提升性能)
   - `2` — 绕过海外 IP
-- **说明**: 强烈推荐启用「绕过中国大陆」。启用后，GeoSite 数据库中分类为 `CN` 的域名，且解析 IP 位于大陆 IP 段范围内的流量将不进入内核，显著降低内核性能开销。旁路由模式下无法访问可尝试开启"旁路由兼容"选项
-- **Mihomo 对应**: 通过 rules 规则实现 `GEOIP,CN,DIRECT` 等效逻辑
-- **实现细节（双重机制）**: 1) **YAML 层面**: `yml_change.sh` 在 YAML rules 前注入 `GEOIP,CN,DIRECT` 规则（mode 1）或 `GEOIP,CN,Proxy` + 修改 MATCH 为 DIRECT（mode 2）。2) **防火墙层面**: `set_firewall()` 使用 chnroute IP 列表构建 nftables set `openclash_china_ip`，在 redirect/TPROXY 链中匹配国内 IP 直连 return。两层面互为补充——YAML 规则处理域名类流量，防火墙 ipset 处理纯 IP 流量。
+- **说明**: 强烈推荐启用「绕过中国大陆」。启用后，会在 `fake-ip-filter` 添加 `rule-set:oc-cn-domain` 规则集 (旧版本为 GeoSite 数据库中分类为 `CN` 的域名)，且解析 IP 位于大陆 IP 段范围内的流量将不进入内核，显著降低内核性能开销。旁路由模式下如果遇到大陆域名无法访问可尝试开启"旁路由兼容"选项
+- **Mihomo 对应**: 通过 `dns.fake-ip-filter` 添加 `rule-set:oc-cn-domain` 规则集，使中国大陆域名返回真实 IP 而非 Fake-IP；同时自动注册对应的 `rule-providers` 条目指向 MetaCubeX geosite CN MRS 文件
+- **实现细节（双重机制）**: 1) **YAML 层面**: `yml_change.sh` 修改 `dns.fake-ip-filter`——blacklist 模式（默认）追加 `rule-set:oc-cn-domain`，whitelist 模式移除 CN 相关过滤器，rule 模式前置 `RULE-SET,oc-cn-domain,real-ip`。效果：匹配的中国大陆域名返回真实 IP，绕过 Fake-IP 机制。2) **防火墙层面**: `set_firewall()` 使用 chnroute IP 列表构建 nftables set（`china_ip_route` 或者 `china_ip6_route`），在 redirect/TPROXY 链中匹配国内真实 IP 直连 return。两层面互为补充——YAML fake-ip-filter 确保大陆域名获得真实 IP，防火墙 nft set 匹配这些真实 IP 使其跳过代理。
 
 ### intranet_allowed — 仅允许内网 (Only Intranet Allowed)
 - **UCI 选项**: `openclash.@openclash[0].intranet_allowed`
 - **默认**: 1 (开启)
 - **说明**: 开启后控制面板和连接代理端口仅能从内网访问，不暴露到公网
 - **Mihomo 对应**: `allow-lan: true` + `bind-address: "*"`
-- **实现细节**: 影响 YAML 的 `allow-lan` 字段。`yml_change.sh` 中设置 `allow-lan: true`，并通过 `bind-address: "*"` 监听所有接口。同时防火墙层面限制对 `cn_port`(9090) 的访问。关闭时 `allow-lan: false`，仅 `127.0.0.1` 可访问。
+- **实现细节**: 双重保护——1) YAML 层面：`yml_change.sh` 设置 `allow-lan: true` + `bind-address: "*"` 使内核监听所有接口。2) 防火墙层面：创建 `openclash_wan_input` 链，匹配来自 WAN 口（非 `@localnetwork` 源 IP）的流量，REJECT 全部 7 个服务端口（`$proxy_port`/`$tproxy_port`/`$cn_port`/`$http_port`/`$socks_port`/`$mixed_port`/`$dns_port`）。关闭时 `allow-lan: false`，内核仅监听 `127.0.0.1`，同时不创建 `openclash_wan_input` 链。
+
 ### intranet_allowed_wan_name — WAN 接口名称 (WAN Interface Name)
 - **UCI 选项**: `openclash.@openclash[0].intranet_allowed_wan_name`
 - **说明**: 指定哪个接口被识别为 WAN。用于仅允许内网功能区分内外网
@@ -1288,19 +1295,24 @@ fi
 - **UCI 选项**: `openclash.@openclash[0].lan_interface_name`
 - **可选值**: 系统中所有网络接口名
 - **默认**: 0 (禁用)
-- **说明**: 指定 LAN 接口名称
+- **说明**: 指定 LAN 接口名称，用于通过 `ip address show <接口>` 获取路由器 LAN IP 地址（供控制面板地址显示、API 调用、调试日志等使用）。设为 0 则自动检测
 
 ### local_network_pass — 本地 IPv4 网络绕过列表 (Local Network Pass)
 - **UCI 选项**: `openclash.@openclash[0].local_network_pass`
 - **存储文件**: `/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list`
 - **说明**: 目标地址为列表中 IP 的流量不经过核心
 
-### chnroute_pass — Chnroute 绕过列表 (Chnroute Pass)
+### chnroute_pass — 绕过指定区域 IPv4 黑名单 (Chnroute Bypassed List)
 - **UCI 选项**: `openclash.@openclash[0].chnroute_pass`
 - **存储文件**: `/etc/openclash/custom/openclash_custom_chnroute_pass.list`
 - **说明**: 列表中的域名/IP 不受中国 IP 绕行选项影响，依赖 Dnsmasq。**默认已预置** `services.googleapis.cn`、`googleapis.cn`、`xn--ngstr-lra8j.com` 以解决 Google Play 下载问题
 - **依赖**: `enable_redirect_dns != 2`
 - **注意**: chnroute_pass 仅在 DNS 解析层面将域名解析 IP 加入 `china_ip_route_pass` nft set 使其跳过绕行规则，但若上游 DNS 本身将这些域名解析到国内 IP，加入 set 后仍会被 `china_ip_route` 规则误判为国内 IP 而绕行。**仅靠 chnroute_pass 不足以解决 Google Play 下载问题**——必须同时从 DNS 解析（`nameserver-policy` 强制走境外 DNS）和规则匹配（自定义规则走代理）两方面入手，详见错误速查表 §十四
+
+### UPNP 流量排除（无 UCI 选项，自动生效）
+- **触发条件**: 系统已安装并运行 `upnpd`（`/etc/config/upnpd` 存在且 `upnp_lease_file` 指向有效租约文件）
+- **说明**: 自动读取 upnpd 租约文件，为 UPnP 端口映射创建防火墙绕过规则，防止 BT/PT 下载、游戏主机等 UDP UPnP 流量被 TPROXY 错误代理
+- **实现细节**: 防火墙初始化阶段 `set_firewall()` 创建 `openclash_upnp` 链并在 `openclash_mangle` 链中通过 `jump openclash_upnp`（规则位置在最终 TPROXY 之前）。`upnp_exclude()` 函数读取 upnpd 租约文件（格式 `UDP:<ext_port>:<int_ip>:<int_port>`），为每条租约在 `openclash_upnp` 链中添加 `ip saddr <int_ip> <proto> sport <int_port> counter return` 规则。看门狗 `openclash_watchdog.sh` 每 30 个周期（首周期立即执行，之后每 `UPNP_INTERVAL=30` 即约 30 分钟）执行 UPNP 规则同步：① **清理过期规则**——遍历 `openclash_upnp` 链现有规则，删除租约文件中已不存在的条目；② **添加新规则**——读取租约文件，为新增的 UPnP 映射补充 RETURN 规则。
 
 ---
 
@@ -1349,7 +1361,7 @@ fi
 ### enable_custom_domain_dns_server — 启用第二 DNS 服务器 (Enable Specify DNS Server)
 - **UCI 选项**: `openclash.@openclash[0].enable_custom_domain_dns_server`
 - **默认**: 0
-- **说明**: 为自定义域名列表指定专用 DNS 服务器
+- **说明**: 为自定义域名列表指定专用 DNS 服务器，完全独立于内核 DNS 查询
 
 ### custom_domain_dns_server — 指定服务器 (Specify DNS Server)
 - **UCI 选项**: `openclash.@openclash[0].custom_domain_dns_server`
@@ -1417,9 +1429,8 @@ fi
 
 ## 2.5 流媒体增强标签页 (stream_enhance)
 
-> **生效路径**: `openclash_streaming_unlock.lua` 脚本在核心启动后作为守护进程运行，
+> **生效路径**: `openclash_streaming_unlock.lua` 脚本在核心启动后被守护进程调用，
 > 定期测试各流媒体服务的解锁情况，自动将策略组切换到支持该服务的节点。
-> 配置写入 YAML 的 `rule-providers` 和 `rules`，通过 Mihomo 规则引擎匹配流媒体域名。
 >
 > **AI 行为指引**: 当用户询问流媒体相关问题时（如"如何解锁 Netflix/Disney+"、"Bilibili 地区选项代表什么"、
 > "如何添加新的流媒体服务"、"Group Filter 正则怎么写"），AI 应查阅 [Mihomo 规则文档](https://wiki.metacubex.one/config/rules/)
@@ -1446,9 +1457,9 @@ fi
 | Gemini | `stream_auto_select_gemini` | 0 | |
 
 每个服务配置项：
-- **Group Filter**: `stream_auto_select_group_key_<service>` — 匹配策略组的正则表达式
-- **Unlock Region Filter**: `stream_auto_select_region_key_<service>` — 解锁地区国家缩写
-- **Unlock Nodes Filter**: `stream_auto_select_node_key_<service>` — 节点名称正则过滤
+- **策略组筛选 (Group Filter)**: `stream_auto_select_group_key_<service>` — 匹配策略组的正则表达式
+- **解锁区域筛选 (Unlock Region Filter)**: `stream_auto_select_region_key_<service>` — 解锁地区国家缩写
+- **解锁节点筛选 (Unlock Nodes Filter)**: `stream_auto_select_node_key_<service>` — 节点名称正则过滤
 - **手动测试按钮**: 调用 `openclash_streaming_unlock.lua` 执行解锁测试
 - **实现详解**: `openclash_streaming_unlock.lua` 是一个独立 Lua 脚本，被 `/etc/init.d/openclash` 以 `procd` 服务形式启动（与核心并列）。工作流程：
   1. 读取 YAML 中所有策略组和节点，构建节点-策略组映射
@@ -1466,14 +1477,14 @@ fi
 
 | 选项 | UCI Key | 默认 | 说明 |
 |------|---------|------|------|
-| 控制面板端口 (Dashboard Port) | `cn_port` | 9090 | 对应 Mihomo `external-controller: 0.0.0.0:9090` |
+| 管理页面端口 (Dashboard Port) | `cn_port` | 9090 | 对应 Mihomo `external-controller: 0.0.0.0:9090` |
 | 管理页面登录密钥 (Dashboard Secret) | `dashboard_password` | 空 | 对应 Mihomo `secret`，留空则不验证 |
 | 管理页面公网域名 (Public Dashboard Address) | `dashboard_forward_domain` | 空 | 用于公网访问面板 |
 | 管理页面映射端口 (Public Dashboard Port) | `dashboard_forward_port` | 空 | |
-| 管理页面公网 SSL 访问 (Public Dashboard SSL) | `dashboard_forward_ssl` | 0 | |
+| 管理页面公网 SSL 访问 (Public Dashboard SSL enabled) | `dashboard_forward_ssl` | 0 | |
 
 仪表盘版本管理通过 `action_switch_dashboard` → `openclash_download_dashboard.sh` 自动下载切换。
-- **实现细节**: `yml_change.sh` 将 `cn_port`、`dashboard_password` 写入 YAML → Mihomo 内核启动 HTTP API。`openclash_download_dashboard.sh` 从 GitHub Releases 下载 Dashboard 静态文件 (yacd/metacubexd/zashboard)，解压到 `/usr/share/openclash/ui` → 通过 `external-ui` 配置项使浏览器访问 `http://IP:9090/ui/` 即加载 Dashboard。`dashboard_forward_*` 在 LuCI 控制器中生成反向代理配置，将外部请求转发到内部 API 端口。
+- **实现细节**: `yml_change.sh` 将 `cn_port`、`dashboard_password` 写入 YAML → Mihomo 内核启动 HTTP API。`openclash_download_dashboard.sh` 从 GitHub Releases 下载 Dashboard 静态文件 (yacd/metacubexd/zashboard)，解压到 `/usr/share/openclash/ui`。前端 `status.htm` 中的 JS 根据以下逻辑构造仪表盘 URL：1) 若当前浏览器 hostname 与路由器 LAN IP 相同 → `http://<lan_ip>:<cn_port>/ui/<dashboard>/`；2) 若设置了 `dashboard_forward_domain` + `dashboard_forward_port`（公网访问）→ 协议由 `dashboard_forward_ssl` 决定（0=http, 1=https），地址为 `<protocol>://<domain>:<port>/ui/<dashboard>/`；3) 其他情况 → 取当前页面协议 + LAN IP + cn_port。四个仪表盘的子路径分别为 `/ui/dashboard/`、`/ui/yacd/`、`/ui/metacubexd/`、`/ui/zashboard/`。
 
 ---
 
@@ -1489,30 +1500,27 @@ fi
 | 选项 | UCI Key | 默认 | 说明 |
 |------|---------|------|------|
 | IPv6 代理 (Proxy IPv6 Traffic) | `ipv6_enable` | 0 | 开启 IPv6 流量代理。网关和 DNS 须为路由器 IP |
-| IPv6 代理模式 | `ipv6_mode` | TProxy(0) | TProxy/Redirect/TUN/Mix |
-| IPv6 堆栈类型 | `stack_type_v6` | system | system/gvisor/mixed。仅 TUN/Mix 模式 |
-| IPv6 UDP 代理 | `enable_v6_udp_proxy` | 1 | 仅 TProxy/Redirect 模式 |
+| IPv6 代理模式 (IPv6 Proxy Mode) | `ipv6_mode` | TProxy(0) | TProxy/Redirect/TUN/Mix |
+| IPv6 堆栈类型 (Select Stack Type) | `stack_type_v6` | system | system/gvisor/mixed。仅 TUN/Mix 模式 |
+| IPv6 UDP 代理 (Proxy UDP Traffics) | `enable_v6_udp_proxy` | 1 | 仅 TProxy/Redirect 模式 |
 | 允许 IPv6 类型 DNS 解析 (IPv6 DNS Resolve) | `ipv6_dns` | 0 | 对应 Mihomo `dns.ipv6` — 控制 Clash DNS 是否返回 AAAA 记录 |
-| IPv6 Fake-IP 范围 | `fakeip_range6` | 禁用 | 仅 Fake-IP 模式。对应 `dns.fake-ip-range6` |
-| ### 中国 IPv6 绕行 (China IPv6 Route) | `china_ip6_route` | 0 | 0=关闭, 1=绕过大陆, 2=绕过海外 |
-| 本地 IPv6 绕过 | `local_network6_pass` | — | 文件: `/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list` |
-| Chnroute6 绕过 | `chnroute6_pass` | — | 文件: `/etc/openclash/custom/openclash_custom_chnroute6_pass.list`。依赖: `ipv6_enable=1` + `enable_redirect_dns=1` |
+| IPv6 Fake-IP 范围 (Fake-IP Range) | `fakeip_range6` | 禁用 | 仅 Fake-IP 模式。对应 `dns.fake-ip-range6` |
+| 实验性：绕过指定区域 IPv6 (China IPv6 Route) | `china_ip6_route` | 0 | 0=关闭, 1=绕过大陆, 2=绕过海外 |
+| 本地 IPv6 绕过地址 (Local IPv6 Network Bypassed List) | `local_network6_pass` | — | 文件: `/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list` |
+| 绕过指定区域 IPv6 黑名单 (Chnroute6 Bypassed List) | `chnroute6_pass` | — | 文件: `/etc/openclash/custom/openclash_custom_chnroute6_pass.list`。将列表中域名/IP 加入 `china_ip6_route_pass` nft set，不受 IPv6 绕行选项影响。依赖: `ipv6_enable=1` + `enable_redirect_dns=1` |
 
 ---
 
-#### 2.8 第三方规则订阅 / GEO 数据库订阅 / 大陆白名单订阅标签页
-
-### 第三方规则订阅 (Rules Update / rules_update)
-自动更新规则文件 (rule-providers 使用的 .yaml/.list 文件)
+#### 2.8 GEO 数据库订阅 / 大陆白名单订阅标签页
 
 ### GEO 数据库订阅 (GEO Update / geo_update)
 
 | 数据类型 | 启用 UCI | 更新脚本 | 更新星期 UCI | 更新时间 UCI | 自定义 URL UCI |
 |----------|----------|----------|-------------|-------------|---------------|
-| GeoIP MMDB (Country.mmdb) (Auto Update GeoIP MMDB) | `geo_auto_update` | `openclash_geo.sh ipdb` | `geo_update_week_time` | `geo_update_day_time` | `geo_custom_url` |
-| GeoIP Dat (Auto Update GeoIP Dat) | `geoip_auto_update` | `openclash_geo.sh geoip` | `geoip_update_week_time` | `geoip_update_day_time` | `geoip_custom_url` |
-| GeoSite (Auto Update GeoSite) | `geosite_auto_update` | `openclash_geo.sh geosite` | `geosite_update_week_time` | `geosite_update_day_time` | `geosite_custom_url` |
-| GeoASN (Auto Update Geo ASN) | `geoasn_auto_update` | `openclash_geo.sh geoasn` | `geoasn_update_week_time` | `geoasn_update_day_time` | `geoasn_custom_url` |
+| 自动更新 GeoIP MMDB 数据库 (Auto Update GeoIP MMDB) | `geo_auto_update` | `openclash_geo.sh ipdb` | `geo_update_week_time` | `geo_update_day_time` | `geo_custom_url` |
+| 自动更新 GeoIP Dat 数据库 (Auto Update GeoIP Dat) | `geoip_auto_update` | `openclash_geo.sh geoip` | `geoip_update_week_time` | `geoip_update_day_time` | `geoip_custom_url` |
+| 自动更新 GeoSite 数据库 (Auto Update GeoSite) | `geosite_auto_update` | `openclash_geo.sh geosite` | `geosite_update_week_time` | `geosite_update_day_time` | `geosite_custom_url` |
+| 自动更新 Geo ASN 数据库 (Auto Update Geo ASN) | `geoasn_auto_update` | `openclash_geo.sh geoasn` | `geoasn_update_week_time` | `geoasn_update_day_time` | `geoasn_custom_url` |
 
 **共享配置项**：`*_update_week_time` (周几): `*`=每天, `1`=周一, `2`=周二, …, `0`=周日; `*_update_day_time` (小时): `0`-`23`; `*_custom_url` (自定义下载地址，留空使用默认)
 
@@ -1528,10 +1536,10 @@ fi
 | 选项 | UCI Key | 默认 | 说明 |
 |------|---------|------|------|
 | 自动更新 (Auto Update) | `chnr_auto_update` | 0 | 启用定时更新大陆 IP 路由表 |
-| 更新星期 (Update Time Every Week) | `chnr_update_week_time` | `1`(周一) | `*`=每天, `1`=周一, …, `0`=周日 |
-| 更新时间 (Update time every day) | `chnr_update_day_time` | `0`(0:00) | `0`-`23`，每小时一个选项 |
-| IPv4 URL (Custom Chnroute Lists URL) | `chnr_custom_url` | `https://ispip.clang.cn/all_cn.txt` | 中国 IPv4 CIDR 列表下载地址 |
-| IPv6 URL (Custom Chnroute6 Lists URL) | `chnr6_custom_url` | `https://ispip.clang.cn/all_cn_ipv6.txt` | 中国 IPv6 CIDR 列表下载地址 |
+| 更新时间/每周 (Update Time (Every Week)) | `chnr_update_week_time` | `1`(周一) | `*`=每天, `1`=周一, …, `0`=周日 |
+| 更新时间/每天 (Update time (every day)) | `chnr_update_day_time` | `0`(0:00) | `0`-`23`，每小时一个选项 |
+| 大陆 IP 段更新 URL (Custom Chnroute Lists URL) | `chnr_custom_url` | `https://ispip.clang.cn/all_cn.txt` | 中国 IPv4 CIDR 列表下载地址 |
+| 大陆 IPv6 段更新 URL (Custom Chnroute6 Lists URL) | `chnr6_custom_url` | `https://ispip.clang.cn/all_cn_ipv6.txt` | 中国 IPv6 CIDR 列表下载地址 |
 
 **更新脚本**: `openclash_chnroute.sh`
 
@@ -1545,9 +1553,9 @@ fi
 
 | 选项 | UCI Key | 类型 | 默认 | 说明 |
 |------|---------|------|------|------|
-| **Auto Restart** (定时重启) | `auto_restart` | Flag | 0 | `0`=关闭, `1`=开启。开启后将在指定时间自动重启 OpenClash 服务 |
-| **Restart Time (Every Week)** (重启时间/每周) | `auto_restart_week_time` | ListValue | `1`(周一) | `*`=每天 (Every Day), `1`=周一 (Every Monday), `2`=周二 (Every Tuesday), `3`=周三 (Every Wednesday), `4`=周四 (Every Thursday), `5`=周五 (Every Friday), `6`=周六 (Every Saturday), `0`=周日 (Every Sunday) |
-| **Restart time (every day)** (重启时间/每天) | `auto_restart_day_time` | ListValue | `0`(0:00) | `0`-`23`，每小时一个选项 |
+| **定时重启 (Auto Restart)** | `auto_restart` | Flag | 0 | `0`=关闭, `1`=开启。开启后将在指定时间自动重启 OpenClash 服务 |
+| **重启时间/每周 (Restart Time (Every Week))** | `auto_restart_week_time` | ListValue | `1`(周一) | `*`=每天 (Every Day), `1`=周一 (Every Monday), `2`=周二 (Every Tuesday), `3`=周三 (Every Wednesday), `4`=周四 (Every Thursday), `5`=周五 (Every Friday), `6`=周六 (Every Saturday), `0`=周日 (Every Sunday) |
+| **重启时间/每天 (Restart time (every day))** | `auto_restart_day_time` | ListValue | `0`(0:00) | `0`-`23`，每小时一个选项 |
 
 - **实现细节**: `add_cron()` 在 `/etc/crontabs/root` 中添加 `/etc/init.d/openclash restart` 的 cron 条目，按用户选择的时间和星期执行。
 
@@ -1559,37 +1567,37 @@ fi
 
 | 要素 | 显示内容 | 说明 |
 |------|---------|------|
-| **CPU Architecture** | 当前设备 CPU 架构 | 自动检测，只读显示 |
-| **Last Check Update** | 上次检查更新的时间 | 自动显示 |
-| **[Meta] Current Core** | 当前 Meta 核心版本 | 执行 `clash_meta -v` 获取 |
-| **[Meta] Latest Core** | 远程最新 Meta 核心版本 | 每 300 秒通过 `/get_last_version` 轮询刷新 |
-| **Current Client** | 当前插件版本 | 从 opkg/apk 数据库读取 |
-| **Latest Client** | 远程最新插件版本 | 同上轮询 |
+| **处理器架构 (CPU Architecture)** | 当前设备 CPU 架构 | 自动检测，只读显示 |
+| **上次检查更新时间 (Last Check Update)** | 上次检查更新的时间 | 自动显示 |
+| **当前内核版本 ([Meta] Current Core)** | 当前 Meta 核心版本 | 执行 `clash_meta -v` 获取 |
+| **最新内核版本 ([Meta] Latest Core)** | 远程最新 Meta 核心版本 | 每 300 秒通过 `/get_last_version` 轮询刷新 |
+| **当前客户端版本 (Current Client)** | 当前插件版本 | 从 opkg/apk 数据库读取 |
+| **最新客户端版本 (Latest Client)** | 远程最新插件版本 | 同上轮询 |
 
 **版本选择（UCI 持久化）**:
 
 | 选项 | UCI Key | 类型 | 默认 | 说明 |
 |------|---------|------|------|------|
-| **Compiled Version** (编译版本 / CPU 架构) | `core_version` | Select | `0`(未设置 (Not Set)) | 选择与 CPU 匹配的编译版本：`linux-amd64-v1/v2/v3`(x86-64)、`linux-arm64`(armv8)、`linux-armv7`、`linux-mips64` 等 ~18 种架构 |
-| **Release Branch** (更新分支) | `release_branch` | Select | `master` | `master`(稳定版) / `dev`(开发版) |
-| **Smart Core** (智能核心) | `smart_enable` | Select | `0` | `0`=禁用(使用 Meta 内核) / `1`=启用(使用 Smart 内核) |
+| **编译版本 (Compiled Version)** | `core_version` | Select | `0`(未设置 (Not Set)) | 选择与 CPU 匹配的编译版本：`linux-amd64-v1/v2/v3`(x86-64)、`linux-arm64`(armv8)、`linux-armv7`、`linux-mips64` 等 ~18 种架构 |
+| **更新分支 (Release Branch)** | `release_branch` | Select | `master` | `master`(稳定版) / `dev`(开发版) |
+| **Smart 内核 (Smart Core)** | `smart_enable` | Select | `0` | `0`=禁用(使用 Meta 内核) / `1`=启用(使用 Smart 内核) |
 
 **操作按钮**（点击时先保存上述选择到 UCI，再触发对应脚本）:
 
 | 按钮 | 触发脚本 | 功能 |
 |------|----------|------|
-| **Update Core** (更新内核) → Check And Update (检查并更新) | `openclash_core.sh` | 检查并更新 Meta/Smart 核心到最新版 |
-| **Download Latest Core** (下载最新版本内核) | `openclash_core.sh` | 手动下载指定版本的核心（根据架构/分支/Smart选择） |
-| **Update Client** (更新客户端) → Check And Update (检查并更新) | `openclash_update.sh` | 检查并更新 luci-app-openclash 插件版本 |
-| **Download Latest Client** (下载最新版本客户端) | `openclash_update.sh` | 手动下载最新客户端 .ipk/.apk |
-| **Backup** (备份) | 前端打包下载 | 备份配置文件（可选择备份范围：完整/排除核心/仅核心/仅配置/仅规则提供者/仅代理提供者） |
-| **Restore Default** (还原默认) | 清除 UCI 配置 | 恢复 OpenClash 为默认出厂配置 |
-| **Remove Core** (删除内核) | 删除文件 | 删除所有核心二进制文件 |
-| **Check Update** (检查更新) | 在线检查 | 一键检查更新（走 CDN 加速） |
+| **更新内核 (Update Core)** → Check And Update (检查并更新) | `openclash_core.sh` | 检查并更新 Meta/Smart 核心到最新版 |
+| **下载最新版本内核 (Download Latest Core)** | `openclash_core.sh` | 手动下载指定版本的核心（根据架构/分支/Smart选择） |
+| **更新客户端 (Update Client)** → Check And Update (检查并更新) | `openclash_update.sh` | 检查并更新 luci-app-openclash 插件版本 |
+| **下载最新版本客户端 (Download Latest Client)** | `openclash_update.sh` | 手动下载最新客户端 .ipk/.apk |
+| **备份 (Backup)** | 前端打包下载 | 备份配置文件（可选择备份范围：完整/排除核心/仅核心/仅配置/仅规则提供者/仅代理提供者） |
+| **还原默认 (Restore Default)** | 清除 UCI 配置 | 恢复 OpenClash 为默认出厂配置 |
+| **删除内核 (Remove Core)** | 删除文件 | 删除所有核心二进制文件 |
+| **检查更新 (Check Update)** | 在线检查 | 一键检查更新（走 CDN 加速） |
 
 - **实现细节**: 所有更新按钮在触发对应脚本前，都会先通过 `/save_corever_branch` API 保存当前选择的架构、分支和 Smart 启用状态。核心更新通过 `openclash_core.sh` 从 GitHub Releases 下载对应架构的 `.tar.gz` 并替换 `/etc/openclash/core/clash_meta`。插件更新通过 `openclash_update.sh` 下载 .ipk/.apk 并通过 ubus 后台安装以避免 Web 界面断连。
 
-### 开发者设置 (Developer Settings / developer)
+### 开发者选项 (Developer Settings / developer)
 - **自定义防火墙规则** (`firewall_custom`): 在 LuCI 的「开发者设置」标签页中直接编辑的文本框，内容保存到 `/etc/openclash/custom/openclash_custom_firewall_rules.sh`。该脚本**不需要定义任何函数**——它是一个命令式 Shell 脚本，在所有 OpenClash 内置防火墙规则添加完毕后被直接执行（`chmod +x` 后运行）。可以在脚本中直接写 `iptables -I ...` 或 `nft add rule ...` 命令来追加自定义防火墙规则。
 - **实现细节**: `set_firewall()` 函数在所有内置的 REDIRECT/TPROXY/TUN/IPv6/访问控制规则建立完毕后，检查此文件是否存在，若存在则 `chmod +x` 并执行。由于它在所有内置规则之后运行，自定义规则可以引用 OpenClash 已创建的 nftables 链和 set。每次 OpenClash 启动或防火墙重载时都会重新执行此脚本。
 
@@ -2017,7 +2025,7 @@ dns:
 >
 > **AI 行为指引**: 当用户询问 Smart 策略相关问题时（如"Smart 和 url-test 有什么区别"、"如何训练 Smart 模型"、
 > "prefer-asn 是什么"、"sample-rate 怎么设置"、"LGBM 模型如何自定义下载"），AI 应：
-> 1. 首先查阅下方「智能设置标签页」中对应 UCI 选项的说明，给出 LuCI 操作路径（覆写设置 → 智能设置）
+> 1. 首先查阅下方「智能设置标签页」中对应 UCI 选项的说明，给出 LuCI 操作路径（覆写设置 → Smart 设置）
 > 2. Smart 策略组是 **Smart 核心源码独有的功能**（上游 Mihomo 核心无此特性），所有实现细节均应查阅
 >    [Smart 核心源码](https://github.com/vernesong/mihomo/tree/Alpha)：
 >    - 策略组节点选择逻辑 → `adapter/outboundgroup/smart.go`（`selectProxies()`、`Unwrap()`、`InitSmart()`）
@@ -3115,7 +3123,7 @@ fi
 | 复制面板地址 | `copyAddress()` | 复制到剪贴板 |
 | 复制密钥 | `copySecret()` | 复制到剪贴板 |
 | 获取 PAC | `generatePacConfig()` | `/generate_pac` POST |
-| 仪表盘按钮 | 新窗口打开 | `http://IP:9090/ui/` 等 |
+| 仪表盘按钮 | 新窗口打开 | `status.htm` JS 按本地/公网/默认 3 种场景构造 URL，4 个仪表盘各有独立子路径 |
 | 关闭所有连接 | `closeAllConnections()` | `/close_all_connection` POST |
 | 重载防火墙 | `reloadFirewall()` | `/reload_firewall` POST |
 | 清空 DNS 缓存 | `flushDNSCache()` | `/flush_dns_cache` POST |

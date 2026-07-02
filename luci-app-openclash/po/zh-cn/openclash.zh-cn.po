@@ -2847,11 +2847,11 @@ msgstr "如果下载失败，您可以尝试在覆写设置 - 常规设置 - Git
 msgid "Used for Downloading Subscriptions, Defaults to"
 msgstr "用于下载订阅时指定 UA，默认为"
 
-msgid "Set Proxies Address Skip Failed,"
-msgstr "绕过代理服务器地址设置失败，"
+msgid "Set Proxies Address Skip: Bypass"
+msgstr "绕过代理服务器地址设置：绕过"
 
-msgid "Age decrypt failed,"
-msgstr "绕过代理服务器地址 Age 解密失败，"
+msgid "Set Proxies Address Skip: Failed"
+msgstr "绕过代理服务器地址设置：失败"
 
 msgid "Failed to parse config file with Lua helper"
 msgstr "绕过代理服务器地址解析失败"
