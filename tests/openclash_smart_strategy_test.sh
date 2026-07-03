@@ -35,6 +35,8 @@ assert_contains "$init_script" 'smart_strategy=$(uci_get_config "smart_strategy"
 assert_contains "$init_script" '"$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_policy_priority" "$smart_enable_lgbm" "$smart_prefer_asn" "$smart_strategy"' "Global Smart strategy is passed to yml_rules_change"
 
 assert_contains "$rules_change" "'\${14}' == 'sticky-sessions'" "Auto Smart strategy parameter is checked"
+assert_contains "$rules_change" "group.delete('strategy')" "Auto Smart switch removes legacy strategy values"
+assert_contains "$rules_change" "if '\${14}' == 'sticky-sessions' and group['type'] == 'smart' then" "Global Smart strategy is gated to Smart groups"
 assert_contains "$rules_change" "group['strategy'] = '\${14}'" "Auto Smart strategy is written to Smart groups"
 assert_contains "$rules_change" 'yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}"' "Auto Smart strategy argument is forwarded"
 
@@ -45,7 +47,10 @@ def convert_groups(groups, auto_smart_switch, smart_strategy)
     groups.each do |group|
       if auto_smart_switch == "1" && ["url-test", "load-balance"].include?(group["type"])
         group["type"] = "smart"
-        group["strategy"] = smart_strategy if smart_strategy == "sticky-sessions"
+        group.delete("strategy")
+      end
+      if smart_strategy == "sticky-sessions" && group["type"] == "smart"
+        group["strategy"] = smart_strategy
       end
     end
   end
@@ -60,13 +65,23 @@ source_groups = [
 
 default_groups = convert_groups(source_groups, "1", "0")
 raise "default smart_strategy should not write strategy" if default_groups.any? { |group| group["strategy"] == "sticky-sessions" }
+converted_balance = default_groups.find { |group| group["name"] == "Balance" }
+raise "auto smart switch should remove load-balance strategy" if converted_balance.key?("strategy")
+
+sticky_existing_groups = convert_groups(source_groups, "0", "sticky-sessions")
+existing = sticky_existing_groups.find { |group| group["name"] == "Existing Smart" }
+raise "existing smart group should receive global sticky-sessions strategy" unless existing["strategy"] == "sticky-sessions"
+non_smart = sticky_existing_groups.find { |group| group["name"] == "Auto" }
+raise "global sticky-sessions strategy should not be written to non-Smart groups" if non_smart.key?("strategy")
 
 sticky_groups = convert_groups(source_groups, "1", "sticky-sessions")
 converted = sticky_groups.select { |group| ["Auto", "Balance"].include?(group["name"]) }
 raise "converted groups should all be smart" unless converted.all? { |group| group["type"] == "smart" }
 raise "converted groups should receive sticky-sessions" unless converted.all? { |group| group["strategy"] == "sticky-sessions" }
+converted_balance = sticky_groups.find { |group| group["name"] == "Balance" }
+raise "auto smart switch should replace load-balance strategy with sticky-sessions" unless converted_balance["strategy"] == "sticky-sessions"
 existing = sticky_groups.find { |group| group["name"] == "Existing Smart" }
-raise "existing smart group should use per-group strategy_smart, not auto switch strategy" if existing.key?("strategy")
+raise "existing smart group should receive global sticky-sessions strategy" unless existing["strategy"] == "sticky-sessions"
 
 imported_uci = {}
 yaml_group = {"name" => "Manual Smart", "type" => "smart", "strategy" => "sticky-sessions"}

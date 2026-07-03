@@ -392,10 +392,13 @@ yml_other_set()
                   threads << Thread.new {
                      if '${8}' == '1' and ['url-test', 'load-balance'].include?(group['type']) then
                         group['type'] = 'smart';
-                        group['strategy'] = '${14}' if '${14}' == 'sticky-sessions';
+                        group.delete('strategy');
                         group['uselightgbm'] = true if '${12}' == '1';
                         group['collectdata'] = true if '${9}' == '1';
                         group['sample-rate'] = '${10}'.to_f if '${9}' == '1';
+                     end;
+                     if '${14}' == 'sticky-sessions' and group['type'] == 'smart' then
+                        group['strategy'] = '${14}';
                      end;
                      if '${9}' == '1' and group['type'] == 'smart' then
                         group['collectdata'] = true;
