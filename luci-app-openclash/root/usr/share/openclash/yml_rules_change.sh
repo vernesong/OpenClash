@@ -7,8 +7,32 @@
 LOG_FILE="/tmp/openclash.log"
 github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
 urltest_address_mod=$(uci_get_config "urltest_address_mod" || echo 0)
+core_type=$(uci_get_config "core_type" || echo Meta)
 tolerance=$(uci_get_config "tolerance" || echo 0)
 urltest_interval_mod=$(uci_get_config "urltest_interval_mod" || echo 0)
+
+normalize_urltest_address_mod()
+{
+   local core_type="$1"
+   local urltest_address="$2"
+
+   if [ "$core_type" = "Oix" ]; then
+      case "$urltest_address" in
+         "http://captive.apple.com/generate_204"|"http://captive.apple.com/"|"http://www.gstatic.com/generate_204"|"http://cp.cloudflare.com/generate_204"|"http://cp.cloudflare.com/")
+            echo "https://cp.cloudflare.com/generate_204"
+            return
+         ;;
+      esac
+   fi
+
+   echo "$urltest_address"
+}
+
+normalized_urltest_address_mod=$(normalize_urltest_address_mod "$core_type" "$urltest_address_mod")
+if [ "$urltest_address_mod" != "$normalized_urltest_address_mod" ]; then
+   LOG_WARN "OIX Core: Replace HTTP URL-Test Address With HTTPS For Better Health-Check Reliability"
+   urltest_address_mod="$normalized_urltest_address_mod"
+fi
 
 yml_other_set()
 {
@@ -417,6 +441,42 @@ yml_other_set()
          end;
 
          threads.each(&:join);
+
+         # OIX providers can report false high latency/timeouts with known HTTP
+         # probe URLs because some providers hijack them or mishandle repeat HEAD.
+         begin
+            if '$core_type' == 'Oix' then
+               oix_safe_urltest_address = 'https://cp.cloudflare.com/generate_204';
+               oix_unstable_urltest_addresses = [
+                  'http://captive.apple.com/generate_204',
+                  'http://captive.apple.com/',
+                  'http://www.gstatic.com/generate_204',
+                  'http://cp.cloudflare.com/generate_204',
+                  'http://cp.cloudflare.com/'
+               ];
+               normalize_oix_urltest_address = lambda { |url|
+                  oix_unstable_urltest_addresses.include?(url.to_s) ? oix_safe_urltest_address : url
+               };
+
+               if Value.key?('proxy-providers') then
+                  Value['proxy-providers'].each{|name, provider|
+                     if provider['health-check'] and provider['health-check']['enable'] then
+                        provider['health-check']['url'] = normalize_oix_urltest_address.call(provider['health-check']['url']);
+                     end;
+                  };
+               end;
+
+               if Value.key?('proxy-groups') and Value['proxy-groups'].is_a?(Array) then
+                  Value['proxy-groups'].each{|group|
+                     if ['url-test', 'fallback', 'load-balance', 'smart'].include?(group['type']) then
+                        group['url'] = normalize_oix_urltest_address.call(group['url']);
+                     end;
+                  };
+               end;
+            end;
+         rescue Exception => e
+            YAML.LOG_ERROR('Normalize OIX URL-Test URL Failed,【' + e.message + '】');
+         end;
       };
 
       thread_pool.each(&:join);
