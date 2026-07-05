@@ -83,20 +83,13 @@ all_proxy=socks5h://127.0.0.1:<port>
 
 端口优先使用 OpenClash 当前可用的本机代理端口。若未运行或端口不可用，代理尝试记录为跳过，不视为直连失败的覆盖原因。
 
-## 下载源与 OIX 地址补强
+## 下载源与 OIX 路径边界
 
-现有 OIX 核心版本文件和核心包来自 GitHub Release：
+自动任务需要让 OIX 下载参与同一套网络路径轮询，但 OIX Release asset URL 的具体构造由现有版本检查和核心下载脚本负责：
 
-- `https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/version.txt`
-- `https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/mihomo-<arch>-<version>.gz`
-
-自动任务需要让 OIX 下载参与同一套网络路径轮询，但 OIX 文件是 GitHub Release assets，不是仓库文件：
-
-- 原始地址使用 GitHub Release 原 URL。
-- jsDelivr 系列不能使用 `gh/vernesong/mihomo-oix@Pre-Alpha/...` 形式服务这些 Release assets；对 OIX 版本文件和核心包应回退 GitHub Release 原 URL，避免生成 404 地址。
-- 非 jsDelivr 自定义前缀仍按现有逻辑拼接完整 GitHub URL。
-
-该补强应放在 `clash_version.sh` 和 `openclash_core.sh` 的 URL 生成处，保证手动和自动路径使用一致的地址转换规则。
+- 自动任务只按顺序把原始地址、fastly.jsdelivr.net、testingcf.jsdelivr.net、cdn.jsdelivr.net 传给 `openclash_update.sh one_key_update`。
+- `openclash_update.sh` 继续触发现有核心更新流程；当有 OIX token 或当前 core_type 为 Oix 时，核心下载脚本沿用现有 OIX Release asset 路径。
+- 自动任务不新增 OIX URL 重写逻辑，也不把尝试过的镜像源写回 `github_address_mod`。
 
 ## 成功与失败判定
 
@@ -154,7 +147,7 @@ all_proxy=socks5h://127.0.0.1:<port>
   - 缓解：新增自动任务 lock，并继续依赖现有更新脚本 lock。
 - 风险：代理环境变量泄漏影响其他任务。
   - 缓解：仅在子进程或单次调用环境中设置，不导出到全局配置。
-- 风险：错误镜像地址导致 OIX Release 下载失败。
-  - 缓解：把 OIX URL 转换集中在版本检查和核心下载脚本中，并用测试覆盖。
+- 风险：自动任务的镜像轮询与现有手动更新路径不一致。
+  - 缓解：自动任务只调用 `openclash_update.sh one_key_update`，让手动和自动路径共用同一套下载、预检查和安装逻辑。
 - 风险：客户端安装由后台 procd 服务继续执行，自动脚本无法等待最终安装结果。
   - 缓解：把“安装服务成功启动”作为自动调度成功启动条件，最终安装结果继续由现有日志呈现。

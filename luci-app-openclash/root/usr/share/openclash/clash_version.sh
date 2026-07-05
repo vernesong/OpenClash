@@ -1,32 +1,4 @@
 #!/bin/bash
-github_cdn_is_jsdelivr() {
-   case "$1" in
-      "https://cdn.jsdelivr.net/"|"https://fastly.jsdelivr.net/"|"https://testingcf.jsdelivr.net/")
-         return 0
-      ;;
-   esac
-   return 1
-}
-
-build_oix_version_url() {
-   local github_address_mod="$1"
-   local raw_url="https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/version.txt"
-
-   if [ -z "$github_address_mod" ] || [ "$github_address_mod" = "0" ]; then
-      echo "$raw_url"
-   elif github_cdn_is_jsdelivr "$github_address_mod"; then
-      # jsDelivr /gh paths do not serve GitHub Release assets.
-      echo "$raw_url"
-   else
-      echo "${github_address_mod}${raw_url}"
-   fi
-}
-
-if [ "${OPENCLASH_TEST_ONLY:-}" = "1" ]; then
-   "$@"
-   exit $?
-fi
-
 . /usr/share/openclash/openclash_curl.sh
 . /usr/share/openclash/uci.sh
 
@@ -53,7 +25,12 @@ if [ -n "$1" ]; then
 fi
 
 if [ "$CORE_TYPE" = "Oix" ] || [ -n "$OIX_TOKEN" ]; then
-   DOWNLOAD_URL=$(build_oix_version_url "$github_address_mod")
+   OIX_VERSION_URL="https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/version.txt"
+   if [ "$github_address_mod" != "0" ] && [ "$github_address_mod" != "https://cdn.jsdelivr.net/" ] && [ "$github_address_mod" != "https://fastly.jsdelivr.net/" ] && [ "$github_address_mod" != "https://testingcf.jsdelivr.net/" ]; then
+      DOWNLOAD_URL="${github_address_mod}${OIX_VERSION_URL}"
+   else
+      DOWNLOAD_URL="$OIX_VERSION_URL"
+   fi
 else
    if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
