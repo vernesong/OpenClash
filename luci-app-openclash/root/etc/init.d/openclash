@@ -3573,6 +3573,13 @@ start_service()
       exit 0
    fi
 
+   pids=$(unify_ps_pids "$CLASH")
+   if [ -n "$pids" ]; then
+      for pid in $pids; do
+         kill -9 "$pid" 2>/dev/null || true
+      done
+   fi
+
    LOG_TIP "OpenClash Start Running..."
 
    {
@@ -3718,8 +3725,11 @@ stop_service()
       for i in $(seq 1 10); do
          procd_running "openclash" >/dev/null && sleep 1 || break
       done
-      if procd_running "openclash" >/dev/null; then
-         kill -9 $(pidof clash) 2>/dev/null || true
+      pids=$(unify_ps_pids "$CLASH")
+      if [ -n "$pids" ]; then
+         for pid in $pids; do
+            kill -9 "$pid" 2>/dev/null || true
+         done
       fi
 
       LOG_OUT "Step 4: Restart Dnsmasq..."
