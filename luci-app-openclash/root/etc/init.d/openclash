@@ -1491,8 +1491,10 @@ if [ -n "$FW4" ]; then
          if [ "$disable_udp_quic" -eq 1 ]; then
             if [ "$china_ip_route" = "2" ]; then
                nft insert rule inet fw4 input position 0 udp dport 443 ip daddr @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+               nft insert rule inet fw4 forward position 0 udp dport 443 ip daddr @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
             else
                nft insert rule inet fw4 input position 0 udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+               nft insert rule inet fw4 forward position 0 udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
             fi
          fi
       fi
@@ -1638,9 +1640,11 @@ if [ -n "$FW4" ]; then
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
          if [ "$china_ip_route" = "2" ]; then
-            nft insert rule inet fw4 forward position 0 oifname utun udp dport 443 ip daddr @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+            nft insert rule inet fw4 input position 0 udp dport 443 ip daddr @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+            nft insert rule inet fw4 forward position 0 udp dport 443 ip daddr @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
          else
-            nft insert rule inet fw4 forward position 0 oifname utun udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+            nft insert rule inet fw4 input position 0 udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+            nft insert rule inet fw4 forward position 0 udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
          fi
       fi
    fi
@@ -1963,17 +1967,17 @@ if [ -n "$FW4" ]; then
 
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
-         if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
-            chain="forward"
-         else
-            chain="input"
-         fi
          if [ "$china_ip6_route" = "2" ]; then
             rule="ip6 daddr @china_ip6_route"
          else
             rule="ip6 daddr != @china_ip6_route"
          fi
-         nft insert rule inet fw4 $chain position 0 udp dport 443 $rule counter reject comment \"OpenClash QUIC REJECT\"
+         nft insert rule inet fw4 input position 0 udp dport 443 $rule counter reject comment \"OpenClash QUIC REJECT\"
+         if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
+            nft insert rule inet fw4 forward position 0 oifname utun udp dport 443 $rule counter reject comment \"OpenClash QUIC REJECT\"
+         else
+            nft insert rule inet fw4 forward position 0 udp dport 443 $rule counter reject comment \"OpenClash QUIC REJECT\"
+         fi
       fi
 
       #bypass gateway compatible
@@ -2357,8 +2361,10 @@ if [ -z "$FW4" ]; then
          if [ "$disable_udp_quic" -eq 1 ]; then
             if [ "$china_ip_route" = "2" ]; then
                iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set --match-set china_ip_route dst -j REJECT
+               iptables -I FORWARD -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set --match-set china_ip_route dst -j REJECT
             else
                iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT
+               iptables -I FORWARD -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT
             fi
          fi
       fi
@@ -2494,9 +2500,11 @@ if [ -z "$FW4" ]; then
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
          if [ "$china_ip_route" = "2" ]; then
-            iptables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set --match-set china_ip_route dst -j REJECT
+            iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set --match-set china_ip_route dst -j REJECT
+            iptables -I FORWARD -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set --match-set china_ip_route dst -j REJECT
          else
-            iptables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT
+            iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT
+            iptables -I FORWARD -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT
          fi
       fi
    fi
@@ -2813,17 +2821,17 @@ if [ -z "$FW4" ]; then
 
       #quic
       if [ "$disable_udp_quic" -eq 1 ]; then
-         if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
-            chain="FORWARD -o utun"
-         else
-            chain="INPUT"
-         fi
          if [ "$china_ip6_route" = "2" ]; then
             rule="-m set --match-set china_ip6_route dst"
          else
             rule="-m set ! --match-set china_ip6_route dst"
          fi
-         ip6tables -I $chain -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" $rule -j REJECT
+         ip6tables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" $rule -j REJECT
+         if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
+            ip6tables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" $rule -j REJECT
+         else
+            ip6tables -I FORWARD -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" $rule -j REJECT
+         fi
       fi
 
       #bypass gateway compatible
@@ -3719,7 +3727,9 @@ stop_service()
          procd_running "openclash" >/dev/null && sleep 1 || break
       done
       if procd_running "openclash" >/dev/null; then
-         kill -9 $(pidof clash) 2>/dev/null || true
+         for pid in $(pidof clash 2>/dev/null); do
+            kill -9 "$pid" 2>/dev/null || true
+         done
       fi
 
       LOG_OUT "Step 4: Restart Dnsmasq..."

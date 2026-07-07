@@ -14,7 +14,7 @@
 ---
 
 
-* [Wiki](https://github.com/vernesong/OpenClash/wiki)
+* [Wiki](https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/SKILL.md)
 
 
 下载地址
@@ -76,6 +76,13 @@ pushd luci-app-openclash/tools/po2lmo
 make && sudo make install
 popd
 
+# 编译最新 CodeMirror 6 (插件内置，可跳过)
+pushd luci-app-openclash/tools/codemirror
+npm install
+npx esbuild entry.js --bundle --format=iife --global-name=CM6 --minify --target=es2019 --outfile=../../root/www/luci-static/resources/openclash/js/cm6.min.js --legal-comments=none --loader:.css=text
+rm -rf node_modules
+popd
+
 # 开始编译
 
 # 先回退到SDK主目录
@@ -116,7 +123,7 @@ make menuconfig
 
 * PayPal
 <p align="left">
-    <a href="https://ko-fi.com/vernesong"><img width="300" src="https://www.ko-fi.com/img/githubbutton_sm.svg"> </a>
+    <a href='https://ko-fi.com/H2H41G5LS' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi6.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
 </p>
 
 * USDT-BSC
