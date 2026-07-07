@@ -391,6 +391,7 @@ function get_age_keys(file)
 				if not pub and s.public then pub = s.public end
 				if not sec and s.secret then sec = s.secret end
 			end
+			return false
 		end
 	end)
 	return { public = pub, secret = sec }
@@ -457,7 +458,7 @@ end
 function decode64(data)
 	if not data then return nil end
 	data = data:gsub('[%s]', '')
-	if #data % 4 ~= 0 then return data end
+	if #data % 4 ~= 0 then return nil end
 
 	local out = {}
 	for i = 1, #data, 4 do
@@ -485,6 +486,96 @@ function decode64(data)
 	end
 
 	return table.concat(out)
+end
+
+function config_refs(old_file_name, new_file_name)
+	if not old_file_name or old_file_name == "" then return end
+	local old_name_no_ext = filename(basename(old_file_name))
+	local old_file_full = basename(old_file_name)
+	local is_rename = new_file_name and new_file_name ~= ""
+	local new_name_no_ext, new_file_full
+
+	if is_rename then
+		new_name_no_ext = filename(basename(new_file_name))
+		new_file_full = basename(new_file_name)
+	end
+
+	uci:foreach("openclash", "config_subscribe",
+		function(s)
+			if s.name == old_name_no_ext then
+				if is_rename and new_name_no_ext ~= new_file_name then
+					uci:set("openclash", s[".name"], "name", new_name_no_ext)
+				else
+					uci:delete("openclash", s[".name"])
+				end
+				return false
+			end
+		end
+	)
+
+	uci:foreach("openclash", "subscribe_info",
+		function(s)
+			if s.name == old_name_no_ext then
+				if is_rename and new_name_no_ext ~= new_file_name then
+					uci:set("openclash", s[".name"], "name", new_name_no_ext)
+				else
+					uci:delete("openclash", s[".name"])
+				end
+				return false
+			end
+		end
+	)
+
+	uci:foreach("openclash", "groups",
+		function(s)
+			if s.config == old_file_full then
+				if is_rename and new_name_no_ext ~= new_file_name then
+					uci:set("openclash", s[".name"], "config", new_file_full)
+				else
+					uci:delete("openclash", s[".name"])
+				end
+			end
+		end
+	)
+
+	uci:foreach("openclash", "proxy-provider",
+		function(s)
+			if s.config == old_file_full then
+				if is_rename and new_name_no_ext ~= new_file_name then
+					uci:set("openclash", s[".name"], "config", new_file_full)
+				else
+					uci:delete("openclash", s[".name"])
+				end
+			end
+		end
+	)
+
+	uci:foreach("openclash", "servers",
+		function(s)
+			if s.config == old_file_full then
+				if is_rename and new_name_no_ext ~= new_file_name then
+					uci:set("openclash", s[".name"], "config", new_file_full)
+				else
+					uci:delete("openclash", s[".name"])
+				end
+			end
+		end
+	)
+
+	uci:foreach("openclash", "config_age_secret",
+		function(s)
+			if s.name == old_name_no_ext then
+				if is_rename and new_name_no_ext ~= new_file_name then
+					uci:set("openclash", s[".name"], "name", new_name_no_ext)
+				else
+					uci:delete("openclash", s[".name"])
+				end
+				return false
+			end
+		end
+	)
+
+	uci:commit("openclash")
 end
 
 --- Returns the appropriate ps command string for the system's ps implementation.
@@ -523,4 +614,10 @@ function oc_version()
 		v = "0"
 	end
 	return v
+end
+
+function IsYamlExt(e)
+	e = e or ""
+	local lower = string.lower(e)
+	return lower:sub(-5) == ".yaml" or lower:sub(-4) == ".yml"
 end

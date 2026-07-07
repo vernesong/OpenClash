@@ -2,6 +2,7 @@
 local rowcnt = 1
 local uci = require("luci.model.uci").cursor()
 local fs = require "luci.openclash"
+local plugin_version = fs.oc_version()
 
 function rowstyle()
     rowcnt = rowcnt + 1
@@ -446,7 +447,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
 </fieldset>
 <!-- /tblsection -->
 
-<script src="/luci-static/resources/openclash/js/common.js"></script>
+<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <script type="text/javascript">//<![CDATA[
     window.addEventListener('load', onload<%=sectiontype%>, false);
 

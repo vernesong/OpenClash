@@ -365,7 +365,7 @@
     </svg>
 </div>
 
-<script src="/luci-static/resources/openclash/js/common.js"></script>
+<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <script type="text/javascript">//<![CDATA[
     var DOMCache = {
         clash: document.getElementById('_clash'),
@@ -1805,121 +1805,6 @@
                 clearTimeout(this.updateTimer);
                 this.updateTimer = null;
             }
-        }
-    };
-
-    var SubscriptionUrlSetter = {
-        filename: '',
-
-        show: function(filename) {
-            this.filename = filename;
-            var overlay = document.getElementById('subscription-url-overlay');
-            var textarea = document.getElementById('subscription-url-textarea');
-            if (overlay && textarea) {
-                textarea.value = '';
-                overlay.style.display = 'flex';
-                textarea.focus();
-                this.bindEvents();
-                this.loadUrls();
-            }
-        },
-
-        hide: function() {
-            var overlay = document.getElementById('subscription-url-overlay');
-            if (overlay) {
-                overlay.style.display = 'none';
-            }
-            this.unbindEvents();
-        },
-
-        bindEvents: function() {
-            var textarea = document.getElementById('subscription-url-textarea');
-
-            if (textarea) {
-                textarea.addEventListener('keydown', this.handleKeyDown.bind(this));
-            }
-        },
-
-        unbindEvents: function() {
-            var textarea = document.getElementById('subscription-url-textarea');
-
-            if (textarea) {
-                textarea.removeEventListener('keydown', this.handleKeyDown.bind(this));
-            }
-        },
-
-        handleKeyDown: function(event) {
-            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-                this.submit();
-            } else if (event.key === 'Escape') {
-                this.hide();
-            }
-        },
-
-        submit: function() {
-            var textarea = document.getElementById('subscription-url-textarea');
-            if (!textarea) return;
-
-            var urls = textarea.value.trim();
-
-            var urlList = urls.split('\n').map(function(url) {
-                return url.trim();
-            }).filter(function(url) {
-                return url !== '';
-            });
-
-            var newUrl = urlList.join('\n');
-
-            this.hide();
-
-            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "set_subinfo_url")%>', {
-                filename: this.filename,
-                url: newUrl
-            }, function(x, status) {
-                if (x && x.status == 200 && status.info === "Success") {
-                    refreshSubscriptionInfo();
-                } else if (x && x.status == 200 && status.info === "Delete success") {
-                    refreshSubscriptionInfo();
-                } else {
-                    alert('<%:Specify subscribe infos sources url failed:%>\n' + (status.info || '<%:Unknown error%>'));
-                }
-            });
-        },
-
-        handleSubURL: function(urlresult) {
-            var textarea = document.getElementById('subscription-url-textarea');
-            if (!textarea) return;
-
-            var urls = '';
-            if (urlresult.type && urlresult.type === "multiple") {
-                for (var data in urlresult.providers) {
-                    urls += urlresult.providers[data].url + '#name=' + urlresult.providers[data].name + '\n';
-                }
-            }
-            if (urlresult.type && urlresult.type === "single") {
-                urls = urlresult.url;
-            }
-            textarea.value = urls;
-        },
-
-        loadUrls: function() {
-            var self = this;
-            var existingData = localStorage.getItem('sub_info_' + this.filename);
-            if (existingData) {
-                existingData = JSON.parse(existingData);
-                if (existingData.url_result) {
-                    this.handleSubURL(existingData.url_result);
-                    return;
-                }
-            };
-
-            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_subscribe_info_data")%>', {
-                filename: this.filename
-            }, function(x, status) {
-                if (x && x.status == 200 && status) {
-                    self.handleSubURL(status);
-                }
-            });
         }
     };
 
@@ -3666,7 +3551,7 @@
     }
 
     function wikipage() {
-        url5 = 'https://github.com/vernesong/OpenClash/wiki';
+        url5 = 'https://github.com/vernesong/OpenClash/blob/dev/.github/skills/openclash-user-guide/SKILL.md';
         winOpen(url5);
     }
 
@@ -4269,17 +4154,17 @@
             return false;
         }
 
-        SubscriptionUrlSetter.show(filename);
+        SubscriptionUrlSetter.show(filename, "refreshSubscriptionInfo()");
         return false;
     }
 
     function uploadConfig() {
         if (typeof ConfigUploader !== 'undefined' && ConfigUploader.show) {
-            ConfigUploader.show();
+            ConfigUploader.show("ConfigFileManager.refreshConfigList()");
         } else {
             setTimeout(function() {
                 if (typeof ConfigUploader !== 'undefined' && ConfigUploader.show) {
-                    ConfigUploader.show();
+                    ConfigUploader.show("ConfigFileManager.refreshConfigList()");
                 } else {
                     alert('<%:Config editor not ready, please try again%>');
                 }
@@ -4307,11 +4192,11 @@
         }, function(x, status) {
             if (x.status == 200) {
                 if (ConfigUploader && ConfigUploader.showEditSubscribe) {
-                    ConfigUploader.showEditSubscribe(status, filename);
+                    ConfigUploader.showEditSubscribe(status, filename, "ConfigFileManager.refreshConfigList()");
                 } else {
                     setTimeout(function() {
                         if (ConfigUploader && ConfigUploader.showEditSubscribe) {
-                            ConfigUploader.showEditSubscribe(status, filename);
+                            ConfigUploader.showEditSubscribe(status, filename, "ConfigFileManager.refreshConfigList()");
                         } else {
                             alert('<%:Config editor not ready, please try again%>');
                         }

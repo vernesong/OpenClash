@@ -3,84 +3,8 @@
     local plugin_version = fs.oc_version()
 %>
 <link rel="stylesheet" href="/luci-static/resources/openclash/css/oc.css?v=<%=plugin_version%>">
-<script type="text/javascript">//<![CDATA[
-var _cmReady = false;
-var _cmQueue = [];
-function _cmWhenReady(callback) {
-    if (_cmReady) { callback(); return; }
-    _cmQueue.push(callback);
-}
-(function() {
-    var basePath = '/luci-static/resources/openclash';
-    var head = document.head || document.getElementsByTagName('head')[0];
-    var cssFiles = [
-        'lib/codemirror.css',
-        'theme/material.css',
-        'theme/log.css',
-        'addon/fold/foldgutter.css',
-        'addon/lint/lint.css',
-        'addon/display/fullscreen.css',
-        'addon/dialog/dialog.css',
-        'addon/search/matchesonscrollbar.css',
-        'addon/merge/merge.css'
-    ];
-    var jsFiles = [
-        'lib/codemirror.js',
-        'mode/yaml/yaml.js',
-        'mode/log/log.js',
-        'mode/shell/shell.js',
-        'addon/fold/foldcode.js',
-        'addon/fold/foldgutter.js',
-        'addon/fold/indent-fold.js',
-        'addon/edit/matchbrackets.js',
-        'addon/selection/active-line.js',
-        'addon/lint/lint.js',
-        'addon/lint/yaml-lint.js',
-        'addon/lint/js-yaml.min.js',
-        'addon/display/fullscreen.js',
-        'addon/display/autorefresh.js',
-        'addon/dialog/dialog.js',
-        'addon/search/searchcursor.js',
-        'addon/search/search.js',
-        'addon/scroll/annotatescrollbar.js',
-        'addon/search/matchesonscrollbar.js',
-        'addon/search/jump-to-line.js',
-        'addon/merge/diff_match_patch.js',
-        'addon/merge/merge.js'
-    ];
-    var promises = [];
-    cssFiles.forEach(function(file) {
-        promises.push(new Promise(function(resolve) {
-            var link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = basePath + '/' + file;
-            link.onload = resolve;
-            link.onerror = resolve;
-            if (head) head.appendChild(link);
-            else resolve();
-        }));
-    });
-    var loadJS = function(index) {
-        if (index >= jsFiles.length) return Promise.resolve();
-        return new Promise(function(resolve) {
-            var script = document.createElement('script');
-            script.src = basePath + '/' + jsFiles[index];
-            script.onload = function() { loadJS(index + 1).then(resolve); };
-            script.onerror = function() { loadJS(index + 1).then(resolve); };
-            if (head) head.appendChild(script);
-            else resolve();
-        });
-    };
-    promises.push(loadJS(0));
-    Promise.all(promises).then(function() {
-        _cmReady = true;
-        var queue = _cmQueue;
-        _cmQueue = [];
-        queue.forEach(function(fn) { fn(); });
-    });
-})();
-//]]>
-</script>
+<script src="/luci-static/resources/openclash/js/cm6.min.js?v=<%=plugin_version%>"></script>
+<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 
 <%-
 local uci = require("luci.model.uci").cursor()
@@ -112,7 +36,6 @@ local sid = path_info:match("(cfg[0-9a-f]+)") or ""
 </tr>
 </table>
 
-<script src="/luci-static/resources/openclash/js/common.js"></script>
 <script type="text/javascript">//<![CDATA[
 var levelTranslations = {
     'info': '<%:Info%>',
@@ -124,254 +47,278 @@ var levelTranslations = {
 	'fatal': '<%:Fatal%>'
 };
 
-function merge_editor(id, id2, target, target2, readOnly, readOnly2, wid, height)
-{
-	var value, orig1, orig2, merge_editor, descr, gap, vscrollbar, vscrollbar_oc, panes = 2, highlight = true, connect = null, collapse = false;
-	descr = document.getElementById("my_editor_div");
-	target.parentNode.parentNode.parentNode.insertBefore(descr, target.parentNode.parentNode); 
-	descr.style.display="inline-table"
-	value = id.value;
-	if (value == null) {
+var _mergeShowDifferences = true;
+var _fullscreenActive = false;
+
+if (!window._ocEditorHotkeysBound) {
+	document.addEventListener('keydown', function(e) {
+		if (e.key === 'F11') {
+			e.preventDefault();
+			if (_fullscreenActive) {
+				CM6.toggleFullscreen(document.getElementById('oc-fullscreen-active'));
+				_fullscreenActive = false;
+			} else {
+				var target = CM6.getActiveEditor();
+				_fullscreenActive = CM6.toggleFullscreen(target);
+			}
+			return;
+		}
+
+		if (e.key === 'F10' && window._mergeViewInstance && window._mergeViewInstance.reconfigure) {
+			e.preventDefault();
+			_mergeShowDifferences = !_mergeShowDifferences;
+			window._mergeViewInstance.reconfigure({ highlightChanges: _mergeShowDifferences, gutter: _mergeShowDifferences });
+			if (window._mergeViewInstance.dom) {
+				window._mergeViewInstance.dom.classList.toggle('oc-diff-hidden', !_mergeShowDifferences);
+			}
+			return;
+		}
+
+		if (e.key === 'Escape' && _fullscreenActive) {
+			e.preventDefault();
+			CM6.toggleFullscreen(document.getElementById('oc-fullscreen-active'));
+			_fullscreenActive = false;
+		}
+	}, true);
+	window._ocEditorHotkeysBound = true;
+}
+
+function editor(id, readOnly, wid, height) {
+	var isDark = isDarkBackground(document.body);
+	var exts = [CM6.baseExtensions(), CM6.themeExtension(isDark), CM6.placeholderExtension('<%:Enter YAML configuration...%>')];
+	var topSearch = (CM6 && typeof CM6.topSearchExtension === 'function') ? CM6.topSearchExtension() : null;
+	if (topSearch) exts.push(topSearch);
+	exts.push(CM6.yaml());
+	exts.push(CM6.yamlLinter());
+	exts.push(CM6.lintGutter());
+	exts.push(CM6.autocompletion({ override: [CM6.mihomoCompletion] }));
+	exts.push(CM6.indentUnit.of("  "));
+	exts.push(CM6.indentMarkerExtension());
+	if (readOnly) exts.push(CM6.EditorState.readOnly.of(true));
+
+	var view = new CM6.EditorView({
+		state: CM6.EditorState.create({ doc: id.value, extensions: exts })
+	});
+	id.parentNode.insertBefore(view.dom, id.nextSibling);
+	id.style.display = 'none';
+	id.parentNode.classList.add('oc');
+	if (wid && height) {
+		view.dom.style.width = wid;
+		view.dom.style.height = height;
+	}
+	var origDispatch = view.dispatch;
+	view.dispatch = function(tr) {
+		origDispatch.call(view, tr);
+		if (tr.docChanged) id.value = view.state.doc.toString();
+	};
+	return view;
+}
+
+function shell_editor(id, readOnly, wid, height) {
+	var isDark = isDarkBackground(document.body);
+	var exts = [CM6.baseExtensions(), CM6.themeExtension(isDark), CM6.placeholderExtension('<%:Enter shell script...%>')];
+	var topSearch = (CM6 && typeof CM6.topSearchExtension === 'function') ? CM6.topSearchExtension() : null;
+	if (topSearch) exts.push(topSearch);
+	exts.push(CM6.StreamLanguage.define(CM6.shell));
+	if (readOnly) exts.push(CM6.EditorState.readOnly.of(true));
+
+	var view = new CM6.EditorView({
+		state: CM6.EditorState.create({ doc: id.value, extensions: exts })
+	});
+	id.parentNode.insertBefore(view.dom, id.nextSibling);
+	id.style.display = 'none';
+	id.parentNode.classList.add('oc');
+	if (wid && height) {
+		view.dom.style.width = wid;
+		view.dom.style.height = height;
+	}
+	var origDispatch = view.dispatch;
+	view.dispatch = function(tr) {
+		origDispatch.call(view, tr);
+		if (tr.docChanged) id.value = view.state.doc.toString();
+	};
+	return view;
+}
+
+function other_editor(id, readOnly, wid, height) {
+	var isDark = isDarkBackground(document.body);
+	var exts = [CM6.baseExtensions(), CM6.themeExtension(isDark), CM6.placeholderExtension('<%:Enter configuration...%>')];
+	var topSearch = (CM6 && typeof CM6.topSearchExtension === 'function') ? CM6.topSearchExtension() : null;
+	if (topSearch) exts.push(topSearch);
+	exts.push(CM6.StreamLanguage.define(CM6.properties));
+	if (readOnly) exts.push(CM6.EditorState.readOnly.of(true));
+
+	var view = new CM6.EditorView({
+		state: CM6.EditorState.create({ doc: id.value, extensions: exts })
+	});
+	id.parentNode.insertBefore(view.dom, id.nextSibling);
+	id.style.display = 'none';
+	id.parentNode.classList.add('oc');
+	if (wid && height) {
+		view.dom.style.width = wid;
+		view.dom.style.height = height;
+	}
+	var origDispatch = view.dispatch;
+	view.dispatch = function(tr) {
+		origDispatch.call(view, tr);
+		if (tr.docChanged) id.value = view.state.doc.toString();
+	};
+	return view;
+}
+
+function log_editor(id, name, readOnly, wid, height) {
+	var exts = [CM6.lineNumbers(), CM6.EditorView.lineWrapping, CM6.EditorState.readOnly.of(true)];
+	var topSearch = (CM6 && typeof CM6.topSearchExtension === 'function') ? CM6.topSearchExtension() : null;
+	if (topSearch) exts.push(topSearch);
+	exts.push(CM6.highlightActiveLine());
+	exts.push(CM6.drawSelection());
+	exts.push(CM6.highlightSelectionMatches());
+	exts.push(CM6.keymap.of(CM6.searchKeymap));
+	exts.push(CM6.logLanguage);
+	exts.push(CM6.syntaxHighlighting(CM6.logHighlightStyle));
+
+	var view = new CM6.EditorView({
+		state: CM6.EditorState.create({ doc: id.value, extensions: exts })
+	});
+	id.parentNode.insertBefore(view.dom, id.nextSibling);
+	id.style.display = 'none';
+	id.parentNode.classList.add('oc');
+	if (isDarkBackground(document.body)) {
+		id.parentNode.setAttribute('data-darkmode', 'true');
+		view.dom.setAttribute('data-darkmode', 'true');
+	}
+	window['editor_' + name] = view;
+	if (wid && height) {
+		view.dom.style.width = wid;
+		view.dom.style.height = height;
+	}
+	view.getValue = function() { return view.state.doc.toString(); };
+	view.setValue = function(v) { view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: v || '' } }); };
+	view.refresh = function() { view.dispatch({}); if (view.requestMeasure) view.requestMeasure(); };
+	view.getScrollInfo = function() { var sd = view.scrollDOM; return { top: sd.scrollTop, left: sd.scrollLeft, height: sd.scrollHeight, width: sd.scrollWidth, clientHeight: sd.clientHeight, clientWidth: sd.clientWidth }; };
+	view.scrollTo = function(l, t) { if (typeof l === 'object') { t = l.top; l = l.left; } view.scrollDOM.scrollTop = t || 0; view.scrollDOM.scrollLeft = l || 0; };
+	view.getCursor = function() { var h = view.state.selection.main.head, ln = view.state.doc.lineAt(h); return { line: ln.number - 1, ch: h - ln.from }; };
+	view.setCursor = function(p) { var ln = view.state.doc.line(p.line + 1); view.dispatch({ selection: { anchor: ln.from + p.ch } }); };
+	var _hasFocusDesc = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(view), 'hasFocus');
+	var _hf;
+	if (_hasFocusDesc && _hasFocusDesc.get) {
+		try { _hf = function() { return _hasFocusDesc.get.call(view); }; } catch(e) { _hf = null; }
+	}
+	if (!_hf) {
+		_hf = function() { try { return view.contentDOM.ownerDocument.activeElement === view.contentDOM; } catch(e) { return false; } };
+	}
+	Object.defineProperty(view, 'hasFocus', { value: _hf, writable: true, configurable: true });
+	view.somethingSelected = function() { return !view.state.selection.main.empty; };
+	view.setSelection = function(f, t) { var lf = view.state.doc.line(f.line + 1), lt = view.state.doc.line(t.line + 1); view.dispatch({ selection: { anchor: lf.from + f.ch, head: lt.from + t.ch } }); };
+	view.scrollIntoView = function(p, m) { if (p && p.line !== undefined) { var ln = view.state.doc.line(p.line + 1); view.dispatch({ selection: { anchor: ln.from + (p.ch || 0) }, scrollIntoView: true }); } else { view.dispatch({ selection: { anchor: view.state.selection.main.head }, scrollIntoView: true }); } };
+	if (typeof isDarkBackground === 'function' && isDarkBackground(document.body)) {
+		document.documentElement.setAttribute('data-darkmode', 'true');
+	}
+	return view;
+}
+
+function markdown_editor(id, name, readOnly, wid, height) {
+	var isDark = (typeof isDarkBackground === 'function' && isDarkBackground(document.body));
+	var exts = [CM6.lineNumbers(), CM6.EditorView.lineWrapping, CM6.themeExtension(isDark), CM6.markdown()];
+	if (readOnly) exts.push(CM6.EditorState.readOnly.of(true));
+
+	var view = new CM6.EditorView({
+		state: CM6.EditorState.create({ doc: id.value || '', extensions: exts })
+	});
+	id.parentNode.insertBefore(view.dom, id.nextSibling);
+	id.style.display = 'none';
+	id.parentNode.classList.add('oc');
+	window['editor_' + name] = view;
+	if (wid && height) {
+		view.dom.style.width = wid;
+		view.dom.style.height = height;
+	}
+	view.getValue = function() { return view.state.doc.toString(); };
+	view.setValue = function(v) { view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: v || '' } }); };
+	view.refresh = function() { view.dispatch({}); };
+	view.dom = view.dom;
+	return view;
+}
+
+function merge_editor(id, id2, target, target2, readOnly, readOnly2, wid, height) {
+	var descr = document.getElementById("my_editor_div");
+	target.parentNode.parentNode.parentNode.insertBefore(descr, target.parentNode.parentNode);
+	descr.style.display = "inline-table";
+
+	if (!id.value) {
 		editor(id, readOnly, wid, height);
 		editor(id2, readOnly2, wid, height);
+		return;
 	}
-	else {
-		target2.parentNode.style.display="none";
-		orig1 = '';
-		orig2 = id2.value;
-		target.style.height= "700px"
-		id.style.display = "none";
-		id2.style.display = "none";
-		merge_editor = CodeMirror.MergeView(target, {
-			mode: "text/yaml",
-			value: value,
-			origLeft: panes == 3 ? orig1 : null,
-			orig: orig2,
-			theme: "material",
-			lineNumbers: true,
-			autoRefresh: true,
-			styleActiveLine: true,
-			lineWrapping: true,
-			matchBrackets: true,
-			foldGutter: true,
-			lint: true,
-			highlightDifferences: highlight,
-			connect: connect,
-			collapseIdentical: collapse,
-			gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "CodeMirror-lint-markers"],
-			extraKeys: {
-				"F10": function() {
-					merge_editor.setShowDifferences(highlight = !highlight);
-				},
-				"F11": function(cm) {
-					cm.setOption("fullScreen", !cm.getOption("fullScreen"));
-					gap = document.getElementsByClassName("CodeMirror-merge-gap")[0];
-					vscrollbar = document.getElementsByClassName("CodeMirror-vscrollbar")[0];
-					vscrollbar_oc = document.getElementsByClassName("CodeMirror-vscrollbar-oc")[0];
-					if (cm.getOption("fullScreen")) {
-						console.log(gap.style.display)
-						gap.style.display = "none";
-						vscrollbar.className = "CodeMirror-vscrollbar-oc";
-					}
-					else {
-						gap.style.display = "";
-						vscrollbar_oc.className = "CodeMirror-vscrollbar";
-					};
-				},
-				"Esc": function(cm) {
-					gap = document.getElementsByClassName("CodeMirror-merge-gap")[0];
-					vscrollbar = document.getElementsByClassName("CodeMirror-vscrollbar")[0];
-					vscrollbar_oc = document.getElementsByClassName("CodeMirror-vscrollbar-oc")[0];
-					if (cm.getOption("fullScreen")) {
-						cm.setOption("fullScreen", false);
-						gap.style.display = "";
-						vscrollbar_oc.className = "CodeMirror-vscrollbar";
-					};
-				},
-				"Tab": function(cm) {
-					if (cm.somethingSelected()) {
-						cm.indentSelection('add')
-					} else {
-						var spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
-						cm.replaceSelection(spaces)
-					}
-				}
-			}
-		});
 
-		merge_editor.edit.on("change", function(cm) {
-			id.value = cm.getValue();
-		});
+	target2.parentNode.style.display = "none";
+	target.style.height = "700px";
+	target.classList.add('oc');
+	id.style.display = "none";
+	id2.style.display = "none";
 
-		if (wid && height) {
-			merge_editor.editor().setSize(wid, height);
-			merge_editor.rightOriginal().setSize(wid, height);
-		};
-	};
-};
-
-function editor(id, readOnly, wid, height)
-{
-	var editor = CodeMirror.fromTextArea(id, {
-	mode: "text/yaml",
-	autoRefresh: true,
-	styleActiveLine: true,
-	lineNumbers: true,
-	theme: "material",
-	lineWrapping: true,
-	matchBrackets: true,
-	foldGutter: true,
-	lint: true,
-	gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter", "CodeMirror-lint-markers"],
-	extraKeys: {
-		"F11": function(cm) {
-			cm.setOption("fullScreen", !cm.getOption("fullScreen"));
-		},
-		"Esc": function(cm) {
-			if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
-		},
-		"Tab": function(cm) {
-			if (cm.somethingSelected()) {
-				cm.indentSelection('add')
-			} else {
-				var spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
-				cm.replaceSelection(spaces)
-			}
-		}
+	var isDark = isDarkBackground(document.body);
+	if (isDark) target.setAttribute('data-darkmode', 'true');
+	var leftDoc = id.value || '';
+	var rightDoc = id2.value || '';
+	var topSearch = (CM6 && typeof CM6.topSearchExtension === 'function') ? CM6.topSearchExtension() : null;
+	var extA = [CM6.baseExtensions(), CM6.themeExtension(isDark), CM6.placeholderExtension('<%:Edit original config...%>'), CM6.yaml(), CM6.yamlLinter(), CM6.lintGutter(), CM6.autocompletion({ override: [CM6.mihomoCompletion] }), CM6.indentUnit.of("  "), CM6.indentMarkerExtension()];
+	var extB = [CM6.baseExtensions(), CM6.themeExtension(isDark), CM6.placeholderExtension('<%:Runtime config (read only)%>'), CM6.yaml(), CM6.indentUnit.of("  "), CM6.indentMarkerExtension(), CM6.EditorState.readOnly.of(true)];
+	var mergeDefaults = CM6.mergeDefaultConfig || {};
+	if (topSearch) {
+		extA.push(topSearch);
+		extB.push(topSearch);
 	}
+
+	var mv = new CM6.MergeView({
+		a: { doc: leftDoc, extensions: extA },
+		b: { doc: rightDoc, extensions: extB },
+		parent: target,
+		diffConfig: mergeDefaults.diffConfig || { scanLimit: 5000 },
+		gutter: typeof mergeDefaults.gutter === 'boolean' ? mergeDefaults.gutter : true,
+		revertControls: mergeDefaults.revertControls || 'b-to-a',
+		highlightChanges: _mergeShowDifferences,
+		collapseUnchanged: typeof mergeDefaults.collapseUnchanged !== 'undefined' ? mergeDefaults.collapseUnchanged : false
 	});
 
-	if (readOnly) {
-		editor.setOption("readOnly","true");
+	var origDispatchA = mv.a.dispatch;
+	mv.a.dispatch = function(tr) {
+		origDispatchA.call(mv.a, tr);
+		if (tr.docChanged) id.value = mv.a.state.doc.toString();
 	};
 
 	if (wid && height) {
-		editor.setSize(wid, height);
-	};
-};
+		mv.a.dom.style.width = wid;
+		mv.a.dom.style.height = height;
+		mv.b.dom.style.width = wid;
+		mv.b.dom.style.height = height;
+	}
 
-function shell_editor(id, readOnly, wid, height)
-{
-	var editor = CodeMirror.fromTextArea(id, {
-	mode: "shell",
-	autoRefresh: true,
-	styleActiveLine: true,
-	lineNumbers: true,
-	theme: "material",
-	lineWrapping: true,
-	matchBrackets: true,
-	foldGutter: true,
-	gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-	extraKeys: {
-		"F11": function(cm) {
-			cm.setOption("fullScreen", !cm.getOption("fullScreen"));
-		},
-		"Esc": function(cm) {
-			if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
-		},
-		"Tab": function(cm) {
-			 if (cm.somethingSelected()) {
-				cm.indentSelection('add')
-			 } else {
-				var spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
-				cm.replaceSelection(spaces)
-			 }
-		}
-		}
-	});
+	window._mergeViewInstance = mv;
+	_mergeShowDifferences = true;
+}
 
-	if (wid && height) {
-		editor.setSize(wid, height);
-	};
-};
+var _cmWhenReady = function(cb) { cb(); };
 
-function other_editor(id, readOnly, wid, height)
-{
-	var editor = CodeMirror.fromTextArea(id, {
-	mode: "text/x-properties",
-	autoRefresh: true,
-	styleActiveLine: true,
-	lineNumbers: true,
-	theme: "material",
-	lineWrapping: true,
-	matchBrackets: true,
-	foldGutter: true,
-	gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-	extraKeys: {
-		"F11": function(cm) {
-			cm.setOption("fullScreen", !cm.getOption("fullScreen"));
-		},
-		"Esc": function(cm) {
-			if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
-		},
-		"Tab": function(cm) {
-			 if (cm.somethingSelected()) {
-				cm.indentSelection('add')
-			 } else {
-				var spaces = Array(cm.getOption("indentUnit") + 1).join(" ")
-				cm.replaceSelection(spaces)
-			 }
-		}
-		}
-	});
-
-	if (wid && height) {
-		editor.setSize(wid, height);
-	};
-};
-
-function log_editor(id, name, readOnly, wid, height)
-{
-	window['editor_' + name] = CodeMirror.fromTextArea(id, {
-	mode: "log",
-	autoRefresh: true,
-	styleActiveLine: true,
-	lineNumbers: true,
-	theme: "log",
-	lineWrapping: true,
-	matchBrackets: false,
-	foldGutter: true,
-	gutters: ["CodeMirror-linenumbers", "CodeMirror-foldgutter"],
-	extraKeys: {
-		"F11": function(cm) {
-			cm.setOption("fullScreen", !cm.getOption("fullScreen"));
-		},
-		"Esc": function(cm) {
-			if (cm.getOption("fullScreen")) cm.setOption("fullScreen", false);
-		}
-		}
-	});
-
-	if (readOnly) {
-		window['editor_' + name].setOption("readOnly","true");
-	};
-
-	if (wid && height) {
-		window['editor_' + name].setSize(wid, height);
-	};
-
-	if (isDarkBackground(document.body)) {
-		document.documentElement.setAttribute('data-darkmode', 'true');
-	};
-};
-
-_cmWhenReady(function() {
+(function() {
+CM6.startThemeObserver();
+if (typeof isDarkBackground === 'function' && isDarkBackground(document.body)) {
+	document.documentElement.setAttribute('data-darkmode', 'true');
+}
 var core_log = document.getElementById("core_log");
 var oc_log = document.getElementById("cbid.openclash.config.clog");
-if (core_log && oc_log) {
-	log_editor(oc_log, 'oc', true, '100%', '540px');
-	log_editor(core_log, 'core', true, '100%', '540px');
-};
+if (oc_log) { log_editor(oc_log, 'oc', true, '100%', '540px'); }
+if (core_log) { log_editor(core_log, 'core', true, '100%', '540px'); }
 
 var custom_cfg_value = document.getElementById("cbid.openclash.<%=sid%>.other_parameters");
 if (custom_cfg_value) {
 	editor(custom_cfg_value, false, '100%', '300px');
-};
+}
 
 var custom_firewall = document.getElementById("cbid.openclash.config.firewall_custom");
 if (custom_firewall) {
 	shell_editor(custom_firewall, false, "100%", '300px');
-};
+}
 
 var myEditor_use = document.getElementById("cbid.table.1.user");
 var myEditor_def = document.getElementById("cbid.table.1.default");
@@ -380,16 +327,16 @@ if (myEditor_use && myEditor_def) {
 	var myEditor_div_use = document.getElementById("cbi-table-1-user");
 	var myEditor_div_def = document.getElementById("cbi-table-1-default");
 
-	myEditor_div_def.parentNode.parentNode.style.cssText="text-align: left !important"
-	myEditor_div_def.parentNode.className='cbi-value';
-	myEditor_div_def.parentNode.style.display="revert"
-	myEditor_div_def.parentNode.style.width="100%"
+	myEditor_div_def.parentNode.parentNode.style.cssText = "text-align: left !important";
+	myEditor_div_def.parentNode.className = 'cbi-value';
+	myEditor_div_def.parentNode.style.display = "revert";
+	myEditor_div_def.parentNode.style.width = "100%";
 
-	myEditor_div_use.parentNode.className='cbi-value';
-	myEditor_div_use.parentNode.style.display="revert"
-	myEditor_div_use.parentNode.style.width="100%"
+	myEditor_div_use.parentNode.className = 'cbi-value';
+	myEditor_div_use.parentNode.style.display = "revert";
+	myEditor_div_use.parentNode.style.width = "100%";
 	merge_editor(myEditor_use, myEditor_def, myEditor_div_use, myEditor_div_def, true, false, 'auto', '700px');
-};
+}
 
 var myEditor_hosts = document.getElementById("cbid.openclash.config.custom_hosts");
 var myEditor_fall_fil = document.getElementById("cbid.openclash.config.custom_fallback_fil");
@@ -402,42 +349,18 @@ var myEditor_edit_file = document.getElementById("cbid.openclash.config.edit_fil
 var myEditor_custom_sniffer = document.getElementById("cbid.openclash.config.sniffer_custom");
 var myEditor_proxy_name_pol = document.getElementById("cbid.openclash.config.custom_proxy_server_dns_policy");
 
-if (myEditor_hosts) {
-	editor(myEditor_hosts, false, '100%', '300px');
-};
-
-if (myEditor_edit_file) {
-	editor(myEditor_edit_file, false, '100%', '700px');
-};
-
-if (myEditor_fall_fil) {
-	editor(myEditor_fall_fil, false, '100%', '300px');
-};
-
-if (myEditor_name_pol) {
-	editor(myEditor_name_pol, false, '100%', '300px');
-};
-
-if (myEditor_proxy_name_pol) {
-	editor(myEditor_proxy_name_pol, false, '100%', '300px');
-};
-
+if (myEditor_hosts) { editor(myEditor_hosts, false, '100%', '300px'); }
+if (myEditor_edit_file) { editor(myEditor_edit_file, false, '100%', '700px'); }
+if (myEditor_fall_fil) { editor(myEditor_fall_fil, false, '100%', '300px'); }
+if (myEditor_name_pol) { editor(myEditor_name_pol, false, '100%', '300px'); }
+if (myEditor_proxy_name_pol) { editor(myEditor_proxy_name_pol, false, '100%', '300px'); }
 if (myEditor_name_cus_r1) {
 	editor(myEditor_name_cus_r1, false, '100%', '300px');
 	editor(myEditor_name_cus_r2, false, '100%', '300px');
-};
-
-if (myEditor_fake_filter) {
-	other_editor(myEditor_fake_filter, false, '100%', '300px');
-};
-
-if (myEditor_custom_domain_dns) {
-	other_editor(myEditor_custom_domain_dns, false, '100%', '300px');
-};
-
-if (myEditor_custom_sniffer) {
-	other_editor(myEditor_custom_sniffer, false, '100%', '300px');
-};
+}
+if (myEditor_fake_filter) { other_editor(myEditor_fake_filter, false, '100%', '300px'); }
+if (myEditor_custom_domain_dns) { other_editor(myEditor_custom_domain_dns, false, '100%', '300px'); }
+if (myEditor_custom_sniffer) { other_editor(myEditor_custom_sniffer, false, '100%', '300px'); }
 
 var proxy_mg = document.getElementById('cbi-table-1-proxy_mg');
 var rule_mg = document.getElementById('cbi-table-1-rule_mg');
@@ -446,12 +369,13 @@ var Apply = document.getElementById('cbi-table-1-Apply');
 var Create = document.getElementById('cbi-table-1-Create');
 
 if (proxy_mg) {
-	proxy_mg.style.textAlign="center";
-	rule_mg.style.textAlign="center";
-	Commit.style.textAlign="center";
-	Apply.style.textAlign="center";
-	Create.style.textAlign="center";
-};
-});
+	proxy_mg.style.textAlign = "center";
+	rule_mg.style.textAlign = "center";
+	Commit.style.textAlign = "center";
+	Apply.style.textAlign = "center";
+	Create.style.textAlign = "center";
+}
+})();
+
 //]]>
 </script> 

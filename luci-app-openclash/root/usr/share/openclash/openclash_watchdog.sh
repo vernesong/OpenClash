@@ -9,6 +9,8 @@ CLASH="/etc/openclash/clash"
 CFG_UPDATE_INT=0
 SKIP_PROXY_ADDRESS=1
 SKIP_PROXY_ADDRESS_INTERVAL=30
+UPNP_INT=1
+UPNP_INTERVAL=30
 STREAM_AUTO_SELECT=0
 FIREWALL_RELOAD=0
 MAX_FIREWALL_RELOAD=3
@@ -51,12 +53,16 @@ begin
                      begin
                         provider_config = YAML.load_file(path, secret: provider['age-secret-key']) rescue nil
                      rescue Exception => e
-                        YAML.LOG_WARN('Set Proxies Address Skip Failed,【' + path + ': ' + e.message+'】')
+                        YAML.LOG_WARN('Set Proxies Address Skip: Failed【' + path + ': ' + e.message+'】')
                         continue
                      end
                   else
                      if file_is_age_encrypted
-                        YAML.LOG_WARN('Set Proxies Address Skip Failed,【' + path + ': File is AGE encrypted but no secret key provided】')
+                        if name == 'oixCloud'
+                           YAML.LOG_TIP('Set Proxies Address Skip: Bypass【oixCloud】')
+                        else
+                           YAML.LOG_WARN('Set Proxies Address Skip: Failed【' + path + '】File is AGE encrypted but no secret key provided')
+                        end
                         next
                      end
                      provider_config = YAML.load_file(path)
@@ -70,7 +76,7 @@ begin
                rescue Psych::SyntaxError, ArgumentError
                   if not provider.key?('age-secret-key') or provider['age-secret-key'].to_s.empty?
                      if file_is_age_encrypted
-                        YAML.LOG_WARN('Failed to parse config file with Lua helper【' + path + ': File is AGE encrypted, cannot parse with Lua】')
+                        YAML.LOG_WARN('Failed to parse config file with Lua helper【' + path + '】File is AGE encrypted, cannot parse with Lua')
                         next
                      end
                      begin
@@ -159,7 +165,7 @@ begin
       system(set_commands.join('; ')) if not set_commands.empty?
    end
 rescue Exception => e
-   YAML.LOG_ERROR('Set Proxies Address Skip Failed,【' + e.message + '】');
+   YAML.LOG_ERROR('Set Proxies Address Skip: Failed【' + e.message + '】');
 end" 2>/dev/null >> $LOG_FILE
 }
 
@@ -303,56 +309,61 @@ fi
    fi
 
 ## UPNP
-   if [ -f "$upnp_lease_file" ]; then
-      #del
-      if [ -n "$FW4" ]; then
-         for i in `$(nft list chain inet fw4 openclash_upnp |grep "return")`
-         do
-            upnp_ip=$(echo "$i" |awk -F 'ip saddr ' '{print $2}' |awk  '{print $1}')
-            upnp_dp=$(echo "$i" |awk -F 'sport ' '{print $2}' |awk  '{print $1}')
-            upnp_type=$(echo "$i" |awk -F 'sport ' '{print $1}' |awk  '{print $4}' |tr '[a-z]' '[A-Z]')
-            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
-               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
-                  handle=$(nft -a list chain inet fw4 openclash_upnp |grep "$i" |awk -F '# handle ' '{print$2}')
-                  nft delete rule inet fw4 openclash_upnp handle ${handle}
-               fi
-            fi
-         done >/dev/null 2>&1
-      else
-         for i in `$(iptables -t mangle -nL openclash_upnp |grep "RETURN")`
-         do
-            upnp_ip=$(echo "$i" |awk '{print $4}')
-            upnp_dp=$(echo "$i" |awk -F 'spt:' '{print $2}')
-            upnp_type=$(echo "$i" |awk '{print $2}' |tr '[a-z]' '[A-Z]')
-            if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
-               if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
-                  iptables -t mangle -D openclash_upnp -p "$upnp_type" -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
-               fi
-            fi
-         done >/dev/null 2>&1
-      fi
-      #add
-      if [ -s "$upnp_lease_file" ] && [ -n "$(iptables --line-numbers -t nat -xnvL openclash_upnp 2>/dev/null)"] || [ -n "$(nft list chain inet fw4 openclash_upnp 2>/dev/null)"]; then
-         cat "$upnp_lease_file" |while read -r line
-         do
-            if [ -n "$line" ]; then
-               upnp_ip=$(echo "$line" |awk -F ':' '{print $3}')
-               upnp_dp=$(echo "$line" |awk -F ':' '{print $4}')
-               upnp_type=$(echo "$line" |awk -F ':' '{print $1}' |tr '[A-Z]' '[a-z]')
+   if [ "$UPNP_INT" -eq 1 ] || [ "$(expr "$UPNP_INT" % "$UPNP_INTERVAL")" -eq 0 ]; then
+      if [ -f "$upnp_lease_file" ]; then
+         #del
+         if [ -n "$FW4" ]; then
+            for i in `$(nft list chain inet fw4 openclash_upnp |grep "return")`
+            do
+               upnp_ip=$(echo "$i" |awk -F 'ip saddr ' '{print $2}' |awk  '{print $1}')
+               upnp_dp=$(echo "$i" |awk -F 'sport ' '{print $2}' |awk  '{print $1}')
+               upnp_type=$(echo "$i" |awk -F 'sport ' '{print $1}' |awk  '{print $4}' |tr '[a-z]' '[A-Z]')
                if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
-                  if [ -n "$FW4" ]; then
-                     if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
-                        nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } "$upnp_type" sport "$upnp_dp" counter return 2>/dev/null
-                     fi
-                  else
-                     if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
-                        iptables -t mangle -A openclash_upnp -p "$upnp_type" -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                  if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                     handle=$(nft -a list chain inet fw4 openclash_upnp |grep "$i" |awk -F '# handle ' '{print$2}')
+                     nft delete rule inet fw4 openclash_upnp handle ${handle}
+                  fi
+               fi
+            done >/dev/null 2>&1
+         else
+            for i in `$(iptables -t mangle -nL openclash_upnp |grep "RETURN")`
+            do
+               upnp_ip=$(echo "$i" |awk '{print $4}')
+               upnp_dp=$(echo "$i" |awk -F 'spt:' '{print $2}')
+               upnp_type=$(echo "$i" |awk '{print $2}' |tr '[a-z]' '[A-Z]')
+               if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
+                  if [ -z "$(cat "$upnp_lease_file" |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                     iptables -t mangle -D openclash_upnp -p "$upnp_type" -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                  fi
+               fi
+            done >/dev/null 2>&1
+         fi
+         #add
+         if [ -s "$upnp_lease_file" ] && [ -n "$(iptables --line-numbers -t nat -xnvL openclash_upnp 2>/dev/null)"] || [ -n "$(nft list chain inet fw4 openclash_upnp 2>/dev/null)"]; then
+            cat "$upnp_lease_file" |while read -r line
+            do
+               if [ -n "$line" ]; then
+                  upnp_ip=$(echo "$line" |awk -F ':' '{print $3}')
+                  upnp_dp=$(echo "$line" |awk -F ':' '{print $4}')
+                  upnp_type=$(echo "$line" |awk -F ':' '{print $1}' |tr '[A-Z]' '[a-z]')
+                  if [ -n "$upnp_ip" ] && [ -n "$upnp_dp" ] && [ -n "$upnp_type" ]; then
+                     if [ -n "$FW4" ]; then
+                        if [ -z "$(nft list chain inet fw4 openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                           nft add rule inet fw4 openclash_upnp ip saddr { "$upnp_ip" } "$upnp_type" sport "$upnp_dp" counter return 2>/dev/null
+                        fi
+                     else
+                        if [ -z "$(iptables -t mangle -nL openclash_upnp |grep "$upnp_ip" |grep "$upnp_dp" |grep "$upnp_type")" ]; then
+                           iptables -t mangle -A openclash_upnp -p "$upnp_type" -s "$upnp_ip" --sport "$upnp_dp" -j RETURN 2>/dev/null
+                        fi
                      fi
                   fi
                fi
-            fi
-         done >/dev/null 2>&1
+            done >/dev/null 2>&1
+         fi
       fi
+      let UPNP_INT++
+   else
+      let UPNP_INT++
    fi
 
 ## Skip Proxies Address

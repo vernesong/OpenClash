@@ -355,12 +355,124 @@
 </div>
 
 <script type="text/javascript">
+var SubscriptionUrlSetter = {
+    filename: '',
+    onSuccess: '',
+
+    show: function(filename, onSuccess) {
+        this.filename = filename;
+        this.onSuccess = onSuccess || '';
+        var overlay = document.getElementById('subscription-url-overlay');
+        var textarea = document.getElementById('subscription-url-textarea');
+        if (overlay && textarea) {
+            textarea.value = '';
+            overlay.style.display = 'flex';
+            textarea.focus();
+            this.bindEvents();
+            this.loadUrls();
+        }
+    },
+
+    hide: function() {
+        var overlay = document.getElementById('subscription-url-overlay');
+        if (overlay) {
+            overlay.style.display = 'none';
+        }
+        this.unbindEvents();
+    },
+
+    bindEvents: function() {
+        var textarea = document.getElementById('subscription-url-textarea');
+        if (textarea) {
+            textarea.addEventListener('keydown', this.handleKeyDown.bind(this));
+        }
+    },
+
+    unbindEvents: function() {
+        var textarea = document.getElementById('subscription-url-textarea');
+        if (textarea) {
+            textarea.removeEventListener('keydown', this.handleKeyDown.bind(this));
+        }
+    },
+
+    handleKeyDown: function(event) {
+        if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+            this.submit();
+        } else if (event.key === 'Escape') {
+            this.hide();
+        }
+    },
+
+    submit: function() {
+        var textarea = document.getElementById('subscription-url-textarea');
+        if (!textarea) return;
+
+        var urls = textarea.value.trim();
+        var urlList = urls.split('\n').map(function(url) {
+            return url.trim();
+        }).filter(function(url) {
+            return url !== '';
+        });
+        var newUrl = urlList.join('\n');
+
+        this.hide();
+
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "set_subinfo_url")%>', {
+            filename: this.filename,
+            url: newUrl
+        }, function(x, status) {
+            if (x && x.status == 200 && (status.info === "Success" || status.info === "Delete success")) {
+                if (SubscriptionUrlSetter.onSuccess) setTimeout(SubscriptionUrlSetter.onSuccess, 0);
+            } else {
+                alert('<%:Specify subscribe infos sources url failed:%>\n' + ((status && status.info) || (x && ('HTTP ' + x.status)) || '<%:Unknown error%>'));
+            }
+        });
+    },
+
+    handleSubURL: function(urlresult) {
+        var textarea = document.getElementById('subscription-url-textarea');
+        if (!textarea) return;
+
+        var urls = '';
+        if (urlresult.type && urlresult.type === "multiple") {
+            for (var data in urlresult.providers) {
+                urls += urlresult.providers[data].url + '#name=' + urlresult.providers[data].name + '\n';
+            }
+        }
+        if (urlresult.type && urlresult.type === "single") {
+            urls = urlresult.url;
+        }
+        textarea.value = urls;
+    },
+
+    loadUrls: function() {
+        var self = this;
+        var existingData = localStorage.getItem('sub_info_' + this.filename);
+        if (existingData) {
+            existingData = JSON.parse(existingData);
+            if (existingData.url_result) {
+                this.handleSubURL(existingData.url_result);
+                return;
+            }
+        }
+
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_subscribe_info_data")%>', {
+            filename: this.filename
+        }, function(x, status) {
+            if (x && x.status == 200 && status) {
+                self.handleSubURL(status);
+            }
+        });
+    }
+};
+
 var ConfigUploader = {
     overlay: null,
     model: null,
     selectedFile: null,
     isProcessing: false,
     currentMode: 'file',
+    onSuccess: '',
     _linkRe: /^(?:https?:\/\/\S+|[a-zA-Z]+:\/\/\S+|[^,\s]+,https?:\/\/\S+|[^%\s]+%2Chttps?%3A%2F%2F\S+)$/i,
 
     init: function() {
@@ -604,13 +716,15 @@ var ConfigUploader = {
         });
     },
 
-    show: function() {
+    show: function(onSuccess) {
+        this.onSuccess = onSuccess || '';
         this.overlay.classList.add('show');
         document.getElementById('config-upload-title').textContent = '<%:Add Config%>';
         this.reset();
     },
 
-    showEditSubscribe: function(subscribeData, filename) {
+    showEditSubscribe: function(subscribeData, filename, onSuccess) {
+        this.onSuccess = onSuccess || '';
         this.overlay.classList.add('show');
         this.reset();
         this.editFilename = filename;
@@ -1052,9 +1166,7 @@ var ConfigUploader = {
             statusText.textContent = '<%:Upload successful%>';
             setTimeout(function() {
                 self.hide();
-                if (typeof ConfigFileManager !== 'undefined' && ConfigFileManager.refreshConfigList) {
-                    ConfigFileManager.refreshConfigList();
-                }
+                if (self.onSuccess) setTimeout(self.onSuccess, 0);
             }, 2000);
             return;
         }
@@ -1099,9 +1211,7 @@ var ConfigUploader = {
 
                     setTimeout(function() {
                         self.hide();
-                        if (typeof ConfigFileManager !== 'undefined' && ConfigFileManager.refreshConfigList) {
-                            ConfigFileManager.refreshConfigList();
-                        }
+                        if (self.onSuccess) setTimeout(self.onSuccess, 0);
                     }, 2000);
                 } else {
                     throw new Error(data.message || '<%:Upload failed%>');
@@ -1281,9 +1391,7 @@ var ConfigUploader = {
 
                                 setTimeout(function() {
                                     self.hide();
-                                    if (typeof ConfigFileManager !== 'undefined' && ConfigFileManager.refreshConfigList) {
-                                        ConfigFileManager.refreshConfigList();
-                                    }
+                                    if (self.onSuccess) setTimeout(self.onSuccess, 0);
                                 }, 2000);
                             } else {
                                 self.handleError(this.isEditMode ? '<%:Failed to update subscription config%>' : '<%:Failed to download subscription config%>');

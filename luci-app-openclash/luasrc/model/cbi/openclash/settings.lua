@@ -78,7 +78,7 @@ s:tab("chnr_update", translate("Chnroute Update"))
 s:tab("auto_restart", translate("Auto Restart"))
 s:tab("version_update", translate("Version Update"))
 s:tab("developer", translate("Developer Settings"))
-s:tab("debug", translate("Debug Logs"))
+s:tab("debug", translate("Core Tests"))
 s:tab("oixcloud", translate("oixCloud"))
 
 o = s:taboption("op_mode", ListValue, "en_mode", font_red..bold_on..translate("Select Mode")..bold_off..font_off)
