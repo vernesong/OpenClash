@@ -3563,6 +3563,49 @@ get_config()
    uci -q commit openclash
 }
 
+normalize_oix_runtime_urltest_addresses()
+{
+   [ "$core_type" = "Oix" ] || return 0
+   [ -f "$TMP_CONFIG_FILE" ] || return 0
+
+   ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+      begin
+         Value = YAML.load_file('$TMP_CONFIG_FILE')
+         oix_safe_urltest_address = 'https://cp.cloudflare.com/generate_204'
+         oix_unstable_urltest_addresses = [
+            'http://captive.apple.com/generate_204',
+            'http://captive.apple.com/',
+            'http://www.gstatic.com/generate_204',
+            'http://cp.cloudflare.com/generate_204',
+            'http://cp.cloudflare.com/'
+         ]
+         normalize_oix_urltest_address = lambda { |url|
+            oix_unstable_urltest_addresses.include?(url.to_s) ? oix_safe_urltest_address : url
+         }
+
+         if Value.key?('proxy-providers')
+            Value['proxy-providers'].each do |name, provider|
+               if provider['health-check'] and provider['health-check']['enable']
+                  provider['health-check']['url'] = normalize_oix_urltest_address.call(provider['health-check']['url'])
+               end
+            end
+         end
+
+         if Value.key?('proxy-groups') and Value['proxy-groups'].is_a?(Array)
+            Value['proxy-groups'].each do |group|
+               if ['url-test', 'fallback', 'load-balance', 'smart'].include?(group['type'])
+                  group['url'] = normalize_oix_urltest_address.call(group['url'])
+               end
+            end
+         end
+
+         File.open('$TMP_CONFIG_FILE', 'w') { |f| YAML.dump(Value, f) }
+      rescue Exception => e
+         YAML.LOG_ERROR('Normalize OIX URL-Test URL Failed,【%s】' % [e.message])
+      end
+      " >> $LOG_FILE 2>&1
+}
+
 start_service()
 {
    enable=$(uci_get_config "enable")
@@ -3637,6 +3680,8 @@ start_service()
                done
             fi
          fi
+
+         normalize_oix_runtime_urltest_addresses
 
          #provider path
          ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
