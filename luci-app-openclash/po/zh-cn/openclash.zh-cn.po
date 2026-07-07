@@ -95,6 +95,9 @@ msgstr "未设置"
 msgid "Server Logs"
 msgstr "运行日志"
 
+msgid "Core Tests"
+msgstr "内核测试"
+
 msgid "Debug Logs"
 msgstr "调试日志"
 
@@ -103,9 +106,6 @@ msgstr "生成日志"
 
 msgid "Generated Logs"
 msgstr "日志生成结果"
-
-msgid "Click to Generate"
-msgstr "点击生成"
 
 msgid "Enable OpenClash"
 msgstr "启动 OpenClash"
@@ -1463,6 +1463,9 @@ msgstr "不支持的协议"
 
 msgid "Copy"
 msgstr "复制"
+
+msgid "Copy Debug"
+msgstr "复制调试日志"
 
 msgid "Export"
 msgstr "导出配置信息"
@@ -2847,11 +2850,11 @@ msgstr "如果下载失败，您可以尝试在覆写设置 - 常规设置 - Git
 msgid "Used for Downloading Subscriptions, Defaults to"
 msgstr "用于下载订阅时指定 UA，默认为"
 
-msgid "Set Proxies Address Skip Failed,"
-msgstr "绕过代理服务器地址设置失败，"
+msgid "Set Proxies Address Skip: Bypass"
+msgstr "绕过代理服务器地址设置：跳过"
 
-msgid "Age decrypt failed,"
-msgstr "绕过代理服务器地址 Age 解密失败，"
+msgid "Set Proxies Address Skip: Failed"
+msgstr "绕过代理服务器地址设置：失败"
 
 msgid "Failed to parse config file with Lua helper"
 msgstr "绕过代理服务器地址解析失败"
@@ -3293,6 +3296,9 @@ msgstr "文件名包含无效字符"
 
 msgid "Uploading..."
 msgstr "上传中..."
+
+msgid "Generating..."
+msgstr "生成中..."
 
 msgid "Upload completed"
 msgstr "上传完成"
@@ -3821,6 +3827,21 @@ msgstr "用户"
 
 msgid "Serial Number"
 msgstr "序号"
+
+msgid "Enter YAML configuration..."
+msgstr "请输入 YAML 配置..."
+
+msgid "Enter shell script..."
+msgstr "请输入 Shell 脚本..."
+
+msgid "Enter configuration..."
+msgstr "请输入配置..."
+
+msgid "Edit original config..."
+msgstr "编辑原始配置..."
+
+msgid "Runtime config (read only)"
+msgstr "运行配置（只读）"
 
 msgid "Set Custom Overwrite Script Failed,"
 msgstr "自定义覆写命令执行失败，"

@@ -148,6 +148,8 @@ module YAML
 	end
 
 	def self.decode64(input)
+		first_line = input.each_line.find { |l| !l.strip.empty? } || ""
+		return input if !first_line.strip.match?(/\A[A-Za-z0-9+\/=]+\z/)
 		out, status = popen_stream(["base64", "-d"], input)
 		status.success? ? out : input
 	rescue Errno::ENOENT

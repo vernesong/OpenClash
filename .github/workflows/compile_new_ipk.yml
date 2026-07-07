@@ -144,14 +144,21 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Minify CSS (lightningcss)
+      - name: Build CodeMirror 6 Bundle & Minify CSS
         run: |
-          CSS_PATH="tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/root/www/luci-static/resources/openclash/css/oc.css"
+          cd tmp/${{ matrix.target.sdk_dir }}/package/luci-app-openclash/tools/codemirror
+          # Install dependencies
+          npm install
+          # Build JS
+          npx esbuild entry.js --bundle --format=iife --global-name=CM6 --minify --target=es2019 --outfile=../../root/www/luci-static/resources/openclash/js/cm6.min.js --legal-comments=none --loader:.css=text
+          # Minify CSS
+          CSS_PATH="../../root/www/luci-static/resources/openclash/css/oc.css"
           SIZE_BEFORE=$(wc -c < "$CSS_PATH")
-          npx --yes --package lightningcss-cli lightningcss --minify --targets 'iOS >= 12, safari >= 12, android >= 4.4' "$CSS_PATH" -o "$CSS_PATH.tmp"
+          npx lightningcss --minify --targets 'iOS >= 12, safari >= 12, android >= 4.4' "$CSS_PATH" -o "$CSS_PATH.tmp"
           mv "$CSS_PATH.tmp" "$CSS_PATH"
           SIZE_AFTER=$(wc -c < "$CSS_PATH")
           echo "CSS minified: ${SIZE_BEFORE} -> ${SIZE_AFTER} bytes ($(( 100 - SIZE_AFTER * 100 / SIZE_BEFORE ))% reduction)"
+          rm -rf node_modules
 
       - name: Compile po2lmo
         run: |

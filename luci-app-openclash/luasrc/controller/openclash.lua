@@ -50,6 +50,7 @@ function index()
 	entry({"admin", "services", "openclash", "diag_connection"}, call("action_diag_connection"))
 	entry({"admin", "services", "openclash", "diag_dns"}, call("action_diag_dns"))
 	entry({"admin", "services", "openclash", "gen_debug_logs"}, call("action_gen_debug_logs"))
+	entry({"admin", "services", "openclash", "get_debug_logs"}, call("action_get_debug_logs"))
 	entry({"admin", "services", "openclash", "log_level"}, call("action_log_level"))
 	entry({"admin", "services", "openclash", "switch_log"}, call("action_switch_log"))
 	entry({"admin", "services", "openclash", "rule_mode"}, call("action_rule_mode"))
@@ -491,17 +492,18 @@ function set_subinfo_url()
 	if not filename then
 		info = "Oops: The config file name seems to be incorrect"
 	end
-	if url ~= "" and not string.find(url, "http") then
+	if url and url ~= "" and not string.find(url, "http") then
 		info = "Oops: The url link format seems to be incorrect"
 	end
 	if not info then
 		uci:foreach("openclash", "subscribe_info",
 			function(s)
 				if s.name == filename then
-					if url == "" then
+					if not url or url == "" then
 						uci:delete("openclash", s[".name"])
 						uci:commit("openclash")
 						info = "Delete success"
+						return false
 					else
 						local url_list = {}
 						for line in string.gmatch(url, "[^\n]+") do
@@ -513,12 +515,13 @@ function set_subinfo_url()
 						uci:set_list("openclash", s[".name"], "url", url_list)
 						uci:commit("openclash")
 						info = "Success"
+						return false
 					end
 				end
 			end
 		)
 		if not info then
-			if url == "" then
+			if not url or url == "" then
 				info = "Delete success"
 			else
 				local url_list = {}
@@ -683,6 +686,7 @@ function get_sub_url(filename)
 						table.insert(providers, {name = name, url = url})
 					end
 				end
+				return false
 			end
 		end
 	)
@@ -781,6 +785,7 @@ function sub_info_get()
 		function(s)
 			if s.name == filename and s.sub_ua then
 				sub_ua = s.sub_ua
+				return false
 			end
 		end
 	)
@@ -1418,7 +1423,12 @@ function action_refresh_log()
 end
 
 function action_del_log()
-	luci.sys.exec(": > /tmp/openclash.log")
+	local log_type = luci.http.formvalue("type")
+	if log_type == "debug" then
+		luci.sys.exec(": > /tmp/openclash_debug.log")
+	else
+		luci.sys.exec(": > /tmp/openclash.log")
+	end
 	return
 end
 
@@ -1513,6 +1523,15 @@ function action_gen_debug_logs()
 	end
 	file:close()
 	luci.http.write(info)
+end
+
+function action_get_debug_logs()
+	local logfile = "/tmp/openclash_debug.log"
+	if not fs.access(logfile) then
+		return
+	end
+	luci.http.prepare_content("text/plain; charset=utf-8")
+	luci.http.write(fs.readfile(logfile) or "")
 end
 
 function action_backup()
@@ -1649,49 +1668,7 @@ function rename_file()
 				fs.rename(old_run_file_path, new_run_file_path)
 			end
 			
-			uci:foreach("openclash", "config_subscribe",
-			function(s)
-				if s.name == fs.filename(old_file_name) and fs.filename(new_file_name) ~= new_file_name then
-					uci:set("openclash", s[".name"], "name", fs.filename(new_file_name))
-				end
-			end)
-
-			uci:foreach("openclash", "subscribe_info",
-			function(s)
-				if s.name == fs.filename(old_file_name) and fs.filename(new_file_name) ~= new_file_name then
-					uci:set("openclash", s[".name"], "name", fs.filename(new_file_name))
-				end
-			end)
-			
-			uci:foreach("openclash", "groups",
-			function(s)
-				if s.config == old_file_name and fs.filename(new_file_name) ~= new_file_name then
-					uci:set("openclash", s[".name"], "config", new_file_name)
-				end
-			end)
-			
-			uci:foreach("openclash", "proxy-provider",
-			function(s)
-				if s.config == old_file_name and fs.filename(new_file_name) ~= new_file_name then
-					uci:set("openclash", s[".name"], "config", new_file_name)
-				end
-			end)
-			
-			uci:foreach("openclash", "servers",
-			function(s)
-				if s.config == old_file_name and fs.filename(new_file_name) ~= new_file_name then
-					uci:set("openclash", s[".name"], "config", new_file_name)
-				end
-			end)
-
-			uci:foreach("openclash", "config_age_secret",
-			function(s)
-				if s.name == fs.filename(old_file_name) and fs.filename(new_file_name) ~= new_file_name then
-					uci:set("openclash", s[".name"], "name", fs.filename(new_file_name))
-				end
-			end)
-			
-			uci:commit("openclash")
+			fs.config_refs(old_file_name, new_file_name)
 		end
 		luci.http.status(200, "Rename File Successful")
 	else
@@ -3669,6 +3646,7 @@ function action_upload_overwrite()
 				else
 					uci:set("openclash", s[".name"], "order", tonumber(order))
 				end
+				return false
 			end
 		end)
 		if not found then
@@ -3844,6 +3822,7 @@ function action_overwrite_subscribe_info()
 						uci:set("openclash", s[".name"], "enable", tostring(enable))
 					end
 					found = true
+					return false
 				end
 			end)
 			local overwrite_dir = "/etc/openclash/overwrite/"
@@ -3889,6 +3868,7 @@ function action_overwrite_subscribe_info()
 						uci:set("openclash", s[".name"], "enable", tostring(enable))
 					end
 					found = true
+					return false
 				end
 			end)
 		end
@@ -4017,6 +3997,7 @@ function delete_overwrite_file()
 	uci:foreach("openclash", "config_overwrite", function(s)
 		if s.name == filename then
 			uci:delete("openclash", s[".name"])
+			return false
 		end
 	end)
 	uci:commit("openclash")
@@ -4046,6 +4027,7 @@ function action_get_subscribe_data()
 	uci:foreach("openclash", "config_subscribe", function(s)
 		if s.name == filename then
 			data = s
+			return false
 		end
 	end)
 
@@ -4217,10 +4199,12 @@ function oix_login()
 						function(s)
 							if s.name == "oixCloud - smart" and s.address == sub_info[v] then
 								sub_match = true
+								return false
 							end
 							if s.name == "oixCloud - smart" and s.address ~= sub_info[v] then
 								sub_convert = true
 								sid = s['.name']
+								return false
 							end
 						end)
 						if sub_match then break end

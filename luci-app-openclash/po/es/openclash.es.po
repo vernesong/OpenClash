@@ -95,11 +95,11 @@ msgstr "No configurado"
 msgid "Server Logs"
 msgstr "Registros del servidor"
 
+msgid "Core Tests"
+msgstr "Prueba del núcleo"
+
 msgid "Debug Logs"
 msgstr "Registros de depuración"
-
-msgid "Generate Logs"
-msgstr "Generar registros"
 
 msgid "Generated Logs"
 msgstr "Registros generados"
@@ -1463,6 +1463,9 @@ msgstr "Tipo de protocolo no soportado"
 
 msgid "Copy"
 msgstr "Copiar"
+
+msgid "Copy Debug"
+msgstr "Copiar Depuración"
 
 msgid "Export"
 msgstr "Exportar configuración"
@@ -2841,11 +2844,11 @@ msgstr "Si la descarga falla, prueba a configurar un CDN en Sobrescritura → Ge
 msgid "Used for Downloading Subscriptions, Defaults to"
 msgstr "User-Agent usado para descargar suscripciones, por defecto:"
 
-msgid "Set Proxies Address Skip Failed,"
-msgstr "Fallo al configurar la omisión de direcciones de proxy,"
+msgid "Set Proxies Address Skip: Bypass"
+msgstr "Configurar omisión de direcciones proxy: Omitido"
 
-msgid "Age decrypt failed,"
-msgstr "Error al descifrar con Age para，"
+msgid "Set Proxies Address Skip: Failed"
+msgstr "Configurar omisión de direcciones proxy: Fallido"
 
 msgid "Failed to parse config file with Lua helper"
 msgstr "Error al analizar el archivo de configuración con el auxiliar Lua"
@@ -3278,6 +3281,9 @@ msgstr "El nombre del archivo contiene caracteres no válidos"
 
 msgid "Uploading..."
 msgstr "Subiendo..."
+
+msgid "Generating..."
+msgstr "Generando..."
 
 msgid "Upload completed"
 msgstr "Subida completada"
@@ -3821,6 +3827,21 @@ msgstr "Fallo al ejecutar el script de sobrescritura personalizado,"
 
 msgid "Load YAML Override Block"
 msgstr "Cargar bloque de sobrescritura YAML"
+
+msgid "Enter YAML configuration..."
+msgstr "Ingrese configuración YAML..."
+
+msgid "Enter shell script..."
+msgstr "Ingrese script de shell..."
+
+msgid "Enter configuration..."
+msgstr "Ingrese configuración..."
+
+msgid "Edit original config..."
+msgstr "Editar configuración original..."
+
+msgid "Runtime config (read only)"
+msgstr "Configuración en ejecución (solo lectura)"
 
 msgid "Invalid YAML Override format, skipped..."
 msgstr "Formato de sobrescritura YAML no válido, omitido..."

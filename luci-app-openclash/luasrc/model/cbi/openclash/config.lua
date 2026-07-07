@@ -15,17 +15,6 @@ bold_off = [[</strong>]]
 align_mid = [[<p align="center">]]
 align_mid_off = [[</p>]]
 
-function IsYamlFile(e)
-	e=e or""
-	local e=string.lower(string.sub(e,-5,-1))
-	return e == ".yaml"
-end
-function IsYmlFile(e)
-	e=e or""
-	local e=string.lower(string.sub(e,-4,-1))
-	return e == ".yml"
-end
-
 function default_config_set(f)
 	local cf = fs.uci_get_config("config", "config_path")
 	if cf == "/etc/openclash/config/"..f or not cf or cf == "" or not fs.isfile(cf) then
@@ -95,14 +84,14 @@ HTTP.setfilehandler(
 			fd = nil
 			if fp == "config" then
 				CHIF = "1"
-				if IsYamlFile(meta.file) then
-					default_config_set(meta.file)
-				end
-				if IsYmlFile(meta.file) then
-					local ymlname=string.lower(string.sub(meta.file,0,-5))
-					local c=fs.rename(dir .. meta.file,"/etc/openclash/config/".. ymlname .. ".yaml")
-					local yamlname=ymlname .. ".yaml"
-					default_config_set(yamlname)
+				if fs.IsYamlExt(meta.file) then
+					if string.lower(meta.file):sub(-4) ~= ".yml" then
+						default_config_set(meta.file)
+					else
+						local ymlname=string.lower(string.sub(meta.file,0,-5))
+						local c=fs.rename(dir .. meta.file,"/etc/openclash/config/".. ymlname .. ".yaml")
+						default_config_set(ymlname .. ".yaml")
+					end
 				end
 				um.value = translate("File saved to") .. ' "/etc/openclash/config/"'
 			elseif fp == "proxy-provider" then
@@ -193,7 +182,7 @@ sb.template="openclash/sub_info_show"
 btnis=tb:option(Button,"switch",translate("SwiTch"))
 btnis.render=function(o,t,a)
 	if not e[t] then return false end
-	if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+	if fs.IsYamlExt(e[t].name) then
 		a.display=""
 	else
 		a.display="none"
@@ -233,7 +222,7 @@ actions.render = function(self, t, a)
 	table.insert(self.vallist, translate("Servers Manage"))
 
 	-- Copy
-	if IsYamlFile(e[t].name) or IsYmlFile(e[t].name) then
+	if fs.IsYamlExt(e[t].name) then
 		table.insert(self.keylist, "copy")
 		table.insert(self.vallist, translate("Copy Config"))
 	end
@@ -315,9 +304,13 @@ btnapply.write = function(self, t)
 		fd:close()
 		HTTP.close()
 	elseif action == "remove" then
+		local file_name = fs.basename(e[t].name)
+
+		fs.config_refs(file_name)
+
 		fs.unlink("/etc/openclash/history/"..fs.filename(e[t].name)..".db")
-		fs.unlink("/etc/openclash/"..fs.basename(e[t].name))
-		local a=fs.unlink("/etc/openclash/config/"..fs.basename(e[t].name))
+		fs.unlink("/etc/openclash/"..file_name)
+		local a=fs.unlink("/etc/openclash/config/"..file_name)
 		default_config_set(fs.basename(e[t].name))
 		if a then table.remove(e,t) end
 		HTTP.redirect(DISP.build_url("admin", "services", "openclash","config"))
@@ -429,5 +422,6 @@ o.write = function()
 end
 
 m:append(Template("openclash/config_editor"))
+m:append(Template("openclash/config_upload"))
 
 return ful , form , p , m
