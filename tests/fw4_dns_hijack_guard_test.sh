@@ -13,6 +13,13 @@ if [ -z "$fn" ]; then
 fi
 eval "$fn"
 
+redirect_fn=$(awk '/^fw4_has_dns_redirect_jump\(\)/,/^}/' "$INIT_SCRIPT")
+if [ -z "$redirect_fn" ]; then
+  echo "fw4_has_dns_redirect_jump not found" >&2
+  exit 1
+fi
+eval "$redirect_fn"
+
 cat >"$WORKDIR/nft" <<'STUB'
 #!/usr/bin/env sh
 if [ "$*" = "list chain inet fw4 dstnat" ]; then
@@ -51,6 +58,18 @@ assert_status 0 fw4_has_dns_hijack_rule dstnat ipv4
 assert_status 1 fw4_has_dns_hijack_rule dstnat ipv6
 assert_status 0 fw4_has_dns_hijack_rule nat_output ipv4
 assert_status 1 fw4_has_dns_hijack_rule nat_output ipv6
+assert_status 1 fw4_has_dns_redirect_jump ipv4
+assert_status 1 fw4_has_dns_redirect_jump ipv6
+
+cat >"$TEST_NFT_DSTNAT" <<'EOF'
+meta l4proto { tcp, udp } th dport 53 counter jump openclash_dns_redirect
+meta nfproto ipv6 ip6 nexthdr { tcp, udp } th dport 53 counter jump openclash_dns_redirect
+EOF
+cat >"$TEST_NFT_NAT_OUTPUT" <<'EOF'
+EOF
+
+assert_status 0 fw4_has_dns_redirect_jump ipv4
+assert_status 0 fw4_has_dns_redirect_jump ipv6
 
 cat >"$TEST_NFT_DSTNAT" <<'EOF'
 meta nfproto ipv6 ip6 nexthdr { tcp, udp } th dport 53 counter redirect to :53 comment "OpenClash DNS Hijack"
@@ -63,5 +82,116 @@ assert_status 1 fw4_has_dns_hijack_rule dstnat ipv4
 assert_status 0 fw4_has_dns_hijack_rule dstnat ipv6
 assert_status 1 fw4_has_dns_hijack_rule nat_output ipv4
 assert_status 0 fw4_has_dns_hijack_rule nat_output ipv6
+
+assert_nat_output_insert_guarded() {
+  family="$1"
+  insert_text="$2"
+
+  awk -v family="$family" -v insert_text="$insert_text" '
+    $0 ~ "fw4_has_dns_hijack_rule nat_output " family {
+      guard_window = 5
+    }
+    $0 ~ "nft insert rule inet fw4 nat_output" && index($0, insert_text) && $0 ~ "OpenClash DNS Hijack" {
+      seen++
+      if (guard_window <= 0) {
+        print "nat_output DNS insert is not guarded for " family ": " $0 > "/dev/stderr"
+        bad = 1
+      }
+    }
+    {
+      if (guard_window > 0) {
+        guard_window--
+      }
+    }
+    END {
+      if (seen != 2) {
+        print "expected two guarded nat_output DNS inserts for " family ", got " seen > "/dev/stderr"
+        exit 1
+      }
+      if (bad) {
+        exit 1
+      }
+    }
+  ' "$INIT_SCRIPT"
+}
+
+if ! grep -F "flush chain inet fw4 openclash_dns_redirect" "$INIT_SCRIPT" >/dev/null 2>&1; then
+  echo "openclash_dns_redirect chain should be flushed before rebuilding redirect rules" >&2
+  exit 1
+fi
+
+assert_redirect_jump_guarded() {
+  family="$1"
+  jump_text="$2"
+
+  awk -v family="$family" -v jump_text="$jump_text" '
+    $0 ~ "fw4_has_dns_redirect_jump " family {
+      guard_window = 4
+    }
+    index($0, jump_text) {
+      seen++
+      if (guard_window <= 0) {
+        print "redirect jump is not guarded for " family ": " $0 > "/dev/stderr"
+        bad = 1
+      }
+    }
+    {
+      if (guard_window > 0) {
+        guard_window--
+      }
+    }
+    END {
+      if (seen != 1) {
+        print "expected one guarded redirect jump for " family ", got " seen > "/dev/stderr"
+        exit 1
+      }
+      if (bad) {
+        exit 1
+      }
+    }
+  ' "$INIT_SCRIPT"
+}
+
+assert_ipv6_redirect_rebuild_not_guarded_by_direct_hijack() {
+  awk '
+    $0 ~ /\[ "\$enable_redirect_dns" -eq 2 \]/ {
+      in_redirect = 1
+      depth = 1
+      next
+    }
+    in_redirect {
+      if ($0 ~ /fw4_has_dns_hijack_rule dstnat ipv6/) {
+        print "IPv6 redirect-chain rebuild must not be guarded by direct dstnat hijack state" > "/dev/stderr"
+        bad = 1
+      }
+      if ($0 ~ /nft add rule inet fw4 openclash_dns_redirect meta nfproto \{ipv6\}/) {
+        seen_redirect_rule = 1
+      }
+      if ($0 ~ /fw4_has_dns_redirect_jump ipv6/) {
+        seen_jump_guard = 1
+      }
+      if ($0 ~ /^[[:space:]]*if /) {
+        depth++
+      }
+      if ($0 ~ /^[[:space:]]*fi$/) {
+        depth--
+        if (depth == 0) {
+          in_redirect = 0
+        }
+      }
+    }
+    END {
+      if (!seen_redirect_rule || !seen_jump_guard || bad) {
+        exit 1
+      }
+    }
+  ' "$INIT_SCRIPT"
+}
+
+assert_nat_output_insert_guarded ipv4 'ip daddr {127.0.0.1}'
+assert_nat_output_insert_guarded ipv6 'ip6 daddr {::/0}'
+assert_redirect_jump_guarded ipv4 'nft '\''insert rule inet fw4 dstnat position 0 meta l4proto {tcp,udp} th dport 53 counter jump openclash_dns_redirect'\'''
+assert_redirect_jump_guarded ipv6 'nft '\''insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 counter jump openclash_dns_redirect'\'''
+assert_ipv6_redirect_rebuild_not_guarded_by_direct_hijack
 
 echo "fw4_dns_hijack_guard_test.sh: PASS"
