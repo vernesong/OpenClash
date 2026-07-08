@@ -50,6 +50,21 @@ exit 0
 STUB
 chmod +x "$WORKDIR/bin/flock"
 
+cat >"$WORKDIR/bin/mv" <<'STUB'
+#!/usr/bin/env sh
+/bin/mv "$@"
+status=$?
+if [ "$status" -eq 0 ] && [ "${TEST_KILL_AFTER_OLD_MOVE:-0}" = "1" ]; then
+  case "${2:-}" in
+    *.openclash_dashboard_old.*)
+      kill -TERM "$PPID"
+      ;;
+  esac
+fi
+exit "$status"
+STUB
+chmod +x "$WORKDIR/bin/mv"
+
 cp "$SCRIPT_UNDER_TEST" "$WORKDIR/openclash_download_dashboard.sh"
 perl -0pi -e "s#/usr/share/openclash/#$WORKDIR/usr/share/openclash/#g; s#/lib/functions\\.sh#$WORKDIR/lib/functions.sh#g; s#/tmp/dash\\.zip#$WORKDIR/tmp/dash.zip#g; s#/tmp/dash/#$WORKDIR/tmp/dash/#g; s#/tmp/lock/#$WORKDIR/tmp/lock/#g" "$WORKDIR/openclash_download_dashboard.sh"
 chmod +x "$WORKDIR/openclash_download_dashboard.sh"
@@ -311,6 +326,35 @@ test_staging_dirs_are_under_target_parent() {
   fi
 }
 
+test_term_after_old_move_restores_existing_dashboard() {
+  local ui_dir="$WORKDIR/usr/share/openclash/ui/zashboard"
+  local good_zip="$WORKDIR/signal-zashboard.zip"
+  rm -rf "$WORKDIR/usr/share/openclash/ui"
+  mkdir -p "$ui_dir/assets"
+  printf '<script src="./assets/app.js"></script>\nold-good\n' >"$ui_dir/index.html"
+  printf 'old-js\n' >"$ui_dir/assets/app.js"
+  make_dashboard_zip "$good_zip" "zashboard-gh-pages-cdn-fonts" "yes"
+  TEST_LOG="$WORKDIR/signal.log"
+  : >"$TEST_LOG"
+
+  set +e
+  TEST_LOG="$TEST_LOG" TEST_DOWNLOAD_RESULT=0 TEST_ZIP="$good_zip" TEST_KILL_AFTER_OLD_MOVE=1 PATH="$WORKDIR/bin:$PATH" \
+    "$WORKDIR/openclash_download_dashboard.sh" Zashboard Official
+  local status=$?
+  set -e
+
+  if [ "$status" -ne 130 ]; then
+    echo "expected dashboard update interrupted after old move to exit 130, got $status" >&2
+    exit 1
+  fi
+  assert_file_exists "$ui_dir/index.html"
+  assert_file_contains "$ui_dir/index.html" "old-good"
+  if find "$WORKDIR/usr/share/openclash/ui" -maxdepth 1 -name '.openclash_dashboard_*' | grep -q .; then
+    echo "expected dashboard staging directories to be cleaned after signal" >&2
+    exit 1
+  fi
+}
+
 test_304_requires_existing_dashboard_entrypoint
 test_bad_zip_preserves_existing_dashboard
 test_good_zip_installs_dashboard
@@ -320,5 +364,6 @@ test_single_quoted_missing_asset_preserves_existing_dashboard
 test_one_line_missing_stylesheet_preserves_existing_dashboard
 test_index_without_local_script_preserves_existing_dashboard
 test_staging_dirs_are_under_target_parent
+test_term_after_old_move_restores_existing_dashboard
 
 echo "openclash_download_dashboard tests passed"
