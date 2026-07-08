@@ -323,10 +323,23 @@ EOF
 
 } >/dev/null 2>&1
 
+set_lifecycle_lock()
+{
+   mkdir -p /tmp/lock 2>/dev/null
+   exec 867>"/tmp/lock/openclash_lifecycle.lock" 2>/dev/null
+   flock -x 867 2>/dev/null
+}
+
+del_lifecycle_lock()
+{
+   flock -u 867 2>/dev/null
+}
+
 start_fail()
 {
    uci -q set openclash.config.enable=0
    uci -q commit openclash
+   del_lifecycle_lock
    stop
    exit 0
 }
@@ -3595,8 +3608,11 @@ start_service()
    enable=$(uci_get_config "enable")
    [ "$enable" != "1" ] && LOG_WARN "OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && exit 0
 
+   set_lifecycle_lock
+
    if procd_running "openclash" >/dev/null; then
       LOG_TIP "OpenClash Already Running, Exit..."
+      del_lifecycle_lock
       exit 0
    fi
 
@@ -3719,11 +3735,14 @@ start_service()
       rm -rf /tmp/yaml_*
    }
 
+   del_lifecycle_lock
    echo "OpenClash Already Start!"
 }
 
 stop_service()
 {
+   set_lifecycle_lock
+
    get_config
 
    LOG_TIP "OpenClash Stoping..."
@@ -3778,6 +3797,7 @@ stop_service()
       rm -rf /tmp/yaml_*
    } >/dev/null 2>&1
 
+   del_lifecycle_lock
    echo "OpenClash Already Stop!"
 }
 
