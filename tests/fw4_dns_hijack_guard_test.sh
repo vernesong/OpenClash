@@ -13,6 +13,13 @@ if [ -z "$fn" ]; then
 fi
 eval "$fn"
 
+redirect_fn=$(awk '/^fw4_has_dns_redirect_jump\(\)/,/^}/' "$INIT_SCRIPT")
+if [ -z "$redirect_fn" ]; then
+  echo "fw4_has_dns_redirect_jump not found" >&2
+  exit 1
+fi
+eval "$redirect_fn"
+
 cat >"$WORKDIR/nft" <<'STUB'
 #!/usr/bin/env sh
 if [ "$*" = "list chain inet fw4 dstnat" ]; then
@@ -51,6 +58,18 @@ assert_status 0 fw4_has_dns_hijack_rule dstnat ipv4
 assert_status 1 fw4_has_dns_hijack_rule dstnat ipv6
 assert_status 0 fw4_has_dns_hijack_rule nat_output ipv4
 assert_status 1 fw4_has_dns_hijack_rule nat_output ipv6
+assert_status 1 fw4_has_dns_redirect_jump ipv4
+assert_status 1 fw4_has_dns_redirect_jump ipv6
+
+cat >"$TEST_NFT_DSTNAT" <<'EOF'
+meta l4proto { tcp, udp } th dport 53 counter jump openclash_dns_redirect
+meta nfproto ipv6 ip6 nexthdr { tcp, udp } th dport 53 counter jump openclash_dns_redirect
+EOF
+cat >"$TEST_NFT_NAT_OUTPUT" <<'EOF'
+EOF
+
+assert_status 0 fw4_has_dns_redirect_jump ipv4
+assert_status 0 fw4_has_dns_redirect_jump ipv6
 
 cat >"$TEST_NFT_DSTNAT" <<'EOF'
 meta nfproto ipv6 ip6 nexthdr { tcp, udp } th dport 53 counter redirect to :53 comment "OpenClash DNS Hijack"
@@ -63,5 +82,45 @@ assert_status 1 fw4_has_dns_hijack_rule dstnat ipv4
 assert_status 0 fw4_has_dns_hijack_rule dstnat ipv6
 assert_status 1 fw4_has_dns_hijack_rule nat_output ipv4
 assert_status 0 fw4_has_dns_hijack_rule nat_output ipv6
+
+if ! grep -F "flush chain inet fw4 openclash_dns_redirect" "$INIT_SCRIPT" >/dev/null 2>&1; then
+  echo "openclash_dns_redirect chain should be flushed before rebuilding redirect rules" >&2
+  exit 1
+fi
+
+assert_redirect_jump_guarded() {
+  family="$1"
+  jump_text="$2"
+
+  awk -v family="$family" -v jump_text="$jump_text" '
+    $0 ~ "fw4_has_dns_redirect_jump " family {
+      guard_window = 4
+    }
+    index($0, jump_text) {
+      seen++
+      if (guard_window <= 0) {
+        print "redirect jump is not guarded for " family ": " $0 > "/dev/stderr"
+        bad = 1
+      }
+    }
+    {
+      if (guard_window > 0) {
+        guard_window--
+      }
+    }
+    END {
+      if (seen != 1) {
+        print "expected one guarded redirect jump for " family ", got " seen > "/dev/stderr"
+        exit 1
+      }
+      if (bad) {
+        exit 1
+      }
+    }
+  ' "$INIT_SCRIPT"
+}
+
+assert_redirect_jump_guarded ipv4 'nft '\''insert rule inet fw4 dstnat position 0 meta l4proto {tcp,udp} th dport 53 counter jump openclash_dns_redirect'\'''
+assert_redirect_jump_guarded ipv6 'nft '\''insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 counter jump openclash_dns_redirect'\'''
 
 echo "fw4_dns_hijack_guard_test.sh: PASS"
