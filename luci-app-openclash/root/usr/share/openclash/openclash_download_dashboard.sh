@@ -56,6 +56,13 @@ EOF
       [ -d "$OLD_FILE_DIR" ] && mv "$OLD_FILE_DIR" "$TARGET_FILE_DIR" >/dev/null 2>&1
    }
 
+   handle_dashboard_signal() {
+      [ "${DASHBOARD_REPLACE_STARTED:-0}" = "1" ] && restore_old_dashboard
+      cleanup_dashboard_tmp
+      del_lock
+      exit 130
+   }
+
    log_unzip_error() {
       LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Unzip Error!" && SLOG_CLEAN
       cleanup_dashboard_tmp
@@ -101,6 +108,8 @@ EOF
    TARGET_PARENT_DIR="$(dirname "$TARGET_FILE_DIR")"
    NEW_FILE_DIR="${TARGET_PARENT_DIR}/.openclash_dashboard_new.$$"
    OLD_FILE_DIR="${TARGET_PARENT_DIR}/.openclash_dashboard_old.$$"
+   DASHBOARD_REPLACE_STARTED=0
+   trap 'handle_dashboard_signal' HUP INT TERM
 
    DOWNLOAD_FILE_CURL "$DOWNLOAD_PATH" "$DASH_FILE_DIR" "$UNPACK_FILE_DIR"
    DOWNLOAD_RESULT=$?
@@ -117,9 +126,11 @@ EOF
 
             mkdir -p "$TARGET_PARENT_DIR" >/dev/null 2>&1 || log_unzip_error
             if [ -d "$TARGET_FILE_DIR" ]; then
+               DASHBOARD_REPLACE_STARTED=1
                mv "$TARGET_FILE_DIR" "$OLD_FILE_DIR" >/dev/null 2>&1 || log_unzip_error
             fi
             if mv "$NEW_FILE_DIR" "$TARGET_FILE_DIR" >/dev/null 2>&1 && validate_dashboard_dir "$TARGET_FILE_DIR"; then
+               DASHBOARD_REPLACE_STARTED=0
                cleanup_dashboard_tmp
                LOG_OUT "Control Panel【$DASH_NAME - $DASH_TYPE】Download Successful!" && SLOG_CLEAN
                del_lock
