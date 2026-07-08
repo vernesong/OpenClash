@@ -29,22 +29,19 @@ module YAML
 			secret = kwargs.delete(:secret)
 		end
 
-		if secret && secret.to_s.strip != "" && yaml_content.include?("BEGIN AGE ENCRYPTED FILE")
-			begin
+		if yaml_content.include?("BEGIN AGE ENCRYPTED FILE")
+			if secret && secret.to_s.strip != ""
 				decrypted = decrypt_content_with_secret(secret.to_s, yaml_content)
 				if decrypted && !decrypted.empty? && !decrypted.include?("BEGIN AGE ENCRYPTED FILE")
 					processed = fix_short_id_quotes(decrypted)
 					return load(processed, *args, **kwargs)
 				else
-					LOG_WARN("【%s】Decrypted content empty or still encrypted" % [filename])
+					raise "Decrypted content empty or still encrypted: [#{filename}]"
 				end
-			rescue => e
-				LOG_WARN("Decrypt attempt failed:【%s】" % [e.message])
 			end
-		end
 
-		if (secret.nil? || secret.to_s.strip == "") && yaml_content.include?("BEGIN AGE ENCRYPTED FILE")
 			keys = find_age_keys_for_filename(filename)
+			last_error = nil
 			(keys[:secrets] || []).each do |sec|
 				begin
 					decrypted = decrypt_content_with_secret(sec, yaml_content)
@@ -53,13 +50,12 @@ module YAML
 						return load(processed, *args, **kwargs)
 					end
 				rescue => e
-					LOG_WARN("Decrypt attempt failed for a found secret:【%s】" % [e.message])
+					last_error = e.message
 				end
 			end
-		end
 
-		if yaml_content.include?("BEGIN AGE ENCRYPTED FILE")
-			raise "Encrypted file: decryption failed for %s" % [filename]
+			detail = last_error ? "#{last_error}" : ""
+			raise "Encrypted file: decryption failed for [#{filename}]: [#{detail}]"
 		end
 
 		processed_content = fix_short_id_quotes(yaml_content)
@@ -67,59 +63,57 @@ module YAML
 	end
 
 	def self.dump(obj, io = nil, **options)
-		begin
-			yaml_content = original_dump(obj, **options)
-			processed = fix_short_id_quotes(yaml_content)
-			public_key = nil
-			fname = nil
-			if options.key?(:public)
-				public_key = options.delete(:public)
+		yaml_content = original_dump(obj, **options)
+		processed = fix_short_id_quotes(yaml_content)
+		public_key = nil
+		fname = nil
+		if options.key?(:public)
+			public_key = options.delete(:public)
+		end
+
+		if (!public_key || public_key.to_s.strip == "")
+			if options.key?(:filename)
+				fname = options.delete(:filename)
+			elsif io && io.respond_to?(:path)
+				fname = io.path
+			elsif io && io.respond_to?(:to_path)
+				fname = io.to_path
 			end
 
-			if (!public_key || public_key.to_s.strip == "")
-				if options.key?(:filename)
-					fname = options.delete(:filename)
-				elsif io && io.respond_to?(:path)
-					fname = io.path
-				elsif io && io.respond_to?(:to_path)
-					fname = io.to_path
-				end
-
-				if fname && fname.to_s.strip != ""
+			if fname && fname.to_s.strip != ""
 				keys = find_age_keys_for_filename(fname)
 				public_key = keys[:publics].first if keys[:publics] && !keys[:publics].empty?
-				end
 			end
+		end
 
-			if public_key && public_key.to_s.strip != ""
-				begin
-					encrypted = encrypt_content_with_public(public_key.to_s, processed)
-					if encrypted && !encrypted.empty?
-						if io.nil?
-							return encrypted
-						elsif io.respond_to?(:write)
-							io.write(encrypted)
-							return io
-						else
-							return encrypted
-						end
+		if public_key && public_key.to_s.strip != ""
+			begin
+				encrypted = encrypt_content_with_public(public_key.to_s, processed)
+				if encrypted && !encrypted.empty?
+					if io.nil?
+						return encrypted
+					elsif io.respond_to?(:write)
+						io.write(encrypted)
+						return io
+					else
+						return encrypted
 					end
-				rescue => e
-					LOG_WARN("Encrypt attempt failed:【%s】" % [e.message])
 				end
+			rescue => e
+				if io.respond_to?(:write)
+					io.write(processed)
+				end
+				raise
 			end
+		end
 
-			if io.nil?
-				processed
-			elsif io.respond_to?(:write)
-				io.write(processed)
-				io
-			else
-				processed
-			end
-		rescue => e
-			LOG_ERROR("Write file failed:【%s】" % [e.message])
-			nil
+		if io.nil?
+			processed
+		elsif io.respond_to?(:write)
+			io.write(processed)
+			io
+		else
+			processed
 		end
 	end
 
@@ -127,15 +121,19 @@ module YAML
 		output = String.new
 		IO.popen(cmd, 'r+', err: [:child, :out]) do |io|
 			io.binmode
+			writer_error = nil
 			writer = Thread.new do
 				begin
-				input.bytesize.times do |i|
-					chunk = input.byteslice(i * chunk_size, chunk_size)
-					break if chunk.nil?
-					io.write(chunk)
-				end
-				io.close_write
+					input.bytesize.times do |i|
+						chunk = input.byteslice(i * chunk_size, chunk_size)
+						break if chunk.nil?
+						io.write(chunk)
+					end
+					io.close_write
 				rescue Errno::EPIPE
+					# child exited before reading all input, not an error
+				rescue => e
+					writer_error = e
 				end
 			end
 
@@ -143,6 +141,7 @@ module YAML
 				output << chunk
 			end
 			writer.join
+			raise writer_error if writer_error
 		end
 		[output, $?]
 	end
@@ -157,43 +156,59 @@ module YAML
 	end
 
 	def self.find_age_keys_for_filename(filename)
-		begin
-			basename = File.basename(filename)
-			basename_no_ext = File.basename(filename, File.extname(filename))
-			publics = []
-			secrets = []
+		basename = File.basename(filename)
+		basename_no_ext = File.basename(filename, File.extname(filename))
+		publics = []
+		secrets = []
 
-			[basename, basename_no_ext].uniq.each do |n|
-				cmd_public = ["/bin/sh", "-c", ". /usr/share/openclash/uci.sh; uci_get_age_public_keys \"$1\"", "sh", n]
-				IO.popen(cmd_public, "r") do |io|
-					io.each_line { |l| publics << l.strip unless l.nil? || l.strip == "" }
-				end
-
-				cmd_secret = ["/bin/sh", "-c", ". /usr/share/openclash/uci.sh; uci_get_age_secret_keys \"$1\"", "sh", n]
-				IO.popen(cmd_secret, "r") do |io|
-					io.each_line { |l| secrets << l.strip unless l.nil? || l.strip == "" }
-				end
+		[basename, basename_no_ext].uniq.each do |n|
+			cmd_public = ["/bin/sh", "-c", ". /usr/share/openclash/uci.sh; uci_get_age_public_keys \"$1\"", "sh", n]
+			IO.popen(cmd_public, "r") do |io|
+				io.each_line { |l| publics << l.strip unless l.nil? || l.strip == "" }
 			end
-			{ publics: publics, secrets: secrets }
-		rescue => e
-			{ publics: [], secrets: [] }
+
+			cmd_secret = ["/bin/sh", "-c", ". /usr/share/openclash/uci.sh; uci_get_age_secret_keys \"$1\"", "sh", n]
+			IO.popen(cmd_secret, "r") do |io|
+				io.each_line { |l| secrets << l.strip unless l.nil? || l.strip == "" }
+			end
 		end
+		{ publics: publics, secrets: secrets }
 	end
 
 	def self.decrypt_content_with_secret(secret, content)
+		# Clear injection-detection env vars to prevent OIX GuardStartup from
+		# killing the child process (e.g. LD_PRELOAD set by opkg upgrade)
 		cmd = ['/etc/openclash/core/clash_meta', 'age', 'decrypt', secret, '-', '-']
-		out, status = popen_stream(cmd, content)
-		status.success? ? out : nil
-	rescue => e
-		nil
+		old_ld_preload = ENV.delete('LD_PRELOAD')
+		old_ld_audit = ENV.delete('LD_AUDIT')
+		old_dyld = ENV.delete('DYLD_INSERT_LIBRARIES')
+		begin
+			out, status = popen_stream(cmd, content)
+			status.success? ? out : raise("age decrypt failed: #{out.to_s.strip}")
+		rescue => e
+			raise "age decrypt failed: #{e.message.strip}"
+		ensure
+			ENV['LD_PRELOAD'] = old_ld_preload if old_ld_preload
+			ENV['LD_AUDIT'] = old_ld_audit if old_ld_audit
+			ENV['DYLD_INSERT_LIBRARIES'] = old_dyld if old_dyld
+		end
 	end
 
 	def self.encrypt_content_with_public(public, content)
 		cmd = ['/etc/openclash/core/clash_meta', 'age', 'encrypt', public, '-', '-']
-		out, status = popen_stream(cmd, content)
-		status.success? ? out : nil
-	rescue => e
-		nil
+		old_ld_preload = ENV.delete('LD_PRELOAD')
+		old_ld_audit = ENV.delete('LD_AUDIT')
+		old_dyld = ENV.delete('DYLD_INSERT_LIBRARIES')
+		begin
+			out, status = popen_stream(cmd, content)
+			status.success? ? out : raise("age encrypt failed: #{out.to_s.strip}")
+		rescue => e
+			raise "age encrypt failed: #{e.message.strip}"
+		ensure
+			ENV['LD_PRELOAD'] = old_ld_preload if old_ld_preload
+			ENV['LD_AUDIT'] = old_ld_audit if old_ld_audit
+			ENV['DYLD_INSERT_LIBRARIES'] = old_dyld if old_dyld
+		end
 	end
 
 	private
@@ -279,8 +294,7 @@ module YAML
 				yaml_content
 			end
 		rescue => e
-			LOG_ERROR("Fix short-id values type failed:【%s】" % [e.message])
-			yaml_content
+			raise "fix short-id values type failed: #{e.message}"
 		end
 	end
 
@@ -314,8 +328,7 @@ module YAML
 				override
 			end
 		rescue => e
-			LOG_ERROR("YAML overwrite failed:【key: %s, operation: %s, error: %s】" % [current_key, current_operation, e.message])
-			base
+			raise "key: [#{current_key}] - operation: [#{current_operation}], error: [#{e.message}]"
 		end
 	end
 
@@ -385,8 +398,7 @@ module YAML
 				target == condition
 			end
 		rescue => e
-			LOG_ERROR("YAML overwrite failed:【(match value) => target: %s, condition: %s, error: %s】" % [target, condition, e.message])
-			false
+			raise "[match value] target: [#{target}] - condition: [#{condition}], error: [#{e.message}]"
 		end
 	end
 
@@ -602,8 +614,7 @@ module YAML
 				collection
 			end
 		rescue => e
-			LOG_ERROR("YAML overwrite failed:【(batch update) => update_spec: %s, error: %s】" % [update_spec, e.message])
-			collection
+			raise "[batch update] update_spec: [#{update_spec}], error: [#{e.message}]"
 		end
 	end
 end

@@ -179,7 +179,7 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ 
                update_retry=$((update_retry + 1))
                run_with_timeout 30 apk update >/dev/null 2>&1
                apk_ret=$?
-               rm -f /lib/apk/db/lock /tmp/apk.lock
+               rm -f /lib/apk/db/lock
                if [ $apk_ret -eq 0 ]; then
                   break
                fi

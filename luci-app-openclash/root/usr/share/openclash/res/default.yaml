@@ -86,6 +86,9 @@ external-controller-unix: mihomo.sock
 # ！！！注意： 从Windows namedpipe访问api接口不会验证secret， 如果开启请自行保证安全问题 ！！！
 external-controller-pipe: \\.\pipe\mihomo
 
+# 为 external-controller 和 external-controller-tls 的监听socket设置routing-mark（仅支持linux）
+external-controller-routing-mark: 0
+
 # tcp-concurrent: true # TCP 并发连接所有 IP, 将使用最快握手的 TCP
 
 # 配置 WEB UI 目录，使用 http://{{external-controller}}/ui 访问
@@ -174,6 +177,10 @@ tun:
   #- 1000
   # exclude-uid-range: # 排除路由的的用户范围
   # - 1000:9999
+  # include-mac-address:
+  # - 00:11:22:33:44:55
+  # exclude-mac-address:
+  # - 00:11:22:33:44:55
 
   # Android 用户和应用规则仅在 Android 下被支持
   # 并且需要 auto-route
@@ -309,6 +316,7 @@ dns:
     - https://mozilla.cloudflare-dns.com/dns-query#DNS&h3=true # 指定策略组和使用 HTTP/3
     - dhcp://en0 # dns from dhcp
     - quic://dns.adguard.com:784 # DNS over QUIC
+    # - ts://tailscale # 使用指定 Tailscale 出站的 DNS 配置查询
     # - '8.8.8.8#RULES' # 效果同respect-rules，但仅对该服务器生效
     # - '8.8.8.8#en0' # 兼容指定 DNS 出口网卡
 
@@ -333,18 +341,20 @@ dns:
 
   # 配置 fallback 使用条件
   # fallback-filter:
-  #   geoip: true # 配置是否使用 geoip
-  #   geoip-code: CN # 当 nameserver 域名的 IP 查询 geoip 库为 CN 时，不使用 fallback 中的 DNS 查询结果
-  #   配置强制 fallback，优先于 IP 判断，具体分类自行查看 geosite 库
-  #   geosite:
-  #     - gfw
-  #   如果不匹配 ipcidr 则使用 nameservers 中的结果
-  #   ipcidr:
+  #   geoip: true    # 配置是否使用 geoip
+  #   geoip-code: CN # 当 nameserver 解析出域名的 IP 查询 geoip 库为 CN 时， 使用 nameserver 中的 DNS 查询结果
+  #   ipcidr:        # 当 nameserver 解析出域名的 IP 匹配 ipcidr 时，使用 fallback 中的 DNS 查询结果
   #     - 240.0.0.0/4
-  #   domain:
+  #     - 0.0.0.0/32
+  #     - 127.0.0.1/32
+  #     - 100.64.0.0/10
+  #   domain:        # 匹配到这些域名，会直接使用 fallback 解析，不去使用 nameserver
   #     - '+.google.com'
   #     - '+.facebook.com'
   #     - '+.youtube.com'
+  #   geosite:       # 匹配到这些域名，会直接使用 fallback 解析，不去使用 nameserver（已废弃，请使用 nameserver-policy）
+  #     - gfw
+  # fallback-lazy-query: false # 默认值为 false ，如果为 true 会先判断来自 nameserver 的结果是否满足 fallback-filter 后再发起查询
 
   # 配置查询域名使用的 DNS 服务器
   nameserver-policy:
@@ -392,16 +402,32 @@ proxies: # socks5
     # ip-version: dual
 
   # Snell
-  # Beware that there's currently no UDP support yet
   - name: "snell"
     type: snell
     server: server
     port: 44046
     psk: yourpsk
-    # version: 2
+    # version: 4 # support 1/2/3/4/5
+    # udp: true # support UDP on version 3/4/5
+    # reuse: false # v4/5 only
     # obfs-opts:
-    # mode: http # or tls
-    # host: bing.com
+    #   mode: http # or tls/shadow-tls
+
+  - name: "snell-shadow-tls"
+    type: snell
+    server: server
+    port: 44046
+    psk: yourpsk
+    # version: 4 # support 1/2/3/4/5
+    # udp: true # support UDP on version 3/4/5
+    # reuse: false # v4/5 only
+    # client-fingerprint: chrome
+    obfs-opts:
+      mode: shadow-tls
+      host: bing.com
+      password: "shadow_tls_password"
+      version: 2 # support 1/2/3
+      alpn: ["h2","http/1.1"]
 
   # Shadowsocks
   # cipher支持:
@@ -508,6 +534,60 @@ proxies: # socks5
       # mux: true
       # headers:
       #   custom: value
+
+  - name: "gost-relay-hop"
+    type: gost-relay
+    # Dynamic mode: relay connects to the target address requested by the upper proxy.
+    # Use this proxy through dialer-proxy to carry ss/vmess/vless/trojan/etc.
+    server: relay.example.com
+    port: 443
+    udp: true
+    tls: true
+    # mux: true # relay+mtls when tls is also true
+    # sni: relay.example.com
+    # username: user
+    # password: pass
+    # client-fingerprint: chrome
+    # fingerprint: xxxx
+    # certificate: ./client.crt
+    # private-key: ./client.key
+    # skip-cert-verify: true
+
+  - name: "ss6-gost-relay"
+    type: ss
+    # This address is dialed from the remote GOST relay server side.
+    # If the remote SS listens on 127.0.0.1:12345 on the relay server, write it here.
+    server: 127.0.0.1
+    port: 12345
+    cipher: chacha20-ietf-poly1305
+    password: "password"
+    udp: true
+    # udp-over-tcp: true # use this instead if your SS server expects UoT over TCP
+    dialer-proxy: gost-relay-hop
+
+  # - name: "gost-relay-forward-hop"
+  #   type: gost-relay
+  #   # Forward mode: relay server chooses its configured forwarding target.
+  #   server: relay.example.com
+  #   port: 443
+  #   udp: true
+  #   forward: true
+  #   tls: true
+  #   # mux: true
+  #   # sni: relay.example.com
+  #   # username: user
+  #   # password: pass
+  #
+  # - name: "ss6-gost-relay-forward"
+  #   type: ss
+  #   # In forward mode this address is only used to ask dialer-proxy for a stream.
+  #   # The GOST relay server forwards the stream to its configured target.
+  #   server: relay.example.com
+  #   port: 443
+  #   cipher: chacha20-ietf-poly1305
+  #   password: "password"
+  #   udp: true
+  #   dialer-proxy: gost-relay-forward-hop
 
   - name: "ss-restls-tls13"
     type: ss
@@ -673,6 +753,9 @@ proxies: # socks5
       grpc-service-name: "example"
       # grpc-user-agent: "grpc-go/1.36.0"
       # ping-interval: 0 # 默认关闭，单位为秒
+      # max-connections: 1 # Maximum connections. Conflict with max-streams.
+      # min-streams: 0 # Minimum multiplexed streams in a connection before opening a new connection. Conflict with max-streams.
+      # max-streams: 0 # Maximum multiplexed streams in a connection before opening a new connection. Conflict with max-connections and min-streams.
     # ip-version: ipv4
 
   # vless
@@ -764,6 +847,9 @@ proxies: # socks5
       grpc-service-name: "grpc"
       # grpc-user-agent: "grpc-go/1.36.0"
       # ping-interval: 0 # 默认关闭，单位为秒
+      # max-connections: 1 # Maximum connections. Conflict with max-streams.
+      # min-streams: 0 # Minimum multiplexed streams in a connection before opening a new connection. Conflict with max-streams.
+      # max-streams: 0 # Maximum multiplexed streams in a connection before opening a new connection. Conflict with max-connections and min-streams.
       
     reality-opts:
       public-key: CrrQSjAG_YkHLwvM2M-7XkKJilgL5upBKCp0od0tLhE
@@ -800,8 +886,7 @@ proxies: # socks5
     udp: true
     tls: true
     network: xhttp
-    alpn:
-      - h2
+    alpn: [h2] # 默认仅支持h2，如果开启h3模式需要设置alpn: [h3]，如果开启http1.1模式需要设置alpn: [http/1.1]
     # ech-opts: ...
     # reality-opts: ...
     # skip-cert-verify: false
@@ -819,32 +904,46 @@ proxies: # socks5
       #   X-Forwarded-For: ""
       # no-grpc-header: false
       # x-padding-bytes: "100-1000"
+      # x-padding-obfs-mode: false
+      # x-padding-key: x_padding
+      # x-padding-header: Referer
+      # x-padding-placement: queryInHeader # Available: queryInHeader, cookie, header, query
+      # x-padding-method: repeat-x # Available: repeat-x, tokenish
+      # uplink-http-method: POST # Available: POST, PUT, PATCH, DELETE
+      # session-placement: path # Available: path, query, cookie, header
+      # session-key: ""
+      # seq-placement: path # Available: path, query, cookie, header
+      # seq-key: ""
+      # uplink-data-placement: body # Available: body, cookie, header
+      # uplink-data-key: ""
+      # uplink-chunk-size: 0 # only applicable when uplink-data-placement is not body
+      # sc-max-each-post-bytes: 1000000
+      # sc-min-posts-interval-ms: 30
       # reuse-settings: # aka XMUX
-      #   max-connections: "16-32"
-      #   max-concurrency: "0"
+      #   max-concurrency: "16-32"
+      #   max-connections: "0"
       #   c-max-reuse-times: "0"
       #   h-max-request-times: "600-900"
       #   h-max-reusable-secs: "1800-3000"
+      #   h-keep-alive-period: 0
       # download-settings:
       #   ## xhttp part
       #   path: "/"
       #   host: xxx.com
       #   headers:
       #     X-Forwarded-For: ""
-      #   no-grpc-header: false
-      #   x-padding-bytes: "100-1000"
       #   reuse-settings: # aka XMUX
-      #     max-connections: "16-32"
-      #     max-concurrency: "0"
+      #     max-concurrency: "16-32"
+      #     max-connections: "0"
       #     c-max-reuse-times: "0"
       #     h-max-request-times: "600-900"
       #     h-max-reusable-secs: "1800-3000"
+      #     h-keep-alive-period: 0
       #   ## proxy part
       #   server: server
       #   port: 443
       #   tls: true
-      #   alpn:
-      #     - h2
+      #   alpn: ...
       #   ech-opts: ...
       #   reality-opts: ...
       #   skip-cert-verify: false
@@ -899,6 +998,9 @@ proxies: # socks5
       grpc-service-name: "example"
       # grpc-user-agent: "grpc-go/1.36.0"
       # ping-interval: 0 # 默认关闭，单位为秒
+      # max-connections: 1 # Maximum connections. Conflict with max-streams.
+      # min-streams: 0 # Minimum multiplexed streams in a connection before opening a new connection. Conflict with max-streams.
+      # max-streams: 0 # Maximum multiplexed streams in a connection before opening a new connection. Conflict with max-connections and min-streams.
 
   - name: trojan-ws
     server: server
@@ -970,13 +1072,16 @@ proxies: # socks5
     server: server.com
     port: 443
     # ports: 1000,2000-3000,5000 # port 不可省略
-    # hop-interval: 15
+    # hop-interval: 15 # 支持填写"15-30"会每次随机选取其中一个值作为切换间隔，仅支持写一个范围（即不允许出现逗号）
     #  up 和 down 均不写或为 0 则使用 BBR 流控
     # up: "30 Mbps" # 若不写单位，默认为 Mbps
     # down: "200 Mbps" # 若不写单位，默认为 Mbps
+    # bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
     password: yourpassword
-    # obfs: salamander # 默认为空，如果填写则开启 obfs，目前仅支持 salamander
+    # obfs: salamander # 默认为空，如果填写则开启 obfs，目前支持 salamander 和 gecko
     # obfs-password: yourpassword
+    # obfs-min-packet-size: 512 # 最小线上数据包大小（字节）。仅限 Gecko。
+    # obfs-max-packet-size: 1200 # 最大线上数据包大小（字节）。仅限 Gecko。
     # sni: server.com
     # ech-opts:
     #   enable: true # 必须手动开启
@@ -990,6 +1095,18 @@ proxies: # socks5
     # private-key: ./client.key # 证书对应的私钥 PEM 格式，或者私钥路径
     # alpn:
     #   - h3
+    # realm-opts:
+    #   enable: true # 必须手动开启
+    #   server-url: https://realm.hy2.io
+    #   token: public
+    #   realm-id: my-cabin-1f3a8c2e9b
+    #   stun-servers:
+    #     - stun.nextcloud.com:3478
+    #     - stun.sip.us:3478
+    #     - global.stun.twilio.com:3478
+    #   # 下面支持填写针对server-url的TLS配置(sni, skip-cert-verify, fingerprint, certificate, private-key, alpn)
+    #   # skip-cert-verify： false
+    #   # ......
     ###quic-go特殊配置项，不要随意修改除非你知道你在干什么###
     # initial-stream-receive-window： 8388608
     # max-stream-receive-window： 8388608
@@ -1051,6 +1168,73 @@ proxies: # socks5
     #   j3: <t><b 0xf6ab><c><r 10>                        # AmneziaWG v1.5 only (removed in v2)
     #   itime: 60                                         # AmneziaWG v1.5 only (removed in v2)
 
+  # tailscale
+  - name: "tailscale"
+    type: tailscale
+    # hostname: mihomo # Tailscale 设备名，默认由 tsnet 处理
+    # auth-key: tskey-auth-xxxx # 可选；不填写时首次启动会输出交互式登录 URL
+    # control-url: https://controlplane.tailscale.com # 可选；自定义 Headscale/Tailscale control server
+    # state-dir: ./tailscale # tsnet 状态目录，默认 tailscale
+    # ephemeral: false # 是否作为 ephemeral node 登录，默认 false
+    udp: true # 是否启用 UDP，默认 false
+    # accept-routes: true # 是否接受 Tailnet 中发布的 subnet routes
+    # exit-node: 100.64.0.1 # 使用指定 exit node，可填写节点 IP；也支持 auto:any
+    # exit-node-allow-lan-access: true # 使用 exit node 时是否允许访问本地 LAN
+    # 当目标不在 Tailscale 路由内时，连接会直接报错，不会回退到直连；
+    # 访问公网需要配置可用的 exit-node，或接受覆盖目标网段的 subnet routes。
+    # 一个出站代理的标识。当值不为空时，将使用指定的 proxy 发出 Tailscale 控制面和 DERP/STUN 等连接
+    # dialer-proxy: "ss1"
+    # interface-name: "WLAN" # 指定出站网卡
+    # routing-mark: 6666 # Linux 下配置 fwmark
+    # ip-version: ipv4-prefer # 可选：dual/ipv4/ipv6/ipv4-prefer/ipv6-prefer
+
+  # openvpn
+  - name: "openvpn"
+    type: openvpn
+    server: vpn.example.com
+    port: 1194
+    proto: udp # udp/tcp，默认 udp
+    # dev: tun # 目前仅支持 tun，默认 tun
+    # cipher: AES-128-GCM # 支持 AES-128-GCM / AES-192-GCM / AES-256-GCM / AES-128-CBC / AES-192-CBC / AES-256-CBC / CHACHA20-POLY1305，默认 AES-128-GCM；AES-CBC 会按 AES-128-CBC 处理
+    # auth: SHA256 # 支持 MD5 / SHA1 / SHA256 / SHA384 / SHA512，默认 SHA256；AEAD cipher 会忽略 auth
+    # comp-lzo: "no" # 可选值："yes", "no", "adaptive"
+    # username / password: auth-user-pass 模式（与下方 cert+key 二选一，不能都不填）
+    # username: "user"
+    # password: "pass"
+    # 从 .ovpn 中复制 <ca></ca> 内的内容，不需要保留 <ca> 标签
+    ca: |
+      -----BEGIN CERTIFICATE-----
+      MIIB...example
+      -----END CERTIFICATE-----
+    # 从 .ovpn 中复制 <cert></cert> 内的内容（auth-user-pass 时可省略 cert / key）
+    cert: |
+      -----BEGIN CERTIFICATE-----
+      MIIB...example
+      -----END CERTIFICATE-----
+    # 从 .ovpn 中复制 <key></key> 内的内容
+    key: |
+      -----BEGIN PRIVATE KEY-----
+      MIIE...example
+      -----END PRIVATE KEY-----
+    # 从 .ovpn 中复制 <tls-crypt></tls-crypt> 内的内容，不需要保留 <tls-crypt> 标签；没有 tls-crypt 的配置可省略
+    # tls-crypt: |
+    #   -----BEGIN OpenVPN Static key V1-----
+    #   00000000000000000000000000000000
+    #   ...
+    #   -----END OpenVPN Static key V1-----
+    # peer-info: # 透传给服务端的 peer-info 键值对，追加在内置 IV_VER/IV_PROTO/IV_CIPHERS 之后；用于服务端基于 peer-info 做准入决策
+    #   IV_HWADDR: "52:54:00:ff:72:87"
+    #   UV_DEVICE_ID: "laptop-001"
+    # ping: 10 # 默认值为 0
+    # ping-restart: 60 # 默认值为 0
+    # handshake-timeout: 30 # 单位为秒；配置后握手时不受外层连接超时影响；默认值为 0，表示仅使用外层连接超时
+    # mtu: 1500
+    udp: true
+    # 一个出站代理的标识。当值不为空时，将使用指定的 proxy 发出连接
+    # dialer-proxy: "ss1"
+    # remote-dns-resolve: true # 强制 dns 远程解析，默认值为 false
+    # dns: [ 1.1.1.1, 8.8.8.8 ] # 仅在 remote-dns-resolve 为 true 时生效
+
   # masque
   - name: "masque"
     type: masque
@@ -1067,6 +1251,41 @@ proxies: # socks5
     # remote-dns-resolve: true # 强制 dns 远程解析，默认值为 false
     # dns: [ 1.1.1.1, 8.8.8.8 ] # 仅在 remote-dns-resolve 为 true 时生效
     # congestion-controller: bbr # 默认不开启
+    # handshake-timeout: 30 # 单位为秒；配置后握手时不受外层连接超时影响；默认值为 0，表示仅使用外层连接超时
+
+  # masque-h3-l4proxy
+  - name: "masque-h3-l4proxy"
+    type: masque
+    server: 162.159.198.1
+    port: 443
+    private-key: MHcCAQEEILI1eOtnbEIh89Fj4yNDuFR6UjayCKI3NdLl3DhetimWoAoGCCqGSM49AwEHoUQDQgAEgyXrE8v+hHsHy3ewSb3WcRjYgCrM9T9hiE0Uv6k2DZ1+4kefrDT9v1Q/8wdRigTf6t6gGNUV8W+IUMdrfUt+9g==
+    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
+    udp: false # 目前 l4proxy 模式不支持 udp
+    network: h3-l4proxy
+    # 一个出站代理的标识。当值不为空时，将使用指定的 proxy 发出连接
+    # dialer-proxy: "ss1"
+    # remote-dns-resolve: true # 强制 dns 远程解析，默认值为 false
+    # dns: [ tls://1.1.1.1, tls://1.0.0.1 ] # 仅在 remote-dns-resolve 为 true 时生效
+    # congestion-controller: bbr # 默认不开启
+    # handshake-timeout: 30 # 单位为秒；配置后握手时不受外层连接超时影响；默认值为 0，表示仅使用外层连接超时
+
+  # masque-h2
+  - name: "masque-h2"
+    type: masque
+    server: 162.159.198.2
+    port: 443
+    private-key: MHcCAQEEILI1eOtnbEIh89Fj4yNDuFR6UjayCKI3NdLl3DhetimWoAoGCCqGSM49AwEHoUQDQgAEgyXrE8v+hHsHy3ewSb3WcRjYgCrM9T9hiE0Uv6k2DZ1+4kefrDT9v1Q/8wdRigTf6t6gGNUV8W+IUMdrfUt+9g==
+    public-key: MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEIaU7MToJm9NKp8YfGxR6r+/h4mcG7SxI8tsW8OR1A5tv/zCzVbCRRh2t87/kxnP6lAy0lkr7qYwu+ox+k3dr6w==
+    ip: 172.16.0.2
+    ipv6: 2606:4700:110:84c0:163a:4914:a0ad:3342
+    mtu: 1280
+    udp: true
+    network: h2
+    # 一个出站代理的标识。当值不为空时，将使用指定的 proxy 发出连接
+    # dialer-proxy: "ss1"
+    # remote-dns-resolve: true # 强制 dns 远程解析，默认值为 false
+    # dns: [ 1.1.1.1, 8.8.8.8 ] # 仅在 remote-dns-resolve 为 true 时生效
+    # handshake-timeout: 30 # 单位为秒；配置后握手时不受外层连接超时影响；默认值为 0，表示仅使用外层连接超时
 
   # tuic
   - name: tuic
@@ -1087,6 +1306,7 @@ proxies: # socks5
     udp-relay-mode: native # Available: "native", "quic". Default: "native"
     # congestion-controller: bbr # Available: "cubic", "new_reno", "bbr". Default: "cubic"
     # cwnd: 10 # default: 32
+    # bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
     # max-udp-relay-packet-size: 1500
     # fast-open: true
     # skip-cert-verify: true
@@ -1155,7 +1375,7 @@ proxies: # socks5
     server: server_ip/domain # 1.2.3.4 or domain
     port: 443 
     key: "<client_key>" # 如果你使用sudoku生成的ED25519密钥对，请填写密钥对中的私钥，否则填入和服务端相同的uuid
-    aead-method: chacha20-poly1305 # 可选：chacha20-poly1305、aes-128-gcm、none（不建议；且 enable-pure-downlink=false 时不可用）
+    aead-method: chacha20-poly1305 # 可选：chacha20-poly1305、aes-128-gcm、none（不建议；none 不提供 AEAD 保护）
     padding-min: 2 # 最小填充率（0-100）
     padding-max: 7 # 最大填充率（0-100，必须 >= padding-min）
     table-type: prefer_ascii    # 可选值：prefer_ascii、prefer_entropy、up_ascii_down_entropy、up_entropy_down_ascii
@@ -1169,7 +1389,7 @@ proxies: # socks5
       # host: "" # 可选：覆盖 Host/SNI（支持 example.com 或 example.com:443）；仅在 mode 为 stream/poll/auto/ws 时生效
       # path-root: "" # 可选：HTTP 隧道端点一级路径前缀（双方需一致），例如 "aabbcc" 或 "/aabbcc/" => /aabbcc/session、/aabbcc/stream、/aabbcc/api/v1/upload、/aabbcc/ws
       # multiplex: "off" # 可选字符串：off（默认）、auto（复用底层 HTTP 连接，减少建链 RTT）、on（Sudoku mux 单隧道多目标；仅在 mode=stream/poll/auto 生效；ws 强制 off）
-    enable-pure-downlink: false # 可选：false=带宽优化下行（更快，要求 aead-method != none）；true=纯 Sudoku 下行
+    enable-pure-downlink: false # 可选：false=带宽优化下行；true=纯 Sudoku 下行
 
   # anytls
   - name: anytls
@@ -1202,12 +1422,23 @@ proxies: # socks5
     # alpn:
     #   - h2
     # skip-cert-verify: true
+    ### quic options
     # quic: true # 默认为false
     # congestion-controller: bbr
+    # bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
+    ### reuse options
+    # max-connections: 8 # Maximum connections. Conflict with max-streams.
+    # min-streams: 5 # Minimum multiplexed streams in a connection before opening a new connection. Conflict with max-streams.
+    # max-streams: 0 # Maximum multiplexed streams in a connection before opening a new connection. Conflict with max-connections and min-streams.
 
 # dns 出站会将请求劫持到内部 dns 模块，所有请求均在内部处理
   - name: "dns-out"
     type: dns
+
+  - name: "rematch"
+    type: rematch
+    target-rematch-name: "rematch1" # 如果填写则覆盖原始 metadata 中的 rematch-name（可用REMATCH-NAME规则匹配）
+    target-sub-rule: "sub-rule1" # 如果填写则接下来会直接用指定的 sub-rule 匹配，如果名字不存在或为空会回退到主rules
 
   # 配置指定 interface-name 和 fwmark 的 DIRECT
   - name: en1-direct
@@ -1215,17 +1446,6 @@ proxies: # socks5
     interface-name: en1
     routing-mark: 6667
 proxy-groups:
-  # 代理链，目前 relay 可以支持 udp 的只有 vmess/vless/trojan/ss/ssr/tuic
-  # wireguard 目前不支持在 relay 中使用，请使用 proxy 中的 dialer-proxy 配置项
-  # Traffic: mihomo <-> http <-> vmess <-> ss1 <-> ss2 <-> Internet
-  - name: "relay"
-    type: relay
-    proxies:
-      - http
-      - vmess
-      - ss1
-      - ss2
-
   # url-test 将按照 url 测试结果使用延迟最低节点
   - name: "auto"
     type: url-test
@@ -1269,6 +1489,7 @@ proxy-groups:
       - ss2
       - vmess1
       - auto
+    # default-selected: ss1 # 默认选择的节点（该项为空或者设置的节点名不存在时，默认选择组中第一个节点）
 
   - name: UseProvider
     type: select
@@ -1278,6 +1499,7 @@ proxy-groups:
     proxies:
       - Proxy
       - DIRECT
+    # empty-fallback: COMPATIBLE # 设置当组为空时的回退proxy（这里不支持填写代理组，只支持填写proxy名称）
 
 # Mihomo 格式的节点或支持 *ray 的分享格式
 proxy-providers:
@@ -1288,6 +1510,22 @@ proxy-providers:
     path: ./provider1.yaml # 默认只允许存储在 mihomo 的 Home Dir，如果想存储到其他位置，请通过设置 SAFE_PATHS 环境变量指定额外的安全路径。该环境变量的语法同本操作系统的PATH环境变量解析规则（即Windows下以分号分割，其他系统下以冒号分割）
     proxy: DIRECT
     # size-limit: 10240 # 限制下载文件最大为10kb，默认为0即不限制文件大小
+    # #
+    # # 如果设置会age-secret-key尝试通过此secret解密age armor格式加密的配置文件
+    # #
+    # # 注意：
+    # #   对于加密内容，目前仅支持 age-encryption.org/v1 的 official ASCII "armor" format
+    # #   对于key格式，目前仅支持 age-encryption.org/v1 的 x25519 recipient type 和 The mlkem768-x25519 hybrid post-quantum recipient type
+    # # 实用工具：
+    # #   您可以通过 "mihomo age keygen" 生成符合要求的 x25519 key
+    # #   您可以通过 "mihomo age keygen-pq" 生成符合要求的 mlkem768-x25519 key
+    # #   您可以通过 "mihomo age convert <secret_key>" 从 age-secret-key 导出 age-public-key
+    # #   您可以通过 "mihomo age decrypt <secret_key> <source_file> <target_file>" 将已加密文件解密，<source_file> 为 - 时会从标准输入读取，<target_file> 为 - 时会往标准输出写入
+    # #   您可以通过 "mihomo age encrypt <public_key> <source_file> <target_file>" 将未加密文件加密，<source_file> 为 - 时会从标准输入读取，<target_file> 为 - 时会往标准输出写入
+    # # 参考实现：
+    # #   https://github.com/FiloSottile/awesome-age#implementations
+    # #
+    # age-secret-key: AGE-SECRET-KEY-1ZTQLLN0A4U3ZTT3DCZKYN0CGZEZQLWX2DFTXUWMT4ZHR0N2UG6LSW9NT0N
     header:
       User-Agent:
       - "Clash/v1.18.0"
@@ -1296,6 +1534,8 @@ proxy-providers:
       # - 'application/vnd.github.v3.raw'
       # Authorization:
       # - 'token 1231231'
+      # X-Age-Public-Key:
+      # - 'age1xh86kh9v23vattr58yedspm3f57sxvnswu9krr6ns438amekx5gsd09uma'
     health-check:
       enable: true
       interval: 600
@@ -1370,6 +1610,7 @@ rule-providers:
     format: mrs
     behavior: domain
     path: /path/to/save/file.mrs
+    # path-in-bundle: "geo/geosite/cn.mrs" # 当设置该选项时，如果本地文件不存在，会优先从 Home Dir的 BundleMRS.7z 中解压该文件，此项的值用于指定在 BundleMRS.7z 中的路径
   rule4:
     type: inline
     behavior: domain # classical / ipcidr
@@ -1421,6 +1662,7 @@ listeners:
     type: socks
     port: 10808 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     #listen: 0.0.0.0 # 默认监听 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
     # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理
     # udp: false # 默认 true
@@ -1445,6 +1687,7 @@ listeners:
     type: http
     port: 10809 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
     # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
     # users: # 如果不填写users项，则遵从全局authentication设置，如果填写会忽略全局设置, 如想跳过该入站的验证可填写 users: []
@@ -1468,6 +1711,7 @@ listeners:
     type: mixed #  HTTP(S) 和 SOCKS 代理混合
     port: 10810 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
     # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
     # udp: false # 默认 true
@@ -1507,10 +1751,14 @@ listeners:
     type: shadowsocks
     port: 10813 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
     # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
     password: vlmpIPSyHH6f4S8WVPdRIHIlzmB+GIRfoH3aNJ/t9Gg=
     cipher: 2022-blake3-aes-256-gcm
+    # simple-obfs:
+    #   enable: false # 设置为true时开启
+    #   mode: http # Available: http, tls
     # shadow-tls:
     #   enable: false # 设置为true时开启
     #   version: 3 # 支持v1/v2/v3
@@ -1547,10 +1795,34 @@ listeners:
     #   streambuf: 2097152 # per stream receive buffer in bytes, smux v2+
     #   keepalive: 10 # seconds between heartbeats
 
+  - name: snell-in-1
+    type: snell
+    port: 10815 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
+    psk: your-password
+    version: 4 # 仅支持 4/5
+    udp: true # UDP over TCP tunnel，默认 true
+    # obfs-opts:
+    #   mode: http # 可选：http / tls
+    #   host: bing.com
+    # shadow-tls:
+    #   enable: false # 设置为true时开启
+    #   version: 3 # 支持v1/v2/v3
+    #   password: password # v2设置项
+    #   users: # v3设置项
+    #     - name: 1
+    #       password: password
+    #   handshake:
+    #     dest: test.com:443
+    # rule: sub-rule-name1
+    # proxy: proxy
+
   - name: vmess-in-1
     type: vmess
     port: 10814 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
     # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
     users:
@@ -1595,6 +1867,7 @@ listeners:
     type: tuic
     port: 10815 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
     # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
     # token:    # tuicV4 填写（可以同时填写 users）
@@ -1615,6 +1888,7 @@ listeners:
     #    dC5jb20AAA==
     #    -----END ECH KEYS-----
     #  congestion-controller: bbr
+    #  bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
     #  max-idle-time: 15000
     #  authentication-timeout: 1000
     #  alpn:
@@ -1625,6 +1899,7 @@ listeners:
     type: tunnel
     port: 10816 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
     # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
     network: [tcp, udp]
@@ -1634,6 +1909,7 @@ listeners:
     type: vless
     port: 10817 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
     # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
     users:
@@ -1647,7 +1923,25 @@ listeners:
     #   host: ""
     #   mode: auto # Available: "stream-one", "stream-up" or "packet-up"
     #   no-sse-header: false
+    #   x-padding-bytes: "100-1000"
+    #   x-padding-obfs-mode: false
+    #   x-padding-key: x_padding
+    #   x-padding-header: Referer
+    #   x-padding-placement: queryInHeader # Available: queryInHeader, cookie, header, query
+    #   x-padding-method: repeat-x # Available: repeat-x, tokenish
+    #   uplink-http-method: POST # Available: POST, PUT, PATCH, DELETE
+    #   session-placement: path # Available: path, query, cookie, header
+    #   session-key: ""
+    #   session-table: "" # Available: "", "uuid", "ALPHABET", "Alphabet", "BASE36", "Base62", "HEX", "alphabet", "base36", "hex", "number"
+    #   session-length: "16-32" # 起始值不可为 0，总的 id 空间必须大于 21 亿，仅当session-table不为空或uuid时生效
+    #   seq-placement: path # Available: path, query, cookie, header
+    #   seq-key: ""
+    #   uplink-data-placement: body # Available: body, cookie, header
+    #   uplink-data-key: ""
+    #   uplink-chunk-size: 0 # only applicable when uplink-data-placement is not body
+    #   sc-max-buffered-posts: 30
     #   sc-stream-up-server-secs: "20-80"
+    #   sc-max-each-post-bytes: 1000000
     # -------------------------
     # vless encryption服务端配置：
     # （原生外观 / 只 XOR 公钥 / 全随机数。1-RTT 每次下发随机 300 到 600 秒的 ticket 以便 0-RTT 复用 / 只允许 1-RTT）
@@ -1692,12 +1986,14 @@ listeners:
         after-bytes: 0 # 传输指定字节后开始限速
         bytes-per-sec: 0 # 基准速率（字节/秒）
         burst-bytes-per-sec: 0 # 突发速率（字节/秒），大于 bytesPerSec 时生效
-    ### 注意，对于vless listener, 至少需要填写 “certificate和private-key” 或 “reality-config” 或 “decryption” 的其中一项 ###
+    ### 注意，对于vless listener, 如果 "allow-insecure" 不为 true, 至少需要填写 “certificate和private-key” 或 “reality-config” 或 “decryption” 的其中一项 ###
+    # allow-insecure: false # 是否允许不开启tls加密（注意：仅用于有 nginx, caddy 前置的情况）
 
   - name: anytls-in-1
     type: anytls
     port: 10818 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     users:
       username1: password1
       username2: password2
@@ -1714,32 +2010,38 @@ listeners:
     #   madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
     #   dC5jb20AAA==
     #   -----END ECH KEYS-----
+    ### 注意，anytls listener, 如果 "allow-insecure" 不为 true, 必须填写 “certificate和private-key” ###
+    # allow-insecure: false # 是否允许不开启tls加密（注意：仅用于有 nginx, caddy 前置的情况）
     # padding-scheme: "" # https://github.com/anytls/anytls-go/blob/main/docs/protocol.md#cmdupdatepaddingscheme
 
   - name: mieru-in-1
     type: mieru
     port: 10818 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     transport: TCP # 支持 TCP 或者 UDP
     users:
       username1: password1
       username2: password2
     # 一个 base64 字符串用于微调网络行为
     # traffic-pattern: ""
+    # 如果开启，且客户端不发送用户提示，代理服务器将拒绝连接
+    # user-hint-is-mandatory: false
 
   - name: sudoku-in-1
     type: sudoku
     port: 8443 # 仅支持单端口
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     key: "<server_key>" # 如果你使用sudoku生成的ED25519密钥对，此处是密钥对中的公钥，当然，你也可以仅仅使用任意uuid充当key
-    aead-method: chacha20-poly1305 # 可选：chacha20-poly1305、aes-128-gcm、none（不建议；且 enable-pure-downlink=false 时不可用）
+    aead-method: chacha20-poly1305 # 可选：chacha20-poly1305、aes-128-gcm、none（不建议；none 不提供 AEAD 保护）
     padding-min: 1 # 最小填充率（0-100）
     padding-max: 15 # 最大填充率（0-100，必须 >= padding-min）
     table-type: prefer_ascii # 可选值：prefer_ascii、prefer_entropy、up_ascii_down_entropy、up_entropy_down_ascii
     # custom-table: xpxvvpvv # 可选，自定义字节布局，必须包含2个x、2个p、4个v，可随意组合；只对 entropy 方向生效
     # custom-tables: ["xpxvvpvv", "vxpvxvvp"] # 可选，自定义字节布局列表（x/v/p），用于多表轮换；非空时覆盖 custom-table
     handshake-timeout: 5   # 可选（秒）
-    enable-pure-downlink: false # 可选：false=带宽优化下行（更快，要求 aead-method != none）；true=纯 Sudoku 下行
+    enable-pure-downlink: false # 可选：false=带宽优化下行；true=纯 Sudoku 下行
     # 推荐：使用 httpmask 对象统一管理 HTTPMask 相关字段：
     httpmask:
       disable: false # true 禁用所有 HTTP 伪装/隧道
@@ -1754,6 +2056,7 @@ listeners:
     type: trojan
     port: 10819 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
     # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
     users:
@@ -1796,12 +2099,14 @@ listeners:
     #   enabled: false
     #   method: aes-128-gcm # aes-128-gcm/aes-256-gcm/chacha20-ietf-poly1305
     #   password: "example"
-    ### 注意，对于trojan listener, 至少需要填写 “certificate和private-key” 或 “reality-config” 或 “ss-option” 的其中一项 ###
+    ### 注意，对于trojan listener, 如果 "allow-insecure" 不为 true, 至少需要填写 “certificate和private-key” 或 “reality-config” 或 “ss-option” 的其中一项 ###
+    # allow-insecure: false # 是否允许不开启tls加密（注意：仅用于有 nginx, caddy 前置的情况）
 
   - name: hysteria2-in-1
     type: hysteria2
     port: 10820 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
     # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
     users:
@@ -1822,8 +2127,11 @@ listeners:
     ##  up 和 down 均不写或为 0 则使用 BBR 流控
     #  up: "30 Mbps" # 若不写单位，默认为 Mbps
     #  down: "200 Mbps" # 若不写单位，默认为 Mbps
-    #  obfs: salamander # 默认为空，如果填写则开启 obfs，目前仅支持 salamander
+    #  obfs: salamander # 默认为空，如果填写则开启 obfs，目前支持 salamander 和 gecko
     #  obfs-password: yourpassword
+    #  obfs-min-packet-size: 512 # 最小线上数据包大小（字节）。仅限 Gecko。
+    #  obfs-max-packet-size: 1200 # 最大线上数据包大小（字节）。仅限 Gecko。
+    #  bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
     #  max-idle-time: 15000
     #  alpn:
     #    - h3
@@ -1832,11 +2140,51 @@ listeners:
     #  masquerade: file:///var/www # 作为文件服务器
     #  masquerade: http://127.0.0.1:8080	#作为反向代理
     #  masquerade: https://127.0.0.1:8080	#作为反向代理
+    #  realm-opts:
+    #    enable: true # 必须手动开启
+    #    server-url: https://realm.hy2.io
+    #    token: public
+    #    realm-id: my-cabin-1f3a8c2e9b
+    #    stun-servers:
+    #      - stun.nextcloud.com:3478
+    #      - stun.sip.us:3478
+    #      - global.stun.twilio.com:3478
+    #    # proxy: DIRECT # 设置server-url通过哪个代理进行连接
+    #    # 下面支持填写针对server-url的TLS配置(sni, skip-cert-verify, fingerprint, certificate, private-key, alpn)
+    #    # skip-cert-verify： false
+    #    # ......
+
+  # 注意，这是用于自建hysteria2入站和出站中realm-opts中server-url的HTTP/HTTPS服务器，请勿混淆
+  - name: hysteria2-realm-in-1
+    type: hysteria2-realm
+    port: 10820 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
+    listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
+    token: public # hysteria2入站和出站通过 `Authorization: Bearer <token>` 出示的 Bearer 令牌。
+    max-realms: 65536 # maximum total realms (0 = unlimited)
+    max-realms-per-ip: 4 # maximum realms per client IP (0 = unlimited)
+    trusted-proxy-header: "" # header to read real client IP from (e.g. X-Forwarded-For)
+    realm-name-pattern: "^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$" # regex realm names must match
+    # # 下面内容如果配置， realm 将通过 TLS 提供 HTTPS 服务；否则提供明文 HTTP
+    # certificate: ./server.crt # 证书 PEM 格式，或者 证书的路径
+    # private-key: ./server.key # 证书对应的私钥 PEM 格式，或者私钥路径
+    # 下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
+    # client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
+    # client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
+    # 如果填写则开启ech（可由 mihomo generate ech-keypair <明文域名> 生成）
+    # ech-key: |
+    #   -----BEGIN ECH KEYS-----
+    #   ACATwY30o/RKgD6hgeQxwrSiApLaCgU+HKh7B6SUrAHaDwBD/g0APwAAIAAgHjzK
+    #   madSJjYQIf9o1N5GXjkW4DEEeb17qMxHdwMdNnwADAABAAEAAQACAAEAAwAIdGVz
+    #   dC5jb20AAA==
+    #   -----END ECH KEYS-----
+    # alpn: ["h2", "http/1.1"]
 
   - name: trusttunnel-in-1
     type: trusttunnel
     port: 10821 # 支持使用ports格式，例如200,302 or 200,204,401-429,501-503
     listen: 0.0.0.0
+    # routing-mark: 0 # 为监听socket设置routing-mark（仅支持linux）
     # rule: sub-rule-name1 # 默认使用 rules，如果未找到 sub-rule 则直接使用 rules
     # proxy: proxy # 如果不为空则直接将该入站流量交由指定 proxy 处理 (当 proxy 不为空时，这里的 proxy 名称必须合法，否则会出错)
     users:
@@ -1846,6 +2194,7 @@ listeners:
     private-key: ./server.key # 证书对应的私钥 PEM 格式，或者私钥路径
     network: ["tcp", "udp"] # http2+http3
     congestion-controller: bbr
+    # bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
     # 下面两项为mTLS配置项，如果client-auth-type设置为 "verify-if-given" 或 "require-and-verify" 则client-auth-cert必须不为空
     # client-auth-type: "" # 可选值：""、"request"、"require-any"、"verify-if-given"、"require-and-verify"
     # client-auth-cert: string # 证书 PEM 格式，或者 证书的路径
@@ -1888,6 +2237,10 @@ listeners:
     # - 1000
     # exclude-uid-range: # 排除路由的的用户范围
     # - 1000:99999
+    # include-mac-address:
+    # - 00:11:22:33:44:55
+    # exclude-mac-address:
+    # - 00:11:22:33:44:55
 
     # Android 用户和应用规则仅在 Android 下被支持
     # 并且需要 auto-route
@@ -1917,6 +2270,7 @@ listeners:
 #  certificate: ./server.crt
 #  private-key: ./server.key
 #  congestion-controller: bbr
+#  bbr-profile: "" # Available: "standard", "conservative", "aggressive". Default: "standard"
 #  max-idle-time: 15000
 #  authentication-timeout: 1000
 #  alpn:

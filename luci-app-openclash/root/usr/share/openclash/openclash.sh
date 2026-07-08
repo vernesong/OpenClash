@@ -148,7 +148,11 @@ config_cus_up()
 	      rescue Exception => e
 	         YAML.LOG_ERROR('Filter Proxies Failed,【' + e.message + '】');
 	      ensure
-	         File.open('$CFG_FILE','w') {|f| YAML.dump(Value, f)};
+	         begin
+	            File.open('$CFG_FILE','w') {|f| YAML.dump(Value, f)};
+	         rescue Exception => e
+	            YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
+	         end
 	      end" 2>/dev/null >> $LOG_FILE
 	   fi
    fi

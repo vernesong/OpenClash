@@ -5,6 +5,7 @@
             <ul class="cbi-tabmenu">
                 <li name="tab-header" class="cbi-tab"><a href="#"><%:OpenClash Log%></a></li>
                 <li name="tab-header" class="cbi-tab-disabled"><a href="#"><%:Core Log%></a></li>
+                <li name="tab-header" class="cbi-tab-disabled"><a href="#"><%:Debug Logs%></a></li>
             </ul>
         </div>
         <div id="tab-content">
@@ -26,6 +27,13 @@
                     <label for="silent"><%:Silent%></label>
                 </div>
             </div>
+            <div class="dom">
+                <textarea id="debug_log" class="cbi-input-textarea" style="width: 100%;display:none" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
+                <div id="debug-render-wrapper">
+                    <div id="debug-rendered"></div>
+                    <div class="oc-usage-help-float" id="debug-copy-source" onclick="copyDebugSource()" title="<%:Copy Debug%>"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -35,6 +43,10 @@
         <input type="button" class="btn cbi-button cbi-button-apply" id="start_refresh_button" value="<%:Start Refresh%>" onclick=" return start_refresh() "/>
         <input type="button" class="btn cbi-button cbi-button-apply" id="del_log_button" value="<%:Clean%>" onclick=" return del_log() " />
         <input type="button" class="btn cbi-button cbi-button-apply" id="down_log_button" value="<%:Download Log%>" onclick=" return download_log() " />
+        <span style="display:inline-flex; align-items:center; gap:4px;">
+            <input type="button" class="btn cbi-button cbi-button-apply" id="gen_debug_button" value="<%:Generate Logs%>" onclick="return gen_debug_logs()" />
+            <span id="debug_loading" style="display:none; vertical-align:middle;"><img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src='<%=resource%>/icons/loading.gif'" alt="<%:Loading...%>" style="vertical-align:middle" /></span>
+        </span>
     </div>
 </fieldset>
 </body>
@@ -45,8 +57,10 @@ var s;
 var log_len = 0;
 var lv = document.getElementById('cbid.openclash.config.clog');
 var cl = document.getElementById('core_log');
+var dl = document.getElementById('debug_log');
 var animatingOC = false;
 var animatingCore = false;
+var animatingDebug = false;
 var coreWebSocket = null;
 var coreLogBuffer = [];
 var currentLogLevel = 'info';
@@ -116,6 +130,25 @@ function download_log(){
     var dt = new Date();
     var timestamp = dt.getFullYear()+"-"+(dt.getMonth()+1)+"-"+dt.getDate()+"-"+dt.getHours()+"-"+dt.getMinutes()+"-"+dt.getSeconds();
 
+    var activeTabId = 0;
+    var titles = document.getElementsByName('tab-header');
+    for(var i=0; i<titles.length; i++){
+        if(titles[i].className === 'cbi-tab') {
+            activeTabId = i;
+            break;
+        }
+    }
+
+    var downloadContent = "";
+
+    if (activeTabId === 2) {
+        var debug_content = dl.value || '';
+        if (!debug_content.trim()) return;
+        downloadContent += debug_content;
+        createAndDownloadFile("OpenClash-Debug-"+timestamp+".log", downloadContent);
+        return;
+    }
+
     var oc_content = "";
     if (typeof editor_oc !== 'undefined' && editor_oc) {
         oc_content = editor_oc.getValue();
@@ -124,6 +157,10 @@ function download_log(){
     } else if (lv && lv.innerHTML) {
         oc_content = lv.innerHTML;
     }
+
+    oc_content = oc_content.split('\n').filter(function(line) { 
+        return line.indexOf("】<%:Downloading URL%>【") === -1; 
+    }).join('\n');
 
     var core_content = "";
     if (typeof editor_core !== 'undefined' && editor_core) {
@@ -134,15 +171,10 @@ function download_log(){
         core_content = cl.innerHTML;
     }
 
-    oc_content = oc_content.split('\n').filter(function(line) { 
-        return line.indexOf("】<%:Downloading URL%>【") === -1; 
-    }).join('\n');
-
     if (!oc_content.trim() && !core_content.trim()) {
         return;
     }
 
-    var downloadContent = "";
     if (oc_content.trim()) {
         downloadContent += "<%:OpenClash Log%>:\n" + oc_content + "\n\n";
     }
@@ -155,16 +187,46 @@ function download_log(){
 };
 
 function del_log() {
-    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_log")%>',null,function(x, data){
-        lv.innerHTML="";
-        cl.innerHTML="";
-        coreLogBuffer = [];
-        log_len = 0;
-        editor_oc.setValue(lv.value);
-        editor_core.setValue(cl.value);
-        editor_core.refresh();
-        editor_oc.refresh();
-    });
+    var activeTabId = 0;
+    var titles = document.getElementsByName('tab-header');
+    for(var i=0; i<titles.length; i++){
+        if(titles[i].className === 'cbi-tab') {
+            activeTabId = i;
+            break;
+        }
+    }
+
+    if (activeTabId === 2) {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_log")%>', {type: "debug"}, function(x, data){
+            dl.value = "";
+            var wrapper = document.getElementById('debug-render-wrapper');
+            var rendered = document.getElementById('debug-rendered');
+            if (wrapper) { wrapper.style.display = 'none'; }
+            if (rendered) { rendered.innerHTML = ''; }
+            if (typeof editor_debug !== 'undefined' && editor_debug) {
+                editor_debug.setValue("");
+                if (editor_debug.dom) {
+                    editor_debug.dom.style.setProperty('display', '', 'important');
+                }
+                editor_debug.refresh();
+            } else if (typeof markdown_editor === 'function' && dl) {
+                markdown_editor(dl, 'debug', true, '100%', '540px');
+            }
+        });
+    } else {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "del_log")%>', null, function(x, data){
+            lv.innerHTML="";
+            cl.innerHTML="";
+            coreLogBuffer = [];
+            log_len = 0;
+            if (typeof editor_oc !== 'undefined' && editor_oc) {
+                editor_oc.setValue(lv.value);
+            }
+            if (typeof editor_core !== 'undefined' && editor_core) {
+                editor_core.setValue(cl.value);
+            }
+        });
+    }
     return
 };
 
@@ -280,6 +342,44 @@ function coreLogWebSocket() {
         }
     });
 }
+
+function gen_debug_logs()
+{
+    var loading_el = document.getElementById('debug_loading');
+    var btn = document.getElementById('gen_debug_button');
+    var originalText = btn.value;
+    if (loading_el) { loading_el.style.display = 'inline'; }
+    if (btn) { btn.value = '<%:Generating...%>'; btn.disabled = true; }
+
+    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "gen_debug_logs")%>', null, function(x, status) {
+        if (loading_el) { loading_el.style.display = 'none'; }
+        if (btn) { btn.value = originalText; btn.disabled = false; }
+        dl.value = x.responseText || '<%:Some error occurred!%>';
+        if (typeof editor_debug !== 'undefined' && editor_debug) {
+            editor_debug.setValue(dl.value);
+        }
+        renderDebugView();
+    });
+
+    return;
+};
+
+function load_existing_debug_log()
+{
+    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "get_debug_logs")%>', null, function(x, status) {
+        if (x && x.status == 200 && x.responseText != "")
+        {
+            dl.value = x.responseText;
+            renderDebugView();
+        }
+        else
+        {
+            if (typeof markdown_editor === 'function' && dl) {
+                markdown_editor(dl, 'debug', true, '100%', '540px');
+            }
+        }
+    });
+};
 
 function line_tolocal(str) {
     var trans_local = new Array();
@@ -657,6 +757,12 @@ window.onload = function(){
     var titles = document.getElementsByName('tab-header');
     var divs = document.getElementsByClassName('dom');
     if(titles.length != divs.length) return;
+
+    var tc = document.getElementById('tab-content');
+    if (tc) tc.style.position = 'relative';
+
+    divs[0].classList.add('active');
+
     for(var i=0; i<titles.length; i++){
         var li = titles[i];
         li.id = i;
@@ -665,20 +771,10 @@ window.onload = function(){
                 if (tab.className === 'cbi-tab') return;
                 for(var j=0; j<titles.length; j++){
                     titles[j].className = 'cbi-tab-disabled';
-                    divs[j].style.display = 'none';
+                    divs[j].classList.remove('active');
                 }
                 tab.className = 'cbi-tab';
-                divs[tab.id].style.display = 'block';
-
-                if(tab.id == 0 && typeof editor_oc !== 'undefined') {
-                    setTimeout(function(){
-                        editor_oc.refresh();
-                    }, 10);
-                } else if(tab.id == 1 && typeof editor_core !== 'undefined') {
-                    setTimeout(function(){
-                        editor_core.refresh();
-                    }, 10);
-                }
+                divs[tab.id].classList.add('active');
             };
         }
 
@@ -687,7 +783,135 @@ window.onload = function(){
     }
     get_log_level();
     poll_log();
+    setTimeout(function() {
+        load_existing_debug_log();
+    }, 500);
 };
+
+function renderDebugView() {
+    var wrapper = document.getElementById('debug-render-wrapper');
+    var rendered = document.getElementById('debug-rendered');
+    if (!wrapper || !rendered) return;
+    var src = '';
+    if (typeof editor_debug !== 'undefined' && editor_debug) {
+        src = editor_debug.getValue();
+    } else if (dl) {
+        src = dl.value || '';
+    }
+    if (!src) return;
+
+    if (typeof editor_debug !== 'undefined' && editor_debug && editor_debug.dom) {
+        editor_debug.dom.style.setProperty('display', 'none', 'important');
+    }
+    var cms = dl.parentNode.querySelectorAll('.cm-editor');
+    for (var i = 0; i < cms.length; i++) {
+        cms[i].style.setProperty('display', 'none', 'important');
+    }
+
+    if (typeof CM6 !== 'undefined' && CM6.renderMarkdown) {
+        rendered.innerHTML = CM6.renderMarkdown(src);
+    } else {
+        rendered.innerHTML = src.replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');
+    }
+
+    var pres = rendered.querySelectorAll('pre');
+    for (var i = 0; i < pres.length; i++) {
+        (function(pre) {
+            if (pre.parentNode && pre.parentNode.classList.contains('pre-copy-wrap')) return;
+            var copyIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+            var checkIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+            var btn = document.createElement('div');
+            btn.className = 'pre-copy-btn';
+            btn.title = '<%:Copy%>';
+            btn.innerHTML = copyIcon;
+            btn.onclick = function(e) {
+                e.stopPropagation();
+                var text = pre.textContent || '';
+                var done = function() {
+                    btn.innerHTML = checkIcon;
+                    setTimeout(function() { btn.innerHTML = copyIcon; }, 1200);
+                };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(done).catch(function() {
+                        var ta = document.createElement('textarea');
+                        ta.value = text;
+                        ta.style.position = 'fixed'; ta.style.left = '-9999px';
+                        document.body.appendChild(ta);
+                        ta.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(ta);
+                        done();
+                    });
+                } else {
+                    var ta = document.createElement('textarea');
+                    ta.value = text;
+                    ta.style.position = 'fixed'; ta.style.left = '-9999px';
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    done();
+                }
+            };
+            var wrap = document.createElement('div');
+            wrap.className = 'pre-copy-wrap';
+            pre.parentNode.insertBefore(wrap, pre);
+            wrap.appendChild(pre);
+            wrap.appendChild(btn);
+        })(pres[i]);
+    }
+
+    wrapper.style.display = 'block';
+    dl.style.display = 'none';
+    if (dl.parentNode && dl.parentNode.className.indexOf('oc') < 0) {
+        dl.parentNode.classList.add('oc');
+    }
+    if (typeof isDarkBackground === 'function' && isDarkBackground(document.body)) {
+        dl.parentNode.setAttribute('data-darkmode', 'true');
+    } else {
+        dl.parentNode.removeAttribute('data-darkmode');
+    }
+}
+
+function copyDebugSource() {
+    var src = '';
+    if (typeof editor_debug !== 'undefined' && editor_debug) {
+        src = editor_debug.getValue();
+    } else if (dl) {
+        src = dl.value || '';
+    }
+    if (!src) return;
+    var done = function() {
+        var btn = document.getElementById('debug-copy-source');
+        if (btn) {
+            var orig = btn.innerHTML;
+            btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+            setTimeout(function() { btn.innerHTML = orig; }, 1500);
+        }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(src).then(done).catch(function() {
+            var ta = document.createElement('textarea');
+            ta.value = src;
+            ta.style.position = 'fixed'; ta.style.left = '-9999px';
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            done();
+        });
+    } else {
+        var ta = document.createElement('textarea');
+        ta.value = src;
+        ta.style.position = 'fixed'; ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        done();
+    }
+}
+
 //]]>
 </script>
 <%+cbi/valuefooter%>

@@ -333,3 +333,4 @@ sed -i "s/#delete_//g" "$CONFIG_FILE" 2>/dev/null
 
 /usr/share/openclash/yml_proxys_set.sh "$CONFIG_FILE" >/dev/null 2>&1
 del_lock
+
