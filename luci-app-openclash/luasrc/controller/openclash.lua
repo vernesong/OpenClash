@@ -190,9 +190,9 @@ local function coremodel()
 		return opkg.info("libc")["libc"]["Architecture"]
 	else
 		if fs.pkg_type() == "opkg" then
-			return luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
+			return luci.sys.exec("opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null")
 		else
-			return luci.sys.exec("rm -f /lib/apk/db/lock && apk list libc 2>/dev/null |awk '{print $2}'")
+			return luci.sys.exec("apk list libc 2>/dev/null |awk '{print $2}'")
 		end
 	end
 end
@@ -246,9 +246,9 @@ local function opcv()
 		v = info["luci-app-openclash"]["Version"]
 	else
 		if fs.pkg_type() == "opkg" then
-			v = luci.sys.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' |tr -d '\n'")
+			v = luci.sys.exec("opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' |tr -d '\n'")
 		else
-			v = luci.sys.exec("rm -f /lib/apk/db/lock && apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\\.[0-9]+)*' | head -1 |tr -d '\n'")
+			v = luci.sys.exec("apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\\.[0-9]+)*' | head -1 |tr -d '\n'")
 		end
 	end
 	if v and v ~= "" then

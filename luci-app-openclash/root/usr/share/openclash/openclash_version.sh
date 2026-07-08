@@ -35,9 +35,9 @@ version_compare() {
 DOWNLOAD_FILE="/tmp/openclash_last_version"
 RELEASE_BRANCH=$(uci_get_config "release_branch" || echo "master")
 if [ -x "/bin/opkg" ]; then
-   OP_CV=$(rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' 2>/dev/null)
+   OP_CV=$(opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' 2>/dev/null)
 elif [ -x "/usr/bin/apk" ]; then
-   OP_CV=$(rm -f /lib/apk/db/lock && apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 2>/dev/null)
+   OP_CV=$(apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 2>/dev/null)
 fi
 OP_LV=$(sed -n 1p "$DOWNLOAD_FILE" 2>/dev/null |sed "s/^v//g" |tr -d "\n")
 github_address_mod=$(uci_get_config "github_address_mod" || echo 0)

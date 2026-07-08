@@ -606,9 +606,9 @@ end
 function oc_version()
 	local v
 	if pkg_type() == "opkg" then
-		v = SYS.exec("rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep '^Version:' |awk '{print $2}' |tr -d '\n'")
+		v = SYS.exec("opkg status luci-app-openclash 2>/dev/null |grep '^Version:' |awk '{print $2}' |tr -d '\n'")
 	else
-		v = SYS.exec("rm -f /lib/apk/db/lock && apk info luci-app-openclash 2>/dev/null |grep '^luci-app-openclash-[0-9]' |sed 's/luci-app-openclash-//' |tr -d '\n'")
+		v = SYS.exec("apk info luci-app-openclash 2>/dev/null |grep '^luci-app-openclash-[0-9]' |sed 's/luci-app-openclash-//' |tr -d '\n'")
 	end
 	if v == "" then
 		v = "0"
