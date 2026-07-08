@@ -19,13 +19,16 @@ inc_job_counter
 
 if [ -n "$1" ] && [ "$1" != "one_key_update" ]; then
    /usr/share/openclash/openclash_version.sh "$1" 2>/dev/null
+   VERSION_CHECK_RESULT=$?
 elif [ -n "$2" ]; then
    /usr/share/openclash/openclash_version.sh "$2" 2>/dev/null
+   VERSION_CHECK_RESULT=$?
 else
    /usr/share/openclash/openclash_version.sh 2>/dev/null
+   VERSION_CHECK_RESULT=$?
 fi
 
-if [ ! -f "/tmp/openclash_last_version" ]; then
+if [ "$VERSION_CHECK_RESULT" -ne 0 ] || [ ! -f "/tmp/openclash_last_version" ]; then
    LOG_ERROR "Failed to get version information, please try again later..."
    SLOG_CLEAN
    dec_job_counter_and_restart "0"

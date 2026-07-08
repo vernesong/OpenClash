@@ -45,10 +45,12 @@ RELEASE_BRANCH=$(uci_get_config "release_branch" || echo "master")
 
 if [ "$github_address_mod" != "0" ]; then
    /usr/share/openclash/clash_version.sh "$github_address_mod" 2>/dev/null
+   VERSION_CHECK_RESULT=$?
 else
    /usr/share/openclash/clash_version.sh 2>/dev/null
+   VERSION_CHECK_RESULT=$?
 fi
-if [ ! -f "/tmp/clash_last_version" ]; then
+if [ "$VERSION_CHECK_RESULT" -ne 0 ] || [ ! -f "/tmp/clash_last_version" ]; then
    LOG_ERROR "【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
    SLOG_CLEAN
    del_lock

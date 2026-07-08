@@ -44,4 +44,13 @@ else
 fi
 
 DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "$DOWNLOAD_FILE" "$DOWNLOAD_FILE"
+DOWNLOAD_RESULT=$?
+
+if [ "$DOWNLOAD_RESULT" -ne 0 ] && [ "$DOWNLOAD_RESULT" -ne 2 ]; then
+   rm -f "$DOWNLOAD_FILE" >/dev/null 2>&1
+   del_lock
+   exit 1
+fi
+
 del_lock
+exit 0
