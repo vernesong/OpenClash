@@ -10,7 +10,6 @@ set_lock() {
 
 del_lock() {
    flock -u 881 2>/dev/null
-   rm -rf "/tmp/lock/openclash_history_get.lock" 2>/dev/null
 }
 
 close_all_conection() {

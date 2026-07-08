@@ -10,7 +10,6 @@ set_lock() {
 
 del_lock() {
    flock -u 887 2>/dev/null
-   rm -rf "/tmp/lock/openclash_groups_set.lock"
 }
 
 set_lock
@@ -329,4 +328,3 @@ sed -i "s/#delete_//g" "$CONFIG_FILE" 2>/dev/null
 
 /usr/share/openclash/yml_proxys_set.sh "$CONFIG_FILE" >/dev/null 2>&1
 del_lock
-

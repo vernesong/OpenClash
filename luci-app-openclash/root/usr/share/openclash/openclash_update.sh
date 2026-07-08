@@ -11,7 +11,6 @@ set_lock() {
 
 del_lock() {
    flock -u 878 2>/dev/null
-   rm -rf "/tmp/lock/openclash_update.lock" 2>/dev/null
 }
 
 set_lock
@@ -249,7 +248,6 @@ set_update_lock() {
 
 del_update_lock() {
    flock -u 879 2>/dev/null
-   rm -rf "$UPDATE_LOCK" 2>/dev/null
 }
 
 if ! set_update_lock; then

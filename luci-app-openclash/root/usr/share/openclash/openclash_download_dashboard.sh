@@ -11,7 +11,6 @@
 
    del_lock() {
       flock -u 871 2>/dev/null
-      rm -rf "/tmp/lock/openclash_dashboard.lock" 2>/dev/null
    }
 
    validate_dashboard_dir() {
