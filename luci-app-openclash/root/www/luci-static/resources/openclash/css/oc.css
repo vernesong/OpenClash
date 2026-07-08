@@ -1973,7 +1973,7 @@
     background: transparent;
     color: var(--text-secondary);
     font-size: inherit;
-    line-height: inherit;
+    line-height: 15px;
     box-sizing: border-box;
     word-break: break-word;
 }
@@ -2007,6 +2007,14 @@
 
 .oc .subconverter-version-status[data-state="error"] {
     color: var(--error-color);
+}
+
+[data-page^="admin-services-openclash-config-subscribe-edit"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node[id^="cbi-openclash-"] {
+    padding-top: 14px;
+}
+
+[data-page^="admin-services-openclash-config-subscribe-edit"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) textarea.cbi-input-textarea {
+    vertical-align: top;
 }
 
 .oc .filename-input-container {
