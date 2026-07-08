@@ -27,6 +27,7 @@ CRON_FILE="/etc/crontabs/root"
 CACHE_PATH="/etc/openclash/cache.db"
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
+START_ID_FILE="/tmp/openclash_start_id"
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
 QUICK_START_CHECK=false
@@ -323,10 +324,32 @@ EOF
 
 } >/dev/null 2>&1
 
+set_lifecycle_lock()
+{
+   mkdir -p /tmp/lock 2>/dev/null
+   exec 867>"/tmp/lock/openclash_lifecycle.lock" 2>/dev/null
+   flock -x 867 2>/dev/null
+}
+
+del_lifecycle_lock()
+{
+   flock -u 867 2>/dev/null
+}
+
 start_fail()
 {
+   local check_start_id="${CHECK_START_ID:-}"
+   local current_start_id
+   if [ -n "$check_start_id" ]; then
+      current_start_id="$(cat "$START_ID_FILE" 2>/dev/null)"
+      if [ "$current_start_id" != "$check_start_id" ]; then
+         LOG_WARN "Skip Stale Core Status Failure..."
+         exit 0
+      fi
+   fi
    uci -q set openclash.config.enable=0
    uci -q commit openclash
+   del_lifecycle_lock
    stop
    exit 0
 }
@@ -705,6 +728,7 @@ check_mod()
 
 check_core_status()
 {
+   CHECK_START_ID="$2"
    TUN_WAIT=0
    TUN_RESTART=1
    CORE_WAIT=0
@@ -3595,9 +3619,19 @@ start_service()
    enable=$(uci_get_config "enable")
    [ "$enable" != "1" ] && LOG_WARN "OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && exit 0
 
-   if procd_running "openclash" >/dev/null; then
+   set_lifecycle_lock
+
+   if procd_running "openclash" "openclash" >/dev/null; then
       LOG_TIP "OpenClash Already Running, Exit..."
+      del_lifecycle_lock
       exit 0
+   fi
+
+   OPENCLASH_START_ID="$$-$(date +%s)"
+   if ! echo "$OPENCLASH_START_ID" > "$START_ID_FILE"; then
+      LOG_WARN "Write OpenClash Start State Failed, Exit..."
+      del_lifecycle_lock
+      exit 1
    fi
 
    LOG_TIP "OpenClash Start Running..."
@@ -3710,7 +3744,10 @@ start_service()
       add_cron
 
       LOG_OUT "Step 6: Core Status Checking and Firewall Rules Setting..."
-      check_core_status "start" &
+      (
+         exec 867>&- 2>/dev/null
+         check_core_status "start" "$OPENCLASH_START_ID"
+      ) &
 
       if [ "$ipv6_enable" -eq 0 ] && [ "$(uci -q get dhcp.lan.dhcpv6)" != "disabled" ] && [ -n "$(uci -q get dhcp.lan.dhcpv6)" ]; then
          LOG_WARN "Please Note That Network May Abnormal With IPv6's DHCP Server"
@@ -3719,11 +3756,15 @@ start_service()
       rm -rf /tmp/yaml_*
    }
 
+   del_lifecycle_lock
    echo "OpenClash Already Start!"
 }
 
 stop_service()
 {
+   set_lifecycle_lock
+   rm -f "$START_ID_FILE"
+
    get_config
 
    LOG_TIP "OpenClash Stoping..."
@@ -3778,6 +3819,7 @@ stop_service()
       rm -rf /tmp/yaml_*
    } >/dev/null 2>&1
 
+   del_lifecycle_lock
    echo "OpenClash Already Stop!"
 }
 

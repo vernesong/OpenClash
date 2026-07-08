@@ -208,7 +208,7 @@ do
 done >/dev/null 2>&1
 
 #check the clash service status
-if ! ubus call service list '{"name":"openclash"}' 2>/dev/null | jsonfilter -e '@.openclash.instances.*.running' | grep -q 'true'; then
+if ! ubus call service list '{"name":"openclash"}' 2>/dev/null | jsonfilter -e '@.openclash.instances.openclash.running' | grep -q 'true'; then
    uci -q set openclash.config.enable=0
    uci -q commit openclash
    /etc/init.d/openclash stop >/dev/null 2>&1
