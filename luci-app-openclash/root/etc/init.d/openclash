@@ -27,6 +27,7 @@ CRON_FILE="/etc/crontabs/root"
 CACHE_PATH="/etc/openclash/cache.db"
 LOG_FILE="/tmp/openclash.log"
 START_LOG="/tmp/openclash_start.log"
+START_ID_FILE="/tmp/openclash_start_id"
 PROXY_FWMARK="0x162"
 PROXY_ROUTE_TABLE="0x162"
 QUICK_START_CHECK=false
@@ -325,6 +326,15 @@ EOF
 
 start_fail()
 {
+   local check_start_id="${CHECK_START_ID:-}"
+   local current_start_id
+   if [ -n "$check_start_id" ]; then
+      current_start_id="$(cat "$START_ID_FILE" 2>/dev/null)"
+      if [ "$current_start_id" != "$check_start_id" ]; then
+         LOG_WARN "Skip Stale Core Status Failure..."
+         exit 0
+      fi
+   fi
    uci -q set openclash.config.enable=0
    uci -q commit openclash
    stop
@@ -705,6 +715,7 @@ check_mod()
 
 check_core_status()
 {
+   CHECK_START_ID="$2"
    TUN_WAIT=0
    TUN_RESTART=1
    CORE_WAIT=0
@@ -3600,6 +3611,9 @@ start_service()
       exit 0
    fi
 
+   OPENCLASH_START_ID="$$-$(date +%s)"
+   echo "$OPENCLASH_START_ID" > "$START_ID_FILE"
+
    LOG_TIP "OpenClash Start Running..."
 
    {
@@ -3710,7 +3724,7 @@ start_service()
       add_cron
 
       LOG_OUT "Step 6: Core Status Checking and Firewall Rules Setting..."
-      check_core_status "start" &
+      check_core_status "start" "$OPENCLASH_START_ID" &
 
       if [ "$ipv6_enable" -eq 0 ] && [ "$(uci -q get dhcp.lan.dhcpv6)" != "disabled" ] && [ -n "$(uci -q get dhcp.lan.dhcpv6)" ]; then
          LOG_WARN "Please Note That Network May Abnormal With IPv6's DHCP Server"
@@ -3745,6 +3759,7 @@ stop_service()
          fi
       done
       # prevent respawn during stopping
+      rm -f "$START_ID_FILE"
       procd_kill "openclash"
       for i in $(seq 1 10); do
          procd_running "openclash" >/dev/null && sleep 1 || break
