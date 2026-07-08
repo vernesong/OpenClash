@@ -199,13 +199,14 @@ set_provider_groups()
 yml_groups_set()
 {
    local section="$1"
-   local enabled config type name disable_udp strategy old_name test_url test_interval tolerance policy_filter uselightgbm collectdata policy_priority other_parameters icon
+   local enabled config type name disable_udp strategy strategy_smart old_name test_url test_interval tolerance policy_filter uselightgbm collectdata policy_priority other_parameters icon
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "config" "$section" "config" ""
    config_get "type" "$section" "type" ""
    config_get "name" "$section" "name" ""
    config_get "disable_udp" "$section" "disable_udp" ""
    config_get "strategy" "$section" "strategy" ""
+   config_get "strategy_smart" "$section" "strategy_smart" ""
    config_get "old_name" "$section" "old_name" ""
    config_get "test_url" "$section" "test_url" ""
    config_get "test_interval" "$section" "test_interval" ""
@@ -298,6 +299,9 @@ yml_groups_set()
    }
 
    if [ "$type" = "smart" ]; then
+      [ "$strategy_smart" = "sticky-sessions" ] && {
+         echo "    strategy: $strategy_smart" >>$GROUP_FILE
+      }
       [ -n "$uselightgbm" ] && {
          echo "    uselightgbm: $uselightgbm" >>$GROUP_FILE
       }
