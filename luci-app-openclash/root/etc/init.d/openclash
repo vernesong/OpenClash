@@ -3595,7 +3595,7 @@ start_service()
    enable=$(uci_get_config "enable")
    [ "$enable" != "1" ] && LOG_WARN "OpenClash Now Disabled, Need Start From Luci Page, Exit..." && SLOG_CLEAN && exit 0
 
-   if procd_running "openclash" >/dev/null; then
+   if procd_running "openclash" "openclash" >/dev/null; then
       LOG_TIP "OpenClash Already Running, Exit..."
       exit 0
    fi
