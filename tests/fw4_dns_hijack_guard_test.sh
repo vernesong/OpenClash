@@ -64,4 +64,39 @@ assert_status 0 fw4_has_dns_hijack_rule dstnat ipv6
 assert_status 1 fw4_has_dns_hijack_rule nat_output ipv4
 assert_status 0 fw4_has_dns_hijack_rule nat_output ipv6
 
+assert_nat_output_insert_guarded() {
+  family="$1"
+  insert_text="$2"
+
+  awk -v family="$family" -v insert_text="$insert_text" '
+    $0 ~ "fw4_has_dns_hijack_rule nat_output " family {
+      guard_window = 5
+    }
+    $0 ~ "nft insert rule inet fw4 nat_output" && index($0, insert_text) && $0 ~ "OpenClash DNS Hijack" {
+      seen++
+      if (guard_window <= 0) {
+        print "nat_output DNS insert is not guarded for " family ": " $0 > "/dev/stderr"
+        bad = 1
+      }
+    }
+    {
+      if (guard_window > 0) {
+        guard_window--
+      }
+    }
+    END {
+      if (seen != 2) {
+        print "expected two guarded nat_output DNS inserts for " family ", got " seen > "/dev/stderr"
+        exit 1
+      }
+      if (bad) {
+        exit 1
+      }
+    }
+  ' "$INIT_SCRIPT"
+}
+
+assert_nat_output_insert_guarded ipv4 'ip daddr {127.0.0.1}'
+assert_nat_output_insert_guarded ipv6 'ip6 daddr {::/0}'
+
 echo "fw4_dns_hijack_guard_test.sh: PASS"

@@ -1351,7 +1351,7 @@ if [ -n "$FW4" ]; then
             nft insert rule inet fw4 dstnat position 0 meta l4proto {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
          fi
       fi
-      if [ "$router_self_proxy" = 1 ]; then
+      if [ "$router_self_proxy" = 1 ] && ! fw4_has_dns_hijack_rule nat_output ipv4; then
          nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
          nft insert rule inet fw4 nat_output position 0 skgid != 65534 meta l4proto {tcp,udp} th dport 53 ip daddr {127.0.0.1} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
       fi
@@ -1373,7 +1373,7 @@ if [ -n "$FW4" ]; then
          nft add rule inet fw4 openclash_dns_redirect meta l4proto {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
       fi
       nft 'insert rule inet fw4 dstnat position 0 meta l4proto {tcp,udp} th dport 53 counter jump openclash_dns_redirect'
-      if [ "$router_self_proxy" = 1 ]; then
+      if [ "$router_self_proxy" = 1 ] && ! fw4_has_dns_hijack_rule nat_output ipv4; then
          nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
          nft insert rule inet fw4 nat_output position 0 meta l4proto {tcp,udp} th dport 53 ip daddr {127.0.0.1} meta skgid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
       fi
@@ -1696,8 +1696,8 @@ if [ -n "$FW4" ]; then
          fi
       fi
 
-      if ! fw4_has_dns_hijack_rule dstnat ipv6; then
-         if [ "$enable_redirect_dns" -eq 1 ]; then
+      if [ "$enable_redirect_dns" -eq 1 ]; then
+         if ! fw4_has_dns_hijack_rule dstnat ipv6; then
             if [ "$lan_ac_mode" != "1" ]; then
                ACBLACKDNSFILTER=""
                if [ "$lan_ac_mode" = "0" ]; then
@@ -1713,11 +1713,13 @@ if [ -n "$FW4" ]; then
                nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ip6 saddr @lan_ac_white_ipv6s counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
                nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
             fi
-            if [ "$router_self_proxy" = 1 ]; then
-               nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
-               nft insert rule inet fw4 nat_output position 0 skgid != 65534 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ip6 daddr {::/0} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
-            fi
-         elif [ "$enable_redirect_dns" -eq 2 ]; then
+         fi
+         if [ "$router_self_proxy" = 1 ] && ! fw4_has_dns_hijack_rule nat_output ipv6; then
+            nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
+            nft insert rule inet fw4 nat_output position 0 skgid != 65534 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ip6 daddr {::/0} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+         fi
+      elif [ "$enable_redirect_dns" -eq 2 ]; then
+         if ! fw4_has_dns_hijack_rule dstnat ipv6; then
             if [ "$lan_ac_mode" != "1" ]; then
                ACBLACKDNSFILTER=""
                if [ "$lan_ac_mode" = "0" ]; then
@@ -1734,10 +1736,10 @@ if [ -n "$FW4" ]; then
                nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
             fi
             nft 'insert rule inet fw4 dstnat position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 counter jump openclash_dns_redirect'
-            if [ "$router_self_proxy" = 1 ]; then
-               nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
-               nft insert rule inet fw4 nat_output position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ip6 daddr {::/0} meta skgid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
-            fi
+         fi
+         if [ "$router_self_proxy" = 1 ] && ! fw4_has_dns_hijack_rule nat_output ipv6; then
+            nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
+            nft insert rule inet fw4 nat_output position 0 meta nfproto {ipv6} ip6 nexthdr {tcp,udp} th dport 53 ip6 daddr {::/0} meta skgid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
          fi
       fi
 
