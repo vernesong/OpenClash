@@ -313,7 +313,7 @@ fi
       if [ -f "$upnp_lease_file" ]; then
          #del
          if [ -n "$FW4" ]; then
-            for i in `$(nft list chain inet fw4 openclash_upnp |grep "return")`
+            nft list chain inet fw4 openclash_upnp 2>/dev/null |grep "return" |while read -r i
             do
                upnp_ip=$(echo "$i" |awk -F 'ip saddr ' '{print $2}' |awk  '{print $1}')
                upnp_dp=$(echo "$i" |awk -F 'sport ' '{print $2}' |awk  '{print $1}')
@@ -326,7 +326,7 @@ fi
                fi
             done >/dev/null 2>&1
          else
-            for i in `$(iptables -t mangle -nL openclash_upnp |grep "RETURN")`
+            iptables -t mangle -nL openclash_upnp 2>/dev/null |grep "RETURN" |while read -r i
             do
                upnp_ip=$(echo "$i" |awk '{print $4}')
                upnp_dp=$(echo "$i" |awk -F 'spt:' '{print $2}')
@@ -339,7 +339,7 @@ fi
             done >/dev/null 2>&1
          fi
          #add
-         if [ -s "$upnp_lease_file" ] && [ -n "$(iptables --line-numbers -t nat -xnvL openclash_upnp 2>/dev/null)"] || [ -n "$(nft list chain inet fw4 openclash_upnp 2>/dev/null)"]; then
+         if [ -s "$upnp_lease_file" ] && { { [ -z "$FW4" ] && [ -n "$(iptables --line-numbers -t mangle -xnvL openclash_upnp 2>/dev/null)" ]; } || { [ -n "$FW4" ] && [ -n "$(nft list chain inet fw4 openclash_upnp 2>/dev/null)" ]; }; }; then
             cat "$upnp_lease_file" |while read -r line
             do
                if [ -n "$line" ]; then

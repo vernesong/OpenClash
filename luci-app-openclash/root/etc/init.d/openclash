@@ -565,7 +565,7 @@ do_run_file()
 
    ln -s "$meta_core_path" /etc/openclash/clash
 
-   if [ -n "$OIX_TOKEN" ]; then
+   if [ -n "$OIX_TOKEN" ] || [ "$core_type" == "Oix" ]; then
       core_type="Oix"
    elif [ "$smart_enable" -eq 1 ] || [ "$core_type" == "Smart" ]; then
       core_type="Smart"
@@ -917,6 +917,21 @@ ipv6_suffix_to_nft_format()
    echo "& ${suffix} == ${addr}"
 } 2>/dev/null
 
+fw4_has_dns_hijack_rule()
+{
+   local chain="$1"
+   local family="$2"
+
+   case "$family" in
+      ipv6)
+         nft list chain inet fw4 "$chain" 2>/dev/null |grep 'OpenClash DNS Hijack' |grep -Eq 'meta nfproto[[:space:]]+\{?ipv6\}?|meta nfproto[[:space:]]+ipv6|ip6 nexthdr'
+      ;;
+      *)
+         nft list chain inet fw4 "$chain" 2>/dev/null |grep 'OpenClash DNS Hijack' |grep -Evq 'meta nfproto[[:space:]]+\{?ipv6\}?|meta nfproto[[:space:]]+ipv6|ip6 nexthdr'
+      ;;
+   esac
+}
+
 firewall_lan_ac_traffic()
 {
    local src_port sport_rule dscp_rule sport_ipt dscp_ipt src_ip src_ip_v6 proto target target_ enabled family dscp rule output_rule comment
@@ -1145,7 +1160,7 @@ EOF
 #common ports
 if [ -n "$common_ports" ] && [ "$common_ports" != "0" ]; then
    if [ "$common_ports" = "1" ]; then
-      common_port="21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 5222 5228 5229 5230 8080 8443 8880 8888 8889"
+      common_port="21 22 23 53 80 123 143 194 443 465 587 853 993 995 998 2052 2053 2082 2083 2086 2095 2096 2197 5222 5223 5228 5229 5230 8080 8443 8880 8888 8889"
    else
       common_port=$common_ports
    fi
@@ -1319,7 +1334,7 @@ if [ -n "$FW4" ]; then
    fi
 
    if [ "$enable_redirect_dns" -eq 1 ]; then
-      if [ -z "$(nft list chain inet fw4 dstnat |grep 'OpenClash DNS Hijack')" ]; then
+      if ! fw4_has_dns_hijack_rule dstnat ipv4; then
          if [ "$lan_ac_mode" != "1" ]; then
             ACBLACKDNSFILTER=""
             if [ "$lan_ac_mode" = "0" ]; then
@@ -1681,7 +1696,7 @@ if [ -n "$FW4" ]; then
          fi
       fi
 
-      if [ -z "$(nft list chain inet fw4 dstnat |grep 'OpenClash DNS Hijack')" ]; then
+      if ! fw4_has_dns_hijack_rule dstnat ipv6; then
          if [ "$enable_redirect_dns" -eq 1 ]; then
             if [ "$lan_ac_mode" != "1" ]; then
                ACBLACKDNSFILTER=""

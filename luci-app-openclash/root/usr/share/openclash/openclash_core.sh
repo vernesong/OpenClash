@@ -63,9 +63,9 @@ else
    mkdir -p /tmp/etc/openclash/core
 fi
 
-CORE_CV=$($meta_core_path -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1)
-TMP_FILE="/tmp/clash_meta"
 TARGET_CORE_PATH="$meta_core_path"
+CORE_CV=$($TARGET_CORE_PATH -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1)
+TMP_FILE="${TARGET_CORE_PATH}.new.$$"
 
 if [ "$CORE_TYPE" = "Oix" ]; then
    CORE_URL_PATH=""
@@ -149,7 +149,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                   fi
                fi
 
-               mv "$TMP_FILE" "$TARGET_CORE_PATH" >/dev/null 2>&1
+               mv -f "$TMP_FILE" "$TARGET_CORE_PATH" >/dev/null 2>&1
 
                if [ "$?" == "0" ]; then
                   LOG_TIP "【"$CORE_TYPE"】Core Update Successful!"
