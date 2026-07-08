@@ -11,7 +11,6 @@ set_lock() {
 
 del_lock() {
    flock -u 886 2>/dev/null
-   rm -rf "/tmp/lock/openclash_proxies_set.lock"
 }
 
 SERVER_FILE="/tmp/yaml_servers.yaml"

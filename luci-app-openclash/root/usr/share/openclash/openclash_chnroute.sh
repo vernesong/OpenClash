@@ -11,7 +11,6 @@ set_lock() {
 
 del_lock() {
    flock -u 879 2>/dev/null
-   rm -rf "/tmp/lock/openclash_chn.lock" 2>/dev/null
 }
 
 set_lock

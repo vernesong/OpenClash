@@ -9,7 +9,6 @@ set_lock() {
 
 del_lock() {
    flock -u 869 2>/dev/null
-   rm -rf "/tmp/lock/openclash_version.lock" 2>/dev/null
 }
 
 set_lock
@@ -35,9 +34,9 @@ version_compare() {
 DOWNLOAD_FILE="/tmp/openclash_last_version"
 RELEASE_BRANCH=$(uci_get_config "release_branch" || echo "master")
 if [ -x "/bin/opkg" ]; then
-   OP_CV=$(rm -f /var/lock/opkg.lock && opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' 2>/dev/null)
+   OP_CV=$(opkg status luci-app-openclash 2>/dev/null |grep 'Version' |awk -F 'Version: ' '{print $2}' 2>/dev/null)
 elif [ -x "/usr/bin/apk" ]; then
-   OP_CV=$(rm -f /lib/apk/db/lock && apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 2>/dev/null)
+   OP_CV=$(apk list luci-app-openclash 2>/dev/null|grep 'installed' | grep -oE '[0-9]+(\.[0-9]+)*' | head -1 2>/dev/null)
 fi
 OP_LV=$(sed -n 1p "$DOWNLOAD_FILE" 2>/dev/null |sed "s/^v//g" |tr -d "\n")
 github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
@@ -56,12 +55,18 @@ else
 fi
 
 DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "$DOWNLOAD_FILE" "$DOWNLOAD_FILE"
+DOWNLOAD_RESULT=$?
 
-if [ "$?" -eq 0 ]; then
-   OP_LV=$(sed -n 1p $DOWNLOAD_FILE 2>/dev/null |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
-   if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ -f "$DOWNLOAD_FILE" ]; then
-      sed -i '/^https:/,$d' $DOWNLOAD_FILE
-   fi
+if [ "$DOWNLOAD_RESULT" -ne 0 ] && { [ "$DOWNLOAD_RESULT" -ne 2 ] || [ ! -f "$DOWNLOAD_FILE" ]; }; then
+   rm -f "$DOWNLOAD_FILE" >/dev/null 2>&1
+   del_lock
+   exit 1
+fi
+
+OP_LV=$(sed -n 1p "$DOWNLOAD_FILE" 2>/dev/null |awk -F 'v' '{print $2}' |awk -F '.' '{print $2$3}' 2>/dev/null)
+if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ -f "$DOWNLOAD_FILE" ]; then
+   sed -i '/^https:/,$d' "$DOWNLOAD_FILE"
 fi
 
 del_lock
+exit 0

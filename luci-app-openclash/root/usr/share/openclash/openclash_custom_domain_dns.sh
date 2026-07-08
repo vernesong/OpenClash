@@ -9,7 +9,6 @@ set_lock() {
 
 del_lock() {
    flock -u 883 2>/dev/null
-   rm -rf "/tmp/lock/openclash_cus_domian.lock"
 }
 
 set_lock

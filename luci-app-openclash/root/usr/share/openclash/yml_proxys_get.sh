@@ -10,7 +10,6 @@ set_lock() {
 
 del_lock() {
    flock -u 875 2>/dev/null
-   rm -rf "/tmp/lock/openclash_proxies_get.lock"
 }
 
 CONFIG_FILE=$(uci_get_config "config_path")
