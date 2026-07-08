@@ -9,6 +9,14 @@ local HTTP = require "luci.http"
 local DISP = require "luci.dispatcher"
 local sid = arg[1]
 local age_section
+local backend_version_status = [[
+<div class="oc">
+	<div id="subconverter-version-status-cbi" class="subconverter-version-status" data-state="idle" hidden>
+		<span class="subconverter-version-label"></span>
+		<span class="subconverter-version-text"></span>
+	</div>
+</div>
+]]
 
 font_red = [[<b style=color:red>]]
 font_off = [[</b>]]
@@ -197,7 +205,7 @@ o.default = 0
 ---- Convert Address
 o = s:option(Value, "convert_address", translate("Convert Address"))
 o.rmempty = true
-o.description = font_red..bold_on..translate("Note: There is A Risk of Privacy Leakage in Online Convert")..bold_off..font_off
+o.description = backend_version_status..font_red..bold_on..translate("Note: There is A Risk of Privacy Leakage in Online Convert")..bold_off..font_off
 o:depends("sub_convert", "1")
 o:value("https://api.asailor.org/sub", translate("api.asailor.org"))
 o:value("https://api.wcc.best/sub", translate("api.wcc.best"))
@@ -331,4 +339,5 @@ o.write = function()
 end
 
 m:append(Template("openclash/toolbar_show"))
+m:append(Template("openclash/subconverter_version"))
 return m

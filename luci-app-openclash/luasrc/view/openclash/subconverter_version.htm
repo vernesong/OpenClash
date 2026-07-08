@@ -1,0 +1,37 @@
+<div class="oc-subconverter-version-loader" hidden></div>
+<script src="/luci-static/resources/openclash/js/subconverter-version.js"></script>
+<script type="text/javascript">//<![CDATA[
+document.addEventListener('DOMContentLoaded', function() {
+	var attempts = 0;
+
+	function initSubconverterVersionStatus() {
+		var selectSelector = 'div[id$=".convert_address"].cbi-dropdown, select[name$=".convert_address"], input[name$=".convert_address"]';
+		var select = document.querySelector(selectSelector);
+		var status = document.getElementById('subconverter-version-status-cbi');
+
+		if (!window.OpenClashSubconverterVersion || !select || !status) {
+			if (attempts++ < 50) window.setTimeout(initSubconverterVersionStatus, 100);
+			return;
+		}
+
+		window.OpenClashSubconverterVersion.init({
+			select: selectSelector,
+			enable: document.querySelector('input[type="checkbox"][name$=".sub_convert"]'),
+			status: status,
+			watchRoot: status.closest ? status.closest('.cbi-value') : null,
+			watchDocument: true,
+			proxyURL: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "subconverter_version")%>',
+			labels: {
+				checking: '<%:Checking backend version...%>',
+				versionPrefix: '<%:Backend Version%>',
+				empty: '<%:Please enter backend URL%>',
+				invalid: '<%:Invalid backend URL%>',
+				unrecognized: '<%:Backend version information not detected%>',
+				failed: '<%:Unable to detect backend version%>'
+			}
+		});
+	}
+
+	initSubconverterVersionStatus();
+});
+//]]></script>

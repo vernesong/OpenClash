@@ -1,4 +1,5 @@
 <div class="oc">
+    <script src="/luci-static/resources/openclash/js/subconverter-version.js"></script>
     <div class="config-upload-model-overlay" id="config-upload-overlay">
         <div class="config-upload-model" id="config-upload-model">
             <div class="config-upload-header">
@@ -117,6 +118,10 @@
                                         </select>
                                     </div>
                                     <input type="text" id="convert-address-custom" placeholder="<%:Enter custom convert address%>" class="form-input" style="display: none; margin-top: 8px;" />
+                                    <div id="subconverter-version-status-upload" class="subconverter-version-status" data-state="idle" hidden>
+                                        <span class="subconverter-version-label"></span>
+                                        <span class="subconverter-version-text"></span>
+                                    </div>
                                     <div class="form-help"><%:Note: There is A Risk of Privacy Leakage in Online Convert%></div>
                                 </div>
 
@@ -473,6 +478,7 @@ var ConfigUploader = {
     isProcessing: false,
     currentMode: 'file',
     onSuccess: '',
+    subconverterVersionChecker: null,
     _linkRe: /^(?:https?:\/\/\S+|[a-zA-Z]+:\/\/\S+|[^,\s]+,https?:\/\/\S+|[^%\s]+%2Chttps?%3A%2F%2F\S+)$/i,
 
     init: function() {
@@ -547,6 +553,25 @@ var ConfigUploader = {
         var advancedOptionsEnableFile = document.getElementById('advanced-options-enable-file');
         var advancedOptionsContainerFile = document.getElementById('advanced-options-container-file');
         var ageFormNode = document.getElementById('age-encryption-group');
+        var subVersionStatus = document.getElementById('subconverter-version-status-upload');
+
+        if (window.OpenClashSubconverterVersion && subVersionStatus) {
+            this.subconverterVersionChecker = window.OpenClashSubconverterVersion.init({
+                select: convertAddressSelect,
+                customInput: convertAddressCustom,
+                enable: subConvertEnable,
+                status: subVersionStatus,
+                proxyURL: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "subconverter_version")%>',
+                labels: {
+                    checking: '<%:Checking backend version...%>',
+                    versionPrefix: '<%:Backend Version%>',
+                    empty: '<%:Please enter backend URL%>',
+                    invalid: '<%:Invalid backend URL%>',
+                    unrecognized: '<%:Backend version information not detected%>',
+                    failed: '<%:Unable to detect backend version%>'
+                }
+            });
+        }
 
         subscribeUrlInput.addEventListener('input', function() {
             self.autoFillConfigName();
@@ -595,11 +620,13 @@ var ConfigUploader = {
 
         subConvertEnable.addEventListener('change', function() {
             subConvertOptions.style.display = this.checked ? 'block' : 'none';
+            self.updateSubconverterVersionStatus();
             self.updateSubmitButton();
         });
 
         convertAddressSelect.addEventListener('change', function() {
             convertAddressCustom.style.display = this.value === 'custom' ? 'block' : 'none';
+            self.updateSubconverterVersionStatus();
         });
 
         templateSelect.addEventListener('change', function() {
@@ -793,6 +820,12 @@ var ConfigUploader = {
         this.reset();
     },
 
+    updateSubconverterVersionStatus: function() {
+        if (this.subconverterVersionChecker) {
+            this.subconverterVersionChecker.update();
+        }
+    },
+
     resetAdvancedOptions: function() {
         document.getElementById('sub-convert-enable').checked = false;
         document.getElementById('sub-convert-options').style.display = 'none';
@@ -828,6 +861,7 @@ var ConfigUploader = {
         if (advFileEnable) advFileEnable.checked = false;
         var advFileContainer = document.getElementById('advanced-options-container-file');
         if (advFileContainer) advFileContainer.style.display = 'none';
+        if (this.subconverterVersionChecker) this.subconverterVersionChecker.hide();
     },
 
     reset: function() {
@@ -963,6 +997,8 @@ var ConfigUploader = {
                 }
             }
         }
+
+        this.updateSubconverterVersionStatus();
     },
 
     switchMode: function(mode) {

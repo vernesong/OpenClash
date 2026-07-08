@@ -4064,3 +4064,21 @@ msgstr "Nota: oixCloud requiere la instalación de un núcleo específico; OpenC
 
 msgid "After the core start, an oixCloud nodes provider will be added, which you can customize as needed"
 msgstr "Tras iniciar el núcleo se añadirá un proveedor de nodos oixCloud que puedes personalizar"
+
+msgid "Checking backend version..."
+msgstr "Comprobando la versión del backend..."
+
+msgid "Backend Version"
+msgstr "Versión del backend"
+
+msgid "Please enter backend URL"
+msgstr "Introduce la URL del backend"
+
+msgid "Invalid backend URL"
+msgstr "URL del backend no válida"
+
+msgid "Backend version information not detected"
+msgstr "No se detectó información de versión del backend"
+
+msgid "Unable to detect backend version"
+msgstr "No se pudo detectar la versión del backend"

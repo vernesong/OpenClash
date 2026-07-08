@@ -4071,3 +4071,21 @@ msgstr "注意：oixCloud 需要安装专用内核才能使用，插件会自动
 
 msgid "After the core start, an oixCloud nodes provider will be added, which you can customize as needed"
 msgstr "专用内核启动后，会添加一个 oixCloud 节点组到配置文件，供您自定义使用"
+
+msgid "Checking backend version..."
+msgstr "正在检测后端版本..."
+
+msgid "Backend Version"
+msgstr "后端版本"
+
+msgid "Please enter backend URL"
+msgstr "请输入后端地址"
+
+msgid "Invalid backend URL"
+msgstr "后端地址格式无效"
+
+msgid "Backend version information not detected"
+msgstr "未识别到后端版本信息"
+
+msgid "Unable to detect backend version"
+msgstr "无法检测后端版本"

@@ -96,6 +96,7 @@ function index()
 	entry({"admin", "services", "openclash", "config_file_save"}, call("action_config_file_save"))
 	entry({"admin", "services", "openclash", "upload_config"}, call("action_upload_config"))
 	entry({"admin", "services", "openclash", "add_subscription"}, call("action_add_subscription"))
+	entry({"admin", "services", "openclash", "subconverter_version"}, call("action_subconverter_version"))
 	entry({"admin", "services", "openclash", "generate_age_key"}, call("action_generate_age_key"))
 	entry({"admin", "services", "openclash", "cal_age_public_key"}, call("action_cal_age_public_key"))
 	entry({"admin", "services", "openclash", "add_age_config"}, call("action_add_age_config"))
@@ -114,6 +115,7 @@ end
 
 local fs = require "luci.openclash"
 local json = require "luci.jsonc"
+local util = require "luci.util"
 local uci = require("luci.model.uci").cursor()
 local datatype = require "luci.cbi.datatypes"
 local opkg
@@ -203,6 +205,55 @@ local function check_core()
 	else
 		return "1"
 	end
+end
+
+local function parse_subconverter_version_url(raw_url)
+	raw_url = (raw_url or ""):gsub("^%s+", ""):gsub("%s+$", "")
+	if raw_url == "" then return nil, "empty" end
+	if not raw_url:match("^[a-zA-Z][a-zA-Z0-9+%.%-]*://") then
+		raw_url = "https://" .. raw_url
+	end
+
+	local scheme, authority, path = raw_url:match("^(https?)://([^/?#]+)([^?#]*)")
+	if not scheme or not authority then return nil, "invalid" end
+	if authority:find("@", 1, true) then return nil, "invalid" end
+	if authority:match("%s") then return nil, "invalid" end
+	if raw_url:find("?", 1, true) or raw_url:find("#", 1, true) then return nil, "invalid" end
+
+	local host, port
+	if authority:sub(1, 1) == "[" then
+		host, port = authority:match("^(%[[0-9a-fA-F:%.]+%]):?(%d*)$")
+	else
+		host, port = authority:match("^([^:]+):?(%d*)$")
+	end
+	if not host or host == "" then return nil, "invalid" end
+	if port and port ~= "" then
+		port = tonumber(port)
+		if not port or port < 1 or port > 65535 then return nil, "invalid" end
+	end
+
+	path = (path and path ~= "") and path or "/"
+	if path ~= "/version" and not path:match("/version$") then return nil, "invalid" end
+
+	return scheme .. "://" .. authority .. path
+end
+
+local function sanitize_subconverter_version_text(text)
+	text = tostring(text or ""):gsub("\r", "\n")
+	local lines = {}
+	for line in text:gmatch("[^\n]+") do
+		line = line:gsub("^%s+", ""):gsub("%s+$", "")
+		if line ~= "" then lines[#lines + 1] = line end
+	end
+	text = table.concat(lines, " "):gsub("%s+", " "):gsub("^%s+", ""):gsub("%s+$", "")
+	if text == "" or #text > 220 then return "" end
+	if text:match("<%s*/?%s*[%a!][^>]*>") then
+		return ""
+	end
+	if not text:lower():match("subconverter") and not text:lower():match("backend") and not text:lower():match("version") and not text:match("v?%d+%.%d+") then
+		return ""
+	end
+	return text
 end
 
 local function coremetacv()
@@ -4056,6 +4107,35 @@ function action_get_subscribe_info_data()
 	end
 	luci.http.prepare_content("application/json")
 	luci.http.write_json(get_sub_url(filename))
+end
+
+function action_subconverter_version()
+	local raw_url = luci.http.formvalue("url") or ""
+	local version_url, err = parse_subconverter_version_url(raw_url)
+	luci.http.prepare_content("application/json")
+
+	if not version_url then
+		luci.http.write_json({status = "error", message = err or "invalid"})
+		return
+	end
+
+	local cmd = table.concat({
+		"curl -fsS --connect-timeout 3 -m 6 --retry 0",
+		"-H " .. util.shellquote("Accept: text/plain, */*"),
+		"-H " .. util.shellquote("Origin: https://openclash.local"),
+		"-H " .. util.shellquote("Sec-Fetch-Mode: cors"),
+		"-H " .. util.shellquote("Sec-Fetch-Dest: empty"),
+		"-H " .. util.shellquote("User-Agent: OpenClash Subconverter Version Check"),
+		util.shellquote(version_url),
+		"2>/dev/null | head -c 4096"
+	}, " ")
+	local version = sanitize_subconverter_version_text(luci.sys.exec(cmd))
+
+	if version == "" then
+		luci.http.write_json({status = "unrecognized"})
+	else
+		luci.http.write_json({status = "success", version = version})
+	end
 end
 
 function action_generate_age_key()
