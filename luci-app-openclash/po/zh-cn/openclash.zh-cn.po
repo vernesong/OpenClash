@@ -2361,6 +2361,12 @@ msgstr "解锁检测(选择)"
 msgid "All Proxies Test"
 msgstr "测试所有节点"
 
+msgid "Unlock Test Result"
+msgstr "解锁检测结果"
+
+msgid "All Proxies Test Result"
+msgstr "所有节点测试结果"
+
 msgid "Something Wrong While Testing..."
 msgstr "发生了一些错误，测试失败..."
 
@@ -3822,9 +3828,6 @@ msgstr "禁止连接复用"
 msgid "Write file failed:"
 msgstr "写入文件失败："
 
-msgid "Fix short-id values type failed:"
-msgstr "修改 short-id 值类型失败："
-
 msgid "Interface"
 msgstr "接口"
 
@@ -3860,9 +3863,6 @@ msgstr "无效的 YAML 覆写格式，跳过..."
 
 msgid "Parse YAML Override failed:"
 msgstr "YAML 覆写模块解析失败："
-
-msgid "YAML overwrite failed:"
-msgstr "YAML 覆写模块执行失败："
 
 msgid "files selected"
 msgstr "配置已选择"

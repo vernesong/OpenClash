@@ -167,7 +167,8 @@ function other_editor(id, readOnly, wid, height) {
 }
 
 function log_editor(id, name, readOnly, wid, height) {
-	var exts = [CM6.lineNumbers(), CM6.EditorView.lineWrapping, CM6.EditorState.readOnly.of(true)];
+	var isDark = (typeof isDarkBackground === 'function' && isDarkBackground(document.body));
+	var exts = [CM6.lineNumbers(), CM6.EditorView.lineWrapping, CM6.EditorState.readOnly.of(true), CM6.themeExtension(isDark)];
 	var topSearch = (CM6 && typeof CM6.topSearchExtension === 'function') ? CM6.topSearchExtension() : null;
 	if (topSearch) exts.push(topSearch);
 	exts.push(CM6.highlightActiveLine());
@@ -348,6 +349,10 @@ var myEditor_custom_domain_dns = document.getElementById("cbid.openclash.config.
 var myEditor_edit_file = document.getElementById("cbid.openclash.config.edit_file");
 var myEditor_custom_sniffer = document.getElementById("cbid.openclash.config.sniffer_custom");
 var myEditor_proxy_name_pol = document.getElementById("cbid.openclash.config.custom_proxy_server_dns_policy");
+var myEditor_local_network_pass = document.getElementById("cbid.openclash.config.local_network_pass");
+var myEditor_chnroute_pass = document.getElementById("cbid.openclash.config.chnroute_pass");
+var myEditor_local_network6_pass = document.getElementById("cbid.openclash.config.local_network6_pass");
+var myEditor_chnroute6_pass = document.getElementById("cbid.openclash.config.chnroute6_pass");
 
 if (myEditor_hosts) { editor(myEditor_hosts, false, '100%', '300px'); }
 if (myEditor_edit_file) { editor(myEditor_edit_file, false, '100%', '700px'); }
@@ -361,6 +366,10 @@ if (myEditor_name_cus_r1) {
 if (myEditor_fake_filter) { other_editor(myEditor_fake_filter, false, '100%', '300px'); }
 if (myEditor_custom_domain_dns) { other_editor(myEditor_custom_domain_dns, false, '100%', '300px'); }
 if (myEditor_custom_sniffer) { other_editor(myEditor_custom_sniffer, false, '100%', '300px'); }
+if (myEditor_local_network_pass) { other_editor(myEditor_local_network_pass, false, '600px', '300px'); }
+if (myEditor_chnroute_pass) { other_editor(myEditor_chnroute_pass, false, '600px', '300px'); }
+if (myEditor_local_network6_pass) { other_editor(myEditor_local_network6_pass, false, '600px', '300px'); }
+if (myEditor_chnroute6_pass) { other_editor(myEditor_chnroute6_pass, false, '600px', '300px'); }
 
 var proxy_mg = document.getElementById('cbi-table-1-proxy_mg');
 var rule_mg = document.getElementById('cbi-table-1-rule_mg');

@@ -2361,6 +2361,12 @@ msgstr "Prueba de desbloqueo (selección)"
 msgid "All Proxies Test"
 msgstr "Probar todos los nodos"
 
+msgid "Unlock Test Result"
+msgstr "Resultado de la prueba de desbloqueo"
+
+msgid "All Proxies Test Result"
+msgstr "Resultado de la prueba de todos los nodos"
+
 msgid "Something Wrong While Testing..."
 msgstr "Algo ha fallado durante la prueba..."
 
@@ -3816,9 +3822,6 @@ msgstr "Deshabilitar reutilización de la conexión"
 msgid "Write file failed:"
 msgstr "Fallo al escribir el archivo:"
 
-msgid "Fix short-id values type failed:"
-msgstr "Fallo al modificar el tipo de valores short-id:"
-
 msgid "Interface"
 msgstr "Interfaz"
 
@@ -3854,9 +3857,6 @@ msgstr "Formato de sobrescritura YAML no válido, omitido..."
 
 msgid "Parse YAML Override failed:"
 msgstr "Error al analizar bloque de sobrescritura YAML:"
-
-msgid "YAML overwrite failed:"
-msgstr "Error en la sobrescritura YAML:"
 
 msgid "files selected"
 msgstr "archivos seleccionados"

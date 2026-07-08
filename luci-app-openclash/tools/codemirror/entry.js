@@ -579,9 +579,11 @@ function baseExtensions(extra = []) {
 
 // ============================================================
 // Custom indentation markers
-// Replaces @replit/codemirror-indentation-markers (unmaintained).
 // Fixes left:2px→6px: @codemirror/view >=~6.29 changed .cm-line
 // padding from "0 2px" to "0 2px 0 6px".
+// The ::before pseudo-element fills the full line height (no gaps)
+// but is capped at one visual row (--oc-lh) so it never bleeds
+// through wrapped text on long lines.
 // ============================================================
 
 const _ocImBaseTheme = EditorView.baseTheme({
@@ -592,7 +594,7 @@ const _ocImBaseTheme = EditorView.baseTheme({
         top: 0,
         left: '6px',
         right: 0,
-        bottom: 0,
+        height: 'var(--oc-lh, 100%)',
         background: 'var(--oc-im)',
         pointerEvents: 'none',
         zIndex: '-1',
@@ -611,9 +613,6 @@ function _ocImIndent(text, ts) {
     return n
 }
 
-// Compute per-line structural nesting depth using CM6's foldable() function.
-// foldable(state, lineStart, lineEnd) → {from, to} | null
-// Returns an array of depths indexed by (lineNo - fl).
 function _foldDepth(state, fl, ll, doc) {
     var ranges = []
     for (var n = fl; n <= ll; n++) {
@@ -631,8 +630,6 @@ function _foldDepth(state, fl, ll, doc) {
     return depths
 }
 
-// Single-line version of _foldDepth, for measure.read where the full
-// array hasn't been precomputed.
 function _foldDepth1(state, lineNo, fl, ll, doc) {
     var pos = doc.line(lineNo).from, d = 0
     for (var n = fl; n <= ll; n++) {
@@ -654,7 +651,7 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
         ViewPlugin.fromClass(class {
             constructor(view) {
                 this._view = view
-                this._stepPx = null            // measured indent-unit pixel width
+                this._stepPx = null
                 this._measurePending = false
                 this.decorations = this._build(view)
                 this._scheduleMeasure(view)
@@ -680,44 +677,55 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                 this._measureId = view.requestMeasure(this._mkSpec())
             }
 
-            // Measure one indent unit's pixel width in the read phase
-            // (coordsAtPos is only safe here, not during update).
             _mkSpec() {
                 var self = this
                 return {
                     read: function(view) {
-                        var sa = hideFirstIndent ? 1 : 0
                         var state = view.state, iw = getIndentUnit(state), ts = state.tabSize, doc = state.doc
                         var fl = doc.lineAt(view.viewport.from).number
                         var ll = doc.lineAt(view.viewport.to).number
-                        var bl = Math.max(1, fl - 80), el = Math.min(doc.lines, ll + 80)
 
-                        // Compute max fold depth in visible range
-                        var maxLvl = 0
+                        var hasIndent = false
                         for (var n = fl; n <= ll; n++) {
-                            if (n < bl || n > el) continue
-                            var fd = _foldDepth1(state, n, fl, ll, doc)
-                            if (fd > maxLvl) maxLvl = fd
+                            if (_ocImIndent(doc.line(n).text, ts) >= iw) { hasIndent = true; break }
                         }
-                        if (maxLvl <= sa) return -1
 
-                        // Measure exact pixel width of one indent unit
-                        var stepPx = 0
-                        for (var n = fl; n <= ll; n++) {
-                            if (n < bl || n > el) continue
-                            var t = doc.line(n).text
-                            if (t.trim() === '') continue
-                            if (_ocImIndent(t, ts) >= iw) {
-                                var c0 = view.coordsAtPos(doc.line(n).from)
-                                var c1 = view.coordsAtPos(doc.line(n).from + iw)
-                                if (c0 && c1) { stepPx = Math.round((c1.left - c0.left) * 100) / 100; break }
+                        var stepPx = 0, lineHeight = 0
+
+                        if (hasIndent) {
+                            for (var n = fl; n <= ll; n++) {
+                                var t = doc.line(n).text
+                                if (t.trim() === '') continue
+                                if (_ocImIndent(t, ts) >= iw) {
+                                    var c0 = view.coordsAtPos(doc.line(n).from)
+                                    var c1 = view.coordsAtPos(doc.line(n).from + iw)
+                                    if (c0 && c1) { stepPx = Math.round((c1.left - c0.left) * 100) / 100; break }
+                                }
                             }
                         }
-                        return stepPx > 0 ? stepPx : -1
+
+                        if (fl < doc.lines) {
+                            var c0 = view.coordsAtPos(doc.line(fl).from)
+                            var c1 = view.coordsAtPos(doc.line(fl + 1).from)
+                            if (c0 && c1) lineHeight = Math.round(c1.top - c0.top)
+                        }
+
+                        return lineHeight > 0
+                            ? { stepPx: stepPx > 0 ? stepPx : -1, lineHeight: lineHeight }
+                            : (stepPx > 0 ? stepPx : -1)
                     },
-                    write: function(stepPx) {
+                    write: function(result) {
+                        var stepPx, lineHeight
+                        if (typeof result === 'number') {
+                            stepPx = result; lineHeight = 0
+                        } else if (result) {
+                            stepPx = result.stepPx; lineHeight = result.lineHeight || 0
+                        } else {
+                            stepPx = -1; lineHeight = 0
+                        }
                         if (typeof stepPx === 'number') {
                             self._stepPx = stepPx > 0 ? stepPx : -1
+                            self._lineHeight = lineHeight
                             self._measurePending = true
                             var v = self._view
                             // Defer dispatch past the current update cycle
@@ -739,7 +747,6 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                 var ll = doc.lineAt(view.viewport.to).number
                 var bl = Math.max(1, fl - 80), el = Math.min(doc.lines, ll + 80)
 
-                // Compute visual indent levels
                 var lvls = new Int32Array(el - bl + 1)
                 var bk = new Uint8Array(el - bl + 1)
                 for (var n = bl; n <= el; n++) {
@@ -748,7 +755,6 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                     bk[n - bl] = b ? 1 : 0
                     lvls[n - bl] = b ? -1 : Math.floor(_ocImIndent(t, ts) / iw)
                 }
-                // Blank lines inherit the shallower of prev/next non-blank level
                 for (var n = bl; n <= el; n++) {
                     if (!bk[n - bl]) continue
                     var p = 0, nx = 0
@@ -757,49 +763,83 @@ function indentMarkerExtension({ highlightActiveBlock = true, hideFirstIndent = 
                     lvls[n - bl] = Math.min(p, nx)
                 }
 
-                // Structural depth from CM6's fold system
-                var foldDepths = _foldDepth(state, fl, ll, doc)
+                var maxLvl = 0
+                for (var n = fl; n <= ll; n++) {
+                    var lv = lvls[n - bl]
+                    if (lv > maxLvl) maxLvl = lv
+                }
+                if (maxLvl <= sa) return Decoration.none
 
-                // Indent-unit width: measured or character-width fallback
-                var stepPx = this._stepPx
-                if (stepPx === null || stepPx <= 0)
-                    stepPx = iw * (view.defaultCharacterWidth || 8)
+                var scopeOpen = new Uint8Array(maxLvl)
+                var showGuides = new Array(ll - fl + 1)
 
-                // Highlight the active block (guide at cursor's deepest ancestor level)
-                var activeLvl
-                if (highlightActiveBlock) {
-                    var cn = doc.lineAt(state.selection.main.head).number
-                    if (cn >= bl && cn <= el) {
-                        var cl = lvls[cn - bl]
-                        var cfd = foldDepths[cn - fl] || 0
-                        var cel = Math.max(cl, cfd)
-                        if (cel > sa) activeLvl = cel - 1
+                for (var n = bl; n <= el; n++) {
+                    var lv = lvls[n - bl]
+                    var isBlank = bk[n - bl] === 1
+
+                    if (!isBlank) {
+                        for (var k = lv; k < maxLvl; k++) scopeOpen[k] = 0
+                    }
+
+                    if (n >= fl && n <= ll) {
+                        var guides = new Uint8Array(maxLvl)
+                        showGuides[n - fl] = guides
+                        if (lv > sa) {
+                            for (var k = sa; k < lv && k < maxLvl; k++) {
+                                if (scopeOpen[k]) guides[k] = 1
+                            }
+                        }
+                    }
+
+                    if (!isBlank) {
+                        var nextN = -1, nextLv = -1
+                        for (var x = n + 1; x <= el; x++) {
+                            if (!bk[x - bl]) { nextN = x; nextLv = lvls[x - bl]; break }
+                        }
+                        if (nextN >= 0 && nextLv > lv && lv < maxLvl) {
+                            scopeOpen[lv] = 1
+                        }
                     }
                 }
 
+                var activeLvl = undefined
+                if (highlightActiveBlock) {
+                    var cn = doc.lineAt(state.selection.main.head).number
+                    if (cn >= fl && cn <= ll) {
+                        var cl = lvls[cn - bl]
+                        var cGuides = showGuides[cn - fl]
+                        if (cGuides && cl > sa) {
+                            for (var k = cl - 1; k >= sa; k--) {
+                                if (cGuides[k]) { activeLvl = k; break }
+                            }
+                        }
+                    }
+                }
+
+                var stepPx = this._stepPx
+                if (stepPx === null || stepPx <= 0)
+                    stepPx = iw * (view.defaultCharacterWidth || 8)
+                var lh = this._lineHeight
+
                 var builder = new RangeSetBuilder()
                 for (var n = fl; n <= ll; n++) {
-                    if (n < bl || n > el) continue
-                    var lv = lvls[n - bl]
-                    var fd = foldDepths[n - fl]
-                    var effectiveLv = Math.max(lv, fd)
-
-                    if (effectiveLv <= sa) continue
+                    var guides = showGuides[n - fl]
+                    if (!guides) continue
                     var parts = []
-                    // Start from level 1 — level 0 (0 px) is never useful
-                    var startL = Math.max(sa, 1)
-                    for (var l = startL; l <= effectiveLv; l++) {
-                        if (l > lv) break   // cap at visual indent
-                        var pos = Math.round(l * stepPx)
-                        var cv = (activeLvl !== undefined && l === activeLvl)
+                    for (var k = sa; k < maxLvl; k++) {
+                        if (!guides[k]) continue
+                        var pos = Math.round(k * stepPx)
+                        var cv = (activeLvl !== undefined && k === activeLvl)
                             ? 'var(--oc-im-ca)' : 'var(--oc-im-c)'
                         parts.push('linear-gradient(' + cv + ',' + cv + ') ' + pos + 'px 0/' + thickness + 'px 100% no-repeat')
                     }
                     if (!parts.length) continue
                     var line = doc.line(n)
+                    var style = '--oc-im:' + parts.join(',')
+                    if (lh > 0) style += ';--oc-lh:' + lh + 'px'
                     builder.add(line.from, line.from, Decoration.line({
                         class: 'cm-oc-im',
-                        attributes: { style: '--oc-im:' + parts.join(',') }
+                        attributes: { style: style }
                     }))
                 }
                 return builder.finish()

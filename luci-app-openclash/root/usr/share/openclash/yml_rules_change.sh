@@ -424,7 +424,11 @@ yml_other_set()
    rescue Exception => e
       YAML.LOG_ERROR('Config File Overwrite Failed,【%s】' % [e.message])
    ensure
-      File.open('$2','w') {|f| YAML.dump(Value, f)};
+      begin
+         File.open('$2','w') {|f| YAML.dump(Value, f)};
+      rescue Exception => e
+         YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
+      end
    end" 2>/dev/null >> $LOG_FILE
 }
 

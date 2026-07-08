@@ -2898,7 +2898,7 @@ local function is_safe_filename(filename)
 end
 
 local function kill_process()
-	local cmd = string.format("%s |grep -E 'openclash|clash' |grep -v grep |awk '{print $1}' |xargs -r kill -9 >/dev/null 2>&1", fs.ps_cmd())
+	local cmd = string.format("%s |grep -E 'openclash|clash|mihomo' |grep -v grep |awk '{print $1}' |xargs -r kill -9 >/dev/null 2>&1", fs.ps_cmd())
 	luci.sys.call(cmd)
 end
 
@@ -4170,6 +4170,7 @@ function oix_login()
 	local result, info, token, get_sub, sub_info, sub_key, sub_match, sub_convert, sid, sub_file, SIGNATURE
 	local email = fs.uci_get_config("config", "oix_email")
 	local passwd = fs.uci_get_config("config", "oix_passwd")
+	local core
 	token = fs.uci_get_config("config", "oix_token")
 	if email and passwd then
 		info = luci.sys.exec(string.format("curl -sL -H 'Content-Type: application/json' -H 'User-Agent: OpenClash' -d '{\"email\":\"%s\", \"passwd\":\"%s\", \"token_expire\":\"365\" }' -X POST https://oix-api.dler.io/api/v1/login", email, passwd))
@@ -4220,7 +4221,12 @@ function oix_login()
 					end
 					if sub_info[v] then
 						luci.sys.exec(string.format('curl -sL -m 10 --retry 2 --user-agent "clash" "%s" -o "/etc/openclash/config/oixCloud - smart.yaml" >/dev/null 2>&1', sub_info[v]))
-						luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+						core = coremetacv()
+						if core ~= "0" and not string.match(core, "oix") then
+							luci.sys.exec("/usr/share/openclash/openclash_core.sh Oix")
+						else
+							luci.sys.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
+						end
 					end
 				end
 			end

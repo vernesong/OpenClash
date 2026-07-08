@@ -2,6 +2,22 @@
 . /usr/share/openclash/log.sh
 . /usr/share/openclash/openclash_etag.sh
 
+DOWNLOAD_FAILURE_OUTPUT() {
+    failure_exit_code="$1"
+    failure_http_code="$2"
+    failure_output="$3"
+
+    if [ -n "$failure_output" ]; then
+        printf '%s' "$failure_output"
+    elif [ -n "$failure_http_code" ] && [ "$failure_http_code" != "000" ]; then
+        printf 'HTTP status %s' "$failure_http_code"
+    elif [ -n "$failure_exit_code" ]; then
+        printf 'curl exit code %s' "$failure_exit_code"
+    else
+        printf 'unknown error'
+    fi
+}
+
 DOWNLOAD_FILE_CURL() {
     [ -z "$1" ] || [ -z "$2" ] && return 1
     DOWNLOAD_URL=$1
@@ -99,7 +115,8 @@ DOWNLOAD_FILE_CURL() {
         fi
 
         if [ "$EXIR_CODE" -ne 0 ] || [ "$HTTP_CODE" != "200" ]; then
-            LOG_OUT "【$DOWNLOAD_PATH】Download Failed:【$OUTPUT】"
+            OUTPUT=$(DOWNLOAD_FAILURE_OUTPUT "$EXIR_CODE" "$HTTP_CODE" "${OUTPUT:-}")
+            LOG_OUT "【${DOWNLOAD_PATH}】Download Failed:【${OUTPUT}】"
             rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
             SLOG_CLEAN
             return 1
@@ -149,7 +166,8 @@ DOWNLOAD_FILE_CURL() {
 
         if [ "$EXIR_CODE" -ne 0 ] || [ "$HTTP_CODE" != "200" ]; then
             OUTPUT=$(echo "$CURL_OUTPUT" | sed '$d' | grep -a 'curl:' | tail -n 1)
-            LOG_OUT "【$DOWNLOAD_PATH】Download Failed:【$OUTPUT】"
+            OUTPUT=$(DOWNLOAD_FAILURE_OUTPUT "$EXIR_CODE" "$HTTP_CODE" "$OUTPUT")
+            LOG_OUT "【${DOWNLOAD_PATH}】Download Failed:【${OUTPUT}】"
             rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
             SLOG_CLEAN
             return 1
@@ -157,7 +175,7 @@ DOWNLOAD_FILE_CURL() {
     fi
 
     if ! mv -f "$DOWNLOAD_TMP" "$DOWNLOAD_PATH"; then
-        LOG_OUT "【$DOWNLOAD_PATH】Download Failed:【Unable to save download file】"
+        LOG_OUT "【${DOWNLOAD_PATH}】Download Failed:【Unable to save download file】"
         rm -f "$HEADER_TMP" "$DOWNLOAD_TMP"
         SLOG_CLEAN
         return 1

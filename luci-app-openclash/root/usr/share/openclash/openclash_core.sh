@@ -20,11 +20,11 @@ inc_job_counter
 
 restart=0
 core_update_status=0
-TMP_FILE="/tmp/clash_meta"
+TMP_FILE=""
 
 finish_core_update() {
    local status="$1"
-   rm -rf "$TMP_FILE" >/dev/null 2>&1
+   [ -n "$TMP_FILE" ] && rm -rf "$TMP_FILE" >/dev/null 2>&1
    dec_job_counter_and_restart "$restart"
    del_lock
    exit "$status"
@@ -73,8 +73,9 @@ else
    mkdir -p /tmp/etc/openclash/core
 fi
 
-CORE_CV=$($meta_core_path -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1)
 TARGET_CORE_PATH="$meta_core_path"
+CORE_CV=$($TARGET_CORE_PATH -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1)
+TMP_FILE="${TARGET_CORE_PATH}.new.$$"
 
 if [ "$CORE_TYPE" = "Oix" ]; then
    CORE_URL_PATH=""
@@ -158,7 +159,7 @@ if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
                   fi
                fi
 
-               mv "$TMP_FILE" "$TARGET_CORE_PATH" >/dev/null 2>&1
+               mv -f "$TMP_FILE" "$TARGET_CORE_PATH" >/dev/null 2>&1
 
                if [ "$?" == "0" ]; then
                   LOG_TIP "【"$CORE_TYPE"】Core Update Successful!"

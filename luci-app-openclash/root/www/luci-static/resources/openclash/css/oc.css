@@ -64,9 +64,6 @@
     --success-a5: rgba(5, 150, 105, 0.05);
     --error-a12: rgba(255,80,80,0.12);
     --error-a18: rgba(255,80,80,0.18);
-    --cm-gutter-bg: #f5f5f5;
-    --cm-gutter-text: #999999;
-    --cm-gutter-border: #e2e8f0;
     --cm-indent-guide: rgba(128,128,128,0.25);
     --cm-placeholder: rgba(128,128,128,0.5);
     --cm-special-char: rgba(255,0,0,0.3);
@@ -139,9 +136,6 @@
     --success-a5: rgba(52, 211, 153, 0.05);
     --error-a12: rgba(255,80,80,0.12);
     --error-a18: rgba(255,80,80,0.18);
-    --cm-gutter-bg: #1f2937;
-    --cm-gutter-text: #858585;
-    --cm-gutter-border: #4b5563;
     --cm-indent-guide: rgba(255,255,255,0.12);
     --cm-placeholder: rgba(255,255,255,0.25);
     --cm-special-char: rgba(255,0,0,0.3);
@@ -2837,9 +2831,9 @@
     text-align: left !important;
     font-size: 15px;
     line-height: 150%;
-    width: 100% !important;
-    max-width: 100% !important;
-    min-width: 0 !important;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     box-sizing: border-box;
 }
 .oc .cm-editor {
@@ -2884,6 +2878,7 @@
 }
 
 /* ---- Cursor gap (visual spacing between cursor and text) ---- */
+.oc .cm-editor.cm-focused { outline: none; }
 .oc .cm-editor.cm-focused .cm-cursor { transform: translateX(2px); }
 
 /* ---- Hide diff highlights when F10 toggles differences off ---- */
@@ -2950,16 +2945,6 @@
 }
 .oc[data-darkmode="true"] .cm-activeLineGutter {
     background-color: var(--cm-active-line-gutter);
-}
-
-/* ---- Gutter / Line Numbers ---- */
-.oc[data-darkmode="true"] .cm-gutters {
-    background-color: var(--cm-gutter-bg);
-    color: var(--cm-gutter-text);
-    border-right-color: var(--cm-gutter-border);
-}
-.oc[data-darkmode="true"] .cm-lineNumbers .cm-gutterElement {
-    color: var(--cm-gutter-text);
 }
 
 /* ---- Log Viewer Token Styles ---- */
