@@ -10,15 +10,14 @@ set_lock() {
 
 del_lock() {
    flock -u 885 2>/dev/null
-   rm -rf "/tmp/lock/openclash_debug.lock" 2>/dev/null
 }
 
 ipk_v()
 {
    if [ -x "/bin/opkg" ]; then
-      echo $(rm -f /var/lock/opkg.lock && opkg status "$1" 2>/dev/null |grep 'Version' |awk -F ': ' '{print $2}' 2>/dev/null)
+      echo $(opkg status "$1" 2>/dev/null |grep 'Version' |awk -F ': ' '{print $2}' 2>/dev/null)
    elif [ -x "/usr/bin/apk" ]; then
-      echo $(rm -f /lib/apk/db/lock && apk list "$1" 2>/dev/null |grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1)
+      echo $(apk list "$1" 2>/dev/null |grep 'installed' | grep -oE '\d+(\.\d+)*' | head -1)
    fi
 }
 
@@ -42,9 +41,9 @@ RAW_CONFIG_FILE=$(uci_get_config "config_path")
 CONFIG_FILE="/etc/openclash/$(uci_get_config "config_path" |awk -F '/' '{print $5}' 2>/dev/null)"
 core_model=$(uci_get_config "core_version")
 if [ -x "/bin/opkg" ]; then
-   cpu_model=$(rm -f /var/lock/opkg.lock && opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null)
+   cpu_model=$(opkg status libc 2>/dev/null |grep 'Architecture' |awk -F ': ' '{print $2}' 2>/dev/null)
 elif [ -x "/usr/bin/apk" ]; then
-   cpu_model=$(rm -f /lib/apk/db/lock && apk list libc 2>/dev/null|awk '{print $2}')
+   cpu_model=$(apk list libc 2>/dev/null|awk '{print $2}')
 fi
 core_meta_version=$(/etc/openclash/core/clash_meta -v 2>/dev/null |awk -F ' ' '{print $3}' |head -1 2>/dev/null)
 op_version=$(ipk_v "luci-app-openclash")

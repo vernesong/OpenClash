@@ -10,7 +10,6 @@ set_lock() {
 
 del_lock() {
    flock -u 876 2>/dev/null
-   rm -rf "/tmp/lock/openclash_groups_get.lock"
 }
 
 CONFIG_FILE=$(uci_get_config "config_path")
