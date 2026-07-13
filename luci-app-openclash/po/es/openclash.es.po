@@ -2283,7 +2283,7 @@ msgstr "Sugerencia: si el dispositivo no tiene WLAN, desactiva la opción de pue
 msgid "Github Address Modify"
 msgstr "Modificar dirección de Github"
 
-msgid "Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Faild. Format Reference:"
+msgid "Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed. Format Reference:"
 msgstr "Reemplaza las URLs de Github con un proxy/CDN para evitar fallos de descarga. Formato:"
 
 msgid "File Edit"
