@@ -246,10 +246,15 @@ body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-secti
 
 /* Code editors render directly in their CBI row instead of a value field. */
 body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-input-textarea,
-body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cm-editor,
-body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-value-description {
+body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cm-editor {
     grid-column: 2;
     width: 100%;
+    max-width: var(--oc-cbi-wide-control-width);
+    box-sizing: border-box;
+}
+
+body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-value-description {
+    grid-column: 2;
     max-width: var(--oc-cbi-wide-control-width);
     box-sizing: border-box;
 }
@@ -304,7 +309,7 @@ body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-secti
 body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-value-description {
     display: block;
     min-width: 0;
-    margin: var(--oc-cbi-description-gap) 0 0;
+    margin-block: var(--oc-cbi-description-gap) 0;
     padding-block: 0;
     clear: both;
     line-height: 1.5;
@@ -4947,6 +4952,48 @@ html[data-darkmode="true"] .oc .sub_provider_percent {
  * ========================================================================== */
 .oc-update .cbi-input-select {
     width: auto !important;
+}
+
+@media (max-width: 767px) {
+    .oc-update table,
+    .oc-update tbody {
+        display: block;
+        width: 100%;
+    }
+
+    .oc-update tr {
+        display: grid;
+        grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+        width: 100%;
+    }
+
+    .oc-update td {
+        width: auto !important;
+        min-width: 0;
+        box-sizing: border-box;
+    }
+
+    .oc-update td[colspan] {
+        grid-column: 1 / -1;
+    }
+
+    .oc-update .cbi-input-select,
+    .oc-update .cbi-button {
+        max-width: 100%;
+    }
+
+    .oc-update > .cbi-section:last-child tr {
+        grid-template-columns: minmax(0, 1fr);
+    }
+
+    .oc-update > .cbi-section:last-child td > div {
+        display: flex !important;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: .25rem;
+        max-width: 100%;
+        white-space: normal !important;
+    }
 }
 
 /* ==========================================================================
