@@ -2190,12 +2190,29 @@ html[data-darkmode="true"] .oc .provider-card {
     color: var(--error-color);
 }
 
-[data-page^="admin-services-openclash-config-subscribe-edit"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node[id^="cbi-openclash-"] {
-    padding-top: 14px;
+body[data-page^="admin-services-openclash-config-subscribe-edit"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node textarea.cbi-input-textarea {
+    width: 100%;
+    max-width: var(--oc-cbi-wide-control-width);
+    box-sizing: border-box;
+    vertical-align: top;
 }
 
-[data-page^="admin-services-openclash-config-subscribe-edit"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) textarea.cbi-input-textarea {
-    vertical-align: top;
+body[data-page^="admin-services-openclash-config-subscribe-edit"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value[id$="-template"] .cbi-value-field > div > select.cbi-input-select {
+    width: 24rem;
+    max-width: 100%;
+}
+
+/* The Age helper only loads a script; hide its empty row and preserve stripes. */
+body[data-page^="admin-services-openclash-config-subscribe-edit"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-value[id$="-_generate_age_btn"] {
+    display: none;
+}
+
+body[data-page^="admin-services-openclash-config-subscribe-edit"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-value[id$="-_generate_age_btn"] ~ .cbi-value:nth-of-type(odd) {
+    background-color: rgba(127, 127, 127, .055);
+}
+
+body[data-page^="admin-services-openclash-config-subscribe-edit"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-value[id$="-_generate_age_btn"] ~ .cbi-value:nth-of-type(even) {
+    background-color: transparent;
 }
 
 .oc .filename-input-container {
