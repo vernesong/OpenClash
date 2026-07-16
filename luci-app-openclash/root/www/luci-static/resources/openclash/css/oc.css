@@ -4771,19 +4771,23 @@ html[data-darkmode="true"] .oc .sub_provider_percent {
 /* ==========================================================================
  * SECTION 11: update.htm
  * ========================================================================== */
-.cbi-input-select {
+.oc-update .cbi-input-select {
     width: auto !important;
 }
 
 /* ==========================================================================
  * SECTION 12: log.htm
  * ========================================================================== */
-* {
+[data-page="admin-services-openclash-client"],
+[data-page="admin-services-openclash-client"] *,
+[data-page="admin-services-openclash-log"],
+[data-page="admin-services-openclash-log"] * {
     margin: 0;
     padding: 0;
 }
 
-ul {
+[data-page="admin-services-openclash-client"] ul,
+[data-page="admin-services-openclash-log"] ul {
     list-style: none;
 }
 
