@@ -4933,6 +4933,15 @@ html[data-darkmode="true"] .oc .sub_provider_percent {
  * SECTION 10: toolbar_show.htm
  * ========================================================================== */
 
+#tabmenu > ul.tabs {
+    scrollbar-width: none;
+}
+
+#tabmenu > ul.tabs::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+}
+
 .tabs > li {
     vertical-align: middle !important;
 }
