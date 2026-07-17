@@ -322,7 +322,6 @@ body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-secti
     display: block;
     min-width: 0;
     margin-block: var(--oc-cbi-description-gap) 0;
-    margin-inline: 0;
     padding-block: 0;
     clear: both;
     line-height: 1.5;
