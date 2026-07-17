@@ -4,7 +4,6 @@ local logged_in = fs.uci_get_config("config", "oix_token") and true or false
 local checkin_enabled = fs.uci_get_config("config", "oix_checkin") == "1"
 local checkin_interval = fs.uci_get_config("config", "oix_checkin_interval") or "1"
 local checkin_multiple = fs.uci_get_config("config", "oix_checkin_multiple") or "1"
--- Shared oixCloud logo (external PNG for cacheability)
 local oix_logo_src = "/luci-static/resources/openclash/img/oixcloud.png"
 local function oix_logo_img(cls)
   return '<img class="'..cls..'" src="'..oix_logo_src..'" loading="lazy" alt="oixCloud" title="oixCloud">'
@@ -14,7 +13,7 @@ end
 	<script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 	<fieldset class="cbi-section oix-panel">
 		<div id="oix-msg-bar" class="oix-msg-bar"></div>
-		<div id="oix-login-section" style="display:<%= logged_in and 'none' or 'block' %>;">
+		<div id="oix-login-section"<%= logged_in and ' style="display:none;"' or '' %>>
 			<div class="oix-login-box">
 
 				<%= oix_logo_img("oix-logo") %>
@@ -54,7 +53,7 @@ end
 
 					<div style="text-align:center;margin-top:12px;">
 						<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
-							<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-globe"/></svg>
+							<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-home"/></svg>
 							<%:Official Website%>
 						</button>
 					</div>
@@ -77,9 +76,9 @@ end
 					</button>
 
 					<div style="text-align:center;margin-top:12px;">
-						<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
-							<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-globe"/></svg>
-							<%:Official Website%>
+					<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
+						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-home"/></svg>
+						<%:Official Website%>
 						</button>
 					</div>
 				</div>
@@ -92,7 +91,6 @@ end
 		<div id="oix-logged-section" style="display:<%= logged_in and 'block' or 'none' %>;">
 			<div class="oix-header">
 				<div class="oix-header-left">
-					<%= oix_logo_img("oix-logo-sm") %>
 					<span class="oix-status-badge">
 						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-success"/></svg>
 						<%:Account logged in%>
@@ -103,8 +101,8 @@ end
 						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-gift"/></svg>
 						<%:Checkin%>
 					</button>
-					<button type="button" class="oix-btn oix-btn-ghost oix-btn-sm" onclick="OixCloud.openWebsite();return false;">
-						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-globe"/></svg>
+					<button type="button" class="oix-btn oix-btn-ghost-subtle oix-btn-sm" onclick="OixCloud.openWebsite();return false;">
+						<img src="<%= oix_logo_src %>" width="14" height="14" style="border-radius:50%;vertical-align:middle" alt="oixCloud">
 						<%:Official Website%>
 					</button>
 					<button type="button" class="oix-btn oix-btn-danger oix-btn-sm" onclick="OixCloud.doLogout();return false;">

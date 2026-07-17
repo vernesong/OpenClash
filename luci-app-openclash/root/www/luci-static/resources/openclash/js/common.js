@@ -31,10 +31,10 @@ function _luminanceFromColor(color) {
 function _detectInitialAutoDark() {
     var html = document.documentElement,
         v, cls, lum;
-    // 1. HTML data-* attributes (Bootstrap 5.3, Material, and generic)
-    v = html.getAttribute('data-bs-theme') || html.getAttribute('data-theme');
-    if (v === 'dark' || v === 'dim') return true;
-    if (v === 'light') return false;
+    // 1. HTML data-* attributes (Bootstrap 5.3, Material, OpenClash, and generic)
+    v = html.getAttribute('data-bs-theme') || html.getAttribute('data-theme') || html.getAttribute('data-darkmode');
+    if (v === 'dark' || v === 'dim' || v === 'true') return true;
+    if (v === 'light' || v === 'false') return false;
     // 2. HTML class name (Argon dark-mode, generic theme-dark, etc.)
     cls = ' ' + (html.className || '') + ' ';
     if (cls.indexOf(' dark ') >= 0 || cls.indexOf(' dark-mode ') >= 0 ||
@@ -53,6 +53,9 @@ function _detectInitialAutoDark() {
                || style.getPropertyValue('--body-bg').trim()
                || style.getPropertyValue('--theme-bg').trim();
     if (checkBg && checkBg !== 'transparent' && checkBg !== 'rgba(0, 0, 0, 0)') return _luminanceFromColor(checkBg) < 128;
+
+    // 5. System preference (ultimate fallback)
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) return true;
 
     return false;
 }
@@ -73,7 +76,11 @@ function isDarkBackground(element) {
 	if (!bgColor || bgColor === 'transparent' || bgColor === 'rgba(0, 0, 0, 0)') {
 		bgColor = window.getComputedStyle(document.documentElement).backgroundColor;
 	}
-	return _luminanceFromColor(bgColor) < 128;
+	var lum = _luminanceFromColor(bgColor);
+	if (lum > 100 && lum < 156 && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+		return true;
+	}
+	return lum < 128;
 }
 
 // ═══ Theme system ═══

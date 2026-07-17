@@ -311,7 +311,12 @@
 				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.corever, function(x, status) {
 					if ( x && x.status == 200 ) {
 						if ( status.corever != "0" ) {
-							if (type == "Meta") {
+							if (status.oix_core) {
+								if (status.corelv && status.corelv != "" && status.corelv != "loading...") {
+									url4='https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/mihomo-'+status.corever+'-'+status.corelv+'.gz';
+									window.location.href=url4;
+								}
+							} else if (type == "Meta") {
 								if (s == "1") {
 									url4='https://raw.githubusercontent.com/vernesong/OpenClash/core/'+r+'/smart/clash-'+status.corever+'.tar.gz';
 									window.location.href=url4;

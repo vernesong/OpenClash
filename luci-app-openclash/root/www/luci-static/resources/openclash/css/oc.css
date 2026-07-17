@@ -3193,10 +3193,12 @@ html[data-darkmode="true"] .oc .cbi-section-descr {
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
-}
-.oc .cm-editor {
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    overflow: hidden;
     font-family: 'Twemoji Mozilla', "Microsoft Yahei", "sans-serif", "Helvetica Neue", "Helvetica", "Hiragino Sans GB" !important;
 }
+
 .oc .cm-content {
     font-family: 'Twemoji Mozilla', 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', 'Courier New', 'PingFang SC', 'Microsoft Yahei', 'Hiragino Sans GB', 'WenQuanYi Micro Hei', 'Noto Sans SC', sans-serif !important;
 }
@@ -5419,6 +5421,10 @@ html[data-darkmode=true] .oc .radio-button input[type=radio]:checked + label {
 }
 #debug-rendered li { margin: 0.25em 0; }
 
+html[data-darkmode=true] #debug_loading img {
+    filter: invert(1);
+}
+
 /* ==========================================================================
  * oixCloud login panel
  * ========================================================================== */
@@ -5428,6 +5434,105 @@ html[data-darkmode=true] .oc .radio-button input[type=radio]:checked + label {
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+/* ---- Animated ribbon background (horizontal flow) ---- */
+.oix-panel::before {
+    content: '';
+    position: absolute;
+    inset: -30px;
+    z-index: 0;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    opacity: 0.85;
+    background:
+        /* Ribbon 1 — blue, near-horizontal → */
+        linear-gradient(
+            175deg,
+            transparent 37%,
+            rgba(59,130,246,0.35) 42%,
+            rgba(59,130,246,0.60) 48%,
+            rgba(59,130,246,0.70) 50%,
+            rgba(59,130,246,0.60) 52%,
+            rgba(59,130,246,0.35) 58%,
+            transparent 63%
+        ),
+        /* Ribbon 2 — purple, near-horizontal ← */
+        linear-gradient(
+            185deg,
+            transparent 38%,
+            rgba(179,0,255,0.25) 43%,
+            rgba(179,0,255,0.40) 48%,
+            rgba(179,0,255,0.48) 50%,
+            rgba(179,0,255,0.40) 52%,
+            rgba(179,0,255,0.25) 57%,
+            transparent 62%
+        ),
+        /* Ribbon 3 — green, gentle ↘ */
+        linear-gradient(
+            170deg,
+            transparent 39%,
+            rgba(5,150,105,0.18) 44%,
+            rgba(5,150,105,0.32) 48%,
+            rgba(5,150,105,0.38) 50%,
+            rgba(5,150,105,0.32) 52%,
+            rgba(5,150,105,0.18) 56%,
+            transparent 61%
+        );
+    background-size: 350% 200%;
+    background-position: 100% 0%;
+    animation: oix-ribbon-flow 36s ease-in-out infinite;
+}
+
+.oix-panel::after {
+    content: '';
+    position: absolute;
+    inset: -30px;
+    z-index: 0;
+    pointer-events: none;
+    mix-blend-mode: multiply;
+    opacity: 0.75;
+    background:
+        /* Ribbon 4 — amber, near-horizontal ↗ */
+        linear-gradient(
+            8deg,
+            transparent 38%,
+            rgba(245,158,11,0.16) 43%,
+            rgba(245,158,11,0.28) 48%,
+            rgba(245,158,11,0.34) 50%,
+            rgba(245,158,11,0.28) 52%,
+            rgba(245,158,11,0.16) 57%,
+            transparent 62%
+        ),
+        /* Ribbon 5 — soft blue, near-horizontal ↙ */
+        linear-gradient(
+            192deg,
+            transparent 37%,
+            rgba(59,130,246,0.30) 43%,
+            rgba(59,130,246,0.55) 48%,
+            rgba(59,130,246,0.65) 50%,
+            rgba(59,130,246,0.55) 52%,
+            rgba(59,130,246,0.30) 57%,
+            transparent 63%
+        );
+    background-size: 320% 180%;
+    background-position: 0% 100%;
+    animation: oix-ribbon-flow 44s ease-in-out infinite reverse;
+}
+
+@keyframes oix-ribbon-flow {
+    0%   { background-position: 100% 0%; }
+    25%  { background-position: 30% 60%; }
+    50%  { background-position: 0% 30%; }
+    75%  { background-position: 60% 80%; }
+    100% { background-position: 100% 0%; }
+}
+
+/* Ensure panel children sit above the ribbons */
+.oix-panel > * {
+    position: relative;
+    z-index: 1;
 }
 
 html[data-darkmode=true] .oc .oix-panel {
@@ -5438,6 +5543,8 @@ html[data-darkmode=true] .oc .oix-panel {
 .oc-icon { flex-shrink: 0; vertical-align: middle; }
 
 .oix-login-box {
+    position: relative;
+    z-index: 1;
     max-width: 420px;
     margin: 0 auto;
     padding: 20px 20px;
@@ -5445,6 +5552,15 @@ html[data-darkmode=true] .oc .oix-panel {
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
     box-shadow: var(--shadow-sm);
+}
+
+/* Dark mode — only switch blend mode, keep same ribbon colors */
+html[data-darkmode=true] .oc .oix-panel::before {
+    mix-blend-mode: screen;
+}
+
+html[data-darkmode=true] .oc .oix-panel::after {
+    mix-blend-mode: screen;
 }
 
 .oix-login-box .mode-tabs {
@@ -5501,8 +5617,11 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
 .oix-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
 .oix-btn-danger  { background: var(--error-color); color: var(--text-on-primary); }
 .oix-btn-danger:hover { opacity: 0.85; }
-.oix-btn-ghost   { background: var(--bg-gray); color: var(--text-primary); border: 1px solid var(--border-light); }
-.oix-btn-ghost:hover { background: var(--hover-bg); }
+.oix-btn-ghost   { background: var(--primary-color); color: var(--text-on-primary); }
+.oix-btn-ghost:hover { background: var(--btn-primary-hover); }
+.oix-btn-ghost:disabled { opacity: 0.6; cursor: not-allowed; }
+.oix-btn-ghost-subtle { background: var(--watchdog-color); color: var(--text-on-primary); }
+.oix-btn-ghost-subtle:hover { opacity: 0.85; }
 .oix-btn-block { width: 100%; }
 .oix-btn-sm { padding: 5px 10px; font-size: 12px; }
 
@@ -5682,7 +5801,9 @@ html[data-darkmode=true] .oc .oix-header:hover { background: var(--hover-bg); bo
 html[data-darkmode=true] .oc .oix-announce     { background: var(--bg-gray); border-color: var(--border-light); }
 html[data-darkmode=true] .oc .oix-announce:hover { background: var(--hover-bg); border-color: var(--primary-color); }
 html[data-darkmode=true] .oc .oix-pwd-toggle  { color: var(--text-secondary); }
-html[data-darkmode=true] .oc .oix-btn-ghost   { background: var(--hover-bg); border-color: var(--bg-gray); }
+html[data-darkmode=true] .oc .oix-btn-ghost   { background: var(--primary-color); color: var(--text-on-primary); }
+html[data-darkmode=true] .oc .oix-btn-ghost-subtle { background: var(--watchdog-color); color: var(--text-on-primary); }
+html[data-darkmode=true] .oc .oix-btn-ghost-subtle:hover { opacity: 0.85; }
 html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
 html[data-darkmode=true] .oc .oix-setting-card { background: var(--bg-gray); border-color: var(--border-light); }
 html[data-darkmode=true] .oc .oix-setting-card:hover { background: var(--hover-bg); border-color: var(--primary-color); }

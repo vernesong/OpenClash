@@ -2972,8 +2972,13 @@
 
     window.addEventListener('beforeunload', function() {
         WSManager.closeAll();
+        LogManager.stopLogDisplay();
         SystemStatusManager.stop();
         NetworkStatsManager.stop();
+        StateManager.clearAllCache();
+        if (StateManager.pending_requests) {
+            StateManager.pending_requests.clear();
+        }
     });
 
     function initializeWebSocketConnections(status) {

@@ -1563,6 +1563,7 @@ function action_update_ma()
 	HTTP.write_json({
 		oplv = oplv(),
 		pkg_type = fs.pkg_type(),
+		oix_core = fs.uci_get_config("config", "oix_token") ~= "",
 		corelv = corelv(),
 		corever = corever();
 	})
