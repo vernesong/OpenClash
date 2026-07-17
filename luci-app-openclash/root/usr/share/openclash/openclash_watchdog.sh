@@ -47,7 +47,13 @@ begin
          if provider.key?('path') and not provider['path'].empty?
             path = provider['path'].start_with?('./') ? '/etc/openclash/' + provider['path'][2..-1] : provider['path']
             if File.exist?(path)
-               file_is_age_encrypted = File.read(path, 512).include?('BEGIN AGE ENCRYPTED FILE') rescue false
+               provider_is_oix = name == 'oixCloud'
+               if provider_is_oix
+                  YAML.LOG_INFO('Set Proxies Address Skip: Bypass【oixCloud】')
+                  next
+               end
+               age_header = '-----BEGIN AGE ENCRYPTED FILE-----'.b
+               file_is_age_encrypted = File.binread(path, age_header.bytesize) == age_header rescue false
                begin
                   if provider.key?('age-secret-key') and not provider['age-secret-key'].to_s.empty?
                      begin
@@ -58,11 +64,7 @@ begin
                      end
                   else
                      if file_is_age_encrypted
-                        if name == 'oixCloud'
-                           YAML.LOG_INFO('Set Proxies Address Skip: Bypass【oixCloud】')
-                        else
-                           YAML.LOG_WARN('Set Proxies Address Skip: Failed【' + path + '】File is AGE encrypted but no secret key provided')
-                        end
+                        YAML.LOG_INFO('Set Proxies Address Skip: Bypass【' + name.to_s + '】File is AGE encrypted but no secret key provided')
                         next
                      end
                      provider_config = YAML.load_file(path)
@@ -75,10 +77,6 @@ begin
                   end
                rescue StandardError
                   if not provider.key?('age-secret-key') or provider['age-secret-key'].to_s.empty?
-                     if file_is_age_encrypted
-                        YAML.LOG_WARN('Failed to parse config file with Lua helper【' + path + '】File is AGE encrypted, cannot parse with Lua')
-                        next
-                     end
                      begin
                         syscall = \"lua /usr/share/openclash/openclash_sub_parser.lua \\\"#{path}\\\"\"
                         sub_servers = IO.popen(syscall).read.split(/\n+/)
