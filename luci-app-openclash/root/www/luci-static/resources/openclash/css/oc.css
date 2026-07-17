@@ -4938,6 +4938,10 @@ html[data-darkmode="true"] .oc .sub_provider_percent {
     vertical-align: middle !important;
 }
 
+.tabs > li.tool_label {
+    padding-block: 0;
+}
+
 .tool_label:hover {
     border-color: rgba(0, 0, 0, 0) !important;
     background-color: unset !important;
@@ -4954,7 +4958,8 @@ html[data-darkmode="true"] .oc .sub_provider_percent {
 }
 
 .tool_label_span {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     white-space: nowrap;
 }
 
