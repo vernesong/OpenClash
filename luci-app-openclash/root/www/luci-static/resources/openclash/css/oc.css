@@ -200,6 +200,14 @@ body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-secti
     gap: 0;
 }
 
+[data-page="admin-services-openclash-settings"] #cbi-openclash > .cbi-section:not(.cbi-tblsection):has(> .cbi-section-node > .cbi-tabcontainer[data-tab-active="true"] > .cbi-value) > .cbi-tabmenu {
+    margin-bottom: 0;
+}
+
+[data-page="admin-services-openclash-settings"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-tabcontainer:has(> .cbi-value) {
+    padding-top: 0;
+}
+
 body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-value,
 body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-tabcontainer > .cbi-value {
     display: grid;
@@ -259,6 +267,10 @@ body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-secti
     box-sizing: border-box;
 }
 
+body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc:not(:has(> .cbi-value-title)) > :is(.cbi-input-textarea, .cm-editor, .cbi-value-description) {
+    grid-column: 1 / -1;
+}
+
 body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field .cbi-checkbox {
     display: inline-flex;
     align-items: center;
@@ -310,6 +322,7 @@ body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-secti
     display: block;
     min-width: 0;
     margin-block: var(--oc-cbi-description-gap) 0;
+    margin-inline: 0;
     padding-block: 0;
     clear: both;
     line-height: 1.5;
@@ -4999,16 +5012,13 @@ html[data-darkmode="true"] .oc .sub_provider_percent {
 /* ==========================================================================
  * SECTION 12: log.htm
  * ========================================================================== */
-[data-page="admin-services-openclash-client"],
-[data-page="admin-services-openclash-client"] *,
-[data-page="admin-services-openclash-log"],
-[data-page="admin-services-openclash-log"] * {
+:where([data-page="admin-services-openclash-client"], [data-page="admin-services-openclash-log"]) .oc,
+:where([data-page="admin-services-openclash-client"], [data-page="admin-services-openclash-log"]) .oc * {
     margin: 0;
     padding: 0;
 }
 
-[data-page="admin-services-openclash-client"] ul,
-[data-page="admin-services-openclash-log"] ul {
+:where([data-page="admin-services-openclash-client"], [data-page="admin-services-openclash-log"]) .oc ul {
     list-style: none;
 }
 
