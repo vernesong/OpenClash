@@ -190,7 +190,7 @@ html[data-darkmode="true"] .oc {
     --oc-cbi-wide-control-width: 60rem;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash {
     --oc-cbi-title-width: 14rem;
     --oc-cbi-control-width: 18rem;
     --oc-cbi-control-height: 2.5rem;
@@ -199,21 +199,21 @@ html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-
     --oc-cbi-row-padding: .5rem 1rem;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-tabcontainer {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-tabcontainer {
     gap: 0;
 }
 
-html:has(link[href*="/luci-static/argon/"]) [data-page="admin-services-openclash-settings"] #cbi-openclash > .cbi-section:not(.cbi-tblsection):has(> .cbi-section-node > .cbi-tabcontainer[data-tab-active="true"] > .cbi-value) > .cbi-tabmenu {
+html.oc-theme-argon [data-page="admin-services-openclash-settings"] #cbi-openclash > .cbi-section:not(.cbi-tblsection).oc-cbi-value-tabs > .cbi-tabmenu {
     margin-bottom: 0;
 }
 
-html:has(link[href*="/luci-static/argon/"]) [data-page="admin-services-openclash-settings"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-tabcontainer:has(> .cbi-value) {
+html.oc-theme-argon [data-page="admin-services-openclash-settings"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-tabcontainer.oc-cbi-value-tab {
     padding-block: 1rem 0;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-value,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-tabcontainer > .cbi-value {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-value,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-tabcontainer > .cbi-value {
     display: grid;
     grid-template-columns: var(--oc-cbi-title-width) minmax(0, 1fr);
     align-items: start;
@@ -224,7 +224,7 @@ html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-
     overflow: visible;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value > .cbi-value-title {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value > .cbi-value-title {
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -238,7 +238,7 @@ html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-
     overflow-wrap: anywhere;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value > .cbi-value-field {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value > .cbi-value-field {
     width: auto;
     min-width: 0;
     min-height: var(--oc-cbi-control-height);
@@ -247,31 +247,31 @@ html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-
     line-height: 1.5;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value > .cbi-value-field:only-child {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value > .cbi-value-field:only-child {
     grid-column: 1 / -1;
 }
 
 /* Code editors render directly in their CBI row instead of a value field.
  * Only standalone titleless editors should span both columns. */
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-input-textarea,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cm-editor {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-input-textarea,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cm-editor {
     grid-column: 2;
     width: 100%;
     max-width: var(--oc-cbi-wide-control-width);
     box-sizing: border-box;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-value-description {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-value-description {
     grid-column: 2;
     max-width: var(--oc-cbi-wide-control-width);
     box-sizing: border-box;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc:not(:has(> .cbi-value-title)):is(:not([data-depends]), [data-depends="[]"]) > :is(.cbi-input-textarea, .cm-editor, .cbi-value-description) {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc.oc-standalone-editor > :is(.cbi-input-textarea, .cm-editor, .cbi-value-description) {
     grid-column: 1 / -1;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field .cbi-checkbox {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field .cbi-checkbox {
     display: inline-flex;
     align-items: center;
     height: auto;
@@ -279,52 +279,52 @@ html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-
     vertical-align: middle;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value:has(> .cbi-value-field .cbi-checkbox) > :is(.cbi-value-title, .cbi-value-field) {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc-checkbox-row > :is(.cbi-value-title, .cbi-value-field) {
     line-height: 1.25;
     min-height: 0;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field .cbi-checkbox > input,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field .cbi-checkbox > label {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field .cbi-checkbox > input,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field .cbi-checkbox > label {
     margin: 0;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field .cbi-checkbox > span {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field .cbi-checkbox > span {
     margin-left: .375rem;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > div > input.cbi-input-text,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > div > input.cbi-input-password,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > div > select.cbi-input-select,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dropdown,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dynlist {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > div > input.cbi-input-text,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > div > input.cbi-input-password,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > div > select.cbi-input-select,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dropdown,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dynlist {
     width: var(--oc-cbi-control-width);
     max-width: 100%;
     min-height: var(--oc-cbi-control-height);
     box-sizing: border-box;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dropdown,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dynlist > div > .cbi-dropdown {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dropdown,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dynlist > div > .cbi-dropdown {
     padding-top: .4375rem;
     padding-bottom: .4375rem;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dynlist > div > input,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dynlist > div > .cbi-dropdown,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dynlist > div > .cbi-button,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-button,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > div > .cbi-button {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dynlist > div > input,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dynlist > div > .cbi-dropdown,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-dynlist > div > .cbi-button,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-button,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > div > .cbi-button {
     min-height: var(--oc-cbi-control-height);
     box-sizing: border-box;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > br {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > br {
     display: none;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-value-description,
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-value-description {
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value-field > .cbi-value-description,
+html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-value-description {
     display: block;
     min-width: 0;
     margin-block: var(--oc-cbi-description-gap) 0;
@@ -335,30 +335,30 @@ html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-
 }
 
 @media (max-width: 575px) {
-    html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash {
+    html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash {
         --oc-cbi-control-width: 100%;
     }
 
-    html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-value,
-    html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-tabcontainer > .cbi-value {
+    html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-value,
+    html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-tabcontainer > .cbi-value {
         grid-template-columns: minmax(0, 1fr);
         row-gap: .25rem;
         padding: .625rem .75rem;
     }
 
-    html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value > .cbi-value-title {
+    html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value > .cbi-value-title {
         justify-content: flex-start;
         min-height: 0;
         text-align: left;
     }
 
-    html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-input-textarea,
-    html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cm-editor,
-    html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-value-description {
+    html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-input-textarea,
+    html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cm-editor,
+    html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-value-description {
         grid-column: 1;
     }
 
-    html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-value-description {
+    html.oc-theme-argon body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-value-description {
         margin-top: 0;
     }
 }
@@ -4980,7 +4980,7 @@ html[data-darkmode="true"] .oc .sub_provider_percent {
     width: auto !important;
 }
 
-@media (max-width: 767px) {
+@media (max-width: 991px) {
     .oc-update table,
     .oc-update tbody {
         display: block;

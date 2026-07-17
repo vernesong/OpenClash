@@ -1,5 +1,60 @@
 // OpenClash shared utilities
 
+// Mark Argon-specific CBI structures without relying on CSS :has(), which is
+// unavailable in browsers still covered by the package build targets.
+function ocInitCbiLayout() {
+	var html = document.documentElement,
+		links = document.getElementsByTagName('link'),
+		isArgon = false,
+		i, j, child, parent;
+
+	for (i = 0; i < links.length; i++) {
+		if ((links[i].getAttribute('href') || '').indexOf('/luci-static/argon/') >= 0) {
+			isArgon = true;
+			break;
+		}
+	}
+	html.classList[isArgon ? 'add' : 'remove']('oc-theme-argon');
+
+	var root = document.getElementById('cbi-openclash');
+	if (!root) return;
+
+	var rows = root.getElementsByClassName('cbi-value');
+	for (i = 0; i < rows.length; i++) {
+		var hasTitle = false,
+			hasCheckbox = false;
+		for (child = rows[i].firstElementChild; child; child = child.nextElementSibling) {
+			hasTitle = hasTitle || child.classList.contains('cbi-value-title');
+			hasCheckbox = hasCheckbox || child.getElementsByClassName('cbi-checkbox').length > 0;
+		}
+		if (hasCheckbox) rows[i].classList.add('oc-checkbox-row');
+		if (rows[i].classList.contains('oc') && !hasTitle &&
+			(!rows[i].hasAttribute('data-depends') || rows[i].getAttribute('data-depends') === '[]')) {
+			rows[i].classList.add('oc-standalone-editor');
+		}
+	}
+
+	var tabs = root.getElementsByClassName('cbi-tabcontainer');
+	for (i = 0; i < tabs.length; i++) {
+		for (j = 0; j < tabs[i].children.length; j++) {
+			if (!tabs[i].children[j].classList.contains('cbi-value')) continue;
+			tabs[i].classList.add('oc-cbi-value-tab');
+			for (parent = tabs[i].parentElement; parent && parent !== root; parent = parent.parentElement) {
+				if (parent.classList.contains('cbi-section')) {
+					parent.classList.add('oc-cbi-value-tabs');
+					break;
+				}
+			}
+			break;
+		}
+	}
+}
+
+ocInitCbiLayout();
+if (document.readyState === 'loading') {
+	document.addEventListener('DOMContentLoaded', ocInitCbiLayout);
+}
+
 // ═══ Internal helpers ═══
 
 // Parse a CSS color string and return relative luminance (0-255).
