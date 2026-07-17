@@ -279,7 +279,7 @@ html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-
     vertical-align: middle;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value:has(> .cbi-value-field > .cbi-checkbox) > :is(.cbi-value-title, .cbi-value-field) {
+html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value:has(> .cbi-value-field .cbi-checkbox) > :is(.cbi-value-title, .cbi-value-field) {
     line-height: 1.25;
     min-height: 0;
 }
