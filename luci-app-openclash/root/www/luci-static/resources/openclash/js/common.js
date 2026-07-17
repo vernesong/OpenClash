@@ -54,6 +54,14 @@ ocInitCbiLayout();
 if (document.readyState === 'loading') {
 	document.addEventListener('DOMContentLoaded', ocInitCbiLayout);
 }
+window.addEventListener('load', function() {
+	var root = document.getElementById('cbi-openclash');
+	if (root && document.documentElement.classList.contains('oc-theme-argon') &&
+		window.MutationObserver) {
+		new window.MutationObserver(ocInitCbiLayout).observe(root, { childList: true, subtree: true });
+	}
+	ocInitCbiLayout();
+});
 
 // ═══ Internal helpers ═══
 
