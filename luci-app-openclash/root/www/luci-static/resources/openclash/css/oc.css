@@ -209,7 +209,7 @@ html:has(link[href*="/luci-static/argon/"]) [data-page="admin-services-openclash
 }
 
 html:has(link[href*="/luci-static/argon/"]) [data-page="admin-services-openclash-settings"] #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-tabcontainer:has(> .cbi-value) {
-    padding-top: 0;
+    padding-block: 1rem 0;
 }
 
 html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node > .cbi-value,
@@ -251,7 +251,8 @@ html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-
     grid-column: 1 / -1;
 }
 
-/* Code editors render directly in their CBI row instead of a value field. */
+/* Code editors render directly in their CBI row instead of a value field.
+ * Only standalone titleless editors should span both columns. */
 html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cbi-input-textarea,
 html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc > .cm-editor {
     grid-column: 2;
@@ -266,7 +267,7 @@ html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-
     box-sizing: border-box;
 }
 
-html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc:not(:has(> .cbi-value-title)) > :is(.cbi-input-textarea, .cm-editor, .cbi-value-description) {
+html:has(link[href*="/luci-static/argon/"]) body:not([data-page="admin-services-openclash-log"]) #cbi-openclash > .cbi-section:not(.cbi-tblsection) > .cbi-section-node .cbi-value.oc:not(:has(> .cbi-value-title)):is(:not([data-depends]), [data-depends="[]"]) > :is(.cbi-input-textarea, .cm-editor, .cbi-value-description) {
     grid-column: 1 / -1;
 }
 
