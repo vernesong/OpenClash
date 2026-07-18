@@ -3915,7 +3915,7 @@ msgstr "Fallo en intento de descifrado con una clave encontrada:"
 msgid "Encrypt attempt failed:"
 msgstr "Fallo en intento de cifrado:"
 
-msgid "Official Website"
+msgid "oixCloud Website"
 msgstr "Sitio web oficial"
 
 msgid "Login..."
@@ -3950,9 +3950,6 @@ msgstr "Cerrar sesión en la cuenta"
 
 msgid "Account Login"
 msgstr "Inicio de sesión de cuenta"
-
-msgid "Account logged in"
-msgstr "Cuenta iniciada"
 
 msgid "Simple & trustworthy"
 msgstr "Simple y confiable"
@@ -4013,6 +4010,39 @@ msgstr "Contraseña de la cuenta"
 
 msgid "Checkin Multiple"
 msgstr "Multiplicador de registro"
+
+msgid "Optional Parameters"
+msgstr "Parámetros opcionales"
+
+msgid "Optional parameters saved"
+msgstr "Parámetros opcionales guardados"
+
+msgid "Failed to save optional parameters, please try again"
+msgstr "Error al guardar parámetros opcionales, inténtelo de nuevo"
+
+msgid "For more information, please visit the"
+msgstr "Para más información, visite la"
+
+msgid "official documentation"
+msgstr "documentación oficial"
+
+msgid "Must start with &"
+msgstr "Debe comenzar con &"
+
+msgid "Params must not contain spaces"
+msgstr "Los parámetros no deben contener espacios"
+
+msgid "Params too long, max 8192 characters"
+msgstr "Parámetros demasiado largos, máximo 8192 caracteres"
+
+msgid "Invalid params format"
+msgstr "Formato de parámetros no válido"
+
+msgid "Invalid params format, must start with & and use key=value pairs"
+msgstr "Formato de parámetros no válido, debe comenzar con & y usar pares clave=valor"
+
+msgid "Params too long"
+msgstr "Parámetros demasiado largos"
 
 msgid "Usage Help"
 msgstr "Ayuda de uso"
@@ -4149,6 +4179,12 @@ msgstr "Registro"
 msgid "Auto Checkin"
 msgstr "Registro automático"
 
+msgid "Auto check in for oixCloud account daily bonus"
+msgstr "Registro automático para bonificación diaria de oixCloud"
+
+msgid "Auto check-in for traffic rewards and penalties"
+msgstr "Registro automático para recompensas y penalizaciones de tráfico"
+
 msgid "Multiple Must Be a Positive Integer and No More Than 100"
 msgstr "Múltiplo: entero positivo, máximo 100"
 
@@ -4172,6 +4208,12 @@ msgstr "Error de red, revisa tu conexión"
 
 msgid "Show on Overview"
 msgstr "Mostrar en resumen"
+
+msgid "Display oixCloud account info on the overview page"
+msgstr "Mostrar información de cuenta oixCloud en la página de resumen"
+
+msgid "Display account info on the main page"
+msgstr "Mostrar información de cuenta en la página principal"
 
 msgid "Setting saved"
 msgstr "Configuración guardada"

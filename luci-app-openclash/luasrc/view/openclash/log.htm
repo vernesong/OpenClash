@@ -74,6 +74,7 @@ var wsRetryDelay = 2000;
 var wsRetryTimer = null;
 var isPolling = false;
 var core_refresh = true;
+var wsHasData = false;
 var coreEditorInitialized = false;
 var editor_core;
 var coreLogAccumulator = '';
@@ -304,6 +305,7 @@ function coreLogWebSocketStop() {
     } catch (e) {}
 
     coreLogBuffer = [];
+    wsHasData = false;
 }
 
 function coreLogWebSocketRetry() {
@@ -343,6 +345,7 @@ function coreLogWebSocket() {
             coreWebSocket = new WebSocket(wsUrl);
             coreWebSocket.onopen = function() {
                 coreLogBuffer = [];
+                wsHasData = false;
             };
 
             coreWebSocket.onmessage = function(event) {
@@ -350,6 +353,7 @@ function coreLogWebSocket() {
                     try {
                         var msgData = JSON.parse(event.data);
                         if (msgData && msgData.payload) {
+                            wsHasData = true;
                             var now = new Date();
                             var timestamp = now.getFullYear() + "-" + p(now.getMonth() + 1) + "-" + p(now.getDate()) + " " + 
                                            p(now.getHours()) + ":" + p(now.getMinutes()) + ":" + p(now.getSeconds());
@@ -728,7 +732,7 @@ function poll_log(){
     }
 
     if (coreWebSocket && coreWebSocket.readyState == WebSocket.OPEN) {
-        core_refresh = false;
+        core_refresh = !wsHasData;
         if (coreLogBuffer.length > 0) {
             bufferToProcess = coreLogBuffer;
             coreLogBuffer = [];

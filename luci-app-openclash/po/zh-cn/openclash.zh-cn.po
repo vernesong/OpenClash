@@ -3921,7 +3921,7 @@ msgstr "使用找到的私钥解密尝试失败:"
 msgid "Encrypt attempt failed:"
 msgstr "加密尝试失败:"
 
-msgid "Official Website"
+msgid "oixCloud Website"
 msgstr "官方网站"
 
 msgid "Login..."
@@ -3956,9 +3956,6 @@ msgstr "退出账号"
 
 msgid "Account Login"
 msgstr "账号登录"
-
-msgid "Account logged in"
-msgstr "账号已登录"
 
 msgid "Simple & trustworthy"
 msgstr "简单 & 值得信赖"
@@ -4019,6 +4016,39 @@ msgstr "账号密码"
 
 msgid "Checkin Multiple"
 msgstr "签到倍数"
+
+msgid "Optional Parameters"
+msgstr "可选项参数"
+
+msgid "Optional parameters saved"
+msgstr "可选项参数已保存"
+
+msgid "Failed to save optional parameters, please try again"
+msgstr "可选项参数保存失败，请重试"
+
+msgid "For more information, please visit the"
+msgstr "如需查看更多信息，请前往"
+
+msgid "official documentation"
+msgstr "官方文档"
+
+msgid "Must start with &"
+msgstr "必须以 & 开头"
+
+msgid "Params must not contain spaces"
+msgstr "参数不能包含空格"
+
+msgid "Params too long, max 8192 characters"
+msgstr "参数过长，最多 8192 个字符"
+
+msgid "Invalid params format"
+msgstr "参数格式无效"
+
+msgid "Invalid params format, must start with & and use key=value pairs"
+msgstr "参数格式无效，必须以 & 开头并使用 key=value 键值对"
+
+msgid "Params too long"
+msgstr "参数过长"
 
 msgid "Usage Help"
 msgstr "使用帮助"
@@ -4155,6 +4185,12 @@ msgstr "试试手气"
 msgid "Auto Checkin"
 msgstr "自动签到"
 
+msgid "Auto check in for oixCloud account daily bonus"
+msgstr "自动签到来获取 oixCloud 每日奖励"
+
+msgid "Auto check-in for traffic rewards and penalties"
+msgstr "自动签到来获取流量奖励（惩罚）"
+
 msgid "Multiple Must Be a Positive Integer and No More Than 100"
 msgstr "倍数必须是正整数且不大于 100"
 
@@ -4178,6 +4214,12 @@ msgstr "网络请求失败，请检查网络连接后重试"
 
 msgid "Show on Overview"
 msgstr "主页显示"
+
+msgid "Display oixCloud account info on the overview page"
+msgstr "在概览页面显示 oixCloud 账户信息"
+
+msgid "Display account info on the main page"
+msgstr "在主页显示账户信息"
 
 msgid "Setting saved"
 msgstr "设置已保存"

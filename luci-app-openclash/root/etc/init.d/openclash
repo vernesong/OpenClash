@@ -817,6 +817,7 @@ start_run_core()
    procd_set_param env SAFE_PATHS=/usr/share/openclash:/etc/ssl
    procd_append_param env CLASH_AGE_SECRET_KEY="$SECRET_KEY"
    procd_append_param env OIX_TOKEN="$OIX_TOKEN"
+   procd_append_param env OIX_PARAMS="$OIX_PARAMS"
    procd_set_param command /bin/sh -c "$CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
    procd_set_param user "root"
    procd_set_param group "nogroup"
@@ -3139,6 +3140,8 @@ EOF
       LGBM_CUSTOM_URL:string \
       LGBM_UPDATE_INTERVAL:int \
       MIXED_PORT:int \
+      OIX_TOKEN:string \
+      OIX_PARAMS:string \
       PROXY_MODE:string \
       PROXY_PORT:int \
       ROUTER_SELF_PROXY:int_bool \
@@ -3481,6 +3484,7 @@ get_config()
    CFG_NO_EXT_NAME="${CFG_NAME%.*}"
    SECRET_KEY=$(uci_get_age_secret_keys "$CFG_NO_EXT_NAME")
    OIX_TOKEN=$(uci_get_config "oix_token")
+   OIX_PARAMS=$(uci_get_config "oix_params")
    enable=$(uci_get_config "enable")
    enable_custom_clash_rules=$(uci_get_config "enable_custom_clash_rules")
    da_password=$(uci_get_config "dashboard_password")

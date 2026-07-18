@@ -54,12 +54,12 @@ begin
                         provider_config = YAML.load_file(path, secret: provider['age-secret-key']) rescue nil
                      rescue Exception => e
                         YAML.LOG_WARN('Set Proxies Address Skip: Failed【' + path + ': ' + e.message+'】')
-                        continue
+                        next
                      end
                   else
                      if file_is_age_encrypted
                         if name == 'oixCloud'
-                           YAML.LOG_INFO('Set Proxies Address Skip: Bypass【oixCloud】')
+                           YAML.LOG('Set Proxies Address Skip: Bypass【oixCloud】')
                         else
                            YAML.LOG_WARN('Set Proxies Address Skip: Failed【' + path + '】File is AGE encrypted but no secret key provided')
                         end

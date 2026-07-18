@@ -62,8 +62,8 @@
     --oix-msg-info-bg: #cce5ff;
     --oix-msg-info-text: #004085;
     --oix-msg-info-border: #b8daff;
-    --oix-status-badge-bg: rgba(5,150,105,0.08);
-    --oix-status-badge-border: rgba(5,150,105,0.2);
+    --oix-status-badge-bg: rgba(59, 130, 246, 0.08);
+    --oix-status-badge-border: rgba(59, 130, 246, 0.2);
     --overlay-bg: rgba(0, 0, 0, 0.5);
     --editor-bg: #f5f5f5;
     --primary-a5: rgba(59, 130, 246, 0.05);
@@ -140,8 +140,8 @@ html[data-darkmode="true"] .oc {
     --oix-msg-info-bg: #1a2a3a;
     --oix-msg-info-text: #a0c5f5;
     --oix-msg-info-border: #2d3f5a;
-    --oix-status-badge-bg: rgba(52,211,153,0.1);
-    --oix-status-badge-border: rgba(52,211,153,0.25);
+    --oix-status-badge-bg: rgba(96, 165, 250, 0.1);
+    --oix-status-badge-border: rgba(96, 165, 250, 0.25);
     --announcement-end: #3555bf;
     --announcement-icon-bg: rgba(255, 255, 255, 0.1);
     --overlay-bg: rgba(0, 0, 0, 0.5);
@@ -2826,6 +2826,7 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
 .overwrite-banner svg {
     flex-shrink: 0;
     display: block;
+    color: var(--error-color);
 }
 .overwrite-banner span {
     flex: unset;
@@ -5668,14 +5669,14 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 4px 12px; border-radius: 20px;
     font-weight: 600; font-size: 13px;
-    background: var(--oix-status-badge-bg); color: var(--success-color);
+    background: var(--oix-status-badge-bg); color: var(--primary-color);
     border: 1px solid var(--oix-status-badge-border);
 }
 
 .oix-announce {
-    display: none; padding: 10px 14px; margin-bottom: 10px;
-    border-radius: var(--radius-sm); font-size: 12px; line-height: 1.6;
-    background: var(--bg-gray); color: var(--text-primary);
+    display: none; padding: 10px; margin-bottom: 10px;
+    border-radius: var(--radius-md); font-size: 12px; line-height: 1.6;
+    background: var(--bg-white); color: var(--text-primary);
     border: 1px solid var(--border-light);
     transition: all var(--transition-fast);
 }
@@ -5719,6 +5720,10 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
     grid-template-columns: repeat(4, 1fr);
     gap: 8px;
     margin-bottom: 10px;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    background: var(--bg-white);
 }
 .oix-card {
     background: var(--bg-gray); border: 1px solid var(--border-light);
@@ -5741,8 +5746,16 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
     grid-template-columns: 1fr 1fr;
     gap: 10px;
     margin: 8px 0;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    background: var(--bg-white);
+}
+.oix-settings-grid-4 {
+    grid-template-columns: repeat(4, 1fr);
 }
 .oix-setting-card {
+    display: flex; flex-direction: column;
     background: var(--bg-gray);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
@@ -5758,13 +5771,17 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
 .oix-toggle-row {
     display: flex; align-items: center; justify-content: space-between;
     gap: 8px; font-size: 12px; color: var(--text-primary);
+    min-height: 32px;
 }
-.oix-params-item { display: flex; align-items: center; gap: 4px; white-space: nowrap; }
+.oix-params-item { display: flex; align-items: center; gap: 4px; white-space: nowrap; min-height: 32px; }
+.oix-params-item .oix-input-num { flex: 1; min-width: 40px; width: auto; overflow: hidden; text-overflow: ellipsis; }
 .oix-card-help {
     margin-top: 8px; font-size: 11px; color: var(--text-secondary);
     line-height: 1.4; display: flex; align-items: flex-start; gap: 4px;
 }
 .oix-card-help svg { flex-shrink: 0; margin-top: 2px; opacity: 0.7; }
+.oix-card-help a { color: var(--primary-color); text-decoration: underline; opacity: 0.8; font-weight: 500; }
+.oix-card-help a:hover { opacity: 1; }
 .oix-footer {
     margin-top: 12px; text-align: right; font-size: 14px; color: var(--text-secondary);
 }
@@ -5778,14 +5795,15 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
 .oix-toggle-slider {
     position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
     background: var(--switch-off-bg); border-radius: 20px;
+    border: 1px solid var(--border-light);
     transition: all 0.2s ease;
 }
 .oix-toggle-slider::before {
     content: ''; position: absolute; height: 14px; width: 14px;
-    left: 3px; bottom: 3px; background: var(--switch-knob-bg); border-radius: 50%;
+    left: 2px; top: 2px; background: var(--switch-knob-bg); border-radius: 50%;
     transition: all 0.2s ease; box-shadow: var(--switch-knob-shadow);
 }
-.oix-toggle input:checked + .oix-toggle-slider { background: var(--primary-color); }
+.oix-toggle input:checked + .oix-toggle-slider { background: var(--primary-color); border-color: var(--primary-color); }
 .oix-toggle input:checked + .oix-toggle-slider::before { transform: translateX(16px); }
 
 .oix-pwd-toggle { color: var(--text-secondary); }
@@ -5818,8 +5836,7 @@ html[data-darkmode=true] .oc .oix-btn-ghost-subtle:hover { opacity: 0.85; }
 html[data-darkmode=true] .oc .oix-msg-bar svg { color: inherit; }
 html[data-darkmode=true] .oc .oix-setting-card { background: var(--bg-gray); border-color: var(--border-light); }
 html[data-darkmode=true] .oc .oix-setting-card:hover { background: var(--hover-bg); border-color: var(--primary-color); }
-html[data-darkmode=true] .oc .oix-toggle-slider { background: var(--bg-gray); }
-html[data-darkmode=true] .oc .oix-toggle input:checked + .oix-toggle-slider { background: var(--primary-color); }
+html[data-darkmode=true] .oc .oix-toggle input:checked + .oix-toggle-slider { background: var(--primary-color); border-color: var(--primary-color); }
 html[data-darkmode=true] .oc .oix-card-help { color: var(--text-secondary); }
 html[data-darkmode=true] .oc .oix-footer { color: var(--text-secondary); }
 
@@ -6660,6 +6677,9 @@ html[data-darkmode=true] .oc .close-btn:hover {
     }
 
     .oix-cards { grid-template-columns: repeat(2, 1fr); }
+    .oix-settings-grid-4 { grid-template-columns: repeat(2, 1fr); }
+    .oix-params-item { flex-wrap: wrap; white-space: normal; }
+    .oix-params-item .oix-input-num { min-width: 36px; }
 
     .oc .card .additional.collapsed {
       width: 125px;

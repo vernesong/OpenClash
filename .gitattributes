@@ -15,9 +15,23 @@
 
 # HTML/view templates
 *.htm text eol=lf
+*.html text eol=lf
 
 # Custom list files
 *.list text eol=lf
+
+# Ruby
+*.rb text eol=lf
+
+# C / C++ sources
+*.c text eol=lf
+*.h text eol=lf
+
+# IP set files
+*.ipset text eol=lf
+
+# PWA manifest
+*.webmanifest text eol=lf
 
 # Makefile
 Makefile text eol=lf
@@ -25,8 +39,9 @@ Makefile text eol=lf
 # Python
 *.py text eol=lf
 
-# JavaScript / JSON
+# JavaScript / CSS / JSON
 *.js text eol=lf
+*.css text eol=lf
 *.json text eol=lf
 
 # Configuration files
@@ -47,6 +62,14 @@ Makefile text eol=lf
 *.jpeg binary
 *.gif binary
 *.ico binary
+*.svg binary
+*.dat binary
+*.mmdb binary
+*.mrs binary
+*.bin binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
 *.svg binary
 *.dat binary
 *.mmdb binary
