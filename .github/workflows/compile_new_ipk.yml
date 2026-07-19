@@ -38,7 +38,7 @@ jobs:
   Compile:
     runs-on: ubuntu-latest
     needs: Get-Version
-    if: ${{ needs.Get-Version.outputs.version != needs.Get-Version.outputs.current_version }}
+    if: ${{ needs.Get-Version.outputs.version != needs.Get-Version.outputs.current_version || github.event_name == 'workflow_dispatch' }}
     strategy:
       matrix:
         target:
@@ -61,8 +61,8 @@ jobs:
         run: |
           mkdir -p tmp
           if [ "${{ matrix.target.name }}" = "ipk" ]; then
-            if ! curl -SLk --connect-timeout 30 --retry 2 "${{ matrix.target.sdk_url }}" -o "./tmp/${{ matrix.target.sdk_tar }}"; then
-              curl -SLk --connect-timeout 30 --retry 2 "https://archive.openwrt.org/chaos_calmer/15.05.1/ar71xx/generic/OpenWrt-SDK-15.05.1-ar71xx-generic_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2" -o "./tmp/SDK.tar.xz"
+            if ! curl -SLfk --connect-timeout 30 --retry 2 "${{ matrix.target.sdk_url }}" -o "./tmp/${{ matrix.target.sdk_tar }}"; then
+              curl -SLfk --connect-timeout 30 --retry 2 "https://archive.openwrt.org/chaos_calmer/15.05.1/x86/64/OpenWrt-SDK-15.05.1-x86-64_gcc-4.8-linaro_uClibc-0.9.33.2.Linux-x86_64.tar.bz2" -o "./tmp/${{ matrix.target.sdk_backup_tar }}"
               cd tmp
               tar xjf ${{ matrix.target.sdk_backup_tar }}
               mv OpenWrt-SDK-* ${{ matrix.target.sdk_dir }}
@@ -73,11 +73,11 @@ jobs:
             fi
           else
             BASE_URL="https://downloads.openwrt.org/snapshots/targets/x86/64/"
-            SDK_NAME=$(curl -s $BASE_URL | grep -oE 'openwrt-sdk-x86-64[^"]+\.tar\.zst' | head -n 1)
-            if ! curl -SLk --connect-timeout 30 --retry 2 "$BASE_URL/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"; then
+            SDK_NAME=$(curl -sf $BASE_URL | grep -oE 'openwrt-sdk-x86-64[^"]+\.tar\.zst' | head -n 1)
+            if ! curl -SLfk --connect-timeout 30 --retry 2 "$BASE_URL/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"; then
               BASE_URL2="https://mirrors.pku.edu.cn/files/openwrt/snapshots/targets/x86/64/"
-              SDK_NAME=$(curl -s $BASE_URL2 | grep -oE 'openwrt-sdk-x86-64[^"]+\.tar\.zst' | head -n 1)
-              curl -SLk --connect-timeout 30 --retry 2 "$BASE_URL2/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"
+              SDK_NAME=$(curl -sf $BASE_URL2 | grep -oE 'openwrt-sdk-x86-64[^"]+\.tar\.zst' | head -n 1)
+              curl -SLfk --connect-timeout 30 --retry 2 "$BASE_URL2/$SDK_NAME" -o "./tmp/${{ matrix.target.sdk_tar }}"
             fi
             cd tmp
             zstd -d ${{ matrix.target.sdk_tar }}
@@ -191,6 +191,10 @@ jobs:
             make defconfig
           fi
           make package/luci-app-openclash/compile V=99
+          if [ ! -f bin/packages/x86_64/base/${{ matrix.target.artifact_pattern }} ]; then
+            mkdir -p bin/packages/x86_64/base
+            find bin -name "luci-app-openclash_*.ipk" -exec cp {} bin/packages/x86_64/base/ \; 2>/dev/null || true
+          fi
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
@@ -231,5 +235,9 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git commit -m "Auto Release: v${{ needs.Get-Version.outputs.version }}"
-          git push
+          if git diff --staged --quiet; then
+            echo "No changes to commit, skipping."
+          else
+            git commit -m "Auto Release: v${{ needs.Get-Version.outputs.version }}"
+            git push
+          fi
