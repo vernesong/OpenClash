@@ -82,12 +82,17 @@ import jsonLang from "highlight.js/lib/languages/json"
 import githubLightCSS from "highlight.js/styles/github.css"
 import githubDarkCSS from "highlight.js/styles/github-dark-dimmed.css"
 
-hljs.registerLanguage("yaml", yamlLang)
-hljs.registerLanguage("yml", yamlLang)
-hljs.registerLanguage("bash", bashLang)
-hljs.registerLanguage("sh", bashLang)
-hljs.registerLanguage("shell", bashLang)
-hljs.registerLanguage("json", jsonLang)
+var _ocHljsReady = false;
+function _ocEnsureHljs() {
+    if (_ocHljsReady) return;
+    _ocHljsReady = true;
+    hljs.registerLanguage("yaml", yamlLang);
+    hljs.registerLanguage("yml", yamlLang);
+    hljs.registerLanguage("bash", bashLang);
+    hljs.registerLanguage("sh", bashLang);
+    hljs.registerLanguage("shell", bashLang);
+    hljs.registerLanguage("json", jsonLang);
+}
 
 // ============================================================
 // Mihomo / Clash YAML keyword completion
@@ -930,8 +935,9 @@ function mirrorThemeScrollbar() {
         var thumbColor = 'rgba(' + r + ',' + g + ',' + b + ',0.60)';
         var thumbHover = 'rgba(' + r + ',' + g + ',' + b + ',0.70)';
     } else {
-        var thumbColor = _isDarkMode() ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.60)';
-        var thumbHover  = _isDarkMode() ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.70)';
+        var ocIsDark = _ocIsDark();
+        var thumbColor = ocIsDark ? 'rgba(255,255,255,0.60)' : 'rgba(0,0,0,0.60)';
+        var thumbHover  = ocIsDark ? 'rgba(255,255,255,0.70)' : 'rgba(0,0,0,0.70)';
     }
 
     if (!themeText) return;
@@ -1032,14 +1038,11 @@ function toggleFullscreen(dom) {
 }
 
 // ============================================================
-// Theme detection — reads localStorage then falls back to system preference
+// Theme helpers — read data-darkmode set by common.js
 // ============================================================
 
-function _isDarkMode() {
-    var theme = localStorage.getItem('oc-theme') || 'auto';
-    if (theme === 'dark') return true;
-    if (theme === 'light') return false;
-    return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+function _ocIsDark() {
+    return document.documentElement.getAttribute('data-darkmode') === 'true';
 }
 
 // ============================================================
@@ -1050,7 +1053,8 @@ var _hljsCSSInjected = false
 function injectHljsCSS() {
     if (_hljsCSSInjected) return
     _hljsCSSInjected = true
-    var isDark = _isDarkMode()
+    _ocEnsureHljs();
+    var isDark = _ocIsDark()
     var style = document.createElement("style")
     style.id = "hljs-theme"
     style.textContent = isDark ? githubDarkCSS : githubLightCSS
@@ -1067,25 +1071,32 @@ function escapeHtml(s) {
     return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
 }
 
-marked.use({
-    breaks: true,
-    gfm: true,
-    silent: true,
-    renderer: {
-        code: function(token) {
-            var lang = token.lang || ""
-            if (lang && hljs.getLanguage(lang)) {
-                injectHljsCSS()
-                var result = hljs.highlight(token.text, { language: lang, ignoreIllegals: true })
-                return '<pre><code class="hljs language-' + lang + '"><span class="code-content">' + result.value + '</span></code></pre>'
+var _ocMarkedReady = false;
+function _ocEnsureMarked() {
+    if (_ocMarkedReady) return;
+    _ocMarkedReady = true;
+    _ocEnsureHljs();
+    marked.use({
+        breaks: true,
+        gfm: true,
+        silent: true,
+        renderer: {
+            code: function(token) {
+                var lang = token.lang || ""
+                if (lang && hljs.getLanguage(lang)) {
+                    injectHljsCSS()
+                    var result = hljs.highlight(token.text, { language: lang, ignoreIllegals: true })
+                    return '<pre><code class="hljs language-' + lang + '"><span class="code-content">' + result.value + '</span></code></pre>'
+                }
+                return '<pre><code><span class="code-content">' + escapeHtml(token.text) + '</span></code></pre>'
             }
-            return '<pre><code><span class="code-content">' + escapeHtml(token.text) + '</span></code></pre>'
         }
-    }
-})
+    })
+}
 
 function renderMarkdown(text) {
     if (!text) return ''
+    _ocEnsureMarked();
     try { return marked.parse(text) } catch(e) { return text }
 }
 

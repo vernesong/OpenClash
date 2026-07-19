@@ -47,7 +47,6 @@ function editor(id, readOnly, wid, height) {
 	});
 	id.parentNode.insertBefore(view.dom, id.nextSibling);
 	ocHideLoading(id.parentNode);
-	ocUpdateTheme();
 	if (wid && height) {
 		view.dom.style.width = wid;
 		view.dom.style.height = height;
@@ -75,7 +74,6 @@ function shell_editor(id, readOnly, wid, height) {
 	});
 	id.parentNode.insertBefore(view.dom, id.nextSibling);
 	ocHideLoading(id.parentNode);
-	ocUpdateTheme();
 	if (wid && height) {
 		view.dom.style.width = wid;
 		view.dom.style.height = height;
@@ -103,7 +101,6 @@ function other_editor(id, readOnly, wid, height) {
 	});
 	id.parentNode.insertBefore(view.dom, id.nextSibling);
 	ocHideLoading(id.parentNode);
-	ocUpdateTheme();
 	if (wid && height) {
 		view.dom.style.width = wid;
 		view.dom.style.height = height;
@@ -131,7 +128,6 @@ function log_editor(id, name, readOnly, wid, height) {
 	});
 	id.parentNode.insertBefore(view.dom, id.nextSibling);
 	ocHideLoading(id.parentNode);
-	ocUpdateTheme();
 	window['editor_' + name] = view;
 	if (wid && height) {
 		view.dom.style.width = wid;
@@ -176,7 +172,6 @@ function markdown_editor(id, name, readOnly, wid, height) {
 	});
 	id.parentNode.insertBefore(view.dom, id.nextSibling);
 	ocHideLoading(id.parentNode);
-	ocUpdateTheme();
 	window['editor_' + name] = view;
 	if (wid && height) {
 		view.dom.style.width = wid;

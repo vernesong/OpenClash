@@ -305,9 +305,7 @@ btnapply.write = function(self, t)
 		HTTP.close()
 	elseif action == "remove" then
 		local file_name = fs.basename(e[t].name)
-
 		fs.config_refs(file_name)
-
 		fs.unlink("/etc/openclash/history/"..fs.filename(e[t].name)..".db")
 		fs.unlink("/etc/openclash/"..file_name)
 		local a=fs.unlink("/etc/openclash/config/"..file_name)

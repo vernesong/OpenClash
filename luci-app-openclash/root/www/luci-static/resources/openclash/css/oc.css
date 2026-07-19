@@ -1673,7 +1673,7 @@ html[data-darkmode="true"] .oc .provider-card {
     justify-content: center;
     gap: 8px;
     padding: 12px 16px;
-    border: none;
+    border: none !important;
     border-radius: calc(var(--radius-md) - 2px);
     background: transparent;
     color: var(--text-secondary);
@@ -4901,6 +4901,7 @@ ul {
     margin: 0;
     user-select: none;
     transition: color .18s;
+    box-shadow: none;
 }
 
 #tab-content .dom {
@@ -5349,7 +5350,7 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
 }
 
 .oix-input {
-    width: 100%;
+    width: 100% !important;
     height: 40px;
     padding: 8px 12px;
     border: 1px solid var(--border-light);
@@ -5560,7 +5561,18 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
 .oix-toggle input:checked + .oix-toggle-slider { background: var(--primary-color); border-color: var(--primary-color); }
 .oix-toggle input:checked + .oix-toggle-slider::before { transform: translateX(16px); }
 
-.oix-pwd-toggle { color: var(--text-secondary); }
+.oix-pwd-toggle {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none !important;
+    cursor: pointer;
+    padding: 3px;
+    line-height: 0;
+    color: var(--text-secondary);
+}
 
 .oix-input-num {
     width: 44px; text-align: center; padding: 2px 4px; font-size: 12px;

@@ -42,7 +42,9 @@ end
 						<input type="password" id="oix-passwd" class="oix-input oix-input-ok" placeholder="<%:Account Password%>" autocomplete="current-password"
 							style="padding-right:36px;"
 							value="<%= fs.uci_get_config('config', 'oix_passwd') or '' %>">
-						<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-passwd')" style="position:absolute;right:5px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:3px;line-height:0;" title="<%:Show/Hide Password%>">
+						<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-passwd')"
+							data-show="<%:Show Password%>" data-hide="<%:Hide Password%>"
+							title="<%:Show Password%>">
 							<svg class="oc-icon oix-eye-icon" width="15" height="15"><use href="#oc-icon-eye"/></svg>
 						</button>
 						</div>
@@ -63,10 +65,12 @@ end
 				<div id="oix-panel-token" style="display:none;">
 					<div style="margin-bottom:14px;">
 						<div style="position:relative;">
-						<input type="password" id="oix-token" class="oix-input oix-input-ok" placeholder="<%:Enter your oixCloud token%>"
+						<input type="password" id="oix-token" class="oix-input oix-input-ok" placeholder="<%:Please enter your oixCloud token%>"
 							style="padding-right:36px;"
 							value="<%= fs.uci_get_config('config', 'oix_token') or '' %>">
-						<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-token')" style="position:absolute;right:5px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:3px;line-height:0;" title="<%:Show/Hide Token%>">
+						<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-token')"
+							data-show="<%:Show Token%>" data-hide="<%:Hide Token%>"
+							title="<%:Show Token%>">
 							<svg class="oc-icon oix-eye-icon" width="15" height="15"><use href="#oc-icon-eye"/></svg>
 						</button>
 						</div>
@@ -559,6 +563,10 @@ var OixCloud = {
 		if (!inp) return;
 		var isPwd = inp.type === 'password';
 		inp.type = isPwd ? 'text' : 'password';
+		var btn = inp.parentNode.querySelector('.oix-pwd-toggle');
+		if (btn) {
+			btn.title = isPwd ? btn.getAttribute('data-hide') : btn.getAttribute('data-show');
+		}
 		var icon = inp.parentNode.querySelector('svg');
 		if (icon) {
 			icon.innerHTML = isPwd

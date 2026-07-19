@@ -4155,8 +4155,20 @@ msgstr "No se pudo detectar la versión del backend"
 msgid "Token Login"
 msgstr "Acceso por token"
 
-msgid "Enter your oixCloud token"
+msgid "Please enter your oixCloud token"
 msgstr "Ingresa tu token de oixCloud"
+
+msgid "Show Password"
+msgstr "Mostrar contraseña"
+
+msgid "Hide Password"
+msgstr "Ocultar contraseña"
+
+msgid "Show Token"
+msgstr "Mostrar token"
+
+msgid "Hide Token"
+msgstr "Ocultar token"
 
 msgid "Token login does not require email and password"
 msgstr "Acceso por token: no requiere email ni contraseña"

@@ -4161,8 +4161,20 @@ msgstr "无法检测后端版本"
 msgid "Token Login"
 msgstr "Token 登录"
 
-msgid "Enter your oixCloud token"
-msgstr "输入您的 oixCloud Token"
+msgid "Please enter your oixCloud token"
+msgstr "请输入您的 oixCloud Token"
+
+msgid "Show Password"
+msgstr "显示密码"
+
+msgid "Hide Password"
+msgstr "隐藏密码"
+
+msgid "Show Token"
+msgstr "显示 Token"
+
+msgid "Hide Token"
+msgstr "隐藏 Token"
 
 msgid "Token login does not require email and password"
 msgstr "Token 登录无需填写邮箱和密码"
