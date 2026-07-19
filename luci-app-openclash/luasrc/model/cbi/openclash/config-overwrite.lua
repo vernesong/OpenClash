@@ -406,6 +406,14 @@ o = s:taboption("smart", Flag, "smart_prefer_asn", font_red..bold_on..translate(
 o.description = translate("Select Nodes Force Lookup and Use Target ASN Info First For More Stable Experience")
 o.default = 0
 
+o = s:taboption("smart", Value, "smart_tolerance", translate("Smart Group Tolerance").."(ms)")
+o.description = translate("Sort When Proxies Delays Within Tolerance are Treated as Equal, Preventing Jitter")
+o:value("0", translate("Disable"))
+o:value("100")
+o:value("150")
+o.datatype = "uinteger"
+o.default = "0"
+
 o = s:taboption("smart", Flag, "smart_enable_lgbm", font_red..bold_on..translate("Enable LightGBM Model")..bold_off..font_off)
 o.description = font_red..bold_on..translate("Use LightGBM Model To Predict Weight")..bold_off..font_off
 o.default = 0

@@ -1116,6 +1116,12 @@ msgstr "Recopilar datos de conexiones para entrenar modelo Smart"
 msgid "The Priority Of The Nodes, The Higher Than 1, The More Likely It Is To Be Selected, The Default Is 1, Support Regex"
 msgstr "Ajusta el peso de cada nodo: >1 aumenta selección; <1 reduce uso. Valor por defecto: 1. Compatible con regex."
 
+msgid "Smart Group Tolerance"
+msgstr "Tolerancia del grupo Smart"
+
+msgid "Sort When Proxies Delays Within Tolerance are Treated as Equal, Preventing Jitter"
+msgstr "Ordena tratando como iguales los proxies cuya diferencia de latencia no supere la tolerancia, evitando oscilaciones"
+
 msgid "Running Status"
 msgstr "Estado de ejecución"
 

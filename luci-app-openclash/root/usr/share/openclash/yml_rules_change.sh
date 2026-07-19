@@ -387,27 +387,29 @@ yml_other_set()
 
          # smart auto switch
          begin
-            if ('${8}' == '1' or '${9}' == '1' or '${11}' != '0' or '${12}' != '0' or '${12}' == '1' or '${13}' == '1') and Value.key?('proxy-groups') and Value['proxy-groups'].is_a?(Array) then
+            if ('${8}' == '1' or '${9}' == '1' or '${11}' != '0' or '${12}' != '0' or '${12}' == '1' or '${13}' == '1' or '${14}' != '0') and Value.key?('proxy-groups') and Value['proxy-groups'].is_a?(Array) then
                Value['proxy-groups'].each{|group|
                   threads << Thread.new {
                      if '${8}' == '1' and ['url-test', 'load-balance'].include?(group['type']) then
                         group['type'] = 'smart';
-                        group['uselightgbm'] = true if '${12}' == '1';
-                        group['collectdata'] = true if '${9}' == '1';
-                        group['sample-rate'] = '${10}'.to_f if '${9}' == '1';
                      end;
-                     if '${9}' == '1' and group['type'] == 'smart' then
-                        group['collectdata'] = true;
-                        group['sample-rate'] = '${10}'.to_f;
-                     end;
-                     if '${11}' != '0' and group['type'] == 'smart' then
-                        group['policy-priority'] = '${11}';
-                     end;
-                     if '${12}' == '1' and group['type'] == 'smart' then
-                        group['uselightgbm'] = true;
-                     end;
-                     if '${13}' == '1' and group['type'] == 'smart' then
-                        group['prefer-asn'] = true;
+                     if group['type'] == 'smart' then
+                        if '${9}' == '1' then
+                           group['collectdata'] = true;
+                           group['sample-rate'] = '${10}'.to_f;
+                        end;
+                        if '${11}' != '0'then
+                           group['policy-priority'] = '${11}';
+                        end;
+                        if '${12}' == '1' then
+                           group['uselightgbm'] = true;
+                        end;
+                        if '${13}' == '1' then
+                           group['prefer-asn'] = true;
+                        end;
+                        if '${14}' != '0' then
+                           group['tolerance'] = '${14}'.to_i;
+                        end;
                      end;
                   };
                };
@@ -432,4 +434,4 @@ yml_other_set()
    end" 2>/dev/null >> $LOG_FILE
 }
 
-yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}"
+yml_other_set "$1" "$2" "$3" "$4" "$5" "$6" "$7" "$8" "$9" "${10}" "${11}" "${12}" "${13}" "${14}"
