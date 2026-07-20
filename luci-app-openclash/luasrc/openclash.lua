@@ -335,16 +335,24 @@ function get_resourse_mtime(path)
         local found = find_case_insensitive_path(path)
         if found then
             real_path = found
+        elseif uci_get_config("config", "small_flash_memory") == "1" then
+            local fallback_path = path:gsub("^/etc/openclash/", "/tmp/etc/openclash/")
+            local fallback_found = find_case_insensitive_path(fallback_path)
+            if fallback_found then
+                real_path = fallback_found
+            else
+                return "File Not Exist"
+            end
         else
             return "File Not Exist"
         end
     end
     local file = fs.readlink(real_path) or real_path
-	local resourse_etag_version = SYS.exec(string.format("source /usr/share/openclash/openclash_etag.sh && GET_ETAG_TIMESTAMP_BY_PATH '%s'", real_path))
+	local resourse_etag_version = SYS.exec(string.format("source /usr/share/openclash/openclash_etag.sh && GET_ETAG_TIMESTAMP_BY_PATH '%s'", file))
     if resourse_etag_version and resourse_etag_version ~= "" then
 		return resourse_etag_version
 	end
-	local resourse_version = os.date("%Y-%m-%d %H:%M:%S", mtime(real_path))
+	local resourse_version = os.date("%Y-%m-%d %H:%M:%S", mtime(file))
 	if resourse_version and resourse_version ~= "" then
         return resourse_version
 	end
