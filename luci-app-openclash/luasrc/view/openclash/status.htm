@@ -3450,7 +3450,7 @@
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","flush_dns_cache")%>', null, function(x, status) {
             btn.disabled = false;
             if (x && x.status == 200) {
-                btn.value = (status.flush_status == "0" || status.flush_status != "") ? '<%:Flush Failed%>' : '<%:Flush Successful%>';
+                btn.value = (status.fakeip_flush === "" && status.dns_flush === "") ? '<%:Flush Successful%>' : '<%:Flush Failed%>';
             } else {
                 btn.value = '<%:Flush Timeout%>';
             }
@@ -3581,17 +3581,19 @@
                     DOMCache.core_version_display.style.display = 'flex';
 
                     var existingDot = DOMCache.core_version_display.querySelector('.update-dot');
-                    if (existingDot) {
-                        existingDot.remove();
-                    }
 
                     if (hasUpdate) {
-                        var updateDot = document.createElement('span');
-                        updateDot.className = 'update-dot';
-                        DOMCache.core_version_display.appendChild(updateDot);
+                        if (!existingDot) {
+                            var updateDot = document.createElement('span');
+                            updateDot.className = 'update-dot';
+                            DOMCache.core_version_display.appendChild(updateDot);
+                        }
                         DOMCache.core_version_display.title = '<%:New version available%>: ' + status.corelv;
                         DOMCache.core_version_text.removeAttribute('title');
                     } else {
+                        if (existingDot) {
+                            existingDot.remove();
+                        }
                         DOMCache.core_version_display.title = '';
                     }
                 } else {
@@ -3618,17 +3620,19 @@
                     DOMCache.plugin_version_display.style.display = 'flex';
 
                     var existingDot = DOMCache.plugin_version_display.querySelector('.update-dot');
-                    if (existingDot) {
-                        existingDot.remove();
-                    }
 
                     if (hasUpdate) {
-                        var updateDot = document.createElement('span');
-                        updateDot.className = 'update-dot';
-                        DOMCache.plugin_version_display.appendChild(updateDot);
+                        if (!existingDot) {
+                            var updateDot = document.createElement('span');
+                            updateDot.className = 'update-dot';
+                            DOMCache.plugin_version_display.appendChild(updateDot);
+                        }
                         DOMCache.plugin_version_display.title = '<%:New version available%>: ' + status.oplv;
                         DOMCache.plugin_version_text.removeAttribute('title');
                     } else {
+                        if (existingDot) {
+                            existingDot.remove();
+                        }
                         DOMCache.plugin_version_display.title = '';
                     }
                 } else {

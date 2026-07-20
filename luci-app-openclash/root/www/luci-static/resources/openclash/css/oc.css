@@ -651,17 +651,18 @@ html[data-darkmode="true"] .oc svg {
     border-radius: 50%;
     background: var(--error-color);
     flex-shrink: 0;
-    animation: gentlePulse 4s cubic-bezier(.17,.67,.83,.67) infinite;
+    will-change: transform, opacity;
+    animation: gentlePulse 4s ease-in-out infinite;
 }
 
 @keyframes gentlePulse {
-    0%, 100% { 
-        opacity: 1; 
+    0%, 100% {
+        opacity: 1;
         transform: scale(1);
     }
-    50% { 
-        opacity: 0.4; 
-        transform: scale(0.9);
+    50% {
+        opacity: 0.45;
+        transform: scale(0.82);
     }
 }
 
@@ -1384,7 +1385,8 @@ html[data-darkmode="true"] .oc .provider-card {
     margin-bottom: 0.2em;
     background: var(--primary-color);
     flex-shrink: 0;
-    animation: gentlePulse 4s cubic-bezier(.17,.67,.83,.67) infinite;
+    will-change: transform, opacity;
+    animation: gentlePulse 4s ease-in-out infinite;
 }
 
 .oc .age-file-icon {

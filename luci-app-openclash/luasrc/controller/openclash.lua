@@ -394,29 +394,34 @@ function core_download()
 end
 
 function action_flush_dns_cache()
-	local state = 0
+	local fake_ip_state = ""
+	local dns_state = ""
 	if is_running() then
 		local daip = daip()
 		local dase = dase() or ""
 		local cn_port = cn_port()
-		if not daip or not cn_port then return end
-		fake_ip_state = SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/fakeip/flush', dase, daip, cn_port))
-		dns_state = SYS.exec(string.format('curl -sL -m 3 --retry 2-H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/dns/flush', dase, daip, cn_port))
+		if daip and cn_port then
+			fake_ip_state = SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/fakeip/flush', dase, daip, cn_port))
+			dns_state = SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/dns/flush', dase, daip, cn_port))
+		end
 	end
 	HTTP.prepare_content("application/json")
 	HTTP.write_json({
-		flush_status = dns_state;
+		fakeip_flush = fake_ip_state;
+		dns_flush = dns_state;
+		flush_status = (fake_ip_state == "" and dns_state == "") and "" or (fake_ip_state ~= "" and fake_ip_state or dns_state);
 	})
 end
 
 function action_flush_smart_cache()
-	local state = 0
+	local flush_state = ""
 	if is_running() then
 		local daip = daip()
 		local dase = dase() or ""
 		local cn_port = cn_port()
-		if not daip or not cn_port then return end
-		flush_state = SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/smart/flush', dase, daip, cn_port))
+		if daip and cn_port then
+			flush_state = SYS.exec(string.format('curl -sL -m 3 --retry 2 -H "Content-Type: application/json" -H "Authorization: Bearer %s" -XPOST http://"%s":"%s"/cache/smart/flush', dase, daip, cn_port))
+		end
 	end
 	HTTP.prepare_content("application/json")
 	HTTP.write_json({

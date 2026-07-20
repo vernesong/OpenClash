@@ -89,6 +89,9 @@ msgstr "检查失败"
 msgid "File Not Exist"
 msgstr "文件不存在"
 
+msgid "Flush DNS Cache"
+msgstr "清理 DNS 缓存"
+
 msgid "Not Set"
 msgstr "未设置"
 
