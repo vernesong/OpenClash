@@ -2184,7 +2184,7 @@ msgstr "desbloqueo completo, región:"
 msgid "only support homemade!"
 msgstr "solo admite contenido propio"
 
-msgid "unlock test faild!"
+msgid "unlock test failed!"
 msgstr "la prueba de desbloqueo ha fallado"
 
 msgid ", the type of group is not select, auto select could not work!"
@@ -2196,13 +2196,13 @@ msgstr "Iniciando selección automática de nodo desbloqueado..."
 msgid "only support homemade! the type of group is not select, auto select could not work!"
 msgstr "Solo admite contenido propio. El grupo no es Select; la selección automática no funcionará."
 
-msgid "unlock test faild! the type of group is not select, auto select could not work!"
+msgid "unlock test failed! the type of group is not select, auto select could not work!"
 msgstr "La prueba de desbloqueo falló. El grupo no es Select; no se puede usar selección automática."
 
 msgid "only support homemade! start auto select unlock proxy..."
 msgstr "Solo admite contenido propio. Iniciando selección automática..."
 
-msgid "unlock test faild! start auto select unlock proxy..."
+msgid "unlock test failed! start auto select unlock proxy..."
 msgstr "La prueba falló. Iniciando selección automática..."
 
 msgid "It Will Be Searched According To The Regex When Auto Search Group Fails"
@@ -2859,7 +2859,7 @@ msgstr "prueba fallida"
 msgid "test is successful"
 msgstr "prueba correcta"
 
-msgid "Config File Tested Faild, Please Check The Log Infos!"
+msgid "Config File Tested Failed, Please Check The Log Infos!"
 msgstr "La prueba del archivo de configuración ha fallado. Consulta el registro del núcleo."
 
 msgid "Test The Config File First..."

@@ -2187,7 +2187,7 @@ msgstr "完整解锁，区域："
 msgid "only support homemade!"
 msgstr "仅支持自制剧！"
 
-msgid "unlock test faild!"
+msgid "unlock test failed!"
 msgstr "解锁检测失败！"
 
 msgid ", the type of group is not select, auto select could not work!"
@@ -2199,13 +2199,13 @@ msgstr "开始进行解锁节点自动选择..."
 msgid "only support homemade! the type of group is not select, auto select could not work!"
 msgstr "仅支持自制剧！当前策略组类型非 Select，无法进行自动选择！"
 
-msgid "unlock test faild! the type of group is not select, auto select could not work!"
+msgid "unlock test failed! the type of group is not select, auto select could not work!"
 msgstr "解锁检测失败！当前策略组类型非 Select，无法进行自动选择！"
 
 msgid "only support homemade! start auto select unlock proxy..."
 msgstr "仅支持自制剧！开始进行解锁节点自动选择..."
 
-msgid "unlock test faild! start auto select unlock proxy..."
+msgid "unlock test failed! start auto select unlock proxy..."
 msgstr "解锁检测失败！开始进行解锁节点自动选择..."
 
 msgid "It Will Be Searched According To The Regex When Auto Search Group Fails"
@@ -2868,7 +2868,7 @@ msgstr "测试失败..."
 msgid "test is successful"
 msgstr "测试成功..."
 
-msgid "Config File Tested Faild, Please Check The Log Infos!"
+msgid "Config File Tested Failed, Please Check The Log Infos!"
 msgstr "配置文件测试失败，请查看《内核日志》排查失败原因！"
 
 msgid "Test The Config File First..."
