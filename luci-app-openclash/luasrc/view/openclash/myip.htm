@@ -50,36 +50,28 @@
                                 </p>
 
                                 <div class="myip-ip-list">
-                                    <div class="myip-ip-item">
-                                        <span class="ip-title">UpaiYun</span>
-                                        <div class="myip-ip-result">
-                                            <span class="ip-result" id="ip-upaiyun"></span>
-                                            <span class="ip-geo" id="ip-upaiyun-geo"></span>
-                                        </div>
+                                    <div class="myip-card-item myip-ip-item">
+                                        <span class="myip-card-label">UpaiYun</span>
+                                        <span class="myip-ip-addr" id="ip-upaiyun"></span>
+                                        <span class="myip-ip-geo" id="ip-upaiyun-geo"></span>
                                     </div>
 
-                                    <div class="myip-ip-item">
-                                        <span class="ip-title">IPIP.NET</span>
-                                        <div class="myip-ip-result">
-                                            <span class="ip-result" id="ip-ipip"></span>
-                                            <span class="ip-geo" id="ip-ipip-geo"></span>
-                                        </div>
+                                    <div class="myip-card-item myip-ip-item">
+                                        <span class="myip-card-label">IPIP.NET</span>
+                                        <span class="myip-ip-addr" id="ip-ipip"></span>
+                                        <span class="myip-ip-geo" id="ip-ipip-geo"></span>
                                     </div>
 
-                                    <div class="myip-ip-item">
-                                        <span class="ip-title">IP.SB</span>
-                                        <div class="myip-ip-result">
-                                            <span class="ip-result" id="ip-ipsb"></span>
-                                            <span class="ip-geo" id="ip-ipsb-geo"></span>
-                                        </div>
+                                    <div class="myip-card-item myip-ip-item">
+                                        <span class="myip-card-label">IP.SB</span>
+                                        <span class="myip-ip-addr" id="ip-ipsb"></span>
+                                        <span class="myip-ip-geo" id="ip-ipsb-geo"></span>
                                     </div>
 
-                                    <div class="myip-ip-item">
-                                        <span class="ip-title">IPIFY</span>
-                                        <div class="myip-ip-result">
-                                            <span class="ip-result" id="ip-ipify"></span>
-                                            <span class="ip-geo" id="ip-ipify-geo"></span>
-                                        </div>
+                                    <div class="myip-card-item myip-ip-item">
+                                        <span class="myip-card-label">IPIFY</span>
+                                        <span class="myip-ip-addr" id="ip-ipify"></span>
+                                        <span class="myip-ip-geo" id="ip-ipify-geo"></span>
                                     </div>
                                 </div>
                             </div>
@@ -104,36 +96,44 @@
                                 </p>
 
                                 <div class="myip-check-list">
-                                    <div class="myip-check-item">
-                                        <span class="ip-state_title"><%:Baidu Search%></span>
-                                        <div class="myip-status-result">
-                                            <span id="http-baidu"></span>
-                                            <span id="ldtime-baidu"></span>
+                                    <div class="myip-card-item myip-check-item" data-svc="baidu">
+                                        <span class="myip-card-label"><svg class="myip-card-icon ic-baidu" style="width:1.5em;height:1.5em;flex-shrink:0"><use href="#oc-icon-brand-baidu"/></svg><span><%:Baidu Search%></span></span>
+                                        <div class="myip-check-row">
+                                            <span class="myip-latency" id="latency-baidu">--</span>
+                                            <span class="myip-latency-unit">ms</span>
+                                            <div class="myip-status-dot testing" id="dot-baidu" title="<%:Testing...%>"></div>
                                         </div>
+                                        <div class="myip-sparkline-wrap" id="spark-baidu"></div>
                                     </div>
 
-                                    <div class="myip-check-item">
-                                        <span class="ip-state_title"><%:NetEase Music%></span>
-                                        <div class="myip-status-result">
-                                            <span id="http-163"></span>
-                                            <span id="ldtime-163"></span>
+                                    <div class="myip-card-item myip-check-item" data-svc="163">
+                                        <span class="myip-card-label"><svg class="myip-card-icon ic-netease" style="width:1.5em;height:1.5em;flex-shrink:0"><use href="#oc-icon-brand-netease"/></svg><span><%:NetEase Music%></span></span>
+                                        <div class="myip-check-row">
+                                            <span class="myip-latency" id="latency-163">--</span>
+                                            <span class="myip-latency-unit">ms</span>
+                                            <div class="myip-status-dot testing" id="dot-163" title="<%:Testing...%>"></div>
                                         </div>
+                                        <div class="myip-sparkline-wrap" id="spark-163"></div>
                                     </div>
 
-                                    <div class="myip-check-item">
-                                        <span class="ip-state_title">GitHub</span>
-                                        <div class="myip-status-result">
-                                            <span id="http-github"></span>
-                                            <span id="ldtime-github"></span>
+                                    <div class="myip-card-item myip-check-item" data-svc="github">
+                                        <span class="myip-card-label"><svg class="myip-card-icon ic-github" style="width:1.5em;height:1.5em;flex-shrink:0"><use href="#oc-icon-brand-github"/></svg><span>GitHub</span></span>
+                                        <div class="myip-check-row">
+                                            <span class="myip-latency" id="latency-github">--</span>
+                                            <span class="myip-latency-unit">ms</span>
+                                            <div class="myip-status-dot testing" id="dot-github" title="<%:Testing...%>"></div>
                                         </div>
+                                        <div class="myip-sparkline-wrap" id="spark-github"></div>
                                     </div>
 
-                                    <div class="myip-check-item">
-                                        <span class="ip-state_title">YouTube</span>
-                                        <div class="myip-status-result">
-                                            <span id="http-youtube"></span>
-                                            <span id="ldtime-youtube"></span>
+                                    <div class="myip-card-item myip-check-item" data-svc="youtube">
+                                        <span class="myip-card-label"><svg class="myip-card-icon ic-youtube" style="width:1.5em;height:1.5em;flex-shrink:0"><use href="#oc-icon-brand-youtube"/></svg><span>YouTube</span></span>
+                                        <div class="myip-check-row">
+                                            <span class="myip-latency" id="latency-youtube">--</span>
+                                            <span class="myip-latency-unit">ms</span>
+                                            <div class="myip-status-dot testing" id="dot-youtube" title="<%:Testing...%>"></div>
                                         </div>
+                                        <div class="myip-sparkline-wrap" id="spark-youtube"></div>
                                     </div>
                                 </div>
                             </div>
@@ -151,7 +151,7 @@
 
 <script>
     function addTitleOnOverflow() {
-        document.querySelectorAll('.ip-result, .ip-geo').forEach(function (span) {
+        document.querySelectorAll('.myip-ip-addr, .myip-ip-geo').forEach(function (span) {
             if (span.scrollWidth > span.clientWidth && localStorage.getItem('privacy_my_ip') !== 'true') {
                 span.setAttribute('title', span.textContent);
             } else {
@@ -175,6 +175,119 @@
     $$.getElementById('ip-ipify').innerHTML = '<%:Querying...%>';
     $$.getElementById('ip-upaiyun').innerHTML = '<%:Querying...%>';
     $$.getElementById('ip-ipsb').innerHTML = '<%:Querying...%>';
+
+    var SpeedHistory = {
+        max: 10,
+        data: { baidu:[], 163:[], github:[], youtube:[] },
+        _prevPath: { baidu: null, 163: null, github: null, youtube: null },
+        push: function(svc, ms) {
+            this.data[svc].push(ms);
+            if (this.data[svc].length > this.max) this.data[svc].shift();
+        },
+        _buildPath: function(pts) {
+            var w = 90, h = 26, pad = 4;
+            var max = Math.max.apply(null, pts), min = Math.min.apply(null, pts);
+            var range = max - min || 1;
+            var stepX = (w - pad * 2) / (this.max - 1);
+            var d = pts.map(function(v, i) {
+                var x = (pad + i * stepX).toFixed(1);
+                var y = (h - pad - (v - min) / range * (h - pad * 2)).toFixed(1);
+                return (i === 0 ? 'M' : 'L') + x + ',' + y;
+            }).join(' ');
+            return { d: d, w: w, h: h };
+        },
+        renderSparkline: function(svc, el, lc) {
+            var pts = this.data[svc];
+            var stroke = latencyColor(lc);
+            if (!el) return;
+            if (pts.length < 2) {
+                var w = 90, h = 26;
+                var d = 'M28.0,15.0 L36.0,15.0 L40.0,7.0 L43.0,22.0 L47.0,15.0 L61.0,15.0';
+                el.innerHTML =
+                    '<svg viewBox="0 0 ' + w + ' ' + h + '" class="myip-sparkline-svg">' +
+                    '<path d="' + d + '" class="spark-ghost" style="stroke:' + stroke + '"/>' +
+                    '</svg>';
+                return;
+            }
+
+            var g = this._buildPath(pts);
+
+            var ghostHTML = '';
+            if (this._prevPath[svc] && pts.length >= 3) {
+                ghostHTML = '<path d="' + this._prevPath[svc] + '" class="spark-ghost" style="stroke:' + stroke + '"/>';
+            }
+            this._prevPath[svc] = g.d;
+
+            el.innerHTML =
+                '<svg viewBox="0 0 ' + g.w + ' ' + g.h + '" class="myip-sparkline-svg">' +
+                ghostHTML +
+                '<path d="' + g.d + '" class="spark-line" style="stroke:' + stroke + '"/>' +
+                '<path d="' + g.d + '" class="spark-shimmer"/>' +
+                '</svg>';
+
+            var lineEl = el.querySelector('.spark-line');
+            if (!lineEl) return;
+            var len = lineEl.getTotalLength();
+            if (len <= 0) return;
+
+            lineEl.style.strokeDasharray = len;
+            lineEl.style.strokeDashoffset = len;
+            lineEl.getBoundingClientRect();
+            lineEl.style.transition = 'stroke-dashoffset 3s ease-out';
+            requestAnimationFrame(function() {
+                lineEl.style.strokeDashoffset = '0';
+            });
+        },
+        reset: function(svc) {
+            this.data[svc] = [];
+            this._prevPath[svc] = null;
+        }
+    };
+
+    function getLatencyClass(ms) {
+        if (ms <= 500) return 'myip-latency-fast';
+        if (ms <= 1000) return 'myip-latency-mid';
+        return 'myip-latency-slow';
+    }
+
+    function latencyColor(lc) {
+        if (lc === 'myip-latency-mid') return 'var(--warning-color)';
+        if (lc === 'myip-latency-slow') return 'var(--error-color)';
+        return 'var(--success-color)';
+    }
+
+    function updateCheckCard(svc, status, latency) {
+        var dot = document.getElementById('dot-' + svc);
+        var lat = document.getElementById('latency-' + svc);
+        var spk = document.getElementById('spark-' + svc);
+        if (status === 'ok') {
+            var lc = getLatencyClass(latency);
+            dot.className = 'myip-status-dot ' + lc;
+            dot.title = '<%:Access Normal%>';
+            lat.textContent = latency;
+            lat.className = 'myip-latency ' + lc;
+            SpeedHistory.push(svc, latency);
+            SpeedHistory.renderSparkline(svc, spk, lc);
+        } else if (status === 'timeout') {
+            dot.className = 'myip-status-dot err';
+            dot.title = '<%:Access Timed Out%>';
+            lat.textContent = '--';
+            lat.className = 'myip-latency';
+            spk.innerHTML = '<span class="myip-sparkline-error"><%:Access Timed Out%></span>';
+        } else if (status === 'denied') {
+            dot.className = 'myip-status-dot err';
+            dot.title = '<%:Access Denied%>';
+            lat.textContent = '--';
+            lat.className = 'myip-latency';
+            spk.innerHTML = '<span class="myip-sparkline-error"><%:Access Denied%></span>';
+        } else {
+            dot.className = 'myip-status-dot testing';
+            dot.title = '<%:Testing...%>';
+            lat.textContent = '--';
+            lat.className = 'myip-latency';
+        }
+    }
+
     let random = parseInt(Math.random() * 100000000);
     let IP = {
         get: (url, type) =>
@@ -295,121 +408,78 @@
         }
     };
 
-    $$.getElementById('http-baidu').innerHTML = '<span><%:Testing...%></span>';
-    $$.getElementById('http-163').innerHTML =  '<span><%:Testing...%></span>';
-    $$.getElementById('http-github').innerHTML = '<span><%:Testing...%></span>';
-    $$.getElementById('http-youtube').innerHTML = '<span><%:Testing...%></span>';
     let HTTP = {
-        checker: (domain, cbElID, cbLoID) => {
+        checker: function(svcName, domain, timeoutMs) {
             if (use_router_mode) {
-                HTTP.checker_router(domain, cbElID, cbLoID);
+                HTTP.checker_router(svcName, domain, timeoutMs);
             } else {
-                HTTP.checker_browser(domain, cbElID, cbLoID);
+                HTTP.checker_browser(svcName, domain, timeoutMs);
             }
         },
-        checker_browser: (domain, cbElID, cbLoID) => {
-            let img = new Image;
-            let img_start_time = (+new Date());
-            let timeout = setTimeout(() => {
+        checker_browser: function(svcName, domain, timeoutMs) {
+            var img = new Image;
+            var img_start_time = (+new Date());
+            var t = timeoutMs || 5000;
+            var timeout = setTimeout(function() {
                 img.onerror = img.onload = null;
-                $$.getElementById(cbLoID).style.display = 'none';
-                $$.getElementById(cbElID).innerHTML = '<span class="sk-text-error"><%:Access Timed Out%></span>'
-            }, 5000);
+                updateCheckCard(svcName, 'timeout');
+            }, t);
 
-            img.onerror = () => {
+            img.onerror = function() {
                 clearTimeout(timeout);
-                $$.getElementById(cbLoID).style.display = 'none';
-                $$.getElementById(cbElID).innerHTML = '<span class="sk-text-error"><%:Access Denied%></span>'
-            }
+                updateCheckCard(svcName, 'denied');
+            };
 
-            img.onload = () => {
+            img.onload = function() {
                 clearTimeout(timeout);
-                let img_load_time = (new Date())- img_start_time;
-                if ($$.getElementById(cbLoID).style.display == 'none') {
-                    $$.getElementById(cbLoID).style.display = '';
-                }
-                if (img_load_time <= 500) {
-                    $$.getElementById(cbLoID).innerHTML = '<span class="sk-load-success">' + img_load_time + ' ms</span>'
-                    $$.getElementById(cbLoID).style.color = '#32b643';
-                }
-                else if (img_load_time > 500 && img_load_time <= 1000) {
-                    $$.getElementById(cbLoID).innerHTML = '<span class="sk-load-success">' + img_load_time + ' ms</span>'
-                    $$.getElementById(cbLoID).style.color = 'var(--warning-color)';
-                }
-                else {
-                    $$.getElementById(cbLoID).innerHTML = '<span class="sk-load-success">' + img_load_time + ' ms</span>'
-                    $$.getElementById(cbLoID).style.color = '#e85600';
-                }
-                $$.getElementById(cbElID).innerHTML = '<span class="sk-text-success"><%:Access Normal%></span>'
-            }
+                var img_load_time = (new Date()) - img_start_time;
+                updateCheckCard(svcName, 'ok', img_load_time);
+            };
 
-            img.src = `https://${domain}/favicon.ico?${+(new Date)}`
+            img.src = 'https://' + domain + '/favicon.ico?' + (+(new Date));
         },
-        checker_router: (domain, cbElID, cbLoID) => {
-            let start_time = (+new Date());
-
+        checker_router: function(svcName, domain, timeoutMs) {
+            var start_time = (+new Date());
             var xhr = new XMLHttpRequest();
             xhr.open('GET', '/cgi-bin/luci/admin/services/openclash/website_check?domain=' + encodeURIComponent(domain), true);
-            xhr.timeout = 10000;
+            xhr.timeout = (timeoutMs || 10000);
 
             xhr.onreadystatechange = function() {
                 if (xhr.readyState === 4) {
-                    let response_time = (new Date()) - start_time;
-
+                    var response_time = (new Date()) - start_time;
                     if (xhr.status === 200) {
                         try {
                             var response = JSON.parse(xhr.responseText);
                             if (response.success) {
-                                if ($$.getElementById(cbLoID).style.display == 'none') {
-                                    $$.getElementById(cbLoID).style.display = '';
-                                }
-
-                                let load_time = response.response_time || response_time;
-                                if (load_time <= 500) {
-                                    $$.getElementById(cbLoID).innerHTML = '<span class="sk-load-success">' + load_time + ' ms</span>'
-                                    $$.getElementById(cbLoID).style.color = '#32b643';
-                                }
-                                else if (load_time > 500 && load_time <= 1000) {
-                                    $$.getElementById(cbLoID).innerHTML = '<span class="sk-load-success">' + load_time + ' ms</span>'
-                                    $$.getElementById(cbLoID).style.color = 'var(--warning-color)';
-                                }
-                                else {
-                                    $$.getElementById(cbLoID).innerHTML = '<span class="sk-load-success">' + load_time + ' ms</span>'
-                                    $$.getElementById(cbLoID).style.color = '#e85600';
-                                }
-                                $$.getElementById(cbElID).innerHTML = '<span class="sk-text-success"><%:Access Normal%></span>'
+                                var load_time = response.response_time || response_time;
+                                updateCheckCard(svcName, 'ok', load_time);
                             } else {
-                                $$.getElementById(cbLoID).style.display = 'none';
-                                $$.getElementById(cbElID).innerHTML = '<span class="sk-text-error"><%:Access Denied%></span>'
+                                updateCheckCard(svcName, 'denied');
                             }
                         } catch (e) {
-                            $$.getElementById(cbLoID).style.display = 'none';
-                            $$.getElementById(cbElID).innerHTML = '<span class="sk-text-error"><%:Access Denied%></span>'
+                            updateCheckCard(svcName, 'denied');
                         }
                     } else {
-                        $$.getElementById(cbLoID).style.display = 'none';
-                        $$.getElementById(cbElID).innerHTML = '<span class="sk-text-error"><%:Access Denied%></span>'
+                        updateCheckCard(svcName, 'denied');
                     }
                 }
             };
 
             xhr.ontimeout = function() {
-                $$.getElementById(cbLoID).style.display = 'none';
-                $$.getElementById(cbElID).innerHTML = '<span class="sk-text-error"><%:Access Timed Out%></span>'
+                updateCheckCard(svcName, 'timeout');
             };
 
             xhr.onerror = function() {
-                $$.getElementById(cbLoID).style.display = 'none';
-                $$.getElementById(cbElID).innerHTML = '<span class="sk-text-error"><%:Access Denied%></span>'
+                updateCheckCard(svcName, 'denied');
             };
 
             xhr.send();
         },
-        runcheck: () => {
-            HTTP.checker('www.baidu.com', 'http-baidu', 'ldtime-baidu');
-            HTTP.checker('s1.music.126.net/style', 'http-163', 'ldtime-163');
-            HTTP.checker('github.com', 'http-github', 'ldtime-github');
-            HTTP.checker('www.youtube.com', 'http-youtube', 'ldtime-youtube');
+        runcheck: function() {
+            HTTP.checker('baidu', 'www.baidu.com');
+            HTTP.checker('163', 's1.music.126.net/style');
+            HTTP.checker('github', 'github.com');
+            HTTP.checker('youtube', 'www.youtube.com');
         }
     };
 
@@ -552,14 +622,20 @@
             smallRect.setAttribute('fill', '#FFF');
             if (titleElement) titleElement.textContent = '<%:Router Mode%>';
         } else {
-            rect.setAttribute('fill', '#666');
-            rect.setAttribute('stroke', '#999');
-            paths[0].setAttribute('stroke', '#CCC');
-            paths[1].setAttribute('stroke', '#999');
-            paths[2].setAttribute('stroke', '#999');
-            smallRect.setAttribute('fill', '#CCC');
+            rect.setAttribute('fill', '#6B7280');
+            rect.setAttribute('stroke', '#9CA3AF');
+            paths[0].setAttribute('stroke', '#D1D5DB');
+            paths[1].setAttribute('stroke', '#9CA3AF');
+            paths[2].setAttribute('stroke', '#9CA3AF');
+            smallRect.setAttribute('fill', '#D1D5DB');
             if (titleElement) titleElement.textContent = '<%:Browser Mode%>';
         }
+    }
+
+    function showAllGhosts() {
+        ['baidu','163','github','youtube'].forEach(function(svc) {
+            SpeedHistory.renderSparkline(svc, document.getElementById('spark-' + svc));
+        });
     }
 
     function init_router_mode() {
@@ -575,6 +651,7 @@
             $$.getElementById('ip-ipify').innerHTML = '***.***.***.***';
         }
 
+        showAllGhosts();
         get_router_ip_info();
         HTTP.runcheck();
 
@@ -598,6 +675,7 @@
             reset_display();
         }
 
+        showAllGhosts();
         myip_Load();
         HTTP.runcheck();
 
@@ -749,6 +827,11 @@
         }, 500);
 
         clearAllIntervals();
+        SpeedHistory.reset('baidu');
+        SpeedHistory.reset('163');
+        SpeedHistory.reset('github');
+        SpeedHistory.reset('youtube');
+        showAllGhosts();
 
         if (use_router_mode) {
             get_router_ip_info();

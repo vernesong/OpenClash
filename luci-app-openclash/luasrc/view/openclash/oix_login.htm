@@ -216,7 +216,7 @@ end
 				<div class="oix-setting-card" style="grid-column: span 2;">
 					<div class="oix-params-item">
 						<span><%:Optional Parameters%>:</span>
-						<input type="text" id="oix-params" style="min-width:140px;" value="<%= oix_params %>" onblur="OixCloud.saveParams()" oninput="OixCloud.validateParams(this)" class="oix-input-num oix-input-ok" placeholder="&type=love&tfo=false&area=hk">
+						<input type="text" id="oix-params" style="min-width:140px;" value="<%= oix_params %>" onblur="OixCloud.saveParams()" oninput="OixCloud.validateParams(this)" class="oix-input-num oix-input-ok" placeholder="&type=love&tfo=true">
 					</div>
 					<div class="oix-card-help">
 						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-help"/></svg>
@@ -249,6 +249,9 @@ var OixCloud = {
 	_paramsRetry: 0,
 	_paramsMaxRetry: 30,
 	_paramsRetryTimer: null,
+	_origCheckinInterval: '<%= checkin_interval %>',
+	_origCheckinMultiple: '<%= checkin_multiple %>',
+	_origParams: '<%= oix_params %>',
 
 	init: function() {
 		if (this.loggedIn) { this.loadAccountInfo(); this.startPolling(); this.fetchParams(); }
@@ -497,8 +500,16 @@ var OixCloud = {
 		if (isNaN(interval) || interval < 1 || interval > 720) { OixMsg.field('oix-checkin-interval', '<%:Checkin interval must be between 1 and 720%>'); OixMsg.show('<%:Checkin interval must be between 1 and 720%>', 'error'); valid = false; }
 		if (isNaN(multiple) || multiple < 1 || multiple > 100) { OixMsg.field('oix-checkin-multiple', '<%:Multiple Must Be a Positive Integer and No More Than 100%>'); OixMsg.show('<%:Multiple Must Be a Positive Integer and No More Than 100%>', 'error'); valid = false; }
 		if (!valid) return;
-		XHR.get(OIX_URLS.save, {checkin: on?'1':'0', interval: String(isNaN(interval)?1:interval), multiple: String(isNaN(multiple)?1:multiple)}, function(x, status) {
-			if (x && x.status == 200) { OixMsg.show('<%:Checkin settings saved%>', 'success', 4000); }
+		var newInterval = String(isNaN(interval) ? 1 : interval);
+		var newMultiple = String(isNaN(multiple) ? 1 : multiple);
+		if (newInterval === this._origCheckinInterval && newMultiple === this._origCheckinMultiple) return;
+		var self = this;
+		XHR.get(OIX_URLS.save, {checkin: on?'1':'0', interval: newInterval, multiple: newMultiple}, function(x, status) {
+			if (x && x.status == 200) {
+				self._origCheckinInterval = newInterval;
+				self._origCheckinMultiple = newMultiple;
+				OixMsg.show('<%:Checkin settings saved%>', 'success', 4000);
+			}
 			else { OixMsg.show('<%:Failed to save checkin settings, please try again%>', 'error'); }
 		});
 	},
@@ -516,8 +527,13 @@ var OixCloud = {
 			OixMsg.show('<%:Params too long%>', 'error');
 			return;
 		}
+		if (params === this._origParams) return;
+		var self = this;
 		XHR.get(OIX_URLS.params, {params: params}, function(x, status) {
-			if (x && x.status == 200) { OixMsg.show('<%:Optional parameters saved%>', 'success', 4000); }
+			if (x && x.status == 200) {
+				self._origParams = params;
+				OixMsg.show('<%:Optional parameters saved%>', 'success', 4000);
+			}
 			else { OixMsg.show('<%:Failed to save optional parameters, please try again%>', 'error'); }
 		});
 	},

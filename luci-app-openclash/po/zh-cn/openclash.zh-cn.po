@@ -1146,6 +1146,9 @@ msgstr "Zashboard"
 msgid "Control Panel"
 msgstr "控制面板"
 
+msgid "If the control panel does not open properly, please try going to Plugin Settings - Dashboard Settings to reset the panel"
+msgstr "如果控制面板打开异常，请尝试前往插件设置-仪表板设置重置面板"
+
 msgid "Quick Action"
 msgstr "快捷操作"
 

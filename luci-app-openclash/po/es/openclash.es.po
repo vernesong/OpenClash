@@ -1143,6 +1143,9 @@ msgstr "Zashboard"
 msgid "Control Panel"
 msgstr "Panel de control"
 
+msgid "If the control panel does not open properly, please try going to Plugin Settings - Dashboard Settings to reset the panel"
+msgstr "Si el panel de control no se abre correctamente, vaya a Configuración del plugin - Ajustes del panel para restablecerlo"
+
 msgid "Quick Action"
 msgstr "Acciones rápidas"
 

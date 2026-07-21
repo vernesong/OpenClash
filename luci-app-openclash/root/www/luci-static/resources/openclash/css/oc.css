@@ -3160,29 +3160,17 @@ html[data-darkmode="true"] .oc .cmt-log-level-watchdog { color: var(--log-watchd
     --card-item-border-radius: var(--radius-md);
 }
 
-html[data-darkmode="true"] .oc #mode-icon rect[stroke="#333"] {
-    stroke: var(--text-primary, #fff);
-}
-
-html[data-darkmode="true"] .oc #mode-icon path[stroke="#333"] {
-    stroke: var(--text-primary, #fff);
-}
+/* ---- dark mode overrides ---- */
+html[data-darkmode="true"] .oc #mode-icon rect[stroke="#333"] { stroke: var(--text-primary, #fff); }
+html[data-darkmode="true"] .oc #mode-icon path[stroke="#333"] { stroke: var(--text-primary, #fff); }
+html[data-darkmode="true"] .oc #mode-icon rect[fill="#2F88FF"] { fill: #60a5fa; }
+html[data-darkmode="true"] .oc #mode-icon rect[fill="#6B7280"] { fill: #9ca3af; }
+html[data-darkmode="true"] .oc #mode-icon path[stroke="#FFF"] { stroke: #f9fafb; }
+html[data-darkmode="true"] .oc #mode-icon path[stroke="#D1D5DB"] { stroke: #9ca3af; }
 
 html[data-darkmode="true"] .oc .myip-main-card {
     background: var(--bg-white, #1f2937);
     border-color: var(--border-light, #374151);
-}
-
-html[data-darkmode="true"] .oc .myip-ip-item,
-html[data-darkmode="true"] .oc .myip-check-item {
-    background: var(--bg-gray, #374151);
-    border-color: var(--border-light, #4b5563);
-}
-
-html[data-darkmode="true"] .oc .myip-ip-item:hover,
-html[data-darkmode="true"] .oc .myip-check-item:hover {
-    background: var(--hover-bg, #4b5563);
-    border-color: var(--primary-color, #3b82f6);
 }
 
 html[data-darkmode="true"] .oc .myip-section-title {
@@ -3190,40 +3178,11 @@ html[data-darkmode="true"] .oc .myip-section-title {
     border-bottom-color: var(--border-light, #374151);
 }
 
-html[data-darkmode="true"] .oc .ip-title,
-html[data-darkmode="true"] .oc .ip-state_title {
-    color: var(--text-title, --text-title);
-}
-
-html[data-darkmode="true"] .oc .ip-title::after,
-html[data-darkmode="true"] .oc .ip-state_title::after {
-    background-color: var(--border-color, --border-color);
-}
-
-html[data-darkmode="true"] .oc .ip-result {
-    color: var(--text-primary, #f9fafb);
-}
-
-html[data-darkmode="true"] .oc .ip-geo {
-    color: var(--text-secondary, #d1d5db);
-}
-
 html[data-darkmode="true"] .oc .myip-footer p {
     color: var(--text-secondary, #d1d5db) !important;
 }
 
-html[data-darkmode="true"] .oc .mode-label {
-    color: var(--text-secondary, #d1d5db);
-}
-
-html[data-darkmode="true"] .oc .sk-text-success {
-    color: var(--success-color, #10b981);
-}
-
-html[data-darkmode="true"] .oc .sk-text-error {
-    color: var(--error-color, #ef4444);
-}
-
+/* ---- base layout ---- */
 .oc .myip-main-card {
     background: var(--bg-white, #ffffff);
     margin: 0 auto;
@@ -3238,35 +3197,32 @@ html[data-darkmode="true"] .oc .sk-text-error {
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
     gap: 12px;
-    align-items: start;
+    align-items: stretch;
     padding: var(--card-padding);
 }
 
-.oc .myip-ip-section {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
+.oc .myip-ip-section,
 .oc .myip-check-section {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    height: 100%;
 }
 
 .oc .myip-section-title {
-    font-size: 25px;
+    font-size: 20px;
     font-weight: bold;
     color: var(--text-title) !important;
     margin: 8px;
     padding: 0;
+    padding-bottom: 12px;
     text-align: left;
     display: flex;
     align-items: center;
     justify-content: space-between;
     min-height: 32px;
     border-bottom: 2px solid var(--border-light, #e5e7eb);
-    padding-bottom: 12px;
+    flex-shrink: 0;
 }
 
 .oc .myip-toolbar {
@@ -3276,163 +3232,176 @@ html[data-darkmode="true"] .oc .sk-text-error {
     flex-shrink: 0;
 }
 
-.oc .myip-ip-list {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin: auto 8px;
-}
-
+.oc .myip-ip-list,
 .oc .myip-check-list {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 1fr;
     gap: 8px;
     margin: auto 8px;
+    flex: 1;
 }
 
-.oc .myip-ip-item,
-.oc .myip-check-item {
+/* ---- card item (shared base) ---- */
+.oc .myip-card-item {
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
+    align-items: center;
+    justify-content: center;
     padding: var(--card-item-padding);
     background: var(--bg-gray, #f9fafb);
     border: 1px solid var(--border-light, #e5e7eb);
     border-radius: var(--card-item-border-radius);
     transition: all var(--transition-fast);
     min-height: var(--card-item-min-height);
-    text-align: center;
-    position: relative;
-    max-height: 104px;
     min-width: 0;
     max-width: 100%;
+    height: 100%;
     box-sizing: border-box;
+    gap: 8px;
+    overflow: hidden;
 }
 
-.oc .myip-ip-item:hover,
-.oc .myip-check-item:hover {
+.oc .myip-card-item:hover {
     background: var(--hover-bg, #f3f4f6);
     border-color: var(--primary-color, #3b82f6);
     transform: translateY(-2px);
     box-shadow: var(--shadow-sm);
 }
 
-.oc .ip-title,
-.oc .ip-state_title {
-    font-weight: bold;
-    font-size: 14px;
-    color: var(--text-title, --text-title);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-bottom: 8px;
-    white-space: nowrap;
-    text-align: center;
-    line-height: 1.2;
-    flex-shrink: 0;
-    position: relative;
-    padding-bottom: 4px;
+.oc .myip-card-icon {
+    width: 20px; height: 20px; flex-shrink: 0;
+    color: var(--text-secondary);
+    transition: all var(--transition-fast);
 }
 
-.oc .ip-title::after,
-.oc .ip-state_title::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 30px;
-    height: 1px;
-    background-color: var(--border-color, --border-color);
+.oc .myip-card-icon.ic-baidu   { color: #2932E1; }
+.oc .myip-card-icon.ic-netease { color: #D43C33; }
+.oc .myip-card-icon.ic-github  { color: #1b1f23; }
+.oc .myip-card-icon.ic-youtube { color: #FF0000; }
+
+html[data-darkmode="true"] .oc .myip-card-icon.ic-baidu   { color: #4E6EF2; }
+html[data-darkmode="true"] .oc .myip-card-icon.ic-netease { color: #F05050; }
+html[data-darkmode="true"] .oc .myip-card-icon.ic-github  { color: #ffffff; }
+html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
+
+.oc .myip-card-label {
+    display: flex; align-items: center; justify-content: center;
+    gap: 6px; font-size: 14px; font-weight: 600;
+    color: var(--text-title);
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    max-width: 100%;
+}
+.oc .myip-card-label > span { line-height: 1; }
+
+.oc .myip-ip-addr {
+    font-size: 13px; color: var(--text-primary);
+    white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis; text-align: center;
+    font-weight: 500; width: 100%;
 }
 
-.oc .myip-ip-result {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    flex: 1;
-    justify-content: center;
-    min-height: 50px;
-    line-height: 15px;
-    min-width: 0;
-    width: 100%;
-    box-sizing: border-box;
-    padding: 0px 6px;
-}
-
-.oc .ip-result {
-    font-size: 13px;
-    color: var(--text-primary, #111827);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-    font-weight: 500;
-    width: 100%;
-    min-width: 0;
-    box-sizing: border-box;
-}
-
-.oc .ip-geo {
-    font-size: 13px;
-    line-height: 16px;
-    color: var(--text-secondary, #6b7280);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
+.oc .myip-ip-geo {
+    font-size: 12px; line-height: 1.3;
+    color: var(--text-secondary);
+    overflow: hidden; text-align: center;
     display: -webkit-box;
-    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
-    white-space: normal;
-    width: 100%;
-    font-weight: 500;
+    white-space: normal; width: 100%;
 }
 
-.oc .myip-status-result {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1px;
-    flex: 1;
-    justify-content: center;
-    min-height: 50px;
-    padding: 0px 6px;
+.oc .myip-check-row {
+    display: flex; align-items: center; gap: 2px;
+    flex-shrink: 0;
 }
 
-.oc .sk-text-success,
-.oc .sk-text-error {
-    font-size: 13px;
-    line-height: 18px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-weight: 500;
-    width: 100%;
-    text-align: center;
-    display: inline-block;
-    vertical-align: bottom;
-    margin-bottom: 2px;
+.oc .myip-latency {
+    font-size: 18px; font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-primary); line-height: 1;
+    transition: color 0.3s;
+}
+.oc .myip-latency-fast { color: var(--success-color) !important; }
+.oc .myip-latency-mid  { color: var(--warning-color) !important; }
+.oc .myip-latency-slow { color: var(--error-color) !important; }
+
+.oc .myip-latency-unit {
+    font-size: 12px; color: var(--text-secondary);
+    margin-left: 1px; line-height: 1;
 }
 
-.oc .sk-text-success {
-    color: var(--success-color, #059669);
+.oc .myip-status-dot {
+    width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+    margin-left: 4px;
+    transition: background 0.3s, box-shadow 0.3s;
+}
+.oc .myip-status-dot.ok,
+.oc .myip-status-dot.myip-latency-fast {
+    background: var(--success-color);
+    box-shadow: 0 0 5px var(--success-color);
+}
+.oc .myip-status-dot.myip-latency-mid {
+    background: var(--warning-color);
+    box-shadow: 0 0 5px var(--warning-color);
+}
+.oc .myip-status-dot.err,
+.oc .myip-status-dot.myip-latency-slow {
+    background: var(--error-color);
+    box-shadow: 0 0 5px var(--error-color);
+}
+.oc .myip-status-dot.testing {
+    background: var(--text-secondary);
+    animation: myip-pulse 1.2s ease-in-out infinite;
+}
+@keyframes myip-pulse {
+    0%, 100% { opacity: 0.35; }
+    50%      { opacity: 1; }
 }
 
-.oc .sk-text-error {
-    color: var(--error-color, #dc2626);
+.oc .myip-sparkline-wrap {
+    width: 100%; height: 26px; overflow: visible; flex-shrink: 0;
+    min-height: 0; position: relative;
+}
+.oc .myip-sparkline-wrap svg.myip-sparkline-svg {
+    width: 100%; height: 100%; display: block;
 }
 
-.oc .sk-load-success {
-    font-size: 13px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    width: 100%;
-    text-align: center;
-    display: inline-block;
-    vertical-align: bottom;
-    font-weight: 500;
+.oc .myip-sparkline-wrap .spark-line {
+    fill: none; stroke: var(--success-color);
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+}
+
+.oc .myip-sparkline-wrap .spark-ghost {
+    fill: none; stroke: var(--success-color);
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    opacity: 0.2;
+}
+
+.oc .myip-sparkline-wrap .spark-shimmer {
+    fill: none; stroke: rgba(255,255,255,0.4);
+    stroke-width: 3; stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+    stroke-dasharray: 10 200;
+    stroke-dashoffset: 0;
+    opacity: 0;
+    filter: drop-shadow(0 0 4px rgba(255,255,255,0.55));
+    animation: shimmer-sweep 5s 3s ease-in-out infinite;
+}
+@keyframes shimmer-sweep {
+    0%   { stroke-dashoffset: 0; opacity: 0; }
+    2%   { opacity: 0.35; }
+    58%  { stroke-dashoffset: -200; opacity: 0.35; }
+    60%  { opacity: 0; }
+    100% { stroke-dashoffset: -200; opacity: 0; }
+}
+
+.oc .myip-sparkline-error {
+    width: 100%; height: 100%; display: flex;
+    align-items: center; justify-content: center;
+    font-size: 10px; color: var(--error-color); opacity: 0.85;
 }
 
 .oc .myip-footer {
@@ -6405,33 +6374,22 @@ html[data-darkmode=true] .oc .close-btn:hover {
     .oc .myip-ip-list,
     .oc .myip-check-list {
         grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 1fr;
     }
 
-    .oc .ip-title,
-    .oc .ip-state_title {
-        font-size: 13px;
+    .oc .myip-card-label { font-size: 13px; }
+    .oc .myip-card-icon { width: 16px; height: 16px; }
+    .oc .myip-ip-addr { font-size: 12px; }
+    .oc .myip-ip-geo { font-size: 12px; }
+    .oc .myip-latency { font-size: 15px; }
+    .oc .myip-latency-unit { font-size: 10px; }
+
+    .oc .myip-status-dot {
+        width: 6px; height: 6px;
     }
 
-    .oc .ip-title::after,
-    .oc .ip-state_title::after {
-        width: 25px;
-    }
-
-    .oc .ip-result {
-        font-size: 12px;
-    }
-
-    .oc .ip-geo {
-        font-size: 12px;
-    }
-
-    .oc .sk-text-success, 
-    .oc .sk-text-error {
-        font-size: 12px;
-    }
-
-    .oc .sk-load-success {
-        font-size: 12px;
+    .oc .myip-sparkline-wrap {
+        height: 20px; overflow: hidden;
     }
 
     .oc .myip-footer p {
@@ -6817,32 +6775,25 @@ html[data-darkmode=true] .oc .close-btn:hover {
         margin-bottom: 10px;
     }
 
-    .oc .ip-title,
-    .oc .ip-state_title {
-        font-size: 12px;
-        margin-bottom: 6px;
+    .oc .myip-ip-list,
+    .oc .myip-check-list {
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 1fr;
     }
 
-    .oc .ip-title::after,
-    .oc .ip-state_title::after {
-        width: 20px;
+    .oc .myip-card-label { font-size: 12px; }
+    .oc .myip-card-icon { width: 14px; height: 14px; }
+    .oc .myip-ip-addr { font-size: 11px; }
+    .oc .myip-ip-geo { font-size: 11px; }
+    .oc .myip-latency { font-size: 14px; }
+    .oc .myip-latency-unit { font-size: 9px; }
+
+    .oc .myip-status-dot {
+        width: 6px; height: 6px;
     }
 
-    .oc .ip-result {
-        font-size: 11px;
-    }
-
-    .oc .ip-geo {
-        font-size: 11px;
-    }
-
-    .oc .sk-text-success, 
-    .oc .sk-text-error {
-        font-size: 11px;
-    }
-
-    .oc .sk-load-success {
-        font-size: 11px;
+    .oc .myip-sparkline-wrap {
+        height: 18px; overflow: hidden;
     }
 
     .oc .myip-footer p {
