@@ -3639,6 +3639,9 @@ msgstr "运行配置（只读）"
 msgid "Start Downloading LightGBM Model..."
 msgstr "开始下载 LightGBM 模型..."
 
+msgid "Direct LightGBM Model Download Failed, Retrying Through OpenClash Proxy..."
+msgstr "LightGBM 模型直连下载失败，正在通过 OpenClash 代理重试..."
+
 msgid "LightGBM Model Download Success, Check Updated..."
 msgstr "LightGBM 模型下载成功，检查是否有更新..."
 
