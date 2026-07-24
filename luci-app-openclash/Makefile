@@ -122,6 +122,11 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /tmp/openclash_announcement >/dev/null 2>&1
 	rm -rf /www/luci-static/resources/openclash >/dev/null 2>&1
 	rm -rf /tmp/oix* >/dev/null 2>&1
+	if [ "$${PKG_UPGRADE:-0}" != "1" ] && [ -f "/etc/crontabs/root" ]; then
+		sed -i '/#openclash-auto-version-update/d' /etc/crontabs/root >/dev/null 2>&1
+		crontab /etc/crontabs/root >/dev/null 2>&1
+		/etc/init.d/cron restart >/dev/null 2>&1
+	fi
 	sed -i '/OpenClash Append/,/OpenClash Append End/d' "/usr/lib/lua/luci/model/network.lua" >/dev/null 2>&1
 	sed -i '/.*kB maximum content size*/c\HTTP_MAX_CONTENT      = 1024*100		-- 100 kB maximum content size' /usr/lib/lua/luci/http.lua >/dev/null 2>&1
 	sed -i '/.*kB maximum content size*/c\export let HTTP_MAX_CONTENT = 1024*100;		// 100 kB maximum content size' /usr/share/ucode/luci/http.uc >/dev/null 2>&1

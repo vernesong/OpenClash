@@ -1394,9 +1394,6 @@ function o.write(self, section, value)
 end
 
 ---- version update
-core_update = s:taboption("version_update", DummyValue, "", nil)
-core_update.template = "openclash/update"
-
 o = s:taboption("version_update", Flag, "auto_version_update", translate("Automatic Version Update"))
 o.description = translate("Automatically check and update OpenClash client and core versions")
 o.default = 0
@@ -1419,6 +1416,9 @@ o:value(t, t..":00")
 end
 o.default = "0"
 o:depends("auto_version_update", "1")
+
+core_update = s:taboption("version_update", DummyValue, "", nil)
+core_update.template = "openclash/update"
 
 ---- developer
 o = s:taboption("developer", Value, "firewall_custom")
@@ -1470,6 +1470,7 @@ o.write = function()
 		m.uci:set("openclash", "config", "smart_enable", SMART_ENABLE)
 	end
 	m.uci:commit("openclash")
+	SYS.call("/etc/init.d/openclash refresh_auto_version_update_cron >/dev/null 2>&1")
 end
 
 o = a:option(Button, "Apply", " ")
@@ -1483,6 +1484,7 @@ o.write = function()
 	end
 	m.uci:set("openclash", "config", "enable", 1)
 	m.uci:commit("openclash")
+	SYS.call("/etc/init.d/openclash refresh_auto_version_update_cron >/dev/null 2>&1")
 	SYS.call("/etc/init.d/openclash restart >/dev/null 2>&1 &")
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end

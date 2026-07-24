@@ -2,7 +2,7 @@
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SCRIPT="$REPO_ROOT/luci-app-openclash/root/usr/share/openclash/openclash_auto_update.sh"
+SCRIPT="$REPO_ROOT/luci-app-openclash/root/usr/share/openclash/openclash_auto_version_update.sh"
 TEST_TMP_DIRS=()
 
 cleanup_tmp_dirs() {
@@ -34,19 +34,21 @@ assert_contains() {
    grep -F "$needle" "$file" >/dev/null 2>&1 || fail "Expected '$needle' in $file"
 }
 
-reset_case_env() {
-   unset TEST_CORE_VERSION TEST_RELEASE_BRANCH TEST_SMART_ENABLE
-   unset TEST_GITHUB_ADDRESS_MOD TEST_ROUTER_SELF_PROXY
-   unset TEST_MIXED_PORT TEST_HTTP_PORT TEST_SOCKS_PORT
-   unset TEST_SUCCESS_AT TEST_SUCCESS_CODE OPENCLASH_TEST_CLASH_RUNNING
+assert_not_contains() {
+   local needle="$1"
+   local file="$2"
+   if grep -F "$needle" "$file" >/dev/null 2>&1; then
+      fail "Did not expect '$needle' in $file"
+   fi
 }
 
-run_auto_update() {
-   (
-      unset http_proxy https_proxy all_proxy
-      unset HTTP_PROXY HTTPS_PROXY ALL_PROXY
-      bash "$SCRIPT"
-   )
+assert_call_count() {
+   local expected="$1"
+   local pattern="$2"
+   local file="$3"
+   local actual
+   actual="$(grep -c "^${pattern}$" "$file" 2>/dev/null || true)"
+   assert_eq "$expected" "$actual" "Unexpected call count for '$pattern'"
 }
 
 setup_case() {
@@ -54,12 +56,29 @@ setup_case() {
    TEST_TMP_DIRS+=("$TEST_TMP")
    export TEST_TMP
    export TEST_LOG_FILE="$TEST_TMP/openclash.log"
-   export TEST_CALLS_FILE="$TEST_TMP/update.calls"
+   export TEST_COMPONENT_CALLS="$TEST_TMP/component.calls"
+   export TEST_INIT_CALLS="$TEST_TMP/init.calls"
    export OPENCLASH_LIB_DIR="$TEST_TMP/lib"
    export OPENCLASH_UPDATE_SH="$TEST_TMP/openclash_update.sh"
+   export OPENCLASH_CORE_SH="$TEST_TMP/openclash_core.sh"
+   export OPENCLASH_INIT_SCRIPT="$TEST_TMP/openclash.init"
    export OPENCLASH_LOCK_DIR="$TEST_TMP/lock"
-   export OPENCLASH_TEST_CLASH_RUNNING="${OPENCLASH_TEST_CLASH_RUNNING:-1}"
-   mkdir -p "$OPENCLASH_LIB_DIR" "$OPENCLASH_LOCK_DIR"
+   export OPENCLASH_RUN_ROOT="$TEST_TMP/run"
+   export OPENCLASH_UPGRADE_GUARD_FILE="$TEST_TMP/openclash-upgrade.guard"
+   export OPENCLASH_TEST_CLASH_RUNNING=1
+   export TEST_AUTO_VERSION_UPDATE=1
+   export TEST_CORE_VERSION=linux-arm64
+   export TEST_ROUTER_SELF_PROXY=0
+   export TEST_PACKAGE_RESULT=current
+   export TEST_PACKAGE_RC=0
+   export TEST_CORE_RESULT=current
+   export TEST_CORE_RC=0
+   export TEST_FLOCK_BUSY=0
+   export TEST_INIT_FAIL_ACTION=
+   mkdir -p "$OPENCLASH_LIB_DIR" "$OPENCLASH_LOCK_DIR" "$OPENCLASH_RUN_ROOT" "$TEST_TMP/bin"
+   : > "$TEST_LOG_FILE"
+   : > "$TEST_COMPONENT_CALLS"
+   : > "$TEST_INIT_CALLS"
 
    cat > "$OPENCLASH_LIB_DIR/log.sh" <<'STUB'
 LOG_TIP() { echo "TIP:$*" >> "$TEST_LOG_FILE"; }
@@ -71,127 +90,229 @@ STUB
    cat > "$OPENCLASH_LIB_DIR/uci.sh" <<'STUB'
 uci_get_config() {
    case "$1" in
-      core_version) echo "${TEST_CORE_VERSION:-linux-arm64}" ;;
-      release_branch) echo "${TEST_RELEASE_BRANCH:-master}" ;;
-      smart_enable) echo "${TEST_SMART_ENABLE:-0}" ;;
-      github_address_mod) echo "${TEST_GITHUB_ADDRESS_MOD:-0}" ;;
-      router_self_proxy) echo "${TEST_ROUTER_SELF_PROXY:-1}" ;;
-      mixed_port) echo "${TEST_MIXED_PORT:-7893}" ;;
-      http_port) echo "${TEST_HTTP_PORT:-7890}" ;;
-      socks_port) echo "${TEST_SOCKS_PORT:-7891}" ;;
+      auto_version_update) printf '%s\n' "${TEST_AUTO_VERSION_UPDATE:-0}" ;;
+      core_version) printf '%s\n' "${TEST_CORE_VERSION:-0}" ;;
+      router_self_proxy) printf '%s\n' "${TEST_ROUTER_SELF_PROXY:-0}" ;;
+      http_port) printf '%s\n' "7890" ;;
+      socks_port) printf '%s\n' "7891" ;;
       *) return 1 ;;
    esac
 }
 STUB
 
-   cat > "$OPENCLASH_LIB_DIR/openclash_ps.sh" <<'STUB'
-unify_ps_status() {
-   if [ "${OPENCLASH_TEST_CLASH_RUNNING:-1}" = "1" ]; then
-      echo 0
-   else
-      echo 1
-   fi
-}
-unify_ps_pids() {
-   if [ "${OPENCLASH_TEST_CLASH_RUNNING:-1}" = "1" ]; then
-      echo "1234"
-   else
-      echo ""
-   fi
-}
+   cat > "$TEST_TMP/bin/flock" <<'STUB'
+#!/bin/sh
+if [ "${1:-}" = "-n" ] && [ "${TEST_FLOCK_BUSY:-0}" = "1" ]; then
+   exit 1
+fi
+exit 0
 STUB
 
    cat > "$OPENCLASH_UPDATE_SH" <<'STUB'
 #!/usr/bin/env bash
-set -euo pipefail
-cdn="${2:-}"
-case "$cdn" in
-   "") source_label="raw" ;;
-   "https://fastly.jsdelivr.net/") source_label="fastly" ;;
-   "https://testingcf.jsdelivr.net/") source_label="testingcf" ;;
-   "https://cdn.jsdelivr.net/") source_label="cdn" ;;
-   *) source_label="$cdn" ;;
-esac
-if [ -n "${http_proxy:-}" ] || [ -n "${https_proxy:-}" ] || [ -n "${all_proxy:-}" ]; then
-   mode_label="proxy"
-else
-   mode_label="direct"
-fi
-echo "${source_label}:${mode_label}" >> "$TEST_CALLS_FILE"
-if [ "${TEST_SUCCESS_AT:-}" = "${source_label}:${mode_label}" ]; then
-   exit "${TEST_SUCCESS_CODE:-0}"
-fi
-exit 1
+set -u
+printf 'package|cdn=%s|auto=%s|package_only=%s\n' \
+   "${1:-}" "${OPENCLASH_AUTO_VERSION_UPDATE:-}" "${OPENCLASH_PACKAGE_ONLY:-}" \
+   >> "$TEST_COMPONENT_CALLS"
+printf '%s\n' "${TEST_PACKAGE_RESULT:-current}" > "$OPENCLASH_PACKAGE_RESULT_FILE"
+exit "${TEST_PACKAGE_RC:-0}"
 STUB
-   chmod +x "$OPENCLASH_UPDATE_SH"
+
+   cat > "$OPENCLASH_CORE_SH" <<'STUB'
+#!/usr/bin/env bash
+set -u
+printf 'core|type=%s|mode=%s|cdn=%s|auto=%s\n' \
+   "${1:-}" "${2:-}" "${3:-}" "${OPENCLASH_AUTO_VERSION_UPDATE:-}" \
+   >> "$TEST_COMPONENT_CALLS"
+printf '%s\n' "${TEST_CORE_RESULT:-current}" > "$OPENCLASH_CORE_RESULT_FILE"
+exit "${TEST_CORE_RC:-0}"
+STUB
+
+cat > "$OPENCLASH_INIT_SCRIPT" <<'STUB'
+#!/bin/sh
+printf '%s\n' "${1:-}" >> "$TEST_INIT_CALLS"
+[ "${1:-}" = "${TEST_INIT_FAIL_ACTION:-}" ] && exit 1
+exit 0
+STUB
+
+   chmod +x \
+      "$TEST_TMP/bin/flock" \
+      "$OPENCLASH_UPDATE_SH" \
+      "$OPENCLASH_CORE_SH" \
+      "$OPENCLASH_INIT_SCRIPT"
+   export PATH="$TEST_TMP/bin:$PATH"
 }
 
 teardown_case() {
    rm -rf "$TEST_TMP"
-   reset_case_env
+   unset TEST_TMP TEST_LOG_FILE TEST_COMPONENT_CALLS TEST_INIT_CALLS
+   unset OPENCLASH_LIB_DIR OPENCLASH_UPDATE_SH OPENCLASH_CORE_SH
+   unset OPENCLASH_INIT_SCRIPT OPENCLASH_LOCK_DIR OPENCLASH_RUN_ROOT
+   unset OPENCLASH_UPGRADE_GUARD_FILE OPENCLASH_TEST_CLASH_RUNNING
+   unset TEST_AUTO_VERSION_UPDATE TEST_CORE_VERSION TEST_ROUTER_SELF_PROXY
+   unset TEST_PACKAGE_RESULT TEST_PACKAGE_RC TEST_CORE_RESULT TEST_CORE_RC
+   unset TEST_FLOCK_BUSY TEST_INIT_FAIL_ACTION
 }
 
-test_skip_without_core_version() {
+run_auto_version_update() {
+   (
+      unset http_proxy https_proxy all_proxy
+      unset HTTP_PROXY HTTPS_PROXY ALL_PROXY
+      bash "$SCRIPT"
+   )
+}
+
+test_disabled_stale_cron_run_calls_nothing() {
    setup_case
-   export TEST_CORE_VERSION=0
-   run_auto_update
-   [ ! -s "$TEST_CALLS_FILE" ] || fail "update script should not be called when core_version=0"
-   assert_contains "自动版本更新跳过：未选择编译版本" "$TEST_LOG_FILE"
+   export TEST_AUTO_VERSION_UPDATE=0
+
+   run_auto_version_update
+
+   [ ! -s "$TEST_COMPONENT_CALLS" ] || fail "Disabled scheduled invocation must not call package or core updater"
+   [ ! -s "$TEST_INIT_CALLS" ] || fail "Disabled scheduled invocation must not change runtime state"
+   assert_contains "功能已关闭" "$TEST_LOG_FILE"
    teardown_case
 }
 
-test_source_and_proxy_order_when_all_fail() {
+test_package_and_core_are_separate_steps() {
    setup_case
-   if run_auto_update; then
-      fail "expected auto update to fail when every source fails"
+
+   run_auto_version_update
+
+   expected='core|type=Meta|mode=auto_version_update|cdn=0|auto=1
+package|cdn=0|auto=1|package_only=1'
+   actual="$(cat "$TEST_COMPONENT_CALLS")"
+   assert_eq "$expected" "$actual" "Package and core should each run once with their scoped auto-update flags"
+   assert_contains "自动版本更新客户端：当前已是最新版本" "$TEST_LOG_FILE"
+   assert_contains "自动版本更新内核：当前已是最新版本" "$TEST_LOG_FILE"
+   teardown_case
+}
+
+test_package_terminal_failure_is_not_success() {
+   setup_case
+   export TEST_PACKAGE_RESULT=failed:install
+   export TEST_PACKAGE_RC=1
+
+   if run_auto_version_update; then
+      fail "Terminal package failure must make the scheduled run fail"
    fi
-   expected='raw:direct
-raw:proxy
-fastly:direct
-fastly:proxy
-testingcf:direct
-testingcf:proxy
-cdn:direct
-cdn:proxy'
-   actual="$(cat "$TEST_CALLS_FILE")"
-   assert_eq "$expected" "$actual" "source/proxy order mismatch"
-   assert_contains "自动版本更新失败：所有下载源和网络路径均尝试失败" "$TEST_LOG_FILE"
+
+   assert_contains "自动版本更新客户端失败：failed:install" "$TEST_LOG_FILE"
+   assert_contains "自动版本更新完成，但部分项目更新失败" "$TEST_LOG_FILE"
+   assert_contains "core|type=Meta|mode=auto_version_update|cdn=0|auto=1" "$TEST_COMPONENT_CALLS"
    teardown_case
 }
 
-test_stop_after_success() {
+test_core_failure_keeps_successful_package_result() {
    setup_case
-   export TEST_SUCCESS_AT="fastly:proxy"
-   run_auto_update
-   expected='raw:direct
-raw:proxy
-fastly:direct
-fastly:proxy'
-   actual="$(cat "$TEST_CALLS_FILE")"
-   assert_eq "$expected" "$actual" "auto update should stop after first successful path"
-   assert_contains "自动版本更新成功：fastly.jsdelivr.net（代理）" "$TEST_LOG_FILE"
+   export TEST_PACKAGE_RESULT=updated:0.47.200
+   export TEST_CORE_RESULT=failed:install
+   export TEST_CORE_RC=1
+
+   if run_auto_version_update; then
+      fail "Core terminal failure must make the aggregate scheduled run fail"
+   fi
+
+   assert_contains "自动版本更新客户端成功" "$TEST_LOG_FILE"
+   assert_contains "自动版本更新内核失败：failed:install" "$TEST_LOG_FILE"
+   assert_contains "自动版本更新完成，但部分项目更新失败" "$TEST_LOG_FILE"
+   assert_call_count 1 "package|cdn=0|auto=1|package_only=1" "$TEST_COMPONENT_CALLS"
+   assert_call_count 1 "core|type=Meta|mode=auto_version_update|cdn=0|auto=1" "$TEST_COMPONENT_CALLS"
    teardown_case
 }
 
-test_proxy_skipped_when_core_not_running() {
+test_running_service_is_restored_at_most_once() {
+   setup_case
+   export TEST_PACKAGE_RESULT=updated:0.47.200
+   export TEST_CORE_RESULT=updated:2026.07.24
+   export OPENCLASH_TEST_CLASH_RUNNING=1
+
+   run_auto_version_update
+
+   assert_call_count 1 "restart" "$TEST_INIT_CALLS"
+   assert_call_count 1 "refresh_auto_version_update_cron" "$TEST_INIT_CALLS"
+   assert_call_count 0 "start" "$TEST_INIT_CALLS"
+   teardown_case
+}
+
+test_stopped_service_is_not_started() {
+   setup_case
+   export TEST_PACKAGE_RESULT=updated:0.47.200
    export OPENCLASH_TEST_CLASH_RUNNING=0
-   setup_case
-   if run_auto_update; then
-      fail "expected failure when direct attempts fail and proxy is unavailable"
-   fi
-   expected='raw:direct
-fastly:direct
-testingcf:direct
-cdn:direct'
-   actual="$(cat "$TEST_CALLS_FILE")"
-   assert_eq "$expected" "$actual" "proxy attempts should be skipped when core is not running"
-   assert_contains "代理路径不可用，跳过代理尝试" "$TEST_LOG_FILE"
+
+   run_auto_version_update
+
+   assert_call_count 0 "start" "$TEST_INIT_CALLS"
+   assert_call_count 0 "restart" "$TEST_INIT_CALLS"
+   assert_call_count 1 "refresh_auto_version_update_cron" "$TEST_INIT_CALLS"
    teardown_case
 }
 
-test_skip_without_core_version
-test_source_and_proxy_order_when_all_fail
-test_stop_after_success
-test_proxy_skipped_when_core_not_running
+test_restore_failure_makes_run_fail() {
+   setup_case
+   export TEST_CORE_RESULT=updated:2026.07.24
+   export TEST_INIT_FAIL_ACTION=restart
+
+   if run_auto_version_update; then
+      fail "Runtime restoration failure must make an otherwise successful run fail"
+   fi
+
+   assert_call_count 1 "restart" "$TEST_INIT_CALLS"
+   assert_contains "运行状态恢复失败" "$TEST_LOG_FILE"
+   teardown_case
+}
+
+test_component_busy_skips_quickly() {
+   setup_case
+   export TEST_CORE_RESULT=busy
+   export TEST_CORE_RC=75
+
+   run_auto_version_update
+
+   assert_call_count 1 "core|type=Meta|mode=auto_version_update|cdn=0|auto=1" "$TEST_COMPONENT_CALLS"
+   assert_not_contains "package|" "$TEST_COMPONENT_CALLS"
+   assert_contains "内核更新任务正忙" "$TEST_LOG_FILE"
+   teardown_case
+}
+
+test_later_busy_does_not_hide_earlier_failure() {
+   setup_case
+   export TEST_CORE_RESULT=failed:install
+   export TEST_CORE_RC=1
+   export TEST_PACKAGE_RESULT=busy
+   export TEST_PACKAGE_RC=75
+
+   if run_auto_version_update; then
+      fail "A later busy package result must not hide an earlier core failure"
+   fi
+
+   assert_call_count 1 "core|type=Meta|mode=auto_version_update|cdn=0|auto=1" "$TEST_COMPONENT_CALLS"
+   assert_call_count 1 "package|cdn=0|auto=1|package_only=1" "$TEST_COMPONENT_CALLS"
+   assert_contains "自动版本更新内核失败：failed:install" "$TEST_LOG_FILE"
+   assert_contains "客户端更新任务正忙" "$TEST_LOG_FILE"
+   teardown_case
+}
+
+test_outer_lock_busy_calls_nothing() {
+   setup_case
+   export TEST_FLOCK_BUSY=1
+
+   run_auto_version_update
+
+   [ ! -s "$TEST_COMPONENT_CALLS" ] || fail "Outer lock contention must skip before calling update scripts"
+   assert_contains "已有自动版本更新任务正在运行" "$TEST_LOG_FILE"
+   teardown_case
+}
+
+test_disabled_stale_cron_run_calls_nothing
+test_package_and_core_are_separate_steps
+test_package_terminal_failure_is_not_success
+test_core_failure_keeps_successful_package_result
+test_running_service_is_restored_at_most_once
+test_stopped_service_is_not_started
+test_restore_failure_makes_run_fail
+test_component_busy_skips_quickly
+test_later_busy_does_not_hide_earlier_failure
+test_outer_lock_busy_calls_nothing
 
 echo "openclash_auto_update_test.sh: PASS"
