@@ -166,6 +166,7 @@ sys_dns_append()
 PROXY_GROUPS=$(ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
    begin
       Value = YAML.load_file('$CONFIG_FILE')
+      File.open('/tmp/yaml_change_marshal', 'wb') { |f| Marshal.dump(Value, f) }
       if Value.key?('proxy-groups') && Value['proxy-groups'].is_a?(Array)
          Value['proxy-groups'].each { |x| puts x['name'] if x.key?('name') }
       end
@@ -328,7 +329,15 @@ end
 
 begin
    config_file = '$5'
-   Value = YAML.load_file(config_file)
+   if File.exist?('/tmp/yaml_change_marshal')
+      begin
+         Value = Marshal.load(File.open('/tmp/yaml_change_marshal', 'rb') { |f| f.read })
+      rescue
+         Value = YAML.load_file(config_file)
+      end
+   else
+      Value = YAML.load_file(config_file)
+   end
 rescue Exception => e
    YAML.LOG_ERROR('Load File Failed,【%s】' % [e.message])
    exit
@@ -815,5 +824,6 @@ ensure
    rescue Exception => e
       YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
    end
+   File.delete('/tmp/yaml_change_marshal') rescue nil
 end
 " 2>/dev/null >> $LOG_FILE

@@ -97,7 +97,7 @@
 
                                 <div class="myip-check-list">
                                     <div class="myip-card-item myip-check-item" data-svc="baidu">
-                                        <span class="myip-card-label"><svg class="myip-card-icon ic-baidu" style="width:1.5em;height:1.5em;flex-shrink:0"><use href="#oc-icon-brand-baidu"/></svg><span><%:Baidu Search%></span></span>
+                                        <span class="myip-card-label"><svg class="myip-card-icon ic-baidu" style="width:1.2em;height:1.2em;flex-shrink:0"><use href="#oc-icon-brand-baidu"/></svg><span><%:Baidu Search%></span></span>
                                         <div class="myip-check-row">
                                             <span class="myip-latency" id="latency-baidu">--</span>
                                             <span class="myip-latency-unit">ms</span>
@@ -107,7 +107,7 @@
                                     </div>
 
                                     <div class="myip-card-item myip-check-item" data-svc="163">
-                                        <span class="myip-card-label"><svg class="myip-card-icon ic-netease" style="width:1.5em;height:1.5em;flex-shrink:0"><use href="#oc-icon-brand-netease"/></svg><span><%:NetEase Music%></span></span>
+                                        <span class="myip-card-label"><svg class="myip-card-icon ic-netease" style="width:1.2em;height:1.2em;flex-shrink:0"><use href="#oc-icon-brand-netease"/></svg><span><%:NetEase Music%></span></span>
                                         <div class="myip-check-row">
                                             <span class="myip-latency" id="latency-163">--</span>
                                             <span class="myip-latency-unit">ms</span>
@@ -117,7 +117,7 @@
                                     </div>
 
                                     <div class="myip-card-item myip-check-item" data-svc="github">
-                                        <span class="myip-card-label"><svg class="myip-card-icon ic-github" style="width:1.5em;height:1.5em;flex-shrink:0"><use href="#oc-icon-brand-github"/></svg><span>GitHub</span></span>
+                                        <span class="myip-card-label"><svg class="myip-card-icon ic-github" style="width:1.2em;height:1.2em;flex-shrink:0"><use href="#oc-icon-brand-github"/></svg><span>GitHub</span></span>
                                         <div class="myip-check-row">
                                             <span class="myip-latency" id="latency-github">--</span>
                                             <span class="myip-latency-unit">ms</span>
@@ -127,7 +127,7 @@
                                     </div>
 
                                     <div class="myip-card-item myip-check-item" data-svc="youtube">
-                                        <span class="myip-card-label"><svg class="myip-card-icon ic-youtube" style="width:1.5em;height:1.5em;flex-shrink:0"><use href="#oc-icon-brand-youtube"/></svg><span>YouTube</span></span>
+                                        <span class="myip-card-label"><svg class="myip-card-icon ic-youtube" style="width:1.2em;height:1.2em;flex-shrink:0"><use href="#oc-icon-brand-youtube"/></svg><span>YouTube</span></span>
                                         <div class="myip-check-row">
                                             <span class="myip-latency" id="latency-youtube">--</span>
                                             <span class="myip-latency-unit">ms</span>
@@ -185,28 +185,46 @@
             if (this.data[svc].length > this.max) this.data[svc].shift();
         },
         _buildPath: function(pts) {
-            var w = 90, h = 26, pad = 4;
+            var w = 90, h = 20, pad = 4;
             var max = Math.max.apply(null, pts), min = Math.min.apply(null, pts);
             var range = max - min || 1;
             var stepX = (w - pad * 2) / (this.max - 1);
+            var endX, endY;
             var d = pts.map(function(v, i) {
                 var x = (pad + i * stepX).toFixed(1);
                 var y = (h - pad - (v - min) / range * (h - pad * 2)).toFixed(1);
+                if (i === pts.length - 1) { endX = x; endY = y; }
                 return (i === 0 ? 'M' : 'L') + x + ',' + y;
             }).join(' ');
-            return { d: d, w: w, h: h };
+            return { d: d, w: w, h: h, endX: endX, endY: endY };
         },
         renderSparkline: function(svc, el, lc) {
             var pts = this.data[svc];
             var stroke = latencyColor(lc);
             if (!el) return;
             if (pts.length < 2) {
-                var w = 90, h = 26;
-                var d = 'M28.0,15.0 L36.0,15.0 L40.0,7.0 L43.0,22.0 L47.0,15.0 L61.0,15.0';
+                var w = 90, h = 20;
+                var d = 'M28.0,10.0 L36.0,10.0 L40.0,5.0 L43.0,15.0 L47.0,10.0 L61.0,10.0';
                 el.innerHTML =
                     '<svg viewBox="0 0 ' + w + ' ' + h + '" class="myip-sparkline-svg">' +
                     '<path d="' + d + '" class="spark-ghost" style="stroke:' + stroke + '"/>' +
                     '</svg>';
+                var ghostEl = el.querySelector('.spark-ghost');
+                if (ghostEl) {
+                    var len = ghostEl.getTotalLength();
+                    if (len > 0) {
+                        ghostEl.style.strokeDasharray = len;
+                        ghostEl.animate([
+                            { strokeDashoffset: len, offset: 0 },
+                            { strokeDashoffset: 0, offset: 0.55 },
+                            { strokeDashoffset: 0, offset: 1 }
+                        ], {
+                            duration: 5500,
+                            easing: 'ease-out',
+                            iterations: Infinity
+                        });
+                    }
+                }
                 return;
             }
 
@@ -222,7 +240,8 @@
                 '<svg viewBox="0 0 ' + g.w + ' ' + g.h + '" class="myip-sparkline-svg">' +
                 ghostHTML +
                 '<path d="' + g.d + '" class="spark-line" style="stroke:' + stroke + '"/>' +
-                '<path d="' + g.d + '" class="spark-shimmer"/>' +
+                '<circle cx="' + g.endX + '" cy="' + g.endY + '" r="3" class="spark-dot-glow" style="fill:' + stroke + '"/>' +
+                '<circle cx="' + g.endX + '" cy="' + g.endY + '" r="2.5" class="spark-dot" style="fill:' + stroke + '"/>' +
                 '</svg>';
 
             var lineEl = el.querySelector('.spark-line');

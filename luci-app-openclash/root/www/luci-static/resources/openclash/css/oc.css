@@ -3247,7 +3247,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     padding: var(--card-item-padding);
     background: var(--bg-gray, #f9fafb);
     border: 1px solid var(--border-light, #e5e7eb);
@@ -3259,7 +3259,6 @@ html[data-darkmode="true"] .oc .myip-footer p {
     height: 100%;
     box-sizing: border-box;
     gap: 8px;
-    overflow: hidden;
 }
 
 .oc .myip-card-item:hover {
@@ -3291,29 +3290,42 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
     color: var(--text-title);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     max-width: 100%;
+    flex-shrink: 0;
+    height: 24px;
 }
 .oc .myip-card-label > span { line-height: 1; }
 
 .oc .myip-ip-addr {
+    flex-shrink: 0;
+    height: 30px;
     font-size: 13px; color: var(--text-primary);
-    white-space: nowrap; overflow: hidden;
-    text-overflow: ellipsis; text-align: center;
+    overflow: hidden; text-align: center;
     font-weight: 500; width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: normal;
+    word-break: break-all;
+    line-height: 1.3;
 }
 
 .oc .myip-ip-geo {
     font-size: 12px; line-height: 1.3;
     color: var(--text-secondary);
     overflow: hidden; text-align: center;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     white-space: normal; width: 100%;
+    flex-shrink: 0;
+    height: 26px;
 }
 
 .oc .myip-check-row {
-    display: flex; align-items: center; gap: 2px;
     flex-shrink: 0;
+    height: 30px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 2px;
 }
 
 .oc .myip-latency {
@@ -3327,7 +3339,7 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
 .oc .myip-latency-slow { color: var(--error-color) !important; }
 
 .oc .myip-latency-unit {
-    font-size: 12px; color: var(--text-secondary);
+    font-size: 13px; color: var(--text-secondary);
     margin-left: 1px; line-height: 1;
 }
 
@@ -3362,9 +3374,13 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
 .oc .myip-sparkline-wrap {
     width: 100%; height: 26px; overflow: visible; flex-shrink: 0;
     min-height: 0; position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .oc .myip-sparkline-wrap svg.myip-sparkline-svg {
-    width: 100%; height: 100%; display: block;
+    width: 100%; height: 20px; display: block;
+    overflow: visible;
 }
 
 .oc .myip-sparkline-wrap .spark-line {
@@ -3380,28 +3396,38 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
     opacity: 0.2;
 }
 
-.oc .myip-sparkline-wrap .spark-shimmer {
-    fill: none; stroke: rgba(255,255,255,0.4);
-    stroke-width: 3; stroke-linecap: round;
-    vector-effect: non-scaling-stroke;
-    stroke-dasharray: 10 200;
-    stroke-dashoffset: 0;
+.oc .myip-sparkline-wrap .spark-dot {
     opacity: 0;
-    filter: drop-shadow(0 0 4px rgba(255,255,255,0.55));
-    animation: shimmer-sweep 5s 3s ease-in-out infinite;
+    vector-effect: non-scaling-stroke;
+    animation: dot-appear 1s 3s ease-in-out forwards;
 }
-@keyframes shimmer-sweep {
-    0%   { stroke-dashoffset: 0; opacity: 0; }
-    2%   { opacity: 0.35; }
-    58%  { stroke-dashoffset: -200; opacity: 0.35; }
-    60%  { opacity: 0; }
-    100% { stroke-dashoffset: -200; opacity: 0; }
+
+.oc .myip-sparkline-wrap .spark-dot-glow {
+    opacity: 0;
+    transform-box: fill-box;
+    transform-origin: center;
+    will-change: transform;
+    animation: glow-appear 1s 3s ease-in-out forwards,
+               dot-breathe 3s 4s ease-in-out backwards infinite;
+}
+
+@keyframes dot-appear {
+    to { opacity: 1; }
+}
+
+@keyframes glow-appear {
+    to { opacity: 0.3; }
+}
+
+@keyframes dot-breathe {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.4); }
 }
 
 .oc .myip-sparkline-error {
     width: 100%; height: 100%; display: flex;
     align-items: center; justify-content: center;
-    font-size: 10px; color: var(--error-color); opacity: 0.85;
+    font-size: 12px; color: var(--error-color); opacity: 0.85;
 }
 
 .oc .myip-footer {
@@ -6377,19 +6403,23 @@ html[data-darkmode=true] .oc .close-btn:hover {
         grid-auto-rows: 1fr;
     }
 
-    .oc .myip-card-label { font-size: 13px; }
+    .oc .myip-card-label { font-size: 13px; height: 20px; }
     .oc .myip-card-icon { width: 16px; height: 16px; }
-    .oc .myip-ip-addr { font-size: 12px; }
-    .oc .myip-ip-geo { font-size: 12px; }
+    .oc .myip-ip-addr { font-size: 12px; height: 28px; }
+    .oc .myip-ip-geo { font-size: 12px; height: 24px; }
+    .oc .myip-check-row { height: 28px; }
     .oc .myip-latency { font-size: 15px; }
-    .oc .myip-latency-unit { font-size: 10px; }
+    .oc .myip-latency-unit { font-size: 12px; }
 
     .oc .myip-status-dot {
         width: 6px; height: 6px;
     }
 
     .oc .myip-sparkline-wrap {
-        height: 20px; overflow: hidden;
+        height: 24px;
+    }
+    .oc .myip-sparkline-wrap svg.myip-sparkline-svg {
+        height: 18px;
     }
 
     .oc .myip-footer p {
@@ -6781,19 +6811,23 @@ html[data-darkmode=true] .oc .close-btn:hover {
         grid-auto-rows: 1fr;
     }
 
-    .oc .myip-card-label { font-size: 12px; }
+    .oc .myip-card-label { font-size: 12px; height: 18px; }
     .oc .myip-card-icon { width: 14px; height: 14px; }
-    .oc .myip-ip-addr { font-size: 11px; }
-    .oc .myip-ip-geo { font-size: 11px; }
+    .oc .myip-ip-addr { font-size: 11px; height: 26px; }
+    .oc .myip-ip-geo { font-size: 11px; height: 22px; }
+    .oc .myip-check-row { height: 26px; }
     .oc .myip-latency { font-size: 14px; }
-    .oc .myip-latency-unit { font-size: 9px; }
+    .oc .myip-latency-unit { font-size: 11px; }
 
     .oc .myip-status-dot {
         width: 6px; height: 6px;
     }
 
     .oc .myip-sparkline-wrap {
-        height: 18px; overflow: hidden;
+        height: 22px;
+    }
+    .oc .myip-sparkline-wrap svg.myip-sparkline-svg {
+        height: 16px;
     }
 
     .oc .myip-footer p {

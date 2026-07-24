@@ -76,7 +76,9 @@ var isPolling = false;
 var core_refresh = true;
 var wsHasData = false;
 var coreEditorInitialized = false;
+var editor_oc;
 var editor_core;
+var editor_debug;
 var coreLogAccumulator = '';
 var pollInterval = 1000;
 
@@ -397,6 +399,7 @@ function gen_debug_logs()
         dl.value = x.responseText || '<%:Some error occurred!%>';
         if (typeof editor_debug !== 'undefined' && editor_debug) {
             editor_debug.setValue(dl.value);
+            setCursorToFirstLineEnd(editor_debug);
         }
         renderDebugView();
     });
@@ -410,6 +413,9 @@ function load_existing_debug_log()
         if (x && x.status == 200 && x.responseText != "")
         {
             dl.value = x.responseText;
+            if (typeof editor_debug !== 'undefined' && editor_debug) {
+                setCursorToFirstLineEnd(editor_debug);
+            }
             renderDebugView();
         }
         else
@@ -421,65 +427,81 @@ function load_existing_debug_log()
     });
 };
 
-function line_tolocal(str) {
+function line_tolocal(input) {
     var trans_local = new Array();
     var local_count = 0;
+    var lines;
 
-    str.trim().split('\n').forEach(function(v, i) {
-        var regex = /(time=)"([^"]*)"/g;
-        var res = regex.exec(v);
+    if (Array.isArray(input)) {
+        lines = input;
+    } else {
+        lines = input.trim().split('\n');
+    }
+
+    for (var i = 0; i < lines.length; i++) {
+        var v = lines[i];
+        if (!v) continue;
 
         try {
-            if (res) {
-                var dt = new Date(res[2]);
+            if (v.indexOf('time=') >= 0) {
+                var regex = /(time=)"([^"]*)"/g;
+                var res = regex.exec(v);
 
-                if (!isNaN(dt.getTime())) {
-                    var timestamp = dt.getFullYear() + "-" + p(dt.getMonth() + 1) + "-" + p(dt.getDate()) + " " + 
-                                   p(dt.getHours()) + ":" + p(dt.getMinutes()) + ":" + p(dt.getSeconds());
-                    
-                    var levelMatch = v.match(/level=(\w+)/);
-                    var level = levelMatch ? levelMatch[1] : 'info';
-                    var translatedLevel = levelTranslations[level] || level;
-                    var msgMatch = v.match(/msg="(.*)"/);
-                    var msg = msgMatch ? msgMatch[1] : '';
-                    trans_local[local_count] = timestamp + " [" + translatedLevel + "] " + msg;
+                if (res) {
+                    var dt = new Date(res[2]);
+
+                    if (!isNaN(dt.getTime())) {
+                        var timestamp = dt.getFullYear() + "-" + p(dt.getMonth() + 1) + "-" + p(dt.getDate()) + " " + 
+                                       p(dt.getHours()) + ":" + p(dt.getMinutes()) + ":" + p(dt.getSeconds());
+                        var levelMatch = v.match(/level=(\w+)/);
+                        var level = levelMatch ? levelMatch[1] : 'info';
+                        var translatedLevel = levelTranslations[level] || level;
+                        var msgMatch = v.match(/msg="(.*)"/);
+                        var msg = msgMatch ? msgMatch[1] : '';
+                        trans_local[local_count] = timestamp + " [" + translatedLevel + "] " + msg;
+                        local_count++;
+                        continue;
+                    }
+                }
+            }
+
+            try {
+                var dtt = new Date(v.substring(0, 19));
+
+                if (!isNaN(dtt.getTime()) && v.substring(0, 19).match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)) {
+                    trans_local[local_count] = v;
                     local_count++;
                 } else {
                     trans_local[local_count] = v;
                     local_count++;
                 }
-            } else {
-                try {
-                    var dtt = new Date(v.substring(0, 19));
-
-                    if (!isNaN(dtt.getTime()) && v.substring(0, 19).match(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/)) {
-                        trans_local[local_count] = v;
-                        local_count++;
-                    } else {
-                        trans_local[local_count] = v;
-                        local_count++;
-                    }
-                } catch (e) {
-                    trans_local[local_count] = v;
-                    local_count++;
-                }
+            } catch (e) {
+                trans_local[local_count] = v;
+                local_count++;
             }
         } catch (e) {
             trans_local[local_count] = v;
             local_count++;
         }
-    });
+    }
 
     return trans_local;
 };
+
+function setCursorToFirstLineEnd(editor) {
+    if (!editor || !editor.state) return;
+    var doc = editor.state.doc;
+    if (doc.lines >= 1) {
+        var fl = doc.line(1);
+        editor.dispatch({ selection: { anchor: fl.to }, scrollIntoView: true });
+    }
+}
 
 function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiveTab) {
     var scrollPosition = null;
     var isAtTop = false;
     var cursorPos = null;
     var selectionRange = null;
-
-    var isFirstLoad = !currentContent || currentContent.trim() === "";
 
     if (isEditor && target) {
         scrollPosition = target.getScrollInfo();
@@ -508,14 +530,9 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         isAtTop = (target.scrollTop < 20);
     }
 
-    if ((target === editor_oc && animatingOC) || (target === editor_core && animatingCore) || !isActiveTab) {
-        var content = "";
+    if ((target === editor_oc && animatingOC) || (target === editor_core && animatingCore) || (target === editor_debug && animatingDebug) || !isActiveTab) {
         var lines = newLines.slice().reverse();
-        for (var i = 0; i < lines.length; i++) {
-            content += lines[i] + "\n";
-        }
-        content = content + (currentContent || "");
-
+        var content = lines.join('\n') + (lines.length > 0 ? '\n' : '') + (currentContent || '');
         var allLines = content.split("\n");
         if (allLines.length > 2000) {
             allLines = allLines.slice(0, 1999);
@@ -531,7 +548,6 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                 if (cursorPos) {
                     cursorPos.line += addedLines;
                     target.setCursor(cursorPos);
-
                     target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
                 } else {
                     target.scrollTo(scrollPosition.left, scrollPosition.top);
@@ -541,7 +557,6 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                     selectionRange.from.line += addedLines;
                     selectionRange.to.line += addedLines;
                     target.setSelection(selectionRange.from, selectionRange.to);
-
                     target.scrollIntoView({
                         from: selectionRange.from,
                         to: selectionRange.to
@@ -554,8 +569,6 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                     target.setCursor({line: 0, ch: firstLineLen});
                 }
             }
-
-            target.refresh();
         } else {
             var oldScrollTop = scrollPosition;
             target.innerHTML = content;
@@ -568,6 +581,8 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
 
     if (target === editor_oc || target === lv) {
         animatingOC = true;
+    } else if (target === editor_debug) {
+        animatingDebug = true;
     } else {
         animatingCore = true;
     }
@@ -576,25 +591,25 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
     var batchSize, interval;
 
     if (totalLines <= 10) {
-        batchSize = 2;
-        interval = 90;
+        batchSize = 5;
+        interval = 80;
     } else if (totalLines <= 50) {
-        batchSize = 10;
-        interval = 60;
+        batchSize = 25;
+        interval = 50;
     } else if (totalLines <= 200) {
-        batchSize = 30;
-        interval = 35;
-    } else if (totalLines <= 500) {
         batchSize = 60;
-        interval = 25;
+        interval = 30;
+    } else if (totalLines <= 500) {
+        batchSize = 150;
+        interval = 20;
     } else if (totalLines <= 1000) {
-        batchSize = 120;
-        interval = 15;
+        batchSize = 300;
+        interval = 12;
     } else if (totalLines <= 1500) {
-        batchSize = 180;
-        interval = 10;
+        batchSize = 400;
+        interval = 8;
     } else {
-        batchSize = 250;
+        batchSize = 500;
         interval = 5;
     }
 
@@ -607,6 +622,8 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         if (currentBatchCount >= logLines.length) {
             if (target === editor_oc || target === lv) {
                 animatingOC = false;
+            } else if (target === editor_debug) {
+                animatingDebug = false;
             } else {
                 animatingCore = false;
             }
@@ -629,11 +646,7 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                 }
             }
             if (isEditor && !cursorPos) {
-                var doc = target.state.doc;
-                if (doc.lines >= 1) {
-                    var fl = doc.line(1);
-                    target.dispatch({ selection: { anchor: fl.to } });
-                }
+                setCursorToFirstLineEnd(target);
             }
             return;
         }
@@ -651,13 +664,6 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
 
         var content = accumulatedContent + (displayedContent ? "\n" + displayedContent : "");
 
-        var contentLines = content.split("\n");
-        if (contentLines.length > 2000) {
-            contentLines = contentLines.slice(0, 1999);
-            contentLines.push("...");
-            content = contentLines.join("\n");
-        }
-
         if (isEditor) {
             var currentScrollInfo = isAtTop ? null : target.getScrollInfo();
             target.setValue(content);
@@ -665,7 +671,6 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
             if (!isAtTop && currentScrollInfo) {
                 target.scrollTo(currentScrollInfo.left, currentScrollInfo.top);
             }
-            target.refresh();
         } else {
             var currentScrollTop = isAtTop ? null : target.scrollTop;
             target.innerHTML = content;
@@ -679,6 +684,8 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
         } else {
             if (target === editor_oc || target === lv) {
                 animatingOC = false;
+            } else if (target === editor_debug) {
+                animatingDebug = false;
             } else {
                 animatingCore = false;
             }
@@ -701,10 +708,19 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                 }
             }
             if (isEditor && !cursorPos) {
-                var doc = target.state.doc;
-                if (doc.lines >= 1) {
-                    var fl = doc.line(1);
-                    target.dispatch({ selection: { anchor: fl.to } });
+                setCursorToFirstLineEnd(target);
+            }
+
+            if (isEditor) {
+                var finalContent = target.getValue();
+                var finalLines = finalContent.split("\n");
+                if (finalLines.length > 2000) {
+                    finalLines = finalLines.slice(0, 1999);
+                    finalLines.push("...");
+                    target.setValue(finalLines.join("\n"));
+                    if (!cursorPos) {
+                        setCursorToFirstLineEnd(target);
+                    }
                 }
             }
         }
@@ -736,7 +752,7 @@ function poll_log(){
         if (coreLogBuffer.length > 0) {
             bufferToProcess = coreLogBuffer;
             coreLogBuffer = [];
-            core_logs = line_tolocal(bufferToProcess.join('\n'));
+            core_logs = line_tolocal(bufferToProcess);
             if (editor_core && activeTabId === 1) {
                 currentCoreContent = editor_core.getValue();
                 smoothlyDisplayLogs(core_logs, editor_core, true, currentCoreContent, true);
@@ -840,15 +856,24 @@ window.onload = function(){
                     cl.value = coreLogAccumulator;
                 }
 
+                if (tab.id == 0 && typeof editor_oc !== 'undefined' && editor_oc) {
+                    setCursorToFirstLineEnd(editor_oc);
+                }
+
                 if (tab.id == 1 && !coreEditorInitialized) {
                     coreEditorInitialized = true;
                     if (typeof log_editor === 'function' && cl) {
-                        cl.value = coreLogAccumulator;
+                        cl.value = coreLogAccumulator.replace(/\n+$/, '');
                         log_editor(cl, 'core', true, '100%', '540px');
                     }
                 } else if (tab.id == 1 && editor_core) {
-                    editor_core.setValue(coreLogAccumulator);
+                    editor_core.setValue(coreLogAccumulator.replace(/\n+$/, ''));
                     editor_core.refresh();
+                    setCursorToFirstLineEnd(editor_core);
+                }
+
+                if (tab.id == 2 && typeof editor_debug !== 'undefined' && editor_debug) {
+                    setCursorToFirstLineEnd(editor_debug);
                 }
 
                 pollInterval = (tab.id == 1) ? 5000 : 1000;

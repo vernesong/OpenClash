@@ -1642,53 +1642,75 @@ function action_refresh_log()
 
 	local exclude_pattern = "UDP%-Receive%-Buffer%-Size|^Sec%-Fetch%-Mode|^User%-Agent|^Access%-Control|^Accept|^Origin|^Referer|^Connection|^Pragma|^Cache%-"
 	local core_pattern = "level=|^time="
-	local limit = 1000
+	local limit = core_refresh and 1000 or 2000
 	local start_line = (log_len > 0 and total_lines > log_len) and (log_len + 1) or 1
 	local read_count = math.max(0, total_lines - start_line + 1)
-	local core_cmd, oc_cmd, core_raw, oc_raw
-	local core_logs = {}
-	local oc_logs = {}
+	local core_raw, oc_raw
+	local oc_truncated = false
+	local core_truncated = false
+	local core_log = ""
+	local oc_log = ""
 
-	core_cmd = string.format(
-		"sed -n '%d,%dp' '%s' | grep -v -E '%s' | grep -E '%s' | tail -n %d",
-		start_line, start_line + read_count - 1, logfile, exclude_pattern, core_pattern, limit
+	local sed_range = string.format("sed -n '%d,%dp' '%s'", start_line, start_line + read_count - 1, logfile)
+
+	local oc_cmd = string.format(
+		"%s | grep -v -E '%s' | grep -v -E '%s' | tail -n %d",
+		sed_range, exclude_pattern, core_pattern, limit + 1
 	)
-
-	oc_cmd = string.format(
-		"sed -n '%d,%dp' '%s' | grep -v -E '%s' | grep -v -E '%s' | tail -n %d",
-		start_line, start_line + read_count - 1, logfile, exclude_pattern, core_pattern, limit
-	)
-
-	if core_refresh then
-		core_raw = SYS.exec(core_cmd)
-	end
 
 	oc_raw = SYS.exec(oc_cmd)
 
-	if core_raw and core_raw ~= "" then
-		for line in core_raw:gmatch("[^\n]+") do
-			core_logs[#core_logs + 1] = line
-		end
-	end
-
 	if oc_raw and oc_raw ~= "" then
+		local oc_logs = {}
+		local oc_count = 0
 		for line in oc_raw:gmatch("[^\n]+") do
+			oc_count = oc_count + 1
 			if not string.match(string.sub(line, 1, 19), "%d%d%d%d%-%d%d%-%d%d %d%d:%d%d:%d%d") then
 				line = os.date("%Y-%m-%d %H:%M:%S") .. ' [Fatal] ' .. line
 			end
 			oc_logs[#oc_logs + 1] = trans_line(line)
 		end
+
+		oc_truncated = (oc_count > limit)
+		if oc_truncated and #oc_logs > limit then
+			local kept = {}
+			for i = #oc_logs - limit + 1, #oc_logs do
+				kept[#kept + 1] = oc_logs[i]
+			end
+			oc_logs = kept
+		end
+		oc_log = #oc_logs > 0 and table.concat(oc_logs, "\n") or ""
 	end
 
-	if #core_logs > limit then
-		core_logs = {table.unpack(core_logs, #core_logs - limit + 1)}
-	end
-	if #oc_logs > limit then
-		oc_logs = {table.unpack(oc_logs, #oc_logs - limit + 1)}
+	if core_refresh then
+		local core_cmd = string.format(
+			"%s | grep -v -E '%s' | grep -E '%s' | tail -n %d",
+			sed_range, exclude_pattern, core_pattern, limit + 1
+		)
+		core_raw = SYS.exec(core_cmd)
+
+		if core_raw and core_raw ~= "" then
+			local _, core_count = core_raw:gsub("\n", "")
+			if core_raw:sub(-1) ~= "\n" then
+				core_count = core_count + 1
+			end
+
+			core_truncated = (core_count > limit)
+			if core_truncated then
+				core_log = core_raw:match("\n(.+)") or ""
+				core_log = core_log:gsub("\n$", "")
+			else
+				core_log = core_raw:gsub("\n$", "")
+			end
+		end
 	end
 
-	local core_log = #core_logs > 0 and table.concat(core_logs, "\n") or ""
-	local oc_log = #oc_logs > 0 and table.concat(oc_logs, "\n") or ""
+	if core_truncated and core_log ~= "" then
+		core_log = "...\n" .. core_log
+	end
+	if oc_truncated and oc_log ~= "" then
+		oc_log = "...\n" .. oc_log
+	end
 
 	HTTP.write_json({
 		len = total_lines,

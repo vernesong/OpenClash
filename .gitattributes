@@ -12,6 +12,10 @@
 
 # Shell scripts (no extension scripts)
 *.sh text eol=lf
+luci-app-openclash/root/etc/init.d/* text eol=lf
+
+# Ruby files
+*.rb text eol=lf
 
 # HTML/view templates
 *.htm text eol=lf

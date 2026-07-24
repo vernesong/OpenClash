@@ -818,7 +818,7 @@ start_run_core()
    procd_append_param env CLASH_AGE_SECRET_KEY="$SECRET_KEY"
    procd_append_param env OIX_TOKEN="$OIX_TOKEN"
    procd_append_param env OIX_PARAMS="$OIX_PARAMS"
-   procd_set_param command /bin/sh -c "$CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
+   procd_set_param command /bin/sh -c "exec $CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
    procd_set_param user "root"
    procd_set_param group "nogroup"
    procd_set_param limits nproc="unlimited" as="unlimited" memlock="unlimited" nofile="1000000 1000000"
@@ -3414,11 +3414,16 @@ EOF
          yaml_data = YAML.load(yaml_override_content)
          
          if yaml_data.is_a?(Hash)
-            Value = YAML.load_file('$CONFIG_FILE')
+            if File.exist?('/tmp/yaml_overwrite_marshal')
+               Value = Marshal.load(File.open('/tmp/yaml_overwrite_marshal', 'rb') { |f| f.read })
+            else
+               Value = YAML.load_file('$CONFIG_FILE')
+            end
             Overwrite_Value = YAML.overwrite(Value, yaml_data)
             File.open('$CONFIG_FILE', 'w') do |f|
                YAML.dump(Overwrite_Value, f)
             end
+            File.open('/tmp/yaml_overwrite_marshal', 'wb') { |f| Marshal.dump(Overwrite_Value, f) }
          else
             YAML.LOG_WARN('Invalid YAML Override format, skipped...')
          end
@@ -3437,7 +3442,11 @@ if [ -f "/tmp/yaml_openclash_ruby_parts/$OPENCLASH_OVERWRITE_SID" ]; then
    ruby_code=$(cat "/tmp/yaml_openclash_ruby_parts/$OPENCLASH_OVERWRITE_SID")
    ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
       begin
-         Value = YAML.load_file('$CONFIG_FILE')
+         if File.exist?('/tmp/yaml_overwrite_marshal')
+            Value = Marshal.load(File.open('/tmp/yaml_overwrite_marshal', 'rb') { |f| f.read })
+         else
+            Value = YAML.load_file('$CONFIG_FILE')
+         end
          threads = []
          $ruby_code
          threads.each(&:join)
@@ -3745,11 +3754,6 @@ stop_service()
       for i in $(seq 1 10); do
          procd_running "openclash" >/dev/null && sleep 1 || break
       done
-      if procd_running "openclash" >/dev/null; then
-         for pid in $(pidof clash 2>/dev/null); do
-            kill -9 "$pid" 2>/dev/null || true
-         done
-      fi
 
       LOG_OUT "Step 4: Restart Dnsmasq..."
       revert_dnsmasq

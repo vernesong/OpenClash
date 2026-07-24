@@ -33,8 +33,7 @@ module YAML
 			if secret && secret.to_s.strip != ""
 				decrypted = decrypt_content_with_secret(secret.to_s, yaml_content)
 				if decrypted && !decrypted.empty? && !decrypted.include?("BEGIN AGE ENCRYPTED FILE")
-					processed = fix_short_id_quotes(decrypted)
-					return load(processed, *args, **kwargs)
+					return fix_and_load(decrypted, *args, **kwargs)
 				else
 					raise "Decrypted content empty or still encrypted: [#{filename}]"
 				end
@@ -46,8 +45,7 @@ module YAML
 				begin
 					decrypted = decrypt_content_with_secret(sec, yaml_content)
 					if decrypted && !decrypted.empty? && !decrypted.include?("BEGIN AGE ENCRYPTED FILE")
-						processed = fix_short_id_quotes(decrypted)
-						return load(processed, *args, **kwargs)
+						return fix_and_load(decrypted, *args, **kwargs)
 					end
 				rescue => e
 					last_error = e.message
@@ -58,13 +56,12 @@ module YAML
 			raise "Encrypted file: decryption failed for [#{filename}]: [#{detail}]"
 		end
 
-		processed_content = fix_short_id_quotes(yaml_content)
-		load(processed_content, *args, **kwargs)
+		fix_and_load(yaml_content, *args, **kwargs)
 	end
 
 	def self.dump(obj, io = nil, **options)
 		yaml_content = original_dump(obj, **options)
-		processed = fix_short_id_quotes(yaml_content)
+		processed = yaml_content.include?('short-id:') ? fix_short_id_quotes(yaml_content) : yaml_content
 		public_key = nil
 		fname = nil
 		if options.key?(:public)
@@ -229,62 +226,73 @@ module YAML
 	#   Input:  short-id: "1600e237"  -> Output: short-id: "1600e237"
 	#   Input:  short-id: null        -> Output: short-id: ""
 
-	def self.fix_short_id_quotes(yaml_content)
-		yaml_content = decode64(yaml_content)
-
-		return yaml_content unless yaml_content.include?('short-id:')
-
-		begin
-			stream = Psych.parse_stream(yaml_content)
-
-			traverse = lambda do |node|
-				case node
-				when Psych::Nodes::Mapping
-					children = node.children || []
-					i = 0
-					while i < children.length
-						key = children[i]
-						val = children[i + 1]
-						if key.is_a?(Psych::Nodes::Scalar) && key.value == 'short-id'
-							if val.is_a?(Psych::Nodes::Scalar)
-								is_null_scalar = (val.tag == 'tag:yaml.org,2002:null') || (val.tag == '!!null') || (val.value =~ /^\s*(~|null|NULL|Null)\s*$/)
-								unless is_null_scalar
-									val.tag = nil
-									val.style = defined?(Psych::Nodes::Scalar::DOUBLE_QUOTED) ? Psych::Nodes::Scalar::DOUBLE_QUOTED : 2
-								end
-							elsif val.is_a?(Psych::Nodes::Sequence)
-								val.children.each do |child|
-									if child.is_a?(Psych::Nodes::Scalar)
-										is_null_child = (child.tag == 'tag:yaml.org,2002:null') || (child.tag == '!!null') || (child.value =~ /^\s*(~|null|NULL|Null)\s*$/)
-										unless is_null_child
-											child.tag = nil
-											child.style = defined?(Psych::Nodes::Scalar::DOUBLE_QUOTED) ? Psych::Nodes::Scalar::DOUBLE_QUOTED : 2
-										end
+	def self.fix_short_id_ast!(stream)
+		traverse = lambda do |node|
+			case node
+			when Psych::Nodes::Mapping
+				children = node.children || []
+				i = 0
+				while i < children.length
+					key = children[i]
+					val = children[i + 1]
+					if key.is_a?(Psych::Nodes::Scalar) && key.value == 'short-id'
+						if val.is_a?(Psych::Nodes::Scalar)
+							is_null_scalar = (val.tag == 'tag:yaml.org,2002:null') || (val.tag == '!!null') || (val.value =~ /^\s*(~|null|NULL|Null)\s*$/)
+							unless is_null_scalar
+								val.tag = nil
+								val.style = defined?(Psych::Nodes::Scalar::DOUBLE_QUOTED) ? Psych::Nodes::Scalar::DOUBLE_QUOTED : 2
+							end
+						elsif val.is_a?(Psych::Nodes::Sequence)
+							val.children.each do |child|
+								if child.is_a?(Psych::Nodes::Scalar)
+									is_null_child = (child.tag == 'tag:yaml.org,2002:null') || (child.tag == '!!null') || (child.value =~ /^\s*(~|null|NULL|Null)\s*$/)
+									unless is_null_child
+										child.tag = nil
+										child.style = defined?(Psych::Nodes::Scalar::DOUBLE_QUOTED) ? Psych::Nodes::Scalar::DOUBLE_QUOTED : 2
 									end
 								end
 							end
-						else
-							traverse.call(key) if key.respond_to?(:children)
-							traverse.call(val) if val.respond_to?(:children)
 						end
-						i += 2
+					else
+						traverse.call(key) if key.respond_to?(:children)
+						traverse.call(val) if val.respond_to?(:children)
 					end
-				when Psych::Nodes::Sequence
+					i += 2
+				end
+			when Psych::Nodes::Sequence
+				(node.children || []).each { |c| traverse.call(c) }
+			when Psych::Nodes::Document, Psych::Nodes::Stream
+				(node.children || []).each { |c| traverse.call(c) }
+			else
+				if node.respond_to?(:children)
 					(node.children || []).each { |c| traverse.call(c) }
-				when Psych::Nodes::Document, Psych::Nodes::Stream
-					(node.children || []).each { |c| traverse.call(c) }
-				else
-					if node.respond_to?(:children)
-						(node.children || []).each { |c| traverse.call(c) }
-					end
 				end
 			end
+		end
 
-			stream.children.each do |doc_node|
-				if doc_node.is_a?(Psych::Nodes::Document)
-					traverse.call(doc_node.root) if doc_node.root
-				end
+		stream.children.each do |doc_node|
+			if doc_node.is_a?(Psych::Nodes::Document)
+				traverse.call(doc_node.root) if doc_node.root
 			end
+		end
+		stream
+	end
+
+	def self.fix_and_load(yaml_content, *args, **kwargs)
+		yaml_content = decode64(yaml_content)
+		# Fix bare protocol-param values that break YAML parsing (e.g. "1.2.3.4:8080#test")
+		yaml_content = yaml_content.gsub(/^(\s*protocol-param:\s+)([^\s"'][^"\n\r]*[#:][^"\n\r]*)$/, '\1"\2"')
+		return load(yaml_content, *args, **kwargs) unless yaml_content.include?('short-id:')
+
+		# fallback: fix short-id quoting then load
+		fixed = fix_short_id_quotes(yaml_content)
+		load(fixed, *args, **kwargs)
+	end
+
+	def self.fix_short_id_quotes(yaml_content)
+		begin
+			stream = Psych.parse_stream(yaml_content)
+			fix_short_id_ast!(stream)
 
 			if stream.respond_to?(:to_yaml)
 				processed_yaml = stream.to_yaml

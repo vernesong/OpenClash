@@ -128,7 +128,16 @@ function log_editor(id, name, readOnly, wid, height) {
 	});
 	id.parentNode.insertBefore(view.dom, id.nextSibling);
 	ocHideLoading(id.parentNode);
+	if (CM6.dispatchTheme) CM6.dispatchTheme(view, isDark);
 	window['editor_' + name] = view;
+	if (id.value && id.value.length > 0) {
+		requestAnimationFrame(function() {
+			if (view.state && view.state.doc) {
+				var txt = view.state.doc.toString();
+				if (txt) view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: txt } });
+			}
+		});
+	}
 	if (wid && height) {
 		view.dom.style.width = wid;
 		view.dom.style.height = height;
@@ -172,7 +181,16 @@ function markdown_editor(id, name, readOnly, wid, height) {
 	});
 	id.parentNode.insertBefore(view.dom, id.nextSibling);
 	ocHideLoading(id.parentNode);
+	if (CM6.dispatchTheme) CM6.dispatchTheme(view, isDark);
 	window['editor_' + name] = view;
+	if (id.value && id.value.length > 0) {
+		requestAnimationFrame(function() {
+			if (view.state && view.state.doc) {
+				var txt = view.state.doc.toString();
+				if (txt) view.dispatch({ changes: { from: 0, to: view.state.doc.length, insert: txt } });
+			}
+		});
+	}
 	if (wid && height) {
 		view.dom.style.width = wid;
 		view.dom.style.height = height;

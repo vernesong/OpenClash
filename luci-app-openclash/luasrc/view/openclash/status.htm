@@ -3867,9 +3867,18 @@
         toggleElement.disabled = true;
         pluginToggleUserAction = true;
         var action = isEnabled ? 'start' : 'stop';
-        var initialMessage = isEnabled ? '<%:Starting...%>' : '<%:Stopping...%>';
 
-        LogManager.startLogDisplay(initialMessage);
+        if (DOMCache.clash) {
+            if (isEnabled) {
+                var coreType = (StateManager.current_status && StateManager.current_status.core_type) || '';
+                DOMCache.clash.innerHTML = '<b style=color:var(--success-color)>' + coreType + '&nbsp;<%:Running%></b>';
+            } else {
+                DOMCache.clash.innerHTML = '<b style=color:var(--error-color)><%:Not Running%></b>';
+            }
+        }
+        StateManager.current_status.clash = isEnabled;
+
+        LogManager.startLogDisplay(isEnabled ? '<%:Starting...%>' : '<%:Stopping...%>');
 
         var requestParams = { action: action };
 
@@ -3890,6 +3899,7 @@
                 }, 2000);
             } else {
                 toggleElement.checked = !isEnabled;
+                StateManager.current_status.clash = !isEnabled;
 
                 var errorMessage = isEnabled ? 
                     '<%:Failed to start OpenClash%>' : 
