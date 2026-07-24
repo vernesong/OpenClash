@@ -70,6 +70,9 @@ config_test()
 config_download()
 {
 LOG_TIP "Config File【$name】Downloading User-Agent【$sub_ua】..."
+if [ -n "$sub_headers" ]; then
+   LOG_TIP "Config File【$name】Custom Headers【$(echo "$sub_headers" | tr '\n' ',' | sed 's/,$//')】..."
+fi
 if [ -n "$subscribe_url_param" ] && [ -n "$c_address" ]; then
    LOG_INFO "Config File【$name】Downloading URL【$c_address$subscribe_url_param】..."
    DOWNLOAD_URL="${c_address}${subscribe_url_param}"
@@ -79,7 +82,7 @@ if [ -z "$DOWNLOAD_URL" ]; then
    DOWNLOAD_URL="${subscribe_url}"
 fi
 DOWNLOAD_PARAM="$sub_ua"
-DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "$CFG_FILE" "$CONFIG_FILE" "$DOWNLOAD_PARAM" "$SECRET_KEY"
+DOWNLOAD_FILE_CURL "$DOWNLOAD_URL" "$CFG_FILE" "$CONFIG_FILE" "$DOWNLOAD_PARAM" "$SECRET_KEY" "$sub_headers"
 DOWNLOAD_RESULT=$?
 }
 
@@ -223,7 +226,7 @@ config_download_direct()
          sed -i '/^ \{0,\}enhanced-mode:/d' "$CFG_FILE" >/dev/null 2>&1
          config_test
          if [ $? -ne 0 ]; then
-            LOG_ERROR "Config File Tested Faild, Please Check The Log Infos!"
+            LOG_ERROR "Config File Tested Failed, Please Check The Log Infos!"
             change_dns
             config_error
             return
@@ -318,9 +321,19 @@ convert_custom_param()
    fi
 }
 
+build_sub_headers()
+{
+   if [ -z "$sub_headers" ]; then
+      sub_headers="$1"
+   else
+      sub_headers="$sub_headers
+$1"
+   fi
+}
+
 sub_info_get()
 {
-   local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua append_custom_params SECRET_KEY DOWNLOAD_URL DOWNLOAD_PARAM
+   local section="$1" subscribe_url template_path subscribe_url_param template_path_encode key_match_param key_ex_match_param c_address de_ex_keyword sub_ua sub_headers append_custom_params SECRET_KEY DOWNLOAD_URL DOWNLOAD_PARAM
    config_get_bool "enabled" "$section" "enabled" "1"
    config_get "name" "$section" "name" "config"
    config_get "sub_convert" "$section" "sub_convert" ""
@@ -338,6 +351,7 @@ sub_info_get()
    config_get "custom_template_url" "$section" "custom_template_url" ""
    config_get "de_ex_keyword" "$section" "de_ex_keyword" ""
    config_get "sub_ua" "$section" "sub_ua" "clash-verge/v2.4.5"
+   config_list_foreach "$section" "sub_headers" build_sub_headers
    SECRET_KEY=$(uci_get_age_secret_keys "$name")
 
    CONFIG_FILE="/etc/openclash/config/$name.yaml"
@@ -423,7 +437,7 @@ sub_info_get()
       sed -i -E 's/protocol-param: ([^,'"'"'"''}( *#)\n\r]+)/protocol-param: "\1"/g' "$CFG_FILE" 2>/dev/null
       config_test
       if [ $? -ne 0 ]; then
-         LOG_ERROR "Config File Tested Faild, Please Check The Log Infos!"
+         LOG_ERROR "Config File Tested Failed, Please Check The Log Infos!"
          LOG_ERROR "Config File【$name】Subscribed Failed, Trying to Download Without Agent..."
          config_download_direct
          return

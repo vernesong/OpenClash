@@ -1,0 +1,50 @@
+<script type="text/javascript">//<![CDATA[
+(function() {
+if (window._ocCommonHTMLoaded) return;
+window._ocCommonHTMLoaded = true;
+
+window.levelTranslations = {
+	'info': '<%:Info%>',
+	'warning': '<%:Warning%>',
+	'error': '<%:Error%>',
+	'debug': '<%:Debug%>',
+	'tip': '<%:Tip%>',
+	'watchdog': '<%:Watchdog%>',
+	'fatal': '<%:Fatal%>'
+};
+window._ocArchOptionsHTML = '<option value="linux-386"><%:linux-386%></option>' +
+	'<option value="linux-amd64-v1"><%:linux-amd64-v1(x86-64)%></option>' +
+	'<option value="linux-amd64-v2"><%:linux-amd64-v2(x86-64)%></option>' +
+	'<option value="linux-amd64-v3"><%:linux-amd64-v3(x86-64)%></option>' +
+	'<option value="linux-armv5"><%:linux-armv5%></option>' +
+	'<option value="linux-armv6"><%:linux-armv6%></option>' +
+	'<option value="linux-armv7"><%:linux-armv7%></option>' +
+	'<option value="linux-arm64"><%:linux-arm64(armv8)%></option>' +
+	'<option value="linux-loong64-abi1"><%:linux-loong64-abi1%></option>' +
+	'<option value="linux-loong64-abi2"><%:linux-loong64-abi2%></option>' +
+	'<option value="linux-riscv64"><%:linux-riscv64%></option>' +
+	'<option value="linux-s390x"><%:linux-s390x%></option>' +
+	'<option value="linux-mips-hardfloat"><%:linux-mips-hardfloat%></option>' +
+	'<option value="linux-mips-softfloat"><%:linux-mips-softfloat%></option>' +
+	'<option value="linux-mips64"><%:linux-mips64%></option>' +
+	'<option value="linux-mips64le"><%:linux-mips64le%></option>' +
+	'<option value="linux-mipsle-softfloat"><%:linux-mipsle-softfloat%></option>' +
+	'<option value="linux-mipsle-hardfloat"><%:linux-mipsle-hardfloat%></option>' +
+	'<option value="0"><%:Not Set%></option>';
+(function() {
+	function injectArchOptions() {
+		var selects = document.querySelectorAll('.oc-arch-select');
+		for (var i = 0; i < selects.length; i++) {
+			if (selects[i].getAttribute('data-oc-arch-injected')) continue;
+			selects[i].insertAdjacentHTML('afterbegin', window._ocArchOptionsHTML);
+			selects[i].setAttribute('data-oc-arch-injected', '1');
+		}
+	}
+	injectArchOptions();
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', injectArchOptions);
+	}
+})();
+
+})();
+//]]></script>

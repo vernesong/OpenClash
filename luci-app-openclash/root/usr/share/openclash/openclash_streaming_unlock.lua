@@ -53,23 +53,23 @@ function unlock_auto_select()
 	local only_original = "only support homemade!"
 	local no_unlock = "not support unlock!"
 	local select_success = "unlock node auto selected successfully, the current selected is"
-	local select_faild = "unlock node auto selected failed, no node available, rolled back to the"
-	local test_faild = "unlock test faild!"
+	local select_failed = "unlock node auto selected failed, no node available, rolled back to the"
+	local test_failed = "unlock test failed!"
 	local test_start = "Start auto select unlock proxy..."
 	local original_no_select = "only support homemade! the type of group is not select, auto select could not work!"
 	local no_unlock_no_select = "not support unlock! the type of group is not select, auto select could not work!"
-	local faild_no_select = "unlock test faild! the type of group is not select, auto select could not work!"
+	local failed_no_select = "unlock test failed! the type of group is not select, auto select could not work!"
 	local original_test_start = "only support homemade! start auto select unlock proxy..."
 	local no_unlock_test_start = "not support unlock! start auto select unlock proxy..."
-	local faild_test_start = "unlock test faild! start auto select unlock proxy..."
+	local failed_test_start = "unlock test failed! start auto select unlock proxy..."
 	local area_i18 = ", area:"
-	local select_faild_other_region = "unlock node auto selected failed, no node match the regex, rolled back to other full support node"
+	local select_failed_other_region = "unlock node auto selected failed, no node match the regex, rolled back to other full support node"
 	local other_region_unlock_test = ", but not match the regex!"
 	local other_region_unlock_no_select = ", but not match the regex! the type of group is not select, auto select could not work!"
 	local other_region_unlock_test_start = ", but not match the regex! start auto select unlock proxy..."
 	local select_all_full_support = "unlock node test finished, rolled back to the full support node"
 	local select_all_other_region = "unlock node test finished, no node match the regex, rolled back to other full support node"
-	local select_all_faild = "unlock node test finished, no node available, rolled back to the"
+	local select_all_failed = "unlock node test finished, no node available, rolled back to the"
 	local no_nodes_filter = "no nodes name match the regex!"
 	local select_success_no_old_region = "unlock node auto selected successfully, no node match the old region, rolled back to other full support node"
 	local no_old_region_unlock_test = "full support but not match the old region!"
@@ -222,9 +222,9 @@ function unlock_auto_select()
 					delete_cache(type, get_group_now(info, value.now))
 				else
 					if not all_test then
-						print(now..faild_test_start)
+						print(now..failed_test_start)
 					else
-						print(now..test_faild)
+						print(now..test_failed)
 					end
 				end
 				
@@ -351,7 +351,7 @@ function unlock_auto_select()
 														end
 														delete_cache(type, proxy)
 													else
-														print(now..test_faild)
+														print(now..test_failed)
 													end
 												end
 												break
@@ -429,7 +429,7 @@ function unlock_auto_select()
 											end
 											delete_cache(type, value.all[i])
 										else
-											print(now..faild_no_select)
+											print(now..failed_no_select)
 										end
 										break
 									end
@@ -482,15 +482,15 @@ function unlock_auto_select()
 									end
 								elseif #other_region_unlock > 0 then
 									if not all_test then
-										print(os.date("%Y-%m-%d %H:%M:%S").." [Info] "..gorup_i18.."【"..value.name.."】"..select_faild_other_region..group_now)
+										print(os.date("%Y-%m-%d %H:%M:%S").." [Info] "..gorup_i18.."【"..value.name.."】"..select_failed_other_region..group_now)
 									else
 										print(os.date("%Y-%m-%d %H:%M:%S").." [Info] "..gorup_i18.."【"..value.name.."】"..select_all_other_region..group_now)
 									end
 								else
 									if not all_test then
-										print(os.date("%Y-%m-%d %H:%M:%S").." [Info] "..gorup_i18.."【"..value.name.."】"..select_faild..group_now)
+										print(os.date("%Y-%m-%d %H:%M:%S").." [Info] "..gorup_i18.."【"..value.name.."】"..select_failed..group_now)
 									else
-										print(os.date("%Y-%m-%d %H:%M:%S").." [Info] "..gorup_i18.."【"..value.name.."】"..select_all_faild..group_now)
+										print(os.date("%Y-%m-%d %H:%M:%S").." [Info] "..gorup_i18.."【"..value.name.."】"..select_all_failed..group_now)
 									end
 								end
 								close_connections()
@@ -503,7 +503,7 @@ function unlock_auto_select()
 							else
 								group_now = value.name.." ➟ "..proxy_default
 							end
-							print(os.date("%Y-%m-%d %H:%M:%S").." [Info] "..gorup_i18.."【"..value.name.."】"..select_faild.."【"..group_now.."】")
+							print(os.date("%Y-%m-%d %H:%M:%S").." [Info] "..gorup_i18.."【"..value.name.."】"..select_failed.."【"..group_now.."】")
 						end
 					end
 				elseif #nodes_filter(get_group_now(info, value.name), info) ~= 0 then
@@ -542,7 +542,7 @@ function unlock_auto_select()
 							print(now..no_unlock_no_select)
 						end
 					else
-						print(now..faild_no_select)
+						print(now..failed_no_select)
 					end
 				end
 			end

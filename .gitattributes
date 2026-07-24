@@ -1,0 +1,86 @@
+* text=auto
+
+# Markdown
+*.md text eol=lf
+
+# YAML workflow files
+*.yml text eol=lf
+*.yaml text eol=lf
+
+# Lua source files
+*.lua text eol=lf
+
+# Shell scripts (no extension scripts)
+*.sh text eol=lf
+
+# HTML/view templates
+*.htm text eol=lf
+*.html text eol=lf
+
+# Custom list files
+*.list text eol=lf
+
+# Ruby
+*.rb text eol=lf
+
+# C / C++ sources
+*.c text eol=lf
+*.h text eol=lf
+
+# IP set files
+*.ipset text eol=lf
+
+# PWA manifest
+*.webmanifest text eol=lf
+
+# Makefile
+Makefile text eol=lf
+
+# Python
+*.py text eol=lf
+
+# JavaScript / CSS / JSON
+*.js text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+
+# Configuration files
+*.conf text eol=lf
+*.config text eol=lf
+
+# gettext/localization
+*.po text eol=lf
+*.pot text eol=lf
+
+# Git files
+.gitattributes text eol=lf
+.gitignore text eol=lf
+
+# Binary / data files
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.svg binary
+*.dat binary
+*.mmdb binary
+*.mrs binary
+*.bin binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.svg binary
+*.dat binary
+*.mmdb binary
+*.bin binary
+*.ipset binary
+*.lmo binary
+*.db binary
+*.tar.bz2 binary
+*.tar.gz binary
+*.tgz binary
+*.zip binary
+*.ipk binary
+*.apk binary
+*.xz binary

@@ -305,9 +305,7 @@ btnapply.write = function(self, t)
 		HTTP.close()
 	elseif action == "remove" then
 		local file_name = fs.basename(e[t].name)
-
 		fs.config_refs(file_name)
-
 		fs.unlink("/etc/openclash/history/"..fs.filename(e[t].name)..".db")
 		fs.unlink("/etc/openclash/"..file_name)
 		local a=fs.unlink("/etc/openclash/config/"..file_name)
@@ -350,7 +348,6 @@ local tab = {
 }
 
 s = m:section(Table, tab)
-s.description = align_mid..translate("Support syntax check, press").." "..font_green..bold_on.."F10"..bold_off..font_off.." "..translate("to control diff option, press").." "..font_green..bold_on.."F11"..bold_off..font_off.." "..translate("to enter full screen editing mode")..align_mid_off
 s.anonymous = true
 s.addremove = false
 
@@ -360,6 +357,8 @@ if not conf then conf = "/etc/openclash/config/config.yaml" end
 local conf_name = fs.basename(conf)
 if not conf_name then conf_name = "config.yaml"  end
 local sconf = "/etc/openclash/"..conf_name
+
+s.description = align_mid..translate("Current Config")..": "..font_green..bold_on..conf_name..bold_off..font_off..align_mid_off
 
 sev = s:option(TextValue, "user")
 ---sev.description = align_mid..translate("Modify Your Config file:").." "..font_green..bold_on..conf_name..bold_off..font_off.." "..translate("Here, Except The Settings That Were Taken Over")..align_mid_off
@@ -421,7 +420,7 @@ o.write = function()
 	HTTP.redirect(DISP.build_url("admin", "services", "openclash"))
 end
 
-m:append(Template("openclash/config_editor"))
+m:append(Template("openclash/config_merge_editor"))
 m:append(Template("openclash/config_upload"))
 
 return ful , form , p , m

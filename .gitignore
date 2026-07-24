@@ -1,0 +1,63 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+Desktop.ini
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+\#*\#
+.project
+.settings/
+*.sublime-*
+
+# Build artifacts
+*.o
+*.lo
+*.la
+*.ipk
+*.apk
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.zip
+
+# Compiled po2lmo tool
+luci-app-openclash/tools/po2lmo/po2lmo
+luci-app-openclash/tools/po2lmo/src/*.o
+
+# Node.js (codemirror)
+luci-app-openclash/tools/codemirror/node_modules/
+luci-app-openclash/tools/codemirror/package-lock.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Lua
+*.luac
+.luacheckcache
+
+# Log files
+*.log
+
+# Temporary / cache files
+*.cache
+/tmp/
+*.tmp
+
+# Patch files (unless intentional)
+*.orig
+*.rej

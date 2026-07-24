@@ -208,6 +208,8 @@ change_dnsmasq() {
       uci -q set dhcp.@dnsmasq[0].cachesize=0
       uci -q set openclash.config.cachesize_dns=1
    else
+      # Remove residual Dnsmasq redirect left
+      uci -q del_list dhcp.@dnsmasq[0].server="127.0.0.1#$dns_port"
       uci -q set openclash.config.redirect_dns=0
       uci -q set openclash.config.cachesize_dns=0
    fi
@@ -581,7 +583,7 @@ do_run_file()
       chown root:root "$CLASH"
    fi
 
-   [ ! -f "$CLASH" ] || { [ "$core_type" = "Smart" ] && [ -z "$($CLASH -v | grep 'smart')" ]; } || { [ "$core_type" = "Oix" ] && [ -z "$($CLASH -v | grep 'oix')" ]; } && {
+   [ ! -f "$CLASH" ] || { [ "$core_type" = "Smart" ] && [ -z "$($CLASH -v | grep 'smart')" ] && [ -z "$($CLASH -v | grep 'oix')" ]; } || { [ "$core_type" = "Oix" ] && [ -z "$($CLASH -v | grep 'oix')" ]; } && {
       LOG_TIP "【$core_type】Core is not Detected installed, Ready to Download..."
       rm -rf "/tmp/clash_last_version"
       /usr/share/openclash/openclash_core.sh "$core_type"
@@ -818,6 +820,7 @@ start_run_core()
    procd_set_param env SAFE_PATHS=/usr/share/openclash:/etc/ssl
    procd_append_param env CLASH_AGE_SECRET_KEY="$SECRET_KEY"
    procd_append_param env OIX_TOKEN="$OIX_TOKEN"
+   procd_append_param env OIX_PARAMS="$OIX_PARAMS"
    procd_set_param command /bin/sh -c "$CLASH -d $CLASH_CONFIG -f \"$CONFIG_FILE\" >> $LOG_FILE 2>&1"
    procd_set_param user "root"
    procd_set_param group "nogroup"
@@ -1348,18 +1351,19 @@ if [ -n "$FW4" ]; then
                   ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
                fi
             fi
-            nft insert rule inet fw4 dstnat position 0 meta l4proto {tcp,udp} th dport 53 ${ACBLACKDNSFILTER} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+            nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ${ACBLACKDNSFILTER} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
          else
-            nft insert rule inet fw4 dstnat position 0 meta l4proto {tcp,udp} th dport 53 ip saddr @lan_ac_white_ips counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
-            nft insert rule inet fw4 dstnat position 0 meta l4proto {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+            nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ip saddr @lan_ac_white_ips counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+            nft insert rule inet fw4 dstnat position 0 meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
          fi
       fi
       if [ "$router_self_proxy" = 1 ]; then
          nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
-         nft insert rule inet fw4 nat_output position 0 skgid != 65534 meta l4proto {tcp,udp} th dport 53 ip daddr {127.0.0.1} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
+         nft insert rule inet fw4 nat_output position 0 skgid != 65534 meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ip daddr {127.0.0.1} counter redirect to "$DNSPORT" comment \"OpenClash DNS Hijack\"
       fi
    elif [ "$enable_redirect_dns" -eq 2 ]; then
       nft 'add chain inet fw4 openclash_dns_redirect'
+      nft 'flush chain inet fw4 openclash_dns_redirect'
       if [ "$lan_ac_mode" != "1" ]; then
          ACBLACKDNSFILTER=""
          if [ "$lan_ac_mode" = "0" ]; then
@@ -1370,15 +1374,15 @@ if [ -n "$FW4" ]; then
                ACBLACKDNSFILTER="$ACBLACKDNSFILTER ether saddr != @lan_ac_black_macs"
             fi
          fi
-         nft add rule inet fw4 openclash_dns_redirect meta l4proto {tcp,udp} th dport 53 ${ACBLACKDNSFILTER} counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
+         nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ${ACBLACKDNSFILTER} counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
       else
-         nft add rule inet fw4 openclash_dns_redirect meta l4proto {tcp,udp} th dport 53 ip saddr @lan_ac_white_ips counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
-         nft add rule inet fw4 openclash_dns_redirect meta l4proto {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
+         nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ip saddr @lan_ac_white_ips counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
+         nft add rule inet fw4 openclash_dns_redirect meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ether saddr @lan_ac_white_macs counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
       fi
-      nft 'insert rule inet fw4 dstnat position 0 meta l4proto {tcp,udp} th dport 53 counter jump openclash_dns_redirect'
+      nft 'insert rule inet fw4 dstnat position 0 meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 counter jump openclash_dns_redirect'
       if [ "$router_self_proxy" = 1 ]; then
          nft 'add chain inet fw4 nat_output { type nat hook output priority -1; }'
-         nft insert rule inet fw4 nat_output position 0 meta l4proto {tcp,udp} th dport 53 ip daddr {127.0.0.1} meta skgid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
+         nft insert rule inet fw4 nat_output position 0 meta nfproto {ipv4} meta l4proto {tcp,udp} th dport 53 ip daddr {127.0.0.1} meta skgid != 65534 counter redirect to "$dns_port" comment \"OpenClash DNS Hijack\"
       fi
    fi
 
@@ -1388,17 +1392,17 @@ if [ -n "$FW4" ]; then
       nft 'flush chain inet fw4 openclash'
       nft 'add rule inet fw4 openclash ip daddr @localnetwork counter return'
       nft 'add rule inet fw4 openclash ct direction reply counter return'
-      nft add rule inet fw4 openclash ip protocol tcp ip daddr { "$fakeip_range" } counter redirect to "$proxy_port"
-      nft 'add rule inet fw4 openclash ip daddr @wan_ac_black_ips counter return'
-      nft 'add rule inet fw4 openclash th dport @wan_ac_black_ports counter return'
-      nft 'add rule inet fw4 openclash ip saddr @lan_ac_black_ips counter return'
-      nft 'add rule inet fw4 openclash ether saddr @lan_ac_black_macs counter return'
       if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get_config "lan_ac_white_ips")" ] && [ -n "$(uci_get_config "lan_ac_white_macs")" ]; then
          nft 'add rule inet fw4 openclash ether saddr != @lan_ac_white_macs ip saddr != @lan_ac_white_ips counter return'
       else
          nft 'add rule inet fw4 openclash ether saddr != @lan_ac_white_macs counter return'
          nft 'add rule inet fw4 openclash ip saddr != @lan_ac_white_ips counter return'
       fi
+      nft 'add rule inet fw4 openclash ip saddr @lan_ac_black_ips counter return'
+      nft 'add rule inet fw4 openclash ether saddr @lan_ac_black_macs counter return'
+      nft add rule inet fw4 openclash ip protocol tcp ip daddr { "$fakeip_range" } counter redirect to "$proxy_port"
+      nft 'add rule inet fw4 openclash ip daddr @wan_ac_black_ips counter return'
+      nft 'add rule inet fw4 openclash th dport @wan_ac_black_ports counter return'
 
       if [ "$en_mode" = "redir-host" ]; then
          nft 'add rule inet fw4 openclash th dport != @common_ports counter return'
@@ -1505,6 +1509,11 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 mangle_output meta nfproto {ipv4} ip protocol udp counter jump openclash_mangle_output'
          fi
 
+         # Accept TPROXY traffic in input chain (needed when zone input policy is REJECT)
+         if [ -z "$(nft list chain inet fw4 input 2>/dev/null | grep 'OpenClash TPROXY Accept')" ]; then
+            nft insert rule inet fw4 input position 0 meta mark "$PROXY_FWMARK" accept comment \"OpenClash TPROXY Accept\"
+         fi
+
          #quic
          if [ "$disable_udp_quic" -eq 1 ]; then
             if [ "$china_ip_route" = "2" ]; then
@@ -1515,11 +1524,6 @@ if [ -n "$FW4" ]; then
                nft insert rule inet fw4 forward position 0 udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
             fi
          fi
-      fi
-
-      # Accept TPROXY traffic in input chain (needed when zone input policy is REJECT)
-      if [ -z "$(nft list chain inet fw4 input 2>/dev/null | grep 'OpenClash TPROXY Accept')" ]; then
-         nft insert rule inet fw4 input position 0 meta mark "$PROXY_FWMARK" accept comment \"OpenClash TPROXY Accept\"
       fi
 
       #router self proxy tcp
@@ -1607,6 +1611,14 @@ if [ -n "$FW4" ]; then
       nft 'add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} iifname utun counter return'
       nft 'add rule inet fw4 openclash_mangle ip daddr @localnetwork counter return'
       nft 'add rule inet fw4 openclash_mangle ct direction reply counter return'
+      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get_config "lan_ac_white_ips")" ] && [ -n "$(uci_get_config "lan_ac_white_macs")" ]; then
+         nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs ip saddr != @lan_ac_white_ips counter return'
+      else
+         nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs counter return'
+         nft 'add rule inet fw4 openclash_mangle ip saddr != @lan_ac_white_ips counter return'
+      fi
+      nft 'add rule inet fw4 openclash_mangle ip saddr @lan_ac_black_ips counter return'
+      nft 'add rule inet fw4 openclash_mangle ether saddr @lan_ac_black_macs counter return'
       if [ "$en_mode_tun" -eq 1 ]; then
          nft add rule inet fw4 openclash_mangle meta l4proto {tcp,udp} ip daddr { "$fakeip_range" } mark set "$PROXY_FWMARK" counter
       else
@@ -1614,14 +1626,6 @@ if [ -n "$FW4" ]; then
       fi
       nft 'add rule inet fw4 openclash_mangle ip daddr @wan_ac_black_ips counter return'
       nft 'add rule inet fw4 openclash_mangle th dport @wan_ac_black_ports counter return'
-      nft 'add rule inet fw4 openclash_mangle ip saddr @lan_ac_black_ips counter return'
-      nft 'add rule inet fw4 openclash_mangle ether saddr @lan_ac_black_macs counter return'
-      if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get_config "lan_ac_white_ips")" ] && [ -n "$(uci_get_config "lan_ac_white_macs")" ]; then
-         nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs ip saddr != @lan_ac_white_ips counter return'
-      else
-         nft 'add rule inet fw4 openclash_mangle ether saddr != @lan_ac_white_macs counter return'
-         nft 'add rule inet fw4 openclash_mangle ip saddr != @lan_ac_white_ips counter return'
-      fi
 
       if [ "$en_mode" = "redir-host" ]; then
          nft 'add rule inet fw4 openclash_mangle th dport != @common_ports counter return'
@@ -1659,10 +1663,10 @@ if [ -n "$FW4" ]; then
       if [ "$disable_udp_quic" -eq 1 ]; then
          if [ "$china_ip_route" = "2" ]; then
             nft insert rule inet fw4 input position 0 udp dport 443 ip daddr @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
-            nft insert rule inet fw4 forward position 0 udp dport 443 ip daddr @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+            nft insert rule inet fw4 forward position 0 oifname utun udp dport 443 ip daddr @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
          else
             nft insert rule inet fw4 input position 0 udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
-            nft insert rule inet fw4 forward position 0 udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
+            nft insert rule inet fw4 forward position 0 oifname utun udp dport 443 ip daddr != @china_ip_route counter reject comment \"OpenClash QUIC REJECT\"
          fi
       fi
    fi
@@ -1766,19 +1770,19 @@ if [ -n "$FW4" ]; then
          #tcp
          nft 'add chain inet fw4 openclash_v6'
          nft 'flush chain inet fw4 openclash_v6'
-         nft add rule inet fw4 openclash_v6 ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } counter redirect to "$proxy_port"
          nft 'add rule inet fw4 openclash_v6 ip6 daddr @localnetwork6 counter return'
          nft 'add rule inet fw4 openclash_v6 ct direction reply counter return'
-         nft 'add rule inet fw4 openclash_v6 ip6 daddr @wan_ac_black_ipv6s counter return'
-         nft 'add rule inet fw4 openclash_v6 th dport @wan_ac_black_ports counter return'
-         nft 'add rule inet fw4 openclash_v6 ip6 saddr @lan_ac_black_ipv6s counter return'
-         nft 'add rule inet fw4 openclash_v6 ether saddr @lan_ac_black_macs counter return'
          if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get_config "lan_ac_white_ips")" ] && [ -n "$(uci_get_config "lan_ac_white_macs")" ]; then
             nft 'add rule inet fw4 openclash_v6 ether saddr != @lan_ac_white_macs ip6 saddr != @lan_ac_white_ipv6s counter return'
          else
             nft 'add rule inet fw4 openclash_v6 ether saddr != @lan_ac_white_macs counter return'
             nft 'add rule inet fw4 openclash_v6 ip6 saddr != @lan_ac_white_ipv6s counter return'
          fi
+         nft 'add rule inet fw4 openclash_v6 ip6 saddr @lan_ac_black_ipv6s counter return'
+         nft 'add rule inet fw4 openclash_v6 ether saddr @lan_ac_black_macs counter return'
+         nft add rule inet fw4 openclash_v6 ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } counter redirect to "$proxy_port"
+         nft 'add rule inet fw4 openclash_v6 ip6 daddr @wan_ac_black_ipv6s counter return'
+         nft 'add rule inet fw4 openclash_v6 th dport @wan_ac_black_ports counter return'
 
          if [ "$en_mode" = "redir-host" ]; then
             nft 'add rule inet fw4 openclash_v6 th dport != @common_ports counter return'
@@ -1803,6 +1807,14 @@ if [ -n "$FW4" ]; then
          nft 'flush chain inet fw4 openclash_mangle_v6'
          nft 'add rule inet fw4 openclash_mangle_v6 ip6 daddr @localnetwork6 counter return'
          nft 'add rule inet fw4 openclash_mangle_v6 ct direction reply counter return'
+         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get_config "lan_ac_white_ips")" ] && [ -n "$(uci_get_config "lan_ac_white_macs")" ]; then
+            nft 'add rule inet fw4 openclash_mangle_v6 ether saddr != @lan_ac_white_macs ip6 saddr != @lan_ac_white_ipv6s counter return'
+         else
+            nft 'add rule inet fw4 openclash_mangle_v6 ether saddr != @lan_ac_white_macs counter return'
+            nft 'add rule inet fw4 openclash_mangle_v6 ip6 saddr != @lan_ac_white_ipv6s counter return'
+         fi
+         nft 'add rule inet fw4 openclash_mangle_v6 ip6 saddr @lan_ac_black_ipv6s counter return'
+         nft 'add rule inet fw4 openclash_mangle_v6 ether saddr @lan_ac_black_macs counter return'
          if [ "$ipv6_mode" -ne 1 ] && [ "$ipv6_mode" -ne 3 ]; then
             if [ "$ipv6_mode" -eq 0 ]; then
                nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept
@@ -1824,15 +1836,6 @@ if [ -n "$FW4" ]; then
             nft 'add rule inet fw4 openclash_mangle_v6 th dport != @common_ports counter return'
          fi
 
-         nft 'add rule inet fw4 openclash_mangle_v6 ip6 saddr @lan_ac_black_ipv6s counter return'
-         nft 'add rule inet fw4 openclash_mangle_v6 ether saddr @lan_ac_black_macs counter return'
-         if [ "$lan_ac_mode" = "1" ] && [ -n "$(uci_get_config "lan_ac_white_ips")" ] && [ -n "$(uci_get_config "lan_ac_white_macs")" ]; then
-            nft 'add rule inet fw4 openclash_mangle_v6 ether saddr != @lan_ac_white_macs ip6 saddr != @lan_ac_white_ipv6s counter return'
-         else
-            nft 'add rule inet fw4 openclash_mangle_v6 ether saddr != @lan_ac_white_macs counter return'
-            nft 'add rule inet fw4 openclash_mangle_v6 ip6 saddr != @lan_ac_white_ipv6s counter return'
-         fi
-
          if [ "$china_ip6_route" != "0" ]; then
             if [ "$china_ip6_route" = "1" ]; then
                rule="ip6 daddr @china_ip6_route"
@@ -1852,29 +1855,17 @@ if [ -n "$FW4" ]; then
       #tcp Tproxy && TUN
       if [ "$ipv6_mode" -ne 1 ] && [ "$ipv6_mode" -ne 3 ]; then
          if [ "$ipv6_mode" -eq 0 ]; then
-            if [ "$en_mode" = "fake-ip" ]; then
-               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept
-            fi
             nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {tcp} mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash TCP Tproxy\"
          else
-            if [ "$en_mode" = "fake-ip" ]; then
-               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 nexthdr {tcp} ip6 daddr { "$fakeip_range6" } mark set "$PROXY_FWMARK" counter
-            fi
             nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {tcp} mark set "$PROXY_FWMARK" counter
          fi
       fi
 
       #udp
       if [ "$ipv6_mode" -eq 2 ] || [ "$ipv6_mode" -eq 3 ]; then
-         if [ "$en_mode" = "fake-ip" ]; then
-            nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 nexthdr {udp} ip6 daddr { "$fakeip_range6" } mark set "$PROXY_FWMARK" counter
-         fi
          nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {udp} mark set "$PROXY_FWMARK" counter
       else
          if [ "$enable_v6_udp_proxy" -eq 1 ]; then
-            if [ "$en_mode" = "fake-ip" ]; then
-               nft insert rule inet fw4 openclash_mangle_v6 position 0 ip6 nexthdr {udp} ip6 daddr { "$fakeip_range6" } mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept
-            fi
             nft add rule inet fw4 openclash_mangle_v6 ip6 nexthdr {udp} mark set "$PROXY_FWMARK" tproxy ip6 to :"$tproxy_port" counter accept comment \"OpenClash UDP Tproxy\"
          fi
       fi
@@ -2519,10 +2510,10 @@ if [ -z "$FW4" ]; then
       if [ "$disable_udp_quic" -eq 1 ]; then
          if [ "$china_ip_route" = "2" ]; then
             iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set --match-set china_ip_route dst -j REJECT
-            iptables -I FORWARD -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set --match-set china_ip_route dst -j REJECT
+            iptables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set --match-set china_ip_route dst -j REJECT
          else
             iptables -I INPUT -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT
-            iptables -I FORWARD -p udp --dport 443 -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT
+            iptables -I FORWARD -p udp --dport 443 -o utun -m comment --comment "OpenClash QUIC REJECT" -m set ! --match-set china_ip_route dst -j REJECT
          fi
       fi
    fi
@@ -3152,6 +3143,8 @@ EOF
       LGBM_CUSTOM_URL:string \
       LGBM_UPDATE_INTERVAL:int \
       MIXED_PORT:int \
+      OIX_TOKEN:string \
+      OIX_PARAMS:string \
       PROXY_MODE:string \
       PROXY_PORT:int \
       ROUTER_SELF_PROXY:int_bool \
@@ -3161,6 +3154,7 @@ EOF
       SMART_ENABLE_LGBM:int_bool \
       SMART_POLICY_PRIORITY:string \
       SMART_PREFER_ASN:int_bool \
+      SMART_TOLERANCE:int \
       SKIP_PROXY_ADDRESS:int_bool \
       SMALL_FLASH_MEMORY:int_bool \
       SOCKS_PORT:int \
@@ -3494,6 +3488,7 @@ get_config()
    CFG_NO_EXT_NAME="${CFG_NAME%.*}"
    SECRET_KEY=$(uci_get_age_secret_keys "$CFG_NO_EXT_NAME")
    OIX_TOKEN=$(uci_get_config "oix_token")
+   OIX_PARAMS=$(uci_get_config "oix_params")
    enable=$(uci_get_config "enable")
    enable_custom_clash_rules=$(uci_get_config "enable_custom_clash_rules")
    da_password=$(uci_get_config "dashboard_password")
@@ -3588,6 +3583,7 @@ get_config()
    smart_policy_priority=$(uci_get_config "smart_policy_priority" || echo 0)
    smart_enable_lgbm=$(uci_get_config "smart_enable_lgbm" || echo 0)
    smart_prefer_asn=$(uci_get_config "smart_prefer_asn" || echo 0)
+   smart_tolerance=$(uci_get_config "smart_tolerance" || echo 0)
 
    [ -z "$dns_port" ] && dns_port=7874 && uci -q set openclash.config.dns_port=7874
    uci -q commit openclash
@@ -3634,7 +3630,7 @@ start_service()
          /usr/share/openclash/yml_rules_change.sh \
          "$enable_custom_clash_rules" "$TMP_CONFIG_FILE"\
          "$enable_rule_proxy" "$router_self_proxy" "$lan_ip" "$enable_redirect_dns" "$en_mode"\
-         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_policy_priority" "$smart_enable_lgbm" "$smart_prefer_asn"
+         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_policy_priority" "$smart_enable_lgbm" "$smart_prefer_asn" "$smart_tolerance"
 
          #Custom overwrite
          if [ -f "/tmp/yaml_overwrite.sh" ]; then

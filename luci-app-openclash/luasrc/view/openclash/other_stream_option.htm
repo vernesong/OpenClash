@@ -82,15 +82,16 @@ function act_all_proxies_test_<%=stream_id_name%>(btn, type)
 	
 //]]></script>
 
-
 <input type="button" class="btn cbi-button cbi-input-reload" value="<%:Unlock Test(Select)%>" onclick="return act_manual_unlock_test_<%=stream_id_name%>(this, '<%=self.value%>')" />
 <input type="button" class="btn cbi-button cbi-input-reload" value="<%:All Proxies Test%>" onclick="return act_all_proxies_test_<%=stream_id_name%>(this, '<%=self.value%>')" />
-<div class="diag-style" style="display:none">
-	<div id="manual-<%=stream_id_name%>-test-state" class="diag-legend"><%:Collecting data...%></div>
-	<div id="manual-<%=stream_id_name%>-test-output"></div>
-</div>
-<div class="diag-style" style="display:none">
-	<div id="all-<%=stream_id_name%>-test-state" class="diag-legend"><%:Collecting data...%></div>
-	<div id="all-<%=stream_id_name%>-test-output"></div>
+<div class="oc">
+	<div class="diag-style" style="display:none">
+		<div id="manual-<%=stream_id_name%>-test-state" class="diag-legend"><%:Collecting data...%></div>
+		<div id="manual-<%=stream_id_name%>-test-output"></div>
+	</div>
+	<div class="diag-style" style="display:none">
+		<div id="all-<%=stream_id_name%>-test-state" class="diag-legend"><%:Collecting data...%></div>
+		<div id="all-<%=stream_id_name%>-test-output"></div>
+	</div>
 </div>
 <%+cbi/valuefooter%>

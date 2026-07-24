@@ -153,6 +153,7 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        box-shadow: none;
     }
 
     #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab > a{
@@ -192,55 +193,55 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
       width: 225px;
     }
 
-    :root[data-darkmode="true"] #tab-header-<%=self.config%>-<%=self.sectiontype%>{
+    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%>{
         background: #374151;
         border-bottom: 1px solid #374151;
     }
 
-    :root[data-darkmode="true"] #tab-header-<%=self.config%>-<%=self.sectiontype%> ul{
+    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul{
         background: #374151;
     }
 
-    :root[data-darkmode="true"] #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li{
+    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li{
         background: #1f2937;
         color: #a1a1aa;
         border-color: #374151;
     }
 
-    :root[data-darkmode="true"] #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab{
+    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab{
         background: #2563eb;
         color: #fff;
     }
 
-    :root[data-darkmode="true"] #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab a{
+    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab a{
         color: #fff !important;
     }
 
-    :root[data-darkmode="true"] #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab-disabled{
+    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab-disabled{
         color: #1f2937;
         background: #1f2937;
         opacity: 0.7;
     }
 
-    :root[data-darkmode="true"] #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab-disabled a{
+    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li.cbi-tab-disabled a{
         color: #fff !important;
     }
 
-    :root[data-darkmode="true"] #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):hover,
-    :root[data-darkmode="true"] #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):focus{
+    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):hover,
+    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):focus{
         color: #3b82f6;
         border-color: #3b82f6;
         background: #22304a;
     }
 
-    :root[data-darkmode="true"] #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):hover a,
-    :root[data-darkmode="true"] #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):focus a{
+    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):hover a,
+    html[data-darkmode="true"] .oc #tab-header-<%=self.config%>-<%=self.sectiontype%> ul li:not(.cbi-tab):focus a{
         color: #60a5fa !important;
     }
 </style>
 
 <!-- tblsection -->
-<fieldset class="cbi-section" id="cbi-<%=self.config%>-<%=self.sectiontype%>">
+<fieldset class="cbi-section oc" id="cbi-<%=self.config%>-<%=self.sectiontype%>">
     <%- if self.title and #self.title > 0 then -%>
         <h3><%=self.title%></h3>
     <%- end -%>
@@ -475,9 +476,6 @@ local sectiontype = "_"..self.config.."_"..string.match(self.sectiontype, "[%w_]
     };
 
     function onload<%=sectiontype%>() {
-        if (isDarkBackground(document.body)) {
-            document.documentElement.setAttribute('data-darkmode', 'true');
-        };
 
         if(titles<%=sectiontype%>.length != divs<%=sectiontype%>.length) return;
 

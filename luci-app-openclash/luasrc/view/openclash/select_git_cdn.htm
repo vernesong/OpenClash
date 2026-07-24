@@ -1,3 +1,5 @@
+<%+openclash/common%>
+<script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 <body>
     <div class="oc">
         <div id="selectPopup" class="select-popup hidden">
@@ -7,10 +9,7 @@
                 </div>
                 <div class="config-editor-actions">
                     <button type="button" class="icon-btn close-btn" onclick="closeSelectPopup()" title="<%:Close%>">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                        <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
                     </button>
                 </div>
             </div>
@@ -18,26 +17,7 @@
                 <div class="config-grid">
                     <div class="config-item">
                         <div class="config-label"><%:Compiled Version%></div>
-                        <select class="select-class" id="CORE_VERSION_CDN">
-                            <option value="linux-386"><%:linux-386%></option>
-                            <option value="linux-amd64-v1"><%:linux-amd64-v1(x86-64)%></option>
-                            <option value="linux-amd64-v2"><%:linux-amd64-v2(x86-64)%></option>
-                            <option value="linux-amd64-v3"><%:linux-amd64-v3(x86-64)%></option>
-                            <option value="linux-armv5"><%:linux-armv5%></option>
-                            <option value="linux-armv6"><%:linux-armv6%></option>
-                            <option value="linux-armv7"><%:linux-armv7%></option>
-                            <option value="linux-arm64"><%:linux-arm64(armv8)%></option>
-                            <option value="linux-loong64-abi1"><%:linux-loong64-abi1%></option>
-                            <option value="linux-loong64-abi2"><%:linux-loong64-abi2%></option>
-                            <option value="linux-riscv64"><%:linux-riscv64%></option>
-                            <option value="linux-s390x"><%:linux-s390x%></option>
-                            <option value="linux-mips-hardfloat"><%:linux-mips-hardfloat%></option>
-                            <option value="linux-mips-softfloat"><%:linux-mips-softfloat%></option>
-                            <option value="linux-mips64"><%:linux-mips64%></option>
-                            <option value="linux-mips64le"><%:linux-mips64le%></option>
-                            <option value="linux-mipsle-softfloat"><%:linux-mipsle-softfloat%></option>
-                            <option value="linux-mipsle-hardfloat"><%:linux-mipsle-hardfloat%></option>
-                            <option value="0"><%:Not Set%></option>
+                        <select class="select-class oc-arch-select" id="CORE_VERSION_CDN">
                         </select>
                     </div>
 
@@ -53,11 +33,7 @@
                         <div class="config-label">
                             <%:Smart Core%>
                             <a href="javascript:void(0);" onclick="window.open('https://github.com/vernesong/mihomo/releases', '_blank');" class="help-link" title="<%:View core infos that support smart group%>">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                                </svg>
+                                <svg width="12" height="12"><use href="#oc-icon-help"/></svg>
                             </a>
                         </div>
                         <select class="select-class" id="SMART_ENABLE_CDN">
@@ -84,9 +60,7 @@
                 <div class="select-option" data-value="custom">
                     <span><%:Custom Your CDN URL%></span>
                     <span style="display: flex; align-items: center; height: 100%;">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="none" style="display: block;">
-                            <polygon points="6,9 18,9 12,15"/>
-                        </svg>
+                        <svg width="18" height="18" style="display: block;"><use href="#oc-icon-chevron-down"/></svg>
                     </span>
                 </div>
                 <input type="text" id="customOptionInput" class="custom-option-input" value="https://ghfast.top/" placeholder="<%:Type CDN URL, Format Like%> https://ghfast.top/" style="display: none;">
@@ -101,29 +75,6 @@
     var core_version_cdn = document.getElementById('CORE_VERSION_CDN');
     var release_branch_cdn = document.getElementById('RELEASE_BRANCH_CDN');
     var smart_enable_cdn = document.getElementById('SMART_ENABLE_CDN');
-
-    function initDarkMode() {
-        var ocContainers = document.querySelectorAll('.oc');
-        if (!ocContainers.length) return;
-
-        var shouldUseDark = isDarkBackground(document.body);
-
-        ocContainers.forEach(function(ocContainer) {
-            if (shouldUseDark) {
-                ocContainer.setAttribute('data-darkmode', 'true');
-                document.documentElement.setAttribute('data-darkmode', 'true');
-            } else {
-                ocContainer.removeAttribute('data-darkmode');
-                document.documentElement.removeAttribute('data-darkmode');
-            }
-        });
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initDarkMode);
-    } else {
-        initDarkMode();
-    }
 
     function get_update_info() {
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, status) {

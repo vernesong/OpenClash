@@ -3,12 +3,13 @@
     local plugin_version = fs.oc_version()
 %>
 <head>
+<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <link rel="stylesheet" href="/luci-static/resources/openclash/css/oc.css?v=<%=plugin_version%>">
 </head>
 
 <li id="tool_label" class="tool_label">
 	<span class="tool_label_span">
-	&nbsp;&nbsp;<%:Current Config File%>:&nbsp;
+	&nbsp;&nbsp;<%:Current Config%>:&nbsp;
 	<select class="tool_label_select" id="cfg_name">
 	</select>&nbsp;&nbsp;
 	<input type="button" class="btn cbi-button cbi-button-apply" value="<%:SwiTch%>" onclick="return switch_config(this)" />
@@ -16,44 +17,12 @@
 	</span>
 </li>
 
-<script src="/luci-static/resources/openclash/js/common.js?v=<%=plugin_version%>"></script>
 <script type="text/javascript">//<![CDATA[
 
 		var config_name = document.getElementById('cfg_name');
 		var tool_label = document.getElementById('tool_label');
-		var Commit = document.getElementById('cbi-table-1-Commit');
-		var Apply = document.getElementById('cbi-table-1-Apply');
-		var Back = document.getElementById('cbi-table-1-Back');
-		var Load_Config = document.getElementById('cbi-table-1-Load_Config');
-		var Delete_Unused_Servers = document.getElementById('cbi-table-1-Delete_Unused_Servers');
-		var Delete_Servers = document.getElementById('cbi-table-1-Delete_Servers');
-		var Delete_Proxy_Provider = document.getElementById('cbi-table-1-Delete_Proxy_Provider');
-		var Delete_Groups = document.getElementById('cbi-table-1-Delete_Groups');
-		var rule_mg = document.getElementById('cbi-table-1-rule_mg');
-		var pro_mg = document.getElementById('cbi-table-1-pro_mg');
 
 		setTimeout("get_header()",100);
-		
-		if (Commit) {
-			Commit.style.textAlign="center";
-		}
-		if (Apply) {
-			Apply.style.textAlign="center";
-		}
-		if (Back) {
-			Back.style.textAlign="center";
-		}
-		if (Load_Config) {
-			Load_Config.style.textAlign="center";
-			Delete_Unused_Servers.style.textAlign="center";
-			Delete_Servers.style.textAlign="center";
-			Delete_Proxy_Provider.style.textAlign="center";
-			Delete_Groups.style.textAlign="center";
-		}
-		if (rule_mg) {
-    		rule_mg.style.textAlign="center";
-    		pro_mg.style.textAlign="center";
-		}
 
 		if (tool_label.style.display != "none") {
 			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "config_name")%>', null, function(x, status) {

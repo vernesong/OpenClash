@@ -1,6 +1,12 @@
 <%+cbi/valueheader%>
+<%
+    local fs = require "luci.openclash"
+    local plugin_version = fs.oc_version()
+%>
+<script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
+<%+openclash/common%>
 <body>
-    <div id="tab" class="cbi-section">
+    <div id="tab" class="cbi-section oc">
         <div id="tab-header">
             <ul class="cbi-tabmenu">
                 <li name="tab-header" class="cbi-tab"><a href="#"><%:OpenClash Log%></a></li>
@@ -31,7 +37,7 @@
                 <textarea id="debug_log" class="cbi-input-textarea" style="width: 100%;display:none" data-update="change" rows="32" cols="60" readonly="readonly" ></textarea>
                 <div id="debug-render-wrapper">
                     <div id="debug-rendered"></div>
-                    <div class="oc-usage-help-float" id="debug-copy-source" onclick="copyDebugSource()" title="<%:Copy Debug%>"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></div>
+                    <div class="oc-usage-help-float" id="debug-copy-source" onclick="copyDebugSource()" title="<%:Copy Debug%>"><svg width="20" height="20"><use href="#oc-icon-copy"/></svg></div>
                 </div>
             </div>
         </div>
@@ -45,7 +51,7 @@
         <input type="button" class="btn cbi-button cbi-button-apply" id="down_log_button" value="<%:Download Log%>" onclick=" return download_log() " />
         <span style="display:inline-flex; align-items:center; gap:4px;">
             <input type="button" class="btn cbi-button cbi-button-apply" id="gen_debug_button" value="<%:Generate Logs%>" onclick="return gen_debug_logs()" />
-            <span id="debug_loading" style="display:none; vertical-align:middle;"><img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src='<%=resource%>/icons/loading.gif'" alt="<%:Loading...%>" style="vertical-align:middle" /></span>
+            <span id="debug_loading" style="display:none; vertical-align:middle; line-height:1;"><img src="<%=resource%>/icons/loading.svg" onerror="this.onerror=null;this.src='<%=resource%>/icons/loading.gif'" alt="<%:Loading...%>" style="vertical-align:middle; height:1.6em; width:auto;" /></span>
         </span>
     </div>
 </fieldset>
@@ -68,6 +74,37 @@ var wsRetryDelay = 2000;
 var wsRetryTimer = null;
 var isPolling = false;
 var core_refresh = true;
+var wsHasData = false;
+var coreEditorInitialized = false;
+var editor_core;
+var coreLogAccumulator = '';
+var pollInterval = 1000;
+
+function accumulateCoreLog(linesArr) {
+    var reversed = linesArr.slice().reverse();
+    var batchStr = '';
+    for (var k = 0; k < reversed.length; k++) {
+        batchStr += reversed[k] + '\n';
+    }
+    if (coreLogAccumulator) {
+        var accFirstLineEnd = coreLogAccumulator.indexOf('\n');
+        var accFirstLine = accFirstLineEnd > 0 ? coreLogAccumulator.substring(0, accFirstLineEnd) : coreLogAccumulator;
+        var batchTrimmed = batchStr.slice(0, -1);
+        var batchLastLineStart = batchTrimmed.lastIndexOf('\n');
+        var batchLastLine = batchLastLineStart > 0 ? batchTrimmed.substring(batchLastLineStart + 1) : batchTrimmed;
+        if (accFirstLine === batchLastLine) {
+            batchStr = batchLastLineStart > 0 ? batchStr.substring(0, batchLastLineStart + 1) : '';
+        }
+    }
+    coreLogAccumulator = batchStr + coreLogAccumulator;
+    var accLines = coreLogAccumulator.split('\n');
+    if (accLines.length > 2000) {
+        accLines = accLines.slice(0, 1999);
+        accLines.push('...');
+        coreLogAccumulator = accLines.join('\n');
+    }
+    cl.value = coreLogAccumulator;
+}
 
 function setLogTab(log_level) {
     var radio = document.getElementsByName("radios");
@@ -235,7 +272,7 @@ function p(s) {
 };
 
 function getWebSocketConnectionInfo(callback) {
-    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "status")%>', null, function(x, status) {
+    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "conn_status")%>', null, function(x, status) {
         if (x && x.status == 200 && status) {
             callback(status);
         } else {
@@ -268,6 +305,7 @@ function coreLogWebSocketStop() {
     } catch (e) {}
 
     coreLogBuffer = [];
+    wsHasData = false;
 }
 
 function coreLogWebSocketRetry() {
@@ -307,6 +345,7 @@ function coreLogWebSocket() {
             coreWebSocket = new WebSocket(wsUrl);
             coreWebSocket.onopen = function() {
                 coreLogBuffer = [];
+                wsHasData = false;
             };
 
             coreWebSocket.onmessage = function(event) {
@@ -314,6 +353,7 @@ function coreLogWebSocket() {
                     try {
                         var msgData = JSON.parse(event.data);
                         if (msgData && msgData.payload) {
+                            wsHasData = true;
                             var now = new Date();
                             var timestamp = now.getFullYear() + "-" + p(now.getMonth() + 1) + "-" + p(now.getDate()) + " " + 
                                            p(now.getHours()) + ":" + p(now.getMinutes()) + ":" + p(now.getSeconds());
@@ -509,8 +549,9 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                 }
             } else if (isAtTop) {
                 target.scrollTo(0, 0);
-                if (isFirstLoad) {
-                    target.setCursor({line: 0, ch: 0});
+                if (!cursorPos) {
+                    var firstLineLen = target.state.doc.line(1).length;
+                    target.setCursor({line: 0, ch: firstLineLen});
                 }
             }
 
@@ -587,6 +628,13 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                     target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
                 }
             }
+            if (isEditor && !cursorPos) {
+                var doc = target.state.doc;
+                if (doc.lines >= 1) {
+                    var fl = doc.line(1);
+                    target.dispatch({ selection: { anchor: fl.to } });
+                }
+            }
             return;
         }
 
@@ -652,6 +700,13 @@ function smoothlyDisplayLogs(newLines, target, isEditor, currentContent, isActiv
                     target.scrollIntoView({line: cursorPos.line, ch: cursorPos.ch}, 300);
                 }
             }
+            if (isEditor && !cursorPos) {
+                var doc = target.state.doc;
+                if (doc.lines >= 1) {
+                    var fl = doc.line(1);
+                    target.dispatch({ selection: { anchor: fl.to } });
+                }
+            }
         }
     }
 
@@ -677,17 +732,16 @@ function poll_log(){
     }
 
     if (coreWebSocket && coreWebSocket.readyState == WebSocket.OPEN) {
-        core_refresh = false;
+        core_refresh = !wsHasData;
         if (coreLogBuffer.length > 0) {
             bufferToProcess = coreLogBuffer;
             coreLogBuffer = [];
             core_logs = line_tolocal(bufferToProcess.join('\n'));
-            if (editor_core) {
+            if (editor_core && activeTabId === 1) {
                 currentCoreContent = editor_core.getValue();
-                smoothlyDisplayLogs(core_logs, editor_core, true, currentCoreContent, activeTabId === 1);
-            } else if (cl) {
-                currentCoreContent = cl.innerHTML;
-                smoothlyDisplayLogs(core_logs, cl, false, currentCoreContent, activeTabId === 1);
+                smoothlyDisplayLogs(core_logs, editor_core, true, currentCoreContent, true);
+            } else {
+                accumulateCoreLog(core_logs);
             }
         }
     } else {
@@ -695,7 +749,11 @@ function poll_log(){
     }
 
     if (isPolling) {
-        r = setTimeout("poll_log()", 1000);
+        r = setTimeout("poll_log()", pollInterval);
+        return;
+    }
+
+    if (activeTabId === 2) {
         return;
     }
     
@@ -710,7 +768,7 @@ function poll_log(){
                 if (status) {
                     if (!status.update) {
                         isPolling = false;
-                        r = setTimeout("poll_log()", 1000);
+                        r = setTimeout("poll_log()", pollInterval);
                         return;
                     }
 
@@ -736,19 +794,18 @@ function poll_log(){
                         core_logs = line_tolocal(status.core_log);
 
                         if (core_logs.length > 0) {
-                            if (editor_core) {
+                            if (editor_core && activeTabId === 1) {
                                 currentCoreContent = editor_core.getValue();
-                                smoothlyDisplayLogs(core_logs, editor_core, true, currentCoreContent, activeTabId === 1);
-                            } else if (cl) {
-                                currentCoreContent = cl.innerHTML;
-                                smoothlyDisplayLogs(core_logs, cl, false, currentCoreContent, activeTabId === 1);
+                                smoothlyDisplayLogs(core_logs, editor_core, true, currentCoreContent, true);
+                            } else {
+                                accumulateCoreLog(core_logs);
                             }
                         }
                     }
                 }
             }
             isPolling = false;
-            r = setTimeout("poll_log()", 1000);
+            r = setTimeout("poll_log()", pollInterval);
         }
     );
 };
@@ -769,12 +826,34 @@ window.onload = function(){
         function handleTabSwitch(tab) {
             return function(e) {
                 if (tab.className === 'cbi-tab') return;
+                var prevTabId = -1;
                 for(var j=0; j<titles.length; j++){
+                    if (titles[j].className === 'cbi-tab') prevTabId = j;
                     titles[j].className = 'cbi-tab-disabled';
                     divs[j].classList.remove('active');
                 }
                 tab.className = 'cbi-tab';
                 divs[tab.id].classList.add('active');
+
+                if (prevTabId == 1 && editor_core) {
+                    coreLogAccumulator = editor_core.getValue();
+                    cl.value = coreLogAccumulator;
+                }
+
+                if (tab.id == 1 && !coreEditorInitialized) {
+                    coreEditorInitialized = true;
+                    if (typeof log_editor === 'function' && cl) {
+                        cl.value = coreLogAccumulator;
+                        log_editor(cl, 'core', true, '100%', '540px');
+                    }
+                } else if (tab.id == 1 && editor_core) {
+                    editor_core.setValue(coreLogAccumulator);
+                    editor_core.refresh();
+                }
+
+                pollInterval = (tab.id == 1) ? 5000 : 1000;
+                clearTimeout(r);
+                poll_log();
             };
         }
 
@@ -815,11 +894,10 @@ function renderDebugView() {
     }
 
     var pres = rendered.querySelectorAll('pre');
+    var copyIcon = '<svg width="14" height="14"><use href="#oc-icon-copy"/></svg>';
     for (var i = 0; i < pres.length; i++) {
         (function(pre) {
             if (pre.parentNode && pre.parentNode.classList.contains('pre-copy-wrap')) return;
-            var copyIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
-            var checkIcon = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
             var btn = document.createElement('div');
             btn.className = 'pre-copy-btn';
             btn.title = '<%:Copy%>';
@@ -827,31 +905,7 @@ function renderDebugView() {
             btn.onclick = function(e) {
                 e.stopPropagation();
                 var text = pre.textContent || '';
-                var done = function() {
-                    btn.innerHTML = checkIcon;
-                    setTimeout(function() { btn.innerHTML = copyIcon; }, 1200);
-                };
-                if (navigator.clipboard && navigator.clipboard.writeText) {
-                    navigator.clipboard.writeText(text).then(done).catch(function() {
-                        var ta = document.createElement('textarea');
-                        ta.value = text;
-                        ta.style.position = 'fixed'; ta.style.left = '-9999px';
-                        document.body.appendChild(ta);
-                        ta.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(ta);
-                        done();
-                    });
-                } else {
-                    var ta = document.createElement('textarea');
-                    ta.value = text;
-                    ta.style.position = 'fixed'; ta.style.left = '-9999px';
-                    document.body.appendChild(ta);
-                    ta.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(ta);
-                    done();
-                }
+                ocCopyToClipboard(text, btn);
             };
             var wrap = document.createElement('div');
             wrap.className = 'pre-copy-wrap';
@@ -866,11 +920,6 @@ function renderDebugView() {
     if (dl.parentNode && dl.parentNode.className.indexOf('oc') < 0) {
         dl.parentNode.classList.add('oc');
     }
-    if (typeof isDarkBackground === 'function' && isDarkBackground(document.body)) {
-        dl.parentNode.setAttribute('data-darkmode', 'true');
-    } else {
-        dl.parentNode.removeAttribute('data-darkmode');
-    }
 }
 
 function copyDebugSource() {
@@ -881,35 +930,7 @@ function copyDebugSource() {
         src = dl.value || '';
     }
     if (!src) return;
-    var done = function() {
-        var btn = document.getElementById('debug-copy-source');
-        if (btn) {
-            var orig = btn.innerHTML;
-            btn.innerHTML = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
-            setTimeout(function() { btn.innerHTML = orig; }, 1500);
-        }
-    };
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(src).then(done).catch(function() {
-            var ta = document.createElement('textarea');
-            ta.value = src;
-            ta.style.position = 'fixed'; ta.style.left = '-9999px';
-            document.body.appendChild(ta);
-            ta.select();
-            document.execCommand('copy');
-            document.body.removeChild(ta);
-            done();
-        });
-    } else {
-        var ta = document.createElement('textarea');
-        ta.value = src;
-        ta.style.position = 'fixed'; ta.style.left = '-9999px';
-        document.body.appendChild(ta);
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        done();
-    }
+    ocCopyToClipboard(src, document.getElementById('debug-copy-source'));
 }
 
 //]]>

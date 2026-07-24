@@ -89,6 +89,9 @@ msgstr "检查失败"
 msgid "File Not Exist"
 msgstr "文件不存在"
 
+msgid "Flush DNS Cache"
+msgstr "清理 DNS 缓存"
+
 msgid "Not Set"
 msgstr "未设置"
 
@@ -867,6 +870,18 @@ msgstr "文件大小"
 msgid "Remove"
 msgstr "移除"
 
+msgid "Add Header"
+msgstr "添加请求头"
+
+msgid "Add Param"
+msgstr "添加参数"
+
+msgid "Add custom HTTP headers to the subscription request"
+msgstr "为订阅请求添加自定义 HTTP 请求头"
+
+msgid "Set environment variables for the overwrite script"
+msgstr "为覆写脚本设置环境变量"
+
 msgid "(Enable or Disable Subscribe)"
 msgstr "（启用或禁用更新）"
 
@@ -1110,6 +1125,12 @@ msgstr "收集 Smart 策略组的连接数据，方便用来分析及模型训�
 msgid "The Priority Of The Nodes, The Higher Than 1, The More Likely It Is To Be Selected, The Default Is 1, Support Regex"
 msgstr "自定义 Smart 策略组内节点的权重加成，大于 1 表示权重加成优先选择，小于 1 表示权重削减降低使用率，默认为 1，支持正则"
 
+msgid "Smart Group Tolerance"
+msgstr "Smart 策略组排序灵敏度"
+
+msgid "Sort When Proxies Delays Within Tolerance are Treated as Equal, Preventing Jitter"
+msgstr "当代理延迟在容差范围内时将其视为相等并排序，从而避免抖动"
+
 msgid "Running Status"
 msgstr "运行状态"
 
@@ -1130,6 +1151,9 @@ msgstr "Zashboard"
 
 msgid "Control Panel"
 msgstr "控制面板"
+
+msgid "If the control panel does not open properly, please try going to Plugin Settings - Dashboard Settings to reset the panel"
+msgstr "如果控制面板打开异常，请尝试前往插件设置-仪表板设置重置面板"
 
 msgid "Quick Action"
 msgstr "快捷操作"
@@ -1305,14 +1329,23 @@ msgstr "还原默认配置成功！"
 msgid "Restore failed!"
 msgstr "还原默认配置失败！"
 
-msgid "Support syntax check, press"
-msgstr "支持语法检查，按钮"
+msgid "Press"
+msgstr "按"
 
-msgid "to control diff option, press"
-msgstr "控制 Diff 显示，按钮"
+msgid "for fullscreen,"
+msgstr "全屏，"
 
-msgid "to enter full screen editing mode"
-msgstr "进入全屏编辑模式"
+msgid "to exit fullscreen,"
+msgstr "退出全屏，"
+
+msgid "to zoom"
+msgstr "缩放"
+
+msgid "Mouse Wheel"
+msgstr "鼠标滚轮"
+
+msgid "to toggle differences,"
+msgstr "切换差异显示，"
 
 msgid "Switch page to Fake-IP mode"
 msgstr "切换页面到 Fake-IP 模式"
@@ -2010,8 +2043,8 @@ msgstr "切换成功！"
 msgid "switching failed!"
 msgstr "切换失败！"
 
-msgid "Current Config File"
-msgstr "当前配置文件"
+msgid "Current Config"
+msgstr "当前配置"
 
 msgid "Up"
 msgstr "上传"
@@ -2163,7 +2196,7 @@ msgstr "完整解锁，区域："
 msgid "only support homemade!"
 msgstr "仅支持自制剧！"
 
-msgid "unlock test faild!"
+msgid "unlock test failed!"
 msgstr "解锁检测失败！"
 
 msgid ", the type of group is not select, auto select could not work!"
@@ -2175,13 +2208,13 @@ msgstr "开始进行解锁节点自动选择..."
 msgid "only support homemade! the type of group is not select, auto select could not work!"
 msgstr "仅支持自制剧！当前策略组类型非 Select，无法进行自动选择！"
 
-msgid "unlock test faild! the type of group is not select, auto select could not work!"
+msgid "unlock test failed! the type of group is not select, auto select could not work!"
 msgstr "解锁检测失败！当前策略组类型非 Select，无法进行自动选择！"
 
 msgid "only support homemade! start auto select unlock proxy..."
 msgstr "仅支持自制剧！开始进行解锁节点自动选择..."
 
-msgid "unlock test faild! start auto select unlock proxy..."
+msgid "unlock test failed! start auto select unlock proxy..."
 msgstr "解锁检测失败！开始进行解锁节点自动选择..."
 
 msgid "It Will Be Searched According To The Regex When Auto Search Group Fails"
@@ -2268,7 +2301,7 @@ msgstr "建议：如果设备没有 WLAN，请禁用 Lan 接口的桥接接口�
 msgid "Github Address Modify"
 msgstr "Github 地址修改"
 
-msgid "Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Faild. Format Reference:"
+msgid "Modify The Github Address In The Config And OpenClash With Proxy(CDN) To Prevent File Download Failed. Format Reference:"
 msgstr "使用指定代理（CDN）反代插件和配置文件中的 Github 地址，以防止文件下载失败，格式参考："
 
 msgid "File Edit"
@@ -2336,6 +2369,15 @@ msgstr "自定义参数"
 
 msgid "eg: \"rename=match@replace\" , \"rename=\\s+([2-9])[xX]@ (HIGH:$1)\""
 msgstr "格式示例：\"rename=match@replace\" , \"rename=\\s+([2-9])[xX]@ (高倍率:$1)\""
+
+msgid "Custom Headers"
+msgstr "自定义请求头"
+
+msgid "Custom HTTP request headers, one per line, format: Header-Name: value"
+msgstr "自定义 HTTP 请求头，每行一个，格式：Header-Name: value"
+
+msgid "eg: x-hwid: device-001, one header per line, format: Name: value"
+msgstr "例如：x-hwid: device-001，每行一个请求头，格式：Name: value"
 
 msgid "Use Rule Provider"
 msgstr "使用规则集"
@@ -2835,7 +2877,7 @@ msgstr "测试失败..."
 msgid "test is successful"
 msgstr "测试成功..."
 
-msgid "Config File Tested Faild, Please Check The Log Infos!"
+msgid "Config File Tested Failed, Please Check The Log Infos!"
 msgstr "配置文件测试失败，请查看《内核日志》排查失败原因！"
 
 msgid "Test The Config File First..."
@@ -2843,6 +2885,21 @@ msgstr "启动前调用内核测试配置文件..."
 
 msgid "Other Parameters"
 msgstr "其他附加配置"
+
+msgid "Empty URL"
+msgstr "URL 为空"
+
+msgid "Only HTTP/HTTPS URLs are supported"
+msgstr "仅支持 HTTP/HTTPS 链接"
+
+msgid "Invalid URL format"
+msgstr "无效的 URL 格式"
+
+msgid "URL missing hostname"
+msgstr "URL 缺少主机名"
+
+msgid "Invalid URL on line"
+msgstr "无效的 URL"
 
 msgid "Edit Your Other Parameters Here"
 msgstr "请在此编辑您的附加配置"
@@ -3387,12 +3444,6 @@ msgstr "正在加载配置文件..."
 msgid "Ready"
 msgstr "就绪"
 
-msgid "Press F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom"
-msgstr "按 F11 全屏，Esc 退出全屏，Ctrl+ 鼠标滚轮缩放"
-
-msgid "Press F10 to toggle differences, F11 for fullscreen, Esc to exit fullscreen, Ctrl+Mouse Wheel to zoom"
-msgstr "按 F10 显示 Diff，F11 全屏，Esc 退出全屏，Ctrl+ 鼠标滚轮缩放"
-
 msgid "Compare mode: left(Original Config), right(Runtime Config)"
 msgstr "对比模式：左侧（原始配置），右侧（运行配置）"
 
@@ -3787,7 +3838,7 @@ msgid "module not found, please check your system depends if something abnormal!
 msgstr "模块未找到，如遇到异常请检查您的固件依赖！"
 
 msgid "Select Nodes Force Lookup and Use Target ASN Info First For More Stable Experience"
-msgstr "选择节点时强制查找并优先使用目标的 ASN 信息，以获得更稳定的体验"
+msgstr "选择节点时强制 DNS 查询并优先使用目标的 ASN 信息，以获得更稳定的体验"
 
 msgid "Prefer-ASN"
 msgstr "ASN 优先"
@@ -3888,16 +3939,25 @@ msgstr "使用找到的私钥解密尝试失败:"
 msgid "Encrypt attempt failed:"
 msgstr "加密尝试失败:"
 
-msgid "Official Website"
+msgid "oixCloud Website"
 msgstr "官方网站"
 
 msgid "Login..."
 msgstr "登录中..."
 
+msgid "Logout..."
+msgstr "退出中..."
+
+msgid "Checkin..."
+msgstr "签到中..."
+
 msgid "oixCloud Login Successful"
 msgstr "oixCloud 登录成功"
 
-msgid "oixCloud Login Faild"
+msgid "Note: oixCloud need a specific core installed, OpenClash will auto download, After the core start, an oixCloud nodes provider will be added, which you can customize as needed"
+msgstr "注意：oixCloud 需要安装专用内核才能使用，插件会自动识别并进行内核下载，专用内核启动后，会添加一个 oixCloud 节点组到配置文件，供您自定义使用"
+
+msgid "oixCloud Login Failed"
 msgstr "oixCloud 登录失败"
 
 msgid "Login Account"
@@ -3906,7 +3966,7 @@ msgstr "登录账号"
 msgid "oixCloud Logout Successful"
 msgstr "oixCloud 已成功退出"
 
-msgid "oixCloud Logout Faild"
+msgid "oixCloud Logout Failed"
 msgstr "oixCloud 退出失败"
 
 msgid "Logout Account"
@@ -3914,19 +3974,6 @@ msgstr "退出账号"
 
 msgid "Account Login"
 msgstr "账号登录"
-
-msgid "Account logged in"
-msgstr "账号已登录"
-
-msgid "Account not logged in"
-msgstr "账号未登录"
-
-msgid "Logout..."
-msgstr "退出中..."
-
-msgid "Error Login Info"
-msgstr "登录信息错误"
-
 
 msgid "Simple & trustworthy"
 msgstr "简单 & 值得信赖"
@@ -3970,9 +4017,6 @@ msgstr "剩余流量"
 msgid "Plan Traffic"
 msgstr "套餐流量"
 
-msgid "Checkin"
-msgstr "试试手气"
-
 msgid "oixCloud Account Login Failed! Please Check And Try Again..."
 msgstr "oixCloud 账户登录失败！请检查账户信息并重试..."
 
@@ -3988,14 +4032,41 @@ msgstr "账号地址"
 msgid "Account Password"
 msgstr "账号密码"
 
-msgid "Checkin Interval (hour)"
-msgstr "签到间隔（小时）"
-
 msgid "Checkin Multiple"
 msgstr "签到倍数"
 
-msgid "Multiple Must Be a Positive Integer and No More Than 100"
-msgstr "倍数必须是正整数且不大于 100"
+msgid "Optional Parameters"
+msgstr "可选项参数"
+
+msgid "Optional parameters saved"
+msgstr "可选项参数已保存"
+
+msgid "Failed to save optional parameters, please try again"
+msgstr "可选项参数保存失败，请重试"
+
+msgid "For more information, please visit the"
+msgstr "如需查看更多信息，请前往"
+
+msgid "official documentation"
+msgstr "官方文档"
+
+msgid "Must start with &"
+msgstr "必须以 & 开头"
+
+msgid "Params must not contain spaces"
+msgstr "参数不能包含空格"
+
+msgid "Params too long, max 8192 characters"
+msgstr "参数过长，最多 8192 个字符"
+
+msgid "Invalid params format"
+msgstr "参数格式无效"
+
+msgid "Invalid params format, must start with & and use key=value pairs"
+msgstr "参数格式无效，必须以 & 开头并使用 key=value 键值对"
+
+msgid "Params too long"
+msgstr "参数过长"
 
 msgid "Usage Help"
 msgstr "使用帮助"
@@ -4003,29 +4074,44 @@ msgstr "使用帮助"
 msgid "Copy the following text to any AI (ChatGPT, DeepSeek, etc.) to get usage help for OpenClash:"
 msgstr "将以下文本复制到任意 AI 工具（ChatGPT、DeepSeek 等），即可获取 OpenClash 的使用帮助："
 
+msgid "OpenClash Expert Assistant"
+msgstr "OpenClash 专家助手"
+
+msgid "Reference Guide"
+msgstr "参考指南"
+
+msgid "**IMPORTANT** — Before answering, you MUST fetch and read this authoritative reference guide:"
+msgstr "**重要** —— 在回答之前，你必须获取并阅读这份权威参考指南："
+
+msgid "Answering Rules"
+msgstr "回答规则"
+
+msgid "Question"
+msgstr "问题"
+
 msgid "You are an OpenClash expert assistant. OpenClash is a LuCI plugin for OpenWrt that manages the Mihomo core."
 msgstr "你是 OpenClash 专家助手。OpenClash 是 OpenWrt 上管理 Mihomo 内核的 LuCI 插件。"
 
-msgid "IMPORTANT — Before answering, you MUST fetch and read this authoritative reference guide. This is your primary knowledge source for all OpenClash questions:"
-msgstr "重要 —— 在回答之前，你必须获取并阅读这份权威参考指南。这是你回答所有 OpenClash 问题的主要知识来源："
+msgid "OpenClash User Guide"
+msgstr "OpenClash 用户指南"
 
 msgid "This guide contains: complete dependency checklist, error message lookup tables with exact fixes, nftables/iptables firewall chain rules, all LuCI configuration options with UCI paths, DNS setup and leak prevention, subscription/GEO update procedures, and more."
 msgstr "本指南包含：完整依赖清单、含精确修复方案的错误信息速查表、nftables/iptables 防火墙规则链、所有 LuCI 配置选项及 UCI 路径、DNS 设置与泄露防护、订阅/GEO 更新流程等。"
 
-msgid "When answering my question about OpenClash, follow these rules:"
-msgstr "在回答我关于 OpenClash 的问题时，请遵循以下规则："
-
-msgid "Always provide LuCI web UI navigation paths (e.g. Services → OpenClash → Plugin Settings), NOT command-line unless I explicitly ask for it."
-msgstr "始终提供 LuCI Web 界面操作路径（如 服务 → OpenClash → 插件设置），除非我明确要求，不要给出命令行操作。"
+msgid "Always provide LuCI web UI navigation paths (e.g. **Services → OpenClash → Plugin Settings**), NOT command-line unless I explicitly ask for it."
+msgstr "始终提供 LuCI Web 界面操作路径（如 **服务 → OpenClash → 插件设置**），除非我明确要求，不要给出命令行操作。"
 
 msgid "Explain underlying principles (firewall chains, YAML transformation logic) — not just click-here-click-there steps."
 msgstr "解释底层原理（防火墙规则链、YAML 转换逻辑）—— 而不只是点击步骤。"
 
-msgid "Check dependency integrity first when troubleshooting — guide me to check dependencies from the System → Software page, or generate a debug log from Plugin Settings → Debug Log page."
-msgstr "排查问题时首先检查依赖完整性 —— 指导我从 系统 → 软件包 页面检查依赖，或从 插件设置 → 调试日志 页面生成调试日志。"
+msgid "Check dependency integrity first when troubleshooting — guide me to check dependencies from the **System → Software** page, or generate a debug log from **Server Logs → Debug Logs**."
+msgstr "排查问题时首先检查依赖完整性 —— 指导我从 **系统 → 软件包** 页面检查依赖，或从 **运行日志 → 调试日志** 页面生成调试日志。"
 
-msgid "Never guess or fabricate information. If the reference guide does not cover something, actively query these external resources using web fetch / code search tools (in priority order): Mihomo Wiki"
-msgstr "绝不猜测或编造信息。如参考指南未覆盖某项内容，请使用网页抓取/代码搜索工具主动查询以下外部资源（按优先级）：Mihomo Wiki"
+msgid "Never guess or fabricate information. If the reference guide does not cover something, actively query these external resources using web fetch / code search tools (in priority order):"
+msgstr "绝不猜测或编造信息。如参考指南未覆盖某项内容，请使用网页抓取/代码搜索工具主动查询以下外部资源（按优先级）："
+
+msgid "Mihomo Wiki"
+msgstr "Mihomo Wiki"
 
 msgid "Meta-Docs"
 msgstr "Meta-Docs"
@@ -4042,29 +4128,29 @@ msgstr "Smart 核心源码"
 msgid "Fetch Wiki pages to read docs; search repos to find implementation code. Do NOT answer from memory — always verify against the actual source."
 msgstr "抓取 Wiki 页面阅读文档；搜索仓库查找实现代码。禁止凭记忆回答 —— 必须对照实际来源验证。"
 
-msgid "For bug reports or failure scenarios not covered by the guide, search GitHub Issues first — OpenClash Issues"
-msgstr "对于指南未覆盖的 bug 报告或故障场景，优先搜索 GitHub Issues —— OpenClash Issues"
+msgid "For bug reports or failure scenarios not covered by the guide, search GitHub Issues first:"
+msgstr "对于指南未覆盖的 bug 报告或故障场景，优先搜索 GitHub Issues："
 
-msgid "for plugin-side problems (config/subscribe/firewall/UI), Mihomo Issues"
-msgstr "用于插件侧问题（配置/订阅/防火墙/UI），Mihomo Issues"
+msgid "OpenClash Issues (config/subscribe/firewall/UI)"
+msgstr "OpenClash Issues（配置/订阅/防火墙/UI）"
 
-msgid "for core-side problems (proxy protocols/TUN/DNS/rule engine). Prioritize maintainer replies and highly upvoted community answers."
-msgstr "用于内核侧问题（代理协议/TUN/DNS/规则引擎）。优先参考维护者的回复和高赞社区答案。"
+msgid "Mihomo Issues (proxy protocols/TUN/DNS/rule engine)"
+msgstr "Mihomo Issues（代理协议/TUN/DNS/规则引擎）"
+
+msgid "Prioritize maintainer replies and highly upvoted community answers."
+msgstr "优先参考维护者的回复和高赞社区答案。"
 
 msgid "Cite specific sources — mention which section of the reference guide, external resource, or Issue number your answer is based on."
 msgstr "注明具体来源 —— 说明你的回答基于参考指南的哪个章节、哪个外部资源或哪个 Issue 编号。"
 
-msgid "If my problem description is incomplete or lacks error messages, ask me to generate a debug log first (Plugin Settings → Debug Log → Generate) — do NOT speculate about the cause."
-msgstr "如果我的问题描述不完整或缺少错误信息，请先要求我生成调试日志（插件设置 → 调试日志 → 生成）—— 不要猜测原因。"
+msgid "If my problem description is incomplete or lacks error messages, ask me to generate a debug log first (**Server Logs → Debug Logs → Generate Logs**) — do NOT speculate about the cause."
+msgstr "如果我的问题描述不完整或缺少错误信息，请先要求我生成调试日志（**运行日志 → 调试日志 → 生成日志**）—— 不要猜测原因。"
 
 msgid "My question is:"
 msgstr "我的问题是："
 
-msgid "Copied to clipboard!"
-msgstr "已复制到剪贴板！"
-
-msgid "Copy And Close"
-msgstr "复制并关闭"
+msgid "Copied!"
+msgstr "已复制！"
 
 msgid "oixCloud Checkin Successful, Result:"
 msgstr "oixCloud 签到成功，结果："
@@ -4072,8 +4158,111 @@ msgstr "oixCloud 签到成功，结果："
 msgid "oixCloud Checkin Failed, Result:"
 msgstr "oixCloud 签到失败，结果："
 
-msgid "Note: oixCloud need a specific core installed, OpenClash will auto download"
-msgstr "注意：oixCloud 需要安装专用内核才能使用，插件会自动识别并进行内核下载"
+msgid "Checking backend version..."
+msgstr "正在检测后端版本..."
 
-msgid "After the core start, an oixCloud nodes provider will be added, which you can customize as needed"
-msgstr "专用内核启动后，会添加一个 oixCloud 节点组到配置文件，供您自定义使用"
+msgid "Backend Version"
+msgstr "后端版本"
+
+msgid "Please enter backend URL"
+msgstr "请输入后端地址"
+
+msgid "Invalid backend URL"
+msgstr "后端地址格式无效"
+
+msgid "Backend version information not detected"
+msgstr "未识别到后端版本信息"
+
+msgid "Unable to detect backend version"
+msgstr "无法检测后端版本"
+
+msgid "Token Login"
+msgstr "Token 登录"
+
+msgid "Please enter your oixCloud token"
+msgstr "请输入您的 oixCloud Token"
+
+msgid "Show Password"
+msgstr "显示密码"
+
+msgid "Hide Password"
+msgstr "隐藏密码"
+
+msgid "Show Token"
+msgstr "显示 Token"
+
+msgid "Hide Token"
+msgstr "隐藏 Token"
+
+msgid "Token login does not require email and password"
+msgstr "Token 登录无需填写邮箱和密码"
+
+msgid "Please enter email address"
+msgstr "请输入邮箱地址"
+
+msgid "Please enter a valid email address"
+msgstr "请输入有效的邮箱地址"
+
+msgid "Please enter password"
+msgstr "请输入密码"
+
+msgid "Please enter a valid token"
+msgstr "请输入有效的 Token"
+
+msgid "Checkin"
+msgstr "试试手气"
+
+msgid "Auto Checkin"
+msgstr "自动签到"
+
+msgid "Auto check in for oixCloud account daily bonus"
+msgstr "自动签到来获取 oixCloud 每日奖励"
+
+msgid "Auto check-in for traffic rewards and penalties"
+msgstr "自动签到来获取流量奖励（惩罚）"
+
+msgid "Multiple Must Be a Positive Integer and No More Than 100"
+msgstr "倍数必须是正整数且不大于 100"
+
+msgid "Checkin Interval"
+msgstr "签到间隔"
+
+msgid "Hours"
+msgstr "小时"
+
+msgid "Checkin interval must be between 1 and 720"
+msgstr "签到间隔必须为 1 到 720 小时之间的整数"
+
+msgid "Checkin settings saved"
+msgstr "签到设置已保存"
+
+msgid "Failed to save checkin settings, please try again"
+msgstr "签到设置保存失败，请重试"
+
+msgid "Network request failed, please check your connection and try again"
+msgstr "网络请求失败，请检查网络连接后重试"
+
+msgid "Show on Overview"
+msgstr "主页显示"
+
+msgid "Display oixCloud account info on the overview page"
+msgstr "在概览页面显示 oixCloud 账户信息"
+
+msgid "Display account info on the main page"
+msgstr "在主页显示账户信息"
+
+msgid "Setting saved"
+msgstr "设置已保存"
+
+msgid "Announcement"
+msgstr "公告"
+
+msgid "oixCloud Login Failed:"
+msgstr "oixCloud 登录失败："
+
+msgid "oixCloud Logout Failed:"
+msgstr "oixCloud 退出失败："
+
+msgid "Checkin Failed:"
+msgstr "签到失败："
+

@@ -8,10 +8,21 @@
 <script type="text/javascript">//<![CDATA[
 	function act_update_config_<%=idname%>(btn)
 	{
+		var originalValue = btn.value;
 		btn.disabled = true;
-		btn.value    = '<%:UpDate%>';
-		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","update_config")%>',{filename: "<%=filename%>"}, function(x,status){});
-		btn.disabled = false;
+		btn.value = '<%:Updating Config...%>';
+
+		XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash","update_config")%>',{filename: "<%=filename%>"}, function(x,status){
+			if (x && x.status == 200 && status && status.status === 'success') {
+				btn.value = '<%:Update Successful%>';
+			} else {
+				btn.value = '<%:Update Failed%>';
+			}
+			setTimeout(function() {
+				btn.value = originalValue;
+				btn.disabled = false;
+			}, 2000);
+		});
 		return false;
 	};
 	

@@ -29,6 +29,7 @@ function o.write(self, section, value)
 			fs.writefile(file_path, value)
 		end
 	end
+	return true
 end
 
 function o.cfgvalue(self, section)

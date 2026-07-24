@@ -1,3 +1,8 @@
+<%
+    local fs = require "luci.openclash"
+    local plugin_version = fs.oc_version()
+%>
+<script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 <fieldset class="cbi-section">
 	<table width="100%">
 		<tr>
@@ -10,26 +15,7 @@
 		<tr>
 			<td width="16.6%" align="right"><%:Compiled Version%></td>
 			<td width="16.6%" align="left">
-				<select class="cbi-input-select" name="CORE_VERSION" id="CORE_VERSION">
-					<option value="linux-386"><%:linux-386%></option>
-					<option value="linux-amd64-v1"><%:linux-amd64-v1(x86-64)%></option>
-					<option value="linux-amd64-v2"><%:linux-amd64-v2(x86-64)%></option>
-					<option value="linux-amd64-v3"><%:linux-amd64-v3(x86-64)%></option>
-					<option value="linux-armv5"><%:linux-armv5%></option>
-					<option value="linux-armv6"><%:linux-armv6%></option>
-					<option value="linux-armv7"><%:linux-armv7%></option>
-					<option value="linux-arm64"><%:linux-arm64(armv8)%></option>
-					<option value="linux-loong64-abi1"><%:linux-loong64-abi1%></option>
-					<option value="linux-loong64-abi2"><%:linux-loong64-abi2%></option>
-					<option value="linux-riscv64"><%:linux-riscv64%></option>
-					<option value="linux-s390x"><%:linux-s390x%></option>
-					<option value="linux-mips-hardfloat"><%:linux-mips-hardfloat%></option>
-					<option value="linux-mips-softfloat"><%:linux-mips-softfloat%></option>
-					<option value="linux-mips64"><%:linux-mips64%></option>
-					<option value="linux-mips64le"><%:linux-mips64le%></option>
-					<option value="linux-mipsle-softfloat"><%:linux-mipsle-softfloat%></option>
-					<option value="linux-mipsle-hardfloat"><%:linux-mipsle-hardfloat%></option>
-					<option value="0"><%:Not Set%></option>
+				<select class="cbi-input-select oc-arch-select" name="CORE_VERSION" id="CORE_VERSION">
 				</select>
 			</td>
 			<td width="16.6%" align="right"><%:Release Branch%></td>
@@ -41,11 +27,7 @@
 			</td>
 			<td width="16.6%" align="right"><%:Smart Core%> 
 				<a href="javascript:void(0);" onclick="window.open('https://github.com/vernesong/mihomo/releases', '_blank');" style="color: #0066cc; text-decoration: none;" title="<%:View core infos that support smart group%>">
-					<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-						<circle cx="12" cy="12" r="10"></circle>
-						<path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-						<line x1="12" y1="17" x2="12.01" y2="17"></line>
-					</svg>
+					<svg width="12" height="12"><use href="#oc-icon-help"/></svg>
 				</a>
 			</td>
 			<td width="16.6%" align="left">
@@ -125,6 +107,7 @@
 	</table>
 </fieldset>
 
+<%+openclash/common%>
 <script type="text/javascript">//<![CDATA[
 	var core_version = document.getElementById('CORE_VERSION');
  	var checktime = document.getElementById('CHECKTIME');
@@ -326,7 +309,12 @@
 				XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_ma")%>', status.corever, function(x, status) {
 					if ( x && x.status == 200 ) {
 						if ( status.corever != "0" ) {
-							if (type == "Meta") {
+							if (status.oix_core) {
+								if (status.corelv && status.corelv != "" && status.corelv != "loading...") {
+									url4='https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/mihomo-'+status.corever+'-'+status.corelv+'.gz';
+									window.location.href=url4;
+								}
+							} else if (type == "Meta") {
 								if (s == "1") {
 									url4='https://raw.githubusercontent.com/vernesong/OpenClash/core/'+r+'/smart/clash-'+status.corever+'.tar.gz';
 									window.location.href=url4;

@@ -1,4 +1,10 @@
 <div class="oc">
+<%
+    local fs = require "luci.openclash"
+    local plugin_version = fs.oc_version()
+%>
+    <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
+    <script src="/luci-static/resources/openclash/js/subconverter-version.js?v=<%=plugin_version%>"></script>
     <div class="config-upload-model-overlay" id="config-upload-overlay">
         <div class="config-upload-model" id="config-upload-model">
             <div class="config-upload-header">
@@ -7,10 +13,7 @@
                 </div>
                 <div class="config-upload-actions">
                     <button type="button" class="icon-btn" id="config-upload-close" title="<%:Close%>">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
+                        <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
                     </button>
                 </div>
             </div>
@@ -18,20 +21,11 @@
                 <div class="upload-mode-selector">
                     <div class="mode-tabs">
                         <button type="button" class="mode-tab active" id="upload-mode-file" data-mode="file">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17,11 12,6 7,11"></polyline>
-                                <line x1="12" y1="18" x2="12" y2="6"></line>
-                            </svg>
+                            <svg width="16" height="16"><use href="#oc-icon-download"/></svg>
                             <%:Upload File%>
                         </button>
                         <button type="button" class="mode-tab" id="upload-mode-subscribe" data-mode="subscribe">
-                            <svg width="15" height="15" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M26.2401 16.373L17.1001 7.23303C14.4388 4.57168 10.0653 4.6303 7.33158 7.36397C4.59791 10.0976 4.53929 14.4712 7.20064 17.1325L15.1359 25.0678" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-                                <path d="M32.9027 23.0031L40.838 30.9384C43.4994 33.5998 43.4407 37.9733 40.7071 40.707C37.9734 43.4407 33.5999 43.4993 30.9385 40.8379L21.7985 31.6979" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-                                <path d="M26.1093 26.1416C28.843 23.4079 28.9016 19.0344 26.2403 16.373" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-                                <path d="M21.7989 21.7984C19.0652 24.5321 19.0066 28.9056 21.6679 31.5669" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </svg>
+                            <svg width="15" height="15"><use href="#oc-icon-link"/></svg>
                             <%:Subscribe Link%>
                         </button>
                     </div>
@@ -40,11 +34,7 @@
                 <div class="upload-mode-content" id="mode-file-content">
                     <div class="upload-zone" id="upload-zone">
                         <div class="upload-icon">
-                            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17,11 12,6 7,11"></polyline>
-                                <line x1="12" y1="18" x2="12" y2="6"></line>
-                            </svg>
+                            <svg width="48" height="48"><use href="#oc-icon-download"/></svg>
                         </div>
                         <div class="upload-text">
                             <div class="upload-primary"><%:Click to select file or drag and drop%></div>
@@ -88,6 +78,13 @@
                         </div>
 
                         <div class="form-group">
+                            <label><%:Custom Headers%> (<%:Optional%>):</label>
+                            <div class="form-help" style="margin-bottom: unset;"><%:Add custom HTTP headers to the subscription request%></div>
+                            <div id="subscribe-headers-container" style="display:none;"></div>
+                            <button type="button" id="subscribe-headers-add" class="btn upload-btn" style="align-self: flex-start; margin-top: 4px; padding: 4px 12px; font-size: 13px; border: 1px solid var(--primary-color); border-radius: var(--radius-sm); cursor: pointer;">+ <%:Add Header%></button>
+                        </div>
+
+                        <div class="form-group">
                             <label class="form-checkbox">
                                 <input type="checkbox" id="advanced-options-enable">
                                 <span class="checkmark"></span>
@@ -117,6 +114,10 @@
                                         </select>
                                     </div>
                                     <input type="text" id="convert-address-custom" placeholder="<%:Enter custom convert address%>" class="form-input" style="display: none; margin-top: 8px;" />
+                                    <div id="subconverter-version-status-upload" class="subconverter-version-status" data-state="idle" hidden>
+                                        <span class="subconverter-version-label"></span>
+                                        <span class="subconverter-version-text"></span>
+                                    </div>
                                     <div class="form-help"><%:Note: There is A Risk of Privacy Leakage in Online Convert%></div>
                                 </div>
 
@@ -261,9 +262,7 @@
                                             </div>
                                         </div>
                                         <button type="button" id="age-generate-btn" class="icon-btn" style="margin-left:8px;" title="<%:Generate Age Key%>">
-                                            <svg height="16" viewBox="0 0 16 16" width="16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M10.5 0a5.499 5.499 0 1 1-1.288 10.848l-.932.932a.749.749 0 0 1-.53.22H7v.75a.749.749 0 0 1-.22.53l-.5.5a.749.749 0 0 1-.53.22H5v.75a.749.749 0 0 1-.22.53l-.5.5a.749.749 0 0 1-.53.22h-2A1.75 1.75 0 0 1 0 14.25v-2c0-.199.079-.389.22-.53l4.932-4.932A5.5 5.5 0 0 1 10.5 0Zm-4 5.5c-.001.431.069.86.205 1.269a.75.75 0 0 1-.181.768L1.5 12.56v1.69c0 .138.112.25.25.25h1.69l.06-.06v-1.19a.75.75 0 0 1 .75-.75h1.19l.06-.06v-1.19a.75.75 0 0 1 .75-.75h1.19l1.023-1.025a.75.75 0 0 1 .768-.18A4 4 0 1 0 6.5 5.5ZM11 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z" fill="currentColor"/>
-                                            </svg>
+                                            <svg width="16" height="16"><use href="#oc-icon-key"/></svg>
                                         </button>
                                     </div>
                                     <div class="form-help"><%:Age Encryption For Config, Click For More:%> <a href="javascript:void(0);" onclick="window.open('https://wiki.metacubex.one/config/proxy-providers/?age-secret-key#age-secret-key', '_blank');" class="help-link"> <%:Age Encryption Introduce%></a></div>
@@ -274,9 +273,7 @@
                                     <div style="display:flex; align-items:center;">
                                         <input type="text" id="age-secret-input" class="form-input" style="flex:1;" />
                                         <button type="button" id="age-copy-secret" class="icon-btn" style="margin-left:8px;" title="<%:Copy%>">
-                                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                                <path d="M16 1H4a2 2 0 00-2 2v12h2V3h12V1zM20 5H8a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2zm0 16H8V7h12v14z" fill="currentColor"/>
-                                            </svg>
+                                            <svg width="24" height="24"><use href="#oc-icon-copy-bold"/></svg>
                                         </button>
                                     </div>
                                 </div>
@@ -286,18 +283,10 @@
                                     <div style="display:flex; align-items:center;">
                                         <input type="text" id="age-public-input" class="form-input" style="flex:1;" />
                                         <button type="button" id="age-copy-public" class="icon-btn" style="margin-left:8px;" title="<%:Copy%>">
-                                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                                <path d="M16 1H4a2 2 0 00-2 2v12h2V3h12V1zM20 5H8a2 2 0 00-2 2v14a2 2 0 002 2h12a2 2 0 002-2V7a2 2 0 00-2-2zm0 16H8V7h12v14z" fill="currentColor"/>
-                                            </svg>
+                                            <svg width="24" height="24"><use href="#oc-icon-copy-bold"/></svg>
                                         </button>
                                         <button type="button" id="age-calculate-public" class="icon-btn" style="margin-left:8px;" title="<%:Calculate Public Key%>">
-                                            <svg width="16" height="16" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M28 32.5H42" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M28 41.5H42" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M6 13H22" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M14 5L14 21" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                                                <path d="M42 5L6 41" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-                                            </svg>
+                                            <svg width="16" height="16"><use href="#oc-icon-calculator"/></svg>
                                         </button>
                                     </div>
                                 </div>
@@ -334,7 +323,7 @@
             <div class="config-upload-header">
                 <div class="config-upload-title"><%:Set Subscription Info URL%></div>
                 <button type="button" class="icon-btn" onclick="SubscriptionUrlSetter.hide()">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    <svg width="14" height="14"><use href="#oc-icon-close"/></svg>
                 </button>
             </div>
             <div class="config-upload-content">
@@ -355,6 +344,80 @@
 </div>
 
 <script type="text/javascript">
+var UrlValidator = {
+    _httpRe: /^https?:\/\/\S+$/i,
+    _anyProtocolRe: /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/\S+$/i,
+
+    // Extract individual URLs from input. Supports:
+    //   - Newline-separated: url1\nurl2
+    //   - | -separated:     url1|url2  (| only when followed by protocol)
+    //   - Comma-separated:  node1,https://sub.com
+    //   - URL-encoded comma: node1%2Chttps%3A%2F%2Fsub.com
+    // Correctly preserves | inside query parameters (e.g., ?lv=2|3|5|6.js).
+    extractUrls: function(input, allowNonHttp) {
+        if (!input) return [];
+        var protocolPat = allowNonHttp ? '[a-zA-Z][a-zA-Z0-9+.-]*://' : 'https?://';
+        var protocolRe = new RegExp(protocolPat, 'gi');
+        var urls = [];
+
+        function extractFrom(text) {
+            var positions = [];
+            var m;
+            protocolRe.lastIndex = 0;
+            while ((m = protocolRe.exec(text)) !== null) {
+                positions.push(m.index);
+            }
+            if (positions.length === 0) return false;
+
+            for (var i = 0; i < positions.length; i++) {
+                var start = positions[i];
+                var end = (i + 1 < positions.length) ? positions[i + 1] : text.length;
+                var raw = text.substring(start, end);
+                raw = raw.replace(/[\s|,]+$/, '').trim();
+                if (raw) urls.push(raw);
+            }
+            return true;
+        }
+
+        if (!extractFrom(input)) {
+            if (/%[23][aA]/i.test(input)) {
+                try {
+                    var decoded = decodeURIComponent(input);
+                    if (decoded !== input) extractFrom(decoded);
+                } catch(e) {}
+            }
+        }
+
+        return urls;
+    },
+
+    validateUrl: function(url, allowNonHttp) {
+        var urlPart = url.replace(/#name=.*$/, '');
+        if (!urlPart) return { valid: false, reason: '<%:Empty URL%>' };
+
+        var re = allowNonHttp ? this._anyProtocolRe : this._httpRe;
+        if (!re.test(urlPart)) {
+            if (!allowNonHttp && /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\/\S/.test(urlPart)) {
+                return { valid: false, reason: '<%:Only HTTP/HTTPS URLs are supported%>' };
+            }
+            return { valid: false, reason: '<%:Invalid URL format%>' };
+        }
+
+        var hostMatch = urlPart.match(/^https?:\/\/([^\/\s?#]+)/i);
+        if (!hostMatch || hostMatch[1].length === 0) {
+            return { valid: false, reason: '<%:URL missing hostname%>' };
+        }
+        return { valid: true };
+    },
+
+    anyValid: function(urlList, allowNonHttp) {
+        for (var i = 0; i < urlList.length; i++) {
+            if (this.validateUrl(urlList[i], allowNonHttp).valid) return true;
+        }
+        return false;
+    }
+};
+
 var SubscriptionUrlSetter = {
     filename: '',
     onSuccess: '',
@@ -415,6 +478,14 @@ var SubscriptionUrlSetter = {
         });
         var newUrl = urlList.join('\n');
 
+        for (var i = 0; i < urlList.length; i++) {
+            var result = UrlValidator.validateUrl(urlList[i], false);
+            if (!result.valid) {
+                alert('<%:Invalid URL on line %> ' + (i + 1) + ':\n' + urlList[i] + '\n\n' + result.reason);
+                return;
+            }
+        }
+
         this.hide();
 
         XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "set_subinfo_url")%>', {
@@ -473,7 +544,8 @@ var ConfigUploader = {
     isProcessing: false,
     currentMode: 'file',
     onSuccess: '',
-    _linkRe: /^(?:https?:\/\/\S+|[a-zA-Z]+:\/\/\S+|[^,\s]+,https?:\/\/\S+|[^%\s]+%2Chttps?%3A%2F%2F\S+)$/i,
+    subconverterVersionChecker: null,
+    _linkRe: null,
 
     init: function() {
         this.overlay = document.getElementById('config-upload-overlay');
@@ -547,6 +619,25 @@ var ConfigUploader = {
         var advancedOptionsEnableFile = document.getElementById('advanced-options-enable-file');
         var advancedOptionsContainerFile = document.getElementById('advanced-options-container-file');
         var ageFormNode = document.getElementById('age-encryption-group');
+        var subVersionStatus = document.getElementById('subconverter-version-status-upload');
+
+        if (window.OpenClashSubconverterVersion && subVersionStatus) {
+            this.subconverterVersionChecker = window.OpenClashSubconverterVersion.init({
+                select: convertAddressSelect,
+                customInput: convertAddressCustom,
+                enable: subConvertEnable,
+                status: subVersionStatus,
+                proxyURL: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "subconverter_version")%>',
+                labels: {
+                    checking: '<%:Checking backend version...%>',
+                    versionPrefix: '<%:Backend Version%>',
+                    empty: '<%:Please enter backend URL%>',
+                    invalid: '<%:Invalid backend URL%>',
+                    unrecognized: '<%:Backend version information not detected%>',
+                    failed: '<%:Unable to detect backend version%>'
+                }
+            });
+        }
 
         subscribeUrlInput.addEventListener('input', function() {
             self.autoFillConfigName();
@@ -595,11 +686,13 @@ var ConfigUploader = {
 
         subConvertEnable.addEventListener('change', function() {
             subConvertOptions.style.display = this.checked ? 'block' : 'none';
+            self.updateSubconverterVersionStatus();
             self.updateSubmitButton();
         });
 
         convertAddressSelect.addEventListener('change', function() {
             convertAddressCustom.style.display = this.value === 'custom' ? 'block' : 'none';
+            self.updateSubconverterVersionStatus();
         });
 
         templateSelect.addEventListener('change', function() {
@@ -640,7 +733,7 @@ var ConfigUploader = {
             ageCopyPublic.addEventListener('click', function() {
                 var v = agePublicInput.value || '';
                 if (v === '') { alert('<%:No public key%>'); return; }
-                copyToClipboard(v);
+                ocCopyToClipboard(v, ageCopyPublic);
             });
         }
 
@@ -648,7 +741,7 @@ var ConfigUploader = {
             ageCopySecret.addEventListener('click', function() {
                 var v = ageSecretInput.value || '';
                 if (v === '') { alert('<%:No secret key%>'); return; }
-                copyToClipboard(v);
+                ocCopyToClipboard(v, ageCopySecret);
             });
         }
 
@@ -676,18 +769,9 @@ var ConfigUploader = {
         if (agePublicInput) agePublicInput.addEventListener('input', self.updateSubmitButton.bind(self));
         if (ageSecretInput) ageSecretInput.addEventListener('input', self.updateSubmitButton.bind(self));
 
-        function copyToClipboard(text) {
-            if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text);
-            } else {
-                var ta = document.createElement('textarea');
-                ta.value = text;
-                document.body.appendChild(ta);
-                ta.select();
-                document.execCommand('copy');
-                document.body.removeChild(ta);
-            }
-        }
+        document.getElementById('subscribe-headers-add').addEventListener('click', function() {
+            self.addHeaderRow('', '');
+        });
 
         document.getElementById('config-upload-submit').addEventListener('click', function() {
             if (self.currentMode === 'file') {
@@ -793,6 +877,12 @@ var ConfigUploader = {
         this.reset();
     },
 
+    updateSubconverterVersionStatus: function() {
+        if (this.subconverterVersionChecker) {
+            this.subconverterVersionChecker.update();
+        }
+    },
+
     resetAdvancedOptions: function() {
         document.getElementById('sub-convert-enable').checked = false;
         document.getElementById('sub-convert-options').style.display = 'none';
@@ -828,6 +918,7 @@ var ConfigUploader = {
         if (advFileEnable) advFileEnable.checked = false;
         var advFileContainer = document.getElementById('advanced-options-container-file');
         if (advFileContainer) advFileContainer.style.display = 'none';
+        if (this.subconverterVersionChecker) this.subconverterVersionChecker.hide();
     },
 
     reset: function() {
@@ -842,6 +933,9 @@ var ConfigUploader = {
         document.getElementById('subscribe-url-input').value = '';
         document.getElementById('subscribe-ua-input').value = 'clash-verge/v2.4.5';
         document.getElementById('subscribe-ua-custom').style.display = 'none';
+        var hdrContainer = document.getElementById('subscribe-headers-container');
+        hdrContainer.innerHTML = '';
+        hdrContainer.style.display = 'none';
 
         document.getElementById('advanced-options-enable').checked = false;
         document.getElementById('advanced-options-container').style.display = 'none';
@@ -883,7 +977,22 @@ var ConfigUploader = {
             }
         }
 
-        if (data.sub_convert === '1' || data.convert_address || data.template || data.custom_template_url || data.emoji === 'true' || data.udp === 'true' || data.skip_cert_verify === 'true' || data.sort === 'true' || data.node_type === 'true' || data.rule_provider === 'true' || data.custom_params || data.keyword || data.ex_keyword || data.de_ex_keyword || data.config_age_secret || data.config_age_public || data.config_age_algo) {
+        if (data.sub_headers) {
+            var container = document.getElementById('subscribe-headers-container');
+            container.innerHTML = '';
+            var lines = data.sub_headers.split('\n');
+            for (var i = 0; i < lines.length; i++) {
+                var line = lines[i].trim();
+                if (line) {
+                    var colonIdx = line.indexOf(':');
+                    var name = colonIdx > 0 ? line.substring(0, colonIdx).trim() : line;
+                    var value = colonIdx > 0 ? line.substring(colonIdx + 1).trim() : '';
+                    ConfigUploader.addHeaderRow(name, value);
+                }
+            }
+        }
+
+        if (data.sub_convert === '1' || data.convert_address || data.template || data.custom_template_url || data.emoji === 'true' || data.udp === 'true' || data.skip_cert_verify === 'true' || data.sort === 'true' || data.node_type === 'true' || data.rule_provider === 'true' || data.custom_params || data.keyword || data.ex_keyword || data.de_ex_keyword || data.sub_headers || data.config_age_secret || data.config_age_public || data.config_age_algo) {
             document.getElementById('advanced-options-enable').checked = true;
             document.getElementById('advanced-options-container').style.display = 'block';
 
@@ -963,6 +1072,8 @@ var ConfigUploader = {
                 }
             }
         }
+
+        this.updateSubconverterVersionStatus();
     },
 
     switchMode: function(mode) {
@@ -1085,23 +1196,12 @@ var ConfigUploader = {
 
             if (url && filename) {
                 if (subConvert) {
-                    var linkPattern = this._linkRe;
-
-                    if (url.indexOf('\n') !== -1 || url.indexOf('|') !== -1) {
-                        var links = url.split(/[\n|]/);
-                        for (var i = 0; i < links.length; i++) {
-                            var link = links[i].trim();
-                            if (link && linkPattern.test(link)) {
-                                isValidFormat = true;
-                                break;
-                            }
-                        }
-                    } else {
-                        isValidFormat = linkPattern.test(url);
-                    }
+                    var links = UrlValidator.extractUrls(url, true);
+                    isValidFormat = UrlValidator.anyValid(links, true);
                 } else {
-                    if (/^https?:\/\//.test(url) && url.indexOf('\n') === -1 && url.indexOf('|') === -1) {
-                        isValidFormat = true;
+                    if (/^https?:\/\//.test(url) && url.indexOf('\n') === -1) {
+                        var singleUrls = UrlValidator.extractUrls(url, false);
+                        isValidFormat = singleUrls.length === 1 && UrlValidator.validateUrl(singleUrls[0], false).valid;
                     }
                 }
             } else if (filename && (agePublic || ageSecret)) {
@@ -1252,6 +1352,7 @@ var ConfigUploader = {
         var keywords = '';
         var excludeKeywords = '';
         var excludeDefaults = [];
+        var customHeaders = ConfigUploader.collectHeaders();
 
         if (advancedEnabled) {
             convertAddress = document.getElementById('convert-address-input').value;
@@ -1302,23 +1403,12 @@ var ConfigUploader = {
         var isValidFormat = false;
 
         if (subConvert) {
-            var linkPattern = this._linkRe;
-
-            if (url.indexOf('\n') !== -1 || url.indexOf('|') !== -1) {
-                var links = url.split(/[\n|]/);
-                for (var i = 0; i < links.length; i++) {
-                    var link = links[i].trim();
-                    if (link && linkPattern.test(link)) {
-                        isValidFormat = true;
-                        break;
-                    }
-                }
-            } else {
-                isValidFormat = linkPattern.test(url);
-            }
+            var links = UrlValidator.extractUrls(url, true);
+            isValidFormat = UrlValidator.anyValid(links, true);
         } else {
-            if (/^https?:\/\//.test(url) && url.indexOf('\n') === -1 && url.indexOf('|') === -1) {
-                isValidFormat = true;
+            if (/^https?:\/\//.test(url) && url.indexOf('\n') === -1) {
+                var singleUrls = UrlValidator.extractUrls(url, false);
+                isValidFormat = singleUrls.length === 1 && UrlValidator.validateUrl(singleUrls[0], false).valid;
             }
         }
 
@@ -1376,7 +1466,8 @@ var ConfigUploader = {
                 custom_params: customParams,
                 keyword: keywords,
                 ex_keyword: excludeKeywords,
-                de_ex_keyword: excludeDefaults.join(' ')
+                de_ex_keyword: excludeDefaults.join(' '),
+                sub_headers: customHeaders
             }, function(x, data) {
                 if (x && x.status == 200 && data.status === 'success') {
                     XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_config")%>', {
@@ -1456,6 +1547,60 @@ var ConfigUploader = {
             } catch (e) {
             }
         }
+    },
+
+    addHeaderRow: function(name, value) {
+        var container = document.getElementById('subscribe-headers-container');
+        var row = document.createElement('div');
+        row.className = 'form-row header-row';
+        row.style.cssText = 'align-items: center; gap: 6px; margin-bottom: 6px;';
+
+        var nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.className = 'form-input';
+        nameInput.placeholder = 'Header-Name';
+        nameInput.value = name || '';
+        nameInput.style.cssText = 'flex: 1; height: 32px;';
+
+        var valueInput = document.createElement('input');
+        valueInput.type = 'text';
+        valueInput.className = 'form-input';
+        valueInput.placeholder = 'value';
+        valueInput.value = value || '';
+        valueInput.style.cssText = 'flex: 1.5; height: 32px;';
+
+        var removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.className = 'icon-btn';
+        removeBtn.title = '<%:Remove%>';
+        removeBtn.style.cssText = 'flex-shrink: 0;';
+        removeBtn.innerHTML = '<svg width="14" height="14"><use href="#oc-icon-close"/></svg>';
+        removeBtn.addEventListener('click', function() {
+            row.parentNode.removeChild(row);
+            if (container.children.length === 0) {
+                container.style.display = 'none';
+            }
+        });
+
+        row.appendChild(nameInput);
+        row.appendChild(valueInput);
+        row.appendChild(removeBtn);
+        container.appendChild(row);
+        container.style.display = 'block';
+    },
+
+    collectHeaders: function() {
+        var rows = document.querySelectorAll('#subscribe-headers-container .header-row');
+        var headers = [];
+        for (var i = 0; i < rows.length; i++) {
+            var inputs = rows[i].querySelectorAll('input');
+            var name = inputs[0].value.trim();
+            var value = inputs[1].value.trim();
+            if (name) {
+                headers.push(name + ': ' + (value || ''));
+            }
+        }
+        return headers.join('\n');
     },
 
     handleError: function(message) {

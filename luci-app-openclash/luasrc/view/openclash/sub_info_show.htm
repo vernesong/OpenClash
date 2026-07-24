@@ -1,32 +1,26 @@
 <%+cbi/valueheader%>
 <%
+    local fs = require "luci.openclash"
+    local plugin_version = fs.oc_version()
+%>
+<script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
+<%
 	local fs = require "luci.openclash"
 	local val = self:cfgvalue(section)
 	local filename = fs.filename(val)
 	local idname = math.random(1000)..(string.match(filename, "[%w_]+") or "")
 %>
 
-<div class="sub_div">
+<div class="sub_div oc">
     <span id='<%=idname%>' class="sub_tab"></span>
     <button type="button" class="sub_setting" title='<%:Refresh%>' alt='<%:Refresh%>' onclick='return sub_info_refresh_<%=idname%>(true)'>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M23 4v6h-6"></path>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-        </svg>
+        <svg viewBox="0 0 24 24"><use href="#oc-icon-refresh"/></svg>
     </button>
     <button type="button" class="sub_setting" title='<%:Specify URL%>' alt='<%:Specify URL%>' onclick='return setUrlConfig_<%=idname%>()'>
-        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="4">
-            <path d="M4 6H44V36H29L24 41L19 36H4V6Z"/>
-            <path d="M23 21H25.0025" />
-            <path d="M33.001 21H34.9999"/>
-            <path d="M13.001 21H14.9999"/>
-        </svg>
+        <svg viewBox="0 0 48 48"><use href="#oc-icon-chat"/></svg>
     </button>
     <button type="button" class="sub_setting" title='<%:Edit Subscription%>' alt='<%:Edit Subscription%>' onclick='return uploadConfig_<%=idname%>()'>
-        <svg width="14" height="14" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M18.2838 43.1713C14.9327 42.1736 11.9498 40.3213 9.58787 37.867C10.469 36.8227 11 35.4734 11 34.0001C11 30.6864 8.31371 28.0001 5 28.0001C4.79955 28.0001 4.60139 28.01 4.40599 28.0292C4.13979 26.7277 4 25.3803 4 24.0001C4 21.9095 4.32077 19.8938 4.91579 17.9995C4.94381 17.9999 4.97188 18.0001 5 18.0001C8.31371 18.0001 11 15.3138 11 12.0001C11 11.0488 10.7786 10.1493 10.3846 9.35011C12.6975 7.1995 15.5205 5.59002 18.6521 4.72314C19.6444 6.66819 21.6667 8.00013 24 8.00013C26.3333 8.00013 28.3556 6.66819 29.3479 4.72314C32.4795 5.59002 35.3025 7.1995 37.6154 9.35011C37.2214 10.1493 37 11.0488 37 12.0001C37 15.3138 39.6863 18.0001 43 18.0001C43.0281 18.0001 43.0562 17.9999 43.0842 17.9995C43.6792 19.8938 44 21.9095 44 24.0001C44 25.3803 43.8602 26.7277 43.594 28.0292C43.3986 28.01 43.2005 28.0001 43 28.0001C39.6863 28.0001 37 30.6864 37 34.0001C37 35.4734 37.531 36.8227 38.4121 37.867C36.0502 40.3213 33.0673 42.1736 29.7162 43.1713C28.9428 40.752 26.676 39.0001 24 39.0001C21.324 39.0001 19.0572 40.752 18.2838 43.1713Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
-            <path d="M24 31C27.866 31 31 27.866 31 24C31 20.134 27.866 17 24 17C20.134 17 17 20.134 17 24C17 27.866 20.134 31 24 31Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"/>
-        </svg>
+        <svg width="14" height="14"><use href="#oc-icon-settings"/></svg>
     </button>
 </div>
 
@@ -36,45 +30,18 @@ var retry_<%=idname%> = 0;
 var s_<%=idname%>;
 sub_info_refresh_<%=idname%>(false);
 
-setTimeout(function(){
-    initDarkMode();
-}, 200);
-
-function initDarkMode() {
-    if (typeof isDarkBackground === 'undefined') {
-        setTimeout(function() {
-            initDarkMode();
-        }, 100);
-        return;
-    }
-    
-    if (isDarkBackground(document.body)) {
-        document.documentElement.setAttribute('data-darkmode', 'true');
-    }
-}
-
 function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
     var screenWidth = window.innerWidth || document.documentElement.clientWidth;
     var fontSize = '12px';
-    var minWidth = '200px';
-    var topPosition = tr == "null" ? '6px' : '2px';
 
     if (screenWidth <= 320) {
         fontSize = '8px';
-        minWidth = '140px';
-        topPosition = tr == "null" ? '8px' : '4px';
     } else if (screenWidth <= 480) {
         fontSize = '9px';
-        minWidth = '160px';
-        topPosition = tr == "null" ? '7px' : '3px';
     } else if (screenWidth <= 768) {
         fontSize = '10px';
-        minWidth = '180px';
-        topPosition = tr == "null" ? '6px' : '3px';
     } else if (screenWidth <= 1024) {
         fontSize = '11px';
-        minWidth = '200px';
-        topPosition = tr == "null" ? '6px' : '2px';
     }
 
     // Build title for native tooltip (format: "v / m (pc%)\nt (Remaining tr days)")
@@ -84,7 +51,7 @@ function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
     }
 
     return String.format(
-        '<div class="progress_bar_bg" title="' + titleText + '" style="position:relative; border-radius: 6px; min-width: %s; display: flex; align-items: center;">' +
+        '<div class="progress_bar_bg" title="' + titleText + '" style="position:relative; border-radius: 6px; display: flex; align-items: center;">' +
         (pc >= 50 ? '<div class="progress_bar_high" style="width:%d%%; height:34px; border-radius: 6px">' :
         (pc < 50 && pc >= 20 ? '<div class="progress_bar_medium" style="width:%d%%; height:34px; border-radius: 6px">' :
         '<div class="progress_bar_low" style="width:%d%%; height:34px; border-radius: 6px">')) +
@@ -95,7 +62,7 @@ function progressbar_<%=idname%>(v, m, pc, np, f, t, tr) {
         '</div>' +
         '</div>' +
         '</div>',
-        minWidth, pc, fontSize, v, m, pc, t, tr
+        pc, fontSize, v, m, pc, t, tr
     );
 };
 
@@ -267,7 +234,7 @@ function sub_info_refresh_<%=idname%>(force) {
 
             if (!needsErrorHandling) {
                 retry_<%=idname%> = 0;
-                localStorage.setItem("sub_info_<%=filename%>", JSON.stringify(status));
+                (window.requestIdleCallback || function(cb) { setTimeout(cb, 1); })(function() { localStorage.setItem("sub_info_<%=filename%>", JSON.stringify(status)); });
                 dispaly_progressbar('<%=idname%>', status);
             }
 		} else {
@@ -281,7 +248,7 @@ function sub_info_refresh_<%=idname%>(force) {
             retry_<%=idname%> = 0;
             dispaly_progressbar('<%=idname%>', status);
             if (status && status.providers) {
-                localStorage.setItem("sub_info_<%=filename%>", JSON.stringify(status));
+                (window.requestIdleCallback || function(cb) { setTimeout(cb, 1); })(function() { localStorage.setItem("sub_info_<%=filename%>", JSON.stringify(status)); });
             }
             s_<%=idname%> = setTimeout("sub_info_refresh_<%=idname%>(false)", 60000*15);
         };

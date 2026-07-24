@@ -1,112 +1,653 @@
-<%+cbi/valueheader%>
+<%-
+local fs = require "luci.openclash"
+local logged_in = fs.uci_get_config("config", "oix_token") and true or false
+local checkin_enabled = fs.uci_get_config("config", "oix_checkin") == "1"
+local checkin_interval = fs.uci_get_config("config", "oix_checkin_interval") or "1"
+local checkin_multiple = fs.uci_get_config("config", "oix_checkin_multiple") or "1"
+local oix_params = fs.uci_get_config("config", "oix_params") or ""
+local oix_default_params = fs.uci_get_config("config", "oix_default_params") or ""
+local oix_logo_src = "/luci-static/resources/openclash/img/oixcloud.png"
+local function oix_logo_img(cls)
+  return '<img class="'..cls..'" src="'..oix_logo_src..'" loading="lazy" alt="oixCloud" title="oixCloud">'
+end
+-%>
+<div class="oc">
+	<script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
+	<fieldset class="cbi-section oix-panel">
+		<div id="oix-msg-bar" class="oix-msg-bar"></div>
+		<div id="oix-login-section"<%= logged_in and ' style="display:none;"' or '' %>>
+			<div class="oix-login-box">
+
+				<%= oix_logo_img("oix-logo") %>
+
+				<div class="mode-tabs" style="margin-bottom:14px;" id="oix-tabs">
+					<button type="button" class="mode-tab active" id="oix-tab-account" onclick="OixCloud.switchTab('account')">
+						<svg class="oc-icon" width="13" height="13"><use href="#oc-icon-user"/></svg>
+						<%:Account Login%>
+					</button>
+					<button type="button" class="mode-tab" id="oix-tab-token" onclick="OixCloud.switchTab('token')">
+						<svg class="oc-icon" width="13" height="13"><use href="#oc-icon-key-oix"/></svg>
+						<%:Token Login%>
+					</button>
+				</div>
+
+				<div id="oix-panel-account">
+					<div style="margin-bottom:10px;">
+						<input type="text" id="oix-email" class="oix-input oix-input-ok" placeholder="<%:Account Email Address%>" autocomplete="email" inputmode="email"
+							value="<%= fs.uci_get_config('config', 'oix_email') or '' %>">
+						<span id="oix-email-hint" class="oix-field-hint oix-field-help"></span>
+					</div>
+					<div style="margin-bottom:14px;">
+						<div style="position:relative;">
+						<input type="password" id="oix-passwd" class="oix-input oix-input-ok" placeholder="<%:Account Password%>" autocomplete="current-password"
+							style="padding-right:36px;"
+							value="<%= fs.uci_get_config('config', 'oix_passwd') or '' %>">
+						<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-passwd')"
+							data-show="<%:Show Password%>" data-hide="<%:Hide Password%>"
+							title="<%:Show Password%>">
+							<svg class="oc-icon oix-eye-icon" width="15" height="15"><use href="#oc-icon-eye"/></svg>
+						</button>
+						</div>
+						<span id="oix-passwd-hint" class="oix-field-hint oix-field-help"></span>
+					</div>
+					<button type="button" class="oix-btn oix-btn-primary oix-btn-block" onclick="OixCloud.doLogin()">
+						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-login"/></svg>
+						<%:Login Account%>
+					</button>
+
+					<div style="text-align:center;margin-top:12px;">
+						<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
+							<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-home"/></svg>
+							<%:oixCloud Website%>
+						</button>
+					</div>
+				</div>
+				<div id="oix-panel-token" style="display:none;">
+					<div style="margin-bottom:14px;">
+						<div style="position:relative;">
+						<input type="password" id="oix-token" class="oix-input oix-input-ok" placeholder="<%:Please enter your oixCloud token%>"
+							style="padding-right:36px;"
+							value="<%= fs.uci_get_config('config', 'oix_token') or '' %>">
+						<button type="button" class="oix-pwd-toggle" onclick="OixCloud.togglePwd('oix-token')"
+							data-show="<%:Show Token%>" data-hide="<%:Hide Token%>"
+							title="<%:Show Token%>">
+							<svg class="oc-icon oix-eye-icon" width="15" height="15"><use href="#oc-icon-eye"/></svg>
+						</button>
+						</div>
+						<span id="oix-token-hint" class="oix-field-hint oix-field-help"><%:Token login does not require email and password%></span>
+					</div>
+					<button type="button" class="oix-btn oix-btn-primary oix-btn-block" onclick="OixCloud.doLogin()">
+						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-login"/></svg>
+						<%:Login Account%>
+					</button>
+
+					<div style="text-align:center;margin-top:12px;">
+					<button type="button" class="oix-btn oix-btn-ghost oix-btn-block" onclick="OixCloud.openWebsite();return false;">
+						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-home"/></svg>
+						<%:oixCloud Website%>
+						</button>
+					</div>
+				</div>
+				<div class="oix-footer">
+					<span>Powered by <a href="javascript:void(0);" onclick="OixCloud.openWebsite();return false;">oixcloud.com</a></span>
+				</div>
+			</div>
+		</div>
+
+		<div id="oix-logged-section" style="display:<%= logged_in and 'block' or 'none' %>;">
+			<div class="oix-header">
+				<div class="oix-header-left">
+					<span class="oix-status-badge">
+						<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-badge"/></svg>
+						<span id="oix-header-plan">--</span>
+					</span>
+				</div>
+				<div class="oix-header-right">
+					<button type="button" class="oix-btn oix-btn-primary oix-btn-sm" onclick="OixCloud.doCheckin();return false;">
+						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-gift"/></svg>
+						<%:Checkin%>
+					</button>
+					<button type="button" class="oix-btn oix-btn-ghost-subtle oix-btn-sm" onclick="OixCloud.openWebsite();return false;">
+						<img src="<%= oix_logo_src %>" width="14" height="14" style="border-radius:50%;vertical-align:middle" alt="oixCloud">
+						<%:oixCloud Website%>
+					</button>
+					<button type="button" class="oix-btn oix-btn-danger oix-btn-sm" onclick="OixCloud.doLogout();return false;">
+						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-logout"/></svg>
+						<%:Logout Account%>
+					</button>
+				</div>
+			</div>
+
+			<div class="oix-announce" id="oix-announce">
+				<div class="oix-announce-header">
+					<svg class="oc-icon" width="14" height="14"><use href="#oc-icon-bell"/></svg>
+					<%:Announcement%>
+				</div>
+				<div class="oix-announce-body oix-collapsed" id="oix-announce-body"></div>
+				<div class="oix-announce-arrow" id="oix-announce-arrow" style="display:none;" onclick="OixCloud.toggleAnnounce();return false;">
+					<svg class="oc-icon" width="18" height="18" style="color:var(--primary-color)"><use href="#oc-icon-chevron-oix"/></svg>
+				</div>
+			</div>
+
+			<div class="oix-cards" id="oix-cards">
+				<div class="oix-card">
+					<div class="oix-card-label"><%:Plan Expiration Time%></div>
+					<div class="oix-card-value" id="oix-plantime">--</div>
+				</div>
+				<div class="oix-card">
+					<div class="oix-card-label"><%:Account Integral%></div>
+					<div class="oix-card-value" id="oix-integral">--</div>
+				</div>
+				<div class="oix-card">
+					<div class="oix-card-label"><%:Aff Balances%></div>
+					<div class="oix-card-value" id="oix-affmoney">--</div>
+				</div>
+				<div class="oix-card">
+					<div class="oix-card-label"><%:Account Balances%></div>
+					<div class="oix-card-value" id="oix-money">--</div>
+				</div>
+				<div class="oix-card">
+					<div class="oix-card-label"><%:Plan Traffic%></div>
+					<div class="oix-card-value" id="oix-traffic">--</div>
+				</div>
+				<div class="oix-card">
+					<div class="oix-card-label"><%:Plan Unused%></div>
+					<div class="oix-card-value" id="oix-unused">--</div>
+				</div>
+				<div class="oix-card">
+					<div class="oix-card-label"><%:Plan Used%></div>
+					<div class="oix-card-value" id="oix-used">--</div>
+				</div>
+				<div class="oix-card">
+					<div class="oix-card-label"><%:Today Used%></div>
+					<div class="oix-card-value" id="oix-today-used">--</div>
+				</div>
+			</div>
+
+			<div class="oix-settings-grid oix-settings-grid-4">
+				<div class="oix-setting-card">
+					<div class="oix-toggle-row">
+						<span><%:Show on Overview%></span>
+						<label class="oix-toggle" title="<%:Show on Overview%>">
+							<input type="checkbox" id="oix-show-info-page" onchange="OixCloud.toggleInfoPage()" <%= fs.uci_get_config('config', 'oix_show_info_page') ~= '0' and 'checked' or '' %>>
+							<span class="oix-toggle-slider"></span>
+						</label>
+					</div>
+					<div class="oix-card-help">
+						<svg class="oc-icon" width="10" height="10"><use href="#oc-icon-help"/></svg>
+						<span><%:Display account info on the main page%></span>
+					</div>
+				</div>
+				<div class="oix-setting-card">
+					<div class="oix-toggle-row">
+						<span><%:Auto Checkin%></span>
+						<label class="oix-toggle" title="<%:Auto Checkin%>">
+							<input type="checkbox" id="oix-checkin-enable" onchange="OixCloud.toggleCheckin()" <%= checkin_enabled and 'checked' or '' %>>
+							<span class="oix-toggle-slider"></span>
+						</label>
+					</div>
+					<div class="oix-card-help">
+						<svg class="oc-icon" width="10" height="10"><use href="#oc-icon-help"/></svg>
+						<span><%:Auto check-in for traffic rewards and penalties%></span>
+					</div>
+				</div>
+				<div class="oix-setting-card">
+					<div class="oix-params-item">
+						<span><%:Checkin Interval%> (<%:Hours%>):</span>
+						<input type="text" id="oix-checkin-interval" size="3" value="<%= checkin_interval %>" onblur="OixCloud.saveCheckin()" class="oix-input-num oix-input-ok">
+					</div>
+					<div class="oix-card-help">
+						<svg class="oc-icon" width="10" height="10"><use href="#oc-icon-help"/></svg>
+						<span><%:Checkin interval must be between 1 and 720%></span>
+					</div>
+				</div>
+				<div class="oix-setting-card">
+					<div class="oix-params-item">
+						<span><%:Checkin Multiple%>:</span>
+						<input type="text" id="oix-checkin-multiple" size="3" value="<%= checkin_multiple %>" onblur="OixCloud.saveCheckin()" oninput="OixCloud.validateMultiple(this)" class="oix-input-num oix-input-ok">
+					</div>
+					<div class="oix-card-help">
+						<svg class="oc-icon" width="10" height="10"><use href="#oc-icon-help"/></svg>
+						<span><%:Multiple Must Be a Positive Integer and No More Than 100%></span>
+					</div>
+				</div>
+			</div>
+			<div class="oix-settings-grid">
+				<div class="oix-setting-card" style="grid-column: span 2;">
+					<div class="oix-params-item">
+						<span><%:Optional Parameters%>:</span>
+						<input type="text" id="oix-params" style="min-width:140px;" value="<%= oix_params %>" onblur="OixCloud.saveParams()" oninput="OixCloud.validateParams(this)" class="oix-input-num oix-input-ok" placeholder="&type=love&tfo=true">
+					</div>
+					<div class="oix-card-help">
+						<svg class="oc-icon" width="12" height="12"><use href="#oc-icon-help"/></svg>
+						<span><%:For more information, please visit the%> <a href="https://docs.dler.io/black-hole/advanced/ding-yue-di-zhi-tuo-guan-di-zhi/untitled" target="_blank"><%:official documentation%></a></span>
+					</div>
+				</div>
+			</div>
+			<div class="oix-footer">
+				<span>Powered by <a href="javascript:void(0);" onclick="OixCloud.openWebsite();return false;">oixcloud.com</a></span>
+			</div>
+		</div>
+	</fieldset>
+</div>
+
 <script type="text/javascript">//<![CDATA[
-	function oix_login(btn,option)
-	{
-		btn.disabled = true;
-		if (option == "oix_login") {
-			var s = document.getElementById(option+'-status');
-			var e = document.getElementsByName('cbid.openclash.config.oix_email');
-			var p = document.getElementsByName('cbid.openclash.config.oix_passwd');
-			var c = document.getElementsByName('cbid.openclash.config.oix_checkin');
-			if (!e[0].value || !p[0].value) {
-				btn.disabled = false;
-				s.innerHTML ="<font color='red'><strong>"+"<%:Error Login Info%>"+"</strong></font>";
-				return false;
-			};
-			if (c[0] && c[0].checked) {
-				c = "1";
-				var i = document.getElementsByName('cbid.openclash.config.oix_checkin_interval');
-				var m = document.getElementsByName('cbid.openclash.config.oix_checkin_multiple');
-				if (!i[0].value || !(/(^[1-9]\d*$)/.test(i[0].value))) { i = "1"} else {i = i[0].value};
-				if (!m[0].value || !(/(^[1-9]\d*$)/.test(m[0].value)))
-					{
-						btn.disabled = false;
-						s.innerHTML ="<font color='red'><strong>"+"<%:Multiple Must Be a Positive Integer and No More Than 100%>"+"</strong></font>";
-						return false;
-					}
-				else if (m[0].value < 1)
-					{
-						btn.disabled = false;
-						s.innerHTML ="<font color='red'><strong>"+"<%:Multiple Must Be a Positive Integer and No More Than 100%>"+"</strong></font>";
-						return false;
-					}
-				else if (m[0].value > 100)
-					{
-						btn.disabled = false;
-						s.innerHTML ="<font color='red'><strong>"+"<%:Multiple Must Be a Positive Integer and No More Than 100%>"+"</strong></font>";
-						return false;
-					}
-				else {
-					m = m[0].value;
-				};
+var OIX_URLS = {
+	info: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_info")%>',
+	login: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_login")%>',
+	logout: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_logout")%>',
+	save: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_login_info_save")%>',
+	checkin: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_checkin")%>',
+	params: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_params_sync")%>',
+	paramsGet: '<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_params_get")%>'
+};
+
+var OixCloud = {
+	loggedIn: <%= logged_in and 'true' or 'false' %>,
+	_activeTab: 'account',
+	_pollTimer: null,
+	_paramsRetry: 0,
+	_paramsMaxRetry: 30,
+	_paramsRetryTimer: null,
+	_origCheckinInterval: '<%= checkin_interval %>',
+	_origCheckinMultiple: '<%= checkin_multiple %>',
+	_origParams: '<%= oix_params %>',
+
+	init: function() {
+		if (this.loggedIn) { this.loadAccountInfo(); this.startPolling(); this.fetchParams(); }
+	},
+
+	fetchParams: function() {
+		var input = document.getElementById('oix-params');
+		if (!input || input.value !== '') return;
+		var self = this;
+		XHR.get(OIX_URLS.paramsGet, null, function(x, status) {
+			if (x && x.status == 200 && status && status.params) {
+				input.value = status.params;
+				self._paramsRetry = 0;
+				if (status.default_params) {
+					XHR.get(OIX_URLS.save, {default_params: status.default_params}, function() {});
+				}
+			} else {
+				if (self._paramsRetry < self._paramsMaxRetry) {
+					self._paramsRetry++;
+					self._paramsRetryTimer = setTimeout(function() { self.fetchParams(); }, 5000);
+				} else {
+					var cached = '<%= oix_default_params %>';
+					if (cached) { input.value = cached; input.placeholder = cached; }
+				}
 			}
-			else {
-				c = "0";
-				var i = "1";
-				var m = "1";
+		});
+	},
+
+	switchTab: function(tab) {
+		this._activeTab = tab;
+		document.getElementById('oix-tab-account').classList.toggle('active', tab === 'account');
+		document.getElementById('oix-tab-token').classList.toggle('active', tab === 'token');
+		document.getElementById('oix-panel-account').style.display = tab === 'account' ? 'block' : 'none';
+		document.getElementById('oix-panel-token').style.display = tab === 'token' ? 'block' : 'none';
+		OixMsg.clearAll();
+	},
+
+	doLogin: function() {
+		OixMsg.clearAll();
+		var isToken = this._activeTab === 'token', data = {};
+		if (isToken) {
+			var token = document.getElementById('oix-token').value.trim();
+			if (!token) { OixMsg.field('oix-token', '<%:Please enter a valid token%>'); return; }
+			data.token = token;
+		} else {
+			var email = document.getElementById('oix-email').value.trim();
+			var passwd = document.getElementById('oix-passwd').value.trim();
+			if (!email) { OixMsg.field('oix-email', '<%:Please enter email address%>'); return; }
+			if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { OixMsg.field('oix-email', '<%:Please enter a valid email address%>'); return; }
+			if (!passwd) { OixMsg.field('oix-passwd', '<%:Please enter password%>'); return; }
+			data.email = email; data.passwd = passwd;
+		}
+		data.checkin = document.getElementById('oix-checkin-enable').checked ? '1' : '0'; data.interval = document.getElementById('oix-checkin-interval').value || '1'; data.multiple = document.getElementById('oix-checkin-multiple').value || '1';
+		var self = this, btns = document.querySelectorAll('#oix-login-section .oix-btn-primary');
+		btns.forEach(function(b){ b._origHTML = b.innerHTML; b.disabled = true; var svg = b.querySelector('svg'); b.innerHTML = (svg ? svg.outerHTML : '') + ' <%:Login...%>'; });
+		XHR.get(OIX_URLS.save, data, function(x, status) {
+			if (!x || x.status != 200) { OixMsg.show('<%:Network request failed, please check your connection and try again%>', 'error'); btns.forEach(function(b){b.disabled=false;b.innerHTML=b._origHTML;}); return; }
+
+			var onLoginSuccess = function() {
+				var info = '<%:oixCloud Login Successful%>' + ', <%:Note: oixCloud need a specific core installed, OpenClash will auto download, After the core start, an oixCloud nodes provider will be added, which you can customize as needed%>';
+				OixMsg.show(info, 'success', 20000);
+				self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling();
 			};
-			btn.value = '<%:Login...%>';
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_login_info_save")%>', {email: e[0].value, passwd : p[0].value, checkin: c, interval: i, multiple: m}, function(x, status) {
-				if (x && x.status == 200) {
-					XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_login")%>', null, function(x, status) {
-					if (s)
-					{
-						if (x && x.status == 200 && status.result == 200) {
-							s.innerHTML ="<font color='green'><strong>"+"<%:oixCloud Login Successful%>"+"</strong></font>";
-							alert("<%:Note: oixCloud need a specific core installed, OpenClash will auto download%>\n\n<%:After the core start, an oixCloud nodes provider will be added, which you can customize as needed%>");
-							window.location.href='<%="settings?tab.openclash.config=oixcloud"%>';
-						}
-						else {
-							s.innerHTML ="<font color='red'><strong>"+"<%:oixCloud Login Faild%>"+"</strong></font>";
-							if (status.result) {
-								alert("<%:oixCloud Login Faild%>: " + status.result)
-							}
-							window.location.href='<%="settings?tab.openclash.config=oixcloud"%>';
-						}
+
+			if (isToken) {
+				XHR.get(OIX_URLS.login, {token: data.token}, function(x2, s2) {
+					btns.forEach(function(b){ b.disabled = false; b.innerHTML = b._origHTML; });
+					if (x2 && x2.status == 200 && s2.result == 200) {
+						onLoginSuccess();
+					} else {
+						var msg = (s2 && s2.result) ? s2.result : '<%:oixCloud Login Failed%>';
+						OixMsg.show('<%:oixCloud Login Failed:%> ' + msg, 'error');
 					}
-					btn.disabled = false;
-					btn.value = '<%:Login Account%>';
+				});
+			} else {
+				XHR.get(OIX_URLS.login, null, function(x2, s2) {
+					btns.forEach(function(b){ b.disabled = false; b.innerHTML = b._origHTML; });
+					if (x2 && x2.status == 200 && s2.result == 200) {
+						onLoginSuccess();
+					} else {
+						var msg = (s2 && s2.result) ? s2.result : '<%:oixCloud Login Failed%>';
+						OixMsg.show('<%:oixCloud Login Failed:%> ' + msg, 'error');
+					}
+				});
+			}
+		});
+	},
+
+	doLogout: function() {
+		var self = this;
+		var btn = document.querySelector('#oix-logged-section .oix-btn-danger');
+		if (btn) { btn._origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <%:Logout...%>'; }
+		XHR.get(OIX_URLS.logout, null, function(x, status) {
+			if (btn) { btn.disabled = false; btn.innerHTML = btn._origHTML; }
+			if (x && x.status == 200 && status.result == 200) {
+				OixMsg.show('<%:oixCloud Logout Successful%>', 'success', 2000);
+				self.loggedIn = false; self.stopPolling(); self.showLoggedOut();
+			} else {
+			var msg = (status && status.result) ? status.result : '<%:oixCloud Logout Failed%>';
+				OixMsg.show('<%:oixCloud Logout Failed:%> ' + msg, 'error');
+			}
+		});
+	},
+
+	showLoggedIn: function() {
+		document.getElementById('oix-login-section').style.display = 'none';
+		document.getElementById('oix-logged-section').style.display = 'block';
+	},
+
+	showLoggedOut: function() {
+		document.getElementById('oix-login-section').style.display = 'block';
+		document.getElementById('oix-logged-section').style.display = 'none';
+		this.stopParamsRetry();
+		this.switchTab('account');
+	},
+
+	clearForm: function() {
+		document.getElementById('oix-email').value = '';
+		document.getElementById('oix-passwd').value = '';
+		document.getElementById('oix-token').value = '';
+		document.getElementById('oix-checkin-enable').checked = false;
+		document.getElementById('oix-checkin-interval').value = '1';
+		document.getElementById('oix-checkin-multiple').value = '1';
+		document.getElementById('oix-params').value = '';
+	},
+
+	loadAccountInfo: function() {
+		var self = this;
+		XHR.get(OIX_URLS.info, null, function(x, status) {
+			if (x && x.status == 200 && status.result && typeof status.result === 'object') {
+				self.renderAccountInfo(status.result);
+				self.renderAnnouncement(status.result);
+			} else {
+				var cards = document.getElementById('oix-cards');
+				if (cards) cards.style.display = 'none';
+				var ann = document.getElementById('oix-announce');
+				if (ann) ann.style.display = 'none';
+			}
+		});
+	},
+
+	renderAnnouncement: function(result) {
+		if (result.announcement && result.announcement.content) {
+			var el = document.getElementById('oix-announce');
+			var body = document.getElementById('oix-announce-body');
+			var arrow = document.getElementById('oix-announce-arrow');
+			if (el && body) {
+				el.style.display = 'block';
+				body.innerHTML = '<strong>' + (result.announcement.date || '') + ': </strong>' + result.announcement.content;
+				body.classList.remove('oix-collapsed');
+				var ref = document.getElementById('oix-cards');
+				var measureContent = function() {
+					if (!ref || ref.offsetWidth === 0) return;
+					var cs = getComputedStyle(body);
+					var fontSize = parseFloat(cs.fontSize) || 12;
+					var maxH = fontSize * 5.6;
+					var measure = document.createElement('div');
+					measure.style.font = cs.font;
+					measure.style.lineHeight = cs.lineHeight;
+					measure.style.wordBreak = cs.wordBreak;
+					measure.style.width = ref.offsetWidth + 'px';
+					measure.style.position = 'absolute';
+					measure.style.visibility = 'hidden';
+					measure.innerHTML = (result.announcement.date || '') + ': ' + result.announcement.content;
+					ref.parentElement.appendChild(measure);
+					var fullH = measure.scrollHeight;
+					ref.parentElement.removeChild(measure);
+					if (fullH > maxH + 4) {
+						body.classList.add('oix-collapsed');
+						if (arrow) arrow.style.display = 'flex';
+					} else {
+						if (arrow) arrow.style.display = 'none';
+					}
+				};
+				if (ref && ref.offsetWidth > 0) {
+					measureContent();
+				} else {
+					var tabContainer = document.getElementById('tab.openclash.config.oixcloud');
+					var observer = new MutationObserver(function() {
+						if (ref && ref.offsetWidth > 0) {
+							observer.disconnect();
+							measureContent();
+						}
 					});
+					observer.observe(tabContainer, { attributes: true, attributeFilter: ['style', 'class'] });
 				}
-			});
-		};
-		
-		if (option == "oix_logout") {
-			var s = document.getElementById('oix_login-status');
-			btn.value = '<%:Logout...%>';
-			XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "oix_logout")%>', null, function(x, status) {
-				if (s)
-				{
-					if (x && x.status == 200 && status.result == 200) {
-						s.innerHTML ="<font color='green'><strong>"+"<%:oixCloud Logout Successful%>"+"</strong></font>";
-						window.location.href='<%="settings?tab.openclash.config=oixcloud"%>';
-					}
-					else {
-						s.innerHTML ="<font color='red'><strong>"+"<%:oixCloud Logout Faild%>"+"</strong></font>";
-						if (status.result) {
-							alert("<%:oixCloud Logout Faild%>: " + status.result)
-						}
-					}
-				}
-				btn.disabled = false;
-				btn.value = '<%:Logout Account%>';
-				}
-			);
-		};
-		return false;
+			}
+		} else {
+			var el2 = document.getElementById('oix-announce');
+			if (el2) el2.style.display = 'none';
+		}
+	},
+
+	renderAccountInfo: function(d) {
+		document.getElementById('oix-header-plan').textContent = d.plan || '--';
+		document.getElementById('oix-affmoney').textContent = d.aff_money || '--';
+		document.getElementById('oix-plantime').textContent = d.plan_time || '--';
+		document.getElementById('oix-money').textContent = d.money || '--';
+		document.getElementById('oix-integral').textContent = d.integral || '--';
+		document.getElementById('oix-traffic').textContent = d.traffic || '--';
+		document.getElementById('oix-used').textContent = d.used || '--';
+		document.getElementById('oix-unused').textContent = d.unused || '--';
+		document.getElementById('oix-today-used').textContent = d.today_used || '--';
+	},
+
+	toggleInfoPage: function() {
+		var on = document.getElementById('oix-show-info-page').checked;
+		XHR.get(OIX_URLS.save, {show_info_page: on?'1':'0'}, function(x, status) {
+			if (x && x.status == 200) { OixMsg.show('<%:Setting saved%>', 'success', 2000); }
+		});
+	},
+
+	startPolling: function() { this.stopPolling(); var s=this; this._pollTimer=setInterval(function(){s.loadAccountInfo();},1800000); },
+	stopPolling: function() { if(this._pollTimer){clearInterval(this._pollTimer);this._pollTimer=null;} },
+	stopParamsRetry: function() { if(this._paramsRetryTimer){clearTimeout(this._paramsRetryTimer);this._paramsRetryTimer=null;} this._paramsRetry = 0; },
+
+	doCheckin: function() {
+		var self = this;
+		var btn = document.querySelector('#oix-logged-section .oix-btn-primary');
+		if (btn) { btn._origHTML = btn.innerHTML; btn.disabled = true; var svg = btn.querySelector('svg'); btn.innerHTML = (svg ? svg.outerHTML : '') + ' <%:Checkin...%>'; }
+		XHR.get(OIX_URLS.checkin, null, function(x, status) {
+			if (btn) { btn.disabled = false; btn.innerHTML = btn._origHTML; }
+			if (x && x.status == 200 && status.result && status.result.ret == 200) {
+				OixMsg.show('<%:oixCloud Checkin Successful, Result:%> ' + (status.result.data && status.result.data.checkin || ''), 'success', 4000);
+				self.loadAccountInfo();
+			} else {
+				var msg = (status.result && status.result.msg) ? status.result.msg : '<%:oixCloud Checkin Failed! Please Check And Try Again...%>';
+				OixMsg.show('<%:Checkin Failed:%> ' + msg, 'error');
+			}
+		});
+	},
+
+	toggleCheckin: function() {
+		var on = document.getElementById('oix-checkin-enable').checked;
+		XHR.get(OIX_URLS.save, {checkin: on?'1':'0'}, function(x, status) {
+			if (x && x.status == 200) { OixMsg.show('<%:Setting saved%>', 'success', 2000); }
+		});
+	},
+
+	saveCheckin: function() {
+		OixMsg.clearAll();
+		var on = document.getElementById('oix-checkin-enable').checked;
+		var interval = parseInt(document.getElementById('oix-checkin-interval').value, 10);
+		var multiple = parseInt(document.getElementById('oix-checkin-multiple').value, 10);
+		var valid = true;
+		if (isNaN(interval) || interval < 1 || interval > 720) { OixMsg.field('oix-checkin-interval', '<%:Checkin interval must be between 1 and 720%>'); OixMsg.show('<%:Checkin interval must be between 1 and 720%>', 'error'); valid = false; }
+		if (isNaN(multiple) || multiple < 1 || multiple > 100) { OixMsg.field('oix-checkin-multiple', '<%:Multiple Must Be a Positive Integer and No More Than 100%>'); OixMsg.show('<%:Multiple Must Be a Positive Integer and No More Than 100%>', 'error'); valid = false; }
+		if (!valid) return;
+		var newInterval = String(isNaN(interval) ? 1 : interval);
+		var newMultiple = String(isNaN(multiple) ? 1 : multiple);
+		if (newInterval === this._origCheckinInterval && newMultiple === this._origCheckinMultiple) return;
+		var self = this;
+		XHR.get(OIX_URLS.save, {checkin: on?'1':'0', interval: newInterval, multiple: newMultiple}, function(x, status) {
+			if (x && x.status == 200) {
+				self._origCheckinInterval = newInterval;
+				self._origCheckinMultiple = newMultiple;
+				OixMsg.show('<%:Checkin settings saved%>', 'success', 4000);
+			}
+			else { OixMsg.show('<%:Failed to save checkin settings, please try again%>', 'error'); }
+		});
+	},
+
+	saveParams: function() {
+		OixMsg.clearAll();
+		var params = document.getElementById('oix-params').value.trim();
+		if (params !== '' && !params.match(/^&[a-zA-Z][a-zA-Z0-9-]*(=[^&\s]*)?(&[a-zA-Z][a-zA-Z0-9-]*(=[^&\s]*)?)*$/)) {
+			OixMsg.field('oix-params', '<%:Invalid params format, must start with & and use key=value pairs%>');
+			OixMsg.show('<%:Invalid params format%>', 'error');
+			return;
+		}
+		if (params.length > 8192) {
+			OixMsg.field('oix-params', '<%:Params too long, max 8192 characters%>');
+			OixMsg.show('<%:Params too long%>', 'error');
+			return;
+		}
+		if (params === this._origParams) return;
+		var self = this;
+		XHR.get(OIX_URLS.params, {params: params}, function(x, status) {
+			if (x && x.status == 200) {
+				self._origParams = params;
+				OixMsg.show('<%:Optional parameters saved%>', 'success', 4000);
+			}
+			else { OixMsg.show('<%:Failed to save optional parameters, please try again%>', 'error'); }
+		});
+	},
+
+	validateParams: function(inp) {
+		if (!inp) return;
+		var v = inp.value.trim();
+		if (v === '') { OixMsg.field('oix-params', ''); return; }
+		if (!v.startsWith('&')) {
+			OixMsg.field('oix-params', '<%:Must start with &%>');
+			return;
+		}
+		if (/\s/.test(v)) {
+			OixMsg.field('oix-params', '<%:Params must not contain spaces%>');
+			return;
+		}
+		if (v.length > 8192) {
+			OixMsg.field('oix-params', '<%:Params too long, max 8192 characters%>');
+			return;
+		}
+		if (!v.match(/^&[a-zA-Z][a-zA-Z0-9-]*(=[^&\s]*)?(&[a-zA-Z][a-zA-Z0-9-]*(=[^&\s]*)?)*$/)) {
+			OixMsg.field('oix-params', '<%:Invalid params format, must start with & and use key=value pairs%>');
+			return;
+		}
+		OixMsg.field('oix-params', '');
+	},
+
+	validateMultiple: function(inp) {
+		if (!inp) return;
+		var v = inp.value.trim();
+		if (v === '') { OixMsg.field('oix-checkin-multiple', ''); return; }
+		var n = parseInt(v, 10);
+		if (isNaN(n) || n < 1 || n > 100 || String(n) !== v) {
+			OixMsg.field('oix-checkin-multiple', '<%:Multiple Must Be a Positive Integer and No More Than 100%>');
+			OixMsg.show('<%:Multiple Must Be a Positive Integer and No More Than 100%>', 'error');
+		} else {
+			OixMsg.field('oix-checkin-multiple', '');
+		}
+	},
+
+	togglePwd: function(id) {
+		var inp = document.getElementById(id);
+		if (!inp) return;
+		var isPwd = inp.type === 'password';
+		inp.type = isPwd ? 'text' : 'password';
+		var btn = inp.parentNode.querySelector('.oix-pwd-toggle');
+		if (btn) {
+			btn.title = isPwd ? btn.getAttribute('data-hide') : btn.getAttribute('data-show');
+		}
+		var icon = inp.parentNode.querySelector('svg');
+		if (icon) {
+			icon.innerHTML = isPwd
+				? '<use href="#oc-icon-eye-off"/>'
+				: '<use href="#oc-icon-eye"/>';
+		}
+	},
+
+	toggleAnnounce: function() {
+		var body = document.getElementById('oix-announce-body');
+		var arrow = document.getElementById('oix-announce-arrow');
+		if (!body) return;
+		if (body.classList.contains('oix-collapsed')) {
+			body.classList.remove('oix-collapsed');
+			if (arrow) arrow.style.transform = 'rotate(180deg)';
+		} else {
+			body.classList.add('oix-collapsed');
+			if (arrow) arrow.style.transform = 'rotate(0deg)';
+		}
+	},
+
+	openWebsite: function() {
+		window.open('http://bit.ly/oixcloud-register');
 	}
-	
-function web_oix(btn)
-{
-	btn.disabled = true;
-	url='http://bit.ly/oixcloud-register';
-	window.open(url);
-	btn.disabled = false;
-  	return false;
-}
+};
+
+var OixMsg = {
+	_timer: null,
+	show: function(msg, level, timeout) {
+		var bar = document.getElementById('oix-msg-bar');
+		var icons = {
+			success: '<svg width="15" height="15"><use href="#oc-icon-success"/></svg>',
+			error:   '<svg width="15" height="15"><use href="#oc-icon-error"/></svg>',
+			info:    '<svg width="15" height="15"><use href="#oc-icon-info"/></svg>'
+		};
+		bar.style.display = 'flex'; bar.innerHTML = (icons[level] || icons.info) + '<span>' + msg + '</span>';
+		bar.className = 'oix-msg-bar oix-msg-' + (level || 'info');
+		clearTimeout(this._timer);
+		var t = (timeout !== undefined) ? timeout : (level === 'error' ? 6000 : 3000);
+		if (t > 0) { var s=this; this._timer=setTimeout(function(){s.hide();},t); }
+	},
+	hide: function() { document.getElementById('oix-msg-bar').style.display = 'none'; },
+	field: function(id, msg) {
+		var hint = document.getElementById(id + '-hint'), inp = document.getElementById(id);
+		if (hint) { hint.textContent = msg || ''; hint.className = msg ? 'oix-field-hint oix-field-error' : 'oix-field-hint oix-field-help'; }
+		if (inp) {
+			var isNum = id === 'oix-checkin-interval' || id === 'oix-checkin-multiple' || id === 'oix-params';
+			var base = isNum ? 'oix-input-num' : 'oix-input';
+			inp.className = msg ? (base + ' oix-input-err') : (base + ' oix-input-ok');
+		}
+	},
+	clearAll: function() {
+		this.hide();
+		['oix-email','oix-passwd','oix-token'].forEach(function(id) {
+			var hint = document.getElementById(id + '-hint'), inp = document.getElementById(id);
+			if (hint) { hint.textContent = ''; hint.className = 'oix-field-hint oix-field-help'; }
+			if (inp) { inp.className = 'oix-input oix-input-ok'; }
+		});
+		['oix-checkin-interval','oix-checkin-multiple'].forEach(function(id) {
+			var hint = document.getElementById(id + '-hint'), inp = document.getElementById(id);
+			if (hint) { hint.textContent = ''; hint.className = 'oix-field-hint oix-field-help'; }
+			if (inp) { inp.className = 'oix-input-num oix-input-ok'; }
+		});
+	}
+};
+
+document.addEventListener('DOMContentLoaded', function() { OixCloud.init(); });
 //]]></script>
-<input type="button" class="btn cbi-button cbi-button-apply" value="<%:Login Account%>" onclick="return oix_login(this,'oix_login')" />
-<input type="button" class="btn cbi-button cbi-button-remove" value="<%:Logout Account%>" onclick="return oix_login(this,'oix_logout')" />
-<input type="button" class="btn cbi-button cbi-button-reset" value="<%:Official Website%>" onclick="return web_oix(this)" />
-<span id="<%=self.option%>-status"><%=self.value%></span>
-<%+cbi/valuefooter%>

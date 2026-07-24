@@ -229,6 +229,7 @@ function custom_domain_dns.write(self, section, value)
 			fs.writefile("/etc/openclash/custom/openclash_custom_domain_dns.list", value)
 		end
 	end
+	return true
 end
 
 ---- Access Control
@@ -538,6 +539,7 @@ function o.write(self, section, value)
 			fs.writefile("/etc/openclash/custom/openclash_custom_localnetwork_ipv4.list", value)
 		end
 	end
+	return true
 end
 
 o = s:taboption("traffic_control", Value, "chnroute_pass", translate("Chnroute Bypassed List"))
@@ -559,6 +561,7 @@ function o.write(self, section, value)
 			fs.writefile("/etc/openclash/custom/openclash_custom_chnroute_pass.list", value)
 		end
 	end
+	return true
 end
 
 --Stream Enhance
@@ -1366,6 +1369,7 @@ function o.write(self, section, value)
 			fs.writefile("/etc/openclash/custom/openclash_custom_localnetwork_ipv6.list", value)
 		end
 	end
+	return true
 end
 
 o = s:taboption("ipv6", Value, "chnroute6_pass", translate("Chnroute6 Bypassed List"))
@@ -1386,6 +1390,7 @@ function o.write(self, section, value)
 			fs.writefile("/etc/openclash/custom/openclash_custom_chnroute6_pass.list", value)
 		end
 	end
+	return true
 end
 
 ---- version update
@@ -1433,6 +1438,7 @@ function o.write(self, section, value)
 			fs.writefile("/etc/openclash/custom/openclash_custom_firewall_rules.sh", value)
 		end
 	end
+	return true
 end
 
 ---- debug
@@ -1440,52 +1446,9 @@ o = s:taboption("debug", DummyValue, "", nil)
 o.template = "openclash/debug"
 
 ---- oixcloud
-o = s:taboption("oixcloud", Value, "oix_email")
-o.title = translate("Account Email Address")
-o.rmempty = true
-
-o = s:taboption("oixcloud", Value, "oix_passwd")
-o.title = translate("Account Password")
-o.password = true
-o.rmempty = true
-
-if fs.uci_get_config("config", "oix_token") then
-	o = s:taboption("oixcloud", Flag, "oix_checkin")
-	o.title = translate("Checkin")
-	o.default = 0
-	o.rmempty = true
-end
-
-o = s:taboption("oixcloud", Value, "oix_checkin_interval")
-o.title = translate("Checkin Interval (hour)")
-o:depends("oix_checkin", "1")
-o.default = "1"
-o.rmempty = true
-
-o = s:taboption("oixcloud", Value, "oix_checkin_multiple")
-o.title = translate("Checkin Multiple")
-o.datatype = "uinteger"
-o.default = "1"
-o:depends("oix_checkin", "1")
-o.rmempty = true
-o.description = font_green..bold_on..translate("Multiple Must Be a Positive Integer and No More Than 100")..bold_off..font_off
-function o.validate(self, value)
-	if tonumber(value) < 1 then
-		return "1"
-	end
-	if tonumber(value) > 100 then
-		return "100"
-	end
-	return value
-end
-
-o = s:taboption("oixcloud", DummyValue, "oix_login", translate("Account Login"))
-o.template = "openclash/oix_login"
-if fs.uci_get_config("config", "oix_token") then
-	o.value = font_green..bold_on..translate("Account logged in")..bold_off..font_off
-else
-	o.value = font_red..bold_on..translate("Account not logged in")..bold_off..font_off
-end
+oixcloud_panel = s:taboption("oixcloud", DummyValue, "", nil)
+oixcloud_panel.template = "openclash/oix_login"
+oixcloud_panel.rawhtml = true
 
 local t = {
 	{Commit, Apply}

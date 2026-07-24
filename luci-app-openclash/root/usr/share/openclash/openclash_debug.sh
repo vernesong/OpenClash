@@ -418,6 +418,25 @@ cat >> "$DEBUG_LOG" <<-EOF
 \`\`\`
 EOF
 
+if [ -n "$(command -v fw4)" ]; then
+cat >> "$DEBUG_LOG" <<-EOF
+
+## NFTABLES 防火墙设置
+
+\`\`\`bash
+# nft list chain inet fw4 (all chains)
+EOF
+   for nft in "input" "forward" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
+      nft list chain inet fw4 "$nft" >> "$DEBUG_LOG" 2>/dev/null && echo "" >> "$DEBUG_LOG"
+   done >/dev/null 2>&1
+   for nft in "openclash" "openclash_mangle" "openclash_mangle_output" "openclash_output" "openclash_post" "openclash_wan_input" "openclash_dns_hijack" "openclash_dns_redirect" "openclash_v6" "openclash_mangle_v6" "openclash_mangle_output_v6" "openclash_output_v6" "openclash_post_v6" "openclash_wan6_input"; do
+      nft list chain inet fw4 "$nft" >> "$DEBUG_LOG" 2>/dev/null && echo "" >> "$DEBUG_LOG"
+   done >/dev/null 2>&1
+echo "" >> "$DEBUG_LOG"
+cat >> "$DEBUG_LOG" <<-EOF
+\`\`\`
+EOF
+else
 cat >> "$DEBUG_LOG" <<-EOF
 
 ## IPTABLES 防火墙设置
@@ -482,39 +501,63 @@ echo "" >> "$DEBUG_LOG"
 cat >> "$DEBUG_LOG" <<-EOF
 \`\`\`
 EOF
+fi
 
 if [ -n "$(command -v fw4)" ]; then
 cat >> "$DEBUG_LOG" <<-EOF
 
-## NFTABLES 防火墙设置
+## NFT Sets 状态
 
 \`\`\`bash
-# nft list chain inet fw4 (all chains)
+# nft list sets inet fw4
 EOF
-   for nft in "input" "forward" "dstnat" "srcnat" "nat_output" "mangle_prerouting" "mangle_output"; do
-      nft list chain inet fw4 "$nft" >> "$DEBUG_LOG" 2>/dev/null
-   done >/dev/null 2>&1
-   for nft in "openclash" "openclash_mangle" "openclash_mangle_output" "openclash_output" "openclash_post" "openclash_wan_input" "openclash_dns_hijack" "openclash_dns_redirect" "openclash_v6" "openclash_mangle_v6" "openclash_mangle_output_v6" "openclash_output_v6" "openclash_post_v6" "openclash_wan6_input"; do
-      nft list chain inet fw4 "$nft" >> "$DEBUG_LOG" 2>/dev/null
-   done >/dev/null 2>&1
+nft list sets inet fw4 2>/dev/null | sed -n '/^table inet fw4 {/,/^}/p' | awk '
+/elements = \{/ { in_el=1; el=0; trunc=0; indent=""; elem_indent=$0; sub(/[^[:space:]].*/, "", elem_indent); print; if (/[[:space:]]+\}[[:space:]]*$/) in_el=0; next }
+in_el && /\}/ { in_el=0; if (trunc) { print indent "..."; print elem_indent "}" } else print; next }
+in_el {
+    if (!indent) { match($0, /^[[:space:]]*/); indent = substr($0, 1, RLENGTH) }
+    n = split($0, a, ","); el += n
+    if (el > 10 && !trunc) { trunc=1; next }
+    if (trunc) next
+    print
+}
+!in_el {
+    print
+    if (/^[[:space:]]+\}$/) print ""
+}
+' >> "$DEBUG_LOG"
 echo "" >> "$DEBUG_LOG"
 cat >> "$DEBUG_LOG" <<-EOF
 \`\`\`
 EOF
-fi
-
+else
 cat >> "$DEBUG_LOG" <<-EOF
 
 ## IPSET状态
 
 \`\`\`bash
-# ipset list -t
+# ipset list
 EOF
-ipset list -t >> "$DEBUG_LOG"
+for set in $(ipset list -n 2>/dev/null); do
+   ipset list "$set" 2>/dev/null | awk -v max=10 '
+   /^Members:/ { in_members=1; count=0; print; next }
+   in_members {
+       if (/^[[:space:]]*[^[:space:]]/) {
+           count++
+           if (count <= max) { print; next }
+           else if (count == max+1) { print "..."; next }
+           else { next }
+       }
+   }
+   { print }
+   '
+   echo ""
+done >> "$DEBUG_LOG" 2>/dev/null
 echo "" >> "$DEBUG_LOG"
 cat >> "$DEBUG_LOG" <<-EOF
 \`\`\`
 EOF
+fi
 
 cat >> "$DEBUG_LOG" <<-EOF
 
@@ -631,7 +674,14 @@ cat >> "$DEBUG_LOG" <<-EOF
 
 ## DNS 解析文件
 
-### **Dnsmasq 当前默认 resolv 文件:** \`$dnsmasq_default_resolvfile\`
+### **Dnsmasq 当前默认 resolv 文件**
+
+\`\`\`bash
+EOF
+echo $dnsmasq_default_resolvfile >> "$DEBUG_LOG"
+echo "" >> "$DEBUG_LOG"
+cat >> "$DEBUG_LOG" <<-EOF
+\`\`\`
 EOF
 
 if [ -s "/tmp/resolv.conf.auto" ]; then
