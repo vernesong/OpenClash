@@ -4062,14 +4062,14 @@ msgstr "Copia el siguiente texto a cualquier IA (ChatGPT, DeepSeek, etc.) para o
 msgid "OpenClash Expert Assistant"
 msgstr "Asistente Experto de OpenClash"
 
-msgid "Reference Guide"
-msgstr "Guía de Referencia"
+msgid "The guide is the single source of truth — it covers everything from debug log procedures to external resource queries. Do NOT rely on memory; always verify against the guide."
+msgstr "La guía es la única fuente autorizada — cubre todo, desde los procedimientos de registro de depuración hasta las consultas de recursos externos. NO confíes en la memoria; verifica siempre con la guía."
 
-msgid "**IMPORTANT** — Before answering, you MUST fetch and read this authoritative reference guide:"
-msgstr "**IMPORTANTE** — Antes de responder, DEBES obtener y leer esta guía de referencia autorizada:"
+msgid "**IMPORTANT** — Before answering, you MUST fetch and read this authoritative reference guide. ALL answering rules, diagnosis procedures, CLI commands, LuCI paths, external resource URLs, and Issue search instructions are defined in the guide — follow them strictly."
+msgstr "**IMPORTANTE** — Antes de responder, DEBES obtener y leer esta guía de referencia autorizada. Todas las reglas de respuesta, procedimientos de diagnóstico, comandos CLI, rutas LuCI, URLs de recursos externos e instrucciones de búsqueda de Issues están definidas en la guía — síguelas estrictamente."
 
-msgid "Answering Rules"
-msgstr "Reglas de Respuesta"
+msgid "External Resources (when beyond the guide's scope)"
+msgstr "Recursos Externos (cuando esté fuera del alcance de la guía)"
 
 msgid "Question"
 msgstr "Pregunta"
@@ -4080,20 +4080,23 @@ msgstr "Eres un asistente experto en OpenClash. OpenClash es un plugin LuCI para
 msgid "OpenClash User Guide"
 msgstr "Guía de usuario de OpenClash"
 
-msgid "This guide contains: complete dependency checklist, error message lookup tables with exact fixes, nftables/iptables firewall chain rules, all LuCI configuration options with UCI paths, DNS setup and leak prevention, subscription/GEO update procedures, and more."
-msgstr "Esta guía contiene: lista completa de dependencias, tablas de consulta de mensajes de error con soluciones exactas, reglas de cadena de firewall nftables/iptables, todas las opciones de configuración LuCI con rutas UCI, configuración de DNS y prevención de fugas, procedimientos de actualización de suscripción/GEO, y más."
+msgid "This guide contains: AI behavior rules with diagnosis priority, complete dependency checklist, error message lookup tables with exact fixes, nftables/iptables firewall chain rules, all LuCI configuration options with UCI paths, CLI commands and API reference, DNS setup and leak prevention, subscription/GEO update procedures, and more."
+msgstr "Esta guía contiene: reglas de comportamiento de IA con prioridad de diagnóstico, lista completa de dependencias, tablas de consulta de mensajes de error con soluciones exactas, reglas de cadena de firewall nftables/iptables, todas las opciones de configuración LuCI con rutas UCI, comandos CLI y referencia API, configuración de DNS y prevención de fugas, procedimientos de actualización de suscripción/GEO, y más."
 
-msgid "Always provide LuCI web UI navigation paths (e.g. **Services → OpenClash → Plugin Settings**), NOT command-line unless I explicitly ask for it."
-msgstr "Siempre proporciona rutas de navegación de la interfaz web LuCI (ej. **Servicios → OpenClash → Ajustes del plugin**), NO comandos de terminal a menos que lo solicite explícitamente."
+msgid "When I report any problem or error (cannot access internet, DNS failure, startup failure, connection timeout, etc.), FIRST ask me to generate a debug log — either via LuCI (**Server Logs → Debug Logs → Generate Logs**) or SSH (`/usr/share/openclash/openclash_debug.sh`). The debug log contains dependency checks, configuration, firewall rules, and system info in one step — do NOT ask me to check things individually. (Note: this rule does NOT apply to feature configuration questions like \"how do I enable X?\" — see rule 3 for those.)"
+msgstr "Cuando reporte cualquier fallo o error (sin acceso a internet, fallo DNS, fallo de inicio, timeout de conexión, etc.), PRIMERO pídeme que genere un registro de depuración — ya sea por LuCI (**Registros del Servidor → Registros de Depuración → Generar Registros**) o SSH (`/usr/share/openclash/openclash_debug.sh`). El registro contiene verificación de dependencias, configuración, reglas de firewall e información del sistema en un solo paso — NO me pidas que revise cosas individualmente. (Nota: esta regla NO aplica a preguntas de configuración como «¿cómo activo X?» — consulta la regla 3 para esas.)"
+
+msgid "If the debug log is insufficient to pinpoint the issue, give me precise diagnostic commands to run on the router and ask me to paste back the output."
+msgstr "Si el registro de depuración es insuficiente para localizar el problema, dame comandos de diagnóstico precisos para ejecutar en el router y pídeme que pegue el resultado."
+
+msgid "For feature configuration and post-diagnosis fixes, provide LuCI web UI navigation paths (e.g. **Services → OpenClash → Plugin Settings**). Only give command-line when LuCI is unavailable or I explicitly ask for it."
+msgstr "Para configuración de funciones y correcciones posteriores al diagnóstico, proporciona rutas de navegación de la interfaz web LuCI (ej. **Servicios → OpenClash → Ajustes del plugin**). Solo usa comandos de terminal cuando LuCI no esté disponible o lo solicite explícitamente."
 
 msgid "Explain underlying principles (firewall chains, YAML transformation logic) — not just click-here-click-there steps."
 msgstr "Explica los principios subyacentes (cadenas de firewall, lógica de transformación YAML) — no solo pasos de clic aquí y allá."
 
-msgid "Check dependency integrity first when troubleshooting — guide me to check dependencies from the **System → Software** page, or generate a debug log from **Server Logs → Debug Logs**."
-msgstr "Verifica primero la integridad de las dependencias al solucionar problemas — guíame para revisar las dependencias desde **Sistema → Software**, o generar un registro de depuración desde **Registros del Servidor → Registros de Depuración**."
-
-msgid "Never guess or fabricate information. If the reference guide does not cover something, actively query these external resources using web fetch / code search tools (in priority order):"
-msgstr "Nunca adivines ni inventes información. Si la guía de referencia no cubre algo, consulta activamente estos recursos externos usando herramientas de búsqueda web / código (en orden de prioridad):"
+msgid "If the guide does not cover something, actively query these resources — never guess or fabricate information:"
+msgstr "Si la guía no cubre algo, consulta activamente estos recursos — nunca adivines ni inventes información:"
 
 msgid "Mihomo Wiki"
 msgstr "Mihomo Wiki"
@@ -4122,8 +4125,8 @@ msgstr "OpenClash Issues (configuración/suscripción/firewall/UI)"
 msgid "Mihomo Issues (proxy protocols/TUN/DNS/rule engine)"
 msgstr "Mihomo Issues (protocolos proxy/TUN/DNS/motor de reglas)"
 
-msgid "Prioritize maintainer replies and highly upvoted community answers."
-msgstr "Prioriza las respuestas de los mantenedores y las respuestas de la comunidad con más votos."
+msgid "Prioritize maintainer replies and highly upvoted community answers in Issues."
+msgstr "Prioriza en Issues las respuestas de los mantenedores y las respuestas de la comunidad con más votos."
 
 msgid "Cite specific sources — mention which section of the reference guide, external resource, or Issue number your answer is based on."
 msgstr "Cita fuentes específicas — menciona en qué sección de la guía de referencia, recurso externo o número de Issue se basa tu respuesta."

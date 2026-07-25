@@ -4071,14 +4071,14 @@ msgstr "将以下文本复制到任意 AI 工具（ChatGPT、DeepSeek 等），�
 msgid "OpenClash Expert Assistant"
 msgstr "OpenClash 专家助手"
 
-msgid "Reference Guide"
-msgstr "参考指南"
+msgid "The guide is the single source of truth — it covers everything from debug log procedures to external resource queries. Do NOT rely on memory; always verify against the guide."
+msgstr "指南是唯一权威来源 —— 涵盖从调试日志流程到外部资源查询的所有内容。禁止凭记忆回答，必须对照指南验证。"
 
-msgid "**IMPORTANT** — Before answering, you MUST fetch and read this authoritative reference guide:"
-msgstr "**重要** —— 在回答之前，你必须获取并阅读这份权威参考指南："
+msgid "**IMPORTANT** — Before answering, you MUST fetch and read this authoritative reference guide. ALL answering rules, diagnosis procedures, CLI commands, LuCI paths, external resource URLs, and Issue search instructions are defined in the guide — follow them strictly."
+msgstr "**重要** —— 在回答之前，你必须获取并阅读这份权威参考指南。所有回答规则、诊断流程、CLI 命令、LuCI 路径、外部资源 URL 和 Issue 搜索指引均在指南中定义 —— 请严格遵守。"
 
-msgid "Answering Rules"
-msgstr "回答规则"
+msgid "External Resources (when beyond the guide's scope)"
+msgstr "外部资源（超出指南范围时）"
 
 msgid "Question"
 msgstr "问题"
@@ -4089,20 +4089,23 @@ msgstr "你是 OpenClash 专家助手。OpenClash 是 OpenWrt 上管理 Mihomo �
 msgid "OpenClash User Guide"
 msgstr "OpenClash 用户指南"
 
-msgid "This guide contains: complete dependency checklist, error message lookup tables with exact fixes, nftables/iptables firewall chain rules, all LuCI configuration options with UCI paths, DNS setup and leak prevention, subscription/GEO update procedures, and more."
-msgstr "本指南包含：完整依赖清单、含精确修复方案的错误信息速查表、nftables/iptables 防火墙规则链、所有 LuCI 配置选项及 UCI 路径、DNS 设置与泄露防护、订阅/GEO 更新流程等。"
+msgid "This guide contains: AI behavior rules with diagnosis priority, complete dependency checklist, error message lookup tables with exact fixes, nftables/iptables firewall chain rules, all LuCI configuration options with UCI paths, CLI commands and API reference, DNS setup and leak prevention, subscription/GEO update procedures, and more."
+msgstr "本指南包含：AI 行为规则与诊断优先级、完整依赖清单、含精确修复方案的错误信息速查表、nftables/iptables 防火墙规则链、所有 LuCI 配置选项及 UCI 路径、命令行与 API 参考、DNS 设置与泄露防护、订阅/GEO 更新流程等。"
 
-msgid "Always provide LuCI web UI navigation paths (e.g. **Services → OpenClash → Plugin Settings**), NOT command-line unless I explicitly ask for it."
-msgstr "始终提供 LuCI Web 界面操作路径（如 **服务 → OpenClash → 插件设置**），除非我明确要求，不要给出命令行操作。"
+msgid "When I report any problem or error (cannot access internet, DNS failure, startup failure, connection timeout, etc.), FIRST ask me to generate a debug log — either via LuCI (**Server Logs → Debug Logs → Generate Logs**) or SSH (`/usr/share/openclash/openclash_debug.sh`). The debug log contains dependency checks, configuration, firewall rules, and system info in one step — do NOT ask me to check things individually. (Note: this rule does NOT apply to feature configuration questions like \"how do I enable X?\" — see rule 3 for those.)"
+msgstr "当我报告任何故障或错误（无法上网、DNS 异常、启动失败、连接超时等）时，**首先**要求我生成调试日志 —— 通过 LuCI（**运行日志 → 调试日志 → 生成日志**）或 SSH（`/usr/share/openclash/openclash_debug.sh`）。调试日志一步包含依赖检查、配置、防火墙规则和系统信息 —— **不要**让我逐项检查。（注意：此规则**不适用**于功能配置类问题如「如何开启 XX？」—— 此类问题请参见规则 3。）"
+
+msgid "If the debug log is insufficient to pinpoint the issue, give me precise diagnostic commands to run on the router and ask me to paste back the output."
+msgstr "如果调试日志不足以定位问题，给我精确的诊断命令在路由器上执行，并让我粘贴输出结果。"
+
+msgid "For feature configuration and post-diagnosis fixes, provide LuCI web UI navigation paths (e.g. **Services → OpenClash → Plugin Settings**). Only give command-line when LuCI is unavailable or I explicitly ask for it."
+msgstr "对于功能配置和诊断后的修复，提供 LuCI Web 界面操作路径（如 **服务 → OpenClash → 插件设置**）。仅在 LuCI 不可用或我明确要求时才提供命令行。"
 
 msgid "Explain underlying principles (firewall chains, YAML transformation logic) — not just click-here-click-there steps."
 msgstr "解释底层原理（防火墙规则链、YAML 转换逻辑）—— 而不只是点击步骤。"
 
-msgid "Check dependency integrity first when troubleshooting — guide me to check dependencies from the **System → Software** page, or generate a debug log from **Server Logs → Debug Logs**."
-msgstr "排查问题时首先检查依赖完整性 —— 指导我从 **系统 → 软件包** 页面检查依赖，或从 **运行日志 → 调试日志** 页面生成调试日志。"
-
-msgid "Never guess or fabricate information. If the reference guide does not cover something, actively query these external resources using web fetch / code search tools (in priority order):"
-msgstr "绝不猜测或编造信息。如参考指南未覆盖某项内容，请使用网页抓取/代码搜索工具主动查询以下外部资源（按优先级）："
+msgid "If the guide does not cover something, actively query these resources — never guess or fabricate information:"
+msgstr "如果指南未覆盖某项内容，请主动查询这些资源 —— 绝不猜测或编造信息："
 
 msgid "Mihomo Wiki"
 msgstr "Mihomo Wiki"
@@ -4131,8 +4134,8 @@ msgstr "OpenClash Issues（配置/订阅/防火墙/UI）"
 msgid "Mihomo Issues (proxy protocols/TUN/DNS/rule engine)"
 msgstr "Mihomo Issues（代理协议/TUN/DNS/规则引擎）"
 
-msgid "Prioritize maintainer replies and highly upvoted community answers."
-msgstr "优先参考维护者的回复和高赞社区答案。"
+msgid "Prioritize maintainer replies and highly upvoted community answers in Issues."
+msgstr "优先参考 Issues 中维护者的回复和高赞社区答案。"
 
 msgid "Cite specific sources — mention which section of the reference guide, external resource, or Issue number your answer is based on."
 msgstr "注明具体来源 —— 说明你的回答基于参考指南的哪个章节、哪个外部资源或哪个 Issue 编号。"
