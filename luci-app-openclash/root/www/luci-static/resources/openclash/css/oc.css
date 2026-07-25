@@ -38,7 +38,13 @@
     --control-height: 32px;
     --card-padding: 6px 8px;
     --version-right: 8px;
-    --gap-size: 10px;
+
+    --card-outer-padding: 12px;
+    --section-gap: 12px;
+    --card-grid-gap: 8px;
+    --card-item-min-height: 100px;
+    --content-gap: 10px;
+    --tight-gap: 6px;
 
     --row-1-height: 160px;
     --row-2-height: 140px;
@@ -310,7 +316,7 @@ html[data-darkmode="true"] .oc svg {
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-template-rows: minmax(60px, auto) 1fr;
-    gap: 10px;
+    gap: var(--content-gap);
     margin: 0 auto;
     align-items: start;
     max-width: 100%;
@@ -340,12 +346,12 @@ html[data-darkmode="true"] .oc svg {
     background: var(--bg-white);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
-    padding: 12px;
+    padding: var(--card-outer-padding);
     box-shadow: var(--shadow-sm);
     transition: all var(--transition-fast);
     display: grid;
     grid-template-rows: var(--row-1-height) var(--row-2-height) var(--row-3-height) var(--row-4-height);
-    gap: 8px;
+    gap: var(--card-grid-gap);
     overflow: visible;
     grid-row: 2;
     max-width: 100%;
@@ -363,7 +369,7 @@ html[data-darkmode="true"] .oc svg {
 
 .oc .card-row {
     display: flex;
-    gap: 12px;
+    gap: var(--section-gap);
     align-items: stretch;
     height: 100%;
     max-width: 100%;
@@ -395,14 +401,14 @@ html[data-darkmode="true"] .oc svg {
 .oc .card-row.dual-cards {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    gap: var(--card-grid-gap);
     max-width: 100%;
 }
 
 .oc .card-row.stats-grid {
     display: grid;
     grid-template-columns: repeat(4, 2fr);
-    gap: 8px;
+    gap: var(--card-grid-gap);
     max-width: 100%;
     min-width: auto;
 }
@@ -434,7 +440,7 @@ html[data-darkmode="true"] .oc svg {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 6px;
+    gap: var(--tight-gap);
     padding: 10px 6px;
     min-height: 0;
 }
@@ -455,7 +461,7 @@ html[data-darkmode="true"] .oc svg {
     margin-bottom: 10px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tight-gap);
     height: 20px;
     flex-shrink: 0;
     padding-left: 5px;
@@ -469,7 +475,7 @@ html[data-darkmode="true"] .oc svg {
     position: absolute;
     right: var(--version-right);
     display: flex;
-    gap: 8px;
+    gap: var(--card-grid-gap);
     z-index: 2;
 }
 
@@ -477,7 +483,7 @@ html[data-darkmode="true"] .oc svg {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: 10px;
+    gap: var(--content-gap);
     flex: 1;
     min-height: 0;
 }
@@ -485,7 +491,7 @@ html[data-darkmode="true"] .oc svg {
 .oc .config-file-content {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--content-gap);
     flex: 1;
     min-height: 0;
 }
@@ -512,7 +518,7 @@ html[data-darkmode="true"] .oc svg {
 .oc .card-controls {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--content-gap);
     justify-content: center;
     width: 100%;
 }
@@ -521,7 +527,7 @@ html[data-darkmode="true"] .oc svg {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 6px;
+    gap: var(--tight-gap);
     margin-top: auto;
     flex-wrap: nowrap;
     flex-shrink: 0;
@@ -541,7 +547,7 @@ html[data-darkmode="true"] .oc svg {
     display: flex;
     align-items: center;
     justify-content: space-between !important;
-    gap: 10px;
+    gap: var(--content-gap);
     flex: 0 0 auto;
     min-height: var(--control-height);
     overflow: hidden;
@@ -556,14 +562,14 @@ html[data-darkmode="true"] .oc svg {
 .oc .core-status-toggle {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: var(--content-gap);
     flex: 1;
 }
 
 .oc .core-control-buttons {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: var(--tight-gap);
     flex-shrink: 0;
     flex-wrap: nowrap;
 }
@@ -585,7 +591,7 @@ html[data-darkmode="true"] .oc svg {
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
-    gap: 10px;
+    gap: var(--content-gap);
     flex: 1;
 }
 
@@ -735,7 +741,7 @@ html[data-darkmode="true"] .oc svg {
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 8px;
+    gap: var(--card-grid-gap);
     flex-shrink: 0;
     margin: 0;
     flex-direction: row;
@@ -845,7 +851,7 @@ html[data-darkmode="true"] .oc svg {
 .oc .dashboard-buttons,
 .oc .quick-actions-buttons {
     display: flex;
-    gap: 8px;
+    gap: var(--card-grid-gap);
     justify-content: center;
     align-items: center;
     flex: 1;
@@ -1045,7 +1051,7 @@ html[data-darkmode="true"] .oc svg {
     align-items: center;
     min-height: 24px;
     min-width: 0;
-    gap: 8px;
+    gap: var(--card-grid-gap);
     padding: 0 20px;
 }
 
@@ -1062,7 +1068,7 @@ html[data-darkmode="true"] .oc svg {
 .oc .subscription-progress {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--content-gap);
     margin: auto 0;
 }
 
@@ -1131,13 +1137,13 @@ html[data-darkmode="true"] .oc .subscription-progress-fill::before {
     width: 100%;
     justify-content: flex-end;
     align-items: center;
-    gap: 8px;
+    gap: var(--card-grid-gap);
 }
 
 .oc .subscription-overwrite-tags {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--card-grid-gap);
     min-width: 0;
     flex: 1;
     margin-right: auto;
@@ -1200,7 +1206,7 @@ html[data-darkmode="true"] .oc .subscription-progress-fill::before {
 .oc .subscription-action-buttons {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--card-grid-gap);
     flex-shrink: 0;
 }
 
@@ -1235,7 +1241,7 @@ html[data-darkmode="true"] .oc .subscription-progress-fill::before {
 /* Multiple Providers Grid Layout */
 .oc .subscription-providers-grid {
     display: flex;
-    gap: 10px;
+    gap: var(--content-gap);
     padding: 8px 0;
     max-width: 100%;
     width: 100%;
@@ -1273,7 +1279,7 @@ html[data-darkmode="true"] .oc .subscription-progress-fill::before {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: var(--tight-gap);
 }
 
 /* For 1-2 providers, allow them to fill available space */
@@ -1646,7 +1652,7 @@ html[data-darkmode="true"] .oc .provider-card {
 
 .oc .config-upload-buttons {
     display: flex;
-    gap: 12px;
+    gap: var(--section-gap);
 }
 
 .oc .config-upload-content {
@@ -1960,7 +1966,7 @@ html[data-darkmode="true"] .oc .provider-card {
 .oc .form-checkbox-group {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: var(--section-gap);
 }
 
 .oc .form-help {
@@ -1971,7 +1977,7 @@ html[data-darkmode="true"] .oc .provider-card {
     line-height: 1.4;
     display: flex;
     align-items: flex-start;
-    gap: 6px;
+    gap: var(--tight-gap);
 }
 
 .oc .form-help::before {
@@ -1992,7 +1998,7 @@ html[data-darkmode="true"] .oc .provider-card {
     display: flex;
     align-items: center;
     max-width: 100%;
-    gap: 6px;
+    gap: var(--tight-gap);
     margin: 0 0 2px;
     padding: 0;
     border: 0;
@@ -2435,7 +2441,7 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     color: var(--text-primary);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--card-grid-gap);
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -2468,7 +2474,7 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
 .oc .config-editor-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: var(--section-gap);
 }
 .oc .size-btn {
     width: 24px !important;
@@ -2503,7 +2509,7 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: var(--section-gap);
     background: var(--bg-white);
     color: var(--text-secondary);
     font-size: 14px;
@@ -2630,7 +2636,7 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 12px;
+    gap: var(--section-gap);
     padding: 10px 20px;
     background: var(--error-a12);
     font-size: 14px;
@@ -2652,7 +2658,7 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
 
 .oc .update-row {
     display: flex;
-    gap: 12px;
+    gap: var(--section-gap);
     width: 100%;
     max-width: 100%;
 }
@@ -2725,7 +2731,7 @@ html[data-darkmode="true"] .oc .overwrite-banner svg circle {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--card-grid-gap);
     padding: 8px 10px;
     border-bottom: 1px solid var(--border-light);
     background: var(--bg-white);
@@ -2812,7 +2818,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     display: flex;
     flex-wrap: nowrap;
     overflow-x: auto;
-    gap: 12px;
+    gap: var(--section-gap);
     padding: 8px;
     max-width: 100%;
     min-width: 0;
@@ -2836,7 +2842,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     max-width: 220px;
     flex: 0 0 auto;
     box-sizing: border-box;
-    gap: 12px;
+    gap: var(--section-gap);
     height: 75px;
 }
 .oc .sub-card.overwrite-item,
@@ -2898,7 +2904,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 8px;
+    gap: var(--card-grid-gap);
 }
 .overwrite-title {
     font-weight: bold;
@@ -2975,7 +2981,7 @@ html[data-darkmode="true"] .oc .overwrite-config-option-state {
     background: var(--bg-white);
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
-    padding: 12px;
+    padding: var(--card-outer-padding);
     box-shadow: var(--shadow-sm);
     max-width: 100%;
     width: 100%;
@@ -3154,12 +3160,6 @@ html[data-darkmode="true"] .oc .cmt-log-level-watchdog { color: var(--log-watchd
  * SECTION 5: myip.htm
  * ========================================================================== */
 
-.oc {
-    --card-item-padding: 12px 8px;
-    --card-item-min-height: 100px;
-    --card-item-border-radius: var(--radius-md);
-}
-
 /* ---- dark mode overrides ---- */
 html[data-darkmode="true"] .oc #mode-icon rect[stroke="#333"] { stroke: var(--text-primary, #fff); }
 html[data-darkmode="true"] .oc #mode-icon path[stroke="#333"] { stroke: var(--text-primary, #fff); }
@@ -3196,16 +3196,16 @@ html[data-darkmode="true"] .oc .myip-footer p {
     border: 1px solid var(--border-light, #e5e7eb);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-md);
-    gap: 12px;
+    gap: var(--section-gap);
     align-items: stretch;
-    padding: var(--card-padding);
+    padding: var(--card-outer-padding);
 }
 
 .oc .myip-ip-section,
 .oc .myip-check-section {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: var(--section-gap);
     height: 100%;
 }
 
@@ -3213,7 +3213,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
     font-size: 20px;
     font-weight: bold;
     color: var(--text-title) !important;
-    margin: 8px;
+    margin: 8px 0;
     padding: 0;
     padding-bottom: 12px;
     text-align: left;
@@ -3228,7 +3228,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
 .oc .myip-toolbar {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--card-grid-gap);
     flex-shrink: 0;
 }
 
@@ -3237,8 +3237,7 @@ html[data-darkmode="true"] .oc .myip-footer p {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-auto-rows: 1fr;
-    gap: 8px;
-    margin: auto 8px;
+    gap: var(--card-grid-gap);
     flex: 1;
 }
 
@@ -3248,17 +3247,17 @@ html[data-darkmode="true"] .oc .myip-footer p {
     flex-direction: column;
     align-items: center;
     justify-content: space-between;
-    padding: var(--card-item-padding);
+    padding: var(--card-outer-padding);
     background: var(--bg-gray, #f9fafb);
     border: 1px solid var(--border-light, #e5e7eb);
-    border-radius: var(--card-item-border-radius);
+    border-radius: var(--radius-md);
     transition: all var(--transition-fast);
     min-height: var(--card-item-min-height);
     min-width: 0;
     max-width: 100%;
     height: 100%;
     box-sizing: border-box;
-    gap: 8px;
+    gap: var(--card-grid-gap);
 }
 
 .oc .myip-card-item:hover {
@@ -3286,7 +3285,7 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
 
 .oc .myip-card-label {
     display: flex; align-items: center; justify-content: center;
-    gap: 6px; font-size: 14px; font-weight: 600;
+    gap: var(--tight-gap); font-size: 14px; font-weight: 600;
     color: var(--text-title);
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     max-width: 100%;
@@ -3444,7 +3443,7 @@ html[data-darkmode="true"] .oc .myip-card-icon.ic-youtube { color: #FF4444; }
     margin: 0 !important;
     font-size: 15px !important;
     line-height: 20px !important;
-    padding: 0px 10px !important;
+    padding: 0 var(--card-outer-padding) !important;
     white-space: nowrap;
     z-index: 1;
     color: var(--text-secondary, #6b7280) !important;
@@ -3773,7 +3772,7 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    padding: 12px;
+    padding: var(--card-outer-padding);
     transition: all var(--transition-fast);
 }
 
@@ -4151,13 +4150,13 @@ html[data-darkmode="true"] .oc .oix-announcement::before {
     display: flex;
     align-items: stretch;
     margin: 0;
-    padding: 12px;
+    padding: var(--card-outer-padding);
 }
 
 .oc .oix-announcement {
     background: linear-gradient(275deg, var(--primary-color), var(--announcement-end));
     color: var(--text-on-primary);
-    padding: 12px;
+    padding: var(--card-outer-padding);
     border-radius: var(--radius-lg);
     overflow: hidden;
     position: relative;
@@ -5214,35 +5213,41 @@ html[data-darkmode=true] #debug_loading img {
         /* Ribbon 1 — blue, near-horizontal → */
         linear-gradient(
             175deg,
-            transparent 37%,
-            rgba(59,130,246,0.35) 42%,
-            rgba(59,130,246,0.60) 48%,
-            rgba(59,130,246,0.70) 50%,
-            rgba(59,130,246,0.60) 52%,
-            rgba(59,130,246,0.35) 58%,
-            transparent 63%
+            transparent 18%,
+            rgba(59,130,246,0.06) 28%,
+            rgba(59,130,246,0.15) 36%,
+            rgba(59,130,246,0.30) 42%,
+            rgba(59,130,246,0.50) 50%,
+            rgba(59,130,246,0.30) 58%,
+            rgba(59,130,246,0.15) 64%,
+            rgba(59,130,246,0.06) 72%,
+            transparent 82%
         ),
         /* Ribbon 2 — purple, near-horizontal ← */
         linear-gradient(
             185deg,
-            transparent 38%,
-            rgba(179,0,255,0.25) 43%,
-            rgba(179,0,255,0.40) 48%,
-            rgba(179,0,255,0.48) 50%,
-            rgba(179,0,255,0.40) 52%,
-            rgba(179,0,255,0.25) 57%,
-            transparent 62%
+            transparent 20%,
+            rgba(179,0,255,0.05) 30%,
+            rgba(179,0,255,0.12) 38%,
+            rgba(179,0,255,0.25) 44%,
+            rgba(179,0,255,0.38) 50%,
+            rgba(179,0,255,0.25) 56%,
+            rgba(179,0,255,0.12) 62%,
+            rgba(179,0,255,0.05) 70%,
+            transparent 80%
         ),
         /* Ribbon 3 — green, gentle ↘ */
         linear-gradient(
             170deg,
-            transparent 39%,
-            rgba(5,150,105,0.18) 44%,
-            rgba(5,150,105,0.32) 48%,
-            rgba(5,150,105,0.38) 50%,
-            rgba(5,150,105,0.32) 52%,
-            rgba(5,150,105,0.18) 56%,
-            transparent 61%
+            transparent 22%,
+            rgba(5,150,105,0.04) 32%,
+            rgba(5,150,105,0.10) 40%,
+            rgba(5,150,105,0.20) 46%,
+            rgba(5,150,105,0.30) 50%,
+            rgba(5,150,105,0.20) 54%,
+            rgba(5,150,105,0.10) 60%,
+            rgba(5,150,105,0.04) 68%,
+            transparent 78%
         );
     background-size: 350% 200%;
     background-position: 100% 0%;
@@ -5261,24 +5266,28 @@ html[data-darkmode=true] #debug_loading img {
         /* Ribbon 4 — amber, near-horizontal ↗ */
         linear-gradient(
             8deg,
-            transparent 38%,
-            rgba(245,158,11,0.16) 43%,
-            rgba(245,158,11,0.28) 48%,
-            rgba(245,158,11,0.34) 50%,
-            rgba(245,158,11,0.28) 52%,
-            rgba(245,158,11,0.16) 57%,
-            transparent 62%
+            transparent 20%,
+            rgba(245,158,11,0.04) 30%,
+            rgba(245,158,11,0.10) 38%,
+            rgba(245,158,11,0.20) 44%,
+            rgba(245,158,11,0.28) 50%,
+            rgba(245,158,11,0.20) 56%,
+            rgba(245,158,11,0.10) 62%,
+            rgba(245,158,11,0.04) 70%,
+            transparent 80%
         ),
         /* Ribbon 5 — soft blue, near-horizontal ↙ */
         linear-gradient(
             192deg,
-            transparent 37%,
+            transparent 18%,
+            rgba(59,130,246,0.06) 28%,
+            rgba(59,130,246,0.15) 36%,
             rgba(59,130,246,0.30) 43%,
-            rgba(59,130,246,0.55) 48%,
-            rgba(59,130,246,0.65) 50%,
-            rgba(59,130,246,0.55) 52%,
+            rgba(59,130,246,0.48) 50%,
             rgba(59,130,246,0.30) 57%,
-            transparent 63%
+            rgba(59,130,246,0.15) 64%,
+            rgba(59,130,246,0.06) 72%,
+            transparent 82%
         );
     background-size: 320% 180%;
     background-position: 0% 100%;
@@ -5372,7 +5381,7 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
 
 .oix-btn {
     display: inline-flex; align-items: center; justify-content: center;
-    gap: 6px; padding: 8px 18px; border: none; border-radius: var(--radius-sm);
+    gap: var(--tight-gap); padding: 8px 18px; border: none; border-radius: var(--radius-sm);
     font-size: 13px; font-weight: 500; cursor: pointer;
     transition: all 0.15s ease; line-height: 1.4;
 }
@@ -5390,7 +5399,7 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
 .oix-btn-sm { padding: 5px 10px; font-size: 12px; }
 
 .oix-msg-bar {
-    display: none; align-items: center; gap: 8px;
+    display: none; align-items: center; gap: var(--card-grid-gap);
     padding: 8px 12px; margin: 0 0 12px 0;
     border-radius: var(--radius-sm); font-size: 13px;
     line-height: 1.5; border: 1px solid transparent; font-weight: 500;
@@ -5406,7 +5415,7 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
 
 .oix-header {
     display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 10px; margin-bottom: 12px;
+    flex-wrap: wrap; gap: var(--content-gap); margin-bottom: 12px;
     background: var(--bg-gray); border: 1px solid var(--border-light);
     border-radius: var(--radius-md); padding: 8px 14px;
     transition: all var(--transition-fast);
@@ -5415,10 +5424,10 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
     background: var(--hover-bg); border-color: var(--primary-color);
     transform: translateY(-2px); box-shadow: var(--shadow-sm);
 }
-.oix-header-left  { display: flex; align-items: center; gap: 8px; }
-.oix-header-right { display: flex; align-items: center; gap: 6px; }
+.oix-header-left  { display: flex; align-items: center; gap: var(--card-grid-gap); }
+.oix-header-right { display: flex; align-items: center; gap: var(--tight-gap); }
 .oix-status-badge {
-    display: inline-flex; align-items: center; gap: 6px;
+    display: inline-flex; align-items: center; gap: var(--tight-gap);
     padding: 4px 12px; border-radius: 20px;
     font-weight: 600; font-size: 13px;
     background: var(--oix-status-badge-bg); color: var(--primary-color);
@@ -5438,7 +5447,7 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
     transform: translateY(-2px);
     box-shadow: var(--shadow-sm);
 }
-.oix-announce-header { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-weight: 600; font-size: 13px; color: var(--warning-color); }
+.oix-announce-header { display: flex; align-items: center; gap: var(--tight-gap); margin-bottom: 6px; font-weight: 600; font-size: 13px; color: var(--warning-color); }
 .oix-announce-header svg { flex-shrink: 0; }
 .oix-announce-body { word-break: break-word; }
 .oix-announce-body.oix-collapsed {
@@ -5470,7 +5479,7 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
 .oix-cards {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: 8px;
+    gap: var(--card-grid-gap);
     margin-bottom: 10px;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
@@ -5496,7 +5505,7 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
 .oix-settings-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    gap: var(--content-gap);
     margin: 8px 0;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-md);
@@ -5522,7 +5531,7 @@ html[data-darkmode=true] .oc .oix-input:-webkit-autofill:focus {
 }
 .oix-toggle-row {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 8px; font-size: 12px; color: var(--text-primary);
+    gap: var(--card-grid-gap); font-size: 12px; color: var(--text-primary);
     min-height: 32px;
 }
 .oix-params-item { display: flex; align-items: center; gap: 4px; white-space: nowrap; min-height: 32px; }
@@ -5776,7 +5785,7 @@ html[data-darkmode=true] .oc #debug-rendered tr:nth-child(even) {
 .oc .config-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: var(--gap-size);
+    gap: var(--content-gap);
     align-items: center;
 }
 
@@ -6375,7 +6384,7 @@ html[data-darkmode=true] .oc .close-btn:hover {
     .oc .sub-card.overwrite-item {
         width: 185px;
         max-width: 200px;
-        gap: 10px;
+        gap: var(--content-gap);
     }
     .oc .overwrite-drag-line {
         margin: -2px;
@@ -6384,7 +6393,6 @@ html[data-darkmode=true] .oc .close-btn:hover {
 
     /* myip.htm */
     .oc {
-        --card-item-padding: 8px 6px;
         --card-item-min-height: 80px;
     }
 
@@ -6392,15 +6400,15 @@ html[data-darkmode=true] .oc .close-btn:hover {
         grid-template-columns: 1fr;
     }
 
-    .oc .myip-section-title {
-        font-size: 22px;
-        margin-bottom: 12px;
-    }
-
     .oc .myip-ip-list,
     .oc .myip-check-list {
         grid-template-columns: repeat(2, 1fr);
         grid-auto-rows: 1fr;
+    }
+
+    .oc .myip-section-title {
+        font-size: 22px;
+        margin-bottom: 12px;
     }
 
     .oc .myip-card-label { font-size: 13px; height: 20px; }
@@ -6555,14 +6563,6 @@ html[data-darkmode=true] .oc .close-btn:hover {
         gap: 8px;
         max-width: 100%;
         width: 100%;
-    }
-
-    .oc .main-card {
-        padding: 8px;
-    }
-
-    .oc .card-row {
-        gap: 10px;
     }
 
     .oc .card-row.dual-cards {
@@ -6792,23 +6792,21 @@ html[data-darkmode=true] .oc .close-btn:hover {
 
     /* myip.htm */
     .oc {
-        --card-item-padding: 6px 4px;
+        --card-outer-padding: 8px;
+        --section-gap: 10px;
+        --card-grid-gap: 6px;
         --card-item-min-height: 70px;
-    }
-
-    .oc .myip-content-grid {
-        padding: 2px;
-    }
-
-    .oc .myip-section-title {
-        font-size: 20px;
-        margin-bottom: 10px;
     }
 
     .oc .myip-ip-list,
     .oc .myip-check-list {
         grid-template-columns: repeat(2, 1fr);
         grid-auto-rows: 1fr;
+    }
+
+    .oc .myip-section-title {
+        font-size: 20px;
+        margin-bottom: 10px;
     }
 
     .oc .myip-card-label { font-size: 12px; height: 18px; }

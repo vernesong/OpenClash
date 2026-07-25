@@ -4603,13 +4603,20 @@ function oix_params_get()
 	local params_file = home_dir .. "/.oix_params"
 	local default_params_file = home_dir .. "/.oix_default_params"
 
-	if fs.access(params_file) then
+	local uci_params = fs.uci_get_config("config", "oix_params")
+	if uci_params and uci_params ~= "" then
+		result.params = uci_params
+	elseif fs.access(params_file) then
 		local content = fs.readfile(params_file)
 		if content then
 			result.params = content:gsub("%s+", "")
 		end
 	end
-	if fs.access(default_params_file) then
+
+	local uci_default = fs.uci_get_config("config", "oix_default_params")
+	if uci_default and uci_default ~= "" then
+		result.default_params = uci_default
+	elseif fs.access(default_params_file) then
 		local content = fs.readfile(default_params_file)
 		if content then
 			result.default_params = content:gsub("%s+", "")
@@ -4741,6 +4748,7 @@ function oix_logout(oldtoken)
 			uci:delete("openclash", "config", "oix_checkin_multiple")
 			uci:delete("openclash", "config", "oix_params")
 			uci:delete("openclash", "config", "oix_default_params")
+			uci:delete("openclash", "config", "oix_show_info_page")
 			uci:commit("openclash")
 			fs.unlink("/tmp/oix_checkin")
 			fs.unlink("/tmp/oix_info")
@@ -4760,6 +4768,7 @@ function oix_logout(oldtoken)
 					uci:delete("openclash", "config", "oix_checkin_multiple")
 					uci:delete("openclash", "config", "oix_params")
 					uci:delete("openclash", "config", "oix_default_params")
+					uci:delete("openclash", "config", "oix_show_info_page")
 				end
 				uci:commit("openclash")
 				fs.unlink("/tmp/oix_checkin")

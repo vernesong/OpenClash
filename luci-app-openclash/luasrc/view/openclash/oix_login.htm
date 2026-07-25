@@ -261,20 +261,38 @@ var OixCloud = {
 		var input = document.getElementById('oix-params');
 		if (!input || input.value !== '') return;
 		var self = this;
+		var uciDefault = '<%= oix_default_params %>';
 		XHR.get(OIX_URLS.paramsGet, null, function(x, status) {
-			if (x && x.status == 200 && status && status.params) {
-				input.value = status.params;
-				self._paramsRetry = 0;
-				if (status.default_params) {
-					XHR.get(OIX_URLS.save, {default_params: status.default_params}, function() {});
+			if (x && x.status == 200 && status) {
+				if (status.params) {
+					input.value = status.params;
+					self._paramsRetry = 0;
+					if (status.default_params) {
+						XHR.get(OIX_URLS.save, {default_params: status.default_params}, function() {});
+					}
+				} else if (status.default_params) {
+					input.value = status.default_params;
+					input.placeholder = status.default_params;
+					self._paramsRetry = 0;
+				} else if (uciDefault) {
+					input.value = uciDefault;
+					input.placeholder = uciDefault;
+					self._paramsRetry = 0;
+				} else {
+					if (self._paramsRetry < self._paramsMaxRetry) {
+						self._paramsRetry++;
+						self._paramsRetryTimer = setTimeout(function() { self.fetchParams(); }, 5000);
+					} else {
+						self._paramsRetry = 0;
+					}
 				}
 			} else {
 				if (self._paramsRetry < self._paramsMaxRetry) {
 					self._paramsRetry++;
 					self._paramsRetryTimer = setTimeout(function() { self.fetchParams(); }, 5000);
-				} else {
-					var cached = '<%= oix_default_params %>';
-					if (cached) { input.value = cached; input.placeholder = cached; }
+				} else if (uciDefault) {
+					input.value = uciDefault;
+					input.placeholder = uciDefault;
 				}
 			}
 		});
@@ -313,7 +331,7 @@ var OixCloud = {
 			var onLoginSuccess = function() {
 				var info = '<%:oixCloud Login Successful%>' + ', <%:Note: oixCloud need a specific core installed, OpenClash will auto download, After the core start, an oixCloud nodes provider will be added, which you can customize as needed%>';
 				OixMsg.show(info, 'success', 20000);
-				self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling();
+				self.loggedIn = true; self.showLoggedIn(); self.loadAccountInfo(); self.startPolling(); self.fetchParams();
 			};
 
 			if (isToken) {
@@ -464,7 +482,7 @@ var OixCloud = {
 		});
 	},
 
-	startPolling: function() { this.stopPolling(); var s=this; this._pollTimer=setInterval(function(){s.loadAccountInfo();},1800000); },
+	startPolling: function() { this.stopPolling(); var s=this; s.fetchParams(); this._pollTimer=setInterval(function(){s.loadAccountInfo();s.fetchParams();},600000); },
 	stopPolling: function() { if(this._pollTimer){clearInterval(this._pollTimer);this._pollTimer=null;} },
 	stopParamsRetry: function() { if(this._paramsRetryTimer){clearTimeout(this._paramsRetryTimer);this._paramsRetryTimer=null;} this._paramsRetry = 0; },
 
