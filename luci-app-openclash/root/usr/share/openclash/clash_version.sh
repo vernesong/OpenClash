@@ -22,6 +22,9 @@ OIX_TOKEN=$(uci_get_config "oix_token")
 
 if [ -n "$1" ]; then
    github_address_mod="$1"
+   if echo "$github_address_mod" | grep -q "raw\.githubusercontent\.com"; then
+      github_address_mod=0
+   fi
 fi
 
 if [ "$CORE_TYPE" = "Oix" ] || [ -n "$OIX_TOKEN" ]; then

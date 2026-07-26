@@ -1377,6 +1377,36 @@ msgstr "Acceso normal"
 msgid "Access Denied"
 msgstr "Acceso denegado"
 
+msgid "Connection Failed"
+msgstr "Conexión fallida"
+
+msgid "Invalid Response"
+msgstr "Respuesta no válida"
+
+msgid "Installed"
+msgstr "Instalado"
+
+msgid "Select Version"
+msgstr "Seleccionar versión"
+
+msgid "Latest"
+msgstr "Última"
+
+msgid "Latency"
+msgstr "Latencia"
+
+msgid "Plugin"
+msgstr "Plugin"
+
+msgid "Core"
+msgstr "Núcleo"
+
+msgid "Date"
+msgstr "Fecha"
+
+msgid "Failed to get version history"
+msgstr "Error al obtener historial"
+
 msgid "Bind Network Interface"
 msgstr "Vincular interfaz de red"
 
@@ -3548,6 +3578,12 @@ msgstr "Fecha de caducidad"
 
 msgid "RAW address"
 msgstr "Dirección RAW"
+
+msgid "Address"
+msgstr "Dirección"
+
+msgid "Timeout"
+msgstr "Tiempo de espera"
 
 msgid "Enter custom User-Agent"
 msgstr "Introduce un User-Agent personalizado"

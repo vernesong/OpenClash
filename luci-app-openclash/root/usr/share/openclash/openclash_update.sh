@@ -93,13 +93,29 @@ if [ "$1" = "one_key_update" ]; then
       /usr/share/openclash/openclash_core.sh "Meta" "$1" >/dev/null 2>&1
       github_address_mod=0
    fi
+   if echo "$github_address_mod" | grep -q "raw\.githubusercontent\.com"; then
+      github_address_mod=0
+   fi
 else
    if [ "$github_address_mod" = "0" ]; then
       LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
    fi
 fi
 
-if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ -f "$LAST_OPVER" ]; then
+if [ -n "$3" ] && echo "$3" | grep -qE '^https?://'; then
+   # Direct download URL (historical version / downgrade) — skip version compare
+   if [ -x "/bin/opkg" ]; then
+      DOWNLOAD_URL="$3"
+      DOWNLOAD_PATH="/tmp/openclash.ipk"
+   elif [ -x "/usr/bin/apk" ]; then
+      DOWNLOAD_URL="$3"
+      DOWNLOAD_PATH="/tmp/openclash.apk"
+   fi
+   LAST_VER=$(echo "$DOWNLOAD_URL" | grep -oE 'luci-app-openclash[_-][0-9]+(\.[0-9]+)*' | head -1 | sed 's/^luci-app-openclash[_-]//')
+   [ -z "$LAST_VER" ] && LAST_VER=$(echo "$DOWNLOAD_URL" | grep -oE 'v[0-9]+(\.[0-9]+)*' | head -1 | sed 's/^v//')
+   [ -z "$LAST_VER" ] && LAST_VER=" - selected"
+   LOG_TIP "Start downloading【OpenClash - v$LAST_VER】..."
+elif [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ -f "$LAST_OPVER" ]; then
    LOG_TIP "Start downloading【OpenClash - v$LAST_VER】..."
    if [ "$github_address_mod" != "0" ]; then
       if [ "$github_address_mod" == "https://cdn.jsdelivr.net/" ] || [ "$github_address_mod" == "https://fastly.jsdelivr.net/" ] || [ "$github_address_mod" == "https://testingcf.jsdelivr.net/" ]; then
@@ -128,6 +144,19 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ 
          DOWNLOAD_PATH="/tmp/openclash.apk"
       fi
    fi
+else
+   if [ ! -f "$LAST_OPVER" ] || [ -z "$OP_CV" ] || [ -z "$OP_LV" ]; then
+      LOG_ERROR "Failed to get version information, please try again later..."
+   else
+      LOG_TIP "OpenClash has not been updated, stop continuing!"
+   fi
+   dec_job_counter_and_restart "0"
+   SLOG_CLEAN
+   del_lock
+   exit 0
+fi
+
+if [ -n "$DOWNLOAD_URL" ]; then
 
    retry_count=0
    max_retries=3
@@ -168,7 +197,7 @@ if [ -n "$OP_CV" ] && [ -n "$OP_LV" ] && version_compare "$OP_CV" "$OP_LV" && [ 
                fi
             done
             if [ -s "/tmp/openclash.ipk" ]; then
-               if [ -n "$(opkg install /tmp/openclash.ipk --noaction 2>/dev/null |grep 'Upgrading luci-app-openclash on root' 2>/dev/null)" ]; then
+               if [ -n "$(opkg --force-downgrade install /tmp/openclash.ipk --noaction 2>/dev/null |grep -E '(Upgrading|Downgrading) luci-app-openclash on root' 2>/dev/null)" ]; then
                   pre_test_success=true
                fi
             fi
@@ -333,14 +362,14 @@ while [ $install_retry_count -lt $max_install_retries ]; do
             installed_before="$installed_before $pkg"
          fi
       done
-      opkg install /tmp/openclash.ipk
+      opkg --force-downgrade install /tmp/openclash.ipk
    elif [ -x "/usr/bin/apk" ]; then
       for pkg in $packages_to_check; do
          if apk list "$pkg" |grep "installed" >/dev/null 2>&1; then
             installed_before="$installed_before $pkg"
          fi
       done
-      apk add -q --force-overwrite --clean-protected --allow-untrusted /tmp/openclash.apk
+      apk add -q --force-overwrite --clean-protected --allow-untrusted --allow-downgrade /tmp/openclash.apk
    fi
 
    sleep 2
@@ -413,14 +442,6 @@ EOF
    fi
 
    (sleep 15; rm -f /tmp/openclash_update.sh) &
-else
-   if [ ! -f "$LAST_OPVER" ] || [ -z "$OP_CV" ] || [ -z "$OP_LV" ]; then
-      LOG_ERROR "Failed to get version information, please try again later..."
-   else
-      LOG_TIP "OpenClash has not been updated, stop continuing!"
-   fi
-   dec_job_counter_and_restart "0"
-   SLOG_CLEAN
 fi
 
 del_lock

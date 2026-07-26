@@ -3766,6 +3766,9 @@ stop_service()
                 /tmp/openclash_last_version \
                 /tmp/openclash.change \
                 /tmp/openclash_announcement \
+                /tmp/openclash_oix_version.json \
+                /tmp/openclash_version_history_* \
+                /tmp/openclash_cdn_info_* \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_chnroute6_pass.conf \
                 ${DNSMASQ_CONF_DIR}/dnsmasq_openclash_custom_domain.conf

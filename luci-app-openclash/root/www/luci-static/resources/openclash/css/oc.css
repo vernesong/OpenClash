@@ -78,6 +78,12 @@
     --primary-a30: rgba(59, 130, 246, 0.3);
     --primary-a40: rgba(59, 130, 246, 0.4);
     --primary-a60: rgba(59, 130, 246, 0.6);
+    --success-a10: rgba(5, 150, 105, 0.1);
+    --warning-a10: rgba(245, 158, 11, 0.1);
+    --error-a10: rgba(220, 38, 38, 0.1);
+    --error-a12: rgba(220, 38, 38, 0.12);
+    --accent-color: #7c3aed;
+    --accent-a15: rgba(124, 58, 237, 0.15);
     --success-a5: rgba(5, 150, 105, 0.05);
     --error-a12: rgba(255,80,80,0.12);
     --error-a18: rgba(255,80,80,0.18);
@@ -638,7 +644,7 @@ html[data-darkmode="true"] .oc svg {
     display: flex;
     align-items: center;
     gap: 4px;
-    max-width: 160px;
+    max-width: 180px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -649,6 +655,12 @@ html[data-darkmode="true"] .oc svg {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+.oc .version-display svg {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
 }
 
 .oc .version-display .update-dot {
@@ -5798,20 +5810,6 @@ html[data-darkmode=true] .oc #debug-rendered tr:nth-child(even) {
     position: relative;
 }
 
-.oc .config-item::after {
-    content: '';
-    position: absolute;
-    right: 12px;
-    bottom: 20px;
-    transform: translateY(50%);
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 4px solid var(--text-secondary);
-    pointer-events: none;
-    z-index: 1;
-}
 
 .oc .config-editor-title {
     font-size: 16px;
@@ -5825,15 +5823,26 @@ html[data-darkmode=true] .oc #debug-rendered tr:nth-child(even) {
     flex: 1;
 }
 
-.oc .config-label {
+/* Unified option title with underline for select_git_cdn */
+.oc .oc-option-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
     font-size: 13px;
     font-weight: 600;
     color: var(--text-secondary);
-    text-align: center;
+    white-space: nowrap;
+    min-width: 0;
     position: relative;
 }
-
-.oc .config-label::after {
+.oc .oc-option-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+.oc .oc-option-title::after {
     content: '';
     position: absolute;
     bottom: -4px;
@@ -5843,10 +5852,17 @@ html[data-darkmode=true] .oc #debug-rendered tr:nth-child(even) {
     height: 1px;
     background-color: var(--border-color);
 }
+.oc .oc-option-title > svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
 
 .oc .select-class {
     width: 100% !important;
-    height: var(--control-height);
+    height: 36px;
+    min-height: 36px;
+    margin: 0;
     padding: 8px 32px 8px 12px;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-sm);
@@ -5858,7 +5874,9 @@ html[data-darkmode=true] .oc #debug-rendered tr:nth-child(even) {
     transition: all var(--transition-fast);
     box-sizing: border-box;
     min-width: 0;
-    min-height: fit-content;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .oc .select-class:hover {
@@ -5945,9 +5963,11 @@ html[data-darkmode=true] .oc #debug-rendered tr:nth-child(even) {
 }
 
 .oc .custom-option-input {
-    margin: 12px auto;
-    padding: 12px;
-    width: calc(100% - 24px) !important;
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 10px 0;
+    padding: 10px 12px;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-sm);
     background: var(--bg-white);
@@ -5968,13 +5988,18 @@ html[data-darkmode=true] .oc #debug-rendered tr:nth-child(even) {
 }
 
 .oc #addCustomOption {
+    display: block;
+    width: 100%;
+    box-sizing: border-box;
     background: var(--primary-color);
     color: white;
     font-weight: 500;
     border-bottom: none !important;
-    margin: 0 12px 12px 12px;
+    margin: 10px 0;
+    padding: 10px 12px;
     border-radius: var(--radius-sm);
     text-align: center;
+    cursor: pointer;
 }
 
 .oc #addCustomOption:hover {
@@ -5992,23 +6017,169 @@ html[data-darkmode=true] .oc #debug-rendered tr:nth-child(even) {
 }
 
 .oc .cdn-status.fast {
-    background: rgba(5, 150, 105, .1);
+    background: var(--success-a10);
     color: var(--success-color);
 }
 
 .oc .cdn-status.medium {
-    background: rgba(245, 158, 11, .1);
-    color: var(--warning-color);
+    background: var(--warning-a10);
+    color: var(--tip-color);
 }
 
 .oc .cdn-status.slow {
-    background: rgba(220, 38, 38, .1);
+    background: var(--error-a10);
     color: var(--error-color);
 }
 
-.oc .cdn-status.error {
-    background: rgba(220, 38, 38, .1);
+.oc .cdn-status.err {
+    background: var(--error-a12);
     color: var(--error-color);
+}
+
+/* ========== CDN Version Display ========== */
+.oc .cdn-version-card {
+    padding: 8px 0 0 0;
+    margin-bottom: 8px;
+}
+.oc .cdn-version-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 10px;
+    align-items: start;
+}
+.oc .cdn-ver-value {
+    display: block;
+    line-height: 34px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
+    font-size: 13px;
+    font-weight: 400;
+    min-height: 36px;
+    height: 36px;
+    padding: 0 12px;
+    background: var(--bg-white);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: var(--text-primary);
+    box-sizing: border-box;
+}
+.oc .cdn-ver-hint {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin: 6px 0 0 0;
+    padding: 8px 12px;
+    font-size: 12px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--oix-msg-error-border);
+    color: var(--oix-msg-error-text);
+    background: var(--oix-msg-error-bg);
+}
+.oc .cdn-ver-hint.show {
+    display: flex;
+}
+.oc .cdn-ver-hint svg {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    display: block;
+}
+.oc .cdn-ver-hint span {
+    flex: unset;
+    text-align: center;
+    display: inline-block;
+    line-height: 1.5;
+    vertical-align: middle;
+}
+
+[data-darkmode=true] .oc .cdn-ver-hint svg {
+    stroke: var(--oix-msg-error-text);
+}
+
+.oc .cdn-row,
+.oc .cdn-header {
+    display: grid;
+    grid-template-columns: 1fr 70px 120px 120px;
+    gap: 8px;
+    align-items: center;
+}
+.oc .cdn-row span {
+    word-break: normal !important;
+}
+.oc .cdn-row-url {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+}
+.oc .cdn-status {
+    text-align: center;
+    font-size: 12px;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    font-variant-numeric: tabular-nums;
+    box-sizing: border-box;
+    justify-self: center;
+}
+.oc .cdn-status.fast { color: var(--success-color); background: var(--success-a10); }
+.oc .cdn-status.medium { color: var(--tip-color); background: var(--warning-a10); }
+.oc .cdn-status.slow { color: var(--error-color); background: var(--error-a10); }
+.oc .cdn-status.err { color: var(--error-color); background: var(--error-a12); }
+.oc .cdn-row .cdn-ver-text {
+    font-size: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 2px 4px;
+    border-radius: var(--radius-sm);
+    box-sizing: border-box;
+    justify-self: center;
+}
+.oc .cdn-row .cdn-ver-text.cdn-plugin.has-data {
+    background: var(--primary-a20);
+    color: var(--primary-color);
+}
+.oc .cdn-row .cdn-ver-text.cdn-core.has-data {
+    background: var(--accent-a15);
+    color: var(--accent-color);
+}
+.oc .cdn-row .cdn-ver-text.has-data.err {
+    background: var(--error-a12);
+    color: var(--error-color);
+}
+.oc .cdn-header {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 6px 16px;
+    border-bottom: 2px solid var(--border-light);
+    cursor: default;
+    background: var(--bg-gray);
+}
+.oc .cdn-header-label {
+    text-align: center;
+    padding: 0 4px;
+    box-sizing: border-box;
+    justify-self: center;
+}
+
+/* Dark mode */
+[data-darkmode=true] .oc .cdn-ver-value {
+    background: var(--bg-white);
+    border-color: var(--border-light);
+    color: var(--text-primary);
+}
+[data-darkmode=true] .oc .cdn-header {
+    background: var(--bg-gray);
+    color: var(--text-muted);
+    border-bottom-color: var(--border-light);
 }
 
 html[data-darkmode=true] .oc .select-popup {
@@ -6041,13 +6212,10 @@ html[data-darkmode=true] .oc .select-class option {
     color: var(--text-primary) !important;
 }
 
-html[data-darkmode=true] .oc .config-item::after {
-    border-top-color: var(--text-secondary);
-}
+
 
 html[data-darkmode=true] .oc .custom-option-input {
     background: var(--bg-white);
-    border-color: var(--border-light);
     color: var(--text-primary);
 }
 
@@ -6194,8 +6362,11 @@ html[data-darkmode=true] .oc .close-btn:hover {
 
     /* select_git_cdn.htm */
     .oc .config-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
         gap: 12px;
+    }
+    .oc .config-grid > .config-item:first-child {
+        grid-column: 1 / -1;
     }
     .oc .config-item {
         width: 100%;
@@ -6522,25 +6693,29 @@ html[data-darkmode=true] .oc .close-btn:hover {
     .oc .select-popup {
         min-width: 80%;
         width: 80%;
-        padding: 15px;
+        padding: 12px;
         max-height: 90vh;
         overflow-y: auto;
     }
     .oc .config-grid {
-        grid-template-columns: 1fr;
-        gap: 12px;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+    }
+    .oc .config-grid > .config-item:first-child {
+        grid-column: 1 / -1;
     }
     .oc .config-item {
         text-align: center;
+        gap: 8px;
     }
     .oc .select-popup-header {
         font-size: 16px;
-        margin-bottom: 16px;
-        padding-bottom: 12px;
+        margin-bottom: 12px;
+        padding-bottom: 10px;
     }
     .oc .select-config-section {
-        padding: 12px;
-        margin-bottom: 16px;
+        padding: 10px;
+        margin-bottom: 10px;
     }
     .oc .select-popup-body {
         max-height: 200px;
@@ -6551,9 +6726,24 @@ html[data-darkmode=true] .oc .close-btn:hover {
         align-items: flex-start;
         gap: 4px;
     }
-    .oc .custom-option-input {
+    .oc .custom-option-input,
+    .oc #addCustomOption {
         font-size: 13px;
-        padding: 10px;
+        padding: 10px 12px;
+        margin: 8px 0;
+    }
+    .oc .cdn-version-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+    .oc .cdn-version-card { margin-bottom: 6px; }
+    .oc #cdn-list-body {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .oc .cdn-row,
+    .oc .cdn-header,
+    .oc #customOptionInput,
+    .oc #addCustomOption,
+    .oc #custom-cdn-option {
+        min-width: 520px;
     }
 }
 
@@ -6597,9 +6787,13 @@ html[data-darkmode=true] .oc .close-btn:hover {
     }
 
     .oc .version-display {
-        max-width: 100px;
+        max-width: 120px;
         font-size: 9px;
         padding: 1px 4px;
+    }
+    .oc .version-display svg {
+        width: 9px;
+        height: 9px;
     }
 
     .oc .dashboard-btn {
@@ -6909,32 +7103,40 @@ html[data-darkmode=true] .oc .close-btn:hover {
     .oc .select-popup {
         min-width: 80%;
         width: 80%;
-        padding: 12px;
-    }
-    .oc .select-popup-header {
-        font-size: 15px;
-        margin-bottom: 12px;
-    }
-    .oc .select-config-section {
         padding: 10px;
     }
-    .oc .config-label {
+    .oc .select-popup-header {
+        font-size: 14px;
+        margin-bottom: 8px;
+    }
+    .oc .select-config-section {
+        padding: 8px;
+    }
+    .oc .oc-option-title {
         font-size: 12px;
+    }
+    .oc .oc-option-title::after {
+        bottom: -3px;
     }
     .oc .select-class {
         font-size: 12px;
         padding: 6px 28px 6px 10px;
     }
-    .oc .config-item::after {
-        right: 10px;
-        border-left: 3px solid transparent;
-        border-right: 3px solid transparent;
-        border-top: 3px solid var(--text-secondary);
-    }
     .oc .select-option {
         padding: 8px 10px;
         font-size: 12px;
     }
+    .oc .custom-option-input,
+    .oc #addCustomOption {
+        font-size: 12px;
+        padding: 8px 10px;
+        margin: 6px 0;
+    }
+    .oc .config-grid { grid-template-columns: 1fr 1fr; }
+    .oc .config-grid > .config-item:first-child { grid-column: 1 / -1; }
+    .oc .cdn-version-row { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .oc .cdn-version-card { margin-bottom: 4px; }
+    .oc .config-item { gap: 6px; }
 }
 
 /* ---- config_upload.htm ---- */

@@ -122,6 +122,9 @@ define Package/$(PKG_NAME)/postrm
 	rm -rf /tmp/openclash_announcement >/dev/null 2>&1
 	rm -rf /www/luci-static/resources/openclash >/dev/null 2>&1
 	rm -rf /tmp/oix* >/dev/null 2>&1
+	rm -rf /tmp/openclash_oix_version.json >/dev/null 2>&1
+	rm -rf /tmp/openclash_version_history_* >/dev/null 2>&1
+	rm -rf /tmp/openclash_cdn_info_* >/dev/null 2>&1
 	sed -i '/OpenClash Append/,/OpenClash Append End/d' "/usr/lib/lua/luci/model/network.lua" >/dev/null 2>&1
 	sed -i '/.*kB maximum content size*/c\HTTP_MAX_CONTENT      = 1024*100		-- 100 kB maximum content size' /usr/lib/lua/luci/http.lua >/dev/null 2>&1
 	sed -i '/.*kB maximum content size*/c\export let HTTP_MAX_CONTENT = 1024*100;		// 100 kB maximum content size' /usr/share/ucode/luci/http.uc >/dev/null 2>&1

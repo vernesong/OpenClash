@@ -43,6 +43,9 @@ OP_LV=$(sed -n 1p "$DOWNLOAD_FILE" 2>/dev/null |sed "s/^v//g" |tr -d "\n")
 github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
 if [ -n "$1" ]; then
    github_address_mod="$1"
+   if echo "$github_address_mod" | grep -q "raw\.githubusercontent\.com"; then
+      github_address_mod=0
+   fi
 fi
 
 if [ "$github_address_mod" != "0" ]; then

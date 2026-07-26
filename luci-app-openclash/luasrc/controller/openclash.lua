@@ -87,6 +87,8 @@ function index()
 	entry({"admin", "services", "openclash", "log"},cbi("openclash/log"),_("Server Logs"), 90).leaf = true
 	entry({"admin", "services", "openclash", "myip_check"}, call("action_myip_check"))
 	entry({"admin", "services", "openclash", "website_check"}, call("action_website_check"))
+	entry({"admin", "services", "openclash", "version_history"}, call("action_version_history"))
+	entry({"admin", "services", "openclash", "cdn_info"}, call("action_cdn_info"))
 	entry({"admin", "services", "openclash", "proxy_info"}, call("action_proxy_info"))
 	entry({"admin", "services", "openclash", "oc_settings"}, call("action_oc_settings"))
 	entry({"admin", "services", "openclash", "switch_oc_setting"}, call("action_switch_oc_setting"))
@@ -354,6 +356,137 @@ local function smart_enable()
 	return fs.uci_get_config("config", "smart_enable") or "0"
 end
 
+local function is_oix()
+	local token = fs.uci_get_config("config", "oix_token")
+	return token ~= nil and token ~= ""
+end
+
+local function prepare_oix_cdn_data()
+	if not is_oix() then
+		return false, "", ""
+	end
+
+	local cache_file = "/tmp/openclash_oix_version.json"
+	if fs.access(cache_file) then
+		local cached = fs.readfile(cache_file)
+		if cached then
+			local ok, parsed = pcall(json.parse, cached)
+			if ok and parsed and parsed._cached_at then
+				local ttl = parsed._cache_ttl or 300
+				if (os.time() - parsed._cached_at) < ttl then
+					if parsed.error then
+						return true, "", parsed.error
+					end
+					return true, parsed.ver or "", ""
+				end
+			end
+		end
+	end
+
+	local function _fork_oix_version(url, is_json)
+		local fdi, fdo = nixio.pipe()
+		if not fdi or not fdo then return nil end
+		local child = nixio.fork()
+		if child > 0 then
+			fdo:close()
+			return {pid = child, fdi = fdi, buf = "", is_json = is_json}
+		elseif child == 0 then
+			nixio.dup(fdo, nixio.stdout)
+			fdi:close()
+			fdo:close()
+			local cmd
+			if is_json then
+				cmd = string.format('curl -sL -m 5 --connect-timeout 3 --retry 2 -w "\\nHTTP_CODE:%%{http_code}" "%s" 2>/dev/null', url)
+			else
+				cmd = string.format('curl -sL -m 5 --connect-timeout 3 --retry 2 "%s" 2>/dev/null', url)
+			end
+			nixio.exec("/bin/sh", "-c", cmd)
+		else
+			if fdi then fdi:close() end
+			if fdo then fdo:close() end
+			return nil
+		end
+	end
+
+	local jobs = {}
+	local gh_job = _fork_oix_version("https://api.github.com/repos/vernesong/mihomo-oix/releases/tags/Pre-Alpha", true)
+	if gh_job then jobs[#jobs + 1] = gh_job end
+	local dl_job = _fork_oix_version("https://dl.dler.io/mihomo-oix/version.txt?tag=Pre-Alpha", false)
+	if dl_job then jobs[#jobs + 1] = dl_job end
+
+	if #jobs == 0 then
+		return true, "", "error"
+	end
+
+	local ver = ""
+	local gh_http_code = ""
+	local delay = 50000000
+	local max_wait = 40
+	for _ = 1, max_wait do
+		for _, job in ipairs(jobs) do
+			if not job.done then
+				local buf = job.fdi:read(4096)
+				if buf then job.buf = job.buf .. buf end
+				if nixio.waitpid(job.pid, "nohang") then
+					pcall(job.fdi.close, job.fdi)
+					job.done = true
+				end
+			end
+		end
+		for _, job in ipairs(jobs) do
+			if job.done and job.buf ~= "" and ver == "" then
+				if job.is_json then
+					gh_http_code = job.buf:match("HTTP_CODE:(%d+)") or ""
+					local raw = job.buf:gsub("\nHTTP_CODE:%d+", "")
+					if raw:match('"rate limit"') or raw:match('API rate limit') or gh_http_code == "403" or gh_http_code == "429" then
+						-- Rate limited
+						for _, j in ipairs(jobs) do
+							if not j.done then
+								pcall(j.fdi.close, j.fdi)
+								nixio.kill(j.pid, 9)
+							end
+						end
+						fs.writefile(cache_file, json.stringify({ ver = "", error = "rate_limit", _cache_ttl = 60, _cached_at = os.time() }))
+						return true, "", "rate_limit"
+					end
+					ver = SYS.exec('echo \'' .. raw:gsub("'", "'\\''") .. '\' | jsonfilter -e \'@.tag_name\' 2>/dev/null | tr -d "\n\r"')
+				else
+					ver = job.buf:gsub("^%s+", ""):gsub("%s+$", ""):gsub("\n", ""):gsub("\r", "")
+				end
+			end
+		end
+		if ver ~= "" then
+			for _, job in ipairs(jobs) do
+				if not job.done then
+					pcall(job.fdi.close, job.fdi)
+					nixio.kill(job.pid, 9)
+				end
+			end
+			fs.writefile(cache_file, json.stringify({ ver = ver, _cache_ttl = 300, _cached_at = os.time() }))
+			return true, ver, ""
+		end
+		local all_done = true
+		for _, job in ipairs(jobs) do
+			if not job.done then all_done = false; break end
+		end
+		if all_done then break end
+		nixio.nanosleep(0, delay)
+		delay = math.min(delay * 2, 200000000)
+	end
+
+	for _, job in ipairs(jobs) do
+		if not job.done then
+			pcall(job.fdi.close, job.fdi)
+			nixio.kill(job.pid, 9)
+		end
+	end
+
+	local err_type = "error"
+	local cache_ttl = 5
+	fs.writefile(cache_file, json.stringify({ ver = "", error = err_type, _cache_ttl = cache_ttl, _cached_at = os.time() }))
+	return true, "", err_type
+end
+
 local function save_corever_branch()
 	if HTTP.formvalue("core_ver") then
 		uci:set("openclash", "config", "core_version", HTTP.formvalue("core_ver"))
@@ -385,10 +518,15 @@ end
 
 function core_download()
 	local cdn_url = HTTP.formvalue("url")
-	if cdn_url then
-		SYS.call(string.format("bash /usr/share/openclash/openclash_core.sh 'Meta' '%s' >/dev/null 2>&1 &", cdn_url))
+	local download_url = HTTP.formvalue("download_url")
+	local core_type = is_oix() and "Oix" or "Meta"
+
+	if download_url and download_url ~= "" then
+		SYS.call(string.format("bash /usr/share/openclash/openclash_core.sh '%s' '%s' >/dev/null 2>&1 &", core_type, download_url))
+	elseif cdn_url and cdn_url ~= "" then
+		SYS.call(string.format("bash /usr/share/openclash/openclash_core.sh '%s' '%s' >/dev/null 2>&1 &", core_type, cdn_url))
 	else
-		SYS.call("bash /usr/share/openclash/openclash_core.sh 'Meta' >/dev/null 2>&1 &")
+		SYS.call(string.format("bash /usr/share/openclash/openclash_core.sh '%s' >/dev/null 2>&1 &", core_type))
 	end
 
 end
@@ -483,7 +621,15 @@ end
 
 function action_one_key_update()
 	local cdn_url = HTTP.formvalue("url")
-	if cdn_url then
+	local download_url = HTTP.formvalue("download_url")
+	local version = HTTP.formvalue("version")
+	local sha = HTTP.formvalue("sha")
+
+	if download_url and download_url ~= "" then
+		-- Full download URL: pass as $3 to the update script
+		return SYS.call(string.format("bash /usr/share/openclash/openclash_update.sh 'one_key_update' '%s' '%s' >/dev/null 2>&1 &",
+			cdn_url or "", download_url))
+	elseif cdn_url and cdn_url ~= "" then
 		return SYS.call(string.format("bash /usr/share/openclash/openclash_update.sh 'one_key_update' '%s' >/dev/null 2>&1 &", cdn_url))
 	else
 		return SYS.call("bash /usr/share/openclash/openclash_update.sh 'one_key_update' >/dev/null 2>&1 &")
@@ -943,7 +1089,8 @@ function sub_info_get()
 
 				if #jobs > 0 then
 					local done_count = 0
-					local max_wait = 120
+					local delay = 50000000
+					local max_wait = 40
 					for _ = 1, max_wait do
 						for _, job in ipairs(jobs) do
 							if not job.done then
@@ -957,7 +1104,8 @@ function sub_info_get()
 							end
 						end
 						if done_count >= #jobs then break end
-						nixio.nanosleep(0, 10000000)
+						nixio.nanosleep(0, delay)
+						delay = math.min(delay * 2, 200000000)
 					end
 					for _, job in ipairs(jobs) do
 						if not job.done then
@@ -1214,7 +1362,8 @@ function action_toolbar_show()
 
 		if t_job and c_job then
 			local t_done, c_done = false, false
-			local max_wait = 60
+			local delay = 50000000
+			local max_wait = 40
 			for _ = 1, max_wait do
 				if not t_done then
 					local buf = t_job.fdi:read(4096)
@@ -1233,7 +1382,8 @@ function action_toolbar_show()
 					end
 				end
 				if t_done and c_done then break end
-				nixio.nanosleep(0, 10000000)
+				nixio.nanosleep(0, delay)
+				delay = math.min(delay * 2, 200000000)
 			end
 			if not t_done then
 				pcall(t_job.fdi.close, t_job.fdi)
@@ -1561,7 +1711,8 @@ function action_update_info()
 	HTTP.write_json({
 		corever = corever(),
 		release_branch = release_branch(),
-		smart_enable = smart_enable();
+		smart_enable = smart_enable(),
+		oix_core = is_oix()
 	})
 end
 
@@ -1570,7 +1721,7 @@ function action_update_ma()
 	HTTP.write_json({
 		oplv = oplv(),
 		pkg_type = fs.pkg_type(),
-		oix_core = fs.uci_get_config("config", "oix_token") ~= "",
+		oix_core = is_oix(),
 		corelv = corelv(),
 		corever = corever();
 	})
@@ -1809,18 +1960,8 @@ function action_gen_debug_logs()
 		return
 	end
 	HTTP.prepare_content("text/plain; charset=utf-8")
-	local file=io.open(logfile, "r+")
-	file:seek("set")
-	local info = ""
-	for line in file:lines() do
-		if info ~= "" then
-			info = info.."\n"..line
-		else
-			info = line
-		end
-	end
-	file:close()
-	HTTP.write(info)
+	local reader = ltn12_popen("cat '" .. logfile .. "'")
+	luci.ltn12.pump.all(reader, HTTP.write)
 end
 
 function action_get_debug_logs()
@@ -1829,7 +1970,8 @@ function action_get_debug_logs()
 		return
 	end
 	HTTP.prepare_content("text/plain; charset=utf-8")
-	HTTP.write(fs.readfile(logfile) or "")
+	local reader = ltn12_popen("cat '" .. logfile .. "'")
+	luci.ltn12.pump.all(reader, HTTP.write)
 end
 
 function action_backup()
@@ -2279,7 +2421,7 @@ function action_myip_check()
 
 	local max_iterations = 140
 	local iteration = 0
-	local delay = 10000000  -- 10ms initial
+	local delay = 50000000
 	local completed = {}
 
 	while iteration < max_iterations do
@@ -2331,7 +2473,7 @@ function action_myip_check()
 		end
 
 		nixio.nanosleep(0, delay)
-		delay = math.min(delay * 2, 100000000)  -- grow to 100ms max
+		delay = math.min(delay * 2, 200000000)
 	end
 
 	for name, info in pairs(queries) do
@@ -2382,72 +2524,141 @@ function latency_test(addr)
 	end
 
 	local urls = {}
-	if addr == "raw.githubusercontent.com" then
-		table.insert(urls, "https://raw.githubusercontent.com/vernesong/OpenClash/dev/img/logo.png")
-	elseif addr:match("jsdelivr%.net$") then
-		table.insert(urls, "https://" .. addr .. "/gh/vernesong/OpenClash@dev/img/logo.png")
-	else
-		table.insert(urls, "https://" .. addr .. "/favicon.ico")
-	end
-
+	table.insert(urls, "https://" .. addr .. "/favicon.ico")
 	table.insert(urls, "https://" .. addr)
 
-	for i, test_url in ipairs(urls) do
-		local cmd = string.format(
-			'curl -sI -m 5 --connect-timeout 3 --retry 2 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" "%s" -o /dev/null 2>/dev/null',
-			test_url
-		)
-
-		local output = SYS.exec(cmd)
-		if output and output ~= "" then
-			local http_code, time_total, time_connect, time_appconnect =
-				output:match("(%d+),([%d%.]+),([%d%.]+),([%d%.]+)")
-
-			if not http_code then
-				http_code, time_total, time_appconnect = output:match("(%d+),([%d%.]+),([%d%.]+)")
-				time_connect = nil
-			end
-
-			if http_code and tonumber(http_code) then
-				local code = tonumber(http_code)
-				local response_time = 0
-
-				if time_appconnect and tonumber(time_appconnect) and tonumber(time_appconnect) > 0 then
-					response_time = math.floor(tonumber(time_appconnect) * 1000)
-				elseif time_connect and tonumber(time_connect) and tonumber(time_connect) > 0 then
-					response_time = math.floor(tonumber(time_connect) * 1000)
-				else
-					response_time = math.floor((tonumber(time_total) or 0) * 1000)
-				end
-
-				if (code >= 200 and code < 400) or code == 403 or code == 404 then
-					result.success = true
-					result.response_time = response_time
-					return result
-				else
-					if i == #urls then
-						result.success = false
-						result.error = "HTTP " .. code
-						result.response_time = response_time
-						return result
-					end
-				end
+	local queries = {}
+	for _, test_url in ipairs(urls) do
+		local fdi, fdo = nixio.pipe()
+		if fdi and fdo then
+			local pid = nixio.fork()
+			if pid > 0 then
+				fdo:close()
+				table.insert(queries, { pid = pid, fdi = fdi, data = "" })
+			elseif pid == 0 then
+				nixio.dup(fdo, nixio.stdout)
+				fdi:close()
+				fdo:close()
+				local cmd = string.format(
+					'curl -sI -m 5 --connect-timeout 3 --retry 2 -w "%%{http_code},%%{time_total},%%{time_connect},%%{time_appconnect}" "%s" -o /dev/null 2>/dev/null',
+					test_url
+				)
+				nixio.exec("/bin/sh", "-c", cmd)
 			else
-				if i == #urls then
-					result.success = false
-					result.error = "Invalid response"
-					return result
-				end
-			end
-		else
-			if i == #urls then
-				result.success = false
-				result.error = "No response"
-				return result
+				if fdi then fdi:close() end
+				if fdo then fdo:close() end
 			end
 		end
 	end
 
+	local function parse_output(data)
+		if not data or data == "" then
+			return nil, "No response"
+		end
+		local http_code, time_total, time_connect, time_appconnect =
+			data:match("(%d+),([%d%.]+),([%d%.]+),([%d%.]+)")
+		if not http_code then
+			http_code, time_total, time_appconnect = data:match("(%d+),([%d%.]+),([%d%.]+)")
+		end
+		if http_code and tonumber(http_code) then
+			local code = tonumber(http_code)
+			local rt = 0
+			if time_appconnect and tonumber(time_appconnect) > 0 then
+				rt = math.floor(tonumber(time_appconnect) * 1000)
+			elseif time_connect and tonumber(time_connect) > 0 then
+				rt = math.floor(tonumber(time_connect) * 1000)
+			else
+				rt = math.floor((tonumber(time_total) or 0) * 1000)
+			end
+			if (code >= 200 and code < 400) or code == 403 or code == 404 then
+				return rt, nil
+			else
+				return rt, "HTTP " .. code
+			end
+		end
+		return nil, "Invalid response"
+	end
+
+	local completed = {}
+	local delay = 50000000
+	local max_iter = 140
+	local iter = 0
+	local first_success = nil
+	local last_failure = { response_time = 0, error = "No response" }
+
+	while iter < max_iter do
+		iter = iter + 1
+		for i, q in ipairs(queries) do
+			if not completed[i] then
+				local buf = q.fdi:read(4096)
+				if buf then q.data = q.data .. buf end
+				local wpid = nixio.waitpid(q.pid, "nohang")
+				if wpid then
+					pcall(q.fdi.close, q.fdi)
+					completed[i] = true
+					local rt, err = parse_output(q.data)
+					if rt and not err then
+						if not first_success then
+							first_success = rt
+						end
+					else
+						last_failure.response_time = rt or 0
+						last_failure.error = err or "No response"
+					end
+				else
+					local alive = SYS.call(string.format("kill -0 %d 2>/dev/null", q.pid)) == 0
+					if not alive then
+						pcall(q.fdi.close, q.fdi)
+						completed[i] = true
+						local rt, err = parse_output(q.data)
+						if rt and not err then
+							if not first_success then
+								first_success = rt
+							end
+						else
+							last_failure.response_time = rt or 0
+							last_failure.error = err or "No response"
+						end
+					end
+				end
+			end
+		end
+
+		if first_success then
+			for i, q in ipairs(queries) do
+				if not completed[i] then
+					pcall(nixio.kill, q.pid, nixio.const.SIGTERM)
+					pcall(nixio.waitpid, q.pid, 0)
+					pcall(q.fdi.close, q.fdi)
+				end
+			end
+			result.success = true
+			result.response_time = first_success
+			result.error = ""
+			return result
+		end
+
+		local remaining = 0
+		for i, _ in ipairs(queries) do
+			if not completed[i] then remaining = remaining + 1 end
+		end
+		if remaining == 0 then break end
+
+		nixio.nanosleep(0, delay)
+		delay = math.min(delay * 2, 200000000)
+	end
+
+	for i, q in ipairs(queries) do
+		if not completed[i] then
+			pcall(nixio.kill, q.pid, nixio.const.SIGTERM)
+			pcall(nixio.waitpid, q.pid, 0)
+			pcall(q.fdi.close, q.fdi)
+		end
+	end
+
+	result.success = false
+	result.response_time = last_failure.response_time
+	result.error = last_failure.error
 	return result
 end
 
@@ -2470,13 +2681,361 @@ function action_website_check()
 	HTTP.write_json(result)
 end
 
+function action_version_history()
+	local branch = HTTP.formvalue("branch") or "master"
+	local result = { plugin = {}, core_meta = {}, core_smart = {}, error = nil }
+	local skip_core = is_oix()
+
+	-- Read TTL, invalidate if settings changed
+	local cache_file = "/tmp/openclash_version_history_" .. branch .. ".json"
+	local cur_oix = is_oix()
+	if fs.access(cache_file) then
+		local cached = fs.readfile(cache_file)
+		if cached then
+			local ok, parsed = pcall(json.parse, cached)
+			if ok and parsed and parsed._cached_at and parsed._oix == cur_oix then
+				local ttl = parsed._cache_ttl or 300
+				if (os.time() - parsed._cached_at) < ttl then
+					HTTP.prepare_content("application/json")
+					HTTP.write(cached)
+					return
+				end
+			end
+		end
+	end
+
+	-- Fetch plugin version history
+	local plugin_raw = SYS.exec(
+		'curl -sL -m 10 -w "\\nHTTP_CODE:%{http_code}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/vernesong/OpenClash/commits?path=' .. branch .. '/version&sha=package&per_page=5" 2>/dev/null'
+	)
+	local plugin_http_code = ""
+	if plugin_raw and plugin_raw ~= "" then
+		plugin_http_code = plugin_raw:match("HTTP_CODE:(%d+)") or ""
+		plugin_raw = plugin_raw:gsub("\nHTTP_CODE:%d+", "")
+	end
+	if plugin_raw and plugin_raw ~= "" and plugin_raw:match('"sha"') then
+		local ok, plugin_commits = pcall(json.parse, plugin_raw)
+		if ok and type(plugin_commits) == "table" then
+			for _, c in ipairs(plugin_commits) do
+				if c.sha and c.commit and c.commit.message then
+					local ver = c.commit.message:match("v([%d%.]+%-?%w*)")
+					local date = c.commit.committer and c.commit.committer.date or ""
+					table.insert(result.plugin, {
+						version = ver and ("v" .. ver) or nil,
+						date = date,
+						sha = c.sha,
+						message = c.commit.message
+					})
+				end
+			end
+		end
+	end
+
+	if not skip_core then
+		local core_raw = SYS.exec(
+			'curl -sL -m 10 -w "\\nHTTP_CODE:%{http_code}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/vernesong/OpenClash/commits?path=' .. branch .. '/core_version&sha=core&per_page=5" 2>/dev/null'
+		)
+		if core_raw and core_raw ~= "" then
+			core_raw = core_raw:gsub("\nHTTP_CODE:%d+", "")
+		end
+		if core_raw and core_raw ~= "" and core_raw:match('"sha"') then
+			local ok, core_commits = pcall(json.parse, core_raw)
+			if ok and type(core_commits) == "table" then
+				for _, c in ipairs(core_commits) do
+					if c.sha and c.commit and c.commit.message then
+						local meta_ver = c.commit.message:match("Meta to (alpha%-g%w+)")
+						local smart_ver = c.commit.message:match("Smart to (alpha%-smart%-g%w+)")
+						local date = c.commit.committer and c.commit.committer.date or ""
+						if meta_ver then
+							table.insert(result.core_meta, { version = meta_ver, date = date, sha = c.sha })
+						end
+						if smart_ver then
+							table.insert(result.core_smart, { version = smart_ver, date = date, sha = c.sha })
+						end
+					end
+				end
+			end
+		end
+	end
+
+	-- error type and cache TTL
+	local cache_ttl = 300
+	if #result.plugin == 0 then
+		if not plugin_raw or plugin_raw == "" then
+			result.error = "network_error"
+			cache_ttl = 5
+		elseif plugin_raw:match('"rate limit"') or plugin_raw:match('API rate limit') or plugin_http_code == "403" or plugin_http_code == "429" then
+			result.error = "rate_limit"
+			cache_ttl = 60
+		else
+			result.error = "parse_error"
+			cache_ttl = 5
+		end
+	end
+
+	result._cache_ttl = cache_ttl
+	result._cached_at = os.time()
+	result._oix = cur_oix
+	fs.writefile(cache_file, json.stringify(result))
+
+	HTTP.prepare_content("application/json")
+	HTTP.write_json(result)
+end
+
+function action_cdn_info()
+	HTTP.prepare_content("application/json")
+	local cdns_raw = HTTP.formvalue("cdns")
+	local branch = HTTP.formvalue("branch") or "dev"
+	local plugin_ver = HTTP.formvalue("plugin_ver") or ""
+	local core_ver = HTTP.formvalue("core_ver") or ""
+
+	if not cdns_raw or cdns_raw == "" then
+		HTTP.write_json({ error = "Missing cdns parameter" })
+		return
+	end
+
+	local cdns = {}
+	for c in cdns_raw:gmatch("[^,]+") do
+		if c ~= "" then table.insert(cdns, c) end
+	end
+
+	if #cdns == 0 then
+		HTTP.write_json({ error = "No valid CDNs" })
+		return
+	end
+
+	-- Read cache (skip if forced refresh)
+	local force = HTTP.formvalue("force") == "1"
+	local cache_key = branch .. "_" .. (plugin_ver ~= "" and plugin_ver ~= "__latest__" and plugin_ver or "latest") .. "_" .. (core_ver ~= "" and core_ver ~= "__latest__" and core_ver or "latest")
+	local cache_file = "/tmp/openclash_cdn_info_" .. cache_key .. ".json"
+	if not force and fs.access(cache_file) then
+		local cached = fs.readfile(cache_file)
+		if cached then
+			local ok, parsed = pcall(json.parse, cached)
+			if ok and parsed and parsed._cached_at then
+				local ttl = parsed._cache_ttl or 300
+				if (os.time() - parsed._cached_at) < ttl then
+					HTTP.write_json(parsed.result)
+					return
+				end
+			end
+		end
+	end
+
+	local function classify_cdn(url)
+		if not url or url == "" then return "raw" end
+		if url:match("raw%.githubusercontent%.com") then return "raw" end
+		if url:match("jsdelivr") or url:match("fastly") or url:match("testingcf") then return "jsdelivr" end
+		if url:match("dl%.dler%.io") then return "dler" end
+		return "proxy"
+	end
+
+	local function build_version_url(cdn, file_type)
+		if file_type == "core" and is_oix() then
+			local oix_url = "https://api.github.com/repos/vernesong/mihomo-oix/releases/tags/Pre-Alpha"
+			local ctype = classify_cdn(cdn)
+			if ctype == "dler" then
+				return "https://dl.dler.io/mihomo-oix/version.txt?tag=Pre-Alpha"
+			elseif ctype == "proxy" then
+				return cdn .. oix_url
+			end
+			return oix_url
+		end
+
+		local file = file_type == "plugin" and "dev/version" or "dev/core_version"
+		local ref
+		if file_type == "plugin" then
+			ref = (plugin_ver ~= "" and plugin_ver ~= "__latest__") and plugin_ver or "package"
+		else
+			ref = (core_ver ~= "" and core_ver ~= "__latest__") and core_ver or "core"
+		end
+		local ctype = classify_cdn(cdn)
+
+		if ctype == "raw" then
+			return "https://raw.githubusercontent.com/vernesong/OpenClash/" .. ref .. "/" .. file
+		elseif ctype == "jsdelivr" then
+			return cdn .. "gh/vernesong/OpenClash@" .. ref .. "/" .. file
+		else
+			return cdn .. "https://raw.githubusercontent.com/vernesong/OpenClash/" .. ref .. "/" .. file
+		end
+	end
+
+	local queries = {}
+	local result = {}
+
+	local oix_mode, oix_core_ver, oix_core_error = prepare_oix_cdn_data()
+
+	for _, cdn in ipairs(cdns) do
+		local fdi, fdo = nixio.pipe()
+		if fdi and fdo then
+			local pid = nixio.fork()
+			if pid > 0 then
+				fdo:close()
+				queries[cdn] = { pid = pid, fdi = fdi, data = "" }
+			elseif pid == 0 then
+				nixio.dup(fdo, nixio.stdout)
+				fdi:close()
+				fdo:close()
+
+				local plugin_url = build_version_url(cdn, "plugin")
+				local core_url = build_version_url(cdn, "core")
+
+				local cmd = string.format([[
+PLUGIN_VER=""
+CORE_META_VER="%s"
+CORE_SMART_VER=""
+CORE_ERR="%s"
+OIX_MODE="%s"
+LATENCY="null"
+
+# Fetch plugin version + measure latency
+PLUGIN_RAW=$(curl -sL -m 5 --connect-timeout 3 --retry 2 -w $'\n%%{http_code} %%{time_starttransfer}' "%s" 2>/dev/null)
+P_EXIT=$?
+if [ $P_EXIT -eq 0 ] && [ -n "$PLUGIN_RAW" ]; then
+	P_CODE=$(echo "$PLUGIN_RAW" | tail -1 | awk '{print $1}')
+	P_TIME=$(echo "$PLUGIN_RAW" | tail -1 | awk '{printf "%%d", $2 * 1000}')
+	PLUGIN_VER=$(echo "$PLUGIN_RAW" | sed '$d' | head -1 | tr -d '\n\r')
+	if [ "$P_CODE" -ge 200 ] 2>/dev/null && [ "$P_CODE" -lt 400 ] 2>/dev/null && [ "$P_TIME" -gt 0 ] 2>/dev/null; then
+		LATENCY=$P_TIME
+	fi
+elif [ $P_EXIT -ne 0 ]; then
+	LATENCY=-1
+else
+	LATENCY=-2
+fi
+
+# Fetch core version + measure latency (skip if Oix: pre-fetched or in Oix mode)
+if [ -z "$CORE_META_VER" ] && [ "$OIX_MODE" != "1" ]; then
+	CORE_RAW=$(curl -sL -m 5 --connect-timeout 3 --retry 2 -w $'\n%%{http_code} %%{time_starttransfer}' "%s" 2>/dev/null)
+	C_EXIT=$?
+	if [ $C_EXIT -eq 0 ] && [ -n "$CORE_RAW" ]; then
+		C_CODE=$(echo "$CORE_RAW" | tail -1 | awk '{print $1}')
+		C_TIME=$(echo "$CORE_RAW" | tail -1 | awk '{printf "%%d", $2 * 1000}')
+		CORE_META_VER=$(echo "$CORE_RAW" | sed '$d' | sed -n '1p' | tr -d '\n\r')
+		CORE_SMART_VER=$(echo "$CORE_RAW" | sed '$d' | sed -n '2p' | tr -d '\n\r')
+		if [ "$C_CODE" -ge 200 ] 2>/dev/null && [ "$C_CODE" -lt 400 ] 2>/dev/null && [ "$C_TIME" -gt 0 ] 2>/dev/null; then
+			if [ "$LATENCY" = "null" ] || [ "$C_TIME" -lt "$LATENCY" ] 2>/dev/null; then
+				LATENCY=$C_TIME
+			fi
+		elif [ "$LATENCY" != "null" ]; then
+			: # keep plugin latency
+		else
+			LATENCY=-2
+		fi
+	elif [ $C_EXIT -ne 0 ]; then
+		[ "$LATENCY" = "null" ] && LATENCY=-1
+	else
+		[ "$LATENCY" = "null" ] && LATENCY=-2
+	fi
+fi
+
+printf '{"plugin_ver":"%%s","core_meta_ver":"%%s","core_smart_ver":"%%s","latency":%%s,"core_error":"%%s"}\n' \
+	"$PLUGIN_VER" "$CORE_META_VER" "$CORE_SMART_VER" "${LATENCY:-null}" "$CORE_ERR"
+]], oix_core_ver, oix_core_error, oix_mode and "1" or "0", plugin_url, core_url)
+
+				nixio.exec("/bin/sh", "-c", cmd)
+			else
+				if fdi then fdi:close() end
+				if fdo then fdo:close() end
+			end
+		end
+	end
+
+	if next(queries) == nil then
+		HTTP.write_json({ error = "Failed to create queries" })
+		return
+	end
+
+	local completed = {}
+	local delay = 50000000
+	local max_iter = 140
+	local iter = 0
+
+	while iter < max_iter do
+		iter = iter + 1
+		for cdn, q in pairs(queries) do
+			if not completed[cdn] then
+				local buf = q.fdi:read(4096)
+				if buf then q.data = q.data .. buf end
+				local wpid = nixio.waitpid(q.pid, "nohang")
+				if wpid then
+					pcall(q.fdi.close, q.fdi)
+					completed[cdn] = true
+					if q.data and q.data ~= "" then
+						local ok, parsed = pcall(json.parse, q.data)
+						if ok then
+							result[cdn] = parsed
+						end
+					end
+					if not result[cdn] then
+						result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = nil }
+					end
+					queries[cdn] = nil
+				else
+					local alive = SYS.call(string.format("kill -0 %d 2>/dev/null", q.pid)) == 0
+					if not alive then
+						pcall(q.fdi.close, q.fdi)
+						completed[cdn] = true
+						if q.data and q.data ~= "" then
+							local ok, parsed = pcall(json.parse, q.data)
+							if ok then
+								result[cdn] = parsed
+							end
+						end
+						if not result[cdn] then
+							result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = nil }
+						end
+						queries[cdn] = nil
+					end
+				end
+			end
+		end
+
+		local remaining = 0
+		for _ in pairs(queries) do remaining = remaining + 1 end
+		if remaining == 0 then break end
+
+		nixio.nanosleep(0, delay)
+		delay = math.min(delay * 2, 200000000)
+	end
+
+	for cdn, q in pairs(queries) do
+		if not completed[cdn] then
+			result[cdn] = { plugin_ver = "", core_meta_ver = "", latency = nil }
+			pcall(nixio.kill, q.pid, nixio.const.SIGTERM)
+			pcall(nixio.waitpid, q.pid, 0)
+			pcall(q.fdi.close, q.fdi)
+		end
+	end
+
+	-- Determine cache TTL
+	local cache_ttl = 300
+	local has_data = false
+	for _, v in pairs(result) do
+		if (v.plugin_ver and v.plugin_ver ~= "") or (v.core_meta_ver and v.core_meta_ver ~= "") or (v.latency and v.latency > 0) then
+			has_data = true
+			break
+		end
+	end
+	if not has_data then
+		cache_ttl = 5
+	end
+
+	fs.writefile(cache_file, json.stringify({
+		result = result,
+		_cache_ttl = cache_ttl,
+		_cached_at = os.time()
+	}))
+
+	HTTP.write_json(result)
+end
+
 function action_proxy_info(internal)
 	local result = {
 		mixed_port = "",
 		auth_user = "",
 		auth_pass = ""
 	}
-
 
 	local mixed_port = fs.uci_get_config("config", "mixed_port")
 	if mixed_port and mixed_port ~= "" then

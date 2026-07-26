@@ -20,17 +20,26 @@ inc_job_counter
 
 restart=0
 github_address_mod=$(uci_get_config "github_address_mod" || echo 0)
-if [ "$github_address_mod" = "0" ] && [ -z "$(echo $2 2>/dev/null |grep -E 'http|one_key_update')" ] && [ -z "$(echo $3 2>/dev/null |grep 'http')" ]; then
+DIRECT_CORE_URL=""
+if [ -n "$2" ] && echo "$2" | grep -qE '^https?://'; then
+   DIRECT_CORE_URL="$2"
+fi
+if [ "$github_address_mod" = "0" ] && [ -z "$DIRECT_CORE_URL" ] && [ -z "$(echo $2 2>/dev/null |grep -E 'http|one_key_update')" ] && [ -z "$(echo $3 2>/dev/null |grep 'http')" ]; then
    LOG_TIP "If the download fails, try setting the CDN in Overwrite Settings - General Settings - Github Address Modify Options"
 fi
-if [ -n "$3" ] && [ "$2" = "one_key_update" ]; then
-   github_address_mod="$3"
-fi
-if [ -n "$2" ] && [ "$2" = "one_key_update" ] && [ -z "$3" ]; then
-   github_address_mod=0
-fi
-if [ -n "$2" ] && [ "$2" != "one_key_update" ]; then
-   github_address_mod="$2"
+if [ -z "$DIRECT_CORE_URL" ]; then
+   if [ -n "$3" ] && [ "$2" = "one_key_update" ]; then
+      github_address_mod="$3"
+   fi
+   if [ -n "$2" ] && [ "$2" = "one_key_update" ] && [ -z "$3" ]; then
+      github_address_mod=0
+   fi
+   if [ -n "$2" ] && [ "$2" != "one_key_update" ]; then
+      github_address_mod="$2"
+   fi
+   if echo "$github_address_mod" | grep -q "raw\.githubusercontent\.com"; then
+      github_address_mod=0
+   fi
 fi
 CORE_TYPE="$1"
 C_CORE_TYPE=$(uci_get_config "core_type")
@@ -43,16 +52,18 @@ small_flash_memory=$(uci_get_config "small_flash_memory")
 CPU_MODEL=$(uci_get_config "core_version")
 RELEASE_BRANCH=$(uci_get_config "release_branch" || echo "master")
 
-if [ "$github_address_mod" != "0" ]; then
-   /usr/share/openclash/clash_version.sh "$github_address_mod" 2>/dev/null
-else
-   /usr/share/openclash/clash_version.sh 2>/dev/null
-fi
-if [ ! -f "/tmp/clash_last_version" ]; then
-   LOG_ERROR "【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
-   SLOG_CLEAN
-   del_lock
-   exit 0
+if [ -z "$DIRECT_CORE_URL" ]; then
+   if [ "$github_address_mod" != "0" ]; then
+      /usr/share/openclash/clash_version.sh "$github_address_mod" 2>/dev/null
+   else
+      /usr/share/openclash/clash_version.sh 2>/dev/null
+   fi
+   if [ ! -f "/tmp/clash_last_version" ]; then
+      LOG_ERROR "【"$CORE_TYPE"】Core Version Check Error, Please Try Again Later..."
+      SLOG_CLEAN
+      del_lock
+      exit 0
+   fi
 fi
 
 if [ "$small_flash_memory" != "1" ]; then
@@ -83,10 +94,13 @@ fi
 
 [ "$C_CORE_TYPE" != "$CORE_TYPE" ] || [ -z "$C_CORE_TYPE" ] && restart=1
 
-if [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
+if [ -n "$DIRECT_CORE_URL" ] || [ "$CORE_CV" != "$CORE_LV" ] || [ -z "$CORE_CV" ]; then
    if [ "$CPU_MODEL" != 0 ]; then
       LOG_TIP "【$CORE_TYPE】Core Downloading, Please Try to Download and Upload Manually If Fails"
-      if [ "$CORE_TYPE" = "Oix" ]; then
+      # If $2 is a full download URL, use it directly
+      if [ -n "$2" ] && echo "$2" | grep -qE '^https?://'; then
+         DOWNLOAD_URL="$2"
+      elif [ "$CORE_TYPE" = "Oix" ]; then
          OIX_CORE_URL="https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/mihomo-${CPU_MODEL}-${CORE_LV}.gz"
          OIX_CORE_P_URL="https://dl.dler.io/mihomo-oix/mihomo-${CPU_MODEL}-${CORE_LV}.gz?tag=Pre-Alpha"
          if [ "$github_address_mod" != "0" ] && [ "$github_address_mod" != "https://cdn.jsdelivr.net/" ] && [ "$github_address_mod" != "https://fastly.jsdelivr.net/" ] && [ "$github_address_mod" != "https://testingcf.jsdelivr.net/" ]; then

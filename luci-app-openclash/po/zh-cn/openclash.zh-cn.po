@@ -1380,6 +1380,36 @@ msgstr "连接正常"
 msgid "Access Denied"
 msgstr "无法访问"
 
+msgid "Connection Failed"
+msgstr "连接失败"
+
+msgid "Invalid Response"
+msgstr "响应异常"
+
+msgid "Installed"
+msgstr "已安装"
+
+msgid "Select Version"
+msgstr "选择版本"
+
+msgid "Latest"
+msgstr "最新"
+
+msgid "Latency"
+msgstr "延迟"
+
+msgid "Plugin"
+msgstr "插件"
+
+msgid "Core"
+msgstr "内核"
+
+msgid "Date"
+msgstr "日期"
+
+msgid "Failed to get version history"
+msgstr "历史版本获取失败"
+
 msgid "Bind Network Interface"
 msgstr "绑定网络接口"
 
@@ -3566,6 +3596,12 @@ msgstr "到期时间"
 
 msgid "RAW address"
 msgstr "原始地址"
+
+msgid "Address"
+msgstr "地址"
+
+msgid "Timeout"
+msgstr "超时"
 
 msgid "Enter custom User-Agent"
 msgstr "输入自定义 User-Agent"

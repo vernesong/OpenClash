@@ -16,51 +16,102 @@
             <div class="select-config-section">
                 <div class="config-grid">
                     <div class="config-item">
-                        <div class="config-label"><%:Compiled Version%></div>
-                        <select class="select-class oc-arch-select" id="CORE_VERSION_CDN">
-                        </select>
+                        <div class="oc-option-title"><svg><use href="#oc-icon-hammer"/></svg><span class="oc-option-text"><%:Compiled Version%></span></div>
+                        <div class="form-select-wrapper">
+                            <select class="select-class oc-arch-select" id="CORE_VERSION_CDN" onchange="onArchChange()">
+                            </select>
+                        </div>
                     </div>
-
                     <div class="config-item">
-                        <div class="config-label"><%:Release Branch%></div>
-                        <select class="select-class" id="RELEASE_BRANCH_CDN">
-                            <option value="master">Master</option>
-                            <option value="dev">Developer</option>
-                        </select>
+                        <div class="oc-option-title"><svg><use href="#oc-icon-switch"/></svg><span class="oc-option-text"><%:Release Branch%></span></div>
+                        <div class="form-select-wrapper">
+                            <select class="select-class" id="RELEASE_BRANCH_CDN" onchange="onBranchChange()">
+                                <option value="master">Master</option>
+                                <option value="dev">Developer</option>
+                            </select>
+                        </div>
                     </div>
-
                     <div class="config-item">
-                        <div class="config-label">
-                            <%:Smart Core%>
+                        <div class="oc-option-title">
+                            <svg><use href="#oc-icon-brain"/></svg><span class="oc-option-text"><%:Smart Core%></span>
                             <a href="javascript:void(0);" onclick="window.open('https://github.com/vernesong/mihomo/releases', '_blank');" class="help-link" title="<%:View core infos that support smart group%>">
                                 <svg width="12" height="12"><use href="#oc-icon-help"/></svg>
                             </a>
                         </div>
-                        <select class="select-class" id="SMART_ENABLE_CDN">
-                            <option value="0"><%:Disabled%></option>
-                            <option value="1"><%:Enable%></option>
-                        </select>
+                        <div class="form-select-wrapper">
+                            <select class="select-class" id="SMART_ENABLE_CDN" onchange="onSmartChange()">
+                                <option value="0"><%:Disabled%></option>
+                                <option value="1"><%:Enabled%></option>
+                            </select>
+                        </div>
                     </div>
+                </div>
+                <div class="cdn-version-card">
+                    <div class="cdn-version-row">
+                        <div class="config-item">
+                            <span class="oc-option-title"><svg><use href="#oc-icon-package"/></svg><span class="oc-option-text"><%:Installed%></span></span>
+                            <span class="cdn-ver-value" id="installed-plugin">--</span>
+                        </div>
+                        <div class="config-item">
+                            <span class="oc-option-title"><svg><use href="#oc-icon-package"/></svg><span class="oc-option-text"><%:Select Version%></span></span>
+                            <div class="form-select-wrapper">
+                                <select class="select-class" id="select-plugin-ver" onchange="_cdnForceRefresh=true;refreshCDNInfo()">
+                                    <option value="__latest__"><%:Latest%></option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="config-item">
+                            <span class="oc-option-title"><svg><use href="#oc-icon-cpu"/></svg><span class="oc-option-text"><%:Installed%></span></span>
+                            <span class="cdn-ver-value" id="installed-core">--</span>
+                        </div>
+                        <div class="config-item">
+                            <span class="oc-option-title"><svg><use href="#oc-icon-cpu"/></svg><span class="oc-option-text"><%:Select Version%></span></span>
+                            <div class="form-select-wrapper">
+                                <select class="select-class" id="select-core-ver" onchange="_cdnForceRefresh=true;refreshCDNInfo()">
+                                    <option value="__latest__"><%:Latest%></option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cdn-ver-hint" id="version-hint"></div>
                 </div>
             </div>
 
-            <div class="select-popup-body">
-                <div class="select-option" data-value="https://raw.githubusercontent.com/">
-                    <span>https://raw.githubusercontent.com/ (<%:RAW address%>)</span>
+            <div class="select-popup-body" id="cdn-list-body">
+                <div class="select-option cdn-header">
+                    <span class="cdn-header-label"><%:Address%></span>
+                    <span class="cdn-header-label"><%:Latency%></span>
+                    <span class="cdn-header-label"><%:Plugin%></span>
+                    <span class="cdn-header-label"><%:Core%></span>
                 </div>
-                <div class="select-option" data-value="https://fastly.jsdelivr.net/">
-                    <span>https://fastly.jsdelivr.net/</span>
+                <div class="select-option cdn-row" data-value="https://raw.githubusercontent.com/">
+                    <span class="cdn-row-url">https://raw.githubusercontent.com/ (<%:RAW address%>)</span>
+                    <span class="cdn-status">--</span>
+                    <span class="cdn-ver-text cdn-plugin">--</span>
+                    <span class="cdn-ver-text cdn-core">--</span>
                 </div>
-                <div class="select-option" data-value="https://testingcf.jsdelivr.net/">
-                    <span>https://testingcf.jsdelivr.net/</span>
+                <div class="select-option cdn-row" data-value="https://fastly.jsdelivr.net/">
+                    <span class="cdn-row-url">https://fastly.jsdelivr.net/</span>
+                    <span class="cdn-status">--</span>
+                    <span class="cdn-ver-text cdn-plugin">--</span>
+                    <span class="cdn-ver-text cdn-core">--</span>
                 </div>
-                <div class="select-option" data-value="https://cdn.jsdelivr.net/">
-                    <span>https://cdn.jsdelivr.net/</span>
+                <div class="select-option cdn-row" data-value="https://testingcf.jsdelivr.net/">
+                    <span class="cdn-row-url">https://testingcf.jsdelivr.net/</span>
+                    <span class="cdn-status">--</span>
+                    <span class="cdn-ver-text cdn-plugin">--</span>
+                    <span class="cdn-ver-text cdn-core">--</span>
                 </div>
-                <div class="select-option" data-value="custom">
+                <div class="select-option cdn-row" data-value="https://cdn.jsdelivr.net/">
+                    <span class="cdn-row-url">https://cdn.jsdelivr.net/</span>
+                    <span class="cdn-status">--</span>
+                    <span class="cdn-ver-text cdn-plugin">--</span>
+                    <span class="cdn-ver-text cdn-core">--</span>
+                </div>
+                <div class="select-option" data-value="custom" id="custom-cdn-option">
                     <span><%:Custom Your CDN URL%></span>
                     <span style="display: flex; align-items: center; height: 100%;">
-                        <svg width="18" height="18" style="display: block;"><use href="#oc-icon-chevron-down"/></svg>
+                        <svg width="18" height="18"><use href="#oc-icon-chevron-down"/></svg>
                     </span>
                 </div>
                 <input type="text" id="customOptionInput" class="custom-option-input" value="https://ghfast.top/" placeholder="<%:Type CDN URL, Format Like%> https://ghfast.top/" style="display: none;">
@@ -75,36 +126,15 @@
     var core_version_cdn = document.getElementById('CORE_VERSION_CDN');
     var release_branch_cdn = document.getElementById('RELEASE_BRANCH_CDN');
     var smart_enable_cdn = document.getElementById('SMART_ENABLE_CDN');
-
-    function get_update_info() {
-        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, status) {
-            if ( x && x.status == 200 ) {
-                if ( status.corever && status.corever != "0" && status.corever != "" ) {
-                    core_version_cdn.value = status.corever;
-                }
-                else {
-                    core_version_cdn.value = "0";
-                }
-                if ( status.release_branch && status.release_branch != "" ) {
-                    release_branch_cdn.value = status.release_branch;
-                }
-                else {
-                    release_branch_cdn.value = "master";
-                }
-                if ( status.smart_enable && status.smart_enable != "" ) {
-                    smart_enable_cdn.value = status.smart_enable;
-                }
-                else {
-                    smart_enable_cdn.value = "0";
-                }
-            }
-            else {
-                core_version_cdn.value = "0";
-                release_branch_cdn.value = "master";
-                smart_enable_cdn.value = "0";
-            }
-        });
-    }
+    var currentDownloadType = 'one_key';
+    var refreshTimer = null;
+    var versionPollTimer = null;
+    var versionRetryTimer = null;
+    var cdnRetryTimer = null;
+    var selectedCDN = null;
+    var _fetchedBranch = null;
+    var _isOix = false;
+    var _cdnForceRefresh = false;
 
     function isValidURL(str) {
         var pattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
@@ -112,197 +142,376 @@
             '((\\d{1,3}\\.){3}\\d{1,3}))'+ // OR ip (v4) address
             '(\\:\\d+)?(\\/[-a-z\\d%_.&#126;+]*)*'+ // port and path
             '(\\?[;&a-z\\d%_.&#126;+=-]*)?'+ // query string
-            '(\\#[-a-z\\d_]*)?'+'\/$','i'); // fragment locator
+            '(\\#[-a-z\\d_]*)?'+'\/$','i');
         return !!pattern.test(str);
     }
 
-    function HTTP_delay(domain, ID) {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', '/cgi-bin/luci/admin/services/openclash/website_check?domain=' + encodeURIComponent(domain), true);
-        xhr.timeout = 5000;
-
-        xhr.onreadystatechange = function() {
-            if (xhr.readyState === 4) {
-                let status, text, response_time = 0;
-                if (xhr.status === 200) {
-                    try {
-                        var resp = JSON.parse(xhr.responseText);
-                        response_time = resp.response_time || 0;
-                        if (resp.success) {
-                            if (response_time <= 500) {
-                                status = 'fast';
-                                text = response_time + ' ms';
-                            } else if (response_time > 500 && response_time <= 1000) {
-                                status = 'medium';
-                                text = response_time + ' ms';
-                            } else {
-                                status = 'slow';
-                                text = response_time + ' ms';
-                            }
-                        } else {
-                            status = 'error';
-                            text = resp.error || '<%:Access Denied%>';
-                        }
-                    } catch (e) {
-                        status = 'error';
-                        text = '<%:Access Denied%>';
-                    }
-                } else {
-                    status = 'error';
-                    text = '<%:Access Timed Out%>';
-                }
-                updateCDNStatus(ID, status, text);
-            }
-        };
-
-        xhr.ontimeout = function() {
-            updateCDNStatus(ID, 'error', '<%:Access Timed Out%>');
-        };
-
-        xhr.onerror = function() {
-            updateCDNStatus(ID, 'error', '<%:Access Denied%>');
-        };
-
-        xhr.send();
+    function classifyCDN(url) {
+        if (!url || url === '') return 'raw';
+        if (/raw\.githubusercontent\.com/i.test(url)) return 'raw';
+        if (/jsdelivr|fastly|testingcf/i.test(url)) return 'jsdelivr';
+        if (/dl\.dler\.io/i.test(url)) return 'dler';
+        return 'proxy';
     }
 
-    function updateCDNStatus(element, status, text) {
-        var existingStatus = element.querySelector('.cdn-status');
-        if (existingStatus) {
-            existingStatus.remove();
+    function buildDownloadURL(cdn, type, branch, version, sha, arch) {
+        var isJsDelivr = classifyCDN(cdn) === 'jsdelivr';
+        var filename, pathPrefix;
+
+        if (type === 'core' && _isOix) {
+            if (!version) return '';
+            filename = 'mihomo-' + arch + '-' + version + '.gz';
+            var oixURL = 'https://github.com/vernesong/mihomo-oix/releases/download/Pre-Alpha/' + filename;
+            var proxyURL = 'https://dl.dler.io/mihomo-oix/' + filename + '?tag=Pre-Alpha';
+            var ctype = classifyCDN(cdn);
+            if (ctype === 'dler') {
+                return proxyURL;
+            }
+            if (cdn && cdn !== '' && ctype !== 'raw' && ctype !== 'jsdelivr') {
+                return cdn + oixURL;
+            }
+            return proxyURL;
         }
 
-        var statusSpan = document.createElement('span');
-        statusSpan.className = 'cdn-status ' + status;
-        statusSpan.textContent = text;
-        element.appendChild(statusSpan);
+        if (type === 'plugin') {
+            var verNoV = version.replace(/^v/, '');
+            filename = 'luci-app-openclash_' + verNoV + '_all.ipk';
+            pathPrefix = 'package/' + branch;
+        } else {
+            filename = 'clash-linux-' + arch + '.tar.gz';
+            pathPrefix = 'core/' + branch + '/meta';
+        }
+
+        if (sha) {
+            return isJsDelivr
+                ? cdn + 'gh/vernesong/OpenClash@' + sha + '/' + branch + (type === 'plugin' ? '' : '/meta') + '/' + filename
+                : 'https://raw.githubusercontent.com/vernesong/OpenClash/' + sha + '/' + branch + (type === 'plugin' ? '' : '/meta') + '/' + filename;
+        } else {
+            if (isJsDelivr)
+                return cdn + 'gh/vernesong/OpenClash@' + pathPrefix + '/' + filename;
+            else if (classifyCDN(cdn) === 'raw')
+                return 'https://raw.githubusercontent.com/vernesong/OpenClash/' + pathPrefix + '/' + filename;
+            else
+                return cdn + 'https://raw.githubusercontent.com/vernesong/OpenClash/' + pathPrefix + '/' + filename;
+        }
+    }
+
+    function initAllData() {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update_info")%>', null, function(x, st) {
+            if (x && x.status == 200) {
+                if (st.corever && st.corever != '0') core_version_cdn.value = st.corever; else core_version_cdn.value = '0';
+                if (st.release_branch) release_branch_cdn.value = st.release_branch; else release_branch_cdn.value = 'master';
+                if (st.smart_enable) smart_enable_cdn.value = st.smart_enable; else smart_enable_cdn.value = '0';
+                _isOix = !!(st.oix_core);
+            }
+            _fetchedBranch = release_branch_cdn.value;
+            fetchVersionHistory();
+            refreshCDNInfo();
+        });
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "update")%>', null, function(x2, st2) {
+            if (x2 && x2.status == 200) {
+                document.getElementById('installed-plugin').textContent = (st2.opcv && st2.opcv != '0') ? st2.opcv : '--';
+                document.getElementById('installed-core').textContent = (st2.coremetacv && st2.coremetacv != '0') ? st2.coremetacv : '--';
+            }
+        });
+        refreshTimer = setInterval(refreshCDNInfo, Math.floor(Math.random()*(20-10+1)+10)*1000);
+    }
+
+    function fetchVersionHistory() {
+        var branch = _fetchedBranch || release_branch_cdn.value || 'dev';
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "version_history")%>', { branch: branch }, function(x, status) {
+            var pluginSelect = document.getElementById('select-plugin-ver');
+            var coreSelect = document.getElementById('select-core-ver');
+            var hint = document.getElementById('version-hint');
+
+            if (x && x.status == 200 && status && !status.error) {
+                if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
+                hint.classList.remove('show');
+                pluginSelect.disabled = false;
+                coreSelect.disabled = false;
+
+                pluginSelect.innerHTML = '<option value="__latest__"><%:Latest%></option>';
+                if (status.plugin) {
+                    status.plugin.forEach(function(v) {
+                        if (v.version) {
+                            pluginSelect.innerHTML += '<option value="' + v.sha + '" data-ver="' + v.version + '">' + v.version + ' (<%:Date%>: ' + (v.date||'').substring(0,10) + ')</option>';
+                        }
+                    });
+                }
+
+                coreSelect.innerHTML = '<option value="__latest__"><%:Latest%></option>';
+                var coreList = (smart_enable_cdn.value === '1' && status.core_smart && status.core_smart.length > 0) ? status.core_smart : status.core_meta;
+                if (coreList) {
+                    coreList.forEach(function(v) {
+                        coreSelect.innerHTML += '<option value="' + v.sha + '" data-ver="' + v.version + '">' + v.version + ' (<%:Date%>: ' + (v.date||'').substring(0,10) + ')</option>';
+                    });
+                }
+            } else {
+                pluginSelect.disabled = true;
+                coreSelect.disabled = true;
+                hint.innerHTML = '<svg><use href="#oc-icon-alert-circle"/></svg><span><%:Failed to get version history%></span>';
+                hint.classList.add('show');
+                var shouldFastRetry = false;
+                if (!x || x.status != 200 || !status) {
+                    shouldFastRetry = true;
+                } else if (status.error === 'network_error' || status.error === 'parse_error') {
+                    shouldFastRetry = true;
+                }
+                if (shouldFastRetry) {
+                    if (versionPollTimer) { clearInterval(versionPollTimer); versionPollTimer = null; }
+                    if (!versionRetryTimer) {
+                        versionRetryTimer = setInterval(fetchVersionHistory, 10000);
+                    }
+                }
+            }
+        });
+    }
+
+    function saveOptions() {
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {
+            core_ver: core_version_cdn.value,
+            release_branch: release_branch_cdn.value,
+            smart_enable: smart_enable_cdn.value
+        });
+    }
+
+    function onArchChange() {
+        saveOptions();
+    }
+
+    function onBranchChange() {
+        _fetchedBranch = release_branch_cdn.value;
+        if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
+        if (versionPollTimer) { clearInterval(versionPollTimer); versionPollTimer = null; }
+        if (cdnRetryTimer) { clearInterval(cdnRetryTimer); cdnRetryTimer = null; }
+        saveOptions();
+        fetchVersionHistory();
+        _cdnForceRefresh = true;
+        refreshCDNInfo();
+    }
+
+    function onSmartChange() {
+        saveOptions();
+        fetchVersionHistory();
+        _cdnForceRefresh = true;
+        refreshCDNInfo();
+    }
+
+    function refreshCDNInfo() {
+        var cdns = [];
+        document.querySelectorAll('#cdn-list-body .cdn-row').forEach(function(row) {
+            var v = row.dataset.value;
+            if (v && v !== 'custom' && isValidURL(v)) cdns.push(v);
+        });
+        if (cdns.length === 0) return;
+
+        var branch = _fetchedBranch || release_branch_cdn.value || 'dev';
+        var smart = smart_enable_cdn.value || '0';
+        var pluginVer = document.getElementById('select-plugin-ver').value;
+        var coreVer = document.getElementById('select-core-ver').value;
+        var params = {
+            cdns: cdns.join(','),
+            branch: branch,
+            smart: smart,
+            plugin_ver: pluginVer || '',
+            core_ver: coreVer || ''
+        };
+        if (_cdnForceRefresh) {
+            params.force = '1';
+            _cdnForceRefresh = false;
+            document.querySelectorAll('#cdn-list-body .cdn-row').forEach(function(row) {
+                var latencyEl = row.querySelector('.cdn-status');
+                var verSpans = row.querySelectorAll('.cdn-ver-text');
+                if (latencyEl) {
+                    latencyEl.textContent = '--';
+                    latencyEl.className = 'cdn-status';
+                }
+                verSpans.forEach(function(el) {
+                    el.textContent = '--';
+                    el.classList.remove('has-data', 'err');
+                });
+            });
+        }
+        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "cdn_info")%>', params, function(x, status) {
+            if (x && x.status == 200 && status && !status.error) {
+                document.querySelectorAll('#cdn-list-body .cdn-row').forEach(function(row) {
+                    var cdnUrl = row.dataset.value;
+                    var info = status[cdnUrl];
+                    if (!info) return;
+
+                    var latencyEl = row.querySelector('.cdn-status');
+                    var verSpans = row.querySelectorAll('.cdn-ver-text');
+                    var pluginEl = verSpans[0];
+                    var coreEl = verSpans[1];
+
+                    if (info.latency != null && info.latency > 0) {
+                        var ms = parseInt(info.latency);
+                        latencyEl.textContent = ms + ' ms';
+                        latencyEl.className = 'cdn-status ' + (ms <= 500 ? 'fast' : ms <= 1000 ? 'medium' : 'slow');
+                        latencyEl.title = '';
+                    } else if (info.latency === -1) {
+                        latencyEl.textContent = '<%:Access Timed Out%>';
+                        latencyEl.className = 'cdn-status err';
+                        latencyEl.title = '';
+                    } else if (info.latency === -2) {
+                        latencyEl.textContent = '<%:Access Denied%>';
+                        latencyEl.className = 'cdn-status err';
+                        latencyEl.title = '';
+                    } else {
+                        latencyEl.textContent = '--';
+                        latencyEl.className = 'cdn-status';
+                        latencyEl.title = '';
+                    }
+
+                    if (pluginEl) {
+                        if (info.plugin_ver) {
+                            pluginEl.textContent = info.plugin_ver;
+                            pluginEl.classList.add('has-data');
+                            pluginEl.classList.remove('err');
+                        } else if (info.latency === -1 || info.latency === -2) {
+                            pluginEl.textContent = info.latency === -1 ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
+                            pluginEl.classList.add('has-data', 'err');
+                        } else {
+                            pluginEl.textContent = '--';
+                            pluginEl.classList.remove('has-data', 'err');
+                        }
+                    }
+                    if (coreEl) {
+                        var coreVer = (smart === '1' && info.core_smart_ver) ? info.core_smart_ver : info.core_meta_ver;
+                        if (coreVer) {
+                            coreEl.textContent = coreVer;
+                            coreEl.classList.add('has-data');
+                            coreEl.classList.remove('err');
+                        } else if (info.core_error) {
+                            coreEl.textContent = info.core_error === 'timeout' ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
+                            coreEl.classList.add('has-data', 'err');
+                        } else if (info.latency === -1 || info.latency === -2) {
+                            coreEl.textContent = info.latency === -1 ? '<%:Access Timed Out%>' : '<%:Access Denied%>';
+                            coreEl.classList.add('has-data', 'err');
+                        } else {
+                            coreEl.textContent = '--';
+                            coreEl.classList.remove('has-data', 'err');
+                        }
+                    }
+                });
+                if (cdnRetryTimer) { clearInterval(cdnRetryTimer); cdnRetryTimer = null; }
+                if (!refreshTimer) {
+                    refreshTimer = setInterval(refreshCDNInfo, Math.floor(Math.random()*(20-10+1)+10)*1000);
+                }
+            } else if (!x || x.status != 200 || !status || status.error) {
+                if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+                if (!cdnRetryTimer) {
+                    cdnRetryTimer = setInterval(refreshCDNInfo, 10000);
+                }
+            }
+        });
     }
 
     function select_git_cdn(btn, type) {
         var selectPopup = document.getElementById('selectPopup');
-        get_update_info();
-        selectPopup.classList.remove('hidden');
-
         var customOptionInput = document.getElementById('customOptionInput');
         var addCustomOption = document.getElementById('addCustomOption');
-        var selectOptions = document.getElementsByClassName('select-option');
 
+        currentDownloadType = type || 'one_key';
         customOptionInput.style.display = 'none';
         addCustomOption.style.display = 'none';
+        customOptionInput.value = 'https://ghfast.top/';
+        selectedCDN = null;
+        _fetchedBranch = null;
 
-        selectPopup.addEventListener('click', function(event) {
-            select_window(event, type);
-        });
-
-        document.addEventListener('click', select_window_close);
-
-        refresh_httpdelay = setInterval(() => {
-            for(var i = 0; i < selectOptions.length; i++) {
-                if (isValidURL(selectOptions[i].dataset.value)) {
-                    HTTP_delay(selectOptions[i].dataset.value, selectOptions[i]);
-                }
-            }
-        }, Math.floor(Math.random()*(7-3+1)+3)*1000);
+        selectPopup.classList.remove('hidden');
+        selectPopup.onclick = function(event) { cdn_click_handler(event); };
+        document.addEventListener('click', cdn_outside_click);
+        initAllData();
     }
 
-    function select_window_close(event) {
-        var selectPopup = document.getElementById('selectPopup');
-        if (!selectPopup.contains(event.target)) {
-            selectPopup.classList.add('hidden');
-            if (typeof refresh_httpdelay !== 'undefined') {
-                clearInterval(refresh_httpdelay);
-            }
-        }
+    function cdn_outside_click(event) {
+        var popup = document.getElementById('selectPopup');
+        if (!popup.contains(event.target)) closeSelectPopup();
     }
 
-    function select_window(event, type) {
-        var v = core_version_cdn.value;
-        var r = release_branch_cdn.value;
-        var s = smart_enable_cdn.value;
-        var selectOptions = document.getElementsByClassName('select-option');
+    function cdn_click_handler(event) {
         var target = event.target;
-        var selectPopup = document.getElementById('selectPopup');
-        var customOptionInput = document.getElementById('customOptionInput');
-        var addCustomOption = document.getElementById('addCustomOption');
-
+        var customInput = document.getElementById('customOptionInput');
+        var addBtn = document.getElementById('addCustomOption');
         var optionElem = target.closest ? target.closest('.select-option') : null;
 
-        if (optionElem && optionElem.dataset.value === 'custom' && customOptionInput.style.display === 'block') {
-            customOptionInput.style.display = 'none';
-            addCustomOption.style.display = 'none';
+        if (optionElem && optionElem.dataset.value === 'custom' && customInput.style.display === 'block') {
+            customInput.style.display = 'none';
+            addBtn.style.display = 'none';
         } else if (optionElem && optionElem.dataset.value === 'custom') {
-            customOptionInput.style.display = 'block';
-            addCustomOption.style.display = 'block';
-            customOptionInput.focus();
-        } else if (target === customOptionInput) {
-            customOptionInput.style.display = 'block';
-            addCustomOption.style.display = 'block';
-            customOptionInput.focus();
-        } else if (target === addCustomOption) {
-            var newValue = customOptionInput.value.trim();
-            if (newValue !== '' && isValidURL(newValue)) {
-                var newOption = document.createElement('div');
-                newOption.classList.add('select-option');
-                newOption.innerHTML = '<span>' + newValue + '</span>';
-                newOption.dataset.value = newValue;
-                selectPopup.querySelector('.select-popup-body').insertBefore(newOption, selectPopup.querySelector('.select-popup-body').children[selectOptions.length - 2]);
-                customOptionInput.style.display = 'none';
-                addCustomOption.style.display = 'none';
-            }
-            else {
+            customInput.style.display = 'block';
+            addBtn.style.display = 'block';
+            customInput.focus();
+        } else if (target === customInput) {
+            customInput.style.display = 'block';
+            addBtn.style.display = 'block';
+        } else if (target === addBtn) {
+            var val = customInput.value.trim();
+            if (val !== '' && isValidURL(val)) {
+                var listBody = document.getElementById('cdn-list-body');
+                var div = document.createElement('div');
+                div.className = 'select-option cdn-row';
+                div.dataset.value = val;
+                div.innerHTML = '<span class="cdn-row-url">' + val + '</span><span class="cdn-status">--</span><span class="cdn-ver-text cdn-plugin">--</span><span class="cdn-ver-text cdn-core">--</span>';
+                listBody.insertBefore(div, document.getElementById('custom-cdn-option'));
+                customInput.style.display = 'none';
+                addBtn.style.display = 'none';
+                _cdnForceRefresh = true;
+                refreshCDNInfo();
+            } else {
                 alert("<%:Please enter a valid URL!%>");
             }
-        } else if (optionElem && optionElem != addCustomOption && optionElem != customOptionInput)  {
-            customOptionInput.style.display = 'none';
-            addCustomOption.style.display = 'none';
+        } else if (optionElem && optionElem.classList.contains('cdn-row')) {
+            var cdn = optionElem.dataset.value;
+            if (cdn === 'https://raw.githubusercontent.com/') cdn = '';
+            var branch = _fetchedBranch || release_branch_cdn.value || 'dev';
+            var arch = core_version_cdn.value;
+            var v = core_version_cdn.value;
+            var r = release_branch_cdn.value;
+            var s = smart_enable_cdn.value;
+
+            var pluginSel = document.getElementById('select-plugin-ver');
+            var coreSel = document.getElementById('select-core-ver');
+            var pluginOpt = pluginSel.options[pluginSel.selectedIndex];
+            var coreOpt = coreSel.options[coreSel.selectedIndex];
+            var pluginVer = pluginOpt ? (pluginOpt.getAttribute('data-ver') || '') : '';
+            var pluginSHA = (pluginOpt && pluginOpt.value !== '__latest__') ? pluginOpt.value : '';
+            var coreVer = coreOpt ? (coreOpt.getAttribute('data-ver') || '') : '';
+            var coreSHA = (coreOpt && coreOpt.value !== '__latest__') ? coreOpt.value : '';
+
             if (typeof LogManager !== 'undefined' && LogManager) {
                 LogManager.startLogDisplay('<%:Checking...%>');
             }
-            if (optionElem.dataset.value === 'https://raw.githubusercontent.com/') {
-                optionElem.dataset.value = '';
-            }
-            if (type === 'core_download') {
-                XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
-                    if (x && x.status == 200) {
-                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', {url: optionElem.dataset.value}, function(x, status) {
-                        });
-                    }
-                });
-            }
-            else {
-                XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function(x, status) {
-                    if (x && x.status == 200) {
-                        XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', {url: optionElem.dataset.value}, function(x, status) {
-                        });
-                    }
-                });
-            }
 
-            selectPopup.classList.add('hidden');
-            if (typeof refresh_httpdelay !== 'undefined') {
-                clearInterval(refresh_httpdelay);
-            }
-        }
-        else if (target != addCustomOption && target != customOptionInput) {
-            customOptionInput.style.display = 'none';
-            addCustomOption.style.display = 'none';
-        }
-        else {
-            if (target != customOptionInput) {
-                selectPopup.classList.add('hidden');
-                if (typeof refresh_httpdelay !== 'undefined') {
-                    clearInterval(refresh_httpdelay);
+            XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "save_corever_branch")%>', {core_ver: v, release_branch: r, smart_enable: s}, function() {
+                if (currentDownloadType === 'core_download') {
+                    var coreURL = buildDownloadURL(cdn, 'core', r, coreVer, coreSHA, arch);
+                    var params = {download_url: coreURL};
+                    if (coreURL) params.url = cdn;
+                    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "core_download")%>', params);
+                } else {
+                    var pluginURL = buildDownloadURL(cdn, 'plugin', r, pluginVer, pluginSHA, arch);
+                    XHR.get('<%=luci.dispatcher.build_url("admin", "services", "openclash", "one_key_update")%>', {url: cdn, download_url: pluginURL});
                 }
-            }
+            });
+
+            closeSelectPopup();
         }
     }
 
     function closeSelectPopup() {
-        var selectPopup = document.getElementById('selectPopup');
-        selectPopup.classList.add('hidden');
-        if (typeof refresh_httpdelay !== 'undefined') {
-            clearInterval(refresh_httpdelay);
-        }
+        var popup = document.getElementById('selectPopup');
+        var customInput = document.getElementById('customOptionInput');
+        var addBtn = document.getElementById('addCustomOption');
+        popup.classList.add('hidden');
+        if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+        if (versionPollTimer) { clearInterval(versionPollTimer); versionPollTimer = null; }
+        if (versionRetryTimer) { clearInterval(versionRetryTimer); versionRetryTimer = null; }
+        if (cdnRetryTimer) { clearInterval(cdnRetryTimer); cdnRetryTimer = null; }
+        customInput.style.display = 'none';
+        addBtn.style.display = 'none';
+        document.removeEventListener('click', cdn_outside_click);
     }
 //]]>
 </script>
