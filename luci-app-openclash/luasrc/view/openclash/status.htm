@@ -327,16 +327,17 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Usage Help Button -->
+            <div class="oc-usage-help-float" id="usage-help-float" title="<%:Usage Help%>" onclick="UsageHelpManager.show()">
+                <svg width="24" height="24"><use href="#oc-icon-usage-help"/></svg>
+                <span class="oc-usage-help-bubble" id="usage-help-bubble"><%:Click to get usage help%></span>
+            </div>
             </div>
         </td>
     </tr>
 </table>
 </fieldset>
-
-<!-- Usage Help Button -->
-<div class="oc-usage-help-float" id="usage-help-float" title="<%:Usage Help%>" onclick="UsageHelpManager.show()">
-    <svg width="24" height="24"><use href="#oc-icon-usage-help"/></svg>
-</div>
 
 <script src="/luci-static/resources/openclash/js/oc-icons.js?v=<%=plugin_version%>"></script>
 <%+openclash/common%>
@@ -2702,6 +2703,7 @@
         textarea: null,
         statusEl: null,
         initialized: false,
+        bubbleTimer: null,
 
         init: function() {
             if (this.initialized) return;
@@ -2711,7 +2713,12 @@
 
             var floatBtn = document.getElementById('usage-help-float');
             if (floatBtn) {
-                floatBtn.addEventListener('click', function() { UsageHelpManager.show(); });
+                floatBtn.addEventListener('click', function() {
+                    UsageHelpManager.show();
+                });
+                floatBtn.addEventListener('mouseenter', function() {
+                    UsageHelpManager.dismissBubble();
+                });
             }
 
             document.addEventListener('keydown', function(e) {
@@ -2719,6 +2726,8 @@
                     UsageHelpManager.hide();
                 }
             });
+
+            this.startBubbleTimer();
 
             this.initialized = true;
         },
@@ -2794,6 +2803,33 @@
                 if (btn) { btn.innerHTML = origHTML; btn.disabled = false; }
                 self.hide();
             }, 2000);
+        },
+
+        startBubbleTimer: function() {
+            var bubble = document.getElementById('usage-help-bubble');
+            if (!bubble) return;
+
+            var delay = Math.random() * 60000;
+            if (delay > 20000) return;
+
+            var self = this;
+            this.bubbleTimer = setTimeout(function() {
+                bubble.classList.add('show');
+            }, Math.min(delay, 5000));
+        },
+
+        dismissBubble: function() {
+            var bubble = document.getElementById('usage-help-bubble');
+            if (!bubble) return;
+            bubble.classList.remove('show');
+            if (this._bubbleAutoHide) {
+                clearTimeout(this._bubbleAutoHide);
+                this._bubbleAutoHide = null;
+            }
+            if (this.bubbleTimer) {
+                clearTimeout(this.bubbleTimer);
+                this.bubbleTimer = null;
+            }
         }
     };
 
@@ -2967,6 +3003,7 @@
     setTimeout(function() {
         OverwriteSubscribeManager.init();
         SubscriptionManager.init();
+        UsageHelpManager.init();
         loadAnnouncement();
     }, 300);
 

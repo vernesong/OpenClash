@@ -1874,7 +1874,7 @@ html[data-darkmode="true"] .oc .provider-card {
 /* ==========================================================================
  * SECTION: Usage Help Floating Button & Model (status.htm)
  * ========================================================================== */
-.oc-usage-help-float {
+.oc .oc-usage-help-float {
     position: fixed;
     bottom: 24px;
     right: 24px;
@@ -1895,12 +1895,46 @@ html[data-darkmode="true"] .oc .provider-card {
     will-change: transform;
 }
 
-.oc-usage-help-float:hover {
+.oc .oc-usage-help-float:hover {
     transform: scale(1.1) translateZ(0);
 }
 
-.oc-usage-help-float:active {
+.oc .oc-usage-help-float:active {
     transform: scale(0.95) translateZ(0);
+}
+
+.oc .oc-usage-help-bubble {
+    position: absolute;
+    bottom: calc(100% + 10px);
+    right: 12px;
+    white-space: nowrap;
+    background: var(--text-primary, #374151);
+    color: var(--bg-white, #fff);
+    font-size: 12px;
+    line-height: 1;
+    padding: 8px 14px;
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(55, 65, 81, 0.25);
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+    pointer-events: none;
+    z-index: -1;
+}
+
+.oc .oc-usage-help-bubble::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    right: 6px;
+    border: 6px solid transparent;
+    border-top-color: var(--text-primary, #374151);
+}
+
+.oc .oc-usage-help-bubble.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
 }
 
 #usage-help-model .form-textarea {
@@ -5831,6 +5865,7 @@ html[data-darkmode=true] .oc #debug-rendered tr:nth-child(even) {
     gap: 4px;
     font-size: 13px;
     font-weight: 600;
+    line-height: 1;
     color: var(--text-secondary);
     white-space: nowrap;
     min-width: 0;
@@ -5841,6 +5876,7 @@ html[data-darkmode=true] .oc #debug-rendered tr:nth-child(even) {
     text-overflow: ellipsis;
     white-space: nowrap;
     min-width: 0;
+    line-height: 1;
 }
 .oc .oc-option-title::after {
     content: '';

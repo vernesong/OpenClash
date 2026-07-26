@@ -4101,6 +4101,9 @@ msgstr "参数过长"
 msgid "Usage Help"
 msgstr "使用帮助"
 
+msgid "Click to get usage help"
+msgstr "点击获取使用帮助"
+
 msgid "Copy the following text to any AI (ChatGPT, DeepSeek, etc.) to get usage help for OpenClash:"
 msgstr "将以下文本复制到任意 AI 工具（ChatGPT、DeepSeek 等），即可获取 OpenClash 的使用帮助："
 
