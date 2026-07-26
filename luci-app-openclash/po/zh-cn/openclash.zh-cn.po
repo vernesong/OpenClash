@@ -536,6 +536,12 @@ msgstr "更新大陆白名单"
 msgid "Chnroute Update"
 msgstr "大陆白名单订阅"
 
+msgid "Automatic Version Update"
+msgstr "自动版本更新"
+
+msgid "Automatically check and update OpenClash client and core versions"
+msgstr "自动检查并更新 OpenClash 客户端和内核版本"
+
 msgid "Update Time (Every Week)"
 msgstr "更新时间(每周)"
 
