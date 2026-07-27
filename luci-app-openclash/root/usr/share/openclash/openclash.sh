@@ -49,7 +49,8 @@ config_test()
 {
    if [ -f "$CLASH" ]; then
       LOG_OUT "Config File Download Successful, Test If There is Any Errors..."
-      test_info=$($CLASH -t -d $CLASH_CONFIG -f "$CFG_FILE" -age-secret-key "$SECRET_KEY")
+      test_info=$($CLASH -t -d "$CLASH_CONFIG" -f "$CFG_FILE" -age-secret-key "$SECRET_KEY" 2>&1)
+      local test_status=$?
       local IFS=$'\n'
       for i in $test_info; do
          if [ -n "$(echo "$i" |grep "configuration file")" ]; then
@@ -59,9 +60,10 @@ config_test()
             echo "$i" >> "$LOG_FILE"
          fi
       done
-      if [ -n "$(echo "$test_info" |grep "test failed")" ]; then
+      if [ "$test_status" -ne 0 ] || [ -n "$(echo "$test_info" |grep "test failed")" ]; then
          return 1
       fi
+      return 0
    else
       return 0
    fi
@@ -113,6 +115,7 @@ config_cus_up()
 	      begin
             threads = [];
 	         Value = YAML.load_file('$CFG_FILE');
+            raise 'Config root must be a mapping' unless Value.is_a?(Hash);
 	         if Value.has_key?('proxies') and not Value['proxies'].to_a.empty? then
 	            Value['proxies'].reverse.each{
 	            |x|
@@ -168,29 +171,60 @@ config_cus_up()
             threads.each(&:join);
 	      rescue Exception => e
 	         YAML.LOG_ERROR('Filter Proxies Failed,【' + e.message + '】');
-	      ensure
-	         begin
-	            File.open('$CFG_FILE','w') {|f| YAML.dump(Value, f)};
-	         rescue Exception => e
-	            YAML.LOG_ERROR('Write file failed:【%s】' % [e.message])
-	         end
-	      end" 2>/dev/null >> $LOG_FILE
+            exit 1;
+	      end
+         begin
+            YAML.dump_file('$CFG_FILE', Value);
+         rescue Exception => e
+            YAML.LOG_ERROR('Write file failed:【%s】' % [e.message]);
+            exit 1;
+         end" 2>/dev/null >> $LOG_FILE || return 1
 	   fi
    fi
+}
+
+config_replace()
+{
+   local config_dir="${CONFIG_FILE%/*}"
+   local config_tmp="$config_dir/.${CONFIG_FILE##*/}.tmp.$$"
+
+   if [ ! -s "$CFG_FILE" ]; then
+      LOG_ERROR "Config File【$name】Is Empty, Keep The Existing Config..."
+      return 1
+   fi
+
+   rm -f "$config_tmp" 2>/dev/null
+   if ! cp "$CFG_FILE" "$config_tmp" 2>/dev/null || [ ! -s "$config_tmp" ] || ! mv -f "$config_tmp" "$CONFIG_FILE" 2>/dev/null; then
+      rm -f "$config_tmp" 2>/dev/null
+      LOG_ERROR "Config File【$name】Replace Failed, Keep The Existing Config..."
+      return 1
+   fi
+
+   rm -f "$CFG_FILE" 2>/dev/null
+   return 0
 }
 
 config_su_check()
 {
    LOG_OUT "Config File Test Successful, Check If There is Any Update..."
    sed -i 's/!<str> /!!str /g' "$CFG_FILE" >/dev/null 2>&1
-   if [ -f "$CONFIG_FILE" ]; then
-      if [ "$only_download" -eq 0 ]; then
-         config_cus_up
+   if [ "$only_download" -eq 0 ]; then
+      if ! config_cus_up || [ ! -s "$CFG_FILE" ]; then
+         LOG_ERROR "Config File【$name】Processing Failed, Keep The Existing Config..."
+         rm -f "$CFG_FILE" 2>/dev/null
+         return 1
       fi
+      if ! config_test; then
+         LOG_ERROR "Config File【$name】Tested Failed After Processing, Keep The Existing Config..."
+         rm -f "$CFG_FILE" 2>/dev/null
+         return 1
+      fi
+   fi
+   if [ -f "$CONFIG_FILE" ]; then
       cmp -s "$CONFIG_FILE" "$CFG_FILE"
       if [ "$?" -ne 0 ]; then
          LOG_OUT "Config File【$name】Are Updates, Start Replacing..."
-         mv "$CFG_FILE" "$CONFIG_FILE" 2>/dev/null
+         config_replace || return 1
          LOG_OUT "Config File【$name】Update Successful!"
       else
          LOG_OUT "Config File【$name】No Change, Do Nothing!"
@@ -199,10 +233,7 @@ config_su_check()
       fi
    else
       LOG_OUT "Config File【$name】Download Successful, Start To Create..."
-      if [ "$only_download" -eq 0 ]; then
-         config_cus_up
-      fi
-      mv "$CFG_FILE" "$CONFIG_FILE" 2>/dev/null
+      config_replace || return 1
       LOG_OUT "Config File【$name】Update Successful!"
    fi
    if [ -z "$CONFIG_PATH" ]; then

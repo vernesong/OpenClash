@@ -407,7 +407,7 @@ if [ -z "$RAW_CONFIG_FILE" ] || [ ! -f "$RAW_CONFIG_FILE" ]; then
          uci -q commit openclash
          RAW_CONFIG_FILE="/etc/openclash/config/$CONFIG_NAME"
          CONFIG_FILE="/etc/openclash/$CONFIG_NAME"
-         TMP_CONFIG_FILE="/tmp/$CONFIG_NAME"
+         TMP_CONFIG_FILE="/tmp/yaml_config_tmp/$$/$CONFIG_NAME"
          LOG_ERROR "Config Not Found, Switch Config File to【$RAW_CONFIG_FILE】"
          break
       fi
@@ -427,14 +427,18 @@ config_check()
 {
 #创建启动配置
 #rm -rf "/etc/openclash/*.y*" 2>/dev/null
-cp "$RAW_CONFIG_FILE" "$TMP_CONFIG_FILE"
+if ! mkdir -p "${TMP_CONFIG_FILE%/*}" || ! cp "$RAW_CONFIG_FILE" "$TMP_CONFIG_FILE" || [ ! -s "$TMP_CONFIG_FILE" ]; then
+   LOG_ERROR "Create Runtime Config File Failed..."
+   start_fail
+fi
 
 ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
 begin
-   YAML.load_file('$RAW_CONFIG_FILE');
+   Value = YAML.load_file('$RAW_CONFIG_FILE');
+   raise 'Config root must be a mapping' unless Value.is_a?(Hash);
 rescue Exception => e
    YAML.LOG_ERROR('Unable To Parse Config File,【' + e.message + '】');
-   system 'rm -rf ${TMP_CONFIG_FILE}';
+   exit 1;
 end
 " 2>/dev/null >> $LOG_FILE
 if [ $? -ne 0 ]; then
@@ -809,8 +813,14 @@ start_run_core()
    ulimit -u unlimited
 
    if ! $QUICK_START; then
-      mv "$TMP_CONFIG_FILE" "$CONFIG_FILE"
-      rm -rf "$TMP_CONFIG_FILE"
+      local runtime_config_tmp="${CONFIG_FILE}.tmp.$$"
+      rm -f "$runtime_config_tmp"
+      if ! cp "$TMP_CONFIG_FILE" "$runtime_config_tmp" || [ ! -s "$runtime_config_tmp" ] || ! mv -f "$runtime_config_tmp" "$CONFIG_FILE"; then
+         rm -f "$runtime_config_tmp"
+         LOG_ERROR "Runtime Config Replace Failed, Keep The Existing Config..."
+         start_fail
+      fi
+      rm -f "$TMP_CONFIG_FILE"
    fi
    chown root:root "$CLASH"
    procd_open_instance "openclash"
@@ -3338,7 +3348,7 @@ EOF
                if [ -n "$cfg_name" ]; then
                   age_config_name="${cfg_name%.*}"
                   CONFIG_FILE="/etc/openclash/${cfg_name}"
-                  TMP_CONFIG_FILE="/tmp/${cfg_name}"
+                  TMP_CONFIG_FILE="/tmp/yaml_config_tmp/$$/${cfg_name}"
                fi
             elif printf "%s" "$key_u" | grep -q "^SUB_INFO_URL$"; then
                val_clean=$(printf "%s" "$val" | sed "s/^[[:space:]]*['\"]//;s/['\"][[:space:]]*$//")
@@ -3420,9 +3430,7 @@ EOF
                Value = YAML.load_file('$CONFIG_FILE')
             end
             Overwrite_Value = YAML.overwrite(Value, yaml_data)
-            File.open('$CONFIG_FILE', 'w') do |f|
-               YAML.dump(Overwrite_Value, f)
-            end
+            YAML.dump_file('$CONFIG_FILE', Overwrite_Value)
             File.open('/tmp/yaml_overwrite_marshal', 'wb') { |f| Marshal.dump(Overwrite_Value, f) }
          else
             YAML.LOG_WARN('Invalid YAML Override format, skipped...')
@@ -3450,9 +3458,7 @@ if [ -f "/tmp/yaml_openclash_ruby_parts/$OPENCLASH_OVERWRITE_SID" ]; then
          threads = []
          $ruby_code
          threads.each(&:join)
-         File.open('$CONFIG_FILE', 'w') do |f|
-            YAML.dump(Value, f)
-         end
+         YAML.dump_file('$CONFIG_FILE', Value)
       rescue Exception => e
          YAML.LOG_ERROR('Set Custom Overwrite Script Failed,【%s】' % [e.message])
       end
@@ -3490,7 +3496,7 @@ get_config()
    RAW_CONFIG_FILE=$(uci_get_config "config_path")
    CFG_NAME=$(basename "$RAW_CONFIG_FILE" 2>/dev/null)
    CONFIG_FILE="/etc/openclash/${CFG_NAME}"
-   TMP_CONFIG_FILE="/tmp/${CFG_NAME}"
+   TMP_CONFIG_FILE="/tmp/yaml_config_tmp/$$/${CFG_NAME}"
    CFG_NO_EXT_NAME="${CFG_NAME%.*}"
    SECRET_KEY=$(uci_get_age_secret_keys "$CFG_NO_EXT_NAME")
    OIX_TOKEN=$(uci_get_config "oix_token")
@@ -3622,7 +3628,7 @@ start_service()
       if ! $QUICK_START; then
          LOG_OUT "Step 3: Modify The Config File..."
          config_check
-         /usr/share/openclash/yml_change.sh \
+         if ! /usr/share/openclash/yml_change.sh \
          "$en_mode" "$da_password" "$cn_port" "$proxy_port" "$TMP_CONFIG_FILE" "$ipv6_enable" "$http_port" "$socks_port"\
          "$log_level" "$proxy_mode" "$en_mode_tun" "$stack_type" "$dns_port" "$mixed_port" "$tproxy_port" "$ipv6_dns"\
          "$store_fakeip" "$enable_meta_sniffer" "$enable_geoip_dat" "$geodata_loader" "$enable_meta_sniffer_custom"\
@@ -3631,12 +3637,18 @@ start_service()
          "$enable_respect_rules" "$custom_fakeip_filter_mode" "$iptables_compat" "$disable_quic_go_gso" "$cors_allow"\
          "$geo_custom_url" "$geoip_custom_url" "$geosite_custom_url" "$geoasn_custom_url"\
          "$lgbm_auto_update" "$lgbm_custom_url" "$lgbm_update_interval" "$smart_collect" "$smart_collect_size"\
-         "$fakeip_range6" "$fake_ip_range6_enable" "$global_ua"
+         "$fakeip_range6" "$fake_ip_range6_enable" "$global_ua"; then
+            LOG_ERROR "Config File Overwrite Failed..."
+            start_fail
+         fi
 
-         /usr/share/openclash/yml_rules_change.sh \
+         if ! /usr/share/openclash/yml_rules_change.sh \
          "$enable_custom_clash_rules" "$TMP_CONFIG_FILE"\
          "$enable_rule_proxy" "$router_self_proxy" "$lan_ip" "$enable_redirect_dns" "$en_mode"\
-         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_policy_priority" "$smart_enable_lgbm" "$smart_prefer_asn" "$smart_tolerance"
+         "$auto_smart_switch" "$smart_collect" "$smart_collect_rate" "$smart_policy_priority" "$smart_enable_lgbm" "$smart_prefer_asn" "$smart_tolerance"; then
+            LOG_ERROR "Config File Rules Overwrite Failed..."
+            start_fail
+         fi
 
          #Custom overwrite
          if [ -f "/tmp/yaml_overwrite.sh" ]; then
@@ -3661,9 +3673,7 @@ start_service()
                            threads = []
                            $ruby_code
                            threads.each(&:join)
-                           File.open('$yaml_file', 'w') do |f|
-                              YAML.dump(Value, f)
-                           end
+                           YAML.dump_file('$yaml_file', Value)
                         rescue Exception => e
                            YAML.LOG_ERROR('Set Custom Overwrite Script Failed,【%s】' % [e.message])
                         end
@@ -3679,6 +3689,7 @@ start_service()
             begin
                threads = []
                Value = YAML.load_file('$TMP_CONFIG_FILE')
+               raise 'Config root must be a mapping' unless Value.is_a?(Hash)
                provider_configs = {'proxy-providers' => 'proxy_provider', 'rule-providers' => 'rule_provider'}
                provider_configs.each do |provider_type, path_prefix|
                   if Value.key?(provider_type) && Value[provider_type].is_a?(Hash)
@@ -3699,11 +3710,30 @@ start_service()
                   end
                end
                threads.each(&:join)
-               File.open('$TMP_CONFIG_FILE', 'w') { |f| YAML.dump(Value, f) }
+               YAML.dump_file('$TMP_CONFIG_FILE', Value)
             rescue Exception => e
                YAML.LOG_ERROR('Edit Provider Path Failed,【%s】' % [e.message])
+               exit 1
             end
          " >> $LOG_FILE 2>&1
+         if [ "$?" -ne 0 ]; then
+            LOG_ERROR "Edit Provider Path Failed..."
+            start_fail
+         fi
+
+         ruby -ryaml -rYAML -I "/usr/share/openclash" -E UTF-8 -e "
+            begin
+               Value = YAML.load_file('$TMP_CONFIG_FILE')
+               raise 'Config root must be a non-empty mapping' unless Value.is_a?(Hash) && !Value.empty?
+            rescue Exception => e
+               YAML.LOG_ERROR('Runtime Config Validation Failed,【%s】' % [e.message])
+               exit 1
+            end
+         " >> $LOG_FILE 2>&1
+         if [ "$?" -ne 0 ] || [ ! -s "$TMP_CONFIG_FILE" ]; then
+            LOG_ERROR "Runtime Config Validation Failed..."
+            start_fail
+         fi
       else
          LOG_OUT "Step 3: Quick Start Mode, Skip Modify The Config File..."
       fi

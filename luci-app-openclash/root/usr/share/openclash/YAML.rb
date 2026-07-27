@@ -60,20 +60,15 @@ module YAML
 	end
 
 	def self.dump(obj, io = nil, **options)
+		public_key = options.delete(:public)
+		fname = options.delete(:filename)
 		yaml_content = original_dump(obj, **options)
 		processed = yaml_content.include?('short-id:') ? fix_short_id_quotes(yaml_content) : yaml_content
-		public_key = nil
-		fname = nil
-		if options.key?(:public)
-			public_key = options.delete(:public)
-		end
 
 		if (!public_key || public_key.to_s.strip == "")
-			if options.key?(:filename)
-				fname = options.delete(:filename)
-			elsif io && io.respond_to?(:path)
+			if (!fname || fname.to_s.strip == "") && io && io.respond_to?(:path)
 				fname = io.path
-			elsif io && io.respond_to?(:to_path)
+			elsif (!fname || fname.to_s.strip == "") && io && io.respond_to?(:to_path)
 				fname = io.to_path
 			end
 
@@ -114,6 +109,63 @@ module YAML
 		end
 	end
 
+	def self.dump_file(filename, obj, **options)
+		target = filename.to_s
+		raise ArgumentError, "filename is empty" if target.strip.empty?
+
+		content = dump(obj, nil, **options.merge(filename: target))
+		unless content.is_a?(String) && !content.empty?
+			raise "refusing to replace [#{target}] with empty YAML content"
+		end
+
+		# Keep the logical filename for AGE key lookup, but do not replace user-managed symlinks.
+		destination = File.symlink?(target) ? File.realpath(target) : target
+		stat = File.stat(destination) if File.exist?(destination)
+		mode = stat ? stat.mode & 07777 : 0666
+		temporary_base = File.join(
+			File.dirname(destination),
+			".#{File.basename(destination)}.tmp.#{Process.pid}.#{Thread.current.object_id}"
+		)
+		temporary = nil
+
+		begin
+			100.times do |attempt|
+				candidate = "#{temporary_base}.#{attempt}"
+				begin
+					File.open(candidate, File::WRONLY | File::CREAT | File::EXCL, mode) do |file|
+						temporary = candidate
+						file.write(content)
+						file.flush
+						begin
+							file.fsync
+						rescue SystemCallError, NotImplementedError
+						end
+					end
+					break
+				rescue Errno::EEXIST
+					next
+				end
+			end
+			raise "unable to create temporary YAML file for [#{target}]" unless temporary
+
+			raise "temporary YAML file is empty: [#{temporary}]" unless File.size?(temporary)
+
+			if stat
+				begin
+					File.chmod(stat.mode & 07777, temporary)
+					File.chown(stat.uid, stat.gid, temporary)
+				rescue SystemCallError, NotImplementedError
+				end
+			end
+
+			File.rename(temporary, destination)
+		ensure
+			File.delete(temporary) if temporary && File.exist?(temporary)
+		end
+
+		target
+	end
+
 	def self.popen_stream(cmd, input, chunk_size: 64 * 1024)
 		output = String.new
 		IO.popen(cmd, 'r+', err: [:child, :out]) do |io|
@@ -144,10 +196,16 @@ module YAML
 	end
 
 	def self.decode64(input)
-		first_line = input.each_line.find { |l| !l.strip.empty? } || ""
-		return input if !first_line.strip.match?(/\A[A-Za-z0-9+\/=]+\z/)
-		out, status = popen_stream(["base64", "-d"], input)
-		status.success? ? out : input
+		first_line = input.each_line.find { |line| !line.strip.empty? } || ""
+		return input unless first_line.strip.match?(/\A[A-Za-z0-9+\/=]+\z/)
+
+		encoded = input.delete(" \t\r\n")
+		return input if encoded.empty?
+		return input unless encoded.match?(/\A[A-Za-z0-9+\/]+={0,2}\z/)
+		return input if encoded.length % 4 == 1
+
+		out, status = popen_stream(["base64", "-d"], encoded)
+		status.success? && !out.empty? ? out : input
 	rescue Errno::ENOENT
 		input
 	end
@@ -158,18 +216,41 @@ module YAML
 		publics = []
 		secrets = []
 
-		[basename, basename_no_ext].uniq.each do |n|
-			cmd_public = ["/bin/sh", "-c", ". /usr/share/openclash/uci.sh; uci_get_age_public_keys \"$1\"", "sh", n]
-			IO.popen(cmd_public, "r") do |io|
-				io.each_line { |l| publics << l.strip unless l.nil? || l.strip == "" }
-			end
+		names = [basename, basename_no_ext].uniq
+		uci_path = "/etc/config/openclash"
+		return { publics: publics, secrets: secrets } unless File.file?(uci_path)
 
-			cmd_secret = ["/bin/sh", "-c", ". /usr/share/openclash/uci.sh; uci_get_age_secret_keys \"$1\"", "sh", n]
-			IO.popen(cmd_secret, "r") do |io|
-				io.each_line { |l| secrets << l.strip unless l.nil? || l.strip == "" }
+		# Avoid forking /bin/sh while Psych is holding the expanded YAML graph.
+		section_type = nil
+		options = {}
+		flush_section = lambda do
+			if section_type == "config_age_secret" && names.include?(options["name"])
+				publics << options["public"] if options["public"] && !options["public"].empty?
+				secrets << options["secret"] if options["secret"] && !options["secret"].empty?
 			end
 		end
+
+		File.foreach(uci_path, mode: "r:bom|utf-8") do |line|
+			clean = line.strip
+			next if clean.empty? || clean.start_with?("#")
+
+			if match = clean.match(/\Aconfig\s+(['"]?)([^\s'"]+)\1(?:\s+.*)?\z/)
+				flush_section.call
+				section_type = match[2]
+				options = {}
+			elsif section_type && (match = clean.match(/\Aoption\s+([^\s]+)\s+(.+)\z/))
+				value = match[2].strip
+				if value.length >= 2 && ((value.start_with?("'") && value.end_with?("'")) ||
+				                         (value.start_with?('"') && value.end_with?('"')))
+					value = value[1...-1]
+				end
+				options[match[1]] = value
+			end
+		end
+		flush_section.call
 		{ publics: publics, secrets: secrets }
+	rescue SystemCallError, EncodingError
+		{ publics: [], secrets: [] }
 	end
 
 	def self.decrypt_content_with_secret(secret, content)
